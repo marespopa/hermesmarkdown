@@ -18,15 +18,15 @@ export default function PrivacyPolicy() {
         <p>
           For purposes of this Agreement, &ldquo;Site&rdquo; refers to the
           Company&rsquo;s website, accessible at{" "}
-          <a href="https://hermesmd.netlify.app">hermesmd.netlify.app</a>.
+          <a href="https://hermesmarkdown.com">hermesmarkdown.com</a>.
           &ldquo;Service&rdquo; refers to the Company&rsquo;s services accessed
           via the Site, including users&rsquo; ability to send an email to
           obtain a quote. The terms &ldquo;we,&rdquo; &ldquo;us,&rdquo; and
           &ldquo;our&rdquo; refer to the Company. &ldquo;You&rdquo; refers to
           you, as a user of our Site or Service. By accessing our Site or
           Service, you accept our Privacy Policy and Terms of Use (found here:{" "}
-          <a href="https://hermesmd.netlify.app/privacy-policy">
-            https://hermesmd.netlify.app/privacy-policy
+          <a href="https://hermesmarkdown.com/privacy-policy">
+            https://hermesmarkdown.com/privacy-policy
           </a>
           ), and you consent to our collection, storage, use, and disclosure of
           your Personal Information as described in this Privacy Policy.

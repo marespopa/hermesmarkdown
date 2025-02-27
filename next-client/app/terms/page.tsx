@@ -14,7 +14,7 @@ export default function TermsAndConditions({}: Props) {
           an integral part hereof, as amended from time to time (these “Terms”)
           constitute a legally binding agreement as of the Effective Date (as
           defined below), governing your access to, and the use of
-          www.hermesmd.netlify.app and any related website owned or operated by
+          www.hermesmarkdown.com and any related website owned or operated by
           Hermes Markdown (the “Sites”), and the use of, and registration with,
           Hermes Markdown Service (defined below) through the Sites, a mobile
           application or through any other means.
@@ -26,12 +26,12 @@ export default function TermsAndConditions({}: Props) {
           safeguard the information you provide to us and to assist you in
           making informed decisions when using our Service. For purposes of this
           Agreement, “Site” refers to the Company’s website, which can be
-          accessed at hermesmd.netlify.app “Service” refers to the Company’s
+          accessed at hermesmarkdown.com “Service” refers to the Company’s
           services accessed via the Site, in which users can send an email in
           order to obtain a quote. The terms “we,” “us,” and “our” refer to the
           Company. “You” refers to you, as a user of our Site or our Service. By
           accessing our Site or our Service, you accept our Privacy Policy and
-          Terms of Use (found here: https://hermesmd.netlify.app/terms), and you
+          Terms of Use (found here: https://hermesmarkdown.com/terms), and you
           consent to our collection, storage, use and disclosure of your
           Personal Information as described in this Privacy Policy.
         </p>

@@ -17,7 +17,7 @@ export default function Prices() {
     2. Item 2
     3. Item 3`,
     },
-    links: `[Visit Hermes Markdown](https://hermesmd.netlify.app/)`,
+    links: `[Visit Hermes Markdown](https://hermesmarkdown.com/)`,
     images: `![Alt Text](Image URL)`,
     codeBlocks: `~~~
     console.log("Hello, world!")

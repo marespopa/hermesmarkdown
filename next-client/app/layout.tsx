@@ -2,7 +2,7 @@ import "./globals.scss";
 import MainPage from "./components/MainPage";
 
 export const metadata = {
-  metadataBase: "https://hermesmd.netlify.app/",
+  metadataBase: "https://hermesmarkdown.com/",
   title: "Hermes Markdown",
   description: "A free to use, online markdown editor",
   applicationName: "Hermes Markdown",
@@ -13,12 +13,12 @@ export const metadata = {
   openGraph: {
     title: "Hermes Markdown",
     description: "A free to use, online markdown editor",
-    url: "https://hermesmd.netlify.app/",
+    url: "https://hermesmarkdown.com/",
     siteName: "Hermes Markdown",
     locale: "en_US",
     type: "website",
     images: {
-      url: "https://hermesmd.netlify.app/_ipx/w_640,q_75/%2Fassets%2Fhero%2Fniceday%402x.jpg?url=%2Fassets%2Fhero%2Fniceday%402x.jpg&w=640&q=75",
+      url: "https://hermesmarkdown.com/_ipx/w_640,q_75/%2Fassets%2Fhero%2Fniceday%402x.jpg?url=%2Fassets%2Fhero%2Fniceday%402x.jpg&w=640&q=75",
       width: 640,
     },
   },

@@ -6,7 +6,7 @@ export const defaultMeta = {
   title: "Hermes Markdown - Markdown Editor",
   siteName: "Hermes Markdown",
   description: `Hermes Markdown - Free online markdown editor. Start from scratch, or use a template, or even open your own markdown file! Easily export your notes to markdown or PDF with maximum privacy, as all data is stored locally, on your computer.`,
-  url: "https://hermesmd.netlify.app",
+  url: "https://hermesmarkdown.com",
   type: "website",
   robots: "follow, index",
 };
