@@ -1,11 +1,9 @@
 "use-client";
 
 import Head from "next/head";
-import Script from "next/script";
-import { ComponentPropsWithoutRef } from "react";
 
 export const defaultMeta = {
-  title: "Hermes Markdown - Markdown Notes",
+  title: "Hermes Markdown - Markdown Editor",
   siteName: "Hermes Markdown",
   description: `Hermes Markdown - Free online markdown editor. Start from scratch, or use a template, or even open your own markdown file! Easily export your notes to markdown or PDF with maximum privacy, as all data is stored locally, on your computer.`,
   url: "https://hermesmd.netlify.app",
@@ -58,41 +56,9 @@ export default function Seo(props: SeoProps) {
           <meta name="author" property="article:author" content="Mares Popa" />
         </>
       )}
-
-      {/* Favicons */}
-      {favicons.map((linkProps) => (
-        <link key={linkProps.href} {...linkProps} />
-      ))}
       <meta name="msapplication-TileColor" content="#ffffff" />
       <meta name="msapplication-config" content="/favicon/browserconfig.xml" />
       <meta name="theme-color" content="#ffffff" />
     </Head>
   );
 }
-
-const favicons: Array<ComponentPropsWithoutRef<"link">> = [
-  {
-    rel: "apple-touch-icon",
-    sizes: "180x180",
-    href: "/favicon/apple-touch-icon.png",
-  },
-  {
-    rel: "icon",
-    type: "image/png",
-    sizes: "32x32",
-    href: "/favicon/favicon-32x32.png",
-  },
-  {
-    rel: "icon",
-    type: "image/png",
-    sizes: "16x16",
-    href: "/favicon/favicon-16x16.png",
-  },
-  { rel: "manifest", href: "/favicon/site.webmanifest" },
-  {
-    rel: "mask-icon",
-    href: "/favicon/safari-pinned-tab.svg",
-    color: "#0044DE",
-  },
-  { rel: "shortcut icon", href: "/favicon/favicon.ico" },
-];

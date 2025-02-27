@@ -16,9 +16,6 @@ const Navbar = () => {
   const [isNavigationVisible, setIsNavigationVisible] = useState(false);
   const [mounted, setMounted] = useState(false);
   const isMobile = useIsMobile();
-  const [content] = useAtom(atom_content);
-  const path =
-    content && content.length > 0 ? "/dashboard/editor" : "dashboard";
 
   useEffect(() => {
     setMounted(true);
@@ -44,18 +41,8 @@ const Navbar = () => {
           <Image priority src={logo} alt="Hermes Markdown" width={200} />
         </Link>
 
-        {/* Mobile Editor Link */}
-        {isMobile && (
-          <Link
-            className={`text-white rounded-sm transition ease-in-out p-2 bg-emerald-600 hover:bg-emerald-700 focus:bg-emerald-700`}
-            href={path}
-          >
-            App
-          </Link>
-        )}
-
         {/*Menu Hamburg*/}
-        <div className="md:hidden mr-4">
+        <div className="lg:hidden mr-4">
           <button onClick={toggleNav}>
             <FaBars />
           </button>

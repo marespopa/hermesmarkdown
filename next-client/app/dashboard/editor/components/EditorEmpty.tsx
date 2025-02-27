@@ -84,7 +84,6 @@ export default function EditorEmpty() {
 
   function renderMobileView() {
     return (
-      <div>
         <article className="my-8">
           {/* Enhanced Header */}
           <h2 className="text-2xl leading-tight text-center mb-4">
@@ -225,7 +224,6 @@ export default function EditorEmpty() {
             />
           )}
         </article>
-      </div>
     );
   }
 

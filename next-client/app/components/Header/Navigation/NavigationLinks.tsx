@@ -9,9 +9,6 @@ type Props = {};
 
 export default function NavigationLinks({}: Props) {
   const [content] = useAtom(atom_content);
-  const path =
-    content && content.length > 0 ? "/dashboard/editor" : "dashboard";
-
   return (
     <nav className="ml-auto">
       <ul className="flex flex-col md:flex-row space-x-4 gap-8 items-center">
@@ -23,9 +20,6 @@ export default function NavigationLinks({}: Props) {
         </li>
         <li>
           <NavigationLink label="FAQ" href="/faq" />
-        </li>
-        <li>
-          <NavigationLink label="App" href={path} isEmphasized={true} />
         </li>
       </ul>
     </nav>
