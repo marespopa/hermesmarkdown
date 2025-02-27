@@ -177,7 +177,6 @@ export default function EditorHeader({
               {renderFileMenu()}
               {renderEditMenu()}
               {renderHelpMenu()}
-              <EditorPreviewTrigger />
               <Button variant="primary" label="Save As" handler={exportToMD} />
             </div>
           )}

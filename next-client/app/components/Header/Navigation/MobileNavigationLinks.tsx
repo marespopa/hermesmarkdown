@@ -27,8 +27,8 @@ export default function MobileNavigationLinks({ handleClose }: Props) {
         </li>
         <li>
           <NavigationLink
-            label="Pricing"
-            href="/pricing"
+            label="FAQ"
+            href="/faq"
             action={handleClose}
           />
         </li>

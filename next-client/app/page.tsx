@@ -1,5 +1,12 @@
-import LandingPage from "./components/LandingPage/LandingPage.component";
+"use client";
 
-export default function Home() {
-  return <LandingPage />;
+import { containerStyle } from "@/app/constants/styles";
+import EditorEmpty from "./dashboard/editor/components/EditorEmpty";
+
+export default function AppPage() {
+  return (
+    <div className={containerStyle}>
+      <EditorEmpty />
+    </div>
+  );
 }

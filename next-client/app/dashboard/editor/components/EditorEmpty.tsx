@@ -11,15 +11,15 @@ import {
 import Loading from "@/app/components/Loading";
 import matter from "gray-matter";
 import toast from "react-hot-toast";
-import InfoPanel from "../../components/InfoPanel";
 import TemplateSelectionModal from "../../templates/TemplateSelectionModal";
 import { StatusResponse } from "@/app/services/save-utils";
 import Button from "@/app/components/Button";
 import FileInput from "@/app/components/FileInput";
-import { FaFile, FaFileAlt, FaFolderOpen } from "react-icons/fa";
+import { FaPlay, FaFile, FaFileAlt, FaFolderOpen } from "react-icons/fa";
 import Badge from "@/app/components/Badges/Badge";
 import useIsMobile from "@/app/hooks/use-is-mobile";
 import { EMPTY_PAGE_TEMPLATE } from "../EditorUtils";
+import InfoPanelPlain from "../../components/InfoPanelPlain";
 
 export const PICKER_OPTIONS: OpenFilePickerOptions = {
   types: [
@@ -39,7 +39,7 @@ export default function EditorEmpty() {
   const [, setFrontMatter] = useAtom(atom_frontMatter);
   const [hasExistingFile, setHasExistingFile] = useState(false);
   const [content, setContent] = useAtom(atom_content);
-  const [, setContentEdited] = useAtom(atom_contentEdited);
+  const [contentEdited, setContentEdited] = useAtom(atom_contentEdited);
 
   const [isLoading, setIsLoading] = useState(false);
   const [isFileInputVisible, setIsFileInputVisible] = useState(false);
@@ -59,12 +59,10 @@ export default function EditorEmpty() {
   }, []);
 
   useEffect(() => {
-    if (content && content?.length > 0) {
-      setHasExistingFile(true);
-    } else {
-      setHasExistingFile(false);
-    }
-  }, [content]);
+    const hasContent = contentEdited?.length > 0 || content?.length > 0;
+  
+    setHasExistingFile(hasContent);
+  }, [content, contentEdited]);
 
   if (!mounted) {
     return <></>;
@@ -106,7 +104,7 @@ export default function EditorEmpty() {
                   handler={() => router.push("/dashboard/editor")}
                   label={
                     <span>
-                      <i className="fa fa-file mr-2"></i> Continue Last Session
+                      <i className="fa fa-play mr-2"></i> Continue
                     </span>
                   }
                 />
@@ -268,6 +266,7 @@ export default function EditorEmpty() {
   function renderActions() {
     return (
       <section className="flex gap-4 lg:gap-8 mb-4">
+        {hasExistingFile && renderContinueOption()}
         {renderNewFileOption()}
         {renderSelectTemplateOption()}
         {renderImportFileOption()}
@@ -275,16 +274,37 @@ export default function EditorEmpty() {
     );
   }
 
+  function renderContinueOption() {
+    return (
+      <div className={panelStyle}>
+        <InfoPanelPlain
+          title={
+            <span className="flex gap-2 items-center">
+              <FaPlay />
+              Continue
+            </span>
+          }
+          description={`It seems you have some data stored from the last time you used the app.`}
+          action={{
+            label: "Continue",
+            handler: () => router.push("/dashboard/editor"),
+            disabled: false,
+          }}
+        />
+      </div>
+    );
+  }
+
   function renderSelectTemplateOption() {
     return (
       <div className={panelStyle}>
-        <InfoPanel
+        <InfoPanelPlain
           isHighlighted={true}
           title={
             <span className="flex flex-col items-start">
               <Badge variant="success" label="Recommended" />
               <span className="flex gap-2 items-center">
-                <FaFileAlt /> Start with a Template
+                <FaFileAlt /> New from Template
               </span>
             </span>
           }
@@ -315,11 +335,11 @@ export default function EditorEmpty() {
   function renderNewFileOption() {
     return (
       <div className={panelStyle}>
-        <InfoPanel
+        <InfoPanelPlain
           title={
             <span className="flex gap-2 items-center">
               <FaFile />
-              Start from scratch
+              New File
             </span>
           }
           description={`Begin with an empty document`}
@@ -336,11 +356,11 @@ export default function EditorEmpty() {
   function renderImportFileOption() {
     return (
       <div className={panelStyle}>
-        <InfoPanel
+        <InfoPanelPlain
           title={
             <span className="flex gap-2 items-center">
               <FaFolderOpen />
-              Import existing file
+              Import File
             </span>
           }
           description={`Edit your existing markdown file`}
@@ -470,4 +490,4 @@ export default function EditorEmpty() {
   }
 }
 
-const panelStyle = "flex-1 w-1/3";
+const panelStyle = "flex-1";

@@ -22,7 +22,7 @@ export default function NavigationLinks({}: Props) {
           <NavigationLink label="Learn Markdown" href="/documentation" />
         </li>
         <li>
-          <NavigationLink label="Pricing" href="/pricing" />
+          <NavigationLink label="FAQ" href="/faq" />
         </li>
         <li>
           <NavigationLink label="App" href={path} isEmphasized={true} />

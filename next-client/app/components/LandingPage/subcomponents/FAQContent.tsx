@@ -8,6 +8,10 @@ export default function FAQContent() {
         "Hermes Markdown is a modern markdown editor designed for privacy. It operates entirely offline, ensuring your data stays secure and local.",
     },
     {
+      question: "Is it free?",
+      answer: "Hermes Markdown is 100% free. It is designed as a completely free tool, created to help you work with Markdown effortlessly, without any cost."
+    },
+    {
       question: "Does Hermes Markdown store my data in the cloud?",
       answer:
         "No, Hermes Markdown does not store any data in the cloud. All your content stays on your device.",
