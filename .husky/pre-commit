@@ -9,4 +9,4 @@ npm run lint
 
 # Run related tests based on changed files
 echo "🧪 Running related tests..."
-npm run test:related 
+npm run test:related

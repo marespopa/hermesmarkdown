@@ -13,7 +13,8 @@
     "test": "jest",
     "cypress:open": "cypress open",
     "cypress:run": "cypress run",
-    "test:related": "node scripts/run-related-tests.js"
+    "test:related": "node scripts/run-related-tests.js",
+    "prepare": "husky"
   },
   "dependencies": {
     "@notable/html2markdown": "^2.0.3",
@@ -69,10 +70,5 @@
   "overrides": {
     "@types/react": "19.0.12",
     "@types/react-dom": "19.0.4"
-  },
-  "husky": {
-    "hooks": {
-      "pre-commit": "npm run lint && npm run test:related"
-    }
   }
 }
