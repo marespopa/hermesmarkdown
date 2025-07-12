@@ -5,8 +5,8 @@ This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next
 First, run the development server:
 
 ```bash
-yarn dev
-yarn build
+npm run dev
+npm run build
 ```
 
 ## Learn More
