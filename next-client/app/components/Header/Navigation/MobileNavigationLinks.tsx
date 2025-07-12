@@ -14,7 +14,7 @@ type Props = {
 export default function MobileNavigationLinks({ handleClose }: Props) {
   return (
     <nav
-      className={`backdrop-blur	w-full h-full left-0 bg-amber-200 pt-2 pb-4 flex-grow fixed top-0 flex items-center justify-center`}
+      className={`backdrop-blur w-full h-full left-0 bg-amber-200 dark:bg-gray-800 pt-2 pb-4 flex-grow fixed top-0 flex items-center justify-center`}
     >
       <ul className="pt-2 flex flex-col gap-2 items-center w-full">
         <li className={listItemStyle}>
@@ -36,7 +36,7 @@ export default function MobileNavigationLinks({ handleClose }: Props) {
               e.preventDefault();
               handleClose();
             }}
-            className={"flex gap-2 items-center justify-center outline-none w-full"}
+            className={"flex gap-2 items-center justify-center outline-none w-full text-gray-900 dark:text-gray-100"}
           >
             <span>Close Menu</span> <FaTimesCircle />
           </button>
@@ -46,4 +46,4 @@ export default function MobileNavigationLinks({ handleClose }: Props) {
   );
 }
 
-const listItemStyle = `bg-amber-400 py-2 w-full text-center`;
+const listItemStyle = `bg-amber-400 dark:bg-gray-700 py-2 w-full text-center`;

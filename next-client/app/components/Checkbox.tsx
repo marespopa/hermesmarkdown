@@ -22,12 +22,12 @@ const Checkbox = ({
           name={name}
           checked={checked}
           onChange={handleChange}
-          className="rounded-sm border-2 border-gray-300 accent-emerald-800 :ring-1 focus:ring-emerald-500 bg-white"
+          className="rounded-sm border-2 border-gray-300 dark:border-gray-600 accent-emerald-800 :ring-1 focus:ring-emerald-500 bg-white dark:bg-gray-800"
           aria-label={label}
         />
-        <span className="text-gray-600 text-sm">{label}</span>
+        <span className="text-gray-600 dark:text-gray-300 text-sm">{label}</span>
       </label>
-      {helperText && <p className="text-gray-500  text-xs">{helperText}</p>}
+      {helperText && <p className="text-gray-500 dark:text-gray-400 text-xs">{helperText}</p>}
     </div>
   );
 };

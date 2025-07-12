@@ -124,18 +124,18 @@ export default function EditorHeader({
   return (
     <>
       <div
-        className={`bg-amber-100 p-4 ${
+        className={`bg-amber-100 dark:bg-gray-800 p-4 ${
           isMobile ? "mt-4" : "mt-8"
         } flex flex-col md:flex-row justify-between rounded-t-lg`}
       >
         <div className="flex gap-2 flex-col">
-          <h1 className="text-3xl leading-tight flex gap-2 items-center">
+          <h1 className="text-3xl leading-tight flex gap-2 items-center text-gray-900 dark:text-white">
             <span>{hasTitle && `${fileTitle}`}</span>
             <span className="cursor-pointer" onClick={showFileDialog}>
               <PenIcon tooltip="File Settings" size={16} alt="Edit Title" />
             </span>
           </h1>
-          <h2 className="text-sm leading-tight">{`${
+          <h2 className="text-sm leading-tight text-gray-700 dark:text-gray-300">{`${
             fileName?.endsWith(".md") ? fileName : fileName + ".md"
           }`}</h2>
         </div>
@@ -144,7 +144,7 @@ export default function EditorHeader({
           <span
             className={`${
               hasChanges ? "visible" : "invisible"
-            } text-xs my-2 text-gray-600`}
+            } text-xs my-2 text-gray-600 dark:text-gray-400`}
           >
             You have unsaved changes.
           </span>
@@ -172,7 +172,7 @@ export default function EditorHeader({
           {isFabMenuOpen && (
             <div
               ref={fabMenuRef}
-              className="fixed top-16 right-4 rounded-sm shadow-sm p-2 flex flex-col flex-wrap space-y-4 w-[164px] bg-white border border-gray-200 rounded shadow-sm z-10"
+              className="fixed top-16 right-4 rounded-sm shadow-sm p-2 flex flex-col flex-wrap space-y-4 w-[164px] bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded shadow-sm z-10"
             >
               {renderFileMenu()}
               {renderEditMenu()}
@@ -198,11 +198,7 @@ export default function EditorHeader({
   function renderEditMenu() {
     return (
       <DropdownMenu
-        label={
-          <span className="flex gap-2 items-center">
-            Edit <FaCaretDown />
-          </span>
-        }
+        label="Edit"
         options={editMenuOptions}
       />
     );
@@ -211,11 +207,7 @@ export default function EditorHeader({
   function renderHelpMenu() {
     return (
       <DropdownMenu
-        label={
-          <span className="flex gap-2 items-center">
-            Help <FaCaretDown />
-          </span>
-        }
+        label="Help"
         options={helpMenuOptions}
       />
     );
@@ -224,11 +216,7 @@ export default function EditorHeader({
   function renderFileMenu() {
     return (
       <DropdownMenu
-        label={
-          <span className="flex gap-2 items-center">
-            File <FaCaretDown />
-          </span>
-        }
+        label="File"
         options={fileMenuOptions}
       />
     );

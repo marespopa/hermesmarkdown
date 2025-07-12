@@ -2,6 +2,7 @@
 
 import { Provider as JotaiProvider } from "jotai";
 import React from "react";
+import ThemeProvider from "./ThemeProvider";
 
 type Props = {
   children: React.ReactNode;
@@ -10,7 +11,9 @@ type Props = {
 const CustomProviders = ({ children }: Props) => {
   return (
     <JotaiProvider>
-      {children}
+      <ThemeProvider>
+        {children}
+      </ThemeProvider>
     </JotaiProvider>
   );
 };

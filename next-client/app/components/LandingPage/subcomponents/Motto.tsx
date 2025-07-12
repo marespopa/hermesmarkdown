@@ -8,7 +8,7 @@ export default function Motto() {
   const router = useRouter();
 
   return (
-    <div className={`${containerStyle} bg-gray-100 rounded-sm shadow-sm`}>
+    <div className={`${containerStyle} bg-gray-100 dark:bg-gray-800 rounded-sm shadow-sm`}>
       <section className="text-center w-1/2 mx-auto mb-4 py-8">
         <h3 className="text-2xl">
         Edit Markdown files effortlessly while keeping your data secure.

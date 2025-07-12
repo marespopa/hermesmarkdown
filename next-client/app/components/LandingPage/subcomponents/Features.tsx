@@ -1,13 +1,13 @@
 export default function Features() {
   return (
-    <section className="py-16 bg-white">
-      <div className="max-w-7xl mx-auto px-4 text-center prose prose-gray">
+    <section className="py-16 bg-white dark:bg-gray-900">
+      <div className="max-w-7xl mx-auto px-4 text-center prose prose-gray dark:prose-invert">
         <h2 className="text-3xl font-semibold mb-8">
           Why Choose Hermes Markdown?
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div
-            className={`bg-amber-100 rounded-sm py-8 px-6  hover:scale-105 focus:scale-105`}
+            className={`bg-amber-100 dark:bg-gray-800 rounded-sm py-8 px-6 hover:scale-105 focus:scale-105`}
           >
             <h3 className="text-xl font-bold mb-4">Privacy First</h3>
             <p>
@@ -16,7 +16,7 @@ export default function Features() {
             </p>
           </div>
           <div
-            className={`bg-amber-100 rounded-sm py-8 px-6  hover:scale-105 focus:scale-105`}
+            className={`bg-amber-100 dark:bg-gray-800 rounded-sm py-8 px-6 hover:scale-105 focus:scale-105`}
           >
             <h3 className="text-xl font-bold mb-4">Modern Interface</h3>
             <p>
@@ -25,7 +25,7 @@ export default function Features() {
             </p>
           </div>
           <div
-            className={`bg-amber-100 rounded-sm py-8 px-6  hover:scale-105 focus:scale-105`}
+            className={`bg-amber-100 dark:bg-gray-800 rounded-sm py-8 px-6 hover:scale-105 focus:scale-105`}
           >
             <h3 className="text-xl font-bold mb-4">Real-Time Preview</h3>
             <p>See your markdown beautifully rendered as you type.</p>

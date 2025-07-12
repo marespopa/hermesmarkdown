@@ -98,7 +98,7 @@ const TemplateSelectionModal = ({ isOpen, handleClose }: Props) => {
             className={`px-3 py-1 rounded-sm text-sm ${
               selectedTag === tag
                 ? "bg-emerald-600 text-white"
-                : "bg-gray-200 text-gray-800"
+                : "bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200"
             }`}
             onClick={() => {
               // Deselect
@@ -130,8 +130,8 @@ const TemplateSelectionModal = ({ isOpen, handleClose }: Props) => {
   function renderModalHeader() {
     return (
       <div className="mb-4">
-        <h2 className="text-xl font-bold text-gray-800">Select a Template</h2>
-        <p className="text-sm text-gray-600">
+        <h2 className="text-xl font-bold text-gray-800 dark:text-gray-200">Select a Template</h2>
+        <p className="text-sm text-gray-600 dark:text-gray-400">
           Choose from pre-built templates to get started quickly.
         </p>
       </div>
@@ -143,7 +143,7 @@ const TemplateSelectionModal = ({ isOpen, handleClose }: Props) => {
       <div className="mb-4 max-w-[450px]">
         <input
           type="text"
-          className="w-full px-4 py-3 border border-gray-300 rounded-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-emerald-500 text-sm text-gray-700 placeholder-gray-500"
+          className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-emerald-500 text-sm text-gray-700 dark:text-gray-300 placeholder-gray-500 dark:placeholder-gray-400 bg-white dark:bg-gray-700"
           placeholder="Search templates by name or tag..."
           value={searchTerm}
           onChange={(e: FormEvent<HTMLInputElement>) => {
@@ -160,7 +160,7 @@ const TemplateSelectionModal = ({ isOpen, handleClose }: Props) => {
   function renderTemplates() {
     if (!filteredTemplates || !filteredTemplates.length) {
       return (
-        <div className="text-center py-4 text-gray-600">
+        <div className="text-center py-4 text-gray-600 dark:text-gray-400">
           No templates found. Try adjusting your search terms.
         </div>
       );
@@ -181,7 +181,7 @@ const TemplateSelectionModal = ({ isOpen, handleClose }: Props) => {
     return (
       <div
         key={template.filename}
-        className={`p-4 rounded-sm shadow-sm bg-slate-100 hover:bg-amber-100 focus:bg-amber-100`}
+        className={`p-4 rounded-sm shadow-sm bg-slate-100 dark:bg-gray-800 hover:bg-amber-100 dark:hover:bg-gray-700 focus:bg-amber-100 dark:focus:bg-gray-700`}
       >
         {/* Tags */}
         <div className="flex flex-wrap gap-2">
@@ -189,12 +189,12 @@ const TemplateSelectionModal = ({ isOpen, handleClose }: Props) => {
         </div>
 
         {/* Title */}
-        <h3 className="font-bold text-gray-800 text-base mt-6">
+        <h3 className="font-bold text-gray-800 dark:text-gray-200 text-base mt-6">
           {template.frontMatter.title}
         </h3>
 
         {/* Description */}
-        <p className="text-sm text-gray-600 mt-2">
+        <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
           {template.frontMatter.description}
         </p>
 

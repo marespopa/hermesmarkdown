@@ -16,7 +16,7 @@ export default function Footer() {
     <ClientOnly>
       <footer
         data-testid="GlobalFooter"
-        className="py-2 md:py-4 bg-gray-900 text-gray-300 text-xs"
+        className="py-2 md:py-4 bg-gray-900 dark:bg-black text-gray-300 text-xs"
       >
         <div className="container max-w-screen-xl mx-auto px-4 md:px-2">
           <div className="flex flex-col md:flex-row justify-between w-full items-center">
@@ -34,35 +34,26 @@ export default function Footer() {
                 .
               </span>
             </div>
-            <nav className="mx-auto max-w-screen-md py-4">
-              <ul className="flex flex-col items-center divide-y text-center text-sm text-gray-600 sm:flex-row sm:space-x-4 sm:divide-y-0 sm:divide-x">
-                <li className="py-2 sm:py-0">
-                  <Link className={linkStyle} href={"/terms"}>
-                    Terms of Service
-                  </Link>
-                </li>
-                <li className="py-2 sm:py-0 sm:pl-4">
-                  <Link className={linkStyle} href={"/privacy-policy"}>
-                    Privacy Policy
-                  </Link>
-                </li>
-                <li className="py-2 sm:py-0 sm:pl-4">
-                  <Link
-                    className={linkStyle}
-                    target="_top"
-                    href="mailto:office@marespopa.com"
-                  >
-                    Feedback
-                  </Link>
-                </li>
-              </ul>
-            </nav>
-            <ProductHuntBadge />
+            <div className="flex flex-col gap-4">
+              <ProductHuntBadge />
+              <div className="flex gap-4">
+                <Link
+                  href="/privacy-policy"
+                  className="hover:text-gray-100 transition-colors"
+                >
+                  Privacy Policy
+                </Link>
+                <Link
+                  href="/terms"
+                  className="hover:text-gray-100 transition-colors"
+                >
+                  Terms of Service
+                </Link>
+              </div>
+            </div>
           </div>
         </div>
       </footer>
     </ClientOnly>
   );
 }
-
-const linkStyle = `text-gray-300 hover:text-white focus:text-white md:focus:underline md:hover:underline`;

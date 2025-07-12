@@ -1,14 +1,17 @@
-import React, { JSX, useEffect, useRef, useState } from "react";
+"use client";
+
+import React, { useEffect, useRef, useState } from "react";
 import Button from "../Button";
+import { FaCaretDown } from "react-icons/fa";
 
 type DropdownOption = {
-  action: () => void;
   label: string;
+  action: () => void;
 };
 
 type Props = {
-  label: string | JSX.Element;
-  options: Array<DropdownOption>;
+  label: string;
+  options: DropdownOption[];
 };
 
 const DropdownMenu = ({ label, options }: Props) => {
@@ -44,15 +47,19 @@ const DropdownMenu = ({ label, options }: Props) => {
   return (
     <div className="relative inline-block" ref={dropdownRef}>
       <Button variant="secondary" handler={toggleDropdown}>
-        {label}
+        {label === "File" ? (
+          <span className="flex items-center gap-2">{label} <FaCaretDown /></span>
+        ) : (
+          label
+        )}
       </Button>
       {isOpen && (
-        <div className="absolute -left-1 mt-2 bg-white border border-gray-200 rounded shadow-sm z-10">
+        <div className="absolute -left-1 mt-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded shadow-sm z-10">
           {options.map((option) => (
             <button
               key={option.label}
               onClick={() => handleOptionClick(option)}
-              className="w-full inline px-4 py-2 text-left text-gray-700 hover:bg-gray-100 text-sm whitespace-nowrap"
+              className="w-full inline px-4 py-2 text-left text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 text-sm whitespace-nowrap"
             >
               {option.label}
             </button>

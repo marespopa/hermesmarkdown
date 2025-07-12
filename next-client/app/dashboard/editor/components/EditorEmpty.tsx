@@ -86,15 +86,15 @@ export default function EditorEmpty() {
     return (
         <article className="my-8">
           {/* Enhanced Header */}
-          <h2 className="text-2xl leading-tight text-center mb-4">
+          <h2 className="text-2xl leading-tight text-center mb-4 text-gray-900 dark:text-white">
             🚀 Let&apos;s get started!
           </h2>
-          <p className="text-sm text-gray-600 text-center mb-6">
+          <p className="text-sm text-gray-600 dark:text-gray-400 text-center mb-6">
             Choose an option below to begin working with Hermes Markdown.
           </p>
 
           {/* Buttons Section for Mobile View */}
-          <div className="prose  flex flex-col gap-4 mx-auto">
+          <div className="prose dark:prose-invert flex flex-col gap-4 mx-auto">
             {/* Continue File Button */}
             {hasExistingFile && (
               <div className="flex flex-col items-center">
@@ -107,7 +107,7 @@ export default function EditorEmpty() {
                     </span>
                   }
                 />
-                <p className="text-xs text-center text-gray-500 mt-1">
+                <p className="text-xs text-center text-gray-500 dark:text-gray-400 mt-1">
                   Continue from where you left off.
                 </p>
               </div>
@@ -129,8 +129,9 @@ export default function EditorEmpty() {
                     Template
                   </span>
                 }
+                data-testid="template-btn"
               />
-              <p className="text-xs text-center text-gray-500 mt-1">
+              <p className="text-xs text-center text-gray-500 dark:text-gray-400 mt-1">
                 Use pre-built templates to save time and get started quickly.
               </p>
             </div>
@@ -146,8 +147,9 @@ export default function EditorEmpty() {
                     <i className="fa fa-file mr-2"></i> Blank File
                   </span>
                 }
+                data-testid="blank-file-btn"
               />
-              <p className="text-xs text-center text-gray-500 mt-1">
+              <p className="text-xs text-center text-gray-500 dark:text-gray-400 mt-1">
                 Start with a clean slate and create a new markdown file from
                 scratch.
               </p>
@@ -165,14 +167,14 @@ export default function EditorEmpty() {
                 isDisabled={disabledButtonsState.existing}
                 handler={() => setIsFileInputVisible(!isFileInputVisible)}
               />
-              <p className="text-xs text-center text-gray-500 mt-1">
+              <p className="text-xs text-center text-gray-500 dark:text-gray-400 mt-1">
                 Import an existing markdown or text file to edit.
               </p>
             </div>
 
             {/* File Input Section (if visible) */}
             {isFileInputVisible && (
-              <div className="rounded-b-md flex flex-col -mt-2 gap-2 bg-slate-200 p-2">
+              <div className="rounded-b-md flex flex-col -mt-2 gap-2 bg-slate-200 dark:bg-gray-700 p-2">
                 <FileInput
                   name="file"
                   placeholder="Upload a markdown file"
@@ -375,13 +377,13 @@ export default function EditorEmpty() {
   function renderHeading() {
     return (
       <article className="my-16">
-        <h2 className="text-2xl leading-tight">Choose Your Path:</h2>
-        <h1 className="text-5xl leading-tight">
+        <h2 className="text-2xl leading-tight text-gray-900 dark:text-white">Choose Your Path:</h2>
+        <h1 className="text-5xl leading-tight text-gray-900 dark:text-white">
           Editing Options in <strong>Hermes Markdown</strong>
         </h1>
         {!isLoading && (
           <>
-            <p className="w-1/2 my-8 leading-loose">
+            <p className="w-1/2 my-8 leading-loose text-gray-700 dark:text-gray-300">
               Need a quick start? Choose a template and customize it to your
               liking. Want a blank canvas? Start from scratch and let your
               creativity flow. Or, perhaps you have an existing Markdown file

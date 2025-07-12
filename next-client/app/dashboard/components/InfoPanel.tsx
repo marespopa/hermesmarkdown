@@ -1,9 +1,10 @@
-import Button from "@/app/components/Button/Button.component";
-import React, { JSX } from "react";
+"use client";
+
+import Button from "@/app/components/Button";
 
 type Props = {
-  description: string | JSX.Element;
-  title: string | JSX.Element;
+  title: string;
+  description: string;
   action: {
     label: string;
     handler: () => void;
@@ -20,7 +21,7 @@ export default function InfoPanel({
 }: Props) {
   return (
     <div
-      className={`bg-amber-100 rounded-sm py-8 px-6  hover:scale-105 focus:scale-105 ${
+      className={`bg-amber-100 dark:bg-gray-800 rounded-sm py-8 px-6 hover:scale-105 focus:scale-105 ${
         isHighlighted ? "py-10 px-8" : ""
       }`}
       onClick={() => action.handler()}

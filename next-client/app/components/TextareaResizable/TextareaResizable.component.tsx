@@ -22,7 +22,7 @@ const TextareaResizable = ({
   return (
     <div className="my-4">
       <textarea
-        className="bg-gray-100 border-gray-200 border-2 prose prose-sm !max-w-none border-slate-100 px-4 py-4 rounded-sm outline-none w-full"
+        className="bg-gray-100 dark:bg-gray-800 border-gray-200 dark:border-gray-700 border-2 prose prose-sm dark:prose-invert !max-w-none border-slate-100 dark:border-slate-700 px-4 py-4 rounded-sm outline-none w-full text-gray-900 dark:text-gray-100"
         ref={textAreaRef}
         rows={4}
         id={name}
@@ -31,6 +31,7 @@ const TextareaResizable = ({
         onChange={handleChange}
         placeholder={placeholder}
         spellCheck={true}
+        data-testid="editor-textarea"
       />
     </div>
   );

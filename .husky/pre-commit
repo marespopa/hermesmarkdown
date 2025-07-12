@@ -1,0 +1,11 @@
+echo "🔍 Running pre-commit checks..."
+
+cd next-client || exit 1
+
+# Run linting first
+echo "📝 Running linting..."
+npm run lint
+
+# Run related tests based on changed files
+echo "🧪 Running related tests..."
+npm run test:related
