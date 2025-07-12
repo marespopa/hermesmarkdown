@@ -34,8 +34,8 @@ export default function Prices() {
   } as const;
 
   return (
-    <main className="p-4 md:px-2 bg-white">
-      <div className={`${containerStyle}`}>
+    <main className="bg-white my-8">
+      <div className="container max-w-screen-xl mx-auto px-4 sm:px-2">
         <div className="prose">
           <section>
             <h1>Documentation</h1>

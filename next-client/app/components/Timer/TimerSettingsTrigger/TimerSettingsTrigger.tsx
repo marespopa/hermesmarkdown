@@ -7,7 +7,6 @@ import { atom_showTimer, atom_timerSettings } from "@/app/atoms/atoms";
 import Input from "../../Input";
 import SaveStateText, { SaveState } from "../../SaveStateText/SaveStateText";
 import { FaCog } from "react-icons/fa";
-import Checkbox from "../../Checkbox";
 
 type Timeout = ReturnType<typeof setTimeout> | null;
 
@@ -125,16 +124,6 @@ export default function TimerSettingsTrigger() {
               handleChange(e, "longBreakSessionDurationInMin")
             }
             helperText="The duration of a long break session."
-          />
-
-          <Checkbox
-            label="Show timer in the editor"
-            name="showTimer"
-            checked={showTimerSetting}
-            helperText="You can re-add the timer by using the Edit menu."
-            handleChange={(e: React.FormEvent<HTMLInputElement>) => {
-              setShowTimerSetting(e.currentTarget.checked);
-            }}
           />
 
           <Button

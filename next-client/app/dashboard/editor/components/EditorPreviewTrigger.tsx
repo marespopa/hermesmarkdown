@@ -13,20 +13,25 @@ import { Light as SyntaxHighlighter } from "react-syntax-highlighter";
 import { docco } from "react-syntax-highlighter/dist/esm/styles/hljs";
 import Portal from "@/app/components/Portal";
 import ExportService from "@/app/services/export-service";
+import { FaFilePdf } from "react-icons/fa";
+import IconButton from "@/app/components/IconButton";
 
 export default function EditorPreviewTrigger() {
   const [isPdfPreviewOpen, setIsPdfPreviewOpen] = useState(false);
   const [contentEdited] = useAtom(atom_contentEdited);
   const [frontMatter] = useAtom(atom_frontMatter);
+  const [selectedFont, setSelectedFont] = useState<string>("font-sans");
+  const [hideFontDropdown, setHideFontDropdown] = useState(false);
 
   useCommand("export", () => showPdfPreviewModal());
 
   return (
     <>
-      <Button
-        variant="secondary"
-        label="Export to PDF"
-        handler={() => showPdfPreviewModal()}
+      <IconButton
+        icon={<FaFilePdf className="w-5 h-5" />}
+        title="Export to PDF"
+        onClick={showPdfPreviewModal}
+        dataTestId="export-pdf"
       />
       <Portal>
         <DialogModal
@@ -43,8 +48,23 @@ export default function EditorPreviewTrigger() {
               />
             </div>
             <div className={previewContainerStyles} id="pdfReport">
+              {!hideFontDropdown && (
+                <div className="mb-4 flex items-center gap-2">
+                  <label htmlFor="pdf-font-select" className="text-sm font-medium text-gray-700 dark:text-gray-200">Font:</label>
+                  <select
+                    id="pdf-font-select"
+                    value={selectedFont}
+                    onChange={e => setSelectedFont(e.target.value)}
+                    className="border rounded px-2 py-1 text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                  >
+                    <option value="font-sans">Sans-serif</option>
+                    <option value="font-serif">Serif</option>
+                    <option value="font-mono">Monospace</option>
+                  </select>
+                </div>
+              )}
               <section className={previewStyles}>
-                <PdfMarkdownPreview content={contentEdited} />
+                <PdfMarkdownPreview content={contentEdited} fontClass={selectedFont} />
               </section>
             </div>
           </div>
@@ -55,13 +75,16 @@ export default function EditorPreviewTrigger() {
 
   async function handlePdfExport() {
     const reportName = frontMatter.fileName.replace(".md", ".pdf");
-
+    setHideFontDropdown(true);
+    await new Promise((resolve) => setTimeout(resolve, 100)); // allow DOM to update
     try {
       await ExportService.generatePDF("#pdfReport", reportName);
       toast.success("File has been exported");
+      setHideFontDropdown(false);
     } catch (error) {
       toast.error("File could not be exported");
       console.error(error);
+      setHideFontDropdown(false);
     }
   }
 
@@ -75,7 +98,7 @@ export default function EditorPreviewTrigger() {
 }
 
 // PDF-specific markdown preview that forces light mode
-const PdfMarkdownPreview = ({ content }: { content: string }) => {
+const PdfMarkdownPreview = ({ content, fontClass = "font-sans" }: { content: string, fontClass?: string }) => {
   if (content?.length === 0) {
     return (
       <div data-testid="preview">
@@ -85,7 +108,7 @@ const PdfMarkdownPreview = ({ content }: { content: string }) => {
   }
 
   return (
-    <div data-testid="preview" className="bg-white">
+    <div data-testid="preview" className={`bg-white ${fontClass}`}>
       <Markdown
         remarkPlugins={[remarkGfm]}
         components={{

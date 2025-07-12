@@ -3,7 +3,7 @@ import FAQContent from "../components/LandingPage/subcomponents/FAQContent";
 
 export default function Faq() {
   return (
-    <div className="w-full max-w-screen-xl mx-auto my-4 md:my-8">
+    <div className="container max-w-screen-xl mx-auto px-4 sm:px-2 my-8">
       <FAQContent />
     </div>
   );

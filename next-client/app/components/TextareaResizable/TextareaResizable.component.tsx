@@ -8,6 +8,8 @@ interface Props {
   value: string | undefined;
   placeholder?: string;
   handleChange: (e: React.FormEvent<HTMLTextAreaElement>) => void;
+  onCursorChange?: (lineText: string) => void;
+  noBorder?: boolean;
 }
 
 const TextareaResizable = ({
@@ -15,14 +17,29 @@ const TextareaResizable = ({
   value = " ",
   placeholder,
   handleChange,
+  onCursorChange,
+  noBorder,
 }: Props) => {
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
   useAutoResizeTextArea(textAreaRef, value);
 
+  function handleCursorChange() {
+    if (!onCursorChange || !textAreaRef.current) return;
+    const textarea = textAreaRef.current;
+    const cursorPos = textarea.selectionStart;
+    const textUptoCursor = textarea.value.slice(0, cursorPos);
+    const lines = textUptoCursor.split("\n");
+    const currentLine = lines[lines.length - 1];
+    onCursorChange(currentLine);
+  }
+
   return (
-    <div className="my-4">
+    <div>
       <textarea
-        className="bg-gray-100 dark:bg-gray-800 border-gray-200 dark:border-gray-700 border-2 prose prose-sm dark:prose-invert !max-w-none border-slate-100 dark:border-slate-700 px-4 py-4 rounded-sm outline-none w-full text-gray-900 dark:text-gray-100"
+        className={
+          `bg-white dark:bg-gray-900 text-black dark:text-white rounded-none font-mono font-bold px-4 py-4 outline-none w-full` +
+          (noBorder ? "" : " border border-black")
+        }
         ref={textAreaRef}
         rows={4}
         id={name}
@@ -32,6 +49,8 @@ const TextareaResizable = ({
         placeholder={placeholder}
         spellCheck={true}
         data-testid="editor-textarea"
+        onSelect={handleCursorChange}
+        onKeyUp={handleCursorChange}
       />
     </div>
   );

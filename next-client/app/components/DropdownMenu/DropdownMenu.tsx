@@ -10,11 +10,12 @@ type DropdownOption = {
 };
 
 type Props = {
-  label: string;
+  label?: string;
   options: DropdownOption[];
+  trigger?: React.ReactElement<any>;
 };
 
-const DropdownMenu = ({ label, options }: Props) => {
+const DropdownMenu = ({ label, options, trigger }: Props) => {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null); // Ref to track the dropdown element
   const toggleDropdown = () => {
@@ -46,20 +47,32 @@ const DropdownMenu = ({ label, options }: Props) => {
 
   return (
     <div className="relative inline-block" ref={dropdownRef}>
-      <Button variant="secondary" handler={toggleDropdown}>
-        {label === "File" ? (
-          <span className="flex items-center gap-2">{label} <FaCaretDown /></span>
-        ) : (
-          label
-        )}
-      </Button>
+      {trigger ? (
+        React.cloneElement(trigger, {
+          onClick: (e: React.MouseEvent) => {
+            e.stopPropagation();
+            toggleDropdown();
+            if (typeof (trigger.props as any).onClick === 'function') (trigger.props as any).onClick(e);
+          },
+          'aria-expanded': isOpen,
+        })
+      ) : (
+        <Button variant="secondary" handler={toggleDropdown} styles="border-2 border-black rounded-none bg-white text-black font-mono font-bold hover:bg-black hover:text-white">
+          {label === "File" ? (
+            <span className="flex items-center gap-2">{label} <FaCaretDown /></span>
+          ) : (
+            label
+          )}
+        </Button>
+      )}
       {isOpen && (
-        <div className="absolute -left-1 mt-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded shadow-sm z-10">
+        <div className="absolute right-0 mt-1 w-fit bg-white dark:bg-gray-900/95 text-black dark:text-white border-t-0 border-l border-r border-b border-black dark:border-white/20 rounded-none shadow-lg font-mono font-bold z-10" style={{ borderRadius: '0 !important' }}>
           {options.map((option) => (
             <button
               key={option.label}
               onClick={() => handleOptionClick(option)}
-              className="w-full inline px-4 py-2 text-left text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 text-sm whitespace-nowrap"
+              className="w-full px-3 py-1 text-left text-black dark:text-white bg-white dark:bg-gray-900 border-t border-black font-mono font-bold rounded-none"
+              style={{ borderRadius: '0 !important' }}
             >
               {option.label}
             </button>

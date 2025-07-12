@@ -15,14 +15,14 @@ const Checkbox = ({
 }: CheckboxProps) => {
   return (
     <div className="my-4">
-      <label className="flex items-center	space-x-2">
+      <label className="flex items-center space-x-2 text-black font-mono font-bold">
         <input
           type="checkbox"
           id={name}
           name={name}
           checked={checked}
           onChange={handleChange}
-          className="rounded-sm border-2 border-gray-300 dark:border-gray-600 accent-emerald-800 :ring-1 focus:ring-emerald-500 bg-white dark:bg-gray-800"
+          className="border-2 border-black bg-white rounded-none font-mono font-bold w-5 h-5 focus:outline-none"
           aria-label={label}
         />
         <span className="text-gray-600 dark:text-gray-300 text-sm">{label}</span>

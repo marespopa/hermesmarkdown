@@ -16,12 +16,12 @@ export default function Footer() {
     <ClientOnly>
       <footer
         data-testid="GlobalFooter"
-        className="py-2 md:py-4 bg-gray-900 dark:bg-black text-gray-300 text-xs"
+        className="py-4 bg-gray-900 text-white font-mono font-bold text-xs"
       >
         <div className="container max-w-screen-xl mx-auto px-4 md:px-2">
           <div className="flex flex-col md:flex-row justify-between w-full items-center">
             <div className="flex flex-col gap-4">
-              <span className="text-xl text-gray-200">Markdown with ease</span>
+              <span className="text-xl text-black dark:text-white">Markdown with ease</span>
               <span>
                 Made with <span style={{ color: "#e25555" }}>&#9829;</span> by{" "}
                 <a

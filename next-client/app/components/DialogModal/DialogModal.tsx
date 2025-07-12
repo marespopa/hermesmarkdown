@@ -10,7 +10,7 @@ type Props = {
 };
 
 const closeBtnStyle =
-  "absolute top-4 right-4 p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors duration-200 cursor-pointer z-10";
+  "absolute top-4 right-4 p-2 border border-black bg-white text-black rounded-none font-mono font-bold hover:bg-black hover:text-white cursor-pointer z-10";
 
 const DialogModal = ({ isOpened, onClose, children, styles = "" }: Props) => {
   const ref = useRef<HTMLDialogElement>(null);
@@ -29,11 +29,11 @@ const DialogModal = ({ isOpened, onClose, children, styles = "" }: Props) => {
     <div
       className={`${
         isOpened ? "visible" : "hidden"
-      } fixed top-0 left-0 w-full h-full z-10 overflow-y-auto bg-gray-700 dark:bg-gray-900 opacity-80`}
+      } fixed top-0 left-0 w-full h-full z-10 overflow-y-auto bg-white bg-opacity-90 dark:bg-gray-900 dark:bg-opacity-95`}
     >
       <dialog
         ref={ref}
-        className={`h-full my-auto sm:h-4/5 p-4 text-gray-700 dark:text-gray-300 sm:p-0 w-full sm:w-2/3 bg-white dark:bg-gray-800 rounded-sm ${styles}`}
+        className={`h-full my-auto sm:h-4/5 p-4 text-black font-mono font-bold sm:p-0 w-full sm:w-2/3 bg-white border border-black rounded-none dark:bg-gray-800 dark:text-white ${styles}`}
         onCancel={onClose}
       >
         <div className="relative p-4">

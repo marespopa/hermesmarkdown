@@ -48,8 +48,8 @@ type ContentAtom = WritableAtom<
 >;
 
 export type PanelStateAtom = WritableAtom<
-  "both" | "editor" | "preview",
-  [SetStateActionWithReset<"both" | "editor" | "preview">],
+  "both" | "editor" | "preview" | "none",
+  [SetStateActionWithReset<"both" | "editor" | "preview" | "none">],
   void
 >;
 

@@ -19,6 +19,9 @@ const MarkdownPreview = ({ content }: Props) => {
     );
   }
 
+  // Split content into lines for scroll-to-line
+  const lines = content.split("\n");
+
   return (
     <div data-testid="preview" className="dark:bg-gray-900">
       <Markdown
@@ -35,6 +38,18 @@ const MarkdownPreview = ({ content }: Props) => {
               <code {...rest} className={className}>
                 {children}
               </code>
+            );
+          },
+          p(props) {
+            // Render each paragraph as a span with data-line attribute
+            const { children, ...rest } = props;
+            // Try to find the line number by matching the text
+            const text = String(children);
+            const lineIndex = lines.findIndex((l) => l.trim() && text.includes(l.trim()));
+            return (
+              <span data-line={lineIndex} {...rest} style={{ display: 'block' }}>
+                {children}
+              </span>
             );
           },
         }}

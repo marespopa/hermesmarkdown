@@ -153,27 +153,8 @@ export default function Editor() {
   }
 
   return (
-    <div className="mb-8 px-2 sm:px-4">
+    <div className="container max-w-screen-xl mx-auto px-4 sm:px-2 my-8 min-h-screen">
       {isTimerVisible && <Timer settings={timerSettings} />}
-      {isFileSelectModalVisible && (
-        <FileSelectionModal
-          isOpen={isFileSelectModalVisible}
-          handleClose={() => {
-            setIsFileSelectModalVisible(false);
-            setIsLoading(false);
-          }}
-        />
-      )}
-      {isTemplateSelectModalVisible && (
-        <TemplateSelectionModal
-          isOpen={isTemplateSelectModalVisible}
-          handleClose={() => {
-            setIsTemplateSelectModalVisible(false);
-            setIsLoading(false);
-          }}
-        ></TemplateSelectionModal>
-      )}
-
       <EditorHeader
         contentEdited={contentEdited}
         frontMatter={frontMatter}
@@ -185,22 +166,36 @@ export default function Editor() {
           handleOpenFindAndReplace,
         }}
       />
-
-      {isFindAndReplaceModalVisible && (
-        <FindAndReplaceModal
-          isOpen={isFindAndReplaceModalVisible}
-          handleClose={() => {
-            setIsFindAndReplaceModalVisible(false);
-          }}
-        />
-      )}
-
       <EditorContent
         contentEdited={contentEdited}
         setContentEdited={setContentEdited}
         frontMatter={frontMatter}
         setHasChanges={setHasChanges}
       />
+      
+      {/* Template Selection Modal */}
+      {isTemplateSelectModalVisible && (
+        <TemplateSelectionModal
+          isOpen={isTemplateSelectModalVisible}
+          handleClose={() => setIsTemplateSelectModalVisible(false)}
+        />
+      )}
+      
+      {/* File Selection Modal */}
+      {isFileSelectModalVisible && (
+        <FileSelectionModal
+          isOpen={isFileSelectModalVisible}
+          handleClose={() => setIsFileSelectModalVisible(false)}
+        />
+      )}
+      
+      {/* Find and Replace Modal */}
+      {isFindAndReplaceModalVisible && (
+        <FindAndReplaceModal
+          isOpen={isFindAndReplaceModalVisible}
+          handleClose={() => setIsFindAndReplaceModalVisible(false)}
+        />
+      )}
     </div>
   );
 }

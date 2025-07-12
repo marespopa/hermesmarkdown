@@ -11,6 +11,7 @@ import { SetAtom } from "../EditorTypes";
 
 import EditorTextarea from "./EditorTextarea";
 import { FaColumns, FaEye, FaPen } from "react-icons/fa";
+import clsx from "clsx";
 import { atom_panelState } from "@/app/atoms/atoms";
 
 interface Props {
@@ -27,10 +28,17 @@ export default function EditorContent({
   frontMatter,
   setHasChanges,
 }: Props) {
+  // For draggable divider
+  const [editorWidth, setEditorWidth] = useState(50); // percent
+  const [isResizing, setIsResizing] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const isDragging = useRef(false);
   const router = useRouter();
   const [isMounted, setIsMounted] = useState(false);
   const [panelState, setPanelState] = useAtom(atom_panelState);
   const markdownRef = useRef<HTMLDivElement>(null);
+  const editorPaneRef = useRef<HTMLDivElement>(null);
+  const previewPaneRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setIsMounted(true);
@@ -49,51 +57,74 @@ export default function EditorContent({
     return <Loading />;
   }
 
-  return (
-    <div className="flex flex-col gap-4 editor-area max-height-[1000px] overflow-y-auto">
-      {/* Toggle Buttons */}
-      {renderToggleButtons()}
+  // --- Scroll sync logic ---
+  function handleEditorScroll() {
+    if (!editorPaneRef.current || !previewPaneRef.current) return;
+    const editor = editorPaneRef.current;
+    const preview = previewPaneRef.current;
+    const percent = editor.scrollTop / (editor.scrollHeight - editor.clientHeight);
+    preview.scrollTop = percent * (preview.scrollHeight - preview.clientHeight);
+  }
 
+  return (
+    <div className="flex flex-col gap-4 editor-area max-height-[1000px] h-full min-h-screen flex-1">
       {/* Panels */}
-      <div
-        className={`w-full relative transition ease-in-out grid ${
-          panelState === "both" ? "grid-cols-2 gap-2" : "grid-cols-1"
-        }`}
-      >
-        {(panelState === "both" || panelState === "editor") && renderEditor()}
-        {(panelState === "both" || panelState === "preview") && renderPreview()}
-      </div>
+      {panelState === "both" ? (
+        <div
+          className="w-full relative flex flex-row transition ease-in-out h-full min-h-[400px] flex-1"
+          ref={containerRef}
+        >
+          <div
+            className={editorPaneClass}
+            style={{ flexBasis: `${editorWidth}%`, flexShrink: 0 }}
+            ref={editorPaneRef}
+            onScroll={handleEditorScroll}
+          >
+            {renderEditor()}
+          </div>
+          {/* Minimalist Draggable Divider */}
+          <div
+            className={dividerClass}
+            style={{ zIndex: 10 }}
+            onMouseDown={startResizing}
+            onTouchStart={startResizingTouch}
+          />
+          <div
+            className={previewPaneClass}
+            style={{ flexBasis: `${100 - editorWidth}%`, flexShrink: 0 }}
+            ref={previewPaneRef}
+          >
+            {renderPreview()}
+          </div>
+        </div>
+      ) : (
+        <div className="w-full relative h-full min-h-[400px] flex-1">
+          {(() => {
+            switch (panelState) {
+              case "editor":
+                return renderEditor();
+              case "preview":
+                return (
+                  <div
+                    className={previewPaneClass + " w-full flex-1"}
+                    style={{ width: "100%", flexBasis: "100%", maxWidth: "100%" }}
+                    ref={previewPaneRef}
+                  >
+                    {renderPreview()}
+                  </div>
+                );
+              default:
+                return null;
+            }
+          })()}
+        </div>
+      )}
     </div>
   );
 
-  function renderToggleButtons() {
-    return (
-      <div className="flex justify-end gap-2 mb-2 p-4 bg-amber-100 dark:bg-gray-800 rounded-b-lg">
-        <ToggleButton
-          icon={<FaPen />}
-          title="Editor Only"
-          isActive={panelState === "editor"}
-          onClick={() => setPanelState("editor")}
-        />
-        <ToggleButton
-          icon={<FaEye />}
-          title="Preview Only"
-          isActive={panelState === "preview"}
-          onClick={() => setPanelState("preview")}
-        />
-        <ToggleButton
-          icon={<FaColumns />}
-          title="Split View (Editor + Preview)"
-          isActive={panelState === "both"}
-          onClick={() => setPanelState("both")}
-        />
-      </div>
-    );
-  }
-
   function renderPreview() {
     return (
-      <div className={previewStyles} id="pdfExport">
+      <div className={previewPaneClass} id="pdfExport">
         <div ref={markdownRef} id="previewId" className="p-4">
           <MarkdownPreview content={contentEdited} />
         </div>
@@ -109,44 +140,77 @@ export default function EditorContent({
           setContentEdited(newContent); // Update content
           setHasChanges(true); // Mark changes as true
         }}
+        onCursorChange={handleCursorLineChange}
       />
     );
   }
+
+  function handleCursorLineChange(lineText: string) {
+    if (!previewPaneRef.current) return;
+    // Find the first element with data-line attribute containing the lineText
+    const preview = previewPaneRef.current;
+    const el = Array.from(preview.querySelectorAll('[data-line]')).find((el) => {
+      return el.textContent?.includes(lineText.trim());
+    });
+    if (el && typeof (el as HTMLElement).scrollIntoView === 'function') {
+      (el as HTMLElement).scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }
+
+  // --- Resizing logic ---
+  function startResizing(e: React.MouseEvent<HTMLDivElement>) {
+    e.preventDefault();
+    setIsResizing(true);
+    document.body.style.userSelect = "none";
+    document.addEventListener("mousemove", handleResizing);
+    document.addEventListener("mouseup", stopResizing);
+  }
+
+  function handleResizing(e: MouseEvent) {
+    if (!containerRef.current) return;
+    const rect = containerRef.current.getBoundingClientRect();
+    let x = e.clientX - rect.left;
+    let percent = (x / rect.width) * 100;
+    percent = Math.max(15, Math.min(85, percent));
+    setEditorWidth(percent);
+  }
+
+  function stopResizing() {
+    setIsResizing(false);
+    document.body.style.userSelect = "";
+    document.removeEventListener("mousemove", handleResizing);
+    document.removeEventListener("mouseup", stopResizing);
+  }
+
+  // Touch support
+  function startResizingTouch(e: React.TouchEvent<HTMLDivElement>) {
+    e.preventDefault();
+    setIsResizing(true);
+    document.body.style.userSelect = "none";
+    document.addEventListener("touchmove", handleResizingTouch, { passive: false });
+    document.addEventListener("touchend", stopResizingTouch);
+  }
+
+  function handleResizingTouch(e: TouchEvent) {
+    if (!containerRef.current) return;
+    const rect = containerRef.current.getBoundingClientRect();
+    let x = e.touches[0].clientX - rect.left;
+    let percent = (x / rect.width) * 100;
+    percent = Math.max(15, Math.min(85, percent));
+    setEditorWidth(percent);
+  }
+
+  function stopResizingTouch() {
+    setIsResizing(false);
+    document.body.style.userSelect = "";
+    document.removeEventListener("touchmove", handleResizingTouch);
+    document.removeEventListener("touchend", stopResizingTouch);
+  }
 }
 
-const ToggleButton = ({
-  icon,
-  title,
-  isActive,
-  onClick,
-}: {
-  icon: React.ReactNode;
-  title: string;
-  isActive: boolean;
-  onClick: () => void;
-}) => (
-  <button
-    onClick={onClick}
-    title={title} // Tooltip for hover users
-    aria-label={title} // Screen reader support
-    aria-pressed={isActive} // Indicates toggle state
-    className={`px-4 py-2 border rounded-md transition-all focus:outline-none focus:ring-2 focus:ring-emerald-500 ${
-      isActive
-        ? "bg-emerald-600 text-white border-transparent"
-        : "bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600"
-    }`}
-    data-testid={
-      title === "Editor Only"
-        ? "toggle-editor"
-        : title === "Preview Only"
-        ? "toggle-preview"
-        : title === "Split View (Editor + Preview)"
-        ? "toggle-split"
-        : undefined
-    }
-  >
-    {icon}
-  </button>
-);
-const previewStyles =
-  "w-full max-w-none prose dark:prose-invert my-6 rounded-sm bg-white dark:bg-gray-900 prose-pre:bg-amber-100 dark:prose-pre:bg-gray-800 prose-pre:text-gray-700 dark:prose-pre:text-gray-300";
+const editorPaneClass =
+  "h-full min-w-0 min-w-[100px] overflow-auto flex-1 bg-white py-4 font-mono text-base dark:bg-gray-900 dark:text-white";
+const previewPaneClass =
+  "h-full min-w-0 min-w-[100px] overflow-auto flex-1 bg-gray-50 px-6 py-4 font-sans prose shadow-sm dark:bg-gray-900 dark:prose-invert dark:shadow-none";
+const dividerClass =
+  "w-[2px] bg-gray-200 hover:bg-gray-400 rounded transition-colors duration-150 cursor-col-resize relative z-20 dark:bg-gray-700";

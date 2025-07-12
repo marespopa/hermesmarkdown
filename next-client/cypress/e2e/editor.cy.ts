@@ -56,51 +56,36 @@ describe("Editor", () => {
     // Type some content
     cy.get('[data-testid="editor-textarea"]').type("# Export Test\n\nThis content should be exportable.");
     
-    // Look for export functionality - check for the actual export button
-    cy.get("body").then(($body) => {
-      if ($body.find("button:contains('Export to PDF')").length > 0) {
-        // Click export button
-        cy.get("button").contains("Export to PDF").click();
-        
-        // Should trigger export functionality
-        // Note: Actual file download testing might require additional setup
-      }
-    });
+    // Look for export functionality - check for the export button by data-testid
+    cy.get('[data-testid="export-pdf"]').should("be.visible").click();
+    
+    // Should trigger export functionality
+    // Note: Actual file download testing might require additional setup
   });
 
   it("Can use timer functionality", () => {
-    // Look for timer functionality in the Edit menu
-    cy.get("body").then(($body) => {
-      if ($body.find("button:contains('Edit')").length > 0) {
-        // Open the Edit dropdown menu
-        cy.get("button").contains("Edit").click();
-        
-        // Look for timer-related options in the dropdown
-        cy.get("body").then(($body) => {
-          if ($body.find("button:contains('Toggle timer')").length > 0) {
-            // Click "Toggle timer" option
-            cy.get("button").contains("Toggle timer").click();
-            
-            // Timer should be visible
-            cy.contains("Pomodoro Timer").should("be.visible");
-            
-            // Expand the timer (it's minimized by default)
-            cy.contains("Pomodoro Timer").click();
-            
-            // Start timer - look for the START button with icon
-            cy.get("button").contains("START").should("be.visible").click();
-            
-            // Timer should be running - check for work state
-            cy.contains("Work").should("be.visible");
-            
-            // Pause timer - look for the PAUSE button
-            cy.get("button").contains("PAUSE").should("be.visible").click();
-            
-            // Timer should be paused
-            cy.contains("Work - Paused").should("be.visible");
-          }
-        });
-      }
-    });
+    // Look for timer toggle button in the header
+    cy.get('[data-testid="timer-toggle"]').should("be.visible");
+    
+    // Click the timer toggle button to show the timer
+    cy.get('[data-testid="timer-toggle"]').click();
+    
+    // Timer should be visible
+    cy.contains("Pomodoro Timer").should("be.visible");
+    
+    // Expand the timer (it's minimized by default)
+    cy.contains("Pomodoro Timer").click();
+    
+    // Start timer - look for the START button with icon
+    cy.get("button").contains("START").should("be.visible").click();
+    
+    // Timer should be running - check for work state
+    cy.contains("Work").should("be.visible");
+    
+    // Pause timer - look for the PAUSE button
+    cy.get("button").contains("PAUSE").should("be.visible").click();
+    
+    // Timer should be paused
+    cy.contains("Work - Paused").should("be.visible");
   });
 }); 

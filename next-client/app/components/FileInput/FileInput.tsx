@@ -33,10 +33,10 @@ const FileInput = ({
   return (
     <div className="my-4">
       <label className="flex flex-col">
-        <span className="text-gray-600  text-sm">{label}</span>
+        <span className="text-black font-mono font-bold text-sm">{label}</span>
         <input
           name={name}
-          className="bg-white  px-2 py-2 rounded-sm border-2 border-gray-300  outline-none focus:border-emerald-800"
+          className="bg-white dark:bg-gray-900 text-black dark:text-white border-4 border-black rounded-none font-mono font-bold px-2 py-2 focus:outline-none"
           type="file"
           ref={inputRef}
           data-testid="uploader"

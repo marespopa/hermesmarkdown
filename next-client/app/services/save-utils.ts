@@ -88,7 +88,7 @@ const download = ({ fileName, blob }: { fileName: string; blob: Blob }) => {
   const url: string = window.URL.createObjectURL(blob);
 
   a.href = url;
-  a.download = `${fileName}.md`;
+  a.download = fileName.endsWith('.md') ? fileName : `${fileName}.md`;
 
   a.click();
 

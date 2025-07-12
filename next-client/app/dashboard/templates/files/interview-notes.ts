@@ -12,12 +12,12 @@ const InterviewNotesTemplate: MarkdownTemplate = {
   },
   content: `# 👔 Interview Notes
 
-**Candidate Name:** [Full Name]
-**Position:** [Job Title]
-**Interview Date:** ${date}
-**Interview Type:** [Phone/Screen/On-site/Final]
-**Interviewer(s):** [Interviewer Names]
-**Duration:** [Interview duration]
+**Candidate Name:** [Full Name]  
+**Position:** [Job Title]  
+**Interview Date:** ${date}  
+**Interview Type:** [Phone/Screen/On-site/Final]  
+**Interviewer(s):** [Interviewer Names]  
+**Duration:** [Interview duration]  
 
 ---
 

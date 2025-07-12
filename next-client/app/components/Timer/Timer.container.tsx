@@ -11,10 +11,14 @@ interface Props {
 }
 
 export function TimerContainer({ settings }: Props): JSX.Element {
-  const [playSound_stop] = useSound("/resources/sounds/notification.mp3");
-  const [playSound_pause] = useSound("/resources/sounds/boop.mp3");
-  const [playSound_start] = useSound("/resources/sounds/start-tick.wav");
-  const [playSound_reset] = useSound("/resources/sounds/reset.wav");
+  // Mute sounds in Cypress or test environment
+  const isTest = typeof window !== "undefined" && (window.Cypress || process.env.NODE_ENV === "test");
+  const volume = isTest ? 0 : 1;
+
+  const [playSound_stop] = useSound("/resources/sounds/notification.mp3", { volume });
+  const [playSound_pause] = useSound("/resources/sounds/boop.mp3", { volume });
+  const [playSound_start] = useSound("/resources/sounds/start-tick.wav", { volume });
+  const [playSound_reset] = useSound("/resources/sounds/reset.wav", { volume });
 
   const pomodoroTime = settings.workSessionDurationInMin * 60;
   const shortRestTime = settings.shortBreakSessionDurationInMin * 60;

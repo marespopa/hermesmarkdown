@@ -25,13 +25,13 @@ const MainPage = ({ children }: Props) => {
   return (
     <html lang="en" suppressHydrationWarning>
       <Seo />
-      <body>
+      <body className="h-full min-h-screen">
         <CustomProviders>
-          <main className={monoFont.className}>
+          <main className={monoFont.className + " h-full min-h-screen flex flex-col"}>
             <Toaster position="top-center" reverseOrder={false} />
-            <div className="min-h-screen flex flex-col bg-white dark:bg-gray-900 dark:text-white">
+            <div className={`min-h-screen h-full flex flex-col bg-white dark:bg-gray-900 text-black dark:text-white font-mono flex-1 ${showHeader ? 'pt-4' : ''}`}>
               {showHeader && <Header />}
-              <div className="flex-1">{children}</div>
+              <div className="flex-1 h-full flex flex-col">{children}</div>
               <Footer />
             </div>
             <CookieConsent />

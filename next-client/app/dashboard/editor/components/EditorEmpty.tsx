@@ -265,7 +265,7 @@ export default function EditorEmpty() {
 
   function renderActions() {
     return (
-      <section className="flex gap-4 lg:gap-8 mb-4">
+      <section className="flex gap-4 lg:gap-8 mb-16">
         {hasExistingFile && renderContinueOption()}
         {renderNewFileOption()}
         {renderSelectTemplateOption()}
@@ -378,7 +378,7 @@ export default function EditorEmpty() {
     return (
       <article className="my-16">
         <h2 className="text-2xl leading-tight text-gray-900 dark:text-white">Choose Your Path:</h2>
-        <h1 className="text-5xl leading-tight text-gray-900 dark:text-white">
+        <h1 className="text-5xl leading-tight text-black dark:text-white">
           Editing Options in <strong>Hermes Markdown</strong>
         </h1>
         {!isLoading && (

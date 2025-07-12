@@ -22,8 +22,8 @@ const NavigationLink = ({
   const isActive =
     href === "/" ? currentRoute === href : currentRoute.startsWith(href);
   const textColor = isActive 
-    ? "text-gray-800 dark:text-white" 
-    : "text-gray-500 dark:text-gray-400";
+    ? "text-white bg-black underline font-mono font-bold" 
+    : "text-black dark:text-white font-mono font-bold";
 
   const emphasizeStyle = isEmphasized
     ? `text-white rounded-sm transition ease-in-out p-2 bg-emerald-600 hover:bg-emerald-700 focus:bg-emerald-700`
@@ -42,7 +42,7 @@ const NavigationLink = ({
 
   return (
     <Link
-      className={`${textColor} underline md:no-underline hover:underline focus:underline ${emphasizeStyle}`}
+      className={`${textColor} px-2 py-1 rounded-none border-none`}
       href={href}
       onClick={action}
     >
