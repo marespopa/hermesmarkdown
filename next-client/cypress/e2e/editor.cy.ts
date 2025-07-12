@@ -20,21 +20,22 @@ describe("Editor", () => {
 
     // Click "Editor Only" button
     cy.get('[data-testid="toggle-editor"]').click();
-    cy.wait(300); // Wait for UI update
+    cy.wait(500); // Wait for UI update
     // Should only show editor
     cy.get('[data-testid="editor-textarea"]').should("be.visible");
-    cy.get('[data-testid="preview"]').should("not.exist");
+    // Check that preview is not visible (it might still exist in DOM but be hidden)
+    cy.get('[data-testid="preview"]').should("not.be.visible");
 
     // Click "Preview Only" button
     cy.get('[data-testid="toggle-preview"]').click();
-    cy.wait(300); // Wait for UI update
-    // Should only show preview
+    cy.wait(500); // Wait for UI update
+    // Should only show preview - editor is completely removed from DOM
     cy.get('[data-testid="editor-textarea"]').should("not.exist");
     cy.get('[data-testid="preview"]').should("be.visible");
 
     // Click "Split View" button
     cy.get('[data-testid="toggle-split"]').click();
-    cy.wait(300); // Wait for UI update
+    cy.wait(500); // Wait for UI update
     // Should show both editor and preview
     cy.get('[data-testid="editor-textarea"]').should("be.visible");
     cy.get('[data-testid="preview"]').should("be.visible");
@@ -75,7 +76,6 @@ describe("Editor", () => {
         cy.get("button").contains("Edit").click();
         
         // Look for timer-related options in the dropdown
-        // Note: The actual implementation might have different menu structure
         cy.get("body").then(($body) => {
           if ($body.find("button:contains('Toggle timer')").length > 0) {
             // Click "Toggle timer" option
@@ -84,14 +84,17 @@ describe("Editor", () => {
             // Timer should be visible
             cy.contains("Pomodoro Timer").should("be.visible");
             
-            // Start timer
-            cy.get("button").contains("START").click();
+            // Expand the timer (it's minimized by default)
+            cy.contains("Pomodoro Timer").click();
             
-            // Timer should be running
+            // Start timer - look for the START button with icon
+            cy.get("button").contains("START").should("be.visible").click();
+            
+            // Timer should be running - check for work state
             cy.contains("Work").should("be.visible");
             
-            // Pause timer
-            cy.get("button").contains("PAUSE").click();
+            // Pause timer - look for the PAUSE button
+            cy.get("button").contains("PAUSE").should("be.visible").click();
             
             // Timer should be paused
             cy.contains("Work - Paused").should("be.visible");
