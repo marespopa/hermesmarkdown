@@ -104,15 +104,7 @@ export default function EditorContent({
               case "editor":
                 return renderEditor();
               case "preview":
-                return (
-                  <div
-                    className={previewPaneClass + " w-full flex-1"}
-                    style={{ width: "100%", flexBasis: "100%", maxWidth: "100%" }}
-                    ref={previewPaneRef}
-                  >
-                    {renderPreview()}
-                  </div>
-                );
+                return renderPreview();
               default:
                 return null;
             }
@@ -211,6 +203,6 @@ export default function EditorContent({
 const editorPaneClass =
   "h-full min-w-0 min-w-[100px] overflow-auto flex-1 bg-white py-4 font-mono text-base dark:bg-gray-900 dark:text-white";
 const previewPaneClass =
-  "h-full min-w-0 min-w-[100px] overflow-auto flex-1 bg-gray-50 px-6 py-4 font-sans prose shadow-sm dark:bg-gray-900 dark:prose-invert dark:shadow-none";
+  "h-full min-w-0 min-w-[100px] overflow-auto flex-1 bg-gray-50 px-6 py-4 font-sans prose dark:bg-gray-900 dark:prose-invert";
 const dividerClass =
   "w-[2px] bg-gray-200 hover:bg-gray-400 rounded transition-colors duration-150 cursor-col-resize relative z-20 dark:bg-gray-700";
