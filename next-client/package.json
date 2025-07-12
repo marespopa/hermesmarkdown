@@ -6,7 +6,7 @@
     "dev": "next dev --turbopack",
     "dev:integration": "next dev -p 3001",
     "e2e": "start-server-and-test dev:integration http://localhost:3001 \"cypress open --e2e\"",
-    "e2e:headless": "start-server-and-test dev:integration http://localhost:3001 \"cypress run --e2e\"",
+    "e2e:headless": "start-server-and-test dev:integration http://localhost:3001 \"cypress run --e2e --no-video --no-screenshot\"",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",

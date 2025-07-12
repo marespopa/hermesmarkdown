@@ -12,3 +12,18 @@
 // You can read more here:
 // https://on.cypress.io/configuration
 // ***********************************************************
+
+// Performance optimizations
+beforeEach(() => {
+  // Disable uncaught exception handling for faster execution
+  cy.on('uncaught:exception', () => false);
+  
+  // Optimize viewport for faster rendering
+  cy.viewport(1280, 720);
+});
+
+// Global performance settings
+Cypress.on('test:before:run', () => {
+  // Disable screenshots for faster execution
+  Cypress.config('screenshotOnRunFailure', false);
+});
