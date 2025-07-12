@@ -2,9 +2,9 @@ import Link from 'next/link';
 
 export default function NotFound() {
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 text-center">
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 dark:bg-gray-900 text-center">
       <h1 className="text-8xl font-extrabold text-emerald-600">404</h1>
-      <p className="mt-4 text-2xl text-gray-700">
+      <p className="mt-4 text-2xl text-gray-700 dark:text-gray-300">
         Oops! The page you&apos;re looking for doesn&apos;t exist.
       </p>
       <Link
@@ -15,4 +15,4 @@ export default function NotFound() {
       </Link>
     </div>
   );
-};
+}

@@ -68,7 +68,7 @@ export default function EditorContent({
 
   function renderToggleButtons() {
     return (
-      <div className="flex justify-end gap-2 mb-2 p-4 bg-amber-100 rounded-b-lg">
+      <div className="flex justify-end gap-2 mb-2 p-4 bg-amber-100 dark:bg-gray-800 rounded-b-lg">
         <ToggleButton
           icon={<FaPen />}
           title="Editor Only"
@@ -133,11 +133,20 @@ const ToggleButton = ({
     className={`px-4 py-2 border rounded-md transition-all focus:outline-none focus:ring-2 focus:ring-emerald-500 ${
       isActive
         ? "bg-emerald-600 text-white border-transparent"
-        : "bg-white text-gray-800 border-gray-300 hover:bg-gray-100"
+        : "bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600"
     }`}
+    data-testid={
+      title === "Editor Only"
+        ? "toggle-editor"
+        : title === "Preview Only"
+        ? "toggle-preview"
+        : title === "Split View (Editor + Preview)"
+        ? "toggle-split"
+        : undefined
+    }
   >
     {icon}
   </button>
 );
 const previewStyles =
-  "w-full max-w-none prose my-6 rounded-sm bg-white prose-pre:bg-amber-100 prose-pre:text-gray-700";
+  "w-full max-w-none prose dark:prose-invert my-6 rounded-sm bg-white dark:bg-gray-900 prose-pre:bg-amber-100 dark:prose-pre:bg-gray-800 prose-pre:text-gray-700 dark:prose-pre:text-gray-300";

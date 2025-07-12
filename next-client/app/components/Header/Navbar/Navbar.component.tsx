@@ -38,12 +38,18 @@ const Navbar = () => {
           className="hover:scale-110 focus:scale-110 transition-transform ease-in"
           href={"/"}
         >
-          <Image priority src={logo} alt="Hermes Markdown" width={200} />
+          <Image 
+            priority 
+            src={logo} 
+            alt="Hermes Markdown" 
+            width={200}
+            className="dark:invert"
+          />
         </Link>
 
         {/*Menu Hamburg*/}
         <div className="lg:hidden mr-4">
-          <button onClick={toggleNav}>
+          <button onClick={toggleNav} className="text-gray-900 dark:text-gray-100">
             <FaBars />
           </button>
         </div>

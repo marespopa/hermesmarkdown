@@ -1,3 +1,5 @@
+"use client";
+
 import Button from "@/app/components/Button/Button.component";
 import { useCommand } from "@/app/hooks/use-command";
 import React, { JSX } from "react";
@@ -27,7 +29,7 @@ export default function InfoPanelPlain({
 
   return (
     <div
-      className={`bg-amber-100 rounded-sm py-8 px-6  hover:scale-105 focus:scale-105 cursor-pointer ${
+      className={`bg-amber-100 dark:bg-gray-800 rounded-sm py-8 px-6 hover:scale-105 focus:scale-105 cursor-pointer ${
         isHighlighted ? "py-10 px-8" : ""
       }`}
       tabIndex={0}
@@ -35,8 +37,8 @@ export default function InfoPanelPlain({
       onClick={() => action.handler()}
       onKeyDown={handleKeyDown}
     >
-      <h3 className="text-2xl">{title}</h3>
-      <p className="leading-relaxed mt-4">{description}</p>
+      <h3 className="text-2xl text-gray-900 dark:text-white">{title}</h3>
+      <p className="leading-relaxed mt-4 text-gray-700 dark:text-gray-300">{description}</p>
     </div>
   );
 }

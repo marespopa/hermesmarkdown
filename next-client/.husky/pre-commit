@@ -1,0 +1,12 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+echo "🔍 Running pre-commit checks..."
+
+# Run linting first
+echo "📝 Running linting..."
+npm run lint
+
+# Run related tests based on changed files
+echo "🧪 Running related tests..."
+npm run test:related 

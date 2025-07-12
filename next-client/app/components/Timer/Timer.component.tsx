@@ -81,10 +81,17 @@ const TimerComponent = ({
   return (
     <section className={`${timerPopStyles}`}>
       <h2
-        className="font-bold flex justify-between cursor-pointer"
+        className="font-bold flex justify-between cursor-pointer text-gray-900 dark:text-white"
         onClick={() => toggleTimerWindow()}
       >
-        <span>{getHeadingText(pomodoroSettings, fileTitle, false)}</span>
+        <span className="flex items-center gap-2">
+          {getHeadingText(pomodoroSettings, fileTitle, false)}
+          {!isTimerCounting && (isWorking || isResting) && (
+            <span className="text-xs bg-yellow-500 dark:bg-yellow-600 text-white px-2 py-1 rounded">
+              PAUSED
+            </span>
+          )}
+        </span>
         <span>
           {isTimerMinimized ? <FaRegWindowMaximize /> : <FaRegWindowMinimize />}
         </span>
@@ -100,11 +107,11 @@ const TimerComponent = ({
 
         {!isMobile && (
           <div className="mt-2 pb-8">
-            <p className="text-xs italic">
+            <p className="text-xs italic text-gray-700 dark:text-gray-300">
               One finished cycle consists in four finished pomodoros
             </p>
             <div className="mt-4 text-sm">
-              <dl className="flex gap-4">
+              <dl className="flex gap-4 text-gray-900 dark:text-white">
                 <dt className="font-medium leading-6">Finished pomodoros:</dt>
                 <dd className="font-bold leading-6">{numberOfPomodoros}</dd>
 
@@ -228,7 +235,7 @@ function getHeadingText(
   return isDocumentTitle ? `${fileTitle}` : "Pomodoro Timer";
 }
 
-const timerPopStyles = `bg-amber-200 shadow-sm py-2 px-2 md:px-4 pt-2 my-4 rounded-sm
+const timerPopStyles = `bg-amber-200 dark:bg-gray-800 shadow-sm py-2 px-2 md:px-4 pt-2 my-4 rounded-sm
                         w-1/2 z-10 md:w-1/4 sm:fixed sm:right-4 sm:bottom-2
                         opacity-95 relative`;
 

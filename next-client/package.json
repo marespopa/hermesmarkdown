@@ -5,12 +5,15 @@
   "scripts": {
     "dev": "next dev --turbopack",
     "dev:integration": "next dev -p 3001",
-    "e2e": "start-server-and-test dev http://localhost:3000 \"cypress open --e2e\"",
+    "e2e": "start-server-and-test dev:integration http://localhost:3001 \"cypress open --e2e\"",
+    "e2e:headless": "start-server-and-test dev:integration http://localhost:3001 \"cypress run --e2e\"",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
     "test": "jest",
-    "cypress:open": "cypress open"
+    "cypress:open": "cypress open",
+    "cypress:run": "cypress run",
+    "test:related": "node scripts/run-related-tests.js"
   },
   "dependencies": {
     "@notable/html2markdown": "^2.0.3",
@@ -23,7 +26,6 @@
     "@types/react-dom": "19.0.4",
     "@types/react-syntax-highlighter": "^15.5.13",
     "autoprefixer": "10.4.20",
-    "cypress": "^13.15.1",
     "eslint": "9.13.0",
     "eslint-config-next": "15.2.3",
     "gray-matter": "^4.0.3",
@@ -40,7 +42,7 @@
     "react-hot-toast": "^2.4.1",
     "react-icons": "^5.3.0",
     "react-markdown": "^9.0.1",
-    "react-syntax-highlighter": "^5.8.0",
+    "react-syntax-highlighter": "^15.6.1",
     "remark": "^15.0.1",
     "remark-gfm": "^4.0.0",
     "sanitize-html": "^2.14.0",
@@ -53,7 +55,11 @@
   "devDependencies": {
     "@types/sanitize-html": "^2.13.0",
     "@types/wicg-file-system-access": "^2023.10.5",
-    "jest-environment-jsdom": "^29.7.0"
+    "cypress": "^14.5.1",
+    "husky": "^9.1.7",
+    "jest-environment-jsdom": "^29.7.0",
+    "lint-staged": "^16.1.2",
+    "start-server-and-test": "^2.0.12"
   },
   "packageManager": "yarn@4.3.1",
   "resolutions": {
@@ -63,5 +69,10 @@
   "overrides": {
     "@types/react": "19.0.12",
     "@types/react-dom": "19.0.4"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "npm run lint && npm run test:related"
+    }
   }
 }

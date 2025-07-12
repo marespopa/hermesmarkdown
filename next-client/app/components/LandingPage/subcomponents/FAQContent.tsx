@@ -5,36 +5,33 @@ export default function FAQContent() {
     {
       question: "What is Hermes Markdown?",
       answer:
-        "Hermes Markdown is a modern markdown editor designed for privacy. It operates entirely offline, ensuring your data stays secure and local.",
+        "Hermes Markdown is a modern, privacy-focused markdown editor that operates entirely offline. It provides a distraction-free environment for writing and editing markdown files with real-time preview.",
     },
     {
-      question: "Is it free?",
-      answer: "Hermes Markdown is 100% free. It is designed as a completely free tool, created to help you work with Markdown effortlessly, without any cost."
-    },
-    {
-      question: "Does Hermes Markdown store my data in the cloud?",
+      question: "Is my data secure?",
       answer:
-        "No, Hermes Markdown does not store any data in the cloud. All your content stays on your device.",
+        "Absolutely! Hermes Markdown operates entirely offline, meaning your content never leaves your device. All your files and data stay local and secure.",
     },
     {
-      question: "Can I use Hermes Markdown on any device?",
+      question: "What features does it offer?",
       answer:
-        "Yes, Hermes Markdown works seamlessly on any modern browser, making it compatible with desktops, laptops, and mobile devices.",
+        "Hermes Markdown includes real-time preview, templates, keyboard shortcuts, timer functionality, and export capabilities. It's designed to enhance your writing workflow.",
     },
     {
-      question: "Can I export my work from Hermes Markdown?",
+      question: "Is it free to use?",
       answer:
-        "You can easily export your work as markdown file or pdf for sharing or publishing purposes.",
+        "Yes! Hermes Markdown is completely free to use. There are no hidden costs or premium features - everything is available to all users.",
     },
     {
-      question: "Is Hermes Markdown really free?",
-      answer: "Yes! Hermes Markdown is completely free to use. There are no hidden fees, subscriptions, or premium plans. You can enjoy all its features without any cost."
-    }
+      question: "Can I export my files?",
+      answer:
+        "Yes, you can export your markdown files in various formats including PDF, HTML, and plain markdown. The export functionality is built right into the editor.",
+    },
   ];
 
   return (
-      <section id="faq" className="py-16 bg-white">
-        <div className="max-w-xl mx-auto px-4 prose prose-gray text-center">
+      <section id="faq" className="py-16 bg-white dark:bg-gray-900">
+        <div className="max-w-xl mx-auto px-4 prose prose-gray dark:prose-invert text-center">
           <h2 className="text-3xl font-semibold mb-8">
             Frequently Asked Questions
           </h2>
@@ -42,7 +39,7 @@ export default function FAQContent() {
           {faqItems.map((faq, index) => (
             <details
               key={index}
-              className="mb-4 border-b border-gray-200 pb-4 cursor-pointer"
+              className="mb-4 border-b border-gray-200 dark:border-gray-700 pb-4 cursor-pointer"
             >
               <summary className="text-lg font-medium">{faq.question}</summary>
               <p>{faq.answer}</p>

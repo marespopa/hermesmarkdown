@@ -9,6 +9,9 @@ export type TimerData = {
 
 export const contentStore = createStore();
 
+// Theme atom for dark/light mode
+export const atom_theme = atomWithStorage<"light" | "dark">("theme", "light");
+
 export const atom_timerSettings = atomWithStorage("timerSettings", {
   workSessionDurationInMin: 25,
   shortBreakSessionDurationInMin: 5,

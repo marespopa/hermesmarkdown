@@ -1,6 +1,6 @@
-import { useEffect, useRef } from "react";
-import { createPortal } from "react-dom";
-import Portal from "../Portal";
+"use client";
+
+import React, { useEffect, useRef } from "react";
 
 type Props = {
   isOpened: boolean;
@@ -8,6 +8,9 @@ type Props = {
   children: React.ReactNode;
   styles?: string;
 };
+
+const closeBtnStyle =
+  "absolute top-2 right-2 p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors duration-200";
 
 const DialogModal = ({ isOpened, onClose, children, styles = "" }: Props) => {
   const ref = useRef<HTMLDialogElement>(null);
@@ -26,11 +29,11 @@ const DialogModal = ({ isOpened, onClose, children, styles = "" }: Props) => {
     <div
       className={`${
         isOpened ? "visible" : "hidden"
-      } fixed top-0 left-0 w-full h-full z-10 overflow-y-auto bg-gray-700 opacity-80`}
+      } fixed top-0 left-0 w-full h-full z-10 overflow-y-auto bg-gray-700 dark:bg-gray-900 opacity-80`}
     >
       <dialog
         ref={ref}
-        className={`h-full my-auto sm:h-4/5 p-4 text-gray-700  sm:p-0 w-full sm:w-2/3 bg-white  rounded-sm ${styles}`}
+        className={`h-full my-auto sm:h-4/5 p-4 text-gray-700 dark:text-gray-300 sm:p-0 w-full sm:w-2/3 bg-white dark:bg-gray-800 rounded-sm ${styles}`}
         onCancel={onClose}
       >
         <div className="relative p-4">
@@ -62,10 +65,5 @@ const DialogModal = ({ isOpened, onClose, children, styles = "" }: Props) => {
     </div>
   );
 };
-
-const closeBtnStyle = `fixed right-2 top-2 text-sm bg-gray-900 rounded-full p-2 inline-flex items-center justify-center
-                       text-white hover:text-gray-200
-                       hover:bg-gray-800 focus:outline-none focus:ring-1
-                       focus:ring-inset focus:ring-emerald-500`;
 
 export default DialogModal;

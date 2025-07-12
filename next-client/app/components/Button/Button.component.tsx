@@ -9,6 +9,7 @@ type Props = {
   handler: () => void;
   styles?: string;
   isDisabled?: boolean;
+  [key: string]: any; // Allow extra props like data-testid
 };
 
 export default function Button({
@@ -18,6 +19,7 @@ export default function Button({
   handler,
   styles = "",
   isDisabled = false,
+  ...rest
 }: Props) {
   return (
     <button
@@ -27,6 +29,7 @@ export default function Button({
       }}
       className={`${variantStyles(variant)} ${styles}`}
       disabled={isDisabled}
+      {...rest}
     >
       <span className="flex gap-2 items-center">{children || label}</span>
     </button>
@@ -41,7 +44,7 @@ const variantStyles = (variant: ButtonVariant) => {
     case "primary":
       return `${baseStyles} bg-emerald-600 text-white hover:bg-emerald-700 focus:bg-emerald-700 focus:ring-emerald-500 ${disabledStyles}`;
     case "secondary":
-      return `${baseStyles} bg-gray-800 text-white hover:bg-gray-700 focus:bg-gray-700 focus:ring-gray-500 ${disabledStyles}`;
+      return `${baseStyles} bg-gray-800 dark:bg-gray-600 text-white hover:bg-gray-700 dark:hover:bg-gray-500 focus:bg-gray-700 dark:focus:bg-gray-500 focus:ring-gray-500 dark:focus:ring-gray-400 ${disabledStyles}`;
     case "danger":
       return `${baseStyles} bg-red-600 text-white hover:bg-red-700 focus:bg-red-700 focus:ring-red-500 ${disabledStyles}`;
     case "info":
