@@ -10,7 +10,7 @@ type Props = {
 };
 
 const closeBtnStyle =
-  "absolute top-2 right-2 p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors duration-200";
+  "absolute top-4 right-4 p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors duration-200 cursor-pointer z-10";
 
 const DialogModal = ({ isOpened, onClose, children, styles = "" }: Props) => {
   const ref = useRef<HTMLDialogElement>(null);
@@ -44,7 +44,7 @@ const DialogModal = ({ isOpened, onClose, children, styles = "" }: Props) => {
           >
             <span className="sr-only">Close menu</span>
             <svg
-              className="h-4 w-4"
+              className="h-6 w-6"
               xmlns="http://www.w3.org/2000/svg"
               fill="none"
               viewBox="0 0 24 24"

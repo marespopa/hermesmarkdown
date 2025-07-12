@@ -34,6 +34,7 @@ export function TimerContainer({ settings }: Props): JSX.Element {
   const [completedCycles, setCompletedCycles] = useState(0);
   const [fullWorkingTime, setFullWorkingTime] = useState(0);
   const [numberOfPomodoros, setNumberOfPomodoros] = useState(0);
+  const [currentTime, setCurrentTime] = useState(pomodoroTime);
 
   // Calculate remaining time based on timestamps
   const getRemainingTime = useCallback(() => {
@@ -63,45 +64,20 @@ export function TimerContainer({ settings }: Props): JSX.Element {
     return remaining;
   }, [startTime, isTimerCounting, pauseTime, isWorking, isResting, pomodoroTime, shortRestTime, longRestTime, cyclesStateManager]);
 
-  // Update timer display every second
+  // Update current time every second when timer is running
   useEffect(() => {
-    if (!isTimerCounting) return;
+    if (!isTimerCounting) {
+      setCurrentTime(getRemainingTime());
+      return;
+    }
 
     const interval = setInterval(() => {
       const remaining = getRemainingTime();
-      
-      // Add a small buffer (0.5 seconds) to account for JavaScript timing inconsistencies
-      if (remaining <= 0.5) {
-        // Timer finished
-        if (isWorking && cyclesStateManager.length > 0) {
-          startRestInterval(false);
-          cyclesStateManager.pop();
-        } else if (isWorking && cyclesStateManager.length <= 0) {
-          startRestInterval(true);
-          setCyclesStateManager(new Array(cycles - 1).fill(true));
-          setCompletedCycles(completedCycles + 1);
-        }
-
-        if (isWorking) {
-          setNumberOfPomodoros(numberOfPomodoros + 1);
-        }
-
-        if (isResting) {
-          startWorkInterval();
-        }
-
-        // Show notification if browser supports it
-        if ('Notification' in window && Notification.permission === 'granted') {
-          new Notification('Pomodoro Timer', {
-            body: isWorking ? 'Work session completed! Time for a break.' : 'Break completed! Time to work.',
-            icon: '/icon.png'
-          });
-        }
-      }
+      setCurrentTime(remaining);
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [isTimerCounting, isWorking, isResting, cyclesStateManager, numberOfPomodoros, completedCycles, getRemainingTime]);
+  }, [isTimerCounting, getRemainingTime]);
 
   const resetPomodoro = useCallback(() => {
     setIsTimerCounting(false);
@@ -141,6 +117,46 @@ export function TimerContainer({ settings }: Props): JSX.Element {
     playSound_stop();
   }, [playSound_stop]);
 
+  // Update timer display every second
+  useEffect(() => {
+    if (!isTimerCounting) return;
+
+    const interval = setInterval(() => {
+      const remaining = getRemainingTime();
+      
+      // Add a small buffer (0.5 seconds) to account for JavaScript timing inconsistencies
+      if (remaining <= 0.5) {
+        // Timer finished
+        if (isWorking && cyclesStateManager.length > 0) {
+          startRestInterval(false);
+          cyclesStateManager.pop();
+        } else if (isWorking && cyclesStateManager.length <= 0) {
+          startRestInterval(true);
+          setCyclesStateManager(new Array(cycles - 1).fill(true));
+          setCompletedCycles(completedCycles + 1);
+        }
+
+        if (isWorking) {
+          setNumberOfPomodoros(numberOfPomodoros + 1);
+        }
+
+        if (isResting) {
+          startWorkInterval();
+        }
+
+        // Show notification if browser supports it
+        if ('Notification' in window && Notification.permission === 'granted') {
+          new Notification('Pomodoro Timer', {
+            body: isWorking ? 'Work session completed! Time for a break.' : 'Break completed! Time to work.',
+            icon: '/icon.png'
+          });
+        }
+      }
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [isTimerCounting, isWorking, isResting, cyclesStateManager, numberOfPomodoros, completedCycles, getRemainingTime, startRestInterval, startWorkInterval]);
+
   const togglePauseFn = useCallback((): (() => void) => {
     return () => {
       if (isTimerCounting) {
@@ -162,7 +178,7 @@ export function TimerContainer({ settings }: Props): JSX.Element {
     isWorking,
     isResting,
     isTimerCounting,
-    mainTime: getRemainingTime(),
+    mainTime: currentTime,
     startWorkInterval,
     startRestInterval,
     resetPomodoro,

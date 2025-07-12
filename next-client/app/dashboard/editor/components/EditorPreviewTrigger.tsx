@@ -7,6 +7,10 @@ import { atom_contentEdited, atom_frontMatter } from "@/app/atoms/atoms";
 import toast from "react-hot-toast";
 import { useCommand } from "@/app/hooks/use-command";
 import MarkdownPreview from "../../components/MarkdownPreview";
+import Markdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import { Light as SyntaxHighlighter } from "react-syntax-highlighter";
+import { docco } from "react-syntax-highlighter/dist/esm/styles/hljs";
 import Portal from "@/app/components/Portal";
 import ExportService from "@/app/services/export-service";
 
@@ -40,7 +44,7 @@ export default function EditorPreviewTrigger() {
             </div>
             <div className={previewContainerStyles} id="pdfReport">
               <section className={previewStyles}>
-                <MarkdownPreview content={contentEdited} />
+                <PdfMarkdownPreview content={contentEdited} />
               </section>
             </div>
           </div>
@@ -70,5 +74,41 @@ export default function EditorPreviewTrigger() {
   }
 }
 
-const previewContainerStyles = `mt-8`;
-const previewStyles = `prose dark:prose-invert mx-auto prose-pre:bg-transparent prose-pre:px-0 prose-pre:text-gray-600 dark:prose-pre:text-gray-400`;
+// PDF-specific markdown preview that forces light mode
+const PdfMarkdownPreview = ({ content }: { content: string }) => {
+  if (content?.length === 0) {
+    return (
+      <div data-testid="preview">
+        <p className="text-gray-700">The file is currently empty...</p>
+      </div>
+    );
+  }
+
+  return (
+    <div data-testid="preview" className="bg-white">
+      <Markdown
+        remarkPlugins={[remarkGfm]}
+        components={{
+          code(props) {
+            const { children, className, node, ...rest } = props;
+            const match = /language-(\w+)/.exec(className || "");
+            return match ? (
+              <SyntaxHighlighter style={docco} PreTag="div" language={match[1]}>
+                {String(children).replace(/\n$/, "")}
+              </SyntaxHighlighter>
+            ) : (
+              <code {...rest} className={className}>
+                {children}
+              </code>
+            );
+          },
+        }}
+      >
+        {content}
+      </Markdown>
+    </div>
+  );
+};
+
+const previewContainerStyles = `mt-8 bg-white`;
+const previewStyles = `prose prose-gray mx-auto prose-pre:bg-transparent prose-pre:px-0 prose-pre:text-gray-600 bg-white text-gray-900 prose-headings:text-gray-900 prose-p:text-gray-700 prose-strong:text-gray-900 prose-code:text-gray-700 prose-blockquote:text-gray-700 prose-li:text-gray-700`;

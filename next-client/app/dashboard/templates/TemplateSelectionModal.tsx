@@ -181,7 +181,7 @@ const TemplateSelectionModal = ({ isOpen, handleClose }: Props) => {
     return (
       <div
         key={template.filename}
-        className={`p-4 rounded-sm shadow-sm bg-slate-100 dark:bg-gray-800 hover:bg-amber-100 dark:hover:bg-amber-900 focus:bg-amber-100 dark:focus:bg-amber-900`}
+        className={`p-4 rounded-sm shadow-sm bg-slate-100 dark:bg-gray-800 hover:bg-amber-100 dark:hover:bg-gray-700 focus:bg-amber-100 dark:focus:bg-gray-700`}
       >
         {/* Tags */}
         <div className="flex flex-wrap gap-2">
