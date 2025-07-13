@@ -1,7 +1,7 @@
-import { getDatesOfCurrentWeek } from "@/app/services/date-utils";
+import { getDate } from "@/app/services/date-utils";
 import { MarkdownTemplate } from "..";
 
-const dates = getDatesOfCurrentWeek();
+const date = getDate();
 
 const ExampleTemplate: MarkdownTemplate = {
   filename: "habit-tracker",
@@ -12,40 +12,48 @@ const ExampleTemplate: MarkdownTemplate = {
   },
   content: `# 🌟 Habit Tracker
 
-## 🗓️ Weekly Habit Overview
+**Created:** ${date}
 
-### ${dates[0]}
-- Habit: ✅ or ❌
+---
 
-### ${dates[1]}
-- Habit: ✅ or ❌
+## 🔄 Weekly Habits
 
-### ${dates[2]}
-- Habit: ✅ or ❌
-
-### ${dates[3]}
-- Habit: ✅ or ❌
-
-### ${dates[4]}
-- Habit: ✅ or ❌
-
-### ${dates[5]}
-- Habit: ✅ or ❌
-
-### ${dates[6]}
-- Habit: ✅ or ❌
+| Habit | Mon | Tue | Wed | Thu | Fri | Sat | Sun |
+|-------|-----|-----|-----|-----|-----|-----|-----|
+| Exercise | ✅ | ❌ | ✅ | ✅ | ❌ | ✅ | ❌ |
+| Read | ✅ | ✅ | ✅ | ❌ | ✅ | ✅ | ✅ |
+| Meditate | ❌ | ✅ | ✅ | ✅ | ❌ | ✅ | ✅ |
+| Journal | ✅ | ✅ | ❌ | ✅ | ✅ | ❌ | ✅ |
 
 ---
 
 ## 📊 Progress Summary
 
-- Habit: 6/7 days
+- **Exercise:** [X]/7 days
+- **Read:** [X]/7 days
+- **Meditate:** [X]/7 days
+- **Journal:** [X]/7 days
 
 ---
 
-### 🌈 How to Use:
-1. Update each day with ✅ for completed or ❌ for missed habits.
-2. At the end of the week, count how many days each habit was completed.`,
+## 🎯 Habit Goals
+
+- [ ] **Exercise:** [X] times per week
+- [ ] **Read:** [X] minutes per day
+- [ ] **Meditate:** [X] minutes per day
+- [ ] **Journal:** [X] times per week
+
+---
+
+## 📝 Notes
+
+**This Week's Wins:**
+- [Win 1]
+- [Win 2]
+
+**Next Week's Focus:**
+- [Focus area 1]
+- [Focus area 2]`,
 };
 
 export default ExampleTemplate;

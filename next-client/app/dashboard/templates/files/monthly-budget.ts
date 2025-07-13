@@ -1,4 +1,7 @@
+import { getDate } from "@/app/services/date-utils";
 import { MarkdownTemplate } from "..";
+
+const date = getDate();
 
 const MonthlyBudgetTemplate: MarkdownTemplate = {
   filename: "budget-month",
@@ -9,31 +12,50 @@ const MonthlyBudgetTemplate: MarkdownTemplate = {
   },
   content: `# 💰 Monthly Budget
 
-## 📅 Month: [Insert Month and Year]
+**Created:** ${date}
 
-### **💸 Income**
-- **Total Income:** [Amount]
+**Month:** [Month and Year]
 
-### **🏠 Expenses**
-- **Expense 1:** [Amount]
-- **Total Expenses:** **[Total Amount]**
+---
 
-### **💡 Savings & Investments**
-- **Savings:** [Amount]
-- **Investments:** [Amount]
-- **Total Savings & Investments:** **[Total Amount]**
+## 💸 Income
+- **Total Income:** $[Amount]
 
-### **💡 Saving Recommendations**
-- **Emergency Fund:** Save 3-6 months of expenses.
-- **Retirement:** Contribute 10-15% of income.
-- **Investments:** Diversify your investments.
-- **Savings Goal:** Aim to save at least 20% of income.
+---
 
-### **🎯 Summary**
-- **Total Income:** [Amount]
-- **Total Expenses:** [Amount]
-- **Total Savings & Investments:** [Amount]
-- **Remaining Balance:** **[Income - Expenses - Savings]**`,
+## 🏠 Expenses
+- **Housing:** $[Amount]
+- **Food:** $[Amount]
+- **Transportation:** $[Amount]
+- **Utilities:** $[Amount]
+- **Entertainment:** $[Amount]
+- **Other:** $[Amount]
+
+**Total Expenses:** $[Amount]
+
+---
+
+## 💡 Savings & Investments
+- **Savings:** $[Amount]
+- **Investments:** $[Amount]
+- **Emergency Fund:** $[Amount]
+
+**Total Savings:** $[Amount]
+
+---
+
+## 🎯 Summary
+- **Total Income:** $[Amount]
+- **Total Expenses:** $[Amount]
+- **Total Savings:** $[Amount]
+- **Remaining Balance:** $[Amount]
+
+---
+
+## 📊 Goals
+- [ ] **Emergency Fund:** $[Target] / $[Current]
+- [ ] **Investment Goal:** $[Target] / $[Current]
+- [ ] **Save 20% of income**`,
 };
 
 export default MonthlyBudgetTemplate;

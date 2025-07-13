@@ -13,9 +13,13 @@ const LearningNotesTemplate: MarkdownTemplate = {
   content: `# 📚 Learning Notes
 
 **Course/Topic:** [Course Name or Topic]
+
 **Session Date:** ${date}
+
 **Instructor:** [Instructor Name]
+
 **Duration:** [Session duration]
+
 **Your Name:** [Your Name]
 
 ---

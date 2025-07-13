@@ -23,7 +23,7 @@ Write about your week here.
 ---
 
 ## 🙏 Gratitude  
-I’m thankful for:  
+I am thankful for:  
 
 ---
 

@@ -20,6 +20,10 @@ import LearningNotesTemplate from "./files/learning-notes";
 import TravelPlanningTemplate from "./files/travel-planning";
 import RecipeTemplate from "./files/recipe";
 import GymWorkoutTemplate from "./files/gym-workout";
+import LifeDashboardTemplate from "./files/life-dashboard";
+import BookTrackerTemplate from "./files/book-tracker";
+import FreelancerTemplate from "./files/freelancer";
+import TeacherPlannerTemplate from "./files/teacher-planner";
 
 export type MarkdownTemplate = {
   filename: string;
@@ -28,14 +32,28 @@ export type MarkdownTemplate = {
 };
 
 const MarkdownTemplateList = [
+  // High-demand dashboards that combine multiple life/work areas
+  LifeDashboardTemplate,
+  
+  // Extremely popular trackers
+  HabitTrackerTemplate,
+  BookTrackerTemplate,
+  MonthlyBudgetTemplate,
+  GymWorkoutTemplate,
+  
+  // Core project/task management and knowledge management
   DashboardTemplate,
   ProjectManagementTemplate,
   ToDoListTemplate,
-  MonthlyBudgetTemplate,
   SoftwareTaskTemplate,
+  
+  // Highly sought after professional templates
+  FreelancerTemplate,
+  TeacherPlannerTemplate,
+  
+  // Additional useful templates
   DailyStandupTemplate,
   MeetingNotesTemplate,
-  HabitTrackerTemplate,
   WeeklyJournalTemplate,
   SASSTemplate,
   BugReportTemplate,
@@ -48,7 +66,6 @@ const MarkdownTemplateList = [
   LearningNotesTemplate,
   TravelPlanningTemplate,
   RecipeTemplate,
-  GymWorkoutTemplate,
 ];
 
 export default MarkdownTemplateList;

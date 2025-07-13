@@ -1,4 +1,7 @@
+import { getDate } from "@/app/services/date-utils";
 import { MarkdownTemplate } from "..";
+
+const date = getDate();
 
 const MeetingNotesTemplate: MarkdownTemplate = {
   filename: "meeting-notes",
@@ -10,56 +13,49 @@ Simplifies organizing and tracking action items for effective follow-ups.`,
   },
   content: `# 🗓️ Meeting Notes
 
-## 📅 Date: [Insert Date Here]
-## 🕒 Time: [Insert Time Here]
-## 🏢 Location: [Insert Location Here]
-## 👥 Attendees:
+**Date:** ${date}
+**Time:** [Time]
+**Location:** [Location]
+
+---
+
+## 👥 Attendees
 - [Name 1]
 - [Name 2]
 - [Name 3]
-- [Name 4]
 
-## 📋 Agenda:
-1. **[Agenda Item 1]**
-   - Description: [Brief description of the agenda item]
-   - Owner: [Person responsible for this item]
-2. **[Agenda Item 2]**
-   - Description: [Brief description of the agenda item]
-   - Owner: [Person responsible for this item]
-3. **[Agenda Item 3]**
-   - Description: [Brief description of the agenda item]
-   - Owner: [Person responsible for this item]
+---
 
-## 📝 Notes:
-- **[Agenda Item 1]**
-  - Key points discussed: [Summarize the key points]
-  - Decisions made: [Record any decisions]
-  - Action items: [Any follow-up tasks]
-  
-- **[Agenda Item 2]**
-  - Key points discussed: [Summarize the key points]
-  - Decisions made: [Record any decisions]
-  - Action items: [Any follow-up tasks]
-  
-- **[Agenda Item 3]**
-  - Key points discussed: [Summarize the key points]
-  - Decisions made: [Record any decisions]
-  - Action items: [Any follow-up tasks]
+## 📋 Agenda
+1. [Agenda Item 1]
+2. [Agenda Item 2]
+3. [Agenda Item 3]
 
-## ✅ Action Items:
-1. **[Action Item 1]**
-   - Owner: [Person responsible]
-   - Deadline: [Due date]
-   
-2. **[Action Item 2]**
-   - Owner: [Person responsible]
-   - Deadline: [Due date]
+---
 
-## 📆 Next Meeting:
-- **Date & Time:** [Next meeting date & time]
-- **Location:** [Next meeting location]
-- **Agenda:** [Preliminary agenda items]
-`,
+## 📝 Discussion Notes
+### [Agenda Item 1]
+- **Key Points:** [Summary of discussion]
+- **Decisions:** [Decisions made]
+- **Action Items:** [Follow-up tasks]
+
+### [Agenda Item 2]
+- **Key Points:** [Summary of discussion]
+- **Decisions:** [Decisions made]
+- **Action Items:** [Follow-up tasks]
+
+---
+
+## ✅ Action Items
+- [ ] **[Action Item 1]** - Owner: [Name] - Due: [Date]
+- [ ] **[Action Item 2]** - Owner: [Name] - Due: [Date]
+
+---
+
+## 📆 Next Meeting
+- **Date:** [Date]
+- **Time:** [Time]
+- **Agenda:** [Preliminary agenda items]`,
 };
 
 export default MeetingNotesTemplate;

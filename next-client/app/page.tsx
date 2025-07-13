@@ -1,12 +1,7 @@
 "use client";
 
-import { containerStyle } from "@/app/constants/styles";
-import EditorEmpty from "./dashboard/editor/components/EditorEmpty";
+import LandingPage from "./components/LandingPage/LandingPage.component";
 
 export default function AppPage() {
-  return (
-    <div className={containerStyle}>
-      <EditorEmpty />
-    </div>
-  );
+  return <LandingPage />;
 }

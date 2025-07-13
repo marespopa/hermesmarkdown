@@ -13,8 +13,11 @@ const ProductRequirementsTemplate: MarkdownTemplate = {
   content: `# 📋 Product Requirements Document (PRD)
 
 **Document Version:** [1.0]
+
 **Date Created:** ${date}
+
 **Author:** [Your Name]
+
 **Stakeholders:** [List of key stakeholders]
 
 ---

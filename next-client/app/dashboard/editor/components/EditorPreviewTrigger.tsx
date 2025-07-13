@@ -39,30 +39,32 @@ export default function EditorPreviewTrigger() {
           onClose={() => hidePdfPreviewModal()}
         >
           <div className="h-full relative">
-            <div className="fixed bottom-2 right-2 sm:flex sm:sticky sm:top-4">
+            {/* Top bar: Export button (left), Font selector (center), Close (right) */}
+            <div className="flex items-center justify-between mb-6">
               <Button
                 styles="animate-pop flex-initial"
                 variant="primary"
                 label="Export"
                 handler={() => handlePdfExport()}
               />
-            </div>
-            <div className={previewContainerStyles} id="pdfReport">
-              {!hideFontDropdown && (
-                <div className="mb-4 flex items-center gap-2">
-                  <label htmlFor="pdf-font-select" className="text-sm font-medium text-gray-700 dark:text-gray-200">Font:</label>
+              <div className="flex-1 flex justify-center">
+                {!hideFontDropdown && (
                   <select
                     id="pdf-font-select"
                     value={selectedFont}
                     onChange={e => setSelectedFont(e.target.value)}
-                    className="border rounded px-2 py-1 text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                    className="border border-gray-300 dark:border-gray-600 rounded px-2 py-1 text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors shadow"
+                    style={{ minWidth: 120 }}
                   >
                     <option value="font-sans">Sans-serif</option>
                     <option value="font-serif">Serif</option>
                     <option value="font-mono">Monospace</option>
                   </select>
-                </div>
-              )}
+                )}
+              </div>
+              {/* The close button is handled by DialogModal itself */}
+            </div>
+            <div className={previewContainerStyles} id="pdfReport">
               <section className={previewStyles}>
                 <PdfMarkdownPreview content={contentEdited} fontClass={selectedFont} />
               </section>

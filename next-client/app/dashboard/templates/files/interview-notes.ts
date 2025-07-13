@@ -13,10 +13,15 @@ const InterviewNotesTemplate: MarkdownTemplate = {
   content: `# 👔 Interview Notes
 
 **Candidate Name:** [Full Name]  
+
 **Position:** [Job Title]  
+
 **Interview Date:** ${date}  
+
 **Interview Type:** [Phone/Screen/On-site/Final]  
+
 **Interviewer(s):** [Interviewer Names]  
+
 **Duration:** [Interview duration]  
 
 ---
@@ -173,6 +178,7 @@ const InterviewNotesTemplate: MarkdownTemplate = {
 This document contains confidential information and should be handled according to company policies.
 
 **Interviewer Signature:** [Digital signature or initials]
+
 **Date:** ${date}
 `,
 };

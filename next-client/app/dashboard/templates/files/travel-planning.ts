@@ -13,9 +13,13 @@ const TravelPlanningTemplate: MarkdownTemplate = {
   content: `# ✈️ Travel Planning
 
 **Trip Name:** [Trip Title]
+
 **Destination:** [City, Country]
+
 **Dates:** [Start Date] - [End Date]
+
 **Travelers:** [Number of people]
+
 **Created:** ${date}
 
 ---

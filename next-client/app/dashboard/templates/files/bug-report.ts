@@ -13,7 +13,9 @@ const BugReportTemplate: MarkdownTemplate = {
   content: `# 🐛 Bug Report
 
 **Date Reported:** ${date}
+
 **Reporter:** [Your Name]
+
 **Priority:** [Critical/High/Medium/Low]
 
 ---

@@ -1,7 +1,7 @@
 "use client";
 
 import Script from "next/script";
-import React from "react";
+import React, { useEffect } from "react";
 import { Toaster } from "react-hot-toast";
 import CookieConsent from "./CookieConsent";
 import CustomProviders from "./CustomProviders";
@@ -22,6 +22,16 @@ const MainPage = ({ children }: Props) => {
   const pathname = usePathname();
   const showHeader = !pathname.includes("dashboard");
 
+  useEffect(() => {
+    const logKeydown = (e: KeyboardEvent) => {
+      console.log(
+        `Key: ${e.key}, Ctrl: ${e.ctrlKey}, Alt: ${e.altKey}, Shift: ${e.shiftKey}, Meta: ${e.metaKey}`
+      );
+    };
+    window.addEventListener("keydown", logKeydown);
+    return () => window.removeEventListener("keydown", logKeydown);
+  }, []);
+
   return (
     <html lang="en" suppressHydrationWarning>
       <Seo />
@@ -41,11 +51,12 @@ const MainPage = ({ children }: Props) => {
               data-host="hermesmarkdown.com"
               src="https://liteanalytics.com/lite.js"
             ></Script>
-            <Script
+            {/* AdSense script temporarily removed until ad placements are implemented */}
+            {/* <Script
               async
               src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3137348299560712"
               crossOrigin="anonymous"
-            ></Script>
+            ></Script> */}
           </main>
         </CustomProviders>
       </body>

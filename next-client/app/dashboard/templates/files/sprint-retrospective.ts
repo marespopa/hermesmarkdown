@@ -13,8 +13,11 @@ const SprintRetrospectiveTemplate: MarkdownTemplate = {
   content: `# 🚀 Sprint Retrospective
 
 **Sprint:** [Sprint Number/Name]
+
 **Date:** ${date}
+
 **Duration:** [Sprint duration]
+
 **Team:** [Team members present]
 
 ---

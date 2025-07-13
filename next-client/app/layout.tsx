@@ -3,16 +3,16 @@ import MainPage from "./components/MainPage";
 
 export const metadata = {
   metadataBase: "https://hermesmarkdown.com/",
-  title: "Hermes Markdown",
-  description: "A free to use, online markdown editor",
+  title: "Hermes Markdown - Free Online Markdown Editor",
+  description: "Hermes Markdown is a free, privacy-focused online markdown editor that works entirely offline. Create beautiful documents with real-time preview, professional templates, and export to PDF or HTML.",
   applicationName: "Hermes Markdown",
   referrer: "origin-when-cross-origin",
-  keywords: ["Editor", "Markdown", "Markdown Notes"],
+  keywords: ["Markdown Editor", "Online Editor", "Free Markdown", "Privacy", "Documentation", "Writing Tool"],
   authors: [{ name: "Mares Popa", url: "https://www.marespopa.com/" }],
   creator: "Mares Popa",
   openGraph: {
-    title: "Hermes Markdown",
-    description: "A free to use, online markdown editor",
+    title: "Hermes Markdown - Free Online Markdown Editor",
+    description: "Hermes Markdown is a free, privacy-focused online markdown editor that works entirely offline. Create beautiful documents with real-time preview, professional templates, and export to PDF or HTML.",
     url: "https://hermesmarkdown.com/",
     siteName: "Hermes Markdown",
     locale: "en_US",

@@ -13,15 +13,20 @@ const CodeReviewTemplate: MarkdownTemplate = {
   content: `# 🔍 Code Review
 
 **Date:** ${date}
+
 **Reviewer:** [Your Name]
+
 **Author:** [Code Author Name]
+
 **PR/Commit:** [Link to PR or commit hash]
 
 ---
 
 ## 📋 Overview
 **Files Changed:** [List of files being reviewed]
+
 **Lines Changed:** [Number of lines added/removed]
+
 **Type of Change:** [Bug Fix/Feature/Refactor/Documentation]
 
 ---

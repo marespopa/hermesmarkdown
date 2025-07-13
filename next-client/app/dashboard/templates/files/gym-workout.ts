@@ -13,8 +13,11 @@ const GymWorkoutTemplate: MarkdownTemplate = {
   content: `# 💪 Gym Workout
 
 Workout Name: [WORKOUT_NAME]
+
 Focus Area: [FOCUS_AREA]
+
 Duration: [DURATION] minutes
+
 Created: ${date}
 
 ---

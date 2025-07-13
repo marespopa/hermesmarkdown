@@ -10,29 +10,34 @@ const DailyStandupTemplate: MarkdownTemplate = {
     description: `A note about your daily standup status`,
     tags: "daily,engineering,status,meeting",
   },
-  content: `**${date}**
+  content: `# 🗓️ Daily Standup
 
-# 🗓️ Daily Standup Status
-
----
-
-## ✅ What did you accomplish yesterday?
-- Example: Fixed Bug #123.
+**Date:** ${date}
 
 ---
 
-## 🎯 What are you planning to do today?
-- Example: Implement authentication for FeatureY.
+## ✅ Yesterday's Accomplishments
+- [Accomplishment 1]
+- [Accomplishment 2]
+- [Accomplishment 3]
 
 ---
 
-## 🚧 Are there any blockers or impediments?
-- Example: Waiting for approval on PR #789.
+## 🎯 Today's Plan
+- [ ] [Task 1]
+- [ ] [Task 2]
+- [ ] [Task 3]
 
 ---
 
-## 📝 Additional Notes (Optional)
-- Example: Suggesting a quick sync on FeatureZ.`,
+## 🚧 Blockers & Issues
+- [Blocker 1]
+- [Blocker 2]
+
+---
+
+## 📝 Notes
+[Any additional notes or suggestions]`,
 };
 
 export default DailyStandupTemplate;

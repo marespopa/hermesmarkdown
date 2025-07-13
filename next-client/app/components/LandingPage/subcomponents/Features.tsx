@@ -12,7 +12,7 @@ export default function Features() {
             <h3 className="text-xl font-bold mb-4">Privacy First</h3>
             <p>
               Your content never leaves your device. Everything stays local and
-              secure.
+              secure. No data transmission to servers means complete control over your work.
             </p>
           </div>
           <div
@@ -21,14 +21,35 @@ export default function Features() {
             <h3 className="text-xl font-bold mb-4">Modern Interface</h3>
             <p>
               Enjoy a distraction-free workspace designed for focus and
-              productivity.
+              productivity. Clean, intuitive design that adapts to your workflow.
             </p>
           </div>
           <div
             className={`bg-amber-100 dark:bg-gray-800 rounded-sm py-8 px-6 hover:scale-105 focus:scale-105`}
           >
             <h3 className="text-xl font-bold mb-4">Real-Time Preview</h3>
-            <p>See your markdown beautifully rendered as you type.</p>
+            <p>See your markdown beautifully rendered as you type. Instant visual feedback helps you create better content.</p>
+          </div>
+        </div>
+        
+        <div className="mt-12 grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div
+            className={`bg-amber-100 dark:bg-gray-800 rounded-sm py-8 px-6 hover:scale-105 focus:scale-105`}
+          >
+            <h3 className="text-xl font-bold mb-4">Rich Templates</h3>
+            <p>
+              Start with professionally designed templates for various use cases - from meeting notes to project documentation. 
+              Save time and maintain consistency across your documents.
+            </p>
+          </div>
+          <div
+            className={`bg-amber-100 dark:bg-gray-800 rounded-sm py-8 px-6 hover:scale-105 focus:scale-105`}
+          >
+            <h3 className="text-xl font-bold mb-4">Export Options</h3>
+            <p>
+              Export your work in multiple formats including PDF, HTML, and plain markdown. 
+              Perfect for sharing, archiving, or publishing your content.
+            </p>
           </div>
         </div>
       </div>

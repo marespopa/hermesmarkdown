@@ -10,12 +10,13 @@ import { FileMetadata } from "@/app/types/markdown";
 import { atom_content, atom_showTimer, atom_panelState, atom_hasChanges, atom_theme } from "@/app/atoms/atoms";
 import DropdownMenu from "@/app/components/DropdownMenu";
 import ExportService from "@/app/services/export-service";
-import { FaClock, FaFile, FaEdit, FaQuestion, FaEye, FaColumns, FaPen, FaExclamationCircle, FaSave, FaCheck } from "react-icons/fa";
+import { FaClock, FaFile, FaEdit, FaQuestion, FaEye, FaColumns, FaPen, FaExclamationCircle, FaSave, FaCheck, FaKeyboard } from "react-icons/fa";
 import { useRouter } from "next/navigation";
 import useIsMobile from "@/app/hooks/use-is-mobile";
 import ThemeToggle from "@/app/components/ThemeToggle";
 import IconButton from "@/app/components/IconButton";
 import React from "react";
+import DialogModal from "@/app/components/DialogModal";
 
 interface Props {
   contentEdited: string;
@@ -48,6 +49,7 @@ export default function EditorHeader({
   const hasTitle = fileTitle.length > 0;
   const fabMenuRef = useRef<HTMLDivElement>(null);
   const [theme, setTheme] = useAtom(atom_theme);
+  const [isShortcutsOpen, setIsShortcutsOpen] = useState(false);
 
   // Higher-order function to wrap actions with closeFabMenu
   const withCloseFabMenu = (action: () => void) => () => {
@@ -149,14 +151,19 @@ export default function EditorHeader({
             <div className="flex flex-col items-end gap-1 min-w-[320px]">
               <div className="flex flex-row items-center gap-2">
                 {renderFileMenu()}
-                {renderEditMenu()}
-                {renderHelpMenu()}
-                <EditorPreviewTrigger />
                 <IconButton
                   icon={<FaSave />}
                   title="Save As"
                   onClick={exportToMD}
                 />
+                {renderEditMenu()}
+                {renderHelpMenu()}
+                <IconButton
+                  icon={<FaKeyboard />}
+                  title="Keyboard Shortcuts"
+                  onClick={() => setIsShortcutsOpen(true)}
+                />
+                <EditorPreviewTrigger />
                 <IconButton
                   icon={<FaClock />}
                   title={showTimer ? "Hide timer" : "Show timer"}
@@ -182,6 +189,23 @@ export default function EditorHeader({
         </div>
       )}
       <EditorForm isOpened={isFormatterDialogOpen} handleClose={closeFabMenu} />
+      {/* Keyboard Shortcuts Modal */}
+      <DialogModal isOpened={isShortcutsOpen} onClose={() => setIsShortcutsOpen(false)}>
+        <div className="p-4 max-w-lg">
+          <h2 className="text-2xl font-bold mb-4">Keyboard Shortcuts</h2>
+          <ul className="list-disc ml-6 space-y-2 text-base">
+            <li><b>Ctrl+Shift+Y</b> — Save File</li>
+            <li><b>Ctrl+Shift+U</b> — New File</li>
+            <li><b>Ctrl+Shift+I</b> — Open File</li>
+            <li><b>Ctrl+Shift+E</b> — Open Export Preview (PDF)</li>
+            <li><b>Ctrl+Shift+H</b> — New from Template</li>
+            <li><b>Ctrl+Shift+M</b> — Go to Home/Dashboard</li>
+            <li><b>Esc</b> — Escape/Close Modal</li>
+            <li><b>Enter</b> — Confirm/Submit (in modals)</li>
+          </ul>
+          <p className="mt-4 text-sm text-gray-500 dark:text-gray-400">On Mac, use <b>Cmd+Shift</b> instead of <b>Ctrl+Shift</b>.</p>
+        </div>
+      </DialogModal>
     </>
   );
 

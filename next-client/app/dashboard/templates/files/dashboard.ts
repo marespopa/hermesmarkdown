@@ -1,4 +1,7 @@
+import { getDate } from "@/app/services/date-utils";
 import { MarkdownTemplate } from "..";
+
+const date = getDate();
 
 const ExampleTemplate: MarkdownTemplate = {
   filename: "dashboard",
@@ -9,58 +12,49 @@ const ExampleTemplate: MarkdownTemplate = {
   },
   content: `# 🧠 Dashboard
 
-## 🌅 Morning Routine
-*Start your day intentionally.*
-- Write down your top priorities for the day.
-- Plan your tasks or schedule.
-- (Optional) Check emails or messages briefly.
+**Created:** ${date}
 
 ---
 
-## ✅ Daily Tasks
-*List the key tasks you want to complete today:*
-- Task 1: [e.g., Finish report]
----
-
-## 🎯 Weekly Goals
-*Set your focus for the week.*
-- Goal 1: [e.g., Complete project milestone]
----
-
-## 🚀 Long-term Projects
-*Break down big projects into smaller steps.*
-- Project Name:
-  - Step 1:
-  - Step 2:
+## ✅ Today's Tasks
+- [ ] [Task 1]
+- [ ] [Task 2]
+- [ ] [Task 3]
 
 ---
 
-## 💡 Ideas & Improvements
-*Capture any ideas or improvements you think of.*
-- Idea 1: [e.g., Automate a repetitive task]
-- Idea 2:
+## 🎯 This Week's Goals
+- [ ] [Goal 1]
+- [ ] [Goal 2]
+- [ ] [Goal 3]
 
 ---
 
-## 🌱 Personal Development
-*Track activities that help you grow personally or professionally:*
-- Activity 1: [e.g., Attend a workshop]
-- Activity 2:
+## 🚀 Current Projects
+- [ ] **[Project Name]** - [Status] - Due: [Date]
+- [ ] **[Project Name]** - [Status] - Due: [Date]
 
 ---
 
-## 📝 Notes & Reflections (End of Day)
-### Wins:
-*What went well today?*
-- Win 1
+## 💡 Ideas & Notes
+- [Idea 1]
+- [Idea 2]
+- [Idea 3]
 
-### Challenges:
-*What was difficult or needs attention?*
-- Challenge 1
+---
 
-### Next Steps:
-*What do you plan to do next?*
-- Step 1`
+## 📝 Daily Reflection
+**Wins:**
+- [Win 1]
+- [Win 2]
+
+**Challenges:**
+- [Challenge 1]
+- [Challenge 2]
+
+**Tomorrow's Focus:**
+- [Focus area 1]
+- [Focus area 2]`
 };
 
 export default ExampleTemplate;

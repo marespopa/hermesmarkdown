@@ -24,6 +24,7 @@ import FileSelectionModal from "../components/FileSelectionModal";
 import FindAndReplaceModal from "../components/FindAndReplaceModal";
 import useIsMobile from "@/app/hooks/use-is-mobile";
 import { EMPTY_PAGE_TEMPLATE } from "./EditorUtils";
+import { useRouter } from "next/navigation";
 
 export default function Editor() {
   const [isLoading, setIsLoading] = useState(false);
@@ -44,12 +45,14 @@ export default function Editor() {
     useState(false);
   const [isTemplateSelectModalVisible, setIsTemplateSelectModalVisible] =
     useState(false);
+  const router = useRouter();
 
   const [_, setDocumentTitle] = useDocumentTitle("Hermes Markdown");
 
   useCommand("open", () => handleOpenFile());
   useCommand("new", () => handleNewFile());
   useCommand("template", () => handleSelectTemplate());
+  useCommand("home", () => router.push("/dashboard"));
 
   useEffect(() => {
     setMounted(true);

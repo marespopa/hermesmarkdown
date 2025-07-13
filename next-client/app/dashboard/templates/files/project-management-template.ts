@@ -1,4 +1,7 @@
+import { getDate } from "@/app/services/date-utils";
 import { MarkdownTemplate } from "..";
+
+const date = getDate();
 
 const ProjectManagementTemplate: MarkdownTemplate = {
   filename: "project-management-template",
@@ -7,95 +10,70 @@ const ProjectManagementTemplate: MarkdownTemplate = {
     description: `Ideal for managing and planning projects effectively`,
     tags: "project, project management, productivity",
   },
-  content: `# Project Management Template
-  
-  Use this template to manage and organize your project effectively.
-  
-  ## Project Details
-  
-  - **Project Name**: [Insert Project Name]
-  - **Project Description**: [Insert Project Description]
-  - **Project Owner**: [Insert Project Owner]
-  - **Start Date**: [Insert Start Date]
-  - **End Date**: [Insert End Date]
-  
-  ## Project Goals and Objectives
-  
-  - Define the project's goals and objectives.
-  - Establish clear success criteria.
-  
-  ## Stakeholders
-  
-  - Identify project stakeholders and their roles.
-  - Develop a stakeholder engagement plan.
-  
-  ## Project Scope
-  
-  - Define the project scope.
-  - Create a Work Breakdown Structure (WBS).
-  
-  ## Project Timeline
-  
-  - Create a project timeline.
-  - Identify project milestones.
-  
-  ## Task Management
-  
-  - List project tasks and sub-tasks.
-  - Assign responsibilities for each task.
-  - Set task priorities and deadlines.
-  
-  ## Resource Planning
-  
-  - Identify and allocate project resources (team members, equipment, etc.).
-  - Develop a resource management plan.
-  
-  ## Risk Assessment
-  
-  - Identify potential project risks.
-  - Develop a risk management plan.
-  
-  ## Budget
-  
-  - Estimate the project budget.
-  - Create a project cost management plan.
-  
-  ## Communication Plan
-  
-  - Define a communication plan.
-  - Identify communication channels and frequency.
-  
-  ## Monitoring and Reporting
-  
-  - Set up project monitoring and reporting mechanisms.
-  - Establish regular status update meetings.
-  
-  ## Quality Assurance
-  
-  - Define quality standards.
-  - Develop a quality control plan.
-  
-  ## Change Management
-  
-  - Establish a process for managing change requests.
-  - Develop a change management plan.
-  
-  ## Project Documentation
-  
-  - Create and maintain project documentation.
-  - Ensure documentation is up to date.
-  
-  ## Project Closure
-  
-  - Plan for project closure.
-  - Conduct a project review and lessons learned session.
-  
-  ## Notes
-  
-  - Add any additional project-specific notes or reminders here.
-  
-  Use this template as a starting point for your project management efforts. Customize it to meet the specific needs of your project.
-  `,
+  content: `# 📋 Project Management
+
+**Created:** ${date}
+
+---
+
+## 🎯 Project Details
+- **Project Name:** [Project Name]
+- **Description:** [Project Description]
+- **Owner:** [Project Owner]
+- **Start Date:** [Start Date]
+- **End Date:** [End Date]
+
+---
+
+## 📊 Project Goals
+- [ ] [Goal 1]
+- [ ] [Goal 2]
+- [ ] [Goal 3]
+
+---
+
+## 👥 Team & Stakeholders
+- **[Name]** - [Role] - [Contact]
+- **[Name]** - [Role] - [Contact]
+- **[Name]** - [Role] - [Contact]
+
+---
+
+## ✅ Tasks & Milestones
+### Phase 1: [Phase Name]
+- [ ] [Task 1] - Due: [Date] - Owner: [Name]
+- [ ] [Task 2] - Due: [Date] - Owner: [Name]
+- [ ] [Task 3] - Due: [Date] - Owner: [Name]
+
+### Phase 2: [Phase Name]
+- [ ] [Task 1] - Due: [Date] - Owner: [Name]
+- [ ] [Task 2] - Due: [Date] - Owner: [Name]
+
+---
+
+## 💰 Budget
+- **Total Budget:** $[Amount]
+- **Spent:** $[Amount]
+- **Remaining:** $[Amount]
+
+---
+
+## ⚠️ Risks & Issues
+- [ ] **[Risk/Issue]** - [Impact] - [Mitigation Plan]
+- [ ] **[Risk/Issue]** - [Impact] - [Mitigation Plan]
+
+---
+
+## 📅 Timeline
+- **Milestone 1:** [Date] - [Description]
+- **Milestone 2:** [Date] - [Description]
+- **Milestone 3:** [Date] - [Description]
+
+---
+
+## 📝 Notes
+[Add project-specific notes, decisions, or important information here]
+`,
 };
 
 export default ProjectManagementTemplate;

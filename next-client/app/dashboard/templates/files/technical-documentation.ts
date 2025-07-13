@@ -13,9 +13,13 @@ const TechnicalDocumentationTemplate: MarkdownTemplate = {
   content: `# 📚 Technical Documentation
 
 **Document Title:** [Document Name]
+
 **Version:** [1.0]
+
 **Last Updated:** ${date}
+
 **Author:** [Your Name]
+
 **Reviewer:** [Reviewer Name]
 
 ---

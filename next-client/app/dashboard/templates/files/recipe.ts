@@ -13,10 +13,15 @@ const RecipeTemplate: MarkdownTemplate = {
   content: `# 👨‍🍳 Recipe
 
 **Recipe Name:** [Recipe Title]
+
 **Category:** [Breakfast/Lunch/Dinner/Dessert/Snack]
+
 **Cuisine:** [Italian/Mexican/Asian/American/etc.]
+
 **Difficulty:** [Easy/Medium/Hard]
+
 **Created:** ${date}
+
 **Source:** [Original source or inspiration]
 
 ---
