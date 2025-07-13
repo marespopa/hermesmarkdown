@@ -33,9 +33,9 @@ const MainPage = ({ children }: Props) => {
   }, []);
 
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning className="bg-white dark:bg-gray-900">
       <Seo />
-      <body className="h-full min-h-screen">
+      <body className="h-full min-h-screen bg-white dark:bg-gray-900">
         <CustomProviders>
           <main className={monoFont.className + " h-full min-h-screen flex flex-col"}>
             <Toaster position="top-center" reverseOrder={false} />

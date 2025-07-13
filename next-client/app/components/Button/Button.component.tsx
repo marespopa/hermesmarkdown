@@ -27,7 +27,7 @@ export default function Button({
         e.preventDefault();
         handler();
       }}
-      className={`${variantStyles(variant)} ${styles}`}
+      className={`${styles} ${variantStyles(variant)}`}
       disabled={isDisabled}
       {...rest}
     >
@@ -37,7 +37,7 @@ export default function Button({
 }
 
 const variantStyles = (variant: ButtonVariant) => {
-  const baseStyles = `bg-white text-black border border-black rounded-none font-mono font-bold px-4 py-2 text-lg focus:outline-none disabled:opacity-50 disabled:pointer-events-none`;
+  const baseStyles = `bg-white text-black border border-black rounded-none font-mono font-bold px-4 py-2 text-lg focus:outline-none disabled:opacity-50 disabled:pointer-events-none hover:bg-gray-900 hover:text-white focus:ring-2 focus:ring-emerald-600 transition-colors`;
 
   switch (variant) {
     default:

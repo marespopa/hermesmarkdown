@@ -30,6 +30,7 @@ type Props = {
   togglePauseFn: () => () => void;
   numberOfPomodoros: number;
   completedCycles: number;
+  onClose?: () => void;
 };
 
 const TimerComponent = ({
@@ -43,6 +44,7 @@ const TimerComponent = ({
   togglePauseFn,
   numberOfPomodoros,
   completedCycles,
+  onClose,
 }: Props) => {
   const [isTimerMinimized, setIsTimerMinimized] = useState(true);
   const isPauseButtonVisible = isWorking || isResting;
@@ -92,8 +94,21 @@ const TimerComponent = ({
             </span>
           )}
         </span>
-        <span>
+        <span className="flex items-center gap-2">
           {isTimerMinimized ? <FaRegWindowMaximize /> : <FaRegWindowMinimize />}
+          {onClose && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onClose();
+              }}
+              className="hover:text-red-500 transition-colors p-1 rounded focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50"
+              title="Close timer"
+              aria-label="Close timer"
+            >
+              <FaWindowClose className="w-4 h-4" />
+            </button>
+          )}
         </span>
       </h2>
       {!isTimerMinimized && renderDetails()}
@@ -235,7 +250,7 @@ function getHeadingText(
   return isDocumentTitle ? `${fileTitle}` : "Pomodoro Timer";
 }
 
-const timerPopStyles = `bg-amber-200 dark:bg-gray-800 shadow-sm py-2 px-2 md:px-4 pt-2 my-4 rounded-sm
+const timerPopStyles = `bg-amber-50 dark:bg-gray-800 shadow-sm py-2 px-2 md:px-4 pt-2 my-4 rounded-sm
                         w-1/2 z-10 md:w-1/4 sm:fixed sm:right-4 sm:bottom-2
                         opacity-95 relative`;
 

@@ -27,7 +27,7 @@ const Input = ({
       <label className="flex flex-col">
         <span className="text-black dark:text-white font-mono font-bold text-sm">{label}</span>
         <input
-          className="bg-white dark:bg-gray-900 text-black dark:text-white border-2 border-black rounded-none font-mono font-bold px-2 py-2 focus:outline-none placeholder-gray-500"
+          className="bg-white dark:bg-gray-900 text-black dark:text-white border border-gray-400 dark:border-gray-600 rounded-none font-mono px-2 py-2 mb-2 focus:outline-none focus:ring-2 focus:ring-emerald-600 placeholder-gray-500"
           type={type}
           aria-label={label}
           id={name}

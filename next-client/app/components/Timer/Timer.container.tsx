@@ -8,9 +8,10 @@ interface Props {
     shortBreakSessionDurationInMin: number; // minutes
     longBreakSessionDurationInMin: number; // minutes
   };
+  onClose?: () => void;
 }
 
-export function TimerContainer({ settings }: Props): JSX.Element {
+export function TimerContainer({ settings, onClose }: Props): JSX.Element {
   // Mute sounds in Cypress or test environment
   const isTest = typeof window !== "undefined" && (window.Cypress || process.env.NODE_ENV === "test");
   const volume = isTest ? 0 : 1;
@@ -189,6 +190,7 @@ export function TimerContainer({ settings }: Props): JSX.Element {
     togglePauseFn,
     numberOfPomodoros,
     completedCycles,
+    onClose,
   };
 
   return <TimerComponent {...timerProps} />;

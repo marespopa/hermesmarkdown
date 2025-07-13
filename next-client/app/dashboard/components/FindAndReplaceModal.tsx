@@ -81,6 +81,11 @@ const FindAndReplaceModal = ({ isOpen, handleClose }: Props) => {
               handler={handleReplace}
               label="Replace"
             ></Button>
+            <Button
+              variant="primary"
+              handler={handleClose}
+              label="Find"
+            ></Button>
           </div>
         </form>
       </DialogModal>

@@ -17,6 +17,7 @@ import {
 } from "../editor/EditorUtils";
 import Loading from "@/app/components/Loading";
 import { SPINNER_LOADING_DURATION } from "@/app/constants/timer";
+import Button from "@/app/components/Button";
 
 type Props = {
   isOpen: boolean;
@@ -58,6 +59,11 @@ const FileSelectionModal = ({ isOpen, handleClose }: Props) => {
           label="Markdown File"
           accept=".md, .txt"
           helperText="Load a markdown file."
+        />
+        <Button
+          variant="secondary"
+          handler={handleClose}
+          label="Close"
         />
       </div>
     </DialogModal>

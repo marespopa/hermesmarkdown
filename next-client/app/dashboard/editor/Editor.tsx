@@ -30,7 +30,7 @@ export default function Editor() {
   const [isLoading, setIsLoading] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [timerSettings] = useAtom(atom_timerSettings);
-  const [isTimerVisible] = useAtom(atom_showTimer);
+  const [isTimerVisible, setShowTimer] = useAtom(atom_showTimer);
   const [frontMatter] = useAtom(atom_frontMatter);
   const fileTitle = frontMatter.title || "File";
   const [contentEdited, setContentEdited] = useAtom(atom_contentEdited);
@@ -147,6 +147,10 @@ export default function Editor() {
     setIsTemplateSelectModalVisible(true);
   }
 
+  function handleCloseTimer() {
+    setShowTimer(false);
+  }
+
   if (!mounted) {
     return null;
   }
@@ -157,7 +161,7 @@ export default function Editor() {
 
   return (
     <div className="container max-w-screen-xl mx-auto px-4 sm:px-2 my-8 min-h-screen">
-      {isTimerVisible && <Timer settings={timerSettings} />}
+      {isTimerVisible && <Timer settings={timerSettings} onClose={handleCloseTimer} />}
       <EditorHeader
         contentEdited={contentEdited}
         frontMatter={frontMatter}

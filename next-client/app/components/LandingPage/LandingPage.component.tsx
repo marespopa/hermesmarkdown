@@ -15,7 +15,7 @@ export default function LandingPage() {
       <div className="container max-w-screen-xl mx-auto px-4 sm:px-2">
         <Hero />
         {/* Choose Your Path Card */}
-        <div className="mt-6 md:mt-0 bg-white dark:bg-gray-800 rounded-xl shadow-md max-w-md mx-auto mb-10 px-4 py-6 sm:px-8 sm:py-8 border border-gray-200 dark:border-gray-700">
+        <div className="mt-6 bg-white dark:bg-gray-800 rounded-xl shadow-md max-w-md mx-auto mb-10 px-4 py-6 sm:px-8 sm:py-8 border border-gray-200 dark:border-gray-700">
           <div className="text-xs uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-2 text-center">Choose Your Path:</div>
           <h1 className="text-2xl sm:text-3xl font-bold text-center mb-4 text-gray-900 dark:text-white">Editing Options in Hermes Markdown</h1>
           <p className="text-gray-700 dark:text-gray-300 text-center text-base sm:text-lg mb-6">

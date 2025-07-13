@@ -34,9 +34,9 @@ export default function Prices() {
   } as const;
 
   return (
-    <main className="bg-white my-8">
+    <main className="bg-white dark:bg-gray-900 mt-8 pt-8 text-gray-900 dark:text-white">
       <div className="container max-w-screen-xl mx-auto px-4 sm:px-2">
-        <div className="prose">
+        <div className="prose prose-gray dark:prose-invert max-w-none">
           <section>
             <h1>Documentation</h1>
             <p>
@@ -52,28 +52,28 @@ export default function Prices() {
             <h3>Table of Contents</h3>
             <ol>
               <li>
-                <a href="#headers">Headers</a>
+                <a href="#headers" className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300">Headers</a>
               </li>
               <li>
-                <a href="#emphasis">Emphasis and Styling</a>
+                <a href="#emphasis" className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300">Emphasis and Styling</a>
               </li>
               <li>
-                <a href="#lists">Lists</a>
+                <a href="#lists" className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300">Lists</a>
               </li>
               <li>
-                <a href="#links">Links</a>
+                <a href="#links" className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300">Links</a>
               </li>
               <li>
-                <a href="#images">Images</a>
+                <a href="#images" className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300">Images</a>
               </li>
               <li>
-                <a href="#code-blocks">Code Blocks</a>
+                <a href="#code-blocks" className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300">Code Blocks</a>
               </li>
               <li>
-                <a href="#tables">Tables</a>
+                <a href="#tables" className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300">Tables</a>
               </li>
               <li>
-                <a href="#keyboard-shortcuts">Keyboard Shortcuts</a>
+                <a href="#keyboard-shortcuts" className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300">Keyboard Shortcuts</a>
               </li>
             </ol>
           </section>
@@ -87,7 +87,7 @@ export default function Prices() {
               followed by a space. The number of hash symbols determines the
               header level:
             </p>
-            <pre>
+            <pre className="bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 p-4 rounded-lg overflow-x-auto">
               <code>{code.headers}</code>
             </pre>
           </section>
@@ -113,7 +113,7 @@ export default function Prices() {
                 tildes (~~).
               </li>
             </ul>
-            <pre>
+            <pre className="bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 p-4 rounded-lg overflow-x-auto">
               <code>{code.emphasis}</code>
             </pre>
           </section>
@@ -126,14 +126,14 @@ export default function Prices() {
               To create an unordered list, use hyphens (-), plus signs (+), or
               asterisks (*) followed by a space:
             </p>
-            <pre>
+            <pre className="bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 p-4 rounded-lg overflow-x-auto">
               <code>{code.lists.unordered}</code>
             </pre>
             <p className="mt-md">
               To create an ordered list, use numbers followed by periods (.) and
               a space:
             </p>
-            <pre>
+            <pre className="bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 p-4 rounded-lg overflow-x-auto">
               <code>{code.lists.ordered}</code>
             </pre>
           </section>
@@ -145,7 +145,7 @@ export default function Prices() {
               You can add hyperlinks to your Markdown files using the following
               syntax:
             </p>
-            <pre>
+            <pre className="bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 p-4 rounded-lg overflow-x-auto">
               <code>{code.links}</code>
             </pre>
           </section>
@@ -157,7 +157,7 @@ export default function Prices() {
               To insert images into your Markdown files, use the following
               syntax:
             </p>
-            <pre>
+            <pre className="bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 p-4 rounded-lg overflow-x-auto">
               <code>{code.images}</code>
             </pre>
           </section>
@@ -170,7 +170,7 @@ export default function Prices() {
               enclose the code.
             </p>
             <p>For code blocks, you can use triple tilde characters (~):</p>
-            <pre>
+            <pre className="bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 p-4 rounded-lg overflow-x-auto">
               <code>{code.codeBlocks}</code>
             </pre>
           </section>
@@ -182,7 +182,7 @@ export default function Prices() {
               To create tables, use hyphens (-) to separate the header row and
               pipes (|) to separate the columns:
             </p>
-            <pre>
+            <pre className="bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 p-4 rounded-lg overflow-x-auto">
               <code>{code.tables}</code>
             </pre>
           </section>

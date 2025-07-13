@@ -77,8 +77,8 @@ export default function TimerSettingsTrigger() {
         <form className="mt-8 max-w-xl mx-auto">
           <h3 className="text-2xl mt-4 flex gap-2 items-center justify-between">
             <span>Timer Properties</span>
-            <SaveStateText status={saveState} />
           </h3>
+          <SaveStateText status={saveState} />
 
           <p className="mt-2 my-4 text-sm text-gray-500">
             In here you can configure if you want to see the timer, and the

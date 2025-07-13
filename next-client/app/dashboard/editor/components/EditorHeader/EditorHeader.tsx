@@ -133,7 +133,7 @@ export default function EditorHeader({
         </>
       ) : (
         <div
-          className="bg-white dark:bg-gray-800 border border-black/10 dark:border-white/10 shadow-sm px-4 py-2 flex flex-col gap-2 mt-4"
+          className="bg-amber-50 dark:bg-gray-800 border border-black/10 dark:border-white/10 shadow-sm px-4 py-2 flex flex-col gap-2 mt-4"
         >
           {/* Top row: file info and actions */}
           <div className="flex flex-row justify-between items-center w-full gap-4">
