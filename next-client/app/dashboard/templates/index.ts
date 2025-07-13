@@ -19,6 +19,7 @@ import InterviewNotesTemplate from "./files/interview-notes";
 import LearningNotesTemplate from "./files/learning-notes";
 import TravelPlanningTemplate from "./files/travel-planning";
 import RecipeTemplate from "./files/recipe";
+import GymWorkoutTemplate from "./files/gym-workout";
 
 export type MarkdownTemplate = {
   filename: string;
@@ -47,6 +48,7 @@ const MarkdownTemplateList = [
   LearningNotesTemplate,
   TravelPlanningTemplate,
   RecipeTemplate,
+  GymWorkoutTemplate,
 ];
 
 export default MarkdownTemplateList;

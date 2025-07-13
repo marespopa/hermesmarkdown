@@ -2,51 +2,62 @@
 
 import React from "react";
 import NavigationLink from "./NavigationLink";
-import { FaTimesCircle } from "react-icons/fa";
-import ThemeToggle from "../../ThemeToggle";
+import { FaTimesCircle, FaSun, FaMoon } from "react-icons/fa";
+import { useAtom } from "jotai";
+import { atom_theme } from "@/app/atoms/atoms";
 
 type Props = {
   handleClose: () => void;
 };
 
 export default function MobileNavigationLinks({ handleClose }: Props) {
+  const [theme, setTheme] = useAtom(atom_theme);
+
   return (
-    <nav
-      className={`backdrop-blur w-full h-screen left-0 bg-white dark:bg-gray-800 fixed top-0 flex items-center justify-center`}
-    >
-      <ul className="flex flex-col gap-4 items-center w-full max-w-sm px-4">
-        <li className={listItemStyle}>
-          <NavigationLink label="Home" href="/" action={handleClose} />
-        </li>
-        <li className={listItemStyle}>
-          <NavigationLink
-            label="Learn Markdown"
-            href="/documentation"
-            action={handleClose}
-          />
-        </li>
-        <li className={listItemStyle}>
-          <NavigationLink label="FAQ" href="/faq" action={handleClose} />
-        </li>
-        <li className={`${listItemStyle} mt-4`}>
-          <div className="flex items-center justify-center w-full">
-            <ThemeToggle />
-          </div>
-        </li>
-        <li className={`${listItemStyle} mt-2`}>
-          <button
-            onClick={(e) => {
-              e.preventDefault();
-              handleClose();
-            }}
-            className={"flex gap-2 items-center justify-center outline-none w-full text-gray-900 dark:text-gray-100"}
-          >
-            <span>Close Menu</span> <FaTimesCircle />
-          </button>
-        </li>
-      </ul>
-    </nav>
+    <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-white dark:bg-gray-900 bg-opacity-95 dark:bg-opacity-95">
+      <button
+        onClick={handleClose}
+        className="absolute top-4 right-4 text-3xl text-gray-700 dark:text-gray-300 focus:outline-none"
+        aria-label="Close Menu"
+      >
+        &times;
+      </button>
+      <div className="flex flex-col gap-3 w-full max-w-xs px-4">
+        <button
+          className="w-full py-3 border border-black dark:border-white bg-white dark:bg-gray-900 text-black dark:text-white font-mono font-bold rounded-none text-lg hover:bg-black hover:text-white transition-colors"
+          onClick={() => {
+            handleClose();
+            window.location.href = "/";
+          }}
+        >
+          Home
+        </button>
+        <button
+          className="w-full py-3 border border-black dark:border-white bg-white dark:bg-gray-900 text-black dark:text-white font-mono font-bold rounded-none text-lg hover:bg-black hover:text-white transition-colors"
+          onClick={() => {
+            handleClose();
+            window.location.href = "/documentation";
+          }}
+        >
+          Learn Markdown
+        </button>
+        <button
+          className="w-full py-3 border border-black dark:border-white bg-white dark:bg-gray-900 text-black dark:text-white font-mono font-bold rounded-none text-lg hover:bg-black hover:text-white transition-colors"
+          onClick={() => {
+            handleClose();
+            window.location.href = "/faq";
+          }}
+        >
+          FAQ
+        </button>
+        <button
+          className="w-full py-3 border border-black dark:border-white bg-white dark:bg-gray-900 text-black dark:text-white font-mono font-bold rounded-none text-lg hover:bg-black hover:text-white transition-colors flex items-center justify-center gap-2"
+          onClick={() => setTheme(theme === "light" ? "dark" : "light")}
+        >
+          {theme === "light" ? <FaMoon className="w-5 h-5" /> : <FaSun className="w-5 h-5" />}
+          {theme === "light" ? "Switch to Dark Mode" : "Switch to Light Mode"}
+        </button>
+      </div>
+    </div>
   );
 }
-
-const listItemStyle = `bg-gray-100 dark:bg-gray-700 py-3 w-full text-center rounded-md`;
