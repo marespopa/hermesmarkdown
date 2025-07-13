@@ -7,16 +7,15 @@ import PenIcon from "@/app/components/Icons/PenIcon";
 import { useEffect, useRef, useState } from "react";
 import EditorForm from "../EditorForm";
 import { FileMetadata } from "@/app/types/markdown";
-import { atom_content, atom_showTimer, atom_panelState, atom_hasChanges } from "@/app/atoms/atoms";
+import { atom_content, atom_showTimer, atom_panelState, atom_hasChanges, atom_theme } from "@/app/atoms/atoms";
 import DropdownMenu from "@/app/components/DropdownMenu";
 import ExportService from "@/app/services/export-service";
-import { FaCaretDown, FaCog, FaClock, FaFile, FaEdit, FaQuestion, FaEye, FaColumns, FaPen, FaExclamationCircle, FaSave, FaCheck } from "react-icons/fa";
+import { FaClock, FaFile, FaEdit, FaQuestion, FaEye, FaColumns, FaPen, FaExclamationCircle, FaSave, FaCheck } from "react-icons/fa";
 import { useRouter } from "next/navigation";
 import useIsMobile from "@/app/hooks/use-is-mobile";
 import ThemeToggle from "@/app/components/ThemeToggle";
 import IconButton from "@/app/components/IconButton";
 import React from "react";
-import { SetStateAction } from "react";
 
 interface Props {
   contentEdited: string;
@@ -48,6 +47,7 @@ export default function EditorHeader({
   const fileName = frontMatter.fileName;
   const hasTitle = fileTitle.length > 0;
   const fabMenuRef = useRef<HTMLDivElement>(null);
+  const [theme, setTheme] = useAtom(atom_theme);
 
   // Higher-order function to wrap actions with closeFabMenu
   const withCloseFabMenu = (action: () => void) => () => {
@@ -193,26 +193,87 @@ export default function EditorHeader({
   function renderOptionsMenu() {
     if (isMobile) {
       return (
-        <div className="fixed top-4 right-2 sm:top-8 sm:right-8 z-50">
-          <button
-            onClick={() => setIsFabMenuOpen(!isFabMenuOpen)}
-            className="p-2 rounded-lg bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors duration-200"
-            aria-label="Menu"
-            title="Menu"
-          >
-            <span className="font-bold text-gray-700 dark:text-gray-300">Menu</span>
-          </button>
-          {isFabMenuOpen && (
-            <div
-              ref={fabMenuRef}
-              className="fixed top-16 right-4 rounded-sm shadow-sm p-2 flex flex-col flex-wrap space-y-4 min-w-[164px] bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded shadow-sm z-10"
+        <>
+          <div className="fixed top-4 right-2 sm:top-8 sm:right-8 z-50">
+            <button
+              onClick={() => setIsFabMenuOpen(!isFabMenuOpen)}
+              className="p-2 rounded-lg bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors duration-200"
+              aria-label="Menu"
+              title="Menu"
             >
-              <DropdownMenu label="File" options={fileMenuOptions} />
-              <DropdownMenu label="Edit" options={editMenuOptions} />
-              <DropdownMenu label="Help" options={helpMenuOptions} />
+              <span className="font-bold text-gray-700 dark:text-gray-300">Menu</span>
+            </button>
+          </div>
+          {isFabMenuOpen && (
+            <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-white dark:bg-gray-900 bg-opacity-95 dark:bg-opacity-95">
+              <button
+                onClick={() => setIsFabMenuOpen(false)}
+                className="absolute top-4 right-4 text-3xl text-gray-700 dark:text-gray-300 focus:outline-none"
+                aria-label="Close Menu"
+              >
+                &times;
+              </button>
+              <div className="flex flex-col gap-3 w-full max-w-xs px-4">
+                <button
+                  className="w-full py-3 border border-black dark:border-white bg-white dark:bg-gray-900 text-black dark:text-white font-mono font-bold rounded-none text-lg hover:bg-black hover:text-white transition-colors"
+                  onClick={withCloseFabMenu(actions.handleNewFile)}
+                >
+                  New File
+                </button>
+                <button
+                  className="w-full py-3 border border-black dark:border-white bg-white dark:bg-gray-900 text-black dark:text-white font-mono font-bold rounded-none text-lg hover:bg-black hover:text-white transition-colors"
+                  onClick={withCloseFabMenu(actions.handleSelectTemplate)}
+                >
+                  New From Template
+                </button>
+                <button
+                  className="w-full py-3 border border-black dark:border-white bg-white dark:bg-gray-900 text-black dark:text-white font-mono font-bold rounded-none text-lg hover:bg-black hover:text-white transition-colors"
+                  onClick={withCloseFabMenu(exportToMD)}
+                >
+                  Save File
+                </button>
+                <button
+                  className="w-full py-3 border border-black dark:border-white bg-white dark:bg-gray-900 text-black dark:text-white font-mono font-bold rounded-none text-lg hover:bg-black hover:text-white transition-colors"
+                  onClick={withCloseFabMenu(actions.handleOpenFile)}
+                >
+                  Open File
+                </button>
+                <button
+                  className="w-full py-3 border border-black dark:border-white bg-white dark:bg-gray-900 text-black dark:text-white font-mono font-bold rounded-none text-lg hover:bg-black hover:text-white transition-colors"
+                  onClick={withCloseFabMenu(() => navigator.clipboard.writeText(contentEdited))}
+                >
+                  Copy Markdown
+                </button>
+                <button
+                  className="w-full py-3 border border-black dark:border-white bg-white dark:bg-gray-900 text-black dark:text-white font-mono font-bold rounded-none text-lg hover:bg-black hover:text-white transition-colors"
+                  onClick={withCloseFabMenu(actions.handleOpenFindAndReplace)}
+                >
+                  Find/Replace
+                </button>
+                <button
+                  className="w-full py-3 border border-black dark:border-white bg-white dark:bg-gray-900 text-black dark:text-white font-mono font-bold rounded-none text-lg hover:bg-black hover:text-white transition-colors"
+                  onClick={withCloseFabMenu(() => router.push('/dashboard'))}
+                >
+                  Welcome
+                </button>
+                <button
+                  className="w-full py-3 border border-black dark:border-white bg-white dark:bg-gray-900 text-black dark:text-white font-mono font-bold rounded-none text-lg hover:bg-black hover:text-white transition-colors"
+                  onClick={withCloseFabMenu(() => router.push('/documentation'))}
+                >
+                  Documentation
+                </button>
+                <div className="flex justify-center w-full py-2">
+                  <button
+                    className="w-full py-3 border border-black dark:border-white bg-white dark:bg-gray-900 text-black dark:text-white font-mono font-bold rounded-none text-lg hover:bg-black hover:text-white transition-colors"
+                    onClick={() => setTheme(theme === "light" ? "dark" : "light")}
+                  >
+                    {theme === "light" ? "Switch to Dark Mode" : "Switch to Light Mode"}
+                  </button>
+                </div>
+              </div>
             </div>
           )}
-        </div>
+        </>
       );
     }
 

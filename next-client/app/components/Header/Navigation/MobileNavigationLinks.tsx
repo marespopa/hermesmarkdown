@@ -2,10 +2,8 @@
 
 import React from "react";
 import NavigationLink from "./NavigationLink";
-import { useAtom } from "jotai";
-import { atom_content } from "@/app/atoms/atoms";
 import { FaTimesCircle } from "react-icons/fa";
-import Button from "../../Button";
+import ThemeToggle from "../../ThemeToggle";
 
 type Props = {
   handleClose: () => void;
@@ -14,9 +12,9 @@ type Props = {
 export default function MobileNavigationLinks({ handleClose }: Props) {
   return (
     <nav
-      className={`backdrop-blur w-full h-full left-0 bg-amber-200 dark:bg-gray-800 pt-2 pb-4 flex-grow fixed top-0 flex items-center justify-center`}
+      className={`backdrop-blur w-full h-screen left-0 bg-white dark:bg-gray-800 fixed top-0 flex items-center justify-center`}
     >
-      <ul className="pt-2 flex flex-col gap-2 items-center w-full">
+      <ul className="flex flex-col gap-4 items-center w-full max-w-sm px-4">
         <li className={listItemStyle}>
           <NavigationLink label="Home" href="/" action={handleClose} />
         </li>
@@ -31,6 +29,11 @@ export default function MobileNavigationLinks({ handleClose }: Props) {
           <NavigationLink label="FAQ" href="/faq" action={handleClose} />
         </li>
         <li className={`${listItemStyle} mt-4`}>
+          <div className="flex items-center justify-center w-full">
+            <ThemeToggle />
+          </div>
+        </li>
+        <li className={`${listItemStyle} mt-2`}>
           <button
             onClick={(e) => {
               e.preventDefault();
@@ -46,4 +49,4 @@ export default function MobileNavigationLinks({ handleClose }: Props) {
   );
 }
 
-const listItemStyle = `bg-amber-400 dark:bg-gray-700 py-2 w-full text-center`;
+const listItemStyle = `bg-gray-100 dark:bg-gray-700 py-3 w-full text-center rounded-md`;

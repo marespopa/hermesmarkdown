@@ -34,6 +34,7 @@ const NavigationLink = ({
       <Link
         href={href}
         onClick={action}
+        className={textColor}
       >
         {label}
       </Link>
