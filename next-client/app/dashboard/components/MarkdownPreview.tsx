@@ -8,9 +8,11 @@ import { docco } from "react-syntax-highlighter/dist/esm/styles/hljs";
 
 type Props = {
   content: string;
+  fontFamily?: string;
+  className?: string;
 };
 
-const MarkdownPreview = ({ content }: Props) => {
+const MarkdownPreview = ({ content, fontFamily, className }: Props) => {
   if (content?.length === 0) {
     return (
       <div data-testid="preview">
@@ -23,7 +25,7 @@ const MarkdownPreview = ({ content }: Props) => {
   const lines = content.split("\n");
 
   return (
-    <div data-testid="preview" className="dark:bg-gray-900">
+    <div data-testid="preview" className={`prose dark:prose-invert dark:bg-gray-900 ${className || ''}`} style={fontFamily ? { fontFamily } : undefined}>
       <Markdown
         remarkPlugins={[remarkGfm]}
         components={{
@@ -50,6 +52,15 @@ const MarkdownPreview = ({ content }: Props) => {
               <span data-line={lineIndex} {...rest} style={{ display: 'block' }}>
                 {children}
               </span>
+            );
+          },
+          h1(props) {
+            // Custom h1 with minimal top margin
+            const { children, ...rest } = props;
+            return (
+              <h1 {...rest} style={{ marginTop: 0 }}>
+                {children}
+              </h1>
             );
           },
         }}

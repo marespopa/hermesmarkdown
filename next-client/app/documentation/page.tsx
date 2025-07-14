@@ -187,21 +187,6 @@ export default function Prices() {
             </pre>
           </section>
 
-          {/* Keyboard Shortcuts Section */}
-          <section id="keyboard-shortcuts">
-            <h3>8. Keyboard Shortcuts</h3>
-            <p>
-              The following keyboard shortcuts are available for quick actions
-              in Hermes Markdown:
-            </p>
-            <ul className="list-disc ml-6">
-              {Object.entries(code.shortcuts.split("\n").filter(Boolean)).map(
-                ([_, shortcut], index) =>
-                  shortcut && <li key={index}>{shortcut}</li>
-              )}
-            </ul>
-          </section>
-
           <section>
             <p>
               This concludes the Hermes{" "}

@@ -9,26 +9,26 @@ export default function Features() {
           <div
             className={`bg-amber-100 dark:bg-gray-800 rounded-sm py-8 px-6 hover:scale-105 focus:scale-105`}
           >
-            <h3 className="text-xl font-bold mb-4">Privacy First</h3>
+            <h3 className="text-xl font-bold mb-4">Block-Based Editing</h3>
             <p>
-              Your content never leaves your device. Everything stays local and
-              secure. No data transmission to servers means complete control over your work.
+              Enjoy a modern, block-style editor. Effortlessly create headings, lists, quotes, and <strong>code blocks</strong> with keyboard shortcuts and markdown syntax.
             </p>
           </div>
           <div
             className={`bg-amber-100 dark:bg-gray-800 rounded-sm py-8 px-6 hover:scale-105 focus:scale-105`}
           >
-            <h3 className="text-xl font-bold mb-4">Modern Interface</h3>
+            <h3 className="text-xl font-bold mb-4">Export to PDF & More</h3>
             <p>
-              Enjoy a distraction-free workspace designed for focus and
-              productivity. Clean, intuitive design that adapts to your workflow.
+              Instantly export your notes and documents to <strong>PDF</strong>, HTML, or plain markdown. Share, archive, or print your work with a single click.
             </p>
           </div>
           <div
             className={`bg-amber-100 dark:bg-gray-800 rounded-sm py-8 px-6 hover:scale-105 focus:scale-105`}
           >
-            <h3 className="text-xl font-bold mb-4">Real-Time Preview</h3>
-            <p>See your markdown beautifully rendered as you type. Instant visual feedback helps you create better content.</p>
+            <h3 className="text-xl font-bold mb-4">Keyboard-Driven Productivity</h3>
+            <p>
+              Power through your workflow with <strong>keyboard shortcuts</strong> for every major action. Stay in the flow—no mouse required.
+            </p>
           </div>
         </div>
         
@@ -45,10 +45,10 @@ export default function Features() {
           <div
             className={`bg-amber-100 dark:bg-gray-800 rounded-sm py-8 px-6 hover:scale-105 focus:scale-105`}
           >
-            <h3 className="text-xl font-bold mb-4">Export Options</h3>
+            <h3 className="text-xl font-bold mb-4">Privacy First</h3>
             <p>
-              Export your work in multiple formats including PDF, HTML, and plain markdown. 
-              Perfect for sharing, archiving, or publishing your content.
+              Your content never leaves your device. Everything stays local and
+              secure. No data transmission to servers means complete control over your work.
             </p>
           </div>
         </div>

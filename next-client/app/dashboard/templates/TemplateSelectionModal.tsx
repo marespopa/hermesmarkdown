@@ -97,7 +97,7 @@ const TemplateSelectionModal = ({ isOpen, handleClose }: Props) => {
             key={tag}
             className={`px-3 py-1 rounded-sm text-sm ${
               selectedTag === tag
-                ? "bg-emerald-600 text-white"
+                ? "bg-amber-600 text-white"
                 : "bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200"
             }`}
             onClick={() => {

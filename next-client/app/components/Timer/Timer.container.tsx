@@ -52,20 +52,6 @@ export function TimerContainer({ settings, onClose }: Props): JSX.Element {
     const totalDuration = isWorking ? pomodoroTime : (isResting ? (cyclesStateManager.length === 0 ? longRestTime : shortRestTime) : pomodoroTime);
     const remaining = Math.max(0, totalDuration - elapsed);
     
-    // Debug logging (remove in production)
-    if (process.env.NODE_ENV === 'development') {
-      console.log('Timer Debug:', {
-        now,
-        startTime,
-        elapsed,
-        pauseTime,
-        totalDuration,
-        remaining,
-        isWorking,
-        isResting
-      });
-    }
-    
     return remaining;
   }, [startTime, isTimerCounting, pauseTime, isWorking, isResting, pomodoroTime, shortRestTime, longRestTime, cyclesStateManager]);
 

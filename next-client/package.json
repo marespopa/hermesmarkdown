@@ -29,6 +29,7 @@
     "autoprefixer": "10.4.20",
     "clsx": "^2.1.1",
     "eslint-config-next": "15.3.5",
+    "framer-motion": "^12.23.5",
     "gray-matter": "^4.0.3",
     "html2canvas": "^1.4.1",
     "jest": "^29.7.0",

@@ -250,7 +250,7 @@ function getHeadingText(
   return isDocumentTitle ? `${fileTitle}` : "Pomodoro Timer";
 }
 
-const timerPopStyles = `bg-amber-50 dark:bg-gray-800 shadow-sm py-2 px-2 md:px-4 pt-2 my-4 rounded-sm
+const timerPopStyles = `bg-amber-100 dark:bg-gray-800 shadow-sm py-2 px-2 md:px-4 pt-2 my-4 rounded-sm
                         w-1/2 z-10 md:w-1/4 sm:fixed sm:right-4 sm:bottom-2
                         opacity-95 relative`;
 

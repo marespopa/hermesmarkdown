@@ -11,6 +11,8 @@ import {
   atom_hasChanges,
   atom_showTimer,
   atom_timerSettings,
+  atom_fontFamily,
+  atom_fontSize,
 } from "@/app/atoms/atoms";
 import { useDocumentTitle } from "@/app/hooks/use-document-title";
 import { useState, useEffect } from "react";
@@ -46,6 +48,8 @@ export default function Editor() {
   const [isTemplateSelectModalVisible, setIsTemplateSelectModalVisible] =
     useState(false);
   const router = useRouter();
+  const [fontFamily] = useAtom(atom_fontFamily);
+  const [fontSize, setFontSize] = useAtom(atom_fontSize);
 
   const [_, setDocumentTitle] = useDocumentTitle("Hermes Markdown");
 
@@ -61,6 +65,27 @@ export default function Editor() {
   useEffect(() => {
     setDocumentTitle(fileTitle);
   }, [fileTitle, setDocumentTitle]);
+
+  useEffect(() => {
+    // Dynamically load Google Fonts if selected
+    const googleFonts: Record<string, string> = {
+      "Roboto, sans-serif": "Roboto",
+      "Fira Mono, monospace": "Fira+Mono",
+      "Merriweather, serif": "Merriweather",
+    };
+    const fontKey = Object.keys(googleFonts).find(key => fontFamily.startsWith(key.split(",")[0]));
+    if (fontKey) {
+      const fontName = googleFonts[fontKey];
+      const id = `google-font-${fontName}`;
+      if (!document.getElementById(id)) {
+        const link = document.createElement("link");
+        link.id = id;
+        link.rel = "stylesheet";
+        link.href = `https://fonts.googleapis.com/css?family=${fontName}:400,700&display=swap`;
+        document.head.appendChild(link);
+      }
+    }
+  }, [fontFamily]);
 
   function handleNewFile() {
     setIsLoading(true);
@@ -176,8 +201,9 @@ export default function Editor() {
       <EditorContent
         contentEdited={contentEdited}
         setContentEdited={setContentEdited}
-        frontMatter={frontMatter}
         setHasChanges={setHasChanges}
+        fontFamily={fontFamily}
+        fontSize={fontSize}
       />
       
       {/* Template Selection Modal */}

@@ -1,7 +1,4 @@
-import { atom_searchTerm } from "@/app/atoms/atoms";
-import useAutoResizeTextArea from "@/app/hooks/use-autoresize";
-import { useAtom } from "jotai";
-import { useEffect, useRef } from "react";
+import React, { useRef } from "react";
 
 interface Props {
   name: string;
@@ -10,22 +7,28 @@ interface Props {
   handleChange: (e: React.FormEvent<HTMLTextAreaElement>) => void;
   onCursorChange?: (lineText: string) => void;
   noBorder?: boolean;
+  style?: React.CSSProperties;
 }
+
+const FONT_SIZE = "1rem"; // 16px
+const LINE_HEIGHT = "1.5em";
 
 const TextareaResizable = ({
   name,
-  value = " ",
+  value = "",
   placeholder,
   handleChange,
   onCursorChange,
   noBorder,
+  style,
 }: Props) => {
-  const textAreaRef = useRef<HTMLTextAreaElement>(null);
-  useAutoResizeTextArea(textAreaRef, value);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const lineNumbersRef = useRef<HTMLPreElement>(null);
 
+  // Handle cursor change (optional)
   function handleCursorChange() {
-    if (!onCursorChange || !textAreaRef.current) return;
-    const textarea = textAreaRef.current;
+    if (!onCursorChange || !textareaRef.current) return;
+    const textarea = textareaRef.current;
     const cursorPos = textarea.selectionStart;
     const textUptoCursor = textarea.value.slice(0, cursorPos);
     const lines = textUptoCursor.split("\n");
@@ -33,25 +36,45 @@ const TextareaResizable = ({
     onCursorChange(currentLine);
   }
 
+  // Generate line numbers (always show one extra for the next empty row)
+  const lines = (value || "").split("\n");
+  const lineCount = Math.max(1, lines.length) + 1;
+  const lineNumbers = Array.from({ length: lineCount }, (_, i) => i + 1).join("\n");
+
   return (
-    <div>
-      <textarea
-        className={
-          `bg-white dark:bg-gray-900 text-black dark:text-white rounded-none font-mono font-bold px-4 py-4 outline-none w-full` +
-          (noBorder ? "" : " border border-black")
-        }
-        ref={textAreaRef}
-        rows={4}
-        id={name}
-        name={name}
-        value={value}
-        onChange={handleChange}
-        placeholder={placeholder}
-        spellCheck={true}
-        data-testid="editor-textarea"
-        onSelect={handleCursorChange}
-        onKeyUp={handleCursorChange}
-      />
+    <div className="w-full border border-gray-200 dark:border-gray-700 rounded" style={{ minHeight: "6em", maxHeight: "60vh", ...style }}>
+      <div
+        className="flex w-full h-full"
+        style={{ width: "100%", height: "100%", overflowY: "auto", overflowX: "hidden" }}
+      >
+        <pre
+          ref={lineNumbersRef}
+          aria-hidden="true"
+          className="select-none text-right pr-3 pl-2 bg-gray-50 dark:bg-gray-900/60 text-gray-400 dark:text-gray-600 font-mono border-r border-gray-200 dark:border-gray-700 rounded-l"
+          style={{ minWidth: 32, margin: 0, paddingTop: 16, paddingBottom: 0, userSelect: "none", fontSize: FONT_SIZE, lineHeight: LINE_HEIGHT, height: "100%" }}
+        >
+          {lineNumbers}
+        </pre>
+        <textarea
+          ref={textareaRef}
+          className={
+            `bg-white dark:bg-gray-900 text-black dark:text-white font-mono px-4 outline-none w-full resize-none` +
+            (noBorder ? "" : " border-none")
+          }
+          id={name}
+          name={name}
+          value={value}
+          onChange={handleChange}
+          placeholder={placeholder}
+          spellCheck={true}
+          data-testid="editor-textarea"
+          onSelect={handleCursorChange}
+          onKeyUp={handleCursorChange}
+          style={{ fontFamily: "monospace", fontSize: FONT_SIZE, lineHeight: LINE_HEIGHT, whiteSpace: "pre", height: "100%", minHeight: "6em", maxHeight: "60vh", paddingTop: 16, paddingBottom: 0, borderRadius: 0, overflow: "hidden" }}
+          wrap="off"
+          rows={Math.max(1, lines.length)}
+        />
+      </div>
     </div>
   );
 };

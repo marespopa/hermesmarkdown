@@ -11,51 +11,37 @@ const MonthlyBudgetTemplate: MarkdownTemplate = {
     tags: "budget,finance",
   },
   content: `# 💰 Monthly Budget
-
 **Created:** ${date}
-
 **Month:** [Month and Year]
-
 ---
-
 ## 💸 Income
-- **Total Income:** $[Amount]
-
+- Total Income: $[Amount]
 ---
-
 ## 🏠 Expenses
-- **Housing:** $[Amount]
-- **Food:** $[Amount]
-- **Transportation:** $[Amount]
-- **Utilities:** $[Amount]
-- **Entertainment:** $[Amount]
-- **Other:** $[Amount]
-
-**Total Expenses:** $[Amount]
-
+- Housing: $[Amount]
+- Food: $[Amount]
+- Transportation: $[Amount]
+- Utilities: $[Amount]
+- Entertainment: $[Amount]
+- Other: $[Amount]
+- Total Expenses: $[Amount]
 ---
-
 ## 💡 Savings & Investments
-- **Savings:** $[Amount]
-- **Investments:** $[Amount]
-- **Emergency Fund:** $[Amount]
-
-**Total Savings:** $[Amount]
-
+- Savings: $[Amount]
+- Investments: $[Amount]
+- Emergency Fund: $[Amount]
+- Total Savings: $[Amount]
 ---
-
 ## 🎯 Summary
-- **Total Income:** $[Amount]
-- **Total Expenses:** $[Amount]
-- **Total Savings:** $[Amount]
-- **Remaining Balance:** $[Amount]
-
+- Total Income: $[Amount]
+- Total Expenses: $[Amount]
+- Total Savings: $[Amount]
+- Remaining Balance: $[Amount]
 ---
-
 ## 📊 Goals
-- [ ] **Emergency Fund:** $[Target] / $[Current]
-- [ ] **Investment Goal:** $[Target] / $[Current]
-- [ ] **Save 20% of income**`,
+- [ ] Emergency Fund: $[Target] / $[Current]
+- [ ] Investment Goal: $[Target] / $[Current]
+- [ ] Save 20% of income`,
 };
 
 export default MonthlyBudgetTemplate;

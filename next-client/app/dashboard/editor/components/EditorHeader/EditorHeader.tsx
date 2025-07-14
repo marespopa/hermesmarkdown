@@ -7,16 +7,22 @@ import PenIcon from "@/app/components/Icons/PenIcon";
 import { useEffect, useRef, useState } from "react";
 import EditorForm from "../EditorForm";
 import { FileMetadata } from "@/app/types/markdown";
-import { atom_content, atom_showTimer, atom_panelState, atom_hasChanges, atom_theme } from "@/app/atoms/atoms";
+import { atom_content, atom_showTimer, atom_panelState, atom_hasChanges, atom_theme, atom_fontFamily, atom_fontSize } from "@/app/atoms/atoms";
 import DropdownMenu from "@/app/components/DropdownMenu";
 import ExportService from "@/app/services/export-service";
-import { FaClock, FaFile, FaEdit, FaQuestion, FaEye, FaColumns, FaPen, FaExclamationCircle, FaSave, FaCheck, FaKeyboard } from "react-icons/fa";
+import { FaClock, FaFile, FaEdit, FaQuestion, FaEye, FaColumns, FaPen, FaExclamationCircle, FaSave, FaCheck, FaKeyboard, FaFilePdf, FaMoon, FaSun, FaChevronDown } from "react-icons/fa";
 import { useRouter } from "next/navigation";
 import useIsMobile from "@/app/hooks/use-is-mobile";
 import ThemeToggle from "@/app/components/ThemeToggle";
 import IconButton from "@/app/components/IconButton";
 import React from "react";
 import DialogModal from "@/app/components/DialogModal";
+import Portal from "@/app/components/Portal";
+import Markdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import { Light as SyntaxHighlighter } from "react-syntax-highlighter";
+import { docco } from "react-syntax-highlighter/dist/esm/styles/hljs";
+import toast from "react-hot-toast";
 
 interface Props {
   contentEdited: string;
@@ -50,6 +56,28 @@ export default function EditorHeader({
   const fabMenuRef = useRef<HTMLDivElement>(null);
   const [theme, setTheme] = useAtom(atom_theme);
   const [isShortcutsOpen, setIsShortcutsOpen] = useState(false);
+  const [fontFamily, setFontFamily] = useAtom(atom_fontFamily);
+  const [fontSize, setFontSize] = useAtom(atom_fontSize);
+  const fontSizeOptions = [
+    { value: "prose-sm", label: "Small (14px)" },
+    { value: "prose-base", label: "Normal (16px)" },
+    { value: "prose-lg", label: "Large (18px)" },
+    { value: "prose-xl", label: "Extra Large (20px)" },
+    { value: "prose-2xl", label: "2XL (24px)" },
+  ];
+  const [isPdfPreviewOpen, setIsPdfPreviewOpen] = useState(false);
+  const [selectedFont, setSelectedFont] = useState<string>("font-sans");
+  const [hideFontDropdown, setHideFontDropdown] = useState(false);
+
+  const fontOptions = [
+    { value: "Inter, system-ui, sans-serif", label: "Inter" },
+    { value: "Roboto, sans-serif", label: "Roboto" },
+    { value: "Fira Mono, monospace", label: "Fira Mono" },
+    { value: "Merriweather, serif", label: "Merriweather" },
+    { value: "Georgia, serif", label: "Georgia" },
+    { value: "Arial, sans-serif", label: "Arial" },
+    { value: "Times New Roman, serif", label: "Times New Roman" },
+  ];
 
   // Higher-order function to wrap actions with closeFabMenu
   const withCloseFabMenu = (action: () => void) => () => {
@@ -125,88 +153,221 @@ export default function EditorHeader({
   }, []);
 
   return (
-    <>
-      {isMobile ? (
-        <>
-          {renderOptionsMenu()}
-          <PanelControls panelState={panelState} setPanelState={setPanelState} />
-        </>
-      ) : (
-        <div
-          className="bg-amber-50 dark:bg-gray-800 border border-black/10 dark:border-white/10 shadow-sm px-4 py-2 flex flex-col gap-2 mt-4"
-        >
-          {/* Top row: file info and actions */}
-          <div className="flex flex-row justify-between items-center w-full gap-4">
-            <div className="flex flex-col gap-1">
-              <h1 className="text-2xl leading-tight flex gap-2 items-center text-gray-900 dark:text-white">
-                <span>{hasTitle && `${fileTitle}`}</span>
-                <span className="cursor-pointer" onClick={showFileDialog}>
-                  <PenIcon tooltip="File Settings" size={16} alt="Edit Title" />
-                </span>
-              </h1>
-              <h2 className="text-xs leading-tight text-gray-700 dark:text-gray-300 font-mono">{`${
-                fileName?.endsWith(".md") ? fileName : fileName + ".md"
-              }`}</h2>
+    <header className="flex flex-col items-center justify-center w-full py-4 bg-white/80 dark:bg-gray-900/80 rounded-t-xl sm:flex-row sm:items-center sm:justify-between">
+      {/* Left: Title and file info */}
+      <div className="flex flex-col items-center gap-6 max-w-md w-full flex-shrink-0 sm:flex-row sm:items-center">
+        <div className="flex flex-col gap-1 min-w-0 w-full sm:w-auto">
+          <div className="flex flex-row items-center gap-2 min-w-0 justify-center sm:justify-start">
+            <h1 className="truncate text-xl font-semibold text-gray-900 dark:text-white leading-tight text-center sm:text-left">{hasTitle && `${fileTitle}`}</h1>
+            <span className="cursor-pointer" onClick={showFileDialog}>
+              <PenIcon tooltip="File Settings" size={16} alt="Edit Title" />
+            </span>
+          </div>
+          <span className="text-xs text-gray-500 dark:text-gray-400 font-mono truncate text-center sm:text-left">{`${fileName?.endsWith(".md") ? fileName : fileName + ".md"}`}</span>
+          <div className="mt-1 flex flex-col gap-1 items-center sm:items-start">
+            <div className="flex flex-row gap-2 items-center justify-center sm:justify-start">
+              {renderFontMenu()}
+              {renderFontSizeMenu()}
             </div>
-            <div className="flex flex-col items-end gap-1 min-w-[320px]">
-              <div className="flex flex-row items-center gap-2">
-                {renderFileMenu()}
-                <IconButton
-                  icon={<FaSave />}
-                  title="Save As"
-                  onClick={exportToMD}
-                />
-                {renderEditMenu()}
-                {renderHelpMenu()}
-                <IconButton
-                  icon={<FaKeyboard />}
-                  title="Keyboard Shortcuts"
-                  onClick={() => setIsShortcutsOpen(true)}
-                />
-                <EditorPreviewTrigger />
-                <IconButton
-                  icon={<FaClock />}
-                  title={showTimer ? "Hide timer" : "Show timer"}
-                  onClick={() => setShowTimer(!showTimer)}
-                  isActive={showTimer}
-                  dataTestId="timer-toggle"
-                />
-                <ThemeToggle />
-              </div>
-              {/* Unsaved changes indicator - right-aligned, pill style, with icon, fade-in */}
-              <div className="h-5 flex items-center justify-end w-full">
-                {hasChanges && (
-                  <span className="flex items-center gap-1 px-3 py-0.5 rounded-full bg-amber-100 dark:bg-amber-900 text-amber-800 dark:text-amber-200 text-xs font-medium shadow-sm animate-fade-in">
-                    <FaExclamationCircle className="w-3 h-3 mr-1" />
-                    You have unsaved changes.
-                  </span>
-                )}
+          </div>
+        </div>
+      </div>
+      {/* Right: Actions */}
+      <div className="flex flex-row items-center gap-2 justify-center w-full sm:w-auto sm:justify-end">
+        <button
+          onClick={() => setIsFabMenuOpen(true)}
+          className="sm:hidden p-2 rounded-lg bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors duration-200"
+          aria-label="Menu"
+          title="Menu"
+        >
+          <span className="font-bold text-gray-700 dark:text-gray-300">Menu</span>
+        </button>
+        {isFabMenuOpen && (
+          <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-white dark:bg-gray-900 bg-opacity-95 dark:bg-opacity-95">
+            <button
+              onClick={() => setIsFabMenuOpen(false)}
+              className="absolute top-4 right-4 text-3xl text-gray-700 dark:text-gray-300 focus:outline-none"
+              aria-label="Close Menu"
+            >
+              &times;
+            </button>
+            <div className="flex flex-col gap-3 w-[90vw] max-w-xs mx-auto px-4 mt-8 mb-4 overflow-y-auto max-h-[80vh] items-center">
+              {renderMobileFontMenu()}
+              {renderMobileFontSizeMenu()}
+              <div className="mb-6" />
+              <div className="flex flex-col gap-3 w-full items-center">
+                <button
+                  className="w-full py-3 border border-black dark:border-white bg-white dark:bg-gray-900 text-black dark:text-white font-mono font-bold rounded-none text-lg hover:bg-black hover:text-white transition-colors max-w-xs"
+                  onClick={withCloseFabMenu(actions.handleNewFile)}
+                >
+                  New File
+                </button>
+                <button
+                  className="w-full py-3 border border-black dark:border-white bg-white dark:bg-gray-900 text-black dark:text-white font-mono font-bold rounded-none text-lg hover:bg-black hover:text-white transition-colors max-w-xs"
+                  onClick={withCloseFabMenu(actions.handleSelectTemplate)}
+                >
+                  New From Template
+                </button>
+                <button
+                  className="w-full py-3 border border-black dark:border-white bg-white dark:bg-gray-900 text-black dark:text-white font-mono font-bold rounded-none text-lg hover:bg-black hover:text-white transition-colors max-w-xs"
+                  onClick={withCloseFabMenu(exportToMD)}
+                >
+                  Save File
+                </button>
+                <button
+                  className="w-full py-3 border border-black dark:border-white bg-white dark:bg-gray-900 text-black dark:text-white font-mono font-bold rounded-none text-lg hover:bg-black hover:text-white transition-colors max-w-xs"
+                  onClick={withCloseFabMenu(actions.handleOpenFile)}
+                >
+                  Open File
+                </button>
+                <button
+                  className="w-full py-3 border border-black dark:border-white bg-white dark:bg-gray-900 text-black dark:text-white font-mono font-bold rounded-none text-lg hover:bg-black hover:text-white transition-colors max-w-xs"
+                  onClick={withCloseFabMenu(() => navigator.clipboard.writeText(contentEdited))}
+                >
+                  Copy Markdown
+                </button>
+                <button
+                  className="w-full py-3 border border-black dark:border-white bg-white dark:bg-gray-900 text-black dark:text-white font-mono font-bold rounded-none text-lg hover:bg-black hover:text-white transition-colors max-w-xs"
+                  onClick={withCloseFabMenu(actions.handleOpenFindAndReplace)}
+                >
+                  Find/Replace
+                </button>
+                <button
+                  className="w-full py-3 border border-black dark:border-white bg-white dark:bg-gray-900 text-black dark:text-white font-mono font-bold rounded-none text-lg hover:bg-black hover:text-white transition-colors max-w-xs"
+                  onClick={withCloseFabMenu(() => setIsShortcutsOpen(true))}
+                >
+                  Keyboard Shortcuts
+                </button>
+                <button
+                  className="w-full py-3 border border-black dark:border-white bg-white dark:bg-gray-900 text-black dark:text-white font-mono font-bold rounded-none text-lg hover:bg-black hover:text-white transition-colors max-w-xs"
+                  onClick={withCloseFabMenu(() => setShowTimer(!showTimer))}
+                >
+                  {showTimer ? "Hide Timer" : "Show Timer"}
+                </button>
+                <button
+                  className="w-full py-3 border border-black dark:border-white bg-white dark:bg-gray-900 text-black dark:text-white font-mono font-bold rounded-none text-lg hover:bg-black hover:text-white transition-colors flex items-center justify-center gap-2 max-w-xs"
+                  onClick={() => setTheme(theme === "light" ? "dark" : "light")}
+                >
+                  {theme === "light" ? <FaMoon className="w-5 h-5" /> : <FaSun className="w-5 h-5" />}
+                  {theme === "light" ? "Switch to Dark Mode" : "Switch to Light Mode"}
+                </button>
+                <button
+                  className="w-full py-3 border border-black dark:border-white bg-white dark:bg-gray-900 text-black dark:text-white font-mono font-bold rounded-none text-lg hover:bg-black hover:text-white transition-colors max-w-xs"
+                  onClick={withCloseFabMenu(() => router.push('/documentation'))}
+                >
+                  Documentation
+                </button>
               </div>
             </div>
           </div>
-          {/* Toggle Bar: full width, flush with header bottom */}
-          <PanelControls panelState={panelState} setPanelState={setPanelState} />
-        </div>
-      )}
-      <EditorForm isOpened={isFormatterDialogOpen} handleClose={closeFabMenu} />
-      {/* Keyboard Shortcuts Modal */}
-      <DialogModal isOpened={isShortcutsOpen} onClose={() => setIsShortcutsOpen(false)}>
-        <div className="p-4 max-w-lg">
-          <h2 className="text-2xl font-bold mb-4">Keyboard Shortcuts</h2>
-          <ul className="list-disc ml-6 space-y-2 text-base">
-            <li><b>Ctrl+Shift+Y</b> — Save File</li>
-            <li><b>Ctrl+Shift+U</b> — New File</li>
-            <li><b>Ctrl+Shift+I</b> — Open File</li>
-            <li><b>Ctrl+Shift+E</b> — Open Export Preview (PDF)</li>
-            <li><b>Ctrl+Shift+H</b> — New from Template</li>
-            <li><b>Ctrl+Shift+M</b> — Go to Home/Dashboard</li>
-            <li><b>Esc</b> — Escape/Close Modal</li>
-            <li><b>Enter</b> — Confirm/Submit (in modals)</li>
-          </ul>
-          <p className="mt-4 text-sm text-gray-500 dark:text-gray-400">On Mac, use <b>Cmd+Shift</b> instead of <b>Ctrl+Shift</b>.</p>
-        </div>
-      </DialogModal>
-    </>
+        )}
+        {/* Icon buttons and dropdowns for tablet and up */}
+        <IconButton
+          icon={<FaFile />}
+          title="New File"
+          aria-label="New File"
+          onClick={() => actions.handleNewFile()}
+          className="hidden sm:inline-flex"
+        />
+        {renderFileMenu()}
+        <IconButton
+          icon={<FaSave />}
+          title="Save As"
+          onClick={exportToMD}
+          className="hidden sm:inline-flex"
+        />
+        <IconButton
+          icon={<FaFilePdf />}
+          title="Export to PDF"
+          onClick={showPdfPreviewModal}
+          dataTestId="export-pdf"
+          className="hidden sm:inline-flex"
+        />
+        {renderEditMenu()}
+        {renderHelpMenu()}
+        <IconButton
+          icon={<FaKeyboard />}
+          title="Keyboard Shortcuts"
+          onClick={() => setIsShortcutsOpen(true)}
+          className="hidden sm:inline-flex"
+        />
+        <IconButton
+          icon={<FaClock />}
+          title={showTimer ? "Hide timer" : "Show timer"}
+          onClick={() => setShowTimer(!showTimer)}
+          isActive={showTimer}
+          dataTestId="timer-toggle"
+          className="hidden sm:inline-flex"
+        />
+        <ThemeToggle />
+      </div>
+      <Portal>
+        <EditorForm
+          isOpened={isFormatterDialogOpen}
+          handleClose={() => setIsFormatterDialogOpen(false)}
+        />
+        <DialogModal
+          isOpened={isShortcutsOpen}
+          onClose={() => setIsShortcutsOpen(false)}
+        >
+          <div className="p-4 max-w-lg">
+            <h2 className="text-xl font-bold mb-4">Keyboard Shortcuts</h2>
+            <ul className="font-mono text-base space-y-2">
+              <li><b>⌘/Ctrl + S</b>: Save</li>
+              <li><b>⌘/Ctrl + O</b>: Open File</li>
+              <li><b>⌘/Ctrl + N</b>: New File</li>
+              <li><b>⌘/Ctrl + F</b>: Find/Replace</li>
+              <li><b>⌘/Ctrl + Z</b>: Undo</li>
+              <li><b>⌘/Ctrl + Shift + Z</b>: Redo</li>
+              <li><b>⌘/Ctrl + P</b>: Command Palette</li>
+              <li><b>⌘/Ctrl + B</b>: Toggle Sidebar</li>
+              <li><b>Esc</b>: Close Dialogs</li>
+            </ul>
+          </div>
+        </DialogModal>
+      </Portal>
+      <Portal>
+        <DialogModal
+          isOpened={isPdfPreviewOpen}
+          onClose={() => hidePdfPreviewModal()}
+        >
+          <div className="h-full relative">
+            {/* Top bar: Export button (left), Font selector (center), Close (right) */}
+            <div className="flex items-center justify-between mb-6">
+              <Button
+                styles="animate-pop flex-initial"
+                variant="primary"
+                label="Export"
+                handler={() => handlePdfExport()}
+              />
+              <div className="flex-1 flex justify-center">
+                {!hideFontDropdown && (
+                  <select
+                    id="pdf-font-select"
+                    value={selectedFont}
+                    onChange={e => setSelectedFont(e.target.value)}
+                    className="border border-gray-300 dark:border-gray-600 rounded px-2 py-1 text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors shadow"
+                  >
+                    <option value="font-sans">Sans-serif</option>
+                    <option value="font-serif">Serif</option>
+                    <option value="font-mono">Monospace</option>
+                  </select>
+                )}
+              </div>
+              {/* The close button is handled by DialogModal itself */}
+            </div>
+            <div className="mb-4 text-xs text-gray-600 dark:text-gray-400 font-mono">
+              <strong>PDF Export Disclaimer:</strong> For best readability, exported PDFs always use a white background, even in dark mode.
+            </div>
+            <div id="pdfReport">
+              <section>
+                <PdfMarkdownPreview content={contentEdited} fontClass={selectedFont} />
+              </section>
+            </div>
+          </div>
+        </DialogModal>
+      </Portal>
+    </header>
   );
 
   function closeFabMenu() {
@@ -237,62 +398,68 @@ export default function EditorHeader({
               >
                 &times;
               </button>
-              <div className="flex flex-col gap-3 w-full max-w-xs px-4">
-                <button
-                  className="w-full py-3 border border-black dark:border-white bg-white dark:bg-gray-900 text-black dark:text-white font-mono font-bold rounded-none text-lg hover:bg-black hover:text-white transition-colors"
-                  onClick={withCloseFabMenu(actions.handleNewFile)}
-                >
-                  New File
-                </button>
-                <button
-                  className="w-full py-3 border border-black dark:border-white bg-white dark:bg-gray-900 text-black dark:text-white font-mono font-bold rounded-none text-lg hover:bg-black hover:text-white transition-colors"
-                  onClick={withCloseFabMenu(actions.handleSelectTemplate)}
-                >
-                  New From Template
-                </button>
-                <button
-                  className="w-full py-3 border border-black dark:border-white bg-white dark:bg-gray-900 text-black dark:text-white font-mono font-bold rounded-none text-lg hover:bg-black hover:text-white transition-colors"
-                  onClick={withCloseFabMenu(exportToMD)}
-                >
-                  Save File
-                </button>
-                <button
-                  className="w-full py-3 border border-black dark:border-white bg-white dark:bg-gray-900 text-black dark:text-white font-mono font-bold rounded-none text-lg hover:bg-black hover:text-white transition-colors"
-                  onClick={withCloseFabMenu(actions.handleOpenFile)}
-                >
-                  Open File
-                </button>
-                <button
-                  className="w-full py-3 border border-black dark:border-white bg-white dark:bg-gray-900 text-black dark:text-white font-mono font-bold rounded-none text-lg hover:bg-black hover:text-white transition-colors"
-                  onClick={withCloseFabMenu(() => navigator.clipboard.writeText(contentEdited))}
-                >
-                  Copy Markdown
-                </button>
-                <button
-                  className="w-full py-3 border border-black dark:border-white bg-white dark:bg-gray-900 text-black dark:text-white font-mono font-bold rounded-none text-lg hover:bg-black hover:text-white transition-colors"
-                  onClick={withCloseFabMenu(actions.handleOpenFindAndReplace)}
-                >
-                  Find/Replace
-                </button>
-                <button
-                  className="w-full py-3 border border-black dark:border-white bg-white dark:bg-gray-900 text-black dark:text-white font-mono font-bold rounded-none text-lg hover:bg-black hover:text-white transition-colors"
-                  onClick={withCloseFabMenu(() => router.push('/dashboard'))}
-                >
-                  Welcome
-                </button>
-                <button
-                  className="w-full py-3 border border-black dark:border-white bg-white dark:bg-gray-900 text-black dark:text-white font-mono font-bold rounded-none text-lg hover:bg-black hover:text-white transition-colors"
-                  onClick={withCloseFabMenu(() => router.push('/documentation'))}
-                >
-                  Documentation
-                </button>
-                <div className="flex justify-center w-full py-2">
+              {/* Scrollable menu content */}
+              <div className="w-full max-w-xs px-4 mt-8 mb-4 overflow-y-auto max-h-[80vh]">
+                {renderMobileFontMenu()}
+                {renderMobileFontSizeMenu()}
+                <div className="mb-6" />
+                <div className="flex flex-col gap-3 w-full">
                   <button
                     className="w-full py-3 border border-black dark:border-white bg-white dark:bg-gray-900 text-black dark:text-white font-mono font-bold rounded-none text-lg hover:bg-black hover:text-white transition-colors"
-                    onClick={() => setTheme(theme === "light" ? "dark" : "light")}
+                    onClick={withCloseFabMenu(actions.handleNewFile)}
                   >
-                    {theme === "light" ? "Switch to Dark Mode" : "Switch to Light Mode"}
+                    New File
                   </button>
+                  <button
+                    className="w-full py-3 border border-black dark:border-white bg-white dark:bg-gray-900 text-black dark:text-white font-mono font-bold rounded-none text-lg hover:bg-black hover:text-white transition-colors"
+                    onClick={withCloseFabMenu(actions.handleSelectTemplate)}
+                  >
+                    New From Template
+                  </button>
+                  <button
+                    className="w-full py-3 border border-black dark:border-white bg-white dark:bg-gray-900 text-black dark:text-white font-mono font-bold rounded-none text-lg hover:bg-black hover:text-white transition-colors"
+                    onClick={withCloseFabMenu(exportToMD)}
+                  >
+                    Save File
+                  </button>
+                  <button
+                    className="w-full py-3 border border-black dark:border-white bg-white dark:bg-gray-900 text-black dark:text-white font-mono font-bold rounded-none text-lg hover:bg-black hover:text-white transition-colors"
+                    onClick={withCloseFabMenu(actions.handleOpenFile)}
+                  >
+                    Open File
+                  </button>
+                  <button
+                    className="w-full py-3 border border-black dark:border-white bg-white dark:bg-gray-900 text-black dark:text-white font-mono font-bold rounded-none text-lg hover:bg-black hover:text-white transition-colors"
+                    onClick={withCloseFabMenu(() => navigator.clipboard.writeText(contentEdited))}
+                  >
+                    Copy Markdown
+                  </button>
+                  <button
+                    className="w-full py-3 border border-black dark:border-white bg-white dark:bg-gray-900 text-black dark:text-white font-mono font-bold rounded-none text-lg hover:bg-black hover:text-white transition-colors"
+                    onClick={withCloseFabMenu(actions.handleOpenFindAndReplace)}
+                  >
+                    Find/Replace
+                  </button>
+                  <button
+                    className="w-full py-3 border border-black dark:border-white bg-white dark:bg-gray-900 text-black dark:text-white font-mono font-bold rounded-none text-lg hover:bg-black hover:text-white transition-colors"
+                    onClick={withCloseFabMenu(() => router.push('/dashboard'))}
+                  >
+                    Welcome
+                  </button>
+                  <button
+                    className="w-full py-3 border border-black dark:border-white bg-white dark:bg-gray-900 text-black dark:text-white font-mono font-bold rounded-none text-lg hover:bg-black hover:text-white transition-colors"
+                    onClick={withCloseFabMenu(() => router.push('/documentation'))}
+                  >
+                    Documentation
+                  </button>
+                  <div className="flex justify-center w-full py-2">
+                    <button
+                      className="w-full py-3 border border-black dark:border-white bg-white dark:bg-gray-900 text-black dark:text-white font-mono font-bold rounded-none text-lg hover:bg-black hover:text-white transition-colors"
+                      onClick={() => setTheme(theme === "light" ? "dark" : "light")}
+                    >
+                      {theme === "light" ? "Switch to Dark Mode" : "Switch to Light Mode"}
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -321,6 +488,7 @@ export default function EditorHeader({
             icon={<FaEdit />}
             title="Edit"
             showDropdownIndicator={true}
+            className="hidden sm:inline-flex"
           />
         }
       />
@@ -336,6 +504,7 @@ export default function EditorHeader({
             icon={<FaQuestion />}
             title="Help"
             showDropdownIndicator={true}
+            className="hidden sm:inline-flex"
           />
         }
       />
@@ -351,7 +520,80 @@ export default function EditorHeader({
             icon={<FaFile />}
             title="File"
             showDropdownIndicator={true}
+            className="hidden sm:inline-flex"
           />
+        }
+      />
+    );
+  }
+
+  function renderFontMenu() {
+    const fontMenuOptions = fontOptions.map(option => ({
+      label: option.label,
+      action: () => setFontFamily(option.value)
+    }));
+
+    return (
+      <DropdownMenu
+        options={fontMenuOptions}
+        trigger={
+          <button className="border border-black dark:border-white bg-white dark:bg-gray-900 text-black dark:text-white font-mono font-bold rounded-none text-base px-3 py-2 hover:bg-black hover:text-white transition-colors flex items-center gap-2">
+            Font <FaChevronDown className="ml-2 w-4 h-4" />
+          </button>
+        }
+      />
+    );
+  }
+
+  function renderFontSizeMenu() {
+    const fontSizeMenuOptions = fontSizeOptions.map(option => ({
+      label: option.label,
+      action: () => setFontSize(option.value)
+    }));
+
+    return (
+      <DropdownMenu
+        options={fontSizeMenuOptions}
+        trigger={
+          <button className="border border-black dark:border-white bg-white dark:bg-gray-900 text-black dark:text-white font-mono font-bold rounded-none text-base px-3 py-2 hover:bg-black hover:text-white transition-colors flex items-center gap-2">
+            Size <FaChevronDown className="ml-2 w-4 h-4" />
+          </button>
+        }
+      />
+    );
+  }
+
+  function renderMobileFontMenu() {
+    const fontMenuOptions = fontOptions.map(option => ({
+      label: option.label,
+      action: () => setFontFamily(option.value)
+    }));
+
+    return (
+      <DropdownMenu
+        options={fontMenuOptions}
+        trigger={
+          <button className="w-full py-3 border border-black dark:border-white bg-white dark:bg-gray-900 text-black dark:text-white font-mono font-bold rounded-none text-lg hover:bg-black hover:text-white transition-colors max-w-xs">
+            Font: {fontOptions.find(opt => opt.value === fontFamily)?.label || 'Inter'}
+          </button>
+        }
+      />
+    );
+  }
+
+  function renderMobileFontSizeMenu() {
+    const fontSizeMenuOptions = fontSizeOptions.map(option => ({
+      label: option.label,
+      action: () => setFontSize(option.value)
+    }));
+
+    return (
+      <DropdownMenu
+        options={fontSizeMenuOptions}
+        trigger={
+          <button className="w-full py-3 border border-black dark:border-white bg-white dark:bg-gray-900 text-black dark:text-white font-mono font-bold rounded-none text-lg hover:bg-black hover:text-white transition-colors max-w-xs">
+            Size: {fontSizeOptions.find(opt => opt.value === fontSize)?.label || 'Normal (16px)'}
+          </button>
         }
       />
     );
@@ -365,6 +607,64 @@ export default function EditorHeader({
     ExportService.exportMarkdown(contentEdited, frontMatter);
     setFileContent(contentEdited);
     setHasChanges(false); // Clear unsaved changes after save
+  }
+
+  async function handlePdfExport() {
+    const reportName = (frontMatter.fileName || "hermesnote").replace(".md", ".pdf");
+    setHideFontDropdown(true);
+    await new Promise((resolve) => setTimeout(resolve, 100)); // allow DOM to update
+    try {
+      await ExportService.generatePDF("#pdfReport", reportName);
+      toast.success("File has been exported");
+      setHideFontDropdown(false);
+    } catch (error) {
+      toast.error("File could not be exported");
+      console.error(error);
+      setHideFontDropdown(false);
+    }
+  }
+
+  function showPdfPreviewModal() {
+    setIsPdfPreviewOpen(true);
+  }
+
+  function hidePdfPreviewModal() {
+    setIsPdfPreviewOpen(false);
+  }
+
+  // PDF-specific markdown preview that forces light mode
+  function PdfMarkdownPreview({ content, fontClass = "font-sans" }: { content: string, fontClass?: string }) {
+    if (!content?.length) {
+      return (
+        <div data-testid="preview">
+          <p className="text-gray-700">The file is currently empty...</p>
+        </div>
+      );
+    }
+    return (
+      <div data-testid="preview" className={`bg-white prose ${fontClass}`} style={{ color: '#222' }}>
+        <Markdown
+          remarkPlugins={[remarkGfm]}
+          components={{
+            code(props) {
+              const { children, className, node, ...rest } = props;
+              const match = /language-(\w+)/.exec(className || "");
+              return match ? (
+                <SyntaxHighlighter style={docco} PreTag="div" language={match[1]}>
+                  {String(children).replace(/\n$/, "")}
+                </SyntaxHighlighter>
+              ) : (
+                <code {...rest} className={className}>
+                  {children}
+                </code>
+              );
+            },
+          }}
+        >
+          {content}
+        </Markdown>
+      </div>
+    );
   }
 }
 

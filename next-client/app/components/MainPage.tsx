@@ -22,16 +22,6 @@ const MainPage = ({ children }: Props) => {
   const pathname = usePathname();
   const showHeader = !pathname.includes("dashboard");
 
-  useEffect(() => {
-    const logKeydown = (e: KeyboardEvent) => {
-      console.log(
-        `Key: ${e.key}, Ctrl: ${e.ctrlKey}, Alt: ${e.altKey}, Shift: ${e.shiftKey}, Meta: ${e.metaKey}`
-      );
-    };
-    window.addEventListener("keydown", logKeydown);
-    return () => window.removeEventListener("keydown", logKeydown);
-  }, []);
-
   return (
     <html lang="en" suppressHydrationWarning className="bg-white dark:bg-gray-900">
       <Seo />

@@ -18,6 +18,9 @@ export const atom_timerSettings = atomWithStorage("timerSettings", {
   longBreakSessionDurationInMin: 15,
 } as TimerData);
 
+export const atom_fontFamily = atomWithStorage<string>("editorFontFamily", "Inter, system-ui, sans-serif");
+export const atom_fontSize = atomWithStorage<string>("editorFontSize", "prose-base");
+
 type SetStateActionWithReset<Value> =
   | Value
   | typeof RESET

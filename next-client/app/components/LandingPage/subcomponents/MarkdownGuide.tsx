@@ -1,6 +1,9 @@
 import React from "react";
+import Button from "../../Button";
+import { useRouter } from "next/navigation";
 
 export default function MarkdownGuide() {
+  const router = useRouter();
   return (
     <section className="py-16 bg-gray-50 dark:bg-gray-800">
       <div className="max-w-7xl mx-auto px-4">
@@ -14,9 +17,9 @@ export default function MarkdownGuide() {
           </p>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <div className="bg-white dark:bg-gray-700 rounded-lg p-6 shadow-sm">
-            <h3 className="text-xl font-bold mb-4 text-emerald-600">Headers & Structure</h3>
+            <h3 className="text-xl font-bold mb-4"><span className="bg-amber-100 text-black px-2 py-1 rounded">Headers & Structure</span></h3>
             <div className="space-y-2 text-sm">
               <p><code className="bg-gray-100 dark:bg-gray-600 px-2 py-1 rounded"># H1 Header</code></p>
               <p><code className="bg-gray-100 dark:bg-gray-600 px-2 py-1 rounded">## H2 Header</code></p>
@@ -28,7 +31,7 @@ export default function MarkdownGuide() {
           </div>
           
           <div className="bg-white dark:bg-gray-700 rounded-lg p-6 shadow-sm">
-            <h3 className="text-xl font-bold mb-4 text-emerald-600">Text Formatting</h3>
+            <h3 className="text-xl font-bold mb-4"><span className="bg-amber-100 text-black px-2 py-1 rounded">Text Formatting</span></h3>
             <div className="space-y-2 text-sm">
               <p><code className="bg-gray-100 dark:bg-gray-600 px-2 py-1 rounded">**Bold Text**</code></p>
               <p><code className="bg-gray-100 dark:bg-gray-600 px-2 py-1 rounded">*Italic Text*</code></p>
@@ -40,7 +43,7 @@ export default function MarkdownGuide() {
           </div>
           
           <div className="bg-white dark:bg-gray-700 rounded-lg p-6 shadow-sm">
-            <h3 className="text-xl font-bold mb-4 text-emerald-600">Lists & Organization</h3>
+            <h3 className="text-xl font-bold mb-4"><span className="bg-amber-100 text-black px-2 py-1 rounded">Lists & Organization</span></h3>
             <div className="space-y-2 text-sm">
               <p><code className="bg-gray-100 dark:bg-gray-600 px-2 py-1 rounded">- Unordered list</code></p>
               <p><code className="bg-gray-100 dark:bg-gray-600 px-2 py-1 rounded">1. Ordered list</code></p>
@@ -52,7 +55,7 @@ export default function MarkdownGuide() {
           </div>
           
           <div className="bg-white dark:bg-gray-700 rounded-lg p-6 shadow-sm">
-            <h3 className="text-xl font-bold mb-4 text-emerald-600">Links & Media</h3>
+            <h3 className="text-xl font-bold mb-4"><span className="bg-amber-100 text-black px-2 py-1 rounded">Links & Media</span></h3>
             <div className="space-y-2 text-sm">
               <p><code className="bg-gray-100 dark:bg-gray-600 px-2 py-1 rounded">[Link Text](URL)</code></p>
               <p><code className="bg-gray-100 dark:bg-gray-600 px-2 py-1 rounded">![Alt Text](image.jpg)</code></p>
@@ -62,8 +65,8 @@ export default function MarkdownGuide() {
             </div>
           </div>
           
-          <div className="bg-white dark:bg-gray-700 rounded-lg p-6 shadow-sm">
-            <h3 className="text-xl font-bold mb-4 text-emerald-600">Code & Technical</h3>
+          {/* <div className="bg-white dark:bg-gray-700 rounded-lg p-6 shadow-sm">
+            <h3 className="text-xl font-bold mb-4"><span className="bg-amber-100 text-black px-2 py-1 rounded">Code & Technical</span></h3>
             <div className="space-y-2 text-sm">
               <p><code className="bg-gray-100 dark:bg-gray-600 px-2 py-1 rounded">`inline code`</code></p>
               <p><code className="bg-gray-100 dark:bg-gray-600 px-2 py-1 rounded">```code block```</code></p>
@@ -71,10 +74,10 @@ export default function MarkdownGuide() {
                 Perfect for technical documentation, tutorials, and code examples.
               </p>
             </div>
-          </div>
+          </div> */}
           
-          <div className="bg-white dark:bg-gray-700 rounded-lg p-6 shadow-sm">
-            <h3 className="text-xl font-bold mb-4 text-emerald-600">Tables & Data</h3>
+          {/* <div className="bg-white dark:bg-gray-700 rounded-lg p-6 shadow-sm">
+            <h3 className="text-xl font-bold mb-4"><span className="bg-amber-100 text-black px-2 py-1 rounded">Tables & Data</span></h3>
             <div className="space-y-2 text-sm">
               <p><code className="bg-gray-100 dark:bg-gray-600 px-2 py-1 rounded">| Header | Header |</code></p>
               <p><code className="bg-gray-100 dark:bg-gray-600 px-2 py-1 rounded">|--------|--------|</code></p>
@@ -83,19 +86,20 @@ export default function MarkdownGuide() {
                 Present data in organized tables for better comparison and analysis.
               </p>
             </div>
-          </div>
+          </div> */}
         </div>
         
         <div className="text-center mt-12">
           <p className="text-lg text-gray-600 dark:text-gray-300 mb-4">
             Ready to start writing? Hermes Markdown provides real-time preview so you can see your formatting instantly.
           </p>
-          <a 
-            href="/documentation" 
-            className="inline-block bg-emerald-600 text-white px-6 py-3 rounded-lg hover:bg-emerald-700 transition-colors"
+          <Button
+            variant="primary"
+            handler={() => router.push("/documentation")}
+            styles="px-6 py-3 rounded-lg text-lg"
           >
             Learn More About Markdown
-          </a>
+          </Button>
         </div>
       </div>
     </section>

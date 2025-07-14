@@ -25,7 +25,7 @@ const IconButton: React.FC<IconButtonProps> = ({
   <button
     type="button"
     onClick={onClick}
-    className={`px-2 py-2 min-w-[44px] h-10 border border-black dark:border-white rounded-none bg-white dark:bg-gray-900 text-black dark:text-white font-mono font-bold flex items-center justify-center relative hover:bg-black hover:text-white transition-colors ${className}`}
+    className={`border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white font-medium flex items-center justify-center transition-colors duration-150 hover:bg-gray-100 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-amber-500 min-w-[44px] h-10 px-2 py-2 ${className}`}
     aria-label={ariaLabel || title}
     title={title}
     data-testid={dataTestId}

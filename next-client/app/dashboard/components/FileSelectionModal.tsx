@@ -51,11 +51,13 @@ const FileSelectionModal = ({ isOpen, handleClose }: Props) => {
         <p className="my-4">Select a file to load in the editor:</p>
         <FileInput
           name="file"
-          placeholder="Upload a markdown file"
-          fileList={fileList}
-          handleChange={(selectedFileList) =>
-            handleOpenFileFromInput(selectedFileList)
-          }
+          handleChange={(selectedFileList) => {
+            if (selectedFileList && selectedFileList[0]) {
+              handleOpenFileFromInput(selectedFileList);
+            } else {
+              toast.error("Something went wrong with the file selection. Please try again.");
+            }
+          }}
           label="Markdown File"
           accept=".md, .txt"
           helperText="Load a markdown file."

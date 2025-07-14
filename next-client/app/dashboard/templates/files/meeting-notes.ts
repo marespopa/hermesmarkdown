@@ -12,50 +12,38 @@ Simplifies organizing and tracking action items for effective follow-ups.`,
     tags: "meeting,notes",
   },
   content: `# 🗓️ Meeting Notes
-
 **Date:** ${date}
 **Time:** [Time]
 **Location:** [Location]
-
 ---
-
 ## 👥 Attendees
-- [Name 1]
-- [Name 2]
-- [Name 3]
-
+- Name 1
+- Name 2
+- Name 3
 ---
-
 ## 📋 Agenda
-1. [Agenda Item 1]
-2. [Agenda Item 2]
-3. [Agenda Item 3]
-
+- Agenda Item 1
+- Agenda Item 2
+- Agenda Item 3
 ---
-
 ## 📝 Discussion Notes
 ### [Agenda Item 1]
-- **Key Points:** [Summary of discussion]
-- **Decisions:** [Decisions made]
-- **Action Items:** [Follow-up tasks]
-
+- Key Points: [Summary of discussion]
+- Decisions: [Decisions made]
+- Action Items: [Follow-up tasks]
 ### [Agenda Item 2]
-- **Key Points:** [Summary of discussion]
-- **Decisions:** [Decisions made]
-- **Action Items:** [Follow-up tasks]
-
+- Key Points: [Summary of discussion]
+- Decisions: [Decisions made]
+- Action Items: [Follow-up tasks]
 ---
-
 ## ✅ Action Items
-- [ ] **[Action Item 1]** - Owner: [Name] - Due: [Date]
-- [ ] **[Action Item 2]** - Owner: [Name] - Due: [Date]
-
+- [ ] Action Item 1 - Owner: [Name] - Due: [Date]
+- [ ] Action Item 2 - Owner: [Name] - Due: [Date]
 ---
-
 ## 📆 Next Meeting
-- **Date:** [Date]
-- **Time:** [Time]
-- **Agenda:** [Preliminary agenda items]`,
+- Date: [Date]
+- Time: [Time]
+- Agenda: [Preliminary agenda items]`,
 };
 
 export default MeetingNotesTemplate;

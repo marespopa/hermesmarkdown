@@ -110,7 +110,7 @@ const PdfMarkdownPreview = ({ content, fontClass = "font-sans" }: { content: str
   }
 
   return (
-    <div data-testid="preview" className={`bg-white ${fontClass}`}>
+    <div data-testid="preview" className={`prose prose-lg mx-auto bg-white text-black prose-headings:text-black prose-p:text-black prose-strong:text-black prose-code:text-black prose-blockquote:text-black prose-li:text-black ${fontClass}`}>
       <Markdown
         remarkPlugins={[remarkGfm]}
         components={{
@@ -136,4 +136,4 @@ const PdfMarkdownPreview = ({ content, fontClass = "font-sans" }: { content: str
 };
 
 const previewContainerStyles = `mt-8 bg-white`;
-const previewStyles = `prose prose-gray mx-auto prose-pre:bg-transparent prose-pre:px-0 prose-pre:text-gray-600 bg-white text-gray-900 prose-headings:text-gray-900 prose-p:text-gray-700 prose-strong:text-gray-900 prose-code:text-gray-700 prose-blockquote:text-gray-700 prose-li:text-gray-700`;
+const previewStyles = `prose prose-lg mx-auto bg-white text-black prose-headings:text-black prose-p:text-black prose-strong:text-black prose-code:text-black prose-blockquote:text-black prose-li:text-black`;

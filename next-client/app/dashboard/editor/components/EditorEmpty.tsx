@@ -177,10 +177,8 @@ export default function EditorEmpty() {
               <div className="rounded-b-md flex flex-col -mt-2 gap-2 bg-slate-200 dark:bg-gray-700 p-2">
                 <FileInput
                   name="file"
-                  placeholder="Upload a markdown file"
-                  fileList={fileList}
-                  handleChange={(selectedFileList: FileList) => {
-                    if (!selectedFileList) {
+                  handleChange={(selectedFileList) => {
+                    if (!selectedFileList || !selectedFileList[0]) {
                       toast.error(
                         "Something went wrong with the file selection. Please try again."
                       );

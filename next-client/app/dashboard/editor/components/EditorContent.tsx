@@ -1,208 +1,153 @@
-import React, { useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
-import { SetStateAction, useAtom } from "jotai";
-
+import React, { useEffect, useState, useRef } from "react";
 import Loading from "@/app/components/Loading/Loading";
-import MarkdownPreview from "../../components/MarkdownPreview";
-import ExportService from "@/app/services/export-service";
-import { useCommand } from "@/app/hooks/use-command";
-import { FileMetadata } from "@/app/types/markdown";
-import { SetAtom } from "../EditorTypes";
+import BlockEditor from "./BlockEditor/BlockEditor";
 
-import EditorTextarea from "./EditorTextarea";
-import { FaColumns, FaEye, FaPen } from "react-icons/fa";
-import clsx from "clsx";
-import { atom_panelState } from "@/app/atoms/atoms";
+interface Block {
+  id: string;
+  type: "text" | "heading";
+  content: string;
+}
 
 interface Props {
   contentEdited: string;
-  frontMatter: FileMetadata;
-  setContentEdited: SetAtom<[SetStateAction<string>], void>;
+  setContentEdited: (content: string) => void;
   setHasChanges: (hasChanges: boolean) => void;
+  fontFamily: string;
+  fontSize: string;
 }
 
+function parseMarkdownType(content: string): "text" | "heading" {
+  if (/^#\s/.test(content)) return "heading";
+  return "text";
+}
+
+function blockToMarkdown(block: Block): string {
+  if (block.type === "heading") return `# ${block.content.replace(/^#\s/, "")}`;
+  return block.content;
+}
+
+function markdownToBlocks(md: string): Block[] {
+  const lines = md.split(/\r?\n/);
+  return lines.map((line, i) => {
+    const type = parseMarkdownType(line);
+    return {
+      id: `block-${i}-${Date.now()}`,
+      type,
+      content: type === "heading" ? line.replace(/^#\s/, "") : line,
+    };
+  });
+}
 
 export default function EditorContent({
   contentEdited,
   setContentEdited,
-  frontMatter,
   setHasChanges,
+  fontFamily,
+  fontSize,
 }: Props) {
-  // For draggable divider
-  const [editorWidth, setEditorWidth] = useState(50); // percent
-  const [isResizing, setIsResizing] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
-  const isDragging = useRef(false);
-  const router = useRouter();
   const [isMounted, setIsMounted] = useState(false);
-  const [panelState, setPanelState] = useAtom(atom_panelState);
-  const markdownRef = useRef<HTMLDivElement>(null);
-  const editorPaneRef = useRef<HTMLDivElement>(null);
-  const previewPaneRef = useRef<HTMLDivElement>(null);
+  const [blocks, setBlocks] = useState<Block[]>(() => markdownToBlocks(contentEdited || ""));
+  const [focused, setFocused] = useState<string>(blocks[0]?.id || "block-0");
+  const blockRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const prevContentEdited = useRef(contentEdited);
 
   useEffect(() => {
     setIsMounted(true);
   }, []);
 
-  useCommand("save", () =>
-    ExportService.exportMarkdown(contentEdited, frontMatter)
-  );
+  // Update blocks if contentEdited changes (e.g. new file/template loaded)
+  useEffect(() => {
+    // Only update blocks if contentEdited is different from current blocks' markdown
+    const currentMarkdown = blocks.map(blockToMarkdown).join("\n");
+    if (contentEdited !== currentMarkdown) {
+      setBlocks(markdownToBlocks(contentEdited || ""));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [contentEdited]);
 
-  useCommand("home", () => {
-    setIsMounted(false);
-    router.push("/dashboard");
-  });
+  // Sync blocks to markdown string
+  useEffect(() => {
+    const markdown = blocks.map(blockToMarkdown).join("\n");
+    if (markdown !== contentEdited) {
+      setContentEdited(markdown);
+      setHasChanges(true);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [blocks]);
+
+  useEffect(() => {
+    // Focus the current block
+    if (focused && blockRefs.current[focused]) {
+      blockRefs.current[focused]?.focus();
+    }
+  }, [focused]);
 
   if (!isMounted) {
     return <Loading />;
   }
 
-  // --- Scroll sync logic ---
-  function handleEditorScroll() {
-    if (!editorPaneRef.current || !previewPaneRef.current) return;
-    const editor = editorPaneRef.current;
-    const preview = previewPaneRef.current;
-    const percent = editor.scrollTop / (editor.scrollHeight - editor.clientHeight);
-    preview.scrollTop = percent * (preview.scrollHeight - preview.clientHeight);
-  }
+  const proseClass = fontSize || "prose-base";
 
-  return (
-    <div className="flex flex-col gap-4 editor-area max-height-[1000px] h-full min-h-screen flex-1">
-      {/* Panels */}
-      {panelState === "both" ? (
-        <div
-          className="w-full relative flex flex-row transition ease-in-out h-full min-h-[400px] flex-1"
-          ref={containerRef}
-        >
-          <div
-            className={editorPaneClass}
-            style={{ flexBasis: `${editorWidth}%`, flexShrink: 0 }}
-            ref={editorPaneRef}
-            onScroll={handleEditorScroll}
-          >
-            {renderEditor()}
-          </div>
-          {/* Minimalist Draggable Divider */}
-          <div
-            className={dividerClass}
-            style={{ zIndex: 10 }}
-            onMouseDown={startResizing}
-            onTouchStart={startResizingTouch}
-          />
-          <div
-            className={previewPaneClass}
-            style={{ flexBasis: `${100 - editorWidth}%`, flexShrink: 0 }}
-            ref={previewPaneRef}
-          >
-            {renderPreview()}
-          </div>
-        </div>
-      ) : (
-        <div className="w-full relative h-full min-h-[400px] flex-1">
-          {(() => {
-            switch (panelState) {
-              case "editor":
-                return renderEditor();
-              case "preview":
-                return renderPreview();
-              default:
-                return null;
-            }
-          })()}
-        </div>
-      )}
-    </div>
-  );
-
-  function renderPreview() {
-    return (
-      <div className={previewPaneClass} id="pdfExport">
-        <div ref={markdownRef} id="previewId" className="p-4">
-          <MarkdownPreview content={contentEdited} />
-        </div>
-      </div>
+  function updateBlockContent(id: string, html: string) {
+    setBlocks((prev) =>
+      prev.map((block) =>
+        block.id === id
+          ? { ...block, content: html, type: parseMarkdownType(html) }
+          : block
+      )
     );
   }
 
-  function renderEditor() {
-    return (
-      <EditorTextarea
-        contentEdited={contentEdited}
-        setContentEdited={(newContent) => {
-          setContentEdited(newContent); // Update content
-          setHasChanges(true); // Mark changes as true
-        }}
-        onCursorChange={handleCursorLineChange}
-      />
-    );
+  function handleBlur(e: React.FocusEvent<HTMLDivElement>, id: string) {
+    const html = (e.target as HTMLDivElement).innerText;
+    updateBlockContent(id, html);
   }
 
-  function handleCursorLineChange(lineText: string) {
-    if (!previewPaneRef.current) return;
-    // Find the first element with data-line attribute containing the lineText
-    const preview = previewPaneRef.current;
-    const el = Array.from(preview.querySelectorAll('[data-line]')).find((el) => {
-      return el.textContent?.includes(lineText.trim());
-    });
-    if (el && typeof (el as HTMLElement).scrollIntoView === 'function') {
-      (el as HTMLElement).scrollIntoView({ behavior: 'smooth', block: 'center' });
+  function handleKeyDown(e: React.KeyboardEvent<HTMLDivElement>, idx: number, id: string) {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      const html = (e.target as HTMLDivElement).innerText;
+      updateBlockContent(id, html);
+      setBlocks((prev) => {
+        const newId = `block-${Date.now()}`;
+        const newBlocks: Block[] = [
+          ...prev.slice(0, idx + 1),
+          { id: newId, type: "text", content: "" },
+          ...prev.slice(idx + 1),
+        ];
+        setTimeout(() => setFocused(newId), 0);
+        return newBlocks;
+      });
+    } else if (e.key === "Backspace") {
+      if (blocks[idx].content === "" && blocks.length > 1) {
+        e.preventDefault();
+        setBlocks((prev) => {
+          const newBlocks = prev.filter((block) => block.id !== id);
+          const prevIdx = idx > 0 ? idx - 1 : 0;
+          setTimeout(() => setFocused(newBlocks[prevIdx].id), 0);
+          return newBlocks;
+        });
+      }
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      if (idx > 0) setFocused(blocks[idx - 1].id);
+    } else if (e.key === "ArrowDown") {
+      e.preventDefault();
+      if (idx < blocks.length - 1) setFocused(blocks[idx + 1].id);
     }
   }
 
-  // --- Resizing logic ---
-  function startResizing(e: React.MouseEvent<HTMLDivElement>) {
-    e.preventDefault();
-    setIsResizing(true);
-    document.body.style.userSelect = "none";
-    document.addEventListener("mousemove", handleResizing);
-    document.addEventListener("mouseup", stopResizing);
-  }
-
-  function handleResizing(e: MouseEvent) {
-    if (!containerRef.current) return;
-    const rect = containerRef.current.getBoundingClientRect();
-    let x = e.clientX - rect.left;
-    let percent = (x / rect.width) * 100;
-    percent = Math.max(15, Math.min(85, percent));
-    setEditorWidth(percent);
-  }
-
-  function stopResizing() {
-    setIsResizing(false);
-    document.body.style.userSelect = "";
-    document.removeEventListener("mousemove", handleResizing);
-    document.removeEventListener("mouseup", stopResizing);
-  }
-
-  // Touch support
-  function startResizingTouch(e: React.TouchEvent<HTMLDivElement>) {
-    e.preventDefault();
-    setIsResizing(true);
-    document.body.style.userSelect = "none";
-    document.addEventListener("touchmove", handleResizingTouch, { passive: false });
-    document.addEventListener("touchend", stopResizingTouch);
-  }
-
-  function handleResizingTouch(e: TouchEvent) {
-    if (!containerRef.current) return;
-    const rect = containerRef.current.getBoundingClientRect();
-    let x = e.touches[0].clientX - rect.left;
-    let percent = (x / rect.width) * 100;
-    percent = Math.max(15, Math.min(85, percent));
-    setEditorWidth(percent);
-  }
-
-  function stopResizingTouch() {
-    setIsResizing(false);
-    document.body.style.userSelect = "";
-    document.removeEventListener("touchmove", handleResizingTouch);
-    document.removeEventListener("touchend", stopResizingTouch);
-  }
+  return (
+    <div className="my-4 sm:my-6">
+      <div className="rounded-lg sm:rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm bg-white/80 dark:bg-gray-900/80 p-2 sm:p-0 w-full max-w-full sm:max-w-screen-xl mx-auto">
+        <BlockEditor
+          contentEdited={contentEdited}
+          setContentEdited={setContentEdited}
+          setHasChanges={setHasChanges}
+          fontFamily={fontFamily}
+          fontSize={fontSize}
+        />
+      </div>
+    </div>
+  );
 }
-
-const editorPaneClass =
-  "h-full min-w-0 min-w-[100px] overflow-auto flex-1 bg-white py-4 font-mono text-base dark:bg-gray-900 dark:text-white";
-const previewPaneClass =
-  "h-full min-w-0 min-w-[100px] overflow-auto flex-1 bg-gray-50 px-6 py-4 font-sans prose dark:bg-gray-900 dark:prose-invert";
-const dividerClass =
-  "w-[2px] bg-gray-200 hover:bg-gray-400 rounded transition-colors duration-150 cursor-col-resize relative z-20 dark:bg-gray-700";

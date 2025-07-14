@@ -25,7 +25,7 @@ export default function TemplateTags({tags, maxVisible = 3}: Props) {
     return (
       <span
         key={index}
-        className="bg-emerald-100 text-emerald-800 text-xs px-2 py-[0.125rem] rounded"
+        className="bg-amber-100 text-amber-800 text-xs px-2 py-[0.125rem] rounded"
       >
         {tag}
       </span>

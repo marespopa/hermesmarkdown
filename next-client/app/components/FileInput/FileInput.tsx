@@ -1,57 +1,51 @@
-import { InputHTMLAttributes, useEffect, useRef } from "react";
-import * as React from "react";
+import React, { useRef, useState } from "react";
 
 interface Props {
   name: string;
   label: string;
-  fileList: File[];
-  accept: string;
-  handleChange(fileList: FileList): void;
-  placeholder?: string;
   helperText?: string;
+  handleChange: (files: FileList | null) => void;
+  accept?: string;
 }
 
-const FileInput = ({
-  name,
-  label,
-  fileList = [],
-  handleChange,
-  placeholder,
-  helperText,
-  accept,
-}: Props) => {
+const FileInput = ({ name, label, helperText, handleChange, accept }: Props) => {
+  const [fileName, setFileName] = useState<string>("");
   const inputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    if (inputRef.current) {
-      const dataTransfer = new DataTransfer();
-      Array.from(fileList).forEach((file) => dataTransfer.items.add(file));
-      inputRef.current.files = dataTransfer.files;
+  const onFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      setFileName(e.target.files[0].name);
+    } else {
+      setFileName("");
     }
-  }, [fileList]);
+    handleChange(e.target.files);
+  };
 
   return (
     <div className="my-4">
       <label className="flex flex-col">
-        <span className="text-black font-mono font-bold text-sm">{label}</span>
-        <input
-          name={name}
-          className="bg-white dark:bg-gray-900 text-black dark:text-white border-4 border-black rounded-none font-mono font-bold px-2 py-2 focus:outline-none"
-          type="file"
-          ref={inputRef}
-          data-testid="uploader"
-          placeholder={placeholder}
-          accept={accept}
-          onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-            if (!e.target.files) {
-              return;
-            }
+        <span className="text-black dark:text-white font-mono font-bold text-sm mb-1">{label}</span>
+        <div className="flex items-center gap-3">
+          <label
+            htmlFor={name}
+            className="bg-white dark:bg-gray-900 text-black dark:text-white border border-gray-400 dark:border-gray-600 rounded-none font-mono px-4 py-2 cursor-pointer font-bold focus:outline-none focus:ring-2 focus:ring-emerald-600"
+          >
+            Choose file
 
-            handleChange(e.target.files);
-          }}
-        />
+            <input
+              ref={inputRef}
+              id={name}
+              name={name}
+              type="file"
+              accept={accept}
+              className="hidden"
+              onChange={onFileChange}
+            />
+          </label>
+          <span className="text-black dark:text-white font-mono text-sm truncate max-w-xs">{fileName || "No file chosen"}</span>
+        </div>
       </label>
-      {helperText && <p className="text-gray-500  text-xs">{helperText}</p>}
+      {helperText && <p className="text-gray-500 dark:text-gray-400 text-xs mt-1">{helperText}</p>}
     </div>
   );
 };
