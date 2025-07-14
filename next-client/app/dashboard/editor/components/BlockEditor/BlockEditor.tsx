@@ -142,7 +142,11 @@ const BlockEditor: React.FC<BlockEditorProps> = ({
 
   useLayoutEffect(() => {
     if (focused && blockRefs.current[focused]) {
-      blockRefs.current[focused].focus();
+      try {
+        blockRefs.current[focused].focus();
+      } catch (e) {
+        // Node may not be attached, ignore
+      }
     }
   }, [blocks, focused]);
 
@@ -257,12 +261,19 @@ const BlockEditor: React.FC<BlockEditorProps> = ({
       if (blocks[idx].content === "" && blocks.length > 1 && isCaretAtStart) {
         e.preventDefault();
         setBlocks((prev) => {
-          const newBlocks = prev.filter((block) => block.id !== id);
-          const prevIdx = idx > 0 ? idx - 1 : 0;
-          const newFocusedId = newBlocks[prevIdx]?.id || newBlocks[0]?.id || "";
-          // Remove ref for deleted block
-          if (blockRefs.current[id]) delete blockRefs.current[id];
-          setFocused(newFocusedId);
+          let newBlocks = prev.filter((block) => block.id !== id);
+          if (blockRefs.current[id]) {
+            delete blockRefs.current[id];
+          }
+          if (newBlocks.length === 0) {
+            const newId = generateBlockId();
+            newBlocks = [{ id: newId, type: "text", content: "" }];
+            setFocused(newId);
+          } else {
+            const prevIdx = idx > 0 ? idx - 1 : 0;
+            const newFocusedId = newBlocks[prevIdx]?.id || newBlocks[0].id;
+            setFocused(newFocusedId);
+          }
           return newBlocks;
         });
         return;
