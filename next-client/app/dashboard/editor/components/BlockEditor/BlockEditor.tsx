@@ -92,9 +92,8 @@ const BlockEditor: React.FC<BlockEditorProps> = ({
     // Focus the first block if there is only one (empty) block
     if (blocks.length === 1 && blocks[0].content.trim() === "") {
       setFocused(blocks[0].id);
-    } else {
-      setFocused("");
     }
+    // Otherwise, do not set focus; allow user interaction to control focus
   }, []);
 
   // Focus first block when blocks are reset to a single empty block (new file)
@@ -312,89 +311,83 @@ const BlockEditor: React.FC<BlockEditorProps> = ({
         }
       }}
     >
-      {focused ? (
-        <AnimatePresence
-          initial={false}
-          onExitComplete={() => {
-            // Clean up refs for blocks that no longer exist
-            const blockIds = new Set(blocks.map(b => b.id));
-            Object.keys(blockRefs.current).forEach(id => {
-              if (!blockIds.has(id)) {
-                delete blockRefs.current[id];
-              }
-            });
-          }}
-        >
-          {blocks.map((block, idx) => {
-            const isFocused = focused === block.id;
-            const isHovered = hovered === block.id;
-            const isSelected = false;
-            const isLast = idx === blocks.length - 1;
-            const isPageEmpty = blocks.length === 1 && blocks[0].content.trim() === "";
-            // Render as a content-editable block with placeholder if empty
-            return (
-              <motion.div
-                key={block.id}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                transition={{ duration: 0.18 }}
-                layout
-                onMouseDown={() => {
-                  setFocused(block.id);
-                }}
-                onTouchStart={e => {
-                  setFocused(block.id);
-                }}
-              >
-                <BlockItem
-                  block={block}
-                  isFocused={isFocused}
-                  isHovered={isHovered}
-                  isSelected={isSelected}
-                  isLast={isLast}
-                  onBlur={handleBlur as (e: React.FocusEvent<HTMLElement>, id: string) => void}
-                  onKeyDown={handleKeyDown as (e: React.KeyboardEvent<HTMLElement>, idx: number, id: string) => void}
-                  onFocus={() => setFocused(block.id)}
-                  onMouseEnter={() => setHovered(block.id)}
-                  onMouseLeave={() => setHovered(null)}
-                  blockRef={el => {
-                    // Only update blockRefs for currently rendered blocks
-                    if (el) {
-                      blockRefs.current[block.id] = el as HTMLDivElement | null;
-                    } else if (blockRefs.current[block.id]) {
-                      delete blockRefs.current[block.id];
-                    }
-                  }}
-                  BlockControls={
-                    <BlockControls
-                      isFocused={isFocused}
-                      isHovered={isHovered}
-                      onAddBlock={() => {
-                        const newId = generateBlockId();
-                        setBlocks(prev => [
-                          ...prev.slice(0, idx + 1),
-                          { id: newId, type: "text", content: "" },
-                          ...prev.slice(idx + 1),
-                        ]);
-                        setFocused(newId);
-                      }}
-                      blockId={block.id}
-                    />
+      <AnimatePresence
+        initial={false}
+        onExitComplete={() => {
+          // Clean up refs for blocks that no longer exist
+          const blockIds = new Set(blocks.map(b => b.id));
+          Object.keys(blockRefs.current).forEach(id => {
+            if (!blockIds.has(id)) {
+              delete blockRefs.current[id];
+            }
+          });
+        }}
+      >
+        {blocks.map((block, idx) => {
+          const isFocused = focused === block.id;
+          const isHovered = hovered === block.id;
+          const isSelected = false;
+          const isLast = idx === blocks.length - 1;
+          const isPageEmpty = blocks.length === 1 && blocks[0].content.trim() === "";
+          // Render as a content-editable block with placeholder if empty
+          return (
+            <motion.div
+              key={block.id}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.18 }}
+              layout
+              onMouseDown={() => {
+                setFocused(block.id);
+              }}
+              onTouchStart={e => {
+                setFocused(block.id);
+              }}
+            >
+              <BlockItem
+                block={block}
+                isFocused={isFocused}
+                isHovered={isHovered}
+                isSelected={isSelected}
+                isLast={isLast}
+                onBlur={handleBlur as (e: React.FocusEvent<HTMLElement>, id: string) => void}
+                onKeyDown={handleKeyDown as (e: React.KeyboardEvent<HTMLElement>, idx: number, id: string) => void}
+                onFocus={() => setFocused(block.id)}
+                onMouseEnter={() => setHovered(block.id)}
+                onMouseLeave={() => setHovered(null)}
+                blockRef={el => {
+                  // Only update blockRefs for currently rendered blocks
+                  if (el) {
+                    blockRefs.current[block.id] = el as HTMLDivElement | null;
+                  } else if (blockRefs.current[block.id]) {
+                    delete blockRefs.current[block.id];
                   }
-                  idx={idx}
-                  isPageEmpty={isPageEmpty}
-                  onEscape={() => setFocused("")}
-                />
-              </motion.div>
-            );
-          })}
-        </AnimatePresence>
-      ) : (
-        <ReactMarkdown remarkPlugins={[remarkGfm]}>
-          {blocks.map(block => blockToMarkdown(block)).join("\n")}
-        </ReactMarkdown>
-      )}
+                }}
+                BlockControls={
+                  <BlockControls
+                    isFocused={isFocused}
+                    isHovered={isHovered}
+                    onAddBlock={() => {
+                      const newId = generateBlockId();
+                      setBlocks(prev => [
+                        ...prev.slice(0, idx + 1),
+                        { id: newId, type: "text", content: "" },
+                        ...prev.slice(idx + 1),
+                      ]);
+                      setFocused(newId);
+                    }}
+                    blockId={block.id}
+                  />
+                }
+                idx={idx}
+                isPageEmpty={isPageEmpty}
+                onEscape={() => setFocused("")}
+              />
+            </motion.div>
+          );
+        })}
+      </AnimatePresence>
     </div>
   );
 };

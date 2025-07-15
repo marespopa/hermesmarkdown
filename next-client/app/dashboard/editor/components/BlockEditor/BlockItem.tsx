@@ -25,7 +25,6 @@ interface BlockItemProps {
 const BlockItem: React.FC<BlockItemProps> = ({
   block,
   isFocused,
-  isHovered,
   isLast,
   onBlur,
   onKeyDown,
@@ -112,11 +111,9 @@ const BlockItem: React.FC<BlockItemProps> = ({
     );
   }
 
+  const isListItem = block.type === "text" && /^([*\-+]\s|\d+\.\s)/.test(block.content);
+  const displayContent = block.type === "heading" ? `# ${block.content}` : block.content;
   if (isFocused) {
-    // Determine if this is a list item
-    const isListItem = block.type === "text" && /^([*\-+]\s|\d+\.\s)/.test(block.content);
-    // For heading, show # in the editable field
-    const displayContent = block.type === "heading" ? `# ${block.content}` : block.content;
     return (
       <div
         key={block.id}
@@ -126,7 +123,8 @@ const BlockItem: React.FC<BlockItemProps> = ({
         spellCheck
         tabIndex={0}
         data-block-id={block.id}
-        className={`group relative flex items-start px-3 py-2 rounded-md transition-colors duration-200 focus:outline-none bg-gray-100 dark:bg-gray-800`}
+        className={`group relative flex items-start px-3 py-2 rounded-md transition-colors duration-200 focus:outline-none ${isSelected ? "bg-amber-100 border-2 border-amber-300" : "bg-gray-100 dark:bg-gray-800"}`}
+        style={{ minHeight: '1.5em', cursor: 'text' }}
         onBlur={e => onBlur(e, block.id)}
         onKeyDown={e => {
           // Custom block deletion logic
@@ -152,7 +150,7 @@ const BlockItem: React.FC<BlockItemProps> = ({
           onKeyDown(e, idx, block.id);
         }}
         onFocus={onFocus}
-        onClick={handleClick}
+        onClick={onFocus}
         onDoubleClick={onFocus}
         onMouseEnter={onMouseEnter}
         onMouseLeave={onMouseLeave}
@@ -166,36 +164,23 @@ const BlockItem: React.FC<BlockItemProps> = ({
       </div>
     );
   }
-  // Not focused/selected: render markdown preview
-  const isListItem = block.type === "text" && /^([*\-+]\s|\d+\.\s)/.test(block.content);
+  // Not focused: render markdown preview, click/tap triggers edit mode
   return (
     <div
       key={block.id}
       className={`group relative flex items-start px-3 ${isListItem ? "py-0" : "py-2"} rounded-md transition-colors duration-200 ${isSelected ? "bg-amber-100 border-2 border-amber-300" : "bg-transparent"}`}
+      style={{ minHeight: isListItem ? '1em' : '1.5em', cursor: 'text' }}
       onClick={onFocus}
       onDoubleClick={onFocus}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
-      style={{ minHeight: isListItem ? '1em' : '1.5em', cursor: 'text' }}
     >
       {BlockControls}
-      <ReactMarkdown
-        remarkPlugins={[remarkGfm]}
-      >
+      <ReactMarkdown remarkPlugins={[remarkGfm]}>
         {blockToMarkdown(block)}
       </ReactMarkdown>
     </div>
   );
-};
+}
 
-export default React.memo(BlockItem, (prevProps, nextProps) => {
-  return (
-    prevProps.block.id === nextProps.block.id &&
-    prevProps.block.content === nextProps.block.content &&
-    prevProps.block.type === nextProps.block.type &&
-    prevProps.isFocused === nextProps.isFocused &&
-    prevProps.isSelected === nextProps.isSelected &&
-    prevProps.isHovered === nextProps.isHovered &&
-    prevProps.isLast === nextProps.isLast
-  );
-}); 
+export default BlockItem;

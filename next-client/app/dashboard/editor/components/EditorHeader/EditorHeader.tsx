@@ -157,7 +157,7 @@ export default function EditorHeader({
       {/* Left: Title and file info */}
       <div className="flex flex-col items-center gap-6 max-w-md w-full flex-shrink-0 sm:flex-row sm:items-center">
         <div className="flex flex-col gap-1 min-w-0 w-full sm:w-auto">
-          <div className="flex flex-row items-center gap-2 min-w-0 justify-center sm:justify-start">
+          <div className="flex flex-row items-center gap-2 min-w-0 justify-center sm:justify-start sm:mt-2">
             <h1 className="truncate text-xl font-semibold text-gray-900 dark:text-white leading-tight text-center sm:text-left">{hasTitle && `${fileTitle}`}</h1>
             <span className="cursor-pointer" onClick={showFileDialog}>
               <PenIcon tooltip="File Settings" size={16} alt="Edit Title" />
@@ -165,7 +165,7 @@ export default function EditorHeader({
           </div>
           <span className="text-xs text-gray-500 dark:text-gray-400 font-mono truncate text-center sm:text-left">{`${fileName?.endsWith(".md") ? fileName : fileName + ".md"}`}</span>
           <div className="mt-1 flex flex-col gap-1 items-center sm:items-start">
-            <div className="flex flex-row gap-2 items-center justify-center sm:justify-start">
+            <div className="flex flex-row gap-2 items-center justify-center">
               {renderFontMenu()}
               {renderFontSizeMenu()}
             </div>
@@ -173,7 +173,7 @@ export default function EditorHeader({
         </div>
       </div>
       {/* Right: Actions */}
-      <div className="flex flex-row items-center gap-2 justify-center w-full sm:w-auto sm:justify-end">
+      <div className="flex flex-row items-center gap-2 justify-center w-full sm:w-auto sm:justify-end mt-2 sm:mt-0">
         <button
           onClick={() => setIsFabMenuOpen(true)}
           className="sm:hidden p-2 rounded-lg bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors duration-200"
@@ -191,7 +191,7 @@ export default function EditorHeader({
             >
               &times;
             </button>
-            <div className="flex flex-col gap-3 w-[90vw] max-w-xs mx-auto px-4 mt-8 mb-4 overflow-y-auto max-h-[80vh] items-center">
+            <div className="flex flex-col gap-3 max-w-xs mx-auto px-4 mt-8 mb-4 overflow-y-auto max-h-[80vh] items-stretch">
               {renderMobileFontMenu()}
               {renderMobileFontSizeMenu()}
               <div className="mb-6" />
