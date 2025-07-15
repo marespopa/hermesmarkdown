@@ -16,7 +16,7 @@ export default function Footer() {
     <ClientOnly>
       <footer
         data-testid="GlobalFooter"
-        className="py-4 bg-gray-900 dark:bg-black text-white font-mono font-bold text-xs"
+        className="py-4 bg-neutral-900 dark:bg-black text-white font-bold text-xs"
       >
         <div className="container max-w-screen-xl mx-auto px-4 md:px-2">
           <div className="flex flex-col md:flex-row justify-between w-full items-center">
@@ -39,13 +39,13 @@ export default function Footer() {
               <div className="flex gap-4">
                 <Link
                   href="/privacy-policy"
-                  className="hover:text-gray-100 transition-colors"
+                  className="hover:text-neutral-100 transition-colors"
                 >
                   Privacy Policy
                 </Link>
                 <Link
                   href="/terms"
-                  className="hover:text-gray-100 transition-colors"
+                  className="hover:text-neutral-100 transition-colors"
                 >
                   Terms of Service
                 </Link>

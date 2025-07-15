@@ -10,18 +10,20 @@ type DropdownOption = {
 };
 
 type Props = {
-  label?: string;
+  label?: React.ReactNode; // Allow string or icon
   options: DropdownOption[];
-  trigger?: React.ReactElement<any>;
+  isOpen: boolean;
+  onOpenChange: (open: boolean) => void;
+  selectedIndex: number | null;
+  onSelect: (idx: number) => void;
 };
 
-const DropdownMenu = ({ label, options, trigger }: Props) => {
-  const [isOpen, setIsOpen] = useState(false);
+const DropdownMenu = ({ label, options, isOpen, onOpenChange, selectedIndex, onSelect }: Props) => {
   const [alignRight, setAlignRight] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null); // Ref to track the dropdown element
   const menuRef = useRef<HTMLDivElement>(null); // Ref for the menu itself
   const toggleDropdown = () => {
-    setIsOpen(!isOpen);
+    onOpenChange(!isOpen);
   };
 
   useEffect(() => {
@@ -39,8 +41,9 @@ const DropdownMenu = ({ label, options, trigger }: Props) => {
     }
   }, [isOpen]);
 
-  const handleOptionClick = (option: DropdownOption) => {
-    setIsOpen(false); // Close the dropdown after selecting an option
+  const handleOptionClick = (option: DropdownOption, idx: number) => {
+    onOpenChange(false); // Close the dropdown after selecting an option
+    onSelect(idx);
     option.action();
     // Add specific functionality based on the option here if needed
   };
@@ -52,7 +55,7 @@ const DropdownMenu = ({ label, options, trigger }: Props) => {
         dropdownRef.current &&
         !dropdownRef.current.contains(event.target as Node)
       ) {
-        setIsOpen(false);
+        onOpenChange(false);
       }
     };
 
@@ -64,38 +67,31 @@ const DropdownMenu = ({ label, options, trigger }: Props) => {
 
   return (
     <div className="relative inline-block" ref={dropdownRef}>
-      {trigger ? (
-        React.cloneElement(trigger, {
-          onClick: (e: React.MouseEvent) => {
-            e.stopPropagation();
-            toggleDropdown();
-            if (typeof (trigger.props as any).onClick === 'function') (trigger.props as any).onClick(e);
-          },
-          'aria-expanded': isOpen,
-        })
-      ) : (
-        <Button variant="secondary" handler={toggleDropdown} styles="border-2 border-black rounded-none bg-white text-black font-mono font-bold hover:bg-black hover:text-white">
-          {label === "File" ? (
-            <span className="flex items-center gap-2">{label} <FaCaretDown /></span>
-          ) : (
-            label
-          )}
-        </Button>
-      )}
+      <Button variant="secondary" onClick={toggleDropdown} aria-expanded={isOpen}>
+        <span className="flex items-center gap-2">
+          {selectedIndex !== null ? options[selectedIndex].label : label}
+          <FaCaretDown />
+        </span>
+      </Button>
       {isOpen && (
         <div
           ref={menuRef}
-          className={`absolute mt-1 min-w-max bg-white dark:bg-gray-900/95 text-black dark:text-white border border-black dark:border-white/20 rounded-none shadow-lg font-mono font-bold z-10 p-0 flex flex-col ${alignRight ? 'right-0' : 'left-0'}`}
-          style={{ borderRadius: '0 !important' }}
+          className={`absolute mt-1 min-w-[180px] max-w-xs bg-white dark:bg-neutral-900 border border-black dark:border-white rounded-none shadow-xl font-sourcecode z-10 p-0 flex flex-col ${alignRight ? 'right-0' : 'left-0'}`}
         >
           {options.map((option, idx) => (
             <button
               key={option.label}
-              onClick={() => handleOptionClick(option)}
-              className={`px-4 py-2 text-left text-black dark:text-white bg-white dark:bg-gray-900 font-mono whitespace-nowrap border-b border-black rounded-none hover:bg-gray-100 dark:hover:bg-gray-800 focus:bg-gray-200 dark:focus:bg-gray-700 ${idx === options.length - 1 ? 'border-b-0' : ''}`}
-              style={{ borderRadius: '0 !important' }}
+              onClick={() => handleOptionClick(option, idx)}
+              className={`w-full text-left whitespace-nowrap h-12 px-5 bg-white dark:bg-neutral-800 text-black dark:text-white border-b border-black dark:border-black rounded-none transition-all duration-150 focus-visible:ring-2 focus-visible:ring-black dark:focus-visible:ring-white hover:bg-neutral-100 dark:hover:bg-neutral-700 ${idx === options.length - 1 ? 'border-b-0' : ''} ${selectedIndex === idx ? 'bg-neutral-200 dark:bg-neutral-700 font-bold' : ''}`}
+              tabIndex={0}
+              type="button"
             >
-              {option.label}
+              <span className="flex items-center gap-2">
+                {option.label}
+                {selectedIndex === idx && (
+                  <span className="ml-auto">✓</span>
+                )}
+              </span>
             </button>
           ))}
         </div>

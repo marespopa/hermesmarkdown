@@ -56,7 +56,7 @@ export default function EditorForm({ isOpened, handleClose }: Props) {
   };
 
   return (
-    <DialogModal isOpened={isOpened} onClose={handleClose} styles="max-w-2xl">
+    <DialogModal isOpened={isOpened} onClose={handleClose}>
       <form className="mt-8 max-w-xl">
         <h3 className="text-2xl mt-4 flex gap-2 items-center justify-between">
           <span>Document Properties</span>
@@ -94,7 +94,7 @@ export default function EditorForm({ isOpened, handleClose }: Props) {
         <div className="flex gap-2 items-center">
           <Button
             variant="primary"
-            handler={handleClose}
+            onClick={handleClose}
             label="Close"
           ></Button>
 

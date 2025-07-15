@@ -42,7 +42,7 @@ const TextareaResizable = ({
   const lineNumbers = Array.from({ length: lineCount }, (_, i) => i + 1).join("\n");
 
   return (
-    <div className="w-full border border-gray-200 dark:border-gray-700 rounded" style={{ minHeight: "6em", maxHeight: "60vh", ...style }}>
+    <div className="w-full border border-neutral-200 dark:border-neutral-700 rounded" style={{ minHeight: "6em", maxHeight: "60vh", ...style }}>
       <div
         className="flex w-full h-full"
         style={{ width: "100%", height: "100%", overflowY: "auto", overflowX: "hidden" }}
@@ -50,7 +50,7 @@ const TextareaResizable = ({
         <pre
           ref={lineNumbersRef}
           aria-hidden="true"
-          className="select-none text-right pr-3 pl-2 bg-gray-50 dark:bg-gray-900/60 text-gray-400 dark:text-gray-600 font-mono border-r border-gray-200 dark:border-gray-700 rounded-l"
+          className="select-none text-right pr-3 pl-2 bg-neutral-50 dark:bg-neutral-900/60 text-neutral-400 dark:text-neutral-600 border-r border-neutral-200 dark:border-neutral-700 rounded-l"
           style={{ minWidth: 32, margin: 0, paddingTop: 16, paddingBottom: 0, userSelect: "none", fontSize: FONT_SIZE, lineHeight: LINE_HEIGHT, height: "100%" }}
         >
           {lineNumbers}

@@ -17,8 +17,8 @@ export default function EditorContent({
   fontSize,
 }: Props) {
   return (
-    <div className="my-2 w-full flex justify-center">
-      <div className="w-full border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 rounded-lg shadow-sm px-2 py-2">
+    <div className="flex-1 flex flex-col min-h-0 w-full mb-4">
+      <div className="flex-1 min-h-0 w-full border border-strongblack dark:border-white/20 bg-white dark:bg-neutral-800 rounded-2xl shadow-lg px-2 py-2 flex flex-col">
         <MarkdownEditor
           value={contentEdited}
           onChange={val => {

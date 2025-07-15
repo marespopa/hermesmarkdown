@@ -64,7 +64,7 @@ const FileSelectionModal = ({ isOpen, handleClose }: Props) => {
         />
         <Button
           variant="secondary"
-          handler={handleClose}
+          onClick={handleClose}
           label="Close"
         />
       </div>

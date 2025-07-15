@@ -28,7 +28,7 @@ const FileInput = ({ name, label, helperText, handleChange, accept }: Props) => 
         <div className="flex items-center gap-3">
           <label
             htmlFor={name}
-            className="bg-white dark:bg-gray-900 text-black dark:text-white border border-gray-400 dark:border-gray-600 rounded-none font-mono px-4 py-2 cursor-pointer font-bold focus:outline-none focus:ring-2 focus:ring-emerald-600"
+            className="bg-white dark:bg-neutral-900 text-black dark:text-white border border-neutral-400 dark:border-neutral-600 rounded-none font-mono px-4 py-2 cursor-pointer font-bold focus:outline-none focus:ring-2 focus:ring-emerald-600"
           >
             Choose file
 
@@ -45,7 +45,7 @@ const FileInput = ({ name, label, helperText, handleChange, accept }: Props) => 
           <span className="text-black dark:text-white font-mono text-sm truncate max-w-xs">{fileName || "No file chosen"}</span>
         </div>
       </label>
-      {helperText && <p className="text-gray-500 dark:text-gray-400 text-xs mt-1">{helperText}</p>}
+      {helperText && <p className="text-neutral-500 dark:text-neutral-400 text-xs mt-1">{helperText}</p>}
     </div>
   );
 };

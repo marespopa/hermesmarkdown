@@ -1,6 +1,8 @@
 "use client";
 
 import React, { useEffect, useRef } from "react";
+import { FaWindowClose } from "react-icons/fa";
+import Button from "../Button/Button.component";
 
 type Props = {
   isOpened: boolean;
@@ -8,9 +10,6 @@ type Props = {
   children: React.ReactNode;
   styles?: string;
 };
-
-const closeBtnStyle =
-  "absolute top-4 right-4 p-2 border border-black bg-white text-black rounded-none font-mono font-bold hover:bg-black hover:text-white cursor-pointer z-10";
 
 const DialogModal = ({ isOpened, onClose, children, styles = "" }: Props) => {
   const ref = useRef<HTMLDialogElement>(null);
@@ -29,36 +28,23 @@ const DialogModal = ({ isOpened, onClose, children, styles = "" }: Props) => {
     <div
       className={`${
         isOpened ? "visible" : "hidden"
-      } fixed top-0 left-0 w-full h-full z-10 overflow-y-auto bg-white bg-opacity-90 dark:bg-gray-900 dark:bg-opacity-95`}
+      } fixed top-0 left-0 w-full h-full z-50 overflow-y-auto bg-white/90 dark:bg-neutral-800/95 flex items-center justify-center`}
     >
       <dialog
         ref={ref}
-        className={`h-full my-auto sm:h-4/5 p-4 text-black font-mono font-bold sm:p-0 w-full sm:w-2/3 bg-white border border-black rounded-none dark:bg-gray-800 dark:text-white ${styles}`}
+        className={`my-auto sm:h-[90vh] sm:w-[700px] p-8 text-base bg-white border-none rounded-xl shadow-lg dark:bg-neutral-800 dark:text-white ${styles}`}
         onCancel={onClose}
       >
         <div className="relative p-4">
-          <button
-            type="button"
-            onClick={() => onClose()}
-            className={closeBtnStyle}
+          <Button
+            variant="icon"
+            onClick={onClose}
+            aria-label="Close modal"
+            title="Close modal"
+            className="absolute top-4 right-4"
           >
-            <span className="sr-only">Close menu</span>
-            <svg
-              className="h-6 w-6"
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              aria-hidden="true"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M6 18L18 6M6 6l12 12"
-              />
-            </svg>
-          </button>
+            <FaWindowClose className="w-6 h-6" />
+          </Button>
           {children}
         </div>
       </dialog>

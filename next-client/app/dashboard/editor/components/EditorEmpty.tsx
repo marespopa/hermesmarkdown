@@ -98,7 +98,7 @@ export default function EditorEmpty() {
               <div className="flex flex-col items-center">
                 <Button
                   variant="secondary"
-                  handler={() => router.push("/dashboard/editor")}
+                  onClick={() => router.push("/dashboard/editor")}
                   label={
                     <span>
                       <i className="fa fa-play mr-2"></i> Continue
@@ -115,12 +115,12 @@ export default function EditorEmpty() {
             <div className="flex flex-col items-center">
               {/* Recommended Badge */}
               {!hasExistingFile && (
-                <Badge variant="success" label="Recommended" />
+                <Badge variant="accent" label="Recommended" />
               )}
               <Button
                 isDisabled={disabledButtonsState.template}
                 variant="secondary"
-                handler={() => handleSelectTemplate()}
+                onClick={() => handleSelectTemplate()}
                 label={
                   <span>
                     <i className="fa fa-file-alt mr-2"></i> Start from a
@@ -139,7 +139,7 @@ export default function EditorEmpty() {
               <Button
                 isDisabled={disabledButtonsState.new}
                 variant="secondary"
-                handler={() => handleCreateFile()}
+                onClick={() => handleCreateFile()}
                 label={
                   <span>
                     <i className="fa fa-file mr-2"></i> Blank File
@@ -163,7 +163,7 @@ export default function EditorEmpty() {
                   </span>
                 }
                 isDisabled={disabledButtonsState.existing}
-                handler={() => setIsFileInputVisible(!isFileInputVisible)}
+                onClick={() => setIsFileInputVisible(!isFileInputVisible)}
               />
               <p className="text-xs text-center text-gray-500 dark:text-gray-400 mt-1">
                 Import an existing markdown or text file to edit.
@@ -298,7 +298,7 @@ export default function EditorEmpty() {
           isHighlighted={true}
           title={
             <span className="flex flex-col items-start">
-              <Badge variant="success" label="Recommended" />
+              <Badge variant="warning" label="Recommended" />
               <span className="flex gap-2 items-center">
                 <FaFileAlt /> New from Template
               </span>

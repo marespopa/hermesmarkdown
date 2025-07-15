@@ -37,7 +37,7 @@ const FindAndReplaceModal = ({ isOpen, handleClose }: Props) => {
 
   return (
     <ClientOnly>
-      <DialogModal isOpened={isOpen} onClose={handleClose} styles="max-w-2xl">
+      <DialogModal isOpened={isOpen} onClose={handleClose}>
         <form className="mt-2 max-w-xl">
           <h3 className="text-2xl mt-1 flex gap-2 items-center justify-between">
             <span>Find and Replace</span>
@@ -72,18 +72,18 @@ const FindAndReplaceModal = ({ isOpen, handleClose }: Props) => {
           />
           <div className="flex gap-2 items-center">
             <Button
-              variant="secondary"
-              handler={handleClose}
+              variant="primary"
+              onClick={handleClose}
               label="Close"
             ></Button>
             <Button
-              variant="primary"
-              handler={handleReplace}
+              variant="secondary"
+              onClick={handleReplace}
               label="Replace"
             ></Button>
             <Button
-              variant="primary"
-              handler={handleClose}
+              variant="secondary"
+              onClick={handleClose}
               label="Find"
             ></Button>
           </div>

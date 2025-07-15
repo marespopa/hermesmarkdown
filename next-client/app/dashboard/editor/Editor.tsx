@@ -31,6 +31,7 @@ import { useRouter } from "next/navigation";
 export default function Editor() {
   const [isLoading, setIsLoading] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [collapsed, setCollapsed] = useState(false); // Sidebar state
   const [timerSettings] = useAtom(atom_timerSettings);
   const [isTimerVisible, setShowTimer] = useAtom(atom_showTimer);
   const [frontMatter] = useAtom(atom_frontMatter);
@@ -99,6 +100,7 @@ export default function Editor() {
     });
     setContent(EMPTY_PAGE_TEMPLATE);
     setContentEdited(EMPTY_PAGE_TEMPLATE);
+    setHasChanges(false); // Clear unsaved changes
     setIsLoading(false);
   }
 
@@ -186,51 +188,61 @@ export default function Editor() {
     return <LoadingOverlay isVisible={true} text="Loading..." />;
   }
 
+  // Determine left margin for main content
+  const isMobileView = isMobile;
+  const sidebarMargin = isMobileView ? "" : (collapsed ? "ml-16" : "ml-56");
+
   return (
-    <div className="container max-w-screen-xl mx-auto px-4 sm:px-2 my-8 min-h-screen">
-      {isTimerVisible && <Timer settings={timerSettings} onClose={handleCloseTimer} />}
-      <EditorHeader
-        contentEdited={contentEdited}
-        frontMatter={frontMatter}
-        hasChanges={hasChanges}
-        actions={{
-          handleNewFile,
-          handleOpenFile,
-          handleSelectTemplate,
-          handleOpenFindAndReplace,
-        }}
-      />
-      <EditorContent
-        contentEdited={contentEdited}
-        setContentEdited={setContentEdited}
-        setHasChanges={setHasChanges}
-        fontFamily={fontFamily}
-        fontSize={fontSize}
-      />
-      
-      {/* Template Selection Modal */}
-      {isTemplateSelectModalVisible && (
-        <TemplateSelectionModal
-          isOpen={isTemplateSelectModalVisible}
-          handleClose={() => setIsTemplateSelectModalVisible(false)}
+    <div className="w-full h-screen bg-amber-100 dark:bg-darkbg">
+      {/* Sidebar is rendered by EditorHeader, which is always present and fixed */}
+      {/* Main content area is pushed right by sidebar width */}
+      <div className={`flex-1 min-h-screen overflow-auto px-8 ${sidebarMargin}`}>
+        {isTimerVisible && <Timer settings={timerSettings} onClose={handleCloseTimer} />}
+        <EditorHeader
+          contentEdited={contentEdited}
+          frontMatter={frontMatter}
+          hasChanges={hasChanges}
+          actions={{
+            handleNewFile,
+            handleOpenFile,
+            handleSelectTemplate,
+            handleOpenFindAndReplace,
+          }}
+          collapsed={collapsed}
+          setCollapsed={setCollapsed}
         />
-      )}
-      
-      {/* File Selection Modal */}
-      {isFileSelectModalVisible && (
-        <FileSelectionModal
-          isOpen={isFileSelectModalVisible}
-          handleClose={() => setIsFileSelectModalVisible(false)}
+        <EditorContent
+          contentEdited={contentEdited}
+          setContentEdited={setContentEdited}
+          setHasChanges={setHasChanges}
+          fontFamily={fontFamily}
+          fontSize={fontSize}
         />
-      )}
-      
-      {/* Find and Replace Modal */}
-      {isFindAndReplaceModalVisible && (
-        <FindAndReplaceModal
-          isOpen={isFindAndReplaceModalVisible}
-          handleClose={() => setIsFindAndReplaceModalVisible(false)}
-        />
-      )}
+        
+        {/* Template Selection Modal */}
+        {isTemplateSelectModalVisible && (
+          <TemplateSelectionModal
+            isOpen={isTemplateSelectModalVisible}
+            handleClose={() => setIsTemplateSelectModalVisible(false)}
+          />
+        )}
+        
+        {/* File Selection Modal */}
+        {isFileSelectModalVisible && (
+          <FileSelectionModal
+            isOpen={isFileSelectModalVisible}
+            handleClose={() => setIsFileSelectModalVisible(false)}
+          />
+        )}
+        
+        {/* Find and Replace Modal */}
+        {isFindAndReplaceModalVisible && (
+          <FindAndReplaceModal
+            isOpen={isFindAndReplaceModalVisible}
+            handleClose={() => setIsFindAndReplaceModalVisible(false)}
+          />
+        )}
+      </div>
     </div>
   );
 }

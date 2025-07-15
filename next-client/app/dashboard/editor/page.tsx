@@ -9,10 +9,12 @@ export default function EditorPage() {
   }
 
   return (
-    <div className={`${containerStyle} !px-0 md:px-0`}>
-      <Suspense fallback={<SearchBarFallback />}>
-        <Editor />
-      </Suspense>
+    <div className="fixed inset-0 bg-amber-100 dark:bg-darkbg min-h-screen z-0">
+      <div className="relative z-10 overflow-auto min-h-screen">
+        <Suspense fallback={<SearchBarFallback />}>
+          <Editor />
+        </Suspense>
+      </div>
     </div>
   );
 }

@@ -10,6 +10,7 @@ import MobileNavigationLinks from "../Navigation/MobileNavigationLinks";
 import { atom_content } from "@/app/atoms/atoms";
 import { useAtom } from "jotai";
 import useIsMobile from "@/app/hooks/use-is-mobile";
+import Button from "../../Button";
 
 const Navbar = () => {
   // State to manage the navbar's visibility
@@ -49,9 +50,9 @@ const Navbar = () => {
 
         {/*Menu Hamburg*/}
         <div className="lg:hidden mr-4">
-          <button onClick={toggleNav} className="text-gray-900 dark:text-gray-100">
+          <Button onClick={toggleNav} className="text-neutral-900 dark:text-neutral-100" variant="secondary" aria-label="Toggle navigation">
             <FaBars />
-          </button>
+          </Button>
         </div>
 
         {/* Navigation links */}

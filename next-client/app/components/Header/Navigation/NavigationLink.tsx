@@ -21,17 +21,16 @@ const NavigationLink = ({
   const currentRoute = usePathname();
   const isActive =
     href === "/" ? currentRoute === href : currentRoute.startsWith(href);
-  const textColor = isActive 
-    ? "text-white bg-black underline font-mono font-bold" 
-    : "text-black dark:text-white font-mono font-bold";
-
+  const baseLink = "font-bold px-5 py-2 rounded-2xl transition-colors focus:outline-none focus-visible:ring-4 focus-visible:ring-softyellow dark:focus-visible:ring-white select-none";
+  const activeLink = "bg-strongblack dark:bg-white text-white dark:text-black";
+  const inactiveLink = "text-strongblack dark:text-white hover:underline focus-visible:underline";
 
   if (isMobile) {
     return (
       <Link
         href={href}
         onClick={action}
-        className={textColor}
+        className={`${baseLink} ${isActive ? activeLink : inactiveLink}`}
       >
         {label}
       </Link>
@@ -40,7 +39,7 @@ const NavigationLink = ({
 
   return (
     <Link
-      className={`${textColor} px-2 py-1 rounded-none border-none transition-colors focus:outline-none hover:bg-gray-100 dark:hover:bg-gray-800 dark:focus:bg-gray-800 focus:ring-2 focus:ring-amber-100 focus:border-amber-100 hover:border-amber-100 hover:text-black dark:hover:text-white focus:text-black dark:focus:text-white`}
+      className={`${baseLink} ${isActive ? activeLink : inactiveLink}`}
       href={href}
       onClick={action}
     >

@@ -21,7 +21,7 @@ export default function InfoPanel({
 }: Props) {
   return (
     <div
-      className={`bg-amber-100 dark:bg-gray-800 rounded-sm py-8 px-6 hover:scale-105 focus:scale-105 ${
+      className={`bg-softyellow dark:bg-darkbg text-strongblack dark:text-white rounded-xl shadow-md py-8 px-6 hover:scale-105 focus:scale-105 transition-transform duration-150 cursor-pointer ${
         isHighlighted ? "py-10 px-8" : ""
       }`}
       onClick={() => action.handler()}
@@ -31,7 +31,7 @@ export default function InfoPanel({
       <div className="my-4 text-center">
         <Button
           label={action.label}
-          handler={action.handler}
+          onClick={action.handler}
           variant="primary"
           isDisabled={action.disabled}
         />

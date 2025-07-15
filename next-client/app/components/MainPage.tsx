@@ -7,12 +7,8 @@ import CookieConsent from "./CookieConsent";
 import CustomProviders from "./CustomProviders";
 import Footer from "./Footer/Footer.component";
 import Header from "./Header";
-import { Fira_Code } from "next/font/google";
-import { usePathname } from "next/navigation";
-
 import Seo from "./Seo";
-
-const monoFont = Fira_Code({ subsets: ["latin"], weight: "400" });
+import { usePathname } from "next/navigation";
 
 type Props = {
   children: React.ReactNode;
@@ -23,13 +19,13 @@ const MainPage = ({ children }: Props) => {
   const showHeader = !pathname.includes("dashboard");
 
   return (
-    <html lang="en" suppressHydrationWarning className="bg-white dark:bg-gray-900">
+    <html lang="en" suppressHydrationWarning className="bg-white dark:bg-neutral-900">
       <Seo />
-      <body className="h-full min-h-screen bg-white dark:bg-gray-900">
+      <body className="h-full min-h-screen bg-white dark:bg-neutral-900">
         <CustomProviders>
-          <main className={monoFont.className + " h-full min-h-screen flex flex-col"}>
+          <main className="h-full min-h-screen flex flex-col">
             <Toaster position="top-center" reverseOrder={false} />
-            <div className={`min-h-screen h-full flex flex-col bg-white dark:bg-gray-900 text-black dark:text-white font-mono flex-1 ${showHeader ? 'pt-4' : ''}`}>
+            <div className={`min-h-screen h-full flex flex-col bg-white dark:bg-neutral-900 text-black dark:text-white flex-1 ${showHeader ? 'pt-4' : ''}`}>
               {showHeader && <Header />}
               <div className="flex-1 h-full flex flex-col">{children}</div>
               <Footer />

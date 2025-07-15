@@ -11,8 +11,8 @@ export default function HowItWorks() {
   const router = useRouter();
 
   return (
-     <section className="py-16 bg-gray-50 dark:bg-gray-800">
-     <div className="max-w-7xl mx-auto px-4 grid grid-cols-1 md:grid-cols-2 gap-y-12 md:gap-x-12 items-center prose prose-gray dark:prose-invert">
+     <section className="py-16 bg-neutral-50 dark:bg-neutral-800">
+     <div className="max-w-7xl mx-auto px-4 grid grid-cols-1 md:grid-cols-2 gap-y-12 md:gap-x-12 items-center prose prose-neutral dark:prose-invert">
        <div className="relative">
          {/* Light mode image */}
          <Image
@@ -29,10 +29,10 @@ export default function HowItWorks() {
        </div>
 
        <div>
-         <h3 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">
+         <h3 className="text-xl font-bold mb-4 text-neutral-900 dark:text-white">
            Write Freely, Securely, and Locally
          </h3>
-         <p className="text-gray-700 dark:text-gray-300">
+         <p className="text-neutral-700 dark:text-neutral-300">
            Hermes Markdown lets you write without worrying about privacy
            breaches or losing control of your data. Perfect for
            professionals, students, and anyone who values simplicity and
@@ -41,7 +41,7 @@ export default function HowItWorks() {
          <Button
          variant="primary"
          label="Try it out!"
-         handler={() => router.push("/dashboard")}
+         onClick={() => router.push("/dashboard")}
        ></Button>
        </div>
      </div>

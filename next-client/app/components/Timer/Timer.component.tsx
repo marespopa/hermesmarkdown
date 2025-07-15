@@ -95,19 +95,29 @@ const TimerComponent = ({
           )}
         </span>
         <span className="flex items-center gap-2">
-          {isTimerMinimized ? <FaRegWindowMaximize /> : <FaRegWindowMinimize />}
+          <Button
+            variant="icon"
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsTimerMinimized((v) => !v);
+            }}
+            aria-label={isTimerMinimized ? "Maximize timer" : "Minimize timer"}
+            title={isTimerMinimized ? "Maximize timer" : "Minimize timer"}
+          >
+            {isTimerMinimized ? <FaRegWindowMaximize /> : <FaRegWindowMinimize />}
+          </Button>
           {onClose && (
-            <button
+            <Button
+              variant="icon"
               onClick={(e) => {
                 e.stopPropagation();
                 onClose();
               }}
-              className="hover:text-red-500 transition-colors p-1 rounded focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50"
-              title="Close timer"
               aria-label="Close timer"
+              title="Close timer"
             >
-              <FaWindowClose className="w-4 h-4" />
-            </button>
+              <FaWindowClose />
+            </Button>
           )}
         </span>
       </h2>
@@ -145,14 +155,13 @@ const TimerComponent = ({
       <div className="flex gap-4 mt-4 justify-center flex-wrap">
         {!isResting && !isWorking && !isTimerCounting && (
           <Button
-            variant="success"
+            variant="primary"
             label={
               <>
                 START <FaPlay />
               </>
             }
-            handler={() => startWorkInterval()}
-            styles="text-xs"
+            onClick={() => startWorkInterval()}
           ></Button>
         )}
         {isResting && (
@@ -163,8 +172,7 @@ const TimerComponent = ({
                 WORK <FaTerminal />
               </>
             }
-            handler={() => startWorkInterval()}
-            styles="text-xs"
+            onClick={() => startWorkInterval()}
           ></Button>
         )}
         {isWorking && (
@@ -175,8 +183,7 @@ const TimerComponent = ({
                 BREAK <FaMugHot />
               </>
             }
-            handler={() => startRestInterval(false)}
-            styles="text-xs"
+            onClick={() => startRestInterval(false)}
           ></Button>
         )}
         {isPauseButtonVisible && (
@@ -193,20 +200,18 @@ const TimerComponent = ({
                 </>
               )
             }
-            handler={togglePauseFn()}
-            styles="text-xs"
+            onClick={togglePauseFn()}
           ></Button>
         )}
         {(isPauseButtonVisible || isTimerCounting) && (
           <Button
-            variant="danger"
+            variant="secondary"
             label={
               <>
                 RESET <FaRecycle />
               </>
             }
-            handler={() => resetPomodoro()}
-            styles="text-xs"
+            onClick={() => resetPomodoro()}
           ></Button>
         )}
         {<TimerSettingsTrigger />}
@@ -234,9 +239,8 @@ function getHeadingText(
   const usageBasedText = isDocumentTitle ? `/ ${fileTitle}` : "";
 
   if (isTimerCounting) {
-    return `${formattedTime} - ${
-      isWorking ? `Work` : `Break`
-    } ${usageBasedText}`;
+    return `${formattedTime} - ${isWorking ? `Work` : `Break`
+      } ${usageBasedText}`;
   }
 
   if (isWorking) {
@@ -250,9 +254,6 @@ function getHeadingText(
   return isDocumentTitle ? `${fileTitle}` : "Pomodoro Timer";
 }
 
-const timerPopStyles = `bg-amber-100 dark:bg-gray-800 shadow-sm py-2 px-2 md:px-4 pt-2 my-4 rounded-sm
-                        w-full z-10 opacity-95 relative
-                        sm:w-full
-                        md:fixed md:bottom-4 md:right-4 md:w-96 md:max-w-md md:left-auto`;
+const timerPopStyles = `bg-white dark:bg-neutral-800 shadow-lg border border-strongblack dark:border-white/20 py-2 px-2 my-8 rounded-2xl w-full opacity-95 relative`;
 
 export default TimerComponent;

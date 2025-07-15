@@ -29,7 +29,7 @@ export default function InfoPanelPlain({
 
   return (
     <div
-      className={`bg-amber-100 dark:bg-gray-800 rounded-sm py-8 px-6 hover:scale-105 focus:scale-105 cursor-pointer ${
+      className={`bg-amber-100 dark:bg-gray-800 rounded-sm py-8 px-6 cursor-pointer transition-all duration-200 ease-out focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 dark:focus-visible:ring-amber-300 transform hover:scale-[1.03] active:scale-95 shadow-sm hover:shadow-lg ${
         isHighlighted ? "py-10 px-8" : ""
       }`}
       tabIndex={0}

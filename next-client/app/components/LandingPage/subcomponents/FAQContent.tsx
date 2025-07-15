@@ -45,8 +45,8 @@ export default function FAQContent() {
   ];
 
   return (
-      <section id="faq" className="py-16 bg-white dark:bg-gray-900">
-        <div className="max-w-xl mx-auto px-4 prose prose-gray dark:prose-invert text-center">
+      <section id="faq" className="py-16 bg-white dark:bg-neutral-900">
+        <div className="max-w-xl mx-auto px-4 prose prose-neutral dark:prose-invert text-center">
           <h2 className="text-3xl font-semibold mb-8">
             Frequently Asked Questions
           </h2>
@@ -54,7 +54,7 @@ export default function FAQContent() {
           {faqItems.map((faq, index) => (
             <details
               key={index}
-              className="mb-4 border-b border-gray-200 dark:border-gray-700 pb-4 cursor-pointer"
+              className="mb-4 border-b border-neutral-200 dark:border-neutral-700 pb-4 cursor-pointer"
             >
               <summary className="text-lg font-medium">{faq.question}</summary>
               <p>{faq.answer}</p>

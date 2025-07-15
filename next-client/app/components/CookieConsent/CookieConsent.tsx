@@ -49,7 +49,7 @@ const CookieConsent = () => {
         <div className="flex items-center justify-center md:justify-end">
           <Button
             variant="secondary"
-            handler={() => handleAccept()}
+            onClick={() => handleAccept()}
             label="Accept All"
           />
         </div>

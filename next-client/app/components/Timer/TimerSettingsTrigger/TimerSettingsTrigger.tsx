@@ -56,9 +56,8 @@ export default function TimerSettingsTrigger() {
   return (
     <>
       <Button
-        variant="info"
-        styles="text-xs"
-        handler={() => {
+        variant="secondary"
+        onClick={() => {
           setIsModalOpen(!isModalOpen);
         }}
         label={
@@ -72,7 +71,6 @@ export default function TimerSettingsTrigger() {
         onClose={() => {
           setIsModalOpen(false);
         }}
-        styles="max-w-2xl"
       >
         <form className="mt-8 max-w-xl mx-auto">
           <h3 className="text-2xl mt-4 flex gap-2 items-center justify-between">
@@ -128,7 +126,7 @@ export default function TimerSettingsTrigger() {
 
           <Button
             variant="primary"
-            handler={handleClose}
+            onClick={handleClose}
             label="Close"
           ></Button>
         </form>

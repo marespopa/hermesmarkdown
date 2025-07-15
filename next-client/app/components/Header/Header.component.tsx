@@ -7,7 +7,7 @@ export default function Header() {
   return (
     <header
       data-testid="GlobalHeader"
-      className="bg-white dark:bg-gray-900 text-black dark:text-white py-2 font-mono font-bold"
+      className="text-strongblack dark:text-white py-3 px-4 font-bold"
     >
       <Navbar />
     </header>

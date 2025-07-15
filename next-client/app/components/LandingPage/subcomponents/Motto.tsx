@@ -13,11 +13,11 @@ export default function Motto() {
         <h3 className="text-2xl">
         Edit Markdown files effortlessly while keeping your data secure.
         </h3>
-        <div className="mt-8">
+        <div className="mt-8 mx-auto flex justify-center">
           <Button
             variant="primary"
             label="Get Started!"
-            handler={() => router.push("/dashboard")}
+            onClick={() => router.push("/dashboard")}
           ></Button>
         </div>
       </section>

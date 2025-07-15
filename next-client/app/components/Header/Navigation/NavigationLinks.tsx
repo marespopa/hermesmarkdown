@@ -3,13 +3,15 @@
 import React from "react";
 import NavigationLink from "./NavigationLink";
 import { useAtom } from "jotai";
-import { atom_content } from "@/app/atoms/atoms";
-import ThemeToggle from "../../ThemeToggle";
+import { atom_content, atom_theme } from "@/app/atoms/atoms";
+import Button from "@/app/components/Button";
+import { FaSun, FaMoon } from "react-icons/fa";
 
 type Props = {};
 
 export default function NavigationLinks({}: Props) {
   const [content] = useAtom(atom_content);
+  const [theme, setTheme] = useAtom(atom_theme);
   return (
     <nav className="ml-auto" data-testid="navigation">
       <ul className="flex flex-col md:flex-row space-x-4 gap-8 items-center">
@@ -23,7 +25,15 @@ export default function NavigationLinks({}: Props) {
           <NavigationLink label="FAQ" href="/faq" />
         </li>
         <li>
-          <ThemeToggle />
+          <Button
+            variant="icon"
+            onClick={() => setTheme(theme === "light" ? "dark" : "light")}
+            aria-label={theme === "light" ? "Dark" : "Light"}
+            title={theme === "light" ? "Dark" : "Light"}
+            data-testid="theme-toggle"
+          >
+            {theme === "light" ? <FaMoon className="w-5 h-5" /> : <FaSun className="w-5 h-5" />}
+          </Button>
         </li>
       </ul>
     </nav>

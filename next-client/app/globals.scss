@@ -2,6 +2,8 @@
 @tailwind components;
 @tailwind utilities;
 
+@import url('https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@400;700&display=swap');
+
 /* Fix jumpy page when scroll appear */
 ::-webkit-scrollbar {
   width: 16px;
@@ -30,6 +32,10 @@ html.dark {
   ::-webkit-scrollbar-thumb {
     background-color: slategray;
   }
+}
+
+html, body {
+  font-family: 'Source Code Pro', monospace;
 }
 
 @keyframes fade-in {
