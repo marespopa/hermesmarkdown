@@ -10,7 +10,7 @@ import { FileMetadata } from "@/app/types/markdown";
 import { atom_content, atom_showTimer, atom_panelState, atom_hasChanges, atom_theme, atom_fontFamily, atom_fontSize } from "@/app/atoms/atoms";
 import DropdownMenu from "@/app/components/DropdownMenu";
 import ExportService from "@/app/services/export-service";
-import { FaClock, FaFile, FaEdit, FaQuestion, FaEye, FaColumns, FaPen, FaExclamationCircle, FaSave, FaCheck, FaKeyboard, FaFilePdf, FaMoon, FaSun, FaChevronDown, FaChevronUp } from "react-icons/fa";
+import { FaClock, FaFile, FaEdit, FaQuestion, FaEye, FaColumns, FaPen, FaExclamationCircle, FaSave, FaCheck, FaKeyboard, FaFilePdf, FaMoon, FaSun, FaChevronDown, FaChevronUp, FaBars } from "react-icons/fa";
 import { useRouter } from "next/navigation";
 import useIsMobile from "@/app/hooks/use-is-mobile";
 import ThemeToggle from "@/app/components/ThemeToggle";
@@ -206,11 +206,11 @@ export default function EditorHeader({
                 className={showTimer ? 'ring-2 ring-amber-400 border-amber-400' : ''}
               />
               <ThemeToggle />
-              <Button
-                variant="secondary"
-                label="Menu"
-                handler={() => setIsFabMenuOpen(true)}
-                className="!px-6 !py-2 font-bold"
+              <IconButton
+                icon={<FaBars className="w-5 h-5" />}
+                title="Menu"
+                onClick={() => setIsFabMenuOpen(true)}
+                className="sm:hidden"
               />
             </div>
           </div>
@@ -218,14 +218,6 @@ export default function EditorHeader({
       </div>
       {/* Right: Actions */}
       <div className="flex flex-row items-center gap-2 justify-center w-full sm:w-auto sm:justify-end mt-2 sm:mt-0">
-        <button
-          onClick={() => setIsFabMenuOpen(true)}
-          className="sm:hidden p-2 rounded-lg bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors duration-200"
-          aria-label="Menu"
-          title="Menu"
-        >
-          <span className="font-bold text-gray-700 dark:text-gray-300">Menu</span>
-        </button>
         {isFabMenuOpen && (
           <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-white dark:bg-gray-900 bg-opacity-95 dark:bg-opacity-95">
             <button
