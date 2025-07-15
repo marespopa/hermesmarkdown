@@ -10,7 +10,7 @@ import { FileMetadata } from "@/app/types/markdown";
 import { atom_content, atom_showTimer, atom_panelState, atom_hasChanges, atom_theme, atom_fontFamily, atom_fontSize } from "@/app/atoms/atoms";
 import DropdownMenu from "@/app/components/DropdownMenu";
 import ExportService from "@/app/services/export-service";
-import { FaClock, FaFile, FaEdit, FaQuestion, FaEye, FaColumns, FaPen, FaExclamationCircle, FaSave, FaCheck, FaKeyboard, FaFilePdf, FaMoon, FaSun, FaChevronDown } from "react-icons/fa";
+import { FaClock, FaFile, FaEdit, FaQuestion, FaEye, FaColumns, FaPen, FaExclamationCircle, FaSave, FaCheck, FaKeyboard, FaFilePdf, FaMoon, FaSun, FaChevronDown, FaChevronUp } from "react-icons/fa";
 import { useRouter } from "next/navigation";
 import useIsMobile from "@/app/hooks/use-is-mobile";
 import ThemeToggle from "@/app/components/ThemeToggle";
@@ -67,6 +67,7 @@ export default function EditorHeader({
   const [isPdfPreviewOpen, setIsPdfPreviewOpen] = useState(false);
   const [selectedFont, setSelectedFont] = useState<string>("font-sans");
   const [hideFontDropdown, setHideFontDropdown] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(false);
 
   const fontOptions = [
     { value: "Inter, system-ui, sans-serif", label: "Inter" },
@@ -151,8 +152,34 @@ export default function EditorHeader({
     };
   }, []);
 
+  if (isCollapsed) {
+    return (
+      <div className="w-full flex flex-row items-center justify-between bg-white/80 dark:bg-gray-900/80 rounded-t-xl px-2 py-1 border-b border-gray-200 dark:border-gray-700">
+        <div className="flex flex-col items-start gap-0 justify-start">
+          <span className="text-xs text-gray-700 dark:text-gray-200 font-mono">{fileTitle}</span>
+          <span className="text-[10px] text-gray-500 dark:text-gray-400 font-mono">{fileName?.endsWith(".md") ? fileName : fileName + ".md"}</span>
+        </div>
+        <button
+          className="p-2 rounded hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200"
+          onClick={() => setIsCollapsed(false)}
+          title="Expand header"
+          aria-label="Expand header"
+        >
+          <FaChevronDown />
+        </button>
+      </div>
+    );
+  }
   return (
-    <header className="flex flex-col items-center justify-center w-full py-4 bg-white/80 dark:bg-gray-900/80 rounded-t-xl sm:flex-row sm:items-center sm:justify-between">
+    <header className="flex flex-col items-center justify-center w-full py-4 bg-white/80 dark:bg-gray-900/80 rounded-t-xl sm:flex-row sm:items-center sm:justify-between relative">
+      <button
+        className="absolute top-2 right-2 p-2 rounded hover:bg-gray-200 dark:hover:bg-gray-700"
+        onClick={() => setIsCollapsed(true)}
+        title="Collapse header (Zen mode)"
+        aria-label="Collapse header"
+      >
+        <FaChevronUp />
+      </button>
       {/* Left: Title and file info */}
       <div className="flex flex-col items-center gap-6 max-w-md w-full flex-shrink-0 sm:flex-row sm:items-center">
         <div className="flex flex-col gap-1 min-w-0 w-full sm:w-auto">
@@ -168,7 +195,7 @@ export default function EditorHeader({
               {renderFontMenu()}
               {renderFontSizeMenu()}
             </div>
-            {/* Timer and theme toggles, styled and aligned like IconButton */}
+            {/* Timer, theme, and menu controls aligned in a row */}
             <div className="flex flex-row items-center gap-3 mt-3 justify-center">
               <IconButton
                 icon={<FaClock className="w-5 h-5" />}
@@ -179,6 +206,12 @@ export default function EditorHeader({
                 className={showTimer ? 'ring-2 ring-amber-400 border-amber-400' : ''}
               />
               <ThemeToggle />
+              <Button
+                variant="secondary"
+                label="Menu"
+                handler={() => setIsFabMenuOpen(true)}
+                className="!px-6 !py-2 font-bold"
+              />
             </div>
           </div>
         </div>
@@ -289,15 +322,6 @@ export default function EditorHeader({
           onClick={() => setIsShortcutsOpen(true)}
           className="hidden sm:inline-flex"
         />
-        <IconButton
-          icon={<FaClock />}
-          title={showTimer ? "Hide timer" : "Show timer"}
-          onClick={() => setShowTimer(!showTimer)}
-          isActive={showTimer}
-          dataTestId="timer-toggle"
-          className="hidden sm:inline-flex"
-        />
-        <ThemeToggle />
       </div>
       <Portal>
         <EditorForm
