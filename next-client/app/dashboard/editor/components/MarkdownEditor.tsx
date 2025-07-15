@@ -55,6 +55,11 @@ const highlightMarkdownWithTailwind = (code: string) => {
     /^(\s*)([-*_]){3,}\s*$/gm,
     '<span class="text-neutral-400 dark:text-neutral-600">$1</span>'
   );
+  // Links [text](url) - highlight as blue span, not clickable
+  code = code.replace(
+    /(\[[^\]]+\]\([^\)]+\))/g,
+    '<span class="underline text-blue-600 dark:text-blue-400">$1</span>'
+  );
   return code;
 };
 
