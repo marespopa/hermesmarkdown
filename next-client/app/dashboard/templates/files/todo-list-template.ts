@@ -17,32 +17,32 @@ const ToDoListTemplate: MarkdownTemplate = {
 
 ## 🎯 Priority Tasks
 
-| Task                  | Priority | Status | Notes         |
-|-----------------------|----------|--------|--------------|
-| High Priority Task 1  | High     | [ ]    |              |
-| High Priority Task 2  | High     | [ ]    |              |
-| High Priority Task 3  | High     | [ ]    |              |
+| Task                  | Priority | Status | Notes      |
+|-----------------------|----------|--------|------------|
+| High Priority Task 1  | High     | [ ]    |            |
+| High Priority Task 2  | High     | [ ]    |            |
+| High Priority Task 3  | High     | [ ]    |            |
 
 ---
 
 ## 📝 Regular Tasks
 
-| Task     | Priority | Status | Notes         |
-|----------|----------|--------|--------------|
-| Task 1   | Medium   | [ ]    |              |
-| Task 2   | Medium   | [ ]    |              |
-| Task 3   | Medium   | [ ]    |              |
-| Task 4   | Low      | [ ]    |              |
-| Task 5   | Low      | [ ]    |              |
+| Task   | Priority | Status | Notes      |
+|--------|----------|--------|------------|
+| Task 1 | Medium   | [ ]    |            |
+| Task 2 | Medium   | [ ]    |            |
+| Task 3 | Medium   | [ ]    |            |
+| Task 4 | Low      | [ ]    |            |
+| Task 5 | Low      | [ ]    |            |
 
 ---
 
 ## ✅ Completed Tasks
 
-| Task              | Priority | Status | Notes         |
-|-------------------|----------|--------|--------------|
-| Completed Task 1  | High     | [x]    |              |
-| Completed Task 2  | Medium   | [x]    |              |
+| Task              | Priority | Status | Notes      |
+|-------------------|----------|--------|------------|
+| Completed Task 1  | High     | [x]    |            |
+| Completed Task 2  | Medium   | [x]    |            |
 
 ---
 

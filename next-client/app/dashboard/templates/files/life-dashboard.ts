@@ -18,7 +18,7 @@ const LifeDashboardTemplate: MarkdownTemplate = {
 
 ## 🎯 This Week's Focus
 
-| Primary Goal         | Success Metric           |
+| Primary Goal        | Success Metric          |
 |---------------------|-------------------------|
 | Finish project      | 100% complete           |
 
@@ -26,53 +26,53 @@ const LifeDashboardTemplate: MarkdownTemplate = {
 
 ## 💼 Work & Career
 
-| Project         | Status | Due Date   | Notes         |
-|-----------------|--------|------------|--------------|
-| Project 1       | [ ]    | Mar 15     | Launch MVP    |
-| Project 2       | [ ]    | Mar 30     | QA review     |
-| Skill Building  | [ ]    |            | React course  |
-| _Work-Life Balance_ |     |            | 40h / 5h / 6  |
+| Project             | Status | Due Date   | Notes         |
+|---------------------|--------|------------|---------------|
+| Project 1           | [ ]    | Mar 15     | Launch MVP    |
+| Project 2           | [ ]    | Mar 30     | QA review     |
+| Skill Building      | [ ]    |            | React course  |
+| _Work-Life Balance_ |        |            | 40h / 5h / 6  |
 
 ---
 
 ## 💰 Finance & Budget
 
-| Category   | Amount   |
-|------------|----------|
-| Income     | $3200    |
-| Expenses   | $2000    |
-| Savings    | $1000    |
-|            |          |
-| **Goals**  |          |
-| Emergency Fund | $1000 / $200 |
-| Investment     | $500 / $300  |
+| Category        | Amount       |
+|-----------------|--------------|
+| Income          | $3200        |
+| Expenses        | $2000        |
+| Savings         | $1000        |
+|                 |              |
+| **Goals**       |              |
+| Emergency Fund  | $1000 / $200 |
+| Investment      | $500 / $300  |
 
 ---
 
 ## 🏃‍♂️ Health & Fitness
 
-| Metric     | Value    |
-|------------|----------|
+| Metric     | Value                |
+|------------|--------------------- |
 | Workouts   | 3 sessions this week |
-| Steps      | 8000 today|
-| Sleep      | 7 hours last night |
-| Stress     | 5         |
-|            |          |
-| **Goals**  |          |
-| Exercise   | 4 times per week |
-| Sleep      | 8 hours per night |
+| Steps      | 8000 today           |
+| Sleep      | 7 hours last night   |
+| Stress     | 5                    |
+|            |                      |
+| **Goals**  |                      |
+| Exercise   | 4 times per week     |
+| Sleep      | 8 hours per night    |
 
 ---
 
 ## 📚 Learning & Growth
 
-| Currently Learning | Progress | Reading        |
-|--------------------|----------|---------------|
-| React              | 80%      | Atomic Habits  |
-|                    |          |               |
-| **Skills to Develop** |        |               |
-| TypeScript         | [ ]      |               |
-| GraphQL            | [ ]      |               |
+| Currently Learning   | Progress | Reading       |
+|----------------------|----------|---------------|
+| React                | 80%      | Atomic Habits |
+|                      |          |               |
+| **Skills to Develop**|          |               |
+| TypeScript           | [ ]      |               |
+| GraphQL              | [ ]      |               |
 
 ---
 
@@ -101,11 +101,11 @@ const LifeDashboardTemplate: MarkdownTemplate = {
 
 ## 🎯 Monthly Goals
 
-| Goal      | Status | Notes         |
-|-----------|--------|--------------|
-| Launch MVP| [ ]    |              |
-| Read 2 books | [ ]  |              |
-| Save $500 | [ ]    |              |
+| Goal         | Status | Notes     |
+|--------------|--------|-----------|
+| Launch MVP   | [ ]    |           |
+| Read 2 books | [ ]    |           |
+| Save $500    | [ ]    |           |
 
 ---
 

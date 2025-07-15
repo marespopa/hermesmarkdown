@@ -20,30 +20,30 @@ const BookTrackerTemplate: MarkdownTemplate = {
 
 ## 📖 Currently Reading
 
-| Book Title         | Author      | Genre   | Pages | Progress | Rating | Notes                  |
-|--------------------|-------------|---------|-------|----------|--------|------------------------|
-| The Great Gatsby   | Jane Doe    | Fiction | 120/180| 67%      | 4/5    | Loving the writing     |
+| Book Title         | Author     | Genre     | Pages    | Progress | Rating | Notes               |
+|--------------------|------------|-----------|----------|----------|--------|---------------------|
+| The Great Gatsby   | Jane Doe   | Fiction   | 120/180  | 67%      | 4/5    | Loving the writing  |
 
 ---
 
 ## ✅ Completed Books
 
-| Year | Book Title         | Author      | Rating | Date Finished |
-|------|--------------------|-------------|--------|---------------|
-| ${year} | Atomic Habits      | James Clear | ⭐⭐⭐⭐⭐ | ${date}       |
-| ${year} | Deep Work          | Cal Newport | ⭐⭐⭐⭐  | ${date}       |
-| 2023 | Sapiens            | Yuval Noah  | ⭐⭐⭐⭐  | ${date}       |
-| 2023 | Educated           | Tara Westover| ⭐⭐⭐⭐⭐ | ${date}       |
+| Year    | Book Title         | Author         | Rating | Date Finished |
+|---------|--------------------|----------------|--------|---------------|
+| ${year} | Atomic Habits      | James Clear    | 5/5    | ${date}       |
+| ${year} | Deep Work          | Cal Newport    | 4/5    | ${date}       |
+| 2023    | Sapiens            | Yuval Noah     | 4/5    | ${date}       |
+| 2023    | Educated           | Tara Westover  | 5/5    | ${date}       |
 
 ---
 
 ## 📋 Reading List
 
-| Book Title         | Author      | Genre      | Status      | Notes      |
-|--------------------|-------------|------------|-------------|------------|
-| 1984               | George Orwell| Dystopian  | Next        |            |
-| The Lean Startup   | Eric Ries   | Business   | Wishlist    | $15        |
-| The Alchemist      | Paulo Coelho| Fiction    | Recommended | John Smith |
+| Book Title         | Author         | Genre      | Status      | Notes      |
+|--------------------|---------------|------------|-------------|------------|
+| 1984               | George Orwell | Dystopian  | Next        |            |
+| The Lean Startup   | Eric Ries     | Business   | Wishlist    | $15        |
+| The Alchemist      | Paulo Coelho  | Fiction    | Recommended | John Smith |
 
 ---
 
@@ -60,26 +60,26 @@ const BookTrackerTemplate: MarkdownTemplate = {
 ## 📊 Reading Stats
 
 | Genre           | Books Completed |
-|-----------------|----------------|
-| Fiction         | 1              |
-| Non-fiction     | 2              |
-| Sci-fi/Fantasy  | 0              |
-| Business        | 0              |
+|-----------------|-----------------|
+| Fiction         | 1               |
+| Non-fiction     | 2               |
+| Sci-fi/Fantasy  | 0               |
+| Business        | 0               | 
 
 | Month     | Books Completed |
-|-----------|----------------|
-| January   | 1              |
-| February  | 2              |
-| March     | 0              |
+|-----------|-----------------|
+| January   | 1               |
+| February  | 2               |
+| March     | 0               |
 
 ---
 
 ## ⭐ Top Rated Books
 
-| Book Title         | Author      | Rating | Date Finished |
-|--------------------|-------------|--------|---------------|
-| Atomic Habits      | James Clear | ⭐⭐⭐⭐⭐ | ${date}       |
-| Educated           | Tara Westover| ⭐⭐⭐⭐⭐ | ${date}       |
+| Book Title         | Author       | Rating | Date Finished |
+|--------------------|--------------|--------|---------------|
+| Atomic Habits      | James Clear  | 3/5    | ${date}       |
+| Educated           | Tara Westover| 3/5    | ${date}       |
 
 ---
 
@@ -101,56 +101,56 @@ const BookTrackerTemplate: MarkdownTemplate = {
 
 ## 🏆 Reading Challenges
 
-| Challenge                  | Target | Progress | Status |
-|----------------------------|--------|----------|--------|
-| 12 Books in 12 Months      | 12     | 3/12     | [ ]    |
-| Read 1 Classic             | 1      | 0        | [ ]    |
-| Read 1 Biography           | 1      | 1        | [x]    |
-| 1 Book in Each Genre       | 4      | 2/4      | [ ]    |
-| Books from 10 Countries    | 10     | 3/10     | [ ]    |
+| Challenge                | Target | Progress | Status |
+|-------------------------|--------|----------|--------|
+| 12 Books in 12 Months   | 12     | 3/12     | [ ]    |
+| Read 1 Classic          | 1      | 0        | [ ]    |
+| Read 1 Biography        | 1      | 1        | [x]    |
+| 1 Book in Each Genre    | 4      | 2/4      | [ ]    |
+| Books from 10 Countries | 10     | 3/10     | [ ]    |
 
 ---
 
 ## 📚 Book Clubs
 
-| Club Name      | Current Book      | Meeting Date |
-|----------------|------------------|--------------|
-| City Readers   | 1984             | ${date}      |
+| Club Name    | Current Book | Meeting Date |
+|--------------|--------------|--------------|
+| City Readers | 1984         | ${date}      |
 
-| Book Title         | Club Name      | Date Discussed |
-|--------------------|---------------|---------------|
-| Sapiens            | City Readers  | ${date}       |
+| Book Title   | Club Name     | Date Discussed |
+|--------------|--------------|----------------|
+| Sapiens      | City Readers | ${date}        |
 
 ---
 
 ## 🎁 Gift Ideas
 
-| Book Title         | Author      | For/From      | Price/Notes |
-|--------------------|-------------|--------------|-------------|
-| The Alchemist      | Paulo Coelho| For Alice     |             |
-| Deep Work          | Cal Newport | For Bob       |             |
-| Atomic Habits      | James Clear | From Carol    |             |
+| Book Title         | Author        | For/From   | Price/Notes |
+|--------------------|--------------|------------|-------------|
+| The Alchemist      | Paulo Coelho | For Alice  |             |
+| Deep Work          | Cal Newport  | For Bob    |             |
+| Atomic Habits      | James Clear  | From Carol |             |
 
 ---
 
 ## 📱 Reading Apps & Tools
 
-| App/Resource   | Details         |
-|----------------|----------------|
-| Goodreads      | johndoe         |
-| Library Card   | City Library    |
-| E-reader       | Kindle Paperwhite|
-| Book Blogs     | BookBlog        |
-| Book Podcasts  | BookCast        |
+| App/Resource   | Details           |
+|----------------|------------------|
+| Goodreads      | johndoe           |
+| Library Card   | City Library      |
+| E-reader       | Kindle Paperwhite |
+| Book Blogs     | BookBlog          |
+| Book Podcasts  | BookCast          |
 
 ---
 
 ## 🎯 Future Reading Plans
 
-| Book Title         | Author      | Status      |
-|--------------------|-------------|-------------|
-| The Power of Habit | Charles Duhigg| Next      |
-| War and Peace      | Leo Tolstoy | Bucket List|
+| Book Title         | Author         | Status      |
+|--------------------|---------------|-------------|
+| The Power of Habit | Charles Duhigg | Next        |
+| War and Peace      | Leo Tolstoy    | Bucket List |
 
 ---
 

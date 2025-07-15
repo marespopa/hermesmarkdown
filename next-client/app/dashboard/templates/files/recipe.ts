@@ -23,19 +23,19 @@ const RecipeTemplate: MarkdownTemplate = {
 
 ## 📊 Recipe Information
 
-| Field         | Value         |
-|--------------|--------------|
-| Prep Time    | 30 minutes   |
-| Cook Time    | 45 minutes   |
-| Total Time   | 75 minutes   |
-| Servings     | 4            |
-| Calories/serving | 500      |
+| Field            | Value        |
+|------------------|--------------|
+| Prep Time        | 30 minutes   |
+| Cook Time        | 45 minutes   |
+| Total Time       | 75 minutes   |
+| Servings         | 4            |
+| Calories/serving | 500          |
 
 ---
 
 ## 🥘 Ingredients
 
-| Amount | Ingredient         |
+| Amount | Ingredient        |
 |--------|-------------------|
 | 400g   | Spaghetti         |
 | 250g   | Ground Beef       |
@@ -53,10 +53,10 @@ const RecipeTemplate: MarkdownTemplate = {
 
 ### Optional Additions
 
-| Amount | Optional Ingredient|
-|--------|-------------------|
-| 50g    | Olives            |
-| 50g    | Mushrooms         |
+| Amount | Optional Ingredient |
+|--------|---------------------|
+| 50g    | Olives              |
+| 50g    | Mushrooms           |
 
 ---
 
@@ -107,40 +107,40 @@ const RecipeTemplate: MarkdownTemplate = {
 
 ### Side Dishes
 
-| Side Dish         |
-|-------------------|
-| Garlic Bread      |
-| Caesar Salad      |
-| Roasted Veggies   |
+| Side Dish        |
+|------------------|
+| Garlic Bread     |
+| Caesar Salad     |
+| Roasted Veggies  |
 
 ### Beverages
 
-| Beverage          |
-|-------------------|
-| Red Wine          |
-| Sparkling Water   |
+| Beverage         |
+|------------------|
+| Red Wine         |
+| Sparkling Water  |
 
 ---
 
 ## 📋 Equipment Needed
 
-| Equipment         |
-|-------------------|
-| Saucepan          |
-| Frying Pan        |
-| Wooden Spoon      |
-| Colander          |
+| Equipment        |
+|------------------|
+| Saucepan         |
+| Frying Pan       |
+| Wooden Spoon     |
+| Colander         |
 
 ---
 
 ## ⏰ Timing Breakdown
 
-| Stage   | Time      | What to do         |
-|---------|-----------|--------------------|
-| Prep    | 15 min    | Chop & measure     |
-| Cook    | 45 min    | Sauté & simmer     |
-| Rest    | 5 min     | Let cool           |
-| Total   | 75 min    |                    |
+| Stage   | Time    | What to do         |
+|---------|---------|--------------------|
+| Prep    | 15 min  | Chop & measure     |
+| Cook    | 45 min  | Sauté & simmer     |
+| Rest    | 5 min   | Let cool           |
+| Total   | 75 min  |                    |
 
 ---
 
@@ -191,15 +191,15 @@ const RecipeTemplate: MarkdownTemplate = {
 
 ## 🥗 Nutritional Information
 
-| Nutrient      | Value         |
-|--------------|--------------|
-| Calories      | 500          |
-| Protein       | 20g          |
-| Carbohydrates | 60g          |
-| Fat           | 15g          |
-| Fiber         | 5g           |
-| Sugar         | 8g           |
-| Sodium        | 600mg        |
+| Nutrient      | Value   |
+|--------------|---------|
+| Calories      | 500     |
+| Protein       | 20g     |
+| Carbohydrates | 60g     |
+| Fat           | 15g     |
+| Fiber         | 5g      |
+| Sugar         | 8g      |
+| Sodium        | 600mg   |
 
 ---
 

@@ -27,14 +27,14 @@ const ExampleTemplate: MarkdownTemplate = {
 
 ---
 
-## 📊 Progress Summary
+## 📈 Progress Summary
 
 | Habit     | Days Completed |
-|-----------|---------------|
-| Exercise  | 3/7           |
-| Read      | 4/7           |
-| Meditate  | 1/7           |
-| Journal   | 0/7           |
+|-----------|----------------|
+| Exercise  | 3/7            |
+| Read      | 4/7            |
+| Meditate  | 1/7            |
+| Journal   | 0/7            |
 
 ---
 

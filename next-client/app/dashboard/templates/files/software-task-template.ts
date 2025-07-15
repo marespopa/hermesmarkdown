@@ -16,11 +16,11 @@ const SoftwareTaskTemplate: MarkdownTemplate = {
 
 ## 🖇️ Links
 
-| Type   | Link                                      |
-|--------|--------------------------------------------|
-| Story  | https://example.com/story                  |
-| Docs   | https://example.com/docs                   |
-| PR     | https://github.com/org/repo/pull/1         |
+| Type   | Link                               |
+|--------|------------------------------------|
+| Story  | https://example.com/story          |
+| Docs   | https://example.com/docs           |
+| PR     | https://github.com/org/repo/pull/1 |
 
 ---
 

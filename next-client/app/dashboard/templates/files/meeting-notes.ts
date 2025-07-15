@@ -20,21 +20,21 @@ Simplifies organizing and tracking action items for effective follow-ups.`,
 
 ## 👥 Attendees
 
-| Name      |
-|-----------|
-| Alice     |
-| Bob       |
-| Carol     |
+| Name   |
+|--------|
+| Alice  |
+| Bob    |
+| Carol  |
 
 ---
 
 ## 📋 Agenda
 
-| Agenda Item        |
-|--------------------|
-| Project Kickoff    |
-| Timeline Review    |
-| Q&A                |
+| Agenda Item     |
+|-----------------|
+| Project Kickoff |
+| Timeline Review |
+| Q&A             |
 
 ---
 
@@ -54,20 +54,20 @@ Simplifies organizing and tracking action items for effective follow-ups.`,
 
 ## ✅ Action Items
 
-| Action Item         | Owner   | Due Date   | Status |
-|---------------------|---------|-----------|--------|
-| Create project repo | Alice   | ${date}   | [ ]    |
-| Update timeline     | Bob     | ${date}   | [ ]    |
+| Action Item         | Owner | Due Date | Status |
+|---------------------|-------|----------|--------|
+| Create project repo | Alice | ${date}  | [ ]    |
+| Update timeline     | Bob   | ${date}  | [ ]    |
 
 ---
 
 ## 📆 Next Meeting
 
-| Field    | Value         |
-|----------|--------------|
-| Date     | ${date}      |
-| Time     | 2:00 PM      |
-| Agenda   | Progress Check|
+| Field  | Value         |
+|--------|---------------|
+| Date   | ${date}       |
+| Time   | 2:00 PM       |
+| Agenda | Progress Check|
 `,
 };
 

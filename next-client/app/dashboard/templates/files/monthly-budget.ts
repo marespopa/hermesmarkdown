@@ -20,11 +20,11 @@ const MonthlyBudgetTemplate: MarkdownTemplate = {
 
 ## 💸 Income
 
-| Source      | Amount   |
-|-------------|----------|
-| Salary      | $3200    |
-| Other       | $200     |
-| **Total**   | $3400    |
+| Source    | Amount   |
+|-----------|----------|
+| Salary    | $3200    |
+| Other     | $200     |
+| **Total** | $3400    |
 
 ---
 
@@ -55,22 +55,22 @@ const MonthlyBudgetTemplate: MarkdownTemplate = {
 
 ## 🎯 Summary
 
-| Category        | Amount   |
-|-----------------|----------|
-| Total Income    | $3400    |
-| Total Expenses  | $2000    |
-| Total Savings   | $1000    |
-| Remaining Balance | $400   |
+| Category          | Amount   |
+|-------------------|----------|
+| Total Income      | $3400    |
+| Total Expenses    | $2000    |
+| Total Savings     | $1000    |
+| Remaining Balance | $400     |
 
 ---
 
 ## 📊 Goals
 
-| Goal                | Target     | Current    | Status |
-|---------------------|------------|------------|--------|
-| Emergency Fund      | $1000      | $200       | [ ]    |
-| Investment Goal     | $500       | $300       | [ ]    |
-| Save 20% of income  | $680       | $500       | [ ]    |
+| Goal               | Target   | Current | Status |
+|--------------------|----------|---------|--------|
+| Emergency Fund     | $1000    | $200    | [ ]    |
+| Investment Goal    | $500     | $300    | [ ]    |
+| Save 20% of income | $680     | $500    | [ ]    |
 `,
 };
 
