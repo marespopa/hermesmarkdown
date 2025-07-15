@@ -28,7 +28,7 @@ const highlightMarkdownWithTailwind = (code: string) => {
   code = code.replace(
     /^(#{1,6})\s(.+)$/gm,
     (match, hashes, text) =>
-      `<span class=\"font-bold text-neutral-900 dark:text-neutral-100\">${hashes} ${text}</span>`
+      `<span class=\"font-bold text-amber-600 dark:text-amber-400\">${hashes} ${text}</span>`
   );
   // Bold (**text** or __text__)
   code = code.replace(
@@ -81,6 +81,7 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({ value, onChange, fontFa
       }}
       spellCheck={true}
       autoFocus={true}
+      data-testid="editor-textarea"
     />
   );
 };

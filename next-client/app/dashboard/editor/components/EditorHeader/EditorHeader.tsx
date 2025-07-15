@@ -40,8 +40,6 @@ interface Props {
     handleSelectTemplate: () => void;
     handleOpenFindAndReplace: () => void;
   };
-  collapsed: boolean;
-  setCollapsed: (collapsed: boolean) => void;
 }
 
 export default function EditorHeader({
@@ -49,8 +47,6 @@ export default function EditorHeader({
   frontMatter,
   hasChanges,
   actions,
-  collapsed,
-  setCollapsed,
 }: Props) {
   const [, setFileContent] = useAtom(atom_content);
   const [isFormatterDialogOpen, setIsFormatterDialogOpen] = useState(false);
@@ -183,8 +179,6 @@ export default function EditorHeader({
           setIsShortcutsOpen={setIsShortcutsOpen}
           showTimer={showTimer}
           setShowTimer={setShowTimer}
-          collapsed={collapsed}
-          setCollapsed={setCollapsed}
         />
       )}
       {/* Mobile: Use ActionsMobileMenu */}

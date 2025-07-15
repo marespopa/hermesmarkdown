@@ -1,9 +1,9 @@
-import React, { useState } from "react";
+import React from "react";
 import Button from "@/app/components/Button";
 import { FaFile, FaFolderOpen, FaSave, FaFilePdf, FaKeyboard, FaCopy, FaSearch, FaChevronLeft, FaChevronRight, FaClock, FaQuestion, FaSun, FaMoon } from "react-icons/fa";
 import classNames from "classnames";
 import { useAtom } from "jotai";
-import { atom_theme } from "@/app/atoms/atoms";
+import { atom_theme, atom_sidebarCollapsed } from "@/app/atoms/atoms";
 
 interface ActionsSidebarProps {
   actions: {
@@ -18,8 +18,6 @@ interface ActionsSidebarProps {
   setIsShortcutsOpen: (open: boolean) => void;
   showTimer: boolean;
   setShowTimer: (show: boolean) => void;
-  collapsed: boolean;
-  setCollapsed: (collapsed: boolean) => void;
 }
 
 const labelClass = "hidden xl:inline ml-2";
@@ -34,10 +32,9 @@ const ActionsSidebar: React.FC<ActionsSidebarProps> = ({
   setIsShortcutsOpen,
   showTimer,
   setShowTimer,
-  collapsed,
-  setCollapsed,
 }) => {
   const [theme, setTheme] = useAtom(atom_theme);
+  const [collapsed, setCollapsed] = useAtom(atom_sidebarCollapsed);
   // Remove local collapsed state
   // Helper to conditionally show label
   const getLabelClass = () => (collapsed ? "hidden" : labelClass);

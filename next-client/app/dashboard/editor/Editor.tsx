@@ -13,6 +13,7 @@ import {
   atom_timerSettings,
   atom_fontFamily,
   atom_fontSize,
+  atom_sidebarCollapsed,
 } from "@/app/atoms/atoms";
 import { useDocumentTitle } from "@/app/hooks/use-document-title";
 import { useState, useEffect } from "react";
@@ -31,7 +32,7 @@ import { useRouter } from "next/navigation";
 export default function Editor() {
   const [isLoading, setIsLoading] = useState(false);
   const [mounted, setMounted] = useState(false);
-  const [collapsed, setCollapsed] = useState(false); // Sidebar state
+  const [collapsed] = useAtom(atom_sidebarCollapsed);
   const [timerSettings] = useAtom(atom_timerSettings);
   const [isTimerVisible, setShowTimer] = useAtom(atom_showTimer);
   const [frontMatter] = useAtom(atom_frontMatter);
@@ -208,8 +209,6 @@ export default function Editor() {
             handleSelectTemplate,
             handleOpenFindAndReplace,
           }}
-          collapsed={collapsed}
-          setCollapsed={setCollapsed}
         />
         <EditorContent
           contentEdited={contentEdited}
