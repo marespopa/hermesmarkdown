@@ -48,7 +48,7 @@ const variantStyles = (variant: ButtonVariant): string => {
       return `${primaryClasses} h-16 px-8 text-xl shadow-lg`;
     }
     case "primary":
-      return `${baseStyles} px-8 py-4 bg-black text-white shadow hover:bg-neutral-100 focus:bg-neutral-100 focus-visible:ring-black dark:bg-white dark:text-black dark:border-black dark:hover:bg-neutral-700 dark:hover:text-white dark:focus:bg-neutral-700 dark:focus:text-white dark:focus-visible:ring-white`;
+      return `${baseStyles} px-8 py-4 bg-black text-white shadow hover:bg-neutral-900 focus:bg-neutral-900 focus-visible:ring-black dark:bg-white dark:text-black dark:border-black dark:hover:bg-neutral-900 dark:focus:bg-neutral-900 dark:focus-visible:ring-white`;
     case "secondary":
       return `${baseStyles} px-8 py-4 bg-white text-black border-black shadow hover:bg-neutral-100 focus:bg-neutral-100 focus-visible:ring-black active:bg-neutral-200 dark:bg-neutral-800 dark:text-white dark:border-white dark:hover:bg-neutral-700 dark:hover:text-white dark:focus:bg-neutral-700 dark:focus:text-white dark:active:bg-neutral-700 dark:focus-visible:ring-white`;
     case "outlined":
