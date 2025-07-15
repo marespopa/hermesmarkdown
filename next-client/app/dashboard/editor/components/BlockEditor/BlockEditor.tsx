@@ -157,12 +157,12 @@ const BlockEditor: React.FC<BlockEditorProps> = ({
     setBlocks((prev) =>
       prev.map((block) => {
         if (block.id === id) {
-          const { type, headingLevel } = parseMarkdownType(html);
-          if (type === "heading") {
-            return { ...block, content: html.replace(/^#{1,3}\s/, ""), type: "heading", headingLevel };
-          } else {
-            return { ...block, content: html, type };
+          // Only special-case horizontal rule
+          const isHr = /^(-{3,}|\*{3,})$/.test(html.trim());
+          if (isHr) {
+            return { ...block, content: html, type: "hr" };
           }
+          return { ...block, content: html, type: "text" };
         }
         return block;
       })
@@ -178,12 +178,12 @@ const BlockEditor: React.FC<BlockEditorProps> = ({
         const newBlocks = [
           ...prev.slice(0, idx),
           ...lines.map((line) => {
-            const { type, headingLevel } = parseMarkdownType(line);
+            // Only special-case horizontal rule
+            const isHr = /^(-{3,}|\*{3,})$/.test(line.trim());
             return {
               id: generateBlockId(),
-              type,
-              headingLevel: type === "heading" ? headingLevel : undefined,
-              content: type === "heading" ? line.replace(/^#{1,3}\s/, "") : line,
+              type: (isHr ? "hr" : "text") as Block["type"],
+              content: line,
             };
           }),
           ...prev.slice(idx + 1),
@@ -227,11 +227,11 @@ const BlockEditor: React.FC<BlockEditorProps> = ({
           const newBlocks: Block[] = [
             ...prev.slice(0, idx),
             ...lines.map((line) => {
-              const { type, headingLevel } = parseMarkdownType(line);
+              // Only special-case horizontal rule
+              const isHr = /^(-{3,}|\*{3,})$/.test(line.trim());
               return {
                 id: generateBlockId(),
-                type,
-                headingLevel,
+                type: (isHr ? "hr" : "text") as Block["type"],
                 content: line,
               };
             }),

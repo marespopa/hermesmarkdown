@@ -112,7 +112,7 @@ const BlockItem: React.FC<BlockItemProps> = ({
   }
 
   const isListItem = block.type === "text" && /^([*\-+]\s|\d+\.\s)/.test(block.content);
-  const displayContent = block.type === "heading" ? `# ${block.content}` : block.content;
+  const displayContent = block.content;
   if (isFocused) {
     return (
       <div
@@ -155,8 +155,8 @@ const BlockItem: React.FC<BlockItemProps> = ({
         onMouseEnter={onMouseEnter}
         onMouseLeave={onMouseLeave}
         onInput={handleInput}
-        data-placeholder={block.type === "heading" ? "# Heading" : "Start typing..."}
-        aria-label={block.type === "heading" ? "Heading" : "Text block"}
+        data-placeholder={"Start typing..."}
+        aria-label={"Text block"}
       >
         {BlockControls}
         {displayContent}

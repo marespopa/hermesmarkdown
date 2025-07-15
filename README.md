@@ -1,44 +1,21 @@
-# Hermes Markdown
+# HermesNote
 
-A free to use, online markdown editor.
-Hermes Markdown is dedicated to enhancing your Markdown editing and viewing experience.
+HermesNote is a free, modern online Markdown editor designed for productivity, focus, and seamless content management. It offers a distraction-free writing environment, real-time preview, and effortless export options, making it the perfect tool for writers, students, developers, and anyone who works with Markdown.
 
-The app provides a straightforward and efficient process for creating, editing, and exporting your Markdown content.
+## Key Features
+
+- **Intuitive Markdown Editor**: Clean, user-friendly interface with syntax highlighting and intelligent formatting.
+- **Real-time Preview**: Instantly see your formatted Markdown as you write, with side-by-side editing and preview panes.
+- **Export to PDF**: Convert your Markdown documents to PDF with a single click for easy sharing and professional presentation.
+- **Templates**: Start faster with ready-made templates for notes, books, dashboards, and more.
+- **Customizable Themes**: Switch between light and dark modes to suit your workflow and environment.
+- **Keyboard Shortcuts**: Speed up your workflow with handy keyboard shortcuts for navigation and editing.
+- **Privacy First**: Your content stays on your device—no sign-up required, and no data is sent to external servers.
+
+## Why HermesNote?
+
+HermesNote streamlines the Markdown workflow so you can focus on your content, not the tooling. Whether you're drafting technical docs, taking notes, or writing articles, HermesNote provides a fast, reliable, and enjoyable writing experience.
 
 ## Status
 
 [![Netlify Status](https://api.netlify.com/api/v1/badges/791876b3-c7fe-43c6-850e-6cc486395ba1/deploy-status)](https://app.netlify.com/sites/hermesmd/deploys)
-
-## What is the app's purpose?
-
-The app aims to simplify the process of creating and managing Markdown files by offering a user-friendly interface. Users can effortlessly generate Markdown documents and effortlessly convert them into PDF format for easy sharing, collaboration, and professional presentation.
-
-## What do you want to achieve by building the app?
-
-The goal is to streamline the workflow of individuals who frequently work with Markdown, allowing them to focus on content creation rather than dealing with technical aspects. The app seeks to enhance productivity, efficiency, and the overall Markdown writing experience.
-
-## How will it engage users?
-
-The app will provide an intuitive and feature-rich environment for Markdown writing. It will offer a clean and distraction-free writing interface, real-time preview of Markdown content, and seamless integration with popular Markdown editors. Users will also have the ability to customize the styling of their documents, including font selection, color themes, and layout options.
-
-## What will be the app's core features?
-
-### Markdown Editor
-
-A robust Markdown editor with syntax highlighting, auto-completion, and intelligent formatting to aid users in writing Markdown content.
-
-### Real-time Preview
-
-An interactive preview window that allows users to see how their Markdown document will appear as a formatted PDF in real-time.
-
-### Export to PDF
-
-The app will provide a straightforward option to export Markdown files as PDFs, ensuring compatibility across different platforms and devices.
-
-## Will your target audience see the app as useful?
-
-The app will be highly useful for individuals who regularly work with Markdown, such as writers, researchers, developers, and technical documentation creators. By providing a user-friendly interface, real-time preview, and effortless PDF export functionality, the app will significantly simplify and enhance the Markdown writing process, making it an indispensable tool for its target audience.
-# test3
-# test4
-# test5
-# test6
