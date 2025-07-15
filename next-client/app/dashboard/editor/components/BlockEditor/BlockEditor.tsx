@@ -333,10 +333,10 @@ const BlockEditor: React.FC<BlockEditorProps> = ({
           return (
             <motion.div
               key={block.id}
-              initial={{ opacity: 0, y: 10 }}
+              initial={{ opacity: 0, y: 4 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.18 }}
+              exit={{ opacity: 0, y: -4 }}
+              transition={{ duration: 0.32, ease: "easeOut" }}
               layout
               onMouseDown={() => {
                 setFocused(block.id);

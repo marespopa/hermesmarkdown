@@ -59,11 +59,10 @@ export default function EditorHeader({
   const [fontFamily, setFontFamily] = useAtom(atom_fontFamily);
   const [fontSize, setFontSize] = useAtom(atom_fontSize);
   const fontSizeOptions = [
-    { value: "prose-sm", label: "Small (14px)" },
-    { value: "prose-base", label: "Normal (16px)" },
-    { value: "prose-lg", label: "Large (18px)" },
-    { value: "prose-xl", label: "Extra Large (20px)" },
-    { value: "prose-2xl", label: "2XL (24px)" },
+    { value: "prose-sm", label: "Small" },
+    { value: "prose-base", label: "Normal" },
+    { value: "prose-lg", label: "Large" },
+    { value: "prose-xl", label: "Extra Large" },
   ];
   const [isPdfPreviewOpen, setIsPdfPreviewOpen] = useState(false);
   const [selectedFont, setSelectedFont] = useState<string>("font-sans");
@@ -169,6 +168,18 @@ export default function EditorHeader({
               {renderFontMenu()}
               {renderFontSizeMenu()}
             </div>
+            {/* Timer and theme toggles, styled and aligned like IconButton */}
+            <div className="flex flex-row items-center gap-3 mt-3 justify-center">
+              <IconButton
+                icon={<FaClock className="w-5 h-5" />}
+                title={showTimer ? 'Hide timer' : 'Show timer'}
+                onClick={() => setShowTimer(!showTimer)}
+                isActive={showTimer}
+                dataTestId="timer-toggle"
+                className={showTimer ? 'ring-2 ring-amber-400 border-amber-400' : ''}
+              />
+              <ThemeToggle />
+            </div>
           </div>
         </div>
       </div>
@@ -203,10 +214,10 @@ export default function EditorHeader({
                   New File
                 </button>
                 <button
-                  className="w-full py-3 border border-black dark:border-white bg-white dark:bg-gray-900 text-black dark:text-white font-mono font-bold rounded-none text-lg hover:bg-black hover:text-white transition-colors max-w-xs"
+                  className="w-full py-3 border border-black dark:border-white bg-white dark:bg-gray-900 text-black dark:text-white font-mono font-bold rounded-none text-lg hover:bg-black hover:text-white transition-colors"
                   onClick={withCloseFabMenu(actions.handleSelectTemplate)}
                 >
-                  New From Template
+                  Template
                 </button>
                 <button
                   className="w-full py-3 border border-black dark:border-white bg-white dark:bg-gray-900 text-black dark:text-white font-mono font-bold rounded-none text-lg hover:bg-black hover:text-white transition-colors max-w-xs"
@@ -234,22 +245,9 @@ export default function EditorHeader({
                 </button>
                 <button
                   className="w-full py-3 border border-black dark:border-white bg-white dark:bg-gray-900 text-black dark:text-white font-mono font-bold rounded-none text-lg hover:bg-black hover:text-white transition-colors max-w-xs"
-                  onClick={withCloseFabMenu(() => setIsShortcutsOpen(true))}
+                  onClick={withCloseFabMenu(() => setTheme(theme === "light" ? "dark" : "light"))}
                 >
-                  Keyboard Shortcuts
-                </button>
-                <button
-                  className="w-full py-3 border border-black dark:border-white bg-white dark:bg-gray-900 text-black dark:text-white font-mono font-bold rounded-none text-lg hover:bg-black hover:text-white transition-colors max-w-xs"
-                  onClick={withCloseFabMenu(() => setShowTimer(!showTimer))}
-                >
-                  {showTimer ? "Hide Timer" : "Show Timer"}
-                </button>
-                <button
-                  className="w-full py-3 border border-black dark:border-white bg-white dark:bg-gray-900 text-black dark:text-white font-mono font-bold rounded-none text-lg hover:bg-black hover:text-white transition-colors flex items-center justify-center gap-2 max-w-xs"
-                  onClick={() => setTheme(theme === "light" ? "dark" : "light")}
-                >
-                  {theme === "light" ? <FaMoon className="w-5 h-5" /> : <FaSun className="w-5 h-5" />}
-                  {theme === "light" ? "Switch to Dark Mode" : "Switch to Light Mode"}
+                  {theme === "light" ? "Dark Mode" : "Light Mode"}
                 </button>
                 <button
                   className="w-full py-3 border border-black dark:border-white bg-white dark:bg-gray-900 text-black dark:text-white font-mono font-bold rounded-none text-lg hover:bg-black hover:text-white transition-colors max-w-xs"
@@ -375,110 +373,6 @@ export default function EditorHeader({
     setIsFabMenuOpen(false);
   }
 
-  function renderOptionsMenu() {
-    if (isMobile) {
-      return (
-        <>
-          <div className="fixed top-4 right-2 sm:top-8 sm:right-8 z-50">
-            <button
-              onClick={() => setIsFabMenuOpen(!isFabMenuOpen)}
-              className="p-2 rounded-lg bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors duration-200"
-              aria-label="Menu"
-              title="Menu"
-            >
-              <span className="font-bold text-gray-700 dark:text-gray-300">Menu</span>
-            </button>
-          </div>
-          {isFabMenuOpen && (
-            <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-white dark:bg-gray-900 bg-opacity-95 dark:bg-opacity-95">
-              <button
-                onClick={() => setIsFabMenuOpen(false)}
-                className="absolute top-4 right-4 text-3xl text-gray-700 dark:text-gray-300 focus:outline-none"
-                aria-label="Close Menu"
-              >
-                &times;
-              </button>
-              {/* Scrollable menu content */}
-              <div className="w-full max-w-xs px-4 mt-8 mb-4 overflow-y-auto max-h-[80vh]">
-                {renderMobileFontMenu()}
-                {renderMobileFontSizeMenu()}
-                <div className="mb-6" />
-                <div className="flex flex-col gap-3 w-full">
-                  <button
-                    className="w-full py-3 border border-black dark:border-white bg-white dark:bg-gray-900 text-black dark:text-white font-mono font-bold rounded-none text-lg hover:bg-black hover:text-white transition-colors"
-                    onClick={withCloseFabMenu(actions.handleNewFile)}
-                  >
-                    New File
-                  </button>
-                  <button
-                    className="w-full py-3 border border-black dark:border-white bg-white dark:bg-gray-900 text-black dark:text-white font-mono font-bold rounded-none text-lg hover:bg-black hover:text-white transition-colors"
-                    onClick={withCloseFabMenu(actions.handleSelectTemplate)}
-                  >
-                    New From Template
-                  </button>
-                  <button
-                    className="w-full py-3 border border-black dark:border-white bg-white dark:bg-gray-900 text-black dark:text-white font-mono font-bold rounded-none text-lg hover:bg-black hover:text-white transition-colors"
-                    onClick={withCloseFabMenu(exportToMD)}
-                  >
-                    Save File
-                  </button>
-                  <button
-                    className="w-full py-3 border border-black dark:border-white bg-white dark:bg-gray-900 text-black dark:text-white font-mono font-bold rounded-none text-lg hover:bg-black hover:text-white transition-colors"
-                    onClick={withCloseFabMenu(actions.handleOpenFile)}
-                  >
-                    Open File
-                  </button>
-                  <button
-                    className="w-full py-3 border border-black dark:border-white bg-white dark:bg-gray-900 text-black dark:text-white font-mono font-bold rounded-none text-lg hover:bg-black hover:text-white transition-colors"
-                    onClick={withCloseFabMenu(() => navigator.clipboard.writeText(contentEdited))}
-                  >
-                    Copy Markdown
-                  </button>
-                  <button
-                    className="w-full py-3 border border-black dark:border-white bg-white dark:bg-gray-900 text-black dark:text-white font-mono font-bold rounded-none text-lg hover:bg-black hover:text-white transition-colors"
-                    onClick={withCloseFabMenu(actions.handleOpenFindAndReplace)}
-                  >
-                    Find/Replace
-                  </button>
-                  <button
-                    className="w-full py-3 border border-black dark:border-white bg-white dark:bg-gray-900 text-black dark:text-white font-mono font-bold rounded-none text-lg hover:bg-black hover:text-white transition-colors"
-                    onClick={withCloseFabMenu(() => router.push('/dashboard'))}
-                  >
-                    Welcome
-                  </button>
-                  <button
-                    className="w-full py-3 border border-black dark:border-white bg-white dark:bg-gray-900 text-black dark:text-white font-mono font-bold rounded-none text-lg hover:bg-black hover:text-white transition-colors"
-                    onClick={withCloseFabMenu(() => router.push('/documentation'))}
-                  >
-                    Documentation
-                  </button>
-                  <div className="flex justify-center w-full py-2">
-                    <button
-                      className="w-full py-3 border border-black dark:border-white bg-white dark:bg-gray-900 text-black dark:text-white font-mono font-bold rounded-none text-lg hover:bg-black hover:text-white transition-colors"
-                      onClick={() => setTheme(theme === "light" ? "dark" : "light")}
-                    >
-                      {theme === "light" ? "Switch to Dark Mode" : "Switch to Light Mode"}
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-        </>
-      );
-    }
-
-    return (
-      <div className="flex flex-col space-y-2 sm:flex-row sm:space-y-0 sm:space-x-2 items-start">
-        <DropdownMenu label="File" options={fileMenuOptions} />
-        <DropdownMenu label="Edit" options={editMenuOptions} />
-        <DropdownMenu label="Help" options={helpMenuOptions} />
-        <EditorPreviewTrigger />
-        <Button variant="primary" label="Save As" handler={exportToMD} />
-      </div>
-    );
-  }
-
   function renderEditMenu() {
     return (
       <DropdownMenu
@@ -573,7 +467,7 @@ export default function EditorHeader({
       <DropdownMenu
         options={fontMenuOptions}
         trigger={
-          <button className="w-full py-3 border border-black dark:border-white bg-white dark:bg-gray-900 text-black dark:text-white font-mono font-bold rounded-none text-lg hover:bg-black hover:text-white transition-colors max-w-xs">
+          <button className="w-full py-3 px-4 border border-black dark:border-white bg-white dark:bg-gray-900 text-black dark:text-white font-mono font-bold rounded-none text-lg hover:bg-black hover:text-white transition-colors max-w-xs">
             Font: {fontOptions.find(opt => opt.value === fontFamily)?.label || 'Inter'}
           </button>
         }
@@ -592,7 +486,7 @@ export default function EditorHeader({
         options={fontSizeMenuOptions}
         trigger={
           <button className="w-full py-3 border border-black dark:border-white bg-white dark:bg-gray-900 text-black dark:text-white font-mono font-bold rounded-none text-lg hover:bg-black hover:text-white transition-colors max-w-xs">
-            Size: {fontSizeOptions.find(opt => opt.value === fontSize)?.label || 'Normal (16px)'}
+            Size: {fontSizeOptions.find(opt => opt.value === fontSize)?.label || 'Normal'}
           </button>
         }
       />

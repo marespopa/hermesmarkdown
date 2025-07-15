@@ -15,7 +15,7 @@ export default function ThemeToggle() {
   return (
     <IconButton
       icon={theme === "light" ? <FaMoon className="w-5 h-5" /> : <FaSun className="w-5 h-5" />}
-      title={`Switch to ${theme === "light" ? "dark" : "light"} mode`}
+      title={theme === "light" ? "Dark" : "Light"}
       onClick={toggleTheme}
       dataTestId="theme-toggle"
     />
