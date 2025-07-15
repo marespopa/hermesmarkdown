@@ -1,7 +1,7 @@
-import { getDate } from "@/app/services/date-utils";
+import DateUtils from "@/app/services/date-utils";
 import { MarkdownTemplate } from "..";
 
-const date = getDate();
+const date = DateUtils.getDate();
 
 const GymWorkoutTemplate: MarkdownTemplate = {
   filename: "gym-workout",
@@ -11,58 +11,47 @@ const GymWorkoutTemplate: MarkdownTemplate = {
     tags: "gym,workout,fitness,exercise,training,muscle",
   },
   content: `# 💪 Gym Workout
-Workout Name: [WORKOUT_NAME]
-Focus Area: [FOCUS_AREA]
-Duration: [DURATION] minutes
+Workout Name: Push Day
+Focus Area: Chest
+Duration: 60 minutes
 Created: ${date}
+
 ---
+
 ## 🎯 Main Workout
-### Exercise Group 1: [PRIMARY_MUSCLE_GROUP]
-- Exercise 1: [EXERCISE_1_NAME]
-  - Sets: [SETS] sets
-  - Reps: [REPS] reps
-  - Rest: [REST_TIME] seconds
-  - Weight: [WEIGHT] lbs
-- Exercise 2: [EXERCISE_2_NAME]
-  - Sets: [SETS] sets
-  - Reps: [REPS] reps
-  - Rest: [REST_TIME] seconds
-  - Weight: [WEIGHT] lbs
-- Exercise 3: [EXERCISE_3_NAME]
-  - Sets: [SETS] sets
-  - Reps: [REPS] reps
-  - Rest: [REST_TIME] seconds
-  - Weight: [WEIGHT] lbs
-### Exercise Group 2: [SECONDARY_MUSCLE_GROUP]
-- Exercise 1: [EXERCISE_4_NAME]
-  - Sets: [SETS] sets
-  - Reps: [REPS] reps
-  - Rest: [REST_TIME] seconds
-  - Weight: [WEIGHT] lbs
-- Exercise 2: [EXERCISE_5_NAME]
-  - Sets: [SETS] sets
-  - Reps: [REPS] reps
-  - Rest: [REST_TIME] seconds
-  - Weight: [WEIGHT] lbs
+
+| Exercise Group | Exercise Name     | Sets | Reps | Rest (s) | Weight (lbs) |
+|---------------|-------------------|------|------|----------|--------------|
+| Primary       | Bench Press       | 3    | 10   | 90       | 135          |
+| Primary       | Incline Dumbbell  | 3    | 10   | 90       | 40           |
+| Primary       | Chest Fly         | 3    | 12   | 60       | 25           |
+| Secondary     | Triceps Pushdown  | 3    | 12   | 60       | 50           |
+| Secondary     | Overhead Extension| 3    | 10   | 60       | 30           |
+
 ---
+
 ## 📝 Workout Tracking
-- Set 1:
-  - [EXERCISE_1_NAME]: [WEIGHT] lbs, [REPS] reps, [NOTES]
-  - [EXERCISE_2_NAME]: [WEIGHT] lbs, [REPS] reps, [NOTES]
-  - [EXERCISE_3_NAME]: [WEIGHT] lbs, [REPS] reps, [NOTES]
-- Set 2:
-  - [EXERCISE_1_NAME]: [WEIGHT] lbs, [REPS] reps, [NOTES]
-  - [EXERCISE_2_NAME]: [WEIGHT] lbs, [REPS] reps, [NOTES]
-  - [EXERCISE_3_NAME]: [WEIGHT] lbs, [REPS] reps, [NOTES]
-- Set 3:
-  - [EXERCISE_1_NAME]: [WEIGHT] lbs, [REPS] reps, [NOTES]
-  - [EXERCISE_2_NAME]: [WEIGHT] lbs, [REPS] reps, [NOTES]
-  - [EXERCISE_3_NAME]: [WEIGHT] lbs, [REPS] reps, [NOTES]
+
+| Set | Exercise Name     | Weight (lbs) | Reps | Notes         |
+|-----|-------------------|--------------|------|--------------|
+| 1   | Bench Press       | 135          | 10   | Felt strong  |
+| 1   | Incline Dumbbell  | 40           | 10   |              |
+| 1   | Chest Fly         | 25           | 12   |              |
+| 2   | Bench Press       | 135          | 10   |              |
+| 2   | Incline Dumbbell  | 40           | 10   |              |
+| 2   | Chest Fly         | 25           | 12   |              |
+| 3   | Bench Press       | 135          | 10   |              |
+| 3   | Incline Dumbbell  | 40           | 10   |              |
+| 3   | Chest Fly         | 25           | 12   |              |
+
 ---
+
 ## 📊 Progress Notes
-- Date: [DATE]
-- Overall Performance: [PERFORMANCE]
-- Next Workout: [NEXT_WORKOUT]`,
+
+| Date       | Overall Performance | Next Workout     |
+|------------|--------------------|------------------|
+| ${date}    | Good               | Pull Day         |
+`,
 };
 
 export default GymWorkoutTemplate; 

@@ -1,4 +1,4 @@
-import { getFormattedTimeFromMs } from "@/app/services/date-utils";
+import DateUtils from "@/app/services/date-utils";
 import {
   FaCross,
   FaMugHot,
@@ -230,7 +230,7 @@ function getHeadingText(
   isDocumentTitle: boolean
 ) {
   const { isWorking, isResting, isTimerCounting, time } = pomodoro;
-  const formattedTime = getFormattedTimeFromMs(time * 1000);
+  const formattedTime = DateUtils.getFormattedTimeFromMs(time * 1000);
   const usageBasedText = isDocumentTitle ? `/ ${fileTitle}` : "";
 
   if (isTimerCounting) {

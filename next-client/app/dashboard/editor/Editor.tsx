@@ -19,7 +19,7 @@ import { useState, useEffect } from "react";
 import { PICKER_OPTIONS } from "./components/EditorEmpty";
 import { StatusResponse } from "@/app/services/save-utils";
 import matter from "gray-matter";
-import Loading from "@/app/components/Loading";
+import LoadingOverlay from "@/app/components/LoadingOverlay";
 import TemplateSelectionModal from "../templates/TemplateSelectionModal";
 import { useCommand } from "@/app/hooks/use-command";
 import FileSelectionModal from "../components/FileSelectionModal";
@@ -69,9 +69,11 @@ export default function Editor() {
   useEffect(() => {
     // Dynamically load Google Fonts if selected
     const googleFonts: Record<string, string> = {
-      "Roboto, sans-serif": "Roboto",
       "Fira Mono, monospace": "Fira+Mono",
-      "Merriweather, serif": "Merriweather",
+      "JetBrains Mono, monospace": "JetBrains+Mono",
+      "Source Code Pro, monospace": "Source+Code+Pro",
+      "Inconsolata, monospace": "Inconsolata",
+      "Ubuntu Mono, monospace": "Ubuntu+Mono",
     };
     const fontKey = Object.keys(googleFonts).find(key => fontFamily.startsWith(key.split(",")[0]));
     if (fontKey) {
@@ -181,7 +183,7 @@ export default function Editor() {
   }
 
   if (isLoading) {
-    return <Loading />;
+    return <LoadingOverlay isVisible={true} text="Loading..." />;
   }
 
   return (

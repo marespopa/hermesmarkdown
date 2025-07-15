@@ -8,7 +8,7 @@ import {
   atom_contentEdited,
   atom_frontMatter,
 } from "@/app/atoms/atoms";
-import Loading from "@/app/components/Loading";
+import LoadingOverlay from "@/app/components/LoadingOverlay";
 import matter from "gray-matter";
 import toast from "react-hot-toast";
 import TemplateSelectionModal from "../../templates/TemplateSelectionModal";
@@ -76,9 +76,7 @@ export default function EditorEmpty() {
     <div className="px-4">
       {renderHeading()}
       {!isLoading && <>{renderActions()}</>}
-      {isLoading && (
-        <Loading message={"Hang on tight. The editor is loading..."} />
-      )}
+      <LoadingOverlay isVisible={isLoading} text={"Hang on tight. The editor is loading..."} />
     </div>
   );
 

@@ -59,10 +59,10 @@ export default function EditorHeader({
   const [fontFamily, setFontFamily] = useAtom(atom_fontFamily);
   const [fontSize, setFontSize] = useAtom(atom_fontSize);
   const fontSizeOptions = [
-    { value: "prose-sm", label: "Small" },
-    { value: "prose-base", label: "Normal" },
-    { value: "prose-lg", label: "Large" },
-    { value: "prose-xl", label: "Extra Large" },
+    { value: "14px", label: "Small" },
+    { value: "16px", label: "Normal" },
+    { value: "18px", label: "Large" },
+    { value: "20px", label: "Extra Large" },
   ];
   const [isPdfPreviewOpen, setIsPdfPreviewOpen] = useState(false);
   const [selectedFont, setSelectedFont] = useState<string>("font-sans");
@@ -70,13 +70,11 @@ export default function EditorHeader({
   const [isCollapsed, setIsCollapsed] = useState(false);
 
   const fontOptions = [
-    { value: "Inter, system-ui, sans-serif", label: "Inter" },
-    { value: "Roboto, sans-serif", label: "Roboto" },
     { value: "Fira Mono, monospace", label: "Fira Mono" },
-    { value: "Merriweather, serif", label: "Merriweather" },
-    { value: "Georgia, serif", label: "Georgia" },
-    { value: "Arial, sans-serif", label: "Arial" },
-    { value: "Times New Roman, serif", label: "Times New Roman" },
+    { value: "JetBrains Mono, monospace", label: "JetBrains Mono" },
+    { value: "Source Code Pro, monospace", label: "Source Code Pro" },
+    { value: "Inconsolata, monospace", label: "Inconsolata" },
+    { value: "Ubuntu Mono, monospace", label: "Ubuntu Mono" },
   ];
 
   // Higher-order function to wrap actions with closeFabMenu
@@ -201,9 +199,7 @@ export default function EditorHeader({
                 icon={<FaClock className="w-5 h-5" />}
                 title={showTimer ? 'Hide timer' : 'Show timer'}
                 onClick={() => setShowTimer(!showTimer)}
-                isActive={showTimer}
                 dataTestId="timer-toggle"
-                className={showTimer ? 'ring-2 ring-amber-400 border-amber-400' : ''}
               />
               <ThemeToggle />
               <IconButton

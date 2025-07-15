@@ -1,7 +1,7 @@
-import { getDate } from "@/app/services/date-utils";
+import DateUtils from "@/app/services/date-utils";
 import { MarkdownTemplate } from "..";
 
-const date = getDate();
+const date = DateUtils.getDate();
 
 const ToDoListTemplate: MarkdownTemplate = {
   filename: "todo-list",
@@ -12,25 +12,44 @@ const ToDoListTemplate: MarkdownTemplate = {
   },
   content: `# ✅ To-Do List
 **Created:** ${date}
+
 ---
+
 ## 🎯 Priority Tasks
-- [ ] High Priority Task 1
-- [ ] High Priority Task 2
-- [ ] High Priority Task 3
+
+| Task                  | Priority | Status | Notes         |
+|-----------------------|----------|--------|--------------|
+| High Priority Task 1  | High     | [ ]    |              |
+| High Priority Task 2  | High     | [ ]    |              |
+| High Priority Task 3  | High     | [ ]    |              |
+
 ---
+
 ## 📝 Regular Tasks
-- [ ] Task 1
-- [ ] Task 2
-- [ ] Task 3
-- [ ] Task 4
-- [ ] Task 5
+
+| Task     | Priority | Status | Notes         |
+|----------|----------|--------|--------------|
+| Task 1   | Medium   | [ ]    |              |
+| Task 2   | Medium   | [ ]    |              |
+| Task 3   | Medium   | [ ]    |              |
+| Task 4   | Low      | [ ]    |              |
+| Task 5   | Low      | [ ]    |              |
+
 ---
+
 ## ✅ Completed Tasks
-- [x] Completed Task 1
-- [x] Completed Task 2
+
+| Task              | Priority | Status | Notes         |
+|-------------------|----------|--------|--------------|
+| Completed Task 1  | High     | [x]    |              |
+| Completed Task 2  | Medium   | [x]    |              |
+
 ---
+
 ## 📋 Notes
-[Add any notes, reminders, or details about your tasks here]`,
+
+[Add any notes, reminders, or details about your tasks here]
+`,
 };
 
 export default ToDoListTemplate;

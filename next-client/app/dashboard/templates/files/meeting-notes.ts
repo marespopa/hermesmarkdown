@@ -1,7 +1,7 @@
-import { getDate } from "@/app/services/date-utils";
+import DateUtils from "@/app/services/date-utils";
 import { MarkdownTemplate } from "..";
 
-const date = getDate();
+const date = DateUtils.getDate();
 
 const MeetingNotesTemplate: MarkdownTemplate = {
   filename: "meeting-notes",
@@ -13,37 +13,62 @@ Simplifies organizing and tracking action items for effective follow-ups.`,
   },
   content: `# 🗓️ Meeting Notes
 **Date:** ${date}
-**Time:** [Time]
-**Location:** [Location]
+**Time:** 10:00 AM
+**Location:** Conference Room
+
 ---
+
 ## 👥 Attendees
-- Name 1
-- Name 2
-- Name 3
+
+| Name      |
+|-----------|
+| Alice     |
+| Bob       |
+| Carol     |
+
 ---
+
 ## 📋 Agenda
-- Agenda Item 1
-- Agenda Item 2
-- Agenda Item 3
+
+| Agenda Item        |
+|--------------------|
+| Project Kickoff    |
+| Timeline Review    |
+| Q&A                |
+
 ---
+
 ## 📝 Discussion Notes
-### [Agenda Item 1]
-- Key Points: [Summary of discussion]
-- Decisions: [Decisions made]
-- Action Items: [Follow-up tasks]
-### [Agenda Item 2]
-- Key Points: [Summary of discussion]
-- Decisions: [Decisions made]
-- Action Items: [Follow-up tasks]
+
+### Project Kickoff
+- Key Points: Introduced project goals
+- Decisions: Agreed on scope
+- Action Items: Assign tasks
+
+### Timeline Review
+- Key Points: Reviewed milestones
+- Decisions: Adjusted deadlines
+- Action Items: Update project plan
+
 ---
+
 ## ✅ Action Items
-- [ ] Action Item 1 - Owner: [Name] - Due: [Date]
-- [ ] Action Item 2 - Owner: [Name] - Due: [Date]
+
+| Action Item         | Owner   | Due Date   | Status |
+|---------------------|---------|-----------|--------|
+| Create project repo | Alice   | ${date}   | [ ]    |
+| Update timeline     | Bob     | ${date}   | [ ]    |
+
 ---
+
 ## 📆 Next Meeting
-- Date: [Date]
-- Time: [Time]
-- Agenda: [Preliminary agenda items]`,
+
+| Field    | Value         |
+|----------|--------------|
+| Date     | ${date}      |
+| Time     | 2:00 PM      |
+| Agenda   | Progress Check|
+`,
 };
 
 export default MeetingNotesTemplate;

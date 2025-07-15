@@ -1,7 +1,7 @@
-import { getDate } from "@/app/services/date-utils";
+import DateUtils from "@/app/services/date-utils";
 import { MarkdownTemplate } from "..";
 
-const date = getDate();
+const date = DateUtils.getDate();
 
 const SoftwareTaskTemplate: MarkdownTemplate = {
   filename: "task-1",
@@ -10,60 +10,97 @@ const SoftwareTaskTemplate: MarkdownTemplate = {
     description: `The Software Task Template streamlines software development task tracking, offering sections for task details, links, work description, progress updates, notes, and questions.`,
     tags: "software engineering,task,guide,template",
   },
-  content: `# [Task-1] Task Title
+  content: `# TASK-123 User Login Feature
+
 ---
+
 ## 🖇️ Links
-- Story: [Story Link](#)
-- Docs: [Documentation Link](#)
-- PR: [Pull Request Link](#)
+
+| Type   | Link                                      |
+|--------|--------------------------------------------|
+| Story  | https://example.com/story                  |
+| Docs   | https://example.com/docs                   |
+| PR     | https://github.com/org/repo/pull/1         |
+
 ---
+
 ## 📝 Description
+
 *Clearly define the problem, goal, or feature. Include context and details to help others understand the task quickly.*
-- **Summary**: Provide a high-level overview of the task (e.g., "Implement user authentication for Feature X").
-- **Context**: Explain the current state and why this task is needed (e.g., "Feature X lacks secure login, which is critical for user data protection").
-- **Problem/Goal**: State the problem or goal clearly (e.g., "Ensure secure authentication for users").
-- **Details**: Add any relevant diagrams, code snippets, or examples to clarify the task.
+- **Summary**: Implement user authentication for login
+- **Context**: Feature X lacks authentication, which is critical for user data protection
+- **Problem/Goal**: Ensure secure login for users
+- **Details**: Add sequence diagram for login flow
+
 ---
+
 ## 🛑 Non-goals
-- Example: This task does not include frontend UI changes.
-- Example: This task does not address API rate limiting.
+
+- This task does not include frontend UI changes.
+- This task does not address API rate limiting.
+
 ---
+
 ## 🛠️ Solution & Implementation
-1. Research and evaluate authentication libraries.
-2. Integrate chosen library with backend services.
-3. Write unit tests to ensure functionality.
-4. Document implementation details in the project wiki.
+
+1. Research and evaluate authentication libraries
+2. Integrate chosen library with backend services
+3. Write unit tests to ensure functionality
+4. Document implementation details in the project wiki
+
 ---
+
 ## 🎯 Acceptance Criteria
-*Define what success looks like for this task. Be specific and measurable.*
-- Users can log in securely using Feature X.
-- Unit tests cover at least 90% of new code.
-- Documentation is updated with implementation details.
+
+| Criteria                                   | Status |
+|--------------------------------------------|--------|
+| Users can log in securely using email      | [ ]    |
+| Unit tests cover at least 90% of new code  | [ ]    |
+| Documentation is updated with login details| [ ]    |
+
 ---
+
 ## 🔗 Dependencies
-*List any tasks, resources, or approvals required before starting this task.*
-- Dependency 1: Approval of design document ([Link](#)).
-- Dependency 2: Backend service setup ([Link](#)).
+
+| Dependency                | Status |
+|---------------------------|--------|
+| Approval of spec          | [ ]    |
+| Backend ready             | [ ]    |
+
 ---
+
 ## 🚧 Remarks & Open Questions
+
 *Summarize key points and highlight unresolved issues or decisions that need input.*
-- Remark: Ensure compatibility with existing APIs.
-- Open Question: Should we support OAuth2 in this release?
+- Remark: Ensure API compatibility
+- Open Question: Support OAuth2?
+
 ---
+
 ## 📋 Subtasks
-*Break down the task into smaller, actionable steps.*
-- Research authentication libraries.
-- Implement backend integration.
-- Write unit tests.
-- Update documentation.
+
+| Subtask                   | Status |
+|---------------------------|--------|
+| Integrate auth library    | [ ]    |
+| Implement backend logic   | [ ]    |
+| Write unit tests          | [ ]    |
+| Update documentation      | [ ]    |
+
 ---
+
 ## ⏱️ Time Estimate
-*Provide an estimate for completing this task.*
-- Estimated Time: 3 days
+
+| Task         | Estimate |
+|--------------|----------|
+| Total        | 2 days   |
+
 ---
+
 ## 📝 Notes & Additional Information
+
 *Add any extra context or instructions that might be helpful.*
-- Note 1: Coordinate with the frontend team for integration testing.`,
+- Coordinate with frontend for integration testing
+`,
 };
 
 export default SoftwareTaskTemplate;

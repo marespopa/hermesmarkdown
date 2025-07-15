@@ -11,7 +11,7 @@ import React, { FormEvent, useEffect, useState } from "react";
 import MarkdownTemplateList, { MarkdownTemplate } from ".";
 import Button from "@/app/components/Button";
 import { useRouter } from "next/navigation";
-import Loading from "@/app/components/Loading";
+import LoadingOverlay from "@/app/components/LoadingOverlay";
 import TemplateTags from "./components/TemplateTags";
 import useIsMobile from "@/app/hooks/use-is-mobile";
 import { SPINNER_LOADING_DURATION } from "@/app/constants/timer";
@@ -58,7 +58,7 @@ const TemplateSelectionModal = ({ isOpen, handleClose }: Props) => {
       isOpened={isOpen}
       onClose={handleClose}
     >
-      {isLoadingTemplate && <Loading />}
+      {isLoadingTemplate && <LoadingOverlay isVisible={true} text="Loading..." />}
       {!isLoadingTemplate && (
         <>
           {renderModalHeader()}

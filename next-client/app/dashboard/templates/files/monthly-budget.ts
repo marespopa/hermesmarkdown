@@ -1,7 +1,9 @@
-import { getDate } from "@/app/services/date-utils";
+import DateUtils from "@/app/services/date-utils";
 import { MarkdownTemplate } from "..";
 
-const date = getDate();
+const date = DateUtils.getDate();
+const year = DateUtils.getCurrentYear();
+const month = DateUtils.getCurrentMonth();
 
 const MonthlyBudgetTemplate: MarkdownTemplate = {
   filename: "budget-month",
@@ -12,36 +14,64 @@ const MonthlyBudgetTemplate: MarkdownTemplate = {
   },
   content: `# 💰 Monthly Budget
 **Created:** ${date}
-**Month:** [Month and Year]
+**Month:** ${month} ${year}
+
 ---
+
 ## 💸 Income
-- Total Income: $[Amount]
+
+| Source      | Amount   |
+|-------------|----------|
+| Salary      | $3200    |
+| Other       | $200     |
+| **Total**   | $3400    |
+
 ---
+
 ## 🏠 Expenses
-- Housing: $[Amount]
-- Food: $[Amount]
-- Transportation: $[Amount]
-- Utilities: $[Amount]
-- Entertainment: $[Amount]
-- Other: $[Amount]
-- Total Expenses: $[Amount]
+
+| Category        | Amount   |
+|-----------------|----------|
+| Housing         | $1200    |
+| Food            | $400     |
+| Transportation  | $150     |
+| Utilities       | $100     |
+| Entertainment   | $80      |
+| Other           | $70      |
+| **Total**       | $2000    |
+
 ---
+
 ## 💡 Savings & Investments
-- Savings: $[Amount]
-- Investments: $[Amount]
-- Emergency Fund: $[Amount]
-- Total Savings: $[Amount]
+
+| Type           | Amount   |
+|----------------|----------|
+| Savings        | $500     |
+| Investments    | $300     |
+| Emergency Fund | $200     |
+| **Total**      | $1000    |
+
 ---
+
 ## 🎯 Summary
-- Total Income: $[Amount]
-- Total Expenses: $[Amount]
-- Total Savings: $[Amount]
-- Remaining Balance: $[Amount]
+
+| Category        | Amount   |
+|-----------------|----------|
+| Total Income    | $3400    |
+| Total Expenses  | $2000    |
+| Total Savings   | $1000    |
+| Remaining Balance | $400   |
+
 ---
+
 ## 📊 Goals
-- [ ] Emergency Fund: $[Target] / $[Current]
-- [ ] Investment Goal: $[Target] / $[Current]
-- [ ] Save 20% of income`,
+
+| Goal                | Target     | Current    | Status |
+|---------------------|------------|------------|--------|
+| Emergency Fund      | $1000      | $200       | [ ]    |
+| Investment Goal     | $500       | $300       | [ ]    |
+| Save 20% of income  | $680       | $500       | [ ]    |
+`,
 };
 
 export default MonthlyBudgetTemplate;

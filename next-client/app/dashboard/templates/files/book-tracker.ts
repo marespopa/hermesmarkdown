@@ -1,7 +1,8 @@
-import { getDate } from "@/app/services/date-utils";
+import DateUtils from "@/app/services/date-utils";
 import { MarkdownTemplate } from "..";
 
-const date = getDate();
+const date = DateUtils.getDate();
+const year = DateUtils.getCurrentYear();
 
 const BookTrackerTemplate: MarkdownTemplate = {
   filename: "book-tracker",
@@ -12,122 +13,161 @@ const BookTrackerTemplate: MarkdownTemplate = {
   },
   content: `# 📚 Book Tracker
 **Created:** ${date}
-**Reading Goal:** 0 books this year
-**Current Progress:** 0 / 0 books completed
+**Reading Goal:** 12 books this year
+**Current Progress:** 3 / 12 books completed
+
 ---
+
 ## 📖 Currently Reading
-### [Book Title] by [Author]
-- **Genre:** [Fiction/Non-fiction/etc.]
-- **Pages:** 0 / 0 pages
-- **Progress:** 0% complete
-- **Rating So Far:** 0/5 stars
-- **Notes:** [Thoughts, quotes, insights]
+
+| Book Title         | Author      | Genre   | Pages | Progress | Rating | Notes                  |
+|--------------------|-------------|---------|-------|----------|--------|------------------------|
+| The Great Gatsby   | Jane Doe    | Fiction | 120/180| 67%      | 4/5    | Loving the writing     |
+
 ---
+
 ## ✅ Completed Books
-### 2024
-- [ ] **Book Title** by [Author] - ⭐⭐⭐⭐⭐ - [Date finished]
-- [ ] **Book Title** by [Author] - ⭐⭐⭐⭐ - [Date finished]
-- [ ] **Book Title** by [Author] - ⭐⭐⭐ - [Date finished]
-### 2023
-- [ ] **Book Title** by [Author] - ⭐⭐⭐⭐ - [Date finished]
-- [ ] **Book Title** by [Author] - ⭐⭐⭐⭐⭐ - [Date finished]
+
+| Year | Book Title         | Author      | Rating | Date Finished |
+|------|--------------------|-------------|--------|---------------|
+| ${year} | Atomic Habits      | James Clear | ⭐⭐⭐⭐⭐ | ${date}       |
+| ${year} | Deep Work          | Cal Newport | ⭐⭐⭐⭐  | ${date}       |
+| 2023 | Sapiens            | Yuval Noah  | ⭐⭐⭐⭐  | ${date}       |
+| 2023 | Educated           | Tara Westover| ⭐⭐⭐⭐⭐ | ${date}       |
+
 ---
+
 ## 📋 Reading List
-### Next 5 Books
-- [ ] **Book Title** by [Author] - [Genre]
-- [ ] **Book Title** by [Author] - [Genre]
-- [ ] **Book Title** by [Author] - [Genre]
-- [ ] **Book Title** by [Author] - [Genre]
-- [ ] **Book Title** by [Author] - [Genre]
-### Recommended by Others
-- [ ] **Book Title** by [Author] - Recommended by [Person]
-- [ ] **Book Title** by [Author] - Recommended by [Person]
-### Wishlist
-- [ ] **Book Title** by [Author] - [Genre] - $[Price]
-- [ ] **Book Title** by [Author] - [Genre] - $[Price]
+
+| Book Title         | Author      | Genre      | Status      | Notes      |
+|--------------------|-------------|------------|-------------|------------|
+| 1984               | George Orwell| Dystopian  | Next        |            |
+| The Lean Startup   | Eric Ries   | Business   | Wishlist    | $15        |
+| The Alchemist      | Paulo Coelho| Fiction    | Recommended | John Smith |
+
 ---
+
 ## 🎯 Reading Goals
-### 2024 Goals
-- [ ] **Total Books:** [X] books (currently [X]/[Goal])
-- [ ] **Non-fiction:** [X] books (currently [X]/[Goal])
-- [ ] **Fiction:** [X] books (currently [X]/[Goal])
-### Monthly Progress
-- **January:** [X] books completed
-- **February:** [X] books completed
-- **March:** [X] books completed
+
+| Goal Type      | Target | Current | Status |
+|----------------|--------|---------|--------|
+| Total Books    | 12     | 3       | [ ]    |
+| Non-fiction    | 6      | 2       | [ ]    |
+| Fiction        | 6      | 1       | [ ]    |
+
 ---
+
 ## 📊 Reading Stats
-### Genre Breakdown
-- **Fiction:** [X] books
-- **Non-fiction:** [X] books
-- **Sci-fi/Fantasy:** [X] books
-- **Business:** [X] books
-### Reading Speed
-- **Average Books/Month:** [X] books
-- **Fastest Read:** [Book Title] in [X] days
+
+| Genre           | Books Completed |
+|-----------------|----------------|
+| Fiction         | 1              |
+| Non-fiction     | 2              |
+| Sci-fi/Fantasy  | 0              |
+| Business        | 0              |
+
+| Month     | Books Completed |
+|-----------|----------------|
+| January   | 1              |
+| February  | 2              |
+| March     | 0              |
+
 ---
+
 ## ⭐ Top Rated Books
-### 5-Star Reads
-- [ ] **Book Title** by [Author] - [Date finished]
-- [ ] **Book Title** by [Author] - [Date finished]
-### 4-Star Reads
-- [ ] **Book Title** by [Author] - [Date finished]
-- [ ] **Book Title** by [Author] - [Date finished]
+
+| Book Title         | Author      | Rating | Date Finished |
+|--------------------|-------------|--------|---------------|
+| Atomic Habits      | James Clear | ⭐⭐⭐⭐⭐ | ${date}       |
+| Educated           | Tara Westover| ⭐⭐⭐⭐⭐ | ${date}       |
+
 ---
+
 ## 📝 Reading Notes
+
 ### Favorite Quotes
-- "Quote from book 1" - [Author], [Book Title]
-- "Quote from book 2" - [Author], [Book Title]
+- "Habits are the compound interest of self-improvement." - James Clear, Atomic Habits
+- "You can only fight the way you practice." - Miyamoto Musashi, The Book of Five Rings
+
 ### Key Insights
-- **From [Book Title]:** [Key insight or lesson]
-- **From [Book Title]:** [Key insight or lesson]
+- **From Deep Work:** Focus is a skill that can be trained.
+- **From Sapiens:** Shared myths are the foundation of society.
+
 ### Action Items from Books
-- [ ] [Action from book 1]
-- [ ] [Action from book 2]
+- [ ] Try the 2-minute rule
+- [ ] Schedule daily deep work
+
 ---
+
 ## 🏆 Reading Challenges
-### 2024 Reading Challenge
-- [ ] **12 Books in 12 Months** - [X]/12 completed
-- [ ] **Read 1 Classic** - [ ] Completed
-- [ ] **Read 1 Biography** - [ ] Completed
-### Personal Challenges
-- [ ] **Read 1 Book in Each Genre** - [X]/[Total] completed
-- [ ] **Read Books from 10 Different Countries** - [X]/10 completed
+
+| Challenge                  | Target | Progress | Status |
+|----------------------------|--------|----------|--------|
+| 12 Books in 12 Months      | 12     | 3/12     | [ ]    |
+| Read 1 Classic             | 1      | 0        | [ ]    |
+| Read 1 Biography           | 1      | 1        | [x]    |
+| 1 Book in Each Genre       | 4      | 2/4      | [ ]    |
+| Books from 10 Countries    | 10     | 3/10     | [ ]    |
+
 ---
+
 ## 📚 Book Clubs
-### Current Book Club
-- **Club Name:** [Club Name]
-- **Current Book:** [Book Title]
-- **Meeting Date:** [Date]
-### Past Book Club Reads
-- [ ] **Book Title** by [Author] - [Club Name] - [Date discussed]
+
+| Club Name      | Current Book      | Meeting Date |
+|----------------|------------------|--------------|
+| City Readers   | 1984             | ${date}      |
+
+| Book Title         | Club Name      | Date Discussed |
+|--------------------|---------------|---------------|
+| Sapiens            | City Readers  | ${date}       |
+
 ---
+
 ## 🎁 Gift Ideas
-### Books to Gift Others
-- [ ] **Book Title** by [Author] - For [Person]
-- [ ] **Book Title** by [Author] - For [Person]
-### Books I'd Like to Receive
-- [ ] **Book Title** by [Author]
-- [ ] **Book Title** by [Author]
+
+| Book Title         | Author      | For/From      | Price/Notes |
+|--------------------|-------------|--------------|-------------|
+| The Alchemist      | Paulo Coelho| For Alice     |             |
+| Deep Work          | Cal Newport | For Bob       |             |
+| Atomic Habits      | James Clear | From Carol    |             |
+
 ---
+
 ## 📱 Reading Apps & Tools
-### Apps I Use
-- **Goodreads:** [Username]
-- **Library Card:** [Library name]
-- **E-reader:** [Device type]
-### Reading Resources
-- **Book Blogs:** [Blog names]
-- **Book Podcasts:** [Podcast names]
+
+| App/Resource   | Details         |
+|----------------|----------------|
+| Goodreads      | johndoe         |
+| Library Card   | City Library    |
+| E-reader       | Kindle Paperwhite|
+| Book Blogs     | BookBlog        |
+| Book Podcasts  | BookCast        |
+
 ---
+
 ## 🎯 Future Reading Plans
-### Next Month's Reading List
-- [ ] **Book Title** by [Author]
-- [ ] **Book Title** by [Author]
-- [ ] **Book Title** by [Author]
-### Reading Bucket List
-- [ ] **War and Peace** by Leo Tolstoy
-- [ ] **Ulysses** by James Joyce
-- [ ] **The Divine Comedy** by Dante Alighieri`,
+
+| Book Title         | Author      | Status      |
+|--------------------|-------------|-------------|
+| The Power of Habit | Charles Duhigg| Next      |
+| War and Peace      | Leo Tolstoy | Bucket List|
+
+---
+
+## 📝 Reading Notes
+
+### Favorite Quotes
+- "Habits are the compound interest of self-improvement." - James Clear, Atomic Habits
+- "You can only fight the way you practice." - Miyamoto Musashi, The Book of Five Rings
+
+### Key Insights
+- **From Deep Work:** Focus is a skill that can be trained.
+- **From Sapiens:** Shared myths are the foundation of society.
+
+### Action Items from Books
+- [ ] Try the 2-minute rule
+- [ ] Schedule daily deep work
+`,
 };
 
 export default BookTrackerTemplate; 

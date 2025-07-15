@@ -1,7 +1,7 @@
-import { getDate } from "@/app/services/date-utils";
+import DateUtils from "@/app/services/date-utils";
 import { MarkdownTemplate } from "..";
 
-const date = getDate();
+const date = DateUtils.getDate();
 
 const ExampleTemplate: MarkdownTemplate = {
   filename: "habit-tracker",
@@ -11,33 +11,54 @@ const ExampleTemplate: MarkdownTemplate = {
     tags: "habit,productivity,tracker",
   },
   content: `# 🌟 Habit Tracker
+
 **Created:** ${date}
+
 ---
+
 ## 🔄 Weekly Habits
-- Exercise: [Mon] [Tue] [Wed] [Thu] [Fri] [Sat] [Sun]
-- Read: [Mon] [Tue] [Wed] [Thu] [Fri] [Sat] [Sun]
-- Meditate: [Mon] [Tue] [Wed] [Thu] [Fri] [Sat] [Sun]
-- Journal: [Mon] [Tue] [Wed] [Thu] [Fri] [Sat] [Sun]
+
+| Habit     | Mon | Tue | Wed | Thu | Fri | Sat | Sun |
+|-----------|-----|-----|-----|-----|-----|-----|-----|
+| Exercise  |  x  |     |  x  |     |  x  |     |     |
+| Read      |  x  |  x  |     |     |  x  |     |  x  |
+| Meditate  |     |     |     |  x  |     |     |     |
+| Journal   |     |     |     |     |     |     |     |
+
 ---
+
 ## 📊 Progress Summary
-- **Exercise:** [X]/7 days
-- **Read:** [X]/7 days
-- **Meditate:** [X]/7 days
-- **Journal:** [X]/7 days
+
+| Habit     | Days Completed |
+|-----------|---------------|
+| Exercise  | 3/7           |
+| Read      | 4/7           |
+| Meditate  | 1/7           |
+| Journal   | 0/7           |
+
 ---
+
 ## 🎯 Habit Goals
-- [ ] **Exercise:** [X] times per week
-- [ ] **Read:** [X] minutes per day
-- [ ] **Meditate:** [X] minutes per day
-- [ ] **Journal:** [X] times per week
+
+| Habit     | Goal                | Status |
+|-----------|---------------------|--------|
+| Exercise  | 3 times per week    | [ ]    |
+| Read      | 10 min per day      | [ ]    |
+| Meditate  | 5 min per day       | [ ]    |
+| Journal   | 2 times per week    | [ ]    |
+
 ---
+
 ## 📝 Notes
+
 **This Week's Wins:**
-- [Win 1]
-- [Win 2]
+- Exercised 3 times
+- Read every morning
+
 **Next Week's Focus:**
-- [Focus area 1]
-- [Focus area 2]`,
+- Meditate more
+- Journal twice
+`,
 };
 
 export default ExampleTemplate;

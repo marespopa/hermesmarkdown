@@ -15,7 +15,7 @@ import {
   getFileDataFromInput,
   isSelectedFileValid,
 } from "../editor/EditorUtils";
-import Loading from "@/app/components/Loading";
+import LoadingOverlay from "@/app/components/LoadingOverlay";
 import { SPINNER_LOADING_DURATION } from "@/app/constants/timer";
 import Button from "@/app/components/Button";
 
@@ -47,7 +47,7 @@ const FileSelectionModal = ({ isOpen, handleClose }: Props) => {
       }}
     >
       <div className="p-2">
-        {isLoading && <Loading />}
+        {isLoading && <LoadingOverlay isVisible={true} text="Loading..." />}
         <p className="my-4">Select a file to load in the editor:</p>
         <FileInput
           name="file"

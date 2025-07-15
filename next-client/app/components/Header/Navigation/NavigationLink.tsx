@@ -25,9 +25,6 @@ const NavigationLink = ({
     ? "text-white bg-black underline font-mono font-bold" 
     : "text-black dark:text-white font-mono font-bold";
 
-  const emphasizeStyle = isEmphasized
-    ? `text-white rounded-sm transition ease-in-out p-2 bg-emerald-600 hover:bg-emerald-700 focus:bg-emerald-700`
-    : ``;
 
   if (isMobile) {
     return (
@@ -43,7 +40,7 @@ const NavigationLink = ({
 
   return (
     <Link
-      className={`${textColor} px-2 py-1 rounded-none border-none`}
+      className={`${textColor} px-2 py-1 rounded-none border-none transition-colors focus:outline-none hover:bg-gray-100 dark:hover:bg-gray-800 dark:focus:bg-gray-800 focus:ring-2 focus:ring-amber-100 focus:border-amber-100 hover:border-amber-100 hover:text-black dark:hover:text-white focus:text-black dark:focus:text-white`}
       href={href}
       onClick={action}
     >

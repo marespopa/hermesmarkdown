@@ -1,7 +1,7 @@
-import { getDate } from "@/app/services/date-utils";
+import DateUtils from "@/app/services/date-utils";
 import { MarkdownTemplate } from "..";
 
-const date = getDate();
+const date = DateUtils.getDate();
 
 const LifeDashboardTemplate: MarkdownTemplate = {
   filename: "life-dashboard",
@@ -11,69 +11,114 @@ const LifeDashboardTemplate: MarkdownTemplate = {
     tags: "dashboard,life,productivity,goals,health,finance,learning",
   },
   content: `# 🌟 Life Dashboard
+
 **Created:** ${date}
+
 ---
+
 ## 🎯 This Week's Focus
-- **Primary Goal:** [Your main focus]
-- **Success Metric:** [How you'll measure success]
+
+| Primary Goal         | Success Metric           |
+|---------------------|-------------------------|
+| Finish project      | 100% complete           |
+
 ---
+
 ## 💼 Work & Career
-- [ ] **Project 1:** [Status] - Due: [Date]
-- [ ] **Project 2:** [Status] - Due: [Date]
-- [ ] **Skill Building:** [What you're learning]
-- _Work-Life Balance:_ [Hours worked] / [Break time] / [Stress level 1-10]
+
+| Project         | Status | Due Date   | Notes         |
+|-----------------|--------|------------|--------------|
+| Project 1       | [ ]    | Mar 15     | Launch MVP    |
+| Project 2       | [ ]    | Mar 30     | QA review     |
+| Skill Building  | [ ]    |            | React course  |
+| _Work-Life Balance_ |     |            | 40h / 5h / 6  |
+
 ---
+
 ## 💰 Finance & Budget
-- **Income:** $[Amount]
-- **Expenses:** $[Amount]
-- **Savings:** $[Amount]
-**Goals:**
-- [ ] Emergency Fund: $[Target] / $[Current]
-- [ ] Investment: $[Target] / $[Current]
+
+| Category   | Amount   |
+|------------|----------|
+| Income     | $3200    |
+| Expenses   | $2000    |
+| Savings    | $1000    |
+|            |          |
+| **Goals**  |          |
+| Emergency Fund | $1000 / $200 |
+| Investment     | $500 / $300  |
+
 ---
+
 ## 🏃‍♂️ Health & Fitness
-- **Workouts:** [X] sessions this week
-- **Steps:** [X] today
-- **Sleep:** [X] hours last night
-- **Stress:** [1-10 scale]
-**Goals:**
-- [ ] Exercise [X] times per week
-- [ ] Sleep [X] hours per night
+
+| Metric     | Value    |
+|------------|----------|
+| Workouts   | 3 sessions this week |
+| Steps      | 8000 today|
+| Sleep      | 7 hours last night |
+| Stress     | 5         |
+|            |          |
+| **Goals**  |          |
+| Exercise   | 4 times per week |
+| Sleep      | 8 hours per night |
+
 ---
+
 ## 📚 Learning & Growth
-- **Currently Learning:** [Course/Topic]
-- **Progress:** [X]% complete
-- **Reading:** [Book title]
-**Skills to Develop:**
-- [ ] [Skill 1]
-- [ ] [Skill 2]
+
+| Currently Learning | Progress | Reading        |
+|--------------------|----------|---------------|
+| React              | 80%      | Atomic Habits  |
+|                    |          |               |
+| **Skills to Develop** |        |               |
+| TypeScript         | [ ]      |               |
+| GraphQL            | [ ]      |               |
+
 ---
+
 ## 🔄 Weekly Habits
-- Exercise: [Mon] [Tue] [Wed] [Thu] [Fri] [Sat] [Sun]
-- Read: [Mon] [Tue] [Wed] [Thu] [Fri] [Sat] [Sun]
-- Meditate: [Mon] [Tue] [Wed] [Thu] [Fri] [Sat] [Sun]
+
+| Habit     | Mon | Tue | Wed | Thu | Fri | Sat | Sun |
+|-----------|-----|-----|-----|-----|-----|-----|-----|
+| Exercise  |  x  |     |  x  |     |  x  |     |     |
+| Read      |  x  |  x  |     |     |  x  |     |  x  |
+| Meditate  |     |     |     |  x  |     |     |     |
+
 ---
+
 ## 📝 This Week's Review
+
 **Wins:**
-- [Achievement 1]
-- [Achievement 2]
+- Finished MVP
+- Exercised 3x
+
 **Next Week's Priorities:**
-- [Priority 1]
-- [Priority 2]
-- [Priority 3]
+- Launch to users
+- Start new book
+- Save $200
+
 ---
+
 ## 🎯 Monthly Goals
-- [ ] [Goal 1]
-- [ ] [Goal 2]
-- [ ] [Goal 3]
+
+| Goal      | Status | Notes         |
+|-----------|--------|--------------|
+| Launch MVP| [ ]    |              |
+| Read 2 books | [ ]  |              |
+| Save $500 | [ ]    |              |
+
 ---
+
 ## 📝 Quick Notes
+
 **Today's Highlights:**
-- [Highlight 1]
-- [Highlight 2]
+- Completed sprint
+- Cooked healthy meal
+
 **Gratitude:**
-- [Grateful for 1]
-- [Grateful for 2]
+- Supportive team
+- Good health
+
 <!--
 DASHBOARD FUNCTIONALITY HIGHLIGHTS:
 - Use checkboxes ([ ] and [x]) for actionable goals and habit tracking.

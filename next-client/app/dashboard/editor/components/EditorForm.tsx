@@ -4,7 +4,7 @@ import { atom_frontMatter, atom_hasChanges } from "@/app/atoms/atoms";
 import Button from "@/app/components/Button";
 import DialogModal from "@/app/components/DialogModal";
 import Input from "@/app/components/Input";
-import Loading from "@/app/components/Loading/Loading";
+import LoadingOverlay from "@/app/components/LoadingOverlay";
 import SaveStateText, {
   SaveState,
 } from "@/app/components/SaveStateText/SaveStateText";

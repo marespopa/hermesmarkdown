@@ -1,7 +1,8 @@
-import { getDate } from "@/app/services/date-utils";
+import DateUtils from "@/app/services/date-utils";
 import { MarkdownTemplate } from "..";
 
-const date = getDate();
+const date = DateUtils.getDate();
+const month = DateUtils.getCurrentMonth();
 
 const RecipeTemplate: MarkdownTemplate = {
   filename: "recipe",
@@ -11,166 +12,262 @@ const RecipeTemplate: MarkdownTemplate = {
     tags: "recipe,cooking,food,kitchen,meal",
   },
   content: `# 👨‍🍳 Recipe
-**Recipe Name:** [Recipe Title]
-**Category:** [Breakfast/Lunch/Dinner/Dessert/Snack]
-**Cuisine:** [Italian/Mexican/Asian/American/etc.]
-**Difficulty:** [Easy/Medium/Hard]
+**Recipe Name:** Spaghetti Bolognese
+**Category:** Dinner
+**Cuisine:** Italian
+**Difficulty:** Easy
 **Created:** ${date}
-**Source:** [Original source or inspiration]
+**Source:** Grandma
+
 ---
+
 ## 📊 Recipe Information
-- **Prep Time:** [X minutes]
-- **Cook Time:** [X minutes]
-- **Total Time:** [X minutes]
-- **Servings:** [X servings]
-- **Calories per serving:** [X calories]
+
+| Field         | Value         |
+|--------------|--------------|
+| Prep Time    | 30 minutes   |
+| Cook Time    | 45 minutes   |
+| Total Time   | 75 minutes   |
+| Servings     | 4            |
+| Calories/serving | 500      |
+
 ---
+
 ## 🥘 Ingredients
-### Main Ingredients
-- [ ] [Amount] [Ingredient 1]
-- [ ] [Amount] [Ingredient 2]
-- [ ] [Amount] [Ingredient 3]
-- [ ] [Amount] [Ingredient 4]
-- [ ] [Amount] [Ingredient 5]
+
+| Amount | Ingredient         |
+|--------|-------------------|
+| 400g   | Spaghetti         |
+| 250g   | Ground Beef       |
+| 1      | Onion             |
+| 2      | Garlic Cloves     |
+| 400g   | Tomato Sauce      |
+
 ### Seasonings & Spices
-- [ ] [Amount] [Spice 1]
-- [ ] [Amount] [Spice 2]
-- [ ] [Amount] [Spice 3]
+
+| Amount | Spice             |
+|--------|-------------------|
+| 1 tsp  | Salt              |
+| 1 tsp  | Pepper            |
+| 1 tsp  | Oregano           |
+
 ### Optional Additions
-- [ ] [Amount] [Optional ingredient 1]
-- [ ] [Amount] [Optional ingredient 2]
+
+| Amount | Optional Ingredient|
+|--------|-------------------|
+| 50g    | Olives            |
+| 50g    | Mushrooms         |
+
 ---
+
 ## 🍳 Instructions
-### Step 1: [Preparation Step]
-1. [Detailed instruction]
-2. [Detailed instruction]
-3. [Detailed instruction]
-### Step 2: [Cooking Step]
-1. [Detailed instruction]
-2. [Detailed instruction]
-3. [Detailed instruction]
-### Step 3: [Final Step]
-1. [Detailed instruction]
-2. [Detailed instruction]
-3. [Detailed instruction]
+
+### Step 1: Prepare Ingredients
+1. Chop onion and garlic
+2. Boil water for pasta
+3. Grate cheese
+
+### Step 2: Cook Sauce
+1. Sauté onion and garlic
+2. Add ground beef and cook
+3. Pour in tomato sauce and simmer
+
+### Step 3: Combine & Serve
+1. Cook spaghetti
+2. Mix with sauce
+3. Serve with cheese
+
 ---
+
 ## ⚡ Quick Tips
-- **Pro Tip 1:** [Helpful cooking tip]
-- **Pro Tip 2:** [Helpful cooking tip]
-- **Pro Tip 3:** [Helpful cooking tip]
+
+- **Pro Tip 1:** Use fresh herbs
+- **Pro Tip 2:** Simmer sauce for extra flavor
+- **Pro Tip 3:** Save some pasta water
+
 ---
+
 ## 🔄 Variations
-### Variation 1: [Variation Name]
-- **Substitution:** [What to change]
-- **Result:** [How it affects the dish]
-### Variation 2: [Variation Name]
-- **Substitution:** [What to change]
-- **Result:** [How it affects the dish]
+
+### Variation 1: Vegetarian
+- **Substitution:** Use lentils instead of beef
+- **Result:** Higher fiber, plant-based
+
+### Variation 2: Spicy
+- **Substitution:** Add chili flakes
+- **Result:** More heat
+
 ---
+
 ## 🍽️ Serving Suggestions
-- [Serving suggestion 1]
-- [Serving suggestion 2]
-- [Serving suggestion 3]
+
+- Serve with garlic bread
+- Add a side salad
+- Pair with red wine
+
 ### Side Dishes
-- [ ] [Side dish 1]
-- [ ] [Side dish 2]
-- [ ] [Side dish 3]
+
+| Side Dish         |
+|-------------------|
+| Garlic Bread      |
+| Caesar Salad      |
+| Roasted Veggies   |
+
 ### Beverages
-- [ ] [Beverage 1]
-- [ ] [Beverage 2]
+
+| Beverage          |
+|-------------------|
+| Red Wine          |
+| Sparkling Water   |
+
 ---
+
 ## 📋 Equipment Needed
-- [ ] [Equipment 1]
-- [ ] [Equipment 2]
-- [ ] [Equipment 3]
-- [ ] [Equipment 4]
+
+| Equipment         |
+|-------------------|
+| Saucepan          |
+| Frying Pan        |
+| Wooden Spoon      |
+| Colander          |
+
 ---
+
 ## ⏰ Timing Breakdown
-- **Prep:** [X minutes] - [What to do]
-- **Cook:** [X minutes] - [What to do]
-- **Rest:** [X minutes] - [What to do]
-- **Total:** [X minutes]
+
+| Stage   | Time      | What to do         |
+|---------|-----------|--------------------|
+| Prep    | 15 min    | Chop & measure     |
+| Cook    | 45 min    | Sauté & simmer     |
+| Rest    | 5 min     | Let cool           |
+| Total   | 75 min    |                    |
+
 ---
+
 ## 🌡️ Temperature & Settings
-- **Oven Temperature:** [X°F/X°C]
-- **Stovetop Setting:** [Low/Medium/High]
-- **Cooking Method:** [Bake/Sauté/Boil/Grill/etc.]
+
+- **Oven Temperature:** 180°C
+- **Stovetop Setting:** Medium
+- **Cooking Method:** Sauté
+
 ---
+
 ## 📏 Measurements & Conversions
-- [X grams] = [X ounces]
-- [X milliliters] = [X cups]
-- [X centimeters] = [X inches]
+
+- 100g = 3.5oz
+- 250ml = 1 cup
+- 10cm = 4in
+
 ---
+
 ## 🥄 Technique Notes
-- **Technique 1:** [Explanation of cooking technique]
-- **Technique 2:** [Explanation of cooking technique]
-- **Technique 3:** [Explanation of cooking technique]
+
+- **Technique 1:** Sauté onions until translucent
+- **Technique 2:** Deglaze pan with wine
+- **Technique 3:** Simmer sauce slowly
+
 ---
+
 ## 🚨 Common Mistakes to Avoid
-- [ ] [Mistake 1] - [Why it happens and how to avoid it]
-- [ ] [Mistake 2] - [Why it happens and how to avoid it]
-- [ ] [Mistake 3] - [Why it happens and how to avoid it]
+
+- [ ] Overcooking pasta - Taste test for doneness
+- [ ] Burning garlic - Sauté on low heat
+- [ ] Overseasoning - Add salt gradually
+
 ---
+
 ## ❓ Troubleshooting
-### Problem: [Common problem]
-**Solution:** [How to fix it]
-### Problem: [Common problem]
-**Solution:** [How to fix it]
-### Problem: [Common problem]
-**Solution:** [How to fix it]
+
+### Problem: Sauce too thick
+**Solution:** Add a splash of pasta water
+
+### Problem: Pasta sticks together
+**Solution:** Stir occasionally and add oil
+
+### Problem: Sauce bland
+**Solution:** Add more herbs and salt
+
 ---
+
 ## 🥗 Nutritional Information
-**Per Serving:**
-- **Calories:** [X calories]
-- **Protein:** [X grams]
-- **Carbohydrates:** [X grams]
-- **Fat:** [X grams]
-- **Fiber:** [X grams]
-- **Sugar:** [X grams]
-- **Sodium:** [X milligrams]
+
+| Nutrient      | Value         |
+|--------------|--------------|
+| Calories      | 500          |
+| Protein       | 20g          |
+| Carbohydrates | 60g          |
+| Fat           | 15g          |
+| Fiber         | 5g           |
+| Sugar         | 8g           |
+| Sodium        | 600mg        |
+
 ---
+
 ## 🏷️ Dietary Information
-- [ ] **Vegetarian:** [Yes/No]
-- [ ] **Vegan:** [Yes/No]
-- [ ] **Gluten-Free:** [Yes/No]
-- [ ] **Dairy-Free:** [Yes/No]
-- [ ] **Nut-Free:** [Yes/No]
+
+| Dietary Option | Yes/No |
+|----------------|--------|
+| Vegetarian     | No     |
+| Vegan          | No     |
+| Gluten-Free    | No     |
+| Dairy-Free     | No     |
+| Nut-Free       | Yes    |
+
 ---
+
 ## 🍷 Wine Pairing
-- **Red Wine:** [Wine recommendation]
-- **White Wine:** [Wine recommendation]
-- **Beer:** [Beer recommendation]
+
+- **Red Wine:** Chianti
+- **White Wine:** Pinot Grigio
+- **Beer:** Lager
+
 ---
+
 ## 📸 Presentation Tips
-- [Presentation tip 1]
-- [Presentation tip 2]
-- [Presentation tip 3]
+
+- Garnish with basil
+- Serve in a wide bowl
+- Sprinkle cheese on top
+
 ---
+
 ## 💡 Storage & Leftovers
-- **Refrigerator:** [How long it keeps]
-- **Freezer:** [How long it keeps]
-- **Reheating:** [Best method to reheat]
+
+- **Refrigerator:** 3 days
+- **Freezer:** 1 month
+- **Reheating:** Microwave or stovetop
+
 ---
+
 ## 📝 Notes & Modifications
-- [Note 1]
-- [Note 2]
-- [Note 3]
+
+- Used whole wheat pasta
+- Added extra garlic
+- Reduced salt
+
 ---
+
 ## ⭐ Rating & Reviews
-**My Rating:** [X/5 stars]
-**Family Rating:** [X/5 stars]
-**Guest Rating:** [X/5 stars]
-### Reviews
-- **Date:** [Date] - **Rating:** [X/5] - **Comments:** [Review]
-- **Date:** [Date] - **Rating:** [X/5] - **Comments:** [Review]
+
+| Reviewer      | Date       | Rating | Comments      |
+|--------------|------------|--------|--------------|
+| Me           | ${date}    | 5/5    | Delicious!    |
+| Family       | ${date}    | 4/5    | Tasty, less salt next time |
+| Guest        | ${date}    | 5/5    | Loved it      |
+
 ---
+
 ## 🔗 Related Recipes
-- [Related recipe 1]
-- [Related recipe 2]
-- [Related recipe 3]
+
+- Penne Arrabbiata
+- Lasagna
+- Pesto Pasta
+
 ---
+
 ## 🏷️ Tags
-#recipe #cooking #[cuisine] #[meal-type] #[difficulty] #[date]`,
+
+#recipe #cooking #italian #dinner #easy #${month}-${date}`,
 };
 
 export default RecipeTemplate; 
