@@ -217,7 +217,7 @@ export default function EditorHeader({
             styles="w-full mt-2"
             onClick={() => setIsFabMenuOpen(true)}
           >
-            Settings
+            Menu
           </Button>
         )}
       </div>
@@ -245,6 +245,10 @@ export default function EditorHeader({
         hideFontDropdown={hideFontDropdown}
         setHideFontDropdown={setHideFontDropdown}
         handlePdfExport={handlePdfExport}
+      />
+      <EditorForm
+        isOpened={isFormatterDialogOpen}
+        handleClose={() => setIsFormatterDialogOpen(false)}
       />
     </header>
   );

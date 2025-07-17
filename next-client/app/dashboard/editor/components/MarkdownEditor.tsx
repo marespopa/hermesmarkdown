@@ -27,38 +27,84 @@ const highlightMarkdownWithTailwind = (code: string) => {
   // Headings (##, #) - bold and color only, no size
   code = code.replace(
     /^(#{1,6})\s(.+)$/gm,
-    (match, hashes, text) =>
-      `<span class=\"font-bold text-amber-600 dark:text-amber-400\">${hashes} ${text}</span>`
+    match => `<span class=\"font-bold text-amber-600 dark:text-amber-400\">${match}</span>`
   );
-  // Bold (**text** or __text__)
+  // Alternate heading syntax (=== and ---)
+  code = code.replace(
+    /^(.+)\n(=+|-+)\s*$/gm,
+    match => `<span class=\"font-bold text-amber-600 dark:text-amber-400\">${match}</span>`
+  );
+  // Bold (**text** or __text__) - wrap entire match
   code = code.replace(
     /(\*\*|__)(.*?)\1/g,
-    '<span class="font-bold text-neutral-900 dark:text-neutral-100">$2</span>'
+    match => `<span class="font-bold text-neutral-900 dark:text-neutral-100">${match}</span>`
   );
-  // Italic (*text* or _text_)
+  // Italic (*text* or _text_) - wrap entire match
   code = code.replace(
     /(\*|_)(.*?)\1/g,
-    '<span class="italic text-neutral-700 dark:text-neutral-300">$2</span>'
+    match => `<span class="italic text-neutral-700 dark:text-neutral-300">${match}</span>`
   );
-  // Lists (-, *, +)
+  // Bold and Italic (***text*** or ___text___) - wrap entire match
   code = code.replace(
-    /^(\s*[-*+])\s(.+)$/gm,
-    '<span class="text-amber-600 dark:text-amber-400">$1</span> <span class="text-neutral-900 dark:text-neutral-100">$2</span>'
+    /(\*\*\*|___)(.*?)\1/g,
+    match => `<span class="font-bold italic text-neutral-900 dark:text-neutral-100">${match}</span>`
   );
-  // Inline code
+  // Strikethrough (~~text~~) - wrap entire match
+  code = code.replace(
+    /(~~)(.*?)\1/g,
+    match => `<span class="line-through text-neutral-500 dark:text-neutral-400">${match}</span>`
+  );
+  // Superscript (^text^) - wrap entire match
+  code = code.replace(
+    /([a-zA-Z0-9])\^([^\s^]+)\^/g,
+    (match, base, superscript) => `<span class="text-purple-600 dark:text-purple-400">${base}^${superscript}^</span>`
+  );
+  // Lists (-, *, +) - color only the marker
+  code = code.replace(
+    /^(\s*)([-*+])\s(.+)$/gm,
+    (match, spaces, marker, content) => 
+      `${spaces}<span class="text-amber-600 dark:text-amber-400">${marker}</span> <span class="text-neutral-900 dark:text-neutral-100">${content}</span>`
+  );
+  // Ordered lists (1. 2. 3.) - color only the number
+  code = code.replace(
+    /^(\s*)(\d+\.)\s(.+)$/gm,
+    (match, spaces, number, content) => 
+      `${spaces}<span class="text-amber-600 dark:text-amber-400">${number}</span> <span class="text-neutral-900 dark:text-neutral-100">${content}</span>`
+  );
+  // Inline code - wrap entire match
   code = code.replace(
     /`([^`]+)`/g,
-    '<span class="bg-neutral-200 dark:bg-neutral-800 text-amber-700 dark:text-amber-300 rounded px-1 font-mono">$1</span>'
+    match => `<span class="bg-neutral-200 dark:bg-neutral-800 text-amber-700 dark:text-amber-300">${match}</span>`
   );
-  // Horizontal rule (---, ***, ___)
+  // Fenced code blocks (```language\ncode\n```) - wrap entire match
   code = code.replace(
-    /^(\s*)([-*_]){3,}\s*$/gm,
-    '<span class="text-neutral-400 dark:text-neutral-600">$1</span>'
+    /```[\s\S]*?```/g,
+    match => `<span class="bg-neutral-200 dark:bg-neutral-800 text-amber-700 dark:text-amber-300 font-mono">${match}</span>`
   );
-  // Links [text](url) - highlight as blue span, not clickable
+  // Horizontal rule (---, ***, ___) - wrap entire match
+  code = code.replace(
+    /^(\s*)([-*_]{3,})\s*$/gm,
+    match => `<span class="text-neutral-400 dark:text-neutral-600">${match}</span>`
+  );
+  // Links [text](url) - wrap entire match
   code = code.replace(
     /(\[[^\]]+\]\([^\)]+\))/g,
-    '<span class="underline text-blue-600 dark:text-blue-400">$1</span>'
+    match => `<span class="underline text-blue-600 dark:text-blue-400">${match}</span>`
+  );
+  // Images ![alt](url) - wrap entire match
+  code = code.replace(
+    /(!\[[^\]]+\]\([^\)]+\))/g,
+    match => `<span class="text-green-600 dark:text-green-400">${match}</span>`
+  );
+  // Blockquotes (>) - wrap entire match
+  code = code.replace(
+    /^(\s*>\s*.+)$/gm,
+    match => `<span class="text-neutral-600 dark:text-neutral-400 border-l-4 border-neutral-300 dark:border-neutral-600 pl-2">${match}</span>`
+  );
+  // Escaped characters (\) - wrap entire match
+  code = code.replace(
+    /\\([\\`*_{}\[\]()#+\-\.!|])/g,
+    match => `<span class="text-neutral-500 dark:text-neutral-400">${match}</span>`
   );
   return code;
 };
@@ -72,7 +118,7 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({ value, onChange, fontFa
       padding={16}
       textareaId="markdown-editor"
       textareaClassName="w-full h-full bg-transparent outline-none resize-none"
-      preClassName="w-full h-full font-mono leading-relaxed bg-transparent"
+      preClassName="w-full h-full leading-relaxed bg-transparent"
       style={{
         minHeight: "400px",
         color: "inherit",
