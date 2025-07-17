@@ -23,7 +23,7 @@ export default function Documentation() {
               <li><a href="#exporting" className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300">Exporting to PDF & Markdown</a></li>
               <li><a href="#find-replace" className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300">Find & Replace</a></li>
               <li><a href="#templates" className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300">Templates</a></li>
-              <li><a href="#timer" className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300">Pomodoro Timer</a></li>
+              <li><a href="#timer" className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300">Keyboard Shortcuts</a></li>
               <li><a href="#shortcuts" className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300">Keyboard Shortcuts</a></li>
               <li><a href="#features" className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300">Feature Overview</a></li>
             </ol>
@@ -87,10 +87,18 @@ export default function Documentation() {
 
           {/* Timer */}
           <section id="timer">
-            <h2>Pomodoro Timer</h2>
+            <h2>Timer</h2>
             <p>
-              Boost your productivity with the built-in <strong>Pomodoro Timer</strong>. Configure work and break intervals, track completed pomodoros and cycles, and receive notifications and sounds when sessions end. The timer can be minimized or closed as needed.
+              Boost your productivity with the built-in <strong>Timer</strong>. Configure your preferred duration, start, pause, and reset as needed, and receive notifications and sounds when your session ends. The timer can be minimized or closed as needed.
             </p>
+            <ul>
+              <li><strong>Starting & Pausing:</strong> Use the play/pause button on the timer to start or pause your current session at any time.</li>
+              <li><strong>Resetting:</strong> Click the reset button to restart the current interval from the beginning.</li>
+              <li><strong>Configuring Duration:</strong> Open the timer settings (gear icon) to set a custom duration for your session.</li>
+              <li><strong>Location:</strong> The timer is accessible from the main workspace toolbar. On mobile, it appears at the bottom of the screen for easy access.</li>
+              <li><strong>Notifications & Sounds:</strong> When a session ends, you&apos;ll receive a notification and a sound alert (if enabled). Make sure your browser allows notifications and sound for the best experience.</li>
+              <li><strong>Minimizing & Tracking:</strong> You can minimize the timer to keep it out of the way while working. The app tracks your current session&apos;s progress.</li>
+            </ul>
           </section>
 
           {/* Keyboard Shortcuts */}

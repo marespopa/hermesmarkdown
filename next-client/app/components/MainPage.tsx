@@ -24,7 +24,13 @@ const MainPage = ({ children }: Props) => {
       <body className="h-full min-h-screen bg-white dark:bg-neutral-900">
         <CustomProviders>
           <main className="h-full min-h-screen flex flex-col">
-            <Toaster position="top-center" reverseOrder={false} />
+            <Toaster 
+              position="top-center" 
+              reverseOrder={false} 
+              toastOptions={{
+                className: "hermes-toast"
+              }}
+            />
             <div className={`min-h-screen h-full flex flex-col bg-white dark:bg-neutral-900 text-black dark:text-white flex-1 ${showHeader ? 'pt-4' : ''}`}>
               {showHeader && <Header />}
               <div className="flex-1 h-full flex flex-col">{children}</div>

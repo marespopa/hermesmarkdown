@@ -63,7 +63,7 @@ const DropdownMenu = ({ label, options, isOpen, onOpenChange, selectedIndex, onS
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, []);
+  }, [onOpenChange]);
 
   return (
     <div className="relative inline-block" ref={dropdownRef}>

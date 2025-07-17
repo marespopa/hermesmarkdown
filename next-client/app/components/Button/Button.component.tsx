@@ -24,7 +24,10 @@ export default function Button({
   return (
     <button
       onClick={(e) => {
-        e.preventDefault();
+        // Only prevent default for non-submit buttons
+        if ((rest.type || "button") !== "submit") {
+          e.preventDefault();
+        }
         if (onClick) {
           onClick(e);
         }

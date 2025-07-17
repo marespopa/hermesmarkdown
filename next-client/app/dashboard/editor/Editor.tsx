@@ -14,6 +14,7 @@ import {
   atom_fontFamily,
   atom_fontSize,
   atom_sidebarCollapsed,
+  atom_pomodoroPosition,
 } from "@/app/atoms/atoms";
 import { useDocumentTitle } from "@/app/hooks/use-document-title";
 import { useState, useEffect } from "react";
@@ -37,10 +38,10 @@ export default function Editor() {
   const [isLoading, setIsLoading] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [collapsed] = useAtom(atom_sidebarCollapsed);
-  const [timerSettings] = useAtom(atom_timerSettings);
   const [isTimerVisible, setShowTimer] = useAtom(atom_showTimer);
   const [frontMatter] = useAtom(atom_frontMatter);
   const fileTitle = frontMatter.title || "File";
+  const fileName = frontMatter.fileName || fileTitle || "File";
   const [contentEdited, setContentEdited] = useAtom(atom_contentEdited);
   const [, setFrontMatter] = useAtom(atom_frontMatter);
   const [, setContent] = useAtom(atom_content);
@@ -269,8 +270,16 @@ export default function Editor() {
       )}
       {/* Sidebar and Main Content (no blur/pointer-events in Zen Mode) */}
       <div className={`flex-1 min-h-screen overflow-auto px-8 ${sidebarMargin} transition-all duration-300`}>
-        {/* Zen Mode Toggle Button (floating, always visible) */}
-        {!isZenMode && (
+        {/* Pomodoro Timer: floating on right for desktop, inline for mobile */}
+        {!isMobile && isTimerVisible && (
+          <div
+            className="fixed bottom-8 right-8 z-50"
+          >
+            <Timer fileName={fileTitle} onClose={() => setShowTimer(false)} />
+          </div>
+        )}
+        {/* Zen Mode Toggle Button: only show on desktop */}
+        {!isMobile && !isZenMode && (
           <Button
             ref={zenButtonRef}
             variant="icon"
@@ -282,7 +291,12 @@ export default function Editor() {
             <FaExpand className="w-6 h-6" />
           </Button>
         )}
-        {isTimerVisible && <Timer settings={timerSettings} onClose={handleCloseTimer} />}
+        {/* On mobile, show timer inline if visible */}
+        {isMobile && isTimerVisible && (
+          <div className="mb-4">
+            <Timer />
+          </div>
+        )}
         <EditorHeader
           contentEdited={contentEdited}
           frontMatter={frontMatter}

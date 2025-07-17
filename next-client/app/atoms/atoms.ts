@@ -21,6 +21,23 @@ export const atom_timerSettings = atomWithStorage("timerSettings", {
 export const atom_fontFamily = atomWithStorage<string>("editorFontFamily", "Inter, system-ui, sans-serif");
 export const atom_fontSize = atomWithStorage<string>("editorFontSize", "prose-base");
 
+export type SimpleTimerSessionState = {
+  startTime: number | null;
+  pauseTime: number;
+  isTimerCounting: boolean;
+  duration: number; // in seconds
+};
+
+export const atom_timerSessionState = atomWithStorage<SimpleTimerSessionState>(
+  "timerSessionState",
+  {
+    startTime: null,
+    pauseTime: 0,
+    isTimerCounting: false,
+    duration: 1500, // 25 minutes default
+  }
+);
+
 type SetStateActionWithReset<Value> =
   | Value
   | typeof RESET
@@ -74,3 +91,8 @@ export const atom_sidebarCollapsed = atomWithStorage<boolean>("sidebarCollapsed"
 
 export const atom_hasChanges = atom(false);
 export const atom_isSaved = atom(false);
+
+// Pomodoro Timer position atom
+export const atom_pomodoroPosition = atomWithStorage<{ x: number; y: number }>("pomodoroPosition", { x: 0, y: 0 });
+// Optional: atom for drag state
+export const atom_pomodoroDragging = atom<boolean>(false);

@@ -15,7 +15,7 @@ export default function FAQContent() {
     {
       question: "What features does it offer?",
       answer:
-        "Hermes Markdown includes real-time preview, professional templates, keyboard shortcuts, Pomodoro timer functionality, and export capabilities. It's designed to enhance your writing workflow with features like syntax highlighting, auto-save, and multiple export formats including PDF and HTML.",
+        "Hermes Markdown includes real-time preview, professional templates, keyboard shortcuts, timer functionality, and export capabilities. It's designed to enhance your writing workflow with features like syntax highlighting, auto-save, and multiple export formats including PDF and HTML.",
     },
     {
       question: "Is it free to use?",

@@ -1,3 +1,3 @@
 import { TimerContainer } from "./Timer.container";
 
-export default TimerContainer;
+export { TimerContainer as default } from "./Timer.container";
