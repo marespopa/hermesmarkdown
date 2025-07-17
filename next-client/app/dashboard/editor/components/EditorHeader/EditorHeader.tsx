@@ -214,7 +214,7 @@ export default function EditorHeader({
     setMatchCount(matches.length);
     if (matches.length === 0) setCurrentIndex(0);
     else if (currentIndex >= matches.length) setCurrentIndex(0);
-  }, [searchTerm, contentEdited]);
+  }, [searchTerm, contentEdited, currentIndex, setCurrentIndex, setMatchCount]);
 
   const handleNext = () => {
     if (matchCount === 0) return;

@@ -74,4 +74,6 @@ const FindBar = forwardRef<HTMLInputElement, FindBarProps>(
   }
 );
 
+FindBar.displayName = "FindBar";
+
 export default FindBar; 
