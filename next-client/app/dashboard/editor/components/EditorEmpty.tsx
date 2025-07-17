@@ -159,7 +159,7 @@ export default function EditorEmpty() {
                 variant="secondary"
                 label={
                   <span>
-                    <i className="fa fa-folder-open mr-2"></i> Open File
+                    <i className="fa fa-folder-open mr-2"></i> Import File
                   </span>
                 }
                 isDisabled={disabledButtonsState.existing}
@@ -361,7 +361,7 @@ export default function EditorEmpty() {
           }
           description={`Edit your existing markdown file`}
           action={{
-            label: "Open File",
+            label: "Import File",
             handler: () => handleOpenFile(),
             disabled: disabledButtonsState.existing,
           }}

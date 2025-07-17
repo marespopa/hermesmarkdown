@@ -47,7 +47,7 @@ const ActionsMobileMenu: React.FC<ActionsMobileMenuProps> = ({
       </Button>
       <div className="flex flex-col gap-4 px-4 mt-8 mb-4 overflow-y-auto max-h-[80vh] items-stretch w-full">
         <Button variant="secondary" onClick={actions.handleNewFile} label={<><FaFile className="inline mr-2" />New File</>} styles="w-full" />
-        <Button variant="secondary" onClick={actions.handleOpenFile} label={<><FaFile className="inline mr-2" />Open File</>} styles="w-full" />
+        <Button variant="secondary" onClick={actions.handleOpenFile} label={<><FaFile className="inline mr-2" />Import File</>} styles="w-full" />
         <Button variant="secondary" onClick={actions.handleSelectTemplate} label={<><FaFile className="inline mr-2" />Select Template</>} styles="w-full" />
         <Button variant="secondary" onClick={exportToMD} label={<><FaSave className="inline mr-2" />Save As</>} styles="w-full" />
         <Button variant="secondary" onClick={showPdfPreviewModal} label={<><FaFilePdf className="inline mr-2" />Export to PDF</>} styles="w-full" />

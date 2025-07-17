@@ -29,7 +29,7 @@ export default function Prices() {
     shortcuts: `
     CTRL+S - Save File
     CTRL+N - New File
-    CTRL+O - Open File
+    CTRL+O - Import File
     CTRL+E - Open Export Preview`,
   } as const;
 

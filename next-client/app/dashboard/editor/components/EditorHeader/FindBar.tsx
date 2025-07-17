@@ -12,6 +12,7 @@ interface FindBarProps {
   onNext: () => void;
   onPrev: () => void;
   onClear: () => void;
+  onCollapse: () => void; // new prop
 }
 
 const FindBar = forwardRef<HTMLInputElement, FindBarProps>(
@@ -32,7 +33,6 @@ const FindBar = forwardRef<HTMLInputElement, FindBarProps>(
       <div className="flex items-center gap-2">
         <Input
           name="find-bar"
-          label="Find in document"
           value={searchTerm}
           handleChange={e => onSearch(e.currentTarget.value)}
           placeholder="Find..."

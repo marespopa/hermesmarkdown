@@ -9,10 +9,10 @@ module.exports = {
   theme: {
     extend: {
       fontFamily: {
-        sans: ["Source Code Pro", "monospace"],
-        serif: ["Source Code Pro", "monospace"],
-        mono: ["Source Code Pro", "monospace"],
-        sourcecode: ["Source Code Pro", "monospace"],
+        sans: ["Inter", "ui-sans-serif", "system-ui", "sans-serif"],
+        serif: ["Merriweather", "Georgia", "serif"],
+        mono: ["Source Code Pro", "ui-monospace", "monospace"],
+        sourcecode: ["Source Code Pro", "ui-monospace", "monospace"],
       },
       colors: {
         softyellow: {

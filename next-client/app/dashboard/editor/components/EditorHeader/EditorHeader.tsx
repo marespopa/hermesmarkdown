@@ -21,7 +21,6 @@ import PDFPreviewDialog from "./PDFPreviewDialog";
 import ShortcutsDialog from "./ShortcutsDialog";
 import ActionsMobileMenu from "./ActionsMobileMenu";
 import FindBar from "./FindBar";
-import { FaChevronDown, FaChevronUp } from "react-icons/fa";
 
 interface Props {
   contentEdited: string;
@@ -79,8 +78,6 @@ export default function EditorHeader({
     { value: "20px", label: "Extra Large" },
   ];
   const [isPdfPreviewOpen, setIsPdfPreviewOpen] = useState(false);
-  const [selectedFont, setSelectedFont] = useState<string>("font-sans");
-  const [hideFontDropdown, setHideFontDropdown] = useState(false);
 
   const fontOptions = [
     { value: "Fira Mono, monospace", label: "Fira Mono" },
@@ -109,7 +106,7 @@ export default function EditorHeader({
       action: withCloseFabMenu(actions.handleSelectTemplate),
     },
     {
-      label: "Open File...",
+      label: "Import File...",
       action: withCloseFabMenu(actions.handleOpenFile),
     },
     {
@@ -171,21 +168,17 @@ export default function EditorHeader({
     };
   }, []);
 
+  // Keyboard shortcut: Cmd/Ctrl+F opens FindBar
   useEffect(() => {
-    if (isMobile) {
-      return;
-    }
-    
+    if (isMobile) return;
     function handleKeyDown(e: KeyboardEvent) {
       const isMac = navigator.userAgent.includes('Mac');
-  
       if (
         (isMac && e.metaKey && e.key === 'f') ||
         (!isMac && e.ctrlKey && e.key === 'f')
       ) {
         e.preventDefault();
         setShowFindBar(true);
-        setIsFontControlsCollapsed(false);
         setTimeout(() => findInputRef.current?.focus(), 0);
       }
     }
@@ -193,12 +186,17 @@ export default function EditorHeader({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isMobile]);
 
-  // Show find bar when there's a search term
+  // Show FindBar if searchTerm is set
   useEffect(() => {
-    if (searchTerm) {
-      setShowFindBar(true);
-    }
+    if (searchTerm) setShowFindBar(true);
   }, [searchTerm]);
+
+  // Focus FindBar input when shown
+  useEffect(() => {
+    if (showFindBar) {
+      findInputRef.current?.focus();
+    }
+  }, [showFindBar]);
 
   // Find logic
   useEffect(() => {
@@ -242,6 +240,8 @@ export default function EditorHeader({
           setIsShortcutsOpen={setIsShortcutsOpen}
           showTimer={showTimer}
           setShowTimer={setShowTimer}
+          onShowFindBar={() => setShowFindBar(true)}
+          isFindBarOpen={showFindBar}
         />
       )}
       {/* Mobile: Use ActionsMobileMenu */}
@@ -272,18 +272,7 @@ export default function EditorHeader({
         />
         {/* Font controls and Find bar with collapse toggle */}
         {/* Only show FindBar if needed, no font controls or collapse button */}
-        {!isMobile && showFindBar && (
-          <FindBar
-            ref={findInputRef}
-            searchTerm={searchTerm}
-            matchCount={matchCount}
-            currentIndex={currentIndex}
-            onSearch={setSearchTerm}
-            onNext={handleNext}
-            onPrev={handlePrev}
-            onClear={handleClear}
-          />
-        )}
+        {/* FindBar and show/hide button removed, now handled in ActionsSidebar */}
         {isMobile && (
           <Button
             variant="secondary"
@@ -313,16 +302,37 @@ export default function EditorHeader({
         isOpen={isPdfPreviewOpen}
         onClose={hidePdfPreviewModal}
         contentEdited={contentEdited}
-        selectedFont={selectedFont}
-        setSelectedFont={setSelectedFont}
-        hideFontDropdown={hideFontDropdown}
-        setHideFontDropdown={setHideFontDropdown}
         handlePdfExport={handlePdfExport}
       />
       <EditorForm
         isOpened={isFormatterDialogOpen}
         handleClose={() => setIsFormatterDialogOpen(false)}
       />
+      {/* Floating FindBar at bottom center */}
+      {!isMobile && (
+        <div
+          style={{ position: "fixed", left: 0, right: 0, bottom: 32, zIndex: 50, display: "flex", justifyContent: "center", pointerEvents: "none" }}
+        >
+          <div
+            style={{ pointerEvents: "auto" }}
+            className={`transition-all duration-300 transform ${showFindBar ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'} pointer-events-auto`}
+          >
+            {showFindBar && (
+              <FindBar
+                ref={findInputRef}
+                searchTerm={searchTerm}
+                matchCount={matchCount}
+                currentIndex={currentIndex}
+                onSearch={setSearchTerm}
+                onNext={handleNext}
+                onPrev={handlePrev}
+                onClear={handleClear}
+                onCollapse={() => setShowFindBar(false)}
+              />
+            )}
+          </div>
+        </div>
+      )}
     </header>
   );
 
@@ -374,24 +384,26 @@ export default function EditorHeader({
     setIsFormatterDialogOpen(true);
   }
 
-  function exportToMD() {
-    ExportService.exportMarkdown(contentEdited, frontMatter);
-    setFileContent(contentEdited);
-    setHasChanges(false); // Clear unsaved changes after save
+  async function exportToMD() {
+    try {
+      await ExportService.exportMarkdown(contentEdited, frontMatter);
+      setFileContent(contentEdited);
+      setHasChanges(false); // Clear unsaved changes after successful save
+    } catch (error) {
+      toast.error("File could not be saved");
+      console.error(error);
+    }
   }
 
   async function handlePdfExport() {
     const reportName = (frontMatter.fileName || "hermesnote").replace(".md", ".pdf");
-    setHideFontDropdown(true);
     await new Promise((resolve) => setTimeout(resolve, 100)); // allow DOM to update
     try {
       await ExportService.generatePDF("#pdfReport", reportName);
       toast.success("File has been exported");
-      setHideFontDropdown(false);
     } catch (error) {
       toast.error("File could not be exported");
       console.error(error);
-      setHideFontDropdown(false);
     }
   }
 

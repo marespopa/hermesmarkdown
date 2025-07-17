@@ -72,7 +72,7 @@ const MobileMenu: React.FC<MobileMenuProps> = ({
           <Button variant="primary" label="New File" onClick={() => handleAction(actions.handleNewFile)} />
           <Button variant="primary" label="Template" onClick={() => handleAction(actions.handleSelectTemplate)} />
           <Button variant="primary" label="Save File" onClick={() => handleAction(exportToMD)} />
-          <Button variant="primary" label="Open File" onClick={() => handleAction(actions.handleOpenFile)} />
+          <Button variant="primary" label="Import File" onClick={() => handleAction(actions.handleOpenFile)} />
           <Button variant="primary" label="Copy Markdown" onClick={handleCopyMarkdown} />
           <Button variant="primary" label="Replace" onClick={() => handleAction(actions.handleOpenFindAndReplace)} />
           <Button variant="primary" label="Font" onClick={() => handleAction(actions.handleOpenFontSettings)} />

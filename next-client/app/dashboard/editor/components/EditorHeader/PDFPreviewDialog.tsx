@@ -11,10 +11,6 @@ interface PDFPreviewDialogProps {
   isOpen: boolean;
   onClose: () => void;
   contentEdited: string;
-  selectedFont: string;
-  setSelectedFont: (font: string) => void;
-  hideFontDropdown: boolean;
-  setHideFontDropdown: (hide: boolean) => void;
   handlePdfExport: () => void;
 }
 
@@ -22,9 +18,6 @@ const PDFPreviewDialog: React.FC<PDFPreviewDialogProps> = ({
   isOpen,
   onClose,
   contentEdited,
-  selectedFont,
-  setSelectedFont,
-  hideFontDropdown,
   handlePdfExport,
 }) => {
   const fontOptions = [
@@ -33,6 +26,8 @@ const PDFPreviewDialog: React.FC<PDFPreviewDialogProps> = ({
     { label: 'Monospace', value: 'font-mono' },
   ];
   const [fontMenuOpen, setFontMenuOpen] = useState(false);
+  const [selectedFont, setSelectedFont] = useState('font-sans');
+  const [hideFontDropdown, setHideFontDropdown] = useState(false);
   const selectedIndex = fontOptions.findIndex(opt => opt.value === selectedFont);
   const handleSelect = (idx: number) => setSelectedFont(fontOptions[idx].value);
   return (
@@ -81,7 +76,7 @@ function PdfMarkdownPreview({ content, fontClass = "font-sans" }: { content: str
     );
   }
   return (
-    <div data-testid="preview" className={`bg-white prose ${fontClass}`} style={{ color: '#222' }}>
+    <div data-testid="preview" className={`bg-white prose mx-auto max-w-3xl px-6 py-8 ${fontClass}`} style={{ color: '#222' }}>
       <Markdown
         remarkPlugins={[remarkGfm]}
         components={{

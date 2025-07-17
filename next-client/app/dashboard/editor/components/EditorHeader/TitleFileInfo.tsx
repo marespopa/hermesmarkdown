@@ -24,17 +24,18 @@ const TitleFileInfo: React.FC<TitleFileInfoProps> = ({
 }) => (
   <div className="flex flex-col gap-1 min-w-0 w-full sm:w-auto">
     <div className="flex flex-row items-center gap-2 min-w-0 justify-center sm:justify-start sm:mt-2">
-      <h1 className="truncate text-xl font-semibold text-black dark:text-white leading-tight text-center sm:text-left">{hasTitle && `${fileTitle}`}</h1>
+      <h1 className="truncate text-xl font-semibold text-black dark:text-white leading-tight text-center sm:text-left">
+        {hasTitle && `${fileTitle}`}
+        {hasChanges && (
+          <span className="ml-2 text-amber-500 align-middle" title="Unsaved changes">•</span>
+        )}
+      </h1>
       <span className="cursor-pointer" onClick={showFileDialog}>
         <PenIcon tooltip="File Settings" size={16} alt="Edit Title" />
       </span>
     </div>
     <span className="text-xs text-gray-500 dark:text-gray-100 font-mono truncate text-center sm:text-left">{`${fileName?.endsWith(".md") ? fileName : fileName + ".md"}`}</span>
-    {hasChanges && (
-      <span className="mt-1 mb-1 mx-auto sm:mx-0" data-testid="unsaved-badge">
-        <Badge label="Unsaved changes" variant="warning" />
-      </span>
-    )}
+    {/* Remove the badge for unsaved changes */}
     <div className="mt-1 flex flex-col gap-1 items-center sm:items-start">
       <div className="flex flex-row gap-2 items-center justify-center">
         {renderFontMenu()}

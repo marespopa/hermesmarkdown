@@ -164,7 +164,7 @@ export default function Editor() {
         });
         setContent(content);
         setContentEdited(content);
-
+        setHasChanges(false); // Clear unsaved changes after loading file
         resolve({
           status: "error",
           message: "File has been loaded successfully",

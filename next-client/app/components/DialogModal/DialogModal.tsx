@@ -32,7 +32,7 @@ const DialogModal = ({ isOpened, onClose, children, styles = "" }: Props) => {
     >
       <dialog
         ref={ref}
-        className={`my-auto sm:h-[90vh] sm:w-[700px] p-8 text-base bg-white border-none rounded-xl shadow-lg dark:bg-neutral-800 dark:text-white ${styles}`}
+        className={`my-auto sm:h-[90vh] sm:w-[1000px] p-8 text-base bg-white border-none rounded-xl shadow-lg dark:bg-neutral-800 dark:text-white ${styles}`}
         onCancel={onClose}
       >
         <div className="relative p-4">
@@ -41,7 +41,7 @@ const DialogModal = ({ isOpened, onClose, children, styles = "" }: Props) => {
             onClick={onClose}
             aria-label="Close modal"
             title="Close modal"
-            className="absolute top-4 right-4"
+            className="absolute top-4 right-4 z-50"
           >
             <FaWindowClose className="w-6 h-6" />
           </Button>

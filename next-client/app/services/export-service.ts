@@ -33,7 +33,7 @@ class ExportService {
 
   static exportMarkdown(content: string | undefined, frontMatter: FileMetadata) {
     if (!content) {
-      return;
+      return Promise.resolve();
     }
 
     const fileName = frontMatter?.fileName || "file.md";
@@ -41,7 +41,7 @@ class ExportService {
       type: "text/markdown",
     });
 
-    saveFile({ blob, fileName });
+    return saveFile({ blob, fileName });
   }
 
   static async generatePDF (elementId: string, filename: string = "file.pdf"): Promise<InstanceType<typeof jsPDF>> {

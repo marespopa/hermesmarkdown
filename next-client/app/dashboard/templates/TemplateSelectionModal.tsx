@@ -128,7 +128,7 @@ const TemplateSelectionModal = ({ isOpen, handleClose }: Props) => {
       <Input
         name="template-search"
         value={searchTerm}
-        placeholder="Search templates by name or tag..."
+        placeholder="Search templates..."
         handleChange={(e: FormEvent<HTMLInputElement>) => {
           const element = e.currentTarget as HTMLInputElement;
           setSearchTerm(element.value);
