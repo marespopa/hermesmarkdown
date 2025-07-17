@@ -6,15 +6,17 @@ import { atom_fontFamily } from "@/app/atoms/atoms";
 interface FontMenuProps {
   fontOptions: { value: string; label: string }[];
   setFontFamily: (value: string) => void;
+  value?: string;
 }
 
-const FontMenu: React.FC<FontMenuProps> = ({ fontOptions, setFontFamily }) => {
+const FontMenu: React.FC<FontMenuProps> = ({ fontOptions, setFontFamily, value }) => {
   const fontMenuOptions = fontOptions.map(option => ({
     label: option.label,
     action: () => setFontFamily(option.value)
   }));
   const [isOpen, setIsOpen] = useState(false);
-  const [fontFamily] = useAtom(atom_fontFamily);
+  const [atomFontFamily] = useAtom(atom_fontFamily);
+  const fontFamily = value !== undefined ? value : atomFontFamily;
   const selectedIndex = fontOptions.findIndex(option => option.value === fontFamily);
 
   return (

@@ -22,14 +22,25 @@ describe("Homepage", () => {
     cy.contains("Choose Your Path:").should("be.visible");
     cy.contains("Editing Options in Hermes Markdown").should("be.visible");
     
-    // Check for the three main options
-    cy.contains("New File").should("be.visible");
-    cy.contains("New from Template").should("be.visible");
-    cy.contains("Import File").should("be.visible");
+    // Check for the main CTA button
+    cy.contains("Get Started").should("be.visible");
   });
 
   it("Can navigate to dashboard and use editor", () => {
-    // Click on "New File" option
+    // Click on "Get Started" button
+    cy.contains("Get Started").click();
+    
+    // Should be on dashboard page
+    cy.url().should("include", "/dashboard");
+    
+    // Check for the dashboard options (desktop view)
+    cy.contains("Choose Your Path:").should("be.visible");
+    cy.contains("Editing Options in Hermes Markdown").should("be.visible");
+    cy.contains("New from Template").should("be.visible");
+    cy.contains("New File").should("be.visible");
+    cy.contains("Import File").should("be.visible");
+    
+    // Click on "New File" to go to editor
     cy.contains("New File").click();
     
     // Should be on editor page
@@ -38,8 +49,8 @@ describe("Homepage", () => {
     // Wait for editor to load and be visible
     cy.get('[data-testid="editor-textarea"]', { timeout: 10000 }).should("be.visible");
     
-    // Type some markdown content
-    cy.get('[data-testid="editor-textarea"]').clear().type("# Hello World\n\nThis is a **test** of the editor.\n\n- Item 1\n- Item 2");
+    // Type some markdown content - use the contenteditable div
+    cy.get('[data-testid="editor-textarea"]').click().type("# Hello World{enter}{enter}This is a **test** of the editor.{enter}{enter}- Item 1{enter}- Item 2");
     
     // Check that preview shows the content (if in split view)
     cy.get("body").then(($body) => {

@@ -3,6 +3,8 @@ import { FaTimes } from "react-icons/fa";
 import React from "react";
 import { useAtom } from "jotai";
 import { atom_theme } from "@/app/atoms/atoms";
+import DropdownMenu from "@/app/components/DropdownMenu";
+import { atom_fontFamily } from "@/app/atoms/atoms";
 
 interface MobileMenuProps {
   isOpen: boolean;
@@ -12,6 +14,7 @@ interface MobileMenuProps {
     handleOpenFile: () => void;
     handleSelectTemplate: () => void;
     handleOpenFindAndReplace: () => void;
+    handleOpenFontSettings: () => void;
   };
   contentEdited: string;
   fontOptions: { value: string; label: string }[];
@@ -29,6 +32,8 @@ const MobileMenu: React.FC<MobileMenuProps> = ({
   exportToMD,
 }) => {
   const [theme, setTheme] = useAtom(atom_theme);
+  const [fontFamily, setFontFamily] = useAtom(atom_fontFamily);
+  const [isFontMenuOpen, setIsFontMenuOpen] = React.useState(false);
 
   if (!isOpen) return null;
 
@@ -65,11 +70,12 @@ const MobileMenu: React.FC<MobileMenuProps> = ({
       <div className="flex flex-col gap-3 max-w-xs mx-auto px-4 mt-8 mb-4 overflow-y-auto max-h-[80vh] items-stretch">
         <div className="flex flex-col gap-3 w-full items-center">
           <Button variant="primary" label="New File" onClick={() => handleAction(actions.handleNewFile)} />
-          <Button variant="secondary" label="Template" onClick={() => handleAction(actions.handleSelectTemplate)} />
+          <Button variant="primary" label="Template" onClick={() => handleAction(actions.handleSelectTemplate)} />
           <Button variant="primary" label="Save File" onClick={() => handleAction(exportToMD)} />
           <Button variant="primary" label="Open File" onClick={() => handleAction(actions.handleOpenFile)} />
           <Button variant="primary" label="Copy Markdown" onClick={handleCopyMarkdown} />
-          <Button variant="primary" label="Find/Replace" onClick={() => handleAction(actions.handleOpenFindAndReplace)} />
+          <Button variant="primary" label="Replace" onClick={() => handleAction(actions.handleOpenFindAndReplace)} />
+          <Button variant="primary" label="Font" onClick={() => handleAction(actions.handleOpenFontSettings)} />
           <Button variant="primary" label={theme === "light" ? "Dark Mode" : "Light Mode"} onClick={handleThemeToggle} />
           <Button variant="primary" label="Documentation" onClick={handleDocumentation} />
         </div>

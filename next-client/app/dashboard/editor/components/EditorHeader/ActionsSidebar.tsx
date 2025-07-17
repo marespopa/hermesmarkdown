@@ -1,6 +1,6 @@
 import React from "react";
 import Button from "@/app/components/Button";
-import { FaFile, FaFolderOpen, FaSave, FaFilePdf, FaKeyboard, FaCopy, FaSearch, FaChevronLeft, FaChevronRight, FaClock, FaQuestion, FaSun, FaMoon } from "react-icons/fa";
+import { FaFile, FaFolderOpen, FaSave, FaFilePdf, FaKeyboard, FaCopy, FaSearch, FaChevronLeft, FaChevronRight, FaClock, FaQuestion, FaSun, FaMoon, FaFont } from "react-icons/fa";
 import classNames from "classnames";
 import { useAtom } from "jotai";
 import { atom_theme, atom_sidebarCollapsed } from "@/app/atoms/atoms";
@@ -11,6 +11,7 @@ interface ActionsSidebarProps {
     handleOpenFile: () => void;
     handleSelectTemplate: () => void;
     handleOpenFindAndReplace: () => void;
+    handleOpenFontSettings?: () => void;
   };
   contentEdited: string;
   exportToMD: () => void;
@@ -118,6 +119,15 @@ const ActionsSidebar: React.FC<ActionsSidebarProps> = ({
           styles="w-full justify-start pl-0 border border-neutral-200 dark:border-neutral-700"
         >
           <FaSearch /> <span className={getLabelClass()}>Find/Replace</span>
+        </Button>
+        <Button
+          variant="icon"
+          onClick={actions.handleOpenFontSettings}
+          aria-label="Font Settings"
+          title="Font Settings"
+          styles="w-full justify-start pl-0 border border-neutral-200 dark:border-neutral-700"
+        >
+          <FaFont /> <span className={getLabelClass()}>Font Settings</span>
         </Button>
         <span className={dividerClass} />
         {/* Export Section */}

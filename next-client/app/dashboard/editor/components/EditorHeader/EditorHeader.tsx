@@ -20,6 +20,8 @@ import ActionsSidebar from "./ActionsSidebar";
 import PDFPreviewDialog from "./PDFPreviewDialog";
 import ShortcutsDialog from "./ShortcutsDialog";
 import ActionsMobileMenu from "./ActionsMobileMenu";
+import FindBar from "./FindBar";
+import { FaChevronDown, FaChevronUp } from "react-icons/fa";
 
 interface Props {
   contentEdited: string;
@@ -30,7 +32,14 @@ interface Props {
     handleOpenFile: () => void;
     handleSelectTemplate: () => void;
     handleOpenFindAndReplace: () => void;
+    handleOpenFontSettings: () => void;
   };
+  searchTerm: string;
+  setSearchTerm: (term: string) => void;
+  matchCount: number;
+  setMatchCount: (count: number) => void;
+  currentIndex: number;
+  setCurrentIndex: (idx: number) => void;
 }
 
 export default function EditorHeader({
@@ -38,6 +47,12 @@ export default function EditorHeader({
   frontMatter,
   hasChanges,
   actions,
+  searchTerm,
+  setSearchTerm,
+  matchCount,
+  setMatchCount,
+  currentIndex,
+  setCurrentIndex,
 }: Props) {
   const [, setFileContent] = useAtom(atom_content);
   const [isFormatterDialogOpen, setIsFormatterDialogOpen] = useState(false);
@@ -46,6 +61,9 @@ export default function EditorHeader({
   const [, setHasChanges] = useAtom(atom_hasChanges);
   const router = useRouter();
   const isMobile = useIsMobile();
+  const findInputRef = useRef<HTMLInputElement>(null);
+  const [isFontControlsCollapsed, setIsFontControlsCollapsed] = useState(false);
+  const [showFindBar, setShowFindBar] = useState(false);
   const fileTitle = frontMatter.title;
   const fileName = frontMatter.fileName;
   const hasTitle = fileTitle.length > 0;
@@ -123,7 +141,7 @@ export default function EditorHeader({
       ),
     },
     {
-      label: "Find/Replace...",
+      label: "Replace...",
       action: withCloseFabMenu(actions.handleOpenFindAndReplace),
     },
   ];
@@ -152,6 +170,65 @@ export default function EditorHeader({
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
+
+  useEffect(() => {
+    if (isMobile) {
+      return;
+    }
+    
+    function handleKeyDown(e: KeyboardEvent) {
+      const isMac = navigator.userAgent.includes('Mac');
+  
+      if (
+        (isMac && e.metaKey && e.key === 'f') ||
+        (!isMac && e.ctrlKey && e.key === 'f')
+      ) {
+        e.preventDefault();
+        setShowFindBar(true);
+        setIsFontControlsCollapsed(false);
+        setTimeout(() => findInputRef.current?.focus(), 0);
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isMobile]);
+
+  // Show find bar when there's a search term
+  useEffect(() => {
+    if (searchTerm) {
+      setShowFindBar(true);
+    }
+  }, [searchTerm]);
+
+  // Find logic
+  useEffect(() => {
+    if (!searchTerm) {
+      setMatchCount(0);
+      setCurrentIndex(0);
+      return;
+    }
+    // Find all matches in contentEdited
+    const escaped = searchTerm.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const regex = new RegExp(escaped, "gi");
+    const matches = [...contentEdited.matchAll(regex)];
+    setMatchCount(matches.length);
+    if (matches.length === 0) setCurrentIndex(0);
+    else if (currentIndex >= matches.length) setCurrentIndex(0);
+  }, [searchTerm, contentEdited]);
+
+  const handleNext = () => {
+    if (matchCount === 0) return;
+    setCurrentIndex((currentIndex + 1) % matchCount);
+  };
+  const handlePrev = () => {
+    if (matchCount === 0) return;
+    setCurrentIndex((currentIndex - 1 + matchCount) % matchCount);
+  };
+  const handleClear = () => {
+    setSearchTerm("");
+    setMatchCount(0);
+    setCurrentIndex(0);
+  };
 
   return (
     <header className="flex flex-row items-center justify-between w-full py-4 rounded-t-xl relative">
@@ -190,13 +267,23 @@ export default function EditorHeader({
           hasTitle={hasTitle}
           hasChanges={hasChanges}
           showFileDialog={showFileDialog}
-          renderFontMenu={() => !isMobile && (
-            <FontMenu fontOptions={fontOptions} setFontFamily={setFontFamily} />
-          )}
-          renderFontSizeMenu={() => !isMobile && (
-            <FontSizeMenu fontSizeOptions={fontSizeOptions} setFontSize={setFontSize} />
-          )}
+          renderFontMenu={() => null}
+          renderFontSizeMenu={() => null}
         />
+        {/* Font controls and Find bar with collapse toggle */}
+        {/* Only show FindBar if needed, no font controls or collapse button */}
+        {!isMobile && showFindBar && (
+          <FindBar
+            ref={findInputRef}
+            searchTerm={searchTerm}
+            matchCount={matchCount}
+            currentIndex={currentIndex}
+            onSearch={setSearchTerm}
+            onNext={handleNext}
+            onPrev={handlePrev}
+            onClear={handleClear}
+          />
+        )}
         {isMobile && (
           <Button
             variant="secondary"

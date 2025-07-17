@@ -12,6 +12,7 @@ interface ActionsMobileMenuProps {
     handleOpenFile: () => void;
     handleSelectTemplate: () => void;
     handleOpenFindAndReplace: () => void;
+    handleOpenFontSettings?: () => void;
   };
   contentEdited: string;
   exportToMD: () => void;
@@ -51,6 +52,7 @@ const ActionsMobileMenu: React.FC<ActionsMobileMenuProps> = ({
         <Button variant="secondary" onClick={exportToMD} label={<><FaSave className="inline mr-2" />Save As</>} styles="w-full" />
         <Button variant="secondary" onClick={showPdfPreviewModal} label={<><FaFilePdf className="inline mr-2" />Export to PDF</>} styles="w-full" />
         <Button variant="secondary" onClick={actions.handleOpenFindAndReplace} label={<><FaSearch className="inline mr-2" />Find and Replace</>} styles="w-full" />
+        <Button variant="secondary" onClick={actions.handleOpenFontSettings} label={<><FaKeyboard className="inline mr-2" />Font Settings…</>} styles="w-full" />
         <Button variant="secondary" onClick={() => setTheme(theme === "light" ? "dark" : "light")} label={<>{theme === 'light' ? <FaMoon className="inline mr-2" /> : <FaSun className="inline mr-2" />} {theme === 'light' ? "Dark Mode" : "Light Mode"}</>} styles="w-full" />
         <Button variant="secondary" onClick={() => navigator.clipboard.writeText(contentEdited)} label={<><FaCopy className="inline mr-2" /> Copy Markdown</>} styles="w-full" />
       </div>

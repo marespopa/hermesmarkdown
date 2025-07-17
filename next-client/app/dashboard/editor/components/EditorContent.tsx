@@ -7,6 +7,9 @@ interface Props {
   setHasChanges: (hasChanges: boolean) => void;
   fontFamily: string;
   fontSize: string;
+  searchTerm?: string;
+  matchCount?: number;
+  currentIndex?: number;
 }
 
 export default function EditorContent({
@@ -15,6 +18,9 @@ export default function EditorContent({
   setHasChanges,
   fontFamily,
   fontSize,
+  searchTerm,
+  matchCount,
+  currentIndex,
 }: Props) {
   return (
     <div className="flex-1 flex flex-col min-h-0 w-full mb-4">
@@ -27,6 +33,9 @@ export default function EditorContent({
           }}
           fontFamily={fontFamily}
           fontSize={fontSize}
+          searchTerm={searchTerm}
+          matchCount={matchCount}
+          currentIndex={currentIndex}
         />
       </div>
     </div>

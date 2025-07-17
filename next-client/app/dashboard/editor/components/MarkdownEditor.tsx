@@ -6,10 +6,30 @@ interface MarkdownEditorProps {
   onChange: (value: string) => void;
   fontFamily: string;
   fontSize: string;
+  searchTerm?: string;
+  matchCount?: number;
+  currentIndex?: number;
 }
 
 // Custom Tailwind-based markdown highlighter (with table support)
-const highlightMarkdownWithTailwind = (code: string) => {
+const highlightMarkdownWithTailwind = (code: string, searchTerm?: string, matchCount?: number, currentIndex?: number) => {
+  // Highlight search matches if searchTerm is provided
+  if (searchTerm && searchTerm.length > 0) {
+    const escapedSearchTerm = searchTerm.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const regex = new RegExp(escapedSearchTerm, "gi");
+    let matchIdx = 0;
+    code = code.replace(regex, (match) => {
+      let highlight;
+      if (matchCount && currentIndex !== undefined && matchIdx === currentIndex) {
+        highlight = `<span class=\"bg-amber-300 dark:bg-amber-600 text-black dark:text-white font-bold\">${match}</span>`;
+      } else {
+        highlight = `<span class=\"bg-amber-100 dark:bg-amber-800 text-black dark:text-white\">${match}</span>`;
+      }
+      matchIdx++;
+      return highlight;
+    });
+  }
+
   // Table header separator (| --- | --- |)
   code = code.replace(
     /^(\s*\|?\s*:?-+:?\s*\|)+\s*$/gm,
@@ -71,15 +91,15 @@ const highlightMarkdownWithTailwind = (code: string) => {
     (match, spaces, number, content) => 
       `${spaces}<span class="text-amber-600 dark:text-amber-400">${number}</span> <span class="text-neutral-900 dark:text-neutral-100">${content}</span>`
   );
-  // Inline code - wrap entire match
-  code = code.replace(
-    /`([^`]+)`/g,
-    match => `<span class="bg-neutral-200 dark:bg-neutral-800 text-amber-700 dark:text-amber-300">${match}</span>`
-  );
-  // Fenced code blocks (```language\ncode\n```) - wrap entire match
+  // Fenced code blocks (```language\ncode\n```) - color entire block
   code = code.replace(
     /```[\s\S]*?```/g,
-    match => `<span class="bg-neutral-200 dark:bg-neutral-800 text-amber-700 dark:text-amber-300 font-mono">${match}</span>`
+    match => `<span class="text-teal-600 dark:text-teal-400">${match}</span>`
+  );
+  // Inline code - color entire block
+  code = code.replace(
+    /`([^`\n]+)`/g,
+    match => `<span class="text-teal-600 dark:text-teal-400">${match}</span>`
   );
   // Horizontal rule (---, ***, ___) - wrap entire match
   code = code.replace(
@@ -109,12 +129,12 @@ const highlightMarkdownWithTailwind = (code: string) => {
   return code;
 };
 
-const MarkdownEditor: React.FC<MarkdownEditorProps> = ({ value, onChange, fontFamily, fontSize }) => {
+const MarkdownEditor: React.FC<MarkdownEditorProps> = ({ value, onChange, fontFamily, fontSize, searchTerm, matchCount, currentIndex }) => {
   return (
     <Editor
       value={value}
       onValueChange={onChange}
-      highlight={highlightMarkdownWithTailwind}
+      highlight={(code) => highlightMarkdownWithTailwind(code, searchTerm, matchCount, currentIndex)}
       padding={16}
       textareaId="markdown-editor"
       textareaClassName="w-full h-full bg-transparent outline-none resize-none"

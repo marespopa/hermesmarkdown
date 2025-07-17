@@ -28,6 +28,7 @@ import FindAndReplaceModal from "../components/FindAndReplaceModal";
 import useIsMobile from "@/app/hooks/use-is-mobile";
 import { EMPTY_PAGE_TEMPLATE } from "./EditorUtils";
 import { useRouter } from "next/navigation";
+import FontConfigDialog from "./components/EditorHeader/FontConfigDialog";
 
 export default function Editor() {
   const [isLoading, setIsLoading] = useState(false);
@@ -50,8 +51,18 @@ export default function Editor() {
   const [isTemplateSelectModalVisible, setIsTemplateSelectModalVisible] =
     useState(false);
   const router = useRouter();
-  const [fontFamily] = useAtom(atom_fontFamily);
+  const [fontFamily, setFontFamily] = useAtom(atom_fontFamily);
   const [fontSize, setFontSize] = useAtom(atom_fontSize);
+  const [isFontDialogOpen, setIsFontDialogOpen] = useState(false);
+
+  // Search functionality
+  // Remove useSearch import and all useCommand calls for find, findNext, findPrevious
+  // Only keep Replace modal logic
+
+  // Find bar state (move to Editor, pass to header and editor)
+  const [searchTerm, setSearchTerm] = useState("");
+  const [matchCount, setMatchCount] = useState(0);
+  const [currentIndex, setCurrentIndex] = useState(0);
 
   const [_, setDocumentTitle] = useDocumentTitle("Hermes Markdown");
 
@@ -181,6 +192,15 @@ export default function Editor() {
     setShowTimer(false);
   }
 
+  function handleOpenFontSettings() {
+    setIsFontDialogOpen(true);
+  }
+
+  function handleSaveFontSettings(fontFamily: string, fontSize: string) {
+    setFontFamily(fontFamily);
+    setFontSize(fontSize);
+  }
+
   if (!mounted) {
     return null;
   }
@@ -208,7 +228,21 @@ export default function Editor() {
             handleOpenFile,
             handleSelectTemplate,
             handleOpenFindAndReplace,
+            handleOpenFontSettings,
           }}
+          searchTerm={searchTerm}
+          setSearchTerm={setSearchTerm}
+          matchCount={matchCount}
+          setMatchCount={setMatchCount}
+          currentIndex={currentIndex}
+          setCurrentIndex={setCurrentIndex}
+        />
+        <FontConfigDialog
+          isOpen={isFontDialogOpen}
+          onClose={() => setIsFontDialogOpen(false)}
+          onSave={handleSaveFontSettings}
+          initialFontFamily={fontFamily}
+          initialFontSize={fontSize}
         />
         <EditorContent
           contentEdited={contentEdited}
@@ -216,6 +250,9 @@ export default function Editor() {
           setHasChanges={setHasChanges}
           fontFamily={fontFamily}
           fontSize={fontSize}
+          searchTerm={searchTerm}
+          matchCount={matchCount}
+          currentIndex={currentIndex}
         />
         
         {/* Template Selection Modal */}
