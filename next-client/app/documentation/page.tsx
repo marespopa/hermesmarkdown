@@ -1,198 +1,153 @@
 import React from "react";
 import { containerStyle } from "../constants/styles";
 
-export default function Prices() {
-  const code = {
-    headers: `# Heading 1
-    ## Heading 2
-    ### Heading 3`,
-    emphasis: `**Bold Text**
-    *Italic Text*
-    ~~Strikethrough Text~~`,
-    lists: {
-      unordered: `- Item 1
-    - Item 2
-    - Item 3`,
-      ordered: `1. Item 1
-    2. Item 2
-    3. Item 3`,
-    },
-    links: `[Visit Hermes Markdown](https://hermesmarkdown.com/)`,
-    images: `![Alt Text](Image URL)`,
-    codeBlocks: `~~~
-    console.log("Hello, world!")
-    ~~~`,
-    tables: `| Header 1 | Header 2 |
-    | -------- | -------- |
-    | Cell 1   | Cell 2   |
-    | Cell 3   | Cell 4   |`,
-    shortcuts: `
-    CTRL+S - Save File
-    CTRL+N - New File
-    CTRL+O - Import File
-    CTRL+E - Open Export Preview`,
-  } as const;
-
+export default function Documentation() {
   return (
     <main className="bg-white dark:bg-gray-900 mt-8 pt-8 text-gray-900 dark:text-white">
       <div className="container max-w-screen-xl mx-auto px-4 sm:px-2">
         <div className="prose prose-gray dark:prose-invert max-w-none">
           <section>
-            <h1>Documentation</h1>
+            <h1>Hermes Markdown Documentation</h1>
             <p>
-              Welcome to the <strong>Hermes Markdown</strong> Markdown Syntax
-              Guide. This documentation provides a comprehensive overview of the
-              Markdown syntax supported by Hermes Markdown.
+              Welcome to <strong>Hermes Markdown</strong>! This guide will help you get the most out of the app, from writing and organizing notes to exporting and customizing your workspace.
             </p>
-            <p>
-              Markdown is a lightweight markup language that allows you to
-              format text and add elements such as headers, lists, links, and
-              more.
-            </p>
+          </section>
+
+          {/* Table of Contents */}
+          <section>
             <h3>Table of Contents</h3>
             <ol>
-              <li>
-                <a href="#headers" className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300">Headers</a>
-              </li>
-              <li>
-                <a href="#emphasis" className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300">Emphasis and Styling</a>
-              </li>
-              <li>
-                <a href="#lists" className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300">Lists</a>
-              </li>
-              <li>
-                <a href="#links" className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300">Links</a>
-              </li>
-              <li>
-                <a href="#images" className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300">Images</a>
-              </li>
-              <li>
-                <a href="#code-blocks" className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300">Code Blocks</a>
-              </li>
-              <li>
-                <a href="#tables" className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300">Tables</a>
-              </li>
-              <li>
-                <a href="#keyboard-shortcuts" className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300">Keyboard Shortcuts</a>
-              </li>
+              <li><a href="#getting-started" className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300">Getting Started</a></li>
+              <li><a href="#editor-features" className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300">Editor Features</a></li>
+              <li><a href="#zen-mode" className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300">Zen Mode</a></li>
+              <li><a href="#exporting" className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300">Exporting to PDF & Markdown</a></li>
+              <li><a href="#find-replace" className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300">Find & Replace</a></li>
+              <li><a href="#templates" className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300">Templates</a></li>
+              <li><a href="#timer" className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300">Pomodoro Timer</a></li>
+              <li><a href="#shortcuts" className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300">Keyboard Shortcuts</a></li>
+              <li><a href="#features" className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300">Feature Overview</a></li>
             </ol>
           </section>
 
-          {/* Headers Section */}
-          <section id="headers">
-            <h3>1. Headers</h3>
-            <p>
-              Headers in Markdown are used to denote different levels of section
-              headings. To create headers, use the hash symbol (<em>#</em>)
-              followed by a space. The number of hash symbols determines the
-              header level:
-            </p>
-            <pre className="bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 p-4 rounded-lg overflow-x-auto">
-              <code>{code.headers}</code>
-            </pre>
-          </section>
-
-          {/* Emphasis Section */}
-          <section id="emphasis">
-            <h3>2. Emphasis and Styling</h3>
-            <p>
-              You can add emphasis and styling to your text using a variety of
-              Markdown syntax:
-            </p>
+          {/* Getting Started */}
+          <section id="getting-started">
+            <h2>Getting Started</h2>
             <ul>
-              <li>
-                <strong>Bold:</strong> Enclose the text in double asterisks
-                (**).
-              </li>
-              <li>
-                <strong>Italic:</strong> Enclose the text in single asterisks
-                (*).
-              </li>
-              <li>
-                <strong>Strikethrough:</strong> Enclose the text in double
-                tildes (~~).
-              </li>
+              <li><strong>New File:</strong> Start with a blank markdown file for total flexibility.</li>
+              <li><strong>Templates:</strong> Use pre-built templates for common note types (e.g., book tracker, dashboard, etc.).</li>
+              <li><strong>Import:</strong> Bring in existing <code>.md</code> or <code>.txt</code> files to continue editing.</li>
             </ul>
-            <pre className="bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 p-4 rounded-lg overflow-x-auto">
-              <code>{code.emphasis}</code>
-            </pre>
+            <p>Choose your path from the welcome screen or the file menu. You can always switch between these options as you work.</p>
           </section>
 
-          {/* Lists Section */}
-          <section id="lists">
-            <h3>3. Lists</h3>
-            <p>Markdown supports both ordered and unordered lists.</p>
-            <p>
-              To create an unordered list, use hyphens (-), plus signs (+), or
-              asterisks (*) followed by a space:
-            </p>
-            <pre className="bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 p-4 rounded-lg overflow-x-auto">
-              <code>{code.lists.unordered}</code>
-            </pre>
-            <p className="mt-md">
-              To create an ordered list, use numbers followed by periods (.) and
-              a space:
-            </p>
-            <pre className="bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 p-4 rounded-lg overflow-x-auto">
-              <code>{code.lists.ordered}</code>
-            </pre>
+          {/* Editor Features */}
+          <section id="editor-features">
+            <h2>Editor Features</h2>
+            <ul>
+              <li><strong>Live Markdown Editing:</strong> Write and preview markdown in real time.</li>
+              <li><strong>Font & Size Customization:</strong> Choose your preferred monospace font and font size for the editor.</li>
+              <li><strong>Metadata Editing:</strong> Edit file name, title, description, and tags via the document properties dialog.</li>
+              <li><strong>Autosave & Change Tracking:</strong> Your work is automatically saved, and unsaved changes are clearly indicated.</li>
+              <li><strong>Sidebar & Mobile Support:</strong> Responsive design for desktop and mobile, with collapsible sidebar.</li>
+            </ul>
           </section>
 
-          {/* Links Section */}
-          <section id="links">
-            <h3>4. Links</h3>
+          {/* Zen Mode */}
+          <section id="zen-mode">
+            <h2>Zen Mode</h2>
             <p>
-              You can add hyperlinks to your Markdown files using the following
-              syntax:
+              Focus on your writing with <strong>Zen Mode</strong>. This mode centers the editor, hides distractions, and provides a clean, immersive writing experience. Toggle Zen Mode using the floating button in the editor or press <b>Esc</b> to exit.
             </p>
-            <pre className="bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 p-4 rounded-lg overflow-x-auto">
-              <code>{code.links}</code>
-            </pre>
           </section>
 
-          {/* Images Section */}
-          <section id="images">
-            <h3>5. Images</h3>
-            <p>
-              To insert images into your Markdown files, use the following
-              syntax:
-            </p>
-            <pre className="bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 p-4 rounded-lg overflow-x-auto">
-              <code>{code.images}</code>
-            </pre>
+          {/* Exporting */}
+          <section id="exporting">
+            <h2>Exporting to PDF & Markdown</h2>
+            <ul>
+              <li><strong>Export to PDF:</strong> Click the PDF icon or use the shortcut to preview your document as a PDF and export it. The export uses a clean, print-friendly style.</li>
+              <li><strong>Save as Markdown:</strong> Use the file menu to save your work as a <code>.md</code> file, preserving all metadata and formatting.</li>
+            </ul>
           </section>
 
-          {/* Code Blocks Section */}
-          <section id="code-blocks">
-            <h3>6. Code Blocks</h3>
+          {/* Find & Replace */}
+          <section id="find-replace">
+            <h2>Find & Replace</h2>
             <p>
-              To display code blocks or inline code, use backticks (`) to
-              enclose the code.
+              Quickly search your document using the floating FindBar (<b>Cmd/Ctrl+F</b>), or open the Find & Replace modal for advanced options. Navigate between matches and replace text efficiently.
             </p>
-            <p>For code blocks, you can use triple tilde characters (~):</p>
-            <pre className="bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 p-4 rounded-lg overflow-x-auto">
-              <code>{code.codeBlocks}</code>
-            </pre>
           </section>
 
-          {/* Tables Section */}
-          <section id="tables">
-            <h3>7. Tables</h3>
+          {/* Templates */}
+          <section id="templates">
+            <h2>Templates</h2>
             <p>
-              To create tables, use hyphens (-) to separate the header row and
-              pipes (|) to separate the columns:
+              Jumpstart your notes with <strong>Templates</strong>. Select from a variety of pre-built templates for common use cases, or create your own. Templates include structure and sample metadata to help you get started faster.
             </p>
-            <pre className="bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 p-4 rounded-lg overflow-x-auto">
-              <code>{code.tables}</code>
-            </pre>
           </section>
 
-          <section>
+          {/* Timer */}
+          <section id="timer">
+            <h2>Pomodoro Timer</h2>
             <p>
-              This concludes the Hermes{" "}
-              <strong> Notes Markdown Syntax Guide.</strong> With these Markdown
-              syntax elements at your disposal , you can create well -
-              structured and visually appealing content in Hermes Markdown.
+              Boost your productivity with the built-in <strong>Pomodoro Timer</strong>. Configure work and break intervals, track completed pomodoros and cycles, and receive notifications and sounds when sessions end. The timer can be minimized or closed as needed.
+            </p>
+          </section>
+
+          {/* Keyboard Shortcuts */}
+          <section id="shortcuts">
+            <h2>Keyboard Shortcuts</h2>
+            <ul className="font-mono text-base space-y-2">
+              <li><b>⌘/Ctrl + Shift + Y</b>: Save</li>
+              <li><b>⌘/Ctrl + Shift + I</b>: Import File</li>
+              <li><b>⌘/Ctrl + Shift + U</b>: New File</li>
+              <li><b>⌘/Ctrl + Shift + E</b>: Export to PDF</li>
+              <li><b>⌘/Ctrl + Shift + M</b>: Select Template</li>
+              <li><b>⌘/Ctrl + Shift + H</b>: Go to Home/Dashboard</li>
+              <li><b>Esc</b>: Close Dialogs or Exit Zen Mode</li>
+              <li><b>Cmd/Ctrl + F</b>: Open FindBar</li>
+            </ul>
+          </section>
+
+          {/* Feature Overview */}
+          <section id="features">
+            <h2>Feature Overview</h2>
+            <ul>
+              <li>Live Markdown Editor with real-time preview</li>
+              <li>Zen Mode for focused writing</li>
+              <li>Export to PDF and Markdown</li>
+              <li>Find & Replace with floating FindBar</li>
+              <li>Pre-built and custom templates</li>
+              <li>Pomodoro Timer for productivity</li>
+              <li>Customizable fonts and sizes</li>
+              <li>Metadata editing (title, description, tags)</li>
+              <li>Autosave and change tracking</li>
+              <li>Responsive design for desktop and mobile</li>
+              <li>Comprehensive keyboard shortcuts</li>
+            </ul>
+          </section>
+
+          {/* Markdown Syntax Guide (condensed) */}
+          <section id="markdown-syntax">
+            <h2>Markdown Syntax Guide (Quick Reference)</h2>
+            <ul>
+              <li><b>Headers:</b> <code># H1</code>, <code>## H2</code>, <code>### H3</code></li>
+              <li><b>Bold:</b> <code>**bold**</code>, <b>Italic:</b> <code>*italic*</code>, <b>Strikethrough:</b> <code>~~strike~~</code></li>
+              <li><b>Lists:</b> <code>- item</code>, <code>1. item</code></li>
+              <li><b>Links:</b> <code>[text](url)</code></li>
+              <li><b>Images:</b> <code>![alt](url)</code></li>
+              <li><b>Code:</b> <code>`inline`</code>, <code>~~~block~~~</code></li>
+              <li><b>Tables:</b> <code>| h1 | h2 |</code></li>
+            </ul>
+            <p>
+              For more details, see the full Markdown documentation online: {" "}
+              <a
+                href="https://www.markdownguide.org/basic-syntax/"
+                className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Markdown Guide
+              </a>.
             </p>
           </section>
         </div>

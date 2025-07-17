@@ -10,6 +10,7 @@ interface Props {
   searchTerm?: string;
   matchCount?: number;
   currentIndex?: number;
+  zenMode?: boolean;
 }
 
 export default function EditorContent({
@@ -21,10 +22,17 @@ export default function EditorContent({
   searchTerm,
   matchCount,
   currentIndex,
+  zenMode = false,
 }: Props) {
   return (
-    <div className="flex-1 flex flex-col min-h-0 w-full mb-4">
-      <div className="flex-1 min-h-0 w-full border border-strongblack dark:border-white/20 bg-white dark:bg-neutral-800 rounded-2xl shadow-lg px-2 py-2 flex flex-col">
+    <div className={`${zenMode ? 'h-full overflow-y-auto w-full' : 'flex-1 flex flex-col min-h-0 w-full mb-4'}`}>
+      <div
+        className={`flex-1 min-h-0 w-full px-2 py-2 flex flex-col ${
+          zenMode
+            ? 'h-full overflow-y-auto rounded-2xl bg-white dark:bg-neutral-900 p-4 pr-0 w-[calc(100%-2rem)]'
+            : 'bg-white dark:bg-neutral-800 rounded-2xl shadow-lg border border-strongblack dark:border-white/20'
+        }`}
+      >
         <MarkdownEditor
           value={contentEdited}
           onChange={val => {

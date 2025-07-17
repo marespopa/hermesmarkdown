@@ -29,6 +29,9 @@ import useIsMobile from "@/app/hooks/use-is-mobile";
 import { EMPTY_PAGE_TEMPLATE } from "./EditorUtils";
 import { useRouter } from "next/navigation";
 import FontConfigDialog from "./components/EditorHeader/FontConfigDialog";
+import { useRef } from "react";
+import { FaExpand, FaTimes } from "react-icons/fa";
+import Button from "@/app/components/Button";
 
 export default function Editor() {
   const [isLoading, setIsLoading] = useState(false);
@@ -54,6 +57,8 @@ export default function Editor() {
   const [fontFamily, setFontFamily] = useAtom(atom_fontFamily);
   const [fontSize, setFontSize] = useAtom(atom_fontSize);
   const [isFontDialogOpen, setIsFontDialogOpen] = useState(false);
+  const [isZenMode, setIsZenMode] = useState(false);
+  const zenButtonRef = useRef<HTMLButtonElement>(null);
 
   // Search functionality
   // Remove useSearch import and all useCommand calls for find, findNext, findPrevious
@@ -101,6 +106,19 @@ export default function Editor() {
       }
     }
   }, [fontFamily]);
+
+  // Exit Zen Mode on Esc
+  useEffect(() => {
+    if (!isZenMode) return;
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape") {
+        setIsZenMode(false);
+        zenButtonRef.current?.focus();
+      }
+    }
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isZenMode]);
 
   function handleNewFile() {
     setIsLoading(true);
@@ -215,9 +233,55 @@ export default function Editor() {
 
   return (
     <div className="w-full h-screen bg-amber-100 dark:bg-darkbg">
-      {/* Sidebar is rendered by EditorHeader, which is always present and fixed */}
-      {/* Main content area is pushed right by sidebar width */}
-      <div className={`flex-1 min-h-screen overflow-auto px-8 ${sidebarMargin}`}>
+      {/* Zen Mode Dedicated Overlay & Centered Editor */}
+      {isZenMode && (
+        <>
+          {/* Dedicated overlay for dimming/blurring, does not affect layout or pointer events of sidebar/main content */}
+          <div className="fixed inset-0 z-40 bg-black/40 dark:bg-white/10 backdrop-blur-md transition-all duration-300" />
+          {/* Centered Editor Container (remains interactive) */}
+          <div className="fixed inset-0 z-50 flex items-center justify-center min-h-screen w-screen pointer-events-none">
+            <div className="relative flex flex-col w-full max-w-[95vw] mx-auto min-h-[70vh] max-h-[96vh] overflow-y-auto scrollbar-thin rounded-xl transition-all duration-300 p-0 sm:p-4 pointer-events-auto">
+              {/* Floating Close Button */}
+              <Button
+                ref={zenButtonRef} 
+                variant="icon"
+                aria-label="Exit Zen Mode"
+                onClick={() => setIsZenMode(false)}
+                styles="z-50 absolute right-12 top-4 sm:right-20 sm:top-8"
+              >
+                <FaTimes className="w-6 h-6" />
+              </Button>
+              {/* Editor Content */}
+              <EditorContent
+                contentEdited={contentEdited}
+                setContentEdited={setContentEdited}
+                setHasChanges={setHasChanges}
+                fontFamily={fontFamily}
+                fontSize={fontSize}
+                searchTerm={searchTerm}
+                matchCount={matchCount}
+                currentIndex={currentIndex}
+                zenMode={true}
+              />
+            </div>
+          </div>
+        </>
+      )}
+      {/* Sidebar and Main Content (no blur/pointer-events in Zen Mode) */}
+      <div className={`flex-1 min-h-screen overflow-auto px-8 ${sidebarMargin} transition-all duration-300`}>
+        {/* Zen Mode Toggle Button (floating, always visible) */}
+        {!isZenMode && (
+          <Button
+            ref={zenButtonRef}
+            variant="icon"
+            aria-label="Enter Zen Mode"
+            title="Enter Zen Mode"
+            onClick={() => setIsZenMode(true)}
+            styles="absolute right-4 top-4 z-40 focus:ring-2 focus:ring-amber-400 hover:bg-opacity-80"
+          >
+            <FaExpand className="w-6 h-6" />
+          </Button>
+        )}
         {isTimerVisible && <Timer settings={timerSettings} onClose={handleCloseTimer} />}
         <EditorHeader
           contentEdited={contentEdited}
@@ -254,7 +318,6 @@ export default function Editor() {
           matchCount={matchCount}
           currentIndex={currentIndex}
         />
-        
         {/* Template Selection Modal */}
         {isTemplateSelectModalVisible && (
           <TemplateSelectionModal
@@ -262,7 +325,6 @@ export default function Editor() {
             handleClose={() => setIsTemplateSelectModalVisible(false)}
           />
         )}
-        
         {/* File Selection Modal */}
         {isFileSelectModalVisible && (
           <FileSelectionModal
@@ -270,7 +332,6 @@ export default function Editor() {
             handleClose={() => setIsFileSelectModalVisible(false)}
           />
         )}
-        
         {/* Find and Replace Modal */}
         {isFindAndReplaceModalVisible && (
           <FindAndReplaceModal

@@ -70,7 +70,7 @@ const TextareaResizable = ({
           data-testid="editor-textarea"
           onSelect={handleCursorChange}
           onKeyUp={handleCursorChange}
-          style={{ fontFamily: "monospace", fontSize: FONT_SIZE, lineHeight: LINE_HEIGHT, whiteSpace: "pre", height: "100%", minHeight: "6em", maxHeight: "60vh", paddingTop: 16, paddingBottom: 0, borderRadius: 0, overflow: "hidden" }}
+          style={{ fontFamily: "monospace", fontSize: FONT_SIZE, lineHeight: LINE_HEIGHT, whiteSpace: "pre", height: "100%", minHeight: "6em", maxHeight: "60vh", paddingTop: 16, paddingBottom: 0, borderRadius: 0, overflow: "auto" }}
           wrap="off"
           rows={Math.max(1, lines.length)}
         />
