@@ -2,24 +2,15 @@
 
 import Button from "@/app/components/Button";
 import { useAtom } from "jotai";
-import EditorPreviewTrigger from "../EditorPreviewTrigger";
-import PenIcon from "@/app/components/Icons/PenIcon";
 import { useEffect, useRef, useState } from "react";
 import EditorForm from "../EditorForm";
 import { FileMetadata } from "@/app/types/markdown";
-import { atom_content, atom_showTimer, atom_panelState, atom_hasChanges, atom_theme, atom_fontFamily, atom_fontSize } from "@/app/atoms/atoms";
+import { atom_content, atom_showTimer, atom_hasChanges, atom_fontFamily, atom_fontSize } from "@/app/atoms/atoms";
 import DropdownMenu from "@/app/components/DropdownMenu";
 import ExportService from "@/app/services/export-service";
-import { FaClock, FaFile, FaEdit, FaQuestion, FaEye, FaColumns, FaPen, FaExclamationCircle, FaSave, FaCheck, FaKeyboard, FaFilePdf, FaMoon, FaSun, FaChevronDown, FaChevronUp, FaBars, FaTimes } from "react-icons/fa";
+import { FaFile, FaEdit, FaQuestion } from "react-icons/fa";
 import { useRouter } from "next/navigation";
 import useIsMobile from "@/app/hooks/use-is-mobile";
-import React from "react";
-import DialogModal from "@/app/components/DialogModal";
-import Portal from "@/app/components/Portal";
-import Markdown from "react-markdown";
-import remarkGfm from "remark-gfm";
-import { Light as SyntaxHighlighter } from "react-syntax-highlighter";
-import { docco } from "react-syntax-highlighter/dist/esm/styles/hljs";
 import toast from "react-hot-toast";
 import TitleFileInfo from "./TitleFileInfo";
 import FontMenu from "./FontMenu";
@@ -52,21 +43,17 @@ export default function EditorHeader({
   const [isFormatterDialogOpen, setIsFormatterDialogOpen] = useState(false);
   const [isFabMenuOpen, setIsFabMenuOpen] = useState(false);
   const [showTimer, setShowTimer] = useAtom(atom_showTimer);
-  const [panelState, setPanelState] = useAtom(atom_panelState);
   const [, setHasChanges] = useAtom(atom_hasChanges);
   const router = useRouter();
   const isMobile = useIsMobile();
   const fileTitle = frontMatter.title;
   const fileName = frontMatter.fileName;
   const hasTitle = fileTitle.length > 0;
-  // Helper to adapt jotai setTheme to (theme: string) => void
-  const setThemeString = (theme: string) => setTheme(theme as "light" | "dark");
   const safeFileName = fileName || "";
   const fabMenuRef = useRef<HTMLDivElement>(null);
-  const [theme, setTheme] = useAtom(atom_theme);
   const [isShortcutsOpen, setIsShortcutsOpen] = useState(false);
-  const [fontFamily, setFontFamily] = useAtom(atom_fontFamily);
-  const [fontSize, setFontSize] = useAtom(atom_fontSize);
+  const [, setFontFamily] = useAtom(atom_fontFamily);
+  const [, setFontSize] = useAtom(atom_fontSize);
   const fontSizeOptions = [
     { value: "14px", label: "Small" },
     { value: "16px", label: "Normal" },
@@ -76,7 +63,6 @@ export default function EditorHeader({
   const [isPdfPreviewOpen, setIsPdfPreviewOpen] = useState(false);
   const [selectedFont, setSelectedFont] = useState<string>("font-sans");
   const [hideFontDropdown, setHideFontDropdown] = useState(false);
-  const [isCollapsed, setIsCollapsed] = useState(false);
 
   const fontOptions = [
     { value: "Fira Mono, monospace", label: "Fira Mono" },
@@ -328,40 +314,5 @@ export default function EditorHeader({
 
   function hidePdfPreviewModal() {
     setIsPdfPreviewOpen(false);
-  }
-
-  // PDF-specific markdown preview that forces light mode
-  function PdfMarkdownPreview({ content, fontClass = "font-sans" }: { content: string, fontClass?: string }) {
-    if (!content?.length) {
-      return (
-        <div data-testid="preview">
-          <p className="text-gray-700">The file is currently empty...</p>
-        </div>
-      );
-    }
-    return (
-      <div data-testid="preview" className={`bg-white prose ${fontClass}`} style={{ color: '#222' }}>
-        <Markdown
-          remarkPlugins={[remarkGfm]}
-          components={{
-            code(props) {
-              const { children, className, node, ...rest } = props;
-              const match = /language-(\w+)/.exec(className || "");
-              return match ? (
-                <SyntaxHighlighter style={docco} PreTag="div" language={match[1]}>
-                  {String(children).replace(/\n$/, "")}
-                </SyntaxHighlighter>
-              ) : (
-                <code {...rest} className={className}>
-                  {children}
-                </code>
-              );
-            },
-          }}
-        >
-          {content}
-        </Markdown>
-      </div>
-    );
   }
 }
