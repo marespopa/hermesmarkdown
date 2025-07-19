@@ -18,9 +18,9 @@ const Textarea = ({
   return (
     <div className="my-4">
       <label className="flex flex-col">
-        <span className="text-black font-bold text-sm">{label}</span>
+        <span className="text-xs text-neutral-400 dark:text-neutral-400 mb-1">{label}</span>
         <textarea
-          className="bg-white dark:bg-neutral-900 text-black dark:text-white border border-neutral-400 dark:border-neutral-600 rounded-none font-bold px-2 py-2 mb-2 focus:outline-none focus:ring-2 focus:ring-emerald-600 placeholder-neutral-500"
+          className="rounded-lg px-5 py-4 text-base transition-all duration-200 ease-out focus:outline-none focus-visible:ring-2 disabled:opacity-50 disabled:pointer-events-none select-none border bg-white text-black border-black shadow hover:bg-amber-50 focus-visible:ring-black dark:bg-neutral-700 dark:text-white dark:border-neutral-600 dark:hover:bg-neutral-800 dark:focus-visible:ring-white placeholder-neutral-500 dark:placeholder-neutral-600"
           rows={3}
           aria-label={label}
           id={name}
@@ -30,7 +30,7 @@ const Textarea = ({
           placeholder={placeholder}
         />
       </label>
-      {helperText && <p className="text-neutral-500 dark:text-neutral-400 text-xs">{helperText}</p>}
+      {helperText && <p className="text-gray-500 dark:text-gray-400 text-xs">{helperText}</p>}
     </div>
   );
 };

@@ -8,6 +8,7 @@ import Input from "@/app/components/Input";
 import Button from "@/app/components/Button";
 import Checkbox from "@/app/components/Checkbox";
 import ClientOnly from "@/app/components/ClientOnly";
+import { showSuccessToast } from "@/app/components/Toastr";
 
 type Props = {
   isOpen: boolean;
@@ -31,6 +32,7 @@ const FindAndReplaceModal = ({ isOpen, handleClose }: Props) => {
     const regex = new RegExp(`(${escapedSearchTerm})`, regexConfig);
     text = text.replace(regex, replaceTerm);
     setContentEdited(text);
+    showSuccessToast("Text has been replaced");
     handleClose();
   }
 

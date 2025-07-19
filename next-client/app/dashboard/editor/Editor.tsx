@@ -33,6 +33,7 @@ import FontConfigDialog from "./components/EditorHeader/FontConfigDialog";
 import { useRef } from "react";
 import { FaExpand, FaTimes } from "react-icons/fa";
 import Button from "@/app/components/Button";
+import ExportService from "@/app/services/export-service";
 
 export default function Editor() {
   const [isLoading, setIsLoading] = useState(false);
@@ -72,6 +73,7 @@ export default function Editor() {
 
   const [_, setDocumentTitle] = useDocumentTitle("Hermes Markdown");
 
+  useCommand("save", () => exportToMD());
   useCommand("open", () => handleOpenFile());
   useCommand("new", () => handleNewFile());
   useCommand("template", () => handleSelectTemplate());
@@ -138,7 +140,6 @@ export default function Editor() {
   async function handleOpenFile() {
     if (isMobile) {
       setIsFileSelectModalVisible(true);
-
       return;
     }
 
@@ -149,7 +150,11 @@ export default function Editor() {
       setIsLoading(true);
       await parseFile(file);
     } catch (error) {
-      console.error(error);
+      // Don't log or treat as error if user cancelled the file picker
+      if (error instanceof Error && error.name === 'AbortError') {
+        return;
+      }
+      console.error('Error opening file:', error);
     } finally {
       setIsLoading(false);
     }
@@ -218,6 +223,16 @@ export default function Editor() {
   function handleSaveFontSettings(fontFamily: string, fontSize: string) {
     setFontFamily(fontFamily);
     setFontSize(fontSize);
+  }
+
+  async function exportToMD() {
+    try {
+      await ExportService.exportMarkdown(contentEdited, frontMatter);
+      setContent(contentEdited);
+      setHasChanges(false); // Clear unsaved changes after successful save
+    } catch (error) {
+      console.error(error);
+    }
   }
 
   if (!mounted) {

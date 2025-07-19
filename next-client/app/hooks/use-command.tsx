@@ -16,8 +16,8 @@ const commandRegistry: Record<CommandNames, Command> = {
   new: { key: "u", hasModifier: true, shift: true },       // Ctrl+Shift+U / Cmd+Shift+U
   open: { key: "i", hasModifier: true, shift: true },      // Ctrl+Shift+I / Cmd+Shift+I
   export: { key: "e", hasModifier: true, shift: true },    // Ctrl+Shift+E / Cmd+Shift+E
-  template: { key: "m", hasModifier: true, shift: true },  // Ctrl+Shift+H / Cmd+Shift+H
-  home: { key: "h", hasModifier: true, shift: true },      // Ctrl+Shift+M / Cmd+Shift+M
+  template: { key: "m", hasModifier: true, shift: true },  // Ctrl+Shift+M / Cmd+Shift+M
+  home: { key: "h", hasModifier: true, shift: true },      // Ctrl+Shift+H / Cmd+Shift+H
   escape: { key: "Escape", hasModifier: false },
   enter: { key: "Enter", hasModifier: false },
 };
@@ -38,8 +38,8 @@ export function useCommand(
 
       const isMatchingKey = event.key === key;
       const isModifierActive = event.metaKey || event.ctrlKey;
-      const isShiftActive = shift ? event.shiftKey : true;
-      const isAltActive = alt ? event.altKey : true;
+      const isShiftActive = shift ? event.shiftKey : !event.shiftKey;
+      const isAltActive = alt ? event.altKey : !event.altKey;
 
       if (
         isMatchingKey &&

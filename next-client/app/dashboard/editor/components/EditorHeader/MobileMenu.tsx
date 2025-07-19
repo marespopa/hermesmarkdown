@@ -5,6 +5,7 @@ import { useAtom } from "jotai";
 import { atom_theme } from "@/app/atoms/atoms";
 import DropdownMenu from "@/app/components/DropdownMenu";
 import { atom_fontFamily } from "@/app/atoms/atoms";
+import { showCopyToast } from "@/app/components/Toastr";
 
 interface MobileMenuProps {
   isOpen: boolean;
@@ -49,6 +50,7 @@ const MobileMenu: React.FC<MobileMenuProps> = ({
 
   const handleCopyMarkdown = () => {
     navigator.clipboard.writeText(contentEdited);
+    showCopyToast("Markdown copied to clipboard");
     onClose();
   };
 

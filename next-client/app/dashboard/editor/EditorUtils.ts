@@ -1,5 +1,5 @@
 import matter from "gray-matter";
-import toast from "react-hot-toast";
+import { showErrorToast } from "@/app/components/Toastr";
 
 // Utility function to validate selected file
 export function isSelectedFileValid(file: File): boolean {
@@ -10,7 +10,7 @@ export function isSelectedFileValid(file: File): boolean {
 export async function getFileDataFromInput(file: File) {
   try {
     if (!file) {
-      toast.error("File could not be loaded");
+      showErrorToast("File could not be loaded");
       return;
     }
     const text = await file.text();

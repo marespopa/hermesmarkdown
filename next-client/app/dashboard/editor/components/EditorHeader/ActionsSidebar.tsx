@@ -4,6 +4,7 @@ import { FaFile, FaFolderOpen, FaSave, FaFilePdf, FaKeyboard, FaCopy, FaSearch, 
 import classNames from "classnames";
 import { useAtom } from "jotai";
 import { atom_theme, atom_sidebarCollapsed } from "@/app/atoms/atoms";
+import { showCopyToast } from "@/app/components/Toastr";
 
 interface ActionsSidebarProps {
   actions: {
@@ -127,7 +128,10 @@ const ActionsSidebar: React.FC<ActionsSidebarProps> = ({
         {/* Copy Markdown button */}
         <Button
           variant="icon"
-          onClick={() => navigator.clipboard.writeText(contentEdited)}
+          onClick={() => {
+            navigator.clipboard.writeText(contentEdited);
+            showCopyToast("Markdown copied to clipboard");
+          }}
           aria-label="Copy Markdown"
           title="Copy Markdown"
           styles={getButtonStyles(collapsed)}

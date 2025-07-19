@@ -3,6 +3,7 @@ import DialogModal from "@/app/components/DialogModal";
 import Button from "@/app/components/Button";
 import FontMenu from "./FontMenu";
 import FontSizeMenu from "./FontSizeMenu";
+import { showSuccessToast } from "@/app/components/Toastr";
 
 interface FontConfigDialogProps {
   isOpen: boolean;
@@ -41,13 +42,14 @@ const FontConfigDialog: React.FC<FontConfigDialogProps> = ({
 
   function handleSave() {
     onSave(fontFamily, fontSize);
+    showSuccessToast("Font settings saved");
     onClose();
   }
 
   return (
     <DialogModal isOpened={isOpen} onClose={onClose}>
       <h2 className="text-2xl font-bold mt-2">Font Settings</h2>
-      <div className="flex flex-col gap-4 mt-6 w-full max-w-2xl mx-auto">
+      <div className="flex flex-col gap-4 mt-6 w-full max-w-2xl mx-auto sm:mx-0">
         <div>
           <div className={labelClass}>Font Family</div>
           <FontMenu fontOptions={fontOptions} setFontFamily={setFontFamily} value={fontFamily} />

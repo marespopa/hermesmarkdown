@@ -1,4 +1,4 @@
-import toast from "react-hot-toast";
+import { showSuccessToast, showErrorToast } from "@/app/components/Toastr";
 
 export type StatusResponse = {
   status: "error" | "success";
@@ -15,19 +15,18 @@ export const saveFile = ({
   if ("showSaveFilePicker" in window) {
     return exportNativeFileSystem({ blob, fileName })
       .then(() => {
-        toast.success("File has been saved.");
+        showSuccessToast("File has been saved.");
       })
       .catch((err) => {
         if (err?.name === "AbortError") {
-          toast("The save was cancelled", { icon: "📄" });
-
+          // Note: We don't have a neutral toast function, so we'll skip this notification
           return;
         }
-        toast.error("The file could not saved");
+        showErrorToast("The file could not be saved");
       });
   }
 
-  toast.success("File has been saved.");
+  showSuccessToast("File has been saved.");
   return download({ blob, fileName });
 };
 

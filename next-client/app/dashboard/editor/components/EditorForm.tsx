@@ -5,9 +5,7 @@ import Button from "@/app/components/Button";
 import DialogModal from "@/app/components/DialogModal";
 import Input from "@/app/components/Input";
 import LoadingOverlay from "@/app/components/LoadingOverlay";
-import SaveStateText, {
-  SaveState,
-} from "@/app/components/SaveStateText/SaveStateText";
+import showSaveStateToast from "@/app/components/Toastr";
 import Textarea from "@/app/components/Textarea";
 import { useAtom } from "jotai";
 import { FormEvent, useEffect, useRef, useState } from "react";
@@ -22,7 +20,7 @@ type Timeout = ReturnType<typeof setTimeout> | null;
 export default function EditorForm({ isOpened, handleClose }: Props) {
   const [, setHasChanges] = useAtom(atom_hasChanges);
   const [frontMatterData, setFrontMatterData] = useAtom(atom_frontMatter);
-  const [saveState, setSaveState] = useState<SaveState>("none");
+  const [saveState, setSaveState] = useState<'none' | 'saving' | 'saved'>("none");
   const [localFrontMatterData, setLocalFrontMatterData] = useState(frontMatterData);
   const savingTimeout = useRef<Timeout>(null);
   const savedTimeout = useRef<Timeout>(null);
@@ -47,8 +45,10 @@ export default function EditorForm({ isOpened, handleClose }: Props) {
     setHasChanges(false);
     if (savingTimeout.current) clearTimeout(savingTimeout.current);
     if (savedTimeout.current) clearTimeout(savedTimeout.current);
+    
     savingTimeout.current = setTimeout(() => {
       setSaveState("saved");
+      showSaveStateToast("saved");
     }, 800);
   };
 
@@ -103,7 +103,6 @@ export default function EditorForm({ isOpened, handleClose }: Props) {
             label="Close"
             type="button"
           />
-          <SaveStateText status={saveState} />
         </div>
       </form>
     </DialogModal>

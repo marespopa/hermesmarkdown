@@ -4,7 +4,7 @@ import DialogModal from "@/app/components/DialogModal";
 import Button from "@/app/components/Button";
 import { useAtom } from "jotai";
 import { atom_contentEdited, atom_frontMatter } from "@/app/atoms/atoms";
-import toast from "react-hot-toast";
+import { showSuccessToast, showErrorToast } from "@/app/components/Toastr";
 import { useCommand } from "@/app/hooks/use-command";
 import MarkdownPreview from "../../components/MarkdownPreview";
 import Markdown from "react-markdown";
@@ -71,10 +71,10 @@ export default function EditorPreviewTrigger() {
     await new Promise((resolve) => setTimeout(resolve, 100)); // allow DOM to update
     try {
       await ExportService.generatePDF("#pdfReport", reportName);
-      toast.success("File has been exported");
+      showSuccessToast("File has been exported");
       // setHideFontDropdown(false); // This line is removed
     } catch (error) {
-      toast.error("File could not be exported");
+      showErrorToast("File could not be exported");
       console.error(error);
       // setHideFontDropdown(false); // This line is removed
     }

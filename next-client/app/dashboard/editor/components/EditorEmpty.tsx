@@ -10,7 +10,7 @@ import {
 } from "@/app/atoms/atoms";
 import LoadingOverlay from "@/app/components/LoadingOverlay";
 import matter from "gray-matter";
-import toast from "react-hot-toast";
+import { showSuccessToast, showErrorToast } from "@/app/components/Toastr";
 import TemplateSelectionModal from "../../templates/TemplateSelectionModal";
 import { StatusResponse } from "@/app/services/save-utils";
 import Button from "@/app/components/Button";
@@ -177,14 +177,14 @@ export default function EditorEmpty() {
                   name="file"
                   handleChange={(selectedFileList) => {
                     if (!selectedFileList || !selectedFileList[0]) {
-                      toast.error(
+                      showErrorToast(
                         "Something went wrong with the file selection. Please try again."
                       );
                       return;
                     }
 
                     if (!isSelectedFileValid(selectedFileList[0])) {
-                      toast.error(
+                      showErrorToast(
                         "The selected file must be a .md or a .txt file."
                       );
                       return;
@@ -232,7 +232,7 @@ export default function EditorEmpty() {
   async function handleOpenFileFromInput(file: File) {
     try {
       if (!file) {
-        toast.error("File could not be loaded");
+        showErrorToast("File could not be loaded");
 
         return;
       }
@@ -241,10 +241,10 @@ export default function EditorEmpty() {
       loadFileData(text, file.name)
         .then(() => {
           router.push("/dashboard/editor");
-          toast.success("File has been loaded");
+          showSuccessToast("File has been loaded");
         })
         .catch((error) => {
-          toast.error("File could not be loaded");
+          showErrorToast("File could not be loaded");
           console.error(error);
         })
         .finally(() => {
@@ -408,24 +408,26 @@ export default function EditorEmpty() {
   async function handleOpenFile() {
     setIsLoading(true);
 
-    const [fileHandle] = await window.showOpenFilePicker(PICKER_OPTIONS);
-    const file = await fileHandle.getFile();
+    try {
+      const [fileHandle] = await window.showOpenFilePicker(PICKER_OPTIONS);
+      const file = await fileHandle.getFile();
 
-    setDisabledButtonsState({ ...disabledButtonsState, existing: true });
+      setDisabledButtonsState({ ...disabledButtonsState, existing: true });
 
-    parseFile(file)
-      .then(() => {
-        toast.success("File has been loaded");
-        router.push("/dashboard/editor");
-      })
-      .catch((error) => {
-        toast.error("File could not be loaded");
-        console.error(error);
-      })
-      .finally(() => {
-        setDisabledButtonsState({ ...disabledButtonsState, existing: false });
-        setIsLoading(false);
-      });
+      await parseFile(file);
+      showSuccessToast("File has been loaded");
+      router.push("/dashboard/editor");
+    } catch (error) {
+      // Don't show error toast if user cancelled the file picker
+      if (error instanceof Error && error.name === 'AbortError') {
+        return;
+      }
+      showErrorToast("File could not be loaded");
+      console.error('Error opening file:', error);
+    } finally {
+      setDisabledButtonsState({ ...disabledButtonsState, existing: false });
+      setIsLoading(false);
+    }
   }
 
   function parseFile(file: File): Promise<StatusResponse> {

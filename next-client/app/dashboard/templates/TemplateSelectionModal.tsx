@@ -18,6 +18,7 @@ import { FaTag } from "react-icons/fa";
 import Badge from "@/app/components/Badges/Badge";
 import MarkdownTemplateList, { MarkdownTemplate } from ".";
 import TemplateList from "./TemplateList";
+import { showSuccessToast } from "@/app/components/Toastr";
 
 // Utility: Get unique tags from all templates
 function getUniqueTags(templates: MarkdownTemplate[]) {
@@ -82,6 +83,7 @@ const TemplateSelectionModal = ({ isOpen, handleClose }: Props) => {
     });
     setContent(template.content);
     setContentEdited(template.content);
+    showSuccessToast(`Template "${template.frontMatter?.title}" loaded`);
     router.push("/dashboard/editor");
     setTimeout(() => {
       setIsLoadingTemplate(false);

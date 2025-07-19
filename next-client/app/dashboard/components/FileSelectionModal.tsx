@@ -10,7 +10,7 @@ import { useAtom } from "jotai";
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import FileInput from "@/app/components/FileInput";
-import toast from "react-hot-toast";
+import { showErrorToast } from "@/app/components/Toastr";
 import {
   getFileDataFromInput,
   isSelectedFileValid,
@@ -55,7 +55,7 @@ const FileSelectionModal = ({ isOpen, handleClose }: Props) => {
             if (selectedFileList && selectedFileList[0]) {
               handleOpenFileFromInput(selectedFileList);
             } else {
-              toast.error("Something went wrong with the file selection. Please try again.");
+              showErrorToast("Something went wrong with the file selection. Please try again.");
             }
           }}
           label="Markdown File"
@@ -73,7 +73,7 @@ const FileSelectionModal = ({ isOpen, handleClose }: Props) => {
 
   async function handleOpenFileFromInput(fileList: FileList) {
     if (!fileList[0]) {
-      toast.error(
+      showErrorToast(
         "Something went wrong with the file selection. Please try again."
       );
 
@@ -83,7 +83,7 @@ const FileSelectionModal = ({ isOpen, handleClose }: Props) => {
     const file = fileList[0];
 
     if (!isSelectedFileValid(file)) {
-      toast.error("The selected file must be a .md or a .txt file.");
+      showErrorToast("The selected file must be a .md or a .txt file.");
 
       return;
     }

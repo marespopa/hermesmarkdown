@@ -11,7 +11,7 @@ import ExportService from "@/app/services/export-service";
 import { FaFile, FaEdit, FaQuestion } from "react-icons/fa";
 import { useRouter } from "next/navigation";
 import useIsMobile from "@/app/hooks/use-is-mobile";
-import toast from "react-hot-toast";
+import { showSuccessToast, showErrorToast, showCopyToast } from "@/app/components/Toastr";
 import TitleFileInfo from "./TitleFileInfo";
 import FontMenu from "./FontMenu";
 import FontSizeMenu from "./FontSizeMenu";
@@ -133,9 +133,10 @@ export default function EditorHeader({
   const editMenuOptions = [
     {
       label: "Copy Markdown",
-      action: withCloseFabMenu(() =>
-        navigator.clipboard.writeText(contentEdited)
-      ),
+      action: withCloseFabMenu(() => {
+        navigator.clipboard.writeText(contentEdited);
+        showCopyToast("Markdown copied to clipboard");
+      }),
     },
     {
       label: "Replace...",
@@ -390,7 +391,7 @@ export default function EditorHeader({
       setFileContent(contentEdited);
       setHasChanges(false); // Clear unsaved changes after successful save
     } catch (error) {
-      toast.error("File could not be saved");
+      showErrorToast("File could not be saved");
       console.error(error);
     }
   }
@@ -400,9 +401,9 @@ export default function EditorHeader({
     await new Promise((resolve) => setTimeout(resolve, 100)); // allow DOM to update
     try {
       await ExportService.generatePDF("#pdfReport", reportName);
-      toast.success("File has been exported");
+      showSuccessToast("File has been exported");
     } catch (error) {
-      toast.error("File could not be exported");
+      showErrorToast("File could not be exported");
       console.error(error);
     }
   }
