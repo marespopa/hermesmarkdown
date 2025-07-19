@@ -1,7 +1,7 @@
 import { useRef, useEffect } from "react";
 
 // Define a type for available command names
-export type CommandNames = "save" | "open" | "new" | "export" | "home" | "template" | "escape" | "enter";
+export type CommandNames = "save" | "open" | "new" | "export" | "home" | "template" | "table" | "escape" | "enter";
 
 interface Command {
   key: string;
@@ -17,6 +17,7 @@ const commandRegistry: Record<CommandNames, Command> = {
   open: { key: "i", hasModifier: true, shift: true },      // Ctrl+Shift+I / Cmd+Shift+I
   export: { key: "e", hasModifier: true, shift: true },    // Ctrl+Shift+E / Cmd+Shift+E
   template: { key: "m", hasModifier: true, shift: true },  // Ctrl+Shift+M / Cmd+Shift+M
+  table: { key: "t", hasModifier: true, shift: true },     // Ctrl+Shift+T / Cmd+Shift+T
   home: { key: "h", hasModifier: true, shift: true },      // Ctrl+Shift+H / Cmd+Shift+H
   escape: { key: "Escape", hasModifier: false },
   enter: { key: "Enter", hasModifier: false },

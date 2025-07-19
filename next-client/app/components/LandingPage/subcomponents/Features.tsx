@@ -5,13 +5,21 @@ export default function Features() {
         <h2 className="text-3xl font-semibold mb-8">
           Why Choose Hermes Markdown?
         </h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           <div
             className={`bg-amber-100 dark:bg-neutral-800 rounded-sm py-8 px-6 hover:scale-105 focus:scale-105`}
           >
-            <h3 className="text-xl font-bold mb-4">Block-Based Editing</h3>
+            <h3 className="text-xl font-bold mb-4">Live Markdown Preview</h3>
             <p>
-              Enjoy a modern, block-style editor. Effortlessly create headings, lists, quotes, and <strong>code blocks</strong> with keyboard shortcuts and markdown syntax.
+              See your changes instantly with real-time markdown preview. Write in markdown syntax and <strong>preview the formatted output</strong> as you type.
+            </p>
+          </div>
+          <div
+            className={`bg-amber-100 dark:bg-neutral-800 rounded-sm py-8 px-6 hover:scale-105 focus:scale-105`}
+          >
+            <h3 className="text-xl font-bold mb-4">Table Editor</h3>
+            <p>
+              Create and edit markdown tables with ease. Add rows and columns, edit cell content, and <strong>preview your tables</strong> before inserting them into your document.
             </p>
           </div>
           <div
@@ -32,7 +40,7 @@ export default function Features() {
           </div>
         </div>
         
-        <div className="mt-12 grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-8">
           <div
             className={`bg-amber-100 dark:bg-neutral-800 rounded-sm py-8 px-6 hover:scale-105 focus:scale-105`}
           >
@@ -40,6 +48,14 @@ export default function Features() {
             <p>
               Start with professionally designed templates for various use cases - from meeting notes to project documentation. 
               Save time and maintain consistency across your documents.
+            </p>
+          </div>
+          <div
+            className={`bg-amber-100 dark:bg-neutral-800 rounded-sm py-8 px-6 hover:scale-105 focus:scale-105`}
+          >
+            <h3 className="text-xl font-bold mb-4">Zen Mode</h3>
+            <p>
+              Focus on your writing with distraction-free Zen Mode. Center the editor, hide distractions, and immerse yourself in your content for maximum productivity.
             </p>
           </div>
           <div

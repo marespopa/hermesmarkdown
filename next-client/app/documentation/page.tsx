@@ -19,11 +19,12 @@ export default function Documentation() {
             <ol>
               <li><a href="#getting-started" className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300">Getting Started</a></li>
               <li><a href="#editor-features" className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300">Editor Features</a></li>
+              <li><a href="#table-editor" className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300">Table Editor</a></li>
               <li><a href="#zen-mode" className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300">Zen Mode</a></li>
               <li><a href="#exporting" className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300">Exporting to PDF & Markdown</a></li>
               <li><a href="#find-replace" className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300">Find & Replace</a></li>
               <li><a href="#templates" className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300">Templates</a></li>
-              <li><a href="#timer" className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300">Keyboard Shortcuts</a></li>
+              <li><a href="#timer" className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300">Timer</a></li>
               <li><a href="#shortcuts" className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300">Keyboard Shortcuts</a></li>
               <li><a href="#features" className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300">Feature Overview</a></li>
             </ol>
@@ -50,6 +51,24 @@ export default function Documentation() {
               <li><strong>Autosave & Change Tracking:</strong> Your work is automatically saved, and unsaved changes are clearly indicated.</li>
               <li><strong>Sidebar & Mobile Support:</strong> Responsive design for desktop and mobile, with collapsible sidebar.</li>
             </ul>
+          </section>
+
+          {/* Table Editor */}
+          <section id="table-editor">
+            <h2>Table Editor</h2>
+            <p>
+              Create and edit markdown tables with ease using the <strong>Table Editor</strong>. This powerful tool provides an intuitive interface for building well-formatted tables without having to write markdown syntax manually.
+            </p>
+            <ul>
+              <li><strong>Create New Tables:</strong> Start with a blank table and add rows and columns as needed.</li>
+              <li><strong>Edit Existing Tables:</strong> Import existing markdown tables and modify them visually.</li>
+              <li><strong>Add/Remove Rows & Columns:</strong> Dynamically adjust table structure with simple controls.</li>
+              <li><strong>Inline Cell Editing:</strong> Click any cell to edit its content directly.</li>
+              <li><strong>Automatic Markdown Generation:</strong> Tables are automatically formatted with proper markdown syntax.</li>
+            </ul>
+            <p>
+              Access the Table Editor from the sidebar, mobile menu, or use the keyboard shortcut <b>⌘/Ctrl + Shift + T</b>.
+            </p>
           </section>
 
           {/* Zen Mode */}
@@ -110,6 +129,7 @@ export default function Documentation() {
               <li><b>⌘/Ctrl + Shift + U</b>: New File</li>
               <li><b>⌘/Ctrl + Shift + E</b>: Export to PDF</li>
               <li><b>⌘/Ctrl + Shift + M</b>: Select Template</li>
+              <li><b>⌘/Ctrl + Shift + T</b>: Table Editor</li>
               <li><b>⌘/Ctrl + Shift + H</b>: Go to Home/Dashboard</li>
               <li><b>Esc</b>: Close Dialogs or Exit Zen Mode</li>
               <li><b>Cmd/Ctrl + F</b>: Open FindBar</li>
@@ -121,6 +141,7 @@ export default function Documentation() {
             <h2>Feature Overview</h2>
             <ul>
               <li>Live Markdown Editor with real-time preview</li>
+              <li>Table Editor for creating and editing markdown tables</li>
               <li>Zen Mode for focused writing</li>
               <li>Export to PDF and Markdown</li>
               <li>Find & Replace with floating FindBar</li>

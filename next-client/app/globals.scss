@@ -36,6 +36,28 @@ html.dark {
 
 html, body {
   font-family: 'Source Code Pro', monospace;
+  background-color: #ffffff;
+}
+
+html.dark, html.dark body {
+  background-color: #171717;
+}
+
+/* Fix overscroll background color */
+html {
+  background-color: #ffffff;
+}
+
+html.dark {
+  background-color: #171717;
+}
+
+body {
+  background-color: #ffffff;
+}
+
+html.dark body {
+  background-color: #171717;
 }
 
 @keyframes fade-in {

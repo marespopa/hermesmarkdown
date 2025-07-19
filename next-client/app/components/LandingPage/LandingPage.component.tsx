@@ -6,6 +6,7 @@ import FAQContent from "./subcomponents/FAQContent";
 import Button from "../Button";
 import HowItWorks from "./subcomponents/HowItWorks";
 import MarkdownGuide from "./subcomponents/MarkdownGuide";
+import Testimonials from "./subcomponents/Testimonials";
 import { useRouter } from "next/navigation";
 
 export default function LandingPage() {
@@ -33,6 +34,7 @@ export default function LandingPage() {
           </div>
         </div>
         <Features />
+        <Testimonials />
         <MarkdownGuide />
         <HowItWorks />
         <FAQContent />

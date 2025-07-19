@@ -21,7 +21,7 @@ export default function Footer() {
         <div className="container max-w-screen-xl mx-auto px-4 md:px-2">
           <div className="flex flex-col md:flex-row justify-between w-full items-center">
             <div className="flex flex-col gap-4">
-              <span className="text-xl text-black dark:text-white">Markdown with ease</span>
+              <span className="text-xl text-white">Markdown with ease</span>
               <span>
                 Made with <span style={{ color: "#e25555" }}>&#9829;</span> by{" "}
                 <a

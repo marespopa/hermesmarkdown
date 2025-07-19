@@ -32,6 +32,7 @@ interface Props {
     handleSelectTemplate: () => void;
     handleOpenFindAndReplace: () => void;
     handleOpenFontSettings: () => void;
+    handleOpenTableEditor: () => void;
   };
   searchTerm: string;
   setSearchTerm: (term: string) => void;
@@ -137,6 +138,10 @@ export default function EditorHeader({
         navigator.clipboard.writeText(contentEdited);
         showCopyToast("Markdown copied to clipboard");
       }),
+    },
+    {
+      label: "Table Editor...",
+      action: withCloseFabMenu(actions.handleOpenTableEditor),
     },
     {
       label: "Replace...",

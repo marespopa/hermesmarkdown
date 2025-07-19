@@ -13,20 +13,17 @@ export default function Hero() {
       <section className="flex flex-wrap mt-4 sm:mt-8 md:mt-16 items-center">
         <div className="w-full mx-auto md:w-1/2 prose prose-neutral dark:prose-invert flex flex-col justify-center sm:px-4 xl:px-0">
           <h1 className="text-5xl mt-8 leading-tight text-neutral-900 dark:text-white">
-            Write{" "}
+            The Markdown Editor That{" "}
             <span className="bg-amber-100 text-black p-1">
-              Freely, Securely, and Locally
+              Respects Your Privacy
             </span>
           </h1>
 
           <p className="text-xl mt-4 text-neutral-700 dark:text-neutral-300">
-            Hermes Markdown makes it easy to work with your markdown files. Create or edit documents with a simple, smooth experience—no hassle, just results.
+            Built because I wanted a fast, distraction-free editor that puts privacy first—no accounts, no cloud, no clutter. Just open and write using markdown syntax, instantly.
           </p>
           <p className="text-xl mt-4 text-neutral-700 dark:text-neutral-300">
-            Use handy features like ready-made templates, live preview, keyboard shortcuts, and code blocks with syntax highlighting to make writing and coding faster and easier.
-          </p>
-          <p className="text-lg mt-4 text-neutral-700 dark:text-neutral-300">
-            Your privacy matters: everything stays on your device. Hermes Markdown never sends your content to any server, so you keep full control and security over your work.
+            Enjoy live preview, smart templates, table editor, and lightning-fast keyboard shortcuts. Everything you need to write better, faster—all while keeping your data 100% private and local.
           </p>
           <Button
             styles="mx-auto md:ml-0 grow-0 mt-6"
@@ -34,9 +31,37 @@ export default function Hero() {
             onClick={() => router.push("/dashboard")}
           >
             <span className="text-2xl">
-              Start <span className="text-xs align-super -mt-4">100% free</span>
+              Try Hermes Free <span className="text-xs align-super -mt-4">No signup required</span>
             </span>
           </Button>
+          
+          {/* Trust Indicators */}
+          <div className="flex flex-wrap items-center gap-6 mt-6 text-sm text-neutral-600 dark:text-neutral-400">
+            <div className="flex items-center gap-2">
+              <svg className="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+              </svg>
+              <span>100% Private & Local</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <svg className="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+              </svg>
+              <span>No Registration Required</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <svg className="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+              </svg>
+              <span>Instant Access</span>
+            </div>
+            <div className="flex items-center gap-2 bg-green-100 dark:bg-green-900 px-3 py-1 rounded-full">
+              <svg className="w-4 h-4 text-green-600 dark:text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
+              </svg>
+              <span className="text-green-700 dark:text-green-300 font-medium">End-to-End Secure</span>
+            </div>
+          </div>
         </div>
 
         <div className="hidden md:flex w-full sm:w-1/2">

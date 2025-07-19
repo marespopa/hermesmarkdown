@@ -34,6 +34,7 @@ import { useRef } from "react";
 import { FaExpand, FaTimes } from "react-icons/fa";
 import Button from "@/app/components/Button";
 import ExportService from "@/app/services/export-service";
+import TableEditorModal from "./components/TableEditorModal";
 
 export default function Editor() {
   const [isLoading, setIsLoading] = useState(false);
@@ -54,6 +55,8 @@ export default function Editor() {
   const [isFileSelectModalVisible, setIsFileSelectModalVisible] =
     useState(false);
   const [isTemplateSelectModalVisible, setIsTemplateSelectModalVisible] =
+    useState(false);
+  const [isTableEditorModalVisible, setIsTableEditorModalVisible] =
     useState(false);
   const router = useRouter();
   const [fontFamily, setFontFamily] = useAtom(atom_fontFamily);
@@ -77,6 +80,7 @@ export default function Editor() {
   useCommand("open", () => handleOpenFile());
   useCommand("new", () => handleNewFile());
   useCommand("template", () => handleSelectTemplate());
+  useCommand("table", () => handleOpenTableEditor());
   useCommand("home", () => router.push("/dashboard"));
 
   useEffect(() => {
@@ -212,6 +216,10 @@ export default function Editor() {
     setIsTemplateSelectModalVisible(true);
   }
 
+  function handleOpenTableEditor() {
+    setIsTableEditorModalVisible(true);
+  }
+
   function handleCloseTimer() {
     setShowTimer(false);
   }
@@ -223,6 +231,20 @@ export default function Editor() {
   function handleSaveFontSettings(fontFamily: string, fontSize: string) {
     setFontFamily(fontFamily);
     setFontSize(fontSize);
+  }
+
+  function handleInsertTable(markdownTable: string) {
+    // Insert the table at the current cursor position or at the end
+    const newContent = contentEdited + '\n\n' + markdownTable + '\n\n';
+    setContentEdited(newContent);
+    setHasChanges(true);
+  }
+
+  function handleReplaceTable(oldTable: string, newTable: string) {
+    // Replace the existing table with the new one
+    const newContent = contentEdited.replace(oldTable, newTable);
+    setContentEdited(newContent);
+    setHasChanges(true);
   }
 
   async function exportToMD() {
@@ -322,6 +344,7 @@ export default function Editor() {
             handleSelectTemplate,
             handleOpenFindAndReplace,
             handleOpenFontSettings,
+            handleOpenTableEditor,
           }}
           searchTerm={searchTerm}
           setSearchTerm={setSearchTerm}
@@ -366,6 +389,16 @@ export default function Editor() {
           <FindAndReplaceModal
             isOpen={isFindAndReplaceModalVisible}
             handleClose={() => setIsFindAndReplaceModalVisible(false)}
+          />
+        )}
+        {/* Table Editor Modal */}
+        {isTableEditorModalVisible && (
+          <TableEditorModal
+            isOpen={isTableEditorModalVisible}
+            onClose={() => setIsTableEditorModalVisible(false)}
+            onInsertTable={handleInsertTable}
+            onReplaceTable={handleReplaceTable}
+            currentContent={contentEdited}
           />
         )}
       </div>
