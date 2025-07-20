@@ -86,11 +86,11 @@ const ActionsSidebar: React.FC<ActionsSidebarProps> = ({
         <Button
           variant="icon"
           onClick={exportToMD}
-          aria-label="Save As"
-          title="Save As"
+          aria-label="Export"
+          title="Export"
           styles={getButtonStyles(collapsed)}
         >
-          <FaSave /> <span className={getLabelClass()}>Save As</span>
+          <FaSave /> <span className={getLabelClass()}>Export</span>
         </Button>
         <Button
           variant="icon"

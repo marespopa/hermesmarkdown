@@ -40,8 +40,24 @@ export default function FAQContent() {
           answer: "No, we don't collect any personal data, usage statistics, or content from your documents. Everything stays on your device. We don't use analytics, tracking, or any data collection methods.",
         },
         {
+          question: "Why do I see a browser warning about site permissions?",
+          answer: "This warning appears because Hermes Markdown needs permission to access your browser's local storage and file system for importing/exporting files. This is normal for web apps that save data locally. Your content never leaves your device - the permissions are only for local functionality.",
+        },
+        {
+          question: "Where is my data stored?",
+          answer: "Your data is stored locally in your browser's local storage. This means it stays on your device and is not uploaded to any servers. You can clear this data anytime through your browser settings, and you can export your files to keep permanent copies on your device.",
+        },
+        {
           question: "Can I use it offline?",
-          answer: "Yes! Once you've loaded the website, Hermes Markdown works completely offline. You can write, edit, and save documents without an internet connection. Your work is stored locally in your browser.",
+          answer: "Yes! Once you've loaded the website, Hermes Markdown works completely offline. You can write, edit, and export documents without an internet connection. Your work is stored locally in your browser.",
+        },
+        {
+          question: "What happens if I clear my browser data?",
+          answer: "If you clear your browser's local storage, your saved documents will be deleted. However, you can export your files as markdown or PDF before clearing data to keep permanent copies. We recommend regularly exporting important documents.",
+        },
+        {
+          question: "Is Hermes Markdown open source?",
+          answer: "Yes! Hermes Markdown is open source, which means you can inspect the code to verify our privacy claims. The source code is available on GitHub, so you can see exactly how your data is handled.",
         },
       ]
     },
@@ -92,7 +108,7 @@ export default function FAQContent() {
         },
         {
           question: "What keyboard shortcuts are available?",
-          answer: "Hermes Markdown includes comprehensive keyboard shortcuts: Ctrl+Shift+T for table editor, Ctrl+Shift+S to save, Ctrl+Shift+N for new file, Ctrl+Shift+O to open files, and many more. Check the documentation for a complete list.",
+          answer: "Hermes Markdown includes comprehensive keyboard shortcuts: Ctrl+Shift+T for table editor, Ctrl+Shift+Y to export, Ctrl+Shift+N for new file, Ctrl+Shift+I to open files, and many more. Check the documentation for a complete list.",
         },
         {
           question: "Can I customize the editor?",

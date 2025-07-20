@@ -51,7 +51,7 @@ const ActionsMobileMenu: React.FC<ActionsMobileMenuProps> = ({
         <Button variant="secondary" onClick={actions.handleNewFile} label={<><FaFile className="inline mr-2" />New File</>} styles="w-full" />
         <Button variant="secondary" onClick={actions.handleOpenFile} label={<><FaFile className="inline mr-2" />Import File</>} styles="w-full" />
         <Button variant="secondary" onClick={actions.handleSelectTemplate} label={<><FaFile className="inline mr-2" />Select Template</>} styles="w-full" />
-        <Button variant="secondary" onClick={exportToMD} label={<><FaSave className="inline mr-2" />Save As</>} styles="w-full" />
+        <Button variant="secondary" onClick={exportToMD} label={<><FaSave className="inline mr-2" />Export</>} styles="w-full" />
         <Button variant="secondary" onClick={showPdfPreviewModal} label={<><FaFilePdf className="inline mr-2" />Export to PDF</>} styles="w-full" />
         <Button variant="secondary" onClick={actions.handleOpenFindAndReplace} label={<><FaSearch className="inline mr-2" />Find and Replace</>} styles="w-full" />
         <Button variant="secondary" onClick={actions.handleOpenFontSettings} label={<><FaKeyboard className="inline mr-2" />Font Settings…</>} styles="w-full" />

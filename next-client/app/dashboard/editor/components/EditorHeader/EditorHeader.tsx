@@ -111,7 +111,7 @@ export default function EditorHeader({
       action: withCloseFabMenu(actions.handleOpenFile),
     },
     {
-      label: "Save As...",
+      label: "Export...",
       action: withCloseFabMenu(exportToMD),
     },
   ];
@@ -394,9 +394,9 @@ export default function EditorHeader({
     try {
       await ExportService.exportMarkdown(contentEdited, frontMatter);
       setFileContent(contentEdited);
-      setHasChanges(false); // Clear unsaved changes after successful save
+      setHasChanges(false); // Clear unsaved changes after successful export
     } catch (error) {
-      showErrorToast("File could not be saved");
+      showErrorToast("File could not be exported");
       console.error(error);
     }
   }

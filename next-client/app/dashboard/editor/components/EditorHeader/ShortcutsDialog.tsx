@@ -11,7 +11,7 @@ const ShortcutsDialog: React.FC<ShortcutsDialogProps> = ({ isOpen, onClose }) =>
     <div className="p-4 max-w-lg">
       <h2 className="text-xl font-bold mb-4">Keyboard Shortcuts</h2>
       <ul className="font-mono text-base space-y-2">
-        <li><b>⌘/Ctrl + Shift + Y</b>: Save</li>
+        <li><b>⌘/Ctrl + Shift + Y</b>: Export</li>
         <li><b>⌘/Ctrl + Shift + I</b>: Import File</li>
         <li><b>⌘/Ctrl + Shift + U</b>: New File</li>
         <li><b>⌘/Ctrl + Shift + E</b>: Export to PDF</li>

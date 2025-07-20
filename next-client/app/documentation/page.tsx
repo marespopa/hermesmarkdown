@@ -27,6 +27,7 @@ export default function Documentation() {
               <li><a href="#timer" className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300">Timer</a></li>
               <li><a href="#shortcuts" className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300">Keyboard Shortcuts</a></li>
               <li><a href="#features" className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300">Feature Overview</a></li>
+              <li><a href="#privacy-security" className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300">Privacy & Security</a></li>
             </ol>
           </section>
 
@@ -84,7 +85,7 @@ export default function Documentation() {
             <h2>Exporting to PDF & Markdown</h2>
             <ul>
               <li><strong>Export to PDF:</strong> Click the PDF icon or use the shortcut to preview your document as a PDF and export it. The export uses a clean, print-friendly style.</li>
-              <li><strong>Save as Markdown:</strong> Use the file menu to save your work as a <code>.md</code> file, preserving all metadata and formatting.</li>
+              <li><strong>Export as Markdown:</strong> Use the file menu to export your work as a <code>.md</code> file, preserving all metadata and formatting.</li>
             </ul>
           </section>
 
@@ -124,7 +125,7 @@ export default function Documentation() {
           <section id="shortcuts">
             <h2>Keyboard Shortcuts</h2>
             <ul className="font-mono text-base space-y-2">
-              <li><b>⌘/Ctrl + Shift + Y</b>: Save</li>
+              <li><b>⌘/Ctrl + Shift + Y</b>: Export</li>
               <li><b>⌘/Ctrl + Shift + I</b>: Import File</li>
               <li><b>⌘/Ctrl + Shift + U</b>: New File</li>
               <li><b>⌘/Ctrl + Shift + E</b>: Export to PDF</li>
@@ -153,6 +154,88 @@ export default function Documentation() {
               <li>Responsive design for desktop and mobile</li>
               <li>Comprehensive keyboard shortcuts</li>
             </ul>
+          </section>
+
+          {/* Privacy & Security */}
+          <section id="privacy-security">
+            <h2>Privacy & Security</h2>
+            <p>
+              At Hermes Markdown, we believe your privacy is fundamental. This section explains how we handle your data and what you can expect regarding security.
+            </p>
+
+            <h3>Data Storage & Privacy</h3>
+            <ul>
+              <li><strong>Local-Only Storage:</strong> All your content is stored locally in your browser&apos;s local storage. Your documents never leave your device or get uploaded to any servers.</li>
+              <li><strong>No Server Storage:</strong> We don&apos;t have any backend servers that store your data. Hermes Markdown is a client-side only application.</li>
+              <li><strong>No Data Collection:</strong> We don&apos;t collect any personal information, usage statistics, or content from your documents.</li>
+              <li><strong>No Analytics:</strong> We don&apos;t use tracking, analytics, or any data collection methods.</li>
+              <li><strong>No Cookies:</strong> We don&apos;t use cookies for tracking or storing personal information.</li>
+            </ul>
+
+            <h3>Browser Permissions & Warnings</h3>
+            <p>
+              You may see browser warnings about site permissions. This is normal and expected for web applications that need to:
+            </p>
+            <ul>
+              <li><strong>Access Local Storage:</strong> To save your work locally in your browser</li>
+              <li><strong>Access File System:</strong> To import existing files and export your work</li>
+              <li><strong>Send Notifications:</strong> For timer alerts (only if you enable them)</li>
+            </ul>
+            <p>
+              These permissions are only for local functionality - your content never leaves your device.
+            </p>
+
+            <h3>Data Management</h3>
+            <ul>
+              <li><strong>Export Your Data:</strong> You can export your documents as markdown or PDF files to keep permanent copies on your device.</li>
+              <li><strong>Clear Browser Data:</strong> You can clear your browser&apos;s local storage anytime, which will delete your saved documents.</li>
+              <li><strong>Backup Strategy:</strong> We recommend regularly exporting important documents to ensure you have permanent copies.</li>
+            </ul>
+
+            <h3>Offline Functionality</h3>
+            <ul>
+              <li><strong>Works Offline:</strong> Once loaded, Hermes Markdown works completely offline. You can write, edit, and export documents without an internet connection.</li>
+              <li><strong>No Internet Required:</strong> After the initial page load, no internet connection is needed for any functionality.</li>
+            </ul>
+
+            <h3>Open Source Transparency</h3>
+            <ul>
+              <li><strong>Open Source:</strong> Hermes Markdown is open source, meaning you can inspect the code to verify our privacy claims.</li>
+              <li><strong>Code Review:</strong> The source code is available on GitHub, so you can see exactly how your data is handled.</li>
+              <li><strong>Community Verification:</strong> The open source nature allows the community to review and verify our privacy practices.</li>
+            </ul>
+
+            <h3>Security Best Practices</h3>
+            <ul>
+              <li><strong>HTTPS Only:</strong> The website uses HTTPS encryption to protect data in transit.</li>
+              <li><strong>No Sensitive Data Transmission:</strong> Since all data stays local, there&apos;s no risk of data interception during transmission.</li>
+              <li><strong>Browser Security:</strong> Your data is protected by your browser&apos;s built-in security features.</li>
+            </ul>
+
+            <h3>What We Don&apos;t Do</h3>
+            <ul>
+              <li>We don&apos;t track your writing or reading habits</li>
+              <li>We don&apos;t analyze your content</li>
+              <li>We don&apos;t share your data with third parties</li>
+              <li>We don&apos;t use your data for advertising</li>
+              <li>We don&apos;t store your documents on our servers</li>
+              <li>We don&apos;t require any account creation or personal information</li>
+            </ul>
+
+            <h3>Your Control</h3>
+            <p>
+              You have complete control over your data:
+            </p>
+            <ul>
+              <li>Export your documents anytime</li>
+              <li>Clear your browser data to remove all saved content</li>
+              <li>Use incognito/private browsing for additional privacy</li>
+              <li>Inspect the source code to verify our claims</li>
+            </ul>
+
+            <p>
+              <strong>Your privacy is our priority.</strong> We&apos;ve designed Hermes Markdown to be as private as possible while still providing powerful markdown editing capabilities.
+            </p>
           </section>
 
           {/* Markdown Syntax Guide (condensed) */}

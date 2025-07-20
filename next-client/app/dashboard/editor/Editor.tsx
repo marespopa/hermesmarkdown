@@ -76,7 +76,7 @@ export default function Editor() {
 
   const [_, setDocumentTitle] = useDocumentTitle("Hermes Markdown");
 
-  useCommand("save", () => exportToMD());
+  useCommand("export", () => exportToMD());
   useCommand("open", () => handleOpenFile());
   useCommand("new", () => handleNewFile());
   useCommand("template", () => handleSelectTemplate());
@@ -251,7 +251,7 @@ export default function Editor() {
     try {
       await ExportService.exportMarkdown(contentEdited, frontMatter);
       setContent(contentEdited);
-      setHasChanges(false); // Clear unsaved changes after successful save
+      setHasChanges(false); // Clear unsaved changes after successful export
     } catch (error) {
       console.error(error);
     }

@@ -118,14 +118,6 @@ const LifeDashboardTemplate: MarkdownTemplate = {
 **Gratitude:**
 - Supportive team
 - Good health
-
-<!--
-DASHBOARD FUNCTIONALITY HIGHLIGHTS:
-- Use checkboxes ([ ] and [x]) for actionable goals and habit tracking.
-- Use bold/italic for emphasis on key metrics.
-- Use sections for clear separation of life areas.
-- Add your own sections as needed!
--->
 `,
 };
 
