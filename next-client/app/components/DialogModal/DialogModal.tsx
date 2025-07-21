@@ -35,7 +35,7 @@ const DialogModal = ({ isOpened, onClose, children, styles = "" }: Props) => {
         className={`my-auto sm:h-[90vh] sm:w-[1000px] p-8 text-base bg-white border-none rounded-xl shadow-lg dark:bg-neutral-800 dark:text-white ${styles}`}
         onCancel={onClose}
       >
-        <div className="relative p-4">
+        <div className="relative p-4 h-full">
           <Button
             variant="icon"
             onClick={onClose}
