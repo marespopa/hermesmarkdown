@@ -24,6 +24,7 @@ const FindBar = forwardRef<HTMLInputElement, FindBarProps>(
     onNext,
     onPrev,
     onClear,
+    onCollapse,
   }, ref) => {
     const isMobile = useIsMobile();
     const inputRef = useRef<HTMLInputElement>(null);
@@ -37,6 +38,7 @@ const FindBar = forwardRef<HTMLInputElement, FindBarProps>(
           handleChange={e => onSearch(e.currentTarget.value)}
           placeholder="Find..."
           ref={inputRef}
+          onClear={searchTerm ? onClear : undefined}
         />
         {searchTerm && (
           <>
@@ -59,16 +61,17 @@ const FindBar = forwardRef<HTMLInputElement, FindBarProps>(
             >
               <FaChevronRight />
             </IconButton>
-            <IconButton
-              variant="icon"
-              onClick={onClear}
-              aria-label="Clear search"
-              label=""
-            >
-              <FaTimes />
-            </IconButton>
           </>
         )}
+        {/* Always show close button at the end */}
+        <IconButton
+          variant="icon"
+          onClick={onCollapse}
+          aria-label="Close Find Bar"
+          label=""
+        >
+          <FaTimes />
+        </IconButton>
       </div>
     );
   }
