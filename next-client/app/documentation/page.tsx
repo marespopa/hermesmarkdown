@@ -250,6 +250,9 @@ export default function Documentation() {
               <li><b>Code:</b> <code>`inline`</code>, <code>~~~block~~~</code></li>
               <li><b>Tables:</b> <code>| h1 | h2 |</code></li>
             </ul>
+            <p className="mt-2">
+              <b>Tip:</b> When you select a link in the editor, a popup appears allowing you to click and open the link directly.
+            </p>
             <p>
               For more details, see the full Markdown documentation online: {" "}
               <a

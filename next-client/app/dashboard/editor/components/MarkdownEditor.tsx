@@ -1,5 +1,7 @@
-import React from "react";
+import React, { useState, useRef, useEffect } from "react";
 import Editor from "react-simple-code-editor";
+import Button from "@/app/components/Button";
+import { FaTimes } from "react-icons/fa";
 
 interface MarkdownEditorProps {
   value: string;
@@ -130,25 +132,112 @@ const highlightMarkdownWithTailwind = (code: string, searchTerm?: string, matchC
 };
 
 const MarkdownEditor: React.FC<MarkdownEditorProps> = ({ value, onChange, fontFamily, fontSize, searchTerm, matchCount, currentIndex }) => {
+  const [popup, setPopup] = useState<{ text: string; url: string } | null>(null);
+  const wrapperRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+
+  // Handler to hide popup
+  const handlePopupClose = () => {
+    setPopup(null);
+    // Clear selection in textarea
+    if (textareaRef.current) {
+      textareaRef.current.selectionStart = textareaRef.current.selectionEnd;
+    }
+  };
+
+  // Attach select event to textarea and selectionchange for mobile
+  useEffect(() => {
+    if (!wrapperRef.current) return;
+    const textarea = wrapperRef.current.querySelector('textarea');
+    if (!textarea) return;
+    textareaRef.current = textarea as HTMLTextAreaElement;
+
+    const handleSelect = () => {
+      const selection = textarea.value.substring(textarea.selectionStart, textarea.selectionEnd);
+      let match = selection.match(/\[([^\]]+)\]\(([^)]+)\)/);
+      if (match) {
+        setPopup({ text: match[1], url: match[2] });
+        return;
+      }
+      match = selection.match(/\(([^)]+)\)\[([^\]]+)\]/);
+      if (match) {
+        setPopup({ text: match[2], url: match[1] });
+        return;
+      }
+      setPopup(null);
+    };
+
+    textarea.addEventListener('select', handleSelect);
+
+    // Fallback for mobile: selectionchange on document
+    const handleSelectionChange = () => {
+      if (document.activeElement === textarea) {
+        handleSelect();
+      }
+    };
+    document.addEventListener('selectionchange', handleSelectionChange);
+
+    return () => {
+      textarea.removeEventListener('select', handleSelect);
+      document.removeEventListener('selectionchange', handleSelectionChange);
+    };
+  }, [value]);
+
   return (
-    <Editor
-      value={value}
-      onValueChange={onChange}
-      highlight={(code) => highlightMarkdownWithTailwind(code, searchTerm, matchCount, currentIndex)}
-      padding={16}
-      textareaId="markdown-editor"
-      textareaClassName="w-full h-full bg-transparent outline-none resize-none"
-      preClassName="w-full h-full leading-relaxed bg-transparent"
-      style={{
-        minHeight: "400px",
-        color: "inherit",
-        fontFamily,
-        fontSize
-      }}
-      spellCheck={true}
-      autoFocus={true}
-      data-testid="editor-textarea"
-    />
+    <div className="relative" ref={wrapperRef}>
+      <Editor
+        value={value}
+        onValueChange={onChange}
+        highlight={highlightMarkdownWithTailwind}
+        padding={16}
+        textareaId="markdown-editor"
+        textareaClassName="w-full h-full bg-transparent outline-none resize-none"
+        preClassName="w-full h-full leading-relaxed bg-transparent"
+        style={{
+          minHeight: "400px",
+          color: "inherit",
+          fontFamily,
+          fontSize
+        }}
+        spellCheck={true}
+        autoFocus={true}
+        data-testid="editor-textarea"
+      />
+      {popup && (
+        <div
+          style={{
+            position: "fixed",
+            left: "50%",
+            bottom: 32,
+            transform: "translateX(-50%)",
+            zIndex: 1000,
+          }}
+          className="bg-white dark:bg-neutral-900 text-neutral-900 dark:text-white px-4 py-4 rounded-2xl shadow-xl flex flex-col items-center gap-2 border border-neutral-200 dark:border-neutral-700 min-w-[260px]"
+        >
+          <div className="flex w-full justify-between items-center mb-1">
+            <div className="text-base font-semibold">Markdown Link</div>
+            <Button
+              variant="icon"
+              aria-label="Close popup"
+              title="Close"
+              onMouseDown={(e: React.MouseEvent<HTMLButtonElement>) => { e.stopPropagation(); handlePopupClose(); }}
+              styles="ml-2"
+            >
+              <FaTimes />
+            </Button>
+          </div>
+          <div className="text-sm text-neutral-500 dark:text-neutral-400 mb-1 break-all font-mono">[{popup.text}]({popup.url})</div>
+          <a
+            href={popup.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="underline text-amber-600 dark:text-amber-400 hover:text-amber-700 dark:hover:text-amber-300 text-lg font-medium"
+          >
+            Go to link
+          </a>
+        </div>
+      )}
+    </div>
   );
 };
 

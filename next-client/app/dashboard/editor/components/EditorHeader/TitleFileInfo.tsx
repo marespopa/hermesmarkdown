@@ -1,7 +1,5 @@
-import PenIcon from "@/app/components/Icons/PenIcon";
-import Button from "@/app/components/Button";
-import Badge from "@/app/components/Badges/Badge";
 import React from "react";
+import { FaPen } from "react-icons/fa";
 
 interface TitleFileInfoProps {
   fileTitle: string;
@@ -30,8 +28,8 @@ const TitleFileInfo: React.FC<TitleFileInfoProps> = ({
           <span className="ml-2 text-amber-500 align-middle" title="Unsaved changes">•</span>
         )}
       </h1>
-      <span className="cursor-pointer" onClick={showFileDialog}>
-        <PenIcon tooltip="File Settings" size={16} alt="Edit Title" />
+      <span className="cursor-pointer" onClick={showFileDialog} title="Edit Title" aria-label="Edit Title">
+        <FaPen />
       </span>
     </div>
     <span className="text-xs text-gray-500 dark:text-gray-100 font-mono truncate text-center sm:text-left">{`${fileName?.endsWith(".md") ? fileName : fileName + ".md"}`}</span>
