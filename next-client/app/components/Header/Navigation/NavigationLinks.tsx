@@ -25,6 +25,9 @@ export default function NavigationLinks({}: Props) {
           <NavigationLink label="FAQ" href="/faq" />
         </li>
         <li>
+          <NavigationLink label="Contact" href="/contact" />
+        </li>
+        <li>
           <Button
             variant="icon"
             onClick={() => setTheme(theme === "light" ? "dark" : "light")}
