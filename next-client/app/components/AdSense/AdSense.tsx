@@ -18,11 +18,6 @@ const AdSense: React.FC<AdSenseProps> = ({
   className = '',
   fullWidthResponsive = true,
 }) => {
-  // Don't render ads in development
-  if (!ADSENSE_CONFIG.enabled) {
-    return null;
-  }
-
   useEffect(() => {
     try {
       // @ts-ignore - Google AdSense global

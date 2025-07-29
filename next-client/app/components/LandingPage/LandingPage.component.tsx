@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import Image from "next/image";
 import Features from "./subcomponents/Features";
 import Hero from "./subcomponents/Hero";
 import Motto from "./subcomponents/Motto";
@@ -79,12 +80,13 @@ export default function LandingPage() {
             target="_blank"
             rel="noopener noreferrer"
           >
-            <img
+            <Image
               src="https://api.producthunt.com/widgets/embed-image/v1/product_review.svg?product_id=553021&theme=dark"
               alt="Hermes Markdown - The Markdown Editor That Respects Your Privacy | Product Hunt"
-              style={{ width: "250px", height: "54px" }}
               width={250}
               height={54}
+              style={{ width: "250px", height: "54px" }}
+              unoptimized
             />
           </a>
         </div>
