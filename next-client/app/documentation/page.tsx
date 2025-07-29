@@ -1,6 +1,5 @@
 import React from "react";
 import { containerStyle } from "../constants/styles";
-
 export default function Documentation() {
   return (
     <main className="bg-white dark:bg-gray-900 mt-8 pt-8 text-gray-900 dark:text-white">

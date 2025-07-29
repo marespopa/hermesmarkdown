@@ -14,109 +14,121 @@ const LifeDashboardTemplate: MarkdownTemplate = {
 
 **Created:** ${date}
 
----
-
 ## 🎯 This Week's Focus
 
-| Primary Goal        | Success Metric          |
-|---------------------|-------------------------|
-| Finish project      | 100% complete           |
+**Primary Goal:**  
+Finish project
+
+**Success Metric:**  
+100% complete
 
 ---
 
 ## 💼 Work & Career
 
-| Project             | Status | Due Date   | Notes         |
-|---------------------|--------|------------|---------------|
-| Project 1           | [ ]    | Mar 15     | Launch MVP    |
-| Project 2           | [ ]    | Mar 30     | QA review     |
-| Skill Building      | [ ]    |            | React course  |
-| _Work-Life Balance_ |        |            | 40h / 5h / 6  |
+**Projects:**  
+- Project 1 – ☐ Launch MVP (Due: Mar 15)  
+- Project 2 – ☐ QA review (Due: Mar 30)  
+- Skill Building – ☐ React course  
+- _Work-Life Balance:_ 40h / 5h / 6
 
 ---
 
 ## 💰 Finance & Budget
 
-| Category        | Amount       |
-|-----------------|--------------|
-| Income          | $3200        |
-| Expenses        | $2000        |
-| Savings         | $1000        |
-|                 |              |
-| **Goals**       |              |
-| Emergency Fund  | $1000 / $200 |
-| Investment      | $500 / $300  |
+**Category:**  
+- Income: $3,200  
+- Expenses: $2,000  
+- Savings: $1,000  
+
+**Goals:**  
+- Emergency Fund: $1,000 / $200  
+- Investment: $500 / $300  
 
 ---
 
 ## 🏃‍♂️ Health & Fitness
 
-| Metric     | Value                |
-|------------|--------------------- |
-| Workouts   | 3 sessions this week |
-| Steps      | 8000 today           |
-| Sleep      | 7 hours last night   |
-| Stress     | 5                    |
-|            |                      |
-| **Goals**  |                      |
-| Exercise   | 4 times per week     |
-| Sleep      | 8 hours per night    |
+**Metrics:**  
+- Workouts: 3 sessions this week  
+- Steps: 8,000 today  
+- Sleep: 7 hours last night  
+- Stress: 5/10  
+
+**Goals:**  
+- Exercise: 4 times per week  
+- Sleep: 8 hours per night  
 
 ---
 
 ## 📚 Learning & Growth
 
-| Currently Learning   | Progress | Reading       |
-|----------------------|----------|---------------|
-| React                | 80%      | Atomic Habits |
-|                      |          |               |
-| **Skills to Develop**|          |               |
-| TypeScript           | [ ]      |               |
-| GraphQL              | [ ]      |               |
+**Currently Learning:**  
+- React (Progress: 80%)  
+
+**Reading:**  
+- Atomic Habits
+
+**Skills to Develop:**  
+- ☐ TypeScript  
+- ☐ GraphQL  
 
 ---
 
 ## 🔄 Weekly Habits
 
-| Habit     | Mon | Tue | Wed | Thu | Fri | Sat | Sun |
-|-----------|-----|-----|-----|-----|-----|-----|-----|
-| Exercise  |  x  |     |  x  |     |  x  |     |     |
-| Read      |  x  |  x  |     |     |  x  |     |  x  |
-| Meditate  |     |     |     |  x  |     |     |     |
+**Exercise:**  
+- Mon: x  
+- Tue:   
+- Wed: x  
+- Thu:   
+- Fri: x  
+- Sat:   
+- Sun:   
+
+**Read:**  
+- Mon: x  
+- Tue: x  
+- Wed:   
+- Thu:   
+- Fri: x  
+- Sat:   
+- Sun: x  
+
+**Meditate:**  
+- Thu: x  
 
 ---
 
 ## 📝 This Week's Review
 
-**Wins:**
-- Finished MVP
+**Wins:**  
+- Finished MVP  
 - Exercised 3x
 
-**Next Week's Priorities:**
-- Launch to users
-- Start new book
-- Save $200
+**Next Week's Priorities:**  
+- Launch to users  
+- Start new book  
+- Save $200  
 
 ---
 
 ## 🎯 Monthly Goals
 
-| Goal         | Status | Notes     |
-|--------------|--------|-----------|
-| Launch MVP   | [ ]    |           |
-| Read 2 books | [ ]    |           |
-| Save $500    | [ ]    |           |
+- ☐ Launch MVP  
+- ☐ Read 2 books  
+- ☐ Save $500  
 
 ---
 
 ## 📝 Quick Notes
 
-**Today's Highlights:**
-- Completed sprint
+**Today's Highlights:**  
+- Completed sprint  
 - Cooked healthy meal
 
-**Gratitude:**
-- Supportive team
+**Gratitude:**  
+- Supportive team  
 - Good health
 `,
 };

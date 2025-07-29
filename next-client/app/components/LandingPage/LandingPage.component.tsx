@@ -71,6 +71,7 @@ export default function LandingPage() {
         </div>
         <Features />
         <Testimonials />
+        
         {/* Product Hunt Review Badge */}
         <div className="flex justify-center my-8">
           <a
@@ -87,6 +88,7 @@ export default function LandingPage() {
             />
           </a>
         </div>
+        
         <MarkdownGuide />
         <HowItWorks />
         <FAQContent />

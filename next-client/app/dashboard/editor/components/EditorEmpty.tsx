@@ -21,6 +21,7 @@ import useIsMobile from "@/app/hooks/use-is-mobile";
 import { EMPTY_PAGE_TEMPLATE } from "../EditorUtils";
 import InfoPanelPlain from "../../components/InfoPanelPlain";
 
+
 export const PICKER_OPTIONS: OpenFilePickerOptions = {
   types: [
     {
@@ -221,6 +222,8 @@ export default function EditorEmpty() {
               }}
             />
           )}
+          
+
         </article>
     );
   }
