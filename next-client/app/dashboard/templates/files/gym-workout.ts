@@ -27,6 +27,7 @@ Created: ${date}
 | Primary            |                   |      |      |          |              |
 | Secondary          |                   |      |      |          |              |
 | Secondary          |                   |      |      |          |              |
+
 ---
 
 ## 📊 Progress Notes

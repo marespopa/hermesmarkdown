@@ -21,6 +21,7 @@ const ExampleTemplate: MarkdownTemplate = {
 |        | [ ]    |            |
 |        | [ ]    |            |
 |        | [ ]    |            |
+
 ---
 ## 🎯 This Week's Goals
 | Goal   | Status | Notes      |
@@ -28,17 +29,20 @@ const ExampleTemplate: MarkdownTemplate = {
 |        | [ ]    |            |
 |        | [ ]    |            |
 |        | [ ]    |            |
+
 ---
 ## 🚀 Current Projects
 | Project Name | Status | Due Date | Notes      |
 |--------------|--------|----------|------------|
 |              | [ ]    |          |            |
 |              | [ ]    |          |            |
+
 ---
 ## 💡 Ideas & Notes
 - 
 - 
 - 
+
 ---
 ## 📝 Daily Reflection
 **Wins:**
