@@ -338,12 +338,12 @@ export default function EditorEmpty() {
           title={
             <span className="flex gap-2 items-center">
               <FaFile />
-              New File
+              New
             </span>
           }
           description={`Begin with an empty document`}
           action={{
-            label: "New File",
+            label: "New",
             handler: () => handleCreateFile(),
             disabled: disabledButtonsState.new,
           }}

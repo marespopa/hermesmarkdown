@@ -18,56 +18,30 @@ Simplifies organizing and tracking action items for effective follow-ups.`,
 
 ---
 
-## 👥 Attendees
-
-| Name   |
-|--------|
-|        |
-|        |
-|        |
-
----
-
 ## 📋 Agenda
 
-| Agenda Item     |
-|-----------------|
-|                 |
-|                 |
-|                 |
+- 
+-  
 
 ---
 
 ## 📝 Discussion Notes
 
-### 
-- Key Points: 
-- Decisions: 
-- Action Items: 
-
-### 
-- Key Points: 
-- Decisions: 
-- Action Items: 
+*Add your notes here*
 
 ---
 
 ## ✅ Action Items
 
-| Action Item         | Owner | Due Date | Status |
-|---------------------|-------|----------|--------|
-|                     |       |          | [ ]    |
-|                     |       |          | [ ]    |
+- [ ] 
 
 ---
 
 ## 📆 Next Meeting
 
-| Field  | Value         |
-|--------|---------------|
-| Date   |               |
-| Time   |               |
-| Agenda |               |
+**Date:** 
+**Time:** 
+**Agenda:** 
 `,
 };
 

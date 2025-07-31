@@ -58,6 +58,27 @@ const FontConfigDialog: React.FC<FontConfigDialogProps> = ({
           <div className={labelClass}>Font Size</div>
           <FontSizeMenu fontSizeOptions={fontSizeOptions} setFontSize={setFontSize} value={fontSize} />
         </div>
+        <div className="mt-4">
+          <div className={labelClass}>Preview</div>
+          <div 
+            className="p-4 border border-neutral-200 dark:border-neutral-700 rounded-lg bg-neutral-50 dark:bg-neutral-800 min-h-[120px]"
+            style={{ 
+              fontFamily: fontFamily, 
+              fontSize: fontSize,
+              lineHeight: '1.5'
+            }}
+          >
+            <div className="mb-2">
+              <strong># Hello World</strong>
+            </div>
+            <div className="mb-2">
+              This is a preview of how your text will look with the selected font settings.
+            </div>
+            <div className="text-neutral-600 dark:text-neutral-400">
+              <code>console.log(&quot;Hello, World!&quot;);</code>
+            </div>
+          </div>
+        </div>
       </div>
       <div className="mt-16 flex gap-2 justify-start">
         <Button variant="secondary" onClick={onClose} label="Cancel" />

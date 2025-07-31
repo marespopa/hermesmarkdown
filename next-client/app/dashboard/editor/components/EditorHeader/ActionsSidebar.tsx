@@ -74,6 +74,7 @@ const ActionsSidebar: React.FC<ActionsSidebarProps> = ({
           {collapsed ? <FaChevronRight /> : <FaChevronLeft />}
         </Button>
         {/* Main file actions */}
+        <div className={classNames(sectionHeaderClass, collapsed && "hidden")}>File</div>
         <Button
           variant="icon"
           onClick={actions.handleNewFile}
@@ -81,13 +82,13 @@ const ActionsSidebar: React.FC<ActionsSidebarProps> = ({
           title="New File"
           styles={classNames(getButtonStyles(collapsed), "dark:border-neutral-600")}
         >
-          <FaFile /> <span className={getLabelClass()}>New File</span>
+          <FaFile /> <span className={getLabelClass()}>New</span>
         </Button>
         <Button
           variant="icon"
           onClick={exportToMD}
-          aria-label="Export"
-          title="Export"
+          aria-label="Export File"
+          title="Export File"
           styles={getButtonStyles(collapsed)}
         >
           <FaSave /> <span className={getLabelClass()}>Export</span>
@@ -108,7 +109,7 @@ const ActionsSidebar: React.FC<ActionsSidebarProps> = ({
           title="Import File"
           styles={getButtonStyles(collapsed)}
         >
-          <FaFolderOpen /> <span className={getLabelClass()}>Import File</span>
+          <FaFolderOpen /> <span className={getLabelClass()}>Import</span>
         </Button>
         <span className={classNames(
           "my-2 border-t border-gray-300 dark:border-neutral-500",

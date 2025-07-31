@@ -16,26 +16,20 @@ const ExampleTemplate: MarkdownTemplate = {
 
 ---
 ## ✅ Today's Tasks
-| Task   | Status | Notes      |
-|--------|--------|------------|
-|        | [ ]    |            |
-|        | [ ]    |            |
-|        | [ ]    |            |
+- [ ] 
+- [ ] 
+- [ ] 
 
 ---
 ## 🎯 This Week's Goals
-| Goal   | Status | Notes      |
-|--------|--------|------------|
-|        | [ ]    |            |
-|        | [ ]    |            |
-|        | [ ]    |            |
+- [ ] 
+- [ ] 
+- [ ] 
 
 ---
 ## 🚀 Current Projects
-| Project Name | Status | Due Date | Notes      |
-|--------------|--------|----------|------------|
-|              | [ ]    |          |            |
-|              | [ ]    |          |            |
+- [ ] 
+- [ ] 
 
 ---
 ## 💡 Ideas & Notes
