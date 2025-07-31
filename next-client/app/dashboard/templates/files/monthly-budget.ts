@@ -22,9 +22,9 @@ const MonthlyBudgetTemplate: MarkdownTemplate = {
 
 | Source    | Amount   |
 |-----------|----------|
-| Salary    | $3200    |
-| Other     | $200     |
-| **Total** | $3400    |
+| Salary    |          |
+| Other     |          |
+| **Total** |          |
 
 ---
 
@@ -32,13 +32,8 @@ const MonthlyBudgetTemplate: MarkdownTemplate = {
 
 | Category        | Amount   |
 |-----------------|----------|
-| Housing         | $1200    |
-| Food            | $400     |
-| Transportation  | $150     |
-| Utilities       | $100     |
-| Entertainment   | $80      |
-| Other           | $70      |
-| **Total**       | $2000    |
+| Category 1      |          |
+| **Total**       |          |
 
 ---
 
@@ -46,10 +41,10 @@ const MonthlyBudgetTemplate: MarkdownTemplate = {
 
 | Type           | Amount   |
 |----------------|----------|
-| Savings        | $500     |
-| Investments    | $300     |
-| Emergency Fund | $200     |
-| **Total**      | $1000    |
+| Savings        |          |
+| Investments    |          |
+| Emergency Fund |          |
+| **Total**      |          |
 
 ---
 
@@ -57,10 +52,10 @@ const MonthlyBudgetTemplate: MarkdownTemplate = {
 
 | Category          | Amount   |
 |-------------------|----------|
-| Total Income      | $3400    |
-| Total Expenses    | $2000    |
-| Total Savings     | $1000    |
-| Remaining Balance | $400     |
+| Total Income      |          |
+| Total Expenses    |          |
+| Total Savings     |          |
+| Remaining Balance |          |
 
 ---
 
@@ -68,9 +63,9 @@ const MonthlyBudgetTemplate: MarkdownTemplate = {
 
 | Goal               | Target   | Current | Status |
 |--------------------|----------|---------|--------|
-| Emergency Fund     | $1000    | $200    | [ ]    |
-| Investment Goal    | $500     | $300    | [ ]    |
-| Save 20% of income | $680     | $500    | [ ]    |
+| Emergency Fund     |          |         | [ ]    |
+| Investment Goal    |          |         | [ ]    |
+| Save 20% of income |          |         | [ ]    |
 `,
 };
 

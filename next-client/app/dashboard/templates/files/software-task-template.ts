@@ -10,7 +10,7 @@ const SoftwareTaskTemplate: MarkdownTemplate = {
     description: `The Software Task Template streamlines software development task tracking, offering sections for task details, links, work description, progress updates, notes, and questions.`,
     tags: "software engineering,task,guide,template",
   },
-  content: `# TASK-123 User Login Feature
+  content: `# TASK- 
 
 ---
 
@@ -18,35 +18,35 @@ const SoftwareTaskTemplate: MarkdownTemplate = {
 
 | Type   | Link                               |
 |--------|------------------------------------|
-| Story  | https://example.com/story          |
-| Docs   | https://example.com/docs           |
-| PR     | https://github.com/org/repo/pull/1 |
+| Story  |                                    |
+| Docs   |                                    |
+| PR     |                                    |
 
 ---
 
 ## 📝 Description
 
 *Clearly define the problem, goal, or feature. Include context and details to help others understand the task quickly.*
-- **Summary**: Implement user authentication for login
-- **Context**: Feature X lacks authentication, which is critical for user data protection
-- **Problem/Goal**: Ensure secure login for users
-- **Details**: Add sequence diagram for login flow
+- **Summary**: 
+- **Context**: 
+- **Problem/Goal**: 
+- **Details**: 
 
 ---
 
 ## 🛑 Non-goals
 
-- This task does not include frontend UI changes.
-- This task does not address API rate limiting.
+- 
+- 
 
 ---
 
 ## 🛠️ Solution & Implementation
 
-1. Research and evaluate authentication libraries
-2. Integrate chosen library with backend services
-3. Write unit tests to ensure functionality
-4. Document implementation details in the project wiki
+1. 
+2. 
+3. 
+4. 
 
 ---
 
@@ -54,9 +54,9 @@ const SoftwareTaskTemplate: MarkdownTemplate = {
 
 | Criteria                                   | Status |
 |--------------------------------------------|--------|
-| Users can log in securely using email      | [ ]    |
-| Unit tests cover at least 90% of new code  | [ ]    |
-| Documentation is updated with login details| [ ]    |
+|                                            | [ ]    |
+|                                            | [ ]    |
+|                                            | [ ]    |
 
 ---
 
@@ -64,16 +64,16 @@ const SoftwareTaskTemplate: MarkdownTemplate = {
 
 | Dependency                | Status |
 |---------------------------|--------|
-| Approval of spec          | [ ]    |
-| Backend ready             | [ ]    |
+|                           | [ ]    |
+|                           | [ ]    |
 
 ---
 
 ## 🚧 Remarks & Open Questions
 
 *Summarize key points and highlight unresolved issues or decisions that need input.*
-- Remark: Ensure API compatibility
-- Open Question: Support OAuth2?
+- Remark: 
+- Open Question: 
 
 ---
 
@@ -81,10 +81,10 @@ const SoftwareTaskTemplate: MarkdownTemplate = {
 
 | Subtask                   | Status |
 |---------------------------|--------|
-| Integrate auth library    | [ ]    |
-| Implement backend logic   | [ ]    |
-| Write unit tests          | [ ]    |
-| Update documentation      | [ ]    |
+|                           | [ ]    |
+|                           | [ ]    |
+|                           | [ ]    |
+|                           | [ ]    |
 
 ---
 
@@ -92,14 +92,14 @@ const SoftwareTaskTemplate: MarkdownTemplate = {
 
 | Task         | Estimate |
 |--------------|----------|
-| Total        | 2 days   |
+| Total        |          |
 
 ---
 
 ## 📝 Notes & Additional Information
 
 *Add any extra context or instructions that might be helpful.*
-- Coordinate with frontend for integration testing
+- 
 `,
 };
 

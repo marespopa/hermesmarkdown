@@ -7,7 +7,8 @@ import DashboardTemplate from "./files/dashboard";
 import ProjectManagementTemplate from "./files/project-management-template";
 import ToDoListTemplate from "./files/todo-list-template";
 import MeetingNotesTemplate from "./files/meeting-notes";
-import RecipeTemplate from "./files/recipe";
+import SoftwareTaskTemplate from "./files/software-task-template";
+import CodeSnippetTemplate from "./files/code-snippet";
 import { FrontMatterGeneric } from "@/app/types/markdown";
 
 export type MarkdownTemplate = {
@@ -26,7 +27,8 @@ const MarkdownTemplateList = [
   ProjectManagementTemplate,
   ToDoListTemplate,
   MeetingNotesTemplate,
-  RecipeTemplate,
+  SoftwareTaskTemplate,
+  CodeSnippetTemplate,
 ];
 
 export default MarkdownTemplateList;

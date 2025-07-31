@@ -13,8 +13,8 @@ Simplifies organizing and tracking action items for effective follow-ups.`,
   },
   content: `# 🗓️ Meeting Notes
 **Date:** ${date}
-**Time:** 10:00 AM
-**Location:** Conference Room
+**Time:** 
+**Location:** 
 
 ---
 
@@ -22,9 +22,9 @@ Simplifies organizing and tracking action items for effective follow-ups.`,
 
 | Name   |
 |--------|
-| Alice  |
-| Bob    |
-| Carol  |
+|        |
+|        |
+|        |
 
 ---
 
@@ -32,23 +32,23 @@ Simplifies organizing and tracking action items for effective follow-ups.`,
 
 | Agenda Item     |
 |-----------------|
-| Project Kickoff |
-| Timeline Review |
-| Q&A             |
+|                 |
+|                 |
+|                 |
 
 ---
 
 ## 📝 Discussion Notes
 
-### Project Kickoff
-- Key Points: Introduced project goals
-- Decisions: Agreed on scope
-- Action Items: Assign tasks
+### 
+- Key Points: 
+- Decisions: 
+- Action Items: 
 
-### Timeline Review
-- Key Points: Reviewed milestones
-- Decisions: Adjusted deadlines
-- Action Items: Update project plan
+### 
+- Key Points: 
+- Decisions: 
+- Action Items: 
 
 ---
 
@@ -56,8 +56,8 @@ Simplifies organizing and tracking action items for effective follow-ups.`,
 
 | Action Item         | Owner | Due Date | Status |
 |---------------------|-------|----------|--------|
-| Create project repo | Alice | ${date}  | [ ]    |
-| Update timeline     | Bob   | ${date}  | [ ]    |
+|                     |       |          | [ ]    |
+|                     |       |          | [ ]    |
 
 ---
 
@@ -65,9 +65,9 @@ Simplifies organizing and tracking action items for effective follow-ups.`,
 
 | Field  | Value         |
 |--------|---------------|
-| Date   | ${date}       |
-| Time   | 2:00 PM       |
-| Agenda | Progress Check|
+| Date   |               |
+| Time   |               |
+| Agenda |               |
 `,
 };
 

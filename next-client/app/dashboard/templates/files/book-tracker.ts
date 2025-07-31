@@ -13,8 +13,8 @@ const BookTrackerTemplate: MarkdownTemplate = {
   },
   content: `# 📚 Book Tracker
 **Created:** ${date}
-**Reading Goal:** 12 books this year
-**Current Progress:** 3 / 12 books completed
+**Reading Goal:**  books this year
+**Current Progress:**  /  books completed
 
 ---
 
@@ -22,7 +22,7 @@ const BookTrackerTemplate: MarkdownTemplate = {
 
 | Book Title         | Author     | Genre     | Pages    | Progress | Rating | Notes               |
 |--------------------|------------|-----------|----------|----------|--------|---------------------|
-| The Great Gatsby   | Jane Doe   | Fiction   | 120/180  | 67%      | 4/5    | Loving the writing  |
+|                    |            |           | /        | %        | /5     |                     |
 
 ---
 
@@ -30,10 +30,10 @@ const BookTrackerTemplate: MarkdownTemplate = {
 
 | Year    | Book Title         | Author         | Rating | Date Finished |
 |---------|--------------------|----------------|--------|---------------|
-| ${year} | Atomic Habits      | James Clear    | 5/5    | ${date}       |
-| ${year} | Deep Work          | Cal Newport    | 4/5    | ${date}       |
-| 2023    | Sapiens            | Yuval Noah     | 4/5    | ${date}       |
-| 2023    | Educated           | Tara Westover  | 5/5    | ${date}       |
+|         |                    |                | /5     |               |
+|         |                    |                | /5     |               |
+|         |                    |                | /5     |               |
+|         |                    |                | /5     |               |
 
 ---
 
@@ -41,9 +41,9 @@ const BookTrackerTemplate: MarkdownTemplate = {
 
 | Book Title         | Author         | Genre      | Status      | Notes      |
 |--------------------|---------------|------------|-------------|------------|
-| 1984               | George Orwell | Dystopian  | Next        |            |
-| The Lean Startup   | Eric Ries     | Business   | Wishlist    | $15        |
-| The Alchemist      | Paulo Coelho  | Fiction    | Recommended | John Smith |
+|                    |                |            |             |            |
+|                    |                |            |             |            |
+|                    |                |            |             |            |
 
 ---
 
@@ -51,9 +51,9 @@ const BookTrackerTemplate: MarkdownTemplate = {
 
 | Goal Type      | Target | Current | Status |
 |----------------|--------|---------|--------|
-| Total Books    | 12     | 3       | [ ]    |
-| Non-fiction    | 6      | 2       | [ ]    |
-| Fiction        | 6      | 1       | [ ]    |
+| Total Books    |        |         | [ ]    |
+| Non-fiction    |        |         | [ ]    |
+| Fiction        |        |         | [ ]    |
 
 ---
 
@@ -61,16 +61,16 @@ const BookTrackerTemplate: MarkdownTemplate = {
 
 | Genre           | Books Completed |
 |-----------------|-----------------|
-| Fiction         | 1               |
-| Non-fiction     | 2               |
-| Sci-fi/Fantasy  | 0               |
-| Business        | 0               | 
+| Fiction         |                 |
+| Non-fiction     |                 |
+| Sci-fi/Fantasy  |                 |
+| Business        |                 | 
 
 | Month     | Books Completed |
 |-----------|-----------------|
-| January   | 1               |
-| February  | 2               |
-| March     | 0               |
+| January   |                 |
+| February  |                 |
+| March     |                 |
 
 ---
 
@@ -78,24 +78,24 @@ const BookTrackerTemplate: MarkdownTemplate = {
 
 | Book Title         | Author       | Rating | Date Finished |
 |--------------------|--------------|--------|---------------|
-| Atomic Habits      | James Clear  | 3/5    | ${date}       |
-| Educated           | Tara Westover| 3/5    | ${date}       |
+|                    |              | /5     |               |
+|                    |              | /5     |               |
 
 ---
 
 ## 📝 Reading Notes
 
 ### Favorite Quotes
-- "Habits are the compound interest of self-improvement." - James Clear, Atomic Habits
-- "You can only fight the way you practice." - Miyamoto Musashi, The Book of Five Rings
+- "" - , 
+- "" - , 
 
 ### Key Insights
-- **From Deep Work:** Focus is a skill that can be trained.
-- **From Sapiens:** Shared myths are the foundation of society.
+- **From :** 
+- **From :** 
 
 ### Action Items from Books
-- [ ] Try the 2-minute rule
-- [ ] Schedule daily deep work
+- [ ] 
+- [ ] 
 
 ---
 

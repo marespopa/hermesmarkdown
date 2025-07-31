@@ -16,120 +16,124 @@ const LifeDashboardTemplate: MarkdownTemplate = {
 
 ## 🎯 This Week's Focus
 
-**Primary Goal:**  
-Finish project
+**Primary Goal:**
 
-**Success Metric:**  
-100% complete
+**Success Metric:**
 
 ---
 
 ## 💼 Work & Career
 
 **Projects:**  
-- Project 1 – ☐ Launch MVP (Due: Mar 15)  
-- Project 2 – ☐ QA review (Due: Mar 30)  
-- Skill Building – ☐ React course  
-- _Work-Life Balance:_ 40h / 5h / 6
+- [ ]  
+- [ ]  
+- [ ]  
+
+**Work-Life Balance:**  h /  h /  
 
 ---
 
 ## 💰 Finance & Budget
 
-**Category:**  
-- Income: $3,200  
-- Expenses: $2,000  
-- Savings: $1,000  
+**Income:** $  
+**Expenses:** $  
+**Savings:** $  
 
 **Goals:**  
-- Emergency Fund: $1,000 / $200  
-- Investment: $500 / $300  
+- Emergency Fund: $ / $  
+- Investment: $ / $  
 
 ---
 
 ## 🏃‍♂️ Health & Fitness
 
 **Metrics:**  
-- Workouts: 3 sessions this week  
-- Steps: 8,000 today  
-- Sleep: 7 hours last night  
-- Stress: 5/10  
+- Workouts:  sessions this week  
+- Steps:  today  
+- Sleep:  hours last night  
+- Stress: /10  
 
 **Goals:**  
-- Exercise: 4 times per week  
-- Sleep: 8 hours per night  
+- Exercise:  times per week  
+- Sleep:  hours per night  
 
 ---
 
 ## 📚 Learning & Growth
 
 **Currently Learning:**  
-- React (Progress: 80%)  
+-  (Progress: %)  
 
 **Reading:**  
-- Atomic Habits
+- 
 
 **Skills to Develop:**  
-- ☐ TypeScript  
-- ☐ GraphQL  
+- [ ]  
+- [ ]  
 
 ---
 
 ## 🔄 Weekly Habits
 
 **Exercise:**  
-- Mon: x  
+- Mon:   
 - Tue:   
-- Wed: x  
+- Wed:   
 - Thu:   
-- Fri: x  
+- Fri:   
 - Sat:   
 - Sun:   
 
 **Read:**  
-- Mon: x  
-- Tue: x  
+- Mon:   
+- Tue:   
 - Wed:   
 - Thu:   
-- Fri: x  
+- Fri:   
 - Sat:   
-- Sun: x  
+- Sun:   
 
 **Meditate:**  
-- Thu: x  
+- Mon:   
+- Tue:   
+- Wed:   
+- Thu:   
+- Fri:   
+- Sat:   
+- Sun:   
 
 ---
 
 ## 📝 This Week's Review
 
 **Wins:**  
-- Finished MVP  
-- Exercised 3x
+- 
+- 
 
 **Next Week's Priorities:**  
-- Launch to users  
-- Start new book  
-- Save $200  
+- 
+- 
+- 
 
 ---
 
 ## 🎯 Monthly Goals
 
-- ☐ Launch MVP  
-- ☐ Read 2 books  
-- ☐ Save $500  
+- [ ] 
+- [ ] 
+- [ ] 
 
 ---
 
 ## 📝 Quick Notes
 
 **Today's Highlights:**  
-- Completed sprint  
-- Cooked healthy meal
+- 
+- 
 
 **Gratitude:**  
-- Supportive team  
-- Good health
+- 
+- 
 `,
 };
 

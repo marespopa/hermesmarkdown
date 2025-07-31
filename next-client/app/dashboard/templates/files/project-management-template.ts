@@ -19,11 +19,11 @@ const ProjectManagementTemplate: MarkdownTemplate = {
 
 | Field         | Value                |
 |---------------|----------------------|
-| Project Name  | [Project Name]       |
-| Description   | [Project Description]|
-| Owner         | [Project Owner]      |
-| Start Date    | [Start Date]         |
-| End Date      | [End Date]           |
+| Project Name  |                      |
+| Description   |                      |
+| Owner         |                      |
+| Start Date    |                      |
+| End Date      |                      |
 
 ---
 
@@ -31,9 +31,9 @@ const ProjectManagementTemplate: MarkdownTemplate = {
 
 | Goal   | Status | Notes      |
 |--------|--------|------------|
-| Goal 1 | [ ]    |            |
-| Goal 2 | [ ]    |            |
-| Goal 3 | [ ]    |            |
+|        | [ ]    |            |
+|        | [ ]    |            |
+|        | [ ]    |            |
 
 ---
 
@@ -41,9 +41,9 @@ const ProjectManagementTemplate: MarkdownTemplate = {
 
 | Name   | Role   | Contact    |
 |--------|--------|------------|
-| Name 1 | [Role] | [Contact]  |
-| Name 2 | [Role] | [Contact]  |
-| Name 3 | [Role] | [Contact]  |
+|        |        |            |
+|        |        |            |
+|        |        |            |
 
 ---
 
@@ -51,11 +51,11 @@ const ProjectManagementTemplate: MarkdownTemplate = {
 
 | Phase   | Task   | Due Date | Owner  | Status |
 |---------|--------|----------|--------|--------|
-| Phase 1 | Task 1 | [Date]   | [Name] | [ ]    |
-| Phase 1 | Task 2 | [Date]   | [Name] | [ ]    |
-| Phase 1 | Task 3 | [Date]   | [Name] | [ ]    |
-| Phase 2 | Task 1 | [Date]   | [Name] | [ ]    |
-| Phase 2 | Task 2 | [Date]   | [Name] | [ ]    |
+|         |        |          |        | [ ]    |
+|         |        |          |        | [ ]    |
+|         |        |          |        | [ ]    |
+|         |        |          |        | [ ]    |
+|         |        |          |        | [ ]    |
 
 ---
 
@@ -63,9 +63,9 @@ const ProjectManagementTemplate: MarkdownTemplate = {
 
 | Item         | Amount   |
 |--------------|----------|
-| Total Budget | $[Amount]|
-| Spent        | $[Amount]|
-| Remaining    | $[Amount]|
+| Total Budget | $        |
+| Spent        | $        |
+| Remaining    | $        |
 
 ---
 
@@ -73,8 +73,8 @@ const ProjectManagementTemplate: MarkdownTemplate = {
 
 | Risk/Issue     | Impact   | Mitigation Plan    | Status |
 |----------------|----------|--------------------|--------|
-| [Risk/Issue 1] | [Impact] | [Mitigation Plan]  | [ ]    |
-| [Risk/Issue 2] | [Impact] | [Mitigation Plan]  | [ ]    |
+|                |          |                    | [ ]    |
+|                |          |                    | [ ]    |
 
 ---
 
@@ -82,15 +82,14 @@ const ProjectManagementTemplate: MarkdownTemplate = {
 
 | Milestone    | Date       | Description   |
 |--------------|------------|---------------|
-| Milestone 1  | [Date]     | [Description] |
-| Milestone 2  | [Date]     | [Description] |
-| Milestone 3  | [Date]     | [Description] |
+|              |            |               |
+|              |            |               |
+|              |            |               |
 
 ---
 
 ## 📝 Notes
 
-[Add project-specific notes, decisions, or important information here]
 `,
 };
 
