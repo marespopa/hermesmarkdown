@@ -37,11 +37,11 @@ describe("Homepage", () => {
     cy.contains("Choose Your Path:").should("be.visible");
     cy.contains("Editing Options in Hermes Markdown").should("be.visible");
     cy.contains("New from Template").should("be.visible");
-    cy.contains("New File").should("be.visible");
+    cy.contains("New").should("be.visible");
     cy.contains("Import File").should("be.visible");
     
-    // Click on "New File" to go to editor
-    cy.contains("New File").click();
+    // Click on "New" to go to editor
+    cy.contains("New").click();
     
     // Should be on editor page
     cy.url().should("include", "/dashboard/editor");
