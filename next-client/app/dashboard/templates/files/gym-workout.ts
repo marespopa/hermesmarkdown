@@ -11,30 +11,27 @@ const GymWorkoutTemplate: MarkdownTemplate = {
     tags: "gym,workout,fitness,exercise,training,muscle",
   },
   content: `# 💪 Gym Workout
-Workout Name:
-Focus Area: 
-Duration: 
-Created: ${date}
+**Date:** ${date}
+**Focus Area:** 
 
 ---
 
 ## 🎯 Main Workout
 
-| Exercise Group     | Exercise Name     | Sets | Reps | Rest (s) | Weight (lbs) |
-|--------------------|-------------------|------|------|----------|--------------|
-| Primary            |                   |      |      |          |              |
-| Primary            |                   |      |      |          |              |
-| Primary            |                   |      |      |          |              |
-| Secondary          |                   |      |      |          |              |
-| Secondary          |                   |      |      |          |              |
+### Primary Exercises
+- Bench Press - 3x8 - 185lbs
+- 
+- 
+
+
+### Secondary Exercises
+- 
+- 
 
 ---
 
-## 📊 Progress Notes
+## 📊 Notes
 
-| Date       | Overall Performance | Next Workout |
-|------------|---------------------|--------------|
-| ${date}    | Good                | Pull Day     |
 `,
 };
 

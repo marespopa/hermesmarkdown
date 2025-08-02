@@ -10,43 +10,21 @@ const ToDoListTemplate: MarkdownTemplate = {
     description: `A simple checklist for tasks you need to complete.`,
     tags: "todo, list, productivity",
   },
-  content: `# ✅ To-Do List
-**Created:** ${date}
+  content: `# To-Do List
+**Date:** ${date}
 
 ---
 
-## 🎯 Priority Tasks
+## 📋 Tasks
 
-| Task                  | Priority | Status | Notes      |
-|-----------------------|----------|--------|------------|
-|                       | High     | [ ]    |            |
-|                       | High     | [ ]    |            |
-|                       | High     | [ ]    |            |
-
----
-
-## 📝 Regular Tasks
-
-| Task   | Priority | Status | Notes      |
-|--------|----------|--------|------------|
-|        | Medium   | [ ]    |            |
-|        | Medium   | [ ]    |            |
-|        | Medium   | [ ]    |            |
-|        | Low      | [ ]    |            |
-|        | Low      | [ ]    |            |
+⬜ To Do
+🔄 In Progress
+🔴 Blocked
+✅ Done
 
 ---
 
-## ✅ Completed Tasks
-
-| Task              | Priority | Status | Notes      |
-|-------------------|----------|--------|------------|
-|                   | High     | [x]    |            |
-|                   | Medium   | [x]    |            |
-
----
-
-## 📋 Notes
+## 📝 Notes
 
 `,
 };
