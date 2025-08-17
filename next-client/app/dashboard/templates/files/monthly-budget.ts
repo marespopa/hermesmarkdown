@@ -9,63 +9,45 @@ const MonthlyBudgetTemplate: MarkdownTemplate = {
   filename: "budget-month",
   frontMatter: {
     title: "Monthly Budget",
-    description: `This monthly budget template helps you track income, expenses, and savings with clear sections for fixed and variable costs.`,
+    description: `A simple monthly budget template for tracking income, expenses, and savings.`,
     tags: "budget,finance",
   },
   content: `# 💰 Monthly Budget
-**Created:** ${date}
-**Month:** ${month} ${year}
+**Date:** ${month} ${year}
 
 ---
 
 ## 💸 Income
 
-| Source    | Amount   |
-|-----------|----------|
-| Salary    |          |
-| Other     |          |
-| **Total** |          |
+- Salary: 
+- Other: 
+- **Total Income:** 
 
 ---
 
 ## 🏠 Expenses
 
-| Category        | Amount   |
-|-----------------|----------|
-| Category 1      |          |
-| **Total**       |          |
+- Rent/Mortgage: 
+- Utilities: 
+- Food: 
+- Transportation: 
+- Entertainment: 
+- **Total Expenses:** 
 
 ---
 
-## 💡 Savings & Investments
+## 💡 Savings
 
-| Type           | Amount   |
-|----------------|----------|
-| Savings        |          |
-| Investments    |          |
-| Emergency Fund |          |
-| **Total**      |          |
+- Emergency Fund: 
+- Investments: 
+- **Total Savings:** 
 
 ---
 
 ## 🎯 Summary
 
-| Category          | Amount   |
-|-------------------|----------|
-| Total Income      |          |
-| Total Expenses    |          |
-| Total Savings     |          |
-| Remaining Balance |          |
-
----
-
-## 📊 Goals
-
-| Goal               | Target   | Current | Status |
-|--------------------|----------|---------|--------|
-| Emergency Fund     |          |         | [ ]    |
-| Investment Goal    |          |         | [ ]    |
-| Save 20% of income |          |         | [ ]    |
+**Remaining Balance:** 
+**Notes:** 
 `,
 };
 
