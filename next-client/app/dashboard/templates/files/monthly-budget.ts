@@ -12,42 +12,22 @@ const MonthlyBudgetTemplate: MarkdownTemplate = {
     description: `A simple monthly budget template for tracking income, expenses, and savings.`,
     tags: "budget,finance",
   },
-  content: `# 💰 Monthly Budget
-**Date:** ${month} ${year}
-
----
+  content: `# 💰 ${month} ${year} Monthly Budget
 
 ## 💸 Income
-
-- Salary: 
-- Other: 
-- **Total Income:** 
-
----
+	-	Salary: 
+	-	Other: 
+	-	Total Income: 
 
 ## 🏠 Expenses
-
-- Rent/Mortgage: 
-- Utilities: 
-- Food: 
-- Transportation: 
-- Entertainment: 
-- **Total Expenses:** 
-
----
-
-## 💡 Savings
-
-- Emergency Fund: 
-- Investments: 
-- **Total Savings:** 
-
----
-
-## 🎯 Summary
-
-**Remaining Balance:** 
-**Notes:** 
+	-	Rent/Mortgage: 
+	-	Credit:
+	-	Utilities: 
+	-	Transportation: 
+	-	Total Expenses: 
+	
+## 🎯 Remaining Balance
+Remaining Balance: 
 `,
 };
 
