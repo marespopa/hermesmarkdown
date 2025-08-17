@@ -10,39 +10,9 @@ const SimpleNotesTemplate: MarkdownTemplate = {
     description: `A clean and minimal template for quick note-taking. Perfect for capturing thoughts, ideas, and information without complex structure.`,
     tags: "notes,simple,minimal,quick",
   },
-  content: `# 📝 Simple Notes
+  content: `**Date:** 2025-08-17
 
-**Date:** ${date}
-
----
-
-## ✨ Quick Notes
-
-*Add your notes here*
-
----
-
-## 💡 Ideas
-
-- 
-- 
-- 
-
----
-
-## 🔗 Links & References
-
-- 
-- 
-- 
-
----
-
-## 📋 To-Do
-
-- [ ] 
-- [ ] 
-- [ ] 
+# 📝 Simple Notes
 `,
 };
 
