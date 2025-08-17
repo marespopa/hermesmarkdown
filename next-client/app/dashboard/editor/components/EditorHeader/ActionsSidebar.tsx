@@ -25,15 +25,15 @@ interface ActionsSidebarProps {
   isFindBarOpen: boolean; // new prop
 }
 
-const labelClass = "hidden xl:inline ml-2";
+const labelClass = "hidden xl:inline ml-2 text-left";
 const dividerClass = "my-2 border-t border-gray-300 dark:border-neutral-500 w-full";
-const sectionHeaderClass = "text-xs uppercase tracking-wider text-gray-500 dark:text-gray-400 px-2 mt-2 mb-1 w-full text-center";
+const sectionHeaderClass = "text-xs uppercase tracking-wider text-gray-500 dark:text-gray-400 px-2 mt-2 mb-1 w-full text-left";
 
 // Helper for button styles based on collapsed state
 const getButtonStyles = (collapsed: boolean) =>
   classNames(
     "border border-neutral-200 dark:border-neutral-700",
-    collapsed ? "mx-auto" : "w-full justify-start"
+    collapsed ? "mx-auto" : "w-full !justify-start"
   );
 
 const ActionsSidebar: React.FC<ActionsSidebarProps> = ({
