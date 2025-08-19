@@ -46,10 +46,11 @@ export default function MarkdownGuide() {
             <h3 className="text-xl font-bold mb-4"><span className="bg-amber-100 text-black px-2 py-1 rounded">Lists & Organization</span></h3>
             <div className="space-y-2 text-sm">
               <p><code className="bg-neutral-100 dark:bg-neutral-600 px-2 py-1 rounded">- Unordered list</code></p>
+              <p><code className="bg-neutral-100 dark:bg-neutral-600 px-2 py-1 rounded">• Unordered list (orange)</code></p>
               <p><code className="bg-neutral-100 dark:bg-neutral-600 px-2 py-1 rounded">1. Ordered list</code></p>
               <p><code className="bg-neutral-100 dark:bg-neutral-600 px-2 py-1 rounded">- [ ] Task list</code></p>
               <p className="text-neutral-600 dark:text-neutral-400 mt-3">
-                Organize information clearly with various list types for better readability.
+                Organize information clearly with various list types for better readability. Lists starting with • will appear in orange.
               </p>
             </div>
           </div>

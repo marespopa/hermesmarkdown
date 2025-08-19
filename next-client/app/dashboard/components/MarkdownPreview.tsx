@@ -62,6 +62,25 @@ const MarkdownPreview = ({ content, className }: Props) => {
               </h1>
             );
           },
+          ul(props) {
+            // Check if any list item contains the • character
+            const { children, ...rest } = props;
+            const hasBullet = React.Children.toArray(children).some(child => {
+              if (React.isValidElement(child) && child.type === 'li') {
+                const childProps = child.props as { children?: React.ReactNode };
+                const text = String(childProps.children || '');
+                return text.includes('•');
+              }
+              return false;
+            });
+            
+            const className = hasBullet ? 'bullet-list' : '';
+            return (
+              <ul {...rest} className={className}>
+                {children}
+              </ul>
+            );
+          },
         }}
       >
         {content}

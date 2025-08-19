@@ -14,6 +14,7 @@ import { docco } from "react-syntax-highlighter/dist/esm/styles/hljs";
 import Portal from "@/app/components/Portal";
 import ExportService from "@/app/services/export-service";
 import { FaFilePdf } from "react-icons/fa";
+import React, { Children } from "react";
 
 export default function EditorPreviewTrigger() {
   const [isPdfPreviewOpen, setIsPdfPreviewOpen] = useState(false);
@@ -115,6 +116,25 @@ const PdfMarkdownPreview = ({ content }: { content: string }) => {
               <code {...rest} className={className}>
                 {children}
               </code>
+            );
+          },
+          ul(props) {
+            // Check if any list item contains the • character
+            const { children, ...rest } = props;
+            const hasBullet = Children.toArray(children).some(child => {
+              if (React.isValidElement(child) && child.type === 'li') {
+                const childProps = child.props as { children?: React.ReactNode };
+                const text = String(childProps.children || '');
+                return text.includes('•');
+              }
+              return false;
+            });
+            
+            const className = hasBullet ? 'bullet-list' : '';
+            return (
+              <ul {...rest} className={className}>
+                {children}
+              </ul>
             );
           },
         }}

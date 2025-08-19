@@ -1,7 +1,7 @@
-import DialogModal from "@/app/components/DialogModal";
-import DropdownMenu from "@/app/components/DropdownMenu";
-import Button from "@/app/components/Button";
 import React, { useState } from "react";
+import DialogModal from "@/app/components/DialogModal";
+import Button from "@/app/components/Button";
+import DropdownMenu from "@/app/components/DropdownMenu";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { Light as SyntaxHighlighter } from "react-syntax-highlighter";
@@ -91,6 +91,25 @@ function PdfMarkdownPreview({ content, fontClass = "font-sans" }: { content: str
               <code {...rest} className={className}>
                 {children}
               </code>
+            );
+          },
+          ul(props) {
+            // Check if any list item contains the • character
+            const { children, ...rest } = props;
+            const hasBullet = React.Children.toArray(children).some(child => {
+              if (React.isValidElement(child) && child.type === 'li') {
+                const childProps = child.props as { children?: React.ReactNode };
+                const text = String(childProps.children || '');
+                return text.includes('•');
+              }
+              return false;
+            });
+            
+            const className = hasBullet ? 'bullet-list' : '';
+            return (
+              <ul {...rest} className={className}>
+                {children}
+              </ul>
             );
           },
         }}
