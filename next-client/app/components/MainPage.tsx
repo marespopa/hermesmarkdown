@@ -43,25 +43,7 @@ const MainPage = ({ children }: Props) => {
               data-host="hermesmarkdown.com"
               src="https://liteanalytics.com/lite.js"
             ></Script>
-            <Script
-              async
-              src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3137348299560712"
-              crossOrigin="anonymous"
-              strategy="afterInteractive"
-            />
-            {/* Automatic AdSense Placement */}
-            <Script
-              id="adsense-auto"
-              strategy="afterInteractive"
-              dangerouslySetInnerHTML={{
-                __html: `
-                  (adsbygoogle = window.adsbygoogle || []).push({
-                    google_ad_client: "ca-pub-3137348299560712",
-                    enable_page_level_ads: true
-                  });
-                `,
-              }}
-            />
+
           </main>
         </CustomProviders>
       </body>

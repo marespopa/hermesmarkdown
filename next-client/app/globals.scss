@@ -83,18 +83,6 @@ html.dark .hermes-toast {
   @apply bg-neutral-800 text-white shadow-lg rounded-lg px-4 py-3 font-medium;
 }
 
-/* AdSense Styles */
-.adsense-container {
-  min-height: 90px;
-  text-align: center;
-  margin: 1rem 0;
-  
-  .adsbygoogle {
-    display: block;
-    margin: 0 auto;
-  }
-}
-
 /* List styling using Tailwind colors */
 ul li::marker {
   color: theme('colors.orange.500');
@@ -103,11 +91,4 @@ ul li::marker {
 /* Special styling for lists that contain • character */
 .bullet-list li::marker {
   color: theme('colors.orange.500');
-}
-
-/* Responsive AdSense */
-@media (max-width: 768px) {
-  .adsense-container {
-    min-height: 60px;
-  }
 }
