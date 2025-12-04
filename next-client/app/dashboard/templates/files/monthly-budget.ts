@@ -15,16 +15,8 @@ const MonthlyBudgetTemplate: MarkdownTemplate = {
   content: `# 💰 ${month} ${year} Monthly Budget
 
 ## 💸 Income
-	-	Salary: 
-	-	Other: 
-	-	Total Income: 
 
 ## 🏠 Expenses
-	-	Rent/Mortgage: 
-	-	Credit:
-	-	Utilities: 
-	-	Transportation: 
-	-	Total Expenses: 
 	
 ## 🎯 Remaining Balance
 Remaining Balance: 
