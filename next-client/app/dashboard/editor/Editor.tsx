@@ -5,9 +5,10 @@ import EditorContent from "./components/EditorContent";
 import Timer from "@/app/components/Timer";
 import { useAtom } from "jotai";
 import {
-  atom_content,
-  atom_contentEdited,
-  atom_frontMatter,
+  atom_files,
+  atom_selectedFileId,
+  atom_currentFile,
+  atom_canOpenMoreFiles,
   atom_hasChanges,
   atom_showTimer,
   atom_timerSettings,
@@ -15,6 +16,9 @@ import {
   atom_fontSize,
   atom_sidebarCollapsed,
   atom_pomodoroPosition,
+  OpenFile,
+  Frontmatter,
+  atom_contentEdited,
 } from "@/app/atoms/atoms";
 import { useDocumentTitle } from "@/app/hooks/use-document-title";
 import { useState, useEffect } from "react";
@@ -35,6 +39,8 @@ import { FaExpand, FaTimes } from "react-icons/fa";
 import Button from "@/app/components/Button";
 import ExportService from "@/app/services/export-service";
 import TableEditorModal from "./components/TableEditorModal";
+import { FileTabs } from "./components/FileTabs";
+import { v4 as uuidv4 } from 'uuid';
 
 
 export default function Editor() {
@@ -42,14 +48,25 @@ export default function Editor() {
   const [mounted, setMounted] = useState(false);
   const [collapsed] = useAtom(atom_sidebarCollapsed);
   const [isTimerVisible, setShowTimer] = useAtom(atom_showTimer);
-  const [frontMatter] = useAtom(atom_frontMatter);
+  const [files, setFiles] = useAtom(atom_files);
+  const [selectedFileId, setSelectedFileId] = useAtom(atom_selectedFileId);
+  const [currentFile] = useAtom(atom_currentFile);
+  const [canOpenMoreFiles] = useAtom(atom_canOpenMoreFiles);
+  const [hasChanges] = useAtom(atom_hasChanges);
+  const [, setContentEdited] = useAtom(atom_contentEdited);
+  const [, setHasChanges] = useAtom(atom_hasChanges);
+  
+  // Convenience accessors for current file data
+  const frontMatter = currentFile?.frontMatter || {
+    title: "",
+    description: "",
+    fileName: "file",
+    tags: "",
+  };
+  const contentEdited = currentFile?.contentEdited || "";
   const fileTitle = frontMatter.title || "File";
   const fileName = frontMatter.fileName || fileTitle || "File";
-  const [contentEdited, setContentEdited] = useAtom(atom_contentEdited);
-  const [, setFrontMatter] = useAtom(atom_frontMatter);
-  const [, setContent] = useAtom(atom_content);
-  const [hasChanges] = useAtom(atom_hasChanges);
-  const [, setHasChanges] = useAtom(atom_hasChanges);
+  
   const isMobile = useIsMobile();
   const [isFindAndReplaceModalVisible, setIsFindAndReplaceModalVisible] =
     useState(false);
@@ -67,10 +84,6 @@ export default function Editor() {
   const zenButtonRef = useRef<HTMLButtonElement>(null);
 
   // Search functionality
-  // Remove useSearch import and all useCommand calls for find, findNext, findPrevious
-  // Only keep Replace modal logic
-
-  // Find bar state (move to Editor, pass to header and editor)
   const [searchTerm, setSearchTerm] = useState("");
   const [matchCount, setMatchCount] = useState(0);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -129,20 +142,38 @@ export default function Editor() {
   }, [isZenMode]);
 
   function handleNewFile() {
+    if (!canOpenMoreFiles) {
+      alert("Maximum 3 files can be open at once");
+      return;
+    }
+    
     setIsLoading(true);
-    setFrontMatter({
-      fileName: "file",
-      title: "File",
-      description: "",
-      tags: "",
-    });
-    setContent(EMPTY_PAGE_TEMPLATE);
-    setContentEdited(EMPTY_PAGE_TEMPLATE);
-    setHasChanges(false); // Clear unsaved changes
+    const newFileId = uuidv4();
+    const newFile: OpenFile = {
+      id: newFileId,
+      content: EMPTY_PAGE_TEMPLATE,
+      contentEdited: EMPTY_PAGE_TEMPLATE,
+      frontMatter: {
+        fileName: "file",
+        title: "File",
+        description: "",
+        tags: "",
+      },
+      isSaved: true,
+    };
+    
+    setFiles([...files, newFile]);
+    setSelectedFileId(newFileId);
+    setHasChanges(false);
     setIsLoading(false);
   }
 
   async function handleOpenFile() {
+    if (!canOpenMoreFiles) {
+      alert("Maximum 3 files can be open at once");
+      return;
+    }
+
     if (isMobile) {
       setIsFileSelectModalVisible(true);
       return;
@@ -153,7 +184,7 @@ export default function Editor() {
       const file = await fileHandle.getFile();
 
       setIsLoading(true);
-      await parseFile(file);
+      await parseAndAddFile(file);
     } catch (error) {
       // Don't log or treat as error if user cancelled the file picker
       if (error instanceof Error && error.name === 'AbortError') {
@@ -165,13 +196,17 @@ export default function Editor() {
     }
   }
 
-  function parseFile(file: File): Promise<StatusResponse> {
+  function parseAndAddFile(file: File): Promise<void> {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
 
       reader.onload = async () => {
-        const result = await loadFileData(reader, file.name);
-        resolve(result);
+        try {
+          await loadAndAddFileData(reader, file.name);
+          resolve();
+        } catch (error) {
+          reject(error);
+        }
       };
 
       reader.onerror = reject;
@@ -179,34 +214,34 @@ export default function Editor() {
     });
   }
 
-  function loadFileData(reader: FileReader, fileName: string) {
+  function loadAndAddFileData(reader: FileReader, fileName: string) {
     const fileContent = String(reader.result);
-    const { data: frontMatter, content } = matter(fileContent);
+    const { data: frontMatterData, content } = matter(fileContent);
 
-    let setterPromise = new Promise<StatusResponse>(function (resolve, reject) {
+    return new Promise<void>((resolve, reject) => {
       try {
-        setFrontMatter({
-          fileName: fileName || "",
-          title: frontMatter?.title || "",
-          description: frontMatter?.description || "",
-          tags: frontMatter?.tags ? frontMatter?.tags.join(",") : "",
-        });
-        setContent(content);
-        setContentEdited(content);
-        setHasChanges(false); // Clear unsaved changes after loading file
-        resolve({
-          status: "error",
-          message: "File has been loaded successfully",
-        });
+        const newFileId = uuidv4();
+        const newFile: OpenFile = {
+          id: newFileId,
+          content: content,
+          contentEdited: content,
+          frontMatter: {
+            fileName: fileName || "",
+            title: frontMatterData?.title || "",
+            description: frontMatterData?.description || "",
+            tags: frontMatterData?.tags ? frontMatterData?.tags.join(",") : "",
+          },
+          isSaved: true,
+        };
+        
+        setFiles([...files, newFile]);
+        setSelectedFileId(newFileId);
+        setHasChanges(false);
+        resolve();
       } catch (error) {
-        reject({
-          status: "error",
-          message: error,
-        });
+        reject(error);
       }
     });
-
-    return setterPromise;
   }
 
   function handleOpenFindAndReplace() {
@@ -249,13 +284,43 @@ export default function Editor() {
   }
 
   async function exportToMD() {
+    if (!currentFile) return;
+    
     try {
-      await ExportService.exportMarkdown(contentEdited, frontMatter);
-      setContent(contentEdited);
-      setHasChanges(false); // Clear unsaved changes after successful export
+      await ExportService.exportMarkdown(currentFile.contentEdited, currentFile.frontMatter);
+      // Update current file to mark as saved
+      const updatedFiles = files.map(f => 
+        f.id === currentFile.id ? { ...f, content: f.contentEdited, isSaved: true } : f
+      );
+      setFiles(updatedFiles);
+      setHasChanges(false);
     } catch (error) {
       console.error(error);
     }
+  }
+
+  function updateCurrentFileContent(newContent: string) {
+    if (!currentFile) return;
+    
+    const updatedFiles = files.map(f => 
+      f.id === currentFile.id 
+        ? { ...f, contentEdited: newContent, isSaved: false } 
+        : f
+    );
+    setFiles(updatedFiles);
+    setHasChanges(true);
+  }
+
+  function updateCurrentFileFrontMatter(newFrontMatter: Frontmatter) {
+    if (!currentFile) return;
+    
+    const updatedFiles = files.map(f => 
+      f.id === currentFile.id 
+        ? { ...f, frontMatter: newFrontMatter, isSaved: false } 
+        : f
+    );
+    setFiles(updatedFiles);
+    setHasChanges(true);
   }
 
   if (!mounted) {
@@ -335,41 +400,53 @@ export default function Editor() {
             <Timer />
           </div>
         )}
-        <EditorHeader
-          contentEdited={contentEdited}
-          frontMatter={frontMatter}
-          hasChanges={hasChanges}
-          actions={{
-            handleNewFile,
-            handleOpenFile,
-            handleSelectTemplate,
-            handleOpenFindAndReplace,
-            handleOpenFontSettings,
-            handleOpenTableEditor,
-          }}
-          searchTerm={searchTerm}
-          setSearchTerm={setSearchTerm}
-          matchCount={matchCount}
-          setMatchCount={setMatchCount}
-          currentIndex={currentIndex}
-          setCurrentIndex={setCurrentIndex}
-        />
+        {/* File Tabs Component */}
+        <FileTabs />
+        
+        {/* Show empty state if no file is selected */}
+        {!currentFile ? (
+          <div className="flex items-center justify-center h-full min-h-96 text-gray-500">
+            <p>No file open. Create a new file or open an existing one.</p>
+          </div>
+        ) : (
+          <>
+            <EditorHeader
+              contentEdited={contentEdited}
+              frontMatter={frontMatter}
+              hasChanges={hasChanges}
+              actions={{
+                handleNewFile,
+                handleOpenFile,
+                handleSelectTemplate,
+                handleOpenFindAndReplace,
+                handleOpenFontSettings,
+                handleOpenTableEditor,
+              }}
+              searchTerm={searchTerm}
+              setSearchTerm={setSearchTerm}
+              matchCount={matchCount}
+              setMatchCount={setMatchCount}
+              currentIndex={currentIndex}
+              setCurrentIndex={setCurrentIndex}
+            />
+            <EditorContent
+              contentEdited={contentEdited}
+              setContentEdited={updateCurrentFileContent}
+              setHasChanges={setHasChanges}
+              fontFamily={fontFamily}
+              fontSize={fontSize}
+              searchTerm={searchTerm}
+              matchCount={matchCount}
+              currentIndex={currentIndex}
+            />
+          </>
+        )}
         <FontConfigDialog
           isOpen={isFontDialogOpen}
           onClose={() => setIsFontDialogOpen(false)}
           onSave={handleSaveFontSettings}
           initialFontFamily={fontFamily}
           initialFontSize={fontSize}
-        />
-        <EditorContent
-          contentEdited={contentEdited}
-          setContentEdited={setContentEdited}
-          setHasChanges={setHasChanges}
-          fontFamily={fontFamily}
-          fontSize={fontSize}
-          searchTerm={searchTerm}
-          matchCount={matchCount}
-          currentIndex={currentIndex}
         />
         {/* Template Selection Modal */}
         {isTemplateSelectModalVisible && (

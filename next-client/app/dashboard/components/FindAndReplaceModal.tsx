@@ -1,6 +1,6 @@
 "use client";
 
-import { atom_contentEdited } from "@/app/atoms/atoms";
+import { atom_currentFile, atom_files } from "@/app/atoms/atoms";
 import DialogModal from "@/app/components/DialogModal";
 import { useAtom } from "jotai";
 import React, { useState } from "react";
@@ -16,24 +16,38 @@ type Props = {
 };
 
 const FindAndReplaceModal = ({ isOpen, handleClose }: Props) => {
-  const [contentEdited, setContentEdited] = useAtom(atom_contentEdited);
+  const [currentFile] = useAtom(atom_currentFile);
+  const [files, setFiles] = useAtom(atom_files);
   const [replaceTerm, setReplaceTerm] = useState("");
   const [findTerm, setFindTerm] = useState("");
   const [shouldReplaceAll, setShouldReplaceAll] = useState(false);
   const [isCaseSensitive, setIsCaseSensitive] = useState(false);
 
   function handleReplace() {
-    if (!findTerm) return;
-    let text = contentEdited;
+    if (!currentFile || !findTerm) return;
+    
+    let text = currentFile.contentEdited;
     let regexConfig = `${shouldReplaceAll ? "g" : ""}${
-      isCaseSensitive ? "i" : ""
+      isCaseSensitive ? "" : "i"
     }`;
     const escapedSearchTerm = findTerm.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
     const regex = new RegExp(`(${escapedSearchTerm})`, regexConfig);
     text = text.replace(regex, replaceTerm);
-    setContentEdited(text);
+    
+    // Update the current file with the replaced content
+    const updatedFiles = files.map(f =>
+      f.id === currentFile.id
+        ? { ...f, contentEdited: text, isSaved: false }
+        : f
+    );
+    setFiles(updatedFiles);
+    
     showSuccessToast("Text has been replaced");
     handleClose();
+  }
+
+  if (!currentFile) {
+    return null;
   }
 
   return (

@@ -1,9 +1,9 @@
 "use client";
 
 import {
-  atom_frontMatter,
-  atom_content,
-  atom_contentEdited,
+  atom_files,
+  atom_selectedFileId,
+  OpenFile,
 } from "@/app/atoms/atoms";
 import DialogModal from "@/app/components/DialogModal";
 import { useAtom } from "jotai";
@@ -18,6 +18,8 @@ import {
 import LoadingOverlay from "@/app/components/LoadingOverlay";
 import { SPINNER_LOADING_DURATION } from "@/app/constants/timer";
 import Button from "@/app/components/Button";
+import { v4 as uuidv4 } from 'uuid';
+import matter from "gray-matter";
 
 type Props = {
   isOpen: boolean;
@@ -26,9 +28,8 @@ type Props = {
 
 const FileSelectionModal = ({ isOpen, handleClose }: Props) => {
   const router = useRouter();
-  const [, setFrontMatter] = useAtom(atom_frontMatter);
-  const [, setContent] = useAtom(atom_content);
-  const [, setContentEdited] = useAtom(atom_contentEdited);
+  const [files, setFiles] = useAtom(atom_files);
+  const [, setSelectedFileId] = useAtom(atom_selectedFileId);
   const [isLoading, setIsLoading] = useState(false);
   const [fileList] = useState<File[]>([]);
   const [isMounted, setIsMounted] = useState(false);
@@ -76,7 +77,6 @@ const FileSelectionModal = ({ isOpen, handleClose }: Props) => {
       showErrorToast(
         "Something went wrong with the file selection. Please try again."
       );
-
       return;
     }
 
@@ -84,32 +84,42 @@ const FileSelectionModal = ({ isOpen, handleClose }: Props) => {
 
     if (!isSelectedFileValid(file)) {
       showErrorToast("The selected file must be a .md or a .txt file.");
-
       return;
     }
 
     setIsLoading(true);
-    const fileData = await getFileDataFromInput(file);
-    const fileName = fileData?.filename || "Untitled File";
-
-    setFrontMatter({
-      fileName: fileName,
-      title: fileData?.frontMatter?.title || fileName,
-      description: fileData?.frontMatter?.description || "",
-      tags: fileData?.frontMatter?.tags
-        ? fileData?.frontMatter?.tags.join(",")
-        : "",
-    });
-    setContent(fileData?.content || "");
-    setContentEdited(fileData?.content || "");
-
-    router.push("/dashboard/editor");
-
-    setTimeout(() => {
-      handleClose();
-    }, SPINNER_LOADING_DURATION); // Delay of 2 seconds
-
-    return;
+    try {
+      const text = await file.text();
+      const { data: frontMatterData, content } = matter(text);
+      
+      const newFileId = uuidv4();
+      const newFile: OpenFile = {
+        id: newFileId,
+        content: content,
+        contentEdited: content,
+        frontMatter: {
+          fileName: file.name || "",
+          title: frontMatterData?.title || file.name || "Untitled File",
+          description: frontMatterData?.description || "",
+          tags: frontMatterData?.tags ? frontMatterData?.tags.join(",") : "",
+        },
+        isSaved: true,
+      };
+      
+      setFiles([...files, newFile]);
+      setSelectedFileId(newFileId);
+      
+      router.push("/dashboard/editor");
+      
+      setTimeout(() => {
+        handleClose();
+      }, SPINNER_LOADING_DURATION);
+    } catch (error) {
+      showErrorToast("File could not be loaded");
+      console.error(error);
+    } finally {
+      setIsLoading(false);
+    }
   }
 };
 

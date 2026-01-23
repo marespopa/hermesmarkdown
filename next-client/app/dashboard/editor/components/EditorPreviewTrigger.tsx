@@ -3,7 +3,7 @@ import { useState } from "react";
 import DialogModal from "@/app/components/DialogModal";
 import Button from "@/app/components/Button";
 import { useAtom } from "jotai";
-import { atom_contentEdited, atom_frontMatter } from "@/app/atoms/atoms";
+import { atom_currentFile } from "@/app/atoms/atoms";
 import { showSuccessToast, showErrorToast } from "@/app/components/Toastr";
 import { useCommand } from "@/app/hooks/use-command";
 import MarkdownPreview from "../../components/MarkdownPreview";
@@ -18,12 +18,13 @@ import React, { Children } from "react";
 
 export default function EditorPreviewTrigger() {
   const [isPdfPreviewOpen, setIsPdfPreviewOpen] = useState(false);
-  const [contentEdited] = useAtom(atom_contentEdited);
-  const [frontMatter] = useAtom(atom_frontMatter);
-  // Remove font selection state and dropdown
-  // Remove fontClass prop from PdfMarkdownPreview and its usage
+  const [currentFile] = useAtom(atom_currentFile);
 
   useCommand("export", () => showPdfPreviewModal());
+
+  if (!currentFile) {
+    return null;
+  }
 
   return (
     <>
@@ -57,7 +58,7 @@ export default function EditorPreviewTrigger() {
             </div>
             <div className={previewContainerStyles} id="pdfReport">
               <section className={previewStyles}>
-                <PdfMarkdownPreview content={contentEdited} />
+                <PdfMarkdownPreview content={currentFile.contentEdited} />
               </section>
             </div>
           </div>
@@ -67,17 +68,14 @@ export default function EditorPreviewTrigger() {
   );
 
   async function handlePdfExport() {
-    const reportName = frontMatter.fileName.replace(".md", ".pdf");
-    // setHideFontDropdown(true); // This line is removed
+    const reportName = currentFile.frontMatter.fileName.replace(".md", ".pdf");
     await new Promise((resolve) => setTimeout(resolve, 100)); // allow DOM to update
     try {
       await ExportService.generatePDF("#pdfReport", reportName);
       showSuccessToast("File has been exported");
-      // setHideFontDropdown(false); // This line is removed
     } catch (error) {
       showErrorToast("File could not be exported");
       console.error(error);
-      // setHideFontDropdown(false); // This line is removed
     }
   }
 

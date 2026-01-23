@@ -5,7 +5,7 @@ import { useAtom } from "jotai";
 import { useEffect, useRef, useState } from "react";
 import EditorForm from "../EditorForm";
 import { FileMetadata } from "@/app/types/markdown";
-import { atom_content, atom_showTimer, atom_hasChanges, atom_fontFamily, atom_fontSize } from "@/app/atoms/atoms";
+import { atom_showTimer, atom_hasChanges, atom_fontFamily, atom_fontSize } from "@/app/atoms/atoms";
 import DropdownMenu from "@/app/components/DropdownMenu";
 import ExportService from "@/app/services/export-service";
 import { FaFile, FaEdit, FaQuestion } from "react-icons/fa";
@@ -54,7 +54,6 @@ export default function EditorHeader({
   currentIndex,
   setCurrentIndex,
 }: Props) {
-  const [, setFileContent] = useAtom(atom_content);
   const [isFormatterDialogOpen, setIsFormatterDialogOpen] = useState(false);
   const [isFabMenuOpen, setIsFabMenuOpen] = useState(false);
   const [showTimer, setShowTimer] = useAtom(atom_showTimer);
@@ -393,7 +392,6 @@ export default function EditorHeader({
   async function exportToMD() {
     try {
       await ExportService.exportMarkdown(contentEdited, frontMatter);
-      setFileContent(contentEdited);
       setHasChanges(false); // Clear unsaved changes after successful export
     } catch (error) {
       showErrorToast("File could not be exported");

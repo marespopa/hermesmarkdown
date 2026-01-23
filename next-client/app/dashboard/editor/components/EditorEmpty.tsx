@@ -4,15 +4,15 @@ import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import { useAtom } from "jotai";
 import {
-  atom_content,
-  atom_contentEdited,
-  atom_frontMatter,
+  atom_files,
+  atom_selectedFileId,
+  atom_canOpenMoreFiles,
+  OpenFile,
 } from "@/app/atoms/atoms";
 import LoadingOverlay from "@/app/components/LoadingOverlay";
 import matter from "gray-matter";
 import { showSuccessToast, showErrorToast } from "@/app/components/Toastr";
 import TemplateSelectionModal from "../../templates/TemplateSelectionModal";
-import { StatusResponse } from "@/app/services/save-utils";
 import Button from "@/app/components/Button";
 import FileInput from "@/app/components/FileInput";
 import { FaPlay, FaFile, FaFileAlt, FaFolderOpen } from "react-icons/fa";
@@ -20,7 +20,7 @@ import Badge from "@/app/components/Badges/Badge";
 import useIsMobile from "@/app/hooks/use-is-mobile";
 import { EMPTY_PAGE_TEMPLATE } from "../EditorUtils";
 import InfoPanelPlain from "../../components/InfoPanelPlain";
-
+import { v4 as uuidv4 } from 'uuid';
 
 export const PICKER_OPTIONS: OpenFilePickerOptions = {
   types: [
@@ -37,10 +37,10 @@ export const PICKER_OPTIONS: OpenFilePickerOptions = {
 
 export default function EditorEmpty() {
   const router = useRouter();
-  const [, setFrontMatter] = useAtom(atom_frontMatter);
-  const [hasExistingFile, setHasExistingFile] = useState(false);
-  const [content, setContent] = useAtom(atom_content);
-  const [contentEdited, setContentEdited] = useAtom(atom_contentEdited);
+  const [files, setFiles] = useAtom(atom_files);
+  const [, setSelectedFileId] = useAtom(atom_selectedFileId);
+  const [canOpenMoreFiles] = useAtom(atom_canOpenMoreFiles);
+  const hasExistingFiles = files.length > 0;
 
   const [isLoading, setIsLoading] = useState(false);
   const [isFileInputVisible, setIsFileInputVisible] = useState(false);
@@ -53,17 +53,10 @@ export default function EditorEmpty() {
   });
   const isMobile = useIsMobile();
   const [mounted, setMounted] = useState(false);
-  const [fileList, _] = useState<File[]>([]);
 
   useEffect(() => {
     setMounted(true);
   }, []);
-
-  useEffect(() => {
-    const hasContent = contentEdited?.length > 0 || content?.length > 0;
-  
-    setHasExistingFile(hasContent);
-  }, [content, contentEdited]);
 
   if (!mounted) {
     return <></>;
@@ -83,148 +76,151 @@ export default function EditorEmpty() {
 
   function renderMobileView() {
     return (
-        <article className="my-8">
-          {/* Enhanced Header */}
-          <h2 className="text-2xl leading-tight text-center mb-4 text-gray-900 dark:text-white">
-            🚀 Let&apos;s get started!
-          </h2>
-          <p className="text-sm text-gray-600 dark:text-gray-400 text-center mb-6">
-            Choose an option below to begin working with Hermes Markdown.
-          </p>
+      <article className="my-8">
+        <h2 className="text-2xl leading-tight text-center mb-4 text-gray-900 dark:text-white">
+          🚀 Let&apos;s get started!
+        </h2>
+        <p className="text-sm text-gray-600 dark:text-gray-400 text-center mb-6">
+          Choose an option below to begin working with Hermes Markdown.
+        </p>
 
-          {/* Buttons Section for Mobile View */}
-          <div className="prose dark:prose-invert flex flex-col gap-4 mx-auto">
-            {/* Continue File Button */}
-            {hasExistingFile && (
+        <div className="prose dark:prose-invert flex flex-col gap-4 mx-auto">
+          {hasExistingFiles && (
+            <div className="flex flex-col items-center">
+              <Button
+                variant="secondary"
+                onClick={() => router.push("/dashboard/editor")}
+                label={
+                  <span>
+                    <i className="fa fa-play mr-2"></i> Continue
+                  </span>
+                }
+              />
+              <p className="text-xs text-center text-gray-500 dark:text-gray-400 mt-1">
+                Continue from where you left off.
+              </p>
+            </div>
+          )}
+
+          {canOpenMoreFiles && (
+            <>
+              <div className="flex flex-col items-center">
+                {!hasExistingFiles && (
+                  <Badge variant="accent" label="Recommended" />
+                )}
+                <Button
+                  isDisabled={disabledButtonsState.template}
+                  variant="secondary"
+                  onClick={() => handleSelectTemplate()}
+                  label={
+                    <span>
+                      <i className="fa fa-file-alt mr-2"></i> Start from a
+                      Template
+                    </span>
+                  }
+                  data-testid="template-btn"
+                />
+                <p className="text-xs text-center text-gray-500 dark:text-gray-400 mt-1">
+                  Use pre-built templates to save time and get started quickly.
+                </p>
+              </div>
+
+              <div className="flex flex-col items-center">
+                <Button
+                  isDisabled={disabledButtonsState.new}
+                  variant="secondary"
+                  onClick={() => handleCreateFile()}
+                  label={
+                    <span>
+                      <i className="fa fa-file mr-2"></i> Blank File
+                    </span>
+                  }
+                  data-testid="blank-file-btn"
+                />
+                <p className="text-xs text-center text-gray-500 dark:text-gray-400 mt-1">
+                  Start with a clean slate and create a new markdown file from
+                  scratch.
+                </p>
+              </div>
+
               <div className="flex flex-col items-center">
                 <Button
                   variant="secondary"
-                  onClick={() => router.push("/dashboard/editor")}
                   label={
                     <span>
-                      <i className="fa fa-play mr-2"></i> Continue
+                      <i className="fa fa-folder-open mr-2"></i> Import File
                     </span>
                   }
+                  isDisabled={disabledButtonsState.existing}
+                  onClick={() => setIsFileInputVisible(!isFileInputVisible)}
                 />
                 <p className="text-xs text-center text-gray-500 dark:text-gray-400 mt-1">
-                  Continue from where you left off.
+                  Import an existing markdown or text file to edit.
                 </p>
               </div>
-            )}
 
-            {/* Start from Template Button */}
-            <div className="flex flex-col items-center">
-              {/* Recommended Badge */}
-              {!hasExistingFile && (
-                <Badge variant="accent" label="Recommended" />
+              {isFileInputVisible && (
+                <div className="rounded-b-md flex flex-col -mt-2 gap-2 bg-slate-200 dark:bg-gray-700 p-2">
+                  <FileInput
+                    name="file"
+                    handleChange={(selectedFileList) => {
+                      if (!selectedFileList || !selectedFileList[0]) {
+                        showErrorToast(
+                          "Something went wrong with the file selection. Please try again."
+                        );
+                        return;
+                      }
+
+                      if (!isSelectedFileValid(selectedFileList[0])) {
+                        showErrorToast(
+                          "The selected file must be a .md or a .txt file."
+                        );
+                        return;
+                      }
+
+                      setIsFileInputVisible(false);
+                      setDisabledButtonsState({
+                        ...disabledButtonsState,
+                        existing: true,
+                      });
+                      handleOpenFileFromInput(selectedFileList[0]);
+                    }}
+                    label="Markdown File"
+                    accept=".md, .txt"
+                    helperText="Load a markdown file."
+                  />
+                </div>
               )}
-              <Button
-                isDisabled={disabledButtonsState.template}
-                variant="secondary"
-                onClick={() => handleSelectTemplate()}
-                label={
-                  <span>
-                    <i className="fa fa-file-alt mr-2"></i> Start from a
-                    Template
-                  </span>
-                }
-                data-testid="template-btn"
-              />
-              <p className="text-xs text-center text-gray-500 dark:text-gray-400 mt-1">
-                Use pre-built templates to save time and get started quickly.
-              </p>
-            </div>
-
-            {/* Blank File Button */}
-            <div className="flex flex-col items-center">
-              <Button
-                isDisabled={disabledButtonsState.new}
-                variant="secondary"
-                onClick={() => handleCreateFile()}
-                label={
-                  <span>
-                    <i className="fa fa-file mr-2"></i> Blank File
-                  </span>
-                }
-                data-testid="blank-file-btn"
-              />
-              <p className="text-xs text-center text-gray-500 dark:text-gray-400 mt-1">
-                Start with a clean slate and create a new markdown file from
-                scratch.
-              </p>
-            </div>
-
-            {/* Open File Button */}
-            <div className="flex flex-col items-center">
-              <Button
-                variant="secondary"
-                label={
-                  <span>
-                    <i className="fa fa-folder-open mr-2"></i> Import File
-                  </span>
-                }
-                isDisabled={disabledButtonsState.existing}
-                onClick={() => setIsFileInputVisible(!isFileInputVisible)}
-              />
-              <p className="text-xs text-center text-gray-500 dark:text-gray-400 mt-1">
-                Import an existing markdown or text file to edit.
-              </p>
-            </div>
-
-            {/* File Input Section (if visible) */}
-            {isFileInputVisible && (
-              <div className="rounded-b-md flex flex-col -mt-2 gap-2 bg-slate-200 dark:bg-gray-700 p-2">
-                <FileInput
-                  name="file"
-                  handleChange={(selectedFileList) => {
-                    if (!selectedFileList || !selectedFileList[0]) {
-                      showErrorToast(
-                        "Something went wrong with the file selection. Please try again."
-                      );
-                      return;
-                    }
-
-                    if (!isSelectedFileValid(selectedFileList[0])) {
-                      showErrorToast(
-                        "The selected file must be a .md or a .txt file."
-                      );
-                      return;
-                    }
-
-                    setIsFileInputVisible(false);
-                    setDisabledButtonsState({
-                      ...disabledButtonsState,
-                      existing: true,
-                    });
-                    setIsLoading(true);
-                    handleOpenFileFromInput(selectedFileList[0]);
-
-                    return;
-                  }}
-                  label="Markdown File"
-                  accept=".md, .txt"
-                  helperText="Load a markdown file."
-                />
-              </div>
-            )}
-          </div>
-
-          {/* Template Selection Modal */}
-          {isTemplateSelectModalVisible && (
-            <TemplateSelectionModal
-              isOpen={isTemplateSelectModalVisible}
-              handleClose={() => {
-                setDisabledButtonsState({
-                  ...disabledButtonsState,
-                  template: false,
-                });
-                setIsTemplateSelectModalVisible(false);
-              }}
-            />
+            </>
           )}
-          
 
-        </article>
+          {!canOpenMoreFiles && (
+            <div className="flex flex-col items-center text-center">
+              <p className="text-sm text-amber-600 dark:text-amber-400 font-medium">
+                Maximum 3 files can be open at once
+              </p>
+              <Button
+                variant="secondary"
+                onClick={() => router.push("/dashboard/editor")}
+                label="View Open Files"
+              />
+            </div>
+          )}
+        </div>
+
+        {isTemplateSelectModalVisible && (
+          <TemplateSelectionModal
+            isOpen={isTemplateSelectModalVisible}
+            handleClose={() => {
+              setDisabledButtonsState({
+                ...disabledButtonsState,
+                template: false,
+              });
+              setIsTemplateSelectModalVisible(false);
+            }}
+          />
+        )}
+      </article>
     );
   }
 
@@ -232,44 +228,36 @@ export default function EditorEmpty() {
     return file && (file?.name.endsWith(".md") || file?.name.endsWith(".txt"));
   }
 
-  async function handleOpenFileFromInput(file: File) {
-    try {
-      if (!file) {
-        showErrorToast("File could not be loaded");
-
-        return;
-      }
-      const text = await file.text();
-      setIsLoading(true);
-      loadFileData(text, file.name)
-        .then(() => {
-          router.push("/dashboard/editor");
-          showSuccessToast("File has been loaded");
-        })
-        .catch((error) => {
-          showErrorToast("File could not be loaded");
-          console.error(error);
-        })
-        .finally(() => {
-          setDisabledButtonsState({
-            ...disabledButtonsState,
-            existing: false,
-          });
-          setIsLoading(false);
-        });
-    } catch (error) {
-      console.error(error);
-    }
-  }
-
   function renderActions() {
     return (
       <section className="flex gap-4 lg:gap-8 mb-16">
-        {hasExistingFile && renderContinueOption()}
-        {renderNewFileOption()}
-        {renderSelectTemplateOption()}
-        {renderImportFileOption()}
+        {hasExistingFiles && renderContinueOption()}
+        {canOpenMoreFiles && renderNewFileOption()}
+        {canOpenMoreFiles && renderSelectTemplateOption()}
+        {canOpenMoreFiles && renderImportFileOption()}
+        {!canOpenMoreFiles && renderMaxFilesReachedOption()}
       </section>
+    );
+  }
+
+  function renderHeading() {
+    return (
+      <article className="my-16">
+        <h2 className="text-2xl leading-tight text-gray-900 dark:text-white">Choose Your Path:</h2>
+        <h1 className="text-5xl leading-tight text-black dark:text-white">
+          Editing Options in <strong>Hermes Markdown</strong>
+        </h1>
+        {!isLoading && (
+          <>
+            <p className="w-1/2 my-8 leading-loose text-gray-700 dark:text-gray-300">
+              Need a quick start? Choose a template and customize it to your
+              liking. Want a blank canvas? Start from scratch and let your
+              creativity flow. Or, perhaps you have an existing Markdown file
+              ready to be polished? Simply open it and edit away.
+            </p>
+          </>
+        )}
+      </article>
     );
   }
 
@@ -283,7 +271,7 @@ export default function EditorEmpty() {
               Continue
             </span>
           }
-          description={`It seems you have some data stored from the last time you used the app.`}
+          description={`You have files open from the last time you used the app.`}
           action={{
             label: "Continue",
             handler: () => router.push("/dashboard/editor"),
@@ -373,42 +361,60 @@ export default function EditorEmpty() {
     );
   }
 
-  function renderHeading() {
+  function renderMaxFilesReachedOption() {
     return (
-      <article className="my-16">
-        <h2 className="text-2xl leading-tight text-gray-900 dark:text-white">Choose Your Path:</h2>
-        <h1 className="text-5xl leading-tight text-black dark:text-white">
-          Editing Options in <strong>Hermes Markdown</strong>
-        </h1>
-        {!isLoading && (
-          <>
-            <p className="w-1/2 my-8 leading-loose text-gray-700 dark:text-gray-300">
-              Need a quick start? Choose a template and customize it to your
-              liking. Want a blank canvas? Start from scratch and let your
-              creativity flow. Or, perhaps you have an existing Markdown file
-              ready to be polished? Simply open it and edit away.
-            </p>
-          </>
-        )}
-      </article>
+      <div className={panelStyle}>
+        <InfoPanelPlain
+          title={
+            <span className="flex gap-2 items-center">
+              <FaPlay />
+              Files Open
+            </span>
+          }
+          description={`You have 3 files open (maximum). Close a file to open more.`}
+          action={{
+            label: "View Open Files",
+            handler: () => router.push("/dashboard/editor"),
+            disabled: false,
+          }}
+        />
+      </div>
     );
   }
 
   function handleCreateFile() {
+    if (!canOpenMoreFiles) {
+      showErrorToast("Maximum 3 files can be open at once");
+      return;
+    }
+
     setIsLoading(true);
-    setFrontMatter({
-      fileName: "file",
-      title: "File",
-      description: "",
-      tags: "",
-    });
-    setContent(EMPTY_PAGE_TEMPLATE);
-    setContentEdited(EMPTY_PAGE_TEMPLATE);
+    const newFileId = uuidv4();
+    const newFile: OpenFile = {
+      id: newFileId,
+      content: EMPTY_PAGE_TEMPLATE,
+      contentEdited: EMPTY_PAGE_TEMPLATE,
+      frontMatter: {
+        fileName: "file",
+        title: "File",
+        description: "",
+        tags: "",
+      },
+      isSaved: true,
+    };
+
+    setFiles([...files, newFile]);
+    setSelectedFileId(newFileId);
     setDisabledButtonsState({ ...disabledButtonsState, new: true });
     router.push("/dashboard/editor");
   }
 
   async function handleOpenFile() {
+    if (!canOpenMoreFiles) {
+      showErrorToast("Maximum 3 files can be open at once");
+      return;
+    }
+
     setIsLoading(true);
 
     try {
@@ -417,11 +423,10 @@ export default function EditorEmpty() {
 
       setDisabledButtonsState({ ...disabledButtonsState, existing: true });
 
-      await parseFile(file);
+      await parseAndAddFile(file);
       showSuccessToast("File has been loaded");
       router.push("/dashboard/editor");
     } catch (error) {
-      // Don't show error toast if user cancelled the file picker
       if (error instanceof Error && error.name === 'AbortError') {
         return;
       }
@@ -433,14 +438,18 @@ export default function EditorEmpty() {
     }
   }
 
-  function parseFile(file: File): Promise<StatusResponse> {
+  function parseAndAddFile(file: File): Promise<void> {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
 
       reader.onload = async () => {
-        const fileContent = String(reader.result);
-        const result = await loadFileData(fileContent, file.name);
-        resolve(result);
+        try {
+          const fileContent = String(reader.result);
+          await loadAndAddFileData(fileContent, file.name);
+          resolve();
+        } catch (error) {
+          reject(error);
+        }
       };
 
       reader.onerror = reject;
@@ -448,39 +457,58 @@ export default function EditorEmpty() {
     });
   }
 
-  function loadFileData(fileContent: string, fileName: string) {
-    const { data: frontMatter, content } = matter(fileContent);
+  async function handleOpenFileFromInput(file: File) {
+    try {
+      if (!file) {
+        showErrorToast("File could not be loaded");
+        return;
+      }
 
-    let setterPromise = loadFileInEditor(fileName, frontMatter, content);
+      if (!canOpenMoreFiles) {
+        showErrorToast("Maximum 3 files can be open at once");
+        return;
+      }
 
-    return setterPromise;
+      const text = await file.text();
+      await loadAndAddFileData(text, file.name);
+
+      router.push("/dashboard/editor");
+      showSuccessToast("File has been loaded");
+    } catch (error) {
+      showErrorToast("File could not be loaded");
+      console.error(error);
+    } finally {
+      setDisabledButtonsState({
+        ...disabledButtonsState,
+        existing: false,
+      });
+    }
   }
 
-  function loadFileInEditor(
-    fileName: string,
-    frontMatter: { [key: string]: any },
-    content: string
-  ) {
-    return new Promise<StatusResponse>(function (resolve, reject) {
-      try {
-        setFrontMatter({
-          fileName: fileName || "",
-          title: frontMatter?.title || fileName || "Untitled File",
-          description: frontMatter?.description || "",
-          tags: frontMatter?.tags ? frontMatter?.tags.join(",") : "",
-        });
-        setContent(content);
-        setContentEdited(content);
+  function loadAndAddFileData(fileContent: string, fileName: string): Promise<void> {
+    const { data: frontMatterData, content } = matter(fileContent);
 
-        resolve({
-          status: "success",
-          message: "File has been loaded successfully",
-        });
+    return new Promise((resolve, reject) => {
+      try {
+        const newFileId = uuidv4();
+        const newFile: OpenFile = {
+          id: newFileId,
+          content: content,
+          contentEdited: content,
+          frontMatter: {
+            fileName: fileName || "",
+            title: frontMatterData?.title || fileName || "Untitled File",
+            description: frontMatterData?.description || "",
+            tags: frontMatterData?.tags ? frontMatterData?.tags.join(",") : "",
+          },
+          isSaved: true,
+        };
+
+        setFiles([...files, newFile]);
+        setSelectedFileId(newFileId);
+        resolve();
       } catch (error) {
-        reject({
-          status: "error",
-          message: error,
-        });
+        reject(error);
       }
     });
   }

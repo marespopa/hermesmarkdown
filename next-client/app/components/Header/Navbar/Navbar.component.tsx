@@ -7,8 +7,6 @@ import { FaBars } from "react-icons/fa";
 import logo from "../../../../assets/logo.svg";
 import NavigationLinks from "../Navigation/NavigationLinks";
 import MobileNavigationLinks from "../Navigation/MobileNavigationLinks";
-import { atom_content } from "@/app/atoms/atoms";
-import { useAtom } from "jotai";
 import useIsMobile from "@/app/hooks/use-is-mobile";
 import Button from "../../Button";
 

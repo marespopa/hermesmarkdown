@@ -10,21 +10,22 @@ import MarkdownGuide from "./subcomponents/MarkdownGuide";
 import Testimonials from "./subcomponents/Testimonials";
 import { useRouter } from "next/navigation";
 import { useAtom } from "jotai";
-import { atom_content } from "@/app/atoms/atoms";
+import { atom_files } from "@/app/atoms/atoms";
 import LoadingOverlay from "@/app/components/LoadingOverlay/LoadingOverlay";
 import DialogModal from "@/app/components/DialogModal/DialogModal";
 
 export default function LandingPage() {
   const router = useRouter();
-  const [content] = useAtom(atom_content);
+  const [files] = useAtom(atom_files);
   const [showLoading, setShowLoading] = useState(false);
   const [showDialog, setShowDialog] = useState(false);
+  const hasOpenFiles = files.length > 0;
 
   useEffect(() => {
-    if (content && content.length > 0) {
+    if (hasOpenFiles) {
       setShowDialog(true);
     }
-  }, [content]);
+  }, [hasOpenFiles]);
 
   const handleConfirm = () => {
     setShowDialog(false);

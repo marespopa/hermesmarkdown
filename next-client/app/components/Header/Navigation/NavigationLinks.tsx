@@ -3,14 +3,13 @@
 import React from "react";
 import NavigationLink from "./NavigationLink";
 import { useAtom } from "jotai";
-import { atom_content, atom_theme } from "@/app/atoms/atoms";
+import { atom_theme } from "@/app/atoms/atoms";
 import Button from "@/app/components/Button";
 import { FaSun, FaMoon } from "react-icons/fa";
 
 type Props = {};
 
 export default function NavigationLinks({}: Props) {
-  const [content] = useAtom(atom_content);
   const [theme, setTheme] = useAtom(atom_theme);
   return (
     <nav className="ml-auto" data-testid="navigation">

@@ -4,9 +4,9 @@ import React, { FormEvent, useEffect, useState } from "react";
 import { useAtom } from "jotai";
 import { useRouter } from "next/navigation";
 import {
-  atom_frontMatter,
-  atom_content,
-  atom_contentEdited,
+  atom_files,
+  atom_selectedFileId,
+  OpenFile,
 } from "@/app/atoms/atoms";
 import DialogModal from "@/app/components/DialogModal";
 import Button from "@/app/components/Button";
@@ -19,6 +19,7 @@ import Badge from "@/app/components/Badges/Badge";
 import MarkdownTemplateList, { MarkdownTemplate } from ".";
 import TemplateList from "./TemplateList";
 import { showSuccessToast } from "@/app/components/Toastr";
+import { v4 as uuidv4 } from 'uuid';
 
 // Utility: Get unique tags from all templates
 function getUniqueTags(templates: MarkdownTemplate[]) {
@@ -35,9 +36,8 @@ type Props = {
 
 const TemplateSelectionModal = ({ isOpen, handleClose }: Props) => {
   const router = useRouter();
-  const [, setFrontMatter] = useAtom(atom_frontMatter);
-  const [, setContent] = useAtom(atom_content);
-  const [, setContentEdited] = useAtom(atom_contentEdited);
+  const [files, setFiles] = useAtom(atom_files);
+  const [, setSelectedFileId] = useAtom(atom_selectedFileId);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
   const [isLoadingTemplate, setIsLoadingTemplate] = useState(false);
@@ -75,14 +75,24 @@ const TemplateSelectionModal = ({ isOpen, handleClose }: Props) => {
 
   function handleTemplateSelect(template: MarkdownTemplate) {
     setIsLoadingTemplate(true);
-    setFrontMatter({
-      fileName: template.filename || "",
-      title: template.frontMatter?.title || "",
-      description: template.frontMatter?.description || "",
-      tags: template.frontMatter?.tags,
-    });
-    setContent(template.content);
-    setContentEdited(template.content);
+    
+    const newFileId = uuidv4();
+    const newFile: OpenFile = {
+      id: newFileId,
+      content: template.content,
+      contentEdited: template.content,
+      frontMatter: {
+        fileName: template.filename || "",
+        title: template.frontMatter?.title || "",
+        description: template.frontMatter?.description || "",
+        tags: template.frontMatter?.tags,
+      },
+      isSaved: true,
+    };
+    
+    setFiles([...files, newFile]);
+    setSelectedFileId(newFileId);
+    
     showSuccessToast(`Template "${template.frontMatter?.title}" loaded`);
     router.push("/dashboard/editor");
     setTimeout(() => {

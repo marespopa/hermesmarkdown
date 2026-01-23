@@ -73,7 +73,53 @@ export type PanelStateAtom = WritableAtom<
   void
 >;
 
-// File Atoms
+// Multi-file support types
+export type Frontmatter = {
+  title: string;
+  description: string;
+  fileName: string;
+  tags: string;
+};
+
+export type OpenFile = {
+  id: string; // Unique identifier for the file tab
+  content: string; // Saved content
+  contentEdited: string; // Working/unsaved content
+  frontMatter: Frontmatter;
+  isSaved: boolean;
+};
+
+// File Atoms - Multi-file structure
+export const atom_files = atomWithStorage<OpenFile[]>("files", []);
+export const atom_selectedFileId = atomWithStorage<string | null>("selectedFileId", null);
+
+// UI state atoms
+export const atom_panelState = atomWithStorage("panelState", "both") as PanelStateAtom;
+export const atom_showTimer = atomWithStorage("showTimer", false);
+export const atom_sidebarCollapsed = atomWithStorage<boolean>("sidebarCollapsed", false);
+
+export const atom_hasChanges = atom(false);
+export const atom_isSaved = atom(false);
+
+// Derived atoms for convenience (get current selected file)
+export const atom_currentFile = atom((get) => {
+  const files = get(atom_files);
+  const selectedId = get(atom_selectedFileId);
+  return files.find((f) => f.id === selectedId) || null;
+});
+
+// Helper atom to check if at max file limit (3 files)
+export const atom_canOpenMoreFiles = atom((get) => {
+  const files = get(atom_files);
+  return files.length < 3;
+});
+
+// Pomodoro Timer position atom
+export const atom_pomodoroPosition = atomWithStorage<{ x: number; y: number }>("pomodoroPosition", { x: 0, y: 0 });
+// Optional: atom for drag state
+export const atom_pomodoroDragging = atom<boolean>(false);
+
+// Backward compatibility atoms (deprecated, kept for migration)
 export const atom_content = atomWithStorage("content", "") as ContentAtom;
 export const atom_contentEdited = atomWithStorage(
   "contentEdited",
@@ -85,14 +131,3 @@ export const atom_frontMatter = atomWithStorage("frontmatter", {
   fileName: "file",
   tags: "",
 }) as FrontmatterAtom;
-export const atom_panelState = atomWithStorage("panelState", "both") as PanelStateAtom;
-export const atom_showTimer = atomWithStorage("showTimer", false);
-export const atom_sidebarCollapsed = atomWithStorage<boolean>("sidebarCollapsed", false);
-
-export const atom_hasChanges = atom(false);
-export const atom_isSaved = atom(false);
-
-// Pomodoro Timer position atom
-export const atom_pomodoroPosition = atomWithStorage<{ x: number; y: number }>("pomodoroPosition", { x: 0, y: 0 });
-// Optional: atom for drag state
-export const atom_pomodoroDragging = atom<boolean>(false);
