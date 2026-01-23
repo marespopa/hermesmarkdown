@@ -68,6 +68,13 @@ export default function EditorPreviewTrigger() {
   );
 
   async function handlePdfExport() {
+    if (!currentFile?.frontMatter) {
+      showErrorToast("File could not be exported");
+      console.error("There is no file to export.");
+
+      return;
+    }
+
     const reportName = currentFile.frontMatter.fileName.replace(".md", ".pdf");
     await new Promise((resolve) => setTimeout(resolve, 100)); // allow DOM to update
     try {
