@@ -440,7 +440,6 @@ export default function Editor() {
           matchCount={matchCount}
           currentIndex={currentIndex}
         />
-        )
         <FontConfigDialog
           isOpen={isFontDialogOpen}
           onClose={() => setIsFontDialogOpen(false)}
