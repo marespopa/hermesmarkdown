@@ -31,7 +31,7 @@ export const FileTabs: React.FC = () => {
   }
 
   return (
-    <div className="flex border-b border-gray-300 dark:border-gray-700 bg-gray-200 dark:bg-gray-900 overflow-hidden">
+    <div className="flex overflow-hidden">
       <div className="flex gap-0 overflow-x-auto overflow-y-hidden flex-1 scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-transparent dark:scrollbar-thumb-gray-600">
         {files.map((file) => {
           const isSelected = file.id === selectedId;

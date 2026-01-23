@@ -3,6 +3,7 @@
 import EditorHeader from "./components/EditorHeader";
 import EditorContent from "./components/EditorContent";
 import Timer from "@/app/components/Timer";
+import { useRouter } from "next/navigation";
 import { useAtom } from "jotai";
 import {
   atom_files,
@@ -32,18 +33,19 @@ import FileSelectionModal from "../components/FileSelectionModal";
 import FindAndReplaceModal from "../components/FindAndReplaceModal";
 import useIsMobile from "@/app/hooks/use-is-mobile";
 import { EMPTY_PAGE_TEMPLATE } from "./EditorUtils";
-import { useRouter } from "next/navigation";
 import FontConfigDialog from "./components/EditorHeader/FontConfigDialog";
 import { useRef } from "react";
 import { FaExpand, FaTimes } from "react-icons/fa";
 import Button from "@/app/components/Button";
 import ExportService from "@/app/services/export-service";
 import TableEditorModal from "./components/TableEditorModal";
+import { showErrorToast } from "@/app/components/Toastr";
 import { FileTabs } from "./components/FileTabs";
 import { v4 as uuidv4 } from 'uuid';
 
 
 export default function Editor() {
+  const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [collapsed] = useAtom(atom_sidebarCollapsed);
@@ -55,7 +57,7 @@ export default function Editor() {
   const [hasChanges] = useAtom(atom_hasChanges);
   const [, setContentEdited] = useAtom(atom_contentEdited);
   const [, setHasChanges] = useAtom(atom_hasChanges);
-  
+
   // Convenience accessors for current file data
   const frontMatter = currentFile?.frontMatter || {
     title: "",
@@ -66,7 +68,7 @@ export default function Editor() {
   const contentEdited = currentFile?.contentEdited || "";
   const fileTitle = frontMatter.title || "File";
   const fileName = frontMatter.fileName || fileTitle || "File";
-  
+
   const isMobile = useIsMobile();
   const [isFindAndReplaceModalVisible, setIsFindAndReplaceModalVisible] =
     useState(false);
@@ -76,7 +78,6 @@ export default function Editor() {
     useState(false);
   const [isTableEditorModalVisible, setIsTableEditorModalVisible] =
     useState(false);
-  const router = useRouter();
   const [fontFamily, setFontFamily] = useAtom(atom_fontFamily);
   const [fontSize, setFontSize] = useAtom(atom_fontSize);
   const [isFontDialogOpen, setIsFontDialogOpen] = useState(false);
@@ -141,12 +142,19 @@ export default function Editor() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isZenMode]);
 
+  // Redirect to dashboard if no file is open
+  useEffect(() => {
+    if (!currentFile) {
+      router.push("/dashboard");
+    }
+  }, [currentFile, router]);
+
   function handleNewFile() {
     if (!canOpenMoreFiles) {
-      alert("Maximum 3 files can be open at once");
+      showErrorToast("Maximum 3 files can be open at once");
       return;
     }
-    
+
     setIsLoading(true);
     const newFileId = uuidv4();
     const newFile: OpenFile = {
@@ -161,7 +169,7 @@ export default function Editor() {
       },
       isSaved: true,
     };
-    
+
     setFiles([...files, newFile]);
     setSelectedFileId(newFileId);
     setHasChanges(false);
@@ -170,7 +178,7 @@ export default function Editor() {
 
   async function handleOpenFile() {
     if (!canOpenMoreFiles) {
-      alert("Maximum 3 files can be open at once");
+      showErrorToast("Maximum 3 files can be open at once");
       return;
     }
 
@@ -233,7 +241,7 @@ export default function Editor() {
           },
           isSaved: true,
         };
-        
+
         setFiles([...files, newFile]);
         setSelectedFileId(newFileId);
         setHasChanges(false);
@@ -285,11 +293,11 @@ export default function Editor() {
 
   async function exportToMD() {
     if (!currentFile) return;
-    
+
     try {
       await ExportService.exportMarkdown(currentFile.contentEdited, currentFile.frontMatter);
       // Update current file to mark as saved
-      const updatedFiles = files.map(f => 
+      const updatedFiles = files.map(f =>
         f.id === currentFile.id ? { ...f, content: f.contentEdited, isSaved: true } : f
       );
       setFiles(updatedFiles);
@@ -301,10 +309,10 @@ export default function Editor() {
 
   function updateCurrentFileContent(newContent: string) {
     if (!currentFile) return;
-    
-    const updatedFiles = files.map(f => 
-      f.id === currentFile.id 
-        ? { ...f, contentEdited: newContent, isSaved: false } 
+
+    const updatedFiles = files.map(f =>
+      f.id === currentFile.id
+        ? { ...f, contentEdited: newContent, isSaved: false }
         : f
     );
     setFiles(updatedFiles);
@@ -313,10 +321,10 @@ export default function Editor() {
 
   function updateCurrentFileFrontMatter(newFrontMatter: Frontmatter) {
     if (!currentFile) return;
-    
-    const updatedFiles = files.map(f => 
-      f.id === currentFile.id 
-        ? { ...f, frontMatter: newFrontMatter, isSaved: false } 
+
+    const updatedFiles = files.map(f =>
+      f.id === currentFile.id
+        ? { ...f, frontMatter: newFrontMatter, isSaved: false }
         : f
     );
     setFiles(updatedFiles);
@@ -347,7 +355,7 @@ export default function Editor() {
             <div className="relative flex flex-col w-full max-w-[95vw] mx-auto min-h-[70vh] max-h-[96vh] overflow-y-auto scrollbar-thin rounded-xl transition-all duration-300 p-0 sm:p-4 pointer-events-auto">
               {/* Floating Close Button */}
               <Button
-                ref={zenButtonRef} 
+                ref={zenButtonRef}
                 variant="icon"
                 aria-label="Exit Zen Mode"
                 onClick={() => setIsZenMode(false)}
@@ -402,45 +410,37 @@ export default function Editor() {
         )}
         {/* File Tabs Component */}
         <FileTabs />
-        
-        {/* Show empty state if no file is selected */}
-        {!currentFile ? (
-          <div className="flex items-center justify-center h-full min-h-96 text-gray-500">
-            <p>No file open. Create a new file or open an existing one.</p>
-          </div>
-        ) : (
-          <>
-            <EditorHeader
-              contentEdited={contentEdited}
-              frontMatter={frontMatter}
-              hasChanges={hasChanges}
-              actions={{
-                handleNewFile,
-                handleOpenFile,
-                handleSelectTemplate,
-                handleOpenFindAndReplace,
-                handleOpenFontSettings,
-                handleOpenTableEditor,
-              }}
-              searchTerm={searchTerm}
-              setSearchTerm={setSearchTerm}
-              matchCount={matchCount}
-              setMatchCount={setMatchCount}
-              currentIndex={currentIndex}
-              setCurrentIndex={setCurrentIndex}
-            />
-            <EditorContent
-              contentEdited={contentEdited}
-              setContentEdited={updateCurrentFileContent}
-              setHasChanges={setHasChanges}
-              fontFamily={fontFamily}
-              fontSize={fontSize}
-              searchTerm={searchTerm}
-              matchCount={matchCount}
-              currentIndex={currentIndex}
-            />
-          </>
-        )}
+
+        <EditorHeader
+          contentEdited={contentEdited}
+          frontMatter={frontMatter}
+          hasChanges={hasChanges}
+          actions={{
+            handleNewFile,
+            handleOpenFile,
+            handleSelectTemplate,
+            handleOpenFindAndReplace,
+            handleOpenFontSettings,
+            handleOpenTableEditor,
+          }}
+          searchTerm={searchTerm}
+          setSearchTerm={setSearchTerm}
+          matchCount={matchCount}
+          setMatchCount={setMatchCount}
+          currentIndex={currentIndex}
+          setCurrentIndex={setCurrentIndex}
+        />
+        <EditorContent
+          contentEdited={contentEdited}
+          setContentEdited={updateCurrentFileContent}
+          setHasChanges={setHasChanges}
+          fontFamily={fontFamily}
+          fontSize={fontSize}
+          searchTerm={searchTerm}
+          matchCount={matchCount}
+          currentIndex={currentIndex}
+        />
+        )
         <FontConfigDialog
           isOpen={isFontDialogOpen}
           onClose={() => setIsFontDialogOpen(false)}
