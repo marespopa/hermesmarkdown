@@ -7,12 +7,7 @@ const FewShotTemplate: MarkdownTemplate = {
     description: `Build example-based prompts with structured input-output pairs to guide AI behavior.`,
     tags: "examples,logic,prompt-engineering",
   },
-  content: `---
-title: Few-Shot Example Library
-tags: [examples, logic]
----
-
-# 📚 Few-Shot Prompting
+  content: `# 📚 Few-Shot Prompting
 
 Provide clear examples to guide AI behavior and output quality.
 

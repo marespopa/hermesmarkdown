@@ -7,12 +7,7 @@ const ChainOfThoughtTemplate: MarkdownTemplate = {
     description: `Structure complex reasoning with step-by-step logic for better AI outputs.`,
     tags: "logic,reasoning,prompt-engineering",
   },
-  content: `---
-title: Reasoning Template
-tags: [logic, reasoning]
----
-
-# 🧠 Chain-of-Thought Framework
+  content: `# 🧠 Chain-of-Thought Framework
 
 Breaking down complex problems into structured reasoning steps leads to more accurate and thoughtful AI responses.
 

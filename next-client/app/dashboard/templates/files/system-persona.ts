@@ -7,12 +7,7 @@ const SystemPersonaTemplate: MarkdownTemplate = {
     description: `Define AI role, context, and constraints for powerful system instructions.`,
     tags: "prompt-engineering,system-role,ai",
   },
-  content: `---
-title: System Persona Template
-tags: [prompt-engineering, system-role]
----
-
-# 🤖 System Role & Context
+  content: `# 🤖 System Role & Context
 
 ## Role: Define who the AI is.
 You are an expert [SPECIFY DOMAIN/ROLE]. Your primary responsibility is to [PRIMARY GOAL]. You bring [KEY EXPERTISE/QUALITIES] to every interaction.
