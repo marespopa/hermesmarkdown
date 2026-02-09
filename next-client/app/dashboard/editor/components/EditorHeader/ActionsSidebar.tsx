@@ -1,11 +1,10 @@
 import React from "react";
 import Button from "@/app/components/Button";
-import { FaFile, FaFolderOpen, FaSave, FaFilePdf, FaKeyboard, FaCopy, FaSearch, FaChevronLeft, FaChevronRight, FaClock, FaQuestion, FaSun, FaMoon, FaFont, FaRegClone, FaTable } from "react-icons/fa";
+import { FaFile, FaFolderOpen, FaSave, FaSearch, FaChevronLeft, FaChevronRight, FaRegClone, FaCog } from "react-icons/fa";
 import classNames from "classnames";
 import { useAtom } from "jotai";
-import { atom_theme, atom_sidebarCollapsed } from "@/app/atoms/atoms";
-import { showCopyToast } from "@/app/components/Toastr";
-import { copyCleanPrompt } from "@/app/services/prompt-utils";
+import { atom_sidebarCollapsed } from "@/app/atoms/atoms";
+import { useRouter } from "next/navigation";
 
 interface ActionsSidebarProps {
   actions: {
@@ -13,22 +12,13 @@ interface ActionsSidebarProps {
     handleOpenFile: () => void;
     handleSelectTemplate: () => void;
     handleOpenFindAndReplace: () => void;
-    handleOpenFontSettings?: () => void;
-    handleOpenTableEditor?: () => void;
   };
-  contentEdited: string;
   exportToMD: () => void;
-  showPdfPreviewModal: () => void;
-  setIsShortcutsOpen: (open: boolean) => void;
-  showTimer: boolean;
-  setShowTimer: (show: boolean) => void;
   onShowFindBar: () => void;
-  isFindBarOpen: boolean; // new prop
 }
 
 const labelClass = "hidden xl:inline ml-2 text-left";
-const dividerClass = "my-2 border-t border-gray-300 dark:border-neutral-500 w-full";
-const sectionHeaderClass = "text-xs uppercase tracking-wider text-gray-500 dark:text-gray-400 px-2 mt-2 mb-1 w-full text-left";
+const dividerClass = "my-3 border-t border-gray-200 dark:border-neutral-700 w-full";
 
 // Helper for button styles based on collapsed state
 const getButtonStyles = (collapsed: boolean) =>
@@ -39,17 +29,11 @@ const getButtonStyles = (collapsed: boolean) =>
 
 const ActionsSidebar: React.FC<ActionsSidebarProps> = ({
   actions,
-  contentEdited,
   exportToMD,
-  showPdfPreviewModal,
-  setIsShortcutsOpen,
-  showTimer,
-  setShowTimer,
   onShowFindBar,
-  isFindBarOpen,
 }) => {
-  const [theme, setTheme] = useAtom(atom_theme);
   const [collapsed, setCollapsed] = useAtom(atom_sidebarCollapsed);
+  const router = useRouter();
   // Helper to conditionally show label
   const getLabelClass = () => (collapsed ? "hidden" : labelClass);
 
@@ -74,8 +58,6 @@ const ActionsSidebar: React.FC<ActionsSidebarProps> = ({
         >
           {collapsed ? <FaChevronRight /> : <FaChevronLeft />}
         </Button>
-        {/* Main file actions */}
-        <div className={classNames(sectionHeaderClass, collapsed && "hidden")}>File</div>
         <Button
           variant="icon"
           onClick={actions.handleNewFile}
@@ -84,15 +66,6 @@ const ActionsSidebar: React.FC<ActionsSidebarProps> = ({
           styles={classNames(getButtonStyles(collapsed), "dark:border-neutral-600")}
         >
           <FaFile /> <span className={getLabelClass()}>New</span>
-        </Button>
-        <Button
-          variant="icon"
-          onClick={exportToMD}
-          aria-label="Export File"
-          title="Export File"
-          styles={getButtonStyles(collapsed)}
-        >
-          <FaSave /> <span className={getLabelClass()}>Export</span>
         </Button>
         <Button
           variant="icon"
@@ -112,13 +85,6 @@ const ActionsSidebar: React.FC<ActionsSidebarProps> = ({
         >
           <FaFolderOpen /> <span className={getLabelClass()}>Import</span>
         </Button>
-        <span className={classNames(
-          "my-2 border-t border-gray-300 dark:border-neutral-500",
-          collapsed ? "w-8 mx-auto" : "w-full"
-        )} />
-        {/* Edit Section */}
-        <div className={classNames(sectionHeaderClass, collapsed && "hidden")}>Edit</div>
-        {/* Search button */}
         <Button
           variant="icon"
           aria-label="Show Find Bar"
@@ -127,96 +93,24 @@ const ActionsSidebar: React.FC<ActionsSidebarProps> = ({
         >
           <FaSearch /> <span className={getLabelClass()}>Search</span>
         </Button>
-
-        {/* Copy Prompt button (clean, without frontmatter) */}
         <Button
           variant="icon"
-          onClick={async () => {
-            const success = await copyCleanPrompt(contentEdited);
-            if (success) {
-              showCopyToast("Prompt copied succesfully!");
-            } else {
-              showCopyToast("Failed to copy prompt");
-            }
-          }}
-          aria-label="Copy Prompt"
-          title="Copy Prompt without metadata"
+          onClick={exportToMD}
+          aria-label="Export File"
+          title="Export File"
           styles={getButtonStyles(collapsed)}
         >
-          <FaCopy /> <span className={getLabelClass()}>Copy Prompt</span>
-        </Button>
-        <Button
-          variant="icon"
-          onClick={actions.handleOpenFontSettings}
-          aria-label="Font Settings"
-          title="Font Settings"
-          styles={getButtonStyles(collapsed)}
-        >
-          <FaFont /> <span className={getLabelClass()}>Font Settings</span>
-        </Button>
-        <Button
-          variant="icon"
-          onClick={actions.handleOpenTableEditor}
-          aria-label="Table Editor"
-          title="Table Editor"
-          styles={getButtonStyles(collapsed)}
-        >
-          <FaTable /> <span className={getLabelClass()}>Table Editor</span>
+          <FaSave /> <span className={getLabelClass()}>Export</span>
         </Button>
         <span className={dividerClass} />
-        {/* Export Section */}
-        <div className={classNames(sectionHeaderClass, collapsed && "hidden")}>Export</div>
         <Button
           variant="icon"
-          onClick={showPdfPreviewModal}
-          aria-label="Export to PDF"
-          title="Export to PDF"
+          onClick={() => router.push("/dashboard/settings")}
+          aria-label="Settings"
+          title="Settings"
           styles={getButtonStyles(collapsed)}
         >
-          <FaFilePdf /> <span className={getLabelClass()}>Export PDF</span>
-        </Button>
-        <span className={dividerClass} />
-        {/* Tools Section */}
-        <div className={classNames(sectionHeaderClass, collapsed && "hidden")}>Tools</div>
-        <Button
-          variant="icon"
-          onClick={() => setShowTimer(!showTimer)}
-          aria-label="Toggle Timer"
-          title="Toggle Timer"
-          styles={getButtonStyles(collapsed)}
-        >
-          <FaClock /> <span className={getLabelClass()}>Timer</span>
-        </Button>
-        <Button
-          variant="icon"
-          onClick={() => setTheme(theme === "light" ? "dark" : "light")}
-          aria-label={theme === "light" ? "Dark" : "Light"}
-          title={theme === "light" ? "Dark" : "Light"}
-          styles={getButtonStyles(collapsed)}
-        >
-          {theme === "light" ? <FaMoon className="w-5 h-5" /> : <FaSun className="w-5 h-5" />}
-          <span className={getLabelClass()}>{theme === "light" ? "Dark" : "Light"}</span>
-        </Button>
-        <Button
-          variant="icon"
-          onClick={() => setIsShortcutsOpen(true)}
-          aria-label="Keyboard Shortcuts"
-          title="Keyboard Shortcuts"
-          styles={getButtonStyles(collapsed)}
-        >
-          <FaKeyboard /> <span className={getLabelClass()}>Shortcuts</span>
-        </Button>
-        <span className={dividerClass} />
-        {/* Help Section */}
-        <div className={classNames(sectionHeaderClass, collapsed && "hidden")}>Help</div>
-        <Button
-          variant="icon"
-          onClick={() => window.open('/documentation', '_blank')}
-          aria-label="Documentation"
-          title="Documentation"
-          styles={getButtonStyles(collapsed)}
-        >
-          <FaQuestion /> <span className={getLabelClass()}>Docs</span>
+          <FaCog /> <span className={getLabelClass()}>Settings</span>
         </Button>
       </div>
     </aside>

@@ -5,35 +5,28 @@ import { useAtom } from "jotai";
 import { useEffect, useRef, useState } from "react";
 import EditorForm from "../EditorForm";
 import { FileMetadata } from "@/app/types/markdown";
-import { atom_showTimer, atom_hasChanges, atom_fontFamily, atom_fontSize } from "@/app/atoms/atoms";
-import DropdownMenu from "@/app/components/DropdownMenu";
+import { atom_hasChanges } from "@/app/atoms/atoms";
 import ExportService from "@/app/services/export-service";
-import { FaFile, FaEdit, FaQuestion } from "react-icons/fa";
-import { useRouter } from "next/navigation";
 import useIsMobile from "@/app/hooks/use-is-mobile";
-import { showSuccessToast, showErrorToast, showCopyToast } from "@/app/components/Toastr";
-import { copyCleanPrompt } from "@/app/services/prompt-utils";
+import { showSuccessToast, showErrorToast } from "@/app/components/Toastr";
 import TitleFileInfo from "./TitleFileInfo";
-import FontMenu from "./FontMenu";
-import FontSizeMenu from "./FontSizeMenu";
-import MobileMenu from "./MobileMenu";
 import ActionsSidebar from "./ActionsSidebar";
 import PDFPreviewDialog from "./PDFPreviewDialog";
 import ShortcutsDialog from "./ShortcutsDialog";
 import ActionsMobileMenu from "./ActionsMobileMenu";
 import FindBar from "./FindBar";
+import PromptBar from "./PromptBar";
 
 interface Props {
   contentEdited: string;
   frontMatter: FileMetadata;
   hasChanges: boolean;
+  onInsertTemplate: (template: string) => void;
   actions: {
     handleNewFile: () => void;
     handleOpenFile: () => void;
     handleSelectTemplate: () => void;
     handleOpenFindAndReplace: () => void;
-    handleOpenFontSettings: () => void;
-    handleOpenTableEditor: () => void;
   };
   searchTerm: string;
   setSearchTerm: (term: string) => void;
@@ -47,6 +40,7 @@ export default function EditorHeader({
   contentEdited,
   frontMatter,
   hasChanges,
+  onInsertTemplate,
   actions,
   searchTerm,
   setSearchTerm,
@@ -57,126 +51,32 @@ export default function EditorHeader({
 }: Props) {
   const [isFormatterDialogOpen, setIsFormatterDialogOpen] = useState(false);
   const [isFabMenuOpen, setIsFabMenuOpen] = useState(false);
-  const [showTimer, setShowTimer] = useAtom(atom_showTimer);
   const [, setHasChanges] = useAtom(atom_hasChanges);
-  const router = useRouter();
   const isMobile = useIsMobile();
   const findInputRef = useRef<HTMLInputElement>(null);
-  const [isFontControlsCollapsed, setIsFontControlsCollapsed] = useState(false);
   const [showFindBar, setShowFindBar] = useState(false);
   const fileTitle = frontMatter.title;
   const fileName = frontMatter.fileName;
   const hasTitle = fileTitle.length > 0;
   const safeFileName = fileName || "";
-  const fabMenuRef = useRef<HTMLDivElement>(null);
   const [isShortcutsOpen, setIsShortcutsOpen] = useState(false);
-  const [, setFontFamily] = useAtom(atom_fontFamily);
-  const [, setFontSize] = useAtom(atom_fontSize);
-  const fontSizeOptions = [
-    { value: "14px", label: "Small" },
-    { value: "16px", label: "Normal" },
-    { value: "18px", label: "Large" },
-    { value: "20px", label: "Extra Large" },
-  ];
   const [isPdfPreviewOpen, setIsPdfPreviewOpen] = useState(false);
 
-  const fontOptions = [
-    { value: "Fira Mono, monospace", label: "Fira Mono" },
-    { value: "JetBrains Mono, monospace", label: "JetBrains Mono" },
-    { value: "Source Code Pro, monospace", label: "Source Code Pro" },
-    { value: "Inconsolata, monospace", label: "Inconsolata" },
-    { value: "Ubuntu Mono, monospace", label: "Ubuntu Mono" },
-  ];
-
-  // Higher-order function to wrap actions with closeFabMenu
-  const withCloseFabMenu = (action: () => void) => () => {
-    closeFabMenu();
-    setTimeout(() => {
-      action();
-    }, 0);
-  };
-
-  // File menu options
-  const fileMenuOptions = [
-    {
-      label: "New File...",
-      action: withCloseFabMenu(actions.handleNewFile),
-    },
-    {
-      label: "New from template...",
-      action: withCloseFabMenu(actions.handleSelectTemplate),
-    },
-    {
-      label: "Import File...",
-      action: withCloseFabMenu(actions.handleOpenFile),
-    },
-    {
-      label: "Export...",
-      action: withCloseFabMenu(exportToMD),
-    },
-  ];
-
-  // Help menu options
-  const helpMenuOptions = [
-    {
-      label: "Welcome",
-      action: withCloseFabMenu(() => {
-        router.push("/dashboard");
-      }),
-    },
-    {
-      label: "Documentation",
-      action: withCloseFabMenu(() => router.push("/documentation")),
-    },
-  ];
-
-  // Edit menu options
-  const editMenuOptions = [
-    {
-      label: "Copy Prompt",
-      action: withCloseFabMenu(async () => {
-        const success = await copyCleanPrompt(contentEdited);
-        if (success) {
-          showCopyToast("Prompt copied succesfully!");
-        } else {
-          showCopyToast("Failed to copy prompt");
-        }
-      }),
-    },
-    {
-      label: "Table Editor...",
-      action: withCloseFabMenu(actions.handleOpenTableEditor),
-    },
-    {
-      label: "Replace...",
-      action: withCloseFabMenu(actions.handleOpenFindAndReplace),
-    },
-  ];
-
-  // DropdownMenu controlled state
-  const [editMenuOpen, setEditMenuOpen] = useState(false);
-  const [editMenuSelected, setEditMenuSelected] = useState<number | null>(null);
-  const [helpMenuOpen, setHelpMenuOpen] = useState(false);
-  const [helpMenuSelected, setHelpMenuSelected] = useState<number | null>(null);
-  const [fileMenuOpen, setFileMenuOpen] = useState(false);
-  const [fileMenuSelected, setFileMenuSelected] = useState<number | null>(null);
-
-  // Close dropdown when clicking outside
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        fabMenuRef.current &&
-        !fabMenuRef.current.contains(event.target as Node)
-      ) {
-        setIsFabMenuOpen(false);
-      }
-    };
+    if (typeof window === "undefined") return;
+    const openPdfPreview = window.localStorage.getItem("hm_open_pdf_preview");
+    if (openPdfPreview) {
+      setIsPdfPreviewOpen(true);
+      window.localStorage.removeItem("hm_open_pdf_preview");
+    }
 
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
+    const openShortcuts = window.localStorage.getItem("hm_open_shortcuts");
+    if (openShortcuts) {
+      setIsShortcutsOpen(true);
+      window.localStorage.removeItem("hm_open_shortcuts");
+    }
   }, []);
+
 
   // Keyboard shortcut: Cmd/Ctrl+F opens FindBar
   useEffect(() => {
@@ -239,19 +139,13 @@ export default function EditorHeader({
   };
 
   return (
-    <header className="flex flex-row items-center justify-between w-full py-4 rounded-t-xl relative">
+    <header className="flex flex-col sm:flex-row sm:items-center justify-between w-full py-4 rounded-t-xl relative gap-4">
       {/* Sidebar: Only show on desktop */}
       {!isMobile && (
         <ActionsSidebar
           actions={actions}
-          contentEdited={contentEdited}
           exportToMD={exportToMD}
-          showPdfPreviewModal={showPdfPreviewModal}
-          setIsShortcutsOpen={setIsShortcutsOpen}
-          showTimer={showTimer}
-          setShowTimer={setShowTimer}
           onShowFindBar={() => setShowFindBar(true)}
-          isFindBarOpen={showFindBar}
         />
       )}
       {/* Mobile: Use ActionsMobileMenu */}
@@ -260,17 +154,11 @@ export default function EditorHeader({
           isOpen={isFabMenuOpen}
           onClose={() => setIsFabMenuOpen(false)}
           actions={actions}
-          contentEdited={contentEdited}
           exportToMD={exportToMD}
-          showPdfPreviewModal={showPdfPreviewModal}
-          setIsShortcutsOpen={setIsShortcutsOpen}
-          renderFileMenu={renderFileMenu}
-          renderEditMenu={renderEditMenu}
-          renderHelpMenu={renderHelpMenu}
         />
       )}
       {/* Left: Title and file info only */}
-      <div className="flex flex-col items-start gap-1 max-w-md w-full flex-shrink-0">
+      <div className="flex flex-col items-start gap-1 w-full sm:max-w-md flex-shrink-0">
         <TitleFileInfo
           fileTitle={fileTitle}
           fileName={safeFileName}
@@ -280,6 +168,15 @@ export default function EditorHeader({
           renderFontMenu={() => null}
           renderFontSizeMenu={() => null}
         />
+        {isMobile && (
+          <div className="w-full mt-3">
+            <PromptBar
+              contentEdited={contentEdited}
+              onInsertTemplate={onInsertTemplate}
+              isCompact
+            />
+          </div>
+        )}
         {/* Font controls and Find bar with collapse toggle */}
         {/* Only show FindBar if needed, no font controls or collapse button */}
         {/* FindBar and show/hide button removed, now handled in ActionsSidebar */}
@@ -293,17 +190,12 @@ export default function EditorHeader({
           </Button>
         )}
       </div>
-      {/* Center: (empty for now, can be used for future content) */}
-      <div className="flex-1" />
-      <MobileMenu
-        isOpen={isFabMenuOpen}
-        onClose={() => setIsFabMenuOpen(false)}
-        actions={actions}
-        contentEdited={contentEdited}
-        exportToMD={exportToMD}
-        fontOptions={fontOptions}
-        fontSizeOptions={fontSizeOptions}
-      />
+      {/* Center: Prompt bar */}
+      {!isMobile && (
+        <div className="flex-1 flex justify-end">
+          <PromptBar contentEdited={contentEdited} onInsertTemplate={onInsertTemplate} />
+        </div>
+      )}
       <ShortcutsDialog
         isOpen={isShortcutsOpen}
         onClose={() => setIsShortcutsOpen(false)}
@@ -345,50 +237,6 @@ export default function EditorHeader({
       )}
     </header>
   );
-
-  function closeFabMenu() {
-    setIsFormatterDialogOpen(false);
-    setIsFabMenuOpen(false);
-  }
-
-  function renderEditMenu() {
-    return (
-      <DropdownMenu
-        options={editMenuOptions}
-        label={<FaEdit />}
-        isOpen={editMenuOpen}
-        onOpenChange={setEditMenuOpen}
-        selectedIndex={editMenuSelected}
-        onSelect={setEditMenuSelected}
-      />
-    );
-  }
-
-  function renderHelpMenu() {
-    return (
-      <DropdownMenu
-        options={helpMenuOptions}
-        label={<FaQuestion />}
-        isOpen={helpMenuOpen}
-        onOpenChange={setHelpMenuOpen}
-        selectedIndex={helpMenuSelected}
-        onSelect={setHelpMenuSelected}
-      />
-    );
-  }
-
-  function renderFileMenu() {
-    return (
-      <DropdownMenu
-        options={fileMenuOptions}
-        label={<FaFile />}
-        isOpen={fileMenuOpen}
-        onOpenChange={setFileMenuOpen}
-        selectedIndex={fileMenuSelected}
-        onSelect={setFileMenuSelected}
-      />
-    );
-  }
 
   function showFileDialog() {
     setIsFormatterDialogOpen(true);

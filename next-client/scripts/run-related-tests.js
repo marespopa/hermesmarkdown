@@ -11,11 +11,9 @@ const TEST_MAPPINGS = {
   
   // Template-related files
   'app/dashboard/templates/': ['cypress/e2e/templates.cy.ts'],
-  'app/dashboard/editor/components/EditorEmpty.tsx': ['cypress/e2e/templates.cy.ts'],
   
   // Homepage-related files
   'app/page.tsx': ['cypress/e2e/homepage.cy.ts'],
-  'app/dashboard/editor/components/EditorEmpty.tsx': ['cypress/e2e/homepage.cy.ts'],
   'app/components/LandingPage/': ['cypress/e2e/homepage.cy.ts'],
   
   // Theme-related files

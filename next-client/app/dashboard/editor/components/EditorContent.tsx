@@ -11,6 +11,7 @@ interface Props {
   matchCount?: number;
   currentIndex?: number;
   zenMode?: boolean;
+  onTextareaReady?: (element: HTMLTextAreaElement | null) => void;
 }
 
 export default function EditorContent({
@@ -23,6 +24,7 @@ export default function EditorContent({
   matchCount,
   currentIndex,
   zenMode = false,
+  onTextareaReady,
 }: Props) {
   return (
     <div className={`${zenMode ? 'h-full overflow-y-auto w-full' : 'flex-1 flex flex-col min-h-0 w-full mb-4'}`}>
@@ -44,6 +46,7 @@ export default function EditorContent({
           searchTerm={searchTerm}
           matchCount={matchCount}
           currentIndex={currentIndex}
+          onTextareaReady={onTextareaReady}
         />
       </div>
     </div>

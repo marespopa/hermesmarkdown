@@ -22,8 +22,8 @@ import {
   atom_contentEdited,
 } from "@/app/atoms/atoms";
 import { useDocumentTitle } from "@/app/hooks/use-document-title";
-import { useState, useEffect } from "react";
-import { PICKER_OPTIONS } from "./components/EditorEmpty";
+import { useState, useEffect, useCallback } from "react";
+import { EMPTY_PAGE_TEMPLATE, PICKER_OPTIONS } from "./EditorUtils";
 import { StatusResponse } from "@/app/services/save-utils";
 import matter from "gray-matter";
 import LoadingOverlay from "@/app/components/LoadingOverlay";
@@ -32,7 +32,6 @@ import { useCommand } from "@/app/hooks/use-command";
 import FileSelectionModal from "../components/FileSelectionModal";
 import FindAndReplaceModal from "../components/FindAndReplaceModal";
 import useIsMobile from "@/app/hooks/use-is-mobile";
-import { EMPTY_PAGE_TEMPLATE } from "./EditorUtils";
 import FontConfigDialog from "./components/EditorHeader/FontConfigDialog";
 import { useRef } from "react";
 import { FaExpand, FaTimes } from "react-icons/fa";
@@ -83,6 +82,8 @@ export default function Editor() {
   const [isFontDialogOpen, setIsFontDialogOpen] = useState(false);
   const [isZenMode, setIsZenMode] = useState(false);
   const zenButtonRef = useRef<HTMLButtonElement>(null);
+  const didInitFileRef = useRef(false);
+  const editorTextareaRef = useRef<HTMLTextAreaElement | null>(null);
 
   // Search functionality
   const [searchTerm, setSearchTerm] = useState("");
@@ -101,6 +102,71 @@ export default function Editor() {
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const openTableEditor = window.localStorage.getItem("hm_open_table_editor");
+    if (openTableEditor) {
+      setIsTableEditorModalVisible(true);
+      window.localStorage.removeItem("hm_open_table_editor");
+    }
+  }, []);
+
+  const handleInsertTemplate = useCallback((template: string) => {
+    if (!template) return;
+    const textarea = editorTextareaRef.current;
+    if (!textarea) {
+      const separator = contentEdited ? "\n\n" : "";
+      updateCurrentFileContent(`${contentEdited}${separator}${template}`);
+      return;
+    }
+
+    const start = textarea.selectionStart ?? contentEdited.length;
+    const end = textarea.selectionEnd ?? start;
+    const before = contentEdited.slice(0, start);
+    const after = contentEdited.slice(end);
+    const nextValue = `${before}${template}${after}`;
+    updateCurrentFileContent(nextValue);
+
+    requestAnimationFrame(() => {
+      const cursor = start + template.length;
+      textarea.focus();
+      textarea.setSelectionRange(cursor, cursor);
+    });
+  }, [contentEdited, updateCurrentFileContent]);
+
+  useEffect(() => {
+    if (currentFile || didInitFileRef.current) {
+      return;
+    }
+
+    if (files.length > 0) {
+      if (!selectedFileId) {
+        setSelectedFileId(files[0].id);
+      }
+      didInitFileRef.current = true;
+      return;
+    }
+
+    const newFileId = uuidv4();
+    const newFile: OpenFile = {
+      id: newFileId,
+      content: EMPTY_PAGE_TEMPLATE,
+      contentEdited: EMPTY_PAGE_TEMPLATE,
+      frontMatter: {
+        fileName: "file",
+        title: "File",
+        description: "",
+        tags: "",
+      },
+      isSaved: true,
+    };
+
+    setFiles([...files, newFile]);
+    setSelectedFileId(newFileId);
+    setHasChanges(false);
+    didInitFileRef.current = true;
+  }, [currentFile, files, selectedFileId, setFiles, setSelectedFileId, setHasChanges]);
 
   useEffect(() => {
     setDocumentTitle(fileTitle);
@@ -142,12 +208,6 @@ export default function Editor() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isZenMode]);
 
-  // Redirect to dashboard if no file is open
-  useEffect(() => {
-    if (!currentFile) {
-      router.push("/dashboard");
-    }
-  }, [currentFile, router]);
 
   function handleNewFile() {
     if (!canOpenMoreFiles) {
@@ -415,13 +475,12 @@ export default function Editor() {
           contentEdited={contentEdited}
           frontMatter={frontMatter}
           hasChanges={hasChanges}
+          onInsertTemplate={handleInsertTemplate}
           actions={{
             handleNewFile,
             handleOpenFile,
             handleSelectTemplate,
             handleOpenFindAndReplace,
-            handleOpenFontSettings,
-            handleOpenTableEditor,
           }}
           searchTerm={searchTerm}
           setSearchTerm={setSearchTerm}
@@ -439,6 +498,9 @@ export default function Editor() {
           searchTerm={searchTerm}
           matchCount={matchCount}
           currentIndex={currentIndex}
+          onTextareaReady={(element) => {
+            editorTextareaRef.current = element;
+          }}
         />
         <FontConfigDialog
           isOpen={isFontDialogOpen}

@@ -11,6 +11,7 @@ interface MarkdownEditorProps {
   searchTerm?: string;
   matchCount?: number;
   currentIndex?: number;
+  onTextareaReady?: (element: HTMLTextAreaElement | null) => void;
 }
 
 // Custom Tailwind-based markdown highlighter (with table support)
@@ -131,7 +132,7 @@ const highlightMarkdownWithTailwind = (code: string, searchTerm?: string, matchC
   return code;
 };
 
-const MarkdownEditor: React.FC<MarkdownEditorProps> = ({ value, onChange, fontFamily, fontSize, searchTerm, matchCount, currentIndex }) => {
+const MarkdownEditor: React.FC<MarkdownEditorProps> = ({ value, onChange, fontFamily, fontSize, searchTerm, matchCount, currentIndex, onTextareaReady }) => {
   const [popup, setPopup] = useState<{ text: string; url: string } | null>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
@@ -151,6 +152,7 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({ value, onChange, fontFa
     const textarea = wrapperRef.current.querySelector('textarea');
     if (!textarea) return;
     textareaRef.current = textarea as HTMLTextAreaElement;
+    onTextareaReady?.(textareaRef.current);
 
     const handleSelect = () => {
       const selection = textarea.value.substring(textarea.selectionStart, textarea.selectionEnd);
@@ -180,8 +182,9 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({ value, onChange, fontFa
     return () => {
       textarea.removeEventListener('select', handleSelect);
       document.removeEventListener('selectionchange', handleSelectionChange);
+      onTextareaReady?.(null);
     };
-  }, [value]);
+  }, [value, onTextareaReady]);
 
   return (
     <div className="relative" ref={wrapperRef}>

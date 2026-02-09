@@ -1,10 +1,7 @@
 import React from "react";
 import Button from "@/app/components/Button";
-import { FaTimes, FaFile, FaSave, FaFilePdf, FaKeyboard, FaSearch, FaMoon, FaSun, FaCopy, FaTable } from "react-icons/fa";
-import { useAtom } from "jotai";
-import { atom_theme } from "@/app/atoms/atoms";
-import { showCopyToast } from "@/app/components/Toastr";
-import { copyCleanPrompt } from "@/app/services/prompt-utils";
+import { FaTimes, FaFile, FaSave, FaSearch, FaFolderOpen, FaRegClone, FaCog } from "react-icons/fa";
+import { useRouter } from "next/navigation";
 
 interface ActionsMobileMenuProps {
   isOpen: boolean;
@@ -14,28 +11,17 @@ interface ActionsMobileMenuProps {
     handleOpenFile: () => void;
     handleSelectTemplate: () => void;
     handleOpenFindAndReplace: () => void;
-    handleOpenFontSettings?: () => void;
-    handleOpenTableEditor?: () => void;
   };
-  contentEdited: string;
   exportToMD: () => void;
-  showPdfPreviewModal: () => void;
-  setIsShortcutsOpen: (open: boolean) => void;
-  renderFileMenu: () => React.ReactNode;
-  renderEditMenu: () => React.ReactNode;
-  renderHelpMenu: () => React.ReactNode;
 }
 
 const ActionsMobileMenu: React.FC<ActionsMobileMenuProps> = ({
   isOpen,
   onClose,
   actions,
-  contentEdited,
-  exportToMD,
-  showPdfPreviewModal,
-  setIsShortcutsOpen
+  exportToMD
 }) => {
-  const [theme, setTheme] = useAtom(atom_theme);
+  const router = useRouter();
   if (!isOpen) return null;
   return (
     <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-white dark:bg-gray-900 bg-opacity-95 dark:bg-opacity-95">
@@ -50,22 +36,19 @@ const ActionsMobileMenu: React.FC<ActionsMobileMenuProps> = ({
       </Button>
       <div className="flex flex-col gap-4 px-4 mt-8 mb-4 overflow-y-auto max-h-[80vh] items-stretch w-full">
         <Button variant="secondary" onClick={actions.handleNewFile} label={<><FaFile className="inline mr-2" />New File</>} styles="w-full" />
-        <Button variant="secondary" onClick={actions.handleOpenFile} label={<><FaFile className="inline mr-2" />Import File</>} styles="w-full" />
-        <Button variant="secondary" onClick={actions.handleSelectTemplate} label={<><FaFile className="inline mr-2" />Select Template</>} styles="w-full" />
+        <Button variant="secondary" onClick={actions.handleSelectTemplate} label={<><FaRegClone className="inline mr-2" />Template</>} styles="w-full" />
+        <Button variant="secondary" onClick={actions.handleOpenFile} label={<><FaFolderOpen className="inline mr-2" />Import File</>} styles="w-full" />
+        <Button variant="secondary" onClick={actions.handleOpenFindAndReplace} label={<><FaSearch className="inline mr-2" />Search</>} styles="w-full" />
         <Button variant="secondary" onClick={exportToMD} label={<><FaSave className="inline mr-2" />Export</>} styles="w-full" />
-        <Button variant="secondary" onClick={showPdfPreviewModal} label={<><FaFilePdf className="inline mr-2" />Export to PDF</>} styles="w-full" />
-        <Button variant="secondary" onClick={actions.handleOpenFindAndReplace} label={<><FaSearch className="inline mr-2" />Find and Replace</>} styles="w-full" />
-        <Button variant="secondary" onClick={actions.handleOpenFontSettings} label={<><FaKeyboard className="inline mr-2" />Font Settings…</>} styles="w-full" />
-        <Button variant="secondary" onClick={actions.handleOpenTableEditor} label={<><FaTable className="inline mr-2" />Table Editor</>} styles="w-full" />
-        <Button variant="secondary" onClick={() => setTheme(theme === "light" ? "dark" : "light")} label={<>{theme === 'light' ? <FaMoon className="inline mr-2" /> : <FaSun className="inline mr-2" />} {theme === 'light' ? "Dark Mode" : "Light Mode"}</>} styles="w-full" />
-        <Button variant="secondary" onClick={async () => {
-          const success = await copyCleanPrompt(contentEdited);
-          if (success) {
-            showCopyToast("Prompt copied succesfully!");
-          } else {
-            showCopyToast("Failed to copy prompt");
-          }
-        }} label={<><FaCopy className="inline mr-2" /> Copy Prompt</>} styles="w-full" />
+        <Button
+          variant="secondary"
+          onClick={() => {
+            router.push("/dashboard/settings");
+            onClose();
+          }}
+          label={<><FaCog className="inline mr-2" />Settings</>}
+          styles="w-full"
+        />
       </div>
     </div>
   );
