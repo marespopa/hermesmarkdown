@@ -12,6 +12,7 @@ import { FaFile, FaEdit, FaQuestion } from "react-icons/fa";
 import { useRouter } from "next/navigation";
 import useIsMobile from "@/app/hooks/use-is-mobile";
 import { showSuccessToast, showErrorToast, showCopyToast } from "@/app/components/Toastr";
+import { copyCleanPrompt } from "@/app/services/prompt-utils";
 import TitleFileInfo from "./TitleFileInfo";
 import FontMenu from "./FontMenu";
 import FontSizeMenu from "./FontSizeMenu";
@@ -132,10 +133,14 @@ export default function EditorHeader({
   // Edit menu options
   const editMenuOptions = [
     {
-      label: "Copy Markdown",
-      action: withCloseFabMenu(() => {
-        navigator.clipboard.writeText(contentEdited);
-        showCopyToast("Markdown copied to clipboard");
+      label: "Copy Prompt",
+      action: withCloseFabMenu(async () => {
+        const success = await copyCleanPrompt(contentEdited);
+        if (success) {
+          showCopyToast("Clean prompt copied! (Metadata excluded)");
+        } else {
+          showCopyToast("Failed to copy prompt");
+        }
       }),
     },
     {

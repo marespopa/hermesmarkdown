@@ -4,6 +4,7 @@ import { FaTimes, FaFile, FaSave, FaFilePdf, FaKeyboard, FaSearch, FaMoon, FaSun
 import { useAtom } from "jotai";
 import { atom_theme } from "@/app/atoms/atoms";
 import { showCopyToast } from "@/app/components/Toastr";
+import { copyCleanPrompt } from "@/app/services/prompt-utils";
 
 interface ActionsMobileMenuProps {
   isOpen: boolean;
@@ -57,10 +58,14 @@ const ActionsMobileMenu: React.FC<ActionsMobileMenuProps> = ({
         <Button variant="secondary" onClick={actions.handleOpenFontSettings} label={<><FaKeyboard className="inline mr-2" />Font Settings…</>} styles="w-full" />
         <Button variant="secondary" onClick={actions.handleOpenTableEditor} label={<><FaTable className="inline mr-2" />Table Editor</>} styles="w-full" />
         <Button variant="secondary" onClick={() => setTheme(theme === "light" ? "dark" : "light")} label={<>{theme === 'light' ? <FaMoon className="inline mr-2" /> : <FaSun className="inline mr-2" />} {theme === 'light' ? "Dark Mode" : "Light Mode"}</>} styles="w-full" />
-        <Button variant="secondary" onClick={() => {
-          navigator.clipboard.writeText(contentEdited);
-          showCopyToast("Markdown copied to clipboard");
-        }} label={<><FaCopy className="inline mr-2" /> Copy Markdown</>} styles="w-full" />
+        <Button variant="secondary" onClick={async () => {
+          const success = await copyCleanPrompt(contentEdited);
+          if (success) {
+            showCopyToast("Clean prompt copied! (Metadata excluded)");
+          } else {
+            showCopyToast("Failed to copy prompt");
+          }
+        }} label={<><FaCopy className="inline mr-2" /> Copy Prompt</>} styles="w-full" />
       </div>
     </div>
   );

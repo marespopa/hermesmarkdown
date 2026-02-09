@@ -6,6 +6,7 @@ import { atom_theme } from "@/app/atoms/atoms";
 import DropdownMenu from "@/app/components/DropdownMenu";
 import { atom_fontFamily } from "@/app/atoms/atoms";
 import { showCopyToast } from "@/app/components/Toastr";
+import { copyCleanPrompt } from "@/app/services/prompt-utils";
 
 interface MobileMenuProps {
   isOpen: boolean;
@@ -48,9 +49,13 @@ const MobileMenu: React.FC<MobileMenuProps> = ({
     onClose();
   };
 
-  const handleCopyMarkdown = () => {
-    navigator.clipboard.writeText(contentEdited);
-    showCopyToast("Markdown copied to clipboard");
+  const handleCopyPrompt = async () => {
+    const success = await copyCleanPrompt(contentEdited);
+    if (success) {
+      showCopyToast("Clean prompt copied! (Metadata excluded)");
+    } else {
+      showCopyToast("Failed to copy prompt");
+    }
     onClose();
   };
 
@@ -75,7 +80,7 @@ const MobileMenu: React.FC<MobileMenuProps> = ({
           <Button variant="primary" label="Template" onClick={() => handleAction(actions.handleSelectTemplate)} />
           <Button variant="primary" label="Export File" onClick={() => handleAction(exportToMD)} />
           <Button variant="primary" label="Import File" onClick={() => handleAction(actions.handleOpenFile)} />
-          <Button variant="primary" label="Copy Markdown" onClick={handleCopyMarkdown} />
+          <Button variant="primary" label="Copy Prompt" onClick={handleCopyPrompt} />
           <Button variant="primary" label="Replace" onClick={() => handleAction(actions.handleOpenFindAndReplace)} />
           <Button variant="primary" label="Font" onClick={() => handleAction(actions.handleOpenFontSettings)} />
           <Button variant="primary" label={theme === "light" ? "Dark Mode" : "Light Mode"} onClick={handleThemeToggle} />

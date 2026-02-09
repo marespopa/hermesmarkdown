@@ -128,20 +128,6 @@ const ActionsSidebar: React.FC<ActionsSidebarProps> = ({
           <FaSearch /> <span className={getLabelClass()}>Search</span>
         </Button>
 
-        {/* Copy Markdown button */}
-        <Button
-          variant="icon"
-          onClick={() => {
-            navigator.clipboard.writeText(contentEdited);
-            showCopyToast("Markdown copied to clipboard");
-          }}
-          aria-label="Copy Markdown"
-          title="Copy Markdown"
-          styles={getButtonStyles(collapsed)}
-        >
-          <FaCopy /> <span className={getLabelClass()}>Copy Markdown</span>
-        </Button>
-
         {/* Copy Prompt button (clean, without frontmatter) */}
         <Button
           variant="icon"
