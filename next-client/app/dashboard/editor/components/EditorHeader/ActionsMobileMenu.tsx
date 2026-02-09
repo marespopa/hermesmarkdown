@@ -61,7 +61,7 @@ const ActionsMobileMenu: React.FC<ActionsMobileMenuProps> = ({
         <Button variant="secondary" onClick={async () => {
           const success = await copyCleanPrompt(contentEdited);
           if (success) {
-            showCopyToast("Clean prompt copied! (Metadata excluded)");
+            showCopyToast("Prompt copied succesfully!");
           } else {
             showCopyToast("Failed to copy prompt");
           }

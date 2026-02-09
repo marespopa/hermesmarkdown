@@ -52,7 +52,7 @@ const MobileMenu: React.FC<MobileMenuProps> = ({
   const handleCopyPrompt = async () => {
     const success = await copyCleanPrompt(contentEdited);
     if (success) {
-      showCopyToast("Clean prompt copied! (Metadata excluded)");
+      showCopyToast("Prompt copied succesfully!");
     } else {
       showCopyToast("Failed to copy prompt");
     }

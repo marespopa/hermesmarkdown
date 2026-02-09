@@ -137,7 +137,7 @@ export default function EditorHeader({
       action: withCloseFabMenu(async () => {
         const success = await copyCleanPrompt(contentEdited);
         if (success) {
-          showCopyToast("Clean prompt copied! (Metadata excluded)");
+          showCopyToast("Prompt copied succesfully!");
         } else {
           showCopyToast("Failed to copy prompt");
         }
