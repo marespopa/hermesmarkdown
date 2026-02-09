@@ -5,6 +5,7 @@ import classNames from "classnames";
 import { useAtom } from "jotai";
 import { atom_theme, atom_sidebarCollapsed } from "@/app/atoms/atoms";
 import { showCopyToast } from "@/app/components/Toastr";
+import { copyCleanPrompt } from "@/app/services/prompt-utils";
 
 interface ActionsSidebarProps {
   actions: {
@@ -139,6 +140,24 @@ const ActionsSidebar: React.FC<ActionsSidebarProps> = ({
           styles={getButtonStyles(collapsed)}
         >
           <FaCopy /> <span className={getLabelClass()}>Copy Markdown</span>
+        </Button>
+
+        {/* Copy Prompt button (clean, without frontmatter) */}
+        <Button
+          variant="icon"
+          onClick={async () => {
+            const success = await copyCleanPrompt(contentEdited);
+            if (success) {
+              showCopyToast("Clean prompt copied! (Metadata excluded)");
+            } else {
+              showCopyToast("Failed to copy prompt");
+            }
+          }}
+          aria-label="Copy Prompt"
+          title="Copy Prompt without metadata"
+          styles={getButtonStyles(collapsed)}
+        >
+          <FaCopy /> <span className={getLabelClass()}>Copy Prompt</span>
         </Button>
         <Button
           variant="icon"

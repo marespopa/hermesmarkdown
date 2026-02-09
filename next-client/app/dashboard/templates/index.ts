@@ -1,10 +1,7 @@
-import MonthlyBudgetTemplate from "./files/monthly-budget";
-import GymWorkoutTemplate from "./files/gym-workout";
-import DashboardTemplate from "./files/dashboard";
-import ToDoListTemplate from "./files/todo-list-template";
-import MeetingNotesTemplate from "./files/meeting-notes";
-import TabularDataTemplate from "./files/tabular-data";
 import SimpleNotesTemplate from "./files/simple-notes";
+import SystemPersonaTemplate from "./files/system-persona";
+import FewShotTemplate from "./files/few-shot-examples";
+import ChainOfThoughtTemplate from "./files/chain-of-thought";
 import { FrontMatterGeneric } from "@/app/types/markdown";
 
 export type MarkdownTemplate = {
@@ -14,13 +11,10 @@ export type MarkdownTemplate = {
 };
 
 const MarkdownTemplateList = [
+  SystemPersonaTemplate,
+  FewShotTemplate,
+  ChainOfThoughtTemplate,
   SimpleNotesTemplate,
-  ToDoListTemplate,
-  DashboardTemplate,
-  TabularDataTemplate,
-  MeetingNotesTemplate,
-  MonthlyBudgetTemplate,
-  GymWorkoutTemplate,
 ];
 
 export default MarkdownTemplateList;

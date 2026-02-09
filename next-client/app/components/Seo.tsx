@@ -3,9 +3,9 @@
 import Head from "next/head";
 
 export const defaultMeta = {
-  title: "Hermes Markdown - Free Online Markdown Editor",
-  siteName: "Hermes Markdown",
-  description: `Hermes Markdown is a free, privacy-focused online markdown editor that works entirely offline. Create beautiful documents with real-time preview, professional templates, and export to PDF or HTML. Perfect for writers, developers, students, and professionals who need a reliable, secure tool for creating well-formatted content.`,
+  title: "HermesMarkdown - Private Markdown Editor for Prompt Engineering",
+  siteName: "HermesMarkdown",
+  description: `HermesMarkdown is a simple, private Markdown editor for prompt engineering and technical writing. 100% local-first. No cloud, no tracking, just your work.`,
   url: "https://hermesmarkdown.com",
   type: "website",
   robots: "follow, index",

@@ -18,7 +18,7 @@ export const atom_timerSettings = atomWithStorage("timerSettings", {
   longBreakSessionDurationInMin: 15,
 } as TimerData);
 
-export const atom_fontFamily = atomWithStorage<string>("editorFontFamily", "Inter, system-ui, sans-serif");
+export const atom_fontFamily = atomWithStorage<string>("editorFontFamily", "Fira Mono, monospace");
 export const atom_fontSize = atomWithStorage<string>("editorFontSize", "prose-base");
 
 export type SimpleTimerSessionState = {

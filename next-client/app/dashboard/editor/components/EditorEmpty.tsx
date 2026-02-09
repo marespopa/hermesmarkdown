@@ -250,10 +250,7 @@ export default function EditorEmpty() {
         {!isLoading && (
           <>
             <p className="w-1/2 my-8 leading-loose text-gray-700 dark:text-gray-300">
-              Need a quick start? Choose a template and customize it to your
-              liking. Want a blank canvas? Start from scratch and let your
-              creativity flow. Or, perhaps you have an existing Markdown file
-              ready to be polished? Simply open it and edit away.
+              Pick how you want to start. Everything stays local.
             </p>
           </>
         )}
@@ -295,7 +292,7 @@ export default function EditorEmpty() {
               </span>
             </span>
           }
-          description={`Pre-built structures for quick starts`}
+          description={`Grab a pre-made layout for code reviews or system prompts. It saves you the repetitive setup work.`}
           action={{
             label: "Select a Template",
             handler: () => handleSelectTemplate(),
@@ -329,7 +326,7 @@ export default function EditorEmpty() {
               New
             </span>
           }
-          description={`Begin with an empty document`}
+          description={`Just a clean, blank page. Perfect for when you just need to get your thoughts down quickly.`}
           action={{
             label: "New",
             handler: () => handleCreateFile(),
@@ -350,7 +347,7 @@ export default function EditorEmpty() {
               Import File
             </span>
           }
-          description={`Edit your existing markdown file`}
+          description={`Bring in an existing Markdown file from your computer to edit, update frontmatter, or export to PDF.`}
           action={{
             label: "Import File",
             handler: () => handleOpenFile(),

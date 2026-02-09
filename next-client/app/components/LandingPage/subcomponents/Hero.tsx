@@ -13,17 +13,14 @@ export default function Hero() {
       <section className="flex flex-wrap mt-4 sm:mt-8 md:mt-16 items-center">
         <div className="w-full mx-auto md:w-1/2 prose prose-neutral dark:prose-invert flex flex-col justify-center sm:px-4 xl:px-0">
           <h1 className="text-5xl mt-8 leading-tight text-neutral-900 dark:text-white">
-            The Markdown Editor That{" "}
+            Simple, Private Markdown for{" "}
             <span className="bg-amber-100 text-black p-1">
-              Respects Your Privacy
+              Prompt Engineering
             </span>
           </h1>
 
           <p className="text-xl mt-4 text-neutral-700 dark:text-neutral-300">
-            Built because I wanted a fast, distraction-free editor that puts privacy first—no accounts, no cloud, no clutter. Just open and write using markdown syntax, instantly.
-          </p>
-          <p className="text-xl mt-4 text-neutral-700 dark:text-neutral-300">
-            Enjoy live preview, smart templates, table editor, and lightning-fast keyboard shortcuts. Everything you need to write better, faster—all while keeping your data 100% private and local.
+            HermesMarkdown is a local-first editor for people who care about privacy. Draft your AI prompts, technical docs, or daily notes without them ever leaving your computer. It's fast, offline-ready, and keeps your data exactly where it belongs—on your hard drive.
           </p>
           <Button
             styles="mx-auto md:ml-0 grow-0 mt-6"
@@ -31,7 +28,7 @@ export default function Hero() {
             onClick={() => router.push("/dashboard")}
           >
             <span className="text-2xl">
-              Try Hermes Free <span className="text-xs align-super -mt-4">No signup required</span>
+              Get Started
             </span>
           </Button>
           

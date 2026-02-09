@@ -56,11 +56,12 @@ export default function LandingPage() {
         {/* Choose Your Path Card */}
         <div className="mt-12 bg-white dark:bg-neutral-800 rounded-xl shadow-md max-w-md mx-auto mb-16 px-6 py-8 sm:px-10 sm:py-10 border border-neutral-200 dark:border-neutral-700 flex flex-col gap-6">
           <div className="text-xs uppercase tracking-widest text-neutral-500 dark:text-neutral-400 mb-4 text-center">Choose Your Path:</div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-center mb-6 text-neutral-900 dark:text-white">Editing Options in Hermes Markdown</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-center mb-6 text-neutral-900 dark:text-white">Editing Options in HermesMarkdown</h1>
+          <p className="text-neutral-700 dark:text-neutral-300 text-center text-base sm:text-lg mb-8">Pick how you want to start. Everything stays local.</p>
           <ul className="text-neutral-700 dark:text-neutral-300 text-center text-base sm:text-lg mb-8 flex flex-col gap-3 list-none">
-            <li>🚀 <b>Quick start:</b> Choose a template and customize it to your liking.</li>
-            <li>📝 <b>Blank canvas:</b> Start from scratch and let your creativity flow.</li>
-            <li>📂 <b>Already have a file?</b> Open your Markdown file and polish it with powerful editing tools.</li>
+            <li><b>Start with a Template:</b> Grab a pre-made layout for code reviews or system prompts. It saves you the repetitive setup work.</li>
+            <li><b>Start from Scratch:</b> Just a clean, blank page. Perfect for when you just need to get your thoughts down quickly.</li>
+            <li><b>Open a File:</b> Bring in an existing Markdown file from your computer to edit, update frontmatter, or export to PDF.</li>
           </ul>
           <div className="flex justify-center mt-2">
             <Button
