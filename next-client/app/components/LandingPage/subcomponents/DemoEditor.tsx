@@ -199,7 +199,7 @@ export default function DemoEditor({ className = "" }: DemoEditorProps) {
           <span className="ml-2 text-sm text-neutral-500 dark:text-neutral-400 font-mono">security-review.md</span>
         </div>
         <div className="text-xs text-neutral-400 dark:text-neutral-500">
-          Try typing <kbd className="px-1.5 py-0.5 bg-neutral-200 dark:bg-neutral-700 rounded text-[10px]">/</kbd> below
+          Try typing <kbd className="px-1.5 py-0.5 bg-neutral-200 dark:bg-neutral-700 rounded text-[10px]">/</kbd> below on an empty row
         </div>
       </div>
       

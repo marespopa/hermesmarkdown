@@ -44,7 +44,7 @@ export default function MarkdownGuide() {
           </div>
         </div>
         
-        <div className="text-center mt-10">
+        <div className="flex justify-center mt-10">
           <Button
             variant="hero"
             onClick={() => router.push("/dashboard/editor")}

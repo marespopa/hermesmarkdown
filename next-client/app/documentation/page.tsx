@@ -9,9 +9,9 @@ export default function Documentation() {
       <div className="container max-w-screen-xl mx-auto px-4 sm:px-2">
         <div className="prose prose-gray dark:prose-invert max-w-none">
           <section>
-            <h1>HermesNote Documentation</h1>
+            <h1>Hermes Markdown Documentation</h1>
             <p>
-              Welcome to <strong>HermesNote</strong>, your privacy-first markdown editor built for prompt engineering. This guide covers everything from quick start basics to advanced features like slash commands and document templates.
+              Welcome to <strong>Hermes Markdown</strong>, your privacy-first markdown editor built for prompt engineering. This guide covers everything from quick start basics to advanced features like slash commands and document templates.
             </p>
           </section>
 
@@ -39,7 +39,7 @@ export default function Documentation() {
           {/* Quick Start */}
           <section id="quick-start">
             <h2>Quick Start</h2>
-            <p>Get started with HermesNote in three steps:</p>
+            <p>Get started with Hermes Markdown in three steps:</p>
             <ol>
               <li><strong>Create or import a file:</strong> Start with a blank file, select a template, or import an existing <code>.md</code> or <code>.txt</code> file.</li>
               <li><strong>Use slash commands:</strong> Type <code>/</code> in the editor to access 35+ prompt engineering templates. Start typing to filter commands.</li>
@@ -54,7 +54,7 @@ export default function Documentation() {
           <section id="slash-commands">
             <h2>Slash Commands</h2>
             <p>
-              Slash commands are HermesNote&apos;s core feature for prompt engineering. Type <code>/</code> anywhere in the editor to open the command palette, then type to filter. Press <b>Enter</b> or click to insert the template at your cursor position.
+              Slash commands are Hermes Markdown core feature for prompt engineering. Type <code>/</code> anywhere in the editor to open the command palette, then type to filter. Press <b>Enter</b> or click to insert the template at your cursor position.
             </p>
 
             <h3>Prompt Foundation</h3>
@@ -175,7 +175,7 @@ export default function Documentation() {
           {/* Metrics */}
           <section id="metrics">
             <h2>Token & Quality Metrics</h2>
-            <p>HermesNote provides real-time metrics to help you optimize your prompts:</p>
+            <p>Hermes Markdown provides real-time metrics to help you optimize your prompts:</p>
             <ul>
               <li><strong>Token Estimation:</strong> Approximate token count calculated as <code>word count × 1.35</code>. Useful for staying within LLM context limits.</li>
               <li><strong>Reading Ease Score:</strong> Flesch-based clarity analysis. Higher scores indicate easier-to-read text. Aim for 60+ for general audiences.</li>
@@ -249,7 +249,7 @@ export default function Documentation() {
 
             <h3>YAML Frontmatter</h3>
             <p>
-              HermesNote preserves YAML frontmatter when importing and exporting markdown files. Frontmatter contains metadata like title, description, and tags:
+              Hermes Markdown preserves YAML frontmatter when importing and exporting markdown files. Frontmatter contains metadata like title, description, and tags:
             </p>
             <pre><code>{`---
 title: My Prompt
@@ -312,10 +312,10 @@ tags: [prompt, example]
           {/* Offline & PWA */}
           <section id="offline-pwa">
             <h2>Offline & PWA</h2>
-            <p>HermesNote works fully offline after the initial page load.</p>
+            <p>Hermes Markdown works fully offline after the initial page load.</p>
             <ul>
               <li><strong>Local Storage:</strong> All documents are saved in your browser&apos;s local storage. No internet required for writing or editing.</li>
-              <li><strong>Progressive Web App:</strong> Install HermesNote as a standalone app on your device. Look for the install prompt in your browser or use the &quot;Add to Home Screen&quot; option.</li>
+              <li><strong>Progressive Web App:</strong> Install Hermes Markdown as a standalone app on your device. Look for the install prompt in your browser or use the &quot;Add to Home Screen&quot; option.</li>
               <li><strong>No Account Required:</strong> Start writing immediately without sign-up or login.</li>
             </ul>
           </section>
@@ -323,7 +323,7 @@ tags: [prompt, example]
           {/* Privacy & Security */}
           <section id="privacy-security">
             <h2>Privacy & Security</h2>
-            <p>HermesNote is designed with privacy as a core principle:</p>
+            <p>Hermes Markdown is designed with privacy as a core principle:</p>
             <ul>
               <li><strong>Local-Only Storage:</strong> All content stays in your browser. Nothing is uploaded to servers.</li>
               <li><strong>No Data Collection:</strong> We don&apos;t collect personal information, usage statistics, or document content.</li>
