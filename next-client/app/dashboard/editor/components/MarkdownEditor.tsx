@@ -184,7 +184,7 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({ value, onChange, fontFa
       document.removeEventListener('selectionchange', handleSelectionChange);
       onTextareaReady?.(null);
     };
-  }, [value, onTextareaReady]);
+  }, [onTextareaReady]);
 
   return (
     <div className="relative flex-1 min-h-0" ref={wrapperRef}>

@@ -15,7 +15,7 @@ import PDFPreviewDialog from "./PDFPreviewDialog";
 import ShortcutsDialog from "./ShortcutsDialog";
 import ActionsMobileMenu from "./ActionsMobileMenu";
 import FindBar from "./FindBar";
-import PromptBar from "./PromptBar";
+import PromptCommandBar from "./PromptCommandBar";
 
 interface Props {
   contentEdited: string;
@@ -171,7 +171,7 @@ export default function EditorHeader({
         />
         {isMobile && (
           <div className="w-full mt-3">
-            <PromptBar
+            <PromptCommandBar
               contentEdited={contentEdited}
               onInsertTemplate={onInsertTemplate}
               isCompact
@@ -191,10 +191,12 @@ export default function EditorHeader({
           </Button>
         )}
       </div>
-      {/* Center: Prompt bar */}
+      {/* Center: Helper text */}
       {!isMobile && (
         <div className="flex-1 flex justify-end">
-          <PromptBar contentEdited={contentEdited} onInsertTemplate={onInsertTemplate} />
+          <div className="text-sm text-neutral-600 dark:text-neutral-300">
+            Press / to see commands.
+          </div>
         </div>
       )}
       <ShortcutsDialog
