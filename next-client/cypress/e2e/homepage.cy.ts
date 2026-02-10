@@ -12,7 +12,7 @@ describe("Homepage", () => {
     // Navigation (desktop only)
     cy.get('[data-testid="navigation"]').should("exist").and("be.visible");
     cy.get('[data-testid="navigation"]').contains("Home").should("be.visible");
-    cy.get('[data-testid="navigation"]').contains("Learn Markdown").should("be.visible");
+    cy.get('[data-testid="navigation"]').contains("Documentation").should("be.visible");
     cy.get('[data-testid="navigation"]').contains("FAQ").should("be.visible");
 
     // Theme toggle

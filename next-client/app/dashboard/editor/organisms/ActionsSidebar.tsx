@@ -1,9 +1,9 @@
 import React from "react";
 import Button from "@/app/components/Button";
-import { FaFile, FaFolderOpen, FaSave, FaSearch, FaChevronLeft, FaChevronRight, FaRegClone, FaCog, FaCopy } from "react-icons/fa";
+import { FaFile, FaFolderOpen, FaSave, FaSearch, FaChevronLeft, FaChevronRight, FaRegClone, FaCog, FaCopy, FaSun, FaMoon } from "react-icons/fa";
 import classNames from "classnames";
 import { useAtom } from "jotai";
-import { atom_sidebarCollapsed } from "@/app/atoms/atoms";
+import { atom_sidebarCollapsed, atom_theme } from "@/app/atoms/atoms";
 import { useRouter } from "next/navigation";
 
 interface ActionsSidebarProps {
@@ -34,6 +34,7 @@ const ActionsSidebar: React.FC<ActionsSidebarProps> = ({
   onShowFindBar,
 }) => {
   const [collapsed, setCollapsed] = useAtom(atom_sidebarCollapsed);
+  const [theme, setTheme] = useAtom(atom_theme);
   const router = useRouter();
   // Helper to conditionally show label
   const getLabelClass = () => (collapsed ? "hidden" : labelClass);
@@ -113,6 +114,15 @@ const ActionsSidebar: React.FC<ActionsSidebarProps> = ({
           <FaSave /> <span className={getLabelClass()}>Export</span>
         </Button>
         <span className={dividerClass} />
+        <Button
+          variant="icon"
+          onClick={() => setTheme(theme === "light" ? "dark" : "light")}
+          aria-label={theme === "light" ? "Switch to Dark Mode" : "Switch to Light Mode"}
+          title={theme === "light" ? "Switch to Dark Mode" : "Switch to Light Mode"}
+          styles={getButtonStyles(collapsed)}
+        >
+          {theme === "light" ? <FaMoon /> : <FaSun />} <span className={getLabelClass()}>{theme === "light" ? "Dark Mode" : "Light Mode"}</span>
+        </Button>
         <Button
           variant="icon"
           onClick={() => router.push("/dashboard/settings")}

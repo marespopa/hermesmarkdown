@@ -114,8 +114,8 @@ export const atom_canOpenMoreFiles = atom((get) => {
   return files.length < 3;
 });
 
-// Pomodoro Timer position atom
-export const atom_pomodoroPosition = atomWithStorage<{ x: number; y: number }>("pomodoroPosition", { x: 0, y: 0 });
+// Pomodoro Timer position atom (x = left offset, y = top offset)
+export const atom_pomodoroPosition = atomWithStorage<{ x: number; y: number }>("pomodoroPosition", { x: 16, y: 16 });
 // Optional: atom for drag state
 export const atom_pomodoroDragging = atom<boolean>(false);
 

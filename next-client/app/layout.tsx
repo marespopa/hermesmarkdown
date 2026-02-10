@@ -3,7 +3,7 @@ import MainPage from "./components/MainPage";
 
 export const metadata = {
   metadataBase: "https://hermesmarkdown.com/",
-  title: "Hermes Markdown - Free Online Markdown Editor",
+  title: "Hermes Markdown - Privacy-First Editor",
   description: "Hermes Markdown is a free, privacy-focused online markdown editor that works entirely offline. Create beautiful documents with real-time preview, professional templates, and export to PDF or HTML.",
   applicationName: "Hermes Markdown",
   referrer: "origin-when-cross-origin",
@@ -11,7 +11,7 @@ export const metadata = {
   authors: [{ name: "Mares Popa", url: "https://www.marespopa.com/" }],
   creator: "Mares Popa",
   openGraph: {
-    title: "Hermes Markdown - Free Online Markdown Editor",
+    title: "Hermes Markdown - Privacy-First Editor",
     description: "Hermes Markdown is a free, privacy-focused online markdown editor that works entirely offline. Create beautiful documents with real-time preview, professional templates, and export to PDF or HTML.",
     url: "https://hermesmarkdown.com/",
     siteName: "Hermes Markdown",

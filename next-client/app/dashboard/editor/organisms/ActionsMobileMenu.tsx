@@ -1,7 +1,9 @@
 import React from "react";
 import Button from "@/app/components/Button";
-import { FaTimes, FaFile, FaSave, FaSearch, FaFolderOpen, FaRegClone, FaCog, FaCopy } from "react-icons/fa";
+import { FaTimes, FaFile, FaSave, FaSearch, FaFolderOpen, FaRegClone, FaCog, FaCopy, FaSun, FaMoon } from "react-icons/fa";
 import { useRouter } from "next/navigation";
+import { useAtom } from "jotai";
+import { atom_theme } from "@/app/atoms/atoms";
 
 interface ActionsMobileMenuProps {
   isOpen: boolean;
@@ -23,6 +25,7 @@ const ActionsMobileMenu: React.FC<ActionsMobileMenuProps> = ({
   exportToMD
 }) => {
   const router = useRouter();
+  const [theme, setTheme] = useAtom(atom_theme);
   if (!isOpen) return null;
   return (
     <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-white dark:bg-gray-900 bg-opacity-95 dark:bg-opacity-95">
@@ -42,6 +45,12 @@ const ActionsMobileMenu: React.FC<ActionsMobileMenuProps> = ({
         <Button variant="secondary" onClick={actions.handleOpenFile} label={<><FaFolderOpen className="inline mr-2" />Import File</>} styles="w-full" />
         <Button variant="secondary" onClick={actions.handleOpenFindAndReplace} label={<><FaSearch className="inline mr-2" />Search</>} styles="w-full" />
         <Button variant="secondary" onClick={exportToMD} label={<><FaSave className="inline mr-2" />Export</>} styles="w-full" />
+        <Button
+          variant="secondary"
+          onClick={() => setTheme(theme === "light" ? "dark" : "light")}
+          label={<>{theme === "light" ? <FaMoon className="inline mr-2" /> : <FaSun className="inline mr-2" />}{theme === "light" ? "Dark Mode" : "Light Mode"}</>}
+          styles="w-full"
+        />
         <Button
           variant="secondary"
           onClick={() => {

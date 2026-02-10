@@ -1,10 +1,10 @@
-import React, { useEffect, useState, useCallback, type JSX } from "react";
+import React, { useEffect, useState, useCallback, useRef, type JSX } from "react";
 import useSound from "use-sound";
 import TimerComponent from "./Timer.component";
 import { useAtom } from "jotai";
-import { atom_timerSessionState, atom_pomodoroDragging } from "@/app/atoms/atoms";
+import { atom_timerSessionState, atom_pomodoroPosition } from "@/app/atoms/atoms";
 
-export function TimerContainer({ onClose, fileName }: { onClose?: () => void; fileName?: string }): JSX.Element {
+export function TimerContainer({ onClose, fileName, draggable = false }: { onClose?: () => void; fileName?: string; draggable?: boolean }): JSX.Element {
   const isTest = typeof window !== "undefined" && (window.Cypress || process.env.NODE_ENV === "test");
   const volume = isTest ? 0 : 1;
 
@@ -14,6 +14,20 @@ export function TimerContainer({ onClose, fileName }: { onClose?: () => void; fi
 
   const [timerSession, setTimerSession] = useAtom(atom_timerSessionState);
   const [currentTime, setCurrentTime] = useState(timerSession.duration);
+  const [position, setPosition] = useAtom(atom_pomodoroPosition);
+  const hasInitialized = useRef(false);
+
+  // Initialize position to top-right on first use (no saved position)
+  useEffect(() => {
+    if (!hasInitialized.current && draggable && typeof window !== "undefined") {
+      hasInitialized.current = true;
+      const saved = localStorage.getItem("pomodoroPosition");
+      if (!saved) {
+        // First time: position at top-right corner
+        setPosition({ x: window.innerWidth - 140, y: 16 });
+      }
+    }
+  }, [draggable, setPosition]);
 
   // Calculate remaining time based on timestamps
   const getRemainingTime = useCallback(() => {
@@ -104,6 +118,9 @@ export function TimerContainer({ onClose, fileName }: { onClose?: () => void; fi
     duration: timerSession.duration,
     onClose,
     fileName,
+    draggable,
+    position,
+    onPositionChange: setPosition,
   };
 
   return <TimerComponent {...timerProps} />;

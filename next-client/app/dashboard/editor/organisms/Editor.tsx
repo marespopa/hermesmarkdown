@@ -102,7 +102,7 @@ export default function Editor() {
   const isMobile = useIsMobile();
 
   // Document title
-  const [_, setDocumentTitle] = useDocumentTitle("Hermes Markdown");
+  const [_, setDocumentTitle] = useDocumentTitle("Hermes Markdown Editor");
 
   // Commands
   useCommand("export", () => exportToMD());
@@ -326,20 +326,17 @@ export default function Editor() {
       {isZenMode && (
         <>
           <div className="fixed inset-0 z-40 bg-black/40 dark:bg-white/10 backdrop-blur-md transition-all duration-300" />
-          <div className="fixed inset-0 z-50 flex items-center justify-center min-h-screen w-screen pointer-events-none">
-            <div className="pointer-events-auto w-10/12 h-5/6 max-w-4xl">
-              <div className="relative h-full flex flex-col gap-4">
-                <div className="flex justify-between items-center">
-                  <div className="flex-1" />
-                  <Button
-                    ref={zenButtonRef}
-                    variant="icon"
-                    onClick={() => setIsZenMode(false)}
-                    styles="z-50"
-                  >
-                    <FaTimes />
-                  </Button>
-                </div>
+          <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none">
+            <div className="pointer-events-auto w-full h-full max-w-6xl px-8 py-6">
+              <div className="relative h-full flex flex-col">
+                <Button
+                  ref={zenButtonRef}
+                  variant="icon"
+                  onClick={() => setIsZenMode(false)}
+                  styles="absolute top-0 right-0 z-50"
+                >
+                  <FaTimes />
+                </Button>
                 <EditorContent
                   contentEdited={contentEdited}
                   setContentEdited={updateCurrentFileContent}
@@ -361,9 +358,18 @@ export default function Editor() {
       {/* Main Editor Layout */}
       <div className={`flex h-full flex-col gap-0 px-4 ${sidebarMargin}`}>
         {isMobile && isTimerVisible && <Timer />}
-        {!isMobile && isTimerVisible && (
-          <div className="absolute top-4 right-4">
-            <Timer />
+        {/* Draggable Timer for desktop - positioned via fixed positioning in component */}
+        {!isMobile && isTimerVisible && <Timer draggable />}
+        {/* Top-right toolbar: Zen Mode button */}
+        {!isMobile && (
+          <div className="absolute top-4 right-4 flex items-center gap-2 z-10">
+            <Button
+              variant="icon"
+              onClick={() => setIsZenMode(true)}
+              title="Enter Zen Mode"
+            >
+              <FaExpand />
+            </Button>
           </div>
         )}
 
@@ -387,6 +393,7 @@ export default function Editor() {
           setMatchCount={() => {}}
           currentIndex={currentIndex}
           setCurrentIndex={setCurrentIndex}
+          isZenMode={isZenMode}
         />
 
         <div className="relative">

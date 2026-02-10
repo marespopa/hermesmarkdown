@@ -3,7 +3,7 @@ export default function Features() {
     <section className="py-16 bg-white dark:bg-neutral-900">
       <div className="max-w-7xl mx-auto px-4 text-center prose prose-neutral dark:prose-invert">
         <h2 className="text-3xl font-semibold mb-8">
-          Why Choose HermesMarkdown?
+          Why Choose Hermes Markdown?
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           <div
@@ -11,7 +11,7 @@ export default function Features() {
           >
             <h3 className="text-xl font-bold mb-4">Local First</h3>
             <p>
-              Your data stays on your hard drive, not in a cloud database. HermesMarkdown operates entirely within your local environment, giving you full control over your intellectual property and preventing unauthorized data leaks.
+              Your data stays on your hard drive, not in a cloud database. Hermes Markdown operates entirely within your local environment, giving you full control over your intellectual property and preventing unauthorized data leaks.
             </p>
           </div>
           <div

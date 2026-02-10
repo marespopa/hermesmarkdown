@@ -35,6 +35,7 @@ interface Props {
   setMatchCount: (count: number) => void;
   currentIndex: number;
   setCurrentIndex: (idx: number) => void;
+  isZenMode?: boolean;
 }
 
 export default function EditorHeader({
@@ -49,6 +50,7 @@ export default function EditorHeader({
   setMatchCount,
   currentIndex,
   setCurrentIndex,
+  isZenMode = false,
 }: Props) {
   const [isFormatterDialogOpen, setIsFormatterDialogOpen] = useState(false);
   const [isFabMenuOpen, setIsFabMenuOpen] = useState(false);
@@ -169,7 +171,7 @@ export default function EditorHeader({
           renderFontMenu={() => null}
           renderFontSizeMenu={() => null}
         />
-        {isMobile && (
+        {isMobile && !isZenMode && (
           <div className="w-full mt-3">
             <PromptCommandBar
               contentEdited={contentEdited}
@@ -181,7 +183,7 @@ export default function EditorHeader({
         {/* Font controls and Find bar with collapse toggle */}
         {/* Only show FindBar if needed, no font controls or collapse button */}
         {/* FindBar and show/hide button removed, now handled in ActionsSidebar */}
-        {isMobile && (
+        {isMobile && !isZenMode && (
           <Button
             variant="secondary"
             styles="w-full mt-2"
@@ -195,7 +197,7 @@ export default function EditorHeader({
       {!isMobile && (
         <div className="flex-1 flex justify-end">
           <div className="text-sm text-neutral-600 dark:text-neutral-300">
-            Press / to see commands.
+            Type <code className="bg-neutral-100 dark:bg-neutral-800 px-1.5 py-0.5 rounded text-xs">/</code> on a new line to see commands.
           </div>
         </div>
       )}
