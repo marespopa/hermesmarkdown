@@ -80,23 +80,22 @@ export default function EditorHeader({
     }
   }, []);
 
-
   // Keyboard shortcut: Cmd/Ctrl+F opens FindBar
   useEffect(() => {
     if (isMobile) return;
     function handleKeyDown(e: KeyboardEvent) {
-      const isMac = navigator.userAgent.includes('Mac');
+      const isMac = navigator.userAgent.includes("Mac");
       if (
-        (isMac && e.metaKey && e.key === 'f') ||
-        (!isMac && e.ctrlKey && e.key === 'f')
+        (isMac && e.metaKey && e.key === "f") ||
+        (!isMac && e.ctrlKey && e.key === "f")
       ) {
         e.preventDefault();
         setShowFindBar(true);
         setTimeout(() => findInputRef.current?.focus(), 0);
       }
     }
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isMobile]);
 
   // Show FindBar if searchTerm is set
@@ -171,15 +170,6 @@ export default function EditorHeader({
           renderFontMenu={() => null}
           renderFontSizeMenu={() => null}
         />
-        {isMobile && !isZenMode && (
-          <div className="w-full mt-3">
-            <PromptCommandBar
-              contentEdited={contentEdited}
-              onInsertTemplate={onInsertTemplate}
-              isCompact
-            />
-          </div>
-        )}
         {/* Font controls and Find bar with collapse toggle */}
         {/* Only show FindBar if needed, no font controls or collapse button */}
         {/* FindBar and show/hide button removed, now handled in ActionsSidebar */}
@@ -197,7 +187,11 @@ export default function EditorHeader({
       {!isMobile && (
         <div className="flex-1 flex justify-end">
           <div className="text-sm text-neutral-600 dark:text-neutral-300">
-            Type <code className="bg-neutral-100 dark:bg-neutral-800 px-1.5 py-0.5 rounded text-xs">/</code> on a new line to see commands.
+            Type{" "}
+            <code className="bg-neutral-100 dark:bg-neutral-800 px-1.5 py-0.5 rounded text-xs">
+              /
+            </code>{" "}
+            on a new line to see commands.
           </div>
         </div>
       )}
@@ -218,11 +212,24 @@ export default function EditorHeader({
       {/* Floating FindBar at bottom center */}
       {!isMobile && (
         <div
-          style={{ position: "fixed", left: 0, right: 0, bottom: 32, zIndex: 50, display: "flex", justifyContent: "center", pointerEvents: "none" }}
+          style={{
+            position: "fixed",
+            left: 0,
+            right: 0,
+            bottom: 32,
+            zIndex: 50,
+            display: "flex",
+            justifyContent: "center",
+            pointerEvents: "none",
+          }}
         >
           <div
             style={{ pointerEvents: "auto" }}
-            className={`transition-all duration-300 transform ${showFindBar ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'} pointer-events-auto`}
+            className={`transition-all duration-300 transform ${
+              showFindBar
+                ? "opacity-100 translate-y-0"
+                : "opacity-0 translate-y-8"
+            } pointer-events-auto`}
           >
             {showFindBar && (
               <FindBar
@@ -234,7 +241,10 @@ export default function EditorHeader({
                 onNext={handleNext}
                 onPrev={handlePrev}
                 onClear={handleClear}
-                onCollapse={() => { handleClear(); setShowFindBar(false); }}
+                onCollapse={() => {
+                  handleClear();
+                  setShowFindBar(false);
+                }}
               />
             )}
           </div>
