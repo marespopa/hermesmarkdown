@@ -2,9 +2,16 @@
 
 import { useRouter } from "next/navigation";
 import { useAtom } from "jotai";
-import { atom_fontFamily, atom_fontSize, atom_sidebarCollapsed, atom_showTimer, Frontmatter, OpenFile } from "@/app/atoms/atoms";
+import {
+  atom_fontFamily,
+  atom_fontSize,
+  atom_sidebarCollapsed,
+  atom_showTimer,
+  Frontmatter,
+  OpenFile,
+} from "@/app/atoms/atoms";
 import { useDocumentTitle } from "@/app/hooks/use-document-title";
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, Suspense } from "react";
 import { EMPTY_PAGE_TEMPLATE, PICKER_OPTIONS } from "../utils/editor-constants";
 import { StatusResponse } from "@/app/services/save-utils";
 import matter from "gray-matter";
@@ -35,6 +42,7 @@ import EditorHeader from "./EditorHeader";
 import EditorContent from "./EditorContent";
 import { TimerContainer as Timer } from "@/app/components/Timer/Timer.container";
 import PromptCommandBar from "./PromptCommandBar";
+import EditorSkeleton from "@/app/components/EditorSkeleton";
 
 export default function Editor() {
   const router = useRouter();
@@ -59,15 +67,11 @@ export default function Editor() {
     updateCurrentFileFrontMatter,
   } = useEditorFiles();
 
-  const {
-    menuPosition,
-    handleTextareaReady,
-    closePromptMenu,
-    insertTemplate,
-  } = usePromptMenu({
-    contentEdited,
-    updateCurrentFileContent,
-  });
+  const { menuPosition, handleTextareaReady, closePromptMenu, insertTemplate } =
+    usePromptMenu({
+      contentEdited,
+      updateCurrentFileContent,
+    });
 
   const {
     searchTerm,
@@ -93,10 +97,14 @@ export default function Editor() {
   const [fontSize, setFontSize] = useAtom(atom_fontSize);
   const [isFontDialogOpen, setIsFontDialogOpen] = useState(false);
   const [isZenMode, setIsZenMode] = useState(false);
-  const [isFindAndReplaceModalVisible, setIsFindAndReplaceModalVisible] = useState(false);
-  const [isFileSelectModalVisible, setIsFileSelectModalVisible] = useState(false);
-  const [isTemplateSelectModalVisible, setIsTemplateSelectModalVisible] = useState(false);
-  const [isTableEditorModalVisible, setIsTableEditorModalVisible] = useState(false);
+  const [isFindAndReplaceModalVisible, setIsFindAndReplaceModalVisible] =
+    useState(false);
+  const [isFileSelectModalVisible, setIsFileSelectModalVisible] =
+    useState(false);
+  const [isTemplateSelectModalVisible, setIsTemplateSelectModalVisible] =
+    useState(false);
+  const [isTableEditorModalVisible, setIsTableEditorModalVisible] =
+    useState(false);
 
   const zenButtonRef = useRef<HTMLButtonElement>(null);
   const isMobile = useIsMobile();
@@ -131,7 +139,9 @@ export default function Editor() {
       "Inconsolata, monospace": "Inconsolata",
       "Ubuntu Mono, monospace": "Ubuntu+Mono",
     };
-    const fontKey = Object.keys(googleFonts).find(key => fontFamily.startsWith(key.split(",")[0]));
+    const fontKey = Object.keys(googleFonts).find((key) =>
+      fontFamily.startsWith(key.split(",")[0])
+    );
     if (fontKey) {
       const fontName = googleFonts[fontKey];
       const id = `google-font-${fontName}`;
@@ -192,7 +202,9 @@ export default function Editor() {
 
   const handleOpenFile = useCallback(async () => {
     try {
-      const [fileHandle] = await (window as any).showOpenFilePicker(PICKER_OPTIONS);
+      const [fileHandle] = await (window as any).showOpenFilePicker(
+        PICKER_OPTIONS
+      );
       const file = await fileHandle.getFile();
       await parseAndAddFile(file);
     } catch (error) {
@@ -216,7 +228,11 @@ export default function Editor() {
   }, []);
 
   const loadAndAddFileData = useCallback(
-    (content: string, fileName: string, parsedFrontMatter: Record<string, any>) => {
+    (
+      content: string,
+      fileName: string,
+      parsedFrontMatter: Record<string, any>
+    ) => {
       if (!canOpenMoreFiles) {
         showErrorToast("Maximum 3 files can be open at once");
         return;
@@ -252,7 +268,9 @@ export default function Editor() {
   const handleClosePromptCommandBar = useCallback(() => {
     closePromptMenu({ removeSlash: true });
     requestAnimationFrame(() => {
-      const textarea = document.getElementById("markdown-editor") as HTMLTextAreaElement | null;
+      const textarea = document.getElementById(
+        "markdown-editor"
+      ) as HTMLTextAreaElement | null;
       textarea?.focus({ preventScroll: true });
     });
   }, [closePromptMenu]);
@@ -291,9 +309,14 @@ export default function Editor() {
   const exportToMD = useCallback(async () => {
     if (!currentFile) return;
     try {
-      await ExportService.exportMarkdown(currentFile.contentEdited, currentFile.frontMatter);
-      const updatedFiles = files.map(f =>
-        f.id === currentFile.id ? { ...f, content: f.contentEdited, isSaved: true } : f
+      await ExportService.exportMarkdown(
+        currentFile.contentEdited,
+        currentFile.frontMatter
+      );
+      const updatedFiles = files.map((f) =>
+        f.id === currentFile.id
+          ? { ...f, content: f.contentEdited, isSaved: true }
+          : f
       );
       setFiles(updatedFiles);
       setHasChanges(false);
@@ -304,7 +327,10 @@ export default function Editor() {
 
   const handlePdfExport = useCallback(async () => {
     if (!currentFile) return;
-    const reportName = (currentFile.frontMatter.fileName || "markdown").replace(".md", ".pdf");
+    const reportName = (currentFile.frontMatter.fileName || "markdown").replace(
+      ".md",
+      ".pdf"
+    );
     await new Promise((resolve) => setTimeout(resolve, 100));
     try {
       await ExportService.generatePDF("#pdfReport", reportName);
@@ -318,7 +344,7 @@ export default function Editor() {
   if (!mounted) return null;
   if (isLoading) return <LoadingOverlay isVisible={true} text="Loading..." />;
 
-  const sidebarMargin = isMobile ? "" : (collapsed ? "ml-16" : "ml-56");
+  const sidebarMargin = isMobile ? "" : collapsed ? "ml-16" : "ml-56";
 
   return (
     <div className="w-full h-screen bg-amber-100 dark:bg-darkbg">
@@ -337,18 +363,20 @@ export default function Editor() {
                 >
                   <FaTimes />
                 </Button>
-                <EditorContent
-                  contentEdited={contentEdited}
-                  setContentEdited={updateCurrentFileContent}
-                  setHasChanges={setHasChanges}
-                  fontFamily={fontFamily}
-                  fontSize={fontSize}
-                  searchTerm={searchTerm}
-                  matchCount={matchCount}
-                  currentIndex={currentIndex}
-                  onTextareaReady={handleTextareaReady}
-                  zenMode
-                />
+                <Suspense fallback={<EditorSkeleton />}>
+                  <EditorContent
+                    contentEdited={contentEdited}
+                    setContentEdited={updateCurrentFileContent}
+                    setHasChanges={setHasChanges}
+                    fontFamily={fontFamily}
+                    fontSize={fontSize}
+                    searchTerm={searchTerm}
+                    matchCount={matchCount}
+                    currentIndex={currentIndex}
+                    onTextareaReady={handleTextareaReady}
+                    zenMode
+                  />
+                </Suspense>
               </div>
             </div>
           </div>
