@@ -21,8 +21,7 @@ export default function Hero() {
           </h1>
 
           <p className="text-xl mt-4 text-neutral-700 dark:text-neutral-300">
-            The markdown editor built for prompt engineering. Slash commands for instant templates, real-time readability metrics, and zero cloud dependency. Your prompts never leave your machine.
-          </p>
+            Think of this as a specialized notebook for drafting AI prompts. It gives you professional templates and "clarity scores" to help you write better requests. Because it's local-first, your ideas and business secrets stay 100% private on your own device.          </p>
           <Button
             styles="mx-auto md:ml-0 grow-0 mt-6"
             variant="hero"
@@ -32,7 +31,7 @@ export default function Hero() {
               Launch Editor →
             </span>
           </Button>
-          
+
           {/* Trust Indicators */}
           <div className="flex flex-wrap items-center gap-4 mt-6 text-sm text-neutral-600 dark:text-neutral-400">
             <span>No sign-up</span>
