@@ -2,39 +2,39 @@
 
 import { useRouter } from "next/navigation";
 import { useAtom } from "jotai";
-import { atom_fontFamily, atom_fontSize, atom_sidebarCollapsed, atom_showTimer, Frontmatter } from "@/app/atoms/atoms";
+import { atom_fontFamily, atom_fontSize, atom_sidebarCollapsed, atom_showTimer, Frontmatter, OpenFile } from "@/app/atoms/atoms";
 import { useDocumentTitle } from "@/app/hooks/use-document-title";
 import { useState, useEffect, useCallback, useRef } from "react";
-import { EMPTY_PAGE_TEMPLATE, PICKER_OPTIONS } from "./utils/editor-constants";
+import { EMPTY_PAGE_TEMPLATE, PICKER_OPTIONS } from "../utils/editor-constants";
 import { StatusResponse } from "@/app/services/save-utils";
 import matter from "gray-matter";
 import LoadingOverlay from "@/app/components/LoadingOverlay";
-import TemplateSelectionModal from "../templates/TemplateSelectionModal";
+import TemplateSelectionModal from "@/app/dashboard/organisms/TemplateSelectionModal";
 import { useCommand } from "@/app/hooks/use-command";
-import FileSelectionModal from "../components/FileSelectionModal";
-import FindAndReplaceModal from "../components/FindAndReplaceModal";
+import FileSelectionModal from "@/app/dashboard/organisms/FileSelectionModal";
+import FindAndReplaceModal from "@/app/dashboard/organisms/FindAndReplaceModal";
 import useIsMobile from "@/app/hooks/use-is-mobile";
-import FontConfigDialog from "./components/EditorHeader/FontConfigDialog";
+import FontConfigDialog from "./FontConfigDialog";
 import { FaExpand, FaTimes } from "react-icons/fa";
 import Button from "@/app/components/Button";
 import ExportService from "@/app/services/export-service";
-import TableEditorModal from "./components/TableEditorModal";
+import TableEditorModal from "./TableEditorModal";
 import { showCopyToast, showErrorToast } from "@/app/components/Toastr";
-import { FileTabs } from "./components/FileTabs";
+import { FileTabs } from "../molecules/FileTabs";
 import { v4 as uuidv4 } from "uuid";
 import { copyCleanPrompt } from "@/app/services/prompt-utils";
 
 // Import refactored hooks
-import { useEditorFiles } from "./hooks/use-editor-files";
-import { usePromptMenu } from "./hooks/use-prompt-menu";
-import { useFindInEditor } from "./hooks/use-find-in-editor";
-import { useEditorLaunchFlag } from "./hooks/use-editor-launch-flag";
+import { useEditorFiles } from "../hooks/use-editor-files";
+import { usePromptMenu } from "../hooks/use-prompt-menu";
+import { useFindInEditor } from "../hooks/use-find-in-editor";
+import { useEditorLaunchFlag } from "../hooks/use-editor-launch-flag";
 
 // Import refactored utils
-import EditorHeader from "./components/EditorHeader";
-import EditorContent from "./components/EditorContent";
-import Timer from "@/app/components/Timer";
-import PromptCommandBar from "./components/EditorHeader/PromptCommandBar";
+import EditorHeader from "./EditorHeader";
+import EditorContent from "./EditorContent";
+import { TimerContainer as Timer } from "@/app/components/Timer/Timer.container";
+import PromptCommandBar from "./PromptCommandBar";
 
 export default function Editor() {
   const router = useRouter();

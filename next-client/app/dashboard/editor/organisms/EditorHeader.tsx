@@ -3,18 +3,18 @@
 import Button from "@/app/components/Button";
 import { useAtom } from "jotai";
 import { useEffect, useRef, useState } from "react";
-import EditorForm from "../EditorForm";
+import EditorForm from "./EditorForm";
 import { FileMetadata } from "@/app/types/markdown";
 import { atom_hasChanges } from "@/app/atoms/atoms";
 import ExportService from "@/app/services/export-service";
 import useIsMobile from "@/app/hooks/use-is-mobile";
 import { showSuccessToast, showErrorToast } from "@/app/components/Toastr";
-import TitleFileInfo from "./TitleFileInfo";
+import TitleFileInfo from "../molecules/TitleFileInfo";
 import ActionsSidebar from "./ActionsSidebar";
 import PDFPreviewDialog from "./PDFPreviewDialog";
 import ShortcutsDialog from "./ShortcutsDialog";
 import ActionsMobileMenu from "./ActionsMobileMenu";
-import FindBar from "./FindBar";
+import FindBar from "../molecules/FindBar";
 import PromptCommandBar from "./PromptCommandBar";
 
 interface Props {
@@ -256,7 +256,7 @@ export default function EditorHeader({
   }
 
   async function handlePdfExport() {
-    const reportName = (frontMatter.fileName || "hermesnote").replace(".md", ".pdf");
+    const reportName = (frontMatter.fileName || "file").replace(".md", ".pdf");
     await new Promise((resolve) => setTimeout(resolve, 100)); // allow DOM to update
     try {
       await ExportService.generatePDF("#pdfReport", reportName);

@@ -20,8 +20,15 @@ export const buildAutocompleteData = (
 ): AutocompleteData => {
   const lineStart = prompt.lastIndexOf("\n", cursorPosition - 1);
   const tokenStart = prompt.lastIndexOf("/", cursorPosition - 1);
-  const isTokenValid = tokenStart > lineStart;
+  const isTokenValid = tokenStart === lineStart + 1;
   const token = isTokenValid ? prompt.slice(tokenStart, cursorPosition).toLowerCase() : "";
+
+  if (!isTokenValid) {
+    return {
+      flatItems: [],
+      groupedItems: [],
+    };
+  }
 
   const templateItems: AutocompleteItem[] = templates.map((entry) => ({
     key: entry.key,

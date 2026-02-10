@@ -6,7 +6,7 @@ import { useAtom } from "jotai";
 import { atom_currentFile } from "@/app/atoms/atoms";
 import { showSuccessToast, showErrorToast } from "@/app/components/Toastr";
 import { useCommand } from "@/app/hooks/use-command";
-import MarkdownPreview from "../../components/MarkdownPreview";
+import MarkdownPreview from "@/app/dashboard/organisms/MarkdownPreview";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { Light as SyntaxHighlighter } from "react-syntax-highlighter";

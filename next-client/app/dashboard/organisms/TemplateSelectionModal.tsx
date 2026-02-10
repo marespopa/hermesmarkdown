@@ -17,7 +17,7 @@ import { SPINNER_LOADING_DURATION } from "@/app/constants/timer";
 import Input from "@/app/components/Input";
 import { FaTag } from "react-icons/fa";
 import Badge from "@/app/components/Badges/Badge";
-import MarkdownTemplateList, { MarkdownTemplate } from ".";
+import MarkdownTemplateList, { MarkdownTemplate } from "@/app/dashboard/template-library";
 import TemplateList from "./TemplateList";
 import { showErrorToast, showSuccessToast } from "@/app/components/Toastr";
 import { v4 as uuidv4 } from 'uuid';

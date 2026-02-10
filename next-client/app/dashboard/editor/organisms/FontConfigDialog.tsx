@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import DialogModal from "@/app/components/DialogModal";
 import Button from "@/app/components/Button";
-import FontMenu from "./FontMenu";
-import FontSizeMenu from "./FontSizeMenu";
+import FontMenu from "../molecules/FontMenu";
+import FontSizeMenu from "../molecules/FontSizeMenu";
 import { showSuccessToast } from "@/app/components/Toastr";
 
 interface FontConfigDialogProps {

@@ -157,7 +157,8 @@ export function usePromptMenu({
       const charBeforeSlash = cursorPosition > 1 ? value[cursorPosition - 2] : "";
       const lineStart = value.lastIndexOf("\n", cursorPosition - 1);
       const tokenStart = value.lastIndexOf("/", cursorPosition - 1);
-      const isTokenValid = tokenStart > lineStart;
+      const isTokenValid = tokenStart === lineStart + 1;
+      const isSlashAtLineStart = cursorPosition - 1 === lineStart + 1;
       const activeSlashIndex = slashIndexRef.current;
 
       if (
@@ -180,10 +181,18 @@ export function usePromptMenu({
         return;
       }
 
-      if (charBefore === "/") {
+      if (charBefore === "/" && isSlashAtLineStart) {
         setSlashIndex(cursorPosition - 1);
         editorCursorRef.current = cursorPosition;
         updateMenuPosition(cursorPosition);
+        return;
+      }
+
+      if (charBefore === "/" && !isSlashAtLineStart) {
+        if (menuVisibleRef.current) {
+          setMenuPosition((prev) => ({ ...prev, visible: false }));
+          setSlashIndex(null);
+        }
         return;
       }
 

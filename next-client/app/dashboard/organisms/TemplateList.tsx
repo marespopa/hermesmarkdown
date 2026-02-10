@@ -1,7 +1,7 @@
 import React from "react";
 import Button from "@/app/components/Button";
-import TemplateTags from "./components/TemplateTags";
-import { MarkdownTemplate } from ".";
+import TemplateTags from "../molecules/TemplateTags";
+import { MarkdownTemplate } from "@/app/dashboard/template-library";
 
 type Props = {
   filteredTemplates: MarkdownTemplate[];

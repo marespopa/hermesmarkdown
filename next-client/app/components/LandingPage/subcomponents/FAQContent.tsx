@@ -12,15 +12,15 @@ export default function FAQContent() {
       items: [
         {
           question: "What is Hermes Markdown?",
-          answer: "Hermes Markdown is a modern, privacy-focused markdown editor that operates entirely offline. It provides a distraction-free environment for writing and editing markdown files with real-time preview. Perfect for writers, developers, students, and professionals who need a reliable tool for creating well-formatted documents.",
+          answer: "Hermes Markdown is a specialized markdown editor built for prompt engineering. It helps you craft, test, and refine AI prompts with real-time preview, built-in prompt templates, token estimation, and task structuring. Perfect for working with AI models, building system prompts, and developing few-shot examples.",
         },
         {
           question: "Do I need to create an account?",
-          answer: "No! Hermes Markdown requires no registration, no email, and no personal information. Simply open the website and start writing immediately. Your work is saved locally in your browser.",
+          answer: "No! Hermes Markdown requires no registration, no email, and no personal information. Simply open the website and start crafting prompts immediately. Your work is saved locally in your browser.",
         },
         {
           question: "Do I need to install anything?",
-          answer: "No installation required! Hermes Markdown runs entirely in your web browser. Simply visit the website and start writing immediately. Your work is saved locally in your browser, so you can access it anytime without any setup.",
+          answer: "No installation required! Hermes Markdown runs entirely in your web browser. Simply visit the website and start writing. Your work is saved locally in your browser, so you can access it anytime without any setup.",
         },
         {
           question: "Is it free to use?",
@@ -28,57 +28,70 @@ export default function FAQContent() {
         },
       ]
     },
-    privacy: {
-      title: "Privacy & Security",
+    prompting: {
+      title: "Prompt Engineering",
       items: [
         {
-          question: "Is my data secure?",
-          answer: "Absolutely! Hermes Markdown operates entirely offline, meaning your content never leaves your device. All your files and data stay local and secure. This privacy-first approach ensures that your sensitive information, personal notes, and confidential documents remain completely under your control.",
+          question: "What prompt templates are available?",
+          answer: "Hermes Markdown includes 30+ specialized templates organized by use case: Prompt Foundation (/structure, /success, /constraints), Content Transformation (/summarize, /rewrite, /explain), Content Generation (/idea, /steps, /email), and Technical (/documentation, /refactor, /test). Type '/' in the editor to see all available templates with autocomplete.",
         },
         {
-          question: "Do you collect any data?",
-          answer: "No, we don't collect any personal data, usage statistics, or content from your documents. Everything stays on your device. We don't use analytics, tracking, or any data collection methods.",
+          question: "How do I use the prompt templates?",
+          answer: "Press '/' in the editor to open the command bar with autocomplete. Type to search templates (e.g., '/task' for task prompts, '/critique' for feedback), or browse by category. Select a template to insert it. Templates include placeholders like {task}, {audience}, {constraints} that you customize for your specific prompt.",
         },
         {
-          question: "Why do I see a browser warning about site permissions?",
-          answer: "This warning appears because Hermes Markdown needs permission to access your browser's local storage and file system for importing/exporting files. This is normal for web apps that save data locally. Your content never leaves your device - the permissions are only for local functionality.",
+          question: "What is the Task Prompt Generator?",
+          answer: "The Task Prompt Generator is a comprehensive template for creating structured, research-backed prompts. It guides you through spec-first development with phases for understanding, planning, and verification. Perfect for complex tasks where clarity and detailed requirements matter. Includes frameworks like constraint prioritization (MUST/SHOULD/MUST NOT) and multi-perspective reflection.",
         },
         {
-          question: "Where is my data stored?",
-          answer: "Your data is stored locally in your browser's local storage. This means it stays on your device and is not uploaded to any servers. You can clear this data anytime through your browser settings, and you can export your files to keep permanent copies on your device.",
+          question: "How do I structure a good prompt?",
+          answer: "Start with the /structure template to scaffold the basics: Role, Context, Task, Constraints, and Output format. Use /success to define what done means. Add /output for format requirements and /examples for few-shot learning. Use /constraints to clarify scope and assumptions. The templates guide you toward research-backed prompt patterns that work better with LLMs.",
         },
         {
-          question: "Can I use it offline?",
-          answer: "Yes! Once you've loaded the website, Hermes Markdown works completely offline. You can write, edit, and export documents without an internet connection. Your work is stored locally in your browser.",
+          question: "Can I create custom templates?",
+          answer: "Yes! You can save any prompt as a markdown file and import it later. Templates support YAML frontmatter for metadata like title, description, and tags. Export your best prompts and share them with your team or use them across projects.",
+        },
+      ]
+    },
+    quality: {
+      title: "Token Counting & Quality",
+      items: [
+        {
+          question: "How does token counting work?",
+          answer: "Hermes Markdown automatically estimates token count using the formula: word count × 1.35 (a safe approximation for LLM token count). See your token count in real-time as you write. This helps you stay within context windows and optimize prompt length for your LLM.",
         },
         {
-          question: "What happens if I clear my browser data?",
-          answer: "If you clear your browser's local storage, your saved documents will be deleted. However, you can export your files as markdown or PDF before clearing data to keep permanent copies. We recommend regularly exporting important documents.",
+          question: "What is the reading ease score?",
+          answer: "Hermes Markdown calculates a Flesch Reading Ease score to measure prompt clarity. Higher scores (60+) indicate clearer prompts that LLMs will better understand. Use this to refine wording and remove ambiguity—especially important for system prompts where clarity directly affects model behavior.",
         },
         {
-          question: "Is Hermes Markdown open source?",
-          answer: "Yes! Hermes Markdown is open source, which means you can inspect the code to verify our privacy claims. The source code is available on GitHub, so you can see exactly how your data is handled.",
+          question: "How do I optimize my prompts?",
+          answer: "Use the /verify template to create a checklist of quality gates: Is it specific? Does it include examples? Are constraints clear? Then use /critique to highlight gaps and logic issues. Iterate with /iterate to refine based on feedback. The combination helps catch ambiguity before sending prompts to AI.",
+        },
+        {
+          question: "What is few-shot prompting?",
+          answer: "Few-shot prompting means providing 1-3 examples of inputs and expected outputs to guide the model. Use the /examples template to structure examples clearly. Include diverse cases to show the model the pattern. Few-shot prompting typically improves accuracy 10-30% depending on task complexity.",
         },
       ]
     },
     features: {
-      title: "Features & Functionality",
+      title: "Features & Workflow",
       items: [
         {
-          question: "What features does it offer?",
-          answer: "Hermes Markdown includes real-time preview, professional templates, table editor, keyboard shortcuts, Zen mode for distraction-free writing, timer functionality, and export capabilities. It's designed to enhance your writing workflow with features like syntax highlighting and auto-save.",
+          question: "What is the table editor?",
+          answer: "The table editor (Ctrl+Shift+T) makes markdown tables simple. Add rows and columns, edit cell content, and preview your table before inserting. Useful for comparison tables in prompts, structured data requirements, or output format specifications.",
         },
         {
-          question: "Can I create tables easily?",
-          answer: "Yes! The built-in table editor makes creating and editing markdown tables simple. Add rows and columns, edit cell content, and preview your tables before inserting them into your document. No need to write table syntax manually.",
+          question: "Can I work in Zen mode?",
+          answer: "Yes! Zen mode hides all interface elements except the editor for distraction-free prompt crafting. Press Esc to toggle. Perfect for long prompt engineering sessions or when you need full focus.",
         },
         {
-          question: "What is Zen mode?",
-          answer: "Zen mode provides a distraction-free writing environment by centering the editor and hiding all other interface elements. Perfect for focused writing sessions. Press Esc to exit Zen mode.",
+          question: "What about the timer?",
+          answer: "The timer helps you track focused work sessions. Useful when brainstorming prompt variations, testing approaches, or during deep work. Set a duration and focus without distractions.",
         },
         {
-          question: "Can I use templates?",
-          answer: "Yes! Hermes Markdown includes professional templates for various use cases like project documentation, meeting notes, and personal dashboards. Templates help you get started quickly with proper structure and formatting.",
+          question: "Can I customize fonts and themes?",
+          answer: "Yes! Choose from multiple monospace fonts, adjust font sizes for comfort, and toggle between light and dark themes. The editor adapts to your preferences for the best writing experience.",
         },
       ]
     },
@@ -86,38 +99,42 @@ export default function FAQContent() {
       title: "Export & Sharing",
       items: [
         {
-          question: "Can I export my files?",
-          answer: "Yes, you can export your markdown files to PDF for sharing or keep them as clean markdown files. The export functionality is built right into the editor, making it easy to share your work.",
+          question: "Can I export my prompts?",
+          answer: "Yes! Export as clean markdown files (.md) to use with other tools, or as PDF for sharing with non-technical stakeholders. Your YAML frontmatter metadata (title, tags, description) travels with exported markdown files.",
         },
         {
-          question: "Can I import existing markdown files?",
-          answer: "Yes! You can import existing .md files from your device. Simply use the 'Import File' option to open and edit your existing markdown documents.",
+          question: "Can I import existing prompts or markdown?",
+          answer: "Yes! Import existing .md files from your device. Hermes Markdown preserves your formatting and YAML frontmatter. Great for migrating prompts from other editors or loading files you've previously exported.",
+        },
+        {
+          question: "How do I share prompts with my team?",
+          answer: "Export your prompts as markdown files and share via email, Slack, or version control. Since everything is markdown with YAML metadata, prompts work on any platform. Teams can version control prompts in Git to track evolution and collaborate.",
         },
         {
           question: "How do I save my work?",
-          answer: "Your work is automatically saved as you type. You can also export your documents to PDF or download them as markdown files. All content is stored locally in your browser.",
+          answer: "Your work is automatically saved as you type in your browser's local storage. You can also export documents as markdown or PDF to keep permanent copies on your device or share with others.",
         },
       ]
     },
-    technical: {
-      title: "Technical & Usage",
+    privacy: {
+      title: "Privacy & Data",
       items: [
         {
-          question: "Can I use it for technical documentation?",
-          answer: "Absolutely! Hermes Markdown is perfect for technical documentation, README files, API documentation, and code tutorials. The markdown syntax supports code blocks, tables, and all the formatting you need for professional technical writing.",
+          question: "Is my prompt data secure?",
+          answer: "Absolutely! Hermes Markdown operates entirely offline, meaning your prompt content never leaves your device. All your files and data stay local and secure. This privacy-first approach ensures that your sensitive prompts, proprietary techniques, and confidential AI strategies remain completely under your control.",
         },
         {
-          question: "What keyboard shortcuts are available?",
-          answer: "Hermes Markdown includes comprehensive keyboard shortcuts: Ctrl+Shift+T for table editor, Ctrl+Shift+Y to export, Ctrl+Shift+N for new file, Ctrl+Shift+I to open files, and many more. Check the documentation for a complete list.",
+          question: "Do you collect any data about my prompts?",
+          answer: "No, we don't collect any personal data, usage statistics, or prompt content from your documents. Everything stays on your device. We don't use analytics, tracking, or any data collection methods. Your prompts are yours alone.",
         },
         {
-          question: "Can I customize the editor?",
-          answer: "Yes! You can choose from multiple monospace fonts, adjust font sizes, and toggle between light and dark themes. The editor adapts to your preferences for the best writing experience.",
+          question: "Can I use Hermes Markdown offline?",
+          answer: "Yes! Once you've loaded the website, Hermes Markdown works completely offline. You can write, edit, and export prompts without an internet connection. Your work is stored locally in your browser.",
         },
         {
-          question: "What makes Hermes Markdown different?",
-          answer: "Hermes Markdown stands out for its privacy-first approach, offline functionality, and user-friendly interface. Unlike cloud-based editors, your data never leaves your device. The real-time preview, table editor, and professional templates help you create beautiful documents quickly and efficiently.",
-        },
+          question: "What happens if I clear my browser data?",
+          answer: "If you clear your browser's local storage, your saved prompts will be deleted. However, you can export your prompts as markdown before clearing data to keep permanent copies. We recommend regularly exporting important prompts.",
+        }
       ]
     }
   };

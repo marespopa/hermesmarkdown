@@ -12,10 +12,7 @@ import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import FileInput from "@/app/components/FileInput";
 import { showErrorToast } from "@/app/components/Toastr";
-import {
-  getFileDataFromInput,
-  isSelectedFileValid,
-} from "../editor/EditorUtils";
+import { getFileDataFromInput, isSelectedFileValid } from "../editor/utils/file-utilities";
 import LoadingOverlay from "@/app/components/LoadingOverlay";
 import { SPINNER_LOADING_DURATION } from "@/app/constants/timer";
 import Button from "@/app/components/Button";
@@ -113,7 +110,7 @@ const FileSelectionModal = ({ isOpen, handleClose }: Props) => {
         isSaved: true,
       };
       
-      setFiles([...files, newFile]);
+      setFiles((prev) => [...prev, newFile]);
       setSelectedFileId(newFileId);
       
       router.push("/dashboard/editor");
