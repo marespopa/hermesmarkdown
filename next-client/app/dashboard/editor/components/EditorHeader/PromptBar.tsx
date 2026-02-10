@@ -4,6 +4,48 @@ import { useMemo, useRef, useState } from "react";
 
 const PROMPT_TEMPLATES = [
   {
+    key: "/success",
+    label: "Success criteria",
+    description: "Define what done means and how to judge it.",
+    template: "## Success criteria\n- Done when: {definition}\n- Judged by: {metrics}\n\n",
+  },
+  {
+    key: "/output",
+    label: "Output contract",
+    description: "Specify format, length, tone, and required sections.",
+    template: "## Output contract\n- Format: {json|markdown|table}\n- Length: {max} \n- Tone: {tone}\n- Required sections: {list}\n\n",
+  },
+  {
+    key: "/constraints",
+    label: "Constraints",
+    description: "Scope, assumptions, exclusions, and uncertainty handling.",
+    template: "## Constraints\n- Scope: {in|out}\n- Assumptions: {list}\n- Exclusions: {list}\n- If uncertain: {ask|offer options}\n\n",
+  },
+  {
+    key: "/inputs",
+    label: "Inputs",
+    description: "Minimum context and required data sources.",
+    template: "## Inputs\n- Minimum context: {list}\n- Must use data: {sources}\n\n",
+  },
+  {
+    key: "/examples",
+    label: "Examples",
+    description: "Add 1-3 examples when format or style matters.",
+    template: "## Examples\n1) Input: {input}\n   Output: {output}\n\n",
+  },
+  {
+    key: "/verify",
+    label: "Verification",
+    description: "Checklist to catch common failures.",
+    template: "## Verification\n- [ ] {check}\n- [ ] {check}\n- [ ] {check}\n\n",
+  },
+  {
+    key: "/iterate",
+    label: "Iteration",
+    description: "Ask clarifying questions or propose alternatives.",
+    template: "## Iteration\n- If confidence < {threshold}, ask: {questions}\n- If blocked, propose: {alternatives}\n\n",
+  },
+  {
     key: "/structure",
     label: "Prompt structure",
     description: "Scaffold a complete prompt layout.",
@@ -212,7 +254,7 @@ export default function PromptBar({ contentEdited, isCompact = false, onInsertTe
               applyTemplate(item.template);
             }
           }}
-          placeholder="Start a prompt"
+          placeholder="Autocomplete"
           className="w-full rounded-lg px-5 py-3 text-base leading-tight transition-all duration-200 ease-out focus:outline-none focus-visible:ring-2 disabled:opacity-50 disabled:pointer-events-none select-none border bg-white text-black border-black shadow hover:bg-amber-50 focus-visible:ring-black dark:bg-neutral-700 dark:text-white dark:border-neutral-600 dark:hover:bg-neutral-800 dark:focus-visible:ring-white placeholder-neutral-500 dark:placeholder-neutral-600 resize-none"
           aria-label="Prompt autocomplete"
         />

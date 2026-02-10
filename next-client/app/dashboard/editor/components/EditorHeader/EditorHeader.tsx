@@ -27,6 +27,7 @@ interface Props {
     handleOpenFile: () => void;
     handleSelectTemplate: () => void;
     handleOpenFindAndReplace: () => void;
+    handleCopyPrompt: () => void;
   };
   searchTerm: string;
   setSearchTerm: (term: string) => void;

@@ -62,6 +62,13 @@ const TemplateSelectionModal = ({ isOpen, handleClose }: Props) => {
 
   useEffect(() => setIsMounted(true), []);
 
+  useEffect(() => {
+    if (!isOpen) return;
+    setSearchTerm("");
+    setSelectedTag(null);
+    setShowTagsCluster(false);
+  }, [isOpen]);
+
   if (!isMounted) return null;
 
   // Handlers
@@ -170,7 +177,8 @@ const TemplateSelectionModal = ({ isOpen, handleClose }: Props) => {
           <div className="mb-6">
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">Select a Template</h2>
             <p className="text-sm text-gray-600 dark:text-gray-400">
-              Choose from pre-built templates to get started quickly.            </p>
+              Start from a contract-style prompt template to run experiments faster.
+            </p>
           </div>
           <div className="mb-4">
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 justify-between w-full">

@@ -1,6 +1,6 @@
 import React from "react";
 import Button from "@/app/components/Button";
-import { FaFile, FaFolderOpen, FaSave, FaSearch, FaChevronLeft, FaChevronRight, FaRegClone, FaCog } from "react-icons/fa";
+import { FaFile, FaFolderOpen, FaSave, FaSearch, FaChevronLeft, FaChevronRight, FaRegClone, FaCog, FaCopy } from "react-icons/fa";
 import classNames from "classnames";
 import { useAtom } from "jotai";
 import { atom_sidebarCollapsed } from "@/app/atoms/atoms";
@@ -12,6 +12,7 @@ interface ActionsSidebarProps {
     handleOpenFile: () => void;
     handleSelectTemplate: () => void;
     handleOpenFindAndReplace: () => void;
+    handleCopyPrompt: () => void;
   };
   exportToMD: () => void;
   onShowFindBar: () => void;
@@ -57,6 +58,15 @@ const ActionsSidebar: React.FC<ActionsSidebarProps> = ({
           styles="mb-2"
         >
           {collapsed ? <FaChevronRight /> : <FaChevronLeft />}
+        </Button>
+        <Button
+          variant="icon"
+          onClick={actions.handleCopyPrompt}
+          aria-label="Copy Prompt"
+          title="Copy Prompt"
+          styles={classNames(getButtonStyles(collapsed), "dark:border-neutral-600")}
+        >
+          <FaCopy /> <span className={getLabelClass()}>Copy Prompt</span>
         </Button>
         <Button
           variant="icon"

@@ -21,15 +21,15 @@ const TemplateList = ({ filteredTemplates, handleTemplateSelect }: Props) => {
       {filteredTemplates.map((template) => (
         <div
           key={template.filename}
-          className="p-6 rounded-xl shadow border border-black dark:border-black bg-amber-100 dark:bg-gray-200"
+          className="p-6 rounded-xl shadow border border-black dark:border-neutral-700 bg-amber-100 dark:bg-neutral-800"
         >
           <div className="flex flex-wrap gap-2">
             <TemplateTags tags={template.frontMatter.tags?.split(",")} maxVisible={3} />
           </div>
-          <h3 className="font-bold text-black dark:text-black text-lg mt-6">
+          <h3 className="font-bold text-black dark:text-white text-lg mt-6">
             {template.frontMatter.title}
           </h3>
-          <p className="text-sm text-gray-700 dark:text-gray-800 mt-2">
+          <p className="text-sm text-gray-700 dark:text-gray-300 mt-2">
             {template.frontMatter.description}
           </p>
           <div className="mt-4">

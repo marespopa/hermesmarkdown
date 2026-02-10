@@ -1,8 +1,9 @@
-import SimpleNotesTemplate from "./files/simple-notes";
-import SystemPersonaTemplate from "./files/system-persona";
-import FewShotTemplate from "./files/few-shot-examples";
-import ChainOfThoughtTemplate from "./files/chain-of-thought";
-import PromptStarterTemplate from "./files/prompt-starter";
+import SystemContractTemplate from "./files/system-contract";
+import ComponentRefactorTemplate from "./files/component-refactor";
+import StructuralCritiqueTemplate from "./files/structural-critique";
+import BalancedDecisionTemplate from "./files/balanced-decision";
+import StepByStepReasoningTemplate from "./files/step-by-step-reasoning";
+import LegacyModernizationTemplate from "./files/legacy-modernization";
 import { FrontMatterGeneric } from "@/app/types/markdown";
 
 export type MarkdownTemplate = {
@@ -12,11 +13,12 @@ export type MarkdownTemplate = {
 };
 
 const MarkdownTemplateList = [
-  PromptStarterTemplate,
-  SystemPersonaTemplate,
-  FewShotTemplate,
-  ChainOfThoughtTemplate,
-  SimpleNotesTemplate,
+  SystemContractTemplate,
+  ComponentRefactorTemplate,
+  StructuralCritiqueTemplate,
+  BalancedDecisionTemplate,
+  StepByStepReasoningTemplate,
+  LegacyModernizationTemplate,
 ];
 
 export default MarkdownTemplateList;

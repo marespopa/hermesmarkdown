@@ -38,9 +38,10 @@ import { FaExpand, FaTimes } from "react-icons/fa";
 import Button from "@/app/components/Button";
 import ExportService from "@/app/services/export-service";
 import TableEditorModal from "./components/TableEditorModal";
-import { showErrorToast } from "@/app/components/Toastr";
+import { showCopyToast, showErrorToast } from "@/app/components/Toastr";
 import { FileTabs } from "./components/FileTabs";
 import { v4 as uuidv4 } from 'uuid';
+import { copyCleanPrompt } from "@/app/services/prompt-utils";
 
 
 export default function Editor() {
@@ -324,6 +325,15 @@ export default function Editor() {
     setIsTableEditorModalVisible(true);
   }
 
+  async function handleCopyPrompt() {
+    const didCopy = await copyCleanPrompt(contentEdited);
+    if (didCopy) {
+      showCopyToast("Prompt copied");
+      return;
+    }
+    showErrorToast("Prompt could not be copied");
+  }
+
   function handleCloseTimer() {
     setShowTimer(false);
   }
@@ -481,6 +491,7 @@ export default function Editor() {
             handleOpenFile,
             handleSelectTemplate,
             handleOpenFindAndReplace,
+            handleCopyPrompt,
           }}
           searchTerm={searchTerm}
           setSearchTerm={setSearchTerm}

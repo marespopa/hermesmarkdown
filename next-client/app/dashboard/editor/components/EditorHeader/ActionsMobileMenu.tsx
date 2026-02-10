@@ -1,6 +1,6 @@
 import React from "react";
 import Button from "@/app/components/Button";
-import { FaTimes, FaFile, FaSave, FaSearch, FaFolderOpen, FaRegClone, FaCog } from "react-icons/fa";
+import { FaTimes, FaFile, FaSave, FaSearch, FaFolderOpen, FaRegClone, FaCog, FaCopy } from "react-icons/fa";
 import { useRouter } from "next/navigation";
 
 interface ActionsMobileMenuProps {
@@ -11,6 +11,7 @@ interface ActionsMobileMenuProps {
     handleOpenFile: () => void;
     handleSelectTemplate: () => void;
     handleOpenFindAndReplace: () => void;
+    handleCopyPrompt: () => void;
   };
   exportToMD: () => void;
 }
@@ -35,6 +36,7 @@ const ActionsMobileMenu: React.FC<ActionsMobileMenuProps> = ({
         <FaTimes />
       </Button>
       <div className="flex flex-col gap-4 px-4 mt-8 mb-4 overflow-y-auto max-h-[80vh] items-stretch w-full">
+        <Button variant="primary" onClick={actions.handleCopyPrompt} label={<><FaCopy className="inline mr-2" />Copy Prompt</>} styles="w-full" />
         <Button variant="secondary" onClick={actions.handleNewFile} label={<><FaFile className="inline mr-2" />New File</>} styles="w-full" />
         <Button variant="secondary" onClick={actions.handleSelectTemplate} label={<><FaRegClone className="inline mr-2" />Template</>} styles="w-full" />
         <Button variant="secondary" onClick={actions.handleOpenFile} label={<><FaFolderOpen className="inline mr-2" />Import File</>} styles="w-full" />
