@@ -304,7 +304,7 @@ export default function Editor() {
 
   const handlePdfExport = useCallback(async () => {
     if (!currentFile) return;
-    const reportName = (currentFile.frontMatter.fileName || "hermesnote").replace(".md", ".pdf");
+    const reportName = (currentFile.frontMatter.fileName || "markdown").replace(".md", ".pdf");
     await new Promise((resolve) => setTimeout(resolve, 100));
     try {
       await ExportService.generatePDF("#pdfReport", reportName);

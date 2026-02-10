@@ -5,7 +5,14 @@ export const PROMPT_TEMPLATES = [
     category: "Prompt foundation",
     label: "Prompt structure",
     description: "Scaffold a complete prompt layout.",
-    template: "## Role\n\n## Context\n\n## Task\n\n## Constraints\n\n## Output format\n\n",
+    template: "## Role\nAct as a {role}.\n\n## Context\n{background}\n\n## Task\n{describe what to do}\n\n## Constraints\n- MUST: {requirement}\n- Do not: {forbidden}\n\n## Output format\n{json|markdown|table}\n\n",
+  },
+  {
+    key: "/role",
+    category: "Prompt foundation",
+    label: "Role / Persona",
+    description: "Set persona for better accuracy (+15 clarity).",
+    template: "## Role\nAct as a senior {role} with expertise in {domain}.\n\n",
   },
   {
     key: "/success",
@@ -29,11 +36,25 @@ export const PROMPT_TEMPLATES = [
     template: "## Constraints\n- Scope: {in|out}\n- Assumptions: {list}\n- Exclusions: {list}\n- If uncertain: {ask|offer options}\n\n",
   },
   {
+    key: "/avoid",
+    category: "Prompt foundation",
+    label: "Negative constraints",
+    description: "Tell LLM what NOT to do (+10 clarity).",
+    template: "## Avoid\n- Do not include preamble or explanations\n- Never assume {assumption}\n- Avoid {behavior}\n- Skip {content}\n- Omit {section}\n\n",
+  },
+  {
     key: "/inputs",
     category: "Prompt foundation",
     label: "Inputs",
     description: "Minimum context and required data sources.",
     template: "## Inputs\n- Minimum context: {list}\n- Must use data: {sources}\n\n",
+  },
+  {
+    key: "/context",
+    category: "Prompt foundation",
+    label: "Context / Background",
+    description: "Provide background information (+10 clarity).",
+    template: "## Context\nBackground: {situation}\nAudience: {who will use this}\nTone: {professional|casual|technical}\nScenario: {specific situation}\n\n",
   },
   {
     key: "/output",
@@ -173,6 +194,13 @@ export const PROMPT_TEMPLATES = [
     label: "Turn into tasks",
     description: "Convert content into actionable tasks.",
     template: "## Task\nTurn this into tasks.\n\n## Output format\n- [ ] Task\n- Owner: {name}\n- Due: {date}\n\n",
+  },
+  {
+    key: "/task",
+    category: "Content generation",
+    label: "Task definition",
+    description: "Define a single task with context and acceptance criteria.",
+    template: "## Task\n{description}\n\n## Context\n{background}\n\n## Acceptance criteria\n- [ ] {criterion}\n- [ ] {criterion}\n\n## Priority\n{high|medium|low}\n\n",
   },
 
   // TECHNICAL: Developer-focused templates

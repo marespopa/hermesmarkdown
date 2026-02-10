@@ -85,7 +85,7 @@ export default function HowItWorks() {
             </div>
             <h3 className="text-lg font-bold mb-1 text-neutral-900 dark:text-white">Copy</h3>
             <p className="text-sm text-neutral-600 dark:text-neutral-400">
-              Export clean text without metadata.
+              Copy your prompt and paste it into any AI chatbot.
             </p>
           </div>
         </div>

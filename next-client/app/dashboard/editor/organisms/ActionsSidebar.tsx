@@ -1,6 +1,6 @@
 import React from "react";
 import Button from "@/app/components/Button";
-import { FaFile, FaFolderOpen, FaSave, FaSearch, FaChevronLeft, FaChevronRight, FaRegClone, FaCog, FaCopy, FaSun, FaMoon } from "react-icons/fa";
+import { FaFile, FaFolderOpen, FaDownload, FaSearch, FaChevronLeft, FaChevronRight, FaClipboardList, FaCog, FaCopy, FaSun, FaMoon } from "react-icons/fa";
 import classNames from "classnames";
 import { useAtom } from "jotai";
 import { atom_sidebarCollapsed, atom_theme } from "@/app/atoms/atoms";
@@ -71,6 +71,15 @@ const ActionsSidebar: React.FC<ActionsSidebarProps> = ({
         </Button>
         <Button
           variant="icon"
+          aria-label="Show Find Bar"
+          onClick={onShowFindBar}
+          styles={getButtonStyles(collapsed)}
+        >
+          <FaSearch /> <span className={getLabelClass()}>Search</span>
+        </Button>
+        <span className={dividerClass} />
+        <Button
+          variant="icon"
           onClick={actions.handleNewFile}
           aria-label="New File"
           title="New File"
@@ -85,7 +94,7 @@ const ActionsSidebar: React.FC<ActionsSidebarProps> = ({
           title="Select Template"
           styles={getButtonStyles(collapsed)}
         >
-          <FaRegClone /> <span className={getLabelClass()}>Template</span>
+          <FaClipboardList /> <span className={getLabelClass()}>Template</span>
         </Button>
         <Button
           variant="icon"
@@ -98,20 +107,12 @@ const ActionsSidebar: React.FC<ActionsSidebarProps> = ({
         </Button>
         <Button
           variant="icon"
-          aria-label="Show Find Bar"
-          onClick={onShowFindBar}
-          styles={getButtonStyles(collapsed)}
-        >
-          <FaSearch /> <span className={getLabelClass()}>Search</span>
-        </Button>
-        <Button
-          variant="icon"
           onClick={exportToMD}
           aria-label="Export File"
           title="Export File"
           styles={getButtonStyles(collapsed)}
         >
-          <FaSave /> <span className={getLabelClass()}>Export</span>
+          <FaDownload /> <span className={getLabelClass()}>Export</span>
         </Button>
         <span className={dividerClass} />
         <Button

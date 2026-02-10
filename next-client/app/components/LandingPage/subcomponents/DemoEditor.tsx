@@ -1,7 +1,11 @@
 "use client";
 
-import React, { useState, useRef, useEffect, useCallback } from "react";
+import React, { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import Editor from "react-simple-code-editor";
+import { analyzePromptClarity, getClarityDotColor } from "@/app/services/prompt-clarity";
+import { PROMPT_TEMPLATES } from "@/app/dashboard/editor/organisms/PromptCommandBar/prompt-templates";
+import { buildAutocompleteData } from "@/app/components/autocomplete/build-autocomplete-data";
+import AutocompleteList from "@/app/components/autocomplete/AutocompleteList";
 
 // Simplified markdown highlighter for demo
 const highlightMarkdown = (code: string) => {
@@ -33,52 +37,18 @@ const highlightMarkdown = (code: string) => {
   return code;
 };
 
-const DEMO_CONTENT = `---
-title: API Security Review
-tags: code-review, security
----
-
-# Task
+const DEMO_CONTENT = `# Task
 Review the following API endpoint for security vulnerabilities.
 
-Type / to see available commands...`;
+## Constraints
+- MUST check for SQL injection, XSS, and auth bypass
+- MUST provide severity rating for each issue
+- Do not include false positives or non-issues
 
-// Demo slash commands
-const DEMO_COMMANDS = [
-  { key: "/constraints", label: "/constraints", description: "MUST/SHOULD/MUST NOT requirements", template: `## Constraints
-**MUST:**
-- [ ] Requirement 1
-- [ ] Requirement 2
+## Output Format
+Return as a markdown list with severity, issue, and fix.
 
-**SHOULD:**
-- [ ] Preference 1
-
-**MUST NOT:**
-- [ ] Forbidden behavior 1
-` },
-  { key: "/security", label: "/security", description: "Security audit checklist", template: `## Security Checklist
-- [ ] Input validation on all user data
-- [ ] Authentication required for endpoint
-- [ ] Rate limiting implemented
-- [ ] No sensitive data in logs
-- [ ] SQL injection protection
-` },
-  { key: "/fewshot", label: "/fewshot", description: "Few-shot example template", template: `## Examples
-
-**Input:** [example input 1]
-**Output:** [expected output 1]
-
-**Input:** [example input 2]
-**Output:** [expected output 2]
-` },
-  { key: "/system", label: "/system", description: "System role template", template: `## System Role
-You are an expert [role]. Your task is to [primary objective].
-
-**Tone:** Professional and precise
-**Format:** [output format]
-**Constraints:** [specific limitations]
-` },
-];
+Type / on the next row to see available commands...`;
 
 interface DemoEditorProps {
   className?: string;
@@ -93,10 +63,10 @@ export default function DemoEditor({ className = "" }: DemoEditorProps) {
   const [filterText, setFilterText] = useState("");
   const editorRef = useRef<HTMLDivElement>(null);
 
-  // Filter commands based on what's typed after /
-  const filteredCommands = DEMO_COMMANDS.filter(cmd => 
-    cmd.key.toLowerCase().includes(filterText.toLowerCase())
-  );
+  // Build autocomplete data with grouping (same as Full Editor)
+  const autocompleteData = useMemo(() => {
+    return buildAutocompleteData(filterText, filterText.length, PROMPT_TEMPLATES);
+  }, [filterText]);
 
   const handleContentChange = useCallback((newContent: string) => {
     const prevContent = content;
@@ -155,7 +125,7 @@ export default function DemoEditor({ className = "" }: DemoEditorProps) {
     switch (e.key) {
       case 'ArrowDown':
         e.preventDefault();
-        setActiveIndex(prev => Math.min(prev + 1, filteredCommands.length - 1));
+        setActiveIndex(prev => Math.min(prev + 1, autocompleteData.flatItems.length - 1));
         break;
       case 'ArrowUp':
         e.preventDefault();
@@ -164,8 +134,8 @@ export default function DemoEditor({ className = "" }: DemoEditorProps) {
       case 'Enter':
       case 'Tab':
         e.preventDefault();
-        if (filteredCommands[activeIndex]) {
-          insertTemplate(filteredCommands[activeIndex].template);
+        if (autocompleteData.flatItems[activeIndex]) {
+          insertTemplate(autocompleteData.flatItems[activeIndex].template);
         }
         break;
       case 'Escape':
@@ -175,7 +145,7 @@ export default function DemoEditor({ className = "" }: DemoEditorProps) {
         setFilterText("");
         break;
     }
-  }, [showAutocomplete, activeIndex, filteredCommands, insertTemplate]);
+  }, [showAutocomplete, activeIndex, autocompleteData.flatItems, insertTemplate]);
 
   // Close autocomplete when clicking outside
   useEffect(() => {
@@ -193,9 +163,6 @@ export default function DemoEditor({ className = "" }: DemoEditorProps) {
       {/* Editor Header */}
       <div className="bg-neutral-100 dark:bg-neutral-800 px-4 py-3 border-b border-neutral-200 dark:border-neutral-700 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <div className="w-3 h-3 rounded-full bg-red-400"></div>
-          <div className="w-3 h-3 rounded-full bg-yellow-400"></div>
-          <div className="w-3 h-3 rounded-full bg-green-400"></div>
           <span className="ml-2 text-sm text-neutral-500 dark:text-neutral-400 font-mono">security-review.md</span>
         </div>
         <div className="text-xs text-neutral-400 dark:text-neutral-500">
@@ -221,49 +188,43 @@ export default function DemoEditor({ className = "" }: DemoEditorProps) {
         />
         
         {/* Autocomplete Dropdown */}
-        {showAutocomplete && filteredCommands.length > 0 && (
+        {showAutocomplete && autocompleteData.flatItems.length > 0 && (
           <div 
-            className="absolute z-50 bg-white dark:bg-neutral-800 rounded-lg shadow-xl border border-neutral-200 dark:border-neutral-600 overflow-hidden w-72"
+            className="absolute z-50 rounded-2xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 shadow-lg p-2 w-80"
             style={{ top: autocompletePosition.top, left: autocompletePosition.left }}
           >
-            <div className="px-3 py-2 text-[10px] font-semibold uppercase tracking-wide text-neutral-400 dark:text-neutral-500 border-b border-neutral-100 dark:border-neutral-700">
-              Slash Commands
+            <div className="text-xs uppercase tracking-wide text-neutral-500 dark:text-neutral-400 px-2 pb-1">
+              Commands
             </div>
-            <div className="max-h-48 overflow-y-auto">
-              {filteredCommands.map((cmd, index) => (
-                <button
-                  key={cmd.key}
-                  type="button"
-                  onMouseDown={(e) => {
-                    e.preventDefault();
-                    insertTemplate(cmd.template);
-                  }}
-                  onMouseEnter={() => setActiveIndex(index)}
-                  className={`w-full text-left px-3 py-2 text-sm transition flex items-center gap-2 ${
-                    index === activeIndex 
-                      ? "bg-amber-100 dark:bg-amber-900/40 text-amber-900 dark:text-amber-100" 
-                      : "hover:bg-neutral-50 dark:hover:bg-neutral-700"
-                  }`}
-                >
-                  <span className="font-mono font-medium text-amber-700 dark:text-amber-400">{cmd.label}</span>
-                  <span className="text-xs text-neutral-500 dark:text-neutral-400 truncate">{cmd.description}</span>
-                </button>
-              ))}
-            </div>
-            <div className="px-3 py-1.5 text-[10px] text-neutral-400 dark:text-neutral-500 border-t border-neutral-100 dark:border-neutral-700 flex gap-3">
-              <span><kbd className="px-1 bg-neutral-100 dark:bg-neutral-700 rounded">↑↓</kbd> navigate</span>
-              <span><kbd className="px-1 bg-neutral-100 dark:bg-neutral-700 rounded">⏎</kbd> insert</span>
-              <span><kbd className="px-1 bg-neutral-100 dark:bg-neutral-700 rounded">esc</kbd> close</span>
-            </div>
+            <AutocompleteList
+              groupedItems={autocompleteData.groupedItems}
+              activeIndex={activeIndex}
+              onSelect={insertTemplate}
+            />
           </div>
         )}
       </div>
       
       {/* Status Bar */}
-      <div className="bg-neutral-50 dark:bg-neutral-800 px-4 py-2 border-t border-neutral-200 dark:border-neutral-700 flex items-center justify-between text-xs text-neutral-500 dark:text-neutral-400">
-        <span>{content.split(/\s+/).filter(Boolean).length} words • ~{Math.ceil(content.split(/\s+/).filter(Boolean).length * 1.35)} tokens</span>
-        <span className="text-green-600 dark:text-green-400">● Local only</span>
-      </div>
+      {(() => {
+        const wordCount = content.split(/\s+/).filter(Boolean).length;
+        const tokens = Math.ceil(wordCount * 1.35);
+        const clarity = analyzePromptClarity(content);
+        return (
+          <div className="bg-neutral-50 dark:bg-neutral-800 px-4 py-2 border-t border-neutral-200 dark:border-neutral-700 flex items-center justify-between text-xs text-neutral-500 dark:text-neutral-400 gap-2 flex-wrap">
+            <span>{wordCount} words • ~{tokens} tokens</span>
+            <span className={`flex items-center gap-1 ${clarity.color}`} title={clarity.tips.length > 0 ? `Tips: ${clarity.tips.join(', ')}` : 'Prompt clarity score'}>
+              <span className={`w-1.5 h-1.5 rounded-full ${getClarityDotColor(clarity.label)}`}></span>
+              {clarity.label}
+              {clarity.tips.length > 0 && (
+                <span className="text-neutral-400 dark:text-neutral-500 ml-1 hidden sm:inline">
+                  · {clarity.tips[0]}
+                </span>
+              )}
+            </span>
+          </div>
+        );
+      })()}
     </div>
   );
 }

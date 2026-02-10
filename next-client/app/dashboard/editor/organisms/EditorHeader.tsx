@@ -234,7 +234,7 @@ export default function EditorHeader({
                 onNext={handleNext}
                 onPrev={handlePrev}
                 onClear={handleClear}
-                onCollapse={() => setShowFindBar(false)}
+                onCollapse={() => { handleClear(); setShowFindBar(false); }}
               />
             )}
           </div>

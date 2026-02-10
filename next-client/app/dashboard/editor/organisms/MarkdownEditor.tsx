@@ -136,6 +136,51 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({ value, onChange, fontFa
   const [popup, setPopup] = useState<{ text: string; url: string } | null>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+  const prevIndexRef = useRef<number | undefined>(undefined);
+
+  // Wrap highlight function to pass search params
+  const highlightWithSearch = (code: string) => 
+    highlightMarkdownWithTailwind(code, searchTerm, matchCount, currentIndex);
+
+  // Scroll to current match only when navigating (Next/Prev), not while typing
+  useEffect(() => {
+    // Only scroll if currentIndex actually changed (user clicked Next/Prev)
+    if (prevIndexRef.current === currentIndex) return;
+    prevIndexRef.current = currentIndex;
+    
+    if (!searchTerm || matchCount === 0 || currentIndex === undefined) return;
+    
+    // Get textarea via ref or DOM query
+    const textarea = textareaRef.current || wrapperRef.current?.querySelector('textarea');
+    if (!textarea) return;
+    
+    const text = textarea.value;
+    const escapedSearchTerm = searchTerm.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const regex = new RegExp(escapedSearchTerm, "gi");
+    
+    let matchIdx = 0;
+    let match;
+    while ((match = regex.exec(text)) !== null) {
+      if (matchIdx === currentIndex) {
+        // Found the current match - scroll to it
+        const matchStart = match.index;
+        
+        // Calculate scroll position
+        const lineHeight = parseInt(getComputedStyle(textarea).lineHeight) || 24;
+        const textBeforeMatch = text.substring(0, matchStart);
+        const linesBeforeMatch = textBeforeMatch.split('\n').length - 1;
+        const scrollTarget = linesBeforeMatch * lineHeight;
+        
+        // Scroll the textarea container
+        const container = textarea.closest('.overflow-auto') || textarea.parentElement;
+        if (container) {
+          container.scrollTop = Math.max(0, scrollTarget - container.clientHeight / 3);
+        }
+        break;
+      }
+      matchIdx++;
+    }
+  }, [searchTerm, currentIndex, matchCount]);
 
   // Handler to hide popup
   const handlePopupClose = () => {
@@ -191,7 +236,7 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({ value, onChange, fontFa
       <Editor
         value={value}
         onValueChange={onChange}
-        highlight={highlightMarkdownWithTailwind}
+        highlight={highlightWithSearch}
         padding={{ top: 16, right: 16, bottom: 48, left: 16 }}
         textareaId="markdown-editor"
         textareaClassName="w-full h-full bg-transparent outline-none resize-none overflow-y-scroll"

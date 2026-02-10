@@ -1,6 +1,6 @@
 import React from "react";
 import Button from "@/app/components/Button";
-import { FaTimes, FaFile, FaSave, FaSearch, FaFolderOpen, FaRegClone, FaCog, FaCopy, FaSun, FaMoon } from "react-icons/fa";
+import { FaTimes, FaFile, FaDownload, FaSearch, FaFolderOpen, FaClipboardList, FaCog, FaCopy, FaSun, FaMoon } from "react-icons/fa";
 import { useRouter } from "next/navigation";
 import { useAtom } from "jotai";
 import { atom_theme } from "@/app/atoms/atoms";
@@ -40,11 +40,12 @@ const ActionsMobileMenu: React.FC<ActionsMobileMenuProps> = ({
       </Button>
       <div className="flex flex-col gap-4 px-4 mt-8 mb-4 overflow-y-auto max-h-[80vh] items-stretch w-full">
         <Button variant="primary" onClick={actions.handleCopyPrompt} label={<><FaCopy className="inline mr-2" />Copy Prompt</>} styles="w-full" />
-        <Button variant="secondary" onClick={actions.handleNewFile} label={<><FaFile className="inline mr-2" />New File</>} styles="w-full" />
-        <Button variant="secondary" onClick={actions.handleSelectTemplate} label={<><FaRegClone className="inline mr-2" />Template</>} styles="w-full" />
-        <Button variant="secondary" onClick={actions.handleOpenFile} label={<><FaFolderOpen className="inline mr-2" />Import File</>} styles="w-full" />
         <Button variant="secondary" onClick={actions.handleOpenFindAndReplace} label={<><FaSearch className="inline mr-2" />Search</>} styles="w-full" />
-        <Button variant="secondary" onClick={exportToMD} label={<><FaSave className="inline mr-2" />Export</>} styles="w-full" />
+        <hr className="border-t border-gray-200 dark:border-neutral-700 w-full my-2" />
+        <Button variant="secondary" onClick={actions.handleNewFile} label={<><FaFile className="inline mr-2" />New File</>} styles="w-full" />
+        <Button variant="secondary" onClick={actions.handleSelectTemplate} label={<><FaClipboardList className="inline mr-2" />Template</>} styles="w-full" />
+        <Button variant="secondary" onClick={actions.handleOpenFile} label={<><FaFolderOpen className="inline mr-2" />Import File</>} styles="w-full" />
+        <Button variant="secondary" onClick={exportToMD} label={<><FaDownload className="inline mr-2" />Export</>} styles="w-full" />
         <Button
           variant="secondary"
           onClick={() => setTheme(theme === "light" ? "dark" : "light")}
