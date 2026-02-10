@@ -2,6 +2,7 @@
 
 import {
   atom_files,
+  atom_canOpenMoreFiles,
   atom_selectedFileId,
   OpenFile,
 } from "@/app/atoms/atoms";
@@ -29,6 +30,7 @@ type Props = {
 const FileSelectionModal = ({ isOpen, handleClose }: Props) => {
   const router = useRouter();
   const [files, setFiles] = useAtom(atom_files);
+  const [canOpenMoreFiles] = useAtom(atom_canOpenMoreFiles);
   const [, setSelectedFileId] = useAtom(atom_selectedFileId);
   const [isLoading, setIsLoading] = useState(false);
   const [fileList] = useState<File[]>([]);
@@ -73,6 +75,11 @@ const FileSelectionModal = ({ isOpen, handleClose }: Props) => {
   );
 
   async function handleOpenFileFromInput(fileList: FileList) {
+    if (!canOpenMoreFiles) {
+      showErrorToast("Maximum 3 files can be open at once");
+      return;
+    }
+
     if (!fileList[0]) {
       showErrorToast(
         "Something went wrong with the file selection. Please try again."

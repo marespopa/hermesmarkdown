@@ -5,6 +5,7 @@ import { useAtom } from "jotai";
 import { useRouter } from "next/navigation";
 import {
   atom_files,
+  atom_canOpenMoreFiles,
   atom_selectedFileId,
   OpenFile,
 } from "@/app/atoms/atoms";
@@ -18,7 +19,7 @@ import { FaTag } from "react-icons/fa";
 import Badge from "@/app/components/Badges/Badge";
 import MarkdownTemplateList, { MarkdownTemplate } from ".";
 import TemplateList from "./TemplateList";
-import { showSuccessToast } from "@/app/components/Toastr";
+import { showErrorToast, showSuccessToast } from "@/app/components/Toastr";
 import { v4 as uuidv4 } from 'uuid';
 
 // Utility: Get unique tags from all templates
@@ -37,6 +38,7 @@ type Props = {
 const TemplateSelectionModal = ({ isOpen, handleClose }: Props) => {
   const router = useRouter();
   const [files, setFiles] = useAtom(atom_files);
+  const [canOpenMoreFiles] = useAtom(atom_canOpenMoreFiles);
   const [, setSelectedFileId] = useAtom(atom_selectedFileId);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
@@ -74,6 +76,11 @@ const TemplateSelectionModal = ({ isOpen, handleClose }: Props) => {
   }
 
   function handleTemplateSelect(template: MarkdownTemplate) {
+    if (!canOpenMoreFiles) {
+      showErrorToast("Maximum 3 files can be open at once");
+      return;
+    }
+
     setIsLoadingTemplate(true);
     
     const newFileId = uuidv4();
@@ -163,8 +170,7 @@ const TemplateSelectionModal = ({ isOpen, handleClose }: Props) => {
           <div className="mb-6">
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">Select a Template</h2>
             <p className="text-sm text-gray-600 dark:text-gray-400">
-              Choose from pre-built templates to get started quickly.
-            </p>
+              Choose from pre-built templates to get started quickly.            </p>
           </div>
           <div className="mb-4">
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 justify-between w-full">
