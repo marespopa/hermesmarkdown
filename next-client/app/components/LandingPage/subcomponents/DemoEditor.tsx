@@ -48,7 +48,7 @@ Review the following API endpoint for security vulnerabilities.
 ## Output Format
 Return as a markdown list with severity, issue, and fix.
 
-Type / on the next row to see available commands...`;
+Type /task on the next row to see how the commands work...`;
 
 interface DemoEditorProps {
   className?: string;
