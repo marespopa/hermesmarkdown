@@ -32,7 +32,7 @@ export default function EditorContent({
         className={`flex-1 min-h-0 w-full px-2 py-2 flex flex-col ${
           zenMode
             ? 'h-full overflow-y-auto rounded-2xl bg-white dark:bg-neutral-900 p-4 pr-0 w-[calc(100%-2rem)]'
-            : 'bg-white dark:bg-neutral-800 rounded-2xl shadow-lg border border-strongblack dark:border-white/20'
+            : 'h-full max-h-[calc(100vh-240px)] overflow-auto bg-white dark:bg-neutral-800 rounded-2xl shadow-lg border border-strongblack dark:border-white/20'
         }`}
       >
         <MarkdownEditor

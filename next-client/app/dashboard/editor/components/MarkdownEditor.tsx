@@ -187,17 +187,18 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({ value, onChange, fontFa
   }, [value, onTextareaReady]);
 
   return (
-    <div className="relative" ref={wrapperRef}>
+    <div className="relative flex-1 min-h-0" ref={wrapperRef}>
       <Editor
         value={value}
         onValueChange={onChange}
         highlight={highlightMarkdownWithTailwind}
-        padding={16}
+        padding={{ top: 16, right: 16, bottom: 48, left: 16 }}
         textareaId="markdown-editor"
-        textareaClassName="w-full h-full bg-transparent outline-none resize-none"
+        textareaClassName="w-full h-full bg-transparent outline-none resize-none overflow-y-scroll"
         preClassName="w-full h-full leading-relaxed bg-transparent"
         style={{
           minHeight: "400px",
+          height: "100%",
           color: "inherit",
           fontFamily,
           fontSize
