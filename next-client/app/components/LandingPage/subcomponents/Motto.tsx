@@ -14,13 +14,12 @@ export default function Motto() {
           Your Prompts, Your Machine, Your IP
         </h3>
         <p className="text-lg text-neutral-600 dark:text-neutral-400 mb-8 max-w-2xl mx-auto">
-          Stop risking your proprietary prompt logic on cloud-based tools. Start writing locally, for free, forever.
+          Stop sending your best prompt logic to third-party servers. Build,
+          test, and iterate locally. No subscriptions, no data leaks, just pure
+          performance.{" "}
         </p>
         <div className="mx-auto flex justify-center">
-          <Button
-            variant="hero"
-            onClick={() => router.push("/dashboard")}
-          >
+          <Button variant="hero" onClick={() => router.push("/dashboard")}>
             Start Writing Free →
           </Button>
         </div>
