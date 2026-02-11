@@ -12,11 +12,14 @@ import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import FileInput from "@/app/components/FileInput";
 import { showErrorToast } from "@/app/components/Toastr";
-import { getFileDataFromInput, isSelectedFileValid } from "../editor/utils/file-utilities";
+import {
+  getFileDataFromInput,
+  isSelectedFileValid,
+} from "../editor/utils/file-utilities";
 import LoadingOverlay from "@/app/components/LoadingOverlay";
 import { SPINNER_LOADING_DURATION } from "@/app/constants/timer";
 import Button from "@/app/components/Button";
-import { v4 as uuidv4 } from 'uuid';
+import { v4 as uuidv4 } from "uuid";
 import matter from "gray-matter";
 
 type Props = {
@@ -55,69 +58,67 @@ const FileSelectionModal = ({ isOpen, handleClose }: Props) => {
             if (selectedFileList && selectedFileList[0]) {
               handleOpenFileFromInput(selectedFileList);
             } else {
-              showErrorToast("Something went wrong with the file selection. Please try again.");
+              showErrorToast(
+                "Something went wrong with the file selection. Please try again.",
+              );
             }
           }}
           label="Markdown File"
           accept=".md, .txt"
           helperText="Load a markdown file."
         />
-        <Button
-          variant="secondary"
-          onClick={handleClose}
-          label="Close"
-        />
+        <Button variant="secondary" onClick={handleClose} label="Close" />
       </div>
     </DialogModal>
   );
 
   async function handleOpenFileFromInput(fileList: FileList) {
-    if (!canOpenMoreFiles) {
-      showErrorToast("Maximum 3 files can be open at once");
-      return;
-    }
-
-    if (!fileList[0]) {
+    if (!fileList || fileList.length === 0) {
       showErrorToast(
-        "Something went wrong with the file selection. Please try again."
+        "Something went wrong with the file selection. Please try again.",
       );
       return;
     }
 
-    const file = fileList[0];
-
-    if (!isSelectedFileValid(file)) {
-      showErrorToast("The selected file must be a .md or a .txt file.");
-      return;
-    }
-
+    let filesToOpen = Array.from(fileList);
+    let openedCount = 0;
     setIsLoading(true);
     try {
-      const text = await file.text();
-      const { data: frontMatterData, content } = matter(text);
-      
-      const newFileId = uuidv4();
-      const newFile: OpenFile = {
-        id: newFileId,
-        content: content,
-        contentEdited: content,
-        frontMatter: {
-          fileName: file.name || "",
-          title: frontMatterData?.title || file.name || "Untitled File",
-          description: frontMatterData?.description || "",
-          tags: frontMatterData?.tags ? frontMatterData?.tags.join(",") : "",
-        },
-        isSaved: true,
-      };
-      
-      setFiles((prev) => [...prev, newFile]);
-      setSelectedFileId(newFileId);
-      
-      router.push("/dashboard/editor");
-      
-      setTimeout(() => {
-        handleClose();
-      }, SPINNER_LOADING_DURATION);
+      for (const file of filesToOpen) {
+        if (!canOpenMoreFiles) {
+          showErrorToast("Maximum 3 files can be open at once");
+          break;
+        }
+        if (!isSelectedFileValid(file)) {
+          showErrorToast("The selected file must be a .md or a .txt file.");
+          continue;
+        }
+        const text = await file.text();
+        const { data: frontMatterData, content } = matter(text);
+        const newFileId = uuidv4();
+        const newFile: OpenFile = {
+          id: newFileId,
+          content: content,
+          contentEdited: content,
+          frontMatter: {
+            fileName: file.name || "",
+            title: frontMatterData?.title || file.name || "Untitled File",
+            description: frontMatterData?.description || "",
+            tags: frontMatterData?.tags ? frontMatterData?.tags.join(",") : "",
+          },
+          isSaved: true,
+        };
+        setFiles((prev) => [...prev, newFile]);
+        setSelectedFileId(newFileId);
+        openedCount++;
+        // Only redirect and close modal for the first file
+        if (openedCount === 1) {
+          router.push("/dashboard/editor");
+          setTimeout(() => {
+            handleClose();
+          }, SPINNER_LOADING_DURATION);
+        }
+      }
     } catch (error) {
       showErrorToast("File could not be loaded");
       console.error(error);
