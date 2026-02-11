@@ -8,6 +8,7 @@ import {
   atom_showTimer,
   atom_theme,
   atom_timerSessionState,
+  atom_timerSettings,
 } from "@/app/atoms/atoms";
 import { useRouter } from "next/navigation";
 import SettingRow from "../components/SettingRow";
@@ -32,10 +33,8 @@ export default function SettingsPage() {
   const [fontFamily, _setFontFamily] = useAtom(atom_fontFamily);
   const [fontSize, _setFontSize] = useAtom(atom_fontSize);
   const [showTimer, _setShowTimer] = useAtom(atom_showTimer);
-  const [timerSession, setTimerSession] = useAtom(atom_timerSessionState);
-  const [timerMinutes, setTimerMinutes] = useState(
-    Math.floor(timerSession.duration / 60),
-  );
+  const [timerSettings, setTimerSettings] = useAtom(atom_timerSettings);
+  const [timerMinutes, setTimerMinutes] = useState(timerSettings.durationInMin);
 
   // Toast wrappers
   const setTheme = (val: string) => {
@@ -57,8 +56,8 @@ export default function SettingsPage() {
 
   // Keep timerMinutes in sync with atom
   useEffect(() => {
-    setTimerMinutes(Math.floor(timerSession.duration / 60));
-  }, [timerSession.duration]);
+    setTimerMinutes(timerSettings.durationInMin);
+  }, [timerSettings.durationInMin]);
 
   const openEditorTool = (flag: string) => {
     if (typeof window !== "undefined") {
@@ -182,13 +181,12 @@ export default function SettingsPage() {
                     debounceMs={600}
                     onDebouncedChange={(e) => {
                       const val = Number((e.target as HTMLInputElement).value);
-                      setTimerSession((prev) => ({
+                      setTimerSettings((prev) => ({
                         ...prev,
-                        duration:
-                          Math.max(1, Math.min(120, isNaN(val) ? 1 : val)) * 60,
-                        startTime: null,
-                        pauseTime: 0,
-                        isTimerCounting: false,
+                        durationInMin: Math.max(
+                          1,
+                          Math.min(120, isNaN(val) ? 1 : val),
+                        ),
                       }));
                       showSuccessToast("Timer duration updated");
                     }}

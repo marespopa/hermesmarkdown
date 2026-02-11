@@ -5,15 +5,12 @@ import { useAtom } from "jotai";
 import {
   atom_fontFamily,
   atom_fontSize,
-  atom_sidebarCollapsed,
   atom_showTimer,
-  Frontmatter,
-  OpenFile,
+  atom_sidebarCollapsed,
 } from "@/app/atoms/atoms";
 import { useDocumentTitle } from "@/app/hooks/use-document-title";
 import { useState, useEffect, useCallback, useRef, Suspense } from "react";
 import { EMPTY_PAGE_TEMPLATE, PICKER_OPTIONS } from "../utils/editor-constants";
-import { StatusResponse } from "@/app/services/save-utils";
 import matter from "gray-matter";
 import LoadingOverlay from "@/app/components/LoadingOverlay";
 import TemplateSelectionModal from "@/app/dashboard/organisms/TemplateSelectionModal";
@@ -91,7 +88,7 @@ export default function Editor() {
 
   // UI state
   const [collapsed] = useAtom(atom_sidebarCollapsed);
-  const [isTimerVisible, setShowTimer] = useAtom(atom_showTimer);
+  const [isTimerVisible] = useAtom(atom_showTimer);
   const [fontFamily, setFontFamily] = useAtom(atom_fontFamily);
   const [fontSize, setFontSize] = useAtom(atom_fontSize);
   const [isFontDialogOpen, setIsFontDialogOpen] = useState(false);
@@ -374,8 +371,6 @@ export default function Editor() {
       {/* Main Editor Layout */}
       <div className={`flex h-full flex-col gap-0 px-4 ${sidebarMargin}`}>
         {isMobile && isTimerVisible && <Timer />}
-        {/* Draggable Timer for desktop - positioned via fixed positioning in component */}
-        {!isMobile && isTimerVisible && <Timer draggable />}
         {/* Top-right toolbar: Zen Mode button */}
         {!isMobile && (
           <div className="absolute top-4 right-4 flex items-center gap-2 z-10">

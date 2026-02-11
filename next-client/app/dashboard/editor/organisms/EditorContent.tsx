@@ -2,9 +2,12 @@ import { useMemo } from "react";
 import MarkdownEditor from "./MarkdownEditor";
 import {
   analyzePromptClarity,
-  getClarityDotColor,
 } from "@/app/services/prompt-clarity";
 import ClarityStatusBar from "../molecules/ClarityStatusBar";
+import { StatusBarTimer } from "@/app/components/Timer/StatusBarTimer";
+import { useAtom } from "jotai";
+import { atom_showTimer } from "@/app/atoms/atoms";
+import useIsMobile from "@/app/hooks/use-is-mobile";
 
 interface Props {
   contentEdited: string;
@@ -31,6 +34,9 @@ export default function EditorContent({
   zenMode = false,
   onTextareaReady,
 }: Props) {
+  const isMobile = useIsMobile();
+  const [isTimerVisible]  = useAtom(atom_showTimer);
+
   // Calculate word count, token estimate, and prompt clarity
   const stats = useMemo(() => {
     const words = contentEdited.split(/\s+/).filter(Boolean).length;
@@ -54,6 +60,9 @@ export default function EditorContent({
             : "h-full max-h-[calc(100vh-240px)] overflow-hidden bg-white dark:bg-neutral-800 rounded-2xl shadow-lg border border-strongblack dark:border-white/20"
         }`}
       >
+        {/* Timer docked here */}
+        {!isMobile && isTimerVisible && <StatusBarTimer />}
+
         <div className="flex-1 overflow-auto">
           <MarkdownEditor
             value={contentEdited}
