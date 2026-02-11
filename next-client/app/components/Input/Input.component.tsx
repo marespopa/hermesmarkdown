@@ -13,6 +13,8 @@ interface Props {
     max: number;
   };
   onClear?: () => void; // Optional clear handler
+  debounceMs?: number; // Optional debounce for onDebouncedChange
+  onDebouncedChange?: (e: React.FormEvent<HTMLInputElement>) => void;
 }
 
 const Input = forwardRef<HTMLInputElement, Props>(
@@ -27,14 +29,35 @@ const Input = forwardRef<HTMLInputElement, Props>(
       type = "text",
       validation,
       onClear,
+      debounceMs,
+      onDebouncedChange,
     },
-    ref
+    ref,
   ) => {
+    const debounceRef = React.useRef<NodeJS.Timeout | null>(null);
+
+    const handleInputChange = (e: React.FormEvent<HTMLInputElement>) => {
+      handleChange(e); // Always update value immediately
+      if (!debounceMs || !onDebouncedChange) return;
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+      const eventCopy = {
+        ...e,
+        target: e.target,
+        currentTarget: e.currentTarget,
+        persist: () => {},
+      } as React.FormEvent<HTMLInputElement>;
+      debounceRef.current = setTimeout(() => {
+        onDebouncedChange(eventCopy);
+      }, debounceMs);
+    };
+
     return (
       <div className="my-4 relative">
         <label className="flex flex-col">
           {label && (
-            <span className="text-xs text-neutral-400 dark:text-neutral-400 mb-1">{label}</span>
+            <span className="text-xs text-neutral-400 dark:text-neutral-400 mb-1">
+              {label}
+            </span>
           )}
           <input
             className="rounded-lg px-5 py-4 pr-10 text-base transition-all duration-200 ease-out focus:outline-none focus-visible:ring-2 disabled:opacity-50 disabled:pointer-events-none select-none border bg-white text-black border-black shadow hover:bg-amber-50 focus-visible:ring-black dark:bg-neutral-700 dark:text-white dark:border-neutral-600 dark:hover:bg-neutral-800 dark:focus-visible:ring-white placeholder-neutral-500 dark:placeholder-neutral-600"
@@ -43,7 +66,7 @@ const Input = forwardRef<HTMLInputElement, Props>(
             id={name}
             name={name}
             value={value}
-            onChange={handleChange}
+            onChange={handleInputChange}
             placeholder={placeholder}
             min={validation?.min}
             max={validation?.max}
@@ -57,16 +80,31 @@ const Input = forwardRef<HTMLInputElement, Props>(
               tabIndex={-1}
               aria-label="Clear input"
             >
-              <svg width="18" height="18" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M6 6L14 14M6 14L14 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 20 20"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M6 6L14 14M6 14L14 6"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                />
               </svg>
             </button>
           )}
         </label>
-        {helperText && <p className="text-gray-500 dark:text-gray-400 text-xs">{helperText}</p>}
+        {helperText && (
+          <p className="text-gray-500 dark:text-gray-400 text-xs">
+            {helperText}
+          </p>
+        )}
       </div>
     );
-  }
+  },
 );
 
 Input.displayName = "Input";

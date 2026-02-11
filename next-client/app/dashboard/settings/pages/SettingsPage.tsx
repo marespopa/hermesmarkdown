@@ -9,9 +9,14 @@ import {
   atom_theme,
   atom_timerSessionState,
 } from "@/app/atoms/atoms";
-import Button from "@/app/components/Button";
 import { useRouter } from "next/navigation";
-import SettingsTemplate from "../templates/SettingsTemplate";
+import SettingRow from "../components/SettingRow";
+import SegmentedControl from "../components/SegmentedControl";
+import Switch from "../components/Switch";
+import { fontSizeOptions } from "../constants/fontSizes";
+import Input, { Select } from "@/app/components/Input";
+import Button from "@/app/components/Button";
+import { showSuccessToast } from "@/app/components/Toastr";
 
 const fontOptions = [
   { value: "Fira Mono, monospace", label: "Fira Mono" },
@@ -21,38 +26,39 @@ const fontOptions = [
   { value: "Ubuntu Mono, monospace", label: "Ubuntu Mono" },
 ];
 
-const fontSizeOptions = [
-  { value: "14px", label: "Small" },
-  { value: "16px", label: "Normal" },
-  { value: "18px", label: "Large" },
-  { value: "20px", label: "Extra Large" },
-];
-
 export default function SettingsPage() {
   const router = useRouter();
-  const [theme, setTheme] = useAtom(atom_theme);
-  const [fontFamily, setFontFamily] = useAtom(atom_fontFamily);
-  const [fontSize, setFontSize] = useAtom(atom_fontSize);
-  const [showTimer, setShowTimer] = useAtom(atom_showTimer);
+  const [theme, _setTheme] = useAtom(atom_theme);
+  const [fontFamily, _setFontFamily] = useAtom(atom_fontFamily);
+  const [fontSize, _setFontSize] = useAtom(atom_fontSize);
+  const [showTimer, _setShowTimer] = useAtom(atom_showTimer);
   const [timerSession, setTimerSession] = useAtom(atom_timerSessionState);
-  const [timerMinutes, setTimerMinutes] = useState(String(Math.floor(timerSession.duration / 60)));
+  const [timerMinutes, setTimerMinutes] = useState(
+    Math.floor(timerSession.duration / 60),
+  );
 
-  useEffect(() => {
-    setTimerMinutes(String(Math.floor(timerSession.duration / 60)));
-  }, [timerSession.duration]);
-
-  const handleApplyTimer = () => {
-    let minutes = Number(timerMinutes) || 1;
-    minutes = Math.max(1, Math.min(120, minutes));
-    setTimerMinutes(String(minutes));
-    setTimerSession((prev) => ({
-      ...prev,
-      duration: minutes * 60,
-      startTime: null,
-      pauseTime: 0,
-      isTimerCounting: false,
-    }));
+  // Toast wrappers
+  const setTheme = (val: string) => {
+    _setTheme(val as "light" | "dark");
+    showSuccessToast("Theme updated");
   };
+  const setFontFamily = (val: string) => {
+    _setFontFamily(val);
+    showSuccessToast("Font family updated");
+  };
+  const setFontSize = (val: string) => {
+    _setFontSize(val);
+    showSuccessToast("Font size updated");
+  };
+  const setShowTimer = (val: boolean) => {
+    _setShowTimer(val);
+    showSuccessToast("Timer visibility updated");
+  };
+
+  // Keep timerMinutes in sync with atom
+  useEffect(() => {
+    setTimerMinutes(Math.floor(timerSession.duration / 60));
+  }, [timerSession.duration]);
 
   const openEditorTool = (flag: string) => {
     if (typeof window !== "undefined") {
@@ -61,118 +67,177 @@ export default function SettingsPage() {
     router.push("/dashboard/editor");
   };
 
-  const header = (
-    <div className="flex items-center justify-between gap-4 mb-8">
-      <div>
-        <h1 className="text-3xl font-semibold">Settings</h1>
-        <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
-          Advanced options and editor preferences.
-        </p>
-      </div>
-      <Button
-        variant="secondary"
-        label="Back to editor"
-        onClick={() => router.push("/dashboard/editor")}
-      />
-    </div>
-  );
+  // Sidebar navigation (static for now)
+  const sidebarLinks = [
+    { key: "general", label: "General" },
+    { key: "productivity", label: "Productivity" },
+    { key: "shortcuts", label: "Shortcuts" },
+  ];
 
+  // --- Main Render ---
   return (
-    <SettingsTemplate header={header}>
-      <section className="bg-white dark:bg-neutral-900 rounded-2xl border border-gray-200 dark:border-neutral-700 p-6 mb-6">
-        <h2 className="text-lg font-semibold mb-4">Appearance</h2>
-        <div className="flex flex-col gap-4">
-          <div className="flex flex-col gap-2">
-            <span className="text-sm text-gray-600 dark:text-gray-300">Theme</span>
-            <Button
-              variant="secondary"
-              label={theme === "light" ? "Switch to dark" : "Switch to light"}
-              onClick={() => setTheme(theme === "light" ? "dark" : "light")}
-            />
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <label className="flex flex-col gap-2">
-              <span className="text-sm text-gray-600 dark:text-gray-300">Font family</span>
-              <select
-                className="rounded-lg border border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2"
-                value={fontFamily}
-                onChange={(event) => setFontFamily(event.target.value)}
-              >
-                {fontOptions.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label className="flex flex-col gap-2">
-              <span className="text-sm text-gray-600 dark:text-gray-300">Font size</span>
-              <select
-                className="rounded-lg border border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2"
-                value={fontSize}
-                onChange={(event) => setFontSize(event.target.value)}
-              >
-                {fontSizeOptions.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            </label>
+    <div className="flex min-h-[80vh]">
+      {/* Sidebar */}
+      <aside className="w-[240px] border-r border-neutral-100 dark:border-neutral-800 py-8 px-4 flex flex-col gap-2 bg-white dark:bg-neutral-950">
+        <Button
+          variant="secondary"
+          label="Back to editor"
+          onClick={() => router.push("/dashboard/editor")}
+        />
+      </aside>
+
+      {/* Main Content */}
+      <main className="flex-1 flex flex-col items-center py-10 px-6">
+        <div className="w-full">
+          <div className="mb-6">
+            <p className="text-xs text-neutral-500 font-mono border border-neutral-100 dark:border-neutral-800 rounded bg-neutral-50 dark:bg-neutral-900 py-2 px-4">
+              All changes are saved automatically.
+            </p>
           </div>
         </div>
-      </section>
-
-      <section className="bg-white dark:bg-neutral-900 rounded-2xl border border-gray-200 dark:border-neutral-700 p-6 mb-6">
-        <h2 className="text-lg font-semibold mb-4">Productivity</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-          <div className="flex flex-col gap-2">
-            <span className="text-sm text-gray-600 dark:text-gray-300">Timer visibility</span>
-            <Button
-              variant="secondary"
-              label={showTimer ? "Hide timer" : "Show timer"}
-              onClick={() => setShowTimer(!showTimer)}
-            />
-          </div>
-          <div className="flex flex-col gap-2">
-            <span className="text-sm text-gray-600 dark:text-gray-300">Default timer (minutes)</span>
-            <div className="flex items-center gap-2">
-              <input
-                type="text"
-                inputMode="numeric"
-                value={timerMinutes}
-                onChange={(event) => setTimerMinutes(event.target.value.replace(/[^0-9]/g, ""))}
-                className="w-24 rounded-lg border border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm"
+        <div className="w-full">
+          {/* Appearance Section */}
+          <section className="mb-8">
+            <h2
+              className="text-lg font-semibold mb-2"
+              style={{ fontFamily: "JetBrains Mono, Fira Code, monospace" }}
+            >
+              Appearance
+            </h2>
+            <div className="bg-white dark:bg-neutral-900">
+              <SettingRow
+                title="Theme"
+                description="Choose your preferred color mode."
+                control={
+                  <SegmentedControl
+                    options={[
+                      { label: "Light", value: "light" },
+                      { label: "Dark", value: "dark" },
+                    ]}
+                    value={theme}
+                    onChange={(val) => setTheme(val as "light" | "dark")}
+                  />
+                }
               />
-              <Button variant="secondary" label="Apply" onClick={handleApplyTimer} />
+              <SettingRow
+                title="Font family"
+                description="Editor monospace font."
+                control={
+                  <Select
+                    name="fontFamily"
+                    label=""
+                    value={fontFamily}
+                    options={fontOptions}
+                    handleChange={(e) => setFontFamily(e.target.value)}
+                    compact
+                  />
+                }
+              />
+              <SettingRow
+                title="Font size"
+                description="Editor font size in pixels."
+                control={
+                  <Select
+                    name="fontSize"
+                    label=""
+                    value={fontSize}
+                    options={fontSizeOptions}
+                    handleChange={(e) => setFontSize(e.target.value)}
+                    compact
+                  />
+                }
+              />
             </div>
-          </div>
-        </div>
-      </section>
+          </section>
 
-      <section className="bg-white dark:bg-neutral-900 rounded-2xl border border-gray-200 dark:border-neutral-700 p-6">
-        <h2 className="text-lg font-semibold mb-4">Advanced tools</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <Button
-            variant="secondary"
-            label="Open PDF export"
-            onClick={() => openEditorTool("hm_open_pdf_preview")}
-          />
-          <Button
-            variant="secondary"
-            label="Open table editor"
-            onClick={() => openEditorTool("hm_open_table_editor")}
-          />
-          <Button
-            variant="secondary"
-            label="Keyboard shortcuts"
-            onClick={() => openEditorTool("hm_open_shortcuts")}
-          />
+          {/* Productivity Section */}
+          <section className="mb-8">
+            <h2
+              className="text-lg font-semibold mb-2"
+              style={{ fontFamily: "JetBrains Mono, Fira Code, monospace" }}
+            >
+              Productivity
+            </h2>
+            <div className="bg-white dark:bg-neutral-900">
+              <SettingRow
+                title="Show Timer"
+                description="Display a session timer in the editor."
+                control={<Switch checked={showTimer} onChange={setShowTimer} />}
+              />
+              <SettingRow
+                title="Default Timer"
+                description="Default timer duration in minutes."
+                control={
+                  <Input
+                    name="timerMinutes"
+                    value={timerMinutes}
+                    type="number"
+                    handleChange={(e) => {
+                      const val = Number((e.target as HTMLInputElement).value);
+                      setTimerMinutes(
+                        Math.max(1, Math.min(120, isNaN(val) ? 1 : val)),
+                      );
+                    }}
+                    validation={{ min: 1, max: 120 }}
+                    debounceMs={600}
+                    onDebouncedChange={(e) => {
+                      const val = Number((e.target as HTMLInputElement).value);
+                      setTimerSession((prev) => ({
+                        ...prev,
+                        duration:
+                          Math.max(1, Math.min(120, isNaN(val) ? 1 : val)) * 60,
+                        startTime: null,
+                        pauseTime: 0,
+                        isTimerCounting: false,
+                      }));
+                      showSuccessToast("Timer duration updated");
+                    }}
+                  />
+                }
+              />
+            </div>
+          </section>
+
+          {/* Advanced Tools Section */}
+          <section>
+            <h2
+              className="text-lg font-semibold mb-2"
+              style={{ fontFamily: "JetBrains Mono, Fira Code, monospace" }}
+            >
+              Quick Actions
+            </h2>
+            <div className="bg-white dark:bg-neutral-900 p-4">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                <button
+                  className="flex flex-col items-center justify-center gap-1 py-4 px-2 rounded-lg bg-neutral-50 dark:bg-neutral-800 hover:bg-amber-50 dark:hover:bg-neutral-700 border border-neutral-100 dark:border-neutral-800 transition"
+                  onClick={() => openEditorTool("hm_open_pdf_preview")}
+                >
+                  <span className="font-mono text-sm">PDF Export</span>
+                  <kbd className="text-xs bg-neutral-200 dark:bg-neutral-700 px-2 py-0.5 rounded">
+                    ⌘ + P
+                  </kbd>
+                </button>
+                <button
+                  className="flex flex-col items-center justify-center gap-1 py-4 px-2 rounded-lg bg-neutral-50 dark:bg-neutral-800 hover:bg-amber-50 dark:hover:bg-neutral-700 border border-neutral-100 dark:border-neutral-800 transition"
+                  onClick={() => openEditorTool("hm_open_table_editor")}
+                >
+                  <span className="font-mono text-sm">Table Editor</span>
+                  <kbd className="text-xs bg-neutral-200 dark:bg-neutral-700 px-2 py-0.5 rounded">
+                    ⌘ + T
+                  </kbd>
+                </button>
+              </div>
+              <div
+                className="mt-4 text-xs text-neutral-500"
+                style={{ fontFamily: "JetBrains Mono, Fira Code, monospace" }}
+              >
+                These tools open inside the editor to keep the workspace
+                focused.
+              </div>
+            </div>
+          </section>
         </div>
-        <div className="mt-4 text-sm text-gray-600 dark:text-gray-300">
-          These tools open inside the editor to keep the workspace focused.
-        </div>
-      </section>
-    </SettingsTemplate>
+      </main>
+    </div>
   );
 }
