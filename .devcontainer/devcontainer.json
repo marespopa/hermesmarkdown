@@ -1,1 +1,33 @@
+{
+  "name": "Next.js / TypeScript",
+  "image": "mcr.microsoft.com/devcontainers/typescript-node:1-20-bullseye",
+  
+  "features": {
+    "ghcr.io/devcontainers/features/github-cli:1": {}
+  },
 
+  // Forward Next.js default port
+  "forwardPorts": [3000],
+
+  // Configure tool-specific properties
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "editor.formatOnSave": true,
+        "editor.defaultFormatter": "esbenp.prettier-vscode",
+        "editor.codeActionsOnSave": {
+          "source.fixAll.eslint": "explicit"
+        }
+      },
+      "extensions": [
+        "dbaeumer.vscode-eslint",      // Linter
+        "esbenp.prettier-vscode",      // Formatter
+        "bradlc.vscode-tailwindcss",   // Tailwind CSS IntelliSense
+        "dsznajder.es7-react-js-snippets" // React Snippets
+      ]
+    }
+  },
+
+  // Run npm install automatically after the container is created
+  "postCreateCommand": "npm install"
+}
