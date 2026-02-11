@@ -34,9 +34,8 @@ const CookieConsent = () => {
       <div className="flex gap-2 px-5 py-3 space-y-2 bg-slate-200 dark:bg-gray-800 md:flex-row md:space-y-0 md:items-stretch md:space-x-2">
         <div className="flex items-center flex-1 text-gray-900 dark:text-gray-100">
           <p className="text-sm font-medium">
-            This site uses services that uses cookies to deliver better
-            experience and analyze traffic. You can learn more about the
-            services by reading our{" "}
+            We use cookies and trusted services to make your experience better
+            and to understand how people use our site. Learn more in our{" "}
             <Link
               href="/privacy-policy"
               className="text-sm underline hover:text-lightAccent"
