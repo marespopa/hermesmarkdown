@@ -140,7 +140,7 @@ export default function Editor() {
       "Ubuntu Mono, monospace": "Ubuntu+Mono",
     };
     const fontKey = Object.keys(googleFonts).find((key) =>
-      fontFamily.startsWith(key.split(",")[0])
+      fontFamily.startsWith(key.split(",")[0]),
     );
     if (fontKey) {
       const fontName = googleFonts[fontKey];
@@ -175,11 +175,6 @@ export default function Editor() {
 
   // Handler functions
   const handleNewFile = useCallback(() => {
-    if (!canOpenMoreFiles) {
-      showErrorToast("Maximum 3 files can be open at once");
-      return;
-    }
-
     setIsLoading(true);
     const newFileId = uuidv4();
     const newFile = {
@@ -194,16 +189,15 @@ export default function Editor() {
       },
       isSaved: true,
     };
-
     setFiles([...files, newFile]);
     setSelectedFileId(newFileId);
     setIsLoading(false);
-  }, [canOpenMoreFiles, setFiles, setSelectedFileId, files]);
+  }, [setFiles, setSelectedFileId, files]);
 
   const handleOpenFile = useCallback(async () => {
     try {
       const [fileHandle] = await (window as any).showOpenFilePicker(
-        PICKER_OPTIONS
+        PICKER_OPTIONS,
       );
       const file = await fileHandle.getFile();
       await parseAndAddFile(file);
@@ -231,7 +225,7 @@ export default function Editor() {
     (
       content: string,
       fileName: string,
-      parsedFrontMatter: Record<string, any>
+      parsedFrontMatter: Record<string, any>,
     ) => {
       if (!canOpenMoreFiles) {
         showErrorToast("Maximum 3 files can be open at once");
@@ -255,21 +249,21 @@ export default function Editor() {
       setFiles([...files, newFile]);
       setSelectedFileId(newFileId);
     },
-    [files, setFiles, setSelectedFileId, canOpenMoreFiles]
+    [files, setFiles, setSelectedFileId],
   );
 
   const handleInsertTemplate = useCallback(
     (template: string) => {
       insertTemplate(template);
     },
-    [insertTemplate]
+    [insertTemplate],
   );
 
   const handleClosePromptCommandBar = useCallback(() => {
     closePromptMenu({ removeSlash: true });
     requestAnimationFrame(() => {
       const textarea = document.getElementById(
-        "markdown-editor"
+        "markdown-editor",
       ) as HTMLTextAreaElement | null;
       textarea?.focus({ preventScroll: true });
     });
@@ -311,12 +305,12 @@ export default function Editor() {
     try {
       await ExportService.exportMarkdown(
         currentFile.contentEdited,
-        currentFile.frontMatter
+        currentFile.frontMatter,
       );
       const updatedFiles = files.map((f) =>
         f.id === currentFile.id
           ? { ...f, content: f.contentEdited, isSaved: true }
-          : f
+          : f,
       );
       setFiles(updatedFiles);
       setHasChanges(false);
@@ -329,7 +323,7 @@ export default function Editor() {
     if (!currentFile) return;
     const reportName = (currentFile.frontMatter.fileName || "markdown").replace(
       ".md",
-      ".pdf"
+      ".pdf",
     );
     await new Promise((resolve) => setTimeout(resolve, 100));
     try {

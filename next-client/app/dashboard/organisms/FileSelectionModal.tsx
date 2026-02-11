@@ -81,14 +81,10 @@ const FileSelectionModal = ({ isOpen, handleClose }: Props) => {
     }
 
     let filesToOpen = Array.from(fileList);
-    let openedCount = 0;
     setIsLoading(true);
     try {
+      let firstFileId = null;
       for (const file of filesToOpen) {
-        if (!canOpenMoreFiles) {
-          showErrorToast("Maximum 3 files can be open at once");
-          break;
-        }
         if (!isSelectedFileValid(file)) {
           showErrorToast("The selected file must be a .md or a .txt file.");
           continue;
@@ -110,14 +106,13 @@ const FileSelectionModal = ({ isOpen, handleClose }: Props) => {
         };
         setFiles((prev) => [...prev, newFile]);
         setSelectedFileId(newFileId);
-        openedCount++;
-        // Only redirect and close modal for the first file
-        if (openedCount === 1) {
-          router.push("/dashboard/editor");
-          setTimeout(() => {
-            handleClose();
-          }, SPINNER_LOADING_DURATION);
-        }
+        if (!firstFileId) firstFileId = newFileId;
+      }
+      if (firstFileId) {
+        router.push("/dashboard/editor");
+        setTimeout(() => {
+          handleClose();
+        }, SPINNER_LOADING_DURATION);
       }
     } catch (error) {
       showErrorToast("File could not be loaded");
