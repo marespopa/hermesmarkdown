@@ -7,13 +7,20 @@ import Converter from "./converter";
 
 class ExportService {
   static formatTags(metadataTags: string) {
-    const tags = metadataTags.split(",");
+    // Ensure tags is a string, fallback to empty string if not
+    let tagsString = "";
+    if (Array.isArray(metadataTags)) {
+      tagsString = metadataTags.join(",");
+    } else if (typeof metadataTags === "string") {
+      tagsString = metadataTags;
+    } else if (metadataTags && typeof metadataTags === "object") {
+      tagsString = Object.values(metadataTags).join(",");
+    }
+    const tags = tagsString.split(",").filter(Boolean);
     let formattedTags = ``;
-
     tags.forEach((tag) => {
       formattedTags += `  - ${tag.toString().trim()}\n`;
     });
-
     return formattedTags;
   }
 
@@ -31,43 +38,52 @@ class ExportService {
     return text;
   }
 
-  static exportMarkdown(content: string | undefined, frontMatter: FileMetadata) {
+  static exportMarkdown(
+    content: string | undefined,
+    frontMatter: FileMetadata,
+  ) {
     if (!content) {
       return Promise.resolve();
     }
 
     const fileName = frontMatter?.fileName || "file.md";
-    const blob = new Blob([ExportService.formatFrontMatter(frontMatter), content], {
-      type: "text/markdown",
-    });
+    const blob = new Blob(
+      [ExportService.formatFrontMatter(frontMatter), content],
+      {
+        type: "text/markdown",
+      },
+    );
 
     return saveFile({ blob, fileName });
   }
 
-  static async generatePDF (elementId: string, filename: string = "file.pdf"): Promise<InstanceType<typeof jsPDF>> {
+  static async generatePDF(
+    elementId: string,
+    filename: string = "file.pdf",
+  ): Promise<InstanceType<typeof jsPDF>> {
     const options: ConversionOptions = {
       resolution: Resolution.MEDIUM as Resolution,
       page: {
-         // margin is in MM, default is Margin.NONE = 0
-         margin: Margin.SMALL,
-         format: 'letter',
-         orientation: 'portrait',
+        // margin is in MM, default is Margin.NONE = 0
+        margin: Margin.SMALL,
+        format: "letter",
+        orientation: "portrait",
       },
       canvas: {
-         mimeType: 'image/jpeg',
-         qualityRatio: 1,
-         logging: true,
-         useCORS: true,
+        mimeType: "image/jpeg",
+        qualityRatio: 1,
+        logging: true,
+        useCORS: true,
       },
       overrides: {
-         pdf: {
-            compress: true
-         },
-         canvas: {
-            useCORS: true
-         }
+        pdf: {
+          compress: true,
+        },
+        canvas: {
+          useCORS: true,
+        },
       },
-   };
+    };
 
     const reportElement = document.querySelector(elementId) as HTMLElement;
 
@@ -85,7 +101,7 @@ class ExportService {
     const pdfFilename = filename;
     await pdf.save(pdfFilename, { returnPromise: true });
     return pdf;
-  };
+  }
 }
 
 export default ExportService;
