@@ -1,3 +1,38 @@
+import { OpenFile } from "@/app/atoms/atoms";
+import { v4 as uuidv4 } from "uuid";
+
+/**
+ * Utility to create a new OpenFile object from various sources (template, import, new file)
+ */
+export function createNewOpenFile({
+  content = "",
+  fileName = "file",
+  frontMatter = {},
+  isSaved = true,
+}: {
+  content: string;
+  fileName?: string;
+  frontMatter?: Record<string, any>;
+  isSaved?: boolean;
+}): OpenFile {
+  return {
+    id: uuidv4(),
+    content,
+    contentEdited: content,
+    frontMatter: {
+      fileName: fileName || frontMatter.fileName || "file",
+      title: frontMatter.title || fileName.replace(/\.[^.]*$/, "") || "File",
+      description: frontMatter.description || "",
+      tags:
+        typeof frontMatter.tags === "string"
+          ? frontMatter.tags
+          : Array.isArray(frontMatter.tags)
+            ? frontMatter.tags.join(",")
+            : "",
+    },
+    isSaved,
+  };
+}
 import matter from "gray-matter";
 import { showErrorToast } from "@/app/components/Toastr";
 

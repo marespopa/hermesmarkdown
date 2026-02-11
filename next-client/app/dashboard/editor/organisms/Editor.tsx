@@ -32,7 +32,7 @@ import { v4 as uuidv4 } from "uuid";
 import { copyCleanPrompt } from "@/app/services/prompt-utils";
 
 // Import refactored hooks
-import { useEditorFiles } from "../hooks/use-editor-files";
+import useEditorFiles from "../hooks/use-editor-files";
 import { usePromptMenu } from "../hooks/use-prompt-menu";
 import { useFindInEditor } from "../hooks/use-find-in-editor";
 import { useEditorLaunchFlag } from "../hooks/use-editor-launch-flag";
@@ -56,7 +56,6 @@ export default function Editor() {
     selectedFileId,
     setSelectedFileId,
     currentFile,
-    canOpenMoreFiles,
     hasChanges,
     setHasChanges,
     contentEdited,
@@ -189,10 +188,10 @@ export default function Editor() {
       },
       isSaved: true,
     };
-    setFiles([...files, newFile]);
+    setFiles((prevFiles) => [...prevFiles, newFile]);
     setSelectedFileId(newFileId);
     setIsLoading(false);
-  }, [setFiles, setSelectedFileId, files]);
+  }, [setSelectedFileId]);
 
   const handleOpenFile = useCallback(async () => {
     try {
@@ -227,11 +226,6 @@ export default function Editor() {
       fileName: string,
       parsedFrontMatter: Record<string, any>,
     ) => {
-      if (!canOpenMoreFiles) {
-        showErrorToast("Maximum 3 files can be open at once");
-        return;
-      }
-
       const newFileId = uuidv4();
       const newFile = {
         id: newFileId,
@@ -246,10 +240,10 @@ export default function Editor() {
         isSaved: true,
       };
 
-      setFiles([...files, newFile]);
+      setFiles((prevFiles) => [...prevFiles, newFile]);
       setSelectedFileId(newFileId);
     },
-    [files, setFiles, setSelectedFileId],
+    [setSelectedFileId],
   );
 
   const handleInsertTemplate = useCallback(
@@ -317,7 +311,7 @@ export default function Editor() {
     } catch (error) {
       console.error(error);
     }
-  }, [currentFile, files, setFiles, setHasChanges]);
+  }, [currentFile, files, setHasChanges]);
 
   const handlePdfExport = useCallback(async () => {
     if (!currentFile) return;

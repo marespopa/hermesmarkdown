@@ -3,12 +3,7 @@
 import React, { FormEvent, useEffect, useState } from "react";
 import { useAtom } from "jotai";
 import { useRouter } from "next/navigation";
-import {
-  atom_files,
-  atom_canOpenMoreFiles,
-  atom_selectedFileId,
-  OpenFile,
-} from "@/app/atoms/atoms";
+import { atom_files, atom_selectedFileId, OpenFile } from "@/app/atoms/atoms";
 import DialogModal from "@/app/components/DialogModal";
 import Button from "@/app/components/Button";
 import LoadingOverlay from "@/app/components/LoadingOverlay";
@@ -22,7 +17,7 @@ import MarkdownTemplateList, {
 } from "@/app/dashboard/template-library";
 import TemplateList from "./TemplateList";
 import { showErrorToast, showSuccessToast } from "@/app/components/Toastr";
-import { v4 as uuidv4 } from "uuid";
+import { createNewOpenFile } from "../editor/utils/file-utilities";
 
 // Utility: Get unique tags from all templates
 function getUniqueTags(templates: MarkdownTemplate[]) {
@@ -40,7 +35,6 @@ type Props = {
 const TemplateSelectionModal = ({ isOpen, handleClose }: Props) => {
   const router = useRouter();
   const [files, setFiles] = useAtom(atom_files);
-  const [canOpenMoreFiles] = useAtom(atom_canOpenMoreFiles);
   const [, setSelectedFileId] = useAtom(atom_selectedFileId);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
@@ -86,21 +80,14 @@ const TemplateSelectionModal = ({ isOpen, handleClose }: Props) => {
 
   function handleTemplateSelect(template: MarkdownTemplate) {
     setIsLoadingTemplate(true);
-    const newFileId = uuidv4();
-    const newFile: OpenFile = {
-      id: newFileId,
+    const newFile = createNewOpenFile({
       content: template.content,
-      contentEdited: template.content,
-      frontMatter: {
-        fileName: template.filename || "",
-        title: template.frontMatter?.title || "",
-        description: template.frontMatter?.description || "",
-        tags: template.frontMatter?.tags,
-      },
+      fileName: template.filename || "",
+      frontMatter: template.frontMatter,
       isSaved: true,
-    };
+    });
     setFiles([...files, newFile]);
-    setSelectedFileId(newFileId);
+    setSelectedFileId(newFile.id);
     showSuccessToast(
       `Template "${template.frontMatter?.title}" loaded in a new tab`,
     );

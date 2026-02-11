@@ -1,7 +1,7 @@
 import { useAtom } from "jotai";
+import { useState } from "react";
 import { useCallback, useEffect, useRef } from "react";
 import {
-  atom_canOpenMoreFiles,
   atom_currentFile,
   atom_files,
   atom_hasChanges,
@@ -14,11 +14,10 @@ import { v4 as uuidv4 } from "uuid";
 
 type EditorFilesResult = {
   files: OpenFile[];
-  setFiles: (files: OpenFile[]) => void;
+  setFiles: (files: OpenFile[] | ((prev: OpenFile[]) => OpenFile[])) => void;
   selectedFileId: string | null;
   setSelectedFileId: (id: string | null) => void;
   currentFile: OpenFile | null;
-  canOpenMoreFiles: boolean;
   hasChanges: boolean;
   setHasChanges: (hasChanges: boolean) => void;
   contentEdited: string;
@@ -29,11 +28,11 @@ type EditorFilesResult = {
   updateCurrentFileFrontMatter: (newFrontMatter: Frontmatter) => void;
 };
 
-export function useEditorFiles(): EditorFilesResult {
+const useEditorFiles = (): EditorFilesResult => {
   const [files, setFiles] = useAtom(atom_files);
+  const [hydrated, setHydrated] = useState(false);
   const [selectedFileId, setSelectedFileId] = useAtom(atom_selectedFileId);
   const [currentFile] = useAtom(atom_currentFile);
-  const [canOpenMoreFiles] = useAtom(atom_canOpenMoreFiles);
   const [hasChanges] = useAtom(atom_hasChanges);
   const [, setHasChanges] = useAtom(atom_hasChanges);
   const didInitFileRef = useRef(false);
@@ -48,7 +47,13 @@ export function useEditorFiles(): EditorFilesResult {
   const fileTitle = frontMatter.title || "File";
   const fileName = frontMatter.fileName || fileTitle || "File";
 
+  // Hydration check: only run initialization after first render
   useEffect(() => {
+    setHydrated(true);
+  }, []);
+
+  useEffect(() => {
+    if (!hydrated) return;
     if (currentFile || didInitFileRef.current) {
       return;
     }
@@ -75,35 +80,48 @@ export function useEditorFiles(): EditorFilesResult {
       isSaved: true,
     };
 
-    setFiles([...files, newFile]);
+    setFiles([newFile]);
     setSelectedFileId(newFileId);
     setHasChanges(false);
     didInitFileRef.current = true;
-  }, [currentFile, files, selectedFileId, setFiles, setSelectedFileId, setHasChanges]);
+  }, [
+    hydrated,
+    currentFile,
+    files,
+    selectedFileId,
+    setSelectedFileId,
+    setHasChanges,
+  ]);
 
-  const updateCurrentFileContent = useCallback((newContent: string) => {
-    if (!currentFile) return;
+  const updateCurrentFileContent = useCallback(
+    (newContent: string) => {
+      if (!currentFile) return;
 
-    const updatedFiles = files.map((file) =>
-      file.id === currentFile.id
-        ? { ...file, contentEdited: newContent, isSaved: false }
-        : file
-    );
-    setFiles(updatedFiles);
-    setHasChanges(true);
-  }, [currentFile, files, setFiles, setHasChanges]);
+      const updatedFiles = files.map((file) =>
+        file.id === currentFile.id
+          ? { ...file, contentEdited: newContent, isSaved: false }
+          : file,
+      );
+      setFiles(updatedFiles);
+      setHasChanges(true);
+    },
+    [currentFile, setHasChanges],
+  );
 
-  const updateCurrentFileFrontMatter = useCallback((newFrontMatter: Frontmatter) => {
-    if (!currentFile) return;
+  const updateCurrentFileFrontMatter = useCallback(
+    (newFrontMatter: Frontmatter) => {
+      if (!currentFile) return;
 
-    const updatedFiles = files.map((file) =>
-      file.id === currentFile.id
-        ? { ...file, frontMatter: newFrontMatter, isSaved: false }
-        : file
-    );
-    setFiles(updatedFiles);
-    setHasChanges(true);
-  }, [currentFile, files, setFiles, setHasChanges]);
+      const updatedFiles = files.map((file) =>
+        file.id === currentFile.id
+          ? { ...file, frontMatter: newFrontMatter, isSaved: false }
+          : file,
+      );
+      setFiles(updatedFiles);
+      setHasChanges(true);
+    },
+    [currentFile, files, setFiles, setHasChanges],
+  );
 
   return {
     files,
@@ -111,7 +129,6 @@ export function useEditorFiles(): EditorFilesResult {
     selectedFileId,
     setSelectedFileId,
     currentFile,
-    canOpenMoreFiles,
     hasChanges,
     setHasChanges,
     contentEdited,
@@ -122,3 +139,5 @@ export function useEditorFiles(): EditorFilesResult {
     updateCurrentFileFrontMatter,
   };
 }
+
+export default useEditorFiles;

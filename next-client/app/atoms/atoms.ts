@@ -108,12 +108,6 @@ export const atom_currentFile = atom((get) => {
   return files.find((f) => f.id === selectedId) || null;
 });
 
-// Helper atom to check if at max file limit (3 files)
-export const atom_canOpenMoreFiles = atom((get) => {
-  const files = get(atom_files);
-  return files.length < 3;
-});
-
 // Pomodoro Timer position atom (x = left offset, y = top offset)
 export const atom_pomodoroPosition = atomWithStorage<{ x: number; y: number }>("pomodoroPosition", { x: 16, y: 16 });
 // Optional: atom for drag state

@@ -1,11 +1,6 @@
 "use client";
 
-import {
-  atom_files,
-  atom_canOpenMoreFiles,
-  atom_selectedFileId,
-  OpenFile,
-} from "@/app/atoms/atoms";
+import { atom_files, atom_selectedFileId, OpenFile } from "@/app/atoms/atoms";
 import DialogModal from "@/app/components/DialogModal";
 import { useAtom } from "jotai";
 import React, { useEffect, useState } from "react";
@@ -19,8 +14,7 @@ import {
 import LoadingOverlay from "@/app/components/LoadingOverlay";
 import { SPINNER_LOADING_DURATION } from "@/app/constants/timer";
 import Button from "@/app/components/Button";
-import { v4 as uuidv4 } from "uuid";
-import matter from "gray-matter";
+import { createNewOpenFile } from "../editor/utils/file-utilities";
 
 type Props = {
   isOpen: boolean;
@@ -29,18 +23,9 @@ type Props = {
 
 const FileSelectionModal = ({ isOpen, handleClose }: Props) => {
   const router = useRouter();
-  const [files, setFiles] = useAtom(atom_files);
-  const [canOpenMoreFiles] = useAtom(atom_canOpenMoreFiles);
+  const [, setFiles] = useAtom(atom_files);
   const [, setSelectedFileId] = useAtom(atom_selectedFileId);
   const [isLoading, setIsLoading] = useState(false);
-  const [fileList] = useState<File[]>([]);
-  const [isMounted, setIsMounted] = useState(false);
-
-  useEffect(() => setIsMounted(true), []);
-
-  if (!isMounted) {
-    return <></>;
-  }
 
   return (
     <DialogModal
@@ -79,35 +64,29 @@ const FileSelectionModal = ({ isOpen, handleClose }: Props) => {
       );
       return;
     }
-
-    let filesToOpen = Array.from(fileList);
     setIsLoading(true);
     try {
-      let firstFileId = null;
-      for (const file of filesToOpen) {
-        if (!isSelectedFileValid(file)) {
-          showErrorToast("The selected file must be a .md or a .txt file.");
-          continue;
-        }
-        const text = await file.text();
-        const { data: frontMatterData, content } = matter(text);
-        const newFileId = uuidv4();
-        const newFile: OpenFile = {
-          id: newFileId,
-          content: content,
-          contentEdited: content,
-          frontMatter: {
-            fileName: file.name || "",
-            title: frontMatterData?.title || file.name || "Untitled File",
-            description: frontMatterData?.description || "",
-            tags: frontMatterData?.tags ? frontMatterData?.tags.join(",") : "",
-          },
-          isSaved: true,
-        };
-        setFiles((prev) => [...prev, newFile]);
-        setSelectedFileId(newFileId);
-        if (!firstFileId) firstFileId = newFileId;
-      }
+      let firstFileId: string | null = null;
+
+      await Promise.all(
+        Array.from(fileList).map(async (file) => {
+          if (!isSelectedFileValid(file)) {
+            showErrorToast("The selected file must be a .md or a .txt file.");
+            return;
+          }
+          const fileData = await getFileDataFromInput(file);
+          if (!fileData) return;
+          const newFile = createNewOpenFile({
+            content: fileData.content,
+            fileName: fileData.filename,
+            frontMatter: fileData.frontMatter,
+            isSaved: true,
+          });
+          setFiles((prevFiles) => [...prevFiles, newFile]);
+          setSelectedFileId(newFile.id);
+          if (!firstFileId) firstFileId = newFile.id;
+        }),
+      );
       if (firstFileId) {
         router.push("/dashboard/editor");
         setTimeout(() => {
