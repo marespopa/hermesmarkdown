@@ -4,7 +4,6 @@ import { useCallback, useEffect, useRef } from "react";
 import {
   atom_currentFile,
   atom_files,
-  atom_hasChanges,
   atom_selectedFileId,
   Frontmatter,
   OpenFile,
@@ -18,8 +17,6 @@ type EditorFilesResult = {
   selectedFileId: string | null;
   setSelectedFileId: (id: string | null) => void;
   currentFile: OpenFile | null;
-  hasChanges: boolean;
-  setHasChanges: (hasChanges: boolean) => void;
   contentEdited: string;
   frontMatter: Frontmatter;
   fileTitle: string;
@@ -33,8 +30,6 @@ const useEditorFiles = (): EditorFilesResult => {
   const [hydrated, setHydrated] = useState(false);
   const [selectedFileId, setSelectedFileId] = useAtom(atom_selectedFileId);
   const [currentFile] = useAtom(atom_currentFile);
-  const [hasChanges] = useAtom(atom_hasChanges);
-  const [, setHasChanges] = useAtom(atom_hasChanges);
   const didInitFileRef = useRef(false);
 
   const frontMatter = currentFile?.frontMatter || {
@@ -82,16 +77,8 @@ const useEditorFiles = (): EditorFilesResult => {
 
     setFiles([newFile]);
     setSelectedFileId(newFileId);
-    setHasChanges(false);
     didInitFileRef.current = true;
-  }, [
-    hydrated,
-    currentFile,
-    files,
-    selectedFileId,
-    setSelectedFileId,
-    setHasChanges,
-  ]);
+  }, [hydrated, currentFile, files, selectedFileId, setSelectedFileId]);
 
   const updateCurrentFileContent = useCallback(
     (newContent: string) => {
@@ -103,9 +90,8 @@ const useEditorFiles = (): EditorFilesResult => {
           : file,
       );
       setFiles(updatedFiles);
-      setHasChanges(true);
     },
-    [currentFile, setHasChanges],
+    [currentFile],
   );
 
   const updateCurrentFileFrontMatter = useCallback(
@@ -118,9 +104,8 @@ const useEditorFiles = (): EditorFilesResult => {
           : file,
       );
       setFiles(updatedFiles);
-      setHasChanges(true);
     },
-    [currentFile, files, setFiles, setHasChanges],
+    [currentFile, files, setFiles],
   );
 
   return {
@@ -129,8 +114,6 @@ const useEditorFiles = (): EditorFilesResult => {
     selectedFileId,
     setSelectedFileId,
     currentFile,
-    hasChanges,
-    setHasChanges,
     contentEdited,
     frontMatter,
     fileTitle,
@@ -138,6 +121,6 @@ const useEditorFiles = (): EditorFilesResult => {
     updateCurrentFileContent,
     updateCurrentFileFrontMatter,
   };
-}
+};
 
 export default useEditorFiles;

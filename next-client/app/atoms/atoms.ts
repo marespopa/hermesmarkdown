@@ -73,7 +73,6 @@ export const atom_sidebarCollapsed = atomWithStorage<boolean>(
   "sidebarCollapsed",
   false,
 );
-export const atom_hasChanges = atom(false);
 export const atom_isSaved = atom(false);
 
 // Backward compatibility atoms (deprecated, kept for migration)

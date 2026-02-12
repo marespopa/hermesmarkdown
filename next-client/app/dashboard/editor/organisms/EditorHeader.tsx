@@ -5,7 +5,6 @@ import { useAtom } from "jotai";
 import { useEffect, useRef, useState } from "react";
 import EditorForm from "./EditorForm";
 import { FileMetadata } from "@/app/types/markdown";
-import { atom_hasChanges } from "@/app/atoms/atoms";
 import ExportService from "@/app/services/export-service";
 import useIsMobile from "@/app/hooks/use-is-mobile";
 import { showSuccessToast, showErrorToast } from "@/app/components/Toastr";
@@ -15,12 +14,10 @@ import PDFPreviewDialog from "./PDFPreviewDialog";
 import ShortcutsDialog from "./ShortcutsDialog";
 import ActionsMobileMenu from "./ActionsMobileMenu";
 import FindBar from "../molecules/FindBar";
-import PromptCommandBar from "./PromptCommandBar";
 
 interface Props {
   contentEdited: string;
   frontMatter: FileMetadata;
-  hasChanges: boolean;
   onInsertTemplate: (template: string) => void;
   actions: {
     handleNewFile: () => void;
@@ -41,7 +38,6 @@ interface Props {
 export default function EditorHeader({
   contentEdited,
   frontMatter,
-  hasChanges,
   onInsertTemplate,
   actions,
   searchTerm,
@@ -54,7 +50,6 @@ export default function EditorHeader({
 }: Props) {
   const [isFormatterDialogOpen, setIsFormatterDialogOpen] = useState(false);
   const [isFabMenuOpen, setIsFabMenuOpen] = useState(false);
-  const [, setHasChanges] = useAtom(atom_hasChanges);
   const isMobile = useIsMobile();
   const findInputRef = useRef<HTMLInputElement>(null);
   const [showFindBar, setShowFindBar] = useState(false);
@@ -165,7 +160,6 @@ export default function EditorHeader({
           fileTitle={fileTitle}
           fileName={safeFileName}
           hasTitle={hasTitle}
-          hasChanges={hasChanges}
           showFileDialog={showFileDialog}
           renderFontMenu={() => null}
           renderFontSizeMenu={() => null}
@@ -260,7 +254,6 @@ export default function EditorHeader({
   async function exportToMD() {
     try {
       await ExportService.exportMarkdown(contentEdited, frontMatter);
-      setHasChanges(false); // Clear unsaved changes after successful export
     } catch (error) {
       showErrorToast("File could not be exported");
       console.error(error);

@@ -1,6 +1,6 @@
 "use client";
 
-import { atom_currentFile, atom_files, atom_hasChanges } from "@/app/atoms/atoms";
+import { atom_currentFile, atom_files } from "@/app/atoms/atoms";
 import Button from "@/app/components/Button";
 import DialogModal from "@/app/components/DialogModal";
 import Input from "@/app/components/Input";
@@ -18,16 +18,19 @@ interface Props {
 type Timeout = ReturnType<typeof setTimeout> | null;
 
 export default function EditorForm({ isOpened, handleClose }: Props) {
-  const [, setHasChanges] = useAtom(atom_hasChanges);
   const [currentFile] = useAtom(atom_currentFile);
   const [files, setFiles] = useAtom(atom_files);
-  const [saveState, setSaveState] = useState<'none' | 'saving' | 'saved'>("none");
-  const [localFrontMatterData, setLocalFrontMatterData] = useState(currentFile?.frontMatter || {
-    title: "",
-    description: "",
-    fileName: "file",
-    tags: "",
-  });
+  const [saveState, setSaveState] = useState<"none" | "saving" | "saved">(
+    "none",
+  );
+  const [localFrontMatterData, setLocalFrontMatterData] = useState(
+    currentFile?.frontMatter || {
+      title: "",
+      description: "",
+      fileName: "file",
+      tags: "",
+    },
+  );
   const savingTimeout = useRef<Timeout>(null);
   const savedTimeout = useRef<Timeout>(null);
 
@@ -42,35 +45,35 @@ export default function EditorForm({ isOpened, handleClose }: Props) {
     const element = e.currentTarget as HTMLInputElement | HTMLTextAreaElement;
     const value = element.value;
     setLocalFrontMatterData((prev) => ({ ...prev, [field]: value }));
-    setHasChanges(true);
     setSaveState("none");
   };
 
   const handleSave = (e: FormEvent) => {
     e.preventDefault();
-    
+
     if (!currentFile) return;
-    
+
     // Update current file with new frontmatter
-    const updatedFiles = files.map(f =>
+    const updatedFiles = files.map((f) =>
       f.id === currentFile.id
         ? { ...f, frontMatter: localFrontMatterData, isSaved: false }
-        : f
+        : f,
     );
     setFiles(updatedFiles);
-    
+
     setSaveState("saving");
-    setHasChanges(false);
     if (savingTimeout.current) clearTimeout(savingTimeout.current);
     if (savedTimeout.current) clearTimeout(savedTimeout.current);
-    
+
     savingTimeout.current = setTimeout(() => {
       setSaveState("saved");
       showSaveStateToast("saved");
     }, 800);
   };
 
-  const hasUnsavedChanges = JSON.stringify(localFrontMatterData) !== JSON.stringify(currentFile?.frontMatter);
+  const hasUnsavedChanges =
+    JSON.stringify(localFrontMatterData) !==
+    JSON.stringify(currentFile?.frontMatter);
 
   return (
     <DialogModal isOpened={isOpened} onClose={handleClose}>

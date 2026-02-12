@@ -5,7 +5,6 @@ interface TitleFileInfoProps {
   fileTitle: string;
   fileName: string;
   hasTitle: boolean;
-  hasChanges: boolean;
   showFileDialog: () => void;
   renderFontMenu: () => React.ReactNode;
   renderFontSizeMenu: () => React.ReactNode;
@@ -15,7 +14,6 @@ const TitleFileInfo: React.FC<TitleFileInfoProps> = ({
   fileTitle,
   fileName,
   hasTitle,
-  hasChanges,
   showFileDialog,
   renderFontMenu,
   renderFontSizeMenu,
@@ -24,11 +22,13 @@ const TitleFileInfo: React.FC<TitleFileInfoProps> = ({
     <div className="flex flex-row items-center gap-2 min-w-0 justify-center sm:justify-start sm:mt-2">
       <h1 className="truncate text-xl font-semibold text-black dark:text-white leading-tight text-center sm:text-left">
         {hasTitle && `${fileTitle}`}
-        {hasChanges && (
-          <span className="ml-2 text-amber-500 align-middle" title="Unsaved changes">•</span>
-        )}
       </h1>
-      <span className="cursor-pointer" onClick={showFileDialog} title="Edit Title" aria-label="Edit Title">
+      <span
+        className="cursor-pointer"
+        onClick={showFileDialog}
+        title="Edit Title"
+        aria-label="Edit Title"
+      >
         <FaPen />
       </span>
     </div>
@@ -43,4 +43,4 @@ const TitleFileInfo: React.FC<TitleFileInfoProps> = ({
   </div>
 );
 
-export default TitleFileInfo; 
+export default TitleFileInfo;

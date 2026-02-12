@@ -13,7 +13,6 @@ import useIsMobile from "@/app/hooks/use-is-mobile";
 interface Props {
   contentEdited: string;
   setContentEdited: (content: string) => void;
-  setHasChanges: (hasChanges: boolean) => void;
   fontFamily: string;
   fontSize: string;
   searchTerm?: string;
@@ -26,7 +25,6 @@ interface Props {
 export default function EditorContent({
   contentEdited,
   setContentEdited,
-  setHasChanges,
   fontFamily,
   fontSize,
   searchTerm,
@@ -36,7 +34,7 @@ export default function EditorContent({
   onTextareaReady,
 }: Props) {
   const isMobile = useIsMobile();
-  const [isTimerVisible]  = useAtom(atom_showTimer);
+  const [isTimerVisible] = useAtom(atom_showTimer);
 
   // Calculate word count, token estimate, and prompt clarity
   const stats = useMemo(() => {
@@ -69,7 +67,6 @@ export default function EditorContent({
             value={contentEdited}
             onChange={(val) => {
               setContentEdited(val);
-              setHasChanges(true);
             }}
             fontFamily={fontFamily}
             fontSize={fontSize}

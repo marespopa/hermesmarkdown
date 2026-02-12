@@ -50,17 +50,12 @@ export default function Editor() {
   const {
     files,
     setFiles,
-    selectedFileId,
     setSelectedFileId,
     currentFile,
-    hasChanges,
-    setHasChanges,
     contentEdited,
     frontMatter,
     fileTitle,
-    fileName,
     updateCurrentFileContent,
-    updateCurrentFileFrontMatter,
   } = useEditorFiles();
 
   const { menuPosition, handleTextareaReady, closePromptMenu, insertTemplate } =
@@ -273,13 +268,11 @@ export default function Editor() {
   const handleInsertTable = (markdownTable: string) => {
     const newContent = contentEdited + "\n\n" + markdownTable + "\n\n";
     updateCurrentFileContent(newContent);
-    setHasChanges(true);
   };
 
   const handleReplaceTable = (oldTable: string, newTable: string) => {
     const newContent = contentEdited.replace(oldTable, newTable);
     updateCurrentFileContent(newContent);
-    setHasChanges(true);
   };
 
   const handleCopyPrompt = async () => {
@@ -304,11 +297,10 @@ export default function Editor() {
           : f,
       );
       setFiles(updatedFiles);
-      setHasChanges(false);
     } catch (error) {
       console.error(error);
     }
-  }, [currentFile, files, setHasChanges]);
+  }, [currentFile, files]);
 
   const handlePdfExport = useCallback(async () => {
     if (!currentFile) return;
@@ -352,7 +344,6 @@ export default function Editor() {
                   <EditorContent
                     contentEdited={contentEdited}
                     setContentEdited={updateCurrentFileContent}
-                    setHasChanges={setHasChanges}
                     fontFamily={fontFamily}
                     fontSize={fontSize}
                     searchTerm={searchTerm}
@@ -389,7 +380,6 @@ export default function Editor() {
         <EditorHeader
           contentEdited={contentEdited}
           frontMatter={frontMatter}
-          hasChanges={hasChanges}
           onInsertTemplate={handleInsertTemplate}
           actions={{
             handleNewFile,
@@ -411,7 +401,6 @@ export default function Editor() {
           <EditorContent
             contentEdited={contentEdited}
             setContentEdited={updateCurrentFileContent}
-            setHasChanges={setHasChanges}
             fontFamily={fontFamily}
             fontSize={fontSize}
             searchTerm={searchTerm}
