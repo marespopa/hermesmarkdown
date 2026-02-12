@@ -71,10 +71,6 @@ export default function EditorForm({ isOpened, handleClose }: Props) {
     }, 800);
   };
 
-  const hasUnsavedChanges =
-    JSON.stringify(localFrontMatterData) !==
-    JSON.stringify(currentFile?.frontMatter);
-
   return (
     <DialogModal isOpened={isOpened} onClose={handleClose}>
       <form className="mt-8 max-w-xl" onSubmit={handleSave}>
@@ -116,7 +112,6 @@ export default function EditorForm({ isOpened, handleClose }: Props) {
             variant="primary"
             type="submit"
             label="Save"
-            disabled={!hasUnsavedChanges}
           />
           <Button
             variant="secondary"

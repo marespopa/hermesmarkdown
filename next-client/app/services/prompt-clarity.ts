@@ -11,168 +11,165 @@ export interface ClarityResult {
 export function analyzePromptClarity(text: string): ClarityResult {
   const tips: string[] = [];
   let score = 0;
-  
-  // Remove YAML frontmatter for analysis
-  const content = text.replace(/^---[\s\S]*?---\n?/, '').trim();
+
+  // 1. Pre-processing & Basic Metrics
+  const content = text.replace(/^---[\s\S]*?---\n?/, "").trim();
   const words = content.split(/\s+/).filter(Boolean);
   const wordCount = words.length;
-  
-  // 1. Length check (0-15 points)
+
+  if (wordCount === 0) {
+    return {
+      score: 0,
+      label: "Start writing",
+      color: "text-neutral-400",
+      tips: ["Enter some text to begin"],
+    };
+  }
+
+  // 2. Length check (0-15 points)
   if (wordCount >= 50) score += 15;
   else if (wordCount >= 25) score += 12;
   else if (wordCount >= 10) score += 8;
-  else if (wordCount > 0) {
+  else {
     score += 4;
     tips.push("Add more details");
   }
-  
-  // 2. Action verbs present (0-15 points)
-  const actionVerbsRegex = /\b(explain|describe|investigate|propose|list|generate|write|create|analyze|summarize|compare|identify|provide|outline|define|suggest|recommend|evaluate|review|implement|design|develop|build|fix|improve|refactor|translate|convert|extract|format|rephrase|rewrite|edit|revise|simplify|elaborate|clarify|debug|optimize|validate|verify|check|test|assess|critique|categorize|classify|organize|sort|rank|prioritize|plan|draft|compose|proofread|correct|paraphrase|condense|expand|transform|adapt|modify|calculate|solve|answer|research|find|brainstorm|predict|estimate|demonstrate|illustrate|diagram|structure|guide|instruct|teach|advise|update|apply|change|do it|confirm|execute|run|perform|process|make|set|add|remove|delete|insert|replace|merge|split|copy|move|rename)\b/gi;
+
+  // 3. Action verbs (0-15 points)
+  const actionVerbsRegex =
+    /\b(explain|describe|investigate|propose|list|generate|write|create|analyze|summarize|compare|identify|provide|outline|define|suggest|recommend|evaluate|review|implement|design|develop|build|fix|improve|refactor|translate|convert|extract|format|rephrase|rewrite|edit|revise|simplify|elaborate|clarify|debug|optimize|validate|verify|check|test|assess|critique|categorize|classify|organize|sort|rank|prioritize|plan|draft|compose|proofread|correct|paraphrase|condense|expand|transform|adapt|modify|calculate|solve|answer|research|find|brainstorm|predict|estimate|demonstrate|illustrate|diagram|structure|guide|instruct|teach|advise|update|apply|change|confirm|execute|run|perform|process|make|set|add|remove|delete|insert|replace|merge|split|copy|move|rename)\b/gi;
   const actionVerbMatches = content.match(actionVerbsRegex) || [];
-  const hasActionVerbs = actionVerbMatches.length > 0;
-  
-  if (hasActionVerbs) {
+  if (actionVerbMatches.length > 0) {
     score += 15;
-  } else if (wordCount > 5) {
-    tips.push("Add an action verb");
+  } else {
+    tips.push("Add an action verb (e.g., 'Analyze' or 'Draft')");
   }
-  
-  // 3. Persona / Role-playing bonus (0-15 points)
-  // Role-playing is a primary driver for LLM accuracy
-  const personaPattern = /\b(act as|you are|you're a|pretend you're|imagine you're|role:|persona:|as a|behave like|take the role|assume the role|speaking as|from the perspective of)\b/i;
+
+  // 4. Persona / Role-playing (0-15 points)
+  const personaPattern =
+    /\b(act as|you are|you're a|pretend you're|imagine you're|role:|persona:|as a|behave like|take the role|assume the role|speaking as|from the perspective of)\b/i;
   if (personaPattern.test(content)) {
     score += 15;
-  } else if (wordCount > 15) {
-    tips.push("Assign a role");
+  } else {
+    tips.push("Assign a persona (e.g., 'Act as a senior dev')");
   }
-  
-  // 4. Negative constraints - prevents AI chatter (0-10 points)
-  const negativeConstraints = /\b(do not|don't|never|avoid|skip|omit|exclude|no need to|without|refrain from|don't include|don't mention|no explanations|no preamble|no intro|be concise|be brief|keep it short)\b/i;
+
+  // 5. Negative constraints (0-10 points)
+  const negativeConstraints =
+    /\b(do not|don't|never|avoid|skip|omit|exclude|no need to|without|refrain from|don't include|don't mention|no explanations|no preamble|no intro|be concise|be brief|keep it short)\b/i;
   if (negativeConstraints.test(content)) {
     score += 10;
-  } else if (wordCount > 25) {
-    tips.push("Say what to skip");
+  } else if (wordCount > 20) {
+    tips.push("Add negative constraints (what to avoid)");
   }
-  
-  // 5. Specificity check - penalize vague/filler words (0-10 points)
-  // Actively discourages filler words that reduce prompt quality
-  const vagueWords = /\b(good|nice|better|best|thing|things|stuff|somehow|something|anything|whatever|etc|maybe|probably|kind of|sort of|really|very|just|actually|basically|literally|simply|really|quite|pretty much|more or less|in general|overall)\b/gi;
+
+  // 6. Specificity & Filler words (0-10 points)
+  const vagueWords =
+    /\b(good|nice|better|best|thing|things|stuff|somehow|something|anything|whatever|etc|maybe|probably|kind of|sort of|really|very|just|actually|basically|literally|simply|quite|pretty much|more or less|in general)\b/gi;
   const vagueMatches = content.match(vagueWords) || [];
   if (vagueMatches.length === 0) {
     score += 10;
-  } else if (vagueMatches.length <= 1) {
-    score += 6;
-    tips.push(`Remove "${vagueMatches[0]}"`);
   } else {
-    tips.push(`Remove filler words`);
+    tips.push(
+      vagueMatches.length === 1
+        ? `Remove "${vagueMatches[0]}"`
+        : "Remove filler words",
+    );
   }
-  
-  // 6. Structure indicators (0-10 points)
-  const hasStructure = /(\n[-*]\s|\n\d+\.\s|#{1,3}\s|:\s*\n|```|format:|output:|context:|task:|role:|constraints:)/i.test(content);
+
+  // 7. Structure & Formatting (0-10 points)
+  const hasStructure =
+    /(\n[-*]\s|\n\d+\.\s|#{1,3}\s|:\s*\n|```|format:|output:|context:|task:|role:|constraints:)/i.test(
+      content,
+    );
   if (hasStructure) {
     score += 10;
   } else if (wordCount > 30) {
-    tips.push("Use lists or headers");
+    tips.push("Use markdown or lists for structure");
   }
-  
-  // 7. Output format specified (0-10 points)
-  const hasOutputFormat = /\b(json|markdown|list|table|bullet|code|paragraph|steps|summary|plain text|text|html|xml|csv|yaml|numbered|outline|diagram|chart|report|response|answer as|format as|return as|output as|provide as|output contract|format:|output:|respond in|reply with|reply as|response format|in the form of)\b/i.test(content);
+
+  // 8. Output format (0-10 points)
+  const hasOutputFormat =
+    /\b(json|markdown|list|table|bullet|code|paragraph|steps|summary|plain text|html|xml|csv|yaml|outline|diagram|report)\b/i.test(
+      content,
+    );
   if (hasOutputFormat) {
     score += 10;
-  } else if (wordCount > 20) {
-    tips.push("Specify output format");
-  }
-  
-  // 8. Context or constraints present (0-10 points)
-  const hasContext = /\b(context|background|assume|given|constraint|requirement|must|should|limit|audience|tone|style|scenario|situation)\b/i.test(content);
-  if (hasContext) {
-    score += 10;
-  } else if (wordCount > 20) {
-    tips.push("Add context or limits");
-  }
-  
-  // 9. Variable/template awareness (0-5 points)
-  // Encourages reusable templates rather than one-off chats
-  const variablePattern = /(\{\{[\w\s-]+\}\}|\{[\w\s-]+\}|\[[\w\s-]+\]|<[\w\s-]+>|\$\{[\w\s-]+\}|%[\w]+%)/;
-  if (variablePattern.test(content)) {
-    score += 5;
-  }
-  
-  // 10. Delimiter Detection (+10 pts) - XML-style tags or clear section delimiters
-  const delimiterPattern = /(<(\w+)>[\s\S]*?<\/\2>|\[[\w\s]+\]:?|###\s?[\w\s]+)/i;
-  if (delimiterPattern.test(content)) {
-    score += 10;
-  } else if (wordCount > 40) {
-    tips.push("Add section markers");
-  }
-  
-  // 11. Reasoning Bonus (+10 pts) - Chain-of-Thought indicators
-  const reasoningPattern = /\b(step\s?\d+|first|then|finally|think\s?step\s?by\s?step|reasoning|let's think|break down|walk through)\b/i;
-  if (reasoningPattern.test(content)) {
-    score += 10;
-  } else if (wordCount > 30) {
-    tips.push("Add reasoning steps");
-  }
-  
-  // 12. Instruction Density Check - ratio of action verbs to word count
-  if (wordCount > 50) {
-    const instructionDensity = actionVerbMatches.length / wordCount;
-    if (instructionDensity < 0.05) {
-      tips.push("Too wordy, trim it down");
-    }
-  }
-  
-  // 13. Structural Penalty - Large prompts without structure
-  if (wordCount > 100 && !hasStructure) {
-    score -= 10;
-    tips.push("Add headers for clarity");
-  }
-  
-  // Clamp score between 0 and 100
-  score = Math.max(0, Math.min(100, score));
-  
-  // Determine label and color based on 6-tier scoring system
-  if (wordCount === 0) {
-    return { score: 0, label: "Start writing", color: "text-neutral-400", tips: [] };
-  }
-  
-  // Limit tips to top 3 most impactful
-  let finalTips = tips.slice(0, 3);
-  
-  // Top tier reward
-  if (score >= 90) {
-    finalTips = ["Prompt optimized for consistent results"];
-  }
-  
-  if (score >= 90) {
-    return { score, label: "Ready to use", color: "text-emerald-500", tips: finalTips };
-  } else if (score >= 75) {
-    return { score, label: "Looking good", color: "text-green-500", tips: finalTips };
-  } else if (score >= 60) {
-    return { score, label: "Getting there", color: "text-blue-500", tips: finalTips };
-  } else if (score >= 45) {
-    return { score, label: "Almost there", color: "text-amber-500", tips: finalTips };
-  } else if (score >= 20) {
-    return { score, label: "Needs work", color: "text-orange-500", tips: finalTips };
   } else {
-    return { score, label: "Just started", color: "text-red-500", tips: finalTips };
+    tips.push("Specify a clear output format");
   }
+
+  // 9. Advanced: Context, Variables, Delimiters, Reasoning (Up to 35 potential bonus)
+  const hasContext =
+    /\b(context|background|assume|given|constraint|requirement|limit|audience|tone|style)\b/i.test(
+      content,
+    );
+  if (hasContext) score += 10;
+
+  const hasVariables =
+    /(\{\{[\w\s-]+\}\}|\{[\w\s-]+\}|\[[\w\s-]+\]|<[\w\s-]+>)/.test(content);
+  if (hasVariables) score += 5;
+
+  const hasDelimiters =
+    /(<(\w+)>[\s\S]*?<\/\2>|\[[\w\s]+\]:?|###\s?[\w\s]+)/i.test(content);
+  if (hasDelimiters) score += 10;
+
+  const hasReasoning =
+    /\b(step\s?\d+|first|then|finally|think\s?step\s?by\s?step|reasoning|break down)\b/i.test(
+      content,
+    );
+  if (hasReasoning) score += 10;
+
+  // 10. Clamp and Finalize Tips
+  score = Math.max(0, Math.min(100, score));
+
+  // ENSURE A TIP ALWAYS EXISTS if score < 90
+  if (tips.length === 0 && score < 90) {
+    if (!hasReasoning) tips.push("Ask the AI to 'think step-by-step'");
+    else if (!hasContext) tips.push("Define the target audience");
+    else tips.push("Add specific examples of desired output");
+  }
+
+  let finalTips = tips.slice(0, 3);
+  if (score >= 90) finalTips = ["Prompt optimized for consistent results"];
+
+  // 11. Tiered Return
+  const getTier = (s: number) => {
+    if (s >= 90) return { label: "Ready to use", color: "text-emerald-500" };
+    if (s >= 75) return { label: "Looking good", color: "text-green-500" };
+    if (s >= 60) return { label: "Getting there", color: "text-blue-500" };
+    if (s >= 45) return { label: "Almost there", color: "text-amber-500" };
+    if (s >= 20) return { label: "Needs work", color: "text-orange-500" };
+    return { label: "Just started", color: "text-red-500" };
+  };
+
+  const tier = getTier(score);
+  return { score, ...tier, tips: finalTips };
 }
 
 // Helper to get the dot color class based on clarity label
 export function getClarityDotColor(label: string): string {
   switch (label) {
-    case 'Ready to use': return 'bg-emerald-500';
-    case 'Looking good': return 'bg-green-500';
-    case 'Getting there': return 'bg-blue-500';
-    case 'Almost there': return 'bg-amber-500';
-    case 'Needs work': return 'bg-orange-500';
-    case 'Just started': return 'bg-red-500';
-    default: return 'bg-neutral-400';
+    case "Ready to use":
+      return "bg-emerald-500";
+    case "Looking good":
+      return "bg-green-500";
+    case "Getting there":
+      return "bg-blue-500";
+    case "Almost there":
+      return "bg-amber-500";
+    case "Needs work":
+      return "bg-orange-500";
+    case "Just started":
+      return "bg-red-500";
+    default:
+      return "bg-neutral-400";
   }
 }
 
-export function getEstimatedTokens(promptText: string | null | undefined): number {
+export function getEstimatedTokens(
+  promptText: string | null | undefined,
+): number {
   if (!promptText) return 0;
 
   // 1. Handle whitespace/empty cases
@@ -209,4 +206,4 @@ export function getEstimatedTokens(promptText: string | null | undefined): numbe
 
   // Safety ceiling: Add a small buffer for potential BOS/EOS overhead
   return Math.ceil(totalTokens);
-};
+}
