@@ -24,7 +24,7 @@ import Button from "@/app/components/Button";
 import ExportService from "@/app/services/export-service";
 import TableEditorModal from "./TableEditorModal";
 import { showCopyToast, showErrorToast } from "@/app/components/Toastr";
-import { FileTabs } from "../molecules/FileTabs";
+import FileTabs from "../molecules/FileTabs";
 import { v4 as uuidv4 } from "uuid";
 import { copyCleanPrompt } from "@/app/services/prompt-utils";
 

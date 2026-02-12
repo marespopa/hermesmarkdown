@@ -4,7 +4,7 @@ import {
   analyzePromptClarity,
   getEstimatedTokens,
 } from "@/app/services/prompt-clarity";
-import ClarityStatusBar from "../molecules/ClarityStatusBar";
+import EditorStatusBar from "../molecules/EditorStatusBar";
 import { StatusBarTimer } from "@/app/components/Timer/StatusBarTimer";
 import { useAtom } from "jotai";
 import { atom_showTimer } from "@/app/atoms/atoms";
@@ -53,10 +53,10 @@ export default function EditorContent({
       }`}
     >
       <div
-        className={`flex-1 min-h-0 w-full px-2 py-2 flex flex-col ${
+        className={`flex-1 min-h-0 w-full px-2 py-2 flex flex-col h-full bg-white dark:bg-neutral-900 shadow-xl border border-neutral-200 dark:border-neutral-700 overflow-hidden relative ${
           zenMode
-            ? "h-full overflow-y-auto rounded-2xl bg-white dark:bg-neutral-900 p-4"
-            : "h-full max-h-[calc(100vh-240px)] overflow-hidden bg-white dark:bg-neutral-800 rounded-2xl shadow-lg border border-strongblack dark:border-white/20"
+            ? "rounded-2xl p-4 overflow-y-auto"
+            : "max-h-[calc(100vh-240px)] rounded-xl"
         }`}
       >
         {/* Timer docked here */}
@@ -78,7 +78,7 @@ export default function EditorContent({
         </div>
 
         {/* Status Bar */}
-        <ClarityStatusBar stats={stats} />
+        <EditorStatusBar stats={stats} />
       </div>
     </div>
   );

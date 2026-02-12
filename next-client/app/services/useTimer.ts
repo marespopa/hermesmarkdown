@@ -17,14 +17,20 @@ export function useTimer(initialMinutes: number = 25) {
       setIsActive(false);
       // Trigger a subtle notification/sound here
       if (typeof window !== "undefined" && "Notification" in window) {
-        if (Notification.permission === "granted") {
-          new Notification("Focus session complete!");
-        } else if (Notification.permission !== "denied") {
-          Notification.requestPermission().then((permission) => {
-            if (permission === "granted") {
-              new Notification("Focus session complete!");
-            }
-          });
+        // Only use Notification constructor if not in a Service Worker context
+        try {
+          if (window.Notification.permission === "granted") {
+            new window.Notification("Focus session complete!");
+          } else if (window.Notification.permission !== "denied") {
+            window.Notification.requestPermission().then((permission) => {
+              if (permission === "granted") {
+                new window.Notification("Focus session complete!");
+              }
+            });
+          }
+        } catch (e) {
+          // Fallback: show alert if Notification fails (e.g., in Turbopack/SSR context)
+          alert("Focus session complete!");
         }
       }
     }

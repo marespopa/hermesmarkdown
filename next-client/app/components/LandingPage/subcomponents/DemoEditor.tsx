@@ -4,8 +4,11 @@ import { useState, useRef, useMemo, useCallback } from "react";
 import MarkdownEditor from "../../../dashboard/editor/organisms/MarkdownEditor";
 import { useAtom } from "jotai";
 import { atom_fontFamily, atom_fontSize } from "@/app/atoms/atoms";
-import ClarityStatusBar from "@/app/dashboard/editor/molecules/ClarityStatusBar";
-import { analyzePromptClarity, getEstimatedTokens } from "@/app/services/prompt-clarity";
+import EditorStatusBar from "@/app/dashboard/editor/molecules/EditorStatusBar";
+import {
+  analyzePromptClarity,
+  getEstimatedTokens,
+} from "@/app/services/prompt-clarity";
 import { usePromptMenu } from "@/app/dashboard/editor/hooks/use-prompt-menu";
 import PromptCommandBar from "@/app/dashboard/editor/organisms/PromptCommandBar";
 
@@ -42,14 +45,14 @@ export default function DemoEditor({ className = "" }: DemoEditorProps) {
     (template: string) => {
       insertTemplate(template);
     },
-    [insertTemplate]
+    [insertTemplate],
   );
 
   const handleClosePromptCommandBar = useCallback(() => {
     closePromptMenu({ removeSlash: true });
     requestAnimationFrame(() => {
       const textarea = document.getElementById(
-        "markdown-editor"
+        "markdown-editor",
       ) as HTMLTextAreaElement | null;
       textarea?.focus({ preventScroll: true });
     });
@@ -117,7 +120,7 @@ export default function DemoEditor({ className = "" }: DemoEditorProps) {
           </div>
         )}
       </div>
-      <ClarityStatusBar stats={clarityStats} />
+      <EditorStatusBar stats={clarityStats} />
     </div>
   );
 }

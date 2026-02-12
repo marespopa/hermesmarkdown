@@ -38,33 +38,32 @@ export const StatusBarTimer = () => {
     reset();
   };
 
-  let timerColor = "text-neutral-500";
-  let timerAnimation = "";
+  let timerColor = "text-neutral-400";
+
   if (isActive) {
-    timerColor = "text-neutral-300";
+    timerColor = "text-neutral-200";
   } else if (timeLeft === 0) {
-    timerColor = "text-red-500";
+    timerColor = "text-amber-500";
   }
 
   return (
     <div
-      className={`flex items-center justify-end gap-2 font-jetbrains-mono text-sm cursor-pointer select-none ${timerColor} ${timerAnimation}`}
-      title="Click to start/pause, Double-click to reset"
+      className={`flex items-center justify-end text-xs gap-1 ${timerColor} cursor-pointer`}
       onClick={handleToggle}
       onDoubleClick={handleReset}
     >
       {/* Timer Icon */}
-      <span>
+      <span className="cursor-pointer">
         {isActive ? (
-          <FaPause className="w-[14px] h-[14px]" />
+          <FaPause className="w-[10px] h-[10px]" />
         ) : timeLeft === 0 ? (
-          <FaStop className="w-[14px] h-[14px]" />
+          <FaStop className="w-[10px] h-[10px]" />
         ) : (
-          <FaPlay className="w-[14px] h-[14px]" />
+          <FaPlay className="w-[10px] h-[10px]" />
         )}
       </span>
       <span>{formatTime()}</span>
-      <span className="ml-1" onClick={handleReset} title="Reset">
+      <span className="cursor-pointer ml-1" onClick={handleReset} title="Reset">
         <FaRedo className="w-[14px] h-[14px]" />
       </span>
     </div>

@@ -1,3 +1,4 @@
+import { StatusBarTimer } from "@/app/components/Timer/StatusBarTimer";
 import {
   ClarityResult,
   getClarityDotColor,
@@ -11,9 +12,9 @@ interface Props {
   };
 }
 
-const ClarityStatusBar = ({ stats }: Props) => {
+const EditorStatusBar = ({ stats }: Props) => {
   return (
-    <div className="flex-shrink-0 px-4 py-2 border-t border-neutral-200 dark:border-neutral-700 flex items-center justify-between text-xs text-neutral-500 dark:text-neutral-400 bg-neutral-50 dark:bg-neutral-800/50 rounded-b-2xl gap-2 flex-wrap">
+    <div className="flex-shrink-0 -mx-2 px-4 -mb-2 py-2 border-t border-neutral-200 dark:border-neutral-700 flex items-center justify-between text-xs text-neutral-500 dark:text-neutral-400 bg-neutral-50 dark:bg-neutral-800/50 rounded-b-2xl gap-2 flex-wrap">
       <span>
         {stats.words} words • ~{stats.tokens} tokens
       </span>
@@ -29,7 +30,7 @@ const ClarityStatusBar = ({ stats }: Props) => {
         >
           <span
             className={`w-1.5 h-1.5 rounded-full ${getClarityDotColor(
-              stats.clarity.label
+              stats.clarity.label,
             )}`}
           ></span>
           {stats.clarity.label}
@@ -44,4 +45,4 @@ const ClarityStatusBar = ({ stats }: Props) => {
   );
 };
 
-export default ClarityStatusBar;
+export default EditorStatusBar;
