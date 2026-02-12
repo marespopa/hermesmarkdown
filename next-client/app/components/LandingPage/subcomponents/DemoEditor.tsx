@@ -1,11 +1,11 @@
 "use client";
 
-import React, { useState, useRef, useMemo, useCallback } from "react";
+import { useState, useRef, useMemo, useCallback } from "react";
 import MarkdownEditor from "../../../dashboard/editor/organisms/MarkdownEditor";
 import { useAtom } from "jotai";
 import { atom_fontFamily, atom_fontSize } from "@/app/atoms/atoms";
 import ClarityStatusBar from "@/app/dashboard/editor/molecules/ClarityStatusBar";
-import { analyzePromptClarity } from "@/app/services/prompt-clarity";
+import { analyzePromptClarity, getEstimatedTokens } from "@/app/services/prompt-clarity";
 import { usePromptMenu } from "@/app/dashboard/editor/hooks/use-prompt-menu";
 import PromptCommandBar from "@/app/dashboard/editor/organisms/PromptCommandBar";
 
@@ -58,7 +58,7 @@ export default function DemoEditor({ className = "" }: DemoEditorProps) {
   // Calculate word count, token estimate, and prompt clarity
   const clarityStats = useMemo(() => {
     const words = content.split(/\s+/).filter(Boolean).length;
-    const tokens = Math.ceil(words * 1.35);
+    const tokens = getEstimatedTokens(content);
     const clarity = analyzePromptClarity(content);
     return { words, tokens, clarity };
   }, [content]);

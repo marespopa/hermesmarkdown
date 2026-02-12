@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import MarkdownEditor from "./MarkdownEditor";
 import {
   analyzePromptClarity,
+  getEstimatedTokens,
 } from "@/app/services/prompt-clarity";
 import ClarityStatusBar from "../molecules/ClarityStatusBar";
 import { StatusBarTimer } from "@/app/components/Timer/StatusBarTimer";
@@ -40,7 +41,7 @@ export default function EditorContent({
   // Calculate word count, token estimate, and prompt clarity
   const stats = useMemo(() => {
     const words = contentEdited.split(/\s+/).filter(Boolean).length;
-    const tokens = Math.ceil(words * 1.35);
+    const tokens = getEstimatedTokens(contentEdited);
     const clarity = analyzePromptClarity(contentEdited);
     return { words, tokens, clarity };
   }, [contentEdited]);

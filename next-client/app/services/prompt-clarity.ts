@@ -171,3 +171,42 @@ export function getClarityDotColor(label: string): string {
     default: return 'bg-neutral-400';
   }
 }
+
+export function getEstimatedTokens(promptText: string | null | undefined): number {
+  if (!promptText) return 0;
+
+  // 1. Handle whitespace/empty cases
+  const cleanedText = promptText.trim();
+  if (cleanedText.length === 0) return 0;
+
+  // 2. Patterns that typically define token boundaries in BPE
+  // - Words (letters and numbers)
+  // - Multiple spaces (often collapsed or treated as unique tokens)
+  // - Punctuation and special characters
+  const tokenMatches = cleanedText.match(/\w+|[^\w\s]|\s+/g);
+
+  if (!tokenMatches) return 0;
+
+  let totalTokens = 0;
+
+  for (const fragment of tokenMatches) {
+    const len = fragment.length;
+
+    if (/\s+/.test(fragment)) {
+      // Large blocks of whitespace are usually compressed
+      totalTokens += Math.ceil(len / 4);
+    } else if (/\w+/.test(fragment)) {
+      // For alphanumeric words:
+      // Short words (<= 4 chars) are usually 1 token.
+      // Longer words are broken down (approx 1 token per 3.5 characters).
+      totalTokens += len <= 4 ? 1 : Math.ceil(len / 3.5);
+    } else {
+      // Punctuation and symbols
+      // Common symbols are 1 token; rare Unicode may be multiple.
+      totalTokens += len <= 1 ? 1 : Math.ceil(len / 2);
+    }
+  }
+
+  // Safety ceiling: Add a small buffer for potential BOS/EOS overhead
+  return Math.ceil(totalTokens);
+};
