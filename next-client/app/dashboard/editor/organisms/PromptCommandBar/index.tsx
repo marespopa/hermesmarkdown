@@ -7,7 +7,6 @@ import AutocompletePanel from "./molecules/AutocompletePanel";
 import { PROMPT_TEMPLATES } from "./prompt-templates";
 import { useAtom } from "jotai";
 import { atom_showTimer } from "@/app/atoms/atoms";
-import { StatusBarTimer } from "@/app/components/Timer/StatusBarTimer";
 
 type Props = {
   contentEdited: string;

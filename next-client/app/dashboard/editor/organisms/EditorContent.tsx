@@ -5,7 +5,7 @@ import {
   getEstimatedTokens,
 } from "@/app/services/prompt-clarity";
 import EditorStatusBar from "../molecules/EditorStatusBar";
-import { StatusBarTimer } from "@/app/components/Timer/StatusBarTimer";
+import { StatusBarTimer } from "../molecules/StatusBarTimer";
 import { useAtom } from "jotai";
 import { atom_showTimer } from "@/app/atoms/atoms";
 import useIsMobile from "@/app/hooks/use-is-mobile";
@@ -60,7 +60,7 @@ export default function EditorContent({
         }`}
       >
         {/* Timer docked here */}
-        {!isMobile && isTimerVisible && <StatusBarTimer />}
+        {!isMobile && isTimerVisible && <StatusBarTimer isZenMode={zenMode} />}
 
         <div className="flex-1 overflow-auto">
           <MarkdownEditor

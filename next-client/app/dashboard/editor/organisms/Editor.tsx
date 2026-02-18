@@ -38,9 +38,9 @@ import { useEditorLaunchFlag } from "../hooks/use-editor-launch-flag";
 import EditorHeader from "./EditorHeader";
 import { atom_pdfPreviewOpen } from "@/app/atoms/atoms";
 import EditorContent from "./EditorContent";
-import { TimerContainer as Timer } from "@/app/components/Timer/Timer.container";
 import PromptCommandBar from "./PromptCommandBar";
 import EditorSkeleton from "@/app/components/EditorSkeleton";
+import { TimerContainer } from "@/app/components/Timer/Timer.container";
 
 export default function Editor() {
   const router = useRouter();
@@ -380,7 +380,7 @@ export default function Editor() {
 
       {/* Main Editor Layout */}
       <div className={`flex h-full flex-col gap-0 px-4 ${sidebarMargin}`}>
-        {isMobile && isTimerVisible && <Timer />}
+        {isMobile && isTimerVisible && <TimerContainer />}
         {/* Top-right toolbar: Zen Mode button */}
         {!isMobile && (
           <div className="absolute top-4 right-4 flex items-center gap-2 z-10">

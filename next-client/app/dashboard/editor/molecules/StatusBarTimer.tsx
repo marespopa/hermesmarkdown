@@ -1,48 +1,74 @@
 import React from "react";
+import useSound from "use-sound";
+import { useAtom } from "jotai";
+import { atom_timerSettings } from "@/app/atoms/atoms";
+import { FaPlay, FaPause, FaStop } from "react-icons/fa";
+import { FaRedo } from "react-icons/fa";
 import { useTimer } from "@/app/services/useTimer";
-import { TIMER_CONFIG } from "@/app/constants/timer";
 
-export const StatusBarTimer: React.FC = () => {
+interface Props {
+  isZenMode?: boolean;
+}
+
+export const StatusBarTimer = ({ isZenMode }: Props) => {
+  const isTest =
+    typeof window !== "undefined" &&
+    (window.Cypress || process.env.NODE_ENV === "test");
+  const volume = isTest ? 0 : 1;
+  const [playSound_stop] = useSound("/resources/sounds/notification.mp3", {
+    volume,
+  });
+  const [playSound_pause] = useSound("/resources/sounds/boop.mp3", { volume });
+  const [playSound_start] = useSound("/resources/sounds/start-tick.wav", {
+    volume,
+  });
+  const [timerSettings] = useAtom(atom_timerSettings);
   const { timeLeft, formatTime, isActive, toggle, reset } = useTimer(
-    TIMER_CONFIG.default,
+    timerSettings.durationInMin,
   );
 
-  let timerColor = "text-neutral-500";
-  let timerAnimation = "";
+  // Enhanced toggle and reset to play sounds
+  const handleToggle = () => {
+    if (isActive) {
+      playSound_pause();
+    } else {
+      playSound_start();
+    }
+    toggle();
+  };
+  const handleReset = (e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    playSound_stop();
+    reset();
+  };
+
+  let timerColor = "text-neutral-400";
+
   if (isActive) {
-    timerColor = "text-amber-500";
-    timerAnimation = "animate-pulse";
+    timerColor = "text-neutral-200";
   } else if (timeLeft === 0) {
-    timerColor = "text-red-500";
+    timerColor = "text-amber-500";
   }
 
   return (
     <div
-      className={`flex items-center gap-2 font-jetbrains-mono text-sm cursor-pointer select-none ${timerColor} ${timerAnimation}`}
-      title="Click to start/pause, Double-click to reset"
-      onClick={toggle}
-      onDoubleClick={reset}
+      className={`flex py-2 items-center ${isZenMode ? "justify-center" : "justify-end"} text-xs gap-1 ${timerColor} cursor-pointer`}
+      onClick={handleToggle}
+      onDoubleClick={handleReset}
     >
-      <span>
+      {/* Timer Icon */}
+      <span className="cursor-pointer">
         {isActive ? (
-          <svg height="14" width="14" viewBox="0 0 24 24" fill="currentColor">
-            <rect x="6" y="6" width="12" height="12" rx="2" />
-          </svg>
+          <FaPause className="w-[10px] h-[10px]" />
         ) : timeLeft === 0 ? (
-          <svg height="14" width="14" viewBox="0 0 24 24" fill="currentColor">
-            <circle cx="12" cy="12" r="10" />
-          </svg>
+          <FaStop className="w-[10px] h-[10px]" />
         ) : (
-          <svg height="14" width="14" viewBox="0 0 24 24" fill="currentColor">
-            <polygon points="8,5 19,12 8,19" />
-          </svg>
+          <FaPlay className="w-[10px] h-[10px]" />
         )}
       </span>
       <span>{formatTime()}</span>
-      <span className="ml-1" onClick={reset} title="Reset">
-        <svg height="14" width="14" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M12 2v2a8 8 0 1 1-8 8H2" />
-        </svg>
+      <span className="cursor-pointer ml-1" onClick={handleReset} title="Reset">
+        <FaRedo className="w-[14px] h-[14px]" />
       </span>
     </div>
   );
