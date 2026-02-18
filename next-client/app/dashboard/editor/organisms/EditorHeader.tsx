@@ -3,6 +3,7 @@
 import Button from "@/app/components/Button";
 import { useAtom } from "jotai";
 import { useEffect, useRef, useState } from "react";
+import { atom_pdfPreviewOpen } from "@/app/atoms/atoms";
 import EditorForm from "./EditorForm";
 import { FileMetadata } from "@/app/types/markdown";
 import ExportService from "@/app/services/export-service";
@@ -58,16 +59,10 @@ export default function EditorHeader({
   const hasTitle = fileTitle.length > 0;
   const safeFileName = fileName || "";
   const [isShortcutsOpen, setIsShortcutsOpen] = useState(false);
-  const [isPdfPreviewOpen, setIsPdfPreviewOpen] = useState(false);
+  const [isPdfPreviewOpen, setIsPdfPreviewOpen] = useAtom(atom_pdfPreviewOpen);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-    const openPdfPreview = window.localStorage.getItem("hm_open_pdf_preview");
-    if (openPdfPreview) {
-      setIsPdfPreviewOpen(true);
-      window.localStorage.removeItem("hm_open_pdf_preview");
-    }
-
     const openShortcuts = window.localStorage.getItem("hm_open_shortcuts");
     if (openShortcuts) {
       setIsShortcutsOpen(true);

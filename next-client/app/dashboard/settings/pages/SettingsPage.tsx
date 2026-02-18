@@ -59,19 +59,9 @@ export default function SettingsPage() {
     setTimerMinutes(timerSettings.durationInMin);
   }, [timerSettings.durationInMin]);
 
-  const openEditorTool = (flag: string) => {
-    if (typeof window !== "undefined") {
-      window.localStorage.setItem(flag, "1");
-    }
-    router.push("/dashboard/editor");
-  };
+  // ...existing code...
 
-  // Sidebar navigation (static for now)
-  const sidebarLinks = [
-    { key: "general", label: "General" },
-    { key: "productivity", label: "Productivity" },
-    { key: "shortcuts", label: "Shortcuts" },
-  ];
+  // ...existing code...
 
   // --- Main Render ---
   return (
@@ -193,45 +183,6 @@ export default function SettingsPage() {
                   />
                 }
               />
-            </div>
-          </section>
-
-          {/* Advanced Tools Section */}
-          <section>
-            <h2
-              className="text-lg font-semibold mb-2"
-              style={{ fontFamily: "JetBrains Mono, Fira Code, monospace" }}
-            >
-              Quick Actions
-            </h2>
-            <div className="bg-white dark:bg-neutral-900 p-4">
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                <button
-                  className="flex flex-col items-center justify-center gap-1 py-4 px-2 rounded-lg bg-neutral-50 dark:bg-neutral-800 hover:bg-amber-50 dark:hover:bg-neutral-700 border border-neutral-100 dark:border-neutral-800 transition"
-                  onClick={() => openEditorTool("hm_open_pdf_preview")}
-                >
-                  <span className="font-mono text-sm">PDF Export</span>
-                  <kbd className="text-xs bg-neutral-200 dark:bg-neutral-700 px-2 py-0.5 rounded">
-                    ⌘ + P
-                  </kbd>
-                </button>
-                <button
-                  className="flex flex-col items-center justify-center gap-1 py-4 px-2 rounded-lg bg-neutral-50 dark:bg-neutral-800 hover:bg-amber-50 dark:hover:bg-neutral-700 border border-neutral-100 dark:border-neutral-800 transition"
-                  onClick={() => openEditorTool("hm_open_table_editor")}
-                >
-                  <span className="font-mono text-sm">Table Editor</span>
-                  <kbd className="text-xs bg-neutral-200 dark:bg-neutral-700 px-2 py-0.5 rounded">
-                    ⌘ + T
-                  </kbd>
-                </button>
-              </div>
-              <div
-                className="mt-4 text-xs text-neutral-500"
-                style={{ fontFamily: "JetBrains Mono, Fira Code, monospace" }}
-              >
-                These tools open inside the editor to keep the workspace
-                focused.
-              </div>
             </div>
           </section>
         </div>

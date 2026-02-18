@@ -5,29 +5,39 @@ import { buildAutocompleteData } from "@/app/components/autocomplete/build-autoc
 import PromptInputContainer from "./molecules/PromptInputContainer";
 import AutocompletePanel from "./molecules/AutocompletePanel";
 import { PROMPT_TEMPLATES } from "./prompt-templates";
+import { useAtom } from "jotai";
+import { atom_showTimer } from "@/app/atoms/atoms";
+import { StatusBarTimer } from "@/app/components/Timer/StatusBarTimer";
 
 type Props = {
   contentEdited: string;
   isCompact?: boolean;
   onInsertTemplate?: (template: string) => void;
+  onOpenTableEditor?: () => void;
+  onExportPDF?: () => void;
   showInput?: boolean;
   forceOpen?: boolean;
   autoFocus?: boolean;
   initialPrompt?: string;
   onRequestClose?: () => void;
+  editorTextareaRef?: React.RefObject<HTMLTextAreaElement | null>;
 };
 
 export default function PromptCommandBar({
   contentEdited,
   isCompact = false,
   onInsertTemplate,
+  onOpenTableEditor,
+  onExportPDF,
   showInput = true,
   forceOpen = false,
   autoFocus = false,
   initialPrompt,
   onRequestClose,
+  editorTextareaRef,
 }: Props) {
   const [prompt, setPrompt] = useState("");
+  const [, setShowTimer] = useAtom(atom_showTimer);
   const [isFocused, setIsFocused] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -40,7 +50,11 @@ export default function PromptCommandBar({
       initialPromptAppliedRef.current = false;
     }
 
-    if (!initialPromptAppliedRef.current && initialPrompt !== undefined && prompt.length === 0) {
+    if (
+      !initialPromptAppliedRef.current &&
+      initialPrompt !== undefined &&
+      prompt.length === 0
+    ) {
       setPrompt(initialPrompt);
       initialPromptAppliedRef.current = true;
     }
@@ -56,6 +70,32 @@ export default function PromptCommandBar({
 
   const applyTemplate = useCallback(
     (template: string) => {
+      // Helper to restore focus to main editor textarea
+      const restoreEditorFocus = () => {
+        setTimeout(() => {
+          if (editorTextareaRef?.current) {
+            editorTextareaRef.current.focus();
+          }
+        }, 0);
+      };
+      if (template === "/timer") {
+        setShowTimer((prev) => !prev);
+        closePromptBar();
+        restoreEditorFocus();
+        return;
+      }
+      if (template === "/table") {
+        if (onOpenTableEditor) onOpenTableEditor();
+        closePromptBar();
+        restoreEditorFocus();
+        return;
+      }
+      if (template === "/pdf") {
+        if (onExportPDF) onExportPDF();
+        closePromptBar();
+        restoreEditorFocus();
+        return;
+      }
       if (onInsertTemplate) {
         onInsertTemplate(template);
         setPrompt("");
@@ -64,7 +104,7 @@ export default function PromptCommandBar({
       }
       setActiveIndex(0);
     },
-    [onInsertTemplate]
+    [onInsertTemplate, setShowTimer, editorTextareaRef],
   );
 
   useEffect(() => {
@@ -98,27 +138,45 @@ export default function PromptCommandBar({
 
       if (event.key === "Tab" && autocompleteData.flatItems.length > 0) {
         event.preventDefault();
-        const item = autocompleteData.flatItems[Math.min(activeIndex, autocompleteData.flatItems.length - 1)];
+        const item =
+          autocompleteData.flatItems[
+            Math.min(activeIndex, autocompleteData.flatItems.length - 1)
+          ];
         applyTemplate(item.template);
         return;
       }
 
       if (autocompleteData.flatItems.length > 0) {
         if (event.key === "ArrowDown") {
-          setActiveIndex((prev) => Math.min(prev + 1, autocompleteData.flatItems.length - 1));
+          setActiveIndex((prev) =>
+            Math.min(prev + 1, autocompleteData.flatItems.length - 1),
+          );
         }
         if (event.key === "ArrowUp") {
           setActiveIndex((prev) => Math.max(prev - 1, 0));
         }
       }
 
-      if (event.key === "Enter" && autocompleteData.flatItems.length > 0 && !event.shiftKey) {
+      if (
+        event.key === "Enter" &&
+        autocompleteData.flatItems.length > 0 &&
+        !event.shiftKey
+      ) {
         event.preventDefault();
-        const item = autocompleteData.flatItems[Math.min(activeIndex, autocompleteData.flatItems.length - 1)];
+        const item =
+          autocompleteData.flatItems[
+            Math.min(activeIndex, autocompleteData.flatItems.length - 1)
+          ];
         applyTemplate(item.template);
       }
     },
-    [activeIndex, applyTemplate, autocompleteData.flatItems, closePromptBar, prompt.length]
+    [
+      activeIndex,
+      applyTemplate,
+      autocompleteData.flatItems,
+      closePromptBar,
+      prompt.length,
+    ],
   );
 
   const handleChange = useCallback(
@@ -130,7 +188,7 @@ export default function PromptCommandBar({
       }
       setPrompt(nextValue);
     },
-    [closePromptBar, prompt]
+    [closePromptBar, prompt],
   );
 
   const handleFocus = useCallback(() => {
@@ -156,7 +214,7 @@ export default function PromptCommandBar({
 
   return (
     <div className={`w-full ${isCompact ? "" : "max-w-xl"}`}>
-      <div className="relative flex justify-center">
+      <div className="relative flex justify-center flex-col items-center gap-2">
         {showInput ? (
           <PromptInputContainer
             ref={textareaRef}

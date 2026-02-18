@@ -113,3 +113,5 @@ export const atom_frontMatter = atomWithStorage("frontmatter", {
   fileName: "file",
   tags: "",
 }) as FrontmatterAtom;
+
+export const atom_pdfPreviewOpen = atom(false);

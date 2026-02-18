@@ -36,6 +36,7 @@ import { useEditorLaunchFlag } from "../hooks/use-editor-launch-flag";
 
 // Import refactored utils
 import EditorHeader from "./EditorHeader";
+import { atom_pdfPreviewOpen } from "@/app/atoms/atoms";
 import EditorContent from "./EditorContent";
 import { TimerContainer as Timer } from "@/app/components/Timer/Timer.container";
 import PromptCommandBar from "./PromptCommandBar";
@@ -58,11 +59,25 @@ export default function Editor() {
     updateCurrentFileContent,
   } = useEditorFiles();
 
+  // Ref to main editor textarea for focus restoration
+  const editorTextareaRef = useRef<HTMLTextAreaElement | null>(null);
   const { menuPosition, handleTextareaReady, closePromptMenu, insertTemplate } =
     usePromptMenu({
       contentEdited,
       updateCurrentFileContent,
     });
+
+  // Wrap handleTextareaReady to capture the textarea ref, memoized to avoid infinite update loop
+  const handleTextareaReadyWithRef = useCallback(
+    (el: HTMLTextAreaElement | null) => {
+      // Only assign if not null, to satisfy type
+      if (el) editorTextareaRef.current = el;
+      handleTextareaReady?.(el);
+    },
+    [handleTextareaReady],
+  );
+
+  const [, setPdfPreviewOpen] = useAtom(atom_pdfPreviewOpen);
 
   const {
     searchTerm,
@@ -323,6 +338,10 @@ export default function Editor() {
 
   const sidebarMargin = isMobile ? "" : collapsed ? "ml-16" : "ml-56";
 
+  function openPreviewExportToPdf() {
+    setPdfPreviewOpen(true);
+  }
+
   return (
     <div className="w-full h-screen bg-amber-100 dark:bg-darkbg">
       {/* Zen Mode Overlay */}
@@ -406,7 +425,7 @@ export default function Editor() {
             searchTerm={searchTerm}
             matchCount={matchCount}
             currentIndex={currentIndex}
-            onTextareaReady={handleTextareaReady}
+            onTextareaReady={handleTextareaReadyWithRef}
           />
 
           {/* Prompt Command Bar */}
@@ -425,12 +444,15 @@ export default function Editor() {
               <PromptCommandBar
                 contentEdited={contentEdited}
                 onInsertTemplate={handleInsertTemplate}
+                onOpenTableEditor={handleOpenTableEditor}
+                onExportPDF={() => openPreviewExportToPdf()}
                 isCompact
                 showInput
                 forceOpen
                 autoFocus
                 initialPrompt="/"
                 onRequestClose={handleClosePromptCommandBar}
+                editorTextareaRef={editorTextareaRef}
               />
             </div>
           )}

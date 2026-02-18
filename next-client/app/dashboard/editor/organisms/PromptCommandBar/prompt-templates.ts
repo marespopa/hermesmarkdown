@@ -138,4 +138,28 @@ export const PROMPT_TEMPLATES = [
     template:
       "# Skill: {Skill Name}\n> Status: {Draft|Active} | Scope: {Domain}\n\n## 1. Logic & Flow\n1. Analyze: {Input criteria}\n2. Transform: {Logic applied}\n3. Format: {Final shape}\n\n## 2. Examples\nInput: {In}\nOutput: {Out}\n\n## 3. Constraints\n- Never {forbidden_action}\n- Always {required_action}\n",
   },
+  // ==========================================
+  // 6. UTILITY: Quick Actions & Tools
+  // ==========================================
+  {
+    key: "/pdf",
+    category: "Utility",
+    label: "Export to PDF",
+    description: "Export the current document as a PDF file.",
+    template: "/pdf",
+  },
+  {
+    key: "/table",
+    category: "Utility",
+    label: "Open Table Editor",
+    description: "Open the Table Editor modal.",
+    template: "/table",
+  },
+  {
+    key: "/timer",
+    category: "Utility",
+    label: "Toggle Timer",
+    description: "Show or hide the status bar timer.",
+    template: "/timer",
+  },
 ];
