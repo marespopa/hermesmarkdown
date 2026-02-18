@@ -1,4 +1,13 @@
 export const PROMPT_TEMPLATES = [
+  // SKILL DOCUMENTATION: Standardized skill doc template
+  {
+    key: "/skill",
+    category: "Technical",
+    label: "Skill Documentation",
+    description: "Document a skill with summary, scope, logic, and examples.",
+    template:
+      "# Skill: {Skill Name}\n> Version: {Version} | Status: {Status} | Author: {Author}\n\n## 1. Executive Summary\n{High-level purpose and when to use}\n\n## 2. Capabilities & Scope\n- Can: {Capability A}\n- Can: {Capability B}\n- Cannot: {Limitation A}\n\n## 3. Logic & Methodology (The \"Protocol\")\n1. Analyze: {How to evaluate the input}\n2. Process: {Core transformation or calculation}\n3. Validate: {How to verify output quality}\n\n## 4. Reference Knowledge\n- Standard: {Standard name/link}\n- Rule: {Specific constraint or regex pattern}\n\n## 5. Few-Shot Examples\n### Example 1\nInput: > {Example Input}\n\nOutput:\n> {Expected Output}\n\n---\n# ⚠️ Constraints\n- Always output in {Format}.\n- Never use {Forbidden Terminology}.\n",
+  },
   // PROMPT FOUNDATION: Build strong prompts from scratch
   {
     key: "/structure",
