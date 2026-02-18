@@ -107,28 +107,27 @@ export default function EditorHeader({
       setCurrentIndex(0);
       return;
     }
-    // Find all matches in contentEdited
-    const escaped = searchTerm.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-    const regex = new RegExp(escaped, "gi");
-    const matches = [...contentEdited.matchAll(regex)];
-    setMatchCount(matches.length);
-    if (matches.length === 0) setCurrentIndex(0);
-    else if (currentIndex >= matches.length) setCurrentIndex(0);
-  }, [searchTerm, contentEdited, currentIndex, setCurrentIndex, setMatchCount]);
+    const regex = new RegExp(searchTerm.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "gi");
+    const matches = contentEdited.match(regex);
+    setMatchCount(matches ? matches.length : 0);
+    setCurrentIndex(0);
+  }, [searchTerm, contentEdited, setMatchCount, setCurrentIndex]);
 
-  const handleNext = () => {
+  function handleNext() {
     if (matchCount === 0) return;
-    setCurrentIndex((currentIndex + 1) % matchCount);
-  };
-  const handlePrev = () => {
+    setCurrentIndex((prev) => (prev + 1) % matchCount);
+  }
+
+  function handlePrev() {
     if (matchCount === 0) return;
-    setCurrentIndex((currentIndex - 1 + matchCount) % matchCount);
-  };
-  const handleClear = () => {
+    setCurrentIndex((prev) => (prev - 1 + matchCount) % matchCount);
+  }
+
+  function handleClear() {
     setSearchTerm("");
     setMatchCount(0);
     setCurrentIndex(0);
-  };
+  }
 
   return (
     <header className="flex flex-col sm:flex-row sm:items-center justify-between w-full py-4 rounded-t-xl relative gap-4">
