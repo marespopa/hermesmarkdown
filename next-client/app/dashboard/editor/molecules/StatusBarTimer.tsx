@@ -12,8 +12,7 @@ interface Props {
 
 export const StatusBarTimer = ({ isZenMode }: Props) => {
   const isTest =
-    typeof window !== "undefined" &&
-    (window.Cypress || process.env.NODE_ENV === "test");
+    typeof window !== "undefined" && process.env.NODE_ENV === "test";
   const volume = isTest ? 0 : 1;
   const [playSound_stop] = useSound("/resources/sounds/notification.mp3", {
     volume,

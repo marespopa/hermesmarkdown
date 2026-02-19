@@ -5,8 +5,8 @@ import { useAtom } from "jotai";
 import { atom_timerSessionState, atom_pomodoroPosition } from "@/app/atoms/atoms";
 
 export function TimerContainer({ onClose, fileName, draggable = false }: { onClose?: () => void; fileName?: string; draggable?: boolean }): JSX.Element {
-  const isTest = typeof window !== "undefined" && (window.Cypress || process.env.NODE_ENV === "test");
-  const volume = isTest ? 0 : 1;
+  const isTest = typeof window !== "undefined" && process.env.NODE_ENV === "test";
+  const volume = isTest ? 0 : 1; // Mute sounds during tests, normal volume otherwise
 
   const [playSound_stop] = useSound("/resources/sounds/notification.mp3", { volume });
   const [playSound_pause] = useSound("/resources/sounds/boop.mp3", { volume });

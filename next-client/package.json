@@ -9,7 +9,6 @@
     "start": "next start",
     "lint": "next lint",
     "test": "jest",
-    "test:related": "node scripts/run-related-tests.js",
     "prepare": "husky"
   },
   "dependencies": {
