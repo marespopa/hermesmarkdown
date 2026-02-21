@@ -1,4 +1,4 @@
-import { StatusBarTimer } from "@/app/components/Timer/StatusBarTimer";
+import { StatusBarTimer } from "./StatusBarTimer";
 import {
   ClarityResult,
   getClarityDotColor,

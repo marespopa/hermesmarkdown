@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev --webpack --port 3000",
     "dev:integration": "next dev -p 3001",
-    "build": "next build",
+    "build": "NEXT_DISABLE_SWC=1 npx next build --webpack",
     "start": "next start",
     "lint": "next lint",
     "test": "jest",
@@ -53,12 +53,13 @@
     "use-sound": "^4.0.3"
   },
   "devDependencies": {
+    "@next/swc-android-arm64": "^13.2.4",
     "@testing-library/react": "^16.3.0",
     "@testing-library/user-event": "^14.6.1",
     "@types/prismjs": "^1.26.5",
     "@types/sanitize-html": "^2.13.0",
     "@types/wicg-file-system-access": "^2023.10.5",
-    "baseline-browser-mapping": "^2.9.19",
+    "baseline-browser-mapping": "^2.10.0",
     "eslint": "^9.39.1",
     "husky": "^9.1.7",
     "jest-environment-jsdom": "^29.7.0",

@@ -25,7 +25,7 @@ export function useFindInEditor({
 }: UseFindInEditorOptions): UseFindInEditorResult {
   const [searchTerm, setSearchTerm] = useState("");
   const [matchCount, setMatchCount] = useState(0);
-  const [currentIndex, setCurrentIndex] = useState(0);
+  const [currentIndex, setCurrentIndex] = useState<number>(0);
   const [showFindBar, setShowFindBar] = useState(false);
   const findInputRef = useRef<HTMLInputElement | null>(null);
 

@@ -115,12 +115,14 @@ export default function EditorHeader({
 
   function handleNext() {
     if (matchCount === 0) return;
-    setCurrentIndex((prev) => (prev + 1) % matchCount);
+    const nextIndex: number = (currentIndex + 1) % matchCount;
+    setCurrentIndex(nextIndex);
   }
 
   function handlePrev() {
     if (matchCount === 0) return;
-    setCurrentIndex((prev) => (prev - 1 + matchCount) % matchCount);
+    const prevIndex: number = (currentIndex - 1 + matchCount) % matchCount;
+    setCurrentIndex(prevIndex);
   }
 
   function handleClear() {
