@@ -19,12 +19,12 @@ export default function MarkdownGuide() {
         {/* Command Examples Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-w-4xl mx-auto">
           <div className="bg-white dark:bg-neutral-900 rounded-lg p-4 border border-neutral-200 dark:border-neutral-700">
-            <code className="text-amber-700 dark:text-amber-400 font-mono font-semibold">/system</code>
-            <p className="text-sm text-neutral-600 dark:text-neutral-400 mt-1">System role template</p>
+            <code className="text-amber-700 dark:text-amber-400 font-mono font-semibold">/structure</code>
+            <p className="text-sm text-neutral-600 dark:text-neutral-400 mt-1">Optimised prompt structure</p>
           </div>
           <div className="bg-white dark:bg-neutral-900 rounded-lg p-4 border border-neutral-200 dark:border-neutral-700">
-            <code className="text-amber-700 dark:text-amber-400 font-mono font-semibold">/fewshot</code>
-            <p className="text-sm text-neutral-600 dark:text-neutral-400 mt-1">Few-shot examples</p>
+            <code className="text-amber-700 dark:text-amber-400 font-mono font-semibold">/agent</code>
+            <p className="text-sm text-neutral-600 dark:text-neutral-400 mt-1">Agent setup</p>
           </div>
           <div className="bg-white dark:bg-neutral-900 rounded-lg p-4 border border-neutral-200 dark:border-neutral-700">
             <code className="text-amber-700 dark:text-amber-400 font-mono font-semibold">/security</code>

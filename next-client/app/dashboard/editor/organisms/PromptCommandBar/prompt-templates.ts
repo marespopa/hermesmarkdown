@@ -26,6 +26,15 @@ export const PROMPT_TEMPLATES = [
     template:
       "## Output Contract\n- Format: {markdown|json|table}\n- Target Audience: {audience}\n- Key Sections: {list}\n- Tone: {tone}\n- Strict Rule: Do not include preamble or post-analysis.\n\n",
   },
+  {
+    key: "/agent",
+    category: "Orchestration",
+    label: "Agent Definition",
+    description:
+      "The master template for initializing a full AI Agent profile.",
+    template:
+      "## Agent Profile: {Agent Name}\n\n### 1. Identity\nAct as a {role} specializing in {expertise}. Your personality is {personality_traits}.\n\n### 2. Context & Mission\nThe current environment is {environment}. Your primary mission is to {primary_goal}.\n\n### 3. Operational Rules\n- **Primary Directive**: Always {must_do}.\n- **Hard Constraints**: Never {must_not_do}.\n- **Formatting**: Output should be delivered in {format}.\n\n### 4. Knowledge Retrieval\nPrioritize {source_type} and maintain a {confidence_level} level of detail.\n\n",
+  },
 
   // ==========================================
   // 2. ENGINEERING: The Inner Loop
