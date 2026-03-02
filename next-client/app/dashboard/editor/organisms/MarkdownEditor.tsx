@@ -160,7 +160,7 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
         highlight={highlight}
         padding={20}
         textareaId="markdown-editor"
-        textareaClassName="outline-none resize-none selection:bg-amber-200 dark:selection:bg-amber-900/40"
+        textareaClassName="outline-none resize-none selection:bg-amber-500/30 dark:selection:bg-amber-400/20 selection:text-current"
         className="min-h-[400px] h-full"
         style={{ fontFamily, fontSize, lineHeight: '1.6' }}
       />
