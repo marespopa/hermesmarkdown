@@ -1,8 +1,7 @@
-/* eslint-disable */
 import React from "react";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import rehypeRaw from "rehype-raw"; // Add this to allow our styled spans
+import rehypeRaw from "rehype-raw";
 import { Light as SyntaxHighlighter } from "react-syntax-highlighter";
 import { docco } from "react-syntax-highlighter/dist/esm/styles/hljs";
 
@@ -10,6 +9,11 @@ type Props = {
   content: string;
   className?: string;
 };
+
+// Helper interface to handle the 'unknown' props error
+interface ElementWithChildren {
+  children?: React.ReactNode;
+}
 
 const MarkdownPreview = ({ content, className }: Props) => {
   if (!content || content.length === 0) {
@@ -20,11 +24,6 @@ const MarkdownPreview = ({ content, className }: Props) => {
     );
   }
 
-  /**
-   * PRE-PROCESSOR: 
-   * 1. Escapes XML tags so they aren't swallowed as HTML.
-   * 2. Wraps them in a styled span to match your Amber theme.
-   */
   const processedContent = React.useMemo(() => {
     return content.replace(
       /<(\/?[a-zA-Z0-9_]+)>/g,
@@ -41,9 +40,8 @@ const MarkdownPreview = ({ content, className }: Props) => {
     >
       <Markdown
         remarkPlugins={[remarkGfm]}
-        rehypePlugins={[rehypeRaw]} // Enables the amber-styled spans
+        rehypePlugins={[rehypeRaw]}
         components={{
-          // Syntax Highlighting for Code Blocks
           code(props) {
             const { children, className, ...rest } = props;
             const match = /language-(\w+)/.exec(className || "");
@@ -63,11 +61,11 @@ const MarkdownPreview = ({ content, className }: Props) => {
             );
           },
 
-          // Line-aware Paragraph Rendering
           p(props) {
             const { children } = props;
-            const text = React.Children.toArray(children).join("");
-            const lineIndex = lines.findIndex((l) => l.trim() && text.includes(l.trim()));
+            // Safely convert children to string for index searching
+            const textContent = React.Children.toArray(children).join("");
+            const lineIndex = lines.findIndex((l) => l.trim() && textContent.includes(l.trim()));
             
             return (
               <p 
@@ -79,16 +77,17 @@ const MarkdownPreview = ({ content, className }: Props) => {
             );
           },
 
-          // Minimalist Headings
-          h1: ({node, ...props}) => <h1 className="text-2xl font-black text-neutral-900 dark:text-white mt-0 mb-4 tracking-tight" {...props} />,
-          h2: ({node, ...props}) => <h2 className="text-xl font-bold text-neutral-800 dark:text-neutral-100 mt-8 mb-3" {...props} />,
+          h1: ({ ...props }) => <h1 className="text-2xl font-black text-neutral-900 dark:text-white mt-0 mb-4 tracking-tight" {...props} />,
+          h2: ({ ...props }) => <h2 className="text-xl font-bold text-neutral-800 dark:text-neutral-100 mt-8 mb-3" {...props} />,
           
-          // Custom List handling
           ul(props) {
             const { children } = props;
+            
             const hasBullet = React.Children.toArray(children).some(child => {
               if (React.isValidElement(child)) {
-                return String(child.props.children || '').includes('•');
+                // Assert the props type to access children
+                const typedProps = child.props as ElementWithChildren;
+                return String(typedProps.children || '').includes('•');
               }
               return false;
             });
@@ -99,7 +98,10 @@ const MarkdownPreview = ({ content, className }: Props) => {
               </ul>
             );
           },
-          li: ({node, ...props}) => <li className="relative before:content-['•'] before:absolute before:-left-4 before:text-amber-500" {...props} />
+          // Destructure 'node' out to avoid passing it to the DOM li element
+          li: ({ node, ...props }) => (
+            <li className="relative before:content-['•'] before:absolute before:-left-4 before:text-amber-500" {...props} />
+          )
         }}
       >
         {processedContent}

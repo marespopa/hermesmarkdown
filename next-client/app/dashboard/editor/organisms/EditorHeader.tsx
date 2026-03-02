@@ -23,7 +23,6 @@ interface Props {
   actions: {
     handleNewFile: () => void;
     handleOpenFile: () => void;
-    handleSelectTemplate: () => void;
     handleOpenFindAndReplace: () => void;
     handleCopyPrompt: () => void;
   };

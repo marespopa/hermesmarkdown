@@ -122,7 +122,6 @@ export default function Editor() {
   useCommand("export", () => exportToMD());
   useCommand("open", () => handleOpenFile());
   useCommand("new", () => handleNewFile());
-  useCommand("template", () => handleSelectTemplate());
   useCommand("table", () => handleOpenTableEditor());
   useCommand("home", () => router.push("/dashboard"));
 

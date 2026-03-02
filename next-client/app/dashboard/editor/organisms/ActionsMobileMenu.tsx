@@ -11,7 +11,6 @@ interface ActionsMobileMenuProps {
   actions: {
     handleNewFile: () => void;
     handleOpenFile: () => void;
-    handleSelectTemplate: () => void;
     handleOpenFindAndReplace: () => void;
     handleCopyPrompt: () => void;
   };
@@ -43,7 +42,6 @@ const ActionsMobileMenu: React.FC<ActionsMobileMenuProps> = ({
         <Button variant="secondary" onClick={actions.handleOpenFindAndReplace} label={<><FaSearch className="inline mr-2" />Search</>} styles="w-full" />
         <hr className="border-t border-gray-200 dark:border-neutral-700 w-full my-2" />
         <Button variant="secondary" onClick={actions.handleNewFile} label={<><FaFile className="inline mr-2" />New File</>} styles="w-full" />
-        <Button variant="secondary" onClick={actions.handleSelectTemplate} label={<><FaClipboardList className="inline mr-2" />Template</>} styles="w-full" />
         <Button variant="secondary" onClick={actions.handleOpenFile} label={<><FaFolderOpen className="inline mr-2" />Import File</>} styles="w-full" />
         <Button variant="secondary" onClick={exportToMD} label={<><FaDownload className="inline mr-2" />Export</>} styles="w-full" />
         <Button
