@@ -46,7 +46,7 @@ const EditorStatusBar = ({ stats }: Props) => {
         
         <div className="flex items-center gap-1">
           <span className="font-mono text-neutral-500 dark:text-neutral-400 tabular-nums">
-            {tokens.toLocaleString()}
+            ~{tokens.toLocaleString()}
           </span>
           <span className="text-[9px] uppercase tracking-tighter opacity-60">tokens</span>
         </div>
