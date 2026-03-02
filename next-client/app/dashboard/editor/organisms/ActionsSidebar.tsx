@@ -10,7 +10,6 @@ interface ActionsSidebarProps {
   actions: {
     handleNewFile: () => void;
     handleOpenFile: () => void;
-    handleSelectTemplate: () => void;
     handleOpenFindAndReplace: () => void;
     handleCopyPrompt: () => void;
   };
@@ -86,15 +85,6 @@ const ActionsSidebar: React.FC<ActionsSidebarProps> = ({
           styles={classNames(getButtonStyles(collapsed), "dark:border-neutral-600")}
         >
           <FaFile /> <span className={getLabelClass()}>New</span>
-        </Button>
-        <Button
-          variant="icon"
-          onClick={actions.handleSelectTemplate}
-          aria-label="Select Template"
-          title="Select Template"
-          styles={getButtonStyles(collapsed)}
-        >
-          <FaClipboardList /> <span className={getLabelClass()}>Template</span>
         </Button>
         <Button
           variant="icon"

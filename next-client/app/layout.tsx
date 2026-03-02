@@ -1,27 +1,33 @@
 import "./globals.scss";
 import MainPage from "./components/MainPage";
+import { Metadata, Viewport } from "next";
 
-export const metadata = {
-  metadataBase: "https://hermesmarkdown.com/",
-  title: "Hermes Markdown - Privacy-First Editor",
-  description: "Hermes Markdown is a free, privacy-focused online markdown editor that works entirely offline. Create beautiful documents with real-time preview, professional templates, and export to PDF or HTML.",
+export const metadata: Metadata = {
+  metadataBase: new URL("https://hermesmarkdown.com"),
+  title: "Hermes Markdown — Privacy-First Editor",
+  description: "A free, privacy-focused online markdown editor that works entirely offline. Create beautiful documents with real-time preview and professional prompt-drafting templates.",
   applicationName: "Hermes Markdown",
-  referrer: "origin-when-cross-origin",
-  keywords: ["Markdown Editor", "Online Editor", "Free Markdown", "Privacy", "Documentation", "Writing Tool"],
   authors: [{ name: "Mares Popa", url: "https://www.marespopa.com/" }],
-  creator: "Mares Popa",
   openGraph: {
-    title: "Hermes Markdown - Privacy-First Editor",
-    description: "Hermes Markdown is a free, privacy-focused online markdown editor that works entirely offline. Create beautiful documents with real-time preview, professional templates, and export to PDF or HTML.",
+    title: "Hermes Markdown — Privacy-First Editor",
+    description: "Write securely with a local-first markdown experience. No tracking, no cloud syncing.",
     url: "https://hermesmarkdown.com/",
     siteName: "Hermes Markdown",
-    locale: "en_US",
     type: "website",
-    images: {
-      url: "https://hermesmarkdown.com/_ipx/w_640,q_75/%2Fassets%2Fhero%2Fniceday%402x.jpg?url=%2Fassets%2Fhero%2Fniceday%402x.jpg&w=640&q=75",
-      width: 640,
-    },
+    images: [{ url: "/assets/hero/niceday@2x.jpg", width: 1200, height: 630 }],
   },
+  twitter: {
+    card: "summary_large_image",
+    title: "Hermes Markdown — Privacy-First Editor",
+    images: ["/assets/hero/niceday@2x.jpg"],
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
+    { media: "(prefers-color-scheme: dark)", color: "#171717" },
+  ],
 };
 
 export default function RootLayout({
@@ -29,5 +35,14 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return <MainPage>{children}</MainPage>;
+  return (
+    <html lang="en" suppressHydrationWarning>
+      <body 
+        className="h-full min-h-screen bg-white dark:bg-neutral-900 transition-colors duration-300"
+        suppressHydrationWarning
+      >
+        <MainPage>{children}</MainPage>
+      </body>
+    </html>
+  );
 }

@@ -6,34 +6,34 @@ export const PROMPT_TEMPLATES = [
     key: "/structure",
     category: "Foundation",
     label: "Master Structure",
-    description: "The gold standard for complex prompts.",
+    description:
+      "2026 Gold Standard: Scoped containers for maximum reliability.",
     template:
-      "## Role\nAct as {role}.\n\n## Context\n{background}\n\n## Task\n{describe what to do}\n\n## Constraints\n- MUST: {requirement}\n- NEVER: {forbidden}\n\n## Output format\n{json|markdown|table}\n\n",
+      "<role>\nAct as {role}.\n</role>\n\n<context>\n{background}\n</context>\n\n<task>\n{describe what to do}\n</task>\n\n<constraints>\n- **MUST**: {requirement}\n- **NEVER**: {forbidden}\n- **OUTPUT**: {json|markdown|table}\n</constraints>\n\n",
   },
   {
     key: "/role",
     category: "Foundation",
     label: "Persona / Expertise",
-    description: "Inject domain authority and specific tone.",
+    description: "Inject domain authority via identity scoping.",
     template:
-      "## Role\nAct as a senior {role} with 10+ years of experience in {domain}. Your tone should be {direct|empathetic|academic}.\n\n",
+      "<role>\nAct as a senior {role} with 10+ years of experience in {domain}. Your tone should be {direct|empathetic|academic}.\n</role>\n\n",
   },
   {
     key: "/output",
     category: "Foundation",
     label: "Output Contract",
-    description: "Define the exact shape of the response.",
+    description: "Define the exact physical shape of the response.",
     template:
-      "## Output Contract\n- Format: {markdown|json|table}\n- Target Audience: {audience}\n- Key Sections: {list}\n- Tone: {tone}\n- Strict Rule: Do not include preamble or post-analysis.\n\n",
+      "<output_contract>\n- **Format**: {markdown|json|table}\n- **Target Audience**: {audience}\n- **Key Sections**: {list}\n- **Strict Rule**: No conversational preamble or post-analysis.\n</output_contract>\n\n",
   },
   {
     key: "/agent",
     category: "Orchestration",
     label: "Agent Definition",
-    description:
-      "The master template for initializing a full AI Agent profile.",
+    description: "The master orchestration template for full AI profiles.",
     template:
-      "## Agent Profile: {Agent Name}\n\n### 1. Identity\nAct as a {role} specializing in {expertise}. Your personality is {personality_traits}.\n\n### 2. Context & Mission\nThe current environment is {environment}. Your primary mission is to {primary_goal}.\n\n### 3. Operational Rules\n- **Primary Directive**: Always {must_do}.\n- **Hard Constraints**: Never {must_not_do}.\n- **Formatting**: Output should be delivered in {format}.\n\n### 4. Knowledge Retrieval\nPrioritize {source_type} and maintain a {confidence_level} level of detail.\n\n",
+      "<agent_profile>\n<identity>\nAct as a {role} specializing in {expertise}. Personality: {personality_traits}.\n</identity>\n\n<mission>\nEnvironment: {environment}. Primary Goal: {primary_goal}.\n</mission>\n\n<rules>\n- **Directive**: Always {must_do}.\n- **Hard Constraints**: Never {must_not_do}.\n</rules>\n\n<knowledge>\nPrioritize {source_type} with {confidence_level} detail.\n</knowledge>\n</agent_profile>\n\n",
   },
 
   // ==========================================
@@ -43,25 +43,25 @@ export const PROMPT_TEMPLATES = [
     key: "/refactor",
     category: "Engineering",
     label: "Smart Refactor",
-    description: "Code improvement with focus on patterns.",
+    description: "Code improvement with logical isolation.",
     template:
-      "## Task\nRefactor the provided code.\n\n## Focus\n- Primary: {performance|readability|DRY}\n- Pattern: {functional|OOP|hooks}\n\n## Constraints\n- Preserve existing public API.\n- Ensure type safety (if TS).\n- Explain 'Why' for major changes.\n\n",
+      "<task>\nRefactor the provided code focusing on {performance|readability|DRY}.\n</task>\n\n<context>\nPattern: {functional|OOP|hooks}.\n</context>\n\n<constraints>\n- Preserve public API.\n- Ensure type safety.\n- Explain 'Why' for major changes.\n</constraints>\n\n",
   },
   {
     key: "/review",
     category: "Engineering",
     label: "Code Review",
-    description: "Constructive feedback from a senior lens.",
+    description: "Senior-level audit with structured feedback.",
     template:
-      "## Task\nPerform a code review on the provided snippet.\n\n## Criteria\n- Edge case handling\n- Security vulnerabilities\n- Naming clarity\n- Big O complexity\n\n## Output\nProvide feedback in 'Issue | Impact | Suggested Fix' format.\n\n",
+      "<task>\nPerform a code review on the provided snippet.\n</task>\n\n<criteria>\n- Edge cases, Security, Naming, Big O.\n</criteria>\n\n<output_format>\nProvide feedback in 'Issue | Impact | Suggested Fix' table.\n</output_format>\n\n",
   },
   {
     key: "/unit-test",
     category: "Engineering",
     label: "Unit Test Gen",
-    description: "Test coverage for components or logic.",
+    description: "Test coverage generator.",
     template:
-      "## Task\nWrite unit tests for: {target}.\n\n## Tech Stack\n- Framework: {jest|vitest|playwright}\n- Methodology: {AAA|TDD}\n\n## Scenarios\n- Happy path\n- Edge cases: {nulls|empty|errors}\n- Mocking: {services|APIs}\n\n",
+      "<task>\nWrite unit tests for: {target}.\n</task>\n\n<stack>\n- Framework: {jest|vitest|playwright}\n- Methodology: {AAA|TDD}\n</stack>\n\n<scenarios>\nHappy path, {nulls|empty|errors}, and mocks.\n</scenarios>\n\n",
   },
   {
     key: "/pr",
@@ -69,7 +69,7 @@ export const PROMPT_TEMPLATES = [
     label: "PR Description",
     description: "Generate a clean pull request summary.",
     template:
-      "## Task\nGenerate a PR description based on this diff.\n\n## Sections\n- Summary of changes\n- Why this is needed\n- Breaking changes\n- Testing performed\n\n",
+      "<task>\nGenerate a PR description based on this diff.\n</task>\n\n<structure>\n- Summary, Rationale, Breaking Changes, Test Plan.\n</structure>\n\n",
   },
 
   // ==========================================
@@ -81,7 +81,7 @@ export const PROMPT_TEMPLATES = [
     label: "System Design",
     description: "Blueprint for scalable infrastructure.",
     template:
-      "## Objective\nDesign a system for {problem}.\n\n## Requirements\n- Scale: {users|throughput}\n- Availability: {SLAs}\n- Latency: {p99 targets}\n\n## Components\n- Storage: {SQL|NoSQL}\n- Caching: {Redis|CDN}\n- Async: {Queues|Events}\n\n",
+      "<objective>\nDesign a system for {problem}.\n</objective>\n\n<requirements>\nScale: {users}, Availability: {SLAs}, Latency: {p99}.\n</requirements>\n\n<components>\nStorage: {SQL|NoSQL}, Caching: {Redis|CDN}, Async: {Queues}.\n</components>\n\n",
   },
   {
     key: "/api",
@@ -89,7 +89,7 @@ export const PROMPT_TEMPLATES = [
     label: "API Specification",
     description: "Define REST or GraphQL endpoints.",
     template:
-      "## Task\nDesign an API for {resource}.\n\n## Protocol\n- Style: {REST|GraphQL|gRPC}\n- Auth: {JWT|OAuth2}\n\n## Endpoints\n- Define path, method, request body, and success/error responses.\n\n",
+      "<task>\nDesign an API for {resource}.\n</task>\n\n<protocol>\nStyle: {REST|GraphQL}, Auth: {JWT|OAuth2}.\n</protocol>\n\n<endpoints>\nDefine path, method, request body, and responses.\n</endpoints>\n\n",
   },
 
   // ==========================================
@@ -99,17 +99,17 @@ export const PROMPT_TEMPLATES = [
     key: "/summarize",
     category: "Transformation",
     label: "Executive Summary",
-    description: "High-signal, low-noise summary.",
+    description: "High-signal summary container.",
     template:
-      "## Task\nSummarize the text for an executive stakeholder.\n\n## Format\n- 1-sentence TL;DR\n- 3-5 high-impact bullet points\n- Required action items (if any)\n\n",
+      "<task>\nSummarize text for executive stakeholders.\n</task>\n\n<format>\n- 1-sentence TL;DR\n- 3-5 high-impact bullets\n- Action items\n</format>\n\n",
   },
   {
     key: "/explain",
     category: "Transformation",
     label: "Technical Explainer",
-    description: "Bridge the gap between tech and business.",
+    description: "Bridge tech and business gaps.",
     template:
-      "## Task\nExplain {complex_topic} to {audience}.\n\n## Constraints\n- Use an analogy.\n- No jargon without definitions.\n- Highlight the 'Business Value'.\n\n",
+      "<task>\nExplain {complex_topic} to {audience}.\n</task>\n\n<constraints>\n- Use analogy, No jargon, Highlight Business Value.\n</constraints>\n\n",
   },
   {
     key: "/documentation",
@@ -117,7 +117,7 @@ export const PROMPT_TEMPLATES = [
     label: "Technical Docs",
     description: "Create README or internal documentation.",
     template:
-      "## Task\nWrite {README|API|User} documentation.\n\n## Structure\n- Overview\n- Installation/Quickstart\n- Usage Examples\n- Contributing Guidelines\n\n",
+      "<task>\nWrite {README|API|User} documentation.\n</task>\n\n<structure>\nOverview, Installation, Usage, Contributing.\n</structure>\n\n",
   },
 
   // ==========================================
@@ -127,26 +127,27 @@ export const PROMPT_TEMPLATES = [
     key: "/bug",
     category: "Operations",
     label: "Bug Report",
-    description: "Structured report for tracking systems.",
+    description: "Structured bug tracking container.",
     template:
-      "## Bug Report\n- **Summary**: {short_desc}\n- **Actual**: {what_happens}\n- **Expected**: {what_should_happen}\n- **Repro Steps**: \n  1. {step}\n- **Environment**: {env_details}\n\n",
+      "<bug_report>\n- **Summary**: {short_desc}\n- **Actual/Expected**: {details}\n- **Steps**: {1, 2, 3}\n- **Env**: {env_details}\n</bug_report>\n\n",
   },
   {
     key: "/plan",
     category: "Operations",
     label: "Sprint Planning",
-    description: "Break down a feature into tasks.",
+    description: "Feature breakdown into task containers.",
     template:
-      "## Goal\nImplement {feature}.\n\n## Task Breakdown\n- Frontend tasks\n- Backend/API tasks\n- Infrastructure/DevOps tasks\n- Testing/QA tasks\n\n## Estimates\nAssign rough complexity (S/M/L) to each.\n\n",
+      "<goal>\nImplement {feature}.\n</goal>\n\n<breakdown>\nFrontend, Backend, Infra, QA.\n</breakdown>\n\n<estimates>\nComplexity: S/M/L.\n</estimates>\n\n",
   },
   {
     key: "/skill",
     category: "Operations",
     label: "Knowledge Protocol",
-    description: "Standardize a repeatable workflow (The 'Skill' format).",
+    description: "Standardized workflow 'Skill' format.",
     template:
-      "# Skill: {Skill Name}\n> Status: {Draft|Active} | Scope: {Domain}\n\n## 1. Logic & Flow\n1. Analyze: {Input criteria}\n2. Transform: {Logic applied}\n3. Format: {Final shape}\n\n## 2. Examples\nInput: {In}\nOutput: {Out}\n\n## 3. Constraints\n- Never {forbidden_action}\n- Always {required_action}\n",
+      '<skill name="{Skill Name}">\n<logic>\n1. Analyze criteria, 2. Transform logic, 3. Format shape.\n</logic>\n\n<examples>\nIn: {In} -> Out: {Out}\n</examples>\n\n<constraints>\nAlways {required}, Never {forbidden}.\n</constraints>\n</skill>\n',
   },
+
   // ==========================================
   // 6. UTILITY: Quick Actions & Tools
   // ==========================================

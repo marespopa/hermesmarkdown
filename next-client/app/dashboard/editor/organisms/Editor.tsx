@@ -271,7 +271,6 @@ export default function Editor() {
   }, [closePromptMenu]);
 
   const handleOpenFindAndReplace = () => setIsFindAndReplaceModalVisible(true);
-  const handleSelectTemplate = () => setIsTemplateSelectModalVisible(true);
   const handleOpenTableEditor = () => setIsTableEditorModalVisible(true);
   const handleOpenFontSettings = () => setIsFontDialogOpen(true);
 
@@ -403,7 +402,6 @@ export default function Editor() {
           actions={{
             handleNewFile,
             handleOpenFile,
-            handleSelectTemplate,
             handleOpenFindAndReplace,
             handleCopyPrompt,
           }}
