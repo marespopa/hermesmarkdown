@@ -19,9 +19,6 @@ const MainPage = ({ children }: Props) => {
   const showHeader = !pathname.includes("dashboard");
 
   return (
-    <html lang="en" suppressHydrationWarning className="bg-white dark:bg-neutral-900">
-      <Seo />
-      <body className="h-full min-h-screen bg-white dark:bg-neutral-900">
         <CustomProviders>
           <main className="h-full min-h-screen flex flex-col">
             <Toaster 
@@ -46,8 +43,6 @@ const MainPage = ({ children }: Props) => {
 
           </main>
         </CustomProviders>
-      </body>
-    </html>
   );
 };
 

@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react";
 import type { AutocompleteGroup } from "./types";
 
 type Props = {
@@ -8,9 +9,27 @@ type Props = {
 
 export default function AutocompleteList({ groupedItems, activeIndex, onSelect }: Props) {
   let itemIndex = -1;
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const scrollContainer = scrollContainerRef.current;
+    if (!scrollContainer) return;
+
+    const activeElement = scrollContainer.querySelector(`[data-active="true"]`) as HTMLElement;
+    
+    if (activeElement) {
+        activeElement.scrollIntoView({
+            block: "nearest",
+            behavior: "auto",
+        });
+    }
+}, [activeIndex]);
 
   return (
-    <div className="flex flex-col gap-1 max-h-60 overflow-y-auto">
+    <div 
+        className="flex flex-col gap-1 max-h-60 overflow-y-auto" 
+        ref={scrollContainerRef}
+    >
       {groupedItems.map((group) => (
         <div key={group.category} className="space-y-1">
           <div className="px-3 pt-2 text-[11px] font-semibold uppercase tracking-wide text-neutral-400 dark:text-neutral-500">
@@ -22,6 +41,7 @@ export default function AutocompleteList({ groupedItems, activeIndex, onSelect }
               <button
                 key={item.key}
                 type="button"
+                data-active={itemIndex === activeIndex}
                 onMouseDown={(event) => {
                   event.preventDefault();
                   onSelect(item.template);
