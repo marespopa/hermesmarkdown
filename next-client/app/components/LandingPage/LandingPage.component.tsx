@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import Image from "next/image";
-import Features from "./subcomponents/Features";
 import Hero from "./subcomponents/Hero";
 import Motto from "./subcomponents/Motto";
 import FAQContent from "./subcomponents/FAQContent";
@@ -52,30 +51,8 @@ export default function LandingPage() {
       </DialogModal>
       <div className="container max-w-screen-xl mx-auto px-4 sm:px-2">
         <Hero />
-        
-        <Features />
-        
-        {/* Product Hunt Review Badge */}
-        <div className="flex justify-center my-8">
-          <a
-            href="https://www.producthunt.com/products/hermesmd/reviews?utm_source=badge-product_review&utm_medium=badge&utm_source=badge-hermesmd"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              src="https://api.producthunt.com/widgets/embed-image/v1/product_review.svg?product_id=553021&theme=dark"
-              alt="Hermes Markdown - The Markdown Editor That Respects Your Privacy | Product Hunt"
-              width={250}
-              height={54}
-              style={{ width: "250px", height: "54px" }}
-              unoptimized
-            />
-          </a>
-        </div>
-        
+        <HowItWorks />        
         <MarkdownGuide />
-        <HowItWorks />
-        <FAQContent />
         <Motto />
       </div>
     </main>

@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 export default function MarkdownGuide() {
   const router = useRouter();
   return (
-    <section className="py-16 bg-neutral-50 dark:bg-neutral-800">
+    <section className="py-16 bg-white dark:bg-neutral-900">
       <div className="max-w-5xl mx-auto px-4">
         <div className="text-center mb-12">
           <h2 className="text-3xl font-semibold mb-4 text-neutral-900 dark:text-white">
@@ -42,15 +42,6 @@ export default function MarkdownGuide() {
             <code className="text-amber-700 dark:text-amber-400 font-mono font-semibold">/refactor</code>
             <p className="text-sm text-neutral-600 dark:text-neutral-400 mt-1">Code refactor template</p>
           </div>
-        </div>
-        
-        <div className="flex justify-center mt-10">
-          <Button
-            variant="hero"
-            onClick={() => router.push("/dashboard/editor")}
-          >
-            Try It Now →
-          </Button>
         </div>
       </div>
     </section>

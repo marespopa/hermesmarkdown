@@ -68,7 +68,7 @@ export default function DemoEditor({ className = "" }: DemoEditorProps) {
   return (
     <div
       ref={editorRef}
-      className={`bg-white dark:bg-neutral-900 rounded-xl shadow-xl border border-neutral-200 dark:border-neutral-700 overflow-hidden relative ${className}`}
+      className={`bg-white pb-2 dark:bg-neutral-900 rounded-xl shadow-xl border border-neutral-200 dark:border-neutral-700 overflow-hidden relative ${className}`}
     >
       {/* Editor Header */}
       <div className="bg-neutral-100 dark:bg-neutral-800 px-4 py-3 border-b border-neutral-200 dark:border-neutral-700 flex items-center justify-between">
