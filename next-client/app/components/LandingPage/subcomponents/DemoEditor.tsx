@@ -12,17 +12,7 @@ import {
 import { usePromptMenu } from "@/app/dashboard/editor/hooks/use-prompt-menu";
 import PromptCommandBar from "@/app/dashboard/editor/organisms/PromptCommandBar";
 
-const DEMO_CONTENT = `# Task
-Review the following API endpoint for security vulnerabilities.
-
-## Constraints
-- MUST check for SQL injection, XSS, and auth bypass
-- MUST provide severity rating for each issue
-- Do not include false positives or non-issues
-
-## Output Format
-Return as a markdown list with severity, issue, and fix.
-`;
+const DEMO_CONTENT = ``;
 
 interface DemoEditorProps {
   className?: string;
@@ -74,7 +64,7 @@ export default function DemoEditor({ className = "" }: DemoEditorProps) {
       <div className="bg-neutral-100 dark:bg-neutral-800 px-4 py-3 border-b border-neutral-200 dark:border-neutral-700 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <span className="ml-2 text-sm text-neutral-500 dark:text-neutral-400 font-mono">
-            security-review.md
+            my-awesome-prompt.md
           </span>
         </div>
         <div className="text-xs text-neutral-400 dark:text-neutral-500">
