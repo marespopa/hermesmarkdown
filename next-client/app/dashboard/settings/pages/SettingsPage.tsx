@@ -6,6 +6,7 @@ import {
   atom_fontFamily,
   atom_fontSize,
   atom_showTimer,
+  atom_showStatusBar,
   atom_theme,
   atom_timerSessionState,
   atom_timerSettings,
@@ -35,6 +36,7 @@ export default function SettingsPage() {
   const [showTimer, _setShowTimer] = useAtom(atom_showTimer);
   const [timerSettings, setTimerSettings] = useAtom(atom_timerSettings);
   const [timerMinutes, setTimerMinutes] = useState(timerSettings.durationInMin);
+  const [showStatusBar, setShowStatusBar] = useAtom(atom_showStatusBar);
 
   // Toast wrappers
   const setTheme = (val: string) => {
@@ -148,6 +150,12 @@ export default function SettingsPage() {
               Productivity
             </h2>
             <div className="bg-white dark:bg-neutral-900">
+              <SettingRow
+                title="Show Status Bar"
+                description="Display the status bar with word/token count and prompt clarity."
+                control={<Switch checked={showStatusBar} onChange={setShowStatusBar} />}
+              />
+
               <SettingRow
                 title="Show Timer"
                 description="Display a session timer in the editor."

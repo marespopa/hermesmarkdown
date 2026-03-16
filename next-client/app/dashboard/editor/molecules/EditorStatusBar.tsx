@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { ClarityResult } from "@/app/services/prompt-clarity";
+import { useAtom } from "jotai";
+import { atom_showStatusBar } from "@/app/atoms/atoms";
 
 interface Props {
   stats: {
@@ -19,6 +21,7 @@ interface Props {
 const EditorStatusBar = ({ stats }: Props) => {
   const { words, tokens, clarity } = stats;
   const [isMounted, setIsMounted] = useState(false);
+  const [showStatusBar] = useAtom(atom_showStatusBar);
 
   useEffect(() => {
     setIsMounted(true);
@@ -29,6 +32,10 @@ const EditorStatusBar = ({ stats }: Props) => {
 
   const isComplete = clarity.score >= 100;
   const hasTips = clarity.tips && clarity.tips.length > 0;
+ 
+  if (!showStatusBar) {
+    return null;
+  }
 
   return (
     <footer className="group/bar relative flex-shrink-0 -mx-2 -mb-2 px-4 h-9 border-t border-neutral-200 dark:border-neutral-800 flex items-center justify-between text-[11px] font-medium bg-neutral-50 dark:bg-neutral-900/50 rounded-b-2xl transition-colors">
