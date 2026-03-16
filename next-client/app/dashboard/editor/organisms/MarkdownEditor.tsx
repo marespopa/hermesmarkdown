@@ -79,7 +79,8 @@ const highlightMarkdownWithTailwind = (
   escaped = escaped.replace(/(\*\*|__)(.*?)\1/g, `<span class="font-bold text-neutral-900 dark:text-neutral-50">$1$2$1</span>`);
   escaped = escaped.replace(/(\[[^\]]+\]\([^\)]+\))/g, `<span class="text-blue-500 underline decoration-blue-500/30">$1</span>`);
   escaped = escaped.replace(/^(\s*&gt;\s*.+)$/gm, `<span class="text-neutral-500 border-l-2 border-neutral-200 dark:border-neutral-700 pl-3 italic">$1</span>`);
-
+  escaped = escaped.replace(/~~([^~]+)~~/g, '<span class="line-through opacity-50">~~$1~~</span>');
+  
   // 4. Reveal Code Blocks (Restore from placeholders)
   inlineCodes.forEach((html, i) => {
     escaped = escaped.replace(`__INLINE_CODE_${i}__`, html);

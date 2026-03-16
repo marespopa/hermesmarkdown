@@ -44,9 +44,9 @@ export default function EditorContent({
     <div
       className={`${
         zenMode
-          ? "h-full overflow-y-auto w-full"
+          ? "fixed h-full overflow-y-auto w-full top-0 left-0 p-4"
           : "flex-1 flex flex-col min-h-0 w-full mb-4"
-      }`}
+      } scroll-smooth overscroll-contain `}
     >
       <div
         className={`flex-1 min-h-0 w-full px-2 py-2 flex flex-col h-full bg-white dark:bg-neutral-900 shadow-xl border border-neutral-200 dark:border-neutral-700 overflow-hidden relative ${

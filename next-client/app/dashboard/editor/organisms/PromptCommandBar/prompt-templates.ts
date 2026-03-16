@@ -177,4 +177,18 @@ export const PROMPT_TEMPLATES: PromptTemplate[] = [
     description: "Open the Table Editor modal.",
     template: "/table",
   },
+  {
+    key: "/timer",
+    category: "Utility",
+    label: "Toggle Timer",
+    description: "Start or stop the built-in timer.",
+    template: "/timer",
+  },
+  {
+    key: "/status-bar",
+    category: "Utility",
+    label: "Toggle Status Bar",
+    description: "Show or hide the editor status bar.",
+    template: "/status-bar",
+  },
 ];

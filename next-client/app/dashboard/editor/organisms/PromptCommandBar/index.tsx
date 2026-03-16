@@ -6,7 +6,7 @@ import PromptInputContainer from "./molecules/PromptInputContainer";
 import AutocompletePanel from "./molecules/AutocompletePanel";
 import { PROMPT_TEMPLATES } from "./prompt-templates";
 import { useAtom } from "jotai";
-import { atom_showTimer } from "@/app/atoms/atoms";
+import { atom_showTimer, atom_showStatusBar } from "@/app/atoms/atoms";
 
 type Props = {
   contentEdited: string;
@@ -37,6 +37,7 @@ export default function PromptCommandBar({
 }: Props) {
   const [prompt, setPrompt] = useState("");
   const [, setShowTimer] = useAtom(atom_showTimer);
+  const [, setShowStatusBar] = useAtom(atom_showStatusBar);
   const [isFocused, setIsFocused] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -95,6 +96,13 @@ export default function PromptCommandBar({
         restoreEditorFocus();
         return;
       }
+      if (template === "/status-bar") {
+        closePromptBar();
+        setShowStatusBar((prev) => !prev);
+        restoreEditorFocus();
+        return;
+      }
+
       if (onInsertTemplate) {
         onInsertTemplate(template);
         setPrompt("");
