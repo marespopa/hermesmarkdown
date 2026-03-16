@@ -36,7 +36,7 @@ import { useEditorLaunchFlag } from "../hooks/use-editor-launch-flag";
 
 // Import refactored utils
 import EditorHeader from "./EditorHeader";
-import { atom_pdfPreviewOpen } from "@/app/atoms/atoms";
+import { atom_pdfPreviewOpen, atom_zenMode } from "@/app/atoms/atoms";
 import EditorContent from "./EditorContent";
 import PromptCommandBar from "./PromptCommandBar";
 import EditorSkeleton from "@/app/components/EditorSkeleton";
@@ -102,7 +102,7 @@ export default function Editor() {
   const [fontFamily, setFontFamily] = useAtom(atom_fontFamily);
   const [fontSize, setFontSize] = useAtom(atom_fontSize);
   const [isFontDialogOpen, setIsFontDialogOpen] = useState(false);
-  const [isZenMode, setIsZenMode] = useState(false);
+  const [isZenMode, setIsZenMode] = useAtom(atom_zenMode);
   const [isFindAndReplaceModalVisible, setIsFindAndReplaceModalVisible] =
     useState(false);
   const [isFileSelectModalVisible, setIsFileSelectModalVisible] =

@@ -5,9 +5,6 @@ import {
   getEstimatedTokens,
 } from "@/app/services/prompt-clarity";
 import EditorStatusBar from "../molecules/EditorStatusBar";
-import { StatusBarTimer } from "../molecules/StatusBarTimer";
-import { useAtom } from "jotai";
-import { atom_showTimer } from "@/app/atoms/atoms";
 import useIsMobile from "@/app/hooks/use-is-mobile";
 
 interface Props {
@@ -34,7 +31,6 @@ export default function EditorContent({
   onTextareaReady,
 }: Props) {
   const isMobile = useIsMobile();
-  const [isTimerVisible] = useAtom(atom_showTimer);
 
   // Calculate word count, token estimate, and prompt clarity
   const stats = useMemo(() => {
@@ -59,9 +55,6 @@ export default function EditorContent({
             : "max-h-[calc(100vh-300px)] rounded-xl"
         }`}
       >
-        {/* Timer docked here */}
-        {!isMobile && isTimerVisible && <StatusBarTimer isZenMode={zenMode} />}
-
         <div className="flex-1 overflow-auto">
           <MarkdownEditor
             value={contentEdited}

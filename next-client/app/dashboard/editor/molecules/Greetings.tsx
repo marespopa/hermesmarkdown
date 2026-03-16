@@ -46,9 +46,9 @@ const Greetings = () => {
     <div className="
       flex items-center gap-3 px-4 py-2 rounded-lg border 
       /* Light Mode: Primary Amber-100 */
-      bg-amber-100 border-amber-200 text-amber-900 
+      bg-amber-200 border-amber-300 text-amber-900 
       /* Dark Mode: Deep Slate/Zinc */
-      dark:bg-zinc-900 dark:border-zinc-800 dark:text-zinc-100 
+      dark:bg-zinc-800 dark:border-zinc-700 dark:text-zinc-100 
       transition-colors duration-300 shadow-sm
     ">
       <span className={`text-xl ${iconCol}`}>

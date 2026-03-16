@@ -18,6 +18,8 @@ export const atom_fontSize = atomWithStorage<string>(
   "prose-base",
 );
 
+export const atom_zenMode = atomWithStorage("zenMode", false);
+
 // Timer functionality
 export type SimpleTimerSessionState = {
   startTime: number | null;

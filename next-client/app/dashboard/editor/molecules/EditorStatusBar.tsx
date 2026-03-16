@@ -3,7 +3,8 @@
 import { useEffect, useState } from "react";
 import { ClarityResult } from "@/app/services/prompt-clarity";
 import { useAtom } from "jotai";
-import { atom_showStatusBar } from "@/app/atoms/atoms";
+import { atom_showStatusBar, atom_showTimer, atom_zenMode } from "@/app/atoms/atoms";
+import { StatusBarTimer } from "./StatusBarTimer";
 
 interface Props {
   stats: {
@@ -22,6 +23,8 @@ const EditorStatusBar = ({ stats }: Props) => {
   const { words, tokens, clarity } = stats;
   const [isMounted, setIsMounted] = useState(false);
   const [showStatusBar] = useAtom(atom_showStatusBar);
+  const [showTimer] = useAtom(atom_showTimer);
+  const [isZenMode] = useAtom(atom_zenMode);
 
   useEffect(() => {
     setIsMounted(true);
@@ -46,7 +49,7 @@ const EditorStatusBar = ({ stats }: Props) => {
           <span className="font-mono text-neutral-500 dark:text-neutral-400 tabular-nums">
             {words.toLocaleString()}
           </span>
-          <span className="text-[9px] uppercase tracking-tighter opacity-60">words</span>
+          <span className="text-[9px] uppercase tracking-tighter">words</span>
         </div>
         
         <div className="h-2.5 w-[1px] bg-neutral-200 dark:bg-neutral-800" />
@@ -55,8 +58,12 @@ const EditorStatusBar = ({ stats }: Props) => {
           <span className="font-mono text-neutral-500 dark:text-neutral-400 tabular-nums">
             ~{tokens.toLocaleString()}
           </span>
-          <span className="text-[9px] uppercase tracking-tighter opacity-60">tokens</span>
+          <span className="text-[9px] uppercase tracking-tighter">tokens</span>
         </div>
+      
+        {showTimer && <div className="h-2.5 w-[1px] bg-neutral-200 dark:bg-neutral-800" />}
+       
+        {showTimer && <StatusBarTimer isZenMode={isZenMode}/>}
       </div>
 
       {/* 2. Status Label & Next Step */}

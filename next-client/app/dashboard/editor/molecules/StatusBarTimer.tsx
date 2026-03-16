@@ -41,17 +41,15 @@ export const StatusBarTimer = ({ isZenMode }: Props) => {
     reset();
   };
 
-  let timerColor = "text-neutral-400";
+  let timerColor = "text-neutral-500";
 
-  if (isActive) {
-    timerColor = "text-neutral-200";
-  } else if (timeLeft === 0) {
+  if (timeLeft === 0) {
     timerColor = "text-amber-500";
   }
 
   return (
     <div
-      className={`flex py-2 items-center ${isZenMode ? "justify-center" : "justify-end"} text-xs gap-1 ${timerColor} cursor-pointer`}
+      className={`flex py-2 items-center tracking-tighter ${isZenMode ? "justify-center" : "justify-end"} text-[9px] gap-1 ${timerColor} cursor-pointer`}
       onClick={handleToggle}
       onDoubleClick={handleReset}
     >
