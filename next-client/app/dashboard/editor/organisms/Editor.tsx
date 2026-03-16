@@ -391,7 +391,7 @@ export default function Editor() {
             </Button>
           </div>
         )}
-
+        
         <FileTabs />
 
         <EditorHeader

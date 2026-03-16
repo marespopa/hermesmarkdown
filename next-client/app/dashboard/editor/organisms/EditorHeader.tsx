@@ -15,6 +15,7 @@ import PDFPreviewDialog from "./PDFPreviewDialog";
 import ShortcutsDialog from "./ShortcutsDialog";
 import ActionsMobileMenu from "./ActionsMobileMenu";
 import FindBar from "../molecules/FindBar";
+import Greetings from "../molecules/Greetings";
 
 interface Props {
   contentEdited: string;
@@ -175,12 +176,13 @@ export default function EditorHeader({
       {/* Center: Helper text */}
       {!isMobile && (
         <div className="flex-1 flex justify-end">
-          <div className="text-sm text-neutral-600 dark:text-neutral-300">
-            Type{" "}
-            <code className="bg-neutral-100 dark:bg-neutral-800 px-1.5 py-0.5 rounded text-xs">
-              /
-            </code>{" "}
-            on a new line to see commands.
+          <div className="flex flex-col gap-2 items-end">
+            <Greetings />
+            <div className="text-sm text-neutral-600 dark:text-neutral-300">
+              Type{" "}
+                <code className="bg-neutral-100 dark:bg-neutral-800 px-1.5 py-0.5 rounded text-xs">/</code>{" "}
+                on a new line to see commands.
+            </div>
           </div>
         </div>
       )}
