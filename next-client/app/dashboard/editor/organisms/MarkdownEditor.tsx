@@ -43,7 +43,7 @@ const highlightMarkdownWithTailwind = (
   const inlineCodes: string[] = [];
   escaped = escaped.replace(/`([^`\n]+)`/g, (match) => {
     const id = `__INLINE_CODE_${inlineCodes.length}__`;
-    inlineCodes.push(`<span class="bg-neutral-100 dark:bg-neutral-800 text-teal-600 dark:text-teal-400 px-1 rounded font-mono">${match}</span>`);
+    inlineCodes.push(`<span class="bg-neutral-100 dark:bg-neutral-800 text-teal-600 dark:text-teal-400 rounded font-mono">${match}</span>`);
     return id;
   });
 
@@ -52,7 +52,7 @@ const highlightMarkdownWithTailwind = (
   // Agentic Tags
   escaped = escaped.replace(
     /&lt;(\/?[a-zA-Z0-9_]+)&gt;/g,
-    `<span class="text-amber-600 dark:text-amber-500 font-bold">&lt;$1&gt;</span>`
+    `<span class="text-amber-600 dark:text-amber-500">&lt;$1&gt;</span>`
   );
 
   // Search Highlights
@@ -63,7 +63,7 @@ const highlightMarkdownWithTailwind = (
     escaped = escaped.replace(regex, (match) => {
       const isCurrent = matchCount && currentIndex !== undefined && matchIdx === currentIndex;
       const colorClass = isCurrent 
-        ? "bg-amber-400 dark:bg-amber-600 text-black font-bold ring-2 ring-amber-500" 
+        ? "bg-amber-400 dark:bg-amber-600 text-black ring-2 ring-amber-500" 
         : "bg-amber-100 dark:bg-amber-900/50 text-neutral-900 dark:text-neutral-100";
       
       const res = `<span class="${colorClass} rounded-sm">${match}</span>`;
@@ -75,7 +75,7 @@ const highlightMarkdownWithTailwind = (
   // Structural (Headings, Lists, Tables)
   escaped = escaped.replace(/\|/g, '<span class="text-neutral-300 dark:text-neutral-600">|</span>');
   escaped = escaped.replace(/^(#{1,6}\s.+)$/gm, `<span class="font-black text-amber-600 dark:text-amber-500">$1</span>`);
-  escaped = escaped.replace(/^(\s*)([-*+]|\d+\.)\s/gm, `$1<span class="text-amber-500 font-bold">$2</span> `);
+  escaped = escaped.replace(/^(\s*)([-*+]|\d+\.)\s/gm, `$1<span class="text-amber-500">$2</span> `);
   escaped = escaped.replace(/(\*\*|__)(.*?)\1/g, `<span class="font-bold text-neutral-900 dark:text-neutral-50">$1$2$1</span>`);
   escaped = escaped.replace(/(\[[^\]]+\]\([^\)]+\))/g, `<span class="text-blue-500 underline decoration-blue-500/30">$1</span>`);
   escaped = escaped.replace(/^(\s*&gt;\s*.+)$/gm, `<span class="text-neutral-500 border-l-2 border-neutral-200 dark:border-neutral-700 pl-3 italic">$1</span>`);
