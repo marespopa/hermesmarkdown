@@ -16,46 +16,41 @@ interface MarkdownEditorProps {
 }
 
 /**
- * High-performance Tailwind-based Markdown highlighter.
- * Uses a Placeholder strategy to ignore content inside code blocks.
+ * Fades syntax markers (tokens) using low opacity.
  */
-const highlightMarkdownWithTailwind = (
+const highlightMarkdownMonochrome = (
   code: string, 
   searchTerm?: string, 
   matchCount?: number, 
   currentIndex?: number
 ) => {
-  // 1. Initial escaping
   let escaped = code
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;");
 
-  // 2. Hide Code Blocks
-  // We extract them into an array and replace them with a unique marker.
+  // 1. Hide Code Blocks & Inline Code (Monochrome style)
   const codeBlocks: string[] = [];
   escaped = escaped.replace(/```[\s\S]*?```/g, (match) => {
     const id = `__CODE_BLOCK_${codeBlocks.length}__`;
-    codeBlocks.push(`<span class="text-teal-600 dark:text-teal-400 font-mono">${match}</span>`);
+    codeBlocks.push(`<span class="opacity-50 font-mono">${match}</span>`);
     return id;
   });
 
   const inlineCodes: string[] = [];
   escaped = escaped.replace(/`([^`\n]+)`/g, (match) => {
     const id = `__INLINE_CODE_${inlineCodes.length}__`;
-    inlineCodes.push(`<span class="bg-neutral-100 dark:bg-neutral-800 text-teal-600 dark:text-teal-400 rounded font-mono">${match}</span>`);
+    inlineCodes.push(`<span class="bg-neutral-100 dark:bg-neutral-800/50 px-1 rounded font-mono opacity-80">${match}</span>`);
     return id;
   });
 
-  // 3. Apply Markdown/Agentic Rules (Now safe from code block interference)
-  
-  // Agentic Tags
+  // 2. Agentic Tags (Faded)
   escaped = escaped.replace(
     /&lt;(\/?[a-zA-Z0-9_]+)&gt;/g,
-    `<span class="text-amber-600 dark:text-amber-500">&lt;$1&gt;</span>`
+    `<span class="opacity-40 font-medium">&lt;$1&gt;</span>`
   );
 
-  // Search Highlights
+  // 3. Search Highlights (Keep functional but grayscale)
   if (searchTerm && searchTerm.length > 0) {
     const escapedSearch = searchTerm.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
     const regex = new RegExp(escapedSearch, "gi");
@@ -63,31 +58,45 @@ const highlightMarkdownWithTailwind = (
     escaped = escaped.replace(regex, (match) => {
       const isCurrent = matchCount && currentIndex !== undefined && matchIdx === currentIndex;
       const colorClass = isCurrent 
-        ? "bg-amber-400 dark:bg-amber-600 text-black ring-2 ring-amber-500" 
-        : "bg-amber-100 dark:bg-amber-900/50 text-neutral-900 dark:text-neutral-100";
+        ? "bg-neutral-900 dark:bg-neutral-100 text-white dark:text-black" 
+        : "bg-neutral-200 dark:bg-neutral-700 text-current";
       
-      const res = `<span class="${colorClass} rounded-sm">${match}</span>`;
+      const res = `<span class="${colorClass} rounded-sm px-0.5">${match}</span>`;
       matchIdx++;
       return res;
     });
   }
 
-  // Structural (Headings, Lists, Tables)
-  escaped = escaped.replace(/\|/g, '<span class="text-neutral-300 dark:text-neutral-600">|</span>');
-  escaped = escaped.replace(/^(#{1,6}\s.+)$/gm, `<span class="font-black text-amber-600 dark:text-amber-500">$1</span>`);
-  escaped = escaped.replace(/^(\s*)([-*+]|\d+\.)\s/gm, `$1<span class="text-amber-500">$2</span> `);
-  escaped = escaped.replace(/(\*\*|__)(.*?)\1/g, `<span class="font-bold text-neutral-900 dark:text-neutral-50">$1$2$1</span>`);
-  escaped = escaped.replace(/(\[[^\]]+\]\([^\)]+\))/g, `<span class="text-blue-500 underline decoration-blue-500/30">$1</span>`);
-  escaped = escaped.replace(/^(\s*&gt;\s*.+)$/gm, `<span class="text-neutral-500 border-l-2 border-neutral-200 dark:border-neutral-700 pl-3 italic">$1</span>`);
-  escaped = escaped.replace(/~~([^~]+)~~/g, '<span class="line-through opacity-50">~~$1~~</span>');
+  // 4. Structural Markdown 
   
-  // 4. Reveal Code Blocks (Restore from placeholders)
-  inlineCodes.forEach((html, i) => {
-    escaped = escaped.replace(`__INLINE_CODE_${i}__`, html);
-  });
-  codeBlocks.forEach((html, i) => {
-    escaped = escaped.replace(`__CODE_BLOCK_${i}__`, html);
-  });
+  // Headings: Fade the '#' symbols
+  escaped = escaped.replace(/^(#{1,6})(\s.+)$/gm, 
+    `<span class="opacity-20 font-normal">$1</span><span class="font-bold text-neutral-900 dark:text-neutral-50">$2</span>`);
+  
+  // Lists: Fade the bullets/numbers
+  escaped = escaped.replace(/^(\s*)([-*+]|\d+\.)(\s)/gm, 
+    `$1<span class="opacity-30">$2</span>$3`);
+  
+  // Bold & Italic: Fade the markers
+  escaped = escaped.replace(/(\*\*|__)(.*?)\1/g, 
+    `<span class="opacity-20">$1</span><span class="font-bold text-neutral-900 dark:text-neutral-50">$2</span><span class="opacity-20">$1</span>`);
+  escaped = escaped.replace(/(\*|_)(.*?)\1/g, 
+    `<span class="opacity-20">$1</span><span class="italic text-neutral-900 dark:text-neutral-50">$2</span><span class="opacity-20">$1</span>`);
+
+  // Links: Underline the text, ghost the URL
+  escaped = escaped.replace(/(!?\[)(.*?)(\]\()(.*?)(\))/g, 
+    `<span class="opacity-20">$1</span><span class="underline decoration-neutral-300 dark:decoration-neutral-600">$2</span><span class="opacity-20">$3$4$5</span>`);
+
+  // Blockquotes: Fade the '>'
+  escaped = escaped.replace(/^(&gt;\s)(.+)$/gm, 
+    `<span class="opacity-20">$1</span><span class="italic opacity-70">$2</span>`);
+
+  // Strikethrough
+  escaped = escaped.replace(/~~([^~]+)~~/g, '<span class="opacity-20">~~</span><span class="line-through opacity-40">$1</span><span class="opacity-20">~~</span>');
+  
+  // 5. Reveal Placeholders
+  inlineCodes.forEach((html, i) => { escaped = escaped.replace(`__INLINE_CODE_${i}__`, html); });
+  codeBlocks.forEach((html, i) => { escaped = escaped.replace(`__CODE_BLOCK_${i}__`, html); });
 
   return escaped;
 };
@@ -98,36 +107,10 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
   const [popup, setPopup] = useState<{ text: string; url: string } | null>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
-  const prevIndexRef = useRef<number | undefined>(undefined);
 
   const highlight = useCallback((code: string) => (
-    highlightMarkdownWithTailwind(code, searchTerm, matchCount, currentIndex)
+    highlightMarkdownMonochrome(code, searchTerm, matchCount, currentIndex)
   ), [searchTerm, matchCount, currentIndex]);
-
-  useEffect(() => {
-    if (prevIndexRef.current === currentIndex) return;
-    prevIndexRef.current = currentIndex;
-    
-    if (!searchTerm || !textareaRef.current || currentIndex === undefined) return;
-    
-    const text = textareaRef.current.value;
-    const regex = new RegExp(searchTerm.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "gi");
-    
-    let matchIdx = 0;
-    let match;
-    while ((match = regex.exec(text)) !== null) {
-      if (matchIdx === currentIndex) {
-        const lineHeight = parseInt(getComputedStyle(textareaRef.current).lineHeight) || 24;
-        const scrollTarget = (text.substring(0, match.index).split('\n').length - 1) * lineHeight;
-        const container = textareaRef.current.closest('.overflow-auto') || textareaRef.current.parentElement;
-        if (container) {
-          container.scrollTo({ top: Math.max(0, scrollTarget - 100), behavior: 'smooth' });
-        }
-        break;
-      }
-      matchIdx++;
-    }
-  }, [searchTerm, currentIndex]);
 
   useEffect(() => {
     const textarea = wrapperRef.current?.querySelector('textarea');
@@ -137,50 +120,50 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
 
     const handleSelect = () => {
       const selection = textarea.value.substring(textarea.selectionStart, textarea.selectionEnd);
-      const match = selection.match(/\[([^\]]+)\]\(([^)]+)\)/) || selection.match(/\(([^)]+)\)\[([^\]]+)\]/);
+      const match = selection.match(/\[([^\]]+)\]\(([^)]+)\)/);
       if (match) setPopup({ text: match[1], url: match[2] });
       else setPopup(null);
     };
 
-    textarea.addEventListener('select', handleSelect);
-    const selectionHandler = () => { if (document.activeElement === textarea) handleSelect(); };
-    document.addEventListener('selectionchange', selectionHandler);
+    textarea.addEventListener('mouseup', handleSelect);
+    textarea.addEventListener('keyup', handleSelect);
 
     return () => {
-      textarea.removeEventListener('select', handleSelect);
-      document.removeEventListener('selectionchange', selectionHandler);
+      textarea.removeEventListener('mouseup', handleSelect);
+      textarea.removeEventListener('keyup', handleSelect);
       onTextareaReady?.(null);
     };
   }, [onTextareaReady]);
 
   return (
-    <div className="relative flex-1 min-h-0 w-full" ref={wrapperRef}>
+    <div className="relative w-full h-full min-h-[400px] bg-transparent" ref={wrapperRef}>
       <Editor
         value={value}
         onValueChange={onChange}
         highlight={highlight}
-        padding={20}
+        padding={32}
         textareaId="markdown-editor"
-        textareaClassName="outline-none resize-none selection:bg-amber-500/30 dark:selection:bg-amber-400/20 selection:text-current"
-        className="min-h-[400px] h-full"
-        style={{ fontFamily, fontSize, lineHeight: '1.6' }}
+        textareaClassName="outline-none resize-none caret-neutral-900 dark:caret-neutral-100 text-neutral-800 dark:text-neutral-200 selection:bg-neutral-950/10 dark:selection:bg-neutral-50/20"
+        className="w-full min-h-full font-mono"
+        style={{ 
+          fontFamily, 
+          fontSize, 
+          lineHeight: '1.6',
+          minHeight: '100%' // Crucial for visibility
+        }}
       />
 
       {popup && (
-        <div className="fixed left-1/2 bottom-12 -translate-x-1/2 z-50 animate-in fade-in slide-in-from-bottom-4">
-          <div className="bg-white dark:bg-neutral-900 p-4 rounded-2xl shadow-2xl border border-neutral-200 dark:border-neutral-800 flex flex-col gap-3 min-w-[280px]">
-            <div className="flex justify-between items-center">
-              <span className="text-[10px] font-bold text-amber-600 uppercase tracking-widest">Linked Resource</span>
-              <button onClick={() => setPopup(null)} className="p-1 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-full">
-                <FaTimes className="text-neutral-400" />
-              </button>
-            </div>
-            <div className="text-[11px] text-neutral-500 break-all bg-neutral-50 dark:bg-neutral-950 p-2 rounded border border-neutral-100 dark:border-neutral-800">
-              {popup.url}
-            </div>
-            <a href={popup.url} target="_blank" rel="noreferrer" className="w-full py-2 bg-amber-500 hover:bg-amber-600 text-white text-sm text-center rounded-xl font-bold transition-all shadow-lg shadow-amber-500/20 active:scale-[0.98]">
-              Open Link
+        <div className="fixed bottom-12 right-12 z-50 animate-in fade-in slide-in-from-bottom-2">
+          <div className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 p-2 pl-4 rounded-full shadow-xl flex items-center gap-4">
+            <span className="text-[10px] font-black uppercase tracking-widest opacity-30">Link</span>
+            <span className="text-xs text-neutral-500 truncate max-w-[150px] font-mono">{popup.url}</span>
+            <a href={popup.url} target="_blank" rel="noreferrer" className="bg-neutral-900 text-white dark:bg-neutral-100 dark:text-black px-4 py-1.5 rounded-full text-xs font-bold hover:opacity-80 transition-opacity">
+              Open
             </a>
+            <button onClick={() => setPopup(null)} className="pr-2 opacity-30 hover:opacity-100">
+              <FaTimes size={14} />
+            </button>
           </div>
         </div>
       )}

@@ -4,18 +4,17 @@ import Button from "@/app/components/Button";
 import { useAtom } from "jotai";
 import { useEffect, useRef, useState } from "react";
 import { atom_pdfPreviewOpen } from "@/app/atoms/atoms";
-import EditorForm from "./EditorForm";
 import { FileMetadata } from "@/app/types/markdown";
 import ExportService from "@/app/services/export-service";
 import useIsMobile from "@/app/hooks/use-is-mobile";
 import { showSuccessToast, showErrorToast } from "@/app/components/Toastr";
-import TitleFileInfo from "../molecules/TitleFileInfo";
-import ActionsSidebar from "./ActionsSidebar";
 import PDFPreviewDialog from "./PDFPreviewDialog";
 import ShortcutsDialog from "./ShortcutsDialog";
-import ActionsMobileMenu from "./ActionsMobileMenu";
+import ActionsFAB from "./ActionsFAB";
 import FindBar from "../molecules/FindBar";
 import Greetings from "../molecules/Greetings";
+import TitleFileInfo from "../molecules/TitleFileInfo";
+import EditorForm from "./EditorForm";
 
 interface Props {
   contentEdited: string;
@@ -132,46 +131,25 @@ export default function EditorHeader({
   }
 
   return (
-    <header className="flex flex-col sm:flex-row sm:items-center justify-between w-full py-4 rounded-t-xl relative gap-4">
-      {/* Sidebar: Only show on desktop */}
-      {!isMobile && (
-        <ActionsSidebar
-          actions={actions}
-          exportToMD={exportToMD}
-          onShowFindBar={() => setShowFindBar(true)}
-        />
-      )}
-      {/* Mobile: Use ActionsMobileMenu */}
-      {isMobile && (
-        <ActionsMobileMenu
-          isOpen={isFabMenuOpen}
-          onClose={() => setIsFabMenuOpen(false)}
-          actions={actions}
-          exportToMD={exportToMD}
-        />
-      )}
-      {/* Left: Title and file info only */}
+    <header className="flex flex-col sm:flex-row sm:items-center justify-between w-full py-2 rounded-t-xl relative gap-4">
       <div className="flex flex-col items-start gap-1 w-full sm:max-w-md flex-shrink-0">
+        {/* Font controls and Find bar with collapse toggle */}
+        <ActionsFAB
+          actions={actions}
+          exportToMD={exportToMD}
+        />
+        
         <TitleFileInfo
           fileTitle={fileTitle}
           fileName={safeFileName}
           hasTitle={hasTitle}
           showFileDialog={showFileDialog}
-          renderFontMenu={() => null}
-          renderFontSizeMenu={() => null}
         />
-        {/* Font controls and Find bar with collapse toggle */}
-        {/* Only show FindBar if needed, no font controls or collapse button */}
-        {/* FindBar and show/hide button removed, now handled in ActionsSidebar */}
-        {isMobile && !isZenMode && (
-          <Button
-            variant="secondary"
-            styles="w-full mt-2"
-            onClick={() => setIsFabMenuOpen(true)}
-          >
-            Menu
-          </Button>
-        )}
+      
+        <EditorForm
+          isOpened={isFormatterDialogOpen}
+          handleClose={() => setIsFormatterDialogOpen(false)}
+        />
       </div>
       {/* Center: Helper text */}
       {!isMobile && (
@@ -188,10 +166,6 @@ export default function EditorHeader({
         onClose={hidePdfPreviewModal}
         contentEdited={contentEdited}
         handlePdfExport={handlePdfExport}
-      />
-      <EditorForm
-        isOpened={isFormatterDialogOpen}
-        handleClose={() => setIsFormatterDialogOpen(false)}
       />
       {/* Floating FindBar at bottom center */}
       {!isMobile && (

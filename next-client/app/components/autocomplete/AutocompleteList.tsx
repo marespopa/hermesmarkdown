@@ -50,9 +50,6 @@ export default function AutocompleteList({ groupedItems, activeIndex, onSelect }
               >
                 <div className="flex items-center gap-2">
                   <span className="font-medium truncate">{item.label}</span>
-                  <span className="text-xs text-neutral-500 dark:text-neutral-400 truncate">
-                    {item.description}
-                  </span>
                 </div>
               </button>
             );

@@ -1,44 +1,41 @@
+"use client";
+
 import React from "react";
-import { FaPen } from "react-icons/fa";
 
 interface TitleFileInfoProps {
   fileTitle: string;
   fileName: string;
   hasTitle: boolean;
   showFileDialog: () => void;
-  renderFontMenu: () => React.ReactNode;
-  renderFontSizeMenu: () => React.ReactNode;
 }
 
 const TitleFileInfo: React.FC<TitleFileInfoProps> = ({
   fileTitle,
   fileName,
   hasTitle,
-  showFileDialog,
-  renderFontMenu,
-  renderFontSizeMenu,
+  showFileDialog
 }) => (
-  <div className="flex flex-col gap-1 min-w-0 w-full sm:w-auto">
-    <div className="flex flex-row items-center gap-2 min-w-0 justify-center sm:justify-start sm:mt-2">
-      <h1 className="truncate text-xl font-semibold text-black dark:text-white leading-tight text-center sm:text-left">
-        {hasTitle && `${fileTitle}`}
+  <div className="group flex flex-col gap-0.5 select-none py-2 pl-4">
+    {/* The Interactive Title Area */}
+    <div 
+      className="flex items-baseline gap-3 cursor-pointer"
+      onClick={showFileDialog}
+    >
+      <h1 className="text-lg font-normal tracking-tight text-neutral-800 dark:text-neutral-200 font-serif italic">
+        {hasTitle ? fileTitle : "Untitled"}
       </h1>
-      <span
-        className="cursor-pointer"
-        onClick={showFileDialog}
-        title="Edit Title"
-        aria-label="Edit Title"
-      >
-        <FaPen />
+      
+      {/* Ghost Metadata: Only visible on hover, like iA Writer's focus mode */}
+      <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 text-[10px] uppercase tracking-[0.2em] text-sky-600 font-bold">
+        Edit
       </span>
     </div>
-    <span className="text-xs text-gray-500 dark:text-gray-100 font-mono truncate text-center sm:text-left">{`${fileName?.endsWith(".md") ? fileName : fileName + ".md"}`}</span>
-    {/* Remove the badge for unsaved changes */}
-    <div className="mt-1 flex flex-col gap-1 items-center sm:items-start">
-      <div className="flex flex-row gap-2 items-center justify-center">
-        {renderFontMenu()}
-        {renderFontSizeMenu()}
-      </div>
+
+    {/* The Path/Filename: Monospaced and subtle */}
+    <div className="flex items-center gap-2">
+      <span className="text-[11px] font-mono text-neutral-400 dark:text-neutral-500 tracking-wide">
+        {fileName?.endsWith(".md") ? fileName : `${fileName}.md`}
+      </span>
     </div>
   </div>
 );
