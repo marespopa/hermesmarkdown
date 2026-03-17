@@ -37,9 +37,9 @@ const FileTabs: React.FC = () => {
               }
             `}
           >
-            <span className="truncate max-w-[150px]">{file.frontMatter?.fileName || file.name || "Untitled"}</span>
+            <span className="truncate max-w-[150px]">{file.frontMatter?.fileName || "Untitled"}</span>
             <button
-              className="opacity-0 group-hover:opacity-100 p-0.5 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded"
+              className="p-0.5 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded"
               onClick={(e) => handleCloseTab(file.id, e)}
             >
               <FaTimes size={8} />

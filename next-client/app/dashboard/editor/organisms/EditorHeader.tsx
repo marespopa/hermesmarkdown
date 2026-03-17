@@ -131,13 +131,12 @@ export default function EditorHeader({
   }
 
   return (
-    <header className="flex flex-col sm:flex-row sm:items-center justify-between w-full py-4 rounded-t-xl relative gap-4">
-      <div className="ml-8 flex flex-col items-start gap-1 w-full sm:max-w-md flex-shrink-0">
+    <header className="flex flex-col sm:flex-row sm:items-center justify-between w-full py-2 rounded-t-xl relative gap-4">
+      <div className="flex flex-col items-start gap-1 w-full sm:max-w-md flex-shrink-0">
         {/* Font controls and Find bar with collapse toggle */}
         <ActionsFAB
           actions={actions}
           exportToMD={exportToMD}
-          showPdfPreviewModal={showPdfPreviewModal}
         />
         
         <TitleFileInfo
@@ -146,10 +145,10 @@ export default function EditorHeader({
           hasTitle={hasTitle}
           showFileDialog={showFileDialog}
         />
-
+      
         <EditorForm
-          isOpen={true}
-          onClose={() => setIsFormatterDialogOpen(false)}
+          isOpened={isFormatterDialogOpen}
+          handleClose={() => setIsFormatterDialogOpen(false)}
         />
       </div>
       {/* Center: Helper text */}
