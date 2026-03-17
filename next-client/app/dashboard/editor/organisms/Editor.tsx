@@ -352,7 +352,7 @@ export default function Editor() {
                   ref={zenButtonRef}
                   variant="icon"
                   onClick={() => setIsZenMode(false)}
-                  styles="absolute top-[12px] right-[12px] z-50"
+                  styles="bg-sky-100 dark:bg-sky-900 absolute top-[4px] right-[4px] z-50"
                 >
                   <FaTimes />
                 </Button>
