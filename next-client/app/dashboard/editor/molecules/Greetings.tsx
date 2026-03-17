@@ -1,6 +1,6 @@
+"use client";
+
 import React, { useState, useEffect } from 'react';
-import { FiSunrise, FiSun, FiMoon } from 'react-icons/fi';
-import { BsCupHot } from 'react-icons/bs';
 
 const Greetings = () => {
   const [currentTime, setCurrentTime] = useState(new Date());
@@ -10,52 +10,27 @@ const Greetings = () => {
     return () => clearInterval(timer);
   }, []);
 
-  const getGreeting = () => {
-    const hour = currentTime.getHours();
 
-    if (hour >= 5 && hour < 12) {
-      return { 
-        text: "Good Morning", 
-        icon: <FiSunrise />, 
-        iconCol: "text-amber-600 dark:text-amber-400" 
-      };
-    } else if (hour >= 12 && hour < 17) {
-      return { 
-        text: "Good Afternoon", 
-        icon: <FiSun />, 
-        iconCol: "text-amber-500 dark:text-amber-300" 
-      };
-    } else if (hour >= 17 && hour < 22) {
-      return { 
-        text: "Good Evening", 
-        icon: <FiMoon />, 
-        iconCol: "text-indigo-600 dark:text-indigo-400" 
-      };
-    } else {
-      return { 
-        text: "Working Late", 
-        icon: <BsCupHot />, 
-        iconCol: "text-rose-500 dark:text-rose-400" 
-      };
-    }
-  };
+const getGreeting = () => {
+  const hour = currentTime.getHours();
 
-  const { text, icon, iconCol } = getGreeting();
+  if (hour >= 5 && hour < 12) return "Good morning!";
+  if (hour >= 12 && hour < 17) return "Good afternoon!";
+  if (hour >= 17 && hour < 22) return "Good evening!";
+  return "Working late.";
+};
 
   return (
-    <div className="
-      flex items-center gap-3 px-4 py-2 rounded-lg border 
-      /* Light Mode: Primary Amber-100 */
-      bg-amber-200 border-amber-300 text-amber-900 
-      /* Dark Mode: Deep Slate/Zinc */
-      dark:bg-zinc-800 dark:border-zinc-700 dark:text-zinc-100 
-      transition-colors duration-300 shadow-sm
-    ">
-      <span className={`text-xl ${iconCol}`}>
-        {icon}
-      </span>
-      <span className="font-medium tracking-tight">
-        {text}
+    <div 
+      className="
+        group flex items-center gap-2 px-3 py-1.5
+        bg-transparent border-none cursor-pointer
+        hover:bg-neutral-100 dark:hover:bg-neutral-800/50
+        rounded-full transition-all duration-300
+      "
+    >
+      <span className="text-xs font-medium tracking-tight text-neutral-500 dark:text-neutral-400">
+        {getGreeting()}
       </span>
     </div>
   );

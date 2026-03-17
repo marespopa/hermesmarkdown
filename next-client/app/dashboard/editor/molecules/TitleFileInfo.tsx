@@ -6,17 +6,13 @@ interface TitleFileInfoProps {
   fileName: string;
   hasTitle: boolean;
   showFileDialog: () => void;
-  renderFontMenu: () => React.ReactNode;
-  renderFontSizeMenu: () => React.ReactNode;
 }
 
 const TitleFileInfo: React.FC<TitleFileInfoProps> = ({
   fileTitle,
   fileName,
   hasTitle,
-  showFileDialog,
-  renderFontMenu,
-  renderFontSizeMenu,
+  showFileDialog
 }) => (
   <div className="flex flex-col gap-1 min-w-0 w-full sm:w-auto">
     <div className="flex flex-row items-center gap-2 min-w-0 justify-center sm:justify-start sm:mt-2">
@@ -33,13 +29,6 @@ const TitleFileInfo: React.FC<TitleFileInfoProps> = ({
       </span>
     </div>
     <span className="text-xs text-gray-500 dark:text-gray-100 font-mono truncate text-center sm:text-left">{`${fileName?.endsWith(".md") ? fileName : fileName + ".md"}`}</span>
-    {/* Remove the badge for unsaved changes */}
-    <div className="mt-1 flex flex-col gap-1 items-center sm:items-start">
-      <div className="flex flex-row gap-2 items-center justify-center">
-        {renderFontMenu()}
-        {renderFontSizeMenu()}
-      </div>
-    </div>
   </div>
 );
 

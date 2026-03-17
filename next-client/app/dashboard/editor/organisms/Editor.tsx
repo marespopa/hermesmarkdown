@@ -379,20 +379,8 @@ export default function Editor() {
       )}
 
       {/* Main Editor Layout */}
-      <div className={`flex h-full flex-col gap-0 px-4 ${sidebarMargin}`}>
+      <div className={`flex h-full flex-col gap-0 px-4`}>
         {isMobile && isTimerVisible && <TimerContainer />}
-        {/* Top-right toolbar: Zen Mode button */}
-        {!isMobile && (
-          <div className="absolute top-4 right-4 flex items-center gap-2 z-10">
-            <Button
-              variant="icon"
-              onClick={() => setIsZenMode(true)}
-              title="Enter Zen Mode"
-            >
-              <FaExpand />
-            </Button>
-          </div>
-        )}
         
         <FileTabs />
 
