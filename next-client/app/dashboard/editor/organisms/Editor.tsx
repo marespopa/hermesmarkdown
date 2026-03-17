@@ -350,9 +350,9 @@ export default function Editor() {
             <div className="pointer-events-auto w-full h-full max-w-6xl px-8 py-6">
                 <Button
                   ref={zenButtonRef}
-                  variant="icon"
+                  variant="icon-bg"
                   onClick={() => setIsZenMode(false)}
-                  styles="bg-sky-100 dark:bg-sky-900 absolute top-[4px] right-[4px] z-50"
+                  styles="absolute top-[4px] right-[4px] z-50"
                 >
                   <FaTimes />
                 </Button>
