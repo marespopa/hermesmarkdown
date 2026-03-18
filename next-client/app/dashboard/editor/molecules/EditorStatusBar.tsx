@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { ClarityResult } from "@/app/services/prompt-clarity";
 import { useAtom } from "jotai";
-import { atom_showStatusBar, atom_showTimer, atom_zenMode } from "@/app/atoms/atoms";
+import { atom_showStatusBar, atom_showTimer } from "@/app/atoms/atoms";
 import { StatusBarTimer } from "./StatusBarTimer";
 
 interface Props {
@@ -24,7 +24,6 @@ const EditorStatusBar = ({ stats }: Props) => {
   const [isMounted, setIsMounted] = useState(false);
   const [showStatusBar] = useAtom(atom_showStatusBar);
   const [showTimer] = useAtom(atom_showTimer);
-  const [isZenMode] = useAtom(atom_zenMode);
 
   useEffect(() => {
     setIsMounted(true);
@@ -63,7 +62,7 @@ const EditorStatusBar = ({ stats }: Props) => {
       
         {showTimer && <div className="h-2.5 w-[1px] bg-neutral-200 dark:bg-neutral-800" />}
        
-        {showTimer && <StatusBarTimer isZenMode={isZenMode}/>}
+        {showTimer && <StatusBarTimer/>}
       </div>
 
       {/* 2. Status Label & Next Step */}

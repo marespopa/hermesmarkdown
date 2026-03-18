@@ -32,7 +32,6 @@ interface Props {
   setMatchCount: (count: number) => void;
   currentIndex: number;
   setCurrentIndex: (idx: number) => void;
-  isZenMode?: boolean;
 }
 
 export default function EditorHeader({
@@ -46,7 +45,6 @@ export default function EditorHeader({
   setMatchCount,
   currentIndex,
   setCurrentIndex,
-  isZenMode = false,
 }: Props) {
   const [isFormatterDialogOpen, setIsFormatterDialogOpen] = useState(false);
   const [isFabMenuOpen, setIsFabMenuOpen] = useState(false);

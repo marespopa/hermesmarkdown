@@ -6,11 +6,7 @@ import { FaPlay, FaPause, FaStop } from "react-icons/fa";
 import { FaRedo } from "react-icons/fa";
 import { useTimer } from "@/app/services/useTimer";
 
-interface Props {
-  isZenMode?: boolean;
-}
-
-export const StatusBarTimer = ({ isZenMode }: Props) => {
+export const StatusBarTimer = () => {
   const isTest =
     typeof window !== "undefined" && process.env.NODE_ENV === "test";
   const volume = isTest ? 0 : 1;
@@ -49,7 +45,7 @@ export const StatusBarTimer = ({ isZenMode }: Props) => {
 
   return (
     <div
-      className={`flex py-2 items-center tracking-tighter ${isZenMode ? "justify-center" : "justify-end"} text-[9px] gap-1 ${timerColor} cursor-pointer`}
+      className={`flex py-2 items-center tracking-tighter justify-end text-[9px] gap-1 ${timerColor} cursor-pointer`}
       onClick={handleToggle}
       onDoubleClick={handleReset}
     >

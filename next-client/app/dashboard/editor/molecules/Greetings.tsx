@@ -1,12 +1,9 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { atom_zenMode } from "@/app/atoms/atoms";
-import { useAtom } from "jotai";
 
 const Greetings = () => {
   const [currentTime, setCurrentTime] = useState(new Date());
-  const [zenMode, setZenMode] = useAtom(atom_zenMode);
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 60000);
@@ -31,7 +28,6 @@ const getGreeting = () => {
         hover:bg-neutral-100 dark:hover:bg-neutral-800/50
         rounded-full transition-all duration-300
       "
-      onClick={() => setZenMode(!zenMode)}
     >
       <span className="text-xs font-medium tracking-tight text-neutral-500 dark:text-neutral-400">
         {getGreeting()}

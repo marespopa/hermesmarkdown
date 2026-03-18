@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useAtom } from "jotai";
 import {
+  atom_pdfPreviewOpen,
   atom_fontFamily,
   atom_fontSize,
   atom_showTimer,
@@ -36,7 +37,6 @@ import { useEditorLaunchFlag } from "../hooks/use-editor-launch-flag";
 
 // Import refactored utils
 import EditorHeader from "./EditorHeader";
-import { atom_pdfPreviewOpen, atom_zenMode } from "@/app/atoms/atoms";
 import EditorContent from "./EditorContent";
 import PromptCommandBar from "./PromptCommandBar";
 import EditorSkeleton from "@/app/components/EditorSkeleton";
@@ -102,7 +102,6 @@ export default function Editor() {
   const [fontFamily, setFontFamily] = useAtom(atom_fontFamily);
   const [fontSize, setFontSize] = useAtom(atom_fontSize);
   const [isFontDialogOpen, setIsFontDialogOpen] = useState(false);
-  const [isZenMode, setIsZenMode] = useAtom(atom_zenMode);
   const [isFindAndReplaceModalVisible, setIsFindAndReplaceModalVisible] =
     useState(false);
   const [isFileSelectModalVisible, setIsFileSelectModalVisible] =
@@ -112,7 +111,6 @@ export default function Editor() {
   const [isTableEditorModalVisible, setIsTableEditorModalVisible] =
     useState(false);
 
-  const zenButtonRef = useRef<HTMLButtonElement>(null);
   const isMobile = useIsMobile();
 
   // Document title
@@ -160,18 +158,6 @@ export default function Editor() {
     }
   }, [fontFamily]);
 
-  // Zen mode escape effect
-  useEffect(() => {
-    if (!isZenMode) return;
-    function handleKeyDown(e: KeyboardEvent) {
-      if (e.key === "Escape") {
-        setIsZenMode(false);
-        zenButtonRef.current?.focus();
-      }
-    }
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isZenMode]);
 
   // Launch flags
   useEditorLaunchFlag("hm_open_table_editor", () => {
@@ -342,42 +328,6 @@ export default function Editor() {
 
   return (
     <div className="w-full h-screen bg-amber-100 dark:bg-darkbg">
-      {/* Zen Mode Overlay */}
-      {isZenMode && (
-        <>
-          <div className="fixed inset-0 z-40 bg-black/40 dark:bg-white/10 backdrop-blur-md transition-all duration-300" />
-          <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none">
-            <div className="pointer-events-auto w-full h-full max-w-6xl px-8 py-6">
-                <Button
-                  ref={zenButtonRef}
-                  variant="icon-bg"
-                  onClick={() => setIsZenMode(false)}
-                  styles="absolute top-[4px] right-[4px] z-50"
-                >
-                  <FaTimes />
-                </Button>
-              
-                <div className="fixed h-full flex flex-col">
-
-                <Suspense fallback={<EditorSkeleton />}>
-                   <FileTabs />
-                   <EditorContent
-                    contentEdited={contentEdited}
-                    setContentEdited={updateCurrentFileContent}
-                    fontFamily={fontFamily}
-                    fontSize={fontSize}
-                    searchTerm={searchTerm}
-                    matchCount={matchCount}
-                    currentIndex={currentIndex}
-                    onTextareaReady={handleTextareaReady}
-                  />
-                </Suspense>
-              </div>
-            </div>
-          </div>
-        </>
-      )}
-
       {/* Main Editor Layout */}
       <div className={`flex h-full flex-col gap-0 px-4`}>
         {isMobile && isTimerVisible && <TimerContainer />}
@@ -400,7 +350,6 @@ export default function Editor() {
           setMatchCount={() => {}}
           currentIndex={currentIndex}
           setCurrentIndex={setCurrentIndex}
-          isZenMode={isZenMode}
         />
 
         <div className="relative">

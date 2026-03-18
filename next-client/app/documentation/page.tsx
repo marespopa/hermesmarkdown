@@ -25,7 +25,6 @@ export default function Documentation() {
               <li><a href="#metrics" className={linkStyle}>Token & Quality Metrics</a></li>
               <li><a href="#editor-features" className={linkStyle}>Editor Features</a></li>
               <li><a href="#table-editor" className={linkStyle}>Table Editor</a></li>
-              <li><a href="#zen-mode" className={linkStyle}>Zen Mode</a></li>
               <li><a href="#export-import" className={linkStyle}>Export & Import</a></li>
               <li><a href="#find-replace" className={linkStyle}>Find & Replace</a></li>
               <li><a href="#timer" className={linkStyle}>Timer</a></li>
@@ -219,17 +218,6 @@ export default function Documentation() {
             </p>
           </section>
 
-          {/* Zen Mode */}
-          <section id="zen-mode">
-            <h2>Zen Mode</h2>
-            <p>
-              <strong>Zen Mode</strong> provides a distraction-free writing environment. The editor is centered, UI elements are hidden, and you can focus entirely on your content.
-            </p>
-            <p>
-              Toggle Zen Mode using the floating button in the editor. Press <b>Esc</b> to exit.
-            </p>
-          </section>
-
           {/* Export & Import */}
           <section id="export-import">
             <h2>Export & Import</h2>
@@ -303,7 +291,6 @@ tags: [prompt, example]
                   <tr><td><b>⌘/Ctrl + Shift + H</b></td><td>Go to Dashboard</td></tr>
                   <tr><td><b>⌘/Ctrl + F</b></td><td>Open FindBar</td></tr>
                   <tr><td><b>/</b></td><td>Open Slash Command Palette</td></tr>
-                  <tr><td><b>Esc</b></td><td>Close Dialogs / Exit Zen Mode</td></tr>
                 </tbody>
               </table>
             </div>

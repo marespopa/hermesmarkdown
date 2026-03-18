@@ -82,10 +82,6 @@ export default function FAQContent() {
           answer: "The table editor (Ctrl+Shift+T) makes markdown tables simple. Add rows and columns, edit cell content, and preview your table before inserting. Useful for comparison tables in prompts, structured data requirements, or output format specifications.",
         },
         {
-          question: "Can I work in Zen mode?",
-          answer: "Yes! Zen mode hides all interface elements except the editor for distraction-free prompt crafting. Press Esc to toggle. Perfect for long prompt engineering sessions or when you need full focus.",
-        },
-        {
           question: "What about the timer?",
           answer: "The timer helps you track focused work sessions. Useful when brainstorming prompt variations, testing approaches, or during deep work. Set a duration and focus without distractions.",
         },
