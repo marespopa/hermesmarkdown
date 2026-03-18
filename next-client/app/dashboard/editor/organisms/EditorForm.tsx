@@ -19,7 +19,6 @@ export default function EditorForm({ isOpened, handleClose }: Props) {
   const selectedId = useAtomValue(atom_selectedFileId);
   const [saveState, setSaveState] = useState(false);
 
-  // Find the file locally so we can edit it without affecting the global state until "Save" is hit
   const activeFile = files.find(f => f.id === selectedId);
 
   const [localData, setLocalData] = useState({
@@ -29,7 +28,6 @@ export default function EditorForm({ isOpened, handleClose }: Props) {
     tags: "",
   });
 
-  // Sync local state when modal opens
   useEffect(() => {
     if (isOpened && activeFile) {
       setLocalData({
@@ -51,7 +49,6 @@ export default function EditorForm({ isOpened, handleClose }: Props) {
 
     setSaveState(true);
 
-    // Update the files array
     const updatedFiles = files.map((f) =>
       f.id === activeFile.id
         ? { ...f, frontMatter: { ...localData }, isSaved: false }
@@ -59,11 +56,8 @@ export default function EditorForm({ isOpened, handleClose }: Props) {
     );
     
     setFiles(updatedFiles);
-
-    // Success Actions
     showSaveStateToast("saved");
     
-    // Minimal delay to show the button state before closing
     setTimeout(() => {
       setSaveState(false);
       handleClose();
@@ -72,59 +66,76 @@ export default function EditorForm({ isOpened, handleClose }: Props) {
 
   return (
     <DialogModal isOpened={isOpened} onClose={handleClose}>
-      <form className="w-full max-w-lg p-2" onSubmit={handleSave}>
-        <div className="mb-6">
-          <h2 className="text-xl font-bold text-neutral-900 dark:text-neutral-100 tracking-tight">
-            Document Settings
+      <form className="w-full max-w-lg p-6 font-mono" onSubmit={handleSave}>
+        {/* Header Section */}
+        <div className="mb-8">
+          <h2 className="text-xl font-normal text-zinc-800 dark:text-zinc-100 tracking-tight font-serif italic">
+            document_settings
           </h2>
-          <p className="text-xs text-neutral-500 font-medium">Edit file metadata and frontmatter</p>
+          <p className="text-[12px] text-zinc-400 dark:text-zinc-500 mt-1">
+            manage metadata and frontmatter
+          </p>
         </div>
 
-        <div className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <Input
-              name="fileName"
-              label="File Name"
-              value={localData.fileName}
-              handleChange={(e) => handleChange("fileName", e.currentTarget.value)}
-            />
-            <Input
-              name="title"
-              label="Title"
-              value={localData.title}
-              handleChange={(e) => handleChange("title", e.currentTarget.value)}
+        {/* Form Fields */}
+        <div className="space-y-6">
+          <div className="grid grid-cols-2 gap-6">
+            <div className="flex flex-col gap-2">
+              <label className="text-[12px] text-zinc-500 lowercase tracking-tight">file_name</label>
+              <Input
+                name="fileName"
+                value={localData.fileName}
+                handleChange={(e) => handleChange("fileName", e.currentTarget.value)}
+                className="!bg-zinc-50 dark:!bg-zinc-900/50 !border-zinc-200 dark:!border-zinc-800 !text-[12px] !rounded-md"
+              />
+            </div>
+            <div className="flex flex-col gap-2">
+              <label className="text-[12px] text-zinc-500 lowercase tracking-tight">title</label>
+              <Input
+                name="title"
+                value={localData.title}
+                handleChange={(e) => handleChange("title", e.currentTarget.value)}
+                className="!bg-zinc-50 dark:!bg-zinc-900/50 !border-zinc-200 dark:!border-zinc-800 !text-[12px] !rounded-md"
+              />
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <label className="text-[12px] text-zinc-500 lowercase tracking-tight">description</label>
+            <Textarea
+              name="description"
+              value={localData.description}
+              handleChange={(e) => handleChange("description", e.currentTarget.value)}
+              className="!bg-zinc-50 dark:!bg-zinc-900/50 !border-zinc-200 dark:!border-zinc-800 !text-[12px] !rounded-md min-h-[100px]"
             />
           </div>
 
-          <Textarea
-            name="description"
-            label="Description"
-            value={localData.description}
-            handleChange={(e) => handleChange("description", e.currentTarget.value)}
-          />
-
-          <Input
-            name="tags"
-            label="Tags"
-            value={localData.tags}
-            handleChange={(e) => handleChange("tags", e.currentTarget.value)}
-          />
+          <div className="flex flex-col gap-2">
+            <label className="text-[12px] text-zinc-500 lowercase tracking-tight">tags</label>
+            <Input
+              name="tags"
+              value={localData.tags}
+              handleChange={(e) => handleChange("tags", e.currentTarget.value)}
+              className="!bg-zinc-50 dark:!bg-zinc-900/50 !border-zinc-200 dark:!border-zinc-800 !text-[12px] !rounded-md"
+            />
+          </div>
         </div>
 
-        <div className="mt-8 flex items-center justify-end gap-3 pt-4 border-t border-neutral-100 dark:border-neutral-800">
+        {/* Actions Section */}
+        <div className="mt-10 flex items-center justify-end gap-3 pt-6 border-t border-zinc-100 dark:border-zinc-800">
           <button
             type="button"
             onClick={handleClose}
-            className="text-xs font-bold text-neutral-500 hover:text-neutral-700 px-4 py-2 transition-colors"
+            className="text-[12px] text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 px-4 py-2 transition-colors lowercase"
           >
-            Cancel
+            cancel
           </button>
           <Button
             variant="primary"
             type="submit"
-            label={saveState ? "Saving..." : "Save Properties"}
+            label={saveState ? "saving..." : "save_changes"}
             disabled={saveState}
-            styles="!py-2 !px-6 !text-xs shadow-lg shadow-sky-500/20"
+            styles="!py-2 !px-6 !text-[12px] !bg-zinc-900 dark:!bg-zinc-100 !text-white dark:!text-black !rounded-md !shadow-none hover:!opacity-90 transition-opacity"
           />
         </div>
       </form>

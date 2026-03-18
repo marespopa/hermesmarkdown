@@ -8,7 +8,6 @@ import {
   atom_showTimer,
   atom_showStatusBar,
   atom_theme,
-  atom_timerSessionState,
   atom_timerSettings,
 } from "@/app/atoms/atoms";
 import { useRouter } from "next/navigation";
@@ -19,6 +18,7 @@ import { fontSizeOptions } from "../constants/fontSizes";
 import Input, { Select } from "@/app/components/Input";
 import Button from "@/app/components/Button";
 import { showSuccessToast } from "@/app/components/Toastr";
+import { FaArrowLeft } from "react-icons/fa";
 
 const fontOptions = [
   { value: "Fira Mono, monospace", label: "Fira Mono" },
@@ -38,7 +38,6 @@ export default function SettingsPage() {
   const [timerMinutes, setTimerMinutes] = useState(timerSettings.durationInMin);
   const [showStatusBar, setShowStatusBar] = useAtom(atom_showStatusBar);
 
-  // Toast wrappers
   const setTheme = (val: string) => {
     _setTheme(val as "light" | "dark");
     showSuccessToast("Theme updated");
@@ -56,54 +55,50 @@ export default function SettingsPage() {
     showSuccessToast("Timer visibility updated");
   };
 
-  // Keep timerMinutes in sync with atom
   useEffect(() => {
     setTimerMinutes(timerSettings.durationInMin);
   }, [timerSettings.durationInMin]);
 
-  // ...existing code...
-
-  // ...existing code...
-
-  // --- Main Render ---
   return (
-    <div className="flex min-h-[80vh]">
-      {/* Sidebar */}
-      <aside className="w-[240px] border-r border-neutral-100 dark:border-neutral-800 py-8 px-4 flex flex-col gap-2 bg-white dark:bg-neutral-950">
-        <Button
-          variant="secondary"
-          label="Back to editor"
-          onClick={() => router.push("/dashboard/editor")}
-        />
-      </aside>
+    <div className="min-h-screen bg-white dark:bg-zinc-950 font-mono text-zinc-900 dark:text-zinc-100 selection:bg-zinc-200 dark:selection:bg-zinc-800">
+      <div className="max-w-3xl mx-auto px-6 py-16">
+        
+        {/* Navigation Header */}
+        <header className="mb-16">
+          <button 
+            onClick={() => router.push("/dashboard/editor")}
+            className="flex items-center gap-2 text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors mb-6 group"
+          >
+            <FaArrowLeft size={10} className="group-hover:-translate-x-0.5 transition-transform" />
+            <span className="text-[12px] lowercase tracking-tight">back_to_editor</span>
+          </button>
+          
+          <h1 className="text-3xl font-normal font-serif italic tracking-tighter">
+            settings
+          </h1>
+          <p className="text-[12px] text-zinc-400 dark:text-zinc-500 mt-2 lowercase">
+            workspace_configuration
+          </p>
+        </header>
 
-      {/* Main Content */}
-      <main className="flex-1 flex flex-col items-center py-10 px-6">
-        <div className="w-full">
-          <div className="mb-6">
-            <p className="text-xs text-neutral-500 font-mono border border-neutral-100 dark:border-neutral-800 rounded bg-neutral-50 dark:bg-neutral-900 py-2 px-4">
-              All changes are saved automatically.
-            </p>
-          </div>
-        </div>
-        <div className="w-full">
+        <main className="space-y-16">
           {/* Appearance Section */}
-          <section className="mb-8">
-            <h2
-              className="text-lg font-semibold mb-2"
-              style={{ fontFamily: "JetBrains Mono, Fira Code, monospace" }}
-            >
-              Appearance
-            </h2>
-            <div className="bg-white dark:bg-neutral-900">
+          <section>
+            <header className="mb-4">
+              <h2 className="text-lg font-normal font-serif italic text-zinc-800 dark:text-zinc-200 lowercase tracking-tight">
+                appearance
+              </h2>
+            </header>
+            
+            <div className="border-t border-zinc-100 dark:border-zinc-800">
               <SettingRow
-                title="Theme"
-                description="Choose your preferred color mode."
+                title="theme"
+                description="visual interface mode."
                 control={
                   <SegmentedControl
                     options={[
-                      { label: "Light", value: "light" },
-                      { label: "Dark", value: "dark" },
+                      { label: "light", value: "light" },
+                      { label: "dark", value: "dark" },
                     ]}
                     value={theme}
                     onChange={(val) => setTheme(val as "light" | "dark")}
@@ -111,8 +106,8 @@ export default function SettingsPage() {
                 }
               />
               <SettingRow
-                title="Font family"
-                description="Editor monospace font."
+                title="font_family"
+                description="editor typeface."
                 control={
                   <Select
                     name="fontFamily"
@@ -121,12 +116,13 @@ export default function SettingsPage() {
                     options={fontOptions}
                     handleChange={(e) => setFontFamily(e.target.value)}
                     compact
+                    className="!text-[12px] !font-mono !bg-transparent"
                   />
                 }
               />
               <SettingRow
-                title="Font size"
-                description="Editor font size in pixels."
+                title="font_size"
+                description="editor base sizing."
                 control={
                   <Select
                     name="fontSize"
@@ -135,6 +131,7 @@ export default function SettingsPage() {
                     options={fontSizeOptions}
                     handleChange={(e) => setFontSize(e.target.value)}
                     compact
+                    className="!text-[12px] !font-mono !bg-transparent"
                   />
                 }
               />
@@ -142,28 +139,27 @@ export default function SettingsPage() {
           </section>
 
           {/* Productivity Section */}
-          <section className="mb-8">
-            <h2
-              className="text-lg font-semibold mb-2"
-              style={{ fontFamily: "JetBrains Mono, Fira Code, monospace" }}
-            >
-              Productivity
-            </h2>
-            <div className="bg-white dark:bg-neutral-900">
+          <section>
+            <header className="mb-4">
+              <h2 className="text-lg font-normal font-serif italic text-zinc-800 dark:text-zinc-200 lowercase tracking-tight">
+                productivity
+              </h2>
+            </header>
+
+            <div className="border-t border-zinc-100 dark:border-zinc-800">
               <SettingRow
-                title="Show Status Bar"
-                description="Display the status bar with word/token count and prompt clarity."
+                title="status_bar"
+                description="display word count and metrics."
                 control={<Switch checked={showStatusBar} onChange={setShowStatusBar} />}
               />
-
               <SettingRow
-                title="Show Timer"
-                description="Display a session timer in the editor."
+                title="session_timer"
+                description="visible timer in editor."
                 control={<Switch checked={showTimer} onChange={setShowTimer} />}
               />
               <SettingRow
-                title="Default Timer"
-                description="Default timer duration in minutes."
+                title="timer_duration"
+                description="default session length (min)."
                 control={
                   <Input
                     name="timerMinutes"
@@ -171,9 +167,7 @@ export default function SettingsPage() {
                     type="number"
                     handleChange={(e) => {
                       const val = Number((e.target as HTMLInputElement).value);
-                      setTimerMinutes(
-                        Math.max(1, Math.min(120, isNaN(val) ? 1 : val)),
-                      );
+                      setTimerMinutes(Math.max(1, Math.min(120, isNaN(val) ? 1 : val)));
                     }}
                     validation={{ min: 1, max: 120 }}
                     debounceMs={600}
@@ -181,20 +175,18 @@ export default function SettingsPage() {
                       const val = Number((e.target as HTMLInputElement).value);
                       setTimerSettings((prev) => ({
                         ...prev,
-                        durationInMin: Math.max(
-                          1,
-                          Math.min(120, isNaN(val) ? 1 : val),
-                        ),
+                        durationInMin: Math.max(1, Math.min(120, isNaN(val) ? 1 : val)),
                       }));
                       showSuccessToast("Timer duration updated");
                     }}
+                    className="!w-24 !text-right !font-mono !text-[12px] !bg-zinc-50 dark:!bg-zinc-900/50 !border-zinc-200 dark:!border-zinc-800"
                   />
                 }
               />
             </div>
           </section>
-        </div>
-      </main>
+        </main>
+      </div>
     </div>
   );
 }

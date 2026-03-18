@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { FaPencilAlt } from "react-icons/fa";
 
 interface TitleFileInfoProps {
   fileTitle: string;
@@ -15,25 +16,29 @@ const TitleFileInfo: React.FC<TitleFileInfoProps> = ({
   hasTitle,
   showFileDialog
 }) => (
-  <div className="group flex flex-col gap-0.5 select-none py-2 pl-4">
+  <div className="flex flex-col gap-1 select-none py-4 pl-6">
     {/* The Interactive Title Area */}
-    <div 
-      className="flex items-baseline gap-3 cursor-pointer"
-      onClick={showFileDialog}
-    >
-      <h1 className="text-lg font-normal tracking-tight text-neutral-800 dark:text-neutral-200 font-serif italic">
+    <div className="flex items-center gap-3">
+      <h1 className={`
+        text-2xl font-normal tracking-tight font-serif italic
+        ${hasTitle ? "text-zinc-800 dark:text-zinc-100" : "text-zinc-400 dark:text-zinc-600"}
+      `}>
         {hasTitle ? fileTitle : "Untitled"}
       </h1>
       
-      {/* Ghost Metadata: Only visible on hover, like iA Writer's focus mode */}
-      <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 text-[10px] uppercase tracking-[0.2em] text-sky-600 font-bold">
-        Edit
-      </span>
+      {/* Permanent Edit Trigger */}
+      <button 
+        onClick={showFileDialog}
+        className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-zinc-100 dark:bg-zinc-800/50 hover:bg-zinc-200 dark:hover:bg-zinc-800 text-zinc-500 dark:text-zinc-400 transition-all group"
+      >
+        <FaPencilAlt size={10} className="opacity-50 group-hover:opacity-100" />
+        <span className="text-[12px] font-mono lowercase tracking-tight">edit</span>
+      </button>
     </div>
 
-    {/* The Path/Filename: Monospaced and subtle */}
+    {/* File naming: Simple, monospaced label */}
     <div className="flex items-center gap-2">
-      <span className="text-[11px] font-mono text-neutral-400 dark:text-neutral-500 tracking-wide">
+      <span className="text-[12px] font-mono text-zinc-400 dark:text-zinc-500 tracking-tight">
         {fileName?.endsWith(".md") ? fileName : `${fileName}.md`}
       </span>
     </div>

@@ -9,7 +9,7 @@ type Props = {
   onClick?: (e: React.MouseEvent<HTMLButtonElement>) => void;
   styles?: string;
   isDisabled?: boolean;
-  [key: string]: any; // Allow extra props like data-testid
+  [key: string]: any; 
 };
 
 export default function Button({
@@ -24,7 +24,6 @@ export default function Button({
   return (
     <button
       onClick={(e) => {
-        // Only prevent default for non-submit buttons
         if ((rest.type || "button") !== "submit") {
           e.preventDefault();
         }
@@ -41,39 +40,42 @@ export default function Button({
   );
 }
 
+// Minimalistic Base: Removed transform/scaling for a more stable "Pro" feel
 const baseStyles =
-  "rounded-lg flex items-center justify-center gap-2 transition-all duration-200 ease-out focus:outline-none focus-visible:ring-2 disabled:opacity-50 disabled:pointer-events-none select-none border transform hover:scale-[1.03] active:scale-95 min-w-[44px] min-h-[44px]";
+  "rounded-md flex items-center justify-center gap-2 transition-all duration-150 ease-out focus:outline-none focus-visible:ring-1 focus-visible:ring-zinc-400 disabled:opacity-30 disabled:pointer-events-none select-none border font-mono text-[12px] lowercase tracking-tight";
 
 const variantStyles = (variant: ButtonVariant): string => {
   switch (variant) {
-    case "hero": {
-      const primaryClasses = `${baseStyles} bg-sky-600 text-white border-sky-700 shadow-lg shadow-sky-900/20 hover:bg-sky-700 focus-visible:ring-sky-500 dark:bg-sky-500 dark:text-gray-950 dark:border-sky-400 dark:hover:bg-sky-400`;
-      return `${primaryClasses} h-16 px-8 text-xl`;
-    }
+    case "hero":
+      // High contrast, clean
+      return `${baseStyles} h-12 px-8 bg-zinc-900 text-white border-zinc-900 hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-950 dark:border-zinc-100 dark:hover:bg-zinc-200 shadow-sm`;
 
     case "primary":
-      // Light: Trusted Blue | Dark: Vibrant Sky
-      return `${baseStyles} px-8 py-4 bg-sky-600 text-white border-sky-700 shadow-sm hover:bg-sky-700 focus-visible:ring-sky-500 dark:bg-sky-500 dark:text-gray-950 dark:border-sky-400 dark:hover:bg-sky-400`;
+      // Solid neutral
+      return `${baseStyles} h-9 px-6 bg-zinc-900 text-white border-zinc-900 hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-950 dark:border-zinc-100 dark:hover:bg-zinc-200`;
 
     case "secondary":
-      // Light: Soft Sky tint | Dark: Muted charcoal with sky border
-      return `${baseStyles} px-8 py-4 bg-sky-50 text-sky-900 border-sky-200 hover:bg-sky-100 focus-visible:ring-sky-500 dark:bg-zinc-800/50 dark:text-sky-200 dark:border-sky-900/50 dark:hover:bg-zinc-800`;
+      // Muted fill
+      return `${baseStyles} h-9 px-6 bg-zinc-100 text-zinc-900 border-zinc-200 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-100 dark:border-zinc-700 dark:hover:bg-zinc-700`;
 
     case "outlined":
-      return `${baseStyles} px-4 py-2 bg-transparent border-sky-600 text-sky-700 hover:bg-sky-50 focus-visible:ring-sky-500 dark:text-sky-400 dark:border-sky-500/40 dark:hover:bg-sky-500/10`;
+      // Ghost style with border
+      return `${baseStyles} h-9 px-4 bg-transparent border-zinc-300 text-zinc-600 hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-400 dark:hover:bg-zinc-800/50`;
 
     case "icon":
-      return `${baseStyles} p-0 w-11 h-11 bg-transparent border-none text-sky-900 hover:bg-sky-200/50 focus-visible:ring-sky-500 dark:text-sky-200 dark:hover:bg-white/5`;
+      // Pure icon, no border
+      return `${baseStyles} w-9 h-9 p-0 bg-transparent border-none text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800`;
 
     case "icon-bg":
-      // Glass-style Sky (No halo effect)
-      return `${baseStyles} p-0 w-11 h-11 bg-sky-200/40 border-sky-300/30 text-sky-800 shadow-none hover:bg-sky-200 focus-visible:ring-sky-500 dark:bg-sky-500/10 dark:border-sky-500/20 dark:text-sky-400 dark:hover:bg-sky-500/20`;
+      // Subtle container for icons
+      return `${baseStyles} w-9 h-9 p-0 bg-zinc-100 border-zinc-200 text-zinc-600 hover:bg-zinc-200 dark:bg-zinc-800 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-700`;
 
     case "tertiary":
-      return `${baseStyles} px-4 py-2 bg-transparent text-sky-800 border-none hover:bg-sky-200/40 focus-visible:ring-sky-500 dark:text-sky-300 dark:hover:bg-white/5`;
+      // Text only
+      return `${baseStyles} h-9 px-3 bg-transparent border-none text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100`;
 
     case "bare":
-      return "inline-flex items-center justify-center min-w-[44px] min-h-[44px]";
+      return "inline-flex items-center justify-center font-mono text-[12px] lowercase";
 
     default:
       return baseStyles;

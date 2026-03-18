@@ -22,7 +22,7 @@ const FileTabs: React.FC = () => {
   };
 
   return (
-    <nav className="flex items-center h-10 px-4 gap-1 bg-amber-50/50 dark:bg-black/20 border-b border-neutral-200/50 dark:border-neutral-800/50 overflow-x-auto no-scrollbar select-none">
+    <nav className="flex items-center h-11 px-4 gap-1 bg-white/50 dark:bg-zinc-950/50 backdrop-blur-md border-b border-zinc-200 dark:border-zinc-800 overflow-x-auto no-scrollbar select-none font-mono">
       {files.map((file) => {
         const isSelected = file.id === selectedId;
         return (
@@ -30,20 +30,31 @@ const FileTabs: React.FC = () => {
             key={file.id}
             onClick={() => setSelectedId(file.id)}
             className={`
-              group flex items-center gap-2 px-3 py-1 cursor-pointer rounded-md transition-all text-[12px]
+              group relative flex items-center gap-2 px-4 h-8 cursor-pointer rounded-md transition-all text-[12px] whitespace-nowrap
               ${isSelected 
-                ? "bg-white dark:bg-neutral-900 text-sky-600 dark:text-sky-400 font-bold shadow-sm" 
-                : "text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300"
+                ? "bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 shadow-sm" 
+                : "text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-900/50"
               }
             `}
           >
-            <span className="truncate max-w-[150px]">{file.frontMatter?.fileName || "Untitled"}</span>
+            <span className="truncate max-w-[140px] tracking-tight">
+              {file.frontMatter?.fileName || "untitled.md"}
+            </span>
+
             <button
-              className="p-0.5 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded"
+              className={`
+                p-1 rounded-sm transition-all
+                ${isSelected ? "opacity-40 hover:opacity-100 hover:bg-zinc-200 dark:hover:bg-zinc-700" : "opacity-0 group-hover:opacity-40 hover:opacity-100"}
+              `}
               onClick={(e) => handleCloseTab(file.id, e)}
             >
-              <FaTimes size={8} />
+              <FaTimes size={10} />
             </button>
+            
+            {/* Subtle bottom line for selected tab */}
+            {isSelected && (
+              <div className="absolute bottom-0 left-2 right-2 h-[1.5px] bg-zinc-900 dark:bg-zinc-100 rounded-t-full" />
+            )}
           </div>
         );
       })}
