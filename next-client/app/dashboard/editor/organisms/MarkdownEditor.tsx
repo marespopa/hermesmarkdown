@@ -1,8 +1,7 @@
 "use client";
 
-import React, { useState, useRef, useEffect, useCallback } from "react";
+import React, { useRef, useCallback } from "react";
 import Editor from "react-simple-code-editor";
-import { FaTimes } from "react-icons/fa";
 
 interface MarkdownEditorProps {
   value: string;
@@ -10,163 +9,113 @@ interface MarkdownEditorProps {
   fontFamily: string;
   fontSize: string;
   searchTerm?: string;
-  matchCount?: number;
-  currentIndex?: number;
-  onTextareaReady?: (element: HTMLTextAreaElement | null) => void;
 }
 
-/**
- * Fades syntax markers (tokens) using low opacity.
- */
-const highlightMarkdownMonochrome = (
-  code: string, 
-  searchTerm?: string, 
-  matchCount?: number, 
-  currentIndex?: number
-) => {
+const highlightMarkdownMonochrome = (code: string, searchTerm?: string) => {
   let escaped = code
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;");
 
-  // 1. Hide Code Blocks & Inline Code (Monochrome style)
-  const codeBlocks: string[] = [];
-  escaped = escaped.replace(/```[\s\S]*?```/g, (match) => {
-    const id = `__CODE_BLOCK_${codeBlocks.length}__`;
-    codeBlocks.push(`<span class="opacity-50 font-mono">${match}</span>`);
-    return id;
-  });
-
-  const inlineCodes: string[] = [];
-  escaped = escaped.replace(/`([^`\n]+)`/g, (match) => {
-    const id = `__INLINE_CODE_${inlineCodes.length}__`;
-    inlineCodes.push(`<span class="bg-neutral-100 dark:bg-neutral-800/50 px-1 rounded font-mono opacity-80">${match}</span>`);
-    return id;
-  });
-
-  // 2. Agentic Tags (Faded)
-  escaped = escaped.replace(
-    /&lt;(\/?[a-zA-Z0-9_]+)&gt;/g,
-    `<span class="opacity-40 font-medium">&lt;$1&gt;</span>`
-  );
-
-  // 3. Search Highlights (Keep functional but grayscale)
-  if (searchTerm && searchTerm.length > 0) {
-    const escapedSearch = searchTerm.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-    const regex = new RegExp(escapedSearch, "gi");
-    let matchIdx = 0;
-    escaped = escaped.replace(regex, (match) => {
-      const isCurrent = matchCount && currentIndex !== undefined && matchIdx === currentIndex;
-      const colorClass = isCurrent 
-        ? "bg-neutral-900 dark:bg-neutral-100 text-white dark:text-black" 
-        : "bg-neutral-200 dark:bg-neutral-700 text-current";
-      
-      const res = `<span class="${colorClass} rounded-sm px-0.5">${match}</span>`;
-      matchIdx++;
-      return res;
-    });
-  }
-
-  // 4. Structural Markdown 
-  
-  // Headings: Fade the '#' symbols
+  // 1. Headings: Ghost symbols, Bold & Solid Text
   escaped = escaped.replace(/^(#{1,6})(\s.+)$/gm, 
-    `<span class="opacity-20 font-normal">$1</span><span class="font-bold text-neutral-900 dark:text-neutral-50">$2</span>`);
+    `<span style="opacity: 0.15; font-weight: 400;">$1</span><span style="font-weight: 700; color: var(--text-main);">$2</span>`);
   
-  // Lists: Fade the bullets/numbers
-  escaped = escaped.replace(/^(\s*)([-*+]|\d+\.)(\s)/gm, 
-    `$1<span class="opacity-30">$2</span>$3`);
-  
-  // Bold & Italic: Fade the markers
+  // 2. Bold: Ghost markers, Bold & Solid Text
   escaped = escaped.replace(/(\*\*|__)(.*?)\1/g, 
-    `<span class="opacity-20">$1</span><span class="font-bold text-neutral-900 dark:text-neutral-50">$2</span><span class="opacity-20">$1</span>`);
-  escaped = escaped.replace(/(\*|_)(.*?)\1/g, 
-    `<span class="opacity-20">$1</span><span class="italic text-neutral-900 dark:text-neutral-50">$2</span><span class="opacity-20">$1</span>`);
-
-  // Links: Underline the text, ghost the URL
-  escaped = escaped.replace(/(!?\[)(.*?)(\]\()(.*?)(\))/g, 
-    `<span class="opacity-20">$1</span><span class="underline decoration-neutral-300 dark:decoration-neutral-600">$2</span><span class="opacity-20">$3$4$5</span>`);
-
-  // Blockquotes: Fade the '>'
-  escaped = escaped.replace(/^(&gt;\s)(.+)$/gm, 
-    `<span class="opacity-20">$1</span><span class="italic opacity-70">$2</span>`);
-
-  // Strikethrough
-  escaped = escaped.replace(/~~([^~]+)~~/g, '<span class="opacity-20">~~</span><span class="line-through opacity-40">$1</span><span class="opacity-20">~~</span>');
+    `<span style="opacity: 0.15; font-weight: 400;">$1</span><span style="font-weight: 700; color: var(--text-main);">$2</span><span style="opacity: 0.15; font-weight: 400;">$1</span>`);
   
-  // 5. Reveal Placeholders
-  inlineCodes.forEach((html, i) => { escaped = escaped.replace(`__INLINE_CODE_${i}__`, html); });
-  codeBlocks.forEach((html, i) => { escaped = escaped.replace(`__CODE_BLOCK_${i}__`, html); });
+  // 3. Italic: Ghost markers, Italic Text
+  escaped = escaped.replace(/(\*|_)(.*?)\1/g, 
+    `<span style="opacity: 0.15;">$1</span><span style="font-style: italic; color: var(--text-main);">$2</span><span style="opacity: 0.15;">$1</span>`);
+
+  // 4. Lists: Ghost the bullet
+  escaped = escaped.replace(/^(\s*)([-*+]|\d+\.)(\s)/gm, 
+    `$1<span style="opacity: 0.2">$2</span>$3`);
 
   return escaped;
 };
 
 const MarkdownEditor: React.FC<MarkdownEditorProps> = ({ 
-  value, onChange, fontFamily, fontSize, searchTerm, matchCount, currentIndex, onTextareaReady 
+  value, onChange, fontFamily, fontSize, searchTerm 
 }) => {
-  const [popup, setPopup] = useState<{ text: string; url: string } | null>(null);
-  const wrapperRef = useRef<HTMLDivElement>(null);
-  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   const highlight = useCallback((code: string) => (
-    highlightMarkdownMonochrome(code, searchTerm, matchCount, currentIndex)
-  ), [searchTerm, matchCount, currentIndex]);
+    highlightMarkdownMonochrome(code, searchTerm)
+  ), [searchTerm]);
 
-  useEffect(() => {
-    const textarea = wrapperRef.current?.querySelector('textarea');
-    if (!textarea) return;
-    textareaRef.current = textarea as HTMLTextAreaElement;
-    onTextareaReady?.(textareaRef.current);
-
-    const handleSelect = () => {
-      const selection = textarea.value.substring(textarea.selectionStart, textarea.selectionEnd);
-      const match = selection.match(/\[([^\]]+)\]\(([^)]+)\)/);
-      if (match) setPopup({ text: match[1], url: match[2] });
-      else setPopup(null);
-    };
-
-    textarea.addEventListener('mouseup', handleSelect);
-    textarea.addEventListener('keyup', handleSelect);
-
-    return () => {
-      textarea.removeEventListener('mouseup', handleSelect);
-      textarea.removeEventListener('keyup', handleSelect);
-      onTextareaReady?.(null);
-    };
-  }, [onTextareaReady]);
+  const handleContainerClick = () => {
+    // Selects the textarea inside the library's DOM and forces focus
+    const textarea = containerRef.current?.querySelector('textarea');
+    textarea?.focus();
+  };
 
   return (
-    <div className="relative w-full h-full min-h-[400px] bg-transparent" ref={wrapperRef}>
-      <Editor
-        value={value}
-        onValueChange={onChange}
-        highlight={highlight}
-        padding={32}
-        textareaId="markdown-editor"
-        textareaClassName="outline-none resize-none caret-neutral-900 dark:caret-neutral-100 text-neutral-800 dark:text-neutral-200 selection:bg-neutral-950/10 dark:selection:bg-neutral-50/20"
-        className="w-full min-h-full font-mono"
-        style={{ 
-          fontFamily, 
-          fontSize, 
-          lineHeight: '1.6',
-          minHeight: '100%' // Crucial for visibility
-        }}
-      />
+    <div 
+      ref={containerRef}
+      onClick={handleContainerClick}
+      className="relative w-full min-h-screen cursor-text bg-transparent" 
+    >
+      <style jsx global>{`
+        .editor-container {
+          --text-main: #171717;
+          --text-ghost: #737373;
+          border: none !important;
+          height: 100%;
+        }
+        .dark .editor-container {
+          --text-main: #ffffff;
+          --text-ghost: #737373;
+        }
 
-      {popup && (
-        <div className="fixed bottom-12 right-12 z-50 animate-in fade-in slide-in-from-bottom-2">
-          <div className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 p-2 pl-4 rounded-full shadow-xl flex items-center gap-4">
-            <span className="text-[10px] font-black uppercase tracking-widest opacity-30">Link</span>
-            <span className="text-xs text-neutral-500 truncate max-w-[150px] font-mono">{popup.url}</span>
-            <a href={popup.url} target="_blank" rel="noreferrer" className="bg-neutral-900 text-white dark:bg-neutral-100 dark:text-black px-4 py-1.5 rounded-full text-xs font-bold hover:opacity-80 transition-opacity">
-              Open
-            </a>
-            <button onClick={() => setPopup(null)} className="pr-2 opacity-30 hover:opacity-100">
-              <FaTimes size={14} />
-            </button>
-          </div>
-        </div>
-      )}
+        .editor-container textarea,
+        .editor-container pre {
+          font-family: ${fontFamily}, "JetBrains Mono", ui-monospace, monospace !important;
+          font-size: ${fontSize} !important;
+          line-height: 1.8 !important;
+          padding: 16px 16px !important; /* Extra top padding for better breathing room */
+          
+          font-variant-ligatures: none !important;
+          letter-spacing: 0px !important;
+          tab-size: 4 !important;
+          white-space: pre-wrap !important;
+          word-break: break-all !important;
+          border: none !important;
+          outline: none !important;
+          box-shadow: none !important;
+          min-height: 100vh !important;
+        }
+
+        .editor-container textarea {
+          color: transparent !important;
+          caret-color: var(--text-main) !important;
+          z-index: 1;
+          background: transparent !important;
+          font-weight: 400 !important;
+        }
+
+        .editor-container pre {
+          color: var(--text-ghost) !important;
+          z-index: 0;
+          background: transparent !important;
+        }
+
+        /* Clean up library-injected borders */
+        .editor-container div {
+           border: none !important;
+        }
+      `}</style>
+
+      <div className="editor-container w-full h-full">
+        <Editor
+          value={value}
+          onValueChange={onChange}
+          highlight={highlight}
+          textareaId="markdown-editor"
+          className="w-full h-full"
+        />
+      </div>
     </div>
   );
 };
