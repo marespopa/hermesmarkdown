@@ -22,7 +22,7 @@ const FileTabs: React.FC = () => {
   };
 
   return (
-    <nav className="flex items-center h-10 px-4 gap-1 border-b border-neutral-200/50 dark:border-neutral-800/50 overflow-x-auto no-scrollbar select-none">
+    <nav className="flex items-center h-10 px-4 gap-1 bg-amber-50/50 dark:bg-black/20 border-b border-neutral-200/50 dark:border-neutral-800/50 overflow-x-auto no-scrollbar select-none">
       {files.map((file) => {
         const isSelected = file.id === selectedId;
         return (

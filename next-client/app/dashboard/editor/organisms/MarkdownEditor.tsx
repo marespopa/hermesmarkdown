@@ -15,6 +15,9 @@ interface MarkdownEditorProps {
   setMatchCount?: (count: number) => void;
 }
 
+/**
+ * Fades syntax markers (tokens) using low opacity.
+ */
 const highlightMarkdownMonochrome = (
   code: string, 
   searchTerm?: string, 
