@@ -12,7 +12,6 @@ import PDFPreviewDialog from "./PDFPreviewDialog";
 import ShortcutsDialog from "./ShortcutsDialog";
 import ActionsFAB from "./ActionsFAB";
 import FindBar from "../molecules/FindBar";
-import Greetings from "../molecules/Greetings";
 import TitleFileInfo from "../molecules/TitleFileInfo";
 import EditorForm from "./EditorForm";
 
@@ -149,12 +148,6 @@ export default function EditorHeader({
           handleClose={() => setIsFormatterDialogOpen(false)}
         />
       </div>
-      {/* Center: Helper text */}
-      {!isMobile && (
-        <div className="flex-1 flex justify-end">
-            <Greetings />
-        </div>
-      )}
       <ShortcutsDialog
         isOpen={isShortcutsOpen}
         onClose={() => setIsShortcutsOpen(false)}

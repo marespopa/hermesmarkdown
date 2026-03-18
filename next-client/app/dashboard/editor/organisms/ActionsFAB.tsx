@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useAtom } from "jotai";
 import { atom_theme } from "@/app/atoms/atoms";
@@ -26,7 +26,14 @@ const ActionsFAB: React.FC<ActionsFABProps> = ({ actions, exportToMD }) => {
   const router = useRouter();
   const menuRef = useRef<HTMLDivElement>(null);
 
-  // Close menu on click outside or Escape key
+  const greeting = useMemo(() => {
+    const hour = new Date().getHours();
+    if (hour < 12) return "Good morning!";
+    if (hour < 17) return "Good afternoon!";
+    if (hour < 21) return "Good evening!";
+    return "Working late.";
+  }, []);
+
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
@@ -45,103 +52,88 @@ const ActionsFAB: React.FC<ActionsFABProps> = ({ actions, exportToMD }) => {
     };
   }, []);
 
-  const runAction = (fn: () => void) => {
-    fn();
-    setIsOpen(false);
-  };
-
   return (
-    <div className="fixed bottom-6 right-6 z-[100] flex flex-col items-end gap-3" ref={menuRef}>
-      {/* Popover Menu Content */}
+    <div className="fixed top-12 right-4 z-[100] flex flex-col items-end gap-1 font-mono" ref={menuRef}>
+      
+      {/* iA Writer Inspired Control Strip */}
+      <div className="flex items-center bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-sm divide-x divide-zinc-200 dark:divide-zinc-800 shadow-sm transition-all duration-200">
+        
+        {/* Status Label */}
+        <div className="px-3 py-2 hidden md:block">
+          <span className="text-[10px] text-zinc-400 dark:text-zinc-500 tracking-tight">
+            {greeting}
+          </span>
+        </div>
+
+        {/* Copy Action */}
+        <button
+          onClick={actions.handleCopyPrompt}
+          className="px-4 py-2 text-[11px] font-medium text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors flex items-center gap-2 group"
+        >
+          <FaCopy size={11} className="opacity-30 group-hover:opacity-100 transition-opacity" />
+          <span>copy_prompt</span>
+        </button>
+
+        {/* Menu Toggle - Hamburger Style */}
+        <button
+          onClick={() => setIsOpen(!isOpen)}
+          className={`px-4 py-2 transition-colors flex items-center justify-center min-w-[44px] ${
+            isOpen ? "bg-zinc-900 text-white dark:bg-zinc-100 dark:text-black" : "hover:bg-zinc-50 dark:hover:bg-zinc-800 text-zinc-800 dark:text-zinc-200"
+          }`}
+        >
+          {isOpen ? (
+            <FaTimes size={12} />
+          ) : (
+            <div className="flex flex-col gap-[3px] items-center">
+              <div className="w-3.5 h-[1px] bg-current" />
+              <div className="w-3.5 h-[1px] bg-current" />
+              <div className="w-3.5 h-[1px] bg-current" />
+            </div>
+          )}
+        </button>
+      </div>
+
+      {/* Popover Menu - Precision Alignment */}
       <div 
         className={`
-          mb-2 transition-all duration-300 origin-bottom-right
-          ${isOpen ? "scale-100 opacity-100 translate-y-0" : "scale-95 opacity-0 translate-y-4 pointer-events-none"}
+          mt-1 transition-all duration-150 ease-out transform
+          ${isOpen ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-1 pointer-events-none"}
         `}
       >
-        <div className="w-56 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-md border border-sky-200 dark:border-sky-900/50 rounded-2xl shadow-2xl p-1.5 flex flex-col gap-0.5">
+        <div className="w-44 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-sm shadow-[0_10px_30px_rgba(0,0,0,0.1)] p-1 flex flex-col">
+          <MenuButton onClick={() => { actions.handleNewFile(); setIsOpen(false); }} icon={<FaFile size={10} />} label="new_file" />
+          <MenuButton onClick={() => { actions.handleOpenFile(); setIsOpen(false); }} icon={<FaFolderOpen size={10} />} label="open_file" />
+          <MenuButton onClick={() => { actions.handleOpenFindAndReplace(); setIsOpen(false); }} icon={<FaSearch size={10} />} label="search" />
+          <MenuButton onClick={() => { exportToMD(); setIsOpen(false); }} icon={<FaDownload size={10} />} label="export_md" />
           
-          <MenuButton 
-            variant="primary" 
-            onClick={() => runAction(actions.handleCopyPrompt)} 
-            icon={<FaCopy size={14} />} 
-            label="Copy Prompt" 
-          />
-          
-          <Divider />
-          
-          <MenuButton onClick={() => runAction(actions.handleNewFile)} icon={<FaFile size={14} />} label="New Document" />
-          <MenuButton onClick={() => runAction(actions.handleOpenFile)} icon={<FaFolderOpen size={14} />} label="Import File" />
-          <MenuButton onClick={() => runAction(actions.handleOpenFindAndReplace)} icon={<FaSearch size={14} />} label="Search Text" />
-          <MenuButton onClick={() => runAction(exportToMD)} icon={<FaDownload size={14} />} label="Export .md" />
-          
-          <Divider />
+          <div className="h-[1px] bg-zinc-100 dark:bg-zinc-800 my-1 mx-2" />
 
           <MenuButton 
             onClick={() => setTheme(theme === "light" ? "dark" : "light")} 
-            icon={theme === "light" ? <FaMoon size={14} /> : <FaSun size={14} />} 
-            label={theme === "light" ? "Dark Mode" : "Light Mode"} 
+            icon={theme === "light" ? <FaMoon size={10} /> : <FaSun size={10} />} 
+            label={theme === "light" ? "dark_mode" : "light_mode"} 
           />
-          
           <MenuButton 
-            onClick={() => { router.push("/dashboard/settings"); setIsOpen(false); }} 
-            icon={<FaCog size={14} />} 
-            label="Settings" 
+            onClick={() => router.push("/dashboard/settings")} 
+            icon={<FaCog size={10} />} 
+            label="settings" 
           />
         </div>
       </div>
-
-      {/* Main Trigger Button */}
-      <Button
-        variant={isOpen ? "secondary" : "icon-bg"}
-        onClick={() => setIsOpen(!isOpen)}
-        aria-label="Actions Menu"
-        styles={`
-          rounded-full shadow-lg !w-12 !h-12 !min-w-0 !min-h-0 !p-0 transition-all duration-300
-          ${isOpen ? "rotate-90 bg-sky-100 dark:bg-zinc-800" : ""}
-        `}
-      >
-        {isOpen ? (
-          <FaTimes size={18} />
-        ) : (
-          <div className="grid grid-cols-2 gap-0.5">
-            <div className="w-1.5 h-1.5 bg-current rounded-[1px]" />
-            <div className="w-1.5 h-1.5 bg-current rounded-[1px]" />
-            <div className="w-1.5 h-1.5 bg-current rounded-[1px]" />
-            <div className="w-1.5 h-1.5 bg-current rounded-[1px]" />
-          </div>
-        )}
-      </Button>
     </div>
   );
 };
 
-/* --- Internal Helpers for Clarity --- */
+/* --- Helper: Minimal Menu Button --- */
 
-const Divider = () => <div className="h-px bg-sky-100 dark:bg-sky-900/30 my-1 mx-2" />;
-
-const MenuButton = ({ 
-  variant = "tertiary", 
-  onClick, 
-  icon, 
-  label 
-}: { 
-  variant?: "primary" | "tertiary", 
-  onClick: () => void, 
-  icon: React.ReactNode, 
-  label: string 
-}) => (
-  <Button
-    variant={variant}
+const MenuButton = ({ onClick, icon, label }: { onClick: () => void, icon: React.ReactNode, label: string }) => (
+  <button
     onClick={onClick}
-    styles={`
-      w-full !justify-start !px-3 !py-2 !min-h-0 !h-10 transition-colors
-      ${variant === 'tertiary' ? '!text-[13px] !border-none !text-zinc-600 dark:!text-zinc-400' : '!text-[13px]'}
-    `}
+    className="w-full flex items-center gap-3 px-3 py-1.5 text-[11px] text-zinc-500 dark:text-zinc-400 hover:bg-zinc-900 hover:text-white dark:hover:bg-zinc-100 dark:hover:text-black transition-colors rounded-[1px] text-left group"
   >
-    <span className="opacity-70">{icon}</span>
-    <span className="font-semibold tracking-tight">{label}</span>
-  </Button>
+    <span className="opacity-40 group-hover:opacity-100">{icon}</span>
+    <span className="tracking-tight">{label}</span>
+  </button>
 );
 
 export default ActionsFAB;
