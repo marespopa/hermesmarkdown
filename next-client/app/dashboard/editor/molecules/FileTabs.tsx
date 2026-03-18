@@ -4,6 +4,7 @@ import React from "react";
 import { useAtom } from "jotai";
 import { atom_files, atom_selectedFileId } from "@/app/atoms/atoms";
 import { FaTimes } from "react-icons/fa";
+import Button from "@/app/components/Button";
 
 const FileTabs: React.FC = () => {
   const [files, setFiles] = useAtom(atom_files);
@@ -22,7 +23,7 @@ const FileTabs: React.FC = () => {
   };
 
   return (
-    <nav className="flex items-center h-11 px-4 gap-1 bg-white/50 dark:bg-zinc-950/50 backdrop-blur-md border-b border-zinc-200 dark:border-zinc-800 overflow-x-auto no-scrollbar select-none font-mono">
+    <nav className="flex items-center h-11 px-4 gap-1 overflow-x-auto no-scrollbar select-none font-mono">
       {files.map((file) => {
         const isSelected = file.id === selectedId;
         return (
@@ -30,10 +31,10 @@ const FileTabs: React.FC = () => {
             key={file.id}
             onClick={() => setSelectedId(file.id)}
             className={`
-              group relative flex items-center gap-2 px-4 h-8 cursor-pointer rounded-md transition-all text-[12px] whitespace-nowrap
-              ${isSelected 
-                ? "bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 shadow-sm" 
-                : "text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-900/50"
+                  group relative flex items-center gap-2 px-4 h-8 cursor-pointer transition-all text-[12px] whitespace-nowrap
+                  ${isSelected
+                    ? "text-zinc-900 dark:text-zinc-100"
+                    : "text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300"
               }
             `}
           >
@@ -41,20 +42,17 @@ const FileTabs: React.FC = () => {
               {file.frontMatter?.fileName || "untitled.md"}
             </span>
 
-            <button
-              className={`
-                p-1 rounded-sm transition-all
-                ${isSelected ? "opacity-40 hover:opacity-100 hover:bg-zinc-200 dark:hover:bg-zinc-700" : "opacity-0 group-hover:opacity-40 hover:opacity-100"}
-              `}
+            <Button
+              variant="bare"
+              styles={`p-1 rounded-sm transition-all ${isSelected ? "opacity-40 hover:opacity-80" : "opacity-0 group-hover:opacity-40 hover:opacity-100"}`}
               onClick={(e) => handleCloseTab(file.id, e)}
             >
               <FaTimes size={10} />
-            </button>
-            
-            {/* Subtle bottom line for selected tab */}
-            {isSelected && (
-              <div className="absolute bottom-0 left-2 right-2 h-[1.5px] bg-zinc-900 dark:bg-zinc-100 rounded-t-full" />
-            )}
+            </Button>
+    
+                {isSelected && (
+                  <div className="absolute left-2 right-2 bottom-[-1.5px] h-[3px] rounded-full bg-gradient-to-r from-zinc-600 to-zinc-400 dark:from-zinc-200 dark:to-zinc-500 shadow-md" />
+                )}
           </div>
         );
       })}

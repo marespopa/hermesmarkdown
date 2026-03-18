@@ -79,12 +79,12 @@ const DropdownMenu = ({ label, options, isOpen, onOpenChange, selectedIndex, onS
           className={`absolute mt-1 min-w-[180px] max-w-xs bg-white dark:bg-neutral-900 border border-black dark:border-white rounded-none shadow-xl font-sourcecode z-10 p-0 flex flex-col ${alignRight ? 'right-0' : 'left-0'}`}
         >
           {options.map((option, idx) => (
-            <button
+            <Button
               key={option.label}
+              variant="bare"
               onClick={() => handleOptionClick(option, idx)}
-              className={`w-full text-left whitespace-nowrap h-12 px-5 bg-white dark:bg-neutral-800 text-black dark:text-white border-b border-black dark:border-black rounded-none transition-all duration-150 focus-visible:ring-2 focus-visible:ring-black dark:focus-visible:ring-white hover:bg-neutral-100 dark:hover:bg-neutral-700 ${idx === options.length - 1 ? 'border-b-0' : ''} ${selectedIndex === idx ? 'bg-neutral-200 dark:bg-neutral-700 font-bold' : ''}`}
+              styles={`w-full text-left whitespace-nowrap h-12 px-5 bg-white dark:bg-neutral-800 text-black dark:text-white border-b border-black dark:border-black rounded-none transition-all duration-150 focus-visible:ring-2 focus-visible:ring-black dark:focus-visible:ring-white hover:bg-neutral-100 dark:hover:bg-neutral-700 ${idx === options.length - 1 ? 'border-b-0' : ''} ${selectedIndex === idx ? 'bg-neutral-200 dark:bg-neutral-700 font-bold' : ''}`}
               tabIndex={0}
-              type="button"
             >
               <span className="flex items-center gap-2">
                 {option.label}
@@ -92,7 +92,7 @@ const DropdownMenu = ({ label, options, isOpen, onOpenChange, selectedIndex, onS
                   <span className="ml-auto">✓</span>
                 )}
               </span>
-            </button>
+            </Button>
           ))}
         </div>
       )}

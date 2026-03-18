@@ -1,11 +1,30 @@
 import { WritableAtom, atom, createStore } from "jotai";
 import { RESET, atomWithStorage } from "jotai/utils";
+import { getAtomStorage } from "@/app/services/storage/atomStorage";
 
 export type TimerData = {
   durationInMin: number;
 };
 
+// User-defined snippets
+export type UserSnippet = {
+  id: string; // Unique identifier
+  key: string; // Trigger key (e.g., "/mysnippet")
+  label: string; // Display name
+  description: string; // Short description
+  content: string; // Snippet template content
+  category: string; // Custom category for organization
+  createdAt: number; // Timestamp
+  updatedAt: number; // Last update timestamp
+};
+
 export const contentStore = createStore();
+
+// User-defined snippets management
+export const atom_userSnippets = atomWithStorage<UserSnippet[]>(
+  "userSnippets",
+  [],
+);
 
 // Theme & appearance
 export const atom_theme = atomWithStorage<"light" | "dark">("theme", "light");

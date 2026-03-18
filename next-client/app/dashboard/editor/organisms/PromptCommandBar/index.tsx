@@ -6,7 +6,7 @@ import PromptInputContainer from "./molecules/PromptInputContainer";
 import AutocompletePanel from "./molecules/AutocompletePanel";
 import { PROMPT_TEMPLATES } from "./prompt-templates";
 import { useAtom } from "jotai";
-import { atom_showTimer, atom_showStatusBar } from "@/app/atoms/atoms";
+import { atom_showTimer, atom_showStatusBar, atom_userSnippets } from "@/app/atoms/atoms";
 
 type Props = {
   contentEdited: string;
@@ -124,10 +124,22 @@ export default function PromptCommandBar({
     }
   }, [closePromptBar, forceOpen, isFocused, prompt.length]);
 
+  const [userSnippets] = useAtom(atom_userSnippets);
+
   const autocompleteData = useMemo(() => {
     const cursor = textareaRef.current?.selectionStart ?? prompt.length;
-    return buildAutocompleteData(prompt, cursor, PROMPT_TEMPLATES);
-  }, [prompt]);
+    // Convert UserSnippet to PromptTemplate format
+    const snippetTemplates = userSnippets.map((snippet) => ({
+      key: snippet.key,
+      label: snippet.label,
+      description: snippet.description,
+      template: snippet.content,
+      category: snippet.category,
+    }));
+    // Merge user snippets with built-in templates
+    const allTemplates = [...PROMPT_TEMPLATES, ...snippetTemplates];
+    return buildAutocompleteData(prompt, cursor, allTemplates);
+  }, [prompt, userSnippets]);
 
   const handleKeyDown = useCallback(
     (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -220,7 +232,7 @@ export default function PromptCommandBar({
   ) : null;
 
   return (
-    <div className={`w-full ${isCompact ? "" : "max-w-xl"}`}>
+    <div className={`w-full ${isCompact ? "" : "max-w-xl"} rounded-xl shadow-md`}>
       <div className="relative flex justify-center flex-col items-center gap-2">
         {showInput ? (
           <PromptInputContainer

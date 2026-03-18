@@ -12,7 +12,7 @@ export default function MarkdownGuide() {
             30+ Slash Commands Built-In
           </h2>
           <p className="text-lg text-neutral-600 dark:text-neutral-300 max-w-3xl mx-auto">
-            Type <code className="bg-amber-100 dark:bg-amber-900 px-2 py-1 rounded text-amber-800 dark:text-amber-200 font-mono">/</code> anywhere in the editor to open the command palette.
+            Type <code className="bg-amber-100 dark:bg-amber-900 px-2 py-1 rounded text-amber-800 dark:text-amber-200 font-mono">/</code> anywhere in the editor to open the command palette. Your cursor lands at the start of the inserted snippet — ready to edit immediately.
           </p>
         </div>
         
@@ -41,6 +41,23 @@ export default function MarkdownGuide() {
           <div className="bg-white dark:bg-neutral-900 rounded-lg p-4 border border-neutral-200 dark:border-neutral-700">
             <code className="text-amber-700 dark:text-amber-400 font-mono font-semibold">/refactor</code>
             <p className="text-sm text-neutral-600 dark:text-neutral-400 mt-1">Code refactor template</p>
+          </div>
+        </div>
+
+        {/* Custom Snippets Callout */}
+        <div className="mt-10 max-w-4xl mx-auto rounded-xl border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/40 p-6 flex flex-col md:flex-row items-start md:items-center gap-5">
+          <div className="flex-shrink-0 w-10 h-10 rounded-full bg-amber-100 dark:bg-amber-900 flex items-center justify-center text-amber-700 dark:text-amber-300 text-lg">
+            ✦
+          </div>
+          <div className="flex-1">
+            <h3 className="text-base font-semibold text-neutral-900 dark:text-white mb-1">
+              Build your own snippet library
+            </h3>
+            <p className="text-sm text-neutral-600 dark:text-neutral-400">
+              Create custom snippets with your own{" "}
+              <code className="bg-amber-100 dark:bg-amber-900 px-1 rounded font-mono text-amber-800 dark:text-amber-200">/key</code>{" "}
+              trigger. They live alongside the built-ins in the same command palette — grouped by category, searchable, and stored locally on your device.
+            </p>
           </div>
         </div>
       </div>

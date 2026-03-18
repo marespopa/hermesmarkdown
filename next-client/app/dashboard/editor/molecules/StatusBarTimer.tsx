@@ -5,6 +5,7 @@ import { atom_timerSettings } from "@/app/atoms/atoms";
 import { FaPlay, FaPause, FaStop } from "react-icons/fa";
 import { FaRedo } from "react-icons/fa";
 import { useTimer } from "@/app/services/useTimer";
+import Button from "@/app/components/Button/Button.component";
 
 export const StatusBarTimer = () => {
   const isTest =
@@ -44,13 +45,15 @@ export const StatusBarTimer = () => {
   }
 
   return (
-    <div
-      className={`flex py-2 items-center tracking-tighter justify-end text-[9px] gap-1 ${timerColor} cursor-pointer`}
+    <Button
+      variant="bare"
+      styles={`flex py-2 items-center tracking-tighter justify-end text-[9px] gap-1 ${timerColor} cursor-pointer`}
       onClick={handleToggle}
       onDoubleClick={handleReset}
+      aria-label={isActive ? "Pause timer" : "Start timer"}
     >
       {/* Timer Icon */}
-      <span className="cursor-pointer">
+      <span>
         {isActive ? (
           <FaPause className="w-[10px] h-[10px]" />
         ) : timeLeft === 0 ? (
@@ -60,9 +63,15 @@ export const StatusBarTimer = () => {
         )}
       </span>
       <span>{formatTime()}</span>
-      <span className="cursor-pointer ml-1" onClick={handleReset} title="Reset">
+      <Button
+        variant="bare"
+        styles="cursor-pointer ml-1"
+        onClick={(e: React.MouseEvent) => { e.stopPropagation(); handleReset(e); }}
+        title="Reset"
+        aria-label="Reset timer"
+      >
         <FaRedo className="w-[14px] h-[14px]" />
-      </span>
-    </div>
+      </Button>
+    </Button>
   );
 };

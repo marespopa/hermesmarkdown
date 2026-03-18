@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import Button from "../../Button";
 
 export default function FAQContent() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -176,28 +177,30 @@ export default function FAQContent() {
 
           {/* Category Tabs */}
           <div className="flex flex-wrap justify-center gap-2 mb-8">
-            <button
+            <Button
+              variant="bare"
               onClick={() => setActiveCategory("all")}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+              styles={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                 activeCategory === "all"
                   ? "bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200"
                   : "bg-neutral-100 text-neutral-700 dark:bg-neutral-800 dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-neutral-700"
               }`}
             >
               All Questions
-            </button>
+            </Button>
             {Object.entries(faqCategories).map(([key, category]) => (
-              <button
+              <Button
                 key={key}
+                variant="bare"
                 onClick={() => setActiveCategory(key)}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                styles={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                   activeCategory === key
                     ? "bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200"
                     : "bg-neutral-100 text-neutral-700 dark:bg-neutral-800 dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-neutral-700"
                 }`}
               >
                 {category.title}
-              </button>
+              </Button>
             ))}
           </div>
         </div>

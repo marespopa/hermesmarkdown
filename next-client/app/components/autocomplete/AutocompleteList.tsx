@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import type { AutocompleteGroup } from "./types";
+import Button from "@/app/components/Button";
 
 type Props = {
   groupedItems: AutocompleteGroup[];
@@ -37,21 +38,22 @@ export default function AutocompleteList({ groupedItems, activeIndex, onSelect }
           </div>
           {group.items.map((item) => {
             itemIndex += 1;
+            const idx = itemIndex;
             return (
-              <button
+              <Button
                 key={item.key}
-                type="button"
-                data-active={itemIndex === activeIndex}
-                onMouseDown={(event) => {
+                variant="bare"
+                data-active={idx === activeIndex}
+                onMouseDown={(event: React.MouseEvent) => {
                   event.preventDefault();
                   onSelect(item.template);
                 }}
-                className={`w-full text-left rounded-xl px-3 py-2 text-sm transition ${itemIndex === activeIndex ? "bg-amber-100 dark:bg-amber-900/40 text-amber-900 dark:text-amber-100" : "hover:bg-neutral-100 dark:hover:bg-neutral-800"}`}
+                styles={`w-full text-left rounded-xl px-3 py-2 text-sm transition ${idx === activeIndex ? "bg-amber-100 dark:bg-amber-900/40 text-amber-900 dark:text-amber-100" : "hover:bg-neutral-100 dark:hover:bg-neutral-800"}`}
               >
                 <div className="flex items-center gap-2">
                   <span className="font-medium truncate">{item.label}</span>
                 </div>
-              </button>
+              </Button>
             );
           })}
         </div>

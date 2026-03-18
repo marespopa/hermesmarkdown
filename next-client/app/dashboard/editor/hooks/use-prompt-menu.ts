@@ -242,7 +242,7 @@ export function usePromptMenu({
       setSlashIndex(null);
 
       requestAnimationFrame(() => {
-        const cursor = activeSlashIndex + template.length;
+        const cursor = activeSlashIndex;
         textarea.focus();
         textarea.setSelectionRange(cursor, cursor);
       });
@@ -263,7 +263,7 @@ export function usePromptMenu({
     updateContentRef.current(nextValue);
 
     requestAnimationFrame(() => {
-      const cursor = start + template.length;
+      const cursor = start;
       textarea.focus();
       textarea.setSelectionRange(cursor, cursor);
     });

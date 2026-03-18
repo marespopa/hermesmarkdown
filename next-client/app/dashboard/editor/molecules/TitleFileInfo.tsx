@@ -2,6 +2,7 @@
 
 import React from "react";
 import { FaPencilAlt } from "react-icons/fa";
+import Button from "@/app/components/Button";
 
 interface TitleFileInfoProps {
   fileTitle: string;
@@ -27,13 +28,14 @@ const TitleFileInfo: React.FC<TitleFileInfoProps> = ({
       </h1>
       
       {/* Permanent Edit Trigger */}
-      <button 
+      <Button
+        variant="bare"
         onClick={showFileDialog}
-        className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-zinc-100 dark:bg-zinc-800/50 hover:bg-zinc-200 dark:hover:bg-zinc-800 text-zinc-500 dark:text-zinc-400 transition-all group"
+        styles="flex items-center gap-1.5 px-2 py-1 rounded-md bg-zinc-100 dark:bg-zinc-800/50 hover:bg-zinc-200 dark:hover:bg-zinc-800 text-zinc-500 dark:text-zinc-400 transition-all group"
       >
         <FaPencilAlt size={10} className="opacity-50 group-hover:opacity-100" />
         <span className="text-[12px] font-mono lowercase tracking-tight">edit</span>
-      </button>
+      </Button>
     </div>
 
     {/* File naming: Simple, monospaced label */}

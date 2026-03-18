@@ -47,7 +47,7 @@ export default function HowItWorks() {
               <code className="bg-neutral-100 dark:bg-neutral-800 px-1 rounded text-xs">
                 /
               </code>{" "}
-              for templates.
+              for templates. Cursor lands at the start of each snippet — fill in from the top.
             </p>
           </div>
 

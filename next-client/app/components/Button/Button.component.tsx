@@ -1,6 +1,6 @@
 import React, { ReactNode } from "react";
 
-type ButtonVariant = "primary" | "secondary" | "outlined" | "icon" | "icon-bg" | "tertiary" | "hero" | "bare";
+type ButtonVariant = "primary" | "secondary" | "outlined" | "icon" | "icon-bg" | "tertiary" | "hero" | "bare" | "fab-action" | "fab-toggle" | "menu-item";
 
 type Props = {
   children?: ReactNode;
@@ -42,7 +42,7 @@ export default function Button({
 
 // Minimalistic Base: Removed transform/scaling for a more stable "Pro" feel
 const baseStyles =
-  "rounded-md flex items-center justify-center gap-2 transition-all duration-150 ease-out focus:outline-none focus-visible:ring-1 focus-visible:ring-zinc-400 disabled:opacity-30 disabled:pointer-events-none select-none border font-mono text-[12px] lowercase tracking-tight";
+  "rounded-md flex items-center justify-center gap-2 transition-all duration-150 ease-out focus:outline-none focus-visible:ring-1 focus-visible:ring-zinc-400 disabled:opacity-30 disabled:pointer-events-none select-none border font-mono text-[14px] sm:text-[16px] md:text-[18px] lowercase tracking-tight";
 
 const variantStyles = (variant: ButtonVariant): string => {
   switch (variant) {
@@ -76,6 +76,18 @@ const variantStyles = (variant: ButtonVariant): string => {
 
     case "bare":
       return "inline-flex items-center justify-center font-mono text-[12px] lowercase";
+
+    case "fab-action":
+      // Compact control-strip action: icon + label, text-only hover, no border/bg
+      return "inline-flex items-center gap-2 px-4 py-2 font-mono text-[12px] lowercase tracking-tight text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors group focus:outline-none focus-visible:ring-1 focus-visible:ring-zinc-400 disabled:opacity-30 disabled:pointer-events-none select-none";
+
+    case "fab-toggle":
+      // Control-strip toggle trigger with left-border separator; active/inactive colors passed via styles prop
+      return "inline-flex items-center justify-center px-4 py-2 font-mono text-[12px] border-l border-zinc-200 dark:border-zinc-800 transition-all min-w-[48px] focus:outline-none focus-visible:ring-1 focus-visible:ring-zinc-400 disabled:opacity-30 disabled:pointer-events-none select-none";
+
+    case "menu-item":
+      // Full-width left-aligned dropdown row: icon + label, bg hover
+      return "w-full inline-flex items-center justify-start gap-3 px-3 py-2 font-mono text-[12px] lowercase tracking-tight text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-zinc-100 transition-all rounded-md group focus:outline-none focus-visible:ring-1 focus-visible:ring-zinc-400 disabled:opacity-30 disabled:pointer-events-none select-none";
 
     default:
       return baseStyles;

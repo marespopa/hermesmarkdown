@@ -38,7 +38,7 @@ export default function AutocompletePanel({
   }
 
   return (
-    <div className="absolute left-0 right-0 top-full mt-2 rounded-2xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 shadow-lg p-2 z-20">
+    <div className="absolute left-0 right-0 top-full mt-2 rounded-2xl bg-zinc-50 dark:bg-zinc-900 shadow-lg p-2 z-20">
       {listContent}
     </div>
   );

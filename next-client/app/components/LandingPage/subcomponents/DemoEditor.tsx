@@ -75,7 +75,7 @@ export default function DemoEditor({ className = "" }: DemoEditorProps) {
           below on an empty row
         </div>
       </div>
-      <div className="flex-1 overflow-auto">
+      <div className="flex-1 overflow-auto max-h-[300px] pt-4">
         <MarkdownEditor
           value={content}
           onChange={(value) => setContent(value)}

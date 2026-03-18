@@ -4,10 +4,12 @@ import React, { useState, useRef, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useAtom } from "jotai";
 import { atom_theme } from "@/app/atoms/atoms";
-import { 
-  FaTimes, FaFile, FaDownload, FaSearch, 
-  FaFolderOpen, FaCog, FaCopy, FaSun, FaMoon 
+import {
+  FaTimes, FaFile, FaDownload, FaSearch,
+  FaFolderOpen, FaCog, FaCopy, FaSun, FaMoon, FaMagic
 } from "react-icons/fa";
+import SnippetManagerModal from "./SnippetManager/SnippetManagerModal";
+import Button from "@/app/components/Button/Button.component";
 
 interface ActionsFABProps {
   actions: {
@@ -21,6 +23,7 @@ interface ActionsFABProps {
 
 const ActionsFAB: React.FC<ActionsFABProps> = ({ actions, exportToMD }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const [isSnippetManagerOpen, setIsSnippetManagerOpen] = useState(false);
   const [theme, setTheme] = useAtom(atom_theme);
   const router = useRouter();
   const menuRef = useRef<HTMLDivElement>(null);
@@ -62,30 +65,27 @@ const ActionsFAB: React.FC<ActionsFABProps> = ({ actions, exportToMD }) => {
         </div>
 
         {/* Copy Action */}
-        <button
-          onClick={actions.handleCopyPrompt}
-          className="px-4 py-2 text-[12px] text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors flex items-center gap-2 group"
-        >
+        <Button variant="fab-action" onClick={actions.handleCopyPrompt}>
           <FaCopy size={12} className="opacity-40 group-hover:opacity-100 transition-opacity" />
           <span>copy_prompt</span>
-        </button>
+        </Button>
 
         {/* Menu Toggle */}
-        <button
+        <Button
+          variant="fab-toggle"
           onClick={() => setIsOpen(!isOpen)}
-          className={`px-4 py-2 border-l border-zinc-200 dark:border-zinc-800 transition-all flex items-center justify-center min-w-[48px] ${
-            isOpen 
-              ? "bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100" 
-              : "hover:bg-zinc-50 dark:hover:bg-zinc-800/50 text-zinc-500 dark:text-zinc-400"
-          }`}
+          styles={isOpen
+            ? "bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100"
+            : "hover:bg-zinc-50 dark:hover:bg-zinc-800/50 text-zinc-500 dark:text-zinc-400"
+          }
         >
           {isOpen ? <FaTimes size={14} /> : (
-            <div className="flex flex-col gap-[3px] items-center group-hover:opacity-100">
+            <div className="flex flex-col gap-[3px] items-center">
               <div className="w-3.5 h-[1px] bg-current" />
               <div className="w-3.5 h-[1px] bg-current" />
             </div>
           )}
-        </button>
+        </Button>
       </div>
 
       {/* Popover Menu */}
@@ -100,7 +100,8 @@ const ActionsFAB: React.FC<ActionsFABProps> = ({ actions, exportToMD }) => {
           <MenuButton onClick={() => { actions.handleOpenFile(); setIsOpen(false); }} icon={<FaFolderOpen size={12} />} label="open_file" />
           <MenuButton onClick={() => { actions.handleOpenFindAndReplace(); setIsOpen(false); }} icon={<FaSearch size={12} />} label="search" />
           <MenuButton onClick={() => { exportToMD(); setIsOpen(false); }} icon={<FaDownload size={12} />} label="export_md" />
-          
+          <MenuButton onClick={() => { setIsSnippetManagerOpen(true); setIsOpen(false); }} icon={<FaMagic size={12} />} label="snippets" />
+
           <div className="h-[1px] bg-zinc-100 dark:bg-zinc-800 my-1 mx-2" />
 
           <MenuButton 
@@ -115,6 +116,12 @@ const ActionsFAB: React.FC<ActionsFABProps> = ({ actions, exportToMD }) => {
           />
         </div>
       </div>
+
+      {/* Snippet Manager Modal */}
+      <SnippetManagerModal
+        isOpen={isSnippetManagerOpen}
+        onClose={() => setIsSnippetManagerOpen(false)}
+      />
     </div>
   );
 };
@@ -122,13 +129,10 @@ const ActionsFAB: React.FC<ActionsFABProps> = ({ actions, exportToMD }) => {
 /* --- Minimal Menu Button Component --- */
 
 const MenuButton = ({ onClick, icon, label }: { onClick: () => void, icon: React.ReactNode, label: string }) => (
-  <button
-    onClick={onClick}
-    className="w-full flex items-center gap-3 px-3 py-2 text-[12px] text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-zinc-100 transition-all rounded-md text-left group"
-  >
+  <Button variant="menu-item" onClick={onClick}>
     <span className="opacity-40 group-hover:opacity-100 transition-opacity w-4 flex justify-center">{icon}</span>
     <span className="tracking-tight">{label}</span>
-  </button>
+  </Button>
 );
 
 export default ActionsFAB;

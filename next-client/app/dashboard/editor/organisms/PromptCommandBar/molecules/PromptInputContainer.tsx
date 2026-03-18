@@ -36,7 +36,7 @@ const PromptInputContainer = forwardRef<HTMLTextAreaElement, Props>(
     ref
   ) => {
     return (
-      <div className="w-full rounded-2xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 shadow-lg p-2">
+      <div className="w-full rounded-xl bg-white dark:bg-neutral-900 shadow-md p-2">
         <div className="relative">
           <PromptInput
             ref={ref}
