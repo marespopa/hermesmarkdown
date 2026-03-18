@@ -360,7 +360,8 @@ export default function Editor() {
                 <div className="fixed h-full flex flex-col">
 
                 <Suspense fallback={<EditorSkeleton />}>
-                  <EditorContent
+                   <FileTabs />
+                   <EditorContent
                     contentEdited={contentEdited}
                     setContentEdited={updateCurrentFileContent}
                     fontFamily={fontFamily}
@@ -369,7 +370,6 @@ export default function Editor() {
                     matchCount={matchCount}
                     currentIndex={currentIndex}
                     onTextareaReady={handleTextareaReady}
-                    zenMode
                   />
                 </Suspense>
               </div>
