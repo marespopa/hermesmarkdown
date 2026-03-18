@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef, useCallback } from "react";
+import React, { useRef, useEffect, useCallback } from "react";
 import Editor from "react-simple-code-editor";
 
 interface MarkdownEditorProps {
@@ -9,105 +9,119 @@ interface MarkdownEditorProps {
   fontFamily: string;
   fontSize: string;
   searchTerm?: string;
+  matchCount?: number;
+  currentIndex?: number;
+  onTextareaReady?: (element: HTMLTextAreaElement | null) => void;
+  setMatchCount?: (count: number) => void;
 }
 
-const highlightMarkdownMonochrome = (code: string, searchTerm?: string) => {
+const highlightMarkdownMonochrome = (
+  code: string, 
+  searchTerm?: string, 
+  setMatchCount?: (count: number) => void
+) => {
   let escaped = code
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;");
 
-  // 1. Headings: Ghost symbols, Bold & Solid Text
-  escaped = escaped.replace(/^(#{1,6})(\s.+)$/gm, 
-    `<span style="opacity: 0.15; font-weight: 400;">$1</span><span style="font-weight: 700; color: var(--text-main);">$2</span>`);
-  
-  // 2. Bold: Ghost markers, Bold & Solid Text
-  escaped = escaped.replace(/(\*\*|__)(.*?)\1/g, 
-    `<span style="opacity: 0.15; font-weight: 400;">$1</span><span style="font-weight: 700; color: var(--text-main);">$2</span><span style="opacity: 0.15; font-weight: 400;">$1</span>`);
-  
-  // 3. Italic: Ghost markers, Italic Text
-  escaped = escaped.replace(/(\*|_)(.*?)\1/g, 
-    `<span style="opacity: 0.15;">$1</span><span style="font-style: italic; color: var(--text-main);">$2</span><span style="opacity: 0.15;">$1</span>`);
+  if (searchTerm && searchTerm.trim().length > 0) {
+    try {
+      const regex = new RegExp(`(${searchTerm})`, "gi");
+      const matches = escaped.match(regex);
+      if (setMatchCount) setMatchCount(matches ? matches.length : 0);
+      escaped = escaped.replace(regex, `<mark class="bg-orange-300/50 dark:bg-orange-500/40 text-inherit rounded-sm px-0.5">$1</mark>`);
+    } catch (e) {
+      if (setMatchCount) setMatchCount(0);
+    }
+  } else if (setMatchCount) {
+    setMatchCount(0);
+  }
 
-  // 4. Lists: Ghost the bullet
-  escaped = escaped.replace(/^(\s*)([-*+]|\d+\.)(\s)/gm, 
-    `$1<span style="opacity: 0.2">$2</span>$3`);
+  // Links styling
+  escaped = escaped.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, 
+    `<span class="text-neutral-900 dark:text-neutral-100 font-medium">[$1]</span><span class="text-blue-500 opacity-70 underline">($2)</span>`);
+
+  escaped = escaped.replace(/(^|[^\(])(https?:\/\/[^\s<]+)/g, 
+    `$1<span class="text-blue-500 underline">$2</span>`);
+
+  // Markdown styling
+  escaped = escaped.replace(/^(#{1,6})(\s.+)$/gm, 
+    `<span class="opacity-25">$1</span><span class="font-bold text-neutral-900 dark:text-neutral-100">$2</span>`);
+  
+  escaped = escaped.replace(/(\*\*|__)(.*?)\1/g, 
+    `<span class="opacity-25">$1</span><span class="font-bold text-neutral-900 dark:text-neutral-100">$2</span><span class="opacity-25">$1</span>`);
 
   return escaped;
 };
 
 const MarkdownEditor: React.FC<MarkdownEditorProps> = ({ 
-  value, onChange, fontFamily, fontSize, searchTerm 
+  value, onChange, fontFamily, fontSize, searchTerm, onTextareaReady, setMatchCount, matchCount, currentIndex 
 }) => {
-  const containerRef = useRef<HTMLDivElement>(null);
+  const wrapperRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
 
   const highlight = useCallback((code: string) => (
-    highlightMarkdownMonochrome(code, searchTerm)
-  ), [searchTerm]);
+    highlightMarkdownMonochrome(code, searchTerm, setMatchCount)
+  ), [searchTerm, setMatchCount]);
 
-  const handleContainerClick = () => {
-    // Selects the textarea inside the library's DOM and forces focus
-    const textarea = containerRef.current?.querySelector('textarea');
-    textarea?.focus();
+  // Force capture of the textarea element
+  useEffect(() => {
+    const findTextarea = () => {
+      const textarea = wrapperRef.current?.querySelector('textarea');
+      if (textarea) {
+        textareaRef.current = textarea as HTMLTextAreaElement;
+        if (onTextareaReady) onTextareaReady(textareaRef.current);
+      }
+    };
+    
+    findTextarea();
+    // Re-check after a brief timeout to ensure library has injected DOM
+    const timer = setTimeout(findTextarea, 50);
+    return () => clearTimeout(timer);
+  }, [onTextareaReady]);
+
+  const handleInteraction = (e: React.MouseEvent) => {
+    if (!textareaRef.current) return;
+
+    if (e.ctrlKey || e.metaKey) {
+      const textarea = textareaRef.current;
+      setTimeout(() => {
+        const start = textarea.selectionStart;
+        const text = textarea.value;
+        const left = text.lastIndexOf(" ", start - 1) + 1;
+        const rightMatch = text.slice(start).match(/[\s)\]]/);
+        const right = rightMatch ? start + (rightMatch.index || 0) : text.length;
+        const segment = text.slice(left, right).trim();
+        const urlMatch = segment.match(/https?:\/\/[^\s)\]]+/);
+        if (urlMatch) window.open(urlMatch[0], "_blank", "noopener,noreferrer");
+      }, 0);
+    } else {
+      // Force focus immediately
+      textareaRef.current.focus();
+    }
   };
 
   return (
     <div 
-      ref={containerRef}
-      onClick={handleContainerClick}
-      className="relative w-full min-h-screen cursor-text bg-transparent" 
+      ref={wrapperRef}
+      onMouseDownCapture={handleInteraction} // Use Capture Phase
+      className="relative w-full min-h-screen cursor-text bg-transparent py-4 px-2" 
     >
-      <style jsx global>{`
-        .editor-container {
-          --text-main: #171717;
-          --text-ghost: #737373;
-          border: none !important;
-          height: 100%;
-        }
-        .dark .editor-container {
-          --text-main: #ffffff;
-          --text-ghost: #737373;
-        }
-
-        .editor-container textarea,
-        .editor-container pre {
-          font-family: ${fontFamily}, "JetBrains Mono", ui-monospace, monospace !important;
-          font-size: ${fontSize} !important;
-          line-height: 1.8 !important;
-          padding: 16px 16px !important; /* Extra top padding for better breathing room */
-          
-          font-variant-ligatures: none !important;
-          letter-spacing: 0px !important;
-          tab-size: 4 !important;
-          white-space: pre-wrap !important;
-          word-break: break-all !important;
-          border: none !important;
-          outline: none !important;
-          box-shadow: none !important;
-          min-height: 100vh !important;
-        }
-
-        .editor-container textarea {
-          color: transparent !important;
-          caret-color: var(--text-main) !important;
-          z-index: 1;
-          background: transparent !important;
-          font-weight: 400 !important;
-        }
-
-        .editor-container pre {
-          color: var(--text-ghost) !important;
-          z-index: 0;
-          background: transparent !important;
-        }
-
-        /* Clean up library-injected borders */
-        .editor-container div {
-           border: none !important;
-        }
-      `}</style>
-
-      <div className="editor-container w-full h-full">
+      <div 
+        className={`
+          editor-container w-full h-full
+          [&_*]:!border-none [&_*]:!outline-none [&_*]:!ring-0
+          [&_textarea]:!p-0 [&_pre]:!p-0
+          [&_textarea]:!leading-relaxed [&_pre]:!leading-relaxed
+          [&_textarea]:!min-h-[100vh] [&_pre]:!min-h-[100vh]
+          [&_textarea]:!text-transparent 
+          [&_textarea]:!caret-neutral-900 dark:[&_textarea]:!caret-white
+          [&_textarea]:!z-10 [&_pre]:!z-0
+          [&_textarea]::selection:bg-blue-500/30
+        `}
+        style={{ fontFamily, fontSize }}
+      >
         <Editor
           value={value}
           onValueChange={onChange}
