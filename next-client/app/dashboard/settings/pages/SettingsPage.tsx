@@ -116,7 +116,6 @@ export default function SettingsPage() {
                     options={fontOptions}
                     handleChange={(e) => setFontFamily(e.target.value)}
                     compact
-                    className="!text-[12px] !font-mono !bg-transparent"
                   />
                 }
               />
@@ -131,7 +130,6 @@ export default function SettingsPage() {
                     options={fontSizeOptions}
                     handleChange={(e) => setFontSize(e.target.value)}
                     compact
-                    className="!text-[12px] !font-mono !bg-transparent"
                   />
                 }
               />

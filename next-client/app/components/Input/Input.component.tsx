@@ -1,20 +1,24 @@
-import React, { forwardRef } from "react";
+"use client";
+
+import React, { forwardRef, useRef } from "react";
+import { FaTimes } from "react-icons/fa";
 
 interface Props {
   name: string;
-  label?: string; // Made optional
+  label?: string;
   value: string | number | undefined;
   placeholder?: string;
   helperText?: string;
-  handleChange: (e: React.FormEvent<HTMLInputElement>) => void;
+  handleChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   type?: "number" | "text";
   validation?: {
     min: number;
     max: number;
   };
-  onClear?: () => void; // Optional clear handler
-  debounceMs?: number; // Optional debounce for onDebouncedChange
-  onDebouncedChange?: (e: React.FormEvent<HTMLInputElement>) => void;
+  onClear?: () => void;
+  debounceMs?: number;
+  onDebouncedChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  className?: string; // Added to allow style overrides from forms
 }
 
 const Input = forwardRef<HTMLInputElement, Props>(
@@ -31,74 +35,72 @@ const Input = forwardRef<HTMLInputElement, Props>(
       onClear,
       debounceMs,
       onDebouncedChange,
+      className = "",
     },
     ref,
   ) => {
-    const debounceRef = React.useRef<NodeJS.Timeout | null>(null);
+    const debounceRef = useRef<NodeJS.Timeout | null>(null);
 
-    const handleInputChange = (e: React.FormEvent<HTMLInputElement>) => {
-      handleChange(e); // Always update value immediately
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      handleChange(e);
       if (!debounceMs || !onDebouncedChange) return;
+      
       if (debounceRef.current) clearTimeout(debounceRef.current);
-      const eventCopy = {
-        ...e,
-        target: e.target,
-        currentTarget: e.currentTarget,
-        persist: () => {},
-      } as React.FormEvent<HTMLInputElement>;
+      
+      const eventCopy = { ...e }; // Shallow copy for debounce
       debounceRef.current = setTimeout(() => {
         onDebouncedChange(eventCopy);
       }, debounceMs);
     };
 
+    const baseStyles =
+      "w-full px-4 py-2 text-sm font-mono lowercase tracking-tight transition-all duration-150 ease-in-out border rounded-md outline-none select-none";
+
+    const variantStyles =
+      "bg-neutral-50 border-neutral-200 text-neutral-800 placeholder:text-neutral-400 " +
+      "dark:bg-sky-50/10 dark:border-sky-500/50 dark:text-sky-200 dark:placeholder:text-sky-600 " +
+      "focus:ring-2 focus:ring-amber-100 dark:focus:ring-sky-500";
+
     return (
-      <div className="my-4 relative">
-        <label className="flex flex-col">
-          {label && (
-            <span className="text-xs text-neutral-400 dark:text-neutral-400 mb-1">
-              {label}
-            </span>
-          )}
+      <div className={`flex flex-col gap-1.5 my-2 w-full ${className}`}>
+        {label && (
+          <label 
+            htmlFor={name}
+            className="text-[12px] font-mono text-zinc-500 dark:text-zinc-500 lowercase tracking-tight px-0.5"
+          >
+            {label}
+          </label>
+        )}
+        
+        <div className="relative group">
           <input
-            className="rounded-lg px-5 py-4 pr-10 text-base transition-all duration-200 ease-out focus:outline-none focus-visible:ring-2 disabled:opacity-50 disabled:pointer-events-none select-none border bg-white text-black border-black shadow hover:bg-amber-50 focus-visible:ring-black dark:bg-neutral-700 dark:text-white dark:border-neutral-600 dark:hover:bg-neutral-800 dark:focus-visible:ring-white placeholder-neutral-500 dark:placeholder-neutral-600"
-            type={type}
-            aria-label={label}
             id={name}
             name={name}
+            type={type}
             value={value}
             onChange={handleInputChange}
             placeholder={placeholder}
             min={validation?.min}
             max={validation?.max}
             ref={ref}
+            className={`${baseStyles} ${variantStyles}`}
+            aria-label={label || name}
           />
+
           {onClear && value && String(value).length > 0 && (
             <button
               type="button"
               onClick={onClear}
-              className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-black dark:hover:text-white p-1 focus:outline-none"
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 p-1 transition-colors"
               tabIndex={-1}
-              aria-label="Clear input"
             >
-              <svg
-                width="18"
-                height="18"
-                viewBox="0 0 20 20"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M6 6L14 14M6 14L14 6"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                />
-              </svg>
+              <FaTimes size={10} />
             </button>
           )}
-        </label>
+        </div>
+
         {helperText && (
-          <p className="text-gray-500 dark:text-gray-400 text-xs">
+          <p className="text-[11px] font-mono text-zinc-400 dark:text-zinc-600 px-0.5 italic">
             {helperText}
           </p>
         )}

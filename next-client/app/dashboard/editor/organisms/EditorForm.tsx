@@ -81,61 +81,55 @@ export default function EditorForm({ isOpened, handleClose }: Props) {
         <div className="space-y-6">
           <div className="grid grid-cols-2 gap-6">
             <div className="flex flex-col gap-2">
-              <label className="text-[12px] text-zinc-500 lowercase tracking-tight">file_name</label>
-              <Input
-                name="fileName"
-                value={localData.fileName}
-                handleChange={(e) => handleChange("fileName", e.currentTarget.value)}
-                className="!bg-zinc-50 dark:!bg-zinc-900/50 !border-zinc-200 dark:!border-zinc-800 !text-[12px] !rounded-md"
-              />
-            </div>
-            <div className="flex flex-col gap-2">
-              <label className="text-[12px] text-zinc-500 lowercase tracking-tight">title</label>
-              <Input
-                name="title"
-                value={localData.title}
-                handleChange={(e) => handleChange("title", e.currentTarget.value)}
-                className="!bg-zinc-50 dark:!bg-zinc-900/50 !border-zinc-200 dark:!border-zinc-800 !text-[12px] !rounded-md"
-              />
-            </div>
-          </div>
-
-          <div className="flex flex-col gap-2">
-            <label className="text-[12px] text-zinc-500 lowercase tracking-tight">description</label>
-            <Textarea
-              name="description"
-              value={localData.description}
-              handleChange={(e) => handleChange("description", e.currentTarget.value)}
-              className="!bg-zinc-50 dark:!bg-zinc-900/50 !border-zinc-200 dark:!border-zinc-800 !text-[12px] !rounded-md min-h-[100px]"
+            <Input
+              label="file name"
+              name="fileName"
+              value={localData.fileName}
+              handleChange={(e) => handleChange("fileName", e.currentTarget.value)}
             />
           </div>
-
           <div className="flex flex-col gap-2">
-            <label className="text-[12px] text-zinc-500 lowercase tracking-tight">tags</label>
             <Input
-              name="tags"
-              value={localData.tags}
-              handleChange={(e) => handleChange("tags", e.currentTarget.value)}
-              className="!bg-zinc-50 dark:!bg-zinc-900/50 !border-zinc-200 dark:!border-zinc-800 !text-[12px] !rounded-md"
+              label="title"
+              name="title"
+              value={localData.title}
+              handleChange={(e) => handleChange("title", e.currentTarget.value)}
             />
           </div>
         </div>
 
-        {/* Actions Section */}
-        <div className="mt-10 flex items-center justify-end gap-3 pt-6 border-t border-zinc-100 dark:border-zinc-800">
-          <button
-            type="button"
-            onClick={handleClose}
-            className="text-[12px] text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 px-4 py-2 transition-colors lowercase"
-          >
-            cancel
-          </button>
-          <Button
-            variant="primary"
-            type="submit"
-            label={saveState ? "saving..." : "save_changes"}
+        <div className="flex flex-col gap-2">
+          <Textarea
+            label="description"
+            name="description"
+            value={localData.description}
+            handleChange={(e) => handleChange("description", e.currentTarget.value)}
+          />
+        </div>
+
+        <div className="flex flex-col gap-2">
+          <Input
+            label="tags (comma separated)"
+            name="tags"
+            value={localData.tags}
+            handleChange={(e) => handleChange("tags", e.currentTarget.value)}
+          />
+        </div>
+      </div>
+
+      {/* Actions Section */}
+      <div className="mt-10 flex items-center justify-end gap-3 pt-6 border-t border-zinc-100 dark:border-zinc-800">
+        <Button
+          variant="tertiary"
+          onClick={handleClose}
+        >
+          cancel
+        </Button>
+        <Button
+          variant="primary"
+          type="submit"
+          label={saveState ? "saving..." : "save_changes"}
             disabled={saveState}
-            styles="!py-2 !px-6 !text-[12px] !bg-zinc-900 dark:!bg-zinc-100 !text-white dark:!text-black !rounded-md !shadow-none hover:!opacity-90 transition-opacity"
           />
         </div>
       </form>
