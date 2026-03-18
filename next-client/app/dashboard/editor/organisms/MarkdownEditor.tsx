@@ -28,6 +28,7 @@ const highlightMarkdownMonochrome = (
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;");
 
+  // 1. Search Highlight (Keep this first)
   if (searchTerm && searchTerm.trim().length > 0) {
     try {
       const regex = new RegExp(`(${searchTerm})`, "gi");
@@ -41,14 +42,23 @@ const highlightMarkdownMonochrome = (
     setMatchCount(0);
   }
 
-  // Links styling
+  /**
+   * UNIFIED LINK STYLING
+   * We use the same sky-500/sky-800 colors for both.
+   */
+
+  // 2. Markdown Links: [text](url)
+  // Styles the [text] as solid sky-500 and the (url) as 70% opacity sky-500
   escaped = escaped.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, 
-    `<span class="text-neutral-900 dark:text-neutral-100 font-medium cursor-pointer">[$1]</span><span class="cursor-pointer text-blue-500 opacity-70 underline">($2)</span>`);
+    `<span class="text-sky-600 dark:text-sky-400 font-medium cursor-pointer">[$1]</span><span class="cursor-pointer text-sky-600 dark:text-sky-400 underline">($2)</span>`);
 
+  // 3. Raw URLs: https://...
+  // Now matches the Markdown URL style: sky-500 with 70% opacity and underline
+  // The [^\(] lookbehind ensures we don't double-style URLs already caught by the Markdown rule above
   escaped = escaped.replace(/(^|[^\(])(https?:\/\/[^\s<]+)/g, 
-    `$1<span class="text-blue-500 underline">$2</span>`);
+    `$1<span class="text-sky-600 dark:text-sky-400 underline cursor-pointer">$2</span>`);
 
-  // Markdown styling
+  // 4. Other Markdown styling (Headings, Bold)
   escaped = escaped.replace(/^(#{1,6})(\s.+)$/gm, 
     `<span class="opacity-25">$1</span><span class="font-bold text-neutral-900 dark:text-neutral-100">$2</span>`);
   
