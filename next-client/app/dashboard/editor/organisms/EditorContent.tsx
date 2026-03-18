@@ -43,7 +43,7 @@ export default function EditorContent({
       className={"flex-1 flex flex-col min-h-0 w-full mb-4 scroll-smooth overscroll-contain"}
     >
       <div
-        className={`flex-1 min-h-0 w-full px-2 py-2 flex flex-col h-full bg-white dark:bg-neutral-900 shadow-xl border border-neutral-200 dark:border-neutral-700 overflow-hidden relative max-h-[calc(100vh-300px)] rounded-xl`}
+        className={`flex-1 min-h-0 w-full px-2 py-2 flex flex-col h-full bg-white dark:bg-neutral-900 shadow-xl border border-neutral-200 dark:border-neutral-700 overflow-hidden relative max-h-[calc(100vh-254px)] rounded-xl`}
       >
         <div className="flex-1 overflow-auto">
           <MarkdownEditor

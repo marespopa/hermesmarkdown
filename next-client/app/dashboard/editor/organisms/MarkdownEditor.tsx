@@ -43,7 +43,7 @@ const highlightMarkdownMonochrome = (
 
   // Links styling
   escaped = escaped.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, 
-    `<span class="text-neutral-900 dark:text-neutral-100 font-medium">[$1]</span><span class="text-blue-500 opacity-70 underline">($2)</span>`);
+    `<span class="text-neutral-900 dark:text-neutral-100 font-medium cursor-pointer">[$1]</span><span class="cursor-pointer text-blue-500 opacity-70 underline">($2)</span>`);
 
   escaped = escaped.replace(/(^|[^\(])(https?:\/\/[^\s<]+)/g, 
     `$1<span class="text-blue-500 underline">$2</span>`);
