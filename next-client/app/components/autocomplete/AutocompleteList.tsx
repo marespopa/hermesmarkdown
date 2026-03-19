@@ -1,3 +1,5 @@
+"use client";
+
 import { useEffect, useRef } from "react";
 import type { AutocompleteGroup } from "./types";
 import Button from "@/app/components/Button";
@@ -24,38 +26,64 @@ export default function AutocompleteList({ groupedItems, activeIndex, onSelect }
             behavior: "auto",
         });
     }
-}, [activeIndex]);
+  }, [activeIndex]);
 
   return (
     <div 
-        className="flex flex-col gap-1 max-h-60 overflow-y-auto" 
+        className="flex flex-col p-1.5 max-h-[320px] overflow-y-auto scroll-smooth
+                   bg-white/80 dark:bg-zinc-900/90 backdrop-blur-xl 
+                   rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-2xl" 
         ref={scrollContainerRef}
     >
       {groupedItems.map((group) => (
-        <div key={group.category} className="space-y-1">
-          <div className="px-3 pt-2 text-[11px] font-semibold uppercase tracking-wide text-neutral-400 dark:text-neutral-500">
+        <div key={group.category} className="mb-2 last:mb-0">
+          {/* Apple-style Section Header: Smaller, wide-tracking, muted */}
+          <div className="px-3 py-2 text-[10px] font-bold uppercase tracking-[0.15em] text-zinc-400 dark:text-zinc-500">
             {group.category}
           </div>
-          {group.items.map((item) => {
-            itemIndex += 1;
-            const idx = itemIndex;
-            return (
-              <Button
-                key={item.key}
-                variant="bare"
-                data-active={idx === activeIndex}
-                onMouseDown={(event: React.MouseEvent) => {
-                  event.preventDefault();
-                  onSelect(item.template);
-                }}
-                styles={`w-full text-left rounded-xl px-3 py-2 text-sm transition ${idx === activeIndex ? "bg-amber-100 dark:bg-amber-900/40 text-amber-900 dark:text-amber-100" : "hover:bg-neutral-100 dark:hover:bg-neutral-800"}`}
-              >
-                <div className="flex items-center gap-2">
-                  <span className="font-medium truncate">{item.label}</span>
-                </div>
-              </Button>
-            );
-          })}
+          
+          <div className="space-y-0.5">
+            {group.items.map((item) => {
+              itemIndex += 1;
+              const idx = itemIndex;
+              const isActive = idx === activeIndex;
+
+              return (
+                <Button
+                  key={item.key}
+                  variant="bare"
+                  data-active={isActive}
+                  onMouseDown={(event: React.MouseEvent) => {
+                    event.preventDefault();
+                    onSelect(item.template);
+                  }}
+                  styles={`
+                    w-full text-left rounded-lg px-3 py-2 text-[13px] transition-all duration-150 group
+                    flex items-center justify-between
+                    ${isActive 
+                      ? "bg-amber-100 dark:bg-sky-500 text-zinc-900 dark:text-white shadow-sm scale-[1.01]" 
+                      : "hover:bg-zinc-100 dark:hover:bg-zinc-800/50 text-zinc-600 dark:text-zinc-400"
+                    }
+                  `}
+                >
+                  <div className="flex items-center gap-2 truncate">
+                    {/* Optional: Add a subtle dash or dot for non-active items to feel like a list */}
+                    <span className={`w-1 h-1 rounded-full transition-colors 
+                      ${isActive ? "bg-amber-500 dark:bg-white" : "bg-zinc-300 dark:bg-zinc-700"}
+                    `} />
+                    <span className="font-semibold truncate tracking-tight">{item.label}</span>
+                  </div>
+
+                  {/* Keyboard Shortcut Hint (Apple style) */}
+                  {isActive && (
+                    <span className="text-[10px] font-bold opacity-60 uppercase tracking-tighter">
+                      Enter ↵
+                    </span>
+                  )}
+                </Button>
+              );
+            })}
+          </div>
         </div>
       ))}
     </div>

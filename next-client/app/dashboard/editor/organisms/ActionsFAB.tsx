@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useAtom } from "jotai";
 import { atom_theme } from "@/app/atoms/atoms";
 import {
-  FaTimes, FaFile, FaDownload, FaSearch,
+  FaTimes, FaFile, FaPen, FaQuestionCircle, FaDownload, FaSearch,
   FaFolderOpen, FaCog, FaCopy, FaSun, FaMoon, FaMagic
 } from "react-icons/fa";
 import SnippetManagerModal from "./SnippetManager/SnippetManagerModal";
@@ -36,8 +36,8 @@ const ActionsFAB: React.FC<ActionsFABProps> = ({ actions, exportToMD }) => {
     return "Working late";
   }, []);
 
-  const navigateToLite = () => {
-    router.push("/lite");
+  const navigateTo = (page) => {
+    router.push(page);
   }
 
   useEffect(() => {
@@ -103,8 +103,9 @@ const ActionsFAB: React.FC<ActionsFABProps> = ({ actions, exportToMD }) => {
           <MenuButton onClick={() => { actions.handleNewFile(); setIsOpen(false); }} icon={<FaFile size={12} />} label="new_file" />
           <MenuButton onClick={() => { actions.handleOpenFile(); setIsOpen(false); }} icon={<FaFolderOpen size={12} />} label="open_file" />
           <MenuButton onClick={() => { actions.handleOpenFindAndReplace(); setIsOpen(false); }} icon={<FaSearch size={12} />} label="search" />
-          <MenuButton onClick={() => { navigateToLite(); setIsOpen(false); }} icon={<FaFile size={12} />} label="lite_editor" />
+          <MenuButton onClick={() => { navigateTo('/lite'); setIsOpen(false); }} icon={<FaPen size={12} />} label="lite_editor" />
           <MenuButton onClick={() => { exportToMD(); setIsOpen(false); }} icon={<FaDownload size={12} />} label="export_md" />
+          <MenuButton onClick={() => { navigateTo('/documentation'); setIsOpen(false); }} icon={<FaQuestionCircle size={12} />} label="help" />
           <MenuButton onClick={() => { setIsSnippetManagerOpen(true); setIsOpen(false); }} icon={<FaMagic size={12} />} label="snippets" />
 
           <div className="h-[1px] bg-zinc-100 dark:bg-zinc-800 my-1 mx-2" />
