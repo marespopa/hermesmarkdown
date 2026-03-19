@@ -120,7 +120,7 @@ export default function LiteEditor() {
             onPointerDown={handlePointerDown}
             spellCheck={false}
             autoFocus
-            placeholder="Write something great..."
+            placeholder="Start writing..."
             className={`${typography} relative w-full min-h-[75vh] bg-transparent text-transparent 
               caret-amber-500 dark:caret-sky-400 resize-none overflow-y-auto 
               focus:ring-0 focus:outline-none
