@@ -20,7 +20,7 @@ export default function Hero() {
           {/* Decorative subtle glow to match Features */}
           <div className="absolute -top-24 -right-24 w-96 h-96 bg-amber-500/5 dark:bg-sky-500/10 blur-[100px] rounded-full pointer-events-none" />
 
-          <div className="flex flex-col lg:flex-row items-center gap-12 lg:gap-16 relative z-10">
+          <div className="flex flex-col lg:flex-row items-center gap-12 lg:gap-16 relative">
             
             {/* Left Column: Content */}
             <div className="w-full lg:w-1/2 flex flex-col items-center lg:items-start text-center lg:text-left">
