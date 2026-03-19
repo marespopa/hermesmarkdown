@@ -123,6 +123,7 @@ type ContentAtom = WritableAtom<
   [SetStateActionWithReset<string>],
   void
 >;
+export const atom_liteContent = atomWithStorage("liteContent", "") as ContentAtom;
 export const atom_content = atomWithStorage("content", "") as ContentAtom;
 export const atom_contentEdited = atomWithStorage(
   "contentEdited",

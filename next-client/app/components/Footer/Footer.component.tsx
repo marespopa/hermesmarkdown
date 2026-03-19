@@ -6,12 +6,6 @@ import { usePathname } from "next/navigation";
 import ClientOnly from "../ClientOnly";
 
 export default function Footer() {
-  const pathname = usePathname();
-
-  if (pathname.includes("editor")) {
-    return <></>;
-  }
-
   return (
     <ClientOnly>
       <footer

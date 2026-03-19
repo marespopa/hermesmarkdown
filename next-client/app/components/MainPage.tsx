@@ -16,7 +16,8 @@ type Props = {
 
 const MainPage = ({ children }: Props) => {
   const pathname = usePathname();
-  const showHeader = !pathname.includes("dashboard");
+  const showHeader = !["/dashboard", "/dashboard/editor", "/lite"].some(route => pathname === route);
+  const showFooter = !["/dashboard/editor", "/lite"].some(route => pathname === route);
 
   return (
         <CustomProviders>
@@ -31,7 +32,7 @@ const MainPage = ({ children }: Props) => {
             <div className={`min-h-screen h-full flex flex-col bg-white dark:bg-neutral-900 text-black dark:text-white flex-1 ${showHeader ? 'pt-4' : ''}`}>
               {showHeader && <Header />}
               <div className="flex-1 h-full flex flex-col">{children}</div>
-              <Footer />
+              {showFooter && <Footer />}
             </div>
             <CookieConsent />
             <Script

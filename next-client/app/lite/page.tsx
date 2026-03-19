@@ -1,7 +1,11 @@
 'use client';
 
 import React, { useState, useRef } from 'react';
+import Button from '@/app/components/Button';
 import Prism from 'prismjs';
+import { useRouter } from 'next/navigation';
+import { useAtom } from 'jotai';
+import { atom_liteContent } from '@/app/atoms/atoms';
 
 // Language Imports
 import 'prismjs/components/prism-markdown';
@@ -9,10 +13,11 @@ import 'prismjs/components/prism-javascript';
 import 'prismjs/components/prism-json';
 
 export default function LiteEditor() {
-  const [content, setContent] = useState('');
+  const [content, setContent] = useAtom(atom_liteContent);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const preRef = useRef<HTMLPreElement>(null);
-
+  const router = useRouter();
+  
   // Sync scroll between the visual layer and the input layer
   const handleScroll = () => {
     if (textareaRef.current && preRef.current) {
@@ -54,6 +59,15 @@ export default function LiteEditor() {
   return (
     <div className="min-h-screen bg-white dark:bg-[#121212] text-gray-800 dark:text-gray-200 transition-colors duration-300">
       <main className="max-w-3xl mx-auto pt-24 pb-32 px-6">
+        <div className="fixed top-4 left-4">
+          <Button
+            variant="bare"
+            onClick={() => router.push('/dashboard/editor')} 
+            aria-label="Go back to editor page"
+          >
+            ← Back
+          </Button>
+        </div>
         <div className="relative">
           
           {/* VISUAL LAYER (Underneath) */}
@@ -100,7 +114,7 @@ export default function LiteEditor() {
             onPointerDown={handlePointerDown}
             spellCheck={false}
             autoFocus
-            placeholder="Cmd + Click a URL to open it..."
+            placeholder="Start typing..."
             className={`${typography} relative w-full min-h-[75vh] bg-transparent text-transparent 
               caret-amber-500 resize-none overflow-y-auto no-underline
               /* Selection logic: words appear black/white against amber highlight */

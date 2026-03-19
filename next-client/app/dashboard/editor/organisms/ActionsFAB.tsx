@@ -36,6 +36,10 @@ const ActionsFAB: React.FC<ActionsFABProps> = ({ actions, exportToMD }) => {
     return "Working late";
   }, []);
 
+  const navigateToLite = () => {
+    router.push("/lite");
+  }
+
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(e.target as Node)) setIsOpen(false);
@@ -99,6 +103,7 @@ const ActionsFAB: React.FC<ActionsFABProps> = ({ actions, exportToMD }) => {
           <MenuButton onClick={() => { actions.handleNewFile(); setIsOpen(false); }} icon={<FaFile size={12} />} label="new_file" />
           <MenuButton onClick={() => { actions.handleOpenFile(); setIsOpen(false); }} icon={<FaFolderOpen size={12} />} label="open_file" />
           <MenuButton onClick={() => { actions.handleOpenFindAndReplace(); setIsOpen(false); }} icon={<FaSearch size={12} />} label="search" />
+          <MenuButton onClick={() => { navigateToLite(); setIsOpen(false); }} icon={<FaFile size={12} />} label="lite_editor" />
           <MenuButton onClick={() => { exportToMD(); setIsOpen(false); }} icon={<FaDownload size={12} />} label="export_md" />
           <MenuButton onClick={() => { setIsSnippetManagerOpen(true); setIsOpen(false); }} icon={<FaMagic size={12} />} label="snippets" />
 
