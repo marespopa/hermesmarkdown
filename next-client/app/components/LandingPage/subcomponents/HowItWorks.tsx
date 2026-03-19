@@ -12,7 +12,7 @@ export default function HowItWorks() {
   const router = useRouter();
 
   return (
-    <section className="mt-16 py-16 bg-neutral-50 dark:bg-neutral-800">
+    <section id="how-it-works" className="mt-16 py-16 bg-neutral-50 dark:bg-neutral-800">
       <div className="max-w-6xl mx-auto px-4">
         <div className="text-center mb-12">
           <h2 className="text-3xl font-semibold mb-4 text-neutral-900 dark:text-white">
