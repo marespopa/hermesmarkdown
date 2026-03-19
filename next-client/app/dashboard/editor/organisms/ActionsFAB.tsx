@@ -56,7 +56,7 @@ const ActionsFAB: React.FC<ActionsFABProps> = ({ actions, exportToMD }) => {
   }, []);
 
   return (
-    <div className="fixed top-12 right-6 z-[100] flex flex-col items-end gap-2 font-mono selection:bg-zinc-200 dark:selection:bg-zinc-800" ref={menuRef}>
+    <div className="fixed top-2 right-4 sm:right-6 z-[100] flex flex-col items-end gap-2 font-mono selection:bg-zinc-200 dark:selection:bg-zinc-800" ref={menuRef}>
       
       {/* Control Strip */}
       <div className="flex items-center bg-white/80 dark:bg-zinc-900/80 backdrop-blur-md border border-zinc-200 dark:border-zinc-800 rounded-md shadow-sm overflow-hidden">

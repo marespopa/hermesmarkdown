@@ -2,7 +2,6 @@
 
 import React from "react";
 import { HiPencil } from "react-icons/hi2";
-import Button from "@/app/components/Button";
 
 interface TitleFileInfoProps {
   fileTitle: string;
@@ -22,36 +21,43 @@ const TitleFileInfo: React.FC<TitleFileInfoProps> = ({
   return (
     <div 
       onClick={showFileDialog}
-      className="group flex items-center justify-between gap-4 w-fit min-w-[320px] px-4 py-2.5 
-                 cursor-pointer select-none rounded-xl border transition-all duration-200
-                 bg-white/70 dark:bg-zinc-900/70 backdrop-blur-md
+      className="group flex items-center justify-between gap-3 
+                 w-full sm:w-fit sm:min-w-[300px] sm:max-w-[450px]
+                 px-4 py-2.5 cursor-pointer select-none rounded-2xl border 
+                 transition-all duration-200 ease-out
+                 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl
                  border-zinc-200 dark:border-zinc-800
-                 hover:border-zinc-300 dark:hover:border-zinc-700
-                 hover:shadow-sm active:scale-[0.98]"
+                 hover:border-zinc-400 dark:hover:border-zinc-600
+                 hover:shadow-md active:scale-[0.97] active:bg-zinc-50 dark:active:bg-zinc-800"
     >
-      <div className="flex flex-col truncate">
-        {/* Title: Using a tighter tracking and semi-bold weight for Apple feel */}
+      {/* Text Container 
+          'min-w-0' is the secret sauce that allows the child 'truncate' to work inside flex 
+      */}
+      <div className="flex flex-col min-w-0 flex-1">
         <h1 className={`
-          text-[14px] font-semibold tracking-tight truncate
+          text-[15px] sm:text-[14px] font-semibold tracking-tight truncate
           ${hasTitle ? "text-zinc-900 dark:text-zinc-100" : "text-zinc-400 dark:text-zinc-500"}
         `}>
           {hasTitle ? fileTitle : "Untitled Document"}
         </h1>
         
-        {/* Filename: Secondary metadata style */}
-        <span className="text-[11px] font-mono text-zinc-500 dark:text-zinc-400 opacity-80">
+        <span className="text-[11px] font-mono text-zinc-500 dark:text-zinc-400 opacity-70 truncate">
           {formattedFileName}
         </span>
       </div>
 
-      {/* Action Area: Only shows prominence on hover */}
-      <div className="flex items-center gap-2 pl-4 border-l border-zinc-100 dark:border-zinc-800">
-        <div className="flex items-center gap-1.5 px-2 py-1 rounded-md 
-                        bg-zinc-100/50 dark:bg-zinc-800/50 
-                        text-zinc-500 dark:text-zinc-400
-                        group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+      {/* Action Area: iOS style 'Secondary' button look */}
+      <div className="flex-shrink-0 flex items-center gap-2 pl-3 border-l border-zinc-100 dark:border-zinc-800">
+        <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full 
+                        bg-zinc-100 dark:bg-zinc-800 
+                        text-zinc-600 dark:text-zinc-300
+                        group-hover:bg-blue-50 group-hover:text-blue-600 
+                        dark:group-hover:bg-blue-900/30 dark:group-hover:text-blue-400 
+                        transition-all">
           <HiPencil size={14} />
-          <span className="text-[11px] font-medium tracking-wide uppercase">Edit</span>
+          <span className="text-[10px] font-bold tracking-wider uppercase hidden xs:block">
+            Edit
+          </span>
         </div>
       </div>
     </div>
