@@ -36,7 +36,7 @@ const ActionsFAB: React.FC<ActionsFABProps> = ({ actions, exportToMD }) => {
     return "Working late";
   }, []);
 
-  const navigateTo = (page) => {
+  const navigateTo = (page: string) => {
     router.push(page);
   }
 

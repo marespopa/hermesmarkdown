@@ -27,7 +27,7 @@ const FindAndReplaceModal = ({ isOpen, handleClose }: Props) => {
     if (!currentFile || !findTerm) return;
     
     let text = currentFile.contentEdited;
-    let regexConfig = `${shouldReplaceAll ? "g" : ""}${
+    const regexConfig = `${shouldReplaceAll ? "g" : ""}${
       isCaseSensitive ? "" : "i"
     }`;
     const escapedSearchTerm = findTerm.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
