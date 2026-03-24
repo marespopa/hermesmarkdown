@@ -36,11 +36,13 @@ const highlightMarkdownMonochrome = (
       if (setMatchCount) setMatchCount(matches ? matches.length : 0);
       escaped = escaped.replace(
         regex,
-        `<mark class="bg-orange-300/50 dark:bg-orange-500/40 text-inherit rounded-sm">$1</mark>`,
+        `<mark class="bg-orange-300/50 dark:bg-orange-500/40 text-inherit rounded-sm px-0.5">$1</mark>`,
       );
     } catch (e) {
       if (setMatchCount) setMatchCount(0);
     }
+  } else if (setMatchCount) {
+    setMatchCount(0);
   }
 
   // 2. Multi-line Code Blocks
@@ -76,17 +78,17 @@ const highlightMarkdownMonochrome = (
     `<span class="opacity-20 text-sky-500 dark:text-sky-400 font-mono tracking-[0.5em]">$1</span>`,
   );
 
-  // 6. Lists (Bullets/Numbers)
+  // 6. Lists & Task Lists ([ ] or [x])
   escaped = escaped.replace(
-    /^(\s*[\d+\.\-\*]+\s+)(.*)$/gm,
-    `<span class="opacity-30 font-mono">$1</span><span class="text-neutral-900 dark:text-neutral-100">$2</span>`,
+    /^(\s*([\d+\.\-\*]+|\[[ xX]\])\s+)(.*)$/gm,
+    `<span class="opacity-30 font-mono">$1</span><span class="text-neutral-900 dark:text-neutral-100">$3</span>`,
   );
 
-  // 7. Headings
+  // 7. Headings (Stable scaling: weight-based to prevent cursor de-sync)
   escaped = escaped.replace(/^(#{1,6})(\s.+)$/gm, (match, hashes, content) => {
     const level = hashes.length;
     const styles = {
-      1: "font-black text-neutral-900 dark:text-neutral-100 underline decoration-neutral-200",
+      1: "font-black text-neutral-900 dark:text-neutral-100 underline decoration-neutral-300/50",
       2: "font-bold text-neutral-900 dark:text-neutral-100",
       3: "font-bold text-neutral-700 dark:text-neutral-300",
       4: "font-semibold text-neutral-600 dark:text-neutral-400",
@@ -95,15 +97,24 @@ const highlightMarkdownMonochrome = (
     };
     return `<span class="opacity-20 font-mono">${hashes}</span><span class="${styles[level] || styles[6]}">${content}</span>`;
   });
-  // 8. Bold & Inline Code
+
+  // 8. Strikethrough, Bold & Inline Code
+  // Strikethrough (~~)
+  escaped = escaped.replace(
+    /(~~)(.*?)\1/g,
+    `<span class="opacity-20 font-mono">$1</span><span class="line-through text-neutral-500 dark:text-neutral-400">$2</span><span class="opacity-20 font-mono">$1</span>`,
+  );
+
+  // Bold (** or __)
   escaped = escaped.replace(
     /(\*\*|__)(.*?)\1/g,
     `<span class="opacity-20">$1</span><span class="font-bold text-neutral-900 dark:text-neutral-100">$2</span><span class="opacity-20">$1</span>`,
   );
 
+  // Inline Code (`)
   escaped = escaped.replace(
     /(`)([^`\n]+)(`)/g,
-    `<span class="opacity-20 font-mono">$1</span><span class="bg-neutral-100/50 dark:bg-neutral-800/50 text-neutral-900 dark:text-neutral-100 rounded font-mono">$2</span><span class="opacity-20 font-mono">$3</span>`,
+    `<span class="opacity-20 font-mono">$1</span><span class="bg-neutral-100/50 dark:bg-neutral-800/50 text-neutral-900 dark:text-neutral-100 rounded px-1 font-mono">$2</span><span class="opacity-20 font-mono">$3</span>`,
   );
 
   // 9. Links & URLs

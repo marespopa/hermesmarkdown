@@ -16,34 +16,44 @@ type Props = {
 
 const MainPage = ({ children }: Props) => {
   const pathname = usePathname();
-  const showHeader = !["/dashboard", "/dashboard/editor", "/lite"].some(route => pathname === route);
-  const showFooter = !["/dashboard/editor", "/lite"].some(route => pathname === route);
+  const showHeader = ![
+    "/dashboard",
+    "/dashboard/settings",
+    "/dashboard/editor",
+    "/lite",
+  ].some((route) => pathname === route);
+  const showFooter = ![
+    "/dashboard/editor",
+    "/dashboard/settings",
+    "/lite",
+  ].some((route) => pathname === route);
 
   return (
-        <CustomProviders>
-          <main className="h-full min-h-screen flex flex-col">
-            <Toaster 
-              position="top-center" 
-              reverseOrder={false} 
-              toastOptions={{
-                className: "hermes-toast"
-              }}
-            />
-            <div className={`min-h-screen h-full flex flex-col bg-white dark:bg-neutral-900 text-black dark:text-white flex-1 ${showHeader ? 'pt-4' : ''}`}>
-              {showHeader && <Header />}
-              <div className="flex-1 h-full flex flex-col">{children}</div>
-              {showFooter && <Footer />}
-            </div>
-            <CookieConsent />
-            <Script
-              defer
-              async
-              data-host="hermesmarkdown.com"
-              src="https://liteanalytics.com/lite.js"
-            ></Script>
-
-          </main>
-        </CustomProviders>
+    <CustomProviders>
+      <main className="h-full min-h-screen flex flex-col">
+        <Toaster
+          position="top-center"
+          reverseOrder={false}
+          toastOptions={{
+            className: "hermes-toast",
+          }}
+        />
+        <div
+          className={`min-h-screen h-full flex flex-col bg-white dark:bg-neutral-900 text-black dark:text-white flex-1 ${showHeader ? "pt-4" : ""}`}
+        >
+          {showHeader && <Header />}
+          <div className="flex-1 h-full flex flex-col">{children}</div>
+          {showFooter && <Footer />}
+        </div>
+        <CookieConsent />
+        <Script
+          defer
+          async
+          data-host="hermesmarkdown.com"
+          src="https://liteanalytics.com/lite.js"
+        ></Script>
+      </main>
+    </CustomProviders>
   );
 };
 

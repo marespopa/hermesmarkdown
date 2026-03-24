@@ -1,6 +1,17 @@
 import React, { ReactNode } from "react";
 
-type ButtonVariant = "primary" | "secondary" | "outlined" | "icon" | "icon-bg" | "tertiary" | "hero" | "bare" | "fab-action" | "fab-toggle" | "menu-item";
+type ButtonVariant =
+  | "primary"
+  | "secondary"
+  | "outlined"
+  | "icon"
+  | "icon-bg"
+  | "tertiary"
+  | "hero"
+  | "bare"
+  | "fab-action"
+  | "fab-toggle"
+  | "menu-item";
 
 type Props = {
   children?: ReactNode;
@@ -9,7 +20,7 @@ type Props = {
   onClick?: (e: React.MouseEvent<HTMLButtonElement>) => void;
   styles?: string;
   isDisabled?: boolean;
-  [key: string]: any; 
+  [key: string]: any;
 };
 
 export default function Button({
@@ -75,7 +86,7 @@ const variantStyles = (variant: ButtonVariant): string => {
       return `${baseStyles} h-9 px-3 bg-transparent border-none text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100`;
 
     case "bare":
-      return "inline-flex items-center justify-center font-mono text-[12px] lowercase";
+      return "inline-flex items-center justify-center font-mono text-[12px] lowercase hover:underline focus:underline";
 
     case "fab-action":
       // Compact control-strip action: icon + label, text-only hover, no border/bg

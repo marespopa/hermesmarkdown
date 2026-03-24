@@ -62,17 +62,16 @@ export default function SettingsPage() {
   return (
     <div className="min-h-screen bg-white dark:bg-zinc-950 font-mono text-zinc-900 dark:text-zinc-100 selection:bg-zinc-200 dark:selection:bg-zinc-800">
       <div className="max-w-3xl mx-auto px-6 py-16">
-        
         {/* Navigation Header */}
         <header className="mb-16">
-          <button 
-            onClick={() => router.push("/dashboard/editor")}
-            className="flex items-center gap-2 text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors mb-6 group"
-          >
-            <FaArrowLeft size={10} className="group-hover:-translate-x-0.5 transition-transform" />
-            <span className="text-[12px] lowercase tracking-tight">back_to_editor</span>
-          </button>
-          
+          <div className="fixed top-6 left-6 z-30">
+            <Button
+              variant="bare"
+              onClick={() => router.push("/dashboard/editor")}
+            >
+              ← back_to_editor
+            </Button>
+          </div>
           <h1 className="text-3xl font-normal font-serif italic tracking-tighter">
             settings
           </h1>
@@ -89,7 +88,7 @@ export default function SettingsPage() {
                 appearance
               </h2>
             </header>
-            
+
             <div className="border-t border-zinc-100 dark:border-zinc-800">
               <SettingRow
                 title="theme"
@@ -148,7 +147,9 @@ export default function SettingsPage() {
               <SettingRow
                 title="status_bar"
                 description="display word count and metrics."
-                control={<Switch checked={showStatusBar} onChange={setShowStatusBar} />}
+                control={
+                  <Switch checked={showStatusBar} onChange={setShowStatusBar} />
+                }
               />
               <SettingRow
                 title="session_timer"
@@ -165,7 +166,9 @@ export default function SettingsPage() {
                     type="number"
                     handleChange={(e) => {
                       const val = Number((e.target as HTMLInputElement).value);
-                      setTimerMinutes(Math.max(1, Math.min(120, isNaN(val) ? 1 : val)));
+                      setTimerMinutes(
+                        Math.max(1, Math.min(120, isNaN(val) ? 1 : val)),
+                      );
                     }}
                     validation={{ min: 1, max: 120 }}
                     debounceMs={600}
@@ -173,7 +176,10 @@ export default function SettingsPage() {
                       const val = Number((e.target as HTMLInputElement).value);
                       setTimerSettings((prev) => ({
                         ...prev,
-                        durationInMin: Math.max(1, Math.min(120, isNaN(val) ? 1 : val)),
+                        durationInMin: Math.max(
+                          1,
+                          Math.min(120, isNaN(val) ? 1 : val),
+                        ),
                       }));
                       showSuccessToast("Timer duration updated");
                     }}
