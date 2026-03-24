@@ -23,13 +23,12 @@ export default function LiteEditor() {
 
   useEffect(() => {
     if (Prism.languages.markdown) {
-      // 1. Naked URL support
+
       Prism.languages.markdown['url'] = {
         pattern: /https?:\/\/[^\s\)\>\]]+/g,
         lookbehind: true
       };
 
-      // 2. Insert H1-H6 Tokens (Longest to shortest)
       Prism.languages.insertBefore('markdown', 'title', {
         'h6': { pattern: /^######\s+.+$/m, alias: 'important' },
         'h5': { pattern: /^#####\s+.+$/m, alias: 'important' },
@@ -41,7 +40,7 @@ export default function LiteEditor() {
 
       Prism.highlightAll();
     }
-  }, [content]); // Re-run when content changes to ensure dynamic tokens update
+  }, [content]); 
 
   const handleScroll = () => {
     if (textareaRef.current && preRef.current) {
