@@ -47,24 +47,32 @@ const highlightMarkdownMonochrome = (
    * We use the same sky-500/sky-800 colors for both.
    */
 
-  // 2. Markdown Links: [text](url)
+  // Markdown Links: [text](url)
   // Styles the [text] as solid sky-500 and the (url) as 70% opacity sky-500
   escaped = escaped.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, 
     `<span class="text-sky-600 dark:text-sky-400 font-medium cursor-pointer">[$1]</span><span class="cursor-pointer text-sky-600 dark:text-sky-400 underline">($2)</span>`);
 
-  // 3. Raw URLs: https://...
+  // Raw URLs: https://...
   // Now matches the Markdown URL style: sky-500 with 70% opacity and underline
   // The [^\(] lookbehind ensures we don't double-style URLs already caught by the Markdown rule above
   escaped = escaped.replace(/(^|[^\(])(https?:\/\/[^\s<]+)/g, 
     `$1<span class="text-sky-600 dark:text-sky-400 underline cursor-pointer">$2</span>`);
 
-  // 4. Other Markdown styling (Headings, Bold)
+  // Other Markdown styling (Headings, Bold)
   escaped = escaped.replace(/^(#{1,6})(\s.+)$/gm, 
     `<span class="opacity-25">$1</span><span class="font-bold text-neutral-900 dark:text-neutral-100">$2</span>`);
   
   escaped = escaped.replace(/(\*\*|__)(.*?)\1/g, 
     `<span class="opacity-25">$1</span><span class="font-bold text-neutral-900 dark:text-neutral-100">$2</span><span class="opacity-25">$1</span>`);
+ 
+  // Multi-line Code Blocks (```lang ... ```)
+  escaped = escaped.replace(/(```[a-z]*\n?)([\s\S]*?)(```)/g, 
+    `<span class="opacity-25 font-mono">$1</span><span class="text-neutral-900 dark:text-neutral-100 bg-neutral-100/40 dark:bg-neutral-800/40 rounded-sm">$2</span><span class="opacity-25 font-mono">$3</span>`);
 
+  // Inline Code (`code`)
+  escaped = escaped.replace(/(`)([^`\n]+)(`)/g, 
+    `<span class="opacity-25">$1</span><span class="bg-neutral-100/60 dark:bg-neutral-800/60 text-neutral-900 dark:text-neutral-100 rounded px-1 font-mono">$2</span><span class="opacity-25">$3</span>`); 
+  
   return escaped;
 };
 
