@@ -36,7 +36,7 @@ const highlightMarkdownMonochrome = (
       if (setMatchCount) setMatchCount(matches ? matches.length : 0);
       escaped = escaped.replace(
         regex,
-        `<mark class="bg-orange-300/50 dark:bg-orange-500/40 text-inherit rounded-sm px-0.5">$1</mark>`,
+        `<mark class="bg-orange-300/50 dark:bg-orange-500/40 text-inherit rounded-sm">$1</mark>`,
       );
     } catch (e) {
       if (setMatchCount) setMatchCount(0);
@@ -75,7 +75,7 @@ const highlightMarkdownMonochrome = (
   // 5. Horizontal Rules (---) & Page Breaks (+++)
   escaped = escaped.replace(
     /^(\s*([-+*])\2{2,}\s*)$/gm,
-    `<span class="opacity-20 text-sky-500 dark:text-sky-400 font-mono tracking-[0.5em]">$1</span>`,
+    `<span class="opacity-20 text-sky-500 dark:text-sky-400 font-mono">$1</span>`,
   );
 
   // 6. Lists & Task Lists ([ ] or [x])
@@ -114,7 +114,7 @@ const highlightMarkdownMonochrome = (
   // Inline Code (`)
   escaped = escaped.replace(
     /(`)([^`\n]+)(`)/g,
-    `<span class="opacity-20 font-mono">$1</span><span class="bg-neutral-100/50 dark:bg-neutral-800/50 text-neutral-900 dark:text-neutral-100 rounded px-1 font-mono">$2</span><span class="opacity-20 font-mono">$3</span>`,
+    `<span class="opacity-20 font-mono">$1</span><span class="bg-neutral-100/50 dark:bg-neutral-800/50 text-neutral-900 dark:text-neutral-100 rounded font-mono">$2</span><span class="opacity-20 font-mono">$3</span>`,
   );
 
   // 9. Links & URLs
