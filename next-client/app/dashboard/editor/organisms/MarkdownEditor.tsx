@@ -66,7 +66,7 @@ const highlightMarkdownMonochrome = (
     (match, markers, content) => {
       const fadedMarkers = markers.replace(
         /&gt;/g,
-        '<span class="opacity-30 text-sky-500">&gt;</span>',
+        '<span class="opacity-20 text-sky-500">&gt;</span>',
       );
       return `<span class="font-mono">${fadedMarkers}</span><span class="italic text-neutral-700 dark:text-neutral-300">${content}</span>`;
     },
@@ -81,7 +81,7 @@ const highlightMarkdownMonochrome = (
   // 6. Lists & Task Lists ([ ] or [x])
   escaped = escaped.replace(
     /^(\s*([\d+\.\-\*]+|\[[ xX]\])\s+)(.*)$/gm,
-    `<span class="opacity-30 font-mono">$1</span><span class="text-neutral-900 dark:text-neutral-100">$3</span>`,
+    `<span class="opacity-20 font-mono">$1</span><span class="text-neutral-900 dark:text-neutral-100">$3</span>`,
   );
 
   // 7. Headings (Stable scaling: weight-based to prevent cursor de-sync)
@@ -120,7 +120,7 @@ const highlightMarkdownMonochrome = (
   // 9. Links & URLs
   escaped = escaped.replace(
     /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g,
-    `<span class="text-sky-600 dark:text-sky-400 font-medium cursor-pointer">[$1]</span><span class="cursor-pointer text-sky-600 dark:text-sky-400 underline opacity-60 font-mono">($2)</span>`,
+    `<span class="text-sky-600 dark:text-sky-400 font-medium cursor-pointer">[$1]</span><span class="cursor-pointer text-sky-600 dark:text-sky-400 underline opacity-20 font-mono">($2)</span>`,
   );
 
   escaped = escaped.replace(
