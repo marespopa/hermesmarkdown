@@ -27,105 +27,94 @@ const highlightMarkdownMonochrome = (
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;");
+  let pageCounter = 1;
 
   // 1. Search Highlight
-  if (searchTerm && searchTerm.trim().length > 0) {
+  if (searchTerm?.trim()) {
     try {
-      const regex = new RegExp(`(${searchTerm})`, "gi");
-      const matches = escaped.match(regex);
-      if (setMatchCount) setMatchCount(matches ? matches.length : 0);
+      const safeSearch = searchTerm.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      const regex = new RegExp(`(${safeSearch})`, "gi");
       escaped = escaped.replace(
         regex,
-        `<mark class="bg-orange-300/50 dark:bg-orange-500/40 text-inherit rounded-sm">$1</mark>`,
+        `<mark class="bg-orange-300/60 dark:bg-orange-500/40 text-inherit">$1</mark>`,
       );
-    } catch (e) {
-      if (setMatchCount) setMatchCount(0);
-    }
-  } else if (setMatchCount) {
-    setMatchCount(0);
+    } catch (e) {}
   }
 
   // 2. Multi-line Code Blocks
   escaped = escaped.replace(
     /(```[a-z]*\n?)([\s\S]*?)(```)/g,
-    `<span class="opacity-20 font-mono">$1</span><span class="text-neutral-900 dark:text-neutral-100 bg-neutral-100/30 dark:bg-neutral-800/30 rounded-sm font-mono">$2</span><span class="opacity-20 font-mono">$3</span>`,
+    `<span class="opacity-30 font-mono text-stone-500">$1</span><span class="font-mono text-stone-900 dark:text-stone-100">$2</span><span class="opacity-30 font-mono text-stone-500">$3</span>`,
   );
 
-  // 3. Tables
-  escaped = escaped.replace(/^(\s*\|.*\|[\s]*)$/gm, (match) => {
-    const formatted = match.replace(
+  // 3. Tables & Blockquotes
+  escaped = escaped.replace(/^(\s*\|.*\|[\s]*)$/gm, (m) => {
+    const formatted = m.replace(
       /([|:-])/g,
-      '<span class="opacity-20 text-sky-500">$1</span>',
+      '<span class="opacity-30 text-sky-600 dark:text-sky-400">$1</span>',
     );
-    return `<span class="font-mono text-neutral-900 dark:text-neutral-100">${formatted}</span>`;
+    return `<span class="font-mono text-stone-900 dark:text-stone-100">${formatted}</span>`;
   });
 
-  // 4. Blockquotes & Nested Blockquotes
   escaped = escaped.replace(
     /^(\s*(?:&gt;\s*)+)(.*)$/gm,
-    (match, markers, content) => {
-      const fadedMarkers = markers.replace(
+    (m, markers, content) => {
+      const faded = markers.replace(
         /&gt;/g,
-        '<span class="opacity-20 text-sky-500">&gt;</span>',
+        '<span class="opacity-30 text-orange-700 dark:text-orange-400">&gt;</span>',
       );
-      return `<span class="font-mono">${fadedMarkers}</span><span class="italic text-neutral-700 dark:text-neutral-300">${content}</span>`;
+      return `<span class="font-mono">${faded}</span><span class="text-stone-700 dark:text-stone-300 italic">${content}</span>`;
     },
   );
 
-  // 5. Horizontal Rules (---) & Page Breaks (+++)
+  // 4. Horizontal Rules (---)
   escaped = escaped.replace(
-    /^(\s*([-+*])\2{2,}\s*)$/gm,
-    `<span class="opacity-20 text-sky-500 dark:text-sky-400 font-mono">$1</span>`,
+    /^(\s*([-*])\2{2,}\s*)$/gm,
+    '<span class="opacity-30 text-stone-600 dark:text-stone-400">$1</span>',
   );
 
-  // 6. Lists & Task Lists ([ ] or [x])
-  escaped = escaped.replace(
-    /^(\s*([\d+\.\-\*]+|\[[ xX]\])\s+)(.*)$/gm,
-    `<span class="opacity-20 font-mono">$1</span><span class="text-neutral-900 dark:text-neutral-100">$3</span>`,
-  );
-
-  // 7. Headings (Stable scaling: weight-based to prevent cursor de-sync)
-  escaped = escaped.replace(/^(#{1,6})(\s.+)$/gm, (match, hashes, content) => {
-    const level = hashes.length;
-    const styles = {
-      1: "font-black text-neutral-900 dark:text-neutral-100 underline decoration-neutral-300/50",
-      2: "font-bold text-neutral-900 dark:text-neutral-100",
-      3: "font-bold text-neutral-700 dark:text-neutral-300",
-      4: "font-semibold text-neutral-600 dark:text-neutral-400",
-      5: "font-medium text-neutral-500 dark:text-neutral-500",
-      6: "font-medium text-neutral-400 dark:text-neutral-600",
-    };
-    return `<span class="opacity-20 font-mono">${hashes}</span><span class="${styles[level] || styles[6]}">${content}</span>`;
+  // 5. Page Breaks (+++)
+  escaped = escaped.replace(/^(\s*\+{3,}\s*)$/gm, (m) => {
+    return (
+      `<span class="opacity-30 text-stone-600 dark:text-stone-400 font-mono">${m}</span>` +
+      `<span class="opacity-40 text-stone-600 dark:text-stone-400 font-mono select-none pointer-events-none">&nbsp;&nbsp;Page ${pageCounter++}</span>`
+    );
   });
 
-  // 8. Strikethrough, Bold & Inline Code
-  // Strikethrough (~~)
+  // 6. Lists
+  escaped = escaped.replace(
+    /^(\s*([\d+\.\-\*]+|\[[ xX]\])\s+)(.*)$/gm,
+    `<span class="opacity-30 text-stone-600 dark:text-stone-400 font-mono">$1</span><span class="text-stone-900 dark:text-stone-100">$3</span>`,
+  );
+
+  // 7. Headings
+  escaped = escaped.replace(
+    /^(#{1,6})(\s.+)$/gm,
+    `<span class="opacity-30 text-stone-600 dark:text-stone-400 font-mono">$1</span><span class="font-bold text-stone-900 dark:text-stone-100">$2</span>`,
+  );
+
+  // 8. Inline Styles
   escaped = escaped.replace(
     /(~~)(.*?)\1/g,
-    `<span class="opacity-20 font-mono">$1</span><span class="line-through text-neutral-500 dark:text-neutral-400">$2</span><span class="opacity-20 font-mono">$1</span>`,
+    `<span class="opacity-30 text-stone-500">$1</span><span class="line-through text-stone-500">$2</span><span class="opacity-30 text-stone-500">$1</span>`,
   );
-
-  // Bold (** or __)
   escaped = escaped.replace(
     /(\*\*|__)(.*?)\1/g,
-    `<span class="opacity-20">$1</span><span class="font-bold text-neutral-900 dark:text-neutral-100">$2</span><span class="opacity-20">$1</span>`,
+    `<span class="opacity-30 text-stone-500">$1</span><span class="font-bold text-stone-900 dark:text-stone-100">$2</span><span class="opacity-30 text-stone-500">$1</span>`,
   );
-
-  // Inline Code (`)
   escaped = escaped.replace(
     /(`)([^`\n]+)(`)/g,
-    `<span class="opacity-20 font-mono">$1</span><span class="bg-neutral-100/50 dark:bg-neutral-800/50 text-neutral-900 dark:text-neutral-100 rounded font-mono">$2</span><span class="opacity-20 font-mono">$3</span>`,
+    `<span class="opacity-30 text-stone-500 font-mono">$1</span><span class="font-mono text-stone-900 dark:text-stone-100">$2</span><span class="opacity-30 text-stone-500 font-mono">$3</span>`,
   );
 
-  // 9. Links & URLs
+  // 9. Links
   escaped = escaped.replace(
     /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g,
-    `<span class="text-sky-600 dark:text-sky-400 font-medium cursor-pointer">[$1]</span><span class="cursor-pointer text-sky-600 dark:text-sky-400 underline opacity-20 font-mono">($2)</span>`,
+    `<span class="text-sky-700 dark:text-sky-400">[$1]</span><span class="opacity-30 text-stone-500">($2)</span>`,
   );
-
   escaped = escaped.replace(
     /(^|[^\(])(https?:\/\/[^\s<]+)/g,
-    `$1<span class="text-sky-600 dark:text-sky-400 underline cursor-pointer font-mono">$2</span>`,
+    `$1<span class="text-sky-700 dark:text-sky-400 underline font-mono">$2</span>`,
   );
 
   return escaped;
