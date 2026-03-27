@@ -44,7 +44,7 @@ const highlightMarkdownMonochrome = (
   // 2. Multi-line Code Blocks
   escaped = escaped.replace(
     /(```[a-z]*\n?)([\s\S]*?)(```)/g,
-    `<span class="opacity-30 text-stone-500">$1</span><span class="font-mono text-stone-900 dark:text-stone-100">$2</span><span class="opacity-30 font-mono text-stone-500">$3</span>`,
+    `<span class="opacity-30 text-stone-500">$1</span><span class="text-stone-900 dark:text-stone-100">$2</span><span class="opacity-30 text-stone-500">$3</span>`,
   );
 
   // 3. Tables & Blockquotes
