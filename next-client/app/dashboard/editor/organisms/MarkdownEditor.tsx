@@ -44,7 +44,7 @@ const highlightMarkdownMonochrome = (
   // 2. Multi-line Code Blocks
   escaped = escaped.replace(
     /(```[a-z]*\n?)([\s\S]*?)(```)/g,
-    `<span class="opacity-30 font-mono text-stone-500">$1</span><span class="font-mono text-stone-900 dark:text-stone-100">$2</span><span class="opacity-30 font-mono text-stone-500">$3</span>`,
+    `<span class="opacity-30 text-stone-500">$1</span><span class="font-mono text-stone-900 dark:text-stone-100">$2</span><span class="opacity-30 font-mono text-stone-500">$3</span>`,
   );
 
   // 3. Tables & Blockquotes
@@ -53,7 +53,7 @@ const highlightMarkdownMonochrome = (
       /([|:-])/g,
       '<span class="opacity-30 text-sky-600 dark:text-sky-400">$1</span>',
     );
-    return `<span class="font-mono text-stone-900 dark:text-stone-100">${formatted}</span>`;
+    return `<span class="text-stone-900 dark:text-stone-100">${formatted}</span>`;
   });
 
   escaped = escaped.replace(
@@ -63,7 +63,7 @@ const highlightMarkdownMonochrome = (
         /&gt;/g,
         '<span class="opacity-30 text-orange-700 dark:text-orange-400">&gt;</span>',
       );
-      return `<span class="font-mono">${faded}</span><span class="text-stone-700 dark:text-stone-300 italic">${content}</span>`;
+      return `<span>${faded}</span><span class="text-stone-700 dark:text-stone-300 italic">${content}</span>`;
     },
   );
 
@@ -76,21 +76,21 @@ const highlightMarkdownMonochrome = (
   // 5. Page Breaks (+++)
   escaped = escaped.replace(/^(\s*\+{3,}\s*)$/gm, (m) => {
     return (
-      `<span class="opacity-30 text-stone-600 dark:text-stone-400 font-mono">${m}</span>` +
-      `<span class="opacity-40 text-stone-600 dark:text-stone-400 font-mono select-none pointer-events-none">&nbsp;&nbsp;Page ${pageCounter++}</span>`
+      `<span class="opacity-30 text-stone-600 dark:text-stone-400">${m}</span>` +
+      `<span class="opacity-40 text-stone-600 dark:text-stone-400 select-none pointer-events-none">&nbsp;&nbsp;Page ${pageCounter++}</span>`
     );
   });
 
   // 6. Lists
   escaped = escaped.replace(
     /^(\s*([\d+\.\-\*]+|\[[ xX]\])\s+)(.*)$/gm,
-    `<span class="opacity-30 text-stone-600 dark:text-stone-400 font-mono">$1</span><span class="text-stone-900 dark:text-stone-100">$3</span>`,
+    `<span class="opacity-30 text-stone-600 dark:text-stone-400">$1</span><span class="text-stone-900 dark:text-stone-100">$3</span>`,
   );
 
   // 7. Headings
   escaped = escaped.replace(
     /^(#{1,6})(\s.+)$/gm,
-    `<span class="opacity-30 text-stone-600 dark:text-stone-400 font-mono">$1</span><span class="font-bold text-stone-900 dark:text-stone-100">$2</span>`,
+    `<span class="opacity-30 text-stone-600 dark:text-stone-400">$1</span><span class="font-bold text-stone-900 dark:text-stone-100">$2</span>`,
   );
 
   // 8. Inline Styles
@@ -104,7 +104,7 @@ const highlightMarkdownMonochrome = (
   );
   escaped = escaped.replace(
     /(`)([^`\n]+)(`)/g,
-    `<span class="opacity-30 text-stone-500 font-mono">$1</span><span class="font-mono text-stone-900 dark:text-stone-100">$2</span><span class="opacity-30 text-stone-500 font-mono">$3</span>`,
+    `<span class="opacity-30 text-stone-500">$1</span><span class="text-stone-900 dark:text-stone-100">$2</span><span class="opacity-30 text-stone-500">$3</span>`,
   );
 
   // 9. Links
@@ -114,7 +114,7 @@ const highlightMarkdownMonochrome = (
   );
   escaped = escaped.replace(
     /(^|[^\(])(https?:\/\/[^\s<]+)/g,
-    `$1<span class="text-sky-700 dark:text-sky-400 underline font-mono">$2</span>`,
+    `$1<span class="text-sky-700 dark:text-sky-400 underline">$2</span>`,
   );
 
   return escaped;
