@@ -22,7 +22,7 @@ export default function LiteEditor() {
   return (
     <div className="min-h-screen bg-white dark:bg-neutral-900 text-zinc-800 dark:text-zinc-200 transition-colors">
       <main className="max-w-3xl mx-auto pt-24 pb-32 px-6">
-        <div className="fixed top-6 left-6 z-30">
+        <div className="fixed top-6 left-6 z-30 px-3 py-1 rounded-full border border-zinc-100 dark:border-zinc-700 bg-white/50 dark:bg-zinc-700/50 backdrop-blur-sm shadow-sm">
           <Button
             variant="bare"
             onClick={() => router.push("/dashboard/editor")}
@@ -42,9 +42,9 @@ export default function LiteEditor() {
         </div>
       </main>
 
-      <footer className="fixed bottom-12 left-0 right-0 flex flex-col items-center gap-3 pointer-events-none select-none">
+      <footer className="fixed top-8 right-8 flex flex-col items-center gap-3 pointer-events-none select-none">
         <div className="px-3 py-1 rounded-full border border-zinc-100 dark:border-zinc-700 bg-white/50 dark:bg-zinc-700/50 backdrop-blur-sm shadow-sm">
-          <div className="text-[9px] font-bold tracking-[0.4em] text-zinc-400 dark:text-zinc-500 uppercase">
+          <div className="text-[9px] font-bold tracking-[0.4em] text-zinc-500 dark:text-zinc-400 uppercase">
             {content.trim() ? content.trim().split(/\s+/).length : 0} Words
           </div>
         </div>
