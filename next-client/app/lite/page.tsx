@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef, useEffect } from "react";
+import React, { useState } from "react";
 import Button from "@/app/components/Button";
 import { useRouter } from "next/navigation";
 import { useAtom } from "jotai";
@@ -15,37 +15,66 @@ export default function LiteEditor() {
   const [content, setContent] = useAtom(atom_liteContent);
   const [fontSize] = useAtom(atom_fontSize);
   const [fontFamily] = useAtom(atom_fontFamily);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const [copied, setCopied] = useState(false);
   const router = useRouter();
-  const handleTextareaReady = () => {};
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(content);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error("Failed to copy!", err);
+    }
+  };
+
+  const wordCount = content.trim() ? content.trim().split(/\s+/).length : 0;
 
   return (
-    <div className="min-h-screen bg-white dark:bg-neutral-900 text-zinc-800 dark:text-zinc-200 transition-colors">
-      <main className="max-w-3xl mx-auto pt-24 pb-32 px-6">
-        <div className="fixed top-6 left-6 z-30 px-3 py-1 rounded-full border border-zinc-100 dark:border-zinc-700 bg-white/50 dark:bg-zinc-700/50 backdrop-blur-sm shadow-sm">
+    <div className="min-h-screen bg-[#fafafa] dark:bg-[#0a0a0a] text-zinc-800 dark:text-zinc-200 transition-colors selection:bg-zinc-900/10 dark:selection:bg-zinc-100/20">
+      {/* Top Navigation */}
+      <header className="fixed top-0 left-0 right-0 z-30 flex justify-between items-center p-6 pointer-events-none">
+        <div className="pointer-events-auto bg-white/70 dark:bg-zinc-900/70 backdrop-blur-md border border-zinc-200/50 dark:border-zinc-800/50 rounded-2xl px-2 py-1 shadow-sm">
           <Button
             variant="bare"
             onClick={() => router.push("/dashboard/editor")}
+            className="text-xs font-medium opacity-60 hover:opacity-100 transition-opacity"
           >
-            ← back_to_editor
+            ← back
           </Button>
         </div>
 
-        <div className="relative w-full">
+        <div className="flex gap-2 pointer-events-auto bg-white/70 dark:bg-zinc-900/70 backdrop-blur-md border border-zinc-200/50 dark:border-zinc-800/50 rounded-2xl px-2 py-1 shadow-sm">
+          <Button
+            variant="bare"
+            onClick={handleCopy}
+            className="text-xs font-medium opacity-60 hover:opacity-100 transition-opacity"
+          >
+            {copied ? "copied!" : "copy_text"}
+          </Button>
+        </div>
+      </header>
+
+      {/* Editor Surface */}
+      <main className="max-w-2xl mx-auto pt-32 pb-40 px-6">
+        <div className="relative w-full animate-in fade-in slide-in-from-bottom-4 duration-700">
           <MarkdownEditor
             value={content}
             onChange={(value) => setContent(value)}
             fontFamily={fontFamily}
             fontSize={fontSize}
-            onTextareaReady={handleTextareaReady}
+            onTextareaReady={() => {}}
           />
         </div>
       </main>
 
-      <footer className="fixed top-8 right-8 flex flex-col items-center gap-3 pointer-events-none select-none">
-        <div className="px-3 py-1 rounded-full border border-zinc-100 dark:border-zinc-700 bg-white/50 dark:bg-zinc-700/50 backdrop-blur-sm shadow-sm">
-          <div className="text-[9px] font-bold tracking-[0.4em] text-zinc-500 dark:text-zinc-400 uppercase">
-            {content.trim() ? content.trim().split(/\s+/).length : 0} Words
+      {/* Subtle Status Bar */}
+      <footer className="fixed bottom-8 left-1/2 -translate-x-1/2 z-30">
+        <div className="px-4 py-1.5 rounded-full border border-zinc-200/50 dark:border-zinc-800/50 bg-white/70 dark:bg-zinc-900/70 backdrop-blur-md shadow-sm">
+          <div className="text-[10px] font-medium tracking-widest text-zinc-400 dark:text-zinc-500 uppercase flex items-center gap-4">
+            <span>{wordCount} words</span>
+            <span className="w-1 h-1 rounded-full bg-zinc-300 dark:bg-zinc-700" />
+            <span>{content.length} characters</span>
           </div>
         </div>
       </footer>
