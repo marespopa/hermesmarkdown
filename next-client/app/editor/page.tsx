@@ -115,6 +115,7 @@ export default function LiteEditor() {
           </p>
           <div className="flex gap-2 justify-center">
             <Button
+              variant="primary"
               onClick={() => {
                 setContent(pendingFile!);
                 setPendingFile(null);
@@ -122,7 +123,7 @@ export default function LiteEditor() {
             >
               Overwrite
             </Button>
-            <Button variant="bare" onClick={() => setPendingFile(null)}>
+            <Button variant="outlined" onClick={() => setPendingFile(null)}>
               Cancel
             </Button>
           </div>
