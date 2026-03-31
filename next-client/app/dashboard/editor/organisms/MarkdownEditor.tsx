@@ -161,20 +161,32 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
 
     if (e.ctrlKey || e.metaKey) {
       const textarea = textareaRef.current;
+
+      // We use a small timeout to ensure the cursor position (selectionStart)
+      // has updated to where the user actually clicked.
       setTimeout(() => {
-        const start = textarea.selectionStart;
+        const pos = textarea.selectionStart;
         const text = textarea.value;
-        const left = text.lastIndexOf(" ", start - 1) + 1;
-        const rightMatch = text.slice(start).match(/[\s)\]]/);
-        const right = rightMatch
-          ? start + (rightMatch.index || 0)
-          : text.length;
-        const segment = text.slice(left, right).trim();
-        const urlMatch = segment.match(/https?:\/\/[^\s)\]]+/);
-        if (urlMatch) window.open(urlMatch[0], "_blank", "noopener,noreferrer");
+
+        // 1. Define the Markdown Link Regex
+        // This looks for [text](url)
+        const linkRegex = /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g;
+        let match;
+
+        // 2. Iterate through all links in the text to see if the click position
+        // falls within the start and end index of any match.
+        while ((match = linkRegex.exec(text)) !== null) {
+          const start = match.index;
+          const end = match.index + match[0].length;
+
+          if (pos >= start && pos <= end) {
+            const url = match[2]; // The URL is the second capture group
+            window.open(url, "_blank", "noopener,noreferrer");
+            break; // Stop searching once we find the clicked link
+          }
+        }
       }, 0);
     } else {
-      // Force focus immediately
       textareaRef.current.focus();
     }
   };
