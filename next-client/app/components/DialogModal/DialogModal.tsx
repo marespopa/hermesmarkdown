@@ -1,8 +1,6 @@
 "use client";
 
 import React, { useEffect, useRef } from "react";
-import { FaWindowClose } from "react-icons/fa";
-import Button from "../Button/Button.component";
 
 type Props = {
   isOpened: boolean;
@@ -13,38 +11,55 @@ type Props = {
 
 const DialogModal = ({ isOpened, onClose, children, styles = "" }: Props) => {
   const ref = useRef<HTMLDialogElement>(null);
+  const previousFocus = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
     if (isOpened) {
+      // Capture the element that had focus before opening
+      previousFocus.current = document.activeElement as HTMLElement;
       ref.current?.showModal();
-      document.body.classList.add("modal-open"); // prevent bg scroll
+      document.body.style.overflow = "hidden";
     } else {
       ref.current?.close();
-      document.body.classList.remove("modal-open");
+      document.body.style.overflow = "unset";
+      // Manually return focus to the previous element (like a button or link)
+      previousFocus.current?.focus();
     }
   }, [isOpened]);
 
+  // Handle the native HTML5 dialog "cancel" (ESC key)
+  const handleCancel = (e: React.SyntheticEvent) => {
+    e.preventDefault();
+    onClose();
+  };
+
+  if (!isOpened) return null;
+
   return (
     <div
-      className={`${
-        isOpened ? "visible" : "hidden"
-      } fixed top-0 left-0 w-full h-full z-50 overflow-y-auto bg-white/90 dark:bg-neutral-800/95 flex items-center justify-center`}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-white/80 dark:bg-neutral-900/90 backdrop-blur-sm"
+      onClick={(e) => e.target === e.currentTarget && onClose()}
     >
       <dialog
         ref={ref}
-        className={`my-auto sm:h-[90vh] sm:w-[1000px] p-8 text-base bg-white border-none rounded-xl shadow-lg dark:bg-neutral-800 dark:text-white ${styles}`}
-        onCancel={onClose}
+        onCancel={handleCancel}
+        className={`
+          relative m-0 p-0 w-[calc(100%-2rem)] max-w-sm
+          bg-[#fcfcfc] dark:bg-[#1a1a1a] 
+          border border-neutral-200 dark:border-neutral-800
+          rounded-xl shadow-xl outline-none
+          animate-in fade-in zoom-in-95 duration-150
+          ${styles}
+        `}
       >
-        <div className="relative p-4 h-full">
-          <Button
-            variant="icon"
-            onClick={onClose}
-            aria-label="Close modal"
-            title="Close modal"
-            className="absolute top-4 right-4 z-50"
-          >
-            <FaWindowClose className="w-6 h-6" />
-          </Button>
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 text-[10px] font-mono tracking-widest opacity-40 hover:opacity-100 dark:text-white"
+        >
+          ESC
+        </button>
+
+        <div className="p-8 text-neutral-900 dark:text-neutral-100">
           {children}
         </div>
       </dialog>

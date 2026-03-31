@@ -1,12 +1,11 @@
-import { MetadataRoute } from 'next'
+import { MetadataRoute } from "next";
 
 export default function robots(): MetadataRoute.Robots {
   return {
     rules: {
-      userAgent: '*',
-      allow: '/',
-      disallow: ['/dashboard/editor/', '/api/'],
+      userAgent: "*",
+      allow: "/",
     },
-    sitemap: 'https://hermesmarkdown.com/sitemap.xml',
-  }
+    sitemap: "https://hermesmarkdown.com/sitemap.xml",
+  };
 }
