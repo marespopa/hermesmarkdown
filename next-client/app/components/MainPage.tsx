@@ -16,17 +16,12 @@ type Props = {
 
 const MainPage = ({ children }: Props) => {
   const pathname = usePathname();
-  const showHeader = ![
-    "/dashboard",
-    "/dashboard/settings",
-    "/dashboard/editor",
-    "/lite",
-  ].some((route) => pathname === route);
-  const showFooter = ![
-    "/dashboard/editor",
-    "/dashboard/settings",
-    "/lite",
-  ].some((route) => pathname === route);
+  const showHeader = !["/editor/settings", "/editor"].some(
+    (route) => pathname === route,
+  );
+  const showFooter = !["/editor", "/editor/settings"].some(
+    (route) => pathname === route,
+  );
 
   return (
     <CustomProviders>
@@ -39,7 +34,7 @@ const MainPage = ({ children }: Props) => {
           }}
         />
         <div
-          className={`min-h-screen h-full flex flex-col bg-white dark:bg-neutral-900 text-black dark:text-white flex-1 ${showHeader ? "pt-4" : ""}`}
+          className={`min-h-screen h-full flex flex-col bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white flex-1 ${showHeader ? "pt-4" : ""}`}
         >
           {showHeader && <Header />}
           <div className="flex-1 h-full flex flex-col">{children}</div>

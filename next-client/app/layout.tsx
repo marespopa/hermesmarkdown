@@ -5,7 +5,8 @@ import { Metadata, Viewport } from "next";
 export const metadata: Metadata = {
   metadataBase: new URL("https://hermesmarkdown.com"),
   title: "Hermes — Free AI Prompt Editor | Local-First Markdown",
-  description: "Hermes is a free, local-first AI prompt editor. Draft, refine, and organise prompts with 30+ slash command templates, custom snippets, token estimates, and clarity scores — no sign-up, no cloud, works offline.",
+  description:
+    "Hermes is a free, local-first AI prompt editor. Draft, refine, and organise prompts with 30+ slash command templates, custom snippets, token estimates, and clarity scores — no sign-up, no cloud, works offline.",
   applicationName: "Hermes Markdown",
   authors: [{ name: "Mares Popa", url: "https://www.marespopa.com/" }],
   keywords: [
@@ -24,16 +25,25 @@ export const metadata: Metadata = {
   alternates: { canonical: "https://hermesmarkdown.com" },
   openGraph: {
     title: "Hermes — Free AI Prompt Editor | Local-First Markdown",
-    description: "Draft better AI prompts with 30+ built-in slash command templates, custom snippets, and real-time token estimates. Free, offline, no sign-up.",
+    description:
+      "Draft better AI prompts with 30+ built-in slash command templates, custom snippets, and real-time token estimates. Free, offline, no sign-up.",
     url: "https://hermesmarkdown.com/",
     siteName: "Hermes Markdown",
     type: "website",
-    images: [{ url: "/assets/hero/niceday@2x.jpg", width: 1200, height: 630, alt: "Hermes AI Prompt Editor interface" }],
+    images: [
+      {
+        url: "/assets/hero/niceday@2x.jpg",
+        width: 1200,
+        height: 630,
+        alt: "Hermes AI Prompt Editor interface",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "Hermes — Free AI Prompt Editor | Local-First Markdown",
-    description: "Draft better AI prompts with 30+ slash command templates and custom snippets. Free, offline, no sign-up.",
+    description:
+      "Draft better AI prompts with 30+ slash command templates and custom snippets. Free, offline, no sign-up.",
     images: ["/assets/hero/niceday@2x.jpg"],
   },
 };
@@ -52,8 +62,8 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body 
-        className="h-full min-h-screen bg-white dark:bg-neutral-900 transition-colors duration-300"
+      <body
+        className="h-full min-h-screen bg-[#fcfcfc] dark:bg-[#1a1a1a] text-neutral-900 dark:text-neutral-100 transition-colors duration-300"
         suppressHydrationWarning
       >
         <MainPage>{children}</MainPage>

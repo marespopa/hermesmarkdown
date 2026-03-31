@@ -21,9 +21,6 @@ export default function NavigationLinks({}: Props) {
           <NavigationLink label="Documentation" href="/documentation" />
         </li>
         <li>
-          <NavigationLink label="FAQ" href="/faq" />
-        </li>
-        <li>
           <NavigationLink label="Contact" href="/contact" />
         </li>
         <li>
@@ -34,7 +31,11 @@ export default function NavigationLinks({}: Props) {
             title={theme === "light" ? "Dark" : "Light"}
             data-testid="theme-toggle"
           >
-            {theme === "light" ? <FaMoon className="w-5 h-5" /> : <FaSun className="w-5 h-5" />}
+            {theme === "light" ? (
+              <FaMoon className="w-5 h-5" />
+            ) : (
+              <FaSun className="w-5 h-5" />
+            )}
           </Button>
         </li>
       </ul>
