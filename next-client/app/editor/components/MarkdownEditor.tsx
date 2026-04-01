@@ -20,7 +20,6 @@ const highlightMarkdownMonochrome = (code: string, searchTerm?: string) => {
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;");
 
-  // Search Highlighting
   if (searchTerm?.trim()) {
     try {
       const safeSearch = searchTerm.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -33,30 +32,51 @@ const highlightMarkdownMonochrome = (code: string, searchTerm?: string) => {
   }
 
   const sym =
-    'class="opacity-25 dark:opacity-20 font-normal transition-opacity hover:opacity-100"';
+    'class="opacity-25 dark:opacity-20 transition-opacity hover:opacity-100"';
 
-  // HTML Tags (e.g., <div>, <p>)
-  escaped = escaped.replace(
-    /(&lt;\/?[a-z0-9]+.*?&gt;)/gi,
-    `<span class="text-blue-500 dark:text-blue-400 font-medium">$1</span>`,
-  );
-
-  // Fenced Code Blocks
+  // 1. Fenced Code Blocks
   escaped = escaped.replace(
     /(```[a-z]*[\n\r]?)([\s\S]*?)(```)/g,
     (_, open, content, close) =>
-      `<span class="block bg-zinc-50/50 dark:bg-zinc-800/30 rounded-md"><span ${sym}>${open}</span><span class="text-zinc-800 dark:text-zinc-200">${content}</span><span ${sym}>${close}</span></span>`,
+      `<span class="bg-zinc-50/50 dark:bg-zinc-800/30 rounded-md"><span ${sym}>${open}</span><span class="text-zinc-800 dark:text-zinc-200">${content}</span><span ${sym}>${close}</span></span>`,
   );
 
-  // Lists, Headings, Bold, Italics (Standard logic)
+  // 2. Headings (Run before blockquotes, avoid capturing newlines)
   escaped = escaped.replace(
-    /^(\s*([\d+\.\-\*]+|\[[ xX]\])\s+)(.*)$/gm,
-    `<span ${sym}>$1</span><span class="text-zinc-900 dark:text-zinc-100">$3</span>`,
-  );
-  escaped = escaped.replace(
-    /^(#{1,6})(\s.+)$/gm,
+    /^(#{1,6})(\s[^\n\r]*)$/gm,
     `<span ${sym}>$1</span><span class="font-semibold text-zinc-900 dark:text-zinc-50">$2</span>`,
   );
+
+  // 3. Horizontal Rule (Prevent breakages between blocks)
+  escaped = escaped.replace(
+    /^(\s*---+\s*)$/gm,
+    `<span class="opacity-30 text-zinc-400">$1</span>`,
+  );
+
+  // 4. Blockquotes (Ensure [^\n\r]* to avoid height drift)
+  escaped = escaped.replace(
+    /^((?:&gt;\s*)+)([^\n\r]*)$/gm,
+    `<span class="bg-zinc-100/40 dark:bg-zinc-800/40 text-zinc-500 dark:text-zinc-400"><span ${sym}>$1</span>$2</span>`,
+  );
+
+  // 5. Lists
+  escaped = escaped.replace(
+    /^(\s*([\d+\.\-\*]+|\[[ xX]\])\s+)([^\n\r]*)$/gm,
+    `<span ${sym}>$1</span><span class="text-zinc-900 dark:text-zinc-100">$3</span>`,
+  );
+
+  // 6. Links
+  escaped = escaped.replace(
+    /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g,
+    `<span class="text-blue-600 dark:text-blue-400 underline-offset-4">[$1]</span><span ${sym}>($2)</span>`,
+  );
+
+  escaped = escaped.replace(
+    /(?<!\()https?:\/\/[^\s<]+(?![^<]*>|[^<>]*<\/a>)/g,
+    `<span class="text-blue-600 dark:text-blue-400 underline-offset-4">$&</span>`,
+  );
+
+  // 7. Bold & Italics
   escaped = escaped.replace(
     /(\*\*|__)(.*?)\1/g,
     `<span ${sym}>$1</span><strong class="font-semibold text-zinc-900 dark:text-zinc-50">$2</strong><span ${sym}>$1</span>`,
@@ -64,24 +84,6 @@ const highlightMarkdownMonochrome = (code: string, searchTerm?: string) => {
   escaped = escaped.replace(
     /(\*|_)(.*?)\1/g,
     `<span ${sym}>$1</span><em class="italic text-zinc-800 dark:text-zinc-200">$2</em><span ${sym}>$1</span>`,
-  );
-
-  // Blockquotes
-  escaped = escaped.replace(
-    /^((?:&gt;\s*)+)(.*)$/gm,
-    `<span class="bg-zinc-100/40 dark:bg-zinc-800/40 text-zinc-500 dark:text-zinc-400"><span ${sym}>$1</span>$2</span>`,
-  );
-
-  // Links: Both [Markdown](url) and raw https:// links
-  // 1. Markdown Links
-  escaped = escaped.replace(
-    /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g,
-    `<span class="text-blue-600 dark:text-blue-400 underline-offset-4 cursor-pointer hover:underline">[$1]</span><span ${sym}>($2)</span>`,
-  );
-  // 2. Raw URLs (that aren't inside the markdown link already)
-  escaped = escaped.replace(
-    /(?<!\()https?:\/\/[^\s<]+(?![^<]*>|[^<>]*<\/a>)/g,
-    `<span class="text-blue-600 dark:text-blue-400 underline-offset-4 cursor-pointer hover:underline">$&</span>`,
   );
 
   return escaped;
@@ -93,7 +95,6 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
   placeholder = "Begin writing...",
   searchTerm,
   onTextareaReady,
-  setMatchCount,
 }) => {
   const wrapperRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
@@ -101,6 +102,7 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
   const [fontSize] = useAtom(atom_fontSize);
   const [isTyping, setIsTyping] = useState(false);
   const [isCtrlPressed, setIsCtrlPressed] = useState(false);
+  const [isOverLink, setIsOverLink] = useState(false);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const highlight = useCallback(
@@ -108,7 +110,6 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
     [searchTerm],
   );
 
-  // Global Key Listeners for Hover Effect
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) =>
       (e.ctrlKey || e.metaKey) && setIsCtrlPressed(true);
@@ -130,20 +131,29 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
   }, [onTextareaReady]);
 
   const findLinkAtPos = (text: string, pos: number) => {
-    // Check Markdown [text](url)
     const mdRegex = /\[[^\]]+\]\((https?:\/\/[^\s)]+)\)/g;
     let match;
     while ((match = mdRegex.exec(text)) !== null) {
       if (pos >= match.index && pos <= match.index + match[0].length)
         return match[1];
     }
-    // Check Raw https://
     const rawRegex = /https?:\/\/[^\s)]+/g;
     while ((match = rawRegex.exec(text)) !== null) {
       if (pos >= match.index && pos <= match.index + match[0].length)
         return match[0];
     }
     return null;
+  };
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLTextAreaElement>) => {
+    if (!e.ctrlKey && !e.metaKey) {
+      if (isOverLink) setIsOverLink(false);
+      return;
+    }
+    // selectionStart is a good proxy for character index under mouse in this editor
+    const pos = e.currentTarget.selectionStart;
+    const url = findLinkAtPos(value, pos);
+    setIsOverLink(!!url);
   };
 
   const handleTextareaClick = (e: React.MouseEvent<HTMLTextAreaElement>) => {
@@ -176,8 +186,7 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
           [&_textarea]:!text-transparent
           [&_textarea]:!caret-blue-500 dark:[&_textarea]:!caret-blue-400
           [&_textarea]:!z-10 [&_pre]:!z-0
-          /* Change cursor to pointer ONLY when CTRL is held down */
-          ${isCtrlPressed ? "[&_textarea]:!cursor-pointer" : "[&_textarea]:!cursor-text"}
+          ${isCtrlPressed && isOverLink ? "[&_textarea]:!cursor-pointer" : "[&_textarea]:!cursor-text"}
           antialiased
         `}
         style={{ fontFamily, fontSize }}
@@ -194,6 +203,7 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
           textareaId="markdown-editor"
           className="w-full h-full"
           padding={0}
+          onMouseMove={handleMouseMove}
           onClick={handleTextareaClick}
         />
       </div>
