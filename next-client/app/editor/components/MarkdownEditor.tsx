@@ -38,7 +38,7 @@ const highlightMarkdownMonochrome = (code: string, searchTerm?: string) => {
   escaped = escaped.replace(
     /(```[a-z]*[\n\r]?)([\s\S]*?)(```)/g,
     (_, open, content, close) =>
-      `<span class="bg-zinc-50/50 dark:bg-zinc-800/30 rounded-md"><span ${sym}>${open}</span><span class="text-zinc-800 dark:text-zinc-200">${content}</span><span ${sym}>${close}</span></span>`,
+      `<span class="bg-zinc-100 dark:bg-zinc-700 rounded-md"><span ${sym}>${open}</span><span class="text-zinc-800 dark:text-zinc-200">${content}</span><span ${sym}>${close}</span></span>`,
   );
 
   // 2. Headings (Run before blockquotes, avoid capturing newlines)
@@ -56,7 +56,7 @@ const highlightMarkdownMonochrome = (code: string, searchTerm?: string) => {
   // 4. Blockquotes (Ensure [^\n\r]* to avoid height drift)
   escaped = escaped.replace(
     /^((?:&gt;\s*)+)([^\n\r]*)$/gm,
-    `<span class="bg-zinc-100/40 dark:bg-zinc-800/40 text-zinc-500 dark:text-zinc-400"><span ${sym}>$1</span>$2</span>`,
+    `<span class="bg-zinc-100 dark:bg-zinc-700 text-zinc-500 dark:text-zinc-400"><span ${sym}>$1</span>$2</span>`,
   );
 
   // 5. Lists
