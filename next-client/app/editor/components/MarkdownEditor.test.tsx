@@ -178,6 +178,34 @@ describe("MarkdownEditor Component", () => {
     });
   });
 
+  it("cycles workflow tags from #todo -> #in-progress -> #done on click", () => {
+    // 1. Initial Render with #todo
+    const { rerender } = renderEditor({ value: "Lift weights #todo" });
+    const textarea = screen.getByRole("textbox") as HTMLTextAreaElement;
+
+    // 2. Click to trigger todo -> in-progress
+    textarea.selectionStart = 14;
+    fireEvent.click(textarea);
+
+    expect(mockOnChange).toHaveBeenLastCalledWith("Lift weights #in-progress");
+
+    // 3. IMPORTANT: Update the component with the NEW value to simulate state change
+    rerender(
+      <Provider>
+        <MarkdownEditor
+          value="Lift weights #in-progress"
+          onChange={mockOnChange}
+        />
+      </Provider>,
+    );
+
+    // 4. Click again to trigger in-progress -> done
+    textarea.selectionStart = 14;
+    fireEvent.click(textarea);
+
+    expect(mockOnChange).toHaveBeenLastCalledWith("Lift weights #done");
+  });
+
   it("handles workflow tags case-insensitively", () => {
     const { container } = renderEditor({ value: "#TODO" });
     const todoTag = Array.from(container.querySelectorAll("span")).find(

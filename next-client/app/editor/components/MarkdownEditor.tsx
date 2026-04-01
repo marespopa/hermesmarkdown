@@ -75,7 +75,6 @@ function highlightMarkdownMonochrome(
   const tagRegex = new RegExp(`^#(${workflowTags.join("|")})$`, "gim");
 
   escaped = escaped.replace(tagRegex, (match, tagName) => {
-    // Map colors to specific tags for better UX
     const colors: Record<string, string> = {
       done: "text-green-600 dark:text-green-400",
       todo: "text-blue-600 dark:text-blue-400",
@@ -85,8 +84,8 @@ function highlightMarkdownMonochrome(
 
     const colorClass = colors[tagName.toLowerCase()] || "text-zinc-500";
 
-    // Using border-bottom instead of padding to avoid cursor offset issues
-    return `<span class="${colorClass} font-mono font-bold">${match}</span>`;
+    // ADD: 'status-tag' class and 'data-tag' for the click handler
+    return `<span class="${colorClass} font-mono font-bold status-tag cursor-pointer" data-tag="${tagName.toLowerCase()}">${match}</span>`;
   });
 
   // Horizontal Rule
@@ -241,6 +240,13 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
     typingTimeoutRef.current = setTimeout(() => setIsTyping(false), 1500);
   };
 
+  // Define the cycle order
+  const TAG_CYCLE: Record<string, string> = {
+    todo: "in-progress",
+    "in-progress": "done",
+    done: "todo",
+  };
+
   const handleEditorClick = (e: React.MouseEvent<HTMLTextAreaElement>) => {
     const textarea = e.currentTarget;
     const pos = textarea.selectionStart;
@@ -290,6 +296,38 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
           textarea.setSelectionRange(pos, pos);
           textarea.focus();
         });
+      }
+    }
+
+    // Check if there is a tag on this line
+    const workflowTags = ["todo", "in-progress", "done"];
+    const lineTagMatch = currentLine.match(/#(todo|in-progress|done)\b/i);
+
+    if (lineTagMatch) {
+      const tagName = lineTagMatch[1].toLowerCase();
+      const tagMatchIndex = lineStartIndex + lineTagMatch.index!;
+      const tagFullMatch = lineTagMatch[0]; // e.g., "#todo"
+
+      // Check if the click was actually ON the tag
+      if (pos >= tagMatchIndex && pos <= tagMatchIndex + tagFullMatch.length) {
+        e.preventDefault();
+
+        const nextTag = TAG_CYCLE[tagName];
+        if (nextTag) {
+          const newValue =
+            value.substring(0, tagMatchIndex) +
+            `#${nextTag}` +
+            value.substring(tagMatchIndex + tagFullMatch.length);
+
+          onChange(newValue);
+
+          // Adjust cursor if the tag length changed (e.g., 'done' to 'todo')
+          const lengthDiff = nextTag.length - tagName.length;
+          requestAnimationFrame(() => {
+            textarea.setSelectionRange(pos + lengthDiff, pos + lengthDiff);
+            textarea.focus();
+          });
+        }
       }
     }
   };
