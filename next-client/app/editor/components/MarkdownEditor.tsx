@@ -49,7 +49,7 @@ const highlightMarkdownMonochrome = (
     (_, tickOpen, lang, newline, content, tickClose) => {
       return (
         `<span class="bg-zinc-100 dark:bg-zinc-700 rounded-md" 
-         style="display: inline; white-space: ${wrapStyle}; pointer-events: none; -webkit-box-decoration-break: clone; box-decoration-break: clone; padding: 2px 0;">` +
+         style="display: inline; white-space: ${wrapStyle}; pointer-events: none; -webkit-box-decoration-break: clone; box-decoration-break: clone; padding: 2px 0; margin: 0;">` +
         `<span ${sym}>${tickOpen}</span>` +
         `<span class="text-blue-500">${lang}</span>${newline}` +
         `<span class="text-zinc-800 dark:text-zinc-200">${content}</span>` +
@@ -58,8 +58,6 @@ const highlightMarkdownMonochrome = (
       );
     },
   );
-
-  // ... [Highlighting logic for 2-8 remains unchanged] ...
 
   // 2. Headings
   escaped = escaped.replace(
@@ -146,7 +144,15 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
     [searchTerm, wordWrap],
   );
 
-  // Sync horizontal scrolling when wrap is OFF
+  useEffect(() => {
+    const textarea = wrapperRef.current?.querySelector("textarea");
+    if (textarea) {
+      textareaRef.current = textarea as HTMLTextAreaElement;
+      if (onTextareaReady) onTextareaReady(textareaRef.current);
+    }
+  }, [onTextareaReady]);
+
+  // Sync horizontal scrolling when wordWrap is disabled
   useEffect(() => {
     const textarea = textareaRef.current;
     const pre = wrapperRef.current?.querySelector("pre");
@@ -160,15 +166,6 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
     return () => textarea.removeEventListener("scroll", syncScroll);
   }, [wordWrap, value]);
 
-  useEffect(() => {
-    const textarea = wrapperRef.current?.querySelector("textarea");
-    if (textarea) {
-      textareaRef.current = textarea as HTMLTextAreaElement;
-      if (onTextareaReady) onTextareaReady(textareaRef.current);
-    }
-  }, [onTextareaReady]);
-
-  // Key handlers...
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) =>
       (e.ctrlKey || e.metaKey) && setIsCtrlPressed(true);
@@ -203,21 +200,18 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
     typingTimeoutRef.current = setTimeout(() => setIsTyping(false), 1500);
   };
 
-  // UPDATED: Logic for internal scrolling window
   const wrapClasses = wordWrap
-    ? "[&_textarea]:!white-space-pre-wrap [&_pre]:!white-space-pre-wrap [&_textarea]:!break-all [&_pre]:!break-all [&_textarea]:!overflow-x-hidden"
+    ? "[&_textarea]:!white-space-pre-wrap [&_pre]:!white-space-pre-wrap [&_textarea]:!break-words [&_pre]:!break-words [&_textarea]:!overflow-wrap-anywhere [&_pre]:!overflow-wrap-anywhere [&_textarea]:!overflow-x-hidden"
     : "[&_textarea]:!white-space-pre [&_pre]:!white-space-pre [&_textarea]:!overflow-x-auto [&_pre]:!overflow-x-hidden [&_textarea]:!w-max [&_pre]:!w-max [&_textarea]:!min-w-full [&_pre]:!min-w-full";
 
   return (
     <div
       ref={wrapperRef}
-      /* This div acts as the scroll-container for no-wrap mode */
       className={`relative w-full min-h-screen transition-all duration-700 ${isTyping ? "opacity-80" : "opacity-100"} p-2 ${!wordWrap ? "overflow-x-auto" : "overflow-x-hidden"}`}
     >
       <div
         className={`
           editor-container relative h-full selection:bg-blue-500/15
-          /* If no-wrap, container becomes as wide as the longest line */
           ${!wordWrap ? "w-max min-w-full" : "w-full"}
           [&_textarea]:!outline-none [&_textarea]:!border-none
           [&_textarea]:!bg-transparent [&_textarea]:!p-0
@@ -244,7 +238,7 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
           textareaId="markdown-editor"
           className="w-full h-full"
           padding={0}
-          onMouseMove={(e) => {
+          onMouseMove={(e: React.MouseEvent<HTMLTextAreaElement>) => {
             if (!e.ctrlKey && !e.metaKey) {
               if (isOverLink) setIsOverLink(false);
               return;
@@ -253,7 +247,7 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
             const url = findLinkAtPos(value, pos);
             setIsOverLink(!!url);
           }}
-          onClick={(e) => {
+          onClick={(e: React.MouseEvent<HTMLTextAreaElement>) => {
             const pos = e.currentTarget.selectionStart;
             if (e.ctrlKey || e.metaKey) {
               const url = findLinkAtPos(value, pos);
