@@ -289,7 +289,7 @@ export default function LiteEditor() {
         </div>
       </header>
 
-      <main className="max-w-screen-md mx-auto pt-16 pb-40 px-6">
+      <main className="max-w-screen-md mx-auto pt-16 sm:pt-20 pb-40 px-6">
         {isMounting ? (
           <div className="animate-pulse opacity-10 space-y-4">
             <div className="h-4 bg-current w-1/4 mb-10" />
@@ -314,13 +314,26 @@ export default function LiteEditor() {
         )}
       </main>
 
-      <footer className="fixed bottom-0 left-0 right-0 z-40 h-12 group">
-        <div className="absolute inset-0 bg-white/80 dark:bg-neutral-900/80 backdrop-blur-md border-t border-neutral-200 dark:border-neutral-800 flex items-center px-8 opacity-0 translate-y-full group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 justify-between">
-          <div className="text-[10px] font-mono tracking-[0.2em] opacity-40 uppercase">
-            {wordCount} Words &nbsp;&middot;&nbsp; {content.length} Chars
-          </div>
-          <div className="text-[10px] font-mono tracking-[0.2em] opacity-40 uppercase truncate max-w-[200px]">
-            {fileName || "untitled"}.md
+      <footer className="fixed bottom-0 left-0 right-0 z-40 pointer-events-none group pb-6 md:pb-10">
+        <div className="flex justify-center md:justify-end md:px-12 transition-all duration-500 opacity-100 md:opacity-0 md:group-hover:opacity-100 translate-y-0 md:translate-y-4 md:group-hover:translate-y-0">
+          <div className="pointer-events-auto flex items-center gap-6 bg-white/90 dark:bg-neutral-900/90 backdrop-blur-md border border-neutral-200 dark:border-neutral-800 rounded-full px-6 py-2.5 shadow-lg shadow-neutral-200/20 dark:shadow-black/20">
+            {/* Word/Char Count */}
+            <div className="text-[9px] md:text-[10px] font-mono tracking-[0.2em] opacity-50 uppercase whitespace-nowrap">
+              <span className="text-blue-500 font-bold">{wordCount}</span> Words
+              <span className="mx-2 opacity-20">&middot;</span>
+              <span className="text-blue-500 font-bold">
+                {content.length}
+              </span>{" "}
+              Chars
+            </div>
+
+            {/* File Name Divider */}
+            <div className="w-[1px] h-3 bg-neutral-200 dark:bg-neutral-800 hidden sm:block" />
+
+            {/* File Name */}
+            <div className="text-[9px] md:text-[10px] font-mono tracking-[0.2em] opacity-50 uppercase truncate max-w-[120px] md:max-w-[200px] hidden sm:block">
+              {fileName || "untitled"}.md
+            </div>
           </div>
         </div>
       </footer>

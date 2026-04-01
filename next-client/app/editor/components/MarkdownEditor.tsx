@@ -35,11 +35,17 @@ const highlightMarkdownMonochrome = (code: string, searchTerm?: string) => {
   const sym =
     'class="opacity-25 dark:opacity-20 font-normal transition-opacity hover:opacity-100"';
 
+  // HTML Tags (e.g., <div>, <p>)
+  escaped = escaped.replace(
+    /(&lt;\/?[a-z0-9]+.*?&gt;)/gi,
+    `<span class="text-blue-500 dark:text-blue-400 font-medium">$1</span>`,
+  );
+
   // Fenced Code Blocks
   escaped = escaped.replace(
     /(```[a-z]*[\n\r]?)([\s\S]*?)(```)/g,
     (_, open, content, close) =>
-      `<span class="block bg-zinc-50/50 dark:bg-zinc-800/30 rounded-md my-2"><span ${sym}>${open}</span><span class="text-zinc-800 dark:text-zinc-200">${content}</span><span ${sym}>${close}</span></span>`,
+      `<span class="block bg-zinc-50/50 dark:bg-zinc-800/30 rounded-md"><span ${sym}>${open}</span><span class="text-zinc-800 dark:text-zinc-200">${content}</span><span ${sym}>${close}</span></span>`,
   );
 
   // Lists, Headings, Bold, Italics (Standard logic)
@@ -58,6 +64,12 @@ const highlightMarkdownMonochrome = (code: string, searchTerm?: string) => {
   escaped = escaped.replace(
     /(\*|_)(.*?)\1/g,
     `<span ${sym}>$1</span><em class="italic text-zinc-800 dark:text-zinc-200">$2</em><span ${sym}>$1</span>`,
+  );
+
+  // Blockquotes
+  escaped = escaped.replace(
+    /^((?:&gt;\s*)+)(.*)$/gm,
+    `<span class="bg-zinc-100/40 dark:bg-zinc-800/40 text-zinc-500 dark:text-zinc-400"><span ${sym}>$1</span>$2</span>`,
   );
 
   // Links: Both [Markdown](url) and raw https:// links
