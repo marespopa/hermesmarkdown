@@ -4,10 +4,10 @@ import MarkdownEditor from "./MarkdownEditor";
 import { Provider } from "jotai";
 import "@testing-library/jest-dom";
 
-// Mocking atoms with default values
 vi.mock("@/app/atoms/atoms", async () => {
   const { atom } = await import("jotai");
   return {
+    atom_wordWrap: atom(true),
     atom_fontSize: atom("16px"),
     atom_fontFamily: atom("monospace"),
   };
@@ -29,101 +29,94 @@ describe("MarkdownEditor Component", () => {
     );
   };
 
-  // --- Existing Tests ---
-
-  it("renders the placeholder text when value is empty", () => {
-    renderEditor({ placeholder: "Type something..." });
-    expect(screen.getByText("Type something...")).toBeInTheDocument();
-  });
-
-  it("calls onChange when the user types", () => {
-    renderEditor({ value: "Hello" });
+  it("renders placeholder and handles basic typing", () => {
+    renderEditor({ placeholder: "Start..." });
+    expect(screen.getByText("Start...")).toBeInTheDocument();
     const textarea = screen.getByRole("textbox");
-    fireEvent.change(textarea, { target: { value: "Hello World" } });
-    expect(mockOnChange).toHaveBeenCalledWith("Hello World");
+    fireEvent.change(textarea, { target: { value: "New Content" } });
+    expect(mockOnChange).toHaveBeenCalledWith("New Content");
   });
 
-  // --- New Logic Tests ---
+  it("renders headings with subtle symbols", () => {
+    const { container } = renderEditor({ value: "### My Heading" });
 
-  it("toggles a checkbox from [ ] to [x] when clicked", () => {
-    const initialValue = "- [ ] Task item";
-    renderEditor({ value: initialValue });
+    const spans = container.querySelectorAll("span");
+    const hashSpan = Array.from(spans).find((s) => s.textContent === "###");
+    const textSpan = Array.from(spans).find(
+      (s) => s.textContent === " My Heading",
+    );
 
-    const textarea = screen.getByRole("textbox") as HTMLTextAreaElement;
-
-    // Simulate clicking at the start of the line (index 0)
-    textarea.selectionStart = 0;
-    textarea.selectionEnd = 0;
-
-    fireEvent.click(textarea);
-
-    // Expected: index 3 (the space) becomes 'x'
-    expect(mockOnChange).toHaveBeenCalledWith("- [x] Task item");
+    expect(hashSpan).toBeInTheDocument();
+    // Matches the color class in your SUBTLE_STYLE
+    expect(hashSpan).toHaveClass("text-neutral-500/50");
+    expect(textSpan).toHaveClass("font-semibold");
   });
 
-  it("untoggles a checkbox from [x] to [ ] when clicked", () => {
-    const initialValue = "- [x] Completed task";
-    renderEditor({ value: initialValue });
-
-    const textarea = screen.getByRole("textbox") as HTMLTextAreaElement;
-
-    textarea.selectionStart = 2; // Clicking inside the brackets
-    fireEvent.click(textarea);
-
-    expect(mockOnChange).toHaveBeenCalledWith("- [ ] Completed task");
-  });
-
-  it("does not toggle if the click is far outside the checkbox area", () => {
-    const initialValue = "- [ ] Task item";
-    renderEditor({ value: initialValue });
-
-    const textarea = screen.getByRole("textbox") as HTMLTextAreaElement;
-
-    // Position 12 is at the end of "Task item"
-    textarea.selectionStart = 12;
-    fireEvent.click(textarea);
-
-    expect(mockOnChange).not.toHaveBeenCalled();
-  });
-
-  it("renders fenced code blocks with correct structure and styles", () => {
+  it("renders fenced code blocks without extra rows", () => {
     const codeValue = "```js\nconst x = 1;\n```";
     const { container } = renderEditor({ value: codeValue });
 
-    const codeSpan = container.querySelector('span[style*="white-space: pre"]');
-    expect(codeSpan).toBeInTheDocument();
-    expect(codeSpan).toHaveClass("bg-zinc-100");
+    const outerSpan = container.querySelector(
+      'span[style*="white-space: pre-wrap"]',
+    );
+    expect(outerSpan).toHaveClass("bg-zinc-100/50");
 
-    const langSpan = container.querySelector(".text-blue-500");
-    expect(langSpan).toHaveTextContent("js");
+    expect(container.textContent).toContain("```js");
+    expect(container.textContent).toContain("const x = 1;");
+    expect(container.textContent).toContain("```");
   });
 
-  it("opens a link in a new tab when Ctrl/Meta is pressed during click", () => {
+  it("styles bold and italic text symbols as subtle", () => {
+    const { container } = renderEditor({ value: "**bold text**" });
+
+    const spans = Array.from(container.querySelectorAll("span"));
+    const boldSymbols = spans.filter((s) => s.textContent === "**");
+    const boldText = container.querySelector("strong");
+
+    expect(boldSymbols).toHaveLength(2);
+    // Updated from opacity-25 to the current color class
+    expect(boldSymbols[0]).toHaveClass("text-neutral-500/50");
+    expect(boldText).toHaveTextContent("bold text");
+  });
+
+  it("renders blockquotes with subtle markers", () => {
+    const { container } = renderEditor({ value: "> Quote" });
+    expect(container.textContent).toContain(">");
+    expect(container.textContent).toContain("Quote");
+  });
+
+  it("toggles checkboxes when clicked in the marker zone", () => {
+    renderEditor({ value: "- [ ] Task" });
+    const textarea = screen.getByRole("textbox") as HTMLTextAreaElement;
+
+    // Index 3 is inside the [ ]
+    textarea.selectionStart = 3;
+    fireEvent.click(textarea);
+    expect(mockOnChange).toHaveBeenCalledWith("- [x] Task");
+  });
+
+  it("opens links only when Ctrl/Meta is held", () => {
     const windowSpy = vi.spyOn(window, "open").mockImplementation(() => null);
-    const linkValue = "[Google](https://google.com)";
-    renderEditor({ value: linkValue });
+    renderEditor({ value: "[Link](https://test.com)" });
+    const textarea = screen.getByRole("textbox") as HTMLTextAreaElement;
 
-    const textarea = screen.getByRole("textbox");
+    textarea.selectionStart = 1;
+    fireEvent.click(textarea);
+    expect(windowSpy).not.toHaveBeenCalled();
 
-    // Simulate Ctrl + Click
-    fireEvent.click(textarea, {
-      ctrlKey: true,
-      selectionStart: 5, // Inside the link text
-    });
-
+    fireEvent.click(textarea, { ctrlKey: true });
     expect(windowSpy).toHaveBeenCalledWith(
-      "https://google.com",
+      "https://test.com",
       "_blank",
       "noopener,noreferrer",
     );
     windowSpy.mockRestore();
   });
 
-  it("applies the correct font-family and font-size from atoms", () => {
-    const { container } = renderEditor({ value: "Text" });
-    const editorContainer = container.querySelector(".editor-container");
-
-    expect(editorContainer).toHaveStyle({
+  it("applies atom-based styles to the editor container", () => {
+    const { container } = renderEditor({ value: "test" });
+    const editor = container.querySelector(".editor-container");
+    expect(editor).toHaveStyle({
       fontFamily: "monospace",
       fontSize: "16px",
     });

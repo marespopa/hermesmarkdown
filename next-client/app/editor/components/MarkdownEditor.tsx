@@ -18,11 +18,16 @@ interface MarkdownEditorProps {
   setMatchCount?: (count: number) => void;
 }
 
-const highlightMarkdownMonochrome = (
+function highlightMarkdownMonochrome(
   code: string,
   searchTerm?: string,
   wordWrap?: boolean,
-) => {
+) {
+  // Constant for all markdown helpers (symbols, ticks, hashes, etc.)
+  const SUBTLE_STYLE =
+    'class="text-neutral-500/50 dark:text-neutral-400/30 transition-opacity hover:opacity-100"';
+  const wrapStyle = wordWrap ? "pre-wrap" : "pre";
+
   let escaped = code
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
@@ -39,21 +44,15 @@ const highlightMarkdownMonochrome = (
     } catch (e) {}
   }
 
-  const sym =
-    'class="opacity-25 dark:opacity-20 transition-opacity hover:opacity-100"';
-  const wrapStyle = wordWrap ? "pre-wrap" : "pre";
-
-  // 1. Fenced Code Blocks
+  // 1. Fenced Code Blocks - Fixed to prevent extra row in wrap mode
   escaped = escaped.replace(
-    /(```)([a-z]*)([\n\r]?)([\s\S]*?)(```)/g,
+    /(```)([a-z ]*)([\n\r])?([\s\S]*?)(```)/g,
     (_, tickOpen, lang, newline, content, tickClose) => {
       return (
-        `<span class="bg-zinc-100 dark:bg-zinc-700 rounded-md" 
-         style="display: inline; white-space: ${wrapStyle}; pointer-events: none; -webkit-box-decoration-break: clone; box-decoration-break: clone; padding: 2px 0; margin: 0;">` +
-        `<span ${sym}>${tickOpen}</span>` +
-        `<span class="text-blue-500">${lang}</span>${newline}` +
-        `<span class="text-zinc-800 dark:text-zinc-200">${content}</span>` +
-        `<span ${sym}>${tickClose}</span>` +
+        `<span class="bg-zinc-100/50 dark:bg-zinc-800/40" style="display: inline; white-space: ${wrapStyle}; -webkit-box-decoration-break: clone; box-decoration-break: clone;">` +
+        `<span ${SUBTLE_STYLE}>${tickOpen}${lang}${newline || ""}</span>` +
+        `<span class="text-zinc-900 dark:text-zinc-100">${content}</span>` +
+        `<span ${SUBTLE_STYLE}>${tickClose}</span>` +
         `</span>`
       );
     },
@@ -62,7 +61,7 @@ const highlightMarkdownMonochrome = (
   // 2. Headings
   escaped = escaped.replace(
     /^(#{1,6})(\s[^\n\r]*)$/gm,
-    `<span ${sym}>$1</span><span class="font-semibold text-zinc-900 dark:text-zinc-50">$2</span>`,
+    `<span ${SUBTLE_STYLE}>$1</span><span class="font-semibold text-zinc-900 dark:text-zinc-50">$2</span>`,
   );
 
   // 3. Horizontal Rule
@@ -74,7 +73,7 @@ const highlightMarkdownMonochrome = (
   // 4. Blockquotes
   escaped = escaped.replace(
     /^((?:&gt;\s*)+)([^\n\r]*)$/gm,
-    `<span class="bg-zinc-100 dark:bg-zinc-700 text-zinc-500 dark:text-zinc-400"><span ${sym}>$1</span>$2</span>`,
+    `<span class="bg-zinc-100 dark:bg-zinc-700 text-zinc-500 dark:text-zinc-400"><span ${SUBTLE_STYLE}>$1</span>$2</span>`,
   );
 
   // 5. Lists & Checkboxes
@@ -83,20 +82,21 @@ const highlightMarkdownMonochrome = (
     (match, prefix, check, label, offset) => {
       if (check !== undefined) {
         return (
-          `<span ${sym} class="task-wrapper cursor-pointer" data-offset="${offset}">` +
+          `<span ${SUBTLE_STYLE} class="task-wrapper cursor-pointer" data-offset="${offset}">` +
           `${prefix.replace(/\[([ xX])\]/, `<span class="checkbox-box text-blue-500 font-bold">[${check}]</span>`)}` +
           `</span><span class="text-zinc-900 dark:text-zinc-100">${label}</span>`
         );
       }
-      return `<span ${sym}>${prefix}</span><span class="text-zinc-900 dark:text-zinc-100">${label}</span>`;
+      return `<span ${SUBTLE_STYLE}>${prefix}</span><span class="text-zinc-900 dark:text-zinc-100">${label}</span>`;
     },
   );
 
   // 6. Links
   escaped = escaped.replace(
     /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g,
-    `<span class="text-blue-600 dark:text-blue-400 underline-offset-4">[$1]</span><span ${sym}>($2)</span>`,
+    `<span class="text-blue-600 dark:text-blue-400 underline-offset-4">[$1]</span><span ${SUBTLE_STYLE}>($2)</span>`,
   );
+
   escaped = escaped.replace(
     /(?<!\()https?:\/\/[^\s<]+(?![^<]*>|[^<>]*<\/a>)/g,
     `<span class="text-blue-600 dark:text-blue-400 underline-offset-4">$&</span>`,
@@ -105,21 +105,25 @@ const highlightMarkdownMonochrome = (
   // 7. Bold & Italics
   escaped = escaped.replace(
     /(\*\*|__)(.*?)\1/g,
-    `<span ${sym}>$1</span><strong class="font-semibold text-zinc-900 dark:text-zinc-50">$2</strong><span ${sym}>$1</span>`,
+    `<span ${SUBTLE_STYLE}>$1</span><strong class="font-semibold text-zinc-900 dark:text-zinc-50">$2</strong><span ${SUBTLE_STYLE}>$1</span>`,
   );
+
   escaped = escaped.replace(
     /(\*|_)(.*?)\1/g,
-    `<span ${sym}>$1</span><em class="italic text-zinc-800 dark:text-zinc-200">$2</em><span ${sym}>$1</span>`,
+    `<span ${SUBTLE_STYLE}>$1</span><em class="italic text-zinc-800 dark:text-zinc-200">$2</em><span ${SUBTLE_STYLE}>$1</span>`,
   );
 
   // 8. Strikethrough
   escaped = escaped.replace(
     /~~(.*?)~~/g,
-    `<span ${sym}>~~</span><del class="line-through text-zinc-500/70">$1</del><span ${sym}>~~</span>`,
+    `<span ${SUBTLE_STYLE}>~~</span><del class="line-through text-zinc-500/70">$1</del><span ${SUBTLE_STYLE}>~~</span>`,
   );
 
+  // 9. Tables
+  escaped = escaped.replace(/\|/g, `<span ${SUBTLE_STYLE}>|</span>`);
+
   return escaped;
-};
+}
 
 const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
   value,
@@ -200,6 +204,59 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
     typingTimeoutRef.current = setTimeout(() => setIsTyping(false), 1500);
   };
 
+  const handleEditorClick = (e: React.MouseEvent<HTMLTextAreaElement>) => {
+    const textarea = e.currentTarget;
+    const pos = textarea.selectionStart;
+
+    // 1. Handle Link Navigation (Ctrl/Meta + Click)
+    if (e.ctrlKey || e.metaKey) {
+      const url = findLinkAtPos(value, pos);
+      if (url) {
+        window.open(url, "_blank", "noopener,noreferrer");
+        return; // Exit early if we handled a link
+      }
+    }
+
+    // 2. Handle Checkbox Toggling
+    const textBefore = value.substring(0, pos);
+    const lineStartIndex = textBefore.lastIndexOf("\n") + 1;
+    const lineEndIndex = value.indexOf("\n", pos);
+    const currentLine = value.substring(
+      lineStartIndex,
+      lineEndIndex === -1 ? value.length : lineEndIndex,
+    );
+
+    // Matches markdown checkboxes: "- [ ] " or "- [x] "
+    const checkboxMatch = currentLine.match(/^(\s*-\s*\[)([ xX])(\])\s+/);
+
+    if (
+      checkboxMatch &&
+      pos >= lineStartIndex &&
+      pos <= lineStartIndex + checkboxMatch[0].length
+    ) {
+      e.preventDefault();
+
+      const checkCharIndex = lineStartIndex + checkboxMatch[1].length;
+      const isChecked = value[checkCharIndex] !== " ";
+      const nextChar = isChecked ? " " : "x";
+
+      // Create the new string
+      const newValue =
+        value.substring(0, checkCharIndex) +
+        nextChar +
+        value.substring(checkCharIndex + 1);
+
+      // Update state
+      onChange(newValue);
+
+      // FIX: Restore selection and focus to prevent page jumping
+      // We use requestAnimationFrame or setTimeout to wait for the DOM update
+      requestAnimationFrame(() => {
+        textarea.setSelectionRange(pos, pos);
+        textarea.focus();
+      });
+    }
+  };
   const wrapClasses = wordWrap
     ? "[&_textarea]:!white-space-pre-wrap [&_pre]:!white-space-pre-wrap [&_textarea]:!break-words [&_pre]:!break-words [&_textarea]:!overflow-wrap-anywhere [&_pre]:!overflow-wrap-anywhere [&_textarea]:!overflow-x-hidden"
     : "[&_textarea]:!white-space-pre [&_pre]:!white-space-pre [&_textarea]:!overflow-x-auto [&_pre]:!overflow-x-hidden [&_textarea]:!w-max [&_pre]:!w-max [&_textarea]:!min-w-full [&_pre]:!min-w-full";
@@ -247,39 +304,7 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
             const url = findLinkAtPos(value, pos);
             setIsOverLink(!!url);
           }}
-          onClick={(e: React.MouseEvent<HTMLTextAreaElement>) => {
-            const pos = e.currentTarget.selectionStart;
-            if (e.ctrlKey || e.metaKey) {
-              const url = findLinkAtPos(value, pos);
-              if (url) window.open(url, "_blank", "noopener,noreferrer");
-            }
-
-            const textBefore = value.substring(0, pos);
-            const lineStartIndex = textBefore.lastIndexOf("\n") + 1;
-            const lineEndIndex = value.indexOf("\n", pos);
-            const currentLine = value.substring(
-              lineStartIndex,
-              lineEndIndex === -1 ? value.length : lineEndIndex,
-            );
-            const checkboxMatch = currentLine.match(
-              /^(\s*-\s*\[)([ xX])(\])\s+/,
-            );
-
-            if (
-              checkboxMatch &&
-              pos >= lineStartIndex &&
-              pos <= lineStartIndex + checkboxMatch[0].length
-            ) {
-              const checkCharIndex = lineStartIndex + checkboxMatch[1].length;
-              const nextChar = value[checkCharIndex] === " " ? "x" : " ";
-              onChange(
-                value.substring(0, checkCharIndex) +
-                  nextChar +
-                  value.substring(checkCharIndex + 1),
-              );
-              e.preventDefault();
-            }
-          }}
+          onClick={handleEditorClick}
         />
       </div>
     </div>
