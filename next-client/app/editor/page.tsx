@@ -14,7 +14,6 @@ import {
 } from "@/app/atoms/atoms";
 import MarkdownEditor from "./components/MarkdownEditor";
 
-// Icon Imports
 import {
   HiOutlineUpload,
   HiOutlineDownload,
@@ -22,6 +21,7 @@ import {
   HiOutlineCheck,
   HiOutlineCog,
   HiOutlineArrowLeft,
+  HiOutlineDocumentAdd, // New Icon
 } from "react-icons/hi";
 
 export default function LiteEditor() {
@@ -33,6 +33,7 @@ export default function LiteEditor() {
   const [copied, setCopied] = useState(false);
   const [isMounting, setIsMounting] = useState(true);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isNewConfirmOpen, setIsNewConfirmOpen] = useState(false);
   const [pendingFile, setPendingFile] = useState<{
     text: string;
     name: string;
@@ -46,6 +47,21 @@ export default function LiteEditor() {
     const timer = setTimeout(() => setIsMounting(false), 200);
     return () => clearTimeout(timer);
   }, []);
+
+  const handleNewFile = () => {
+    if (content.trim()) {
+      setIsNewConfirmOpen(true);
+    } else {
+      resetEditor();
+    }
+  };
+
+  const resetEditor = () => {
+    setContent("");
+    setFileName("");
+    setIsNewConfirmOpen(false);
+    editorRef.current?.focus();
+  };
 
   const handleCopy = async () => {
     if (!content) return;
@@ -84,7 +100,6 @@ export default function LiteEditor() {
         await writable.write(content);
         await writable.close();
       } catch (err) {
-        // User cancelled or error
         console.error(err);
       }
     } else {
@@ -127,6 +142,7 @@ export default function LiteEditor() {
         onClose={() => setIsSettingsOpen(false)}
       />
 
+      {/* Confirmation Modal for Overwriting via Import */}
       <DialogModal
         isOpened={pendingFile !== null}
         onClose={() => setPendingFile(null)}
@@ -156,6 +172,31 @@ export default function LiteEditor() {
         </div>
       </DialogModal>
 
+      {/* Confirmation Modal for New File */}
+      <DialogModal
+        isOpened={isNewConfirmOpen}
+        onClose={() => setIsNewConfirmOpen(false)}
+      >
+        <div className="flex flex-col gap-6 text-center py-2">
+          <p className="text-sm font-medium tracking-tight">
+            Are you sure you want to start a{" "}
+            <span className="text-red-500">new file</span>? Any unsaved changes
+            will be lost.
+          </p>
+          <div className="flex gap-2 justify-center">
+            <Button variant="primary" onClick={resetEditor}>
+              Confirm New
+            </Button>
+            <Button
+              variant="outlined"
+              onClick={() => setIsNewConfirmOpen(false)}
+            >
+              Cancel
+            </Button>
+          </div>
+        </div>
+      </DialogModal>
+
       <input
         type="file"
         ref={fileInputRef}
@@ -176,6 +217,19 @@ export default function LiteEditor() {
           </Button>
 
           <div className="flex items-center bg-white/90 dark:bg-neutral-900/90 backdrop-blur-md border border-neutral-200 dark:border-neutral-800 rounded-full px-2 py-1.5 shadow-lg md:shadow-sm divide-x divide-neutral-200 dark:divide-neutral-800">
+            {/* New File */}
+            <Button
+              variant="bare"
+              onClick={handleNewFile}
+              className="px-4 flex items-center gap-2"
+              title="New File"
+            >
+              <HiOutlineDocumentAdd size={18} className="opacity-70" />
+              <span className="text-[10px] uppercase tracking-widest hidden md:inline">
+                New
+              </span>
+            </Button>
+
             {/* Import */}
             <Button
               variant="bare"
@@ -252,7 +306,8 @@ export default function LiteEditor() {
               onChange={setContent}
               onTextareaReady={(ref) => {
                 editorRef.current = ref;
-                ref.focus();
+                // Only auto-focus if we aren't waiting for a dialog
+                if (!isNewConfirmOpen && !pendingFile) ref.focus();
               }}
             />
           </div>
