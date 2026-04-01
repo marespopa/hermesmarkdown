@@ -23,7 +23,6 @@ function highlightMarkdownMonochrome(
   searchTerm?: string,
   wordWrap?: boolean,
 ) {
-  // Constant for all markdown helpers (symbols, ticks, hashes, etc.)
   const SUBTLE_STYLE =
     'class="text-neutral-500/50 dark:text-neutral-400/30 transition-opacity hover:opacity-100"';
   const wrapStyle = wordWrap ? "pre-wrap" : "pre";
@@ -44,7 +43,7 @@ function highlightMarkdownMonochrome(
     } catch (e) {}
   }
 
-  // 1. Fenced Code Blocks - Fixed to prevent extra row in wrap mode
+  // 1. Fenced Code Blocks
   escaped = escaped.replace(
     /(```)([a-z ]*)([\n\r])?([\s\S]*?)(```)/g,
     (_, tickOpen, lang, newline, content, tickClose) => {
@@ -63,29 +62,25 @@ function highlightMarkdownMonochrome(
     /^(#{1,6})(\s[^\n\r]*)$/gm,
     `<span ${SUBTLE_STYLE}>$1</span><span class="font-semibold text-zinc-900 dark:text-zinc-50">$2</span>`,
   );
-  // 2.5 Predefined Workflow Tags
-  const workflowTags = [
-    "done",
-    "todo",
-    "in-progress",
-    "urgent",
-    "canceled",
-    "waiting",
-  ];
-  const tagRegex = new RegExp(`#(${workflowTags.join("|")})$`, "gim");
+
+  // 2.5 Shorthand Workflow Tags
+  const workflowTags = ["todo", "prog", "done", "urgn", "wait"];
+  const tagRegex = new RegExp(
+    `(?:^|\\s)#(${workflowTags.join("|")})(?=\\s|$)`,
+    "gim",
+  );
 
   escaped = escaped.replace(tagRegex, (match, tagName) => {
     const colors: Record<string, string> = {
-      done: "text-green-600 dark:text-green-400",
       todo: "text-blue-600 dark:text-blue-400",
-      "in-progress": "text-amber-600 dark:text-amber-400",
-      urgent: "text-red-600 dark:text-red-400",
+      prog: "text-amber-600 dark:text-amber-400",
+      done: "text-green-600 dark:text-green-400",
+      urgn: "text-red-600 dark:text-red-400 animate-pulse",
+      wait: "text-purple-600 dark:text-purple-400",
     };
 
     const colorClass = colors[tagName.toLowerCase()] || "text-zinc-500";
-
-    // ADD: 'status-tag' class and 'data-tag' for the click handler
-    return `<span class="${colorClass} font-mono font-bold status-tag cursor-pointer" data-tag="${tagName.toLowerCase()}">${match}</span>`;
+    return `<span class="${colorClass} font-mono font-bold cursor-pointer status-tag" data-tag="${tagName.toLowerCase()}">${match}</span>`;
   });
 
   // Horizontal Rule
@@ -134,15 +129,14 @@ function highlightMarkdownMonochrome(
     (match, bullet, checkGroup, checkChar, label, offset) => {
       const isTask = checkGroup !== undefined;
       const isChecked = isTask && checkChar.toLowerCase() === "x";
-
       const bulletPart = `<span ${SUBTLE_STYLE}>${bullet}</span>`;
 
       if (isTask) {
         const checkboxPart = `<span ${SUBTLE_STYLE} font-mono font-bold">${checkGroup}</span>`;
+        const labelStyle = isChecked
+          ? 'class="line-through opacity-50"'
+          : 'class="text-zinc-900 dark:text-zinc-100"';
 
-        const labelStyle = isChecked ? 'class="line-through"' : "";
-
-        // WRAP THE WHOLE LINE in the task-wrapper
         return (
           `<span class="task-wrapper cursor-pointer" data-offset="${offset}">` +
           `${bulletPart}${checkboxPart}` +
@@ -150,12 +144,10 @@ function highlightMarkdownMonochrome(
           `</span>`
         );
       }
-
       return `${bulletPart}<span class="text-zinc-900 dark:text-zinc-100">${label}</span>`;
     },
   );
 
-  // Tables
   escaped = escaped.replace(/\|/g, `<span ${SUBTLE_STYLE}>|</span>`);
 
   return escaped;
@@ -192,16 +184,13 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
     }
   }, [onTextareaReady]);
 
-  // Sync horizontal scrolling when wordWrap is disabled
   useEffect(() => {
     const textarea = textareaRef.current;
     const pre = wrapperRef.current?.querySelector("pre");
     if (!textarea || !pre || wordWrap) return;
-
     const syncScroll = () => {
       pre.scrollLeft = textarea.scrollLeft;
     };
-
     textarea.addEventListener("scroll", syncScroll);
     return () => textarea.removeEventListener("scroll", syncScroll);
   }, [wordWrap, value]);
@@ -234,16 +223,60 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
   };
 
   const handleValueChange = (val: string) => {
-    onChange(val);
+    const textarea = textareaRef.current;
+    if (!textarea) {
+      onChange(val);
+      return;
+    }
+
+    const start = textarea.selectionStart;
+    let processedVal = val;
+    let cursorOffset = 0;
+
+    const shortcodes: Record<string, () => string> = {
+      "..d": () => new Date().toLocaleDateString("en-CA"),
+      "{date}": () => new Date().toLocaleDateString("en-CA"),
+      "{time}": () =>
+        new Date().toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+          hour12: false,
+        }),
+    };
+
+    Object.entries(shortcodes).forEach(([code, getValue]) => {
+      if (processedVal.includes(code)) {
+        const replacement = getValue();
+        // Global count for accurate offset if multiple exist
+        const occurrences = (
+          processedVal.match(
+            new RegExp(code.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "g"),
+          ) || []
+        ).length;
+        cursorOffset += (replacement.length - code.length) * occurrences;
+        processedVal = processedVal.replaceAll(code, replacement);
+      }
+    });
+
+    onChange(processedVal);
+
+    if (cursorOffset !== 0) {
+      requestAnimationFrame(() => {
+        textarea.setSelectionRange(start + cursorOffset, start + cursorOffset);
+        textarea.focus();
+      });
+    }
+
     setIsTyping(true);
     if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
     typingTimeoutRef.current = setTimeout(() => setIsTyping(false), 1500);
   };
 
-  // Define the cycle order
   const TAG_CYCLE: Record<string, string> = {
-    todo: "in-progress",
-    "in-progress": "done",
+    urgn: "todo",
+    todo: "prog",
+    prog: "wait",
+    wait: "done",
     done: "todo",
   };
 
@@ -251,7 +284,6 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
     const textarea = e.currentTarget;
     const pos = textarea.selectionStart;
 
-    // 1. Handle Link Navigation (Ctrl/Meta + Click)
     if (e.ctrlKey || e.metaKey) {
       const url = findLinkAtPos(value, pos);
       if (url) {
@@ -267,64 +299,43 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
     const currentLine = value.substring(lineStartIndex, lineEndIndex);
 
     const checkboxMatch = currentLine.match(/^(\s*[-\*]\s*\[)([ xX])(\])/);
-
     if (checkboxMatch) {
       const checkboxEndIndex = lineStartIndex + checkboxMatch[0].length;
-
-      // LOGIC GATE:
-      // Trigger toggle IF:
-      // A) The click was specifically on the "[ ]" part (the brackets)
-      // B) The click was on the text BUT the Cmd/Ctrl key is held down
-      const isClickOnCheckbox = pos <= checkboxEndIndex;
-      const isIntentionalToggle = e.ctrlKey || e.metaKey;
-
-      if (isClickOnCheckbox || isIntentionalToggle) {
+      if (pos <= checkboxEndIndex || e.ctrlKey || e.metaKey) {
         e.preventDefault();
-
         const checkCharIndex = lineStartIndex + checkboxMatch[1].length;
         const isChecked = value[checkCharIndex].toLowerCase() === "x";
         const nextChar = isChecked ? " " : "x";
-
         const newValue =
           value.substring(0, checkCharIndex) +
           nextChar +
           value.substring(checkCharIndex + 1);
-
         onChange(newValue);
-
         requestAnimationFrame(() => {
           textarea.setSelectionRange(pos, pos);
           textarea.focus();
         });
+        return;
       }
     }
 
-    // Check if there is a tag on this line
-    const workflowTags = ["todo", "in-progress", "done"];
-    const lineTagMatch = currentLine.match(/#(todo|in-progress|done)\b/i);
-
+    const lineTagMatch = currentLine.match(/#(todo|prog|done|urgn|wait)\b/i);
     if (lineTagMatch) {
       const tagName = lineTagMatch[1].toLowerCase();
       const tagMatchIndex = lineStartIndex + lineTagMatch.index!;
-      const tagFullMatch = lineTagMatch[0]; // e.g., "#todo"
+      const tagFullMatch = lineTagMatch[0];
 
-      // Check if the click was actually ON the tag
       if (pos >= tagMatchIndex && pos <= tagMatchIndex + tagFullMatch.length) {
         e.preventDefault();
-
         const nextTag = TAG_CYCLE[tagName];
         if (nextTag) {
           const newValue =
             value.substring(0, tagMatchIndex) +
             `#${nextTag}` +
             value.substring(tagMatchIndex + tagFullMatch.length);
-
           onChange(newValue);
-
-          // Adjust cursor if the tag length changed (e.g., 'done' to 'todo')
-          const lengthDiff = nextTag.length - tagName.length;
           requestAnimationFrame(() => {
-            textarea.setSelectionRange(pos + lengthDiff, pos + lengthDiff);
+            textarea.setSelectionRange(pos, pos);
             textarea.focus();
           });
         }
