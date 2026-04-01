@@ -1,6 +1,7 @@
 import "./globals.scss";
 import MainPage from "./components/MainPage";
 import { Metadata, Viewport } from "next";
+import { jetBrainsMono, firaCode, ibmPlexMono } from "./fonts";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://hermesmarkdown.com"),
@@ -53,7 +54,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html
+      lang="en"
+      suppressHydrationWarning
+      className={`${jetBrainsMono.variable} ${firaCode.variable} ${ibmPlexMono.variable}`}
+    >
       <body
         className="h-full min-h-screen bg-[#fcfcfc] dark:bg-[#1a1a1a] text-neutral-900 dark:text-neutral-100 transition-colors duration-300 antialiased"
         suppressHydrationWarning

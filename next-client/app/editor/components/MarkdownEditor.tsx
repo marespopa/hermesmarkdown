@@ -3,7 +3,11 @@
 import React, { useRef, useEffect, useCallback, useState } from "react";
 import Editor from "react-simple-code-editor";
 import { useAtom } from "jotai";
-import { atom_fontSize, atom_fontFamily } from "@/app/atoms/atoms";
+import {
+  atom_fontSize,
+  atom_fontFamily,
+  atom_wordWrap,
+} from "@/app/atoms/atoms";
 
 interface MarkdownEditorProps {
   value: string;
@@ -14,7 +18,11 @@ interface MarkdownEditorProps {
   setMatchCount?: (count: number) => void;
 }
 
-const highlightMarkdownMonochrome = (code: string, searchTerm?: string) => {
+const highlightMarkdownMonochrome = (
+  code: string,
+  searchTerm?: string,
+  wordWrap?: boolean,
+) => {
   let escaped = code
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
@@ -33,13 +41,15 @@ const highlightMarkdownMonochrome = (code: string, searchTerm?: string) => {
 
   const sym =
     'class="opacity-25 dark:opacity-20 transition-opacity hover:opacity-100"';
+  const wrapStyle = wordWrap ? "pre-wrap" : "pre";
 
   // 1. Fenced Code Blocks
   escaped = escaped.replace(
     /(```)([a-z]*)([\n\r]?)([\s\S]*?)(```)/g,
     (_, tickOpen, lang, newline, content, tickClose) => {
       return (
-        `<span class="bg-zinc-100 dark:bg-zinc-700 rounded-md" style="display: inline-block; width: 100%; white-space: pre;">` +
+        `<span class="bg-zinc-100 dark:bg-zinc-700 rounded-md" 
+         style="display: inline; white-space: ${wrapStyle}; pointer-events: none; -webkit-box-decoration-break: clone; box-decoration-break: clone; padding: 2px 0;">` +
         `<span ${sym}>${tickOpen}</span>` +
         `<span class="text-blue-500">${lang}</span>${newline}` +
         `<span class="text-zinc-800 dark:text-zinc-200">${content}</span>` +
@@ -49,19 +59,21 @@ const highlightMarkdownMonochrome = (code: string, searchTerm?: string) => {
     },
   );
 
+  // ... [Highlighting logic for 2-8 remains unchanged] ...
+
   // 2. Headings
   escaped = escaped.replace(
     /^(#{1,6})(\s[^\n\r]*)$/gm,
     `<span ${sym}>$1</span><span class="font-semibold text-zinc-900 dark:text-zinc-50">$2</span>`,
   );
 
-  // 3. Horizontal Rule (Supports ---, ***, and +++)
+  // 3. Horizontal Rule
   escaped = escaped.replace(
     /^(\s*[*\-+](?:\s*[*\-+]){2,}\s*)$/gm,
     `<span class="text-transparent bg-gradient-to-r from-zinc-200 via-zinc-200 to-zinc-200 dark:from-zinc-800 dark:via-zinc-800 dark:to-zinc-800 bg-[length:100%_1px] bg-center bg-no-repeat">$1</span>`,
   );
 
-  // 4. Blockquotes (Ensure [^\n\r]* to avoid height drift)
+  // 4. Blockquotes
   escaped = escaped.replace(
     /^((?:&gt;\s*)+)([^\n\r]*)$/gm,
     `<span class="bg-zinc-100 dark:bg-zinc-700 text-zinc-500 dark:text-zinc-400"><span ${sym}>$1</span>$2</span>`,
@@ -71,16 +83,13 @@ const highlightMarkdownMonochrome = (code: string, searchTerm?: string) => {
   escaped = escaped.replace(
     /^(\s*(?:[\d+\.\-\*]+|\[([ xX])\])\s+)([^\n\r]*)$/gm,
     (match, prefix, check, label, offset) => {
-      // If 'check' is defined, it's a checkbox [ ] or [x]
       if (check !== undefined) {
-        const isChecked = check.toLowerCase() === "x";
         return (
           `<span ${sym} class="task-wrapper cursor-pointer" data-offset="${offset}">` +
           `${prefix.replace(/\[([ xX])\]/, `<span class="checkbox-box text-blue-500 font-bold">[${check}]</span>`)}` +
           `</span><span class="text-zinc-900 dark:text-zinc-100">${label}</span>`
         );
       }
-      // Standard list item
       return `<span ${sym}>${prefix}</span><span class="text-zinc-900 dark:text-zinc-100">${label}</span>`;
     },
   );
@@ -90,7 +99,6 @@ const highlightMarkdownMonochrome = (code: string, searchTerm?: string) => {
     /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g,
     `<span class="text-blue-600 dark:text-blue-400 underline-offset-4">[$1]</span><span ${sym}>($2)</span>`,
   );
-
   escaped = escaped.replace(
     /(?<!\()https?:\/\/[^\s<]+(?![^<]*>|[^<>]*<\/a>)/g,
     `<span class="text-blue-600 dark:text-blue-400 underline-offset-4">$&</span>`,
@@ -126,16 +134,41 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const [fontFamily] = useAtom(atom_fontFamily);
   const [fontSize] = useAtom(atom_fontSize);
+  const [wordWrap] = useAtom(atom_wordWrap);
+
   const [isTyping, setIsTyping] = useState(false);
   const [isCtrlPressed, setIsCtrlPressed] = useState(false);
   const [isOverLink, setIsOverLink] = useState(false);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const highlight = useCallback(
-    (code: string) => highlightMarkdownMonochrome(code, searchTerm),
-    [searchTerm],
+    (code: string) => highlightMarkdownMonochrome(code, searchTerm, wordWrap),
+    [searchTerm, wordWrap],
   );
 
+  // Sync horizontal scrolling when wrap is OFF
+  useEffect(() => {
+    const textarea = textareaRef.current;
+    const pre = wrapperRef.current?.querySelector("pre");
+    if (!textarea || !pre || wordWrap) return;
+
+    const syncScroll = () => {
+      pre.scrollLeft = textarea.scrollLeft;
+    };
+
+    textarea.addEventListener("scroll", syncScroll);
+    return () => textarea.removeEventListener("scroll", syncScroll);
+  }, [wordWrap, value]);
+
+  useEffect(() => {
+    const textarea = wrapperRef.current?.querySelector("textarea");
+    if (textarea) {
+      textareaRef.current = textarea as HTMLTextAreaElement;
+      if (onTextareaReady) onTextareaReady(textareaRef.current);
+    }
+  }, [onTextareaReady]);
+
+  // Key handlers...
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) =>
       (e.ctrlKey || e.metaKey) && setIsCtrlPressed(true);
@@ -148,90 +181,19 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
     };
   }, []);
 
-  useEffect(() => {
-    const textarea = wrapperRef.current?.querySelector("textarea");
-    if (textarea) {
-      textareaRef.current = textarea as HTMLTextAreaElement;
-      if (onTextareaReady) onTextareaReady(textareaRef.current);
-    }
-  }, [onTextareaReady]);
-
   const findLinkAtPos = (text: string, pos: number) => {
     const mdRegex = /\[[^\]]+\]\((https?:\/\/[^\s)]+)\)/g;
     let match;
-
     while ((match = mdRegex.exec(text)) !== null) {
       if (pos >= match.index && pos <= match.index + match[0].length)
         return match[1];
     }
-
     const rawRegex = /https?:\/\/[^\s)]+/g;
-
     while ((match = rawRegex.exec(text)) !== null) {
       if (pos >= match.index && pos <= match.index + match[0].length)
         return match[0];
     }
     return null;
-  };
-
-  const handleMouseMove = (e: React.MouseEvent<HTMLTextAreaElement>) => {
-    if (!e.ctrlKey && !e.metaKey) {
-      if (isOverLink) setIsOverLink(false);
-      return;
-    }
-
-    const pos = e.currentTarget.selectionStart;
-    const url = findLinkAtPos(value, pos);
-    setIsOverLink(!!url);
-  };
-
-  const handleTextareaClick = (e: React.MouseEvent<HTMLTextAreaElement>) => {
-    const pos = e.currentTarget.selectionStart;
-
-    // Link
-    if (e.ctrlKey || e.metaKey) {
-      const pos = e.currentTarget.selectionStart;
-      const url = findLinkAtPos(value, pos);
-      if (url) window.open(url, "_blank", "noopener,noreferrer");
-    }
-
-    // List Checkbox
-    const textBefore = value.substring(0, pos);
-    const lineStartIndex = textBefore.lastIndexOf("\n") + 1;
-    const lineEndIndex = value.indexOf("\n", pos);
-    const currentLine = value.substring(
-      lineStartIndex,
-      lineEndIndex === -1 ? value.length : lineEndIndex,
-    );
-
-    // Regex to match the checkbox pattern at the start of the line
-    const checkboxMatch = currentLine.match(/^(\s*-\s*\[)([ xX])(\])\s+/);
-
-    if (checkboxMatch) {
-      // Calculate the exact index of the 'x' or ' ' inside the [ ]
-      // checkboxMatch[1] is the part like "- ["
-      const checkCharIndex = lineStartIndex + checkboxMatch[1].length;
-
-      // Check if the click was roughly near the start of the line (the checkbox area)
-      // We allow a small buffer (e.g., first 10 characters of the line)
-      if (
-        pos >= lineStartIndex &&
-        pos <= lineStartIndex + checkboxMatch[0].length
-      ) {
-        const currentChar = value[checkCharIndex];
-        const nextChar = currentChar === " " ? "x" : " ";
-
-        const newValue =
-          value.substring(0, checkCharIndex) +
-          nextChar +
-          value.substring(checkCharIndex + 1);
-
-        onChange(newValue);
-
-        // Prevent the cursor from jumping/behaving weirdly after the toggle
-        e.preventDefault();
-      }
-    }
   };
 
   const handleValueChange = (val: string) => {
@@ -241,17 +203,26 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
     typingTimeoutRef.current = setTimeout(() => setIsTyping(false), 1500);
   };
 
+  // UPDATED: Logic for internal scrolling window
+  const wrapClasses = wordWrap
+    ? "[&_textarea]:!white-space-pre-wrap [&_pre]:!white-space-pre-wrap [&_textarea]:!break-all [&_pre]:!break-all [&_textarea]:!overflow-x-hidden"
+    : "[&_textarea]:!white-space-pre [&_pre]:!white-space-pre [&_textarea]:!overflow-x-auto [&_pre]:!overflow-x-hidden [&_textarea]:!w-max [&_pre]:!w-max [&_textarea]:!min-w-full [&_pre]:!min-w-full";
+
   return (
     <div
       ref={wrapperRef}
-      className={`relative w-full min-h-screen transition-all duration-700 ${isTyping ? "opacity-80" : "opacity-100"} p-2`}
+      /* This div acts as the scroll-container for no-wrap mode */
+      className={`relative w-full min-h-screen transition-all duration-700 ${isTyping ? "opacity-80" : "opacity-100"} p-2 ${!wordWrap ? "overflow-x-auto" : "overflow-x-hidden"}`}
     >
       <div
         className={`
-          editor-container w-full h-full relative selection:bg-blue-500/15
+          editor-container relative h-full selection:bg-blue-500/15
+          /* If no-wrap, container becomes as wide as the longest line */
+          ${!wordWrap ? "w-max min-w-full" : "w-full"}
           [&_textarea]:!outline-none [&_textarea]:!border-none
           [&_textarea]:!bg-transparent [&_textarea]:!p-0
           [&_textarea]:!leading-[1.7] [&_pre]:!leading-[1.7]
+          ${wrapClasses}
           [&_textarea]:!min-h-[80vh] [&_pre]:!min-h-[80vh]
           [&_textarea]:!text-transparent
           [&_textarea]:!caret-blue-500 dark:[&_textarea]:!caret-blue-400
@@ -273,8 +244,48 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
           textareaId="markdown-editor"
           className="w-full h-full"
           padding={0}
-          onMouseMove={handleMouseMove}
-          onClick={handleTextareaClick}
+          onMouseMove={(e) => {
+            if (!e.ctrlKey && !e.metaKey) {
+              if (isOverLink) setIsOverLink(false);
+              return;
+            }
+            const pos = e.currentTarget.selectionStart;
+            const url = findLinkAtPos(value, pos);
+            setIsOverLink(!!url);
+          }}
+          onClick={(e) => {
+            const pos = e.currentTarget.selectionStart;
+            if (e.ctrlKey || e.metaKey) {
+              const url = findLinkAtPos(value, pos);
+              if (url) window.open(url, "_blank", "noopener,noreferrer");
+            }
+
+            const textBefore = value.substring(0, pos);
+            const lineStartIndex = textBefore.lastIndexOf("\n") + 1;
+            const lineEndIndex = value.indexOf("\n", pos);
+            const currentLine = value.substring(
+              lineStartIndex,
+              lineEndIndex === -1 ? value.length : lineEndIndex,
+            );
+            const checkboxMatch = currentLine.match(
+              /^(\s*-\s*\[)([ xX])(\])\s+/,
+            );
+
+            if (
+              checkboxMatch &&
+              pos >= lineStartIndex &&
+              pos <= lineStartIndex + checkboxMatch[0].length
+            ) {
+              const checkCharIndex = lineStartIndex + checkboxMatch[1].length;
+              const nextChar = value[checkCharIndex] === " " ? "x" : " ";
+              onChange(
+                value.substring(0, checkCharIndex) +
+                  nextChar +
+                  value.substring(checkCharIndex + 1),
+              );
+              e.preventDefault();
+            }
+          }}
         />
       </div>
     </div>
