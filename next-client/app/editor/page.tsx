@@ -15,8 +15,8 @@ import {
 import MarkdownEditor from "./components/MarkdownEditor";
 
 import {
-  HiOutlineUpload,
-  HiOutlineDownload,
+  HiOutlineFolderOpen,
+  HiOutlineSaveAs,
   HiOutlineClipboardCopy,
   HiOutlineCheck,
   HiOutlineCog,
@@ -237,7 +237,7 @@ export default function LiteEditor() {
               className="px-4 flex items-center gap-2"
               title="Import"
             >
-              <HiOutlineUpload size={18} className="opacity-70" />
+              <HiOutlineFolderOpen size={18} className="opacity-70" />
               <span className="text-[10px] uppercase tracking-widest hidden md:inline">
                 Import
               </span>
@@ -250,7 +250,7 @@ export default function LiteEditor() {
               className="px-4 flex items-center gap-2"
               title="Export"
             >
-              <HiOutlineDownload size={18} className="opacity-70" />
+              <HiOutlineSaveAs size={18} className="opacity-70" />
               <span className="text-[10px] uppercase tracking-widest hidden md:inline">
                 Export
               </span>
