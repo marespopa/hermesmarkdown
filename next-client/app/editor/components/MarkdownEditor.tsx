@@ -86,6 +86,12 @@ const highlightMarkdownMonochrome = (code: string, searchTerm?: string) => {
     `<span ${sym}>$1</span><em class="italic text-zinc-800 dark:text-zinc-200">$2</em><span ${sym}>$1</span>`,
   );
 
+  // 8. Strikethrough
+  escaped = escaped.replace(
+    /~~(.*?)~~/g,
+    `<span ${sym}>~~</span><del class="line-through text-zinc-500/70">$1</del><span ${sym}>~~</span>`,
+  );
+
   return escaped;
 };
 
