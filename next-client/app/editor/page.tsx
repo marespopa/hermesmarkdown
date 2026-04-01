@@ -7,21 +7,36 @@ import SettingsDialog from "./components/SettingsDialog";
 import { useRouter } from "next/navigation";
 import { useAtom } from "jotai";
 import {
+  atom_fileName,
   atom_content,
   atom_fontSize,
   atom_fontFamily,
 } from "@/app/atoms/atoms";
 import MarkdownEditor from "./components/MarkdownEditor";
 
+// Icon Imports
+import {
+  HiOutlineUpload,
+  HiOutlineDownload,
+  HiOutlineClipboardCopy,
+  HiOutlineCheck,
+  HiOutlineCog,
+  HiOutlineArrowLeft,
+} from "react-icons/hi";
+
 export default function LiteEditor() {
   const [content, setContent] = useAtom(atom_content);
-  const [fontSize] = useAtom(atom_fontSize); // e.g., "prose-base"
+  const [fileName, setFileName] = useAtom(atom_fileName);
+  const [fontSize] = useAtom(atom_fontSize);
   const [fontFamily] = useAtom(atom_fontFamily);
 
   const [copied, setCopied] = useState(false);
   const [isMounting, setIsMounting] = useState(true);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [pendingFile, setPendingFile] = useState<string | null>(null);
+  const [pendingFile, setPendingFile] = useState<{
+    text: string;
+    name: string;
+  } | null>(null);
 
   const editorRef = useRef<HTMLTextAreaElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -31,14 +46,6 @@ export default function LiteEditor() {
     const timer = setTimeout(() => setIsMounting(false), 200);
     return () => clearTimeout(timer);
   }, []);
-
-  // Map Tailwind Typography classes to actual text sizes for the Textarea
-  const fontSizeMap: Record<string, string> = {
-    "prose-sm": "text-sm",
-    "prose-base": "text-base",
-    "prose-lg": "text-lg",
-    "prose-xl": "text-xl",
-  };
 
   const handleCopy = async () => {
     if (!content) return;
@@ -53,15 +60,22 @@ export default function LiteEditor() {
 
   const handleExport = async () => {
     if (!content.trim()) return;
+
+    const baseName =
+      fileName.trim() ||
+      content
+        .split("\n")[0]
+        .replace(/[^\w\s]/gi, "")
+        .slice(0, 20)
+        .trim() ||
+      "untitled";
+
+    const finalName = baseName.endsWith(".md") ? baseName : `${baseName}.md`;
+
     if ("showSaveFilePicker" in window) {
       try {
         const handle = await (window as any).showSaveFilePicker({
-          suggestedName:
-            content
-              .split("\n")[0]
-              .replace(/[^\w\s]/gi, "")
-              .slice(0, 20)
-              .trim() || "untitled",
+          suggestedName: finalName,
           types: [
             { description: "Markdown", accept: { "text/markdown": [".md"] } },
           ],
@@ -70,6 +84,7 @@ export default function LiteEditor() {
         await writable.write(content);
         await writable.close();
       } catch (err) {
+        // User cancelled or error
         console.error(err);
       }
     } else {
@@ -77,7 +92,7 @@ export default function LiteEditor() {
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.download = "document.md";
+      link.download = finalName;
       link.click();
       URL.revokeObjectURL(url);
     }
@@ -86,11 +101,18 @@ export default function LiteEditor() {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
     const reader = new FileReader();
     reader.onload = (event) => {
       const text = event.target?.result as string;
-      if (!content.trim()) setContent(text);
-      else setPendingFile(text);
+      const nameOnly = file.name.replace(/\.[^/.]+$/, "");
+
+      if (!content.trim()) {
+        setContent(text);
+        setFileName(nameOnly);
+      } else {
+        setPendingFile({ text, name: nameOnly });
+      }
     };
     reader.readAsText(file);
     e.target.value = "";
@@ -111,13 +133,17 @@ export default function LiteEditor() {
       >
         <div className="flex flex-col gap-6 text-center py-2">
           <p className="text-sm font-medium tracking-tight">
-            Overwrite current draft?
+            Overwrite current draft with{" "}
+            <span className="italic text-blue-500">"{pendingFile?.name}"</span>?
           </p>
           <div className="flex gap-2 justify-center">
             <Button
               variant="primary"
               onClick={() => {
-                setContent(pendingFile!);
+                if (pendingFile) {
+                  setContent(pendingFile.text);
+                  setFileName(pendingFile.name);
+                }
                 setPendingFile(null);
               }}
             >
@@ -138,97 +164,77 @@ export default function LiteEditor() {
         className="hidden"
       />
 
-      {/* Navigation */}
       <header className="fixed top-0 left-0 right-0 z-40 h-16 md:h-20 group">
-        <div
-          className={`
-    flex justify-between items-center p-4 md:p-6 transition-all duration-300
-    /* Reveal on hover for desktop, always show or fade-in on mobile */
-    opacity-100 md:opacity-0 md:group-hover:opacity-100 
-    -translate-y-0 md:-translate-y-2 md:group-hover:translate-y-0
-  `}
-        >
-          {/* Index Button - Hidden on very small screens to save space */}
+        <div className="flex justify-between items-center p-4 md:p-6 transition-all duration-300 opacity-100 md:opacity-0 md:group-hover:opacity-100 -translate-y-0 md:-translate-y-2 md:group-hover:translate-y-0">
           <Button
             variant="bare"
             onClick={() => router.push("/")}
-            className="text-[10px] uppercase tracking-[0.2em] opacity-50 hover:opacity-100 hidden sm:block"
+            className="text-[10px] uppercase tracking-[0.2em] opacity-50 hover:opacity-100 flex items-center gap-2"
           >
-            ← Home
+            <HiOutlineArrowLeft size={16} />
+            <span className="hidden sm:inline">Home</span>
           </Button>
 
-          {/* Mobile Back Arrow (Only visible on smallest screens) */}
-          <Button
-            variant="bare"
-            onClick={() => router.push("/")}
-            className="sm:hidden opacity-50"
-          >
-            ←
-          </Button>
-
-          {/* Grouped & Separated Menu */}
-          <div className="flex items-center bg-white/90 dark:bg-neutral-900/90 backdrop-blur-md border border-neutral-200 dark:border-neutral-800 rounded-full px-1.5 py-1 shadow-lg md:shadow-sm divide-x divide-neutral-200 dark:divide-neutral-800">
+          <div className="flex items-center bg-white/90 dark:bg-neutral-900/90 backdrop-blur-md border border-neutral-200 dark:border-neutral-800 rounded-full px-2 py-1.5 shadow-lg md:shadow-sm divide-x divide-neutral-200 dark:divide-neutral-800">
             {/* Import */}
-            <div className="flex items-center px-0.5 md:px-1">
-              <Button
-                variant="bare"
-                onClick={() => fileInputRef.current?.click()}
-                className="text-[10px] uppercase tracking-widest opacity-60 px-2 md:px-3"
-              >
-                <span className="hidden md:inline">Import</span>
-                <span className="md:hidden">In</span>{" "}
-                {/* Or use a Lucide icon like <Upload size={14} /> */}
-              </Button>
-            </div>
+            <Button
+              variant="bare"
+              onClick={() => fileInputRef.current?.click()}
+              className="px-4 flex items-center gap-2"
+              title="Import"
+            >
+              <HiOutlineUpload size={18} className="opacity-70" />
+              <span className="text-[10px] uppercase tracking-widest hidden md:inline">
+                Import
+              </span>
+            </Button>
 
             {/* Export */}
-            <div className="flex items-center px-0.5 md:px-1">
-              <Button
-                variant="bare"
-                onClick={handleExport}
-                className="text-[10px] uppercase tracking-widest opacity-60 px-2 md:px-3"
-              >
-                <span className="hidden md:inline">Export</span>
-                <span className="md:hidden">Out</span>
-              </Button>
-            </div>
+            <Button
+              variant="bare"
+              onClick={handleExport}
+              className="px-4 flex items-center gap-2"
+              title="Export"
+            >
+              <HiOutlineDownload size={18} className="opacity-70" />
+              <span className="text-[10px] uppercase tracking-widest hidden md:inline">
+                Export
+              </span>
+            </Button>
 
-            {/* Edit Actions */}
-            <div className="flex items-center px-0.5 md:px-1">
-              <Button
-                variant="bare"
-                onClick={handleCopy}
-                className={`text-[10px] uppercase tracking-widest transition-colors px-2 md:px-3 ${
-                  copied ? "text-blue-500 opacity-100" : "opacity-60"
-                }`}
-              >
-                {copied ? (
-                  "Done"
-                ) : (
-                  <>
-                    <span className="hidden md:inline">Copy</span>
-                    <span className="md:hidden">Zip</span>
-                  </>
-                )}
-              </Button>
-            </div>
+            {/* Copy */}
+            <Button
+              variant="bare"
+              onClick={handleCopy}
+              className="px-4 flex items-center gap-2"
+              title="Copy to Clipboard"
+            >
+              {copied ? (
+                <HiOutlineCheck size={18} className="text-green-500" />
+              ) : (
+                <HiOutlineClipboardCopy size={18} className="opacity-70" />
+              )}
+              <span className="text-[10px] uppercase tracking-widest hidden md:inline">
+                {copied ? "Done" : "Copy"}
+              </span>
+            </Button>
 
-            {/* App Actions */}
-            <div className="flex items-center px-0.5 md:px-1">
-              <Button
-                variant="bare"
-                onClick={() => setIsSettingsOpen(true)}
-                className="text-[10px] uppercase tracking-widest opacity-60 px-2 md:px-3"
-              >
-                <span className="hidden md:inline">Settings</span>
-                <span className="md:hidden">Set</span>
-              </Button>
-            </div>
+            {/* Settings */}
+            <Button
+              variant="bare"
+              onClick={() => setIsSettingsOpen(true)}
+              className="px-4 flex items-center gap-2"
+              title="Settings"
+            >
+              <HiOutlineCog size={18} className="opacity-70" />
+              <span className="text-[10px] uppercase tracking-widest hidden md:inline">
+                Settings
+              </span>
+            </Button>
           </div>
         </div>
       </header>
 
-      {/* Main Editor */}
       <main className="max-w-screen-md mx-auto pt-8 sm:pt-16 pb-40 px-6">
         {isMounting ? (
           <div className="animate-pulse opacity-10 space-y-4">
@@ -254,9 +260,12 @@ export default function LiteEditor() {
       </main>
 
       <footer className="fixed bottom-0 left-0 right-0 z-40 h-12 group">
-        <div className="absolute inset-0 bg-white/80 dark:bg-neutral-900/80 backdrop-blur-md border-t border-neutral-200 dark:border-neutral-800 flex items-center px-8 opacity-0 translate-y-full group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300">
+        <div className="absolute inset-0 bg-white/80 dark:bg-neutral-900/80 backdrop-blur-md border-t border-neutral-200 dark:border-neutral-800 flex items-center px-8 opacity-0 translate-y-full group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 justify-between">
           <div className="text-[10px] font-mono tracking-[0.2em] opacity-40 uppercase">
             {wordCount} Words &nbsp;&middot;&nbsp; {content.length} Chars
+          </div>
+          <div className="text-[10px] font-mono tracking-[0.2em] opacity-40 uppercase truncate max-w-[200px]">
+            {fileName || "untitled"}.md
           </div>
         </div>
       </footer>

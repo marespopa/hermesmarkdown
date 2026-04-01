@@ -4,19 +4,14 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
-  
-  // 2. Disable heavy file tracing (prevents hangs in Termux)
-  experimental: {
-    outputFileTracing: false,
-  },
 
   // 3. Image configuration
   images: {
     remotePatterns: [
       {
-        protocol: 'https',
-        hostname: 'producthunt.com',
-        pathname: '/widgets/embed-image/**',
+        protocol: "https",
+        hostname: "producthunt.com",
+        pathname: "/widgets/embed-image/**",
       },
     ],
   },

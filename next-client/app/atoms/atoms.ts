@@ -20,4 +20,5 @@ type ContentAtom = WritableAtom<
   [SetStateActionWithReset<string>],
   void
 >;
+export const atom_fileName = atomWithStorage("draft", "") as string;
 export const atom_content = atomWithStorage("content", "") as ContentAtom;

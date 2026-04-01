@@ -29,10 +29,7 @@ export default function LandingPage() {
 
   return (
     <main className="min-h-screen font-mono selection:bg-blue-500 dark:selection:bg-blue-100">
-      <LoadingOverlay
-        isVisible={showLoading}
-        text="Restoring your workspace..."
-      />
+      <LoadingOverlay isVisible={showLoading} text="Loading the editor..." />
 
       <DialogModal
         isOpened={showDialog}
