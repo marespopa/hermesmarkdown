@@ -14,11 +14,7 @@ interface MarkdownEditorProps {
   setMatchCount?: (count: number) => void;
 }
 
-const highlightMarkdownMonochrome = (
-  code: string,
-  searchTerm?: string,
-  setMatchCount?: (count: number) => void,
-) => {
+const highlightMarkdownMonochrome = (code: string, searchTerm?: string) => {
   let escaped = code
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
@@ -31,12 +27,11 @@ const highlightMarkdownMonochrome = (
       const regex = new RegExp(`(${safeSearch})`, "gi");
       escaped = escaped.replace(
         regex,
-        `<mark class="bg-blue-500/20 dark:bg-blue-400/30 text-inherit rounded-sm transition-all shadow-[0_0_0_1px_rgba(59,130,246,0.1)]">$1</mark>`,
+        `<mark class="bg-blue-500/20 dark:bg-blue-400/30 text-inherit rounded-sm">$1</mark>`,
       );
     } catch (e) {}
   }
 
-  // Syntax style: Faint and elegant (iA Writer style)
   const sym =
     'class="opacity-25 dark:opacity-20 font-normal transition-opacity hover:opacity-100"';
 
@@ -47,19 +42,15 @@ const highlightMarkdownMonochrome = (
       `<span class="block bg-zinc-50/50 dark:bg-zinc-800/30 rounded-md my-2"><span ${sym}>${open}</span><span class="text-zinc-800 dark:text-zinc-200">${content}</span><span ${sym}>${close}</span></span>`,
   );
 
-  // Lists & Checkboxes
+  // Lists, Headings, Bold, Italics (Standard logic)
   escaped = escaped.replace(
     /^(\s*([\d+\.\-\*]+|\[[ xX]\])\s+)(.*)$/gm,
     `<span ${sym}>$1</span><span class="text-zinc-900 dark:text-zinc-100">$3</span>`,
   );
-
-  // Headings (Subtle size progression via font-weight rather than massive scaling)
   escaped = escaped.replace(
     /^(#{1,6})(\s.+)$/gm,
     `<span ${sym}>$1</span><span class="font-semibold text-zinc-900 dark:text-zinc-50">$2</span>`,
   );
-
-  // Bold & Italics
   escaped = escaped.replace(
     /(\*\*|__)(.*?)\1/g,
     `<span ${sym}>$1</span><strong class="font-semibold text-zinc-900 dark:text-zinc-50">$2</strong><span ${sym}>$1</span>`,
@@ -69,10 +60,16 @@ const highlightMarkdownMonochrome = (
     `<span ${sym}>$1</span><em class="italic text-zinc-800 dark:text-zinc-200">$2</em><span ${sym}>$1</span>`,
   );
 
-  // Links (Clean Apple-blue accents)
+  // Links: Both [Markdown](url) and raw https:// links
+  // 1. Markdown Links
   escaped = escaped.replace(
     /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g,
-    `<span class="text-blue-600 dark:text-blue-400 underline decoration-blue-500/30 underline-offset-4 cursor-pointer">[$1]</span><span ${sym}>($2)</span>`,
+    `<span class="text-blue-600 dark:text-blue-400 underline-offset-4 cursor-pointer hover:underline">[$1]</span><span ${sym}>($2)</span>`,
+  );
+  // 2. Raw URLs (that aren't inside the markdown link already)
+  escaped = escaped.replace(
+    /(?<!\()https?:\/\/[^\s<]+(?![^<]*>|[^<>]*<\/a>)/g,
+    `<span class="text-blue-600 dark:text-blue-400 underline-offset-4 cursor-pointer hover:underline">$&</span>`,
   );
 
   return escaped;
@@ -90,16 +87,27 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const [fontFamily] = useAtom(atom_fontFamily);
   const [fontSize] = useAtom(atom_fontSize);
-
-  // Microinteraction state: "Focus Mode" feel
   const [isTyping, setIsTyping] = useState(false);
+  const [isCtrlPressed, setIsCtrlPressed] = useState(false);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const highlight = useCallback(
-    (code: string) =>
-      highlightMarkdownMonochrome(code, searchTerm, setMatchCount),
-    [searchTerm, setMatchCount],
+    (code: string) => highlightMarkdownMonochrome(code, searchTerm),
+    [searchTerm],
   );
+
+  // Global Key Listeners for Hover Effect
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) =>
+      (e.ctrlKey || e.metaKey) && setIsCtrlPressed(true);
+    const handleKeyUp = (e: KeyboardEvent) => setIsCtrlPressed(false);
+    window.addEventListener("keydown", handleKeyDown);
+    window.addEventListener("keyup", handleKeyUp);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("keyup", handleKeyUp);
+    };
+  }, []);
 
   useEffect(() => {
     const textarea = wrapperRef.current?.querySelector("textarea");
@@ -109,10 +117,33 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
     }
   }, [onTextareaReady]);
 
+  const findLinkAtPos = (text: string, pos: number) => {
+    // Check Markdown [text](url)
+    const mdRegex = /\[[^\]]+\]\((https?:\/\/[^\s)]+)\)/g;
+    let match;
+    while ((match = mdRegex.exec(text)) !== null) {
+      if (pos >= match.index && pos <= match.index + match[0].length)
+        return match[1];
+    }
+    // Check Raw https://
+    const rawRegex = /https?:\/\/[^\s)]+/g;
+    while ((match = rawRegex.exec(text)) !== null) {
+      if (pos >= match.index && pos <= match.index + match[0].length)
+        return match[0];
+    }
+    return null;
+  };
+
+  const handleTextareaClick = (e: React.MouseEvent<HTMLTextAreaElement>) => {
+    if (e.ctrlKey || e.metaKey) {
+      const pos = e.currentTarget.selectionStart;
+      const url = findLinkAtPos(value, pos);
+      if (url) window.open(url, "_blank", "noopener,noreferrer");
+    }
+  };
+
   const handleValueChange = (val: string) => {
     onChange(val);
-
-    // Microinteraction: Fade UI elements while typing (Focus Mode)
     setIsTyping(true);
     if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
     typingTimeoutRef.current = setTimeout(() => setIsTyping(false), 1500);
@@ -121,11 +152,7 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
   return (
     <div
       ref={wrapperRef}
-      className={`
-        relative w-full min-h-screen transition-all duration-700 ease-in-out
-        ${isTyping ? "opacity-80 scale-[1.002]" : "opacity-100 scale-100"}
-        p-2
-      `}
+      className={`relative w-full min-h-screen transition-all duration-700 ${isTyping ? "opacity-80" : "opacity-100"} p-2`}
     >
       <div
         className={`
@@ -137,14 +164,14 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
           [&_textarea]:!text-transparent
           [&_textarea]:!caret-blue-500 dark:[&_textarea]:!caret-blue-400
           [&_textarea]:!z-10 [&_pre]:!z-0
-          
-          /* Typography smoothing for Apple/iA feel */
-          antialiased font-feature-settings-['ss01','ss02','cv01']
+          /* Change cursor to pointer ONLY when CTRL is held down */
+          ${isCtrlPressed ? "[&_textarea]:!cursor-pointer" : "[&_textarea]:!cursor-text"}
+          antialiased
         `}
         style={{ fontFamily, fontSize }}
       >
         {!value && (
-          <div className="absolute top-0 left-0 opacity-20 pointer-events-none italic select-none">
+          <div className="absolute top-0 left-0 opacity-20 pointer-events-none italic">
             {placeholder}
           </div>
         )}
@@ -155,6 +182,7 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
           textareaId="markdown-editor"
           className="w-full h-full"
           padding={0}
+          onClick={handleTextareaClick}
         />
       </div>
     </div>
