@@ -41,16 +41,16 @@ const highlightMarkdownMonochrome = (code: string, searchTerm?: string) => {
       `<span class="bg-zinc-100 dark:bg-zinc-700 rounded-md"><span ${sym}>${open}</span><span class="text-zinc-800 dark:text-zinc-200">${content}</span><span ${sym}>${close}</span></span>`,
   );
 
-  // 2. Headings (Run before blockquotes, avoid capturing newlines)
+  // 2. Headings
   escaped = escaped.replace(
     /^(#{1,6})(\s[^\n\r]*)$/gm,
     `<span ${sym}>$1</span><span class="font-semibold text-zinc-900 dark:text-zinc-50">$2</span>`,
   );
 
-  // 3. Horizontal Rule (Prevent breakages between blocks)
+  // 3. Horizontal Rule (Supports ---, ***, and +++)
   escaped = escaped.replace(
-    /^(\s*---+\s*)$/gm,
-    `<span class="opacity-30 text-zinc-400">$1</span>`,
+    /^(\s*[*\-+](?:\s*[*\-+]){2,}\s*)$/gm,
+    `<span class="text-transparent bg-gradient-to-r from-zinc-200 via-zinc-200 to-zinc-200 dark:from-zinc-800 dark:via-zinc-800 dark:to-zinc-800 bg-[length:100%_1px] bg-center bg-no-repeat">$1</span>`,
   );
 
   // 4. Blockquotes (Ensure [^\n\r]* to avoid height drift)
@@ -139,11 +139,14 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
   const findLinkAtPos = (text: string, pos: number) => {
     const mdRegex = /\[[^\]]+\]\((https?:\/\/[^\s)]+)\)/g;
     let match;
+
     while ((match = mdRegex.exec(text)) !== null) {
       if (pos >= match.index && pos <= match.index + match[0].length)
         return match[1];
     }
+
     const rawRegex = /https?:\/\/[^\s)]+/g;
+
     while ((match = rawRegex.exec(text)) !== null) {
       if (pos >= match.index && pos <= match.index + match[0].length)
         return match[0];
@@ -156,7 +159,7 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
       if (isOverLink) setIsOverLink(false);
       return;
     }
-    // selectionStart is a good proxy for character index under mouse in this editor
+
     const pos = e.currentTarget.selectionStart;
     const url = findLinkAtPos(value, pos);
     setIsOverLink(!!url);
