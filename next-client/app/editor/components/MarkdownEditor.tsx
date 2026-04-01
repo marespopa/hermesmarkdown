@@ -63,35 +63,45 @@ function highlightMarkdownMonochrome(
     /^(#{1,6})(\s[^\n\r]*)$/gm,
     `<span ${SUBTLE_STYLE}>$1</span><span class="font-semibold text-zinc-900 dark:text-zinc-50">$2</span>`,
   );
+  // 2.5 Predefined Workflow Tags
+  const workflowTags = [
+    "done",
+    "todo",
+    "in-progress",
+    "urgent",
+    "canceled",
+    "waiting",
+  ];
+  const tagRegex = new RegExp(`^#(${workflowTags.join("|")})$`, "gim");
 
-  // 3. Horizontal Rule
+  escaped = escaped.replace(tagRegex, (match, tagName) => {
+    // Map colors to specific tags for better UX
+    const colors: Record<string, string> = {
+      done: "text-green-600 dark:text-green-400",
+      todo: "text-blue-600 dark:text-blue-400",
+      "in-progress": "text-amber-600 dark:text-amber-400",
+      urgent: "text-red-600 dark:text-red-400",
+    };
+
+    const colorClass = colors[tagName.toLowerCase()] || "text-zinc-500";
+
+    // Using border-bottom instead of padding to avoid cursor offset issues
+    return `<span class="${colorClass} font-mono font-bold">${match}</span>`;
+  });
+
+  // Horizontal Rule
   escaped = escaped.replace(
     /^(\s*[*\-+](?:\s*[*\-+]){2,}\s*)$/gm,
     `<span class="text-transparent bg-gradient-to-r from-zinc-200 via-zinc-200 to-zinc-200 dark:from-zinc-800 dark:via-zinc-800 dark:to-zinc-800 bg-[length:100%_1px] bg-center bg-no-repeat">$1</span>`,
   );
 
-  // 4. Blockquotes
+  // Blockquotes
   escaped = escaped.replace(
     /^((?:&gt;\s*)+)([^\n\r]*)$/gm,
     `<span class="bg-zinc-100 dark:bg-zinc-700 text-zinc-500 dark:text-zinc-400"><span ${SUBTLE_STYLE}>$1</span>$2</span>`,
   );
 
-  // 5. Lists & Checkboxes
-  escaped = escaped.replace(
-    /^(\s*(?:[\d+\.\-\*]+|\[([ xX])\])\s+)([^\n\r]*)$/gm,
-    (match, prefix, check, label, offset) => {
-      if (check !== undefined) {
-        return (
-          `<span ${SUBTLE_STYLE} class="task-wrapper cursor-pointer" data-offset="${offset}">` +
-          `${prefix.replace(/\[([ xX])\]/, `<span class="checkbox-box text-blue-500 font-bold">[${check}]</span>`)}` +
-          `</span><span class="text-zinc-900 dark:text-zinc-100">${label}</span>`
-        );
-      }
-      return `<span ${SUBTLE_STYLE}>${prefix}</span><span class="text-zinc-900 dark:text-zinc-100">${label}</span>`;
-    },
-  );
-
-  // 6. Links
+  // Links
   escaped = escaped.replace(
     /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g,
     `<span class="text-blue-600 dark:text-blue-400 underline-offset-4">[$1]</span><span ${SUBTLE_STYLE}>($2)</span>`,
@@ -102,7 +112,7 @@ function highlightMarkdownMonochrome(
     `<span class="text-blue-600 dark:text-blue-400 underline-offset-4">$&</span>`,
   );
 
-  // 7. Bold & Italics
+  // Bold & Italics
   escaped = escaped.replace(
     /(\*\*|__)(.*?)\1/g,
     `<span ${SUBTLE_STYLE}>$1</span><strong class="font-semibold text-zinc-900 dark:text-zinc-50">$2</strong><span ${SUBTLE_STYLE}>$1</span>`,
@@ -113,13 +123,40 @@ function highlightMarkdownMonochrome(
     `<span ${SUBTLE_STYLE}>$1</span><em class="italic text-zinc-800 dark:text-zinc-200">$2</em><span ${SUBTLE_STYLE}>$1</span>`,
   );
 
-  // 8. Strikethrough
+  // Strikethrough
   escaped = escaped.replace(
     /~~(.*?)~~/g,
     `<span ${SUBTLE_STYLE}>~~</span><del class="line-through text-zinc-500/70">$1</del><span ${SUBTLE_STYLE}>~~</span>`,
   );
 
-  // 9. Tables
+  // Lists & Checkboxes
+  escaped = escaped.replace(
+    /^(\s*(?:[\d+\.\-\*]+|[*+\-]))(\s*\[([ xX])\]\s+)?([^\n\r]*)$/gm,
+    (match, bullet, checkGroup, checkChar, label, offset) => {
+      const isTask = checkGroup !== undefined;
+      const isChecked = isTask && checkChar.toLowerCase() === "x";
+
+      const bulletPart = `<span ${SUBTLE_STYLE}>${bullet}</span>`;
+
+      if (isTask) {
+        const checkboxPart = `<span ${SUBTLE_STYLE} font-mono font-bold">${checkGroup}</span>`;
+
+        const labelStyle = isChecked ? 'class="line-through"' : "";
+
+        // WRAP THE WHOLE LINE in the task-wrapper
+        return (
+          `<span class="task-wrapper cursor-pointer" data-offset="${offset}">` +
+          `${bulletPart}${checkboxPart}` +
+          `<span ${labelStyle}>${label}</span>` +
+          `</span>`
+        );
+      }
+
+      return `${bulletPart}<span class="text-zinc-900 dark:text-zinc-100">${label}</span>`;
+    },
+  );
+
+  // Tables
   escaped = escaped.replace(/\|/g, `<span ${SUBTLE_STYLE}>|</span>`);
 
   return escaped;
@@ -213,50 +250,50 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
       const url = findLinkAtPos(value, pos);
       if (url) {
         window.open(url, "_blank", "noopener,noreferrer");
-        return; // Exit early if we handled a link
+        return;
       }
     }
 
-    // 2. Handle Checkbox Toggling
     const textBefore = value.substring(0, pos);
     const lineStartIndex = textBefore.lastIndexOf("\n") + 1;
-    const lineEndIndex = value.indexOf("\n", pos);
-    const currentLine = value.substring(
-      lineStartIndex,
-      lineEndIndex === -1 ? value.length : lineEndIndex,
-    );
+    const nextNewline = value.indexOf("\n", pos);
+    const lineEndIndex = nextNewline === -1 ? value.length : nextNewline;
+    const currentLine = value.substring(lineStartIndex, lineEndIndex);
 
-    // Matches markdown checkboxes: "- [ ] " or "- [x] "
-    const checkboxMatch = currentLine.match(/^(\s*-\s*\[)([ xX])(\])\s+/);
+    const checkboxMatch = currentLine.match(/^(\s*[-\*]\s*\[)([ xX])(\])/);
 
-    if (
-      checkboxMatch &&
-      pos >= lineStartIndex &&
-      pos <= lineStartIndex + checkboxMatch[0].length
-    ) {
-      e.preventDefault();
+    if (checkboxMatch) {
+      const checkboxEndIndex = lineStartIndex + checkboxMatch[0].length;
 
-      const checkCharIndex = lineStartIndex + checkboxMatch[1].length;
-      const isChecked = value[checkCharIndex] !== " ";
-      const nextChar = isChecked ? " " : "x";
+      // LOGIC GATE:
+      // Trigger toggle IF:
+      // A) The click was specifically on the "[ ]" part (the brackets)
+      // B) The click was on the text BUT the Cmd/Ctrl key is held down
+      const isClickOnCheckbox = pos <= checkboxEndIndex;
+      const isIntentionalToggle = e.ctrlKey || e.metaKey;
 
-      // Create the new string
-      const newValue =
-        value.substring(0, checkCharIndex) +
-        nextChar +
-        value.substring(checkCharIndex + 1);
+      if (isClickOnCheckbox || isIntentionalToggle) {
+        e.preventDefault();
 
-      // Update state
-      onChange(newValue);
+        const checkCharIndex = lineStartIndex + checkboxMatch[1].length;
+        const isChecked = value[checkCharIndex].toLowerCase() === "x";
+        const nextChar = isChecked ? " " : "x";
 
-      // FIX: Restore selection and focus to prevent page jumping
-      // We use requestAnimationFrame or setTimeout to wait for the DOM update
-      requestAnimationFrame(() => {
-        textarea.setSelectionRange(pos, pos);
-        textarea.focus();
-      });
+        const newValue =
+          value.substring(0, checkCharIndex) +
+          nextChar +
+          value.substring(checkCharIndex + 1);
+
+        onChange(newValue);
+
+        requestAnimationFrame(() => {
+          textarea.setSelectionRange(pos, pos);
+          textarea.focus();
+        });
+      }
     }
   };
+
   const wrapClasses = wordWrap
     ? "[&_textarea]:!white-space-pre-wrap [&_pre]:!white-space-pre-wrap [&_textarea]:!break-words [&_pre]:!break-words [&_textarea]:!overflow-wrap-anywhere [&_pre]:!overflow-wrap-anywhere [&_textarea]:!overflow-x-hidden"
     : "[&_textarea]:!white-space-pre [&_pre]:!white-space-pre [&_textarea]:!overflow-x-auto [&_pre]:!overflow-x-hidden [&_textarea]:!w-max [&_pre]:!w-max [&_textarea]:!min-w-full [&_pre]:!min-w-full";

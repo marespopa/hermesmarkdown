@@ -85,14 +85,45 @@ describe("MarkdownEditor Component", () => {
     expect(container.textContent).toContain("Quote");
   });
 
-  it("toggles checkboxes when clicked in the marker zone", () => {
-    renderEditor({ value: "- [ ] Task" });
+  it("toggles checkboxes when clicked directly on the bracket marker", () => {
+    const initialValue = "- [ ] Task";
+    renderEditor({ value: initialValue });
     const textarea = screen.getByRole("textbox") as HTMLTextAreaElement;
 
-    // Index 3 is inside the [ ]
+    // Index 3 is the space inside "[ ]"
+    // This should toggle WITHOUT any modifier keys
     textarea.selectionStart = 3;
     fireEvent.click(textarea);
+
     expect(mockOnChange).toHaveBeenCalledWith("- [x] Task");
+  });
+
+  it("toggles checkboxes when clicking the text label ONLY if Ctrl/Meta is held", () => {
+    const initialValue = "- [ ] My Task Name";
+    const { rerender } = renderEditor({ value: initialValue });
+    const textarea = screen.getByRole("textbox") as HTMLTextAreaElement;
+
+    // Index 10 is on the letter 'k' in "Task"
+    textarea.selectionStart = 10;
+
+    // SCENARIO A: Normal click (User wants to edit text)
+    fireEvent.click(textarea);
+    expect(mockOnChange).not.toHaveBeenCalled();
+
+    // SCENARIO B: Ctrl + Click (User wants to toggle from a distance)
+    fireEvent.click(textarea, { ctrlKey: true });
+    expect(mockOnChange).toHaveBeenCalledWith("- [x] My Task Name");
+  });
+
+  it("unchecks an already completed task", () => {
+    renderEditor({ value: "- [x] Done Task" });
+    const textarea = screen.getByRole("textbox") as HTMLTextAreaElement;
+
+    // Click on the 'x' (Index 3)
+    textarea.selectionStart = 3;
+    fireEvent.click(textarea);
+
+    expect(mockOnChange).toHaveBeenCalledWith("- [ ] Done Task");
   });
 
   it("opens links only when Ctrl/Meta is held", () => {
@@ -120,5 +151,39 @@ describe("MarkdownEditor Component", () => {
       fontFamily: "monospace",
       fontSize: "16px",
     });
+  });
+
+  it("styles workflow tags (#todo, #done, #urgent) with specific colors", () => {
+    const content = "#todo\n#done\n#urgent\n#in-progress";
+
+    const { container } = renderEditor({ value: content });
+
+    const spans = Array.from(container.querySelectorAll("span"));
+
+    // Find each tag by text content
+    const todoTag = spans.find((s) => s.textContent === "#todo");
+    const doneTag = spans.find((s) => s.textContent === "#done");
+    const urgentTag = spans.find((s) => s.textContent === "#urgent");
+    const progressTag = spans.find((s) => s.textContent === "#in-progress");
+
+    // Verify correct classes from your 'colors' mapping
+    expect(todoTag).toHaveClass("text-blue-600", "dark:text-blue-400");
+    expect(doneTag).toHaveClass("text-green-600", "dark:text-green-400");
+    expect(urgentTag).toHaveClass("text-red-600", "dark:text-red-400");
+    expect(progressTag).toHaveClass("text-amber-600", "dark:text-amber-400");
+
+    // Verify common styling for all tags
+    [todoTag, doneTag, urgentTag, progressTag].forEach((tag) => {
+      expect(tag).toHaveClass("font-mono", "font-bold");
+    });
+  });
+
+  it("handles workflow tags case-insensitively", () => {
+    const { container } = renderEditor({ value: "#TODO" });
+    const todoTag = Array.from(container.querySelectorAll("span")).find(
+      (s) => s.textContent === "#TODO",
+    );
+
+    expect(todoTag).toHaveClass("text-blue-600");
   });
 });
