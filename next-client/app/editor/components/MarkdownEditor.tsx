@@ -72,7 +72,7 @@ function highlightMarkdownMonochrome(
     "canceled",
     "waiting",
   ];
-  const tagRegex = new RegExp(`^#(${workflowTags.join("|")})$`, "gim");
+  const tagRegex = new RegExp(`#(${workflowTags.join("|")})$`, "gim");
 
   escaped = escaped.replace(tagRegex, (match, tagName) => {
     const colors: Record<string, string> = {
