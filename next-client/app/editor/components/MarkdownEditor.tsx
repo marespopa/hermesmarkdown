@@ -36,9 +36,17 @@ const highlightMarkdownMonochrome = (code: string, searchTerm?: string) => {
 
   // 1. Fenced Code Blocks
   escaped = escaped.replace(
-    /(```[a-z]*[\n\r]?)([\s\S]*?)(```)/g,
-    (_, open, content, close) =>
-      `<span class="bg-zinc-100 dark:bg-zinc-700 rounded-md"><span ${sym}>${open}</span><span class="text-zinc-800 dark:text-zinc-200">${content}</span><span ${sym}>${close}</span></span>`,
+    /(```)([a-z]*)([\n\r]?)([\s\S]*?)(```)/g,
+    (_, tickOpen, lang, newline, content, tickClose) => {
+      return (
+        `<span class="bg-zinc-100 dark:bg-zinc-700 rounded-md" style="display: inline-block; width: 100%; white-space: pre;">` +
+        `<span ${sym}>${tickOpen}</span>` +
+        `<span class="text-blue-500">${lang}</span>${newline}` +
+        `<span class="text-zinc-800 dark:text-zinc-200">${content}</span>` +
+        `<span ${sym}>${tickClose}</span>` +
+        `</span>`
+      );
+    },
   );
 
   // 2. Headings
@@ -59,10 +67,22 @@ const highlightMarkdownMonochrome = (code: string, searchTerm?: string) => {
     `<span class="bg-zinc-100 dark:bg-zinc-700 text-zinc-500 dark:text-zinc-400"><span ${sym}>$1</span>$2</span>`,
   );
 
-  // 5. Lists
+  // 5. Lists & Checkboxes
   escaped = escaped.replace(
-    /^(\s*([\d+\.\-\*]+|\[[ xX]\])\s+)([^\n\r]*)$/gm,
-    `<span ${sym}>$1</span><span class="text-zinc-900 dark:text-zinc-100">$3</span>`,
+    /^(\s*(?:[\d+\.\-\*]+|\[([ xX])\])\s+)([^\n\r]*)$/gm,
+    (match, prefix, check, label, offset) => {
+      // If 'check' is defined, it's a checkbox [ ] or [x]
+      if (check !== undefined) {
+        const isChecked = check.toLowerCase() === "x";
+        return (
+          `<span ${sym} class="task-wrapper cursor-pointer" data-offset="${offset}">` +
+          `${prefix.replace(/\[([ xX])\]/, `<span class="checkbox-box text-blue-500 font-bold">[${check}]</span>`)}` +
+          `</span><span class="text-zinc-900 dark:text-zinc-100">${label}</span>`
+        );
+      }
+      // Standard list item
+      return `<span ${sym}>${prefix}</span><span class="text-zinc-900 dark:text-zinc-100">${label}</span>`;
+    },
   );
 
   // 6. Links
@@ -166,10 +186,51 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
   };
 
   const handleTextareaClick = (e: React.MouseEvent<HTMLTextAreaElement>) => {
+    const pos = e.currentTarget.selectionStart;
+
+    // Link
     if (e.ctrlKey || e.metaKey) {
       const pos = e.currentTarget.selectionStart;
       const url = findLinkAtPos(value, pos);
       if (url) window.open(url, "_blank", "noopener,noreferrer");
+    }
+
+    // List Checkbox
+    const textBefore = value.substring(0, pos);
+    const lineStartIndex = textBefore.lastIndexOf("\n") + 1;
+    const lineEndIndex = value.indexOf("\n", pos);
+    const currentLine = value.substring(
+      lineStartIndex,
+      lineEndIndex === -1 ? value.length : lineEndIndex,
+    );
+
+    // Regex to match the checkbox pattern at the start of the line
+    const checkboxMatch = currentLine.match(/^(\s*-\s*\[)([ xX])(\])\s+/);
+
+    if (checkboxMatch) {
+      // Calculate the exact index of the 'x' or ' ' inside the [ ]
+      // checkboxMatch[1] is the part like "- ["
+      const checkCharIndex = lineStartIndex + checkboxMatch[1].length;
+
+      // Check if the click was roughly near the start of the line (the checkbox area)
+      // We allow a small buffer (e.g., first 10 characters of the line)
+      if (
+        pos >= lineStartIndex &&
+        pos <= lineStartIndex + checkboxMatch[0].length
+      ) {
+        const currentChar = value[checkCharIndex];
+        const nextChar = currentChar === " " ? "x" : " ";
+
+        const newValue =
+          value.substring(0, checkCharIndex) +
+          nextChar +
+          value.substring(checkCharIndex + 1);
+
+        onChange(newValue);
+
+        // Prevent the cursor from jumping/behaving weirdly after the toggle
+        e.preventDefault();
+      }
     }
   };
 
