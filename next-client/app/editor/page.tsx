@@ -235,7 +235,7 @@ export default function LiteEditor() {
         </div>
       </header>
 
-      <main className="max-w-screen-md mx-auto pt-8 sm:pt-16 pb-40 px-6">
+      <main className="max-w-screen-md mx-auto pt-16 pb-40 px-6">
         {isMounting ? (
           <div className="animate-pulse opacity-10 space-y-4">
             <div className="h-4 bg-current w-1/4 mb-10" />

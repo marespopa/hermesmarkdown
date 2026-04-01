@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef, useEffect, useCallback } from "react";
+import React, { useRef, useEffect, useCallback, useState } from "react";
 import Editor from "react-simple-code-editor";
 import { useAtom } from "jotai";
 import { atom_fontSize, atom_fontFamily } from "@/app/atoms/atoms";
@@ -23,81 +23,56 @@ const highlightMarkdownMonochrome = (
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;");
-  let pageCounter = 1;
 
+  // Search Highlighting
   if (searchTerm?.trim()) {
     try {
       const safeSearch = searchTerm.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
       const regex = new RegExp(`(${safeSearch})`, "gi");
       escaped = escaped.replace(
         regex,
-        `<mark class="bg-orange-300/60 dark:bg-orange-500/40 text-inherit">$1</mark>`,
+        `<mark class="bg-blue-500/20 dark:bg-blue-400/30 text-inherit rounded-sm transition-all shadow-[0_0_0_1px_rgba(59,130,246,0.1)]">$1</mark>`,
       );
     } catch (e) {}
   }
 
-  // Multi-line Code Blocks
+  // Syntax style: Faint and elegant (iA Writer style)
+  const sym =
+    'class="opacity-25 dark:opacity-20 font-normal transition-opacity hover:opacity-100"';
+
+  // Fenced Code Blocks
   escaped = escaped.replace(
-    /(```[a-z]*\n?)([\s\S]*?)(```)/g,
-    `<span class="opacity-30 text-stone-500">$1</span><span class="text-stone-900 dark:text-stone-100">$2</span><span class="opacity-30 text-stone-500">$3</span>`,
+    /(```[a-z]*[\n\r]?)([\s\S]*?)(```)/g,
+    (_, open, content, close) =>
+      `<span class="block bg-zinc-50/50 dark:bg-zinc-800/30 rounded-md my-2"><span ${sym}>${open}</span><span class="text-zinc-800 dark:text-zinc-200">${content}</span><span ${sym}>${close}</span></span>`,
   );
 
-  // Tables & Blockquotes
-  escaped = escaped.replace(/^(\s*\|.*\|[\s]*)$/gm, (m) => {
-    const formatted = m.replace(
-      /([|:-])/g,
-      '<span class="opacity-30 text-sky-600 dark:text-sky-400">$1</span>',
-    );
-    return `<span class="text-stone-900 dark:text-stone-100">${formatted}</span>`;
-  });
-
-  escaped = escaped.replace(
-    /^(\s*(?:&gt;\s*)+)(.*)$/gm,
-    (m, markers, content) => {
-      const faded = markers.replace(
-        /&gt;/g,
-        '<span class="opacity-30 text-orange-700 dark:text-orange-400">&gt;</span>',
-      );
-      return `<span>${faded}</span><span class="text-stone-700 dark:text-stone-300 italic">${content}</span>`;
-    },
-  );
-
-  // Rules, Lists, Headings
-  escaped = escaped.replace(
-    /^(\s*([-*])\2{2,}\s*)$/gm,
-    '<span class="opacity-30 text-stone-600 dark:text-stone-400">$1</span>',
-  );
+  // Lists & Checkboxes
   escaped = escaped.replace(
     /^(\s*([\d+\.\-\*]+|\[[ xX]\])\s+)(.*)$/gm,
-    `<span class="opacity-30 text-stone-600 dark:text-stone-400">$1</span><span class="text-stone-900 dark:text-stone-100">$3</span>`,
+    `<span ${sym}>$1</span><span class="text-zinc-900 dark:text-zinc-100">$3</span>`,
   );
+
+  // Headings (Subtle size progression via font-weight rather than massive scaling)
   escaped = escaped.replace(
     /^(#{1,6})(\s.+)$/gm,
-    `<span class="opacity-30 text-stone-600 dark:text-stone-400">$1</span><span class="font-bold text-stone-900 dark:text-stone-100">$2</span>`,
+    `<span ${sym}>$1</span><span class="font-semibold text-zinc-900 dark:text-zinc-50">$2</span>`,
   );
 
-  // Inline Styles
-  escaped = escaped.replace(
-    /(~~)(.*?)\1/g,
-    `<span class="opacity-30 text-stone-500">$1</span><span class="line-through text-stone-500">$2</span><span class="opacity-30 text-stone-500">$1</span>`,
-  );
+  // Bold & Italics
   escaped = escaped.replace(
     /(\*\*|__)(.*?)\1/g,
-    `<span class="opacity-30 text-stone-500">$1</span><span class="font-bold text-stone-900 dark:text-stone-100">$2</span><span class="opacity-30 text-stone-500">$1</span>`,
+    `<span ${sym}>$1</span><strong class="font-semibold text-zinc-900 dark:text-zinc-50">$2</strong><span ${sym}>$1</span>`,
   );
   escaped = escaped.replace(
-    /(`)([^`\n]+)(`)/g,
-    `<span class="opacity-30 text-stone-500">$1</span><span class="text-stone-900 dark:text-stone-100">$2</span><span class="opacity-30 text-stone-500">$3</span>`,
+    /(\*|_)(.*?)\1/g,
+    `<span ${sym}>$1</span><em class="italic text-zinc-800 dark:text-zinc-200">$2</em><span ${sym}>$1</span>`,
   );
 
-  // Links
+  // Links (Clean Apple-blue accents)
   escaped = escaped.replace(
     /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g,
-    `<span class="text-sky-700 dark:text-sky-400">[$1]</span><span class="opacity-30 text-stone-500">($2)</span>`,
-  );
-  escaped = escaped.replace(
-    /(^|[^\(])(https?:\/\/[^\s<]+)/g,
-    `$1<span class="text-sky-700 dark:text-sky-400 underline">$2</span>`,
+    `<span class="text-blue-600 dark:text-blue-400 underline decoration-blue-500/30 underline-offset-4 cursor-pointer">[$1]</span><span ${sym}>($2)</span>`,
   );
 
   return escaped;
@@ -106,7 +81,7 @@ const highlightMarkdownMonochrome = (
 const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
   value,
   onChange,
-  placeholder = "Start writing...",
+  placeholder = "Begin writing...",
   searchTerm,
   onTextareaReady,
   setMatchCount,
@@ -116,6 +91,10 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
   const [fontFamily] = useAtom(atom_fontFamily);
   const [fontSize] = useAtom(atom_fontSize);
 
+  // Microinteraction state: "Focus Mode" feel
+  const [isTyping, setIsTyping] = useState(false);
+  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
   const highlight = useCallback(
     (code: string) =>
       highlightMarkdownMonochrome(code, searchTerm, setMatchCount),
@@ -123,67 +102,59 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
   );
 
   useEffect(() => {
-    const findTextarea = () => {
-      const textarea = wrapperRef.current?.querySelector("textarea");
-      if (textarea) {
-        textareaRef.current = textarea as HTMLTextAreaElement;
-        if (onTextareaReady) onTextareaReady(textareaRef.current);
-      }
-    };
-    findTextarea();
-    const timer = setTimeout(findTextarea, 50);
-    return () => clearTimeout(timer);
+    const textarea = wrapperRef.current?.querySelector("textarea");
+    if (textarea) {
+      textareaRef.current = textarea as HTMLTextAreaElement;
+      if (onTextareaReady) onTextareaReady(textareaRef.current);
+    }
   }, [onTextareaReady]);
 
-  const handleInteraction = (e: React.MouseEvent) => {
-    if (!textareaRef.current) return;
-    if (e.ctrlKey || e.metaKey) {
-      setTimeout(() => {
-        const pos = textareaRef.current!.selectionStart;
-        const text = textareaRef.current!.value;
-        const linkRegex = /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g;
-        let match;
-        while ((match = linkRegex.exec(text)) !== null) {
-          if (pos >= match.index && pos <= match.index + match[0].length) {
-            window.open(match[2], "_blank", "noopener,noreferrer");
-            break;
-          }
-        }
-      }, 0);
-    } else {
-      textareaRef.current.focus();
-    }
+  const handleValueChange = (val: string) => {
+    onChange(val);
+
+    // Microinteraction: Fade UI elements while typing (Focus Mode)
+    setIsTyping(true);
+    if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+    typingTimeoutRef.current = setTimeout(() => setIsTyping(false), 1500);
   };
 
   return (
     <div
       ref={wrapperRef}
-      onMouseDownCapture={handleInteraction}
-      className="relative w-full min-h-screen cursor-text bg-transparent py-4 px-2"
+      className={`
+        relative w-full min-h-screen transition-all duration-700 ease-in-out
+        ${isTyping ? "opacity-80 scale-[1.002]" : "opacity-100 scale-100"}
+        p-2
+      `}
     >
       <div
         className={`
-          editor-container w-full h-full relative
-          [&_*]:!border-none [&_*]:!outline-none [&_*]:!ring-0
-          [&_textarea]:!p-0 [&_pre]:!p-0
-          [&_textarea]:!leading-relaxed [&_pre]:!leading-relaxed
-          [&_textarea]:!min-h-[100vh] [&_pre]:!min-h-[100vh]
-          [&_textarea]:!text-transparent 
-          [&_textarea]:!caret-blue-600 dark:[&_textarea]:!caret-blue-400
+          editor-container w-full h-full relative selection:bg-blue-500/15
+          [&_textarea]:!outline-none [&_textarea]:!border-none
+          [&_textarea]:!bg-transparent [&_textarea]:!p-0
+          [&_textarea]:!leading-[1.7] [&_pre]:!leading-[1.7]
+          [&_textarea]:!min-h-[80vh] [&_pre]:!min-h-[80vh]
+          [&_textarea]:!text-transparent
+          [&_textarea]:!caret-blue-500 dark:[&_textarea]:!caret-blue-400
           [&_textarea]:!z-10 [&_pre]:!z-0
-          [&_textarea]::selection:bg-blue-500/20
           
-          /* Placeholder CSS */
-          ${!value ? `before:content-['${placeholder}'] before:absolute before:left-0 before:top-0 before:opacity-20 before:pointer-events-none` : ""}
+          /* Typography smoothing for Apple/iA feel */
+          antialiased font-feature-settings-['ss01','ss02','cv01']
         `}
         style={{ fontFamily, fontSize }}
       >
+        {!value && (
+          <div className="absolute top-0 left-0 opacity-20 pointer-events-none italic select-none">
+            {placeholder}
+          </div>
+        )}
         <Editor
           value={value}
-          onValueChange={onChange}
+          onValueChange={handleValueChange}
           highlight={highlight}
           textareaId="markdown-editor"
           className="w-full h-full"
+          padding={0}
         />
       </div>
     </div>
