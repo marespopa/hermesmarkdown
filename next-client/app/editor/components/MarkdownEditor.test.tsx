@@ -37,8 +37,7 @@ describe("MarkdownEditor Component", () => {
     const { container } = renderEditor({ value: "#todo" });
 
     // We look specifically for the status-tag span to avoid the textarea duplicate
-    const tagSpan = container.querySelector(".status-tag");
-
+    const tagSpan = screen.getByTestId("status-tag");
     expect(tagSpan).toBeInTheDocument();
     expect(tagSpan?.textContent).toMatch(/#todo\s*↻/i);
 
@@ -61,7 +60,7 @@ describe("MarkdownEditor Component", () => {
 
     // Position cursor inside the brackets [ ]
     textarea.selectionStart = 3;
-    fireEvent.click(textarea, { ctrlKey: true });
+    fireEvent.click(textarea);
 
     expect(mockOnChange).toHaveBeenCalledWith("- [x] Task");
   });

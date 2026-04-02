@@ -19,21 +19,26 @@ interface MarkdownEditorProps {
   setMatchCount?: (count: number) => void;
 }
 
-function highlightMarkdownMonochrome(
-  code: string,
-  searchTerm: string,
-  wordWrap: boolean,
-  isMobile: boolean,
-) {
+const highlightMarkdownMonochrome = (
+  code,
+  fontFamily,
+  searchTerm,
+  wordWrap,
+) => {
   const SUBTLE_STYLE =
     'class="text-neutral-500/50 dark:text-neutral-400/30 transition-opacity hover:opacity-100"';
   const wrapStyle = wordWrap ? "pre-wrap" : "pre";
+
+  // Use fontFamily from atom if available, fallback to mono
+  const customFont = fontFamily ? `font-family: ${fontFamily};` : "";
+
   let escaped = code
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;");
 
-  if (searchTerm?.trim()) {
+  // Search Term
+  if (searchTerm?.length > 1 && searchTerm?.trim()) {
     try {
       const safeSearch = searchTerm.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
       const regex = new RegExp(`(${safeSearch})`, "gi");
@@ -44,65 +49,59 @@ function highlightMarkdownMonochrome(
     } catch (e) {}
   }
 
-  // 1. Fenced Code Blocks
+  // We move code into an array so other regexes don't "see" it.
+  const placeholders = [];
+
+  // Fenced Blocks
   escaped = escaped.replace(
     /(```)([a-z ]*)([\n\r])?([\s\S]*?)(```)/g,
-    (_, tickOpen, lang, newline, content, tickClose) => {
-      return (
-        `<span class="bg-zinc-100/50 dark:bg-zinc-800/40" style="display: inline; white-space: ${wrapStyle}; -webkit-box-decoration-break: clone; box-decoration-break: clone;">` +
-        `<span ${SUBTLE_STYLE}>${tickOpen}${lang}${newline || ""}</span>` +
-        `<span class="text-zinc-900 dark:text-zinc-100">${content}</span>` +
-        `<span ${SUBTLE_STYLE}>${tickClose}</span>` +
-        `</span>`
-      );
+    (match) => {
+      const id = `__FENCED_${placeholders.length}__`;
+      placeholders.push({ id, content: match, type: "fenced" });
+      return id;
     },
   );
 
-  // 1.5 Inline Code Blocks (Backticks)
-  escaped = escaped.replace(
-    /(`)([^`\n\r]+)(`)/g,
-    `<span class="bg-zinc-100/80 dark:bg-zinc-800/80 rounded-sm text-zinc-900 dark:text-zinc-100" style="padding: 0; margin: 0; box-decoration-break: clone; -webkit-box-decoration-break: clone;">` +
-      `<span ${SUBTLE_STYLE}>$1</span>` + // The opening backtick
-      `$2` + // The content
-      `<span ${SUBTLE_STYLE}>$3</span>` + // The closing backtick
-      `</span>`,
-  );
+  // Inline Blocks
+  escaped = escaped.replace(/(`)([^`\n\r]+)(`)/g, (match) => {
+    const id = `__INLINE_${placeholders.length}__`;
+    placeholders.push({ id, content: match, type: "inline" });
+    return id;
+  });
 
-  // 2. Headings
+  // Headings
   escaped = escaped.replace(
     /^(#{1,6})(\s[^\n\r]*)$/gm,
     `<span ${SUBTLE_STYLE}>$1</span><span class="font-semibold text-zinc-900 dark:text-zinc-50">$2</span>`,
   );
 
-  // 2.5 Shorthand Workflow Tags + Pseudo-icon
+  // Workflow Tags
   const workflowTags = ["todo", "prog", "done", "urgn", "wait"];
   const tagRegex = new RegExp(
     `(?:^|\\s)#(${workflowTags.join("|")})(?=\\s|$)`,
     "gim",
   );
-
   escaped = escaped.replace(tagRegex, (match, tagName) => {
-    const colors: Record<string, string> = {
+    const colors = {
       todo: "text-blue-600 dark:text-blue-400",
       prog: "text-amber-600 dark:text-amber-400",
       done: "text-green-600 dark:text-green-400",
-      urgn: "text-red-600 dark:text-red-400 animate-pulse",
+      urgn: "text-red-600 dark:text-red-400",
       wait: "text-purple-600 dark:text-purple-400",
     };
-
     const colorClass = colors[tagName.toLowerCase()] || "text-zinc-500";
-    return `<span class="${colorClass} font-mono font-bold cursor-pointer status-tag" data-tag="${tagName.toLowerCase()}">${match} <small class="opacity-40 text-[0.8em] select-none">↻</small></span>`;
+    return `<span class="${colorClass} font-mono font-bold cursor-pointer" data-testid="status-tag" style="${customFont}">${match} <small class="opacity-40 text-[0.8em] select-none">↻</small></span>`;
   });
 
   // Horizontal Rule
   escaped = escaped.replace(/^( {0,3}([*+\-])(?:\s*\2){2,}\s*)$/gm, (match) => {
-    return `<span class="text-transparent bg-gradient-to-r from-zinc-200 via-zinc-200 to-zinc-200 dark:from-zinc-800 dark:via-zinc-800 dark:to-zinc-800 bg-[length:100%_1px] bg-center bg-no-repeat" style="display: inline; width: 100%; -webkit-box-decoration-break: clone; box-decoration-break: clone;">${match}</span>`;
+    return `<span class="text-transparent bg-gradient-to-r from-zinc-200 to-zinc-200 dark:from-zinc-800 dark:to-zinc-800 bg-[length:100%_1px] bg-center bg-no-repeat" style="display: inline-block; width: 100%;">${match}</span>`;
   });
 
   // Blockquotes
   escaped = escaped.replace(
     /^((?:&gt;\s*)+)([^\n\r]*)$/gm,
-    `<span class="bg-zinc-100 dark:bg-zinc-700 text-zinc-500 dark:text-zinc-400"><span ${SUBTLE_STYLE}>$1</span>$2</span>`,
+    `<span class="bg-zinc-100 dark:bg-zinc-800/50 text-zinc-500 dark:text-zinc-400"><span ${SUBTLE_STYLE}>$1</span>$2</span>`,
   );
 
   // Links
@@ -111,48 +110,31 @@ function highlightMarkdownMonochrome(
     `<span class="text-blue-600 dark:text-blue-400 underline-offset-4">[$1]</span><span ${SUBTLE_STYLE}>($2)</span>`,
   );
 
-  escaped = escaped.replace(
-    /(?<!\()https?:\/\/[^\s<]+(?![^<]*>|[^<>]*<\/a>)/g,
-    `<span class="text-blue-600 dark:text-blue-400 underline-offset-4">$&</span>`,
-  );
-
   // Bold & Italics
   escaped = escaped.replace(
     /(\*\*|__)(.*?)\1/g,
     `<span ${SUBTLE_STYLE}>$1</span><strong class="font-semibold text-zinc-900 dark:text-zinc-50">$2</strong><span ${SUBTLE_STYLE}>$1</span>`,
   );
-
   escaped = escaped.replace(
     /(\*|_)(.*?)\1/g,
     `<span ${SUBTLE_STYLE}>$1</span><em class="italic text-zinc-800 dark:text-zinc-200">$2</em><span ${SUBTLE_STYLE}>$1</span>`,
   );
 
-  // Strikethrough
-  escaped = escaped.replace(
-    /~~(.*?)~~/g,
-    `<span ${SUBTLE_STYLE}>~~</span><del class="line-through text-zinc-500/70">$1</del><span ${SUBTLE_STYLE}>~~</span>`,
-  );
-
-  // Lists & Checkboxes + Pseudo-icon
+  // Lists & Checkboxes
   escaped = escaped.replace(
     /^(\s*(?:[\d+\.\-\*]+|[*+\-]))(\s*\[([ xX])\]\s+)?([^\n\r]*)$/gm,
-    (match, bullet, checkGroup, checkChar, label, offset) => {
+    (match, bullet, checkGroup, checkChar, label) => {
       const isTask = checkGroup !== undefined;
       const isChecked = isTask && checkChar.toLowerCase() === "x";
       const bulletPart = `<span ${SUBTLE_STYLE}>${bullet}</span>`;
 
       if (isTask) {
-        const checkboxPart = `<span ${SUBTLE_STYLE} font-mono font-bold">${checkGroup}<span class="text-[10px] ml-[-4px] opacity-30 select-none">◦</span></span>`;
+        // Leave empty space as per instructions, no [ ] in markdown template logic
+        const checkboxPart = `<span ${SUBTLE_STYLE} style="${customFont}">${checkGroup}<span class="text-[10px] ml-[-4px] opacity-30 select-none">◦</span></span>`;
         const labelStyle = isChecked
           ? 'class="line-through opacity-50"'
           : 'class="text-zinc-900 dark:text-zinc-100"';
-
-        return (
-          `<span class="task-wrapper cursor-pointer" data-offset="${offset}">` +
-          `${bulletPart}${checkboxPart}` +
-          `<span ${labelStyle}>${label}</span>` +
-          `</span>`
-        );
+        return `${bulletPart}${checkboxPart}<span ${labelStyle}>${label}</span>`;
       }
       return `${bulletPart}<span class="text-zinc-900 dark:text-zinc-100">${label}</span>`;
     },
@@ -160,9 +142,40 @@ function highlightMarkdownMonochrome(
 
   escaped = escaped.replace(/\|/g, `<span ${SUBTLE_STYLE}>|</span>`);
 
-  return escaped;
-}
+  placeholders.forEach((p) => {
+    let styled;
+    if (p.type === "fenced") {
+      styled = p.content.replace(
+        /(```)([a-z ]*)([\n\r])?([\s\S]*?)(```)/g,
+        (_, tOpen, lang, nl, content, tClose) => {
+          return (
+            `<span class="bg-zinc-100/50 dark:bg-zinc-800/40" style="display: block; white-space: ${wrapStyle}; ${customFont} -webkit-box-decoration-break: clone;">` +
+            `<span ${SUBTLE_STYLE}>${tOpen}${lang}${nl || ""}</span>` +
+            `<span class="text-zinc-900 dark:text-zinc-100">${content}</span>` +
+            `<span ${SUBTLE_STYLE}>${tClose}</span>` +
+            `</span>`
+          );
+        },
+      );
+    } else {
+      styled = p.content.replace(
+        /(`)([^`\n\r]+)(`)/g,
+        (_, tOpen, content, tClose) => {
+          return (
+            `<span class="bg-zinc-100/80 dark:bg-zinc-800/80 rounded-sm text-zinc-900 dark:text-zinc-100" style="padding: 0 2px; ${customFont}">` +
+            `<span ${SUBTLE_STYLE}>${tOpen}</span>${content}<span ${SUBTLE_STYLE}>${tClose}</span>` +
+            `</span>`
+          );
+        },
+      );
+    }
+    escaped = escaped.replace(p.id, styled);
+  });
 
+  return escaped;
+};
+
+// Main Component
 const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
   value,
   onChange,
@@ -183,7 +196,7 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
 
   const highlight = useCallback(
     (code: string) =>
-      highlightMarkdownMonochrome(code, searchTerm, wordWrap, isMobile),
+      highlightMarkdownMonochrome(code, fontFamily, searchTerm, wordWrap),
     [searchTerm, wordWrap],
   );
 
@@ -316,14 +329,6 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
   const handleEditorClick = (e: React.MouseEvent<HTMLTextAreaElement>) => {
     const textarea = e.currentTarget;
     const pos = textarea.selectionStart;
-
-    // Requirement: Only toggle if CTRL/CMD is held and it is NOT a mobile device
-    const isModifierPressed = e.ctrlKey || e.metaKey;
-    const canInteract = !isMobile && isModifierPressed;
-
-    // If conditions aren't met, allow default behavior (setting cursor position)
-    if (!canInteract) return;
-
     const textBefore = value.substring(0, pos);
     const lineStartIndex = textBefore.lastIndexOf("\n") + 1;
     const nextNewline = value.indexOf("\n", pos);

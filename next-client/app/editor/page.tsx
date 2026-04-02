@@ -21,7 +21,7 @@ import {
   HiOutlineCheck,
   HiOutlineCog,
   HiOutlineArrowLeft,
-  HiOutlineDocumentAdd, // New Icon
+  HiOutlineDocumentAdd,
 } from "react-icons/hi";
 
 export default function LiteEditor() {
