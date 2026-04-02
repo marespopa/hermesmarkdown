@@ -2,6 +2,7 @@
 
 import React, { useRef, useEffect, useCallback, useState } from "react";
 import Editor from "react-simple-code-editor";
+import getCaretCoordinates from "textarea-caret";
 import { useAtom } from "jotai";
 import {
   atom_fontSize,
@@ -50,12 +51,12 @@ const TEMPLATES = [
   {
     label: "✨ Tutorial",
     content:
-      "--- \ntitle: Hermes Markdown Demo\ndate: {date}\nstatus: #todo\n--- \n\n# 🚀 Welcome to Hermes\nThis is an interactive workspace. Try the features below to get started.\n\n## 🛠 Try the Shortcuts\nExperience real-time conversion by typing these commands:\n- **The Magic Dot**: Type `.\u200B.d` here:  \n- **Live Shortcodes**: Type `{\u200Bdate}` or `{\u200Btime}` here:  \n\n## 🔄 Workflow Cycling\nHermes uses **Smart Tags** to track progress. Click the tags below to cycle their status:\n- Initial Research #todo\n- Active Development #prog\n- Hotfix Needed #urgn\n- Project Delivery #done\n\n## 📝 Interactive Lists\nClick the brackets below to see the completion effect:\n- [ ] Click to complete this task\n- [x] Completed items will fade out\n- [ ] You can customize the font in settings\n\n> [!TIP]\n> Hover your cursor in the **top right corner** to reveal the settings menu.\n\n## 💡 Pro Tips\n> **Command Palette**: Type `/` at the start of any new line to see all options.\n> **Quick Entry**: Use `.\u200B.d` anywhere to instantly stamp the current date.\n\n---\n\n*Drafted with 🧡 in Hermes Markdown*",
+      "--- \ntitle: Hermes Markdown Demo\ndate: {date}\nstatus: #todo\n--- \n\n# 🚀 Welcome to Hermes\nThis is an interactive workspace. Try the features below to get started.\n\n## 🛠 Try the Shortcuts\nExperience real-time conversion by typing these commands:\n- **The Magic Dot**: Type `..d` here:  \n- **Live Shortcodes**: Type `{date}` or `{time}` here:  \n\n## 🔄 Workflow Cycling\nHermes uses **Smart Tags** to track progress. Click the tags below to cycle their status:\n- Initial Research #todo\n- Active Development #prog\n- Hotfix Needed #urgn\n- Project Delivery #done\n\n## 📝 Interactive Lists\nClick the brackets below to see the completion effect:\n- [ ] Click to complete this task\n- [x] Completed items will fade out\n- [ ] You can customize the font in settings\n\n> [!TIP]\n> Hover your cursor in the **top right corner** to reveal the settings menu.\n\n## 💡 Pro Tips\n> **Command Palette**: Type `/` at the start of any new line to see all options.\n> **Quick Entry**: Use `..d` anywhere to instantly stamp the current date.\n\n---\n\n*Drafted with 🧡 in Hermes Markdown*",
   },
   {
     label: "📝 To-Do List",
     content:
-      "# To-Do List ✏️\n- [ ] Task\n- [x] Task\n\n## Priority Tasks 🎯\n- [ ] Task",
+      "# To-Do List ✏️\n-   Task\n- [x] Task\n\n## Priority Tasks 🎯\n-   Task",
   },
   {
     label: "🤖 AI Prompt",
@@ -218,7 +219,7 @@ export default function MarkdownEditor({
     if (!textarea) return;
 
     const start = textarea.selectionStart;
-    const before = value.substring(0, start - 1); // remove the "/"
+    const before = value.substring(0, start - 1);
     const after = value.substring(start);
 
     let processedContent = content;
@@ -244,7 +245,22 @@ export default function MarkdownEditor({
     const charBefore = val[start - 2];
 
     if (val[start - 1] === "/" && (!charBefore || charBefore === "\n")) {
-      setMenuPos({ top: textarea.offsetTop + 28, left: 16 });
+      const caret = getCaretCoordinates(textarea, start);
+
+      // 1. Determine Menu Height (approx 240px for 6 items + padding)
+      const menuHeight = 240;
+      const spaceBelow =
+        textarea.clientHeight - (caret.top - textarea.scrollTop);
+
+      // 2. Decide Position (Up or Down)
+      // If space below is less than menu height, shift it up
+      const shouldShowUp = spaceBelow < menuHeight && caret.top > menuHeight;
+
+      setMenuPos({
+        top: shouldShowUp ? caret.top - menuHeight - 8 : caret.top + 24,
+        left: Math.min(caret.left, textarea.clientWidth - 220),
+      });
+
       setMenuOpen(true);
       setSelectedIndex(0);
     } else if (menuOpen) {
@@ -372,30 +388,6 @@ export default function MarkdownEditor({
       className="relative w-full min-h-screen p-2 [overflow-anchor:none] [contain:content] overflow-x-auto"
       translate="no"
     >
-      {menuOpen && (
-        <div
-          className="absolute z-50 w-52 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg shadow-2xl py-1 overflow-hidden"
-          style={{ top: menuPos.top, left: menuPos.left, fontFamily }}
-        >
-          {TEMPLATES.map((t, i) => (
-            <div
-              key={t.label}
-              onMouseDown={(e) => {
-                e.preventDefault();
-                insertTemplate(t.content);
-              }}
-              className={`px-3 py-2 cursor-pointer text-sm transition-colors ${
-                i === selectedIndex
-                  ? "bg-amber-100 dark:bg-neutral-900 text-amber-900 dark:text-zinc-100"
-                  : "text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800"
-              }`}
-            >
-              {t.label}
-            </div>
-          ))}
-        </div>
-      )}
-
       <div
         className={`editor-container relative h-full antialiased
           ${wordWrap ? "w-full" : "w-max min-w-full"}
@@ -407,6 +399,34 @@ export default function MarkdownEditor({
         `}
         style={{ fontFamily, fontSize }}
       >
+        {menuOpen && (
+          <div
+            className="absolute z-50 w-52 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg shadow-2xl py-1 overflow-hidden"
+            style={{
+              top: menuPos.top,
+              left: menuPos.left,
+              fontFamily, // Enforce atom font in menu
+            }}
+          >
+            {TEMPLATES.map((t, i) => (
+              <div
+                key={t.label}
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  insertTemplate(t.content);
+                }}
+                className={`px-3 py-2 cursor-pointer text-sm transition-colors ${
+                  i === selectedIndex
+                    ? "bg-amber-100 dark:bg-neutral-900 text-amber-900 dark:text-zinc-100"
+                    : "text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                }`}
+              >
+                {t.label}
+              </div>
+            ))}
+          </div>
+        )}
+
         {!value && (
           <div className="absolute top-0 left-0 opacity-20 pointer-events-none italic">
             {placeholder}
