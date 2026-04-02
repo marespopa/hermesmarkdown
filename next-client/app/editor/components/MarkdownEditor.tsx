@@ -94,42 +94,39 @@ function highlightMarkdownMonochrome(
     );
   }
 
-  html = html.replace(
-    /(```|[~`]{1,3})([\s\S]*?)\1/g,
-    `<span ${SUBTLE}>$1</span><span class="bg-zinc-100/50 dark:bg-zinc-800/40">$2</span><span ${SUBTLE}>$1</span>`,
-  );
-
+  // 1. Process Headings
   html = html.replace(
     /^(#{1,6}\s+)(.*)$/gm,
     `<span ${SUBTLE}>$1</span><span class="font-bold text-zinc-900 dark:text-zinc-50">$2</span>`,
   );
+
+  // 2. Process Blockquotes
   html = html.replace(
     /^(&gt;\s?)(.*)$/gm,
     `<span ${SUBTLE}>$1</span><span class="text-zinc-500 dark:text-zinc-400">$2</span>`,
   );
 
+  // 3. Process Links
   html = html.replace(
     /(\[)([^\]]+)(\]\()([^)]+)(\))/g,
     `<span ${SUBTLE}>$1</span><span class="text-blue-600 dark:text-blue-400 underline underline-offset-4">$2</span><span ${SUBTLE}>$3$4$5</span>`,
   );
 
+  // 4. Process Hashtags
   const tagRegex = /(?:^|\s)#([\w-]+)(?=\s|$)/gim;
-
   html = html.replace(tagRegex, (match, tagName) => {
     const lowerTag = tagName.toLowerCase();
     const isWorkflow = WORKFLOW_TAGS.includes(lowerTag);
-
     const colorClass = isWorkflow
       ? TAG_COLORS[lowerTag]
       : "font-bold text-zinc-700 dark:text-zinc-300";
-
     const indicator = isWorkflow
       ? ' <small class="opacity-30 select-none">↻</small>'
       : "";
-
     return `<span class="${colorClass} cursor-pointer" ${customFont}>${match}${indicator}</span>`;
   });
 
+  // 5. Process Lists & Checkboxes
   html = html.replace(
     /^(\s*[-*+]\s+)(\[[ xX]\]\s+)?(.*)$/gm,
     (m, bull, check, label) => {
@@ -139,6 +136,7 @@ function highlightMarkdownMonochrome(
     },
   );
 
+  // 6. Process Bold & Italics
   html = html.replace(
     /(\*\*|__)(.*?)\1/g,
     `<span ${SUBTLE}>$1</span><strong class="font-bold text-zinc-900 dark:text-zinc-50">$2</strong><span ${SUBTLE}>$1</span>`,
@@ -148,10 +146,20 @@ function highlightMarkdownMonochrome(
     `<span ${SUBTLE}>$1</span><em class="italic text-zinc-800 dark:text-zinc-200">$2</em><span ${SUBTLE}>$1</span>`,
   );
 
+  // 7. Process Tables/Separators
   html = html.replace(/\|/g, `<span ${SUBTLE}>|</span>`);
   html = html.replace(
     /^( {0,3}([*+-])(?:\s*\2){2,}\s*)$/gm,
     `<span ${SUBTLE}>$1</span>`,
+  );
+
+  // 8. Process Code Blocks
+  html = html.replace(
+    /(```|~~~)([a-zA-Z0-9-]*)?([\s\S]*?)\1/g,
+    (match, fence, lang, content) => {
+      const langHtml = lang ? `<span ${SUBTLE}>${lang}</span>` : "";
+      return `<span ${SUBTLE}>${fence}</span>${langHtml}<span class="bg-zinc-100/50 dark:bg-zinc-800/40">${content}</span><span ${SUBTLE}>${fence}</span>`;
+    },
   );
 
   return html;
