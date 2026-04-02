@@ -387,7 +387,7 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
   return (
     <div
       ref={wrapperRef}
-      className={`relative w-full min-h-screen transition-all duration-700 ${isTyping ? "opacity-70" : "opacity-100"} p-2 ${!wordWrap ? "overflow-x-auto" : "overflow-x-hidden"}`}
+      className={`relative w-full min-h-screen transition-all duration-700 p-2 ${!wordWrap ? "overflow-x-auto" : "overflow-x-hidden"}`}
     >
       <div
         className={`
