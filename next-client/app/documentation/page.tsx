@@ -14,7 +14,7 @@ export default function Documentation() {
   const resultLabel = "opacity-40 italic text-right";
 
   return (
-    <main className="min-h-screen font-mono selection:bg-blue-500 dark:selection:bg-blue-100 bg-white dark:bg-black text-zinc-900 dark:text-zinc-100">
+    <main className="min-h-screen font-mono selection:bg-blue-500 dark:selection:bg-blue-100 bg-white dark:bg-neutral-900 text-zinc-900 dark:text-zinc-100">
       <div className="max-w-2xl mx-auto px-6 py-32 space-y-32">
         {/* --- HEADER SECTION --- */}
         <section className="space-y-8">

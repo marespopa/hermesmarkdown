@@ -107,7 +107,7 @@ export default function LandingPage() {
           <h2 className="text-xs uppercase tracking-[0.2em] opacity-50 text-center">
             Standard Syntax
           </h2>
-          <div className="bg-white dark:bg-black p-8 border border-black/5 dark:border-white/5 font-mono text-sm leading-8 opacity-80">
+          <div className="bg-white dark:bg-neutral-900 p-8 border border-black/5 dark:border-white/5 font-mono text-sm leading-8 opacity-80">
             # Heading One <br />
             ## Heading Two <br />
             - List Item <br />
