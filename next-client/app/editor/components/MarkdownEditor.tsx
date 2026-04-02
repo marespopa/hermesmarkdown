@@ -51,12 +51,12 @@ const TEMPLATES = [
   {
     label: "✨ Tutorial",
     content:
-      "--- \ntitle: Hermes Markdown Demo\ndate: {date}\nstatus: #todo\n--- \n\n# 🚀 Welcome to Hermes\nThis is an interactive workspace. Try the features below to get started.\n\n## 🛠 Try the Shortcuts\nExperience real-time conversion by typing these commands:\n- **The Magic Dot**: Type `..d` here:  \n- **Live Shortcodes**: Type `{date}` or `{time}` here:  \n\n## 🔄 Workflow Cycling\nHermes uses **Smart Tags** to track progress. Click the tags below to cycle their status:\n- Initial Research #todo\n- Active Development #prog\n- Hotfix Needed #urgn\n- Project Delivery #done\n\n## 📝 Interactive Lists\nClick the brackets below to see the completion effect:\n- [ ] Click to complete this task\n- [x] Completed items will fade out\n- [ ] You can customize the font in settings\n\n> [!TIP]\n> Hover your cursor in the **top right corner** to reveal the settings menu.\n\n## 💡 Pro Tips\n> **Command Palette**: Type `/` at the start of any new line to see all options.\n> **Quick Entry**: Use `..d` anywhere to instantly stamp the current date.\n\n---\n\n*Drafted with 🧡 in Hermes Markdown*",
+      "--- \ntitle: Hermes Markdown Demo\ndate: {date}\nstatus: #todo\n--- \n\n# 🚀 Welcome to Hermes\nThis is an interactive workspace. Try the features below to get started.\n\n## 🛠 Try the Shortcuts\nExperience real-time conversion by typing these commands:\n- **The Magic Dot**: Type `.\u200c.d` here:  \n- **Live Shortcodes**: Type `{\u200cdate}` or `{\u200ctime}` here:  \n- **Smart Paste**: Copy this url: `https://www.marespopa.com` and paste it here to auto-wrap it in a markdown link. Try **CTRL + Click** on the result to visit it!\n\n## 🔄 Workflow Cycling\nHermes uses **Smart Tags** to track progress. Click the tags below to cycle their status:\n- Initial Research #todo\n- Active Development #prog\n- Hotfix Needed #urgn\n- Project Delivery #done\n\n## 📝 Interactive Lists\nClick the brackets below to see the completion effect:\n- [ ] Click to complete this task\n- [x] Completed items will fade out\n- [ ] You can customize the font in settings\n\n> [!TIP]\n> Hover your cursor in the **top right corner** to reveal the settings menu.\n\n## 💡 Pro Tips\n> **Command Palette**: Type `/` at the start of any new line to see all options.\n> **Quick Entry**: Use `.\u200c.d` anywhere to instantly stamp the current date.\n> **Link Editing**: When you paste a link, the word 'link' is auto-selected so you can rename it immediately.\n> **Navigation**: Hold **CTRL** (or **CMD**) while clicking any link to open it in a new tab.\n\n---\n\n*Drafted with 🧡 in Hermes Markdown*",
   },
   {
     label: "📝 To-Do List",
     content:
-      "# To-Do List ✏️\n-   Task\n- [x] Task\n\n## Priority Tasks 🎯\n-   Task",
+      "# To-Do List ✏️\n- [ ] Task\n- [x] Task\n\n## Priority Tasks 🎯\n- [ ] Task",
   },
   {
     label: "🤖 AI Prompt",
@@ -211,6 +211,32 @@ export default function MarkdownEditor({
       window.removeEventListener("keyup", handleKeyUp);
     };
   }, []);
+
+  function handlePaste(e: React.ClipboardEvent) {
+    const pastedText = e.clipboardData.getData("text");
+    const urlRegex = /^(https?:\/\/[^\s]+)$/i;
+
+    if (urlRegex.test(pastedText.trim())) {
+      e.preventDefault();
+      const textarea = textareaRef.current;
+      if (!textarea) return;
+
+      const url = pastedText.trim();
+      const markdownLink = `[link](${url})`;
+
+      // Insert formatted text
+      document.execCommand("insertText", false, markdownLink);
+
+      // Calculate selection for the word "link"
+      const endPos = textarea.selectionStart;
+      const startPos = endPos - markdownLink.length + 1;
+      const linkWordEnd = startPos + 4;
+
+      requestAnimationFrame(() => {
+        textarea.setSelectionRange(startPos, linkWordEnd);
+      });
+    }
+  }
 
   function findLinkAtPos(text: string, pos: number) {
     const mdRegex = /\[[^\]]+\]\((https?:\/\/[^\s)]+)\)/g;
@@ -446,6 +472,7 @@ export default function MarkdownEditor({
           highlight={highlight}
           padding={0}
           onClick={handleEditorClick}
+          onPaste={handlePaste}
           onMouseMove={(e) => {
             if (!e.ctrlKey && !e.metaKey) return setIsOverLink(false);
             setIsOverLink(
