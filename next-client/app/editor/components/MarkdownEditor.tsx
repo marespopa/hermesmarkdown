@@ -95,10 +95,9 @@ function highlightMarkdownMonochrome(
   });
 
   // Horizontal Rule
-  escaped = escaped.replace(
-    /^(\s*[*\-+](?:\s*[*\-+]){2,}\s*)$/gm,
-    `<span class="text-transparent bg-gradient-to-r from-zinc-200 via-zinc-200 to-zinc-200 dark:from-zinc-800 dark:via-zinc-800 dark:to-zinc-800 bg-[length:100%_1px] bg-center bg-no-repeat">$1</span>`,
-  );
+  escaped = escaped.replace(/^( {0,3}([*+\-])(?:\s*\2){2,}\s*)$/gm, (match) => {
+    return `<span class="text-transparent bg-gradient-to-r from-zinc-200 via-zinc-200 to-zinc-200 dark:from-zinc-800 dark:via-zinc-800 dark:to-zinc-800 bg-[length:100%_1px] bg-center bg-no-repeat" style="display: inline; width: 100%; -webkit-box-decoration-break: clone; box-decoration-break: clone;">${match}</span>`;
+  });
 
   // Blockquotes
   escaped = escaped.replace(
