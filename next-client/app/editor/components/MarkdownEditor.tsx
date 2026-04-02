@@ -90,12 +90,12 @@ const highlightMarkdownMonochrome = (
       wait: "text-purple-600 dark:text-purple-400",
     };
     const colorClass = colors[tagName.toLowerCase()] || "text-zinc-500";
-    return `<span class="${colorClass} font-mono font-bold cursor-pointer" data-testid="status-tag" style="${customFont}">${match} <small class="opacity-40 text-[0.8em] select-none">↻</small></span>`;
+    return `<span class="${colorClass} font-mono font-semibold cursor-pointer" data-testid="status-tag" style="${customFont}">${match} <small class="opacity-40 text-[0.8em] select-none">↻</small></span>`;
   });
 
   // Horizontal Rule
   escaped = escaped.replace(/^( {0,3}([*+\-])(?:\s*\2){2,}\s*)$/gm, (match) => {
-    return `<span class="text-transparent bg-gradient-to-r from-zinc-200 to-zinc-200 dark:from-zinc-800 dark:to-zinc-800 bg-[length:100%_1px] bg-center bg-no-repeat" style="display: inline-block; width: 100%;">${match}</span>`;
+    return `<span class="text-transparent bg-gradient-to-r from-zinc-200 to-zinc-200 dark:from-zinc-800 dark:to-zinc-800 bg-[length:100%_1px] bg-center bg-no-repeat select-none pointer-events-none">${match}</span>`;
   });
 
   // Blockquotes
