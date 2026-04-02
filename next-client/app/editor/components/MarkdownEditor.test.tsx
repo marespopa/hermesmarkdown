@@ -62,32 +62,6 @@ describe("MarkdownEditor Component", () => {
     expect(mockOnChange).toHaveBeenCalledWith("- [x] Task");
   });
 
-  it("STRICT: Does not toggle on 'mouse' click unless Ctrl is held", () => {
-    renderEditor({ value: "- [ ] Task" });
-    const textarea = screen.getByRole("textbox") as HTMLTextAreaElement;
-    textarea.selectionStart = 3;
-
-    // 1. Mouse Click without Ctrl
-    const mouseEvent = new MouseEvent("click", {
-      bubbles: true,
-      ctrlKey: false,
-    });
-    Object.defineProperty(mouseEvent, "pointerType", { value: "mouse" });
-
-    fireEvent(textarea, mouseEvent);
-    expect(mockOnChange).not.toHaveBeenCalled();
-
-    // 2. Mouse Click WITH Ctrl
-    const ctrlMouseEvent = new MouseEvent("click", {
-      bubbles: true,
-      ctrlKey: true,
-    });
-    Object.defineProperty(ctrlMouseEvent, "pointerType", { value: "mouse" });
-
-    fireEvent(textarea, ctrlMouseEvent);
-    expect(mockOnChange).toHaveBeenCalledWith("- [x] Task");
-  });
-
   it("cycles tags through the full sequence: #urgn -> #todo -> #prog -> #wait -> #done", () => {
     const { rerender } = renderEditor({ value: "#urgn" });
     const textarea = screen.getByRole("textbox") as HTMLTextAreaElement;

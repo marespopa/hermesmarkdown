@@ -323,63 +323,71 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
     const lineEndIndex = nextNewline === -1 ? value.length : nextNewline;
     const currentLine = value.substring(lineStartIndex, lineEndIndex);
 
-    // Checkbox Toggle
+    let workingValue = value;
+    let didUpdate = false;
+
+    // 1. Checkbox Toggle
     const checkboxMatch = currentLine.match(/^(\s*[-\*]\s*\[)([ xX])(\])/);
     if (checkboxMatch) {
-      const checkboxEndIndex = lineStartIndex + checkboxMatch[0].length;
-      const shouldToggle =
-        (isMouse && isModifierPressed) || (!isMouse && pos <= checkboxEndIndex);
+      const boxStart = lineStartIndex + checkboxMatch[0].indexOf("[");
+      const boxEnd = lineStartIndex + checkboxMatch[0].indexOf("]") + 1;
+      const isInsideBox = pos >= boxStart && pos <= boxEnd;
 
-      if (shouldToggle) {
+      const shouldToggleBox = isInsideBox || (isMouse && isModifierPressed);
+
+      if (shouldToggleBox) {
+        // ONLY preventDefault if we are actually clicking the interaction zone
         e.preventDefault();
-        const checkCharIndex = lineStartIndex + checkboxMatch[1].length;
-        const isChecked = value[checkCharIndex].toLowerCase() === "x";
-        const nextChar = isChecked ? " " : "x";
-        const newValue =
-          value.substring(0, checkCharIndex) +
-          nextChar +
-          value.substring(checkCharIndex + 1);
-        onChange(newValue);
 
-        requestAnimationFrame(() => {
-          textarea.setSelectionRange(pos, pos);
-          textarea.focus();
-        });
-        return;
+        const checkCharIndex = lineStartIndex + checkboxMatch[1].length;
+        const isChecked = workingValue[checkCharIndex].toLowerCase() === "x";
+        const nextChar = isChecked ? " " : "x";
+
+        workingValue =
+          workingValue.substring(0, checkCharIndex) +
+          nextChar +
+          workingValue.substring(checkCharIndex + 1);
+
+        didUpdate = true;
       }
     }
 
-    // Status Tag Toggle
+    // 2. Status Tag Toggle
     const lineTagMatch = currentLine.match(/#(todo|prog|done|urgn|wait)\b/i);
     if (lineTagMatch) {
       const tagName = lineTagMatch[1].toLowerCase();
-      const tagMatchIndex = lineStartIndex + lineTagMatch.index;
+      const tagMatchIndex = lineStartIndex + lineTagMatch.index!;
       const tagFullMatch = lineTagMatch[0];
 
       const isInsideTag =
         pos >= tagMatchIndex && pos <= tagMatchIndex + tagFullMatch.length;
-      const shouldToggle =
-        (isMouse && isModifierPressed) || (!isMouse && isInsideTag);
 
-      if (shouldToggle) {
+      // If we already updated the checkbox, we skip the tag unless the click was explicitly on the tag
+      const shouldToggleTag =
+        isInsideTag || (isMouse && isModifierPressed && !didUpdate);
+
+      if (shouldToggleTag) {
         e.preventDefault();
         const nextTag = TAG_CYCLE[tagName];
         if (nextTag) {
-          const newValue =
-            value.substring(0, tagMatchIndex) +
+          workingValue =
+            workingValue.substring(0, tagMatchIndex) +
             `#${nextTag}` +
-            value.substring(tagMatchIndex + tagFullMatch.length);
-          onChange(newValue);
+            workingValue.substring(tagMatchIndex + tagFullMatch.length);
 
-          requestAnimationFrame(() => {
-            textarea.setSelectionRange(pos, pos);
-            textarea.focus();
-          });
+          didUpdate = true;
         }
       }
     }
-  };
 
+    if (didUpdate) {
+      onChange(workingValue);
+      requestAnimationFrame(() => {
+        textarea.setSelectionRange(pos, pos);
+        if (isMouse) textarea.focus();
+      });
+    }
+  };
   const wrapClasses = wordWrap
     ? "[&_textarea]:!white-space-pre-wrap [&_pre]:!white-space-pre-wrap [&_textarea]:!break-words [&_pre]:!break-words [&_textarea]:!overflow-wrap-anywhere [&_pre]:!overflow-wrap-anywhere [&_textarea]:!overflow-x-hidden"
     : "[&_textarea]:!white-space-pre [&_pre]:!white-space-pre [&_textarea]:!overflow-x-auto [&_pre]:!overflow-x-hidden [&_textarea]:!w-max [&_pre]:!w-max [&_textarea]:!min-w-full [&_pre]:!min-w-full";
