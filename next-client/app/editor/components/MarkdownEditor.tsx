@@ -8,6 +8,7 @@ import {
   atom_fontFamily,
   atom_wordWrap,
 } from "@/app/atoms/atoms";
+import useIsMobile from "@/app/hooks/use-is-mobile";
 
 interface MarkdownEditorProps {
   value: string;
@@ -20,13 +21,13 @@ interface MarkdownEditorProps {
 
 function highlightMarkdownMonochrome(
   code: string,
-  searchTerm?: string,
-  wordWrap?: boolean,
+  searchTerm: string,
+  wordWrap: boolean,
+  isMobile: boolean,
 ) {
   const SUBTLE_STYLE =
     'class="text-neutral-500/50 dark:text-neutral-400/30 transition-opacity hover:opacity-100"';
   const wrapStyle = wordWrap ? "pre-wrap" : "pre";
-
   let escaped = code
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
@@ -55,6 +56,16 @@ function highlightMarkdownMonochrome(
         `</span>`
       );
     },
+  );
+
+  // 1.5 Inline Code Blocks (Backticks)
+  escaped = escaped.replace(
+    /(`)([^`\n\r]+)(`)/g,
+    `<span class="bg-zinc-100/80 dark:bg-zinc-800/80 rounded-sm text-zinc-900 dark:text-zinc-100" style="padding: 0; margin: 0; box-decoration-break: clone; -webkit-box-decoration-break: clone;">` +
+      `<span ${SUBTLE_STYLE}>$1</span>` + // The opening backtick
+      `$2` + // The content
+      `<span ${SUBTLE_STYLE}>$3</span>` + // The closing backtick
+      `</span>`,
   );
 
   // 2. Headings
@@ -165,14 +176,15 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
   const [fontFamily] = useAtom(atom_fontFamily);
   const [fontSize] = useAtom(atom_fontSize);
   const [wordWrap] = useAtom(atom_wordWrap);
-
+  const isMobile = useIsMobile();
   const [isTyping, setIsTyping] = useState(false);
   const [isCtrlPressed, setIsCtrlPressed] = useState(false);
   const [isOverLink, setIsOverLink] = useState(false);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const highlight = useCallback(
-    (code: string) => highlightMarkdownMonochrome(code, searchTerm, wordWrap),
+    (code: string) =>
+      highlightMarkdownMonochrome(code, searchTerm, wordWrap, isMobile),
     [searchTerm, wordWrap],
   );
 
@@ -306,16 +318,12 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
     const textarea = e.currentTarget;
     const pos = textarea.selectionStart;
 
-    const isMouse = (e.nativeEvent as PointerEvent).pointerType === "mouse";
+    // Requirement: Only toggle if CTRL/CMD is held and it is NOT a mobile device
     const isModifierPressed = e.ctrlKey || e.metaKey;
+    const canInteract = !isMobile && isModifierPressed;
 
-    if (isModifierPressed) {
-      const url = findLinkAtPos(value, pos);
-      if (url) {
-        window.open(url, "_blank", "noopener,noreferrer");
-        return;
-      }
-    }
+    // If conditions aren't met, allow default behavior (setting cursor position)
+    if (!canInteract) return;
 
     const textBefore = value.substring(0, pos);
     const lineStartIndex = textBefore.lastIndexOf("\n") + 1;
@@ -326,19 +334,26 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
     let workingValue = value;
     let didUpdate = false;
 
-    // 1. Checkbox Toggle
-    const checkboxMatch = currentLine.match(/^(\s*[-\*]\s*\[)([ xX])(\])/);
+    // 1. Link Logic (Priority)
+    const url = findLinkAtPos(value, pos);
+    if (url) {
+      e.preventDefault();
+      window.open(url, "_blank", "noopener,noreferrer");
+      return;
+    }
+
+    // 2. Checkbox Toggle Logic
+    // Check if there is a checkbox at the start of the current line
+    const checkboxRegex = /^(\s*[-\*]\s*\[)([ xX])(\])/;
+    const checkboxMatch = currentLine.match(checkboxRegex);
+
     if (checkboxMatch) {
       const boxStart = lineStartIndex + checkboxMatch[0].indexOf("[");
       const boxEnd = lineStartIndex + checkboxMatch[0].indexOf("]") + 1;
-      const isInsideBox = pos >= boxStart && pos <= boxEnd;
 
-      const shouldToggleBox = isInsideBox || (isMouse && isModifierPressed);
-
-      if (shouldToggleBox) {
-        // ONLY preventDefault if we are actually clicking the interaction zone
+      // Only toggle if the click is specifically within the [ ] area
+      if (pos >= boxStart && pos <= boxEnd) {
         e.preventDefault();
-
         const checkCharIndex = lineStartIndex + checkboxMatch[1].length;
         const isChecked = workingValue[checkCharIndex].toLowerCase() === "x";
         const nextChar = isChecked ? " " : "x";
@@ -347,47 +362,49 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
           workingValue.substring(0, checkCharIndex) +
           nextChar +
           workingValue.substring(checkCharIndex + 1);
-
         didUpdate = true;
       }
     }
 
-    // 2. Status Tag Toggle
-    const lineTagMatch = currentLine.match(/#(todo|prog|done|urgn|wait)\b/i);
-    if (lineTagMatch) {
-      const tagName = lineTagMatch[1].toLowerCase();
-      const tagMatchIndex = lineStartIndex + lineTagMatch.index!;
-      const tagFullMatch = lineTagMatch[0];
+    // 3. Status Tag Toggle Logic (Run if checkbox wasn't the target)
+    if (!didUpdate) {
+      const tagRegex = /#(todo|prog|done|urgn|wait)\b/gi;
+      let tagMatch;
 
-      const isInsideTag =
-        pos >= tagMatchIndex && pos <= tagMatchIndex + tagFullMatch.length;
+      // Iterate through all tags on the line to see if one is under the cursor
+      while ((tagMatch = tagRegex.exec(currentLine)) !== null) {
+        const tagStart = lineStartIndex + tagMatch.index;
+        const tagEnd = tagStart + tagMatch[0].length;
 
-      // If we already updated the checkbox, we skip the tag unless the click was explicitly on the tag
-      const shouldToggleTag =
-        isInsideTag || (isMouse && isModifierPressed && !didUpdate);
+        if (pos >= tagStart && pos <= tagEnd) {
+          e.preventDefault();
+          const tagName = tagMatch[1].toLowerCase();
+          const nextTag = TAG_CYCLE[tagName];
 
-      if (shouldToggleTag) {
-        e.preventDefault();
-        const nextTag = TAG_CYCLE[tagName];
-        if (nextTag) {
-          workingValue =
-            workingValue.substring(0, tagMatchIndex) +
-            `#${nextTag}` +
-            workingValue.substring(tagMatchIndex + tagFullMatch.length);
-
-          didUpdate = true;
+          if (nextTag) {
+            workingValue =
+              workingValue.substring(0, tagStart) +
+              `#${nextTag}` +
+              workingValue.substring(tagEnd);
+            didUpdate = true;
+            break; // Match found, exit loop
+          }
         }
       }
     }
 
+    // Finalize Update
     if (didUpdate) {
       onChange(workingValue);
+
+      // Defer selection to next frame to ensure the DOM has updated
       requestAnimationFrame(() => {
         textarea.setSelectionRange(pos, pos);
-        if (isMouse) textarea.focus();
+        textarea.focus();
       });
     }
   };
+
   const wrapClasses = wordWrap
     ? "[&_textarea]:!white-space-pre-wrap [&_pre]:!white-space-pre-wrap [&_textarea]:!break-words [&_pre]:!break-words [&_textarea]:!overflow-wrap-anywhere [&_pre]:!overflow-wrap-anywhere [&_textarea]:!overflow-x-hidden"
     : "[&_textarea]:!white-space-pre [&_pre]:!white-space-pre [&_textarea]:!overflow-x-auto [&_pre]:!overflow-x-hidden [&_textarea]:!w-max [&_pre]:!w-max [&_textarea]:!min-w-full [&_pre]:!min-w-full";

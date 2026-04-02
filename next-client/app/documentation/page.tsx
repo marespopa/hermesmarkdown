@@ -11,7 +11,7 @@ export default function Documentation() {
   const guideRow =
     "flex justify-between border-b border-black/5 dark:border-white/5 py-4 last:border-none";
   const syntaxLabel = "font-mono text-blue-600 dark:text-blue-400";
-  const resultLabel = "opacity-40 italic text-right";
+  const resultLabel = "opacity-40 italic text-right text-xs";
 
   return (
     <main className="min-h-screen font-mono selection:bg-blue-500 dark:selection:bg-blue-100 bg-white dark:bg-neutral-900 text-zinc-900 dark:text-zinc-100">
@@ -29,41 +29,57 @@ export default function Documentation() {
             Documentation
           </h1>
 
-          <p className="text-xl leading-relaxed">
+          <p className="text-xl leading-relaxed text-zinc-800 dark:text-zinc-200">
             Hermes is a local-first environment built for focused writing. No
             cloud synchronization. No tracking. Just the interface between your
             mind and the page.
           </p>
         </section>
 
-        {/* --- PHILOSOPHY SECTION --- */}
-        <section className="grid grid-cols-1 md:grid-cols-2 gap-12 border-t border-black/10 dark:border-white/10 pt-12">
-          <div className="space-y-4">
-            <h2 className="text-xs uppercase tracking-[0.2em] opacity-50">
-              01. Persistence
-            </h2>
-            <p className="text-sm leading-relaxed">
-              Your drafts are stored in your browser&apos;s Local Storage.
-              Always export to{" "}
-              <code className="text-blue-600 dark:text-blue-400">.md</code> to
-              ensure a permanent backup on your machine.
-            </p>
-          </div>
-          <div className="space-y-4">
-            <h2 className="text-xs uppercase tracking-[0.2em] opacity-50">
-              02. Privacy
-            </h2>
-            <p className="text-sm leading-relaxed">
-              Zero data leaves your device. Hermes operates entirely
-              client-side, making it a safe haven for private thoughts and
-              proprietary drafts.
-            </p>
+        {/* --- 01. INTERACTION LOGIC (REFINED) --- */}
+        <section className="border-t border-black/10 dark:border-white/10 pt-12">
+          <span className={sectionHeading}>01. Interaction Logic</span>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+            <div className="space-y-4">
+              <h3 className="text-xs font-bold uppercase tracking-widest text-blue-600 dark:text-blue-400">
+                Desktop Commands
+              </h3>
+              <p className="text-sm leading-relaxed opacity-80">
+                On desktop, interactive elements require a modifier to prevent
+                accidental triggers while typing:
+              </p>
+              <ul className="text-sm space-y-3 opacity-80">
+                <li className="flex gap-3">
+                  <span className="font-bold text-zinc-500 min-w-[80px]">
+                    CTRL+Click
+                  </span>
+                  <span>
+                    Toggle checkboxes, cycle status tags, or open external
+                    links.
+                  </span>
+                </li>
+              </ul>
+            </div>
+
+            <div className="space-y-4">
+              <h3 className="text-xs font-bold uppercase tracking-widest text-blue-600 dark:text-blue-400">
+                Mobile Behavior
+              </h3>
+              <p className="text-sm leading-relaxed opacity-80">
+                Mobile devices prioritize standard text entry. To ensure
+                stability, automatic toggles are disabled.
+              </p>
+              <div className="p-3 bg-zinc-50 dark:bg-zinc-800/50 border border-black/5 text-[10px] uppercase tracking-wider opacity-60">
+                Note: Checkboxes and tags remain plain text for manual editing
+                on mobile.
+              </div>
+            </div>
           </div>
         </section>
 
-        {/* --- FULL MARKDOWN GUIDE --- */}
+        {/* --- 02. FULL MARKDOWN GUIDE --- */}
         <section className="border-t border-black/10 dark:border-white/10 pt-12">
-          <span className={sectionHeading}>03. Syntax Guide</span>
+          <span className={sectionHeading}>02. Syntax Guide</span>
 
           <div className="space-y-12">
             {/* Structure */}
@@ -87,6 +103,31 @@ export default function Documentation() {
                 <div className={guideRow}>
                   <span className={syntaxLabel}>&gt; Text</span>
                   <span className={resultLabel}>Blockquote</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Workflow & Tasks */}
+            <div>
+              <h3 className="text-xs font-bold mb-4 opacity-30 uppercase tracking-widest">
+                Workflow & Tasks
+              </h3>
+              <div className="bg-zinc-50 dark:bg-zinc-900/30 px-6 border border-black/5 dark:border-white/5 font-mono text-sm">
+                <div className={guideRow}>
+                  <span className={syntaxLabel}>- [ ] Task</span>
+                  <span className={resultLabel}>
+                    CTRL + Click box to toggle
+                  </span>
+                </div>
+                <div className={guideRow}>
+                  <span className={syntaxLabel}>#todo</span>
+                  <span className={resultLabel}>
+                    Cycles: urgn → todo → prog → wait → done
+                  </span>
+                </div>
+                <div className={guideRow}>
+                  <span className={syntaxLabel}>[Text](url)</span>
+                  <span className={resultLabel}>CTRL + Click to Open Link</span>
                 </div>
               </div>
             </div>
@@ -116,45 +157,35 @@ export default function Documentation() {
               </div>
             </div>
 
-            {/* Lists & Links */}
-            <div>
-              <h3 className="text-xs font-bold mb-4 opacity-30 uppercase tracking-widest">
-                Lists & Links
-              </h3>
-              <div className="bg-zinc-50 dark:bg-zinc-900/30 px-6 border border-black/5 dark:border-white/5 font-mono text-sm">
-                <div className={guideRow}>
-                  <span className={syntaxLabel}>- Item</span>
-                  <span className={resultLabel}>Unordered List</span>
-                </div>
-                <div className={guideRow}>
-                  <span className={syntaxLabel}>1. Item</span>
-                  <span className={resultLabel}>Ordered List</span>
-                </div>
-                <div className={guideRow}>
-                  <span className={syntaxLabel}>- [ ] Task</span>
-                  <span className={resultLabel}>Checklist</span>
-                </div>
-                <div className={guideRow}>
-                  <span className={syntaxLabel}>[Text](url)</span>
-                  <span className={resultLabel}>Hyperlink</span>
-                </div>
-              </div>
-            </div>
-
             {/* Advanced */}
             <div>
               <h3 className="text-xs font-bold mb-4 opacity-30 uppercase tracking-widest">
                 Advanced
               </h3>
               <div className="bg-zinc-50 dark:bg-zinc-900/30 px-6 border border-black/5 dark:border-white/5 font-mono text-sm leading-relaxed py-6">
-                <p className="opacity-40 mb-4 italic">Code Blocks:</p>
-                <code className="block text-blue-600 dark:text-blue-400 whitespace-pre">
-                  {"```javascript\nconst focus = true;\n```"}
-                </code>
+                <div className="space-y-2 mb-8">
+                  <p className="opacity-40 italic">Shortcodes:</p>
+                  <div className="flex justify-between border-b border-black/5 py-1">
+                    <span className={syntaxLabel}>..d</span>
+                    <span className={resultLabel}>
+                      Current Date (YYYY-MM-DD)
+                    </span>
+                  </div>
+                  <div className="flex justify-between border-b border-black/5 py-1">
+                    <span className={syntaxLabel}>{`{date}`}</span>
+                    <span className={resultLabel}>
+                      Current Date (YYYY-MM-DD)
+                    </span>
+                  </div>
+                  <div className="flex justify-between border-b border-black/5 py-1">
+                    <span className={syntaxLabel}>{"{time}"}</span>
+                    <span className={resultLabel}>Current Time (HH:mm)</span>
+                  </div>
+                </div>
 
-                <p className="opacity-40 mt-8 mb-4 italic">Tables:</p>
-                <code className="block text-blue-600 dark:text-blue-400 whitespace-pre">
-                  {"| Header | Header |\n| :--- | :--- |\n| Cell | Cell |"}
+                <p className="opacity-40 mb-4 italic">Code Blocks:</p>
+                <code className="block text-blue-600 dark:text-blue-400 whitespace-pre overflow-x-auto pb-2">
+                  {"```javascript\nconst focus = true;\n```"}
                 </code>
               </div>
             </div>

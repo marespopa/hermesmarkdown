@@ -14,6 +14,10 @@ export default function LandingPage() {
   const hasContent = content.length > 0;
 
   useEffect(() => {
+    router.prefetch("/editor");
+  }, [router]);
+
+  useEffect(() => {
     if (hasContent) {
       setShowDialog(true);
     }
@@ -22,9 +26,8 @@ export default function LandingPage() {
   const handleConfirm = () => {
     setShowDialog(false);
     setShowLoading(true);
-    setTimeout(() => {
-      router.push("/editor");
-    }, 400);
+
+    router.push("/editor");
   };
 
   return (
