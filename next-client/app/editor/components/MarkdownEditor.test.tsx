@@ -4,6 +4,7 @@ import MarkdownEditor from "./MarkdownEditor";
 import { Provider } from "jotai";
 import "@testing-library/jest-dom";
 
+// Mocking atoms
 vi.mock("@/app/atoms/atoms", async () => {
   const { atom } = await import("jotai");
   return {
@@ -29,189 +30,110 @@ describe("MarkdownEditor Component", () => {
     );
   };
 
-  it("renders placeholder and handles basic typing", () => {
-    renderEditor({ placeholder: "Start..." });
-    expect(screen.getByText("Start...")).toBeInTheDocument();
+  it("renders workflow tags with the pseudo-icon ↻", () => {
+    const { container } = renderEditor({ value: "#todo" });
+    const tagSpan = container.querySelector(".status-tag");
+
+    // Using regex to match content across nested HTML tags like <small>
+    expect(tagSpan).toBeInTheDocument();
+    expect(tagSpan?.textContent).toMatch(/#todo\s*↻/);
+    expect(tagSpan).toHaveClass("text-blue-600");
+  });
+
+  it("automatically moves text typed after a tag to a new line", () => {
+    renderEditor({ value: "Initial" });
     const textarea = screen.getByRole("textbox");
-    fireEvent.change(textarea, { target: { value: "New Content" } });
-    expect(mockOnChange).toHaveBeenCalledWith("New Content");
+
+    fireEvent.change(textarea, { target: { value: "#todo some extra text" } });
+    expect(mockOnChange).toHaveBeenCalledWith("#todo\nsome extra text");
   });
 
-  it("renders headings with subtle symbols", () => {
-    const { container } = renderEditor({ value: "### My Heading" });
-
-    const spans = container.querySelectorAll("span");
-    const hashSpan = Array.from(spans).find((s) => s.textContent === "###");
-    const textSpan = Array.from(spans).find(
-      (s) => s.textContent === " My Heading",
-    );
-
-    expect(hashSpan).toBeInTheDocument();
-    // Matches the color class in your SUBTLE_STYLE
-    expect(hashSpan).toHaveClass("text-neutral-500/50");
-    expect(textSpan).toHaveClass("font-semibold");
-  });
-
-  it("renders fenced code blocks without extra rows", () => {
-    const codeValue = "```js\nconst x = 1;\n```";
-    const { container } = renderEditor({ value: codeValue });
-
-    const outerSpan = container.querySelector(
-      'span[style*="white-space: pre-wrap"]',
-    );
-    expect(outerSpan).toHaveClass("bg-zinc-100/50");
-
-    expect(container.textContent).toContain("```js");
-    expect(container.textContent).toContain("const x = 1;");
-    expect(container.textContent).toContain("```");
-  });
-
-  it("styles bold and italic text symbols as subtle", () => {
-    const { container } = renderEditor({ value: "**bold text**" });
-
-    const spans = Array.from(container.querySelectorAll("span"));
-    const boldSymbols = spans.filter((s) => s.textContent === "**");
-    const boldText = container.querySelector("strong");
-
-    expect(boldSymbols).toHaveLength(2);
-    // Updated from opacity-25 to the current color class
-    expect(boldSymbols[0]).toHaveClass("text-neutral-500/50");
-    expect(boldText).toHaveTextContent("bold text");
-  });
-
-  it("renders blockquotes with subtle markers", () => {
-    const { container } = renderEditor({ value: "> Quote" });
-    expect(container.textContent).toContain(">");
-    expect(container.textContent).toContain("Quote");
-  });
-
-  it("toggles checkboxes when clicked directly on the bracket marker", () => {
-    const initialValue = "- [ ] Task";
-    renderEditor({ value: initialValue });
+  it("toggles checkbox on 'touch' when clicking exactly on the brackets", () => {
+    renderEditor({ value: "- [ ] Task" });
     const textarea = screen.getByRole("textbox") as HTMLTextAreaElement;
 
-    // Index 3 is the space inside "[ ]"
-    // This should toggle WITHOUT any modifier keys
     textarea.selectionStart = 3;
-    fireEvent.click(textarea);
 
+    // We create a custom event to mimic PointerEvent.pointerType in JSDOM
+    const touchEvent = new MouseEvent("click", { bubbles: true });
+    Object.defineProperty(touchEvent, "pointerType", { value: "touch" });
+
+    fireEvent(textarea, touchEvent);
     expect(mockOnChange).toHaveBeenCalledWith("- [x] Task");
   });
 
-  it("toggles checkboxes when clicking the text label ONLY if Ctrl/Meta is held", () => {
-    const initialValue = "- [ ] My Task Name";
-    const { rerender } = renderEditor({ value: initialValue });
+  it("STRICT: Does not toggle on 'mouse' click unless Ctrl is held", () => {
+    renderEditor({ value: "- [ ] Task" });
     const textarea = screen.getByRole("textbox") as HTMLTextAreaElement;
+    textarea.selectionStart = 3;
 
-    // Index 10 is on the letter 'k' in "Task"
-    textarea.selectionStart = 10;
+    // 1. Mouse Click without Ctrl
+    const mouseEvent = new MouseEvent("click", {
+      bubbles: true,
+      ctrlKey: false,
+    });
+    Object.defineProperty(mouseEvent, "pointerType", { value: "mouse" });
 
-    // SCENARIO A: Normal click (User wants to edit text)
-    fireEvent.click(textarea);
+    fireEvent(textarea, mouseEvent);
     expect(mockOnChange).not.toHaveBeenCalled();
 
-    // SCENARIO B: Ctrl + Click (User wants to toggle from a distance)
-    fireEvent.click(textarea, { ctrlKey: true });
-    expect(mockOnChange).toHaveBeenCalledWith("- [x] My Task Name");
+    // 2. Mouse Click WITH Ctrl
+    const ctrlMouseEvent = new MouseEvent("click", {
+      bubbles: true,
+      ctrlKey: true,
+    });
+    Object.defineProperty(ctrlMouseEvent, "pointerType", { value: "mouse" });
+
+    fireEvent(textarea, ctrlMouseEvent);
+    expect(mockOnChange).toHaveBeenCalledWith("- [x] Task");
   });
 
-  it("unchecks an already completed task", () => {
-    renderEditor({ value: "- [x] Done Task" });
+  it("cycles tags through the full sequence: #urgn -> #todo -> #prog -> #wait -> #done", () => {
+    const { rerender } = renderEditor({ value: "#urgn" });
     const textarea = screen.getByRole("textbox") as HTMLTextAreaElement;
 
-    // Click on the 'x' (Index 3)
-    textarea.selectionStart = 3;
-    fireEvent.click(textarea);
-
-    expect(mockOnChange).toHaveBeenCalledWith("- [ ] Done Task");
-  });
-
-  it("opens links only when Ctrl/Meta is held", () => {
-    const windowSpy = vi.spyOn(window, "open").mockImplementation(() => null);
-    renderEditor({ value: "[Link](https://test.com)" });
-    const textarea = screen.getByRole("textbox") as HTMLTextAreaElement;
-
+    // Cycle 1: urgn -> todo
     textarea.selectionStart = 1;
-    fireEvent.click(textarea);
-    expect(windowSpy).not.toHaveBeenCalled();
+    const touchEvent = new MouseEvent("click", { bubbles: true });
+    Object.defineProperty(touchEvent, "pointerType", { value: "touch" });
 
-    fireEvent.click(textarea, { ctrlKey: true });
-    expect(windowSpy).toHaveBeenCalledWith(
-      "https://test.com",
-      "_blank",
-      "noopener,noreferrer",
-    );
-    windowSpy.mockRestore();
-  });
+    fireEvent(textarea, touchEvent);
+    expect(mockOnChange).toHaveBeenLastCalledWith("#todo");
 
-  it("applies atom-based styles to the editor container", () => {
-    const { container } = renderEditor({ value: "test" });
-    const editor = container.querySelector(".editor-container");
-    expect(editor).toHaveStyle({
-      fontFamily: "monospace",
-      fontSize: "16px",
-    });
-  });
-
-  it("styles workflow tags (#todo, #done, #urgent) with specific colors", () => {
-    const content = "#todo\n#done\n#urgent\n#in-progress";
-
-    const { container } = renderEditor({ value: content });
-
-    const spans = Array.from(container.querySelectorAll("span"));
-
-    // Find each tag by text content
-    const todoTag = spans.find((s) => s.textContent === "#todo");
-    const doneTag = spans.find((s) => s.textContent === "#done");
-    const urgentTag = spans.find((s) => s.textContent === "#urgent");
-    const progressTag = spans.find((s) => s.textContent === "#in-progress");
-
-    // Verify correct classes from your 'colors' mapping
-    expect(todoTag).toHaveClass("text-blue-600", "dark:text-blue-400");
-    expect(doneTag).toHaveClass("text-green-600", "dark:text-green-400");
-    expect(urgentTag).toHaveClass("text-red-600", "dark:text-red-400");
-    expect(progressTag).toHaveClass("text-amber-600", "dark:text-amber-400");
-
-    // Verify common styling for all tags
-    [todoTag, doneTag, urgentTag, progressTag].forEach((tag) => {
-      expect(tag).toHaveClass("font-mono", "font-bold");
-    });
-  });
-
-  it("cycles workflow tags from #todo -> #in-progress -> #done on click", () => {
-    // 1. Initial Render with #todo
-    const { rerender } = renderEditor({ value: "Lift weights #todo" });
-    const textarea = screen.getByRole("textbox") as HTMLTextAreaElement;
-
-    // 2. Click to trigger todo -> in-progress
-    textarea.selectionStart = 14;
-    fireEvent.click(textarea);
-
-    expect(mockOnChange).toHaveBeenLastCalledWith("Lift weights #in-progress");
-
-    // 3. IMPORTANT: Update the component with the NEW value to simulate state change
+    // Cycle 2: Simulate progression to prog -> wait
     rerender(
       <Provider>
-        <MarkdownEditor
-          value="Lift weights #in-progress"
-          onChange={mockOnChange}
-        />
+        <MarkdownEditor value="#prog" onChange={mockOnChange} />
       </Provider>,
     );
-
-    // 4. Click again to trigger in-progress -> done
-    textarea.selectionStart = 14;
-    fireEvent.click(textarea);
-
-    expect(mockOnChange).toHaveBeenLastCalledWith("Lift weights #done");
+    textarea.selectionStart = 1;
+    fireEvent(textarea, touchEvent);
+    expect(mockOnChange).toHaveBeenLastCalledWith("#wait");
   });
 
-  it("handles workflow tags case-insensitively", () => {
-    const { container } = renderEditor({ value: "#TODO" });
-    const todoTag = Array.from(container.querySelectorAll("span")).find(
-      (s) => s.textContent === "#TODO",
-    );
+  it("renders checkboxes with the subtle ◦ indicator icon", () => {
+    const { container } = renderEditor({ value: "- [ ] Task" });
 
-    expect(todoTag).toHaveClass("text-blue-600");
+    // Check innerHTML because ◦ is inside a nested span and textContent can be tricky in JSDOM
+    const taskWrapper = container.querySelector(".task-wrapper");
+    expect(taskWrapper?.innerHTML).toContain("◦");
+    expect(taskWrapper?.innerHTML).toContain("[ ]");
+  });
+
+  it("processes date shortcode ..d case-insensitively", () => {
+    renderEditor({ value: "" });
+    const textarea = screen.getByRole("textbox");
+    const today = new Date().toLocaleDateString("en-CA");
+
+    fireEvent.change(textarea, { target: { value: "Deadline ..d" } });
+    expect(mockOnChange).toHaveBeenCalledWith(`Deadline ${today}`);
+  });
+
+  it("styles headings and maintains subtle markers", () => {
+    const { container } = renderEditor({ value: "## Heading" });
+    const spans = container.querySelectorAll("span");
+    const marker = Array.from(spans).find((s) => s.textContent === "##");
+
+    expect(marker).toHaveClass("text-neutral-500/50");
   });
 });

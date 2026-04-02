@@ -63,7 +63,7 @@ function highlightMarkdownMonochrome(
     `<span ${SUBTLE_STYLE}>$1</span><span class="font-semibold text-zinc-900 dark:text-zinc-50">$2</span>`,
   );
 
-  // 2.5 Shorthand Workflow Tags
+  // 2.5 Shorthand Workflow Tags + Pseudo-icon
   const workflowTags = ["todo", "prog", "done", "urgn", "wait"];
   const tagRegex = new RegExp(
     `(?:^|\\s)#(${workflowTags.join("|")})(?=\\s|$)`,
@@ -80,7 +80,7 @@ function highlightMarkdownMonochrome(
     };
 
     const colorClass = colors[tagName.toLowerCase()] || "text-zinc-500";
-    return `<span class="${colorClass} font-mono font-bold cursor-pointer status-tag" data-tag="${tagName.toLowerCase()}">${match}</span>`;
+    return `<span class="${colorClass} font-mono font-bold cursor-pointer status-tag" data-tag="${tagName.toLowerCase()}">${match} <small class="opacity-40 text-[0.8em] select-none">↻</small></span>`;
   });
 
   // Horizontal Rule
@@ -123,7 +123,7 @@ function highlightMarkdownMonochrome(
     `<span ${SUBTLE_STYLE}>~~</span><del class="line-through text-zinc-500/70">$1</del><span ${SUBTLE_STYLE}>~~</span>`,
   );
 
-  // Lists & Checkboxes
+  // Lists & Checkboxes + Pseudo-icon
   escaped = escaped.replace(
     /^(\s*(?:[\d+\.\-\*]+|[*+\-]))(\s*\[([ xX])\]\s+)?([^\n\r]*)$/gm,
     (match, bullet, checkGroup, checkChar, label, offset) => {
@@ -132,7 +132,7 @@ function highlightMarkdownMonochrome(
       const bulletPart = `<span ${SUBTLE_STYLE}>${bullet}</span>`;
 
       if (isTask) {
-        const checkboxPart = `<span ${SUBTLE_STYLE} font-mono font-bold">${checkGroup}</span>`;
+        const checkboxPart = `<span ${SUBTLE_STYLE} font-mono font-bold">${checkGroup}<span class="text-[10px] ml-[-4px] opacity-30 select-none">◦</span></span>`;
         const labelStyle = isChecked
           ? 'class="line-through opacity-50"'
           : 'class="text-zinc-900 dark:text-zinc-100"';
@@ -233,6 +233,29 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
     let processedVal = val;
     let cursorOffset = 0;
 
+    // 1. Tag Cleaning Logic: Prevents text after #tags
+    const workflowTags = ["todo", "prog", "done", "urgn", "wait"];
+    const lines = processedVal.split("\n");
+    let needsShift = false;
+
+    const cleanedLines = lines.map((line) => {
+      const tagMatch = line.match(
+        new RegExp(`^(.*#(${workflowTags.join("|")}))(\\s*\\S.*)$`, "i"),
+      );
+      if (tagMatch) {
+        needsShift = true;
+        // Pushes trailing text to a new line
+        return `${tagMatch[1]}\n${tagMatch[3].trim()}`;
+      }
+      return line;
+    });
+
+    if (needsShift) {
+      processedVal = cleanedLines.join("\n");
+      cursorOffset += 1; // Adjust for the newly injected newline
+    }
+
+    // 2. Shortcode Processing
     const shortcodes: Record<string, () => string> = {
       "..d": () => new Date().toLocaleDateString("en-CA"),
       "{date}": () => new Date().toLocaleDateString("en-CA"),
@@ -247,7 +270,6 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
     Object.entries(shortcodes).forEach(([code, getValue]) => {
       if (processedVal.includes(code)) {
         const replacement = getValue();
-        // Global count for accurate offset if multiple exist
         const occurrences = (
           processedVal.match(
             new RegExp(code.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "g"),
@@ -284,7 +306,10 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
     const textarea = e.currentTarget;
     const pos = textarea.selectionStart;
 
-    if (e.ctrlKey || e.metaKey) {
+    const isMouse = (e.nativeEvent as PointerEvent).pointerType === "mouse";
+    const isModifierPressed = e.ctrlKey || e.metaKey;
+
+    if (isModifierPressed) {
       const url = findLinkAtPos(value, pos);
       if (url) {
         window.open(url, "_blank", "noopener,noreferrer");
@@ -298,10 +323,14 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
     const lineEndIndex = nextNewline === -1 ? value.length : nextNewline;
     const currentLine = value.substring(lineStartIndex, lineEndIndex);
 
+    // Checkbox Toggle
     const checkboxMatch = currentLine.match(/^(\s*[-\*]\s*\[)([ xX])(\])/);
     if (checkboxMatch) {
       const checkboxEndIndex = lineStartIndex + checkboxMatch[0].length;
-      if (pos <= checkboxEndIndex || e.ctrlKey || e.metaKey) {
+      const shouldToggle =
+        (isMouse && isModifierPressed) || (!isMouse && pos <= checkboxEndIndex);
+
+      if (shouldToggle) {
         e.preventDefault();
         const checkCharIndex = lineStartIndex + checkboxMatch[1].length;
         const isChecked = value[checkCharIndex].toLowerCase() === "x";
@@ -311,6 +340,7 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
           nextChar +
           value.substring(checkCharIndex + 1);
         onChange(newValue);
+
         requestAnimationFrame(() => {
           textarea.setSelectionRange(pos, pos);
           textarea.focus();
@@ -319,13 +349,19 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
       }
     }
 
+    // Status Tag Toggle
     const lineTagMatch = currentLine.match(/#(todo|prog|done|urgn|wait)\b/i);
     if (lineTagMatch) {
       const tagName = lineTagMatch[1].toLowerCase();
-      const tagMatchIndex = lineStartIndex + lineTagMatch.index!;
+      const tagMatchIndex = lineStartIndex + lineTagMatch.index;
       const tagFullMatch = lineTagMatch[0];
 
-      if (pos >= tagMatchIndex && pos <= tagMatchIndex + tagFullMatch.length) {
+      const isInsideTag =
+        pos >= tagMatchIndex && pos <= tagMatchIndex + tagFullMatch.length;
+      const shouldToggle =
+        (isMouse && isModifierPressed) || (!isMouse && isInsideTag);
+
+      if (shouldToggle) {
         e.preventDefault();
         const nextTag = TAG_CYCLE[tagName];
         if (nextTag) {
@@ -334,6 +370,7 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
             `#${nextTag}` +
             value.substring(tagMatchIndex + tagFullMatch.length);
           onChange(newValue);
+
           requestAnimationFrame(() => {
             textarea.setSelectionRange(pos, pos);
             textarea.focus();
