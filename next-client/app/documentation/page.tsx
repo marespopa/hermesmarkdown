@@ -9,14 +9,14 @@ export default function Documentation() {
   const sectionHeading =
     "text-xs uppercase tracking-[0.2em] opacity-50 mb-8 block";
   const guideRow =
-    "flex justify-between border-b border-black/5 dark:border-white/5 py-4 last:border-none";
+    "flex justify-between border-b border-black/5 dark:border-white/5 py-4 last:border-none items-center";
   const syntaxLabel = "font-mono text-blue-600 dark:text-blue-400";
   const resultLabel = "opacity-40 italic text-right text-xs";
 
   return (
     <main className="min-h-screen font-mono selection:bg-blue-500 dark:selection:bg-blue-100 bg-white dark:bg-neutral-900 text-zinc-900 dark:text-zinc-100">
       <div className="max-w-2xl mx-auto px-6 py-32 space-y-32">
-        {/* --- HEADER SECTION --- */}
+        {/* --- HEADER --- */}
         <section className="space-y-8">
           <button
             onClick={() => router.back()}
@@ -24,11 +24,9 @@ export default function Documentation() {
           >
             ← Back
           </button>
-
           <h1 className="text-2xl font-normal tracking-tighter italic">
             Documentation
           </h1>
-
           <p className="text-xl leading-relaxed text-zinc-800 dark:text-zinc-200">
             Hermes is a local-first environment built for focused writing. No
             cloud synchronization. No tracking. Just the interface between your
@@ -36,7 +34,7 @@ export default function Documentation() {
           </p>
         </section>
 
-        {/* --- 01. INTERACTION LOGIC (REFINED) --- */}
+        {/* --- 01. INTERACTION LOGIC --- */}
         <section className="border-t border-black/10 dark:border-white/10 pt-12">
           <span className={sectionHeading}>01. Interaction Logic</span>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
@@ -45,20 +43,29 @@ export default function Documentation() {
                 Desktop Commands
               </h3>
               <p className="text-sm leading-relaxed opacity-80">
-                On desktop, interactive elements require a modifier to prevent
-                accidental triggers while typing:
+                Interactive elements respond to clicks while the editor handles
+                the syntax automatically.
               </p>
-              <ul className="text-sm space-y-3 opacity-80">
-                <li className="flex gap-3">
-                  <span className="font-bold text-zinc-500 min-w-[80px]">
-                    CTRL+Click
+              <div className="text-sm space-y-3 p-4 bg-zinc-50 dark:bg-zinc-800/30 border border-black/5">
+                <div className="flex justify-between items-center">
+                  <span className="font-bold text-[10px] uppercase opacity-40">
+                    Action
                   </span>
-                  <span>
-                    Toggle checkboxes, cycle status tags, or open external
-                    links.
+                  <span className="font-bold text-[10px] uppercase opacity-40">
+                    Effect
                   </span>
-                </li>
-              </ul>
+                </div>
+                <div className="flex justify-between py-2 border-t border-black/5">
+                  <span>Click Checkbox</span>
+                  <span className="opacity-60 text-xs">Toggle [x]</span>
+                </div>
+                <div className="flex justify-between py-2 border-t border-black/5">
+                  <span>Click Tag</span>
+                  <span className="opacity-60 text-xs text-right">
+                    Cycle Status Flow
+                  </span>
+                </div>
+              </div>
             </div>
 
             <div className="space-y-4">
@@ -66,125 +73,105 @@ export default function Documentation() {
                 Mobile Behavior
               </h3>
               <p className="text-sm leading-relaxed opacity-80">
-                Mobile devices prioritize standard text entry. To ensure
-                stability, automatic toggles are disabled.
+                Automatic toggles are disabled to prevent keyboard interference
+                and accidental shifts.
               </p>
-              <div className="p-3 bg-zinc-50 dark:bg-zinc-800/50 border border-black/5 text-[10px] uppercase tracking-wider opacity-60">
+              <div className="p-4 bg-amber-50/50 dark:bg-amber-900/10 border border-amber-200/20 text-[10px] leading-relaxed uppercase tracking-wider text-amber-700 dark:text-amber-200/60">
                 Note: Checkboxes and tags remain plain text for manual editing
-                on mobile.
+                on mobile devices.
               </div>
             </div>
           </div>
         </section>
 
-        {/* --- 02. FULL MARKDOWN GUIDE --- */}
+        {/* --- 02. SYNTAX & WORKFLOW --- */}
         <section className="border-t border-black/10 dark:border-white/10 pt-12">
           <span className={sectionHeading}>02. Syntax Guide</span>
 
-          <div className="space-y-12">
-            {/* Structure */}
+          <div className="space-y-16">
+            {/* Workflow Lifecycle */}
             <div>
-              <h3 className="text-xs font-bold mb-4 opacity-30 uppercase tracking-widest">
-                Structure
+              <h3 className="text-xs font-bold mb-6 opacity-30 uppercase tracking-widest">
+                Status Lifecycle
               </h3>
-              <div className="bg-zinc-50 dark:bg-zinc-900/30 px-6 border border-black/5 dark:border-white/5 font-mono text-sm">
-                <div className={guideRow}>
-                  <span className={syntaxLabel}># H1</span>
-                  <span className={resultLabel}>Heading 1</span>
-                </div>
-                <div className={guideRow}>
-                  <span className={syntaxLabel}>## H2</span>
-                  <span className={resultLabel}>Heading 2</span>
-                </div>
-                <div className={guideRow}>
-                  <span className={syntaxLabel}>---</span>
-                  <span className={resultLabel}>Horizontal Rule</span>
-                </div>
-                <div className={guideRow}>
-                  <span className={syntaxLabel}>&gt; Text</span>
-                  <span className={resultLabel}>Blockquote</span>
-                </div>
+              <div className="flex items-center justify-between px-2 opacity-80">
+                {["#urgn", "#todo", "#prog", "#wait", "#done"].map(
+                  (tag, i, arr) => (
+                    <React.Fragment key={tag}>
+                      <span className="text-xs font-mono text-blue-600 dark:text-blue-400">
+                        {tag}
+                      </span>
+                      {i < arr.length - 1 && (
+                        <span className="opacity-20">→</span>
+                      )}
+                    </React.Fragment>
+                  ),
+                )}
               </div>
+              <p className="mt-4 text-[10px] opacity-40 italic">
+                Clicking any status tag cycles to the next state in the
+                sequence.
+              </p>
             </div>
 
-            {/* Workflow & Tasks */}
-            <div>
-              <h3 className="text-xs font-bold mb-4 opacity-30 uppercase tracking-widest">
-                Workflow & Tasks
-              </h3>
-              <div className="bg-zinc-50 dark:bg-zinc-900/30 px-6 border border-black/5 dark:border-white/5 font-mono text-sm">
-                <div className={guideRow}>
-                  <span className={syntaxLabel}>- [ ] Task</span>
-                  <span className={resultLabel}>
-                    CTRL + Click box to toggle
-                  </span>
-                </div>
-                <div className={guideRow}>
-                  <span className={syntaxLabel}>#todo</span>
-                  <span className={resultLabel}>
-                    Cycles: urgn → todo → prog → wait → done
-                  </span>
-                </div>
-                <div className={guideRow}>
-                  <span className={syntaxLabel}>[Text](url)</span>
-                  <span className={resultLabel}>CTRL + Click to Open Link</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Emphasis */}
-            <div>
-              <h3 className="text-xs font-bold mb-4 opacity-30 uppercase tracking-widest">
-                Emphasis
-              </h3>
-              <div className="bg-zinc-50 dark:bg-zinc-900/30 px-6 border border-black/5 dark:border-white/5 font-mono text-sm">
-                <div className={guideRow}>
-                  <span className={syntaxLabel}>**Bold**</span>
-                  <span className={resultLabel}>Strong</span>
-                </div>
-                <div className={guideRow}>
-                  <span className={syntaxLabel}>_Italic_</span>
-                  <span className={resultLabel}>Emphasis</span>
-                </div>
-                <div className={guideRow}>
-                  <span className={syntaxLabel}>~~Strike~~</span>
-                  <span className={resultLabel}>Strikethrough</span>
-                </div>
-                <div className={guideRow}>
-                  <span className={syntaxLabel}>`Code`</span>
-                  <span className={resultLabel}>Inline Code</span>
+            {/* Core Syntax Table */}
+            <div className="grid grid-cols-1 gap-8">
+              <div className="space-y-4">
+                <h3 className="text-xs font-bold opacity-30 uppercase tracking-widest">
+                  Standard Markdown
+                </h3>
+                <div className="bg-zinc-50 dark:bg-zinc-900/30 px-6 border border-black/5 dark:border-white/5 font-mono text-sm">
+                  <div className={guideRow}>
+                    <span className={syntaxLabel}>- [ ]</span>
+                    <span className={resultLabel}>Task List Item</span>
+                  </div>
+                  <div className={guideRow}>
+                    <span className={syntaxLabel}># H1</span>
+                    <span className={resultLabel}>Heading 1</span>
+                  </div>
+                  <div className={guideRow}>
+                    <span className={syntaxLabel}>&gt; Text</span>
+                    <span className={resultLabel}>Blockquote</span>
+                  </div>
+                  <div className={guideRow}>
+                    <span className={syntaxLabel}>`Code`</span>
+                    <span className={resultLabel}>Inline Style</span>
+                  </div>
                 </div>
               </div>
-            </div>
 
-            {/* Advanced */}
-            <div>
-              <h3 className="text-xs font-bold mb-4 opacity-30 uppercase tracking-widest">
-                Advanced
-              </h3>
-              <div className="bg-zinc-50 dark:bg-zinc-900/30 px-6 border border-black/5 dark:border-white/5 font-mono text-sm leading-relaxed py-6">
-                <div className="space-y-2 mb-8">
-                  <p className="opacity-40 italic">Shortcodes:</p>
-                  <div className="flex justify-between border-b border-black/5 py-1">
+              <div className="space-y-4">
+                <h3 className="text-xs font-bold opacity-30 uppercase tracking-widest">
+                  Shortcuts
+                </h3>
+                <div className="bg-zinc-50 dark:bg-zinc-900/30 px-6 border border-black/5 dark:border-white/5 font-mono text-sm">
+                  <div className={guideRow}>
                     <span className={syntaxLabel}>..d</span>
-                    <span className={resultLabel}>
-                      Current Date (YYYY-MM-DD)
-                    </span>
+                    <span className={resultLabel}>Expands to YYYY-MM-DD</span>
                   </div>
-                  <div className="flex justify-between border-b border-black/5 py-1">
-                    <span className={syntaxLabel}>{`{date}`}</span>
-                    <span className={resultLabel}>
-                      Current Date (YYYY-MM-DD)
-                    </span>
-                  </div>
-                  <div className="flex justify-between border-b border-black/5 py-1">
+                  <div className={guideRow}>
                     <span className={syntaxLabel}>{"{time}"}</span>
-                    <span className={resultLabel}>Current Time (HH:mm)</span>
+                    <span className={resultLabel}>Expands to HH:mm</span>
                   </div>
                 </div>
+              </div>
+            </div>
 
-                <p className="opacity-40 mb-4 italic">Code Blocks:</p>
-                <code className="block text-blue-600 dark:text-blue-400 whitespace-pre overflow-x-auto pb-2">
+            {/* Code Block Example */}
+            <div className="space-y-4">
+              <h3 className="text-xs font-bold opacity-30 uppercase tracking-widest">
+                Blocks
+              </h3>
+              <div className="bg-zinc-50 dark:bg-zinc-900/30 p-6 border border-black/5 dark:border-white/5">
+                <div className="flex justify-between mb-4 border-b border-black/5 pb-2">
+                  <span className="text-[10px] uppercase opacity-40 tracking-widest">
+                    Input
+                  </span>
+                  <span className="text-[10px] uppercase opacity-40 tracking-widest text-right">
+                    Rendering
+                  </span>
+                </div>
+                <code className="block text-blue-600 dark:text-blue-400 whitespace-pre overflow-x-auto text-xs leading-relaxed">
                   {"```javascript\nconst focus = true;\n```"}
                 </code>
               </div>
@@ -193,7 +180,7 @@ export default function Documentation() {
         </section>
 
         {/* --- FOOTER --- */}
-        <footer className="pt-20 pb-12 text-center">
+        <footer className="pt-20 pb-12 text-center border-t border-black/5 dark:border-white/5">
           <p className="text-[10px] uppercase tracking-[0.4em] opacity-30 italic">
             Focus First — Markdown Only
           </p>

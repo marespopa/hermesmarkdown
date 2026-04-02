@@ -88,6 +88,7 @@ export default function LiteEditor() {
 
     const finalName = baseName.endsWith(".md") ? baseName : `${baseName}.md`;
 
+    // 1. Try Desktop File System Access API
     if ("showSaveFilePicker" in window) {
       try {
         const handle = await (window as any).showSaveFilePicker({
@@ -99,20 +100,40 @@ export default function LiteEditor() {
         const writable = await handle.createWritable();
         await writable.write(content);
         await writable.close();
+        return; // Success!
       } catch (err) {
-        console.error(err);
+        // User likely cancelled the picker, don't fallback to download
+        if (err instanceof Error && err.name === "AbortError") return;
+        console.error("Picker failed, trying fallback:", err);
       }
-    } else {
-      const blob = new Blob([content], { type: "text/markdown" });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = finalName;
-      link.click();
-      URL.revokeObjectURL(url);
     }
-  };
 
+    // 2. Try Web Share API (Better for Android/iOS)
+    if (navigator.share && navigator.canShare) {
+      const file = new File([content], finalName, { type: "text/markdown" });
+      if (navigator.canShare({ files: [file] })) {
+        try {
+          await navigator.share({
+            files: [file],
+            title: finalName,
+          });
+          return; // Success!
+        } catch (err) {
+          if (err instanceof Error && err.name === "AbortError") return;
+          console.error("Share failed:", err);
+        }
+      }
+    }
+
+    // 3. Fallback: Blob Download (Triggers "file (1).md" unless Android settings are changed)
+    const blob = new Blob([content], { type: "text/markdown" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = finalName;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
