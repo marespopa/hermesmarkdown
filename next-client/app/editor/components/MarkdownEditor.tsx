@@ -31,10 +31,10 @@ const TAG_COLORS = {
 const TAG_CYCLE = {
   urgn: "todo",
   todo: "prog",
-  prog: "wait",
-  wait: "done",
+  prog: "done",
   done: "todo",
 };
+
 const SHORTCODES = {
   "..d": () => new Date().toLocaleDateString("en-CA"),
   "{date}": () => new Date().toLocaleDateString("en-CA"),
@@ -45,6 +45,38 @@ const SHORTCODES = {
       hour12: false,
     }),
 };
+
+const TEMPLATES = [
+  {
+    label: "✅ To-Do List",
+    content:
+      "# 🎯 To Do: \n- MainTask #todo\n\n## 📥 Inbox\n- Task #todo\n\n## 🔥 High Priority\n- Task #todo\n\n## 📅 Scheduled\n- Task #todo",
+  },
+  {
+    label: "💪 Gym Helper",
+    content:
+      "# 🏋️ Workout\n> 🔓 Locker: \n> 📅 Date: {date}\n> ⚡ Workout Type: \n\n## 🏃 Exercises\n- Exercise  #todo",
+  },
+  {
+    label: "🔄 Habit Tracker",
+    content:
+      "# 🌿 Habits: {date}\n\n- [ ] 🌅 Morning Routine \n- [ ] 🧊 Deep Work \n- [ ] 🥗 Nutrition \n- [ ] 📖 Reading \n- [ ] 🌙 Reflection \n\n---\n\nScore: /5",
+  },
+  {
+    label: "📄 Frontmatter",
+    content: "---\ntitle: \ndate: {date}\nstatus: #todo\n---",
+  },
+  {
+    label: "📅 Weekly Review",
+    content:
+      "# 🔍 Review: Week {date}\n\n## ✅ Wins\n- \n\n## ❌ Challenges\n- \n\n## 🚀 Next Week Plan\n- \n\n---\n\nResult: ",
+  },
+  {
+    label: "🤖 AI Prompt",
+    content:
+      "## Objective\n\n\n## Context\n\n\n## Data\n\n\n## Output Format\n",
+  },
+];
 
 function highlightMarkdownMonochrome(
   code: string,
@@ -85,13 +117,21 @@ function highlightMarkdownMonochrome(
     `<span ${SUBTLE}>$1</span><span class="text-blue-600 dark:text-blue-400 underline underline-offset-4">$2</span><span ${SUBTLE}>$3$4$5</span>`,
   );
 
-  const tagRegex = new RegExp(
-    `(?:^|\\s)#(${WORKFLOW_TAGS.join("|")})(?=\\s|$)`,
-    "gim",
-  );
+  const tagRegex = /(?:^|\s)#([\w-]+)(?=\s|$)/gim;
+
   html = html.replace(tagRegex, (match, tagName) => {
-    const colorClass = TAG_COLORS[tagName.toLowerCase()] || "text-zinc-500";
-    return `<span class="${colorClass} font-semibold cursor-pointer" ${customFont}>${match} <small class="opacity-30 select-none">↻</small></span>`;
+    const lowerTag = tagName.toLowerCase();
+    const isWorkflow = WORKFLOW_TAGS.includes(lowerTag);
+
+    const colorClass = isWorkflow
+      ? TAG_COLORS[lowerTag]
+      : "font-bold text-zinc-700 dark:text-zinc-300";
+
+    const indicator = isWorkflow
+      ? ' <small class="opacity-30 select-none">↻</small>'
+      : "";
+
+    return `<span class="${colorClass} cursor-pointer" ${customFont}>${match}${indicator}</span>`;
   });
 
   html = html.replace(
@@ -124,7 +164,7 @@ function highlightMarkdownMonochrome(
 export default function MarkdownEditor({
   value,
   onChange,
-  placeholder = "Begin writing...",
+  placeholder = "Type / for templates",
   searchTerm,
   onTextareaReady,
 }: MarkdownEditorProps) {
@@ -133,6 +173,10 @@ export default function MarkdownEditor({
   const [fontFamily] = useAtom(atom_fontFamily);
   const [fontSize] = useAtom(atom_fontSize);
   const [wordWrap] = useAtom(atom_wordWrap);
+
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [menuPos, setMenuPos] = useState({ top: 0, left: 0 });
+  const [selectedIndex, setSelectedIndex] = useState(0);
   const [isCtrlPressed, setIsCtrlPressed] = useState(false);
   const [isOverLink, setIsOverLink] = useState(false);
 
@@ -150,9 +194,12 @@ export default function MarkdownEditor({
   }, [onTextareaReady]);
 
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) =>
-      (e.ctrlKey || e.metaKey) && setIsCtrlPressed(true);
-    const handleKeyUp = () => setIsCtrlPressed(false);
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.ctrlKey || e.metaKey) setIsCtrlPressed(true);
+    }
+    function handleKeyUp() {
+      setIsCtrlPressed(false);
+    }
     window.addEventListener("keydown", handleKeyDown);
     window.addEventListener("keyup", handleKeyUp);
     return () => {
@@ -171,11 +218,44 @@ export default function MarkdownEditor({
     return null;
   }
 
+  function insertTemplate(content: string) {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+
+    const start = textarea.selectionStart;
+    const before = value.substring(0, start - 1); // remove the "/"
+    const after = value.substring(start);
+
+    let processedContent = content;
+    Object.entries(SHORTCODES).forEach(([code, getValue]) => {
+      processedContent = processedContent.split(code).join(getValue());
+    });
+
+    onChange(before + processedContent + after);
+    setMenuOpen(false);
+
+    requestAnimationFrame(() => {
+      textarea.focus();
+      const newPos = before.length + processedContent.length;
+      textarea.setSelectionRange(newPos, newPos);
+    });
+  }
+
   function handleValueChange(val: string) {
     const textarea = textareaRef.current;
     if (!textarea) return onChange(val);
 
     const start = textarea.selectionStart;
+    const charBefore = val[start - 2];
+
+    if (val[start - 1] === "/" && (!charBefore || charBefore === "\n")) {
+      setMenuPos({ top: textarea.offsetTop + 28, left: 16 });
+      setMenuOpen(true);
+      setSelectedIndex(0);
+    } else if (menuOpen) {
+      setMenuOpen(false);
+    }
+
     let processedVal = val;
     let cursorOffset = 0;
 
@@ -243,7 +323,7 @@ export default function MarkdownEditor({
       value.indexOf("\n", pos) === -1 ? value.length : value.indexOf("\n", pos);
     const currentLine = value.substring(lineStartIndex, lineEndIndex);
 
-    const tagRegex = /#(todo|prog|done|urgn|wait)\b/gi;
+    const tagRegex = /#(todo|prog|done|urgn)\b/gi;
     let tagMatch;
     while ((tagMatch = tagRegex.exec(currentLine)) !== null) {
       const tagStart = lineStartIndex + tagMatch.index;
@@ -271,11 +351,56 @@ export default function MarkdownEditor({
     }
   }
 
+  function handleGlobalKeyDown(e: React.KeyboardEvent) {
+    if (!menuOpen) return;
+
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      setSelectedIndex((prev) => (prev + 1) % TEMPLATES.length);
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      setSelectedIndex(
+        (prev) => (prev - 1 + TEMPLATES.length) % TEMPLATES.length,
+      );
+    } else if (e.key === "Enter") {
+      e.preventDefault();
+      insertTemplate(TEMPLATES[selectedIndex].content);
+    } else if (e.key === "Escape") {
+      setMenuOpen(false);
+    }
+  }
+
   return (
     <div
       ref={wrapperRef}
+      onKeyDown={handleGlobalKeyDown}
       className="relative w-full min-h-screen p-2 [overflow-anchor:none] [contain:content] overflow-x-auto"
+      translate="no"
     >
+      {menuOpen && (
+        <div
+          className="absolute z-50 w-52 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg shadow-2xl py-1 overflow-hidden"
+          style={{ top: menuPos.top, left: menuPos.left, fontFamily }}
+        >
+          {TEMPLATES.map((t, i) => (
+            <div
+              key={t.label}
+              onMouseDown={(e) => {
+                e.preventDefault();
+                insertTemplate(t.content);
+              }}
+              className={`px-3 py-2 cursor-pointer text-sm transition-colors ${
+                i === selectedIndex
+                  ? "bg-amber-100 dark:bg-neutral-900 text-amber-900 dark:text-zinc-100"
+                  : "text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+              }`}
+            >
+              {t.label}
+            </div>
+          ))}
+        </div>
+      )}
+
       <div
         className={`editor-container relative h-full antialiased
           ${wordWrap ? "w-full" : "w-max min-w-full"}
@@ -301,7 +426,10 @@ export default function MarkdownEditor({
           onMouseMove={(e) => {
             if (!e.ctrlKey && !e.metaKey) return setIsOverLink(false);
             setIsOverLink(
-              !!findLinkAtPos(value, e.currentTarget.selectionStart),
+              !!findLinkAtPos(
+                value,
+                (e.target as HTMLTextAreaElement).selectionStart,
+              ),
             );
           }}
           textareaClassName={
