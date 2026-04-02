@@ -6,7 +6,7 @@ export const contentStore = createStore();
 
 // Theme & appearance
 export const atom_theme = atomWithStorage<"light" | "dark">("theme", "light");
-export const atom_wordWrap = atom<boolean>(true);
+export const atom_wordWrap = atomWithStorage<boolean>("wordWrap", true);
 export const atom_fontFamily = atomWithStorage<string>(
   "editorFontFamily",
   "var(--font-jetbrains), monospace",

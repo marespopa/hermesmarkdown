@@ -48,9 +48,19 @@ const SHORTCODES = {
 
 const TEMPLATES = [
   {
-    label: "✅ To-Do List",
+    label: "✨ Tutorial",
     content:
-      "# 🎯 To Do: \n- MainTask #todo\n\n## 📥 Inbox\n- Task #todo\n\n## 🔥 High Priority\n- Task #todo\n\n## 📅 Scheduled\n- Task #todo",
+      "--- \ntitle: Hermes Markdown Demo\ndate: {date}\nstatus: #todo\n--- \n\n# 🚀 Welcome to Hermes\nThis is an interactive workspace. Try the features below to get started.\n\n## 🛠 Try the Shortcuts\nExperience real-time conversion by typing these commands:\n- **The Magic Dot**: Type `.\u200B.d` here:  \n- **Live Shortcodes**: Type `{\u200Bdate}` or `{\u200Btime}` here:  \n\n## 🔄 Workflow Cycling\nHermes uses **Smart Tags** to track progress. Click the tags below to cycle their status:\n- Initial Research #todo\n- Active Development #prog\n- Hotfix Needed #urgn\n- Project Delivery #done\n\n## 📝 Interactive Lists\nClick the brackets below to see the completion effect:\n- [ ] Click to complete this task\n- [x] Completed items will fade out\n- [ ] You can customize the font in settings\n\n> [!TIP]\n> Hover your cursor in the **top right corner** to reveal the settings menu.\n\n## 💡 Pro Tips\n> **Command Palette**: Type `/` at the start of any new line to see all options.\n> **Quick Entry**: Use `.\u200B.d` anywhere to instantly stamp the current date.\n\n---\n\n*Drafted with 🧡 in Hermes Markdown*",
+  },
+  {
+    label: "📝 To-Do List",
+    content:
+      "# To-Do List ✏️\n- [ ] Task\n- [x] Task\n\n## Priority Tasks 🎯\n- [ ] Task",
+  },
+  {
+    label: "🤖 AI Prompt",
+    content:
+      "## Objective\n\n\n## Context\n\n\n## Data\n\n\n## Output Format\n",
   },
   {
     label: "💪 Gym Helper",
@@ -58,23 +68,8 @@ const TEMPLATES = [
       "# 🏋️ Workout\n> 🔓 Locker: \n> 📅 Date: {date}\n> ⚡ Workout Type: \n\n## 🏃 Exercises\n- Exercise  #todo",
   },
   {
-    label: "🔄 Habit Tracker",
-    content:
-      "# 🌿 Habits: {date}\n\n- [ ] 🌅 Morning Routine \n- [ ] 🧊 Deep Work \n- [ ] 🥗 Nutrition \n- [ ] 📖 Reading \n- [ ] 🌙 Reflection \n\n---\n\nScore: /5",
-  },
-  {
     label: "📄 Frontmatter",
     content: "---\ntitle: \ndate: {date}\nstatus: #todo\n---",
-  },
-  {
-    label: "📅 Weekly Review",
-    content:
-      "# 🔍 Review: Week {date}\n\n## ✅ Wins\n- \n\n## ❌ Challenges\n- \n\n## 🚀 Next Week Plan\n- \n\n---\n\nResult: ",
-  },
-  {
-    label: "🤖 AI Prompt",
-    content:
-      "## Objective\n\n\n## Context\n\n\n## Data\n\n\n## Output Format\n",
   },
 ];
 
