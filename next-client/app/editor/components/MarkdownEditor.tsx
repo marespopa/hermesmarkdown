@@ -94,7 +94,7 @@ function highlightMarkdownMonochrome(
     if (html.includes("`")) {
       html = html.replace(
         /(`)(.*?)(`)/g,
-        `<span ${SUBTLE}>$1</span><code class="bg-zinc-100/80 dark:bg-zinc-800/50 rounded px-1 text-sm">$2</code><span ${SUBTLE}>$3</span>`,
+        `<span ${SUBTLE}>$1</span><code class="bg-zinc-100/80 dark:bg-zinc-800/50 rounded">$2</code><span ${SUBTLE}>$3</span>`,
       );
     }
 
