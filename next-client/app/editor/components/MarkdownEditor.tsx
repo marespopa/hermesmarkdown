@@ -11,12 +11,12 @@ import {
 } from "@/app/atoms/atoms";
 
 import {
-SUBTLE,
-WORKFLOW_TAGS,
-TAG_COLORS,
-TAG_CYCLE,
-SHORTCODES,
-TEMPLATES
+  SUBTLE,
+  WORKFLOW_TAGS,
+  TAG_COLORS,
+  TAG_CYCLE,
+  SHORTCODES,
+  TEMPLATES,
 } from "./constants";
 
 interface MarkdownEditorProps {
@@ -114,7 +114,8 @@ function highlightMarkdownMonochrome(
       }
 
       // 3. Headings
-      if (html.startsWith("#")) {
+      if (html.startsWith("#") && /^#{1,6}\s/.test(html)) {
+        // Added space check here
         return html.replace(
           /^(#{1,6}\s+)(.*)$/,
           (m, hashes, content) =>
