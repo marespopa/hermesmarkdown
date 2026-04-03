@@ -64,6 +64,11 @@ const TEMPLATES = [
       "## Objective\n\n\n## Context\n\n\n## Data\n\n\n## Output Format\n",
   },
   {
+    label: "⚡ Quick Idea",
+    content:
+      "# ⚡ Brain Dump\n\n## The Big Idea 💡\n \n\n## Key Details 🔍\n \n \n \n\n## Next Steps 🚀\n \n \n",
+  },
+  {
     label: "💪 Gym Helper",
     content:
       "# 🏋️ Workout\n> 🔓 Locker: \n> 📅 Date: {date}\n> ⚡ Workout Type: \n\n## 🏃 Exercises\n- Exercise  #todo",
@@ -80,89 +85,122 @@ function highlightMarkdownMonochrome(
   searchTerm?: string,
 ) {
   const customFont = fontFamily ? `style="font-family: ${fontFamily};"` : "";
+  let isInsideCodeBlock = false;
 
-  let html = code
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;");
+  const processInline = (text: string) => {
+    let html = text;
 
-  if (searchTerm?.trim() && searchTerm.length > 1) {
-    const safeSearch = searchTerm.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-    html = html.replace(
-      new RegExp(`(${safeSearch})`, "gi"),
-      '<mark class="bg-blue-500/20 dark:bg-blue-400/30 text-inherit rounded-sm">$1</mark>',
-    );
-  }
+    // 1. Inline Code
+    if (html.includes("`")) {
+      html = html.replace(
+        /(`)(.*?)(`)/g,
+        `<span ${SUBTLE}>$1</span><code class="bg-zinc-100/80 dark:bg-zinc-800/50 rounded px-1 text-sm">$2</code><span ${SUBTLE}>$3</span>`,
+      );
+    }
 
-  // 1. Process Headings
-  html = html.replace(
-    /^(#{1,6}\s+)(.*)$/gm,
-    `<span ${SUBTLE}>$1</span><span class="font-bold text-zinc-900 dark:text-zinc-50">$2</span>`,
-  );
+    // 2. Hashtags
+    if (html.includes("#")) {
+      html = html.replace(
+        /(^|\s)(#[\w-]+)(?=\s|$)/gim,
+        (match, before, fullTag) => {
+          const tagName = fullTag.slice(1).toLowerCase();
+          const isWorkflow = WORKFLOW_TAGS.includes(tagName);
+          const colorClass = isWorkflow
+            ? TAG_COLORS[tagName]
+            : "font-bold text-zinc-700 dark:text-zinc-300";
+          const indicator = isWorkflow
+            ? ' <small class="opacity-30 select-none">↻</small>'
+            : "";
+          return `${before}<span class="${colorClass} cursor-pointer" ${customFont}>${fullTag}${indicator}</span>`;
+        },
+      );
+    }
 
-  // 2. Process Blockquotes
-  html = html.replace(
-    /^(&gt;\s?)(.*)$/gm,
-    `<span ${SUBTLE}>$1</span><span class="text-zinc-500 dark:text-zinc-400">$2</span>`,
-  );
+    // 3. Links
+    if (html.includes("[")) {
+      html = html.replace(
+        /(\[)([^\]]+)(\]\()([^)]+)(\))/g,
+        `<span ${SUBTLE}>$1</span><span class="text-blue-600 dark:text-blue-400 underline underline-offset-4">$2</span><span ${SUBTLE}>$3$4$5</span>`,
+      );
+    }
 
-  // 3. Process Links
-  html = html.replace(
-    /(\[)([^\]]+)(\]\()([^)]+)(\))/g,
-    `<span ${SUBTLE}>$1</span><span class="text-blue-600 dark:text-blue-400 underline underline-offset-4">$2</span><span ${SUBTLE}>$3$4$5</span>`,
-  );
+    // 4. Bold/Italics
+    if (html.includes("*") || html.includes("_")) {
+      html = html.replace(
+        /(\*\*|__)(.*?)\1/g,
+        `<span ${SUBTLE}>$1</span><strong class="font-bold text-zinc-900 dark:text-zinc-50">$2</strong><span ${SUBTLE}>$1</span>`,
+      );
+      html = html.replace(
+        /(\*|_)(.*?)\1/g,
+        `<span ${SUBTLE}>$1</span><em class="italic text-zinc-800 dark:text-zinc-200">$2</em><span ${SUBTLE}>$1</span>`,
+      );
+    }
 
-  // 4. Process Hashtags
-  const tagRegex = /(?:^|\s)#([\w-]+)(?=\s|$)/gim;
-  html = html.replace(tagRegex, (match, tagName) => {
-    const lowerTag = tagName.toLowerCase();
-    const isWorkflow = WORKFLOW_TAGS.includes(lowerTag);
-    const colorClass = isWorkflow
-      ? TAG_COLORS[lowerTag]
-      : "font-bold text-zinc-700 dark:text-zinc-300";
-    const indicator = isWorkflow
-      ? ' <small class="opacity-30 select-none">↻</small>'
-      : "";
-    return `<span class="${colorClass} cursor-pointer" ${customFont}>${match}${indicator}</span>`;
-  });
+    return html;
+  };
 
-  // 5. Process Lists & Checkboxes
-  html = html.replace(
-    /^(\s*[-*+]\s+)(\[[ xX]\]\s+)?(.*)$/gm,
-    (m, bull, check, label) => {
-      const isChecked = check?.toLowerCase().includes("x");
-      const checkHtml = check ? `<span ${SUBTLE}>${check}</span>` : "";
-      return `<span ${SUBTLE}>${bull}</span>${checkHtml}<span class="${isChecked ? "line-through opacity-40" : "text-zinc-900 dark:text-zinc-100"}">${label}</span>`;
-    },
-  );
+  return code
+    .split("\n")
+    .map((line) => {
+      let html = line
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
 
-  // 6. Process Bold & Italics
-  html = html.replace(
-    /(\*\*|__)(.*?)\1/g,
-    `<span ${SUBTLE}>$1</span><strong class="font-bold text-zinc-900 dark:text-zinc-50">$2</strong><span ${SUBTLE}>$1</span>`,
-  );
-  html = html.replace(
-    /(\*|_)(.*?)\1/g,
-    `<span ${SUBTLE}>$1</span><em class="italic text-zinc-800 dark:text-zinc-200">$2</em><span ${SUBTLE}>$1</span>`,
-  );
+      // 1. Code Block Toggle
+      if (html.startsWith("```") || html.startsWith("~~~")) {
+        isInsideCodeBlock = !isInsideCodeBlock;
+        const fence = html.slice(0, 3);
+        const lang = html.slice(3);
+        return `<span ${SUBTLE}>${fence}${lang}</span>`;
+      }
+      if (isInsideCodeBlock)
+        return `<span class="bg-zinc-100/50 dark:bg-zinc-800/40 w-full inline-block">${html}</span>`;
 
-  // 7. Process Tables/Separators
-  html = html.replace(/\|/g, `<span ${SUBTLE}>|</span>`);
-  html = html.replace(
-    /^( {0,3}([*+-])(?:\s*\2){2,}\s*)$/gm,
-    `<span ${SUBTLE}>$1</span>`,
-  );
+      if (!html.trim()) return html;
 
-  // 8. Process Code Blocks
-  html = html.replace(
-    /(```|~~~)([a-zA-Z0-9-]*)?([\s\S]*?)\1/g,
-    (match, fence, lang, content) => {
-      const langHtml = lang ? `<span ${SUBTLE}>${lang}</span>` : "";
-      return `<span ${SUBTLE}>${fence}</span>${langHtml}<span class="bg-zinc-100/50 dark:bg-zinc-800/40">${content}</span><span ${SUBTLE}>${fence}</span>`;
-    },
-  );
+      // 2. Horizontal Rule
+      if (/^( {0,3}([-*_])(?:\s*\2){2,}\s*)$/.test(html)) {
+        return `<span ${SUBTLE}>${html}</span>`;
+      }
 
-  return html;
+      // 3. Headings
+      if (html.startsWith("#")) {
+        return html.replace(
+          /^(#{1,6}\s+)(.*)$/,
+          (m, hashes, content) =>
+            `<span ${SUBTLE}>${hashes}</span><span class="font-bold text-zinc-900 dark:text-zinc-50">${processInline(content)}</span>`,
+        );
+      }
+
+      // 4. Blockquotes
+      if (html.startsWith("&gt;")) {
+        return html.replace(
+          /^(&gt;\s?)(.*)$/,
+          (m, quote, content) =>
+            `<span ${SUBTLE}>${quote}</span><span class="text-zinc-500 dark:text-zinc-400">${processInline(content)}</span>`,
+        );
+      }
+
+      // 5. Lists
+      if (/^\s*[-*+]\s+/.test(html)) {
+        return html.replace(
+          /^(\s*[-*+]\s+)(\[[ xX]\]\s+)?(.*)$/,
+          (m, bull, check, label) => {
+            const isChecked = check?.toLowerCase().includes("x");
+            const checkHtml = check ? `<span ${SUBTLE}>${check}</span>` : "";
+            return `<span ${SUBTLE}>${bull}</span>${checkHtml}<span class="${isChecked ? "line-through opacity-40" : "text-zinc-900 dark:text-zinc-100"}">${processInline(label)}</span>`;
+          },
+        );
+      }
+
+      if (html.includes("|")) {
+        html = html.replace(/\|/g, `<span ${SUBTLE}>|</span>`);
+      }
+
+      return processInline(html);
+    })
+    .join("\n");
 }
 
 export default function MarkdownEditor({
