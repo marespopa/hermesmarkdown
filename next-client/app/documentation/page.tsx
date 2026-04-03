@@ -29,62 +29,58 @@ export default function Documentation() {
           </h1>
           <p className="text-xl leading-relaxed text-zinc-800 dark:text-zinc-200">
             Hermes is a local-first environment built for focused writing. No
-            cloud synchronization. No tracking. Just the interface between your
-            mind and the page.
+            cloud synchronization. No tracking. Just an interactive canvas
+            designed for speed and status tracking.
           </p>
         </section>
 
-        {/* --- 01. INTERACTION LOGIC --- */}
+        {/* --- 01. INTERACTIVE ENGINE --- */}
         <section className="border-t border-black/10 dark:border-white/10 pt-12">
-          <span className={sectionHeading}>01. Interaction Logic</span>
+          <span className={sectionHeading}>01. Interactive Engine</span>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
             <div className="space-y-4">
               <h3 className="text-xs font-bold uppercase tracking-widest text-blue-600 dark:text-blue-400">
-                Desktop Commands
+                Click Actions
               </h3>
               <p className="text-sm leading-relaxed opacity-80">
-                Interactive elements respond to clicks while the editor handles
-                the syntax automatically.
+                Elements in the editor are live. Clicking them modifies the
+                underlying text automatically.
               </p>
               <div className="text-sm space-y-3 p-4 bg-zinc-50 dark:bg-zinc-800/30 border border-black/5">
-                <div className="flex justify-between items-center">
-                  <span className="font-bold text-[10px] uppercase opacity-40">
-                    Action
-                  </span>
-                  <span className="font-bold text-[10px] uppercase opacity-40">
-                    Effect
+                <div className="flex justify-between py-2 border-b border-black/5">
+                  <span>Toggle Task</span>
+                  <span className="opacity-60 text-xs">
+                    Click `[ ]` or `[x]`
                   </span>
                 </div>
-                <div className="flex justify-between py-2 border-t border-black/5">
-                  <span>Click Checkbox</span>
-                  <span className="opacity-60 text-xs">Toggle [x]</span>
+                <div className="flex justify-between py-2 border-b border-black/5">
+                  <span>Cycle Status</span>
+                  <span className="opacity-60 text-xs">Click any `#tag`</span>
                 </div>
-                <div className="flex justify-between py-2 border-t border-black/5">
-                  <span>Click Tag</span>
-                  <span className="opacity-60 text-xs text-right">
-                    Cycle Status Flow
-                  </span>
+                <div className="flex justify-between py-2">
+                  <span>Navigate</span>
+                  <span className="opacity-60 text-xs">CTRL + Click Link</span>
                 </div>
               </div>
             </div>
 
             <div className="space-y-4">
               <h3 className="text-xs font-bold uppercase tracking-widest text-blue-600 dark:text-blue-400">
-                Mobile Behavior
+                Smart Handling
               </h3>
               <p className="text-sm leading-relaxed opacity-80">
-                Automatic toggles are disabled to prevent keyboard interference
-                and accidental shifts.
+                The editor intercepts specific inputs to format your workflow
+                without breaking your concentration.
               </p>
-              <div className="p-4 bg-amber-50/50 dark:bg-amber-900/10 border border-amber-200/20 text-[10px] leading-relaxed uppercase tracking-wider text-amber-700 dark:text-amber-200/60">
-                Note: Checkboxes and tags remain plain text for manual editing
-                on mobile devices.
+              <div className="p-4 bg-blue-50/50 dark:bg-blue-900/10 border border-blue-200/20 text-[10px] leading-relaxed uppercase tracking-wider text-blue-700 dark:text-blue-200/60">
+                Tip: Pasting a URL automatically generates a `[link](url)` and
+                selects the label for immediate renaming.
               </div>
             </div>
           </div>
         </section>
 
-        {/* --- 02. SYNTAX & WORKFLOW --- */}
+        {/* --- 02. SYNTAX & SHORTCUTS --- */}
         <section className="border-t border-black/10 dark:border-white/10 pt-12">
           <span className={sectionHeading}>02. Syntax Guide</span>
 
@@ -92,25 +88,23 @@ export default function Documentation() {
             {/* Workflow Lifecycle */}
             <div>
               <h3 className="text-xs font-bold mb-6 opacity-30 uppercase tracking-widest">
-                Status Lifecycle
+                Workflow Lifecycle
               </h3>
               <div className="flex items-center justify-between px-2 opacity-80">
-                {["#urgn", "#todo", "#prog", "#wait", "#done"].map(
-                  (tag, i, arr) => (
-                    <React.Fragment key={tag}>
-                      <span className="text-xs font-mono text-blue-600 dark:text-blue-400">
-                        {tag}
-                      </span>
-                      {i < arr.length - 1 && (
-                        <span className="opacity-20">→</span>
-                      )}
-                    </React.Fragment>
-                  ),
-                )}
+                {["#urgn", "#todo", "#prog", "#done"].map((tag, i, arr) => (
+                  <React.Fragment key={tag}>
+                    <span className="text-xs font-mono text-blue-600 dark:text-blue-400">
+                      {tag}
+                    </span>
+                    {i < arr.length - 1 && (
+                      <span className="opacity-20">→</span>
+                    )}
+                  </React.Fragment>
+                ))}
               </div>
               <p className="mt-4 text-[10px] opacity-40 italic">
-                Clicking any status tag cycles to the next state in the
-                sequence.
+                Status tags are interactive. Clicking `#todo` transforms it to
+                `#prog`, and eventually `#done`.
               </p>
             </div>
 
@@ -118,62 +112,61 @@ export default function Documentation() {
             <div className="grid grid-cols-1 gap-8">
               <div className="space-y-4">
                 <h3 className="text-xs font-bold opacity-30 uppercase tracking-widest">
-                  Standard Markdown
+                  Task Syntax
                 </h3>
                 <div className="bg-zinc-50 dark:bg-zinc-900/30 px-6 border border-black/5 dark:border-white/5 font-mono text-sm">
                   <div className={guideRow}>
                     <span className={syntaxLabel}>- [ ]</span>
-                    <span className={resultLabel}>Task List Item</span>
+                    <span className={resultLabel}>Empty Checkbox</span>
                   </div>
                   <div className={guideRow}>
-                    <span className={syntaxLabel}># H1</span>
-                    <span className={resultLabel}>Heading 1</span>
-                  </div>
-                  <div className={guideRow}>
-                    <span className={syntaxLabel}>&gt; Text</span>
-                    <span className={resultLabel}>Blockquote</span>
-                  </div>
-                  <div className={guideRow}>
-                    <span className={syntaxLabel}>`Code`</span>
-                    <span className={resultLabel}>Inline Style</span>
+                    <span className={syntaxLabel}>- [x]</span>
+                    <span className={resultLabel}>Completed (Fades out)</span>
                   </div>
                 </div>
               </div>
 
               <div className="space-y-4">
                 <h3 className="text-xs font-bold opacity-30 uppercase tracking-widest">
-                  Shortcuts
+                  Live Shortcodes
                 </h3>
                 <div className="bg-zinc-50 dark:bg-zinc-900/30 px-6 border border-black/5 dark:border-white/5 font-mono text-sm">
                   <div className={guideRow}>
                     <span className={syntaxLabel}>..d</span>
-                    <span className={resultLabel}>Expands to YYYY-MM-DD</span>
+                    <span className={resultLabel}>Stamp Current Date</span>
                   </div>
                   <div className={guideRow}>
                     <span className={syntaxLabel}>{"{time}"}</span>
-                    <span className={resultLabel}>Expands to HH:mm</span>
+                    <span className={resultLabel}>Stamp Current Time</span>
+                  </div>
+                  <div className={guideRow}>
+                    <span className={syntaxLabel}>/</span>
+                    <span className={resultLabel}>Open Template Menu</span>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Code Block Example */}
+            {/* Link Pattern */}
             <div className="space-y-4">
               <h3 className="text-xs font-bold opacity-30 uppercase tracking-widest">
-                Blocks
+                Link Logic
               </h3>
               <div className="bg-zinc-50 dark:bg-zinc-900/30 p-6 border border-black/5 dark:border-white/5">
                 <div className="flex justify-between mb-4 border-b border-black/5 pb-2">
                   <span className="text-[10px] uppercase opacity-40 tracking-widest">
-                    Input
+                    Action
                   </span>
                   <span className="text-[10px] uppercase opacity-40 tracking-widest text-right">
-                    Rendering
+                    Markdown Result
                   </span>
                 </div>
-                <code className="block text-blue-600 dark:text-blue-400 whitespace-pre overflow-x-auto text-xs leading-relaxed">
-                  {"```javascript\nconst focus = true;\n```"}
-                </code>
+                <div className="flex justify-between items-center font-mono text-xs">
+                  <span className="opacity-80">Paste URL</span>
+                  <code className="text-blue-600 dark:text-blue-400">
+                    {"[link](https://...)"}
+                  </code>
+                </div>
               </div>
             </div>
           </div>
@@ -182,7 +175,7 @@ export default function Documentation() {
         {/* --- FOOTER --- */}
         <footer className="pt-20 pb-12 text-center border-t border-black/5 dark:border-white/5">
           <p className="text-[10px] uppercase tracking-[0.4em] opacity-30 italic">
-            Focus First — Markdown Only
+            Focus First — Stay Local
           </p>
         </footer>
       </div>
