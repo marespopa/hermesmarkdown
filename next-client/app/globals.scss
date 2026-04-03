@@ -92,3 +92,15 @@ ul li::marker {
 .bullet-list li::marker {
   color: theme('colors.orange.500');
 }
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+.typewriter-cursor::after {
+  content: "|";
+  margin-left: 2px;
+  animation: blink 1s step-end infinite;
+  @apply text-blue-500; /* Typora-style cursor color */
+}

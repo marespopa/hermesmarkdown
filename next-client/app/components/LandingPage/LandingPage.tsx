@@ -11,6 +11,25 @@ export default function LandingPage() {
   const [content] = useAtom(atom_content);
   const [showLoading, setShowLoading] = useState(false);
   const [showDialog, setShowDialog] = useState(false);
+  const fullText =
+    "A minimalist, local-first Markdown editor designed for deep work. No cloud. No tracking. Just the interface between your mind and the page.";
+  const [displayText, setDisplayText] = useState("");
+  const [isComplete, setIsComplete] = useState(false);
+
+  useEffect(() => {
+    let index = 0;
+    const intervalId = setInterval(() => {
+      setDisplayText(fullText.slice(0, index));
+      index++;
+
+      if (index > fullText.length) {
+        clearInterval(intervalId);
+        setIsComplete(true);
+      }
+    }, 35); // Adjust speed here (lower is faster)
+
+    return () => clearInterval(intervalId);
+  }, []);
   const hasContent = content.length > 0;
 
   useEffect(() => {
@@ -62,15 +81,25 @@ export default function LandingPage() {
       <div className="max-w-2xl mx-auto px-6 py-32 space-y-32">
         {/* --- HERO SECTION --- */}
         <section className="space-y-8">
-          <h1 className="text-2xl font-normal tracking-tighter italic">
-            Hermes Markdown
-          </h1>
-          <p className="text-xl leading-relaxed">
-            A minimalist, local-first Markdown editor designed for deep work. No
-            cloud. No tracking. Just the interface between your mind and the
-            page.
+          <div className="group flex flex-col gap-2">
+            <h1 className="text-4xl tracking-tighter text-black dark:text-white">
+              <span className="font-bold">Hermes</span>
+              <span className="font-extralight opacity-60">Markdown</span>
+            </h1>
+            <div className="h-[1px] w-16 bg-black/10 dark:bg-white/10 transition-w duration-500 group-hover:w-24" />
+          </div>
+
+          {/* Typewriter Paragraph */}
+          <p
+            className={`text-xl leading-relaxed min-h-[100px] ${!isComplete ? "typewriter-cursor" : ""}`}
+          >
+            {displayText}
           </p>
-          <div className="pt-4">
+
+          {/* Button with Fade-in Effect */}
+          <div
+            className={`pt-4 transition-opacity duration-1000 ${isComplete ? "opacity-100" : "opacity-0"}`}
+          >
             <button
               onClick={() => router.push("/editor")}
               className="group flex items-center gap-3 text-sm uppercase tracking-[0.3em] font-bold"
@@ -84,7 +113,9 @@ export default function LandingPage() {
         </section>
 
         {/* --- PHILOSOPHY SECTION --- */}
-        <section className="grid grid-cols-1 md:grid-cols-2 gap-12 border-t border-black/10 dark:border-white/10 pt-12">
+        <section
+          className={`grid grid-cols-1 md:grid-cols-2 gap-12 border-t border-black/10 dark:border-white/10 pt-12 ${isComplete ? "opacity-100" : "opacity-0"}`}
+        >
           <div className="space-y-4">
             <h2 className="text-xs uppercase tracking-[0.2em] opacity-50">
               01. Privacy
