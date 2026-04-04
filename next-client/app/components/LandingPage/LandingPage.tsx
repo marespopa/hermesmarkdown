@@ -26,7 +26,7 @@ export default function LandingPage() {
         clearInterval(intervalId);
         setIsComplete(true);
       }
-    }, 35); // Adjust speed here (lower is faster)
+    }, 35);
 
     return () => clearInterval(intervalId);
   }, []);
@@ -83,8 +83,8 @@ export default function LandingPage() {
         <section className="space-y-8">
           <div className="group flex flex-col gap-2">
             <h1 className="text-4xl tracking-tighter text-black dark:text-white">
-              <span className="font-bold">Hermes</span>
-              <span className="font-extralight opacity-60">Markdown</span>
+              <span className="font-bold">hermes</span>
+              <span className="font-extralight opacity-60">markdown</span>
             </h1>
             <div className="h-[1px] w-16 bg-black/10 dark:bg-white/10 transition-w duration-500 group-hover:w-24" />
           </div>
