@@ -52,7 +52,6 @@ export default function LandingPage() {
   return (
     <main className="min-h-screen font-mono selection:bg-blue-500 dark:selection:bg-blue-100">
       <LoadingOverlay isVisible={showLoading} text="Loading the editor..." />
-
       <DialogModal
         isOpened={showDialog}
         onClose={() => setShowDialog(false)}
@@ -61,19 +60,20 @@ export default function LandingPage() {
         <div className="flex flex-col gap-5">
           <div className="space-y-1">
             <span className="text-[10px] uppercase tracking-[0.2em] block">
-              Session Found
+              Active Session
             </span>
             <p className="text-sm leading-tight tracking-tight font-mono">
-              You have an active draft in local storage. Resume your work?
+              An existing editor session was found. Would you like to jump back
+              in?
             </p>
           </div>
 
           <div className="flex gap-2">
             <Button variant="primary" onClick={handleConfirm}>
-              Resume
+              Resume Session
             </Button>
             <Button variant="outlined" onClick={() => setShowDialog(false)}>
-              Discard
+              Not Now
             </Button>
           </div>
         </div>
@@ -141,13 +141,32 @@ export default function LandingPage() {
           <h2 className="text-xs uppercase tracking-[0.2em] opacity-50 text-center">
             Standard Syntax
           </h2>
-          <div className="bg-white dark:bg-neutral-900 p-8 border border-black/5 dark:border-white/5 font-mono text-sm leading-8 opacity-80">
-            # Heading One <br />
-            ## Heading Two <br />
-            - List Item <br />
-            **Bold Text** <br />
-            _Italic Text_ <br />
-            [Link](https://hermesmarkdown.com)
+          <div className="bg-white dark:bg-neutral-900 p-8 border border-black/5 dark:border-white/5 font-mono text-sm leading-relaxed opacity-80">
+            <div className="grid grid-cols-1 gap-3">
+              <p>
+                <span className="opacity-40">#</span> **Heading One**
+              </p>
+              <p>
+                <span className="opacity-40">##</span> **Heading Two**
+              </p>
+              <p>
+                <span className="opacity-40">-</span> List Item
+              </p>
+              <p>
+                <span className="opacity-40">**</span>**Bold Text**
+                <span className="opacity-40">**</span>
+              </p>
+              <p>
+                <span className="opacity-40">_</span>_Italic Text_
+                <span className="opacity-40">_</span>
+              </p>
+              <p>
+                <span className="opacity-40">[</span>Link
+                <span className="opacity-40">]</span>
+                <span className="opacity-40">(</span>https://...
+                <span className="opacity-40">)</span>
+              </p>
+            </div>
           </div>
         </section>
 
