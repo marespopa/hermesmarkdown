@@ -2,178 +2,123 @@ import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAtom } from "jotai";
 import { atom_content } from "@/app/atoms/atoms";
-import Button from "@/app/components/Button";
 import LoadingOverlay from "@/app/components/LoadingOverlay/LoadingOverlay";
-import DialogModal from "@/app/components/DialogModal/DialogModal";
 
 export default function LandingPage() {
   const router = useRouter();
   const [content] = useAtom(atom_content);
   const [showLoading, setShowLoading] = useState(false);
-  const [showDialog, setShowDialog] = useState(false);
-  const fullText =
-    "A minimalist, local-first Markdown editor designed for deep work. No cloud. No tracking. Just the interface between your mind and the page.";
-  const [displayText, setDisplayText] = useState("");
-  const [isComplete, setIsComplete] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
-    let index = 0;
-    const intervalId = setInterval(() => {
-      setDisplayText(fullText.slice(0, index));
-      index++;
-
-      if (index > fullText.length) {
-        clearInterval(intervalId);
-        setIsComplete(true);
-      }
-    }, 35);
-
-    return () => clearInterval(intervalId);
-  }, []);
-  const hasContent = content.length > 0;
-
-  useEffect(() => {
+    setIsMounted(true);
     router.prefetch("/editor");
   }, [router]);
 
-  useEffect(() => {
-    if (hasContent) {
-      setShowDialog(true);
-    }
-  }, [hasContent]);
-
-  const handleConfirm = () => {
-    setShowDialog(false);
+  const handleStart = () => {
     setShowLoading(true);
-
     router.push("/editor");
   };
 
-  return (
-    <main className="min-h-screen font-mono selection:bg-blue-500 dark:selection:bg-blue-100">
-      <LoadingOverlay isVisible={showLoading} text="Loading the editor..." />
-      <DialogModal
-        isOpened={showDialog}
-        onClose={() => setShowDialog(false)}
-        style="max-h-[200px]"
-      >
-        <div className="flex flex-col gap-5">
-          <div className="space-y-1">
-            <span className="text-[10px] uppercase tracking-[0.2em] block">
-              Active Session
-            </span>
-            <p className="text-sm leading-tight tracking-tight font-mono">
-              An existing editor session was found. Would you like to jump back
-              in?
-            </p>
-          </div>
+  const hasContent = content && content.length > 0;
 
-          <div className="flex gap-2">
-            <Button variant="primary" onClick={handleConfirm}>
-              Resume Session
-            </Button>
-            <Button variant="outlined" onClick={() => setShowDialog(false)}>
-              Not Now
-            </Button>
+  return (
+    <main className="min-h-screen font-mono selection:bg-blue-500/30 text-neutral-900 dark:text-neutral-100 bg-white dark:bg-neutral-950">
+      <LoadingOverlay isVisible={showLoading} text="Opening editor..." />
+
+      {/* PERSISTENT RESUME NOTIFICATION */}
+      {isMounted && hasContent && (
+        <div className="fixed bottom-0 left-0 w-full z-50 bg-neutral-100 dark:bg-neutral-900 border-b border-black/5 dark:border-white/10">
+          <div className="max-w-2xl mx-auto px-6 py-3 flex items-center justify-between gap-4">
+            <p className="text-[10px] uppercase tracking-wider opacity-70">
+              Active draft found in local storage
+            </p>
+            <button
+              onClick={handleStart}
+              className="text-[10px] font-bold uppercase tracking-[0.2em] hover:text-blue-500 transition-colors"
+            >
+              Resume Session →
+            </button>
           </div>
         </div>
-      </DialogModal>
-      <div className="max-w-2xl mx-auto px-6 py-32 space-y-32">
+      )}
+
+      <div className="max-w-2xl mx-auto px-6 pt-32 pb-20 space-y-20">
         {/* --- HERO SECTION --- */}
-        <section className="space-y-8">
+        <section
+          className={`space-y-8 transition-all duration-700 ${isMounted ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"}`}
+        >
           <div className="group flex flex-col gap-2">
-            <h1 className="text-4xl tracking-tighter text-black dark:text-white">
+            <h1 className="text-4xl tracking-tighter">
               <span className="font-bold">hermes</span>
-              <span className="font-extralight opacity-60">markdown</span>
+              <span className="font-light opacity-40">markdown</span>
             </h1>
-            <div className="h-[1px] w-16 bg-black/10 dark:bg-white/10 transition-w duration-500 group-hover:w-24" />
+            <div className="h-px w-12 bg-blue-600 transition-[width] duration-500 group-hover:w-20" />
           </div>
 
-          {/* Typewriter Paragraph */}
-          <p
-            className={`text-xl leading-relaxed min-h-[100px] ${!isComplete ? "typewriter-cursor" : ""}`}
-          >
-            {displayText}
+          <p className="text-xl md:text-2xl leading-relaxed font-medium tracking-tight max-w-xl">
+            A minimalist, local-first Markdown editor designed for deep work.
+            <span className="opacity-40">
+              {" "}
+              No cloud. No tracking. Just the interface between your mind and
+              the page.
+            </span>
           </p>
 
-          {/* Button with Fade-in Effect */}
-          <div
-            className={`pt-4 transition-opacity duration-1000 ${isComplete ? "opacity-100" : "opacity-0"}`}
-          >
+          <div className="pt-4">
             <button
-              onClick={() => router.push("/editor")}
-              className="group flex items-center gap-3 text-sm uppercase tracking-[0.3em] font-bold"
+              onClick={handleStart}
+              className="bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 px-8 py-3 text-xs uppercase tracking-[0.2em] font-bold hover:bg-blue-600 dark:hover:bg-blue-500 transition-colors"
             >
-              Start Writing
-              <span className="group-hover:translate-x-2 transition-transform">
-                →
-              </span>
+              Open Editor
             </button>
           </div>
         </section>
 
-        {/* --- PHILOSOPHY SECTION --- */}
-        <section
-          className={`grid grid-cols-1 md:grid-cols-2 gap-12 border-t border-black/10 dark:border-white/10 pt-12 ${isComplete ? "opacity-100" : "opacity-0"}`}
-        >
-          <div className="space-y-4">
-            <h2 className="text-xs uppercase tracking-[0.2em] opacity-50">
-              01. Privacy
+        {/* --- TECHNICAL MANIFESTO --- */}
+        <section className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-12 border-t border-black/10 dark:border-white/10 pt-12">
+          <div className="space-y-3">
+            <h2 className="text-[11px] font-bold uppercase tracking-[0.2em] text-blue-600">
+              Local-First
             </h2>
-            <p className="text-sm leading-relaxed">
-              Your data never leaves your machine. Hermes operates entirely
-              within your browser's local storage.
+            <p className="text-sm leading-relaxed opacity-60">
+              Content is stored in your browser's local state. No database lag,
+              no server-side storage, and no cloud-sync conflicts.
             </p>
           </div>
-          <div className="space-y-4">
-            <h2 className="text-xs uppercase tracking-[0.2em] opacity-50">
-              02. Speed
+          <div className="space-y-3">
+            <h2 className="text-[11px] font-bold uppercase tracking-[0.2em] text-blue-600">
+              Content Privacy
             </h2>
-            <p className="text-sm leading-relaxed">
-              Instant-on performance. No accounts to create, no servers to wait
-              for.
+            <p className="text-sm leading-relaxed opacity-60">
+              Your writing never leaves your machine. We use basic analytics to
+              improve the UI, but your actual page content is never tracked.
             </p>
           </div>
-        </section>
-
-        {/* --- GUIDE SECTION --- */}
-        <section className="space-y-6">
-          <h2 className="text-xs uppercase tracking-[0.2em] opacity-50 text-center">
-            Standard Syntax
-          </h2>
-          <div className="bg-white dark:bg-neutral-900 p-8 border border-black/5 dark:border-white/5 font-mono text-sm leading-relaxed opacity-80">
-            <div className="grid grid-cols-1 gap-3">
-              <p>
-                <span className="opacity-40">#</span> **Heading One**
-              </p>
-              <p>
-                <span className="opacity-40">##</span> **Heading Two**
-              </p>
-              <p>
-                <span className="opacity-40">-</span> List Item
-              </p>
-              <p>
-                <span className="opacity-40">**</span>**Bold Text**
-                <span className="opacity-40">**</span>
-              </p>
-              <p>
-                <span className="opacity-40">_</span>_Italic Text_
-                <span className="opacity-40">_</span>
-              </p>
-              <p>
-                <span className="opacity-40">[</span>Link
-                <span className="opacity-40">]</span>
-                <span className="opacity-40">(</span>https://...
-                <span className="opacity-40">)</span>
-              </p>
-            </div>
+          <div className="space-y-3">
+            <h2 className="text-[11px] font-bold uppercase tracking-[0.2em] text-blue-600">
+              No Accounts
+            </h2>
+            <p className="text-sm leading-relaxed opacity-60">
+              Skip the sign-up friction. Hermes is a tool, not a service. No
+              credentials to manage, no passwords to lose.
+            </p>
+          </div>
+          <div className="space-y-3">
+            <h2 className="text-[11px] font-bold uppercase tracking-[0.2em] text-blue-600">
+              Pure Environment
+            </h2>
+            <p className="text-sm leading-relaxed opacity-60">
+              No complex file systems or directory trees. Focus on the current
+              thought, document the trade-offs, and move on.
+            </p>
           </div>
         </section>
 
         {/* --- FOOTER --- */}
-        <footer className="pt-20 pb-12 text-center">
-          <p className="text-[10px] uppercase tracking-[0.4em] opacity-30">
-            Privacy First — Markdown Only
+        <footer className="pt-10 pb-12 border-t border-black/10 dark:border-white/10 flex justify-between items-center">
+          <p className="text-[10px] uppercase tracking-[0.2em] opacity-40">
+            Hermes Markdown - A minimal Markdown editor and reader.{" "}
           </p>
         </footer>
       </div>
