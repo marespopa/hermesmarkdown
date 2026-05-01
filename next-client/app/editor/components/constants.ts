@@ -16,6 +16,7 @@ export const TAG_CYCLE = {
 };
 
 export const SHORTCODES = {
+  // --- Absolute Dates ---
   "..d": () => new Date().toLocaleDateString("en-CA"),
   "{date}": () => new Date().toLocaleDateString("en-CA"),
   "{time}": () =>
@@ -24,6 +25,58 @@ export const SHORTCODES = {
       minute: "2-digit",
       hour12: false,
     }),
+  // --- Relative Dates ---
+  "..tomorrow": () => {
+    const d = new Date();
+    d.setDate(d.getDate() + 1);
+    return d.toLocaleDateString("en-CA");
+  },
+  "..yesterday": () => {
+    const d = new Date();
+    d.setDate(d.getDate() - 1);
+    return d.toLocaleDateString("en-CA");
+  },
+
+  // --- Advanced Timestamps & Logs ---
+  "{datetime}": () => {
+    const d = new Date();
+    const date = d.toLocaleDateString("en-CA");
+    const time = d.toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    });
+    return `${date} ${time}`;
+  },
+  "{iso}": () => new Date().toISOString(),
+  "{unix}": () => Math.floor(Date.now() / 1000).toString(),
+  "..log": () =>
+    `[${new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: false })}] --- `,
+
+  // --- Calendar Metadata ---
+  "{day}": () =>
+    new Intl.DateTimeFormat("en-US", { weekday: "long" }).format(new Date()),
+  "{week}": () => {
+    const d = new Date();
+    d.setHours(0, 0, 0, 0);
+    d.setDate(d.getDate() + 4 - (d.getDay() || 7));
+    const yearStart = new Date(d.getFullYear(), 0, 1);
+    const weekNo = Math.ceil(((d - yearStart) / 86400000 + 1) / 7);
+    return `W${weekNo}`;
+  },
+
+  // List
+  "{todo}": () => "- [ ] ",
+  "{done}": () => "- [x] ",
+
+  // Emojis
+  "{check}": () => "✅",
+  "{error}": () => "❌ ",
+  "{idea}": () => "💡 ",
+  "{warn}": () => "⚠️ ",
+  "{fix}": () => "🛠️ ",
+  "{bug}": () => "🐛 ",
+  "{star}": () => "⭐ ",
 };
 
 export const TEMPLATES = [
