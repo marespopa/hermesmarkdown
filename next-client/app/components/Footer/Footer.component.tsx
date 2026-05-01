@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import ProductHuntBadge from "./components/ProductHuntBadge";
-import { usePathname } from "next/navigation";
 import ClientOnly from "../ClientOnly";
 
 export default function Footer() {

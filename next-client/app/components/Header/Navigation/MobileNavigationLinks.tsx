@@ -1,8 +1,7 @@
 "use client";
 
 import React from "react";
-import NavigationLink from "./NavigationLink";
-import { FaTimesCircle, FaSun, FaMoon } from "react-icons/fa";
+import { FaSun, FaMoon } from "react-icons/fa";
 import { useAtom } from "jotai";
 import { atom_theme } from "@/app/atoms/atoms";
 import { useRouter } from "next/navigation";

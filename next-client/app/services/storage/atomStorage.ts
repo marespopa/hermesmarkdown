@@ -4,7 +4,6 @@ import {
   createFileSystemStorage,
   fileSystemStorageMeta,
 } from "@/app/services/storage/fsStorage";
-import { migrateLocalStorageKeysOnce } from "@/app/services/storage/migrateLocalToFs";
 
 export type StorageBackend = "filesystem" | "localstorage";
 
@@ -42,4 +41,3 @@ export const getAtomStorage = <T>(): AsyncStorage<T> => {
 export const atomStorageConfig = {
   requestedBackend: getRequestedBackend,
 };
-

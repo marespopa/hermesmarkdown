@@ -2,10 +2,6 @@ import Image from "next/image";
 import React from "react";
 
 export default function ProductHuntBadge() {
-  const badgeLoader = () => {
-    return `https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=377056&theme=dark`
-  }
-  
   return (
     <div className="flex justify-center items-start mt-2 sm:mt-0">
       <a

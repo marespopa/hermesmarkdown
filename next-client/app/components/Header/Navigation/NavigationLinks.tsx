@@ -7,9 +7,7 @@ import { atom_theme } from "@/app/atoms/atoms";
 import Button from "@/app/components/Button";
 import { FaSun, FaMoon } from "react-icons/fa";
 
-type Props = {};
-
-export default function NavigationLinks({}: Props) {
+export default function NavigationLinks() {
   const [theme, setTheme] = useAtom(atom_theme);
   return (
     <nav className="ml-auto" data-testid="navigation">

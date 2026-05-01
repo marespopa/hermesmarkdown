@@ -23,23 +23,18 @@ interface MarkdownEditorProps {
   value: string;
   onChange: (value: string) => void;
   placeholder?: string;
-  searchTerm?: string;
   onTextareaReady?: (element: HTMLTextAreaElement | null) => void;
   setMatchCount?: (count: number) => void;
 }
 
-function highlightMarkdownMonochrome(
-  code: string,
-  fontFamily: string,
-  searchTerm?: string,
-) {
+function highlightMarkdownMonochrome(code: string, fontFamily: string) {
   const customFont = fontFamily ? `style="font-family: ${fontFamily};"` : "";
   let isInsideCodeBlock = false;
 
   const processInline = (text: string) => {
     let html = text;
 
-    // 1. Inline Code
+    // Inline Code
     if (html.includes("`")) {
       html = html.replace(
         /(`)(.*?)(`)/g,
@@ -47,7 +42,7 @@ function highlightMarkdownMonochrome(
       );
     }
 
-    // 2. Hashtags
+    // Hashtags
     if (html.includes("#")) {
       html = html.replace(
         /(^|\s)(#[\w-]+)(?=\s|$)/gim,
@@ -56,24 +51,22 @@ function highlightMarkdownMonochrome(
           const isWorkflow = WORKFLOW_TAGS.includes(tagName);
           const colorClass = isWorkflow
             ? TAG_COLORS[tagName]
-            : "font-bold text-zinc-700 dark:text-zinc-300";
-          const indicator = isWorkflow
-            ? ' <small class="opacity-30 select-none">↻</small>'
-            : "";
-          return `${before}<span class="${colorClass} cursor-pointer" ${customFont}>${fullTag}${indicator}</span>`;
+            : "text-zinc-700 dark:text-zinc-300";
+
+          return `${before}<span class="${colorClass} font-bold cursor-pointer" ${customFont}>${fullTag}</span>`;
         },
       );
     }
 
-    // 3. Links
+    // Links
     if (html.includes("[")) {
       html = html.replace(
         /(\[)([^\]]+)(\]\()([^)]+)(\))/g,
-        `<span ${SUBTLE}>$1</span><span class="text-blue-600 dark:text-blue-400 underline underline-offset-4">$2</span><span ${SUBTLE}>$3$4$5</span>`,
+        `<span ${SUBTLE}>$1</span><span class="text-blue-600 dark:text-blue-400 underline">$2</span><span ${SUBTLE}>$3$4$5</span>`,
       );
     }
 
-    // 4. Bold/Italics
+    // Bold/Italics
     if (html.includes("*") || html.includes("_")) {
       html = html.replace(
         /(\*\*|__)(.*?)\1/g,
@@ -96,7 +89,7 @@ function highlightMarkdownMonochrome(
         .replace(/</g, "&lt;")
         .replace(/>/g, "&gt;");
 
-      // 1. Code Block Toggle
+      // Code Block Toggle
       if (html.startsWith("```") || html.startsWith("~~~")) {
         isInsideCodeBlock = !isInsideCodeBlock;
         const fence = html.slice(0, 3);
@@ -104,16 +97,16 @@ function highlightMarkdownMonochrome(
         return `<span ${SUBTLE}>${fence}${lang}</span>`;
       }
       if (isInsideCodeBlock)
-        return `<span class="bg-zinc-100/50 dark:bg-zinc-800/40 w-full inline-block">${html}</span>`;
+        return `<span class="bg-zinc-100/50 dark:bg-zinc-800/40 w-full">${html}</span>`;
 
       if (!html.trim()) return html;
 
-      // 2. Horizontal Rule
+      // Horizontal Rule
       if (/^( {0,3}([-*_])(?:\s*\2){2,}\s*)$/.test(html)) {
         return `<span ${SUBTLE}>${html}</span>`;
       }
 
-      // 3. Headings
+      // Headings
       if (html.startsWith("#") && /^#{1,6}\s/.test(html)) {
         // Added space check here
         return html.replace(
@@ -123,7 +116,7 @@ function highlightMarkdownMonochrome(
         );
       }
 
-      // 4. Blockquotes
+      // Blockquotes
       if (html.startsWith("&gt;")) {
         return html.replace(
           /^(&gt;\s?)(.*)$/,
@@ -132,7 +125,7 @@ function highlightMarkdownMonochrome(
         );
       }
 
-      // 5. Lists
+      // Lists
       if (/^\s*[-*+]\s+/.test(html)) {
         return html.replace(
           /^(\s*[-*+]\s+)(\[[ xX]\]\s+)?(.*)$/,
@@ -141,6 +134,14 @@ function highlightMarkdownMonochrome(
             const checkHtml = check ? `<span ${SUBTLE}>${check}</span>` : "";
             return `<span ${SUBTLE}>${bull}</span>${checkHtml}<span class="${isChecked ? "line-through opacity-40" : "text-zinc-900 dark:text-zinc-100"}">${processInline(label)}</span>`;
           },
+        );
+      }
+
+      // Strikethrough
+      if (html.includes("~~")) {
+        return html.replace(
+          /(~~)(.*?)(~~)/g,
+          `<span ${SUBTLE}>$1</span><del class="line-through opacity-70">$2</del><span ${SUBTLE}>$3</span>`,
         );
       }
 
@@ -157,7 +158,6 @@ export default function MarkdownEditor({
   value,
   onChange,
   placeholder = "Type / for templates",
-  searchTerm,
   onTextareaReady,
 }: MarkdownEditorProps) {
   const wrapperRef = useRef<HTMLDivElement>(null);
@@ -173,8 +173,8 @@ export default function MarkdownEditor({
   const [isOverLink, setIsOverLink] = useState(false);
 
   const highlight = useCallback(
-    (code: string) => highlightMarkdownMonochrome(code, fontFamily, searchTerm),
-    [searchTerm, fontFamily],
+    (code: string) => highlightMarkdownMonochrome(code, fontFamily),
+    [fontFamily],
   );
 
   useEffect(() => {
@@ -370,7 +370,7 @@ export default function MarkdownEditor({
       }
     }
 
-    const checkboxMatch = currentLine.match(/^(\s*[-\*]\s*\[)([ xX])(\])/);
+    const checkboxMatch = currentLine.match(/^(\s*[-*]\s*\[)([ xX])(\])/);
     if (checkboxMatch) {
       const boxStart = lineStartIndex + checkboxMatch[0].indexOf("[");
       const boxEnd = lineStartIndex + checkboxMatch[0].indexOf("]") + 1;

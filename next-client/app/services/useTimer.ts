@@ -31,6 +31,7 @@ export function useTimer(initialMinutes: number = 25) {
         } catch (e) {
           // Fallback: show alert if Notification fails (e.g., in Turbopack/SSR context)
           alert("Focus session complete!");
+          console.error(e);
         }
       }
     }

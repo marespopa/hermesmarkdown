@@ -1,13 +1,11 @@
 "use client";
 
 import Script from "next/script";
-import React, { useEffect } from "react";
 import { Toaster } from "react-hot-toast";
 import CookieConsent from "./CookieConsent";
 import CustomProviders from "./CustomProviders";
 import Footer from "./Footer/Footer.component";
 import Header from "./Header";
-import Seo from "./Seo";
 import { usePathname } from "next/navigation";
 
 type Props = {

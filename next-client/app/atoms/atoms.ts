@@ -1,6 +1,5 @@
-import { WritableAtom, atom, createStore } from "jotai";
-import { RESET, atomWithStorage } from "jotai/utils";
-import { getAtomStorage } from "@/app/services/storage/atomStorage";
+import { WritableAtom, createStore } from "jotai";
+import { atomWithStorage } from "jotai/utils";
 
 export const contentStore = createStore();
 

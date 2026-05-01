@@ -48,21 +48,6 @@ describe("MarkdownEditor Functional Tests", () => {
     );
   });
 
-  it("highlights search terms correctly", () => {
-    // Render directly with the search term to ensure the highlight function
-    // runs with the term on the first pass
-    const { container } = renderEditor("Find this word", {
-      searchTerm: "word",
-    });
-
-    // The highlighter replaces 'word' with <mark>word</mark>
-    const mark = container.querySelector("mark");
-
-    expect(mark).not.toBeNull();
-    expect(mark).toHaveTextContent("word");
-    expect(mark).toHaveClass("bg-blue-500/20");
-  });
-
   it("processes time shortcode '{time}'", () => {
     renderEditor("");
     const textarea = screen.getByRole("textbox");
