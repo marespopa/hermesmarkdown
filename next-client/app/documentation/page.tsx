@@ -131,14 +131,97 @@ export default function Documentation() {
                   Live Shortcodes
                 </h3>
                 <div className="bg-zinc-50 dark:bg-zinc-900/30 px-6 border border-black/5 dark:border-white/5 font-mono text-sm">
+                  {/* Absolute Dates & Time */}
                   <div className={guideRow}>
                     <span className={syntaxLabel}>..d</span>
                     <span className={resultLabel}>Stamp Current Date</span>
                   </div>
                   <div className={guideRow}>
-                    <span className={syntaxLabel}>{"{time}"}</span>
-                    <span className={resultLabel}>Stamp Current Time</span>
+                    <span className={syntaxLabel}>{"{date}"}</span>
+                    <span className={resultLabel}>Current Date</span>
                   </div>
+                  <div className={guideRow}>
+                    <span className={syntaxLabel}>{"{time}"}</span>
+                    <span className={resultLabel}>Current Time</span>
+                  </div>
+                  <div className={guideRow}>
+                    <span className={syntaxLabel}>{"{datetime}"}</span>
+                    <span className={resultLabel}>Date & Time</span>
+                  </div>
+                  <div className={guideRow}>
+                    <span className={syntaxLabel}>{"{iso}"}</span>
+                    <span className={resultLabel}>ISO Timestamp</span>
+                  </div>
+                  <div className={guideRow}>
+                    <span className={syntaxLabel}>{"{unix}"}</span>
+                    <span className={resultLabel}>Unix Timestamp</span>
+                  </div>
+                  <div className={guideRow}>
+                    <span className={syntaxLabel}>..log</span>
+                    <span className={resultLabel}>Time Log Prefix</span>
+                  </div>
+
+                  {/* Relative Dates */}
+                  <div className={guideRow}>
+                    <span className={syntaxLabel}>..tomorrow</span>
+                    <span className={resultLabel}>Tomorrow's Date</span>
+                  </div>
+                  <div className={guideRow}>
+                    <span className={syntaxLabel}>..yesterday</span>
+                    <span className={resultLabel}>Yesterday's Date</span>
+                  </div>
+
+                  {/* Calendar Metadata */}
+                  <div className={guideRow}>
+                    <span className={syntaxLabel}>{"{day}"}</span>
+                    <span className={resultLabel}>Full Weekday Name</span>
+                  </div>
+                  <div className={guideRow}>
+                    <span className={syntaxLabel}>{"{week}"}</span>
+                    <span className={resultLabel}>ISO Week Number</span>
+                  </div>
+
+                  {/* List Items */}
+                  <div className={guideRow}>
+                    <span className={syntaxLabel}>{"{todo}"}</span>
+                    <span className={resultLabel}> - [ ] </span>
+                  </div>
+                  <div className={guideRow}>
+                    <span className={syntaxLabel}>{"{done}"}</span>
+                    <span className={resultLabel}>- [x]</span>
+                  </div>
+
+                  {/* Emojis */}
+                  <div className={guideRow}>
+                    <span className={syntaxLabel}>{"{check}"}</span>
+                    <span className={resultLabel}>✅</span>
+                  </div>
+                  <div className={guideRow}>
+                    <span className={syntaxLabel}>{"{error}"}</span>
+                    <span className={resultLabel}>❌</span>
+                  </div>
+                  <div className={guideRow}>
+                    <span className={syntaxLabel}>{"{idea}"}</span>
+                    <span className={resultLabel}>💡</span>
+                  </div>
+                  <div className={guideRow}>
+                    <span className={syntaxLabel}>{"{warn}"}</span>
+                    <span className={resultLabel}>⚠️</span>
+                  </div>
+                  <div className={guideRow}>
+                    <span className={syntaxLabel}>{"{fix}"}</span>
+                    <span className={resultLabel}>🛠️</span>
+                  </div>
+                  <div className={guideRow}>
+                    <span className={syntaxLabel}>{"{bug}"}</span>
+                    <span className={resultLabel}>🐛</span>
+                  </div>
+                  <div className={guideRow}>
+                    <span className={syntaxLabel}>{"{star}"}</span>
+                    <span className={resultLabel}>⭐</span>
+                  </div>
+
+                  {/* System */}
                   <div className={guideRow}>
                     <span className={syntaxLabel}>/</span>
                     <span className={resultLabel}>Open Template Menu</span>
