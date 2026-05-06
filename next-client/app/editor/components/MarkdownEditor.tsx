@@ -32,7 +32,7 @@ function highlightMarkdownMonochrome(code: string, fontFamily: string) {
   let isInsideCodeBlock = false;
 
   const processInline = (text: string) => {
-    let html = text;
+    const html = text;
 
     if (html.includes("`")) {
       html = html.replace(
@@ -88,7 +88,7 @@ function highlightMarkdownMonochrome(code: string, fontFamily: string) {
   return code
     .split("\n")
     .map((line) => {
-      let html = line
+      const html = line
         .replace(/&/g, "&amp;")
         .replace(/</g, "&lt;")
         .replace(/>/g, "&gt;");
@@ -338,15 +338,14 @@ export default function MarkdownEditor({
     if (calcMatch) {
       const mathExpression = calcMatch[1];
       const fullMatchString = calcMatch[0];
-      try {
-        const sanitized = mathExpression.replace(/[^-()\d/*+.]/g, "");
-        const result = new Function(`return (${sanitized})`)();
-        const replacement = (Math.round(result * 100) / 100).toString();
-        const sliceStart = start - fullMatchString.length;
-        textarea.setSelectionRange(sliceStart, start);
-        document.execCommand("insertText", false, replacement);
-        return;
-      } catch (e) {}
+      const sanitized = mathExpression.replace(/[^-()\d/*+.]/g, "");
+      const result = new Function(`return (${sanitized})`)();
+      const replacement = (Math.round(result * 100) / 100).toString();
+      const sliceStart = start - fullMatchString.length;
+      textarea.setSelectionRange(sliceStart, start);
+      document.execCommand("insertText", false, replacement);
+
+      return;
     }
 
     // Shortcodes
