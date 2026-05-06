@@ -80,9 +80,54 @@ export default function Documentation() {
           </div>
         </section>
 
-        {/* --- 02. SYNTAX & SHORTCUTS --- */}
+        {/* --- 02. BUDGET & CALCULATIONS --- */}
         <section className="border-t border-black/10 dark:border-white/10 pt-12">
-          <span className={sectionHeading}>02. Syntax Guide</span>
+          <span className={sectionHeading}>02. Financial Intelligence</span>
+          <div className="space-y-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+              <div className="space-y-4">
+                <h3 className="text-xs font-bold uppercase tracking-widest text-emerald-600 dark:text-emerald-400">
+                  Auto-Budgeting
+                </h3>
+                <p className="text-sm leading-relaxed opacity-80">
+                  Hermes automatically sums all currency values found above a
+                  line starting with <span className="font-mono">Total:</span>.
+                </p>
+                <div className="p-4 bg-emerald-50/50 dark:bg-emerald-900/10 border border-emerald-200/20 font-mono text-[11px] space-y-1">
+                  <div className="opacity-50">- Rent: $2000</div>
+                  <div className="opacity-50">- Food: $400</div>
+                  <div className="text-emerald-700 dark:text-emerald-300 font-bold">
+                    Total: $2400.00
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <h3 className="text-xs font-bold uppercase tracking-widest text-emerald-600 dark:text-emerald-400">
+                  Inline Math
+                </h3>
+                <p className="text-sm leading-relaxed opacity-80">
+                  Execute quick math without leaving the document. Type the
+                  expression and close it with an equals sign.
+                </p>
+                <div className="bg-zinc-50 dark:bg-zinc-900/30 px-6 border border-black/5 font-mono text-sm">
+                  <div className={guideRow}>
+                    <span className={syntaxLabel}>calc(100+50)=</span>
+                    <span className={resultLabel}>150</span>
+                  </div>
+                  <div className={guideRow}>
+                    <span className={syntaxLabel}>calc(24*0.1)=</span>
+                    <span className={resultLabel}>2.4</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* --- 03. SYNTAX & SHORTCUTS --- */}
+        <section className="border-t border-black/10 dark:border-white/10 pt-12">
+          <span className={sectionHeading}>03. Syntax Guide</span>
 
           <div className="space-y-16">
             {/* Workflow Lifecycle */}

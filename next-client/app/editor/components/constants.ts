@@ -106,6 +106,11 @@ export const TEMPLATES = [
       "# 🏋️ Workout\n> 🔓 Locker: \n> 📅 Date: {date}\n> ⚡ Workout Type: \n\n## 🏃 Exercises\n- Exercise  #todo",
   },
   {
+    label: "💰 Budget Planner",
+    content:
+      "# 📊 Monthly Budget\n\n## 🏦 Fixed Expenses\n- Rent: $1200\n- Utilities: $150\n- Internet: $60\n\n## 🛒 Variable Spending\n- Groceries: $400\n- Dining: $200\n- Transport: $100\n\n---\nTotal: $0.00\n\n> 💡 Tip: Change any value above (e.g., $450) and the Total will update automatically.",
+  },
+  {
     label: "📄 Frontmatter",
     content: "---\ntitle: \ndate: {date}\nstatus: #todo\n---",
   },

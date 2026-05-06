@@ -34,7 +34,6 @@ function highlightMarkdownMonochrome(code: string, fontFamily: string) {
   const processInline = (text: string) => {
     let html = text;
 
-    // Inline Code
     if (html.includes("`")) {
       html = html.replace(
         /(`)(.*?)(`)/g,
@@ -42,7 +41,6 @@ function highlightMarkdownMonochrome(code: string, fontFamily: string) {
       );
     }
 
-    // Hashtags
     if (html.includes("#")) {
       html = html.replace(
         /(^|\s)(#[\w-]+)(?=\s|$)/gim,
@@ -58,7 +56,14 @@ function highlightMarkdownMonochrome(code: string, fontFamily: string) {
       );
     }
 
-    // Links
+    // UPDATED: Now includes the $ in the highlighted span
+    if (html.includes("$")) {
+      html = html.replace(
+        /\$(\d+(\.\d+)?)/g,
+        `<span class="text-emerald-600 dark:text-emerald-400 font-mono">$&</span>`,
+      );
+    }
+
     if (html.includes("[")) {
       html = html.replace(
         /(\[)([^\]]+)(\]\()([^)]+)(\))/g,
@@ -66,7 +71,6 @@ function highlightMarkdownMonochrome(code: string, fontFamily: string) {
       );
     }
 
-    // Bold/Italics
     if (html.includes("*") || html.includes("_")) {
       html = html.replace(
         /(\*\*|__)(.*?)\1/g,
@@ -89,7 +93,6 @@ function highlightMarkdownMonochrome(code: string, fontFamily: string) {
         .replace(/</g, "&lt;")
         .replace(/>/g, "&gt;");
 
-      // Code Block Toggle
       if (html.startsWith("```") || html.startsWith("~~~")) {
         isInsideCodeBlock = !isInsideCodeBlock;
         const fence = html.slice(0, 3);
@@ -101,14 +104,11 @@ function highlightMarkdownMonochrome(code: string, fontFamily: string) {
 
       if (!html.trim()) return html;
 
-      // Horizontal Rule
       if (/^( {0,3}([-*_])(?:\s*\2){2,}\s*)$/.test(html)) {
         return `<span ${SUBTLE}>${html}</span>`;
       }
 
-      // Headings
       if (html.startsWith("#") && /^#{1,6}\s/.test(html)) {
-        // Added space check here
         return html.replace(
           /^(#{1,6}\s+)(.*)$/,
           (m, hashes, content) =>
@@ -116,7 +116,6 @@ function highlightMarkdownMonochrome(code: string, fontFamily: string) {
         );
       }
 
-      // Blockquotes
       if (html.startsWith("&gt;")) {
         return html.replace(
           /^(&gt;\s?)(.*)$/,
@@ -125,7 +124,6 @@ function highlightMarkdownMonochrome(code: string, fontFamily: string) {
         );
       }
 
-      // Lists
       if (/^\s*[-*+]\s+/.test(html)) {
         return html.replace(
           /^(\s*[-*+]\s+)(\[[ xX]\]\s+)?(.*)$/,
@@ -137,16 +135,11 @@ function highlightMarkdownMonochrome(code: string, fontFamily: string) {
         );
       }
 
-      // Strikethrough
       if (html.includes("~~")) {
         return html.replace(
           /(~~)(.*?)(~~)/g,
           `<span ${SUBTLE}>$1</span><del class="line-through opacity-70">$2</del><span ${SUBTLE}>$3</span>`,
         );
-      }
-
-      if (html.includes("|")) {
-        html = html.replace(/\|/g, `<span ${SUBTLE}>|</span>`);
       }
 
       return processInline(html);
@@ -168,9 +161,14 @@ export default function MarkdownEditor({
 
   const [menuOpen, setMenuOpen] = useState(false);
   const [menuPos, setMenuPos] = useState({ top: 0, left: 0 });
+  const [filterQuery, setFilterQuery] = useState("");
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [isCtrlPressed, setIsCtrlPressed] = useState(false);
   const [isOverLink, setIsOverLink] = useState(false);
+
+  const filteredTemplates = TEMPLATES.filter((t) =>
+    t.label.toLowerCase().includes(filterQuery.toLowerCase()),
+  );
 
   const highlight = useCallback(
     (code: string) => highlightMarkdownMonochrome(code, fontFamily),
@@ -186,12 +184,10 @@ export default function MarkdownEditor({
   }, [onTextareaReady]);
 
   useEffect(() => {
-    function handleKeyDown(e: KeyboardEvent) {
+    const handleKeyDown = (e: KeyboardEvent) => {
       if (e.ctrlKey || e.metaKey) setIsCtrlPressed(true);
-    }
-    function handleKeyUp() {
-      setIsCtrlPressed(false);
-    }
+    };
+    const handleKeyUp = () => setIsCtrlPressed(false);
     window.addEventListener("keydown", handleKeyDown);
     window.addEventListener("keyup", handleKeyUp);
     return () => {
@@ -211,11 +207,8 @@ export default function MarkdownEditor({
 
       const url = pastedText.trim();
       const markdownLink = `[link](${url})`;
-
-      // Insert formatted text
       document.execCommand("insertText", false, markdownLink);
 
-      // Calculate selection for the word "link"
       const endPos = textarea.selectionStart;
       const startPos = endPos - markdownLink.length + 1;
       const linkWordEnd = startPos + 4;
@@ -241,7 +234,8 @@ export default function MarkdownEditor({
     if (!textarea) return;
 
     const start = textarea.selectionStart;
-    const before = value.substring(0, start - 1);
+    const lengthToRemove = filterQuery.length + 1;
+    const before = value.substring(0, start - lengthToRemove);
     const after = value.substring(start);
 
     let processedContent = content;
@@ -249,72 +243,134 @@ export default function MarkdownEditor({
       processedContent = processedContent.split(code).join(getValue());
     });
 
-    onChange(before + processedContent + after);
+    // --- FIX START ---
+    // Combine the text first, then run the budget engine on the whole string
+    const fullNewValue = before + processedContent + after;
+    const budgetedValue = runAutoBudget(fullNewValue);
+
+    onChange(budgetedValue);
+    // --- FIX END ---
+
     setMenuOpen(false);
+    setFilterQuery("");
 
     requestAnimationFrame(() => {
       textarea.focus();
+      // Calculate new position based on the (potentially) updated budget text
       const newPos = before.length + processedContent.length;
       textarea.setSelectionRange(newPos, newPos);
     });
   }
 
+  function runAutoBudget(val: string): string {
+    const lines = val.split("\n");
+    let currentSum = 0;
+
+    return lines
+      .map((line) => {
+        if (line.trim().startsWith("Total:")) {
+          const newLine = `Total: $${currentSum.toFixed(2)}`;
+          currentSum = 0;
+          return newLine;
+        }
+
+        // 1. Updated Regex to include optional leading minus: -?
+        const currencyMatches = line.match(/-?\$(\d+(\.\d+)?)/g);
+
+        if (currencyMatches) {
+          currencyMatches.forEach((m) => {
+            // 2. Remove the '$' but keep the '-' for parseFloat
+            const num = parseFloat(m.replace("$", ""));
+            if (!isNaN(num)) currentSum += num;
+          });
+        }
+        return line;
+      })
+      .join("\n");
+  }
   function handleValueChange(val: string) {
     const textarea = textareaRef.current;
     if (!textarea) return onChange(val);
 
     const start = textarea.selectionStart;
-    const charBefore = val[start - 2];
+    const end = textarea.selectionEnd;
+    const textUpToCursor = val.substring(0, start);
 
-    // 1. Handle the Slash Menu (/)
-    if (val[start - 1] === "/" && (!charBefore || charBefore === "\n")) {
-      const caret = getCaretCoordinates(textarea, start);
-      const menuHeight = 240;
-      const spaceBelow =
-        textarea.clientHeight - (caret.top - textarea.scrollTop);
-      const shouldShowUp = spaceBelow < menuHeight && caret.top > menuHeight;
+    // Slash Menu Logic
+    const lastNewLine = textUpToCursor.lastIndexOf("\n");
+    const currentLineUpToCursor = textUpToCursor.substring(lastNewLine + 1);
+    const slashIndex = currentLineUpToCursor.lastIndexOf("/");
 
-      setMenuPos({
-        top: shouldShowUp ? caret.top - menuHeight - 8 : caret.top + 24,
-        left: Math.min(caret.left, textarea.clientWidth - 220),
-      });
+    if (
+      slashIndex !== -1 &&
+      (slashIndex === 0 || currentLineUpToCursor[slashIndex - 1] === " ")
+    ) {
+      const query = currentLineUpToCursor.substring(slashIndex + 1);
+      if (!query.includes(" ")) {
+        setFilterQuery(query);
+        setSelectedIndex(0);
 
-      setMenuOpen(true);
-      setSelectedIndex(0);
-    } else if (menuOpen) {
+        if (!menuOpen) {
+          const caret = getCaretCoordinates(textarea, start - query.length);
+          const menuHeight = 240;
+          const spaceBelow =
+            textarea.clientHeight - (caret.top - textarea.scrollTop);
+          const shouldShowUp =
+            spaceBelow < menuHeight && caret.top > menuHeight;
+          setMenuPos({
+            top: shouldShowUp ? caret.top - menuHeight - 8 : caret.top + 24,
+            left: Math.min(caret.left, textarea.clientWidth - 220),
+          });
+          setMenuOpen(true);
+        }
+      } else {
+        setMenuOpen(false);
+      }
+    } else {
       setMenuOpen(false);
     }
 
-    // 2. Handle Shortcodes (e.g., {todo})
+    // Budget Logic
+    const nextVal = runAutoBudget(val);
+
+    // Calc Logic
+    const calcMatch = textUpToCursor.match(/calc\(([^)]+)\)=$/);
+    if (calcMatch) {
+      const mathExpression = calcMatch[1];
+      const fullMatchString = calcMatch[0];
+      try {
+        const sanitized = mathExpression.replace(/[^-()\d/*+.]/g, "");
+        const result = new Function(`return (${sanitized})`)();
+        const replacement = (Math.round(result * 100) / 100).toString();
+        const sliceStart = start - fullMatchString.length;
+        textarea.setSelectionRange(sliceStart, start);
+        document.execCommand("insertText", false, replacement);
+        return;
+      } catch (e) {}
+    }
+
+    // Shortcodes
     for (const [code, getValue] of Object.entries(SHORTCODES)) {
       const sliceStart = Math.max(0, start - code.length);
       const potentialMatch = val.substring(sliceStart, start);
-
       if (potentialMatch === code) {
         const replacement = getValue();
-
-        // Select the shortcode string
         textarea.setSelectionRange(sliceStart, start);
-
-        // Replace selection natively. This triggers onChange automatically.
         document.execCommand("insertText", false, replacement);
-
-        // Exit early because execCommand just triggered a fresh handleValueChange
         return;
       }
     }
 
-    // 3. Handle Workflow Tag Newline Logic
-    if (val.length > value.length) {
-      const lastChar = val[start - 1];
-      if (lastChar === "\n" || lastChar === " ") {
-        // (Your existing workflow tag shift logic stays here)
-        // Note: If this also causes jumps, apply the execCommand pattern here too.
-      }
-    }
+    onChange(nextVal);
 
-    onChange(val);
+    // FIX: Maintain cursor position after programmatic budget update
+    requestAnimationFrame(() => {
+      if (textareaRef.current) {
+        textareaRef.current.setSelectionRange(start, end);
+      }
+    });
   }
+
   function handleEditorClick(e: React.MouseEvent<HTMLTextAreaElement>) {
     const textarea = e.currentTarget;
     const pos = textarea.selectionStart;
@@ -334,6 +390,7 @@ export default function MarkdownEditor({
       value.indexOf("\n", pos) === -1 ? value.length : value.indexOf("\n", pos);
     const currentLine = value.substring(lineStartIndex, lineEndIndex);
 
+    // Hashtag cycling
     const tagRegex = /#(todo|prog|done|urgn)\b/gi;
     let tagMatch;
     while ((tagMatch = tagRegex.exec(currentLine)) !== null) {
@@ -348,6 +405,7 @@ export default function MarkdownEditor({
       }
     }
 
+    // Checkbox toggling
     const checkboxMatch = currentLine.match(/^(\s*[-*]\s*\[)([ xX])(\])/);
     if (checkboxMatch) {
       const boxStart = lineStartIndex + checkboxMatch[0].indexOf("[");
@@ -367,15 +425,18 @@ export default function MarkdownEditor({
 
     if (e.key === "ArrowDown") {
       e.preventDefault();
-      setSelectedIndex((prev) => (prev + 1) % TEMPLATES.length);
+      setSelectedIndex((prev) => (prev + 1) % filteredTemplates.length);
     } else if (e.key === "ArrowUp") {
       e.preventDefault();
       setSelectedIndex(
-        (prev) => (prev - 1 + TEMPLATES.length) % TEMPLATES.length,
+        (prev) =>
+          (prev - 1 + filteredTemplates.length) % filteredTemplates.length,
       );
     } else if (e.key === "Enter") {
       e.preventDefault();
-      insertTemplate(TEMPLATES[selectedIndex].content);
+      if (filteredTemplates[selectedIndex]) {
+        insertTemplate(filteredTemplates[selectedIndex].content);
+      }
     } else if (e.key === "Escape") {
       setMenuOpen(false);
     }
@@ -399,16 +460,12 @@ export default function MarkdownEditor({
         `}
         style={{ fontFamily, fontSize }}
       >
-        {menuOpen && (
+        {menuOpen && filteredTemplates.length > 0 && (
           <div
             className="absolute z-50 w-52 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg shadow-2xl py-1 overflow-hidden"
-            style={{
-              top: menuPos.top,
-              left: menuPos.left,
-              fontFamily, // Enforce atom font in menu
-            }}
+            style={{ top: menuPos.top, left: menuPos.left, fontFamily }}
           >
-            {TEMPLATES.map((t, i) => (
+            {filteredTemplates.map((t, i) => (
               <div
                 key={t.label}
                 onMouseDown={(e) => {
