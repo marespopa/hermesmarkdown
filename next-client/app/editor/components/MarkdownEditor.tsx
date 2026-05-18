@@ -50,7 +50,7 @@ function highlightMarkdownMonochrome(code: string, fontFamily: string) {
     if (html.includes("`")) {
       html = html.replace(
         REGEX_CODE_INLINE,
-        `<span ${SUBTLE}>$1</span><code class="bg-zinc-100/80 dark:bg-zinc-800/50 rounded-sm">$2</code><span ${SUBTLE}>$3</span>`,
+        `<span ${SUBTLE}>$1</span><span class="bg-zinc-100/80 dark:bg-zinc-800/50 rounded-sm">$2</span><span ${SUBTLE}>$3</span>`,
       );
     }
 
@@ -67,7 +67,6 @@ function highlightMarkdownMonochrome(code: string, fontFamily: string) {
     }
 
     if (html.includes("$")) {
-      // Font-mono removed to prevent caret misalignment from the atom font family
       html = html.replace(
         REGEX_CURRENCY,
         `<span class="text-emerald-600 dark:text-emerald-400">$&</span>`,
@@ -112,7 +111,7 @@ function highlightMarkdownMonochrome(code: string, fontFamily: string) {
 
       if (isInsideCodeBlock) {
         const content = html === "" ? " " : html;
-        return `<span class="bg-zinc-100/50 dark:bg-zinc-800/40 inline-block min-w-full">${content}</span>`;
+        return `<span class="bg-zinc-100/50 dark:bg-zinc-800/40">${content}</span>`;
       }
 
       if (!html.trim()) return html;
@@ -450,7 +449,7 @@ export default function MarkdownEditor({
       translate="no"
     >
       <div
-        className={`editor-container relative h-full antialiased
+        className={`editor-container relative h-full antialiased normal-nums [font-variant-ligatures:none] [font-feature-settings:'liga'_0,'calt'_0]
           ${wordWrap ? "w-full" : "w-max min-w-full"}
           [&_textarea]:!bg-transparent [&_textarea]:!text-transparent [&_textarea]:!caret-blue-500
           [&_textarea]:!z-10 [&_pre]:!z-0 [&_pre]:!pointer-events-none
