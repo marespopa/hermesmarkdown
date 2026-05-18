@@ -27,57 +27,67 @@ interface MarkdownEditorProps {
   setMatchCount?: (count: number) => void;
 }
 
+// Extracted regexes for better performance during typing
+const REGEX_CODE_INLINE = /(`)(.*?)(`)/g;
+const REGEX_HASHTAG = /(^|\s)(#[\w-]+)(?=\s|$)/gim;
+const REGEX_CURRENCY = /\$(?![{])(\d+(\.\d+)?)/g;
+const REGEX_LINK = /(\[)([^\]]+)(\]\()([^)]+)(\))/g;
+const REGEX_BOLD = /(\*\*|__)(.*?)\1/g;
+const REGEX_ITALIC = /(\*|_)(.*?)\1/g;
+const REGEX_STRIKETHROUGH = /(~~)(.*?)(~~)/g;
+const REGEX_MD_LINK = /\[[^\]]+\]\((https?:\/\/[^\s)]+)\)/g;
+const REGEX_TODO_TAGS = /#(todo|prog|done|urgn)\b/gi;
+const REGEX_CHECKBOX = /^(\s*[-*]\s*\[)([ xX])(\])/;
+const REGEX_URL_PASTE = /^(https?:\/\/[^\s]+)$/i;
+const REGEX_CALC = /calc\(([^)]+)\)=$/;
+
 function highlightMarkdownMonochrome(code: string, fontFamily: string) {
-  const customFont = fontFamily ? `style="font-family: ${fontFamily};"` : "";
   let isInsideCodeBlock = false;
 
   const processInline = (text: string) => {
-    const html = text;
+    let html = text;
 
     if (html.includes("`")) {
       html = html.replace(
-        /(`)(.*?)(`)/g,
-        `<span ${SUBTLE}>$1</span><code class="bg-zinc-100/80 dark:bg-zinc-800/50 rounded">$2</code><span ${SUBTLE}>$3</span>`,
+        REGEX_CODE_INLINE,
+        `<span ${SUBTLE}>$1</span><code class="bg-zinc-100/80 dark:bg-zinc-800/50 rounded-sm">$2</code><span ${SUBTLE}>$3</span>`,
       );
     }
 
     if (html.includes("#")) {
-      html = html.replace(
-        /(^|\s)(#[\w-]+)(?=\s|$)/gim,
-        (match, before, fullTag) => {
-          const tagName = fullTag.slice(1).toLowerCase();
-          const isWorkflow = WORKFLOW_TAGS.includes(tagName);
-          const colorClass = isWorkflow
-            ? TAG_COLORS[tagName]
-            : "text-zinc-700 dark:text-zinc-300";
+      html = html.replace(REGEX_HASHTAG, (match, before, fullTag) => {
+        const tagName = fullTag.slice(1).toLowerCase();
+        const isWorkflow = WORKFLOW_TAGS.includes(tagName);
+        const colorClass = isWorkflow
+          ? TAG_COLORS[tagName]
+          : "text-zinc-700 dark:text-zinc-300";
 
-          return `${before}<span class="${colorClass} font-bold cursor-pointer" ${customFont}>${fullTag}</span>`;
-        },
-      );
+        return `${before}<span class="${colorClass} font-bold cursor-pointer">${fullTag}</span>`;
+      });
     }
 
-    // UPDATED: Now includes the $ in the highlighted span
     if (html.includes("$")) {
+      // Font-mono removed to prevent caret misalignment from the atom font family
       html = html.replace(
-        /\$(\d+(\.\d+)?)/g,
-        `<span class="text-emerald-600 dark:text-emerald-400 font-mono">$&</span>`,
+        REGEX_CURRENCY,
+        `<span class="text-emerald-600 dark:text-emerald-400">$&</span>`,
       );
     }
 
     if (html.includes("[")) {
       html = html.replace(
-        /(\[)([^\]]+)(\]\()([^)]+)(\))/g,
+        REGEX_LINK,
         `<span ${SUBTLE}>$1</span><span class="text-blue-600 dark:text-blue-400 underline">$2</span><span ${SUBTLE}>$3$4$5</span>`,
       );
     }
 
     if (html.includes("*") || html.includes("_")) {
       html = html.replace(
-        /(\*\*|__)(.*?)\1/g,
+        REGEX_BOLD,
         `<span ${SUBTLE}>$1</span><strong class="font-bold text-zinc-900 dark:text-zinc-50">$2</strong><span ${SUBTLE}>$1</span>`,
       );
       html = html.replace(
-        /(\*|_)(.*?)\1/g,
+        REGEX_ITALIC,
         `<span ${SUBTLE}>$1</span><em class="italic text-zinc-800 dark:text-zinc-200">$2</em><span ${SUBTLE}>$1</span>`,
       );
     }
@@ -99,8 +109,11 @@ function highlightMarkdownMonochrome(code: string, fontFamily: string) {
         const lang = html.slice(3);
         return `<span ${SUBTLE}>${fence}${lang}</span>`;
       }
-      if (isInsideCodeBlock)
-        return `<span class="bg-zinc-100/50 dark:bg-zinc-800/40 w-full">${html}</span>`;
+
+      if (isInsideCodeBlock) {
+        const content = html === "" ? " " : html;
+        return `<span class="bg-zinc-100/50 dark:bg-zinc-800/40 inline-block min-w-full">${content}</span>`;
+      }
 
       if (!html.trim()) return html;
 
@@ -137,7 +150,7 @@ function highlightMarkdownMonochrome(code: string, fontFamily: string) {
 
       if (html.includes("~~")) {
         return html.replace(
-          /(~~)(.*?)(~~)/g,
+          REGEX_STRIKETHROUGH,
           `<span ${SUBTLE}>$1</span><del class="line-through opacity-70">$2</del><span ${SUBTLE}>$3</span>`,
         );
       }
@@ -154,7 +167,7 @@ export default function MarkdownEditor({
   onTextareaReady,
 }: MarkdownEditorProps) {
   const wrapperRef = useRef<HTMLDivElement>(null);
-  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [fontFamily] = useAtom(atom_fontFamily);
   const [fontSize] = useAtom(atom_fontSize);
   const [wordWrap] = useAtom(atom_wordWrap);
@@ -198,9 +211,8 @@ export default function MarkdownEditor({
 
   function handlePaste(e: React.ClipboardEvent) {
     const pastedText = e.clipboardData.getData("text");
-    const urlRegex = /^(https?:\/\/[^\s]+)$/i;
 
-    if (urlRegex.test(pastedText.trim())) {
+    if (REGEX_URL_PASTE.test(pastedText.trim())) {
       e.preventDefault();
       const textarea = textareaRef.current;
       if (!textarea) return;
@@ -220,11 +232,13 @@ export default function MarkdownEditor({
   }
 
   function findLinkAtPos(text: string, pos: number) {
-    const mdRegex = /\[[^\]]+\]\((https?:\/\/[^\s)]+)\)/g;
     let match;
-    while ((match = mdRegex.exec(text)) !== null) {
-      if (pos >= match.index && pos <= match.index + match[0].length)
+    // Reset regex index before running exec in a loop to prevent state bugs
+    REGEX_MD_LINK.lastIndex = 0;
+    while ((match = REGEX_MD_LINK.exec(text)) !== null) {
+      if (pos >= match.index && pos <= match.index + match[0].length) {
         return match[1];
+      }
     }
     return null;
   }
@@ -243,20 +257,16 @@ export default function MarkdownEditor({
       processedContent = processedContent.split(code).join(getValue());
     });
 
-    // --- FIX START ---
-    // Combine the text first, then run the budget engine on the whole string
     const fullNewValue = before + processedContent + after;
     const budgetedValue = runAutoBudget(fullNewValue);
 
     onChange(budgetedValue);
-    // --- FIX END ---
 
     setMenuOpen(false);
     setFilterQuery("");
 
     requestAnimationFrame(() => {
       textarea.focus();
-      // Calculate new position based on the (potentially) updated budget text
       const newPos = before.length + processedContent.length;
       textarea.setSelectionRange(newPos, newPos);
     });
@@ -274,12 +284,10 @@ export default function MarkdownEditor({
           return newLine;
         }
 
-        // 1. Updated Regex to include optional leading minus: -?
         const currencyMatches = line.match(/-?\$(\d+(\.\d+)?)/g);
 
         if (currencyMatches) {
           currencyMatches.forEach((m) => {
-            // 2. Remove the '$' but keep the '-' for parseFloat
             const num = parseFloat(m.replace("$", ""));
             if (!isNaN(num)) currentSum += num;
           });
@@ -288,6 +296,7 @@ export default function MarkdownEditor({
       })
       .join("\n");
   }
+
   function handleValueChange(val: string) {
     const textarea = textareaRef.current;
     if (!textarea) return onChange(val);
@@ -296,7 +305,6 @@ export default function MarkdownEditor({
     const end = textarea.selectionEnd;
     const textUpToCursor = val.substring(0, start);
 
-    // Slash Menu Logic
     const lastNewLine = textUpToCursor.lastIndexOf("\n");
     const currentLineUpToCursor = textUpToCursor.substring(lastNewLine + 1);
     const slashIndex = currentLineUpToCursor.lastIndexOf("/");
@@ -330,11 +338,9 @@ export default function MarkdownEditor({
       setMenuOpen(false);
     }
 
-    // Budget Logic
     const nextVal = runAutoBudget(val);
 
-    // Calc Logic
-    const calcMatch = textUpToCursor.match(/calc\(([^)]+)\)=$/);
+    const calcMatch = textUpToCursor.match(REGEX_CALC);
     if (calcMatch) {
       const mathExpression = calcMatch[1];
       const fullMatchString = calcMatch[0];
@@ -344,11 +350,9 @@ export default function MarkdownEditor({
       const sliceStart = start - fullMatchString.length;
       textarea.setSelectionRange(sliceStart, start);
       document.execCommand("insertText", false, replacement);
-
       return;
     }
 
-    // Shortcodes
     for (const [code, getValue] of Object.entries(SHORTCODES)) {
       const sliceStart = Math.max(0, start - code.length);
       const potentialMatch = val.substring(sliceStart, start);
@@ -362,7 +366,6 @@ export default function MarkdownEditor({
 
     onChange(nextVal);
 
-    // FIX: Maintain cursor position after programmatic budget update
     requestAnimationFrame(() => {
       if (textareaRef.current) {
         textareaRef.current.setSelectionRange(start, end);
@@ -389,10 +392,9 @@ export default function MarkdownEditor({
       value.indexOf("\n", pos) === -1 ? value.length : value.indexOf("\n", pos);
     const currentLine = value.substring(lineStartIndex, lineEndIndex);
 
-    // Hashtag cycling
-    const tagRegex = /#(todo|prog|done|urgn)\b/gi;
+    REGEX_TODO_TAGS.lastIndex = 0;
     let tagMatch;
-    while ((tagMatch = tagRegex.exec(currentLine)) !== null) {
+    while ((tagMatch = REGEX_TODO_TAGS.exec(currentLine)) !== null) {
       const tagStart = lineStartIndex + tagMatch.index;
       const tagEnd = tagStart + tagMatch[0].length;
       if (pos >= tagStart && pos <= tagEnd) {
@@ -404,8 +406,7 @@ export default function MarkdownEditor({
       }
     }
 
-    // Checkbox toggling
-    const checkboxMatch = currentLine.match(/^(\s*[-*]\s*\[)([ xX])(\])/);
+    const checkboxMatch = currentLine.match(REGEX_CHECKBOX);
     if (checkboxMatch) {
       const boxStart = lineStartIndex + checkboxMatch[0].indexOf("[");
       const boxEnd = lineStartIndex + checkboxMatch[0].indexOf("]") + 1;
@@ -488,21 +489,22 @@ export default function MarkdownEditor({
             {placeholder}
           </div>
         )}
+
         <Editor
-          value={value}
-          onValueChange={handleValueChange}
           highlight={highlight}
-          padding={0}
           onClick={handleEditorClick}
           onPaste={handlePaste}
+          onValueChange={handleValueChange}
+          padding={0}
+          value={value}
           onMouseMove={(e) => {
-            if (!e.ctrlKey && !e.metaKey) return setIsOverLink(false);
-            setIsOverLink(
-              !!findLinkAtPos(
-                value,
-                (e.target as HTMLTextAreaElement).selectionStart,
-              ),
-            );
+            if (!e.ctrlKey && !e.metaKey) {
+              setIsOverLink(false);
+              return;
+            }
+
+            const target = e.currentTarget as HTMLTextAreaElement;
+            setIsOverLink(!!findLinkAtPos(value, target.selectionStart));
           }}
           textareaClassName={
             isCtrlPressed && isOverLink ? "!cursor-pointer" : "!cursor-text"

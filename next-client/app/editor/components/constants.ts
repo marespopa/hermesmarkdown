@@ -83,12 +83,17 @@ export const TEMPLATES = [
   {
     label: "✨ Tutorial",
     content:
-      "--- \ntitle: Hermes Markdown Demo\ndate: {date}\nstatus: #todo\n--- \n\n# 🚀 Welcome to Hermes\nThis is an interactive workspace. Try the features below to get started.\n\n## 🛠 Try the Shortcuts\nExperience real-time conversion by typing these commands:\n- **The Magic Dot**: Type `.\u200c.d` here:  \n- **Live Shortcodes**: Type `{\u200cdate}` or `{\u200ctime}` here:  \n- **Smart Paste**: Copy this url: `https://www.marespopa.com` and paste it here to auto-wrap it in a markdown link. Try **CTRL + Click** on the result to visit it!\n\n## 🔄 Workflow Cycling\nHermes uses **Smart Tags** to track progress. Click the tags below to cycle their status:\n- Initial Research #todo\n- Active Development #prog\n- Hotfix Needed #urgn\n- Project Delivery #done\n\n## 📝 Interactive Lists\nClick the brackets below to see the completion effect:\n- [ ] Click to complete this task\n- [x] Completed items will fade out\n- [ ] You can customize the font in settings\n\n> 💡 TIP\n> Hover your cursor in the **top right corner** to reveal the settings menu.\n\n---\n\n*Drafted with 🧡 in Hermes Markdown*",
+      '--- \ntitle: Hermes Markdown Demo\ndate: {date}\nstatus: #todo\n--- \n\n# 🚀 Welcome to Hermes\nThis is an interactive workspace. Try the features below to get started and explore the full suite of supported commands.\n\n## 🛠 Try the Shortcuts\nExperience real-time conversion by typing these commands:\n- **The Magic Dot**: Type `.\u200c.d` to instantly stamp the current date.\n- **Live Shortcodes**: Type `{\u200cdate}`, `{\u200cdatetime}`, `{\u200ciso}`, or `{\u200cunix}` for various timestamp formats.\n- **Smart Paste**: Copy a URL and paste it to automatically generate a markdown link. Try **CTRL + Click** on the result to navigate!\n- **Template Menu**: Type `/` to open the quick template menu.\n\n## 💰 Financial Intelligence\nTransform your document into a smart ledger.\n\n**Auto-Budgeting**\nHermes automatically sums all currency values found above a line starting with "Total:".\n- BT Credit: $200\n- Groceries: $400\nTotal: $600.00\n\n**Inline Math**\nExecute quick math without leaving the document. Type the expression and close it with an equals sign. \n- `calc(100+50)=150`\n- `calc(24*0.1)=2.4`\n\n## 🔄 Workflow Cycling\nHermes uses **Smart Tags** to track progress. Click any tag below to smoothly cycle its status (`#urgn` → `#todo` → `#prog` → `#done`):\n- Hotfix Needed #urgn\n- Initial Research #todo\n- Active Development #prog\n- Project Delivery #done\n\n## 📝 Interactive Lists & Symbols\nManage tasks and insert icons using intuitive commands.\n-   Click to complete this task\n- [x] Completed items will fade out\n-   You can customize the font in settings\n\n**Quick Symbols**\nEnhance your notes with instant shortcode icons:\n- `{\u200ccheck}` renders ✅\n- `{\u200cerror}` renders ❌\n- `{\u200cidea}` renders 💡\n- `{\u200cwarn}` renders ⚠️\n- `{\u200cfix}` renders 🛠️\n- `{\u200cbug}` renders 🐛\n- `{\u200cstar}` renders ⭐\n\n> 💡 TIP\n> Hover your cursor in the **top right corner** to reveal the settings menu.\n\n---\n\n*Drafted with 🧡 in Hermes Markdown*',
   },
   {
     label: "📝 To-Do List",
     content:
-      "# To-Do List ✏️\n- [ ] Task\n- [x] Task\n\n## Priority Tasks 🎯\n- [ ] Task",
+      "# To-Do List ✏️\n-   Task\n- [x] Completed Task\n\n## Priority Tasks 🎯\n-   Task",
+  },
+  {
+    label: "💻 Dev Sprint",
+    content:
+      "# 🛠️ Development Log\n> 📅 Date: {date}\n> 🎯 Focus: \n\n## 🚀 Changes\n-   Update \n-   Refactor \n\n## 🐛 Bugs to Fix\n-   Issue description #urgn\n\nstatus: #prog",
   },
   {
     label: "🤖 AI Prompt",
@@ -96,19 +101,14 @@ export const TEMPLATES = [
       "## Objective\n\n\n## Context\n\n\n## Data\n\n\n## Output Format\n",
   },
   {
-    label: "⚡ Quick Idea",
+    label: "💰 Financial Plan",
     content:
-      "# ⚡ Brain Dump\n\n## The Big Idea 💡\n \n\n## Key Details 🔍\n \n \n \n\n## Next Steps 🚀\n \n \n",
+      "# 📊 Monthly Allocation\n\n## 🏦 Credit Management\n- Credit Card: -$200\n- Bank Loan: -$150\n- Other Credit: -$100\n\n## 🛒 Variable Spending\n- Groceries: $400\n- Dining: $150\n- Transport: $100\n- Other Expenses: $100\n\n---\nTotal: $1250 (Auto-calculated)\n\n> 💡 Tip: Update the values above and the total will be automatically calculated.",
   },
   {
-    label: "💪 Gym Helper",
+    label: "💪 Gym Log",
     content:
-      "# 🏋️ Workout\n> 🔓 Locker: \n> 📅 Date: {date}\n> ⚡ Workout Type: \n\n## 🏃 Exercises\n- Exercise  #todo",
-  },
-  {
-    label: "💰 Budget Planner",
-    content:
-      "# 📊 Monthly Budget\n\n## 🏦 Fixed Expenses\n- Rent: $1200\n- Utilities: $150\n- Internet: $60\n\n## 🛒 Variable Spending\n- Groceries: $400\n- Dining: $200\n- Transport: $100\n\n---\nTotal: $0.00\n\n> 💡 Tip: Change any value above (e.g., $450) and the Total will update automatically.",
+      "# 🏋️ Workout\n> 📅 Date: {date}\n> ⚡ Split: (Push / Pull / Legs / Upper / Lower)\n\n## 🏃 Exercises\n-   Exercise \n-   Exercise \n-   Exercise ",
   },
   {
     label: "📄 Frontmatter",
