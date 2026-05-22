@@ -27,7 +27,6 @@ interface MarkdownEditorProps {
   setMatchCount?: (count: number) => void;
 }
 
-// Extracted regexes for better performance during typing
 const REGEX_CODE_INLINE = /(`)(.*?)(`)/g;
 const REGEX_HASHTAG = /(^|\s)(#[\w-]+)(?=\s|$)/gim;
 const REGEX_CURRENCY = /\$(?![{])(\d+(\.\d+)?)/g;
@@ -41,68 +40,107 @@ const REGEX_CHECKBOX = /^(\s*[-*]\s*\[)([ xX])(\])/;
 const REGEX_URL_PASTE = /^(https?:\/\/[^\s]+)$/i;
 const REGEX_CALC = /calc\(([^)]+)\)=$/;
 
-function highlightMarkdownMonochrome(code: string, fontFamily: string) {
+function processInlineMarkdown(text: string) {
+  let html = text;
+
+  if (html.includes("`")) {
+    html = html.replace(
+      REGEX_CODE_INLINE,
+      `<span ${SUBTLE}>$1</span><span class="bg-zinc-100/80 dark:bg-zinc-800/50 rounded-sm">$2</span><span ${SUBTLE}>$3</span>`,
+    );
+  }
+
+  if (html.includes("#")) {
+    html = html.replace(REGEX_HASHTAG, (match, before, fullTag) => {
+      const tagName = fullTag.slice(1).toLowerCase();
+      const isWorkflow = WORKFLOW_TAGS.includes(tagName);
+      const colorClass = isWorkflow
+        ? TAG_COLORS[tagName]
+        : "text-zinc-700 dark:text-zinc-300";
+
+      return `${before}<span class="${colorClass} font-bold cursor-pointer">${fullTag}</span>`;
+    });
+  }
+
+  if (html.includes("$")) {
+    html = html.replace(
+      REGEX_CURRENCY,
+      `<span class="text-emerald-600 dark:text-emerald-400">$&</span>`,
+    );
+  }
+
+  if (html.includes("[")) {
+    html = html.replace(
+      REGEX_LINK,
+      `<span ${SUBTLE}>$1</span><span class="text-blue-600 dark:text-blue-400 underline">$2</span><span ${SUBTLE}>$3$4$5</span>`,
+    );
+  }
+
+  if (html.includes("*") || html.includes("_")) {
+    html = html.replace(
+      REGEX_BOLD,
+      `<span ${SUBTLE}>$1</span><strong class="font-bold text-zinc-900 dark:text-zinc-50">$2</strong><span ${SUBTLE}>$1</span>`,
+    );
+    html = html.replace(
+      REGEX_ITALIC,
+      `<span ${SUBTLE}>$1</span><em class="italic text-zinc-800 dark:text-zinc-200">$2</em><span ${SUBTLE}>$1</span>`,
+    );
+  }
+
+  if (html.includes("~~")) {
+    html = html.replace(
+      REGEX_STRIKETHROUGH,
+      `<span ${SUBTLE}>$1</span><del class="line-through opacity-40">$2</del><span ${SUBTLE}>$3</span>`,
+    );
+  }
+
+  return html;
+}
+
+function highlightMarkdownVirtual(
+  code: string,
+  scrollTop: number,
+  viewportHeight: number,
+  lineHeight: number,
+  overscan: number = 20,
+) {
+  const lines = code.split("\n");
+  const totalLines = lines.length;
+
+  const startVisibleIdx = Math.max(
+    0,
+    Math.floor(scrollTop / lineHeight) - overscan,
+  );
+  const endVisibleIdx = Math.min(
+    totalLines - 1,
+    Math.ceil((scrollTop + viewportHeight) / lineHeight) + overscan,
+  );
+
   let isInsideCodeBlock = false;
 
-  const processInline = (text: string) => {
-    let html = text;
-
-    if (html.includes("`")) {
-      html = html.replace(
-        REGEX_CODE_INLINE,
-        `<span ${SUBTLE}>$1</span><span class="bg-zinc-100/80 dark:bg-zinc-800/50 rounded-sm">$2</span><span ${SUBTLE}>$3</span>`,
-      );
+  // Safe checks using unicode escaping to avoid rendering splits
+  for (let i = 0; i < startVisibleIdx; i++) {
+    const rawLine = lines[i];
+    if (rawLine.startsWith("\u0060\u0060\u0060") || rawLine.startsWith("~~~")) {
+      isInsideCodeBlock = !isInsideCodeBlock;
     }
+  }
 
-    if (html.includes("#")) {
-      html = html.replace(REGEX_HASHTAG, (match, before, fullTag) => {
-        const tagName = fullTag.slice(1).toLowerCase();
-        const isWorkflow = WORKFLOW_TAGS.includes(tagName);
-        const colorClass = isWorkflow
-          ? TAG_COLORS[tagName]
-          : "text-zinc-700 dark:text-zinc-300";
+  return lines
+    .map((line, index) => {
+      if (index < startVisibleIdx || index > endVisibleIdx) {
+        if (line.startsWith("\u0060\u0060\u0060") || line.startsWith("~~~")) {
+          isInsideCodeBlock = !isInsideCodeBlock;
+        }
+        return line ? " " : "";
+      }
 
-        return `${before}<span class="${colorClass} font-bold cursor-pointer">${fullTag}</span>`;
-      });
-    }
-
-    if (html.includes("$")) {
-      html = html.replace(
-        REGEX_CURRENCY,
-        `<span class="text-emerald-600 dark:text-emerald-400">$&</span>`,
-      );
-    }
-
-    if (html.includes("[")) {
-      html = html.replace(
-        REGEX_LINK,
-        `<span ${SUBTLE}>$1</span><span class="text-blue-600 dark:text-blue-400 underline">$2</span><span ${SUBTLE}>$3$4$5</span>`,
-      );
-    }
-
-    if (html.includes("*") || html.includes("_")) {
-      html = html.replace(
-        REGEX_BOLD,
-        `<span ${SUBTLE}>$1</span><strong class="font-bold text-zinc-900 dark:text-zinc-50">$2</strong><span ${SUBTLE}>$1</span>`,
-      );
-      html = html.replace(
-        REGEX_ITALIC,
-        `<span ${SUBTLE}>$1</span><em class="italic text-zinc-800 dark:text-zinc-200">$2</em><span ${SUBTLE}>$1</span>`,
-      );
-    }
-
-    return html;
-  };
-
-  return code
-    .split("\n")
-    .map((line) => {
       const html = line
         .replace(/&/g, "&amp;")
         .replace(/</g, "&lt;")
         .replace(/>/g, "&gt;");
 
-      if (html.startsWith("```") || html.startsWith("~~~")) {
+      if (html.startsWith("\u0060\u0060\u0060") || html.startsWith("~~~")) {
         isInsideCodeBlock = !isInsideCodeBlock;
         const fence = html.slice(0, 3);
         const lang = html.slice(3);
@@ -124,7 +162,7 @@ function highlightMarkdownMonochrome(code: string, fontFamily: string) {
         return html.replace(
           /^(#{1,6}\s+)(.*)$/,
           (m, hashes, content) =>
-            `<span ${SUBTLE}>${hashes}</span><span class="font-bold text-zinc-900 dark:text-zinc-50">${processInline(content)}</span>`,
+            `<span ${SUBTLE}>${hashes}</span><span class="font-bold text-zinc-900 dark:text-zinc-50">${processInlineMarkdown(content)}</span>`,
         );
       }
 
@@ -132,7 +170,7 @@ function highlightMarkdownMonochrome(code: string, fontFamily: string) {
         return html.replace(
           /^(&gt;\s?)(.*)$/,
           (m, quote, content) =>
-            `<span ${SUBTLE}>${quote}</span><span class="text-zinc-500 dark:text-zinc-400">${processInline(content)}</span>`,
+            `<span ${SUBTLE}>${quote}</span><span class="text-zinc-500 dark:text-zinc-400">${processInlineMarkdown(content)}</span>`,
         );
       }
 
@@ -142,19 +180,12 @@ function highlightMarkdownMonochrome(code: string, fontFamily: string) {
           (m, bull, check, label) => {
             const isChecked = check?.toLowerCase().includes("x");
             const checkHtml = check ? `<span ${SUBTLE}>${check}</span>` : "";
-            return `<span ${SUBTLE}>${bull}</span>${checkHtml}<span class="${isChecked ? "line-through opacity-40" : "text-zinc-900 dark:text-zinc-100"}">${processInline(label)}</span>`;
+            return `<span ${SUBTLE}>${bull}</span>${checkHtml}<span class="${isChecked ? "line-through opacity-40" : "text-zinc-900 dark:text-zinc-100"}">${processInlineMarkdown(label)}</span>`;
           },
         );
       }
 
-      if (html.includes("~~")) {
-        return html.replace(
-          REGEX_STRIKETHROUGH,
-          `<span ${SUBTLE}>$1</span><del class="line-through opacity-70">$2</del><span ${SUBTLE}>$3</span>`,
-        );
-      }
-
-      return processInline(html);
+      return processInlineMarkdown(html);
     })
     .join("\n");
 }
@@ -178,13 +209,48 @@ export default function MarkdownEditor({
   const [isCtrlPressed, setIsCtrlPressed] = useState(false);
   const [isOverLink, setIsOverLink] = useState(false);
 
+  const [scrollTop, setScrollTop] = useState(0);
+  const [viewportHeight, setViewportHeight] = useState(800);
+
+  const calculatedLineHeight = fontSize * 1.7;
+
   const filteredTemplates = TEMPLATES.filter((t) =>
     t.label.toLowerCase().includes(filterQuery.toLowerCase()),
   );
 
   const highlight = useCallback(
-    (code: string) => highlightMarkdownMonochrome(code, fontFamily),
-    [fontFamily],
+    (code: string) => {
+      return highlightMarkdownVirtual(
+        code,
+        scrollTop,
+        viewportHeight,
+        calculatedLineHeight,
+      );
+    },
+    [scrollTop, viewportHeight, calculatedLineHeight],
+  );
+
+  function findLinkAtPos(text: string, pos: number) {
+    let match;
+    REGEX_MD_LINK.lastIndex = 0;
+    while ((match = REGEX_MD_LINK.exec(text)) !== null) {
+      if (pos >= match.index && pos <= match.index + match[0].length) {
+        return match[1];
+      }
+    }
+    return null;
+  }
+
+  const handleMouseMove = useCallback(
+    (e: React.MouseEvent<HTMLTextAreaElement>) => {
+      if (!e.ctrlKey && !e.metaKey) {
+        setIsOverLink(false);
+        return;
+      }
+      const target = e.currentTarget;
+      setIsOverLink(!!findLinkAtPos(value, target.selectionStart));
+    },
+    [value],
   );
 
   useEffect(() => {
@@ -192,6 +258,17 @@ export default function MarkdownEditor({
     if (textarea) {
       textareaRef.current = textarea as HTMLTextAreaElement;
       if (onTextareaReady) onTextareaReady(textareaRef.current);
+
+      const handleScroll = (e: Event) => {
+        setScrollTop((e.target as HTMLTextAreaElement).scrollTop);
+      };
+
+      setViewportHeight(textarea.clientHeight || 800);
+      textarea.addEventListener("scroll", handleScroll, { passive: true });
+
+      return () => {
+        textarea.removeEventListener("scroll", handleScroll);
+      };
     }
   }, [onTextareaReady]);
 
@@ -228,18 +305,6 @@ export default function MarkdownEditor({
         textarea.setSelectionRange(startPos, linkWordEnd);
       });
     }
-  }
-
-  function findLinkAtPos(text: string, pos: number) {
-    let match;
-    // Reset regex index before running exec in a loop to prevent state bugs
-    REGEX_MD_LINK.lastIndex = 0;
-    while ((match = REGEX_MD_LINK.exec(text)) !== null) {
-      if (pos >= match.index && pos <= match.index + match[0].length) {
-        return match[1];
-      }
-    }
-    return null;
   }
 
   function insertTemplate(content: string) {
@@ -490,21 +555,13 @@ export default function MarkdownEditor({
         )}
 
         <Editor
+          value={value}
+          onValueChange={handleValueChange}
           highlight={highlight}
+          padding={0}
           onClick={handleEditorClick}
           onPaste={handlePaste}
-          onValueChange={handleValueChange}
-          padding={0}
-          value={value}
-          onMouseMove={(e) => {
-            if (!e.ctrlKey && !e.metaKey) {
-              setIsOverLink(false);
-              return;
-            }
-
-            const target = e.currentTarget as HTMLTextAreaElement;
-            setIsOverLink(!!findLinkAtPos(value, target.selectionStart));
-          }}
+          onMouseMove={handleMouseMove}
           textareaClassName={
             isCtrlPressed && isOverLink ? "!cursor-pointer" : "!cursor-text"
           }
