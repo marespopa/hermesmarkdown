@@ -1,0 +1,66 @@
+// app/utils/queryEngine.ts
+import { FileMetadata } from "../atoms/metadata";
+
+export type QueryOperator = "AND" | "OR";
+
+export interface QueryRule {
+  field: string;
+  condition: "equals" | "contains" | "includes" | "before" | "after" | "before-days" | "after-days";
+  value: any;
+}
+
+export interface WorkspaceQuery {
+  operator: QueryOperator;
+  rules: QueryRule[];
+}
+
+/**
+ * Evaluates a file against a set of rules.
+ */
+export const evaluateQuery = (file: FileMetadata, query: WorkspaceQuery): boolean => {
+  const evaluator = (rule: QueryRule): boolean => {
+    let fieldValue: any;
+    
+    if (rule.field === "tags") {
+      fieldValue = file.tags;
+    } else if (rule.field === "modifiedAt") {
+      fieldValue = file.modifiedAt;
+    } else if (rule.field === "wordCount") {
+      fieldValue = file.wordCount;
+    } else if (rule.field.startsWith("frontmatter.")) {
+      const key = rule.field.replace("frontmatter.", "");
+      fieldValue = file.frontmatter?.[key];
+    } else {
+      return false;
+    }
+
+    switch (rule.condition) {
+      case "equals":
+        return fieldValue === rule.value;
+      case "contains":
+        return String(fieldValue).toLowerCase().includes(String(rule.value).toLowerCase());
+      case "includes":
+        return Array.isArray(fieldValue) && fieldValue.includes(rule.value);
+      case "before":
+        return Number(fieldValue) < Number(rule.value);
+      case "after":
+        return Number(fieldValue) > Number(rule.value);
+      case "before-days": {
+        const boundary = Date.now() - Number(rule.value) * 24 * 60 * 60 * 1000;
+        return Number(fieldValue) < boundary;
+      }
+      case "after-days": {
+        const boundary = Date.now() - Number(rule.value) * 24 * 60 * 60 * 1000;
+        return Number(fieldValue) > boundary;
+      }
+      default:
+        return false;
+    }
+  };
+
+  if (query.rules.length === 0) return true;
+
+  return query.operator === "AND"
+    ? query.rules.every(evaluator)
+    : query.rules.some(evaluator);
+};

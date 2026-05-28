@@ -507,6 +507,34 @@ export default function MarkdownEditor({
   }
 
   function handleGlobalKeyDown(e: React.KeyboardEvent) {
+    // Advanced Shortcuts: Bold & Italic
+    if (e.ctrlKey || e.metaKey) {
+      if (e.key === "b") {
+        e.preventDefault();
+        const textarea = textareaRef.current;
+        if (!textarea) return;
+        const start = textarea.selectionStart;
+        const end = textarea.selectionEnd;
+        const selectedText = value.substring(start, end);
+        const replacement = `**${selectedText}**`;
+        textarea.setSelectionRange(start, end);
+        document.execCommand("insertText", false, replacement);
+        return;
+      }
+      if (e.key === "i") {
+        e.preventDefault();
+        const textarea = textareaRef.current;
+        if (!textarea) return;
+        const start = textarea.selectionStart;
+        const end = textarea.selectionEnd;
+        const selectedText = value.substring(start, end);
+        const replacement = `_${selectedText}_`;
+        textarea.setSelectionRange(start, end);
+        document.execCommand("insertText", false, replacement);
+        return;
+      }
+    }
+
     if (!menuOpen) return;
 
     if (e.key === "ArrowDown") {

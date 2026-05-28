@@ -50,14 +50,18 @@ describe("MarkdownEditor Functional Tests", () => {
 
   it("processes time shortcode '{time}'", () => {
     renderEditor("");
-    const textarea = screen.getByRole("textbox");
+    const textarea = screen.getByRole("textbox") as HTMLTextAreaElement;
 
-    // Trigger change with shortcode
+    // We need to set selectionStart to simulate typing at the end of the shortcode
+    textarea.selectionStart = 6; 
     fireEvent.change(textarea, { target: { value: "{time}" } });
 
-    // Match HH:MM format
-    const callValue = mockOnChange.mock.calls[0][0];
-    expect(callValue).toMatch(/^\d{2}:\d{2}$/);
+    // Expect document.execCommand to be called with HH:MM format
+    expect(document.execCommand).toHaveBeenCalledWith(
+      "insertText",
+      false,
+      expect.stringMatching(/^\d{2}:\d{2}$/),
+    );
   });
 
   it("cycles tags logic: #urgn -> #todo", () => {
@@ -82,5 +86,35 @@ describe("MarkdownEditor Functional Tests", () => {
     fireEvent.click(textarea);
 
     expect(document.execCommand).toHaveBeenCalledWith("insertText", false, "x");
+  });
+
+  it("calls onChange when text is typed", () => {
+    renderEditor("");
+    const textarea = screen.getByRole("textbox");
+
+    fireEvent.change(textarea, { target: { value: "Hello World" } });
+    expect(mockOnChange).toHaveBeenCalledWith("Hello World");
+  });
+
+  it("handles Bold keyboard shortcut (Ctrl+B)", () => {
+    renderEditor("hello");
+    const textarea = screen.getByRole("textbox") as HTMLTextAreaElement;
+    
+    textarea.selectionStart = 0;
+    textarea.selectionEnd = 5;
+
+    fireEvent.keyDown(textarea, { key: "b", ctrlKey: true });
+    expect(document.execCommand).toHaveBeenCalledWith("insertText", false, "**hello**");
+  });
+
+  it("handles Italic keyboard shortcut (Ctrl+I)", () => {
+    renderEditor("hello");
+    const textarea = screen.getByRole("textbox") as HTMLTextAreaElement;
+    
+    textarea.selectionStart = 0;
+    textarea.selectionEnd = 5;
+
+    fireEvent.keyDown(textarea, { key: "i", ctrlKey: true });
+    expect(document.execCommand).toHaveBeenCalledWith("insertText", false, "_hello_");
   });
 });

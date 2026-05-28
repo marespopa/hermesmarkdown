@@ -12,6 +12,7 @@ import {
   atom_content,
   atom_fileName,
 } from "@/app/atoms/atoms";
+import { atom_fileMetadata, FileMetadata } from "@/app/atoms/metadata";
 import { useCallback, useEffect } from "react";
 import toast from "react-hot-toast";
 import {
@@ -21,6 +22,11 @@ import {
   verifyPermission,
 } from "@/app/services/idb";
 
+let metadataWorker: Worker | null = null;
+if (typeof window !== "undefined") {
+  metadataWorker = new Worker(new URL("../workers/metadata.worker.ts", import.meta.url));
+}
+
 export function useFileSystem() {
   const [vaultHandle, setVaultHandle] = useAtom(atom_vaultHandle);
   const [currentDirectoryHandle, setCurrentDirectoryHandle] = useAtom(atom_currentDirectoryHandle);
@@ -29,8 +35,68 @@ export function useFileSystem() {
   const [vaultTags, setVaultTags] = useAtom(atom_vaultTags);
   const [isVaultPending, setIsVaultPending] = useAtom(atom_isVaultPending);
   const [hasLoadedVault, setHasLoadedVault] = useAtom(atom_hasLoadedVault);
-  const [, setContent] = useAtom(atom_content);
+  const [content, setContent] = useAtom(atom_content);
   const [, setFileName] = useAtom(atom_fileName);
+  const [, setFileMetadata] = useAtom(atom_fileMetadata);
+
+  // Worker Message Listener
+  useEffect(() => {
+    if (!metadataWorker) return;
+
+    const handleMessage = (event: MessageEvent) => {
+      const { results } = event.data;
+      if (!results) return;
+
+      setFileMetadata((prev) => {
+        const next = { ...prev };
+        results.forEach((res: any) => {
+          next[res.path] = res;
+        });
+        return next;
+      });
+
+      // Update vaultTags for backward compatibility
+      setVaultTags((prev) => {
+        const next = { ...prev };
+        results.forEach((res: any) => {
+          // Remove file from current tags
+          Object.keys(next).forEach((tag) => {
+            next[tag] = next[tag].filter((h) => h.name !== res.name);
+            if (next[tag].length === 0) delete next[tag];
+          });
+          // Add to new tags
+          res.tags.forEach((tag: string) => {
+            if (!next[tag]) next[tag] = [];
+            next[tag].push(res.handle);
+          });
+        });
+        return next;
+      });
+    };
+
+    metadataWorker.addEventListener("message", handleMessage);
+    return () => metadataWorker?.removeEventListener("message", handleMessage);
+  }, [setFileMetadata, setVaultTags]);
+
+  // Debounced Active File Re-indexing
+  useEffect(() => {
+    if (!activeFileHandle || !metadataWorker || !vaultHandle) return;
+
+    const timeoutId = setTimeout(async () => {
+      try {
+        const pathParts = await (vaultHandle as any).resolve(activeFileHandle);
+        const path = pathParts ? pathParts.join("/") : activeFileHandle.name;
+
+        metadataWorker?.postMessage({
+          files: [{ handle: activeFileHandle, path }],
+        });
+      } catch (err) {
+        console.error("Failed to resolve path for indexing:", err);
+      }
+    }, 1000);
+
+    return () => clearTimeout(timeoutId);
+  }, [content, activeFileHandle, vaultHandle]);
 
   const scanVault = useCallback(
     async (handle: FileSystemDirectoryHandle) => {
@@ -48,48 +114,35 @@ export function useFileSystem() {
     [setVaultFiles],
   );
 
-  const indexVaultTags = useCallback(async (passedHandle?: FileSystemDirectoryHandle) => {
-    const handle = passedHandle || vaultHandle;
-    if (!handle) return;
+  const indexVaultTags = useCallback(
+    async (passedHandle?: FileSystemDirectoryHandle) => {
+      const handle = passedHandle || vaultHandle;
+      if (!handle || !metadataWorker) return;
 
-    const tagMap: Record<string, FileSystemFileHandle[]> = {};
-    const REGEX_HASHTAG = /(^|\s)(#[\w-]+)(?=\s|$)/gim;
+      const fileHandles: { handle: FileSystemFileHandle; path: string }[] = [];
 
-    async function scanRecursive(dirHandle: FileSystemDirectoryHandle) {
-      for await (const entry of (dirHandle as any).values()) {
-        if (entry.kind === "file" && entry.name.endsWith(".md")) {
-          try {
-            const file = await (entry as FileSystemFileHandle).getFile();
-            const content = await file.text();
-            const matches = content.match(REGEX_HASHTAG);
-            if (matches) {
-              const uniqueTagsInFile = new Set(
-                matches.map((m) => m.trim().toLowerCase())
-              );
-              
-              uniqueTagsInFile.forEach((tag) => {
-                if (!tagMap[tag]) tagMap[tag] = [];
-                // To prevent duplicate keys in the UI, we still check by name, 
-                // but we should ideally use a path if we could.
-                // For now, ensuring at least we don't add the same handle twice 
-                // if it's encountered multiple times for some reason.
-                if (!tagMap[tag].some((f) => f.name === entry.name)) {
-                  tagMap[tag].push(entry as FileSystemFileHandle);
-                }
-              });
-            }
-          } catch (err) {
-            console.error(`Index error for ${entry.name}:`, err);
+      async function collectFiles(
+        dirHandle: FileSystemDirectoryHandle,
+        path: string = "",
+      ) {
+        for await (const entry of (dirHandle as any).values()) {
+          const currentPath = path ? `${path}/${entry.name}` : entry.name;
+          if (entry.kind === "file" && entry.name.endsWith(".md")) {
+            fileHandles.push({
+              handle: entry as FileSystemFileHandle,
+              path: currentPath,
+            });
+          } else if (entry.kind === "directory") {
+            await collectFiles(entry, currentPath);
           }
-        } else if (entry.kind === "directory") {
-          await scanRecursive(entry);
         }
       }
-    }
 
-    await scanRecursive(handle);
-    setVaultTags(tagMap);
-  }, [vaultHandle, setVaultTags]);
+      await collectFiles(handle);
+      metadataWorker.postMessage({ files: fileHandles });
+    },
+    [vaultHandle],
+  );
 
   const openVault = useCallback(async () => {
     try {
@@ -193,12 +246,32 @@ export function useFileSystem() {
       await scanVault(targetDir);
       await indexVaultTags();
       await openFile(newFileHandle);
-    } catch (err) {
-      console.error(err);
-      toast.error("Failed to create file");
-    }
-    }, [vaultHandle, currentDirectoryHandle, scanVault, indexVaultTags, openFile]);
-  const navigateTo = useCallback(
+      } catch (err) {
+        console.error(err);
+        toast.error("Failed to create file");
+      }
+      }, [vaultHandle, currentDirectoryHandle, scanVault, indexVaultTags, openFile]);
+
+      const createNewFolder = useCallback(async () => {
+      const targetDir = currentDirectoryHandle || vaultHandle;
+      if (!targetDir) return;
+
+      const name = prompt("Enter folder name:");
+      if (!name) return;
+
+      try {
+        await targetDir.getDirectoryHandle(name, {
+          create: true,
+        });
+        await scanVault(targetDir);
+        toast.success("Folder created: " + name);
+      } catch (err) {
+        console.error(err);
+        toast.error("Failed to create folder");
+      }
+      }, [vaultHandle, currentDirectoryHandle, scanVault]);
+
+      const navigateTo = useCallback(
     async (handle: FileSystemDirectoryHandle) => {
       setCurrentDirectoryHandle(handle);
       await scanVault(handle);
@@ -348,6 +421,7 @@ export function useFileSystem() {
     saveFile,
     scanVault,
     createNewFile,
+    createNewFolder,
     navigateTo,
     navigateBack,
     deleteFile,
