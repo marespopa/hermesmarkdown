@@ -13,6 +13,7 @@ import {
   atom_fontSize,
   atom_fontFamily,
   atom_activeFileHandle,
+  atom_activeFilePath,
   atom_showStats,
 } from "@/app/atoms/atoms";
 import MarkdownEditor from "./components/MarkdownEditor";
@@ -37,6 +38,7 @@ import {
 export default function LiteEditor() {
   const [content, setContent] = useAtom(atom_content);
   const [fileName, setFileName] = useAtom(atom_fileName);
+  const [activeFilePath] = useAtom(atom_activeFilePath);
   const [, setActiveFileHandle] = useAtom(atom_activeFileHandle);
   const [fontSize] = useAtom(atom_fontSize);
   const [fontFamily] = useAtom(atom_fontFamily);
@@ -470,7 +472,7 @@ export default function LiteEditor() {
               </div>
             ) : (
               <div
-                key={fontFamily + fontSize}
+                key={(activeFilePath || fileName) + fontFamily + fontSize}
                 className="animate-in fade-in slide-in-from-bottom-2 duration-700 pt-4"
               >
                 <MarkdownEditor
