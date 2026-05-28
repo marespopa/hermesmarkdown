@@ -8,6 +8,7 @@ import {
   atom_vaultFiles,
   atom_vaultTags,
   atom_isVaultPending,
+  atom_hasLoadedVault,
   atom_content,
   atom_fileName,
 } from "@/app/atoms/atoms";
@@ -27,19 +28,21 @@ export function useFileSystem() {
   const [vaultFiles, setVaultFiles] = useAtom(atom_vaultFiles);
   const [vaultTags, setVaultTags] = useAtom(atom_vaultTags);
   const [isVaultPending, setIsVaultPending] = useAtom(atom_isVaultPending);
+  const [hasLoadedVault, setHasLoadedVault] = useAtom(atom_hasLoadedVault);
   const [, setContent] = useAtom(atom_content);
   const [, setFileName] = useAtom(atom_fileName);
 
   const scanVault = useCallback(
     async (handle: FileSystemDirectoryHandle) => {
-      const entries: FileSystemHandle[] = [];
+      const entryMap = new Map<string, FileSystemHandle>();
       for await (const entry of (handle as any).values()) {
         if (entry.kind === "file" && entry.name.endsWith(".md")) {
-          entries.push(entry);
+          entryMap.set(entry.name, entry);
         } else if (entry.kind === "directory") {
-          entries.push(entry);
+          entryMap.set(entry.name, entry);
         }
       }
+      const entries = Array.from(entryMap.values());
       setVaultFiles(entries.sort((a, b) => a.name.localeCompare(b.name)));
     },
     [setVaultFiles],
@@ -60,9 +63,16 @@ export function useFileSystem() {
             const content = await file.text();
             const matches = content.match(REGEX_HASHTAG);
             if (matches) {
-              matches.forEach((match) => {
-                const tag = match.trim().toLowerCase();
+              const uniqueTagsInFile = new Set(
+                matches.map((m) => m.trim().toLowerCase())
+              );
+              
+              uniqueTagsInFile.forEach((tag) => {
                 if (!tagMap[tag]) tagMap[tag] = [];
+                // To prevent duplicate keys in the UI, we still check by name, 
+                // but we should ideally use a path if we could.
+                // For now, ensuring at least we don't add the same handle twice 
+                // if it's encountered multiple times for some reason.
                 if (!tagMap[tag].some((f) => f.name === entry.name)) {
                   tagMap[tag].push(entry as FileSystemFileHandle);
                 }
@@ -101,7 +111,10 @@ export function useFileSystem() {
 
   // Load vault on mount
   useEffect(() => {
+    if (hasLoadedVault) return;
+    
     async function init() {
+      setHasLoadedVault(true);
       const savedHandle = await loadVaultHandle();
       if (savedHandle) {
         setVaultHandle(savedHandle);
@@ -109,7 +122,7 @@ export function useFileSystem() {
       }
     }
     init();
-  }, [setVaultHandle, setIsVaultPending]);
+  }, [setVaultHandle, setIsVaultPending, hasLoadedVault, setHasLoadedVault]);
 
   const restoreVault = useCallback(async () => {
     if (!vaultHandle) return;

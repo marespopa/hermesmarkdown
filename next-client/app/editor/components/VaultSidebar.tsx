@@ -130,7 +130,7 @@ export default function VaultSidebar({ onClose }: VaultSidebarProps) {
           )}
           {(selectedTag ? filteredFiles : vaultFiles)?.map((entry) => (
             <div
-              key={entry.name}
+              key={`${entry.kind}-${entry.name}`}
               className="group relative"
               onMouseLeave={() => setActionMenuOpen(null)}
             >

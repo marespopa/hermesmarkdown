@@ -32,3 +32,4 @@ export const atom_activeFileHandle = atom<FileSystemFileHandle | null>(null);
 export const atom_vaultFiles = atom<FileSystemHandle[]>([]);
 export const atom_vaultTags = atom<Record<string, FileSystemFileHandle[]>>({});
 export const atom_isVaultPending = atom<boolean>(false);
+export const atom_hasLoadedVault = atom<boolean>(false);
