@@ -11,8 +11,12 @@ import {
   atom_content,
   atom_fontSize,
   atom_fontFamily,
+  atom_activeFileHandle,
+  atom_showStats,
 } from "@/app/atoms/atoms";
 import MarkdownEditor from "./components/MarkdownEditor";
+import VaultSidebar from "./components/VaultSidebar";
+import { useFileSystem } from "@/app/hooks/use-file-system";
 
 import {
   HiOutlineFolderOpen,
@@ -22,18 +26,37 @@ import {
   HiOutlineCog,
   HiOutlineArrowLeft,
   HiOutlineDocumentAdd,
+  HiOutlineDatabase,
+  HiOutlineMenuAlt2,
+  HiOutlineSave,
+  HiOutlineLogout,
 } from "react-icons/hi";
 
 export default function LiteEditor() {
   const [content, setContent] = useAtom(atom_content);
   const [fileName, setFileName] = useAtom(atom_fileName);
+  const [, setActiveFileHandle] = useAtom(atom_activeFileHandle);
   const [fontSize] = useAtom(atom_fontSize);
   const [fontFamily] = useAtom(atom_fontFamily);
+  const [showStats] = useAtom(atom_showStats);
+
+  const {
+    openVault,
+    closeVault,
+    vaultHandle,
+    activeFileHandle,
+    saveFile,
+    createNewFile,
+    openFileByName,
+    isVaultPending,
+    restoreVault,
+  } = useFileSystem();
 
   const [copied, setCopied] = useState(false);
   const [isMounting, setIsMounting] = useState(true);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isNewConfirmOpen, setIsNewConfirmOpen] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [pendingFile, setPendingFile] = useState<{
     text: string;
     name: string;
@@ -49,6 +72,10 @@ export default function LiteEditor() {
   }, []);
 
   const handleNewFile = () => {
+    if (vaultHandle) {
+      createNewFile();
+      return;
+    }
     if (content.trim()) {
       setIsNewConfirmOpen(true);
     } else {
@@ -59,8 +86,14 @@ export default function LiteEditor() {
   const resetEditor = () => {
     setContent("");
     setFileName("");
+    setActiveFileHandle(null);
     setIsNewConfirmOpen(false);
     editorRef.current?.focus();
+  };
+
+  const handleOpenVault = async () => {
+    await openVault();
+    setIsSidebarOpen(true);
   };
 
   const handleCopy = async () => {
@@ -76,6 +109,11 @@ export default function LiteEditor() {
 
   const handleExport = async () => {
     if (!content.trim()) return;
+
+    if (activeFileHandle) {
+      const success = await saveFile(content);
+      if (success) return;
+    }
 
     const baseName =
       fileName.trim() ||
@@ -226,117 +264,234 @@ export default function LiteEditor() {
         className="hidden"
       />
 
-      <header className="fixed top-0 left-0 right-0 z-40 h-16 md:h-20 group">
-        <div className="flex justify-between items-center p-4 md:p-6 transition-all duration-300 opacity-100 md:opacity-0 md:group-hover:opacity-100 -translate-y-0 md:-translate-y-2 md:group-hover:translate-y-0">
-          <Button
-            variant="bare"
-            onClick={() => router.push("/")}
-            className="text-[10px] uppercase tracking-[0.2em] opacity-50 hover:opacity-100 flex items-center gap-2"
-          >
-            <HiOutlineArrowLeft size={16} />
-            <span className="hidden sm:inline">Home</span>
-          </Button>
+      <header className="fixed top-0 left-0 right-0 z-40 h-16 md:h-20">
+        <div className="flex justify-between items-center p-4 md:p-6 transition-all duration-300">
+          <div className="flex gap-2">
+            <Button
+              variant="bare"
+              onClick={() => router.push("/")}
+              className="text-[10px] uppercase tracking-[0.2em] opacity-50 hover:opacity-100 flex items-center gap-2"
+            >
+              <HiOutlineArrowLeft size={16} />
+              <span className="hidden sm:inline">Home</span>
+            </Button>
+            
+            {vaultHandle && (
+              <Button
+                variant="bare"
+                onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                className={`text-[10px] uppercase tracking-[0.2em] flex items-center gap-2 ${isSidebarOpen ? "opacity-100 text-blue-500" : "opacity-50 hover:opacity-100"}`}
+                title="Toggle Vault Sidebar"
+              >
+                <HiOutlineMenuAlt2 size={16} />
+                <span className="hidden lg:inline">Vault</span>
+              </Button>
+            )}
+          </div>
 
           <div className="flex items-center bg-white/90 dark:bg-neutral-900/90 backdrop-blur-md border border-neutral-200 dark:border-neutral-800 rounded-full px-2 py-1.5 shadow-lg md:shadow-sm divide-x divide-neutral-200 dark:divide-neutral-800">
-            {/* New File */}
-            <Button
-              variant="bare"
-              onClick={handleNewFile}
-              className="px-4 flex items-center gap-2"
-              title="New File"
-            >
-              <HiOutlineDocumentAdd size={18} className="opacity-70" />
-              <span className="text-[10px] uppercase tracking-widest hidden md:inline">
-                New
-              </span>
-            </Button>
+            {vaultHandle ? (
+              <>
+                {isVaultPending ? (
+                  <>
+                    <Button
+                      variant="bare"
+                      onClick={restoreVault}
+                      className="px-4 flex items-center gap-2 text-blue-500 animate-pulse"
+                      title="Re-authorize Vault Access"
+                    >
+                      <HiOutlineDatabase size={18} />
+                      <span className="text-[10px] uppercase tracking-widest hidden md:inline">
+                        Restore Access
+                      </span>
+                    </Button>
+                    <Button
+                      variant="bare"
+                      onClick={closeVault}
+                      className="px-4 flex items-center gap-2 text-red-500 hover:text-red-600"
+                      title="Forget Vault"
+                    >
+                      <HiOutlineLogout size={18} />
+                      <span className="text-[10px] uppercase tracking-widest hidden md:inline">
+                        Forget
+                      </span>
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    {/* Vault Mode Actions */}
+                    <Button
+                      variant="bare"
+                      onClick={handleNewFile}
+                      className="px-4 flex items-center gap-2"
+                      title="New Note in Vault"
+                    >
+                      <HiOutlineDocumentAdd size={18} className="opacity-70" />
+                      <span className="text-[10px] uppercase tracking-widest hidden md:inline">
+                        New Note
+                      </span>
+                    </Button>
 
-            {/* Import */}
-            <Button
-              variant="bare"
-              onClick={() => fileInputRef.current?.click()}
-              className="px-4 flex items-center gap-2"
-              title="Import"
-            >
-              <HiOutlineFolderOpen size={18} className="opacity-70" />
-              <span className="text-[10px] uppercase tracking-widest hidden md:inline">
-                Import
-              </span>
-            </Button>
+                    <Button
+                      variant="bare"
+                      onClick={handleExport}
+                      className="px-4 flex items-center gap-2"
+                      title="Save to Local File"
+                    >
+                      <HiOutlineSave size={18} className="opacity-70" />
+                      <span className="text-[10px] uppercase tracking-widest hidden md:inline">
+                        Save
+                      </span>
+                    </Button>
 
-            {/* Export */}
-            <Button
-              variant="bare"
-              onClick={handleExport}
-              className="px-4 flex items-center gap-2"
-              title="Export"
-            >
-              <HiOutlineSaveAs size={18} className="opacity-70" />
-              <span className="text-[10px] uppercase tracking-widest hidden md:inline">
-                Export
-              </span>
-            </Button>
+                    <Button
+                      variant="bare"
+                      onClick={closeVault}
+                      className="px-4 flex items-center gap-2 text-red-500 hover:text-red-600"
+                      title="Close Vault (Lite Mode)"
+                    >
+                      <HiOutlineLogout size={18} className="opacity-70" />
+                      <span className="text-[10px] uppercase tracking-widest hidden md:inline">
+                        Exit Vault
+                      </span>
+                    </Button>
+                  </>
+                )}
+              </>
+            ) : (
+              <>
+                {/* Lite Mode Actions */}
+                <Button
+                  variant="bare"
+                  onClick={handleOpenVault}
+                  className="px-4 flex items-center gap-2"
+                  title="Open Local Folder (Vault)"
+                >
+                  <HiOutlineDatabase size={18} className="opacity-70" />
+                  <span className="text-[10px] uppercase tracking-widest hidden md:inline">
+                    Vault
+                  </span>
+                </Button>
 
-            {/* Copy */}
-            <Button
-              variant="bare"
-              onClick={handleCopy}
-              className="px-4 flex items-center gap-2"
-              title="Copy to Clipboard"
-            >
-              {copied ? (
-                <HiOutlineCheck size={18} className="text-green-500" />
-              ) : (
-                <HiOutlineClipboardCopy size={18} className="opacity-70" />
-              )}
-              <span className="text-[10px] uppercase tracking-widest hidden md:inline">
-                {copied ? "Done" : "Copy"}
-              </span>
-            </Button>
+                <Button
+                  variant="bare"
+                  onClick={handleNewFile}
+                  className="px-4 flex items-center gap-2"
+                  title="New Draft"
+                >
+                  <HiOutlineDocumentAdd size={18} className="opacity-70" />
+                  <span className="text-[10px] uppercase tracking-widest hidden md:inline">
+                    New Draft
+                  </span>
+                </Button>
 
-            {/* Settings */}
-            <Button
-              variant="bare"
-              onClick={() => setIsSettingsOpen(true)}
-              className="px-4 flex items-center gap-2"
-              title="Settings"
-            >
-              <HiOutlineCog size={18} className="opacity-70" />
-              <span className="text-[10px] uppercase tracking-widest hidden md:inline">
-                Settings
-              </span>
-            </Button>
+                <Button
+                  variant="bare"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="px-4 flex items-center gap-2"
+                  title="Import Markdown File"
+                >
+                  <HiOutlineFolderOpen size={18} className="opacity-70" />
+                  <span className="text-[10px] uppercase tracking-widest hidden md:inline">
+                    Import
+                  </span>
+                </Button>
+
+                <Button
+                  variant="bare"
+                  onClick={handleExport}
+                  className="px-4 flex items-center gap-2"
+                  title="Export to Markdown"
+                >
+                  <HiOutlineSaveAs size={18} className="opacity-70" />
+                  <span className="text-[10px] uppercase tracking-widest hidden md:inline">
+                    Export
+                  </span>
+                </Button>
+              </>
+            )}
+
+            {/* Utility Actions */}
+            <div className="flex divide-x divide-neutral-200 dark:divide-neutral-800">
+              <Button
+                variant="bare"
+                onClick={handleCopy}
+                className="px-4 flex items-center gap-2"
+                title="Copy to Clipboard"
+              >
+                {copied ? (
+                  <HiOutlineCheck size={18} className="text-green-500" />
+                ) : (
+                  <HiOutlineClipboardCopy size={18} className="opacity-70" />
+                )}
+                <span className="text-[10px] uppercase tracking-widest hidden md:inline">
+                  {copied ? "Done" : "Copy"}
+                </span>
+              </Button>
+
+              <Button
+                variant="bare"
+                onClick={() => setIsSettingsOpen(true)}
+                className="px-4 flex items-center gap-2"
+                title="Settings"
+              >
+                <HiOutlineCog size={18} className="opacity-70" />
+                <span className="text-[10px] uppercase tracking-widest hidden md:inline">
+                  Settings
+                </span>
+              </Button>
+            </div>
           </div>
         </div>
       </header>
 
-      <main className="max-w-screen container mx-auto pt-16 sm:pt-20 pb-40 px-6">
-        {isMounting ? (
-          <div className="animate-pulse opacity-10 space-y-4">
-            <div className="h-4 bg-current w-1/4 mb-10" />
-            <div className="h-4 bg-current w-full" />
-            <div className="h-4 bg-current w-5/6" />
-          </div>
-        ) : (
-          <div
-            key={fontFamily + fontSize}
-            className="animate-in fade-in slide-in-from-bottom-2 duration-700"
-          >
-            <MarkdownEditor
-              value={content}
-              onChange={setContent}
-              onTextareaReady={(ref) => {
-                editorRef.current = ref;
-                // Only auto-focus if we aren't waiting for a dialog
-                if (!isNewConfirmOpen && !pendingFile) ref.focus();
-              }}
-            />
+      <div className="flex flex-1 pt-16 md:pt-20 h-screen overflow-hidden">
+        {isSidebarOpen && vaultHandle && (
+          <div className="hidden md:block">
+            <VaultSidebar />
           </div>
         )}
-      </main>
 
-      <footer className="fixed bottom-0 left-0 right-0 z-40 pointer-events-none group pb-6 md:pb-10">
-        <div className="flex justify-center md:justify-end md:px-12 transition-all duration-500 opacity-100 md:opacity-0 md:group-hover:opacity-100 translate-y-0 md:translate-y-4 md:group-hover:translate-y-0">
+        <main className="flex-1 overflow-y-auto pb-40 px-6">
+          <div className="max-w-4xl mx-auto">
+            {isMounting ? (
+              <div className="animate-pulse opacity-10 space-y-4 pt-4">
+                <div className="h-4 bg-current w-1/4 mb-10" />
+                <div className="h-4 bg-current w-full" />
+                <div className="h-4 bg-current w-5/6" />
+              </div>
+            ) : (
+              <div
+                key={fontFamily + fontSize}
+                className="animate-in fade-in slide-in-from-bottom-2 duration-700 pt-4"
+              >
+                <MarkdownEditor
+                  value={content}
+                  onChange={setContent}
+                  onWikiLinkClick={openFileByName}
+                  onTextareaReady={(ref) => {
+                    editorRef.current = ref;
+                    // Only auto-focus if we aren't waiting for a dialog
+                    if (!isNewConfirmOpen && !pendingFile) ref.focus();
+                  }}
+                />
+              </div>
+            )}
+          </div>
+        </main>
+      </div>
+
+      {/* Mobile Sidebar Overlay */}
+      {isSidebarOpen && vaultHandle && (
+        <div className="md:hidden fixed inset-0 z-50 bg-black/20 backdrop-blur-sm" onClick={() => setIsSidebarOpen(false)}>
+          <div className="absolute top-0 left-0 bottom-0 w-64 bg-white dark:bg-neutral-900 shadow-xl" onClick={(e) => e.stopPropagation()}>
+            <VaultSidebar onClose={() => setIsSidebarOpen(false)} />
+          </div>
+        </div>
+      )}
+
+      <footer className="fixed bottom-0 left-0 right-0 z-40 pointer-events-none pb-6 md:pb-10">
+        <div className={`flex justify-center md:justify-end md:px-12 transition-all duration-500 ${showStats ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"}`}>
           <div className="pointer-events-auto flex items-center gap-6 bg-white/90 dark:bg-neutral-900/90 backdrop-blur-md border border-neutral-200 dark:border-neutral-800 rounded-full px-6 py-2.5 shadow-lg shadow-neutral-200/20 dark:shadow-black/20">
             {/* Word/Char Count */}
             <div className="text-[9px] md:text-[10px] font-mono tracking-[0.2em] opacity-50 uppercase whitespace-nowrap">

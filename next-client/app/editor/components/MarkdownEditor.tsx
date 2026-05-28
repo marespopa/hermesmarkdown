@@ -25,9 +25,11 @@ interface MarkdownEditorProps {
   placeholder?: string;
   onTextareaReady?: (element: HTMLTextAreaElement | null) => void;
   setMatchCount?: (count: number) => void;
+  onWikiLinkClick?: (name: string) => void;
 }
 
 const REGEX_CODE_INLINE = /(`)(.*?)(`)/g;
+const REGEX_WIKILINK = /\[\[([^\]]+)\]\]/g;
 const REGEX_HASHTAG = /(^|\s)(#[\w-]+)(?=\s|$)/gim;
 const REGEX_CURRENCY = /\$(?![{])(\d+(\.\d+)?)/g;
 const REGEX_LINK = /(\[)([^\]]+)(\]\()([^)]+)(\))/g;
@@ -42,6 +44,13 @@ const REGEX_CALC = /calc\(([^)]+)\)=$/;
 
 function processInlineMarkdown(text: string) {
   let html = text;
+
+  if (html.includes("[[")) {
+    html = html.replace(
+      REGEX_WIKILINK,
+      `<span ${SUBTLE}>[[</span><span class="text-purple-600 dark:text-purple-400 font-bold underline cursor-pointer">$1</span><span ${SUBTLE}>]]</span>`,
+    );
+  }
 
   if (html.includes("`")) {
     html = html.replace(
@@ -195,6 +204,7 @@ export default function MarkdownEditor({
   onChange,
   placeholder = "Type / for templates",
   onTextareaReady,
+  onWikiLinkClick,
 }: MarkdownEditorProps) {
   const wrapperRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -235,7 +245,14 @@ export default function MarkdownEditor({
     REGEX_MD_LINK.lastIndex = 0;
     while ((match = REGEX_MD_LINK.exec(text)) !== null) {
       if (pos >= match.index && pos <= match.index + match[0].length) {
-        return match[1];
+        return { type: "url", value: match[1] };
+      }
+    }
+
+    REGEX_WIKILINK.lastIndex = 0;
+    while ((match = REGEX_WIKILINK.exec(text)) !== null) {
+      if (pos >= match.index && pos <= match.index + match[0].length) {
+        return { type: "wiki", value: match[1] };
       }
     }
     return null;
@@ -248,7 +265,8 @@ export default function MarkdownEditor({
         return;
       }
       const target = e.currentTarget;
-      setIsOverLink(!!findLinkAtPos(value, target.selectionStart));
+      const link = findLinkAtPos(value, target.selectionStart);
+      setIsOverLink(!!link);
     },
     [value],
   );
@@ -442,10 +460,14 @@ export default function MarkdownEditor({
     const pos = textarea.selectionStart;
 
     if (e.ctrlKey || e.metaKey) {
-      const url = findLinkAtPos(value, pos);
-      if (url) {
+      const link = findLinkAtPos(value, pos);
+      if (link) {
         e.preventDefault();
-        window.open(url, "_blank", "noopener,noreferrer");
+        if (link.type === "url") {
+          window.open(link.value, "_blank", "noopener,noreferrer");
+        } else if (onWikiLinkClick) {
+          onWikiLinkClick(link.value);
+        }
         return;
       }
     }

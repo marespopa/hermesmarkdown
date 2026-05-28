@@ -7,6 +7,7 @@ import {
   atom_fontSize,
   atom_fontFamily,
   atom_theme,
+  atom_showStats,
 } from "@/app/atoms/atoms";
 import DialogModal from "@/app/components/DialogModal/DialogModal";
 import Button from "@/app/components/Button";
@@ -21,6 +22,7 @@ const SettingsDialog = ({ isOpen, onClose }: Props) => {
   const [fontFamily, setFontFamily] = useAtom(atom_fontFamily);
   const [theme, setTheme] = useAtom(atom_theme);
   const [wordWrap, setWordWrap] = useAtom(atom_wordWrap);
+  const [showStats, setShowStats] = useAtom(atom_showStats);
 
   const monoFonts = [
     {
@@ -89,21 +91,40 @@ const SettingsDialog = ({ isOpen, onClose }: Props) => {
           <h3 className="text-[10px] uppercase tracking-[0.2em] font-bold opacity-30 px-1">
             Editor Behavior
           </h3>
-          <div className="flex gap-1.5 p-1 bg-zinc-50 dark:bg-zinc-900/50 rounded-xl border border-zinc-100 dark:border-zinc-800">
-            <Button
-              variant={wordWrap ? "primary" : "secondary"}
-              onClick={() => setWordWrap(true)}
-              styles="flex-1 h-10 sm:h-9 text-[11px] sm:text-[10px] border-none shadow-none"
-            >
-              Wrap
-            </Button>
-            <Button
-              variant={!wordWrap ? "primary" : "secondary"}
-              onClick={() => setWordWrap(false)}
-              styles="flex-1 h-10 sm:h-9 text-[11px] sm:text-[10px] border-none shadow-none"
-            >
-              No Wrap
-            </Button>
+          <div className="flex flex-col gap-2">
+            <div className="flex gap-1.5 p-1 bg-zinc-50 dark:bg-zinc-900/50 rounded-xl border border-zinc-100 dark:border-zinc-800">
+              <Button
+                variant={wordWrap ? "primary" : "secondary"}
+                onClick={() => setWordWrap(true)}
+                styles="flex-1 h-10 sm:h-9 text-[11px] sm:text-[10px] border-none shadow-none"
+              >
+                Wrap
+              </Button>
+              <Button
+                variant={!wordWrap ? "primary" : "secondary"}
+                onClick={() => setWordWrap(false)}
+                styles="flex-1 h-10 sm:h-9 text-[11px] sm:text-[10px] border-none shadow-none"
+              >
+                No Wrap
+              </Button>
+            </div>
+
+            <div className="flex gap-1.5 p-1 bg-zinc-50 dark:bg-zinc-900/50 rounded-xl border border-zinc-100 dark:border-zinc-800">
+              <Button
+                variant={showStats ? "primary" : "secondary"}
+                onClick={() => setShowStats(true)}
+                styles="flex-1 h-10 sm:h-9 text-[11px] sm:text-[10px] border-none shadow-none"
+              >
+                Show Stats
+              </Button>
+              <Button
+                variant={!showStats ? "primary" : "secondary"}
+                onClick={() => setShowStats(false)}
+                styles="flex-1 h-10 sm:h-9 text-[11px] sm:text-[10px] border-none shadow-none"
+              >
+                Hide Stats
+              </Button>
+            </div>
           </div>
         </div>
 

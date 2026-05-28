@@ -1,4 +1,4 @@
-import { WritableAtom, createStore } from "jotai";
+import { WritableAtom, createStore, atom } from "jotai";
 import { atomWithStorage } from "jotai/utils";
 
 export const contentStore = createStore();
@@ -14,6 +14,7 @@ export const atom_fontSize = atomWithStorage<string>(
   "editorFontSize",
   "prose-base",
 );
+export const atom_showStats = atomWithStorage<boolean>("showStats", false);
 
 type ContentAtom = WritableAtom<
   string,
@@ -22,3 +23,12 @@ type ContentAtom = WritableAtom<
 >;
 export const atom_fileName = atomWithStorage("draft", "") as string;
 export const atom_content = atomWithStorage("content", "") as ContentAtom;
+
+// Vault / Local File System
+export const atom_vaultHandle = atom<FileSystemDirectoryHandle | null>(null);
+export const atom_currentDirectoryHandle =
+  atom<FileSystemDirectoryHandle | null>(null);
+export const atom_activeFileHandle = atom<FileSystemFileHandle | null>(null);
+export const atom_vaultFiles = atom<FileSystemHandle[]>([]);
+export const atom_vaultTags = atom<Record<string, FileSystemFileHandle[]>>({});
+export const atom_isVaultPending = atom<boolean>(false);

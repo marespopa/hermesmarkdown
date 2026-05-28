@@ -186,7 +186,25 @@ export default function PrivacyPolicy() {
           page for updates.
         </p>
 
-        <h2>VI. CONTACT US</h2>
+        <h2>VII. LOCAL-FIRST DATA & VAULTS</h2>
+
+        <p>
+          The &ldquo;Vault&rdquo; feature in Hermes Markdown leverages the native
+          Web File System Access API. When you open a local folder (a
+          &ldquo;Vault&rdquo;) or a single file, all operations including
+          reading, writing, and browsing occur locally on your machine.
+        </p>
+
+        <p>
+          <strong>
+            None of your vault files or contents are uploaded to, stored on, or
+            transmitted to our servers.
+          </strong>{" "}
+          Your data remains 100% private and stays under your exclusive control
+          on your local storage device.
+        </p>
+
+        <h2>VIII. CONTACT US</h2>
 
         <p>
           If you have any questions regarding this Privacy Policy or the
@@ -195,8 +213,7 @@ export default function PrivacyPolicy() {
         </p>
 
         <p>
-          Last Updated: This Privacy Policy was last updated on 27th February
-          2025.
+          Last Updated: This Privacy Policy was last updated on 28th May 2026.
         </p>
       </section>
     </div>

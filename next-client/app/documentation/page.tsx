@@ -300,6 +300,64 @@ export default function Documentation() {
           </div>
         </section>
 
+        {/* --- 04. KNOWLEDGE MANAGEMENT --- */}
+        <section className="border-t border-black/10 dark:border-white/10 pt-12">
+          <span className={sectionHeading}>04. Knowledge Management</span>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+            <div className="space-y-4">
+              <h3 className="text-xs font-bold uppercase tracking-widest text-purple-600 dark:text-purple-400">
+                Local-First Vaults
+              </h3>
+              <p className="text-sm leading-relaxed opacity-80">
+                Open any local directory to treat it as a writing vault. Browse files, 
+                manage folders, and save changes directly to your machine.
+              </p>
+              <div className="text-sm space-y-3 p-4 bg-zinc-50 dark:bg-zinc-800/30 border border-black/5">
+                <div className="flex justify-between py-2 border-b border-black/5">
+                  <span>Open Vault</span>
+                  <span className="opacity-60 text-xs">Click "Vault" Button</span>
+                </div>
+                <div className="flex justify-between py-2 border-b border-black/5">
+                  <span>File Actions</span>
+                  <span className="opacity-60 text-xs">Hover + Menu in Sidebar</span>
+                </div>
+                <div className="flex justify-between py-2 border-b border-black/5">
+                  <span>Rename/Delete</span>
+                  <span className="opacity-60 text-xs">Vault File Management</span>
+                </div>
+                <div className="flex justify-between py-2">
+                  <span>Exit Vault</span>
+                  <span className="opacity-60 text-xs">Return to Lite Mode</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <h3 className="text-xs font-bold uppercase tracking-widest text-purple-600 dark:text-purple-400">
+                Internal Connectivity
+              </h3>
+              <p className="text-sm leading-relaxed opacity-80">
+                Connect your ideas using WikiLink syntax and organize them with tags. 
+                Hermes automatically indexes your vault for dynamic navigation.
+              </p>
+              <div className="bg-zinc-50 dark:bg-zinc-900/30 px-6 border border-black/5 font-mono text-sm">
+                <div className={guideRow}>
+                  <span className="font-mono text-purple-600 dark:text-purple-400">[[Note Name]]</span>
+                  <span className={resultLabel}>Internal Link</span>
+                </div>
+                <div className={guideRow}>
+                  <span className="font-mono text-blue-600 dark:text-blue-400">#todo</span>
+                  <span className={resultLabel}>Smart Filter</span>
+                </div>
+              </div>
+              <p className="text-[10px] opacity-40 italic leading-relaxed">
+                Navigation: CTRL + Click [[WikiLink]] to open. Click any tag in the "Smart Filters" 
+                sidebar section to view all notes containing that tag.
+              </p>
+            </div>
+          </div>
+        </section>
+
         {/* --- FOOTER --- */}
         <footer className="pt-20 pb-12 text-center border-t border-black/5 dark:border-white/5">
           <p className="text-[10px] uppercase tracking-[0.4em] opacity-30 italic">
