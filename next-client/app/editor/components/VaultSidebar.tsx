@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState, useMemo } from "react";
 import { useFileSystem } from "@/app/hooks/use-file-system";
 import {
   HiOutlineDocumentText,
@@ -15,7 +15,8 @@ import {
   HiOutlineDocumentAdd,
 } from "react-icons/hi";
 import Button from "@/app/components/Button";
-import { useState } from "react";
+import { useAtom, useAtomValue } from "jotai";
+import { atom_fileMetadata } from "@/app/atoms/metadata";
 import SmartFolders from "./SmartFolders";
 
 interface VaultSidebarProps {
@@ -35,14 +36,25 @@ export default function VaultSidebar({ onClose }: VaultSidebarProps) {
     navigateBack,
     deleteFile,
     renameFile,
-    vaultTags,
     isVaultPending,
     restoreVault,
   } = useFileSystem();
 
+  const fileMetadata = useAtomValue(atom_fileMetadata);
   const [actionMenuOpen, setActionMenuOpen] = useState<string | null>(null);
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
   const [isNewMenuOpen, setIsNewMenuOpen] = useState(false);
+
+  const vaultTags = useMemo(() => {
+    const tagsMap: Record<string, any[]> = {};
+    Object.values(fileMetadata).forEach((meta) => {
+      meta.tags.forEach((tag) => {
+        if (!tagsMap[tag]) tagsMap[tag] = [];
+        tagsMap[tag].push(meta);
+      });
+    });
+    return tagsMap;
+  }, [fileMetadata]);
 
   if (!vaultHandle) return null;
 
@@ -147,34 +159,6 @@ export default function VaultSidebar({ onClose }: VaultSidebarProps) {
       </div>
 
       <div className="flex-1 overflow-y-auto p-2 space-y-4">
-        {/* Workspaces Section */}
-        {!selectedTag && (
-          <SmartFolders
-            onFileSelect={openFile}
-            activeFileHandle={activeFileHandle}
-          />
-        )}
-
-        {/* Smart Filters Section */}
-        {!selectedTag && tags.length > 0 && (
-          <div className="space-y-1">
-            <h3 className="px-3 text-[9px] uppercase tracking-[0.2em] font-bold opacity-30 py-2">
-              Smart Filters
-            </h3>
-            <div className="flex flex-wrap gap-1 px-3">
-              {tags.map((tag) => (
-                <span
-                  key={tag}
-                  onClick={() => setSelectedTag(tag)}
-                  className="text-[10px] px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 cursor-pointer hover:bg-blue-500/20 transition-colors border border-blue-500/20"
-                >
-                  {tag}
-                </span>
-              ))}
-            </div>
-          </div>
-        )}
-
         {/* Files Section */}
         <div className="space-y-1">
           {!selectedTag && (
@@ -182,15 +166,17 @@ export default function VaultSidebar({ onClose }: VaultSidebarProps) {
               Files
             </h3>
           )}
-          {(selectedTag ? filteredFiles : vaultFiles)?.map((entry) => (
+          {(selectedTag ? filteredFiles : vaultFiles)?.map((entry, idx) => (
             <div
-              key={`${entry.kind}-${entry.name}`}
+              key={`${entry.kind || 'file'}-${entry.name}-${idx}`}
               className="group relative"
               onMouseLeave={() => setActionMenuOpen(null)}
             >
               <div
                 onClick={() => {
-                  if (entry.kind === "file") {
+                  if (selectedTag) {
+                    openFile(entry.handle, entry.path);
+                  } else if (entry.kind === "file") {
                     openFile(entry as FileSystemFileHandle);
                   } else {
                     navigateTo(entry as FileSystemDirectoryHandle);
@@ -202,10 +188,10 @@ export default function VaultSidebar({ onClose }: VaultSidebarProps) {
                     : "hover:bg-neutral-200 dark:hover:bg-neutral-800 text-neutral-600 dark:text-neutral-400"
                 }`}
               >
-                {entry.kind === "file" ? (
-                  <HiOutlineDocumentText size={16} className="shrink-0" />
-                ) : (
+                {entry.kind === "directory" ? (
                   <HiOutlineFolder size={16} className="shrink-0" />
+                ) : (
+                  <HiOutlineDocumentText size={16} className="shrink-0" />
                 )}
                 <span className="truncate">{entry.name}</span>
               </div>
@@ -268,6 +254,34 @@ export default function VaultSidebar({ onClose }: VaultSidebarProps) {
             </div>
           )}
         </div>
+
+        {/* Smart Filters Section */}
+        {!selectedTag && tags.length > 0 && (
+          <div className="space-y-1">
+            <h3 className="px-3 text-[9px] uppercase tracking-[0.2em] font-bold opacity-30 py-2">
+              Smart Filters
+            </h3>
+            <div className="flex flex-wrap gap-1 px-3">
+              {tags.map((tag) => (
+                <span
+                  key={tag}
+                  onClick={() => setSelectedTag(tag)}
+                  className="text-[10px] px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 cursor-pointer hover:bg-blue-500/20 transition-colors border border-blue-500/20"
+                >
+                  {tag}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Workspaces Section */}
+        {!selectedTag && (
+          <SmartFolders
+            onFileSelect={openFile}
+            activeFileHandle={activeFileHandle}
+          />
+        )}
       </div>
     </div>
   );

@@ -5,8 +5,8 @@ import {
   atom_vaultHandle,
   atom_currentDirectoryHandle,
   atom_activeFileHandle,
+  atom_activeFilePath,
   atom_vaultFiles,
-  atom_vaultTags,
   atom_isVaultPending,
   atom_hasLoadedVault,
   atom_content,
@@ -31,13 +31,13 @@ export function useFileSystem() {
   const [vaultHandle, setVaultHandle] = useAtom(atom_vaultHandle);
   const [currentDirectoryHandle, setCurrentDirectoryHandle] = useAtom(atom_currentDirectoryHandle);
   const [activeFileHandle, setActiveFileHandle] = useAtom(atom_activeFileHandle);
+  const [activeFilePath, setActiveFilePath] = useAtom(atom_activeFilePath);
   const [vaultFiles, setVaultFiles] = useAtom(atom_vaultFiles);
-  const [vaultTags, setVaultTags] = useAtom(atom_vaultTags);
   const [isVaultPending, setIsVaultPending] = useAtom(atom_isVaultPending);
   const [hasLoadedVault, setHasLoadedVault] = useAtom(atom_hasLoadedVault);
   const [content, setContent] = useAtom(atom_content);
   const [, setFileName] = useAtom(atom_fileName);
-  const [, setFileMetadata] = useAtom(atom_fileMetadata);
+  const [fileMetadata, setFileMetadata] = useAtom(atom_fileMetadata);
 
   // Worker Message Listener
   useEffect(() => {
@@ -54,61 +54,39 @@ export function useFileSystem() {
         });
         return next;
       });
-
-      // Update vaultTags for backward compatibility
-      setVaultTags((prev) => {
-        const next = { ...prev };
-        results.forEach((res: any) => {
-          // Remove file from current tags
-          Object.keys(next).forEach((tag) => {
-            next[tag] = next[tag].filter((h) => h.name !== res.name);
-            if (next[tag].length === 0) delete next[tag];
-          });
-          // Add to new tags
-          res.tags.forEach((tag: string) => {
-            if (!next[tag]) next[tag] = [];
-            next[tag].push(res.handle);
-          });
-        });
-        return next;
-      });
     };
 
     metadataWorker.addEventListener("message", handleMessage);
     return () => metadataWorker?.removeEventListener("message", handleMessage);
-  }, [setFileMetadata, setVaultTags]);
+  }, [setFileMetadata]);
 
   // Debounced Active File Re-indexing
   useEffect(() => {
-    if (!activeFileHandle || !metadataWorker || !vaultHandle) return;
+    if (!activeFileHandle || !metadataWorker || !vaultHandle || !activeFilePath) return;
 
     const timeoutId = setTimeout(async () => {
       try {
-        const pathParts = await (vaultHandle as any).resolve(activeFileHandle);
-        const path = pathParts ? pathParts.join("/") : activeFileHandle.name;
-
         metadataWorker?.postMessage({
-          files: [{ handle: activeFileHandle, path }],
+          files: [{ handle: activeFileHandle, path: activeFilePath }],
         });
       } catch (err) {
-        console.error("Failed to resolve path for indexing:", err);
+        console.error("Failed to index active file:", err);
       }
     }, 1000);
 
     return () => clearTimeout(timeoutId);
-  }, [content, activeFileHandle, vaultHandle]);
+  }, [content, activeFileHandle, vaultHandle, activeFilePath]);
 
   const scanVault = useCallback(
     async (handle: FileSystemDirectoryHandle) => {
-      const entryMap = new Map<string, FileSystemHandle>();
+      const entries: FileSystemHandle[] = [];
       for await (const entry of (handle as any).values()) {
         if (entry.kind === "file" && entry.name.endsWith(".md")) {
-          entryMap.set(entry.name, entry);
+          entries.push(entry);
         } else if (entry.kind === "directory") {
-          entryMap.set(entry.name, entry);
+          entries.push(entry);
         }
       }
-      const entries = Array.from(entryMap.values());
       setVaultFiles(entries.sort((a, b) => a.name.localeCompare(b.name)));
     },
     [setVaultFiles],
@@ -195,19 +173,36 @@ export function useFileSystem() {
   }, [vaultHandle, setIsVaultPending, setCurrentDirectoryHandle, scanVault, indexVaultTags]);
 
   const openFile = useCallback(
-    async (fileHandle: FileSystemFileHandle) => {
+    async (fileHandle: FileSystemFileHandle, providedPath?: string) => {
       try {
         const file = await fileHandle.getFile();
         const content = await file.text();
         setContent(content);
         setFileName(fileHandle.name.replace(".md", ""));
         setActiveFileHandle(fileHandle);
+
+        let path = providedPath;
+        if (!path && vaultHandle) {
+          const pathParts = await (vaultHandle as any).resolve(fileHandle);
+          if (pathParts) {
+            path = pathParts.join("/");
+          } else {
+            // Fallback: If resolve fails, try to find the path in metadata
+            for (const [metaPath, meta] of Object.entries(fileMetadata)) {
+              if (await (meta.handle as any).isSameEntry(fileHandle)) {
+                path = metaPath;
+                break;
+              }
+            }
+          }
+        }
+        setActiveFilePath(path || fileHandle.name);
       } catch (err) {
         console.error(err);
         toast.error("Failed to open file");
       }
     },
-    [setContent, setFileName, setActiveFileHandle],
+    [setContent, setFileName, setActiveFileHandle, setActiveFilePath, vaultHandle, fileMetadata],
   );
 
   const saveFile = useCallback(
@@ -296,10 +291,11 @@ export function useFileSystem() {
     setCurrentDirectoryHandle(null);
     setVaultFiles([]);
     setActiveFileHandle(null);
+    setActiveFilePath(null);
     setIsVaultPending(false);
     clearVaultHandle();
     toast.success("Vault closed");
-  }, [setVaultHandle, setCurrentDirectoryHandle, setVaultFiles, setActiveFileHandle, setIsVaultPending]);
+  }, [setVaultHandle, setCurrentDirectoryHandle, setVaultFiles, setActiveFileHandle, setActiveFilePath, setIsVaultPending]);
 
   const deleteFile = useCallback(
     async (handle: FileSystemHandle) => {
@@ -427,7 +423,6 @@ export function useFileSystem() {
     deleteFile,
     renameFile,
     indexVaultTags,
-    vaultTags,
     restoreVault,
     isVaultPending,
   };

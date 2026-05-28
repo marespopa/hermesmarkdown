@@ -44,6 +44,7 @@ export default function LiteEditor() {
     openVault,
     closeVault,
     vaultHandle,
+    currentDirectoryHandle,
     activeFileHandle,
     saveFile,
     createNewFile,
@@ -134,6 +135,7 @@ export default function LiteEditor() {
           types: [
             { description: "Markdown", accept: { "text/markdown": [".md"] } },
           ],
+          startIn: currentDirectoryHandle || vaultHandle || undefined,
         });
         const writable = await handle.createWritable();
         await writable.write(content);

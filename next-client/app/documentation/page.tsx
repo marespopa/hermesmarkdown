@@ -358,6 +358,47 @@ export default function Documentation() {
           </div>
         </section>
 
+        {/* --- 05. WORKSPACES & FILTERS --- */}
+        <section className="border-t border-black/10 dark:border-white/10 pt-12">
+          <span className={sectionHeading}>05. Workspaces & Filters</span>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+            <div className="space-y-4">
+              <h3 className="text-xs font-bold uppercase tracking-widest text-orange-600 dark:text-orange-400">
+                Workspaces
+              </h3>
+              <p className="text-sm leading-relaxed opacity-80">
+                Workspaces are predefined smart folders that automatically group your files based on metadata, helping you focus on what matters now without manual organization.
+              </p>
+              <div className="text-sm space-y-3 p-4 bg-zinc-50 dark:bg-zinc-800/30 border border-black/5">
+                <div className="flex justify-between py-2 border-b border-black/5">
+                  <span>Today's Work</span>
+                  <span className="opacity-60 text-xs">Recently modified files</span>
+                </div>
+                <div className="flex justify-between py-2 border-b border-black/5">
+                  <span>Review Pending</span>
+                  <span className="opacity-60 text-xs">Files with <code className="font-mono text-blue-600 dark:text-blue-400">#todo</code> or <code className="font-mono text-blue-600 dark:text-blue-400">#review</code></span>
+                </div>
+                <div className="flex justify-between py-2">
+                  <span>Stale Logs</span>
+                  <span className="opacity-60 text-xs">Older, inactive documents</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <h3 className="text-xs font-bold uppercase tracking-widest text-orange-600 dark:text-orange-400">
+                Smart Filters
+              </h3>
+              <p className="text-sm leading-relaxed opacity-80">
+                Hermes automatically indexes any <code className="font-mono text-blue-600 dark:text-blue-400">#tag</code> used in your documents. These appear dynamically in the sidebar under Smart Filters.
+              </p>
+              <div className="p-4 bg-orange-50/50 dark:bg-orange-900/10 border border-orange-200/20 text-[10px] leading-relaxed uppercase tracking-wider text-orange-700 dark:text-orange-200/60">
+                Tip: Click any tag in the sidebar to instantly filter your vault and view all notes containing that specific tag.
+              </div>
+            </div>
+          </div>
+        </section>
+
         {/* --- FOOTER --- */}
         <footer className="pt-20 pb-12 text-center border-t border-black/5 dark:border-white/5">
           <p className="text-[10px] uppercase tracking-[0.4em] opacity-30 italic">

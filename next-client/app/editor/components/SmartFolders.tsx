@@ -43,7 +43,7 @@ const DEFAULT_SMART_FOLDERS: SmartFolderConfig[] = [
 ];
 
 interface SmartFoldersProps {
-  onFileSelect: (handle: FileSystemFileHandle) => void;
+  onFileSelect: (handle: FileSystemFileHandle, path?: string) => void;
   activeFileHandle?: FileSystemFileHandle | null;
 }
 
@@ -86,7 +86,7 @@ export default function SmartFolders({ onFileSelect, activeFileHandle }: SmartFo
                 {matchedFiles.map((file) => (
                   <div
                     key={file.path}
-                    onClick={() => onFileSelect(file.handle)}
+                    onClick={() => onFileSelect(file.handle, file.path)}
                     className={`flex items-center gap-2 px-3 py-1.5 rounded-md cursor-pointer transition-colors text-[11px] truncate ${
                       activeFileHandle?.name === file.name
                         ? "text-blue-600 dark:text-blue-400 font-medium"
