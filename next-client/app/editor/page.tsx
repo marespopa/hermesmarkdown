@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from "react";
 import Button from "@/app/components/Button";
 import DialogModal from "@/app/components/DialogModal/DialogModal";
 import SettingsDialog from "./components/SettingsDialog";
+import ConflictDialog from "./components/ConflictDialog";
 import { useRouter } from "next/navigation";
 import { useAtom } from "jotai";
 import {
@@ -17,6 +18,7 @@ import {
 import MarkdownEditor from "./components/MarkdownEditor";
 import VaultSidebar from "./components/VaultSidebar";
 import { useFileSystem } from "@/app/hooks/use-file-system";
+import { useFileSync } from "@/app/hooks/use-file-sync";
 
 import {
   HiOutlineFolderOpen,
@@ -52,6 +54,8 @@ export default function LiteEditor() {
     isVaultPending,
     restoreVault,
   } = useFileSystem();
+
+  useFileSync();
 
   const [copied, setCopied] = useState(false);
   const [isMounting, setIsMounting] = useState(true);
@@ -202,6 +206,8 @@ export default function LiteEditor() {
         isOpen={isSettingsOpen}
         onClose={() => setIsSettingsOpen(false)}
       />
+
+      <ConflictDialog />
 
       {/* Confirmation Modal for Overwriting via Import */}
       <DialogModal

@@ -11,6 +11,9 @@ import {
   atom_hasLoadedVault,
   atom_content,
   atom_fileName,
+  atom_lastSavedContent,
+  atom_fileLastModified,
+  atom_fileConflict,
 } from "@/app/atoms/atoms";
 import { atom_fileMetadata } from "@/app/atoms/metadata";
 import { useCallback, useEffect } from "react";
@@ -38,6 +41,9 @@ export function useFileSystem() {
   const [content, setContent] = useAtom(atom_content);
   const [, setFileName] = useAtom(atom_fileName);
   const [fileMetadata, setFileMetadata] = useAtom(atom_fileMetadata);
+  const [, setLastSavedContent] = useAtom(atom_lastSavedContent);
+  const [, setFileLastModified] = useAtom(atom_fileLastModified);
+  const [, setFileConflict] = useAtom(atom_fileConflict);
 
   // Worker Message Listener
   useEffect(() => {
@@ -178,6 +184,9 @@ export function useFileSystem() {
         const file = await fileHandle.getFile();
         const content = await file.text();
         setContent(content);
+        setLastSavedContent(content);
+        setFileLastModified(file.lastModified);
+        setFileConflict(null);
         setFileName(fileHandle.name.replace(".md", ""));
         setActiveFileHandle(fileHandle);
 
@@ -202,7 +211,17 @@ export function useFileSystem() {
         toast.error("Failed to open file");
       }
     },
-    [setContent, setFileName, setActiveFileHandle, setActiveFilePath, vaultHandle, fileMetadata],
+    [
+      setContent,
+      setFileName,
+      setActiveFileHandle,
+      setActiveFilePath,
+      vaultHandle,
+      fileMetadata,
+      setLastSavedContent,
+      setFileLastModified,
+      setFileConflict,
+    ],
   );
 
   const saveFile = useCallback(
@@ -214,6 +233,13 @@ export function useFileSystem() {
         const writable = await fileToSave.createWritable();
         await writable.write(content);
         await writable.close();
+
+        // Update metadata after successful save to prevent false conflict triggers
+        const updatedFile = await fileToSave.getFile();
+        setLastSavedContent(content);
+        setFileLastModified(updatedFile.lastModified);
+        setFileConflict(null);
+
         await indexVaultTags();
         toast.success("Saved to " + fileToSave.name);
         return true;
@@ -223,7 +249,7 @@ export function useFileSystem() {
         return false;
       }
     },
-    [activeFileHandle, indexVaultTags],
+    [activeFileHandle, indexVaultTags, setLastSavedContent, setFileLastModified, setFileConflict],
   );
 
   const createNewFile = useCallback(async () => {
