@@ -15,7 +15,7 @@ import {
   HiOutlineDocumentAdd,
 } from "react-icons/hi";
 import Button from "@/app/components/Button";
-import { useAtom, useAtomValue } from "jotai";
+import { useAtomValue } from "jotai";
 import { atom_fileMetadata } from "@/app/atoms/metadata";
 import SmartFolders from "./SmartFolders";
 

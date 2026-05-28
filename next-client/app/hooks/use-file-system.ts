@@ -12,7 +12,7 @@ import {
   atom_content,
   atom_fileName,
 } from "@/app/atoms/atoms";
-import { atom_fileMetadata, FileMetadata } from "@/app/atoms/metadata";
+import { atom_fileMetadata } from "@/app/atoms/metadata";
 import { useCallback, useEffect } from "react";
 import toast from "react-hot-toast";
 import {

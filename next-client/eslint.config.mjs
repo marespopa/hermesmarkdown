@@ -10,10 +10,12 @@ export default tseslint.config(
     ignores: [
       ".next/**", 
       "node_modules/**", 
+      ".yarn/**",
       "out/**", 
       "build/**", 
       "public/**",
-      "**/*.config.js"
+      "**/*.config.js",
+      "next-env.d.ts"
     ],
   },
   js.configs.recommended,

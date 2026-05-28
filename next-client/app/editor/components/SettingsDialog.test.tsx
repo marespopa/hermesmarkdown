@@ -21,7 +21,7 @@ describe("SettingsDialog Component", () => {
     vi.clearAllMocks();
     cleanup();
     // Default mock implementation for useAtom
-    (useAtom as any).mockImplementation((atom: any) => {
+    (useAtom as any).mockImplementation(() => {
       return ["16px", vi.fn()]; 
     });
   });
