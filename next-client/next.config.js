@@ -2,7 +2,7 @@
 const nextConfig = {
   // 1. Skip the crashing TypeScript worker during build
   typescript: {
-    ignoreBuildErrors: true,
+    ignoreBuildErrors: false,
   },
 
   // 3. Image configuration

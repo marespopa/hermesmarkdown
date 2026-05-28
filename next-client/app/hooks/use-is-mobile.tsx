@@ -14,7 +14,7 @@ const useIsMobile = (breakpoint = 1052) => {
     }
 
     // Modern listener for resize changes
-    const listener = (e) => setIsMobile(e.matches);
+    const listener = (e: MediaQueryListEvent) => setIsMobile(e.matches);
     media.addEventListener("change", listener);
 
     return () => media.removeEventListener("change", listener);
@@ -24,4 +24,3 @@ const useIsMobile = (breakpoint = 1052) => {
 };
 
 export default useIsMobile;
-

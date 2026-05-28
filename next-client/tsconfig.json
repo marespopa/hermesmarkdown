@@ -19,6 +19,7 @@
     "jsx": "preserve",
     "incremental": true,
     "baseUrl": ".",
+    "ignoreDeprecations": "6.0",
     "plugins": [
       {
         "name": "next"
@@ -43,7 +44,7 @@
     },
     "types": [
       "node",
-      "jest",
+      "vitest/globals",
       "@testing-library/jest-dom",
       "@types/wicg-file-system-access"
     ]

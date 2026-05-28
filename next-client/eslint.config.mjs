@@ -1,10 +1,15 @@
 import js from "@eslint/js";
 import tseslint from "typescript-eslint";
-import nextPlugin from "@next/eslint-plugin-next";
-import reactPlugin from "eslint-plugin-react";
-import hooksPlugin from "eslint-plugin-react-hooks";
+import { FlatCompat } from "@eslint/eslintrc";
+
+const compat = new FlatCompat({
+  baseDirectory: import.meta.dirname,
+});
 
 export default tseslint.config(
+  // 1. Next.js config first to help with detection
+  ...compat.extends("next/core-web-vitals"),
+
   {
     // Global ignores - stops ESLint from scanning heavy/generated folders
     ignores: [
@@ -20,27 +25,10 @@ export default tseslint.config(
   },
   js.configs.recommended,
   ...tseslint.configs.recommended,
+  
   {
     files: ["**/*.ts", "**/*.tsx"],
-    plugins: {
-      "react": reactPlugin,
-      "react-hooks": hooksPlugin,
-      "@next/next": nextPlugin,
-    },
-    languageOptions: {
-      parserOptions: {
-        ecmaFeatures: {
-          jsx: true,
-        },
-      },
-    },
     rules: {
-      // --- Standard Next.js & React Rules ---
-      ...reactPlugin.configs["jsx-runtime"].rules,
-      ...hooksPlugin.configs.recommended.rules,
-      ...nextPlugin.configs.recommended.rules,
-      ...nextPlugin.configs["core-web-vitals"].rules,
-      
       // --- The "Noise Reduction" Fixes ---
       "@next/next/no-html-link-for-pages": "off",
       "react/react-in-jsx-scope": "off",

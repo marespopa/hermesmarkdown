@@ -474,7 +474,7 @@ export default function LiteEditor() {
                   onTextareaReady={(ref) => {
                     editorRef.current = ref;
                     // Only auto-focus if we aren't waiting for a dialog
-                    if (!isNewConfirmOpen && !pendingFile) ref.focus();
+                    if (!isNewConfirmOpen && !pendingFile && ref) ref.focus();
                   }}
                 />
               </div>

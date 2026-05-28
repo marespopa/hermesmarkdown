@@ -1,21 +1,21 @@
 export const SUBTLE =
   'class="text-neutral-500/30 dark:text-neutral-400/20 select-none"';
 export const WORKFLOW_TAGS = ["todo", "prog", "done", "urgn", "wait"];
-export const TAG_COLORS = {
+export const TAG_COLORS: Record<string, string> = {
   todo: "text-blue-600 dark:text-blue-400",
   prog: "text-amber-600 dark:text-amber-400",
   done: "text-green-600 dark:text-green-400",
   urgn: "text-red-600 dark:text-red-400",
   wait: "text-purple-600 dark:text-purple-400",
 };
-export const TAG_CYCLE = {
+export const TAG_CYCLE: Record<string, string> = {
   urgn: "todo",
   todo: "prog",
   prog: "done",
   done: "todo",
 };
 
-export const SHORTCODES = {
+export const SHORTCODES: Record<string, () => string> = {
   // --- Absolute Dates ---
   "..d": () => new Date().toLocaleDateString("en-CA"),
   "{date}": () => new Date().toLocaleDateString("en-CA"),
@@ -61,7 +61,9 @@ export const SHORTCODES = {
     d.setHours(0, 0, 0, 0);
     d.setDate(d.getDate() + 4 - (d.getDay() || 7));
     const yearStart = new Date(d.getFullYear(), 0, 1);
-    const weekNo = Math.ceil(((d - yearStart) / 86400000 + 1) / 7);
+    const weekNo = Math.ceil(
+      ((d.getTime() - yearStart.getTime()) / 86400000 + 1) / 7,
+    );
     return `W${weekNo}`;
   },
 
@@ -83,7 +85,7 @@ export const TEMPLATES = [
   {
     label: "✨ Tutorial",
     content:
-      '--- \ntitle: Hermes Markdown Demo\ndate: {date}\nstatus: #todo\n--- \n\n# 🚀 Welcome to Hermes\nThis is an interactive workspace. Try the features below to get started and explore the full suite of supported commands.\n\n## 🛠 Try the Shortcuts\nExperience real-time conversion by typing these commands:\n- **The Magic Dot**: Type `.\u200c.d` to instantly stamp the current date.\n- **Live Shortcodes**: Type `{\u200cdate}`, `{\u200cdatetime}`, `{\u200ciso}`, or `{\u200cunix}` for various timestamp formats.\n- **Smart Paste**: Copy a URL and paste it to automatically generate a markdown link. Try **CTRL + Click** on the result to navigate!\n- **Template Menu**: Type `/` to open the quick template menu.\n\n## 💰 Financial Intelligence\nTransform your document into a smart ledger.\n\n**Auto-Budgeting**\nHermes automatically sums all currency values found above a line starting with "Total:".\n- BT Credit: $200\n- Groceries: $400\nTotal: $600.00\n\n**Inline Math**\nExecute quick math without leaving the document. Type the expression and close it with an equals sign. \n- `calc(100+50)=150`\n- `calc(24*0.1)=2.4`\n\n## 🔄 Workflow Cycling\nHermes uses **Smart Tags** to track progress. Click any tag below to smoothly cycle its status (`#urgn` → `#todo` → `#prog` → `#done`):\n- Hotfix Needed #urgn\n- Initial Research #todo\n- Active Development #prog\n- Project Delivery #done\n\n## 📝 Interactive Lists & Symbols\nManage tasks and insert icons using intuitive commands.\n- [ ] Click to complete this task\n- [x] Completed items will fade out\n- [ ] You can customize the font in settings\n\n**Quick Symbols**\nEnhance your notes with instant shortcode icons:\n- `{\u200ccheck}` renders ✅\n- `{\u200cerror}` renders ❌\n- `{\u200cidea}` renders 💡\n- `{\u200cwarn}` renders ⚠️\n- `{\u200cfix}` renders 🛠️\n- `{\u200cbug}` renders 🐛\n- `{\u200cstar}` renders ⭐\n\n> 💡 TIP\n> Hover your cursor in the **top right corner** to reveal the settings menu.\n\n---\n\n*Drafted with 🧡 in Hermes Markdown*',
+      '--- \ntitle: Hermes Markdown Demo\ndate: {date}\nstatus: #todo\n--- \n\n# 🚀 Welcome to Hermes\nThis is an interactive workspace. Try the features below to get started and explore the full suite of supported commands.\n\n## 🛠 Try the Shortcuts\nExperience real-time conversion by typing these commands:\n- **The Magic Dot**: Type `..d` to instantly stamp the current date.\n- **Live Shortcodes**: Type `{date}`, `{datetime}`, `{iso}`, or `{unix}` for various timestamp formats.\n- **Smart Paste**: Copy a URL and paste it to automatically generate a markdown link. Try **CTRL + Click** on the result to navigate!\n- **Template Menu**: Type `/` to open the quick template menu.\n\n## 💰 Financial Intelligence\nTransform your document into a smart ledger.\n\n**Auto-Budgeting**\nHermes automatically sums all currency values found above a line starting with "Total:".\n- BT Credit: $200\n- Groceries: $400\nTotal: $600.00\n\n**Inline Math**\nExecute quick math without leaving the document. Type the expression and close it with an equals sign. \n- `calc(100+50)=150`\n- `calc(24*0.1)=2.4`\n\n## 🔄 Workflow Cycling\nHermes uses **Smart Tags** to track progress. Click any tag below to smoothly cycle its status (`#urgn` → `#todo` → `#prog` → `#done`):\n- Hotfix Needed #urgn\n- Initial Research #todo\n- Active Development #prog\n- Project Delivery #done\n\n## 📝 Interactive Lists & Symbols\nManage tasks and insert icons using intuitive commands.\n- [ ] Click to complete this task\n- [x] Completed items will fade out\n- [ ] You can customize the font in settings\n\n**Quick Symbols**\nEnhance your notes with instant shortcode icons:\n- `{check}` renders ✅\n- `{error}` renders ❌\n- `{idea}` renders 💡\n- `{warn}` renders ⚠️\n- `{fix}` renders 🛠️\n- `{bug}` renders 🐛\n- `{star}` renders ⭐\n\n> 💡 TIP\n> Hover your cursor in the **top right corner** to reveal the settings menu.\n\n---\n\n*Drafted with 🧡 in Hermes*',
   },
   {
     label: "📝 To-Do List",
@@ -94,6 +96,10 @@ export const TEMPLATES = [
     label: "💻 Dev Sprint",
     content:
       "# 🛠️ Development Log\n> 📅 Date: {date}\n> 🎯 Focus: \n\n## 🚀 Changes\n-   Update \n-   Refactor \n\n## 🐛 Bugs to Fix\n-   Issue description #urgn\n\nstatus: #prog",
+  },
+  {
+    label: "📝 Notes",
+    content: "# {date} Notes\n\n## Summary\n\n\n## Actions\n- [ ] ",
   },
   {
     label: "🤖 AI Prompt",

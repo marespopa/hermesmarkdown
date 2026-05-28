@@ -222,7 +222,8 @@ export default function MarkdownEditor({
   const [scrollTop, setScrollTop] = useState(0);
   const [viewportHeight, setViewportHeight] = useState(800);
 
-  const calculatedLineHeight = fontSize * 1.7;
+  const numericFontSize = parseFloat(fontSize) || 16;
+  const calculatedLineHeight = numericFontSize * 1.7;
 
   const filteredTemplates = TEMPLATES.filter((t) =>
     t.label.toLowerCase().includes(filterQuery.toLowerCase()),
@@ -259,12 +260,13 @@ export default function MarkdownEditor({
   }
 
   const handleMouseMove = useCallback(
-    (e: React.MouseEvent<HTMLTextAreaElement>) => {
+    (e: React.MouseEvent<any>) => {
       if (!e.ctrlKey && !e.metaKey) {
         setIsOverLink(false);
         return;
       }
-      const target = e.currentTarget;
+      const target = e.currentTarget as HTMLTextAreaElement;
+      if (!target.selectionStart) return;
       const link = findLinkAtPos(value, target.selectionStart);
       setIsOverLink(!!link);
     },
@@ -455,8 +457,9 @@ export default function MarkdownEditor({
     });
   }
 
-  function handleEditorClick(e: React.MouseEvent<HTMLTextAreaElement>) {
-    const textarea = e.currentTarget;
+  function handleEditorClick(e: React.MouseEvent<any>) {
+    const textarea = e.currentTarget as HTMLTextAreaElement;
+    if (!textarea.selectionStart) return;
     const pos = textarea.selectionStart;
 
     if (e.ctrlKey || e.metaKey) {
