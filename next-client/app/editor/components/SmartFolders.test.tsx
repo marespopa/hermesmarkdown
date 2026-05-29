@@ -64,6 +64,9 @@ describe("SmartFolders Component", () => {
     fireEvent.click(screen.getByText("Review Pending"));
     fireEvent.click(screen.getByText("file1.md"));
 
-    expect(mockOnFileSelect).toHaveBeenCalledWith(mockMetadata["file1.md"].handle);
+    expect(mockOnFileSelect).toHaveBeenCalledWith(
+      mockMetadata["file1.md"].handle,
+      mockMetadata["file1.md"].path,
+    );
   });
 });

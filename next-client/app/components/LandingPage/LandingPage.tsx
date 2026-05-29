@@ -45,9 +45,7 @@ export default function LandingPage() {
 
       <div className="max-w-2xl mx-auto px-6 pt-32 pb-20 space-y-20">
         {/* --- HERO SECTION --- */}
-        <section
-          className={`space-y-8 transition-all duration-700 ${isMounted ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"}`}
-        >
+        <section className="space-y-8 animate-hero-fade-in">
           <div className="group flex flex-col gap-2">
             <h1 className="text-4xl tracking-tighter">
               <span className="font-bold">hermes</span>
@@ -97,20 +95,18 @@ export default function LandingPage() {
           </div>
           <div className="space-y-3">
             <h2 className="text-[11px] font-bold uppercase tracking-[0.2em] text-blue-600">
-              No Accounts
+              Local Vaults
             </h2>
             <p className="text-sm leading-relaxed opacity-60">
-              Skip the sign-up friction. Hermes is a tool, not a service. No
-              credentials to manage, no passwords to lose.
+              Sync directly with your local file system. Open folders as Vaults to manage your Markdown library with full directory support.
             </p>
           </div>
           <div className="space-y-3">
             <h2 className="text-[11px] font-bold uppercase tracking-[0.2em] text-blue-600">
-              Pure Environment
+              Privacy First
             </h2>
             <p className="text-sm leading-relaxed opacity-60">
-              No complex file systems or directory trees. Focus on the current
-              thought, document the trade-offs, and move on.
+              No complex databases or cloud storage. Your files stay exactly where they belong—on your machine, under your control.
             </p>
           </div>
         </section>

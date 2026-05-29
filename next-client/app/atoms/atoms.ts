@@ -31,3 +31,8 @@ export const atom_fileConflict = atom<{ remoteContent: string } | null>(null);
 export const atom_vaultFiles = atom<FileSystemHandle[]>([]);
 export const atom_isVaultPending = atom<boolean>(false);
 export const atom_hasLoadedVault = atom<boolean>(false);
+
+export const atom_pendingFileSwitch = atom<{
+  handle: FileSystemFileHandle;
+  path?: string;
+} | null>(null);

@@ -5,6 +5,7 @@ import Button from "@/app/components/Button";
 import DialogModal from "@/app/components/DialogModal/DialogModal";
 import SettingsDialog from "./components/SettingsDialog";
 import ConflictDialog from "./components/ConflictDialog";
+import UnsavedChangesDialog from "./components/UnsavedChangesDialog";
 import { useRouter } from "next/navigation";
 import { useAtom } from "jotai";
 import {
@@ -18,8 +19,10 @@ import {
 } from "@/app/atoms/atoms";
 import MarkdownEditor from "./components/MarkdownEditor";
 import VaultSidebar from "./components/VaultSidebar";
+import ErrorBoundary from "@/app/components/ErrorBoundary";
 import { useFileSystem } from "@/app/hooks/use-file-system";
 import { useFileSync } from "@/app/hooks/use-file-sync";
+import { useVaultSync } from "@/app/hooks/use-vault-sync";
 
 import {
   HiOutlineFolderOpen,
@@ -55,9 +58,11 @@ export default function LiteEditor() {
     openFileByName,
     isVaultPending,
     restoreVault,
+    isVaultSupported,
   } = useFileSystem();
 
   useFileSync();
+  useVaultSync();
 
   const [copied, setCopied] = useState(false);
   const [isMounting, setIsMounting] = useState(true);
@@ -203,13 +208,15 @@ export default function LiteEditor() {
   const wordCount = content.trim() ? content.trim().split(/\s+/).length : 0;
 
   return (
-    <div className="min-h-screen transition-colors duration-300">
-      <SettingsDialog
-        isOpen={isSettingsOpen}
-        onClose={() => setIsSettingsOpen(false)}
-      />
+    <ErrorBoundary>
+      <div className="min-h-screen transition-colors duration-300">
+        <SettingsDialog
+          isOpen={isSettingsOpen}
+          onClose={() => setIsSettingsOpen(false)}
+        />
 
       <ConflictDialog />
+      <UnsavedChangesDialog />
 
       {/* Confirmation Modal for Overwriting via Import */}
       <DialogModal
@@ -374,12 +381,13 @@ export default function LiteEditor() {
                 <Button
                   variant="bare"
                   onClick={handleOpenVault}
-                  className="px-4 flex items-center gap-2"
-                  title="Open Local Folder (Vault)"
+                  className={`px-4 flex items-center gap-2 ${!isVaultSupported ? "opacity-30 grayscale cursor-not-allowed" : ""}`}
+                  title={isVaultSupported ? "Open Local Folder (Vault)" : "Vault not supported in this browser"}
+                  isDisabled={!isVaultSupported}
                 >
                   <HiOutlineDatabase size={18} className="opacity-70" />
                   <span className="text-[10px] uppercase tracking-widest hidden md:inline">
-                    Vault
+                    Open Vault
                   </span>
                 </Button>
 
@@ -524,5 +532,6 @@ export default function LiteEditor() {
         </div>
       </footer>
     </div>
+    </ErrorBoundary>
   );
 }

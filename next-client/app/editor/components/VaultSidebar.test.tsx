@@ -3,12 +3,22 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import VaultSidebar from "./VaultSidebar";
 import "@testing-library/jest-dom";
 
+// Mock jotai
+vi.mock("jotai", async (importOriginal) => {
+  const actual: any = await importOriginal();
+  return {
+    ...actual,
+    useAtomValue: vi.fn(),
+  };
+});
+
 // Mock useFileSystem hook
 vi.mock("@/app/hooks/use-file-system", () => ({
   useFileSystem: vi.fn(),
 }));
 
 import { useFileSystem } from "@/app/hooks/use-file-system";
+import { useAtomValue } from "jotai";
 
 describe("VaultSidebar Component", () => {
   const mockOnClose = vi.fn();
@@ -30,12 +40,20 @@ describe("VaultSidebar Component", () => {
     vaultTags: { "#work": [] },
     isVaultPending: false,
     restoreVault: vi.fn(),
+    isVaultSupported: true,
   };
 
   beforeEach(() => {
     vi.clearAllMocks();
     cleanup();
     (useFileSystem as any).mockReturnValue(mockFileSystem);
+    (useAtomValue as any).mockReturnValue({
+      "test.md": {
+        tags: ["#work"],
+        handle: { name: "test.md", kind: "file" },
+        path: "test.md",
+      },
+    });
   });
 
   it("renders vault name and files", () => {

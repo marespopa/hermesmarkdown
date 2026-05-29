@@ -11,6 +11,9 @@ import {
 } from "@/app/atoms/atoms";
 import { useEffect, useCallback, useRef } from "react";
 import toast from "react-hot-toast";
+import { useInterval } from "./use-interval";
+
+const FILE_SYNC_INTERVAL = 60 * 1000; // 1 minute
 
 export function useFileSync() {
   const [activeFileHandle] = useAtom(atom_activeFileHandle);
@@ -61,6 +64,9 @@ export function useFileSync() {
     setFileLastModified,
     setFileConflict,
   ]);
+
+  // Periodic sync
+  useInterval(checkSync, FILE_SYNC_INTERVAL);
 
   // Use a ref to always have the latest checkSync in the focus handler without re-attaching listeners
   const checkSyncRef = useRef(checkSync);

@@ -60,6 +60,21 @@ html.dark body {
   background-color: #171717;
 }
 
+@keyframes hero-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-hero-fade-in {
+  animation: hero-fade-in 0.7s ease-out forwards;
+}
+
 @keyframes fade-in {
   from {
     opacity: 0;

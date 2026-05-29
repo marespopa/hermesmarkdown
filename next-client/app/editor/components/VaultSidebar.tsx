@@ -38,6 +38,7 @@ export default function VaultSidebar({ onClose }: VaultSidebarProps) {
     renameFile,
     isVaultPending,
     restoreVault,
+    isVaultSupported,
   } = useFileSystem();
 
   const fileMetadata = useAtomValue(atom_fileMetadata);
@@ -55,6 +56,16 @@ export default function VaultSidebar({ onClose }: VaultSidebarProps) {
     });
     return tagsMap;
   }, [fileMetadata]);
+
+  if (!isVaultSupported) {
+    return (
+      <div className="w-64 h-full border-r border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-900/50 flex flex-col items-center justify-center p-6 text-center">
+        <HiOutlineX size={48} className="opacity-20 mb-4 text-red-500" />
+        <h2 className="text-xs font-bold uppercase tracking-widest opacity-50 mb-2">Vault Not Supported</h2>
+        <p className="text-[10px] opacity-40 leading-relaxed">Your browser doesn't support the File System Access API. Please use Chrome, Edge, or Opera.</p>
+      </div>
+    );
+  }
 
   if (!vaultHandle) return null;
 
@@ -197,10 +208,10 @@ export default function VaultSidebar({ onClose }: VaultSidebarProps) {
               </div>
 
               {!selectedTag && (
-                <div className="absolute right-1 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity flex items-center">
+                <div className="absolute right-1.5 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity flex items-center">
                   <Button
                     variant="icon"
-                    className="w-7 h-7"
+                    className="w-7 h-7 flex items-center justify-center"
                     onClick={(e) => {
                       e.stopPropagation();
                       setActionMenuOpen(
@@ -219,7 +230,7 @@ export default function VaultSidebar({ onClose }: VaultSidebarProps) {
                     className="fixed inset-0 z-40"
                     onClick={() => setActionMenuOpen(null)}
                   />
-                  <div className="absolute right-0 top-full mt-[-4px] z-50 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-lg shadow-xl py-1 min-w-[120px]">
+                  <div className="absolute right-2 top-3/4 z-50 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-lg shadow-xl py-1 min-w-[120px] animate-in fade-in zoom-in-95 duration-100">
                     <button
                       onClick={(e) => {
                         e.stopPropagation();

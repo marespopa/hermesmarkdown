@@ -14,6 +14,7 @@ import {
   atom_lastSavedContent,
   atom_fileLastModified,
   atom_fileConflict,
+  atom_pendingFileSwitch,
 } from "@/app/atoms/atoms";
 import { atom_fileMetadata } from "@/app/atoms/metadata";
 import { useCallback, useEffect } from "react";
@@ -30,6 +31,9 @@ if (typeof window !== "undefined") {
   metadataWorker = new Worker(new URL("../workers/metadata.worker.ts", import.meta.url));
 }
 
+const isVaultSupported = typeof window !== "undefined" && "showDirectoryPicker" in window;
+const isIdbSupported = typeof window !== "undefined" && !!window.indexedDB;
+
 export function useFileSystem() {
   const [vaultHandle, setVaultHandle] = useAtom(atom_vaultHandle);
   const [currentDirectoryHandle, setCurrentDirectoryHandle] = useAtom(atom_currentDirectoryHandle);
@@ -41,9 +45,10 @@ export function useFileSystem() {
   const [content, setContent] = useAtom(atom_content);
   const [, setFileName] = useAtom(atom_fileName);
   const [fileMetadata, setFileMetadata] = useAtom(atom_fileMetadata);
-  const [, setLastSavedContent] = useAtom(atom_lastSavedContent);
+  const [lastSavedContent, setLastSavedContent] = useAtom(atom_lastSavedContent);
   const [, setFileLastModified] = useAtom(atom_fileLastModified);
   const [, setFileConflict] = useAtom(atom_fileConflict);
+  const [, setPendingFileSwitch] = useAtom(atom_pendingFileSwitch);
 
   // Worker Message Listener
   useEffect(() => {
@@ -129,6 +134,11 @@ export function useFileSystem() {
   );
 
   const openVault = useCallback(async () => {
+    if (!isVaultSupported) {
+      toast.error("Your browser does not support local folder access. Try Chrome or Edge.");
+      return;
+    }
+
     try {
       const handle = await window.showDirectoryPicker();
       setVaultHandle(handle);
@@ -148,7 +158,7 @@ export function useFileSystem() {
 
   // Load vault on mount
   useEffect(() => {
-    if (hasLoadedVault) return;
+    if (hasLoadedVault || !isIdbSupported) return;
     
     async function init() {
       setHasLoadedVault(true);
@@ -179,7 +189,18 @@ export function useFileSystem() {
   }, [vaultHandle, setIsVaultPending, setCurrentDirectoryHandle, scanVault, indexVaultTags]);
 
   const openFile = useCallback(
-    async (fileHandle: FileSystemFileHandle, providedPath?: string) => {
+    async (
+      fileHandle: FileSystemFileHandle,
+      providedPath?: string,
+      force: boolean = false,
+    ) => {
+      // Check for unsaved changes
+      const isDirty = content !== lastSavedContent;
+      if (isDirty && !force) {
+        setPendingFileSwitch({ handle: fileHandle, path: providedPath });
+        return;
+      }
+
       try {
         const file = await fileHandle.getFile();
         const content = await file.text();
@@ -221,6 +242,9 @@ export function useFileSystem() {
       setLastSavedContent,
       setFileLastModified,
       setFileConflict,
+      content,
+      lastSavedContent,
+      setPendingFileSwitch,
     ],
   );
 
@@ -451,5 +475,7 @@ export function useFileSystem() {
     indexVaultTags,
     restoreVault,
     isVaultPending,
+    isVaultSupported,
+    isIdbSupported,
   };
 }
