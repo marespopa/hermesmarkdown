@@ -118,6 +118,6 @@ export const TEMPLATES = [
   },
   {
     label: "📄 Frontmatter",
-    content: "---\ntitle: \ndate: {date}\nstatus: #todo\n---",
+    content: "---\ntitle: \ndate: {date}\ntags: #tag\n---",
   },
 ];
