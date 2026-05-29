@@ -46,9 +46,9 @@ const Input = forwardRef<HTMLInputElement, Props>(
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       handleChange(e);
       if (!debounceMs || !onDebouncedChange) return;
-      
+
       if (debounceRef.current) clearTimeout(debounceRef.current);
-      
+
       const eventCopy = { ...e }; // Shallow copy for debounce
       debounceRef.current = setTimeout(() => {
         onDebouncedChange(eventCopy);
@@ -56,7 +56,7 @@ const Input = forwardRef<HTMLInputElement, Props>(
     };
 
     const baseStyles =
-      "w-full px-4 py-2 text-sm font-mono lowercase tracking-tight transition-all duration-150 ease-in-out border rounded-md outline-none select-none";
+      "w-full px-4 py-2 text-sm font-mono tracking-tight transition-all duration-150 ease-in-out border rounded-md outline-none select-none";
 
     const variantStyles =
       "bg-neutral-50 border-neutral-200 text-neutral-800 placeholder:text-neutral-400 " +
@@ -66,14 +66,14 @@ const Input = forwardRef<HTMLInputElement, Props>(
     return (
       <div className={`flex flex-col gap-1.5 my-2 w-full ${className}`}>
         {label && (
-          <label 
+          <label
             htmlFor={name}
-            className="text-[12px] font-mono text-zinc-500 dark:text-zinc-500 lowercase tracking-tight px-0.5"
+            className="text-[12px] font-mono text-zinc-500 dark:text-zinc-500 tracking-tight px-0.5"
           >
             {label}
           </label>
         )}
-        
+
         <div className="relative group">
           <input
             id={name}
