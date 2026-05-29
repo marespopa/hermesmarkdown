@@ -439,11 +439,47 @@ export function useFileSystem() {
       if (!newName || newName === handle.name) return;
 
       try {
-        if ((handle as any).move) {
-          await (handle as any).move(newName);
+        // 1. Get a FRESH handle from the parent to avoid "state changed" errors
+        let freshHandle: FileSystemHandle;
+        if (handle.kind === "file") {
+          freshHandle = await (parentDir as any).getFileHandle(handle.name);
         } else {
-          if (handle.kind === "file") {
-            const file = await (handle as FileSystemFileHandle).getFile();
+          freshHandle = await (parentDir as any).getDirectoryHandle(handle.name);
+        }
+
+        // 2. Check if this is the active file
+        let isActive = false;
+        if (activeFileHandle) {
+          try {
+            isActive = await (freshHandle as any).isSameEntry(activeFileHandle);
+          } catch {
+            // Comparison failed
+          }
+        }
+
+        // 3. Attempt Native Move
+        if ((freshHandle as any).move) {
+          // Use explicit parentDir for maximum compatibility on some browsers/OSs
+          await (freshHandle as any).move(parentDir, newName);
+
+          if (isActive) {
+            setActiveFileHandle(freshHandle as FileSystemFileHandle);
+            setFileName(newName.replace(".md", ""));
+
+            // Recalculate path for metadata/tracking
+            if (vaultHandle) {
+              const pathParts = await (vaultHandle as any).resolve(freshHandle);
+              if (pathParts) {
+                setActiveFilePath(pathParts.join("/"));
+              } else {
+                setActiveFilePath(newName);
+              }
+            }
+          }
+        } else {
+          // Fallback for files: manual copy and delete
+          if (freshHandle.kind === "file") {
+            const file = await (freshHandle as FileSystemFileHandle).getFile();
             const content = await file.text();
             const newFileHandle = await parentDir.getFileHandle(newName, {
               create: true,
@@ -456,10 +492,21 @@ export function useFileSystem() {
                 await writable.close();
                 writable = null;
               }
-              await (parentDir as any).removeEntry(handle.name);
-              if (activeFileHandle?.name === handle.name) {
+              await (parentDir as any).removeEntry(freshHandle.name);
+
+              if (isActive) {
                 setActiveFileHandle(newFileHandle);
                 setFileName(newName.replace(".md", ""));
+
+                // Recalculate path for metadata/tracking
+                if (vaultHandle) {
+                  const pathParts = await (vaultHandle as any).resolve(newFileHandle);
+                  if (pathParts) {
+                    setActiveFilePath(pathParts.join("/"));
+                  } else {
+                    setActiveFilePath(newName);
+                  }
+                }
               }
             } finally {
               if (writable) {
@@ -471,8 +518,6 @@ export function useFileSystem() {
               }
             }
           } else {
-            // For directories, without move() it's too complex/risky to do recursive copy-delete
-            // most modern browsers supporting showDirectoryPicker also support move()
             throw new Error("Folder renaming not supported in this browser");
           }
         }
@@ -492,6 +537,7 @@ export function useFileSystem() {
       indexVaultTags,
       setFileName,
       setActiveFileHandle,
+      setActiveFilePath,
       dialog,
     ],
   );
@@ -551,6 +597,14 @@ export function useFileSystem() {
               await (freshHandle as any).move(targetDir, freshHandle.name);
               if (isActive) {
                 setActiveFileHandle(freshHandle as FileSystemFileHandle);
+                
+                // Recalculate path for metadata/tracking
+                if (vaultHandle) {
+                  const pathParts = await (vaultHandle as any).resolve(freshHandle);
+                  if (pathParts) {
+                    setActiveFilePath(pathParts.join("/"));
+                  }
+                }
               }
             } else {
               throw new Error("Native move not supported");
@@ -577,6 +631,14 @@ export function useFileSystem() {
 
                 if (isActive) {
                   setActiveFileHandle(newFileHandle);
+                  
+                  // Recalculate path for metadata/tracking
+                  if (vaultHandle) {
+                    const pathParts = await (vaultHandle as any).resolve(newFileHandle);
+                    if (pathParts) {
+                      setActiveFilePath(pathParts.join("/"));
+                    }
+                  }
                 }
               } finally {
                 if (writable) {
@@ -626,6 +688,7 @@ export function useFileSystem() {
       scanVault,
       indexVaultTags,
       setActiveFileHandle,
+      setActiveFilePath,
     ],
   );
 
