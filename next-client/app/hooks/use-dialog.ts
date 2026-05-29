@@ -11,6 +11,7 @@ export function useDialog() {
     (params: {
       type: DialogType;
       message: string;
+      subtext?: string;
       title?: string;
       confirmLabel?: string;
       cancelLabel?: string;
@@ -36,8 +37,8 @@ export function useDialog() {
   );
 
   const confirm = useCallback(
-    (message: string, title?: string, confirmLabel?: string, cancelLabel?: string) =>
-      showDialog({ type: "confirm", message, title, confirmLabel, cancelLabel }),
+    (message: string, title?: string, confirmLabel?: string, cancelLabel?: string, subtext?: string) =>
+      showDialog({ type: "confirm", message, title, confirmLabel, cancelLabel, subtext }),
     [showDialog],
   );
 

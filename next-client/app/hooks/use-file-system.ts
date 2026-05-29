@@ -185,9 +185,11 @@ export function useFileSystem() {
     if (!vaultHandle) return;
 
     const confirmed = await dialog.confirm(
-      `Hermes needs your permission to "allow this site to make edits" to your local folder: ${vaultHandle.name}. This is required to save your notes. Your file content is never saved on our servers—everything stays 100% local on your device.`,
-      "Re-authorize Vault Access",
+      `Hermes needs permission to "allow this site to make edits" to your folder: ${vaultHandle.name}. This is required to save your notes.`,
+      "re-authorize folder access",
       "Allow Edits",
+      "Cancel",
+      "Your notes stay 100% local on your device and are never saved on our servers.",
     );
 
     if (!confirmed) return;

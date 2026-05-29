@@ -38,6 +38,7 @@ export interface DialogConfig {
   type: DialogType;
   title?: string;
   message: string;
+  subtext?: string;
   confirmLabel?: string;
   cancelLabel?: string;
   defaultValue?: string;

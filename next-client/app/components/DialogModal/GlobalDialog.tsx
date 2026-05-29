@@ -52,6 +52,12 @@ export default function GlobalDialog() {
           {config.message}
         </p>
 
+        {config.subtext && (
+          <p className="text-xs opacity-50 leading-relaxed">
+            {config.subtext}
+          </p>
+        )}
+
         {config.type === "prompt" && (
           <div className="py-2">
             <Input
