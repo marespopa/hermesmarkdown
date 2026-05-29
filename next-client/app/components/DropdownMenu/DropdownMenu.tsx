@@ -83,7 +83,7 @@ const DropdownMenu = ({ label, options, isOpen, onOpenChange, selectedIndex, onS
               key={option.label}
               variant="bare"
               onClick={() => handleOptionClick(option, idx)}
-              styles={`w-full text-left whitespace-nowrap h-12 px-5 bg-white dark:bg-neutral-800 text-black dark:text-white border-b border-black dark:border-black rounded-none transition-all duration-150 focus-visible:ring-2 focus-visible:ring-black dark:focus-visible:ring-white hover:bg-neutral-100 dark:hover:bg-neutral-700 ${idx === options.length - 1 ? 'border-b-0' : ''} ${selectedIndex === idx ? 'bg-neutral-200 dark:bg-neutral-700 font-bold' : ''}`}
+              className={`w-full text-left whitespace-nowrap h-12 px-5 bg-white dark:bg-neutral-800 text-black dark:text-white border-b border-black dark:border-black rounded-none transition-all duration-150 focus-visible:ring-2 focus-visible:ring-black dark:focus-visible:ring-white hover:bg-neutral-100 dark:hover:bg-neutral-700 ${idx === options.length - 1 ? 'border-b-0' : ''} ${selectedIndex === idx ? 'bg-neutral-200 dark:bg-neutral-700 font-bold' : ''}`}
               tabIndex={0}
             >
               <span className="flex items-center gap-2">

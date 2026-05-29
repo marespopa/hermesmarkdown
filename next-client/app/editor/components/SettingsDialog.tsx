@@ -59,7 +59,7 @@ const SettingsDialog = ({ isOpen, onClose }: Props) => {
                 key={font.value}
                 variant={fontFamily === font.value ? "primary" : "secondary"}
                 onClick={() => setFontFamily(font.value)}
-                styles="w-full h-10 sm:h-9 text-[11px] sm:text-[10px] border-none shadow-none"
+                className="w-full h-10 sm:h-9 text-[11px] sm:text-[10px] border-none shadow-none"
               >
                 {font.name}
               </Button>
@@ -78,7 +78,7 @@ const SettingsDialog = ({ isOpen, onClose }: Props) => {
                 key={size.value}
                 variant={fontSize === size.value ? "primary" : "secondary"}
                 onClick={() => setFontSize(size.value)}
-                styles="flex-1 h-10 sm:h-9 text-[11px] sm:text-[10px] border-none shadow-none"
+                className="flex-1 h-10 sm:h-9 text-[11px] sm:text-[10px] border-none shadow-none"
               >
                 {size.label}
               </Button>
@@ -96,14 +96,14 @@ const SettingsDialog = ({ isOpen, onClose }: Props) => {
               <Button
                 variant={wordWrap ? "primary" : "secondary"}
                 onClick={() => setWordWrap(true)}
-                styles="flex-1 h-10 sm:h-9 text-[11px] sm:text-[10px] border-none shadow-none"
+                className="flex-1 h-10 sm:h-9 text-[11px] sm:text-[10px] border-none shadow-none"
               >
                 Wrap
               </Button>
               <Button
                 variant={!wordWrap ? "primary" : "secondary"}
                 onClick={() => setWordWrap(false)}
-                styles="flex-1 h-10 sm:h-9 text-[11px] sm:text-[10px] border-none shadow-none"
+                className="flex-1 h-10 sm:h-9 text-[11px] sm:text-[10px] border-none shadow-none"
               >
                 No Wrap
               </Button>
@@ -113,14 +113,14 @@ const SettingsDialog = ({ isOpen, onClose }: Props) => {
               <Button
                 variant={showStats ? "primary" : "secondary"}
                 onClick={() => setShowStats(true)}
-                styles="flex-1 h-10 sm:h-9 text-[11px] sm:text-[10px] border-none shadow-none"
+                className="flex-1 h-10 sm:h-9 text-[11px] sm:text-[10px] border-none shadow-none"
               >
                 Show Stats
               </Button>
               <Button
                 variant={!showStats ? "primary" : "secondary"}
                 onClick={() => setShowStats(false)}
-                styles="flex-1 h-10 sm:h-9 text-[11px] sm:text-[10px] border-none shadow-none"
+                className="flex-1 h-10 sm:h-9 text-[11px] sm:text-[10px] border-none shadow-none"
               >
                 Hide Stats
               </Button>
@@ -136,7 +136,7 @@ const SettingsDialog = ({ isOpen, onClose }: Props) => {
           <Button
             variant="secondary"
             onClick={() => setTheme(theme === "light" ? "dark" : "light")}
-            styles="h-10 sm:h-9 px-5 rounded-full text-[11px] sm:text-[10px] uppercase tracking-widest border-zinc-200 dark:border-zinc-700"
+            className="h-10 sm:h-9 px-5 rounded-full text-[11px] sm:text-[10px] uppercase tracking-widest border-zinc-200 dark:border-zinc-700"
           >
             {theme} mode
           </Button>

@@ -46,10 +46,11 @@ function processInlineMarkdown(text: string) {
   let html = text;
 
   if (html.includes("[[")) {
-    html = html.replace(
-      REGEX_WIKILINK,
-      `<span ${SUBTLE}>[[</span><span class="text-purple-600 dark:text-purple-400 font-bold underline cursor-pointer">$1</span><span ${SUBTLE}>]]</span>`,
-    );
+    html = html.replace(REGEX_WIKILINK, (match, content) => {
+      const parts = content.split("|");
+      const displayText = parts.length > 1 ? parts[1].trim() : parts[0].trim();
+      return `<span ${SUBTLE}>[[</span><span class="text-purple-600 dark:text-purple-400 font-bold underline cursor-pointer">${displayText}</span><span ${SUBTLE}>]]</span>`;
+    });
   }
 
   if (html.includes("`")) {

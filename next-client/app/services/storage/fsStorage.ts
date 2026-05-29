@@ -52,9 +52,23 @@ const writeKey = async (key: string, value: string): Promise<void> => {
   const handle = await getKeyFileHandle(key, true);
   if (!handle) return;
 
-  const writable = await handle.createWritable();
-  await writable.write(value);
-  await writable.close();
+  let writable: FileSystemWritableFileStream | null = null;
+  try {
+    writable = await handle.createWritable();
+    if (writable) {
+      await writable.write(value);
+      await writable.close();
+      writable = null;
+    }
+  } finally {
+    if (writable) {
+      try {
+        await (writable as any).close();
+      } catch {
+        // Ignore cleanup error
+      }
+    }
+  }
 };
 
 const removeKey = async (key: string): Promise<void> => {

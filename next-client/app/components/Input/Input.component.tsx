@@ -19,6 +19,7 @@ interface Props {
   debounceMs?: number;
   onDebouncedChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
   className?: string; // Added to allow style overrides from forms
+  autoFocus?: boolean;
 }
 
 const Input = forwardRef<HTMLInputElement, Props>(
@@ -36,6 +37,7 @@ const Input = forwardRef<HTMLInputElement, Props>(
       debounceMs,
       onDebouncedChange,
       className = "",
+      autoFocus,
     },
     ref,
   ) => {
@@ -85,6 +87,7 @@ const Input = forwardRef<HTMLInputElement, Props>(
             ref={ref}
             className={`${baseStyles} ${variantStyles}`}
             aria-label={label || name}
+            autoFocus={autoFocus}
           />
 
           {onClear && value && String(value).length > 0 && (

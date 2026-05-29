@@ -66,7 +66,7 @@ export default function UnsavedChangesDialog() {
             </span>
           </Button>
 
-          <Button variant="bare" onClick={handleCancel} className="w-full text-center py-2 opacity-50 hover:opacity-100">
+          <Button variant="secondary" onClick={handleCancel} className="w-full text-center py-2">
             Cancel
           </Button>
         </div>

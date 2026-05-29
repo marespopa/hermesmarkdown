@@ -13,6 +13,8 @@ import {
   HiOutlinePencil,
   HiOutlineFolderAdd,
   HiOutlineDocumentAdd,
+  HiOutlineRefresh,
+  HiOutlineChevronDown,
 } from "react-icons/hi";
 import Button from "@/app/components/Button";
 import { useAtomValue } from "jotai";
@@ -39,12 +41,15 @@ export default function VaultSidebar({ onClose }: VaultSidebarProps) {
     isVaultPending,
     restoreVault,
     isVaultSupported,
+    scanVault,
+    indexVaultTags,
   } = useFileSystem();
 
   const fileMetadata = useAtomValue(atom_fileMetadata);
   const [actionMenuOpen, setActionMenuOpen] = useState<string | null>(null);
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
   const [isNewMenuOpen, setIsNewMenuOpen] = useState(false);
+  const [isTagsExpanded, setIsTagsExpanded] = useState(true);
 
   const vaultTags = useMemo(() => {
     const tagsMap: Record<string, any[]> = {};
@@ -112,6 +117,21 @@ export default function VaultSidebar({ onClose }: VaultSidebarProps) {
           </h2>
         </div>
         <div className="flex items-center gap-0.5 relative">
+          <Button
+            variant="icon"
+            className="w-8 h-8"
+            onClick={async () => {
+              const targetDir = currentDirectoryHandle || vaultHandle;
+              if (targetDir) {
+                await scanVault(targetDir);
+                await indexVaultTags();
+              }
+            }}
+            title="Refresh Vault"
+          >
+            <HiOutlineRefresh size={16} />
+          </Button>
+
           <div className="relative">
             <Button
               variant="icon"
@@ -269,20 +289,32 @@ export default function VaultSidebar({ onClose }: VaultSidebarProps) {
         {/* Smart Filters Section */}
         {!selectedTag && tags.length > 0 && (
           <div className="space-y-1">
-            <h3 className="px-3 text-[9px] uppercase tracking-[0.2em] font-bold opacity-30 py-2">
-              Smart Filters
-            </h3>
-            <div className="flex flex-wrap gap-1 px-3">
-              {tags.map((tag) => (
-                <span
-                  key={tag}
-                  onClick={() => setSelectedTag(tag)}
-                  className="text-[10px] px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 cursor-pointer hover:bg-blue-500/20 transition-colors border border-blue-500/20"
-                >
-                  {tag}
-                </span>
-              ))}
+            <div 
+              className="flex justify-between items-center px-3 py-2 cursor-pointer hover:bg-neutral-200 dark:hover:bg-neutral-800 rounded-md mx-1 transition-colors group"
+              onClick={() => setIsTagsExpanded(!isTagsExpanded)}
+            >
+              <h3 className="text-[9px] uppercase tracking-[0.2em] font-bold opacity-30 group-hover:opacity-100 transition-opacity">
+                Smart Filters
+              </h3>
+              <HiOutlineChevronDown 
+                size={12} 
+                className={`opacity-30 group-hover:opacity-100 transition-all duration-200 ${isTagsExpanded ? "" : "-rotate-90"}`} 
+              />
             </div>
+            
+            {isTagsExpanded && (
+              <div className="flex flex-wrap gap-1 px-3 max-h-40 overflow-y-auto custom-scrollbar animate-in fade-in duration-200">
+                {tags.map((tag) => (
+                  <span
+                    key={tag}
+                    onClick={() => setSelectedTag(tag)}
+                    className="text-[10px] px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 cursor-pointer hover:bg-blue-500/20 transition-colors border border-blue-500/20"
+                  >
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            )}
           </div>
         )}
 

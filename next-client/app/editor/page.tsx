@@ -148,9 +148,23 @@ export default function LiteEditor() {
           ],
           startIn: currentDirectoryHandle || vaultHandle || undefined,
         });
-        const writable = await handle.createWritable();
-        await writable.write(content);
-        await writable.close();
+        let writable: FileSystemWritableFileStream | null = null;
+        try {
+          writable = await handle.createWritable();
+          if (writable) {
+            await writable.write(content);
+            await writable.close();
+            writable = null;
+          }
+        } finally {
+          if (writable) {
+            try {
+              await (writable as any).close();
+            } catch {
+              // Ignore cleanup errors
+            }
+          }
+        }
         return; // Success!
       } catch (err) {
         // User likely cancelled the picker, don't fallback to download
@@ -241,7 +255,7 @@ export default function LiteEditor() {
             >
               Overwrite
             </Button>
-            <Button variant="outlined" onClick={() => setPendingFile(null)}>
+            <Button variant="secondary" onClick={() => setPendingFile(null)}>
               Cancel
             </Button>
           </div>
@@ -264,7 +278,7 @@ export default function LiteEditor() {
               Confirm New
             </Button>
             <Button
-              variant="outlined"
+              variant="secondary"
               onClick={() => setIsNewConfirmOpen(false)}
             >
               Cancel

@@ -7,6 +7,7 @@ import CustomProviders from "./CustomProviders";
 import Footer from "./Footer/Footer.component";
 import Header from "./Header";
 import { usePathname } from "next/navigation";
+import GlobalDialog from "./DialogModal/GlobalDialog";
 
 type Props = {
   children: React.ReactNode;
@@ -39,6 +40,7 @@ const MainPage = ({ children }: Props) => {
           {showFooter && <Footer />}
         </div>
         <CookieConsent />
+        <GlobalDialog />
         <Script
           defer
           async

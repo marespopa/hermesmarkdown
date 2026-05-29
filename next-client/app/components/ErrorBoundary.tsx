@@ -68,7 +68,7 @@ class ErrorBoundary extends Component<Props, State> {
                 <HiOutlineRefresh size={18} />
                 <span>Reload Editor</span>
               </Button>
-              <Button variant="outlined" onClick={this.handleGoHome} className="w-full sm:w-auto">
+              <Button variant="secondary" onClick={this.handleGoHome} className="w-full sm:w-auto">
                 <HiOutlineHome size={18} />
                 <span>Go Home</span>
               </Button>

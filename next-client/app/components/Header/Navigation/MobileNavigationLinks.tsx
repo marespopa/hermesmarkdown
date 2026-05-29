@@ -23,7 +23,7 @@ export default function MobileNavigationLinks({ handleClose }: Props) {
       <Button
         variant="bare"
         onClick={handleClose}
-        styles="absolute top-4 right-4 text-3xl text-neutral-700 dark:text-neutral-300 focus:outline-none"
+        className="absolute top-4 right-4 text-3xl text-neutral-700 dark:text-neutral-300 focus:outline-none"
         aria-label="Close Menu"
       >
         &times;
@@ -35,7 +35,7 @@ export default function MobileNavigationLinks({ handleClose }: Props) {
             handleClose();
             router.push("/");
           }}
-          styles={navBtnStyles}
+          className={navBtnStyles}
         >
           Home
         </Button>
@@ -45,7 +45,7 @@ export default function MobileNavigationLinks({ handleClose }: Props) {
             handleClose();
             router.push("/documentation");
           }}
-          styles={navBtnStyles}
+          className={navBtnStyles}
         >
           Documentation
         </Button>
@@ -55,14 +55,14 @@ export default function MobileNavigationLinks({ handleClose }: Props) {
             handleClose();
             router.push("/contact");
           }}
-          styles={navBtnStyles}
+          className={navBtnStyles}
         >
           Contact
         </Button>
         <Button
           variant="bare"
           onClick={() => setTheme(theme === "light" ? "dark" : "light")}
-          styles={`${navBtnStyles} flex items-center justify-center gap-2`}
+          className={`${navBtnStyles} flex items-center justify-center gap-2`}
         >
           {theme === "light" ? (
             <FaMoon className="w-5 h-5" />

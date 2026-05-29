@@ -5,7 +5,21 @@ export type QueryOperator = "AND" | "OR";
 
 export interface QueryRule {
   field: string;
-  condition: "equals" | "contains" | "includes" | "before" | "after" | "before-days" | "after-days";
+  condition:
+    | "equals"
+    | "not_equals"
+    | "contains"
+    | "not_contains"
+    | "includes"
+    | "not_includes"
+    | "before"
+    | "after"
+    | "before-days"
+    | "after-days"
+    | "exists"
+    | "not_exists"
+    | "greater_than"
+    | "less_than";
   value: any;
 }
 
@@ -17,16 +31,33 @@ export interface WorkspaceQuery {
 /**
  * Evaluates a file against a set of rules.
  */
-export const evaluateQuery = (file: FileMetadata, query: WorkspaceQuery): boolean => {
+export const evaluateQuery = (
+  file: FileMetadata,
+  query: WorkspaceQuery,
+  allMetadata: Record<string, FileMetadata> = {},
+): boolean => {
   const evaluator = (rule: QueryRule): boolean => {
     let fieldValue: any;
-    
+
     if (rule.field === "tags") {
       fieldValue = file.tags;
     } else if (rule.field === "modifiedAt") {
       fieldValue = file.modifiedAt;
     } else if (rule.field === "wordCount") {
       fieldValue = file.wordCount;
+    } else if (rule.field === "backlinks") {
+      // Calculate backlinks dynamically
+      // A backlink exists if another file's 'links' array contains this file's name (without .md)
+      const fileName = file.name.replace(".md", "");
+      fieldValue = Object.values(allMetadata).filter((m) =>
+        m.links.some(
+          (l) =>
+            l === fileName ||
+            l === file.name ||
+            l === file.path ||
+            l === `./${file.name}`,
+        ),
+      ).length;
     } else if (rule.field.startsWith("frontmatter.")) {
       const key = rule.field.replace("frontmatter.", "");
       fieldValue = file.frontmatter?.[key];
@@ -37,10 +68,20 @@ export const evaluateQuery = (file: FileMetadata, query: WorkspaceQuery): boolea
     switch (rule.condition) {
       case "equals":
         return fieldValue === rule.value;
+      case "not_equals":
+        return fieldValue !== rule.value;
       case "contains":
-        return String(fieldValue).toLowerCase().includes(String(rule.value).toLowerCase());
+        return String(fieldValue)
+          .toLowerCase()
+          .includes(String(rule.value).toLowerCase());
+      case "not_contains":
+        return !String(fieldValue)
+          .toLowerCase()
+          .includes(String(rule.value).toLowerCase());
       case "includes":
         return Array.isArray(fieldValue) && fieldValue.includes(rule.value);
+      case "not_includes":
+        return !Array.isArray(fieldValue) || !fieldValue.includes(rule.value);
       case "before":
         return Number(fieldValue) < Number(rule.value);
       case "after":
@@ -53,6 +94,14 @@ export const evaluateQuery = (file: FileMetadata, query: WorkspaceQuery): boolea
         const boundary = Date.now() - Number(rule.value) * 24 * 60 * 60 * 1000;
         return Number(fieldValue) > boundary;
       }
+      case "exists":
+        return fieldValue !== undefined && fieldValue !== null && fieldValue !== "";
+      case "not_exists":
+        return fieldValue === undefined || fieldValue === null || fieldValue === "";
+      case "greater_than":
+        return Number(fieldValue) > Number(rule.value);
+      case "less_than":
+        return Number(fieldValue) < Number(rule.value);
       default:
         return false;
     }

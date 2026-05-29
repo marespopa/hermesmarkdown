@@ -96,6 +96,17 @@ describe("MarkdownEditor Functional Tests", () => {
     expect(mockOnChange).toHaveBeenCalledWith("Hello World");
   });
 
+  it("calls onWikiLinkClick when Ctrl clicking a wikilink", () => {
+    const onWikiLinkClick = vi.fn();
+    renderEditor("[[My Note|Alias]]", { onWikiLinkClick });
+    const textarea = screen.getByRole("textbox") as HTMLTextAreaElement;
+
+    textarea.selectionStart = 10;
+    fireEvent.click(textarea, { ctrlKey: true });
+
+    expect(onWikiLinkClick).toHaveBeenCalledWith("My Note|Alias");
+  });
+
   it("handles Bold keyboard shortcut (Ctrl+B)", () => {
     renderEditor("hello");
     const textarea = screen.getByRole("textbox") as HTMLTextAreaElement;

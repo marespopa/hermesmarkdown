@@ -27,6 +27,7 @@ describe("SmartFolders Component", () => {
       path: "file1.md",
       name: "file1.md",
       tags: ["#todo"],
+      links: [],
       frontmatter: {},
       modifiedAt: Date.now(),
       wordCount: 10,
@@ -35,7 +36,8 @@ describe("SmartFolders Component", () => {
   };
 
   it("renders default workspace names", () => {
-    (useAtom as any).mockReturnValue([{}, vi.fn()]);
+    (useAtom as any).mockReturnValueOnce([{}, vi.fn()]) // fileMetadata
+                     .mockReturnValueOnce([[], vi.fn()]); // customWorkspaces
     
     render(<SmartFolders onFileSelect={mockOnFileSelect} />);
 
@@ -45,7 +47,8 @@ describe("SmartFolders Component", () => {
   });
 
   it("expands a folder and shows matching files", () => {
-    (useAtom as any).mockReturnValue([mockMetadata, vi.fn()]);
+    (useAtom as any).mockReturnValueOnce([mockMetadata, vi.fn()])
+                     .mockReturnValueOnce([[], vi.fn()]);
 
     render(<SmartFolders onFileSelect={mockOnFileSelect} />);
 
@@ -57,7 +60,8 @@ describe("SmartFolders Component", () => {
   });
 
   it("calls onFileSelect when a file is clicked", () => {
-    (useAtom as any).mockReturnValue([mockMetadata, vi.fn()]);
+    (useAtom as any).mockReturnValueOnce([mockMetadata, vi.fn()])
+                     .mockReturnValueOnce([[], vi.fn()]);
 
     render(<SmartFolders onFileSelect={mockOnFileSelect} />);
 

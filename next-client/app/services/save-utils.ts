@@ -73,10 +73,23 @@ const writeFile = async ({
   fileHandle: FileSystemFileHandle;
   blob: Blob;
 }) => {
-  const writer: FileSystemWritableFileStream =
-    await fileHandle.createWritable();
-  await writer.write(blob);
-  await writer.close();
+  let writer: FileSystemWritableFileStream | null = null;
+  try {
+    writer = await fileHandle.createWritable();
+    if (writer) {
+      await writer.write(blob);
+      await writer.close();
+      writer = null;
+    }
+  } finally {
+    if (writer) {
+      try {
+        await (writer as any).close();
+      } catch {
+        // Ignore cleanup error
+      }
+    }
+  }
 };
 
 const download = ({ fileName, blob }: { fileName: string; blob: Blob }) => {

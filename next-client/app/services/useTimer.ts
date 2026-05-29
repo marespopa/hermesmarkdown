@@ -1,7 +1,9 @@
 import { useState, useEffect, useCallback } from "react";
+import { useDialog } from "@/app/hooks/use-dialog";
 
 export function useTimer(initialMinutes: number = 25) {
   const [timeLeft, setTimeLeft] = useState(initialMinutes * 60);
+  const dialog = useDialog();
 
   // Update timer if initialMinutes changes (e.g. settings page changes)
   useEffect(() => {
@@ -30,13 +32,13 @@ export function useTimer(initialMinutes: number = 25) {
           }
         } catch (e) {
           // Fallback: show alert if Notification fails (e.g., in Turbopack/SSR context)
-          alert("Focus session complete!");
+          dialog.alert("Focus session complete!", "Timer");
           console.error(e);
         }
       }
     }
     return () => clearInterval(interval);
-  }, [isActive, timeLeft]);
+  }, [isActive, timeLeft, dialog]);
 
   const toggle = () => setIsActive(!isActive);
   const reset = useCallback(() => {

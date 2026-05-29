@@ -8,6 +8,12 @@ This directory contains the core logic and routing for the Hermes Markdown edito
 - **State Management**: [Jotai](https://jotai.org/) (Atoms)
 - **Persistence**: IndexedDB (via `app/services/idb.ts`) for File System handles.
 
+## Development Guidelines
+
+### Component Usage
+- **Always use existing components**: When modifying or adding UI, always prioritize using established components from `app/components/` (e.g., `Button`, `Input`). Do not use raw HTML tags or custom styled divs for elements that already have a dedicated component.
+- **Consistency**: Ensure consistent use of component variants (e.g., `primary` for main actions, `secondary` for cancellations or dismissals).
+
 ## Directory Structure
 - `atoms/`: Global state definitions using Jotai.
 - `components/`: Global UI components (Buttons, Modals, etc.).

@@ -32,6 +32,20 @@ export const atom_vaultFiles = atom<FileSystemHandle[]>([]);
 export const atom_isVaultPending = atom<boolean>(false);
 export const atom_hasLoadedVault = atom<boolean>(false);
 
+export type DialogType = "alert" | "confirm" | "prompt";
+
+export interface DialogConfig {
+  type: DialogType;
+  title?: string;
+  message: string;
+  confirmLabel?: string;
+  cancelLabel?: string;
+  defaultValue?: string;
+  resolve: (value: any) => void;
+}
+
+export const atom_globalDialog = atom<DialogConfig | null>(null);
+
 export const atom_pendingFileSwitch = atom<{
   handle: FileSystemFileHandle;
   path?: string;
