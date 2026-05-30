@@ -564,10 +564,22 @@ export default function MarkdownEditor({
     <div
       ref={wrapperRef}
       onKeyDown={handleGlobalKeyDown}
-      className="relative w-full min-h-screen p-2 [overflow-anchor:none] [contain:content] overflow-x-auto"
+      onClick={(e) => {
+        if (e.target === e.currentTarget && textareaRef.current) {
+          textareaRef.current.focus();
+        }
+      }}
+      className="relative w-full min-h-screen p-2 [overflow-anchor:none] [contain:content] overflow-x-auto cursor-text"
       translate="no"
     >
       <div
+        onClick={(e) => {
+          if (e.target === e.currentTarget && textareaRef.current) {
+            textareaRef.current.focus();
+            const length = textareaRef.current.value.length;
+            textareaRef.current.setSelectionRange(length, length);
+          }
+        }}
         className={`editor-container relative h-full antialiased normal-nums [font-variant-ligatures:none] [font-feature-settings:'liga'_0,'calt'_0]
           ${wordWrap ? "w-full" : "w-max min-w-full"}
           [&_textarea]:!bg-transparent [&_textarea]:!text-transparent [&_textarea]:!caret-blue-500

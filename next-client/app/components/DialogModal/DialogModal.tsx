@@ -6,14 +6,36 @@ import { IoClose } from "react-icons/io5";
 type Props = {
   isOpened: boolean;
   onClose: () => void;
+  onConfirm?: () => void;
   children: React.ReactNode;
   styles?: string;
+  ariaLabelledBy?: string;
+  ariaDescribedBy?: string;
 };
 
-const DialogModal = ({ isOpened, onClose, children, styles = "" }: Props) => {
+const DialogModal = ({
+  isOpened,
+  onClose,
+  onConfirm,
+  children,
+  styles = "",
+  ariaLabelledBy,
+  ariaDescribedBy,
+}: Props) => {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
+      if (e.key === "Enter" && onConfirm) {
+        const activeElement = document.activeElement;
+        // Don't trigger onConfirm if focusing on a textarea or a button (browser handles button Enter)
+        if (
+          activeElement?.tagName === "TEXTAREA" ||
+          activeElement?.tagName === "BUTTON"
+        )
+          return;
+
+        onConfirm();
+      }
     };
 
     if (isOpened) {
@@ -25,7 +47,7 @@ const DialogModal = ({ isOpened, onClose, children, styles = "" }: Props) => {
       document.body.style.overflow = "unset";
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [isOpened, onClose]);
+  }, [isOpened, onClose, onConfirm]);
 
   if (!isOpened) return null;
 
@@ -33,6 +55,10 @@ const DialogModal = ({ isOpened, onClose, children, styles = "" }: Props) => {
     <div
       className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6"
       onClick={(e) => e.target === e.currentTarget && onClose()}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby={ariaLabelledBy}
+      aria-describedby={ariaDescribedBy}
     >
       {/* Backdrop */}
       <div className="absolute inset-0 bg-black/5 dark:bg-black/20 backdrop-blur-md animate-in fade-in duration-300" />

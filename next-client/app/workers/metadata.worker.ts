@@ -58,8 +58,19 @@ self.onmessage = async (event: MessageEvent) => {
         wordCount,
         handle, // Pass it back to be stored in the atom
       });
-    } catch (err) {
-      console.error("Worker error processing file:", err);
+    } catch (err: any) {
+      // Avoid noisy error logs for common file system race conditions
+      const isExpectedError = 
+        err.name === "InvalidStateError" || 
+        err.name === "NotFoundError" || 
+        err.message?.includes("state had changed") ||
+        err.message?.includes("could not be found");
+
+      if (isExpectedError) {
+        console.warn(`Worker skipped file (stale/missing): ${fileInfo.path}`);
+      } else {
+        console.error(`Worker error processing file (${fileInfo.path}):`, err?.message || err);
+      }
     }
   }
 

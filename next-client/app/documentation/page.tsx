@@ -28,7 +28,7 @@ export default function Documentation() {
             Documentation
           </h1>
           <p className="text-xl leading-relaxed text-zinc-800 dark:text-zinc-200">
-            Hermes is a local-first environment built for focused writing. No
+            HermesMarkdown is a local-first environment built for focused writing. No
             cloud synchronization. No tracking. Just an interactive canvas
             designed for speed and status tracking.
           </p>
@@ -49,19 +49,19 @@ export default function Documentation() {
               <div className="text-sm p-4 bg-zinc-50 dark:bg-zinc-800/30 border border-black/5">
                 <div className={guideRow}>
                   <span>Open Vault</span>
-                  <span className={resultLabel}>Click "Vault" Button</span>
+                  <span className={resultLabel}>Ribbon Icon (Database)</span>
                 </div>
                 <div className={guideRow}>
                   <span>File Actions</span>
-                  <span className={resultLabel}>Hover + Menu in Sidebar</span>
+                  <span className={resultLabel}>Sidebar Explorer</span>
                 </div>
                 <div className={guideRow}>
                   <span>Rename/Delete</span>
-                  <span className={resultLabel}>Vault File Management</span>
+                  <span className={resultLabel}>Vault Management</span>
                 </div>
                 <div className={guideRow}>
                   <span>Exit Vault</span>
-                  <span className={resultLabel}>Return to Lite Mode</span>
+                  <span className={resultLabel}>Ribbon Icon (Exit)</span>
                 </div>
               </div>
             </div>
@@ -72,7 +72,7 @@ export default function Documentation() {
               </h3>
               <p className="text-sm leading-relaxed opacity-80">
                 Connect your ideas using WikiLink syntax and organize them with tags. 
-                Hermes automatically indexes your vault for dynamic navigation.
+                HermesMarkdown automatically indexes your vault for dynamic navigation.
               </p>
               <div className="bg-zinc-50 dark:bg-zinc-900/30 px-6 border border-black/5 font-mono text-sm">
                 <div className={guideRow}>
@@ -155,12 +155,8 @@ export default function Documentation() {
                   <span className={resultLabel}>Recently modified files</span>
                 </div>
                 <div className={guideRow}>
-                  <span>Review Pending</span>
-                  <span className={resultLabel}>Files with <code className="font-mono text-blue-600 dark:text-blue-400">#todo</code> or <code className="font-mono text-blue-600 dark:text-blue-400">#review</code></span>
-                </div>
-                <div className={guideRow}>
-                  <span>Stale Logs</span>
-                  <span className={resultLabel}>Older, inactive documents</span>
+                  <span>Custom Workspaces</span>
+                  <span className={resultLabel}>User-defined metadata queries</span>
                 </div>
               </div>
             </div>
@@ -170,7 +166,7 @@ export default function Documentation() {
                 Smart Filters
               </h3>
               <p className="text-sm leading-relaxed opacity-80">
-                Hermes automatically indexes any <code className="font-mono text-blue-600 dark:text-blue-400">#tag</code> used in your documents. These appear dynamically in the sidebar under Smart Filters.
+                HermesMarkdown automatically indexes any <code className="font-mono text-blue-600 dark:text-blue-400">#tag</code> used in your documents. These appear dynamically in the sidebar under Smart Filters.
               </p>
               <div className="p-4 bg-orange-50/50 dark:bg-orange-900/10 border border-orange-200/20 text-[10px] leading-relaxed uppercase tracking-wider text-orange-700 dark:text-orange-200/60">
                 Tip: Click any tag in the sidebar to instantly filter your vault and view all notes containing that specific tag.
@@ -364,7 +360,7 @@ export default function Documentation() {
                   Auto-Budgeting
                 </h3>
                 <p className="text-sm leading-relaxed opacity-80">
-                  Hermes automatically sums all currency values found above a
+                  HermesMarkdown automatically sums all currency values found above a
                   line starting with <span className="font-mono">Total:</span>.
                 </p>
                 <div className="p-4 bg-emerald-50/50 dark:bg-emerald-900/10 border border-emerald-200/20 font-mono text-[11px] space-y-1">

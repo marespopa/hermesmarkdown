@@ -61,4 +61,30 @@ describe("DialogModal Component", () => {
     fireEvent.keyDown(window, { key: "Escape" });
     expect(mockOnClose).toHaveBeenCalledTimes(1);
   });
+
+  it("calls onConfirm when Enter key is pressed", () => {
+    const mockOnConfirm = vi.fn();
+    render(
+      <DialogModal isOpened={true} onClose={mockOnClose} onConfirm={mockOnConfirm}>
+        <div>Content</div>
+      </DialogModal>
+    );
+    fireEvent.keyDown(window, { key: "Enter" });
+    expect(mockOnConfirm).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not call onConfirm when Enter key is pressed and focus is on textarea", () => {
+    const mockOnConfirm = vi.fn();
+    render(
+      <DialogModal isOpened={true} onClose={mockOnClose} onConfirm={mockOnConfirm}>
+        <textarea data-testid="test-textarea" />
+      </DialogModal>
+    );
+    
+    const textarea = screen.getByTestId("test-textarea");
+    textarea.focus();
+    
+    fireEvent.keyDown(window, { key: "Enter" });
+    expect(mockOnConfirm).not.toHaveBeenCalled();
+  });
 });

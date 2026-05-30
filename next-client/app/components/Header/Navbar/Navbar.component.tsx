@@ -40,7 +40,7 @@ const Navbar = () => {
           <Image
             priority
             src={logo}
-            alt="Hermes Markdown"
+            alt="HermesMarkdown"
             width={200}
             className="dark:invert"
           />

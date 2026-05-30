@@ -5,10 +5,10 @@ import { jetBrainsMono, firaCode, ibmPlexMono } from "./fonts";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://hermesmarkdown.com"),
-  title: "Hermes — Local-First Markdown Editor",
+  title: "HermesMarkdown — Local-First Markdown Editor",
   description:
     "A minimalist, privacy-focused Markdown editor for deep work. No cloud, no tracking, and no distractions. Your data stays on your device.",
-  applicationName: "Hermes",
+  applicationName: "HermesMarkdown",
   authors: [{ name: "Mares Popa", url: "https://www.marespopa.com/" }],
   keywords: [
     "local-first markdown",
@@ -22,16 +22,16 @@ export const metadata: Metadata = {
   robots: { index: true, follow: true },
   alternates: { canonical: "/" },
   openGraph: {
-    title: "Hermes — Local-First Markdown",
+    title: "HermesMarkdown — Local-First Markdown",
     description: "Just you and the page. Pure, offline, and private.",
     url: "https://hermesmarkdown.com",
-    siteName: "Hermes",
+    siteName: "HermesMarkdown",
     type: "website",
     images: [{ url: "/assets/og-image.jpg", width: 1200, height: 630 }],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Hermes Markdown",
+    title: "HermesMarkdown",
     description: "Local-first, minimalist writing.",
     images: ["/assets/og-image.jpg"],
   },
@@ -57,10 +57,10 @@ export default function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${jetBrainsMono.variable} ${firaCode.variable} ${ibmPlexMono.variable}`}
+      className={`h-full overscroll-none ${jetBrainsMono.variable} ${firaCode.variable} ${ibmPlexMono.variable}`}
     >
       <body
-        className="h-full min-h-screen bg-[#fcfcfc] dark:bg-[#1a1a1a] text-neutral-900 dark:text-neutral-100 transition-colors duration-300 antialiased"
+        className="h-full min-h-screen bg-[#fcfcfc] dark:bg-[#1a1a1a] text-neutral-900 dark:text-neutral-100 transition-colors duration-300 antialiased overscroll-none"
         suppressHydrationWarning
       >
         <MainPage>{children}</MainPage>

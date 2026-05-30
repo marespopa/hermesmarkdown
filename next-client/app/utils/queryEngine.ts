@@ -10,6 +10,8 @@ export interface QueryRule {
     | "not_equals"
     | "contains"
     | "not_contains"
+    | "starts_with"
+    | "ends_with"
     | "includes"
     | "not_includes"
     | "before"
@@ -19,7 +21,8 @@ export interface QueryRule {
     | "exists"
     | "not_exists"
     | "greater_than"
-    | "less_than";
+    | "less_than"
+    | "between";
   value: any;
 }
 
@@ -61,6 +64,8 @@ export const evaluateQuery = (
     } else if (rule.field.startsWith("frontmatter.")) {
       const key = rule.field.replace("frontmatter.", "");
       fieldValue = file.frontmatter?.[key];
+    } else if (rule.field === "name") {
+      fieldValue = file.name;
     } else {
       return false;
     }
@@ -78,6 +83,14 @@ export const evaluateQuery = (
         return !String(fieldValue)
           .toLowerCase()
           .includes(String(rule.value).toLowerCase());
+      case "starts_with":
+        return String(fieldValue)
+          .toLowerCase()
+          .startsWith(String(rule.value).toLowerCase());
+      case "ends_with":
+        return String(fieldValue)
+          .toLowerCase()
+          .endsWith(String(rule.value).toLowerCase());
       case "includes":
         return Array.isArray(fieldValue) && fieldValue.includes(rule.value);
       case "not_includes":
@@ -102,6 +115,13 @@ export const evaluateQuery = (
         return Number(fieldValue) > Number(rule.value);
       case "less_than":
         return Number(fieldValue) < Number(rule.value);
+      case "between": {
+        if (typeof rule.value === "string" && rule.value.includes(",")) {
+          const [min, max] = rule.value.split(",").map(Number);
+          return Number(fieldValue) >= min && Number(fieldValue) <= max;
+        }
+        return false;
+      }
       default:
         return false;
     }

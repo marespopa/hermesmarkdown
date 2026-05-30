@@ -48,7 +48,7 @@ export default function LandingPage() {
         <section className="space-y-8 animate-hero-fade-in">
           <div className="group flex flex-col gap-2">
             <h1 className="text-4xl tracking-tighter">
-              <span className="font-bold">hermes</span>
+              <span className="font-bold">HermesMarkdown</span>
               <span className="font-light opacity-40">markdown</span>
             </h1>
             <div className="h-px w-12 bg-blue-600 transition-[width] duration-500 group-hover:w-20" />
@@ -114,7 +114,7 @@ export default function LandingPage() {
         {/* --- FOOTER --- */}
         <footer className="pt-10 pb-12 border-t border-black/10 dark:border-white/10 flex justify-between items-center">
           <p className="text-[10px] uppercase tracking-[0.2em] opacity-40">
-            Hermes Markdown - A minimal Markdown editor and reader.{" "}
+            HermesMarkdown - A minimal Markdown editor and reader.{" "}
           </p>
         </footer>
       </div>

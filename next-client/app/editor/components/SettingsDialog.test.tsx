@@ -29,7 +29,7 @@ describe("SettingsDialog Component", () => {
   it("renders settings options", () => {
     render(<SettingsDialog isOpen={true} onClose={mockOnClose} />);
 
-    expect(screen.getByText("Typeface (Mono)")).toBeInTheDocument();
+    expect(screen.getByText("Typeface")).toBeInTheDocument();
     expect(screen.getByText("Text Size")).toBeInTheDocument();
     expect(screen.getByText("Appearance")).toBeInTheDocument();
   });

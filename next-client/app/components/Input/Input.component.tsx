@@ -3,14 +3,14 @@
 import React, { forwardRef, useRef } from "react";
 import { FaTimes } from "react-icons/fa";
 
-interface Props {
+interface Props extends React.InputHTMLAttributes<HTMLInputElement> {
   name: string;
   label?: string;
   value: string | number | undefined;
   placeholder?: string;
   helperText?: string;
   handleChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  type?: "number" | "text";
+  type?: "number" | "text" | "password";
   validation?: {
     min: number;
     max: number;
@@ -38,6 +38,7 @@ const Input = forwardRef<HTMLInputElement, Props>(
       onDebouncedChange,
       className = "",
       autoFocus,
+      ...rest
     },
     ref,
   ) => {
@@ -56,7 +57,7 @@ const Input = forwardRef<HTMLInputElement, Props>(
     };
 
     const baseStyles =
-      "w-full px-4 py-2 text-sm font-mono tracking-tight transition-all duration-150 ease-in-out border rounded-md outline-none select-none";
+      "w-full px-4 py-2 text-sm font-mono tracking-tight transition-all duration-150 ease-in-out border rounded-md outline-none";
 
     const variantStyles =
       "bg-neutral-50 border-neutral-200 text-neutral-800 placeholder:text-neutral-400 " +
@@ -81,13 +82,15 @@ const Input = forwardRef<HTMLInputElement, Props>(
             type={type}
             value={value}
             onChange={handleInputChange}
+            onPaste={(e) => e.stopPropagation()}
             placeholder={placeholder}
             min={validation?.min}
             max={validation?.max}
             ref={ref}
-            className={`${baseStyles} ${variantStyles}`}
+            className={`${baseStyles} ${variantStyles} select-text`}
             aria-label={label || name}
             autoFocus={autoFocus}
+            {...rest}
           />
 
           {onClear && value && String(value).length > 0 && (

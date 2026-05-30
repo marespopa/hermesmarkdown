@@ -3,8 +3,8 @@
 import Head from "next/head";
 
 export const defaultMeta = {
-  title: "Hermes Markdown — Pure, Private Markdown Editor",
-  siteName: "Hermes Markdown",
+  title: "HermesMarkdown — Pure, Private Markdown Editor",
+  siteName: "HermesMarkdown",
   description: `A minimalist, local-first Markdown editor designed for deep work. 100% private. No cloud, no tracking, just the interface between your mind and the page.`,
   url: "https://hermesmarkdown.com",
   type: "website",

@@ -11,51 +11,52 @@ import { useAtom } from "jotai";
 import {
   atom_fileName,
   atom_content,
-  atom_fontSize,
-  atom_fontFamily,
   atom_activeFileHandle,
   atom_activeFilePath,
   atom_showStats,
+  atom_saveStatus,
+  atom_workspaceLayout,
+  atom_openFiles,
+  atom_lastSavedContent,
 } from "@/app/atoms/atoms";
-import MarkdownEditor from "./components/MarkdownEditor";
 import VaultSidebar from "./components/VaultSidebar";
+import LeftRibbon from "./components/LeftRibbon";
+import WorkspaceSplitter from "./components/WorkspaceSplitter";
 import ErrorBoundary from "@/app/components/ErrorBoundary";
 import { useFileSystem } from "@/app/hooks/use-file-system";
 import { useFileSync } from "@/app/hooks/use-file-sync";
 import { useVaultSync } from "@/app/hooks/use-vault-sync";
+import toast from "react-hot-toast";
 
 import {
   HiOutlineFolderOpen,
-  HiOutlineSaveAs,
-  HiOutlineClipboardCopy,
-  HiOutlineCheck,
   HiOutlineCog,
-  HiOutlineArrowLeft,
   HiOutlineDocumentAdd,
   HiOutlineDatabase,
   HiOutlineMenuAlt2,
-  HiOutlineSave,
-  HiOutlineLogout,
+  HiOutlineHome,
 } from "react-icons/hi";
 
 export default function LiteEditor() {
   const [content, setContent] = useAtom(atom_content);
   const [fileName, setFileName] = useAtom(atom_fileName);
-  const [activeFilePath] = useAtom(atom_activeFilePath);
+  const [activeFilePath, setActiveFilePath] = useAtom(atom_activeFilePath);
   const [, setActiveFileHandle] = useAtom(atom_activeFileHandle);
-  const [fontSize] = useAtom(atom_fontSize);
-  const [fontFamily] = useAtom(atom_fontFamily);
   const [showStats] = useAtom(atom_showStats);
+  const [saveStatus] = useAtom(atom_saveStatus);
+  const [workspaceLayout] = useAtom(atom_workspaceLayout);
+  const [openFiles, setOpenFiles] = useAtom(atom_openFiles);
+  const [lastSavedContent] = useAtom(atom_lastSavedContent);
 
   const {
     openVault,
     closeVault,
     vaultHandle,
-    currentDirectoryHandle,
     activeFileHandle,
     saveFile,
+    exportFile,
+    importFile,
     createNewFile,
-    openFileByName,
     isVaultPending,
     restoreVault,
     isVaultSupported,
@@ -64,17 +65,16 @@ export default function LiteEditor() {
   useFileSync();
   useVaultSync();
 
-  const [copied, setCopied] = useState(false);
   const [isMounting, setIsMounting] = useState(true);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isNewConfirmOpen, setIsNewConfirmOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isPathSwitching, setIsPathSwitching] = useState(false);
   const [pendingFile, setPendingFile] = useState<{
     text: string;
     name: string;
   } | null>(null);
 
-  const editorRef = useRef<HTMLTextAreaElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
 
@@ -83,11 +83,34 @@ export default function LiteEditor() {
     return () => clearTimeout(timer);
   }, []);
 
+  useEffect(() => {
+    if (!isMounting) {
+      setIsPathSwitching(true);
+      const timer = setTimeout(() => setIsPathSwitching(false), 200);
+      return () => clearTimeout(timer);
+    }
+  }, [activeFilePath, isMounting]);
+
+  useEffect(() => {
+    if (content && Object.keys(openFiles).length === 0) {
+      setOpenFiles({
+        draft: {
+          content,
+          lastSavedContent,
+          fileName: fileName || "untitled",
+          activeFilePath: activeFilePath,
+        }
+      });
+    }
+  }, [content, fileName, activeFilePath, lastSavedContent, setOpenFiles, openFiles]);
+
   const handleNewFile = () => {
     if (vaultHandle) {
       createNewFile();
       return;
     }
+    
+    // Draft mode logic
     if (content.trim()) {
       setIsNewConfirmOpen(true);
     } else {
@@ -99,24 +122,14 @@ export default function LiteEditor() {
     setContent("");
     setFileName("");
     setActiveFileHandle(null);
+    setActiveFilePath("draft");
     setIsNewConfirmOpen(false);
-    editorRef.current?.focus();
+    toast.success("New draft started");
   };
 
   const handleOpenVault = async () => {
     await openVault();
     setIsSidebarOpen(true);
-  };
-
-  const handleCopy = async () => {
-    if (!content) return;
-    try {
-      await navigator.clipboard.writeText(content);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch (err) {
-      console.error(err);
-    }
   };
 
   const handleExport = async () => {
@@ -126,79 +139,16 @@ export default function LiteEditor() {
       const success = await saveFile(content);
       if (success) return;
     }
-
-    const baseName =
-      fileName.trim() ||
-      content
-        .split("\n")[0]
-        .replace(/[^\w\s]/gi, "")
-        .slice(0, 20)
-        .trim() ||
-      "untitled";
-
-    const finalName = baseName.endsWith(".md") ? baseName : `${baseName}.md`;
-
-    // 1. Try Desktop File System Access API
-    if ("showSaveFilePicker" in window) {
-      try {
-        const handle = await (window as any).showSaveFilePicker({
-          suggestedName: finalName,
-          types: [
-            { description: "Markdown", accept: { "text/markdown": [".md"] } },
-          ],
-          startIn: currentDirectoryHandle || vaultHandle || undefined,
-        });
-        let writable: FileSystemWritableFileStream | null = null;
-        try {
-          writable = await handle.createWritable();
-          if (writable) {
-            await writable.write(content);
-            await writable.close();
-            writable = null;
-          }
-        } finally {
-          if (writable) {
-            try {
-              await (writable as any).close();
-            } catch {
-              // Ignore cleanup errors
-            }
-          }
-        }
-        return; // Success!
-      } catch (err) {
-        // User likely cancelled the picker, don't fallback to download
-        if (err instanceof Error && err.name === "AbortError") return;
-        console.error("Picker failed, trying fallback:", err);
-      }
-    }
-
-    // 2. Try Web Share API (Better for Android/iOS)
-    if (navigator.share && navigator.canShare) {
-      const file = new File([content], finalName, { type: "text/markdown" });
-      if (navigator.canShare({ files: [file] })) {
-        try {
-          await navigator.share({
-            files: [file],
-            title: finalName,
-          });
-          return; // Success!
-        } catch (err) {
-          if (err instanceof Error && err.name === "AbortError") return;
-          console.error("Share failed:", err);
-        }
-      }
-    }
-
-    // 3. Fallback: Blob Download (Triggers "file (1).md" unless Android settings are changed)
-    const blob = new Blob([content], { type: "text/markdown" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = finalName;
-    link.click();
-    URL.revokeObjectURL(url);
+    await exportFile(content, fileName);
   };
+
+  const handleImport = async () => {
+    const result = await importFile();
+    if (result === null) {
+      fileInputRef.current?.click();
+    }
+  };
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -223,329 +173,140 @@ export default function LiteEditor() {
 
   return (
     <ErrorBoundary>
-      <div className="min-h-screen transition-colors duration-300">
-        <SettingsDialog
-          isOpen={isSettingsOpen}
-          onClose={() => setIsSettingsOpen(false)}
-        />
-
-      <ConflictDialog />
-      <UnsavedChangesDialog />
-
-      {/* Confirmation Modal for Overwriting via Import */}
-      <DialogModal
-        isOpened={pendingFile !== null}
-        onClose={() => setPendingFile(null)}
-      >
-        <div className="flex flex-col gap-6 text-center py-2">
-          <p className="text-sm font-medium tracking-tight">
-            Overwrite current draft with{" "}
-            <span className="italic text-blue-500">"{pendingFile?.name}"</span>?
-          </p>
-          <div className="flex gap-2 justify-center">
-            <Button
-              variant="primary"
-              onClick={() => {
-                if (pendingFile) {
-                  setContent(pendingFile.text);
-                  setFileName(pendingFile.name);
-                }
-                setPendingFile(null);
-              }}
-            >
-              Overwrite
-            </Button>
-            <Button variant="secondary" onClick={() => setPendingFile(null)}>
-              Cancel
-            </Button>
-          </div>
-        </div>
-      </DialogModal>
-
-      {/* Confirmation Modal for New File */}
-      <DialogModal
-        isOpened={isNewConfirmOpen}
-        onClose={() => setIsNewConfirmOpen(false)}
-      >
-        <div className="flex flex-col gap-6 text-center py-2">
-          <p className="text-sm font-medium tracking-tight">
-            Are you sure you want to start a{" "}
-            <span className="text-red-500">new file</span>? Any unsaved changes
-            will be lost.
-          </p>
-          <div className="flex gap-2 justify-center">
-            <Button variant="primary" onClick={resetEditor}>
-              Confirm New
-            </Button>
-            <Button
-              variant="secondary"
-              onClick={() => setIsNewConfirmOpen(false)}
-            >
-              Cancel
-            </Button>
-          </div>
-        </div>
-      </DialogModal>
-
-      <input
-        type="file"
-        ref={fileInputRef}
-        onChange={handleFileChange}
-        accept=".md,.txt,.markdown"
-        className="hidden"
-      />
-
-      <header className="fixed top-0 left-0 right-0 z-40 h-16 md:h-20">
-        <div className="flex justify-between items-center p-4 md:p-6 transition-all duration-300">
-          <div className="flex gap-2">
-            <Button
-              variant="bare"
-              onClick={() => router.push("/")}
-              className="text-[10px] uppercase tracking-[0.2em] opacity-50 hover:opacity-100 flex items-center gap-2"
-            >
-              <HiOutlineArrowLeft size={16} />
-              <span className="hidden sm:inline">Home</span>
-            </Button>
-            
-            {vaultHandle && (
-              <Button
-                variant="bare"
-                onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-                className={`text-[10px] uppercase tracking-[0.2em] flex items-center gap-2 ${isSidebarOpen ? "opacity-100 text-blue-500" : "opacity-50 hover:opacity-100"}`}
-                title="Toggle Vault Sidebar"
-              >
-                <HiOutlineMenuAlt2 size={16} />
-                <span className="hidden lg:inline">Vault</span>
-              </Button>
-            )}
-          </div>
-
-          <div className="flex items-center bg-white/90 dark:bg-neutral-900/90 backdrop-blur-md border border-neutral-200 dark:border-neutral-800 rounded-full px-2 py-1.5 shadow-lg md:shadow-sm divide-x divide-neutral-200 dark:divide-neutral-800">
-            {vaultHandle ? (
-              <>
-                {isVaultPending ? (
-                  <>
-                    <Button
-                      variant="bare"
-                      onClick={restoreVault}
-                      className="px-4 flex items-center gap-2 text-blue-500 animate-pulse"
-                      title="Re-authorize Vault Access"
-                    >
-                      <HiOutlineDatabase size={18} />
-                      <span className="text-[10px] uppercase tracking-widest hidden md:inline">
-                        Restore Access
-                      </span>
-                    </Button>
-                    <Button
-                      variant="bare"
-                      onClick={closeVault}
-                      className="px-4 flex items-center gap-2 text-red-500 hover:text-red-600"
-                      title="Forget Vault"
-                    >
-                      <HiOutlineLogout size={18} />
-                      <span className="text-[10px] uppercase tracking-widest hidden md:inline">
-                        Forget
-                      </span>
-                    </Button>
-                  </>
-                ) : (
-                  <>
-                    {/* Vault Mode Actions */}
-                    <Button
-                      variant="bare"
-                      onClick={handleNewFile}
-                      className="px-4 flex items-center gap-2"
-                      title="New Note in Vault"
-                    >
-                      <HiOutlineDocumentAdd size={18} className="opacity-70" />
-                      <span className="text-[10px] uppercase tracking-widest hidden md:inline">
-                        New Note
-                      </span>
-                    </Button>
-
-                    <Button
-                      variant="bare"
-                      onClick={handleExport}
-                      className="px-4 flex items-center gap-2"
-                      title="Save to Local File"
-                    >
-                      <HiOutlineSave size={18} className="opacity-70" />
-                      <span className="text-[10px] uppercase tracking-widest hidden md:inline">
-                        Save
-                      </span>
-                    </Button>
-
-                    <Button
-                      variant="bare"
-                      onClick={closeVault}
-                      className="px-4 flex items-center gap-2 text-red-500 hover:text-red-600"
-                      title="Close Vault (Lite Mode)"
-                    >
-                      <HiOutlineLogout size={18} className="opacity-70" />
-                      <span className="text-[10px] uppercase tracking-widest hidden md:inline">
-                        Exit Vault
-                      </span>
-                    </Button>
-                  </>
-                )}
-              </>
-            ) : (
-              <>
-                {/* Lite Mode Actions */}
-                <Button
-                  variant="bare"
-                  onClick={handleOpenVault}
-                  className={`px-4 flex items-center gap-2 ${!isVaultSupported ? "opacity-30 grayscale cursor-not-allowed" : ""}`}
-                  title={isVaultSupported ? "Open Local Folder (Vault)" : "Vault not supported in this browser"}
-                  isDisabled={!isVaultSupported}
-                >
-                  <HiOutlineDatabase size={18} className="opacity-70" />
-                  <span className="text-[10px] uppercase tracking-widest hidden md:inline">
-                    Open Vault
-                  </span>
-                </Button>
-
-                <Button
-                  variant="bare"
-                  onClick={handleNewFile}
-                  className="px-4 flex items-center gap-2"
-                  title="New Draft"
-                >
-                  <HiOutlineDocumentAdd size={18} className="opacity-70" />
-                  <span className="text-[10px] uppercase tracking-widest hidden md:inline">
-                    New Draft
-                  </span>
-                </Button>
-
-                <Button
-                  variant="bare"
-                  onClick={() => fileInputRef.current?.click()}
-                  className="px-4 flex items-center gap-2"
-                  title="Import Markdown File"
-                >
-                  <HiOutlineFolderOpen size={18} className="opacity-70" />
-                  <span className="text-[10px] uppercase tracking-widest hidden md:inline">
-                    Import
-                  </span>
-                </Button>
-
-                <Button
-                  variant="bare"
-                  onClick={handleExport}
-                  className="px-4 flex items-center gap-2"
-                  title="Export to Markdown"
-                >
-                  <HiOutlineSaveAs size={18} className="opacity-70" />
-                  <span className="text-[10px] uppercase tracking-widest hidden md:inline">
-                    Export
-                  </span>
-                </Button>
-              </>
-            )}
-
-            {/* Utility Actions */}
-            <div className="flex divide-x divide-neutral-200 dark:divide-neutral-800">
-              <Button
-                variant="bare"
-                onClick={handleCopy}
-                className="px-4 flex items-center gap-2"
-                title="Copy to Clipboard"
-              >
-                {copied ? (
-                  <HiOutlineCheck size={18} className="text-green-500" />
-                ) : (
-                  <HiOutlineClipboardCopy size={18} className="opacity-70" />
-                )}
-                <span className="text-[10px] uppercase tracking-widest hidden md:inline">
-                  {copied ? "Done" : "Copy"}
-                </span>
-              </Button>
-
-              <Button
-                variant="bare"
-                onClick={() => setIsSettingsOpen(true)}
-                className="px-4 flex items-center gap-2"
-                title="Settings"
-              >
-                <HiOutlineCog size={18} className="opacity-70" />
-                <span className="text-[10px] uppercase tracking-widest hidden md:inline">
-                  Settings
-                </span>
-              </Button>
+      <div className="flex h-[100dvh] w-full bg-neutral-100 dark:bg-neutral-950 text-neutral-900 dark:text-neutral-100 selection:bg-blue-500/30 font-mono overflow-hidden overscroll-none">
+        {/* Modals */}
+        <SettingsDialog isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
+        <ConflictDialog />
+        <UnsavedChangesDialog />
+        
+        <DialogModal isOpened={pendingFile !== null} onClose={() => setPendingFile(null)}>
+          <div className="flex flex-col gap-6 text-center py-2">
+            <p className="text-sm font-medium tracking-tight">
+              Overwrite current draft with <span className="italic text-blue-500">"{pendingFile?.name}"</span>?
+            </p>
+            <div className="flex gap-2 justify-center">
+              <Button variant="primary" onClick={() => { if (pendingFile) { setContent(pendingFile.text); setFileName(pendingFile.name); } setPendingFile(null); }}>Overwrite</Button>
+              <Button variant="secondary" onClick={() => setPendingFile(null)}>Cancel</Button>
             </div>
           </div>
-        </div>
-      </header>
+        </DialogModal>
 
-      <div className="flex flex-1 pt-16 md:pt-20 h-screen overflow-hidden">
+        <DialogModal isOpened={isNewConfirmOpen} onClose={() => setIsNewConfirmOpen(false)}>
+          <div className="flex flex-col gap-6 text-center py-2">
+            <p className="text-sm font-medium tracking-tight">Start a <span className="text-red-500">new file</span>? Unsaved changes will be lost.</p>
+            <div className="flex gap-2 justify-center">
+              <Button variant="primary" onClick={resetEditor}>Confirm New</Button>
+              <Button variant="secondary" onClick={() => setIsNewConfirmOpen(false)}>Cancel</Button>
+            </div>
+          </div>
+        </DialogModal>
+
+        <input type="file" ref={fileInputRef} onChange={handleFileChange} accept=".md,.txt,.markdown" className="hidden" />
+
+        {/* --- MAIN LAYOUT --- */}
+        
+        {/* Leftmost Ribbon */}
+        <LeftRibbon 
+          isSidebarOpen={isSidebarOpen}
+          toggleSidebar={() => {
+            setIsSidebarOpen(!isSidebarOpen);
+          }}
+          onNewFile={handleNewFile}
+          onImport={handleImport}
+          onExport={handleExport}
+          onOpenSettings={() => setIsSettingsOpen(true)}
+          vaultHandle={vaultHandle}
+          isVaultPending={isVaultPending}
+          onRestoreVault={restoreVault}
+          onCloseVault={closeVault}
+          onOpenVault={handleOpenVault}
+          isVaultSupported={isVaultSupported}
+        />
+
+        {/* Sidebar (Explorer) */}
         {isSidebarOpen && vaultHandle && (
-          <div className="hidden md:block">
+          <div className="hidden md:block h-full border-r border-neutral-200 dark:border-neutral-800 shrink-0">
             <VaultSidebar />
           </div>
         )}
 
-        <main className="flex-1 overflow-y-auto pb-40 px-6">
-          <div className="max-w-4xl mx-auto">
+        {/* Workspace Content */}
+        <div className="flex-1 flex flex-col min-w-0 bg-white dark:bg-neutral-900 overflow-hidden relative">
+          
+          {/* Mobile Header (When sidebar closed) */}
+          {!isSidebarOpen && (
+            <div className="md:hidden flex items-center h-11 px-4 border-b border-neutral-200 dark:border-neutral-800 shrink-0 bg-neutral-50/50 dark:bg-neutral-950/50 backdrop-blur-md">
+               <Button
+                  variant="icon"
+                  onClick={() => setIsSidebarOpen(true)}
+                  className="!rounded-xl"
+                >
+                  <HiOutlineMenuAlt2 size={20} />
+                </Button>
+                <div className="ml-4 flex flex-col">
+                  <span className="text-[10px] font-bold tracking-widest text-blue-500">HermesMD</span>
+                  <span className="text-[8px] font-mono opacity-40">Editor</span>
+                </div>
+            </div>
+          )}
+
+          <main className={`flex-1 min-h-0 relative transition-all duration-300 ${isPathSwitching ? "opacity-30" : "opacity-100"}`}>
             {isMounting ? (
-              <div className="animate-pulse opacity-10 space-y-4 pt-4">
+              <div className="animate-pulse opacity-10 space-y-4 pt-12 px-12">
                 <div className="h-4 bg-current w-1/4 mb-10" />
                 <div className="h-4 bg-current w-full" />
                 <div className="h-4 bg-current w-5/6" />
               </div>
             ) : (
-              <div
-                key={(activeFilePath || fileName) + fontFamily + fontSize}
-                className="animate-in fade-in slide-in-from-bottom-2 duration-700 pt-4"
-              >
-                <MarkdownEditor
-                  value={content}
-                  onChange={setContent}
-                  onWikiLinkClick={openFileByName}
-                  onTextareaReady={(ref) => {
-                    editorRef.current = ref;
-                    // Only auto-focus if we aren't waiting for a dialog
-                    if (!isNewConfirmOpen && !pendingFile && ref) ref.focus();
-                  }}
-                />
-              </div>
+              <WorkspaceSplitter node={workspaceLayout.rootContainer} />
             )}
+          </main>
+
+          {/* Status Bar / Stats */}
+          {showStats && (
+            <footer className="h-8 border-t border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-950 flex items-center justify-between px-4 shrink-0 pointer-events-auto">
+              <div className="flex items-center gap-4 text-[9px] font-mono tracking-widest opacity-40">
+                <span><span className="text-blue-500 font-bold">{wordCount}</span> W</span>
+                <span><span className="text-blue-500 font-bold">{content.length}</span> C</span>
+              </div>
+              
+              <div className="flex items-center gap-4 text-[9px] font-mono tracking-widest opacity-40 truncate">
+                {saveStatus.state === "saving" ? (
+                  <span className="text-blue-500 animate-pulse">Saving...</span>
+                ) : saveStatus.state === "saved" ? (
+                  <span className="text-green-500">Saved</span>
+                ) : (
+                  <span>{fileName || "draft"}.md</span>
+                )}
+              </div>
+            </footer>
+          )}
+        </div>
+
+        {/* Mobile Sidebar Navigation */}
+        {isSidebarOpen && (
+          <div className="md:hidden fixed inset-0 z-[60] bg-black/20 backdrop-blur-sm" onClick={() => { setIsSidebarOpen(false); }}>
+            <div className="absolute top-0 left-0 bottom-0 w-72 bg-white dark:bg-neutral-900 shadow-2xl flex flex-col overflow-hidden" onClick={(e) => e.stopPropagation()}>
+              <div className="flex-1 overflow-y-auto">
+                {vaultHandle ? (
+                  <VaultSidebar onClose={() => setIsSidebarOpen(false)} />
+                ) : (
+                  <div className="p-6 flex flex-col gap-3">
+                      <h2 className="text-[10px] tracking-[0.2em] font-bold opacity-30 mb-4">Navigation</h2>
+                      <Button variant="menu-item" onClick={handleOpenVault} className="justify-start gap-3"><HiOutlineDatabase size={18} className="text-blue-500" /> Open Vault</Button>
+                      <Button variant="menu-item" onClick={handleNewFile} className="justify-start gap-3"><HiOutlineDocumentAdd size={18} /> New Draft</Button>
+                      <Button variant="menu-item" onClick={handleImport} className="justify-start gap-3"><HiOutlineFolderOpen size={18} /> Import</Button>
+                      <Button variant="menu-item" onClick={() => {setIsSettingsOpen(true); setIsSidebarOpen(false);}} className="justify-start gap-3"><HiOutlineCog size={18} className="text-blue-500" /> Settings</Button>
+                  </div>
+                )}
+              </div>
+              <div className="p-4 border-t border-neutral-200 dark:border-neutral-800">
+                 <Button variant="menu-item" onClick={() => router.push("/")} className="justify-start gap-3 w-full opacity-60"><HiOutlineHome size={18} /> Go Home</Button>
+              </div>
+            </div>
           </div>
-        </main>
+        )}
       </div>
-
-      {/* Mobile Sidebar Overlay */}
-      {isSidebarOpen && vaultHandle && (
-        <div className="md:hidden fixed inset-0 z-50 bg-black/20 backdrop-blur-sm" onClick={() => setIsSidebarOpen(false)}>
-          <div className="absolute top-0 left-0 bottom-0 w-64 bg-white dark:bg-neutral-900 shadow-xl" onClick={(e) => e.stopPropagation()}>
-            <VaultSidebar onClose={() => setIsSidebarOpen(false)} />
-          </div>
-        </div>
-      )}
-
-      <footer className="fixed bottom-0 left-0 right-0 z-40 pointer-events-none pb-6 md:pb-10">
-        <div className={`flex justify-center md:justify-end md:px-12 transition-all duration-500 ${showStats ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"}`}>
-          <div className="pointer-events-auto flex items-center gap-6 bg-white/90 dark:bg-neutral-900/90 backdrop-blur-md border border-neutral-200 dark:border-neutral-800 rounded-full px-6 py-2.5 shadow-lg shadow-neutral-200/20 dark:shadow-black/20">
-            {/* Word/Char Count */}
-            <div className="text-[9px] md:text-[10px] font-mono tracking-[0.2em] opacity-50 uppercase whitespace-nowrap">
-              <span className="text-blue-500 font-bold">{wordCount}</span> Words
-              <span className="mx-2 opacity-20">&middot;</span>
-              <span className="text-blue-500 font-bold">
-                {content.length}
-              </span>{" "}
-              Chars
-            </div>
-
-            {/* File Name Divider */}
-            <div className="w-[1px] h-3 bg-neutral-200 dark:bg-neutral-800 hidden sm:block" />
-
-            {/* File Name */}
-            <div className="text-[9px] md:text-[10px] font-mono tracking-[0.2em] opacity-50 uppercase truncate max-w-[120px] md:max-w-[200px] hidden sm:block">
-              {fileName || "untitled"}.md
-            </div>
-          </div>
-        </div>
-      </footer>
-    </div>
     </ErrorBoundary>
   );
 }

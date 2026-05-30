@@ -17,6 +17,9 @@ const LoadingOverlay = ({ isVisible, text = "Loading..." }: Props) => {
     <div
       className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-[#fcfcfc] dark:bg-[#111111] transition-opacity duration-500 antialiased"
       style={{ fontFamily }}
+      role="alert"
+      aria-live="polite"
+      aria-busy="true"
     >
       <div className="flex flex-col items-center gap-6">
         {/* Minimalist Progress Bar instead of a Spinner */}

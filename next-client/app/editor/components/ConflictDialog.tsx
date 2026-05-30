@@ -53,11 +53,17 @@ export default function ConflictDialog() {
   };
 
   return (
-    <DialogModal isOpened={!!conflict} onClose={() => {}} styles="max-w-md">
+    <DialogModal
+      isOpened={!!conflict}
+      onClose={() => {}}
+      onConfirm={handleReload}
+      styles="max-w-md"
+    >
       <div className="space-y-4">
         <h3 className="text-xl font-semibold">External Modification Detect</h3>
         <p className="text-sm opacity-70">
-          This file was modified externally, but you have unsaved local changes in Hermes. 
+          This file was modified externally, but you have unsaved local changes in HermesMarkdown.
+ 
           How would you like to proceed?
         </p>
         

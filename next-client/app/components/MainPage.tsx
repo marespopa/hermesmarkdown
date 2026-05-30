@@ -15,39 +15,37 @@ type Props = {
 
 const MainPage = ({ children }: Props) => {
   const pathname = usePathname();
-  const showHeader = !["/editor/settings", "/editor"].some(
-    (route) => pathname === route,
-  );
-  const showFooter = !["/editor", "/editor/settings"].some(
-    (route) => pathname === route,
-  );
+  const isEditor = pathname === "/editor" || pathname === "/editor/settings";
+  
+  const showHeader = !isEditor;
+  const showFooter = !isEditor;
 
   return (
     <CustomProviders>
-      <main className="h-full min-h-screen flex flex-col">
-        <Toaster
-          position="top-center"
-          reverseOrder={false}
-          toastOptions={{
-            className: "hermes-toast",
-          }}
-        />
-        <div
-          className={`min-h-screen h-full flex flex-col bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white flex-1 ${showHeader ? "pt-4" : ""}`}
-        >
-          {showHeader && <Header />}
-          <div className="flex-1 h-full flex flex-col">{children}</div>
-          {showFooter && <Footer />}
-        </div>
+      <Toaster
+        position="top-center"
+        reverseOrder={false}
+        toastOptions={{
+          className: "hermes-markdown-toast",
+        }}
+      />
+      <div className={`flex flex-col h-full bg-white dark:bg-neutral-950 text-neutral-900 dark:text-neutral-100 ${isEditor ? "overflow-hidden" : "min-h-screen"}`}>
+        {showHeader && <Header />}
+        
+        <main className={`flex-1 flex flex-col ${isEditor ? "overflow-hidden" : ""}`}>
+          {children}
+        </main>
+        
+        {showFooter && <Footer />}
         <CookieConsent />
         <GlobalDialog />
-        <Script
-          defer
-          async
-          data-host="hermesmarkdown.com"
-          src="https://liteanalytics.com/lite.js"
-        ></Script>
-      </main>
+      </div>
+      <Script
+        defer
+        async
+        data-host="hermesmarkdown.com"
+        src="https://liteanalytics.com/lite.js"
+      ></Script>
     </CustomProviders>
   );
 };

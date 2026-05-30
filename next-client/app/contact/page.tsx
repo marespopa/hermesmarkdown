@@ -24,7 +24,7 @@ export default function ContactPage() {
           </h1>
 
           <p className="text-xl leading-relaxed">
-            Hermes is my personal project, built in the open. If you encounter a
+            HermesMarkdown is my personal project, built in the open. If you encounter a
             bug, have a feature request, or simply want to discuss the future of
             minimalist writing tools, I am listening.
           </p>

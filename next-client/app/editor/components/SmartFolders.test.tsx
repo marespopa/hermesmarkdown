@@ -12,6 +12,15 @@ vi.mock("jotai", async (importOriginal) => {
   };
 });
 
+// Mock atoms
+vi.mock("@/app/atoms/metadata", async (importOriginal) => {
+  const actual: any = await importOriginal();
+  return {
+    ...actual,
+    atom_fileMetadata: { toString: () => "atom_fileMetadata" },
+  };
+});
+
 import { useAtom } from "jotai";
 
 describe("SmartFolders Component", () => {
@@ -20,52 +29,65 @@ describe("SmartFolders Component", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     cleanup();
+    (useAtom as any).mockImplementation((atom: any) => {
+      if (atom.toString() === "atom_fileMetadata") {
+        return [mockMetadata || {}, vi.fn()];
+      }
+      return [[], vi.fn()];
+    });
   });
 
-  const mockMetadata = {
-    "file1.md": {
-      path: "file1.md",
-      name: "file1.md",
-      tags: ["#todo"],
-      links: [],
-      frontmatter: {},
-      modifiedAt: Date.now(),
-      wordCount: 10,
-      handle: { name: "file1.md", kind: "file" } as any,
-    },
-  };
+  let mockMetadata: any = null;
 
   it("renders default workspace names", () => {
-    (useAtom as any).mockReturnValueOnce([{}, vi.fn()]) // fileMetadata
-                     .mockReturnValueOnce([[], vi.fn()]); // customWorkspaces
-    
+    mockMetadata = {};
     render(<SmartFolders onFileSelect={mockOnFileSelect} />);
 
     expect(screen.getByText("Today's Work")).toBeInTheDocument();
-    expect(screen.getByText("Review Pending")).toBeInTheDocument();
-    expect(screen.getByText("Stale Logs")).toBeInTheDocument();
+    expect(screen.queryByText("Review Pending")).not.toBeInTheDocument();
+    expect(screen.queryByText("Stale Logs")).not.toBeInTheDocument();
   });
 
   it("expands a folder and shows matching files", () => {
-    (useAtom as any).mockReturnValueOnce([mockMetadata, vi.fn()])
-                     .mockReturnValueOnce([[], vi.fn()]);
+    mockMetadata = {
+      "file1.md": {
+        path: "file1.md",
+        name: "file1.md",
+        tags: ["#todo"],
+        links: [],
+        frontmatter: {},
+        modifiedAt: Date.now(),
+        wordCount: 10,
+        handle: { name: "file1.md", kind: "file" } as any,
+      },
+    };
 
     render(<SmartFolders onFileSelect={mockOnFileSelect} />);
 
-    // Click on "Review Pending" (which matches #todo)
-    const folder = screen.getByText("Review Pending");
+    // Click on "Today's Work" (which matches file1.md as it was modified now)
+    const folder = screen.getByText("Today's Work");
     fireEvent.click(folder);
 
     expect(screen.getByText("file1.md")).toBeInTheDocument();
   });
 
   it("calls onFileSelect when a file is clicked", () => {
-    (useAtom as any).mockReturnValueOnce([mockMetadata, vi.fn()])
-                     .mockReturnValueOnce([[], vi.fn()]);
+    mockMetadata = {
+      "file1.md": {
+        path: "file1.md",
+        name: "file1.md",
+        tags: ["#todo"],
+        links: [],
+        frontmatter: {},
+        modifiedAt: Date.now(),
+        wordCount: 10,
+        handle: { name: "file1.md", kind: "file" } as any,
+      },
+    };
 
     render(<SmartFolders onFileSelect={mockOnFileSelect} />);
 
-    fireEvent.click(screen.getByText("Review Pending"));
+    fireEvent.click(screen.getByText("Today's Work"));
     fireEvent.click(screen.getByText("file1.md"));
 
     expect(mockOnFileSelect).toHaveBeenCalledWith(
