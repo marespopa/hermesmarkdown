@@ -90,11 +90,11 @@ html.dark body {
   animation: fade-in 0.4s ease;
 }
 
-.hermes-toast {
+.hermes-markdown-toast {
   @apply bg-white text-black shadow-lg rounded-lg px-4 py-3 font-medium;
 }
 
-html.dark .hermes-toast {
+html.dark .hermes-markdown-toast {
   @apply bg-neutral-800 text-white shadow-lg rounded-lg px-4 py-3 font-medium;
 }
 

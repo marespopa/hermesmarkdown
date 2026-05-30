@@ -11,7 +11,7 @@ export default function ProductHuntBadge() {
       >
         <Image
           src="https://api.producthunt.com/widgets/embed-image/v1/follow.svg?product_id=553021&theme=dark"
-          alt="Hermes Markdown - The Markdown Editor That Respects Your Privacy | Product Hunt"
+          alt="HermesMarkdown - The Markdown Editor That Respects Your Privacy | Product Hunt"
           width={250}
           height={54}
           style={{ width: "250px", height: "54px" }}

@@ -1,6 +1,6 @@
-# Hermes Architecture
+# HermesMarkdown Architecture
 
-This directory contains the core logic and routing for the Hermes Markdown editor.
+This directory contains the core logic and routing for the HermesMarkdown Markdown editor.
 
 ## Tech Stack
 - **Framework**: [Next.js](https://nextjs.org/) (App Router)
@@ -23,10 +23,15 @@ This directory contains the core logic and routing for the Hermes Markdown edito
 
 ## Key Concepts
 
+### Workspace Layout (Obsidian UX)
+HermesMarkdown follows an Obsidian-inspired layout:
+- **Left Ribbon**: A thin vertical action bar on the far left for global actions (Home, Settings, Vault Toggle, New File).
+- **Sidebar**: A collapsible file explorer and tag browser.
+- **Main Workspace**: A flush, multi-pane area powered by `react-resizable-panels`.
+- **Responsive Design**: The Ribbon and Sidebar are hidden on mobile, accessible via an off-canvas overlay.
+
 ### File System Access
-Hermes uses the modern **Browser File System Access API**. This allows the web app to interact directly with the user's local file system after receiving explicit permission.
-- `useFileSystem` hook: Centralizes all logic for opening vaults, reading/writing files, and managing directory handles.
-- `IndexedDB`: Used to persist the `FileSystemDirectoryHandle` so the user doesn't have to re-select the folder on every refresh (though browser security still requires a re-authorization gesture).
+HermesMarkdown uses the modern **Browser File System Access API**.
 
 ### State Management
 State is managed via **Jotai**. Global atoms (defined in `app/atoms/atoms.ts`) track:

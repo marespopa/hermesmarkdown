@@ -1,4 +1,4 @@
-const DB_NAME = "HermesVaultDB";
+const DB_NAME = "HermesMDVaultDB";
 const STORE_NAME = "handles";
 const KEY_VAULT = "lastVaultHandle";
 

@@ -50,8 +50,16 @@ export function useFileSync() {
           }
         }
       }
-    } catch (err) {
-      console.warn("Sync check skipped or failed:", err);
+    } catch (err: any) {
+      // Very quiet on sync check failures as they are extremely common with cloud sync
+      const isExpected = 
+        err.name === "InvalidStateError" || 
+        err.name === "NotFoundError" ||
+        err.message?.includes("state had changed");
+      
+      if (!isExpected) {
+        console.warn("Sync check failed (unexpected):", err);
+      }
     }
   }, [
     activeFileHandle,

@@ -5,21 +5,20 @@ import { useFileSystem } from "@/app/hooks/use-file-system";
 import {
   HiOutlineDocumentText,
   HiOutlineFolder,
-  HiOutlinePlus,
   HiOutlineChevronLeft,
   HiOutlineX,
   HiOutlineDotsVertical,
   HiOutlineTrash,
   HiOutlinePencil,
-  HiOutlineFolderAdd,
-  HiOutlineDocumentAdd,
   HiOutlineRefresh,
-  HiOutlineChevronDown,
 } from "react-icons/hi";
 import Button from "@/app/components/Button";
 import { useAtomValue } from "jotai";
 import { atom_fileMetadata } from "@/app/atoms/metadata";
+import { atom_activeFilePath, atom_sidebarWidth } from "@/app/atoms/atoms";
 import SmartFolders from "./SmartFolders";
+import { useAtom } from "jotai";
+import SidebarHeader from "./SidebarHeader";
 
 interface VaultSidebarProps {
   onClose?: () => void;
@@ -29,11 +28,8 @@ export default function VaultSidebar({ onClose }: VaultSidebarProps) {
   const {
     vaultFiles,
     openFile,
-    createNewFile,
-    createNewFolder,
     vaultHandle,
     currentDirectoryHandle,
-    activeFileHandle,
     navigateTo,
     navigateBack,
     deleteFile,
@@ -46,10 +42,41 @@ export default function VaultSidebar({ onClose }: VaultSidebarProps) {
   } = useFileSystem();
 
   const fileMetadata = useAtomValue(atom_fileMetadata);
+  const activeFilePath = useAtomValue(atom_activeFilePath);
+  const [sidebarWidth, setSidebarWidth] = useAtom(atom_sidebarWidth);
+  const [isResizing, setIsResizing] = useState(false);
+
   const [actionMenuOpen, setActionMenuOpen] = useState<string | null>(null);
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
-  const [isNewMenuOpen, setIsNewMenuOpen] = useState(false);
+  const [isFilesExpanded, setIsFilesExpanded] = useState(true);
   const [isTagsExpanded, setIsTagsExpanded] = useState(true);
+
+  // Resize handler
+  const startResizing = React.useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    setIsResizing(true);
+  }, []);
+
+  const stopResizing = React.useCallback(() => {
+    setIsResizing(false);
+  }, []);
+
+  const resize = React.useCallback((e: MouseEvent) => {
+    if (isResizing) {
+      // Calculate new width: mouse X - ribbon width (approx 80px)
+      const newWidth = Math.max(200, Math.min(600, e.clientX - 80));
+      setSidebarWidth(newWidth);
+    }
+  }, [isResizing, setSidebarWidth]);
+
+  React.useEffect(() => {
+    window.addEventListener('mousemove', resize);
+    window.addEventListener('mouseup', stopResizing);
+    return () => {
+      window.removeEventListener('mousemove', resize);
+      window.removeEventListener('mouseup', stopResizing);
+    };
+  }, [resize, stopResizing]);
 
   const vaultTags = useMemo(() => {
     const tagsMap: Record<string, any[]> = {};
@@ -64,9 +91,9 @@ export default function VaultSidebar({ onClose }: VaultSidebarProps) {
 
   if (!isVaultSupported) {
     return (
-      <div className="w-64 h-full border-r border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-900/50 flex flex-col items-center justify-center p-6 text-center">
+      <div className="w-64 flex flex-col items-center justify-center p-6 text-center h-full">
         <HiOutlineX size={48} className="opacity-20 mb-4 text-red-500" />
-        <h2 className="text-xs font-bold uppercase tracking-widest opacity-50 mb-2">Vault Not Supported</h2>
+        <h2 className="text-xs font-bold tracking-widest opacity-50 mb-2">Vault Not Supported</h2>
         <p className="text-[10px] opacity-40 leading-relaxed">Your browser doesn't support the File System Access API. Please use Chrome, Edge, or Opera.</p>
       </div>
     );
@@ -76,9 +103,9 @@ export default function VaultSidebar({ onClose }: VaultSidebarProps) {
 
   if (isVaultPending) {
     return (
-      <div className="w-64 h-full border-r border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-900/50 flex flex-col items-center justify-center p-6 text-center animate-in slide-in-from-left duration-300">
+      <div className="w-64 flex flex-col items-center justify-center p-6 text-center animate-in slide-in-from-left duration-300 h-full">
         <HiOutlineFolder size={48} className="opacity-20 mb-4" />
-        <h2 className="text-xs font-bold uppercase tracking-widest opacity-50 mb-2">Vault Access Paused</h2>
+        <h2 className="text-xs font-bold tracking-widest opacity-50 mb-2">Vault Access Paused</h2>
         <p className="text-[10px] opacity-40 mb-6 leading-relaxed">Browser security requires re-authorization to access your local files after a refresh.</p>
         <Button variant="primary" onClick={restoreVault} className="w-full">
           Restore Access
@@ -90,11 +117,24 @@ export default function VaultSidebar({ onClose }: VaultSidebarProps) {
   const isAtRoot =
     !currentDirectoryHandle || vaultHandle.name === currentDirectoryHandle.name;
 
-  const tags = Object.keys(vaultTags).sort();
+  const tags = Object.keys(vaultTags).sort((a, b) => a < b ? -1 : a > b ? 1 : 0);
   const filteredFiles = selectedTag ? vaultTags[selectedTag] : null;
 
   return (
-    <div className="w-64 h-full border-r border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-900/50 flex flex-col animate-in slide-in-from-left duration-300">
+    <div 
+      className="flex flex-col h-full animate-in slide-in-from-left duration-300 relative group/sidebar"
+      style={{ width: `${sidebarWidth}px` }}
+    >
+      {/* Resize Handle */}
+      <div
+        onMouseDown={startResizing}
+        className={`
+          absolute top-0 right-0 bottom-0 w-1 cursor-col-resize z-[100]
+          hover:bg-blue-500/30 transition-colors
+          ${isResizing ? "bg-blue-500" : "bg-transparent"}
+        `}
+      />
+
       <div className="p-4 border-b border-neutral-200 dark:border-neutral-800 flex justify-between items-center bg-white dark:bg-neutral-950">
         <div className="flex items-center gap-2">
           {(!isAtRoot || selectedTag) && (
@@ -112,7 +152,7 @@ export default function VaultSidebar({ onClose }: VaultSidebarProps) {
               <HiOutlineChevronLeft size={16} />
             </Button>
           )}
-          <h2 className="text-[10px] uppercase tracking-widest font-bold opacity-50 truncate max-w-[100px]">
+          <h2 className="text-[12px] font-bold opacity-80 truncate">
             {selectedTag ? `Tag: ${selectedTag}` : currentDirectoryHandle?.name || "Vault"}
           </h2>
         </div>
@@ -132,50 +172,6 @@ export default function VaultSidebar({ onClose }: VaultSidebarProps) {
             <HiOutlineRefresh size={16} />
           </Button>
 
-          <div className="relative">
-            <Button
-              variant="icon"
-              className="w-8 h-8"
-              onClick={() => setIsNewMenuOpen(!isNewMenuOpen)}
-              title="New"
-            >
-              <HiOutlinePlus size={16} />
-            </Button>
-
-            {isNewMenuOpen && (
-              <>
-                <div
-                  className="fixed inset-0 z-40"
-                  onClick={() => setIsNewMenuOpen(false)}
-                />
-                <div className="absolute right-0 top-full mt-1 z-50 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-lg shadow-xl py-1 min-w-[140px]">
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      createNewFile();
-                      setIsNewMenuOpen(false);
-                    }}
-                    className="w-full flex items-center gap-2 px-3 py-2 text-xs hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
-                  >
-                    <HiOutlineDocumentAdd size={14} className="opacity-60" />
-                    New File
-                  </button>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      createNewFolder();
-                      setIsNewMenuOpen(false);
-                    }}
-                    className="w-full flex items-center gap-2 px-3 py-2 text-xs hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
-                  >
-                    <HiOutlineFolderAdd size={14} className="opacity-60" />
-                    New Folder
-                  </button>
-                </div>
-              </>
-            )}
-          </div>
-
           {onClose && (
             <Button
               variant="icon"
@@ -189,15 +185,17 @@ export default function VaultSidebar({ onClose }: VaultSidebarProps) {
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-2 space-y-4">
+      <div className="flex-1 overflow-y-auto overscroll-none p-2 space-y-4">
         {/* Files Section */}
         <div className="space-y-1">
           {!selectedTag && (
-            <h3 className="px-3 text-[9px] uppercase tracking-[0.2em] font-bold opacity-30 py-2">
-              Files
-            </h3>
+            <SidebarHeader
+              title="Files"
+              isExpanded={isFilesExpanded}
+              onToggle={() => setIsFilesExpanded(!isFilesExpanded)}
+            />
           )}
-          {(selectedTag ? filteredFiles : vaultFiles)?.map((entry, idx) => (
+          {isFilesExpanded && (selectedTag ? filteredFiles : vaultFiles)?.map((entry, idx) => (
             <div
               key={`${entry.kind || 'file'}-${entry.name}-${idx}`}
               className="group relative"
@@ -206,7 +204,7 @@ export default function VaultSidebar({ onClose }: VaultSidebarProps) {
               <div
                 onClick={() => {
                   if (selectedTag) {
-                    openFile(entry.handle, entry.path);
+                    openFile(entry.handle, (entry as any).path);
                   } else if (entry.kind === "file") {
                     openFile(entry as FileSystemFileHandle);
                   } else {
@@ -214,7 +212,7 @@ export default function VaultSidebar({ onClose }: VaultSidebarProps) {
                   }
                 }}
                 className={`flex items-center gap-2 px-3 py-2 rounded-md cursor-pointer transition-colors text-sm pr-10 ${
-                  activeFileHandle?.name === entry.name
+                  (selectedTag && (entry as any).path === activeFilePath) || (!selectedTag && activeFilePath?.split("/").pop() === entry.name)
                     ? "bg-blue-500/10 text-blue-600 dark:text-blue-400 font-medium"
                     : "hover:bg-neutral-200 dark:hover:bg-neutral-800 text-neutral-600 dark:text-neutral-400"
                 }`}
@@ -289,21 +287,14 @@ export default function VaultSidebar({ onClose }: VaultSidebarProps) {
         {/* Smart Filters Section */}
         {!selectedTag && tags.length > 0 && (
           <div className="space-y-1">
-            <div 
-              className="flex justify-between items-center px-3 py-2 cursor-pointer hover:bg-neutral-200 dark:hover:bg-neutral-800 rounded-md mx-1 transition-colors group"
-              onClick={() => setIsTagsExpanded(!isTagsExpanded)}
-            >
-              <h3 className="text-[9px] uppercase tracking-[0.2em] font-bold opacity-30 group-hover:opacity-100 transition-opacity">
-                Smart Filters
-              </h3>
-              <HiOutlineChevronDown 
-                size={12} 
-                className={`opacity-30 group-hover:opacity-100 transition-all duration-200 ${isTagsExpanded ? "" : "-rotate-90"}`} 
-              />
-            </div>
+            <SidebarHeader
+              title="Smart Filters"
+              isExpanded={isTagsExpanded}
+              onToggle={() => setIsTagsExpanded(!isTagsExpanded)}
+            />
             
             {isTagsExpanded && (
-              <div className="flex flex-wrap gap-1 px-3 max-h-40 overflow-y-auto custom-scrollbar animate-in fade-in duration-200">
+              <div className="flex flex-wrap gap-1 px-3 max-h-40 overflow-y-auto overscroll-none custom-scrollbar animate-in fade-in duration-200">
                 {tags.map((tag) => (
                   <span
                     key={tag}
@@ -322,7 +313,6 @@ export default function VaultSidebar({ onClose }: VaultSidebarProps) {
         {!selectedTag && (
           <SmartFolders
             onFileSelect={openFile}
-            activeFileHandle={activeFileHandle}
           />
         )}
       </div>

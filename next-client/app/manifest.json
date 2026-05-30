@@ -1,7 +1,7 @@
 {
-  "name": "Hermes Markdown",
+  "name": "HermesMarkdown",
   "short_name": "HermesMD",
-  "description": "Hermes Markdown is a modern markdown editor designed for privacy. It operates entirely offline, ensuring your data stays secure and local.",
+  "description": "HermesMarkdown is a modern markdown editor designed for privacy. It operates entirely offline, ensuring your data stays secure and local.",
   "start_url": "/",
   "icons": [
     {

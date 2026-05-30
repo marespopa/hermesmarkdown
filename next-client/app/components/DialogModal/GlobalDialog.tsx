@@ -40,15 +40,30 @@ export default function GlobalDialog() {
   const isAlert = config.type === "alert";
 
   return (
-    <DialogModal isOpened={!!config} onClose={handleCancel} styles="max-w-md">
+    <DialogModal
+      isOpened={!!config}
+      onClose={handleCancel}
+      onConfirm={handleConfirm}
+      styles="max-w-md"
+      ariaLabelledBy="dialog-title"
+      ariaDescribedBy="dialog-description"
+    >
       <div className="space-y-4">
         {config.title && (
-          <h3 className="text-lg font-bold font-mono tracking-tight">
+          <h3
+            id="dialog-title"
+            className="text-lg font-bold font-mono tracking-tight"
+          >
             {config.title}
           </h3>
         )}
 
-        <p className="text-sm opacity-70 leading-relaxed">{config.message}</p>
+        <p
+          id="dialog-description"
+          className="text-sm opacity-70 leading-relaxed"
+        >
+          {config.message}
+        </p>
 
         {config.subtext && (
           <p className="text-xs opacity-50 leading-relaxed">{config.subtext}</p>

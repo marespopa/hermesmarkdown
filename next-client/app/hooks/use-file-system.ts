@@ -15,6 +15,8 @@ import {
   atom_fileLastModified,
   atom_fileConflict,
   atom_pendingFileSwitch,
+  atom_openFiles,
+  atom_saveStatus,
 } from "@/app/atoms/atoms";
 import { atom_fileMetadata } from "@/app/atoms/metadata";
 import { useCallback, useEffect, useState } from "react";
@@ -35,6 +37,25 @@ if (typeof window !== "undefined") {
 const isVaultSupported = typeof window !== "undefined" && "showDirectoryPicker" in window;
 const isIdbSupported = typeof window !== "undefined" && !!window.indexedDB;
 
+// Global lock to prevent "File picker already active" errors
+let isPickerActive = false;
+
+async function withPickerLock<T>(fn: () => Promise<T>): Promise<T | undefined> {
+  if (isPickerActive) {
+    console.warn("Picker already active, ignoring request");
+    return undefined;
+  }
+  isPickerActive = true;
+  try {
+    return await fn();
+  } finally {
+    // Small delay to ensure the browser has fully cleared the previous picker state
+    setTimeout(() => {
+      isPickerActive = false;
+    }, 500);
+  }
+}
+
 export function useFileSystem() {
   const [vaultHandle, setVaultHandle] = useAtom(atom_vaultHandle);
   const [currentDirectoryHandle, setCurrentDirectoryHandle] = useAtom(atom_currentDirectoryHandle);
@@ -46,10 +67,12 @@ export function useFileSystem() {
   const [content, setContent] = useAtom(atom_content);
   const [, setFileName] = useAtom(atom_fileName);
   const [fileMetadata, setFileMetadata] = useAtom(atom_fileMetadata);
+  const [, setOpenFiles] = useAtom(atom_openFiles);
   const [lastSavedContent, setLastSavedContent] = useAtom(atom_lastSavedContent);
   const [, setFileLastModified] = useAtom(atom_fileLastModified);
   const [, setFileConflict] = useAtom(atom_fileConflict);
   const [, setPendingFileSwitch] = useAtom(atom_pendingFileSwitch);
+  const [, setSaveStatus] = useAtom(atom_saveStatus);
   const dialog = useDialog();
 
   const [mounted, setMounted] = useState(false);
@@ -90,7 +113,7 @@ export function useFileSystem() {
         metadataWorker?.postMessage({
           files: [{ handle: activeFileHandle, path: activeFilePath }],
         });
-      } catch (err) {
+      } catch (err: any) {
         console.error("Failed to index active file:", err);
       }
     }, 1000);
@@ -100,45 +123,57 @@ export function useFileSystem() {
 
   const scanVault = useCallback(
     async (handle: FileSystemDirectoryHandle) => {
-      const entries: FileSystemHandle[] = [];
-      for await (const entry of (handle as any).values()) {
-        if (entry.kind === "file" && entry.name.endsWith(".md")) {
-          entries.push(entry);
-        } else if (entry.kind === "directory") {
-          entries.push(entry);
+      try {
+        const entries: FileSystemHandle[] = [];
+        for await (const entry of (handle as any).values()) {
+          if (entry.kind === "file" && entry.name.endsWith(".md")) {
+            entries.push(entry);
+          } else if (entry.kind === "directory") {
+            entries.push(entry);
+          }
         }
+        setVaultFiles(entries.sort((a, b) => a.name < b.name ? -1 : a.name > b.name ? 1 : 0));
+      } catch (err: any) {
+        console.warn("Failed to scan vault:", err);
       }
-      setVaultFiles(entries.sort((a, b) => a.name.localeCompare(b.name)));
     },
     [setVaultFiles],
   );
 
   const indexVaultTags = useCallback(
     async (passedHandle?: FileSystemDirectoryHandle) => {
-      const handle = passedHandle || vaultHandle;
-      if (!handle || !metadataWorker) return;
+      try {
+        const handle = passedHandle || vaultHandle;
+        if (!handle || !metadataWorker) return;
 
-      const fileHandles: { handle: FileSystemFileHandle; path: string }[] = [];
+        const fileHandles: { handle: FileSystemFileHandle; path: string }[] = [];
 
-      async function collectFiles(
-        dirHandle: FileSystemDirectoryHandle,
-        path: string = "",
-      ) {
-        for await (const entry of (dirHandle as any).values()) {
-          const currentPath = path ? `${path}/${entry.name}` : entry.name;
-          if (entry.kind === "file" && entry.name.endsWith(".md")) {
-            fileHandles.push({
-              handle: entry as FileSystemFileHandle,
-              path: currentPath,
-            });
-          } else if (entry.kind === "directory") {
-            await collectFiles(entry, currentPath);
+        async function collectFiles(
+          dirHandle: FileSystemDirectoryHandle,
+          path: string = "",
+        ) {
+          try {
+            for await (const entry of (dirHandle as any).values()) {
+              const currentPath = path ? `${path}/${entry.name}` : entry.name;
+              if (entry.kind === "file" && entry.name.endsWith(".md")) {
+                fileHandles.push({
+                  handle: entry as FileSystemFileHandle,
+                  path: currentPath,
+                });
+              } else if (entry.kind === "directory") {
+                await collectFiles(entry, currentPath);
+              }
+            }
+          } catch (err: any) {
+            console.warn(`Failed to collect files from ${path || "root"}:`, err);
           }
         }
-      }
 
-      await collectFiles(handle);
-      metadataWorker.postMessage({ files: fileHandles });
+        await collectFiles(handle);
+        metadataWorker.postMessage({ files: fileHandles });
+      } catch (err: any) {
+        console.error("Failed to index vault tags:", err);
+      }
     },
     [vaultHandle],
   );
@@ -149,8 +184,18 @@ export function useFileSystem() {
       return;
     }
 
+    const handle = await withPickerLock(async () => {
+      try {
+        return await window.showDirectoryPicker();
+      } catch (err: any) {
+        if (err.name !== "AbortError") throw err;
+        return undefined;
+      }
+    });
+
+    if (!handle) return;
+
     try {
-      const handle = await window.showDirectoryPicker();
       setVaultHandle(handle);
       setCurrentDirectoryHandle(handle);
       setIsVaultPending(false);
@@ -159,10 +204,8 @@ export function useFileSystem() {
       await indexVaultTags(handle);
       toast.success("Vault opened: " + handle.name);
     } catch (err: any) {
-      if (err.name !== "AbortError") {
-        console.error(err);
-        toast.error("Failed to open vault");
-      }
+      console.error("File System Error:", err?.message || err);
+      toast.error("Failed to open vault");
     }
   }, [setVaultHandle, setCurrentDirectoryHandle, setIsVaultPending, scanVault, indexVaultTags]);
 
@@ -185,7 +228,7 @@ export function useFileSystem() {
     if (!vaultHandle) return;
 
     const confirmed = await dialog.confirm(
-      `Hermes needs permission to "allow this site to make edits" to your folder: ${vaultHandle.name}. This is required to save your notes.`,
+      `HermesMarkdown needs permission to "allow this site to make edits" to your folder: ${vaultHandle.name}. This is required to save your notes.`,
       "re-authorize folder access",
       "Allow Edits",
       "Cancel",
@@ -203,8 +246,8 @@ export function useFileSystem() {
         await indexVaultTags(vaultHandle);
         toast.success("Vault restored");
       }
-    } catch (err) {
-      console.error(err);
+    } catch (err: any) {
+      console.error("File System Error:", err?.message || err);
       toast.error("Failed to restore vault");
     }
   }, [vaultHandle, setIsVaultPending, setCurrentDirectoryHandle, scanVault, indexVaultTags, dialog]);
@@ -214,6 +257,7 @@ export function useFileSystem() {
       fileHandle: FileSystemFileHandle,
       providedPath?: string,
       force: boolean = false,
+      retryCount = 0,
     ) => {
       // Check for unsaved changes
       const isDirty = content !== lastSavedContent;
@@ -224,55 +268,127 @@ export function useFileSystem() {
 
       try {
         const file = await fileHandle.getFile();
-        const content = await file.text();
-        setContent(content);
-        setLastSavedContent(content);
-        setFileLastModified(file.lastModified);
-        setFileConflict(null);
-        setFileName(fileHandle.name.replace(".md", ""));
-        setActiveFileHandle(fileHandle);
+        const fileContent = await file.text();
 
         let path = providedPath;
         if (!path && vaultHandle) {
-          const pathParts = await (vaultHandle as any).resolve(fileHandle);
-          if (pathParts) {
-            path = pathParts.join("/");
-          } else {
-            // Fallback: If resolve fails, try to find the path in metadata
-            for (const [metaPath, meta] of Object.entries(fileMetadata)) {
-              if (await (meta.handle as any).isSameEntry(fileHandle)) {
-                path = metaPath;
-                break;
+          // If no path is provided, we must do the expensive reverse-lookup.
+          // 1. Try to find the path in metadata first (fastest fallback)
+          for (const [metaPath, meta] of Object.entries(fileMetadata)) {
+            if (meta.name === fileHandle.name) {
+              try {
+                if (await (meta.handle as any).isSameEntry(fileHandle)) {
+                  path = metaPath;
+                  break;
+                }
+              } catch {
+                // Comparison failed
               }
             }
           }
+          
+          // 2. If still no path, use the slow File System API resolve
+          if (!path) {
+            try {
+              const pathParts = await (vaultHandle as any).resolve(fileHandle);
+              if (pathParts) {
+                path = pathParts.join("/");
+              }
+            } catch {
+              // resolve failed, path stays null
+            }
+          }
         }
-        setActiveFilePath(path || fileHandle.name);
-      } catch (err) {
-        console.error(err);
+
+        const finalPath = path || fileHandle.name;
+
+        // 1. Update openFiles registry first so the pane has data to read (persisted fields only)
+        setOpenFiles((prev) => ({
+          ...prev,
+          [finalPath]: {
+            content: fileContent,
+            lastSavedContent: fileContent,
+            fileName: fileHandle.name.replace(".md", ""),
+            activeFilePath: finalPath,
+          },
+        }));
+
+        // 2. Switch active path (this now correctly updates workspaceLayout via atoms.ts)
+        setActiveFilePath(finalPath);
+
+        // 3. Store the "live" handle separately (non-persisted)
+        setActiveFileHandle(fileHandle);
+
+        // 4. Update non-file-specific state
+        setFileLastModified(file.lastModified);
+        setFileConflict(null);
+      } catch (err: any) {
+        const isRetryable = 
+          err.name === "InvalidStateError" || 
+          err.message?.includes("state had changed") ||
+          err.name === "NotFoundError";
+
+        if (isRetryable && retryCount < 2) {
+          console.warn(`Open operation issues (stale/missing), retrying (${retryCount + 1})...`);
+          
+          // If we have a path and a vault, try to get a fresh handle
+          let pathForRefresh = providedPath;
+          if (!pathForRefresh) {
+             // Try to find path in metadata even if getFile failed
+             for (const [metaPath, meta] of Object.entries(fileMetadata)) {
+               if (meta.name === fileHandle.name) {
+                 pathForRefresh = metaPath;
+                 break;
+               }
+             }
+          }
+
+          if (pathForRefresh && vaultHandle) {
+            try {
+              const parts = pathForRefresh.split("/");
+              let current: FileSystemDirectoryHandle = vaultHandle;
+              for (let i = 0; i < parts.length - 1; i++) {
+                current = await current.getDirectoryHandle(parts[i]);
+              }
+              const freshHandle = await current.getFileHandle(parts[parts.length - 1]);
+              return openFile(freshHandle, pathForRefresh, force, retryCount + 1);
+            } catch (retryErr) {
+              console.warn("Failed to refresh handle for open retry:", retryErr);
+            }
+          }
+          
+          await new Promise((resolve) => setTimeout(resolve, 200));
+          return openFile(fileHandle, providedPath, force, retryCount + 1);
+        }
+
+        console.error("File System Error:", err?.message || err);
         toast.error("Failed to open file");
       }
     },
     [
-      setContent,
-      setFileName,
       setActiveFileHandle,
       setActiveFilePath,
       vaultHandle,
       fileMetadata,
-      setLastSavedContent,
       setFileLastModified,
       setFileConflict,
       content,
       lastSavedContent,
       setPendingFileSwitch,
+      setOpenFiles,
     ],
   );
 
   const saveFile = useCallback(
-    async (content: string, handle?: FileSystemFileHandle) => {
+    async (content: string, handle?: FileSystemFileHandle, retryCount = 0): Promise<boolean> => {
       const fileToSave = handle || activeFileHandle;
       if (!fileToSave) return false;
+
+      setSaveStatus({ 
+        state: "saving", 
+        retryCount, 
+        message: retryCount > 0 ? `Retry ${retryCount}/5` : undefined 
+      });
 
       let writable: FileSystemWritableFileStream | null = null;
       try {
@@ -283,18 +399,87 @@ export function useFileSystem() {
           writable = null;
         }
 
-        // Update metadata after successful save to prevent false conflict triggers
-        const updatedFile = await fileToSave.getFile();
-        setLastSavedContent(content);
-        setFileLastModified(updatedFile.lastModified);
-        setFileConflict(null);
+        // Secondary task: Update metadata.
+        try {
+          const updatedFile = await fileToSave.getFile();
+          setLastSavedContent(content);
+          setFileLastModified(updatedFile.lastModified);
+          setFileConflict(null);
+        } catch {
+          setLastSavedContent(content);
+        }
 
-        await indexVaultTags();
+        // Handle update
+        if (handle) {
+          setActiveFileHandle(handle);
+          setFileName(handle.name.replace(".md", ""));
+          
+          if (vaultHandle) {
+            try {
+              const pathParts = await (vaultHandle as any).resolve(handle);
+              if (pathParts) {
+                setActiveFilePath(pathParts.join("/"));
+              } else {
+                setActiveFilePath(handle.name);
+              }
+            } catch {
+              setActiveFilePath(handle.name);
+            }
+          } else {
+            setActiveFilePath(handle.name);
+          }
+        }
+
+        // Background indexing
+        indexVaultTags();
+        setSaveStatus({ state: "saved", retryCount });
+        setTimeout(() => setSaveStatus({ state: "idle", retryCount: 0 }), 2000);
         toast.success("Saved to " + fileToSave.name);
         return true;
-      } catch (err) {
-        console.error(err);
-        toast.error("Failed to save file");
+      } catch (err: any) {
+        const isRetryable = 
+          err.name === "InvalidStateError" || 
+          err.message?.includes("state had changed") ||
+          err.name === "NoModificationAllowedError";
+
+        if (isRetryable && retryCount < 5) {
+          const delay = 300 * Math.pow(1.5, retryCount);
+
+          // Try to refresh the handle if it's in the vault
+          if (activeFilePath && vaultHandle) {
+            try {
+              const parts = activeFilePath.split("/");
+              let current: FileSystemDirectoryHandle = vaultHandle;
+
+              // Walk the path to get a fresh handle
+              for (let i = 0; i < parts.length - 1; i++) {
+                current = await current.getDirectoryHandle(parts[i]);
+              }
+              const freshHandle = await current.getFileHandle(parts[parts.length - 1]);
+
+              if (!handle || handle === activeFileHandle) {
+                setActiveFileHandle(freshHandle);
+              }
+
+              await new Promise((resolve) => setTimeout(resolve, delay));
+              return saveFile(content, freshHandle, retryCount + 1);
+            } catch (retryErr) {
+              console.warn("Failed to refresh handle for retry:", retryErr);
+            }
+          }
+
+          await new Promise((resolve) => setTimeout(resolve, delay));
+          return saveFile(content, handle, retryCount + 1);
+        }
+
+        console.error("File System Error:", err?.message || err);
+        const errorMsg = err.name === "InvalidStateError" ? "File locked by cloud sync" : err.message;
+        setSaveStatus({ state: "error", retryCount, message: errorMsg });
+        setTimeout(() => setSaveStatus({ state: "idle", retryCount: 0 }), 5000);
+
+        if (err.name !== "NotAllowedError" && err.name !== "AbortError") {
+          toast.error(`Failed to save: ${errorMsg}`);
+        }
         return false;
       } finally {
         if (writable) {
@@ -306,7 +491,91 @@ export function useFileSystem() {
         }
       }
     },
-    [activeFileHandle, indexVaultTags, setLastSavedContent, setFileLastModified, setFileConflict],
+    [activeFileHandle, indexVaultTags, setLastSavedContent, setFileLastModified, setFileConflict, setActiveFileHandle, setFileName, vaultHandle, setActiveFilePath, activeFilePath, setSaveStatus],
+  );
+
+  const exportFile = useCallback(
+    async (content: string, fileName: string) => {
+      if (!content.trim()) return false;
+
+      const baseName =
+        fileName.trim() ||
+        content
+          .split("\n")[0]
+          .replace(/[^\w\s]/gi, "")
+          .slice(0, 20)
+          .trim() ||
+        "untitled";
+
+      const finalName = baseName.endsWith(".md") ? baseName : `${baseName}.md`;
+
+      // 1. Try Desktop File System Access API
+      if ("showSaveFilePicker" in window) {
+        try {
+          const handle = await withPickerLock(async () => {
+            try {
+              return await (window as any).showSaveFilePicker({
+                suggestedName: finalName,
+                types: [
+                  { description: "Markdown", accept: { "text/markdown": [".md"] } },
+                ],
+                startIn: currentDirectoryHandle || vaultHandle || undefined,
+              });
+            } catch (err: any) {
+              if (err.name !== "AbortError") throw err;
+              return undefined;
+            }
+          });
+
+          if (handle) {
+            const success = await saveFile(content, handle);
+            if (success) return true;
+          } else if (handle === null) {
+             // Lock active but ignored, or cancelled
+             return false;
+          }
+        } catch (err: any) {
+          console.error("Picker failed, trying fallback:", err);
+        }
+      }
+
+      // 2. Try Web Share API (Better for Android/iOS)
+      if (navigator.share && navigator.canShare) {
+        const file = new File([content], finalName, { type: "text/markdown" });
+        if (navigator.canShare({ files: [file] })) {
+          try {
+            await navigator.share({
+              files: [file],
+              title: finalName,
+            });
+            // Treat share as successful save contextually
+            setLastSavedContent(content);
+            setFileConflict(null);
+            toast.success("Shared successfully");
+            return true;
+          } catch (err: any) {
+            if (err instanceof Error && err.name === "AbortError") return false;
+            console.error("Share failed:", err);
+          }
+        }
+      }
+
+      // 3. Fallback: Blob Download
+      const blob = new Blob([content], { type: "text/markdown" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = finalName;
+      link.click();
+      URL.revokeObjectURL(url);
+      
+      // Treat download as successful save contextually
+      setLastSavedContent(content);
+      setFileConflict(null);
+      toast.success("Download started");
+      return true;
+    },
+    [currentDirectoryHandle, vaultHandle, saveFile, setLastSavedContent, setFileConflict],
   );
 
   const createNewFile = useCallback(async () => {
@@ -322,10 +591,10 @@ export function useFileSystem() {
         create: true,
       });
       await scanVault(targetDir);
-      await indexVaultTags();
+      indexVaultTags();
       await openFile(newFileHandle);
-    } catch (err) {
-      console.error(err);
+    } catch (err: any) {
+      console.error("File System Error:", err?.message || err);
       toast.error("Failed to create file");
     }
   }, [vaultHandle, currentDirectoryHandle, scanVault, indexVaultTags, openFile, dialog]);
@@ -343,8 +612,8 @@ export function useFileSystem() {
       });
       await scanVault(targetDir);
       toast.success("Folder created: " + name);
-    } catch (err) {
-      console.error(err);
+    } catch (err: any) {
+      console.error("File System Error:", err?.message || err);
       toast.error("Failed to create folder");
     }
   }, [vaultHandle, currentDirectoryHandle, scanVault, dialog]);
@@ -382,9 +651,6 @@ export function useFileSystem() {
 
   const deleteFile = useCallback(
     async (handle: FileSystemHandle) => {
-      const parentDir = currentDirectoryHandle || vaultHandle;
-      if (!parentDir) return;
-
       const type = handle.kind === "file" ? "file" : "folder";
       const confirmed = await dialog.confirm(
         `Are you sure you want to delete this ${type}: ${handle.name}?`,
@@ -392,26 +658,48 @@ export function useFileSystem() {
       );
       if (!confirmed) return;
 
-      try {
-        await (parentDir as any).removeEntry(handle.name, { recursive: true });
+      const attemptDelete = async (retryCount = 0): Promise<void> => {
+        const parentDir = currentDirectoryHandle || vaultHandle;
+        if (!parentDir) return;
 
-        // If the active file was inside this deleted item, clear editor
-        if (
-          activeFileHandle?.name === handle.name ||
-          (handle.kind === "directory" && activeFileHandle)
-        ) {
-          // Basic check: we don't have full path, so if a folder is deleted,
-          // we might want to refresh or check if active handle still exists
-          setActiveFileHandle(null);
-          setContent("");
-          setFileName("");
+        try {
+          await (parentDir as any).removeEntry(handle.name, { recursive: true });
+
+          // If the active file was inside this deleted item, clear editor
+          if (
+            activeFileHandle?.name === handle.name ||
+            (handle.kind === "directory" && activeFileHandle)
+          ) {
+            setActiveFileHandle(null);
+            setContent("");
+            setFileName("");
+          }
+
+          await scanVault(parentDir);
+          indexVaultTags();
+          toast.success(`${handle.name} deleted`);
+        } catch (err: any) {
+          const isRetryable =
+            err.name === "InvalidStateError" ||
+            err.name === "NoModificationAllowedError" ||
+            err.message?.includes("state had changed") ||
+            err.message?.includes("locked");
+
+          if (isRetryable && retryCount < 3) {
+            console.warn(`Delete operation issues, retrying (${retryCount + 1})...`);
+            await new Promise((resolve) =>
+              setTimeout(resolve, 300 * (retryCount + 1)),
+            );
+            return attemptDelete(retryCount + 1);
+          }
+          throw err;
         }
+      };
 
-        await scanVault(parentDir);
-        await indexVaultTags();
-        toast.success(`${handle.name} deleted`);
-      } catch (err) {
-        console.error(err);
+      try {
+        await attemptDelete();
+      } catch (err: any) {
+        console.error("File System Error:", err?.message || err);
         toast.error("Failed to delete");
       }
     },
@@ -440,94 +728,128 @@ export function useFileSystem() {
       );
       if (!newName || newName === handle.name) return;
 
-      try {
-        // 1. Get a FRESH handle from the parent to avoid "state changed" errors
-        let freshHandle: FileSystemHandle;
-        if (handle.kind === "file") {
-          freshHandle = await (parentDir as any).getFileHandle(handle.name);
-        } else {
-          freshHandle = await (parentDir as any).getDirectoryHandle(handle.name);
-        }
-
-        // 2. Check if this is the active file
-        let isActive = false;
-        if (activeFileHandle) {
+      const attemptRename = async (retryCount = 0): Promise<void> => {
+        try {
+          // 1. Get a FRESH handle from the parent to avoid "state changed" errors
+          let freshHandle: FileSystemHandle;
           try {
-            isActive = await (freshHandle as any).isSameEntry(activeFileHandle);
-          } catch {
-            // Comparison failed
+            if (handle.kind === "file") {
+              freshHandle = await (parentDir as any).getFileHandle(handle.name);
+            } else {
+              freshHandle = await (parentDir as any).getDirectoryHandle(handle.name);
+            }
+          } catch (e) {
+            console.error("Failed to get fresh handle for rename:", e);
+            throw new Error("Item no longer exists or is inaccessible");
           }
-        }
 
-        // 3. Attempt Native Move
-        if ((freshHandle as any).move) {
-          // Use explicit parentDir for maximum compatibility on some browsers/OSs
-          await (freshHandle as any).move(parentDir, newName);
-
-          if (isActive) {
-            setActiveFileHandle(freshHandle as FileSystemFileHandle);
-            setFileName(newName.replace(".md", ""));
-
-            // Recalculate path for metadata/tracking
-            if (vaultHandle) {
-              const pathParts = await (vaultHandle as any).resolve(freshHandle);
-              if (pathParts) {
-                setActiveFilePath(pathParts.join("/"));
-              } else {
-                setActiveFilePath(newName);
-              }
+          // 2. Check if this is the active file
+          let isActive = false;
+          if (activeFileHandle) {
+            try {
+              isActive = await (freshHandle as any).isSameEntry(activeFileHandle);
+            } catch {
+              // Comparison failed
             }
           }
-        } else {
-          // Fallback for files: manual copy and delete
-          if (freshHandle.kind === "file") {
-            const file = await (freshHandle as FileSystemFileHandle).getFile();
-            const content = await file.text();
-            const newFileHandle = await parentDir.getFileHandle(newName, {
-              create: true,
-            });
-            let writable: FileSystemWritableFileStream | null = null;
+
+          // 3. Attempt Native Move with Fallback
+          let moveSuccessful = false;
+          if ((freshHandle as any).move) {
             try {
-              writable = await newFileHandle.createWritable();
-              if (writable) {
-                await writable.write(content);
-                await writable.close();
-                writable = null;
-              }
-              await (parentDir as any).removeEntry(freshHandle.name);
+              // Use explicit parentDir for maximum compatibility on some browsers/OSs
+              await (freshHandle as any).move(parentDir, newName);
+              moveSuccessful = true;
+            } catch (moveErr) {
+              console.warn("Native move failed, falling back to copy/delete:", moveErr);
+            }
+          }
 
-              if (isActive) {
-                setActiveFileHandle(newFileHandle);
-                setFileName(newName.replace(".md", ""));
+          if (moveSuccessful) {
+            if (isActive) {
+              setActiveFileHandle(freshHandle as FileSystemFileHandle);
+              setFileName(newName.replace(".md", ""));
 
-                // Recalculate path for metadata/tracking
-                if (vaultHandle) {
-                  const pathParts = await (vaultHandle as any).resolve(newFileHandle);
-                  if (pathParts) {
-                    setActiveFilePath(pathParts.join("/"));
-                  } else {
-                    setActiveFilePath(newName);
-                  }
-                }
-              }
-            } finally {
-              if (writable) {
-                try {
-                  await (writable as any).close();
-                } catch {
-                  // Ignore cleanup error
+              // Recalculate path for metadata/tracking
+              if (vaultHandle) {
+                const pathParts = await (vaultHandle as any).resolve(freshHandle);
+                if (pathParts) {
+                  setActiveFilePath(pathParts.join("/"));
+                } else {
+                  setActiveFilePath(newName);
                 }
               }
             }
           } else {
-            throw new Error("Folder renaming not supported in this browser");
+            // Fallback for files: manual copy and delete
+            if (freshHandle.kind === "file") {
+              const file = await (freshHandle as FileSystemFileHandle).getFile();
+              const content = await file.text();
+              const newFileHandle = await parentDir.getFileHandle(newName, {
+                create: true,
+              });
+              let writable: FileSystemWritableFileStream | null = null;
+              try {
+                writable = await newFileHandle.createWritable();
+                if (writable) {
+                  await writable.write(content);
+                  await writable.close();
+                  writable = null;
+                }
+                await (parentDir as any).removeEntry(freshHandle.name);
+
+                if (isActive) {
+                  setActiveFileHandle(newFileHandle);
+                  setFileName(newName.replace(".md", ""));
+
+                  // Recalculate path for metadata/tracking
+                  if (vaultHandle) {
+                    const pathParts = await (vaultHandle as any).resolve(newFileHandle);
+                    if (pathParts) {
+                      setActiveFilePath(pathParts.join("/"));
+                    } else {
+                      setActiveFilePath(newName);
+                    }
+                  }
+                }
+              } finally {
+                if (writable) {
+                  try {
+                    await (writable as any).close();
+                  } catch {
+                    // Ignore cleanup error
+                  }
+                }
+              }
+            } else {
+              throw new Error("Folder renaming not supported in this browser");
+            }
           }
+          await scanVault(parentDir);
+          indexVaultTags();
+          toast.success("Renamed successfully");
+        } catch (err: any) {
+          const isRetryable =
+            err.name === "InvalidStateError" ||
+            err.name === "NoModificationAllowedError" ||
+            err.message?.includes("state had changed") ||
+            err.message?.includes("locked");
+
+          if (isRetryable && retryCount < 3) {
+            console.warn(`Rename operation issues, retrying (${retryCount + 1})...`);
+            await new Promise((resolve) =>
+              setTimeout(resolve, 300 * (retryCount + 1)),
+            );
+            return attemptRename(retryCount + 1);
+          }
+          throw err;
         }
-        await scanVault(parentDir);
-        await indexVaultTags();
-        toast.success("Renamed successfully");
+      };
+
+      try {
+        await attemptRename();
       } catch (err: any) {
-        console.error(err);
+        console.error("File System Error:", err?.message || err);
         toast.error(err.message || "Failed to rename");
       }
     },
@@ -657,7 +979,7 @@ export function useFileSystem() {
           }
 
           await scanVault(sourceParent);
-          await indexVaultTags();
+          indexVaultTags();
           toast.success(`Moved ${handle.name} to ${targetDir.name}`);
         } catch (err: any) {
           // If locked or stale, retry a few times
@@ -679,7 +1001,7 @@ export function useFileSystem() {
       try {
         await attemptMove();
       } catch (err: any) {
-        console.error(err);
+        console.error("File System Error:", err?.message || err);
         toast.error(err.message || "Failed to move item");
       }
     },
@@ -693,6 +1015,40 @@ export function useFileSystem() {
       setActiveFilePath,
     ],
   );
+
+  const importFile = useCallback(async () => {
+    // 1. Try Desktop File System Access API
+    if ("showOpenFilePicker" in window) {
+      try {
+        const handle = await withPickerLock(async () => {
+          try {
+            const [handle] = await (window as any).showOpenFilePicker({
+              types: [
+                {
+                  description: "Markdown",
+                  accept: { "text/markdown": [".md", ".txt", ".markdown"] },
+                },
+              ],
+              startIn: currentDirectoryHandle || vaultHandle || undefined,
+            });
+            return handle;
+          } catch (err: any) {
+            if (err.name !== "AbortError") throw err;
+            return undefined;
+          }
+        });
+
+        if (handle) {
+          await openFile(handle);
+          return true;
+        }
+        return false;
+      } catch (err: any) {
+        console.error("Picker failed, trying fallback:", err);
+      }
+    }
+    return null; // Signals to use fallback input
+  }, [currentDirectoryHandle, vaultHandle, openFile]);
 
   const openFileByName = useCallback(
     async (name: string) => {
@@ -708,7 +1064,7 @@ export function useFileSystem() {
       );
 
       if (exactMatch) {
-        await openFile(exactMatch.handle);
+        await openFile(exactMatch.handle, exactMatch.path);
         return;
       }
 
@@ -723,7 +1079,7 @@ export function useFileSystem() {
       );
 
       if (fuzzyMatch) {
-        await openFile(fuzzyMatch.handle);
+        await openFile(fuzzyMatch.handle, fuzzyMatch.path);
       } else {
         toast.error(`File not found: ${cleanName}`);
       }
@@ -739,8 +1095,10 @@ export function useFileSystem() {
     openVault,
     closeVault,
     openFile,
+    importFile,
     openFileByName,
     saveFile,
+    exportFile,
     scanVault,
     createNewFile,
     createNewFolder,

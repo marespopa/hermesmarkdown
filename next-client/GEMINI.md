@@ -1,4 +1,4 @@
-# Hermes Development Mandates
+# HermesMarkdown Development Mandates
 
 ## Component Usage
 - **Always use existing components**: When modifying or adding UI, always prioritize using established components from `app/components/` (e.g., `Button`, `Input`).

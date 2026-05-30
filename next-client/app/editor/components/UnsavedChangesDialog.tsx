@@ -5,6 +5,7 @@ import {
   atom_pendingFileSwitch,
   atom_content,
   atom_activeFileHandle,
+  atom_fileName,
 } from "@/app/atoms/atoms";
 import DialogModal from "@/app/components/DialogModal/DialogModal";
 import Button from "@/app/components/Button";
@@ -13,15 +14,23 @@ import { useFileSystem } from "@/app/hooks/use-file-system";
 export default function UnsavedChangesDialog() {
   const [pendingSwitch, setPendingSwitch] = useAtom(atom_pendingFileSwitch);
   const [content] = useAtom(atom_content);
+  const [fileName] = useAtom(atom_fileName);
   const [activeFileHandle] = useAtom(atom_activeFileHandle);
-  const { saveFile, openFile } = useFileSystem();
+  const { saveFile, openFile, exportFile } = useFileSystem();
 
   if (!pendingSwitch) return null;
 
   const handleSaveAndSwitch = async () => {
     if (!pendingSwitch) return;
     
-    const success = await saveFile(content);
+    // Try normal save first
+    let success = await saveFile(content);
+    
+    // Fallback for read-only handles (Android) or new drafts
+    if (!success) {
+      success = await exportFile(content, fileName);
+    }
+
     if (success) {
       const { handle, path } = pendingSwitch;
       setPendingSwitch(null);
@@ -43,7 +52,12 @@ export default function UnsavedChangesDialog() {
   };
 
   return (
-    <DialogModal isOpened={!!pendingSwitch} onClose={handleCancel} styles="max-w-md">
+    <DialogModal
+      isOpened={!!pendingSwitch}
+      onClose={handleCancel}
+      onConfirm={handleSaveAndSwitch}
+      styles="max-w-md"
+    >
       <div className="space-y-4">
         <h3 className="text-xl font-semibold">Unsaved Changes</h3>
         <p className="text-sm opacity-70">

@@ -12,6 +12,15 @@ vi.mock("jotai", async (importOriginal) => {
   };
 });
 
+// Mock atoms
+vi.mock("@/app/atoms/atoms", async (importOriginal) => {
+  const actual: any = await importOriginal();
+  return {
+    ...actual,
+    atom_activeFilePath: { toString: () => "atom_activeFilePath" },
+  };
+});
+
 // Mock useFileSystem hook
 vi.mock("@/app/hooks/use-file-system", () => ({
   useFileSystem: vi.fn(),
@@ -47,12 +56,17 @@ describe("VaultSidebar Component", () => {
     vi.clearAllMocks();
     cleanup();
     (useFileSystem as any).mockReturnValue(mockFileSystem);
-    (useAtomValue as any).mockReturnValue({
-      "test.md": {
-        tags: ["#work"],
-        handle: { name: "test.md", kind: "file" },
-        path: "test.md",
-      },
+    (useAtomValue as any).mockImplementation((atom: any) => {
+      if (atom.toString() === "atom_activeFilePath") {
+        return "test.md";
+      }
+      return {
+        "test.md": {
+          tags: ["#work"],
+          handle: { name: "test.md", kind: "file" },
+          path: "test.md",
+        },
+      };
     });
   });
 

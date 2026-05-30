@@ -10,6 +10,7 @@ describe("queryEngine", () => {
     frontmatter: { status: "active", priority: "high" },
     modifiedAt: Date.now() - 12 * 60 * 60 * 1000, // 12 hours ago
     wordCount: 100,
+    links: [],
     handle: {} as any,
   };
 

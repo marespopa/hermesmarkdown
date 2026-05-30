@@ -20,8 +20,8 @@ export function useVaultSync() {
       await scanVault(vaultHandle);
       await indexVaultTags(vaultHandle);
       console.log("Vault structure synced");
-    } catch (err) {
-      console.warn("Vault sync failed:", err);
+    } catch (err: any) {
+      console.warn("Vault sync failed:", err?.message || err);
     }
   }, [vaultHandle, isVaultPending, scanVault, indexVaultTags]);
 
