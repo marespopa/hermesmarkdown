@@ -107,44 +107,12 @@ function processInlineMarkdown(text: string) {
   return html;
 }
 
-function highlightMarkdownVirtual(
-  code: string,
-  scrollTop: number,
-  viewportHeight: number,
-  lineHeight: number,
-  overscan: number = 20,
-) {
+function highlightMarkdown(code: string) {
   const lines = code.split("\n");
-  const totalLines = lines.length;
-
-  const startVisibleIdx = Math.max(
-    0,
-    Math.floor(scrollTop / lineHeight) - overscan,
-  );
-  const endVisibleIdx = Math.min(
-    totalLines - 1,
-    Math.ceil((scrollTop + viewportHeight) / lineHeight) + overscan,
-  );
-
   let isInsideCodeBlock = false;
 
-  // Safe checks using unicode escaping to avoid rendering splits
-  for (let i = 0; i < startVisibleIdx; i++) {
-    const rawLine = lines[i];
-    if (rawLine.startsWith("\u0060\u0060\u0060") || rawLine.startsWith("~~~")) {
-      isInsideCodeBlock = !isInsideCodeBlock;
-    }
-  }
-
   return lines
-    .map((line, index) => {
-      if (index < startVisibleIdx || index > endVisibleIdx) {
-        if (line.startsWith("\u0060\u0060\u0060") || line.startsWith("~~~")) {
-          isInsideCodeBlock = !isInsideCodeBlock;
-        }
-        return line ? " " : "";
-      }
-
+    .map((line) => {
       const html = line
         .replace(/&/g, "&amp;")
         .replace(/</g, "&lt;")
@@ -220,27 +188,13 @@ export default function MarkdownEditor({
   const [isCtrlPressed, setIsCtrlPressed] = useState(false);
   const [isOverLink, setIsOverLink] = useState(false);
 
-  const [scrollTop, setScrollTop] = useState(0);
-  const [viewportHeight, setViewportHeight] = useState(800);
-
-  const numericFontSize = parseFloat(fontSize) || 16;
-  const calculatedLineHeight = numericFontSize * 1.7;
-
   const filteredTemplates = TEMPLATES.filter((t) =>
     t.label.toLowerCase().includes(filterQuery.toLowerCase()),
   );
 
-  const highlight = useCallback(
-    (code: string) => {
-      return highlightMarkdownVirtual(
-        code,
-        scrollTop,
-        viewportHeight,
-        calculatedLineHeight,
-      );
-    },
-    [scrollTop, viewportHeight, calculatedLineHeight],
-  );
+  const highlight = useCallback((code: string) => {
+    return highlightMarkdown(code);
+  }, []);
 
   function findLinkAtPos(text: string, pos: number) {
     let match;
@@ -279,17 +233,6 @@ export default function MarkdownEditor({
     if (textarea) {
       textareaRef.current = textarea as HTMLTextAreaElement;
       if (onTextareaReady) onTextareaReady(textareaRef.current);
-
-      const handleScroll = (e: Event) => {
-        setScrollTop((e.target as HTMLTextAreaElement).scrollTop);
-      };
-
-      setViewportHeight(textarea.clientHeight || 800);
-      textarea.addEventListener("scroll", handleScroll, { passive: true });
-
-      return () => {
-        textarea.removeEventListener("scroll", handleScroll);
-      };
     }
   }, [onTextareaReady]);
 
@@ -511,7 +454,6 @@ export default function MarkdownEditor({
   }
 
   function handleGlobalKeyDown(e: React.KeyboardEvent) {
-    // Advanced Shortcuts: Bold & Italic
     if (e.ctrlKey || e.metaKey) {
       if (e.key === "b") {
         e.preventDefault();
