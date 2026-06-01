@@ -35,6 +35,8 @@ import {
   HiOutlineDatabase,
   HiOutlineMenuAlt2,
   HiOutlineHome,
+  HiOutlineSave,
+  HiOutlineSaveAs,
 } from "react-icons/hi";
 
 export default function LiteEditor() {
@@ -235,18 +237,29 @@ export default function LiteEditor() {
           
           {/* Mobile Header (When sidebar closed) */}
           {!isSidebarOpen && (
-            <div className="md:hidden flex items-center h-11 px-4 border-b border-neutral-200 dark:border-neutral-800 shrink-0 bg-neutral-50/50 dark:bg-neutral-950/50 backdrop-blur-md">
-               <Button
-                  variant="icon"
-                  onClick={() => setIsSidebarOpen(true)}
-                  className="!rounded-xl"
-                >
-                  <HiOutlineMenuAlt2 size={20} />
-                </Button>
-                <div className="ml-4 flex flex-col">
-                  <span className="text-[10px] font-bold tracking-widest text-blue-500">HermesMD</span>
-                  <span className="text-[8px] font-mono opacity-40">Editor</span>
-                </div>
+            <div className="md:hidden flex items-center h-11 px-4 border-b border-neutral-200 dark:border-neutral-800 shrink-0 bg-neutral-50/50 dark:bg-neutral-950/50 backdrop-blur-md justify-between">
+               <div className="flex items-center">
+                  <Button
+                    variant="icon"
+                    onClick={() => setIsSidebarOpen(true)}
+                    className="!rounded-xl"
+                  >
+                    <HiOutlineMenuAlt2 size={20} />
+                  </Button>
+                  <div className="ml-4 flex flex-col">
+                    <span className="text-[10px] font-bold tracking-widest text-blue-500">HermesMD</span>
+                    <span className="text-[8px] font-mono opacity-40">Editor</span>
+                  </div>
+               </div>
+
+               <Button 
+                variant="icon" 
+                onClick={handleExport} 
+                className="!rounded-xl text-blue-500"
+                title={vaultHandle ? "Save" : "Export"}
+               >
+                  {vaultHandle ? <HiOutlineSave size={20} /> : <HiOutlineSaveAs size={20} />}
+               </Button>
             </div>
           )}
 
@@ -295,6 +308,7 @@ export default function LiteEditor() {
                       <h2 className="text-[10px] tracking-[0.2em] font-bold opacity-30 mb-4">Navigation</h2>
                       <Button variant="menu-item" onClick={handleOpenVault} className="justify-start gap-3"><HiOutlineDatabase size={18} className="text-blue-500" /> Open Vault</Button>
                       <Button variant="menu-item" onClick={handleNewFile} className="justify-start gap-3"><HiOutlineDocumentAdd size={18} /> New Draft</Button>
+                      <Button variant="menu-item" onClick={handleExport} className="justify-start gap-3"><HiOutlineSaveAs size={18} /> Export</Button>
                       <Button variant="menu-item" onClick={handleImport} className="justify-start gap-3"><HiOutlineFolderOpen size={18} /> Import</Button>
                       <Button variant="menu-item" onClick={() => {setIsSettingsOpen(true); setIsSidebarOpen(false);}} className="justify-start gap-3"><HiOutlineCog size={18} className="text-blue-500" /> Settings</Button>
                   </div>

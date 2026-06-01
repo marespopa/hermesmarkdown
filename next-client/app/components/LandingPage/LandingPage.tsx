@@ -49,7 +49,6 @@ export default function LandingPage() {
           <div className="group flex flex-col gap-2">
             <h1 className="text-4xl tracking-tighter">
               <span className="font-bold">HermesMarkdown</span>
-              <span className="font-light opacity-40">markdown</span>
             </h1>
             <div className="h-px w-12 bg-blue-600 transition-[width] duration-500 group-hover:w-20" />
           </div>
