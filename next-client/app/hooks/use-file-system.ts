@@ -14,13 +14,14 @@ import {
   atom_lastSavedContent,
   atom_fileLastModified,
   atom_fileConflict,
-  atom_pendingFileSwitch,
   atom_openFiles,
   atom_saveStatus,
   atom_workspaceLayout,
+  atom_rebindHandles,
 } from "@/app/atoms/atoms";
 import { atom_fileMetadata } from "@/app/atoms/metadata";
 import { useCallback, useEffect, useState } from "react";
+import { useSetAtom } from "jotai";
 import toast from "react-hot-toast";
 import { useDialog } from "./use-dialog";
 import {
@@ -72,9 +73,9 @@ export function useFileSystem() {
   const [lastSavedContent, setLastSavedContent] = useAtom(atom_lastSavedContent);
   const [, setFileLastModified] = useAtom(atom_fileLastModified);
   const [, setFileConflict] = useAtom(atom_fileConflict);
-  const [, setPendingFileSwitch] = useAtom(atom_pendingFileSwitch);
   const [, setSaveStatus] = useAtom(atom_saveStatus);
   const [, setWorkspaceLayout] = useAtom(atom_workspaceLayout);
+  const rebindHandles = useSetAtom(atom_rebindHandles);
   const dialog = useDialog();
 
   const [mounted, setMounted] = useState(false);
@@ -190,8 +191,8 @@ export function useFileSystem() {
       try {
         return await window.showDirectoryPicker();
       } catch (err: any) {
-        if (err.name !== "AbortError") throw err;
-        return undefined;
+        if (err.name === "AbortError" || err.name === "NotAllowedError") return undefined;
+        throw err;
       }
     });
 
@@ -204,12 +205,13 @@ export function useFileSystem() {
       await saveVaultHandle(handle);
       await scanVault(handle);
       await indexVaultTags(handle);
+      await rebindHandles(handle);
       toast.success("Vault opened: " + handle.name);
     } catch (err: any) {
       console.error("File System Error:", err?.message || err);
       toast.error("Failed to open vault");
     }
-  }, [setVaultHandle, setCurrentDirectoryHandle, setIsVaultPending, scanVault, indexVaultTags]);
+  }, [setVaultHandle, setCurrentDirectoryHandle, setIsVaultPending, scanVault, indexVaultTags, rebindHandles]);
 
   // Load vault on mount
   useEffect(() => {
@@ -246,13 +248,14 @@ export function useFileSystem() {
         setCurrentDirectoryHandle(vaultHandle);
         await scanVault(vaultHandle);
         await indexVaultTags(vaultHandle);
+        await rebindHandles(vaultHandle);
         toast.success("Vault restored");
       }
     } catch (err: any) {
       console.error("File System Error:", err?.message || err);
       toast.error("Failed to restore vault");
     }
-  }, [vaultHandle, setIsVaultPending, setCurrentDirectoryHandle, scanVault, indexVaultTags, dialog]);
+  }, [vaultHandle, setIsVaultPending, setCurrentDirectoryHandle, scanVault, indexVaultTags, rebindHandles, dialog]);
 
   const openFile = useCallback(
     async (
@@ -264,8 +267,14 @@ export function useFileSystem() {
       // Check for unsaved changes
       const isDirty = content !== lastSavedContent;
       if (isDirty && !force) {
-        setPendingFileSwitch({ handle: fileHandle, path: providedPath });
-        return;
+        const confirmed = await dialog.confirm(
+          "You have unsaved changes in your current file/draft. Open this file and discard changes?",
+          "Unsaved Changes",
+          "Open File",
+          "Cancel",
+          "You can save your current changes first to avoid losing work."
+        );
+        if (!confirmed) return;
       }
 
       try {
@@ -310,7 +319,7 @@ export function useFileSystem() {
           [finalPath]: {
             content: fileContent,
             lastSavedContent: fileContent,
-            fileName: fileHandle.name.replace(".md", ""),
+            fileName: fileHandle.name,
             activeFilePath: finalPath,
           },
         }));
@@ -376,8 +385,8 @@ export function useFileSystem() {
       setFileConflict,
       content,
       lastSavedContent,
-      setPendingFileSwitch,
       setOpenFiles,
+      dialog,
     ],
   );
 
@@ -529,8 +538,8 @@ export function useFileSystem() {
                 startIn: currentDirectoryHandle || vaultHandle || undefined,
               });
             } catch (err: any) {
-              if (err.name !== "AbortError") throw err;
-              return undefined;
+              if (err.name === "AbortError" || err.name === "NotAllowedError") return undefined;
+              throw err;
             }
           });
 
@@ -573,7 +582,9 @@ export function useFileSystem() {
       const link = document.createElement("a");
       link.href = url;
       link.download = finalName;
+      document.body.appendChild(link);
       link.click();
+      document.body.removeChild(link);
       URL.revokeObjectURL(url);
       
       // Treat download as successful save contextually
@@ -585,6 +596,71 @@ export function useFileSystem() {
     [currentDirectoryHandle, vaultHandle, saveFile, setLastSavedContent, setFileConflict],
   );
 
+  const createFile = useCallback(
+    async (name: string, content: string = "") => {
+      const targetDir = currentDirectoryHandle || vaultHandle;
+      if (!targetDir) return null;
+
+      const fileName = name.endsWith(".md") ? name : `${name}.md`;
+      try {
+        const newFileHandle = await targetDir.getFileHandle(fileName, {
+          create: true,
+        });
+
+        // Write content immediately if provided
+        const writable = await (newFileHandle as any).createWritable();
+        await writable.write(content);
+        await writable.close();
+
+        await scanVault(targetDir);
+        await indexVaultTags();
+
+        // Calculate path for opening
+        let path = fileName;
+        if (vaultHandle && currentDirectoryHandle) {
+          let isRoot = false;
+          try {
+            isRoot = await (vaultHandle as any).isSameEntry(currentDirectoryHandle);
+          } catch {
+            isRoot = vaultHandle.name === currentDirectoryHandle.name;
+          }
+
+          if (!isRoot) {
+            try {
+              const relativePath = await (vaultHandle as any).resolve(currentDirectoryHandle);
+              if (relativePath) {
+                path = [...relativePath, fileName].join("/");
+              }
+            } catch (e) {
+              console.warn("Failed to resolve relative path:", e);
+            }
+          }
+        }
+
+        await openFile(newFileHandle, path, true);
+        
+        // Reset the draft state now that it's a real file
+        setOpenFiles((prev) => ({
+          ...prev,
+          draft: {
+            content: "",
+            lastSavedContent: "",
+            fileName: "untitled.md",
+            activeFilePath: null,
+          },
+        }));
+
+        toast.success("Created: " + fileName);
+        return newFileHandle;
+      } catch (err: any) {
+        console.error("File System Error:", err?.message || err);
+        toast.error("Failed to create file");
+        return null;
+      }
+    },
+    [vaultHandle, currentDirectoryHandle, scanVault, indexVaultTags, openFile],
+  );
+
   const createNewFile = useCallback(async () => {
     const targetDir = currentDirectoryHandle || vaultHandle;
     if (!targetDir) return;
@@ -592,19 +668,8 @@ export function useFileSystem() {
     const name = await dialog.prompt("Enter file name (without .md):", "", "New File");
     if (!name) return;
 
-    const fileName = name.endsWith(".md") ? name : `${name}.md`;
-    try {
-      const newFileHandle = await targetDir.getFileHandle(fileName, {
-        create: true,
-      });
-      await scanVault(targetDir);
-      indexVaultTags();
-      await openFile(newFileHandle);
-    } catch (err: any) {
-      console.error("File System Error:", err?.message || err);
-      toast.error("Failed to create file");
-    }
-  }, [vaultHandle, currentDirectoryHandle, scanVault, indexVaultTags, openFile, dialog]);
+    return await createFile(name, "");
+  }, [vaultHandle, currentDirectoryHandle, createFile, dialog]);
 
   const createNewFolder = useCallback(async () => {
     const targetDir = currentDirectoryHandle || vaultHandle;
@@ -1062,8 +1127,8 @@ export function useFileSystem() {
             });
             return handle;
           } catch (err: any) {
-            if (err.name !== "AbortError") throw err;
-            return undefined;
+            if (err.name === "AbortError" || err.name === "NotAllowedError") return undefined;
+            throw err;
           }
         });
 
@@ -1073,7 +1138,9 @@ export function useFileSystem() {
         }
         return false;
       } catch (err: any) {
+        if (err.name === "AbortError") return false;
         console.error("Picker failed, trying fallback:", err);
+        return null;
       }
     }
     return null; // Signals to use fallback input
@@ -1129,6 +1196,7 @@ export function useFileSystem() {
     saveFile,
     exportFile,
     scanVault,
+    createFile,
     createNewFile,
     createNewFolder,
     navigateTo,

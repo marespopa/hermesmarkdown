@@ -1,19 +1,17 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import Button from "@/app/components/Button";
 import DialogModal from "@/app/components/DialogModal/DialogModal";
 import SettingsDialog from "./components/SettingsDialog";
 import ConflictDialog from "./components/ConflictDialog";
-import { useAtom } from "jotai";
+import { useAtom, useAtomValue } from "jotai";
 import {
   atom_fileName,
   atom_content,
   atom_activeFileHandle,
   atom_activeFilePath,
   atom_workspaceLayout,
-  atom_openFiles,
-  atom_lastSavedContent,
   atom_isZenModeActive,
 } from "@/app/atoms/atoms";
 import VaultSidebar from "./components/VaultSidebar";
@@ -25,6 +23,7 @@ import { useFileSystem } from "@/app/hooks/use-file-system";
 import { useFileSync } from "@/app/hooks/use-file-sync";
 import { useVaultSync } from "@/app/hooks/use-vault-sync";
 import { useAutoSave } from "@/app/hooks/use-auto-save";
+import { useDialog } from "@/app/hooks/use-dialog";
 import toast from "react-hot-toast";
 
 import {
@@ -32,13 +31,12 @@ import {
 } from "react-icons/hi";
 
 export default function LiteEditor() {
+  const [isMounting, setIsMounting] = useState(true);
   const [content, setContent] = useAtom(atom_content);
   const [fileName, setFileName] = useAtom(atom_fileName);
   const [activeFilePath, setActiveFilePath] = useAtom(atom_activeFilePath);
   const [, setActiveFileHandle] = useAtom(atom_activeFileHandle);
-  const [workspaceLayout] = useAtom(atom_workspaceLayout);
-  const [openFiles, setOpenFiles] = useAtom(atom_openFiles);
-  const [lastSavedContent] = useAtom(atom_lastSavedContent);
+  const workspaceLayout = useAtomValue(atom_workspaceLayout);
   const [isZenModeActive, setIsZenModeActive] = useAtom(atom_isZenModeActive);
 
   const {
@@ -47,14 +45,22 @@ export default function LiteEditor() {
     saveFile,
     exportFile,
     importFile,
-    createNewFile,
+    createFile,
   } = useFileSystem();
 
+  const dialog = useDialog();
+  const hasPromptedForNameRef = useRef(false);
+
+  // Run sync hooks
+  useAutoSave(() => {
+    if (!activeFileHandle && vaultHandle && !hasPromptedForNameRef.current) {
+      hasPromptedForNameRef.current = true;
+      handleSave();
+    }
+  });
   useFileSync();
   useVaultSync();
-  useAutoSave();
 
-  const [isMounting, setIsMounting] = useState(true);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isPathSwitching, setIsPathSwitching] = useState(false);
@@ -66,61 +72,78 @@ export default function LiteEditor() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === "z") {
-        e.preventDefault();
-        setIsZenModeActive((prev) => !prev);
-        if (!isZenModeActive) {
-          toast.success("Zen Mode Active", { icon: "🧘" });
-        } else {
-          toast.success("Zen Mode Inactive");
-        }
-      }
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isZenModeActive, setIsZenModeActive]);
-
-  useEffect(() => {
     const timer = setTimeout(() => setIsMounting(false), 200);
     return () => clearTimeout(timer);
   }, []);
 
   useEffect(() => {
+    // Default sidebar to closed on mobile or if no vault is loaded to avoid "pushing" content
+    if (typeof window !== "undefined") {
+      if (window.innerWidth < 1024 || !vaultHandle) {
+        setIsSidebarOpen(false);
+      }
+    }
+  }, [vaultHandle]);
+
+  const handleSave = useCallback(async () => {
+    if (!content.trim()) return;
+    
+    if (activeFileHandle) {
+      await saveFile(content);
+    } else if (vaultHandle) {
+      // Prompt for name if in a vault but no handle yet
+      const name = await dialog.prompt("Enter file name:", fileName.replace(".md", ""), "Save to Vault");
+      if (name) {
+        await createFile(name, content);
+      }
+    } else {
+      await exportFile(content, fileName);
+    }
+  }, [content, activeFileHandle, vaultHandle, saveFile, exportFile, fileName, dialog, createFile]);
+
+  // Shortcut Listener with Ref Pattern for stability
+  const handleSaveRef = useRef(handleSave);
+  useEffect(() => {
+    handleSaveRef.current = handleSave;
+  }, [handleSave]);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Zen Mode Shortcut
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === "z") {
+        e.preventDefault();
+        setIsZenModeActive((prev) => !prev);
+      }
+
+      // Manual Save Shortcut (Ctrl+S)
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s") {
+        e.preventDefault();
+        handleSaveRef.current();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [setIsZenModeActive]);
+
+  useEffect(() => {
     if (!isMounting) {
       setIsPathSwitching(true);
-      const timer = setTimeout(() => setIsPathSwitching(false), 200);
+      const timer = setTimeout(() => setIsPathSwitching(false), 500);
       return () => clearTimeout(timer);
     }
   }, [activeFilePath, isMounting]);
 
-  useEffect(() => {
-    if (content && Object.keys(openFiles).length === 0) {
-      setOpenFiles({
-        draft: {
-          content,
-          lastSavedContent,
-          fileName: fileName || "untitled",
-          activeFilePath: activeFilePath,
-        }
-      });
-    }
-  }, [content, fileName, activeFilePath, lastSavedContent, setOpenFiles, openFiles]);
-
   const handleNewFile = () => {
-    if (vaultHandle) {
-      createNewFile();
-      return;
-    }
     resetEditor();
   };
 
   const resetEditor = () => {
     setContent("");
-    setFileName("");
+    setFileName("untitled.md");
     setActiveFileHandle(null);
     setActiveFilePath("draft");
+    hasPromptedForNameRef.current = false;
     toast.success("New draft started");
   };
 
@@ -163,7 +186,7 @@ export default function LiteEditor() {
 
   return (
     <ErrorBoundary>
-      <div className="flex h-[100dvh] w-full bg-neutral-100 dark:bg-neutral-950 text-neutral-900 dark:text-neutral-100 selection:bg-blue-500/30 font-mono overflow-hidden overscroll-none">
+      <div className="flex h-[100dvh] w-full bg-zinc-50 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 selection:bg-blue-500/30 font-mono overflow-hidden overscroll-none">
         {/* Modals */}
         <SettingsDialog isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
         <WelcomeWizard />
@@ -186,7 +209,9 @@ export default function LiteEditor() {
         {/* --- MAIN LAYOUT --- */}
         
         {/* Sidebar (Explorer) */}
-        <div className={`transition-all duration-300 flex shrink-0 h-full border-r border-neutral-200 dark:border-neutral-800 ${isZenModeActive || !isSidebarOpen ? "w-0 opacity-0 pointer-events-none overflow-hidden border-none" : ""}`}>
+        <div 
+          className={`transition-[width,opacity] duration-700 [transition-timing-function:cubic-bezier(0.4,0,0.2,1)] flex shrink-0 h-full border-r border-zinc-200 dark:border-zinc-800 ${isZenModeActive || !isSidebarOpen ? "w-0 opacity-0 pointer-events-none overflow-hidden border-none" : ""}`}
+        >
           <VaultSidebar 
             onOpenSettings={() => setIsSettingsOpen(true)}
             onNewFile={handleNewFile}
@@ -197,18 +222,18 @@ export default function LiteEditor() {
         </div>
 
         {/* Workspace Content */}
-        <div className="flex-1 flex min-w-0 bg-white dark:bg-neutral-900 overflow-hidden relative">
+        <div className="flex-1 flex min-w-0 bg-zinc-50 dark:bg-zinc-950 overflow-hidden relative">
           
           {/* Collapsed Sidebar Toggle Column */}
           {!isSidebarOpen && !isZenModeActive && (
-            <div className="w-12 h-full flex flex-col items-center py-2 border-r border-neutral-200 dark:border-neutral-800 bg-neutral-50/50 dark:bg-neutral-950/50 shrink-0 z-40">
+            <div className="w-10 h-full flex flex-col items-center py-4 border-r border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-950/50 shrink-0 z-40">
                <Button
                   variant="icon"
                   onClick={() => setIsSidebarOpen(true)}
-                  className="w-8 h-8 opacity-60 hover:opacity-100"
+                  className="w-8 h-8 opacity-60 hover:opacity-100 text-zinc-600 dark:text-zinc-400"
                   title="Show Sidebar"
                 >
-                  <HiOutlineMenuAlt2 size={18} />
+                  <HiOutlineMenuAlt2 size={20} />
                 </Button>
             </div>
           )}

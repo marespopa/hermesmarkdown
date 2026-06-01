@@ -4,9 +4,21 @@ import React from "react";
 import { PanelLeaf } from "@/app/types/workspace";
 import MarkdownEditor from "./MarkdownEditor";
 import { useAtom } from "jotai";
-import { atom_activePaneId, atom_fileContent, atom_openFiles, atom_splitPane, atom_closePane, atom_closeTab, atom_activeFilePath, atom_moveTab, atom_isZenModeActive, atom_saveStatus } from "@/app/atoms/atoms";
-import { HiOutlineDocumentText, HiOutlineEye, HiOutlineChartBar, HiOutlineX, HiOutlineCloudUpload, HiOutlineCheckCircle, HiOutlineExclamationCircle, HiOutlineSaveAs, HiOutlineSave } from "react-icons/hi";
-import { VscSplitHorizontal, VscSplitVertical, VscClose } from "react-icons/vsc";
+import { 
+  atom_activePaneId, 
+  atom_fileContent, 
+  atom_openFiles, 
+  atom_splitPane, 
+  atom_closePane, 
+  atom_closeTab, 
+  atom_activeFilePath, 
+  atom_moveTab, 
+  atom_isZenModeActive, 
+  atom_saveStatus,
+  atom_liveHandles
+} from "@/app/atoms/atoms";
+import { HiOutlineDocumentText, HiOutlineEye, HiOutlineChartBar, HiOutlineX, HiOutlineCloudUpload, HiOutlineCheckCircle, HiOutlineExclamationCircle, HiOutlineSave } from "react-icons/hi";
+import { VscSplitHorizontal, VscClose } from "react-icons/vsc";
 import { useFileSystem } from "@/app/hooks/use-file-system";
 import { useAtomValue } from "jotai";
 
@@ -54,6 +66,7 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
   const { openFileByName, saveFile, exportFile } = useFileSystem();
   const filePath = leaf.activeFilePath || "draft";
   const [content, setContent] = useAtom(atom_fileContent(filePath));
+  const liveHandle = useAtomValue(atom_liveHandles(filePath));
   
   const isActive = activePaneId === leaf.id;
 
@@ -61,10 +74,9 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
     if (!content.trim()) return;
     const fileState = openFiles[filePath];
     const fileName = fileState?.fileName || "Untitled";
-    const handle = (fileState as any)?.handle;
 
-    if (handle) {
-      const success = await saveFile(content);
+    if (liveHandle) {
+      const success = await saveFile(content, liveHandle);
       if (success) return;
     }
     await exportFile(content, fileName);
@@ -72,11 +84,9 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
 
   const handleSave = async () => {
     if (!content.trim()) return;
-    const fileState = openFiles[filePath];
-    const handle = (fileState as any)?.handle;
 
-    if (handle) {
-      await saveFile(content);
+    if (liveHandle) {
+      await saveFile(content, liveHandle);
     } else {
       await handleExport();
     }
@@ -169,15 +179,15 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
     <div 
       className={`h-full flex flex-col transition-all duration-300 overflow-hidden ${
         isActive && !isZenModeActive
-          ? "ring-1 ring-blue-500/50 bg-white dark:bg-neutral-900 shadow-lg z-10" 
-          : "bg-white dark:bg-neutral-900"
+          ? "bg-zinc-50 dark:bg-zinc-950 z-10" 
+          : "bg-zinc-50 dark:bg-zinc-950"
       }`}
       onClick={() => setActivePaneId(leaf.id)}
     >
-      {/* Pane Tabs Bar */}
+      {/* Pane Tabs Bar - Flat & Seamless */}
       {!isZenModeActive && (
         <div 
-          className="flex items-center bg-neutral-100/50 dark:bg-neutral-950/50 border-b border-neutral-200 dark:border-neutral-800 h-9 overflow-x-auto overflow-y-hidden scrollbar-none shrink-0"
+          className="flex items-center bg-transparent border-b border-zinc-200 dark:border-zinc-800 h-10 sm:h-10 max-md:h-11 overflow-x-auto overflow-y-hidden scrollbar-none shrink-0"
           onDragOver={(e) => handleDragOver(e)}
           onDragLeave={handleDragLeave}
           onDrop={(e) => handleDrop(e, leaf.openFilePaths.length)}
@@ -204,13 +214,18 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
                   setActiveFilePath(path);
                 }}
                 className={`
-                  group flex items-center gap-2 px-3 h-full border-r border-neutral-200 dark:border-neutral-800 cursor-pointer min-w-[100px] max-w-[200px] transition-all shrink-0
-                  ${isTabActive ? "bg-white dark:bg-neutral-900 opacity-100" : "opacity-40 hover:opacity-100 hover:bg-white/50 dark:hover:bg-neutral-900/50"}
-                  ${isDraggedOver ? "border-l-2 border-l-blue-500 bg-blue-500/5" : ""}
+                  group flex items-center gap-2 px-3 md:px-4 h-full cursor-pointer min-w-[100px] md:min-w-[140px] max-w-[200px] md:max-w-[320px] transition-all shrink-0 relative touch-pan-x
+                  ${isTabActive ? "text-zinc-900 dark:text-zinc-100 font-semibold" : "text-zinc-400 dark:text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300"}
+                  ${isDraggedOver ? "bg-blue-500/5" : ""}
                 `}
               >
-                <span className="text-blue-500">{getIcon("editor")}</span>
-                <span className="text-[11px] font-medium truncate flex-1 tracking-tight">
+                {/* Active Indicator Line */}
+                {isTabActive && (
+                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-500 animate-in fade-in duration-300" />
+                )}
+
+                <span className={`${isTabActive ? "text-blue-500" : "text-zinc-400 dark:text-zinc-600"} opacity-70`}>{getIcon("editor")}</span>
+                <span className="text-[12px] truncate flex-1 tracking-tight">
                   {fileName}
                 </span>
                 
@@ -223,56 +238,42 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
                     e.stopPropagation();
                     closeTab({ paneId: leaf.id, filePath: path });
                   }}
-                  className="opacity-0 group-hover:opacity-100 p-0.5 rounded-md hover:bg-neutral-200 dark:hover:bg-neutral-800 transition-all shrink-0"
+                  className={`${isTabActive ? "opacity-60" : "opacity-0"} group-hover:opacity-100 p-1.5 rounded-md hover:bg-zinc-200 dark:hover:bg-zinc-800 transition-all shrink-0`}
                 >
-                  <VscClose size={12} />
+                  <VscClose size={14} />
                 </button>
               </div>
             );
           })}
           
-          {/* Pane Actions */}
-          <div className="flex items-center gap-1 ml-auto px-2 sticky right-0 bg-neutral-100/80 dark:bg-neutral-950/80 backdrop-blur-sm h-full border-l border-neutral-200/50 dark:border-neutral-800/50 shrink-0 z-20">
+          {/* Pane Actions - Minimalist */}
+          <div className="flex items-center gap-0.5 ml-auto px-2 sticky right-0 bg-zinc-50/80 dark:bg-zinc-950/80 backdrop-blur-sm h-full shrink-0 z-20">
             {isActive && leaf.openFilePaths.length > 0 && (
               <>
                 <SaveStatusIndicator />
                 <button 
                   onClick={handleSave}
                   title="Save"
-                  className="p-1.5 opacity-20 hover:opacity-100 hover:text-blue-500 transition-all"
+                  className="p-1.5 text-zinc-400 hover:text-blue-500 transition-all"
                 >
-                  <HiOutlineSave size={14} />
+                  <HiOutlineSave size={16} />
                 </button>
-                <button 
-                  onClick={handleExport}
-                  title="Export / Save As"
-                  className="p-1.5 opacity-20 hover:opacity-100 hover:text-blue-500 transition-all"
-                >
-                  <HiOutlineSaveAs size={14} />
-                </button>
-                <div className="w-px h-3 bg-neutral-300 dark:bg-neutral-700 mx-1" />
+                <div className="w-px h-3 bg-zinc-200 dark:bg-zinc-800 mx-1" />
               </>
             )}
             <button 
               onClick={() => splitPane({ id: leaf.id, direction: "horizontal" })}
               title="Split Right"
-              className="p-1.5 opacity-20 hover:opacity-100 hover:text-blue-500 transition-all"
+              className="p-1.5 text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-all hidden sm:block"
             >
               <VscSplitHorizontal size={14} />
             </button>
             <button 
-              onClick={() => splitPane({ id: leaf.id, direction: "vertical" })}
-              title="Split Down"
-              className="p-1.5 opacity-20 hover:opacity-100 hover:text-blue-500 transition-all"
-            >
-              <VscSplitVertical size={14} />
-            </button>
-            <button 
               onClick={() => closePane(leaf.id)}
               title="Close Pane"
-              className="p-1.5 opacity-20 hover:opacity-100 hover:text-red-500 transition-all"
+              className="p-1.5 text-zinc-400 hover:text-red-500 transition-all"
             >
-              <HiOutlineX size={14} />
+              <HiOutlineX size={16} />
             </button>
           </div>
         </div>

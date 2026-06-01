@@ -20,6 +20,7 @@ interface Props extends React.InputHTMLAttributes<HTMLInputElement> {
   onDebouncedChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
   className?: string; // Added to allow style overrides from forms
   autoFocus?: boolean;
+  selectOnFocus?: boolean;
 }
 
 const Input = forwardRef<HTMLInputElement, Props>(
@@ -38,11 +39,26 @@ const Input = forwardRef<HTMLInputElement, Props>(
       onDebouncedChange,
       className = "",
       autoFocus,
+      selectOnFocus,
       ...rest
     },
     ref,
   ) => {
+    const inputRef = useRef<HTMLInputElement>(null);
     const debounceRef = useRef<NodeJS.Timeout | null>(null);
+
+    // Merge forwarded ref with internal ref
+    React.useImperativeHandle(ref, () => inputRef.current!);
+
+    React.useEffect(() => {
+      if (autoFocus && selectOnFocus && inputRef.current) {
+        // Small delay to ensure the browser has finished rendering/focusing
+        const timer = setTimeout(() => {
+          inputRef.current?.select();
+        }, 50);
+        return () => clearTimeout(timer);
+      }
+    }, [autoFocus, selectOnFocus]);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       handleChange(e);

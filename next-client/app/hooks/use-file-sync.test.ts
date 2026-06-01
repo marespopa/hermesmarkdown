@@ -46,7 +46,7 @@ describe("useFileSync Hook", () => {
     vi.clearAllMocks();
   });
 
-  const setupMocks = (overrides = {}) => {
+  const setupMocks = (overrides: Record<any, any> = {}) => {
     const states = new Map<any, any>([
       [atom_activeFileHandle, [mockActiveFileHandle]],
       [atom_content, ["local content", setContent]],

@@ -1,5 +1,5 @@
 export const SUBTLE =
-  'class="text-neutral-500/30 dark:text-neutral-400/20 select-none"';
+  'class="text-zinc-500/20 dark:text-zinc-400/10 select-none"';
 export const WORKFLOW_TAGS = ["todo", "prog", "done", "urgn", "wait"];
 export const TAG_COLORS: Record<string, string> = {
   todo: "text-blue-600 dark:text-blue-400",
