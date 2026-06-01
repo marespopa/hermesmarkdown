@@ -10,8 +10,15 @@ import {
   HiOutlineDotsVertical,
   HiOutlineTrash,
   HiOutlinePencil,
-  HiOutlineRefresh,
+  HiOutlinePlus,
+  HiOutlineCog,
+  HiOutlineHome,
+  HiOutlineLogout,
+  HiOutlineDatabase,
+  HiOutlineCloudDownload,
+  HiOutlineCloudUpload,
 } from "react-icons/hi";
+import { VscNewFile } from "react-icons/vsc";
 import Button from "@/app/components/Button";
 import { useAtomValue } from "jotai";
 import { atom_fileMetadata } from "@/app/atoms/metadata";
@@ -19,12 +26,24 @@ import { atom_activeFilePath, atom_sidebarWidth } from "@/app/atoms/atoms";
 import SmartFolders from "./SmartFolders";
 import { useAtom } from "jotai";
 import SidebarHeader from "./SidebarHeader";
+import { useRouter } from "next/navigation";
 
 interface VaultSidebarProps {
   onClose?: () => void;
+  onOpenSettings?: () => void;
+  onNewFile?: () => void;
+  onImport?: () => void;
+  onExport?: () => void;
 }
 
-export default function VaultSidebar({ onClose }: VaultSidebarProps) {
+export default function VaultSidebar({ 
+  onClose, 
+  onOpenSettings, 
+  onNewFile,
+  onImport,
+  onExport,
+}: VaultSidebarProps) {
+  const router = useRouter();
   const {
     vaultFiles,
     openFile,
@@ -34,11 +53,13 @@ export default function VaultSidebar({ onClose }: VaultSidebarProps) {
     navigateBack,
     deleteFile,
     renameFile,
+    createNewFile,
     isVaultPending,
     restoreVault,
     isVaultSupported,
-    scanVault,
-    indexVaultTags,
+    openVault,
+    closeVault,
+    isMounted,
   } = useFileSystem();
 
   const fileMetadata = useAtomValue(atom_fileMetadata);
@@ -63,8 +84,7 @@ export default function VaultSidebar({ onClose }: VaultSidebarProps) {
 
   const resize = React.useCallback((e: MouseEvent) => {
     if (isResizing) {
-      // Calculate new width: mouse X - ribbon width (approx 80px)
-      const newWidth = Math.max(200, Math.min(600, e.clientX - 80));
+      const newWidth = Math.max(200, Math.min(600, e.clientX));
       setSidebarWidth(newWidth);
     }
   }, [isResizing, setSidebarWidth]);
@@ -89,6 +109,14 @@ export default function VaultSidebar({ onClose }: VaultSidebarProps) {
     return tagsMap;
   }, [fileMetadata]);
 
+  const isAtRoot =
+    !currentDirectoryHandle || (vaultHandle && vaultHandle.name === currentDirectoryHandle.name);
+
+  const tags = Object.keys(vaultTags).sort((a, b) => a < b ? -1 : a > b ? 1 : 0);
+  const filteredFiles = selectedTag ? vaultTags[selectedTag] : null;
+
+  if (!isMounted) return null;
+
   if (!isVaultSupported) {
     return (
       <div className="w-64 flex flex-col items-center justify-center p-6 text-center h-full">
@@ -99,30 +127,9 @@ export default function VaultSidebar({ onClose }: VaultSidebarProps) {
     );
   }
 
-  if (!vaultHandle) return null;
-
-  if (isVaultPending) {
-    return (
-      <div className="w-64 flex flex-col items-center justify-center p-6 text-center animate-in slide-in-from-left duration-300 h-full">
-        <HiOutlineFolder size={48} className="opacity-20 mb-4" />
-        <h2 className="text-xs font-bold tracking-widest opacity-50 mb-2">Vault Access Paused</h2>
-        <p className="text-[10px] opacity-40 mb-6 leading-relaxed">Browser security requires re-authorization to access your local files after a refresh.</p>
-        <Button variant="primary" onClick={restoreVault} className="w-full">
-          Restore Access
-        </Button>
-      </div>
-    );
-  }
-
-  const isAtRoot =
-    !currentDirectoryHandle || vaultHandle.name === currentDirectoryHandle.name;
-
-  const tags = Object.keys(vaultTags).sort((a, b) => a < b ? -1 : a > b ? 1 : 0);
-  const filteredFiles = selectedTag ? vaultTags[selectedTag] : null;
-
   return (
     <div 
-      className="flex flex-col h-full animate-in slide-in-from-left duration-300 relative group/sidebar"
+      className="flex flex-col h-full animate-in slide-in-from-left duration-300 relative group/sidebar bg-neutral-50/50 dark:bg-neutral-950/50"
       style={{ width: `${sidebarWidth}px` }}
     >
       {/* Resize Handle */}
@@ -135,186 +142,300 @@ export default function VaultSidebar({ onClose }: VaultSidebarProps) {
         `}
       />
 
-      <div className="p-4 border-b border-neutral-200 dark:border-neutral-800 flex justify-between items-center bg-white dark:bg-neutral-950">
-        <div className="flex items-center gap-2">
-          {(!isAtRoot || selectedTag) && (
-            <Button
-              variant="icon"
-              onClick={() => {
-                if (selectedTag) {
-                  setSelectedTag(null);
-                } else {
-                  navigateBack();
-                }
-              }}
-              className="w-7 h-7 -ml-2"
-            >
-              <HiOutlineChevronLeft size={16} />
-            </Button>
-          )}
-          <h2 className="text-[12px] font-bold opacity-80 truncate">
-            {selectedTag ? `Tag: ${selectedTag}` : currentDirectoryHandle?.name || "Vault"}
-          </h2>
-        </div>
-        <div className="flex items-center gap-0.5 relative">
-          <Button
-            variant="icon"
-            className="w-8 h-8"
-            onClick={async () => {
-              const targetDir = currentDirectoryHandle || vaultHandle;
-              if (targetDir) {
-                await scanVault(targetDir);
-                await indexVaultTags();
-              }
-            }}
-            title="Refresh Vault"
-          >
-            <HiOutlineRefresh size={16} />
-          </Button>
-
-          {onClose && (
-            <Button
-              variant="icon"
-              className="w-8 h-8 md:hidden"
-              onClick={onClose}
-              title="Close Sidebar"
-            >
-              <HiOutlineX size={16} />
-            </Button>
-          )}
+      {/* Apple Notes Style Header */}
+      <div className="p-4 flex flex-col gap-4 border-b border-neutral-200 dark:border-neutral-800 shrink-0">
+        <div className="flex justify-between items-center">
+          <div className="flex items-center gap-2">
+            {(!isAtRoot || selectedTag) && vaultHandle && (
+              <Button
+                variant="icon"
+                onClick={() => {
+                  if (selectedTag) {
+                    setSelectedTag(null);
+                  } else {
+                    navigateBack();
+                  }
+                }}
+                className="w-7 h-7 -ml-2"
+              >
+                <HiOutlineChevronLeft size={16} />
+              </Button>
+            )}
+            <h2 className="text-[14px] font-bold tracking-tight">
+              {selectedTag ? `Tag: ${selectedTag}` : currentDirectoryHandle?.name || (vaultHandle ? "Notes" : "Folders")}
+            </h2>
+          </div>
+          
+          <div className="flex items-center gap-1">
+             <Button
+                variant="icon"
+                className="w-8 h-8 opacity-60 hover:opacity-100"
+                onClick={onNewFile}
+                title="New Note"
+              >
+                <VscNewFile size={18} />
+              </Button>
+              
+              {onClose && (
+                <Button
+                  variant="icon"
+                  className="w-8 h-8 md:hidden opacity-60 hover:opacity-100"
+                  onClick={onClose}
+                  title="Close Sidebar"
+                >
+                  <HiOutlineX size={16} />
+                </Button>
+              )}
+          </div>
         </div>
       </div>
 
       <div className="flex-1 overflow-y-auto overscroll-none p-2 space-y-4">
-        {/* Files Section */}
-        <div className="space-y-1">
-          {!selectedTag && (
-            <SidebarHeader
-              title="Files"
-              isExpanded={isFilesExpanded}
-              onToggle={() => setIsFilesExpanded(!isFilesExpanded)}
-            />
-          )}
-          {isFilesExpanded && (selectedTag ? filteredFiles : vaultFiles)?.map((entry, idx) => (
-            <div
-              key={`${entry.kind || 'file'}-${entry.name}-${idx}`}
-              className="group relative"
-              onMouseLeave={() => setActionMenuOpen(null)}
-            >
-              <div
-                onClick={() => {
-                  if (selectedTag) {
-                    openFile(entry.handle, (entry as any).path);
-                  } else if (entry.kind === "file") {
-                    openFile(entry as FileSystemFileHandle);
-                  } else {
-                    navigateTo(entry as FileSystemDirectoryHandle);
-                  }
-                }}
-                className={`flex items-center gap-2 px-3 py-2 rounded-md cursor-pointer transition-colors text-sm pr-10 ${
-                  (selectedTag && (entry as any).path === activeFilePath) || (!selectedTag && activeFilePath?.split("/").pop() === entry.name)
-                    ? "bg-blue-500/10 text-blue-600 dark:text-blue-400 font-medium"
-                    : "hover:bg-neutral-200 dark:hover:bg-neutral-800 text-neutral-600 dark:text-neutral-400"
-                }`}
+        {!vaultHandle ? (
+          <div className="space-y-4">
+            <div className="space-y-1">
+              <SidebarHeader title="Locations" isExpanded={true} onToggle={() => {}} />
+              <div 
+                onClick={openVault}
+                className="flex items-center gap-2 px-3 py-2 rounded-md cursor-pointer hover:bg-neutral-200 dark:hover:bg-neutral-800 transition-colors text-sm text-blue-600 dark:text-blue-400 font-medium"
               >
-                {entry.kind === "directory" ? (
-                  <HiOutlineFolder size={16} className="shrink-0" />
-                ) : (
-                  <HiOutlineDocumentText size={16} className="shrink-0" />
-                )}
-                <span className="truncate">{entry.name}</span>
+                <HiOutlineDatabase size={16} />
+                <span>Open Local Folder</span>
               </div>
+              <div 
+                onClick={() => {}} // Active file handled by atoms
+                className={`flex items-center gap-2 px-3 py-2 rounded-md cursor-pointer transition-colors text-sm ${activeFilePath === 'draft' ? "bg-blue-500/10 text-blue-600 dark:text-blue-400 font-medium" : "hover:bg-neutral-200 dark:hover:bg-neutral-800 text-neutral-600 dark:text-neutral-400"}`}
+              >
+                <HiOutlineDocumentText size={16} />
+                <span>Draft Mode</span>
+              </div>
+            </div>
 
+            <div className="space-y-1">
+              <SidebarHeader title="More" isExpanded={true} onToggle={() => {}} />
+              <div 
+                onClick={onImport}
+                className="flex items-center gap-2 px-3 py-2 rounded-md cursor-pointer hover:bg-neutral-200 dark:hover:bg-neutral-800 transition-colors text-sm text-neutral-600 dark:text-neutral-400"
+              >
+                <HiOutlineCloudDownload size={16} />
+                <span>Import Markdown</span>
+              </div>
+              <div 
+                onClick={onExport}
+                className="flex items-center gap-2 px-3 py-2 rounded-md cursor-pointer hover:bg-neutral-200 dark:hover:bg-neutral-800 transition-colors text-sm text-neutral-600 dark:text-neutral-400"
+              >
+                <HiOutlineCloudUpload size={16} />
+                <span>Export Markdown</span>
+              </div>
+            </div>
+          </div>
+        ) : isVaultPending ? (
+          <div className="flex flex-col items-center justify-center p-6 text-center animate-in slide-in-from-left duration-300 h-full">
+            <HiOutlineFolder size={48} className="opacity-20 mb-4" />
+            <h2 className="text-xs font-bold tracking-widest opacity-50 mb-2">Vault Access Paused</h2>
+            <p className="text-[10px] opacity-40 mb-6 leading-relaxed">Browser security requires re-authorization to access your local files after a refresh.</p>
+            <Button variant="primary" onClick={restoreVault} className="w-full">
+              Restore Access
+            </Button>
+          </div>
+        ) : (
+          <>
+            {/* Files Section */}
+            <div className="space-y-1">
               {!selectedTag && (
-                <div className="absolute right-1.5 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity flex items-center">
-                  <Button
-                    variant="icon"
-                    className="w-7 h-7 flex items-center justify-center"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setActionMenuOpen(
-                        actionMenuOpen === entry.name ? null : entry.name,
-                      );
+                <SidebarHeader
+                  title="Files"
+                  isExpanded={isFilesExpanded}
+                  onToggle={() => setIsFilesExpanded(!isFilesExpanded)}
+                  action={
+                    <Button
+                      variant="icon"
+                      className="w-5 h-5 opacity-30 hover:opacity-100"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (onNewFile) {
+                          onNewFile();
+                        } else {
+                          createNewFile();
+                        }
+                      }}
+                      title="New File"
+                    >
+                      <HiOutlinePlus size={12} />
+                    </Button>
+                  }
+                />
+              )}
+              {isFilesExpanded && (selectedTag ? filteredFiles : vaultFiles)?.map((entry, idx) => (
+                <div
+                  key={`${entry.kind || 'file'}-${entry.name}-${idx}`}
+                  className="group relative"
+                  onMouseLeave={() => setActionMenuOpen(null)}
+                >
+                  <div
+                    onClick={() => {
+                      if (selectedTag) {
+                        openFile(entry.handle, (entry as any).path);
+                      } else if (entry.kind === "file") {
+                        openFile(entry as FileSystemFileHandle);
+                      } else {
+                        navigateTo(entry as FileSystemDirectoryHandle);
+                      }
                     }}
+                    className={`flex items-center gap-2 px-3 py-2 rounded-md cursor-pointer transition-colors text-sm pr-10 ${
+                      (selectedTag && (entry as any).path === activeFilePath) || (!selectedTag && activeFilePath?.split("/").pop() === entry.name)
+                        ? "bg-blue-500/10 text-blue-600 dark:text-blue-400 font-medium"
+                        : "hover:bg-neutral-200 dark:hover:bg-neutral-800 text-neutral-600 dark:text-neutral-400"
+                    }`}
                   >
-                    <HiOutlineDotsVertical size={14} className="opacity-60" />
-                  </Button>
+                    {entry.kind === "directory" ? (
+                      <HiOutlineFolder size={16} className="shrink-0" />
+                    ) : (
+                      <HiOutlineDocumentText size={16} className="shrink-0" />
+                    )}
+                    <span className="truncate">{entry.name}</span>
+                  </div>
+
+                  {!selectedTag && (
+                    <div className="absolute right-1.5 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity flex items-center">
+                      <Button
+                        variant="icon"
+                        className="w-7 h-7 flex items-center justify-center"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setActionMenuOpen(
+                            actionMenuOpen === entry.name ? null : entry.name,
+                          );
+                        }}
+                      >
+                        <HiOutlineDotsVertical size={14} className="opacity-60" />
+                      </Button>
+                    </div>
+                  )}
+
+                  {actionMenuOpen === entry.name && (
+                    <>
+                      <div
+                        className="fixed inset-0 z-40"
+                        onClick={() => setActionMenuOpen(null)}
+                      />
+                      <div className="absolute right-2 top-3/4 z-50 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-lg shadow-xl py-1 min-w-[120px] animate-in fade-in zoom-in-95 duration-100">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            renameFile(entry);
+                            setActionMenuOpen(null);
+                          }}
+                          className="w-full flex items-center gap-2 px-3 py-2 text-xs hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
+                        >
+                          <HiOutlinePencil size={14} className="opacity-60" />
+                          Rename
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            deleteFile(entry);
+                            setActionMenuOpen(null);
+                          }}
+                          className="w-full flex items-center gap-2 px-3 py-2 text-xs hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors text-red-500"
+                        >
+                          <HiOutlineTrash size={14} className="opacity-60" />
+                          Delete
+                        </button>
+                      </div>
+                    </>
+                  )}
+                </div>
+              ))}
+
+              {(!selectedTag ? vaultFiles : filteredFiles)?.length === 0 && (
+                <div className="p-4 text-center opacity-30 text-xs italic">
+                  Empty directory
                 </div>
               )}
+            </div>
 
-              {actionMenuOpen === entry.name && (
-                <>
-                  <div
-                    className="fixed inset-0 z-40"
-                    onClick={() => setActionMenuOpen(null)}
-                  />
-                  <div className="absolute right-2 top-3/4 z-50 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-lg shadow-xl py-1 min-w-[120px] animate-in fade-in zoom-in-95 duration-100">
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        renameFile(entry);
-                        setActionMenuOpen(null);
-                      }}
-                      className="w-full flex items-center gap-2 px-3 py-2 text-xs hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
-                    >
-                      <HiOutlinePencil size={14} className="opacity-60" />
-                      Rename
-                    </button>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        deleteFile(entry);
-                        setActionMenuOpen(null);
-                      }}
-                      className="w-full flex items-center gap-2 px-3 py-2 text-xs hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors text-red-500"
-                    >
-                      <HiOutlineTrash size={14} className="opacity-60" />
-                      Delete
-                    </button>
+            {/* Smart Filters Section */}
+            {!selectedTag && tags.length > 0 && (
+              <div className="space-y-1">
+                <SidebarHeader
+                  title="Smart Filters"
+                  isExpanded={isTagsExpanded}
+                  onToggle={() => setIsTagsExpanded(!isTagsExpanded)}
+                />
+                
+                {isTagsExpanded && (
+                  <div className="flex flex-wrap gap-1 px-3 max-h-40 overflow-y-auto overscroll-none custom-scrollbar animate-in fade-in duration-200">
+                    {tags.map((tag) => (
+                      <span
+                        key={tag}
+                        onClick={() => setSelectedTag(tag)}
+                        className="text-[10px] px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 cursor-pointer hover:bg-blue-500/20 transition-colors border border-blue-500/20"
+                      >
+                        {tag}
+                      </span>
+                    ))}
                   </div>
-                </>
-              )}
-            </div>
-          ))}
-
-          {(!selectedTag ? vaultFiles : filteredFiles)?.length === 0 && (
-            <div className="p-4 text-center opacity-30 text-xs italic">
-              Empty directory
-            </div>
-          )}
-        </div>
-
-        {/* Smart Filters Section */}
-        {!selectedTag && tags.length > 0 && (
-          <div className="space-y-1">
-            <SidebarHeader
-              title="Smart Filters"
-              isExpanded={isTagsExpanded}
-              onToggle={() => setIsTagsExpanded(!isTagsExpanded)}
-            />
-            
-            {isTagsExpanded && (
-              <div className="flex flex-wrap gap-1 px-3 max-h-40 overflow-y-auto overscroll-none custom-scrollbar animate-in fade-in duration-200">
-                {tags.map((tag) => (
-                  <span
-                    key={tag}
-                    onClick={() => setSelectedTag(tag)}
-                    className="text-[10px] px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 cursor-pointer hover:bg-blue-500/20 transition-colors border border-blue-500/20"
-                  >
-                    {tag}
-                  </span>
-                ))}
+                )}
               </div>
             )}
-          </div>
+          </>
         )}
 
-        {/* Workspaces Section */}
+        {/* Workspaces Section (Always visible if not in tag view) */}
         {!selectedTag && (
           <SmartFolders
             onFileSelect={openFile}
           />
         )}
+      </div>
+
+      {/* Global Actions Footer */}
+      <div className="p-2 border-t border-neutral-200 dark:border-neutral-800 bg-neutral-100/30 dark:bg-neutral-900/30 shrink-0">
+          <div className="flex items-center justify-between gap-1">
+            <div className="flex items-center gap-1">
+              <Button
+                variant="icon"
+                onClick={() => router.push("/")}
+                className="w-8 h-8 opacity-60 hover:opacity-100"
+                title="Go Home"
+              >
+                <HiOutlineHome size={18} />
+              </Button>
+
+              <Button
+                variant="icon"
+                onClick={onOpenSettings}
+                className="w-8 h-8 opacity-60 hover:opacity-100"
+                title="Settings"
+              >
+                <HiOutlineCog size={18} />
+              </Button>
+            </div>
+
+            <div className="flex items-center gap-1">
+               {vaultHandle ? (
+                  <Button
+                    variant="icon"
+                    onClick={closeVault}
+                    className="w-8 h-8 text-red-500/60 hover:text-red-500"
+                    title="Close Vault"
+                  >
+                    <HiOutlineLogout size={18} />
+                  </Button>
+               ) : (
+                  <Button
+                    variant="icon"
+                    onClick={openVault}
+                    disabled={!isVaultSupported}
+                    className="w-8 h-8 text-blue-500/60 hover:text-blue-500"
+                    title={isVaultSupported ? "Open Vault" : "Vault not supported"}
+                  >
+                    <HiOutlineDatabase size={18} />
+                  </Button>
+               )}
+            </div>
+          </div>
       </div>
     </div>
   );

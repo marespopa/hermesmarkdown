@@ -26,6 +26,14 @@ vi.mock("@/app/hooks/use-file-system", () => ({
   useFileSystem: vi.fn(),
 }));
 
+// Mock next/navigation
+vi.mock("next/navigation", () => ({
+  useRouter: vi.fn(() => ({
+    push: vi.fn(),
+    prefetch: vi.fn(),
+  })),
+}));
+
 import { useFileSystem } from "@/app/hooks/use-file-system";
 import { useAtomValue } from "jotai";
 
@@ -50,6 +58,7 @@ describe("VaultSidebar Component", () => {
     isVaultPending: false,
     restoreVault: vi.fn(),
     isVaultSupported: true,
+    isMounted: true,
   };
 
   beforeEach(() => {

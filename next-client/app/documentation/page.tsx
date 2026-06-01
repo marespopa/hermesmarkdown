@@ -2,237 +2,185 @@
 
 import React from "react";
 import { useRouter } from "next/navigation";
+import Button from "@/app/components/Button/Button.component";
 
 export default function Documentation() {
   const router = useRouter();
 
-  const sectionHeading =
-    "text-xs uppercase tracking-[0.2em] opacity-50 mb-8 block";
-  const guideRow =
-    "flex justify-between border-b border-black/5 dark:border-white/5 py-4 last:border-none items-center";
-  const syntaxLabel = "font-mono text-blue-600 dark:text-blue-400";
-  const resultLabel = "opacity-40 italic text-right text-xs";
+  const sectionHeading = "text-[10px] uppercase tracking-[0.3em] font-bold text-blue-600 dark:text-blue-400 mb-8 block";
+  const guideRow = "flex justify-between border-b border-black/5 dark:border-white/5 py-4 last:border-none items-center gap-4";
+  const syntaxLabel = "font-mono text-blue-600 dark:text-blue-400 font-bold";
+  const resultLabel = "opacity-40 italic text-right text-[10px] uppercase tracking-wider font-bold";
 
   return (
-    <main className="min-h-screen font-mono selection:bg-blue-500 dark:selection:bg-blue-100 bg-white dark:bg-neutral-900 text-zinc-900 dark:text-zinc-100">
-      <div className="max-w-2xl mx-auto px-6 py-32 space-y-32">
+    <main className="min-h-screen selection:bg-blue-500/30 text-neutral-900 dark:text-neutral-100 bg-white dark:bg-neutral-950 overflow-x-hidden font-sans">
+      <div className="max-w-5xl mx-auto px-6 pt-32 pb-32 space-y-32">
         {/* --- HEADER --- */}
-        <section className="space-y-8">
-          <button
+        <section className="space-y-8 animate-hero-fade-in">
+          <Button
+            variant="tertiary"
             onClick={() => router.back()}
-            className="text-[10px] uppercase tracking-[0.3em] opacity-50 hover:opacity-100 transition-opacity"
+            className="!text-[10px] uppercase tracking-[0.3em] opacity-40 hover:opacity-100 -ml-4"
           >
             ← Back
-          </button>
-          <h1 className="text-2xl font-normal tracking-tighter italic">
-            Documentation
+          </Button>
+          <h1 className="text-4xl md:text-7xl font-bold tracking-tight leading-[1.1]">
+            Product{" "}
+            <span className="text-neutral-400 dark:text-neutral-600 italic font-serif">
+              Documentation.
+            </span>
           </h1>
-          <p className="text-xl leading-relaxed text-zinc-800 dark:text-zinc-200">
-            HermesMarkdown is a local-first environment built for focused writing. No
-            cloud synchronization. No tracking. Just an interactive canvas
-            designed for speed and status tracking.
+          <p className="text-lg md:text-xl leading-relaxed text-neutral-600 dark:text-neutral-400 max-w-3xl">
+            HermesMarkdown is a professional, local-first workspace built for deep work. No cloud, no tracking, no friction—just a clean canvas for your thoughts.
           </p>
         </section>
 
         {/* --- 01. KNOWLEDGE MANAGEMENT --- */}
-        <section className="border-t border-black/10 dark:border-white/10 pt-12">
+        <section className="border-t border-black/5 dark:border-white/10 pt-20">
           <span className={sectionHeading}>01. Knowledge Management</span>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-            <div className="space-y-4">
-              <h3 className="text-xs font-bold uppercase tracking-widest text-purple-600 dark:text-purple-400">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-16">
+            <div className="space-y-6">
+              <h3 className="text-2xl font-bold tracking-tight">
                 Local-First Vaults
               </h3>
-              <p className="text-sm leading-relaxed opacity-80">
-                Open any local directory to treat it as a writing vault. Browse files, 
-                manage folders, and save changes directly to your machine.
+              <p className="text-neutral-600 dark:text-neutral-400 leading-relaxed">
+                Open any local directory to treat it as a writing vault. Browse files, manage folders, and save changes directly to your machine using modern web standards.
               </p>
-              <div className="text-sm p-4 bg-zinc-50 dark:bg-zinc-800/30 border border-black/5">
+              <div className="p-6 bg-neutral-50 dark:bg-neutral-900/50 rounded-2xl border border-black/5 dark:border-white/5 shadow-sm">
                 <div className={guideRow}>
-                  <span>Open Vault</span>
-                  <span className={resultLabel}>Ribbon Icon (Database)</span>
+                  <span className="text-sm font-medium">Open Vault</span>
+                  <span className={resultLabel}>Ribbon Icon</span>
                 </div>
                 <div className={guideRow}>
-                  <span>File Actions</span>
+                  <span className="text-sm font-medium">File Actions</span>
                   <span className={resultLabel}>Sidebar Explorer</span>
                 </div>
                 <div className={guideRow}>
-                  <span>Rename/Delete</span>
-                  <span className={resultLabel}>Vault Management</span>
+                  <span className="text-sm font-medium">Rename/Delete</span>
+                  <span className={resultLabel}>Context Menu</span>
                 </div>
-                <div className={guideRow}>
-                  <span>Exit Vault</span>
-                  <span className={resultLabel}>Ribbon Icon (Exit)</span>
-                </div>
+              </div>
+              <div className="p-4 bg-amber-50/50 dark:bg-amber-900/10 border border-amber-200/20 rounded-xl text-[10px] leading-relaxed uppercase tracking-wider font-bold text-amber-700 dark:text-amber-400/80">
+                Note: Cloud storage sync (Dropbox, iCloud) may lock files. We recommend pausing sync during active writing sessions for the smoothest experience.
               </div>
             </div>
 
-            <div className="space-y-4">
-              <h3 className="text-xs font-bold uppercase tracking-widest text-purple-600 dark:text-purple-400">
+            <div className="space-y-6">
+              <h3 className="text-2xl font-bold tracking-tight">
                 Internal Connectivity
               </h3>
-              <p className="text-sm leading-relaxed opacity-80">
-                Connect your ideas using WikiLink syntax and organize them with tags. 
-                HermesMarkdown automatically indexes your vault for dynamic navigation.
+              <p className="text-neutral-600 dark:text-neutral-400 leading-relaxed">
+                Connect your ideas using WikiLink syntax and organize them with tags. HermesMarkdown automatically indexes your vault for dynamic navigation.
               </p>
-              <div className="bg-zinc-50 dark:bg-zinc-900/30 px-6 border border-black/5 font-mono text-sm">
+              <div className="p-6 bg-neutral-50 dark:bg-neutral-900/50 rounded-2xl border border-black/5 dark:border-white/5 shadow-sm space-y-4">
                 <div className={guideRow}>
-                  <span className="font-mono text-purple-600 dark:text-purple-400">[[Note Name]]</span>
+                  <span className="font-mono text-sm text-purple-600 dark:text-purple-400 font-bold">[[Note Name]]</span>
                   <span className={resultLabel}>Internal Link</span>
                 </div>
                 <div className={guideRow}>
-                  <span className="font-mono text-blue-600 dark:text-blue-400">#todo</span>
+                  <span className="font-mono text-sm text-blue-600 dark:text-blue-400 font-bold">#todo</span>
                   <span className={resultLabel}>Smart Filter</span>
                 </div>
               </div>
-              <p className="text-[10px] opacity-40 italic leading-relaxed">
-                Navigation: CTRL + Click [[WikiLink]] to open. Click any tag in the "Smart Filters" 
-                sidebar section to view all notes containing that tag.
+              <p className="text-[10px] opacity-40 italic leading-relaxed font-bold uppercase tracking-widest">
+                Navigation: CTRL + Click to open links. Click sidebar tags to filter your entire vault instantly.
               </p>
             </div>
           </div>
         </section>
 
         {/* --- 02. INTERACTIVE ENGINE --- */}
-        <section className="border-t border-black/10 dark:border-white/10 pt-12">
+        <section className="border-t border-black/5 dark:border-white/10 pt-20">
           <span className={sectionHeading}>02. Interactive Engine</span>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-            <div className="space-y-4">
-              <h3 className="text-xs font-bold uppercase tracking-widest text-blue-600 dark:text-blue-400">
-                Click Actions
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-16">
+            <div className="space-y-6">
+              <h3 className="text-2xl font-bold tracking-tight">
+                Zen Mode
               </h3>
-              <p className="text-sm leading-relaxed opacity-80">
-                Elements in the editor are live. Clicking them modifies the
-                underlying text automatically.
+              <p className="text-neutral-600 dark:text-neutral-400 leading-relaxed">
+                Eliminate distractions and focus entirely on the active line. Zen Mode hides all sidebars and enables typewriter scrolling.
               </p>
-              <div className="text-sm p-4 bg-zinc-50 dark:bg-zinc-800/30 border border-black/5">
+              <div className="p-6 bg-neutral-50 dark:bg-neutral-900/50 rounded-2xl border border-black/5 dark:border-white/5 shadow-sm">
                 <div className={guideRow}>
-                  <span>Toggle Task</span>
-                  <span className={resultLabel}>
-                    Click `[ ]` or `[x]`
-                  </span>
+                  <span className="text-sm font-medium">Toggle Zen</span>
+                  <span className={resultLabel}>CTRL+SHIFT+Z</span>
                 </div>
                 <div className={guideRow}>
-                  <span>Cycle Status</span>
+                  <span className="text-sm font-medium">Typewriter Scroll</span>
+                  <span className={resultLabel}>Always Centered</span>
+                </div>
+                <div className={guideRow}>
+                  <span className="text-sm font-medium">Focus Highlight</span>
+                  <span className={resultLabel}>Active Line Tint</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-6">
+              <h3 className="text-2xl font-bold tracking-tight">
+                Click Actions
+              </h3>
+              <p className="text-neutral-600 dark:text-neutral-400 leading-relaxed">
+                Elements in the editor are live. Clicking them modifies the underlying text automatically without needing to type syntax.
+              </p>
+              <div className="p-6 bg-neutral-50 dark:bg-neutral-900/50 rounded-2xl border border-black/5 dark:border-white/5 shadow-sm">
+                <div className={guideRow}>
+                  <span className="text-sm font-medium">Toggle Task</span>
+                  <span className={resultLabel}>Click `[ ]` or `[x]`</span>
+                </div>
+                <div className={guideRow}>
+                  <span className="text-sm font-medium">Cycle Status</span>
                   <span className={resultLabel}>Click any `#tag`</span>
                 </div>
                 <div className={guideRow}>
-                  <span>Navigate</span>
+                  <span className="text-sm font-medium">Navigate</span>
                   <span className={resultLabel}>CTRL + Click Link</span>
                 </div>
               </div>
             </div>
-
-            <div className="space-y-4">
-              <h3 className="text-xs font-bold uppercase tracking-widest text-blue-600 dark:text-blue-400">
-                Smart Handling
-              </h3>
-              <p className="text-sm leading-relaxed opacity-80">
-                The editor intercepts specific inputs to format your workflow
-                without breaking your concentration.
-              </p>
-              <div className="p-4 bg-blue-50/50 dark:bg-blue-900/10 border border-blue-200/20 text-[10px] leading-relaxed uppercase tracking-wider text-blue-700 dark:text-blue-200/60">
-                Tip: Pasting a URL automatically generates a `[link](url)` and
-                selects the label for immediate renaming.
-              </div>
-            </div>
           </div>
         </section>
 
-        {/* --- 03. WORKSPACES & FILTERS --- */}
-        <section className="border-t border-black/10 dark:border-white/10 pt-12">
-          <span className={sectionHeading}>03. Workspaces & Filters</span>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-            <div className="space-y-4">
-              <h3 className="text-xs font-bold uppercase tracking-widest text-orange-600 dark:text-orange-400">
-                Workspaces
-              </h3>
-              <p className="text-sm leading-relaxed opacity-80">
-                Workspaces are predefined smart folders that automatically group your files based on metadata, helping you focus on what matters now without manual organization.
-              </p>
-              <div className="text-sm p-4 bg-zinc-50 dark:bg-zinc-800/30 border border-black/5">
-                <div className={guideRow}>
-                  <span>Today's Work</span>
-                  <span className={resultLabel}>Recently modified files</span>
-                </div>
-                <div className={guideRow}>
-                  <span>Custom Workspaces</span>
-                  <span className={resultLabel}>User-defined metadata queries</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="space-y-4">
-              <h3 className="text-xs font-bold uppercase tracking-widest text-orange-600 dark:text-orange-400">
-                Smart Filters
-              </h3>
-              <p className="text-sm leading-relaxed opacity-80">
-                HermesMarkdown automatically indexes any <code className="font-mono text-blue-600 dark:text-blue-400">#tag</code> used in your documents. These appear dynamically in the sidebar under Smart Filters.
-              </p>
-              <div className="p-4 bg-orange-50/50 dark:bg-orange-900/10 border border-orange-200/20 text-[10px] leading-relaxed uppercase tracking-wider text-orange-700 dark:text-orange-200/60">
-                Tip: Click any tag in the sidebar to instantly filter your vault and view all notes containing that specific tag.
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* --- 04. SYNTAX & SHORTCUTS --- */}
-        <section className="border-t border-black/10 dark:border-white/10 pt-12">
-          <span className={sectionHeading}>04. Syntax Guide</span>
+        {/* --- 03. SYNTAX & SHORTCUTS --- */}
+        <section className="border-t border-black/5 dark:border-white/10 pt-20">
+          <span className={sectionHeading}>03. Syntax & Shortcuts</span>
 
           <div className="space-y-16">
             {/* Workflow Lifecycle */}
-            <div>
-              <h3 className="text-xs font-bold mb-6 opacity-30 uppercase tracking-widest">
+            <div className="p-12 bg-neutral-900 dark:bg-zinc-100 text-white dark:text-neutral-900 rounded-[3rem] shadow-xl relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/10 blur-[100px] -mr-32 -mt-32" />
+              <h3 className="text-xs font-bold mb-10 opacity-40 uppercase tracking-[0.3em] text-center">
                 Workflow Lifecycle
               </h3>
-              <div className="flex items-center justify-between px-2 opacity-80">
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-8 max-w-2xl mx-auto">
                 {["#urgn", "#todo", "#prog", "#done"].map((tag, i, arr) => (
                   <React.Fragment key={tag}>
-                    <span className="text-xs font-mono text-blue-600 dark:text-blue-400">
-                      {tag}
-                    </span>
+                    <div className="flex flex-col items-center gap-2">
+                       <span className="text-lg font-mono text-blue-400 dark:text-blue-600 font-bold">
+                        {tag}
+                      </span>
+                      <span className="text-[9px] uppercase tracking-widest opacity-30 font-bold">{tag === '#urgn' ? 'Urgent' : tag === '#todo' ? 'To-Do' : tag === '#prog' ? 'Progress' : 'Done'}</span>
+                    </div>
                     {i < arr.length - 1 && (
-                      <span className="opacity-20">→</span>
+                      <span className="opacity-20 hidden sm:block">→</span>
                     )}
                   </React.Fragment>
                 ))}
               </div>
-              <p className="mt-4 text-[10px] opacity-40 italic">
-                Status tags are interactive. Clicking `#todo` transforms it to
-                `#prog`, and eventually `#done`.
+              <p className="mt-12 text-center text-[11px] opacity-40 italic max-w-md mx-auto leading-relaxed">
+                Status tags are interactive. Clicking a tag in the editor cycles it to the next phase in the lifecycle.
               </p>
             </div>
 
-            {/* Core Syntax Table */}
-            <div className="grid grid-cols-1 gap-8">
-              <div className="space-y-4">
-                <h3 className="text-xs font-bold opacity-30 uppercase tracking-widest">
-                  Task Syntax
-                </h3>
-                <div className="bg-zinc-50 dark:bg-zinc-900/30 px-6 border border-black/5 dark:border-white/5 font-mono text-sm">
-                  <div className={guideRow}>
-                    <span className={syntaxLabel}>- [ ]</span>
-                    <span className={resultLabel}>Empty Checkbox</span>
-                  </div>
-                  <div className={guideRow}>
-                    <span className={syntaxLabel}>- [x]</span>
-                    <span className={resultLabel}>Completed (Fades out)</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="space-y-4">
-                <h3 className="text-xs font-bold opacity-30 uppercase tracking-widest">
+            {/* Syntax Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-16">
+              <div className="space-y-6">
+                <h3 className="text-xs font-bold opacity-30 uppercase tracking-[0.3em]">
                   Live Shortcodes
                 </h3>
-                <div className="bg-zinc-50 dark:bg-zinc-900/30 px-6 border border-black/5 dark:border-white/5 font-mono text-sm">
-                  {/* Absolute Dates & Time */}
+                <div className="bg-neutral-50 dark:bg-neutral-900/50 p-6 rounded-2xl border border-black/5 dark:border-white/5 shadow-sm font-mono text-xs">
                   <div className={guideRow}>
                     <span className={syntaxLabel}>..d</span>
-                    <span className={resultLabel}>Stamp Current Date</span>
-                  </div>
-                  <div className={guideRow}>
-                    <span className={syntaxLabel}>{"{date}"}</span>
                     <span className={resultLabel}>Current Date</span>
                   </div>
                   <div className={guideRow}>
@@ -240,154 +188,45 @@ export default function Documentation() {
                     <span className={resultLabel}>Current Time</span>
                   </div>
                   <div className={guideRow}>
-                    <span className={syntaxLabel}>{"{datetime}"}</span>
-                    <span className={resultLabel}>Date & Time</span>
-                  </div>
-                  <div className={guideRow}>
                     <span className={syntaxLabel}>{"{iso}"}</span>
                     <span className={resultLabel}>ISO Timestamp</span>
                   </div>
                   <div className={guideRow}>
-                    <span className={syntaxLabel}>{"{unix}"}</span>
-                    <span className={resultLabel}>Unix Timestamp</span>
-                  </div>
-                  <div className={guideRow}>
-                    <span className={syntaxLabel}>..log</span>
-                    <span className={resultLabel}>Time Log Prefix</span>
-                  </div>
-
-                  {/* Relative Dates */}
-                  <div className={guideRow}>
                     <span className={syntaxLabel}>..tomorrow</span>
                     <span className={resultLabel}>Tomorrow's Date</span>
                   </div>
-                  <div className={guideRow}>
-                    <span className={syntaxLabel}>..yesterday</span>
-                    <span className={resultLabel}>Yesterday's Date</span>
-                  </div>
-
-                  {/* Calendar Metadata */}
-                  <div className={guideRow}>
-                    <span className={syntaxLabel}>{"{day}"}</span>
-                    <span className={resultLabel}>Full Weekday Name</span>
-                  </div>
-                  <div className={guideRow}>
-                    <span className={syntaxLabel}>{"{week}"}</span>
-                    <span className={resultLabel}>ISO Week Number</span>
-                  </div>
-
-                  {/* List Items */}
-                  <div className={guideRow}>
-                    <span className={syntaxLabel}>{"{todo}"}</span>
-                    <span className={resultLabel}> - [ ] </span>
-                  </div>
-                  <div className={guideRow}>
-                    <span className={syntaxLabel}>{"{done}"}</span>
-                    <span className={resultLabel}>- [x]</span>
-                  </div>
-
-                  {/* Emojis */}
-                  <div className={guideRow}>
+                   <div className={guideRow}>
                     <span className={syntaxLabel}>{"{check}"}</span>
-                    <span className={resultLabel}>✅</span>
+                    <span className={resultLabel}>✅ Emoji</span>
                   </div>
-                  <div className={guideRow}>
-                    <span className={syntaxLabel}>{"{error}"}</span>
-                    <span className={resultLabel}>❌</span>
-                  </div>
-                  <div className={guideRow}>
-                    <span className={syntaxLabel}>{"{idea}"}</span>
-                    <span className={resultLabel}>💡</span>
-                  </div>
-                  <div className={guideRow}>
-                    <span className={syntaxLabel}>{"{warn}"}</span>
-                    <span className={resultLabel}>⚠️</span>
-                  </div>
-                  <div className={guideRow}>
-                    <span className={syntaxLabel}>{"{fix}"}</span>
-                    <span className={resultLabel}>🛠️</span>
-                  </div>
-                  <div className={guideRow}>
-                    <span className={syntaxLabel}>{"{bug}"}</span>
-                    <span className={resultLabel}>🐛</span>
-                  </div>
-                  <div className={guideRow}>
-                    <span className={syntaxLabel}>{"{star}"}</span>
-                    <span className={resultLabel}>⭐</span>
-                  </div>
-
-                  {/* System */}
                   <div className={guideRow}>
                     <span className={syntaxLabel}>/</span>
-                    <span className={resultLabel}>Open Template Menu</span>
+                    <span className={resultLabel}>Template Menu</span>
                   </div>
                 </div>
               </div>
-            </div>
 
-            {/* Link Pattern */}
-            <div className="space-y-4">
-              <h3 className="text-xs font-bold opacity-30 uppercase tracking-widest">
-                Link Logic
-              </h3>
-              <div className="bg-zinc-50 dark:bg-zinc-900/30 p-6 border border-black/5 dark:border-white/5">
-                <div className="flex justify-between items-center mb-4 border-b border-black/5 pb-2">
-                  <span className="text-[10px] uppercase opacity-40 tracking-widest">
-                    Action
-                  </span>
-                  <span className="text-[10px] uppercase opacity-40 tracking-widest text-right">
-                    Markdown Result
-                  </span>
-                </div>
-                <div className="flex justify-between items-center font-mono text-xs">
-                  <span className="opacity-80">Paste URL</span>
-                  <code className="text-blue-600 dark:text-blue-400">
-                    {"[link](https://...)"}
-                  </code>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* --- 05. BUDGET & CALCULATIONS --- */}
-        <section className="border-t border-black/10 dark:border-white/10 pt-12">
-          <span className={sectionHeading}>05. Financial Intelligence</span>
-          <div className="space-y-8">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-              <div className="space-y-4">
-                <h3 className="text-xs font-bold uppercase tracking-widest text-emerald-600 dark:text-emerald-400">
-                  Auto-Budgeting
+              <div className="space-y-6">
+                <h3 className="text-xs font-bold opacity-30 uppercase tracking-[0.3em]">
+                  Financial Intelligence
                 </h3>
-                <p className="text-sm leading-relaxed opacity-80">
-                  HermesMarkdown automatically sums all currency values found above a
-                  line starting with <span className="font-mono">Total:</span>.
-                </p>
-                <div className="p-4 bg-emerald-50/50 dark:bg-emerald-900/10 border border-emerald-200/20 font-mono text-[11px] space-y-1">
-                  <div className="opacity-50">- Rent: $2000</div>
-                  <div className="opacity-50">- Food: $400</div>
-                  <div className="text-emerald-700 dark:text-emerald-300 font-bold">
-                    Total: $2400.00
+                <div className="bg-neutral-50 dark:bg-neutral-900/50 p-6 rounded-2xl border border-black/5 dark:border-white/5 shadow-sm space-y-6">
+                   <div className="space-y-2">
+                    <p className="text-[11px] leading-relaxed text-neutral-600 dark:text-neutral-400">
+                      HermesMarkdown sums all currency values found above a line starting with <code className="font-bold text-blue-600">Total:</code>.
+                    </p>
+                    <div className="p-4 bg-emerald-500/5 dark:bg-emerald-500/10 border border-emerald-500/20 rounded-xl font-mono text-[10px]">
+                      <div className="opacity-40">- Rent: $2000</div>
+                      <div className="opacity-40">- Food: $400</div>
+                      <div className="text-emerald-600 dark:text-emerald-400 font-bold mt-1 pt-1 border-t border-emerald-500/20">Total: $2400.00</div>
+                    </div>
                   </div>
-                </div>
-              </div>
-
-              <div className="space-y-4">
-                <h3 className="text-xs font-bold uppercase tracking-widest text-emerald-600 dark:text-emerald-400">
-                  Inline Math
-                </h3>
-                <p className="text-sm leading-relaxed opacity-80">
-                  Execute quick math without leaving the document. Type the
-                  expression and close it with an equals sign.
-                </p>
-                <div className="bg-zinc-50 dark:bg-zinc-900/30 px-6 border border-black/5 font-mono text-sm">
-                  <div className={guideRow}>
-                    <span className={syntaxLabel}>calc(100+50)=</span>
-                    <span className={resultLabel}>150</span>
-                  </div>
-                  <div className={guideRow}>
-                    <span className={syntaxLabel}>calc(24*0.1)=</span>
-                    <span className={resultLabel}>2.4</span>
+                  
+                  <div className="pt-4 border-t border-black/5">
+                    <div className={guideRow}>
+                      <span className={syntaxLabel}>calc(100+50)=</span>
+                      <span className={resultLabel}>150</span>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -396,9 +235,9 @@ export default function Documentation() {
         </section>
 
         {/* --- FOOTER --- */}
-        <footer className="pt-20 pb-12 text-center border-t border-black/5 dark:border-white/5">
-          <p className="text-[10px] uppercase tracking-[0.4em] opacity-30 italic">
-            Focus First — Stay Local
+        <footer className="pt-20 pb-12 text-center border-t border-black/5 dark:border-white/5 opacity-30">
+          <p className="text-[10px] uppercase tracking-[0.4em] font-bold">
+            Stay Local — Write Deep
           </p>
         </footer>
       </div>

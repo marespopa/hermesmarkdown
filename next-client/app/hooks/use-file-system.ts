@@ -17,6 +17,7 @@ import {
   atom_pendingFileSwitch,
   atom_openFiles,
   atom_saveStatus,
+  atom_workspaceLayout,
 } from "@/app/atoms/atoms";
 import { atom_fileMetadata } from "@/app/atoms/metadata";
 import { useCallback, useEffect, useState } from "react";
@@ -73,6 +74,7 @@ export function useFileSystem() {
   const [, setFileConflict] = useAtom(atom_fileConflict);
   const [, setPendingFileSwitch] = useAtom(atom_pendingFileSwitch);
   const [, setSaveStatus] = useAtom(atom_saveStatus);
+  const [, setWorkspaceLayout] = useAtom(atom_workspaceLayout);
   const dialog = useDialog();
 
   const [mounted, setMounted] = useState(false);
@@ -380,14 +382,14 @@ export function useFileSystem() {
   );
 
   const saveFile = useCallback(
-    async (content: string, handle?: FileSystemFileHandle, retryCount = 0): Promise<boolean> => {
+    async (content: string, handle?: FileSystemFileHandle, retryCount = 0, isAutoSave = false): Promise<boolean> => {
       const fileToSave = handle || activeFileHandle;
       if (!fileToSave) return false;
 
       setSaveStatus({ 
         state: "saving", 
         retryCount, 
-        message: retryCount > 0 ? `Retry ${retryCount}/5` : undefined 
+        message: retryCount > 0 ? `Retry ${retryCount}/8` : undefined 
       });
 
       let writable: FileSystemWritableFileStream | null = null;
@@ -434,16 +436,21 @@ export function useFileSystem() {
         indexVaultTags();
         setSaveStatus({ state: "saved", retryCount });
         setTimeout(() => setSaveStatus({ state: "idle", retryCount: 0 }), 2000);
-        toast.success("Saved to " + fileToSave.name);
+        
+        if (!isAutoSave) {
+          toast.success("Saved to " + fileToSave.name);
+        }
+        
         return true;
       } catch (err: any) {
         const isRetryable = 
           err.name === "InvalidStateError" || 
           err.message?.includes("state had changed") ||
+          err.message?.includes("locked") ||
           err.name === "NoModificationAllowedError";
 
-        if (isRetryable && retryCount < 5) {
-          const delay = 300 * Math.pow(1.5, retryCount);
+        if (isRetryable && retryCount < 8) {
+          const delay = 400 * Math.pow(1.5, retryCount);
 
           // Try to refresh the handle if it's in the vault
           if (activeFilePath && vaultHandle) {
@@ -462,14 +469,14 @@ export function useFileSystem() {
               }
 
               await new Promise((resolve) => setTimeout(resolve, delay));
-              return saveFile(content, freshHandle, retryCount + 1);
+              return saveFile(content, freshHandle, retryCount + 1, isAutoSave);
             } catch (retryErr) {
               console.warn("Failed to refresh handle for retry:", retryErr);
             }
           }
 
           await new Promise((resolve) => setTimeout(resolve, delay));
-          return saveFile(content, handle, retryCount + 1);
+          return saveFile(content, handle, retryCount + 1, isAutoSave);
         }
 
         console.error("File System Error:", err?.message || err);
@@ -643,11 +650,33 @@ export function useFileSystem() {
     setCurrentDirectoryHandle(null);
     setVaultFiles([]);
     setActiveFileHandle(null);
-    setActiveFilePath(null);
+    setActiveFilePath("draft");
     setIsVaultPending(false);
+    
+    // Clear open files and reset to just the draft
+    setOpenFiles({
+      draft: {
+        content: "",
+        lastSavedContent: "",
+        fileName: "untitled",
+        activeFilePath: "draft",
+      }
+    });
+
+    // Reset layout to single pane with draft
+    setWorkspaceLayout({
+      rootContainer: {
+        id: "default-pane",
+        type: "editor",
+        openFilePaths: ["draft"],
+        activeFilePath: "draft",
+        isPinned: false
+      }
+    });
+    
     clearVaultHandle();
     toast.success("Vault closed");
-  }, [setVaultHandle, setCurrentDirectoryHandle, setVaultFiles, setActiveFileHandle, setActiveFilePath, setIsVaultPending]);
+  }, [setVaultHandle, setCurrentDirectoryHandle, setVaultFiles, setActiveFileHandle, setActiveFilePath, setIsVaultPending, setOpenFiles, setWorkspaceLayout]);
 
   const deleteFile = useCallback(
     async (handle: FileSystemHandle) => {
@@ -1112,5 +1141,6 @@ export function useFileSystem() {
     isVaultPending,
     isVaultSupported: isVaultSupportedMounted,
     isIdbSupported: isIdbSupportedMounted,
+    isMounted: mounted,
   };
 }

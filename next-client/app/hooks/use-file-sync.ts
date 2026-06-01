@@ -22,12 +22,17 @@ export function useFileSync() {
   const [fileLastModified, setFileLastModified] = useAtom(atom_fileLastModified);
   const [, setFileConflict] = useAtom(atom_fileConflict);
   const [isVaultPending] = useAtom(atom_isVaultPending);
+  
+  const lastHandleRef = useRef<FileSystemFileHandle | null>(null);
 
   const checkSync = useCallback(async () => {
     if (!activeFileHandle || isVaultPending) return;
 
     try {
       const file = await activeFileHandle.getFile();
+      
+      // If we switched files, don't trigger the "updated externally" toast
+      const isNewFile = activeFileHandle !== lastHandleRef.current;
       
       if (fileLastModified && file.lastModified > fileLastModified) {
         const remoteContent = await file.text();
@@ -38,7 +43,10 @@ export function useFileSync() {
           setContent(remoteContent);
           setLastSavedContent(remoteContent);
           setFileLastModified(file.lastModified);
-          toast.success("File updated externally", { icon: "🔄" });
+          
+          if (!isNewFile) {
+            toast.success("File updated externally", { icon: "🔄" });
+          }
         } else {
           // Potential conflict if there are local changes
           if (remoteContent !== content) {
@@ -50,11 +58,14 @@ export function useFileSync() {
           }
         }
       }
+      
+      lastHandleRef.current = activeFileHandle;
     } catch (err: any) {
       // Very quiet on sync check failures as they are extremely common with cloud sync
       const isExpected = 
         err.name === "InvalidStateError" || 
         err.name === "NotFoundError" ||
+        err.message?.includes("locked") ||
         err.message?.includes("state had changed");
       
       if (!isExpected) {

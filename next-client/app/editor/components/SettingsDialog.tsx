@@ -8,6 +8,9 @@ import {
   atom_fontFamily,
   atom_theme,
   atom_showStats,
+  atom_isZenModeActive,
+  atom_isWizardOpen,
+  atom_isAutoSaveEnabled,
 } from "@/app/atoms/atoms";
 import DialogModal from "@/app/components/DialogModal/DialogModal";
 import Button from "@/app/components/Button";
@@ -17,18 +20,59 @@ type Props = {
   onClose: () => void;
 };
 
+const Toggle = ({ active, onChange }: { active: boolean; onChange: (v: boolean) => void }) => (
+  <button
+    type="button"
+    role="switch"
+    aria-checked={active}
+    onClick={() => onChange(!active)}
+    className={`relative inline-flex h-5 w-9 items-center rounded-full transition-all focus:outline-none ${
+      active ? 'bg-blue-500' : 'bg-neutral-300 dark:bg-neutral-700'
+    }`}
+  >
+    <span
+      className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${
+        active ? 'translate-x-[18px]' : 'translate-x-[2px]'
+      }`}
+    />
+  </button>
+);
+
+const SettingItem = ({ label, description, control }: { label: string; description?: string; control: React.ReactNode }) => (
+  <div className="flex items-center justify-between py-3 border-b border-neutral-100 dark:border-neutral-800/30 last:border-0">
+    <div className="flex flex-col pr-4">
+      <span className="text-[13px] font-medium leading-none">{label}</span>
+      {description && <span className="text-[11px] text-neutral-500 dark:text-neutral-400 mt-1.5 leading-tight">{description}</span>}
+    </div>
+    <div className="flex-shrink-0">
+      {control}
+    </div>
+  </div>
+);
+
+const SettingGroup = ({ title, children }: { title: string; children: React.ReactNode }) => (
+  <div className="mb-6 last:mb-0">
+    <h3 className="text-[10px] tracking-[0.2em] font-bold text-neutral-400 dark:text-neutral-500 uppercase mb-2.5 px-1">
+      {title}
+    </h3>
+    <div className="bg-neutral-50 dark:bg-neutral-900/50 rounded-[20px] px-4 py-1 border border-neutral-200/50 dark:border-neutral-800/50">
+      {children}
+    </div>
+  </div>
+);
+
 const SettingsDialog = ({ isOpen, onClose }: Props) => {
   const [fontSize, setFontSize] = useAtom(atom_fontSize);
   const [fontFamily, setFontFamily] = useAtom(atom_fontFamily);
   const [theme, setTheme] = useAtom(atom_theme);
   const [wordWrap, setWordWrap] = useAtom(atom_wordWrap);
   const [showStats, setShowStats] = useAtom(atom_showStats);
+  const [isZenModeActive, setIsZenModeActive] = useAtom(atom_isZenModeActive);
+  const [isAutoSaveEnabled, setIsAutoSaveEnabled] = useAtom(atom_isAutoSaveEnabled);
+  const [, setIsWizardOpen] = useAtom(atom_isWizardOpen);
   
   const monoFonts = [
-    {
-      name: "System",
-      value: "ui-monospace, SFMono-Regular, Consolas, monospace",
-    },
+    { name: "System", value: "ui-monospace, SFMono-Regular, Consolas, monospace" },
     { name: "JetBrains", value: "var(--font-jetbrains), monospace" },
     { name: "Fira Code", value: "var(--font-fira), monospace" },
     { name: "IBM Plex", value: "var(--font-ibm), monospace" },
@@ -41,111 +85,95 @@ const SettingsDialog = ({ isOpen, onClose }: Props) => {
     { label: "XL", value: "22px" },
   ];
 
-  const Section = ({ title, children }: { title: string; children: React.ReactNode }) => (
-    <div className="space-y-3">
-      <h3 className="text-[9px] tracking-[0.2em] font-bold opacity-30 px-1">
-        {title}
-      </h3>
-      {children}
-    </div>
-  );
-
   return (
     <DialogModal isOpened={isOpen} onClose={onClose} styles="!max-w-md !max-h-[90vh]">
       <div className="flex flex-col h-full max-h-[80vh]">
-        <div className="space-y-1 mb-6">
+        <div className="space-y-1 mb-6 px-1">
           <h2 className="text-2xl font-bold tracking-tight">Settings</h2>
-          <p className="text-[10px] tracking-widest opacity-40 font-mono">Environment Configuration</p>
+          <p className="text-[11px] text-neutral-500 dark:text-neutral-400 font-medium">Environment Configuration</p>
         </div>
 
-        <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar space-y-8 py-2">
-          <Section title="Typeface">
-            <div className="grid grid-cols-2 gap-1.5 p-1 bg-neutral-100 dark:bg-neutral-800/50 rounded-2xl border border-neutral-200 dark:border-neutral-800">
-              {monoFonts.map((font) => (
-                <Button
-                  key={font.value}
-                  variant={fontFamily === font.value ? "primary" : "secondary"}
-                  onClick={() => setFontFamily(font.value)}
-                  className="w-full h-10 text-[11px] border-none shadow-none !rounded-xl transition-all"
+        <div className="flex-1 overflow-y-auto custom-scrollbar -mx-2 px-2 pb-2">
+          <SettingGroup title="Typography">
+            <SettingItem 
+              label="Typeface" 
+              description="Monospace font for the editor."
+              control={
+                <select 
+                  value={fontFamily} 
+                  onChange={(e) => setFontFamily(e.target.value)}
+                  className="bg-neutral-200/50 dark:bg-neutral-800 text-[11px] font-bold rounded-xl px-2.5 py-1.5 outline-none border border-transparent focus:border-blue-500/50 cursor-pointer appearance-none text-center min-w-[100px]"
                 >
-                  {font.name}
-                </Button>
-              ))}
-            </div>
-          </Section>
+                  {monoFonts.map(f => <option key={f.name} value={f.value}>{f.name}</option>)}
+                </select>
+              } 
+            />
+            <SettingItem 
+              label="Text Size" 
+              control={
+                <div className="flex bg-neutral-200/50 dark:bg-neutral-800 p-0.5 rounded-xl">
+                  {sizes.map(s => (
+                    <button
+                      key={s.label}
+                      onClick={() => setFontSize(s.value)}
+                      className={`px-3 py-1 text-[10px] font-bold rounded-lg transition-all ${
+                        fontSize === s.value ? "bg-white dark:bg-neutral-700 shadow-sm text-blue-600 dark:text-blue-400" : "text-neutral-500 hover:text-neutral-900 dark:hover:text-neutral-100"
+                      }`}
+                    >
+                      {s.label}
+                    </button>
+                  ))}
+                </div>
+              } 
+            />
+          </SettingGroup>
 
-          <Section title="Text Size">
-            <div className="flex gap-1.5 p-1 bg-neutral-100 dark:bg-neutral-800/50 rounded-2xl border border-neutral-200 dark:border-neutral-800">
-              {sizes.map((size) => (
+          <SettingGroup title="Editor">
+            <SettingItem 
+              label="Auto-Save" 
+              description="Automatically persist changes to files."
+              control={<Toggle active={isAutoSaveEnabled} onChange={setIsAutoSaveEnabled} />} 
+            />
+            <SettingItem 
+              label="Word Wrap" 
+              description="Wrap long lines to fit viewport."
+              control={<Toggle active={wordWrap} onChange={setWordWrap} />} 
+            />
+            <SettingItem 
+              label="Zen Mode" 
+              description="Focus on the active line."
+              control={<Toggle active={isZenModeActive} onChange={setIsZenModeActive} />} 
+            />
+          </SettingGroup>
+
+          <SettingGroup title="Interface">
+            <SettingItem 
+              label="Dark Theme" 
+              description="Use dark application colors."
+              control={<Toggle active={theme === "dark"} onChange={(active) => setTheme(active ? "dark" : "light")} />} 
+            />
+            <SettingItem 
+              label="Status Bar" 
+              description="Show word and character counts."
+              control={<Toggle active={showStats} onChange={setShowStats} />} 
+            />
+          </SettingGroup>
+
+          <SettingGroup title="Guide">
+            <SettingItem 
+              label="Welcome Tour" 
+              description="Replay the introduction wizard."
+              control={
                 <Button
-                  key={size.value}
-                  variant={fontSize === size.value ? "primary" : "secondary"}
-                  onClick={() => setFontSize(size.value)}
-                  className="flex-1 h-10 text-[11px] border-none shadow-none !rounded-xl transition-all"
+                  variant="secondary"
+                  onClick={() => { setIsWizardOpen(true); onClose(); }}
+                  className="h-8 px-4 text-[10px] font-bold uppercase tracking-widest border-neutral-200 dark:border-neutral-800"
                 >
-                  {size.label}
+                  Start
                 </Button>
-              ))}
-            </div>
-          </Section>
-
-          <Section title="Interface">
-            <div className="grid grid-cols-2 gap-2">
-              <div className="flex flex-col gap-2">
-                <span className="text-[9px] tracking-widest opacity-30 font-bold ml-1">Word Wrap</span>
-                <div className="flex p-1 bg-neutral-100 dark:bg-neutral-800/50 rounded-2xl border border-neutral-200 dark:border-neutral-800">
-                  <Button
-                    variant={wordWrap ? "primary" : "secondary"}
-                    onClick={() => setWordWrap(true)}
-                    className="flex-1 h-9 text-[10px] border-none shadow-none !rounded-xl"
-                  >
-                    On
-                  </Button>
-                  <Button
-                    variant={!wordWrap ? "primary" : "secondary"}
-                    onClick={() => setWordWrap(false)}
-                    className="flex-1 h-9 text-[10px] border-none shadow-none !rounded-xl"
-                  >
-                    Off
-                  </Button>
-                </div>
-              </div>
-
-              <div className="flex flex-col gap-2">
-                <span className="text-[9px] tracking-widest opacity-30 font-bold ml-1">Status Bar</span>
-                <div className="flex p-1 bg-neutral-100 dark:bg-neutral-800/50 rounded-2xl border border-neutral-200 dark:border-neutral-800">
-                  <Button
-                    variant={showStats ? "primary" : "secondary"}
-                    onClick={() => setShowStats(true)}
-                    className="flex-1 h-9 text-[10px] border-none shadow-none !rounded-xl"
-                  >
-                    Show
-                  </Button>
-                  <Button
-                    variant={!showStats ? "primary" : "secondary"}
-                    onClick={() => setShowStats(false)}
-                    className="flex-1 h-9 text-[10px] border-none shadow-none !rounded-xl"
-                  >
-                    Hide
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </Section>
-
-          <div className="flex items-center justify-between pt-6 border-t border-neutral-200 dark:border-neutral-800">
-            <div className="flex flex-col">
-              <span className="text-[10px] tracking-widest font-bold opacity-30">Appearance</span>
-              <span className="text-[11px] opacity-60">Switch between light and dark</span>
-            </div>
-            <Button
-              variant="secondary"
-              onClick={() => setTheme(theme === "light" ? "dark" : "light")}
-              className="h-10 px-6 rounded-full text-[10px] tracking-[0.2em] font-bold border-neutral-200 dark:border-neutral-800 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-all"
-            >
-              {theme}
-            </Button>
-          </div>
+              } 
+            />
+          </SettingGroup>
         </div>
       </div>
     </DialogModal>

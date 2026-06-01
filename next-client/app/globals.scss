@@ -94,6 +94,17 @@ html.dark body {
   @apply bg-white text-black shadow-lg rounded-lg px-4 py-3 font-medium;
 }
 
+/* Hide scrollbar for Chrome, Safari and Opera */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Hide scrollbar for IE, Edge and Firefox */
+.no-scrollbar {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
 html.dark .hermes-markdown-toast {
   @apply bg-neutral-800 text-white shadow-lg rounded-lg px-4 py-3 font-medium;
 }
