@@ -3,6 +3,14 @@ import { renderHook, waitFor } from "@testing-library/react";
 import { useFileSync } from "./use-file-sync";
 import { useAtom } from "jotai";
 import toast from "react-hot-toast";
+import {
+  atom_activeFileHandle,
+  atom_content,
+  atom_lastSavedContent,
+  atom_fileLastModified,
+  atom_fileConflict,
+  atom_isVaultPending,
+} from "@/app/atoms/atoms";
 
 // Mock jotai and toast
 vi.mock("jotai", async (importOriginal) => {
@@ -38,40 +46,56 @@ describe("useFileSync Hook", () => {
     vi.clearAllMocks();
   });
 
-  it("automatically reloads when file is modified externally and NOT dirty", async () => {
-    let callIdx = 0;
-    (useAtom as any).mockImplementation(() => {
-      callIdx++;
-      if (callIdx === 1) return [mockActiveFileHandle]; // activeFileHandle
-      if (callIdx === 2) return ["local content", setContent]; // content
-      if (callIdx === 3) return ["local content", setLastSavedContent]; // lastSavedContent
-      if (callIdx === 4) return [100000000, setFileLastModified]; // fileLastModified
-      if (callIdx === 5) return [null, setFileConflict]; // fileConflict
-      if (callIdx === 6) return [false]; // isVaultPending
-      return [null, vi.fn()];
+  const setupMocks = (overrides = {}) => {
+    const states = new Map<any, any>([
+      [atom_activeFileHandle, [mockActiveFileHandle]],
+      [atom_content, ["local content", setContent]],
+      [atom_lastSavedContent, ["local content", setLastSavedContent]],
+      [atom_fileLastModified, [100000000, setFileLastModified]],
+      [atom_fileConflict, [null, setFileConflict]],
+      [atom_isVaultPending, [false]],
+    ]);
+
+    // Apply overrides
+    if (overrides[atom_content as any]) states.set(atom_content, overrides[atom_content as any]);
+    if (overrides[atom_lastSavedContent as any]) states.set(atom_lastSavedContent, overrides[atom_lastSavedContent as any]);
+
+    (useAtom as any).mockImplementation((atom: any) => {
+      return states.get(atom) || [null, vi.fn()];
     });
+  };
+
+  it("automatically reloads when file is modified externally and NOT dirty", async () => {
+    // 1. Initial sync (no update)
+    mockFile.lastModified = 100000000;
+    setupMocks();
 
     renderHook(() => useFileSync());
+
+    // Wait for the first sync to finish (it sets lastHandleRef)
+    await waitFor(() => {
+      expect(mockActiveFileHandle.getFile).toHaveBeenCalled();
+    });
+
+    // 2. External modification happens
+    mockFile.lastModified = 200000000;
+    window.dispatchEvent(new Event("focus"));
 
     await waitFor(() => {
       expect(setContent).toHaveBeenCalledWith("new external content");
       expect(setLastSavedContent).toHaveBeenCalledWith("new external content");
       expect(setFileLastModified).toHaveBeenCalledWith(200000000);
-      expect(toast.success).toHaveBeenCalledWith(expect.stringContaining("File updated externally"), expect.any(Object));
+      expect(toast.success).toHaveBeenCalledWith(
+        expect.stringContaining("File updated externally"),
+        expect.any(Object)
+      );
     }, { timeout: 2000 });
   });
 
   it("triggers a conflict when file is modified externally and IS dirty", async () => {
-    let callIdx = 0;
-    (useAtom as any).mockImplementation(() => {
-      callIdx++;
-      if (callIdx === 1) return [mockActiveFileHandle];
-      if (callIdx === 2) return ["local changes", setContent];
-      if (callIdx === 3) return ["original content", setLastSavedContent];
-      if (callIdx === 4) return [100000000, setFileLastModified];
-      if (callIdx === 5) return [null, setFileConflict];
-      if (callIdx === 6) return [false];
-      return [null, vi.fn()];
+    setupMocks({
+      [atom_content as any]: ["local changes", setContent],
+      [atom_lastSavedContent as any]: ["original content", setLastSavedContent],
     });
 
     renderHook(() => useFileSync());

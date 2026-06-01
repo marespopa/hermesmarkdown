@@ -10,6 +10,8 @@ vi.mock("@/app/atoms/atoms", async () => {
     atom_wordWrap: atom(true),
     atom_fontSize: atom("16px"),
     atom_fontFamily: atom("monospace"),
+    atom_isZenModeActive: atom(false),
+    atom_cursorPosition: atom({ line: 1, col: 1 }),
   };
 });
 

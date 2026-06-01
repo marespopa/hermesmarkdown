@@ -8,6 +8,8 @@ import {
   atom_fontSize,
   atom_fontFamily,
   atom_wordWrap,
+  atom_isZenModeActive,
+  atom_cursorPosition,
 } from "@/app/atoms/atoms";
 
 import {
@@ -107,53 +109,44 @@ function processInlineMarkdown(text: string) {
   return html;
 }
 
-function highlightMarkdown(code: string) {
+function highlightMarkdown(code: string, isZenModeActive: boolean = false, activeLineIndex: number = -1) {
   const lines = code.split("\n");
   let isInsideCodeBlock = false;
 
   return lines
-    .map((line) => {
+    .map((line, index) => {
       const html = line
         .replace(/&/g, "&amp;")
         .replace(/</g, "&lt;")
         .replace(/>/g, "&gt;");
 
+      let content = "";
       if (html.startsWith("\u0060\u0060\u0060") || html.startsWith("~~~")) {
         isInsideCodeBlock = !isInsideCodeBlock;
         const fence = html.slice(0, 3);
         const lang = html.slice(3);
-        return `<span ${SUBTLE}>${fence}${lang}</span>`;
-      }
-
-      if (isInsideCodeBlock) {
-        const content = html === "" ? " " : html;
-        return `<span class="bg-zinc-100/50 dark:bg-zinc-800/40">${content}</span>`;
-      }
-
-      if (!html.trim()) return html;
-
-      if (/^( {0,3}([-*_])(?:\s*\2){2,}\s*)$/.test(html)) {
-        return `<span ${SUBTLE}>${html}</span>`;
-      }
-
-      if (html.startsWith("#") && /^#{1,6}\s/.test(html)) {
-        return html.replace(
+        content = `<span ${SUBTLE}>${fence}${lang}</span>`;
+      } else if (isInsideCodeBlock) {
+        const inner = html === "" ? " " : html;
+        content = `<span class="bg-zinc-100/50 dark:bg-zinc-800/40">${inner}</span>`;
+      } else if (!html.trim()) {
+        content = html;
+      } else if (/^( {0,3}([-*_])(?:\s*\2){2,}\s*)$/.test(html)) {
+        content = `<span ${SUBTLE}>${html}</span>`;
+      } else if (html.startsWith("#") && /^#{1,6}\s/.test(html)) {
+        content = html.replace(
           /^(#{1,6}\s+)(.*)$/,
-          (m, hashes, content) =>
-            `<span ${SUBTLE}>${hashes}</span><span class="font-bold text-zinc-900 dark:text-zinc-50">${processInlineMarkdown(content)}</span>`,
+          (m, hashes, label) =>
+            `<span ${SUBTLE}>${hashes}</span><span class="font-bold text-zinc-900 dark:text-zinc-50">${processInlineMarkdown(label)}</span>`,
         );
-      }
-
-      if (html.startsWith("&gt;")) {
-        return html.replace(
+      } else if (html.startsWith("&gt;")) {
+        content = html.replace(
           /^(&gt;\s?)(.*)$/,
-          (m, quote, content) =>
-            `<span ${SUBTLE}>${quote}</span><span class="text-zinc-500 dark:text-zinc-400">${processInlineMarkdown(content)}</span>`,
+          (m, quote, label) =>
+            `<span ${SUBTLE}>${quote}</span><span class="text-zinc-500 dark:text-zinc-400">${processInlineMarkdown(label)}</span>`,
         );
-      }
-
-      if (/^\s*[-*+]\s+/.test(html)) {
-        return html.replace(
+      } else if (/^\s*[-*+]\s+/.test(html)) {
+        content = html.replace(
           /^(\s*[-*+]\s+)(\[[ xX]\]\s+)?(.*)$/,
           (m, bull, check, label) => {
             const isChecked = check?.toLowerCase().includes("x");
@@ -161,11 +154,14 @@ function highlightMarkdown(code: string) {
             return `<span ${SUBTLE}>${bull}</span>${checkHtml}<span class="${isChecked ? "line-through opacity-40" : "text-zinc-900 dark:text-zinc-100"}">${processInlineMarkdown(label)}</span>`;
           },
         );
+      } else {
+        content = processInlineMarkdown(html);
       }
 
-      return processInlineMarkdown(html);
+      const isActive = isZenModeActive && index === activeLineIndex;
+      return `<div class="${isActive ? "bg-blue-500/5 dark:bg-blue-500/10 -mx-4 px-4" : ""}">${content || " "}</div>`;
     })
-    .join("\n");
+    .join("");
 }
 
 export default function MarkdownEditor({
@@ -180,21 +176,85 @@ export default function MarkdownEditor({
   const [fontFamily] = useAtom(atom_fontFamily);
   const [fontSize] = useAtom(atom_fontSize);
   const [wordWrap] = useAtom(atom_wordWrap);
+  const [isZenModeActive] = useAtom(atom_isZenModeActive);
 
   const [menuOpen, setMenuOpen] = useState(false);
+  const [isUserScrolling, setIsUserScrolling] = useState(false);
+  const [activeLineIndex, setActiveLineIndex] = useState(0);
+  const userScrollTimeout = useRef<NodeJS.Timeout | null>(null);
+
   const [menuPos, setMenuPos] = useState({ top: 0, left: 0 });
   const [filterQuery, setFilterQuery] = useState("");
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [isCtrlPressed, setIsCtrlPressed] = useState(false);
   const [isOverLink, setIsOverLink] = useState(false);
+  const [, setCursorPosition] = useAtom(atom_cursorPosition);
+
+  const syncActiveLine = useCallback(() => {
+    if (!textareaRef.current) return;
+    const pos = textareaRef.current.selectionStart;
+    const textUpToCursor = value.substring(0, pos);
+    const lines = textUpToCursor.split("\n");
+    const lineIndex = lines.length - 1;
+    setActiveLineIndex(lineIndex);
+    setCursorPosition({
+      line: lines.length,
+      col: lines[lineIndex].length + 1,
+    });
+  }, [value, setCursorPosition]);
+
+  const syncScroll = useCallback(() => {
+    if (!isZenModeActive || isUserScrolling || !textareaRef.current || !wrapperRef.current) return;
+
+    const textarea = textareaRef.current;
+    const wrapper = wrapperRef.current;
+    const { top } = getCaretCoordinates(textarea, textarea.selectionStart);
+
+    // In Zen Mode, we want the caret to be around the middle of the screen
+    // With pt-[50vh], top=0 corresponds to the middle of the screen.
+    const targetScrollTop = top;
+
+    requestAnimationFrame(() => {
+      wrapper.scrollTop = targetScrollTop;
+    });
+  }, [isZenModeActive, isUserScrolling]);
+
+  useEffect(() => {
+    const handleSelectionChange = () => {
+      syncScroll();
+      syncActiveLine();
+    };
+    document.addEventListener("selectionchange", handleSelectionChange);
+    
+    // Trigger sync immediately when Zen Mode is toggled
+    // We wait for the sidebar transitions to finish for accurate centering
+    const timer = setTimeout(() => {
+      syncScroll();
+      syncActiveLine();
+    }, 350);
+
+    return () => {
+      document.removeEventListener("selectionchange", handleSelectionChange);
+      clearTimeout(timer);
+    };
+  }, [isZenModeActive, syncScroll, syncActiveLine]);
+
+  const handleScroll = useCallback(() => {
+    if (!isZenModeActive) return;
+    setIsUserScrolling(true);
+    if (userScrollTimeout.current) clearTimeout(userScrollTimeout.current);
+    userScrollTimeout.current = setTimeout(() => {
+      setIsUserScrolling(false);
+    }, 1500);
+  }, [isZenModeActive]);
 
   const filteredTemplates = TEMPLATES.filter((t) =>
     t.label.toLowerCase().includes(filterQuery.toLowerCase()),
   );
 
   const highlight = useCallback((code: string) => {
-    return highlightMarkdown(code);
-  }, []);
+    return highlightMarkdown(code, isZenModeActive, activeLineIndex);
+  }, [isZenModeActive, activeLineIndex]);
 
   function findLinkAtPos(text: string, pos: number) {
     let match;
@@ -282,8 +342,16 @@ export default function MarkdownEditor({
 
     let processedContent = content;
     Object.entries(SHORTCODES).forEach(([code, getValue]) => {
-      processedContent = processedContent.split(code).join(getValue());
+      // Escape special characters in the code for regex
+      const escapedCode = code.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      // Use negative lookbehind to ensure the code is not preceded by a backslash
+      const regex = new RegExp(`(?<!\\\\)${escapedCode}`, "g");
+      processedContent = processedContent.replace(regex, getValue());
     });
+
+    // Remove the backslashes used for escaping shortcodes
+    processedContent = processedContent.replace(/\\(\{[\w]+\})/g, "$1");
+    processedContent = processedContent.replace(/\\\.\.d/g, "..d");
 
     const fullNewValue = before + processedContent + after;
     const budgetedValue = runAutoBudget(fullNewValue);
@@ -349,12 +417,20 @@ export default function MarkdownEditor({
         if (!menuOpen) {
           const caret = getCaretCoordinates(textarea, start - query.length);
           const menuHeight = 240;
+          
+          // In Zen Mode, we have 50vh padding at the top of the editor-container
+          // caret.top is relative to the textarea (which starts after the padding)
+          // We need to account for this padding when positioning the menu relative to the wrapper
+          const zenPadding = isZenModeActive ? window.innerHeight * 0.5 : 0;
+          const adjustedTop = caret.top + zenPadding;
+          
           const spaceBelow =
-            textarea.clientHeight - (caret.top - textarea.scrollTop);
+            textarea.clientHeight + zenPadding * 2 - (adjustedTop - textarea.scrollTop);
           const shouldShowUp =
-            spaceBelow < menuHeight && caret.top > menuHeight;
+            spaceBelow < menuHeight && adjustedTop > menuHeight;
+            
           setMenuPos({
-            top: shouldShowUp ? caret.top - menuHeight - 8 : caret.top + 24,
+            top: shouldShowUp ? adjustedTop - menuHeight - 8 : adjustedTop + 24,
             left: Math.min(caret.left, textarea.clientWidth - 220),
           });
           setMenuOpen(true);
@@ -398,6 +474,8 @@ export default function MarkdownEditor({
       if (textareaRef.current) {
         textareaRef.current.setSelectionRange(start, end);
       }
+      syncScroll();
+      syncActiveLine();
     });
   }
 
@@ -451,6 +529,9 @@ export default function MarkdownEditor({
         document.execCommand("insertText", false, nextChar);
       }
     }
+
+    syncScroll();
+    syncActiveLine();
   }
 
   function handleGlobalKeyDown(e: React.KeyboardEvent) {
@@ -506,12 +587,13 @@ export default function MarkdownEditor({
     <div
       ref={wrapperRef}
       onKeyDown={handleGlobalKeyDown}
+      onScroll={handleScroll}
       onClick={(e) => {
         if (e.target === e.currentTarget && textareaRef.current) {
           textareaRef.current.focus();
         }
       }}
-      className="relative w-full min-h-screen p-2 [overflow-anchor:none] [contain:content] overflow-x-auto cursor-text"
+      className={`relative w-full h-full overflow-auto cursor-text ${isZenModeActive ? "no-scrollbar" : "p-2"}`}
       translate="no"
     >
       <div
@@ -522,7 +604,8 @@ export default function MarkdownEditor({
             textareaRef.current.setSelectionRange(length, length);
           }
         }}
-        className={`editor-container relative h-full antialiased normal-nums [font-variant-ligatures:none] [font-feature-settings:'liga'_0,'calt'_0]
+        className={`editor-container relative min-h-full antialiased normal-nums [font-variant-ligatures:none] [font-feature-settings:'liga'_0,'calt'_0]
+          ${isZenModeActive ? "max-w-[70ch] mx-auto pt-[50vh] pb-[50vh]" : ""}
           ${wordWrap ? "w-full" : "w-max min-w-full"}
           [&_textarea]:!bg-transparent [&_textarea]:!text-transparent [&_textarea]:!caret-blue-500
           [&_textarea]:!z-10 [&_pre]:!z-0 [&_pre]:!pointer-events-none

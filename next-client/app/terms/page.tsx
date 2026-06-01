@@ -1,93 +1,82 @@
+"use client";
+
 import React from "react";
+import { useRouter } from "next/navigation";
+import Button from "@/app/components/Button/Button.component";
 
 export default function TermsAndConditions() {
+  const router = useRouter();
+
   return (
-    <div className="w-full max-w-screen-xl px-4 md:px-2 mx-auto my-4 md:my-8">
-      <section className="prose">
-        <h1>Terms and Conditions</h1>
-        <h2>Thanks for joining HermesMarkdown</h2>
-        <p>
-          These Terms of Service along with any other terms and policies
-          referenced herein, and are incorporated herein by reference and form
-          an integral part hereof, as amended from time to time (these “Terms”)
-          constitute a legally binding agreement as of the Effective Date (as
-          defined below), governing your access to, and the use of
-          www.hermesmarkdown.com and any related website owned or operated by
-          HermesMarkdown (the “Sites”), and the use of, and registration with,
-          HermesMarkdown Service (defined below) through the Sites, a mobile
-          application or through any other means.
-        </p>
-        <p>
-          <strong>Mares Popa</strong> is committed to maintaining
-          robust privacy protections for users. My Privacy Policy (“Privacy
-          Policy”) is designed to help you understand how I collect, use and
-          safeguard the information you provide and to assist you in
-          making informed decisions when using the Service. For purposes of this
-          Agreement, “Site” refers to my website, which can be
-          accessed at hermesmarkdown.com. “Service” refers to my
-          services accessed via the Site. The terms “I,” “me,” and “my” refer to
-          Mares Popa. “You” refers to you, as a user of the Site or the Service. By
-          accessing the Site or the Service, you accept my Privacy Policy and
-          Terms of Use (found here: https://hermesmarkdown.com/terms), and you
-          consent to my collection, storage, use and disclosure of your
-          Personal Information as described in the Privacy Policy.
-        </p>
+    <main className="min-h-screen selection:bg-blue-500/30 text-neutral-900 dark:text-neutral-100 bg-white dark:bg-neutral-950 overflow-x-hidden font-sans">
+      <div className="max-w-4xl mx-auto px-6 pt-32 pb-32 space-y-16">
+        {/* --- HEADER SECTION --- */}
+        <section className="space-y-8 animate-hero-fade-in flex flex-col items-start">
+          <Button
+            variant="tertiary"
+            onClick={() => router.back()}
+            className="!text-[10px] uppercase tracking-[0.3em] opacity-40 hover:opacity-100 -ml-4"
+          >
+            ← Back
+          </Button>
 
-        <h2>1. My Service.</h2>
-        <h3>1.1. My Service.</h3>
-        <p>
-          The HermesMarkdown platform is an online file editor tool, that
-          allows you to easily create, import, edit, with the aim to build a
-          culture of transparency, ownership and accountability, inclusive of
-          any and all functionalities, application programming interface and
-          tools offered as part of HermesMarkdown platform, offered online (the
-          “Service”). Specific Terms may apply to You or to some of the Service,
-          such specific terms are incorporated herein by reference and form an
-          integral part hereof.
-        </p>
+          <h1 className="text-4xl md:text-6xl font-bold tracking-tight leading-[1.1]">
+            Terms of{" "}
+            <span className="text-neutral-400 dark:text-neutral-600 italic font-serif">
+              Service.
+            </span>
+          </h1>
 
-        <h3>1.2. Modification or Discontinuation of the Service.</h3>
-        <p>
-          I may add, modify or discontinue any feature, functionality or any
-          other tool, within the Service and/or Sites, at my own discretion and
-          without further notice, however, if I make any material adverse
-          change in the core functionality of the Service, then I will notify
-          you by posting an announcement on the Sites and/or via the Service or
-          by sending you an email.
-        </p>
-        <h3>1.3. No Contingency on Future Releases and Improvements.</h3>
-        <p>
-          You hereby acknowledge that your purchase of the Service and/or Third
-          Party Services (as defined below) hereunder are not contingent on the
-          delivery by me of any future release of any functionality or feature,
-          including without limitation, the continuance of: (i) a certain
-          Service beyond its current Subscription Term; or (ii) Third Party
-          Services, or dependent on any public comments I make, orally or in
-          writing, regarding any future functionality or feature.
-        </p>
-        <h3>1.4. Ability to Accept Terms.</h3>
-        <p>
-          If you access and use the Sites and/or the Service, you represent and
-          warrant that you are at least 16 years old. The Sites and/or Service
-          are only intended for individuals aged sixteen (16) years or older. I
-          reserve the right to request proof of age at any stage so that I can
-          verify compliance with this paragraph.
-        </p>
+          <p className="text-lg leading-relaxed text-neutral-500 dark:text-neutral-400 max-w-2xl">
+            Transparency and accountability are core to the HermesMarkdown philosophy. These terms outline our mutual commitment to a fair and open workspace.
+          </p>
+        </section>
 
-        <h2>2. Liability</h2>
-        <p>
-          HermesMarkdown BEARS NO RESPONSIBILITY AND/OR LIABILITY FOR ANY LINKS
-          OR THIRD PARTY SERVICES, INCLUDING WITHOUT LIMITATION, SUCH THIRD
-          PARTY SERVICE’S OPERABILITY OR INTEROPERABILITY WITH MY SERVICE,
-          SECURITY, ACCURACY, RELIABILITY, DATA PROTECTION AND PROCESSING
-          PRACTICES AND THE QUALITY OF ITS OFFERINGS, AS WELL AS ANY ACTS OR
-          OMISSIONS BY THIRD PARTIES. BY ACCESSING AND/OR USING THE THIRD PARTY
-          SERVICES, YOU ACKNOWLEDGE THAT YOUR ACCESS AND USE OF THE THIRD PARTY
-          SERVICES ARE AT YOUR SOLE DISCRETION AND RISK, AND YOU ARE SOLELY
-          RESPONSIBLE FOR ENSURING SUCH THIRD PARTY SERVICE’S OPERATION AND
-          PRACTICES AND ITS RESPECTIVE THIRD PARTY AGREEMENT, MEET YOUR NEEDS.
-        </p>
-      </section>
-    </div>
+        {/* --- CONTENT SECTION --- */}
+        <section className="prose prose-sm md:prose-base dark:prose-invert max-w-none border-t border-black/5 dark:border-white/10 pt-16 space-y-12">
+          <div className="space-y-4">
+            <h2 className="text-xl font-bold tracking-tight">Acceptance of Terms</h2>
+            <p>
+              By accessing and using www.hermesmarkdown.com and the HermesMarkdown Service, you agree to be bound by these Terms of Service. If you do not agree to these terms, please do not use the Service.
+            </p>
+          </div>
+
+          <div className="space-y-4">
+            <h2 className="text-xl font-bold tracking-tight">1. The Service</h2>
+            <h3 className="text-lg font-semibold">1.1 Service Description</h3>
+            <p>
+              HermesMarkdown is a local-first Markdown editor tool designed to facilitate transparent and efficient writing. The &quot;Service&quot; includes all functionalities, APIs, and tools offered through our platform.
+            </p>
+            
+            <h3 className="text-lg font-semibold">1.2 Modifications</h3>
+            <p>
+              We reserve the right to modify or discontinue any feature of the Service at any time. Significant changes to core functionality will be announced on our Site or through the Service.
+            </p>
+          </div>
+
+          <div className="space-y-4">
+            <h2 className="text-xl font-bold tracking-tight">2. User Responsibility</h2>
+            <p>
+              You are responsible for your use of the Service and for any content you create. Because HermesMarkdown is a local-first application, you are solely responsible for the backup and security of your Markdown files stored on your local device.
+            </p>
+            <p>
+              You must be at least 16 years old to use the Service. We reserve the right to request proof of age to ensure compliance.
+            </p>
+          </div>
+
+          <div className="space-y-4">
+            <h2 className="text-xl font-bold tracking-tight">3. Liability & Disclaimers</h2>
+            <p>
+              HERMESMARKDOWN AND ITS CREATOR, MARES POPA, BEAR NO RESPONSIBILITY FOR DATA LOSS, SECURITY BREACHES ON YOUR LOCAL DEVICE, OR THE OPERABILITY OF THIRD-PARTY SERVICES. THE SERVICE IS PROVIDED &quot;AS IS&quot; WITHOUT WARRANTIES OF ANY KIND.
+            </p>
+          </div>
+
+          <div className="pt-8 border-t border-black/5 dark:border-white/5 flex flex-col sm:flex-row justify-between items-center gap-4 text-[10px] uppercase tracking-widest font-bold opacity-30">
+            <span>Last Updated: May 30, 2026</span>
+            <a href="mailto:office@marespopa.com" className="hover:opacity-100 transition-opacity">Contact: office@marespopa.com</a>
+          </div>
+        </section>
+      </div>
+    </main>
   );
 }

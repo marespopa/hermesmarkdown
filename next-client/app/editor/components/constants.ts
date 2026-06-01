@@ -83,11 +83,6 @@ export const SHORTCODES: Record<string, () => string> = {
 
 export const TEMPLATES = [
   {
-    label: "✨ Tutorial",
-    content:
-      '--- \ntitle: HermesMarkdown Demo\ndate: {date}\nstatus: #todo\n--- \n\n# 🚀 Welcome to HermesMarkdown\nThis is an interactive workspace. Try the features below to get started and explore the full suite of supported commands.\n\n## 🛠 Try the Shortcuts\nExperience real-time conversion by typing these commands:\n- **The Magic Dot**: Type `..d` to instantly stamp the current date.\n- **Live Shortcodes**: Type `{date}`, `{datetime}`, `{iso}`, or `{unix}` for various timestamp formats.\n- **Smart Paste**: Copy a URL and paste it to automatically generate a markdown link. Try **CTRL + Click** on the result to navigate!\n- **Template Menu**: Type `/` to open the quick template menu.\n\n## 💰 Financial Intelligence\nTransform your document into a smart ledger.\n\n**Auto-Budgeting**\nHermesMarkdown automatically sums all currency values found above a line starting with "Total:".\n- BT Credit: $200\n- Groceries: $400\nTotal: $600.00\n\n**Inline Math**\nExecute quick math without leaving the document. Type the expression and close it with an equals sign. \n- `calc(100+50)=150`\n- `calc(24*0.1)=2.4`\n\n## 🔄 Workflow Cycling\nHermesMarkdown uses **Smart Tags** to track progress. Click any tag below to smoothly cycle its status (`#urgn` → `#todo` → `#prog` → `#done`):\n- Hotfix Needed #urgn\n- Initial Research #todo\n- Active Development #prog\n- Project Delivery #done\n\n## 📝 Interactive Lists & Symbols\nManage tasks and insert icons using intuitive commands.\n- [ ] Click to complete this task\n- [x] Completed items will fade out\n- [ ] You can customize the font in settings\n\n**Quick Symbols**\nEnhance your notes with instant shortcode icons:\n- `{check}` renders ✅\n- `{error}` renders ❌\n- `{idea}` renders 💡\n- `{warn}` renders ⚠️\n- `{fix}` renders 🛠️\n- `{bug}` renders 🐛\n- `{star}` renders ⭐\n\n> 💡 TIP\n> Hover your cursor in the **top right corner** to reveal the settings menu.\n\n---\n\n*Drafted with 🧡 in HermesMarkdown*',
-  },
-  {
     label: "📄 Frontmatter",
     content: "---\ntitle: \ndate: {date}\ntags: #tag\n---",
   },

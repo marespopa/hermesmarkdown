@@ -31,7 +31,7 @@ describe("SettingsDialog Component", () => {
 
     expect(screen.getByText("Typeface")).toBeInTheDocument();
     expect(screen.getByText("Text Size")).toBeInTheDocument();
-    expect(screen.getByText("Appearance")).toBeInTheDocument();
+    expect(screen.getByText("Interface")).toBeInTheDocument();
   });
 
   it("calls onClose when close button is clicked", () => {

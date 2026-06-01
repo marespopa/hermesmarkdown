@@ -1,5 +1,6 @@
 import { createStore, atom } from "jotai";
-import { atomWithStorage, atomFamily } from "jotai/utils";
+import { atomWithStorage } from "jotai/utils";
+import { atomFamily } from "jotai-family";
 import { WorkspaceState, WorkspaceContainer, PanelLeaf } from "@/app/types/workspace";
 
 export const contentStore = createStore();
@@ -16,6 +17,12 @@ export const atom_fontSize = atomWithStorage<string>(
   "prose-base",
 );
 export const atom_showStats = atomWithStorage<boolean>("showStats", false);
+export const atom_isZenModeActive = atomWithStorage<boolean>("isZenModeActive", false);
+export const atom_cursorPosition = atom<{ line: number; col: number }>({ line: 1, col: 1 });
+export const atom_statusMetricMode = atomWithStorage<"words" | "chars" | "readingTime">("statusMetricMode", "words");
+export const atom_isAutoSaveEnabled = atomWithStorage<boolean>("isAutoSaveEnabled", true);
+export const atom_hasCompletedOnboarding = atomWithStorage<boolean>("hasCompletedOnboarding", false);
+export const atom_isWizardOpen = atom<boolean>(false);
 
 // Workspace Layout
 export const atom_workspaceLayout = atomWithStorage<WorkspaceState>("workspaceLayout", {
@@ -61,6 +68,8 @@ export interface FileState {
   lastSavedContent: string;
   fileName: string;
   activeFilePath: string | null;
+  lastModified?: number;
+  conflict?: { remoteContent: string };
 }
 
 export const atom_openFiles = atomWithStorage<Record<string, FileState>>("openFiles", {
@@ -278,6 +287,52 @@ export const atom_closeTab = atom(
   }
 );
 
+export const atom_moveTab = atom(
+  null,
+  (get, set, { sourcePaneId, targetPaneId, filePath, targetIndex }: { sourcePaneId: string; targetPaneId: string; filePath: string; targetIndex: number }) => {
+    const layout = get(atom_workspaceLayout);
+    let updatedRoot = layout.rootContainer;
+
+    if (sourcePaneId === targetPaneId) {
+      const leaf = findLeaf(updatedRoot, sourcePaneId);
+      if (!leaf) return;
+      
+      const paths = [...leaf.openFilePaths].filter(p => p !== filePath);
+      paths.splice(targetIndex, 0, filePath);
+      
+      updatedRoot = updateLeaf(updatedRoot, sourcePaneId, {
+        openFilePaths: paths,
+        activeFilePath: filePath
+      });
+    } else {
+      const sourceLeaf = findLeaf(updatedRoot, sourcePaneId);
+      const targetLeaf = findLeaf(updatedRoot, targetPaneId);
+      if (!sourceLeaf || !targetLeaf) return;
+
+      const newSourcePaths = sourceLeaf.openFilePaths.filter(p => p !== filePath);
+      let newSourceActive = sourceLeaf.activeFilePath;
+      if (newSourceActive === filePath) {
+        newSourceActive = newSourcePaths[newSourcePaths.length - 1];
+      }
+
+      const newTargetPaths = [...targetLeaf.openFilePaths.filter(p => p !== filePath)];
+      newTargetPaths.splice(targetIndex, 0, filePath);
+
+      updatedRoot = updateLeaf(updatedRoot, sourcePaneId, {
+        openFilePaths: newSourcePaths,
+        activeFilePath: newSourceActive
+      });
+      updatedRoot = updateLeaf(updatedRoot, targetPaneId, {
+        openFilePaths: newTargetPaths,
+        activeFilePath: filePath
+      });
+    }
+
+    set(atom_workspaceLayout, { ...layout, rootContainer: updatedRoot });
+    set(atom_activePaneId, targetPaneId);
+  }
+);
+
 export const atom_activeFileHandle = atom(
   (get) => {
     const layout = get(atom_workspaceLayout);
@@ -318,8 +373,43 @@ export const atom_lastSavedContent = atom(
 export const atom_vaultHandle = atom<FileSystemDirectoryHandle | null>(null);
 export const atom_currentDirectoryHandle =
   atom<FileSystemDirectoryHandle | null>(null);
-export const atom_fileLastModified = atom<number | null>(null);
-export const atom_fileConflict = atom<{ remoteContent: string } | null>(null);
+
+export const atom_fileLastModified = atom(
+  (get) => get(atom_activeFile)?.lastModified || null,
+  (get, set, newValue: number | null) => {
+    const layout = get(atom_workspaceLayout);
+    const activePaneId = get(atom_activePaneId);
+    const leaf = findLeaf(layout.rootContainer, activePaneId);
+    const path = leaf?.activeFilePath || "draft";
+
+    const prev = get(atom_openFiles);
+    if (prev[path]) {
+      set(atom_openFiles, {
+        ...prev,
+        [path]: { ...prev[path], lastModified: newValue || undefined }
+      });
+    }
+  }
+);
+
+export const atom_fileConflict = atom(
+  (get) => get(atom_activeFile)?.conflict || null,
+  (get, set, newValue: { remoteContent: string } | null) => {
+    const layout = get(atom_workspaceLayout);
+    const activePaneId = get(atom_activePaneId);
+    const leaf = findLeaf(layout.rootContainer, activePaneId);
+    const path = leaf?.activeFilePath || "draft";
+
+    const prev = get(atom_openFiles);
+    if (prev[path]) {
+      set(atom_openFiles, {
+        ...prev,
+        [path]: { ...prev[path], conflict: newValue || undefined }
+      });
+    }
+  }
+);
+
 export const atom_vaultFiles = atom<FileSystemHandle[]>([]);
 export const atom_isVaultPending = atom<boolean>(false);
 export const atom_hasLoadedVault = atom<boolean>(false);
