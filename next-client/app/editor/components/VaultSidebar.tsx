@@ -142,10 +142,10 @@ export default function VaultSidebar({
         `}
       />
 
-      {/* Apple Notes Style Header */}
-      <div className="p-4 flex flex-col gap-4 border-b border-neutral-200 dark:border-neutral-800 shrink-0">
+      {/* Apple Notes Style Header -> Premium Minimal Header */}
+      <div className="p-3 flex flex-col gap-2 border-b border-zinc-200 dark:border-zinc-800 shrink-0">
         <div className="flex justify-between items-center">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5">
             {(!isAtRoot || selectedTag) && vaultHandle && (
               <Button
                 variant="icon"
@@ -156,24 +156,24 @@ export default function VaultSidebar({
                     navigateBack();
                   }
                 }}
-                className="w-7 h-7 -ml-2"
+                className="w-7 h-7 -ml-1.5"
               >
                 <HiOutlineChevronLeft size={16} />
               </Button>
             )}
-            <h2 className="text-[14px] font-bold tracking-tight">
-              {selectedTag ? `Tag: ${selectedTag}` : currentDirectoryHandle?.name || (vaultHandle ? "Notes" : "Folders")}
+            <h2 className="text-[13px] font-semibold tracking-tight text-zinc-900 dark:text-zinc-100">
+              {selectedTag ? `Tag: ${selectedTag}` : currentDirectoryHandle?.name || (vaultHandle ? "Notes" : "HermesMD")}
             </h2>
           </div>
           
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-0.5">
              <Button
                 variant="icon"
-                className="w-8 h-8 opacity-60 hover:opacity-100"
+                className="w-8 h-8 opacity-60 hover:opacity-100 text-zinc-600 dark:text-zinc-400"
                 onClick={onNewFile}
                 title="New Note"
               >
-                <VscNewFile size={18} />
+                <VscNewFile size={16} />
               </Button>
               
               {onClose && (
@@ -190,21 +190,21 @@ export default function VaultSidebar({
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto overscroll-none p-2 space-y-4">
+      <div className="flex-1 overflow-y-auto overscroll-none p-2 space-y-4 custom-scrollbar">
         {!vaultHandle ? (
           <div className="space-y-4">
             <div className="space-y-1">
               <SidebarHeader title="Locations" isExpanded={true} onToggle={() => {}} />
               <div 
                 onClick={openVault}
-                className="flex items-center gap-2 px-3 py-2 rounded-md cursor-pointer hover:bg-neutral-200 dark:hover:bg-neutral-800 transition-colors text-sm text-blue-600 dark:text-blue-400 font-medium"
+                className="flex items-center gap-2 px-4 py-2 rounded-md cursor-pointer hover:bg-zinc-200 dark:hover:bg-zinc-800/50 transition-colors text-[13px] text-blue-600 dark:text-blue-400 font-medium"
               >
                 <HiOutlineDatabase size={16} />
-                <span>Open Local Folder</span>
+                <span>Open Folder</span>
               </div>
               <div 
                 onClick={() => {}} // Active file handled by atoms
-                className={`flex items-center gap-2 px-3 py-2 rounded-md cursor-pointer transition-colors text-sm ${activeFilePath === 'draft' ? "bg-blue-500/10 text-blue-600 dark:text-blue-400 font-medium" : "hover:bg-neutral-200 dark:hover:bg-neutral-800 text-neutral-600 dark:text-neutral-400"}`}
+                className={`flex items-center gap-2 px-4 py-2 rounded-md cursor-pointer transition-all text-[13px] relative ${activeFilePath === 'draft' ? "text-blue-600 dark:text-blue-400 font-medium before:absolute before:left-0 before:top-2 before:bottom-2 before:w-0.5 before:bg-blue-500 bg-blue-500/5" : "hover:bg-zinc-200 dark:hover:bg-zinc-800/50 text-zinc-600 dark:text-zinc-400"}`}
               >
                 <HiOutlineDocumentText size={16} />
                 <span>Draft Mode</span>
@@ -215,14 +215,14 @@ export default function VaultSidebar({
               <SidebarHeader title="More" isExpanded={true} onToggle={() => {}} />
               <div 
                 onClick={onImport}
-                className="flex items-center gap-2 px-3 py-2 rounded-md cursor-pointer hover:bg-neutral-200 dark:hover:bg-neutral-800 transition-colors text-sm text-neutral-600 dark:text-neutral-400"
+                className="flex items-center gap-2 px-4 py-2 rounded-md cursor-pointer hover:bg-zinc-200 dark:hover:bg-zinc-800/50 transition-colors text-[13px] text-zinc-600 dark:text-zinc-400"
               >
                 <HiOutlineCloudDownload size={16} />
                 <span>Import Markdown</span>
               </div>
               <div 
                 onClick={onExport}
-                className="flex items-center gap-2 px-3 py-2 rounded-md cursor-pointer hover:bg-neutral-200 dark:hover:bg-neutral-800 transition-colors text-sm text-neutral-600 dark:text-neutral-400"
+                className="flex items-center gap-2 px-4 py-2 rounded-md cursor-pointer hover:bg-zinc-200 dark:hover:bg-zinc-800/50 transition-colors text-[13px] text-zinc-600 dark:text-zinc-400"
               >
                 <HiOutlineCloudUpload size={16} />
                 <span>Export Markdown</span>
@@ -266,35 +266,37 @@ export default function VaultSidebar({
                   }
                 />
               )}
-              {isFilesExpanded && (selectedTag ? filteredFiles : vaultFiles)?.map((entry, idx) => (
-                <div
-                  key={`${entry.kind || 'file'}-${entry.name}-${idx}`}
-                  className="group relative"
-                  onMouseLeave={() => setActionMenuOpen(null)}
-                >
+              {isFilesExpanded && (selectedTag ? filteredFiles : vaultFiles)?.map((entry, idx) => {
+                const isActive = (selectedTag && (entry as any).path === activeFilePath) || (!selectedTag && activeFilePath?.split("/").pop() === entry.name);
+                return (
                   <div
-                    onClick={() => {
-                      if (selectedTag) {
-                        openFile(entry.handle, (entry as any).path);
-                      } else if (entry.kind === "file") {
-                        openFile(entry as FileSystemFileHandle);
-                      } else {
-                        navigateTo(entry as FileSystemDirectoryHandle);
-                      }
-                    }}
-                    className={`flex items-center gap-2 px-3 py-2 rounded-md cursor-pointer transition-colors text-sm pr-10 ${
-                      (selectedTag && (entry as any).path === activeFilePath) || (!selectedTag && activeFilePath?.split("/").pop() === entry.name)
-                        ? "bg-blue-500/10 text-blue-600 dark:text-blue-400 font-medium"
-                        : "hover:bg-neutral-200 dark:hover:bg-neutral-800 text-neutral-600 dark:text-neutral-400"
-                    }`}
+                    key={`${entry.kind || 'file'}-${entry.name}-${idx}`}
+                    className="group relative"
+                    onMouseLeave={() => setActionMenuOpen(null)}
                   >
-                    {entry.kind === "directory" ? (
-                      <HiOutlineFolder size={16} className="shrink-0" />
-                    ) : (
-                      <HiOutlineDocumentText size={16} className="shrink-0" />
-                    )}
-                    <span className="truncate">{entry.name}</span>
-                  </div>
+                    <div
+                      onClick={() => {
+                        if (selectedTag) {
+                          openFile(entry.handle, (entry as any).path);
+                        } else if (entry.kind === "file") {
+                          openFile(entry as FileSystemFileHandle);
+                        } else {
+                          navigateTo(entry as FileSystemDirectoryHandle);
+                        }
+                      }}
+                      className={`flex items-center gap-2 px-4 py-1.5 rounded-md cursor-pointer transition-all text-[13px] pr-10 relative ${
+                        isActive
+                          ? "text-blue-600 dark:text-blue-400 font-medium before:absolute before:left-0 before:top-1.5 before:bottom-1.5 before:w-0.5 before:bg-blue-500 bg-blue-500/5"
+                          : "hover:bg-zinc-200 dark:hover:bg-zinc-800/50 text-zinc-600 dark:text-zinc-400"
+                      }`}
+                    >
+                      {entry.kind === "directory" ? (
+                        <HiOutlineFolder size={16} className="shrink-0 opacity-70" />
+                      ) : (
+                        <HiOutlineDocumentText size={16} className="shrink-0 opacity-70" />
+                      )}
+                      <span className="truncate">{entry.name}</span>
+                    </div>
 
                   {!selectedTag && (
                     <div className="absolute right-1.5 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity flex items-center">
@@ -346,7 +348,7 @@ export default function VaultSidebar({
                     </>
                   )}
                 </div>
-              ))}
+              )})}
 
               {(!selectedTag ? vaultFiles : filteredFiles)?.length === 0 && (
                 <div className="p-4 text-center opacity-30 text-xs italic">

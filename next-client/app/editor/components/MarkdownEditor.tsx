@@ -10,6 +10,7 @@ import {
   atom_wordWrap,
   atom_isZenModeActive,
   atom_cursorPosition,
+  atom_isEditorFocused,
 } from "@/app/atoms/atoms";
 
 import {
@@ -159,7 +160,7 @@ function highlightMarkdown(code: string, isZenModeActive: boolean = false, activ
       }
 
       const isActive = isZenModeActive && index === activeLineIndex;
-      return `<div class="${isActive ? "bg-blue-500/5 dark:bg-blue-500/10 -mx-4 px-4" : ""}">${content || " "}</div>`;
+      return `<div class="${isActive ? "bg-zinc-500/5 dark:bg-zinc-500/10 -mx-4 px-4" : ""} min-h-[1.8em]">${content || " "}</div>`;
     })
     .join("");
 }
@@ -189,6 +190,7 @@ export default function MarkdownEditor({
   const [isCtrlPressed, setIsCtrlPressed] = useState(false);
   const [isOverLink, setIsOverLink] = useState(false);
   const [, setCursorPosition] = useAtom(atom_cursorPosition);
+  const [, setIsEditorFocused] = useAtom(atom_isEditorFocused);
 
   const syncActiveLine = useCallback(() => {
     if (!textareaRef.current) return;
@@ -605,12 +607,13 @@ export default function MarkdownEditor({
           }
         }}
         className={`editor-container relative min-h-full antialiased normal-nums [font-variant-ligatures:none] [font-feature-settings:'liga'_0,'calt'_0]
-          ${isZenModeActive ? "max-w-[70ch] mx-auto pt-[50vh] pb-[50vh]" : ""}
+          ${isZenModeActive ? "max-w-[75ch] mx-auto pt-[45vh] pb-[45vh]" : "px-4 sm:px-8 py-6 max-w-[90ch] mx-auto"}
           ${wordWrap ? "w-full" : "w-max min-w-full"}
           [&_textarea]:!bg-transparent [&_textarea]:!text-transparent [&_textarea]:!caret-blue-500
           [&_textarea]:!z-10 [&_pre]:!z-0 [&_pre]:!pointer-events-none
           [&_textarea]:!outline-none [&_textarea]:!p-0 [&_pre]:!p-0
-          [&_textarea]:!leading-[1.7] [&_pre]:!leading-[1.7]
+          [&_textarea]:!leading-[1.8] [&_pre]:!leading-[1.8]
+          [&_textarea]:!tracking-normal [&_pre]:!tracking-normal
           ${wordWrap ? "[&_textarea]:!white-space-pre-wrap [&_pre]:!white-space-pre-wrap" : "[&_textarea]:!white-space-pre [&_pre]:!white-space-pre"}
         `}
         style={{ fontFamily, fontSize }}
@@ -653,6 +656,8 @@ export default function MarkdownEditor({
           onClick={handleEditorClick}
           onPaste={handlePaste}
           onMouseMove={handleMouseMove}
+          onFocus={() => setIsEditorFocused(true)}
+          onBlur={() => setIsEditorFocused(false)}
           textareaClassName={
             isCtrlPressed && isOverLink ? "!cursor-pointer" : "!cursor-text"
           }

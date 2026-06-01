@@ -18,6 +18,7 @@ export const atom_fontSize = atomWithStorage<string>(
 );
 export const atom_showStats = atomWithStorage<boolean>("showStats", false);
 export const atom_isZenModeActive = atomWithStorage<boolean>("isZenModeActive", false);
+export const atom_isEditorFocused = atom<boolean>(false);
 export const atom_cursorPosition = atom<{ line: number; col: number }>({ line: 1, col: 1 });
 export const atom_statusMetricMode = atomWithStorage<"words" | "chars" | "readingTime">("statusMetricMode", "words");
 export const atom_isAutoSaveEnabled = atomWithStorage<boolean>("isAutoSaveEnabled", true);

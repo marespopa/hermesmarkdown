@@ -11,6 +11,7 @@ vi.mock("@/app/atoms/atoms", async () => {
     atom_fontSize: atom("16px"),
     atom_fontFamily: atom("monospace"),
     atom_isZenModeActive: atom(false),
+    atom_isEditorFocused: atom(false),
     atom_cursorPosition: atom({ line: 1, col: 1 }),
   };
 });

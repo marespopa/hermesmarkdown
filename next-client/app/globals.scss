@@ -4,60 +4,61 @@
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Merriweather:wght@400;700&family=Source+Code+Pro:wght@400;700&display=swap');
 
-/* Fix jumpy page when scroll appear */
+/* Custom Scrollbars - Ultra Thin & Minimalist */
 ::-webkit-scrollbar {
-  width: 16px;
+  width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  border-radius: 8px;
-  background-color: #e7e7e7;
-  border: 1px solid #cacaca;
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  border-radius: 8px;
-  border: 3px solid transparent;
+  border-radius: 10px;
+  background-color: theme('colors.zinc.200');
+  border: 1px solid transparent;
   background-clip: content-box;
-  background-color: darkslategray;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: theme('colors.zinc.400');
 }
 
 html.dark {
-  ::-webkit-scrollbar-track {
-    border-radius: 8px;
-    background-color: #515151;
-    border: 1px solid #525252;
+  ::-webkit-scrollbar-thumb {
+    background-color: theme('colors.zinc.800');
   }
 
-  ::-webkit-scrollbar-thumb {
-    background-color: slategray;
+  ::-webkit-scrollbar-thumb:hover {
+    background-color: theme('colors.zinc.600');
   }
+}
+
+/* Global Selection Style */
+::selection {
+  background-color: rgba(161, 161, 170, 0.2); /* zinc-400 with opacity */
+  color: inherit;
 }
 
 html, body {
-  font-family: 'Source Code Pro', monospace;
-  background-color: #ffffff;
+  font-family: theme('fontFamily.mono');
+  background-color: theme('colors.zinc.50');
+  @apply text-zinc-900 antialiased;
 }
 
 html.dark, html.dark body {
-  background-color: #171717;
+  background-color: theme('colors.zinc.950');
+  @apply text-zinc-100;
 }
 
 /* Fix overscroll background color */
 html {
-  background-color: #ffffff;
+  background-color: theme('colors.zinc.50');
 }
 
 html.dark {
-  background-color: #171717;
-}
-
-body {
-  background-color: #ffffff;
-}
-
-html.dark body {
-  background-color: #171717;
+  background-color: theme('colors.zinc.950');
 }
 
 @keyframes hero-fade-in {

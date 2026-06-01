@@ -163,7 +163,7 @@ export default function LiteEditor() {
 
   return (
     <ErrorBoundary>
-      <div className="flex h-[100dvh] w-full bg-neutral-100 dark:bg-neutral-950 text-neutral-900 dark:text-neutral-100 selection:bg-blue-500/30 font-mono overflow-hidden overscroll-none">
+      <div className="flex h-[100dvh] w-full bg-zinc-50 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 selection:bg-blue-500/30 font-mono overflow-hidden overscroll-none">
         {/* Modals */}
         <SettingsDialog isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
         <WelcomeWizard />
@@ -186,7 +186,7 @@ export default function LiteEditor() {
         {/* --- MAIN LAYOUT --- */}
         
         {/* Sidebar (Explorer) */}
-        <div className={`transition-all duration-300 flex shrink-0 h-full border-r border-neutral-200 dark:border-neutral-800 ${isZenModeActive || !isSidebarOpen ? "w-0 opacity-0 pointer-events-none overflow-hidden border-none" : ""}`}>
+        <div className={`transition-all duration-300 flex shrink-0 h-full border-r border-zinc-200 dark:border-zinc-800 ${isZenModeActive || !isSidebarOpen ? "w-0 opacity-0 pointer-events-none overflow-hidden border-none" : ""}`}>
           <VaultSidebar 
             onOpenSettings={() => setIsSettingsOpen(true)}
             onNewFile={handleNewFile}
@@ -197,18 +197,18 @@ export default function LiteEditor() {
         </div>
 
         {/* Workspace Content */}
-        <div className="flex-1 flex min-w-0 bg-white dark:bg-neutral-900 overflow-hidden relative">
+        <div className="flex-1 flex min-w-0 bg-zinc-50 dark:bg-zinc-950 overflow-hidden relative">
           
           {/* Collapsed Sidebar Toggle Column */}
           {!isSidebarOpen && !isZenModeActive && (
-            <div className="w-12 h-full flex flex-col items-center py-2 border-r border-neutral-200 dark:border-neutral-800 bg-neutral-50/50 dark:bg-neutral-950/50 shrink-0 z-40">
+            <div className="w-10 h-full flex flex-col items-center py-4 border-r border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-950/50 shrink-0 z-40">
                <Button
                   variant="icon"
                   onClick={() => setIsSidebarOpen(true)}
-                  className="w-8 h-8 opacity-60 hover:opacity-100"
+                  className="w-8 h-8 opacity-60 hover:opacity-100 text-zinc-600 dark:text-zinc-400"
                   title="Show Sidebar"
                 >
-                  <HiOutlineMenuAlt2 size={18} />
+                  <HiOutlineMenuAlt2 size={20} />
                 </Button>
             </div>
           )}
