@@ -12,6 +12,17 @@ vi.mock("jotai", async (importOriginal) => {
   };
 });
 
+// Mock atoms
+vi.mock("@/app/atoms/atoms", async (importOriginal) => {
+  const actual: any = await importOriginal();
+  return {
+    ...actual,
+    atom_editorWidth: { toString: () => "atom_editorWidth" },
+    atom_fontSize: { toString: () => "atom_fontSize" },
+    atom_theme: { toString: () => "atom_theme" },
+  };
+});
+
 import { useAtom } from "jotai";
 
 describe("SettingsDialog Component", () => {
@@ -20,9 +31,12 @@ describe("SettingsDialog Component", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     cleanup();
-    // Default mock implementation for useAtom
-    (useAtom as any).mockImplementation(() => {
-      return ["16px", vi.fn()]; 
+    
+    (useAtom as any).mockImplementation((atom: any) => {
+      const atomStr = atom.toString();
+      if (atomStr === "atom_editorWidth") return ["standard", vi.fn()];
+      if (atomStr === "atom_fontSize") return ["16px", vi.fn()];
+      return ["", vi.fn()];
     });
   });
 
@@ -30,8 +44,23 @@ describe("SettingsDialog Component", () => {
     render(<SettingsDialog isOpen={true} onClose={mockOnClose} />);
 
     expect(screen.getByText("Typeface")).toBeInTheDocument();
-    expect(screen.getByText("Text Size")).toBeInTheDocument();
-    expect(screen.getByText("Interface")).toBeInTheDocument();
+    expect(screen.getByText("Editor Width")).toBeInTheDocument();
+    // Use getAllByText as "Standard" now appears twice (Text Size and Editor Width)
+    expect(screen.getAllByText("Standard").length).toBeGreaterThanOrEqual(1);
+    expect(screen.getByText("Narrow")).toBeInTheDocument();
+  });
+
+  it("calls setter when width option is clicked", () => {
+    const setEditorWidth = vi.fn();
+    (useAtom as any).mockImplementation((atom: any) => {
+      if (atom.toString() === "atom_editorWidth") return ["standard", setEditorWidth];
+      return ["", vi.fn()];
+    });
+
+    render(<SettingsDialog isOpen={true} onClose={mockOnClose} />);
+    
+    fireEvent.click(screen.getByText("Narrow"));
+    expect(setEditorWidth).toHaveBeenCalledWith("narrow");
   });
 
   it("calls onClose when close button is clicked", () => {

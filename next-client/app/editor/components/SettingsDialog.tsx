@@ -11,6 +11,7 @@ import {
   atom_isZenModeActive,
   atom_isWizardOpen,
   atom_isAutoSaveEnabled,
+  atom_editorWidth,
 } from "@/app/atoms/atoms";
 import DialogModal from "@/app/components/DialogModal/DialogModal";
 import Button from "@/app/components/Button";
@@ -69,6 +70,7 @@ const SettingsDialog = ({ isOpen, onClose }: Props) => {
   const [showStats, setShowStats] = useAtom(atom_showStats);
   const [isZenModeActive, setIsZenModeActive] = useAtom(atom_isZenModeActive);
   const [isAutoSaveEnabled, setIsAutoSaveEnabled] = useAtom(atom_isAutoSaveEnabled);
+  const [editorWidth, setEditorWidth] = useAtom(atom_editorWidth);
   const [, setIsWizardOpen] = useAtom(atom_isWizardOpen);
   
   const monoFonts = [
@@ -79,10 +81,15 @@ const SettingsDialog = ({ isOpen, onClose }: Props) => {
   ];
 
   const sizes = [
-    { label: "S", value: "13px" },
-    { label: "M", value: "15px" },
-    { label: "L", value: "18px" },
+    { label: "Compact", value: "14px" },
+    { label: "Standard", value: "16px" },
+    { label: "Large", value: "18px" },
     { label: "XL", value: "22px" },
+  ];
+
+  const widthOptions = [
+    { label: "Standard", value: "standard" },
+    { label: "Narrow", value: "narrow" },
   ];
 
   return (
@@ -143,6 +150,25 @@ const SettingsDialog = ({ isOpen, onClose }: Props) => {
               label="Zen Mode" 
               description="Focus on the active line."
               control={<Toggle active={isZenModeActive} onChange={setIsZenModeActive} />} 
+            />
+            <SettingItem 
+              label="Editor Width" 
+              description="Maximum horizontal text span."
+              control={
+                <div className="flex bg-neutral-200/50 dark:bg-neutral-800 p-0.5 rounded-xl">
+                  {widthOptions.map(opt => (
+                    <button
+                      key={opt.value}
+                      onClick={() => setEditorWidth(opt.value as any)}
+                      className={`px-2.5 py-1 text-[9px] font-bold rounded-lg transition-all ${
+                        editorWidth === opt.value ? "bg-white dark:bg-neutral-700 shadow-sm text-blue-600 dark:text-blue-400" : "text-neutral-500 hover:text-neutral-900 dark:hover:text-neutral-100"
+                      }`}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              } 
             />
           </SettingGroup>
 

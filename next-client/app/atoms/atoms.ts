@@ -14,7 +14,7 @@ export const atom_fontFamily = atomWithStorage<string>(
 );
 export const atom_fontSize = atomWithStorage<string>(
   "editorFontSize",
-  "prose-base",
+  "16px",
 );
 export const atom_showStats = atomWithStorage<boolean>("showStats", false);
 export const atom_isZenModeActive = atomWithStorage<boolean>("isZenModeActive", false);
@@ -22,6 +22,7 @@ export const atom_isEditorFocused = atom<boolean>(false);
 export const atom_cursorPosition = atom<{ line: number; col: number }>({ line: 1, col: 1 });
 export const atom_statusMetricMode = atomWithStorage<"words" | "chars" | "readingTime">("statusMetricMode", "words");
 export const atom_isAutoSaveEnabled = atomWithStorage<boolean>("isAutoSaveEnabled", true);
+export const atom_editorWidth = atomWithStorage<"standard" | "narrow">("editorWidth", "standard");
 export const atom_hasCompletedOnboarding = atomWithStorage<boolean>("hasCompletedOnboarding", false);
 export const atom_isWizardOpen = atom<boolean>(false);
 
@@ -77,7 +78,7 @@ export const atom_openFiles = atomWithStorage<Record<string, FileState>>("openFi
   draft: {
     content: "",
     lastSavedContent: "",
-    fileName: "untitled",
+    fileName: "untitled.md",
     activeFilePath: null,
   }
 });
@@ -169,7 +170,12 @@ export const atom_activeFilePath = atom(
       };
 
       if (newValue && !leaf.openFilePaths.includes(newValue)) {
-        updates.openFilePaths = [...leaf.openFilePaths, newValue];
+        // If we are opening a file while currently in a "draft", replace the draft tab
+        if (leaf.activeFilePath === "draft") {
+          updates.openFilePaths = leaf.openFilePaths.map(p => p === "draft" ? newValue : p);
+        } else {
+          updates.openFilePaths = [...leaf.openFilePaths, newValue];
+        }
       }
 
       set(atom_workspaceLayout, {
@@ -437,10 +443,36 @@ export interface DialogConfig {
 
 export const atom_globalDialog = atom<DialogConfig | null>(null);
 
-export const atom_pendingFileSwitch = atom<{
-  handle: FileSystemFileHandle;
-  path?: string;
-} | null>(null);
-
 export const atom_sidebarWidth = atomWithStorage<number>("sidebarWidth", 260);
+
+// Action atoms
+export const atom_rebindHandles = atom(
+  null,
+  async (get, set, vaultHandle: FileSystemDirectoryHandle) => {
+    const openFiles = get(atom_openFiles);
+    const paths = Object.keys(openFiles);
+    
+    for (const path of paths) {
+      if (path === "draft") continue;
+      
+      try {
+        const parts = path.split("/");
+        let current: any = vaultHandle;
+        
+        // Walk the directory structure
+        for (let i = 0; i < parts.length - 1; i++) {
+          current = await current.getDirectoryHandle(parts[i]);
+        }
+        
+        // Get the file handle
+        const handle = await current.getFileHandle(parts[parts.length - 1]);
+        if (handle) {
+          set(atom_liveHandles(path), handle);
+        }
+      } catch (err) {
+        console.warn(`Failed to rebind handle for ${path}:`, err);
+      }
+    }
+  }
+);
 

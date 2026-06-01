@@ -131,3 +131,9 @@ ul li::marker {
   animation: blink 1s step-end infinite;
   @apply text-blue-500; /* Typora-style cursor color */
 }
+
+/* Premium Animated Caret */
+.editor-container textarea {
+  caret-color: theme('colors.blue.500');
+}
+

@@ -4,9 +4,21 @@ import React from "react";
 import { PanelLeaf } from "@/app/types/workspace";
 import MarkdownEditor from "./MarkdownEditor";
 import { useAtom } from "jotai";
-import { atom_activePaneId, atom_fileContent, atom_openFiles, atom_splitPane, atom_closePane, atom_closeTab, atom_activeFilePath, atom_moveTab, atom_isZenModeActive, atom_saveStatus } from "@/app/atoms/atoms";
-import { HiOutlineDocumentText, HiOutlineEye, HiOutlineChartBar, HiOutlineX, HiOutlineCloudUpload, HiOutlineCheckCircle, HiOutlineExclamationCircle, HiOutlineSaveAs, HiOutlineSave } from "react-icons/hi";
-import { VscSplitHorizontal, VscSplitVertical, VscClose } from "react-icons/vsc";
+import { 
+  atom_activePaneId, 
+  atom_fileContent, 
+  atom_openFiles, 
+  atom_splitPane, 
+  atom_closePane, 
+  atom_closeTab, 
+  atom_activeFilePath, 
+  atom_moveTab, 
+  atom_isZenModeActive, 
+  atom_saveStatus,
+  atom_liveHandles
+} from "@/app/atoms/atoms";
+import { HiOutlineDocumentText, HiOutlineEye, HiOutlineChartBar, HiOutlineX, HiOutlineCloudUpload, HiOutlineCheckCircle, HiOutlineExclamationCircle, HiOutlineSave } from "react-icons/hi";
+import { VscSplitHorizontal, VscClose } from "react-icons/vsc";
 import { useFileSystem } from "@/app/hooks/use-file-system";
 import { useAtomValue } from "jotai";
 
@@ -54,6 +66,7 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
   const { openFileByName, saveFile, exportFile } = useFileSystem();
   const filePath = leaf.activeFilePath || "draft";
   const [content, setContent] = useAtom(atom_fileContent(filePath));
+  const liveHandle = useAtomValue(atom_liveHandles(filePath));
   
   const isActive = activePaneId === leaf.id;
 
@@ -61,10 +74,9 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
     if (!content.trim()) return;
     const fileState = openFiles[filePath];
     const fileName = fileState?.fileName || "Untitled";
-    const handle = (fileState as any)?.handle;
 
-    if (handle) {
-      const success = await saveFile(content);
+    if (liveHandle) {
+      const success = await saveFile(content, liveHandle);
       if (success) return;
     }
     await exportFile(content, fileName);
@@ -72,11 +84,9 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
 
   const handleSave = async () => {
     if (!content.trim()) return;
-    const fileState = openFiles[filePath];
-    const handle = (fileState as any)?.handle;
 
-    if (handle) {
-      await saveFile(content);
+    if (liveHandle) {
+      await saveFile(content, liveHandle);
     } else {
       await handleExport();
     }
@@ -204,7 +214,7 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
                   setActiveFilePath(path);
                 }}
                 className={`
-                  group flex items-center gap-2 px-4 h-full cursor-pointer min-w-[120px] max-w-[220px] transition-all shrink-0 relative
+                  group flex items-center gap-2 px-3 md:px-4 h-full cursor-pointer min-w-[100px] md:min-w-[140px] max-w-[200px] md:max-w-[320px] transition-all shrink-0 relative touch-pan-x
                   ${isTabActive ? "text-zinc-900 dark:text-zinc-100 font-semibold" : "text-zinc-400 dark:text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300"}
                   ${isDraggedOver ? "bg-blue-500/5" : ""}
                 `}
@@ -228,7 +238,7 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
                     e.stopPropagation();
                     closeTab({ paneId: leaf.id, filePath: path });
                   }}
-                  className="opacity-0 group-hover:opacity-100 p-1 rounded-md hover:bg-zinc-200 dark:hover:bg-zinc-800 transition-all shrink-0"
+                  className={`${isTabActive ? "opacity-60" : "opacity-0"} group-hover:opacity-100 p-1.5 rounded-md hover:bg-zinc-200 dark:hover:bg-zinc-800 transition-all shrink-0`}
                 >
                   <VscClose size={14} />
                 </button>

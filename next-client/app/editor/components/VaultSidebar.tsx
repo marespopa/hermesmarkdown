@@ -63,7 +63,7 @@ export default function VaultSidebar({
   } = useFileSystem();
 
   const fileMetadata = useAtomValue(atom_fileMetadata);
-  const activeFilePath = useAtomValue(atom_activeFilePath);
+  const [activeFilePath, setActiveFilePath] = useAtom(atom_activeFilePath);
   const [sidebarWidth, setSidebarWidth] = useAtom(atom_sidebarWidth);
   const [isResizing, setIsResizing] = useState(false);
 
@@ -117,16 +117,6 @@ export default function VaultSidebar({
 
   if (!isMounted) return null;
 
-  if (!isVaultSupported) {
-    return (
-      <div className="w-64 flex flex-col items-center justify-center p-6 text-center h-full">
-        <HiOutlineX size={48} className="opacity-20 mb-4 text-red-500" />
-        <h2 className="text-xs font-bold tracking-widest opacity-50 mb-2">Vault Not Supported</h2>
-        <p className="text-[10px] opacity-40 leading-relaxed">Your browser doesn't support the File System Access API. Please use Chrome, Edge, or Opera.</p>
-      </div>
-    );
-  }
-
   return (
     <div 
       className="flex flex-col h-full animate-in slide-in-from-left duration-300 relative group/sidebar bg-neutral-50/50 dark:bg-neutral-950/50"
@@ -162,7 +152,7 @@ export default function VaultSidebar({
               </Button>
             )}
             <h2 className="text-[13px] font-semibold tracking-tight text-zinc-900 dark:text-zinc-100">
-              {selectedTag ? `Tag: ${selectedTag}` : currentDirectoryHandle?.name || (vaultHandle ? "Notes" : "HermesMD")}
+              {selectedTag ? `Tag: ${selectedTag}` : currentDirectoryHandle?.name || (vaultHandle ? "Notes" : "HermesMarkdown")}
             </h2>
           </div>
           
@@ -171,7 +161,8 @@ export default function VaultSidebar({
                 variant="icon"
                 className="w-8 h-8 opacity-60 hover:opacity-100 text-zinc-600 dark:text-zinc-400"
                 onClick={onNewFile}
-                title="New Note"
+                disabled={!vaultHandle}
+                title={vaultHandle ? "New Note" : "Open a folder to create files"}
               >
                 <VscNewFile size={16} />
               </Button>
@@ -179,7 +170,7 @@ export default function VaultSidebar({
               {onClose && (
                 <Button
                   variant="icon"
-                  className="w-8 h-8 md:hidden opacity-60 hover:opacity-100"
+                  className="w-8 h-8 opacity-60 hover:opacity-100"
                   onClick={onClose}
                   title="Close Sidebar"
                 >
@@ -195,15 +186,28 @@ export default function VaultSidebar({
           <div className="space-y-4">
             <div className="space-y-1">
               <SidebarHeader title="Locations" isExpanded={true} onToggle={() => {}} />
+              
+              {isVaultSupported ? (
+                <div 
+                  onClick={openVault}
+                  className="flex items-center gap-2 px-4 py-2 rounded-md cursor-pointer hover:bg-zinc-200 dark:hover:bg-zinc-800/50 transition-colors text-[13px] text-zinc-600 dark:text-zinc-400"
+                >
+                  <HiOutlineDatabase size={16} />
+                  <span>Open Folder</span>
+                </div>
+              ) : (
+                <div className="px-4 py-3 rounded-md bg-amber-500/5 border border-amber-500/10 mb-2">
+                  <p className="text-[10px] text-amber-600 dark:text-amber-400 leading-relaxed font-medium">
+                    Vaults require Chrome/Edge on Desktop.
+                  </p>
+                </div>
+              )}
+
               <div 
-                onClick={openVault}
-                className="flex items-center gap-2 px-4 py-2 rounded-md cursor-pointer hover:bg-zinc-200 dark:hover:bg-zinc-800/50 transition-colors text-[13px] text-blue-600 dark:text-blue-400 font-medium"
-              >
-                <HiOutlineDatabase size={16} />
-                <span>Open Folder</span>
-              </div>
-              <div 
-                onClick={() => {}} // Active file handled by atoms
+                onClick={() => {
+                   setActiveFilePath("draft");
+                   if (onClose && window.innerWidth < 768) onClose();
+                }}
                 className={`flex items-center gap-2 px-4 py-2 rounded-md cursor-pointer transition-all text-[13px] relative ${activeFilePath === 'draft' ? "text-blue-600 dark:text-blue-400 font-medium before:absolute before:left-0 before:top-2 before:bottom-2 before:w-0.5 before:bg-blue-500 bg-blue-500/5" : "hover:bg-zinc-200 dark:hover:bg-zinc-800/50 text-zinc-600 dark:text-zinc-400"}`}
               >
                 <HiOutlineDocumentText size={16} />
@@ -212,7 +216,7 @@ export default function VaultSidebar({
             </div>
 
             <div className="space-y-1">
-              <SidebarHeader title="More" isExpanded={true} onToggle={() => {}} />
+              <SidebarHeader title="Actions" isExpanded={true} onToggle={() => {}} />
               <div 
                 onClick={onImport}
                 className="flex items-center gap-2 px-4 py-2 rounded-md cursor-pointer hover:bg-zinc-200 dark:hover:bg-zinc-800/50 transition-colors text-[13px] text-zinc-600 dark:text-zinc-400"

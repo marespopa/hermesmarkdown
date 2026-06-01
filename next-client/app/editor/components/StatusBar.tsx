@@ -16,7 +16,6 @@ import {
 import { 
   HiOutlineLightningBolt, 
   HiOutlineDatabase,
-  HiOutlineClock,
   HiOutlineEye,
   HiOutlineEyeOff
 } from "react-icons/hi";

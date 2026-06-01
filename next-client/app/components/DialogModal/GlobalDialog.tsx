@@ -44,7 +44,7 @@ export default function GlobalDialog() {
       isOpened={!!config}
       onClose={handleCancel}
       onConfirm={handleConfirm}
-      styles="max-w-md"
+      styles=""
       ariaLabelledBy="dialog-title"
       ariaDescribedBy="dialog-description"
     >
@@ -77,6 +77,7 @@ export default function GlobalDialog() {
               handleChange={(e) => setPromptValue(e.target.value)}
               placeholder="Enter value..."
               autoFocus
+              selectOnFocus
             />
           </div>
         )}

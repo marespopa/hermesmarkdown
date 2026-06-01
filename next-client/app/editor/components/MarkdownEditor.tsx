@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef, useEffect, useCallback, useState } from "react";
+import React, { useRef, useEffect, useCallback, useState, useMemo } from "react";
 import Editor from "react-simple-code-editor";
 import getCaretCoordinates from "textarea-caret";
 import { useAtom } from "jotai";
@@ -11,6 +11,7 @@ import {
   atom_isZenModeActive,
   atom_cursorPosition,
   atom_isEditorFocused,
+  atom_editorWidth,
 } from "@/app/atoms/atoms";
 
 import {
@@ -160,7 +161,7 @@ function highlightMarkdown(code: string, isZenModeActive: boolean = false, activ
       }
 
       const isActive = isZenModeActive && index === activeLineIndex;
-      return `<div class="${isActive ? "bg-zinc-500/5 dark:bg-zinc-500/10 -mx-4 px-4" : ""} min-h-[1.8em]">${content || " "}</div>`;
+      return `<div class="transition-colors duration-500 ease-in-out ${isActive ? "bg-zinc-500/5 dark:bg-zinc-500/10 -mx-4 px-4" : ""} min-h-[1.8em]">${content || " "}</div>`;
     })
     .join("");
 }
@@ -178,6 +179,22 @@ export default function MarkdownEditor({
   const [fontSize] = useAtom(atom_fontSize);
   const [wordWrap] = useAtom(atom_wordWrap);
   const [isZenModeActive] = useAtom(atom_isZenModeActive);
+  const [editorWidth] = useAtom(atom_editorWidth);
+
+  const [windowWidth, setWindowWidth] = useState(typeof window !== "undefined" ? window.innerWidth : 1200);
+
+  useEffect(() => {
+    const handleResize = () => setWindowWidth(window.innerWidth);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  // Fluid Typography: Boost font size by 1px on large displays
+  const displayFontSize = useMemo(() => {
+    const base = parseInt(fontSize);
+    if (isNaN(base)) return fontSize;
+    return windowWidth >= 1280 ? `${base + 1}px` : fontSize;
+  }, [fontSize, windowWidth]);
 
   const [menuOpen, setMenuOpen] = useState(false);
   const [isUserScrolling, setIsUserScrolling] = useState(false);
@@ -228,16 +245,22 @@ export default function MarkdownEditor({
     };
     document.addEventListener("selectionchange", handleSelectionChange);
     
-    // Trigger sync immediately when Zen Mode is toggled
+    // Trigger sync immediately and during transition when Zen Mode is toggled
     // We wait for the sidebar transitions to finish for accurate centering
-    const timer = setTimeout(() => {
+    const timer1 = setTimeout(() => {
       syncScroll();
       syncActiveLine();
     }, 350);
 
+    const timer2 = setTimeout(() => {
+      syncScroll();
+      syncActiveLine();
+    }, 700);
+
     return () => {
       document.removeEventListener("selectionchange", handleSelectionChange);
-      clearTimeout(timer);
+      clearTimeout(timer1);
+      clearTimeout(timer2);
     };
   }, [isZenModeActive, syncScroll, syncActiveLine]);
 
@@ -257,6 +280,16 @@ export default function MarkdownEditor({
   const highlight = useCallback((code: string) => {
     return highlightMarkdown(code, isZenModeActive, activeLineIndex);
   }, [isZenModeActive, activeLineIndex]);
+
+  const widthClasses = {
+    standard: "max-w-full px-4 md:px-8",
+    narrow: "max-w-[95%] md:max-w-[850px] mx-auto",
+  };
+
+  const paddingClasses = {
+    standard: "",
+    narrow: "px-1",
+  };
 
   function findLinkAtPos(text: string, pos: number) {
     let match;
@@ -606,8 +639,9 @@ export default function MarkdownEditor({
             textareaRef.current.setSelectionRange(length, length);
           }
         }}
-        className={`editor-container relative min-h-full antialiased normal-nums [font-variant-ligatures:none] [font-feature-settings:'liga'_0,'calt'_0]
-          ${isZenModeActive ? "max-w-[75ch] mx-auto pt-[45vh] pb-[45vh]" : "px-4 sm:px-8 py-6 max-w-[90ch] mx-auto"}
+        className={`editor-container relative min-h-full antialiased normal-nums [font-variant-ligatures:none] [font-feature-settings:'liga'_0,'calt'_0] 
+          transition-[padding,max-width,opacity] duration-700 [transition-timing-function:cubic-bezier(0.4,0,0.2,1)]
+          ${isZenModeActive ? "max-w-[75ch] mx-auto pt-[45vh] pb-[45vh]" : `pt-1 pb-12 mx-auto ${widthClasses[editorWidth]} ${paddingClasses[editorWidth]}`}
           ${wordWrap ? "w-full" : "w-max min-w-full"}
           [&_textarea]:!bg-transparent [&_textarea]:!text-transparent [&_textarea]:!caret-blue-500
           [&_textarea]:!z-10 [&_pre]:!z-0 [&_pre]:!pointer-events-none
@@ -616,8 +650,22 @@ export default function MarkdownEditor({
           [&_textarea]:!tracking-normal [&_pre]:!tracking-normal
           ${wordWrap ? "[&_textarea]:!white-space-pre-wrap [&_pre]:!white-space-pre-wrap" : "[&_textarea]:!white-space-pre [&_pre]:!white-space-pre"}
         `}
-        style={{ fontFamily, fontSize }}
+        style={{ fontFamily, fontSize: displayFontSize }}
       >
+        {!value && (
+          <div 
+            className="absolute left-0 right-0 opacity-20 pointer-events-none italic"
+            style={{ 
+              paddingLeft: editorWidth === 'narrow' ? '0' : 'inherit',
+              paddingRight: editorWidth === 'narrow' ? '0' : 'inherit',
+              top: isZenModeActive ? '45vh' : '4px', // Matches pt-1 (4px) or pt-[45vh]
+              lineHeight: '1.8'
+            }}
+          >
+            {placeholder}
+          </div>
+        )}
+
         {menuOpen && filteredTemplates.length > 0 && (
           <div
             className="absolute z-50 w-52 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg shadow-2xl py-1 overflow-hidden"
@@ -639,12 +687,6 @@ export default function MarkdownEditor({
                 {t.label}
               </div>
             ))}
-          </div>
-        )}
-
-        {!value && (
-          <div className="absolute top-0 left-0 opacity-20 pointer-events-none italic">
-            {placeholder}
           </div>
         )}
 
