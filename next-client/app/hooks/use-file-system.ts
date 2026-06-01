@@ -723,7 +723,7 @@ export function useFileSystem() {
       draft: {
         content: "",
         lastSavedContent: "",
-        fileName: "untitled",
+        fileName: "untitled.md",
         activeFilePath: "draft",
       }
     });
@@ -759,14 +759,68 @@ export function useFileSystem() {
         try {
           await (parentDir as any).removeEntry(handle.name, { recursive: true });
 
-          // If the active file was inside this deleted item, clear editor
+          // Update workspace layout to remove all tabs matching the deleted item
+          setWorkspaceLayout((prev) => {
+            const removePathFromNode = (node: any): any => {
+              if ("type" in node && node.type === "editor") {
+                const newPaths = node.openFilePaths.filter((p: string) => {
+                  if (handle.kind === "file") {
+                    // Check if the filename matches (simplistic but often enough if path not stored)
+                    return p.split("/").pop() !== handle.name;
+                  } else {
+                    // Directory: remove any path that starts with this directory
+                    return !p.startsWith(handle.name + "/") && p !== handle.name;
+                  }
+                });
+
+                let newActive = node.activeFilePath;
+                if (newPaths.length === 0) {
+                  newPaths.push("draft");
+                  newActive = "draft";
+                } else if (!newPaths.includes(newActive)) {
+                  newActive = newPaths[newPaths.length - 1];
+                }
+
+                return {
+                  ...node,
+                  openFilePaths: newPaths,
+                  activeFilePath: newActive,
+                };
+              }
+              if ("children" in node) {
+                return {
+                  ...node,
+                  children: node.children.map(removePathFromNode),
+                };
+              }
+              return node;
+            };
+
+            return {
+              ...prev,
+              rootContainer: removePathFromNode(prev.rootContainer),
+            };
+          });
+
+          // Clean up openFiles registry
+          setOpenFiles((prev) => {
+            const next = { ...prev };
+            Object.keys(next).forEach((path) => {
+              if (handle.kind === "file") {
+                if (path.split("/").pop() === handle.name) delete next[path];
+              } else {
+                if (path.startsWith(handle.name + "/") || path === handle.name)
+                  delete next[path];
+              }
+            });
+            return next;
+          });
+
           if (
             activeFileHandle?.name === handle.name ||
             (handle.kind === "directory" && activeFileHandle)
           ) {
             setActiveFileHandle(null);
-            setContent("");
-            setFileName("");
           }
 
           await scanVault(parentDir);
@@ -803,8 +857,8 @@ export function useFileSystem() {
       activeFileHandle,
       scanVault,
       indexVaultTags,
-      setContent,
-      setFileName,
+      setWorkspaceLayout,
+      setOpenFiles,
       setActiveFileHandle,
       dialog,
     ],

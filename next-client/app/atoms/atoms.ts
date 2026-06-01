@@ -94,7 +94,7 @@ export const atom_fileContent = atomFamily((path: string) => atom(
     const fileState = prev[path] || { 
       content: "", 
       lastSavedContent: "", 
-      fileName: path.split("/").pop() || "untitled", 
+      fileName: path.split("/").pop() || "untitled.md", 
       activeFilePath: path
     };
     set(atom_openFiles, {
@@ -127,7 +127,7 @@ export const atom_content = atom(
     const fileState = prev[path] || { 
       content: "", 
       lastSavedContent: "", 
-      fileName: "untitled", 
+      fileName: "untitled.md", 
       activeFilePath: null
     };
     set(atom_openFiles, {
