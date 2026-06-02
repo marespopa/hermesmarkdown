@@ -31,6 +31,7 @@ vi.mock("@/app/atoms/atoms", () => ({
   atom_saveStatus: "atom_saveStatus",
   atom_workspaceLayout: "atom_workspaceLayout",
   atom_rebindHandles: "atom_rebindHandles",
+  atom_isCloudVault: "atom_isCloudVault",
 }));
 vi.mock("@/app/atoms/metadata", () => ({ atom_fileMetadata: "atom_fileMetadata" }));
 

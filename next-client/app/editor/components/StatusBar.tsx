@@ -45,12 +45,12 @@ export default function StatusBar() {
     setMetricMode(modes[nextIndex]);
   };
 
-  if (!showStats) return null;
+  if (!showStats && !isZenModeActive) return null;
 
   return (
-    <footer className={`h-8 border-t border-zinc-200/50 dark:border-zinc-800/50 bg-white/50 dark:bg-zinc-950/50 backdrop-blur-3xl flex items-center justify-between px-6 shrink-0 pointer-events-auto z-40 select-none transition-all duration-700 ease-in-out ${isEditorFocused ? "max-md:h-0 max-md:opacity-0 max-md:pointer-events-none max-md:border-none" : "h-8 opacity-100"}`}>
+    <footer className={`h-8 border-t border-zinc-200/50 dark:border-zinc-800/50 bg-white/50 dark:bg-zinc-950/50 backdrop-blur-3xl flex items-center justify-between px-6 shrink-0 pointer-events-auto z-40 select-none transition-all duration-700 ease-in-out ${isEditorFocused && !isZenModeActive ? "max-md:h-0 max-md:opacity-0 max-md:pointer-events-none max-md:border-none" : "h-8 opacity-100"}`}>
       {/* Left Side: Cursor & Interactive Metrics */}
-      <div className="flex items-center gap-3 sm:gap-6 text-[9px] font-bold tracking-[0.2em] text-zinc-400 dark:text-zinc-500 uppercase">
+      <div className={`flex items-center gap-3 sm:gap-6 text-[9px] font-bold tracking-[0.2em] text-zinc-400 dark:text-zinc-500 uppercase transition-opacity duration-500 ${!showStats ? "opacity-0 pointer-events-none" : "opacity-100"}`}>
         <div className="hidden sm:flex items-center gap-4 pr-6 border-r border-zinc-200/50 dark:border-zinc-800/50 h-3">
           <span className="flex items-center gap-1.5">
             <span className="opacity-40">LN</span>
@@ -90,7 +90,7 @@ export default function StatusBar() {
       
       {/* Right Side: Vault Status, Save Status & Toggles */}
       <div className="flex items-center gap-3 sm:gap-6 text-[9px] font-bold tracking-[0.2em] text-zinc-400 dark:text-zinc-500 uppercase">
-        <div className="flex items-center gap-3 sm:gap-6 pr-6 border-r border-zinc-200/50 dark:border-zinc-800/50 h-3">
+        <div className={`flex items-center gap-3 sm:gap-6 pr-6 border-r border-zinc-200/50 dark:border-zinc-800/50 h-3 transition-opacity duration-500 ${!showStats ? "opacity-0 pointer-events-none" : "opacity-100"}`}>
           {vaultHandle ? (
             <span className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-500" title="Vault Connected">
               <HiOutlineDatabase size={11} />

@@ -3,6 +3,17 @@ import { renderHook } from "@testing-library/react";
 import { useFileEditor } from "./use-file-editor";
 import * as jotai from "jotai";
 
+vi.hoisted(() => {
+  if (typeof global !== 'undefined') {
+    (global as any).Worker = class {
+      addEventListener = vi.fn();
+      removeEventListener = vi.fn();
+      postMessage = vi.fn();
+      terminate = vi.fn();
+    };
+  }
+});
+
 // Mock atoms
 vi.mock("@/app/atoms/atoms", () => ({
   atom_vaultHandle: { name: "atom_vaultHandle" },
@@ -15,6 +26,7 @@ vi.mock("@/app/atoms/atoms", () => ({
   atom_fileLastModified: { name: "atom_fileLastModified" },
   atom_fileConflict: { name: "atom_fileConflict" },
   atom_saveStatus: { name: "atom_saveStatus" },
+  atom_isCloudVault: { name: "atom_isCloudVault" },
 }));
 
 vi.mock("@/app/atoms/metadata", () => ({

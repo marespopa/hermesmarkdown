@@ -17,12 +17,15 @@ import {
   atom_saveStatus,
   atom_liveHandles,
   atom_autosaveMode,
+  atom_vaultHandle,
+  atom_fileName,
   contentStore
 } from "@/app/atoms/atoms";
 import { HiOutlineDocumentText, HiOutlineEye, HiOutlineChartBar, HiOutlineX, HiOutlineSave } from "react-icons/hi";
 import { VscSplitHorizontal, VscClose } from "react-icons/vsc";
 import { useFileSystem } from "@/app/hooks/use-file-system";
 import { useAtomValue } from "jotai";
+import { useDialog } from "@/app/hooks/use-dialog";
 
 interface PaneLeafProps {
   leaf: PanelLeaf;
@@ -38,8 +41,10 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
   const [, moveTab] = useAtom(atom_moveTab);
   const [isZenModeActive] = useAtom(atom_isZenModeActive);
   const saveStatus = useAtomValue(atom_saveStatus);
+  const vaultHandle = useAtomValue(atom_vaultHandle);
 
-  const { openFileByName, saveFile, exportFile } = useFileSystem();
+  const { openFileByName, saveFile, exportFile, createFile } = useFileSystem();
+  const dialog = useDialog();
   const filePath = leaf.activeFilePath || "draft";
   const [content, setContent] = useAtom(atom_fileContent(filePath));
   const liveHandle = useAtomValue(atom_liveHandles(filePath));
@@ -63,6 +68,13 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
 
     if (liveHandle) {
       await saveFile(content, liveHandle, 0, false, filePath);
+    } else if (vaultHandle) {
+      const fileState = openFiles[filePath];
+      const fileName = fileState?.fileName || "untitled";
+      const name = await dialog.prompt("Enter file name:", fileName.replace(".md", ""), "Save to Vault");
+      if (name) {
+        await createFile(name, content);
+      }
     } else {
       await handleExport();
     }

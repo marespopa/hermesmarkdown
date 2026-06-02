@@ -46,54 +46,69 @@ export function useFileEditor({ indexVaultTags }: UseFileEditorProps) {
       force: boolean = false,
       retryCount = 0,
     ) => {
-      // Check for unsaved changes
-      const isDirty = content !== lastSavedContent;
-      if (isDirty && !force) {
-        const confirmed = await dialog.confirm(
-          "You have unsaved changes in your current file/draft. Open this file and discard changes?",
-          "Unsaved Changes",
-          "Open File",
-          "Cancel",
-          "You can save your current changes first to avoid losing work."
-        );
-        if (!confirmed) return;
+      let path = providedPath;
+      if (!path && vaultHandle) {
+        // 1. Try to find the path in metadata first (fastest fallback)
+        for (const [metaPath, meta] of Object.entries(fileMetadata)) {
+          if (meta.name === fileHandle.name) {
+            try {
+              if (await (meta.handle as any).isSameEntry(fileHandle)) {
+                path = metaPath;
+                break;
+              }
+            } catch {
+              // Comparison failed
+            }
+          }
+        }
+        
+        // 2. If still no path, use the slow File System API resolve
+        if (!path) {
+          try {
+            const pathParts = await (vaultHandle as any).resolve(fileHandle);
+            if (pathParts) {
+              path = pathParts.join("/");
+            }
+          } catch {
+            // resolve failed, path stays null
+          }
+        }
+      }
+
+      const finalPath = path || fileHandle.name;
+
+      // 0. Check for unsaved changes (Dirty State protection)
+      if (!force) {
+        const openFiles = contentStore.get(atom_openFiles);
+        const existing = openFiles[finalPath];
+        
+        // Scenario A: The file we are opening is already dirty in browser memory
+        if (existing && existing.content !== existing.lastSavedContent) {
+           const confirmed = await dialog.confirm(
+            `"${fileHandle.name}" has unsaved changes in your browser. Opening it will overwrite those changes with the version from your computer.`,
+            "Overwrite unsaved changes?",
+            "Overwrite",
+            "Cancel"
+          );
+          if (!confirmed) return;
+        } 
+        
+        // Scenario B: The CURRENT active file is dirty (standard focus-loss warning)
+        else if (content !== lastSavedContent) {
+          const confirmed = await dialog.confirm(
+            "You have unsaved changes in your current file/draft. Open this file and discard changes?",
+            "Unsaved Changes",
+            "Open File",
+            "Cancel",
+            "You can save your current changes first to avoid losing work."
+          );
+          if (!confirmed) return;
+        }
       }
 
       try {
         const file = await fileHandle.getFile();
         const fileContent = await file.text();
-
-        let path = providedPath;
-        if (!path && vaultHandle) {
-          // If no path is provided, we must do the expensive reverse-lookup.
-          // 1. Try to find the path in metadata first (fastest fallback)
-          for (const [metaPath, meta] of Object.entries(fileMetadata)) {
-            if (meta.name === fileHandle.name) {
-              try {
-                if (await (meta.handle as any).isSameEntry(fileHandle)) {
-                  path = metaPath;
-                  break;
-                }
-              } catch {
-                // Comparison failed
-              }
-            }
-          }
-          
-          // 2. If still no path, use the slow File System API resolve
-          if (!path) {
-            try {
-              const pathParts = await (vaultHandle as any).resolve(fileHandle);
-              if (pathParts) {
-                path = pathParts.join("/");
-              }
-            } catch {
-              // resolve failed, path stays null
-            }
-          }
-        }
-
-        const finalPath = path || fileHandle.name;
 
         // 1. Update openFiles registry first so the pane has data to read (persisted fields only)
         setOpenFiles((prev) => ({

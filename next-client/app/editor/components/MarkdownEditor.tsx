@@ -464,10 +464,10 @@ export default function MarkdownEditor({
           const caret = getCaretCoordinates(textarea, start - query.length);
           const menuHeight = 240;
           
-          // In Zen Mode, we have 50vh padding at the top of the editor-container
+          // In Zen Mode, we have 40svh padding at the top of the editor-container
           // caret.top is relative to the textarea (which starts after the padding)
           // We need to account for this padding when positioning the menu relative to the wrapper
-          const zenPadding = isZenModeActive ? window.innerHeight * 0.5 : 0;
+          const zenPadding = isZenModeActive ? (wrapperRef.current?.clientHeight || window.innerHeight) * 0.4 : 0;
           const adjustedTop = caret.top + zenPadding;
           
           const spaceBelow =
@@ -663,7 +663,7 @@ export default function MarkdownEditor({
         }}
         className={`editor-container relative min-h-full antialiased normal-nums [font-variant-ligatures:none] [font-feature-settings:'liga'_0,'calt'_0] 
           transition-[padding,max-width,opacity] duration-700 [transition-timing-function:cubic-bezier(0.4,0,0.2,1)]
-          ${isZenModeActive ? "max-w-[75ch] mx-auto pt-[45vh] pb-[45vh]" : `pt-1 pb-12 mx-auto ${widthClasses[editorWidth]} ${paddingClasses[editorWidth]}`}
+          ${isZenModeActive ? "max-w-[75ch] mx-auto pt-[40svh] pb-[40svh]" : `pt-1 pb-12 mx-auto ${widthClasses[editorWidth]} ${paddingClasses[editorWidth]}`}
           ${wordWrap ? "w-full" : "w-max min-w-full"}
           [&_textarea]:!bg-transparent [&_textarea]:!text-transparent [&_textarea]:!caret-blue-500
           [&_textarea]:!z-10 [&_pre]:!z-0 [&_pre]:!pointer-events-none
@@ -680,7 +680,7 @@ export default function MarkdownEditor({
             style={{ 
               paddingLeft: editorWidth === 'narrow' ? '0' : 'inherit',
               paddingRight: editorWidth === 'narrow' ? '0' : 'inherit',
-              top: isZenModeActive ? '45vh' : '4px', // Matches pt-1 (4px) or pt-[45vh]
+              top: isZenModeActive ? '40svh' : '4px', // Matches pt-1 (4px) or pt-[40svh]
               lineHeight: '1.8'
             }}
           >
