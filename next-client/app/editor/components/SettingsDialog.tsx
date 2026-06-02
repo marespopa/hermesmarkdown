@@ -10,7 +10,8 @@ import {
   atom_showStats,
   atom_isZenModeActive,
   atom_isWizardOpen,
-  atom_isAutoSaveEnabled,
+  atom_autosaveMode,
+  atom_autosaveDelay,
   atom_editorWidth,
 } from "@/app/atoms/atoms";
 import DialogModal from "@/app/components/DialogModal/DialogModal";
@@ -69,7 +70,8 @@ const SettingsDialog = ({ isOpen, onClose }: Props) => {
   const [wordWrap, setWordWrap] = useAtom(atom_wordWrap);
   const [showStats, setShowStats] = useAtom(atom_showStats);
   const [isZenModeActive, setIsZenModeActive] = useAtom(atom_isZenModeActive);
-  const [isAutoSaveEnabled, setIsAutoSaveEnabled] = useAtom(atom_isAutoSaveEnabled);
+  const [autosaveMode, setAutosaveMode] = useAtom(atom_autosaveMode);
+  const [autosaveDelay, setAutosaveDelay] = useAtom(atom_autosaveDelay);
   const [editorWidth, setEditorWidth] = useAtom(atom_editorWidth);
   const [, setIsWizardOpen] = useAtom(atom_isWizardOpen);
   
@@ -137,10 +139,37 @@ const SettingsDialog = ({ isOpen, onClose }: Props) => {
 
           <SettingGroup title="Editor">
             <SettingItem 
-              label="Auto-Save" 
-              description="Automatically persist changes to files."
-              control={<Toggle active={isAutoSaveEnabled} onChange={setIsAutoSaveEnabled} />} 
+              label="Autosave Mode" 
+              description="When to persist changes."
+              control={
+                <select 
+                  value={autosaveMode} 
+                  onChange={(e) => setAutosaveMode(e.target.value as any)}
+                  className="bg-neutral-200/50 dark:bg-neutral-800 text-[11px] font-bold rounded-xl px-2.5 py-1.5 outline-none border border-transparent focus:border-blue-500/50 cursor-pointer appearance-none text-center min-w-[120px]"
+                >
+                  <option value="afterDelay">After Delay</option>
+                  <option value="onFocusChange">On Focus Change</option>
+                  <option value="manual">Manual Only</option>
+                </select>
+              } 
             />
+            {autosaveMode === "afterDelay" && (
+              <SettingItem 
+                label="Autosave Delay" 
+                description={`${autosaveDelay}ms (Wait time after typing)`}
+                control={
+                  <input 
+                    type="range" 
+                    min="500" 
+                    max="10000" 
+                    step="500"
+                    value={autosaveDelay}
+                    onChange={(e) => setAutosaveDelay(Number(e.target.value))}
+                    className="w-32 h-1.5 bg-neutral-200 dark:bg-neutral-800 rounded-lg appearance-none cursor-pointer accent-blue-500"
+                  />
+                } 
+              />
+            )}
             <SettingItem 
               label="Word Wrap" 
               description="Wrap long lines to fit viewport."

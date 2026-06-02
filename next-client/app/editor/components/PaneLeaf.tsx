@@ -15,7 +15,9 @@ import {
   atom_moveTab, 
   atom_isZenModeActive, 
   atom_saveStatus,
-  atom_liveHandles
+  atom_liveHandles,
+  atom_autosaveMode,
+  contentStore
 } from "@/app/atoms/atoms";
 import { HiOutlineDocumentText, HiOutlineEye, HiOutlineChartBar, HiOutlineX, HiOutlineCloudUpload, HiOutlineCheckCircle, HiOutlineExclamationCircle, HiOutlineSave } from "react-icons/hi";
 import { VscSplitHorizontal, VscClose } from "react-icons/vsc";
@@ -234,8 +236,19 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
                 )}
 
                 <button
-                  onClick={(e) => {
+                  onClick={async (e) => {
                     e.stopPropagation();
+                    
+                    // Flush save before closing if autosave is enabled
+                    const autosaveMode = contentStore.get(atom_autosaveMode);
+                    if (autosaveMode !== "manual") {
+                      const fileState = openFiles[path];
+                      const tabHandle = contentStore.get(atom_liveHandles(path));
+                      if (fileState && fileState.content !== fileState.lastSavedContent && tabHandle) {
+                        await saveFile(fileState.content, tabHandle, 0, true);
+                      }
+                    }
+
                     closeTab({ paneId: leaf.id, filePath: path });
                   }}
                   className={`${isTabActive ? "opacity-60" : "opacity-0"} group-hover:opacity-100 p-1.5 rounded-md hover:bg-zinc-200 dark:hover:bg-zinc-800 transition-all shrink-0`}

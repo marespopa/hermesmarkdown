@@ -53,7 +53,7 @@ export default function LiteEditor() {
   const hasPromptedForNameRef = useRef(false);
 
   // Run sync hooks
-  useAutoSave(() => {
+  const { flush } = useAutoSave(() => {
     if (!activeFileHandle && vaultHandle && !hasPromptedForNameRef.current) {
       hasPromptedForNameRef.current = true;
       handleSave();
@@ -121,11 +121,16 @@ export default function LiteEditor() {
         e.preventDefault();
         handleSaveRef.current();
       }
+
+      // Flush on Undo (Ctrl+Z)
+      if ((e.ctrlKey || e.metaKey) && !e.shiftKey && e.key.toLowerCase() === "z") {
+        flush();
+      }
     };
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [setIsZenModeActive]);
+  }, [setIsZenModeActive, flush]);
 
   useEffect(() => {
     if (!isMounting) {
