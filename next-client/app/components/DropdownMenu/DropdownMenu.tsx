@@ -76,20 +76,20 @@ const DropdownMenu = ({ label, options, isOpen, onOpenChange, selectedIndex, onS
       {isOpen && (
         <div
           ref={menuRef}
-          className={`absolute mt-1 min-w-[180px] max-w-xs bg-white dark:bg-neutral-900 border border-black dark:border-white rounded-none shadow-xl font-sourcecode z-10 p-0 flex flex-col ${alignRight ? 'right-0' : 'left-0'}`}
+          className={`absolute mt-2 min-w-[200px] max-w-xs bg-white/80 dark:bg-neutral-900/80 backdrop-blur-xl border border-zinc-200/50 dark:border-neutral-800/50 rounded-2xl shadow-2xl font-sans z-50 p-1.5 flex flex-col gap-0.5 animate-in fade-in zoom-in-95 duration-200 ${alignRight ? 'right-0' : 'left-0'}`}
         >
           {options.map((option, idx) => (
             <Button
               key={option.label}
               variant="bare"
               onClick={() => handleOptionClick(option, idx)}
-              className={`w-full text-left whitespace-nowrap h-12 px-5 bg-white dark:bg-neutral-800 text-black dark:text-white border-b border-black dark:border-black rounded-none transition-all duration-150 focus-visible:ring-2 focus-visible:ring-black dark:focus-visible:ring-white hover:bg-neutral-100 dark:hover:bg-neutral-700 ${idx === options.length - 1 ? 'border-b-0' : ''} ${selectedIndex === idx ? 'bg-neutral-200 dark:bg-neutral-700 font-bold' : ''}`}
+              className={`w-full text-left whitespace-nowrap h-10 px-3.5 text-zinc-700 dark:text-zinc-200 hover:bg-zinc-100/80 dark:hover:bg-zinc-800/80 rounded-xl transition-all duration-150 focus-visible:ring-2 focus-visible:ring-blue-500 hover:text-zinc-900 dark:hover:text-zinc-100 ${selectedIndex === idx ? 'bg-zinc-100 dark:bg-zinc-800 font-semibold text-zinc-900 dark:text-zinc-100' : ''}`}
               tabIndex={0}
             >
-              <span className="flex items-center gap-2">
+              <span className="flex items-center gap-2 w-full text-[13px]">
                 {option.label}
                 {selectedIndex === idx && (
-                  <span className="ml-auto">✓</span>
+                  <span className="ml-auto text-blue-500">✓</span>
                 )}
               </span>
             </Button>

@@ -51,29 +51,29 @@ export default function Button({
   );
 }
 
-// Minimalistic Base: Removed transform/scaling for a more stable "Pro" feel
+// Minimalistic Base: Standardized for Apple-style "Pro" feel
 const baseStyles =
-  "rounded-xl flex items-center justify-center gap-2 transition-all duration-200 ease-out focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 disabled:opacity-30 disabled:pointer-events-none select-none border font-sans font-semibold text-[13px] sm:text-[14px]";
+  "rounded-2xl flex items-center justify-center gap-2 transition-all duration-200 ease-out focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 disabled:opacity-30 disabled:pointer-events-none select-none border font-sans font-semibold text-[13px] sm:text-[14px]";
 
 const variantStyles = (variant: ButtonVariant): string => {
   switch (variant) {
     case "hero":
-      return `${baseStyles} h-12 px-8 bg-zinc-900 text-white border-zinc-900 hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-950 dark:border-zinc-100 dark:hover:bg-zinc-200 shadow-md active:scale-[0.98]`;
+      return `${baseStyles} h-12 px-8 bg-blue-600 text-white border-blue-600 hover:bg-blue-500 shadow-md active:scale-[0.97]`;
 
     case "primary":
-      return `${baseStyles} h-11 px-6 bg-zinc-900 text-white border-zinc-900 hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-950 dark:border-zinc-100 dark:hover:bg-zinc-200 shadow-sm active:scale-[0.98]`;
+      return `${baseStyles} h-11 px-6 bg-zinc-900 text-white border-zinc-900 hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-950 dark:border-zinc-100 dark:hover:bg-zinc-200 shadow-sm active:scale-[0.97]`;
 
     case "secondary":
-      return `${baseStyles} h-11 px-6 bg-white text-zinc-900 border-zinc-200 hover:bg-zinc-50 dark:bg-zinc-900 dark:text-zinc-100 dark:border-zinc-800 dark:hover:bg-zinc-800 shadow-sm active:scale-[0.98]`;
+      return `${baseStyles} h-11 px-6 bg-white text-zinc-900 border-zinc-200 hover:bg-zinc-50 dark:bg-zinc-900 dark:text-zinc-100 dark:border-zinc-800 dark:hover:bg-zinc-800 shadow-sm active:scale-[0.97]`;
 
     case "outlined":
-      return `${baseStyles} h-11 px-4 bg-transparent border-zinc-300 text-zinc-600 hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-400 dark:hover:bg-zinc-800/50 active:scale-[0.98]`;
+      return `${baseStyles} h-11 px-4 bg-transparent border-zinc-300 text-zinc-600 hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-400 dark:hover:bg-zinc-800/50 active:scale-[0.97]`;
 
     case "icon":
-      return `${baseStyles} w-10 h-10 p-0 bg-transparent border-none text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-full`;
+      return `${baseStyles} w-10 h-10 p-0 bg-transparent border-none text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-full active:scale-[0.95]`;
 
     case "icon-bg":
-      return `${baseStyles} w-10 h-10 p-0 bg-white border-zinc-200 text-zinc-600 hover:bg-zinc-50 dark:bg-zinc-900 dark:border-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-800 shadow-sm active:scale-[0.98]`;
+      return `${baseStyles} w-10 h-10 p-0 bg-white border-zinc-200 text-zinc-600 hover:bg-zinc-50 dark:bg-zinc-900 dark:border-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-800 shadow-sm active:scale-[0.95]`;
 
     case "tertiary":
       return `${baseStyles} h-11 px-3 bg-transparent border-none text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100`;

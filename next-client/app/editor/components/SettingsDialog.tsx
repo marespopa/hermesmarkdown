@@ -15,29 +15,12 @@ import {
 } from "@/app/atoms/atoms";
 import DialogModal from "@/app/components/DialogModal/DialogModal";
 import Button from "@/app/components/Button";
+import Toggle from "@/app/components/Toggle";
 
 type Props = {
   isOpen: boolean;
   onClose: () => void;
 };
-
-const Toggle = ({ active, onChange }: { active: boolean; onChange: (v: boolean) => void }) => (
-  <button
-    type="button"
-    role="switch"
-    aria-checked={active}
-    onClick={() => onChange(!active)}
-    className={`relative inline-flex h-5 w-9 items-center rounded-full transition-all focus:outline-none ${
-      active ? 'bg-blue-500' : 'bg-neutral-300 dark:bg-neutral-700'
-    }`}
-  >
-    <span
-      className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${
-        active ? 'translate-x-[18px]' : 'translate-x-[2px]'
-      }`}
-    />
-  </button>
-);
 
 const SettingItem = ({ label, description, control }: { label: string; description?: string; control: React.ReactNode }) => (
   <div className="flex items-center justify-between py-3 border-b border-neutral-100 dark:border-neutral-800/30 last:border-0">
@@ -98,13 +81,13 @@ const SettingsDialog = ({ isOpen, onClose }: Props) => {
             <SettingItem 
               label="Text Size" 
               control={
-                <div className="flex bg-neutral-200/50 dark:bg-neutral-800 p-0.5 rounded-xl">
+                <div className="flex bg-zinc-200/50 dark:bg-zinc-800 p-1 rounded-xl">
                   {sizes.map(s => (
                     <button
                       key={s.label}
                       onClick={() => setFontSize(s.value)}
-                      className={`px-3 py-1 text-[10px] font-bold rounded-lg transition-all ${
-                        fontSize === s.value ? "bg-white dark:bg-neutral-700 shadow-sm text-blue-600 dark:text-blue-400" : "text-neutral-500 hover:text-neutral-900 dark:hover:text-neutral-100"
+                      className={`px-3 py-1.5 text-[11px] font-semibold rounded-lg transition-all ${
+                        fontSize === s.value ? "bg-white dark:bg-zinc-700 shadow-sm text-blue-600 dark:text-blue-400" : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100"
                       }`}
                     >
                       {s.label}
@@ -123,7 +106,7 @@ const SettingsDialog = ({ isOpen, onClose }: Props) => {
                 <select 
                   value={autosaveMode} 
                   onChange={(e) => setAutosaveMode(e.target.value as any)}
-                  className="bg-neutral-200/50 dark:bg-neutral-800 text-[11px] font-bold rounded-xl px-2.5 py-1.5 outline-none border border-transparent focus:border-blue-500/50 cursor-pointer appearance-none text-center min-w-[120px]"
+                  className="bg-zinc-200/50 dark:bg-zinc-800 text-[12px] font-semibold rounded-xl px-3 py-1.5 outline-none border border-transparent focus:border-blue-500/50 cursor-pointer appearance-none text-center min-w-[130px] transition-all"
                 >
                   <option value="afterDelay">After Delay</option>
                   <option value="onFocusChange">On Focus Change</option>
@@ -134,17 +117,20 @@ const SettingsDialog = ({ isOpen, onClose }: Props) => {
             {autosaveMode === "afterDelay" && (
               <SettingItem 
                 label="Autosave Delay" 
-                description={`${autosaveDelay}ms (Wait time after typing)`}
+                description="Wait time after typing."
                 control={
-                  <input 
-                    type="range" 
-                    min="500" 
-                    max="10000" 
-                    step="500"
-                    value={autosaveDelay}
+                  <select 
+                    value={autosaveDelay} 
                     onChange={(e) => setAutosaveDelay(Number(e.target.value))}
-                    className="w-32 h-1.5 bg-neutral-200 dark:bg-neutral-800 rounded-lg appearance-none cursor-pointer accent-blue-500"
-                  />
+                    className="bg-zinc-200/50 dark:bg-zinc-800 text-[12px] font-semibold rounded-xl px-3 py-1.5 outline-none border border-transparent focus:border-blue-500/50 cursor-pointer appearance-none text-center min-w-[130px] transition-all"
+                  >
+                    <option value={500}>0.5s</option>
+                    <option value={1000}>1s</option>
+                    <option value={2000}>2s</option>
+                    <option value={3000}>3s</option>
+                    <option value={5000}>5s</option>
+                    <option value={10000}>10s</option>
+                  </select>
                 } 
               />
             )}
@@ -162,13 +148,13 @@ const SettingsDialog = ({ isOpen, onClose }: Props) => {
               label="Editor Width" 
               description="Maximum horizontal text span."
               control={
-                <div className="flex bg-neutral-200/50 dark:bg-neutral-800 p-0.5 rounded-xl">
+                <div className="flex bg-zinc-200/50 dark:bg-zinc-800 p-1 rounded-xl">
                   {widthOptions.map(opt => (
                     <button
                       key={opt.value}
                       onClick={() => setEditorWidth(opt.value as any)}
-                      className={`px-2.5 py-1 text-[9px] font-bold rounded-lg transition-all ${
-                        editorWidth === opt.value ? "bg-white dark:bg-neutral-700 shadow-sm text-blue-600 dark:text-blue-400" : "text-neutral-500 hover:text-neutral-900 dark:hover:text-neutral-100"
+                      className={`px-3 py-1.5 text-[11px] font-semibold rounded-lg transition-all ${
+                        editorWidth === opt.value ? "bg-white dark:bg-zinc-700 shadow-sm text-blue-600 dark:text-blue-400" : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100"
                       }`}
                     >
                       {opt.label}
@@ -200,7 +186,7 @@ const SettingsDialog = ({ isOpen, onClose }: Props) => {
                 <Button
                   variant="secondary"
                   onClick={() => { setIsWizardOpen(true); onClose(); }}
-                  className="h-8 px-4 text-[10px] font-bold uppercase tracking-widest border-neutral-200 dark:border-neutral-800"
+                  className="h-9 px-5 text-[11px] font-bold uppercase tracking-wider border-zinc-200 dark:border-zinc-800"
                 >
                   Start
                 </Button>

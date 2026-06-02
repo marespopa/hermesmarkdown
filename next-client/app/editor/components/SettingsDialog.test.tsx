@@ -20,6 +20,8 @@ vi.mock("@/app/atoms/atoms", async (importOriginal) => {
     atom_editorWidth: { toString: () => "atom_editorWidth" },
     atom_fontSize: { toString: () => "atom_fontSize" },
     atom_theme: { toString: () => "atom_theme" },
+    atom_autosaveMode: { toString: () => "atom_autosaveMode" },
+    atom_autosaveDelay: { toString: () => "atom_autosaveDelay" },
   };
 });
 
@@ -36,6 +38,8 @@ describe("SettingsDialog Component", () => {
       const atomStr = atom.toString();
       if (atomStr === "atom_editorWidth") return ["standard", vi.fn()];
       if (atomStr === "atom_fontSize") return ["16px", vi.fn()];
+      if (atomStr === "atom_autosaveMode") return ["afterDelay", vi.fn()];
+      if (atomStr === "atom_autosaveDelay") return [2000, vi.fn()];
       return ["", vi.fn()];
     });
   });
@@ -47,6 +51,23 @@ describe("SettingsDialog Component", () => {
     // Use getAllByText as "Standard" now appears twice (Text Size and Editor Width)
     expect(screen.getAllByText("Standard").length).toBeGreaterThanOrEqual(1);
     expect(screen.getByText("Narrow")).toBeInTheDocument();
+    expect(screen.getByText("Autosave Delay")).toBeInTheDocument();
+  });
+
+  it("calls setter when autosave delay is changed", () => {
+    const setAutosaveDelay = vi.fn();
+    (useAtom as any).mockImplementation((atom: any) => {
+      const atomStr = atom.toString();
+      if (atomStr === "atom_autosaveMode") return ["afterDelay", vi.fn()];
+      if (atomStr === "atom_autosaveDelay") return [2000, setAutosaveDelay];
+      return ["", vi.fn()];
+    });
+
+    render(<SettingsDialog isOpen={true} onClose={mockOnClose} />);
+    
+    const select = screen.getByDisplayValue("2s");
+    fireEvent.change(select, { target: { value: "5000" } });
+    expect(setAutosaveDelay).toHaveBeenCalledWith(5000);
   });
 
   it("calls setter when width option is clicked", () => {

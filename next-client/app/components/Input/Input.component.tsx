@@ -73,19 +73,19 @@ const Input = forwardRef<HTMLInputElement, Props>(
     };
 
     const baseStyles =
-      "w-full px-4 py-2 text-sm font-mono tracking-tight transition-all duration-150 ease-in-out border rounded-md outline-none";
+      "w-full px-4 py-2.5 text-[15px] font-sans transition-all duration-150 ease-in-out border rounded-xl outline-none";
 
     const variantStyles =
-      "bg-neutral-50 border-neutral-200 text-neutral-800 placeholder:text-neutral-400 " +
-      "dark:bg-sky-50/10 dark:border-sky-500/50 dark:text-sky-200 dark:placeholder:text-sky-600 " +
-      "focus:ring-2 focus:ring-amber-100 dark:focus:ring-sky-500";
+      "bg-zinc-50 border-zinc-200 text-zinc-900 placeholder:text-zinc-400 " +
+      "dark:bg-zinc-800/50 dark:border-zinc-700 dark:text-zinc-100 dark:placeholder:text-zinc-500 " +
+      "focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 dark:focus:ring-blue-500/20";
 
     return (
       <div className={`flex flex-col gap-1.5 my-2 w-full ${className}`}>
         {label && (
           <label
             htmlFor={name}
-            className="text-[12px] font-mono text-zinc-500 dark:text-zinc-500 tracking-tight px-0.5"
+            className="text-[13px] font-medium text-zinc-500 dark:text-zinc-400 px-0.5"
           >
             {label}
           </label>
@@ -113,16 +113,16 @@ const Input = forwardRef<HTMLInputElement, Props>(
             <button
               type="button"
               onClick={onClear}
-              className="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 p-1 transition-colors"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 p-1.5 transition-colors rounded-full hover:bg-zinc-200/50 dark:hover:bg-zinc-700/50"
               tabIndex={-1}
             >
-              <FaTimes size={10} />
+              <FaTimes size={12} />
             </button>
           )}
         </div>
 
         {helperText && (
-          <p className="text-[11px] font-mono text-zinc-400 dark:text-zinc-600 px-0.5 italic">
+          <p className="text-[12px] text-zinc-400 dark:text-zinc-500 px-0.5">
             {helperText}
           </p>
         )}
