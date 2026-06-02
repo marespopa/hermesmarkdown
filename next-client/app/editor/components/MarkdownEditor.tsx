@@ -240,7 +240,17 @@ export default function MarkdownEditor({
 
   useEffect(() => {
     const handleSelectionChange = () => {
-      syncScroll();
+      if (document.activeElement !== textareaRef.current) return;
+      
+      const textarea = textareaRef.current;
+      if (!textarea) return;
+      const isCollapsed = textarea.selectionStart === textarea.selectionEnd;
+
+      // Only sync scroll when the selection is a cursor (collapsed),
+      // to avoid jumping during dragging/range selection.
+      if (isCollapsed) {
+        syncScroll();
+      }
       syncActiveLine();
     };
     document.addEventListener("selectionchange", handleSelectionChange);
@@ -316,7 +326,7 @@ export default function MarkdownEditor({
         return;
       }
       const target = e.currentTarget as HTMLTextAreaElement;
-      if (!target.selectionStart) return;
+      if (target.selectionStart === undefined) return;
       const link = findLinkAtPos(value, target.selectionStart);
       setIsOverLink(!!link);
     },
@@ -506,7 +516,9 @@ export default function MarkdownEditor({
     onChange(nextVal);
 
     requestAnimationFrame(() => {
-      if (textareaRef.current) {
+      // Only manually reset selection if the value actually changed due to budgeting
+      // Otherwise react-simple-code-editor handles it natively.
+      if (textareaRef.current && nextVal !== val) {
         textareaRef.current.setSelectionRange(start, end);
       }
       syncScroll();
@@ -516,7 +528,7 @@ export default function MarkdownEditor({
 
   function handleEditorClick(e: React.MouseEvent<any>) {
     const textarea = e.currentTarget as HTMLTextAreaElement;
-    if (!textarea.selectionStart) return;
+    if (textarea.selectionStart === undefined) return;
     const pos = textarea.selectionStart;
 
     if (e.ctrlKey || e.metaKey) {
@@ -634,9 +646,18 @@ export default function MarkdownEditor({
       <div
         onClick={(e) => {
           if (e.target === e.currentTarget && textareaRef.current) {
-            textareaRef.current.focus();
-            const length = textareaRef.current.value.length;
-            textareaRef.current.setSelectionRange(length, length);
+            const textarea = textareaRef.current;
+            textarea.focus();
+            
+            // If already focused and clicked padding, avoid resetting cursor to end
+            // unless we're clicking specifically below the text area.
+            const rect = textarea.getBoundingClientRect();
+            if (e.clientY < rect.top) {
+              textarea.setSelectionRange(0, 0);
+            } else {
+              const length = textarea.value.length;
+              textarea.setSelectionRange(length, length);
+            }
           }
         }}
         className={`editor-container relative min-h-full antialiased normal-nums [font-variant-ligatures:none] [font-feature-settings:'liga'_0,'calt'_0] 

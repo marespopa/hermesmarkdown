@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, Suspense } from "react";
 import { useRouter } from "next/navigation";
-import { useAtom } from "jotai";
+import { useAtomValue } from "jotai";
 import { atom_content } from "@/app/atoms/atoms";
 import LoadingOverlay from "@/app/components/LoadingOverlay/LoadingOverlay";
 import Button from "@/app/components/Button/Button.component";
@@ -31,25 +31,22 @@ Type anything here to start your draft...`;
 
 export default function LandingPage() {
   const router = useRouter();
-  const [content, setContent] = useAtom(atom_content);
+  const realContent = useAtomValue(atom_content);
+  const [demoContent, setDemoContent] = useState(DEFAULT_DEMO_CONTENT);
   const [showLoading, setShowLoading] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
     setIsMounted(true);
     router.prefetch("/editor");
-    // Pre-fill demo content only if absolutely empty
-    if (content === "") {
-      setContent(DEFAULT_DEMO_CONTENT);
-    }
-  }, [router, content, setContent]);
+  }, [router]);
 
   const handleStart = () => {
     setShowLoading(true);
     router.push("/editor");
   };
 
-  const hasContent = content && content.length > 0 && content !== DEFAULT_DEMO_CONTENT;
+  const hasContent = realContent && realContent.length > 0 && realContent !== DEFAULT_DEMO_CONTENT;
 
   return (
     <main className="min-h-screen selection:bg-blue-500/30 text-neutral-900 dark:text-neutral-100 bg-white dark:bg-neutral-950 overflow-x-hidden font-sans">
@@ -123,8 +120,8 @@ export default function LandingPage() {
                   {isMounted && (
                     <Suspense fallback={<div className="h-full bg-neutral-50 dark:bg-neutral-900/50 animate-pulse" />}>
                       <MarkdownEditor
-                        value={content}
-                        onChange={setContent}
+                        value={demoContent}
+                        onChange={setDemoContent}
                       />
                     </Suspense>
                   )}

@@ -132,4 +132,18 @@ describe("MarkdownEditor Functional Tests", () => {
     fireEvent.keyDown(textarea, { key: "i", ctrlKey: true });
     expect(document.execCommand).toHaveBeenCalledWith("insertText", false, "_hello_");
   });
+
+  it("processes tags even if clicked at index 0", () => {
+    renderEditor("#todo Task");
+    const textarea = screen.getByRole("textbox") as HTMLTextAreaElement;
+
+    textarea.selectionStart = 0;
+    fireEvent.click(textarea);
+
+    expect(document.execCommand).toHaveBeenCalledWith(
+      "insertText",
+      false,
+      "#prog",
+    );
+  });
 });

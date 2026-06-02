@@ -288,6 +288,7 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
           </div>
         ) : leaf.type === "editor" ? (
           <MarkdownEditor 
+            key={leaf.activeFilePath || "draft"}
             value={content} 
             onChange={setContent}
             onWikiLinkClick={openFileByName}

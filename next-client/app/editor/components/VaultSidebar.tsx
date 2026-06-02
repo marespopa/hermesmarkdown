@@ -166,6 +166,15 @@ export default function VaultSidebar({
               >
                 <VscNewFile size={16} />
               </Button>
+
+              <Button
+                variant="icon"
+                className="w-8 h-8 opacity-60 hover:opacity-100 md:hidden"
+                onClick={onOpenSettings}
+                title="Settings"
+              >
+                <HiOutlineCog size={16} />
+              </Button>
               
               {onClose && (
                 <Button

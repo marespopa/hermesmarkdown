@@ -28,6 +28,7 @@ import toast from "react-hot-toast";
 
 import {
   HiOutlineMenuAlt2,
+  HiOutlineCog,
 } from "react-icons/hi";
 
 export default function LiteEditor() {
@@ -227,14 +228,25 @@ export default function LiteEditor() {
           {/* Collapsed Sidebar Toggle Column */}
           {!isSidebarOpen && !isZenModeActive && (
             <div className="w-10 h-full flex flex-col items-center py-4 border-r border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-950/50 shrink-0 z-40">
-               <Button
-                  variant="icon"
-                  onClick={() => setIsSidebarOpen(true)}
-                  className="w-8 h-8 opacity-60 hover:opacity-100 text-zinc-600 dark:text-zinc-400"
-                  title="Show Sidebar"
-                >
-                  <HiOutlineMenuAlt2 size={20} />
-                </Button>
+               <div className="flex flex-col items-center gap-4">
+                 <Button
+                    variant="icon"
+                    onClick={() => setIsSidebarOpen(true)}
+                    className="w-8 h-8 opacity-60 hover:opacity-100 text-zinc-600 dark:text-zinc-400"
+                    title="Show Sidebar"
+                  >
+                    <HiOutlineMenuAlt2 size={20} />
+                  </Button>
+
+                  <Button
+                    variant="icon"
+                    onClick={() => setIsSettingsOpen(true)}
+                    className="w-8 h-8 opacity-60 hover:opacity-100 text-zinc-600 dark:text-zinc-400"
+                    title="Settings"
+                  >
+                    <HiOutlineCog size={20} />
+                  </Button>
+               </div>
             </div>
           )}
 
