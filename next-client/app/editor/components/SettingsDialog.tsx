@@ -5,7 +5,6 @@ import { useAtom } from "jotai";
 import {
   atom_wordWrap,
   atom_fontSize,
-  atom_fontFamily,
   atom_theme,
   atom_showStats,
   atom_isZenModeActive,
@@ -65,7 +64,6 @@ const SettingGroup = ({ title, children }: { title: string; children: React.Reac
 
 const SettingsDialog = ({ isOpen, onClose }: Props) => {
   const [fontSize, setFontSize] = useAtom(atom_fontSize);
-  const [fontFamily, setFontFamily] = useAtom(atom_fontFamily);
   const [theme, setTheme] = useAtom(atom_theme);
   const [wordWrap, setWordWrap] = useAtom(atom_wordWrap);
   const [showStats, setShowStats] = useAtom(atom_showStats);
@@ -75,13 +73,6 @@ const SettingsDialog = ({ isOpen, onClose }: Props) => {
   const [editorWidth, setEditorWidth] = useAtom(atom_editorWidth);
   const [, setIsWizardOpen] = useAtom(atom_isWizardOpen);
   
-  const monoFonts = [
-    { name: "System", value: "ui-monospace, SFMono-Regular, Consolas, monospace" },
-    { name: "JetBrains", value: "var(--font-jetbrains), monospace" },
-    { name: "Fira Code", value: "var(--font-fira), monospace" },
-    { name: "IBM Plex", value: "var(--font-ibm), monospace" },
-  ];
-
   const sizes = [
     { label: "Compact", value: "14px" },
     { label: "Standard", value: "16px" },
@@ -95,28 +86,15 @@ const SettingsDialog = ({ isOpen, onClose }: Props) => {
   ];
 
   return (
-    <DialogModal isOpened={isOpen} onClose={onClose} styles="!max-w-md !max-h-[85vh]">
+    <DialogModal isOpened={isOpen} onClose={onClose} styles="!max-w-md !max-h-[85vh] !rounded-[32px] !backdrop-blur-2xl !bg-white/80 dark:!bg-zinc-900/80 !border-none !shadow-2xl">
       <div className="flex flex-col min-h-0">
-        <div className="space-y-1 mb-5 px-1">
-          <h2 className="text-xl sm:text-2xl font-bold tracking-tight">Settings</h2>
-          <p className="text-[10px] sm:text-[11px] text-neutral-500 dark:text-neutral-400 font-medium uppercase tracking-wider">Environment Configuration</p>
+        <div className="space-y-1 mb-6 px-1">
+          <h2 className="text-2xl font-bold tracking-tight">Settings</h2>
+          <p className="text-[10px] text-neutral-500 dark:text-neutral-400 font-bold uppercase tracking-[0.15em]">Environment Configuration</p>
         </div>
 
         <div className="flex-1 overflow-y-auto custom-scrollbar -mx-2 px-2 pb-1">
           <SettingGroup title="Typography">
-            <SettingItem 
-              label="Typeface" 
-              description="Monospace font for the editor."
-              control={
-                <select 
-                  value={fontFamily} 
-                  onChange={(e) => setFontFamily(e.target.value)}
-                  className="bg-neutral-200/50 dark:bg-neutral-800 text-[11px] font-bold rounded-xl px-2.5 py-1.5 outline-none border border-transparent focus:border-blue-500/50 cursor-pointer appearance-none text-center min-w-[100px]"
-                >
-                  {monoFonts.map(f => <option key={f.name} value={f.value}>{f.name}</option>)}
-                </select>
-              } 
-            />
             <SettingItem 
               label="Text Size" 
               control={

@@ -14,6 +14,7 @@ import {
   atom_fileConflict,
   atom_openFiles,
   atom_saveStatus,
+  atom_isCloudVault,
 } from "@/app/atoms/atoms";
 import { atom_fileMetadata } from "@/app/atoms/metadata";
 import { useDialog } from "../use-dialog";
@@ -35,6 +36,7 @@ export function useFileEditor({ indexVaultTags }: UseFileEditorProps) {
   const [, setFileLastModified] = useAtom(atom_fileLastModified);
   const [, setFileConflict] = useAtom(atom_fileConflict);
   const [, setSaveStatus] = useAtom(atom_saveStatus);
+  const [isCloudVault, setIsCloudVault] = useAtom(atom_isCloudVault);
   const dialog = useDialog();
 
   const openFile = useCallback(
@@ -181,10 +183,28 @@ export function useFileEditor({ indexVaultTags }: UseFileEditorProps) {
       const fileToSave = handle || activeFileHandle;
       if (!fileToSave) return false;
 
+      // Resolve the path early to provide feedback on the correct tab
+      let targetPath = providedPath;
+      if (!targetPath) {
+        if (!handle || handle === activeFileHandle) {
+          targetPath = activeFilePath || undefined;
+        } else if (vaultHandle) {
+          try {
+            const parts = await (vaultHandle as any).resolve(handle);
+            if (parts) targetPath = parts.join("/");
+          } catch {
+            targetPath = handle.name;
+          }
+        } else {
+          targetPath = handle.name;
+        }
+      }
+
       setSaveStatus({
         state: "saving",
         retryCount,
         message: retryCount > 0 ? `Retry ${retryCount}/8` : undefined,
+        path: targetPath,
       });
 
       let writable: FileSystemWritableFileStream | null = null;
@@ -197,14 +217,26 @@ export function useFileEditor({ indexVaultTags }: UseFileEditorProps) {
         }
 
         // Secondary task: Update metadata.
-        try {
-          const updatedFile = await fileToSave.getFile();
-          setLastSavedContent(content);
-          setFileLastModified(updatedFile.lastModified);
-          setFileConflict(null);
-        } catch {
-          setLastSavedContent(content);
-        }
+        // We retry this specifically because cloud sync often locks the file 
+        // for a few milliseconds immediately after a close() call.
+        const updateMetadata = async (retries = 3) => {
+          try {
+            const updatedFile = await fileToSave.getFile();
+            setLastSavedContent(content);
+            setFileLastModified(updatedFile.lastModified);
+            setFileConflict(null);
+            return true;
+          } catch {
+            if (retries > 0) {
+              await new Promise(r => setTimeout(r, 100 * (4 - retries)));
+              return updateMetadata(retries - 1);
+            }
+            setLastSavedContent(content);
+            return false;
+          }
+        };
+        
+        updateMetadata();
 
         // Handle update
         if (handle) {
@@ -239,7 +271,7 @@ export function useFileEditor({ indexVaultTags }: UseFileEditorProps) {
                 next.draft = {
                   content: "",
                   lastSavedContent: "",
-                  fileName: "untitled.md",
+                  fileName: "untitled",
                   activeFilePath: null,
                 };
               }
@@ -252,8 +284,8 @@ export function useFileEditor({ indexVaultTags }: UseFileEditorProps) {
 
         // Background indexing
         indexVaultTags();
-        setSaveStatus({ state: "saved", retryCount });
-        setTimeout(() => setSaveStatus({ state: "idle", retryCount: 0 }), 2000);
+        setSaveStatus({ state: "saved", retryCount, path: targetPath });
+        setTimeout(() => setSaveStatus({ state: "idle", retryCount: 0, path: undefined }), 2000);
 
         if (!isAutoSave) {
           toast.success("Saved to " + fileToSave.name);
@@ -261,29 +293,27 @@ export function useFileEditor({ indexVaultTags }: UseFileEditorProps) {
 
         return true;
       } catch (err: any) {
-        const isRetryable =
+        const isInvalidState =
           err.name === "InvalidStateError" ||
-          err.message?.includes("state had changed") ||
+          err.message?.includes("state had changed");
+
+        // Auto-enable cloud mode if we hit this error repeatedly
+        if (isInvalidState && !isCloudVault && retryCount > 1) {
+          setIsCloudVault(true);
+          toast.success("Sync conflict detected. Switching to cloud recovery mode.", {
+            icon: "☁️",
+            id: "cloud-detect-toast",
+          });
+        }
+
+        const isRetryable =
+          isInvalidState ||
           err.message?.includes("locked") ||
           err.name === "NoModificationAllowedError";
 
-        if (isRetryable && retryCount < 8) {
-          const delay = 400 * Math.pow(1.5, retryCount);
-
-          // Resolve the path if we haven't already, to ensure we refresh the CORRECT handle
-          let targetPath = providedPath;
-          if (!targetPath) {
-            if (!handle || handle === activeFileHandle) {
-              targetPath = activeFilePath || undefined;
-            } else if (vaultHandle) {
-              try {
-                const parts = await (vaultHandle as any).resolve(handle);
-                if (parts) targetPath = parts.join("/");
-              } catch {
-                targetPath = handle.name;
-              }
-            }
-          }
+        if (isRetryable && retryCount < (isCloudVault ? 15 : 8)) {
+          const baseDelay = isCloudVault ? 800 : 400;
+          const delay = baseDelay * Math.pow(isCloudVault ? 1.7 : 1.5, retryCount);
 
           // Try to refresh the handle if it's in the vault
           if (targetPath && targetPath !== "draft" && vaultHandle) {
@@ -314,10 +344,14 @@ export function useFileEditor({ indexVaultTags }: UseFileEditorProps) {
         }
 
         console.error("File System Error:", err?.message || err);
-        const errorMsg =
-          err.name === "InvalidStateError" ? "File locked by cloud sync" : err.message;
-        setSaveStatus({ state: "error", retryCount, message: errorMsg });
-        setTimeout(() => setSaveStatus({ state: "idle", retryCount: 0 }), 5000);
+        let errorMsg = isInvalidState ? "File locked by cloud sync" : err.message;
+
+        if (isCloudVault && isInvalidState) {
+          errorMsg = "Cloud sync lock detected. Retries failed. Try pausing sync.";
+        }
+        
+        setSaveStatus({ state: "error", retryCount, message: errorMsg, path: targetPath });
+        setTimeout(() => setSaveStatus({ state: "idle", retryCount: 0, path: undefined }), 5000);
 
         if (err.name !== "NotAllowedError" && err.name !== "AbortError") {
           toast.error(`Failed to save: ${errorMsg}`);
@@ -346,6 +380,8 @@ export function useFileEditor({ indexVaultTags }: UseFileEditorProps) {
       activeFilePath,
       setSaveStatus,
       setOpenFiles,
+      isCloudVault,
+      setIsCloudVault,
     ],
   );
 

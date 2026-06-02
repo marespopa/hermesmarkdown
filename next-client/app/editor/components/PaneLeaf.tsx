@@ -19,40 +19,13 @@ import {
   atom_autosaveMode,
   contentStore
 } from "@/app/atoms/atoms";
-import { HiOutlineDocumentText, HiOutlineEye, HiOutlineChartBar, HiOutlineX, HiOutlineCloudUpload, HiOutlineCheckCircle, HiOutlineExclamationCircle, HiOutlineSave } from "react-icons/hi";
+import { HiOutlineDocumentText, HiOutlineEye, HiOutlineChartBar, HiOutlineX, HiOutlineSave } from "react-icons/hi";
 import { VscSplitHorizontal, VscClose } from "react-icons/vsc";
 import { useFileSystem } from "@/app/hooks/use-file-system";
 import { useAtomValue } from "jotai";
 
 interface PaneLeafProps {
   leaf: PanelLeaf;
-}
-
-function SaveStatusIndicator() {
-  const saveStatus = useAtomValue(atom_saveStatus);
-
-  switch (saveStatus.state) {
-    case "saving":
-      return (
-        <div className="flex items-center gap-1 animate-pulse" title="Saving...">
-          <HiOutlineCloudUpload size={14} className="text-blue-500" />
-        </div>
-      );
-    case "saved":
-      return (
-        <div className="flex items-center gap-1 animate-in fade-in duration-300" title="Saved">
-          <HiOutlineCheckCircle size={14} className="text-emerald-500" />
-        </div>
-      );
-    case "error":
-      return (
-        <div className="flex items-center gap-1" title={saveStatus.message || "Save Error"}>
-          <HiOutlineExclamationCircle size={14} className="text-red-500" />
-        </div>
-      );
-    default:
-      return null;
-  }
 }
 
 export default function PaneLeaf({ leaf }: PaneLeafProps) {
@@ -64,6 +37,7 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
   const [, setActiveFilePath] = useAtom(atom_activeFilePath);
   const [, moveTab] = useAtom(atom_moveTab);
   const [isZenModeActive] = useAtom(atom_isZenModeActive);
+  const saveStatus = useAtomValue(atom_saveStatus);
 
   const { openFileByName, saveFile, exportFile } = useFileSystem();
   const filePath = leaf.activeFilePath || "draft";
@@ -186,10 +160,10 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
       }`}
       onClick={() => setActivePaneId(leaf.id)}
     >
-      {/* Pane Tabs Bar - Flat & Seamless */}
+      {/* Pane Tabs Bar - Premium macOS Style */}
       {!isZenModeActive && (
         <div 
-          className="flex items-center bg-transparent border-b border-zinc-200 dark:border-zinc-800 h-10 sm:h-10 max-md:h-11 overflow-x-auto overflow-y-hidden scrollbar-none shrink-0"
+          className="flex items-center bg-zinc-50/50 dark:bg-zinc-950/50 backdrop-blur-3xl border-b border-zinc-200/50 dark:border-zinc-800/50 h-14 pt-2 shrink-0 overflow-x-auto overflow-y-hidden scrollbar-none px-2"
           onDragOver={(e) => handleDragOver(e)}
           onDragLeave={handleDragLeave}
           onDrop={(e) => handleDrop(e, leaf.openFilePaths.length)}
@@ -201,6 +175,11 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
             const fileName = fileState?.fileName || path.split("/").pop() || "Untitled";
             const isDirty = fileState && fileState.content !== fileState.lastSavedContent;
             
+            // Enhanced Save Status for this specific tab
+            const isThisTabSaving = saveStatus.path === path && saveStatus.state === "saving";
+            const isThisTabSaved = saveStatus.path === path && saveStatus.state === "saved";
+            const isThisTabError = saveStatus.path === path && saveStatus.state === "error";
+
             return (
               <div
                 key={path}
@@ -216,30 +195,48 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
                   setActiveFilePath(path);
                 }}
                 className={`
-                  group flex items-center gap-2 px-3 md:px-4 h-full cursor-pointer min-w-[100px] md:min-w-[140px] max-w-[200px] md:max-w-[320px] transition-all shrink-0 relative touch-pan-x
-                  ${isTabActive ? "text-zinc-900 dark:text-zinc-100 font-semibold" : "text-zinc-400 dark:text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300"}
-                  ${isDraggedOver ? "bg-blue-500/5" : ""}
+                  group flex items-center gap-2 px-3 h-[32px] cursor-pointer min-w-[100px] md:min-w-[140px] max-w-[200px] transition-all shrink-0 relative rounded-xl mx-0.5
+                  ${isTabActive 
+                    ? "bg-white dark:bg-zinc-800 shadow-[0_1px_3px_rgba(0,0,0,0.05)] dark:shadow-none text-zinc-900 dark:text-zinc-100 ring-1 ring-zinc-200/50 dark:ring-zinc-700/50" 
+                    : "text-zinc-500 hover:bg-zinc-200/40 dark:hover:bg-zinc-800/40"}
+                  ${isDraggedOver ? "ring-2 ring-blue-500/50" : ""}
                 `}
               >
-                {/* Active Indicator Line */}
-                {isTabActive && (
-                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-500 animate-in fade-in duration-300" />
-                )}
-
-                <span className={`${isTabActive ? "text-blue-500" : "text-zinc-400 dark:text-zinc-600"} opacity-70`}>{getIcon("editor")}</span>
-                <span className="text-[12px] truncate flex-1 tracking-tight">
+                <span className={`${isTabActive ? "text-blue-500" : "text-zinc-400"} opacity-70 shrink-0`}>
+                  {getIcon("editor")}
+                </span>
+                
+                <span className={`text-[12px] truncate flex-1 tracking-tight font-medium ${isTabActive ? "opacity-100" : "opacity-80"}`}>
                   {fileName}
                 </span>
                 
-                {isDirty && (
-                  <div className="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0" title="Unsaved changes" />
+                {(isDirty || isThisTabSaving || isThisTabSaved || isThisTabError) && (
+                  <div 
+                    className={`w-1.5 h-1.5 rounded-full shrink-0 transition-all duration-300 ${
+                      isThisTabError 
+                        ? "bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]" 
+                        : isThisTabSaving
+                        ? "bg-blue-500 animate-pulse shadow-[0_0_8px_rgba(59,130,246,0.5)]"
+                        : isThisTabSaved
+                        ? "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]"
+                        : "bg-blue-500/80 shadow-[0_0_8px_rgba(59,130,246,0.5)]"
+                    }`} 
+                    title={
+                      isThisTabError 
+                        ? (saveStatus.message || "Save Error") 
+                        : isThisTabSaving 
+                        ? "Saving..." 
+                        : isThisTabSaved 
+                        ? "Saved" 
+                        : "Unsaved changes"
+                    } 
+                  />
                 )}
 
                 <button
                   onClick={async (e) => {
                     e.stopPropagation();
                     
-                    // Flush save before closing if autosave is enabled
                     const autosaveMode = contentStore.get(atom_autosaveMode);
                     if (autosaveMode !== "manual") {
                       const fileState = openFiles[path];
@@ -251,7 +248,7 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
 
                     closeTab({ paneId: leaf.id, filePath: path });
                   }}
-                  className={`${isTabActive ? "opacity-60" : "opacity-0"} group-hover:opacity-100 p-1.5 rounded-md hover:bg-zinc-200 dark:hover:bg-zinc-800 transition-all shrink-0`}
+                  className={`p-1 rounded-md hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-all shrink-0 ${isTabActive ? "opacity-40 hover:opacity-100" : "opacity-0 group-hover:opacity-60"}`}
                 >
                   <VscClose size={14} />
                 </button>
@@ -260,33 +257,32 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
           })}
           
           {/* Pane Actions - Minimalist */}
-          <div className="flex items-center gap-0.5 ml-auto px-2 sticky right-0 bg-zinc-50/80 dark:bg-zinc-950/80 backdrop-blur-sm h-full shrink-0 z-20">
+          <div className="flex items-center gap-0.5 ml-auto pl-4 pr-1 sticky right-0 bg-gradient-to-l from-zinc-50/90 via-zinc-50/80 to-transparent dark:from-zinc-950/90 dark:via-zinc-950/80 h-full shrink-0 z-20">
             {isActive && leaf.openFilePaths.length > 0 && (
               <>
-                <SaveStatusIndicator />
                 <button 
                   onClick={handleSave}
                   title="Save"
-                  className="p-1.5 text-zinc-400 hover:text-blue-500 transition-all"
+                  className="w-9 h-9 flex items-center justify-center text-zinc-400 hover:text-blue-500 transition-all rounded-xl"
                 >
-                  <HiOutlineSave size={16} />
+                  <HiOutlineSave size={18} />
                 </button>
-                <div className="w-px h-3 bg-zinc-200 dark:bg-zinc-800 mx-1" />
+                <div className="w-px h-3 bg-zinc-200 dark:bg-zinc-800 mx-1 opacity-50" />
               </>
             )}
             <button 
               onClick={() => splitPane({ id: leaf.id, direction: "horizontal" })}
               title="Split Right"
-              className="p-1.5 text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-all hidden sm:block"
+              className="w-9 h-9 flex items-center justify-center text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-all hidden sm:flex rounded-xl"
             >
-              <VscSplitHorizontal size={14} />
+              <VscSplitHorizontal size={16} />
             </button>
             <button 
               onClick={() => closePane(leaf.id)}
               title="Close Pane"
-              className="p-1.5 text-zinc-400 hover:text-red-500 transition-all"
+              className="w-9 h-9 flex items-center justify-center text-zinc-400 hover:text-red-500 transition-all rounded-xl"
             >
-              <HiOutlineX size={16} />
+              <HiOutlineX size={18} />
             </button>
           </div>
         </div>

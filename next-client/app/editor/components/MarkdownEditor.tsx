@@ -15,13 +15,14 @@ import {
 } from "@/app/atoms/atoms";
 
 import {
-  SUBTLE,
   WORKFLOW_TAGS,
   TAG_COLORS,
   TAG_CYCLE,
   SHORTCODES,
   TEMPLATES,
 } from "./constants";
+
+const FADED = 'class="opacity-[0.15] dark:opacity-[0.2] transition-opacity duration-500 hover:opacity-100"';
 
 interface MarkdownEditorProps {
   value: string;
@@ -53,14 +54,14 @@ function processInlineMarkdown(text: string) {
     html = html.replace(REGEX_WIKILINK, (match, content) => {
       const parts = content.split("|");
       const displayText = parts.length > 1 ? parts[1].trim() : parts[0].trim();
-      return `<span ${SUBTLE}>[[</span><span class="text-purple-600 dark:text-purple-400 font-bold underline cursor-pointer">${displayText}</span><span ${SUBTLE}>]]</span>`;
+      return `<span ${FADED}>[[</span><span class="text-purple-600 dark:text-purple-400 font-bold underline cursor-pointer">${displayText}</span><span ${FADED}>]]</span>`;
     });
   }
 
   if (html.includes("`")) {
     html = html.replace(
       REGEX_CODE_INLINE,
-      `<span ${SUBTLE}>$1</span><span class="bg-zinc-100/80 dark:bg-zinc-800/50 rounded-sm">$2</span><span ${SUBTLE}>$3</span>`,
+      `<span ${FADED}>$1</span><span class="bg-zinc-100/80 dark:bg-zinc-800/50 rounded-sm">$2</span><span ${FADED}>$3</span>`,
     );
   }
 
@@ -86,25 +87,25 @@ function processInlineMarkdown(text: string) {
   if (html.includes("[")) {
     html = html.replace(
       REGEX_LINK,
-      `<span ${SUBTLE}>$1</span><span class="text-blue-600 dark:text-blue-400 underline">$2</span><span ${SUBTLE}>$3$4$5</span>`,
+      `<span ${FADED}>$1</span><span class="text-blue-600 dark:text-blue-400 underline">$2</span><span ${FADED}>$3$4$5</span>`,
     );
   }
 
   if (html.includes("*") || html.includes("_")) {
     html = html.replace(
       REGEX_BOLD,
-      `<span ${SUBTLE}>$1</span><strong class="font-bold text-zinc-900 dark:text-zinc-50">$2</strong><span ${SUBTLE}>$1</span>`,
+      `<span ${FADED}>$1</span><strong class="font-bold text-zinc-900 dark:text-zinc-50">$2</strong><span ${FADED}>$1</span>`,
     );
     html = html.replace(
       REGEX_ITALIC,
-      `<span ${SUBTLE}>$1</span><em class="italic text-zinc-800 dark:text-zinc-200">$2</em><span ${SUBTLE}>$1</span>`,
+      `<span ${FADED}>$1</span><em class="italic text-zinc-800 dark:text-zinc-200">$2</em><span ${FADED}>$1</span>`,
     );
   }
 
   if (html.includes("~~")) {
     html = html.replace(
       REGEX_STRIKETHROUGH,
-      `<span ${SUBTLE}>$1</span><del class="line-through opacity-40">$2</del><span ${SUBTLE}>$3</span>`,
+      `<span ${FADED}>$1</span><del class="line-through opacity-40">$2</del><span ${FADED}>$3</span>`,
     );
   }
 
@@ -127,33 +128,33 @@ function highlightMarkdown(code: string, isZenModeActive: boolean = false, activ
         isInsideCodeBlock = !isInsideCodeBlock;
         const fence = html.slice(0, 3);
         const lang = html.slice(3);
-        content = `<span ${SUBTLE}>${fence}${lang}</span>`;
+        content = `<span ${FADED}>${fence}${lang}</span>`;
       } else if (isInsideCodeBlock) {
         const inner = html === "" ? " " : html;
         content = `<span class="bg-zinc-100/50 dark:bg-zinc-800/40">${inner}</span>`;
       } else if (!html.trim()) {
         content = html;
       } else if (/^( {0,3}([-*_])(?:\s*\2){2,}\s*)$/.test(html)) {
-        content = `<span ${SUBTLE}>${html}</span>`;
+        content = `<span ${FADED}>${html}</span>`;
       } else if (html.startsWith("#") && /^#{1,6}\s/.test(html)) {
         content = html.replace(
           /^(#{1,6}\s+)(.*)$/,
           (m, hashes, label) =>
-            `<span ${SUBTLE}>${hashes}</span><span class="font-bold text-zinc-900 dark:text-zinc-50">${processInlineMarkdown(label)}</span>`,
+            `<span ${FADED}>${hashes}</span><span class="font-bold text-zinc-900 dark:text-zinc-50">${processInlineMarkdown(label)}</span>`,
         );
       } else if (html.startsWith("&gt;")) {
         content = html.replace(
           /^(&gt;\s?)(.*)$/,
           (m, quote, label) =>
-            `<span ${SUBTLE}>${quote}</span><span class="text-zinc-500 dark:text-zinc-400">${processInlineMarkdown(label)}</span>`,
+            `<span ${FADED}>${quote}</span><span class="text-zinc-500 dark:text-zinc-400">${processInlineMarkdown(label)}</span>`,
         );
       } else if (/^\s*[-*+]\s+/.test(html)) {
         content = html.replace(
           /^(\s*[-*+]\s+)(\[[ xX]\]\s+)?(.*)$/,
           (m, bull, check, label) => {
             const isChecked = check?.toLowerCase().includes("x");
-            const checkHtml = check ? `<span ${SUBTLE}>${check}</span>` : "";
-            return `<span ${SUBTLE}>${bull}</span>${checkHtml}<span class="${isChecked ? "line-through opacity-40" : "text-zinc-900 dark:text-zinc-100"}">${processInlineMarkdown(label)}</span>`;
+            const checkHtml = check ? `<span ${FADED}>${check}</span>` : "";
+            return `<span ${FADED}>${bull}</span>${checkHtml}<span class="${isChecked ? "line-through opacity-40" : "text-zinc-900 dark:text-zinc-100"}">${processInlineMarkdown(label)}</span>`;
           },
         );
       } else {
@@ -161,7 +162,7 @@ function highlightMarkdown(code: string, isZenModeActive: boolean = false, activ
       }
 
       const isActive = isZenModeActive && index === activeLineIndex;
-      return `<div class="transition-colors duration-500 ease-in-out ${isActive ? "bg-zinc-500/5 dark:bg-zinc-500/10 -mx-4 px-4" : ""} min-h-[1.8em]">${content || " "}</div>`;
+      return `<div class="transition-all duration-700 ease-in-out ${isActive ? "bg-zinc-400/5 dark:bg-zinc-400/10 -mx-6 px-6 rounded-lg scale-[1.005] opacity-100 shadow-[0_0_40px_-15px_rgba(0,0,0,0.05)]" : isZenModeActive ? "opacity-30 scale-[0.99] blur-[0.3px]" : ""} min-h-[1.8em]">${content || " "}</div>`;
     })
     .join("");
 }

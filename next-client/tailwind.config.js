@@ -9,9 +9,36 @@ module.exports = {
   theme: {
     extend: {
       fontFamily: {
-        sans: ["Inter", "ui-sans-serif", "system-ui", "sans-serif"],
-        serif: ["Merriweather", "Georgia", "serif"],
-        mono: ["Source Code Pro", "ui-monospace", "monospace"],
+        sans: [
+          "SF Pro Display",
+          "SF Pro Text",
+          "system-ui",
+          "-apple-system",
+          "BlinkMacSystemFont",
+          "Inter",
+          "ui-sans-serif",
+          "sans-serif",
+        ],
+        serif: [
+          "New York",
+          "ui-serif",
+          "Georgia",
+          "Cambria",
+          "Times New Roman",
+          "Times",
+          "serif",
+        ],
+        mono: [
+          "SF Mono",
+          "ui-monospace",
+          "SFMono-Regular",
+          "Menlo",
+          "Monaco",
+          "Consolas",
+          "Liberation Mono",
+          "Courier New",
+          "monospace",
+        ],
         sourcecode: ["Source Code Pro", "ui-monospace", "monospace"],
       },
       colors: {

@@ -17,12 +17,13 @@ import {
   HiOutlineDatabase,
   HiOutlineCloudDownload,
   HiOutlineCloudUpload,
+  HiOutlineCloud,
 } from "react-icons/hi";
 import { VscNewFile } from "react-icons/vsc";
 import Button from "@/app/components/Button";
 import { useAtomValue } from "jotai";
 import { atom_fileMetadata } from "@/app/atoms/metadata";
-import { atom_activeFilePath, atom_sidebarWidth } from "@/app/atoms/atoms";
+import { atom_activeFilePath, atom_sidebarWidth, atom_isCloudVault } from "@/app/atoms/atoms";
 import SmartFolders from "./SmartFolders";
 import { useAtom } from "jotai";
 import SidebarHeader from "./SidebarHeader";
@@ -65,6 +66,7 @@ export default function VaultSidebar({
   const fileMetadata = useAtomValue(atom_fileMetadata);
   const [activeFilePath, setActiveFilePath] = useAtom(atom_activeFilePath);
   const [sidebarWidth, setSidebarWidth] = useAtom(atom_sidebarWidth);
+  const isCloudVault = useAtomValue(atom_isCloudVault);
   const [isResizing, setIsResizing] = useState(false);
 
   const [actionMenuOpen, setActionMenuOpen] = useState<string | null>(null);
@@ -192,7 +194,7 @@ export default function VaultSidebar({
 
   return (
     <div 
-      className="flex flex-col h-full animate-in slide-in-from-left duration-300 relative group/sidebar bg-neutral-50/50 dark:bg-neutral-950/50"
+      className="flex flex-col h-full animate-in slide-in-from-left duration-700 relative group/sidebar backdrop-blur-3xl bg-white/70 dark:bg-zinc-900/70 border-r border-zinc-200/50 dark:border-zinc-800/50"
       style={{ width: `${sidebarWidth}px` }}
     >
       {/* Resize Handle */}
@@ -205,10 +207,10 @@ export default function VaultSidebar({
         `}
       />
 
-      {/* Apple Notes Style Header -> Premium Minimal Header */}
-      <div className="p-3 flex flex-col gap-2 border-b border-zinc-200 dark:border-zinc-800 shrink-0">
-        <div className="flex justify-between items-center">
-          <div className="flex items-center gap-1.5">
+      {/* Premium Minimal Header */}
+      <div className="p-4 flex flex-col gap-2 shrink-0">
+        <div className="flex justify-between items-center h-10">
+          <div className="flex items-center gap-2">
             {(!isAtRoot || selectedTag) && vaultHandle && (
               <Button
                 variant="icon"
@@ -219,68 +221,73 @@ export default function VaultSidebar({
                     navigateBack();
                   }
                 }}
-                className="w-7 h-7 -ml-1.5"
+                className="w-10 h-10 -ml-2"
               >
-                <HiOutlineChevronLeft size={16} />
+                <HiOutlineChevronLeft size={20} />
               </Button>
             )}
-            <h2 className="text-[13px] font-semibold tracking-tight text-zinc-900 dark:text-zinc-100">
+            <h2 className="text-sm font-bold tracking-tight text-zinc-900 dark:text-zinc-100 truncate flex items-center gap-1.5">
               {selectedTag ? `Tag: ${selectedTag}` : currentDirectoryHandle?.name || (vaultHandle ? "Notes" : "HermesMarkdown")}
+              {isCloudVault && vaultHandle && (
+                <span title="Cloud sync detected. HermesMarkdown will use enhanced error recovery if files are locked." className="text-blue-500/60 dark:text-blue-400/60 cursor-help">
+                  <HiOutlineCloud size={14} />
+                </span>
+              )}
             </h2>
           </div>
           
-          <div className="flex items-center gap-0.5">
+          <div className="flex items-center gap-1">
              <Button
                 variant="icon"
-                className="w-8 h-8 opacity-60 hover:opacity-100 text-zinc-600 dark:text-zinc-400"
+                className="w-10 h-10 opacity-60 hover:opacity-100 text-zinc-600 dark:text-zinc-400"
                 onClick={onNewFile}
                 disabled={!vaultHandle}
                 title={vaultHandle ? "New Note" : "Open a folder to create files"}
               >
-                <VscNewFile size={16} />
+                <VscNewFile size={18} />
               </Button>
 
               <Button
                 variant="icon"
-                className="w-8 h-8 opacity-60 hover:opacity-100 md:hidden"
+                className="w-10 h-10 opacity-60 hover:opacity-100 md:hidden"
                 onClick={onOpenSettings}
                 title="Settings"
               >
-                <HiOutlineCog size={16} />
+                <HiOutlineCog size={18} />
               </Button>
               
               {onClose && (
                 <Button
                   variant="icon"
-                  className="w-8 h-8 opacity-60 hover:opacity-100 lg:hidden"
+                  className="w-10 h-10 opacity-60 hover:opacity-100 lg:hidden"
                   onClick={onClose}
                   title="Close Sidebar"
                 >
-                  <HiOutlineX size={16} />
+                  <HiOutlineX size={18} />
                 </Button>
               )}
           </div>
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto overscroll-none p-2 space-y-4 custom-scrollbar">
+      <div className="flex-1 overflow-y-auto overscroll-none p-3 space-y-6 custom-scrollbar">
         {!vaultHandle ? (
-          <div className="space-y-4">
+          <div className="space-y-6">
             <div className="space-y-1">
               <SidebarHeader title="Locations" isExpanded={true} onToggle={() => {}} />
               
               {isVaultSupported ? (
                 <div 
                   onClick={openVault}
-                  className="flex items-center gap-2 px-4 py-2 rounded-md cursor-pointer hover:bg-zinc-200 dark:hover:bg-zinc-800/50 transition-colors text-[13px] text-zinc-600 dark:text-zinc-400"
+                  className="flex items-center gap-3 px-4 py-3 rounded-xl cursor-pointer hover:bg-zinc-200/50 dark:hover:bg-zinc-800/40 transition-colors text-sm text-zinc-600 dark:text-zinc-400 font-medium"
                 >
-                  <HiOutlineDatabase size={16} />
+                  <HiOutlineDatabase size={18} />
                   <span>Open Folder</span>
                 </div>
               ) : (
-                <div className="px-4 py-3 rounded-md bg-amber-500/5 border border-amber-500/10 mb-2">
-                  <p className="text-[10px] text-amber-600 dark:text-amber-400 leading-relaxed font-medium">
-                    Vaults require Chrome/Edge on Desktop.
+                <div className="px-4 py-3 rounded-xl bg-amber-500/5 border border-amber-500/10 mb-2">
+                  <p className="text-[11px] text-amber-600 dark:text-amber-400 leading-relaxed font-bold uppercase tracking-wider">
+                    Vaults require Desktop.
                   </p>
                 </div>
               )}
@@ -290,9 +297,9 @@ export default function VaultSidebar({
                    setActiveFilePath("draft");
                    if (onClose && window.innerWidth < 1024) onClose();
                 }}
-                className={`flex items-center gap-2 px-4 py-2 rounded-md cursor-pointer transition-all text-[13px] relative ${activeFilePath === 'draft' ? "text-blue-600 dark:text-blue-400 font-medium before:absolute before:left-0 before:top-2 before:bottom-2 before:w-0.5 before:bg-blue-500 bg-blue-500/5" : "hover:bg-zinc-200 dark:hover:bg-zinc-800/50 text-zinc-600 dark:text-zinc-400"}`}
+                className={`flex items-center gap-3 px-4 py-3 rounded-xl cursor-pointer transition-all text-sm relative ${activeFilePath === 'draft' ? "text-blue-600 dark:text-blue-400 font-bold bg-blue-500/10" : "hover:bg-zinc-200/50 dark:hover:bg-zinc-800/40 text-zinc-600 dark:text-zinc-400 font-medium"}`}
               >
-                <HiOutlineDocumentText size={16} />
+                <HiOutlineDocumentText size={18} />
                 <span>Draft Mode</span>
               </div>
             </div>
@@ -301,26 +308,26 @@ export default function VaultSidebar({
               <SidebarHeader title="Actions" isExpanded={true} onToggle={() => {}} />
               <div 
                 onClick={onImport}
-                className="flex items-center gap-2 px-4 py-2 rounded-md cursor-pointer hover:bg-zinc-200 dark:hover:bg-zinc-800/50 transition-colors text-[13px] text-zinc-600 dark:text-zinc-400"
+                className="flex items-center gap-3 px-4 py-3 rounded-xl cursor-pointer hover:bg-zinc-200/50 dark:hover:bg-zinc-800/40 transition-colors text-sm text-zinc-600 dark:text-zinc-400 font-medium"
               >
-                <HiOutlineCloudDownload size={16} />
+                <HiOutlineCloudDownload size={18} />
                 <span>Import Markdown</span>
               </div>
               <div 
                 onClick={onExport}
-                className="flex items-center gap-2 px-4 py-2 rounded-md cursor-pointer hover:bg-zinc-200 dark:hover:bg-zinc-800/50 transition-colors text-[13px] text-zinc-600 dark:text-zinc-400"
+                className="flex items-center gap-3 px-4 py-3 rounded-xl cursor-pointer hover:bg-zinc-200/50 dark:hover:bg-zinc-800/40 transition-colors text-sm text-zinc-600 dark:text-zinc-400 font-medium"
               >
-                <HiOutlineCloudUpload size={16} />
+                <HiOutlineCloudUpload size={18} />
                 <span>Export Markdown</span>
               </div>
             </div>
           </div>
         ) : isVaultPending ? (
-          <div className="flex flex-col items-center justify-center p-6 text-center animate-in slide-in-from-left duration-300 h-full">
-            <HiOutlineFolder size={48} className="opacity-20 mb-4" />
-            <h2 className="text-xs font-bold tracking-widest opacity-50 mb-2">Vault Access Paused</h2>
-            <p className="text-[10px] opacity-40 mb-6 leading-relaxed">Browser security requires re-authorization to access your local files after a refresh.</p>
-            <Button variant="primary" onClick={restoreVault} className="w-full">
+          <div className="flex flex-col items-center justify-center p-8 text-center animate-in slide-in-from-left duration-700 h-full">
+            <HiOutlineFolder size={56} className="opacity-10 mb-6" />
+            <h2 className="text-[10px] font-bold tracking-[0.2em] uppercase opacity-50 mb-3">Vault Access Paused</h2>
+            <p className="text-[11px] opacity-40 mb-8 leading-relaxed px-4">Browser security requires re-authorization to access your local files.</p>
+            <Button variant="primary" onClick={restoreVault} className="w-full h-11 rounded-xl">
               Restore Access
             </Button>
           </div>
@@ -336,7 +343,7 @@ export default function VaultSidebar({
                   action={
                     <Button
                       variant="icon"
-                      className="w-5 h-5 opacity-30 hover:opacity-100"
+                      className="w-6 h-6 opacity-30 hover:opacity-100"
                       onClick={(e) => {
                         e.stopPropagation();
                         if (onNewFile) {
@@ -347,27 +354,27 @@ export default function VaultSidebar({
                       }}
                       title="New File"
                     >
-                      <HiOutlinePlus size={12} />
+                      <HiOutlinePlus size={14} />
                     </Button>
                   }
                 />
               )}
               {isFilesExpanded && (
-                <div className="px-2 mb-2">
+                <div className="px-1 mb-4">
                   <div className="relative group/search">
                     <input
                       type="text"
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       placeholder="Search files..."
-                      className="w-full bg-zinc-200/50 dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-800 rounded-md px-2 py-1 text-xs outline-none focus:ring-1 focus:ring-blue-500/50 transition-all placeholder:text-zinc-400"
+                      className="w-full bg-zinc-200/40 dark:bg-zinc-800/40 border-none rounded-xl px-3 py-2.5 text-xs outline-none focus:ring-1 focus:ring-blue-500/30 transition-all placeholder:text-zinc-400 font-medium"
                     />
                     {searchQuery && (
                       <button
                         onClick={() => setSearchQuery("")}
-                        className="absolute right-1.5 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 p-0.5"
+                        className="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 p-1"
                       >
-                        <HiOutlineX size={10} />
+                        <HiOutlineX size={12} />
                       </button>
                     )}
                   </div>
@@ -395,21 +402,21 @@ export default function VaultSidebar({
                           navigateTo(entry as FileSystemDirectoryHandle);
                         }
                       }}
-                      className={`flex items-center gap-2 px-4 py-1.5 rounded-md cursor-pointer transition-all text-[13px] pr-10 relative ${
+                      className={`flex items-center gap-3 px-4 py-2.5 rounded-xl cursor-pointer transition-all text-sm pr-12 relative ${
                         isActive
-                          ? "text-blue-600 dark:text-blue-400 font-medium before:absolute before:left-0 before:top-1.5 before:bottom-1.5 before:w-0.5 before:bg-blue-500 bg-blue-500/5"
-                          : "hover:bg-zinc-200 dark:hover:bg-zinc-800/50 text-zinc-600 dark:text-zinc-400"
+                          ? "text-blue-600 dark:text-blue-400 font-bold bg-blue-500/10"
+                          : "hover:bg-zinc-200/50 dark:hover:bg-zinc-800/40 text-zinc-600 dark:text-zinc-400 font-medium"
                       }`}
                     >
                       {entry.kind === "directory" ? (
-                        <HiOutlineFolder size={16} className="shrink-0 opacity-70" />
+                        <HiOutlineFolder size={18} className="shrink-0 opacity-60" />
                       ) : (
-                        <HiOutlineDocumentText size={16} className="shrink-0 opacity-70" />
+                        <HiOutlineDocumentText size={18} className="shrink-0 opacity-60" />
                       )}
                       <div className="flex flex-col truncate leading-tight">
                         <span className="truncate">{entry.name}</span>
                         {searchQuery && (entry as any).path && (entry as any).path !== entry.name && (
-                          <span className="text-[9px] opacity-40 truncate">
+                          <span className="text-[10px] opacity-40 truncate mt-0.5">
                             {(entry as any).path.split('/').slice(0, -1).join('/')}
                           </span>
                         )}
@@ -417,10 +424,10 @@ export default function VaultSidebar({
                     </div>
 
                   {!selectedTag && (
-                    <div className="absolute right-1.5 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity flex items-center">
+                    <div className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity flex items-center">
                       <Button
                         variant="icon"
-                        className="w-7 h-7 flex items-center justify-center"
+                        className="w-8 h-8 flex items-center justify-center"
                         onClick={(e) => {
                           e.stopPropagation();
                           setActionMenuOpen(
@@ -428,7 +435,7 @@ export default function VaultSidebar({
                           );
                         }}
                       >
-                        <HiOutlineDotsVertical size={14} className="opacity-60" />
+                        <HiOutlineDotsVertical size={16} className="opacity-60" />
                       </Button>
                     </div>
                   )}
@@ -439,16 +446,16 @@ export default function VaultSidebar({
                         className="fixed inset-0 z-40"
                         onClick={() => setActionMenuOpen(null)}
                       />
-                      <div className="absolute right-2 top-3/4 z-50 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-lg shadow-xl py-1 min-w-[120px] animate-in fade-in zoom-in-95 duration-100">
+                      <div className="absolute right-2 top-[80%] z-50 bg-white/90 dark:bg-zinc-900/90 backdrop-blur-xl border border-zinc-200/50 dark:border-zinc-800/50 rounded-2xl shadow-2xl py-1.5 min-w-[140px] animate-in fade-in zoom-in-95 duration-200">
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
                             renameFile(entry);
                             setActionMenuOpen(null);
                           }}
-                          className="w-full flex items-center gap-2 px-3 py-2 text-xs hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
+                          className="w-full flex items-center gap-3 px-4 py-2.5 text-[13px] font-medium hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
                         >
-                          <HiOutlinePencil size={14} className="opacity-60" />
+                          <HiOutlinePencil size={16} className="opacity-60" />
                           Rename
                         </button>
                         <button
@@ -457,9 +464,9 @@ export default function VaultSidebar({
                             deleteFile(entry);
                             setActionMenuOpen(null);
                           }}
-                          className="w-full flex items-center gap-2 px-3 py-2 text-xs hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors text-red-500"
+                          className="w-full flex items-center gap-3 px-4 py-2.5 text-[13px] font-medium hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors text-red-500"
                         >
-                          <HiOutlineTrash size={14} className="opacity-60" />
+                          <HiOutlineTrash size={16} className="opacity-60" />
                           Delete
                         </button>
                       </div>
@@ -469,7 +476,7 @@ export default function VaultSidebar({
               )})}
 
               {isFilesExpanded && processedFiles.length === 0 && (
-                <div className="p-4 text-center opacity-30 text-xs italic">
+                <div className="p-8 text-center opacity-30 text-[11px] font-medium italic">
                   {searchQuery ? "No results found" : "Empty directory"}
                 </div>
               )}
@@ -485,42 +492,34 @@ export default function VaultSidebar({
                 />
                 
                 {isTagsExpanded && (
-                  <div className="space-y-2 animate-in fade-in duration-200">
+                  <div className="space-y-3 animate-in fade-in duration-300">
                     {tags.length > 5 && (
-                      <div className="px-2 mb-2">
+                      <div className="px-1 mb-2">
                         <div className="relative group/search">
                           <input
                             type="text"
                             value={tagSearchQuery}
                             onChange={(e) => setTagSearchQuery(e.target.value)}
                             placeholder="Search filters..."
-                            className="w-full bg-zinc-200/50 dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-800 rounded-md px-2 py-1 text-xs outline-none focus:ring-1 focus:ring-blue-500/50 transition-all placeholder:text-zinc-400"
+                            className="w-full bg-zinc-200/40 dark:bg-zinc-800/40 border-none rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-blue-500/30 transition-all placeholder:text-zinc-400 font-medium"
                           />
-                          {tagSearchQuery && (
-                            <button
-                              onClick={() => setTagSearchQuery("")}
-                              className="absolute right-1.5 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 p-0.5"
-                            >
-                              <HiOutlineX size={10} />
-                            </button>
-                          )}
                         </div>
                       </div>
                     )}
                     
-                    <div className="flex flex-wrap gap-1 px-3 max-h-40 overflow-y-auto overscroll-none custom-scrollbar">
+                    <div className="flex flex-wrap gap-2 px-2 max-h-48 overflow-y-auto overscroll-none custom-scrollbar">
                       {processedTags.map((tag) => (
                         <span
                           key={tag}
                           onClick={() => setSelectedTag(tag)}
-                          className="text-[10px] px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 cursor-pointer hover:bg-blue-500/20 transition-colors border border-blue-500/20"
+                          className="text-[11px] font-bold px-3 py-1.5 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 cursor-pointer hover:bg-blue-500/20 transition-all border border-blue-500/20 active:scale-95"
                         >
-                          {tag}
+                          {tag.startsWith("#") ? tag : `#${tag}`}
                         </span>
                       ))}
 
                       {tagSearchQuery && processedTags.length === 0 && (
-                        <div className="w-full py-2 text-center opacity-30 text-[10px] italic">
+                        <div className="w-full py-4 text-center opacity-30 text-[11px] font-medium italic">
                           No filters found
                         </div>
                       )}
@@ -534,35 +533,37 @@ export default function VaultSidebar({
 
         {/* Workspaces Section (Always visible if not in tag view) */}
         {!selectedTag && (
-          <SmartFolders
-            onFileSelect={(handle, path) => {
-              openFile(handle, path);
-              if (onClose && window.innerWidth < 1024) onClose();
-            }}
-          />
+          <div className="pt-2">
+            <SmartFolders
+              onFileSelect={(handle, path) => {
+                openFile(handle, path);
+                if (onClose && window.innerWidth < 1024) onClose();
+              }}
+            />
+          </div>
         )}
       </div>
 
       {/* Global Actions Footer */}
-      <div className="p-2 border-t border-neutral-200 dark:border-neutral-800 bg-neutral-100/30 dark:bg-neutral-900/30 shrink-0">
-          <div className="flex items-center justify-between gap-1">
+      <div className="p-4 border-t border-zinc-200/50 dark:border-zinc-800/50 bg-white/40 dark:bg-zinc-900/40 shrink-0">
+          <div className="flex items-center justify-between">
             <div className="flex items-center gap-1">
               <Button
                 variant="icon"
                 onClick={() => router.push("/")}
-                className="w-8 h-8 opacity-60 hover:opacity-100"
+                className="w-10 h-10 opacity-60 hover:opacity-100"
                 title="Go Home"
               >
-                <HiOutlineHome size={18} />
+                <HiOutlineHome size={20} />
               </Button>
 
               <Button
                 variant="icon"
                 onClick={onOpenSettings}
-                className="w-8 h-8 opacity-60 hover:opacity-100"
+                className="w-10 h-10 opacity-60 hover:opacity-100"
                 title="Settings"
               >
-                <HiOutlineCog size={18} />
+                <HiOutlineCog size={20} />
               </Button>
             </div>
 
@@ -571,20 +572,20 @@ export default function VaultSidebar({
                   <Button
                     variant="icon"
                     onClick={closeVault}
-                    className="w-8 h-8 text-red-500/60 hover:text-red-500"
+                    className="w-10 h-10 text-red-500/60 hover:text-red-500"
                     title="Close Vault"
                   >
-                    <HiOutlineLogout size={18} />
+                    <HiOutlineLogout size={20} />
                   </Button>
                ) : (
                   <Button
                     variant="icon"
                     onClick={openVault}
                     disabled={!isVaultSupported}
-                    className="w-8 h-8 text-blue-500/60 hover:text-blue-500"
+                    className="w-10 h-10 text-blue-500/60 hover:text-blue-500"
                     title={isVaultSupported ? "Open Vault" : "Vault not supported"}
                   >
-                    <HiOutlineDatabase size={18} />
+                    <HiOutlineDatabase size={20} />
                   </Button>
                )}
             </div>

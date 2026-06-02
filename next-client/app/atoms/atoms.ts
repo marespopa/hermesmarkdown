@@ -14,7 +14,7 @@ export const atom_theme = atomWithStorage<"light" | "dark">("theme", "light");
 export const atom_wordWrap = atomWithStorage<boolean>("wordWrap", true);
 export const atom_fontFamily = atomWithStorage<string>(
   "editorFontFamily",
-  "var(--font-jetbrains), monospace",
+  'ui-monospace, "SF Mono", "Cascadia Code", "JetBrains Mono", Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
 );
 export const atom_fontSize = atomWithStorage<string>("editorFontSize", "16px");
 export const atom_showStats = atomWithStorage<boolean>("showStats", true);
@@ -117,7 +117,7 @@ export const atom_openFiles = atomWithStorage<Record<string, FileState>>(
     draft: {
       content: "",
       lastSavedContent: "",
-      fileName: "untitled.md",
+      fileName: "untitled",
       activeFilePath: null,
     },
   },
@@ -137,7 +137,7 @@ export const atom_fileContent = atomFamily((path: string) =>
       const fileState = prev[path] || {
         content: "",
         lastSavedContent: "",
-        fileName: path.split("/").pop() || "untitled.md",
+        fileName: (path.split("/").pop() || "untitled").replace(/\.md$/, ""),
         activeFilePath: path,
       };
       set(atom_openFiles, {
@@ -169,7 +169,7 @@ export const atom_content = atom(
     const fileState = prev[path] || {
       content: "",
       lastSavedContent: "",
-      fileName: "untitled.md",
+      fileName: "untitled",
       activeFilePath: null,
     };
     set(atom_openFiles, {
@@ -490,15 +490,18 @@ export const atom_fileConflict = atom(
 export const atom_vaultFiles = atom<FileSystemHandle[]>([]);
 export const atom_isVaultPending = atom<boolean>(false);
 export const atom_hasLoadedVault = atom<boolean>(false);
+export const atom_isCloudVault = atom<boolean>(false);
 
 export type SaveStatus = {
   state: "idle" | "saving" | "saved" | "error";
   retryCount: number;
   message?: string;
+  path?: string;
 };
 export const atom_saveStatus = atom<SaveStatus>({
   state: "idle",
   retryCount: 0,
+  path: undefined,
 });
 
 export type DialogType = "alert" | "confirm" | "prompt";

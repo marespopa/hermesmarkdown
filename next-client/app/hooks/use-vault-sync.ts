@@ -1,16 +1,18 @@
 "use client";
 
 import { useAtom } from "jotai";
-import { atom_vaultHandle, atom_isVaultPending } from "@/app/atoms/atoms";
+import { atom_vaultHandle, atom_isVaultPending, atom_isCloudVault } from "@/app/atoms/atoms";
 import { useEffect, useCallback, useRef } from "react";
 import { useFileSystem } from "./use-file-system";
 import { useInterval } from "./use-interval";
 
 const VAULT_SYNC_INTERVAL = 5 * 60 * 1000; // 5 minutes
+const CLOUD_VAULT_SYNC_INTERVAL = 1 * 60 * 1000; // 1 minute for cloud vaults
 
 export function useVaultSync() {
   const [vaultHandle] = useAtom(atom_vaultHandle);
-  const [isVaultPending] = useAtom(atom_isVaultPending);
+  const [isVaultPending, setIsVaultPending] = useAtom(atom_isVaultPending);
+  const [isCloudVault] = useAtom(atom_isCloudVault);
   const { scanVault, indexVaultTags } = useFileSystem();
 
   const syncVault = useCallback(async () => {
@@ -21,12 +23,17 @@ export function useVaultSync() {
       await indexVaultTags(vaultHandle);
       console.log("Vault structure synced");
     } catch (err: any) {
-      console.warn("Vault sync failed:", err?.message || err);
+      if (err.name === "NotAllowedError") {
+        console.warn("Vault access lost, setting to pending state.");
+        setIsVaultPending(true);
+      } else {
+        console.warn("Vault sync failed:", err?.message || err);
+      }
     }
-  }, [vaultHandle, isVaultPending, scanVault, indexVaultTags]);
+  }, [vaultHandle, isVaultPending, scanVault, indexVaultTags, setIsVaultPending]);
 
   // Periodic sync
-  useInterval(syncVault, VAULT_SYNC_INTERVAL);
+  useInterval(syncVault, isCloudVault ? CLOUD_VAULT_SYNC_INTERVAL : VAULT_SYNC_INTERVAL);
 
   // Focus-based sync
   const syncVaultRef = useRef(syncVault);

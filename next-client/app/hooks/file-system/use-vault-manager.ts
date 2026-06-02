@@ -14,6 +14,7 @@ import {
   atom_openFiles,
   atom_workspaceLayout,
   atom_rebindHandles,
+  atom_isCloudVault,
 } from "@/app/atoms/atoms";
 import { atom_fileMetadata } from "@/app/atoms/metadata";
 import {
@@ -36,8 +37,46 @@ export function useVaultManager() {
   const [, setActiveFilePath] = useAtom(atom_activeFilePath);
   const [, setOpenFiles] = useAtom(atom_openFiles);
   const [, setWorkspaceLayout] = useAtom(atom_workspaceLayout);
+  const [, setIsCloudVault] = useAtom(atom_isCloudVault);
   const rebindHandles = useSetAtom(atom_rebindHandles);
   const dialog = useDialog();
+
+  const detectCloudVault = useCallback(
+    (handle: FileSystemDirectoryHandle) => {
+      const cloudFolderNames = [
+        "icloud",
+        "onedrive",
+        "dropbox",
+        "google drive",
+        "google-drive",
+        "googledrive",
+        "gdrive",
+        "g-drive",
+        "box",
+        "pcloud",
+        "nextcloud",
+        "mega",
+        "synology",
+        "nas",
+        "owncloud",
+        "kdrive",
+        "terabox",
+      ];
+      const name = handle.name.toLowerCase();
+      const isCloud = cloudFolderNames.some((cloudName) => name.includes(cloudName));
+      
+      if (isCloud) {
+        setIsCloudVault(true);
+        console.info(`Cloud folder detected: ${handle.name}. Enabling enhanced error recovery.`);
+        toast.success("Cloud sync detected. Enhanced recovery enabled.", {
+          icon: "☁️",
+          id: "cloud-detect-toast",
+        });
+      }
+      return isCloud;
+    },
+    [setIsCloudVault],
+  );
 
   const scanVault = useCallback(
     async (handle: FileSystemDirectoryHandle) => {
@@ -117,6 +156,7 @@ export function useVaultManager() {
       setVaultHandle(handle);
       setCurrentDirectoryHandle(handle);
       setIsVaultPending(false);
+      detectCloudVault(handle);
       await saveVaultHandle(handle);
       await scanVault(handle);
       await indexVaultTags(handle);
@@ -126,7 +166,7 @@ export function useVaultManager() {
       console.error("File System Error:", err?.message || err);
       toast.error("Failed to open vault");
     }
-  }, [setVaultHandle, setCurrentDirectoryHandle, setIsVaultPending, scanVault, indexVaultTags, rebindHandles]);
+  }, [setVaultHandle, setCurrentDirectoryHandle, setIsVaultPending, scanVault, indexVaultTags, rebindHandles, detectCloudVault]);
 
   const restoreVault = useCallback(async () => {
     if (!vaultHandle) return;
@@ -146,6 +186,7 @@ export function useVaultManager() {
       if (granted) {
         setIsVaultPending(false);
         setCurrentDirectoryHandle(vaultHandle);
+        detectCloudVault(vaultHandle);
         await scanVault(vaultHandle);
         await indexVaultTags(vaultHandle);
         await rebindHandles(vaultHandle);
@@ -155,7 +196,7 @@ export function useVaultManager() {
       console.error("File System Error:", err?.message || err);
       toast.error("Failed to restore vault");
     }
-  }, [vaultHandle, setIsVaultPending, setCurrentDirectoryHandle, scanVault, indexVaultTags, rebindHandles, dialog]);
+  }, [vaultHandle, setIsVaultPending, setCurrentDirectoryHandle, scanVault, indexVaultTags, rebindHandles, dialog, detectCloudVault]);
 
   const navigateTo = useCallback(
     async (handle: FileSystemDirectoryHandle) => {
@@ -184,12 +225,13 @@ export function useVaultManager() {
     setActiveFileHandle(null);
     setActiveFilePath("draft");
     setIsVaultPending(false);
+    setIsCloudVault(false);
     
     setOpenFiles({
       draft: {
         content: "",
         lastSavedContent: "",
-        fileName: "untitled.md",
+        fileName: "untitled",
         activeFilePath: "draft",
       }
     });
@@ -206,7 +248,7 @@ export function useVaultManager() {
 
     clearVaultHandle();
     toast.success("Vault closed");
-  }, [setVaultHandle, setCurrentDirectoryHandle, setVaultFiles, setActiveFileHandle, setActiveFilePath, setIsVaultPending, setOpenFiles, setWorkspaceLayout]);
+  }, [setVaultHandle, setCurrentDirectoryHandle, setVaultFiles, setActiveFileHandle, setActiveFilePath, setIsVaultPending, setOpenFiles, setWorkspaceLayout, setIsCloudVault]);
 
   // Worker Message Listener
   useEffect(() => {

@@ -19,7 +19,6 @@ import VaultSidebar from "./components/VaultSidebar";
 import WelcomeWizard from "./components/WelcomeWizard";
 import WorkspaceSplitter from "./components/WorkspaceSplitter";
 import StatusBar from "./components/StatusBar";
-import FloatingSaveIndicator from "./components/FloatingSaveIndicator";
 import ErrorBoundary from "@/app/components/ErrorBoundary";
 import { useFileSystem } from "@/app/hooks/use-file-system";
 import { useFileSync } from "@/app/hooks/use-file-sync";
@@ -159,7 +158,7 @@ export default function LiteEditor() {
 
   const resetEditor = () => {
     setContent("");
-    setFileName("untitled.md");
+    setFileName("untitled");
     setActiveFileHandle(null);
     setActiveFilePath("draft");
     hasPromptedForNameRef.current = false;
@@ -205,20 +204,20 @@ export default function LiteEditor() {
 
   return (
     <ErrorBoundary>
-      <div className="flex h-[100dvh] w-full bg-zinc-50 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 selection:bg-blue-500/30 font-mono overflow-hidden overscroll-none">
+      <div className="flex h-[100dvh] w-full bg-zinc-50 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 selection:bg-blue-500/30 font-sans overflow-hidden overscroll-none">
         {/* Modals */}
         <SettingsDialog isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
         <WelcomeWizard />
         <ConflictDialog />
         
-        <DialogModal isOpened={pendingFile !== null} onClose={() => setPendingFile(null)}>
-          <div className="flex flex-col gap-6 text-center py-2">
-            <p className="text-sm font-medium tracking-tight">
-              Overwrite current draft with <span className="italic text-blue-500">"{pendingFile?.name}"</span>?
+        <DialogModal isOpened={pendingFile !== null} onClose={() => setPendingFile(null)} styles="!rounded-[32px] !backdrop-blur-2xl !bg-white/80 dark:!bg-zinc-900/80 !border-none !shadow-2xl">
+          <div className="flex flex-col gap-6 text-center py-4 px-2">
+            <p className="text-lg font-bold tracking-tight">
+              Overwrite draft with <br/><span className="text-blue-500 italic">"{pendingFile?.name}"</span>?
             </p>
-            <div className="flex gap-2 justify-center">
-              <Button variant="primary" onClick={() => { if (pendingFile) { setContent(pendingFile.text); setFileName(pendingFile.name); } setPendingFile(null); }}>Overwrite</Button>
-              <Button variant="secondary" onClick={() => setPendingFile(null)}>Cancel</Button>
+            <div className="flex gap-3 justify-center">
+              <Button variant="primary" className="h-11 px-6 rounded-xl" onClick={() => { if (pendingFile) { setContent(pendingFile.text); setFileName(pendingFile.name); } setPendingFile(null); }}>Overwrite</Button>
+              <Button variant="secondary" className="h-11 px-6 rounded-xl" onClick={() => setPendingFile(null)}>Cancel</Button>
             </div>
           </div>
         </DialogModal>
@@ -229,7 +228,7 @@ export default function LiteEditor() {
         
         {/* Sidebar (Explorer) */}
         <div 
-          className={`transition-[width,opacity] duration-700 [transition-timing-function:cubic-bezier(0.4,0,0.2,1)] flex shrink-0 h-full border-r border-zinc-200 dark:border-zinc-800 ${isZenModeActive || !isSidebarOpen ? "w-0 opacity-0 pointer-events-none overflow-hidden border-none" : ""}`}
+          className={`transition-[width,opacity] duration-1000 [transition-timing-function:cubic-bezier(0.2,1,0.2,1)] flex shrink-0 h-full ${isZenModeActive || !isSidebarOpen ? "w-0 opacity-0 pointer-events-none overflow-hidden" : ""}`}
         >
           <VaultSidebar 
             onOpenSettings={() => setIsSettingsOpen(true)}
@@ -241,28 +240,28 @@ export default function LiteEditor() {
         </div>
 
         {/* Workspace Content */}
-        <div className="flex-1 flex min-w-0 bg-zinc-50 dark:bg-zinc-950 overflow-hidden relative">
+        <div className="flex-1 flex min-w-0 bg-white dark:bg-zinc-950 overflow-hidden relative">
           
           {/* Collapsed Sidebar Toggle Column */}
           {!isSidebarOpen && !isZenModeActive && (
-            <div className="w-10 h-full flex flex-col items-center py-4 border-r border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-950/50 shrink-0 z-40 lg:hidden">
-               <div className="flex flex-col items-center gap-4">
+            <div className="w-12 h-full flex flex-col items-center py-6 border-r border-zinc-200/50 dark:border-zinc-800/50 bg-white/50 dark:bg-zinc-950/50 backdrop-blur-3xl shrink-0 z-40 lg:hidden">
+               <div className="flex flex-col items-center gap-6">
                  <Button
                     variant="icon"
                     onClick={() => setIsSidebarOpen(true)}
-                    className="w-8 h-8 opacity-60 hover:opacity-100 text-zinc-600 dark:text-zinc-400"
+                    className="w-10 h-10 opacity-60 hover:opacity-100 text-zinc-600 dark:text-zinc-400"
                     title="Show Sidebar"
                   >
-                    <HiOutlineMenuAlt2 size={20} />
+                    <HiOutlineMenuAlt2 size={24} />
                   </Button>
 
                   <Button
                     variant="icon"
                     onClick={() => setIsSettingsOpen(true)}
-                    className="w-8 h-8 opacity-60 hover:opacity-100 text-zinc-600 dark:text-zinc-400"
+                    className="w-10 h-10 opacity-60 hover:opacity-100 text-zinc-600 dark:text-zinc-400"
                     title="Settings"
                   >
-                    <HiOutlineCog size={20} />
+                    <HiOutlineCog size={24} />
                   </Button>
                </div>
             </div>
@@ -270,13 +269,13 @@ export default function LiteEditor() {
 
           {/* Main Editor Area */}
           <div className="flex-1 flex flex-col min-w-0 relative">
-            <main className={`flex-1 min-h-0 relative transition-all duration-300 ${isPathSwitching ? "opacity-30" : "opacity-100"}`}>
-              <FloatingSaveIndicator />
+            <main className={`flex-1 min-h-0 relative transition-all duration-700 ${isPathSwitching ? "opacity-30 blur-[2px]" : "opacity-100"}`}>
               {isMounting ? (
-                <div className="animate-pulse opacity-10 space-y-4 pt-12 px-12">
-                  <div className="h-4 bg-current w-1/4 mb-10" />
-                  <div className="h-4 bg-current w-full" />
-                  <div className="h-4 bg-current w-5/6" />
+                <div className="animate-pulse opacity-10 space-y-6 pt-20 px-12 max-w-2xl mx-auto">
+                  <div className="h-8 bg-current w-1/3 rounded-lg mb-16" />
+                  <div className="h-4 bg-current w-full rounded-md" />
+                  <div className="h-4 bg-current w-11/12 rounded-md" />
+                  <div className="h-4 bg-current w-5/6 rounded-md" />
                 </div>
               ) : (
                 <WorkspaceSplitter node={workspaceLayout.rootContainer} />

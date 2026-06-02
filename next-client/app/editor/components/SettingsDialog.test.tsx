@@ -43,7 +43,6 @@ describe("SettingsDialog Component", () => {
   it("renders settings options", () => {
     render(<SettingsDialog isOpen={true} onClose={mockOnClose} />);
 
-    expect(screen.getByText("Typeface")).toBeInTheDocument();
     expect(screen.getByText("Editor Width")).toBeInTheDocument();
     // Use getAllByText as "Standard" now appears twice (Text Size and Editor Width)
     expect(screen.getAllByText("Standard").length).toBeGreaterThanOrEqual(1);
