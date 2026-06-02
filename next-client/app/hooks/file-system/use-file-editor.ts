@@ -171,14 +171,20 @@ export function useFileEditor({ indexVaultTags }: UseFileEditorProps) {
   );
 
   const saveFile = useCallback(
-    async (content: string, handle?: FileSystemFileHandle, retryCount = 0, isAutoSave = false): Promise<boolean> => {
+    async (
+      content: string,
+      handle?: FileSystemFileHandle,
+      retryCount = 0,
+      isAutoSave = false,
+      providedPath?: string,
+    ): Promise<boolean> => {
       const fileToSave = handle || activeFileHandle;
       if (!fileToSave) return false;
 
-      setSaveStatus({ 
-        state: "saving", 
-        retryCount, 
-        message: retryCount > 0 ? `Retry ${retryCount}/8` : undefined 
+      setSaveStatus({
+        state: "saving",
+        retryCount,
+        message: retryCount > 0 ? `Retry ${retryCount}/8` : undefined,
       });
 
       let writable: FileSystemWritableFileStream | null = null;
@@ -204,7 +210,7 @@ export function useFileEditor({ indexVaultTags }: UseFileEditorProps) {
         if (handle) {
           setActiveFileHandle(handle);
           setFileName(handle.name.replace(".md", ""));
-          
+
           let finalPath = handle.name;
           if (vaultHandle) {
             try {
@@ -216,11 +222,11 @@ export function useFileEditor({ indexVaultTags }: UseFileEditorProps) {
               // fallback
             }
           }
-          
+
           setOpenFiles((prev) => {
             const next = { ...prev };
             const oldPath = activeFilePath || "draft";
-            
+
             if (oldPath !== finalPath) {
               next[finalPath] = {
                 content,
@@ -228,7 +234,7 @@ export function useFileEditor({ indexVaultTags }: UseFileEditorProps) {
                 fileName: handle.name,
                 activeFilePath: finalPath,
               };
-              
+
               if (oldPath === "draft") {
                 next.draft = {
                   content: "",
@@ -248,15 +254,15 @@ export function useFileEditor({ indexVaultTags }: UseFileEditorProps) {
         indexVaultTags();
         setSaveStatus({ state: "saved", retryCount });
         setTimeout(() => setSaveStatus({ state: "idle", retryCount: 0 }), 2000);
-        
+
         if (!isAutoSave) {
           toast.success("Saved to " + fileToSave.name);
         }
-        
+
         return true;
       } catch (err: any) {
-        const isRetryable = 
-          err.name === "InvalidStateError" || 
+        const isRetryable =
+          err.name === "InvalidStateError" ||
           err.message?.includes("state had changed") ||
           err.message?.includes("locked") ||
           err.name === "NoModificationAllowedError";
@@ -264,10 +270,25 @@ export function useFileEditor({ indexVaultTags }: UseFileEditorProps) {
         if (isRetryable && retryCount < 8) {
           const delay = 400 * Math.pow(1.5, retryCount);
 
+          // Resolve the path if we haven't already, to ensure we refresh the CORRECT handle
+          let targetPath = providedPath;
+          if (!targetPath) {
+            if (!handle || handle === activeFileHandle) {
+              targetPath = activeFilePath || undefined;
+            } else if (vaultHandle) {
+              try {
+                const parts = await (vaultHandle as any).resolve(handle);
+                if (parts) targetPath = parts.join("/");
+              } catch {
+                targetPath = handle.name;
+              }
+            }
+          }
+
           // Try to refresh the handle if it's in the vault
-          if (activeFilePath && vaultHandle) {
+          if (targetPath && targetPath !== "draft" && vaultHandle) {
             try {
-              const parts = activeFilePath.split("/");
+              const parts = targetPath.split("/");
               let current: FileSystemDirectoryHandle = vaultHandle;
 
               // Walk the path to get a fresh handle
@@ -276,23 +297,25 @@ export function useFileEditor({ indexVaultTags }: UseFileEditorProps) {
               }
               const freshHandle = await current.getFileHandle(parts[parts.length - 1]);
 
+              // Update active handle if we just refreshed it
               if (!handle || handle === activeFileHandle) {
                 setActiveFileHandle(freshHandle);
               }
 
               await new Promise((resolve) => setTimeout(resolve, delay));
-              return saveFile(content, freshHandle, retryCount + 1, isAutoSave);
+              return saveFile(content, freshHandle, retryCount + 1, isAutoSave, targetPath);
             } catch (retryErr) {
               console.warn("Failed to refresh handle for retry:", retryErr);
             }
           }
 
           await new Promise((resolve) => setTimeout(resolve, delay));
-          return saveFile(content, handle, retryCount + 1, isAutoSave);
+          return saveFile(content, handle, retryCount + 1, isAutoSave, targetPath);
         }
 
         console.error("File System Error:", err?.message || err);
-        const errorMsg = err.name === "InvalidStateError" ? "File locked by cloud sync" : err.message;
+        const errorMsg =
+          err.name === "InvalidStateError" ? "File locked by cloud sync" : err.message;
         setSaveStatus({ state: "error", retryCount, message: errorMsg });
         setTimeout(() => setSaveStatus({ state: "idle", retryCount: 0 }), 5000);
 
@@ -310,7 +333,20 @@ export function useFileEditor({ indexVaultTags }: UseFileEditorProps) {
         }
       }
     },
-    [activeFileHandle, indexVaultTags, setLastSavedContent, setFileLastModified, setFileConflict, setActiveFileHandle, setFileName, vaultHandle, setActiveFilePath, activeFilePath, setSaveStatus, setOpenFiles],
+    [
+      activeFileHandle,
+      indexVaultTags,
+      setLastSavedContent,
+      setFileLastModified,
+      setFileConflict,
+      setActiveFileHandle,
+      setFileName,
+      vaultHandle,
+      setActiveFilePath,
+      activeFilePath,
+      setSaveStatus,
+      setOpenFiles,
+    ],
   );
 
   const exportFile = useCallback(

@@ -115,6 +115,79 @@ export default function VaultSidebar({
   const tags = Object.keys(vaultTags).sort((a, b) => a < b ? -1 : a > b ? 1 : 0);
   const filteredFiles = selectedTag ? vaultTags[selectedTag] : null;
 
+  const [searchQuery, setSearchQuery] = useState("");
+  const [tagSearchQuery, setTagSearchQuery] = useState("");
+
+  const processedTags = useMemo(() => {
+    if (!tagSearchQuery.trim()) return tags;
+    const query = tagSearchQuery.toLowerCase().trim();
+    return tags.filter(tag => tag.toLowerCase().includes(query));
+  }, [tags, tagSearchQuery]);
+
+  const processedFiles = useMemo(() => {
+    // Global search across all indexed files if searching and not in tag view
+    if (!selectedTag && searchQuery.trim()) {
+      const query = searchQuery.toLowerCase().trim();
+      
+      // 1. Get matching files from global metadata
+      const globalMatches = Object.values(fileMetadata)
+        .filter(meta => 
+          meta.name.toLowerCase().includes(query) || 
+          meta.path.toLowerCase().includes(query)
+        )
+        .map(meta => ({
+          name: meta.name,
+          kind: "file",
+          handle: meta.handle,
+          path: meta.path
+        }));
+
+      // 2. Get matching folders from current directory (vaultFiles)
+      // Note: We only have a global index of files, so folders can only be searched locally for now
+      const folderMatches = vaultFiles
+        .filter(entry => 
+          entry.kind === "directory" && 
+          entry.name.toLowerCase().includes(query)
+        )
+        .map(entry => ({
+          name: entry.name,
+          kind: "directory",
+          handle: entry as FileSystemDirectoryHandle,
+        }));
+
+      // Combine and sort
+      return [...folderMatches, ...globalMatches].sort((a, b) => {
+        if (a.kind === "directory" && b.kind === "file") return -1;
+        if (a.kind === "file" && b.kind === "directory") return 1;
+        return a.name.localeCompare(b.name);
+      });
+    }
+
+    const files = selectedTag ? filteredFiles : vaultFiles;
+    if (!files) return [];
+
+    // Sort: Folders first, then alphabetical by name
+    let result = [...files].sort((a: any, b: any) => {
+      const aIsFolder = a.kind === "directory";
+      const bIsFolder = b.kind === "directory";
+      
+      if (aIsFolder && !bIsFolder) return -1;
+      if (!aIsFolder && bIsFolder) return 1;
+      
+      return a.name.localeCompare(b.name);
+    });
+
+    // Filter by search query
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase().trim();
+      result = result.filter((file: any) => 
+        file.name.toLowerCase().includes(query)
+      );
+    }
+
+    return result;
+  }, [selectedTag, filteredFiles, vaultFiles, searchQuery, fileMetadata]);
+
   if (!isMounted) return null;
 
   return (
@@ -179,7 +252,7 @@ export default function VaultSidebar({
               {onClose && (
                 <Button
                   variant="icon"
-                  className="w-8 h-8 opacity-60 hover:opacity-100"
+                  className="w-8 h-8 opacity-60 hover:opacity-100 lg:hidden"
                   onClick={onClose}
                   title="Close Sidebar"
                 >
@@ -215,7 +288,7 @@ export default function VaultSidebar({
               <div 
                 onClick={() => {
                    setActiveFilePath("draft");
-                   if (onClose && window.innerWidth < 768) onClose();
+                   if (onClose && window.innerWidth < 1024) onClose();
                 }}
                 className={`flex items-center gap-2 px-4 py-2 rounded-md cursor-pointer transition-all text-[13px] relative ${activeFilePath === 'draft' ? "text-blue-600 dark:text-blue-400 font-medium before:absolute before:left-0 before:top-2 before:bottom-2 before:w-0.5 before:bg-blue-500 bg-blue-500/5" : "hover:bg-zinc-200 dark:hover:bg-zinc-800/50 text-zinc-600 dark:text-zinc-400"}`}
               >
@@ -279,8 +352,31 @@ export default function VaultSidebar({
                   }
                 />
               )}
-              {isFilesExpanded && (selectedTag ? filteredFiles : vaultFiles)?.map((entry, idx) => {
-                const isActive = (selectedTag && (entry as any).path === activeFilePath) || (!selectedTag && activeFilePath?.split("/").pop() === entry.name);
+              {isFilesExpanded && (
+                <div className="px-2 mb-2">
+                  <div className="relative group/search">
+                    <input
+                      type="text"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      placeholder="Search files..."
+                      className="w-full bg-zinc-200/50 dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-800 rounded-md px-2 py-1 text-xs outline-none focus:ring-1 focus:ring-blue-500/50 transition-all placeholder:text-zinc-400"
+                    />
+                    {searchQuery && (
+                      <button
+                        onClick={() => setSearchQuery("")}
+                        className="absolute right-1.5 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 p-0.5"
+                      >
+                        <HiOutlineX size={10} />
+                      </button>
+                    )}
+                  </div>
+                </div>
+              )}
+              {isFilesExpanded && processedFiles.map((entry, idx) => {
+                const isActive = (selectedTag || searchQuery) 
+                  ? (entry as any).path === activeFilePath 
+                  : activeFilePath?.split("/").pop() === entry.name;
                 return (
                   <div
                     key={`${entry.kind || 'file'}-${entry.name}-${idx}`}
@@ -289,10 +385,12 @@ export default function VaultSidebar({
                   >
                     <div
                       onClick={() => {
-                        if (selectedTag) {
-                          openFile(entry.handle, (entry as any).path);
+                        if (selectedTag || (searchQuery && entry.kind === "file")) {
+                          openFile(entry.handle as FileSystemFileHandle, (entry as any).path);
+                          if (onClose && window.innerWidth < 1024) onClose();
                         } else if (entry.kind === "file") {
                           openFile(entry as FileSystemFileHandle);
+                          if (onClose && window.innerWidth < 1024) onClose();
                         } else {
                           navigateTo(entry as FileSystemDirectoryHandle);
                         }
@@ -308,7 +406,14 @@ export default function VaultSidebar({
                       ) : (
                         <HiOutlineDocumentText size={16} className="shrink-0 opacity-70" />
                       )}
-                      <span className="truncate">{entry.name}</span>
+                      <div className="flex flex-col truncate leading-tight">
+                        <span className="truncate">{entry.name}</span>
+                        {searchQuery && (entry as any).path && (entry as any).path !== entry.name && (
+                          <span className="text-[9px] opacity-40 truncate">
+                            {(entry as any).path.split('/').slice(0, -1).join('/')}
+                          </span>
+                        )}
+                      </div>
                     </div>
 
                   {!selectedTag && (
@@ -363,9 +468,9 @@ export default function VaultSidebar({
                 </div>
               )})}
 
-              {(!selectedTag ? vaultFiles : filteredFiles)?.length === 0 && (
+              {isFilesExpanded && processedFiles.length === 0 && (
                 <div className="p-4 text-center opacity-30 text-xs italic">
-                  Empty directory
+                  {searchQuery ? "No results found" : "Empty directory"}
                 </div>
               )}
             </div>
@@ -380,16 +485,46 @@ export default function VaultSidebar({
                 />
                 
                 {isTagsExpanded && (
-                  <div className="flex flex-wrap gap-1 px-3 max-h-40 overflow-y-auto overscroll-none custom-scrollbar animate-in fade-in duration-200">
-                    {tags.map((tag) => (
-                      <span
-                        key={tag}
-                        onClick={() => setSelectedTag(tag)}
-                        className="text-[10px] px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 cursor-pointer hover:bg-blue-500/20 transition-colors border border-blue-500/20"
-                      >
-                        {tag}
-                      </span>
-                    ))}
+                  <div className="space-y-2 animate-in fade-in duration-200">
+                    {tags.length > 5 && (
+                      <div className="px-2 mb-2">
+                        <div className="relative group/search">
+                          <input
+                            type="text"
+                            value={tagSearchQuery}
+                            onChange={(e) => setTagSearchQuery(e.target.value)}
+                            placeholder="Search filters..."
+                            className="w-full bg-zinc-200/50 dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-800 rounded-md px-2 py-1 text-xs outline-none focus:ring-1 focus:ring-blue-500/50 transition-all placeholder:text-zinc-400"
+                          />
+                          {tagSearchQuery && (
+                            <button
+                              onClick={() => setTagSearchQuery("")}
+                              className="absolute right-1.5 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 p-0.5"
+                            >
+                              <HiOutlineX size={10} />
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                    
+                    <div className="flex flex-wrap gap-1 px-3 max-h-40 overflow-y-auto overscroll-none custom-scrollbar">
+                      {processedTags.map((tag) => (
+                        <span
+                          key={tag}
+                          onClick={() => setSelectedTag(tag)}
+                          className="text-[10px] px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 cursor-pointer hover:bg-blue-500/20 transition-colors border border-blue-500/20"
+                        >
+                          {tag}
+                        </span>
+                      ))}
+
+                      {tagSearchQuery && processedTags.length === 0 && (
+                        <div className="w-full py-2 text-center opacity-30 text-[10px] italic">
+                          No filters found
+                        </div>
+                      )}
+                    </div>
                   </div>
                 )}
               </div>
@@ -400,7 +535,10 @@ export default function VaultSidebar({
         {/* Workspaces Section (Always visible if not in tag view) */}
         {!selectedTag && (
           <SmartFolders
-            onFileSelect={openFile}
+            onFileSelect={(handle, path) => {
+              openFile(handle, path);
+              if (onClose && window.innerWidth < 1024) onClose();
+            }}
           />
         )}
       </div>

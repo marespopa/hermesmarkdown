@@ -67,14 +67,14 @@ const DialogModal = ({
       <div
         className={`
           relative z-10 w-full max-w-sm
-          mt-auto sm:my-auto
+          my-auto
           bg-white/80 dark:bg-neutral-900/80 backdrop-blur-2xl
           border border-white/20 dark:border-neutral-800/50
-          rounded-t-[28px] rounded-b-none sm:rounded-b-[28px] shadow-[0_20px_50px_rgba(0,0,0,0.1)]
+          rounded-[28px] shadow-[0_20px_50px_rgba(0,0,0,0.1)]
           overflow-hidden
           flex flex-col
           /* Apple "Spring" Animation */
-          animate-in fade-in zoom-in-95 slide-in-from-bottom-8 sm:slide-in-from-bottom-0 duration-500 ease-out
+          animate-in fade-in zoom-in-95 slide-in-from-bottom-4 sm:slide-in-from-bottom-0 duration-500 ease-out
           ${styles}
         `}
       >
@@ -93,7 +93,7 @@ const DialogModal = ({
           />
         </button>
 
-        <div className="p-6 sm:p-8 text-neutral-900 dark:text-neutral-100">
+        <div className="p-6 sm:p-8 text-neutral-900 dark:text-neutral-100 flex flex-col min-h-0">
           {children}
         </div>
       </div>

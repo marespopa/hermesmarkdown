@@ -13,11 +13,13 @@ import {
   atom_activeFilePath,
   atom_workspaceLayout,
   atom_isZenModeActive,
+  atom_isSidebarOpen,
 } from "@/app/atoms/atoms";
 import VaultSidebar from "./components/VaultSidebar";
 import WelcomeWizard from "./components/WelcomeWizard";
 import WorkspaceSplitter from "./components/WorkspaceSplitter";
 import StatusBar from "./components/StatusBar";
+import FloatingSaveIndicator from "./components/FloatingSaveIndicator";
 import ErrorBoundary from "@/app/components/ErrorBoundary";
 import { useFileSystem } from "@/app/hooks/use-file-system";
 import { useFileSync } from "@/app/hooks/use-file-sync";
@@ -39,6 +41,7 @@ export default function LiteEditor() {
   const [, setActiveFileHandle] = useAtom(atom_activeFileHandle);
   const workspaceLayout = useAtomValue(atom_workspaceLayout);
   const [isZenModeActive, setIsZenModeActive] = useAtom(atom_isZenModeActive);
+  const [isSidebarOpen, setIsSidebarOpen] = useAtom(atom_isSidebarOpen);
 
   const {
     vaultHandle,
@@ -47,6 +50,7 @@ export default function LiteEditor() {
     exportFile,
     importFile,
     createFile,
+    createNewFile,
   } = useFileSystem();
 
   const dialog = useDialog();
@@ -63,7 +67,6 @@ export default function LiteEditor() {
   useVaultSync();
 
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isPathSwitching, setIsPathSwitching] = useState(false);
   const [pendingFile, setPendingFile] = useState<{
     text: string;
@@ -78,13 +81,19 @@ export default function LiteEditor() {
   }, []);
 
   useEffect(() => {
-    // Default sidebar to closed on mobile or if no vault is loaded to avoid "pushing" content
-    if (typeof window !== "undefined") {
-      if (window.innerWidth < 1024 || !vaultHandle) {
+    const handleResize = () => {
+      if (window.innerWidth >= 1024) {
+        setIsSidebarOpen(true);
+      } else if (isMounting) {
+        // Only auto-close on mobile during initial mount
         setIsSidebarOpen(false);
       }
-    }
-  }, [vaultHandle]);
+    };
+
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, [setIsSidebarOpen, isMounting]);
 
   const handleSave = useCallback(async () => {
     if (!content.trim()) return;
@@ -141,7 +150,11 @@ export default function LiteEditor() {
   }, [activeFilePath, isMounting]);
 
   const handleNewFile = () => {
-    resetEditor();
+    if (!vaultHandle) {
+      resetEditor();
+    } else {
+      createNewFile();
+    }
   };
 
   const resetEditor = () => {
@@ -232,7 +245,7 @@ export default function LiteEditor() {
           
           {/* Collapsed Sidebar Toggle Column */}
           {!isSidebarOpen && !isZenModeActive && (
-            <div className="w-10 h-full flex flex-col items-center py-4 border-r border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-950/50 shrink-0 z-40">
+            <div className="w-10 h-full flex flex-col items-center py-4 border-r border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-950/50 shrink-0 z-40 lg:hidden">
                <div className="flex flex-col items-center gap-4">
                  <Button
                     variant="icon"
@@ -258,6 +271,7 @@ export default function LiteEditor() {
           {/* Main Editor Area */}
           <div className="flex-1 flex flex-col min-w-0 relative">
             <main className={`flex-1 min-h-0 relative transition-all duration-300 ${isPathSwitching ? "opacity-30" : "opacity-100"}`}>
+              <FloatingSaveIndicator />
               {isMounting ? (
                 <div className="animate-pulse opacity-10 space-y-4 pt-12 px-12">
                   <div className="h-4 bg-current w-1/4 mb-10" />

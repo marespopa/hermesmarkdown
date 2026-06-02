@@ -21,6 +21,27 @@ interface UseFileCrudProps {
   openFile: (fileHandle: FileSystemFileHandle, providedPath?: string, force?: boolean) => Promise<void>;
 }
 
+/**
+ * Helper to retry operations that fail due to "state had changed" (common race condition in FS API)
+ */
+const withRetry = async <T>(fn: () => Promise<T>, retries = 2): Promise<T> => {
+  try {
+    return await fn();
+  } catch (err: any) {
+    const isRetryable =
+      err.name === "InvalidStateError" ||
+      err.message?.includes("state had changed");
+    if (isRetryable && retries > 0) {
+      console.warn(
+        `File System operation failed (state changed), retrying... (${retries} left)`,
+      );
+      await new Promise((resolve) => setTimeout(resolve, 100));
+      return withRetry(fn, retries - 1);
+    }
+    throw err;
+  }
+};
+
 export function useFileCrud({ scanVault, indexVaultTags, openFile }: UseFileCrudProps) {
   const [vaultHandle] = useAtom(atom_vaultHandle);
   const [currentDirectoryHandle] = useAtom(atom_currentDirectoryHandle);
@@ -45,16 +66,15 @@ export function useFileCrud({ scanVault, indexVaultTags, openFile }: UseFileCrud
         // Conflict Resolution Loop: find a unique filename
         while (true) {
           try {
-            await targetDir.getFileHandle(fileName, { create: false });
+            await withRetry(() => targetDir.getFileHandle(fileName, { create: false }));
             // If the above doesn't throw, the file already exists
             fileName = `${baseName} (${counter++}).md`;
           } catch (err: any) {
             if (err.name === "NotFoundError") {
               // Found a unique name!
-              newFileHandle = await targetDir.getFileHandle(fileName, { create: true });
+              newFileHandle = await withRetry(() => targetDir.getFileHandle(fileName, { create: true }));
               break;
             }
-            // If it's any other error (like security/permission), rethrow to the outer catch
             throw err;
           }
         }
@@ -62,9 +82,11 @@ export function useFileCrud({ scanVault, indexVaultTags, openFile }: UseFileCrud
         if (!newFileHandle) throw new Error("Failed to resolve file handle");
 
         // Write content immediately if provided
-        const writable = await (newFileHandle as any).createWritable();
-        await writable.write(content);
-        await writable.close();
+        await withRetry(async () => {
+          const writable = await (newFileHandle as any).createWritable();
+          await writable.write(content);
+          await writable.close();
+        });
 
         await scanVault(targetDir);
         await indexVaultTags();
@@ -93,17 +115,6 @@ export function useFileCrud({ scanVault, indexVaultTags, openFile }: UseFileCrud
 
         await openFile(newFileHandle, path, true);
         
-        // Reset the draft state now that it's a real file
-        setOpenFiles((prev) => ({
-          ...prev,
-          draft: {
-            content: "",
-            lastSavedContent: "",
-            fileName: "untitled.md",
-            activeFilePath: null,
-          },
-        }));
-
         toast.success("Created: " + fileName);
         return newFileHandle;
       } catch (err: any) {
@@ -112,7 +123,7 @@ export function useFileCrud({ scanVault, indexVaultTags, openFile }: UseFileCrud
         return null;
       }
     },
-    [vaultHandle, currentDirectoryHandle, scanVault, indexVaultTags, openFile, setOpenFiles],
+    [vaultHandle, currentDirectoryHandle, scanVault, indexVaultTags, openFile],
   );
 
   const createNewFile = useCallback(async () => {
@@ -133,9 +144,9 @@ export function useFileCrud({ scanVault, indexVaultTags, openFile }: UseFileCrud
     if (!name) return;
 
     try {
-      await targetDir.getDirectoryHandle(name, {
+      await withRetry(() => targetDir.getDirectoryHandle(name, {
         create: true,
-      });
+      }));
       await scanVault(targetDir);
       toast.success("Folder created: " + name);
     } catch (err: any) {
@@ -334,18 +345,18 @@ export function useFileCrud({ scanVault, indexVaultTags, openFile }: UseFileCrud
             if (freshHandle.kind === "file") {
               const file = await (freshHandle as FileSystemFileHandle).getFile();
               const content = await file.text();
-              const newFileHandle = await parentDir.getFileHandle(newName, {
+              const newFileHandle = await withRetry(() => parentDir.getFileHandle(newName, {
                 create: true,
-              });
+              }));
               let writable: FileSystemWritableFileStream | null = null;
               try {
-                writable = await newFileHandle.createWritable();
+                writable = await withRetry(() => (newFileHandle as any).createWritable());
                 if (writable) {
-                  await writable.write(content);
-                  await writable.close();
+                  await withRetry(() => writable!.write(content));
+                  await withRetry(() => writable!.close());
                   writable = null;
                 }
-                await (parentDir as any).removeEntry(freshHandle.name);
+                await withRetry(() => (parentDir as any).removeEntry(freshHandle.name));
 
                 if (isActive) {
                   setActiveFileHandle(newFileHandle);

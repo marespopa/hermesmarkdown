@@ -78,7 +78,7 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
     const fileName = fileState?.fileName || "Untitled";
 
     if (liveHandle) {
-      const success = await saveFile(content, liveHandle);
+      const success = await saveFile(content, liveHandle, 0, false, filePath);
       if (success) return;
     }
     await exportFile(content, fileName);
@@ -88,7 +88,7 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
     if (!content.trim()) return;
 
     if (liveHandle) {
-      await saveFile(content, liveHandle);
+      await saveFile(content, liveHandle, 0, false, filePath);
     } else {
       await handleExport();
     }
@@ -245,7 +245,7 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
                       const fileState = openFiles[path];
                       const tabHandle = contentStore.get(atom_liveHandles(path));
                       if (fileState && fileState.content !== fileState.lastSavedContent && tabHandle) {
-                        await saveFile(fileState.content, tabHandle, 0, true);
+                        await saveFile(fileState.content, tabHandle, 0, true, path);
                       }
                     }
 

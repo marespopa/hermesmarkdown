@@ -517,6 +517,7 @@ export interface DialogConfig {
 export const atom_globalDialog = atom<DialogConfig | null>(null);
 
 export const atom_sidebarWidth = atomWithStorage<number>("sidebarWidth", 260);
+export const atom_isSidebarOpen = atomWithStorage<boolean>("isSidebarOpen", true);
 
 // Action atoms
 export const atom_rebindHandles = atom(

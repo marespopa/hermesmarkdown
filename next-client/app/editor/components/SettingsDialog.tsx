@@ -95,14 +95,14 @@ const SettingsDialog = ({ isOpen, onClose }: Props) => {
   ];
 
   return (
-    <DialogModal isOpened={isOpen} onClose={onClose} styles="!max-w-md !max-h-[90vh]">
-      <div className="flex flex-col h-full max-h-[80vh]">
-        <div className="space-y-1 mb-6 px-1">
-          <h2 className="text-2xl font-bold tracking-tight">Settings</h2>
-          <p className="text-[11px] text-neutral-500 dark:text-neutral-400 font-medium">Environment Configuration</p>
+    <DialogModal isOpened={isOpen} onClose={onClose} styles="!max-w-md !max-h-[85vh]">
+      <div className="flex flex-col min-h-0">
+        <div className="space-y-1 mb-5 px-1">
+          <h2 className="text-xl sm:text-2xl font-bold tracking-tight">Settings</h2>
+          <p className="text-[10px] sm:text-[11px] text-neutral-500 dark:text-neutral-400 font-medium uppercase tracking-wider">Environment Configuration</p>
         </div>
 
-        <div className="flex-1 overflow-y-auto custom-scrollbar -mx-2 px-2 pb-2">
+        <div className="flex-1 overflow-y-auto custom-scrollbar -mx-2 px-2 pb-1">
           <SettingGroup title="Typography">
             <SettingItem 
               label="Typeface" 

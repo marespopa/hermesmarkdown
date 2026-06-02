@@ -54,7 +54,7 @@ export function useAutoSave(onDraftChange?: () => void) {
       if (autosaveMode === "onFocusChange") {
         // Save the PREVIOUS file if it was dirty before we switched
         if (prevContentRef.current !== prevLastSavedContentRef.current && prevHandleRef.current) {
-          saveFile(prevContentRef.current, prevHandleRef.current, 0, true);
+          saveFile(prevContentRef.current, prevHandleRef.current, 0, true, prevFilePathRef.current || undefined);
         }
       }
       
