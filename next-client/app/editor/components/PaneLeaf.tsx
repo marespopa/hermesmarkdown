@@ -18,7 +18,6 @@ import {
   atom_liveHandles,
   atom_autosaveMode,
   atom_vaultHandle,
-  atom_fileName,
   contentStore
 } from "@/app/atoms/atoms";
 import { HiOutlineDocumentText, HiOutlineEye, HiOutlineChartBar, HiOutlineX, HiOutlineSave } from "react-icons/hi";

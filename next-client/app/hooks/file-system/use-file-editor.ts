@@ -15,6 +15,7 @@ import {
   atom_openFiles,
   atom_saveStatus,
   atom_isCloudVault,
+  contentStore,
 } from "@/app/atoms/atoms";
 import { atom_fileMetadata } from "@/app/atoms/metadata";
 import { useDialog } from "../use-dialog";
