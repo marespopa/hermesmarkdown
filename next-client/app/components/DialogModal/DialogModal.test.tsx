@@ -40,14 +40,14 @@ describe("DialogModal Component", () => {
   });
 
   it("calls onClose when backdrop is clicked", () => {
-    const { container } = render(
+    render(
       <DialogModal isOpened={true} onClose={mockOnClose}>
         <div>Content</div>
       </DialogModal>
     );
     
-    // The first div is the fixed inset container which acts as backdrop trigger
-    const backdrop = container.firstChild as HTMLElement;
+    // In a portal, we search the whole document body
+    const backdrop = screen.getByRole("dialog");
     fireEvent.click(backdrop);
     expect(mockOnClose).toHaveBeenCalledTimes(1);
   });
