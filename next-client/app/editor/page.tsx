@@ -30,6 +30,8 @@ import toast from "react-hot-toast";
 import {
   HiOutlineMenuAlt2,
   HiOutlineCog,
+  HiOutlineEye,
+  HiOutlineEyeOff,
 } from "react-icons/hi";
 
 export default function LiteEditor() {
@@ -263,12 +265,34 @@ export default function LiteEditor() {
                   >
                     <HiOutlineCog size={24} />
                   </Button>
+
+                  <Button
+                    variant="icon"
+                    onClick={() => setIsZenModeActive(!isZenModeActive)}
+                    className={`w-10 h-10 transition-colors ${isZenModeActive ? "text-blue-500 opacity-100" : "opacity-60 hover:opacity-100 text-zinc-600 dark:text-zinc-400"}`}
+                    title="Toggle Zen Mode (Ctrl+Shift+Z)"
+                  >
+                    {isZenModeActive ? <HiOutlineEye size={24} /> : <HiOutlineEyeOff size={24} />}
+                  </Button>
                </div>
             </div>
           )}
 
           {/* Main Editor Area */}
           <div className="flex-1 flex flex-col min-w-0 relative">
+            {/* Floating Mobile Zen Toggle */}
+            {isZenModeActive && (
+              <div className="lg:hidden absolute top-6 right-6 z-50">
+                <Button
+                  variant="icon"
+                  onClick={() => setIsZenModeActive(false)}
+                  className="w-12 h-12 bg-white/50 dark:bg-zinc-900/50 backdrop-blur-xl border border-zinc-200/50 dark:border-zinc-800/50 rounded-2xl shadow-xl text-blue-500 flex items-center justify-center"
+                  title="Exit Zen Mode"
+                >
+                  <HiOutlineEye size={24} />
+                </Button>
+              </div>
+            )}
             <main className={`flex-1 min-h-0 relative transition-all duration-700 ${isPathSwitching ? "opacity-30 blur-[2px]" : "opacity-100"}`}>
               {isMounting ? (
                 <div className="animate-pulse opacity-10 space-y-6 pt-20 px-12 max-w-2xl mx-auto">

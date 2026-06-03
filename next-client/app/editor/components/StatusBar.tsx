@@ -127,7 +127,7 @@ export default function StatusBar() {
           }`}
           title="Toggle Zen Mode (Ctrl+Shift+Z)"
         >
-          {isZenModeActive ? <HiOutlineEye size={12} /> : <HiOutlineEyeOff size={12} />}
+          {isZenModeActive ? <HiOutlineEye size={16} /> : <HiOutlineEyeOff size={16} />}
           <span className="hidden sm:inline">ZEN</span>
         </button>
       </div>

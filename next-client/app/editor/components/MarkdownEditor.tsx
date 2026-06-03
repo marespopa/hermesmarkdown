@@ -162,7 +162,7 @@ function highlightMarkdown(code: string, isZenModeActive: boolean = false, activ
       }
 
       const isActive = isZenModeActive && index === activeLineIndex;
-      return `<div class="transition-all duration-700 ease-in-out ${isActive ? "bg-zinc-400/5 dark:bg-zinc-400/10 -mx-6 px-6 rounded-lg scale-[1.005] opacity-100 shadow-[0_0_40px_-15px_rgba(0,0,0,0.05)]" : isZenModeActive ? "opacity-30 scale-[0.99] blur-[0.3px]" : ""} min-h-[1.8em]">${content || " "}</div>`;
+      return `<div class="transition-all duration-700 ease-in-out ${isActive ? "bg-zinc-400/5 dark:bg-zinc-400/10 -mx-6 px-6 rounded-lg scale-[1.005] opacity-100 shadow-[0_0_40px_-15px_rgba(0,0,0,0.05)]" : ""} min-h-[1.8em]">${content || " "}</div>`;
     })
     .join("");
 }

@@ -18,12 +18,19 @@ import {
   HiOutlineCloudDownload,
   HiOutlineCloudUpload,
   HiOutlineCloud,
+  HiOutlineEye,
+  HiOutlineEyeOff,
 } from "react-icons/hi";
 import { VscNewFile } from "react-icons/vsc";
 import Button from "@/app/components/Button";
 import { useAtomValue } from "jotai";
 import { atom_fileMetadata } from "@/app/atoms/metadata";
-import { atom_activeFilePath, atom_sidebarWidth, atom_isCloudVault } from "@/app/atoms/atoms";
+import { 
+  atom_activeFilePath, 
+  atom_sidebarWidth, 
+  atom_isCloudVault,
+  atom_isZenModeActive 
+} from "@/app/atoms/atoms";
 import SmartFolders from "./SmartFolders";
 import { useAtom } from "jotai";
 import SidebarHeader from "./SidebarHeader";
@@ -67,6 +74,7 @@ export default function VaultSidebar({
   const [activeFilePath, setActiveFilePath] = useAtom(atom_activeFilePath);
   const [sidebarWidth, setSidebarWidth] = useAtom(atom_sidebarWidth);
   const isCloudVault = useAtomValue(atom_isCloudVault);
+  const [isZenModeActive, setIsZenModeActive] = useAtom(atom_isZenModeActive);
   const [isResizing, setIsResizing] = useState(false);
 
   const [actionMenuOpen, setActionMenuOpen] = useState<string | null>(null);
@@ -564,6 +572,15 @@ export default function VaultSidebar({
                 title="Settings"
               >
                 <HiOutlineCog size={20} />
+              </Button>
+
+              <Button
+                variant="icon"
+                onClick={() => setIsZenModeActive(!isZenModeActive)}
+                className={`w-10 h-10 transition-colors ${isZenModeActive ? "text-blue-500 opacity-100" : "opacity-60 hover:opacity-100"}`}
+                title="Toggle Zen Mode (Ctrl+Shift+Z)"
+              >
+                {isZenModeActive ? <HiOutlineEye size={20} /> : <HiOutlineEyeOff size={20} />}
               </Button>
             </div>
 
