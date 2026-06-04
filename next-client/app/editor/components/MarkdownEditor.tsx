@@ -190,19 +190,13 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
               isCtrlPressed && isOverLink ? "!cursor-pointer" : "!cursor-text"
             }
           />
-        </div>
 
-        {!value && (
-          <div
-            className="absolute left-0 right-0 opacity-20 pointer-events-none italic"
-            style={{
-              paddingLeft: props.value === "" && !isZenModeActive ? "0" : "inherit",
-              top: isZenModeActive ? "32px" : "4px",
-            }}
-          >
-            {props.placeholder || "Type / for templates"}
-          </div>
-        )}
+          {!value && (
+            <div className="absolute top-0 left-0 right-0 opacity-20 pointer-events-none italic">
+              {props.placeholder || "Type / for templates"}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
