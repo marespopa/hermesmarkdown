@@ -51,13 +51,13 @@ export default function StatusBar() {
     <footer className={`h-8 ${isZenModeActive ? "border-b" : "max-md:border-b md:border-t"} border-zinc-200/50 dark:border-zinc-800/50 bg-white/50 dark:bg-zinc-950/50 backdrop-blur-3xl flex items-center justify-between px-6 shrink-0 pointer-events-auto z-40 select-none transition-all duration-700 ease-in-out`}>
       {/* Left Side: Cursor & Interactive Metrics */}
       <div className={`flex items-center gap-3 sm:gap-6 text-[9px] font-bold tracking-[0.2em] text-zinc-400 dark:text-zinc-500 uppercase transition-opacity duration-500 ${!showStats ? "opacity-0 pointer-events-none" : "opacity-100"}`}>
-        <div className="hidden sm:flex items-center gap-4 pr-6 border-r border-zinc-200/50 dark:border-zinc-800/50 h-3">
-          <span className="flex items-center gap-1.5">
-            <span className="opacity-40">LN</span>
+        <div className="flex items-center gap-3 sm:gap-4 pr-3 sm:pr-6 border-r border-zinc-200/50 dark:border-zinc-800/50 h-3">
+          <span className="flex items-center gap-1">
+            <span className="opacity-40">L</span>
             <span className="text-zinc-900 dark:text-zinc-100">{cursorPosition.line}</span>
           </span>
-          <span className="flex items-center gap-1.5">
-            <span className="opacity-40">COL</span>
+          <span className="flex items-center gap-1">
+            <span className="opacity-40">C</span>
             <span className="text-zinc-900 dark:text-zinc-100">{cursorPosition.col}</span>
           </span>
         </div>
@@ -70,19 +70,19 @@ export default function StatusBar() {
           {metricMode === "words" && (
             <span className="flex items-center gap-1.5">
               <span className="text-zinc-900 dark:text-zinc-100">{wordCount}</span>
-              <span className="opacity-40 group-hover:opacity-100 hidden sm:inline">WORDS</span>
+              <span className="opacity-40 group-hover:opacity-100"><span className="sm:hidden">W</span><span className="hidden sm:inline">WORDS</span></span>
             </span>
           )}
           {metricMode === "chars" && (
             <span className="flex items-center gap-1.5">
               <span className="text-zinc-900 dark:text-zinc-100">{charCount}</span>
-              <span className="opacity-40 group-hover:opacity-100 hidden sm:inline">CHARS</span>
+              <span className="opacity-40 group-hover:opacity-100"><span className="sm:hidden">CH</span><span className="hidden sm:inline">CHARS</span></span>
             </span>
           )}
           {metricMode === "readingTime" && (
             <span className="flex items-center gap-1.5">
               <span className="text-zinc-900 dark:text-zinc-100">{readingTime}</span>
-              <span className="opacity-40 group-hover:opacity-100 hidden sm:inline">MIN READ</span>
+              <span className="opacity-40 group-hover:opacity-100"><span className="sm:hidden">MIN</span><span className="hidden sm:inline">MIN READ</span></span>
             </span>
           )}
         </button>

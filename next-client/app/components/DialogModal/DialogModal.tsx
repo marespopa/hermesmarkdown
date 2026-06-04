@@ -25,7 +25,11 @@ const DialogModal = ({
 }: Props) => {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
+      if (e.key === "Escape") {
+        e.preventDefault();
+        e.stopPropagation();
+        onClose();
+      }
       if (e.key === "Enter" && onConfirm) {
         const activeElement = document.activeElement;
         // Don't trigger onConfirm if focusing on a textarea or a button (browser handles button Enter)

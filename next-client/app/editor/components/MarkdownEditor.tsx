@@ -9,7 +9,9 @@ import React, {
 } from "react";
 import Editor from "react-simple-code-editor";
 import getCaretCoordinates from "textarea-caret";
+import { HiOutlineCalendar } from "react-icons/hi";
 import DatePickerCallout from "./DatePickerCallout";
+import DialogModal from "../../components/DialogModal/DialogModal";
 import { useAtom } from "jotai";
 import {
   atom_fontSize,
@@ -169,7 +171,7 @@ function processInlineMarkdown(text: string, dateMatch: DateMatch | null = null)
   return html;
 }
 
-function highlightMarkdown(
+export function highlightMarkdown(
   code: string,
   isZenModeActive: boolean = false,
   activeLineIndex: number = -1,
@@ -359,17 +361,22 @@ export default function MarkdownEditor({
           !dateMatchRef.current ||
           dateMatchRef.current.start !== match.start
         ) {
-          setIsDateExpanded(false);
+          // Detection only, manual open via icon
+          setDateMatch(match);
+          dateMatchRef.current = match;
+        } else {
+          // Same date, preserve state
+          setDateMatch(match);
+          dateMatchRef.current = match;
         }
-        setDateMatch(match);
-        dateMatchRef.current = match;
 
+        const caretStart = getCaretCoordinates(textareaRef.current, match.start);
         const caretEnd = getCaretCoordinates(textareaRef.current, match.end);
-        const caretHeight = caretEnd.height || 22;
+        const caretHeight = caretStart.height || 22;
 
         setDateMenuPos({
-          top: (caretEnd.top || 0) + caretHeight / 2 - 14, // Refined vertical alignment
-          left: (caretEnd.left || 0) + 4,
+          top: (caretStart.top || 0) + caretHeight / 2 - 14, // Refined vertical alignment
+          left: caretStart.left || 0,
           endLeft: caretEnd.left || 0,
         });
       } else {
@@ -381,9 +388,21 @@ export default function MarkdownEditor({
   }, [value, setCursorPosition, findDateAtPos]);
 
   const syncScroll = useCallback(() => {
-    // Typewriter scrolling removed as per user request to simplify Zen Mode.
-    return;
-  }, []);
+    if (!isZenModeActive || !textareaRef.current || !wrapperRef.current) return;
+
+    const pos = textareaRef.current.selectionStart;
+    const caret = getCaretCoordinates(textareaRef.current, pos);
+
+    // Calculate the target scroll position to center the caret
+    // We want the caret to be at roughly 40% from the top for better "typewriter" feel
+    const wrapperHeight = wrapperRef.current.clientHeight;
+    const targetScrollTop = caret.top - wrapperHeight * 0.4;
+
+    wrapperRef.current.scrollTo({
+      top: targetScrollTop,
+      behavior: "smooth",
+    });
+  }, [isZenModeActive]);
 
   useEffect(() => {
     const handleSelectionChange = () => {
@@ -392,16 +411,19 @@ export default function MarkdownEditor({
       const textarea = textareaRef.current;
       if (!textarea) return;
       syncActiveLine();
+      syncScroll();
     };
     document.addEventListener("selectionchange", handleSelectionChange);
 
     // Trigger sync immediately and during transition when Zen Mode is toggled
     const timer1 = setTimeout(() => {
       syncActiveLine();
+      syncScroll();
     }, 350);
 
     const timer2 = setTimeout(() => {
       syncActiveLine();
+      syncScroll();
     }, 700);
 
     return () => {
@@ -689,12 +711,6 @@ export default function MarkdownEditor({
     if (textarea.selectionStart === undefined) return;
     const pos = textarea.selectionStart;
 
-    if (dateMatch && pos >= dateMatch.start && pos <= dateMatch.end) {
-      if (!isDateExpanded) {
-        setIsDateExpanded(true);
-      }
-    }
-
     if (e.ctrlKey || e.metaKey) {
       const link = findLinkAtPos(value, pos);
       if (link) {
@@ -780,6 +796,8 @@ export default function MarkdownEditor({
     }
 
     if (isDateExpanded && e.key === "Escape") {
+      e.preventDefault();
+      e.stopPropagation();
       setIsDateExpanded(false);
       return;
     }
@@ -801,6 +819,8 @@ export default function MarkdownEditor({
         insertTemplate(filteredTemplates[selectedIndex].content);
       }
     } else if (e.key === "Escape") {
+      e.preventDefault();
+      e.stopPropagation();
       setMenuOpen(false);
       setDateMatch(null);
       dateMatchRef.current = null;
@@ -851,8 +871,43 @@ export default function MarkdownEditor({
       >
         <div className="relative">
           {dateMatch && (
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setIsDateExpanded(!isDateExpanded);
+              }}
+              className="absolute z-40 p-1 text-zinc-400 hover:text-blue-600 dark:text-zinc-500 dark:hover:text-blue-400 transition-colors bg-white dark:bg-zinc-900 rounded-md border border-zinc-200 dark:border-zinc-800 shadow-sm"
+              style={{
+                top: dateMenuPos.top - 2,
+                left: Math.min(
+                  dateMenuPos.endLeft + 8,
+                  (textareaRef.current?.clientWidth || 500) - 30,
+                ),
+              }}
+              title="Toggle calendar"
+            >
+              <HiOutlineCalendar size={16} />
+            </button>
+          )}
+
+          {dateMatch && isDateExpanded && (
             <>
-              {isDateExpanded && (
+              {windowWidth < 768 ? (
+                <DialogModal
+                  isOpened={isDateExpanded}
+                  onClose={() => setIsDateExpanded(false)}
+                  styles="!max-w-[340px] !rounded-3xl"
+                >
+                  <div className="-m-6 sm:-m-8">
+                    <DatePickerCallout
+                      initialDate={dateMatch.date}
+                      onSelectDate={handleDateSelect}
+                      onClose={() => setIsDateExpanded(false)}
+                    />
+                  </div>
+                </DialogModal>
+              ) : (
                 <div
                   className="absolute z-50 pointer-events-auto"
                   style={{
@@ -861,7 +916,7 @@ export default function MarkdownEditor({
                       10,
                       Math.min(
                         dateMenuPos.left,
-                        (textareaRef.current?.clientWidth || 800) - 280,
+                        (textareaRef.current?.clientWidth || 800) - 400,
                       ),
                     ),
                   }}
