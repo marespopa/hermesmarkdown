@@ -16,7 +16,7 @@ export default function ContactPage() {
           <Button
             variant="tertiary"
             onClick={() => router.back()}
-            className="!text-[10px] uppercase tracking-[0.3em] opacity-40 hover:opacity-100"
+            className="!text-ui-footnote uppercase tracking-[0.3em] opacity-40 hover:opacity-100"
           >
             ← Back to Previous
           </Button>
@@ -70,7 +70,7 @@ export default function ContactPage() {
         
         {/* --- FOOTER SIGNAL --- */}
         <footer className="text-center pt-12 opacity-20">
-           <p className="text-[10px] uppercase tracking-[0.4em] font-bold">Stay Private — Write Deep</p>
+           <p className="text-ui-footnote uppercase tracking-[0.4em] font-bold">Stay Private — Write Deep</p>
         </footer>
       </div>
     </main>

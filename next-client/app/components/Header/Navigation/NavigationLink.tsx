@@ -17,7 +17,7 @@ const NavigationLink = ({ label, href, action }: Props) => {
   const baseLink = `
     inline-flex items-center justify-center
     px-4 py-1.5 
-    text-sm font-medium transition-all duration-200 
+    text-ui-subhead font-medium transition-all duration-200 
     rounded-full select-none outline-none
   `;
 

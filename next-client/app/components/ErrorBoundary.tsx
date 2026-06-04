@@ -47,17 +47,17 @@ class ErrorBoundary extends Component<Props, State> {
         <div className="min-h-screen flex items-center justify-center bg-white dark:bg-neutral-950 p-6">
           <div className="max-w-md w-full text-center space-y-6">
             <div className="space-y-2">
-              <h1 className="text-2xl font-mono tracking-tighter text-neutral-900 dark:text-neutral-100">
+              <h1 className="text-ui-title-2 font-mono tracking-tighter text-neutral-900 dark:text-neutral-100">
                 Something went wrong...
               </h1>
-              <p className="text-sm text-neutral-500 dark:text-neutral-400 font-mono">
+              <p className="text-ui-subhead text-neutral-500 dark:text-neutral-400 font-mono">
                 An unexpected error occurred in the editor.
               </p>
             </div>
 
             {this.state.error && (
               <div className="p-4 bg-neutral-100 dark:bg-neutral-900 rounded-lg text-left overflow-auto max-h-40 border border-neutral-200 dark:border-neutral-800">
-                <code className="text-[10px] text-red-500 dark:text-red-400 break-all">
+                <code className="text-ui-caption text-red-500 dark:text-red-400 break-all">
                   {this.state.error.toString()}
                 </code>
               </div>

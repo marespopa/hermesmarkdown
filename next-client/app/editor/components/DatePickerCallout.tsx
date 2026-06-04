@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useMemo, useEffect } from "react";
-import { HiChevronLeft, HiChevronRight, HiDotsHorizontal, HiX } from "react-icons/hi";
+import { HiChevronLeft, HiChevronRight, HiX } from "react-icons/hi";
 
 interface DatePickerCalloutProps {
   initialDate: Date;
@@ -19,7 +19,6 @@ export default function DatePickerCallout({
   
   const [viewDate, setViewDate] = useState(new Date(validInitialDate.getFullYear(), validInitialDate.getMonth(), 1));
   const [focusedDate, setFocusedDate] = useState<Date>(validInitialDate);
-  const [showMobileMore, setShowMobileMore] = useState(false);
 
   // Sync focusedDate if validInitialDate changes
   useEffect(() => {
@@ -77,7 +76,7 @@ export default function DatePickerCallout({
 
     window.addEventListener("keydown", handleKeyDown, true);
     return () => window.removeEventListener("keydown", handleKeyDown, true);
-  }, [focusedDate, viewDate, onSelectDate]);
+  }, [focusedDate, viewDate, onSelectDate, onClose]);
 
   const monthNames = [
     "January", "February", "March", "April", "May", "June",
@@ -143,45 +142,48 @@ export default function DatePickerCallout({
 
   return (
     <div 
-      className="relative z-[100] w-full sm:w-[400px] bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-2xl flex flex-col sm:flex-row overflow-hidden select-none"
+      className="relative z-[100] w-full sm:w-[320px] bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-2xl flex flex-col overflow-hidden select-none"
       onMouseDown={preventFocusLoss}
     >
-      {onClose && (
-        <button
-          onClick={onClose}
-          onMouseDown={preventFocusLoss}
-          className="absolute top-3 right-3 w-7 h-7 flex items-center justify-center bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 rounded-full shadow-md transition-all z-20"
-          title="Close calendar"
-        >
-          <HiX className="w-4 h-4" />
-        </button>
-      )}
-
       {/* Main Calendar Section */}
-      <div className="flex-1 p-4">
-        <div className="flex items-center justify-between mb-4">
-          <button 
-            onMouseDown={preventFocusLoss}
-            onClick={() => changeMonth(-1)}
-            className="p-1 min-h-[32px] min-w-[32px] flex items-center justify-center hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors"
-          >
-            <HiChevronLeft className="w-5 h-5" />
-          </button>
-          <span className="font-bold text-sm tracking-tight text-zinc-900 dark:text-zinc-100">
+      <div className="p-4 pt-4">
+        <div className="flex items-center justify-between mb-4 px-1">
+          <span className="font-bold text-ui-callout text-zinc-900 dark:text-zinc-100">
             {monthNames[viewDate.getMonth()]} {viewDate.getFullYear()}
           </span>
-          <button 
-            onMouseDown={preventFocusLoss}
-            onClick={() => changeMonth(1)}
-            className="p-1 min-h-[32px] min-w-[32px] flex items-center justify-center hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors"
-          >
-            <HiChevronRight className="w-5 h-5" />
-          </button>
+          <div className="flex items-center gap-2">
+            <div className="flex gap-1">
+              <button 
+                onMouseDown={preventFocusLoss}
+                onClick={() => changeMonth(-1)}
+                className="p-1 h-8 w-8 flex items-center justify-center hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-full transition-colors"
+              >
+                <HiChevronLeft className="w-5 h-5 text-blue-500" />
+              </button>
+              <button 
+                onMouseDown={preventFocusLoss}
+                onClick={() => changeMonth(1)}
+                className="p-1 h-8 w-8 flex items-center justify-center hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-full transition-colors"
+              >
+                <HiChevronRight className="w-5 h-5 text-blue-500" />
+              </button>
+            </div>
+            {onClose && (
+              <button
+                onClick={onClose}
+                onMouseDown={preventFocusLoss}
+                className="w-8 h-8 flex items-center justify-center bg-zinc-100 dark:bg-zinc-800 text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 rounded-full transition-all"
+                title="Close calendar"
+              >
+                <HiX className="w-4 h-4" />
+              </button>
+            )}
+          </div>
         </div>
 
         <div className="grid grid-cols-7 gap-1 mb-2 text-center">
-          {["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"].map(day => (
-            <div key={day} className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">
+          {["S", "M", "T", "W", "T", "F", "S"].map((day, idx) => (
+            <div key={idx} className="text-ui-caption font-medium text-zinc-400 uppercase h-6 flex items-center justify-center">
               {day}
             </div>
           ))}
@@ -195,10 +197,10 @@ export default function DatePickerCallout({
                 onMouseDown={preventFocusLoss}
                 onClick={() => day && handleDateClick(day)}
                 className={`
-                  h-8 md:h-9 flex items-center justify-center text-sm rounded-lg transition-all
-                  ${day ? "cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-600 dark:hover:text-blue-400" : ""}
-                  ${isFocused && !isInitial ? "ring-2 ring-blue-500 ring-inset bg-blue-50 dark:bg-blue-900/30" : ""}
-                  ${isInitial ? "bg-blue-500 text-white font-bold shadow-lg shadow-blue-500/20" : "text-zinc-600 dark:text-zinc-400"}
+                  h-9 flex items-center justify-center text-ui-callout rounded-full transition-all
+                  ${day ? "cursor-pointer hover:bg-zinc-100 dark:hover:bg-zinc-800" : ""}
+                  ${isFocused && !isInitial ? "ring-2 ring-blue-500 ring-inset" : ""}
+                  ${isInitial ? "bg-blue-500 text-white font-bold" : "text-zinc-700 dark:text-zinc-300"}
                 `}
               >
                 {day || ""}
@@ -206,54 +208,40 @@ export default function DatePickerCallout({
             );
           })}
         </div>
-
-        {/* Mobile-only toggle */}
-        <button
-          onClick={() => setShowMobileMore(!showMobileMore)}
-          className="sm:hidden w-full mt-2 py-2 flex items-center justify-center gap-2 text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-400 hover:text-blue-500 transition-colors border-t border-zinc-100 dark:border-zinc-800"
-        >
-          <HiDotsHorizontal className="w-4 h-4" />
-          {showMobileMore ? "Less" : "More Shortcuts"}
-        </button>
       </div>
 
-      {/* Sidebar Section (Desktop always visible, Mobile toggleable) */}
-      <div className={`
-        ${showMobileMore ? "flex" : "hidden"} sm:flex
-        flex-col w-full sm:w-[130px] 
-        bg-zinc-50/50 dark:bg-zinc-800/20 
-        border-t sm:border-t-0 sm:border-l border-zinc-100 dark:border-zinc-800 
-        p-3 gap-2
-      `}>
-        <span className="hidden sm:block text-[9px] font-bold text-zinc-400 uppercase tracking-widest mb-1 px-1">Shortcuts</span>
-        <button 
-          onMouseDown={preventFocusLoss}
-          onClick={() => handleQuickAction('today')}
-          className="text-xs py-2 px-3 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 hover:border-blue-500 dark:hover:border-blue-500 hover:text-blue-500 rounded-lg transition-all font-semibold text-zinc-700 dark:text-zinc-300 text-left"
-        >
-          Today
-        </button>
-        <button 
-          onMouseDown={preventFocusLoss}
-          onClick={() => handleQuickAction('tomorrow')}
-          className="text-xs py-2 px-3 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 hover:border-blue-500 dark:hover:border-blue-500 hover:text-blue-500 rounded-lg transition-all font-semibold text-zinc-700 dark:text-zinc-300 text-left"
-        >
-          Tomorrow
-        </button>
-        <button 
-          onMouseDown={preventFocusLoss}
-          onClick={() => handleQuickAction('nextWeek')}
-          className="text-xs py-2 px-3 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 hover:border-blue-500 dark:hover:border-blue-500 hover:text-blue-500 rounded-lg transition-all font-semibold text-zinc-700 dark:text-zinc-300 text-left"
-        >
-          Next Week
-        </button>
-        <button 
-          onMouseDown={preventFocusLoss}
-          onClick={() => handleQuickAction('nextMonth')}
-          className="text-xs py-2 px-3 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 hover:border-blue-500 dark:hover:border-blue-500 hover:text-blue-500 rounded-lg transition-all font-semibold text-zinc-700 dark:text-zinc-300 text-left"
-        >
-          Next Month
-        </button>
+      {/* Shortcuts Footer */}
+      <div className="bg-zinc-50/50 dark:bg-zinc-800/20 border-t border-zinc-100 dark:border-zinc-800 p-3">
+        <div className="flex flex-wrap gap-2 justify-center">
+          <button 
+            onMouseDown={preventFocusLoss}
+            onClick={() => handleQuickAction('today')}
+            className="text-ui-footnote py-1.5 px-3 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 hover:border-blue-500 hover:text-blue-500 rounded-full transition-all font-medium text-zinc-600 dark:text-zinc-400"
+          >
+            Today
+          </button>
+          <button 
+            onMouseDown={preventFocusLoss}
+            onClick={() => handleQuickAction('tomorrow')}
+            className="text-ui-footnote py-1.5 px-3 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 hover:border-blue-500 hover:text-blue-500 rounded-full transition-all font-medium text-zinc-600 dark:text-zinc-400"
+          >
+            Tomorrow
+          </button>
+          <button 
+            onMouseDown={preventFocusLoss}
+            onClick={() => handleQuickAction('nextWeek')}
+            className="text-ui-footnote py-1.5 px-3 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 hover:border-blue-500 hover:text-blue-500 rounded-full transition-all font-medium text-zinc-600 dark:text-zinc-400"
+          >
+            +1 Week
+          </button>
+          <button 
+            onMouseDown={preventFocusLoss}
+            onClick={() => handleQuickAction('nextMonth')}
+            className="text-ui-footnote py-1.5 px-3 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 hover:border-blue-500 hover:text-blue-500 rounded-full transition-all font-medium text-zinc-600 dark:text-zinc-400"
+          >
+            +1 Month
+          </button>
+        </div>
       </div>
     </div>
   );

@@ -57,7 +57,7 @@ export default function LandingPage() {
         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-3rem)] max-w-md">
           <div className="bg-white/80 dark:bg-neutral-900/80 backdrop-blur-xl border border-black/5 dark:border-white/10 rounded-2xl shadow-2xl p-4 flex items-center justify-between gap-4 animate-hero-fade-in">
             <div className="space-y-0.5 text-left">
-              <p className="text-[10px] font-bold uppercase tracking-wider text-blue-600 dark:text-blue-400">
+              <p className="text-ui-footnote font-bold uppercase tracking-wider text-blue-600 dark:text-blue-400">
                 Welcome Back
               </p>
               <p className="text-xs opacity-60">
@@ -67,7 +67,7 @@ export default function LandingPage() {
             <Button
               variant="primary"
               onClick={handleStart}
-              className="h-9 px-4 !text-[11px]"
+              className="h-9 px-4 !text-ui-footnote"
             >
               Resume Session
             </Button>
@@ -96,7 +96,7 @@ export default function LandingPage() {
               >
                 Open Full Editor
               </Button>
-              <div className="text-[10px] uppercase tracking-widest opacity-40 font-bold hidden sm:block">
+              <div className="text-ui-footnote uppercase tracking-widest opacity-40 font-bold hidden sm:block">
                 Free & Open Source
               </div>
             </div>
@@ -112,7 +112,7 @@ export default function LandingPage() {
                     <div className="w-3 h-3 rounded-full bg-amber-400/20 border border-amber-400/30" />
                     <div className="w-3 h-3 rounded-full bg-green-400/20 border border-green-400/30" />
                   </div>
-                  <div className="flex-1 text-[10px] font-mono opacity-30 text-center pr-10 overflow-hidden text-ellipsis whitespace-nowrap">
+                  <div className="flex-1 text-ui-footnote font-mono opacity-30 text-center pr-10 overflow-hidden text-ellipsis whitespace-nowrap">
                     landing_demo.md — hermes_vault
                   </div>
                 </div>
@@ -137,10 +137,10 @@ export default function LandingPage() {
       {/* --- TRUST SIGNALS --- */}
       <section className="py-12 border-y border-black/5 dark:border-white/5 bg-neutral-50/50 dark:bg-neutral-900/30 overflow-hidden">
         <div className="max-w-6xl mx-auto px-6 flex flex-wrap items-center justify-center md:justify-between gap-8 opacity-40 grayscale">
-          <div className="text-[11px] font-bold uppercase tracking-[0.3em] whitespace-nowrap">Built for Developers</div>
-          <div className="text-[11px] font-bold uppercase tracking-[0.3em] whitespace-nowrap">Privacy First</div>
-          <div className="text-[11px] font-bold uppercase tracking-[0.3em] whitespace-nowrap">No Cloud Required</div>
-          <div className="text-[11px] font-bold uppercase tracking-[0.3em] whitespace-nowrap">Local-First Sync</div>
+          <div className="text-ui-footnote font-bold uppercase tracking-[0.3em] whitespace-nowrap">Built for Developers</div>
+          <div className="text-ui-footnote font-bold uppercase tracking-[0.3em] whitespace-nowrap">Privacy First</div>
+          <div className="text-ui-footnote font-bold uppercase tracking-[0.3em] whitespace-nowrap">No Cloud Required</div>
+          <div className="text-ui-footnote font-bold uppercase tracking-[0.3em] whitespace-nowrap">Local-First Sync</div>
         </div>
       </section>
 
@@ -156,14 +156,14 @@ export default function LandingPage() {
           </div>
           <div className="aspect-video bg-neutral-100 dark:bg-neutral-900 rounded-2xl border border-black/5 dark:border-white/5 flex items-center justify-center group overflow-hidden relative">
              <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-blue-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
-             <span className="text-[10px] uppercase tracking-widest opacity-20 font-bold">Filesystem API Integration</span>
+             <span className="text-ui-footnote uppercase tracking-widest opacity-20 font-bold">Filesystem API Integration</span>
           </div>
         </section>
 
         <section className="grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
           <div className="order-last md:order-first aspect-video bg-neutral-100 dark:bg-neutral-900 rounded-2xl border border-black/5 dark:border-white/5 flex items-center justify-center group overflow-hidden relative">
              <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-purple-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
-             <span className="text-[10px] uppercase tracking-widest opacity-20 font-bold">Zen Mode Workspace</span>
+             <span className="text-ui-footnote uppercase tracking-widest opacity-20 font-bold">Zen Mode Workspace</span>
           </div>
           <div className="space-y-6">
             <div className="h-px w-12 bg-purple-600" />
@@ -184,7 +184,7 @@ export default function LandingPage() {
           </div>
           <div className="aspect-video bg-neutral-100 dark:bg-neutral-900 rounded-2xl border border-black/5 dark:border-white/5 flex items-center justify-center group overflow-hidden relative">
              <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-emerald-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
-             <span className="text-[10px] uppercase tracking-widest opacity-20 font-bold">100% Client-Side</span>
+             <span className="text-ui-footnote uppercase tracking-widest opacity-20 font-bold">100% Client-Side</span>
           </div>
         </section>
       </div>

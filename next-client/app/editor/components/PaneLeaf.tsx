@@ -3,6 +3,7 @@
 import React from "react";
 import { PanelLeaf } from "@/app/types/workspace";
 import MarkdownEditor from "./MarkdownEditor";
+import TabContextMenu, { TabContextMenuItem } from "./TabContextMenu";
 import { useAtom } from "jotai";
 import { 
   atom_activePaneId, 
@@ -13,11 +14,12 @@ import {
   atom_closeTab, 
   atom_activeFilePath, 
   atom_moveTab, 
-  atom_isZenModeActive, 
+  atom_isZenModeActive,
   atom_saveStatus,
   atom_liveHandles,
   atom_autosaveMode,
   atom_vaultHandle,
+  atom_workspaceLayout,
   contentStore
 } from "@/app/atoms/atoms";
 import { HiOutlineDocumentText, HiOutlineEye, HiOutlineChartBar, HiOutlineX, HiOutlineSave } from "react-icons/hi";
@@ -41,6 +43,8 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
   const [isZenModeActive] = useAtom(atom_isZenModeActive);
   const saveStatus = useAtomValue(atom_saveStatus);
   const vaultHandle = useAtomValue(atom_vaultHandle);
+  const workspaceLayout = useAtomValue(atom_workspaceLayout);
+  const isOnlyPane = "type" in workspaceLayout.rootContainer;
 
   const { openFileByName, saveFile, exportFile, createFile } = useFileSystem();
   const dialog = useDialog();
@@ -65,18 +69,42 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
   const handleSave = async () => {
     if (!content.trim()) return;
 
+    // Save in place if we already have a live handle.
     if (liveHandle) {
       await saveFile(content, liveHandle, 0, false, filePath);
-    } else if (vaultHandle) {
+      return;
+    }
+
+    // Real file that lost its handle (e.g. after reload, before vault rebind).
+    // Walk the vault to recover the handle before falling back to "save as".
+    if (filePath !== "draft" && vaultHandle) {
+      try {
+        const parts = filePath.split("/");
+        let current: FileSystemDirectoryHandle = vaultHandle;
+        for (let i = 0; i < parts.length - 1; i++) {
+          current = await current.getDirectoryHandle(parts[i]);
+        }
+        const recovered = await current.getFileHandle(parts[parts.length - 1]);
+        await saveFile(content, recovered, 0, false, filePath);
+        return;
+      } catch {
+        // Couldn't recover — fall through to the draft/save-as path below.
+      }
+    }
+
+    // Draft saved to the vault for the first time → prompt for a name and create.
+    if (vaultHandle) {
       const fileState = openFiles[filePath];
       const fileName = fileState?.fileName || "untitled";
       const name = await dialog.prompt("Enter file name:", fileName.replace(".md", ""), "Save to Vault");
       if (name) {
         await createFile(name, content);
       }
-    } else {
-      await handleExport();
+      return;
     }
+
+    // No vault → download.
+    await handleExport();
   };
 
   const getIcon = (type: string) => {
@@ -89,6 +117,28 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
   };
 
   const [draggedOverIndex, setDraggedOverIndex] = React.useState<number | null>(null);
+  const [tabMenu, setTabMenu] = React.useState<{ x: number; y: number; path: string } | null>(null);
+
+  const closeTabWithAutosave = React.useCallback(async (path: string) => {
+    const autosaveMode = contentStore.get(atom_autosaveMode);
+    if (autosaveMode !== "manual") {
+      const fileState = contentStore.get(atom_openFiles)[path];
+      const tabHandle = contentStore.get(atom_liveHandles(path));
+      if (fileState && fileState.content !== fileState.lastSavedContent && tabHandle) {
+        await saveFile(fileState.content, tabHandle, 0, true, path);
+      }
+    }
+    closeTab({ paneId: leaf.id, filePath: path });
+  }, [closeTab, leaf.id, saveFile]);
+
+  const buildTabMenuItems = (targetPath: string): TabContextMenuItem[] => {
+    const others = leaf.openFilePaths.filter((p) => p !== targetPath);
+    return [
+      { label: "Close", onClick: () => { void closeTabWithAutosave(targetPath); } },
+      { label: "Close Others", disabled: others.length === 0, onClick: () => { for (const p of others) void closeTabWithAutosave(p); } },
+      { label: "Close All", onClick: () => { for (const p of [...leaf.openFilePaths]) void closeTabWithAutosave(p); } },
+    ];
+  };
 
   const handleDragStart = (e: React.DragEvent, path: string) => {
     const data = JSON.stringify({ 
@@ -205,6 +255,12 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
                   setActivePaneId(leaf.id);
                   setActiveFilePath(path);
                 }}
+                onContextMenu={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setActivePaneId(leaf.id);
+                  setTabMenu({ x: e.clientX, y: e.clientY, path });
+                }}
                 className={`
                   group flex items-center gap-2 px-3 h-[32px] cursor-pointer min-w-[100px] md:min-w-[140px] max-w-[200px] transition-all shrink-0 relative rounded-xl mx-0.5
                   ${isTabActive 
@@ -217,7 +273,7 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
                   {getIcon("editor")}
                 </span>
                 
-                <span className={`text-[12px] truncate flex-1 tracking-tight font-medium ${isTabActive ? "opacity-100" : "opacity-80"}`}>
+                <span className={`text-ui-caption truncate flex-1 tracking-tight font-medium ${isTabActive ? "opacity-100" : "opacity-80"}`}>
                   {fileName}
                 </span>
                 
@@ -245,19 +301,9 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
                 )}
 
                 <button
-                  onClick={async (e) => {
+                  onClick={(e) => {
                     e.stopPropagation();
-                    
-                    const autosaveMode = contentStore.get(atom_autosaveMode);
-                    if (autosaveMode !== "manual") {
-                      const fileState = openFiles[path];
-                      const tabHandle = contentStore.get(atom_liveHandles(path));
-                      if (fileState && fileState.content !== fileState.lastSavedContent && tabHandle) {
-                        await saveFile(fileState.content, tabHandle, 0, true, path);
-                      }
-                    }
-
-                    closeTab({ paneId: leaf.id, filePath: path });
+                    void closeTabWithAutosave(path);
                   }}
                   className={`p-1 rounded-md hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-all shrink-0 ${isTabActive ? "opacity-40 hover:opacity-100" : "opacity-0 group-hover:opacity-60"}`}
                 >
@@ -288,13 +334,15 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
             >
               <VscSplitHorizontal size={16} />
             </button>
-            <button 
-              onClick={() => closePane(leaf.id)}
-              title="Close Pane"
-              className="w-9 h-9 flex items-center justify-center text-zinc-400 hover:text-red-500 transition-all rounded-xl"
-            >
-              <HiOutlineX size={18} />
-            </button>
+            {!isOnlyPane && (
+              <button
+                onClick={() => closePane(leaf.id)}
+                title="Close Pane"
+                className="w-9 h-9 flex items-center justify-center text-zinc-400 hover:text-red-500 transition-all rounded-xl"
+              >
+                <HiOutlineX size={18} />
+              </button>
+            )}
           </div>
         </div>
       )}
@@ -304,7 +352,7 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
         {leaf.openFilePaths.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full opacity-10 space-y-4">
              <HiOutlineDocumentText size={48} />
-             <span className="text-xs font-medium tracking-tight">No file open</span>
+             <span className="text-ui-caption font-medium">No file open</span>
           </div>
         ) : leaf.type === "editor" ? (
           <MarkdownEditor 
@@ -317,10 +365,19 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
         ) : (
           <div className="flex flex-col items-center justify-center h-full opacity-20 space-y-2">
             {getIcon(leaf.type)}
-            <span className="text-xs font-medium tracking-tight">{leaf.type} view</span>
+            <span className="text-ui-caption font-medium">{leaf.type} view</span>
           </div>
         )}
       </div>
+
+      {tabMenu && (
+        <TabContextMenu
+          x={tabMenu.x}
+          y={tabMenu.y}
+          items={buildTabMenuItems(tabMenu.path)}
+          onClose={() => setTabMenu(null)}
+        />
+      )}
     </div>
   );
 }

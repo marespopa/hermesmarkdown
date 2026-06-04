@@ -56,11 +56,11 @@ const Checkbox = ({
         </div>
         
         <div className="flex flex-col">
-          <span className="text-[14px] font-medium text-zinc-900 dark:text-zinc-100 leading-tight">
+          <span className="text-ui-subhead font-medium text-zinc-900 dark:text-zinc-100 leading-tight">
             {label}
           </span>
           {helperText && (
-            <p className="text-[12px] text-zinc-500 dark:text-zinc-400 mt-1 leading-snug">
+            <p className="text-ui-caption text-zinc-500 dark:text-zinc-400 mt-1 leading-snug">
               {helperText}
             </p>
           )}

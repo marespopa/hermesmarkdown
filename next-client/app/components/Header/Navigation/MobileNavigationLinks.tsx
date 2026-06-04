@@ -16,14 +16,14 @@ export default function MobileNavigationLinks({ handleClose }: Props) {
   const router = useRouter();
 
   const navBtnStyles =
-    "w-full py-2 px-5 border border-black dark:border-white bg-white dark:bg-gray-900 text-black dark:text-white rounded-none text-base hover:bg-black hover:text-white transition-colors";
+    "w-full py-2 px-5 border border-black dark:border-white bg-white dark:bg-gray-900 text-black dark:text-white rounded-none text-ui-callout hover:bg-black hover:text-white transition-colors";
 
   return (
     <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-white dark:bg-neutral-900 bg-opacity-95 dark:bg-opacity-95">
       <Button
         variant="bare"
         onClick={handleClose}
-        className="absolute top-4 right-4 text-3xl text-neutral-700 dark:text-neutral-300 focus:outline-none"
+        className="absolute top-4 right-4 text-ui-title-1 text-neutral-700 dark:text-neutral-300 focus:outline-none"
         aria-label="Close Menu"
       >
         &times;

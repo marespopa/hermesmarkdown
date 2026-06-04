@@ -28,7 +28,7 @@ const LoadingOverlay = ({ isVisible, text = "Loading..." }: Props) => {
         </div>
 
         {/* Monospaced, tracked-out text */}
-        <span className="text-[10px] uppercase tracking-[0.4em] text-zinc-400 dark:text-zinc-500 animate-pulse">
+        <span className="text-ui-footnote uppercase tracking-[0.4em] text-zinc-400 dark:text-zinc-500 animate-pulse">
           {text}
         </span>
       </div>

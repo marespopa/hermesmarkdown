@@ -13,6 +13,8 @@ The `MarkdownEditor` is the core text editing component of HermesMarkdown. It is
 
 ## Implementation
 
-- **State**: Uses Jotai for shared state and local React state for UI positions.
-- **Highlighting**: Regex-based highlighting in `highlightMarkdown`.
+- **Architecture**: Logic is encapsulated in the `useMarkdownEditor` custom hook (`app/editor/hooks/useMarkdownEditor.ts`).
+- **Highlighting**: Regex-based highlighting is decoupled into `MarkdownHighlighter.tsx`.
+- **Utilities**: Date and link detection logic are moved to `app/editor/utils/`.
+- **Regex**: Centralized regex definitions in `regex.ts`.
 - **Cursor**: Uses `textarea-caret` for menu positioning.

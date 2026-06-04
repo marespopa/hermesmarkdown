@@ -119,7 +119,7 @@ export default function SmartFolders({ onFileSelect }: SmartFoldersProps) {
               <div key={folder.id} className="group relative">
                 <div
                   onClick={() => setSelectedFolderId(isSelected ? null : folder.id)}
-                  className={`flex items-center gap-2 px-4 py-1.5 rounded-md cursor-pointer transition-all text-[13px] pr-8 relative ${
+                  className={`flex items-center gap-2 px-4 py-1.5 rounded-md cursor-pointer transition-all text-ui-footnote pr-8 relative ${
                     isSelected
                       ? "text-purple-600 dark:text-purple-400 font-medium before:absolute before:left-0 before:top-1.5 before:bottom-1.5 before:w-0.5 before:bg-purple-500 bg-purple-500/5"
                       : "hover:bg-zinc-200 dark:hover:bg-zinc-800/50 text-zinc-600 dark:text-zinc-400"
@@ -150,14 +150,14 @@ export default function SmartFolders({ onFileSelect }: SmartFoldersProps) {
                     <div className="absolute right-0 top-full mt-1 z-50 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg shadow-xl py-1 min-w-[100px] animate-in fade-in zoom-in-95 duration-100">
                       <button
                         onClick={(e) => handleEdit(folder.id, e)}
-                        className="w-full flex items-center gap-2 px-3 py-2 text-[10px] hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
+                        className="w-full flex items-center gap-2 px-3 py-2 text-ui-footnote hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
                       >
                         <HiOutlinePencil size={12} className="opacity-60" />
                         Edit
                       </button>
                       <button
                         onClick={(e) => handleDelete(folder.id, e)}
-                        className="w-full flex items-center gap-2 px-3 py-2 text-[10px] hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors text-red-500"
+                        className="w-full flex items-center gap-2 px-3 py-2 text-ui-footnote hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors text-red-500"
                       >
                         <HiOutlineTrash size={12} className="opacity-60" />
                         Delete
@@ -172,7 +172,7 @@ export default function SmartFolders({ onFileSelect }: SmartFoldersProps) {
                       <div
                         key={file.path}
                         onClick={() => onFileSelect(file.handle, file.path)}
-                        className={`flex items-center gap-2 px-3 py-1.5 rounded-md cursor-pointer transition-all text-[12px] truncate relative ${
+                        className={`flex items-center gap-2 px-3 py-1.5 rounded-md cursor-pointer transition-all text-ui-caption truncate relative ${
                           activeFilePath === file.path
                             ? "text-blue-600 dark:text-blue-400 font-medium before:absolute before:left-0 before:top-1 before:bottom-1 before:w-0.5 before:bg-blue-500 bg-blue-500/5"
                             : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100"
@@ -183,7 +183,7 @@ export default function SmartFolders({ onFileSelect }: SmartFoldersProps) {
                       </div>
                     ))}
                     {matchedFiles.length === 0 && (
-                      <div className="px-3 py-2 text-[10px] italic opacity-30">
+                      <div className="px-3 py-2 text-ui-footnote italic opacity-30">
                         No matches
                       </div>
                     )}

@@ -90,13 +90,13 @@ const WelcomeWizard = () => {
         </div>
         
         <div className="space-y-2">
-          <h2 className="text-xl font-bold tracking-tight">{currentStep.title}</h2>
-          <p className="text-[10px] uppercase tracking-[0.2em] font-bold text-blue-600 dark:text-blue-400">
+          <h2 className="text-ui-title-3 font-bold tracking-tight">{currentStep.title}</h2>
+          <p className="text-ui-footnote font-medium text-blue-600 dark:text-blue-400">
             {currentStep.subtitle}
           </p>
         </div>
 
-        <p className="text-sm leading-relaxed opacity-70 px-2">
+        <p className="text-ui-subhead leading-relaxed opacity-70 px-2">
           {currentStep.content}
         </p>
 
@@ -105,7 +105,7 @@ const WelcomeWizard = () => {
              <Button 
                 variant="secondary" 
                 onClick={() => setStep(step - 1)}
-                className="flex-1 h-12 rounded-2xl text-[11px] font-bold uppercase tracking-widest"
+                className="flex-1 h-12 rounded-2xl text-ui-footnote font-medium"
              >
                Back
              </Button>
@@ -113,7 +113,7 @@ const WelcomeWizard = () => {
           <Button 
             variant="primary" 
             onClick={handleNext}
-            className="flex-1 h-12 rounded-2xl text-[11px] font-bold uppercase tracking-widest"
+            className="flex-1 h-12 rounded-2xl text-ui-footnote font-medium"
           >
             {step === steps.length - 1 ? "Get Started" : "Next"}
           </Button>
@@ -121,7 +121,7 @@ const WelcomeWizard = () => {
 
         <button 
           onClick={handleSkip}
-          className="text-[9px] uppercase tracking-widest font-bold opacity-30 hover:opacity-100 transition-opacity"
+          className="text-ui-footnote font-medium opacity-40 hover:opacity-100 transition-opacity"
         >
           Skip Introduction
         </button>

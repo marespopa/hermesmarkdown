@@ -1,0 +1,18 @@
+export const REGEX_DATE_ISO = /\d{4}-\d{2}-\d{2}/g;
+export const REGEX_DATE_SLASHED = /\d{2}\/\d{2}\/\d{4}/g;
+export const REGEX_DATE_DOTTED = /\d{2}\.\d{2}\.\d{4}/g;
+export const REGEX_DATE_WIKI = /\[\[\d{4}-\d{2}-\d{2}\]\]/g;
+
+export const REGEX_CODE_INLINE = /(`)(.*?)(`)/g;
+export const REGEX_WIKILINK = /\[\[([^\]]+)\]\]/g;
+export const REGEX_HASHTAG = /(^|\s)(#[\w-]+)(?=\s|$)/gim;
+export const REGEX_CURRENCY = /\$(?![{])(\d+(\.\d+)?)/g;
+export const REGEX_LINK = /(\[)([^\]]+)(\]\()([^)]+)(\))/g;
+export const REGEX_BOLD = /(\*\*|__)(.*?)\1/g;
+export const REGEX_ITALIC = /(\*|_)(.*?)\1/g;
+export const REGEX_STRIKETHROUGH = /(~~)(.*?)(~~)/g;
+export const REGEX_MD_LINK = /\[[^\]]+\]\((https?:\/\/[^\s)]+)\)/g;
+export const REGEX_TODO_TAGS = /#(todo|prog|done|urgn)\b/gi;
+export const REGEX_CHECKBOX = /^(\s*[-*]\s*\[)([ xX])(\])/;
+export const REGEX_URL_PASTE = /^(https?:\/\/[^\s]+)$/i;
+export const REGEX_CALC = /calc\(([^)]+)\)=$/;

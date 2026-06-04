@@ -1,6 +1,7 @@
 import { render, screen, fireEvent, cleanup, act } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import MarkdownEditor, { highlightMarkdown } from "./MarkdownEditor";
+import MarkdownEditor from "./MarkdownEditor";
+import { highlightMarkdown } from "./MarkdownHighlighter";
 import { Provider } from "jotai";
 import "@testing-library/jest-dom";
 
@@ -140,13 +141,10 @@ describe("MarkdownEditor Functional Tests", () => {
 
     // Set selection and focus
     textarea.focus();
-    textarea.selectionStart = 15; // middle of the date
-    textarea.selectionEnd = 15;
-    
-    fireEvent(document, new Event("selectionchange"));
-
-    // Advance timers to trigger debounced date detection
     act(() => {
+      textarea.selectionStart = 15; // middle of the date
+      textarea.selectionEnd = 15;
+      fireEvent(document, new Event("selectionchange"));
       vi.advanceTimersByTime(100);
     });
 
@@ -183,11 +181,9 @@ describe("MarkdownEditor Functional Tests", () => {
 
     // 1. Move cursor to date
     textarea.focus();
-    textarea.selectionStart = 15;
-    fireEvent(document, new Event("selectionchange"));
-
-    // 2. Advance timers to detect date
     act(() => {
+      textarea.selectionStart = 15;
+      fireEvent(document, new Event("selectionchange"));
       vi.advanceTimersByTime(100);
     });
 
@@ -227,12 +223,9 @@ describe("MarkdownEditor Functional Tests", () => {
     const textarea = screen.getByRole("textbox") as HTMLTextAreaElement;
 
     textarea.focus();
-    textarea.selectionStart = 15;
-
-    fireEvent(document, new Event("selectionchange"));
-
-    // Advance timers
     act(() => {
+      textarea.selectionStart = 15;
+      fireEvent(document, new Event("selectionchange"));
       vi.advanceTimersByTime(100);
     });
 

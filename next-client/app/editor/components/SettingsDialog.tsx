@@ -25,8 +25,8 @@ type Props = {
 const SettingItem = ({ label, description, control }: { label: string; description?: string; control: React.ReactNode }) => (
   <div className="flex items-center justify-between py-3 border-b border-neutral-100 dark:border-neutral-800/30 last:border-0">
     <div className="flex flex-col pr-4">
-      <span className="text-[13px] font-medium leading-none">{label}</span>
-      {description && <span className="text-[11px] text-neutral-500 dark:text-neutral-400 mt-1.5 leading-tight">{description}</span>}
+      <span className="text-ui-footnote font-medium leading-none">{label}</span>
+      {description && <span className="text-ui-footnote text-neutral-500 dark:text-neutral-400 mt-1.5 leading-tight">{description}</span>}
     </div>
     <div className="flex-shrink-0">
       {control}
@@ -36,7 +36,7 @@ const SettingItem = ({ label, description, control }: { label: string; descripti
 
 const SettingGroup = ({ title, children }: { title: string; children: React.ReactNode }) => (
   <div className="mb-6 last:mb-0">
-    <h3 className="text-[10px] tracking-[0.2em] font-bold text-neutral-400 dark:text-neutral-500 uppercase mb-2.5 px-1">
+    <h3 className="text-ui-footnote font-medium text-neutral-500 dark:text-neutral-400 mb-2.5 px-1">
       {title}
     </h3>
     <div className="bg-neutral-50 dark:bg-neutral-900/50 rounded-[20px] px-4 py-1 border border-neutral-200/50 dark:border-neutral-800/50">
@@ -72,8 +72,8 @@ const SettingsDialog = ({ isOpen, onClose }: Props) => {
     <DialogModal isOpened={isOpen} onClose={onClose} styles="!max-w-md !max-h-[85vh] !rounded-[32px] !backdrop-blur-2xl !bg-white/80 dark:!bg-zinc-900/80 !border-none !shadow-2xl">
       <div className="flex flex-col min-h-0">
         <div className="space-y-1 mb-6 px-1">
-          <h2 className="text-2xl font-bold tracking-tight">Settings</h2>
-          <p className="text-[10px] text-neutral-500 dark:text-neutral-400 font-bold uppercase tracking-[0.15em]">Environment Configuration</p>
+          <h2 className="text-ui-title-2 font-bold tracking-tight">Settings</h2>
+          <p className="text-ui-footnote text-neutral-500 dark:text-neutral-400 font-medium">Environment Configuration</p>
         </div>
 
         <div className="flex-1 overflow-y-auto custom-scrollbar -mx-2 px-2 pb-1">
@@ -86,7 +86,7 @@ const SettingsDialog = ({ isOpen, onClose }: Props) => {
                     <button
                       key={s.label}
                       onClick={() => setFontSize(s.value)}
-                      className={`px-3 py-1.5 text-[11px] font-semibold rounded-lg transition-all ${
+                      className={`px-3 py-1.5 text-ui-footnote font-semibold rounded-lg transition-all ${
                         fontSize === s.value ? "bg-white dark:bg-zinc-700 shadow-sm text-blue-600 dark:text-blue-400" : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100"
                       }`}
                     >
@@ -106,7 +106,7 @@ const SettingsDialog = ({ isOpen, onClose }: Props) => {
                 <select 
                   value={autosaveMode} 
                   onChange={(e) => setAutosaveMode(e.target.value as any)}
-                  className="bg-zinc-200/50 dark:bg-zinc-800 text-[12px] font-semibold rounded-xl px-3 py-1.5 outline-none border border-transparent focus:border-blue-500/50 cursor-pointer appearance-none text-center min-w-[130px] transition-all"
+                  className="bg-zinc-200/50 dark:bg-zinc-800 text-ui-caption font-semibold rounded-xl px-3 py-1.5 outline-none border border-transparent focus:border-blue-500/50 cursor-pointer appearance-none text-center min-w-[130px] transition-all"
                 >
                   <option value="afterDelay">After Delay</option>
                   <option value="onFocusChange">On Focus Change</option>
@@ -122,7 +122,7 @@ const SettingsDialog = ({ isOpen, onClose }: Props) => {
                   <select 
                     value={autosaveDelay} 
                     onChange={(e) => setAutosaveDelay(Number(e.target.value))}
-                    className="bg-zinc-200/50 dark:bg-zinc-800 text-[12px] font-semibold rounded-xl px-3 py-1.5 outline-none border border-transparent focus:border-blue-500/50 cursor-pointer appearance-none text-center min-w-[130px] transition-all"
+                    className="bg-zinc-200/50 dark:bg-zinc-800 text-ui-caption font-semibold rounded-xl px-3 py-1.5 outline-none border border-transparent focus:border-blue-500/50 cursor-pointer appearance-none text-center min-w-[130px] transition-all"
                   >
                     <option value={500}>0.5s</option>
                     <option value={1000}>1s</option>
@@ -153,7 +153,7 @@ const SettingsDialog = ({ isOpen, onClose }: Props) => {
                     <button
                       key={opt.value}
                       onClick={() => setEditorWidth(opt.value as any)}
-                      className={`px-3 py-1.5 text-[11px] font-semibold rounded-lg transition-all ${
+                      className={`px-3 py-1.5 text-ui-footnote font-semibold rounded-lg transition-all ${
                         editorWidth === opt.value ? "bg-white dark:bg-zinc-700 shadow-sm text-blue-600 dark:text-blue-400" : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100"
                       }`}
                     >
@@ -186,7 +186,7 @@ const SettingsDialog = ({ isOpen, onClose }: Props) => {
                 <Button
                   variant="secondary"
                   onClick={() => { setIsWizardOpen(true); onClose(); }}
-                  className="h-9 px-5 text-[11px] font-bold uppercase tracking-wider border-zinc-200 dark:border-zinc-800"
+                  className="h-9 px-5 text-ui-footnote font-medium border-zinc-200 dark:border-zinc-800"
                 >
                   Start
                 </Button>

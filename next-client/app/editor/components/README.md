@@ -18,6 +18,12 @@ Interactive calendar for selecting and inserting dates.
 
 ### [PaneLeaf](./PaneLeaf.tsx)
 A container for editor panes, supporting tabbed file views and workspace layouts.
+- **Save button**: writes through the live `FileSystemFileHandle`; for files whose handle was lost (e.g. after reload, before vault rebind) it walks the vault to recover the handle before falling back to the draft "save as" prompt.
+- **Close Pane**: hidden when the workspace contains only one pane (the root container is a single leaf).
+- **Tab context menu**: right-click any tab for `Close` / `Close Others` / `Close All` (see [TabContextMenu](./TabContextMenu.tsx)).
+
+### [TabContextMenu](./TabContextMenu.tsx)
+A cursor-anchored floating menu used by the tab strip in `PaneLeaf`. Clicking outside or pressing `Escape` dismisses it; it clamps itself back inside the viewport if positioned near the right/bottom edge.
 
 ### [WorkspaceBuilder](./WorkspaceBuilder.tsx)
 The orchestrator for complex layouts, managing split panes and dynamic resizing.

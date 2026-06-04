@@ -59,7 +59,9 @@ vi.mock("react-hot-toast", () => ({
 describe("useFileSystem - createFile conflict resolution", () => {
   const mockVaultHandle = {
     getFileHandle: vi.fn(),
-    values: vi.fn(),
+    values: async function* () {
+      yield* [];
+    },
     isSameEntry: vi.fn().mockResolvedValue(true),
   };
 
@@ -87,6 +89,11 @@ describe("useFileSystem - createFile conflict resolution", () => {
     const mockFileHandle = {
       name: "test (2).md",
       createWritable: vi.fn().mockResolvedValue(mockWritable),
+      getFile: vi.fn().mockResolvedValue({
+        lastModified: Date.now(),
+        size: 0,
+        text: vi.fn().mockResolvedValue(""),
+      }),
     };
 
     // Simulate:
@@ -118,6 +125,11 @@ describe("useFileSystem - createFile conflict resolution", () => {
     const mockFileHandle = {
       name: "new.md",
       createWritable: vi.fn().mockResolvedValue(mockWritable),
+      getFile: vi.fn().mockResolvedValue({
+        lastModified: Date.now(),
+        size: 0,
+        text: vi.fn().mockResolvedValue(""),
+      }),
     };
 
     mockVaultHandle.getFileHandle

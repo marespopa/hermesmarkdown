@@ -54,7 +54,7 @@ export default function Button({
 
 // Minimalistic Base: Standardized for Apple-style "Pro" feel
 const baseStyles =
-  "rounded-2xl flex items-center justify-center gap-2 transition-all duration-200 ease-out focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 disabled:opacity-30 disabled:pointer-events-none select-none border font-sans font-semibold text-[13px] sm:text-[14px]";
+  "rounded-2xl flex items-center justify-center gap-2 transition-all duration-200 ease-out focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 disabled:opacity-30 disabled:pointer-events-none select-none border font-sans font-semibold text-ui-footnote sm:text-ui-subhead";
 
 const variantStyles = (variant: ButtonVariant): string => {
   switch (variant) {
@@ -83,16 +83,16 @@ const variantStyles = (variant: ButtonVariant): string => {
       return `${baseStyles} h-11 px-3 bg-transparent border-none text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100`;
 
     case "bare":
-      return "inline-flex items-center justify-center font-sans font-medium text-[13px] hover:underline focus:underline transition-all";
+      return "inline-flex items-center justify-center font-sans font-medium text-ui-footnote hover:underline focus:underline transition-all";
 
     case "fab-action":
-      return "inline-flex items-center gap-2 px-4 py-2 font-sans font-medium text-[13px] text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors group focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 disabled:opacity-30 disabled:pointer-events-none select-none";
+      return "inline-flex items-center gap-2 px-4 py-2 font-sans font-medium text-ui-footnote text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors group focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 disabled:opacity-30 disabled:pointer-events-none select-none";
 
     case "fab-toggle":
-      return "inline-flex items-center justify-center px-4 py-2 font-sans font-medium text-[13px] border-l border-zinc-200 dark:border-zinc-800 transition-all min-w-[48px] focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 disabled:opacity-30 disabled:pointer-events-none select-none";
+      return "inline-flex items-center justify-center px-4 py-2 font-sans font-medium text-ui-footnote border-l border-zinc-200 dark:border-zinc-800 transition-all min-w-[48px] focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 disabled:opacity-30 disabled:pointer-events-none select-none";
 
     case "menu-item":
-      return "w-full inline-flex items-center justify-start gap-3 px-3 py-2.5 font-sans font-medium text-[13px] text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-zinc-100 transition-all rounded-xl group focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 disabled:opacity-30 disabled:pointer-events-none select-none";
+      return "w-full inline-flex items-center justify-start gap-3 px-3 py-2.5 font-sans font-medium text-ui-footnote text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-zinc-100 transition-all rounded-xl group focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 disabled:opacity-30 disabled:pointer-events-none select-none";
 
     default:
       return baseStyles;
