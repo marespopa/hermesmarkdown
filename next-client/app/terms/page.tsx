@@ -15,7 +15,7 @@ export default function TermsAndConditions() {
           <Button
             variant="tertiary"
             onClick={() => router.back()}
-            className="!text-[10px] uppercase tracking-[0.3em] opacity-40 hover:opacity-100 -ml-4"
+            className="!text-ui-footnote uppercase tracking-[0.3em] opacity-40 hover:opacity-100 -ml-4"
           >
             ← Back
           </Button>
@@ -27,7 +27,7 @@ export default function TermsAndConditions() {
             </span>
           </h1>
 
-          <p className="text-lg leading-relaxed text-neutral-500 dark:text-neutral-400 max-w-2xl">
+          <p className="text-ui-title-3 leading-relaxed text-neutral-500 dark:text-neutral-400 max-w-2xl">
             Transparency and accountability are core to the HermesMarkdown philosophy. These terms outline our mutual commitment to a fair and open workspace.
           </p>
         </section>
@@ -43,12 +43,12 @@ export default function TermsAndConditions() {
 
           <div className="space-y-4">
             <h2 className="text-xl font-bold tracking-tight">1. The Service</h2>
-            <h3 className="text-lg font-semibold">1.1 Service Description</h3>
+            <h3 className="text-ui-title-3 font-semibold">1.1 Service Description</h3>
             <p>
               HermesMarkdown is a local-first Markdown editor tool designed to facilitate transparent and efficient writing. The &quot;Service&quot; includes all functionalities, APIs, and tools offered through our platform.
             </p>
             
-            <h3 className="text-lg font-semibold">1.2 Modifications</h3>
+            <h3 className="text-ui-title-3 font-semibold">1.2 Modifications</h3>
             <p>
               We reserve the right to modify or discontinue any feature of the Service at any time. Significant changes to core functionality will be announced on our Site or through the Service.
             </p>
@@ -71,7 +71,7 @@ export default function TermsAndConditions() {
             </p>
           </div>
 
-          <div className="pt-8 border-t border-black/5 dark:border-white/5 flex flex-col sm:flex-row justify-between items-center gap-4 text-[10px] uppercase tracking-widest font-bold opacity-30">
+          <div className="pt-8 border-t border-black/5 dark:border-white/5 flex flex-col sm:flex-row justify-between items-center gap-4 text-ui-footnote uppercase tracking-widest font-bold opacity-30">
             <span>Last Updated: May 30, 2026</span>
             <a href="mailto:office@marespopa.com" className="hover:opacity-100 transition-opacity">Contact: office@marespopa.com</a>
           </div>

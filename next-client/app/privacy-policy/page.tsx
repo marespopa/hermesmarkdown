@@ -15,7 +15,7 @@ export default function PrivacyPolicy() {
           <Button
             variant="tertiary"
             onClick={() => router.back()}
-            className="!text-[10px] uppercase tracking-[0.3em] opacity-40 hover:opacity-100 -ml-4"
+            className="!text-ui-footnote uppercase tracking-[0.3em] opacity-40 hover:opacity-100 -ml-4"
           >
             ← Back
           </Button>
@@ -27,7 +27,7 @@ export default function PrivacyPolicy() {
             </span>
           </h1>
 
-          <p className="text-lg leading-relaxed text-neutral-500 dark:text-neutral-400 max-w-2xl">
+          <p className="text-ui-title-3 leading-relaxed text-neutral-500 dark:text-neutral-400 max-w-2xl">
             At HermesMarkdown, we believe that your thoughts should remain private. Our commitment to a local-first architecture is the foundation of our privacy model.
           </p>
         </section>
@@ -43,12 +43,12 @@ export default function PrivacyPolicy() {
 
           <div className="space-y-4">
             <h2 className="text-xl font-bold tracking-tight">Data Collection & Storage</h2>
-            <h3 className="text-lg font-semibold">User Content (Markdown Files)</h3>
+            <h3 className="text-ui-title-3 font-semibold">User Content (Markdown Files)</h3>
             <p>
               HermesMarkdown does not store, transmit, or have access to your Markdown files, notes, or vaults. When you open a local folder as a Vault, the application interacts with your file system directly through your browser&apos;s File System Access API. Your content never leaves your machine.
             </p>
             
-            <h3 className="text-lg font-semibold">Local Storage</h3>
+            <h3 className="text-ui-title-3 font-semibold">Local Storage</h3>
             <p>
               We use <code>localStorage</code> and <code>IndexedDB</code> within your browser to store application settings (like theme, font size, and sidebar width) and to maintain the list of Vault handles you have authorized. This data is local to your browser and is not synchronized with any external database.
             </p>
@@ -80,7 +80,7 @@ export default function PrivacyPolicy() {
             </p>
           </div>
 
-          <div className="pt-8 border-t border-black/5 dark:border-white/5 flex flex-col sm:flex-row justify-between items-center gap-4 text-[10px] uppercase tracking-widest font-bold opacity-30">
+          <div className="pt-8 border-t border-black/5 dark:border-white/5 flex flex-col sm:flex-row justify-between items-center gap-4 text-ui-footnote uppercase tracking-widest font-bold opacity-30">
             <span>Last Updated: May 30, 2026</span>
             <a href="mailto:office@marespopa.com" className="hover:opacity-100 transition-opacity">Contact: office@marespopa.com</a>
           </div>

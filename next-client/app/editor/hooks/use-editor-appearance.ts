@@ -1,0 +1,55 @@
+"use client";
+
+import { useState, useEffect, useMemo } from "react";
+import { useAtomValue } from "jotai";
+import {
+  atom_fontSize,
+  atom_fontFamily,
+  atom_editorWidth,
+} from "@/app/atoms/atoms";
+
+export function useEditorAppearance() {
+  const fontFamily = useAtomValue(atom_fontFamily);
+  const fontSize = useAtomValue(atom_fontSize);
+  const editorWidth = useAtomValue(atom_editorWidth);
+
+  const [windowWidth, setWindowWidth] = useState(
+    typeof window !== "undefined" ? window.innerWidth : 1200,
+  );
+
+  useEffect(() => {
+    const handleResize = () => setWindowWidth(window.innerWidth);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  const displayFontSize = useMemo(() => {
+    const base = parseInt(fontSize);
+    if (isNaN(base)) return fontSize;
+    return windowWidth >= 1280 ? `${base + 1}px` : fontSize;
+  }, [fontSize, windowWidth]);
+
+  const widthClass = useMemo(() => {
+    const widthClasses = {
+      standard: "max-w-full px-4 md:px-8",
+      narrow: "max-w-[95%] md:max-w-[850px] mx-auto",
+    };
+    return (widthClasses as any)[editorWidth] || widthClasses.standard;
+  }, [editorWidth]);
+
+  const paddingClass = useMemo(() => {
+    const paddingClasses = {
+      standard: "",
+      narrow: "px-1",
+    };
+    return (paddingClasses as any)[editorWidth] || paddingClasses.standard;
+  }, [editorWidth]);
+
+  return {
+    fontFamily,
+    displayFontSize,
+    windowWidth,
+    widthClass,
+    paddingClass,
+  };
+}

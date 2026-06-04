@@ -52,7 +52,7 @@ export default function GlobalDialog() {
         {config.title && (
           <h3
             id="dialog-title"
-            className="text-lg font-bold font-mono tracking-tight"
+            className="text-ui-title-3 font-bold font-mono tracking-tight"
           >
             {config.title}
           </h3>
@@ -60,13 +60,13 @@ export default function GlobalDialog() {
 
         <p
           id="dialog-description"
-          className="text-sm opacity-70 leading-relaxed"
+          className="text-ui-subhead opacity-70 leading-relaxed"
         >
           {config.message}
         </p>
 
         {config.subtext && (
-          <p className="text-xs opacity-50 leading-relaxed">{config.subtext}</p>
+          <p className="text-ui-caption opacity-50 leading-relaxed">{config.subtext}</p>
         )}
 
         {config.type === "prompt" && (

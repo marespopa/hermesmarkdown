@@ -1,0 +1,19 @@
+import { REGEX_MD_LINK, REGEX_WIKILINK } from "../components/regex";
+
+export function findLinkAtPos(text: string, pos: number) {
+  let match;
+  REGEX_MD_LINK.lastIndex = 0;
+  while ((match = REGEX_MD_LINK.exec(text)) !== null) {
+    if (pos >= match.index && pos <= match.index + match[0].length) {
+      return { type: "url", value: match[1] };
+    }
+  }
+
+  REGEX_WIKILINK.lastIndex = 0;
+  while ((match = REGEX_WIKILINK.exec(text)) !== null) {
+    if (pos >= match.index && pos <= match.index + match[0].length) {
+      return { type: "wiki", value: match[1] };
+    }
+  }
+  return null;
+}

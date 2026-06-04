@@ -41,10 +41,10 @@ const CookieConsent = () => {
       <div className="max-w-screen-xl mx-auto pointer-events-auto">
         <div className="flex flex-col gap-4 p-6 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 shadow-2xl rounded-lg lg:flex-row lg:items-center">
           <div className="flex-1 text-gray-700 dark:text-gray-300">
-            <h2 className="text-lg font-bold mb-2 text-gray-900 dark:text-gray-100">
+            <h2 className="text-ui-title-3 font-bold mb-2 text-gray-900 dark:text-gray-100">
               Privacy & Cookies
             </h2>
-            <p className="text-sm leading-relaxed">
+            <p className="text-ui-subhead leading-relaxed">
               This website uses basic, anonymous analytics to understand how
               people use my site and improve the experience. No personal data is
               shared with third parties, and your writing never leaves your

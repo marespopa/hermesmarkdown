@@ -86,7 +86,7 @@ const DropdownMenu = ({ label, options, isOpen, onOpenChange, selectedIndex, onS
               className={`w-full text-left whitespace-nowrap h-10 px-3.5 text-zinc-700 dark:text-zinc-200 hover:bg-zinc-100/80 dark:hover:bg-zinc-800/80 rounded-xl transition-all duration-150 focus-visible:ring-2 focus-visible:ring-blue-500 hover:text-zinc-900 dark:hover:text-zinc-100 ${selectedIndex === idx ? 'bg-zinc-100 dark:bg-zinc-800 font-semibold text-zinc-900 dark:text-zinc-100' : ''}`}
               tabIndex={0}
             >
-              <span className="flex items-center gap-2 w-full text-[13px]">
+              <span className="flex items-center gap-2 w-full text-ui-footnote">
                 {option.label}
                 {selectedIndex === idx && (
                   <span className="ml-auto text-blue-500">✓</span>

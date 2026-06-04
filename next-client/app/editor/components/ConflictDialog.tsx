@@ -61,7 +61,7 @@ export default function ConflictDialog() {
     >
       <div className="space-y-4">
         <h3 className="text-xl font-semibold">External Modification Detect</h3>
-        <p className="text-sm opacity-70">
+        <p className="text-ui-footnote opacity-70">
           This file was modified externally, but you have unsaved local changes in HermesMarkdown.
  
           How would you like to proceed?
@@ -70,14 +70,14 @@ export default function ConflictDialog() {
         <div className="flex flex-col gap-3 pt-4">
           <Button variant="primary" onClick={handleReload} className="w-full text-left flex flex-col items-start py-4">
             <span className="font-bold">Reload External Changes</span>
-            <span className="text-[10px] opacity-70 font-normal mt-0.5">
+            <span className="text-ui-footnote opacity-70 font-normal mt-0.5">
               Discard my local edits and use the file on disk.
             </span>
           </Button>
           
           <Button variant="secondary" onClick={handleKeepLocal} className="w-full text-left flex flex-col items-start py-4">
             <span className="font-bold">Keep My Local Edits</span>
-            <span className="text-[10px] opacity-70 font-normal mt-0.5">
+            <span className="text-ui-footnote opacity-70 font-normal mt-0.5">
               I will overwrite the disk version when I save.
             </span>
           </Button>

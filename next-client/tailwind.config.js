@@ -8,6 +8,17 @@ module.exports = {
   darkMode: "class",
   theme: {
     extend: {
+      fontSize: {
+        'ui-title-1': ['1.75rem', { lineHeight: '2.25rem', letterSpacing: '-0.022em' }], // 28px
+        'ui-title-2': ['1.375rem', { lineHeight: '1.75rem', letterSpacing: '-0.019em' }], // 22px
+        'ui-title-3': ['1.25rem', { lineHeight: '1.625rem', letterSpacing: '-0.016em' }], // 20px
+        'ui-body': ['1.0625rem', { lineHeight: '1.5rem', letterSpacing: '-0.011em' }],     // 17px
+        'ui-callout': ['1rem', { lineHeight: '1.375rem', letterSpacing: '-0.009em' }],     // 16px
+        'ui-subhead': ['0.9375rem', { lineHeight: '1.25rem', letterSpacing: '-0.006em' }],   // 15px
+        'ui-footnote': ['0.8125rem', { lineHeight: '1.125rem', letterSpacing: '-0.003em' }], // 13px
+        'ui-caption': ['0.75rem', { lineHeight: '1rem', letterSpacing: '0.000em' }],        // 12px
+        'ui-micro': ['0.6875rem', { lineHeight: '0.875rem', letterSpacing: '0.000em' }],    // 11px
+      },
       fontFamily: {
         sans: [
           "SF Pro Display",

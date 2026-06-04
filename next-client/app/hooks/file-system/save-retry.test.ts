@@ -36,6 +36,7 @@ vi.mock("@/app/atoms/metadata", () => ({
 vi.mock("jotai", () => ({
   useAtom: vi.fn(),
   useSetAtom: vi.fn(),
+  useAtomValue: vi.fn(),
 }));
 
 vi.mock("../use-dialog", () => ({
@@ -69,12 +70,14 @@ describe("useFileEditor - saveFile retry logic", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    (jotai.useAtom as any).mockImplementation((atom: any) => {
+    const mockImpl = (atom: any) => {
       if (atom.name === "atom_vaultHandle") return [mockVaultHandle, vi.fn()];
       if (atom.name === "atom_activeFileHandle") return [mockFileHandle, vi.fn()];
       if (atom.name === "atom_activeFilePath") return ["test.md", vi.fn()];
       return [null, vi.fn()];
-    });
+    };
+    (jotai.useAtom as any).mockImplementation(mockImpl);
+    (jotai.useAtomValue as any).mockImplementation((atom: any) => mockImpl(atom)[0]);
     (jotai.useSetAtom as any).mockReturnValue(vi.fn());
   });
 

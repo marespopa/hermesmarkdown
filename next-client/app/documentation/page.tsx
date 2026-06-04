@@ -7,10 +7,10 @@ import Button from "@/app/components/Button/Button.component";
 export default function Documentation() {
   const router = useRouter();
 
-  const sectionHeading = "text-[10px] uppercase tracking-[0.3em] font-bold text-blue-600 dark:text-blue-400 mb-8 block";
+  const sectionHeading = "text-ui-footnote uppercase tracking-[0.3em] font-bold text-blue-600 dark:text-blue-400 mb-8 block";
   const guideRow = "flex justify-between border-b border-black/5 dark:border-white/5 py-4 last:border-none items-center gap-4";
   const syntaxLabel = "font-mono text-blue-600 dark:text-blue-400 font-bold";
-  const resultLabel = "opacity-40 italic text-right text-[10px] uppercase tracking-wider font-bold";
+  const resultLabel = "opacity-40 italic text-right text-ui-footnote uppercase tracking-wider font-bold";
 
   return (
     <main className="min-h-screen selection:bg-blue-500/30 text-neutral-900 dark:text-neutral-100 bg-white dark:bg-neutral-950 overflow-x-hidden font-sans">
@@ -20,7 +20,7 @@ export default function Documentation() {
           <Button
             variant="tertiary"
             onClick={() => router.back()}
-            className="!text-[10px] uppercase tracking-[0.3em] opacity-40 hover:opacity-100 -ml-4"
+            className="!text-ui-footnote uppercase tracking-[0.3em] opacity-40 hover:opacity-100 -ml-4"
           >
             ← Back
           </Button>
@@ -60,7 +60,7 @@ export default function Documentation() {
                   <span className={resultLabel}>Context Menu</span>
                 </div>
               </div>
-              <div className="p-4 bg-amber-50/50 dark:bg-amber-900/10 border border-amber-200/20 rounded-xl text-[10px] leading-relaxed uppercase tracking-wider font-bold text-amber-700 dark:text-amber-400/80">
+              <div className="p-4 bg-amber-50/50 dark:bg-amber-900/10 border border-amber-200/20 rounded-xl text-ui-footnote leading-relaxed uppercase tracking-wider font-bold text-amber-700 dark:text-amber-400/80">
                 Note: Cloud storage sync (Dropbox, iCloud) may lock files. We recommend pausing sync during active writing sessions for the smoothest experience.
               </div>
             </div>
@@ -82,7 +82,7 @@ export default function Documentation() {
                   <span className={resultLabel}>Smart Filter</span>
                 </div>
               </div>
-              <p className="text-[10px] opacity-40 italic leading-relaxed font-bold uppercase tracking-widest">
+              <p className="text-ui-footnote opacity-40 italic leading-relaxed font-bold uppercase tracking-widest">
                 Navigation: CTRL + Click to open links. Click sidebar tags to filter your entire vault instantly.
               </p>
             </div>
@@ -159,7 +159,7 @@ export default function Documentation() {
                        <span className="text-lg font-mono text-blue-400 dark:text-blue-600 font-bold">
                         {tag}
                       </span>
-                      <span className="text-[9px] uppercase tracking-widest opacity-30 font-bold">{tag === '#urgn' ? 'Urgent' : tag === '#todo' ? 'To-Do' : tag === '#prog' ? 'Progress' : 'Done'}</span>
+                      <span className="text-ui-footnote uppercase tracking-widest opacity-30 font-bold">{tag === '#urgn' ? 'Urgent' : tag === '#todo' ? 'To-Do' : tag === '#prog' ? 'Progress' : 'Done'}</span>
                     </div>
                     {i < arr.length - 1 && (
                       <span className="opacity-20 hidden sm:block">→</span>
@@ -167,7 +167,7 @@ export default function Documentation() {
                   </React.Fragment>
                 ))}
               </div>
-              <p className="mt-12 text-center text-[11px] opacity-40 italic max-w-md mx-auto leading-relaxed">
+              <p className="mt-12 text-center text-ui-footnote opacity-40 italic max-w-md mx-auto leading-relaxed">
                 Status tags are interactive. Clicking a tag in the editor cycles it to the next phase in the lifecycle.
               </p>
             </div>
@@ -212,10 +212,10 @@ export default function Documentation() {
                 </h3>
                 <div className="bg-neutral-50 dark:bg-neutral-900/50 p-6 rounded-2xl border border-black/5 dark:border-white/5 shadow-sm space-y-6">
                    <div className="space-y-2">
-                    <p className="text-[11px] leading-relaxed text-neutral-600 dark:text-neutral-400">
+                    <p className="text-ui-footnote leading-relaxed text-neutral-600 dark:text-neutral-400">
                       HermesMarkdown sums all currency values found above a line starting with <code className="font-bold text-blue-600">Total:</code>.
                     </p>
-                    <div className="p-4 bg-emerald-500/5 dark:bg-emerald-500/10 border border-emerald-500/20 rounded-xl font-mono text-[10px]">
+                    <div className="p-4 bg-emerald-500/5 dark:bg-emerald-500/10 border border-emerald-500/20 rounded-xl font-mono text-ui-footnote">
                       <div className="opacity-40">- Rent: $2000</div>
                       <div className="opacity-40">- Food: $400</div>
                       <div className="text-emerald-600 dark:text-emerald-400 font-bold mt-1 pt-1 border-t border-emerald-500/20">Total: $2400.00</div>
@@ -236,7 +236,7 @@ export default function Documentation() {
 
         {/* --- FOOTER --- */}
         <footer className="pt-20 pb-12 text-center border-t border-black/5 dark:border-white/5 opacity-30">
-          <p className="text-[10px] uppercase tracking-[0.4em] font-bold">
+          <p className="text-ui-footnote uppercase tracking-[0.4em] font-bold">
             Stay Local — Write Deep
           </p>
         </footer>
