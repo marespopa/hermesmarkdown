@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useMemo } from "react";
-import { useAtom, useAtomValue } from "jotai";
+import { useAtom } from "jotai";
 import {
   atom_content,
   atom_fileName,
@@ -11,7 +11,7 @@ import {
   atom_cursorPosition,
   atom_statusMetricMode,
   atom_vaultHandle,
-  atom_isEditorFocused,
+  atom_isVaultPending,
 } from "@/app/atoms/atoms";
 import { 
   HiOutlineLightningBolt, 
@@ -29,7 +29,7 @@ export default function StatusBar() {
   const [cursorPosition] = useAtom(atom_cursorPosition);
   const [metricMode, setMetricMode] = useAtom(atom_statusMetricMode);
   const [vaultHandle] = useAtom(atom_vaultHandle);
-  const isEditorFocused = useAtomValue(atom_isEditorFocused);
+  const [isVaultPending] = useAtom(atom_isVaultPending);
 
   const wordCount = useMemo(() => {
     return content.trim() ? content.trim().split(/\s+/).filter(Boolean).length : 0;
@@ -48,7 +48,7 @@ export default function StatusBar() {
   if (!showStats && !isZenModeActive) return null;
 
   return (
-    <footer className={`h-8 border-t border-zinc-200/50 dark:border-zinc-800/50 bg-white/50 dark:bg-zinc-950/50 backdrop-blur-3xl flex items-center justify-between px-6 shrink-0 pointer-events-auto z-40 select-none transition-all duration-700 ease-in-out ${isEditorFocused && !isZenModeActive ? "max-md:h-0 max-md:opacity-0 max-md:pointer-events-none max-md:border-none" : "h-8 opacity-100"}`}>
+    <footer className="h-8 max-md:border-b md:border-t border-zinc-200/50 dark:border-zinc-800/50 bg-white/50 dark:bg-zinc-950/50 backdrop-blur-3xl flex items-center justify-between px-6 shrink-0 pointer-events-auto z-40 select-none transition-all duration-700 ease-in-out">
       {/* Left Side: Cursor & Interactive Metrics */}
       <div className={`flex items-center gap-3 sm:gap-6 text-[9px] font-bold tracking-[0.2em] text-zinc-400 dark:text-zinc-500 uppercase transition-opacity duration-500 ${!showStats ? "opacity-0 pointer-events-none" : "opacity-100"}`}>
         <div className="hidden sm:flex items-center gap-4 pr-6 border-r border-zinc-200/50 dark:border-zinc-800/50 h-3">
@@ -91,7 +91,12 @@ export default function StatusBar() {
       {/* Right Side: Vault Status, Save Status & Toggles */}
       <div className="flex items-center gap-3 sm:gap-6 text-[9px] font-bold tracking-[0.2em] text-zinc-400 dark:text-zinc-500 uppercase">
         <div className={`flex items-center gap-3 sm:gap-6 pr-6 border-r border-zinc-200/50 dark:border-zinc-800/50 h-3 transition-opacity duration-500 ${!showStats ? "opacity-0 pointer-events-none" : "opacity-100"}`}>
-          {vaultHandle ? (
+          {isVaultPending ? (
+            <span className="flex items-center gap-1.5 text-amber-500" title="Vault Access Paused">
+              <HiOutlineDatabase size={11} />
+              <span className="hidden sm:inline">PAUSED</span>
+            </span>
+          ) : vaultHandle ? (
             <span className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-500" title="Vault Connected">
               <HiOutlineDatabase size={11} />
               <span className="hidden sm:inline">VAULT</span>

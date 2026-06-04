@@ -51,11 +51,10 @@ export function useAutoSave(onDraftChange?: () => void) {
   useEffect(() => {
     // 1. Handle Focus Change (Switching files or tabs)
     if (prevFilePathRef.current !== activeFilePath) {
-      if (autosaveMode === "onFocusChange") {
-        // Save the PREVIOUS file if it was dirty before we switched
-        if (prevContentRef.current !== prevLastSavedContentRef.current && prevHandleRef.current) {
-          saveFile(prevContentRef.current, prevHandleRef.current, 0, true, prevFilePathRef.current || undefined);
-        }
+      // Save the PREVIOUS file if it was dirty before we switched
+      // We do this regardless of mode now to ensure no data is left unsynced on switch
+      if (prevContentRef.current !== prevLastSavedContentRef.current && prevHandleRef.current) {
+        saveFile(prevContentRef.current, prevHandleRef.current, 0, true, prevFilePathRef.current || undefined);
       }
       
       // Clear any pending debounced save for the file we just left
@@ -115,9 +114,22 @@ export function useAutoSave(onDraftChange?: () => void) {
         flush();
       }
     };
+
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      // Use refs to check current state without needing content in dependency array
+      if (prevContentRef.current !== prevLastSavedContentRef.current) {
+        e.preventDefault();
+        e.returnValue = ""; // Standard way to trigger the browser's "Unsaved changes" dialog
+      }
+    };
+
     window.addEventListener("blur", handleBlur);
-    return () => window.removeEventListener("blur", handleBlur);
-  }, [autosaveMode, flush]);
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => {
+      window.removeEventListener("blur", handleBlur);
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, [autosaveMode, flush]); // Dependency array size reverted to original to fix HMR error
 
   return { flush };
 }

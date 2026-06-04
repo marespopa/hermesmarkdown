@@ -18,6 +18,7 @@ import {
 import VaultSidebar from "./components/VaultSidebar";
 import WelcomeWizard from "./components/WelcomeWizard";
 import WorkspaceSplitter from "./components/WorkspaceSplitter";
+import VaultPendingBanner from "./components/VaultPendingBanner";
 import StatusBar from "./components/StatusBar";
 import ErrorBoundary from "@/app/components/ErrorBoundary";
 import { useFileSystem } from "@/app/hooks/use-file-system";
@@ -293,6 +294,7 @@ export default function LiteEditor() {
                 </Button>
               </div>
             )}
+            <VaultPendingBanner />
             <main className={`flex-1 min-h-0 relative transition-all duration-700 ${isPathSwitching ? "opacity-30 blur-[2px]" : "opacity-100"}`}>
               {isMounting ? (
                 <div className="animate-pulse opacity-10 space-y-6 pt-20 px-12 max-w-2xl mx-auto">
@@ -306,7 +308,9 @@ export default function LiteEditor() {
               )}
             </main>
 
-            <StatusBar />
+            <div className="max-md:order-first shrink-0">
+              <StatusBar />
+            </div>
           </div>
         </div>
       </div>

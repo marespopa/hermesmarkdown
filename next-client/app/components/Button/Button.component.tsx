@@ -8,6 +8,7 @@ type ButtonVariant =
   | "icon-bg"
   | "tertiary"
   | "hero"
+  | "warning"
   | "bare"
   | "fab-action"
   | "fab-toggle"
@@ -62,6 +63,9 @@ const variantStyles = (variant: ButtonVariant): string => {
 
     case "primary":
       return `${baseStyles} h-11 px-6 bg-zinc-900 text-white border-zinc-900 hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-950 dark:border-zinc-100 dark:hover:bg-zinc-200 shadow-sm active:scale-[0.97]`;
+
+    case "warning":
+      return `${baseStyles} h-11 px-6 bg-amber-500 text-white border-amber-500 hover:bg-amber-600 dark:bg-amber-600 dark:border-amber-600 dark:hover:bg-amber-700 shadow-sm active:scale-[0.97]`;
 
     case "secondary":
       return `${baseStyles} h-11 px-6 bg-white text-zinc-900 border-zinc-200 hover:bg-zinc-50 dark:bg-zinc-900 dark:text-zinc-100 dark:border-zinc-800 dark:hover:bg-zinc-800 shadow-sm active:scale-[0.97]`;
