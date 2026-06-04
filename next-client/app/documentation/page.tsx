@@ -52,12 +52,20 @@ export default function Documentation() {
                   <span className={resultLabel}>Ribbon Icon</span>
                 </div>
                 <div className={guideRow}>
-                  <span className="text-sm font-medium">File Actions</span>
-                  <span className={resultLabel}>Sidebar Explorer</span>
+                  <span className="text-sm font-medium">New File</span>
+                  <span className={resultLabel}>Sidebar + Button</span>
                 </div>
                 <div className={guideRow}>
-                  <span className="text-sm font-medium">Rename/Delete</span>
+                  <span className="text-sm font-medium">Rename / Delete</span>
                   <span className={resultLabel}>Context Menu</span>
+                </div>
+                <div className={guideRow}>
+                  <span className="text-sm font-medium">Import File</span>
+                  <span className={resultLabel}>Sidebar Import</span>
+                </div>
+                <div className={guideRow}>
+                  <span className="text-sm font-medium">Export File</span>
+                  <span className={resultLabel}>Sidebar Export</span>
                 </div>
               </div>
               <div className="p-4 bg-amber-50/50 dark:bg-amber-900/10 border border-amber-200/20 rounded-xl text-ui-footnote leading-relaxed uppercase tracking-wider font-bold text-amber-700 dark:text-amber-400/80">
@@ -70,12 +78,20 @@ export default function Documentation() {
                 Internal Connectivity
               </h3>
               <p className="text-neutral-600 dark:text-neutral-400 leading-relaxed">
-                Connect your ideas using WikiLink syntax and organize them with tags. HermesMarkdown automatically indexes your vault for dynamic navigation.
+                Connect your ideas using WikiLink syntax and organize them with tags. HermesMarkdown automatically indexes your vault for dynamic navigation and filtering.
               </p>
               <div className="p-6 bg-neutral-50 dark:bg-neutral-900/50 rounded-2xl border border-black/5 dark:border-white/5 shadow-sm space-y-4">
                 <div className={guideRow}>
-                  <span className="font-mono text-sm text-purple-600 dark:text-purple-400 font-bold">[[Note Name]]</span>
+                  <span className="font-mono text-sm text-purple-600 dark:text-purple-400 font-bold">{"[[Note Name]]"}</span>
                   <span className={resultLabel}>Internal Link</span>
+                </div>
+                <div className={guideRow}>
+                  <span className="font-mono text-sm text-purple-600 dark:text-purple-400 font-bold">{"[[Name|Display]]"}</span>
+                  <span className={resultLabel}>Aliased Link</span>
+                </div>
+                <div className={guideRow}>
+                  <span className="font-mono text-sm text-purple-600 dark:text-purple-400 font-bold">{"[[2025-06-04]]"}</span>
+                  <span className={resultLabel}>Date Link</span>
                 </div>
                 <div className={guideRow}>
                   <span className="font-mono text-sm text-blue-600 dark:text-blue-400 font-bold">#todo</span>
@@ -87,18 +103,78 @@ export default function Documentation() {
               </p>
             </div>
           </div>
+
+          {/* Smart Workspaces */}
+          <div className="mt-16 grid grid-cols-1 md:grid-cols-2 gap-16">
+            <div className="space-y-6">
+              <h3 className="text-2xl font-bold tracking-tight">
+                Smart Workspaces
+              </h3>
+              <p className="text-neutral-600 dark:text-neutral-400 leading-relaxed">
+                Workspaces are dynamic smart folders that filter your vault in real time. The built-in <strong>Today's Work</strong> folder shows files edited in the last 24 hours. Create your own with custom query rules.
+              </p>
+              <div className="p-6 bg-neutral-50 dark:bg-neutral-900/50 rounded-2xl border border-black/5 dark:border-white/5 shadow-sm">
+                <div className={guideRow}>
+                  <span className="text-sm font-medium">Filter by Tag</span>
+                  <span className={resultLabel}>Query Builder</span>
+                </div>
+                <div className={guideRow}>
+                  <span className="text-sm font-medium">Filter by Name</span>
+                  <span className={resultLabel}>Query Builder</span>
+                </div>
+                <div className={guideRow}>
+                  <span className="text-sm font-medium">Filter by Date</span>
+                  <span className={resultLabel}>Query Builder</span>
+                </div>
+                <div className={guideRow}>
+                  <span className="text-sm font-medium">Filter by Word Count</span>
+                  <span className={resultLabel}>Query Builder</span>
+                </div>
+              </div>
+              <p className="text-ui-footnote opacity-40 italic leading-relaxed font-bold uppercase tracking-widest">
+                Combine multiple rules with AND / OR logic for precise filtering.
+              </p>
+            </div>
+
+            <div className="space-y-6">
+              <h3 className="text-2xl font-bold tracking-tight">
+                Multi-Pane Editing
+              </h3>
+              <p className="text-neutral-600 dark:text-neutral-400 leading-relaxed">
+                Split your workspace into multiple editor panes. Drag tabs between panes, resize with the draggable separator, and work on several files side-by-side.
+              </p>
+              <div className="p-6 bg-neutral-50 dark:bg-neutral-900/50 rounded-2xl border border-black/5 dark:border-white/5 shadow-sm">
+                <div className={guideRow}>
+                  <span className="text-sm font-medium">Split Right</span>
+                  <span className={resultLabel}>Tab Bar Icon</span>
+                </div>
+                <div className={guideRow}>
+                  <span className="text-sm font-medium">Move Tab</span>
+                  <span className={resultLabel}>Drag & Drop</span>
+                </div>
+                <div className={guideRow}>
+                  <span className="text-sm font-medium">Resize Pane</span>
+                  <span className={resultLabel}>Drag Divider</span>
+                </div>
+                <div className={guideRow}>
+                  <span className="text-sm font-medium">Close Pane</span>
+                  <span className={resultLabel}>Tab Bar Icon</span>
+                </div>
+              </div>
+            </div>
+          </div>
         </section>
 
-        {/* --- 02. INTERACTIVE ENGINE --- */}
+        {/* --- 02. WRITING EXPERIENCE --- */}
         <section className="border-t border-black/5 dark:border-white/10 pt-20">
-          <span className={sectionHeading}>02. Interactive Engine</span>
+          <span className={sectionHeading}>02. Writing Experience</span>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-16">
             <div className="space-y-6">
               <h3 className="text-2xl font-bold tracking-tight">
                 Zen Mode
               </h3>
               <p className="text-neutral-600 dark:text-neutral-400 leading-relaxed">
-                Eliminate distractions and focus entirely on the active line. Zen Mode hides all sidebars and enables typewriter scrolling.
+                Eliminate distractions and focus entirely on the active line. Zen Mode hides all sidebars and enables typewriter scrolling—the cursor stays anchored at 40% of the viewport.
               </p>
               <div className="p-6 bg-neutral-50 dark:bg-neutral-900/50 rounded-2xl border border-black/5 dark:border-white/5 shadow-sm">
                 <div className={guideRow}>
@@ -113,6 +189,10 @@ export default function Documentation() {
                   <span className="text-sm font-medium">Focus Highlight</span>
                   <span className={resultLabel}>Active Line Tint</span>
                 </div>
+                <div className={guideRow}>
+                  <span className="text-sm font-medium">Narrow Width</span>
+                  <span className={resultLabel}>~85 Characters</span>
+                </div>
               </div>
             </div>
 
@@ -126,15 +206,87 @@ export default function Documentation() {
               <div className="p-6 bg-neutral-50 dark:bg-neutral-900/50 rounded-2xl border border-black/5 dark:border-white/5 shadow-sm">
                 <div className={guideRow}>
                   <span className="text-sm font-medium">Toggle Task</span>
-                  <span className={resultLabel}>Click `[ ]` or `[x]`</span>
+                  <span className={resultLabel}>Click {"[ ]"} or {"[x]"}</span>
                 </div>
                 <div className={guideRow}>
                   <span className="text-sm font-medium">Cycle Status</span>
-                  <span className={resultLabel}>Click any `#tag`</span>
+                  <span className={resultLabel}>Click any #tag</span>
                 </div>
                 <div className={guideRow}>
                   <span className="text-sm font-medium">Navigate</span>
                   <span className={resultLabel}>CTRL + Click Link</span>
+                </div>
+                <div className={guideRow}>
+                  <span className="text-sm font-medium">Date Picker</span>
+                  <span className={resultLabel}>Click Calendar Icon</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Date Picker */}
+          <div className="mt-16 grid grid-cols-1 md:grid-cols-2 gap-16">
+            <div className="space-y-6">
+              <h3 className="text-2xl font-bold tracking-tight">
+                Date Picker
+              </h3>
+              <p className="text-neutral-600 dark:text-neutral-400 leading-relaxed">
+                A calendar popup appears when your cursor rests on any recognized date format. Quickly change dates without retyping, and switch between date formats on the fly.
+              </p>
+              <div className="p-6 bg-neutral-50 dark:bg-neutral-900/50 rounded-2xl border border-black/5 dark:border-white/5 shadow-sm">
+                <div className={guideRow}>
+                  <span className="font-mono text-sm font-bold text-blue-600 dark:text-blue-400">2025-06-04</span>
+                  <span className={resultLabel}>ISO Format</span>
+                </div>
+                <div className={guideRow}>
+                  <span className="font-mono text-sm font-bold text-blue-600 dark:text-blue-400">06/04/2025</span>
+                  <span className={resultLabel}>Slashed</span>
+                </div>
+                <div className={guideRow}>
+                  <span className="font-mono text-sm font-bold text-blue-600 dark:text-blue-400">04.06.2025</span>
+                  <span className={resultLabel}>Dotted</span>
+                </div>
+                <div className={guideRow}>
+                  <span className="font-mono text-sm font-bold text-purple-600 dark:text-purple-400">{"[[2025-06-04]]"}</span>
+                  <span className={resultLabel}>WikiLink Date</span>
+                </div>
+              </div>
+              <p className="text-ui-footnote opacity-40 italic leading-relaxed font-bold uppercase tracking-widest">
+                Keyboard: Arrow keys navigate days, Enter selects, Escape closes. Alt+Down opens picker.
+              </p>
+            </div>
+
+            <div className="space-y-6">
+              <h3 className="text-2xl font-bold tracking-tight">
+                Keyboard Shortcuts
+              </h3>
+              <p className="text-neutral-600 dark:text-neutral-400 leading-relaxed">
+                Most actions have a keyboard shortcut. Formatting shortcuts wrap any selected text automatically.
+              </p>
+              <div className="p-6 bg-neutral-50 dark:bg-neutral-900/50 rounded-2xl border border-black/5 dark:border-white/5 shadow-sm">
+                <div className={guideRow}>
+                  <span className="text-sm font-medium">Save</span>
+                  <span className={resultLabel}>CTRL+S</span>
+                </div>
+                <div className={guideRow}>
+                  <span className="text-sm font-medium">Bold</span>
+                  <span className={resultLabel}>CTRL+B</span>
+                </div>
+                <div className={guideRow}>
+                  <span className="text-sm font-medium">Italic</span>
+                  <span className={resultLabel}>CTRL+I</span>
+                </div>
+                <div className={guideRow}>
+                  <span className="text-sm font-medium">Zen Mode</span>
+                  <span className={resultLabel}>CTRL+SHIFT+Z</span>
+                </div>
+                <div className={guideRow}>
+                  <span className="text-sm font-medium">Open Link</span>
+                  <span className={resultLabel}>CTRL+Click</span>
+                </div>
+                <div className={guideRow}>
+                  <span className="text-sm font-medium">Date Picker</span>
+                  <span className={resultLabel}>ALT+Down</span>
                 </div>
               </div>
             </div>
@@ -152,14 +304,20 @@ export default function Documentation() {
               <h3 className="text-xs font-bold mb-10 opacity-40 uppercase tracking-[0.3em] text-center">
                 Workflow Lifecycle
               </h3>
-              <div className="flex flex-col sm:flex-row items-center justify-between gap-8 max-w-2xl mx-auto">
-                {["#urgn", "#todo", "#prog", "#done"].map((tag, i, arr) => (
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-8 max-w-3xl mx-auto">
+                {[
+                  { tag: "#urgn", label: "Urgent" },
+                  { tag: "#todo", label: "To-Do" },
+                  { tag: "#prog", label: "Progress" },
+                  { tag: "#wait", label: "Waiting" },
+                  { tag: "#done", label: "Done" },
+                ].map(({ tag, label }, i, arr) => (
                   <React.Fragment key={tag}>
                     <div className="flex flex-col items-center gap-2">
-                       <span className="text-lg font-mono text-blue-400 dark:text-blue-600 font-bold">
+                      <span className="text-lg font-mono text-blue-400 dark:text-blue-600 font-bold">
                         {tag}
                       </span>
-                      <span className="text-ui-footnote uppercase tracking-widest opacity-30 font-bold">{tag === '#urgn' ? 'Urgent' : tag === '#todo' ? 'To-Do' : tag === '#prog' ? 'Progress' : 'Done'}</span>
+                      <span className="text-ui-footnote uppercase tracking-widest opacity-30 font-bold">{label}</span>
                     </div>
                     {i < arr.length - 1 && (
                       <span className="opacity-20 hidden sm:block">→</span>
@@ -176,42 +334,105 @@ export default function Documentation() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-16">
               <div className="space-y-6">
                 <h3 className="text-xs font-bold opacity-30 uppercase tracking-[0.3em]">
-                  Live Shortcodes
+                  Date Shortcodes
                 </h3>
                 <div className="bg-neutral-50 dark:bg-neutral-900/50 p-6 rounded-2xl border border-black/5 dark:border-white/5 shadow-sm font-mono text-xs">
                   <div className={guideRow}>
-                    <span className={syntaxLabel}>..d</span>
-                    <span className={resultLabel}>Current Date</span>
+                    <span className={syntaxLabel}>..d &nbsp;or&nbsp; {"{date}"}</span>
+                    <span className={resultLabel}>Today's Date</span>
+                  </div>
+                  <div className={guideRow}>
+                    <span className={syntaxLabel}>..tomorrow</span>
+                    <span className={resultLabel}>Tomorrow</span>
+                  </div>
+                  <div className={guideRow}>
+                    <span className={syntaxLabel}>..yesterday</span>
+                    <span className={resultLabel}>Yesterday</span>
                   </div>
                   <div className={guideRow}>
                     <span className={syntaxLabel}>{"{time}"}</span>
                     <span className={resultLabel}>Current Time</span>
                   </div>
                   <div className={guideRow}>
+                    <span className={syntaxLabel}>{"{datetime}"}</span>
+                    <span className={resultLabel}>Date + Time</span>
+                  </div>
+                  <div className={guideRow}>
                     <span className={syntaxLabel}>{"{iso}"}</span>
                     <span className={resultLabel}>ISO Timestamp</span>
                   </div>
                   <div className={guideRow}>
-                    <span className={syntaxLabel}>..tomorrow</span>
-                    <span className={resultLabel}>Tomorrow's Date</span>
-                  </div>
-                   <div className={guideRow}>
-                    <span className={syntaxLabel}>{"{check}"}</span>
-                    <span className={resultLabel}>✅ Emoji</span>
+                    <span className={syntaxLabel}>{"{unix}"}</span>
+                    <span className={resultLabel}>Unix Timestamp</span>
                   </div>
                   <div className={guideRow}>
-                    <span className={syntaxLabel}>/</span>
-                    <span className={resultLabel}>Template Menu</span>
+                    <span className={syntaxLabel}>..log</span>
+                    <span className={resultLabel}>[HH:MM] ---</span>
+                  </div>
+                  <div className={guideRow}>
+                    <span className={syntaxLabel}>{"{day}"}</span>
+                    <span className={resultLabel}>Day Name</span>
+                  </div>
+                  <div className={guideRow}>
+                    <span className={syntaxLabel}>{"{week}"}</span>
+                    <span className={resultLabel}>Week Number</span>
                   </div>
                 </div>
               </div>
 
               <div className="space-y-6">
                 <h3 className="text-xs font-bold opacity-30 uppercase tracking-[0.3em]">
+                  Utility Shortcodes
+                </h3>
+                <div className="bg-neutral-50 dark:bg-neutral-900/50 p-6 rounded-2xl border border-black/5 dark:border-white/5 shadow-sm font-mono text-xs">
+                  <div className={guideRow}>
+                    <span className={syntaxLabel}>{"{todo}"}</span>
+                    <span className={resultLabel}>{"- [ ] "} Task</span>
+                  </div>
+                  <div className={guideRow}>
+                    <span className={syntaxLabel}>{"{done}"}</span>
+                    <span className={resultLabel}>{"- [x] "} Task</span>
+                  </div>
+                  <div className={guideRow}>
+                    <span className={syntaxLabel}>/</span>
+                    <span className={resultLabel}>Template Menu</span>
+                  </div>
+                  <div className={guideRow}>
+                    <span className={syntaxLabel}>{"{check}"}</span>
+                    <span className={resultLabel}>✅</span>
+                  </div>
+                  <div className={guideRow}>
+                    <span className={syntaxLabel}>{"{error}"}</span>
+                    <span className={resultLabel}>❌</span>
+                  </div>
+                  <div className={guideRow}>
+                    <span className={syntaxLabel}>{"{idea}"}</span>
+                    <span className={resultLabel}>💡</span>
+                  </div>
+                  <div className={guideRow}>
+                    <span className={syntaxLabel}>{"{warn}"}</span>
+                    <span className={resultLabel}>⚠️</span>
+                  </div>
+                  <div className={guideRow}>
+                    <span className={syntaxLabel}>{"{bug}"}</span>
+                    <span className={resultLabel}>🐛</span>
+                  </div>
+                  <div className={guideRow}>
+                    <span className={syntaxLabel}>{"{star}"}</span>
+                    <span className={resultLabel}>⭐</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Financial */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-16">
+              <div className="space-y-6">
+                <h3 className="text-xs font-bold opacity-30 uppercase tracking-[0.3em]">
                   Financial Intelligence
                 </h3>
                 <div className="bg-neutral-50 dark:bg-neutral-900/50 p-6 rounded-2xl border border-black/5 dark:border-white/5 shadow-sm space-y-6">
-                   <div className="space-y-2">
+                  <div className="space-y-2">
                     <p className="text-ui-footnote leading-relaxed text-neutral-600 dark:text-neutral-400">
                       HermesMarkdown sums all currency values found above a line starting with <code className="font-bold text-blue-600">Total:</code>.
                     </p>
@@ -221,13 +442,111 @@ export default function Documentation() {
                       <div className="text-emerald-600 dark:text-emerald-400 font-bold mt-1 pt-1 border-t border-emerald-500/20">Total: $2400.00</div>
                     </div>
                   </div>
-                  
                   <div className="pt-4 border-t border-black/5">
                     <div className={guideRow}>
                       <span className={syntaxLabel}>calc(100+50)=</span>
                       <span className={resultLabel}>150</span>
                     </div>
                   </div>
+                </div>
+              </div>
+
+              <div className="space-y-6">
+                <h3 className="text-xs font-bold opacity-30 uppercase tracking-[0.3em]">
+                  Auto-Save Modes
+                </h3>
+                <div className="bg-neutral-50 dark:bg-neutral-900/50 p-6 rounded-2xl border border-black/5 dark:border-white/5 shadow-sm">
+                  <div className={guideRow}>
+                    <span className="text-sm font-medium">After Delay</span>
+                    <span className={resultLabel}>0.5s – 10s</span>
+                  </div>
+                  <div className={guideRow}>
+                    <span className="text-sm font-medium">On Focus Change</span>
+                    <span className={resultLabel}>Auto</span>
+                  </div>
+                  <div className={guideRow}>
+                    <span className="text-sm font-medium">Manual</span>
+                    <span className={resultLabel}>CTRL+S</span>
+                  </div>
+                  <div className={guideRow}>
+                    <span className="text-sm font-medium">Conflict Detection</span>
+                    <span className={resultLabel}>On External Edit</span>
+                  </div>
+                </div>
+                <p className="text-ui-footnote opacity-40 italic leading-relaxed font-bold uppercase tracking-widest">
+                  Save status (saving, saved, error) is displayed in the status bar next to the filename.
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* --- 04. TEMPLATES --- */}
+        <section className="border-t border-black/5 dark:border-white/10 pt-20">
+          <span className={sectionHeading}>04. Templates</span>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-16">
+            <div className="space-y-6">
+              <h3 className="text-2xl font-bold tracking-tight">
+                Slash Menu
+              </h3>
+              <p className="text-neutral-600 dark:text-neutral-400 leading-relaxed">
+                Type <code className="font-bold text-blue-600 dark:text-blue-400">/</code> on a blank line to open the template picker. Start typing to filter results. All shortcodes inside templates expand automatically on insert.
+              </p>
+              <div className="p-6 bg-neutral-50 dark:bg-neutral-900/50 rounded-2xl border border-black/5 dark:border-white/5 shadow-sm">
+                <div className={guideRow}>
+                  <span className="text-sm font-medium">Open Menu</span>
+                  <span className={resultLabel}>Type /</span>
+                </div>
+                <div className={guideRow}>
+                  <span className="text-sm font-medium">Filter</span>
+                  <span className={resultLabel}>Keep Typing</span>
+                </div>
+                <div className={guideRow}>
+                  <span className="text-sm font-medium">Navigate</span>
+                  <span className={resultLabel}>Arrow Keys</span>
+                </div>
+                <div className={guideRow}>
+                  <span className="text-sm font-medium">Insert</span>
+                  <span className={resultLabel}>Enter</span>
+                </div>
+                <div className={guideRow}>
+                  <span className="text-sm font-medium">Dismiss</span>
+                  <span className={resultLabel}>Escape</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-6">
+              <h3 className="text-2xl font-bold tracking-tight">
+                Built-In Templates
+              </h3>
+              <p className="text-neutral-600 dark:text-neutral-400 leading-relaxed">
+                A growing library of starter templates covers the most common writing contexts—ready to use with a single keystroke.
+              </p>
+              <div className="p-6 bg-neutral-50 dark:bg-neutral-900/50 rounded-2xl border border-black/5 dark:border-white/5 shadow-sm">
+                <div className={guideRow}>
+                  <span className="text-sm font-medium">📄 Frontmatter</span>
+                  <span className={resultLabel}>YAML Header</span>
+                </div>
+                <div className={guideRow}>
+                  <span className="text-sm font-medium">📝 To-Do List</span>
+                  <span className={resultLabel}>Task Checklist</span>
+                </div>
+                <div className={guideRow}>
+                  <span className="text-sm font-medium">💻 Dev Sprint</span>
+                  <span className={resultLabel}>Dev Workflow</span>
+                </div>
+                <div className={guideRow}>
+                  <span className="text-sm font-medium">🤖 AI Prompt</span>
+                  <span className={resultLabel}>Prompt Template</span>
+                </div>
+                <div className={guideRow}>
+                  <span className="text-sm font-medium">💰 Financial Plan</span>
+                  <span className={resultLabel}>Budget + Totals</span>
+                </div>
+                <div className={guideRow}>
+                  <span className="text-sm font-medium">💪 Gym Log</span>
+                  <span className={resultLabel}>Workout Tracker</span>
                 </div>
               </div>
             </div>
