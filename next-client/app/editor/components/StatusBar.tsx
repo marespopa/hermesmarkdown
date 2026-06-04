@@ -48,7 +48,7 @@ export default function StatusBar() {
   if (!showStats && !isZenModeActive) return null;
 
   return (
-    <footer className="h-8 max-md:border-b md:border-t border-zinc-200/50 dark:border-zinc-800/50 bg-white/50 dark:bg-zinc-950/50 backdrop-blur-3xl flex items-center justify-between px-6 shrink-0 pointer-events-auto z-40 select-none transition-all duration-700 ease-in-out">
+    <footer className={`h-8 ${isZenModeActive ? "border-b" : "max-md:border-b md:border-t"} border-zinc-200/50 dark:border-zinc-800/50 bg-white/50 dark:bg-zinc-950/50 backdrop-blur-3xl flex items-center justify-between px-6 shrink-0 pointer-events-auto z-40 select-none transition-all duration-700 ease-in-out`}>
       {/* Left Side: Cursor & Interactive Metrics */}
       <div className={`flex items-center gap-3 sm:gap-6 text-[9px] font-bold tracking-[0.2em] text-zinc-400 dark:text-zinc-500 uppercase transition-opacity duration-500 ${!showStats ? "opacity-0 pointer-events-none" : "opacity-100"}`}>
         <div className="hidden sm:flex items-center gap-4 pr-6 border-r border-zinc-200/50 dark:border-zinc-800/50 h-3">

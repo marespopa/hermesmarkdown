@@ -39,6 +39,7 @@ describe("PaneLeaf Tab Indicators", () => {
     type: "editor" as const,
     openFilePaths: ["file1.md", "file2.md"],
     activeFilePath: "file1.md",
+    isPinned: false,
   };
 
   beforeEach(() => {

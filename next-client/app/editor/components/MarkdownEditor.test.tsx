@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, cleanup } from "@testing-library/react";
+import { render, screen, fireEvent, cleanup, act } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import MarkdownEditor from "./MarkdownEditor";
 import { Provider } from "jotai";
@@ -13,7 +13,7 @@ vi.mock("@/app/atoms/atoms", async () => {
     atom_isZenModeActive: atom(false),
     atom_isEditorFocused: atom(false),
     atom_cursorPosition: atom({ line: 1, col: 1 }),
-    atom_editorWidth: atom("optimal"),
+    atom_editorWidth: atom("standard"),
   };
 });
 
@@ -132,6 +132,74 @@ describe("MarkdownEditor Functional Tests", () => {
     fireEvent.keyDown(textarea, { key: "i", ctrlKey: true });
     expect(document.execCommand).toHaveBeenCalledWith("insertText", false, "_hello_");
   });
+
+  it("shows date picker when cursor is on a date and clicked", async () => {
+    vi.useFakeTimers();
+    renderEditor("Today is 2026-06-04.");
+    const textarea = screen.getByRole("textbox") as HTMLTextAreaElement;
+
+    // Set selection and focus
+    textarea.focus();
+    textarea.selectionStart = 15; // middle of the date
+    textarea.selectionEnd = 15;
+    
+    fireEvent(document, new Event("selectionchange"));
+
+    // Advance timers to trigger debounced date detection
+    act(() => {
+      vi.advanceTimersByTime(100);
+    });
+
+    // Calendar should NOT be expanded initially
+    expect(screen.queryByText("June 2026")).not.toBeInTheDocument();
+
+    // Click to expand
+    act(() => {
+      fireEvent.click(textarea);
+    });
+    expect(screen.getByText("June 2026")).toBeInTheDocument();
+
+    // Find and click the new Close button
+    const closeButton = screen.getByTitle("Close calendar");
+    expect(closeButton).toBeInTheDocument();
+    
+    act(() => {
+      fireEvent.click(closeButton);
+    });
+    expect(screen.queryByText("June 2026")).not.toBeInTheDocument();
+    
+    vi.useRealTimers();
+    });
+
+    it("updates date and preserves wiki-link format", async () => {
+    vi.useFakeTimers();
+    renderEditor("Log for [[2026-06-04]]");
+    const textarea = screen.getByRole("textbox") as HTMLTextAreaElement;
+
+    textarea.focus();
+    textarea.selectionStart = 15;
+
+    fireEvent(document, new Event("selectionchange"));
+
+    // Advance timers
+    act(() => {
+      vi.advanceTimersByTime(100);
+    });
+
+    // Click to expand
+    act(() => {
+      fireEvent.click(textarea);
+    });
+
+    // Find June 15th and click it
+    const day15 = screen.getByText("15");
+    act(() => {
+      fireEvent.click(day15);
+    });
+
+    expect(mockOnChange).toHaveBeenCalledWith("Log for [[2026-06-15]]");
+    vi.useRealTimers();
+    });
 
   it("processes tags even if clicked at index 0", () => {
     renderEditor("#todo Task");

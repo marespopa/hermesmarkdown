@@ -174,7 +174,7 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
       {/* Pane Tabs Bar - Premium macOS Style */}
       {!isZenModeActive && (
         <div 
-          className="flex items-center bg-zinc-50/50 dark:bg-zinc-950/50 backdrop-blur-3xl border-b border-zinc-200/50 dark:border-zinc-800/50 h-14 pt-2 shrink-0 overflow-x-auto overflow-y-hidden scrollbar-none px-2"
+          className="flex items-center bg-zinc-50/50 dark:bg-zinc-950/50 backdrop-blur-3xl border-b border-zinc-200/50 dark:border-zinc-800/50 h-12 shrink-0 overflow-x-auto overflow-y-hidden scrollbar-none px-2"
           onDragOver={(e) => handleDragOver(e)}
           onDragLeave={handleDragLeave}
           onDrop={(e) => handleDrop(e, leaf.openFilePaths.length)}

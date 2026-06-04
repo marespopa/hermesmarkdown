@@ -78,6 +78,17 @@ export default function LiteEditor() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
+    const handleFocus = () => {
+      // Prevent browser from scrolling the body when focusing inputs
+      if (window.scrollY !== 0) {
+        window.scrollTo(0, 0);
+      }
+    };
+    window.addEventListener("focusin", handleFocus);
+    return () => window.removeEventListener("focusin", handleFocus);
+  }, []);
+
+  useEffect(() => {
     const timer = setTimeout(() => setIsMounting(false), 200);
     return () => clearTimeout(timer);
   }, []);
@@ -207,7 +218,7 @@ export default function LiteEditor() {
 
   return (
     <ErrorBoundary>
-      <div className="flex h-[100dvh] w-full bg-zinc-50 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 selection:bg-blue-500/30 font-sans overflow-hidden overscroll-none">
+      <div className="fixed inset-0 flex bg-zinc-50 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 selection:bg-blue-500/30 font-sans overflow-hidden overscroll-none">
         {/* Modals */}
         <SettingsDialog isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
         <WelcomeWizard />
@@ -281,19 +292,6 @@ export default function LiteEditor() {
 
           {/* Main Editor Area */}
           <div className="flex-1 flex flex-col min-w-0 relative">
-            {/* Floating Mobile Zen Toggle */}
-            {isZenModeActive && (
-              <div className="lg:hidden absolute top-6 right-6 z-50">
-                <Button
-                  variant="icon"
-                  onClick={() => setIsZenModeActive(false)}
-                  className="w-12 h-12 bg-white/50 dark:bg-zinc-900/50 backdrop-blur-xl border border-zinc-200/50 dark:border-zinc-800/50 rounded-2xl shadow-xl text-blue-500 flex items-center justify-center"
-                  title="Exit Zen Mode"
-                >
-                  <HiOutlineEye size={24} />
-                </Button>
-              </div>
-            )}
             <VaultPendingBanner />
             <main className={`flex-1 min-h-0 relative transition-all duration-700 ${isPathSwitching ? "opacity-30 blur-[2px]" : "opacity-100"}`}>
               {isMounting ? (
@@ -308,7 +306,7 @@ export default function LiteEditor() {
               )}
             </main>
 
-            <div className="max-md:order-first shrink-0">
+            <div className={`${isZenModeActive ? "order-first" : "max-md:order-first"} shrink-0`}>
               <StatusBar />
             </div>
           </div>

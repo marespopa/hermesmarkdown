@@ -5,7 +5,6 @@ import { useHydrateAtoms } from "jotai/utils";
 import StatusBar from "./StatusBar";
 import {
   atom_isZenModeActive,
-  atom_isEditorFocused,
   atom_showStats,
 } from "@/app/atoms/atoms";
 import { expect, it, describe, vi } from "vitest";
@@ -47,28 +46,11 @@ describe("StatusBar", () => {
     expect(screen.queryByRole("contentinfo")).toBeNull();
   });
 
-  it("has max-md:h-0 class when focused and NOT in Zen Mode", () => {
+  it("does NOT have border-t class when IN Zen Mode", () => {
     render(
       <TestProvider
         initialValues={[
           [atom_showStats, true],
-          [atom_isEditorFocused, true],
-          [atom_isZenModeActive, false],
-        ]}
-      >
-        <StatusBar />
-      </TestProvider>
-    );
-    const footer = screen.getByRole("contentinfo");
-    expect(footer.className).toContain("max-md:h-0");
-  });
-
-  it("does NOT have max-md:h-0 class when focused and IN Zen Mode", () => {
-    render(
-      <TestProvider
-        initialValues={[
-          [atom_showStats, true],
-          [atom_isEditorFocused, true],
           [atom_isZenModeActive, true],
         ]}
       >
@@ -76,8 +58,24 @@ describe("StatusBar", () => {
       </TestProvider>
     );
     const footer = screen.getByRole("contentinfo");
-    expect(footer.className).not.toContain("max-md:h-0");
-    expect(footer.className).toContain("h-8 opacity-100");
+    expect(footer.className).not.toContain("md:border-t");
+    expect(footer.className).toContain("border-b");
+  });
+
+  it("has border-t class when NOT in Zen Mode (on desktop)", () => {
+    render(
+      <TestProvider
+        initialValues={[
+          [atom_showStats, true],
+          [atom_isZenModeActive, false],
+        ]}
+      >
+        <StatusBar />
+      </TestProvider>
+    );
+    const footer = screen.getByRole("contentinfo");
+    expect(footer.className).toContain("md:border-t");
+    expect(footer.className).toContain("max-md:border-b");
   });
 
   it("renders Zen toggle even if showStats is false, if Zen Mode is active", () => {

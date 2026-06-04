@@ -1,8 +1,15 @@
 "use client";
 
-import React, { useRef, useEffect, useCallback, useState, useMemo } from "react";
+import React, {
+  useRef,
+  useEffect,
+  useCallback,
+  useState,
+  useMemo,
+} from "react";
 import Editor from "react-simple-code-editor";
 import getCaretCoordinates from "textarea-caret";
+import DatePickerCallout from "./DatePickerCallout";
 import { useAtom } from "jotai";
 import {
   atom_fontSize,
@@ -22,7 +29,8 @@ import {
   TEMPLATES,
 } from "./constants";
 
-const FADED = 'class="opacity-[0.15] dark:opacity-[0.2] transition-opacity duration-500 hover:opacity-100"';
+const FADED =
+  'class="opacity-[0.15] dark:opacity-[0.2] transition-opacity duration-500 hover:opacity-100"';
 
 interface MarkdownEditorProps {
   value: string;
@@ -32,6 +40,19 @@ interface MarkdownEditorProps {
   setMatchCount?: (count: number) => void;
   onWikiLinkClick?: (name: string) => void;
 }
+
+interface DateMatch {
+  date: Date;
+  start: number;
+  end: number;
+  format: "iso" | "slashed" | "dotted" | "wiki";
+  rawString: string;
+}
+
+const REGEX_DATE_ISO = /\d{4}-\d{2}-\d{2}/g;
+const REGEX_DATE_SLASHED = /\d{2}\/\d{2}\/\d{4}/g;
+const REGEX_DATE_DOTTED = /\d{2}\.\d{2}\.\d{4}/g;
+const REGEX_DATE_WIKI = /\[\[\d{4}-\d{2}-\d{2}\]\]/g;
 
 const REGEX_CODE_INLINE = /(`)(.*?)(`)/g;
 const REGEX_WIKILINK = /\[\[([^\]]+)\]\]/g;
@@ -47,11 +68,47 @@ const REGEX_CHECKBOX = /^(\s*[-*]\s*\[)([ xX])(\])/;
 const REGEX_URL_PASTE = /^(https?:\/\/[^\s]+)$/i;
 const REGEX_CALC = /calc\(([^)]+)\)=$/;
 
-function processInlineMarkdown(text: string) {
+function processInlineMarkdown(text: string, dateMatch: DateMatch | null = null) {
   let html = text;
 
+  // Handle Dates first for the "Invisible Swapper" effect
+  const transitionClass = "transition-all duration-100 ease-in-out";
+
+  const getUnderlineClass = (matchStr: string) => {
+    if (dateMatch && dateMatch.rawString === matchStr) {
+      return " underline decoration-blue-500 decoration-2 underline-offset-[3px] dark:decoration-blue-400";
+    }
+    return "";
+  };
+
+  if (html.match(/\d/)) {
+    // Wiki Dates
+    html = html.replace(REGEX_DATE_WIKI, (match) => {
+      const underline = getUnderlineClass(match);
+      const date = match.slice(2, -2);
+      return `<span ${FADED}>[[</span><span class="${transitionClass}${underline}">${date}</span><span ${FADED}>]]</span>`;
+    });
+    // ISO Dates
+    html = html.replace(REGEX_DATE_ISO, (match) => {
+      // Only replace if not already wrapped in wiki-link logic above
+      const underline = getUnderlineClass(match);
+      return `<span class="${transitionClass}${underline}">${match}</span>`;
+    });
+    // Slashed/Dotted Dates
+    html = html.replace(
+      REGEX_DATE_SLASHED,
+      (match) => `<span class="${transitionClass}${getUnderlineClass(match)}">${match}</span>`,
+    );
+    html = html.replace(
+      REGEX_DATE_DOTTED,
+      (match) => `<span class="${transitionClass}${getUnderlineClass(match)}">${match}</span>`,
+    );
+  }
+
   if (html.includes("[[")) {
+    // Standard Wikilinks (avoiding double-wrapping dates)
     html = html.replace(REGEX_WIKILINK, (match, content) => {
+      if (match.match(/\[\[\d{4}-\d{2}-\d{2}\]\]/)) return match; // Already handled
       const parts = content.split("|");
       const displayText = parts.length > 1 ? parts[1].trim() : parts[0].trim();
       return `<span ${FADED}>[[</span><span class="text-purple-600 dark:text-purple-400 font-bold underline cursor-pointer">${displayText}</span><span ${FADED}>]]</span>`;
@@ -112,7 +169,12 @@ function processInlineMarkdown(text: string) {
   return html;
 }
 
-function highlightMarkdown(code: string, isZenModeActive: boolean = false, activeLineIndex: number = -1) {
+function highlightMarkdown(
+  code: string,
+  isZenModeActive: boolean = false,
+  activeLineIndex: number = -1,
+  dateMatch: DateMatch | null = null,
+) {
   const lines = code.split("\n");
   let isInsideCodeBlock = false;
 
@@ -140,13 +202,13 @@ function highlightMarkdown(code: string, isZenModeActive: boolean = false, activ
         content = html.replace(
           /^(#{1,6}\s+)(.*)$/,
           (m, hashes, label) =>
-            `<span ${FADED}>${hashes}</span><span class="font-bold text-zinc-900 dark:text-zinc-50">${processInlineMarkdown(label)}</span>`,
+            `<span ${FADED}>${hashes}</span><span class="font-bold text-zinc-900 dark:text-zinc-50">${processInlineMarkdown(label, dateMatch)}</span>`,
         );
       } else if (html.startsWith("&gt;")) {
         content = html.replace(
           /^(&gt;\s?)(.*)$/,
           (m, quote, label) =>
-            `<span ${FADED}>${quote}</span><span class="text-zinc-500 dark:text-zinc-400">${processInlineMarkdown(label)}</span>`,
+            `<span ${FADED}>${quote}</span><span class="text-zinc-500 dark:text-zinc-400">${processInlineMarkdown(label, dateMatch)}</span>`,
         );
       } else if (/^\s*[-*+]\s+/.test(html)) {
         content = html.replace(
@@ -154,11 +216,11 @@ function highlightMarkdown(code: string, isZenModeActive: boolean = false, activ
           (m, bull, check, label) => {
             const isChecked = check?.toLowerCase().includes("x");
             const checkHtml = check ? `<span ${FADED}>${check}</span>` : "";
-            return `<span ${FADED}>${bull}</span>${checkHtml}<span class="${isChecked ? "line-through opacity-40" : "text-zinc-900 dark:text-zinc-100"}">${processInlineMarkdown(label)}</span>`;
+            return `<span ${FADED}>${bull}</span>${checkHtml}<span class="${isChecked ? "line-through opacity-40" : "text-zinc-900 dark:text-zinc-100"}">${processInlineMarkdown(label, dateMatch)}</span>`;
           },
         );
       } else {
-        content = processInlineMarkdown(html);
+        content = processInlineMarkdown(html, dateMatch);
       }
 
       const isActive = isZenModeActive && index === activeLineIndex;
@@ -182,7 +244,9 @@ export default function MarkdownEditor({
   const [isZenModeActive] = useAtom(atom_isZenModeActive);
   const [editorWidth] = useAtom(atom_editorWidth);
 
-  const [windowWidth, setWindowWidth] = useState(typeof window !== "undefined" ? window.innerWidth : 1200);
+  const [windowWidth, setWindowWidth] = useState(
+    typeof window !== "undefined" ? window.innerWidth : 1200,
+  );
 
   useEffect(() => {
     const handleResize = () => setWindowWidth(window.innerWidth);
@@ -198,9 +262,7 @@ export default function MarkdownEditor({
   }, [fontSize, windowWidth]);
 
   const [menuOpen, setMenuOpen] = useState(false);
-  const [isUserScrolling, setIsUserScrolling] = useState(false);
   const [activeLineIndex, setActiveLineIndex] = useState(0);
-  const userScrollTimeout = useRef<NodeJS.Timeout | null>(null);
 
   const [menuPos, setMenuPos] = useState({ top: 0, left: 0 });
   const [filterQuery, setFilterQuery] = useState("");
@@ -209,6 +271,70 @@ export default function MarkdownEditor({
   const [isOverLink, setIsOverLink] = useState(false);
   const [, setCursorPosition] = useAtom(atom_cursorPosition);
   const [, setIsEditorFocused] = useAtom(atom_isEditorFocused);
+
+  const [dateMatch, setDateMatch] = useState<DateMatch | null>(null);
+  const dateMatchRef = useRef<DateMatch | null>(null);
+  const [dateMenuPos, setDateMenuPos] = useState({ top: 0, left: 0, endLeft: 0 });
+  const [isDateExpanded, setIsDateExpanded] = useState(false);
+  const dateDetectionTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const findDateAtPos = useCallback(
+    (text: string, pos: number): DateMatch | null => {
+      // Look in a small window around the cursor for performance
+      const windowSize = 30;
+      const startIdx = Math.max(0, pos - windowSize);
+      const endIdx = Math.min(text.length, pos + windowSize);
+      const subText = text.substring(startIdx, endIdx);
+
+      const checkRegex = (
+        regex: RegExp,
+        format: DateMatch["format"],
+      ): DateMatch | null => {
+        regex.lastIndex = 0;
+        let match;
+        while ((match = regex.exec(subText)) !== null) {
+          const absoluteStart = startIdx + match.index;
+          const absoluteEnd = absoluteStart + match[0].length;
+          if (pos >= absoluteStart && pos <= absoluteEnd) {
+            let dateStr = match[0];
+            if (format === "wiki") {
+              dateStr = dateStr.slice(2, -2);
+            }
+
+            let parsedDate;
+            if (format === "iso" || format === "wiki") {
+              parsedDate = new Date(dateStr);
+            } else if (format === "slashed") {
+              const [m, d, y] = dateStr.split("/").map(Number);
+              parsedDate = new Date(y, m - 1, d);
+            } else if (format === "dotted") {
+              const [d, m, y] = dateStr.split(".").map(Number);
+              parsedDate = new Date(y, m - 1, d);
+            }
+
+            if (parsedDate && !isNaN(parsedDate.getTime())) {
+              return {
+                date: parsedDate,
+                start: absoluteStart,
+                end: absoluteEnd,
+                format,
+                rawString: match[0],
+              };
+            }
+          }
+        }
+        return null;
+      };
+
+      return (
+        checkRegex(REGEX_DATE_WIKI, "wiki") ||
+        checkRegex(REGEX_DATE_ISO, "iso") ||
+        checkRegex(REGEX_DATE_SLASHED, "slashed") ||
+        checkRegex(REGEX_DATE_DOTTED, "dotted")
+      );
+    },
+    [],
+  );
 
   const syncActiveLine = useCallback(() => {
     if (!textareaRef.current) return;
@@ -221,50 +347,60 @@ export default function MarkdownEditor({
       line: lines.length,
       col: lines[lineIndex].length + 1,
     });
-  }, [value, setCursorPosition]);
+
+    // Debounced Date Detection for performance
+    if (dateDetectionTimeoutRef.current)
+      clearTimeout(dateDetectionTimeoutRef.current);
+    dateDetectionTimeoutRef.current = setTimeout(() => {
+      if (!textareaRef.current) return;
+      const match = findDateAtPos(value, pos);
+      if (match) {
+        if (
+          !dateMatchRef.current ||
+          dateMatchRef.current.start !== match.start
+        ) {
+          setIsDateExpanded(false);
+        }
+        setDateMatch(match);
+        dateMatchRef.current = match;
+
+        const caretEnd = getCaretCoordinates(textareaRef.current, match.end);
+        const caretHeight = caretEnd.height || 22;
+
+        setDateMenuPos({
+          top: (caretEnd.top || 0) + caretHeight / 2 - 14, // Refined vertical alignment
+          left: (caretEnd.left || 0) + 4,
+          endLeft: caretEnd.left || 0,
+        });
+      } else {
+        setDateMatch(null);
+        dateMatchRef.current = null;
+        setIsDateExpanded(false);
+      }
+    }, 50); // Small 50ms debounce
+  }, [value, setCursorPosition, findDateAtPos]);
 
   const syncScroll = useCallback(() => {
-    if (!isZenModeActive || isUserScrolling || !textareaRef.current || !wrapperRef.current) return;
-
-    const textarea = textareaRef.current;
-    const wrapper = wrapperRef.current;
-    const { top } = getCaretCoordinates(textarea, textarea.selectionStart);
-
-    // In Zen Mode, we want the caret to be around the middle of the screen
-    // With pt-[50vh], top=0 corresponds to the middle of the screen.
-    const targetScrollTop = top;
-
-    requestAnimationFrame(() => {
-      wrapper.scrollTop = targetScrollTop;
-    });
-  }, [isZenModeActive, isUserScrolling]);
+    // Typewriter scrolling removed as per user request to simplify Zen Mode.
+    return;
+  }, []);
 
   useEffect(() => {
     const handleSelectionChange = () => {
       if (document.activeElement !== textareaRef.current) return;
-      
+
       const textarea = textareaRef.current;
       if (!textarea) return;
-      const isCollapsed = textarea.selectionStart === textarea.selectionEnd;
-
-      // Only sync scroll when the selection is a cursor (collapsed),
-      // to avoid jumping during dragging/range selection.
-      if (isCollapsed) {
-        syncScroll();
-      }
       syncActiveLine();
     };
     document.addEventListener("selectionchange", handleSelectionChange);
-    
+
     // Trigger sync immediately and during transition when Zen Mode is toggled
-    // We wait for the sidebar transitions to finish for accurate centering
     const timer1 = setTimeout(() => {
-      syncScroll();
       syncActiveLine();
     }, 350);
 
     const timer2 = setTimeout(() => {
-      syncScroll();
       syncActiveLine();
     }, 700);
 
@@ -273,34 +409,34 @@ export default function MarkdownEditor({
       clearTimeout(timer1);
       clearTimeout(timer2);
     };
-  }, [isZenModeActive, syncScroll, syncActiveLine]);
-
-  const handleScroll = useCallback(() => {
-    if (!isZenModeActive) return;
-    setIsUserScrolling(true);
-    if (userScrollTimeout.current) clearTimeout(userScrollTimeout.current);
-    userScrollTimeout.current = setTimeout(() => {
-      setIsUserScrolling(false);
-    }, 1500);
-  }, [isZenModeActive]);
+  }, [syncActiveLine]);
 
   const filteredTemplates = TEMPLATES.filter((t) =>
     t.label.toLowerCase().includes(filterQuery.toLowerCase()),
   );
 
-  const highlight = useCallback((code: string) => {
-    return highlightMarkdown(code, isZenModeActive, activeLineIndex);
-  }, [isZenModeActive, activeLineIndex]);
+  const highlight = useCallback(
+    (code: string) => {
+      return highlightMarkdown(code, isZenModeActive, activeLineIndex, dateMatch);
+    },
+    [isZenModeActive, activeLineIndex, dateMatch],
+  );
 
-  const widthClasses = {
-    standard: "max-w-full px-4 md:px-8",
-    narrow: "max-w-[95%] md:max-w-[850px] mx-auto",
-  };
+  const widthClass = useMemo(() => {
+    const widthClasses = {
+      standard: "max-w-full px-4 md:px-8",
+      narrow: "max-w-[95%] md:max-w-[850px] mx-auto",
+    };
+    return widthClasses[editorWidth] || widthClasses.standard;
+  }, [editorWidth]);
 
-  const paddingClasses = {
-    standard: "",
-    narrow: "px-1",
-  };
+  const paddingClass = useMemo(() => {
+    const paddingClasses = {
+      standard: "",
+      narrow: "px-1",
+    };
+    return paddingClasses[editorWidth] || paddingClasses.standard;
+  }, [editorWidth]);
 
   function findLinkAtPos(text: string, pos: number) {
     let match;
@@ -463,20 +599,14 @@ export default function MarkdownEditor({
         if (!menuOpen) {
           const caret = getCaretCoordinates(textarea, start - query.length);
           const menuHeight = 240;
-          
-          // In Zen Mode, we have 40svh padding at the top of the editor-container
-          // caret.top is relative to the textarea (which starts after the padding)
-          // We need to account for this padding when positioning the menu relative to the wrapper
-          const zenPadding = isZenModeActive ? (wrapperRef.current?.clientHeight || window.innerHeight) * 0.4 : 0;
-          const adjustedTop = caret.top + zenPadding;
-          
+
           const spaceBelow =
-            textarea.clientHeight + zenPadding * 2 - (adjustedTop - textarea.scrollTop);
+            textarea.clientHeight - (caret.top - textarea.scrollTop);
           const shouldShowUp =
-            spaceBelow < menuHeight && adjustedTop > menuHeight;
-            
+            spaceBelow < menuHeight && caret.top > menuHeight;
+
           setMenuPos({
-            top: shouldShowUp ? adjustedTop - menuHeight - 8 : adjustedTop + 24,
+            top: shouldShowUp ? caret.top - menuHeight - 8 : caret.top + 24,
             left: Math.min(caret.left, textarea.clientWidth - 220),
           });
           setMenuOpen(true);
@@ -527,10 +657,43 @@ export default function MarkdownEditor({
     });
   }
 
+  function handleDateSelect(newDate: Date) {
+    if (!dateMatch || !textareaRef.current) return;
+
+    const y = newDate.getFullYear();
+    const m = String(newDate.getMonth() + 1).padStart(2, "0");
+    const d = String(newDate.getDate()).padStart(2, "0");
+
+    let formatted = "";
+    if (dateMatch.format === "iso") formatted = `${y}-${m}-${d}`;
+    else if (dateMatch.format === "wiki") formatted = `[[${y}-${m}-${d}]]`;
+    else if (dateMatch.format === "slashed") formatted = `${m}/${d}/${y}`;
+    else if (dateMatch.format === "dotted") formatted = `${d}.${m}.${y}`;
+
+    // Keep Focus Active: Focus before mutating
+    textareaRef.current.focus();
+
+    // Use setRangeText to preserve native Undo/Redo stack
+    textareaRef.current.setRangeText(formatted, dateMatch.start, dateMatch.end, "end");
+    
+    // Dispatch input event to notify React/react-simple-code-editor
+    textareaRef.current.dispatchEvent(new Event("input", { bubbles: true }));
+
+    setDateMatch(null);
+    dateMatchRef.current = null;
+    setIsDateExpanded(false);
+  }
+
   function handleEditorClick(e: React.MouseEvent<any>) {
     const textarea = e.currentTarget as HTMLTextAreaElement;
     if (textarea.selectionStart === undefined) return;
     const pos = textarea.selectionStart;
+
+    if (dateMatch && pos >= dateMatch.start && pos <= dateMatch.end) {
+      if (!isDateExpanded) {
+        setIsDateExpanded(true);
+      }
+    }
 
     if (e.ctrlKey || e.metaKey) {
       const link = findLinkAtPos(value, pos);
@@ -583,6 +746,12 @@ export default function MarkdownEditor({
   }
 
   function handleGlobalKeyDown(e: React.KeyboardEvent) {
+    if (e.altKey && e.key === "ArrowDown" && dateMatch) {
+      e.preventDefault();
+      setIsDateExpanded(true);
+      return;
+    }
+
     if (e.ctrlKey || e.metaKey) {
       if (e.key === "b") {
         e.preventDefault();
@@ -610,6 +779,11 @@ export default function MarkdownEditor({
       }
     }
 
+    if (isDateExpanded && e.key === "Escape") {
+      setIsDateExpanded(false);
+      return;
+    }
+
     if (!menuOpen) return;
 
     if (e.key === "ArrowDown") {
@@ -628,6 +802,8 @@ export default function MarkdownEditor({
       }
     } else if (e.key === "Escape") {
       setMenuOpen(false);
+      setDateMatch(null);
+      dateMatchRef.current = null;
     }
   }
 
@@ -635,7 +811,6 @@ export default function MarkdownEditor({
     <div
       ref={wrapperRef}
       onKeyDown={handleGlobalKeyDown}
-      onScroll={handleScroll}
       onClick={(e) => {
         if (e.target === e.currentTarget && textareaRef.current) {
           textareaRef.current.focus();
@@ -649,7 +824,7 @@ export default function MarkdownEditor({
           if (e.target === e.currentTarget && textareaRef.current) {
             const textarea = textareaRef.current;
             textarea.focus();
-            
+
             // If already focused and clicked padding, avoid resetting cursor to end
             // unless we're clicking specifically below the text area.
             const rect = textarea.getBoundingClientRect();
@@ -663,7 +838,7 @@ export default function MarkdownEditor({
         }}
         className={`editor-container relative min-h-full antialiased normal-nums [font-variant-ligatures:none] [font-feature-settings:'liga'_0,'calt'_0] 
           transition-[padding,max-width,opacity] duration-700 [transition-timing-function:cubic-bezier(0.4,0,0.2,1)]
-          ${isZenModeActive ? "max-w-[75ch] mx-auto pt-[40svh] pb-[40svh]" : `pt-1 pb-12 mx-auto ${widthClasses[editorWidth]} ${paddingClasses[editorWidth]}`}
+          ${isZenModeActive ? "max-w-[85ch] w-full mx-auto pt-8 pb-32 px-4 md:px-12" : `pt-1 pb-12 mx-auto ${widthClass} ${paddingClass}`}
           ${wordWrap ? "w-full" : "w-max min-w-full"}
           [&_textarea]:!bg-transparent [&_textarea]:!text-transparent [&_textarea]:!caret-blue-500
           [&_textarea]:!z-10 [&_pre]:!z-0 [&_pre]:!pointer-events-none
@@ -674,58 +849,86 @@ export default function MarkdownEditor({
         `}
         style={{ fontFamily, fontSize: displayFontSize }}
       >
+        <div className="relative">
+          {dateMatch && (
+            <>
+              {isDateExpanded && (
+                <div
+                  className="absolute z-50 pointer-events-auto"
+                  style={{
+                    top: dateMenuPos.top + 32,
+                    left: Math.max(
+                      10,
+                      Math.min(
+                        dateMenuPos.left,
+                        (textareaRef.current?.clientWidth || 800) - 280,
+                      ),
+                    ),
+                  }}
+                >
+                  <DatePickerCallout
+                    initialDate={dateMatch.date}
+                    onSelectDate={handleDateSelect}
+                    onClose={() => setIsDateExpanded(false)}
+                  />
+                </div>
+              )}
+            </>
+          )}
+
+          {menuOpen && filteredTemplates.length > 0 && (
+            <div
+              className="absolute z-50 w-52 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg shadow-2xl py-1 overflow-hidden"
+              style={{ top: menuPos.top, left: menuPos.left, fontFamily }}
+            >
+              {filteredTemplates.map((t, i) => (
+                <div
+                  key={t.label}
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    insertTemplate(t.content);
+                  }}
+                  className={`px-3 py-2 cursor-pointer text-sm transition-colors ${
+                    i === selectedIndex
+                      ? "bg-amber-100 dark:bg-neutral-900 text-amber-900 dark:text-zinc-100"
+                      : "text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                  }`}
+                >
+                  {t.label}
+                </div>
+              ))}
+            </div>
+          )}
+
+          <Editor
+            value={value}
+            onValueChange={handleValueChange}
+            highlight={highlight}
+            padding={0}
+            onClick={handleEditorClick}
+            onPaste={handlePaste}
+            onMouseMove={handleMouseMove}
+            onFocus={() => setIsEditorFocused(true)}
+            onBlur={() => setIsEditorFocused(false)}
+            textareaClassName={
+              isCtrlPressed && isOverLink ? "!cursor-pointer" : "!cursor-text"
+            }
+          />
+        </div>
+
         {!value && (
-          <div 
+          <div
             className="absolute left-0 right-0 opacity-20 pointer-events-none italic"
-            style={{ 
-              paddingLeft: editorWidth === 'narrow' ? '0' : 'inherit',
-              paddingRight: editorWidth === 'narrow' ? '0' : 'inherit',
-              top: isZenModeActive ? '40svh' : '4px', // Matches pt-1 (4px) or pt-[40svh]
-              lineHeight: '1.8'
+            style={{
+              paddingLeft: editorWidth === "narrow" ? "0" : "inherit",
+              paddingRight: editorWidth === "narrow" ? "0" : "inherit",
+              top: isZenModeActive ? "32px" : "4px", // Matches pt-1 (4px) or pt-8 (32px)
+              lineHeight: "1.8",
             }}
           >
             {placeholder}
           </div>
         )}
-
-        {menuOpen && filteredTemplates.length > 0 && (
-          <div
-            className="absolute z-50 w-52 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg shadow-2xl py-1 overflow-hidden"
-            style={{ top: menuPos.top, left: menuPos.left, fontFamily }}
-          >
-            {filteredTemplates.map((t, i) => (
-              <div
-                key={t.label}
-                onMouseDown={(e) => {
-                  e.preventDefault();
-                  insertTemplate(t.content);
-                }}
-                className={`px-3 py-2 cursor-pointer text-sm transition-colors ${
-                  i === selectedIndex
-                    ? "bg-amber-100 dark:bg-neutral-900 text-amber-900 dark:text-zinc-100"
-                    : "text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800"
-                }`}
-              >
-                {t.label}
-              </div>
-            ))}
-          </div>
-        )}
-
-        <Editor
-          value={value}
-          onValueChange={handleValueChange}
-          highlight={highlight}
-          padding={0}
-          onClick={handleEditorClick}
-          onPaste={handlePaste}
-          onMouseMove={handleMouseMove}
-          onFocus={() => setIsEditorFocused(true)}
-          onBlur={() => setIsEditorFocused(false)}
-          textareaClassName={
-            isCtrlPressed && isOverLink ? "!cursor-pointer" : "!cursor-text"
-          }
-        />
       </div>
     </div>
   );
