@@ -60,6 +60,10 @@ export default function Documentation() {
                   <span className={resultLabel}>Context Menu</span>
                 </div>
                 <div className={guideRow}>
+                  <span className="text-sm font-medium">New Folder</span>
+                  <span className={resultLabel}>Sidebar + Button</span>
+                </div>
+                <div className={guideRow}>
                   <span className="text-sm font-medium">Import File</span>
                   <span className={resultLabel}>Sidebar Import</span>
                 </div>
@@ -418,6 +422,10 @@ export default function Documentation() {
                     <span className={resultLabel}>🐛</span>
                   </div>
                   <div className={guideRow}>
+                    <span className={syntaxLabel}>{"{fix}"}</span>
+                    <span className={resultLabel}>🛠️</span>
+                  </div>
+                  <div className={guideRow}>
                     <span className={syntaxLabel}>{"{star}"}</span>
                     <span className={resultLabel}>⭐</span>
                   </div>
@@ -525,12 +533,36 @@ export default function Documentation() {
               </p>
               <div className="p-6 bg-neutral-50 dark:bg-neutral-900/50 rounded-2xl border border-black/5 dark:border-white/5 shadow-sm">
                 <div className={guideRow}>
+                  <span className="text-sm font-medium">🗓️ Daily Note</span>
+                  <span className={resultLabel}>Journal + Tasks</span>
+                </div>
+                <div className={guideRow}>
+                  <span className="text-sm font-medium">📋 Meeting Notes</span>
+                  <span className={resultLabel}>Agenda + Actions</span>
+                </div>
+                <div className={guideRow}>
+                  <span className="text-sm font-medium">🧠 Atomic Note</span>
+                  <span className={resultLabel}>Linked Idea</span>
+                </div>
+                <div className={guideRow}>
+                  <span className="text-sm font-medium">📆 Weekly Review</span>
+                  <span className={resultLabel}>Wins + Planning</span>
+                </div>
+                <div className={guideRow}>
+                  <span className="text-sm font-medium">✍️ Essay</span>
+                  <span className={resultLabel}>Long-form Writing</span>
+                </div>
+                <div className={guideRow}>
                   <span className="text-sm font-medium">📄 Frontmatter</span>
                   <span className={resultLabel}>YAML Header</span>
                 </div>
                 <div className={guideRow}>
                   <span className="text-sm font-medium">📝 To-Do List</span>
                   <span className={resultLabel}>Task Checklist</span>
+                </div>
+                <div className={guideRow}>
+                  <span className="text-sm font-medium">📝 Notes</span>
+                  <span className={resultLabel}>Quick Capture</span>
                 </div>
                 <div className={guideRow}>
                   <span className="text-sm font-medium">💻 Dev Sprint</span>
