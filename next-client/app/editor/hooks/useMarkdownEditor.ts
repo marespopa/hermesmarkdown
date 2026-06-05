@@ -14,6 +14,7 @@ import { useEditorAppearance } from "./use-editor-appearance";
 import { useEditorSync } from "./use-editor-sync";
 import { useEditorTemplates } from "./use-editor-templates";
 import { useEditorHandlers } from "./use-editor-handlers";
+import { useLinkPill } from "./use-link-pill";
 
 interface UseMarkdownEditorProps {
   value: string;
@@ -58,6 +59,18 @@ export function useMarkdownEditor({
     setIsDateExpanded,
   });
 
+  const { pillUrl, pillLabel, pillPos, pillRange, setPillUrl, detectLinkAtCaret } = useLinkPill({ value, textareaRef });
+
+  const handleSaveLink = useCallback((newLabel: string, newUrl: string) => {
+    if (!pillRange || !textareaRef.current) return;
+    const textarea = textareaRef.current;
+    const newLinkText = `[${newLabel}](${newUrl})`;
+    textarea.focus();
+    textarea.setRangeText(newLinkText, pillRange.start, pillRange.end, "end");
+    textarea.dispatchEvent(new Event("input", { bubbles: true }));
+    setPillUrl(null);
+  }, [pillRange, textareaRef, setPillUrl]);
+
   const {
     menuOpen,
     setMenuOpen,
@@ -100,6 +113,9 @@ export function useMarkdownEditor({
     insertTemplate,
     syncScroll,
     syncActiveLine,
+    pillUrl,
+    setPillUrl,
+    onDetectLinkPill: detectLinkAtCaret,
   });
 
   useEffect(() => {
@@ -229,5 +245,11 @@ export function useMarkdownEditor({
     paddingClass,
     syncScroll,
     syncActiveLine,
+    pillUrl,
+    pillLabel,
+    pillPos,
+    pillRange,
+    setPillUrl,
+    handleSaveLink,
   };
 }

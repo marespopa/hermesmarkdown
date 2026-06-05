@@ -82,29 +82,60 @@ export const SHORTCODES: Record<string, () => string> = {
 };
 
 export const TEMPLATES = [
+  // --- Obsidian / Daily Driver ---
+  {
+    label: "🗓️ Daily Note",
+    content:
+      "# {day}, {date}\n> 📅 Week: {week}\n\n## 📓 Journal\n\n\n## ✅ Tasks\n- [ ] \n- [ ] \n- [ ] \n\n## 🔗 Links\n- [[{date}]]\n\n#todo",
+  },
+  {
+    label: "📋 Meeting Notes",
+    content:
+      "# Meeting – {date}\n> 🕐 {time}\n> 📌 Topic: \n\n## 👥 Attendees\n- \n\n## 📋 Agenda\n- \n\n## ✅ Decisions\n- \n\n## 🎯 Action Items\n- [ ]  #todo\n- [ ]  #todo",
+  },
+  {
+    label: "🧠 Atomic Note",
+    content:
+      "# \n> 📅 {date}  ·  Source: [[]]\n\n## Summary\n\n\n## Key Ideas\n- \n- \n\n## Links\n- [[]]\n- [[]]",
+  },
+  {
+    label: "📆 Weekly Review",
+    content:
+      "# Weekly Review – {week}\n> 📅 {date}\n\n## 🏆 Wins\n- \n\n## 🔄 Carry-overs\n- [ ]  #wait\n- [ ]  #wait\n\n## 🎯 Next Week\n- [ ]  #todo\n- [ ]  #todo\n- [ ]  #todo\n\n## 💡 Reflection\n",
+  },
+  // --- Writing (iAWriter) ---
+  {
+    label: "✍️ Essay",
+    content:
+      "# Title\n> {date}\n\n## Lead\n\n\n## Body\n\n### \n\n### \n\n## Closing\n",
+  },
+  // --- Productivity ---
   {
     label: "📄 Frontmatter",
-    content: "---\ntitle: \ndate: {date}\ntags: #tag\n---",
+    content: "---\ntitle: \ndate: {date}\nday: {day}\nweek: {week}\ntags: #tag\n---",
   },
   {
     label: "📝 To-Do List",
     content:
-      "# To-Do List ✏️\n-   Task\n- [x] Completed Task\n\n## Priority Tasks 🎯\n-   Task",
-  },
-  {
-    label: "💻 Dev Sprint",
-    content:
-      "# 🛠️ Development Log\n> 📅 Date: {date}\n> 🎯 Focus: \n\n## 🚀 Changes\n-   Update \n-   Refactor \n\n## 🐛 Bugs to Fix\n-   Issue description #urgn\n\nstatus: #prog",
+      "# ✏️ To-Do – {date}\n\n## 🎯 Priority\n- [ ]  #urgn\n- [ ]  #urgn\n\n## 📋 Tasks\n- [ ]  #todo\n- [ ]  #todo\n- [ ]  #todo\n\n## ✅ Done\n- [x] Example task #done",
   },
   {
     label: "📝 Notes",
-    content: "# {date} Notes\n\n## Summary\n\n\n## Actions\n- [ ] ",
+    content:
+      "# {day}, {date} – Notes\n\n## Summary\n\n\n## Actions\n- [ ] \n- [ ] ",
+  },
+  // --- Dev ---
+  {
+    label: "💻 Dev Sprint",
+    content:
+      "# 🛠️ Dev Log – {date}\n> 📅 Week: {week}\n> 🎯 Focus: \n\n## 🚀 Changes\n- [ ] Update  #todo\n- [ ] Refactor  #todo\n\n## 🐛 Bugs\n- [ ] Issue description  #urgn\n- See also: [[]]\n\nstatus: #prog",
   },
   {
     label: "🤖 AI Prompt",
     content:
-      "## Objective\n\n\n## Context\n\n\n## Data\n\n\n## Output Format\n",
+      "# AI Prompt – {date}\n\n## Objective\n\n\n## Context\n\n\n## Data\n\n\n## Output Format\n",
   },
+  // --- Personal ---
   {
     label: "💰 Financial Plan",
     content:
@@ -113,6 +144,11 @@ export const TEMPLATES = [
   {
     label: "💪 Gym Log",
     content:
-      "# 🏋️ Workout\n> 📅 Date: {date}\n> ⚡ Split: (Push / Pull / Legs / Upper / Lower)\n\n## 🏃 Exercises\n-   Exercise \n-   Exercise \n-   Exercise ",
+      "# 🏋️ Workout – {day}\n> 📅 {date}\n> ⚡ Split: (Push / Pull / Legs / Upper / Lower)\n\n## 🏃 Exercises\n- [ ] \n- [ ] \n- [ ] ",
+  },
+  {
+    label: "🗂️ Kanban Board",
+    content:
+      "# 🗂️ Kanban – {date}\n\n## 🔴 Urgent\n- [ ] Task  #urgn\n- [ ] Task  #urgn\n\n## 📋 To Do\n- [ ] Task  #todo\n- [ ] Task  #todo\n- [ ] Task  #todo\n\n## 🔄 In Progress\n- [ ] Task  #prog\n- [ ] Task  #prog\n\n## ⏳ Waiting\n- [ ] Task  #wait\n\n## ✅ Done\n- [x] Example task  #done",
   },
 ];

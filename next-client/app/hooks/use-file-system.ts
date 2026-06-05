@@ -28,10 +28,11 @@ export function useFileSystem() {
     indexVaultTags: vaultManager.indexVaultTags 
   });
   
-  const fileCrud = useFileCrud({ 
-    scanVault: vaultManager.scanVault, 
+  const fileCrud = useFileCrud({
+    scanVault: vaultManager.scanVault,
     indexVaultTags: vaultManager.indexVaultTags,
-    openFile: fileEditor.openFile
+    openFile: fileEditor.openFile,
+    navigateTo: vaultManager.navigateTo,
   });
 
   return {

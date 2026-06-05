@@ -14,16 +14,17 @@ interface UseCreateItemProps {
   scanVault: (handle: FileSystemDirectoryHandle) => Promise<void>;
   indexVaultTags: (passedHandle?: FileSystemDirectoryHandle) => Promise<void>;
   openFile: (fileHandle: FileSystemFileHandle, providedPath?: string, force?: boolean) => Promise<void>;
+  navigateTo: (handle: FileSystemDirectoryHandle) => Promise<void>;
 }
 
-export function useCreateItem({ scanVault, indexVaultTags, openFile }: UseCreateItemProps) {
+export function useCreateItem({ scanVault, indexVaultTags, openFile, navigateTo }: UseCreateItemProps) {
   const [vaultHandle] = useAtom(atom_vaultHandle);
   const [currentDirectoryHandle] = useAtom(atom_currentDirectoryHandle);
   const dialog = useDialog();
 
   const createFile = useCallback(
-    async (name: string, content: string = "") => {
-      const targetDir = currentDirectoryHandle || vaultHandle;
+    async (name: string, content: string = "", dirOverride?: FileSystemDirectoryHandle) => {
+      const targetDir = dirOverride || currentDirectoryHandle || vaultHandle;
       if (!targetDir) return null;
 
       const baseName = name.endsWith(".md") ? name.slice(0, -3) : name;
@@ -62,17 +63,18 @@ export function useCreateItem({ scanVault, indexVaultTags, openFile }: UseCreate
 
         // Calculate path for opening
         let path = fileName;
-        if (vaultHandle && currentDirectoryHandle) {
+        const resolveDir = dirOverride || currentDirectoryHandle;
+        if (vaultHandle && resolveDir) {
           let isRoot = false;
           try {
-            isRoot = await (vaultHandle as any).isSameEntry(currentDirectoryHandle);
+            isRoot = await (vaultHandle as any).isSameEntry(resolveDir);
           } catch {
-            isRoot = vaultHandle.name === currentDirectoryHandle.name;
+            isRoot = vaultHandle.name === resolveDir.name;
           }
 
           if (!isRoot) {
             try {
-              const relativePath = await (vaultHandle as any).resolve(currentDirectoryHandle);
+              const relativePath = await (vaultHandle as any).resolve(resolveDir);
               if (relativePath) {
                 path = [...relativePath, fileName].join("/");
               }
@@ -95,34 +97,36 @@ export function useCreateItem({ scanVault, indexVaultTags, openFile }: UseCreate
     [vaultHandle, currentDirectoryHandle, scanVault, indexVaultTags, openFile],
   );
 
-  const createNewFile = useCallback(async () => {
-    const targetDir = currentDirectoryHandle || vaultHandle;
+  const createNewFile = useCallback(async (dirHandle?: FileSystemDirectoryHandle) => {
+    const targetDir = dirHandle || currentDirectoryHandle || vaultHandle;
     if (!targetDir) return;
+
+    if (dirHandle) await navigateTo(dirHandle);
 
     const name = await dialog.prompt("Enter file name (without .md):", "", "New File");
     if (!name) return;
 
-    return await createFile(name, "");
-  }, [vaultHandle, currentDirectoryHandle, createFile, dialog]);
+    return await createFile(name, "", dirHandle);
+  }, [vaultHandle, currentDirectoryHandle, createFile, dialog, navigateTo]);
 
-  const createNewFolder = useCallback(async () => {
-    const targetDir = currentDirectoryHandle || vaultHandle;
+  const createNewFolder = useCallback(async (dirHandle?: FileSystemDirectoryHandle) => {
+    const targetDir = dirHandle || currentDirectoryHandle || vaultHandle;
     if (!targetDir) return;
+
+    if (dirHandle) await navigateTo(dirHandle);
 
     const name = await dialog.prompt("Enter folder name:", "", "New Folder");
     if (!name) return;
 
     try {
-      await withRetry(() => targetDir.getDirectoryHandle(name, {
-        create: true,
-      }));
+      await withRetry(() => targetDir.getDirectoryHandle(name, { create: true }));
       await scanVault(targetDir);
       toast.success("Folder created: " + name);
     } catch (err: any) {
       console.error("File System Error:", err?.message || err);
       toast.error("Failed to create folder");
     }
-  }, [vaultHandle, currentDirectoryHandle, scanVault, dialog]);
+  }, [vaultHandle, currentDirectoryHandle, scanVault, dialog, navigateTo]);
 
   return {
     createFile,

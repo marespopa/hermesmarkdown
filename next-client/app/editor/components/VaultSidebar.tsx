@@ -4,9 +4,9 @@ import React, { useState } from "react";
 import { useFileSystem } from "@/app/hooks/use-file-system";
 import {
   HiOutlineChevronLeft,
-  HiOutlineX,
   HiOutlineCog,
   HiOutlineCloud,
+  HiOutlineFolderAdd,
 } from "react-icons/hi";
 import { VscNewFile } from "react-icons/vsc";
 import Button from "@/app/components/Button";
@@ -49,7 +49,9 @@ export default function VaultSidebar({
     navigateBack,
     deleteFile,
     renameFile,
+    moveItem,
     createNewFile,
+    createNewFolder,
     isVaultPending,
     restoreVault,
     isVaultSupported,
@@ -159,9 +161,18 @@ export default function VaultSidebar({
                 className="w-10 h-10 opacity-60 hover:opacity-100 text-zinc-600 dark:text-zinc-400"
                 onClick={onNewFile}
                 disabled={!vaultHandle}
-                title={vaultHandle ? "New Note" : "Open a folder to create files"}
+                title={vaultHandle ? "New File" : "Open a folder to create files"}
               >
                 <VscNewFile size={18} />
+              </Button>
+              <Button
+                variant="icon"
+                className="w-10 h-10 opacity-60 hover:opacity-100 text-zinc-600 dark:text-zinc-400"
+                onClick={() => createNewFolder()}
+                disabled={!vaultHandle}
+                title={vaultHandle ? "New Folder" : "Open a folder to create folders"}
+              >
+                <HiOutlineFolderAdd size={18} />
               </Button>
 
               <Button
@@ -176,11 +187,11 @@ export default function VaultSidebar({
               {onClose && (
                 <Button
                   variant="icon"
-                  className="w-10 h-10 opacity-60 hover:opacity-100 lg:hidden"
+                  className="w-10 h-10 opacity-60 hover:opacity-100"
                   onClick={onClose}
-                  title="Close Sidebar"
+                  title="Collapse Sidebar"
                 >
-                  <HiOutlineX size={18} />
+                  <HiOutlineChevronLeft size={18} />
                 </Button>
               )}
           </div>
@@ -202,38 +213,46 @@ export default function VaultSidebar({
           <VaultSidebarPending restoreVault={restoreVault} />
         ) : (
           <>
-            <VaultSidebarFiles
-              isFilesExpanded={isFilesExpanded}
-              setIsFilesExpanded={setIsFilesExpanded}
-              onNewFile={onNewFile}
-              createNewFile={createNewFile}
-              searchQuery={searchQuery}
-              setSearchQuery={setSearchQuery}
-              processedFiles={processedFiles}
-              selectedTag={selectedTag}
-              activeFilePath={activeFilePath}
-              openFile={openFile}
-              navigateTo={navigateTo}
-              renameFile={renameFile}
-              deleteFile={deleteFile}
-              onClose={onClose}
-            />
+            <div className="rounded-2xl bg-zinc-100/60 dark:bg-zinc-800/30">
+              <VaultSidebarFiles
+                isFilesExpanded={isFilesExpanded}
+                setIsFilesExpanded={setIsFilesExpanded}
+                onNewFile={onNewFile}
+                createNewFile={createNewFile}
+                createNewFolder={createNewFolder}
+                isAtRoot={!!isAtRoot}
+                onNavigateBack={navigateBack}
+                searchQuery={searchQuery}
+                setSearchQuery={setSearchQuery}
+                processedFiles={processedFiles}
+                selectedTag={selectedTag}
+                activeFilePath={activeFilePath}
+                openFile={openFile}
+                navigateTo={navigateTo}
+                renameFile={renameFile}
+                deleteFile={deleteFile}
+                moveItem={moveItem}
+                onClose={onClose}
+              />
+            </div>
 
-            <VaultSidebarFilters
-              selectedTag={selectedTag}
-              setSelectedTag={setSelectedTag}
-              tags={tags}
-              isTagsExpanded={isTagsExpanded}
-              setIsTagsExpanded={setIsTagsExpanded}
-              tagSearchQuery={tagSearchQuery}
-              setTagSearchQuery={setTagSearchQuery}
-              processedTags={processedTags}
-            />
+            <div className="rounded-2xl bg-zinc-100/60 dark:bg-zinc-800/30">
+              <VaultSidebarFilters
+                selectedTag={selectedTag}
+                setSelectedTag={setSelectedTag}
+                tags={tags}
+                isTagsExpanded={isTagsExpanded}
+                setIsTagsExpanded={setIsTagsExpanded}
+                tagSearchQuery={tagSearchQuery}
+                setTagSearchQuery={setTagSearchQuery}
+                processedTags={processedTags}
+              />
+            </div>
           </>
         )}
 
         {!selectedTag && (
-          <div className="pt-2">
+          <div className="rounded-2xl bg-zinc-100/60 dark:bg-zinc-800/30">
             <SmartFolders
               onFileSelect={(handle, path) => {
                 openFile(handle, path);

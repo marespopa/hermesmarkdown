@@ -5,12 +5,14 @@ import { useAtom } from "jotai";
 import { atom_hasCompletedOnboarding, atom_isWizardOpen } from "@/app/atoms/atoms";
 import DialogModal from "@/app/components/DialogModal/DialogModal";
 import Button from "@/app/components/Button";
-import { 
-  HiOutlineSparkles, 
-  HiOutlineLightningBolt, 
-  HiOutlineEye, 
-  HiOutlineDatabase,
-  HiOutlineCheckCircle
+import {
+  HiOutlineFolder,
+  HiOutlineLink,
+  HiOutlineCollection,
+  HiOutlineFilter,
+  HiOutlineTag,
+  HiOutlineLightningBolt,
+  HiOutlineEye,
 } from "react-icons/hi";
 
 const WelcomeWizard = () => {
@@ -29,35 +31,47 @@ const WelcomeWizard = () => {
 
   const steps = [
     {
-      title: "Welcome to HermesMarkdown",
-      subtitle: "A professional writing environment",
-      content: "HermesMarkdown is a local-first, privacy-focused editor designed for speed and clarity. Let's walk through the core features that make it unique.",
-      icon: <HiOutlineSparkles className="text-amber-500" size={32} />
+      title: "Connect Your Vault",
+      subtitle: "Your files, your device",
+      content: "Click Open Vault in the sidebar and select any local folder. Hermes maps it directly into the browser workspace using file system APIs — no cloud, no servers, complete data sovereignty.",
+      icon: <HiOutlineFolder className="text-amber-500" size={32} />
     },
     {
-      title: "Local-First Privacy",
-      subtitle: "Your data stays on your device",
-      content: "Unlike traditional cloud editors, HermesMarkdown works directly with your local file system. Your notes are stored in 'Vaults'—local folders that never leave your device.",
-      icon: <HiOutlineDatabase className="text-blue-500" size={32} />
+      title: "WikiLinks",
+      subtitle: "Bridge your ideas dynamically",
+      content: "Type [[ to open a link suggestion dropdown. Select a note to link it. Hold Ctrl (or Cmd) and click the link to navigate instantly — without breaking your typing flow.",
+      icon: <HiOutlineLink className="text-blue-500" size={32} />
     },
     {
-      title: "Zen Mode",
-      subtitle: "Distraction-free focus",
-      content: "Press CTRL + SHIFT + Z to toggle Zen Mode. It hides all UI elements, enables typewriter scrolling, and highlights only your active line.",
-      icon: <HiOutlineEye className="text-purple-500" size={32} />
+      title: "Split Panes",
+      subtitle: "Manage multiple documents at once",
+      content: "Right-click a tab or drag it to the edge of the screen to split the editor into vertical or horizontal panes. Work with reference docs and drafts side-by-side in one viewport.",
+      icon: <HiOutlineCollection className="text-teal-500" size={32} />
     },
     {
-      title: "Smart Shortcodes",
-      subtitle: "Dynamic text expansion",
-      content: "Type {date}, {time}, or {iso} to instantly stamp timestamps. You can also use '..d' for a quick date stamp. Try it in any document!",
+      title: "Smart Workspaces",
+      subtitle: "Dynamic filters for your vault",
+      content: "Click Smart Workspaces in the sidebar and select Today's Work. Dynamic smart folders filter your entire vault in real time — Today's Work surfaces files modified in the last 24 hours instantly.",
+      icon: <HiOutlineFilter className="text-purple-500" size={32} />
+    },
+    {
+      title: "Workflow Tags & Checkboxes",
+      subtitle: "Interactive project management",
+      content: "Click any checkbox to toggle it. Add #todo to a line and click the tag — it cycles inline through #todo → #prog → #wait → #done, turning your notes into a live kanban board.",
+      icon: <HiOutlineTag className="text-indigo-500" size={32} />
+    },
+    {
+      title: "Shortcodes & Inline Calc",
+      subtitle: "Ambient intelligence in your drafts",
+      content: "Type ..d to expand the current ISO date. Type / for template wrappers like Frontmatter. Type calc(100+50)= to compute inline — math stays in your document, not a separate tool.",
       icon: <HiOutlineLightningBolt className="text-emerald-500" size={32} />
     },
     {
-      title: "Ready to Write",
-      subtitle: "Master your workflow",
-      content: "Use Smart Tags (#todo, #prog) to track status, and interactive math (calc) to balance budgets. You're all set to explore!",
-      icon: <HiOutlineCheckCircle className="text-indigo-500" size={32} />
-    }
+      title: "Zen Mode",
+      subtitle: "Distraction-free deep work",
+      content: "Press Ctrl+Shift+Z (or Cmd+Shift+Z). The file tree and sidebars recede. Typewriter scrolling anchors your cursor at 40% screen height, and a focus tint isolates your active line.",
+      icon: <HiOutlineEye className="text-rose-500" size={32} />
+    },
   ];
 
   const currentStep = steps[step];

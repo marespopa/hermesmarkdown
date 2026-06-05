@@ -28,17 +28,30 @@ export function useMoveItem({ scanVault, indexVaultTags }: UseMoveItemProps) {
 
       const attemptMove = async (retryCount = 0): Promise<void> => {
         try {
-          // 1. Get a FRESH handle from the parent to avoid "state changed" errors
-          let freshHandle: FileSystemHandle;
-          try {
-            if (handle.kind === "file") {
-              freshHandle = await (sourceParent as any).getFileHandle(handle.name);
-            } else {
-              freshHandle = await (sourceParent as any).getDirectoryHandle(handle.name);
+          // 1. Get a FRESH handle from the parent to avoid "state changed" errors.
+          //    Fall back to vaultHandle if the item isn't in sourceParent (e.g. user
+          //    navigated into a subfolder since the drag started).
+          let freshHandle: FileSystemHandle = handle;
+          const parents = sourceParent === vaultHandle
+            ? [vaultHandle]
+            : [sourceParent, vaultHandle];
+          let found = false;
+          for (const parent of parents) {
+            try {
+              if (handle.kind === "file") {
+                freshHandle = await (parent as any).getFileHandle(handle.name);
+              } else {
+                freshHandle = await (parent as any).getDirectoryHandle(handle.name);
+              }
+              found = true;
+              break;
+            } catch (e: any) {
+              if (e.name !== "NotFoundError") throw e;
             }
-          } catch (e) {
-            console.error("Failed to get fresh handle for move:", e);
-            throw e;
+          }
+          if (!found) {
+            toast.error(`Could not find "${handle.name}" — it may have been moved externally.`);
+            return;
           }
 
           // 2. Prevent moving into itself or same directory

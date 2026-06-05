@@ -548,6 +548,10 @@ export default function Documentation() {
                   <span className="text-sm font-medium">💪 Gym Log</span>
                   <span className={resultLabel}>Workout Tracker</span>
                 </div>
+                <div className={guideRow}>
+                  <span className="text-sm font-medium">🗂️ Kanban Board</span>
+                  <span className={resultLabel}>Task Columns</span>
+                </div>
               </div>
             </div>
           </div>

@@ -1,11 +1,13 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import Editor from "react-simple-code-editor";
 import { HiOutlineCalendar } from "react-icons/hi";
 import DatePickerCallout from "./DatePickerCallout";
 import DialogModal from "../../components/DialogModal/DialogModal";
+import { LinkPill } from "./LinkPill";
 import { useMarkdownEditor } from "../hooks/useMarkdownEditor";
+import { TEMPLATES } from "./constants";
 
 interface MarkdownEditorProps {
   value: string;
@@ -26,8 +28,10 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
     isZenModeActive,
     windowWidth,
     menuOpen,
+    setMenuOpen,
     menuPos,
     selectedIndex,
+    setSelectedIndex,
     isCtrlPressed,
     isOverLink,
     dateMatch,
@@ -47,7 +51,88 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
     widthClass,
     paddingClass,
     setIsEditorFocused,
+    pillUrl,
+    pillLabel,
+    pillPos,
+    setPillUrl,
+    handleSaveLink,
   } = useMarkdownEditor(props);
+
+  const [searchInput, setSearchInput] = useState("");
+
+  useEffect(() => {
+    if (!menuOpen) setSearchInput("");
+  }, [menuOpen]);
+
+  const isMobile = windowWidth < 768;
+
+  const displayedTemplates = searchInput
+    ? TEMPLATES.filter((t) =>
+        t.label.toLowerCase().includes(searchInput.toLowerCase()),
+      )
+    : filteredTemplates;
+
+  const templateSearchBar = (
+    <div className="px-2.5 py-1.5 border-b border-zinc-100 dark:border-zinc-800">
+      <input
+        type="text"
+        value={searchInput}
+        onChange={(e) => {
+          setSearchInput(e.target.value);
+          setSelectedIndex(0);
+        }}
+        onKeyDown={(e) => {
+          if (!["ArrowDown", "ArrowUp", "Enter", "Escape"].includes(e.key)) return;
+          e.preventDefault();
+          e.stopPropagation();
+          const len = Math.max(displayedTemplates.length, 1);
+          if (e.key === "ArrowDown") {
+            setSelectedIndex((prev) => (prev + 1) % len);
+          } else if (e.key === "ArrowUp") {
+            setSelectedIndex((prev) => (prev - 1 + len) % len);
+          } else if (e.key === "Enter") {
+            if (displayedTemplates[selectedIndex]) {
+              insertTemplate(displayedTemplates[selectedIndex].content);
+            }
+          } else if (e.key === "Escape") {
+            setMenuOpen(false);
+            textareaRef.current?.focus();
+          }
+        }}
+        // eslint-disable-next-line jsx-a11y/no-autofocus
+        autoFocus={!isMobile}
+        placeholder="Search templates…"
+        className="w-full text-ui-footnote bg-transparent outline-none text-zinc-700 dark:text-zinc-300 placeholder-zinc-400 dark:placeholder-zinc-600"
+      />
+    </div>
+  );
+
+  const templateList = (
+    <div className={`overflow-y-auto py-1 ${isMobile ? "max-h-[55vh]" : "max-h-52"}`}>
+      {displayedTemplates.length === 0 ? (
+        <div className="px-3 py-2 text-ui-footnote text-zinc-400 dark:text-zinc-600">
+          No results
+        </div>
+      ) : (
+        displayedTemplates.map((t, i) => (
+          <div
+            key={t.label}
+            onMouseDown={(e) => {
+              e.preventDefault();
+              insertTemplate(t.content);
+            }}
+            className={`px-3 py-2 cursor-pointer text-ui-footnote transition-colors ${
+              i === selectedIndex
+                ? "bg-amber-100 dark:bg-neutral-900 text-amber-900 dark:text-zinc-100"
+                : "text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+            }`}
+          >
+            {t.label}
+          </div>
+        ))
+      )}
+    </div>
+  );
 
   return (
     <div
@@ -152,28 +237,45 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
             </>
           )}
 
-          {menuOpen && filteredTemplates.length > 0 && (
-            <div
-              className="absolute z-50 w-52 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg shadow-2xl py-1 overflow-hidden"
-              style={{ top: menuPos.top, left: menuPos.left, fontFamily }}
-            >
-              {filteredTemplates.map((t, i) => (
-                <div
-                  key={t.label}
-                  onMouseDown={(e) => {
-                    e.preventDefault();
-                    insertTemplate(t.content);
-                  }}
-                  className={`px-3 py-2 cursor-pointer text-ui-footnote transition-colors ${
-                    i === selectedIndex
-                      ? "bg-amber-100 dark:bg-neutral-900 text-amber-900 dark:text-zinc-100"
-                      : "text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800"
-                  }`}
-                >
-                  {t.label}
+          {menuOpen && (
+            isMobile ? (
+              <DialogModal
+                isOpened={menuOpen}
+                onClose={() => { setMenuOpen(false); textareaRef.current?.focus(); }}
+                styles="!max-w-[340px] !rounded-3xl"
+              >
+                <div className="-m-6 sm:-m-8">
+                  {templateSearchBar}
+                  {templateList}
                 </div>
-              ))}
-            </div>
+              </DialogModal>
+            ) : (
+              <div
+                className="absolute z-50 w-56 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg shadow-2xl overflow-hidden"
+                style={{ top: menuPos.top, left: menuPos.left, fontFamily }}
+              >
+                {templateSearchBar}
+                {templateList}
+              </div>
+            )
+          )}
+
+          {pillUrl && (
+            <LinkPill
+              url={pillUrl}
+              label={pillLabel}
+              pos={pillPos}
+              isMobile={isMobile}
+              onOpen={() => {
+                window.open(pillUrl, "_blank", "noopener,noreferrer");
+                setPillUrl(null);
+              }}
+              onSave={handleSaveLink}
+              onDismiss={() => {
+                setPillUrl(null);
+                textareaRef.current?.focus();
+              }}
+            />
           )}
 
           <Editor
@@ -185,7 +287,16 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
             onPaste={handlePaste}
             onMouseMove={handleMouseMove}
             onFocus={() => setIsEditorFocused(true)}
-            onBlur={() => setIsEditorFocused(false)}
+            onBlur={() => {
+              setIsEditorFocused(false);
+              // Dismiss pill when focus leaves the editor, unless focus moved into a
+              // dialog (e.g. the mobile action sheet or the desktop edit modal).
+              setTimeout(() => {
+                if (!document.activeElement?.closest('[role="dialog"]')) {
+                  setPillUrl(null);
+                }
+              }, 150);
+            }}
             textareaClassName={
               isCtrlPressed && isOverLink ? "!cursor-pointer" : "!cursor-text"
             }

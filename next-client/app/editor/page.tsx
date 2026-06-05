@@ -29,7 +29,7 @@ import { useDialog } from "@/app/hooks/use-dialog";
 import toast from "react-hot-toast";
 
 import {
-  HiOutlineMenuAlt2,
+  HiOutlineChevronRight,
   HiOutlineCog,
   HiOutlineEye,
   HiOutlineEyeOff,
@@ -95,10 +95,7 @@ export default function LiteEditor() {
 
   useEffect(() => {
     const handleResize = () => {
-      if (window.innerWidth >= 1024) {
-        setIsSidebarOpen(true);
-      } else if (isMounting) {
-        // Only auto-close on mobile during initial mount
+      if (window.innerWidth < 1024 && isMounting) {
         setIsSidebarOpen(false);
       }
     };
@@ -258,15 +255,15 @@ export default function LiteEditor() {
           
           {/* Collapsed Sidebar Toggle Column */}
           {!isSidebarOpen && !isZenModeActive && (
-            <div className="w-12 h-full flex flex-col items-center py-6 border-r border-zinc-200/50 dark:border-zinc-800/50 bg-white/50 dark:bg-zinc-950/50 backdrop-blur-3xl shrink-0 z-40 lg:hidden">
+            <div className="w-12 h-full flex flex-col items-center py-6 border-r border-zinc-200/50 dark:border-zinc-800/50 bg-white/50 dark:bg-zinc-950/50 backdrop-blur-3xl shrink-0 z-40">
                <div className="flex flex-col items-center gap-6">
                  <Button
                     variant="icon"
                     onClick={() => setIsSidebarOpen(true)}
                     className="w-10 h-10 opacity-60 hover:opacity-100 text-zinc-600 dark:text-zinc-400"
-                    title="Show Sidebar"
+                    title="Expand Sidebar"
                   >
-                    <HiOutlineMenuAlt2 size={24} />
+                    <HiOutlineChevronRight size={24} />
                   </Button>
 
                   <Button

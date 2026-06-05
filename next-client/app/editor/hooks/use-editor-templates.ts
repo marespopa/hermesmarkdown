@@ -93,7 +93,7 @@ export function useEditorTemplates({
 
           setMenuPos({
             top: shouldShowUp ? caret.top - menuHeight - 8 : caret.top + 24,
-            left: Math.min(caret.left, textarea.clientWidth - 220),
+            left: Math.min(caret.left, textarea.clientWidth - 234),
           });
           setMenuOpen(true);
         }

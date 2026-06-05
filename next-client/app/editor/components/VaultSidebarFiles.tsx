@@ -2,8 +2,10 @@
 
 import React, { useState } from "react";
 import {
+  HiOutlineChevronLeft,
   HiOutlineDocumentText,
   HiOutlineFolder,
+  HiOutlineFolderAdd,
   HiOutlineX,
   HiOutlineDotsVertical,
   HiOutlineTrash,
@@ -17,7 +19,10 @@ interface VaultSidebarFilesProps {
   isFilesExpanded: boolean;
   setIsFilesExpanded: (expanded: boolean) => void;
   onNewFile?: () => void;
-  createNewFile: () => void;
+  createNewFile: (dirHandle?: FileSystemDirectoryHandle) => void;
+  createNewFolder: (dirHandle?: FileSystemDirectoryHandle) => void;
+  isAtRoot: boolean;
+  onNavigateBack: () => void;
   searchQuery: string;
   setSearchQuery: (query: string) => void;
   processedFiles: any[];
@@ -27,6 +32,7 @@ interface VaultSidebarFilesProps {
   navigateTo: (handle: FileSystemDirectoryHandle) => void;
   renameFile: (handle: FileSystemHandle) => void;
   deleteFile: (handle: FileSystemHandle) => void;
+  moveItem: (handle: FileSystemHandle, targetDir: FileSystemDirectoryHandle) => void;
   onClose?: () => void;
 }
 
@@ -35,6 +41,9 @@ export default function VaultSidebarFiles({
   setIsFilesExpanded,
   onNewFile,
   createNewFile,
+  createNewFolder,
+  isAtRoot,
+  onNavigateBack,
   searchQuery,
   setSearchQuery,
   processedFiles,
@@ -44,9 +53,14 @@ export default function VaultSidebarFiles({
   navigateTo,
   renameFile,
   deleteFile,
+  moveItem,
   onClose,
 }: VaultSidebarFilesProps) {
   const [actionMenuOpen, setActionMenuOpen] = useState<string | null>(null);
+  const [draggedEntry, setDraggedEntry] = useState<any | null>(null);
+  const [dragOverName, setDragOverName] = useState<string | null>(null);
+
+  const isDragging = !selectedTag && !searchQuery;
 
   return (
     <div className="space-y-1">
@@ -55,23 +69,6 @@ export default function VaultSidebarFiles({
           title="Files"
           isExpanded={isFilesExpanded}
           onToggle={() => setIsFilesExpanded(!isFilesExpanded)}
-          action={
-            <Button
-              variant="icon"
-              className="w-6 h-6 opacity-30 hover:opacity-100"
-              onClick={(e) => {
-                e.stopPropagation();
-                if (onNewFile) {
-                  onNewFile();
-                } else {
-                  createNewFile();
-                }
-              }}
-              title="New File"
-            >
-              <HiOutlinePlus size={14} />
-            </Button>
-          }
         />
       )}
       {isFilesExpanded && (
@@ -102,7 +99,36 @@ export default function VaultSidebarFiles({
         return (
           <div
             key={`${entry.kind || 'file'}-${entry.name}-${idx}`}
-            className="group relative"
+            className={`group relative transition-opacity ${draggedEntry?.name === entry.name ? "opacity-30" : ""}`}
+            draggable={isDragging}
+            onDragStart={(e) => {
+              setDraggedEntry(entry);
+              e.dataTransfer.effectAllowed = "move";
+            }}
+            onDragEnd={() => {
+              setDraggedEntry(null);
+              setDragOverName(null);
+            }}
+            onDragOver={entry.kind === "directory" ? (e) => {
+              e.preventDefault();
+              e.dataTransfer.dropEffect = "move";
+              if (draggedEntry && draggedEntry.name !== entry.name) {
+                setDragOverName(entry.name);
+              }
+            } : undefined}
+            onDragLeave={entry.kind === "directory" ? (e) => {
+              if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+                setDragOverName(null);
+              }
+            } : undefined}
+            onDrop={entry.kind === "directory" ? (e) => {
+              e.preventDefault();
+              if (draggedEntry && draggedEntry.name !== entry.name) {
+                moveItem(draggedEntry as FileSystemHandle, entry as FileSystemDirectoryHandle);
+              }
+              setDraggedEntry(null);
+              setDragOverName(null);
+            } : undefined}
             onMouseLeave={() => setActionMenuOpen(null)}
           >
             <div
@@ -118,7 +144,9 @@ export default function VaultSidebarFiles({
                 }
               }}
               className={`flex items-center gap-3 px-4 py-2.5 rounded-xl cursor-pointer transition-all text-ui-subhead pr-12 relative ${
-                isActive
+                dragOverName === entry.name
+                  ? "ring-2 ring-blue-500/50 bg-blue-500/10 text-blue-600 dark:text-blue-400 font-medium"
+                  : isActive
                   ? "text-blue-600 dark:text-blue-400 font-bold bg-blue-500/10"
                   : "hover:bg-zinc-200/50 dark:hover:bg-zinc-800/40 text-zinc-600 dark:text-zinc-400 font-medium"
               }`}
@@ -161,7 +189,34 @@ export default function VaultSidebarFiles({
                   className="fixed inset-0 z-40"
                   onClick={() => setActionMenuOpen(null)}
                 />
-                <div className="absolute right-2 top-[80%] z-50 bg-white/90 dark:bg-zinc-900/90 backdrop-blur-xl border border-zinc-200/50 dark:border-zinc-800/50 rounded-2xl shadow-2xl py-1.5 min-w-[140px] animate-in fade-in zoom-in-95 duration-200">
+                <div className="absolute right-2 top-[80%] z-50 bg-white/90 dark:bg-zinc-900/90 backdrop-blur-xl border border-zinc-200/50 dark:border-zinc-800/50 rounded-2xl shadow-2xl py-1.5 min-w-[160px] animate-in fade-in zoom-in-95 duration-200">
+                  {entry.kind === "directory" && (
+                    <>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setActionMenuOpen(null);
+                          createNewFile(entry as FileSystemDirectoryHandle);
+                        }}
+                        className="w-full flex items-center gap-3 px-4 py-2.5 text-ui-footnote font-medium hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
+                      >
+                        <HiOutlinePlus size={16} className="opacity-60" />
+                        New File
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setActionMenuOpen(null);
+                          createNewFolder(entry as FileSystemDirectoryHandle);
+                        }}
+                        className="w-full flex items-center gap-3 px-4 py-2.5 text-ui-footnote font-medium hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
+                      >
+                        <HiOutlineFolderAdd size={16} className="opacity-60" />
+                        New Folder
+                      </button>
+                      <div className="mx-3 my-1 border-t border-zinc-200/50 dark:border-zinc-700/50" />
+                    </>
+                  )}
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
@@ -192,8 +247,19 @@ export default function VaultSidebarFiles({
       })}
 
       {isFilesExpanded && processedFiles.length === 0 && (
-        <div className="p-8 text-center opacity-30 text-ui-footnote font-medium italic">
-          {searchQuery ? "No results found" : "Empty directory"}
+        <div className="p-6 flex flex-col items-center gap-3 text-center">
+          <p className="opacity-30 text-ui-footnote font-medium italic">
+            {searchQuery ? "No results found" : "Empty folder"}
+          </p>
+          {!searchQuery && !isAtRoot && (
+            <button
+              onClick={onNavigateBack}
+              className="flex items-center gap-1.5 text-ui-footnote font-semibold text-blue-500 dark:text-blue-400 hover:opacity-80 transition-opacity"
+            >
+              <HiOutlineChevronLeft size={14} />
+              Back to root
+            </button>
+          )}
         </div>
       )}
     </div>

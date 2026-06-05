@@ -24,6 +24,9 @@ interface UseEditorHandlersProps {
   insertTemplate: (content: string) => void;
   syncScroll: () => void;
   syncActiveLine: () => void;
+  pillUrl: string | null;
+  setPillUrl: (url: string | null) => void;
+  onDetectLinkPill?: () => void;
 }
 
 export function useEditorHandlers({
@@ -42,6 +45,9 @@ export function useEditorHandlers({
   insertTemplate,
   syncScroll,
   syncActiveLine,
+  pillUrl,
+  setPillUrl,
+  onDetectLinkPill,
 }: UseEditorHandlersProps) {
   const [isCtrlPressed, setIsCtrlPressed] = useState(false);
   const [isOverLink, setIsOverLink] = useState(false);
@@ -138,7 +144,7 @@ export function useEditorHandlers({
     if (checkboxMatch) {
       const boxStart = lineStartIndex + checkboxMatch[0].indexOf("[");
       const boxEnd = lineStartIndex + checkboxMatch[0].indexOf("]") + 1;
-      if (pos >= boxStart && boxEnd > boxStart) {
+      if (pos >= boxStart && pos <= boxEnd) {
         e.preventDefault();
         const charIdx = lineStartIndex + checkboxMatch[1].length;
         const nextChar = value[charIdx].toLowerCase() === "x" ? " " : "x";
@@ -149,7 +155,8 @@ export function useEditorHandlers({
 
     syncScroll();
     syncActiveLine();
-  }, [value, onWikiLinkClick, syncActiveLine, syncScroll]);
+    onDetectLinkPill?.();
+  }, [value, onWikiLinkClick, syncActiveLine, syncScroll, onDetectLinkPill]);
 
   const handleGlobalKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (e.altKey && e.key === "ArrowDown" && dateMatch) {
@@ -159,6 +166,12 @@ export function useEditorHandlers({
     }
 
     if (e.key === "Escape") {
+      if (pillUrl) {
+        e.preventDefault();
+        e.stopPropagation();
+        setPillUrl(null);
+        return;
+      }
       if (isDateExpanded) {
         e.preventDefault();
         e.stopPropagation();
@@ -175,6 +188,12 @@ export function useEditorHandlers({
     }
 
     if (e.ctrlKey || e.metaKey) {
+      if (e.key === "Enter" && pillUrl) {
+        e.preventDefault();
+        window.open(pillUrl, "_blank", "noopener,noreferrer");
+        setPillUrl(null);
+        return;
+      }
       if (e.key === "b") {
         e.preventDefault();
         const textarea = textareaRef.current;
@@ -218,7 +237,7 @@ export function useEditorHandlers({
         }
       }
     }
-  }, [dateMatch, isDateExpanded, setIsDateExpanded, menuOpen, setMenuOpen, setDateMatch, value, textareaRef, filteredTemplates, selectedIndex, setSelectedIndex, insertTemplate]);
+  }, [dateMatch, isDateExpanded, setIsDateExpanded, menuOpen, setMenuOpen, setDateMatch, value, textareaRef, filteredTemplates, selectedIndex, setSelectedIndex, insertTemplate, pillUrl, setPillUrl]);
 
   return {
     isCtrlPressed,
