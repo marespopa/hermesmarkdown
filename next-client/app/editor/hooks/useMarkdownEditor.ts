@@ -222,7 +222,6 @@ export function useMarkdownEditor({
       const currentLineNext = nextLines[cursorLineIndex] || "";
       if (currentLineOriginal !== currentLineNext) {
         // Find if the change in the current line is before the cursor column
-        const column = linesUpToCursor[cursorLineIndex].length;
         // This is a bit more complex, but for now we assume 
         // runAutoBudget doesn't change the current line unless it's a Total: line.
         // If it IS a Total: line, we want the cursor to stay where it was relative to the start of the line if possible,

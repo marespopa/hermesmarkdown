@@ -6,7 +6,6 @@ import {
   HiOutlineDocumentText,
   HiOutlineFolder,
   HiOutlineFolderAdd,
-  HiOutlineX,
   HiOutlineDotsVertical,
   HiOutlineTrash,
   HiOutlinePencil,

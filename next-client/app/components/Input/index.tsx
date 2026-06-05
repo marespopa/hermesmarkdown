@@ -1,4 +1,5 @@
 import Input from "./Input.component";
+import Textarea from "./Textarea.component";
 import React from "react";
 
 interface SelectOption {
@@ -17,6 +18,7 @@ interface SelectProps {
   fullWidth?: boolean;
 }
 
+export { Textarea };
 export const Select = ({
   name,
   label,

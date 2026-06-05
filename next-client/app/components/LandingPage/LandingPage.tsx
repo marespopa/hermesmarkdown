@@ -74,34 +74,38 @@ const FilesystemGraphic = () => {
 };
 
 const ZenModeGraphic = () => {
-  const lines = [
-    "55%", "72%", "48%", "80%", "38%",
-    "75%",
-    "62%", "50%", "68%", "44%", "58%",
-  ];
-  const focusIndex = 5;
   return (
-    <div className="w-full h-full flex flex-col items-center justify-center px-10 relative overflow-hidden">
-      <div className="absolute inset-0 bg-gradient-to-b from-neutral-100 dark:from-neutral-900 via-transparent to-neutral-100 dark:to-neutral-900 pointer-events-none z-10" />
-      <div className="w-full space-y-2">
-        {lines.map((w, i) => (
-          <div key={i} className="flex items-center gap-2">
-            <div
-              className={`h-2 rounded-full transition-all ${
-                i === focusIndex
-                  ? "bg-purple-500/80 shadow-md shadow-purple-500/30"
-                  : "bg-neutral-300/40 dark:bg-neutral-600/30"
-              }`}
-              style={{ width: w }}
-            />
-            {i === focusIndex && (
-              <div className="w-0.5 h-3 bg-purple-500 animate-[blink_1s_step-end_infinite] shrink-0" />
-            )}
-          </div>
-        ))}
+    <div className="w-full h-full flex items-center justify-center p-8 relative overflow-hidden group/zen">
+      {/* Background with subtle depth */}
+      <div className="absolute inset-0 bg-neutral-50/50 dark:bg-black/20 -z-10" />
+      
+      {/* Central Canvas Area */}
+      <div className="w-full max-w-[280px]">
+        <svg width="100%" height="120" viewBox="0 0 280 120" fill="none" xmlns="http://www.w3.org/2000/svg" className="overflow-visible">
+          {/* Top lines (Faded context) */}
+          <rect x="0" y="0" width="160" height="4" rx="2" className="fill-neutral-300 dark:fill-neutral-700 opacity-40 group-hover/zen:opacity-60 transition-opacity" />
+          <rect x="0" y="16" width="220" height="4" rx="2" className="fill-neutral-300 dark:fill-neutral-700 opacity-40 group-hover/zen:opacity-60 transition-opacity" />
+          <rect x="0" y="32" width="190" height="4" rx="2" className="fill-neutral-300 dark:fill-neutral-700 opacity-40 group-hover/zen:opacity-60 transition-opacity" />
+          
+          {/* Focused line (High Contrast Purple) */}
+          <g>
+             <rect x="0" y="56" width="250" height="6" rx="3" className="fill-purple-600 dark:fill-purple-400" />
+             {/* Glow effect for focused line */}
+             <rect x="0" y="56" width="250" height="6" rx="3" className="fill-purple-500 dark:fill-purple-400 blur-[8px] opacity-40" />
+          </g>
+
+          {/* Bottom lines (Faded context) */}
+          <rect x="0" y="84" width="200" height="4" rx="2" className="fill-neutral-300 dark:fill-neutral-700 opacity-40 group-hover/zen:opacity-60 transition-opacity" />
+          <rect x="0" y="100" width="140" height="4" rx="2" className="fill-neutral-300 dark:fill-neutral-700 opacity-40 group-hover/zen:opacity-60 transition-opacity" />
+          <rect x="0" y="116" width="170" height="4" rx="2" className="fill-neutral-300 dark:fill-neutral-700 opacity-40 group-hover/zen:opacity-60 transition-opacity" />
+        </svg>
       </div>
-      <div className="absolute top-4 right-4 z-20">
-        <span className="text-[9px] font-mono uppercase tracking-widest text-purple-500 dark:text-purple-400 opacity-60">Focus Mode</span>
+
+      {/* Atmospheric Glow */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-40 h-40 bg-purple-500/10 dark:bg-purple-500/20 blur-[60px] pointer-events-none" />
+
+      <div className="absolute top-4 right-4">
+        <span className="text-[9px] font-mono uppercase tracking-[0.2em] text-purple-600 dark:text-purple-400 font-bold opacity-80">Zen Mode</span>
       </div>
     </div>
   );
@@ -326,9 +330,9 @@ export default function LandingPage() {
         <section className="grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
           <div className="space-y-6">
             <div className="h-px w-12 bg-blue-600" />
-            <h2 className="text-3xl font-bold tracking-tight">Local-First Vaults</h2>
+            <h2 className="text-3xl font-bold tracking-tight">Knowledge Management</h2>
             <p className="text-neutral-600 dark:text-neutral-400 leading-relaxed">
-              Experience zero-latency writing. HermesMarkdown syncs directly with your local file system using modern Web API standards. Open any folder as a Vault and manage your Markdown library with full directory support.
+              Open any local directory to treat it as a writing vault. Browse files, manage folders, and save changes directly to your machine using modern web standards.
             </p>
           </div>
           <div className="aspect-video bg-neutral-100 dark:bg-neutral-900 rounded-2xl border border-black/5 dark:border-white/5 flex items-center justify-center group overflow-hidden relative">
@@ -344,7 +348,7 @@ export default function LandingPage() {
           </div>
           <div className="space-y-6">
             <div className="h-px w-12 bg-purple-600" />
-            <h2 className="text-3xl font-bold tracking-tight">Designed for Deep Work</h2>
+            <h2 className="text-3xl font-bold tracking-tight">Writing Experience</h2>
             <p className="text-neutral-600 dark:text-neutral-400 leading-relaxed">
               No distractions, just your thoughts. Toggle Zen Mode to focus on a single line, or use our split-pane workspace to build complex knowledge webs without leaving the keyboard.
             </p>
@@ -354,7 +358,7 @@ export default function LandingPage() {
         <section className="grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
           <div className="space-y-6">
             <div className="h-px w-12 bg-amber-500" />
-            <h2 className="text-3xl font-bold tracking-tight">Markdown That Thinks With You</h2>
+            <h2 className="text-3xl font-bold tracking-tight">Syntax & Shortcuts</h2>
             <p className="text-neutral-600 dark:text-neutral-400 leading-relaxed">
               Beyond what any text editor offers. Cycle workflow statuses with clickable <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">#tags</code>, auto-sum budgets with a <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">Total:</code> line, evaluate expressions inline with <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">calc()</code>, and insert or edit any date with a single shortcode or click.
             </p>
@@ -382,19 +386,19 @@ export default function LandingPage() {
 
       {/* --- CALL TO ACTION --- */}
       <section className="py-24 md:py-32 px-6">
-        <div className="max-w-4xl mx-auto text-center space-y-8 bg-neutral-900 dark:bg-zinc-100 text-white dark:text-neutral-900 p-12 md:p-24 rounded-[3rem] shadow-2xl relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/10 blur-[100px] -mr-32 -mt-32" />
-          <div className="absolute bottom-0 left-0 w-64 h-64 bg-purple-500/10 blur-[100px] -ml-32 -mb-32" />
+        <div className="max-w-4xl mx-auto text-center space-y-8 bg-neutral-50 dark:bg-neutral-900/50 text-neutral-900 dark:text-neutral-100 p-12 md:p-24 rounded-[3rem] shadow-sm border border-black/5 dark:border-white/5 relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/5 blur-[100px] -mr-32 -mt-32" />
+          <div className="absolute bottom-0 left-0 w-64 h-64 bg-purple-500/5 blur-[100px] -ml-32 -mb-32" />
           
           <h2 className="text-4xl md:text-6xl font-bold tracking-tight relative z-10">Ready to own your thoughts?</h2>
-          <p className="opacity-70 max-w-xl mx-auto text-lg relative z-10">
+          <p className="opacity-60 max-w-xl mx-auto text-lg relative z-10 font-medium">
             Join writers and developers who have switched to a local-first workflow.
           </p>
           <div className="pt-6 relative z-10 flex justify-center">
              <Button 
                variant="hero" 
                onClick={handleStart}
-               className="!bg-white !text-neutral-900 dark:!bg-neutral-900 dark:!text-white shadow-xl hover:shadow-2xl transition-all"
+               className="shadow-xl hover:shadow-blue-500/20 transition-all"
              >
                 Launch Workspace
              </Button>
