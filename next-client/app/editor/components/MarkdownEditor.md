@@ -7,7 +7,9 @@ The `MarkdownEditor` is the core text editing component of HermesMarkdown. It is
 - **Zen Mode**: A focused writing mode with fluid typography and centered layout.
 - **Date Detection**: Automatically detects dates and provides a [DatePickerCallout](./DatePickerCallout.md) trigger.
 - **Shortcodes**: Supports `{time}` and `{date}`.
-- **Templates**: Slash-command (`/`) for inserting templates.
+- **Templates**: Slash-command (`/`) for inserting templates. Special slash commands:
+  - `/link` — opens an "Add Link" dialog to insert `[text](url)` at the cursor.
+  - `/date` — opens a [DatePickerCallout](./DatePickerCallout.md) dialog to insert an ISO date (`YYYY-MM-DD`) at the cursor.
 - **Interactive Tags**: Cycles tags like `#todo` on click.
 - **Auto-Budgeting**: Real-time arithmetic evaluation.
 

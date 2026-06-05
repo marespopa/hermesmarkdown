@@ -166,20 +166,19 @@ export function useEditorHandlers({
     }
 
     if (e.key === "Escape") {
+      // Always prevent browser back-navigation on tablet/mobile keyboards.
+      e.preventDefault();
       if (pillUrl) {
-        e.preventDefault();
         e.stopPropagation();
         setPillUrl(null);
         return;
       }
       if (isDateExpanded) {
-        e.preventDefault();
         e.stopPropagation();
         setIsDateExpanded(false);
         return;
       }
       if (menuOpen) {
-        e.preventDefault();
         e.stopPropagation();
         setMenuOpen(false);
         setDateMatch(null);

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Editor from "react-simple-code-editor";
 import { HiOutlineCalendar } from "react-icons/hi";
 import DatePickerCallout from "./DatePickerCallout";
@@ -8,6 +8,7 @@ import DialogModal from "../../components/DialogModal/DialogModal";
 import { LinkPill } from "./LinkPill";
 import { useMarkdownEditor } from "../hooks/useMarkdownEditor";
 import { TEMPLATES } from "./constants";
+import Button from "../../components/Button";
 
 interface MarkdownEditorProps {
   value: string;
@@ -56,13 +57,29 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
     pillPos,
     setPillUrl,
     handleSaveLink,
+    linkDialogOpen,
+    setLinkDialogOpen,
+    insertLink,
+    datePickerOpen,
+    setDatePickerOpen,
+    insertDate,
   } = useMarkdownEditor(props);
 
   const [searchInput, setSearchInput] = useState("");
+  const [linkLabel, setLinkLabel] = useState("");
+  const [linkUrl, setLinkUrl] = useState("");
+  const linkUrlInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!menuOpen) setSearchInput("");
   }, [menuOpen]);
+
+  useEffect(() => {
+    if (linkDialogOpen) {
+      setLinkLabel("");
+      setLinkUrl("");
+    }
+  }, [linkDialogOpen]);
 
   const isMobile = windowWidth < 768;
 
@@ -122,7 +139,7 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
             }}
             className={`px-3 py-2 cursor-pointer text-ui-footnote transition-colors ${
               i === selectedIndex
-                ? "bg-amber-100 dark:bg-neutral-900 text-amber-900 dark:text-zinc-100"
+                ? "bg-amber-100 dark:bg-amber-500/20 text-amber-900 dark:text-amber-200"
                 : "text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800"
             }`}
           >
@@ -196,44 +213,13 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
             </button>
           )}
 
-          {dateMatch && isDateExpanded && (
-            <>
-              {windowWidth < 768 ? (
-                <DialogModal
-                  isOpened={isDateExpanded}
-                  onClose={() => setIsDateExpanded(false)}
-                  styles="!max-w-[340px] !rounded-3xl"
-                >
-                  <div className="-m-6 sm:-m-8">
-                    <DatePickerCallout
-                      initialDate={dateMatch.date}
-                      onSelectDate={handleDateSelect}
-                      onClose={() => setIsDateExpanded(false)}
-                    />
-                  </div>
-                </DialogModal>
-              ) : (
-                <div
-                  className="absolute z-50 pointer-events-auto"
-                  style={{
-                    top: dateMenuPos.top + 32,
-                    left: Math.max(
-                      10,
-                      Math.min(
-                        dateMenuPos.left,
-                        (textareaRef.current?.clientWidth || 800) - 400,
-                      ),
-                    ),
-                  }}
-                >
-                  <DatePickerCallout
-                    initialDate={dateMatch.date}
-                    onSelectDate={handleDateSelect}
-                    onClose={() => setIsDateExpanded(false)}
-                  />
-                </div>
-              )}
-            </>
+          {dateMatch && (
+            <DatePickerCallout
+              isOpen={isDateExpanded}
+              initialDate={dateMatch.date}
+              onSelectDate={handleDateSelect}
+              onClose={() => setIsDateExpanded(false)}
+            />
           )}
 
           {menuOpen && (
@@ -276,6 +262,75 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
               }}
             />
           )}
+
+          {linkDialogOpen && (
+            <DialogModal
+              isOpened={linkDialogOpen}
+              onClose={() => { setLinkDialogOpen(false); textareaRef.current?.focus(); }}
+              styles="!max-w-sm"
+              ariaLabelledBy="link-insert-heading"
+            >
+              <div className="flex flex-col gap-5">
+                <h2 id="link-insert-heading" className="text-ui-body font-semibold text-zinc-900 dark:text-zinc-100">
+                  Add Link
+                </h2>
+
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-ui-footnote text-zinc-500 dark:text-zinc-400">Text</label>
+                  <input
+                    type="text"
+                    value={linkLabel}
+                    onChange={(e) => setLinkLabel(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") { e.preventDefault(); linkUrlInputRef.current?.focus(); }
+                      if (e.key === "Escape") { setLinkDialogOpen(false); textareaRef.current?.focus(); }
+                    }}
+                    autoFocus
+                    placeholder="Link text"
+                    className="px-3 py-2 text-ui-footnote rounded-xl border border-zinc-200 dark:border-zinc-700
+                      bg-zinc-50 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100
+                      outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 dark:focus:border-blue-500
+                      transition-colors"
+                  />
+                </div>
+
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-ui-footnote text-zinc-500 dark:text-zinc-400">URL</label>
+                  <input
+                    ref={linkUrlInputRef}
+                    type="url"
+                    value={linkUrl}
+                    onChange={(e) => setLinkUrl(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") { e.preventDefault(); insertLink(linkLabel || "link", linkUrl); }
+                      if (e.key === "Escape") { setLinkDialogOpen(false); textareaRef.current?.focus(); }
+                    }}
+                    placeholder="https://"
+                    className="px-3 py-2 text-ui-footnote rounded-xl border border-zinc-200 dark:border-zinc-700
+                      bg-zinc-50 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 font-mono
+                      outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 dark:focus:border-blue-500
+                      transition-colors"
+                  />
+                </div>
+
+                <div className="flex justify-end gap-2 pt-1">
+                  <Button variant="outlined" onClick={() => { setLinkDialogOpen(false); textareaRef.current?.focus(); }}>
+                    Cancel
+                  </Button>
+                  <Button variant="primary" onClick={() => insertLink(linkLabel || "link", linkUrl)}>
+                    Insert
+                  </Button>
+                </div>
+              </div>
+            </DialogModal>
+          )}
+
+          <DatePickerCallout
+            isOpen={datePickerOpen}
+            initialDate={new Date()}
+            onSelectDate={(date) => insertDate(date)}
+            onClose={() => { setDatePickerOpen(false); textareaRef.current?.focus(); }}
+          />
 
           <Editor
             value={value}

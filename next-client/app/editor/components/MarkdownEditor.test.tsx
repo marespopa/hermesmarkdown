@@ -258,6 +258,52 @@ describe("MarkdownEditor Functional Tests", () => {
       "#prog",
     );
   });
+
+  it("opens link dialog when /link template is selected", async () => {
+    vi.useFakeTimers();
+    renderEditor("");
+    const textarea = screen.getByRole("textbox") as HTMLTextAreaElement;
+
+    textarea.focus();
+    act(() => {
+      textarea.selectionStart = 5;
+      textarea.selectionEnd = 5;
+      fireEvent.change(textarea, { target: { value: "/link" } });
+    });
+
+    // Menu should open; simulate selecting the Link entry via Enter
+    act(() => {
+      fireEvent.keyDown(textarea, { key: "Enter" });
+    });
+
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
+    expect(screen.getByText("Add Link")).toBeInTheDocument();
+
+    vi.useRealTimers();
+  });
+
+  it("opens date picker when /date template is selected", async () => {
+    vi.useFakeTimers();
+    renderEditor("");
+    const textarea = screen.getByRole("textbox") as HTMLTextAreaElement;
+
+    textarea.focus();
+    act(() => {
+      textarea.selectionStart = 5;
+      textarea.selectionEnd = 5;
+      fireEvent.change(textarea, { target: { value: "/date" } });
+    });
+
+    act(() => {
+      fireEvent.keyDown(textarea, { key: "Enter" });
+    });
+
+    // DatePickerCallout renders month names (desktop path uses Portal, not DialogModal)
+    const currentMonth = new Intl.DateTimeFormat("en-US", { month: "long" }).format(new Date());
+    expect(screen.getByText(new RegExp(currentMonth))).toBeInTheDocument();
+
+    vi.useRealTimers();
+  });
 });
 
 describe("highlightMarkdown Zen Mode", () => {

@@ -81,7 +81,12 @@ export const SHORTCODES: Record<string, () => string> = {
   "{star}": () => "⭐ ",
 };
 
+export const LINK_EDITOR_SENTINEL = "__OPEN_LINK_EDITOR__";
+export const DATE_EDITOR_SENTINEL = "__OPEN_DATE_EDITOR__";
+
 export const TEMPLATES = [
+  { label: "🔗 Link", content: LINK_EDITOR_SENTINEL },
+  { label: "📅 Date", content: DATE_EDITOR_SENTINEL },
   // --- Obsidian / Daily Driver ---
   {
     label: "🗓️ Daily Note",
@@ -112,7 +117,7 @@ export const TEMPLATES = [
   // --- Productivity ---
   {
     label: "📄 Frontmatter",
-    content: "---\ntitle: \ndate: {date}\nday: {day}\nweek: {week}\ntags: #tag\n---",
+    content: "---\ntitle: \ndate: {date}\ntags: #tag\n---",
   },
   {
     label: "📝 To-Do List",

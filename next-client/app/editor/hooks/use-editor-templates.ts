@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useCallback } from "react";
 import getCaretCoordinates from "textarea-caret";
-import { TEMPLATES, SHORTCODES } from "../components/constants";
+import { TEMPLATES, SHORTCODES, LINK_EDITOR_SENTINEL, DATE_EDITOR_SENTINEL } from "../components/constants";
 import { runAutoBudget } from "../utils/budget";
 
 interface UseEditorTemplatesProps {
@@ -20,6 +20,10 @@ export function useEditorTemplates({
   const [menuPos, setMenuPos] = useState({ top: 0, left: 0 });
   const [filterQuery, setFilterQuery] = useState("");
   const [selectedIndex, setSelectedIndex] = useState(0);
+  const [linkDialogOpen, setLinkDialogOpen] = useState(false);
+  const [linkInsertPos, setLinkInsertPos] = useState<{ start: number; filterLen: number } | null>(null);
+  const [datePickerOpen, setDatePickerOpen] = useState(false);
+  const [dateInsertPos, setDateInsertPos] = useState<{ start: number; filterLen: number } | null>(null);
 
   const filteredTemplatesList = useMemo(
     () =>
@@ -35,6 +39,23 @@ export function useEditorTemplates({
 
     const start = textarea.selectionStart;
     const lengthToRemove = filterQuery.length + 1;
+
+    if (content === LINK_EDITOR_SENTINEL) {
+      setMenuOpen(false);
+      setFilterQuery("");
+      setLinkInsertPos({ start, filterLen: lengthToRemove });
+      setLinkDialogOpen(true);
+      return;
+    }
+
+    if (content === DATE_EDITOR_SENTINEL) {
+      setMenuOpen(false);
+      setFilterQuery("");
+      setDateInsertPos({ start, filterLen: lengthToRemove });
+      setDatePickerOpen(true);
+      return;
+    }
+
     const before = value.substring(0, start - lengthToRemove);
     const after = value.substring(start);
 
@@ -85,15 +106,17 @@ export function useEditorTemplates({
         if (!menuOpen) {
           const caret = getCaretCoordinates(textarea, start - query.length);
           const menuHeight = 240;
+          const caretTop = Number.isFinite(caret.top) ? caret.top : 0;
+          const caretLeft = Number.isFinite(caret.left) ? caret.left : 0;
 
           const spaceBelow =
-            textarea.clientHeight - (caret.top - textarea.scrollTop);
+            textarea.clientHeight - (caretTop - textarea.scrollTop);
           const shouldShowUp =
-            spaceBelow < menuHeight && caret.top > menuHeight;
+            spaceBelow < menuHeight && caretTop > menuHeight;
 
           setMenuPos({
-            top: shouldShowUp ? caret.top - menuHeight - 8 : caret.top + 24,
-            left: Math.min(caret.left, textarea.clientWidth - 234),
+            top: shouldShowUp ? caretTop - menuHeight - 8 : caretTop + 24,
+            left: Math.min(caretLeft, textarea.clientWidth - 234),
           });
           setMenuOpen(true);
         }
@@ -104,6 +127,51 @@ export function useEditorTemplates({
       setMenuOpen(false);
     }
   }, [menuOpen, textareaRef]);
+
+  const insertDate = useCallback((date: Date) => {
+    const textarea = textareaRef.current;
+    if (!textarea || !dateInsertPos) return;
+
+    const { start, filterLen } = dateInsertPos;
+    const before = value.substring(0, start - filterLen);
+    const after = value.substring(start);
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, "0");
+    const d = String(date.getDate()).padStart(2, "0");
+    const dateStr = `${y}-${m}-${d}`;
+    const newValue = before + dateStr + after;
+
+    onChange(newValue);
+    setDatePickerOpen(false);
+    setDateInsertPos(null);
+
+    requestAnimationFrame(() => {
+      textarea.focus();
+      const newPos = before.length + dateStr.length;
+      textarea.setSelectionRange(newPos, newPos);
+    });
+  }, [value, onChange, textareaRef, dateInsertPos]);
+
+  const insertLink = useCallback((label: string, url: string) => {
+    const textarea = textareaRef.current;
+    if (!textarea || !linkInsertPos) return;
+
+    const { start, filterLen } = linkInsertPos;
+    const before = value.substring(0, start - filterLen);
+    const after = value.substring(start);
+    const linkText = `[${label}](${url})`;
+    const newValue = before + linkText + after;
+
+    onChange(newValue);
+    setLinkDialogOpen(false);
+    setLinkInsertPos(null);
+
+    requestAnimationFrame(() => {
+      textarea.focus();
+      const newPos = before.length + linkText.length;
+      textarea.setSelectionRange(newPos, newPos);
+    });
+  }, [value, onChange, textareaRef, linkInsertPos]);
 
   return {
     menuOpen,
@@ -117,5 +185,11 @@ export function useEditorTemplates({
     filteredTemplates: filteredTemplatesList,
     insertTemplate,
     handleSlashMenuTrigger,
+    linkDialogOpen,
+    setLinkDialogOpen,
+    insertLink,
+    datePickerOpen,
+    setDatePickerOpen,
+    insertDate,
   };
 }

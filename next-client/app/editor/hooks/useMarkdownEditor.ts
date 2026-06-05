@@ -83,6 +83,12 @@ export function useMarkdownEditor({
     filteredTemplates,
     insertTemplate,
     handleSlashMenuTrigger,
+    linkDialogOpen,
+    setLinkDialogOpen,
+    insertLink,
+    datePickerOpen,
+    setDatePickerOpen,
+    insertDate,
   } = useEditorTemplates({
     value,
     onChange,
@@ -251,5 +257,11 @@ export function useMarkdownEditor({
     pillRange,
     setPillUrl,
     handleSaveLink,
+    linkDialogOpen,
+    setLinkDialogOpen,
+    insertLink,
+    datePickerOpen,
+    setDatePickerOpen,
+    insertDate,
   };
 }

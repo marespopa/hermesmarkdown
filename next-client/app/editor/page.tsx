@@ -129,6 +129,9 @@ export default function LiteEditor() {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      // Prevent tablet/mobile browsers from navigating back on ESC.
+      if (e.key === "Escape") e.preventDefault();
+
       // Zen Mode Shortcut
       if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === "z") {
         e.preventDefault();

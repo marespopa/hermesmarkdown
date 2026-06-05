@@ -12,6 +12,7 @@ type Props = {
   styles?: string;
   ariaLabelledBy?: string;
   ariaDescribedBy?: string;
+  hideCloseButton?: boolean;
 };
 
 const DialogModal = ({
@@ -22,6 +23,7 @@ const DialogModal = ({
   styles = "",
   ariaLabelledBy,
   ariaDescribedBy,
+  hideCloseButton = false,
 }: Props) => {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -85,19 +87,21 @@ const DialogModal = ({
           `}
         >
           {/* Close Button */}
-          <button
-            onClick={onClose}
-            className="absolute top-4 right-4 z-20 p-1.5 rounded-full 
-                      bg-neutral-200/50 dark:bg-neutral-800/50 
-                      hover:bg-neutral-300/80 dark:hover:bg-neutral-700/80 
-                      transition-all active:scale-90"
-            aria-label="Close modal"
-          >
-            <IoClose
-              size={20}
-              className="text-neutral-600 dark:text-neutral-300"
-            />
-          </button>
+          {!hideCloseButton && (
+            <button
+              onClick={onClose}
+              className="absolute top-4 right-4 z-20 p-1.5 rounded-full
+                        bg-neutral-200/50 dark:bg-neutral-800/50
+                        hover:bg-neutral-300/80 dark:hover:bg-neutral-700/80
+                        transition-all active:scale-90"
+              aria-label="Close modal"
+            >
+              <IoClose
+                size={20}
+                className="text-neutral-600 dark:text-neutral-300"
+              />
+            </button>
+          )}
 
           <div className="p-6 sm:p-8 text-neutral-900 dark:text-neutral-100 flex flex-col min-h-0">
             {children}
