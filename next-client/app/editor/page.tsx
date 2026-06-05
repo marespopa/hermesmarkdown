@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useLayoutEffect, useRef, useCallback } from "react";
 import Button from "@/app/components/Button";
 import DialogModal from "@/app/components/DialogModal/DialogModal";
 import SettingsDialog from "./components/SettingsDialog";
@@ -107,6 +107,12 @@ export default function LiteEditor() {
     return () => window.removeEventListener("resize", handleResize);
   }, [setIsSidebarOpen, isMounting]);
 
+  useEffect(() => {
+    if (vaultHandle && !isVaultPending && window.innerWidth >= 1024) {
+      setIsSidebarOpen(true);
+    }
+  }, [vaultHandle, isVaultPending, setIsSidebarOpen]);
+
   const handleSave = useCallback(async () => {
     if (!content.trim()) return;
     
@@ -156,7 +162,7 @@ export default function LiteEditor() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [setIsZenModeActive, flush]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!isMounting) {
       setIsPathSwitching(true);
       const timer = setTimeout(() => setIsPathSwitching(false), 500);
