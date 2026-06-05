@@ -13,6 +13,7 @@ import {
   HiOutlinePlus,
 } from "react-icons/hi";
 import Button from "@/app/components/Button";
+import Input from "@/app/components/Input";
 import SidebarHeader from "./SidebarHeader";
 
 interface VaultSidebarFilesProps {
@@ -72,23 +73,14 @@ export default function VaultSidebarFiles({
       )}
       {isFilesExpanded && (
         <div className="px-1 mb-4">
-          <div className="relative group/search">
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search files..."
-              className="w-full bg-zinc-200/40 dark:bg-zinc-800/40 border-none rounded-xl px-3 py-2.5 text-ui-caption outline-none focus:ring-1 focus:ring-blue-500/30 transition-all placeholder:text-zinc-400 font-medium"
-            />
-            {searchQuery && (
-              <button
-                onClick={() => setSearchQuery("")}
-                className="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 p-1"
-              >
-                <HiOutlineX size={12} />
-              </button>
-            )}
-          </div>
+          <Input
+            name="file-search"
+            value={searchQuery}
+            handleChange={(e) => setSearchQuery(e.target.value)}
+            onClear={() => setSearchQuery("")}
+            placeholder="Search files..."
+            className="my-0"
+          />
         </div>
       )}
       {isFilesExpanded && processedFiles.map((entry, idx) => {

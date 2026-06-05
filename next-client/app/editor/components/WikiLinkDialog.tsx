@@ -5,6 +5,7 @@ import { useAtomValue } from "jotai";
 import { atom_fileMetadata } from "@/app/atoms/metadata";
 import DialogModal from "../../components/DialogModal/DialogModal";
 import Button from "../../components/Button";
+import Input from "../../components/Input";
 import { HiOutlineDocumentText } from "react-icons/hi";
 
 interface WikiLinkDialogProps {
@@ -127,23 +128,16 @@ export default function WikiLinkDialog({
           {title}
         </h2>
 
-        <div className="flex flex-col gap-1.5">
-          <label className="text-ui-footnote text-zinc-500 dark:text-zinc-400">
-            Target Note
-          </label>
-          <input
-            type="text"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            onKeyDown={handleKeyDown}
-            autoFocus
-            placeholder="Search notes..."
-            className="px-3 py-2 text-ui-footnote rounded-xl border border-zinc-200 dark:border-zinc-700
-              bg-zinc-50 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100
-              outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 dark:focus:border-blue-500
-              transition-colors"
-          />
-        </div>
+        <Input
+          name="wiki-search"
+          label="Target Note"
+          value={search}
+          handleChange={(e) => setSearch(e.target.value)}
+          onKeyDown={handleKeyDown}
+          autoFocus
+          placeholder="Search notes..."
+          className="my-0"
+        />
 
         <div
           ref={scrollContainerRef}

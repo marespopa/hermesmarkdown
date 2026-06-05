@@ -2,6 +2,7 @@
 
 import React from "react";
 import SidebarHeader from "./SidebarHeader";
+import Input from "../../components/Input";
 
 interface VaultSidebarFiltersProps {
   selectedTag: string | null;
@@ -38,15 +39,14 @@ export default function VaultSidebarFilters({
         <div className="space-y-3 animate-in fade-in duration-300">
           {tags.length > 5 && (
             <div className="px-1 mb-2">
-              <div className="relative group/search">
-                <input
-                  type="text"
-                  value={tagSearchQuery}
-                  onChange={(e) => setTagSearchQuery(e.target.value)}
-                  placeholder="Search filters..."
-                  className="w-full bg-zinc-200/40 dark:bg-zinc-800/40 border-none rounded-xl px-3 py-2 text-ui-caption outline-none focus:ring-1 focus:ring-blue-500/30 transition-all placeholder:text-zinc-400 font-medium"
-                />
-              </div>
+              <Input
+                name="filter-search"
+                value={tagSearchQuery}
+                handleChange={(e) => setTagSearchQuery(e.target.value)}
+                onClear={() => setTagSearchQuery("")}
+                placeholder="Search filters..."
+                className="my-0"
+              />
             </div>
           )}
           

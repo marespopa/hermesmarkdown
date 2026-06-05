@@ -40,6 +40,7 @@ const Input = forwardRef<HTMLInputElement, Props>(
       className = "",
       autoFocus,
       selectOnFocus,
+      autoComplete = "off",
       ...rest
     },
     ref,
@@ -103,6 +104,7 @@ const Input = forwardRef<HTMLInputElement, Props>(
             min={validation?.min}
             max={validation?.max}
             ref={ref}
+            autoComplete={autoComplete}
             className={`${baseStyles} ${variantStyles} select-text`}
             aria-label={label || name}
             autoFocus={autoFocus}

@@ -102,6 +102,12 @@ describe("MarkdownEditor Functional Tests", () => {
     expect(mockOnChange).toHaveBeenCalledWith("Hello World");
   });
 
+  it("has autoComplete='off' on the textarea", () => {
+    renderEditor("");
+    const textarea = screen.getByRole("textbox");
+    expect(textarea).toHaveAttribute("autocomplete", "off");
+  });
+
   it("calls onWikiLinkClick when Ctrl clicking a wikilink", () => {
     const onWikiLinkClick = vi.fn();
     renderEditor("[[My Note|Alias]]", { onWikiLinkClick });

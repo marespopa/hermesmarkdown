@@ -66,4 +66,31 @@ describe("Input Component", () => {
     fireEvent.click(clearButton);
     expect(mockOnClear).toHaveBeenCalledTimes(1);
   });
+
+  it("defaults autoComplete to off", () => {
+    render(
+      <Input
+        name="test-input"
+        label="Test Label"
+        value=""
+        handleChange={mockHandleChange}
+      />
+    );
+    const input = screen.getByLabelText("Test Label");
+    expect(input).toHaveAttribute("autocomplete", "off");
+  });
+
+  it("allows overriding autoComplete", () => {
+    render(
+      <Input
+        name="test-input"
+        label="Test Label"
+        value=""
+        handleChange={mockHandleChange}
+        autoComplete="on"
+      />
+    );
+    const input = screen.getByLabelText("Test Label");
+    expect(input).toHaveAttribute("autocomplete", "on");
+  });
 });

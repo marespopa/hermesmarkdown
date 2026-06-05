@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { HiOutlinePlus, HiOutlineTrash } from "react-icons/hi";
 import Button from "@/app/components/Button";
+import Input from "@/app/components/Input";
 import DialogModal from "@/app/components/DialogModal/DialogModal";
 import { QueryRule } from "@/app/utils/queryEngine";
 import { useAtom } from "jotai";
@@ -108,17 +109,15 @@ export default function WorkspaceBuilder({ isOpen, onClose, editingWorkspace }: 
         </div>
 
         <div className="flex-1 overflow-y-auto custom-scrollbar px-1 pb-4 space-y-6">
-          <div className="space-y-1.5">
-            <label className="text-ui-footnote font-medium text-neutral-500 dark:text-neutral-400">Workspace Name</label>
-            <input
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="w-full bg-neutral-100 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-xl px-4 py-2.5 text-ui-subhead outline-none focus:ring-2 focus:ring-blue-500/50 transition-all"
-              placeholder="e.g. Work Projects, Daily Logs..."
-              autoFocus
-            />
-          </div>
+          <Input
+            name="workspace-name"
+            label="Workspace Name"
+            value={name}
+            handleChange={(e) => setName(e.target.value)}
+            placeholder="e.g. Work Projects, Daily Logs..."
+            autoFocus
+            className="my-0"
+          />
 
           <div className="space-y-4">
             <div className="flex items-center justify-between">
@@ -162,12 +161,12 @@ export default function WorkspaceBuilder({ isOpen, onClose, editingWorkspace }: 
                   </div>
 
                   <div className="flex items-center gap-2 w-full">
-                    <input
-                      type="text"
+                    <Input
+                      name={`rule-value-${idx}`}
                       value={rule.value}
-                      onChange={(e) => updateRule(idx, { value: e.target.value })}
+                      handleChange={(e) => updateRule(idx, { value: e.target.value })}
                       placeholder="Value..."
-                      className="flex-1 bg-white dark:bg-neutral-950 border border-neutral-200 dark:border-neutral-800 rounded-lg px-3 py-2 text-ui-footnote outline-none focus:ring-2 focus:ring-blue-500/50 transition-all"
+                      className="flex-1 my-0"
                     />
 
                     <button

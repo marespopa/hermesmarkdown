@@ -3,6 +3,7 @@
 import React, { useRef, useState, useEffect } from "react";
 import { HiOutlineExternalLink, HiOutlinePencil } from "react-icons/hi";
 import Button from "../../components/Button";
+import Input from "../../components/Input";
 import DialogModal from "../../components/DialogModal/DialogModal";
 import { PILL_CONTAINER_CLASSES } from "./constants";
 
@@ -88,41 +89,32 @@ export function LinkPill({
               Edit Link
             </h2>
 
-            <div className="flex flex-col gap-1.5">
-              <label className="text-ui-footnote text-zinc-500 dark:text-zinc-400">Text</label>
-              <input
-                type="text"
-                value={editLabel}
-                onChange={(e) => setEditLabel(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") { e.preventDefault(); urlInputRef.current?.focus(); }
-                  if (e.key === "Escape") { handleClose(); }
-                }}
-                autoFocus
-                className="px-3 py-2 text-ui-footnote rounded-xl border border-zinc-200 dark:border-zinc-700
-                  bg-zinc-50 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100
-                  outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 dark:focus:border-blue-500
-                  transition-colors"
-              />
-            </div>
+            <Input
+              name="edit-label"
+              label="Text"
+              value={editLabel}
+              handleChange={(e) => setEditLabel(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") { e.preventDefault(); urlInputRef.current?.focus(); }
+                if (e.key === "Escape") { handleClose(); }
+              }}
+              autoFocus
+              className="my-0"
+            />
 
-            <div className="flex flex-col gap-1.5">
-              <label className="text-ui-footnote text-zinc-500 dark:text-zinc-400">URL</label>
-              <input
-                ref={urlInputRef}
-                type="url"
-                value={editUrl}
-                onChange={(e) => setEditUrl(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") { e.preventDefault(); handleSave(); }
-                  if (e.key === "Escape") { handleClose(); }
-                }}
-                className="px-3 py-2 text-ui-footnote rounded-xl border border-zinc-200 dark:border-zinc-700
-                  bg-zinc-50 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 font-mono
-                  outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 dark:focus:border-blue-500
-                  transition-colors"
-              />
-            </div>
+            <Input
+              ref={urlInputRef}
+              name="edit-url"
+              label="URL"
+              type="text"
+              value={editUrl}
+              handleChange={(e) => setEditUrl(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") { e.preventDefault(); handleSave(); }
+                if (e.key === "Escape") { handleClose(); }
+              }}
+              className="my-0"
+            />
 
             <div className="flex justify-end gap-2 pt-1">
               <Button variant="outlined" onClick={handleClose}>

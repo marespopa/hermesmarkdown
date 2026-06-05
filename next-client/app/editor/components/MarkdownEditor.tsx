@@ -9,6 +9,7 @@ import DialogModal from "../../components/DialogModal/DialogModal";
 import { LinkPill } from "./LinkPill";
 import { useMarkdownEditor } from "../hooks/useMarkdownEditor";
 import Button from "../../components/Button";
+import Input from "../../components/Input";
 import { PILL_CONTAINER_CLASSES } from "./constants";
 
 interface MarkdownEditorProps {
@@ -255,43 +256,34 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
                   Add Link
                 </h2>
 
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-ui-footnote text-zinc-500 dark:text-zinc-400">Text</label>
-                  <input
-                    type="text"
-                    value={linkLabel}
-                    onChange={(e) => setLinkLabel(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") { e.preventDefault(); linkUrlInputRef.current?.focus(); }
-                      if (e.key === "Escape") { setLinkDialogOpen(false); textareaRef.current?.focus(); }
-                    }}
-                    autoFocus
-                    placeholder="Link text"
-                    className="px-3 py-2 text-ui-footnote rounded-xl border border-zinc-200 dark:border-zinc-700
-                      bg-zinc-50 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100
-                      outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 dark:focus:border-blue-500
-                      transition-colors"
-                  />
-                </div>
+                <Input
+                  name="link-label"
+                  label="Text"
+                  value={linkLabel}
+                  handleChange={(e) => setLinkLabel(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") { e.preventDefault(); linkUrlInputRef.current?.focus(); }
+                    if (e.key === "Escape") { setLinkDialogOpen(false); textareaRef.current?.focus(); }
+                  }}
+                  autoFocus
+                  placeholder="Link text"
+                  className="my-0"
+                />
 
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-ui-footnote text-zinc-500 dark:text-zinc-400">URL</label>
-                  <input
-                    ref={linkUrlInputRef}
-                    type="url"
-                    value={linkUrl}
-                    onChange={(e) => setLinkUrl(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") { e.preventDefault(); insertLink(linkLabel || "link", linkUrl); }
-                      if (e.key === "Escape") { setLinkDialogOpen(false); textareaRef.current?.focus(); }
-                    }}
-                    placeholder="https://"
-                    className="px-3 py-2 text-ui-footnote rounded-xl border border-zinc-200 dark:border-zinc-700
-                      bg-zinc-50 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 font-mono
-                      outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 dark:focus:border-blue-500
-                      transition-colors"
-                  />
-                </div>
+                <Input
+                  ref={linkUrlInputRef}
+                  name="link-url"
+                  label="URL"
+                  type="text"
+                  value={linkUrl}
+                  handleChange={(e) => setLinkUrl(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") { e.preventDefault(); insertLink(linkLabel || "link", linkUrl); }
+                    if (e.key === "Escape") { setLinkDialogOpen(false); textareaRef.current?.focus(); }
+                  }}
+                  placeholder="https://"
+                  className="my-0"
+                />
 
                 <div className="flex justify-end gap-2 pt-1">
                   <Button variant="outlined" onClick={() => { setLinkDialogOpen(false); textareaRef.current?.focus(); }}>
@@ -337,6 +329,7 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
             textareaClassName={
               isCtrlPressed && isOverLink ? "!cursor-pointer" : "!cursor-text"
             }
+            autoComplete="off"
           />
 
           {!value && (
