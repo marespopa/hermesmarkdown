@@ -18,7 +18,7 @@ import {
 import VaultSidebar from "./components/VaultSidebar";
 import WelcomeWizard from "./components/WelcomeWizard";
 import WorkspaceSplitter from "./components/WorkspaceSplitter";
-import VaultPendingBanner from "./components/VaultPendingBanner";
+import VaultPendingOverlay from "./components/VaultPendingOverlay";
 import StatusBar from "./components/StatusBar";
 import ErrorBoundary from "@/app/components/ErrorBoundary";
 import { useFileSystem } from "@/app/hooks/use-file-system";
@@ -48,6 +48,8 @@ export default function LiteEditor() {
   const {
     vaultHandle,
     activeFileHandle,
+    isVaultPending,
+    restoreVault,
     saveFile,
     exportFile,
     importFile,
@@ -292,19 +294,21 @@ export default function LiteEditor() {
 
           {/* Main Editor Area */}
           <div className="flex-1 flex flex-col min-w-0 relative">
-            <VaultPendingBanner />
-            <main className={`flex-1 min-h-0 relative transition-all duration-700 ${isPathSwitching ? "opacity-30 blur-[2px]" : "opacity-100"}`}>
-              {isMounting ? (
-                <div className="animate-pulse opacity-10 space-y-6 pt-20 px-12 max-w-2xl mx-auto">
-                  <div className="h-8 bg-current w-1/3 rounded-lg mb-16" />
-                  <div className="h-4 bg-current w-full rounded-md" />
-                  <div className="h-4 bg-current w-11/12 rounded-md" />
-                  <div className="h-4 bg-current w-5/6 rounded-md" />
-                </div>
-              ) : (
-                <WorkspaceSplitter node={workspaceLayout.rootContainer} />
-              )}
-            </main>
+            <div className="relative flex-1 min-h-0">
+              <main className={`h-full transition-all duration-700 ${isPathSwitching ? "opacity-30 blur-[2px]" : "opacity-100"} ${isVaultPending ? "blur-sm pointer-events-none select-none" : ""}`}>
+                {isMounting ? (
+                  <div className="animate-pulse opacity-10 space-y-6 pt-20 px-12 max-w-2xl mx-auto">
+                    <div className="h-8 bg-current w-1/3 rounded-lg mb-16" />
+                    <div className="h-4 bg-current w-full rounded-md" />
+                    <div className="h-4 bg-current w-11/12 rounded-md" />
+                    <div className="h-4 bg-current w-5/6 rounded-md" />
+                  </div>
+                ) : (
+                  <WorkspaceSplitter node={workspaceLayout.rootContainer} />
+                )}
+              </main>
+              {isVaultPending && <VaultPendingOverlay restoreVault={restoreVault} />}
+            </div>
 
             <div className={`${isZenModeActive ? "order-first" : "max-md:order-first"} shrink-0`}>
               <StatusBar />
