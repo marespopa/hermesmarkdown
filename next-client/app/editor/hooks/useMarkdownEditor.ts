@@ -89,6 +89,7 @@ export function useMarkdownEditor({
     datePickerOpen,
     setDatePickerOpen,
     insertDate,
+    dismissMenu,
   } = useEditorTemplates({
     value,
     onChange,
@@ -111,7 +112,6 @@ export function useMarkdownEditor({
     isDateExpanded,
     setIsDateExpanded,
     menuOpen,
-    setMenuOpen,
     setDateMatch,
     filteredTemplates,
     selectedIndex,
@@ -122,6 +122,7 @@ export function useMarkdownEditor({
     pillUrl,
     setPillUrl,
     onDetectLinkPill: detectLinkAtCaret,
+    dismissMenu,
   });
 
   useEffect(() => {
@@ -263,5 +264,6 @@ export function useMarkdownEditor({
     datePickerOpen,
     setDatePickerOpen,
     insertDate,
+    dismissMenu,
   };
 }

@@ -7,7 +7,6 @@ import DatePickerCallout from "./DatePickerCallout";
 import DialogModal from "../../components/DialogModal/DialogModal";
 import { LinkPill } from "./LinkPill";
 import { useMarkdownEditor } from "../hooks/useMarkdownEditor";
-import { TEMPLATES } from "./constants";
 import Button from "../../components/Button";
 
 interface MarkdownEditorProps {
@@ -29,10 +28,8 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
     isZenModeActive,
     windowWidth,
     menuOpen,
-    setMenuOpen,
     menuPos,
     selectedIndex,
-    setSelectedIndex,
     isCtrlPressed,
     isOverLink,
     dateMatch,
@@ -65,14 +62,9 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
     insertDate,
   } = useMarkdownEditor(props);
 
-  const [searchInput, setSearchInput] = useState("");
   const [linkLabel, setLinkLabel] = useState("");
   const [linkUrl, setLinkUrl] = useState("");
   const linkUrlInputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    if (!menuOpen) setSearchInput("");
-  }, [menuOpen]);
 
   useEffect(() => {
     if (linkDialogOpen) {
@@ -82,46 +74,7 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
   }, [linkDialogOpen]);
 
   const isMobile = windowWidth < 768;
-
-  const displayedTemplates = searchInput
-    ? TEMPLATES.filter((t) =>
-        t.label.toLowerCase().includes(searchInput.toLowerCase()),
-      )
-    : filteredTemplates;
-
-  const templateSearchBar = (
-    <div className="px-2.5 py-1.5 border-b border-zinc-100 dark:border-zinc-800">
-      <input
-        type="text"
-        value={searchInput}
-        onChange={(e) => {
-          setSearchInput(e.target.value);
-          setSelectedIndex(0);
-        }}
-        onKeyDown={(e) => {
-          if (!["ArrowDown", "ArrowUp", "Enter", "Escape"].includes(e.key)) return;
-          e.preventDefault();
-          e.stopPropagation();
-          const len = Math.max(displayedTemplates.length, 1);
-          if (e.key === "ArrowDown") {
-            setSelectedIndex((prev) => (prev + 1) % len);
-          } else if (e.key === "ArrowUp") {
-            setSelectedIndex((prev) => (prev - 1 + len) % len);
-          } else if (e.key === "Enter") {
-            if (displayedTemplates[selectedIndex]) {
-              insertTemplate(displayedTemplates[selectedIndex].content);
-            }
-          } else if (e.key === "Escape") {
-            setMenuOpen(false);
-            textareaRef.current?.focus();
-          }
-        }}
-        autoFocus={!isMobile}
-        placeholder="Search templates…"
-        className="w-full text-ui-footnote bg-transparent outline-none text-zinc-700 dark:text-zinc-300 placeholder-zinc-400 dark:placeholder-zinc-600"
-      />
-    </div>
-  );
+  const displayedTemplates = filteredTemplates;
 
   const templateList = (
     <div className={`overflow-y-auto py-1 ${isMobile ? "max-h-[55vh]" : "max-h-52"}`}>
@@ -223,26 +176,12 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
           )}
 
           {menuOpen && (
-            isMobile ? (
-              <DialogModal
-                isOpened={menuOpen}
-                onClose={() => { setMenuOpen(false); textareaRef.current?.focus(); }}
-                styles="!max-w-[340px] !rounded-3xl"
-              >
-                <div className="-m-6 sm:-m-8">
-                  {templateSearchBar}
-                  {templateList}
-                </div>
-              </DialogModal>
-            ) : (
-              <div
-                className="absolute z-50 w-56 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg shadow-2xl overflow-hidden"
-                style={{ top: menuPos.top, left: menuPos.left, fontFamily }}
-              >
-                {templateSearchBar}
-                {templateList}
-              </div>
-            )
+            <div
+              className="absolute z-50 w-56 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg shadow-2xl overflow-hidden"
+              style={{ top: menuPos.top, left: menuPos.left, fontFamily }}
+            >
+              {templateList}
+            </div>
           )}
 
           {pillUrl && (
@@ -351,6 +290,7 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
                 }
               }, 150);
             }}
+            onKeyDown={handleGlobalKeyDown}
             textareaClassName={
               isCtrlPressed && isOverLink ? "!cursor-pointer" : "!cursor-text"
             }

@@ -16,7 +16,6 @@ interface UseEditorHandlersProps {
   isDateExpanded: boolean;
   setIsDateExpanded: (expanded: boolean) => void;
   menuOpen: boolean;
-  setMenuOpen: (open: boolean) => void;
   setDateMatch: (match: DateMatch | null) => void;
   filteredTemplates: any[];
   selectedIndex: number;
@@ -27,6 +26,7 @@ interface UseEditorHandlersProps {
   pillUrl: string | null;
   setPillUrl: (url: string | null) => void;
   onDetectLinkPill?: () => void;
+  dismissMenu: () => void;
 }
 
 export function useEditorHandlers({
@@ -37,7 +37,6 @@ export function useEditorHandlers({
   isDateExpanded,
   setIsDateExpanded,
   menuOpen,
-  setMenuOpen,
   setDateMatch,
   filteredTemplates,
   selectedIndex,
@@ -48,6 +47,7 @@ export function useEditorHandlers({
   pillUrl,
   setPillUrl,
   onDetectLinkPill,
+  dismissMenu,
 }: UseEditorHandlersProps) {
   const [isCtrlPressed, setIsCtrlPressed] = useState(false);
   const [isOverLink, setIsOverLink] = useState(false);
@@ -180,7 +180,7 @@ export function useEditorHandlers({
       }
       if (menuOpen) {
         e.stopPropagation();
-        setMenuOpen(false);
+        dismissMenu();
         setDateMatch(null);
         return;
       }
@@ -222,21 +222,22 @@ export function useEditorHandlers({
     if (menuOpen) {
       if (e.key === "ArrowDown") {
         e.preventDefault();
-        setSelectedIndex((prev) => (prev + 1) % filteredTemplates.length);
+        setSelectedIndex((prev) => prev === -1 ? 0 : (prev + 1) % filteredTemplates.length);
       } else if (e.key === "ArrowUp") {
         e.preventDefault();
         setSelectedIndex(
-          (prev) =>
-            (prev - 1 + filteredTemplates.length) % filteredTemplates.length,
+          (prev) => prev === -1 ? filteredTemplates.length - 1 : (prev - 1 + filteredTemplates.length) % filteredTemplates.length,
         );
-      } else if (e.key === "Enter") {
-        e.preventDefault();
-        if (filteredTemplates[selectedIndex]) {
-          insertTemplate(filteredTemplates[selectedIndex].content);
+      } else if (e.key === "Enter" || e.key === "Tab") {
+        if (selectedIndex !== -1) {
+          e.preventDefault();
+          if (filteredTemplates[selectedIndex]) {
+            insertTemplate(filteredTemplates[selectedIndex].content);
+          }
         }
       }
     }
-  }, [dateMatch, isDateExpanded, setIsDateExpanded, menuOpen, setMenuOpen, setDateMatch, value, textareaRef, filteredTemplates, selectedIndex, setSelectedIndex, insertTemplate, pillUrl, setPillUrl]);
+  }, [dateMatch, isDateExpanded, setIsDateExpanded, menuOpen, setDateMatch, value, textareaRef, filteredTemplates, selectedIndex, setSelectedIndex, insertTemplate, pillUrl, setPillUrl, dismissMenu]);
 
   return {
     isCtrlPressed,

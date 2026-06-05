@@ -19,11 +19,26 @@ export function useEditorTemplates({
   const [menuOpen, setMenuOpen] = useState(false);
   const [menuPos, setMenuPos] = useState({ top: 0, left: 0 });
   const [filterQuery, setFilterQuery] = useState("");
-  const [selectedIndex, setSelectedIndex] = useState(0);
+  const [selectedIndex, setSelectedIndex] = useState(-1);
   const [linkDialogOpen, setLinkDialogOpen] = useState(false);
   const [linkInsertPos, setLinkInsertPos] = useState<{ start: number; filterLen: number } | null>(null);
   const [datePickerOpen, setDatePickerOpen] = useState(false);
   const [dateInsertPos, setDateInsertPos] = useState<{ start: number; filterLen: number } | null>(null);
+  const [dismissedSlashPos, setDismissedSlashPos] = useState<number | null>(null);
+
+  const dismissMenu = useCallback(() => {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+    const start = textarea.selectionStart;
+    const textUpToCursor = value.substring(0, start);
+    const lastNewLine = textUpToCursor.lastIndexOf("\n");
+    const currentLineUpToCursor = textUpToCursor.substring(lastNewLine + 1);
+    const slashIndex = currentLineUpToCursor.lastIndexOf("/");
+    if (slashIndex !== -1) {
+      setDismissedSlashPos(lastNewLine + 1 + slashIndex);
+    }
+    setMenuOpen(false);
+  }, [value, textareaRef]);
 
   const filteredTemplatesList = useMemo(
     () =>
@@ -98,10 +113,41 @@ export function useEditorTemplates({
       slashIndex !== -1 &&
       (slashIndex === 0 || currentLineUpToCursor[slashIndex - 1] === " ")
     ) {
+      const absoluteSlashIndex = lastNewLine + 1 + slashIndex;
       const query = currentLineUpToCursor.substring(slashIndex + 1);
+
+      if (dismissedSlashPos !== null && (absoluteSlashIndex !== dismissedSlashPos || query === "")) {
+        setDismissedSlashPos(null);
+      }
+
+      if (dismissedSlashPos === absoluteSlashIndex && query !== "") {
+        setMenuOpen(false);
+        return;
+      }
+
       if (!query.includes(" ")) {
+        const textFromSlash = currentLineUpToCursor.substring(slashIndex);
+        const isPath = /^\/(Users|home|tmp|etc|var|usr|bin|opt|dev|proc|sys|sbin|lib|local|mnt|media|srv|run|root|C:)(\/|$)/i.test(textFromSlash) ||
+          /^\/[a-zA-Z0-9._-]+\//.test(textFromSlash) ||
+          textFromSlash.startsWith("./") ||
+          textFromSlash.startsWith("../");
+
+        if (isPath) {
+          setMenuOpen(false);
+          return;
+        }
+
+        const queryFiltered = TEMPLATES.filter((t) =>
+          t.label.toLowerCase().includes(query.toLowerCase()),
+        );
+
+        if (queryFiltered.length === 0) {
+          setMenuOpen(false);
+          return;
+        }
+
         setFilterQuery(query);
-        setSelectedIndex(0);
+        setSelectedIndex(-1);
 
         if (!menuOpen) {
           const caret = getCaretCoordinates(textarea, start - query.length);
@@ -125,8 +171,9 @@ export function useEditorTemplates({
       }
     } else {
       setMenuOpen(false);
+      setDismissedSlashPos(null);
     }
-  }, [menuOpen, textareaRef]);
+  }, [menuOpen, textareaRef, dismissedSlashPos]);
 
   const insertDate = useCallback((date: Date) => {
     const textarea = textareaRef.current;
@@ -191,5 +238,6 @@ export function useEditorTemplates({
     datePickerOpen,
     setDatePickerOpen,
     insertDate,
+    dismissMenu,
   };
 }

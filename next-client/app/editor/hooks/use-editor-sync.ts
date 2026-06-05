@@ -33,9 +33,20 @@ export function useEditorSync({
   const [dateMenuPos, setDateMenuPos] = useState({ top: 0, left: 0, endLeft: 0 });
   
   const dateDetectionTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const isMountedRef = useRef(true);
+
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+      if (dateDetectionTimeoutRef.current) {
+        clearTimeout(dateDetectionTimeoutRef.current);
+      }
+    };
+  }, []);
 
   const syncActiveLine = useCallback(() => {
-    if (!textareaRef.current) return;
+    if (!isMountedRef.current || !textareaRef.current) return;
     const pos = textareaRef.current.selectionStart;
     const textUpToCursor = value.substring(0, pos);
     const lines = textUpToCursor.split("\n");
@@ -108,6 +119,9 @@ export function useEditorSync({
       document.removeEventListener("selectionchange", handleSelectionChange);
       clearTimeout(timer1);
       clearTimeout(timer2);
+      if (dateDetectionTimeoutRef.current) {
+        clearTimeout(dateDetectionTimeoutRef.current);
+      }
     };
   }, [syncActiveLine, syncScroll, textareaRef]);
 
