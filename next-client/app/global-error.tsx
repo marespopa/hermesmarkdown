@@ -42,18 +42,20 @@ export default function GlobalError({ error, reset }: GlobalErrorProps) {
           )}
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
-            <button
+            <Button
+              variant="primary"
               onClick={reset}
-              className="px-10 py-3 bg-neutral-900 text-white font-semibold rounded-full hover:bg-neutral-700 transition-colors"
+              className="!px-10 !rounded-full"
             >
               Try Again
-            </button>
-            <button
+            </Button>
+            <Button
+              variant="secondary"
               onClick={() => { window.location.href = '/'; }}
-              className="px-10 py-3 border border-neutral-200 text-neutral-700 font-semibold rounded-full hover:border-neutral-400 transition-colors"
+              className="!px-10 !rounded-full"
             >
               Go Home
-            </button>
+            </Button>
           </div>
         </div>
       </body>

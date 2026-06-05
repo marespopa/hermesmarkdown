@@ -45,17 +45,13 @@ export function useLinkPill({ value, textareaRef }: UseLinkPillProps) {
       return;
     }
 
-    const pillHeight = 32;
-    const pillWidth = 220;
-    const caret = getCaretCoordinates(textarea, result.start);
-    const spaceBelow = textarea.clientHeight - (caret.top - textarea.scrollTop);
-    const shouldShowUp = spaceBelow < pillHeight + 8 && caret.top > pillHeight + 8;
+    const pillWidth = 70;
+    const caretEnd = getCaretCoordinates(textarea, result.end);
+    const caretHeight = caretEnd.height || 22;
 
     setPillPos({
-      top: shouldShowUp
-        ? caret.top - pillHeight - 6
-        : caret.top + (caret.height ?? 22) + 4,
-      left: Math.min(Math.max(0, caret.left), textarea.clientWidth - pillWidth),
+      top: caretEnd.top + caretHeight / 2 - 14 - 2,
+      left: Math.min(caretEnd.left + 8, textarea.clientWidth - pillWidth),
     });
     setPillLabel(result.label ?? "");
     setPillRange({ start: result.start, end: result.end });

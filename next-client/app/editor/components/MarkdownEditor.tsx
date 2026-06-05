@@ -8,6 +8,7 @@ import DialogModal from "../../components/DialogModal/DialogModal";
 import { LinkPill } from "./LinkPill";
 import { useMarkdownEditor } from "../hooks/useMarkdownEditor";
 import Button from "../../components/Button";
+import { PILL_CONTAINER_CLASSES } from "./constants";
 
 interface MarkdownEditorProps {
   value: string;
@@ -65,6 +66,7 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
   const [linkLabel, setLinkLabel] = useState("");
   const [linkUrl, setLinkUrl] = useState("");
   const linkUrlInputRef = useRef<HTMLInputElement>(null);
+  const templateContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (linkDialogOpen) {
@@ -73,11 +75,21 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
     }
   }, [linkDialogOpen]);
 
+  useEffect(() => {
+    if (menuOpen && selectedIndex !== -1 && templateContainerRef.current) {
+      const container = templateContainerRef.current;
+      const selectedItem = container.children[selectedIndex] as HTMLElement;
+      if (selectedItem) {
+        selectedItem.scrollIntoView({ block: "nearest" });
+      }
+    }
+  }, [selectedIndex, menuOpen]);
+
   const isMobile = windowWidth < 768;
   const displayedTemplates = filteredTemplates;
 
   const templateList = (
-    <div className={`overflow-y-auto py-1 ${isMobile ? "max-h-[55vh]" : "max-h-52"}`}>
+    <div ref={templateContainerRef} className={`overflow-y-auto py-1 ${isMobile ? "max-h-[55vh]" : "max-h-52"}`}>
       {displayedTemplates.length === 0 ? (
         <div className="px-3 py-2 text-ui-footnote text-zinc-400 dark:text-zinc-600">
           No results
@@ -146,13 +158,14 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
       >
         <div className="relative">
           {dateMatch && (
-            <button
+            <Button
+              variant="pill-icon"
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
                 setIsDateExpanded(!isDateExpanded);
               }}
-              className="absolute z-40 p-1 text-zinc-400 hover:text-blue-600 dark:text-zinc-500 dark:hover:text-blue-400 transition-colors bg-white dark:bg-zinc-900 rounded-md border border-zinc-200 dark:border-zinc-800 shadow-sm"
+              className={PILL_CONTAINER_CLASSES}
               style={{
                 top: dateMenuPos.top - 2,
                 left: Math.min(
@@ -163,7 +176,7 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
               title="Toggle calendar"
             >
               <HiOutlineCalendar size={16} />
-            </button>
+            </Button>
           )}
 
           {dateMatch && (
@@ -189,7 +202,6 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
               url={pillUrl}
               label={pillLabel}
               pos={pillPos}
-              isMobile={isMobile}
               onOpen={() => {
                 window.open(pillUrl, "_blank", "noopener,noreferrer");
                 setPillUrl(null);

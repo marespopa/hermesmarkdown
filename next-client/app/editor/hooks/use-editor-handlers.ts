@@ -195,6 +195,7 @@ export function useEditorHandlers({
       }
       if (e.key === "b") {
         e.preventDefault();
+        e.stopPropagation();
         const textarea = textareaRef.current;
         if (!textarea) return;
         const start = textarea.selectionStart;
@@ -207,6 +208,7 @@ export function useEditorHandlers({
       }
       if (e.key === "i") {
         e.preventDefault();
+        e.stopPropagation();
         const textarea = textareaRef.current;
         if (!textarea) return;
         const start = textarea.selectionStart;
@@ -222,15 +224,18 @@ export function useEditorHandlers({
     if (menuOpen) {
       if (e.key === "ArrowDown") {
         e.preventDefault();
+        e.stopPropagation();
         setSelectedIndex((prev) => prev === -1 ? 0 : (prev + 1) % filteredTemplates.length);
       } else if (e.key === "ArrowUp") {
         e.preventDefault();
+        e.stopPropagation();
         setSelectedIndex(
           (prev) => prev === -1 ? filteredTemplates.length - 1 : (prev - 1 + filteredTemplates.length) % filteredTemplates.length,
         );
       } else if (e.key === "Enter" || e.key === "Tab") {
         if (selectedIndex !== -1) {
           e.preventDefault();
+          e.stopPropagation();
           if (filteredTemplates[selectedIndex]) {
             insertTemplate(filteredTemplates[selectedIndex].content);
           }

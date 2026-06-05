@@ -271,9 +271,13 @@ describe("MarkdownEditor Functional Tests", () => {
       fireEvent.change(textarea, { target: { value: "/link" } });
     });
 
-    // Menu should open; simulate selecting the Link entry via Enter
+    // Menu should open; simulate selecting the Link entry via ArrowDown then Enter
+    act(() => {
+      fireEvent.keyDown(textarea, { key: "ArrowDown" });
+    });
     act(() => {
       fireEvent.keyDown(textarea, { key: "Enter" });
+      vi.runAllTimers();
     });
 
     expect(screen.getByRole("dialog")).toBeInTheDocument();
@@ -295,7 +299,11 @@ describe("MarkdownEditor Functional Tests", () => {
     });
 
     act(() => {
+      fireEvent.keyDown(textarea, { key: "ArrowDown" });
+    });
+    act(() => {
       fireEvent.keyDown(textarea, { key: "Enter" });
+      vi.runAllTimers();
     });
 
     // DatePickerCallout renders month names (desktop path uses Portal, not DialogModal)

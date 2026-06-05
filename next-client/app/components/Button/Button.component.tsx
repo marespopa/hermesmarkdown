@@ -12,6 +12,7 @@ type ButtonVariant =
   | "bare"
   | "fab-action"
   | "fab-toggle"
+  | "pill-icon"
   | "menu-item";
 
 type Props = {
@@ -92,7 +93,10 @@ const variantStyles = (variant: ButtonVariant): string => {
       return "inline-flex items-center justify-center px-4 py-2 font-sans font-medium text-ui-footnote border-l border-zinc-200 dark:border-zinc-800 transition-all min-w-[48px] focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 disabled:opacity-30 disabled:pointer-events-none select-none";
 
     case "menu-item":
-      return "w-full inline-flex items-center justify-start gap-3 px-3 py-2.5 font-sans font-medium text-ui-footnote text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-zinc-100 transition-all rounded-xl group focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 disabled:opacity-30 disabled:pointer-events-none select-none";
+      return "w-full inline-flex items-center justify-start gap-3 px-3 py-2.5 font-sans font-medium text-ui-footnote text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:bg-zinc-100 transition-all rounded-xl group focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 disabled:opacity-30 disabled:pointer-events-none select-none";
+
+    case "pill-icon":
+      return "flex items-center justify-center p-1 text-zinc-400 hover:text-blue-600 dark:text-zinc-500 dark:hover:text-blue-400 transition-all duration-200 ease-out rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 disabled:opacity-30 disabled:pointer-events-none select-none active:scale-[0.95]";
 
     default:
       return baseStyles;
