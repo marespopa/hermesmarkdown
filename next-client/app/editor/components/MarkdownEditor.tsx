@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from "react";
 import Editor from "react-simple-code-editor";
 import { HiOutlineCalendar } from "react-icons/hi";
 import DatePickerCallout from "./DatePickerCallout";
+import WikiLinkDialog from "./WikiLinkDialog";
 import DialogModal from "../../components/DialogModal/DialogModal";
 import { LinkPill } from "./LinkPill";
 import { useMarkdownEditor } from "../hooks/useMarkdownEditor";
@@ -53,10 +54,14 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
     pillUrl,
     pillLabel,
     pillPos,
+    pillType,
     setPillUrl,
     handleSaveLink,
+    handleSaveWikiLink,
     linkDialogOpen,
     setLinkDialogOpen,
+    wikiLinkDialogOpen,
+    setWikiLinkDialogOpen,
     insertLink,
     datePickerOpen,
     setDatePickerOpen,
@@ -202,17 +207,37 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
               url={pillUrl}
               label={pillLabel}
               pos={pillPos}
+              type={pillType || "url"}
               onOpen={() => {
-                window.open(pillUrl, "_blank", "noopener,noreferrer");
+                if (pillType === "wiki") {
+                  props.onWikiLinkClick?.(pillUrl);
+                } else {
+                  window.open(pillUrl, "_blank", "noopener,noreferrer");
+                }
                 setPillUrl(null);
               }}
               onSave={handleSaveLink}
+              onEdit={() => {
+                if (pillType === "wiki") {
+                  setWikiLinkDialogOpen(true);
+                }
+              }}
               onDismiss={() => {
                 setPillUrl(null);
                 textareaRef.current?.focus();
               }}
             />
           )}
+
+          <WikiLinkDialog
+            isOpen={wikiLinkDialogOpen}
+            onClose={() => {
+              setWikiLinkDialogOpen(false);
+              textareaRef.current?.focus();
+            }}
+            onConfirm={handleSaveWikiLink}
+            initialValue={pillLabel}
+          />
 
           {linkDialogOpen && (
             <DialogModal

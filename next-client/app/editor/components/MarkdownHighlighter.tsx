@@ -18,13 +18,20 @@ import {
 const FADED =
   'class="opacity-[0.15] dark:opacity-[0.2] transition-opacity duration-500 hover:opacity-100"';
 
-function processInlineMarkdown(text: string, dateMatch: DateMatch | null = null) {
+function processInlineMarkdown(
+  text: string,
+  dateMatch: DateMatch | null = null,
+  activeLink: { rawString: string } | null = null,
+) {
   let html = text;
 
   const transitionClass = "transition-all duration-100 ease-in-out";
 
   const getUnderlineClass = (matchStr: string) => {
-    if (dateMatch && dateMatch.rawString === matchStr) {
+    if (
+      (dateMatch && dateMatch.rawString === matchStr) ||
+      (activeLink && activeLink.rawString === matchStr)
+    ) {
       return " underline decoration-blue-500 decoration-2 underline-offset-[3px] dark:decoration-blue-400";
     }
     return "";
@@ -55,7 +62,8 @@ function processInlineMarkdown(text: string, dateMatch: DateMatch | null = null)
       if (match.match(/\[\[\d{4}-\d{2}-\d{2}\]\]/)) return match;
       const parts = content.split("|");
       const displayText = parts.length > 1 ? parts[1].trim() : parts[0].trim();
-      return `<span ${FADED}>[[</span><span class="text-purple-600 dark:text-purple-400 font-bold underline cursor-pointer">${displayText}</span><span ${FADED}>]]</span>`;
+      const underline = getUnderlineClass(match);
+      return `<span ${FADED}>[[</span><span class="text-blue-600 dark:text-blue-400 font-bold underline cursor-pointer${underline}">${displayText}</span><span ${FADED}>]]</span>`;
     });
   }
 
@@ -88,7 +96,8 @@ function processInlineMarkdown(text: string, dateMatch: DateMatch | null = null)
   if (html.includes("[")) {
     html = html.replace(
       REGEX_LINK,
-      `<span ${FADED}>$1</span><span class="text-blue-600 dark:text-blue-400 underline">$2</span><span ${FADED}>$3$4$5</span>`,
+      (match, p1, p2, p3, p4, p5) =>
+        `<span ${FADED}>${p1}</span><span class="text-blue-600 dark:text-blue-400 underline${getUnderlineClass(match)}">${p2}</span><span ${FADED}>${p3}${p4}${p5}</span>`,
     );
   }
 
@@ -118,6 +127,7 @@ export function highlightMarkdown(
   isZenModeActive: boolean = false,
   activeLineIndex: number = -1,
   dateMatch: DateMatch | null = null,
+  activeLink: { rawString: string } | null = null,
 ) {
   const lines = code.split("\n");
   let isInsideCodeBlock = false;
@@ -146,13 +156,13 @@ export function highlightMarkdown(
         content = html.replace(
           /^(#{1,6}\s+)(.*)$/,
           (m, hashes, label) =>
-            `<span ${FADED}>${hashes}</span><span class="font-bold text-zinc-900 dark:text-zinc-50">${processInlineMarkdown(label, dateMatch)}</span>`,
+            `<span ${FADED}>${hashes}</span><span class="font-bold text-zinc-900 dark:text-zinc-50">${processInlineMarkdown(label, dateMatch, activeLink)}</span>`,
         );
       } else if (html.startsWith("&gt;")) {
         content = html.replace(
           /^(&gt;\s?)(.*)$/,
           (m, quote, label) =>
-            `<span ${FADED}>${quote}</span><span class="text-zinc-500 dark:text-zinc-400">${processInlineMarkdown(label, dateMatch)}</span>`,
+            `<span ${FADED}>${quote}</span><span class="text-zinc-500 dark:text-zinc-400">${processInlineMarkdown(label, dateMatch, activeLink)}</span>`,
         );
       } else if (/^\s*[-*+]\s+/.test(html)) {
         content = html.replace(
@@ -160,11 +170,11 @@ export function highlightMarkdown(
           (m, bull, check, label) => {
             const isChecked = check?.toLowerCase().includes("x");
             const checkHtml = check ? `<span ${FADED}>${check}</span>` : "";
-            return `<span ${FADED}>${bull}</span>${checkHtml}<span class="${isChecked ? "line-through opacity-40" : "text-zinc-900 dark:text-zinc-100"}">${processInlineMarkdown(label, dateMatch)}</span>`;
+            return `<span ${FADED}>${bull}</span>${checkHtml}<span class="${isChecked ? "line-through opacity-40" : "text-zinc-900 dark:text-zinc-100"}">${processInlineMarkdown(label, dateMatch, activeLink)}</span>`;
           },
         );
       } else {
-        content = processInlineMarkdown(html, dateMatch);
+        content = processInlineMarkdown(html, dateMatch, activeLink);
       }
 
       const isActive = isZenModeActive && index === activeLineIndex;

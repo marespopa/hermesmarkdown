@@ -10,12 +10,23 @@ interface LinkPillProps {
   url: string;
   label: string;
   pos: { top: number; left: number };
+  type?: "url" | "wiki";
   onOpen: () => void;
   onSave: (newLabel: string, newUrl: string) => void;
+  onEdit?: () => void;
   onDismiss: () => void;
 }
 
-export function LinkPill({ url, label, pos, onOpen, onSave, onDismiss }: LinkPillProps) {
+export function LinkPill({
+  url,
+  label,
+  pos,
+  type = "url",
+  onOpen,
+  onSave,
+  onEdit,
+  onDismiss,
+}: LinkPillProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [editLabel, setEditLabel] = useState(label);
   const [editUrl, setEditUrl] = useState(url);
@@ -27,7 +38,11 @@ export function LinkPill({ url, label, pos, onOpen, onSave, onDismiss }: LinkPil
   }, [label, url]);
 
   const openEdit = () => {
-    setIsEditing(true);
+    if (type === "wiki" && onEdit) {
+      onEdit();
+    } else {
+      setIsEditing(true);
+    }
   };
 
   const handleSave = () => {
@@ -48,24 +63,20 @@ export function LinkPill({ url, label, pos, onOpen, onSave, onDismiss }: LinkPil
           className={PILL_CONTAINER_CLASSES}
           onMouseDown={(e) => e.preventDefault()}
         >
-          <Button
-            variant="pill-icon"
-            onClick={openEdit}
-            title="Edit link"
-          >
+          <Button variant="pill-icon" onClick={openEdit} title="Edit link">
             <HiOutlinePencil size={16} />
           </Button>
           <Button
             variant="pill-icon"
             onClick={onOpen}
-            title="Open link"
+            title={type === "wiki" ? "Open note" : "Open link"}
           >
             <HiOutlineExternalLink size={16} />
           </Button>
         </div>
       )}
 
-      {isEditing && (
+      {isEditing && type === "url" && (
         <DialogModal
           isOpened={isEditing}
           onClose={handleClose}

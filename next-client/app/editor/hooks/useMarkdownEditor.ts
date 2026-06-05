@@ -59,17 +59,44 @@ export function useMarkdownEditor({
     setIsDateExpanded,
   });
 
-  const { pillUrl, pillLabel, pillPos, pillRange, setPillUrl, detectLinkAtCaret } = useLinkPill({ value, textareaRef });
+  const {
+    pillUrl,
+    pillLabel,
+    pillPos,
+    pillType,
+    pillRange,
+    setPillUrl,
+    detectLinkAtCaret,
+  } = useLinkPill({ value, textareaRef });
 
-  const handleSaveLink = useCallback((newLabel: string, newUrl: string) => {
-    if (!pillRange || !textareaRef.current) return;
-    const textarea = textareaRef.current;
-    const newLinkText = `[${newLabel}](${newUrl})`;
-    textarea.focus();
-    textarea.setRangeText(newLinkText, pillRange.start, pillRange.end, "end");
-    textarea.dispatchEvent(new Event("input", { bubbles: true }));
-    setPillUrl(null);
-  }, [pillRange, textareaRef, setPillUrl]);
+  const [wikiLinkDialogOpen, setWikiLinkDialogOpen] = useState(false);
+
+  const handleSaveLink = useCallback(
+    (newLabel: string, newUrl: string) => {
+      if (!pillRange || !textareaRef.current) return;
+      const textarea = textareaRef.current;
+      const newLinkText = `[${newLabel}](${newUrl})`;
+      textarea.focus();
+      textarea.setRangeText(newLinkText, pillRange.start, pillRange.end, "end");
+      textarea.dispatchEvent(new Event("input", { bubbles: true }));
+      setPillUrl(null);
+    },
+    [pillRange, textareaRef, setPillUrl],
+  );
+
+  const handleSaveWikiLink = useCallback(
+    (newName: string) => {
+      if (!pillRange || !textareaRef.current) return;
+      const textarea = textareaRef.current;
+      const newLinkText = `[[${newName}]]`;
+      textarea.focus();
+      textarea.setRangeText(newLinkText, pillRange.start, pillRange.end, "end");
+      textarea.dispatchEvent(new Event("input", { bubbles: true }));
+      setPillUrl(null);
+      setWikiLinkDialogOpen(false);
+    },
+    [pillRange, textareaRef, setPillUrl],
+  );
 
   const {
     menuOpen,
@@ -207,9 +234,15 @@ export function useMarkdownEditor({
 
   const highlight = useCallback(
     (code: string) => {
-      return highlightMarkdown(code, isZenModeActive, activeLineIndex, dateMatch);
+      return highlightMarkdown(
+        code,
+        isZenModeActive,
+        activeLineIndex,
+        dateMatch,
+        pillRange,
+      );
     },
-    [isZenModeActive, activeLineIndex, dateMatch],
+    [isZenModeActive, activeLineIndex, dateMatch, pillRange],
   );
 
   return {
@@ -255,11 +288,15 @@ export function useMarkdownEditor({
     pillUrl,
     pillLabel,
     pillPos,
+    pillType,
     pillRange,
     setPillUrl,
     handleSaveLink,
+    handleSaveWikiLink,
     linkDialogOpen,
     setLinkDialogOpen,
+    wikiLinkDialogOpen,
+    setWikiLinkDialogOpen,
     insertLink,
     datePickerOpen,
     setDatePickerOpen,
