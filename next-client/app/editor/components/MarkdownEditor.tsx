@@ -99,7 +99,6 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
             textareaRef.current?.focus();
           }
         }}
-        // eslint-disable-next-line jsx-a11y/no-autofocus
         autoFocus={!isMobile}
         placeholder="Search templates…"
         className="w-full text-ui-footnote bg-transparent outline-none text-zinc-700 dark:text-zinc-300 placeholder-zinc-400 dark:placeholder-zinc-600"

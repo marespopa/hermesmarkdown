@@ -39,7 +39,6 @@ interface VaultSidebarFilesProps {
 export default function VaultSidebarFiles({
   isFilesExpanded,
   setIsFilesExpanded,
-  onNewFile,
   createNewFile,
   createNewFolder,
   isAtRoot,

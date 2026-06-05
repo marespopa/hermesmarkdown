@@ -57,9 +57,8 @@ export function LinkPill({ url, label, pos, isMobile, onOpen, onSave, onDismiss 
           onChange={(e) => setEditLabel(e.target.value)}
           onKeyDown={(e) => {
             if (e.key === "Enter") { e.preventDefault(); urlInputRef.current?.focus(); }
-            if (e.key === "Escape") { isMobileVariant ? setMobileStep("actions") : handleDesktopClose(); }
+            if (e.key === "Escape") { if (isMobileVariant) { setMobileStep("actions"); } else { handleDesktopClose(); } }
           }}
-          // eslint-disable-next-line jsx-a11y/no-autofocus
           autoFocus
           className="px-3 py-2 text-ui-footnote rounded-xl border border-zinc-200 dark:border-zinc-700
             bg-zinc-50 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100
@@ -77,7 +76,7 @@ export function LinkPill({ url, label, pos, isMobile, onOpen, onSave, onDismiss 
           onChange={(e) => setEditUrl(e.target.value)}
           onKeyDown={(e) => {
             if (e.key === "Enter") { e.preventDefault(); handleSave(); }
-            if (e.key === "Escape") { isMobileVariant ? setMobileStep("actions") : handleDesktopClose(); }
+            if (e.key === "Escape") { if (isMobileVariant) { setMobileStep("actions"); } else { handleDesktopClose(); } }
           }}
           className="px-3 py-2 text-ui-footnote rounded-xl border border-zinc-200 dark:border-zinc-700
             bg-zinc-50 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 font-mono
