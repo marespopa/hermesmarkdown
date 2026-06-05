@@ -34,7 +34,7 @@ export default function WikiLinkDialog({
   const [selectedIndex, setSelectedIndex] = useState(0);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
-  const items = useMemo(() => {
+  const items = useMemo((): SearchItem[] => {
     return Object.values(fileMetadata).map((m) => ({
       id: `file:${m.path}`,
       name: m.name.replace(/\.md$/, ""),

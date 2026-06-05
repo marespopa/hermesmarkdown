@@ -35,6 +35,7 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
     isCtrlPressed,
     isOverLink,
     dateMatch,
+    setDateMatch,
     dateMenuPos,
     isDateExpanded,
     setIsDateExpanded,
