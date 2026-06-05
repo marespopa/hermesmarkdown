@@ -26,7 +26,11 @@ export const atom_isAutoSaveEnabled = atomWithStorage<boolean>(
   "isAutoSaveEnabled",
   true,
 );
+
+export const atom_currency = atomWithStorage<string>("currencyCode", "USD");
+
 export type AutosaveMode = "afterDelay" | "onFocusChange" | "manual";
+
 export const atom_autosaveMode = atomWithStorage<AutosaveMode>(
   "autosaveMode",
   "afterDelay",

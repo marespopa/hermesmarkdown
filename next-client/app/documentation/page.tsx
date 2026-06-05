@@ -178,16 +178,12 @@ export default function Documentation() {
                 Zen Mode
               </h3>
               <p className="text-neutral-600 dark:text-neutral-400 leading-relaxed">
-                Eliminate distractions and focus entirely on the active line. Zen Mode hides all sidebars and enables typewriter scrolling—the cursor stays anchored at 40% of the viewport.
+                Eliminate distractions and focus entirely on the active line. Zen Mode hides all sidebars and applies a subtle focus tint to isolate your current thought.
               </p>
               <div className="p-6 bg-neutral-50 dark:bg-neutral-900/50 rounded-2xl border border-black/5 dark:border-white/5 shadow-sm">
                 <div className={guideRow}>
                   <span className="text-sm font-medium">Toggle Zen</span>
                   <span className={resultLabel}>CTRL+SHIFT+Z</span>
-                </div>
-                <div className={guideRow}>
-                  <span className="text-sm font-medium">Typewriter Scroll</span>
-                  <span className={resultLabel}>Always Centered</span>
                 </div>
                 <div className={guideRow}>
                   <span className="text-sm font-medium">Focus Highlight</span>

@@ -69,7 +69,7 @@ const WelcomeWizard = () => {
     {
       title: "Zen Mode",
       subtitle: "Distraction-free deep work",
-      content: "Press Ctrl+Shift+Z (or Cmd+Shift+Z). The file tree and sidebars recede. Typewriter scrolling anchors your cursor at 40% screen height, and a focus tint isolates your active line.",
+      content: "Press Ctrl+Shift+Z (or Cmd+Shift+Z). The file tree and sidebars recede. A focus tint isolates your active line, providing a clean, distraction-free writing environment.",
       icon: <HiOutlineEye className="text-rose-500" size={32} />
     },
   ];

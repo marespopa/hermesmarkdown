@@ -6,7 +6,7 @@ export const REGEX_DATE_WIKI = /\[\[\d{4}-\d{2}-\d{2}\]\]/g;
 export const REGEX_CODE_INLINE = /(`)(.*?)(`)/g;
 export const REGEX_WIKILINK = /\[\[([^\]]+)\]\]/g;
 export const REGEX_HASHTAG = /(^|\s)(#[\w-]+)(?=\s|$)/gim;
-export const REGEX_CURRENCY = /\$(?![{])(\d+(\.\d+)?)/g;
+export const REGEX_CURRENCY = /([$€£¥₹]|C\$|A\$|lei)(?![{])([\d,]+(\.\d+)?)/g;
 export const REGEX_LINK = /(\[)([^\]]+)(\]\()([^)]+)(\))/g;
 export const REGEX_BOLD = /(\*\*|__)(.*?)\1/g;
 export const REGEX_ITALIC = /(\*|_)(.*?)\1/g;

@@ -22,6 +22,7 @@ vi.mock("@/app/atoms/atoms", async (importOriginal) => {
     atom_theme: { toString: () => "atom_theme" },
     atom_autosaveMode: { toString: () => "atom_autosaveMode" },
     atom_autosaveDelay: { toString: () => "atom_autosaveDelay" },
+    atom_currency: { toString: () => "atom_currency" },
   };
 });
 
@@ -40,6 +41,7 @@ describe("SettingsDialog Component", () => {
       if (atomStr === "atom_fontSize") return ["16px", vi.fn()];
       if (atomStr === "atom_autosaveMode") return ["afterDelay", vi.fn()];
       if (atomStr === "atom_autosaveDelay") return [2000, vi.fn()];
+      if (atomStr === "atom_currency") return ["USD", vi.fn()];
       return ["", vi.fn()];
     });
   });
@@ -81,6 +83,20 @@ describe("SettingsDialog Component", () => {
     
     fireEvent.click(screen.getByText("Narrow"));
     expect(setEditorWidth).toHaveBeenCalledWith("narrow");
+  });
+
+  it("calls setter when currency option is changed", () => {
+    const setCurrency = vi.fn();
+    (useAtom as any).mockImplementation((atom: any) => {
+      if (atom.toString() === "atom_currency") return ["USD", setCurrency];
+      return ["", vi.fn()];
+    });
+
+    render(<SettingsDialog isOpen={true} onClose={mockOnClose} />);
+    
+    const select = screen.getByDisplayValue("USD ($)");
+    fireEvent.change(select, { target: { value: "EUR" } });
+    expect(setCurrency).toHaveBeenCalledWith("EUR");
   });
 
   it("calls onClose when close button is clicked", () => {

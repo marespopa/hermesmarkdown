@@ -1,11 +1,10 @@
 "use client";
 
 import { useState, useCallback, useRef, useEffect } from "react";
-import { useAtom, useAtomValue } from "jotai";
+import { useAtom } from "jotai";
 import getCaretCoordinates from "textarea-caret";
 import {
   atom_cursorPosition,
-  atom_isZenModeActive,
 } from "@/app/atoms/atoms";
 import { findDateAtPos } from "../utils/date-detection";
 import { DateMatch } from "../types";
@@ -13,7 +12,6 @@ import { DateMatch } from "../types";
 interface UseEditorSyncProps {
   value: string;
   textareaRef: React.RefObject<HTMLTextAreaElement | null>;
-  wrapperRef: React.RefObject<HTMLDivElement | null>;
   isDateExpanded: boolean;
   setIsDateExpanded: (expanded: boolean) => void;
 }
@@ -21,10 +19,8 @@ interface UseEditorSyncProps {
 export function useEditorSync({
   value,
   textareaRef,
-  wrapperRef,
   setIsDateExpanded,
 }: UseEditorSyncProps) {
-  const isZenModeActive = useAtomValue(atom_isZenModeActive);
   const [, setCursorPosition] = useAtom(atom_cursorPosition);
   
   const [activeLineIndex, setActiveLineIndex] = useState(0);
@@ -89,16 +85,8 @@ export function useEditorSync({
   }, [value, setCursorPosition, textareaRef, setIsDateExpanded]);
 
   const syncScroll = useCallback(() => {
-    if (!isZenModeActive || !textareaRef.current || !wrapperRef.current) return;
-    const pos = textareaRef.current.selectionStart;
-    const caret = getCaretCoordinates(textareaRef.current, pos);
-    const wrapperHeight = wrapperRef.current.clientHeight;
-    const targetScrollTop = caret.top - wrapperHeight * 0.4;
-    wrapperRef.current.scrollTo({
-      top: targetScrollTop,
-      behavior: "smooth",
-    });
-  }, [isZenModeActive, textareaRef, wrapperRef]);
+    // Feature removed to prevent jumpy scrolling
+  }, []);
 
   useEffect(() => {
     const handleSelectionChange = () => {

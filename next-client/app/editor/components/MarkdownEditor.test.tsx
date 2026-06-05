@@ -15,6 +15,7 @@ vi.mock("@/app/atoms/atoms", async () => {
     atom_isEditorFocused: atom(false),
     atom_cursorPosition: atom({ line: 1, col: 1 }),
     atom_editorWidth: atom("standard"),
+    atom_currency: atom("USD"),
   };
 });
 

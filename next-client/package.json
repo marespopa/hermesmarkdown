@@ -23,6 +23,7 @@
     "autoprefixer": "^10.4.20",
     "classnames": "^2.5.1",
     "clsx": "^2.1.1",
+    "currency.js": "^2.0.4",
     "framer-motion": "^12.23.5",
     "gray-matter": "^4.0.3",
     "html2canvas": "^1.4.1",

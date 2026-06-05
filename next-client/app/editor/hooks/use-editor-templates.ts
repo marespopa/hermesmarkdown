@@ -1,6 +1,9 @@
 "use client";
 
 import { useState, useMemo, useCallback } from "react";
+import { flushSync } from "react-dom";
+import { useAtomValue } from "jotai";
+import { atom_currency } from "@/app/atoms/atoms";
 import getCaretCoordinates from "textarea-caret";
 import { TEMPLATES, SHORTCODES, LINK_EDITOR_SENTINEL, WIKILINK_EDITOR_SENTINEL, DATE_EDITOR_SENTINEL } from "../components/constants";
 import { runAutoBudget } from "../utils/budget";
@@ -9,12 +12,14 @@ interface UseEditorTemplatesProps {
   value: string;
   onChange: (value: string) => void;
   textareaRef: React.RefObject<HTMLTextAreaElement | null>;
+  wrapperRef: React.RefObject<HTMLDivElement | null>;
 }
 
 export function useEditorTemplates({
   value,
   onChange,
   textareaRef,
+  wrapperRef,
 }: UseEditorTemplatesProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [menuPos, setMenuPos] = useState({ top: 0, left: 0 });
@@ -27,6 +32,7 @@ export function useEditorTemplates({
   const [datePickerOpen, setDatePickerOpen] = useState(false);
   const [dateInsertPos, setDateInsertPos] = useState<{ start: number; filterLen: number } | null>(null);
   const [dismissedSlashPos, setDismissedSlashPos] = useState<number | null>(null);
+  const currencyCode = useAtomValue(atom_currency);
 
   const dismissMenu = useCallback(() => {
     const textarea = textareaRef.current;
@@ -95,18 +101,42 @@ export function useEditorTemplates({
     processedContent = processedContent.replace(/\\\.\.d/g, "..d");
 
     const fullNewValue = before + processedContent + after;
-    const budgetedValue = runAutoBudget(fullNewValue);
+    const budgetedValue = runAutoBudget(fullNewValue, currencyCode);
 
-    onChange(budgetedValue);
-    setMenuOpen(false);
-    setFilterQuery("");
+    const scrollPos = wrapperRef.current?.scrollTop;
 
-    requestAnimationFrame(() => {
-      textarea.focus();
-      const newPos = before.length + processedContent.length;
-      textarea.setSelectionRange(newPos, newPos);
+    flushSync(() => {
+      onChange(budgetedValue);
+      setMenuOpen(false);
+      setFilterQuery("");
     });
-  }, [value, onChange, filterQuery, textareaRef]);
+
+    textarea.focus();
+    let newPos = before.length + processedContent.length;
+    
+    if (budgetedValue !== fullNewValue) {
+      const originalLines = fullNewValue.split("\n");
+      const nextLines = budgetedValue.split("\n");
+      const linesUpToCaret = (before + processedContent).split("\n");
+      const caretLineIndex = linesUpToCaret.length - 1;
+
+      let offset = 0;
+      for (let i = 0; i < caretLineIndex; i++) {
+        offset += (nextLines[i]?.length || 0) - (originalLines[i]?.length || 0);
+      }
+      // If the Total: line is the one we just inserted or is on the same line
+      if (originalLines[caretLineIndex]?.trim().startsWith("Total:")) {
+        offset += (nextLines[caretLineIndex]?.length || 0) - (originalLines[caretLineIndex]?.length || 0);
+      }
+      newPos += offset;
+    }
+    
+    textarea.setSelectionRange(newPos, newPos);
+
+    if (wrapperRef.current && scrollPos !== undefined) {
+      wrapperRef.current.scrollTop = scrollPos;
+    }
+  }, [value, onChange, filterQuery, textareaRef, wrapperRef, currencyCode]);
 
   const handleSlashMenuTrigger = useCallback((val: string) => {
     const textarea = textareaRef.current;
@@ -198,16 +228,22 @@ export function useEditorTemplates({
     const dateStr = `${y}-${m}-${d}`;
     const newValue = before + dateStr + after;
 
-    onChange(newValue);
-    setDatePickerOpen(false);
-    setDateInsertPos(null);
+    const scrollPos = wrapperRef.current?.scrollTop;
 
-    requestAnimationFrame(() => {
-      textarea.focus();
-      const newPos = before.length + dateStr.length;
-      textarea.setSelectionRange(newPos, newPos);
+    flushSync(() => {
+      onChange(newValue);
+      setDatePickerOpen(false);
+      setDateInsertPos(null);
     });
-  }, [value, onChange, textareaRef, dateInsertPos]);
+
+    textarea.focus();
+    const newPos = before.length + dateStr.length;
+    textarea.setSelectionRange(newPos, newPos);
+
+    if (wrapperRef.current && scrollPos !== undefined) {
+      wrapperRef.current.scrollTop = scrollPos;
+    }
+  }, [value, onChange, textareaRef, wrapperRef, dateInsertPos]);
 
   const insertLink = useCallback((label: string, url: string) => {
     const textarea = textareaRef.current;
@@ -219,16 +255,22 @@ export function useEditorTemplates({
     const linkText = `[${label}](${url})`;
     const newValue = before + linkText + after;
 
-    onChange(newValue);
-    setLinkDialogOpen(false);
-    setLinkInsertPos(null);
+    const scrollPos = wrapperRef.current?.scrollTop;
 
-    requestAnimationFrame(() => {
-      textarea.focus();
-      const newPos = before.length + linkText.length;
-      textarea.setSelectionRange(newPos, newPos);
+    flushSync(() => {
+      onChange(newValue);
+      setLinkDialogOpen(false);
+      setLinkInsertPos(null);
     });
-  }, [value, onChange, textareaRef, linkInsertPos]);
+
+    textarea.focus();
+    const newPos = before.length + linkText.length;
+    textarea.setSelectionRange(newPos, newPos);
+
+    if (wrapperRef.current && scrollPos !== undefined) {
+      wrapperRef.current.scrollTop = scrollPos;
+    }
+  }, [value, onChange, textareaRef, wrapperRef, linkInsertPos]);
 
   const insertWikiLink = useCallback((name: string) => {
     const textarea = textareaRef.current;
@@ -240,16 +282,22 @@ export function useEditorTemplates({
     const linkText = `[[${name}]]`;
     const newValue = before + linkText + after;
 
-    onChange(newValue);
-    setWikiLinkDialogOpen(false);
-    setWikiLinkInsertPos(null);
+    const scrollPos = wrapperRef.current?.scrollTop;
 
-    requestAnimationFrame(() => {
-      textarea.focus();
-      const newPos = before.length + linkText.length;
-      textarea.setSelectionRange(newPos, newPos);
+    flushSync(() => {
+      onChange(newValue);
+      setWikiLinkDialogOpen(false);
+      setWikiLinkInsertPos(null);
     });
-  }, [value, onChange, textareaRef, wikiLinkInsertPos]);
+
+    textarea.focus();
+    const newPos = before.length + linkText.length;
+    textarea.setSelectionRange(newPos, newPos);
+
+    if (wrapperRef.current && scrollPos !== undefined) {
+      wrapperRef.current.scrollTop = scrollPos;
+    }
+  }, [value, onChange, textareaRef, wrapperRef, wikiLinkInsertPos]);
 
   return {
     menuOpen,

@@ -86,7 +86,7 @@ function processInlineMarkdown(
     });
   }
 
-  if (html.includes("$")) {
+  if (/[$€£¥₹]|C\$|A\$|lei/.test(html)) {
     html = html.replace(
       REGEX_CURRENCY,
       `<span class="text-emerald-600 dark:text-emerald-400">$&</span>`,

@@ -1,10 +1,12 @@
 "use client";
 
 import { useRef, useEffect, useCallback, useState } from "react";
+import { flushSync } from "react-dom";
 import { useAtomValue } from "jotai";
 import {
   atom_wordWrap,
   atom_isZenModeActive,
+  atom_currency,
 } from "@/app/atoms/atoms";
 import { SHORTCODES } from "../components/constants";
 import { runAutoBudget } from "../utils/budget";
@@ -33,6 +35,7 @@ export function useMarkdownEditor({
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const wordWrap = useAtomValue(atom_wordWrap);
   const isZenModeActive = useAtomValue(atom_isZenModeActive);
+  const currencyCode = useAtomValue(atom_currency);
 
   const [isDateExpanded, setIsDateExpanded] = useState(false);
 
@@ -54,7 +57,6 @@ export function useMarkdownEditor({
   } = useEditorSync({
     value,
     textareaRef,
-    wrapperRef,
     isDateExpanded,
     setIsDateExpanded,
   });
@@ -109,6 +111,7 @@ export function useMarkdownEditor({
     value,
     onChange,
     textareaRef,
+    wrapperRef,
   });
 
   const handleSaveWikiLink = useCallback(
@@ -193,7 +196,57 @@ export function useMarkdownEditor({
 
     handleSlashMenuTrigger(val);
 
-    const nextVal = runAutoBudget(val);
+    const nextVal = runAutoBudget(val, currencyCode);
+    
+    // Calculate cursor offset if the content changed
+    let adjustedStart = start;
+    let adjustedEnd = end;
+
+    if (nextVal !== val) {
+      const originalLines = val.split("\n");
+      const nextLines = nextVal.split("\n");
+      
+      // Find which line the cursor is on
+      const linesUpToCursor = textUpToCursor.split("\n");
+      const cursorLineIndex = linesUpToCursor.length - 1;
+
+      let offset = 0;
+      for (let i = 0; i < cursorLineIndex; i++) {
+        offset += (nextLines[i]?.length || 0) - (originalLines[i]?.length || 0);
+      }
+      
+      // If the change happened on the current line before the cursor
+      // (Though runAutoBudget currently only changes Total: lines, 
+      // which are usually separate lines)
+      const currentLineOriginal = originalLines[cursorLineIndex] || "";
+      const currentLineNext = nextLines[cursorLineIndex] || "";
+      if (currentLineOriginal !== currentLineNext) {
+        // Find if the change in the current line is before the cursor column
+        const column = linesUpToCursor[cursorLineIndex].length;
+        // This is a bit more complex, but for now we assume 
+        // runAutoBudget doesn't change the current line unless it's a Total: line.
+        // If it IS a Total: line, we want the cursor to stay where it was relative to the start of the line if possible,
+        // or just move with the text.
+        
+        // Simple heuristic: if the line changed, add the difference to the offset
+        // but only if we're sure it's before the cursor.
+        // Since runAutoBudget replaces the whole line, if we are on a Total: line,
+        // it's safest to just let the cursor be at the same relative position from the end if we were at the end,
+        // or same from start if we were at the start.
+        
+        // For now, let's just use the full line difference if it's a Total: line
+        if (currentLineOriginal.trim().startsWith("Total:")) {
+           // If the cursor is on the Total: line, we might need more care.
+           // But usually Total: lines aren't edited directly to trigger this.
+           // If they are, the offset should be based on where the cursor is.
+           // For simplicity, let's just add the difference.
+           offset += currentLineNext.length - currentLineOriginal.length;
+        }
+      }
+
+      adjustedStart += offset;
+      adjustedEnd += offset;
+    }
 
     const calcMatch = textUpToCursor.match(REGEX_CALC);
     if (calcMatch) {
@@ -223,16 +276,29 @@ export function useMarkdownEditor({
       }
     }
 
-    onChange(nextVal);
+    if (nextVal !== val) {
+      // Synchronously flush the state update to prevent the browser from 
+      // scrolling to the bottom of the textarea when the value is replaced.
+      const scrollPos = wrapperRef.current?.scrollTop;
+      
+      flushSync(() => {
+        onChange(nextVal);
+      });
 
-    requestAnimationFrame(() => {
-      if (textareaRef.current && nextVal !== val) {
-        textareaRef.current.setSelectionRange(start, end);
+      if (textareaRef.current) {
+        textareaRef.current.setSelectionRange(adjustedStart, adjustedEnd);
       }
-      syncScroll();
+      
+      if (wrapperRef.current && scrollPos !== undefined) {
+        wrapperRef.current.scrollTop = scrollPos;
+      }
+      
       syncActiveLine();
-    });
-  }, [onChange, handleSlashMenuTrigger, syncScroll, syncActiveLine]);
+    } else {
+      onChange(nextVal);
+      syncActiveLine();
+    }
+  }, [onChange, handleSlashMenuTrigger, syncActiveLine, currencyCode, wrapperRef]);
 
   const highlight = useCallback(
     (code: string) => {

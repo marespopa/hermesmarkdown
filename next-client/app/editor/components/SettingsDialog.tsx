@@ -12,6 +12,7 @@ import {
   atom_autosaveMode,
   atom_autosaveDelay,
   atom_editorWidth,
+  atom_currency,
 } from "@/app/atoms/atoms";
 import DialogModal from "@/app/components/DialogModal/DialogModal";
 import Button from "@/app/components/Button";
@@ -54,6 +55,7 @@ const SettingsDialog = ({ isOpen, onClose }: Props) => {
   const [autosaveMode, setAutosaveMode] = useAtom(atom_autosaveMode);
   const [autosaveDelay, setAutosaveDelay] = useAtom(atom_autosaveDelay);
   const [editorWidth, setEditorWidth] = useAtom(atom_editorWidth);
+  const [currencyCode, setCurrencyCode] = useAtom(atom_currency);
   const [, setIsWizardOpen] = useAtom(atom_isWizardOpen);
   
   const sizes = [
@@ -161,6 +163,26 @@ const SettingsDialog = ({ isOpen, onClose }: Props) => {
                     </button>
                   ))}
                 </div>
+              } 
+            />
+            <SettingItem 
+              label="Preferred Currency" 
+              description="Used for budget calculations."
+              control={
+                <select 
+                  value={currencyCode} 
+                  onChange={(e) => setCurrencyCode(e.target.value)}
+                  className="bg-zinc-200/50 dark:bg-zinc-800 text-ui-caption font-semibold rounded-xl px-3 py-1.5 outline-none border border-transparent focus:border-blue-500/50 cursor-pointer appearance-none text-center min-w-[130px] transition-all"
+                >
+                  <option value="USD">USD ($)</option>
+                  <option value="EUR">EUR (€)</option>
+                  <option value="GBP">GBP (£)</option>
+                  <option value="JPY">JPY (¥)</option>
+                  <option value="INR">INR (₹)</option>
+                  <option value="CAD">CAD (C$)</option>
+                  <option value="AUD">AUD (A$)</option>
+                  <option value="RON">RON (lei)</option>
+                </select>
               } 
             />
           </SettingGroup>
