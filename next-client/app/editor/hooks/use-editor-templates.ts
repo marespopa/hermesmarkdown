@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useCallback } from "react";
 import getCaretCoordinates from "textarea-caret";
-import { TEMPLATES, SHORTCODES, LINK_EDITOR_SENTINEL, DATE_EDITOR_SENTINEL } from "../components/constants";
+import { TEMPLATES, SHORTCODES, LINK_EDITOR_SENTINEL, WIKILINK_EDITOR_SENTINEL, DATE_EDITOR_SENTINEL } from "../components/constants";
 import { runAutoBudget } from "../utils/budget";
 
 interface UseEditorTemplatesProps {
@@ -22,6 +22,8 @@ export function useEditorTemplates({
   const [selectedIndex, setSelectedIndex] = useState(-1);
   const [linkDialogOpen, setLinkDialogOpen] = useState(false);
   const [linkInsertPos, setLinkInsertPos] = useState<{ start: number; filterLen: number } | null>(null);
+  const [wikiLinkDialogOpen, setWikiLinkDialogOpen] = useState(false);
+  const [wikiLinkInsertPos, setWikiLinkInsertPos] = useState<{ start: number; filterLen: number } | null>(null);
   const [datePickerOpen, setDatePickerOpen] = useState(false);
   const [dateInsertPos, setDateInsertPos] = useState<{ start: number; filterLen: number } | null>(null);
   const [dismissedSlashPos, setDismissedSlashPos] = useState<number | null>(null);
@@ -60,6 +62,14 @@ export function useEditorTemplates({
       setFilterQuery("");
       setLinkInsertPos({ start, filterLen: lengthToRemove });
       setLinkDialogOpen(true);
+      return;
+    }
+
+    if (content === WIKILINK_EDITOR_SENTINEL) {
+      setMenuOpen(false);
+      setFilterQuery("");
+      setWikiLinkInsertPos({ start, filterLen: lengthToRemove });
+      setWikiLinkDialogOpen(true);
       return;
     }
 
@@ -220,6 +230,27 @@ export function useEditorTemplates({
     });
   }, [value, onChange, textareaRef, linkInsertPos]);
 
+  const insertWikiLink = useCallback((name: string) => {
+    const textarea = textareaRef.current;
+    if (!textarea || !wikiLinkInsertPos) return;
+
+    const { start, filterLen } = wikiLinkInsertPos;
+    const before = value.substring(0, start - filterLen);
+    const after = value.substring(start);
+    const linkText = `[[${name}]]`;
+    const newValue = before + linkText + after;
+
+    onChange(newValue);
+    setWikiLinkDialogOpen(false);
+    setWikiLinkInsertPos(null);
+
+    requestAnimationFrame(() => {
+      textarea.focus();
+      const newPos = before.length + linkText.length;
+      textarea.setSelectionRange(newPos, newPos);
+    });
+  }, [value, onChange, textareaRef, wikiLinkInsertPos]);
+
   return {
     menuOpen,
     setMenuOpen,
@@ -235,6 +266,10 @@ export function useEditorTemplates({
     linkDialogOpen,
     setLinkDialogOpen,
     insertLink,
+    wikiLinkDialogOpen,
+    setWikiLinkDialogOpen,
+    insertWikiLink,
+    wikiLinkInsertPos,
     datePickerOpen,
     setDatePickerOpen,
     insertDate,

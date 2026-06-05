@@ -12,6 +12,7 @@ interface WikiLinkDialogProps {
   onClose: () => void;
   onConfirm: (fileName: string) => void;
   initialValue?: string;
+  title?: string;
 }
 
 interface SearchItem {
@@ -26,6 +27,7 @@ export default function WikiLinkDialog({
   onClose,
   onConfirm,
   initialValue = "",
+  title = "Edit WikiLink",
 }: WikiLinkDialogProps) {
   const fileMetadata = useAtomValue(atom_fileMetadata);
   const [search, setSearch] = useState("");
@@ -122,7 +124,7 @@ export default function WikiLinkDialog({
           id="wiki-dialog-title"
           className="text-ui-body font-semibold text-zinc-900 dark:text-zinc-100"
         >
-          Edit WikiLink
+          {title}
         </h2>
 
         <div className="flex flex-col gap-1.5">

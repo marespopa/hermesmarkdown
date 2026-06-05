@@ -82,6 +82,7 @@ export const SHORTCODES: Record<string, () => string> = {
 };
 
 export const LINK_EDITOR_SENTINEL = "__OPEN_LINK_EDITOR__";
+export const WIKILINK_EDITOR_SENTINEL = "__OPEN_WIKILINK_EDITOR__";
 export const DATE_EDITOR_SENTINEL = "__OPEN_DATE_EDITOR__";
 
 export const PILL_CONTAINER_CLASSES =
@@ -89,6 +90,7 @@ export const PILL_CONTAINER_CLASSES =
 
 export const TEMPLATES = [
   { label: "🔗 Link", content: LINK_EDITOR_SENTINEL },
+  { label: "[[ WikiLink", content: WIKILINK_EDITOR_SENTINEL },
   { label: "📅 Date", content: DATE_EDITOR_SENTINEL },
   // --- Obsidian / Daily Driver ---
   {

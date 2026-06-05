@@ -21,6 +21,14 @@ export function useLinkPill({ value, textareaRef }: UseLinkPillProps) {
   } | null>(null);
   const suppressRef = useRef(false);
 
+  // Sync pillRange/pillType when pillUrl is cleared
+  useEffect(() => {
+    if (pillUrl === null) {
+      setPillRange(null);
+      setPillType(null);
+    }
+  }, [pillUrl]);
+
   // Dismiss and briefly suppress re-detection whenever the value changes (user typed)
   useEffect(() => {
     suppressRef.current = true;

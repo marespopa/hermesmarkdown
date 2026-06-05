@@ -286,6 +286,32 @@ describe("MarkdownEditor Functional Tests", () => {
     vi.useRealTimers();
   });
 
+  it("opens wiki link dialog when /wikilink template is selected", async () => {
+    vi.useFakeTimers();
+    renderEditor("");
+    const textarea = screen.getByRole("textbox") as HTMLTextAreaElement;
+
+    textarea.focus();
+    act(() => {
+      textarea.selectionStart = 5;
+      textarea.selectionEnd = 5;
+      fireEvent.change(textarea, { target: { value: "/wiki" } });
+    });
+
+    act(() => {
+      fireEvent.keyDown(textarea, { key: "ArrowDown" });
+    });
+    act(() => {
+      fireEvent.keyDown(textarea, { key: "Enter" });
+      vi.runAllTimers();
+    });
+
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
+    expect(screen.getByText("Insert WikiLink")).toBeInTheDocument();
+
+    vi.useRealTimers();
+  });
+
   it("opens date picker when /date template is selected", async () => {
     vi.useFakeTimers();
     renderEditor("");

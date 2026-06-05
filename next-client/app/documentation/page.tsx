@@ -506,6 +506,18 @@ export default function Documentation() {
                   <span className={resultLabel}>Type /</span>
                 </div>
                 <div className={guideRow}>
+                  <span className="text-sm font-medium">Insert Link</span>
+                  <span className={resultLabel}>Type /link</span>
+                </div>
+                <div className={guideRow}>
+                  <span className="text-sm font-medium">Insert WikiLink</span>
+                  <span className={resultLabel}>Type /wikilink</span>
+                </div>
+                <div className={guideRow}>
+                  <span className="text-sm font-medium">Insert Date</span>
+                  <span className={resultLabel}>Type /date</span>
+                </div>
+                <div className={guideRow}>
                   <span className="text-sm font-medium">Filter</span>
                   <span className={resultLabel}>Keep Typing</span>
                 </div>

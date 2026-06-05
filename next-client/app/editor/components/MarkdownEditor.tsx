@@ -62,6 +62,8 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
     setLinkDialogOpen,
     wikiLinkDialogOpen,
     setWikiLinkDialogOpen,
+    insertWikiLink,
+    wikiLinkInsertPos,
     insertLink,
     datePickerOpen,
     setDatePickerOpen,
@@ -235,8 +237,9 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
               setWikiLinkDialogOpen(false);
               textareaRef.current?.focus();
             }}
-            onConfirm={handleSaveWikiLink}
-            initialValue={pillLabel}
+            onConfirm={wikiLinkInsertPos ? insertWikiLink : handleSaveWikiLink}
+            initialValue={wikiLinkInsertPos ? "" : pillLabel}
+            title={wikiLinkInsertPos ? "Insert WikiLink" : "Edit WikiLink"}
           />
 
           {linkDialogOpen && (
@@ -324,6 +327,8 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
               setTimeout(() => {
                 if (!document.activeElement?.closest('[role="dialog"]')) {
                   setPillUrl(null);
+                  setDateMatch(null);
+                  setIsDateExpanded(false);
                 }
               }, 150);
             }}

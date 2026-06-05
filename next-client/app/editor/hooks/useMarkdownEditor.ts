@@ -69,8 +69,6 @@ export function useMarkdownEditor({
     detectLinkAtCaret,
   } = useLinkPill({ value, textareaRef });
 
-  const [wikiLinkDialogOpen, setWikiLinkDialogOpen] = useState(false);
-
   const handleSaveLink = useCallback(
     (newLabel: string, newUrl: string) => {
       if (!pillRange || !textareaRef.current) return;
@@ -80,20 +78,6 @@ export function useMarkdownEditor({
       textarea.setRangeText(newLinkText, pillRange.start, pillRange.end, "end");
       textarea.dispatchEvent(new Event("input", { bubbles: true }));
       setPillUrl(null);
-    },
-    [pillRange, textareaRef, setPillUrl],
-  );
-
-  const handleSaveWikiLink = useCallback(
-    (newName: string) => {
-      if (!pillRange || !textareaRef.current) return;
-      const textarea = textareaRef.current;
-      const newLinkText = `[[${newName}]]`;
-      textarea.focus();
-      textarea.setRangeText(newLinkText, pillRange.start, pillRange.end, "end");
-      textarea.dispatchEvent(new Event("input", { bubbles: true }));
-      setPillUrl(null);
-      setWikiLinkDialogOpen(false);
     },
     [pillRange, textareaRef, setPillUrl],
   );
@@ -113,6 +97,10 @@ export function useMarkdownEditor({
     linkDialogOpen,
     setLinkDialogOpen,
     insertLink,
+    wikiLinkDialogOpen,
+    setWikiLinkDialogOpen,
+    insertWikiLink,
+    wikiLinkInsertPos,
     datePickerOpen,
     setDatePickerOpen,
     insertDate,
@@ -122,6 +110,20 @@ export function useMarkdownEditor({
     onChange,
     textareaRef,
   });
+
+  const handleSaveWikiLink = useCallback(
+    (newName: string) => {
+      if (!pillRange || !textareaRef.current) return;
+      const textarea = textareaRef.current;
+      const newLinkText = `[[${newName}]]`;
+      textarea.focus();
+      textarea.setRangeText(newLinkText, pillRange.start, pillRange.end, "end");
+      textarea.dispatchEvent(new Event("input", { bubbles: true }));
+      setPillUrl(null);
+      setWikiLinkDialogOpen(false);
+    },
+    [pillRange, textareaRef, setPillUrl, setWikiLinkDialogOpen],
+  );
 
   const {
     isCtrlPressed,
@@ -297,6 +299,8 @@ export function useMarkdownEditor({
     setLinkDialogOpen,
     wikiLinkDialogOpen,
     setWikiLinkDialogOpen,
+    insertWikiLink,
+    wikiLinkInsertPos,
     insertLink,
     datePickerOpen,
     setDatePickerOpen,

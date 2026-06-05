@@ -9,6 +9,7 @@ The `MarkdownEditor` is the core text editing component of HermesMarkdown. It is
 - **Shortcodes**: Supports `{time}` and `{date}`.
 - **Templates**: Non-blocking slash-command (`/`) floating menu (HIG approach) that opens right below the cursor without stealing focus from the text input. Special slash commands:
   - `/link` — opens an "Add Link" dialog to insert `[text](url)` at the cursor.
+  - `/wikilink` — opens a "WikiLink" dialog to insert `[[WikiLink]]` at the cursor.
   - `/date` — opens a [DatePickerCallout](./DatePickerCallout.md) dialog to insert an ISO date (`YYYY-MM-DD`) at the cursor.
 - **Keyboard Navigation & Selection**:
   - **Arrow Keys**: Navigate the command dropdown safely without moving the main text caret.
