@@ -7,6 +7,7 @@ import DatePickerCallout from "./DatePickerCallout";
 import WikiLinkDialog from "./WikiLinkDialog";
 import DialogModal from "../../components/DialogModal/DialogModal";
 import { LinkPill } from "./LinkPill";
+import { TableCallout } from "./TableCallout";
 import { useMarkdownEditor } from "../hooks/useMarkdownEditor";
 import Button from "../../components/Button";
 import Input from "../../components/Input";
@@ -70,6 +71,16 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
     datePickerOpen,
     setDatePickerOpen,
     insertDate,
+    tableInfo,
+    setTableInfo,
+    calloutPos,
+    currentAlignment,
+    handleAddRow,
+    handleAddCol,
+    handleRemoveRow,
+    handleRemoveCol,
+    handleCycleAlign,
+    handleCopyCSV,
   } = useMarkdownEditor(props);
 
   const [linkLabel, setLinkLabel] = useState("");
@@ -233,6 +244,19 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
             />
           )}
 
+          {tableInfo && (
+            <TableCallout
+              pos={calloutPos}
+              currentAlignment={currentAlignment}
+              onAddRow={handleAddRow}
+              onAddCol={handleAddCol}
+              onRemoveRow={handleRemoveRow}
+              onRemoveCol={handleRemoveCol}
+              onCycleAlign={handleCycleAlign}
+              onCopyCSV={handleCopyCSV}
+            />
+          )}
+
           <WikiLinkDialog
             isOpen={wikiLinkDialogOpen}
             onClose={() => {
@@ -322,6 +346,7 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
                   setPillUrl(null);
                   setDateMatch(null);
                   setIsDateExpanded(false);
+                  setTableInfo(null);
                 }
               }, 150);
             }}

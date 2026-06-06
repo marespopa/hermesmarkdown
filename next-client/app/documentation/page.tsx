@@ -314,6 +314,58 @@ export default function Documentation() {
               </div>
             </div>
           </div>
+          {/* Table Editor */}
+          <div className="mt-20 grid grid-cols-1 md:grid-cols-2 gap-20">
+            <div className="space-y-8">
+              <div className="space-y-4">
+                <h3 className="text-3xl font-bold tracking-tight">
+                  Table Editor
+                </h3>
+                <p className="text-neutral-500 dark:text-neutral-400 leading-relaxed text-lg">
+                  Place your cursor anywhere inside a pipe table to reveal a floating toolbar. Add or remove rows and columns, cycle column alignment, or copy the table as CSV — all without leaving the editor.
+                </p>
+              </div>
+              <div className="p-8 bg-neutral-50/50 dark:bg-neutral-900/30 backdrop-blur-sm rounded-3xl border border-black/5 dark:border-white/5 shadow-inner">
+                <div className={guideRow}>
+                  <span className="text-sm font-medium">+Row / +Col</span>
+                  <span className={resultLabel}>Append Row or Column</span>
+                </div>
+                <div className={guideRow}>
+                  <span className="text-sm font-medium">×Row / ×Col</span>
+                  <span className={resultLabel}>Delete Row or Column</span>
+                </div>
+                <div className={guideRow}>
+                  <span className="text-sm font-medium">L / C / R / —</span>
+                  <span className={resultLabel}>Cycle Column Alignment</span>
+                </div>
+                <div className={guideRow}>
+                  <span className="text-sm font-medium">CSV</span>
+                  <span className={resultLabel}>Copy Table as CSV</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-8">
+              <div className="space-y-4">
+                <h3 className="text-3xl font-bold tracking-tight">
+                  Insert a Table
+                </h3>
+                <p className="text-neutral-500 dark:text-neutral-400 leading-relaxed text-lg">
+                  Two ways to insert a starter 3×2 table — cursor lands in the first header cell automatically.
+                </p>
+              </div>
+              <div className="p-8 bg-neutral-50/50 dark:bg-neutral-900/30 backdrop-blur-sm rounded-3xl border border-black/5 dark:border-white/5 shadow-inner font-mono text-xs">
+                <div className={guideRow}>
+                  <span className={syntaxLabel}>/table</span>
+                  <span className={resultLabel}>Slash Menu</span>
+                </div>
+                <div className={guideRow}>
+                  <span className={syntaxLabel}>{"{table}"}</span>
+                  <span className={resultLabel}>Shortcode</span>
+                </div>
+              </div>
+            </div>
+          </div>
         </section>
 
         {/* --- 03. SYNTAX & SHORTCUTS --- */}
@@ -397,6 +449,10 @@ export default function Documentation() {
                   <div className={guideRow}>
                     <span className={syntaxLabel}>{"{done}"}</span>
                     <span className={resultLabel}>{"- [x] "} Task</span>
+                  </div>
+                  <div className={guideRow}>
+                    <span className={syntaxLabel}>{"{table}"}</span>
+                    <span className={resultLabel}>3×2 Table</span>
                   </div>
                   <div className={guideRow}>
                     <span className={syntaxLabel}>/</span>
@@ -493,6 +549,10 @@ export default function Documentation() {
                   <span className={resultLabel}>Type /date</span>
                 </div>
                 <div className={guideRow}>
+                  <span className="text-sm font-medium">Insert Table</span>
+                  <span className={resultLabel}>Type /table</span>
+                </div>
+                <div className={guideRow}>
                   <span className="text-sm font-medium">Navigate</span>
                   <span className={resultLabel}>Arrow Keys</span>
                 </div>
@@ -513,6 +573,10 @@ export default function Documentation() {
                 </p>
               </div>
               <div className="p-8 bg-neutral-50/50 dark:bg-neutral-900/30 backdrop-blur-sm rounded-3xl border border-black/5 dark:border-white/5 shadow-inner">
+                <div className={guideRow}>
+                  <span className="text-sm font-medium">⊞ Table</span>
+                  <span className={resultLabel}>3×2 Grid</span>
+                </div>
                 <div className={guideRow}>
                   <span className="text-sm font-medium">🗓️ Daily Note</span>
                   <span className={resultLabel}>Journal</span>

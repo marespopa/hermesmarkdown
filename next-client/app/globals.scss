@@ -137,3 +137,50 @@ ul li::marker {
   caret-color: theme('colors.blue.500');
 }
 
+/* Table rendering — activated when preview pane wraps content in .hermes-preview */
+.hermes-preview table {
+  width: 100%;
+  border-collapse: collapse;
+  overflow-x: auto;
+  display: block;
+}
+
+.hermes-preview table th,
+.hermes-preview table td {
+  border: 1px solid theme('colors.zinc.200');
+  padding: 0.4rem 0.75rem;
+  text-align: left;
+}
+
+.hermes-preview table th {
+  background-color: theme('colors.zinc.100');
+  font-weight: 600;
+}
+
+.hermes-preview table tr:nth-child(even) td {
+  background-color: theme('colors.zinc.50');
+}
+
+.hermes-preview table td.text-center,
+.hermes-preview table th.text-center {
+  text-align: center;
+}
+
+.hermes-preview table td.text-right,
+.hermes-preview table th.text-right {
+  text-align: right;
+}
+
+html.dark .hermes-preview table th {
+  background-color: theme('colors.zinc.800');
+}
+
+html.dark .hermes-preview table tr:nth-child(even) td {
+  background-color: theme('colors.zinc.900');
+}
+
+html.dark .hermes-preview table th,
+html.dark .hermes-preview table td {
+  border-color: theme('colors.zinc.700');
+}
+

@@ -17,6 +17,7 @@ import { useEditorSync } from "./use-editor-sync";
 import { useEditorTemplates } from "./use-editor-templates";
 import { useEditorHandlers } from "./use-editor-handlers";
 import { useLinkPill } from "./use-link-pill";
+import { useTableCallout } from "./use-table-callout";
 
 interface UseMarkdownEditorProps {
   value: string;
@@ -70,6 +71,19 @@ export function useMarkdownEditor({
     setPillUrl,
     detectLinkAtCaret,
   } = useLinkPill({ value, textareaRef });
+
+  const {
+    tableInfo,
+    setTableInfo,
+    calloutPos,
+    currentAlignment,
+    handleAddRow,
+    handleAddCol,
+    handleRemoveRow,
+    handleRemoveCol,
+    handleCycleAlign,
+    handleCopyCSV,
+  } = useTableCallout({ value, textareaRef });
 
   const handleSaveLink = useCallback(
     (newLabel: string, newUrl: string) => {
@@ -371,5 +385,15 @@ export function useMarkdownEditor({
     setDatePickerOpen,
     insertDate,
     dismissMenu,
+    tableInfo,
+    setTableInfo,
+    calloutPos,
+    currentAlignment,
+    handleAddRow,
+    handleAddCol,
+    handleRemoveRow,
+    handleRemoveCol,
+    handleCycleAlign,
+    handleCopyCSV,
   };
 }

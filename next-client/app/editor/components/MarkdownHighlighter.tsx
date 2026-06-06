@@ -173,6 +173,14 @@ export function highlightMarkdown(
             return `<span ${FADED}>${bull}</span>${checkHtml}<span class="${isChecked ? "line-through opacity-40" : "text-zinc-900 dark:text-zinc-100"}">${processInlineMarkdown(label, dateMatch, activeLink)}</span>`;
           },
         );
+      } else if (/^\s*\|/.test(html)) {
+        const isSeparator = /^\s*\|[\s:|-]+\|/.test(html);
+        if (isSeparator) {
+          content = `<span ${FADED}>${html}</span>`;
+        } else {
+          const withFadedPipes = html.replace(/\|/g, `<span ${FADED}>|</span>`);
+          content = processInlineMarkdown(withFadedPipes, dateMatch, activeLink);
+        }
       } else {
         content = processInlineMarkdown(html, dateMatch, activeLink);
       }

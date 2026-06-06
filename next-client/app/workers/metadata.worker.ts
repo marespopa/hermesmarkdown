@@ -1,6 +1,6 @@
 // app/workers/metadata.worker.ts
 
-const REGEX_TAG = /(?<=^|\s)#([a-zA-Z0-9_\-/]+)/g;
+const REGEX_TAG = /(?<=^|\s)#(?=[a-zA-Z0-9_\-/]*[a-zA-Z])([a-zA-Z0-9_\-/]+)/g;
 const REGEX_LINK = /\[\[(.*?)\]\]/g;
 const REGEX_FRONTMATTER = /^---\n([\s\S]*?)\n---/;
 

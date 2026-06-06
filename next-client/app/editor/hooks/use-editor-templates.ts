@@ -5,7 +5,7 @@ import { flushSync } from "react-dom";
 import { useAtomValue } from "jotai";
 import { atom_currency } from "@/app/atoms/atoms";
 import getCaretCoordinates from "textarea-caret";
-import { TEMPLATES, SHORTCODES, LINK_EDITOR_SENTINEL, WIKILINK_EDITOR_SENTINEL, DATE_EDITOR_SENTINEL } from "../components/constants";
+import { TEMPLATES, SHORTCODES, LINK_EDITOR_SENTINEL, WIKILINK_EDITOR_SENTINEL, DATE_EDITOR_SENTINEL, CURSOR_SENTINEL } from "../components/constants";
 import { runAutoBudget } from "../utils/budget";
 
 interface UseEditorTemplatesProps {
@@ -100,7 +100,13 @@ export function useEditorTemplates({
     processedContent = processedContent.replace(/\\(\{[\w]+\})/g, "$1");
     processedContent = processedContent.replace(/\\\.\.d/g, "..d");
 
-    const fullNewValue = before + processedContent + after;
+    // Detect and strip cursor sentinel (\0) — cursor will be placed at its position
+    const sentinelIdx = processedContent.indexOf(CURSOR_SENTINEL);
+    const cleanContent = sentinelIdx !== -1
+      ? processedContent.replace(CURSOR_SENTINEL, "")
+      : processedContent;
+
+    const fullNewValue = before + cleanContent + after;
     const budgetedValue = runAutoBudget(fullNewValue, currencyCode);
 
     const scrollPos = wrapperRef.current?.scrollTop;
@@ -112,12 +118,14 @@ export function useEditorTemplates({
     });
 
     textarea.focus();
-    let newPos = before.length + processedContent.length;
-    
+    let newPos = sentinelIdx !== -1
+      ? before.length + sentinelIdx
+      : before.length + cleanContent.length;
+
     if (budgetedValue !== fullNewValue) {
       const originalLines = fullNewValue.split("\n");
       const nextLines = budgetedValue.split("\n");
-      const linesUpToCaret = (before + processedContent).split("\n");
+      const linesUpToCaret = (before + cleanContent).split("\n");
       const caretLineIndex = linesUpToCaret.length - 1;
 
       let offset = 0;
@@ -130,7 +138,7 @@ export function useEditorTemplates({
       }
       newPos += offset;
     }
-    
+
     textarea.setSelectionRange(newPos, newPos);
 
     if (wrapperRef.current && scrollPos !== undefined) {
@@ -189,23 +197,35 @@ export function useEditorTemplates({
         setFilterQuery(query);
         setSelectedIndex(-1);
 
-        if (!menuOpen) {
-          const caret = getCaretCoordinates(textarea, start - query.length);
-          const menuHeight = 240;
-          const caretTop = Number.isFinite(caret.top) ? caret.top : 0;
-          const caretLeft = Number.isFinite(caret.left) ? caret.left : 0;
+        // Recalculate position on every keystroke so that when the menu appears
+        // above the cursor (shouldShowUp), its top tracks the actual rendered
+        // height (which shrinks as the filter narrows results).
+        const caret = getCaretCoordinates(textarea, start - query.length);
+        const caretTop = Number.isFinite(caret.top) ? caret.top : 0;
+        const caretLeft = Number.isFinite(caret.left) ? caret.left : 0;
+        const lineHeight = (Number.isFinite(caret.height) && caret.height > 0) ? caret.height : 24;
 
-          const spaceBelow =
-            textarea.clientHeight - (caretTop - textarea.scrollTop);
-          const shouldShowUp =
-            spaceBelow < menuHeight && caretTop > menuHeight;
+        // Estimate actual rendered menu height from filtered result count
+        const itemHeight = 32;
+        const containerPad = 8;
+        const maxMenuHeight = 208; // max-h-52
+        const estimatedMenuHeight = Math.min(
+          Math.max(queryFiltered.length, 1) * itemHeight + containerPad,
+          maxMenuHeight,
+        );
 
-          setMenuPos({
-            top: shouldShowUp ? caretTop - menuHeight - 8 : caretTop + 24,
-            left: Math.min(caretLeft, textarea.clientWidth - 234),
-          });
-          setMenuOpen(true);
-        }
+        const spaceBelow =
+          textarea.clientHeight - (caretTop + lineHeight - textarea.scrollTop);
+        const shouldShowUp =
+          spaceBelow < maxMenuHeight && caretTop > maxMenuHeight;
+
+        setMenuPos({
+          top: shouldShowUp
+            ? caretTop - estimatedMenuHeight - lineHeight - 4
+            : caretTop + lineHeight + 4,
+          left: Math.min(caretLeft, textarea.clientWidth - 234),
+        });
+        setMenuOpen(true);
       } else {
         setMenuOpen(false);
       }
