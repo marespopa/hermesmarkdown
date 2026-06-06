@@ -27,6 +27,7 @@ interface UseEditorHandlersProps {
   setPillUrl: (url: string | null) => void;
   onDetectLinkPill?: () => void;
   dismissMenu: () => void;
+  onTableKeyDown?: (e: KeyboardEvent) => boolean;
 }
 
 export function useEditorHandlers({
@@ -48,6 +49,7 @@ export function useEditorHandlers({
   setPillUrl,
   onDetectLinkPill,
   dismissMenu,
+  onTableKeyDown,
 }: UseEditorHandlersProps) {
   const [isCtrlPressed, setIsCtrlPressed] = useState(false);
   const [isOverLink, setIsOverLink] = useState(false);
@@ -159,6 +161,9 @@ export function useEditorHandlers({
   }, [value, onWikiLinkClick, syncActiveLine, syncScroll, onDetectLinkPill]);
 
   const handleGlobalKeyDown = useCallback((e: React.KeyboardEvent) => {
+    // Table source keyboard shortcuts (Tab, Enter, |) take highest priority
+    if (onTableKeyDown?.(e.nativeEvent as KeyboardEvent)) return;
+
     if (e.altKey && e.key === "ArrowDown" && dateMatch) {
       e.preventDefault();
       setIsDateExpanded(true);
@@ -242,7 +247,7 @@ export function useEditorHandlers({
         }
       }
     }
-  }, [dateMatch, isDateExpanded, setIsDateExpanded, menuOpen, setDateMatch, value, textareaRef, filteredTemplates, selectedIndex, setSelectedIndex, insertTemplate, pillUrl, setPillUrl, dismissMenu]);
+  }, [dateMatch, isDateExpanded, setIsDateExpanded, menuOpen, setDateMatch, value, textareaRef, filteredTemplates, selectedIndex, setSelectedIndex, insertTemplate, pillUrl, setPillUrl, dismissMenu, onTableKeyDown]);
 
   return {
     isCtrlPressed,

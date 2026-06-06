@@ -10,6 +10,7 @@ export const atom_vaultFiles = atom<FileSystemHandle[]>([]);
 export const atom_isVaultPending = atom<boolean>(false);
 export const atom_hasLoadedVault = atom<boolean>(false);
 export const atom_isCloudVault = atom<boolean>(false);
+export const atom_fileSystemVersion = atom<number>(0);
 
 // Action atoms
 export const atom_rebindHandles = atom(

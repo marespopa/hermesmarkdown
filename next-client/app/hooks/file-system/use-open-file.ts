@@ -36,7 +36,7 @@ export function useOpenFile() {
       force: boolean = false,
       retryCount = 0,
     ) => {
-      let path = providedPath;
+      let path = providedPath || (fileHandle as any).path;
       if (!path && vaultHandle) {
         // 1. Try to find the path in metadata first (fastest fallback)
         for (const [metaPath, meta] of Object.entries(fileMetadata)) {

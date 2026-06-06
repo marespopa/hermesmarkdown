@@ -5,7 +5,7 @@ import { flushSync } from "react-dom";
 import { useAtomValue } from "jotai";
 import { atom_currency } from "@/app/atoms/atoms";
 import getCaretCoordinates from "textarea-caret";
-import { TEMPLATES, SHORTCODES, LINK_EDITOR_SENTINEL, WIKILINK_EDITOR_SENTINEL, DATE_EDITOR_SENTINEL, CURSOR_SENTINEL } from "../components/constants";
+import { TEMPLATES, SHORTCODES, LINK_EDITOR_SENTINEL, WIKILINK_EDITOR_SENTINEL, DATE_EDITOR_SENTINEL, TABLE_DIALOG_SENTINEL, CURSOR_SENTINEL } from "../components/constants";
 import { runAutoBudget } from "../utils/budget";
 
 interface UseEditorTemplatesProps {
@@ -13,6 +13,7 @@ interface UseEditorTemplatesProps {
   onChange: (value: string) => void;
   textareaRef: React.RefObject<HTMLTextAreaElement | null>;
   wrapperRef: React.RefObject<HTMLDivElement | null>;
+  onOpenTableCreate?: (pos: number, filterLen: number) => void;
 }
 
 export function useEditorTemplates({
@@ -20,6 +21,7 @@ export function useEditorTemplates({
   onChange,
   textareaRef,
   wrapperRef,
+  onOpenTableCreate,
 }: UseEditorTemplatesProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [menuPos, setMenuPos] = useState({ top: 0, left: 0 });
@@ -87,6 +89,13 @@ export function useEditorTemplates({
       return;
     }
 
+    if (content === TABLE_DIALOG_SENTINEL) {
+      setMenuOpen(false);
+      setFilterQuery("");
+      onOpenTableCreate?.(start, lengthToRemove);
+      return;
+    }
+
     const before = value.substring(0, start - lengthToRemove);
     const after = value.substring(start);
 
@@ -144,7 +153,7 @@ export function useEditorTemplates({
     if (wrapperRef.current && scrollPos !== undefined) {
       wrapperRef.current.scrollTop = scrollPos;
     }
-  }, [value, onChange, filterQuery, textareaRef, wrapperRef, currencyCode]);
+  }, [value, onChange, filterQuery, textareaRef, wrapperRef, currencyCode, onOpenTableCreate]);
 
   const handleSlashMenuTrigger = useCallback((val: string) => {
     const textarea = textareaRef.current;
@@ -233,7 +242,7 @@ export function useEditorTemplates({
       setMenuOpen(false);
       setDismissedSlashPos(null);
     }
-  }, [menuOpen, textareaRef, dismissedSlashPos]);
+  }, [textareaRef, dismissedSlashPos]);
 
   const insertDate = useCallback((date: Date) => {
     const textarea = textareaRef.current;

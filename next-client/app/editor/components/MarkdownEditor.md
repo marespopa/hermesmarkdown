@@ -6,11 +6,17 @@ The `MarkdownEditor` is the core text editing component of HermesMarkdown. It is
 
 - **Zen Mode**: A focused writing mode with fluid typography and centered layout.
 - **Date Detection**: Automatically detects dates and provides a [DatePickerCallout](./DatePickerCallout.md) trigger.
-- **Shortcodes**: Supports `{time}` and `{date}`.
+- **Shortcodes**: Supports `{time}`, `{date}`, and `{table}`.
 - **Templates**: Non-blocking slash-command (`/`) floating menu (HIG approach) that opens right below the cursor without stealing focus from the text input. Special slash commands:
   - `/link` — opens an "Add Link" dialog to insert `[text](url)` at the cursor.
   - `/wikilink` — opens a "WikiLink" dialog to insert `[[WikiLink]]` at the cursor.
   - `/date` — opens a [DatePickerCallout](./DatePickerCallout.md) dialog to insert an ISO date (`YYYY-MM-DD`) at the cursor.
+  - `/table` (or `⊞ Table` in the menu) — opens the [TableDialog](./TableDialog.tsx) in **create mode** (blank 3×3 grid).
+- **Table Editing**: When the cursor is anywhere on a pipe-table line, a [TableCallout](./TableCallout.tsx) floats above the table offering: add/remove row, add/remove column, cycle column alignment, copy as CSV, and **Edit** (opens [TableDialog](./TableDialog.tsx) pre-filled from the source).
+- **Table keyboard shortcuts** (cursor inside a pipe-table in source mode):
+  - **Tab / Shift+Tab**: jump forward / backward between cells.
+  - **`|`**: auto-escapes to `\|` to prevent accidental column splitting.
+  - **Enter** at row end: appends a new empty row below.
 - **Keyboard Navigation & Selection**:
   - **Arrow Keys**: Navigate the command dropdown safely without moving the main text caret.
   - **Tab or Enter**: Selects the highlighted template, clears the trigger text (e.g. `/link`), and executes the command.
@@ -26,6 +32,6 @@ The `MarkdownEditor` is the core text editing component of HermesMarkdown. It is
 
 - **Architecture**: Logic is encapsulated in the `useMarkdownEditor` custom hook (`app/editor/hooks/useMarkdownEditor.ts`).
 - **Highlighting**: Regex-based highlighting is decoupled into `MarkdownHighlighter.tsx`.
-- **Utilities**: Date and link detection logic are moved to `app/editor/utils/`.
+- **Utilities**: Date, link, and table detection/manipulation logic live in `app/editor/utils/`.
 - **Regex**: Centralized regex definitions in `regex.ts`.
-- **Cursor**: Uses `textarea-caret` for menu positioning.
+- **Cursor**: Uses `textarea-caret` for menu and callout positioning.

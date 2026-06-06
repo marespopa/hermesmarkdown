@@ -32,7 +32,6 @@ export function useFileSystem() {
     scanVault: vaultManager.scanVault,
     indexVaultTags: vaultManager.indexVaultTags,
     openFile: fileEditor.openFile,
-    navigateTo: vaultManager.navigateTo,
   });
 
   return {

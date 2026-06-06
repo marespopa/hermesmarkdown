@@ -55,6 +55,7 @@ export default function LiteEditor() {
     importFile,
     createFile,
     createNewFile,
+    syncSidebarToPath,
   } = useFileSystem();
 
   const dialog = useDialog();
@@ -69,6 +70,15 @@ export default function LiteEditor() {
   });
   useFileSync();
   useVaultSync();
+
+  // Sync sidebar with active file folder
+  const lastSyncedPathRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (activeFilePath && activeFilePath !== "draft" && activeFilePath !== lastSyncedPathRef.current) {
+      lastSyncedPathRef.current = activeFilePath;
+      syncSidebarToPath(activeFilePath);
+    }
+  }, [activeFilePath, syncSidebarToPath]);
 
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isPathSwitching, setIsPathSwitching] = useState(false);
@@ -226,11 +236,12 @@ export default function LiteEditor() {
 
   return (
     <ErrorBoundary>
-      <div className="fixed inset-0 flex bg-zinc-50 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 selection:bg-blue-500/30 font-sans overflow-hidden overscroll-none">
+      <div className={`fixed inset-0 flex bg-zinc-50 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 selection:bg-blue-500/30 font-sans overflow-hidden overscroll-none transition-all duration-500 ${isVaultPending ? "blur-md pointer-events-none select-none" : ""}`}>
         {/* Modals */}
         <SettingsDialog isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
         <WelcomeWizard />
         <ConflictDialog />
+        {isVaultPending && <VaultPendingOverlay restoreVault={restoreVault} />}
         
         <DialogModal isOpened={pendingFile !== null} onClose={() => setPendingFile(null)} styles="!rounded-[32px] !backdrop-blur-2xl !bg-white/80 dark:!bg-zinc-900/80 !border-none !shadow-2xl">
           <div className="flex flex-col gap-6 text-center py-4 px-2">
@@ -301,7 +312,7 @@ export default function LiteEditor() {
           {/* Main Editor Area */}
           <div className="flex-1 flex flex-col min-w-0 relative">
             <div className="relative flex-1 min-h-0">
-              <main className={`h-full transition-all duration-700 ${isPathSwitching ? "opacity-30 blur-[2px]" : "opacity-100"} ${isVaultPending ? "blur-sm pointer-events-none select-none" : ""}`}>
+              <main className={`h-full transition-all duration-700 ${isPathSwitching ? "opacity-30 blur-[2px]" : "opacity-100"}`}>
                 {isMounting ? (
                   <div className="animate-pulse opacity-10 space-y-6 pt-20 px-12 max-w-2xl mx-auto">
                     <div className="h-8 bg-current w-1/3 rounded-lg mb-16" />
@@ -313,7 +324,6 @@ export default function LiteEditor() {
                   <WorkspaceSplitter node={workspaceLayout.rootContainer} />
                 )}
               </main>
-              {isVaultPending && <VaultPendingOverlay restoreVault={restoreVault} />}
             </div>
 
             <div className={`${isZenModeActive ? "order-first" : "max-md:order-first"} shrink-0`}>

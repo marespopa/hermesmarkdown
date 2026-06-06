@@ -18,6 +18,8 @@ import { useEditorTemplates } from "./use-editor-templates";
 import { useEditorHandlers } from "./use-editor-handlers";
 import { useLinkPill } from "./use-link-pill";
 import { useTableCallout } from "./use-table-callout";
+import { useTableDialog } from "./useTableDialog";
+import { extractTableSource } from "../utils/tableParser";
 
 interface UseMarkdownEditorProps {
   value: string;
@@ -83,7 +85,26 @@ export function useMarkdownEditor({
     handleRemoveCol,
     handleCycleAlign,
     handleCopyCSV,
+    handleTableKeyDown,
   } = useTableCallout({ value, textareaRef });
+
+  const tableDialog = useTableDialog({ value, textareaRef });
+
+  const handleOpenEditDialog = useCallback(() => {
+    if (!tableInfo) return;
+    // Compute character end offset of the table block
+    let endOffset = tableInfo.tableStartOffset;
+    for (let i = tableInfo.tableStart; i <= tableInfo.tableEnd; i++) {
+      endOffset += tableInfo.lines[i].length;
+      if (i < tableInfo.tableEnd) endOffset += 1; // \n
+    }
+    const source = extractTableSource(
+      tableInfo.lines,
+      tableInfo.tableStart,
+      tableInfo.tableEnd,
+    );
+    tableDialog.openEdit(source, tableInfo.tableStartOffset, endOffset, tableInfo.cursorRow, tableInfo.cursorCol);
+  }, [tableInfo, tableDialog]);
 
   const handleSaveLink = useCallback(
     (newLabel: string, newUrl: string) => {
@@ -126,6 +147,7 @@ export function useMarkdownEditor({
     onChange,
     textareaRef,
     wrapperRef,
+    onOpenTableCreate: tableDialog.openCreate,
   });
 
   const handleSaveWikiLink = useCallback(
@@ -169,6 +191,7 @@ export function useMarkdownEditor({
     setPillUrl,
     onDetectLinkPill: detectLinkAtCaret,
     dismissMenu,
+    onTableKeyDown: handleTableKeyDown,
   });
 
   useEffect(() => {
@@ -395,5 +418,7 @@ export function useMarkdownEditor({
     handleRemoveCol,
     handleCycleAlign,
     handleCopyCSV,
+    tableDialog,
+    handleOpenEditDialog,
   };
 }

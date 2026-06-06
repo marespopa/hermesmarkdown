@@ -15,6 +15,7 @@ import {
   atom_workspaceLayout,
   atom_rebindHandles,
   atom_isCloudVault,
+  atom_fileSystemVersion,
 } from "@/app/atoms/atoms";
 import { atom_fileMetadata } from "@/app/atoms/metadata";
 import {
@@ -38,6 +39,7 @@ export function useVaultManager() {
   const [, setOpenFiles] = useAtom(atom_openFiles);
   const [, setWorkspaceLayout] = useAtom(atom_workspaceLayout);
   const [, setIsCloudVault] = useAtom(atom_isCloudVault);
+  const [, setFileSystemVersion] = useAtom(atom_fileSystemVersion);
   const rebindHandles = useSetAtom(atom_rebindHandles);
   const dialog = useDialog();
 
@@ -81,8 +83,27 @@ export function useVaultManager() {
   const scanVault = useCallback(
     async (handle: FileSystemDirectoryHandle) => {
       try {
-        const entries: FileSystemHandle[] = [];
+        setFileSystemVersion((v) => v + 1);
+        const entries: any[] = [];
+        
+        // Construct the base path for entries in this directory
+        let dirPath = "";
+        if (vaultHandle && handle !== vaultHandle) {
+          try {
+            const pathParts = await (vaultHandle as any).resolve(handle);
+            if (pathParts) {
+              dirPath = pathParts.join("/");
+            }
+          } catch (err) {
+            console.warn("Failed to resolve directory path:", err);
+          }
+        }
+
         for await (const entry of (handle as any).values()) {
+          const entryPath = dirPath ? `${dirPath}/${entry.name}` : entry.name;
+          // Attach path to the handle object for easier access in UI components
+          (entry as any).path = entryPath;
+
           if (entry.kind === "file" && entry.name.endsWith(".md")) {
             entries.push(entry);
           } else if (entry.kind === "directory") {
@@ -94,7 +115,7 @@ export function useVaultManager() {
         console.warn("Failed to scan vault:", err);
       }
     },
-    [setVaultFiles],
+    [setVaultFiles, vaultHandle, setFileSystemVersion],
   );
 
   const indexVaultTags = useCallback(
@@ -198,6 +219,43 @@ export function useVaultManager() {
     }
   }, [vaultHandle, setIsVaultPending, setCurrentDirectoryHandle, scanVault, indexVaultTags, rebindHandles, dialog, detectCloudVault]);
 
+  const syncSidebarToPath = useCallback(
+    async (path: string) => {
+      if (!vaultHandle || !path || path === "draft") return;
+
+      const parts = path.split("/");
+      let targetHandle: FileSystemDirectoryHandle = vaultHandle;
+
+      if (parts.length > 1) {
+        const folderParts = parts.slice(0, -1);
+        try {
+          for (const part of folderParts) {
+            targetHandle = await targetHandle.getDirectoryHandle(part);
+          }
+        } catch (err) {
+          console.warn("Failed to find parent directory for path:", path, err);
+          return;
+        }
+      }
+
+      // Check if we are already in the target directory
+      let isSame = false;
+      if (currentDirectoryHandle) {
+        try {
+          isSame = await (targetHandle as any).isSameEntry(currentDirectoryHandle);
+        } catch {
+          isSame = targetHandle.name === currentDirectoryHandle.name;
+        }
+      }
+
+      if (!isSame) {
+        setCurrentDirectoryHandle(targetHandle);
+        await scanVault(targetHandle);
+      }
+    },
+    [vaultHandle, currentDirectoryHandle, setCurrentDirectoryHandle, scanVault],
+  );
+
   const navigateTo = useCallback(
     async (handle: FileSystemDirectoryHandle) => {
       setCurrentDirectoryHandle(handle);
@@ -297,5 +355,6 @@ export function useVaultManager() {
     closeVault,
     navigateTo,
     navigateBack,
+    syncSidebarToPath,
   };
 }

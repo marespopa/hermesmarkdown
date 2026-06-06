@@ -8,6 +8,7 @@ import WikiLinkDialog from "./WikiLinkDialog";
 import DialogModal from "../../components/DialogModal/DialogModal";
 import { LinkPill } from "./LinkPill";
 import { TableCallout } from "./TableCallout";
+import { TableDialog } from "./TableDialog";
 import { useMarkdownEditor } from "../hooks/useMarkdownEditor";
 import Button from "../../components/Button";
 import Input from "../../components/Input";
@@ -74,13 +75,13 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
     tableInfo,
     setTableInfo,
     calloutPos,
-    currentAlignment,
     handleAddRow,
     handleAddCol,
     handleRemoveRow,
     handleRemoveCol,
-    handleCycleAlign,
     handleCopyCSV,
+    tableDialog,
+    handleOpenEditDialog,
   } = useMarkdownEditor(props);
 
   const [linkLabel, setLinkLabel] = useState("");
@@ -247,15 +248,43 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
           {tableInfo && (
             <TableCallout
               pos={calloutPos}
-              currentAlignment={currentAlignment}
               onAddRow={handleAddRow}
               onAddCol={handleAddCol}
               onRemoveRow={handleRemoveRow}
               onRemoveCol={handleRemoveCol}
-              onCycleAlign={handleCycleAlign}
               onCopyCSV={handleCopyCSV}
+              onEditDialog={handleOpenEditDialog}
             />
           )}
+
+          <TableDialog
+            isOpen={tableDialog.isOpen}
+            mode={tableDialog.mode}
+            headers={tableDialog.headers}
+            rows={tableDialog.rows}
+            alignments={tableDialog.alignments}
+            sortState={tableDialog.sortState}
+            focusRow={tableDialog.editCtx?.cursorRow}
+            focusCol={tableDialog.editCtx?.cursorCol}
+            pendingRemoveCol={tableDialog.pendingRemoveCol}
+            pendingRemoveRow={tableDialog.pendingRemoveRow}
+            markdownPreview={tableDialog.getMarkdownPreview()}
+            onHeaderChange={tableDialog.handleHeaderChange}
+            onCellChange={tableDialog.handleCellChange}
+            onAlignmentChange={tableDialog.handleAlignmentChange}
+            onSortColumn={tableDialog.handleSortColumn}
+            onAddColumn={tableDialog.handleAddColumn}
+            onRemoveColumn={tableDialog.handleRemoveColumn}
+            onConfirmRemoveColumn={tableDialog.handleConfirmRemoveColumn}
+            onCancelRemoveColumn={tableDialog.handleCancelRemoveColumn}
+            onAddRow={() => tableDialog.handleAddRow(tableDialog.headers.length)}
+            onRemoveRow={tableDialog.handleRemoveRow}
+            onConfirmRemoveRow={tableDialog.handleConfirmRemoveRow}
+            onCancelRemoveRow={tableDialog.handleCancelRemoveRow}
+            onInsert={tableDialog.handleInsert}
+            onUpdate={tableDialog.handleUpdate}
+            onClose={tableDialog.close}
+          />
 
           <WikiLinkDialog
             isOpen={wikiLinkDialogOpen}
