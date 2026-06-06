@@ -258,7 +258,7 @@ export default function LandingPage() {
   const hasContent = realContent && realContent.length > 0 && realContent !== DEFAULT_DEMO_CONTENT;
 
   return (
-    <main className="min-h-screen selection:bg-blue-500/30 text-neutral-900 dark:text-neutral-100 bg-white dark:bg-neutral-950 overflow-x-hidden font-sans">
+    <main className="min-h-screen selection:bg-blue-500/30 text-neutral-900 dark:text-neutral-100 bg-white dark:bg-[#050505] overflow-x-hidden font-sans">
       <LoadingOverlay isVisible={showLoading} text="Opening editor..." />
 
       {/* PERSISTENT RESUME NOTIFICATION */}

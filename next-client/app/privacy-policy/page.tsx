@@ -4,14 +4,30 @@ import React from "react";
 import { useRouter } from "next/navigation";
 import Button from "@/app/components/Button/Button.component";
 
+const BackgroundGraphics = () => (
+  <div className="absolute inset-0 overflow-hidden pointer-events-none -z-10 select-none" aria-hidden="true">
+    {/* Minimalist Grid Pattern */}
+    <div className="absolute inset-0 bg-[linear-gradient(to_right,#8080800a_1px,transparent_1px),linear-gradient(to_bottom,#8080800a_1px,transparent_1px)] bg-[size:32px_32px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)]" />
+    
+    {/* Sophisticated Ambient Glows */}
+    <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[1000px] bg-gradient-radial from-blue-500/[0.05] dark:from-blue-500/[0.03] via-transparent to-transparent blur-[120px]" />
+    <div className="absolute top-[20%] right-[10%] w-[500px] h-[500px] bg-purple-500/[0.03] dark:bg-purple-500/[0.02] rounded-full blur-[100px]" />
+    <div className="absolute bottom-[20%] left-[5%] w-[600px] h-[600px] bg-amber-500/[0.02] dark:bg-amber-500/[0.01] rounded-full blur-[120px]" />
+    
+    {/* Focus Lines (Vertical accents) */}
+    <div className="absolute left-1/2 -translate-x-1/2 top-0 bottom-0 w-px bg-gradient-to-b from-transparent via-neutral-200 dark:via-neutral-800 to-transparent opacity-20" />
+  </div>
+);
+
 export default function PrivacyPolicy() {
   const router = useRouter();
 
   return (
-    <main className="min-h-screen selection:bg-blue-500/30 text-neutral-900 dark:text-neutral-100 bg-white dark:bg-neutral-950 overflow-x-hidden font-sans">
-      <div className="max-w-4xl mx-auto px-6 pt-32 pb-32 space-y-16">
+    <main className="min-h-screen selection:bg-blue-500/30 text-neutral-900 dark:text-neutral-100 bg-white dark:bg-[#050505] overflow-x-hidden font-sans relative">
+      <BackgroundGraphics />
+      <div className="max-w-5xl mx-auto px-6 pt-32 pb-32 space-y-32">
         {/* --- HEADER SECTION --- */}
-        <section className="space-y-8 animate-hero-fade-in flex flex-col items-start">
+        <section className="space-y-8 animate-hero-fade-in">
           <Button
             variant="tertiary"
             onClick={() => router.back()}
@@ -20,29 +36,31 @@ export default function PrivacyPolicy() {
             ← Back
           </Button>
 
-          <h1 className="text-4xl md:text-6xl font-bold tracking-tight leading-[1.1]">
-            Privacy{" "}
-            <span className="text-neutral-400 dark:text-neutral-600 italic font-serif">
-              Policy.
-            </span>
-          </h1>
+          <div className="space-y-4">
+            <h1 className="text-5xl md:text-8xl font-bold tracking-tight leading-[1.05]">
+              Privacy{" "}
+              <span className="text-neutral-400 dark:text-neutral-600 italic font-serif">
+                Policy.
+              </span>
+            </h1>
+          </div>
 
-          <p className="text-ui-title-3 leading-relaxed text-neutral-500 dark:text-neutral-400 max-w-2xl">
+          <p className="text-lg md:text-2xl leading-relaxed text-neutral-500 dark:text-neutral-400 max-w-3xl font-medium">
             At HermesMarkdown, we believe that your thoughts should remain private. Our commitment to a local-first architecture is the foundation of our privacy model.
           </p>
         </section>
 
         {/* --- CONTENT SECTION --- */}
-        <section className="prose prose-sm md:prose-base dark:prose-invert max-w-none border-t border-black/5 dark:border-white/10 pt-16 space-y-12">
+        <section className="prose prose-sm md:prose-base dark:prose-invert max-w-none border-t border-black/5 dark:border-white/10 pt-24 space-y-12">
           <div className="space-y-4">
-            <h2 className="text-xl font-bold tracking-tight">Introduction</h2>
-            <p>
+            <h2 className="text-xl font-bold tracking-tight uppercase tracking-widest text-blue-600 dark:text-blue-400 text-xs">Introduction</h2>
+            <p className="text-lg">
               This Privacy Policy describes how HermesMarkdown ("we," "us," or "our") handles your information. Unlike traditional SaaS tools, HermesMarkdown is built as a <strong>local-first</strong> application. This means your data primarily lives on your device, not on our servers.
             </p>
           </div>
 
           <div className="space-y-4">
-            <h2 className="text-xl font-bold tracking-tight">Data Collection & Storage</h2>
+            <h2 className="text-xl font-bold tracking-tight uppercase tracking-widest text-blue-600 dark:text-blue-400 text-xs">Data Collection & Storage</h2>
             <h3 className="text-ui-title-3 font-semibold">User Content (Markdown Files)</h3>
             <p>
               HermesMarkdown does not store, transmit, or have access to your Markdown files, notes, or vaults. When you open a local folder as a Vault, the application interacts with your file system directly through your browser&apos;s File System Access API. Your content never leaves your machine.
@@ -55,7 +73,7 @@ export default function PrivacyPolicy() {
           </div>
 
           <div className="space-y-4">
-            <h2 className="text-xl font-bold tracking-tight">Third-Party Services</h2>
+            <h2 className="text-xl font-bold tracking-tight uppercase tracking-widest text-blue-600 dark:text-blue-400 text-xs">Third-Party Services</h2>
             <p>
               To help us understand how users interact with our marketing site and to improve the product, we use a minimal, privacy-focused analytics provider:
             </p>
@@ -67,14 +85,14 @@ export default function PrivacyPolicy() {
           </div>
 
           <div className="space-y-4">
-            <h2 className="text-xl font-bold tracking-tight">Your Rights</h2>
+            <h2 className="text-xl font-bold tracking-tight uppercase tracking-widest text-blue-600 dark:text-blue-400 text-xs">Your Rights</h2>
             <p>
               Since we do not collect or store your personal data or content, there is no data for us to "export" or "delete" upon request. You have full control over your data because you own the physical files on your device.
             </p>
           </div>
 
           <div className="space-y-4">
-            <h2 className="text-xl font-bold tracking-tight">Changes to This Policy</h2>
+            <h2 className="text-xl font-bold tracking-tight uppercase tracking-widest text-blue-600 dark:text-blue-400 text-xs">Changes to This Policy</h2>
             <p>
               We may update our Privacy Policy from time to time. We will notify you of any changes by posting the new Privacy Policy on this page and updating the &quot;Last Updated&quot; date.
             </p>

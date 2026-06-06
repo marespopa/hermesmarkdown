@@ -81,7 +81,7 @@ const DialogModal = ({
             rounded-[28px] shadow-[0_20px_50px_rgba(0,0,0,0.1)]
             overflow-hidden
             flex flex-col
-            /* Apple "Spring" Animation */
+            /* Premium "Spring" Animation */
             animate-in fade-in zoom-in-95 slide-in-from-bottom-4 sm:slide-in-from-bottom-0 duration-500 ease-out
             ${styles}
           `}

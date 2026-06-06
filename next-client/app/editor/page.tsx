@@ -33,9 +33,14 @@ import {
   HiOutlineCog,
   HiOutlineEye,
   HiOutlineEyeOff,
+  HiOutlineHome,
 } from "react-icons/hi";
 
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+
 export default function LiteEditor() {
+  const router = useRouter();
   const [isMounting, setIsMounting] = useState(true);
   const [content, setContent] = useAtom(atom_content);
   const [fileName, setFileName] = useAtom(atom_fileName);
@@ -279,6 +284,15 @@ export default function LiteEditor() {
           {!isSidebarOpen && !isZenModeActive && (
             <div className="w-12 h-full flex flex-col items-center py-6 border-r border-zinc-200/50 dark:border-zinc-800/50 bg-white/50 dark:bg-zinc-950/50 backdrop-blur-3xl shrink-0 z-40">
                <div className="flex flex-col items-center gap-6">
+                 <Button
+                    variant="icon"
+                    onClick={() => router.push("/")}
+                    className="w-10 h-10 opacity-60 hover:opacity-100 text-zinc-600 dark:text-zinc-400"
+                    title="Home"
+                  >
+                    <HiOutlineHome size={24} />
+                  </Button>
+
                  <Button
                     variant="icon"
                     onClick={() => setIsSidebarOpen(true)}

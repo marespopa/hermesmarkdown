@@ -315,7 +315,7 @@ Sorting reorders rows in place in the dialog state. There is no view-only sort l
 | Case | Expected Behavior |
 |------|------------------|
 | Mixed numeric/text column | Fall back to string sort for the whole column |
-| Cells with inline Markdown | Sort on raw source value (`**apple**` sorts as `**apple**`) |
+| Cells with inline Markdown | Sort on raw source value (`**fruit**` sorts as `**fruit**`) |
 | Empty cells | Sort to the bottom regardless of direction |
 | Sorting then adding a row | New row appends after sort; becomes part of the sortable set |
 | Sorting then removing a column | Sort state resets — column index is no longer valid |

@@ -53,7 +53,7 @@ export default function Button({
   );
 }
 
-// Minimalistic Base: Standardized for Apple-style "Pro" feel
+// Minimalistic Base: Standardized for a premium "Pro" feel
 const baseStyles =
   "rounded-2xl flex items-center justify-center gap-2 transition-all duration-200 ease-out focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 disabled:opacity-30 disabled:pointer-events-none select-none border font-sans font-semibold text-ui-footnote sm:text-ui-subhead";
 

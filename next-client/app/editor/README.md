@@ -47,7 +47,7 @@ A full visual editor for tables is available via:
 - **Edit button** in the `TableCallout` — opens the dialog in **edit mode**, pre-filled from the parsed source.
 
 Dialog features:
-- Scrollable cell grid with Tab/Shift+Tab navigation between cells, styled with Apple-like `tabular-nums`
+- Scrollable cell grid with Tab/Shift+Tab navigation between cells, styled with refined `tabular-nums`
 - Per-column alignment (L / C / R) toggled inline in the header row
 - Smart data sorting by clicking any column header: asc ↑ → desc ↓ → none. Dynamically detects dates, currency, percentages, numbers, and strings.
 - Add / remove columns and rows; removing non-empty ones requires inline confirmation

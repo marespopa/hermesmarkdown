@@ -24,7 +24,6 @@ module.exports = {
           "SF Pro Display",
           "SF Pro Text",
           "system-ui",
-          "-apple-system",
           "BlinkMacSystemFont",
           "Inter",
           "ui-sans-serif",

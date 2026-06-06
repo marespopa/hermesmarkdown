@@ -41,9 +41,6 @@ export default function Documentation() {
             ← Back
           </Button>
           <div className="space-y-4">
-            <div className="inline-flex px-3 py-1 rounded-full bg-neutral-100 dark:bg-neutral-900 border border-black/5 dark:border-white/5 text-[10px] font-bold uppercase tracking-widest opacity-80">
-              User Guide & Reference
-            </div>
             <h1 className="text-5xl md:text-8xl font-bold tracking-tight leading-[1.05]">
               Product{" "}
               <span className="text-neutral-400 dark:text-neutral-600 italic font-serif">
@@ -322,7 +319,7 @@ export default function Documentation() {
                   Table Editor
                 </h3>
                 <p className="text-neutral-500 dark:text-neutral-400 leading-relaxed text-lg">
-                  Place your cursor anywhere inside a pipe table to reveal a floating toolbar for quick structural edits, or open the Advanced Table Dialog for Apple-style tabular editing, smart data sorting, and auto-padded markdown alignment.
+                  Place your cursor anywhere inside a pipe table to reveal a floating toolbar for quick structural edits, or open the Advanced Table Dialog for refined tabular editing, smart data sorting, and auto-padded markdown alignment.
                 </p>
               </div>
               <div className="p-8 bg-neutral-50/50 dark:bg-neutral-900/30 backdrop-blur-sm rounded-3xl border border-black/5 dark:border-white/5 shadow-inner">
