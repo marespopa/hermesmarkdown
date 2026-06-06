@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useState, useCallback, useEffect, useLayoutEffect } from "react";
 import getCaretCoordinates from "textarea-caret";
 import { findTableAtPos, TableInfo } from "../utils/table-detection";
 import {
@@ -29,20 +29,7 @@ function computeLineOffset(lines: string[], lineIdx: number): number {
 export function useTableCallout({ value, textareaRef }: UseTableCalloutProps) {
   const [tableInfo, setTableInfo] = useState<TableInfo | null>(null);
   const [calloutPos, setCalloutPos] = useState({ top: 0, left: 0 });
-  const suppressRef = useRef(false);
-
-  // Dismiss and briefly suppress re-detection whenever the value changes (user typed)
-  useEffect(() => {
-    suppressRef.current = true;
-    setTableInfo(null);
-    const timer = setTimeout(() => {
-      suppressRef.current = false;
-    }, 50);
-    return () => clearTimeout(timer);
-  }, [value]);
-
   const detectTableAtCaret = useCallback(() => {
-    if (suppressRef.current) return;
 
     const textarea = textareaRef.current;
     if (!textarea || document.activeElement !== textarea) return;
@@ -66,6 +53,11 @@ export function useTableCallout({ value, textareaRef }: UseTableCalloutProps) {
     });
     setTableInfo(result);
   }, [value, textareaRef]);
+
+  // Immediately recalculate callout position on value change for smooth animation
+  useLayoutEffect(() => {
+    detectTableAtCaret();
+  }, [value, detectTableAtCaret]);
 
   useEffect(() => {
     document.addEventListener("selectionchange", detectTableAtCaret);
@@ -189,6 +181,135 @@ export function useTableCallout({ value, textareaRef }: UseTableCalloutProps) {
     navigator.clipboard.writeText(csv).catch(() => {});
   }, [tableInfo]);
 
+  // Tab: jump between table cells in source mode
+  // Shift+Tab: jump backward
+  const handleTableTab = useCallback(
+    (e: KeyboardEvent): boolean => {
+      if (e.key !== "Tab" || !tableInfo) return false;
+
+      const textarea = textareaRef.current;
+      if (!textarea || document.activeElement !== textarea) return false;
+
+      const line = tableInfo.lines[tableInfo.lineIdx];
+      const lineStart = computeLineOffset(tableInfo.lines, tableInfo.lineIdx);
+      const posInLine = textarea.selectionStart - lineStart;
+
+      if (!e.shiftKey) {
+        // Find next | after cursor position in this line
+        const nextPipe = line.indexOf("|", posInLine + 1);
+        if (nextPipe !== -1 && nextPipe < line.length - 1) {
+          e.preventDefault();
+          const newPos = lineStart + nextPipe + 2; // skip `| `
+          textarea.setSelectionRange(newPos, newPos);
+          return true;
+        }
+        // At last cell — move to first cell of next row (skipping separator)
+        let nextRow = tableInfo.lineIdx + 1;
+        while (nextRow <= tableInfo.tableEnd) {
+          const nl = tableInfo.lines[nextRow];
+          if (!/^\s*\|[\s:|-]+\|\s*$/.test(nl)) break;
+          nextRow++;
+        }
+        if (nextRow <= tableInfo.tableEnd) {
+          e.preventDefault();
+          const nlStart = computeLineOffset(tableInfo.lines, nextRow);
+          const firstPipe = tableInfo.lines[nextRow].indexOf("|");
+          textarea.setSelectionRange(nlStart + firstPipe + 2, nlStart + firstPipe + 2);
+          return true;
+        }
+      } else {
+        // Shift+Tab: find preceding | before cursor (skip the current cell's opening |)
+        const searchFrom = Math.max(0, posInLine - 1);
+        const prevPipe = line.lastIndexOf("|", searchFrom - 1);
+        // Skip to the one before that to land inside the previous cell
+        if (prevPipe > 0) {
+          const prevPrev = line.lastIndexOf("|", prevPipe - 1);
+          if (prevPrev >= 0) {
+            e.preventDefault();
+            textarea.setSelectionRange(lineStart + prevPrev + 2, lineStart + prevPrev + 2);
+            return true;
+          }
+        }
+        // At first cell — move to last cell of previous row (skipping separator)
+        let prevRow = tableInfo.lineIdx - 1;
+        while (prevRow >= tableInfo.tableStart) {
+          const pl = tableInfo.lines[prevRow];
+          if (!/^\s*\|[\s:|-]+\|\s*$/.test(pl)) break;
+          prevRow--;
+        }
+        if (prevRow >= tableInfo.tableStart) {
+          e.preventDefault();
+          const pl = tableInfo.lines[prevRow];
+          const plStart = computeLineOffset(tableInfo.lines, prevRow);
+          const lastPipe = pl.lastIndexOf("|");
+          const secondLast = pl.lastIndexOf("|", lastPipe - 1);
+          if (secondLast >= 0) {
+            textarea.setSelectionRange(plStart + secondLast + 2, plStart + secondLast + 2);
+          }
+          return true;
+        }
+      }
+
+      return false;
+    },
+    [tableInfo, textareaRef],
+  );
+
+  // Auto-escape | → \| when typing inside a table cell in source mode
+  const handleTablePipeEscape = useCallback(
+    (e: KeyboardEvent): boolean => {
+      if (e.key !== "|" || !tableInfo) return false;
+
+      const textarea = textareaRef.current;
+      if (!textarea || document.activeElement !== textarea) return false;
+
+      // Only intercept unmodified | (not Shift+\ which is | on some layouts)
+      e.preventDefault();
+      document.execCommand("insertText", false, "\\|");
+      return true;
+    },
+    [tableInfo, textareaRef],
+  );
+
+  // Enter at end of a table row inserts a new row below
+  const handleTableEnter = useCallback(
+    (e: KeyboardEvent): boolean => {
+      if (e.key !== "Enter" || !tableInfo || e.shiftKey || e.ctrlKey || e.metaKey) return false;
+
+      const textarea = textareaRef.current;
+      if (!textarea || document.activeElement !== textarea) return false;
+
+      const line = tableInfo.lines[tableInfo.lineIdx];
+      const lineStart = computeLineOffset(tableInfo.lines, tableInfo.lineIdx);
+      const posInLine = textarea.selectionStart - lineStart;
+
+      // Only trigger if cursor is at or near the end of the line (within trailing whitespace)
+      if (posInLine < line.trimEnd().length - 1) return false;
+      // Don't act on the separator row
+      if (/^\s*\|[\s:|-]+\|\s*$/.test(line)) return false;
+
+      e.preventDefault();
+      const newLines = addRow(tableInfo.lines, tableInfo.tableEnd);
+      const newRowIdx = tableInfo.tableEnd + 1;
+      const cursorPos = computeLineOffset(newLines, newRowIdx) + 2;
+      applyTableChange(newLines, cursorPos);
+      return true;
+    },
+    [tableInfo, textareaRef, applyTableChange],
+  );
+
+  // Unified keyboard handler for table source shortcuts
+  const handleTableKeyDown = useCallback(
+    (e: KeyboardEvent): boolean => {
+      if (!tableInfo) return false;
+      if (handleTableTab(e)) return true;
+      if (handleTablePipeEscape(e)) return true;
+      if (handleTableEnter(e)) return true;
+      return false;
+    },
+    [tableInfo, handleTableTab, handleTablePipeEscape, handleTableEnter],
+  );
+
   const currentAlignment = tableInfo
     ? getColumnAlignment(tableInfo.lines, tableInfo.cursorCol, tableInfo.tableStart)
     : "none";
@@ -204,5 +325,6 @@ export function useTableCallout({ value, textareaRef }: UseTableCalloutProps) {
     handleRemoveCol,
     handleCycleAlign,
     handleCopyCSV,
+    handleTableKeyDown,
   };
 }

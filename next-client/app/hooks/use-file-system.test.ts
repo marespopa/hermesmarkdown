@@ -32,6 +32,7 @@ vi.mock("@/app/atoms/atoms", () => ({
   atom_workspaceLayout: "atom_workspaceLayout",
   atom_rebindHandles: "atom_rebindHandles",
   atom_isCloudVault: "atom_isCloudVault",
+  atom_fileSystemVersion: "atom_fileSystemVersion",
 }));
 vi.mock("@/app/atoms/metadata", () => ({ atom_fileMetadata: "atom_fileMetadata" }));
 
@@ -76,6 +77,7 @@ describe("useFileSystem - createFile conflict resolution", () => {
       if (atom === "atom_vaultHandle") return [mockVaultHandle, vi.fn()];
       if (atom === "atom_openFiles") return [{}, vi.fn()];
       if (atom === "atom_workspaceLayout") return [{ rootContainer: { id: "p1", activeFilePath: "draft" } }, vi.fn()];
+      if (atom === "atom_fileSystemVersion") return [0, vi.fn()];
       return [null, vi.fn()];
     });
     (useSetAtom as any).mockReturnValue(vi.fn());

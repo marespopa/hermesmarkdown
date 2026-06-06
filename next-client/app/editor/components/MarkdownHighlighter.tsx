@@ -16,7 +16,7 @@ import {
 } from "./regex";
 
 const FADED =
-  'class="opacity-[0.15] dark:opacity-[0.2] transition-opacity duration-500 hover:opacity-100"';
+  'class="opacity-40 dark:opacity-50 transition-opacity duration-500 hover:opacity-100"';
 
 function processInlineMarkdown(
   text: string,

@@ -20,7 +20,6 @@ import { useAtom, useAtomValue } from "jotai";
 import SmartFolders from "./SmartFolders";
 import { useSidebarSearch } from "../hooks/useSidebarSearch";
 import VaultSidebarEmpty from "./VaultSidebarEmpty";
-import VaultSidebarPending from "./VaultSidebarPending";
 import VaultSidebarFiles from "./VaultSidebarFiles";
 import VaultSidebarFilters from "./VaultSidebarFilters";
 import VaultSidebarFooter from "./VaultSidebarFooter";
@@ -44,20 +43,15 @@ export default function VaultSidebar({
     vaultFiles,
     openFile,
     vaultHandle,
-    currentDirectoryHandle,
-    navigateTo,
-    navigateBack,
     deleteFile,
     renameFile,
     moveItem,
     createNewFile,
     createNewFolder,
-    isVaultPending,
-    restoreVault,
-    isVaultSupported,
-    openVault,
     closeVault,
     isMounted,
+    openVault,
+    isVaultSupported,
   } = useFileSystem();
 
   const [activeFilePath, setActiveFilePath] = useAtom(atom_activeFilePath);
@@ -108,9 +102,6 @@ export default function VaultSidebar({
 
   if (!isMounted) return null;
 
-  const isAtRoot =
-    !currentDirectoryHandle || (vaultHandle && vaultHandle.name === currentDirectoryHandle.name);
-
   return (
     <div 
       className="flex flex-col h-full animate-in slide-in-from-left duration-700 relative group/sidebar backdrop-blur-3xl bg-white/70 dark:bg-zinc-900/70 border-r border-zinc-200/50 dark:border-zinc-800/50"
@@ -130,23 +121,17 @@ export default function VaultSidebar({
       <div className="p-4 flex flex-col gap-2 shrink-0">
         <div className="flex justify-between items-center h-10">
           <div className="flex items-center gap-2">
-            {(!isAtRoot || selectedTag) && vaultHandle && (
+            {selectedTag && (
               <Button
                 variant="icon"
-                onClick={() => {
-                  if (selectedTag) {
-                    setSelectedTag(null);
-                  } else {
-                    navigateBack();
-                  }
-                }}
+                onClick={() => setSelectedTag(null)}
                 className="w-10 h-10 -ml-2"
               >
                 <HiOutlineChevronLeft size={20} />
               </Button>
             )}
             <h2 className="text-ui-title-3 font-semibold text-zinc-900 dark:text-zinc-100 truncate flex items-center gap-1.5">
-              {selectedTag ? `Tag: ${selectedTag}` : currentDirectoryHandle?.name || (vaultHandle ? "Notes" : "HermesMarkdown")}
+              {selectedTag ? `Tag: ${selectedTag}` : vaultHandle?.name || "Notes"}
               {isCloudVault && vaultHandle && (
                 <span title="Cloud sync detected. HermesMarkdown will use enhanced error recovery if files are locked." className="text-blue-500/60 dark:text-blue-400/60 cursor-help">
                   <HiOutlineCloud size={14} />
@@ -209,8 +194,6 @@ export default function VaultSidebar({
             activeFilePath={activeFilePath}
             onClose={onClose}
           />
-        ) : isVaultPending ? (
-          <VaultSidebarPending restoreVault={restoreVault} />
         ) : (
           <>
             <div className="rounded-2xl bg-zinc-100/60 dark:bg-zinc-800/30">
@@ -220,19 +203,17 @@ export default function VaultSidebar({
                 onNewFile={onNewFile}
                 createNewFile={createNewFile}
                 createNewFolder={createNewFolder}
-                isAtRoot={!!isAtRoot}
-                onNavigateBack={navigateBack}
                 searchQuery={searchQuery}
                 setSearchQuery={setSearchQuery}
                 processedFiles={processedFiles}
                 selectedTag={selectedTag}
                 activeFilePath={activeFilePath}
                 openFile={openFile}
-                navigateTo={navigateTo}
                 renameFile={renameFile}
                 deleteFile={deleteFile}
                 moveItem={moveItem}
                 onClose={onClose}
+                vaultHandle={vaultHandle}
               />
             </div>
 

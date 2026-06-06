@@ -322,24 +322,24 @@ export default function Documentation() {
                   Table Editor
                 </h3>
                 <p className="text-neutral-500 dark:text-neutral-400 leading-relaxed text-lg">
-                  Place your cursor anywhere inside a pipe table to reveal a floating toolbar. Add or remove rows and columns, cycle column alignment, or copy the table as CSV — all without leaving the editor.
+                  Place your cursor anywhere inside a pipe table to reveal a floating toolbar for quick structural edits, or open the Advanced Table Dialog for Apple-style tabular editing, smart data sorting, and auto-padded markdown alignment.
                 </p>
               </div>
               <div className="p-8 bg-neutral-50/50 dark:bg-neutral-900/30 backdrop-blur-sm rounded-3xl border border-black/5 dark:border-white/5 shadow-inner">
                 <div className={guideRow}>
-                  <span className="text-sm font-medium">+Row / +Col</span>
-                  <span className={resultLabel}>Append Row or Column</span>
+                  <span className="text-sm font-medium">Advanced Edit</span>
+                  <span className={resultLabel}>Click Edit in Toolbar</span>
                 </div>
                 <div className={guideRow}>
-                  <span className="text-sm font-medium">×Row / ×Col</span>
-                  <span className={resultLabel}>Delete Row or Column</span>
+                  <span className="text-sm font-medium">Smart Sorting</span>
+                  <span className={resultLabel}>Dates, Currency, Numbers</span>
                 </div>
                 <div className={guideRow}>
-                  <span className="text-sm font-medium">L / C / R / —</span>
-                  <span className={resultLabel}>Cycle Column Alignment</span>
+                  <span className="text-sm font-medium">Auto-Padding</span>
+                  <span className={resultLabel}>Respects L/C/R Alignment</span>
                 </div>
                 <div className={guideRow}>
-                  <span className="text-sm font-medium">CSV</span>
+                  <span className="text-sm font-medium">CSV Export</span>
                   <span className={resultLabel}>Copy Table as CSV</span>
                 </div>
               </div>

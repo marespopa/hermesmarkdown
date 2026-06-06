@@ -14,10 +14,9 @@ interface UseCreateItemProps {
   scanVault: (handle: FileSystemDirectoryHandle) => Promise<void>;
   indexVaultTags: (passedHandle?: FileSystemDirectoryHandle) => Promise<void>;
   openFile: (fileHandle: FileSystemFileHandle, providedPath?: string, force?: boolean) => Promise<void>;
-  navigateTo: (handle: FileSystemDirectoryHandle) => Promise<void>;
 }
 
-export function useCreateItem({ scanVault, indexVaultTags, openFile, navigateTo }: UseCreateItemProps) {
+export function useCreateItem({ scanVault, indexVaultTags, openFile }: UseCreateItemProps) {
   const [vaultHandle] = useAtom(atom_vaultHandle);
   const [currentDirectoryHandle] = useAtom(atom_currentDirectoryHandle);
   const dialog = useDialog();
@@ -101,19 +100,15 @@ export function useCreateItem({ scanVault, indexVaultTags, openFile, navigateTo 
     const targetDir = dirHandle || currentDirectoryHandle || vaultHandle;
     if (!targetDir) return;
 
-    if (dirHandle) await navigateTo(dirHandle);
-
     const name = await dialog.prompt("Enter file name (without .md):", "", "New File");
     if (!name) return;
 
     return await createFile(name, "", dirHandle);
-  }, [vaultHandle, currentDirectoryHandle, createFile, dialog, navigateTo]);
+  }, [vaultHandle, currentDirectoryHandle, createFile, dialog]);
 
   const createNewFolder = useCallback(async (dirHandle?: FileSystemDirectoryHandle) => {
     const targetDir = dirHandle || currentDirectoryHandle || vaultHandle;
     if (!targetDir) return;
-
-    if (dirHandle) await navigateTo(dirHandle);
 
     const name = await dialog.prompt("Enter folder name:", "", "New Folder");
     if (!name) return;
@@ -126,7 +121,7 @@ export function useCreateItem({ scanVault, indexVaultTags, openFile, navigateTo 
       console.error("File System Error:", err?.message || err);
       toast.error("Failed to create folder");
     }
-  }, [vaultHandle, currentDirectoryHandle, scanVault, dialog, navigateTo]);
+  }, [vaultHandle, currentDirectoryHandle, scanVault, dialog]);
 
   return {
     createFile,

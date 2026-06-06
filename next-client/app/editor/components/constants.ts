@@ -88,16 +88,17 @@ export const SHORTCODES: Record<string, () => string> = {
 export const LINK_EDITOR_SENTINEL = "__OPEN_LINK_EDITOR__";
 export const WIKILINK_EDITOR_SENTINEL = "__OPEN_WIKILINK_EDITOR__";
 export const DATE_EDITOR_SENTINEL = "__OPEN_DATE_EDITOR__";
+export const TABLE_DIALOG_SENTINEL = "__OPEN_TABLE_DIALOG__";
 export const CURSOR_SENTINEL = "\0";
 
 export const PILL_CONTAINER_CLASSES =
-  "absolute z-40 flex items-center gap-1 p-1 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-md shadow-sm pointer-events-auto select-none";
+  "absolute z-40 flex items-center gap-1 p-1 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-md shadow-sm pointer-events-auto select-none transition-all duration-200 ease-in-out";
 
 export const TEMPLATES = [
   { label: "🔗 Link", content: LINK_EDITOR_SENTINEL },
   { label: "[[ WikiLink", content: WIKILINK_EDITOR_SENTINEL },
   { label: "📅 Date", content: DATE_EDITOR_SENTINEL },
-  { label: "⊞ Table", content: "| \0Header 1 | Header 2 | Header 3 |\n| -------- | -------- | -------- |\n| Cell     | Cell     | Cell     |\n| Cell     | Cell     | Cell     |" },
+  { label: "⊞ Table", content: TABLE_DIALOG_SENTINEL },
   // --- Obsidian / Daily Driver ---
   {
     label: "🗓️ Daily Note",

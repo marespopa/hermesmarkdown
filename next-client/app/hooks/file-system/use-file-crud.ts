@@ -10,19 +10,17 @@ interface UseFileCrudProps {
   scanVault: (handle: FileSystemDirectoryHandle) => Promise<void>;
   indexVaultTags: (passedHandle?: FileSystemDirectoryHandle) => Promise<void>;
   openFile: (fileHandle: FileSystemFileHandle, providedPath?: string, force?: boolean) => Promise<void>;
-  navigateTo: (handle: FileSystemDirectoryHandle) => Promise<void>;
 }
 
 /**
  * Main hook for File System CRUD operations.
  * Composes specialized hooks for creation, deletion, renaming, moving, and importing.
  */
-export function useFileCrud({ scanVault, indexVaultTags, openFile, navigateTo }: UseFileCrudProps) {
+export function useFileCrud({ scanVault, indexVaultTags, openFile }: UseFileCrudProps) {
   const { createFile, createNewFile, createNewFolder } = useCreateItem({
     scanVault,
     indexVaultTags,
     openFile,
-    navigateTo,
   });
 
   const { deleteFile } = useDeleteItem({

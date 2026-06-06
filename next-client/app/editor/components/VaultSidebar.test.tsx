@@ -56,6 +56,15 @@ describe("VaultSidebar Component", () => {
     vi.clearAllMocks();
     cleanup();
 
+    const mockVaultHandle = {
+      name: "My Vault",
+      kind: "directory",
+      values: async function* () {
+        yield { name: "test.md", kind: "file", handle: { name: "test.md" } };
+        yield { name: "folder", kind: "directory", handle: { name: "folder", values: async function* () { yield* []; } } };
+      }
+    };
+
     mockFileSystem = {
       vaultFiles: [
         { name: "test.md", kind: "file", handle: { name: "test.md" } },
@@ -64,13 +73,14 @@ describe("VaultSidebar Component", () => {
       openFile: vi.fn(),
       createNewFile: vi.fn(),
       createNewFolder: vi.fn(),
-      vaultHandle: { name: "My Vault" },
-      currentDirectoryHandle: { name: "My Vault" },
+      vaultHandle: mockVaultHandle,
+      currentDirectoryHandle: mockVaultHandle,
       activeFileHandle: null,
       navigateTo: vi.fn(),
       navigateBack: vi.fn(),
       deleteFile: vi.fn(),
       renameFile: vi.fn(),
+      moveItem: vi.fn(),
       vaultTags: { "#work": [] },
       isVaultPending: false,
       restoreVault: vi.fn(),
@@ -122,26 +132,29 @@ describe("VaultSidebar Component", () => {
     });
   });
 
-  it("renders vault name and files", () => {
+  it("renders vault name and files", async () => {
     render(<VaultSidebar onClose={mockOnClose} />);
 
     expect(screen.getByText("My Vault")).toBeInTheDocument();
-    expect(screen.getByText("test.md")).toBeInTheDocument();
-    expect(screen.getByText("folder")).toBeInTheDocument();
+    expect(await screen.findByText("test.md")).toBeInTheDocument();
+    expect(await screen.findByText("folder")).toBeInTheDocument();
   });
 
-  it("calls openFile when a file is clicked", () => {
+  it("calls openFile when a file is clicked", async () => {
     render(<VaultSidebar onClose={mockOnClose} />);
 
-    fireEvent.click(screen.getByText("test.md"));
+    const file = await screen.findByText("test.md");
+    fireEvent.click(file);
     expect(mockFileSystem.openFile).toHaveBeenCalled();
   });
 
-  it("calls navigateTo when a folder is clicked", () => {
+  it("toggles expansion when a folder is clicked", async () => {
     render(<VaultSidebar onClose={mockOnClose} />);
 
-    fireEvent.click(screen.getByText("folder"));
-    expect(mockFileSystem.navigateTo).toHaveBeenCalled();
+    const folder = await screen.findByText("folder");
+    fireEvent.click(folder);
+    // Clicking toggles expansion, it doesn't call navigateTo anymore
+    expect(mockFileSystem.navigateTo).not.toHaveBeenCalled();
   });
 
   it("shows tag filters", () => {
@@ -149,16 +162,24 @@ describe("VaultSidebar Component", () => {
     expect(screen.getByText("#work")).toBeInTheDocument();
   });
 
-  it("sorts folders before files", () => {
-    mockFileSystem.vaultFiles = [
-      { name: "z-file.md", kind: "file", handle: { name: "z-file.md" } },
-      { name: "a-folder", kind: "directory", handle: { name: "a-folder" } },
-      { name: "a-file.md", kind: "file", handle: { name: "a-file.md" } },
-    ];
+  it("sorts folders before files", async () => {
+    const mockVaultHandle = {
+      name: "My Vault",
+      kind: "directory",
+      values: async function* () {
+        yield { name: "z-file.md", kind: "file" };
+        yield { name: "a-folder", kind: "directory", values: async function* () { yield* []; } };
+        yield { name: "a-file.md", kind: "file" };
+      }
+    };
+    mockFileSystem.vaultHandle = mockVaultHandle;
+    
     render(<VaultSidebar onClose={mockOnClose} />);
 
+    // Wait for the tree to load
+    await screen.findByText("a-folder");
+
     const entries = screen.getAllByText(/folder|file/);
-    // Use findIndex or similar to check relative order in the DOM
     const texts = entries.map(el => el.textContent);
     expect(texts[0]).toBe("a-folder");
     expect(texts[1]).toBe("a-file.md");

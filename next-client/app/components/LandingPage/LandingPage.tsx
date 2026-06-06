@@ -200,6 +200,34 @@ const SmartSyntaxGraphic = () => (
   </div>
 );
 
+const TableGraphic = () => (
+  <div className="w-full h-full flex items-center justify-center p-6 relative select-none">
+    <div className="w-full max-w-[280px] bg-white dark:bg-neutral-800 rounded-lg shadow-sm border border-black/5 dark:border-white/10 overflow-hidden group/table">
+      <div className="grid grid-cols-3 bg-neutral-50 dark:bg-neutral-900/50 border-b border-black/5 dark:border-white/10 text-[9px] font-mono font-bold text-neutral-500 uppercase tracking-wider">
+        <div className="p-2 border-r border-black/5 dark:border-white/10 flex items-center justify-between">
+          Task
+          <span className="text-indigo-500 dark:text-indigo-400 opacity-0 group-hover/table:opacity-100 transition-opacity">↓</span>
+        </div>
+        <div className="p-2 border-r border-black/5 dark:border-white/10 text-center">Status</div>
+        <div className="p-2 text-right text-indigo-600 dark:text-indigo-400 bg-indigo-50/50 dark:bg-indigo-500/10">Date <span className="opacity-100">↑</span></div>
+      </div>
+      <div className="grid grid-cols-3 text-[10px] font-mono text-neutral-600 dark:text-neutral-300">
+        <div className="p-2 border-r border-b border-black/5 dark:border-white/10">Design</div>
+        <div className="p-2 border-r border-b border-black/5 dark:border-white/10 text-center text-green-500">Done</div>
+        <div className="p-2 border-b border-black/5 dark:border-white/10 text-right opacity-70 bg-indigo-50/20 dark:bg-indigo-500/5">06-10</div>
+      </div>
+      <div className="grid grid-cols-3 text-[10px] font-mono text-neutral-600 dark:text-neutral-300">
+        <div className="p-2 border-r border-black/5 dark:border-white/10">Build</div>
+        <div className="p-2 border-r border-black/5 dark:border-white/10 text-center text-amber-500">WIP</div>
+        <div className="p-2 border-black/5 dark:border-white/10 text-right opacity-70 bg-indigo-50/20 dark:bg-indigo-500/5">06-15</div>
+      </div>
+    </div>
+    <div className="absolute top-4 right-4">
+      <span className="text-[9px] font-mono uppercase tracking-widest text-indigo-500 opacity-60">Visual Tables</span>
+    </div>
+  </div>
+);
+
 const DEFAULT_DEMO_CONTENT = `# Welcome to HermesMarkdown
 
 A premium, local-first workspace for your thoughts.
@@ -371,15 +399,29 @@ export default function LandingPage() {
 
         <section className="grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
           <div className="order-last md:order-first aspect-video bg-neutral-100 dark:bg-neutral-900 rounded-2xl border border-black/5 dark:border-white/5 flex items-center justify-center group overflow-hidden relative">
-             <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-emerald-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
-             <PrivacyGraphic />
+             <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-indigo-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+             <TableGraphic />
           </div>
+          <div className="space-y-6">
+            <div className="h-px w-12 bg-indigo-500" />
+            <h2 className="text-3xl font-bold tracking-tight">Visual Tables</h2>
+            <p className="text-neutral-600 dark:text-neutral-400 leading-relaxed">
+              A powerful visual table editor is just a double-click away. Effortlessly add or remove rows and columns, adjust alignment, and sort data with smart type detection for numbers, dates, and strings—all while maintaining perfectly formatted Markdown under the hood.
+            </p>
+          </div>
+        </section>
+
+        <section className="grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
           <div className="space-y-6">
             <div className="h-px w-12 bg-emerald-600" />
             <h2 className="text-3xl font-bold tracking-tight">True Content Privacy</h2>
             <p className="text-neutral-600 dark:text-neutral-400 leading-relaxed">
               Your writing belongs to you. No central database, no proprietary formats, and no "AI training" on your private notes. Everything is stored in human-readable Markdown on your own machine.
             </p>
+          </div>
+          <div className="aspect-video bg-neutral-100 dark:bg-neutral-900 rounded-2xl border border-black/5 dark:border-white/5 flex items-center justify-center group overflow-hidden relative">
+             <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-emerald-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+             <PrivacyGraphic />
           </div>
         </section>
       </div>
