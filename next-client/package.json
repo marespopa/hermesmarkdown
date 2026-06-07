@@ -63,6 +63,7 @@
     "postcss": "^8.5.15"
   },
   "optionalDependencies": {
+    "@rolldown/binding-android-arm64": "^1.1.0",
     "@rollup/rollup-linux-arm64-gnu": "^4.61.1"
   }
 }

@@ -20,6 +20,7 @@ vi.mock("@/app/atoms/atoms", async (importOriginal) => {
     ...actual,
     atom_activeFilePath: { toString: () => "atom_activeFilePath", read: () => {} },
     atom_sidebarWidth: { toString: () => "atom_sidebarWidth", read: () => {} },
+    atom_sidebarTabOrder: { toString: () => "atom_sidebarTabOrder", read: () => {} },
   };
 });
 
@@ -90,6 +91,7 @@ describe("VaultSidebar Component", () => {
           },
         };
       }
+      if (str === "atom_sidebarTabOrder") return ["content", "views"];
       if (str === "atom_indexerState") return "idle";
       return {};
     });
@@ -98,6 +100,7 @@ describe("VaultSidebar Component", () => {
       const atomStr = atom.toString();
       if (atomStr === "atom_activeFilePath") return ["test.md", vi.fn()];
       if (atomStr === "atom_sidebarWidth") return [260, vi.fn()];
+      if (atomStr === "atom_sidebarTabOrder") return [["content", "views"], vi.fn()];
       if (atomStr === "atom_fileMetadata") {
         return [
           {
@@ -153,6 +156,7 @@ describe("VaultSidebar Component", () => {
           },
         };
       }
+      if (str === "atom_sidebarTabOrder") return ["content", "views"];
       if (str === "atom_indexerState") return "idle";
       return {};
     });
@@ -178,8 +182,10 @@ describe("VaultSidebar Component", () => {
     }
 
     (useAtomValue as any).mockImplementation((atom: any) => {
-      if (atom.toString() === "atom_fileMetadata") return manyTags;
-      if (atom.toString() === "atom_indexerState") return "idle";
+      const str = atom.toString();
+      if (str === "atom_fileMetadata") return manyTags;
+      if (str === "atom_sidebarTabOrder") return ["content", "views"];
+      if (str === "atom_indexerState") return "idle";
       return {};
     });
 
@@ -193,7 +199,8 @@ describe("VaultSidebar Component", () => {
 
   it("renders files from a subfolder with path hint", async () => {
     (useAtomValue as any).mockImplementation((atom: any) => {
-      if (atom.toString() === "atom_fileMetadata") {
+      const str = atom.toString();
+      if (str === "atom_fileMetadata") {
         return {
           "subfolder/nested.md": {
             tags: [],
@@ -203,7 +210,8 @@ describe("VaultSidebar Component", () => {
           },
         };
       }
-      if (atom.toString() === "atom_indexerState") return "idle";
+      if (str === "atom_sidebarTabOrder") return ["content", "views"];
+      if (str === "atom_indexerState") return "idle";
       return {};
     });
 
@@ -213,7 +221,8 @@ describe("VaultSidebar Component", () => {
 
   it("performs recursive search across subfolders", async () => {
     (useAtomValue as any).mockImplementation((atom: any) => {
-      if (atom.toString() === "atom_fileMetadata") {
+      const str = atom.toString();
+      if (str === "atom_fileMetadata") {
         return {
           "folder/nested.md": {
             tags: [], handle: { name: "nested.md", kind: "file" }, path: "folder/nested.md", name: "nested.md",
@@ -223,7 +232,8 @@ describe("VaultSidebar Component", () => {
           },
         };
       }
-      if (atom.toString() === "atom_indexerState") return "idle";
+      if (str === "atom_sidebarTabOrder") return ["content", "views"];
+      if (str === "atom_indexerState") return "idle";
       return {};
     });
 

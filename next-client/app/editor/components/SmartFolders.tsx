@@ -33,14 +33,25 @@ const DEFAULT_SMART_FOLDERS: SmartFolderConfig[] = [
 
 interface SmartFoldersProps {
   onFileSelect: (handle: FileSystemFileHandle, path?: string) => void;
+  renameFile: (handle: FileSystemHandle) => void;
+  deleteFile: (handle: FileSystemHandle) => void;
+  searchQuery?: string;
+  selectedTags?: string[];
 }
 
-export default function SmartFolders({ onFileSelect }: SmartFoldersProps) {
+export default function SmartFolders({
+  onFileSelect,
+  renameFile,
+  deleteFile,
+  searchQuery = "",
+  selectedTags = [],
+}: SmartFoldersProps) {
   const [fileMetadata] = useAtom(atom_fileMetadata);
   const [customWorkspaces, setCustomWorkspaces] = useAtom(atom_customWorkspaces);
   const activeFilePath = useAtomValue(atom_activeFilePath);
   const [selectedFolderId, setSelectedFolderId] = React.useState<string | null>(null);
   const [actionMenuId, setActionMenuId] = React.useState<string | null>(null);
+  const [fileActionMenuPath, setFileActionMenuPath] = React.useState<string | null>(null);
   const [isBuilderOpen, setIsBuilderOpen] = React.useState(false);
   const [editingWorkspace, setEditingWorkspace] = React.useState<CustomWorkspace | null>(null);
   const dialog = useDialog();
@@ -60,10 +71,27 @@ export default function SmartFolders({ onFileSelect }: SmartFoldersProps) {
     const config = allWorkspaces.find((f) => f.id === selectedFolderId);
     if (!config) return [];
 
-    return Object.values(fileMetadata).filter((meta) =>
+    let files = Object.values(fileMetadata).filter((meta) =>
       evaluateQuery(meta, config.query, fileMetadata)
     );
-  }, [selectedFolderId, fileMetadata, allWorkspaces]);
+
+    // Apply sidebar search filter
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase().trim();
+      files = files.filter(f =>
+        f.name.toLowerCase().includes(q) ||
+        f.path.toLowerCase().includes(q)
+      );
+    }
+
+    if (selectedTags.length > 0) {
+      files = files.filter(f =>
+        selectedTags.every(t => f.tags.includes(t))
+      );
+    }
+
+    return files;
+  }, [selectedFolderId, fileMetadata, allWorkspaces, searchQuery, selectedTags]);
 
   const handleDelete = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -168,15 +196,56 @@ export default function SmartFolders({ onFileSelect }: SmartFoldersProps) {
                   {matchedFiles.map((file) => (
                     <div
                       key={file.path}
-                      onClick={() => onFileSelect(file.handle, file.path)}
-                      className={`flex items-center gap-2 px-3 py-1.5 rounded-md cursor-pointer transition-all text-ui-caption truncate relative ${
-                        activeFilePath === file.path
-                          ? "text-blue-600 dark:text-blue-400 font-bold before:absolute before:left-0 before:top-1.5 before:bottom-1.5 before:w-0.5 before:bg-blue-500 bg-blue-500/10"
-                          : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 font-medium hover:bg-zinc-100 dark:hover:bg-zinc-800/50"
-                      }`}
+                      onMouseLeave={() => setFileActionMenuPath(null)}
+                      className="group/file relative"
                     >
-                      <HiOutlineDocumentText size={14} className="shrink-0 opacity-50" />
-                      <span className="truncate">{file.name}</span>
+                      <div
+                        onClick={() => onFileSelect(file.handle, file.path)}
+                        className={`flex items-center gap-2 px-3 py-1.5 rounded-md cursor-pointer transition-all text-ui-caption truncate pr-8 relative ${
+                          activeFilePath === file.path
+                            ? "text-blue-600 dark:text-blue-400 font-bold before:absolute before:left-0 before:top-1.5 before:bottom-1.5 before:w-0.5 before:bg-blue-500 bg-blue-500/10"
+                            : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 font-medium hover:bg-zinc-100 dark:hover:bg-zinc-800/50"
+                        }`}
+                      >
+                        <HiOutlineDocumentText size={14} className="shrink-0 opacity-50" />
+                        <span className="truncate">{file.name}</span>
+                      </div>
+
+                      <div className="absolute right-1 top-1/2 -translate-y-1/2 opacity-0 group-hover/file:opacity-100 transition-opacity">
+                        <Button
+                          variant="icon"
+                          className="w-6 h-6"
+                          title="File options"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setFileActionMenuPath(fileActionMenuPath === file.path ? null : file.path);
+                          }}
+                        >
+                          <HiOutlineDotsVertical size={12} className="opacity-60" />
+                        </Button>
+                      </div>
+
+                      {fileActionMenuPath === file.path && (
+                        <>
+                          <div className="fixed inset-0 z-40" onClick={() => setFileActionMenuPath(null)} />
+                          <div className="absolute right-1 top-[80%] z-50 bg-white/90 dark:bg-zinc-900/90 backdrop-blur-xl border border-zinc-200/50 dark:border-zinc-800/50 rounded-xl shadow-xl py-1 min-w-[120px] animate-in fade-in zoom-in-95 duration-100">
+                            <button
+                              onClick={(e) => { e.stopPropagation(); renameFile(file.handle); setFileActionMenuPath(null); }}
+                              className="w-full flex items-center gap-3 px-4 py-2 text-ui-footnote font-medium hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
+                            >
+                              <HiOutlinePencil size={12} className="opacity-60" />
+                              Rename
+                            </button>
+                            <button
+                              onClick={(e) => { e.stopPropagation(); deleteFile(file.handle); setFileActionMenuPath(null); }}
+                              className="w-full flex items-center gap-3 px-4 py-2 text-ui-footnote font-medium hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors text-red-500"
+                            >
+                              <HiOutlineTrash size={12} className="opacity-60" />
+                              Delete
+                            </button>
+                          </div>
+                        </>
+                      )}
                     </div>
                   ))}
                   {matchedFiles.length === 0 && (

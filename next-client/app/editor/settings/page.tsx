@@ -18,6 +18,7 @@ import {
   atom_editorWidth,
   atom_currency,
   atom_autoInjectFrontmatter,
+  atom_sidebarTabOrder,
   MONO_FONT_STACK,
 } from "@/app/atoms/atoms";
 import {
@@ -27,6 +28,8 @@ import {
   HiOutlineColorSwatch,
   HiOutlineAcademicCap,
   HiCheck,
+  HiChevronUp,
+  HiChevronDown,
 } from "react-icons/hi";
 import Button from "@/app/components/Button";
 import Toggle from "@/app/components/Toggle";
@@ -51,7 +54,16 @@ const SettingsPage = () => {
   const [editorWidth, setEditorWidth] = useAtom(atom_editorWidth);
   const [currencyCode, setCurrencyCode] = useAtom(atom_currency);
   const [autoInjectFrontmatter, setAutoInjectFrontmatter] = useAtom(atom_autoInjectFrontmatter);
+  const [sidebarTabOrder, setSidebarTabOrder] = useAtom(atom_sidebarTabOrder);
   const [, setIsWizardOpen] = useAtom(atom_isWizardOpen);
+
+  const moveTab = (index: number, direction: "up" | "down") => {
+    const newOrder = [...sidebarTabOrder];
+    const targetIndex = direction === "up" ? index - 1 : index + 1;
+    if (targetIndex < 0 || targetIndex >= newOrder.length) return;
+    [newOrder[index], newOrder[targetIndex]] = [newOrder[targetIndex], newOrder[index]];
+    setSidebarTabOrder(newOrder);
+  };
 
   const sizes = [
     { label: "Compact", value: "14px" },
@@ -326,6 +338,37 @@ const SettingsPage = () => {
             label="Status Bar"
             description="Show word and character counts."
             control={<Toggle active={showStats} onChange={setShowStats} />}
+          />
+          <SettingItem
+            label="Sidebar Tab Order"
+            description="Arrange the tabs in your vault sidebar."
+            control={
+              <div className="flex flex-col gap-2 min-w-[160px]">
+                {sidebarTabOrder.map((tab, idx) => (
+                  <div key={tab} className="flex items-center justify-between bg-zinc-200/50 dark:bg-zinc-800 p-2 rounded-xl">
+                    <span className="text-ui-footnote font-semibold ml-2 capitalize">{tab}</span>
+                    <div className="flex gap-1">
+                      <Button
+                        variant="icon"
+                        className="w-7 h-7"
+                        disabled={idx === 0}
+                        onClick={() => moveTab(idx, "up")}
+                      >
+                        <HiChevronUp size={14} />
+                      </Button>
+                      <Button
+                        variant="icon"
+                        className="w-7 h-7"
+                        disabled={idx === sidebarTabOrder.length - 1}
+                        onClick={() => moveTab(idx, "down")}
+                      >
+                        <HiChevronDown size={14} />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            }
           />
         </>
       ),

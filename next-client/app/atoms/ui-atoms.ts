@@ -64,6 +64,9 @@ export const atom_frontmatterHasPrompted = atomWithStorage<boolean>("frontmatter
 export const atom_sidebarWidth = atomWithStorage<number>("sidebarWidth", 260);
 export const atom_isSidebarOpen = atomWithStorage<boolean>("isSidebarOpen", true);
 
+export type SidebarTab = "content" | "views";
+export const atom_sidebarTabOrder = atomWithStorage<SidebarTab[]>("sidebarTabOrder", ["content", "views"]);
+
 export type DialogType = "alert" | "confirm" | "prompt" | "select" | "new-file";
 
 export interface DialogSelectOption {

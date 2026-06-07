@@ -12,7 +12,9 @@ import {
   atom_activeFilePath,
   atom_sidebarWidth,
   atom_isCloudVault,
-  atom_isZenModeActive
+  atom_isZenModeActive,
+  atom_sidebarTabOrder,
+  SidebarTab
 } from "@/app/atoms/atoms";
 import { useAtom, useAtomValue } from "jotai";
 import SmartFolders from "./SmartFolders";
@@ -51,11 +53,12 @@ export default function VaultSidebar({
   const [activeFilePath, setActiveFilePath] = useAtom(atom_activeFilePath);
   const [sidebarWidth, setSidebarWidth] = useAtom(atom_sidebarWidth);
   const isCloudVault = useAtomValue(atom_isCloudVault);
+  const tabOrder = useAtomValue(atom_sidebarTabOrder);
   const [isZenModeActive, setIsZenModeActive] = useAtom(atom_isZenModeActive);
   const [isResizing, setIsResizing] = useState(false);
 
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
-  const [activeTab, setActiveTab] = useState<"content" | "views">("content");
+  const [activeTab, setActiveTab] = useState<SidebarTab>(tabOrder[0] || "content");
 
   const {
     searchQuery,
@@ -173,18 +176,15 @@ export default function VaultSidebar({
             </div>
 
             <div className="flex px-4 pt-1 pb-3 gap-6 shrink-0 border-b border-zinc-200/40 dark:border-zinc-800/40">
-              <button
-                onClick={() => setActiveTab("content")}
-                className={`text-sm font-semibold tracking-wide transition-colors ${activeTab === "content" ? "text-zinc-900 dark:text-zinc-100" : "text-zinc-400 dark:text-zinc-600 hover:text-zinc-600 dark:hover:text-zinc-400"}`}
-              >
-                Content
-              </button>
-              <button
-                onClick={() => setActiveTab("views")}
-                className={`text-sm font-semibold tracking-wide transition-colors ${activeTab === "views" ? "text-zinc-900 dark:text-zinc-100" : "text-zinc-400 dark:text-zinc-600 hover:text-zinc-600 dark:hover:text-zinc-400"}`}
-              >
-                Views
-              </button>
+              {tabOrder.map((tab) => (
+                <button
+                  key={tab}
+                  onClick={() => setActiveTab(tab)}
+                  className={`text-sm font-semibold tracking-wide transition-colors ${activeTab === tab ? "text-zinc-900 dark:text-zinc-100" : "text-zinc-400 dark:text-zinc-600 hover:text-zinc-600 dark:hover:text-zinc-400"}`}
+                >
+                  {tab === "content" ? "Content" : "Views"}
+                </button>
+              ))}
             </div>
 
             <div className="flex-1 overflow-hidden flex flex-col pt-3">
@@ -205,6 +205,10 @@ export default function VaultSidebar({
                       openFile(handle, path);
                       if (onClose && window.innerWidth < 1024) onClose();
                     }}
+                    renameFile={renameFile}
+                    deleteFile={deleteFile}
+                    searchQuery={searchQuery}
+                    selectedTags={selectedTags}
                   />
                 </div>
               )}

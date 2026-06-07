@@ -19,7 +19,6 @@ import { useEditorHandlers } from "./use-editor-handlers";
 import { useLinkPill } from "./use-link-pill";
 import { useTableCallout } from "./use-table-callout";
 import { useTableDialog } from "./useTableDialog";
-import { useHardwareKeyboard } from "./use-hardware-keyboard";
 import { extractTableSource } from "../utils/tableParser";
 
 interface UseMarkdownEditorProps {
@@ -42,8 +41,6 @@ export function useMarkdownEditor({
   const currencyCode = useAtomValue(atom_currency);
 
   const [isDateExpanded, setIsDateExpanded] = useState(false);
-
-  useHardwareKeyboard(textareaRef);
 
   const {
     fontFamily,

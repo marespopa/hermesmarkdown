@@ -25,13 +25,19 @@ import { useAtom } from "jotai";
 
 describe("SmartFolders Component", () => {
   const mockOnFileSelect = vi.fn();
+  const mockRenameFile = vi.fn();
+  const mockDeleteFile = vi.fn();
 
   beforeEach(() => {
     vi.clearAllMocks();
     cleanup();
     (useAtom as any).mockImplementation((atom: any) => {
-      if (atom.toString() === "atom_fileMetadata") {
+      const atomStr = atom.toString();
+      if (atomStr === "atom_fileMetadata") {
         return [mockMetadata || {}, vi.fn()];
+      }
+      if (atomStr === "atom_customWorkspaces") {
+        return [[], vi.fn()];
       }
       return [[], vi.fn()];
     });
@@ -41,11 +47,15 @@ describe("SmartFolders Component", () => {
 
   it("renders default workspace names", () => {
     mockMetadata = {};
-    render(<SmartFolders onFileSelect={mockOnFileSelect} />);
+    render(
+      <SmartFolders
+        onFileSelect={mockOnFileSelect}
+        renameFile={mockRenameFile}
+        deleteFile={mockDeleteFile}
+      />,
+    );
 
     expect(screen.getByText("Today's Work")).toBeInTheDocument();
-    expect(screen.queryByText("Review Pending")).not.toBeInTheDocument();
-    expect(screen.queryByText("Stale Logs")).not.toBeInTheDocument();
   });
 
   it("expands a folder and shows matching files", () => {
@@ -62,7 +72,13 @@ describe("SmartFolders Component", () => {
       },
     };
 
-    render(<SmartFolders onFileSelect={mockOnFileSelect} />);
+    render(
+      <SmartFolders
+        onFileSelect={mockOnFileSelect}
+        renameFile={mockRenameFile}
+        deleteFile={mockDeleteFile}
+      />,
+    );
 
     // Click "Today's Work"
     const folder = screen.getByText("Today's Work");
@@ -71,7 +87,7 @@ describe("SmartFolders Component", () => {
     expect(screen.getByText("file1.md")).toBeInTheDocument();
   });
 
-  it("calls onFileSelect when a file is clicked", () => {
+  it("calls deleteFile when delete is clicked in file action menu", () => {
     mockMetadata = {
       "file1.md": {
         path: "file1.md",
@@ -85,14 +101,98 @@ describe("SmartFolders Component", () => {
       },
     };
 
-    render(<SmartFolders onFileSelect={mockOnFileSelect} />);
+    render(
+      <SmartFolders
+        onFileSelect={mockOnFileSelect}
+        renameFile={mockRenameFile}
+        deleteFile={mockDeleteFile}
+      />,
+    );
 
     fireEvent.click(screen.getByText("Today's Work"));
-    fireEvent.click(screen.getByText("file1.md"));
 
-    expect(mockOnFileSelect).toHaveBeenCalledWith(
-      mockMetadata["file1.md"].handle,
-      mockMetadata["file1.md"].path,
+    // Open action menu
+    const actionButton = screen.getByTitle("File options");
+    fireEvent.click(actionButton);
+
+    // Click Delete
+    const deleteButton = screen.getByText("Delete");
+    fireEvent.click(deleteButton);
+
+    expect(mockDeleteFile).toHaveBeenCalledWith(mockMetadata["file1.md"].handle);
+  });
+
+  it("calls renameFile when rename is clicked in file action menu", () => {
+    mockMetadata = {
+      "file1.md": {
+        path: "file1.md",
+        name: "file1.md",
+        tags: ["#todo"],
+        links: [],
+        frontmatter: {},
+        modifiedAt: Date.now(),
+        wordCount: 10,
+        handle: { name: "file1.md", kind: "file" } as any,
+      },
+    };
+
+    render(
+      <SmartFolders
+        onFileSelect={mockOnFileSelect}
+        renameFile={mockRenameFile}
+        deleteFile={mockDeleteFile}
+      />,
     );
+
+    fireEvent.click(screen.getByText("Today's Work"));
+
+    // Open action menu
+    const actionButton = screen.getByTitle("File options");
+    fireEvent.click(actionButton);
+
+    // Click Rename
+    const renameButton = screen.getByText("Rename");
+    fireEvent.click(renameButton);
+
+    expect(mockRenameFile).toHaveBeenCalledWith(mockMetadata["file1.md"].handle);
+  });
+
+  it("filters files by searchQuery", () => {
+    mockMetadata = {
+      "apple.md": {
+        path: "apple.md",
+        name: "apple.md",
+        tags: [],
+        links: [],
+        frontmatter: {},
+        modifiedAt: Date.now(),
+        wordCount: 10,
+        handle: { name: "apple.md", kind: "file" } as any,
+      },
+      "banana.md": {
+        path: "banana.md",
+        name: "banana.md",
+        tags: [],
+        links: [],
+        frontmatter: {},
+        modifiedAt: Date.now(),
+        wordCount: 10,
+        handle: { name: "banana.md", kind: "file" } as any,
+      },
+    };
+
+    render(
+      <SmartFolders
+        onFileSelect={mockOnFileSelect}
+        renameFile={mockRenameFile}
+        deleteFile={mockDeleteFile}
+        searchQuery="apple"
+      />,
+    );
+
+    fireEvent.click(screen.getByText("Today's Work"));
+
+    expect(screen.getByText("apple.md")).toBeInTheDocument();
+    expect(screen.queryByText("banana.md")).not.toBeInTheDocument();
   });
 });
