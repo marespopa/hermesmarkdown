@@ -339,6 +339,14 @@ export default function Documentation() {
                   <span className="text-sm font-medium">CSV Export</span>
                   <span className={resultLabel}>Copy Table as CSV</span>
                 </div>
+                <div className={guideRow}>
+                  <span className="text-sm font-medium">Cell Navigation</span>
+                  <span className={resultLabel}>Tab / Shift+Tab</span>
+                </div>
+                <div className={guideRow}>
+                  <span className="text-sm font-medium">Quick New Row</span>
+                  <span className={resultLabel}>Enter at end of row</span>
+                </div>
               </div>
             </div>
 

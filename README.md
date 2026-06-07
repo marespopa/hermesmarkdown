@@ -14,6 +14,7 @@ Hermes Markdown is a professional, local-first workspace built for markdown edit
 *   **Zen Mode:** Eliminate distractions with a clean `~85` character layout width, hidden sidebars, and an active line focus tint (`CTRL + SHIFT + Z`).
 *   **Live Click Actions:** Interact directly with elements inside the editor. Toggle tasks (`- [ ]` to `- [x]`), cycle lifecycle tags, or open calendar popups simply by clicking them.
 *   **Advanced Table Editor:** Place your cursor inside any pipe table to reveal a floating toolbar or open the Advanced Table Dialog for auto-padded alignment, smart data sorting (dates, currency, numbers), and CSV exporting.
+    *   **Inline Table Productivity:** Use `Tab` to navigate between cells, `Enter` at the end of a row to instantly add a new one, and enjoy automatic pipe escaping (`|` → `\|`) while typing inside cells.
 
 ### 03. Shortcuts & Automation
 *   **Interactive Status Lifecycles:** Track work stages instantly. Clicking any of these smart tags automatically cycles it to the next phase:
