@@ -3,7 +3,6 @@
 import React, { useState, useEffect, useCallback, useRef, memo } from "react";
 import {
   HiOutlineFolder,
-  HiOutlineFolderAdd,
   HiOutlineDotsVertical,
   HiOutlineTrash,
   HiOutlinePencil,
@@ -23,7 +22,6 @@ interface FolderTreeItemProps {
   activeFilePath: string | null;
   openFile: (handle: FileSystemFileHandle, path?: string) => void;
   createNewFile: (dirHandle: FileSystemDirectoryHandle) => void;
-  createNewFolder: (dirHandle: FileSystemDirectoryHandle) => void;
   renameFile: (handle: FileSystemHandle) => void;
   deleteFile: (handle: FileSystemHandle) => void;
   moveItem: (handle: FileSystemHandle, targetDir: FileSystemDirectoryHandle) => void;
@@ -40,7 +38,6 @@ const FolderTreeItem = memo(function FolderTreeItem({
   activeFilePath,
   openFile,
   createNewFile,
-  createNewFolder,
   renameFile,
   deleteFile,
   moveItem,
@@ -179,17 +176,6 @@ const FolderTreeItem = memo(function FolderTreeItem({
                   <HiOutlinePlus size={16} className="opacity-60" />
                   New File
                 </button>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setActionMenuOpen(false);
-                    createNewFolder(dirHandle);
-                  }}
-                  className="w-full flex items-center gap-3 px-4 py-2.5 text-ui-footnote font-medium hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
-                >
-                  <HiOutlineFolderAdd size={16} className="opacity-60" />
-                  New Folder
-                </button>
                 <div className="mx-3 my-1 border-t border-zinc-200/50 dark:border-zinc-700/50" />
                 <button
                   onClick={(e) => {
@@ -233,7 +219,6 @@ const FolderTreeItem = memo(function FolderTreeItem({
                   activeFilePath={activeFilePath}
                   openFile={openFile}
                   createNewFile={createNewFile}
-                  createNewFolder={createNewFolder}
                   renameFile={renameFile}
                   deleteFile={deleteFile}
                   moveItem={moveItem}

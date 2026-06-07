@@ -137,6 +137,15 @@ ul li::marker {
   caret-color: theme('colors.blue.500');
 }
 
+/* Typography settings — driven by CSS vars on .editor-container.
+   Applied identically to both overlay layers so the caret stays aligned.
+   !important overrides react-simple-code-editor's own inline styles. */
+.editor-container textarea,
+.editor-container pre {
+  line-height: var(--editor-line-height, 1.8) !important;
+  letter-spacing: var(--editor-letter-spacing, normal) !important;
+}
+
 /* Table rendering — activated when preview pane wraps content in .hermes-preview */
 .hermes-preview table {
   width: 100%;

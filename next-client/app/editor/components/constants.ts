@@ -1,18 +1,39 @@
 export const SUBTLE =
   'class="text-zinc-500/20 dark:text-zinc-400/10 select-none"';
-export const WORKFLOW_TAGS = ["todo", "prog", "done", "urgn", "wait"];
+// Document lifecycle states — mirrors the `status:` frontmatter field so inline tags
+// carry the same semantic weight as structured metadata.
+export const WORKFLOW_TAGS = ["draft", "review", "active", "archived"];
+export const TODO_TAGS = ["todo", "prog", "done"];
 export const TAG_COLORS: Record<string, string> = {
-  todo: "text-blue-600 dark:text-blue-400",
-  prog: "text-amber-600 dark:text-amber-400",
-  done: "text-green-600 dark:text-green-400",
-  urgn: "text-red-600 dark:text-red-400",
-  wait: "text-purple-600 dark:text-purple-400",
+  draft:    "text-amber-600 dark:text-amber-400",
+  review:   "text-blue-600 dark:text-blue-400",
+  active:   "text-emerald-600 dark:text-emerald-400",
+  archived: "text-zinc-500 dark:text-zinc-400",
+  todo:     "text-violet-600 dark:text-violet-400",
+  prog:     "text-orange-500 dark:text-orange-400",
+  done:     "text-teal-600 dark:text-teal-400",
 };
 export const TAG_CYCLE: Record<string, string> = {
-  urgn: "todo",
+  draft:    "review",
+  review:   "active",
+  active:   "archived",
+  archived: "draft",
+};
+export const TAG_CYCLE_PREV: Record<string, string> = {
+  draft:    "archived",
+  review:   "draft",
+  active:   "review",
+  archived: "active",
+};
+export const TODO_CYCLE: Record<string, string> = {
   todo: "prog",
   prog: "done",
   done: "todo",
+};
+export const TODO_CYCLE_PREV: Record<string, string> = {
+  todo: "done",
+  prog: "todo",
+  done: "prog",
 };
 
 export const SHORTCODES: Record<string, () => string> = {
@@ -94,78 +115,131 @@ export const CURSOR_SENTINEL = "\0";
 export const PILL_CONTAINER_CLASSES =
   "absolute z-40 flex items-center gap-1 p-1 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-md shadow-sm pointer-events-auto select-none transition-all duration-200 ease-in-out";
 
-export const TEMPLATES = [
-  { label: "🔗 Link", content: LINK_EDITOR_SENTINEL },
-  { label: "[[ WikiLink", content: WIKILINK_EDITOR_SENTINEL },
-  { label: "📅 Date", content: DATE_EDITOR_SENTINEL },
-  { label: "⊞ Table", content: TABLE_DIALOG_SENTINEL },
+export interface Template {
+  label: string;
+  icon: string;
+  description: string;
+  keybind?: string;
+  content: string;
+}
+
+export const TEMPLATES: Template[] = [
+  { label: "Link", icon: "🔗", description: "Insert a hyperlink", keybind: "⌘K", content: LINK_EDITOR_SENTINEL },
+  { label: "WikiLink", icon: "[[", description: "Link to another note", content: WIKILINK_EDITOR_SENTINEL },
+  { label: "Date", icon: "📅", description: "Pick a date from the calendar", content: DATE_EDITOR_SENTINEL },
+  { label: "Table", icon: "⊞", description: "Insert a Markdown table", content: TABLE_DIALOG_SENTINEL },
   // --- Obsidian / Daily Driver ---
   {
-    label: "🗓️ Daily Note",
-    content:
-      "# {day}, {date}\n> 📅 Week: {week}\n\n## 📓 Journal\n\n\n## ✅ Tasks\n- [ ] \n- [ ] \n- [ ] \n\n## 🔗 Links\n- [[{date}]]\n\n#todo",
+    label: "Daily Note",
+    icon: "🗓️",
+    description: "Journal, tasks, and links for today",
+    content: "# {day}, {date}\n> 📅 Week: {week}\n\n## 📓 Journal\n\n\n## ✅ Tasks\n- [ ] \n- [ ] \n- [ ] \n\n## 🔗 Links\n- [[{date}]]\n\n#todo",
   },
   {
-    label: "📋 Meeting Notes",
-    content:
-      "# Meeting – {date}\n> 🕐 {time}\n> 📌 Topic: \n\n## 👥 Attendees\n- \n\n## 📋 Agenda\n- \n\n## ✅ Decisions\n- \n\n## 🎯 Action Items\n- [ ]  #todo\n- [ ]  #todo",
+    label: "Meeting Notes",
+    icon: "📋",
+    description: "Agenda, decisions, and action items",
+    content: "# Meeting – {date}\n> 🕐 {time}\n> 📌 Topic: \n\n## 👥 Attendees\n- \n\n## 📋 Agenda\n- \n\n## ✅ Decisions\n- \n\n## 🎯 Action Items\n- [ ]  #todo\n- [ ]  #todo",
   },
   {
-    label: "🧠 Atomic Note",
-    content:
-      "# \n> 📅 {date}  ·  Source: [[]]\n\n## Summary\n\n\n## Key Ideas\n- \n- \n\n## Links\n- [[]]\n- [[]]",
+    label: "Atomic Note",
+    icon: "🧠",
+    description: "Zettelkasten-style single idea",
+    content: "# \n> 📅 {date}  ·  Source: [[]]\n\n## Summary\n\n\n## Key Ideas\n- \n- \n\n## Links\n- [[]]\n- [[]]",
   },
   {
-    label: "📆 Weekly Review",
-    content:
-      "# Weekly Review – {week}\n> 📅 {date}\n\n## 🏆 Wins\n- \n\n## 🔄 Carry-overs\n- [ ]  #wait\n- [ ]  #wait\n\n## 🎯 Next Week\n- [ ]  #todo\n- [ ]  #todo\n- [ ]  #todo\n\n## 💡 Reflection\n",
+    label: "Weekly Review",
+    icon: "📆",
+    description: "Wins, carry-overs, and next week goals",
+    content: "# Weekly Review – {week}\n> 📅 {date}\n\n## 🏆 Wins\n- \n\n## 🔄 Carry-overs\n- [ ]  #wait\n- [ ]  #wait\n\n## 🎯 Next Week\n- [ ]  #todo\n- [ ]  #todo\n- [ ]  #todo\n\n## 💡 Reflection\n",
   },
-  // --- Writing (iAWriter) ---
+  // --- Writing ---
   {
-    label: "✍️ Essay",
-    content:
-      "# Title\n> {date}\n\n## Lead\n\n\n## Body\n\n### \n\n### \n\n## Closing\n",
+    label: "Essay",
+    icon: "✍️",
+    description: "Lead, body, and closing structure",
+    content: "# Title\n> {date}\n\n## Lead\n\n\n## Body\n\n### \n\n### \n\n## Closing\n",
   },
   // --- Productivity ---
   {
-    label: "📄 Frontmatter",
-    content: "---\ntitle: \ndate: {date}\ntags: #tag\n---",
+    label: "Frontmatter",
+    icon: "📄",
+    description: "YAML metadata header block",
+    content: "---\nid: \ntitle: \nstatus: draft\nversion: 1.0.0\ntags: []\ndependencies: []\n---\n",
   },
   {
-    label: "📝 To-Do List",
-    content:
-      "# ✏️ To-Do – {date}\n\n## 🎯 Priority\n- [ ]  #urgn\n- [ ]  #urgn\n\n## 📋 Tasks\n- [ ]  #todo\n- [ ]  #todo\n- [ ]  #todo\n\n## ✅ Done\n- [x] Example task #done",
+    label: "To-Do List",
+    icon: "📝",
+    description: "Priority and task checklist",
+    content: "# ✏️ To-Do – {date}\n\n## 🎯 Priority\n- [ ]  #urgn\n- [ ]  #urgn\n\n## 📋 Tasks\n- [ ]  #todo\n- [ ]  #todo\n- [ ]  #todo\n\n## ✅ Done\n- [x] Example task #done",
   },
   {
-    label: "📝 Notes",
-    content:
-      "# {day}, {date} – Notes\n\n## Summary\n\n\n## Actions\n- [ ] \n- [ ] ",
+    label: "Notes",
+    icon: "📝",
+    description: "Summary and quick actions",
+    content: "# {day}, {date} – Notes\n\n## Summary\n\n\n## Actions\n- [ ] \n- [ ] ",
   },
   // --- Dev ---
   {
-    label: "💻 Dev Sprint",
-    content:
-      "# 🛠️ Dev Log – {date}\n> 📅 Week: {week}\n> 🎯 Focus: \n\n## 🚀 Changes\n- [ ] Update  #todo\n- [ ] Refactor  #todo\n\n## 🐛 Bugs\n- [ ] Issue description  #urgn\n- See also: [[]]\n\nstatus: #prog",
+    label: "Dev Sprint",
+    icon: "💻",
+    description: "Changes, bugs, and dev log",
+    content: "# 🛠️ Dev Log – {date}\n> 📅 Week: {week}\n> 🎯 Focus: \n\n## 🚀 Changes\n- [ ] Update  #todo\n- [ ] Refactor  #todo\n\n## 🐛 Bugs\n- [ ] Issue description  #urgn\n- See also: [[]]\n\nstatus: #prog",
   },
   {
-    label: "🤖 AI Prompt",
-    content:
-      "# AI Prompt – {date}\n\n## Objective\n\n\n## Context\n\n\n## Data\n\n\n## Output Format\n",
+    label: "AI Prompt",
+    icon: "🤖",
+    description: "Objective, context, and output format",
+    content: "# AI Prompt – {date}\n\n## Objective\n\n\n## Context\n\n\n## Data\n\n\n## Output Format\n",
   },
   // --- Personal ---
   {
-    label: "💰 Financial Plan",
-    content:
-      "# 📊 Monthly Allocation\n\n## 🏦 Credit Management\n- Credit Card: -$200\n- Bank Loan: -$150\n- Other Credit: -$100\n\n## 🛒 Variable Spending\n- Groceries: $400\n- Dining: $150\n- Transport: $100\n- Other Expenses: $100\n\n---\nTotal: $1250 (Auto-calculated)\n\n> 💡 Tip: Update the values above and the total will be automatically calculated.",
+    label: "Financial Plan",
+    icon: "💰",
+    description: "Monthly budget allocation",
+    content: "# 📊 Monthly Allocation\n\n## 🏦 Credit Management\n- Credit Card: -$200\n- Bank Loan: -$150\n- Other Credit: -$100\n\n## 🛒 Variable Spending\n- Groceries: $400\n- Dining: $150\n- Transport: $100\n- Other Expenses: $100\n\n---\nTotal: $1250 (Auto-calculated)\n\n> 💡 Tip: Update the values above and the total will be automatically calculated.",
   },
   {
-    label: "💪 Gym Log",
-    content:
-      "# 🏋️ Workout – {day}\n> 📅 {date}\n> ⚡ Split: (Push / Pull / Legs / Upper / Lower)\n\n## 🏃 Exercises\n- [ ] \n- [ ] \n- [ ] ",
+    label: "Gym Log",
+    icon: "💪",
+    description: "Workout split and exercise tracker",
+    content: "# 🏋️ Workout – {day}\n> 📅 {date}\n> ⚡ Split: (Push / Pull / Legs / Upper / Lower)\n\n## 🏃 Exercises\n- [ ] \n- [ ] \n- [ ] ",
   },
   {
-    label: "🗂️ Kanban Board",
-    content:
-      "# 🗂️ Kanban – {date}\n\n## 🔴 Urgent\n- [ ] Task  #urgn\n- [ ] Task  #urgn\n\n## 📋 To Do\n- [ ] Task  #todo\n- [ ] Task  #todo\n- [ ] Task  #todo\n\n## 🔄 In Progress\n- [ ] Task  #prog\n- [ ] Task  #prog\n\n## ⏳ Waiting\n- [ ] Task  #wait\n\n## ✅ Done\n- [x] Example task  #done",
+    label: "Kanban Board",
+    icon: "🗂️",
+    description: "Draft, review, active, archived lifecycle board",
+    content: "# 🗂️ Kanban – {date}\n\n## 📝 Draft\n- [ ] Task  #draft\n- [ ] Task  #draft\n\n## 🔍 Review\n- [ ] Task  #review\n- [ ] Task  #review\n\n## ✅ Active\n- [x] Task  #active\n\n## 🗄️ Archived\n- [x] Example task  #archived",
+  },
+  // --- Agent / Prompt Engineering ---
+  {
+    label: "Agent",
+    icon: "🧩",
+    description: "Role, goal, and constraints block",
+    content: "<AGENT>\n  role: \n  goal: \n  constraints:\n    - \n    - \n</AGENT>\n",
+  },
+  {
+    label: "Role",
+    icon: "🎭",
+    description: "Persona definition block",
+    content: "<ROLE>\n  You are a \n  Your expertise: \n  Tone: \n</ROLE>\n",
+  },
+  {
+    label: "Context",
+    icon: "📦",
+    description: "Context wrapper block",
+    content: "<CONTEXT>\n\n</CONTEXT>\n",
+  },
+  {
+    label: "Constraints",
+    icon: "🚧",
+    description: "Do-not / always / format rules",
+    content: "<CONSTRAINTS>\n  - Do not \n  - Always \n  - Output format: \n</CONSTRAINTS>\n",
+  },
+  {
+    label: "Output",
+    icon: "📤",
+    description: "Output format specification",
+    content: "<OUTPUT_FORMAT>\n  format: \n  length: \n  language: \n  example:\n    \n</OUTPUT_FORMAT>\n",
   },
 ];

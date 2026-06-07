@@ -64,7 +64,7 @@ describe("SmartFolders Component", () => {
 
     render(<SmartFolders onFileSelect={mockOnFileSelect} />);
 
-    // Click on "Today's Work" (which matches file1.md as it was modified now)
+    // Click "Today's Work"
     const folder = screen.getByText("Today's Work");
     fireEvent.click(folder);
 

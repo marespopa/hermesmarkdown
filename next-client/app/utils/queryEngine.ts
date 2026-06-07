@@ -92,9 +92,9 @@ export const evaluateQuery = (
           .toLowerCase()
           .endsWith(String(rule.value).toLowerCase());
       case "includes":
-        return Array.isArray(fieldValue) && fieldValue.includes(rule.value);
+        return Array.isArray(fieldValue) && fieldValue.includes(String(rule.value).toLowerCase());
       case "not_includes":
-        return !Array.isArray(fieldValue) || !fieldValue.includes(rule.value);
+        return !Array.isArray(fieldValue) || !fieldValue.includes(String(rule.value).toLowerCase());
       case "before":
         return Number(fieldValue) < Number(rule.value);
       case "after":

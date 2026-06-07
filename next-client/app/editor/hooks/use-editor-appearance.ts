@@ -6,12 +6,16 @@ import {
   atom_fontSize,
   atom_fontFamily,
   atom_editorWidth,
+  atom_lineHeight,
+  atom_letterSpacing,
 } from "@/app/atoms/atoms";
 
 export function useEditorAppearance() {
   const fontFamily = useAtomValue(atom_fontFamily);
   const fontSize = useAtomValue(atom_fontSize);
   const editorWidth = useAtomValue(atom_editorWidth);
+  const lineHeight = useAtomValue(atom_lineHeight);
+  const letterSpacing = useAtomValue(atom_letterSpacing);
 
   const [windowWidth, setWindowWidth] = useState(
     typeof window !== "undefined" ? window.innerWidth : 1200,
@@ -48,6 +52,8 @@ export function useEditorAppearance() {
   return {
     fontFamily,
     displayFontSize,
+    lineHeight,
+    letterSpacing,
     windowWidth,
     widthClass,
     paddingClass,

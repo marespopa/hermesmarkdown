@@ -4,8 +4,7 @@ import { useState, useCallback, useEffect } from "react";
 import { useAtom } from "jotai";
 import { atom_isEditorFocused } from "@/app/atoms/atoms";
 import { findLinkAtPos } from "../utils/link-detection";
-import { REGEX_URL_PASTE, REGEX_TODO_TAGS, REGEX_CHECKBOX } from "../components/regex";
-import { TAG_CYCLE } from "../components/constants";
+import { REGEX_URL_PASTE, REGEX_CHECKBOX } from "../components/regex";
 import { DateMatch } from "../types";
 
 interface UseEditorHandlersProps {
@@ -127,20 +126,6 @@ export function useEditorHandlers({
     const lineEndIndex =
       value.indexOf("\n", pos) === -1 ? value.length : value.indexOf("\n", pos);
     const currentLine = value.substring(lineStartIndex, lineEndIndex);
-
-    REGEX_TODO_TAGS.lastIndex = 0;
-    let tagMatch;
-    while ((tagMatch = REGEX_TODO_TAGS.exec(currentLine)) !== null) {
-      const tagStart = lineStartIndex + tagMatch.index;
-      const tagEnd = tagStart + tagMatch[0].length;
-      if (pos >= tagStart && pos <= tagEnd) {
-        e.preventDefault();
-        const nextTag = `#${TAG_CYCLE[tagMatch[1].toLowerCase()]}`;
-        textarea.setSelectionRange(tagStart, tagEnd);
-        document.execCommand("insertText", false, nextTag);
-        return;
-      }
-    }
 
     const checkboxMatch = currentLine.match(REGEX_CHECKBOX);
     if (checkboxMatch) {

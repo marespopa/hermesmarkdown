@@ -46,7 +46,7 @@ export default function WikiLinkDialog({
 
   const filteredItems = useMemo(() => {
     const query = search.toLowerCase().trim();
-    if (!query) return items.slice(0, 10);
+    if (!query) return items.slice(0, 5);
 
     return items
       .filter((item) => {
@@ -68,7 +68,7 @@ export default function WikiLinkDialog({
 
         return a.path.length - b.path.length;
       })
-      .slice(0, 10);
+      .slice(0, 5);
   }, [items, search]);
 
   useEffect(() => {

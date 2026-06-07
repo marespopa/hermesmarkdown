@@ -1,6 +1,6 @@
 "use client";
 
-import { useAtom } from "jotai";
+import { useAtom, useSetAtom } from "jotai";
 import { useCallback } from "react";
 import toast from "react-hot-toast";
 import {
@@ -10,6 +10,8 @@ import {
   atom_openFiles,
   atom_workspaceLayout,
 } from "@/app/atoms/atoms";
+import { atom_fileMetadata } from "@/app/atoms/metadata";
+import { atom_vaultFiles } from "@/app/atoms/vault-atoms";
 import { useDialog } from "../use-dialog";
 
 interface UseDeleteItemProps {
@@ -23,6 +25,8 @@ export function useDeleteItem({ scanVault, indexVaultTags }: UseDeleteItemProps)
   const [activeFileHandle, setActiveFileHandle] = useAtom(atom_activeFileHandle);
   const [, setOpenFiles] = useAtom(atom_openFiles);
   const [, setWorkspaceLayout] = useAtom(atom_workspaceLayout);
+  const setFileMetadata = useSetAtom(atom_fileMetadata);
+  const setVaultFiles = useSetAtom(atom_vaultFiles);
   const dialog = useDialog();
 
   const deleteFile = useCallback(
@@ -40,6 +44,22 @@ export function useDeleteItem({ scanVault, indexVaultTags }: UseDeleteItemProps)
 
         try {
           await (parentDir as any).removeEntry(handle.name, { recursive: true });
+
+          // Eagerly remove the deleted entry from sidebar caches so it disappears
+          // immediately without waiting for the async re-index to complete.
+          // (indexVaultTags merge-mode never removes entries, so this is the only
+          // mechanism that clears a deleted file from fileMetadata.)
+          const isDeletedPath = (path: string) =>
+            handle.kind === "file"
+              ? path.split("/").pop() === handle.name
+              : path.startsWith(handle.name + "/") || path === handle.name;
+
+          setFileMetadata((prev) => {
+            const next = { ...prev };
+            Object.keys(next).forEach((path) => { if (isDeletedPath(path)) delete next[path]; });
+            return next;
+          });
+          setVaultFiles((prev) => prev.filter((f) => !isDeletedPath((f as any).path || f.name)));
 
           // Update workspace layout to remove all tabs matching the deleted item
           setWorkspaceLayout((prev) => {
@@ -142,6 +162,8 @@ export function useDeleteItem({ scanVault, indexVaultTags }: UseDeleteItemProps)
       setWorkspaceLayout,
       setOpenFiles,
       setActiveFileHandle,
+      setFileMetadata,
+      setVaultFiles,
       dialog,
     ],
   );
