@@ -51,7 +51,7 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
   const filePath = leaf.activeFilePath || "draft";
   const [content, setContent] = useAtom(atom_fileContent(filePath));
   const liveHandle = useAtomValue(atom_liveHandles(filePath));
-  
+
   const isActive = activePaneId === leaf.id;
 
   const handleExport = async () => {
@@ -216,15 +216,15 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
     <div 
       className={`h-full flex flex-col transition-all duration-300 overflow-hidden ${
         isActive && !isZenModeActive
-          ? "bg-zinc-50 dark:bg-zinc-950 z-10" 
-          : "bg-zinc-50 dark:bg-zinc-950"
+          ? "bg-paper-light dark:bg-paper-dark z-10" 
+          : "bg-paper-light dark:bg-paper-dark"
       }`}
       onClick={() => setActivePaneId(leaf.id)}
     >
       {/* Pane Tabs Bar - Premium macOS Style */}
       {!isZenModeActive && (
         <div 
-          className="flex items-center bg-zinc-50/50 dark:bg-zinc-950/50 backdrop-blur-3xl border-b border-zinc-200/50 dark:border-zinc-800/50 h-12 shrink-0 overflow-x-auto overflow-y-hidden scrollbar-none px-2"
+          className="flex items-center bg-paper-light/50 dark:bg-paper-dark/50 backdrop-blur-3xl border-b border-zinc-200/50 dark:border-zinc-800/50 h-12 shrink-0 overflow-x-auto overflow-y-hidden scrollbar-none px-2"
           onDragOver={(e) => handleDragOver(e)}
           onDragLeave={handleDragLeave}
           onDrop={(e) => handleDrop(e, leaf.openFilePaths.length)}
@@ -305,7 +305,7 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
                     e.stopPropagation();
                     void closeTabWithAutosave(path);
                   }}
-                  className={`p-1 rounded-md hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-all shrink-0 ${isTabActive ? "opacity-40 hover:opacity-100" : "opacity-0 group-hover:opacity-60"}`}
+                  className={`p-1 rounded-md hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-all shrink-0 ${isTabActive ? "opacity-40 hover:opacity-100" : "max-md:opacity-40 md:opacity-0 md:group-hover:opacity-60"}`}
                 >
                   <VscClose size={14} />
                 </button>
@@ -355,9 +355,9 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
              <span className="text-ui-caption font-medium">No file open</span>
           </div>
         ) : leaf.type === "editor" ? (
-          <MarkdownEditor 
+          <MarkdownEditor
             key={leaf.activeFilePath || "draft"}
-            value={content} 
+            value={content}
             onChange={setContent}
             onWikiLinkClick={openFileByName}
             placeholder={`Editing ${leaf.activeFilePath || "Draft"}...`}
@@ -369,6 +369,7 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
           </div>
         )}
       </div>
+
 
       {tabMenu && (
         <TabContextMenu

@@ -1,13 +1,15 @@
 "use client";
 
 import { useState, useCallback, useRef, useEffect } from "react";
-import { useAtom } from "jotai";
+import { useAtom, useSetAtom } from "jotai";
 import getCaretCoordinates from "textarea-caret";
 import {
   atom_cursorPosition,
+  atom_selectionCount,
 } from "@/app/atoms/atoms";
 import { findDateAtPos } from "../utils/date-detection";
 import { DateMatch } from "../types";
+import { REGEX_TODO_TAGS, REGEX_TODO_STATUS_TAGS } from "../components/regex";
 
 interface UseEditorSyncProps {
   value: string;
@@ -22,12 +24,19 @@ export function useEditorSync({
   setIsDateExpanded,
 }: UseEditorSyncProps) {
   const [, setCursorPosition] = useAtom(atom_cursorPosition);
+  const setSelectionCount = useSetAtom(atom_selectionCount);
   
   const [activeLineIndex, setActiveLineIndex] = useState(0);
   const [dateMatch, setDateMatch] = useState<DateMatch | null>(null);
   const dateMatchRef = useRef<DateMatch | null>(null);
   const [dateMenuPos, setDateMenuPos] = useState({ top: 0, left: 0, endLeft: 0 });
-  
+
+  const [workflowMatch, setWorkflowMatch] = useState<{ tag: string; start: number; end: number } | null>(null);
+  const [workflowMenuPos, setWorkflowMenuPos] = useState({ top: 0, left: 0 });
+
+  const [todoMatch, setTodoMatch] = useState<{ tag: string; start: number; end: number } | null>(null);
+  const [todoMenuPos, setTodoMenuPos] = useState({ top: 0, left: 0 });
+
   const dateDetectionTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const isMountedRef = useRef(true);
 
@@ -52,6 +61,14 @@ export function useEditorSync({
       line: lines.length,
       col: lines[lineIndex].length + 1,
     });
+
+    const selEnd = textareaRef.current.selectionEnd;
+    if (selEnd !== pos) {
+      const sel = value.substring(Math.min(pos, selEnd), Math.max(pos, selEnd));
+      setSelectionCount(sel.trim() ? sel.trim().split(/\s+/).filter(Boolean).length : 0);
+    } else {
+      setSelectionCount(0);
+    }
 
     if (dateDetectionTimeoutRef.current)
       clearTimeout(dateDetectionTimeoutRef.current);
@@ -81,8 +98,59 @@ export function useEditorSync({
         dateMatchRef.current = null;
         setIsDateExpanded(false);
       }
+
+      // Workflow tag detection
+      const textBefore = value.substring(0, pos);
+      const lineStart = textBefore.lastIndexOf("\n") + 1;
+      const lineEnd = value.indexOf("\n", pos) === -1 ? value.length : value.indexOf("\n", pos);
+      const currentLine = value.substring(lineStart, lineEnd);
+
+      REGEX_TODO_TAGS.lastIndex = 0;
+      let wfMatch: RegExpExecArray | null;
+      let foundWorkflow = false;
+      while ((wfMatch = REGEX_TODO_TAGS.exec(currentLine)) !== null) {
+        const tagStart = lineStart + wfMatch.index;
+        const tagEnd = tagStart + wfMatch[0].length;
+        if (pos >= tagStart && pos <= tagEnd) {
+          const tag = wfMatch[1].toLowerCase();
+          if (!textareaRef.current) break;
+          const caretEnd = getCaretCoordinates(textareaRef.current, tagEnd);
+          const caretHeight = caretEnd.height || 22;
+          setWorkflowMatch({ tag, start: tagStart, end: tagEnd });
+          setWorkflowMenuPos({
+            top: (caretEnd.top || 0) + caretHeight / 2 - 14,
+            left: Math.max(0, (caretEnd.left || 0) - 4),
+          });
+          foundWorkflow = true;
+          break;
+        }
+      }
+      if (!foundWorkflow) setWorkflowMatch(null);
+
+      // Todo status tag detection (#todo / #prog / #done)
+      REGEX_TODO_STATUS_TAGS.lastIndex = 0;
+      let tdMatch: RegExpExecArray | null;
+      let foundTodo = false;
+      while ((tdMatch = REGEX_TODO_STATUS_TAGS.exec(currentLine)) !== null) {
+        const tagStart = lineStart + tdMatch.index;
+        const tagEnd = tagStart + tdMatch[0].length;
+        if (pos >= tagStart && pos <= tagEnd) {
+          const tag = tdMatch[1].toLowerCase();
+          if (!textareaRef.current) break;
+          const caretEnd = getCaretCoordinates(textareaRef.current, tagEnd);
+          const caretHeight = caretEnd.height || 22;
+          setTodoMatch({ tag, start: tagStart, end: tagEnd });
+          setTodoMenuPos({
+            top: (caretEnd.top || 0) + caretHeight / 2 - 14,
+            left: Math.max(0, (caretEnd.left || 0) - 4),
+          });
+          foundTodo = true;
+          break;
+        }
+      }
+      if (!foundTodo) setTodoMatch(null);
     }, 50);
-  }, [value, setCursorPosition, textareaRef, setIsDateExpanded]);
+  }, [value, setCursorPosition, setSelectionCount, textareaRef, setIsDateExpanded]);
 
   const syncScroll = useCallback(() => {
     // Feature removed to prevent jumpy scrolling
@@ -118,6 +186,11 @@ export function useEditorSync({
     dateMatch,
     setDateMatch,
     dateMenuPos,
+    workflowMatch,
+    setWorkflowMatch,
+    workflowMenuPos,
+    todoMatch,
+    todoMenuPos,
     syncActiveLine,
     syncScroll,
   };

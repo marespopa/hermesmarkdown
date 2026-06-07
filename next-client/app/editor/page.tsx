@@ -3,7 +3,6 @@
 import React, { useState, useEffect, useLayoutEffect, useRef, useCallback } from "react";
 import Button from "@/app/components/Button";
 import DialogModal from "@/app/components/DialogModal/DialogModal";
-import SettingsDialog from "./components/SettingsDialog";
 import ConflictDialog from "./components/ConflictDialog";
 import { useAtom, useAtomValue } from "jotai";
 import {
@@ -37,7 +36,6 @@ import {
 } from "react-icons/hi";
 
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 
 export default function LiteEditor() {
   const router = useRouter();
@@ -85,7 +83,6 @@ export default function LiteEditor() {
     }
   }, [activeFilePath, syncSidebarToPath]);
 
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isPathSwitching, setIsPathSwitching] = useState(false);
   const [pendingFile, setPendingFile] = useState<{
     text: string;
@@ -155,6 +152,11 @@ export default function LiteEditor() {
       // Prevent tablet/mobile browsers from navigating back on ESC.
       if (e.key === "Escape") e.preventDefault();
 
+      // Escape exits Zen Mode
+      if (e.key === "Escape" && isZenModeActive) {
+        setIsZenModeActive(false);
+      }
+
       // Zen Mode Shortcut
       if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === "z") {
         e.preventDefault();
@@ -175,7 +177,7 @@ export default function LiteEditor() {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [setIsZenModeActive, flush]);
+  }, [setIsZenModeActive, flush, isZenModeActive]);
 
   useLayoutEffect(() => {
     if (!isMounting) {
@@ -241,9 +243,8 @@ export default function LiteEditor() {
 
   return (
     <ErrorBoundary>
-      <div className={`fixed inset-0 flex bg-zinc-50 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 selection:bg-blue-500/30 font-sans overflow-hidden overscroll-none transition-all duration-500 ${isVaultPending ? "blur-md pointer-events-none select-none" : ""}`}>
+      <div className={`fixed inset-0 flex bg-paper-light dark:bg-paper-dark text-ink-light dark:text-ink-dark selection:bg-pastel-blue/30 font-sans overflow-hidden overscroll-none transition-all duration-500 ${isVaultPending ? "blur-md pointer-events-none select-none" : ""}`}>
         {/* Modals */}
-        <SettingsDialog isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
         <WelcomeWizard />
         <ConflictDialog />
         {isVaultPending && <VaultPendingOverlay restoreVault={restoreVault} />}
@@ -269,7 +270,7 @@ export default function LiteEditor() {
           className={`transition-[width,opacity] duration-1000 [transition-timing-function:cubic-bezier(0.2,1,0.2,1)] flex shrink-0 h-full ${isZenModeActive || !isSidebarOpen ? "w-0 opacity-0 pointer-events-none overflow-hidden" : ""}`}
         >
           <VaultSidebar 
-            onOpenSettings={() => setIsSettingsOpen(true)}
+            onOpenSettings={() => router.push("/editor/settings")}
             onNewFile={handleNewFile}
             onImport={handleImport}
             onExport={handleExport}
@@ -278,7 +279,7 @@ export default function LiteEditor() {
         </div>
 
         {/* Workspace Content */}
-        <div className="flex-1 flex min-w-0 bg-white dark:bg-zinc-950 overflow-hidden relative">
+        <div className="flex-1 flex min-w-0 bg-paper-light dark:bg-paper-dark overflow-hidden relative">
           
           {/* Collapsed Sidebar Toggle Column */}
           {!isSidebarOpen && !isZenModeActive && (
@@ -304,7 +305,7 @@ export default function LiteEditor() {
 
                   <Button
                     variant="icon"
-                    onClick={() => setIsSettingsOpen(true)}
+                    onClick={() => router.push("/editor/settings")}
                     className="w-10 h-10 opacity-60 hover:opacity-100 text-zinc-600 dark:text-zinc-400"
                     title="Settings"
                   >

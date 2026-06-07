@@ -7,6 +7,7 @@ import DatePickerCallout from "./DatePickerCallout";
 import WikiLinkDialog from "./WikiLinkDialog";
 import DialogModal from "../../components/DialogModal/DialogModal";
 import { LinkPill } from "./LinkPill";
+import { WorkflowPill } from "./WorkflowPill";
 import { TableCallout } from "./TableCallout";
 import { TableDialog } from "./TableDialog";
 import { useMarkdownEditor } from "../hooks/useMarkdownEditor";
@@ -29,6 +30,8 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
     handleValueChange,
     fontFamily,
     displayFontSize,
+    lineHeight,
+    letterSpacing,
     wordWrap,
     isZenModeActive,
     windowWidth,
@@ -82,6 +85,12 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
     handleCopyCSV,
     tableDialog,
     handleOpenEditDialog,
+    workflowMatch,
+    workflowMenuPos,
+    handleWorkflowCycle,
+    todoMatch,
+    todoMenuPos,
+    handleTodoCycle,
   } = useMarkdownEditor(props);
 
   const [linkLabel, setLinkLabel] = useState("");
@@ -107,31 +116,66 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
   }, [selectedIndex, menuOpen]);
 
   const isMobile = windowWidth < 768;
-  const displayedTemplates = filteredTemplates;
+
+  function renderFuzzyLabel(label: string, matchIndices: number[]) {
+    const indexSet = new Set(matchIndices);
+    return label.split("").map((char, i) =>
+      indexSet.has(i)
+        ? <strong key={i} className="font-bold not-italic">{char}</strong>
+        : <span key={i}>{char}</span>
+    );
+  }
 
   const templateList = (
-    <div ref={templateContainerRef} className={`overflow-y-auto py-1 ${isMobile ? "max-h-[55vh]" : "max-h-52"}`}>
-      {displayedTemplates.length === 0 ? (
+    <div
+      ref={templateContainerRef}
+      id="cmd-listbox"
+      role="listbox"
+      aria-label="Insert command"
+      className={`overflow-y-auto py-1 ${isMobile ? "max-h-[55vh]" : "max-h-52"}`}
+    >
+      {filteredTemplates.length === 0 ? (
         <div className="px-3 py-2 text-ui-footnote text-zinc-400 dark:text-zinc-600">
           No results
         </div>
       ) : (
-        displayedTemplates.map((t, i) => (
-          <div
-            key={t.label}
-            onMouseDown={(e) => {
-              e.preventDefault();
-              insertTemplate(t.content);
-            }}
-            className={`px-3 py-2 cursor-pointer text-ui-footnote transition-colors ${
-              i === selectedIndex
-                ? "bg-amber-100 dark:bg-amber-500/20 text-amber-900 dark:text-amber-200"
-                : "text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800"
-            }`}
-          >
-            {t.label}
-          </div>
-        ))
+        filteredTemplates.map((t, i) => {
+          const isActive = i === selectedIndex;
+          return (
+            <div
+              key={t.label}
+              role="option"
+              aria-selected={isActive}
+              id={`cmd-item-${i}`}
+              onMouseDown={(e) => {
+                e.preventDefault();
+                insertTemplate(t.content);
+              }}
+              className={`flex items-center gap-2.5 px-3 py-1.5 cursor-pointer transition-colors ${
+                isActive
+                  ? "bg-amber-100 dark:bg-amber-500/20"
+                  : "hover:bg-zinc-100 dark:hover:bg-zinc-800"
+              }`}
+            >
+              <span className="shrink-0 w-6 text-center text-base leading-none select-none" aria-hidden="true">
+                {t.icon}
+              </span>
+              <div className="flex flex-col min-w-0 flex-1">
+                <span className={`text-ui-footnote font-medium leading-tight truncate ${isActive ? "text-amber-900 dark:text-amber-200" : "text-zinc-800 dark:text-zinc-200"}`}>
+                  {renderFuzzyLabel(t.label, t.matchIndices)}
+                </span>
+                <span className="text-[10px] leading-tight text-zinc-400 dark:text-zinc-500 truncate mt-0.5">
+                  {t.description}
+                </span>
+              </div>
+              {t.keybind && (
+                <kbd className="shrink-0 text-[10px] font-mono px-1.5 py-0.5 rounded bg-zinc-100 dark:bg-zinc-800 text-zinc-400 dark:text-zinc-500 border border-zinc-200 dark:border-zinc-700">
+                  {t.keybind}
+                </kbd>
+              )}
+            </div>
+          );
+        })
       )}
     </div>
   );
@@ -145,15 +189,19 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
           textareaRef.current.focus();
         }
       }}
-      className={`relative w-full h-full overflow-auto cursor-text ${isZenModeActive ? "no-scrollbar" : "p-2"}`}
+      className={`relative w-full h-full overflow-auto paper-grain cursor-text ${isZenModeActive ? "no-scrollbar" : "p-2"}`}
       translate="no"
     >
       <div
         onClick={(e) => {
           if (e.target === e.currentTarget && textareaRef.current) {
             const textarea = textareaRef.current;
+            // Preserve any active drag-selection that ended outside the textarea
+            if (textarea.selectionStart !== textarea.selectionEnd) {
+              textarea.focus();
+              return;
+            }
             textarea.focus();
-
             const rect = textarea.getBoundingClientRect();
             if (e.clientY < rect.top) {
               textarea.setSelectionRange(0, 0);
@@ -171,11 +219,14 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
           [&_textarea]:!bg-transparent [&_textarea]:!text-transparent [&_textarea]:!caret-blue-500
           [&_textarea]:!z-10 [&_pre]:!z-0 [&_pre]:!pointer-events-none
           [&_textarea]:!outline-none [&_textarea]:!p-0 [&_pre]:!p-0
-          [&_textarea]:!leading-[1.8] [&_pre]:!leading-[1.8]
-          [&_textarea]:!tracking-normal [&_pre]:!tracking-normal
           ${wordWrap ? "[&_textarea]:!white-space-pre-wrap [&_pre]:!white-space-pre-wrap" : "[&_textarea]:!white-space-pre [&_pre]:!white-space-pre"}
         `}
-        style={{ fontFamily, fontSize: displayFontSize }}
+        style={{
+          fontFamily,
+          fontSize: displayFontSize,
+          "--editor-line-height": lineHeight,
+          "--editor-letter-spacing": letterSpacing,
+        } as React.CSSProperties}
       >
         <div className="relative">
           {dateMatch && (
@@ -211,7 +262,12 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
 
           {menuOpen && (
             <div
-              className="absolute z-50 w-56 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg shadow-2xl overflow-hidden"
+              role="combobox"
+              aria-expanded="true"
+              aria-controls="cmd-listbox"
+              aria-haspopup="listbox"
+              aria-activedescendant={selectedIndex !== -1 ? `cmd-item-${selectedIndex}` : undefined}
+              className="absolute z-50 w-[min(18rem,_calc(100vw_-_2rem))] bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-2xl overflow-hidden"
               style={{ top: menuPos.top, left: menuPos.left, fontFamily }}
             >
               {templateList}
@@ -242,6 +298,24 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
                 setPillUrl(null);
                 textareaRef.current?.focus();
               }}
+            />
+          )}
+
+          {workflowMatch && (
+            <WorkflowPill
+              tag={workflowMatch.tag}
+              pos={workflowMenuPos}
+              onPrev={() => handleWorkflowCycle("prev")}
+              onNext={() => handleWorkflowCycle("next")}
+            />
+          )}
+
+          {todoMatch && (
+            <WorkflowPill
+              tag={todoMatch.tag}
+              pos={todoMenuPos}
+              onPrev={() => handleTodoCycle("prev")}
+              onNext={() => handleTodoCycle("next")}
             />
           )}
 

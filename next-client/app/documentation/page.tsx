@@ -237,7 +237,7 @@ export default function Documentation() {
                 </div>
                 <div className={guideRow}>
                   <span className="text-sm font-medium">Cycle Status</span>
-                  <span className={resultLabel}>Click any #tag</span>
+                  <span className={resultLabel}>‹ #tag › Pill</span>
                 </div>
                 <div className={guideRow}>
                   <span className="text-sm font-medium">Navigate</span>
@@ -374,21 +374,21 @@ export default function Documentation() {
             <div className="p-16 md:p-24 bg-neutral-950 dark:bg-neutral-900 text-white rounded-[4rem] shadow-2xl relative overflow-hidden border border-white/5">
               <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-blue-600/10 blur-[120px] -mr-64 -mt-64" />
               <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-purple-600/10 blur-[120px] -ml-64 -mb-64" />
-              
+
+              {/* Document lifecycle */}
               <h3 className="text-xs font-bold mb-12 opacity-30 uppercase tracking-[0.4em] text-center relative z-10">
-                Workflow Lifecycle
+                Document Lifecycle
               </h3>
               <div className="flex flex-col sm:flex-row items-center justify-between gap-10 max-w-4xl mx-auto relative z-10">
                 {[
-                  { tag: "#urgn", label: "Urgent" },
-                  { tag: "#todo", label: "To-Do" },
-                  { tag: "#prog", label: "Progress" },
-                  { tag: "#wait", label: "Waiting" },
-                  { tag: "#done", label: "Done" },
-                ].map(({ tag, label }, i, arr) => (
+                  { tag: "#draft",    label: "Draft",    color: "text-amber-400"  },
+                  { tag: "#review",   label: "Review",   color: "text-blue-400"   },
+                  { tag: "#active",   label: "Active",   color: "text-emerald-400"},
+                  { tag: "#archived", label: "Archived", color: "text-zinc-400"   },
+                ].map(({ tag, label, color }, i, arr) => (
                   <React.Fragment key={tag}>
                     <div className="flex flex-col items-center gap-3 group">
-                      <span className="text-2xl font-mono text-blue-400 dark:text-blue-400 font-bold group-hover:scale-110 transition-transform cursor-default">
+                      <span className={`text-2xl font-mono font-bold group-hover:scale-110 transition-transform cursor-default ${color}`}>
                         {tag}
                       </span>
                       <span className="text-ui-micro uppercase tracking-widest opacity-30 font-bold">{label}</span>
@@ -399,8 +399,36 @@ export default function Documentation() {
                   </React.Fragment>
                 ))}
               </div>
+
+              {/* Divider */}
+              <div className="my-12 border-t border-white/5 relative z-10" />
+
+              {/* Task lifecycle */}
+              <h3 className="text-xs font-bold mb-12 opacity-30 uppercase tracking-[0.4em] text-center relative z-10">
+                Task Lifecycle
+              </h3>
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-10 max-w-2xl mx-auto relative z-10">
+                {[
+                  { tag: "#todo", label: "To Do",       color: "text-violet-400" },
+                  { tag: "#prog", label: "In Progress",  color: "text-orange-400" },
+                  { tag: "#done", label: "Done",         color: "text-teal-400"   },
+                ].map(({ tag, label, color }, i, arr) => (
+                  <React.Fragment key={tag}>
+                    <div className="flex flex-col items-center gap-3 group">
+                      <span className={`text-2xl font-mono font-bold group-hover:scale-110 transition-transform cursor-default ${color}`}>
+                        {tag}
+                      </span>
+                      <span className="text-ui-micro uppercase tracking-widest opacity-30 font-bold">{label}</span>
+                    </div>
+                    {i < arr.length - 1 && (
+                      <span className="opacity-10 hidden sm:block text-2xl">→</span>
+                    )}
+                  </React.Fragment>
+                ))}
+              </div>
+
               <p className="mt-16 text-center text-ui-footnote opacity-40 italic max-w-md mx-auto leading-relaxed relative z-10 font-medium">
-                Status tags are interactive. Clicking a tag in the editor cycles it to the next phase in the lifecycle.
+                Place your cursor on any lifecycle tag to reveal a <code className="not-italic font-mono">‹ #tag ›</code> pill. Use the arrows to step forward or backward through states. Document tags also mirror the <code className="not-italic font-mono">status:</code> frontmatter field.
               </p>
             </div>
 
@@ -526,10 +554,10 @@ export default function Documentation() {
             <div className="space-y-8">
               <div className="space-y-4">
                 <h3 className="text-3xl font-bold tracking-tight">
-                  Slash Menu
+                  Slash Command Menu
                 </h3>
                 <p className="text-neutral-500 dark:text-neutral-400 leading-relaxed text-lg">
-                  Type <code className="font-bold text-blue-600 dark:text-blue-400">/</code> on a blank line to open the template picker. All shortcodes expand automatically on insert.
+                  Type <code className="font-bold text-blue-600 dark:text-blue-400">/</code> at the start of a line or after a space to open the command picker. Continue typing to fuzzy-filter — matching characters are highlighted in-row. Each entry shows an icon, a short description, and an optional keyboard shortcut.
                 </p>
               </div>
               <div className="p-8 bg-neutral-50/50 dark:bg-neutral-900/30 backdrop-blur-sm rounded-3xl border border-black/5 dark:border-white/5 shadow-inner">
@@ -538,24 +566,24 @@ export default function Documentation() {
                   <span className={resultLabel}>Type /</span>
                 </div>
                 <div className={guideRow}>
-                  <span className="text-sm font-medium">Insert Link</span>
-                  <span className={resultLabel}>Type /link</span>
-                </div>
-                <div className={guideRow}>
-                  <span className="text-sm font-medium">Insert Date</span>
-                  <span className={resultLabel}>Type /date</span>
-                </div>
-                <div className={guideRow}>
-                  <span className="text-sm font-medium">Insert Table</span>
-                  <span className={resultLabel}>Type /table</span>
+                  <span className="text-sm font-medium">Fuzzy Filter</span>
+                  <span className={resultLabel}>Keep Typing</span>
                 </div>
                 <div className={guideRow}>
                   <span className="text-sm font-medium">Navigate</span>
-                  <span className={resultLabel}>Arrow Keys</span>
+                  <span className={resultLabel}>↑ / ↓ Arrow Keys</span>
                 </div>
                 <div className={guideRow}>
                   <span className="text-sm font-medium">Insert</span>
-                  <span className={resultLabel}>Enter</span>
+                  <span className={resultLabel}>Enter or Tab</span>
+                </div>
+                <div className={guideRow}>
+                  <span className="text-sm font-medium">Dismiss</span>
+                  <span className={resultLabel}>Escape</span>
+                </div>
+                <div className={guideRow}>
+                  <span className="text-sm font-medium">Insert Link</span>
+                  <span className={resultLabel}>/ → link &nbsp;⌘K</span>
                 </div>
               </div>
             </div>

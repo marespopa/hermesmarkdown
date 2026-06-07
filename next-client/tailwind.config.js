@@ -50,6 +50,7 @@ module.exports = {
           "monospace",
         ],
         sourcecode: ["Source Code Pro", "ui-monospace", "monospace"],
+        journal: ["Georgia", "ui-serif", "serif"],
       },
       colors: {
         softyellow: {
@@ -63,6 +64,20 @@ module.exports = {
         },
         softbg: {
           DEFAULT: '#FFF9E5',
+        },
+        paper: {
+          light: '#FBFBFA',
+          dark: '#161617',
+        },
+        ink: {
+          light: '#2A2A28',
+          dark: '#E3E3E1',
+        },
+        pastel: {
+          blue: '#D2E3FC',
+          sage: '#E2ECD8',
+          rose: '#FADADD',
+          amber: '#FCE8E6',
         },
       },
       backgroundImage: {

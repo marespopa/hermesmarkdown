@@ -59,29 +59,17 @@ describe("VaultSidebar Component", () => {
     const mockVaultHandle = {
       name: "My Vault",
       kind: "directory",
-      values: async function* () {
-        yield { name: "test.md", kind: "file", handle: { name: "test.md" } };
-        yield { name: "folder", kind: "directory", handle: { name: "folder", values: async function* () { yield* []; } } };
-      }
     };
 
     mockFileSystem = {
-      vaultFiles: [
-        { name: "test.md", kind: "file", handle: { name: "test.md" } },
-        { name: "folder", kind: "directory", handle: { name: "folder" } },
-      ],
       openFile: vi.fn(),
       createNewFile: vi.fn(),
-      createNewFolder: vi.fn(),
       vaultHandle: mockVaultHandle,
       currentDirectoryHandle: mockVaultHandle,
       activeFileHandle: null,
-      navigateTo: vi.fn(),
-      navigateBack: vi.fn(),
       deleteFile: vi.fn(),
       renameFile: vi.fn(),
       moveItem: vi.fn(),
-      vaultTags: { "#work": [] },
       isVaultPending: false,
       restoreVault: vi.fn(),
       isVaultSupported: true,
@@ -89,34 +77,32 @@ describe("VaultSidebar Component", () => {
     };
 
     (useFileSystem as any).mockReturnValue(mockFileSystem);
-    
+
     (useAtomValue as any).mockImplementation((atom: any) => {
-      if (atom.toString() === "atom_fileMetadata") {
+      const str = atom.toString();
+      if (str === "atom_fileMetadata") {
         return {
           "test.md": {
-            tags: ["#work"],
+            tags: ["work"],
             handle: { name: "test.md", kind: "file" },
             path: "test.md",
             name: "test.md",
           },
         };
       }
+      if (str === "atom_indexerState") return "idle";
       return {};
     });
 
     (useAtom as any).mockImplementation((atom: any) => {
       const atomStr = atom.toString();
-      if (atomStr === "atom_activeFilePath") {
-        return ["test.md", vi.fn()];
-      }
-      if (atomStr === "atom_sidebarWidth") {
-        return [260, vi.fn()];
-      }
+      if (atomStr === "atom_activeFilePath") return ["test.md", vi.fn()];
+      if (atomStr === "atom_sidebarWidth") return [260, vi.fn()];
       if (atomStr === "atom_fileMetadata") {
         return [
           {
             "test.md": {
-              tags: ["#work"],
+              tags: ["work"],
               handle: { name: "test.md", kind: "file" },
               path: "test.md",
               name: "test.md",
@@ -125,177 +111,127 @@ describe("VaultSidebar Component", () => {
           vi.fn(),
         ];
       }
-      if (atomStr === "atom_customWorkspaces") {
-        return [[], vi.fn()];
-      }
+      if (atomStr === "atom_customWorkspaces") return [[], vi.fn()];
       return [null, vi.fn()];
     });
   });
 
-  it("renders vault name and files", async () => {
+  it("renders vault name", () => {
     render(<VaultSidebar onClose={mockOnClose} />);
-
     expect(screen.getByText("My Vault")).toBeInTheDocument();
-    expect(await screen.findByText("test.md")).toBeInTheDocument();
-    expect(await screen.findByText("folder")).toBeInTheDocument();
+  });
+
+  it("renders file without .md extension", async () => {
+    render(<VaultSidebar onClose={mockOnClose} />);
+    expect(await screen.findByText("test")).toBeInTheDocument();
   });
 
   it("calls openFile when a file is clicked", async () => {
     render(<VaultSidebar onClose={mockOnClose} />);
-
-    const file = await screen.findByText("test.md");
+    const file = await screen.findByText("test");
     fireEvent.click(file);
     expect(mockFileSystem.openFile).toHaveBeenCalled();
   });
 
-  it("toggles expansion when a folder is clicked", async () => {
+  it("shows tag suggestion #work when typing # in search", () => {
     render(<VaultSidebar onClose={mockOnClose} />);
-
-    const folder = await screen.findByText("folder");
-    fireEvent.click(folder);
-    // Clicking toggles expansion, it doesn't call navigateTo anymore
-    expect(mockFileSystem.navigateTo).not.toHaveBeenCalled();
-  });
-
-  it("shows tag filters", () => {
-    render(<VaultSidebar onClose={mockOnClose} />);
+    const searchInput = screen.getByPlaceholderText("Search files or #tags...");
+    fireEvent.change(searchInput, { target: { value: "#" } });
     expect(screen.getByText("#work")).toBeInTheDocument();
   });
 
-  it("sorts folders before files", async () => {
-    const mockVaultHandle = {
-      name: "My Vault",
-      kind: "directory",
-      values: async function* () {
-        yield { name: "z-file.md", kind: "file" };
-        yield { name: "a-folder", kind: "directory", values: async function* () { yield* []; } };
-        yield { name: "a-file.md", kind: "file" };
-      }
-    };
-    mockFileSystem.vaultHandle = mockVaultHandle;
-    
-    render(<VaultSidebar onClose={mockOnClose} />);
-
-    // Wait for the tree to load
-    await screen.findByText("a-folder");
-
-    const entries = screen.getAllByText(/folder|file/);
-    const texts = entries.map(el => el.textContent);
-    expect(texts[0]).toBe("a-folder");
-    expect(texts[1]).toBe("a-file.md");
-    expect(texts[2]).toBe("z-file.md");
-  });
-
-  it("filters files by search query", () => {
-    // Search should always be visible when expanded
-    render(<VaultSidebar onClose={mockOnClose} />);
-    expect(screen.getByPlaceholderText("Search files...")).toBeInTheDocument();
-
-    const searchInput = screen.getByPlaceholderText("Search files...");
-    fireEvent.change(searchInput, { target: { value: "test" } });
-
-    expect(screen.getByText("test.md")).toBeInTheDocument();
-    expect(screen.queryByText("folder")).not.toBeInTheDocument();
-  });
-
-  it("shows tag search only when more than 5 tags", () => {
-    // Current mock has 1 tag, so search should be hidden
-    render(<VaultSidebar onClose={mockOnClose} />);
-    expect(screen.queryByPlaceholderText("Search filters...")).not.toBeInTheDocument();
-
-    cleanup();
-
-    // Mock many tags
-    const manyTags: Record<string, any[]> = {};
-    for (let i = 0; i < 6; i++) {
-      manyTags[`#tag${i}`] = [];
-    }
-    
+  it("filters files by search query", async () => {
     (useAtomValue as any).mockImplementation((atom: any) => {
-      if (atom.toString() === "atom_fileMetadata") {
-        const metadata: any = {};
-        Object.keys(manyTags).forEach(tag => {
-          metadata[`file_${tag}.md`] = {
-            tags: [tag],
-            handle: { name: `file_${tag}.md`, kind: "file" },
-            path: `file_${tag}.md`,
-            name: `file_${tag}.md`,
-          };
-        });
-        return metadata;
+      const str = atom.toString();
+      if (str === "atom_fileMetadata") {
+        return {
+          "test.md": {
+            tags: [], handle: { name: "test.md", kind: "file" }, path: "test.md", name: "test.md",
+          },
+          "alpha.md": {
+            tags: [], handle: { name: "alpha.md", kind: "file" }, path: "alpha.md", name: "alpha.md",
+          },
+        };
       }
+      if (str === "atom_indexerState") return "idle";
       return {};
     });
 
     render(<VaultSidebar onClose={mockOnClose} />);
-    expect(screen.getByPlaceholderText("Search filters...")).toBeInTheDocument();
 
-    // Test tag filtering
-    const searchInput = screen.getByPlaceholderText("Search filters...");
-    fireEvent.change(searchInput, { target: { value: "tag0" } });
-    expect(screen.getByText("#tag0")).toBeInTheDocument();
-    expect(screen.queryByText("#tag1")).not.toBeInTheDocument();
+    const searchInput = screen.getByPlaceholderText("Search files or #tags...");
+    fireEvent.change(searchInput, { target: { value: "test" } });
+
+    expect(await screen.findByText("test")).toBeInTheDocument();
+    expect(screen.queryByText("alpha")).not.toBeInTheDocument();
   });
 
-  it("filters files by search query when in a subfolder", () => {
-    mockFileSystem.currentDirectoryHandle = { name: "subfolder" };
-    // In our new implementation, file search is global and uses metadata
+  it("shows multiple tag suggestions when typing # with many tags", () => {
+    const manyTags: Record<string, any> = {};
+    for (let i = 0; i < 6; i++) {
+      manyTags[`file_tag${i}.md`] = {
+        tags: [`tag${i}`],
+        handle: { name: `file_tag${i}.md`, kind: "file" },
+        path: `file_tag${i}.md`,
+        name: `file_tag${i}.md`,
+      };
+    }
+
+    (useAtomValue as any).mockImplementation((atom: any) => {
+      if (atom.toString() === "atom_fileMetadata") return manyTags;
+      if (atom.toString() === "atom_indexerState") return "idle";
+      return {};
+    });
+
+    render(<VaultSidebar onClose={mockOnClose} />);
+    const searchInput = screen.getByPlaceholderText("Search files or #tags...");
+    fireEvent.change(searchInput, { target: { value: "#" } });
+
+    expect(screen.getByText("#tag0")).toBeInTheDocument();
+    expect(screen.getByText("#tag1")).toBeInTheDocument();
+  });
+
+  it("renders files from a subfolder with path hint", async () => {
     (useAtomValue as any).mockImplementation((atom: any) => {
       if (atom.toString() === "atom_fileMetadata") {
         return {
           "subfolder/nested.md": {
-            name: "nested.md",
-            path: "subfolder/nested.md",
+            tags: [],
             handle: { name: "nested.md", kind: "file" },
-            tags: []
+            path: "subfolder/nested.md",
+            name: "nested.md",
           },
-          "subfolder/other.md": {
-            name: "other.md",
-            path: "subfolder/other.md",
-            handle: { name: "other.md", kind: "file" },
-            tags: []
-          }
         };
       }
+      if (atom.toString() === "atom_indexerState") return "idle";
       return {};
     });
-    
+
     render(<VaultSidebar onClose={mockOnClose} />);
-
-    const searchInput = screen.getByPlaceholderText("Search files...");
-    fireEvent.change(searchInput, { target: { value: "nested" } });
-
-    expect(screen.getByText("nested.md")).toBeInTheDocument();
-    expect(screen.queryByText("other.md")).not.toBeInTheDocument();
+    expect(await screen.findByText("nested")).toBeInTheDocument();
   });
 
-  it("performs recursive global search when searching from root", () => {
-    // Mock files in metadata (global index)
+  it("performs recursive search across subfolders", async () => {
     (useAtomValue as any).mockImplementation((atom: any) => {
       if (atom.toString() === "atom_fileMetadata") {
         return {
           "folder/nested.md": {
-            name: "nested.md",
-            path: "folder/nested.md",
-            handle: { name: "nested.md", kind: "file" },
-            tags: []
+            tags: [], handle: { name: "nested.md", kind: "file" }, path: "folder/nested.md", name: "nested.md",
           },
           "root-file.md": {
-            name: "root-file.md",
-            path: "root-file.md",
-            handle: { name: "root-file.md", kind: "file" },
-            tags: []
-          }
+            tags: [], handle: { name: "root-file.md", kind: "file" }, path: "root-file.md", name: "root-file.md",
+          },
         };
       }
+      if (atom.toString() === "atom_indexerState") return "idle";
       return {};
     });
 
     render(<VaultSidebar onClose={mockOnClose} />);
 
-    const searchInput = screen.getByPlaceholderText("Search files...");
+    const searchInput = screen.getByPlaceholderText("Search files or #tags...");
     fireEvent.change(searchInput, { target: { value: "nested" } });
 
-    expect(screen.getByText("nested.md")).toBeInTheDocument();
+    expect(await screen.findByText("nested")).toBeInTheDocument();
   });
 });

@@ -17,7 +17,7 @@ interface UseFileCrudProps {
  * Composes specialized hooks for creation, deletion, renaming, moving, and importing.
  */
 export function useFileCrud({ scanVault, indexVaultTags, openFile }: UseFileCrudProps) {
-  const { createFile, createNewFile, createNewFolder } = useCreateItem({
+  const { createFile, createNewFile } = useCreateItem({
     scanVault,
     indexVaultTags,
     openFile,
@@ -45,7 +45,6 @@ export function useFileCrud({ scanVault, indexVaultTags, openFile }: UseFileCrud
   return {
     createFile,
     createNewFile,
-    createNewFolder,
     deleteFile,
     renameFile,
     moveItem,

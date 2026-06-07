@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { renderHook } from "@testing-library/react";
 import { useFileSystem } from "./use-file-system";
 import { useAtom, useSetAtom, useAtomValue } from "jotai";
+import { atom_vaultHandle, atom_openFiles, atom_workspaceLayout, atom_fileSystemVersion, atom_vaultFiles } from "@/app/atoms/atoms";
 
 vi.hoisted(() => {
   if (typeof global !== 'undefined') {
@@ -14,33 +15,15 @@ vi.hoisted(() => {
   }
 });
 
-vi.mock("@/app/atoms/atoms", () => ({
-  atom_vaultHandle: "atom_vaultHandle",
-  atom_currentDirectoryHandle: "atom_currentDirectoryHandle",
-  atom_activeFileHandle: "atom_activeFileHandle",
-  atom_activeFilePath: "atom_activeFilePath",
-  atom_vaultFiles: "atom_vaultFiles",
-  atom_isVaultPending: "atom_isVaultPending",
-  atom_hasLoadedVault: "atom_hasLoadedVault",
-  atom_content: "atom_content",
-  atom_fileName: "atom_fileName",
-  atom_openFiles: "atom_openFiles",
-  atom_lastSavedContent: "atom_lastSavedContent",
-  atom_fileLastModified: "atom_fileLastModified",
-  atom_fileConflict: "atom_fileConflict",
-  atom_saveStatus: "atom_saveStatus",
-  atom_workspaceLayout: "atom_workspaceLayout",
-  atom_rebindHandles: "atom_rebindHandles",
-  atom_isCloudVault: "atom_isCloudVault",
-  atom_fileSystemVersion: "atom_fileSystemVersion",
-}));
-vi.mock("@/app/atoms/metadata", () => ({ atom_fileMetadata: "atom_fileMetadata" }));
-
-vi.mock("jotai", () => ({
-  useAtom: vi.fn(),
-  useSetAtom: vi.fn(),
-  useAtomValue: vi.fn(),
-}));
+vi.mock("jotai", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("jotai")>();
+  return {
+    ...actual,
+    useAtom: vi.fn(),
+    useSetAtom: vi.fn(),
+    useAtomValue: vi.fn(),
+  };
+});
 
 vi.mock("./use-dialog", () => ({
   useDialog: vi.fn(() => ({
@@ -74,15 +57,15 @@ describe("useFileSystem - createFile conflict resolution", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     (useAtom as any).mockImplementation((atom: any) => {
-      if (atom === "atom_vaultHandle") return [mockVaultHandle, vi.fn()];
-      if (atom === "atom_openFiles") return [{}, vi.fn()];
-      if (atom === "atom_workspaceLayout") return [{ rootContainer: { id: "p1", activeFilePath: "draft" } }, vi.fn()];
-      if (atom === "atom_fileSystemVersion") return [0, vi.fn()];
+      if (atom === atom_vaultHandle) return [mockVaultHandle, vi.fn()];
+      if (atom === atom_openFiles) return [{}, vi.fn()];
+      if (atom === atom_workspaceLayout) return [{ rootContainer: { id: "p1", activeFilePath: "draft" } }, vi.fn()];
+      if (atom === atom_fileSystemVersion) return [0, vi.fn()];
       return [null, vi.fn()];
     });
     (useSetAtom as any).mockReturnValue(vi.fn());
     (useAtomValue as any).mockImplementation((atom: any) => {
-      if (atom === "atom_vaultFiles") return [];
+      if (atom === atom_vaultFiles) return [];
       return null;
     });
   });

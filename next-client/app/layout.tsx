@@ -5,25 +5,32 @@ import { jetBrainsMono, firaCode, ibmPlexMono } from "./fonts";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://hermesmarkdown.com"),
-  title: "HermesMarkdown — Local-First Markdown Editor",
+  title: "HermesMarkdown — The Agent-Readable Workspace for Engineers",
   description:
-    "A minimalist, privacy-focused Markdown editor for deep work. No cloud, no tracking, and no distractions. Your data stays on your device.",
+    "A local-first, privacy-centric Markdown editor for software engineers and AI practitioners. Smart Workspaces, WikiLinks, frontmatter schemas, table editor, and more — your data never leaves your device.",
   applicationName: "HermesMarkdown",
   authors: [{ name: "Mares Popa", url: "https://www.marespopa.com/" }],
   keywords: [
-    "local-first markdown",
-    "minimalist editor",
-    "offline writing",
-    "privacy focused",
+    "local-first markdown editor",
+    "agent-readable workspace",
+    "markdown for engineers",
+    "AI-readable notes",
+    "frontmatter schema",
+    "smart workspaces",
+    "wikilinks",
+    "offline markdown editor",
+    "privacy-focused editor",
     "no-cloud notes",
     "distraction-free editor",
+    "RAG knowledge base",
   ],
   manifest: "/manifest.json",
   robots: { index: true, follow: true },
   alternates: { canonical: "/" },
   openGraph: {
-    title: "HermesMarkdown — Local-First Markdown",
-    description: "Just you and the page. Pure, offline, and private.",
+    title: "HermesMarkdown — The Agent-Readable Workspace for Engineers",
+    description:
+      "Local-first Markdown with frontmatter schemas, Smart Workspaces, WikiLinks, and a table editor. Built for engineers and AI workflows. Your data never leaves your device.",
     url: "https://hermesmarkdown.com",
     siteName: "HermesMarkdown",
     type: "website",
@@ -31,16 +38,17 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "HermesMarkdown",
-    description: "Local-first, minimalist writing.",
+    title: "HermesMarkdown — The Agent-Readable Workspace for Engineers",
+    description:
+      "Local-first Markdown with frontmatter schemas, Smart Workspaces, WikiLinks, and a table editor. No cloud, no tracking.",
     images: ["/assets/og-image.jpg"],
   },
 };
 
 export const viewport: Viewport = {
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#fafafa" }, // zinc-50
-    { media: "(prefers-color-scheme: dark)", color: "#09090b" },  // zinc-950
+    { media: "(prefers-color-scheme: light)", color: "#FBFBFA" }, // paper-light
+    { media: "(prefers-color-scheme: dark)", color: "#161617" },  // paper-dark
   ],
   width: "device-width",
   initialScale: 1,
@@ -60,7 +68,7 @@ export default function RootLayout({
       className={`h-full overscroll-none ${jetBrainsMono.variable} ${firaCode.variable} ${ibmPlexMono.variable}`}
     >
       <body
-        className="h-full min-h-screen bg-zinc-50 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 transition-colors duration-300 antialiased overscroll-none"
+        className="h-full min-h-screen paper-grain bg-paper-light dark:bg-paper-dark text-ink-light dark:text-ink-dark transition-colors duration-300 antialiased overscroll-none"
         suppressHydrationWarning
       >
         <MainPage>{children}</MainPage>

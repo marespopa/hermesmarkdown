@@ -3,16 +3,16 @@
 import { useState, useMemo } from "react";
 import { useAtomValue } from "jotai";
 import { atom_fileMetadata } from "@/app/atoms/metadata";
+import { atom_vaultFiles } from "@/app/atoms/vault-atoms";
 
 interface UseSidebarSearchProps {
-  vaultFiles: any[];
-  selectedTag: string | null;
+  selectedTags: string[];
 }
 
-export function useSidebarSearch({ vaultFiles, selectedTag }: UseSidebarSearchProps) {
+export function useSidebarSearch({ selectedTags }: UseSidebarSearchProps) {
   const fileMetadata = useAtomValue(atom_fileMetadata);
+  const vaultFiles = useAtomValue(atom_vaultFiles);
   const [searchQuery, setSearchQuery] = useState("");
-  const [tagSearchQuery, setTagSearchQuery] = useState("");
 
   const vaultTags = useMemo(() => {
     const tagsMap: Record<string, any[]> = {};
@@ -25,87 +25,54 @@ export function useSidebarSearch({ vaultFiles, selectedTag }: UseSidebarSearchPr
     return tagsMap;
   }, [fileMetadata]);
 
-  const tags = useMemo(() => 
+  const tags = useMemo(() =>
     Object.keys(vaultTags).sort((a, b) => a < b ? -1 : a > b ? 1 : 0),
   [vaultTags]);
 
-  const filteredFiles = selectedTag ? vaultTags[selectedTag] : null;
-
-  const processedTags = useMemo(() => {
-    if (!tagSearchQuery.trim()) return tags;
-    const query = tagSearchQuery.toLowerCase().trim();
-    return tags.filter(tag => tag.toLowerCase().includes(query));
-  }, [tags, tagSearchQuery]);
-
   const processedFiles = useMemo(() => {
-    // Global search across all indexed files if searching and not in tag view
-    if (!selectedTag && searchQuery.trim()) {
-      const query = searchQuery.toLowerCase().trim();
-      
-      // 1. Get matching files from global metadata
-      const globalMatches = Object.values(fileMetadata)
-        .filter(meta => 
-          meta.name.toLowerCase().includes(query) || 
-          meta.path.toLowerCase().includes(query)
-        )
-        .map(meta => ({
-          name: meta.name,
-          kind: "file" as const,
-          handle: meta.handle,
-          path: meta.path
-        }));
+    const hasMetadata = Object.keys(fileMetadata).length > 0;
 
-      // 2. Get matching folders from current directory (vaultFiles)
-      const folderMatches = vaultFiles
-        .filter(entry => 
-          entry.kind === "directory" && 
-          entry.name.toLowerCase().includes(query)
-        )
-        .map(entry => ({
-          name: entry.name,
-          kind: "directory" as const,
-          handle: entry as FileSystemDirectoryHandle,
-        }));
-
-      // Combine and sort
-      return [...folderMatches, ...globalMatches].sort((a, b) => {
-        if (a.kind === "directory" && b.kind === "file") return -1;
-        if (a.kind === "file" && b.kind === "directory") return 1;
-        return a.name.localeCompare(b.name);
-      });
+    // Tag filter: .md files matching ALL selected tags (AND logic) — always from metadata
+    if (selectedTags.length > 0) {
+      return Object.values(fileMetadata)
+        .filter((m) => m.name.endsWith(".md") && selectedTags.every(t => m.tags.includes(t)))
+        .sort((a, b) => a.name.localeCompare(b.name))
+        .map((m) => ({ name: m.name, kind: "file" as const, handle: m.handle, path: m.path }));
     }
 
-    const files = selectedTag ? filteredFiles : vaultFiles;
-    if (!files) return [];
-
-    // Sort: Folders first, then alphabetical by name
-    let result = [...files].sort((a: any, b: any) => {
-      const aIsFolder = a.kind === "directory";
-      const bIsFolder = b.kind === "directory";
-      
-      if (aIsFolder && !bIsFolder) return -1;
-      if (!aIsFolder && bIsFolder) return 1;
-      
-      return a.name.localeCompare(b.name);
-    });
-
-    // Filter by search query
+    // Search: use metadata for full-vault recursive search; fall back to vaultFiles if not yet indexed
     if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase().trim();
-      result = result.filter((file: any) => 
-        file.name.toLowerCase().includes(query)
-      );
+      const q = searchQuery.toLowerCase().trim();
+      if (hasMetadata) {
+        return Object.values(fileMetadata)
+          .filter((m) => m.name.endsWith(".md") && (m.name.toLowerCase().includes(q) || m.path.toLowerCase().includes(q)))
+          .sort((a, b) => a.name.localeCompare(b.name))
+          .map((m) => ({ name: m.name, kind: "file" as const, handle: m.handle, path: m.path }));
+      }
+      return vaultFiles
+        .filter((f: any) => f.kind === "file" && f.name.endsWith(".md") && f.name.toLowerCase().includes(q))
+        .sort((a: any, b: any) => a.name.localeCompare(b.name))
+        .map((f: any) => ({ name: f.name, kind: "file" as const, handle: f as FileSystemFileHandle, path: (f as any).path || f.name }));
     }
 
-    return result;
-  }, [selectedTag, filteredFiles, vaultFiles, searchQuery, fileMetadata]);
+    // Default: prefer metadata (has recursive results + tags); fall back to vaultFiles while indexing
+    if (hasMetadata) {
+      return Object.values(fileMetadata)
+        .filter((m) => m.name.endsWith(".md"))
+        .sort((a, b) => a.name.localeCompare(b.name))
+        .map((m) => ({ name: m.name, kind: "file" as const, handle: m.handle, path: m.path }));
+    }
+
+    // Fallback: vaultFiles (immediate, from scanVault) — used while indexVaultTags is still running
+    return vaultFiles
+      .filter((f: any) => f.kind === "file" && f.name.endsWith(".md"))
+      .sort((a: any, b: any) => a.name.localeCompare(b.name))
+      .map((f: any) => ({ name: f.name, kind: "file" as const, handle: f as FileSystemFileHandle, path: (f as any).path || f.name }));
+  }, [fileMetadata, vaultFiles, selectedTags, searchQuery]);
 
   return {
     searchQuery,
     setSearchQuery,
-    tagSearchQuery,
-    setTagSearchQuery,
-    processedTags,
     processedFiles,
     tags,
   };

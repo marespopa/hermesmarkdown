@@ -8,7 +8,7 @@ import {
   atom_isZenModeActive,
   atom_currency,
 } from "@/app/atoms/atoms";
-import { SHORTCODES } from "../components/constants";
+import { SHORTCODES, TAG_CYCLE, TAG_CYCLE_PREV, TODO_CYCLE, TODO_CYCLE_PREV } from "../components/constants";
 import { runAutoBudget } from "../utils/budget";
 import { REGEX_CALC } from "../components/regex";
 import { highlightMarkdown } from "../components/MarkdownHighlighter";
@@ -19,6 +19,7 @@ import { useEditorHandlers } from "./use-editor-handlers";
 import { useLinkPill } from "./use-link-pill";
 import { useTableCallout } from "./use-table-callout";
 import { useTableDialog } from "./useTableDialog";
+import { useHardwareKeyboard } from "./use-hardware-keyboard";
 import { extractTableSource } from "../utils/tableParser";
 
 interface UseMarkdownEditorProps {
@@ -42,9 +43,13 @@ export function useMarkdownEditor({
 
   const [isDateExpanded, setIsDateExpanded] = useState(false);
 
+  useHardwareKeyboard(textareaRef);
+
   const {
     fontFamily,
     displayFontSize,
+    lineHeight,
+    letterSpacing,
     windowWidth,
     widthClass,
     paddingClass,
@@ -55,6 +60,10 @@ export function useMarkdownEditor({
     dateMatch,
     setDateMatch,
     dateMenuPos,
+    workflowMatch,
+    workflowMenuPos,
+    todoMatch,
+    todoMenuPos,
     syncActiveLine,
     syncScroll,
   } = useEditorSync({
@@ -105,6 +114,32 @@ export function useMarkdownEditor({
     );
     tableDialog.openEdit(source, tableInfo.tableStartOffset, endOffset, tableInfo.cursorRow, tableInfo.cursorCol);
   }, [tableInfo, tableDialog]);
+
+  const handleWorkflowCycle = useCallback(
+    (direction: "prev" | "next") => {
+      if (!workflowMatch || !textareaRef.current) return;
+      const cycle = direction === "next" ? TAG_CYCLE : TAG_CYCLE_PREV;
+      const nextTag = `#${cycle[workflowMatch.tag]}`;
+      const textarea = textareaRef.current;
+      textarea.focus();
+      textarea.setSelectionRange(workflowMatch.start, workflowMatch.end);
+      document.execCommand("insertText", false, nextTag);
+    },
+    [workflowMatch, textareaRef],
+  );
+
+  const handleTodoCycle = useCallback(
+    (direction: "prev" | "next") => {
+      if (!todoMatch || !textareaRef.current) return;
+      const cycle = direction === "next" ? TODO_CYCLE : TODO_CYCLE_PREV;
+      const nextTag = `#${cycle[todoMatch.tag]}`;
+      const textarea = textareaRef.current;
+      textarea.focus();
+      textarea.setSelectionRange(todoMatch.start, todoMatch.end);
+      document.execCommand("insertText", false, nextTag);
+    },
+    [todoMatch, textareaRef],
+  );
 
   const handleSaveLink = useCallback(
     (newLabel: string, newUrl: string) => {
@@ -357,6 +392,8 @@ export function useMarkdownEditor({
     textareaRef,
     fontFamily,
     displayFontSize,
+    lineHeight,
+    letterSpacing,
     wordWrap,
     isZenModeActive,
     windowWidth,
@@ -420,5 +457,11 @@ export function useMarkdownEditor({
     handleCopyCSV,
     tableDialog,
     handleOpenEditDialog,
+    workflowMatch,
+    workflowMenuPos,
+    handleWorkflowCycle,
+    todoMatch,
+    todoMenuPos,
+    handleTodoCycle,
   };
 }

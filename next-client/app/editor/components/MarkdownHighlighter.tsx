@@ -1,4 +1,4 @@
-import { WORKFLOW_TAGS, TAG_COLORS } from "./constants";
+import { WORKFLOW_TAGS, TODO_TAGS, TAG_COLORS } from "./constants";
 import { DateMatch } from "../types";
 import {
   REGEX_DATE_ISO,
@@ -77,8 +77,8 @@ function processInlineMarkdown(
   if (html.includes("#")) {
     html = html.replace(REGEX_HASHTAG, (match, before, fullTag) => {
       const tagName = fullTag.slice(1).toLowerCase();
-      const isWorkflow = WORKFLOW_TAGS.includes(tagName);
-      const colorClass = isWorkflow
+      const isColored = WORKFLOW_TAGS.includes(tagName) || TODO_TAGS.includes(tagName);
+      const colorClass = isColored
         ? TAG_COLORS[tagName]
         : "text-zinc-700 dark:text-zinc-300";
 

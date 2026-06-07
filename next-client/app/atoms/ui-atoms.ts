@@ -4,11 +4,20 @@ import { atomWithStorage } from "jotai/utils";
 // Theme & appearance
 export const atom_theme = atomWithStorage<"light" | "dark">("theme", "light");
 export const atom_wordWrap = atomWithStorage<boolean>("wordWrap", true);
+// Shared default monospace stack. Used both as the atom_fontFamily default and as the
+// "System Mono" option value in settings, so active-state matching can't drift.
+export const MONO_FONT_STACK =
+  'ui-monospace, "SF Mono", "Cascadia Code", "JetBrains Mono", Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace';
 export const atom_fontFamily = atomWithStorage<string>(
   "editorFontFamily",
-  'ui-monospace, "SF Mono", "Cascadia Code", "JetBrains Mono", Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
+  MONO_FONT_STACK,
 );
 export const atom_fontSize = atomWithStorage<string>("editorFontSize", "16px");
+export const atom_lineHeight = atomWithStorage<string>("editorLineHeight", "1.8");
+export const atom_letterSpacing = atomWithStorage<string>(
+  "editorLetterSpacing",
+  "normal",
+);
 export const atom_showStats = atomWithStorage<boolean>("showStats", true);
 export const atom_isZenModeActive = atomWithStorage<boolean>(
   "isZenModeActive",
@@ -49,10 +58,18 @@ export const atom_hasCompletedOnboarding = atomWithStorage<boolean>(
 );
 export const atom_isWizardOpen = atom<boolean>(false);
 
+export const atom_autoInjectFrontmatter = atomWithStorage<boolean>("autoInjectFrontmatter", false);
+export const atom_frontmatterHasPrompted = atomWithStorage<boolean>("frontmatterHasPrompted", false);
+
 export const atom_sidebarWidth = atomWithStorage<number>("sidebarWidth", 260);
 export const atom_isSidebarOpen = atomWithStorage<boolean>("isSidebarOpen", true);
 
-export type DialogType = "alert" | "confirm" | "prompt";
+export type DialogType = "alert" | "confirm" | "prompt" | "select" | "new-file";
+
+export interface DialogSelectOption {
+  label: string;
+  value: string;
+}
 
 export interface DialogConfig {
   type: DialogType;
@@ -62,7 +79,15 @@ export interface DialogConfig {
   confirmLabel?: string;
   cancelLabel?: string;
   defaultValue?: string;
+  options?: DialogSelectOption[];
   resolve: (value: any) => void;
 }
 
 export const atom_globalDialog = atom<DialogConfig | null>(null);
+
+export const atom_selectionCount = atom<number>(0);
+export type IndexerState = "idle" | "compiling";
+export const atom_indexerState = atom<IndexerState>("idle");
+
+export type AiModelKey = "sonnet-4-6" | "haiku-4-5" | "opus-4-8" | "gpt-4o" | "gemini-flash";
+export const atom_selectedAiModel = atomWithStorage<AiModelKey>("selectedAiModel", "sonnet-4-6");

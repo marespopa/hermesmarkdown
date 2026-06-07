@@ -1,7 +1,7 @@
 "use client";
 
 import { useAtom } from "jotai";
-import { useCallback } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import toast from "react-hot-toast";
 import {
   atom_vaultHandle,
@@ -14,7 +14,9 @@ import {
   atom_openFiles,
   atom_saveStatus,
   atom_isCloudVault,
+  atom_autoInjectFrontmatter,
 } from "@/app/atoms/atoms";
+import { injectFrontmatter } from "@/app/utils/frontmatterInjector";
 
 interface UseSaveFileProps {
   indexVaultTags: (passedHandle?: FileSystemDirectoryHandle) => Promise<void>;
@@ -31,6 +33,17 @@ export function useSaveFile({ indexVaultTags }: UseSaveFileProps) {
   const [, setFileConflict] = useAtom(atom_fileConflict);
   const [, setSaveStatus] = useAtom(atom_saveStatus);
   const [isCloudVault, setIsCloudVault] = useAtom(atom_isCloudVault);
+  const [autoInjectFrontmatter] = useAtom(atom_autoInjectFrontmatter);
+
+  // Debounce re-indexing on auto-saves so rapid saves during typing don't
+  // repeatedly flash the "Scanning subfolders…" indicator in the sidebar.
+  const indexVaultTagsTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (indexVaultTagsTimerRef.current) clearTimeout(indexVaultTagsTimerRef.current);
+    };
+  }, []);
 
   const saveFile = useCallback(
     async (
@@ -67,39 +80,98 @@ export function useSaveFile({ indexVaultTags }: UseSaveFileProps) {
         path: targetPath,
       });
 
+      const toWrite = autoInjectFrontmatter
+        ? injectFrontmatter(content, fileToSave.name)
+        : content;
+
+      // On Android Chrome, write permission can expire between sessions. Check before
+      // attempting createWritable() so we can give actionable feedback instead of a
+      // silent failure (auto-save has no user gesture to re-trigger the permission dialog).
+      if (typeof (fileToSave as any).queryPermission === "function") {
+        const permState = await (fileToSave as any).queryPermission({ mode: "readwrite" });
+        if (permState !== "granted") {
+          if (isAutoSave) {
+            setSaveStatus({ state: "error", retryCount: 0, message: "Tap to save — write permission needed", path: targetPath });
+            setTimeout(() => setSaveStatus({ state: "idle", retryCount: 0, path: undefined }), 6000);
+            return false;
+          }
+          // Manual save has a user gesture — attempt to re-request permission
+          try {
+            const newState = await (fileToSave as any).requestPermission({ mode: "readwrite" });
+            if (newState !== "granted") {
+              toast.error("Write permission denied. Re-open the vault to restore access.");
+              setSaveStatus({ state: "error", retryCount: 0, message: "Permission denied", path: targetPath });
+              setTimeout(() => setSaveStatus({ state: "idle", retryCount: 0, path: undefined }), 5000);
+              return false;
+            }
+          } catch {
+            // Fall through; createWritable will surface the error
+          }
+        }
+      }
+
       let writable: FileSystemWritableFileStream | null = null;
       try {
         writable = await fileToSave.createWritable();
         if (writable) {
-          await writable.write(content);
+          await writable.write(toWrite);
           await writable.close();
           writable = null;
         }
 
         // Secondary task: Update metadata.
         const updateMetadata = async (retries = 3) => {
+          const wasActive = !providedPath || providedPath === (activeFilePath || "draft");
           try {
             const updatedFile = await fileToSave.getFile();
-            setLastSavedContent(content);
-            setFileLastModified(updatedFile.lastModified);
-            setFileConflict(null);
+            if (wasActive) {
+              setLastSavedContent(toWrite);
+              setFileLastModified(updatedFile.lastModified);
+              setFileConflict(null);
+            }
+            
+            if (targetPath) {
+              setOpenFiles((prev) => {
+                if (!prev[targetPath!]) return prev;
+                return { 
+                  ...prev, 
+                  [targetPath!]: { 
+                    ...prev[targetPath!], 
+                    content: toWrite,
+                    lastSavedContent: toWrite 
+                  } 
+                };
+              });
+            }
             return true;
           } catch {
             if (retries > 0) {
               await new Promise(r => setTimeout(r, 100 * (4 - retries)));
               return updateMetadata(retries - 1);
             }
-            setLastSavedContent(content);
+            if (wasActive) {
+              setLastSavedContent(toWrite);
+            }
+            if (targetPath) {
+              setOpenFiles((prev) => {
+                if (!prev[targetPath!]) return prev;
+                return { ...prev, [targetPath!]: { ...prev[targetPath!], lastSavedContent: toWrite } };
+              });
+            }
             return false;
           }
         };
-        
+
         updateMetadata();
 
         // Handle update
         if (handle) {
-          setActiveFileHandle(handle);
-          setFileName(handle.name.replace(".md", ""));
+          const wasActive = !providedPath || providedPath === (activeFilePath || "draft");
+
+          if (wasActive) {
+            setActiveFileHandle(handle);
+            setFileName(handle.name.replace(".md", ""));
+          }
 
           let finalPath = handle.name;
           if (vaultHandle) {
@@ -115,12 +187,12 @@ export function useSaveFile({ indexVaultTags }: UseSaveFileProps) {
 
           setOpenFiles((prev) => {
             const next = { ...prev };
-            const oldPath = activeFilePath || "draft";
+            const oldPath = providedPath || activeFilePath || "draft";
 
             if (oldPath !== finalPath) {
               next[finalPath] = {
-                content,
-                lastSavedContent: content,
+                content: toWrite,
+                lastSavedContent: toWrite,
                 fileName: handle.name,
                 activeFilePath: finalPath,
               };
@@ -137,11 +209,19 @@ export function useSaveFile({ indexVaultTags }: UseSaveFileProps) {
             return next;
           });
 
-          setActiveFilePath(finalPath);
+          if (wasActive) {
+            setActiveFilePath(finalPath);
+          }
         }
 
-        // Background indexing
-        indexVaultTags();
+        // Background indexing — debounce for auto-saves to avoid flashing the
+        // "Scanning subfolders…" indicator on every keystroke-triggered save.
+        if (isAutoSave) {
+          if (indexVaultTagsTimerRef.current) clearTimeout(indexVaultTagsTimerRef.current);
+          indexVaultTagsTimerRef.current = setTimeout(() => indexVaultTags(), 3000);
+        } else {
+          indexVaultTags();
+        }
         setSaveStatus({ state: "saved", retryCount, path: targetPath });
         setTimeout(() => setSaveStatus({ state: "idle", retryCount: 0, path: undefined }), 2000);
 
@@ -211,7 +291,14 @@ export function useSaveFile({ indexVaultTags }: UseSaveFileProps) {
         setSaveStatus({ state: "error", retryCount, message: errorMsg, path: targetPath });
         setTimeout(() => setSaveStatus({ state: "idle", retryCount: 0, path: undefined }), 5000);
 
-        if (err.name !== "NotAllowedError" && err.name !== "AbortError") {
+        if (err.name === "NotAllowedError") {
+          const msg = isAutoSave
+            ? "Auto-save needs permission — tap anywhere then save manually."
+            : "Write permission expired. Re-open the vault to restore access.";
+          setSaveStatus({ state: "error", retryCount: 0, message: msg, path: targetPath });
+          setTimeout(() => setSaveStatus({ state: "idle", retryCount: 0, path: undefined }), 6000);
+          if (!isAutoSave) toast.error(msg);
+        } else if (err.name !== "AbortError") {
           toast.error(`Failed to save: ${errorMsg}`);
         }
         return false;
@@ -240,6 +327,7 @@ export function useSaveFile({ indexVaultTags }: UseSaveFileProps) {
       setOpenFiles,
       isCloudVault,
       setIsCloudVault,
+      autoInjectFrontmatter,
     ],
   );
 

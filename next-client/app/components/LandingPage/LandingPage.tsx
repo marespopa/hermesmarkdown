@@ -11,7 +11,7 @@ import dynamic from "next/dynamic";
 const MarkdownEditor = dynamic(() => import("@/app/editor/components/MarkdownEditor"), {
   ssr: false,
   loading: () => (
-    <div className="h-[400px] w-full flex items-center justify-center bg-neutral-50 dark:bg-neutral-900/50 rounded-b-xl border border-t-0 border-black/5 dark:border-white/5">
+    <div className="h-[400px] w-full flex items-center justify-center bg-paper-light dark:bg-paper-dark rounded-b-xl border border-t-0 border-black/5 dark:border-white/5">
       <div className="text-xs uppercase tracking-widest opacity-30 animate-pulse">
         Initializing Workspace...
       </div>
@@ -19,9 +19,7 @@ const MarkdownEditor = dynamic(() => import("@/app/editor/components/MarkdownEdi
   ),
 });
 
-const FilesystemGraphic = () => {
-  const year = new Date().getFullYear();
-  return (
+const FilesystemGraphic = () => (
   <div className="w-full h-full flex items-center justify-center p-6 relative">
     <div className="font-mono text-[11px] leading-relaxed text-left select-none w-full max-w-[260px]">
       <div className="flex items-center gap-1.5 text-blue-500 dark:text-blue-400 font-semibold mb-1">
@@ -31,38 +29,14 @@ const FilesystemGraphic = () => {
         hermes_vault/
       </div>
       <div className="border-l border-neutral-300 dark:border-neutral-700 ml-[6px] pl-3 space-y-1">
-        <div className="flex items-center gap-1.5 opacity-60">
-          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" />
-          </svg>
-          daily-notes.md
-        </div>
-        <div className="flex items-center gap-1.5 opacity-60">
-          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" />
-          </svg>
-          project-ideas.md
-        </div>
-        <div className="flex items-center gap-1.5 text-blue-400 dark:text-blue-500 opacity-80">
-          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
-          </svg>
-          journal/
-        </div>
-        <div className="border-l border-neutral-300 dark:border-neutral-700 ml-[6px] pl-3 space-y-1">
-          <div className="flex items-center gap-1.5 opacity-40">
+        {["daily-notes.md", "project-ideas.md", "ops-log-june.md", "api-design.md", "meeting-2026.md"].map((name, i) => (
+          <div key={name} className="flex items-center gap-1.5" style={{ opacity: 0.65 - i * 0.1 }}>
             <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" />
             </svg>
-            {year}-01.md
+            {name}
           </div>
-          <div className="flex items-center gap-1.5 opacity-40">
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" />
-            </svg>
-            {year}-02.md
-          </div>
-        </div>
+        ))}
       </div>
     </div>
     <div className="absolute top-4 right-4 flex items-center gap-1.5">
@@ -70,40 +44,27 @@ const FilesystemGraphic = () => {
       <span className="text-[9px] font-mono uppercase tracking-widest text-blue-500 dark:text-blue-400 opacity-70">Connected</span>
     </div>
   </div>
-  );
-};
+);
 
 const ZenModeGraphic = () => {
   return (
     <div className="w-full h-full flex items-center justify-center p-8 relative overflow-hidden group/zen">
-      {/* Background with subtle depth */}
       <div className="absolute inset-0 bg-neutral-50/50 dark:bg-black/20 -z-10" />
-      
-      {/* Central Canvas Area */}
       <div className="w-full max-w-[280px]">
         <svg width="100%" height="120" viewBox="0 0 280 120" fill="none" xmlns="http://www.w3.org/2000/svg" className="overflow-visible">
-          {/* Top lines (Faded context) */}
           <rect x="0" y="0" width="160" height="4" rx="2" className="fill-neutral-300 dark:fill-neutral-700 opacity-40 group-hover/zen:opacity-60 transition-opacity" />
           <rect x="0" y="16" width="220" height="4" rx="2" className="fill-neutral-300 dark:fill-neutral-700 opacity-40 group-hover/zen:opacity-60 transition-opacity" />
           <rect x="0" y="32" width="190" height="4" rx="2" className="fill-neutral-300 dark:fill-neutral-700 opacity-40 group-hover/zen:opacity-60 transition-opacity" />
-          
-          {/* Focused line (High Contrast Purple) */}
           <g>
              <rect x="0" y="56" width="250" height="6" rx="3" className="fill-purple-600 dark:fill-purple-400" />
-             {/* Glow effect for focused line */}
              <rect x="0" y="56" width="250" height="6" rx="3" className="fill-purple-500 dark:fill-purple-400 blur-[8px] opacity-40" />
           </g>
-
-          {/* Bottom lines (Faded context) */}
           <rect x="0" y="84" width="200" height="4" rx="2" className="fill-neutral-300 dark:fill-neutral-700 opacity-40 group-hover/zen:opacity-60 transition-opacity" />
           <rect x="0" y="100" width="140" height="4" rx="2" className="fill-neutral-300 dark:fill-neutral-700 opacity-40 group-hover/zen:opacity-60 transition-opacity" />
           <rect x="0" y="116" width="170" height="4" rx="2" className="fill-neutral-300 dark:fill-neutral-700 opacity-40 group-hover/zen:opacity-60 transition-opacity" />
         </svg>
       </div>
-
-      {/* Atmospheric Glow */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-40 h-40 bg-purple-500/10 dark:bg-purple-500/20 blur-[60px] pointer-events-none" />
-
       <div className="absolute top-4 right-4">
         <span className="text-[9px] font-mono uppercase tracking-[0.2em] text-purple-600 dark:text-purple-400 font-bold opacity-80">Zen Mode</span>
       </div>
@@ -111,67 +72,31 @@ const ZenModeGraphic = () => {
   );
 };
 
-const PrivacyGraphic = () => (
-  <div className="w-full h-full flex flex-col items-center justify-center gap-5 relative select-none">
-    <div className="relative">
-      <svg width="72" height="56" viewBox="0 0 72 56" fill="none" xmlns="http://www.w3.org/2000/svg" className="opacity-70 dark:opacity-60">
-        <rect x="2" y="2" width="68" height="42" rx="4" className="stroke-neutral-400 dark:stroke-neutral-600" strokeWidth="2" />
-        <line x1="2" y1="44" x2="70" y2="44" className="stroke-neutral-400 dark:stroke-neutral-600" strokeWidth="2" />
-        <line x1="28" y1="44" x2="28" y2="54" className="stroke-neutral-400 dark:stroke-neutral-600" strokeWidth="2" />
-        <line x1="44" y1="44" x2="44" y2="54" className="stroke-neutral-400 dark:stroke-neutral-600" strokeWidth="2" />
-        <line x1="20" y1="54" x2="52" y2="54" className="stroke-neutral-400 dark:stroke-neutral-600" strokeWidth="2" strokeLinecap="round" />
-        <circle cx="36" cy="23" r="3" className="fill-neutral-300 dark:fill-neutral-600" />
-      </svg>
-      <div className="absolute -bottom-2 -right-3">
-        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M12 2L4 6v6c0 5.5 3.4 10.7 8 12 4.6-1.3 8-6.5 8-12V6L12 2z" className="fill-emerald-500/20 stroke-emerald-500" strokeWidth="1.5" />
-          <path d="M9 12l2 2 4-4" className="stroke-emerald-500" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-      </div>
-      <div className="absolute -top-4 left-1/2 -translate-x-1/2">
-        <div className="relative opacity-25">
-          <svg width="22" height="16" viewBox="0 0 24 20" fill="none" xmlns="http://www.w3.org/2000/svg" className="stroke-neutral-500 dark:stroke-neutral-400" strokeWidth="1.5" strokeLinecap="round">
-            <path d="M18 10h1a4 4 0 0 0 0-8h-.5A6 6 0 1 0 6 8.5" />
-            <path d="M6 10H5a3 3 0 0 0 0 6h13a3 3 0 0 0 .9-.1" />
-          </svg>
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="w-[26px] h-0.5 bg-neutral-500 dark:bg-neutral-400 rotate-45 rounded-full" />
-          </div>
-        </div>
-      </div>
-      {[0, 1, 2].map((i) => (
-        <div
-          key={i}
-          className="absolute w-1.5 h-1.5 rounded-full bg-emerald-500/60 animate-ping"
-          style={{
-            top: `${[10, 30, 55][i]}%`,
-            left: `${[10, 80, 45][i]}%`,
-            animationDelay: `${i * 0.4}s`,
-            animationDuration: "2s",
-          }}
-        />
-      ))}
-    </div>
-    <div className="text-[9px] font-mono uppercase tracking-widest text-emerald-600 dark:text-emerald-400 opacity-60">
-      · No Cloud · No Servers · No Tracking ·
-    </div>
-  </div>
-);
-
 const SmartSyntaxGraphic = () => (
   <div className="w-full h-full flex items-center justify-center p-6 relative select-none">
     <div className="font-mono text-[11px] leading-loose text-left w-full max-w-[280px] space-y-0.5">
       <div className="flex items-center gap-2">
-        <span className="px-1.5 rounded text-[10px] font-bold bg-red-500/15 text-red-500">#urgn</span>
-        <span className="opacity-50">Fix auth token refresh</span>
+        <span className="px-1.5 rounded text-[10px] font-bold bg-amber-500/15 text-amber-500">#draft</span>
+        <span className="opacity-50">Redesign API layer</span>
       </div>
       <div className="flex items-center gap-2">
-        <span className="px-1.5 rounded text-[10px] font-bold bg-amber-500/15 text-amber-500">#prog</span>
-        <span className="opacity-50">Redesign landing page</span>
+        <span className="px-1.5 rounded text-[10px] font-bold bg-emerald-500/15 text-emerald-500">#active</span>
+        <span className="opacity-50">Vault schema migration</span>
+      </div>
+
+      <div className="h-px bg-neutral-300 dark:bg-neutral-700 opacity-40 my-1" />
+
+      <div className="flex items-center gap-2">
+        <span className="px-1.5 rounded text-[10px] font-bold bg-violet-500/15 text-violet-500">#todo</span>
+        <span className="opacity-50">Auth token refresh</span>
       </div>
       <div className="flex items-center gap-2">
-        <span className="px-1.5 rounded text-[10px] font-bold bg-green-500/15 text-green-500">#done</span>
-        <span className="opacity-50">Update README</span>
+        <span className="px-1.5 rounded text-[10px] font-bold bg-orange-500/15 text-orange-500">#prog</span>
+        <span className="opacity-50">API layer rebuild</span>
+      </div>
+      <div className="flex items-center gap-2">
+        <span className="px-1.5 rounded text-[10px] font-bold bg-teal-500/15 text-teal-500">#done</span>
+        <span className="opacity-50">Vault schema migration</span>
       </div>
 
       <div className="h-px bg-neutral-300 dark:bg-neutral-700 opacity-40 my-1" />
@@ -202,41 +127,155 @@ const SmartSyntaxGraphic = () => (
 
 const TableGraphic = () => (
   <div className="w-full h-full flex items-center justify-center p-6 relative select-none">
-    <div className="w-full max-w-[280px] bg-white dark:bg-neutral-800 rounded-lg shadow-sm border border-black/5 dark:border-white/10 overflow-hidden group/table">
-      <div className="grid grid-cols-3 bg-neutral-50 dark:bg-neutral-900/50 border-b border-black/5 dark:border-white/10 text-[9px] font-mono font-bold text-neutral-500 uppercase tracking-wider">
-        <div className="p-2 border-r border-black/5 dark:border-white/10 flex items-center justify-between">
-          Task
-          <span className="text-indigo-500 dark:text-indigo-400 opacity-0 group-hover/table:opacity-100 transition-opacity">↓</span>
+    <div className="w-full max-w-[280px] space-y-2">
+      {/* Floating toolbar */}
+      <div className="flex items-center gap-1 bg-white dark:bg-neutral-800 rounded-lg border border-black/5 dark:border-white/10 shadow-md px-2 py-1 w-fit mx-auto">
+        {["+ Col", "+ Row", "↑↓ Sort", "CSV"].map((label) => (
+          <span key={label} className="text-[9px] font-mono text-neutral-500 dark:text-neutral-400 px-1.5 py-0.5 rounded hover:bg-neutral-100 dark:hover:bg-neutral-700 cursor-default transition-colors">
+            {label}
+          </span>
+        ))}
+        <span className="text-[9px] font-mono font-bold text-indigo-500 px-1.5 py-0.5 rounded bg-indigo-50 dark:bg-indigo-500/10 cursor-default ml-1">
+          Edit
+        </span>
+      </div>
+      {/* Table */}
+      <div className="bg-white dark:bg-neutral-800 rounded-lg shadow-sm border border-black/5 dark:border-white/10 overflow-hidden group/table">
+        <div className="grid grid-cols-3 bg-neutral-50 dark:bg-neutral-900/50 border-b border-black/5 dark:border-white/10 text-[9px] font-mono font-bold text-neutral-500 uppercase tracking-wider">
+          <div className="p-2 border-r border-black/5 dark:border-white/10 flex items-center justify-between">
+            Task
+            <span className="text-indigo-500 dark:text-indigo-400 opacity-0 group-hover/table:opacity-100 transition-opacity">↓</span>
+          </div>
+          <div className="p-2 border-r border-black/5 dark:border-white/10 text-center">Status</div>
+          <div className="p-2 text-right text-indigo-600 dark:text-indigo-400 bg-indigo-50/50 dark:bg-indigo-500/10">Date <span className="opacity-100">↑</span></div>
         </div>
-        <div className="p-2 border-r border-black/5 dark:border-white/10 text-center">Status</div>
-        <div className="p-2 text-right text-indigo-600 dark:text-indigo-400 bg-indigo-50/50 dark:bg-indigo-500/10">Date <span className="opacity-100">↑</span></div>
-      </div>
-      <div className="grid grid-cols-3 text-[10px] font-mono text-neutral-600 dark:text-neutral-300">
-        <div className="p-2 border-r border-b border-black/5 dark:border-white/10">Design</div>
-        <div className="p-2 border-r border-b border-black/5 dark:border-white/10 text-center text-green-500">Done</div>
-        <div className="p-2 border-b border-black/5 dark:border-white/10 text-right opacity-70 bg-indigo-50/20 dark:bg-indigo-500/5">06-10</div>
-      </div>
-      <div className="grid grid-cols-3 text-[10px] font-mono text-neutral-600 dark:text-neutral-300">
-        <div className="p-2 border-r border-black/5 dark:border-white/10">Build</div>
-        <div className="p-2 border-r border-black/5 dark:border-white/10 text-center text-amber-500">WIP</div>
-        <div className="p-2 border-black/5 dark:border-white/10 text-right opacity-70 bg-indigo-50/20 dark:bg-indigo-500/5">06-15</div>
+        <div className="grid grid-cols-3 text-[10px] font-mono text-neutral-600 dark:text-neutral-300">
+          <div className="p-2 border-r border-b border-black/5 dark:border-white/10">Design</div>
+          <div className="p-2 border-r border-b border-black/5 dark:border-white/10 text-center text-green-500">Done</div>
+          <div className="p-2 border-b border-black/5 dark:border-white/10 text-right opacity-70 bg-indigo-50/20 dark:bg-indigo-500/5">06-10</div>
+        </div>
+        <div className="grid grid-cols-3 text-[10px] font-mono text-neutral-600 dark:text-neutral-300">
+          <div className="p-2 border-r border-black/5 dark:border-white/10">Build</div>
+          <div className="p-2 border-r border-black/5 dark:border-white/10 text-center text-amber-500">WIP</div>
+          <div className="p-2 border-black/5 dark:border-white/10 text-right opacity-70 bg-indigo-50/20 dark:bg-indigo-500/5">06-15</div>
+        </div>
       </div>
     </div>
     <div className="absolute top-4 right-4">
-      <span className="text-[9px] font-mono uppercase tracking-widest text-indigo-500 opacity-60">Visual Tables</span>
+      <span className="text-[9px] font-mono uppercase tracking-widest text-indigo-500 opacity-60">Table Editor</span>
     </div>
   </div>
 );
 
-const DEFAULT_DEMO_CONTENT = `# Welcome to HermesMarkdown
+const AgentContextGraphic = () => (
+  <div className="w-full h-full flex items-center justify-center p-6 relative select-none">
+    <div className="font-mono text-[11px] leading-relaxed text-left w-full max-w-[280px] space-y-1">
+      <div className="text-neutral-400 dark:text-neutral-500">---</div>
+      <div className="flex items-center gap-1.5">
+        <span className="text-sky-500 dark:text-sky-400">id:</span>
+        <span className="opacity-60">ops-log-june</span>
+      </div>
+      <div className="flex items-center gap-1.5">
+        <span className="text-sky-500 dark:text-sky-400">status:</span>
+        <span className="opacity-60">active</span>
+      </div>
+      <div className="flex items-center gap-1.5">
+        <span className="text-sky-500 dark:text-sky-400">version:</span>
+        <span className="opacity-60">1.0.0</span>
+      </div>
+      <div className="flex items-start gap-1.5">
+        <span className="text-sky-500 dark:text-sky-400 shrink-0">tags:</span>
+        <span className="opacity-60">[trading, alpha-prod]</span>
+      </div>
+      <div className="text-neutral-400 dark:text-neutral-500">---</div>
 
-A premium, local-first workspace for your thoughts.
+      <div className="h-px bg-neutral-200 dark:bg-neutral-700 opacity-40 my-2" />
 
-- **Local-First**: No servers, no lag.
-- **Privacy-Centric**: Your data stays on your machine.
-- **Deep Work**: Distraction-free by design.
+      <div className="flex items-center gap-2">
+        <span className="px-1.5 rounded text-[10px] font-bold bg-sky-500/15 text-sky-500">#trading</span>
+        <span className="opacity-40">from frontmatter</span>
+      </div>
+      <div className="flex items-center gap-2">
+        <span className="px-1.5 rounded text-[10px] font-bold bg-emerald-500/15 text-emerald-500">#active</span>
+        <span className="opacity-40">lifecycle tag</span>
+      </div>
 
-Type anything here to start your draft...`;
+      <div className="h-px bg-neutral-200 dark:bg-neutral-700 opacity-40 my-2" />
+
+      <div className="text-[9px] uppercase tracking-widest opacity-30 font-bold">grep &quot;^status:&quot; *.md</div>
+    </div>
+    <div className="absolute top-4 right-4">
+      <span className="text-[9px] font-mono uppercase tracking-widest text-sky-500 opacity-60">Agent Context</span>
+    </div>
+  </div>
+);
+
+const AgentScoreGraphic = () => (
+  <div className="w-full h-full flex flex-col justify-end relative select-none overflow-hidden">
+    {/* Score breakdown — mirrors computeAgentScore sections */}
+    <div className="flex-1 flex flex-col justify-center gap-2.5 px-8">
+      <div className="text-[9px] font-mono font-bold text-neutral-400 dark:text-neutral-500 uppercase tracking-widest mb-1">
+        Agent readability — 95/100
+      </div>
+      {[
+        { label: "Frontmatter",     pct: 100, pts: "40/40", color: "bg-emerald-500" },
+        { label: "Heading structure",pct: 100, pts: "30/30", color: "bg-emerald-500" },
+        { label: "Typed fences",    pct: 100, pts: "10/10", color: "bg-emerald-500" },
+        { label: "Tables",          pct: 100, pts:  "5/5",  color: "bg-emerald-500" },
+        { label: "Bold anchors",    pct:  60, pts:   "3/5", color: "bg-amber-400"   },
+      ].map(({ label, pct, pts, color }) => (
+        <div key={label} className="flex items-center gap-2">
+          <span className="text-[9px] font-mono opacity-50 w-[88px] shrink-0">{label}</span>
+          <div className="flex-1 h-1.5 bg-neutral-200 dark:bg-neutral-700 rounded-full overflow-hidden">
+            <div className={`h-full ${color} rounded-full transition-all`} style={{ width: `${pct}%` }} />
+          </div>
+          <span className="text-[9px] font-mono opacity-30 w-8 text-right shrink-0">{pts}</span>
+        </div>
+      ))}
+    </div>
+
+    {/* Mock status bar — matches real StatusBar */}
+    <div
+      className="border-t border-zinc-200/50 dark:border-zinc-800/50 bg-paper-light/50 dark:bg-paper-dark/50 backdrop-blur-3xl flex items-center justify-between px-3 shrink-0"
+      style={{ height: "22px" }}
+    >
+      <span className="text-[11px] font-medium text-emerald-600 dark:text-emerald-400">✓ Saved</span>
+      <span className="flex-1 flex justify-center text-[11px] text-zinc-500 dark:text-zinc-400">
+        <strong className="font-medium text-zinc-800 dark:text-zinc-200">~340</strong>&nbsp;tokens
+      </span>
+      <span className="text-[11px] font-medium text-emerald-600 dark:text-emerald-400 pl-2">
+        AI: Structured
+      </span>
+    </div>
+  </div>
+);
+
+const DEFAULT_DEMO_CONTENT = `---
+id: ops-log-june
+title: Daily Operations Log
+status: active
+version: 1.0.0
+tags: [trading, alpha-prod]
+dependencies: []
+---
+
+# Daily Operations Log
+
+## Tasks
+
+- Fix auth token refresh  #review
+- Redesign API layer  #draft
+- Migrate vault to new schema  #active
+
+## Budget
+
++ 1,250.00
+- 450.00
++ 85.50
+
+Total: $885.50
+
+Sprint ends [[2026-06-14]]`;
 
 export default function LandingPage() {
   const router = useRouter();
@@ -289,13 +328,13 @@ export default function LandingPage() {
         <div className="max-w-6xl mx-auto flex flex-col items-center text-center space-y-12">
           <div className="space-y-6 max-w-3xl animate-hero-fade-in">
             <h1 className="text-4xl md:text-7xl font-bold tracking-tight leading-[1.1]">
-              Your Mind, Your Markdown,{" "}
+              Your Vault, Your Agents,{" "}
               <span className="text-neutral-400 dark:text-neutral-600 italic font-serif">
                 Your Machine.
               </span>
             </h1>
             <p className="text-lg md:text-xl leading-relaxed text-neutral-600 dark:text-neutral-400 max-w-2xl mx-auto">
-              A minimalist, local-first workspace for deep work. Own your thoughts with a distraction-free environment that lives entirely on your device.
+              A local-first Markdown workspace built for engineers and AI practitioners. Structure your notes so both humans and background agents can read them — no cloud, no compromises.
             </p>
             <div className="pt-4 flex flex-col sm:flex-row items-center justify-center gap-4">
               <Button
@@ -313,7 +352,6 @@ export default function LandingPage() {
 
           {/* INTERACTIVE EDITOR PREVIEW */}
           <div className="w-full max-w-4xl relative group animate-hero-fade-in [animation-fill-mode:forwards] [animation-delay:300ms] opacity-0">
-             {/* Mock Window Frame */}
              <div className="bg-white dark:bg-neutral-900 rounded-2xl shadow-2xl border border-black/5 dark:border-white/10 overflow-hidden ring-1 ring-black/5 dark:ring-white/5 transition-all duration-500 group-hover:shadow-blue-500/5 group-hover:ring-blue-500/20">
                 <div className="h-10 bg-neutral-50 dark:bg-neutral-800/50 border-b border-black/5 dark:border-white/10 flex items-center px-4 gap-2">
                   <div className="flex gap-1.5">
@@ -336,8 +374,6 @@ export default function LandingPage() {
                   )}
                 </div>
              </div>
-             
-             {/* Visual Polish: Glow */}
              <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-2xl blur-2xl -z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
           </div>
         </div>
@@ -346,21 +382,53 @@ export default function LandingPage() {
       {/* --- TRUST SIGNALS --- */}
       <section className="py-12 border-y border-black/5 dark:border-white/5 bg-neutral-50/50 dark:bg-neutral-900/30 overflow-hidden">
         <div className="max-w-6xl mx-auto px-6 flex flex-wrap items-center justify-center md:justify-between gap-8 opacity-40 grayscale">
-          <div className="text-ui-footnote font-bold uppercase tracking-[0.3em] whitespace-nowrap">Built for Developers</div>
-          <div className="text-ui-footnote font-bold uppercase tracking-[0.3em] whitespace-nowrap">Privacy First</div>
-          <div className="text-ui-footnote font-bold uppercase tracking-[0.3em] whitespace-nowrap">No Cloud Required</div>
-          <div className="text-ui-footnote font-bold uppercase tracking-[0.3em] whitespace-nowrap">Local-First Sync</div>
+          <div className="text-ui-footnote font-bold uppercase tracking-[0.3em] whitespace-nowrap">Agent-Ready Frontmatter</div>
+          <div className="text-ui-footnote font-bold uppercase tracking-[0.3em] whitespace-nowrap">Live AI Readability Score</div>
+          <div className="text-ui-footnote font-bold uppercase tracking-[0.3em] whitespace-nowrap">Local-First Vault</div>
+          <div className="text-ui-footnote font-bold uppercase tracking-[0.3em] whitespace-nowrap">Zero Cloud</div>
         </div>
       </section>
 
       {/* --- FEATURES --- */}
       <div className="max-w-5xl mx-auto px-6 py-24 md:py-32 space-y-32">
+
+        {/* 1. Agent-Readable Context — core mission, first */}
+        <section className="grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
+          <div className="space-y-6">
+            <div className="h-px w-12 bg-sky-500" />
+            <h2 className="text-3xl font-bold tracking-tight">Agent-Readable Context</h2>
+            <p className="text-neutral-600 dark:text-neutral-400 leading-relaxed">
+              Every file exposes a strict frontmatter schema — <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">id</code>, <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">title</code>, <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">status</code>, <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">version</code>, <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">tags</code> — so background scripts and LLMs can classify any file instantly with a single <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">grep</code>. Two inline lifecycles keep your work moving: document state (<code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">#draft</code> → <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">#active</code> → <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">#archived</code>) and task state (<code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">#todo</code> → <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">#prog</code> → <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">#done</code>). Place your cursor on any tag and use the ‹ › arrows to step through states.
+            </p>
+          </div>
+          <div className="aspect-video bg-neutral-100 dark:bg-neutral-900 rounded-2xl border border-black/5 dark:border-white/5 flex items-center justify-center group overflow-hidden relative">
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-sky-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+            <AgentContextGraphic />
+          </div>
+        </section>
+
+        {/* 2. AI Readability Score — key differentiator */}
+        <section className="grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
+          <div className="order-last md:order-first aspect-video bg-neutral-100 dark:bg-neutral-900 rounded-2xl border border-black/5 dark:border-white/5 flex items-center justify-center group overflow-hidden relative">
+             <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-emerald-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+             <AgentScoreGraphic />
+          </div>
+          <div className="space-y-6">
+            <div className="h-px w-12 bg-emerald-600" />
+            <h2 className="text-3xl font-bold tracking-tight">Agent Readability Score</h2>
+            <p className="text-neutral-600 dark:text-neutral-400 leading-relaxed">
+              The status bar shows a live AI readability score — <em>Structured</em>, <em>Good</em>, <em>Fair</em>, or <em>Weak</em> — scored across frontmatter completeness, heading continuity, typed code fences, tables, and consistent list syntax. Hover to see exactly which fields are missing, in priority order. Fix the tips once and every agent that reads your vault benefits permanently.
+            </p>
+          </div>
+        </section>
+
+        {/* 3. Vault Management */}
         <section className="grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
           <div className="space-y-6">
             <div className="h-px w-12 bg-blue-600" />
-            <h2 className="text-3xl font-bold tracking-tight">Knowledge Management</h2>
+            <h2 className="text-3xl font-bold tracking-tight">Vault Management</h2>
             <p className="text-neutral-600 dark:text-neutral-400 leading-relaxed">
-              Open any local directory to treat it as a writing vault. Browse files, manage folders, and save changes directly to your machine using modern web standards.
+              Open any local directory as a writing vault and save directly to your machine via the File System Access API — no upload required. All files live flat in your vault root. Smart Workspaces filter them in real time by tag, filename, date, or word count, with a built-in <em>Today's Work</em> view for files edited in the last 24 hours.
             </p>
           </div>
           <div className="aspect-video bg-neutral-100 dark:bg-neutral-900 rounded-2xl border border-black/5 dark:border-white/5 flex items-center justify-center group overflow-hidden relative">
@@ -369,6 +437,7 @@ export default function LandingPage() {
           </div>
         </section>
 
+        {/* 4. Writing Experience */}
         <section className="grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
           <div className="order-last md:order-first aspect-video bg-neutral-100 dark:bg-neutral-900 rounded-2xl border border-black/5 dark:border-white/5 flex items-center justify-center group overflow-hidden relative">
              <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-purple-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
@@ -378,17 +447,18 @@ export default function LandingPage() {
             <div className="h-px w-12 bg-purple-600" />
             <h2 className="text-3xl font-bold tracking-tight">Writing Experience</h2>
             <p className="text-neutral-600 dark:text-neutral-400 leading-relaxed">
-              No distractions, just your thoughts. Toggle Zen Mode to focus on a single line, or use our split-pane workspace to build complex knowledge webs without leaving the keyboard.
+              Toggle Zen Mode (<code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">Ctrl+Shift+Z</code>) to collapse every panel and focus on a single line. Split the workspace into side-by-side panes and drag tabs between them. Elements in the editor are live — click <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">[ ]</code> to toggle tasks, click any date to open a calendar picker, and <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">Ctrl+Click</code> any WikiLink to navigate instantly.
             </p>
           </div>
         </section>
 
+        {/* 5. Syntax & Shortcuts */}
         <section className="grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
           <div className="space-y-6">
             <div className="h-px w-12 bg-amber-500" />
             <h2 className="text-3xl font-bold tracking-tight">Syntax & Shortcuts</h2>
             <p className="text-neutral-600 dark:text-neutral-400 leading-relaxed">
-              Beyond what any text editor offers. Cycle workflow statuses with clickable <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">#tags</code>, auto-sum budgets with a <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">Total:</code> line, evaluate expressions inline with <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">calc()</code>, and insert or edit any date with a single shortcode or click.
+              Type <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">/</code> to open the slash command menu — fuzzy-filter templates including Daily Note, Meeting Notes, and ready-made <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">/agent</code> context blocks. Shortcodes expand inline: <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">..d</code> for today's date, <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">calc()</code> for expressions, and a <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">Total:</code> line that auto-sums every currency value above it.
             </p>
           </div>
           <div className="aspect-video bg-neutral-100 dark:bg-neutral-900 rounded-2xl border border-black/5 dark:border-white/5 flex items-center justify-center group overflow-hidden relative">
@@ -397,6 +467,7 @@ export default function LandingPage() {
           </div>
         </section>
 
+        {/* 6. Table Editor */}
         <section className="grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
           <div className="order-last md:order-first aspect-video bg-neutral-100 dark:bg-neutral-900 rounded-2xl border border-black/5 dark:border-white/5 flex items-center justify-center group overflow-hidden relative">
              <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-indigo-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
@@ -404,26 +475,13 @@ export default function LandingPage() {
           </div>
           <div className="space-y-6">
             <div className="h-px w-12 bg-indigo-500" />
-            <h2 className="text-3xl font-bold tracking-tight">Visual Tables</h2>
+            <h2 className="text-3xl font-bold tracking-tight">Table Editor</h2>
             <p className="text-neutral-600 dark:text-neutral-400 leading-relaxed">
-              A powerful visual table editor is just a double-click away. Effortlessly add or remove rows and columns, adjust alignment, and sort data with smart type detection for numbers, dates, and strings—all while maintaining perfectly formatted Markdown under the hood.
+              Place your cursor inside any pipe table to reveal a floating toolbar for instant structural edits — add rows, add columns, export as CSV. Open the Advanced Table Dialog for smart sorting with type detection across dates, currency, and numbers, and auto-padded alignment that keeps the raw Markdown clean under the hood. Insert a starter 3×2 grid with <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">/table</code> or the <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">{"{table}"}</code> shortcode.
             </p>
           </div>
         </section>
 
-        <section className="grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
-          <div className="space-y-6">
-            <div className="h-px w-12 bg-emerald-600" />
-            <h2 className="text-3xl font-bold tracking-tight">True Content Privacy</h2>
-            <p className="text-neutral-600 dark:text-neutral-400 leading-relaxed">
-              Your writing belongs to you. No central database, no proprietary formats, and no "AI training" on your private notes. Everything is stored in human-readable Markdown on your own machine.
-            </p>
-          </div>
-          <div className="aspect-video bg-neutral-100 dark:bg-neutral-900 rounded-2xl border border-black/5 dark:border-white/5 flex items-center justify-center group overflow-hidden relative">
-             <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-emerald-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
-             <PrivacyGraphic />
-          </div>
-        </section>
       </div>
 
       {/* --- CALL TO ACTION --- */}
@@ -431,14 +489,14 @@ export default function LandingPage() {
         <div className="max-w-4xl mx-auto text-center space-y-8 bg-neutral-50 dark:bg-neutral-900/50 text-neutral-900 dark:text-neutral-100 p-12 md:p-24 rounded-[3rem] shadow-sm border border-black/5 dark:border-white/5 relative overflow-hidden">
           <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/5 blur-[100px] -mr-32 -mt-32" />
           <div className="absolute bottom-0 left-0 w-64 h-64 bg-purple-500/5 blur-[100px] -ml-32 -mb-32" />
-          
-          <h2 className="text-4xl md:text-6xl font-bold tracking-tight relative z-10">Ready to own your thoughts?</h2>
+
+          <h2 className="text-4xl md:text-6xl font-bold tracking-tight relative z-10">Own your context. Own your output.</h2>
           <p className="opacity-60 max-w-xl mx-auto text-lg relative z-10 font-medium">
-            Join writers and developers who have switched to a local-first workflow.
+            A workspace built for the era where the files you write are also the files your agents read.
           </p>
           <div className="pt-6 relative z-10 flex justify-center">
-             <Button 
-               variant="hero" 
+             <Button
+               variant="hero"
                onClick={handleStart}
                className="shadow-xl hover:shadow-blue-500/20 transition-all"
              >

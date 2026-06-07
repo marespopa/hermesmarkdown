@@ -1,14 +1,17 @@
 "use client";
 
-import { useAtom } from "jotai";
+import { useAtom, useAtomValue } from "jotai";
 import { useCallback } from "react";
 import toast from "react-hot-toast";
 import {
   atom_vaultHandle,
   atom_currentDirectoryHandle,
+  atom_autoInjectFrontmatter,
 } from "@/app/atoms/atoms";
+import { atom_vaultFiles } from "@/app/atoms/vault-atoms";
 import { useDialog } from "../use-dialog";
 import { withRetry } from "./shared";
+import { injectFrontmatter } from "@/app/utils/frontmatterInjector";
 
 interface UseCreateItemProps {
   scanVault: (handle: FileSystemDirectoryHandle) => Promise<void>;
@@ -19,6 +22,8 @@ interface UseCreateItemProps {
 export function useCreateItem({ scanVault, indexVaultTags, openFile }: UseCreateItemProps) {
   const [vaultHandle] = useAtom(atom_vaultHandle);
   const [currentDirectoryHandle] = useAtom(atom_currentDirectoryHandle);
+  const [autoInjectFrontmatter] = useAtom(atom_autoInjectFrontmatter);
+  const vaultFiles = useAtomValue(atom_vaultFiles);
   const dialog = useDialog();
 
   const createFile = useCallback(
@@ -51,9 +56,12 @@ export function useCreateItem({ scanVault, indexVaultTags, openFile }: UseCreate
         if (!newFileHandle) throw new Error("Failed to resolve file handle");
 
         // Write content immediately if provided
+        const contentToWrite = autoInjectFrontmatter
+          ? injectFrontmatter(content, fileName)
+          : content;
         await withRetry(async () => {
           const writable = await (newFileHandle as any).createWritable();
-          await writable.write(content);
+          await writable.write(contentToWrite);
           await writable.close();
         });
 
@@ -93,39 +101,63 @@ export function useCreateItem({ scanVault, indexVaultTags, openFile }: UseCreate
         return null;
       }
     },
-    [vaultHandle, currentDirectoryHandle, scanVault, indexVaultTags, openFile],
+    [vaultHandle, currentDirectoryHandle, scanVault, indexVaultTags, openFile, autoInjectFrontmatter],
   );
 
   const createNewFile = useCallback(async (dirHandle?: FileSystemDirectoryHandle) => {
-    const targetDir = dirHandle || currentDirectoryHandle || vaultHandle;
-    if (!targetDir) return;
+    if (!vaultHandle) return;
 
-    const name = await dialog.prompt("Enter file name (without .md):", "", "New File");
-    if (!name) return;
+    // Collect subdirectories from the current vault scan
+    const subDirs = vaultFiles.filter(
+      (f): f is FileSystemDirectoryHandle => (f as any).kind === "directory"
+    );
 
-    return await createFile(name, "", dirHandle);
-  }, [vaultHandle, currentDirectoryHandle, createFile, dialog]);
+    let targetDir: FileSystemDirectoryHandle = dirHandle || vaultHandle;
 
-  const createNewFolder = useCallback(async (dirHandle?: FileSystemDirectoryHandle) => {
-    const targetDir = dirHandle || currentDirectoryHandle || vaultHandle;
-    if (!targetDir) return;
+    // Only show folder picker when called from the header (no dirHandle)
+    if (!dirHandle) {
+      const options = [
+        { label: `/ ${vaultHandle.name} (root)`, value: "__root__" },
+        ...subDirs.map((d) => ({ label: d.name, value: d.name })),
+        { label: "+ New Folder", value: "__new_folder__" },
+      ];
+      const chosen = await dialog.select("Choose a folder for the new file:", options, "New File");
+      if (!chosen) return;
 
-    const name = await dialog.prompt("Enter folder name:", "", "New Folder");
-    if (!name) return;
-
-    try {
-      await withRetry(() => targetDir.getDirectoryHandle(name, { create: true }));
-      await scanVault(targetDir);
-      toast.success("Folder created: " + name);
-    } catch (err: any) {
-      console.error("File System Error:", err?.message || err);
-      toast.error("Failed to create folder");
+      if (chosen === "__new_folder__") {
+        const folderName = await dialog.prompt("Enter folder name:", "", "New Folder");
+        if (!folderName) return;
+        try {
+          const newDir = await withRetry(() =>
+            vaultHandle.getDirectoryHandle(folderName, { create: true })
+          );
+          await scanVault(vaultHandle);
+          targetDir = newDir;
+        } catch (err: any) {
+          console.error("File System Error:", err?.message || err);
+          toast.error("Failed to create folder");
+          return;
+        }
+      } else if (chosen !== "__root__") {
+        const found = subDirs.find((d) => d.name === chosen);
+        if (found) targetDir = found;
+      }
     }
-  }, [vaultHandle, currentDirectoryHandle, scanVault, dialog]);
+
+    const result = await dialog.newFile();
+    if (!result || !result.name) return;
+
+    const slug = result.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+    const tagsStr = result.tags 
+      ? `[${result.tags.split(",").map((t: string) => t.trim().toLowerCase()).filter(Boolean).join(", ")}]` 
+      : "[]";
+    const fm = `---\nid: ${slug}\ntitle: ${result.name}\ntype: ${result.type || "note"}\nstatus: draft\nversion: 1\ntags: ${tagsStr}\n---\n\n`;
+
+    return await createFile(result.name, fm, targetDir);
+  }, [vaultHandle, vaultFiles, scanVault, createFile, dialog]);
 
   return {
     createFile,
     createNewFile,
-    createNewFolder,
   };
 }

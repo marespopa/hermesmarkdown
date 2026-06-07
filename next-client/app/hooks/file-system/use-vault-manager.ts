@@ -1,7 +1,7 @@
 "use client";
 
 import { useAtom, useSetAtom } from "jotai";
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import toast from "react-hot-toast";
 import {
   atom_vaultHandle,
@@ -16,6 +16,9 @@ import {
   atom_rebindHandles,
   atom_isCloudVault,
   atom_fileSystemVersion,
+  atom_autoInjectFrontmatter,
+  atom_frontmatterHasPrompted,
+  atom_indexerState,
 } from "@/app/atoms/atoms";
 import { atom_fileMetadata } from "@/app/atoms/metadata";
 import {
@@ -41,7 +44,11 @@ export function useVaultManager() {
   const [, setIsCloudVault] = useAtom(atom_isCloudVault);
   const [, setFileSystemVersion] = useAtom(atom_fileSystemVersion);
   const rebindHandles = useSetAtom(atom_rebindHandles);
+  const setIndexerState = useSetAtom(atom_indexerState);
+  const [frontmatterHasPrompted, setFrontmatterHasPrompted] = useAtom(atom_frontmatterHasPrompted);
+  const [, setAutoInjectFrontmatter] = useAtom(atom_autoInjectFrontmatter);
   const dialog = useDialog();
+  const pendingHandlesRef = useRef<Map<string, FileSystemFileHandle>>(new Map());
 
   const detectCloudVault = useCallback(
     (handle: FileSystemDirectoryHandle) => {
@@ -122,9 +129,19 @@ export function useVaultManager() {
     async (passedHandle?: FileSystemDirectoryHandle) => {
       try {
         const handle = passedHandle || vaultHandle;
-        if (!handle || !metadataWorker) return;
+        if (!handle) return;
 
+        setIndexerState("compiling");
         const fileHandles: { handle: FileSystemFileHandle; path: string }[] = [];
+        let subdirFailCount = 0;
+
+        // Directories that are never markdown vaults but can hold huge file trees.
+        // Descending into these (e.g. node_modules) can take minutes and pins the
+        // indexer, so we skip them entirely. Hidden/system dotfolders are skipped too.
+        const isIgnoredDir = (name: string) =>
+          name === "node_modules" ||
+          name === "vendor" ||
+          name.startsWith(".");
 
         async function collectFiles(
           dirHandle: FileSystemDirectoryHandle,
@@ -138,23 +155,111 @@ export function useVaultManager() {
                   handle: entry as FileSystemFileHandle,
                   path: currentPath,
                 });
-              } else if (entry.kind === "directory") {
-                await collectFiles(entry, currentPath);
+              } else if (entry.kind === "directory" && !isIgnoredDir(entry.name)) {
+                await collectFiles(entry as FileSystemDirectoryHandle, currentPath);
               }
             }
           } catch (err: any) {
             console.warn(`Failed to collect files from ${path || "root"}:`, err);
+            if (path) subdirFailCount++;
           }
         }
 
-        await collectFiles(handle);
-        metadataWorker.postMessage({ files: fileHandles });
+        // Fail-safe: never let a slow/huge tree pin the indexer. If the walk runs long,
+        // commit whatever was collected so far and stop showing the scanning state.
+        let timedOut = false;
+        await Promise.race([
+          collectFiles(handle),
+          new Promise<void>((resolve) =>
+            setTimeout(() => {
+              timedOut = true;
+              resolve();
+            }, 20000),
+          ),
+        ]);
+
+        if (timedOut) {
+          toast.error(
+            "Indexing is taking a while — some folders may be very large. Showing what we found so far.",
+            { id: "index-timeout", duration: 6000 },
+          );
+        }
+
+        if (subdirFailCount > 0) {
+          toast.error(
+            `Could not read ${subdirFailCount} subfolder(s). Grant full folder access and re-open the vault.`,
+            { id: "subdir-access-error", duration: 6000 },
+          );
+        }
+
+        if (fileHandles.length > 0) {
+          if (passedHandle) {
+            // Fresh vault open: replace metadata entirely so stale entries from a previous vault never block display
+            setFileMetadata(() => {
+              const next: Record<string, any> = {};
+              fileHandles.forEach(({ handle: fh, path }) => {
+                next[path] = { path, name: fh.name, handle: fh, tags: [], links: [], frontmatter: {}, modifiedAt: 0, wordCount: 0 };
+              });
+              return next;
+            });
+          } else {
+            // Re-index after save: merge so existing tag metadata is preserved until the worker responds
+            setFileMetadata((prev) => {
+              const next = { ...prev };
+              fileHandles.forEach(({ handle: fh, path }) => {
+                if (!next[path]) {
+                  next[path] = { path, name: fh.name, handle: fh, tags: [], links: [], frontmatter: {}, modifiedAt: 0, wordCount: 0 };
+                }
+              });
+              return next;
+            });
+          }
+        }
+
+        // Files are now visible in the sidebar — mark scanning done.
+        // Tag extraction below is secondary; it must not block the visible state.
+        setIndexerState("idle");
+
+        // Read file contents in the main thread (permissions are scoped here, not in the worker)
+        const filesWithContent = await Promise.all(
+          fileHandles.map(async (f) => {
+            try {
+              const file = await f.handle.getFile();
+              const content = await file.text();
+              return { path: f.path, name: f.handle.name, content, modifiedAt: file.lastModified };
+            } catch {
+              return null;
+            }
+          })
+        );
+        const readable = filesWithContent.filter((f): f is NonNullable<typeof f> => f !== null);
+
+        // Store handles locally so we can re-attach them after the worker responds
+        pendingHandlesRef.current = new Map(fileHandles.map((f) => [f.path, f.handle]));
+
+        if (metadataWorker && readable.length > 0) {
+          metadataWorker.postMessage({ files: readable });
+        }
       } catch (err: any) {
         console.error("Failed to index vault tags:", err);
+      } finally {
+        setIndexerState("idle");
       }
     },
-    [vaultHandle],
+    [vaultHandle, setIndexerState, setFileMetadata],
   );
+
+  const promptFrontmatter = useCallback(async () => {
+    if (frontmatterHasPrompted) return;
+    const enabled = await dialog.confirm(
+      "Automatically prepend id, title, type, and tags to new or unstructured files when they are saved? You can change this any time in Settings.",
+      "Auto-inject Frontmatter?",
+      "Enable",
+      "Skip",
+    );
+    setAutoInjectFrontmatter(enabled);
+    setFrontmatterHasPrompted(true);
+  }, [frontmatterHasPrompted, setAutoInjectFrontmatter, setFrontmatterHasPrompted, dialog]);
 
   const openVault = useCallback(async () => {
     if (!isVaultSupported) {
@@ -174,6 +279,7 @@ export function useVaultManager() {
     if (!handle) return;
 
     try {
+      setFileMetadata({});
       setVaultHandle(handle);
       setCurrentDirectoryHandle(handle);
       setIsVaultPending(false);
@@ -183,24 +289,15 @@ export function useVaultManager() {
       await indexVaultTags(handle);
       await rebindHandles(handle);
       toast.success("Vault opened: " + handle.name);
+      await promptFrontmatter();
     } catch (err: any) {
       console.error("File System Error:", err?.message || err);
       toast.error("Failed to open vault");
     }
-  }, [setVaultHandle, setCurrentDirectoryHandle, setIsVaultPending, scanVault, indexVaultTags, rebindHandles, detectCloudVault]);
+  }, [setVaultHandle, setCurrentDirectoryHandle, setIsVaultPending, setFileMetadata, scanVault, indexVaultTags, rebindHandles, detectCloudVault, promptFrontmatter]);
 
   const restoreVault = useCallback(async () => {
     if (!vaultHandle) return;
-
-    const confirmed = await dialog.confirm(
-      `HermesMarkdown needs permission to "allow this site to make edits" to your folder: ${vaultHandle.name}. This is required to save your notes.`,
-      "re-authorize folder access",
-      "Allow Edits",
-      "Cancel",
-      "Your notes stay 100% local on your device and are never saved on our servers.",
-    );
-
-    if (!confirmed) return;
 
     try {
       const granted = await verifyPermission(vaultHandle);
@@ -212,12 +309,13 @@ export function useVaultManager() {
         await indexVaultTags(vaultHandle);
         await rebindHandles(vaultHandle);
         toast.success("Vault restored");
+        await promptFrontmatter();
       }
     } catch (err: any) {
       console.error("File System Error:", err?.message || err);
       toast.error("Failed to restore vault");
     }
-  }, [vaultHandle, setIsVaultPending, setCurrentDirectoryHandle, scanVault, indexVaultTags, rebindHandles, dialog, detectCloudVault]);
+  }, [vaultHandle, setIsVaultPending, setCurrentDirectoryHandle, scanVault, indexVaultTags, rebindHandles, detectCloudVault, promptFrontmatter]);
 
   const syncSidebarToPath = useCallback(
     async (path: string) => {
@@ -280,6 +378,7 @@ export function useVaultManager() {
     setVaultHandle(null);
     setCurrentDirectoryHandle(null);
     setVaultFiles([]);
+    setFileMetadata({});
     setActiveFileHandle(null);
     setActiveFilePath("draft");
     setIsVaultPending(false);
@@ -306,7 +405,7 @@ export function useVaultManager() {
 
     clearVaultHandle();
     toast.success("Vault closed");
-  }, [setVaultHandle, setCurrentDirectoryHandle, setVaultFiles, setActiveFileHandle, setActiveFilePath, setIsVaultPending, setOpenFiles, setWorkspaceLayout, setIsCloudVault]);
+  }, [setVaultHandle, setCurrentDirectoryHandle, setVaultFiles, setFileMetadata, setActiveFileHandle, setActiveFilePath, setIsVaultPending, setOpenFiles, setWorkspaceLayout, setIsCloudVault]);
 
   // Worker Message Listener
   useEffect(() => {
@@ -319,15 +418,17 @@ export function useVaultManager() {
       setFileMetadata((prev) => {
         const next = { ...prev };
         results.forEach((res: any) => {
-          next[res.path] = res;
+          const handle = pendingHandlesRef.current.get(res.path);
+          if (handle) next[res.path] = { ...res, handle };
         });
         return next;
       });
+      setIndexerState("idle");
     };
 
     metadataWorker.addEventListener("message", handleMessage);
     return () => metadataWorker?.removeEventListener("message", handleMessage);
-  }, [setFileMetadata]);
+  }, [setFileMetadata, setIndexerState]);
 
   // Load vault on mount
   useEffect(() => {

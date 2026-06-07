@@ -5,7 +5,7 @@ import { flushSync } from "react-dom";
 import { useAtomValue } from "jotai";
 import { atom_currency } from "@/app/atoms/atoms";
 import getCaretCoordinates from "textarea-caret";
-import { TEMPLATES, SHORTCODES, LINK_EDITOR_SENTINEL, WIKILINK_EDITOR_SENTINEL, DATE_EDITOR_SENTINEL, TABLE_DIALOG_SENTINEL, CURSOR_SENTINEL } from "../components/constants";
+import { TEMPLATES, Template, SHORTCODES, LINK_EDITOR_SENTINEL, WIKILINK_EDITOR_SENTINEL, DATE_EDITOR_SENTINEL, TABLE_DIALOG_SENTINEL, CURSOR_SENTINEL } from "../components/constants";
 import { runAutoBudget } from "../utils/budget";
 
 interface UseEditorTemplatesProps {
@@ -50,13 +50,21 @@ export function useEditorTemplates({
     setMenuOpen(false);
   }, [value, textareaRef]);
 
-  const filteredTemplatesList = useMemo(
-    () =>
-      TEMPLATES.filter((t) =>
-        t.label.toLowerCase().includes(filterQuery.toLowerCase()),
-      ),
-    [filterQuery],
-  );
+  const filteredTemplatesList = useMemo(() => {
+    if (!filterQuery) return TEMPLATES.map((t) => ({ ...t, matchIndices: [] as number[] }));
+    const q = filterQuery.toLowerCase();
+    const results: (Template & { matchIndices: number[] })[] = [];
+    for (const t of TEMPLATES) {
+      const hay = t.label.toLowerCase();
+      const indices: number[] = [];
+      let qi = 0;
+      for (let hi = 0; hi < hay.length && qi < q.length; hi++) {
+        if (hay[hi] === q[qi]) { indices.push(hi); qi++; }
+      }
+      if (qi === q.length) results.push({ ...t, matchIndices: indices });
+    }
+    return results;
+  }, [filterQuery]);
 
   const insertTemplate = useCallback((content: string) => {
     const textarea = textareaRef.current;

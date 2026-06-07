@@ -1,7 +1,7 @@
 "use client";
 
 import { useSetAtom } from "jotai";
-import { atom_globalDialog, DialogType } from "@/app/atoms/atoms";
+import { atom_globalDialog, DialogType, DialogSelectOption } from "@/app/atoms/atoms";
 import { useCallback } from "react";
 
 export function useDialog() {
@@ -16,6 +16,7 @@ export function useDialog() {
       confirmLabel?: string;
       cancelLabel?: string;
       defaultValue?: string;
+      options?: DialogSelectOption[];
     }) => {
       return new Promise<any>((resolve) => {
         setDialog({
@@ -48,5 +49,16 @@ export function useDialog() {
     [showDialog],
   );
 
-  return { alert, confirm, prompt };
+  const select = useCallback(
+    (message: string, options: DialogSelectOption[], title?: string) =>
+      showDialog({ type: "select", message, options, title }),
+    [showDialog],
+  );
+
+  const newFile = useCallback(
+    () => showDialog({ type: "new-file", message: "Create a new file", title: "New File" }),
+    [showDialog],
+  );
+
+  return { alert, confirm, prompt, select, newFile };
 }

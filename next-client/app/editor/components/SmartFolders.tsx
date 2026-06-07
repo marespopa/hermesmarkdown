@@ -9,7 +9,6 @@ import Button from "@/app/components/Button";
 import WorkspaceBuilder from "./WorkspaceBuilder";
 import { useDialog } from "@/app/hooks/use-dialog";
 import { atom_activeFilePath } from "@/app/atoms/atoms";
-import SidebarHeader from "./SidebarHeader";
 
 interface SmartFolderConfig {
   id: string;
@@ -43,7 +42,6 @@ export default function SmartFolders({ onFileSelect }: SmartFoldersProps) {
   const [selectedFolderId, setSelectedFolderId] = React.useState<string | null>(null);
   const [actionMenuId, setActionMenuId] = React.useState<string | null>(null);
   const [isBuilderOpen, setIsBuilderOpen] = React.useState(false);
-  const [isWorkspacesExpanded, setIsWorkspacesExpanded] = React.useState(true);
   const [editingWorkspace, setEditingWorkspace] = React.useState<CustomWorkspace | null>(null);
   const dialog = useDialog();
 
@@ -91,38 +89,36 @@ export default function SmartFolders({ onFileSelect }: SmartFoldersProps) {
   };
 
   return (
-    <div className="space-y-1">
-      <SidebarHeader
-        title="Workspaces"
-        isExpanded={isWorkspacesExpanded}
-        onToggle={() => setIsWorkspacesExpanded(!isWorkspacesExpanded)}
-        action={
-          <Button
-            variant="icon"
-            className="w-5 h-5 opacity-30 hover:opacity-100"
-            onClick={() => {
-              setEditingWorkspace(null);
-              setIsBuilderOpen(true);
-            }}
-            title="Add Custom Workspace"
-          >
-            <HiOutlinePlus size={12} />
-          </Button>
-        }
-      />
+    <div className="flex flex-col h-full min-h-0">
+      <div className="flex justify-between items-center px-4 py-2 shrink-0">
+        <span className="text-ui-caption font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-600">
+          Your Views
+        </span>
+        <Button
+          variant="icon"
+          className="w-6 h-6 opacity-60 hover:opacity-100 text-zinc-600 dark:text-zinc-400"
+          onClick={() => {
+            setEditingWorkspace(null);
+            setIsBuilderOpen(true);
+          }}
+          title="Create New View"
+        >
+          <HiOutlinePlus size={14} />
+        </Button>
+      </div>
 
-      {isWorkspacesExpanded && (
-        <div className="px-2 space-y-0.5">
-          {allWorkspaces.map((folder) => {
-            const isSelected = selectedFolderId === folder.id;
-            return (
-              <div key={folder.id} className="group relative">
+      <div className="flex-1 overflow-y-auto space-y-0.5 px-2 pb-2 custom-scrollbar">
+        {allWorkspaces.map((folder) => {
+          const isSelected = selectedFolderId === folder.id;
+          return (
+            <div key={folder.id} className="group">
+              <div className="relative">
                 <div
                   onClick={() => setSelectedFolderId(isSelected ? null : folder.id)}
-                  className={`flex items-center gap-2 px-4 py-1.5 rounded-md cursor-pointer transition-all text-ui-footnote pr-8 relative ${
+                  className={`flex items-center gap-2 px-4 py-2 rounded-lg cursor-pointer transition-all text-ui-subhead pr-8 relative ${
                     isSelected
-                      ? "text-purple-600 dark:text-purple-400 font-medium before:absolute before:left-0 before:top-1.5 before:bottom-1.5 before:w-0.5 before:bg-purple-500 bg-purple-500/5"
-                      : "hover:bg-zinc-200 dark:hover:bg-zinc-800/50 text-zinc-600 dark:text-zinc-400"
+                      ? "text-purple-600 dark:text-purple-400 font-medium before:absolute before:left-0 before:top-2 before:bottom-2 before:w-0.5 before:bg-purple-500 bg-purple-500/10"
+                      : "hover:bg-zinc-200/50 dark:hover:bg-zinc-800/40 text-zinc-600 dark:text-zinc-400 font-medium"
                   }`}
                 >
                   <span className="opacity-70">{folder.icon}</span>
@@ -130,16 +126,16 @@ export default function SmartFolders({ onFileSelect }: SmartFoldersProps) {
                 </div>
 
                 {!folder.isDefault && (
-                  <div className="absolute right-1 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity">
                     <Button
                       variant="icon"
-                      className="w-6 h-6"
+                      className="w-7 h-7"
                       onClick={(e) => {
                         e.stopPropagation();
                         setActionMenuId(actionMenuId === folder.id ? null : folder.id);
                       }}
                     >
-                      <HiOutlineDotsVertical size={12} className="opacity-60" />
+                      <HiOutlineDotsVertical size={14} className="opacity-60" />
                     </Button>
                   </div>
                 )}
@@ -147,53 +143,53 @@ export default function SmartFolders({ onFileSelect }: SmartFoldersProps) {
                 {actionMenuId === folder.id && (
                   <>
                     <div className="fixed inset-0 z-40" onClick={() => setActionMenuId(null)} />
-                    <div className="absolute right-0 top-full mt-1 z-50 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg shadow-xl py-1 min-w-[100px] animate-in fade-in zoom-in-95 duration-100">
+                    <div className="absolute right-2 top-[80%] z-50 bg-white/90 dark:bg-zinc-900/90 backdrop-blur-xl border border-zinc-200/50 dark:border-zinc-800/50 rounded-xl shadow-xl py-1 min-w-[120px] animate-in fade-in zoom-in-95 duration-100">
                       <button
                         onClick={(e) => handleEdit(folder.id, e)}
-                        className="w-full flex items-center gap-2 px-3 py-2 text-ui-footnote hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
+                        className="w-full flex items-center gap-3 px-4 py-2.5 text-ui-footnote font-medium hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
                       >
-                        <HiOutlinePencil size={12} className="opacity-60" />
+                        <HiOutlinePencil size={14} className="opacity-60" />
                         Edit
                       </button>
                       <button
                         onClick={(e) => handleDelete(folder.id, e)}
-                        className="w-full flex items-center gap-2 px-3 py-2 text-ui-footnote hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors text-red-500"
+                        className="w-full flex items-center gap-3 px-4 py-2.5 text-ui-footnote font-medium hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors text-red-500"
                       >
-                        <HiOutlineTrash size={12} className="opacity-60" />
+                        <HiOutlineTrash size={14} className="opacity-60" />
                         Delete
                       </button>
                     </div>
                   </>
                 )}
-
-                {isSelected && (
-                  <div className="ml-4 mt-1 border-l border-zinc-200 dark:border-zinc-800 space-y-0.5 pl-2 mb-2 animate-in fade-in slide-in-from-top-1 duration-200">
-                    {matchedFiles.map((file) => (
-                      <div
-                        key={file.path}
-                        onClick={() => onFileSelect(file.handle, file.path)}
-                        className={`flex items-center gap-2 px-3 py-1.5 rounded-md cursor-pointer transition-all text-ui-caption truncate relative ${
-                          activeFilePath === file.path
-                            ? "text-blue-600 dark:text-blue-400 font-medium before:absolute before:left-0 before:top-1 before:bottom-1 before:w-0.5 before:bg-blue-500 bg-blue-500/5"
-                            : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100"
-                        }`}
-                      >
-                        <HiOutlineDocumentText size={14} className="shrink-0 opacity-50" />
-                        <span className="truncate">{file.name}</span>
-                      </div>
-                    ))}
-                    {matchedFiles.length === 0 && (
-                      <div className="px-3 py-2 text-ui-footnote italic opacity-30">
-                        No matches
-                      </div>
-                    )}
-                  </div>
-                )}
               </div>
-            );
-          })}
-        </div>
-      )}
+
+              {isSelected && (
+                <div className="ml-5 mt-1 border-l border-zinc-200 dark:border-zinc-800 space-y-0.5 pl-3 mb-3 animate-in fade-in slide-in-from-top-1 duration-200">
+                  {matchedFiles.map((file) => (
+                    <div
+                      key={file.path}
+                      onClick={() => onFileSelect(file.handle, file.path)}
+                      className={`flex items-center gap-2 px-3 py-1.5 rounded-md cursor-pointer transition-all text-ui-caption truncate relative ${
+                        activeFilePath === file.path
+                          ? "text-blue-600 dark:text-blue-400 font-bold before:absolute before:left-0 before:top-1.5 before:bottom-1.5 before:w-0.5 before:bg-blue-500 bg-blue-500/10"
+                          : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 font-medium hover:bg-zinc-100 dark:hover:bg-zinc-800/50"
+                      }`}
+                    >
+                      <HiOutlineDocumentText size={14} className="shrink-0 opacity-50" />
+                      <span className="truncate">{file.name}</span>
+                    </div>
+                  ))}
+                  {matchedFiles.length === 0 && (
+                    <div className="px-3 py-2 text-ui-footnote italic opacity-40">
+                      No matching files
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
 
       <WorkspaceBuilder
         isOpen={isBuilderOpen}

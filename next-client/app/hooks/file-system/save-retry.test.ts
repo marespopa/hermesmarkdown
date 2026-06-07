@@ -27,6 +27,8 @@ vi.mock("@/app/atoms/atoms", () => ({
   atom_fileConflict: { name: "atom_fileConflict" },
   atom_saveStatus: { name: "atom_saveStatus" },
   atom_isCloudVault: { name: "atom_isCloudVault" },
+  atom_autoInjectFrontmatter: { name: "atom_autoInjectFrontmatter" },
+  atom_indexerState: { name: "atom_indexerState" },
 }));
 
 vi.mock("@/app/atoms/metadata", () => ({
