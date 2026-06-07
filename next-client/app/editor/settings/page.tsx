@@ -70,6 +70,7 @@ const SettingsPage = () => {
     { label: "JetBrains Mono", value: "var(--font-jetbrains), ui-monospace, monospace" },
     { label: "Fira Code", value: "var(--font-fira), ui-monospace, monospace" },
     { label: "IBM Plex Mono", value: "var(--font-ibm), ui-monospace, monospace" },
+    { label: "Journal (Serif)", value: "Georgia, ui-serif, serif" },
   ];
 
   // Values never go below the editor's known-good defaults (1.8 / normal). Tighter
@@ -355,7 +356,7 @@ const SettingsPage = () => {
   const active = sections.find((s) => s.id === activeSection) ?? sections[0];
 
   return (
-    <div className="fixed inset-0 flex flex-col lg:flex-row bg-zinc-50 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 selection:bg-blue-500/30 font-sans overflow-hidden overscroll-none">
+    <div className="fixed inset-0 flex flex-col lg:flex-row bg-paper-light dark:bg-paper-dark text-ink-light dark:text-ink-dark selection:bg-pastel-blue/30 font-sans overflow-hidden overscroll-none">
       {/* Sidebar / category rail */}
       <aside className="shrink-0 lg:w-72 flex flex-col border-b lg:border-b-0 lg:border-r border-zinc-200/60 dark:border-zinc-800/60 bg-white/50 dark:bg-zinc-950/50 backdrop-blur-xl">
         <div className="flex items-center gap-3 px-5 lg:px-6 pt-6 pb-4">

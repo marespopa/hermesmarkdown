@@ -11,7 +11,7 @@ import dynamic from "next/dynamic";
 const MarkdownEditor = dynamic(() => import("@/app/editor/components/MarkdownEditor"), {
   ssr: false,
   loading: () => (
-    <div className="h-[400px] w-full flex items-center justify-center bg-neutral-50 dark:bg-neutral-900/50 rounded-b-xl border border-t-0 border-black/5 dark:border-white/5">
+    <div className="h-[400px] w-full flex items-center justify-center bg-paper-light dark:bg-paper-dark rounded-b-xl border border-t-0 border-black/5 dark:border-white/5">
       <div className="text-xs uppercase tracking-widest opacity-30 animate-pulse">
         Initializing Workspace...
       </div>
@@ -236,7 +236,7 @@ const AgentScoreGraphic = () => (
 
     {/* Mock status bar — matches real StatusBar */}
     <div
-      className="border-t border-zinc-200/50 dark:border-zinc-800/50 bg-white/50 dark:bg-zinc-950/50 backdrop-blur-3xl flex items-center justify-between px-3 shrink-0"
+      className="border-t border-zinc-200/50 dark:border-zinc-800/50 bg-paper-light/50 dark:bg-paper-dark/50 backdrop-blur-3xl flex items-center justify-between px-3 shrink-0"
       style={{ height: "22px" }}
     >
       <span className="text-[11px] font-medium text-emerald-600 dark:text-emerald-400">✓ Saved</span>

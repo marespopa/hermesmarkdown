@@ -243,7 +243,7 @@ export default function LiteEditor() {
 
   return (
     <ErrorBoundary>
-      <div className={`fixed inset-0 flex bg-zinc-50 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 selection:bg-blue-500/30 font-sans overflow-hidden overscroll-none transition-all duration-500 ${isVaultPending ? "blur-md pointer-events-none select-none" : ""}`}>
+      <div className={`fixed inset-0 flex bg-paper-light dark:bg-paper-dark text-ink-light dark:text-ink-dark selection:bg-pastel-blue/30 font-sans overflow-hidden overscroll-none transition-all duration-500 ${isVaultPending ? "blur-md pointer-events-none select-none" : ""}`}>
         {/* Modals */}
         <WelcomeWizard />
         <ConflictDialog />
@@ -279,7 +279,7 @@ export default function LiteEditor() {
         </div>
 
         {/* Workspace Content */}
-        <div className="flex-1 flex min-w-0 bg-white dark:bg-zinc-950 overflow-hidden relative">
+        <div className="flex-1 flex min-w-0 bg-paper-light dark:bg-paper-dark overflow-hidden relative">
           
           {/* Collapsed Sidebar Toggle Column */}
           {!isSidebarOpen && !isZenModeActive && (

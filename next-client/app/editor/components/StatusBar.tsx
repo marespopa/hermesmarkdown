@@ -172,7 +172,7 @@ export default function StatusBar() {
 
   if (!activeFilePath) {
     return (
-      <footer className="relative h-[22px] max-md:h-11 border-t border-zinc-200/50 dark:border-zinc-800/50 bg-white/50 dark:bg-zinc-950/50 backdrop-blur-3xl flex items-center justify-between px-3 shrink-0 pointer-events-auto z-40 select-none">
+      <footer className="relative h-[22px] max-md:h-11 border-t border-zinc-200/50 dark:border-zinc-800/50 bg-paper-light/50 dark:bg-paper-dark/50 backdrop-blur-3xl flex items-center justify-between px-3 shrink-0 pointer-events-auto z-40 select-none">
         <span className="text-[11px] max-md:text-[12px] font-medium text-zinc-400 dark:text-zinc-500">No file open</span>
         {indexerState === "compiling" && (
           <span className="px-2 h-full flex items-center" title="Indexing vault…">
@@ -205,7 +205,7 @@ export default function StatusBar() {
 
   if (isZenModeActive) {
     return (
-      <header className="relative h-11 border-b border-zinc-200/50 dark:border-zinc-800/50 bg-white/50 dark:bg-zinc-950/50 backdrop-blur-3xl flex items-center justify-between px-4 shrink-0 z-40 select-none">
+      <header className="relative h-11 border-b border-zinc-200/50 dark:border-zinc-800/50 bg-paper-light/50 dark:bg-paper-dark/50 backdrop-blur-3xl flex items-center justify-between px-4 shrink-0 z-40 select-none">
         <span className={`text-[12px] font-medium ${saveLabelClass}`}>{saveLabel}</span>
 
         <button
@@ -286,7 +286,7 @@ export default function StatusBar() {
   }
 
   return (
-    <footer className="relative h-[22px] max-md:h-11 border-t border-zinc-200/50 dark:border-zinc-800/50 bg-white/50 dark:bg-zinc-950/50 backdrop-blur-3xl flex items-center justify-between px-3 shrink-0 pointer-events-auto z-40 select-none">
+    <footer className="relative h-[22px] max-md:h-11 border-t border-zinc-200/50 dark:border-zinc-800/50 bg-paper-light/50 dark:bg-paper-dark/50 backdrop-blur-3xl flex items-center justify-between px-3 shrink-0 pointer-events-auto z-40 select-none">
       {/* LEFT — save state */}
       <span className={`text-[11px] max-md:text-[12px] font-medium ${saveLabelClass}`}>{saveLabel}</span>
 

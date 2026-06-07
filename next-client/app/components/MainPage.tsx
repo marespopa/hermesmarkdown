@@ -29,7 +29,7 @@ const MainPage = ({ children }: Props) => {
           className: "hermes-markdown-toast",
         }}
       />
-      <div className={`flex flex-col h-full bg-white dark:bg-neutral-950 text-neutral-900 dark:text-neutral-100 ${isEditor ? "overflow-hidden" : "min-h-screen"}`}>
+      <div className={`flex flex-col h-full paper-grain bg-paper-light dark:bg-paper-dark text-ink-light dark:text-ink-dark ${isEditor ? "overflow-hidden" : "min-h-screen"}`}>
         {showHeader && <Header />}
         
         <main className={`flex-1 flex flex-col ${isEditor ? "overflow-hidden" : ""}`}>

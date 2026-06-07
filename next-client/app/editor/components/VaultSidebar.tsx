@@ -94,7 +94,7 @@ export default function VaultSidebar({
 
   return (
     <div
-      className="flex flex-col h-full animate-in slide-in-from-left duration-700 relative group/sidebar backdrop-blur-3xl bg-white/70 dark:bg-zinc-900/70 border-r border-zinc-200/50 dark:border-zinc-800/50"
+      className="flex flex-col h-full animate-in slide-in-from-left duration-700 relative group/sidebar paper-grain backdrop-blur-3xl bg-paper-light/70 dark:bg-paper-dark/70 border-r border-zinc-200/50 dark:border-zinc-800/50"
       style={{ width: `${sidebarWidth}px` }}
     >
       {/* Resize Handle */}

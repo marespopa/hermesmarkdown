@@ -189,7 +189,7 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
           textareaRef.current.focus();
         }
       }}
-      className={`relative w-full h-full overflow-auto cursor-text ${isZenModeActive ? "no-scrollbar" : "p-2"}`}
+      className={`relative w-full h-full overflow-auto paper-grain cursor-text ${isZenModeActive ? "no-scrollbar" : "p-2"}`}
       translate="no"
     >
       <div
