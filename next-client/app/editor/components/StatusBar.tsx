@@ -161,6 +161,9 @@ export default function StatusBar() {
 
   const activeFilePath = useAtomValue(atom_activeFilePath);
 
+  const indexerCount = typeof indexerState === 'object' ? indexerState.count : 0;
+  const isIndexing = indexerState === "compiling" || (typeof indexerState === 'object' && indexerState.status === "compiling");
+
   const wordCount = useMemo(
     () => (content.trim() ? content.trim().split(/\s+/).filter(Boolean).length : 0),
     [content],
@@ -176,14 +179,17 @@ export default function StatusBar() {
     return (
       <footer className="relative h-[22px] max-md:h-11 border-t border-zinc-200/50 dark:border-zinc-800/50 bg-paper-light/50 dark:bg-paper-dark/50 backdrop-blur-3xl flex items-center justify-between px-3 shrink-0 pointer-events-auto z-40 select-none">
         <span className="text-[11px] max-md:text-[12px] font-medium text-zinc-400 dark:text-zinc-500">No file open</span>
-        {indexerState === "compiling" && (
-          <span className="px-2 h-full flex items-center" title="Indexing vault…">
+        {isIndexing && (
+          <span className="px-2 h-full flex items-center gap-2" title="Indexing vault…">
+            <span className="text-[10px] text-zinc-400 dark:text-zinc-500 font-medium uppercase tracking-wider max-md:hidden">Indexing</span>
+            {indexerCount > 0 && <span className="text-[10px] text-zinc-400 dark:text-zinc-500 tabular-nums">{indexerCount}</span>}
             <span className="w-2 h-2 rounded-full border border-zinc-400 dark:border-zinc-500 border-t-blue-500 dark:border-t-blue-400 animate-spin" />
           </span>
         )}
       </footer>
     );
   }
+
 
   const isDirty = content !== lastSavedContent;
   const isSaving = saveStatus.state === "saving";
@@ -241,9 +247,17 @@ export default function StatusBar() {
         </Button>
 
         <div className="flex items-center gap-1 h-full">
+          {isIndexing && (
+            <span className="px-2 h-full flex items-center gap-2" title="Indexing vault…">
+              <span className="text-[10px] text-zinc-400 dark:text-zinc-500 font-medium uppercase tracking-wider max-md:hidden">Indexing</span>
+              {indexerCount > 0 && <span className="text-[10px] text-zinc-400 dark:text-zinc-500 tabular-nums">{indexerCount}</span>}
+              <span className="w-2 h-2 rounded-full border border-zinc-400 dark:border-zinc-500 border-t-blue-500 dark:border-t-blue-400 animate-spin" />
+            </span>
+          )}
           <Button
             variant="bare"
             className={`relative h-full px-3 flex items-center text-[12px] cursor-pointer ${agentRating.colorClass}`}
+
             onMouseEnter={() => setShowAiTip(true)}
             onMouseLeave={() => setShowAiTip(false)}
             onClick={() => setShowAiTip(v => !v)}
@@ -337,12 +351,15 @@ export default function StatusBar() {
 
       {/* RIGHT — agent readability with improvement tips on hover/tap */}
       <div className="flex items-center h-full divide-x divide-zinc-200/50 dark:divide-zinc-800/50">
-        {indexerState === "compiling" && (
-          <span className="px-2 h-full flex items-center" title="Indexing vault…">
+        {isIndexing && (
+          <span className="px-2 h-full flex items-center gap-2" title="Indexing vault…">
+            <span className="text-[10px] text-zinc-400 dark:text-zinc-500 font-medium uppercase tracking-wider max-md:hidden">Indexing</span>
+            {indexerCount > 0 && <span className="text-[10px] text-zinc-400 dark:text-zinc-500 tabular-nums">{indexerCount}</span>}
             <span className="w-2 h-2 rounded-full border border-zinc-400 dark:border-zinc-500 border-t-blue-500 dark:border-t-blue-400 animate-spin" />
           </span>
         )}
         <Button
+
           variant="bare"
           className={`relative px-2 h-full flex items-center text-[11px] max-md:text-[12px] cursor-pointer ${agentRating.colorClass}`}
           onMouseEnter={() => setShowAiTip(true)}

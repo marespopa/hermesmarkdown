@@ -5,7 +5,7 @@ import { flushSync } from "react-dom";
 import { useAtomValue } from "jotai";
 import { atom_currency } from "@/app/atoms/atoms";
 import getCaretCoordinates from "textarea-caret";
-import { TEMPLATES, Template, SHORTCODES, LINK_EDITOR_SENTINEL, WIKILINK_EDITOR_SENTINEL, DATE_EDITOR_SENTINEL, TABLE_DIALOG_SENTINEL, FRONTMATTER_WIZARD_SENTINEL, CURSOR_SENTINEL } from "../components/constants";
+import { TEMPLATES, Template, SHORTCODES, LINK_EDITOR_SENTINEL, WIKILINK_EDITOR_SENTINEL, DATE_EDITOR_SENTINEL, TABLE_DIALOG_SENTINEL, FRONTMATTER_WIZARD_SENTINEL, AI_IMPROVE_SENTINEL, AI_EXPAND_SENTINEL, CURSOR_SENTINEL } from "../components/constants";
 import { runAutoBudget } from "../utils/budget";
 
 interface UseEditorTemplatesProps {
@@ -15,6 +15,8 @@ interface UseEditorTemplatesProps {
   wrapperRef: React.RefObject<HTMLDivElement | null>;
   onOpenTableCreate?: (pos: number, filterLen: number) => void;
   onFrontmatterWizard?: () => void;
+  onAIImprove?: () => void;
+  onAIExpand?: () => void;
 }
 
 export function useEditorTemplates({
@@ -24,6 +26,8 @@ export function useEditorTemplates({
   wrapperRef,
   onOpenTableCreate,
   onFrontmatterWizard,
+  onAIImprove,
+  onAIExpand,
 }: UseEditorTemplatesProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [menuPos, setMenuPos] = useState({ top: 0, left: 0 });
@@ -111,6 +115,40 @@ export function useEditorTemplates({
       setFilterQuery("");
       setSelectedIndex(-1);
       onFrontmatterWizard?.();
+      return;
+    }
+
+    if (content === AI_IMPROVE_SENTINEL) {
+      setMenuOpen(false);
+      setFilterQuery("");
+      setSelectedIndex(-1);
+      // Remove the slash command before calling the handler
+      const before = value.substring(0, start - lengthToRemove);
+      const after = value.substring(start);
+      onChange(before + after);
+      setTimeout(() => {
+        if (textareaRef.current) {
+          textareaRef.current.setSelectionRange(before.length, before.length);
+          onAIImprove?.();
+        }
+      }, 0);
+      return;
+    }
+
+    if (content === AI_EXPAND_SENTINEL) {
+      setMenuOpen(false);
+      setFilterQuery("");
+      setSelectedIndex(-1);
+      // Remove the slash command before calling the handler
+      const before = value.substring(0, start - lengthToRemove);
+      const after = value.substring(start);
+      onChange(before + after);
+      setTimeout(() => {
+        if (textareaRef.current) {
+          textareaRef.current.setSelectionRange(before.length, before.length);
+          onAIExpand?.();
+        }
+      }, 0);
       return;
     }
 

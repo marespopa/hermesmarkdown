@@ -162,10 +162,20 @@ ul li::marker {
 /* Typography settings — driven by CSS vars on .editor-container.
    Applied identically to both overlay layers so the caret stays aligned.
    !important overrides react-simple-code-editor's own inline styles. */
+.editor-container,
 .editor-container textarea,
 .editor-container pre {
+  font-size: var(--editor-font-size, 16px) !important;
   line-height: var(--editor-line-height, 1.8) !important;
   letter-spacing: var(--editor-letter-spacing, normal) !important;
+}
+
+@media (min-width: 1280px) {
+  .editor-container,
+  .editor-container textarea,
+  .editor-container pre {
+    font-size: calc(var(--editor-font-size, 16px) + 1px) !important;
+  }
 }
 
 /* Table rendering — activated when preview pane wraps content in .hermes-preview */

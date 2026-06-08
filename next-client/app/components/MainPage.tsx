@@ -15,10 +15,12 @@ type Props = {
 
 const MainPage = ({ children }: Props) => {
   const pathname = usePathname();
-  const isEditor = pathname === "/editor" || pathname === "/editor/settings";
+  const isEditor = pathname?.startsWith("/editor");
+  const isAuthCallback = pathname === "/auth/google/callback";
+  const hideNav = isEditor || isAuthCallback;
   
-  const showHeader = !isEditor;
-  const showFooter = !isEditor;
+  const showHeader = !hideNav;
+  const showFooter = !hideNav;
 
   return (
     <CustomProviders>
@@ -29,10 +31,10 @@ const MainPage = ({ children }: Props) => {
           className: "hermes-markdown-toast",
         }}
       />
-      <div className={`flex flex-col h-full paper-grain bg-paper-light dark:bg-paper-dark text-ink-light dark:text-ink-dark ${isEditor ? "overflow-hidden" : "min-h-screen"}`}>
+      <div className={`flex flex-col h-full paper-grain bg-paper-light dark:bg-paper-dark text-ink-light dark:text-ink-dark ${hideNav ? "overflow-hidden" : "min-h-screen"}`}>
         {showHeader && <Header />}
         
-        <main className={`flex-1 flex flex-col ${isEditor ? "overflow-hidden" : ""}`}>
+        <main className={`flex-1 flex flex-col ${hideNav ? "overflow-hidden" : ""}`}>
           {children}
         </main>
         

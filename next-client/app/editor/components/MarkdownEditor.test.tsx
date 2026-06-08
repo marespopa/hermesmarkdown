@@ -268,6 +268,25 @@ describe("MarkdownEditor Functional Tests", () => {
     vi.useRealTimers();
     });
 
+  it("shows AI Improve/Expand toolbar when text is selected", async () => {
+    renderEditor("Select this text to improve.");
+    const textarea = screen.getByRole("textbox") as HTMLTextAreaElement;
+
+    await act(async () => {
+      textarea.focus();
+      textarea.setSelectionRange(0, 11); // "Select this"
+      // Fire mouseup on window as per our fix
+      window.dispatchEvent(new MouseEvent("mouseup", { bubbles: true }));
+    });
+
+    // The toolbar should appear after a frame/tick
+    const improveBtn = await screen.findByRole("button", { name: /Improve/i }, { timeout: 2000 });
+    expect(improveBtn).toBeInTheDocument();
+    
+    const expandBtn = screen.getByRole("button", { name: /Expand/i });
+    expect(expandBtn).toBeInTheDocument();
+  });
+
   it("cycles tag even when cursor is at position 0 via WorkflowPill", async () => {
     vi.useFakeTimers();
     renderEditor("#draft Task");

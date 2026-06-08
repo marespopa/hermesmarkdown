@@ -263,6 +263,73 @@ const AgentScoreGraphic = () => (
   </div>
 );
 
+const GoogleDriveGraphic = () => (
+  <div className="w-full h-full flex items-center justify-center p-6 relative select-none">
+    <div className="flex items-center gap-8">
+      <div className="flex flex-col items-center gap-2">
+        <div className="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center">
+           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-500">
+             <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
+           </svg>
+        </div>
+        <span className="text-[9px] font-mono opacity-40 uppercase tracking-widest text-center">Local<br/>Vault</span>
+      </div>
+      <div className="flex flex-col items-center gap-1">
+        <div className="h-px w-16 bg-neutral-300 dark:bg-neutral-700 relative">
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 px-1 bg-neutral-100 dark:bg-neutral-900 text-[10px] text-emerald-500">⇄</div>
+        </div>
+      </div>
+      <div className="flex flex-col items-center gap-2">
+        <div className="w-12 h-12 rounded-xl bg-emerald-500/10 flex items-center justify-center">
+           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-emerald-500">
+             <path d="M12 2L2 19h20L12 2z" />
+             <path d="M12 22V12" />
+             <path d="M2 19l10-7 10 7" />
+           </svg>
+        </div>
+        <span className="text-[9px] font-mono opacity-40 uppercase tracking-widest text-center">Google<br/>Drive</span>
+      </div>
+    </div>
+    <div className="absolute top-4 right-4">
+      <span className="text-[9px] font-mono uppercase tracking-widest text-emerald-500 opacity-60">Drive Sync</span>
+    </div>
+  </div>
+);
+
+const AIKeyGraphic = () => (
+  <div className="w-full h-full flex items-center justify-center p-6 relative select-none">
+    <div className="w-full max-w-[280px] space-y-3">
+      <div className="p-3 rounded-lg border border-black/5 dark:border-white/10 bg-white dark:bg-neutral-900/50 space-y-2">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 rounded-full bg-emerald-500" />
+            <span className="text-[10px] font-mono font-bold">Claude 3.5 Sonnet</span>
+          </div>
+          <span className="text-[9px] opacity-40">Active</span>
+        </div>
+        <div className="h-1.5 w-full bg-neutral-100 dark:bg-neutral-800 rounded-full overflow-hidden">
+          <div className="h-full w-full bg-emerald-500/20" />
+        </div>
+      </div>
+      <div className="p-3 rounded-lg border border-black/5 dark:border-white/10 bg-white dark:bg-neutral-900/50 space-y-2">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 rounded-full bg-amber-500" />
+            <span className="text-[10px] font-mono font-bold">Gemini 1.5 Pro</span>
+          </div>
+          <span className="text-[9px] opacity-40">Configured</span>
+        </div>
+        <div className="h-1.5 w-full bg-neutral-100 dark:bg-neutral-800 rounded-full overflow-hidden">
+          <div className="h-full w-2/3 bg-amber-500/20" />
+        </div>
+      </div>
+    </div>
+    <div className="absolute top-4 right-4">
+      <span className="text-[9px] font-mono uppercase tracking-widest text-indigo-500 opacity-60">BYO API Keys</span>
+    </div>
+  </div>
+);
+
 const DEFAULT_DEMO_CONTENT = `---
 title: "ops-log-june"
 status: active
@@ -397,9 +464,9 @@ export default function LandingPage() {
       <section className="py-12 border-y border-black/5 dark:border-white/5 bg-neutral-50/50 dark:bg-neutral-900/30 overflow-hidden">
         <div className="max-w-6xl mx-auto px-6 flex flex-wrap items-center justify-center md:justify-between gap-8 opacity-40 grayscale">
           <div className="text-ui-footnote font-bold uppercase tracking-[0.3em] whitespace-nowrap">Agent-Specific Frontmatter</div>
-          <div className="text-ui-footnote font-bold uppercase tracking-[0.3em] whitespace-nowrap">Live AI Readability Score</div>
+          <div className="text-ui-footnote font-bold uppercase tracking-[0.3em] whitespace-nowrap">Bring Your Own AI Key</div>
+          <div className="text-ui-footnote font-bold uppercase tracking-[0.3em] whitespace-nowrap">Google Drive Integration</div>
           <div className="text-ui-footnote font-bold uppercase tracking-[0.3em] whitespace-nowrap">Local-First Vault</div>
-          <div className="text-ui-footnote font-bold uppercase tracking-[0.3em] whitespace-nowrap">Zero Cloud</div>
         </div>
       </section>
 
@@ -436,8 +503,27 @@ export default function LandingPage() {
           </div>
         </section>
 
+        {/* 3. Bring Your Own AI */}
+        <section className="grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
+          <div className="space-y-6">
+            <div className="h-px w-12 bg-indigo-600" />
+            <h2 className="text-3xl font-bold tracking-tight">Bring Your Own AI</h2>
+            <p className="text-neutral-600 dark:text-neutral-400 leading-relaxed">
+              HermesMarkdown doesn't force a specific model. Plug in your own API keys for Anthropic Claude or Google Gemini to power summaries, frontmatter generation, and agentic workflows. Your keys are stored locally in your browser's encrypted storage — we never proxy your data or see your keys.
+            </p>
+          </div>
+          <div className="aspect-video bg-neutral-100 dark:bg-neutral-900 rounded-2xl border border-black/5 dark:border-white/5 flex items-center justify-center group overflow-hidden relative">
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-indigo-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+            <AIKeyGraphic />
+          </div>
+        </section>
+
         {/* 3. Vault Management */}
         <section className="grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
+          <div className="order-last md:order-first aspect-video bg-neutral-100 dark:bg-neutral-900 rounded-2xl border border-black/5 dark:border-white/5 flex items-center justify-center group overflow-hidden relative">
+             <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-blue-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+             <FilesystemGraphic />
+          </div>
           <div className="space-y-6">
             <div className="h-px w-12 bg-blue-600" />
             <h2 className="text-3xl font-bold tracking-tight">Vault Management</h2>
@@ -445,9 +531,20 @@ export default function LandingPage() {
               Open any local directory as a writing vault and save directly to your machine via the File System Access API — no upload required. All files live flat in your vault root. Smart Workspaces filter them in real time by tag, filename, date, or word count, with a built-in <em>Today's Work</em> view for files edited in the last 24 hours.
             </p>
           </div>
+        </section>
+
+        {/* 5. Google Drive Integration */}
+        <section className="grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
+          <div className="space-y-6">
+            <div className="h-px w-12 bg-emerald-600" />
+            <h2 className="text-3xl font-bold tracking-tight">Google Drive Integration</h2>
+            <p className="text-neutral-600 dark:text-neutral-400 leading-relaxed">
+              Seamlessly sync your local vault with Google Drive. Work offline with local-first speed, and let HermesMarkdown handle the cloud sync in the background. Perfect for maintaining a single source of truth across multiple machines without sacrificing privacy or speed.
+            </p>
+          </div>
           <div className="aspect-video bg-neutral-100 dark:bg-neutral-900 rounded-2xl border border-black/5 dark:border-white/5 flex items-center justify-center group overflow-hidden relative">
-             <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-blue-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
-             <FilesystemGraphic />
+             <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-emerald-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+             <GoogleDriveGraphic />
           </div>
         </section>
 

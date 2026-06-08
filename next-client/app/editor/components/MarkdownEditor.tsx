@@ -12,6 +12,7 @@ import { LinkPill } from "./LinkPill";
 import { WorkflowPill } from "./WorkflowPill";
 import { TableCallout } from "./TableCallout";
 import { TableDialog } from "./TableDialog";
+import { AISelectionToolbar } from "./AISelectionToolbar";
 import { useMarkdownEditor } from "../hooks/useMarkdownEditor";
 import Button from "../../components/Button";
 import Input from "../../components/Input";
@@ -178,6 +179,9 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
     todoMatch,
     todoMenuPos,
     handleTodoCycle,
+    isAiLoading,
+    improveWriting,
+    expandIdea,
   } = useMarkdownEditor({
     ...props,
     value: editorValue,
@@ -315,7 +319,7 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
         `}
         style={{
           fontFamily,
-          fontSize: displayFontSize,
+          "--editor-font-size": displayFontSize,
           "--editor-line-height": lineHeight,
           "--editor-letter-spacing": letterSpacing,
         } as React.CSSProperties}
@@ -473,6 +477,13 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
               onNext={() => handleTodoCycle("next")}
             />
           )}
+
+          <AISelectionToolbar
+            textareaRef={textareaRef}
+            isAiLoading={isAiLoading}
+            onImprove={improveWriting}
+            onExpand={expandIdea}
+          />
 
           {tableInfo && (
             <TableCallout

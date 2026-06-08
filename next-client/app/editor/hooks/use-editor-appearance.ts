@@ -28,10 +28,8 @@ export function useEditorAppearance() {
   }, []);
 
   const displayFontSize = useMemo(() => {
-    const base = parseInt(fontSize);
-    if (isNaN(base)) return fontSize;
-    return windowWidth >= 1280 ? `${base + 1}px` : fontSize;
-  }, [fontSize, windowWidth]);
+    return fontSize;
+  }, [fontSize]);
 
   const widthClass = useMemo(() => {
     const widthClasses = {

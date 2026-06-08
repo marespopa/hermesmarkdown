@@ -36,16 +36,19 @@ export const SelectControl = ({
   value,
   onChange,
   children,
+  disabled,
 }: {
   value: string | number;
   onChange: (v: string) => void;
   children: React.ReactNode;
+  disabled?: boolean;
 }) => (
   <div className="relative">
     <select
       value={value}
       onChange={(e) => onChange(e.target.value)}
-      className="appearance-none bg-zinc-100 dark:bg-zinc-800 text-ui-footnote font-semibold rounded-xl px-3 pr-7 py-1.5 outline-none border border-transparent focus:border-blue-500/40 cursor-pointer transition-all"
+      disabled={disabled}
+      className="appearance-none bg-zinc-100 dark:bg-zinc-800 text-ui-footnote font-semibold rounded-xl px-3 pr-7 py-1.5 outline-none border border-transparent focus:border-blue-500/40 cursor-pointer transition-all disabled:opacity-50 disabled:cursor-not-allowed"
     >
       {children}
     </select>

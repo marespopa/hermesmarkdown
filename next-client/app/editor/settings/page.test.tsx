@@ -177,7 +177,7 @@ describe("SettingsPage", () => {
     // The first tab "content" should have the "down" button enabled.
     // We'll find all buttons and look for the one that has the down icon content.
     const allButtons = screen.getAllByRole("button");
-    const contentDownButton = allButtons.find(b => b.innerHTML.includes('HiChevronDown') && !b.disabled);
+    const contentDownButton = allButtons.find(b => b.innerHTML.includes('HiChevronDown') && !(b as HTMLButtonElement).disabled);
 
     if (contentDownButton) {
       fireEvent.click(contentDownButton);

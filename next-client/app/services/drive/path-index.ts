@@ -76,20 +76,26 @@ export class DrivePathIndex {
     this.byId.clear();
   }
 
-  async build(rootFolderId: string, signal?: AbortSignal): Promise<void> {
+  async build(rootFolderId: string, signal?: AbortSignal, onProgress?: (count: number) => void): Promise<void> {
     this.clear();
-    await this.walk(rootFolderId, '', signal);
+    let count = 0;
+    const increment = () => {
+      count++;
+      onProgress?.(count);
+    };
+    await this.walk(rootFolderId, '', signal, increment);
   }
 
-  private async walk(folderId: string, prefix: string, signal?: AbortSignal): Promise<void> {
+  private async walk(folderId: string, prefix: string, signal?: AbortSignal, onEntry?: () => void): Promise<void> {
     let pageToken: string | undefined;
     const isIgnored = (name: string) =>
       name === 'node_modules' || name === 'vendor' || name.startsWith('.');
 
     do {
       if (signal?.aborted) return;
-      const result = await listFiles(folderId, pageToken);
+      const result = await listFiles(folderId, pageToken, signal);
       pageToken = result.nextPageToken;
+
 
       for (const file of result.files) {
         if (signal?.aborted) return;
@@ -103,13 +109,20 @@ export class DrivePathIndex {
           modifiedAt: new Date(file.modifiedTime).getTime(),
           parentId: folderId,
         });
+        onEntry?.();
 
         if (file.mimeType === FOLDER_MIME) {
-          await this.walk(file.id, path, signal);
+          try {
+            await this.walk(file.id, path, signal, onEntry);
+          } catch (err: any) {
+            if (err.name === 'AbortError') throw err; // propagate aborts
+            console.warn(`Drive: skipping folder "${path}" due to error:`, err);
+          }
         }
       }
     } while (pageToken);
   }
+
 
   serialize(): string {
     return JSON.stringify(Array.from(this.byPath.entries()));

@@ -21,40 +21,48 @@ export class DriveError extends Error {
   }
 }
 
-async function req(url: string, opts: RequestInit = {}, retried = false): Promise<Response> {
+async function req(url: string, opts: RequestInit = {}, retried = false, signal?: AbortSignal): Promise<Response> {
   const token = getStoredAccessToken();
   if (!token) throw new DriveError(401, 'Drive token expired or missing');
 
-  const res = await fetch(url, {
-    ...opts,
-    headers: { Authorization: `Bearer ${token}`, ...opts.headers },
-  });
+  try {
+    const res = await fetch(url, {
+      ...opts,
+      signal,
+      headers: { Authorization: `Bearer ${token}`, ...opts.headers },
+    });
 
-  if (res.status === 429 && !retried) {
-    const after = parseInt(res.headers.get('Retry-After') || '5', 10);
-    await new Promise(r => setTimeout(r, after * 1000));
-    return req(url, opts, true);
+    if (res.status === 429 && !retried) {
+      const after = parseInt(res.headers.get('Retry-After') || '5', 10);
+      await new Promise(r => setTimeout(r, after * 1000));
+      return req(url, opts, true, signal);
+    }
+
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({ error: { message: res.statusText } }));
+      throw new DriveError(res.status, body?.error?.message || `Request failed with status ${res.status}`);
+    }
+
+    return res;
+  } catch (err: any) {
+    if (err.name === 'AbortError' || (err instanceof Error && err.message.includes('aborted'))) throw err;
+    if (err instanceof DriveError) throw err;
+    throw new DriveError(0, `Network error: ${err.message || 'Failed to fetch'}. Please check your internet connection or Google Drive status.`);
   }
-
-  if (!res.ok) {
-    const body = await res.json().catch(() => ({ error: { message: res.statusText } }));
-    throw new DriveError(res.status, body?.error?.message || res.statusText);
-  }
-
-  return res;
 }
 
-export async function listFiles(folderId: string, pageToken?: string): Promise<{ files: DriveFile[]; nextPageToken?: string }> {
+export async function listFiles(folderId: string, pageToken?: string, signal?: AbortSignal): Promise<{ files: DriveFile[]; nextPageToken?: string }> {
   const params = new URLSearchParams({
     q: `'${folderId}' in parents and trashed = false`,
-    fields: 'nextPageToken,files(id,name,mimeType,modifiedTime,size)',
+    fields: 'nextPageToken,files(id,name,mimeType,modifiedTime)',
     pageSize: '1000',
     orderBy: 'name',
   });
   if (pageToken) params.set('pageToken', pageToken);
-  const res = await req(`${BASE}/files?${params}`);
+  const res = await req(`${BASE}/files?${params}`, {}, false, signal);
   return res.json();
 }
+
 
 export async function getFileContent(fileId: string): Promise<string> {
   const res = await req(`${BASE}/files/${fileId}?alt=media`);

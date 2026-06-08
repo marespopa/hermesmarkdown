@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useAtom } from "jotai";
 import { useRouter } from "next/navigation";
 import {
@@ -19,11 +19,16 @@ import {
   atom_currency,
   atom_autoInjectFrontmatter,
   atom_sidebarTabOrder,
+  atom_aiProvider,
+  atom_selectedAiModel,
+  atom_claudeKey,
+  atom_geminiKey,
   MONO_FONT_STACK,
 } from "@/app/atoms/atoms";
-import { atom_vaultSetupWizardOpen } from "@/app/atoms/ui-atoms";
+import { atom_vaultSetupWizardOpen, atom_availableGeminiModels } from "@/app/atoms/ui-atoms";
 import { atom_driveVaultId, atom_driveVaultName } from "@/app/atoms/drive-atoms";
 import { useDriveAuth } from "@/app/hooks/drive/use-drive-auth";
+import { testAIConnection, fetchGeminiModels } from "@/app/services/ai";
 import {
   HiOutlineArrowLeft,
   HiOutlineDocumentText,
@@ -31,12 +36,16 @@ import {
   HiOutlineColorSwatch,
   HiOutlineAcademicCap,
   HiOutlineCloud,
+  HiOutlineLightningBolt,
   HiCheck,
   HiChevronUp,
   HiChevronDown,
+  HiOutlineRefresh,
 } from "react-icons/hi";
 import Button from "@/app/components/Button";
 import Toggle from "@/app/components/Toggle";
+import Input from "@/app/components/Input";
+import { showSuccessToast, showErrorToast } from "@/app/components/Toastr";
 import {
   SegmentedControl,
   SelectControl,
@@ -61,11 +70,62 @@ const SettingsPage = () => {
   const [currencyCode, setCurrencyCode] = useAtom(atom_currency);
   const [autoInjectFrontmatter, setAutoInjectFrontmatter] = useAtom(atom_autoInjectFrontmatter);
   const [sidebarTabOrder, setSidebarTabOrder] = useAtom(atom_sidebarTabOrder);
+  const [aiProvider, setAiProvider] = useAtom(atom_aiProvider);
+  const [selectedAiModel, setSelectedAiModel] = useAtom(atom_selectedAiModel);
+  const [claudeKey, setClaudeKey] = useAtom(atom_claudeKey);
+  const [geminiKey, setGeminiKey] = useAtom(atom_geminiKey);
   const [, setIsWizardOpen] = useAtom(atom_isWizardOpen);
   const [, setVaultSetupWizardOpen] = useAtom(atom_vaultSetupWizardOpen);
   const [, setDriveVaultId] = useAtom(atom_driveVaultId);
   const [driveVaultName] = useAtom(atom_driveVaultName);
   const { authState: driveAuthState, signIn: driveSignIn, signOut: driveSignOut } = useDriveAuth();
+
+  const [availableGeminiModels, setAvailableGeminiModels] = useAtom(atom_availableGeminiModels);
+  const [isFetchingModels, setIsFetchingModels] = useState(false);
+  const [fetchError, setFetchError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (aiProvider === "gemini" && geminiKey && availableGeminiModels.length === 0 && !fetchError) {
+      const loadModels = async () => {
+        setIsFetchingModels(true);
+        setFetchError(null);
+        try {
+          const models = await fetchGeminiModels(geminiKey);
+          setAvailableGeminiModels(models);
+        } catch (error: any) {
+          console.error("Failed to fetch models", error);
+          setFetchError(error.message || "Failed to load models");
+        } finally {
+          setIsFetchingModels(false);
+        }
+      };
+      loadModels();
+    }
+  }, [aiProvider, geminiKey, availableGeminiModels.length, setAvailableGeminiModels, fetchError]);
+
+  const [isTestingConnection, setIsTestingConnection] = useState(false);
+
+  const handleTestConnection = async () => {
+    const key = aiProvider === "claude" ? claudeKey : geminiKey;
+    if (!key) {
+      showErrorToast(`Please enter your ${aiProvider === "claude" ? "Claude" : "Gemini"} API key first.`);
+      return;
+    }
+
+    setIsTestingConnection(true);
+    try {
+      const result = await testAIConnection(aiProvider, key);
+      if (result.success) {
+        showSuccessToast(`Connection to ${aiProvider === "claude" ? "Claude" : "Gemini"} successful!`);
+      } else {
+        showErrorToast(`Failed to connect: ${result.error}`);
+      }
+    } catch (error: any) {
+      showErrorToast(`An error occurred: ${error.message || "Unknown error"}`);
+    } finally {
+      setIsTestingConnection(false);
+    }
+  };
 
   const moveTab = (index: number, direction: "up" | "down") => {
     const newOrder = [...sidebarTabOrder];
@@ -320,6 +380,151 @@ const SettingsPage = () => {
               }
             />
           </SettingGroup>
+        </>
+      ),
+    },
+    {
+      id: "ai",
+      label: "AI Features",
+      icon: HiOutlineLightningBolt,
+      content: (
+        <>
+          <SettingGroup title="Provider Config">
+            <SettingItem
+              label="AI Provider"
+              description="Choose the model used for AI features."
+              control={
+                <SelectControl
+                  value={aiProvider}
+                  onChange={(v) => {
+                    const p = v as any;
+                    setAiProvider(p);
+                    // Reset selected model to appropriate default for provider
+                    if (p === "claude") setSelectedAiModel("sonnet-4-6");
+                    else setSelectedAiModel("gemini-3.5-flash");
+                  }}
+                >
+                  <option value="claude">Claude (Anthropic)</option>
+                  <option value="gemini">Gemini (Google)</option>
+                </SelectControl>
+              }
+            />
+            {aiProvider === "claude" && (
+              <SettingItem
+                label="Model Tier"
+                description="Haiku is fast, Opus is most powerful."
+                control={
+                  <SelectControl
+                    value={selectedAiModel}
+                    onChange={(v) => setSelectedAiModel(v as any)}
+                  >
+                    <option value="sonnet-4-6">Claude 4.6 Sonnet</option>
+                    <option value="haiku-4-5">Claude 4.5 Haiku</option>
+                    <option value="opus-4-8">Claude 4.8 Opus</option>
+                  </SelectControl>
+                }
+              />
+            )}
+            {aiProvider === "gemini" && (
+              <SettingItem
+                label="Model Tier"
+                description={
+                  isFetchingModels 
+                    ? "Fetching available models..." 
+                    : fetchError 
+                      ? `Error: ${fetchError}` 
+                      : "Choose from models available to your API key."
+                }
+                control={
+                  <div className="flex items-center gap-2">
+                    <SelectControl
+                      value={selectedAiModel}
+                      onChange={(v) => setSelectedAiModel(v as any)}
+                      disabled={isFetchingModels}
+                    >
+                      {availableGeminiModels.length > 0 ? (
+                        availableGeminiModels.map((m) => (
+                          <option key={m.id} value={m.id}>
+                            {m.name}
+                          </option>
+                        ))
+                      ) : (
+                        <>
+                          <option value="gemini-3.5-flash">Gemini 3.5 Flash</option>
+                          <option value="gemini-3.1-pro">Gemini 3.1 Pro (Preview)</option>
+                          <option value="gemini-3.1-flash-lite">Gemini 3.1 Flash-Lite</option>
+                        </>
+                      )}
+                    </SelectControl>
+                    <button
+                      onClick={() => {
+                        setAvailableGeminiModels([]);
+                        setFetchError(null);
+                      }}
+                      className="p-1.5 text-zinc-400 hover:text-blue-500 transition-colors"
+                      title="Refresh models"
+                    >
+                      <HiOutlineRefresh size={18} className={isFetchingModels ? "animate-spin" : ""} />
+                    </button>
+                  </div>
+                }
+              />
+            )}
+            {aiProvider === "claude" && (
+              <SettingItem
+                label="Claude API Key"
+                description="Your Anthropic API key."
+                layout="stack"
+                control={
+                  <Input
+                    name="claudeKey"
+                    value={claudeKey}
+                    type="password"
+                    placeholder="sk-ant-..."
+                    handleChange={(e) => setClaudeKey(e.target.value.trim())}
+                  />
+                }
+              />
+            )}
+            {aiProvider === "gemini" && (
+              <SettingItem
+                label="Gemini API Key"
+                description="Your Google AI Studio API key."
+                layout="stack"
+                control={
+                  <Input
+                    name="geminiKey"
+                    value={geminiKey}
+                    type="password"
+                    placeholder="AIza..."
+                    handleChange={(e) => setGeminiKey(e.target.value.trim())}
+                  />
+                }
+              />
+            )}
+            <div className="pt-2">
+              <Button
+                variant="secondary"
+                disabled={isTestingConnection}
+                onClick={handleTestConnection}
+                className="w-full flex items-center justify-center gap-2 h-11"
+              >
+                {isTestingConnection ? (
+                  <>
+                    <HiOutlineRefresh className="animate-spin" />
+                    Testing...
+                  </>
+                ) : (
+                  "Test Connection"
+                )}
+              </Button>
+            </div>
+          </SettingGroup>
+          <div className="mt-4 px-1">
+            <p className="text-ui-caption text-zinc-400 dark:text-zinc-500 italic">
+              Note: Your API keys are stored locally in your browser and never sent to HermesMarkdown servers.
+            </p>
+          </div>
         </>
       ),
     },

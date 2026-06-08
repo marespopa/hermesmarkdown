@@ -7,12 +7,11 @@ import DialogModal from "@/app/components/DialogModal/DialogModal";
 import Button from "@/app/components/Button";
 import {
   HiOutlineFolder,
-  HiOutlineLink,
   HiOutlineCode,
   HiOutlineTerminal,
-  HiOutlineLightningBolt,
   HiOutlineChartBar,
-  HiOutlineEye,
+  HiOutlineCloud,
+  HiOutlineSparkles,
 } from "react-icons/hi";
 
 const WelcomeWizard = () => {
@@ -32,45 +31,39 @@ const WelcomeWizard = () => {
   const steps = [
     {
       title: "Connect Your Vault",
-      subtitle: "Your files, your device",
-      content: "Click Open Vault in the sidebar and select any local folder. Hermes maps it directly into the browser workspace using the File System Access API — no cloud, no servers, complete data sovereignty.",
+      subtitle: "Local or cloud — your choice",
+      content: "Click Open Vault in the sidebar to select a local folder, or connect Google Drive to sync directly with your cloud storage. Hermes uses the File System Access API for local vaults — no servers, complete data sovereignty.",
       icon: <HiOutlineFolder className="text-amber-500" size={32} />,
+    },
+    {
+      title: "Google Drive Sync",
+      subtitle: "Your vault, everywhere",
+      content: "Open Settings → Integrations and connect your Google account. Pick any Drive folder as your vault — Hermes indexes all your markdown files and saves changes back to Drive in real time. Switch between local and cloud vaults at any time.",
+      icon: <HiOutlineCloud className="text-blue-500" size={32} />,
+    },
+    {
+      title: "AI Writing Assistant",
+      subtitle: "Claude & Gemini, built in",
+      content: "Select any text in the editor to reveal the AI toolbar. Rewrite, expand, summarize, or ask a custom prompt — powered by your own Claude or Gemini API key. Add your key in Settings → AI Features and pick a model tier.",
+      icon: <HiOutlineSparkles className="text-violet-500" size={32} />,
     },
     {
       title: "Frontmatter & Smart Filters",
       subtitle: "Machine-readable metadata",
-      content: "Add a frontmatter block at the top of any file: id, title, status, version, and tags: [ai, work]. Lifecycle tags (#draft, #review, #active, #archived) mirror the status field — click any tag in the editor to cycle it through the document lifecycle. Hermes indexes all tags into the Smart Filters panel.",
+      content: "Add a frontmatter block at the top of any file — id, title, status, tags: [ai, work]. Lifecycle tags (#draft, #review, #active, #archived) mirror the status field, and clicking a tag in the editor cycles it through the lifecycle. All tags are indexed into the Smart Filters panel.",
       icon: <HiOutlineCode className="text-amber-500" size={32} />,
     },
     {
-      title: "Slash Command Menu",
-      subtitle: "Templates and insertions, instantly",
-      content: "Type / at the start of a line to open the command menu. Fuzzy-filter by typing — each row shows an icon, description, and optional shortcut. Arrow keys navigate, Enter or Tab inserts. Includes /agent, /role, /context, and /constraints blocks ready for any LLM.",
+      title: "Slash Commands & WikiLinks",
+      subtitle: "Templates, links, and navigation",
+      content: "Type / at the start of a line for the command menu — includes /agent, /role, /context, and /constraints blocks ready for any LLM. Type [[ to link notes and Ctrl/Cmd-click to jump between them. Drag tabs to split the workspace into side-by-side panes.",
       icon: <HiOutlineTerminal className="text-sky-500" size={32} />,
     },
     {
-      title: "WikiLinks & Split Panes",
-      subtitle: "Navigate and compare",
-      content: "Type [[ to link to another note. Hold Ctrl/Cmd and click to navigate instantly. Drag any tab to split the workspace into side-by-side panes — ideal for keeping a reference doc open while you write.",
-      icon: <HiOutlineLink className="text-blue-500" size={32} />,
-    },
-    {
-      title: "Math & Shortcodes",
-      subtitle: "Ambient intelligence in your drafts",
-      content: "Lines beginning with + or - accumulate above a Total: marker — append a line from a terminal script and the total updates live. Type ..d for today's ISO date, or / → Financial Plan to scaffold a budget template.",
-      icon: <HiOutlineLightningBolt className="text-emerald-500" size={32} />,
-    },
-    {
-      title: "Agent Readability Score",
-      subtitle: "Know your file's AI-readiness",
-      content: "The status bar shows a live AI readability score for the active file — Structured, Good, Fair, or Weak. Hover to see exactly what the file is missing: frontmatter fields, heading continuity, typed code blocks, tables, and consistent list syntax. Fix the tips to make the file deterministically parseable by any agent.",
+      title: "Agent Readability & Zen Mode",
+      subtitle: "Write better, focus deeper",
+      content: "The status bar shows a live AI readability score — Structured, Good, Fair, or Weak. Hover to see what's missing: frontmatter fields, heading continuity, typed code blocks. Press Ctrl+Shift+Z to enter Zen Mode and isolate your active line for distraction-free writing.",
       icon: <HiOutlineChartBar className="text-indigo-500" size={32} />,
-    },
-    {
-      title: "Zen Mode",
-      subtitle: "Distraction-free deep work",
-      content: "Press Ctrl+Shift+Z (or Cmd+Shift+Z). The file tree and sidebars recede. A focus tint isolates your active line, providing a clean, distraction-free writing environment.",
-      icon: <HiOutlineEye className="text-rose-500" size={32} />,
     },
   ];
 

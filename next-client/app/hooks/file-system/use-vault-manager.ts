@@ -168,8 +168,9 @@ export function useVaultManager() {
         const handle = passedHandle || vaultHandle;
         if (!handle) return;
 
-        setIndexerState("compiling");
+        setIndexerState({ status: "compiling", count: 0 });
         const fileHandles: { handle: FileSystemFileHandle; path: string }[] = [];
+
         let subdirFailCount = 0;
 
         // Directories that are never markdown vaults but can hold huge file trees.
@@ -211,7 +212,7 @@ export function useVaultManager() {
             setTimeout(() => {
               timedOut = true;
               resolve();
-            }, 20000),
+            }, 60000), // 60s timeout for local vaults
           ),
         ]);
 
@@ -221,6 +222,7 @@ export function useVaultManager() {
             { id: "index-timeout", duration: 6000 },
           );
         }
+
 
         if (subdirFailCount > 0) {
           toast.error(
@@ -253,9 +255,8 @@ export function useVaultManager() {
           }
         }
 
-        // Files are now visible in the sidebar — mark scanning done.
         // Tag extraction below is secondary; it must not block the visible state.
-        setIndexerState("idle");
+        // setIndexerState("idle"); // REMOVED - it's too early
 
         // Read file contents in the main thread (permissions are scoped here, not in the worker)
         const filesWithContent = await Promise.all(
@@ -276,15 +277,17 @@ export function useVaultManager() {
 
         if (metadataWorker && readable.length > 0) {
           metadataWorker.postMessage({ files: readable });
+        } else {
+          setIndexerState("idle");
         }
       } catch (err: any) {
         console.error("Failed to index vault tags:", err);
-      } finally {
         setIndexerState("idle");
       }
     },
     [vaultHandle, setIndexerState, setFileMetadata],
   );
+
 
   const promptFrontmatter = useCallback(async () => {
     if (frontmatterHasPrompted) return;

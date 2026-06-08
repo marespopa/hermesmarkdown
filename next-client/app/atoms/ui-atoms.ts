@@ -104,20 +104,31 @@ export interface DialogConfig {
 export const atom_globalDialog = atom<DialogConfig | null>(null);
 
 export const atom_selectionCount = atom<number>(0);
-export type IndexerState = "idle" | "compiling";
+export type IndexerState = "idle" | "compiling" | { status: "compiling"; count: number };
 export const atom_indexerState = atom<IndexerState>("idle");
 
-export type AiModelKey =
-  | "sonnet-4-6"
-  | "haiku-4-5"
-  | "opus-4-8"
-  | "gpt-4o"
-  | "gemini-flash";
+
+export type AiModelKey = string;
 export const atom_selectedAiModel = atomWithStorage<AiModelKey>(
   "selectedAiModel",
   "sonnet-4-6",
 );
 
+export interface GeminiModelInfo {
+  id: string;
+  name: string;
+}
+export const atom_availableGeminiModels = atom<GeminiModelInfo[]>([]);
+
 // Holds the file path being edited, or null when closed
 export const atom_frontmatterWizardOpen = atom<string | null>(null);
 export const atom_vaultSetupWizardOpen = atom<string | null>(null);
+
+// AI Features
+export type AIProvider = "claude" | "gemini";
+export const atom_aiProvider = atomWithStorage<AIProvider>(
+  "hermes_ai_provider",
+  "claude",
+);
+export const atom_claudeKey = atomWithStorage<string>("hermes_claude_key", "");
+export const atom_geminiKey = atomWithStorage<string>("hermes_gemini_key", "");

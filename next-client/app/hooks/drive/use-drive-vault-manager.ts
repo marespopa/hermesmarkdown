@@ -65,7 +65,8 @@ export function useDriveVaultManager() {
     try {
       const result = await listFiles(dirHandle.folderId);
       const currentIndex = drivePathIndex;
-      const prefix = currentIndex?.getPathForId(dirHandle.folderId) ?? '';
+      // Prefer the handle's internal path if set, otherwise try index lookup
+      const prefix = (dirHandle as any).path ?? currentIndex?.getPathForId(dirHandle.folderId) ?? '';
 
       const entries: any[] = result.files
         .filter(f => f.mimeType === FOLDER_MIME || f.name.endsWith('.md'))
@@ -84,31 +85,47 @@ export function useDriveVaultManager() {
 
       setVaultFiles(entries as any);
     } catch (err: any) {
-      if (err.status === 401) setDriveAuthState('expired');
+      if (err.status === 401) {
+        setDriveAuthState('expired');
+        setIsVaultPending(true);
+      }
       console.warn('Drive scanVault failed:', err);
     }
-  }, [drivePathIndex, setVaultFiles, setDriveAuthState]);
+  }, [drivePathIndex, setVaultFiles, setDriveAuthState, setIsVaultPending]);
 
-  const indexVaultTags = useCallback(async () => {
-    const folderId = driveVaultId;
+  const indexVaultTags = useCallback(async (id?: string) => {
+    const folderId = id || driveVaultId;
     if (!folderId) return;
 
-    setIndexerState('compiling');
+    setIndexerState({ status: 'compiling', count: 0 });
 
     const index = new DrivePathIndex();
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 20000);
+    const timeout = setTimeout(() => controller.abort(), 300000); // 5 minute timeout for Drive
+    let buildSucceeded = false;
 
     try {
-      await index.build(folderId, controller.signal);
+      await index.build(folderId, controller.signal, (count) => {
+        setIndexerState({ status: 'compiling', count });
+      });
+      buildSucceeded = !controller.signal.aborted;
     } catch (err: any) {
-      if (err.name !== 'AbortError') {
-        if (err.status === 401) setDriveAuthState('expired');
+      if (err.name === 'AbortError' || controller.signal.aborted) {
+        toast.error('Indexing timed out — existing index kept.', { id: 'index-timeout', duration: 5000 });
+      } else {
+        if (err.status === 401) {
+          setDriveAuthState('expired');
+          setIsVaultPending(true);
+        }
         console.warn('Drive index build failed:', err);
       }
-      toast.error('Indexing timed out — showing partial results.', { id: 'index-timeout', duration: 5000 });
     } finally {
       clearTimeout(timeout);
+    }
+
+    if (!buildSucceeded) {
+      setIndexerState('idle');
+      return;
     }
 
     setDrivePathIndex(index);
@@ -127,29 +144,54 @@ export function useDriveVaultManager() {
       return next;
     });
 
-    setIndexerState('idle');
+    // Process in batches of 5 to avoid hitting Google Drive rate limits too hard
+    const BATCH_SIZE = 5;
+    const readable: any[] = [];
+    const toSend: any[] = [];
+    
+    for (let i = 0; i < fileHandles.length; i += BATCH_SIZE) {
+      if (controller.signal.aborted) break;
+      
+      const batch = fileHandles.slice(i, i + BATCH_SIZE);
+      const batchResults = await Promise.all(
+        batch.map(async ({ handle, path }) => {
+          try {
+            const file = await handle.getFile();
+            const content = await file.text();
+            return { path, name: handle.name, content, modifiedAt: file.lastModified };
+          } catch (err) {
+            console.warn(`Failed to fetch content for ${path}:`, err);
+            return null;
+          }
+        }),
+      );
+      
+      const results = batchResults.filter((f): f is NonNullable<typeof f> => f !== null);
+      readable.push(...results);
+      toSend.push(...results);
+      
+      // Update progress/metadata incrementally
+      if (toSend.length >= 20 && metadataWorker) {
+        metadataWorker.postMessage({ files: [...toSend] });
+        toSend.length = 0;
+      }
 
-    const filesWithContent = await Promise.all(
-      fileHandles.map(async ({ handle, path }) => {
-        try {
-          const file = await handle.getFile();
-          const content = await file.text();
-          return { path, name: handle.name, content, modifiedAt: file.lastModified };
-        } catch {
-          return null;
-        }
-      }),
-    );
-    const readable = filesWithContent.filter((f): f is NonNullable<typeof f> => f !== null);
+      // Small delay between batches
+      await new Promise(r => setTimeout(r, 100));
+    }
 
     pendingHandlesRef.current = new Map(fileHandles.map(f => [f.path, f.handle]));
 
-    if (metadataWorker && readable.length > 0) {
-      metadataWorker.postMessage({ files: readable });
+    if (metadataWorker && toSend.length > 0) {
+      metadataWorker.postMessage({ files: toSend });
+    } else if (!metadataWorker || readable.length === 0) {
+      setIndexerState('idle');
     }
 
     index.saveToCache(folderId);
-  }, [driveVaultId, setDrivePathIndex, setFileMetadata, setIndexerState, setDriveAuthState]);
+  }, [driveVaultId, setDrivePathIndex, setFileMetadata, setIndexerState, setDriveAuthState, setIsVaultPending]);
+
+
 
   // Activate a selected Drive folder as vault
   const openDriveVault = useCallback(async (folderId: string, folderName: string) => {
@@ -175,7 +217,7 @@ export function useDriveVaultManager() {
     if (cached) setDrivePathIndex(cached);
 
     await scanVault(handle);
-    await indexVaultTags();
+    await indexVaultTags(folderId);
     toast.success(`Vault opened: ${folderName}`);
   }, [setDriveVaultId, setDriveVaultName, setDriveAuthState, setVaultHandle, setCurrentDirectoryHandle, setIsVaultPending, setDrivePathIndex, setOpenFiles, setWorkspaceLayout, scanVault, indexVaultTags]);
 
@@ -184,8 +226,10 @@ export function useDriveVaultManager() {
     setShowDriveFolderPicker(true);
   }, [setShowDriveFolderPicker]);
 
-  const restoreVault = useCallback(async () => {
-    if (!driveVaultId) return;
+  const restoreVault = useCallback(async (id?: string) => {
+    const vaultId = id || driveVaultId;
+    if (!vaultId) return;
+
     if (!isTokenValid()) {
       setDriveAuthState('expired');
       startOAuthFlow();
@@ -194,12 +238,12 @@ export function useDriveVaultManager() {
 
     setDriveAuthState('authenticated');
     const name = localStorage.getItem('hermes_drive_vault_name') || 'Drive';
-    const handle = new DriveDirectoryHandle(name, driveVaultId);
+    const handle = new DriveDirectoryHandle(name, vaultId);
     setVaultHandle(handle as any);
     setCurrentDirectoryHandle(handle as any);
     setIsVaultPending(false);
 
-    const cached = DrivePathIndex.loadFromCache(driveVaultId);
+    const cached = DrivePathIndex.loadFromCache(vaultId);
     if (cached) {
       setDrivePathIndex(cached);
       const mdFiles = cached.allEntries().filter(([p]) => p.endsWith('.md'));
@@ -214,8 +258,9 @@ export function useDriveVaultManager() {
     }
 
     await scanVault(handle);
-    indexVaultTags(); // background
+    indexVaultTags(vaultId); // background
   }, [driveVaultId, setDriveAuthState, setVaultHandle, setCurrentDirectoryHandle, setIsVaultPending, setDrivePathIndex, setFileMetadata, scanVault, indexVaultTags]);
+
 
   const closeVault = useCallback(() => {
     setDriveVaultId(null);
@@ -310,9 +355,10 @@ export function useDriveVaultManager() {
       return;
     }
 
-    restoreVault();
+    restoreVault(vaultId);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Mount only
+
 
   return {
     vaultHandle,

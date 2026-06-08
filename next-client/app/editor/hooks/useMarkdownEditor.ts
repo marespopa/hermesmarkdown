@@ -19,6 +19,7 @@ import { useEditorHandlers } from "./use-editor-handlers";
 import { useLinkPill } from "./use-link-pill";
 import { useTableCallout } from "./use-table-callout";
 import { useTableDialog } from "./useTableDialog";
+import { useAIEditorActions } from "./useAIEditorActions";
 import { extractTableSource } from "../utils/tableParser";
 
 interface UseMarkdownEditorProps {
@@ -94,6 +95,12 @@ export function useMarkdownEditor({
   } = useTableCallout({ value, textareaRef });
 
   const tableDialog = useTableDialog({ value, textareaRef });
+
+  const { isAiLoading, improveWriting, expandIdea } = useAIEditorActions({
+    value,
+    onChange,
+    textareaRef,
+  });
 
   const handleOpenEditDialog = useCallback(() => {
     if (!tableInfo) return;
@@ -182,6 +189,8 @@ export function useMarkdownEditor({
     wrapperRef,
     onOpenTableCreate: tableDialog.openCreate,
     onFrontmatterWizard,
+    onAIImprove: improveWriting,
+    onAIExpand: expandIdea,
   });
 
   const handleSaveWikiLink = useCallback(
@@ -459,5 +468,8 @@ export function useMarkdownEditor({
     todoMatch,
     todoMenuPos,
     handleTodoCycle,
+    isAiLoading,
+    improveWriting,
+    expandIdea,
   };
 }

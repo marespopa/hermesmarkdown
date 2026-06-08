@@ -20,7 +20,7 @@ export function useVaultSync() {
 
     try {
       await scanVault(vaultHandle);
-      await indexVaultTags(vaultHandle);
+      await indexVaultTags();
       console.log("Vault structure synced");
     } catch (err: any) {
       if (err.name === "NotAllowedError") {

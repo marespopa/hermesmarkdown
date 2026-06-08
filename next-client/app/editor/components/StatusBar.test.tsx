@@ -40,6 +40,10 @@ import {
   atom_activeFilePath,
 } from "@/app/atoms/atoms";
 
+import {
+  atom_indexerState,
+} from "@/app/atoms/ui-atoms";
+
 global.ResizeObserver = vi.fn().mockImplementation(() => ({
   observe: vi.fn(),
   unobserve: vi.fn(),
@@ -265,5 +269,18 @@ describe("StatusBar", () => {
       </TestProvider>
     );
     expect(screen.getByText("Exit")).toBeDefined();
+  });
+
+  it("shows Indexing text and count when indexerState is compiling", () => {
+    render(
+      <TestProvider initialValues={[
+        ...makeValues(),
+        [atom_indexerState, { status: "compiling", count: 42 }]
+      ]}>
+        <StatusBar />
+      </TestProvider>
+    );
+    expect(screen.getByText("Indexing")).toBeDefined();
+    expect(screen.getByText("42")).toBeDefined();
   });
 });
