@@ -30,6 +30,6 @@ export function injectFrontmatter(content: string, fileName: string): string {
   const slug = toSlug(fileName);
   const title = toTitle(fileName);
 
-  const fm = `---\nid: ${slug}\ntitle: ${title}\ntype: note\nstatus: draft\nversion: 1\ntags: ${tagsStr}\n---\n\n`;
+  const fm = `---\nid: ${slug}\ntitle: ${title}\ntype: note\nstatus: "#draft"\nversion: 1\ntags: ${tagsStr}\n---\n\n`;
   return fm + content;
 }

@@ -20,6 +20,7 @@ interface VaultSidebarFilesProps {
   renameFile: (handle: FileSystemHandle) => void;
   deleteFile: (handle: FileSystemHandle) => void;
   onClose?: () => void;
+  isSearchActive?: boolean;
 }
 
 export default function VaultSidebarFiles({
@@ -30,6 +31,7 @@ export default function VaultSidebarFiles({
   renameFile,
   deleteFile,
   onClose,
+  isSearchActive = false,
 }: VaultSidebarFilesProps) {
   const indexerState = useAtomValue(atom_indexerState);
   const [actionMenuOpen, setActionMenuOpen] = useState<string | null>(null);
@@ -47,7 +49,7 @@ export default function VaultSidebarFiles({
     if (el) el.scrollIntoView({ block: "nearest", behavior: "smooth" });
   }
 
-  const emptyStateMessage = "No files yet";
+  const emptyStateMessage = isSearchActive ? "No file found" : "No files yet";
   const emptyStateHint = undefined;
 
   return (

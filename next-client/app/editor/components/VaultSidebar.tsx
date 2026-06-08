@@ -59,6 +59,8 @@ export default function VaultSidebar({
 
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [activeTab, setActiveTab] = useState<SidebarTab>(tabOrder[0] || "content");
+  const [viewMatchCount, setViewMatchCount] = useState(0);
+  const [viewHasFolderSelected, setViewHasFolderSelected] = useState(false);
 
   const {
     searchQuery,
@@ -66,6 +68,9 @@ export default function VaultSidebar({
     processedFiles,
     tags,
   } = useSidebarSearch({ selectedTags });
+
+  const isSearching = searchQuery.trim().length > 0 || selectedTags.length > 0;
+  const showAllFiles = isSearching && (activeTab === "content" || !viewHasFolderSelected || viewMatchCount === 0);
 
   // Resize logic
   const startResizing = React.useCallback((e: React.MouseEvent) => {
@@ -188,7 +193,12 @@ export default function VaultSidebar({
             </div>
 
             <div className="flex-1 overflow-hidden flex flex-col pt-3">
-              {activeTab === "content" ? (
+              {showAllFiles && activeTab === "views" && (
+                <p className="px-4 pb-1 text-ui-caption text-zinc-400 dark:text-zinc-600 shrink-0">
+                  Searching all files
+                </p>
+              )}
+              {showAllFiles ? (
                 <VaultSidebarFiles
                   onNewFile={onNewFile}
                   processedFiles={processedFiles}
@@ -197,6 +207,7 @@ export default function VaultSidebar({
                   renameFile={renameFile}
                   deleteFile={deleteFile}
                   onClose={onClose}
+                  isSearchActive={isSearching}
                 />
               ) : (
                 <div className="flex-1 overflow-y-auto">
@@ -209,6 +220,10 @@ export default function VaultSidebar({
                     deleteFile={deleteFile}
                     searchQuery={searchQuery}
                     selectedTags={selectedTags}
+                    onMatchCountChange={(count, hasFolderSelected) => {
+                      setViewMatchCount(count);
+                      setViewHasFolderSelected(hasFolderSelected);
+                    }}
                   />
                 </div>
               )}

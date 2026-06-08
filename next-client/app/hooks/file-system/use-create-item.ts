@@ -151,7 +151,7 @@ export function useCreateItem({ scanVault, indexVaultTags, openFile }: UseCreate
     const tagsStr = result.tags 
       ? `[${result.tags.split(",").map((t: string) => t.trim().toLowerCase()).filter(Boolean).join(", ")}]` 
       : "[]";
-    const fm = `---\nid: ${slug}\ntitle: ${result.name}\ntype: ${result.type || "note"}\nstatus: draft\nversion: 1\ntags: ${tagsStr}\n---\n\n`;
+    const fm = `---\nid: ${slug}\ntitle: ${result.name}\ntype: ${result.type || "note"}\nstatus: "#draft"\nversion: 1\ntags: ${tagsStr}\n---\n\n`;
 
     return await createFile(result.name, fm, targetDir);
   }, [vaultHandle, vaultFiles, scanVault, createFile, dialog]);

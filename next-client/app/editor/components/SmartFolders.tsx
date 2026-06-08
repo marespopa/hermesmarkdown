@@ -37,6 +37,7 @@ interface SmartFoldersProps {
   deleteFile: (handle: FileSystemHandle) => void;
   searchQuery?: string;
   selectedTags?: string[];
+  onMatchCountChange?: (count: number, hasFolderSelected: boolean) => void;
 }
 
 export default function SmartFolders({
@@ -45,6 +46,7 @@ export default function SmartFolders({
   deleteFile,
   searchQuery = "",
   selectedTags = [],
+  onMatchCountChange,
 }: SmartFoldersProps) {
   const [fileMetadata] = useAtom(atom_fileMetadata);
   const [customWorkspaces, setCustomWorkspaces] = useAtom(atom_customWorkspaces);
@@ -92,6 +94,10 @@ export default function SmartFolders({
 
     return files;
   }, [selectedFolderId, fileMetadata, allWorkspaces, searchQuery, selectedTags]);
+
+  React.useEffect(() => {
+    onMatchCountChange?.(matchedFiles.length, selectedFolderId !== null);
+  }, [matchedFiles.length, selectedFolderId, onMatchCountChange]);
 
   const handleDelete = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
