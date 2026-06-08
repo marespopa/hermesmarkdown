@@ -22,7 +22,7 @@ import {
   atom_workspaceLayout,
   contentStore
 } from "@/app/atoms/atoms";
-import { HiOutlineDocumentText, HiOutlineEye, HiOutlineChartBar, HiOutlineX, HiOutlineClipboardCopy, HiOutlineSave } from "react-icons/hi";
+import { HiOutlineDocumentText, HiOutlineEye, HiOutlineChartBar, HiOutlineX, HiOutlineClipboardCopy, HiOutlineSave, HiOutlineDotsHorizontal } from "react-icons/hi";
 import { VscSplitHorizontal } from "react-icons/vsc";
 import { showCopyToast, showErrorToast } from "@/app/components/Toastr";
 import PaneTab, { TabSaveState } from "./PaneTab";
@@ -320,6 +320,18 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
                   <HiOutlineSave size={18} />
                 </Button>
                 <div className="w-px h-3 bg-zinc-200 dark:bg-zinc-800 mx-1 opacity-50" />
+                <Button
+                  variant="icon"
+                  onClick={(e) => {
+                    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+                    setTabMenu({ x: rect.left, y: rect.bottom + 4, path: leaf.activeFilePath || "draft" });
+                  }}
+                  title="Tab options"
+                  aria-label="Tab options"
+                  className="w-9 h-9 flex items-center justify-center text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-all rounded-xl"
+                >
+                  <HiOutlineDotsHorizontal size={16} />
+                </Button>
               </>
             )}
             <Button

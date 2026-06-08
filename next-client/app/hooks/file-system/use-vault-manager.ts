@@ -150,7 +150,7 @@ export function useVaultManager() {
 
           if (entry.kind === "file" && entry.name.endsWith(".md")) {
             entries.push(entry);
-          } else if (entry.kind === "directory") {
+          } else if (entry.kind === "directory" && !entry.name.startsWith(".")) {
             entries.push(entry);
           }
         }

@@ -111,7 +111,7 @@ export default function PaneTab({
               "hover:bg-zinc-200/80 dark:hover:bg-zinc-600/60",
               "transition-all duration-100",
               isActive
-                ? "opacity-0 group-hover:opacity-60 hover:!opacity-100"
+                ? "opacity-60 hover:opacity-100"
                 : "opacity-0 group-hover:opacity-50 hover:!opacity-100",
             ].join(" ")}
           >

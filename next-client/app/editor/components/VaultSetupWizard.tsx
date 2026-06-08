@@ -4,6 +4,8 @@ import React, { useState, useEffect } from "react";
 import { useAtom, useAtomValue } from "jotai";
 import { atom_frontmatterWizardOpen, atom_vaultSetupWizardOpen } from "@/app/atoms/ui-atoms";
 import { atom_vaultHandle, atom_vaultSetupStatus } from "@/app/atoms/vault-atoms";
+import { atom_isDriveVault, atom_driveVaultId, atom_drivePathIndex, atom_driveAuthState } from "@/app/atoms/drive-atoms";
+import * as driveClient from "@/app/services/drive/client";
 import DialogModal from "@/app/components/DialogModal/DialogModal";
 import Button from "@/app/components/Button";
 import { LATEST_AGENT_VERSION, compareVersions } from "@/app/utils/agent-version";
@@ -117,6 +119,10 @@ export default function VaultSetupWizard() {
   const isOpen = wizardPath !== null;
   const vaultHandle = useAtomValue(atom_vaultHandle);
   const [, setSetupStatus] = useAtom(atom_vaultSetupStatus);
+  const isDriveVault = useAtomValue(atom_isDriveVault);
+  const driveVaultId = useAtomValue(atom_driveVaultId);
+  const [drivePathIndex, setDrivePathIndex] = useAtom(atom_drivePathIndex);
+  const [, setDriveAuthState] = useAtom(atom_driveAuthState);
 
   // Setup Checklist State
   const [installChecked, setInstallChecked] = useState<Record<string, boolean>>({});
@@ -126,12 +132,38 @@ export default function VaultSetupWizard() {
   const [installSuccess, setInstallSuccess] = useState(false);
 
   useEffect(() => {
-    if (isOpen && vaultHandle) {
-      setInstallError(null);
-      const initialChecked: Record<string, boolean> = {};
+    const hasVault = vaultHandle || (isDriveVault && driveVaultId);
+    if (!isOpen || !hasVault) return;
 
-      const checkFiles = async () => {
-        const nextResults: Record<string, "installed" | "missing" | "outdated" | "error"> = {};
+    setInstallError(null);
+    const initialChecked: Record<string, boolean> = {};
+
+    const checkFiles = async () => {
+      const nextResults: Record<string, "installed" | "missing" | "outdated" | "error"> = {};
+
+      if (isDriveVault && driveVaultId) {
+        for (const file of MANAGED_FILES) {
+          const entry = drivePathIndex?.getEntry(file.path);
+          if (!entry) {
+            nextResults[file.path] = "missing";
+            initialChecked[file.path] = true;
+          } else {
+            try {
+              const text = await driveClient.getFileContent(entry.id);
+              const match = text.match(/^version:\s*"?(\d+\.\d+)"?/m);
+              const localVersion = match ? match[1] : "0.0";
+              if (compareVersions(localVersion, LATEST_AGENT_VERSION) < 0) {
+                nextResults[file.path] = "outdated";
+                initialChecked[file.path] = true;
+              } else {
+                nextResults[file.path] = "installed";
+              }
+            } catch {
+              nextResults[file.path] = "error";
+            }
+          }
+        }
+      } else if (vaultHandle) {
         for (const file of MANAGED_FILES) {
           try {
             const parts = file.path.split("/");
@@ -144,7 +176,6 @@ export default function VaultSetupWizard() {
             const text = await fileData.text();
             const match = text.match(/^version:\s*"?(\d+\.\d+)"?/m);
             const localVersion = match ? match[1] : "0.0";
-            
             if (compareVersions(localVersion, LATEST_AGENT_VERSION) < 0) {
               nextResults[file.path] = "outdated";
               initialChecked[file.path] = true;
@@ -156,12 +187,14 @@ export default function VaultSetupWizard() {
             initialChecked[file.path] = true;
           }
         }
-        setInstallResults(nextResults);
-        setInstallChecked(initialChecked);
-      };
-      checkFiles();
-    }
-  }, [isOpen, vaultHandle]);
+      }
+
+      setInstallResults(nextResults);
+      setInstallChecked(initialChecked);
+    };
+
+    checkFiles();
+  }, [isOpen, vaultHandle, isDriveVault, driveVaultId, drivePathIndex]);
 
   if (!isOpen) return null;
 
@@ -180,23 +213,70 @@ export default function VaultSetupWizard() {
       setIsInstalling(true);
       setInstallError(null);
       try {
-        if (!vaultHandle) throw new Error("No vault opened");
-        for (const file of selected) {
-          const parts = file.path.split("/");
-          let current: any = vaultHandle;
-          for (let i = 0; i < parts.length - 1; i++) {
-            current = await current.getDirectoryHandle(parts[i], { create: true });
+        if (isDriveVault && driveVaultId) {
+          for (const file of selected) {
+            const parts = file.path.split("/");
+            let parentId = driveVaultId;
+
+            for (let i = 0; i < parts.length - 1; i++) {
+              const folderName = parts[i];
+              const folderPath = parts.slice(0, i + 1).join("/");
+              const existing = drivePathIndex?.getEntry(folderPath);
+              if (existing) {
+                parentId = existing.id;
+              } else {
+                const newFolder = await driveClient.createFolder(folderName, parentId);
+                drivePathIndex?.addEntry(folderPath, {
+                  id: newFolder.id,
+                  name: newFolder.name,
+                  mimeType: driveClient.FOLDER_MIME,
+                  modifiedAt: new Date(newFolder.modifiedTime).getTime(),
+                  parentId,
+                });
+                parentId = newFolder.id;
+              }
+            }
+
+            const existingEntry = drivePathIndex?.getEntry(file.path);
+            if (existingEntry) {
+              await driveClient.updateFile(existingEntry.id, file.content);
+            } else {
+              const fileName = parts[parts.length - 1];
+              const driveFile = await driveClient.createFile(fileName, parentId, file.content);
+              drivePathIndex?.addEntry(file.path, {
+                id: driveFile.id,
+                name: driveFile.name,
+                mimeType: "text/markdown",
+                modifiedAt: new Date(driveFile.modifiedTime).getTime(),
+                parentId,
+              });
+            }
           }
-          const handle = await current.getFileHandle(parts[parts.length - 1], { create: true });
-          const writable = await handle.createWritable();
-          await writable.write(file.content);
-          await writable.close();
+          if (drivePathIndex) {
+            drivePathIndex.saveToCache(driveVaultId);
+            setDrivePathIndex(drivePathIndex);
+          }
+        } else if (vaultHandle) {
+          for (const file of selected) {
+            const parts = file.path.split("/");
+            let current: any = vaultHandle;
+            for (let i = 0; i < parts.length - 1; i++) {
+              current = await current.getDirectoryHandle(parts[i], { create: true });
+            }
+            const handle = await current.getFileHandle(parts[parts.length - 1], { create: true });
+            const writable = await handle.createWritable();
+            await writable.write(file.content);
+            await writable.close();
+          }
+        } else {
+          throw new Error("No vault opened");
         }
         setSetupStatus("configured");
         setIsInstalling(false);
         setInstallSuccess(true);
       } catch (err: any) {
         console.error("Setup failed:", err);
+        if (err?.status === 401) setDriveAuthState("expired");
         setInstallError(err?.message || "An unexpected error occurred. Please try again.");
         setIsInstalling(false);
       }
@@ -264,7 +344,7 @@ export default function VaultSetupWizard() {
 
         {/* Content */}
         <div className={`flex flex-col gap-4 ${installSuccess ? "hidden" : ""}`}>
-          {!vaultHandle ? (
+          {!vaultHandle && !isDriveVault ? (
             <p className="text-ui-footnote text-amber-600 dark:text-amber-500 bg-amber-50 dark:bg-amber-900/20 p-3 rounded-lg border border-amber-100 dark:border-amber-800">
               Open a vault folder first to install these agent-context files.
             </p>
@@ -311,7 +391,7 @@ export default function VaultSetupWizard() {
             <Button variant="outlined" onClick={handleSkip} disabled={isInstalling}>
               Skip
             </Button>
-            <Button variant="primary" onClick={handleNext} disabled={isInstalling || !vaultHandle}>
+            <Button variant="primary" onClick={handleNext} disabled={isInstalling || (!vaultHandle && !isDriveVault)}>
               {isInstalling ? (hasOutdatedFiles ? "Updating..." : "Installing...") : (hasOutdatedFiles ? "Update & Continue" : "Install & Continue")}
             </Button>
           </div>

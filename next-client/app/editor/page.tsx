@@ -54,6 +54,7 @@ export default function LiteEditor() {
     vaultHandle,
     activeFileHandle,
     isVaultPending,
+    isDriveVault,
     restoreVault,
     saveFile,
     exportFile,
@@ -251,7 +252,7 @@ export default function LiteEditor() {
         <VaultSetupWizard />
         <FrontmatterWizard />
         <ConflictDialog />
-        {isVaultPending && <VaultPendingOverlay restoreVault={restoreVault} />}
+        {isVaultPending && <VaultPendingOverlay restoreVault={restoreVault} isDriveVault={isDriveVault} />}
         
         <DialogModal isOpened={pendingFile !== null} onClose={() => setPendingFile(null)} styles="!rounded-[32px] !backdrop-blur-2xl !bg-white/80 dark:!bg-zinc-900/80 !border-none !shadow-2xl">
           <div className="flex flex-col gap-6 text-center py-4 px-2">

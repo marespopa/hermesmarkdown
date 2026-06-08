@@ -7,9 +7,10 @@ import DialogModal from "@/app/components/DialogModal";
 
 interface VaultPendingOverlayProps {
   restoreVault: () => void;
+  isDriveVault?: boolean;
 }
 
-export default function VaultPendingOverlay({ restoreVault }: VaultPendingOverlayProps) {
+export default function VaultPendingOverlay({ restoreVault, isDriveVault }: VaultPendingOverlayProps) {
   return (
     <DialogModal
       isOpened={true}
@@ -24,7 +25,9 @@ export default function VaultPendingOverlay({ restoreVault }: VaultPendingOverla
         <div className="flex flex-col gap-1">
           <h2 className="text-ui-body font-semibold tracking-tight">Vault Access Paused</h2>
           <p className="text-ui-footnote text-zinc-500 dark:text-zinc-400 leading-relaxed">
-            Browser security requires re-authorization to access your local files.
+            {isDriveVault
+              ? "Your Google Drive session has expired. Re-authenticate to continue."
+              : "Browser security requires re-authorization to access your local files."}
           </p>
         </div>
         <Button

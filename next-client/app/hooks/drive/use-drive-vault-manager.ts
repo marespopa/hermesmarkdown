@@ -28,14 +28,14 @@ import { DrivePathIndex } from '@/app/services/drive/path-index';
 import { DriveFileHandle } from '@/app/services/drive/DriveFileHandle';
 import { DriveDirectoryHandle } from '@/app/services/drive/DriveDirectoryHandle';
 import { listFiles, FOLDER_MIME } from '@/app/services/drive/client';
-import { isTokenValid } from '@/app/services/drive/auth';
+import { isTokenValid, startOAuthFlow } from '@/app/services/drive/auth';
 import { metadataWorker } from '../file-system/shared';
 
 export function useDriveVaultManager() {
   const [vaultHandle, setVaultHandle] = useAtom(atom_vaultHandle);
   const [currentDirectoryHandle, setCurrentDirectoryHandle] = useAtom(atom_currentDirectoryHandle);
   const [, setVaultFiles] = useAtom(atom_vaultFiles);
-  const [, setIsVaultPending] = useAtom(atom_isVaultPending);
+  const [isVaultPending, setIsVaultPending] = useAtom(atom_isVaultPending);
   const [, setFileMetadata] = useAtom(atom_fileMetadata);
   const setIndexerState = useSetAtom(atom_indexerState);
   const [, setActiveFilePath] = useAtom(atom_activeFilePath);
@@ -178,6 +178,7 @@ export function useDriveVaultManager() {
     if (!driveVaultId) return;
     if (!isTokenValid()) {
       setDriveAuthState('expired');
+      startOAuthFlow();
       return;
     }
 
@@ -290,6 +291,15 @@ export function useDriveVaultManager() {
     if (!vaultId || vaultId === 'null') return;
 
     setHasDriveLoaded(true);
+
+    if (!isTokenValid()) {
+      // Show the pending overlay so the user can click "Restore Access" to re-authenticate.
+      // Don't auto-redirect to OAuth here — let the user initiate it.
+      setDriveAuthState('expired');
+      setIsVaultPending(true);
+      return;
+    }
+
     restoreVault();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Mount only
@@ -297,7 +307,7 @@ export function useDriveVaultManager() {
   return {
     vaultHandle,
     currentDirectoryHandle,
-    isVaultPending: false,
+    isVaultPending,
     scanVault,
     indexVaultTags,
     openVault,
