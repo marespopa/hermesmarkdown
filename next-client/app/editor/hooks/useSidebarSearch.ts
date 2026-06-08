@@ -29,13 +29,16 @@ export function useSidebarSearch({ selectedTags }: UseSidebarSearchProps) {
     Object.keys(vaultTags).sort((a, b) => a < b ? -1 : a > b ? 1 : 0),
   [vaultTags]);
 
+  const isHiddenPath = (path: string) =>
+    path.split("/").some((segment) => segment.startsWith("_"));
+
   const processedFiles = useMemo(() => {
     const hasMetadata = Object.keys(fileMetadata).length > 0;
 
     // Tag filter: .md files matching ALL selected tags (AND logic) — always from metadata
     if (selectedTags.length > 0) {
       return Object.values(fileMetadata)
-        .filter((m) => m.name.endsWith(".md") && selectedTags.every(t => m.tags.includes(t)))
+        .filter((m) => m.name.endsWith(".md") && !isHiddenPath(m.path) && selectedTags.every(t => m.tags.includes(t)))
         .sort((a, b) => a.name.localeCompare(b.name))
         .map((m) => ({ name: m.name, kind: "file" as const, handle: m.handle, path: m.path }));
     }
@@ -45,12 +48,12 @@ export function useSidebarSearch({ selectedTags }: UseSidebarSearchProps) {
       const q = searchQuery.toLowerCase().trim();
       if (hasMetadata) {
         return Object.values(fileMetadata)
-          .filter((m) => m.name.endsWith(".md") && (m.name.toLowerCase().includes(q) || m.path.toLowerCase().includes(q)))
+          .filter((m) => m.name.endsWith(".md") && !isHiddenPath(m.path) && (m.name.toLowerCase().includes(q) || m.path.toLowerCase().includes(q)))
           .sort((a, b) => a.name.localeCompare(b.name))
           .map((m) => ({ name: m.name, kind: "file" as const, handle: m.handle, path: m.path }));
       }
       return vaultFiles
-        .filter((f: any) => f.kind === "file" && f.name.endsWith(".md") && f.name.toLowerCase().includes(q))
+        .filter((f: any) => f.kind === "file" && f.name.endsWith(".md") && !isHiddenPath((f as any).path || f.name) && f.name.toLowerCase().includes(q))
         .sort((a: any, b: any) => a.name.localeCompare(b.name))
         .map((f: any) => ({ name: f.name, kind: "file" as const, handle: f as FileSystemFileHandle, path: (f as any).path || f.name }));
     }
@@ -58,14 +61,14 @@ export function useSidebarSearch({ selectedTags }: UseSidebarSearchProps) {
     // Default: prefer metadata (has recursive results + tags); fall back to vaultFiles while indexing
     if (hasMetadata) {
       return Object.values(fileMetadata)
-        .filter((m) => m.name.endsWith(".md"))
+        .filter((m) => m.name.endsWith(".md") && !isHiddenPath(m.path))
         .sort((a, b) => a.name.localeCompare(b.name))
         .map((m) => ({ name: m.name, kind: "file" as const, handle: m.handle, path: m.path }));
     }
 
     // Fallback: vaultFiles (immediate, from scanVault) — used while indexVaultTags is still running
     return vaultFiles
-      .filter((f: any) => f.kind === "file" && f.name.endsWith(".md"))
+      .filter((f: any) => f.kind === "file" && f.name.endsWith(".md") && !isHiddenPath((f as any).path || f.name))
       .sort((a: any, b: any) => a.name.localeCompare(b.name))
       .map((f: any) => ({ name: f.name, kind: "file" as const, handle: f as FileSystemFileHandle, path: (f as any).path || f.name }));
   }, [fileMetadata, vaultFiles, selectedTags, searchQuery]);

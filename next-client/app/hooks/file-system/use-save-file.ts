@@ -15,15 +15,12 @@ import {
   atom_saveStatus,
   atom_isCloudVault,
   atom_autoInjectFrontmatter,
+  atom_vaultSetupStatus,
 } from "@/app/atoms/atoms";
-import { atom_frontmatterWizardOpen } from "@/app/atoms/ui-atoms";
+import { atom_frontmatterWizardOpen, atom_vaultSetupWizardOpen, atom_autosaveMode } from "@/app/atoms/ui-atoms";
 import { injectFrontmatter } from "@/app/utils/frontmatterInjector";
 
-interface UseSaveFileProps {
-  indexVaultTags: (passedHandle?: FileSystemDirectoryHandle) => Promise<void>;
-}
-
-export function useSaveFile({ indexVaultTags }: UseSaveFileProps) {
+export function useSaveFile() {
   const [vaultHandle] = useAtom(atom_vaultHandle);
   const [activeFileHandle, setActiveFileHandle] = useAtom(atom_activeFileHandle);
   const [activeFilePath, setActiveFilePath] = useAtom(atom_activeFilePath);
@@ -36,14 +33,18 @@ export function useSaveFile({ indexVaultTags }: UseSaveFileProps) {
   const [isCloudVault, setIsCloudVault] = useAtom(atom_isCloudVault);
   const [autoInjectFrontmatter] = useAtom(atom_autoInjectFrontmatter);
   const setFrontmatterWizardOpen = useSetAtom(atom_frontmatterWizardOpen);
+  const setVaultSetupWizardOpen = useSetAtom(atom_vaultSetupWizardOpen);
+  const [vaultSetupStatus] = useAtom(atom_vaultSetupStatus);
+  const [autosaveMode, setAutosaveMode] = useAtom(atom_autosaveMode);
 
   // Debounce re-indexing on auto-saves so rapid saves during typing don't
   // repeatedly flash the "Scanning subfolders…" indicator in the sidebar.
   const indexVaultTagsTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
+    const ref = indexVaultTagsTimerRef;
     return () => {
-      if (indexVaultTagsTimerRef.current) clearTimeout(indexVaultTagsTimerRef.current);
+      if (ref.current) clearTimeout(ref.current);
     };
   }, []);
 
@@ -82,38 +83,39 @@ export function useSaveFile({ indexVaultTags }: UseSaveFileProps) {
         path: targetPath,
       });
 
-      const toWrite = autoInjectFrontmatter
+      let toWrite = autoInjectFrontmatter
         ? injectFrontmatter(content, fileToSave.name)
         : content;
-
-      // On Android Chrome, write permission can expire between sessions. Check before
-      // attempting createWritable() so we can give actionable feedback instead of a
-      // silent failure (auto-save has no user gesture to re-trigger the permission dialog).
-      if (typeof (fileToSave as any).queryPermission === "function") {
-        const permState = await (fileToSave as any).queryPermission({ mode: "readwrite" });
-        if (permState !== "granted") {
-          if (isAutoSave) {
-            setSaveStatus({ state: "error", retryCount: 0, message: "Tap to save — write permission needed", path: targetPath });
-            setTimeout(() => setSaveStatus({ state: "idle", retryCount: 0, path: undefined }), 6000);
-            return false;
-          }
-          // Manual save has a user gesture — attempt to re-request permission
-          try {
-            const newState = await (fileToSave as any).requestPermission({ mode: "readwrite" });
-            if (newState !== "granted") {
-              toast.error("Write permission denied. Re-open the vault to restore access.");
-              setSaveStatus({ state: "error", retryCount: 0, message: "Permission denied", path: targetPath });
-              setTimeout(() => setSaveStatus({ state: "idle", retryCount: 0, path: undefined }), 5000);
-              return false;
-            }
-          } catch {
-            // Fall through; createWritable will surface the error
-          }
-        }
-      }
+      if (!toWrite) toWrite = "\n";
 
       let writable: FileSystemWritableFileStream | null = null;
       try {
+        // On Android Chrome, write permission can expire between sessions. Check before
+        // attempting createWritable() so we can give actionable feedback instead of a
+        // silent failure (auto-save has no user gesture to re-trigger the permission dialog).
+        if (typeof (fileToSave as any).queryPermission === "function") {
+          const permState = await (fileToSave as any).queryPermission({ mode: "readwrite" });
+          if (permState !== "granted") {
+            if (isAutoSave) {
+              setSaveStatus({ state: "error", retryCount: 0, message: "Tap to save — write permission needed", path: targetPath });
+              setTimeout(() => setSaveStatus({ state: "idle", retryCount: 0, path: undefined }), 6000);
+              return false;
+            }
+            // Manual save has a user gesture — attempt to re-request permission
+            try {
+              const newState = await (fileToSave as any).requestPermission({ mode: "readwrite" });
+              if (newState !== "granted") {
+                toast.error("Write permission denied. Re-open the vault to restore access.");
+                setSaveStatus({ state: "error", retryCount: 0, message: "Permission denied", path: targetPath });
+                setTimeout(() => setSaveStatus({ state: "idle", retryCount: 0, path: undefined }), 5000);
+                return false;
+              }
+            } catch {
+              // Fall through; createWritable will surface the error
+            }
+          }
+        }
+
         writable = await fileToSave.createWritable();
         if (writable) {
           await writable.write(toWrite);
@@ -147,7 +149,13 @@ export function useSaveFile({ indexVaultTags }: UseSaveFileProps) {
                 };
               });
               // Open wizard only after the atom has been updated with the injected content
-              if (didInject) setFrontmatterWizardOpen(targetPath);
+              if (didInject) {
+                if (vaultSetupStatus === "needs_setup") {
+                  setVaultSetupWizardOpen(targetPath);
+                } else {
+                  setFrontmatterWizardOpen(targetPath);
+                }
+              }
             }
             return true;
           } catch {
@@ -220,14 +228,9 @@ export function useSaveFile({ indexVaultTags }: UseSaveFileProps) {
           }
         }
 
-        // Background indexing — debounce for auto-saves to avoid flashing the
-        // "Scanning subfolders…" indicator on every keystroke-triggered save.
-        if (isAutoSave) {
-          if (indexVaultTagsTimerRef.current) clearTimeout(indexVaultTagsTimerRef.current);
-          indexVaultTagsTimerRef.current = setTimeout(() => indexVaultTags(), 3000);
-        } else {
-          indexVaultTags();
-        }
+        // We no longer trigger a full vault background re-index on every save.
+        // It was causing massive performance issues and timeout toasts for large Google Drive vaults.
+        // The index will just be updated on next launch or manual refresh.
         setSaveStatus({ state: "saved", retryCount, path: targetPath });
         setTimeout(() => setSaveStatus({ state: "idle", retryCount: 0, path: undefined }), 2000);
 
@@ -241,13 +244,9 @@ export function useSaveFile({ indexVaultTags }: UseSaveFileProps) {
           err.name === "InvalidStateError" ||
           err.message?.includes("state had changed");
 
-        // Auto-enable cloud mode if we hit this error repeatedly
+        // Auto-enable cloud mode if we hit this error repeatedly (silently)
         if (isInvalidState && !isCloudVault && retryCount > 1) {
           setIsCloudVault(true);
-          toast.success("Sync conflict detected. Switching to cloud recovery mode.", {
-            icon: "☁️",
-            id: "cloud-detect-toast",
-          });
         }
 
         const isRetryable =
@@ -255,42 +254,69 @@ export function useSaveFile({ indexVaultTags }: UseSaveFileProps) {
           err.message?.includes("locked") ||
           err.name === "NoModificationAllowedError";
 
-        if (isRetryable && retryCount < (isCloudVault ? 15 : 8)) {
-          const baseDelay = isCloudVault ? 800 : 400;
-          const delay = baseDelay * Math.pow(isCloudVault ? 1.7 : 1.5, retryCount);
+        if (isRetryable && retryCount < 10) {
+          const delay = 400 * Math.pow(1.5, retryCount);
+          
+          // Wait FIRST to give the external sync client time to finish its operation
+          await new Promise((resolve) => setTimeout(resolve, delay));
 
-          // Try to refresh the handle if it's in the vault
+          let handleToRetry = handle;
+
+          // Try to get a fresh handle if we have a vault
           if (targetPath && targetPath !== "draft" && vaultHandle) {
             try {
               const parts = targetPath.split("/");
               let current: FileSystemDirectoryHandle = vaultHandle;
-
-              // Walk the path to get a fresh handle
               for (let i = 0; i < parts.length - 1; i++) {
                 current = await current.getDirectoryHandle(parts[i]);
               }
-              const freshHandle = await current.getFileHandle(parts[parts.length - 1]);
-
-              // Update active handle if we just refreshed it
+              // Use create: true so if the sync client temporarily deleted it, we recreate it instantly!
+              const freshHandle = await current.getFileHandle(parts[parts.length - 1], { create: true });
+              handleToRetry = freshHandle;
+              
+              // Only update active handle if we successfully got a fresh one
               if (!handle || handle === activeFileHandle) {
                 setActiveFileHandle(freshHandle);
               }
-
-              await new Promise((resolve) => setTimeout(resolve, delay));
-              return saveFile(content, freshHandle, retryCount + 1, isAutoSave, targetPath);
-            } catch (retryErr) {
+            } catch (retryErr: any) {
+              // If NotFoundError, the sync client might have temporarily deleted it. We'll retry next loop.
               console.warn("Failed to refresh handle for retry:", retryErr);
             }
+          } else if (isInvalidState) {
+             // If we don't have a vaultHandle, we CANNOT recover from InvalidStateError!
+             const msg = "File modified externally. Please re-open it to save.";
+             setSaveStatus({ state: "error", retryCount: 0, message: msg, path: targetPath });
+             toast.error(msg);
+             return false;
           }
 
-          await new Promise((resolve) => setTimeout(resolve, delay));
-          return saveFile(content, handle, retryCount + 1, isAutoSave, targetPath);
+          // Wait and retry
+          const backoff = Math.min(200 * Math.pow(1.5, retryCount), 1500);
+          await new Promise(resolve => setTimeout(resolve, backoff));
+          
+          const maxRetries = isAutoSave ? 8 : 2; // Fast fail for manual saves
+          if (retryCount < maxRetries) {
+            return saveFile(content, handleToRetry, retryCount + 1, isAutoSave, targetPath);
+          }
         }
 
-        console.error("File System Error:", err?.message || err);
+        console.warn("File System Error: Exceeded retries. Failing gracefully.", err?.message || err);
         let errorMsg = isInvalidState ? "File locked by cloud sync" : err.message;
 
-        if (isCloudVault && isInvalidState) {
+        if (isInvalidState && vaultHandle && targetPath) {
+          if (!isAutoSave) {
+            const msg = "Google Drive is syncing and locked the file. Please wait a moment and hit Save again.";
+            toast.error(msg, { duration: 6000 });
+            setSaveStatus({ state: "error", retryCount: 0, message: msg, path: targetPath });
+            return false;
+          } else {
+            errorMsg = "Cloud sync lock detected. Save deferred.";
+            if (autosaveMode !== "manual") {
+              setAutosaveMode("manual");
+              toast("Cloud sync lock detected. Autosave has been automatically paused. You can re-enable it in Settings.", { icon: "⏸️", duration: 8000 });
+            }
+          }
+        } else if (isCloudVault && isInvalidState) {
           errorMsg = "Cloud sync lock detected. Retries failed. Try pausing sync.";
         }
         
@@ -305,7 +331,9 @@ export function useSaveFile({ indexVaultTags }: UseSaveFileProps) {
           setTimeout(() => setSaveStatus({ state: "idle", retryCount: 0, path: undefined }), 6000);
           if (!isAutoSave) toast.error(msg);
         } else if (err.name !== "AbortError") {
-          toast.error(`Failed to save: ${errorMsg}`);
+          if (!isAutoSave) {
+            toast.error(`Failed to save: ${errorMsg}`);
+          }
         }
         return false;
       } finally {
@@ -320,7 +348,6 @@ export function useSaveFile({ indexVaultTags }: UseSaveFileProps) {
     },
     [
       activeFileHandle,
-      indexVaultTags,
       setLastSavedContent,
       setFileLastModified,
       setFileConflict,
@@ -334,7 +361,11 @@ export function useSaveFile({ indexVaultTags }: UseSaveFileProps) {
       isCloudVault,
       setIsCloudVault,
       autoInjectFrontmatter,
+      vaultSetupStatus,
+      setVaultSetupWizardOpen,
       setFrontmatterWizardOpen,
+      autosaveMode,
+      setAutosaveMode,
     ],
   );
 

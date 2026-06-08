@@ -12,6 +12,9 @@ export const atom_hasLoadedVault = atom<boolean>(false);
 export const atom_isCloudVault = atom<boolean>(false);
 export const atom_fileSystemVersion = atom<number>(0);
 
+export type VaultSetupStatus = 'idle' | 'checking' | 'needs_setup' | 'configured' | 'skipped';
+export const atom_vaultSetupStatus = atom<VaultSetupStatus>('idle');
+
 // Action atoms
 export const atom_rebindHandles = atom(
   null,

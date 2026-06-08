@@ -19,6 +19,8 @@ import {
   atom_autoInjectFrontmatter,
   atom_frontmatterHasPrompted,
   atom_indexerState,
+  atom_vaultSetupStatus,
+  atom_vaultSetupWizardOpen,
 } from "@/app/atoms/atoms";
 import { atom_fileMetadata } from "@/app/atoms/metadata";
 import {
@@ -29,6 +31,7 @@ import {
 } from "@/app/services/idb";
 import { useDialog } from "../use-dialog";
 import { metadataWorker, withPickerLock, isVaultSupported, isIdbSupported } from "./shared";
+import { LATEST_AGENT_VERSION, compareVersions } from "@/app/utils/agent-version";
 
 export function useVaultManager() {
   const [vaultHandle, setVaultHandle] = useAtom(atom_vaultHandle);
@@ -43,12 +46,46 @@ export function useVaultManager() {
   const [, setWorkspaceLayout] = useAtom(atom_workspaceLayout);
   const [, setIsCloudVault] = useAtom(atom_isCloudVault);
   const [, setFileSystemVersion] = useAtom(atom_fileSystemVersion);
+  const [, setVaultSetupStatus] = useAtom(atom_vaultSetupStatus);
+  const [, setVaultSetupWizardOpen] = useAtom(atom_vaultSetupWizardOpen);
   const rebindHandles = useSetAtom(atom_rebindHandles);
   const setIndexerState = useSetAtom(atom_indexerState);
   const [frontmatterHasPrompted, setFrontmatterHasPrompted] = useAtom(atom_frontmatterHasPrompted);
   const [, setAutoInjectFrontmatter] = useAtom(atom_autoInjectFrontmatter);
   const dialog = useDialog();
   const pendingHandlesRef = useRef<Map<string, FileSystemFileHandle>>(new Map());
+
+  const checkVaultSetup = useCallback(async (handle: FileSystemDirectoryHandle) => {
+    try {
+      const skippedVersion = localStorage.getItem("hermesSkipVaultSetup");
+      if (skippedVersion && compareVersions(skippedVersion, LATEST_AGENT_VERSION) >= 0) {
+        setVaultSetupStatus("skipped");
+        return;
+      }
+
+      setVaultSetupStatus("checking");
+      const fileHandle = await handle.getFileHandle("_agent-context.md");
+      const file = await fileHandle.getFile();
+      const text = await file.text();
+      const match = text.match(/^version:\s*"?(\d+\.\d+)"?/m);
+      const localVersion = match ? match[1] : "0.0";
+
+      if (compareVersions(localVersion, LATEST_AGENT_VERSION) < 0) {
+        setVaultSetupStatus("needs_setup");
+        setVaultSetupWizardOpen("vault-root");
+      } else {
+        setVaultSetupStatus("configured");
+      }
+    } catch (err: any) {
+      if (err.name === "NotFoundError") {
+        setVaultSetupStatus("needs_setup");
+        setVaultSetupWizardOpen("vault-root"); // Use a sentinel to indicate vault-level setup
+      } else {
+        console.warn("Failed to check vault setup:", err);
+        setVaultSetupStatus("idle");
+      }
+    }
+  }, [setVaultSetupStatus, setVaultSetupWizardOpen]);
 
   const detectCloudVault = useCallback(
     (handle: FileSystemDirectoryHandle) => {
@@ -288,13 +325,14 @@ export function useVaultManager() {
       await scanVault(handle);
       await indexVaultTags(handle);
       await rebindHandles(handle);
+      await checkVaultSetup(handle);
       toast.success("Vault opened: " + handle.name);
       await promptFrontmatter();
     } catch (err: any) {
       console.error("File System Error:", err?.message || err);
       toast.error("Failed to open vault");
     }
-  }, [setVaultHandle, setCurrentDirectoryHandle, setIsVaultPending, setFileMetadata, scanVault, indexVaultTags, rebindHandles, detectCloudVault, promptFrontmatter]);
+  }, [setVaultHandle, setCurrentDirectoryHandle, setIsVaultPending, setFileMetadata, scanVault, indexVaultTags, rebindHandles, detectCloudVault, promptFrontmatter, checkVaultSetup]);
 
   const restoreVault = useCallback(async () => {
     if (!vaultHandle) return;
@@ -308,6 +346,7 @@ export function useVaultManager() {
         await scanVault(vaultHandle);
         await indexVaultTags(vaultHandle);
         await rebindHandles(vaultHandle);
+        await checkVaultSetup(vaultHandle);
         toast.success("Vault restored");
         await promptFrontmatter();
       }
@@ -315,7 +354,7 @@ export function useVaultManager() {
       console.error("File System Error:", err?.message || err);
       toast.error("Failed to restore vault");
     }
-  }, [vaultHandle, setIsVaultPending, setCurrentDirectoryHandle, scanVault, indexVaultTags, rebindHandles, detectCloudVault, promptFrontmatter]);
+  }, [vaultHandle, setIsVaultPending, setCurrentDirectoryHandle, scanVault, indexVaultTags, rebindHandles, detectCloudVault, promptFrontmatter, checkVaultSetup]);
 
   const syncSidebarToPath = useCallback(
     async (path: string) => {
@@ -407,13 +446,15 @@ export function useVaultManager() {
     toast.success("Vault closed");
   }, [setVaultHandle, setCurrentDirectoryHandle, setVaultFiles, setFileMetadata, setActiveFileHandle, setActiveFilePath, setIsVaultPending, setOpenFiles, setWorkspaceLayout, setIsCloudVault]);
 
-  // Worker Message Listener
+  // Worker Message Listener — only active when using a local (non-Drive) vault
   useEffect(() => {
     if (!metadataWorker) return;
 
     const handleMessage = (event: MessageEvent) => {
       const { results } = event.data;
       if (!results) return;
+      // Ignore messages when a Drive vault is handling the worker output
+      if (pendingHandlesRef.current.size === 0) return;
 
       setFileMetadata((prev) => {
         const next = { ...prev };
@@ -430,10 +471,12 @@ export function useVaultManager() {
     return () => metadataWorker?.removeEventListener("message", handleMessage);
   }, [setFileMetadata, setIndexerState]);
 
-  // Load vault on mount
+  // Load vault on mount — skipped when a Google Drive vault is configured
   useEffect(() => {
     if (hasLoadedVault || !isIdbSupported) return;
-    
+    const driveVaultId = typeof window !== 'undefined' ? localStorage.getItem('hermes_drive_vault_id') : null;
+    if (driveVaultId && driveVaultId !== 'null') return;
+
     async function init() {
       setHasLoadedVault(true);
       const savedHandle = await loadVaultHandle();

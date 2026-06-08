@@ -25,10 +25,9 @@ export function useIndexActiveFile() {
     const timeoutId = setTimeout(async () => {
       try {
         const file = await activeFileHandle.getFile();
-        const fileContent = await file.text();
         setIndexerState("compiling");
         metadataWorker?.postMessage({
-          files: [{ path: activeFilePath, name: activeFileHandle.name, content: fileContent, modifiedAt: file.lastModified }],
+          files: [{ path: activeFilePath, name: activeFileHandle.name, content, modifiedAt: file.lastModified }],
         });
       } catch (err: any) {
         console.error("Failed to index active file:", err);

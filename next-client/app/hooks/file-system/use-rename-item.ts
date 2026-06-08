@@ -48,9 +48,9 @@ export function useRenameItem({ scanVault, indexVaultTags }: UseRenameItemProps)
             } else {
               freshHandle = await (parentDir as any).getDirectoryHandle(handle.name);
             }
-          } catch (e) {
-            console.error("Failed to get fresh handle for rename:", e);
-            throw new Error("Item no longer exists or is inaccessible");
+          } catch (e: any) {
+            console.warn("Failed to get fresh handle for rename, might be locked/swapped:", e);
+            throw e; // Throw the original error so the outer catch can see if it's NotFoundError
           }
 
           // 2. Check if this is the active file
@@ -142,13 +142,14 @@ export function useRenameItem({ scanVault, indexVaultTags }: UseRenameItemProps)
           const isRetryable =
             err.name === "InvalidStateError" ||
             err.name === "NoModificationAllowedError" ||
+            err.name === "NotFoundError" ||
             err.message?.includes("state had changed") ||
             err.message?.includes("locked");
 
-          if (isRetryable && retryCount < 3) {
+          if (isRetryable && retryCount < 6) {
             console.warn(`Rename operation issues, retrying (${retryCount + 1})...`);
             await new Promise((resolve) =>
-              setTimeout(resolve, 300 * (retryCount + 1)),
+              setTimeout(resolve, 400 * Math.pow(1.5, retryCount)),
             );
             return attemptRename(retryCount + 1);
           }

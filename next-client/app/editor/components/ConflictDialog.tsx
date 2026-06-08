@@ -15,7 +15,7 @@ import toast from "react-hot-toast";
 export default function ConflictDialog() {
   const [activeFileHandle] = useAtom(atom_activeFileHandle);
   const [conflict, setConflict] = useAtom(atom_fileConflict);
-  const [, setContent] = useAtom(atom_content);
+  const [content, setContent] = useAtom(atom_content);
   const [, setLastSavedContent] = useAtom(atom_lastSavedContent);
   const [, setFileLastModified] = useAtom(atom_fileLastModified);
 
@@ -41,11 +41,15 @@ export default function ConflictDialog() {
   const handleKeepLocal = async () => {
     if (!activeFileHandle) return;
     try {
+      const writable = await (activeFileHandle as any).createWritable();
+      await writable.write(content);
+      await writable.close();
+
       const file = await activeFileHandle.getFile();
-      // Just update the timestamp so we don't prompt again for this specific version
+      setLastSavedContent(content);
       setFileLastModified(file.lastModified);
       setConflict(null);
-      toast.success("Keeping local edits");
+      toast.success("Local edits saved");
     } catch (err) {
       console.error(err);
       setConflict(null);

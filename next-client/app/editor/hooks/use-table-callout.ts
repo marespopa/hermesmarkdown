@@ -4,6 +4,7 @@ import { useState, useCallback, useEffect, useLayoutEffect } from "react";
 import getCaretCoordinates from "textarea-caret";
 import { findTableAtPos, TableInfo } from "../utils/table-detection";
 import {
+  addRow,
   cycleAlignment,
   getColumnAlignment,
   tableToCSV,

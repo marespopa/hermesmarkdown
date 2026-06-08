@@ -10,7 +10,7 @@ export interface FileMetadata {
   frontmatter: Record<string, any>;
   modifiedAt: number;
   wordCount: number;
-  handle: FileSystemFileHandle;
+  handle: any; // FileSystemFileHandle | DriveFileHandle
 }
 
 export const atom_fileMetadata = atom<Record<string, FileMetadata>>({});

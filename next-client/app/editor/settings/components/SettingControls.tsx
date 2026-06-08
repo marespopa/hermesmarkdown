@@ -1,26 +1,101 @@
+"use client";
+
 import React from "react";
+import { HiChevronDown } from "react-icons/hi";
+
+export function SegmentedControl<T extends string>({
+  options,
+  value,
+  onChange,
+}: {
+  options: { label: string; value: T }[];
+  value: T;
+  onChange: (v: T) => void;
+}) {
+  return (
+    <div className="inline-flex bg-zinc-100 dark:bg-zinc-800 p-0.5 rounded-xl gap-0.5">
+      {options.map((opt) => (
+        <button
+          key={opt.value}
+          type="button"
+          onClick={() => onChange(opt.value)}
+          className={`px-3.5 py-1.5 text-ui-footnote font-semibold rounded-[10px] transition-all duration-150 select-none focus:outline-none ${
+            value === opt.value
+              ? "bg-white dark:bg-zinc-700 shadow-sm text-blue-600 dark:text-blue-400"
+              : "text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200"
+          }`}
+        >
+          {opt.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+export const SelectControl = ({
+  value,
+  onChange,
+  children,
+}: {
+  value: string | number;
+  onChange: (v: string) => void;
+  children: React.ReactNode;
+}) => (
+  <div className="relative">
+    <select
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      className="appearance-none bg-zinc-100 dark:bg-zinc-800 text-ui-footnote font-semibold rounded-xl px-3 pr-7 py-1.5 outline-none border border-transparent focus:border-blue-500/40 cursor-pointer transition-all"
+    >
+      {children}
+    </select>
+    <HiChevronDown
+      size={13}
+      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none"
+    />
+  </div>
+);
 
 export const SettingItem = ({
   label,
   description,
   control,
+  layout = "row",
 }: {
   label: string;
   description?: string;
   control: React.ReactNode;
-}) => (
-  <div className="flex items-center justify-between py-3 border-b border-neutral-100 dark:border-neutral-800/30 last:border-0">
-    <div className="flex flex-col pr-4">
-      <span className="text-ui-footnote font-medium leading-none">{label}</span>
-      {description && (
-        <span className="text-ui-footnote text-neutral-500 dark:text-neutral-400 mt-1.5 leading-tight">
-          {description}
+  layout?: "row" | "stack";
+}) =>
+  layout === "row" ? (
+    <div className="flex items-center justify-between gap-4 py-3.5 border-b border-neutral-100 dark:border-neutral-800/40 last:border-0">
+      <div className="flex flex-col min-w-0">
+        <span className="text-ui-subhead font-medium text-ink-light dark:text-ink-dark leading-none">
+          {label}
         </span>
-      )}
+        {description && (
+          <span className="text-ui-footnote text-neutral-500 dark:text-neutral-400 mt-1.5 leading-snug">
+            {description}
+          </span>
+        )}
+      </div>
+      <div className="shrink-0">{control}</div>
     </div>
-    <div className="flex-shrink-0">{control}</div>
-  </div>
-);
+  ) : (
+    <div className="flex flex-col gap-2.5 py-3.5 border-b border-neutral-100 dark:border-neutral-800/40 last:border-0">
+      <div className="flex flex-col">
+        <span className="text-ui-subhead font-medium text-ink-light dark:text-ink-dark leading-none">
+          {label}
+        </span>
+        {description && (
+          <span className="text-ui-footnote text-neutral-500 dark:text-neutral-400 mt-1.5 leading-snug">
+            {description}
+          </span>
+        )}
+      </div>
+      <div>{control}</div>
+    </div>
+  );
 
 export const SettingGroup = ({
   title,
@@ -29,11 +104,11 @@ export const SettingGroup = ({
   title: string;
   children: React.ReactNode;
 }) => (
-  <div className="mb-6 last:mb-0">
-    <h3 className="text-ui-footnote font-medium text-neutral-500 dark:text-neutral-400 mb-2.5 px-1">
+  <div className="mb-5 last:mb-0">
+    <p className="text-ui-caption font-semibold uppercase tracking-wider text-neutral-400 dark:text-neutral-500 mb-2 px-1">
       {title}
-    </h3>
-    <div className="bg-neutral-50 dark:bg-neutral-900/50 rounded-[20px] px-4 py-1 border border-neutral-200/50 dark:border-neutral-800/50">
+    </p>
+    <div className="bg-white dark:bg-zinc-900/80 rounded-2xl px-4 py-0.5 border border-neutral-200/60 dark:border-neutral-800/60 shadow-[0_1px_4px_rgba(0,0,0,0.04)] dark:shadow-none">
       {children}
     </div>
   </div>

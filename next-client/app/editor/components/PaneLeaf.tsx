@@ -22,8 +22,10 @@ import {
   atom_workspaceLayout,
   contentStore
 } from "@/app/atoms/atoms";
-import { HiOutlineDocumentText, HiOutlineEye, HiOutlineChartBar, HiOutlineX, HiOutlineSave } from "react-icons/hi";
-import { VscSplitHorizontal, VscClose } from "react-icons/vsc";
+import { HiOutlineDocumentText, HiOutlineEye, HiOutlineChartBar, HiOutlineX, HiOutlineClipboardCopy, HiOutlineSave } from "react-icons/hi";
+import { VscSplitHorizontal } from "react-icons/vsc";
+import { showCopyToast, showErrorToast } from "@/app/components/Toastr";
+import PaneTab, { TabSaveState } from "./PaneTab";
 import { useFileSystem } from "@/app/hooks/use-file-system";
 import { useAtomValue } from "jotai";
 import { useDialog } from "@/app/hooks/use-dialog";
@@ -126,7 +128,8 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
       const fileState = contentStore.get(atom_openFiles)[path];
       const tabHandle = contentStore.get(atom_liveHandles(path));
       if (fileState && fileState.content !== fileState.lastSavedContent && tabHandle) {
-        await saveFile(fileState.content, tabHandle, 0, true, path);
+        // Fire and forget so we don't block tab closing if the file system is locked (e.g. Google Drive 45s retries)
+        void saveFile(fileState.content, tabHandle, 0, true, path);
       }
     }
     closeTab({ paneId: leaf.id, filePath: path });
@@ -179,6 +182,16 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
       if (index !== undefined) {
         setDraggedOverIndex(index);
       }
+    }
+  };
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(content);
+      showCopyToast("Markdown copied to clipboard!");
+    } catch (err) {
+      console.error("Failed to copy:", err);
+      showErrorToast("Failed to copy markdown");
     }
   };
 
@@ -236,15 +249,29 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
             const fileState = openFiles[path];
             const fileName = fileState?.fileName || path.split("/").pop() || "Untitled";
             const isDirty = fileState && fileState.content !== fileState.lastSavedContent;
-            
-            // Enhanced Save Status for this specific tab
+
             const isThisTabSaving = saveStatus.path === path && saveStatus.state === "saving";
             const isThisTabSaved = saveStatus.path === path && saveStatus.state === "saved";
             const isThisTabError = saveStatus.path === path && saveStatus.state === "error";
 
+            const tabSaveState: TabSaveState = isThisTabError
+              ? "error"
+              : isThisTabSaving
+              ? "saving"
+              : isThisTabSaved
+              ? "saved"
+              : isDirty
+              ? "dirty"
+              : "idle";
+
             return (
-              <div
+              <PaneTab
                 key={path}
+                fileName={fileName}
+                isActive={isTabActive}
+                saveState={tabSaveState}
+                saveErrorMessage={saveStatus.message}
+                isDraggedOver={isDraggedOver}
                 draggable
                 onDragStart={(e) => handleDragStart(e, path)}
                 onDragEnd={handleDragEnd}
@@ -262,58 +289,11 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
                   setActivePaneId(leaf.id);
                   setTabMenu({ x: e.clientX, y: e.clientY, path });
                 }}
-                className={`
-                  group flex items-center gap-2 px-3 h-[32px] cursor-pointer min-w-[100px] md:min-w-[140px] max-w-[200px] transition-all shrink-0 relative rounded-xl mx-0.5
-                  ${isTabActive 
-                    ? "bg-white dark:bg-zinc-800 shadow-[0_1px_3px_rgba(0,0,0,0.05)] dark:shadow-none text-zinc-900 dark:text-zinc-100 ring-1 ring-zinc-200/50 dark:ring-zinc-700/50" 
-                    : "text-zinc-500 hover:bg-zinc-200/40 dark:hover:bg-zinc-800/40"}
-                  ${isDraggedOver ? "ring-2 ring-blue-500/50" : ""}
-                `}
-              >
-                <span className={`${isTabActive ? "text-blue-500" : "text-zinc-400"} opacity-70 shrink-0`}>
-                  {getIcon("editor")}
-                </span>
-                
-                <span className={`text-ui-caption truncate flex-1 tracking-tight font-medium ${isTabActive ? "opacity-100" : "opacity-80"}`}>
-                  {fileName}
-                </span>
-                
-                {(isDirty || isThisTabSaving || isThisTabSaved || isThisTabError) && (
-                  <div 
-                    className={`w-1.5 h-1.5 rounded-full shrink-0 transition-all duration-300 ${
-                      isThisTabError 
-                        ? "bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]" 
-                        : isThisTabSaving
-                        ? "bg-blue-500 animate-pulse shadow-[0_0_8px_rgba(59,130,246,0.5)]"
-                        : isThisTabSaved
-                        ? "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]"
-                        : "bg-blue-500/80 shadow-[0_0_8px_rgba(59,130,246,0.5)]"
-                    }`} 
-                    title={
-                      isThisTabError 
-                        ? (saveStatus.message || "Save Error") 
-                        : isThisTabSaving 
-                        ? "Saving..." 
-                        : isThisTabSaved 
-                        ? "Saved" 
-                        : "Unsaved changes"
-                    } 
-                  />
-                )}
-
-                <Button
-                  variant="icon"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    void closeTabWithAutosave(path);
-                  }}
-                  className={`p-1 rounded-md hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-all shrink-0 ${isTabActive ? "opacity-40 hover:opacity-100" : "max-md:opacity-40 md:opacity-0 md:group-hover:opacity-60"}`}
-                  title="Close tab"
-                  aria-label="Close tab"
-                >
-                  <VscClose size={14} />
-                </Button>
-              </div>
+                onClose={(e) => {
+                  e.stopPropagation();
+                  void closeTabWithAutosave(path);
+                }}
+              />
             );
           })}
           
@@ -321,6 +301,15 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
           <div className="flex items-center gap-0.5 ml-auto pl-4 pr-1 sticky right-0 bg-gradient-to-l from-zinc-50/90 via-zinc-50/80 to-transparent dark:from-zinc-950/90 dark:via-zinc-950/80 h-full shrink-0 z-20">
             {isActive && leaf.openFilePaths.length > 0 && (
               <>
+                <Button
+                  variant="icon"
+                  onClick={handleCopy}
+                  title="Copy Markdown"
+                  aria-label="Copy Markdown"
+                  className="w-9 h-9 flex items-center justify-center text-zinc-400 hover:text-blue-500 transition-all rounded-xl"
+                >
+                  <HiOutlineClipboardCopy size={18} />
+                </Button>
                 <Button
                   variant="icon"
                   onClick={handleSave}

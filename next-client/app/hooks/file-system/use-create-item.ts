@@ -7,24 +7,26 @@ import {
   atom_vaultHandle,
   atom_currentDirectoryHandle,
   atom_autoInjectFrontmatter,
+  atom_vaultSetupStatus,
 } from "@/app/atoms/atoms";
 import { atom_vaultFiles } from "@/app/atoms/vault-atoms";
-import { atom_frontmatterWizardOpen } from "@/app/atoms/ui-atoms";
+import { atom_frontmatterWizardOpen, atom_vaultSetupWizardOpen } from "@/app/atoms/ui-atoms";
 import { useDialog } from "../use-dialog";
 import { withRetry } from "./shared";
 import { injectFrontmatter } from "@/app/utils/frontmatterInjector";
 
 interface UseCreateItemProps {
   scanVault: (handle: FileSystemDirectoryHandle) => Promise<void>;
-  indexVaultTags: (passedHandle?: FileSystemDirectoryHandle) => Promise<void>;
   openFile: (fileHandle: FileSystemFileHandle, providedPath?: string, force?: boolean) => Promise<void>;
 }
 
-export function useCreateItem({ scanVault, indexVaultTags, openFile }: UseCreateItemProps) {
+export function useCreateItem({ scanVault, openFile }: UseCreateItemProps) {
   const [vaultHandle] = useAtom(atom_vaultHandle);
   const [currentDirectoryHandle] = useAtom(atom_currentDirectoryHandle);
   const [autoInjectFrontmatter] = useAtom(atom_autoInjectFrontmatter);
   const setFrontmatterWizardOpen = useSetAtom(atom_frontmatterWizardOpen);
+  const setVaultSetupWizardOpen = useSetAtom(atom_vaultSetupWizardOpen);
+  const vaultSetupStatus = useAtomValue(atom_vaultSetupStatus);
   const vaultFiles = useAtomValue(atom_vaultFiles);
   const dialog = useDialog();
 
@@ -57,10 +59,13 @@ export function useCreateItem({ scanVault, indexVaultTags, openFile }: UseCreate
 
         if (!newFileHandle) throw new Error("Failed to resolve file handle");
 
-        // Write content immediately if provided
-        const contentToWrite = autoInjectFrontmatter
+        // Write content immediately if provided.
+        // If empty, pad with a newline to prevent creating a 0-byte file,
+        // which causes Google Drive to hang in an infinite sync loop.
+        let contentToWrite = autoInjectFrontmatter
           ? injectFrontmatter(content, fileName)
           : content;
+        if (!contentToWrite) contentToWrite = "\n";
         await withRetry(async () => {
           const writable = await (newFileHandle as any).createWritable();
           await writable.write(contentToWrite);
@@ -68,7 +73,6 @@ export function useCreateItem({ scanVault, indexVaultTags, openFile }: UseCreate
         });
 
         await scanVault(targetDir);
-        await indexVaultTags();
 
         // Calculate path for opening
         let path = fileName;
@@ -96,18 +100,27 @@ export function useCreateItem({ scanVault, indexVaultTags, openFile }: UseCreate
         await openFile(newFileHandle, path, true);
 
         if (contentToWrite !== content) {
-          setFrontmatterWizardOpen(path);
+          if (vaultSetupStatus === "needs_setup") {
+            setVaultSetupWizardOpen(path);
+          } else {
+            setFrontmatterWizardOpen(path);
+          }
         }
 
         toast.success("Created: " + fileName);
         return newFileHandle;
       } catch (err: any) {
-        console.error("File System Error:", err?.message || err);
-        toast.error("Failed to create file");
+        console.warn("File System Error:", err?.message || err);
+        const isInvalidState = err.name === "InvalidStateError" || (err.message && err.message.includes("state cached"));
+        if (isInvalidState) {
+          toast.error("Google Drive is syncing. Please wait a moment and try again.");
+        } else {
+          toast.error("Failed to create file");
+        }
         return null;
       }
     },
-    [vaultHandle, currentDirectoryHandle, scanVault, indexVaultTags, openFile, autoInjectFrontmatter, setFrontmatterWizardOpen],
+    [vaultHandle, currentDirectoryHandle, scanVault, openFile, autoInjectFrontmatter, vaultSetupStatus, setVaultSetupWizardOpen, setFrontmatterWizardOpen],
   );
 
   const createNewFile = useCallback(async (dirHandle?: FileSystemDirectoryHandle) => {
@@ -157,7 +170,7 @@ export function useCreateItem({ scanVault, indexVaultTags, openFile }: UseCreate
     const tagsStr = result.tags 
       ? `[${result.tags.split(",").map((t: string) => t.trim().toLowerCase()).filter(Boolean).join(", ")}]` 
       : "[]";
-    const fm = `---\nid: ${slug}\ntitle: ${result.name}\ntype: ${result.type || "note"}\nstatus: "#draft"\nversion: 1\ntags: ${tagsStr}\n---\n\n`;
+    const fm = `---\nid: ${slug}\ntitle: ${result.name}\ntype: ${result.type || "note"}\nstatus: "#draft"\ntags: ${tagsStr}\n---\n\n`;
 
     return await createFile(result.name, fm, targetDir);
   }, [vaultHandle, vaultFiles, scanVault, createFile, dialog]);

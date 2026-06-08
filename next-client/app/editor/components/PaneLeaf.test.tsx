@@ -67,7 +67,7 @@ describe("PaneLeaf Tab Indicators", () => {
 
     const dot = screen.getByTitle("Unsaved changes");
     expect(dot).toBeInTheDocument();
-    expect(dot).toHaveClass("bg-blue-500/80");
+    expect(dot).toHaveClass("bg-blue-400/80");
   });
 
   it("renders a pulsing blue dot when file is saving", () => {
@@ -86,16 +86,16 @@ describe("PaneLeaf Tab Indicators", () => {
       </TestProvider>
     );
 
-    const dot = screen.getByTitle("Saving...");
+    const dot = screen.getByTitle("Saving…");
     expect(dot).toBeInTheDocument();
     expect(dot).toHaveClass("bg-blue-500");
     expect(dot).toHaveClass("animate-pulse");
   });
 
-  it("renders an emerald dot when file is saved", () => {
+  it("shows close button (not a dot) when file is saved", () => {
     const initialValues = [
       [atom_activePaneId, "pane-1"],
-      [atom_openFiles, { 
+      [atom_openFiles, {
         "file1.md": { fileName: "file1.md", content: "clean", lastSavedContent: "clean" }
       }],
       [atom_saveStatus, { state: "saved", retryCount: 0, path: "file1.md" }],
@@ -108,9 +108,9 @@ describe("PaneLeaf Tab Indicators", () => {
       </TestProvider>
     );
 
-    const dot = screen.getByTitle("Saved");
-    expect(dot).toBeInTheDocument();
-    expect(dot).toHaveClass("bg-emerald-500");
+    // Saved state reverts to showing the close button, not a status dot
+    expect(screen.queryByTitle("Saved")).not.toBeInTheDocument();
+    expect(screen.getAllByTitle("Close tab").length).toBeGreaterThan(0);
   });
 
   it("renders a red dot when there is a save error", () => {
@@ -152,7 +152,7 @@ describe("PaneLeaf Tab Indicators", () => {
     );
 
     // file1.md should not have a saving dot
-    const dots = screen.queryAllByTitle("Saving...");
+    const dots = screen.queryAllByTitle("Saving…");
     expect(dots.length).toBe(1); // Only for file2.md
   });
 });

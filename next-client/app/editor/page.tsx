@@ -16,6 +16,7 @@ import {
 } from "@/app/atoms/atoms";
 import VaultSidebar from "./components/VaultSidebar";
 import WelcomeWizard from "./components/WelcomeWizard";
+import VaultSetupWizard from "./components/VaultSetupWizard";
 import FrontmatterWizard from "./components/FrontmatterWizard";
 import WorkspaceSplitter from "./components/WorkspaceSplitter";
 import VaultPendingOverlay from "./components/VaultPendingOverlay";
@@ -247,6 +248,7 @@ export default function LiteEditor() {
       <div className={`fixed inset-0 flex bg-paper-light dark:bg-paper-dark text-ink-light dark:text-ink-dark selection:bg-pastel-blue/30 font-sans overflow-hidden overscroll-none transition-all duration-500 ${isVaultPending ? "blur-md pointer-events-none select-none" : ""}`}>
         {/* Modals */}
         <WelcomeWizard />
+        <VaultSetupWizard />
         <FrontmatterWizard />
         <ConflictDialog />
         {isVaultPending && <VaultPendingOverlay restoreVault={restoreVault} />}

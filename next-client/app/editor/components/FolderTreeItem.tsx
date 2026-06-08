@@ -48,7 +48,7 @@ const FolderTreeItem = memo(function FolderTreeItem({
 }: FolderTreeItemProps) {
   const [isExpanded, setIsExpanded] = useState(isRoot);
   const [children, setChildren] = useState<FileSystemHandle[]>([]);
-  const [actionMenuOpen, setActionMenuOpen] = useState(false);
+  const [actionMenuOpen, setActionMenuOpen] = useState<{ x: number, y: number } | null>(null);
   const [dragOver, setDragOver] = useState(false);
   const fsVersion = useAtomValue(atom_fileSystemVersion);
   const lastActiveRef = useRef<string | null>(null);
@@ -127,7 +127,6 @@ const FolderTreeItem = memo(function FolderTreeItem({
           onDragOver={onDragOver}
           onDragLeave={onDragLeave}
           onDrop={onDrop}
-          onMouseLeave={() => setActionMenuOpen(false)}
         >
           <div
             onClick={() => setIsExpanded(!isExpanded)}
@@ -151,7 +150,14 @@ const FolderTreeItem = memo(function FolderTreeItem({
               className="w-8 h-8 flex items-center justify-center"
               onClick={(e) => {
                 e.stopPropagation();
-                setActionMenuOpen(!actionMenuOpen);
+                if (actionMenuOpen) {
+                  setActionMenuOpen(null);
+                } else {
+                  const rect = e.currentTarget.getBoundingClientRect();
+                  // Prevent clipping by ensuring the menu stays on screen (rough estimate 150px height)
+                  const y = rect.bottom > window.innerHeight - 170 ? rect.top - 150 : rect.bottom + 4;
+                  setActionMenuOpen({ x: rect.right, y });
+                }
               }}
               title="Folder options"
               aria-label="Folder options"
@@ -164,14 +170,17 @@ const FolderTreeItem = memo(function FolderTreeItem({
             <>
               <div
                 className="fixed inset-0 z-40"
-                onClick={() => setActionMenuOpen(false)}
+                onClick={(e) => { e.stopPropagation(); setActionMenuOpen(null); }}
               />
-              <div className="absolute right-2 top-[80%] z-50 bg-white/90 dark:bg-zinc-900/90 backdrop-blur-xl border border-zinc-200/50 dark:border-zinc-800/50 rounded-2xl shadow-2xl py-1.5 min-w-[160px] animate-in fade-in zoom-in-95 duration-200">
+              <div 
+                className="fixed z-50 bg-white/90 dark:bg-zinc-900/90 backdrop-blur-xl border border-zinc-200/50 dark:border-zinc-800/50 rounded-2xl shadow-2xl py-1.5 min-w-[160px] animate-in fade-in zoom-in-95 duration-200"
+                style={{ top: actionMenuOpen.y, left: actionMenuOpen.x - 160 }}
+              >
                 <Button
                   variant="menu-item"
                   onClick={(e) => {
                     e.stopPropagation();
-                    setActionMenuOpen(false);
+                    setActionMenuOpen(null);
                     createNewFile(dirHandle);
                   }}
                   className="w-full flex items-center gap-3 px-4 py-2.5 text-ui-footnote font-medium hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
@@ -185,7 +194,7 @@ const FolderTreeItem = memo(function FolderTreeItem({
                   onClick={(e) => {
                     e.stopPropagation();
                     renameFile(dirHandle);
-                    setActionMenuOpen(false);
+                    setActionMenuOpen(null);
                   }}
                   className="w-full flex items-center gap-3 px-4 py-2.5 text-ui-footnote font-medium hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
                 >
@@ -197,7 +206,7 @@ const FolderTreeItem = memo(function FolderTreeItem({
                   onClick={(e) => {
                     e.stopPropagation();
                     deleteFile(dirHandle);
-                    setActionMenuOpen(false);
+                    setActionMenuOpen(null);
                   }}
                   className="w-full flex items-center gap-3 px-4 py-2.5 text-ui-footnote font-medium hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors text-red-500"
                 >

@@ -21,22 +21,28 @@ import {
   atom_sidebarTabOrder,
   MONO_FONT_STACK,
 } from "@/app/atoms/atoms";
+import { atom_vaultSetupWizardOpen } from "@/app/atoms/ui-atoms";
+import { atom_driveVaultId, atom_driveVaultName } from "@/app/atoms/drive-atoms";
+import { useDriveAuth } from "@/app/hooks/drive/use-drive-auth";
 import {
   HiOutlineArrowLeft,
   HiOutlineDocumentText,
   HiOutlinePencilAlt,
   HiOutlineColorSwatch,
   HiOutlineAcademicCap,
+  HiOutlineCloud,
   HiCheck,
   HiChevronUp,
   HiChevronDown,
 } from "react-icons/hi";
 import Button from "@/app/components/Button";
 import Toggle from "@/app/components/Toggle";
-import { SettingItem } from "./components/SettingControls";
-
-const selectClass =
-  "bg-zinc-200/50 dark:bg-zinc-800 text-ui-caption font-semibold rounded-xl px-3 py-1.5 outline-none border border-transparent focus:border-blue-500/50 cursor-pointer appearance-none text-center min-w-[130px] transition-all";
+import {
+  SegmentedControl,
+  SelectControl,
+  SettingItem,
+  SettingGroup,
+} from "./components/SettingControls";
 
 const SettingsPage = () => {
   const router = useRouter();
@@ -56,6 +62,10 @@ const SettingsPage = () => {
   const [autoInjectFrontmatter, setAutoInjectFrontmatter] = useAtom(atom_autoInjectFrontmatter);
   const [sidebarTabOrder, setSidebarTabOrder] = useAtom(atom_sidebarTabOrder);
   const [, setIsWizardOpen] = useAtom(atom_isWizardOpen);
+  const [, setVaultSetupWizardOpen] = useAtom(atom_vaultSetupWizardOpen);
+  const [, setDriveVaultId] = useAtom(atom_driveVaultId);
+  const [driveVaultName] = useAtom(atom_driveVaultName);
+  const { authState: driveAuthState, signIn: driveSignIn, signOut: driveSignOut } = useDriveAuth();
 
   const moveTab = (index: number, direction: "up" | "down") => {
     const newOrder = [...sidebarTabOrder];
@@ -112,113 +122,54 @@ const SettingsPage = () => {
       icon: HiOutlineDocumentText,
       content: (
         <>
-          <SettingItem
-            label="Text Size"
-            control={
-              <div className="flex bg-zinc-200/50 dark:bg-zinc-800 p-1 rounded-xl">
-                {sizes.map((s) => (
-                  <Button
-                    key={s.label}
-                    variant="bare"
-                    onClick={() => setFontSize(s.value)}
-                    className={`px-3 py-1.5 text-ui-footnote font-semibold rounded-lg transition-all ${
-                      fontSize === s.value
-                        ? "bg-white dark:bg-zinc-700 shadow-sm text-blue-600 dark:text-blue-400"
-                        : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100"
-                    }`}
-                  >
-                    {s.label}
-                  </Button>
-                ))}
-              </div>
-            }
-          />
-          <div className="py-3 border-b border-neutral-100 dark:border-neutral-800/30">
-            <div className="flex flex-col mb-3">
-              <span className="text-ui-footnote font-medium leading-none">Font</span>
-              <span className="text-ui-footnote text-neutral-500 dark:text-neutral-400 mt-1.5 leading-tight">
-                Monospace keeps the editor caret aligned.
-              </span>
-            </div>
-            <div className="flex flex-col gap-2">
-              {fonts.map((f) => {
-                const isActive = fontFamily === f.value;
-                return (
-                  <Button
-                    key={f.label}
-                    variant="bare"
-                    onClick={() => setFontFamily(f.value)}
-                    className={`w-full text-left px-4 py-2.5 rounded-xl border transition-all ${
-                      isActive
-                        ? "border-blue-500/60 bg-blue-50 dark:bg-blue-500/10"
-                        : "border-neutral-200/70 dark:border-neutral-800/70 hover:bg-neutral-100 dark:hover:bg-neutral-800/40"
-                    }`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <span
-                        className={`text-ui-footnote font-semibold ${
-                          isActive ? "text-blue-600 dark:text-blue-400" : "text-neutral-700 dark:text-neutral-200"
-                        }`}
-                      >
-                        {f.label}
-                      </span>
-                      {isActive && <HiCheck size={16} className="text-blue-600 dark:text-blue-400" />}
-                    </div>
-                    <span
-                      style={{ fontFamily: f.value }}
-                      className="block mt-1 text-ui-callout text-neutral-600 dark:text-neutral-300"
-                    >
-                      The quick brown fox 0123 {"{}"} =&gt;
+          <SettingGroup title="Size & Spacing">
+            <SettingItem
+              label="Text Size"
+              layout="stack"
+              control={
+                <SegmentedControl options={sizes} value={fontSize} onChange={setFontSize} />
+              }
+            />
+            <SettingItem
+              label="Line Height"
+              description="Vertical spacing between lines."
+              layout="stack"
+              control={
+                <SegmentedControl options={lineHeights} value={lineHeight} onChange={setLineHeight} />
+              }
+            />
+            <SettingItem
+              label="Letter Spacing"
+              description="Horizontal spacing between glyphs."
+              layout="stack"
+              control={
+                <SegmentedControl options={letterSpacings} value={letterSpacing} onChange={setLetterSpacing} />
+              }
+            />
+          </SettingGroup>
+          <SettingGroup title="Typeface">
+            {fonts.map((f) => {
+              const isActive = fontFamily === f.value;
+              return (
+                <button
+                  key={f.label}
+                  type="button"
+                  onClick={() => setFontFamily(f.value)}
+                  className="w-full flex items-center justify-between gap-4 py-3.5 border-b border-neutral-100 dark:border-neutral-800/40 last:border-0 focus:outline-none"
+                >
+                  <div className="flex flex-col items-start gap-1 min-w-0">
+                    <span className={`text-ui-subhead font-medium leading-none ${isActive ? "text-blue-600 dark:text-blue-400" : "text-ink-light dark:text-ink-dark"}`}>
+                      {f.label}
                     </span>
-                  </Button>
-                );
-              })}
-            </div>
-          </div>
-          <SettingItem
-            label="Line Height"
-            description="Vertical spacing between lines."
-            control={
-              <div className="flex bg-zinc-200/50 dark:bg-zinc-800 p-1 rounded-xl">
-                {lineHeights.map((opt) => (
-                  <Button
-                    key={opt.value}
-                    variant="bare"
-                    onClick={() => setLineHeight(opt.value)}
-                    className={`px-3 py-1.5 text-ui-footnote font-semibold rounded-lg transition-all ${
-                      lineHeight === opt.value
-                        ? "bg-white dark:bg-zinc-700 shadow-sm text-blue-600 dark:text-blue-400"
-                        : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100"
-                    }`}
-                  >
-                    {opt.label}
-                  </Button>
-                ))}
-              </div>
-            }
-          />
-          <SettingItem
-            label="Letter Spacing"
-            description="Horizontal spacing between glyphs."
-            control={
-              <div className="flex bg-zinc-200/50 dark:bg-zinc-800 p-1 rounded-xl">
-                {letterSpacings.map((opt) => (
-                  <Button
-                    key={opt.value}
-                    variant="bare"
-                    onClick={() => setLetterSpacing(opt.value)}
-                    className={`px-3 py-1.5 text-ui-footnote font-semibold rounded-lg transition-all ${
-                      letterSpacing === opt.value
-                        ? "bg-white dark:bg-zinc-700 shadow-sm text-blue-600 dark:text-blue-400"
-                        : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100"
-                    }`}
-                  >
-                    {opt.label}
-                  </Button>
-                ))}
-              </div>
-            }
-          />
+                    <span style={{ fontFamily: f.value }} className="text-ui-footnote text-neutral-400 dark:text-neutral-500">
+                      The quick brown fox 0123
+                    </span>
+                  </div>
+                  {isActive && <HiCheck size={15} className="shrink-0 text-blue-600 dark:text-blue-400" />}
+                </button>
+              );
+            })}
+          </SettingGroup>
         </>
       ),
     },
@@ -228,98 +179,82 @@ const SettingsPage = () => {
       icon: HiOutlinePencilAlt,
       content: (
         <>
-          <SettingItem
-            label="Autosave Mode"
-            description="When to persist changes."
-            control={
-              <select
-                value={autosaveMode}
-                onChange={(e) => setAutosaveMode(e.target.value as any)}
-                className={selectClass}
-              >
-                <option value="afterDelay">After Delay</option>
-                <option value="onFocusChange">On Focus Change</option>
-                <option value="manual">Manual Only</option>
-              </select>
-            }
-          />
-          {autosaveMode === "afterDelay" && (
+          <SettingGroup title="Save">
             <SettingItem
-              label="Autosave Delay"
-              description="Wait time after typing."
+              label="Autosave Mode"
+              description="When to persist changes."
               control={
-                <select
-                  value={autosaveDelay}
-                  onChange={(e) => setAutosaveDelay(Number(e.target.value))}
-                  className={selectClass}
-                >
-                  <option value={500}>0.5s</option>
-                  <option value={1000}>1s</option>
-                  <option value={2000}>2s</option>
-                  <option value={3000}>3s</option>
-                  <option value={5000}>5s</option>
-                  <option value={10000}>10s</option>
-                </select>
+                <SelectControl value={autosaveMode} onChange={(v) => setAutosaveMode(v as any)}>
+                  <option value="afterDelay">After Delay</option>
+                  <option value="onFocusChange">On Focus Change</option>
+                  <option value="manual">Manual Only</option>
+                </SelectControl>
               }
             />
-          )}
-          <SettingItem
-            label="Auto-inject Frontmatter"
-            description="On manual save, prepend id / title / type / tags to files with no frontmatter."
-            control={<Toggle active={autoInjectFrontmatter} onChange={setAutoInjectFrontmatter} />}
-          />
-          <SettingItem
-            label="Word Wrap"
-            description="Wrap long lines to fit viewport."
-            control={<Toggle active={wordWrap} onChange={setWordWrap} />}
-          />
-          <SettingItem
-            label="Zen Mode"
-            description="Focus on the active line."
-            control={<Toggle active={isZenModeActive} onChange={setIsZenModeActive} />}
-          />
-          <SettingItem
-            label="Editor Width"
-            description="Maximum horizontal text span."
-            control={
-              <div className="flex bg-zinc-200/50 dark:bg-zinc-800 p-1 rounded-xl">
-                {widthOptions.map((opt) => (
-                  <Button
-                    key={opt.value}
-                    variant="bare"
-                    onClick={() => setEditorWidth(opt.value as any)}
-                    className={`px-3 py-1.5 text-ui-footnote font-semibold rounded-lg transition-all ${
-                      editorWidth === opt.value
-                        ? "bg-white dark:bg-zinc-700 shadow-sm text-blue-600 dark:text-blue-400"
-                        : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100"
-                    }`}
-                  >
-                    {opt.label}
-                  </Button>
-                ))}
-              </div>
-            }
-          />
-          <SettingItem
-            label="Preferred Currency"
-            description="Used for budget calculations."
-            control={
-              <select
-                value={currencyCode}
-                onChange={(e) => setCurrencyCode(e.target.value)}
-                className={selectClass}
-              >
-                <option value="USD">USD ($)</option>
-                <option value="EUR">EUR (€)</option>
-                <option value="GBP">GBP (£)</option>
-                <option value="JPY">JPY (¥)</option>
-                <option value="INR">INR (₹)</option>
-                <option value="CAD">CAD (C$)</option>
-                <option value="AUD">AUD (A$)</option>
-                <option value="RON">RON (lei)</option>
-              </select>
-            }
-          />
+            {autosaveMode === "afterDelay" && (
+              <SettingItem
+                label="Autosave Delay"
+                description="Wait time after typing."
+                control={
+                  <SelectControl value={autosaveDelay} onChange={(v) => setAutosaveDelay(Number(v))}>
+                    <option value={500}>0.5s</option>
+                    <option value={1000}>1s</option>
+                    <option value={2000}>2s</option>
+                    <option value={3000}>3s</option>
+                    <option value={5000}>5s</option>
+                    <option value={10000}>10s</option>
+                  </SelectControl>
+                }
+              />
+            )}
+            <SettingItem
+              label="Auto-inject Frontmatter"
+              description="On manual save, prepend id / title / type / tags to files with no frontmatter."
+              control={<Toggle active={autoInjectFrontmatter} onChange={setAutoInjectFrontmatter} />}
+            />
+          </SettingGroup>
+          <SettingGroup title="Display">
+            <SettingItem
+              label="Word Wrap"
+              description="Wrap long lines to fit viewport."
+              control={<Toggle active={wordWrap} onChange={setWordWrap} />}
+            />
+            <SettingItem
+              label="Zen Mode"
+              description="Focus on the active line."
+              control={<Toggle active={isZenModeActive} onChange={setIsZenModeActive} />}
+            />
+            <SettingItem
+              label="Editor Width"
+              description="Maximum horizontal text span."
+              layout="stack"
+              control={
+                <SegmentedControl
+                  options={widthOptions}
+                  value={editorWidth}
+                  onChange={(v) => setEditorWidth(v as any)}
+                />
+              }
+            />
+          </SettingGroup>
+          <SettingGroup title="Format">
+            <SettingItem
+              label="Preferred Currency"
+              description="Used for budget calculations."
+              control={
+                <SelectControl value={currencyCode} onChange={setCurrencyCode}>
+                  <option value="USD">USD ($)</option>
+                  <option value="EUR">EUR (€)</option>
+                  <option value="GBP">GBP (£)</option>
+                  <option value="JPY">JPY (¥)</option>
+                  <option value="INR">INR (₹)</option>
+                  <option value="CAD">CAD (C$)</option>
+                  <option value="AUD">AUD (A$)</option>
+                  <option value="RON">RON (lei)</option>
+                </SelectControl>
+              }
+            />
+          </SettingGroup>
         </>
       ),
     },
@@ -329,52 +264,121 @@ const SettingsPage = () => {
       icon: HiOutlineColorSwatch,
       content: (
         <>
-          <SettingItem
-            label="Dark Theme"
-            description="Use dark application colors."
-            control={
-              <Toggle
-                active={theme === "dark"}
-                onChange={(active) => setTheme(active ? "dark" : "light")}
-              />
-            }
-          />
-          <SettingItem
-            label="Status Bar"
-            description="Show word and character counts."
-            control={<Toggle active={showStats} onChange={setShowStats} />}
-          />
-          <SettingItem
-            label="Sidebar Tab Order"
-            description="Arrange the tabs in your vault sidebar."
-            control={
-              <div className="flex flex-col gap-2 min-w-[160px]">
-                {sidebarTabOrder.map((tab, idx) => (
-                  <div key={tab} className="flex items-center justify-between bg-zinc-200/50 dark:bg-zinc-800 p-2 rounded-xl">
-                    <span className="text-ui-footnote font-semibold ml-2 capitalize">{tab}</span>
-                    <div className="flex gap-1">
-                      <Button
-                        variant="icon"
-                        className="w-7 h-7"
-                        disabled={idx === 0}
-                        onClick={() => moveTab(idx, "up")}
-                      >
-                        <HiChevronUp size={14} />
-                      </Button>
-                      <Button
-                        variant="icon"
-                        className="w-7 h-7"
-                        disabled={idx === sidebarTabOrder.length - 1}
-                        onClick={() => moveTab(idx, "down")}
-                      >
-                        <HiChevronDown size={14} />
-                      </Button>
+          <SettingGroup title="Appearance">
+            <SettingItem
+              label="Dark Theme"
+              description="Use dark application colors."
+              control={
+                <Toggle
+                  active={theme === "dark"}
+                  onChange={(active) => setTheme(active ? "dark" : "light")}
+                />
+              }
+            />
+            <SettingItem
+              label="Status Bar"
+              description="Show word and character counts."
+              control={<Toggle active={showStats} onChange={setShowStats} />}
+            />
+          </SettingGroup>
+          <SettingGroup title="Navigation">
+            <SettingItem
+              label="Sidebar Tab Order"
+              description="Arrange the tabs in your vault sidebar."
+              layout="stack"
+              control={
+                <div className="flex flex-col gap-1.5">
+                  {sidebarTabOrder.map((tab, idx) => (
+                    <div
+                      key={tab}
+                      className="flex items-center justify-between bg-zinc-50 dark:bg-zinc-800/60 px-3.5 py-2.5 rounded-xl border border-neutral-200/60 dark:border-neutral-800/60"
+                    >
+                      <span className="text-ui-subhead font-medium capitalize text-ink-light dark:text-ink-dark">
+                        {tab}
+                      </span>
+                      <div className="flex gap-1">
+                        <Button
+                          variant="icon"
+                          className="w-7 h-7"
+                          disabled={idx === 0}
+                          onClick={() => moveTab(idx, "up")}
+                        >
+                          <HiChevronUp size={14} />
+                        </Button>
+                        <Button
+                          variant="icon"
+                          className="w-7 h-7"
+                          disabled={idx === sidebarTabOrder.length - 1}
+                          onClick={() => moveTab(idx, "down")}
+                        >
+                          <HiChevronDown size={14} />
+                        </Button>
+                      </div>
                     </div>
-                  </div>
-                ))}
-              </div>
-            }
-          />
+                  ))}
+                </div>
+              }
+            />
+          </SettingGroup>
+        </>
+      ),
+    },
+    {
+      id: "integrations",
+      label: "Integrations",
+      icon: HiOutlineCloud,
+      content: (
+        <>
+          <SettingGroup title="Google Drive">
+            {driveAuthState === "authenticated" ? (
+              <>
+                <SettingItem
+                  label="Connected Vault"
+                  description={driveVaultName ? `Syncing with "${driveVaultName}"` : "Drive vault is active."}
+                  control={
+                    <Button
+                      variant="secondary"
+                      onClick={() => {
+                        driveSignOut();
+                        setDriveVaultId(null);
+                      }}
+                      className="h-8 px-4 text-ui-footnote font-medium"
+                    >
+                      Disconnect
+                    </Button>
+                  }
+                />
+              </>
+            ) : driveAuthState === "expired" ? (
+              <SettingItem
+                label="Session Expired"
+                description="Your Drive session expired. Reconnect to continue syncing."
+                control={
+                  <Button
+                    variant="primary"
+                    onClick={driveSignIn}
+                    className="h-8 px-4 text-ui-footnote font-medium"
+                  >
+                    Reconnect
+                  </Button>
+                }
+              />
+            ) : (
+              <SettingItem
+                label="Connect Google Drive"
+                description="Use a Google Drive folder as your vault. Files are saved directly to your Drive."
+                control={
+                  <Button
+                    variant="primary"
+                    onClick={driveSignIn}
+                    className="h-8 px-4 text-ui-footnote font-medium"
+                  >
+                    Connect
+                  </Button>
+                }
+              />
+            )}
+          </SettingGroup>
         </>
       ),
     },
@@ -383,19 +387,41 @@ const SettingsPage = () => {
       label: "Guide",
       icon: HiOutlineAcademicCap,
       content: (
-        <SettingItem
-          label="Welcome Tour"
-          description="Replay the introduction wizard."
-          control={
-            <Button
-              variant="secondary"
-              onClick={startTour}
-              className="h-9 px-5 text-ui-footnote font-medium border-zinc-200 dark:border-zinc-800"
-            >
-              Start
-            </Button>
-          }
-        />
+        <>
+          <SettingGroup title="Onboarding">
+            <SettingItem
+              label="Welcome Tour"
+              description="Replay the introduction wizard."
+              control={
+                <Button
+                  variant="secondary"
+                  onClick={startTour}
+                  className="h-8 px-4 text-ui-footnote font-medium"
+                >
+                  Start
+                </Button>
+              }
+            />
+          </SettingGroup>
+          <SettingGroup title="Agent Skills">
+            <SettingItem
+              label="Install / Update Skills"
+              description="Manually check for and install agent skills in the active vault."
+              control={
+                <Button
+                  variant="secondary"
+                  onClick={() => {
+                    setVaultSetupWizardOpen("vault-root");
+                    router.push("/editor"); // Take them back to editor to see the prompt
+                  }}
+                  className="h-8 px-4 text-ui-footnote font-medium"
+                >
+                  Install
+                </Button>
+              }
+            />
+          </SettingGroup>
+        </>
       ),
     },
   ];
@@ -404,56 +430,48 @@ const SettingsPage = () => {
   const active = sections.find((s) => s.id === activeSection) ?? sections[0];
 
   return (
-    <div className="fixed inset-0 flex flex-col lg:flex-row bg-paper-light dark:bg-paper-dark text-ink-light dark:text-ink-dark selection:bg-pastel-blue/30 font-sans overflow-hidden overscroll-none">
-      {/* Sidebar / category rail */}
-      <aside className="shrink-0 lg:w-72 flex flex-col border-b lg:border-b-0 lg:border-r border-zinc-200/60 dark:border-zinc-800/60 bg-white/50 dark:bg-zinc-950/50 backdrop-blur-xl">
-        <div className="flex items-center gap-3 px-5 lg:px-6 pt-6 pb-4">
-          <Button
-            variant="icon"
+    <div className="fixed inset-0 flex flex-col lg:flex-row font-sans overflow-hidden overscroll-none bg-zinc-50 dark:bg-zinc-950 text-ink-light dark:text-ink-dark selection:bg-pastel-blue/30">
+      {/* Sidebar */}
+      <aside className="shrink-0 lg:w-60 flex flex-col border-b lg:border-b-0 lg:border-r border-zinc-200/70 dark:border-zinc-900 bg-white dark:bg-zinc-950">
+        <div className="px-5 pt-6 pb-4">
+          <button
             onClick={() => router.push("/editor")}
-            className="w-9 h-9 shrink-0"
             title="Back to editor"
+            className="inline-flex items-center gap-1.5 text-ui-footnote font-medium text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200 transition-colors mb-5 group focus:outline-none"
           >
-            <HiOutlineArrowLeft size={20} />
-          </Button>
-          <div className="space-y-0.5">
-            <h1 className="text-ui-title-2 font-bold tracking-tight leading-none">Settings</h1>
-            <p className="text-ui-footnote text-neutral-500 dark:text-neutral-400 font-medium">
-              Environment Configuration
-            </p>
-          </div>
+            <HiOutlineArrowLeft size={13} className="group-hover:-translate-x-0.5 transition-transform" />
+            Editor
+          </button>
+          <h1 className="text-ui-title-3 font-bold tracking-tight">Settings</h1>
         </div>
 
-        <nav className="flex lg:flex-col gap-1 px-3 lg:px-4 pb-4 overflow-x-auto lg:overflow-x-visible custom-scrollbar">
+        <nav className="flex lg:flex-col gap-0.5 px-3 pb-4 overflow-x-auto lg:overflow-visible">
           {sections.map((s) => {
             const Icon = s.icon;
             const isActive = s.id === activeSection;
             return (
-              <Button
+              <button
                 key={s.id}
-                variant="bare"
                 onClick={() => setActiveSection(s.id)}
-                className={`flex items-center gap-3 shrink-0 px-3.5 py-2.5 rounded-xl text-ui-footnote font-semibold transition-all ${
+                className={`flex items-center gap-2.5 shrink-0 px-3 py-2.5 rounded-xl text-ui-subhead font-medium transition-all focus:outline-none ${
                   isActive
-                    ? "bg-zinc-200/70 dark:bg-zinc-800 text-blue-600 dark:text-blue-400"
-                    : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-900/60"
+                    ? "bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400"
+                    : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-900"
                 }`}
               >
-                <Icon size={18} className="shrink-0" />
+                <Icon size={16} className="shrink-0" />
                 {s.label}
-              </Button>
+              </button>
             );
           })}
         </nav>
       </aside>
 
-      {/* Content panel */}
-      <main className="flex-1 min-h-0 overflow-y-auto custom-scrollbar">
-        <div className="max-w-2xl mx-auto px-5 sm:px-8 py-8">
-          <h2 className="text-ui-title-3 font-bold tracking-tight mb-5 px-1">{active.label}</h2>
-          <div className="bg-neutral-50 dark:bg-neutral-900/50 rounded-[20px] px-4 py-1 border border-neutral-200/50 dark:border-neutral-800/50">
-            {active.content}
-          </div>
+      {/* Content */}
+      <main className="flex-1 min-h-0 overflow-y-auto custom-scrollbar bg-zinc-50/80 dark:bg-[#0f0f10]">
+        <div className="max-w-[560px] mx-auto px-5 sm:px-8 py-8">
+          <h2 className="text-ui-title-2 font-bold tracking-tight mb-6">{active.label}</h2>
+          {active.content}
         </div>
       </main>
     </div>

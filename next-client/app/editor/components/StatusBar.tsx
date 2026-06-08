@@ -13,6 +13,7 @@ import {
   atom_activeFilePath,
 } from "@/app/atoms/atoms";
 import { atom_indexerState } from "@/app/atoms/ui-atoms";
+import toast from "react-hot-toast";
 
 // --- Agent readability score ---
 // Implements the Agent-Readable Markdown spec: frontmatter completeness,
@@ -207,7 +208,15 @@ export default function StatusBar() {
   if (isZenModeActive) {
     return (
       <header className="relative h-11 border-b border-zinc-200/50 dark:border-zinc-800/50 bg-paper-light/50 dark:bg-paper-dark/50 backdrop-blur-3xl flex items-center justify-between px-4 shrink-0 z-40 select-none">
-        <span className={`text-[12px] font-medium ${saveLabelClass}`}>{saveLabel}</span>
+        <span 
+          className={`text-[12px] font-medium ${isError ? 'cursor-pointer hover:underline' : 'cursor-default'} ${saveLabelClass}`}
+          title={saveStatus.message}
+          onClick={() => {
+            if (isError && saveStatus.message) toast.error(saveStatus.message);
+          }}
+        >
+          {saveLabel}
+        </span>
 
         <Button
           variant="bare"
@@ -293,7 +302,15 @@ export default function StatusBar() {
   return (
     <footer className="relative h-[22px] max-md:h-11 border-t border-zinc-200/50 dark:border-zinc-800/50 bg-paper-light/50 dark:bg-paper-dark/50 backdrop-blur-3xl flex items-center justify-between px-3 shrink-0 pointer-events-auto z-40 select-none">
       {/* LEFT — save state */}
-      <span className={`text-[11px] max-md:text-[12px] font-medium ${saveLabelClass}`}>{saveLabel}</span>
+      <span 
+        className={`text-[11px] max-md:text-[12px] font-medium ${isError ? 'cursor-pointer hover:underline' : 'cursor-default'} ${saveLabelClass}`}
+        title={saveStatus.message}
+        onClick={() => {
+          if (isError && saveStatus.message) toast.error(saveStatus.message);
+        }}
+      >
+        {saveLabel}
+      </span>
 
       {/* CENTER — token / word count (click to toggle) */}
       <Button

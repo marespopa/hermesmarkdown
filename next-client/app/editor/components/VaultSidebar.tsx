@@ -23,6 +23,9 @@ import VaultSidebarEmpty from "./VaultSidebarEmpty";
 import VaultSidebarFiles from "./VaultSidebarFiles";
 import VaultSidebarFooter from "./VaultSidebarFooter";
 import UnifiedSearchInput from "./UnifiedSearchInput";
+import DriveAuthBanner from "./DriveAuthBanner";
+import GoogleDriveFolderPicker from "./GoogleDriveFolderPicker";
+import { atom_driveVaultName } from "@/app/atoms/drive-atoms";
 
 interface VaultSidebarProps {
   onClose?: () => void;
@@ -48,12 +51,17 @@ export default function VaultSidebar({
     isMounted,
     openVault,
     isVaultSupported,
+    isDriveVault,
+    openDriveVault,
+    driveAuthState,
+    driveSignIn,
   } = useFileSystem();
 
   const [activeFilePath, setActiveFilePath] = useAtom(atom_activeFilePath);
   const [sidebarWidth, setSidebarWidth] = useAtom(atom_sidebarWidth);
   const isCloudVault = useAtomValue(atom_isCloudVault);
   const tabOrder = useAtomValue(atom_sidebarTabOrder);
+  const driveVaultName = useAtomValue(atom_driveVaultName);
   const [isZenModeActive, setIsZenModeActive] = useAtom(atom_isZenModeActive);
   const [isResizing, setIsResizing] = useState(false);
 
@@ -120,7 +128,7 @@ export default function VaultSidebar({
         <div className="flex justify-between items-center h-10">
           <div className="flex items-center gap-2">
             <h2 className="text-ui-title-3 font-semibold text-zinc-900 dark:text-zinc-100 truncate flex items-center gap-1.5">
-              {vaultHandle?.name || "Notes"}
+              {vaultHandle?.name || driveVaultName || "Notes"}
               {isCloudVault && vaultHandle && (
                 <span title="Cloud sync detected. HermesMarkdown will use enhanced error recovery if files are locked." className="text-blue-500/60 dark:text-blue-400/60 cursor-help">
                   <HiOutlineCloud size={14} />
@@ -158,15 +166,29 @@ export default function VaultSidebar({
       <div className="flex-1 flex flex-col overflow-hidden min-h-0">
         {!vaultHandle ? (
           <div className="flex-1 overflow-y-auto overscroll-none p-3 custom-scrollbar">
-            <VaultSidebarEmpty
-              isVaultSupported={isVaultSupported}
-              openVault={openVault}
-              onImport={onImport}
-              onExport={onExport}
-              setActiveFilePath={setActiveFilePath}
-              activeFilePath={activeFilePath}
-              onClose={onClose}
-            />
+            {isDriveVault && driveAuthState === 'expired' ? (
+              <div className="space-y-3 px-1">
+                <p className="text-ui-footnote text-zinc-500 dark:text-zinc-400 leading-relaxed">
+                  Your Google Drive vault{driveVaultName ? ` "${driveVaultName}"` : ""} needs to reconnect.
+                </p>
+                <button
+                  onClick={driveSignIn}
+                  className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-blue-500 hover:bg-blue-600 text-white text-ui-footnote font-semibold transition-colors"
+                >
+                  Reconnect Google Drive
+                </button>
+              </div>
+            ) : (
+              <VaultSidebarEmpty
+                isVaultSupported={isVaultSupported}
+                openVault={openVault}
+                onImport={onImport}
+                onExport={onExport}
+                setActiveFilePath={setActiveFilePath}
+                activeFilePath={activeFilePath}
+                onClose={onClose}
+              />
+            )}
           </div>
         ) : (
           <div className="flex flex-col h-full overflow-hidden">
@@ -182,17 +204,25 @@ export default function VaultSidebar({
               />
             </div>
 
-            <div className="flex px-4 pt-1 pb-3 gap-6 shrink-0 border-b border-zinc-200/40 dark:border-zinc-800/40">
-              {tabOrder.map((tab) => (
-                <Button
-                  key={tab}
-                  variant="bare"
-                  onClick={() => setActiveTab(tab)}
-                  className={`text-sm font-semibold tracking-wide transition-colors ${activeTab === tab ? "text-zinc-900 dark:text-zinc-100" : "text-zinc-400 dark:text-zinc-600 hover:text-zinc-600 dark:hover:text-zinc-400"}`}
-                >
-                  {tab === "content" ? "Content" : "Views"}
-                </Button>
-              ))}
+            <div className="px-4 pt-1 pb-3 shrink-0 border-b border-zinc-200/40 dark:border-zinc-800/40">
+              <div className="relative flex bg-zinc-100/80 dark:bg-zinc-900/60 rounded-lg p-0.5 gap-0.5">
+                {tabOrder.map((tab) => (
+                  <button
+                    key={tab}
+                    onClick={() => setActiveTab(tab)}
+                    className={`
+                      relative flex-1 py-1.5 text-xs font-semibold tracking-wide rounded-md
+                      transition-all duration-200 ease-out cursor-pointer
+                      ${activeTab === tab
+                        ? "bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 shadow-sm shadow-zinc-200/80 dark:shadow-zinc-950/60"
+                        : "text-zinc-400 dark:text-zinc-500 hover:text-zinc-600 dark:hover:text-zinc-300"
+                      }
+                    `}
+                  >
+                    {tab === "content" ? "Content" : "Views"}
+                  </button>
+                ))}
+              </div>
             </div>
 
             <div className="flex-1 overflow-hidden flex flex-col pt-3">
@@ -235,6 +265,10 @@ export default function VaultSidebar({
         )}
       </div>
 
+      {isDriveVault && vaultHandle && driveAuthState === 'expired' && (
+        <DriveAuthBanner onReconnect={driveSignIn} />
+      )}
+
       <VaultSidebarFooter
         onOpenSettings={onOpenSettings}
         isZenModeActive={isZenModeActive}
@@ -244,6 +278,8 @@ export default function VaultSidebar({
         openVault={openVault}
         isVaultSupported={isVaultSupported}
       />
+
+      <GoogleDriveFolderPicker onSelect={openDriveVault} />
     </div>
   );
 }

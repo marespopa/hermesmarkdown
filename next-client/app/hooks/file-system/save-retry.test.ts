@@ -29,6 +29,7 @@ vi.mock("@/app/atoms/atoms", () => ({
   atom_isCloudVault: { name: "atom_isCloudVault" },
   atom_autoInjectFrontmatter: { name: "atom_autoInjectFrontmatter" },
   atom_indexerState: { name: "atom_indexerState" },
+  atom_vaultSetupStatus: { name: "atom_vaultSetupStatus" },
 }));
 
 vi.mock("@/app/atoms/metadata", () => ({
@@ -100,13 +101,13 @@ describe("useFileEditor - saveFile retry logic", () => {
     // Refresh logic: getFileHandle should be called
     mockVaultHandle.getFileHandle.mockResolvedValueOnce(freshHandle);
 
-    const { result } = renderHook(() => useFileEditor({ indexVaultTags: vi.fn() }));
+    const { result } = renderHook(() => useFileEditor());
     
     const success = await result.current.saveFile("new content");
 
     expect(success).toBe(true);
     expect(mockFileHandle.createWritable).toHaveBeenCalledTimes(1);
-    expect(mockVaultHandle.getFileHandle).toHaveBeenCalledWith("test.md");
+    expect(mockVaultHandle.getFileHandle).toHaveBeenCalledWith("test.md", { create: true });
     expect(freshHandle.createWritable).toHaveBeenCalledTimes(1);
     expect(mockWritable.write).toHaveBeenCalledWith("new content");
   });
@@ -140,14 +141,14 @@ describe("useFileEditor - saveFile retry logic", () => {
     };
     mockVaultHandle.getDirectoryHandle.mockResolvedValueOnce(mockSubDir);
 
-    const { result } = renderHook(() => useFileEditor({ indexVaultTags: vi.fn() }));
+    const { result } = renderHook(() => useFileEditor());
     
     // Call saveFile for the OLD handle, providing the OLD path
     const success = await result.current.saveFile("old content", oldHandle as any, 0, true, oldPath);
 
     expect(success).toBe(true);
     expect(mockVaultHandle.getDirectoryHandle).toHaveBeenCalledWith("folder");
-    expect(mockSubDir.getFileHandle).toHaveBeenCalledWith("old.md");
+    expect(mockSubDir.getFileHandle).toHaveBeenCalledWith("old.md", { create: true });
     expect(freshOldHandle.createWritable).toHaveBeenCalledTimes(1);
     expect(mockWritable.write).toHaveBeenCalledWith("old content");
   });

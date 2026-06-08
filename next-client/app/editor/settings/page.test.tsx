@@ -40,8 +40,13 @@ vi.mock("@/app/atoms/atoms", async (importOriginal) => {
 
 import { useAtom } from "jotai";
 
-// Helper: switch to the "Editor" category so its controls render
-const openEditorSection = () => fireEvent.click(screen.getByText("Editor"));
+// Helper: switch to the "Editor" category so its controls render.
+// The page has two "Editor" texts: the back-button breadcrumb and the nav item.
+// We target the nav item (last match in DOM order).
+const openEditorSection = () => {
+  const matches = screen.getAllByText("Editor");
+  fireEvent.click(matches[matches.length - 1]);
+};
 const openInterfaceSection = () => fireEvent.click(screen.getByText("Interface"));
 
 describe("SettingsPage", () => {
@@ -71,7 +76,7 @@ describe("SettingsPage", () => {
     render(<SettingsPage />);
     // Typography is the default-active section — no nav click needed.
     expect(screen.getByText("Text Size")).toBeInTheDocument();
-    expect(screen.getByText("Font")).toBeInTheDocument();
+    expect(screen.getByText("Typeface")).toBeInTheDocument();
     expect(screen.getByText("Line Height")).toBeInTheDocument();
     expect(screen.getByText("Letter Spacing")).toBeInTheDocument();
   });

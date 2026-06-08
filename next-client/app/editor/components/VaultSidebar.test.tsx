@@ -138,7 +138,7 @@ describe("VaultSidebar Component", () => {
 
   it("shows tag suggestion #work when typing # in search", () => {
     render(<VaultSidebar onClose={mockOnClose} />);
-    const searchInput = screen.getByPlaceholderText("Search files or #tags...");
+    const searchInput = screen.getByPlaceholderText("Search or #tag…");
     fireEvent.change(searchInput, { target: { value: "#" } });
     expect(screen.getByText("#work")).toBeInTheDocument();
   });
@@ -163,7 +163,7 @@ describe("VaultSidebar Component", () => {
 
     render(<VaultSidebar onClose={mockOnClose} />);
 
-    const searchInput = screen.getByPlaceholderText("Search files or #tags...");
+    const searchInput = screen.getByPlaceholderText("Search or #tag…");
     fireEvent.change(searchInput, { target: { value: "test" } });
 
     expect(await screen.findByText("test")).toBeInTheDocument();
@@ -190,7 +190,7 @@ describe("VaultSidebar Component", () => {
     });
 
     render(<VaultSidebar onClose={mockOnClose} />);
-    const searchInput = screen.getByPlaceholderText("Search files or #tags...");
+    const searchInput = screen.getByPlaceholderText("Search or #tag…");
     fireEvent.change(searchInput, { target: { value: "#" } });
 
     expect(screen.getByText("#tag0")).toBeInTheDocument();
@@ -239,7 +239,7 @@ describe("VaultSidebar Component", () => {
 
     render(<VaultSidebar onClose={mockOnClose} />);
 
-    const searchInput = screen.getByPlaceholderText("Search files or #tags...");
+    const searchInput = screen.getByPlaceholderText("Search or #tag…");
     fireEvent.change(searchInput, { target: { value: "nested" } });
 
     expect(await screen.findByText("nested")).toBeInTheDocument();

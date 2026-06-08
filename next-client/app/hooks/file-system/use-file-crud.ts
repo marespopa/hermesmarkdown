@@ -19,7 +19,6 @@ interface UseFileCrudProps {
 export function useFileCrud({ scanVault, indexVaultTags, openFile }: UseFileCrudProps) {
   const { createFile, createNewFile } = useCreateItem({
     scanVault,
-    indexVaultTags,
     openFile,
   });
 

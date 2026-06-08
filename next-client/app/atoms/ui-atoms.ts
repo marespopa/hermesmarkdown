@@ -97,3 +97,4 @@ export const atom_selectedAiModel = atomWithStorage<AiModelKey>("selectedAiModel
 
 // Holds the file path being edited, or null when closed
 export const atom_frontmatterWizardOpen = atom<string | null>(null);
+export const atom_vaultSetupWizardOpen = atom<string | null>(null);

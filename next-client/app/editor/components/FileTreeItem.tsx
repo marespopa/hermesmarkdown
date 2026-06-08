@@ -32,7 +32,7 @@ export default function FileTreeItem({
   onClose,
   setDraggedEntry,
 }: FileTreeItemProps) {
-  const [actionMenuOpen, setActionMenuOpen] = useState(false);
+  const [actionMenuOpen, setActionMenuOpen] = useState<{ x: number, y: number } | null>(null);
 
   const isActive = path === activeFilePath;
 
@@ -44,7 +44,6 @@ export default function FileTreeItem({
         setDraggedEntry(fileHandle);
         e.dataTransfer.effectAllowed = "move";
       }}
-      onMouseLeave={() => setActionMenuOpen(false)}
     >
       <div
         onClick={() => {
@@ -68,7 +67,14 @@ export default function FileTreeItem({
           className="w-8 h-8 flex items-center justify-center"
           onClick={(e) => {
             e.stopPropagation();
-            setActionMenuOpen(!actionMenuOpen);
+            if (actionMenuOpen) {
+              setActionMenuOpen(null);
+            } else {
+              const rect = e.currentTarget.getBoundingClientRect();
+              // Prevent clipping by ensuring the menu stays on screen (rough estimate 100px height)
+              const y = rect.bottom > window.innerHeight - 120 ? rect.top - 100 : rect.bottom + 4;
+              setActionMenuOpen({ x: rect.right, y });
+            }
           }}
           title="File options"
           aria-label="File options"
@@ -81,15 +87,18 @@ export default function FileTreeItem({
         <>
           <div
             className="fixed inset-0 z-40"
-            onClick={() => setActionMenuOpen(false)}
+            onClick={(e) => { e.stopPropagation(); setActionMenuOpen(null); }}
           />
-          <div className="absolute right-2 top-[80%] z-50 bg-white/90 dark:bg-zinc-900/90 backdrop-blur-xl border border-zinc-200/50 dark:border-zinc-800/50 rounded-2xl shadow-2xl py-1.5 min-w-[160px] animate-in fade-in zoom-in-95 duration-200">
+          <div 
+            className="fixed z-50 bg-white/90 dark:bg-zinc-900/90 backdrop-blur-xl border border-zinc-200/50 dark:border-zinc-800/50 rounded-2xl shadow-2xl py-1.5 min-w-[160px] animate-in fade-in zoom-in-95 duration-200"
+            style={{ top: actionMenuOpen.y, left: actionMenuOpen.x - 160 }}
+          >
             <Button
               variant="menu-item"
               onClick={(e) => {
                 e.stopPropagation();
                 renameFile(fileHandle);
-                setActionMenuOpen(false);
+                setActionMenuOpen(null);
               }}
               className="w-full flex items-center gap-3 px-4 py-2.5 text-ui-footnote font-medium hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
             >
@@ -101,7 +110,7 @@ export default function FileTreeItem({
               onClick={(e) => {
                 e.stopPropagation();
                 deleteFile(fileHandle);
-                setActionMenuOpen(false);
+                setActionMenuOpen(null);
               }}
               className="w-full flex items-center gap-3 px-4 py-2.5 text-ui-footnote font-medium hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors text-red-500"
             >

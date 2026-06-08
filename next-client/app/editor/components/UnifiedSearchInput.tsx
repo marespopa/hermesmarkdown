@@ -2,7 +2,6 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import { HiOutlineSearch, HiX } from "react-icons/hi";
-import Button from "../../components/Button";
 import { TAG_COLORS, WORKFLOW_TAGS } from "./constants";
 
 interface UnifiedSearchInputProps {
@@ -15,19 +14,15 @@ interface UnifiedSearchInputProps {
 }
 
 function TagDot({ tag }: { tag: string }) {
-  const colorClass = TAG_COLORS[tag];
-  if (colorClass) {
-    return (
-      <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${
-        tag === "todo" ? "bg-blue-500" :
-        tag === "prog" ? "bg-amber-500" :
-        tag === "done" ? "bg-green-500" :
-        tag === "urgn" ? "bg-red-500" :
-        "bg-purple-500"
-      }`} />
-    );
-  }
-  return <span className="w-1.5 h-1.5 rounded-full shrink-0 bg-blue-400" />;
+  return (
+    <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${
+      tag === "todo" ? "bg-blue-500"   :
+      tag === "prog" ? "bg-amber-500"  :
+      tag === "done" ? "bg-green-500"  :
+      tag === "urgn" ? "bg-red-500"    :
+      TAG_COLORS[tag] ? "bg-purple-500" : "bg-blue-400"
+    }`} />
+  );
 }
 
 export default function UnifiedSearchInput({
@@ -38,24 +33,22 @@ export default function UnifiedSearchInput({
   onTokenRemove,
   onTextChange,
 }: UnifiedSearchInputProps) {
-  const [inputValue, setInputValue] = useState(text);
-  const [tagInputActive, setTagInputActive] = useState(false);
-  const [tagQuery, setTagQuery] = useState("");
-  const [highlightedToken, setHighlightedToken] = useState<string | null>(null);
+  const [inputValue, setInputValue]               = useState(text);
+  const [tagInputActive, setTagInputActive]       = useState(false);
+  const [tagQuery, setTagQuery]                   = useState("");
   const [selectedSuggestionIdx, setSelectedSuggestionIdx] = useState(0);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const inputRef    = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Sync external text changes into local input
+  // Sync external text resets (e.g. clearing from parent)
   useEffect(() => {
-    if (text !== inputValue && !tagInputActive) {
-      setInputValue(text);
-    }
+    if (text !== inputValue && !tagInputActive) setInputValue(text);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [text]);
 
   const filteredSuggestions = React.useMemo(() => {
-    if (!tagInputActive || !tagQuery) return allTags.slice(0, 6);
+    if (!tagInputActive) return [];
+    if (!tagQuery) return allTags.filter(t => !tokens.includes(t)).slice(0, 6);
     const q = tagQuery.toLowerCase();
     return allTags
       .filter(t => t.toLowerCase().includes(q) && !tokens.includes(t))
@@ -63,9 +56,9 @@ export default function UnifiedSearchInput({
   }, [tagInputActive, tagQuery, allTags, tokens]);
 
   const showPopover = tagInputActive && filteredSuggestions.length > 0;
+  const hasContent  = inputValue.length > 0 || tokens.length > 0;
 
   function parseInput(value: string) {
-    // Check if there's an active #tag being typed (no space after the # sequence)
     const hashMatch = value.match(/(^|\s)#([^\s]*)$/);
     if (hashMatch) {
       setTagInputActive(true);
@@ -80,23 +73,27 @@ export default function UnifiedSearchInput({
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
     const val = e.target.value;
     setInputValue(val);
-    setHighlightedToken(null);
     parseInput(val);
-
-    // Strip out any partial #tag from the value when computing text search
     const textOnly = val.replace(/(^|\s)#[^\s]*$/, "").trim();
     onTextChange(textOnly);
   }
 
   function commitSuggestion(tag: string) {
     onTokenAdd(tag);
-    // Remove the partial #tag from input
     const cleaned = inputValue.replace(/(^|\s)#[^\s]*$/, "").trimEnd();
     setInputValue(cleaned);
     onTextChange(cleaned.trim());
     setTagInputActive(false);
     setTagQuery("");
-    setHighlightedToken(null);
+    inputRef.current?.focus();
+  }
+
+  function handleClearAll() {
+    setInputValue("");
+    onTextChange("");
+    tokens.forEach(t => onTokenRemove(t));
+    setTagInputActive(false);
+    setTagQuery("");
     inputRef.current?.focus();
   }
 
@@ -115,8 +112,7 @@ export default function UnifiedSearchInput({
       if (e.key === "Enter" || e.key === " ") {
         e.preventDefault();
         const best = filteredSuggestions[selectedSuggestionIdx] ?? filteredSuggestions[0];
-        if (best) commitSuggestion(best);
-        return;
+        if (best) { commitSuggestion(best); return; }
       }
       if (e.key === "Escape") {
         setTagInputActive(false);
@@ -125,62 +121,47 @@ export default function UnifiedSearchInput({
       }
     }
 
-    if (e.key === "Backspace" && inputValue === "") {
-      if (highlightedToken) {
-        onTokenRemove(highlightedToken);
-        setHighlightedToken(null);
-      } else if (tokens.length > 0) {
-        setHighlightedToken(tokens[tokens.length - 1]);
-      }
+    if (e.key === "Backspace" && inputValue === "" && tokens.length > 0) {
+      onTokenRemove(tokens[tokens.length - 1]);
       return;
-    }
-
-    if (highlightedToken && e.key !== "Backspace") {
-      setHighlightedToken(null);
     }
   }
 
-  // Dismiss popover on outside click
   useEffect(() => {
-    function handleClickOutside(e: MouseEvent) {
+    function onClickOutside(e: MouseEvent) {
       if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
         setTagInputActive(false);
         setTagQuery("");
       }
     }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    document.addEventListener("mousedown", onClickOutside);
+    return () => document.removeEventListener("mousedown", onClickOutside);
   }, []);
 
-  const isEmpty = tokens.length === 0 && !inputValue;
-
   return (
-    <div ref={containerRef} className="relative">
+    <div ref={containerRef} className="relative flex flex-col gap-1.5">
+
+      {/* ── Zone 1: Text input ─────────────────────────────────────────
+          Fixed height — always 44px on mobile (Apple HIG touch target),
+          36px on sm+. Never grows, never shifts.                       */}
       <div
         onClick={() => inputRef.current?.focus()}
-        className="flex items-center gap-1.5 flex-wrap min-h-[36px] px-3 py-1.5 rounded-xl bg-zinc-200/50 dark:bg-zinc-800/50 border border-zinc-300/40 dark:border-zinc-700/40 cursor-text transition-colors focus-within:border-blue-500/50 focus-within:bg-white/60 dark:focus-within:bg-zinc-800/80"
+        className={[
+          "flex items-center h-11 sm:h-9 px-3 gap-2 cursor-text",
+          "rounded-xl",
+          "bg-zinc-100 dark:bg-zinc-800/80",
+          "border border-transparent",
+          "focus-within:bg-white dark:focus-within:bg-zinc-800",
+          "focus-within:border-blue-500/25",
+          "focus-within:ring-2 focus-within:ring-blue-500/10",
+          "transition-all duration-150",
+        ].join(" ")}
       >
-        <HiOutlineSearch size={14} className="shrink-0 text-zinc-400 dark:text-zinc-500" />
-
-        {tokens.map((token) => (
-          <span
-            key={token}
-            className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-ui-caption font-medium bg-zinc-200/80 dark:bg-zinc-700/80 text-zinc-700 dark:text-zinc-300 transition-all ${
-              highlightedToken === token ? "ring-2 ring-red-400 ring-offset-1" : ""
-            }`}
-          >
-            <TagDot tag={token} />
-            {token}
-            <Button
-              variant="bare"
-              type="button"
-              onMouseDown={(e: React.MouseEvent<HTMLButtonElement>) => { e.preventDefault(); onTokenRemove(token); }}
-              className="ml-0.5 opacity-40 hover:opacity-100 transition-opacity"
-            >
-              <HiX size={10} />
-            </Button>
-          </span>
-        ))}
+        <HiOutlineSearch
+          size={15}
+          className="shrink-0 text-zinc-400 dark:text-zinc-500"
+          aria-hidden
+        />
 
         <input
           ref={inputRef}
@@ -188,53 +169,103 @@ export default function UnifiedSearchInput({
           value={inputValue}
           onChange={handleChange}
           onKeyDown={handleKeyDown}
-          placeholder={isEmpty ? "Search files or #tags..." : ""}
-          className="flex-1 min-w-[80px] bg-transparent outline-none text-ui-footnote text-zinc-700 dark:text-zinc-300 placeholder:text-zinc-400 dark:placeholder:text-zinc-600"
+          placeholder="Search or #tag…"
+          autoComplete="off"
+          autoCorrect="off"
+          autoCapitalize="off"
+          spellCheck={false}
+          aria-label="Search files"
+          className={[
+            "flex-1 min-w-0 bg-transparent outline-none border-none",
+            "text-[13px] sm:text-xs leading-none",
+            "text-zinc-800 dark:text-zinc-200",
+            "placeholder:text-zinc-400 dark:placeholder:text-zinc-500",
+            "caret-blue-500",
+          ].join(" ")}
         />
 
-        {(inputValue || tokens.length > 0) && (
-          <Button
-            variant="icon"
-            type="button"
-            onMouseDown={(e: React.MouseEvent<HTMLButtonElement>) => {
-              e.preventDefault();
-              setInputValue("");
-              onTextChange("");
-              tokens.forEach(t => onTokenRemove(t));
-              setTagInputActive(false);
-              setTagQuery("");
-              setHighlightedToken(null);
-              inputRef.current?.focus();
-            }}
-            className="shrink-0 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors"
-          >
-            <HiX size={12} />
-          </Button>
-        )}
+        {/* Clear — always in DOM so width is reserved, no layout shift */}
+        <button
+          type="button"
+          tabIndex={-1}
+          onMouseDown={(e) => { e.preventDefault(); handleClearAll(); }}
+          aria-label="Clear search"
+          className={[
+            "shrink-0 w-4 h-4 flex items-center justify-center",
+            "rounded-full",
+            "text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300",
+            "bg-zinc-300/60 hover:bg-zinc-300 dark:bg-zinc-600/60 dark:hover:bg-zinc-600",
+            "transition-all duration-150",
+            hasContent ? "opacity-100" : "opacity-0 pointer-events-none",
+          ].join(" ")}
+        >
+          <HiX size={8} />
+        </button>
       </div>
 
+      {/* ── Zone 2: Active tag filters ─────────────────────────────────
+          Only rendered when tags are selected so text input always has
+          full width. Both zones are simultaneously readable.           */}
+      {tokens.length > 0 && (
+        <div className="flex items-center gap-1.5 flex-wrap px-0.5">
+          {tokens.map((token) => (
+            <span
+              key={token}
+              className={[
+                "inline-flex items-center gap-1 shrink-0",
+                "pl-2 pr-1 py-1 sm:py-0.5 rounded-full",
+                "text-[11px] font-medium leading-none",
+                "bg-zinc-200 dark:bg-zinc-700/80",
+                "text-zinc-600 dark:text-zinc-300",
+              ].join(" ")}
+            >
+              <TagDot tag={token} />
+              <span>{token}</span>
+              <button
+                type="button"
+                tabIndex={-1}
+                onMouseDown={(e) => { e.preventDefault(); onTokenRemove(token); }}
+                className="ml-0.5 w-3.5 h-3.5 flex items-center justify-center rounded-full opacity-50 hover:opacity-100 hover:bg-zinc-300 dark:hover:bg-zinc-600 transition-all"
+                aria-label={`Remove ${token}`}
+              >
+                <HiX size={8} />
+              </button>
+            </span>
+          ))}
+
+          <button
+            type="button"
+            onMouseDown={(e) => { e.preventDefault(); tokens.forEach(t => onTokenRemove(t)); }}
+            className="ml-auto text-[11px] text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors"
+          >
+            clear filters
+          </button>
+        </div>
+      )}
+
+      {/* ── Tag suggestion popover ────────────────────────────────────── */}
       {showPopover && (
-        <div className="absolute top-full left-0 right-0 mt-1.5 z-50 bg-white/90 dark:bg-zinc-900/90 backdrop-blur-xl border border-zinc-200/50 dark:border-zinc-800/50 rounded-2xl shadow-2xl py-1.5 animate-in fade-in zoom-in-95 duration-150">
+        <div className="absolute top-[calc(theme(spacing.11)+theme(spacing.1))] sm:top-[calc(theme(spacing.9)+theme(spacing.1))] left-0 right-0 z-50 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-xl border border-zinc-200/60 dark:border-zinc-800/60 rounded-2xl shadow-xl py-1 overflow-hidden">
           {filteredSuggestions.map((tag, idx) => (
-            <Button
+            <button
               key={tag}
-              variant="menu-item"
               type="button"
-              onMouseDown={(e: React.MouseEvent<HTMLButtonElement>) => { e.preventDefault(); commitSuggestion(tag); }}
-              className={`w-full flex items-center gap-2.5 px-4 py-2 text-ui-footnote font-medium transition-colors ${
+              onMouseDown={(e) => { e.preventDefault(); commitSuggestion(tag); }}
+              className={[
+                "w-full flex items-center gap-2.5 px-3.5 py-2.5 sm:py-2",
+                "text-[13px] font-medium text-left",
+                "transition-colors duration-100",
                 idx === selectedSuggestionIdx
                   ? "bg-blue-500/10 text-blue-600 dark:text-blue-400"
-                  : "text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100/80 dark:hover:bg-zinc-800/60"
-              }`}
+                  : "text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800/60",
+              ].join(" ")}
             >
               <TagDot tag={tag} />
               <span>#{tag}</span>
               {WORKFLOW_TAGS.includes(tag) && (
-                <span className={`ml-auto text-ui-caption opacity-60 ${TAG_COLORS[tag]}`}>
-                  workflow
-                </span>
+                <span className="ml-auto text-[11px] opacity-50">workflow</span>
               )}
-            </Button>
+            </button>
           ))}
         </div>
       )}

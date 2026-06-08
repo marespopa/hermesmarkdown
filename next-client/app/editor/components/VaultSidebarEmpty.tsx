@@ -32,9 +32,9 @@ export default function VaultSidebarEmpty({
     <div className="space-y-6">
       <div className="space-y-1">
         <SidebarHeader title="Locations" isExpanded={true} onToggle={() => {}} />
-        
+
         {isVaultSupported ? (
-          <div 
+          <div
             onClick={openVault}
             className="flex items-center gap-3 px-4 py-3 rounded-xl cursor-pointer hover:bg-zinc-200/50 dark:hover:bg-zinc-800/40 transition-colors text-ui-footnote text-zinc-600 dark:text-zinc-400 font-medium"
           >
@@ -49,7 +49,7 @@ export default function VaultSidebarEmpty({
           </div>
         )}
 
-        <div 
+        <div
           onClick={() => {
              setActiveFilePath("draft");
              if (onClose && window.innerWidth < 1024) onClose();
@@ -63,14 +63,14 @@ export default function VaultSidebarEmpty({
 
       <div className="space-y-1">
         <SidebarHeader title="Actions" isExpanded={true} onToggle={() => {}} />
-        <div 
+        <div
           onClick={onImport}
           className="flex items-center gap-3 px-4 py-3 rounded-xl cursor-pointer hover:bg-zinc-200/50 dark:hover:bg-zinc-800/40 transition-colors text-ui-footnote text-zinc-600 dark:text-zinc-400 font-medium"
         >
           <HiOutlineCloudDownload size={18} />
           <span>Import Markdown</span>
         </div>
-        <div 
+        <div
           onClick={onExport}
           className="flex items-center gap-3 px-4 py-3 rounded-xl cursor-pointer hover:bg-zinc-200/50 dark:hover:bg-zinc-800/40 transition-colors text-ui-footnote text-zinc-600 dark:text-zinc-400 font-medium"
         >
