@@ -1,6 +1,6 @@
 "use client";
 
-import { useAtom } from "jotai";
+import { useAtom, useSetAtom } from "jotai";
 import { useCallback, useEffect, useRef } from "react";
 import toast from "react-hot-toast";
 import {
@@ -16,6 +16,7 @@ import {
   atom_isCloudVault,
   atom_autoInjectFrontmatter,
 } from "@/app/atoms/atoms";
+import { atom_frontmatterWizardOpen } from "@/app/atoms/ui-atoms";
 import { injectFrontmatter } from "@/app/utils/frontmatterInjector";
 
 interface UseSaveFileProps {
@@ -34,6 +35,7 @@ export function useSaveFile({ indexVaultTags }: UseSaveFileProps) {
   const [, setSaveStatus] = useAtom(atom_saveStatus);
   const [isCloudVault, setIsCloudVault] = useAtom(atom_isCloudVault);
   const [autoInjectFrontmatter] = useAtom(atom_autoInjectFrontmatter);
+  const setFrontmatterWizardOpen = useSetAtom(atom_frontmatterWizardOpen);
 
   // Debounce re-indexing on auto-saves so rapid saves during typing don't
   // repeatedly flash the "Scanning subfolders…" indicator in the sidebar.
@@ -119,6 +121,8 @@ export function useSaveFile({ indexVaultTags }: UseSaveFileProps) {
           writable = null;
         }
 
+        const didInject = toWrite !== content;
+
         // Secondary task: Update metadata.
         const updateMetadata = async (retries = 3) => {
           const wasActive = !providedPath || providedPath === (activeFilePath || "draft");
@@ -133,15 +137,17 @@ export function useSaveFile({ indexVaultTags }: UseSaveFileProps) {
             if (targetPath) {
               setOpenFiles((prev) => {
                 if (!prev[targetPath!]) return prev;
-                return { 
-                  ...prev, 
-                  [targetPath!]: { 
-                    ...prev[targetPath!], 
+                return {
+                  ...prev,
+                  [targetPath!]: {
+                    ...prev[targetPath!],
                     content: toWrite,
-                    lastSavedContent: toWrite 
-                  } 
+                    lastSavedContent: toWrite
+                  }
                 };
               });
+              // Open wizard only after the atom has been updated with the injected content
+              if (didInject) setFrontmatterWizardOpen(targetPath);
             }
             return true;
           } catch {
@@ -328,6 +334,7 @@ export function useSaveFile({ indexVaultTags }: UseSaveFileProps) {
       isCloudVault,
       setIsCloudVault,
       autoInjectFrontmatter,
+      setFrontmatterWizardOpen,
     ],
   );
 

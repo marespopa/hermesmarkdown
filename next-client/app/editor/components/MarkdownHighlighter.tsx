@@ -131,6 +131,8 @@ export function highlightMarkdown(
 ) {
   const lines = code.split("\n");
   let isInsideCodeBlock = false;
+  let isInsideFrontmatter = false;
+  let frontmatterClosed = false;
 
   return lines
     .map((line, index) => {
@@ -138,6 +140,27 @@ export function highlightMarkdown(
         .replace(/&/g, "&amp;")
         .replace(/</g, "&lt;")
         .replace(/>/g, "&gt;");
+
+      // Frontmatter block (only valid when it starts at line 0)
+      if (index === 0 && html === "---") {
+        isInsideFrontmatter = true;
+        const isActive = isZenModeActive && index === activeLineIndex;
+        return `<div class="transition-all duration-700 ease-in-out bg-violet-50/40 dark:bg-violet-950/20 ${isActive ? "-mx-6 px-6 rounded-lg" : ""} min-h-[1.8em]"><span class="text-zinc-400 dark:text-zinc-600">---</span></div>`;
+      }
+      if (isInsideFrontmatter && !frontmatterClosed) {
+        if (html === "---") {
+          isInsideFrontmatter = false;
+          frontmatterClosed = true;
+          const isActive = isZenModeActive && index === activeLineIndex;
+          return `<div class="transition-all duration-700 ease-in-out bg-violet-50/40 dark:bg-violet-950/20 ${isActive ? "-mx-6 px-6 rounded-lg" : ""} min-h-[1.8em]"><span class="text-zinc-400 dark:text-zinc-600">---</span></div>`;
+        }
+        const fmContent = html.replace(
+          /^([a-zA-Z_][a-zA-Z0-9_]*)(:)(.*)/,
+          `<span class="text-violet-500 dark:text-violet-400 opacity-80">$1</span><span class="opacity-30">$2</span><span class="text-zinc-600 dark:text-zinc-400">$3</span>`,
+        );
+        const isActive = isZenModeActive && index === activeLineIndex;
+        return `<div class="transition-all duration-700 ease-in-out bg-violet-50/40 dark:bg-violet-950/20 ${isActive ? "-mx-6 px-6 rounded-lg" : ""} min-h-[1.8em]">${fmContent || " "}</div>`;
+      }
 
       let content = "";
       if (html.startsWith("\u0060\u0060\u0060") || html.startsWith("~~~")) {

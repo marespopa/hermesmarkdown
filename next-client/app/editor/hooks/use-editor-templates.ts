@@ -5,7 +5,7 @@ import { flushSync } from "react-dom";
 import { useAtomValue } from "jotai";
 import { atom_currency } from "@/app/atoms/atoms";
 import getCaretCoordinates from "textarea-caret";
-import { TEMPLATES, Template, SHORTCODES, LINK_EDITOR_SENTINEL, WIKILINK_EDITOR_SENTINEL, DATE_EDITOR_SENTINEL, TABLE_DIALOG_SENTINEL, CURSOR_SENTINEL } from "../components/constants";
+import { TEMPLATES, Template, SHORTCODES, LINK_EDITOR_SENTINEL, WIKILINK_EDITOR_SENTINEL, DATE_EDITOR_SENTINEL, TABLE_DIALOG_SENTINEL, FRONTMATTER_WIZARD_SENTINEL, CURSOR_SENTINEL } from "../components/constants";
 import { runAutoBudget } from "../utils/budget";
 
 interface UseEditorTemplatesProps {
@@ -14,6 +14,7 @@ interface UseEditorTemplatesProps {
   textareaRef: React.RefObject<HTMLTextAreaElement | null>;
   wrapperRef: React.RefObject<HTMLDivElement | null>;
   onOpenTableCreate?: (pos: number, filterLen: number) => void;
+  onFrontmatterWizard?: () => void;
 }
 
 export function useEditorTemplates({
@@ -22,6 +23,7 @@ export function useEditorTemplates({
   textareaRef,
   wrapperRef,
   onOpenTableCreate,
+  onFrontmatterWizard,
 }: UseEditorTemplatesProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [menuPos, setMenuPos] = useState({ top: 0, left: 0 });
@@ -101,6 +103,14 @@ export function useEditorTemplates({
       setMenuOpen(false);
       setFilterQuery("");
       onOpenTableCreate?.(start, lengthToRemove);
+      return;
+    }
+
+    if (content === FRONTMATTER_WIZARD_SENTINEL) {
+      setMenuOpen(false);
+      setFilterQuery("");
+      setSelectedIndex(-1);
+      onFrontmatterWizard?.();
       return;
     }
 

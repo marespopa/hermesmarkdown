@@ -110,6 +110,7 @@ export const LINK_EDITOR_SENTINEL = "__OPEN_LINK_EDITOR__";
 export const WIKILINK_EDITOR_SENTINEL = "__OPEN_WIKILINK_EDITOR__";
 export const DATE_EDITOR_SENTINEL = "__OPEN_DATE_EDITOR__";
 export const TABLE_DIALOG_SENTINEL = "__OPEN_TABLE_DIALOG__";
+export const FRONTMATTER_WIZARD_SENTINEL = "__OPEN_FRONTMATTER_WIZARD__";
 export const CURSOR_SENTINEL = "\0";
 
 export const PILL_CONTAINER_CLASSES =
@@ -164,8 +165,8 @@ export const TEMPLATES: Template[] = [
   {
     label: "Frontmatter",
     icon: "📄",
-    description: "YAML metadata header block",
-    content: "---\nid: \ntitle: \nstatus: draft\nversion: 1.0.0\ntags: []\ndependencies: []\n---\n",
+    description: "Open the frontmatter wizard",
+    content: FRONTMATTER_WIZARD_SENTINEL,
   },
   {
     label: "To-Do List",

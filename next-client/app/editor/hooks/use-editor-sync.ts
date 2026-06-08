@@ -31,7 +31,7 @@ export function useEditorSync({
   const dateMatchRef = useRef<DateMatch | null>(null);
   const [dateMenuPos, setDateMenuPos] = useState({ top: 0, left: 0, endLeft: 0 });
 
-  const [workflowMatch, setWorkflowMatch] = useState<{ tag: string; start: number; end: number } | null>(null);
+  const [workflowMatch, setWorkflowMatch] = useState<{ tag: string; start: number; end: number; isFmStatus?: boolean } | null>(null);
   const [workflowMenuPos, setWorkflowMenuPos] = useState({ top: 0, left: 0 });
 
   const [todoMatch, setTodoMatch] = useState<{ tag: string; start: number; end: number } | null>(null);
@@ -125,7 +125,32 @@ export function useEditorSync({
           break;
         }
       }
-      if (!foundWorkflow) setWorkflowMatch(null);
+      if (!foundWorkflow) {
+        // Frontmatter status: detect `status: draft|review|active|archived` inside the FM block
+        const fmEnd = value.indexOf("\n---", 3);
+        const inFrontmatter = fmEnd !== -1 && lineStart > 0 && lineEnd <= fmEnd + 4;
+        const fmStatusMatch = inFrontmatter
+          ? currentLine.match(/^status:\s+(draft|review|active|archived)\s*$/)
+          : null;
+        if (fmStatusMatch) {
+          const valueOffset = currentLine.indexOf(fmStatusMatch[1]);
+          const tagStart = lineStart + valueOffset;
+          const tagEnd = tagStart + fmStatusMatch[1].length;
+          if (!textareaRef.current) {
+            setWorkflowMatch(null);
+          } else {
+            const caretEnd = getCaretCoordinates(textareaRef.current, tagEnd);
+            const caretHeight = caretEnd.height || 22;
+            setWorkflowMatch({ tag: fmStatusMatch[1], start: tagStart, end: tagEnd, isFmStatus: true });
+            setWorkflowMenuPos({
+              top: (caretEnd.top || 0) + caretHeight / 2 - 14,
+              left: Math.max(0, (caretEnd.left || 0) - 4),
+            });
+          }
+        } else {
+          setWorkflowMatch(null);
+        }
+      }
 
       // Todo status tag detection (#todo / #prog / #done)
       REGEX_TODO_STATUS_TAGS.lastIndex = 0;

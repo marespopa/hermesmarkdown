@@ -1,6 +1,6 @@
 "use client";
 
-import { useAtom, useAtomValue } from "jotai";
+import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { useCallback } from "react";
 import toast from "react-hot-toast";
 import {
@@ -9,6 +9,7 @@ import {
   atom_autoInjectFrontmatter,
 } from "@/app/atoms/atoms";
 import { atom_vaultFiles } from "@/app/atoms/vault-atoms";
+import { atom_frontmatterWizardOpen } from "@/app/atoms/ui-atoms";
 import { useDialog } from "../use-dialog";
 import { withRetry } from "./shared";
 import { injectFrontmatter } from "@/app/utils/frontmatterInjector";
@@ -23,6 +24,7 @@ export function useCreateItem({ scanVault, indexVaultTags, openFile }: UseCreate
   const [vaultHandle] = useAtom(atom_vaultHandle);
   const [currentDirectoryHandle] = useAtom(atom_currentDirectoryHandle);
   const [autoInjectFrontmatter] = useAtom(atom_autoInjectFrontmatter);
+  const setFrontmatterWizardOpen = useSetAtom(atom_frontmatterWizardOpen);
   const vaultFiles = useAtomValue(atom_vaultFiles);
   const dialog = useDialog();
 
@@ -92,7 +94,11 @@ export function useCreateItem({ scanVault, indexVaultTags, openFile }: UseCreate
         }
 
         await openFile(newFileHandle, path, true);
-        
+
+        if (contentToWrite !== content) {
+          setFrontmatterWizardOpen(path);
+        }
+
         toast.success("Created: " + fileName);
         return newFileHandle;
       } catch (err: any) {
@@ -101,7 +107,7 @@ export function useCreateItem({ scanVault, indexVaultTags, openFile }: UseCreate
         return null;
       }
     },
-    [vaultHandle, currentDirectoryHandle, scanVault, indexVaultTags, openFile, autoInjectFrontmatter],
+    [vaultHandle, currentDirectoryHandle, scanVault, indexVaultTags, openFile, autoInjectFrontmatter, setFrontmatterWizardOpen],
   );
 
   const createNewFile = useCallback(async (dirHandle?: FileSystemDirectoryHandle) => {

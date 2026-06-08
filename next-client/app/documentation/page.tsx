@@ -100,6 +100,53 @@ export default function Documentation() {
             <div className="space-y-8">
               <div className="space-y-4">
                 <h3 className="text-3xl font-bold tracking-tight">
+                  Agent-Specific Frontmatter
+                </h3>
+                <p className="text-neutral-500 dark:text-neutral-400 leading-relaxed text-lg">
+                  HermesMarkdown auto-injects a strict YAML schema on every save so your notes are instantly parseable by LLMs and background agents. A step-by-step wizard opens automatically on new files to guide you through each field.
+                </p>
+              </div>
+              <div className="p-8 bg-neutral-50/50 dark:bg-neutral-900/30 backdrop-blur-sm rounded-3xl border border-black/5 dark:border-white/5 shadow-inner space-y-4">
+                <div className={guideRow}>
+                  <span className={syntaxLabel}>title: "Name"</span>
+                  <span className={resultLabel}>Primary Identifier</span>
+                </div>
+                <div className={guideRow}>
+                  <span className={syntaxLabel}>status: draft</span>
+                  <span className={resultLabel}>Lifecycle State</span>
+                </div>
+                <div className={guideRow}>
+                  <span className={syntaxLabel}>scope: "..."</span>
+                  <span className={resultLabel}>Agent Summary</span>
+                </div>
+                <div className={guideRow}>
+                  <span className={syntaxLabel}>read_when: [...]</span>
+                  <span className={resultLabel}>Agent Trigger</span>
+                </div>
+                <div className={guideRow}>
+                  <span className={syntaxLabel}>related: [...]</span>
+                  <span className={resultLabel}>Linked Files</span>
+                </div>
+                <div className={guideRow}>
+                  <span className={syntaxLabel}>edit_elsewhere: [...]</span>
+                  <span className={resultLabel}>External Locations</span>
+                </div>
+                <div className={guideRow}>
+                  <span className={syntaxLabel}>tags: [ai, work]</span>
+                  <span className={resultLabel}>Smart Category</span>
+                </div>
+              </div>
+              <p className="text-ui-micro opacity-40 italic leading-relaxed font-bold uppercase tracking-[0.2em] text-center">
+                Wizard auto-opens on new files. Click ✎ in the frontmatter header to edit later.
+              </p>
+            </div>
+          </div>
+
+          {/* Internal Connectivity */}
+          <div className="mt-20 grid grid-cols-1 md:grid-cols-2 gap-20">
+            <div className="space-y-8">
+              <div className="space-y-4">
+                <h3 className="text-3xl font-bold tracking-tight">
                   Internal Connectivity
                 </h3>
                 <p className="text-neutral-500 dark:text-neutral-400 leading-relaxed text-lg">
@@ -128,7 +175,6 @@ export default function Documentation() {
                 Navigation: CTRL + Click to open links. Click tags to filter.
               </p>
             </div>
-          </div>
 
           {/* Smart Workspaces */}
           <div className="mt-20 grid grid-cols-1 md:grid-cols-2 gap-20">
@@ -189,6 +235,7 @@ export default function Documentation() {
                 </div>
               </div>
             </div>
+          </div>
           </div>
         </section>
 

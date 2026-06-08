@@ -26,13 +26,15 @@ interface UseMarkdownEditorProps {
   onChange: (value: string) => void;
   onTextareaReady?: (element: HTMLTextAreaElement | null) => void;
   onWikiLinkClick?: (name: string) => void;
+  onFrontmatterWizard?: () => void;
 }
 
-export function useMarkdownEditor({ 
-  value, 
-  onChange, 
-  onTextareaReady, 
-  onWikiLinkClick 
+export function useMarkdownEditor({
+  value,
+  onChange,
+  onTextareaReady,
+  onWikiLinkClick,
+  onFrontmatterWizard,
 }: UseMarkdownEditorProps) {
   const wrapperRef = useRef<HTMLDivElement | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
@@ -116,7 +118,9 @@ export function useMarkdownEditor({
     (direction: "prev" | "next") => {
       if (!workflowMatch || !textareaRef.current) return;
       const cycle = direction === "next" ? TAG_CYCLE : TAG_CYCLE_PREV;
-      const nextTag = `#${cycle[workflowMatch.tag]}`;
+      const nextTag = workflowMatch.isFmStatus
+        ? cycle[workflowMatch.tag]
+        : `#${cycle[workflowMatch.tag]}`;
       const textarea = textareaRef.current;
       textarea.focus();
       textarea.setSelectionRange(workflowMatch.start, workflowMatch.end);
@@ -180,6 +184,7 @@ export function useMarkdownEditor({
     textareaRef,
     wrapperRef,
     onOpenTableCreate: tableDialog.openCreate,
+    onFrontmatterWizard,
   });
 
   const handleSaveWikiLink = useCallback(

@@ -168,26 +168,42 @@ const TableGraphic = () => (
 );
 
 const AgentContextGraphic = () => (
-  <div className="w-full h-full flex items-center justify-center p-6 relative select-none">
-    <div className="font-mono text-[11px] leading-relaxed text-left w-full max-w-[280px] space-y-1">
-      <div className="text-neutral-400 dark:text-neutral-500">---</div>
-      <div className="flex items-center gap-1.5">
-        <span className="text-sky-500 dark:text-sky-400">id:</span>
-        <span className="opacity-60">ops-log-june</span>
+  <div className="w-full h-full flex items-center justify-center p-5 relative select-none">
+    <div className="font-mono text-[10.5px] leading-relaxed text-left w-full max-w-[290px] space-y-0.5">
+      {/* collapsed FM header */}
+      <div className="flex items-center gap-1.5 mb-1">
+        <span className="text-violet-500 dark:text-violet-400 opacity-70 text-[10px]">✎</span>
+        <span className="text-neutral-400 dark:text-neutral-500 opacity-50 text-[9px] uppercase tracking-widest font-bold truncate">title: "ops-log-june" · active · #trading</span>
+        <span className="text-neutral-400 dark:text-neutral-500 ml-auto">›</span>
       </div>
-      <div className="flex items-center gap-1.5">
-        <span className="text-sky-500 dark:text-sky-400">status:</span>
-        <span className="opacity-60">active</span>
+      <div className="border-l-2 border-violet-400/30 pl-2.5 space-y-0.5">
+        <div className="text-neutral-400 dark:text-neutral-500">---</div>
+        <div className="flex items-center gap-1.5">
+          <span className="text-violet-500 dark:text-violet-400">title:</span>
+          <span className="opacity-60">&quot;ops-log-june&quot;</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <span className="text-violet-500 dark:text-violet-400">status:</span>
+          <span className="text-emerald-500">active</span>
+        </div>
+        <div className="flex items-start gap-1.5">
+          <span className="text-violet-500 dark:text-violet-400 shrink-0">scope:</span>
+          <span className="opacity-60 truncate">&quot;Daily ops for alpha-prod&quot;</span>
+        </div>
+        <div className="flex items-start gap-1.5">
+          <span className="text-violet-500 dark:text-violet-400 shrink-0">read_when:</span>
+          <span className="opacity-60">[ops queries]</span>
+        </div>
+        <div className="flex items-start gap-1.5">
+          <span className="text-violet-500 dark:text-violet-400 shrink-0">related:</span>
+          <span className="opacity-60">[]</span>
+        </div>
+        <div className="flex items-start gap-1.5">
+          <span className="text-violet-500 dark:text-violet-400 shrink-0">tags:</span>
+          <span className="opacity-60">[trading, alpha-prod]</span>
+        </div>
+        <div className="text-neutral-400 dark:text-neutral-500">---</div>
       </div>
-      <div className="flex items-center gap-1.5">
-        <span className="text-sky-500 dark:text-sky-400">version:</span>
-        <span className="opacity-60">1.0.0</span>
-      </div>
-      <div className="flex items-start gap-1.5">
-        <span className="text-sky-500 dark:text-sky-400 shrink-0">tags:</span>
-        <span className="opacity-60">[trading, alpha-prod]</span>
-      </div>
-      <div className="text-neutral-400 dark:text-neutral-500">---</div>
 
       <div className="h-px bg-neutral-200 dark:bg-neutral-700 opacity-40 my-2" />
 
@@ -199,10 +215,6 @@ const AgentContextGraphic = () => (
         <span className="px-1.5 rounded text-[10px] font-bold bg-emerald-500/15 text-emerald-500">#active</span>
         <span className="opacity-40">lifecycle tag</span>
       </div>
-
-      <div className="h-px bg-neutral-200 dark:bg-neutral-700 opacity-40 my-2" />
-
-      <div className="text-[9px] uppercase tracking-widest opacity-30 font-bold">grep &quot;^status:&quot; *.md</div>
     </div>
     <div className="absolute top-4 right-4">
       <span className="text-[9px] font-mono uppercase tracking-widest text-sky-500 opacity-60">Agent Context</span>
@@ -251,12 +263,13 @@ const AgentScoreGraphic = () => (
 );
 
 const DEFAULT_DEMO_CONTENT = `---
-id: ops-log-june
-title: Daily Operations Log
+title: "ops-log-june"
 status: active
-version: 1.0.0
+scope: "Daily operations log for the alpha-prod trading system."
+read_when: [ops queries, incident review]
+edit_elsewhere: []
+related: []
 tags: [trading, alpha-prod]
-dependencies: []
 ---
 
 # Daily Operations Log
@@ -382,7 +395,7 @@ export default function LandingPage() {
       {/* --- TRUST SIGNALS --- */}
       <section className="py-12 border-y border-black/5 dark:border-white/5 bg-neutral-50/50 dark:bg-neutral-900/30 overflow-hidden">
         <div className="max-w-6xl mx-auto px-6 flex flex-wrap items-center justify-center md:justify-between gap-8 opacity-40 grayscale">
-          <div className="text-ui-footnote font-bold uppercase tracking-[0.3em] whitespace-nowrap">Agent-Ready Frontmatter</div>
+          <div className="text-ui-footnote font-bold uppercase tracking-[0.3em] whitespace-nowrap">Agent-Specific Frontmatter</div>
           <div className="text-ui-footnote font-bold uppercase tracking-[0.3em] whitespace-nowrap">Live AI Readability Score</div>
           <div className="text-ui-footnote font-bold uppercase tracking-[0.3em] whitespace-nowrap">Local-First Vault</div>
           <div className="text-ui-footnote font-bold uppercase tracking-[0.3em] whitespace-nowrap">Zero Cloud</div>
@@ -392,13 +405,13 @@ export default function LandingPage() {
       {/* --- FEATURES --- */}
       <div className="max-w-5xl mx-auto px-6 py-24 md:py-32 space-y-32">
 
-        {/* 1. Agent-Readable Context — core mission, first */}
+        {/* 1. Agent-Specific Frontmatter — core mission, first */}
         <section className="grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
           <div className="space-y-6">
             <div className="h-px w-12 bg-sky-500" />
-            <h2 className="text-3xl font-bold tracking-tight">Agent-Readable Context</h2>
+            <h2 className="text-3xl font-bold tracking-tight">Agent-Specific Frontmatter</h2>
             <p className="text-neutral-600 dark:text-neutral-400 leading-relaxed">
-              Every file exposes a strict frontmatter schema — <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">id</code>, <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">title</code>, <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">status</code>, <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">version</code>, <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">tags</code> — so background scripts and LLMs can classify any file instantly with a single <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">grep</code>. Two inline lifecycles keep your work moving: document state (<code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">#draft</code> → <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">#active</code> → <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">#archived</code>) and task state (<code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">#todo</code> → <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">#prog</code> → <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">#done</code>). Place your cursor on any tag and use the ‹ › arrows to step through states.
+              Every file is auto-injected with a strict YAML schema — <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">title</code>, <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">status</code>, <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">scope</code>, <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">read_when</code>, <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">related</code>, and <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">tags</code> — so background agents and LLMs can classify any file instantly with a single <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">grep</code>. A step-by-step wizard auto-opens on new files to guide you through each field. Two inline lifecycles keep your work moving: document state (<code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">#draft</code> → <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">#active</code> → <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">#archived</code>) and task state (<code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">#todo</code> → <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">#prog</code> → <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">#done</code>). Place your cursor on any tag and use the ‹ › arrows to step through states.
             </p>
           </div>
           <div className="aspect-video bg-neutral-100 dark:bg-neutral-900 rounded-2xl border border-black/5 dark:border-white/5 flex items-center justify-center group overflow-hidden relative">

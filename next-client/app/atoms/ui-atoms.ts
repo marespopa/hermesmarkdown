@@ -94,3 +94,6 @@ export const atom_indexerState = atom<IndexerState>("idle");
 
 export type AiModelKey = "sonnet-4-6" | "haiku-4-5" | "opus-4-8" | "gpt-4o" | "gemini-flash";
 export const atom_selectedAiModel = atomWithStorage<AiModelKey>("selectedAiModel", "sonnet-4-6");
+
+// Holds the file path being edited, or null when closed
+export const atom_frontmatterWizardOpen = atom<string | null>(null);

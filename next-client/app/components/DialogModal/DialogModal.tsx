@@ -13,6 +13,8 @@ type Props = {
   ariaLabelledBy?: string;
   ariaDescribedBy?: string;
   hideCloseButton?: boolean;
+  /** On mobile, anchors to the bottom of the screen (sheet) so the soft keyboard doesn't overlap the modal. */
+  mobileSheet?: boolean;
 };
 
 const DialogModal = ({
@@ -24,6 +26,7 @@ const DialogModal = ({
   ariaLabelledBy,
   ariaDescribedBy,
   hideCloseButton = false,
+  mobileSheet = false,
 }: Props) => {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -61,7 +64,11 @@ const DialogModal = ({
   return (
     <Portal>
       <div
-        className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6"
+        className={`fixed inset-0 z-[100] flex p-4 sm:p-6 ${
+          mobileSheet
+            ? "items-end sm:items-center justify-center"
+            : "items-center justify-center"
+        }`}
         onClick={(e) => e.target === e.currentTarget && onClose()}
         role="dialog"
         aria-modal="true"
@@ -74,15 +81,16 @@ const DialogModal = ({
         {/* Modal Container */}
         <div
           className={`
-            relative z-10 w-full max-w-sm
-            my-auto
+            relative z-10 w-full
             bg-white/80 dark:bg-neutral-900/80 backdrop-blur-2xl
             border border-white/20 dark:border-neutral-800/50
-            rounded-[28px] shadow-[0_20px_50px_rgba(0,0,0,0.1)]
-            overflow-hidden
-            flex flex-col
-            /* Premium "Spring" Animation */
+            shadow-[0_20px_50px_rgba(0,0,0,0.1)]
+            overflow-hidden flex flex-col
             animate-in fade-in zoom-in-95 slide-in-from-bottom-4 sm:slide-in-from-bottom-0 duration-500 ease-out
+            ${mobileSheet
+              ? "max-w-none sm:max-w-sm my-0 rounded-t-[28px] rounded-b-none sm:rounded-[28px] sm:my-auto"
+              : "max-w-sm my-auto rounded-[28px]"
+            }
             ${styles}
           `}
         >
@@ -103,7 +111,7 @@ const DialogModal = ({
             </button>
           )}
 
-          <div className="p-6 sm:p-8 text-neutral-900 dark:text-neutral-100 flex flex-col min-h-0">
+          <div className={`p-6 sm:p-8 text-neutral-900 dark:text-neutral-100 flex flex-col min-h-0 ${mobileSheet ? "overflow-y-auto" : ""}`}>
             {children}
           </div>
         </div>

@@ -9,9 +9,10 @@ interface WorkflowPillProps {
   pos: { top: number; left: number };
   onPrev: () => void;
   onNext: () => void;
+  noHash?: boolean;
 }
 
-export function WorkflowPill({ tag, pos, onPrev, onNext }: WorkflowPillProps) {
+export function WorkflowPill({ tag, pos, onPrev, onNext, noHash }: WorkflowPillProps) {
   const colorClass = TAG_COLORS[tag] ?? "text-zinc-500 dark:text-zinc-400";
 
   return (
@@ -27,7 +28,7 @@ export function WorkflowPill({ tag, pos, onPrev, onNext }: WorkflowPillProps) {
       >
         <HiChevronLeft className="w-4 h-4 text-zinc-500 dark:text-zinc-400" />
       </button>
-      <span className={`text-xs font-bold px-0.5 ${colorClass}`}>#{tag}</span>
+      <span className={`text-xs font-bold px-0.5 ${colorClass}`}>{noHash ? tag : `#${tag}`}</span>
       <button
         onClick={onNext}
         aria-label="Next workflow state"

@@ -41,13 +41,13 @@ function computeAgentScore(content: string): AgentRating {
     fmScore += 10;
     const fm = fmMatch[1];
 
-    if (/^id:\s*.+/m.test(fm))       { fmScore += 5; } else { tips.push("Add `id:` to frontmatter"); }
-    if (/^title:\s*.+/m.test(fm))    { fmScore += 5; } else { tips.push("Add `title:` to frontmatter"); }
-    if (/^status:\s*.+/m.test(fm))   { fmScore += 8; } else { tips.push("Add `status:` to frontmatter (e.g. draft, active)"); }
-    if (/^tags:\s*\[.+\]/m.test(fm)) { fmScore += 7; } else { tips.push("Use explicit inline array for tags: `tags: [tag1, tag2]`"); }
-    if (/^version:\s*.+/m.test(fm))  { fmScore += 5; } else { tips.push("Add `version:` to frontmatter"); }
+    if (/^title:\s*.+/m.test(fm))         { fmScore += 5; } else { tips.push("Add `title:` to frontmatter"); }
+    if (/^status:\s*.+/m.test(fm))        { fmScore += 8; } else { tips.push("Add `status:` to frontmatter (e.g. draft, active)"); }
+    if (/^tags:\s*\[.+\]/m.test(fm))      { fmScore += 7; } else { tips.push("Use explicit inline array for tags: `tags: [tag1, tag2]`"); }
+    if (/^scope:\s*".+"|^scope:\s*\|/m.test(fm)) { fmScore += 5; } else { tips.push("Add `scope:` — one paragraph describing what this file covers"); }
+    if (/^read_when:\s*\[.+\]|^read_when:\n\s+-/m.test(fm)) { fmScore += 5; } else { tips.push("Add `read_when:` — list the tasks or contexts where an agent should load this file"); }
   } else {
-    tips.push("Add a YAML frontmatter block (---) with id, title, status, tags, version");
+    tips.push("Add a YAML frontmatter block (---) with title, status, tags, scope, read_when");
   }
   score += fmScore;
 

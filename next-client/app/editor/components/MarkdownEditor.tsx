@@ -1,8 +1,10 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
+import { useAtomValue, useSetAtom } from "jotai";
+import { atom_frontmatterWizardOpen } from "@/app/atoms/ui-atoms";
 import Editor from "react-simple-code-editor";
-import { HiOutlineCalendar } from "react-icons/hi";
+import { HiOutlineCalendar, HiChevronRight, HiChevronDown, HiOutlinePencil } from "react-icons/hi";
 import DatePickerCallout from "./DatePickerCallout";
 import WikiLinkDialog from "./WikiLinkDialog";
 import DialogModal from "../../components/DialogModal/DialogModal";
@@ -18,13 +20,84 @@ import { PILL_CONTAINER_CLASSES } from "./constants";
 interface MarkdownEditorProps {
   value: string;
   onChange: (value: string) => void;
+  filePath?: string;
   placeholder?: string;
   onTextareaReady?: (element: HTMLTextAreaElement | null) => void;
   setMatchCount?: (count: number) => void;
   onWikiLinkClick?: (name: string) => void;
 }
 
+const FM_REGEX = /^---\n[\s\S]*?\n---\n?/;
+
+function parseFmFields(fm: string): Record<string, string> {
+  const fields: Record<string, string> = {};
+  fm.split("\n").forEach((line) => {
+    const m = line.match(/^([a-zA-Z_][a-zA-Z0-9_]*):\s*(.*)/);
+    if (m) fields[m[1]] = m[2].replace(/^"|"$/g, "").trim();
+  });
+  return fields;
+}
+
 export default function MarkdownEditor(props: MarkdownEditorProps) {
+  const [isFmCollapsed, setIsFmCollapsed] = useState(true);
+  const setFrontmatterWizardOpen = useSetAtom(atom_frontmatterWizardOpen);
+  const wizardPath = useAtomValue(atom_frontmatterWizardOpen);
+  const filePath = props.filePath || "draft";
+
+  const fmResult = FM_REGEX.exec(props.value);
+  const rawFrontmatter = fmResult ? fmResult[0] : null;
+
+  const bodyContent = rawFrontmatter ? props.value.slice(rawFrontmatter.length) : props.value;
+  const editorValue = rawFrontmatter && isFmCollapsed ? bodyContent : props.value;
+
+  // Stable refs so the onChange callback doesn't need to re-create on every render
+  const rawFmRef = useRef<string | null>(null);
+  rawFmRef.current = rawFrontmatter;
+  const isFmCollapsedRef = useRef(isFmCollapsed);
+  isFmCollapsedRef.current = isFmCollapsed;
+
+  // Set by the expand/collapse toggle button — cursor goes to position 0 on next render
+  const pendingFmCursorRef = useRef(false);
+  // Set by wizard close — cursor goes into frontmatter, but only once isFmCollapsed=false
+  const wizardJustClosedRef = useRef(false);
+
+  const prevWizardPathRef = useRef<string | null>(null);
+  useEffect(() => {
+    const prev = prevWizardPathRef.current;
+    prevWizardPathRef.current = wizardPath;
+    if (prev === filePath && wizardPath === null && rawFrontmatter) {
+      setIsFmCollapsed(false);
+      wizardJustClosedRef.current = true;
+    }
+  }, [wizardPath, filePath, rawFrontmatter]);
+
+  useEffect(() => {
+    // Wizard path: wait for isFmCollapsed to actually flip false before placing cursor.
+    // Both effects fire in the same commit when the wizard closes, so we need the
+    // second render (when isFmCollapsed is already false) to place the cursor.
+    if (wizardJustClosedRef.current && !isFmCollapsed && textareaRef.current) {
+      wizardJustClosedRef.current = false;
+      textareaRef.current.focus();
+      // Position 4 = after the opening "---\n", landing on the first field line
+      textareaRef.current.setSelectionRange(4, 4);
+      return;
+    }
+    if (pendingFmCursorRef.current && textareaRef.current) {
+      pendingFmCursorRef.current = false;
+      textareaRef.current.focus();
+      textareaRef.current.setSelectionRange(0, 0);
+    }
+  });
+
+  const editorOnChange = useCallback((newVal: string) => {
+    if (rawFmRef.current && isFmCollapsedRef.current) {
+      props.onChange(rawFmRef.current + newVal);
+    } else {
+      props.onChange(newVal);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [props.onChange]);
+
   const {
     value,
     handleValueChange,
@@ -91,7 +164,12 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
     todoMatch,
     todoMenuPos,
     handleTodoCycle,
-  } = useMarkdownEditor(props);
+  } = useMarkdownEditor({
+    ...props,
+    value: editorValue,
+    onChange: editorOnChange,
+    onFrontmatterWizard: useCallback(() => setFrontmatterWizardOpen(filePath), [setFrontmatterWizardOpen, filePath]),
+  });
 
   const [linkLabel, setLinkLabel] = useState("");
   const [linkUrl, setLinkUrl] = useState("");
@@ -307,6 +385,7 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
               pos={workflowMenuPos}
               onPrev={() => handleWorkflowCycle("prev")}
               onNext={() => handleWorkflowCycle("next")}
+              noHash={workflowMatch.isFmStatus}
             />
           )}
 
@@ -430,6 +509,52 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
             onSelectDate={(date) => insertDate(date)}
             onClose={() => { setDatePickerOpen(false); textareaRef.current?.focus(); }}
           />
+
+          {rawFrontmatter && (() => {
+            const fields = parseFmFields(rawFrontmatter);
+            const summary = ["title", "status", "scope"]
+              .filter((k) => fields[k])
+              .map((k) => `${k}: ${fields[k]}`)
+              .join("  ·  ");
+            return (
+              <div
+                className="flex items-center gap-2 mb-1 select-none"
+                style={{ fontFamily, fontSize: displayFontSize }}
+              >
+                {/* Pencil — always visible on the left */}
+                <button
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => setFrontmatterWizardOpen(filePath)}
+                  className="shrink-0 p-2 -ml-2 text-zinc-400 dark:text-zinc-600 hover:text-violet-500 dark:hover:text-violet-400 transition-colors"
+                  title="Edit frontmatter"
+                >
+                  <HiOutlinePencil size={12} />
+                </button>
+
+                {/* Summary — takes remaining space */}
+                {isFmCollapsed && summary && (
+                  <span className="flex-1 opacity-30 text-[0.72em] truncate min-w-0">{summary}</span>
+                )}
+                {(!isFmCollapsed || !summary) && <span className="flex-1" />}
+
+                {/* Chevron + --- toggle — always on the right */}
+                <button
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => {
+                    pendingFmCursorRef.current = true;
+                    setIsFmCollapsed((c) => !c);
+                  }}
+                  className="flex items-center gap-1 p-2 -mr-2 shrink-0 text-zinc-400 dark:text-zinc-600 hover:text-violet-500 dark:hover:text-violet-400 transition-colors"
+                  title={isFmCollapsed ? "Expand frontmatter" : "Collapse frontmatter"}
+                >
+                  <span className="opacity-40 text-[0.75em]">---</span>
+                  {isFmCollapsed
+                    ? <HiChevronRight size={13} />
+                    : <HiChevronDown size={13} />}
+                </button>
+              </div>
+            );
+          })()}
 
           <Editor
             value={value}

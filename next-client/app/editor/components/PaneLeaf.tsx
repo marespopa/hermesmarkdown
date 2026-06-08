@@ -359,6 +359,7 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
             key={leaf.activeFilePath || "draft"}
             value={content}
             onChange={setContent}
+            filePath={leaf.activeFilePath || "draft"}
             onWikiLinkClick={openFileByName}
             placeholder={`Editing ${leaf.activeFilePath || "Draft"}...`}
           />
