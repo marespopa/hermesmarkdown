@@ -70,7 +70,7 @@ export default function VaultSidebar({
   } = useSidebarSearch({ selectedTags });
 
   const isSearching = searchQuery.trim().length > 0 || selectedTags.length > 0;
-  const showAllFiles = isSearching && (activeTab === "content" || !viewHasFolderSelected || viewMatchCount === 0);
+  const showAllFiles = activeTab === "content" || (isSearching && (!viewHasFolderSelected || viewMatchCount === 0));
 
   // Resize logic
   const startResizing = React.useCallback((e: React.MouseEvent) => {
