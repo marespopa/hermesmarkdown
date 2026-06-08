@@ -6,12 +6,14 @@ interface UseAIEditorActionsProps {
   value: string;
   onChange: (value: string) => void;
   textareaRef: React.RefObject<HTMLTextAreaElement | null>;
+  vaultAgentContext?: string | null;
 }
 
 export function useAIEditorActions({
   value,
   onChange,
   textareaRef,
+  vaultAgentContext,
 }: UseAIEditorActionsProps) {
   const [isAiLoading, setIsAiLoading] = useState(false);
 
@@ -45,6 +47,14 @@ export function useAIEditorActions({
     return { selectedText, surroundingText, start, end };
   }, [value, textareaRef]);
 
+  const withVaultContext = useCallback(
+    (baseSystem: string) =>
+      vaultAgentContext
+        ? `${baseSystem}\n\n--- VAULT CONVENTIONS ---\n${vaultAgentContext}`
+        : baseSystem,
+    [vaultAgentContext]
+  );
+
   const improveWriting = useCallback(async () => {
     const { selectedText, start, end } = getContext();
     if (!selectedText.trim()) {
@@ -55,7 +65,7 @@ export function useAIEditorActions({
     setIsAiLoading(true);
     try {
       const improved = await callAI(
-        "You are a writing editor. Improve clarity, flow, and conciseness. Preserve the author's voice, meaning, and any Markdown formatting (like bold, italics, lists) exactly. Return ONLY the rewritten text. Do not wrap in quotes or add any preamble.",
+        withVaultContext("You are a writing editor. Improve clarity, flow, and conciseness. Preserve the author's voice, meaning, and any Markdown formatting (like bold, italics, lists) exactly. Return ONLY the rewritten text. Do not wrap in quotes or add any preamble."),
         `REWRITE THIS TEXT:\n${selectedText}`
       );
 
@@ -71,7 +81,7 @@ export function useAIEditorActions({
     } finally {
       setIsAiLoading(false);
     }
-  }, [getContext, textareaRef]);
+  }, [getContext, textareaRef, withVaultContext]);
 
   const expandIdea = useCallback(async () => {
     const { selectedText, surroundingText, start, end } = getContext();
@@ -83,7 +93,7 @@ export function useAIEditorActions({
     setIsAiLoading(true);
     try {
       const expanded = await callAI(
-        "You are a thinking partner. Expand the selected idea with depth and clarity. Match the writer's existing tone and preserve any existing Markdown syntax. Return the COMPLETE expanded version of the original text. Do NOT repeat the original text as a header or preamble. Do NOT wrap in quotes. Return ONLY the final expanded text.",
+        withVaultContext("You are a thinking partner. Expand the selected idea with depth and clarity. Match the writer's existing tone and preserve any existing Markdown syntax. Return the COMPLETE expanded version of the original text. Do NOT repeat the original text as a header or preamble. Do NOT wrap in quotes. Return ONLY the final expanded text."),
         `EXPAND THIS IDEA:\n${selectedText}\n\nSURROUNDING CONTEXT:\n${surroundingText}`
       );
 
@@ -99,7 +109,7 @@ export function useAIEditorActions({
     } finally {
       setIsAiLoading(false);
     }
-  }, [getContext, textareaRef]);
+  }, [getContext, textareaRef, withVaultContext]);
 
   return {
     isAiLoading,
