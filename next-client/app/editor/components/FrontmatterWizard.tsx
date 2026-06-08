@@ -26,11 +26,15 @@ function parseFmFields(content: string): Record<string, string> {
 }
 
 const ARRAY_KEYS = new Set(["tags", "read_when", "related", "edit_elsewhere"]);
+const BARE_KEYS = new Set(["status"]);
 
 function serializeField(key: string, val: string): string {
   if (ARRAY_KEYS.has(key)) {
     const items = val.split(",").map((s) => s.trim()).filter(Boolean);
     return `${key}: [${items.join(", ")}]`;
+  }
+  if (BARE_KEYS.has(key)) {
+    return `${key}: ${val}`;
   }
   return `${key}: "${val}"`;
 }

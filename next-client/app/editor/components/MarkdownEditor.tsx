@@ -60,6 +60,8 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
   const pendingFmCursorRef = useRef(false);
   // Set by wizard close — cursor goes into frontmatter, but only once isFmCollapsed=false
   const wizardJustClosedRef = useRef(false);
+  // Set by a body-area click while frontmatter is expanded — restores cursor after collapse
+  const pendingBodyCursorRef = useRef<number | null>(null);
 
   const prevWizardPathRef = useRef<string | null>(null);
   useEffect(() => {
@@ -72,14 +74,27 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
   }, [wizardPath, filePath, rawFrontmatter]);
 
   useEffect(() => {
-    // Wizard path: wait for isFmCollapsed to actually flip false before placing cursor.
-    // Both effects fire in the same commit when the wizard closes, so we need the
-    // second render (when isFmCollapsed is already false) to place the cursor.
+    // After wizard closes: expand frontmatter and focus first field.
+    // Use rAF so the focus wins over any dialog-unmount focus side-effects.
     if (wizardJustClosedRef.current && !isFmCollapsed && textareaRef.current) {
       wizardJustClosedRef.current = false;
-      textareaRef.current.focus();
-      // Position 4 = after the opening "---\n", landing on the first field line
-      textareaRef.current.setSelectionRange(4, 4);
+      const ta = textareaRef.current;
+      requestAnimationFrame(() => {
+        ta.focus();
+        // Position 4 = after the opening "---\n", landing on the first field line
+        ta.setSelectionRange(4, 4);
+      });
+      return;
+    }
+    // After body-click collapse: restore cursor position inside the body.
+    if (pendingBodyCursorRef.current !== null && isFmCollapsed && textareaRef.current) {
+      const pos = pendingBodyCursorRef.current;
+      pendingBodyCursorRef.current = null;
+      const ta = textareaRef.current;
+      requestAnimationFrame(() => {
+        ta.focus();
+        ta.setSelectionRange(pos, pos);
+      });
       return;
     }
     if (pendingFmCursorRef.current && textareaRef.current) {
@@ -531,9 +546,14 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
                   <HiOutlinePencil size={12} />
                 </button>
 
-                {/* Summary — takes remaining space */}
+                {/* Summary — takes remaining space; click opens wizard */}
                 {isFmCollapsed && summary && (
-                  <span className="flex-1 opacity-30 text-[0.72em] truncate min-w-0">{summary}</span>
+                  <button
+                    onMouseDown={(e) => e.preventDefault()}
+                    onClick={() => setFrontmatterWizardOpen(filePath)}
+                    className="flex-1 text-left opacity-30 text-[0.72em] truncate min-w-0 hover:opacity-60 transition-opacity"
+                    title="Edit frontmatter"
+                  >{summary}</button>
                 )}
                 {(!isFmCollapsed || !summary) && <span className="flex-1" />}
 
@@ -561,7 +581,17 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
             onValueChange={handleValueChange}
             highlight={highlight}
             padding={0}
-            onClick={handleEditorClick}
+            onClick={(e) => {
+              handleEditorClick(e);
+              // Collapse frontmatter when clicking into the body area
+              if (!isFmCollapsedRef.current && rawFmRef.current && textareaRef.current) {
+                const pos = textareaRef.current.selectionStart;
+                if (pos >= rawFmRef.current.length) {
+                  pendingBodyCursorRef.current = pos - rawFmRef.current.length;
+                  setIsFmCollapsed(true);
+                }
+              }
+            }}
             onPaste={handlePaste}
             onMouseMove={handleMouseMove}
             onFocus={() => setIsEditorFocused(true)}

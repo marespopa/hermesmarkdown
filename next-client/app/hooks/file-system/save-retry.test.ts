@@ -35,11 +35,15 @@ vi.mock("@/app/atoms/metadata", () => ({
   atom_fileMetadata: { name: "atom_fileMetadata" },
 }));
 
-vi.mock("jotai", () => ({
-  useAtom: vi.fn(),
-  useSetAtom: vi.fn(),
-  useAtomValue: vi.fn(),
-}));
+vi.mock("jotai", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("jotai")>();
+  return {
+    ...actual,
+    useAtom: vi.fn(),
+    useSetAtom: vi.fn(),
+    useAtomValue: vi.fn(),
+  };
+});
 
 vi.mock("../use-dialog", () => ({
   useDialog: vi.fn(() => ({})),

@@ -13,6 +13,7 @@
     "prepare": "husky"
   },
   "dependencies": {
+    "@rolldown/binding-linux-arm64-gnu": "^1.1.0",
     "@tailwindcss/typography": "^0.5.15",
     "@testing-library/jest-dom": "^6.6.2",
     "@types/js-cookie": "^3.0.6",
