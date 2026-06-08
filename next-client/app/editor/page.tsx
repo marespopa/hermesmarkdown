@@ -21,6 +21,7 @@ import VaultSetupWizard from "./components/VaultSetupWizard";
 import FrontmatterWizard from "./components/FrontmatterWizard";
 import WorkspaceSplitter from "./components/WorkspaceSplitter";
 import VaultPendingOverlay from "./components/VaultPendingOverlay";
+import DriveReconnectBanner from "./components/DriveReconnectBanner";
 import LoadingOverlay from "@/app/components/LoadingOverlay";
 import StatusBar from "./components/StatusBar";
 import ErrorBoundary from "@/app/components/ErrorBoundary";
@@ -58,6 +59,8 @@ export default function LiteEditor() {
     activeFileHandle,
     isVaultPending,
     isDriveVault,
+    driveAuthState,
+    driveSignIn,
     restoreVault,
     saveFile,
     exportFile,
@@ -250,7 +253,10 @@ export default function LiteEditor() {
   return (
     <ErrorBoundary>
       <LoadingOverlay isVisible={isFileLoading} text="Loading file..." />
-      <div className={`fixed inset-0 flex bg-paper-light dark:bg-paper-dark text-ink-light dark:text-ink-dark selection:bg-pastel-blue/30 font-sans overflow-hidden overscroll-none transition-all duration-500 ${isVaultPending ? "blur-md pointer-events-none select-none" : ""}`}>
+      <div className={`fixed inset-0 flex flex-col bg-paper-light dark:bg-paper-dark text-ink-light dark:text-ink-dark selection:bg-pastel-blue/30 font-sans overflow-hidden overscroll-none transition-all duration-500 ${isVaultPending ? "blur-md pointer-events-none select-none" : ""}`}>
+        {isDriveVault && driveAuthState === 'expired' && (
+          <DriveReconnectBanner onReconnect={driveSignIn} />
+        )}
         {/* Modals */}
         <WelcomeWizard />
         <VaultSetupWizard />
@@ -273,9 +279,10 @@ export default function LiteEditor() {
         <input type="file" ref={fileInputRef} onChange={handleFileChange} accept=".md,.txt,.markdown" className="hidden" />
 
         {/* --- MAIN LAYOUT --- */}
-        
+        <div className="flex flex-1 min-h-0 overflow-hidden">
+
         {/* Sidebar (Explorer) */}
-        <div 
+        <div
           className={`transition-[width,opacity] duration-1000 [transition-timing-function:cubic-bezier(0.2,1,0.2,1)] flex shrink-0 h-full ${isZenModeActive || !isSidebarOpen ? "w-0 opacity-0 pointer-events-none overflow-hidden" : ""}`}
         >
           <VaultSidebar 
@@ -355,6 +362,7 @@ export default function LiteEditor() {
             </div>
           </div>
         </div>
+        </div>{/* end MAIN LAYOUT */}
       </div>
     </ErrorBoundary>
   );

@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useAtomValue, useSetAtom } from "jotai";
-import { atom_frontmatterWizardOpen } from "@/app/atoms/ui-atoms";
+import { atom_frontmatterWizardOpen, atom_isAiConfigured } from "@/app/atoms/ui-atoms";
 import Editor from "react-simple-code-editor";
 import { HiOutlineCalendar, HiChevronRight, HiChevronDown, HiOutlinePencil } from "react-icons/hi";
 import DatePickerCallout from "./DatePickerCallout";
@@ -43,6 +43,7 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
   const [isFmCollapsed, setIsFmCollapsed] = useState(true);
   const setFrontmatterWizardOpen = useSetAtom(atom_frontmatterWizardOpen);
   const wizardPath = useAtomValue(atom_frontmatterWizardOpen);
+  const isAiConfigured = useAtomValue(atom_isAiConfigured);
   const filePath = props.filePath || "draft";
 
   const fmResult = FM_REGEX.exec(props.value);
@@ -478,12 +479,14 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
             />
           )}
 
-          <AISelectionToolbar
-            textareaRef={textareaRef}
-            isAiLoading={isAiLoading}
-            onImprove={improveWriting}
-            onExpand={expandIdea}
-          />
+          {isAiConfigured && (
+            <AISelectionToolbar
+              textareaRef={textareaRef}
+              isAiLoading={isAiLoading}
+              onImprove={improveWriting}
+              onExpand={expandIdea}
+            />
+          )}
 
           {tableInfo && (
             <TableCallout

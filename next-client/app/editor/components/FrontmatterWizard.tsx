@@ -92,7 +92,7 @@ function updateFmFields(
   // If no frontmatter block exists, prepend a new one
   if (!m) {
     const newLines = Object.entries(edits)
-      .filter(([_, val]) => val.trim() !== "")
+      .filter(([, val]) => val.trim() !== "")
       .map(([key, val]) => serializeField(key, val));
     if (newLines.length === 0) return content;
     return `---\n${newLines.join("\n")}\n---\n\n${content.trim()}`;

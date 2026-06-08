@@ -80,7 +80,7 @@ describe("useOpenFile loading state", () => {
     
     try {
       await result.current.openFile(mockFileHandle as any);
-    } catch (e) {
+    } catch {
       // Expected
     }
 

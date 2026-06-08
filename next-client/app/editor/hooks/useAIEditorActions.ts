@@ -11,7 +11,6 @@ interface UseAIEditorActionsProps {
 
 export function useAIEditorActions({
   value,
-  onChange,
   textareaRef,
   vaultAgentContext,
 }: UseAIEditorActionsProps) {

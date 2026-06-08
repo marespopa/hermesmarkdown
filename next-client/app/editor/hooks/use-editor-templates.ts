@@ -209,7 +209,7 @@ export function useEditorTemplates({
     if (wrapperRef.current && scrollPos !== undefined) {
       wrapperRef.current.scrollTop = scrollPos;
     }
-  }, [value, onChange, filterQuery, textareaRef, wrapperRef, currencyCode, onOpenTableCreate, onFrontmatterWizard]);
+  }, [value, onChange, filterQuery, textareaRef, wrapperRef, currencyCode, onOpenTableCreate, onFrontmatterWizard, onAIImprove, onAIExpand]);
 
   const handleSlashMenuTrigger = useCallback((val: string) => {
     const textarea = textareaRef.current;

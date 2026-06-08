@@ -293,7 +293,11 @@ export default function Documentation() {
                   <div className={guideRow}><span className="text-sm font-medium">Save</span><span className={resultLabel}>CTRL+S</span></div>
                   <div className={guideRow}><span className="text-sm font-medium">Bold</span><span className={resultLabel}>CTRL+B</span></div>
                   <div className={guideRow}><span className="text-sm font-medium">Italic</span><span className={resultLabel}>CTRL+I</span></div>
+                  <div className={guideRow}><span className="text-sm font-medium">Undo</span><span className={resultLabel}>CTRL+Z</span></div>
                   <div className={guideRow}><span className="text-sm font-medium">Zen Mode</span><span className={resultLabel}>CTRL+SHIFT+Z</span></div>
+                  <div className={guideRow}><span className="text-sm font-medium">Open Date Picker</span><span className={resultLabel}>ALT+↓ on date</span></div>
+                  <div className={guideRow}><span className="text-sm font-medium">Open Link</span><span className={resultLabel}>CTRL+ENTER on pill</span></div>
+                  <div className={guideRow}><span className="text-sm font-medium">Dismiss / Close</span><span className={resultLabel}>ESCAPE</span></div>
                 </div>
               </div>
 
@@ -405,8 +409,12 @@ export default function Documentation() {
                     <div className={guideRow}><span className={syntaxLabel}>..d &nbsp;or&nbsp; {"{date}"}</span><span className={resultLabel}>Today's Date</span></div>
                     <div className={guideRow}><span className={syntaxLabel}>..tomorrow</span><span className={resultLabel}>Tomorrow</span></div>
                     <div className={guideRow}><span className={syntaxLabel}>..yesterday</span><span className={resultLabel}>Yesterday</span></div>
+                    <div className={guideRow}><span className={syntaxLabel}>{"{day}"}</span><span className={resultLabel}>Day Name</span></div>
                     <div className={guideRow}><span className={syntaxLabel}>{"{time}"}</span><span className={resultLabel}>Current Time</span></div>
                     <div className={guideRow}><span className={syntaxLabel}>{"{datetime}"}</span><span className={resultLabel}>Date + Time</span></div>
+                    <div className={guideRow}><span className={syntaxLabel}>{"{iso}"}</span><span className={resultLabel}>ISO Timestamp</span></div>
+                    <div className={guideRow}><span className={syntaxLabel}>{"{unix}"}</span><span className={resultLabel}>Unix Timestamp</span></div>
+                    <div className={guideRow}><span className={syntaxLabel}>..log</span><span className={resultLabel}>Timestamped Log</span></div>
                   </div>
                 </div>
 
@@ -419,6 +427,11 @@ export default function Documentation() {
                     <div className={guideRow}><span className={syntaxLabel}>/</span><span className={resultLabel}>Template Menu</span></div>
                     <div className={guideRow}><span className={syntaxLabel}>{"{check}"}</span><span className={resultLabel}>✅</span></div>
                     <div className={guideRow}><span className={syntaxLabel}>{"{idea}"}</span><span className={resultLabel}>💡</span></div>
+                    <div className={guideRow}><span className={syntaxLabel}>{"{error}"}</span><span className={resultLabel}>❌</span></div>
+                    <div className={guideRow}><span className={syntaxLabel}>{"{warn}"}</span><span className={resultLabel}>⚠️</span></div>
+                    <div className={guideRow}><span className={syntaxLabel}>{"{fix}"}</span><span className={resultLabel}>🛠️</span></div>
+                    <div className={guideRow}><span className={syntaxLabel}>{"{bug}"}</span><span className={resultLabel}>🐛</span></div>
+                    <div className={guideRow}><span className={syntaxLabel}>{"{star}"}</span><span className={resultLabel}>⭐</span></div>
                   </div>
                 </div>
               </div>
@@ -531,7 +544,6 @@ export default function Documentation() {
                   <div className={guideRow}><span className="text-sm font-medium">⚡ Improve Writing</span><span className={resultLabel}>Select → Toolbar</span></div>
                   <div className={guideRow}><span className="text-sm font-medium">＋ Expand Idea</span><span className={resultLabel}>Select → Toolbar</span></div>
                   <div className={guideRow}><span className="text-sm font-medium">Generate Frontmatter</span><span className={resultLabel}>Wizard / /frontmatter</span></div>
-                  <div className={guideRow}><span className="text-sm font-medium">Summarize Note</span><span className={resultLabel}>Selection Context Menu</span></div>
                 </div>
                 <p className="text-ui-micro opacity-40 italic leading-relaxed font-bold uppercase tracking-[0.2em] text-center">
                   All AI actions are triggered manually. Nothing runs without your intent.

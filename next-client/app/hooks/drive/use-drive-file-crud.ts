@@ -57,7 +57,8 @@ export function useDriveFileCrud({ scanVault, openFile }: Props) {
     const dir = currentDirectoryHandle as any;
     if (dir instanceof DriveDirectoryHandle) return dir;
     if (driveVaultId) {
-      const name = localStorage.getItem('hermes_drive_vault_name') || 'Drive';
+      const raw = localStorage.getItem('hermes_drive_vault_name');
+      const name = raw ? JSON.parse(raw) : 'Drive';
       return new DriveDirectoryHandle(name, driveVaultId);
     }
     return null;
@@ -142,7 +143,8 @@ export function useDriveFileCrud({ scanVault, openFile }: Props) {
     let targetDir: DriveDirectoryHandle = currentDirHandle() || new DriveDirectoryHandle('Drive', driveVaultId);
 
     if (!dirHandle) {
-      const rootName = localStorage.getItem('hermes_drive_vault_name') || 'Drive';
+      const rawName = localStorage.getItem('hermes_drive_vault_name');
+      const rootName = rawName ? JSON.parse(rawName) : 'Drive';
       const options = [
         { label: `/ ${rootName} (root)`, value: '__root__' },
         ...subDirs.map(d => ({ label: d.name, value: d.folderId })),
@@ -240,7 +242,9 @@ export function useDriveFileCrud({ scanVault, openFile }: Props) {
 
     // Update atoms
     const isDeletedPath = (p: string) =>
-      isFile ? p.split('/').pop() === handle.name && p === path : p.startsWith((path || handle.name) + '/') || p === path;
+      isFile
+        ? path ? p === path : p.split('/').pop() === handle.name
+        : p === path || p.startsWith((path ?? handle.name) + '/');
 
     setFileMetadata(prev => {
       const next = { ...prev };

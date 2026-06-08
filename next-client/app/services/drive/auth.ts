@@ -39,8 +39,8 @@ export function parseOAuthCallback(): { accessToken: string; expiresIn: number }
   if (!accessToken) return null;
 
   const savedState = sessionStorage.getItem(KEYS.oauthState);
-  if (state && savedState && state !== savedState) {
-    console.warn('Drive OAuth: state mismatch, ignoring callback');
+  if (!state || !savedState || state !== savedState) {
+    console.warn('Drive OAuth: state mismatch or missing, ignoring callback');
     return null;
   }
 

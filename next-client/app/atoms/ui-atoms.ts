@@ -133,4 +133,10 @@ export const atom_aiProvider = atomWithStorage<AIProvider>(
 export const atom_claudeKey = atomWithStorage<string>("hermes_claude_key", "");
 export const atom_geminiKey = atomWithStorage<string>("hermes_gemini_key", "");
 
+export const atom_isAiConfigured = atom((get) => {
+  const provider = get(atom_aiProvider);
+  const key = provider === "gemini" ? get(atom_geminiKey) : get(atom_claudeKey);
+  return key.trim().length > 0;
+});
+
 export const atom_isFileLoading = atom<boolean>(false);

@@ -55,7 +55,8 @@ export function useDriveVaultManager() {
 
   const getRootHandle = useCallback((): DriveDirectoryHandle | null => {
     if (!driveVaultId) return null;
-    const name = localStorage.getItem('hermes_drive_vault_name') || 'Drive';
+    const raw = localStorage.getItem('hermes_drive_vault_name');
+    const name = raw ? JSON.parse(raw) : 'Drive';
     return new DriveDirectoryHandle(name, driveVaultId);
   }, [driveVaultId]);
 
@@ -63,12 +64,18 @@ export function useDriveVaultManager() {
     if (!(dirHandle instanceof DriveDirectoryHandle)) return;
 
     try {
-      const result = await listFiles(dirHandle.folderId);
       const currentIndex = drivePathIndex;
-      // Prefer the handle's internal path if set, otherwise try index lookup
       const prefix = (dirHandle as any).path ?? currentIndex?.getPathForId(dirHandle.folderId) ?? '';
 
-      const entries: any[] = result.files
+      const allFiles: any[] = [];
+      let pageToken: string | undefined;
+      do {
+        const result = await listFiles(dirHandle.folderId, pageToken);
+        pageToken = result.nextPageToken;
+        allFiles.push(...result.files);
+      } while (pageToken);
+
+      const entries: any[] = allFiles
         .filter(f => f.mimeType === FOLDER_MIME || f.name.endsWith('.md'))
         .map(f => {
           const entryPath = prefix ? `${prefix}/${f.name}` : f.name;
@@ -87,11 +94,10 @@ export function useDriveVaultManager() {
     } catch (err: any) {
       if (err.status === 401) {
         setDriveAuthState('expired');
-        setIsVaultPending(true);
       }
       console.warn('Drive scanVault failed:', err);
     }
-  }, [drivePathIndex, setVaultFiles, setDriveAuthState, setIsVaultPending]);
+  }, [drivePathIndex, setVaultFiles, setDriveAuthState]);
 
   const indexVaultTags = useCallback(async (id?: string) => {
     const folderId = id || driveVaultId;
@@ -115,7 +121,6 @@ export function useDriveVaultManager() {
       } else {
         if (err.status === 401) {
           setDriveAuthState('expired');
-          setIsVaultPending(true);
         }
         console.warn('Drive index build failed:', err);
       }
@@ -189,7 +194,7 @@ export function useDriveVaultManager() {
     }
 
     index.saveToCache(folderId);
-  }, [driveVaultId, setDrivePathIndex, setFileMetadata, setIndexerState, setDriveAuthState, setIsVaultPending]);
+  }, [driveVaultId, setDrivePathIndex, setFileMetadata, setIndexerState, setDriveAuthState]);
 
 
 
@@ -237,7 +242,8 @@ export function useDriveVaultManager() {
     }
 
     setDriveAuthState('authenticated');
-    const name = localStorage.getItem('hermes_drive_vault_name') || 'Drive';
+    const raw = localStorage.getItem('hermes_drive_vault_name');
+    const name = raw ? JSON.parse(raw) : 'Drive';
     const handle = new DriveDirectoryHandle(name, vaultId);
     setVaultHandle(handle as any);
     setCurrentDirectoryHandle(handle as any);
@@ -348,10 +354,7 @@ export function useDriveVaultManager() {
     setHasDriveLoaded(true);
 
     if (!isTokenValid()) {
-      // Show the pending overlay so the user can click "Restore Access" to re-authenticate.
-      // Don't auto-redirect to OAuth here — let the user initiate it.
       setDriveAuthState('expired');
-      setIsVaultPending(true);
       return;
     }
 
