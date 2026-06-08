@@ -3,6 +3,7 @@
 import React, { useEffect } from "react";
 import { IoClose } from "react-icons/io5";
 import Portal from "../Portal";
+import Button from "../Button";
 
 type Props = {
   isOpened: boolean;
@@ -96,7 +97,8 @@ const DialogModal = ({
         >
           {/* Close Button */}
           {!hideCloseButton && (
-            <button
+            <Button
+              variant="icon"
               onClick={onClose}
               className="absolute top-4 right-4 z-20 p-1.5 rounded-full
                         bg-neutral-200/50 dark:bg-neutral-800/50
@@ -108,7 +110,7 @@ const DialogModal = ({
                 size={20}
                 className="text-neutral-600 dark:text-neutral-300"
               />
-            </button>
+            </Button>
           )}
 
           <div className={`p-6 sm:p-8 text-neutral-900 dark:text-neutral-100 flex flex-col min-h-0 ${mobileSheet ? "overflow-y-auto" : ""}`}>

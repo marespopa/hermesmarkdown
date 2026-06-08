@@ -135,6 +135,7 @@ export default function VaultSidebar({
                 className="w-10 h-10 opacity-60 hover:opacity-100 md:hidden"
                 onClick={onOpenSettings}
                 title="Settings"
+                aria-label="Settings"
               >
                 <HiOutlineCog size={18} />
               </Button>
@@ -145,6 +146,7 @@ export default function VaultSidebar({
                   className="w-10 h-10 opacity-60 hover:opacity-100"
                   onClick={onClose}
                   title="Collapse Sidebar"
+                  aria-label="Collapse Sidebar"
                 >
                   <HiOutlineChevronLeft size={18} />
                 </Button>
@@ -182,13 +184,14 @@ export default function VaultSidebar({
 
             <div className="flex px-4 pt-1 pb-3 gap-6 shrink-0 border-b border-zinc-200/40 dark:border-zinc-800/40">
               {tabOrder.map((tab) => (
-                <button
+                <Button
                   key={tab}
+                  variant="bare"
                   onClick={() => setActiveTab(tab)}
                   className={`text-sm font-semibold tracking-wide transition-colors ${activeTab === tab ? "text-zinc-900 dark:text-zinc-100" : "text-zinc-400 dark:text-zinc-600 hover:text-zinc-600 dark:hover:text-zinc-400"}`}
                 >
                   {tab === "content" ? "Content" : "Views"}
-                </button>
+                </Button>
               ))}
             </div>
 

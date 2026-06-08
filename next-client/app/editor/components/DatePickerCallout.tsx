@@ -3,6 +3,7 @@
 import React, { useState, useMemo, useEffect, useRef } from "react";
 import { HiChevronLeft, HiChevronRight, HiX } from "react-icons/hi";
 import DialogModal from "../../components/DialogModal/DialogModal";
+import Button from "../../components/Button";
 
 interface DatePickerCalloutProps {
   isOpen: boolean;
@@ -129,27 +130,30 @@ export default function DatePickerCallout({
             {monthNames[viewDate.getMonth()]} {viewDate.getFullYear()}
           </span>
           <div className="flex items-center gap-1">
-            <button
+            <Button
+              variant="icon"
               onClick={() => changeMonth(-1)}
               aria-label="Previous month"
               className="p-1 h-8 w-8 flex items-center justify-center hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-full transition-colors"
             >
               <HiChevronLeft className="w-5 h-5 text-blue-500" />
-            </button>
-            <button
+            </Button>
+            <Button
+              variant="icon"
               onClick={() => changeMonth(1)}
               aria-label="Next month"
               className="p-1 h-8 w-8 flex items-center justify-center hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-full transition-colors"
             >
               <HiChevronRight className="w-5 h-5 text-blue-500" />
-            </button>
-            <button
+            </Button>
+            <Button
+              variant="icon"
               onClick={onClose}
               aria-label="Close calendar"
               className="p-1 h-8 w-8 flex items-center justify-center hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-full transition-colors ml-1"
             >
               <HiX className="w-4 h-4 text-zinc-400 dark:text-zinc-500" />
-            </button>
+            </Button>
           </div>
         </div>
 
@@ -191,13 +195,14 @@ export default function DatePickerCallout({
         <div className="border-t border-zinc-100 dark:border-zinc-800 pt-3 mt-1">
           <div className="flex flex-wrap gap-2 justify-center">
             {(["today", "tomorrow", "nextWeek", "nextMonth"] as const).map((action) => (
-              <button
+              <Button
                 key={action}
+                variant="bare"
                 onClick={() => handleQuickAction(action)}
                 className="text-ui-footnote py-1.5 px-3 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 hover:border-blue-500 hover:text-blue-500 rounded-full transition-all font-medium text-zinc-600 dark:text-zinc-400"
               >
                 {{ today: "Today", tomorrow: "Tomorrow", nextWeek: "+1 Week", nextMonth: "+1 Month" }[action]}
-              </button>
+              </Button>
             ))}
           </div>
         </div>

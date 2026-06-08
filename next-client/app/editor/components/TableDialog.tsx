@@ -148,8 +148,9 @@ export function TableDialog({
     <DialogModal
       isOpened={isOpen}
       onClose={onClose}
-      styles="!max-w-2xl w-full"
+      styles="w-full !max-w-5xl"
       ariaLabelledBy="td-title"
+      mobileSheet
     >
       <div className="flex flex-col gap-4 min-h-0">
         <h2
@@ -205,7 +206,8 @@ export function TableDialog({
                           />
 
                           {/* Sort chevron — invisible until hover or sorted */}
-                          <button
+                          <Button
+                            variant="bare"
                             type="button"
                             onClick={() => onSortColumn(ci)}
                             aria-label={
@@ -227,10 +229,11 @@ export function TableDialog({
                             `}
                           >
                             {sortDir === "desc" ? "↓" : "↑"}
-                          </button>
+                          </Button>
 
                           {/* Remove column — faint until hover */}
-                          <button
+                          <Button
+                            variant="icon"
                             type="button"
                             onClick={() => onRemoveColumn(ci)}
                             aria-label="Remove column"
@@ -242,33 +245,36 @@ export function TableDialog({
                             "
                           >
                             ×
-                          </button>
+                          </Button>
                         </div>
 
                         {/* Inline confirmation for non-empty column removal */}
                         {pendingRemoveCol === ci && (
                           <div className="px-2 py-0.5 text-ui-micro text-amber-700 dark:text-amber-400 flex items-center gap-1 flex-wrap">
                             <span>Has content.</span>
-                            <button
+                            <Button
+                              variant="bare"
                               onClick={onConfirmRemoveColumn}
                               className="underline hover:text-red-600 transition-colors"
                             >
                               Remove
-                            </button>
-                            <button
+                            </Button>
+                            <Button
+                              variant="bare"
                               onClick={onCancelRemoveColumn}
                               className="underline hover:text-zinc-600 transition-colors"
                             >
                               Cancel
-                            </button>
+                            </Button>
                           </div>
                         )}
 
                         {/* Alignment toggle */}
                         <div className="flex border-t border-zinc-200 dark:border-zinc-700 mt-0.5">
                           {(["left", "center", "right"] as Alignment[]).map((a) => (
-                            <button
+                            <Button
                               key={a}
+                              variant="bare"
                               type="button"
                               onClick={() => onAlignmentChange(ci, a)}
                               aria-label={`Align ${a}`}
@@ -281,7 +287,7 @@ export function TableDialog({
                               `}
                             >
                               {ALIGN_LABELS[a]}
-                            </button>
+                            </Button>
                           ))}
                         </div>
                       </div>
@@ -291,7 +297,8 @@ export function TableDialog({
 
                 {/* Add column */}
                 <th className="border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/60 w-9 p-0">
-                  <button
+                  <Button
+                    variant="pill-icon"
                     type="button"
                     onClick={onAddColumn}
                     aria-label="Add column"
@@ -299,7 +306,7 @@ export function TableDialog({
                     className="w-full h-full min-h-[60px] text-zinc-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors text-ui-title-1"
                   >
                     +
-                  </button>
+                  </Button>
                 </th>
               </tr>
             </thead>
@@ -335,30 +342,33 @@ export function TableDialog({
                   <td className="border border-zinc-200 dark:border-zinc-700 w-9 p-0 align-middle">
                     {pendingRemoveRow === ri ? (
                       <div className="flex flex-col items-center py-0.5 gap-0.5">
-                        <button
+                        <Button
+                          variant="bare"
                           onClick={onConfirmRemoveRow}
                           aria-label="Confirm remove row"
                           className="text-ui-micro text-red-500 hover:text-red-700 dark:text-red-400 underline"
                         >
                           ×
-                        </button>
-                        <button
+                        </Button>
+                        <Button
+                          variant="bare"
                           onClick={onCancelRemoveRow}
                           aria-label="Cancel remove row"
                           className="text-ui-micro text-zinc-400 hover:text-zinc-700 underline"
                         >
                           ↩
-                        </button>
+                        </Button>
                       </div>
                     ) : (
-                      <button
+                      <Button
+                        variant="icon"
                         type="button"
                         onClick={() => onRemoveRow(ri)}
                         aria-label="Remove row"
                         className="w-full h-full min-h-[44px] sm:min-h-[32px] text-zinc-400 hover:text-red-500 dark:text-zinc-500 dark:hover:text-red-400 transition-colors"
                       >
                         ×
-                      </button>
+                      </Button>
                     )}
                   </td>
                 </tr>
@@ -370,14 +380,15 @@ export function TableDialog({
                   colSpan={colCount + 1}
                   className="border border-zinc-200 dark:border-zinc-700 p-0"
                 >
-                  <button
+                  <Button
+                    variant="pill-icon"
                     type="button"
                     onClick={onAddRow}
                     aria-label="Add row"
                     className="w-full py-2.5 sm:py-1.5 text-ui-micro text-zinc-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
                   >
                     + Add row
-                  </button>
+                  </Button>
                 </td>
               </tr>
             </tbody>

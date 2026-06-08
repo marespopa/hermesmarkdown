@@ -133,8 +133,9 @@ export default function GlobalDialog() {
         {isSelect && config.options && (
           <div className="flex flex-col gap-1.5 py-2">
             {config.options.map((opt) => (
-              <button
+              <Button
                 key={opt.value}
+                variant="menu-item"
                 onClick={() => config.resolve(opt.value)}
                 className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-ui-subhead font-medium text-left hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors border border-transparent hover:border-zinc-200/60 dark:hover:border-zinc-700/60"
               >
@@ -142,7 +143,7 @@ export default function GlobalDialog() {
                   <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
                 </svg>
                 {opt.label}
-              </button>
+              </Button>
             ))}
           </div>
         )}

@@ -108,6 +108,10 @@ export function useEditorHandlers({
     if (textarea.selectionStart === undefined) return;
     const pos = textarea.selectionStart;
 
+    if (menuOpen) {
+      dismissMenu();
+    }
+
     if (e.ctrlKey || e.metaKey) {
       const link = findLinkAtPos(value, pos);
       if (link) {
@@ -143,7 +147,7 @@ export function useEditorHandlers({
     syncScroll();
     syncActiveLine();
     onDetectLinkPill?.();
-  }, [value, onWikiLinkClick, syncActiveLine, syncScroll, onDetectLinkPill]);
+  }, [value, onWikiLinkClick, syncActiveLine, syncScroll, onDetectLinkPill, menuOpen, dismissMenu]);
 
   const handleGlobalKeyDown = useCallback((e: React.KeyboardEvent) => {
     // Table source keyboard shortcuts (Tab, Enter, |) take highest priority

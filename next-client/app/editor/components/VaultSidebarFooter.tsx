@@ -42,6 +42,7 @@ export default function VaultSidebarFooter({
             onClick={() => router.push("/")}
             className="w-10 h-10 opacity-60 hover:opacity-100"
             title="Go Home"
+            aria-label="Go Home"
           >
             <HiOutlineHome size={20} />
           </Button>
@@ -51,6 +52,7 @@ export default function VaultSidebarFooter({
             onClick={onOpenSettings}
             className="w-10 h-10 opacity-60 hover:opacity-100"
             title="Settings"
+            aria-label="Settings"
           >
             <HiOutlineCog size={20} />
           </Button>
@@ -60,6 +62,7 @@ export default function VaultSidebarFooter({
             onClick={() => setIsZenModeActive(!isZenModeActive)}
             className={`w-10 h-10 transition-colors ${isZenModeActive ? "text-blue-500 opacity-100" : "opacity-60 hover:opacity-100"}`}
             title="Toggle Zen Mode (Ctrl+Shift+Z)"
+            aria-label="Toggle Zen Mode"
           >
             {isZenModeActive ? <HiOutlineEye size={20} /> : <HiOutlineEyeOff size={20} />}
           </Button>
@@ -72,6 +75,7 @@ export default function VaultSidebarFooter({
                 onClick={closeVault}
                 className="w-10 h-10 text-red-500/60 hover:text-red-500"
                 title="Close Vault"
+                aria-label="Close Vault"
               >
                 <HiOutlineLogout size={20} />
               </Button>
@@ -82,6 +86,7 @@ export default function VaultSidebarFooter({
                 disabled={!isVaultSupported}
                 className="w-10 h-10 text-blue-500/60 hover:text-blue-500"
                 title={isVaultSupported ? "Open Vault" : "Vault not supported"}
+                aria-label={isVaultSupported ? "Open Vault" : "Vault not supported"}
               >
                 <HiOutlineDatabase size={20} />
               </Button>

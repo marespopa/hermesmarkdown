@@ -70,6 +70,8 @@ export default function FileTreeItem({
             e.stopPropagation();
             setActionMenuOpen(!actionMenuOpen);
           }}
+          title="File options"
+          aria-label="File options"
         >
           <HiOutlineDotsVertical size={16} className="opacity-60" />
         </Button>
@@ -82,7 +84,8 @@ export default function FileTreeItem({
             onClick={() => setActionMenuOpen(false)}
           />
           <div className="absolute right-2 top-[80%] z-50 bg-white/90 dark:bg-zinc-900/90 backdrop-blur-xl border border-zinc-200/50 dark:border-zinc-800/50 rounded-2xl shadow-2xl py-1.5 min-w-[160px] animate-in fade-in zoom-in-95 duration-200">
-            <button
+            <Button
+              variant="menu-item"
               onClick={(e) => {
                 e.stopPropagation();
                 renameFile(fileHandle);
@@ -92,8 +95,9 @@ export default function FileTreeItem({
             >
               <HiOutlinePencil size={16} className="opacity-60" />
               Rename
-            </button>
-            <button
+            </Button>
+            <Button
+              variant="menu-item"
               onClick={(e) => {
                 e.stopPropagation();
                 deleteFile(fileHandle);
@@ -103,7 +107,7 @@ export default function FileTreeItem({
             >
               <HiOutlineTrash size={16} className="opacity-60" />
               Delete
-            </button>
+            </Button>
           </div>
         </>
       )}

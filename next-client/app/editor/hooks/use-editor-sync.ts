@@ -84,13 +84,13 @@ export function useEditorSync({
           dateMatchRef.current = match;
         }
 
-        const caretStart = getCaretCoordinates(textareaRef.current, match.start);
+        const caretAtCursor = getCaretCoordinates(textareaRef.current, pos);
         const caretEnd = getCaretCoordinates(textareaRef.current, match.end);
-        const caretHeight = caretStart.height || 22;
+        const caretHeight = caretAtCursor.height || 22;
 
         setDateMenuPos({
-          top: (caretStart.top || 0) + caretHeight / 2 - 14,
-          left: caretStart.left || 0,
+          top: (caretAtCursor.top || 0) + caretHeight / 2 - 14,
+          left: caretAtCursor.left || 0,
           endLeft: caretEnd.left || 0,
         });
       } else {
@@ -114,12 +114,12 @@ export function useEditorSync({
         if (pos >= tagStart && pos <= tagEnd) {
           const tag = wfMatch[1].toLowerCase();
           if (!textareaRef.current) break;
-          const caretEnd = getCaretCoordinates(textareaRef.current, tagEnd);
-          const caretHeight = caretEnd.height || 22;
+          const caretAtCursor = getCaretCoordinates(textareaRef.current, pos);
+          const caretHeight = caretAtCursor.height || 22;
           setWorkflowMatch({ tag, start: tagStart, end: tagEnd });
           setWorkflowMenuPos({
-            top: (caretEnd.top || 0) + caretHeight / 2 - 14,
-            left: Math.max(0, (caretEnd.left || 0) - 4),
+            top: (caretAtCursor.top || 0) + caretHeight / 2 - 14,
+            left: Math.max(0, (caretAtCursor.left || 0) - 4),
           });
           foundWorkflow = true;
           break;
@@ -139,12 +139,12 @@ export function useEditorSync({
           if (!textareaRef.current) {
             setWorkflowMatch(null);
           } else {
-            const caretEnd = getCaretCoordinates(textareaRef.current, tagEnd);
-            const caretHeight = caretEnd.height || 22;
+            const caretAtCursor = getCaretCoordinates(textareaRef.current, pos);
+            const caretHeight = caretAtCursor.height || 22;
             setWorkflowMatch({ tag: fmStatusMatch[1], start: tagStart, end: tagEnd, isFmStatus: true });
             setWorkflowMenuPos({
-              top: (caretEnd.top || 0) + caretHeight / 2 - 14,
-              left: Math.max(0, (caretEnd.left || 0) - 4),
+              top: (caretAtCursor.top || 0) + caretHeight / 2 - 14,
+              left: Math.max(0, (caretAtCursor.left || 0) - 4),
             });
           }
         } else {
@@ -162,12 +162,12 @@ export function useEditorSync({
         if (pos >= tagStart && pos <= tagEnd) {
           const tag = tdMatch[1].toLowerCase();
           if (!textareaRef.current) break;
-          const caretEnd = getCaretCoordinates(textareaRef.current, tagEnd);
-          const caretHeight = caretEnd.height || 22;
+          const caretAtCursor = getCaretCoordinates(textareaRef.current, pos);
+          const caretHeight = caretAtCursor.height || 22;
           setTodoMatch({ tag, start: tagStart, end: tagEnd });
           setTodoMenuPos({
-            top: (caretEnd.top || 0) + caretHeight / 2 - 14,
-            left: Math.max(0, (caretEnd.left || 0) - 4),
+            top: (caretAtCursor.top || 0) + caretHeight / 2 - 14,
+            left: Math.max(0, (caretAtCursor.left || 0) - 4),
           });
           foundTodo = true;
           break;

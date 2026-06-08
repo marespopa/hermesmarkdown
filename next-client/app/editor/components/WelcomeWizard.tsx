@@ -133,12 +133,13 @@ const WelcomeWizard = () => {
           </Button>
         </div>
 
-        <button 
+        <Button
+          variant="bare"
           onClick={handleSkip}
           className="text-ui-footnote font-medium opacity-40 hover:opacity-100 transition-opacity"
         >
           Skip Introduction
-        </button>
+        </Button>
 
         <div className="flex gap-1.5 pt-2">
           {steps.map((_, i) => (

@@ -2,6 +2,7 @@
 
 import React, { useMemo, useState } from "react";
 import { useAtom, useAtomValue } from "jotai";
+import Button from "../../components/Button";
 import {
   atom_content,
   atom_saveStatus,
@@ -208,10 +209,12 @@ export default function StatusBar() {
       <header className="relative h-11 border-b border-zinc-200/50 dark:border-zinc-800/50 bg-paper-light/50 dark:bg-paper-dark/50 backdrop-blur-3xl flex items-center justify-between px-4 shrink-0 z-40 select-none">
         <span className={`text-[12px] font-medium ${saveLabelClass}`}>{saveLabel}</span>
 
-        <button
+        <Button
+          variant="bare"
           onClick={() => setShowTokens(v => !v)}
           className="flex-1 h-full flex justify-center items-center text-[12px] text-zinc-500 dark:text-zinc-400 cursor-pointer hover:text-zinc-700 dark:hover:text-zinc-300 transition-colors"
           title={showTokens ? "Switch to word count" : "Switch to token count (~cost)"}
+          aria-label={showTokens ? "Switch to word count" : "Switch to token count (~cost)"}
         >
           {selectionCount > 0 ? (
             <span>
@@ -226,10 +229,11 @@ export default function StatusBar() {
               <strong className="font-medium text-zinc-800 dark:text-zinc-200">{wordCount}</strong>{" "}words
             </span>
           )}
-        </button>
+        </Button>
 
         <div className="flex items-center gap-1 h-full">
-          <button
+          <Button
+            variant="bare"
             className={`relative h-full px-3 flex items-center text-[12px] cursor-pointer ${agentRating.colorClass}`}
             onMouseEnter={() => setShowAiTip(true)}
             onMouseLeave={() => setShowAiTip(false)}
@@ -271,15 +275,16 @@ export default function StatusBar() {
                 </span>
               </>
             )}
-          </button>
+          </Button>
 
-          <button
+          <Button
+            variant="bare"
             onClick={() => setIsZenModeActive(false)}
             className="h-full px-3 flex items-center text-[12px] font-medium text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 active:opacity-60 transition-colors"
             title="Exit Zen Mode (Esc)"
           >
             Exit
-          </button>
+          </Button>
         </div>
       </header>
     );
@@ -291,10 +296,12 @@ export default function StatusBar() {
       <span className={`text-[11px] max-md:text-[12px] font-medium ${saveLabelClass}`}>{saveLabel}</span>
 
       {/* CENTER — token / word count (click to toggle) */}
-      <button
+      <Button
+        variant="bare"
         onClick={() => setShowTokens(v => !v)}
         className="flex-1 h-full flex justify-center items-center text-[11px] max-md:text-[12px] text-zinc-500 dark:text-zinc-400 cursor-pointer hover:text-zinc-700 dark:hover:text-zinc-300 transition-colors"
         title={showTokens ? "Switch to word count" : "Switch to token count (~cost)"}
+        aria-label={showTokens ? "Switch to word count" : "Switch to token count (~cost)"}
       >
         {selectionCount > 0 ? (
           <span>
@@ -309,7 +316,7 @@ export default function StatusBar() {
             <strong className="font-medium text-zinc-800 dark:text-zinc-200">{wordCount}</strong>{" "}words
           </span>
         )}
-      </button>
+      </Button>
 
       {/* RIGHT — agent readability with improvement tips on hover/tap */}
       <div className="flex items-center h-full divide-x divide-zinc-200/50 dark:divide-zinc-800/50">
@@ -318,7 +325,8 @@ export default function StatusBar() {
             <span className="w-2 h-2 rounded-full border border-zinc-400 dark:border-zinc-500 border-t-blue-500 dark:border-t-blue-400 animate-spin" />
           </span>
         )}
-        <button
+        <Button
+          variant="bare"
           className={`relative px-2 h-full flex items-center text-[11px] max-md:text-[12px] cursor-pointer ${agentRating.colorClass}`}
           onMouseEnter={() => setShowAiTip(true)}
           onMouseLeave={() => setShowAiTip(false)}
@@ -360,7 +368,7 @@ export default function StatusBar() {
               </span>
             </>
           )}
-        </button>
+        </Button>
       </div>
     </footer>
   );

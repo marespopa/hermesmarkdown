@@ -61,12 +61,12 @@ export function useLinkPill({ value, textareaRef }: UseLinkPillProps) {
     }
 
     const pillWidth = 70;
-    const caretEnd = getCaretCoordinates(textarea, result.end);
-    const caretHeight = caretEnd.height || 22;
+    const caretAtCursor = getCaretCoordinates(textarea, pos);
+    const caretHeight = caretAtCursor.height || 22;
 
     setPillPos({
-      top: caretEnd.top + caretHeight / 2 - 14 - 2,
-      left: Math.min(caretEnd.left + 8, textarea.clientWidth - pillWidth),
+      top: caretAtCursor.top + caretHeight / 2 - 14 - 2,
+      left: Math.min(caretAtCursor.left + 8, textarea.clientWidth - pillWidth),
     });
     setPillLabel(result.label ?? "");
     setPillRange({

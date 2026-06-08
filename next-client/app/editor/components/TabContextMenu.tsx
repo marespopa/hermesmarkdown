@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
+import Button from "../../components/Button";
 
 export interface TabContextMenuItem {
   label: string;
@@ -53,9 +54,10 @@ export default function TabContextMenu({ x, y, items, onClose }: TabContextMenuP
       className={`fixed z-50 min-w-[180px] bg-white/90 dark:bg-zinc-900/90 backdrop-blur-xl border border-zinc-200/50 dark:border-zinc-800/50 rounded-2xl shadow-2xl font-sans p-1.5 flex flex-col gap-0.5 origin-top-left transition-[opacity,transform] duration-150 ease-out ${pos.ready ? "opacity-100 scale-100" : "opacity-0 scale-95"}`}
     >
       {items.map((item) => (
-        <button
+        <Button
           key={item.label}
-          disabled={item.disabled}
+          variant="menu-item"
+          isDisabled={item.disabled}
           onClick={() => {
             if (item.disabled) return;
             item.onClick();
@@ -64,7 +66,7 @@ export default function TabContextMenu({ x, y, items, onClose }: TabContextMenuP
           className="w-full text-left text-ui-footnote text-zinc-700 dark:text-zinc-200 hover:bg-zinc-100/80 dark:hover:bg-zinc-800/80 hover:text-zinc-900 dark:hover:text-zinc-100 rounded-xl px-3.5 py-2 transition-colors disabled:opacity-40 disabled:hover:bg-transparent disabled:cursor-not-allowed"
         >
           {item.label}
-        </button>
+        </Button>
       ))}
     </div>
   );

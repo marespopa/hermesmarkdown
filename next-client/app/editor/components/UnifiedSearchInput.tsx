@@ -2,6 +2,7 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import { HiOutlineSearch, HiX } from "react-icons/hi";
+import Button from "../../components/Button";
 import { TAG_COLORS, WORKFLOW_TAGS } from "./constants";
 
 interface UnifiedSearchInputProps {
@@ -170,13 +171,14 @@ export default function UnifiedSearchInput({
           >
             <TagDot tag={token} />
             {token}
-            <button
+            <Button
+              variant="bare"
               type="button"
-              onMouseDown={(e) => { e.preventDefault(); onTokenRemove(token); }}
+              onMouseDown={(e: React.MouseEvent<HTMLButtonElement>) => { e.preventDefault(); onTokenRemove(token); }}
               className="ml-0.5 opacity-40 hover:opacity-100 transition-opacity"
             >
               <HiX size={10} />
-            </button>
+            </Button>
           </span>
         ))}
 
@@ -191,9 +193,10 @@ export default function UnifiedSearchInput({
         />
 
         {(inputValue || tokens.length > 0) && (
-          <button
+          <Button
+            variant="icon"
             type="button"
-            onMouseDown={(e) => {
+            onMouseDown={(e: React.MouseEvent<HTMLButtonElement>) => {
               e.preventDefault();
               setInputValue("");
               onTextChange("");
@@ -206,17 +209,18 @@ export default function UnifiedSearchInput({
             className="shrink-0 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors"
           >
             <HiX size={12} />
-          </button>
+          </Button>
         )}
       </div>
 
       {showPopover && (
         <div className="absolute top-full left-0 right-0 mt-1.5 z-50 bg-white/90 dark:bg-zinc-900/90 backdrop-blur-xl border border-zinc-200/50 dark:border-zinc-800/50 rounded-2xl shadow-2xl py-1.5 animate-in fade-in zoom-in-95 duration-150">
           {filteredSuggestions.map((tag, idx) => (
-            <button
+            <Button
               key={tag}
+              variant="menu-item"
               type="button"
-              onMouseDown={(e) => { e.preventDefault(); commitSuggestion(tag); }}
+              onMouseDown={(e: React.MouseEvent<HTMLButtonElement>) => { e.preventDefault(); commitSuggestion(tag); }}
               className={`w-full flex items-center gap-2.5 px-4 py-2 text-ui-footnote font-medium transition-colors ${
                 idx === selectedSuggestionIdx
                   ? "bg-blue-500/10 text-blue-600 dark:text-blue-400"
@@ -230,7 +234,7 @@ export default function UnifiedSearchInput({
                   workflow
                 </span>
               )}
-            </button>
+            </Button>
           ))}
         </div>
       )}

@@ -27,6 +27,7 @@ import { VscSplitHorizontal, VscClose } from "react-icons/vsc";
 import { useFileSystem } from "@/app/hooks/use-file-system";
 import { useAtomValue } from "jotai";
 import { useDialog } from "@/app/hooks/use-dialog";
+import Button from "../../components/Button";
 
 interface PaneLeafProps {
   leaf: PanelLeaf;
@@ -300,15 +301,18 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
                   />
                 )}
 
-                <button
+                <Button
+                  variant="icon"
                   onClick={(e) => {
                     e.stopPropagation();
                     void closeTabWithAutosave(path);
                   }}
                   className={`p-1 rounded-md hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-all shrink-0 ${isTabActive ? "opacity-40 hover:opacity-100" : "max-md:opacity-40 md:opacity-0 md:group-hover:opacity-60"}`}
+                  title="Close tab"
+                  aria-label="Close tab"
                 >
                   <VscClose size={14} />
-                </button>
+                </Button>
               </div>
             );
           })}
@@ -317,31 +321,37 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
           <div className="flex items-center gap-0.5 ml-auto pl-4 pr-1 sticky right-0 bg-gradient-to-l from-zinc-50/90 via-zinc-50/80 to-transparent dark:from-zinc-950/90 dark:via-zinc-950/80 h-full shrink-0 z-20">
             {isActive && leaf.openFilePaths.length > 0 && (
               <>
-                <button 
+                <Button
+                  variant="icon"
                   onClick={handleSave}
                   title="Save"
+                  aria-label="Save"
                   className="w-9 h-9 flex items-center justify-center text-zinc-400 hover:text-blue-500 transition-all rounded-xl"
                 >
                   <HiOutlineSave size={18} />
-                </button>
+                </Button>
                 <div className="w-px h-3 bg-zinc-200 dark:bg-zinc-800 mx-1 opacity-50" />
               </>
             )}
-            <button 
+            <Button
+              variant="icon"
               onClick={() => splitPane({ id: leaf.id, direction: "horizontal" })}
               title="Split Right"
+              aria-label="Split Right"
               className="w-9 h-9 flex items-center justify-center text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-all hidden sm:flex rounded-xl"
             >
               <VscSplitHorizontal size={16} />
-            </button>
+            </Button>
             {!isOnlyPane && (
-              <button
+              <Button
+                variant="icon"
                 onClick={() => closePane(leaf.id)}
                 title="Close Pane"
+                aria-label="Close Pane"
                 className="w-9 h-9 flex items-center justify-center text-zinc-400 hover:text-red-500 transition-all rounded-xl"
               >
                 <HiOutlineX size={18} />
-              </button>
+              </Button>
             )}
           </div>
         </div>

@@ -125,20 +125,22 @@ export default function VaultSidebarFiles({
                 <>
                   <div className="fixed inset-0 z-40" onClick={() => setActionMenuOpen(null)} />
                   <div className="absolute right-2 top-[80%] z-50 bg-white/90 dark:bg-zinc-900/90 backdrop-blur-xl border border-zinc-200/50 dark:border-zinc-800/50 rounded-xl shadow-xl py-1 min-w-[120px] animate-in fade-in zoom-in-95 duration-100">
-                    <button
+                    <Button
+                      variant="menu-item"
                       onClick={(e) => { e.stopPropagation(); renameFile(entry.handle); setActionMenuOpen(null); }}
                       className="w-full flex items-center gap-3 px-4 py-2.5 text-ui-footnote font-medium hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
                     >
                       <HiOutlinePencil size={14} className="opacity-60" />
                       Rename
-                    </button>
-                    <button
+                    </Button>
+                    <Button
+                      variant="menu-item"
                       onClick={(e) => { e.stopPropagation(); deleteFile(entry.handle); setActionMenuOpen(null); }}
                       className="w-full flex items-center gap-3 px-4 py-2.5 text-ui-footnote font-medium hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors text-red-500"
                     >
                       <HiOutlineTrash size={14} className="opacity-60" />
                       Delete
-                    </button>
+                    </Button>
                   </div>
                 </>
               )}

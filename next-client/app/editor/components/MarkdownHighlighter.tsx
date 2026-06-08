@@ -201,8 +201,8 @@ export function highlightMarkdown(
         if (isSeparator) {
           content = `<span ${FADED}>${html}</span>`;
         } else {
-          const withFadedPipes = html.replace(/\|/g, `<span ${FADED}>|</span>`);
-          content = processInlineMarkdown(withFadedPipes, dateMatch, activeLink);
+          const processedHtml = processInlineMarkdown(html, dateMatch, activeLink);
+          content = processedHtml.replace(/\|/g, `<span ${FADED}>|</span>`);
         }
       } else {
         content = processInlineMarkdown(html, dateMatch, activeLink);

@@ -29,6 +29,8 @@ function computeLineOffset(lines: string[], lineIdx: number): number {
 export function useTableCallout({ value, textareaRef }: UseTableCalloutProps) {
   const [tableInfo, setTableInfo] = useState<TableInfo | null>(null);
   const [calloutPos, setCalloutPos] = useState({ top: 0, left: 0 });
+  const [addRowPos, setAddRowPos] = useState<{ top: number; left: number } | null>(null);
+  const [addColPos, setAddColPos] = useState<{ top: number; left: number } | null>(null);
   const detectTableAtCaret = useCallback(() => {
 
     const textarea = textareaRef.current;
@@ -37,20 +39,41 @@ export function useTableCallout({ value, textareaRef }: UseTableCalloutProps) {
     const pos = textarea.selectionStart;
     if (textarea.selectionEnd !== pos) {
       setTableInfo(null);
+      setAddRowPos(null);
+      setAddColPos(null);
       return;
     }
 
     const result = findTableAtPos(value, pos);
     if (!result) {
       setTableInfo(null);
+      setAddRowPos(null);
+      setAddColPos(null);
       return;
     }
 
-    const caret = getCaretCoordinates(textarea, result.tableStartOffset);
+    const caret = getCaretCoordinates(textarea, pos);
     setCalloutPos({
       top: (caret.top || 0) - 36,
       left: Math.min(caret.left || 0, textarea.clientWidth - CALLOUT_WIDTH),
     });
+
+    // +Row button: below the last table row, x-aligned with the table start
+    const lastLineEndOffset =
+      computeLineOffset(result.lines, result.tableEnd) + result.lines[result.tableEnd].length;
+    const lastLineCaret = getCaretCoordinates(textarea, lastLineEndOffset);
+    const tableStartCaret = getCaretCoordinates(textarea, result.tableStartOffset);
+    setAddRowPos({ top: lastLineCaret.top + lastLineCaret.height + 4, left: tableStartCaret.left });
+
+    // +Col button: to the right of the header row
+    const headerLineEndOffset =
+      computeLineOffset(result.lines, result.tableStart) + result.lines[result.tableStart].length;
+    const headerCaret = getCaretCoordinates(textarea, headerLineEndOffset);
+    setAddColPos({
+      top: headerCaret.top + 2,
+      left: Math.min(headerCaret.left + 8, textarea.clientWidth - 32),
+    });
+
     setTableInfo(result);
   }, [value, textareaRef]);
 
@@ -164,6 +187,31 @@ export function useTableCallout({ value, textareaRef }: UseTableCalloutProps) {
     const lineOff = computeLineOffset(newLines, tableInfo.lineIdx);
     applyTableChange(newLines, lineOff + cellStart);
   }, [tableInfo, applyTableChange]);
+
+  const handleRemoveTable = useCallback(() => {
+    const textarea = textareaRef.current;
+    if (!tableInfo || !textarea) return;
+
+    // Compute the absolute end offset of the table block
+    const oldTableLineCount = tableInfo.tableEnd - tableInfo.tableStart + 1;
+    let tableEndOffset = tableInfo.tableStartOffset;
+    for (let i = 0; i < oldTableLineCount; i++) {
+      tableEndOffset += tableInfo.lines[tableInfo.tableStart + i].length;
+      if (i < oldTableLineCount - 1) tableEndOffset += 1;
+    }
+
+    // Include the trailing newline so we don't leave a blank line
+    const fullText = textarea.value;
+    const selectEnd =
+      tableEndOffset < fullText.length && fullText[tableEndOffset] === "\n"
+        ? tableEndOffset + 1
+        : tableEndOffset;
+
+    textarea.focus();
+    textarea.setSelectionRange(tableInfo.tableStartOffset, selectEnd);
+    document.execCommand("insertText", false, "");
+    setTableInfo(null);
+  }, [tableInfo, textareaRef, setTableInfo]);
 
   const handleCycleAlign = useCallback(() => {
     if (!tableInfo) return;
@@ -318,11 +366,14 @@ export function useTableCallout({ value, textareaRef }: UseTableCalloutProps) {
     tableInfo,
     setTableInfo,
     calloutPos,
+    addRowPos,
+    addColPos,
     currentAlignment,
     handleAddRow,
     handleAddCol,
     handleRemoveRow,
     handleRemoveCol,
+    handleRemoveTable,
     handleCycleAlign,
     handleCopyCSV,
     handleTableKeyDown,

@@ -10,7 +10,7 @@ import WikiLinkDialog from "./WikiLinkDialog";
 import DialogModal from "../../components/DialogModal/DialogModal";
 import { LinkPill } from "./LinkPill";
 import { WorkflowPill } from "./WorkflowPill";
-import { TableCallout } from "./TableCallout";
+import { TableCallout, TableEdgeButtons } from "./TableCallout";
 import { TableDialog } from "./TableDialog";
 import { useMarkdownEditor } from "../hooks/useMarkdownEditor";
 import Button from "../../components/Button";
@@ -68,8 +68,9 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
     const prev = prevWizardPathRef.current;
     prevWizardPathRef.current = wizardPath;
     if (prev === filePath && wizardPath === null && rawFrontmatter) {
-      setIsFmCollapsed(false);
-      wizardJustClosedRef.current = true;
+      if (!isFmCollapsedRef.current) {
+        wizardJustClosedRef.current = true;
+      }
     }
   }, [wizardPath, filePath, rawFrontmatter]);
 
@@ -166,10 +167,13 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
     tableInfo,
     setTableInfo,
     calloutPos,
+    addRowPos,
+    addColPos,
     handleAddRow,
     handleAddCol,
     handleRemoveRow,
     handleRemoveCol,
+    handleRemoveTable,
     handleCopyCSV,
     tableDialog,
     handleOpenEditDialog,
@@ -321,6 +325,61 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
           "--editor-letter-spacing": letterSpacing,
         } as React.CSSProperties}
       >
+        {rawFrontmatter && (() => {
+            const fields = parseFmFields(rawFrontmatter);
+            const summary = ["title", "status", "scope"]
+              .filter((k) => fields[k])
+              .map((k) => `${k}: ${fields[k]}`)
+              .join("  ·  ");
+            return (
+              <div
+                className="flex items-center gap-2 mb-1 select-none"
+                style={{ fontFamily, fontSize: displayFontSize }}
+              >
+                {/* Pencil — always visible on the left */}
+                <Button
+                  variant="pill-icon"
+                  onMouseDown={(e: React.MouseEvent<HTMLButtonElement>) => e.preventDefault()}
+                  onClick={() => setFrontmatterWizardOpen(filePath)}
+                  className="p-1.5 -ml-1.5 shrink-0 text-zinc-400 dark:text-zinc-600 hover:text-violet-500 dark:hover:text-violet-400"
+                  title="Edit frontmatter"
+                  aria-label="Edit frontmatter"
+                >
+                  <HiOutlinePencil size={12} />
+                </Button>
+
+                {/* Summary — takes remaining space; click opens wizard */}
+                {isFmCollapsed && summary && (
+                  <Button
+                    variant="bare"
+                    onMouseDown={(e: React.MouseEvent<HTMLButtonElement>) => e.preventDefault()}
+                    onClick={() => setFrontmatterWizardOpen(filePath)}
+                    className="flex-1 text-left opacity-30 text-[0.72em] truncate min-w-0 hover:opacity-60 transition-opacity"
+                    title="Edit frontmatter"
+                  >{summary}</Button>
+                )}
+                {(!isFmCollapsed || !summary) && <span className="flex-1" />}
+
+                {/* Chevron + --- toggle — always on the right */}
+                <Button
+                  variant="pill-icon"
+                  onMouseDown={(e: React.MouseEvent<HTMLButtonElement>) => e.preventDefault()}
+                  onClick={() => {
+                    pendingFmCursorRef.current = true;
+                    setIsFmCollapsed((c) => !c);
+                  }}
+                  className="p-1.5 -mr-1.5 shrink-0 text-zinc-400 dark:text-zinc-600 hover:text-violet-500 dark:hover:text-violet-400"
+                  title={isFmCollapsed ? "Expand frontmatter" : "Collapse frontmatter"}
+                  aria-label={isFmCollapsed ? "Expand frontmatter" : "Collapse frontmatter"}
+                >
+                  {isFmCollapsed
+                    ? <HiChevronRight size={13} />
+                    : <HiChevronDown size={13} />}
+                </Button>
+              </div>
+            );
+          })()}
+
         <div className="relative">
           {dateMatch && (
             <Button
@@ -339,6 +398,7 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
                 ),
               }}
               title="Toggle calendar"
+              aria-label="Toggle calendar"
             >
               <HiOutlineCalendar size={16} />
             </Button>
@@ -414,15 +474,22 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
           )}
 
           {tableInfo && (
-            <TableCallout
-              pos={calloutPos}
-              onAddRow={handleAddRow}
-              onAddCol={handleAddCol}
-              onRemoveRow={handleRemoveRow}
-              onRemoveCol={handleRemoveCol}
-              onCopyCSV={handleCopyCSV}
-              onEditDialog={handleOpenEditDialog}
-            />
+            <>
+              <TableCallout
+                pos={calloutPos}
+                onRemoveRow={handleRemoveRow}
+                onRemoveCol={handleRemoveCol}
+                onRemoveTable={handleRemoveTable}
+                onCopyCSV={handleCopyCSV}
+                onEditDialog={handleOpenEditDialog}
+              />
+              <TableEdgeButtons
+                addRowPos={addRowPos}
+                addColPos={addColPos}
+                onAddRow={handleAddRow}
+                onAddCol={handleAddCol}
+              />
+            </>
           )}
 
           <TableDialog
@@ -524,57 +591,6 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
             onSelectDate={(date) => insertDate(date)}
             onClose={() => { setDatePickerOpen(false); textareaRef.current?.focus(); }}
           />
-
-          {rawFrontmatter && (() => {
-            const fields = parseFmFields(rawFrontmatter);
-            const summary = ["title", "status", "scope"]
-              .filter((k) => fields[k])
-              .map((k) => `${k}: ${fields[k]}`)
-              .join("  ·  ");
-            return (
-              <div
-                className="flex items-center gap-2 mb-1 select-none"
-                style={{ fontFamily, fontSize: displayFontSize }}
-              >
-                {/* Pencil — always visible on the left */}
-                <button
-                  onMouseDown={(e) => e.preventDefault()}
-                  onClick={() => setFrontmatterWizardOpen(filePath)}
-                  className="shrink-0 p-2 -ml-2 text-zinc-400 dark:text-zinc-600 hover:text-violet-500 dark:hover:text-violet-400 transition-colors"
-                  title="Edit frontmatter"
-                >
-                  <HiOutlinePencil size={12} />
-                </button>
-
-                {/* Summary — takes remaining space; click opens wizard */}
-                {isFmCollapsed && summary && (
-                  <button
-                    onMouseDown={(e) => e.preventDefault()}
-                    onClick={() => setFrontmatterWizardOpen(filePath)}
-                    className="flex-1 text-left opacity-30 text-[0.72em] truncate min-w-0 hover:opacity-60 transition-opacity"
-                    title="Edit frontmatter"
-                  >{summary}</button>
-                )}
-                {(!isFmCollapsed || !summary) && <span className="flex-1" />}
-
-                {/* Chevron + --- toggle — always on the right */}
-                <button
-                  onMouseDown={(e) => e.preventDefault()}
-                  onClick={() => {
-                    pendingFmCursorRef.current = true;
-                    setIsFmCollapsed((c) => !c);
-                  }}
-                  className="flex items-center gap-1 p-2 -mr-2 shrink-0 text-zinc-400 dark:text-zinc-600 hover:text-violet-500 dark:hover:text-violet-400 transition-colors"
-                  title={isFmCollapsed ? "Expand frontmatter" : "Collapse frontmatter"}
-                >
-                  <span className="opacity-40 text-[0.75em]">---</span>
-                  {isFmCollapsed
-                    ? <HiChevronRight size={13} />
-                    : <HiChevronDown size={13} />}
-                </button>
-              </div>
-            );
-          })()}
 
           <Editor
             value={value}

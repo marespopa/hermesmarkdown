@@ -117,8 +117,9 @@ const SettingsPage = () => {
             control={
               <div className="flex bg-zinc-200/50 dark:bg-zinc-800 p-1 rounded-xl">
                 {sizes.map((s) => (
-                  <button
+                  <Button
                     key={s.label}
+                    variant="bare"
                     onClick={() => setFontSize(s.value)}
                     className={`px-3 py-1.5 text-ui-footnote font-semibold rounded-lg transition-all ${
                       fontSize === s.value
@@ -127,7 +128,7 @@ const SettingsPage = () => {
                     }`}
                   >
                     {s.label}
-                  </button>
+                  </Button>
                 ))}
               </div>
             }
@@ -143,8 +144,9 @@ const SettingsPage = () => {
               {fonts.map((f) => {
                 const isActive = fontFamily === f.value;
                 return (
-                  <button
+                  <Button
                     key={f.label}
+                    variant="bare"
                     onClick={() => setFontFamily(f.value)}
                     className={`w-full text-left px-4 py-2.5 rounded-xl border transition-all ${
                       isActive
@@ -168,7 +170,7 @@ const SettingsPage = () => {
                     >
                       The quick brown fox 0123 {"{}"} =&gt;
                     </span>
-                  </button>
+                  </Button>
                 );
               })}
             </div>
@@ -179,8 +181,9 @@ const SettingsPage = () => {
             control={
               <div className="flex bg-zinc-200/50 dark:bg-zinc-800 p-1 rounded-xl">
                 {lineHeights.map((opt) => (
-                  <button
+                  <Button
                     key={opt.value}
+                    variant="bare"
                     onClick={() => setLineHeight(opt.value)}
                     className={`px-3 py-1.5 text-ui-footnote font-semibold rounded-lg transition-all ${
                       lineHeight === opt.value
@@ -189,7 +192,7 @@ const SettingsPage = () => {
                     }`}
                   >
                     {opt.label}
-                  </button>
+                  </Button>
                 ))}
               </div>
             }
@@ -200,8 +203,9 @@ const SettingsPage = () => {
             control={
               <div className="flex bg-zinc-200/50 dark:bg-zinc-800 p-1 rounded-xl">
                 {letterSpacings.map((opt) => (
-                  <button
+                  <Button
                     key={opt.value}
+                    variant="bare"
                     onClick={() => setLetterSpacing(opt.value)}
                     className={`px-3 py-1.5 text-ui-footnote font-semibold rounded-lg transition-all ${
                       letterSpacing === opt.value
@@ -210,7 +214,7 @@ const SettingsPage = () => {
                     }`}
                   >
                     {opt.label}
-                  </button>
+                  </Button>
                 ))}
               </div>
             }
@@ -280,8 +284,9 @@ const SettingsPage = () => {
             control={
               <div className="flex bg-zinc-200/50 dark:bg-zinc-800 p-1 rounded-xl">
                 {widthOptions.map((opt) => (
-                  <button
+                  <Button
                     key={opt.value}
+                    variant="bare"
                     onClick={() => setEditorWidth(opt.value as any)}
                     className={`px-3 py-1.5 text-ui-footnote font-semibold rounded-lg transition-all ${
                       editorWidth === opt.value
@@ -290,7 +295,7 @@ const SettingsPage = () => {
                     }`}
                   >
                     {opt.label}
-                  </button>
+                  </Button>
                 ))}
               </div>
             }
@@ -424,8 +429,9 @@ const SettingsPage = () => {
             const Icon = s.icon;
             const isActive = s.id === activeSection;
             return (
-              <button
+              <Button
                 key={s.id}
+                variant="bare"
                 onClick={() => setActiveSection(s.id)}
                 className={`flex items-center gap-3 shrink-0 px-3.5 py-2.5 rounded-xl text-ui-footnote font-semibold transition-all ${
                   isActive
@@ -435,7 +441,7 @@ const SettingsPage = () => {
               >
                 <Icon size={18} className="shrink-0" />
                 {s.label}
-              </button>
+              </Button>
             );
           })}
         </nav>

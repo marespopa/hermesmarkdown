@@ -18,10 +18,46 @@ function parseFmFields(content: string): Record<string, string> {
   const m = FM_REGEX.exec(content);
   if (!m) return {};
   const fields: Record<string, string> = {};
-  m[1].split("\n").forEach((line) => {
+  const lines = m[1].split("\n");
+
+  let i = 0;
+  while (i < lines.length) {
+    const line = lines[i];
     const lm = line.match(/^([a-zA-Z_][a-zA-Z0-9_]*):\s*(.*)/);
-    if (lm) fields[lm[1]] = lm[2].replace(/^"|"$/g, "").trim();
-  });
+    if (!lm) { i++; continue; }
+
+    const key = lm[1];
+    const rawVal = lm[2].trim();
+    i++;
+
+    // Collect indented continuation lines
+    const continuation: string[] = [];
+    while (i < lines.length && /^\s/.test(lines[i])) {
+      continuation.push(lines[i]);
+      i++;
+    }
+
+    // Block scalar indicator: bare `|`/`>` or quoted `"|"`/`">"`
+    const isBlockScalar = /^["|>|]?[|>]["']?$/.test(rawVal) || rawVal === "|" || rawVal === ">";
+    // Flow array or empty array
+    const isFlowArray = rawVal.startsWith("[") && rawVal.endsWith("]");
+    const isEmptyArray = rawVal === "[]";
+
+    if (isBlockScalar && continuation.length > 0) {
+      fields[key] = continuation.map((l) => l.trim()).filter(Boolean).join("\n");
+    } else if ((isEmptyArray || rawVal === "") && continuation.some((l) => /^\s*-\s/.test(l))) {
+      // Block sequence items
+      fields[key] = continuation
+        .filter((l) => /^\s*-\s/.test(l))
+        .map((l) => l.replace(/^\s*-\s+/, "").trim())
+        .join(", ");
+    } else if (isFlowArray) {
+      fields[key] = rawVal.slice(1, -1).trim();
+    } else {
+      fields[key] = rawVal.replace(/^"|"$/g, "").trim();
+    }
+  }
+
   return fields;
 }
 
@@ -36,6 +72,10 @@ function serializeField(key: string, val: string): string {
   if (BARE_KEYS.has(key)) {
     return `${key}: ${val}`;
   }
+  if (val.includes("\n")) {
+    const indented = val.split("\n").map((l) => `  ${l}`).join("\n");
+    return `${key}: |\n${indented}`;
+  }
   return `${key}: "${val}"`;
 }
 
@@ -47,14 +87,26 @@ function updateFmFields(
   if (!m) return content;
 
   const seen = new Set<string>();
-  const updatedLines = m[1].split("\n").map((line) => {
+  const lines = m[1].split("\n");
+  const updatedLines: string[] = [];
+
+  let i = 0;
+  while (i < lines.length) {
+    const line = lines[i];
     const lm = line.match(/^([a-zA-Z_][a-zA-Z0-9_]*):\s*(.*)/);
-    if (!lm || !(lm[1] in edits)) return line;
-    const key = lm[1];
-    seen.add(key);
-    const val = edits[key];
-    return serializeField(key, val);
-  });
+
+    if (lm && lm[1] in edits) {
+      const key = lm[1];
+      seen.add(key);
+      updatedLines.push(serializeField(key, edits[key]));
+      i++;
+      // Drop stale indented continuation lines
+      while (i < lines.length && /^\s/.test(lines[i])) i++;
+    } else {
+      updatedLines.push(line);
+      i++;
+    }
+  }
 
   // Append any edited fields that weren't already in the block
   for (const [key, val] of Object.entries(edits)) {
@@ -165,8 +217,9 @@ export default function FrontmatterWizard() {
               </span>
               <div className="flex flex-wrap gap-2">
                 {STATUS_OPTIONS.map((opt) => (
-                  <button
+                  <Button
                     key={opt}
+                    variant="bare"
                     type="button"
                     onClick={() => set("status", opt)}
                     className={`px-3 py-1.5 rounded-full text-ui-footnote font-medium border transition-all duration-150 ${
@@ -176,7 +229,7 @@ export default function FrontmatterWizard() {
                     }`}
                   >
                     {opt}
-                  </button>
+                  </Button>
                 ))}
               </div>
             </div>

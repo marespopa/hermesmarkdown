@@ -153,6 +153,8 @@ const FolderTreeItem = memo(function FolderTreeItem({
                 e.stopPropagation();
                 setActionMenuOpen(!actionMenuOpen);
               }}
+              title="Folder options"
+              aria-label="Folder options"
             >
               <HiOutlineDotsVertical size={16} className="opacity-60" />
             </Button>
@@ -165,7 +167,8 @@ const FolderTreeItem = memo(function FolderTreeItem({
                 onClick={() => setActionMenuOpen(false)}
               />
               <div className="absolute right-2 top-[80%] z-50 bg-white/90 dark:bg-zinc-900/90 backdrop-blur-xl border border-zinc-200/50 dark:border-zinc-800/50 rounded-2xl shadow-2xl py-1.5 min-w-[160px] animate-in fade-in zoom-in-95 duration-200">
-                <button
+                <Button
+                  variant="menu-item"
                   onClick={(e) => {
                     e.stopPropagation();
                     setActionMenuOpen(false);
@@ -175,9 +178,10 @@ const FolderTreeItem = memo(function FolderTreeItem({
                 >
                   <HiOutlinePlus size={16} className="opacity-60" />
                   New File
-                </button>
+                </Button>
                 <div className="mx-3 my-1 border-t border-zinc-200/50 dark:border-zinc-700/50" />
-                <button
+                <Button
+                  variant="menu-item"
                   onClick={(e) => {
                     e.stopPropagation();
                     renameFile(dirHandle);
@@ -187,8 +191,9 @@ const FolderTreeItem = memo(function FolderTreeItem({
                 >
                   <HiOutlinePencil size={16} className="opacity-60" />
                   Rename
-                </button>
-                <button
+                </Button>
+                <Button
+                  variant="menu-item"
                   onClick={(e) => {
                     e.stopPropagation();
                     deleteFile(dirHandle);
@@ -198,7 +203,7 @@ const FolderTreeItem = memo(function FolderTreeItem({
                 >
                   <HiOutlineTrash size={16} className="opacity-60" />
                   Delete
-                </button>
+                </Button>
               </div>
             </>
           )}

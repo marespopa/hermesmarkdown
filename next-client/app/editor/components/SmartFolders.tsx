@@ -136,6 +136,7 @@ export default function SmartFolders({
             setIsBuilderOpen(true);
           }}
           title="Create New View"
+          aria-label="Create New View"
         >
           <HiOutlinePlus size={14} />
         </Button>
@@ -168,6 +169,8 @@ export default function SmartFolders({
                         e.stopPropagation();
                         setActionMenuId(actionMenuId === folder.id ? null : folder.id);
                       }}
+                      title="View options"
+                      aria-label="View options"
                     >
                       <HiOutlineDotsVertical size={14} className="opacity-60" />
                     </Button>
@@ -178,20 +181,22 @@ export default function SmartFolders({
                   <>
                     <div className="fixed inset-0 z-40" onClick={() => setActionMenuId(null)} />
                     <div className="absolute right-2 top-[80%] z-50 bg-white/90 dark:bg-zinc-900/90 backdrop-blur-xl border border-zinc-200/50 dark:border-zinc-800/50 rounded-xl shadow-xl py-1 min-w-[120px] animate-in fade-in zoom-in-95 duration-100">
-                      <button
+                      <Button
+                        variant="menu-item"
                         onClick={(e) => handleEdit(folder.id, e)}
                         className="w-full flex items-center gap-3 px-4 py-2.5 text-ui-footnote font-medium hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
                       >
                         <HiOutlinePencil size={14} className="opacity-60" />
                         Edit
-                      </button>
-                      <button
+                      </Button>
+                      <Button
+                        variant="menu-item"
                         onClick={(e) => handleDelete(folder.id, e)}
                         className="w-full flex items-center gap-3 px-4 py-2.5 text-ui-footnote font-medium hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors text-red-500"
                       >
                         <HiOutlineTrash size={14} className="opacity-60" />
                         Delete
-                      </button>
+                      </Button>
                     </div>
                   </>
                 )}
@@ -222,6 +227,7 @@ export default function SmartFolders({
                           variant="icon"
                           className="w-6 h-6"
                           title="File options"
+                          aria-label="File options"
                           onClick={(e) => {
                             e.stopPropagation();
                             setFileActionMenuPath(fileActionMenuPath === file.path ? null : file.path);
@@ -235,20 +241,22 @@ export default function SmartFolders({
                         <>
                           <div className="fixed inset-0 z-40" onClick={() => setFileActionMenuPath(null)} />
                           <div className="absolute right-1 top-[80%] z-50 bg-white/90 dark:bg-zinc-900/90 backdrop-blur-xl border border-zinc-200/50 dark:border-zinc-800/50 rounded-xl shadow-xl py-1 min-w-[120px] animate-in fade-in zoom-in-95 duration-100">
-                            <button
+                            <Button
+                              variant="menu-item"
                               onClick={(e) => { e.stopPropagation(); renameFile(file.handle); setFileActionMenuPath(null); }}
                               className="w-full flex items-center gap-3 px-4 py-2 text-ui-footnote font-medium hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
                             >
                               <HiOutlinePencil size={12} className="opacity-60" />
                               Rename
-                            </button>
-                            <button
+                            </Button>
+                            <Button
+                              variant="menu-item"
                               onClick={(e) => { e.stopPropagation(); deleteFile(file.handle); setFileActionMenuPath(null); }}
                               className="w-full flex items-center gap-3 px-4 py-2 text-ui-footnote font-medium hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors text-red-500"
                             >
                               <HiOutlineTrash size={12} className="opacity-60" />
                               Delete
-                            </button>
+                            </Button>
                           </div>
                         </>
                       )}

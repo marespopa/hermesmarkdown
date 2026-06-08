@@ -124,8 +124,9 @@ export default function WorkspaceBuilder({ isOpen, onClose, editingWorkspace }: 
               <label className="text-ui-footnote font-medium text-neutral-500 dark:text-neutral-400">Filter Rules</label>
               <div className="flex bg-neutral-100 dark:bg-neutral-900 rounded-lg p-0.5">
                 {(["AND", "OR"] as const).map((op) => (
-                  <button
+                  <Button
                     key={op}
+                    variant="bare"
                     onClick={() => setOperator(op)}
                     className={`px-4 py-1.5 text-ui-footnote font-bold rounded-md transition-all ${
                       operator === op
@@ -134,7 +135,7 @@ export default function WorkspaceBuilder({ isOpen, onClose, editingWorkspace }: 
                     }`}
                   >
                     {op}
-                  </button>
+                  </Button>
                 ))}
               </div>
             </div>
@@ -169,24 +170,26 @@ export default function WorkspaceBuilder({ isOpen, onClose, editingWorkspace }: 
                       className="flex-1 my-0"
                     />
 
-                    <button
+                    <Button
+                      variant="icon"
                       onClick={() => removeRule(idx)}
                       className="p-2 text-neutral-400 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-all shrink-0"
                       title="Remove rule"
                     >
                       <HiOutlineTrash className="w-4 h-4" />
-                    </button>
+                    </Button>
                   </div>
                 </div>
               ))}
 
-              <button
+              <Button
+                variant="outlined"
                 onClick={addRule}
                 className="w-full py-3 border-2 border-dashed border-neutral-200 dark:border-neutral-800 rounded-2xl text-neutral-400 hover:text-blue-500 hover:border-blue-500/50 transition-all flex items-center justify-center gap-2 text-ui-footnote font-medium"
               >
                 <HiOutlinePlus className="w-4 h-4" />
                 Add Rule
-              </button>
+              </Button>
             </div>
           </div>
         </div>
