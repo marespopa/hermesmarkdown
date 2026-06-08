@@ -13,6 +13,7 @@ import {
   atom_workspaceLayout,
   atom_isZenModeActive,
   atom_isSidebarOpen,
+  atom_isFileLoading,
 } from "@/app/atoms/atoms";
 import VaultSidebar from "./components/VaultSidebar";
 import WelcomeWizard from "./components/WelcomeWizard";
@@ -20,6 +21,7 @@ import VaultSetupWizard from "./components/VaultSetupWizard";
 import FrontmatterWizard from "./components/FrontmatterWizard";
 import WorkspaceSplitter from "./components/WorkspaceSplitter";
 import VaultPendingOverlay from "./components/VaultPendingOverlay";
+import LoadingOverlay from "@/app/components/LoadingOverlay";
 import StatusBar from "./components/StatusBar";
 import ErrorBoundary from "@/app/components/ErrorBoundary";
 import { useFileSystem } from "@/app/hooks/use-file-system";
@@ -49,6 +51,7 @@ export default function LiteEditor() {
   const workspaceLayout = useAtomValue(atom_workspaceLayout);
   const [isZenModeActive, setIsZenModeActive] = useAtom(atom_isZenModeActive);
   const [isSidebarOpen, setIsSidebarOpen] = useAtom(atom_isSidebarOpen);
+  const isFileLoading = useAtomValue(atom_isFileLoading);
 
   const {
     vaultHandle,
@@ -246,6 +249,7 @@ export default function LiteEditor() {
 
   return (
     <ErrorBoundary>
+      <LoadingOverlay isVisible={isFileLoading} text="Loading file..." />
       <div className={`fixed inset-0 flex bg-paper-light dark:bg-paper-dark text-ink-light dark:text-ink-dark selection:bg-pastel-blue/30 font-sans overflow-hidden overscroll-none transition-all duration-500 ${isVaultPending ? "blur-md pointer-events-none select-none" : ""}`}>
         {/* Modals */}
         <WelcomeWizard />

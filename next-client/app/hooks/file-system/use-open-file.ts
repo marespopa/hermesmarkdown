@@ -15,6 +15,7 @@ import {
   contentStore,
 } from "@/app/atoms/atoms";
 import { atom_fileMetadata } from "@/app/atoms/metadata";
+import { atom_isFileLoading } from "@/app/atoms/ui-atoms";
 import { useDialog } from "../use-dialog";
 
 export function useOpenFile() {
@@ -27,6 +28,7 @@ export function useOpenFile() {
   const [lastSavedContent] = useAtom(atom_lastSavedContent);
   const [, setFileLastModified] = useAtom(atom_fileLastModified);
   const [, setFileConflict] = useAtom(atom_fileConflict);
+  const [, setIsFileLoading] = useAtom(atom_isFileLoading);
   const dialog = useDialog();
 
   const openFile = useCallback(
@@ -97,6 +99,7 @@ export function useOpenFile() {
       }
 
       try {
+        setIsFileLoading(true);
         const file = await fileHandle.getFile();
         const fileContent = await file.text();
 
@@ -159,6 +162,8 @@ export function useOpenFile() {
 
         console.error("File System Error:", err?.message || err);
         toast.error("Failed to open file");
+      } finally {
+        setIsFileLoading(false);
       }
     },
     [
@@ -171,6 +176,7 @@ export function useOpenFile() {
       content,
       lastSavedContent,
       setOpenFiles,
+      setIsFileLoading,
       dialog,
     ],
   );
