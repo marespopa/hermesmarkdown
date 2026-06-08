@@ -214,6 +214,7 @@ export function useDriveVaultManager() {
     setDriveVaultName(folderName);
     setDriveAuthState('authenticated');
     const handle = new DriveDirectoryHandle(folderName, folderId);
+    setIndexerState({ status: 'compiling', count: 0 });
     setVaultHandle(handle as any);
     setCurrentDirectoryHandle(handle as any);
     setIsVaultPending(false);
@@ -245,6 +246,7 @@ export function useDriveVaultManager() {
     const raw = localStorage.getItem('hermes_drive_vault_name');
     const name = raw ? JSON.parse(raw) : 'Drive';
     const handle = new DriveDirectoryHandle(name, vaultId);
+    setIndexerState({ status: 'compiling', count: 0 });
     setVaultHandle(handle as any);
     setCurrentDirectoryHandle(handle as any);
     setIsVaultPending(false);

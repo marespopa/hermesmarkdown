@@ -177,7 +177,7 @@ export default function StatusBar() {
 
   if (!activeFilePath) {
     return (
-      <footer className="relative h-[22px] max-md:h-11 border-t border-zinc-200/50 dark:border-zinc-800/50 bg-paper-light/50 dark:bg-paper-dark/50 backdrop-blur-3xl flex items-center justify-between px-3 shrink-0 pointer-events-auto z-40 select-none">
+      <footer className={`relative border-zinc-200/50 dark:border-zinc-800/50 bg-paper-light/50 dark:bg-paper-dark/50 backdrop-blur-3xl flex items-center justify-between px-3 shrink-0 pointer-events-auto z-40 select-none ${isZenModeActive ? "h-11 border-b" : "h-[22px] max-md:h-11 border-t"}`}>
         <span className="text-[11px] max-md:text-[12px] font-medium text-zinc-400 dark:text-zinc-500">No file open</span>
         {isIndexing && (
           <span className="px-2 h-full flex items-center gap-2" title="Indexing vault…">
@@ -185,6 +185,16 @@ export default function StatusBar() {
             {indexerCount > 0 && <span className="text-[10px] text-zinc-400 dark:text-zinc-500 tabular-nums">{indexerCount}</span>}
             <span className="w-2 h-2 rounded-full border border-zinc-400 dark:border-zinc-500 border-t-blue-500 dark:border-t-blue-400 animate-spin" />
           </span>
+        )}
+        {isZenModeActive && (
+          <Button
+            variant="bare"
+            onClick={() => setIsZenModeActive(false)}
+            className="h-full px-3 flex items-center text-[12px] font-medium text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 active:opacity-60 transition-colors"
+            title="Exit Zen Mode (Esc)"
+          >
+            Exit
+          </Button>
         )}
       </footer>
     );
