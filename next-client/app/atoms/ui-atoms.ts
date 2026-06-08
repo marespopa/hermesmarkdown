@@ -13,7 +13,10 @@ export const atom_fontFamily = atomWithStorage<string>(
   MONO_FONT_STACK,
 );
 export const atom_fontSize = atomWithStorage<string>("editorFontSize", "16px");
-export const atom_lineHeight = atomWithStorage<string>("editorLineHeight", "1.8");
+export const atom_lineHeight = atomWithStorage<string>(
+  "editorLineHeight",
+  "1.8",
+);
 export const atom_letterSpacing = atomWithStorage<string>(
   "editorLetterSpacing",
   "normal",
@@ -46,7 +49,7 @@ export const atom_autosaveMode = atomWithStorage<AutosaveMode>(
 );
 export const atom_autosaveDelay = atomWithStorage<number>(
   "autosaveDelay",
-  2000,
+  5000,
 );
 export const atom_editorWidth = atomWithStorage<"standard" | "narrow">(
   "editorWidth",
@@ -58,14 +61,26 @@ export const atom_hasCompletedOnboarding = atomWithStorage<boolean>(
 );
 export const atom_isWizardOpen = atom<boolean>(false);
 
-export const atom_autoInjectFrontmatter = atomWithStorage<boolean>("autoInjectFrontmatter", false);
-export const atom_frontmatterHasPrompted = atomWithStorage<boolean>("frontmatterHasPrompted", false);
+export const atom_autoInjectFrontmatter = atomWithStorage<boolean>(
+  "autoInjectFrontmatter",
+  false,
+);
+export const atom_frontmatterHasPrompted = atomWithStorage<boolean>(
+  "frontmatterHasPrompted",
+  false,
+);
 
 export const atom_sidebarWidth = atomWithStorage<number>("sidebarWidth", 260);
-export const atom_isSidebarOpen = atomWithStorage<boolean>("isSidebarOpen", true);
+export const atom_isSidebarOpen = atomWithStorage<boolean>(
+  "isSidebarOpen",
+  true,
+);
 
 export type SidebarTab = "content" | "views";
-export const atom_sidebarTabOrder = atomWithStorage<SidebarTab[]>("sidebarTabOrder", ["content", "views"]);
+export const atom_sidebarTabOrder = atomWithStorage<SidebarTab[]>(
+  "sidebarTabOrder",
+  ["content", "views"],
+);
 
 export type DialogType = "alert" | "confirm" | "prompt" | "select" | "new-file";
 
@@ -92,8 +107,16 @@ export const atom_selectionCount = atom<number>(0);
 export type IndexerState = "idle" | "compiling";
 export const atom_indexerState = atom<IndexerState>("idle");
 
-export type AiModelKey = "sonnet-4-6" | "haiku-4-5" | "opus-4-8" | "gpt-4o" | "gemini-flash";
-export const atom_selectedAiModel = atomWithStorage<AiModelKey>("selectedAiModel", "sonnet-4-6");
+export type AiModelKey =
+  | "sonnet-4-6"
+  | "haiku-4-5"
+  | "opus-4-8"
+  | "gpt-4o"
+  | "gemini-flash";
+export const atom_selectedAiModel = atomWithStorage<AiModelKey>(
+  "selectedAiModel",
+  "sonnet-4-6",
+);
 
 // Holds the file path being edited, or null when closed
 export const atom_frontmatterWizardOpen = atom<string | null>(null);

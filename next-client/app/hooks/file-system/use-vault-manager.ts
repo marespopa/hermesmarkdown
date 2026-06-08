@@ -317,6 +317,16 @@ export function useVaultManager() {
 
     try {
       setFileMetadata({});
+      setOpenFiles({});
+      setWorkspaceLayout({
+        rootContainer: {
+          id: "default-pane",
+          type: "editor",
+          openFilePaths: [],
+          activeFilePath: null as any,
+          isPinned: false,
+        },
+      });
       setVaultHandle(handle);
       setCurrentDirectoryHandle(handle);
       setIsVaultPending(false);
@@ -332,7 +342,7 @@ export function useVaultManager() {
       console.error("File System Error:", err?.message || err);
       toast.error("Failed to open vault");
     }
-  }, [setVaultHandle, setCurrentDirectoryHandle, setIsVaultPending, setFileMetadata, scanVault, indexVaultTags, rebindHandles, detectCloudVault, promptFrontmatter, checkVaultSetup]);
+  }, [setVaultHandle, setCurrentDirectoryHandle, setIsVaultPending, setFileMetadata, setOpenFiles, setWorkspaceLayout, scanVault, indexVaultTags, rebindHandles, detectCloudVault, promptFrontmatter, checkVaultSetup]);
 
   const restoreVault = useCallback(async () => {
     if (!vaultHandle) return;

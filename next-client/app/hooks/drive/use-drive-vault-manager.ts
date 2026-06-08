@@ -153,6 +153,16 @@ export function useDriveVaultManager() {
 
   // Activate a selected Drive folder as vault
   const openDriveVault = useCallback(async (folderId: string, folderName: string) => {
+    setOpenFiles({});
+    setWorkspaceLayout({
+      rootContainer: {
+        id: "default-pane",
+        type: "editor",
+        openFilePaths: [],
+        activeFilePath: null as any,
+        isPinned: false,
+      },
+    });
     setDriveVaultId(folderId);
     setDriveVaultName(folderName);
     setDriveAuthState('authenticated');
@@ -167,7 +177,7 @@ export function useDriveVaultManager() {
     await scanVault(handle);
     await indexVaultTags();
     toast.success(`Vault opened: ${folderName}`);
-  }, [setDriveVaultId, setDriveVaultName, setDriveAuthState, setVaultHandle, setCurrentDirectoryHandle, setIsVaultPending, setDrivePathIndex, scanVault, indexVaultTags]);
+  }, [setDriveVaultId, setDriveVaultName, setDriveAuthState, setVaultHandle, setCurrentDirectoryHandle, setIsVaultPending, setDrivePathIndex, setOpenFiles, setWorkspaceLayout, scanVault, indexVaultTags]);
 
   // Called by the folder picker's "Connect" button — first triggers OAuth if needed
   const openVault = useCallback(() => {
