@@ -225,7 +225,7 @@ export function useDriveVaultManager() {
     await scanVault(handle);
     await indexVaultTags(folderId);
     toast.success(`Vault opened: ${folderName}`);
-  }, [setDriveVaultId, setDriveVaultName, setDriveAuthState, setVaultHandle, setCurrentDirectoryHandle, setIsVaultPending, setDrivePathIndex, setOpenFiles, setWorkspaceLayout, scanVault, indexVaultTags]);
+  }, [setDriveVaultId, setDriveVaultName, setDriveAuthState, setVaultHandle, setCurrentDirectoryHandle, setIsVaultPending, setIndexerState, setDrivePathIndex, setOpenFiles, setWorkspaceLayout, scanVault, indexVaultTags]);
 
   // Called by the folder picker's "Connect" button — first triggers OAuth if needed
   const openVault = useCallback(() => {
@@ -267,7 +267,7 @@ export function useDriveVaultManager() {
 
     await scanVault(handle);
     indexVaultTags(vaultId); // background
-  }, [driveVaultId, setDriveAuthState, setVaultHandle, setCurrentDirectoryHandle, setIsVaultPending, setDrivePathIndex, setFileMetadata, scanVault, indexVaultTags]);
+  }, [driveVaultId, setDriveAuthState, setVaultHandle, setCurrentDirectoryHandle, setIsVaultPending, setIndexerState, setDrivePathIndex, setFileMetadata, scanVault, indexVaultTags]);
 
 
   const closeVault = useCallback(() => {
