@@ -34,6 +34,7 @@ export default function VaultSidebarFiles({
   isSearchActive = false,
 }: VaultSidebarFilesProps) {
   const indexerState = useAtomValue(atom_indexerState);
+  const isIndexing = indexerState === "compiling" || (typeof indexerState === "object" && indexerState.status === "compiling");
   const [actionMenuOpen, setActionMenuOpen] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -150,7 +151,7 @@ export default function VaultSidebarFiles({
 
         {processedFiles.length === 0 && (
           <div className="px-4 py-8 flex flex-col items-center gap-2 text-center">
-            {indexerState === "compiling" ? (
+            {isIndexing ? (
               <>
                 <div className="w-4 h-4 rounded-full border-2 border-zinc-300 dark:border-zinc-600 border-t-blue-500 dark:border-t-blue-400 animate-spin" />
                 <p className="opacity-40 text-ui-caption italic">Scanning vault…</p>
