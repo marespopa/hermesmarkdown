@@ -130,13 +130,14 @@ const TableGraphic = () => (
     <div className="w-full max-w-[280px] space-y-2">
       {/* Floating toolbar */}
       <div className="flex items-center gap-1 bg-white dark:bg-neutral-800 rounded-lg border border-black/5 dark:border-white/10 shadow-md px-2 py-1 w-fit mx-auto">
-        {["+ Col", "+ Row", "↑↓ Sort", "CSV"].map((label) => (
-          <span key={label} className="text-[9px] font-mono text-neutral-500 dark:text-neutral-400 px-1.5 py-0.5 rounded hover:bg-neutral-100 dark:hover:bg-neutral-700 cursor-default transition-colors">
-            {label}
-          </span>
-        ))}
-        <span className="text-[9px] font-mono font-bold text-indigo-500 px-1.5 py-0.5 rounded bg-indigo-50 dark:bg-indigo-500/10 cursor-default ml-1">
+        <span className="text-[9px] font-mono font-bold text-indigo-500 px-1.5 py-0.5 rounded bg-indigo-50 dark:bg-indigo-500/10 cursor-default">
           Edit
+        </span>
+        <span className="text-[9px] font-mono text-red-400 dark:text-red-400 px-1.5 py-0.5 rounded hover:bg-neutral-100 dark:hover:bg-neutral-700 cursor-default transition-colors">
+          ×Table
+        </span>
+        <span className="text-[9px] font-mono text-neutral-500 dark:text-neutral-400 px-1.5 py-0.5 rounded hover:bg-neutral-100 dark:hover:bg-neutral-700 cursor-default transition-colors">
+          CSV
         </span>
       </div>
       {/* Table */}
@@ -490,7 +491,7 @@ export default function LandingPage() {
             <div className="h-px w-12 bg-indigo-500" />
             <h2 className="text-3xl font-bold tracking-tight">Table Editor</h2>
             <p className="text-neutral-600 dark:text-neutral-400 leading-relaxed">
-              Place your cursor inside any pipe table to reveal a floating toolbar for instant structural edits — add rows, add columns, export as CSV. Open the Advanced Table Dialog for smart sorting with type detection across dates, currency, and numbers, and auto-padded alignment that keeps the raw Markdown clean under the hood. Insert a starter 3×2 grid with <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">/table</code> or the <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">{"{table}"}</code> shortcode.
+              Place your cursor inside any pipe table to reveal a floating toolbar — open the Advanced Dialog, delete the whole table, or copy as CSV. Inside the Dialog, add or remove rows and columns, sort with type detection across dates, currency, and numbers, set per-column alignment, and preview the auto-padded Markdown output. Insert a starter 3×2 grid with <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">/table</code> or the <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">{"{table}"}</code> shortcode.
             </p>
           </div>
         </section>

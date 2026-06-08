@@ -4,10 +4,6 @@ import { useState, useCallback, useEffect, useLayoutEffect } from "react";
 import getCaretCoordinates from "textarea-caret";
 import { findTableAtPos, TableInfo } from "../utils/table-detection";
 import {
-  addRow,
-  addColumn,
-  removeRow,
-  removeColumn,
   cycleAlignment,
   getColumnAlignment,
   tableToCSV,
@@ -29,26 +25,19 @@ function computeLineOffset(lines: string[], lineIdx: number): number {
 export function useTableCallout({ value, textareaRef }: UseTableCalloutProps) {
   const [tableInfo, setTableInfo] = useState<TableInfo | null>(null);
   const [calloutPos, setCalloutPos] = useState({ top: 0, left: 0 });
-  const [addRowPos, setAddRowPos] = useState<{ top: number; left: number } | null>(null);
-  const [addColPos, setAddColPos] = useState<{ top: number; left: number } | null>(null);
   const detectTableAtCaret = useCallback(() => {
-
     const textarea = textareaRef.current;
     if (!textarea || document.activeElement !== textarea) return;
 
     const pos = textarea.selectionStart;
     if (textarea.selectionEnd !== pos) {
       setTableInfo(null);
-      setAddRowPos(null);
-      setAddColPos(null);
       return;
     }
 
     const result = findTableAtPos(value, pos);
     if (!result) {
       setTableInfo(null);
-      setAddRowPos(null);
-      setAddColPos(null);
       return;
     }
 
@@ -56,22 +45,6 @@ export function useTableCallout({ value, textareaRef }: UseTableCalloutProps) {
     setCalloutPos({
       top: (caret.top || 0) - 36,
       left: Math.min(caret.left || 0, textarea.clientWidth - CALLOUT_WIDTH),
-    });
-
-    // +Row button: below the last table row, x-aligned with the table start
-    const lastLineEndOffset =
-      computeLineOffset(result.lines, result.tableEnd) + result.lines[result.tableEnd].length;
-    const lastLineCaret = getCaretCoordinates(textarea, lastLineEndOffset);
-    const tableStartCaret = getCaretCoordinates(textarea, result.tableStartOffset);
-    setAddRowPos({ top: lastLineCaret.top + lastLineCaret.height + 4, left: tableStartCaret.left });
-
-    // +Col button: to the right of the header row
-    const headerLineEndOffset =
-      computeLineOffset(result.lines, result.tableStart) + result.lines[result.tableStart].length;
-    const headerCaret = getCaretCoordinates(textarea, headerLineEndOffset);
-    setAddColPos({
-      top: headerCaret.top + 2,
-      left: Math.min(headerCaret.left + 8, textarea.clientWidth - 32),
     });
 
     setTableInfo(result);
@@ -123,70 +96,6 @@ export function useTableCallout({ value, textareaRef }: UseTableCalloutProps) {
     },
     [tableInfo, textareaRef],
   );
-
-  const handleAddRow = useCallback(() => {
-    if (!tableInfo) return;
-    const newLines = addRow(tableInfo.lines, tableInfo.tableEnd);
-    // Place cursor after `| ` prefix in first cell of the new row
-    const newRowIdx = tableInfo.tableEnd + 1;
-    const cursorPos = computeLineOffset(newLines, newRowIdx) + 2;
-    applyTableChange(newLines, cursorPos);
-  }, [tableInfo, applyTableChange]);
-
-  const handleAddCol = useCallback(() => {
-    if (!tableInfo) return;
-    const newLines = addColumn(tableInfo.lines, tableInfo.tableStart, tableInfo.tableEnd);
-    // Place cursor in new (last) cell of the header row
-    const headerLineIdx = tableInfo.tableStart;
-    const lineOffset = computeLineOffset(newLines, headerLineIdx);
-    const line = newLines[headerLineIdx];
-    const lastPipe = line.lastIndexOf("|");
-    const secondLastPipe = line.lastIndexOf("|", lastPipe - 1);
-    // Skip `| ` after second-to-last pipe to land inside the new cell
-    const cursorPos = lineOffset + secondLastPipe + 2;
-    applyTableChange(newLines, cursorPos);
-  }, [tableInfo, applyTableChange]);
-
-  const handleRemoveRow = useCallback(() => {
-    if (!tableInfo) return;
-    const newLines = removeRow(tableInfo.lines, tableInfo.lineIdx, tableInfo.tableStart);
-    // removeRow is a no-op for header/separator rows
-    if (newLines === tableInfo.lines) return;
-    // After deletion, target the row that now occupies lineIdx (or the one above if last row was removed)
-    const targetLineIdx = Math.min(tableInfo.lineIdx, tableInfo.tableEnd - 1);
-    const cursorPos = computeLineOffset(newLines, targetLineIdx) + 2;
-    applyTableChange(newLines, cursorPos);
-  }, [tableInfo, applyTableChange]);
-
-  const handleRemoveCol = useCallback(() => {
-    if (!tableInfo) return;
-    const newLines = removeColumn(
-      tableInfo.lines,
-      tableInfo.cursorCol,
-      tableInfo.tableStart,
-      tableInfo.tableEnd,
-    );
-    // Stay on the same row; target column is the same index clamped to new count
-    const newLine = newLines[tableInfo.lineIdx];
-    // Find how many data cells the new row has
-    const pipesInLine = (newLine.match(/\|/g) || []).length;
-    const newColCount = Math.max(0, pipesInLine - 1);
-    const targetCol = Math.min(tableInfo.cursorCol, newColCount - 1);
-    // Find the start of targetCol cell within the line
-    let pipesSeen = 0;
-    let cellStart = 0;
-    for (let i = 0; i < newLine.length; i++) {
-      if (newLine[i] === "|") {
-        pipesSeen++;
-        if (pipesSeen === targetCol + 1) {
-          cellStart = i + 2; // skip `| `
-          break;
-        }
-      }
-    }
-    const lineOff = computeLineOffset(newLines, tableInfo.lineIdx);
-    applyTableChange(newLines, lineOff + cellStart);
-  }, [tableInfo, applyTableChange]);
 
   const handleRemoveTable = useCallback(() => {
     const textarea = textareaRef.current;
@@ -366,13 +275,7 @@ export function useTableCallout({ value, textareaRef }: UseTableCalloutProps) {
     tableInfo,
     setTableInfo,
     calloutPos,
-    addRowPos,
-    addColPos,
     currentAlignment,
-    handleAddRow,
-    handleAddCol,
-    handleRemoveRow,
-    handleRemoveCol,
     handleRemoveTable,
     handleCycleAlign,
     handleCopyCSV,

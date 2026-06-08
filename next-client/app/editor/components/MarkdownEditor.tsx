@@ -10,7 +10,7 @@ import WikiLinkDialog from "./WikiLinkDialog";
 import DialogModal from "../../components/DialogModal/DialogModal";
 import { LinkPill } from "./LinkPill";
 import { WorkflowPill } from "./WorkflowPill";
-import { TableCallout, TableEdgeButtons } from "./TableCallout";
+import { TableCallout } from "./TableCallout";
 import { TableDialog } from "./TableDialog";
 import { useMarkdownEditor } from "../hooks/useMarkdownEditor";
 import Button from "../../components/Button";
@@ -167,12 +167,7 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
     tableInfo,
     setTableInfo,
     calloutPos,
-    addRowPos,
-    addColPos,
-    handleAddRow,
-    handleAddCol,
-    handleRemoveRow,
-    handleRemoveCol,
+
     handleRemoveTable,
     handleCopyCSV,
     tableDialog,
@@ -327,16 +322,17 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
       >
         {rawFrontmatter && (() => {
             const fields = parseFmFields(rawFrontmatter);
-            const summary = ["title", "status", "scope"]
+            const title = fields["title"] ?? "";
+            const meta = ["status", "scope"]
               .filter((k) => fields[k])
-              .map((k) => `${k}: ${fields[k]}`)
+              .map((k) => fields[k])
               .join("  ·  ");
             return (
               <div
                 className="flex items-center gap-2 mb-1 select-none"
                 style={{ fontFamily, fontSize: displayFontSize }}
               >
-                {/* Pencil — always visible on the left */}
+                {/* Pencil + title — left group */}
                 <Button
                   variant="pill-icon"
                   onMouseDown={(e: React.MouseEvent<HTMLButtonElement>) => e.preventDefault()}
@@ -347,20 +343,25 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
                 >
                   <HiOutlinePencil size={12} />
                 </Button>
-
-                {/* Summary — takes remaining space; click opens wizard */}
-                {isFmCollapsed && summary && (
+                {isFmCollapsed && title && (
                   <Button
                     variant="bare"
                     onMouseDown={(e: React.MouseEvent<HTMLButtonElement>) => e.preventDefault()}
                     onClick={() => setFrontmatterWizardOpen(filePath)}
-                    className="flex-1 text-left opacity-30 text-[0.72em] truncate min-w-0 hover:opacity-60 transition-opacity"
+                    className="justify-start shrink min-w-0 max-w-[40ch] opacity-30 text-[0.72em] truncate hover:opacity-60 transition-opacity"
                     title="Edit frontmatter"
-                  >{summary}</Button>
+                  >{title}</Button>
                 )}
-                {(!isFmCollapsed || !summary) && <span className="flex-1" />}
 
-                {/* Chevron + --- toggle — always on the right */}
+                {/* Spacer */}
+                <span className="flex-1" />
+
+                {/* Meta + chevron — right group */}
+                {isFmCollapsed && meta && (
+                  <span className="shrink-0 opacity-20 text-[0.72em] whitespace-nowrap">
+                    {meta}
+                  </span>
+                )}
                 <Button
                   variant="pill-icon"
                   onMouseDown={(e: React.MouseEvent<HTMLButtonElement>) => e.preventDefault()}
@@ -474,22 +475,12 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
           )}
 
           {tableInfo && (
-            <>
-              <TableCallout
-                pos={calloutPos}
-                onRemoveRow={handleRemoveRow}
-                onRemoveCol={handleRemoveCol}
-                onRemoveTable={handleRemoveTable}
-                onCopyCSV={handleCopyCSV}
-                onEditDialog={handleOpenEditDialog}
-              />
-              <TableEdgeButtons
-                addRowPos={addRowPos}
-                addColPos={addColPos}
-                onAddRow={handleAddRow}
-                onAddCol={handleAddCol}
-              />
-            </>
+            <TableCallout
+              pos={calloutPos}
+              onRemoveTable={handleRemoveTable}
+              onCopyCSV={handleCopyCSV}
+              onEditDialog={handleOpenEditDialog}
+            />
           )}
 
           <TableDialog

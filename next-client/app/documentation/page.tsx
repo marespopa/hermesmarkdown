@@ -366,13 +366,25 @@ export default function Documentation() {
                   Table Editor
                 </h3>
                 <p className="text-neutral-500 dark:text-neutral-400 leading-relaxed text-lg">
-                  Place your cursor anywhere inside a pipe table to reveal a floating toolbar for quick structural edits, or open the Advanced Table Dialog for refined tabular editing, smart data sorting, and auto-padded markdown alignment.
+                  Place your cursor anywhere inside a pipe table to reveal a floating toolbar — open the Advanced Dialog, delete the whole table, or copy as CSV. The Advanced Dialog lets you add or remove rows and columns, sort with type detection, set per-column alignment, and preview auto-padded Markdown output.
                 </p>
               </div>
               <div className="p-8 bg-neutral-50/50 dark:bg-neutral-900/30 backdrop-blur-sm rounded-3xl border border-black/5 dark:border-white/5 shadow-inner">
                 <div className={guideRow}>
                   <span className="text-sm font-medium">Advanced Edit</span>
-                  <span className={resultLabel}>Click Edit in Toolbar</span>
+                  <span className={resultLabel}>Edit in Toolbar</span>
+                </div>
+                <div className={guideRow}>
+                  <span className="text-sm font-medium">Delete Table</span>
+                  <span className={resultLabel}>×Table in Toolbar</span>
+                </div>
+                <div className={guideRow}>
+                  <span className="text-sm font-medium">Add / Delete Row</span>
+                  <span className={resultLabel}>Advanced Dialog</span>
+                </div>
+                <div className={guideRow}>
+                  <span className="text-sm font-medium">Add / Delete Column</span>
+                  <span className={resultLabel}>Advanced Dialog</span>
                 </div>
                 <div className={guideRow}>
                   <span className="text-sm font-medium">Smart Sorting</span>
@@ -384,7 +396,7 @@ export default function Documentation() {
                 </div>
                 <div className={guideRow}>
                   <span className="text-sm font-medium">CSV Export</span>
-                  <span className={resultLabel}>Copy Table as CSV</span>
+                  <span className={resultLabel}>CSV in Toolbar</span>
                 </div>
                 <div className={guideRow}>
                   <span className="text-sm font-medium">Cell Navigation</span>

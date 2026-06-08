@@ -18,9 +18,8 @@ Interactive calendar for selecting and inserting dates.
 
 ### [TableCallout](./TableCallout.tsx)
 Floating toolbar that appears above any pipe-table when the cursor is inside it.
-- **Actions**: +Row, +Col, ×Row, ×Col, cycle column alignment, copy as CSV, **Edit** (opens `TableDialog`).
+- **Actions**: **Edit** (opens `TableDialog`), ×Table, copy as CSV.
 - Follows the same pill-container pattern as `LinkPill` — positioned with `textarea-caret`, dismissed on blur.
-- Alignment cycles through `left → center → right → none` by modifying the separator row in-place.
 
 ### [TableDialog](./TableDialog.tsx)
 Full visual table editor, opened via the `/table` slash command (create mode) or the **Edit** button on the `TableCallout` (edit mode).
