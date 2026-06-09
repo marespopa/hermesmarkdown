@@ -58,7 +58,7 @@ const SIZE = {
 
 const VARIANT_CLASSES: Record<SearchBarVariant, string> = {
   default:
-    "bg-zinc-50 dark:bg-zinc-800/50 " +
+    "bg-white dark:bg-zinc-800/50 " +
     "border border-zinc-200 dark:border-zinc-700 " +
     "rounded-full " +
     "focus-within:ring-2 focus-within:ring-blue-500/20 focus-within:border-blue-500/40 " +

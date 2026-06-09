@@ -149,11 +149,10 @@ export default function UnifiedSearchInput({
         className={[
           "flex items-center h-11 sm:h-9 px-3 gap-2 cursor-text",
           "rounded-xl",
-          "bg-zinc-100 dark:bg-zinc-800/80",
-          "border border-transparent",
-          "focus-within:bg-white dark:focus-within:bg-zinc-800",
-          "focus-within:border-blue-500/25",
-          "focus-within:ring-2 focus-within:ring-blue-500/10",
+          "bg-white dark:bg-zinc-900",
+          "border border-zinc-200 dark:border-zinc-800",
+          "shadow-md shadow-zinc-200/50 dark:shadow-black/40",
+          "focus-within:ring-2 focus-within:ring-blue-500/20",
           "transition-all duration-150",
         ].join(" ")}
       >

@@ -66,7 +66,8 @@ export function useFileSync() {
         err.name === "InvalidStateError" || 
         err.name === "NotFoundError" ||
         err.message?.includes("locked") ||
-        err.message?.includes("state had changed");
+        err.message?.includes("state had changed") ||
+        err.message?.includes("Network error");
       
       if (!isExpected) {
         console.warn("Sync check failed (unexpected):", err);

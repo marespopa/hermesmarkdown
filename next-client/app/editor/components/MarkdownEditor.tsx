@@ -315,10 +315,15 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
           transition-[padding,max-width,opacity] duration-700 [transition-timing-function:cubic-bezier(0.4,0,0.2,1)]
           ${isZenModeActive ? "max-w-[85ch] w-full mx-auto pt-8 pb-32 px-4 md:px-12" : `pt-1 pb-12 mx-auto ${widthClass} ${paddingClass}`}
           ${wordWrap ? "w-full" : "w-max min-w-full"}
+          bg-white dark:bg-zinc-900/40
+          rounded-2xl border border-zinc-200/50 dark:border-zinc-800/50
           text-ui-body
           [&_textarea]:!bg-transparent [&_textarea]:!text-transparent [&_textarea]:!caret-blue-500
           [&_textarea]:!z-10 [&_pre]:!z-0 [&_pre]:!pointer-events-none
           [&_textarea]:!outline-none [&_textarea]:!p-0 [&_pre]:!p-0
+          [&_textarea]:![border-radius:inherit] [&_pre]:![border-radius:inherit]
+          [&_textarea]:!border-none [&_pre]:!border-none
+          [&_textarea]:!m-0 [&_pre]:!m-0
           ${wordWrap ? "[&_textarea]:!white-space-pre-wrap [&_pre]:!white-space-pre-wrap" : "[&_textarea]:!white-space-pre [&_pre]:!white-space-pre"}
         `}
         style={{

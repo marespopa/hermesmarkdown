@@ -1,5 +1,5 @@
 import React from "react";
-import { render, screen } from "@testing-library/react";
+import { render, screen, fireEvent } from "@testing-library/react";
 import { Provider } from "jotai";
 import { useHydrateAtoms } from "jotai/utils";
 import { expect, it, describe, vi } from "vitest";
@@ -95,7 +95,7 @@ describe("StatusBar", () => {
     expect(screen.queryByRole("banner")).toBeNull();
   });
 
-  it("shows ✓ Saved when content matches lastSavedContent", () => {
+  it("shows saved when content matches lastSavedContent", () => {
     render(
       <TestProvider initialValues={makeValues([
         [atom_content,          "Hello world"],
@@ -104,10 +104,10 @@ describe("StatusBar", () => {
         <StatusBar />
       </TestProvider>
     );
-    expect(screen.getByText("✓ Saved")).toBeDefined();
+    expect(screen.getByText("saved")).toBeDefined();
   });
 
-  it("shows • Unsaved when content differs from lastSavedContent", () => {
+  it("shows unsaved when content differs from lastSavedContent", () => {
     render(
       <TestProvider initialValues={makeValues([
         [atom_content,          "Hello world edited"],
@@ -116,10 +116,10 @@ describe("StatusBar", () => {
         <StatusBar />
       </TestProvider>
     );
-    expect(screen.getByText("• Unsaved")).toBeDefined();
+    expect(screen.getByText("unsaved")).toBeDefined();
   });
 
-  it("shows Saving… when saveStatus is saving", () => {
+  it("shows saving when saveStatus is saving", () => {
     render(
       <TestProvider initialValues={makeValues([
         [atom_saveStatus, { state: "saving", retryCount: 0 }],
@@ -127,10 +127,10 @@ describe("StatusBar", () => {
         <StatusBar />
       </TestProvider>
     );
-    expect(screen.getByText("Saving…")).toBeDefined();
+    expect(screen.getByText("saving")).toBeDefined();
   });
 
-  it("shows ⚠ Error when saveStatus is error", () => {
+  it("shows error when saveStatus is error", () => {
     render(
       <TestProvider initialValues={makeValues([
         [atom_saveStatus, { state: "error", retryCount: 0 }],
@@ -138,7 +138,7 @@ describe("StatusBar", () => {
         <StatusBar />
       </TestProvider>
     );
-    expect(screen.getByText("⚠ Error")).toBeDefined();
+    expect(screen.getByText("error")).toBeDefined();
   });
 
   it("shows selection word count in brackets when selectionCount > 0", () => {
@@ -164,16 +164,16 @@ describe("StatusBar", () => {
     expect(text.includes("words") || text.includes("tokens")).toBe(true);
   });
 
-  it("shows AI: label in the footer", () => {
+  it("shows ai: label in the footer", () => {
     render(
       <TestProvider initialValues={makeValues()}>
         <StatusBar />
       </TestProvider>
     );
-    expect(screen.getByRole("contentinfo").textContent).toContain("AI:");
+    expect(screen.getByRole("contentinfo").textContent).toContain("ai:");
   });
 
-  it("shows AI: Empty for blank content", () => {
+  it("shows ai: Empty for blank content", () => {
     render(
       <TestProvider initialValues={makeValues([
         [atom_content,          "   "],
@@ -182,10 +182,10 @@ describe("StatusBar", () => {
         <StatusBar />
       </TestProvider>
     );
-    expect(screen.getByRole("contentinfo").textContent).toContain("AI: Empty");
+    expect(screen.getByRole("contentinfo").textContent).toContain("ai: Empty");
   });
 
-  it("shows AI: Structured for a fully agent-readable document", () => {
+  it("shows ai: Structured for a fully agent-readable document", () => {
     const structured = [
       "---",
       "id: 20260607-test",
@@ -225,10 +225,10 @@ describe("StatusBar", () => {
         <StatusBar />
       </TestProvider>
     );
-    expect(screen.getByRole("contentinfo").textContent).toContain("AI: Structured");
+    expect(screen.getByRole("contentinfo").textContent).toContain("ai: Structured");
   });
 
-  it("shows AI: Weak for plain unstructured text", () => {
+  it("shows ai: Weak for plain unstructured text", () => {
     render(
       <TestProvider initialValues={makeValues([
         [atom_content,          "Just some plain text without any structure or headings."],
@@ -237,7 +237,7 @@ describe("StatusBar", () => {
         <StatusBar />
       </TestProvider>
     );
-    expect(screen.getByRole("contentinfo").textContent).toContain("AI: Weak");
+    expect(screen.getByRole("contentinfo").textContent).toContain("ai: Weak");
   });
 
   it("renders a header (top bar) in zen mode", () => {
@@ -262,16 +262,16 @@ describe("StatusBar", () => {
     expect(screen.getByRole("banner")).toBeDefined();
   });
 
-  it("shows Exit button in zen mode", () => {
+  it("shows exit button in zen mode", () => {
     render(
       <TestProvider initialValues={makeValues([[atom_isZenModeActive, true]])}>
         <StatusBar />
       </TestProvider>
     );
-    expect(screen.getByText("Exit")).toBeDefined();
+    expect(screen.getByText("exit")).toBeDefined();
   });
 
-  it("shows Indexing text and count when indexerState is compiling", () => {
+  it("shows count when indexerState is compiling", () => {
     render(
       <TestProvider initialValues={[
         ...makeValues(),
@@ -280,7 +280,23 @@ describe("StatusBar", () => {
         <StatusBar />
       </TestProvider>
     );
-    expect(screen.getByText("Indexing")).toBeDefined();
     expect(screen.getByText("42")).toBeDefined();
+  });
+
+  it("toggles AI tip on click", () => {
+    render(
+      <TestProvider initialValues={makeValues()}>
+        <StatusBar />
+      </TestProvider>
+    );
+    
+    const aiButton = screen.getByLabelText(/Agent readability:/);
+    expect(screen.queryByText(/Agent readability —/)).toBeNull();
+    
+    fireEvent.click(aiButton);
+    expect(screen.getByText(/Agent readability —/)).toBeDefined();
+    
+    fireEvent.click(aiButton);
+    expect(screen.queryByText(/Agent readability —/)).toBeNull();
   });
 });

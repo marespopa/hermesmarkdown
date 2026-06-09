@@ -86,7 +86,7 @@ export default function VaultSidebarFiles({
             <div
               key={`file-${entryPath || entry.name}-${idx}`}
               data-path={entryPath || entry.name}
-              className="group relative mx-1"
+              className="group relative mx-1 transition-all duration-200 ease-out hover:scale-[1.01] active:scale-[0.99]"
               onMouseLeave={() => setActionMenuOpen(null)}
             >
               <div
@@ -94,10 +94,10 @@ export default function VaultSidebarFiles({
                   openFile(entry.handle as FileSystemFileHandle, entryPath);
                   if (onClose && window.innerWidth < 1024) onClose();
                 }}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg cursor-pointer transition-all text-ui-subhead pr-8 relative ${
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg cursor-pointer transition-all duration-200 text-ui-subhead pr-8 relative ${
                   isActive
-                    ? "text-blue-600 dark:text-blue-400 font-bold before:absolute before:left-0 before:top-2 before:bottom-2 before:w-0.5 before:bg-blue-500 bg-blue-500/10"
-                    : "hover:bg-zinc-200/50 dark:hover:bg-zinc-800/40 text-zinc-600 dark:text-zinc-400 font-medium"
+                    ? "text-blue-600 dark:text-blue-400 font-bold before:absolute before:left-0 before:top-2 before:bottom-2 before:w-0.5 before:bg-blue-500 bg-blue-500/10 shadow-sm shadow-blue-500/5"
+                    : "hover:bg-zinc-200/60 dark:hover:bg-zinc-800/50 text-zinc-600 dark:text-zinc-400 font-medium"
                 }`}
               >
                 <HiOutlineDocumentText size={16} className="shrink-0 opacity-60" />
@@ -125,7 +125,7 @@ export default function VaultSidebarFiles({
               {actionMenuOpen === (entryPath || entry.name) && (
                 <>
                   <div className="fixed inset-0 z-40" onClick={() => setActionMenuOpen(null)} />
-                  <div className="absolute right-2 top-[80%] z-50 bg-white/90 dark:bg-zinc-900/90 backdrop-blur-xl border border-zinc-200/50 dark:border-zinc-800/50 rounded-xl shadow-xl py-1 min-w-[120px] animate-in fade-in zoom-in-95 duration-100">
+                  <div className="absolute right-2 top-[80%] z-50 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-xl border border-zinc-200/50 dark:border-zinc-800/50 rounded-xl shadow-2xl py-1 min-w-[120px] animate-in fade-in zoom-in-95 slide-in-from-top-2 duration-200 ease-out">
                     <Button
                       variant="menu-item"
                       onClick={(e) => { e.stopPropagation(); renameFile(entry.handle); setActionMenuOpen(null); }}

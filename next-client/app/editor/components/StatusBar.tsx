@@ -14,6 +14,13 @@ import {
 } from "@/app/atoms/atoms";
 import { atom_indexerState } from "@/app/atoms/ui-atoms";
 import toast from "react-hot-toast";
+import { 
+  HiChevronDown, 
+  HiOutlineCheckCircle, 
+  HiOutlineCloudUpload, 
+  HiOutlineExclamationCircle,
+  HiOutlineRefresh
+} from "react-icons/hi";
 
 // --- Agent readability score ---
 // Implements the Agent-Readable Markdown spec: frontmatter completeness,
@@ -175,25 +182,30 @@ export default function StatusBar() {
 
   if (!showStats && !isZenModeActive) return null;
 
+  const barClasses = `relative shrink-0 pointer-events-auto z-40 select-none paper-grain bg-zinc-100/50 dark:bg-black/50 border-zinc-200/40 dark:border-zinc-800/40 flex items-center justify-between px-4 transition-colors duration-200 opacity-60 hover:opacity-100`;
+
   if (!activeFilePath) {
     return (
-      <footer className={`relative border-zinc-200/50 dark:border-zinc-800/50 bg-paper-light/50 dark:bg-paper-dark/50 backdrop-blur-3xl flex items-center justify-between px-3 shrink-0 pointer-events-auto z-40 select-none ${isZenModeActive ? "h-11 border-b" : "h-[22px] max-md:h-11 border-t"}`}>
-        <span className="text-[11px] max-md:text-[12px] font-medium text-zinc-400 dark:text-zinc-500">No file open</span>
+      <footer className={`${barClasses} h-11 md:h-8 ${isZenModeActive ? "border-b" : "border-t"}`}>
+        <div className="w-32 flex items-center">
+          <span className="text-[12px] md:text-[10px] font-medium text-zinc-400 dark:text-zinc-500 lowercase tracking-tight">no file open</span>
+        </div>
+        
         {isIndexing && (
-          <span className="px-2 h-full flex items-center gap-2" title="Indexing vault…">
-            <span className="text-[10px] text-zinc-400 dark:text-zinc-500 font-medium uppercase tracking-wider max-md:hidden">Indexing</span>
-            {indexerCount > 0 && <span className="text-[10px] text-zinc-400 dark:text-zinc-500 tabular-nums">{indexerCount}</span>}
+          <span className="absolute left-32 flex items-center gap-2 whitespace-nowrap" title="Indexing vault…">
             <span className="w-2 h-2 rounded-full border border-zinc-400 dark:border-zinc-500 border-t-blue-500 dark:border-t-blue-400 animate-spin" />
+            {indexerCount > 0 && <span className="text-[10px] text-zinc-400 dark:text-zinc-500 tabular-nums font-medium">{indexerCount}</span>}
           </span>
         )}
+
         {isZenModeActive && (
           <Button
             variant="bare"
             onClick={() => setIsZenModeActive(false)}
-            className="h-full px-3 flex items-center text-[12px] font-medium text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 active:opacity-60 transition-colors"
+            className="h-full px-3 flex items-center text-[11px] font-medium text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 active:opacity-60 transition-colors lowercase tracking-tight"
             title="Exit Zen Mode (Esc)"
           >
-            Exit
+            exit
           </Button>
         )}
       </footer>
@@ -205,105 +217,117 @@ export default function StatusBar() {
   const isSaving = saveStatus.state === "saving";
   const isError = saveStatus.state === "error";
 
+  let saveIcon: React.ReactNode;
   let saveLabel: string;
   let saveLabelClass: string;
+
   if (isSaving) {
-    saveLabel = "Saving…";
+    saveIcon = <HiOutlineRefresh size={14} className="animate-spin opacity-60" />;
+    saveLabel = "saving";
     saveLabelClass = "text-zinc-400 dark:text-zinc-500";
   } else if (isError) {
-    saveLabel = "⚠ Error";
+    saveIcon = <HiOutlineExclamationCircle size={14} className="text-red-500" />;
+    saveLabel = "error";
     saveLabelClass = "text-red-500 dark:text-red-400";
   } else if (isDirty) {
-    saveLabel = "• Unsaved";
+    saveIcon = <HiOutlineCloudUpload size={14} className="opacity-40" />;
+    saveLabel = "unsaved";
     saveLabelClass = "text-zinc-400 dark:text-zinc-500";
   } else {
-    saveLabel = "✓ Saved";
-    saveLabelClass = "text-emerald-600 dark:text-emerald-400";
+    saveIcon = <HiOutlineCheckCircle size={14} className="text-emerald-500 opacity-80" />;
+    saveLabel = "saved";
+    saveLabelClass = "text-emerald-600/80 dark:text-emerald-400/80";
   }
 
   if (isZenModeActive) {
     return (
-      <header className="relative h-11 border-b border-zinc-200/50 dark:border-zinc-800/50 bg-paper-light/50 dark:bg-paper-dark/50 backdrop-blur-3xl flex items-center justify-between px-4 shrink-0 z-40 select-none">
-        <span 
-          className={`text-[12px] font-medium ${isError ? 'cursor-pointer hover:underline' : 'cursor-default'} ${saveLabelClass}`}
-          title={saveStatus.message}
-          onClick={() => {
-            if (isError && saveStatus.message) toast.error(saveStatus.message);
-          }}
-        >
-          {saveLabel}
-        </span>
+      <header className={`${barClasses} h-11 md:h-8 border-b`}>
+        <div className="w-32 flex items-center gap-2">
+          {saveIcon}
+          <span 
+            className={`text-[12px] md:text-[10px] font-medium lowercase tracking-tight ${isError ? 'cursor-pointer hover:underline' : 'cursor-default'} ${saveLabelClass}`}
+            title={saveStatus.message}
+            onClick={() => {
+              if (isError && saveStatus.message) toast.error(saveStatus.message);
+            }}
+          >
+            {saveLabel}
+          </span>
+        </div>
+
+        {isIndexing && (
+          <span className="absolute left-32 flex items-center gap-2 whitespace-nowrap" title="Indexing vault…">
+            <span className="w-2 h-2 rounded-full border border-zinc-400 dark:border-zinc-500 border-t-blue-500 dark:border-t-blue-400 animate-spin" />
+            {indexerCount > 0 && <span className="text-[10px] text-zinc-400 dark:text-zinc-500 tabular-nums font-medium">{indexerCount}</span>}
+          </span>
+        )}
 
         <Button
           variant="bare"
           onClick={() => setShowTokens(v => !v)}
-          className="flex-1 h-full flex justify-center items-center text-[12px] text-zinc-500 dark:text-zinc-400 cursor-pointer hover:text-zinc-700 dark:hover:text-zinc-300 transition-colors"
+          className="flex-1 h-full flex justify-center items-center text-[12px] md:text-[10px] text-zinc-500 dark:text-zinc-400 cursor-pointer hover:text-zinc-900 dark:hover:text-zinc-100 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] lowercase tracking-tight hover:no-underline"
           title={showTokens ? "Switch to word count" : "Switch to token count (~cost)"}
           aria-label={showTokens ? "Switch to word count" : "Switch to token count (~cost)"}
         >
-          {selectionCount > 0 ? (
-            <span>
-              <strong className="font-medium text-zinc-800 dark:text-zinc-200">[{selectionCount}]</strong>{" "}words
-            </span>
-          ) : showTokens ? (
-            <span>
-              <strong className="font-medium text-zinc-800 dark:text-zinc-200">~{tokenCount}</strong>{" "}tokens
-            </span>
-          ) : (
-            <span>
-              <strong className="font-medium text-zinc-800 dark:text-zinc-200">{wordCount}</strong>{" "}words
-            </span>
-          )}
+          {selectionCount > 0 
+            ? `[${selectionCount}] words selected`
+            : showTokens 
+              ? `~${tokenCount} tokens`
+              : `${wordCount} words`
+          }
         </Button>
 
         <div className="flex items-center gap-1 h-full">
-          {isIndexing && (
-            <span className="px-2 h-full flex items-center gap-2" title="Indexing vault…">
-              <span className="text-[10px] text-zinc-400 dark:text-zinc-500 font-medium uppercase tracking-wider max-md:hidden">Indexing</span>
-              {indexerCount > 0 && <span className="text-[10px] text-zinc-400 dark:text-zinc-500 tabular-nums">{indexerCount}</span>}
-              <span className="w-2 h-2 rounded-full border border-zinc-400 dark:border-zinc-500 border-t-blue-500 dark:border-t-blue-400 animate-spin" />
-            </span>
-          )}
           <Button
             variant="bare"
-            className={`relative h-full px-3 flex items-center text-[12px] cursor-pointer ${agentRating.colorClass}`}
-
-            onMouseEnter={() => setShowAiTip(true)}
-            onMouseLeave={() => setShowAiTip(false)}
-            onClick={() => setShowAiTip(v => !v)}
+            className={`relative h-full px-3 flex items-center gap-1.5 text-[12px] md:text-[10px] cursor-pointer lowercase tracking-tight hover:no-underline ${agentRating.colorClass}`}
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowAiTip(v => !v);
+            }}
             aria-label={`Agent readability: ${agentRating.score}/100`}
             aria-expanded={showAiTip}
           >
-            AI: {agentRating.label}
+            ai: {agentRating.label}
+            <HiChevronDown className={`w-3 h-3 opacity-60 transition-transform duration-200 ${showAiTip ? 'rotate-180' : ''}`} />
             {showAiTip && (
               <>
-                <div className="fixed inset-0 z-40" onClick={() => setShowAiTip(false)} />
-                <span className="absolute top-full right-0 mt-1 flex flex-col rounded-lg bg-zinc-900 dark:bg-zinc-700 px-3 py-2 text-[10px] leading-snug text-zinc-100 shadow-lg z-50 gap-1.5 w-[min(200px,_calc(100vw_-_1rem))]">
-                  <span className="font-medium mb-1">Agent readability — {agentRating.score}/100</span>
-                  {agentRating.breakdown.map(({ label, score: s, max }) => (
-                    <span key={label} className="flex items-center gap-2">
-                      <span className="w-[70px] shrink-0 opacity-60">{label}</span>
-                      <span className="flex-1 h-1 rounded-full bg-zinc-700 dark:bg-zinc-600 overflow-hidden">
+                <div className="fixed inset-0 z-40 animate-in fade-in duration-200" onClick={(e) => {
+                  e.stopPropagation();
+                  setShowAiTip(false);
+                }} />
+                <span 
+                  className="absolute top-full right-0 mt-1 flex flex-col rounded-lg bg-white dark:bg-zinc-900 border border-zinc-200/50 dark:border-zinc-800/50 px-3 py-2 text-[10px] leading-snug text-zinc-800 dark:text-zinc-100 shadow-xl z-50 gap-1.5 w-[min(200px,_calc(100vw_-_1rem))] origin-top-right animate-dropdown-in"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <span className="font-semibold mb-1 opacity-90">Agent readability — {agentRating.score}/100</span>
+                  {agentRating.breakdown.map(({ label, score: s, max }, idx) => (
+                    <span key={label} className="flex items-center gap-2 animate-row-in" style={{ animationDelay: `${idx * 60 + 50}ms` }}>
+                      <span className="w-[70px] shrink-0 opacity-60 font-medium">{label}</span>
+                      <span className="flex-1 h-1 rounded-full bg-zinc-100 dark:bg-zinc-800 overflow-hidden">
                         <span
-                          className="block h-full rounded-full bg-emerald-500"
-                          style={{ width: `${Math.round((s / max) * 100)}%` }}
+                          className="block h-full rounded-full bg-emerald-500 animate-grow-x"
+                          style={{ 
+                            width: `${Math.round((s / max) * 100)}%`,
+                            animationDelay: `${idx * 60 + 200}ms` 
+                          }}
                         />
                       </span>
-                      <span className="opacity-40 w-7 text-right shrink-0">{s}/{max}</span>
+                      <span className="opacity-40 w-7 text-right shrink-0 font-medium">{s}/{max}</span>
                     </span>
                   ))}
                   {agentRating.tips.length > 0 && (
-                    <span className="flex flex-col gap-0.5 mt-1 pt-1.5 border-t border-zinc-700 dark:border-zinc-600">
+                    <span className="flex flex-col gap-0.5 mt-1 pt-1.5 border-t border-zinc-100 dark:border-zinc-800 animate-row-in" style={{ animationDelay: `${agentRating.breakdown.length * 60 + 100}ms` }}>
                       {agentRating.tips.map((tip, i) => (
-                        <span key={i} className="opacity-70">↳ {tip}</span>
+                        <span key={i} className="opacity-60">↳ {tip}</span>
                       ))}
                     </span>
                   )}
                   {agentRating.tips.length === 0 && agentRating.label !== "Empty" && (
-                    <span className="opacity-70 mt-0.5">Fully structured ✓</span>
+                    <span className="opacity-60 mt-0.5 animate-row-in" style={{ animationDelay: `${agentRating.breakdown.length * 60 + 100}ms` }}>Fully structured ✓</span>
                   )}
                   {agentRating.label === "Empty" && (
-                    <span className="opacity-70 mt-0.5 italic">Start typing to see AI readability tips.</span>
+                    <span className="opacity-50 mt-0.5 italic animate-row-in" style={{ animationDelay: `${agentRating.breakdown.length * 60 + 100}ms` }}>Start typing to see AI readability tips.</span>
                   )}
                 </span>
               </>
@@ -313,10 +337,10 @@ export default function StatusBar() {
           <Button
             variant="bare"
             onClick={() => setIsZenModeActive(false)}
-            className="h-full px-3 flex items-center text-[12px] font-medium text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 active:opacity-60 transition-colors"
+            className="h-full px-3 flex items-center text-[10px] font-medium text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 active:opacity-60 transition-colors lowercase tracking-tight"
             title="Exit Zen Mode (Esc)"
           >
-            Exit
+            exit
           </Button>
         </div>
       </header>
@@ -324,90 +348,96 @@ export default function StatusBar() {
   }
 
   return (
-    <footer className="relative h-[22px] max-md:h-11 border-t border-zinc-200/50 dark:border-zinc-800/50 bg-paper-light/50 dark:bg-paper-dark/50 backdrop-blur-3xl flex items-center justify-between px-3 shrink-0 pointer-events-auto z-40 select-none">
+    <footer className={`${barClasses} h-11 md:h-8 border-t`}>
       {/* LEFT — save state */}
-      <span 
-        className={`text-[11px] max-md:text-[12px] font-medium ${isError ? 'cursor-pointer hover:underline' : 'cursor-default'} ${saveLabelClass}`}
-        title={saveStatus.message}
-        onClick={() => {
-          if (isError && saveStatus.message) toast.error(saveStatus.message);
-        }}
-      >
-        {saveLabel}
-      </span>
+      <div className="w-32 flex items-center gap-2">
+        {saveIcon}
+        <span 
+          className={`text-[12px] md:text-[10px] font-medium lowercase tracking-tight ${isError ? 'cursor-pointer hover:underline' : 'cursor-default'} ${saveLabelClass}`}
+          title={saveStatus.message}
+          onClick={() => {
+            if (isError && saveStatus.message) toast.error(saveStatus.message);
+          }}
+        >
+          {saveLabel}
+        </span>
+      </div>
 
-      {/* CENTER — token / word count (click to toggle) */}
+      {/* INDEXING — absolute positioned to prevent jump */}
+      {isIndexing && (
+        <span className="absolute left-32 flex items-center gap-2 whitespace-nowrap" title="Indexing vault…">
+          <span className="w-2 h-2 rounded-full border border-zinc-400 dark:border-zinc-500 border-t-blue-500 dark:border-t-blue-400 animate-spin" />
+          {indexerCount > 0 && <span className="text-[10px] text-zinc-400 dark:text-zinc-500 tabular-nums font-medium">{indexerCount}</span>}
+        </span>
+      )}
+
       <Button
         variant="bare"
         onClick={() => setShowTokens(v => !v)}
-        className="flex-1 h-full flex justify-center items-center text-[11px] max-md:text-[12px] text-zinc-500 dark:text-zinc-400 cursor-pointer hover:text-zinc-700 dark:hover:text-zinc-300 transition-colors"
+        className="flex-1 h-full flex justify-center items-center text-[12px] md:text-[10px] text-zinc-500 dark:text-zinc-400 cursor-pointer hover:text-zinc-900 dark:hover:text-zinc-100 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] lowercase tracking-tight hover:no-underline"
         title={showTokens ? "Switch to word count" : "Switch to token count (~cost)"}
         aria-label={showTokens ? "Switch to word count" : "Switch to token count (~cost)"}
       >
-        {selectionCount > 0 ? (
-          <span>
-            <strong className="font-medium text-zinc-800 dark:text-zinc-200">[{selectionCount}]</strong>{" "}words
-          </span>
-        ) : showTokens ? (
-          <span>
-            <strong className="font-medium text-zinc-800 dark:text-zinc-200">~{tokenCount}</strong>{" "}tokens
-          </span>
-        ) : (
-          <span>
-            <strong className="font-medium text-zinc-800 dark:text-zinc-200">{wordCount}</strong>{" "}words
-          </span>
-        )}
+        {selectionCount > 0 
+          ? `[${selectionCount}] words selected`
+          : showTokens 
+            ? `~${tokenCount} tokens`
+            : `${wordCount} words`
+        }
       </Button>
 
-      {/* RIGHT — agent readability with improvement tips on hover/tap */}
-      <div className="flex items-center h-full divide-x divide-zinc-200/50 dark:divide-zinc-800/50">
-        {isIndexing && (
-          <span className="px-2 h-full flex items-center gap-2" title="Indexing vault…">
-            <span className="text-[10px] text-zinc-400 dark:text-zinc-500 font-medium uppercase tracking-wider max-md:hidden">Indexing</span>
-            {indexerCount > 0 && <span className="text-[10px] text-zinc-400 dark:text-zinc-500 tabular-nums">{indexerCount}</span>}
-            <span className="w-2 h-2 rounded-full border border-zinc-400 dark:border-zinc-500 border-t-blue-500 dark:border-t-blue-400 animate-spin" />
-          </span>
-        )}
+      {/* RIGHT — agent readability */}
+      <div className="w-32 flex items-center justify-end">
         <Button
-
           variant="bare"
-          className={`relative px-2 h-full flex items-center text-[11px] max-md:text-[12px] cursor-pointer ${agentRating.colorClass}`}
-          onMouseEnter={() => setShowAiTip(true)}
-          onMouseLeave={() => setShowAiTip(false)}
-          onClick={() => setShowAiTip(v => !v)}
+          className={`relative h-full px-3 flex items-center gap-1.5 text-[12px] md:text-[10px] cursor-pointer lowercase tracking-tight hover:no-underline ${agentRating.colorClass}`}
+          onClick={(e) => {
+            e.stopPropagation();
+            setShowAiTip(v => !v);
+          }}
           aria-label={`Agent readability: ${agentRating.score}/100`}
           aria-expanded={showAiTip}
         >
-          AI: {agentRating.label}
+          ai: {agentRating.label}
+          <HiChevronDown className={`w-3 h-3 opacity-60 transition-transform duration-200 ${showAiTip ? 'rotate-180' : ''}`} />
           {showAiTip && (
             <>
-              <div className="fixed inset-0 z-40" onClick={() => setShowAiTip(false)} />
-              <span className="absolute md:bottom-full md:mb-2 max-md:top-full max-md:mt-2 right-0 flex flex-col rounded-lg bg-zinc-900 dark:bg-zinc-700 px-3 py-2 text-[10px] leading-snug text-zinc-100 shadow-lg z-50 gap-1.5 w-[min(200px,_calc(100vw_-_1rem))]">
-                <span className="font-medium mb-1">Agent readability — {agentRating.score}/100</span>
-                {agentRating.breakdown.map(({ label, score: s, max }) => (
-                  <span key={label} className="flex items-center gap-2">
-                    <span className="w-[70px] shrink-0 opacity-60">{label}</span>
-                    <span className="flex-1 h-1 rounded-full bg-zinc-700 dark:bg-zinc-600 overflow-hidden">
+              <div className="fixed inset-0 z-40 bg-black/5" onClick={(e) => {
+                e.stopPropagation();
+                setShowAiTip(false);
+              }} />
+              <span 
+                className="absolute md:bottom-full md:mb-2 max-md:top-full max-md:mt-2 right-0 flex flex-col rounded-lg bg-white dark:bg-zinc-900 border border-zinc-200/50 dark:border-zinc-800/50 px-3 py-2 text-[10px] leading-snug text-zinc-800 dark:text-zinc-100 shadow-xl z-50 gap-1.5 w-[min(200px,_calc(100vw_-_1rem))] origin-bottom-right animate-dropdown-in-up"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <span className="font-semibold mb-1 opacity-90">Agent readability — {agentRating.score}/100</span>
+                {agentRating.breakdown.map(({ label, score: s, max }, idx) => (
+                  <span key={label} className="flex items-center gap-2 animate-row-in" style={{ animationDelay: `${idx * 60 + 50}ms` }}>
+                    <span className="w-[70px] shrink-0 opacity-60 font-medium">{label}</span>
+                    <span className="flex-1 h-1 rounded-full bg-zinc-100 dark:bg-zinc-800 overflow-hidden">
                       <span
-                        className="block h-full rounded-full bg-emerald-500"
-                        style={{ width: `${Math.round((s / max) * 100)}%` }}
+                        className="block h-full rounded-full bg-emerald-500 animate-grow-x"
+                        style={{ 
+                          width: `${Math.round((s / max) * 100)}%`,
+                          animationDelay: `${idx * 60 + 200}ms` 
+                        }}
                       />
                     </span>
-                    <span className="opacity-40 w-7 text-right shrink-0">{s}/{max}</span>
+                    <span className="opacity-40 w-7 text-right shrink-0 font-medium">{s}/{max}</span>
                   </span>
                 ))}
                 {agentRating.tips.length > 0 && (
-                  <span className="flex flex-col gap-0.5 mt-1 pt-1.5 border-t border-zinc-700 dark:border-zinc-600">
+                  <span className="flex flex-col gap-0.5 mt-1 pt-1.5 border-t border-zinc-100 dark:border-zinc-800 animate-row-in" style={{ animationDelay: `${agentRating.breakdown.length * 60 + 100}ms` }}>
                     {agentRating.tips.map((tip, i) => (
-                      <span key={i} className="opacity-70">↳ {tip}</span>
+                      <span key={i} className="opacity-60">↳ {tip}</span>
                     ))}
                   </span>
                 )}
                 {agentRating.tips.length === 0 && agentRating.label !== "Empty" && (
-                  <span className="opacity-70 mt-0.5">Fully structured ✓</span>
+                  <span className="opacity-60 mt-0.5 animate-row-in" style={{ animationDelay: `${agentRating.breakdown.length * 60 + 100}ms` }}>Fully structured ✓</span>
                 )}
                 {agentRating.label === "Empty" && (
-                  <span className="opacity-70 mt-0.5 italic">Start typing to see AI readability tips.</span>
+                  <span className="opacity-50 mt-0.5 italic animate-row-in" style={{ animationDelay: `${agentRating.breakdown.length * 60 + 100}ms` }}>Start typing to see AI readability tips.</span>
                 )}
               </span>
             </>

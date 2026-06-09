@@ -230,15 +230,15 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
     <div 
       className={`h-full flex flex-col transition-all duration-300 overflow-hidden ${
         isActive && !isZenModeActive
-          ? "bg-paper-light dark:bg-paper-dark z-10" 
-          : "bg-paper-light dark:bg-paper-dark"
+          ? "bg-[#F5F5F7] dark:bg-[#010101] z-10" 
+          : "bg-[#F5F5F7] dark:bg-[#010101]"
       }`}
       onClick={() => setActivePaneId(leaf.id)}
     >
       {/* Pane Tabs Bar - Premium macOS Style */}
       {!isZenModeActive && (
         <div 
-          className="flex items-center bg-paper-light/50 dark:bg-paper-dark/50 backdrop-blur-3xl border-b border-zinc-200/50 dark:border-zinc-800/50 h-12 shrink-0 overflow-x-auto overflow-y-hidden scrollbar-none px-2"
+          className="flex items-center paper-grain bg-zinc-100/50 dark:bg-black/50 border-b border-zinc-200/40 dark:border-zinc-800/40 h-12 md:h-9 shrink-0 overflow-x-auto overflow-y-hidden scrollbar-none px-2 relative z-20"
           onDragOver={(e) => handleDragOver(e)}
           onDragLeave={handleDragLeave}
           onDrop={(e) => handleDrop(e, leaf.openFilePaths.length)}
@@ -298,7 +298,7 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
           })}
           
           {/* Pane Actions - Minimalist */}
-          <div className="flex items-center gap-0.5 ml-auto pl-4 pr-1 sticky right-0 bg-gradient-to-l from-zinc-50/90 via-zinc-50/80 to-transparent dark:from-zinc-950/90 dark:via-zinc-950/80 h-full shrink-0 z-20">
+          <div className="flex items-center gap-0.5 ml-auto pl-4 pr-1 sticky right-0 bg-gradient-to-l from-white/90 via-white/80 to-transparent dark:from-black/90 dark:via-black/80 h-full shrink-0 z-20">
             {isActive && leaf.openFilePaths.length > 0 && (
               <>
                 <Button

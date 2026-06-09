@@ -277,7 +277,7 @@ export default function LiteEditor() {
   return (
     <ErrorBoundary>
       <LoadingOverlay isVisible={isFileLoading} text="Loading file..." />
-      <div className={`fixed inset-0 flex flex-col bg-paper-light dark:bg-paper-dark text-ink-light dark:text-ink-dark selection:bg-pastel-blue/30 font-sans overflow-hidden overscroll-none transition-all duration-500 ${isVaultPending ? "blur-md pointer-events-none select-none" : ""}`}>
+      <div className={`fixed inset-0 flex flex-col bg-[#F5F5F7] dark:bg-[#010101] text-ink-light dark:text-ink-dark selection:bg-pastel-blue/30 font-sans overflow-hidden overscroll-none transition-all duration-500 ${isVaultPending ? "blur-md pointer-events-none select-none" : ""}`}>
         {isDriveVault && driveAuthState === 'expired' && (
           <DriveReconnectBanner onReconnect={driveSignIn} />
         )}
@@ -320,11 +320,11 @@ export default function LiteEditor() {
         </div>
 
         {/* Workspace Content */}
-        <div className="flex-1 flex min-w-0 bg-paper-light dark:bg-paper-dark overflow-hidden relative">
+        <div className="flex-1 flex min-w-0 bg-[#F5F5F7] dark:bg-[#010101] overflow-hidden relative">
           
           {/* Collapsed Sidebar Toggle Column */}
           {!isSidebarOpen && !isZenModeActive && (
-            <div className="w-12 h-full flex flex-col items-center py-6 border-r border-zinc-200/50 dark:border-zinc-800/50 bg-white/50 dark:bg-zinc-950/50 backdrop-blur-3xl shrink-0 z-40">
+            <div className="w-12 h-full flex flex-col items-center py-6 border-r border-zinc-200/40 dark:border-zinc-800/40 bg-zinc-100/50 dark:bg-black/50 backdrop-blur-3xl shrink-0 z-40">
                <div className="flex flex-col items-center gap-6">
                  <Button
                     variant="icon"
@@ -368,7 +368,7 @@ export default function LiteEditor() {
           {/* Main Editor Area */}
           <div className="flex-1 flex flex-col min-w-0 relative">
             <div className="relative flex-1 min-h-0">
-              <main className={`h-full transition-all duration-700 ${isPathSwitching ? "opacity-30 blur-[2px]" : "opacity-100"}`}>
+              <main className={`h-full transition-all duration-700 ${isPathSwitching ? "opacity-30" : "opacity-100"}`}>
                 {isMounting ? (
                   <div className="animate-pulse opacity-10 space-y-6 pt-20 px-12 max-w-2xl mx-auto">
                     <div className="h-8 bg-current w-1/3 rounded-lg mb-16" />
