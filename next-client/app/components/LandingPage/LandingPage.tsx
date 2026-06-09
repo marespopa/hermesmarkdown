@@ -614,7 +614,7 @@ export default function LandingPage() {
     realContent !== DEFAULT_DEMO_CONTENT;
 
   return (
-    <main className="min-h-screen selection:bg-sage/30 text-fg bg-surface overflow-x-hidden font-sans">
+    <main className="selection:bg-sage/30 overflow-x-hidden font-sans">
       <LoadingOverlay isVisible={showLoading} text="Opening editor..." />
 
       {/* PERSISTENT RESUME NOTIFICATION */}
@@ -671,8 +671,8 @@ export default function LandingPage() {
 
           {/* INTERACTIVE EDITOR PREVIEW */}
           <div className="w-full max-w-4xl relative group animate-hero-fade-in [animation-fill-mode:forwards] [animation-delay:300ms] opacity-0">
-            <div className="bg-surface dark:bg-surface rounded-2xl shadow-2xl border border-black/5 dark:border-white/10 overflow-hidden ring-1 ring-black/5 dark:ring-white/5 transition-all duration-500 group-hover:shadow-sage/5 group-hover:ring-sage/20">
-              <div className="h-10 bg-neutral-50 dark:bg-neutral-800/50 border-b border-black/5 dark:border-white/10 flex items-center px-4 gap-2">
+            <div className="rounded-2xl shadow-2xl border border-black/5 dark:border-white/10 overflow-hidden ring-1 ring-black/5 dark:ring-white/5 transition-all duration-500 group-hover:shadow-sage/5 group-hover:ring-sage/20">
+              <div className="h-10 bg-paper-light dark:bg-paper-dark border-b border-black/5 dark:border-white/10 flex items-center px-4 gap-2">
                 <div className="flex gap-1.5">
                   <div className="w-3 h-3 rounded-full bg-red-400/20 border border-red-400/30" />
                   <div className="w-3 h-3 rounded-full bg-amber-400/20 border border-amber-400/30" />
@@ -682,13 +682,14 @@ export default function LandingPage() {
                   landing_demo.md — hermes_vault
                 </div>
               </div>
-              <div className="h-[400px] md:h-[500px] text-left">
+              <div className="h-[400px] md:h-[500px] text-left relative">
                 {isMounted && (
                   <MarkdownEditor
                     value={demoContent}
                     onChange={setDemoContent}
                   />
                 )}
+                <div className="absolute bottom-0 inset-x-0 h-24 bg-gradient-to-t from-paper-light dark:from-paper-dark to-transparent pointer-events-none" />
               </div>
             </div>
             <div className="absolute -inset-0.5 bg-gradient-to-r from-sage/20 to-beige/20 rounded-2xl blur-2xl -z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-700" />

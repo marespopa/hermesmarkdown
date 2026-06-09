@@ -23,7 +23,7 @@ export default function PrivacyPolicy() {
   const router = useRouter();
 
   return (
-    <main className="min-h-screen selection:bg-sage/30 text-fg bg-surface overflow-x-hidden font-sans relative">
+    <main className="selection:bg-sage/30 overflow-x-hidden font-sans relative">
       <BackgroundGraphics />
       <div className="max-w-5xl mx-auto px-6 pt-32 pb-32 space-y-32">
         {/* --- HEADER SECTION --- */}

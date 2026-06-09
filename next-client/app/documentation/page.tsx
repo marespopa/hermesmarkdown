@@ -55,7 +55,7 @@ export default function Documentation() {
   const resultLabel = "opacity-40 italic text-right text-ui-footnote uppercase tracking-wider font-bold";
 
   return (
-    <main className="min-h-screen selection:bg-sage/30 text-fg bg-surface overflow-x-clip font-sans relative">
+    <main className="selection:bg-sage/30 overflow-x-clip font-sans relative">
       {/* Scroll progress bar */}
       <div
         className="fixed top-0 left-0 h-[2px] bg-sage z-50 transition-all duration-75"

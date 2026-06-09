@@ -68,7 +68,7 @@ export default function RootLayout({
       className={`h-full overscroll-none ${jetBrainsMono.variable} ${firaCode.variable} ${ibmPlexMono.variable}`}
     >
       <body
-        className="h-full min-h-screen paper-grain bg-paper-light dark:bg-paper-dark text-ink-light dark:text-ink-dark transition-colors duration-300 antialiased overscroll-none"
+        className="h-full min-h-screen bg-paper-light dark:bg-paper-dark text-ink-light dark:text-ink-dark transition-colors duration-300 antialiased overscroll-none"
         suppressHydrationWarning
       >
         <MainPage>{children}</MainPage>
