@@ -10,7 +10,7 @@ const createAIModel = (provider: string, apiKey: string, modelKey: string) => {
                     modelKey === 'haiku-4-5' ? 'claude-haiku-4-5-20251001' :
                     'claude-sonnet-4-6';
                     
-    return createAnthropic({ apiKey })(modelId);
+    return createAnthropic({ apiKey, baseURL: 'https://api.anthropic.com/v1' })(modelId);
   } else {
     // Strip models/ prefix if present
     let modelId = modelKey.replace('models/', '');
