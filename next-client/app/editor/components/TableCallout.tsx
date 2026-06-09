@@ -30,7 +30,7 @@ export function TableCallout({
           <span className="px-2 text-ui-micro font-medium text-red-500 dark:text-red-400 select-none">
             Delete table?
           </span>
-          <div className="w-px h-4 bg-zinc-200 dark:bg-zinc-700 mx-0.5" />
+          <div className="w-px h-4 bg-beige dark:bg-clay mx-0.5" />
           <Button variant="pill-icon" className="px-2 text-ui-micro font-medium" onClick={() => setPendingDelete(false)} title="Cancel">
             Cancel
           </Button>
@@ -43,11 +43,11 @@ export function TableCallout({
           <Button variant="pill-icon" className="px-2 text-ui-micro font-medium" onClick={onEditDialog} title="Edit table">
             Edit
           </Button>
-          <div className="w-px h-4 bg-zinc-200 dark:bg-zinc-700 mx-0.5" />
-          <Button variant="pill-icon" className="px-2 text-ui-micro font-medium text-zinc-500 dark:text-zinc-400 hover:text-red-500 dark:hover:text-red-400 transition-colors" onClick={() => setPendingDelete(true)} title="Delete table">
+          <div className="w-px h-4 bg-beige dark:bg-clay mx-0.5" />
+          <Button variant="pill-icon" className="px-2 text-ui-micro font-medium text-ink-muted dark:text-stone hover:text-red-500 dark:hover:text-red-400 transition-colors" onClick={() => setPendingDelete(true)} title="Delete table">
             ×Table
           </Button>
-          <div className="w-px h-4 bg-zinc-200 dark:bg-zinc-700 mx-0.5" />
+          <div className="w-px h-4 bg-beige dark:bg-clay mx-0.5" />
           <Button variant="pill-icon" className="px-2 text-ui-micro font-medium" onClick={onCopyCSV} title="Copy as CSV">
             CSV
           </Button>

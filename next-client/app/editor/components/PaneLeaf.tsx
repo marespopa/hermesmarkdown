@@ -230,15 +230,15 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
     <div 
       className={`h-full flex flex-col transition-all duration-300 overflow-hidden ${
         isActive && !isZenModeActive
-          ? "bg-[#F5F5F7] dark:bg-[#010101] z-10" 
-          : "bg-[#F5F5F7] dark:bg-[#010101]"
+          ? "bg-surface z-10"
+          : "bg-surface"
       }`}
       onClick={() => setActivePaneId(leaf.id)}
     >
       {/* Pane Tabs Bar - Premium macOS Style */}
       {!isZenModeActive && (
         <div 
-          className="flex items-center paper-grain bg-zinc-100/50 dark:bg-black/50 border-b border-zinc-200/40 dark:border-zinc-800/40 h-12 md:h-9 shrink-0 overflow-x-auto overflow-y-hidden scrollbar-none px-2 relative z-20"
+          className="flex items-center paper-grain bg-chrome border-b border-edge-subtle h-12 md:h-9 shrink-0 overflow-x-auto overflow-y-hidden scrollbar-none px-2 relative z-20"
           onDragOver={(e) => handleDragOver(e)}
           onDragLeave={handleDragLeave}
           onDrop={(e) => handleDrop(e, leaf.openFilePaths.length)}
@@ -298,7 +298,7 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
           })}
           
           {/* Pane Actions - Minimalist */}
-          <div className="flex items-center gap-0.5 ml-auto pl-4 pr-1 sticky right-0 bg-gradient-to-l from-white/90 via-white/80 to-transparent dark:from-black/90 dark:via-black/80 h-full shrink-0 z-20">
+          <div className="flex items-center gap-0.5 ml-auto pl-4 pr-1 sticky right-0 bg-gradient-to-l from-chrome via-chrome/80 to-transparent h-full shrink-0 z-20">
             {isActive && leaf.openFilePaths.length > 0 && (
               <>
                 <Button
@@ -306,7 +306,7 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
                   onClick={handleCopy}
                   title="Copy Markdown"
                   aria-label="Copy Markdown"
-                  className="w-9 h-9 flex items-center justify-center text-zinc-400 hover:text-blue-500 transition-all rounded-xl"
+                  className="w-9 h-9 flex items-center justify-center text-ink-muted hover:text-sage transition-all rounded-xl"
                 >
                   <HiOutlineClipboardCopy size={18} />
                 </Button>
@@ -315,11 +315,11 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
                   onClick={handleSave}
                   title="Save"
                   aria-label="Save"
-                  className="w-9 h-9 flex items-center justify-center text-zinc-400 hover:text-blue-500 transition-all rounded-xl"
+                  className="w-9 h-9 flex items-center justify-center text-ink-muted hover:text-sage transition-all rounded-xl"
                 >
                   <HiOutlineSave size={18} />
                 </Button>
-                <div className="w-px h-3 bg-zinc-200 dark:bg-zinc-800 mx-1 opacity-50" />
+                <div className="w-px h-3 bg-beige dark:bg-clay mx-1 opacity-50" />
                 <Button
                   variant="icon"
                   onClick={(e) => {
@@ -328,7 +328,7 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
                   }}
                   title="Tab options"
                   aria-label="Tab options"
-                  className="w-9 h-9 flex items-center justify-center text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-all rounded-xl"
+                  className="w-9 h-9 flex items-center justify-center text-ink-muted hover:text-ink-light dark:hover:text-ink-dark transition-all rounded-xl"
                 >
                   <HiOutlineDotsHorizontal size={16} />
                 </Button>
@@ -339,7 +339,7 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
               onClick={() => splitPane({ id: leaf.id, direction: "horizontal" })}
               title="Split Right"
               aria-label="Split Right"
-              className="w-9 h-9 flex items-center justify-center text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-all hidden sm:flex rounded-xl"
+              className="w-9 h-9 flex items-center justify-center text-ink-muted hover:text-ink-light dark:hover:text-ink-dark transition-all hidden sm:flex rounded-xl"
             >
               <VscSplitHorizontal size={16} />
             </Button>

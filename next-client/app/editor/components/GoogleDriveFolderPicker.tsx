@@ -112,7 +112,7 @@ export default function GoogleDriveFolderPicker({ onSelect }: Props) {
 
       {isAuthenticating ? (
         <div className="flex flex-col items-center gap-3 py-6 text-center">
-          <div className="w-5 h-5 rounded-full border-2 border-neutral-200 dark:border-neutral-700 border-t-blue-500 animate-spin" />
+          <div className="w-5 h-5 rounded-full border-2 border-edge border-t-sage animate-spin" />
           <p className="text-sm text-neutral-500 dark:text-neutral-400">Redirecting to Google…</p>
         </div>
       ) : needsAuth ? (
@@ -123,7 +123,7 @@ export default function GoogleDriveFolderPicker({ onSelect }: Props) {
           <button
             onClick={handleSignIn}
             disabled={isSigningIn}
-            className="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-medium hover:bg-blue-700 disabled:opacity-60 transition-colors"
+            className="inline-flex items-center gap-2 px-5 py-2.5 bg-sage text-white rounded-xl text-sm font-medium hover:bg-sage-dark disabled:opacity-60 transition-colors"
           >
             {isSigningIn ? (
               <span className="w-4 h-4 rounded-full border-2 border-white/30 border-t-white animate-spin inline-block" />
@@ -190,7 +190,7 @@ export default function GoogleDriveFolderPicker({ onSelect }: Props) {
             <button
               onClick={selectCurrent}
               disabled={breadcrumbs.length === 0}
-              className="shrink-0 px-4 py-1.5 bg-blue-600 disabled:opacity-40 text-white rounded-xl text-xs font-medium hover:bg-blue-700 transition-colors"
+              className="shrink-0 px-4 py-1.5 bg-sage disabled:opacity-40 text-white rounded-xl text-xs font-medium hover:bg-sage-dark transition-colors"
             >
               Use this Folder
             </button>

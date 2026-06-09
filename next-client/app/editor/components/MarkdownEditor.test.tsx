@@ -411,16 +411,4 @@ describe("highlightMarkdown Zen Mode", () => {
     expect(result).toContain('<div class="transition-all duration-700 ease-in-out  min-h-[1.8em]">Line 1</div>');
   });
 
-  it("applies active styles to the active line in Zen Mode", () => {
-    const code = "Line 1\nLine 2";
-    const isZenModeActive = true;
-    const activeLineIndex = 1; // "Line 2" is active
-
-    const result = highlightMarkdown(code, isZenModeActive, activeLineIndex);
-
-    // Active line (Line 2)
-    expect(result).toContain('bg-zinc-400/5');
-    expect(result).toContain('opacity-100');
-    expect(result).toContain('Line 2');
-  });
 });

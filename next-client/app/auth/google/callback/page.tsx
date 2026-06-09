@@ -24,7 +24,7 @@ export default function GoogleOAuthCallback() {
   }, [router]);
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen gap-5 bg-white dark:bg-zinc-950">
+    <div className="flex flex-col items-center justify-center min-h-screen gap-5 bg-surface">
       <div className="flex flex-col items-center gap-4 text-center px-6">
         {/* Google Drive icon */}
         <svg width="48" height="42" viewBox="0 0 87.3 78" xmlns="http://www.w3.org/2000/svg" className="opacity-80">
@@ -38,16 +38,16 @@ export default function GoogleOAuthCallback() {
 
         {status === "connecting" ? (
           <>
-            <div className="w-5 h-5 rounded-full border-2 border-zinc-200 dark:border-zinc-700 border-t-blue-500 animate-spin" />
+            <div className="w-5 h-5 rounded-full border-2 border-edge border-t-sage animate-spin" />
             <div className="space-y-1">
-              <p className="text-sm font-semibold text-zinc-800 dark:text-zinc-200">Connecting to Google Drive</p>
-              <p className="text-xs text-zinc-400 dark:text-zinc-500">Finishing authentication…</p>
+              <p className="text-sm font-semibold text-fg">Connecting to Google Drive</p>
+              <p className="text-xs text-fg-faint">Finishing authentication…</p>
             </div>
           </>
         ) : (
           <div className="space-y-1">
-            <p className="text-sm font-semibold text-zinc-800 dark:text-zinc-200">Authentication failed</p>
-            <p className="text-xs text-zinc-400 dark:text-zinc-500">Redirecting you back…</p>
+            <p className="text-sm font-semibold text-fg">Authentication failed</p>
+            <p className="text-xs text-fg-faint">Redirecting you back…</p>
           </div>
         )}
       </div>

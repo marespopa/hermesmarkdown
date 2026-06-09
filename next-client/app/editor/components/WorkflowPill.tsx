@@ -26,18 +26,18 @@ export function WorkflowPill({ tag, pos, onPrev, onNext, noHash }: WorkflowPillP
         variant="pill-icon"
         onClick={onPrev}
         aria-label="Previous workflow state"
-        className="p-0.5 flex items-center justify-center hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded transition-colors"
+        className="p-0.5 flex items-center justify-center hover:bg-paper-softgray dark:hover:bg-paper-dark-surface rounded transition-colors"
       >
-        <HiChevronLeft className="w-4 h-4 text-zinc-500 dark:text-zinc-400" />
+        <HiChevronLeft className="w-4 h-4 text-ink-muted dark:text-stone" />
       </Button>
       <span className={`text-xs font-bold px-0.5 ${colorClass}`}>{noHash ? tag : `#${tag}`}</span>
       <Button
         variant="pill-icon"
         onClick={onNext}
         aria-label="Next workflow state"
-        className="p-0.5 flex items-center justify-center hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded transition-colors"
+        className="p-0.5 flex items-center justify-center hover:bg-paper-softgray dark:hover:bg-paper-dark-surface rounded transition-colors"
       >
-        <HiChevronRight className="w-4 h-4 text-zinc-500 dark:text-zinc-400" />
+        <HiChevronRight className="w-4 h-4 text-ink-muted dark:text-stone" />
       </Button>
     </div>
   );

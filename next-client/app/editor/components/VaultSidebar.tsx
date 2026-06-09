@@ -38,17 +38,18 @@ function DriveExpiredPanel({ vaultName, onReconnect }: { vaultName: string | nul
 
   return (
     <div className="space-y-3 px-1">
-      <p className="text-ui-footnote text-zinc-500 dark:text-zinc-400 leading-relaxed">
+      <p className="text-ui-footnote text-ink-muted dark:text-stone leading-relaxed">
         Your Google Drive vault{vaultName ? ` "${vaultName}"` : ""} needs to reconnect.
       </p>
-      <button
+      <Button
+        variant="primary"
         onClick={handleReconnect}
-        disabled={isConnecting}
-        className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-blue-500 hover:bg-blue-600 disabled:opacity-60 text-white text-ui-footnote font-semibold transition-colors"
+        isDisabled={isConnecting}
+        className="w-full"
       >
         <HiOutlineRefresh size={14} className={isConnecting ? "animate-spin" : ""} />
         {isConnecting ? "Connecting…" : "Reconnect Google Drive"}
-      </button>
+      </Button>
     </div>
   );
 }
@@ -149,7 +150,7 @@ export default function VaultSidebar({
 
   return (
     <div
-      className="flex flex-col h-full animate-in slide-in-from-left duration-500 ease-out relative group/sidebar paper-grain bg-zinc-100/80 dark:bg-black/80 border-r border-zinc-200/40 dark:border-zinc-800/40"
+      className="flex flex-col h-full animate-in slide-in-from-left duration-500 ease-out relative group/sidebar paper-grain bg-chrome border-r border-edge-subtle"
       style={{ width: `${sidebarWidth}px` }}
     >
       {/* Resize Handle */}
@@ -157,8 +158,8 @@ export default function VaultSidebar({
         onMouseDown={startResizing}
         className={`
           absolute top-0 right-0 bottom-0 w-1 cursor-col-resize z-[100]
-          hover:bg-blue-500/20 transition-colors
-          ${isResizing ? "bg-blue-500/40" : "bg-transparent"}
+          hover:bg-sage/20 transition-colors
+          ${isResizing ? "bg-sage/40" : "bg-transparent"}
         `}
       />
 
@@ -166,10 +167,10 @@ export default function VaultSidebar({
       <div className="p-3 flex flex-col gap-2 shrink-0">
         <div className="flex justify-between items-center h-11 md:h-8">
           <div className="flex items-center gap-2">
-            <h2 className="text-ui-body md:text-ui-subhead font-medium text-zinc-900 dark:text-zinc-100 truncate opacity-60 md:opacity-40 hover:opacity-100 transition-opacity flex items-center gap-1.5">
+            <h2 className="text-ui-body md:text-ui-subhead font-medium text-ink-light dark:text-ink-dark truncate opacity-60 md:opacity-40 hover:opacity-100 transition-opacity flex items-center gap-1.5">
               {vaultHandle?.name || driveVaultName || "Notes"}
               {isCloudVault && vaultHandle && (
-                <span title="Cloud sync detected. HermesMarkdown will use enhanced error recovery if files are locked." className="text-blue-500/60 dark:text-blue-400/60 cursor-help">
+                <span title="Cloud sync detected. HermesMarkdown will use enhanced error recovery if files are locked." className="text-sage/60 dark:text-sage/60 cursor-help">
                   <HiOutlineCloud size={14} />
                 </span>
               )}
@@ -235,7 +236,7 @@ export default function VaultSidebar({
         ) : (
           <div className="flex flex-col h-full overflow-hidden">
             {/* Unified search - always visible */}
-            <div className="px-3 pt-3 pb-2 shrink-0 border-b border-zinc-200/40 dark:border-zinc-800/40">
+            <div className="px-3 pt-3 pb-2 shrink-0 border-b border-edge/40">
               <UnifiedSearchInput
                 tokens={selectedTags}
                 text={searchQuery}
@@ -246,8 +247,8 @@ export default function VaultSidebar({
               />
             </div>
 
-            <div className="px-4 py-2 shrink-0 border-b border-zinc-200/40 dark:border-zinc-800/40">
-              <div className="relative flex bg-zinc-100/80 dark:bg-zinc-900/60 rounded-lg p-0.5 gap-0.5">
+            <div className="px-4 py-2 shrink-0 border-b border-edge/40">
+              <div className="relative flex bg-paper-softgray/80 dark:bg-paper-dark/60 rounded-lg p-0.5 gap-0.5">
                 {tabOrder.map((tab) => (
                   <button
                     key={tab}
@@ -256,8 +257,8 @@ export default function VaultSidebar({
                       relative flex-1 py-1.5 text-xs font-semibold tracking-wide rounded-md
                       transition-all duration-200 ease-out cursor-pointer
                       ${activeTab === tab
-                        ? "bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 shadow-md shadow-zinc-200 dark:shadow-black/60"
-                        : "text-zinc-400 dark:text-zinc-500 hover:text-zinc-600 dark:hover:text-zinc-300"
+                        ? "bg-paper-light dark:bg-paper-dark-surface text-ink-light dark:text-ink-dark shadow-md shadow-beige dark:shadow-black/60"
+                        : "text-stone hover:text-ink-muted dark:hover:text-ink-dark"
                       }
                     `}
                   >
@@ -269,7 +270,7 @@ export default function VaultSidebar({
 
             <div className="flex-1 overflow-hidden flex flex-col pt-3">
               {showAllFiles && activeTab === "views" && (
-                <p className="px-4 pb-1 text-ui-caption text-zinc-400 dark:text-zinc-600 shrink-0">
+                <p className="px-4 pb-1 text-ui-caption text-stone dark:text-fg-faint shrink-0">
                   Searching all files
                 </p>
               )}

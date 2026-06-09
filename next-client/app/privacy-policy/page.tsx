@@ -10,7 +10,7 @@ const BackgroundGraphics = () => (
     <div className="absolute inset-0 bg-[linear-gradient(to_right,#8080800a_1px,transparent_1px),linear-gradient(to_bottom,#8080800a_1px,transparent_1px)] bg-[size:32px_32px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)]" />
     
     {/* Sophisticated Ambient Glows */}
-    <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[1000px] bg-gradient-radial from-blue-500/[0.05] dark:from-blue-500/[0.03] via-transparent to-transparent blur-[120px]" />
+    <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[1000px] bg-gradient-radial from-sage/[0.05] dark:from-sage/[0.03] via-transparent to-transparent blur-[120px]" />
     <div className="absolute top-[20%] right-[10%] w-[500px] h-[500px] bg-purple-500/[0.03] dark:bg-purple-500/[0.02] rounded-full blur-[100px]" />
     <div className="absolute bottom-[20%] left-[5%] w-[600px] h-[600px] bg-amber-500/[0.02] dark:bg-amber-500/[0.01] rounded-full blur-[120px]" />
     
@@ -23,7 +23,7 @@ export default function PrivacyPolicy() {
   const router = useRouter();
 
   return (
-    <main className="min-h-screen selection:bg-blue-500/30 text-neutral-900 dark:text-neutral-100 bg-white dark:bg-[#050505] overflow-x-hidden font-sans relative">
+    <main className="min-h-screen selection:bg-sage/30 text-fg bg-surface overflow-x-hidden font-sans relative">
       <BackgroundGraphics />
       <div className="max-w-5xl mx-auto px-6 pt-32 pb-32 space-y-32">
         {/* --- HEADER SECTION --- */}
@@ -53,14 +53,14 @@ export default function PrivacyPolicy() {
         {/* --- CONTENT SECTION --- */}
         <section className="prose prose-sm md:prose-base dark:prose-invert max-w-none border-t border-black/5 dark:border-white/10 pt-24 space-y-12">
           <div className="space-y-4">
-            <h2 className="text-xl font-bold tracking-tight uppercase tracking-widest text-blue-600 dark:text-blue-400 text-xs">Introduction</h2>
+            <h2 className="text-xl font-bold tracking-tight uppercase tracking-widest text-sage dark:text-sage text-xs">Introduction</h2>
             <p className="text-lg">
               This Privacy Policy describes how HermesMarkdown ("we," "us," or "our") handles your information. Unlike traditional SaaS tools, HermesMarkdown is built as a <strong>local-first</strong> application. This means your data primarily lives on your device, not on our servers.
             </p>
           </div>
 
           <div className="space-y-4">
-            <h2 className="text-xl font-bold tracking-tight uppercase tracking-widest text-blue-600 dark:text-blue-400 text-xs">Data Collection & Storage</h2>
+            <h2 className="text-xl font-bold tracking-tight uppercase tracking-widest text-sage dark:text-sage text-xs">Data Collection & Storage</h2>
             <h3 className="text-ui-title-3 font-semibold">User Content (Markdown Files)</h3>
             <p>
               HermesMarkdown does not store, transmit, or have access to your Markdown files, notes, or vaults. When you open a local folder as a Vault, the application interacts with your file system directly through your browser&apos;s File System Access API. Your content never leaves your machine.
@@ -73,7 +73,7 @@ export default function PrivacyPolicy() {
           </div>
 
           <div className="space-y-4">
-            <h2 className="text-xl font-bold tracking-tight uppercase tracking-widest text-blue-600 dark:text-blue-400 text-xs">Third-Party Services</h2>
+            <h2 className="text-xl font-bold tracking-tight uppercase tracking-widest text-sage dark:text-sage text-xs">Third-Party Services</h2>
             <p>
               To help us understand how users interact with our marketing site and to improve the product, we use a minimal, privacy-focused analytics provider:
             </p>
@@ -85,14 +85,14 @@ export default function PrivacyPolicy() {
           </div>
 
           <div className="space-y-4">
-            <h2 className="text-xl font-bold tracking-tight uppercase tracking-widest text-blue-600 dark:text-blue-400 text-xs">Your Rights</h2>
+            <h2 className="text-xl font-bold tracking-tight uppercase tracking-widest text-sage dark:text-sage text-xs">Your Rights</h2>
             <p>
               Since we do not collect or store your personal data or content, there is no data for us to "export" or "delete" upon request. You have full control over your data because you own the physical files on your device.
             </p>
           </div>
 
           <div className="space-y-4">
-            <h2 className="text-xl font-bold tracking-tight uppercase tracking-widest text-blue-600 dark:text-blue-400 text-xs">Changes to This Policy</h2>
+            <h2 className="text-xl font-bold tracking-tight uppercase tracking-widest text-sage dark:text-sage text-xs">Changes to This Policy</h2>
             <p>
               We may update our Privacy Policy from time to time. We will notify you of any changes by posting the new Privacy Policy on this page and updating the &quot;Last Updated&quot; date.
             </p>

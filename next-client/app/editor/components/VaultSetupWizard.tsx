@@ -133,11 +133,11 @@ export default function VaultSetupWizard() {
         <div className="flex flex-col gap-1 pr-6">
           <h2
             id="vault-setup-heading"
-            className="text-ui-body font-semibold text-zinc-900 dark:text-zinc-100"
+            className="text-ui-body font-semibold text-ink-light dark:text-ink-dark"
           >
             {hasOutdatedFiles ? "Agent Skills Update" : "Vault Setup"}
           </h2>
-          <p className="text-ui-footnote text-zinc-500 dark:text-zinc-400 leading-relaxed">
+          <p className="text-ui-footnote text-ink-muted dark:text-stone leading-relaxed">
             {hasOutdatedFiles
               ? "New versions of the agent-aware skill files are available for your vault."
               : "HermesMarkdown works best with a few helper files in your vault root — they guide AI tools like Cursor or Claude when you work with your notes. HermesMarkdown itself does not provide any AI agent."}
@@ -172,7 +172,7 @@ export default function VaultSetupWizard() {
           ) : (
             <div className="flex flex-col gap-2">
               {MANAGED_FILES.map((file) => (
-                <div key={file.path} className="flex items-start gap-3 p-3 rounded-xl border border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/30">
+                <div key={file.path} className="flex items-start gap-3 p-3 rounded-xl border border-beige-light dark:border-clay bg-paper-softgray/50 dark:bg-paper-dark/30">
                   <div className="pt-0.5">
                     <input
                       type="checkbox"
@@ -180,16 +180,16 @@ export default function VaultSetupWizard() {
                       checked={installChecked[file.path] || installResults[file.path] === "installed"}
                       disabled={installResults[file.path] === "installed" || isInstalling}
                       onChange={(e) => setInstallChecked(prev => ({ ...prev, [file.path]: e.target.checked }))}
-                      className="w-4 h-4 rounded border-zinc-300 text-violet-600 focus:ring-violet-500 disabled:opacity-50"
+                      className="w-4 h-4 rounded border-beige text-sage focus:ring-sage disabled:opacity-50"
                     />
                   </div>
                   <label htmlFor={`setup-${file.path}`} className={`flex flex-col flex-1 cursor-pointer ${installResults[file.path] === "installed" ? "opacity-50" : ""}`}>
-                    <span className="text-ui-footnote font-medium text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
+                    <span className="text-ui-footnote font-medium text-ink-light dark:text-ink-dark flex items-center gap-2">
                       {file.path}
                       {installResults[file.path] === "installed" && <span className="text-emerald-500 text-[10px] uppercase font-bold">Already Installed</span>}
-                      {installResults[file.path] === "outdated" && <span className="text-blue-500 text-[10px] uppercase font-bold">Update Available</span>}
+                      {installResults[file.path] === "outdated" && <span className="text-sage text-[10px] uppercase font-bold">Update Available</span>}
                     </span>
-                    <span className="text-ui-caption text-zinc-500 dark:text-zinc-400">
+                    <span className="text-ui-caption text-ink-muted dark:text-stone">
                       {file.description}
                     </span>
                   </label>

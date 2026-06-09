@@ -29,7 +29,7 @@ export default function WorkspaceSplitter({ node }: WorkspaceSplitterProps) {
             <Separator className={`
               ${node.direction === "horizontal" ? "w-1" : "h-1"} 
               bg-neutral-100 dark:bg-neutral-800 
-              hover:bg-blue-500/50 active:bg-blue-500 
+              hover:bg-sage/50 active:bg-sage
               transition-colors duration-200
               z-10
             `} />

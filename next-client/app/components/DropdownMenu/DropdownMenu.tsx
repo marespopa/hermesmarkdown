@@ -76,20 +76,20 @@ const DropdownMenu = ({ label, options, isOpen, onOpenChange, selectedIndex, onS
       {isOpen && (
         <div
           ref={menuRef}
-          className={`absolute mt-2 min-w-[200px] max-w-xs bg-white/80 dark:bg-neutral-900/80 backdrop-blur-xl border border-zinc-200/50 dark:border-neutral-800/50 rounded-2xl shadow-2xl font-sans z-50 p-1.5 flex flex-col gap-0.5 animate-in fade-in zoom-in-95 duration-200 ${alignRight ? 'right-0' : 'left-0'}`}
+          className={`absolute mt-2 min-w-[200px] max-w-xs bg-paper-light/80 dark:bg-neutral-900/80 backdrop-blur-xl border border-beige/50 dark:border-neutral-800/50 rounded-2xl shadow-2xl font-sans z-50 p-1.5 flex flex-col gap-0.5 animate-in fade-in zoom-in-95 duration-200 ${alignRight ? 'right-0' : 'left-0'}`}
         >
           {options.map((option, idx) => (
             <Button
               key={option.label}
               variant="bare"
               onClick={() => handleOptionClick(option, idx)}
-              className={`w-full text-left whitespace-nowrap h-10 px-3.5 text-zinc-700 dark:text-zinc-200 hover:bg-zinc-100/80 dark:hover:bg-zinc-800/80 rounded-xl transition-all duration-150 focus-visible:ring-2 focus-visible:ring-blue-500 hover:text-zinc-900 dark:hover:text-zinc-100 ${selectedIndex === idx ? 'bg-zinc-100 dark:bg-zinc-800 font-semibold text-zinc-900 dark:text-zinc-100' : ''}`}
+              className={`w-full text-left whitespace-nowrap h-10 px-3.5 text-ink-light dark:text-ink-dark hover:bg-paper-softgray/80 dark:hover:bg-paper-dark-surface/80 rounded-xl transition-all duration-150 focus-visible:ring-2 focus-visible:ring-sage hover:text-ink-light dark:hover:text-ink-dark ${selectedIndex === idx ? 'bg-paper-softgray dark:bg-paper-dark-surface font-semibold text-ink-light dark:text-ink-dark' : ''}`}
               tabIndex={0}
             >
               <span className="flex items-center gap-2 w-full text-ui-footnote">
                 {option.label}
                 {selectedIndex === idx && (
-                  <span className="ml-auto text-blue-500">✓</span>
+                  <span className="ml-auto text-sage">✓</span>
                 )}
               </span>
             </Button>

@@ -183,13 +183,13 @@ export function TableDialog({
       <div className="flex flex-col gap-4 min-h-0">
         <h2
           id="td-title"
-          className="text-ui-body font-semibold text-zinc-900 dark:text-zinc-100 pr-8"
+          className="text-ui-body font-semibold text-ink-light dark:text-ink-dark pr-8"
         >
           {title}
         </h2>
 
         {/* Scrollable cell grid */}
-        <div className="overflow-x-auto rounded-xl border border-zinc-200 dark:border-zinc-700 max-h-[50vh] overflow-y-auto">
+        <div className="overflow-x-auto rounded-xl border border-edge max-h-[50vh] overflow-y-auto">
           <table className="border-collapse w-max min-w-full text-left">
             <thead>
               <tr>
@@ -206,11 +206,11 @@ export function TableDialog({
                           : "none"
                       }
                       className={`
-                        group border border-zinc-200 dark:border-zinc-700 p-0 min-w-[130px] align-top
+                        group border border-edge p-0 min-w-[130px] align-top
                         transition-colors duration-150
                         ${isSorted
-                          ? "bg-blue-50/70 dark:bg-blue-950/25"
-                          : "bg-zinc-50 dark:bg-zinc-800/60"}
+                          ? "bg-sage/10 dark:bg-sage/5"
+                          : "bg-paper-softgray dark:bg-paper-dark-surface/60"}
                       `}
                     >
                       <div className="flex flex-col">
@@ -228,8 +228,8 @@ export function TableDialog({
                               flex-1 min-w-0 bg-transparent text-ui-footnote font-semibold tabular-nums
                               focus:outline-none placeholder:text-zinc-300 dark:placeholder:text-zinc-600
                               ${isSorted
-                                ? "text-blue-700 dark:text-blue-300"
-                                : "text-zinc-900 dark:text-zinc-100"}
+                                ? "text-sage dark:text-sage"
+                                : "text-ink-light dark:text-ink-dark"}
                             `}
                           />
 
@@ -252,8 +252,8 @@ export function TableDialog({
                               flex-shrink-0 w-8 h-8 sm:w-6 sm:h-6 flex items-center justify-center rounded
                               text-[11px] leading-none transition-all duration-150
                               ${isSorted
-                                ? "text-blue-600 dark:text-blue-400 opacity-100"
-                                : "text-zinc-400 dark:text-zinc-500 opacity-40 sm:opacity-0 sm:group-hover:opacity-40 hover:!opacity-100 focus-within:opacity-40 hover:text-zinc-700 dark:hover:text-zinc-200"}
+                                ? "text-sage dark:text-sage opacity-100"
+                                : "text-stone opacity-40 sm:opacity-0 sm:group-hover:opacity-40 hover:!opacity-100 focus-within:opacity-40 hover:text-ink-light dark:hover:text-ink-dark"}
                             `}
                           >
                             {sortDir === "desc" ? "↓" : "↑"}
@@ -273,7 +273,7 @@ export function TableDialog({
                             className="
                               flex-shrink-0 w-8 h-8 sm:w-6 sm:h-6 flex items-center justify-center rounded
                               text-[11px] leading-none transition-all duration-150
-                              text-zinc-400 dark:text-zinc-500 opacity-40 sm:opacity-0 sm:group-hover:opacity-40 hover:!opacity-100 focus-within:opacity-40 hover:text-blue-600 dark:hover:text-blue-400
+                              text-stone opacity-40 sm:opacity-0 sm:group-hover:opacity-40 hover:!opacity-100 focus-within:opacity-40 hover:text-sage dark:hover:text-sage
                             "
                           >
                             Σ
@@ -288,7 +288,7 @@ export function TableDialog({
                             className="
                               flex-shrink-0 w-8 h-8 sm:w-5 sm:h-5 flex items-center justify-center rounded
                               text-[14px] sm:text-[11px] leading-none transition-all duration-150
-                              text-zinc-400 hover:text-red-500 dark:text-zinc-500 dark:hover:text-red-400
+                              text-stone hover:text-red-500 dark:text-stone dark:hover:text-red-400
                               opacity-40 sm:opacity-0 sm:group-hover:opacity-100 focus-within:opacity-100
                             "
                           >
@@ -310,7 +310,7 @@ export function TableDialog({
                             <Button
                               variant="bare"
                               onClick={onCancelRemoveColumn}
-                              className="underline hover:text-zinc-600 transition-colors"
+                              className="underline hover:text-ink-muted transition-colors"
                             >
                               Cancel
                             </Button>
@@ -318,7 +318,7 @@ export function TableDialog({
                         )}
 
                         {/* Alignment toggle */}
-                        <div className="flex border-t border-zinc-200 dark:border-zinc-700 mt-0.5">
+                        <div className="flex border-t border-edge mt-0.5">
                           {(["left", "center", "right"] as Alignment[]).map((a) => (
                             <Button
                               key={a}
@@ -330,8 +330,8 @@ export function TableDialog({
                               className={`
                                 flex-1 text-ui-micro py-2 sm:py-0.5 transition-colors
                                 ${alignments[ci] === a
-                                  ? "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 font-semibold"
-                                  : "text-zinc-400 dark:text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-200"}
+                                  ? "bg-sage/20 dark:bg-sage/20 text-sage dark:text-sage font-semibold"
+                                  : "text-stone hover:text-ink-light dark:hover:text-ink-dark"}
                               `}
                             >
                               {ALIGN_LABELS[a]}
@@ -344,14 +344,14 @@ export function TableDialog({
                 })}
 
                 {/* Add column */}
-                <th className="border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/60 w-9 p-0">
+                <th className="border border-edge bg-paper-softgray dark:bg-paper-dark-surface/60 w-9 p-0">
                   <Button
                     variant="pill-icon"
                     type="button"
                     onClick={onAddColumn}
                     aria-label="Add column"
                     title="Add column"
-                    className="w-full h-full min-h-[60px] text-zinc-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors text-ui-title-1"
+                    className="w-full h-full min-h-[60px] text-stone hover:text-sage dark:hover:text-sage transition-colors text-ui-title-1"
                   >
                     +
                   </Button>
@@ -369,13 +369,13 @@ export function TableDialog({
                         key={ci}
                         className={`
                           border border-zinc-200 dark:border-zinc-700 p-0 transition-colors
-                          ${isSortedCol ? "bg-blue-50/25 dark:bg-blue-950/10" : ""}
-                          ${cell.trim().startsWith("Total:") ? "bg-zinc-50/80 dark:bg-zinc-800/40" : ""}
+                          ${isSortedCol ? "bg-sage/5 dark:bg-sage/5" : ""}
+                          ${cell.trim().startsWith("Total:") ? "bg-paper-softgray/80 dark:bg-paper-dark-surface/40" : ""}
                         `}
                       >
                         {cell.trim().startsWith("Total:") ? (
                           <div
-                            className="w-full px-2 py-1.5 text-ui-footnote tabular-nums font-semibold text-zinc-700 dark:text-zinc-300 select-none"
+                            className="w-full px-2 py-1.5 text-ui-footnote tabular-nums font-semibold text-ink-light dark:text-ink-dark select-none"
                             style={{ textAlign: alignments[ci] }}
                           >
                             Total: {computeColTotal(rows, ci, ri, currencyCode)}
@@ -389,7 +389,7 @@ export function TableDialog({
                             onKeyDown={(e) => handleKeyDown(e, ri, ci)}
                             placeholder="…"
                             style={{ textAlign: alignments[ci] }}
-                            className="w-full px-2 py-1.5 bg-transparent text-ui-footnote tabular-nums text-zinc-900 dark:text-zinc-100 focus:outline-none placeholder:text-zinc-300 dark:placeholder:text-zinc-600"
+                            className="w-full px-2 py-1.5 bg-transparent text-ui-footnote tabular-nums text-ink-light dark:text-ink-dark focus:outline-none placeholder:text-beige dark:placeholder:text-fg-faint"
                           />
                         )}
                       </td>
@@ -397,7 +397,7 @@ export function TableDialog({
                   })}
 
                   {/* Remove row */}
-                  <td className="border border-zinc-200 dark:border-zinc-700 w-9 p-0 align-middle">
+                  <td className="border border-edge w-9 p-0 align-middle">
                     {pendingRemoveRow === ri ? (
                       <div className="flex flex-col items-center py-0.5 gap-0.5">
                         <Button
@@ -412,7 +412,7 @@ export function TableDialog({
                           variant="bare"
                           onClick={onCancelRemoveRow}
                           aria-label="Cancel remove row"
-                          className="text-ui-micro text-zinc-400 hover:text-zinc-700 underline"
+                          className="text-ui-micro text-stone hover:text-ink-light underline"
                         >
                           ↩
                         </Button>
@@ -423,7 +423,7 @@ export function TableDialog({
                         type="button"
                         onClick={() => onRemoveRow(ri)}
                         aria-label="Remove row"
-                        className="w-full h-full min-h-[44px] sm:min-h-[32px] text-zinc-400 hover:text-red-500 dark:text-zinc-500 dark:hover:text-red-400 transition-colors"
+                        className="w-full h-full min-h-[44px] sm:min-h-[32px] text-stone hover:text-red-500 dark:text-stone dark:hover:text-red-400 transition-colors"
                       >
                         ×
                       </Button>
@@ -443,7 +443,7 @@ export function TableDialog({
                     type="button"
                     onClick={onAddRow}
                     aria-label="Add row"
-                    className="w-full py-2.5 sm:py-1.5 text-ui-micro text-zinc-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                    className="w-full py-2.5 sm:py-1.5 text-ui-micro text-stone hover:text-sage dark:hover:text-sage transition-colors"
                   >
                     + Add row
                   </Button>
@@ -455,10 +455,10 @@ export function TableDialog({
 
         {/* Markdown preview */}
         <details>
-          <summary className="text-ui-micro text-zinc-400 dark:text-zinc-500 cursor-pointer select-none hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors">
+          <summary className="text-ui-micro text-stone cursor-pointer select-none hover:text-ink-muted dark:hover:text-ink-dark transition-colors">
             Markdown preview
           </summary>
-          <pre className="mt-1.5 p-2.5 bg-zinc-50 dark:bg-zinc-800/50 rounded-lg text-ui-micro font-mono text-zinc-500 dark:text-zinc-400 overflow-x-auto whitespace-pre">
+          <pre className="mt-1.5 p-2.5 bg-paper-softgray dark:bg-paper-dark-surface/50 rounded-lg text-ui-micro font-mono text-ink-muted dark:text-stone overflow-x-auto whitespace-pre">
             {markdownPreview}
           </pre>
         </details>

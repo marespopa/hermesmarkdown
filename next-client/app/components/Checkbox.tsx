@@ -35,9 +35,9 @@ const Checkbox = ({
             w-5 h-5 rounded-[6px] border-2 transition-all duration-200
             flex items-center justify-center
             ${checked 
-              ? 'bg-blue-600 border-blue-600 dark:bg-blue-500 dark:border-blue-500' 
-              : 'bg-white border-zinc-300 dark:bg-zinc-800 dark:border-zinc-700 group-hover:border-zinc-400 dark:group-hover:border-zinc-600'}
-            peer-focus-visible:ring-4 peer-focus-visible:ring-blue-500/20
+              ? 'bg-sage border-sage dark:bg-sage dark:border-sage' 
+              : 'bg-paper-light border-beige dark:bg-paper-dark-surface dark:border-clay group-hover:border-stone dark:group-hover:border-fg-faint'}
+            peer-focus-visible:ring-4 peer-focus-visible:ring-sage/20
           `}>
             {checked && (
               <svg 
@@ -56,11 +56,11 @@ const Checkbox = ({
         </div>
         
         <div className="flex flex-col">
-          <span className="text-ui-subhead font-medium text-zinc-900 dark:text-zinc-100 leading-tight">
+          <span className="text-ui-subhead font-medium text-ink-light dark:text-ink-dark leading-tight">
             {label}
           </span>
           {helperText && (
-            <p className="text-ui-caption text-zinc-500 dark:text-zinc-400 mt-1 leading-snug">
+            <p className="text-ui-caption text-ink-muted dark:text-stone mt-1 leading-snug">
               {helperText}
             </p>
           )}

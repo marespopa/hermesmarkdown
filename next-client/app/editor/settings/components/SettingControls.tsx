@@ -13,7 +13,7 @@ export function SegmentedControl<T extends string>({
   onChange: (v: T) => void;
 }) {
   return (
-    <div className="inline-flex bg-zinc-100 dark:bg-zinc-800 p-0.5 rounded-xl gap-0.5">
+    <div className="inline-flex bg-paper-softgray dark:bg-paper-dark-surface p-0.5 rounded-xl gap-0.5">
       {options.map((opt) => (
         <button
           key={opt.value}
@@ -21,8 +21,8 @@ export function SegmentedControl<T extends string>({
           onClick={() => onChange(opt.value)}
           className={`px-3.5 py-1.5 text-ui-footnote font-semibold rounded-[10px] transition-all duration-150 select-none focus:outline-none ${
             value === opt.value
-              ? "bg-white dark:bg-zinc-700 shadow-sm text-blue-600 dark:text-blue-400"
-              : "text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200"
+              ? "bg-paper-light dark:bg-clay shadow-sm text-sage dark:text-sage"
+              : "text-ink-muted hover:text-ink-light dark:hover:text-ink-dark"
           }`}
         >
           {opt.label}
@@ -48,13 +48,13 @@ export const SelectControl = ({
       value={value}
       onChange={(e) => onChange(e.target.value)}
       disabled={disabled}
-      className="appearance-none bg-zinc-100 dark:bg-zinc-800 text-ui-footnote font-semibold rounded-xl px-3 pr-7 py-1.5 outline-none border border-transparent focus:border-blue-500/40 cursor-pointer transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+      className="appearance-none bg-paper-softgray dark:bg-paper-dark-surface text-ui-footnote font-semibold rounded-xl px-3 pr-7 py-1.5 outline-none border border-transparent focus:border-sage/40 cursor-pointer transition-all disabled:opacity-50 disabled:cursor-not-allowed"
     >
       {children}
     </select>
     <HiChevronDown
       size={13}
-      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none"
+      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-stone pointer-events-none"
     />
   </div>
 );
@@ -111,7 +111,7 @@ export const SettingGroup = ({
     <p className="text-ui-caption font-semibold uppercase tracking-wider text-neutral-400 dark:text-neutral-500 mb-2 px-1">
       {title}
     </p>
-    <div className="bg-white dark:bg-zinc-900/80 rounded-2xl px-4 py-0.5 border border-neutral-200/60 dark:border-neutral-800/60 shadow-[0_1px_4px_rgba(0,0,0,0.04)] dark:shadow-none">
+    <div className="bg-paper-light dark:bg-paper-dark/80 rounded-2xl px-4 py-0.5 border border-neutral-200/60 dark:border-neutral-800/60 shadow-[0_1px_4px_rgba(0,0,0,0.04)] dark:shadow-none">
       {children}
     </div>
   </div>

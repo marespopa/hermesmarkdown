@@ -77,16 +77,16 @@ const Input = forwardRef<HTMLInputElement, Props>(
       "w-full px-4 py-2.5 text-ui-subhead font-sans transition-all duration-150 ease-in-out border rounded-xl outline-none";
 
     const variantStyles =
-      "bg-zinc-50 border-zinc-200 text-zinc-900 placeholder:text-zinc-400 " +
-      "dark:bg-zinc-800/50 dark:border-zinc-700 dark:text-zinc-100 dark:placeholder:text-zinc-500 " +
-      "focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 dark:focus:ring-blue-500/20";
+      "bg-paper-softgray border-beige text-ink-light placeholder:text-stone " +
+      "dark:bg-paper-dark-surface/50 dark:border-clay dark:text-ink-dark dark:placeholder:text-stone " +
+      "focus:ring-4 focus:ring-sage/10 focus:border-sage dark:focus:ring-sage/20";
 
     return (
       <div className={`flex flex-col gap-1.5 my-2 w-full ${className}`}>
         {label && (
           <label
             htmlFor={name}
-            className="text-ui-footnote font-medium text-zinc-500 dark:text-zinc-400 px-0.5"
+            className="text-ui-footnote font-medium text-ink-muted dark:text-stone px-0.5"
           >
             {label}
           </label>
@@ -121,7 +121,7 @@ const Input = forwardRef<HTMLInputElement, Props>(
             <button
               type="button"
               onClick={onClear}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 p-1.5 transition-colors rounded-full hover:bg-zinc-200/50 dark:hover:bg-zinc-700/50"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-stone hover:text-ink-light dark:hover:text-ink-dark p-1.5 transition-colors rounded-full hover:bg-beige/50 dark:hover:bg-clay/50"
               tabIndex={-1}
             >
               <FaTimes size={12} />
@@ -130,7 +130,7 @@ const Input = forwardRef<HTMLInputElement, Props>(
         </div>
 
         {helperText && (
-          <p className="text-ui-caption text-zinc-400 dark:text-zinc-500 px-0.5">
+          <p className="text-ui-caption text-stone px-0.5">
             {helperText}
           </p>
         )}

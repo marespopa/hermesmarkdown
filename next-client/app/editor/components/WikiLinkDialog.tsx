@@ -123,7 +123,7 @@ export default function WikiLinkDialog({
       <div className="flex flex-col gap-5">
         <h2
           id="wiki-dialog-title"
-          className="text-ui-body font-semibold text-zinc-900 dark:text-zinc-100"
+          className="text-ui-body font-semibold text-ink-light dark:text-ink-dark"
         >
           {title}
         </h2>
@@ -152,8 +152,8 @@ export default function WikiLinkDialog({
               }}
               className={`flex items-center gap-3 px-3 py-2 cursor-pointer text-ui-footnote rounded-xl transition-colors ${
                 i === selectedIndex
-                  ? "bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100"
-                  : "text-zinc-500 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800/50"
+                  ? "bg-paper-softgray dark:bg-paper-dark-surface text-ink-light dark:text-ink-dark"
+                  : "text-ink-muted dark:text-stone hover:bg-paper-softgray dark:hover:bg-paper-dark-surface/50"
               }`}
             >
               <HiOutlineDocumentText size={16} className="shrink-0" />
@@ -168,7 +168,7 @@ export default function WikiLinkDialog({
             </div>
           ))}
           {filteredItems.length === 0 && search && (
-            <div className="px-3 py-2 text-ui-footnote text-zinc-400 italic">
+            <div className="px-3 py-2 text-ui-footnote text-stone italic">
               New note: "{search}"
             </div>
           )}

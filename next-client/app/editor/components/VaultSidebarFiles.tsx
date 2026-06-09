@@ -56,13 +56,13 @@ export default function VaultSidebarFiles({
   return (
     <div className="flex flex-col flex-1 min-h-0 min-w-0">
       <div className="flex justify-between items-center px-4 py-2 shrink-0">
-        <span className="text-ui-caption font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-600">
+        <span className="text-ui-caption font-semibold uppercase tracking-wider text-stone dark:text-fg-faint">
           Your Files
         </span>
         {onNewFile && (
           <Button
             variant="icon"
-            className="w-6 h-6 opacity-60 hover:opacity-100 text-zinc-600 dark:text-zinc-400"
+            className="w-6 h-6 opacity-60 hover:opacity-100 text-ink-muted dark:text-stone"
             onClick={onNewFile}
             title="Create New File"
           >
@@ -96,8 +96,8 @@ export default function VaultSidebarFiles({
                 }}
                 className={`flex items-center gap-2 px-4 py-2 rounded-lg cursor-pointer transition-all duration-200 text-ui-subhead pr-8 relative ${
                   isActive
-                    ? "text-blue-600 dark:text-blue-400 font-bold before:absolute before:left-0 before:top-2 before:bottom-2 before:w-0.5 before:bg-blue-500 bg-blue-500/10 shadow-sm shadow-blue-500/5"
-                    : "hover:bg-zinc-200/60 dark:hover:bg-zinc-800/50 text-zinc-600 dark:text-zinc-400 font-medium"
+                    ? "text-sage dark:text-sage font-bold before:absolute before:left-0 before:top-2 before:bottom-2 before:w-0.5 before:bg-sage bg-sage/10 shadow-sm shadow-sage/5"
+                    : "hover:bg-paper-softgray/60 dark:hover:bg-paper-dark-surface/50 text-ink-muted dark:text-stone font-medium"
                 }`}
               >
                 <HiOutlineDocumentText size={16} className="shrink-0 opacity-60" />
@@ -125,7 +125,7 @@ export default function VaultSidebarFiles({
               {actionMenuOpen === (entryPath || entry.name) && (
                 <>
                   <div className="fixed inset-0 z-40" onClick={() => setActionMenuOpen(null)} />
-                  <div className="absolute right-2 top-[80%] z-50 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-xl border border-zinc-200/50 dark:border-zinc-800/50 rounded-xl shadow-2xl py-1 min-w-[120px] animate-in fade-in zoom-in-95 slide-in-from-top-2 duration-200 ease-out">
+                  <div className="absolute right-2 top-[80%] z-50 bg-paper-light/95 dark:bg-paper-dark/95 backdrop-blur-xl border border-edge/50 rounded-xl shadow-2xl py-1 min-w-[120px] animate-in fade-in zoom-in-95 slide-in-from-top-2 duration-200 ease-out">
                     <Button
                       variant="menu-item"
                       onClick={(e) => { e.stopPropagation(); renameFile(entry.handle); setActionMenuOpen(null); }}
@@ -153,7 +153,7 @@ export default function VaultSidebarFiles({
           <div className="px-4 py-8 flex flex-col items-center gap-2 text-center">
             {isIndexing ? (
               <>
-                <div className="w-4 h-4 rounded-full border-2 border-zinc-300 dark:border-zinc-600 border-t-blue-500 dark:border-t-blue-400 animate-spin" />
+                <div className="w-4 h-4 rounded-full border-2 border-edge border-t-sage dark:border-t-sage animate-spin" />
                 <p className="opacity-40 text-ui-caption italic">Scanning vault…</p>
               </>
             ) : (

@@ -314,9 +314,9 @@ Return the 3-5 most semantically related note titles as a JSON array.`
 
   const textareaClass =
     "w-full px-4 py-2.5 text-ui-subhead font-sans transition-all duration-150 ease-in-out border rounded-xl outline-none resize-none " +
-    "bg-zinc-50 border-zinc-200 text-zinc-900 placeholder:text-zinc-400 " +
-    "dark:bg-zinc-800/50 dark:border-zinc-700 dark:text-zinc-100 dark:placeholder:text-zinc-500 " +
-    "focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 dark:focus:ring-blue-500/20";
+    "bg-paper-softgray border-beige text-ink-light placeholder:text-stone " +
+    "dark:bg-paper-dark-surface/50 dark:border-clay dark:text-ink-dark dark:placeholder:text-stone " +
+    "focus:ring-4 focus:ring-sage/10 focus:border-sage dark:focus:ring-sage/20";
 
   const renderStepContent = () => {
     switch (step) {
@@ -333,7 +333,7 @@ Return the 3-5 most semantically related note titles as a JSON array.`
               className="my-0"
             />
             <div className="flex flex-col gap-1.5">
-              <span className="text-ui-footnote font-medium text-zinc-500 dark:text-zinc-400 px-0.5">
+              <span className="text-ui-footnote font-medium text-ink-muted dark:text-stone px-0.5">
                 Status
               </span>
               <div className="flex flex-wrap gap-2">
@@ -345,8 +345,8 @@ Return the 3-5 most semantically related note titles as a JSON array.`
                     onClick={() => set("status", opt)}
                     className={`px-3 py-1.5 rounded-full text-ui-footnote font-medium border transition-all duration-150 ${
                       edits.status === opt
-                        ? "bg-violet-600 text-white border-violet-600 dark:bg-violet-500 dark:border-violet-500"
-                        : "bg-transparent border-zinc-300 text-zinc-600 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-400 dark:hover:bg-zinc-800"
+                        ? "bg-sage text-white border-sage dark:bg-sage dark:border-sage"
+                        : "bg-transparent border-beige text-ink-muted hover:bg-paper-softgray dark:border-clay dark:text-stone dark:hover:bg-paper-dark-surface"
                     }`}
                   >
                     {opt}
@@ -362,7 +362,7 @@ Return the 3-5 most semantically related note titles as a JSON array.`
             <div className="flex items-center justify-between px-0.5">
               <label
                 htmlFor="fm-scope"
-                className="text-ui-footnote font-medium text-zinc-500 dark:text-zinc-400"
+                className="text-ui-footnote font-medium text-ink-muted dark:text-stone"
               >
                 Scope
               </label>
@@ -371,7 +371,7 @@ Return the 3-5 most semantically related note titles as a JSON array.`
                   type="button"
                   onClick={handleSummarizeScope}
                   disabled={isGenerating}
-                  className="text-ui-caption font-medium text-blue-600 dark:text-blue-400 hover:underline disabled:opacity-50 flex items-center gap-1"
+                  className="text-ui-caption font-medium text-sage dark:text-sage hover:underline disabled:opacity-50 flex items-center gap-1"
                 >
                   {isGenerating ? (
                     <HiOutlineRefresh className="animate-spin" size={12} />
@@ -410,7 +410,7 @@ Return the 3-5 most semantically related note titles as a JSON array.`
           <div className="flex flex-col gap-1.5">
             <label
               htmlFor="fm-read-when"
-              className="text-ui-footnote font-medium text-zinc-500 dark:text-zinc-400 px-0.5"
+              className="text-ui-footnote font-medium text-ink-muted dark:text-stone px-0.5"
             >
               Read when
             </label>
@@ -431,7 +431,7 @@ Return the 3-5 most semantically related note titles as a JSON array.`
             <div className="flex items-center justify-between px-0.5">
               <label
                 htmlFor="fm-related"
-                className="text-ui-footnote font-medium text-zinc-500 dark:text-zinc-400"
+                className="text-ui-footnote font-medium text-ink-muted dark:text-stone"
               >
                 Related
               </label>
@@ -440,7 +440,7 @@ Return the 3-5 most semantically related note titles as a JSON array.`
                   type="button"
                   onClick={handleSuggestRelated}
                   disabled={isGenerating}
-                  className="text-ui-caption font-medium text-blue-600 dark:text-blue-400 hover:underline disabled:opacity-50 flex items-center gap-1"
+                  className="text-ui-caption font-medium text-sage dark:text-sage hover:underline disabled:opacity-50 flex items-center gap-1"
                 >
                   {isGenerating ? (
                     <HiOutlineRefresh className="animate-spin" size={12} />
@@ -465,7 +465,7 @@ Return the 3-5 most semantically related note titles as a JSON array.`
                     key={title}
                     type="button"
                     onClick={() => handleAddRelated(title)}
-                    className="px-2.5 py-1 rounded-lg bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 text-ui-caption font-medium border border-blue-200 dark:border-blue-900/50 hover:bg-blue-100 dark:hover:bg-blue-500/20 transition-colors"
+                    className="px-2.5 py-1 rounded-lg bg-sage/10 dark:bg-sage/10 text-sage dark:text-sage text-ui-caption font-medium border border-sage/20 dark:border-sage/20 hover:bg-sage/20 dark:hover:bg-sage/20 transition-colors"
                   >
                     + {title}
                   </button>
@@ -498,13 +498,13 @@ Return the 3-5 most semantically related note titles as a JSON array.`
         {/* Header */}
         <div className="flex flex-col gap-1 pr-10">
           <div className="flex items-center justify-between">
-            <span className="text-ui-caption font-medium text-zinc-400 dark:text-zinc-500 uppercase tracking-wider">
+            <span className="text-ui-caption font-medium text-stone uppercase tracking-wider">
               Step {step + 1} of {STEPS.length}
             </span>
           </div>
           <h2
             id="fm-wizard-heading"
-            className="text-ui-body font-semibold text-zinc-900 dark:text-zinc-100"
+            className="text-ui-body font-semibold text-ink-light dark:text-ink-dark"
           >
             {STEPS[step].label}
           </h2>
@@ -523,10 +523,10 @@ Return the 3-5 most semantically related note titles as a JSON array.`
               key={i}
               className={`rounded-full transition-all duration-200 ${
                 i === step
-                  ? "w-4 h-1.5 bg-violet-500"
+                  ? "w-4 h-1.5 bg-sage"
                   : i < step
-                  ? "w-1.5 h-1.5 bg-violet-300 dark:bg-violet-700"
-                  : "w-1.5 h-1.5 bg-zinc-300 dark:bg-zinc-700"
+                  ? "w-1.5 h-1.5 bg-sage/60 dark:bg-sage/40"
+                  : "w-1.5 h-1.5 bg-beige dark:bg-clay"
               }`}
             />
           ))}
@@ -544,7 +544,7 @@ Return the 3-5 most semantically related note titles as a JSON array.`
                 onClick={handleGenerateAll}
                 disabled={isGenerating}
                 title="Auto-fill with AI"
-                className="text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-500/10 px-3 py-2 rounded-lg flex items-center gap-1.5"
+                className="text-sage dark:text-sage hover:bg-sage/10 dark:hover:bg-sage/10 px-3 py-2 rounded-lg flex items-center gap-1.5"
               >
                 {isGenerating ? (
                   <HiOutlineRefresh className="animate-spin" size={16} />

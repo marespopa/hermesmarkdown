@@ -277,7 +277,7 @@ export default function LiteEditor() {
   return (
     <ErrorBoundary>
       <LoadingOverlay isVisible={isFileLoading} text="Loading file..." />
-      <div className={`fixed inset-0 flex flex-col bg-[#F5F5F7] dark:bg-[#010101] text-ink-light dark:text-ink-dark selection:bg-pastel-blue/30 font-sans overflow-hidden overscroll-none transition-all duration-500 ${isVaultPending ? "blur-md pointer-events-none select-none" : ""}`}>
+      <div className={`fixed inset-0 flex flex-col bg-surface text-fg selection:bg-sage-light/30 font-sans overflow-hidden overscroll-none transition-all duration-500 ${isVaultPending ? "blur-md pointer-events-none select-none" : ""}`}>
         {isDriveVault && driveAuthState === 'expired' && (
           <DriveReconnectBanner onReconnect={driveSignIn} />
         )}
@@ -288,10 +288,10 @@ export default function LiteEditor() {
         <ConflictDialog />
         {isVaultPending && <VaultPendingOverlay restoreVault={restoreVault} isDriveVault={isDriveVault} />}
         
-        <DialogModal isOpened={pendingFile !== null} onClose={() => setPendingFile(null)} styles="!rounded-[32px] !backdrop-blur-2xl !bg-white/80 dark:!bg-zinc-900/80 !border-none !shadow-2xl">
+        <DialogModal isOpened={pendingFile !== null} onClose={() => setPendingFile(null)} styles="!rounded-[32px] !backdrop-blur-2xl !bg-paper-light/80 dark:!bg-paper-dark/80 !border-none !shadow-2xl">
           <div className="flex flex-col gap-6 text-center py-4 px-2">
             <p className="text-lg font-bold tracking-tight">
-              Overwrite draft with <br/><span className="text-blue-500 italic">"{pendingFile?.name}"</span>?
+              Overwrite draft with <br/><span className="text-sage italic">"{pendingFile?.name}"</span>?
             </p>
             <div className="flex gap-3 justify-center">
               <Button variant="primary" className="h-11 px-6 rounded-xl" onClick={() => { if (pendingFile) { setContent(pendingFile.text); setFileName(pendingFile.name); } setPendingFile(null); }}>Overwrite</Button>
@@ -320,16 +320,16 @@ export default function LiteEditor() {
         </div>
 
         {/* Workspace Content */}
-        <div className="flex-1 flex min-w-0 bg-[#F5F5F7] dark:bg-[#010101] overflow-hidden relative">
+        <div className="flex-1 flex min-w-0 bg-surface overflow-hidden relative">
           
           {/* Collapsed Sidebar Toggle Column */}
           {!isSidebarOpen && !isZenModeActive && (
-            <div className="w-12 h-full flex flex-col items-center py-6 border-r border-zinc-200/40 dark:border-zinc-800/40 bg-zinc-100/50 dark:bg-black/50 backdrop-blur-3xl shrink-0 z-40">
+            <div className="w-12 h-full flex flex-col items-center py-6 border-r border-edge-subtle bg-chrome shrink-0 z-40">
                <div className="flex flex-col items-center gap-6">
                  <Button
                     variant="icon"
                     onClick={() => navigateWithGuard("/")}
-                    className="w-10 h-10 opacity-60 hover:opacity-100 text-zinc-600 dark:text-zinc-400"
+                    className="w-10 h-10 opacity-60 hover:opacity-100 text-ink-muted dark:text-stone"
                     title="Home"
                   >
                     <HiOutlineHome size={24} />
@@ -338,7 +338,7 @@ export default function LiteEditor() {
                  <Button
                     variant="icon"
                     onClick={() => setIsSidebarOpen(true)}
-                    className="w-10 h-10 opacity-60 hover:opacity-100 text-zinc-600 dark:text-zinc-400"
+                    className="w-10 h-10 opacity-60 hover:opacity-100 text-ink-muted dark:text-stone"
                     title="Expand Sidebar"
                   >
                     <HiOutlineChevronRight size={24} />
@@ -347,7 +347,7 @@ export default function LiteEditor() {
                   <Button
                     variant="icon"
                     onClick={() => navigateWithGuard("/editor/settings")}
-                    className="w-10 h-10 opacity-60 hover:opacity-100 text-zinc-600 dark:text-zinc-400"
+                    className="w-10 h-10 opacity-60 hover:opacity-100 text-ink-muted dark:text-stone"
                     title="Settings"
                   >
                     <HiOutlineCog size={24} />
@@ -356,7 +356,7 @@ export default function LiteEditor() {
                   <Button
                     variant="icon"
                     onClick={() => setIsZenModeActive(!isZenModeActive)}
-                    className={`w-10 h-10 transition-colors ${isZenModeActive ? "text-blue-500 opacity-100" : "opacity-60 hover:opacity-100 text-zinc-600 dark:text-zinc-400"}`}
+                    className={`w-10 h-10 transition-colors ${isZenModeActive ? "text-sage opacity-100" : "opacity-60 hover:opacity-100 text-ink-muted dark:text-stone"}`}
                     title="Toggle Zen Mode (Ctrl+Shift+Z)"
                   >
                     {isZenModeActive ? <HiOutlineEye size={24} /> : <HiOutlineEyeOff size={24} />}

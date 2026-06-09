@@ -34,7 +34,7 @@ export default function VaultSidebarFooter({
   const router = useRouter();
 
   return (
-    <div className="p-4 border-t border-zinc-200/50 dark:border-zinc-800/50 bg-transparent shrink-0">
+    <div className="p-4 border-t border-edge/50 bg-transparent shrink-0">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-1">
           <Button
@@ -60,7 +60,7 @@ export default function VaultSidebarFooter({
           <Button
             variant="icon"
             onClick={() => setIsZenModeActive(!isZenModeActive)}
-            className={`w-10 h-10 transition-colors ${isZenModeActive ? "text-blue-500 opacity-100" : "opacity-60 hover:opacity-100"}`}
+            className={`w-10 h-10 transition-colors ${isZenModeActive ? "text-sage opacity-100" : "opacity-60 hover:opacity-100"}`}
             title="Toggle Zen Mode (Ctrl+Shift+Z)"
             aria-label="Toggle Zen Mode"
           >
@@ -84,7 +84,7 @@ export default function VaultSidebarFooter({
                 variant="icon"
                 onClick={openVault}
                 disabled={!isVaultSupported}
-                className="w-10 h-10 text-blue-500/60 hover:text-blue-500"
+                className="w-10 h-10 text-sage/60 hover:text-sage"
                 title={isVaultSupported ? "Open Vault" : "Vault not supported"}
                 aria-label={isVaultSupported ? "Open Vault" : "Vault not supported"}
               >

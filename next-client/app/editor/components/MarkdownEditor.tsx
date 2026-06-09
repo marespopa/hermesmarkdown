@@ -235,7 +235,7 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
       className={`overflow-y-auto py-1 ${isMobile ? "max-h-[55vh]" : "max-h-52"}`}
     >
       {filteredTemplates.length === 0 ? (
-        <div className="px-3 py-2 text-ui-footnote text-zinc-400 dark:text-zinc-600">
+        <div className="px-3 py-2 text-ui-footnote text-ink-muted dark:text-fg-faint">
           No results
         </div>
       ) : (
@@ -253,23 +253,23 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
               }}
               className={`flex items-center gap-2.5 px-3 py-1.5 cursor-pointer transition-colors ${
                 isActive
-                  ? "bg-amber-100 dark:bg-amber-500/20"
-                  : "hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                  ? "bg-beige/40 dark:bg-sage/20"
+                  : "hover:bg-paper-softgray dark:hover:bg-paper-dark-surface"
               }`}
             >
               <span className="shrink-0 w-6 text-center text-base leading-none select-none" aria-hidden="true">
                 {t.icon}
               </span>
               <div className="flex flex-col min-w-0 flex-1">
-                <span className={`text-ui-footnote font-medium leading-tight truncate ${isActive ? "text-amber-900 dark:text-amber-200" : "text-zinc-800 dark:text-zinc-200"}`}>
+                <span className={`text-ui-footnote font-medium leading-tight truncate ${isActive ? "text-ink-light dark:text-ink-dark" : "text-ink-light dark:text-ink-dark"}`}>
                   {renderFuzzyLabel(t.label, t.matchIndices)}
                 </span>
-                <span className="text-[10px] leading-tight text-zinc-400 dark:text-zinc-500 truncate mt-0.5">
+                <span className="text-[10px] leading-tight text-ink-muted dark:text-fg-faint truncate mt-0.5">
                   {t.description}
                 </span>
               </div>
               {t.keybind && (
-                <kbd className="shrink-0 text-[10px] font-mono px-1.5 py-0.5 rounded bg-zinc-100 dark:bg-zinc-800 text-zinc-400 dark:text-zinc-500 border border-zinc-200 dark:border-zinc-700">
+                <kbd className="shrink-0 text-[10px] font-mono px-1.5 py-0.5 rounded bg-paper-softgray dark:bg-paper-dark-surface text-ink-muted dark:text-fg-faint border border-edge">
                   {t.keybind}
                 </kbd>
               )}
@@ -289,7 +289,7 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
           textareaRef.current.focus();
         }
       }}
-      className={`relative w-full h-full overflow-auto paper-grain cursor-text ${isZenModeActive ? "no-scrollbar" : "p-2"}`}
+      className={`relative w-full h-full overflow-auto bg-chrome cursor-text ${isZenModeActive ? "no-scrollbar" : "p-2"}`}
       translate="no"
     >
       <div
@@ -311,14 +311,14 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
             }
           }
         }}
-        className={`editor-container relative min-h-full antialiased normal-nums [font-variant-ligatures:none] [font-feature-settings:'liga'_0,'calt'_0] 
+        className={`editor-container relative min-h-full antialiased normal-nums [font-variant-ligatures:none] [font-feature-settings:'liga'_0,'calt'_0]
           transition-[padding,max-width,opacity] duration-700 [transition-timing-function:cubic-bezier(0.4,0,0.2,1)]
           ${isZenModeActive ? "max-w-[85ch] w-full mx-auto pt-8 pb-32 px-4 md:px-12" : `pt-1 pb-12 mx-auto ${widthClass} ${paddingClass}`}
           ${wordWrap ? "w-full" : "w-max min-w-full"}
-          bg-white dark:bg-zinc-900/40
-          rounded-2xl border border-zinc-200/50 dark:border-zinc-800/50
+          bg-surface
+          rounded-2xl border border-edge-subtle
           text-ui-body
-          [&_textarea]:!bg-transparent [&_textarea]:!text-transparent [&_textarea]:!caret-blue-500
+          [&_textarea]:!bg-transparent [&_textarea]:!text-transparent [&_textarea]:!caret-sage
           [&_textarea]:!z-10 [&_pre]:!z-0 [&_pre]:!pointer-events-none
           [&_textarea]:!outline-none [&_textarea]:!p-0 [&_pre]:!p-0
           [&_textarea]:![border-radius:inherit] [&_pre]:![border-radius:inherit]
@@ -350,7 +350,7 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
                   variant="pill-icon"
                   onMouseDown={(e: React.MouseEvent<HTMLButtonElement>) => e.preventDefault()}
                   onClick={() => setFrontmatterWizardOpen(filePath)}
-                  className="p-1.5 -ml-1.5 shrink-0 text-zinc-400 dark:text-zinc-600 hover:text-violet-500 dark:hover:text-violet-400"
+                  className="p-1.5 -ml-1.5 shrink-0 text-ink-muted dark:text-fg-faint hover:text-sage dark:hover:text-sage"
                   title="Edit frontmatter"
                   aria-label="Edit frontmatter"
                 >
@@ -386,7 +386,7 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
                     pendingFmCursorRef.current = true;
                     setIsFmCollapsed((c) => !c);
                   }}
-                  className="p-1.5 -mr-1.5 shrink-0 text-zinc-400 dark:text-zinc-600 hover:text-violet-500 dark:hover:text-violet-400"
+                  className="p-1.5 -mr-1.5 shrink-0 text-ink-muted dark:text-fg-faint hover:text-sage dark:hover:text-sage"
                   title={isFmCollapsed ? "Expand frontmatter" : "Collapse frontmatter"}
                   aria-label={isFmCollapsed ? "Expand frontmatter" : "Collapse frontmatter"}
                 >
@@ -438,7 +438,7 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
               aria-controls="cmd-listbox"
               aria-haspopup="listbox"
               aria-activedescendant={selectedIndex !== -1 ? `cmd-item-${selectedIndex}` : undefined}
-              className="absolute z-50 w-[min(18rem,_calc(100vw_-_2rem))] bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-2xl overflow-hidden"
+              className="absolute z-50 w-[min(18rem,_calc(100vw_-_2rem))] bg-paper-light dark:bg-paper-dark-surface border border-edge rounded-xl shadow-2xl overflow-hidden"
               style={{ top: menuPos.top, left: menuPos.left, fontFamily }}
             >
               {templateList}
@@ -561,7 +561,7 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
               ariaLabelledBy="link-insert-heading"
             >
               <div className="flex flex-col gap-5">
-                <h2 id="link-insert-heading" className="text-ui-body font-semibold text-zinc-900 dark:text-zinc-100">
+                <h2 id="link-insert-heading" className="text-ui-body font-semibold text-ink-light dark:text-ink-dark">
                   Add Link
                 </h2>
 

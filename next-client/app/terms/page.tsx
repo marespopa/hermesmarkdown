@@ -10,7 +10,7 @@ const BackgroundGraphics = () => (
     <div className="absolute inset-0 bg-[linear-gradient(to_right,#8080800a_1px,transparent_1px),linear-gradient(to_bottom,#8080800a_1px,transparent_1px)] bg-[size:32px_32px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)]" />
     
     {/* Sophisticated Ambient Glows */}
-    <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[1000px] bg-gradient-radial from-blue-500/[0.05] dark:from-blue-500/[0.03] via-transparent to-transparent blur-[120px]" />
+    <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[1000px] bg-gradient-radial from-sage/[0.05] dark:from-sage/[0.03] via-transparent to-transparent blur-[120px]" />
     <div className="absolute top-[20%] right-[10%] w-[500px] h-[500px] bg-purple-500/[0.03] dark:bg-purple-500/[0.02] rounded-full blur-[100px]" />
     <div className="absolute bottom-[20%] left-[5%] w-[600px] h-[600px] bg-amber-500/[0.02] dark:bg-amber-500/[0.01] rounded-full blur-[120px]" />
     
@@ -23,7 +23,7 @@ export default function TermsAndConditions() {
   const router = useRouter();
 
   return (
-    <main className="min-h-screen selection:bg-blue-500/30 text-neutral-900 dark:text-neutral-100 bg-white dark:bg-[#050505] overflow-x-hidden font-sans relative">
+    <main className="min-h-screen selection:bg-sage/30 text-fg bg-surface overflow-x-hidden font-sans relative">
       <BackgroundGraphics />
       <div className="max-w-5xl mx-auto px-6 pt-32 pb-32 space-y-32">
         {/* --- HEADER SECTION --- */}
@@ -53,14 +53,14 @@ export default function TermsAndConditions() {
         {/* --- CONTENT SECTION --- */}
         <section className="prose prose-sm md:prose-base dark:prose-invert max-w-none border-t border-black/5 dark:border-white/10 pt-24 space-y-12">
           <div className="space-y-4">
-            <h2 className="text-xl font-bold tracking-tight uppercase tracking-widest text-blue-600 dark:text-blue-400 text-xs">Acceptance of Terms</h2>
+            <h2 className="text-xl font-bold tracking-tight uppercase tracking-widest text-sage dark:text-sage text-xs">Acceptance of Terms</h2>
             <p className="text-lg">
               By accessing and using www.hermesmarkdown.com and the HermesMarkdown Service, you agree to be bound by these Terms of Service. If you do not agree to these terms, please do not use the Service.
             </p>
           </div>
 
           <div className="space-y-4">
-            <h2 className="text-xl font-bold tracking-tight uppercase tracking-widest text-blue-600 dark:text-blue-400 text-xs">1. The Service</h2>
+            <h2 className="text-xl font-bold tracking-tight uppercase tracking-widest text-sage dark:text-sage text-xs">1. The Service</h2>
             <h3 className="text-ui-title-3 font-semibold">1.1 Service Description</h3>
             <p>
               HermesMarkdown is a local-first Markdown editor tool designed to facilitate transparent and efficient writing. The &quot;Service&quot; includes all functionalities, APIs, and tools offered through our platform.
@@ -73,7 +73,7 @@ export default function TermsAndConditions() {
           </div>
 
           <div className="space-y-4">
-            <h2 className="text-xl font-bold tracking-tight uppercase tracking-widest text-blue-600 dark:text-blue-400 text-xs">2. User Responsibility</h2>
+            <h2 className="text-xl font-bold tracking-tight uppercase tracking-widest text-sage dark:text-sage text-xs">2. User Responsibility</h2>
             <p>
               You are responsible for your use of the Service and for any content you create. Because HermesMarkdown is a local-first application, you are solely responsible for the backup and security of your Markdown files stored on your local device.
             </p>
@@ -83,7 +83,7 @@ export default function TermsAndConditions() {
           </div>
 
           <div className="space-y-4">
-            <h2 className="text-xl font-bold tracking-tight uppercase tracking-widest text-blue-600 dark:text-blue-400 text-xs">3. Liability & Disclaimers</h2>
+            <h2 className="text-xl font-bold tracking-tight uppercase tracking-widest text-sage dark:text-sage text-xs">3. Liability & Disclaimers</h2>
             <p>
               HERMESMARKDOWN AND ITS CREATOR, MARES POPA, BEAR NO RESPONSIBILITY FOR DATA LOSS, SECURITY BREACHES ON YOUR LOCAL DEVICE, OR THE OPERABILITY OF THIRD-PARTY SERVICES. THE SERVICE IS PROVIDED &quot;AS IS&quot; WITHOUT WARRANTIES OF ANY KIND.
             </p>

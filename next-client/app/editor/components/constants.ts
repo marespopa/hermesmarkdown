@@ -6,10 +6,10 @@ export const WORKFLOW_TAGS = ["draft", "review", "active", "archived"];
 export const TODO_TAGS = ["todo", "prog", "done"];
 export const TAG_COLORS: Record<string, string> = {
   draft:    "text-amber-600 dark:text-amber-400",
-  review:   "text-blue-600 dark:text-blue-400",
+  review:   "text-sage dark:text-sage",
   active:   "text-emerald-600 dark:text-emerald-400",
-  archived: "text-zinc-500 dark:text-zinc-400",
-  todo:     "text-violet-600 dark:text-violet-400",
+  archived: "text-ink-muted dark:text-stone",
+  todo:     "text-sage dark:text-sage",
   prog:     "text-orange-500 dark:text-orange-400",
   done:     "text-teal-600 dark:text-teal-400",
 };
@@ -116,7 +116,7 @@ export const AI_EXPAND_SENTINEL = "__AI_EXPAND__";
 export const CURSOR_SENTINEL = "\0";
 
 export const PILL_CONTAINER_CLASSES =
-  "absolute z-40 flex items-center gap-1 p-1 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-md shadow-sm pointer-events-auto select-none transition-all duration-200 ease-in-out";
+  "absolute z-40 flex items-center gap-1 p-1 bg-paper-light dark:bg-paper-dark border border-edge rounded-md shadow-sm pointer-events-auto select-none transition-all duration-200 ease-in-out";
 
 export interface Template {
   label: string;

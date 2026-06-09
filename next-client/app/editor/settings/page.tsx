@@ -224,14 +224,14 @@ const SettingsPage = () => {
                   className="w-full flex items-center justify-between gap-4 py-3.5 border-b border-neutral-100 dark:border-neutral-800/40 last:border-0 focus:outline-none"
                 >
                   <div className="flex flex-col items-start gap-1 min-w-0">
-                    <span className={`text-ui-subhead font-medium leading-none ${isActive ? "text-blue-600 dark:text-blue-400" : "text-ink-light dark:text-ink-dark"}`}>
+                    <span className={`text-ui-subhead font-medium leading-none ${isActive ? "text-sage dark:text-sage" : "text-ink-light dark:text-ink-dark"}`}>
                       {f.label}
                     </span>
                     <span style={{ fontFamily: f.value }} className="text-ui-footnote text-neutral-400 dark:text-neutral-500">
                       The quick brown fox 0123
                     </span>
                   </div>
-                  {isActive && <HiCheck size={15} className="shrink-0 text-blue-600 dark:text-blue-400" />}
+                  {isActive && <HiCheck size={15} className="shrink-0 text-sage dark:text-sage" />}
                 </button>
               );
             })}
@@ -357,7 +357,7 @@ const SettingsPage = () => {
                   {sidebarTabOrder.map((tab, idx) => (
                     <div
                       key={tab}
-                      className="flex items-center justify-between bg-zinc-50 dark:bg-zinc-800/60 px-3.5 py-2.5 rounded-xl border border-neutral-200/60 dark:border-neutral-800/60"
+                      className="flex items-center justify-between bg-paper-softgray dark:bg-paper-dark-surface/60 px-3.5 py-2.5 rounded-xl border border-neutral-200/60 dark:border-neutral-800/60"
                     >
                       <span className="text-ui-subhead font-medium capitalize text-ink-light dark:text-ink-dark">
                         {tab}
@@ -467,7 +467,7 @@ const SettingsPage = () => {
                         setAvailableGeminiModels([]);
                         setFetchError(null);
                       }}
-                      className="p-1.5 text-zinc-400 hover:text-blue-500 transition-colors"
+                      className="p-1.5 text-stone hover:text-sage transition-colors"
                       title="Refresh models"
                     >
                       <HiOutlineRefresh size={18} className={isFetchingModels ? "animate-spin" : ""} />
@@ -527,7 +527,7 @@ const SettingsPage = () => {
             </div>
           </SettingGroup>
           <div className="mt-4 px-1">
-            <p className="text-ui-caption text-zinc-400 dark:text-zinc-500 italic">
+            <p className="text-ui-caption text-stone italic">
               Note: Your API keys are stored locally in your browser and never sent to HermesMarkdown servers.
             </p>
           </div>
@@ -660,14 +660,14 @@ const SettingsPage = () => {
   const active = sections.find((s) => s.id === activeSection) ?? sections[0];
 
   return (
-    <div className="fixed inset-0 flex flex-col lg:flex-row font-sans overflow-hidden overscroll-none bg-zinc-50 dark:bg-zinc-950 text-ink-light dark:text-ink-dark selection:bg-pastel-blue/30">
+    <div className="fixed inset-0 flex flex-col lg:flex-row font-sans overflow-hidden overscroll-none bg-paper-softgray dark:bg-paper-dark text-ink-light dark:text-ink-dark selection:bg-sage/10">
       {/* Sidebar */}
-      <aside className="shrink-0 lg:w-60 flex flex-col border-b lg:border-b-0 lg:border-r border-zinc-200/70 dark:border-zinc-900 bg-white dark:bg-zinc-950">
+      <aside className="shrink-0 lg:w-60 flex flex-col border-b lg:border-b-0 lg:border-r border-beige/70 dark:border-paper-dark bg-paper-light dark:bg-paper-dark">
         <div className="px-5 pt-6 pb-4">
           <button
             onClick={() => router.push("/editor")}
             title="Back to editor"
-            className="inline-flex items-center gap-1.5 text-ui-footnote font-medium text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200 transition-colors mb-5 group focus:outline-none"
+            className="inline-flex items-center gap-1.5 text-ui-footnote font-medium text-stone hover:text-ink-light dark:hover:text-ink-dark transition-colors mb-5 group focus:outline-none"
           >
             <HiOutlineArrowLeft size={13} className="group-hover:-translate-x-0.5 transition-transform" />
             Editor
@@ -685,8 +685,8 @@ const SettingsPage = () => {
                 onClick={() => setActiveSection(s.id)}
                 className={`flex items-center gap-2.5 shrink-0 px-3 py-2.5 rounded-xl text-ui-subhead font-medium transition-all focus:outline-none ${
                   isActive
-                    ? "bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400"
-                    : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-900"
+                    ? "bg-sage/10 dark:bg-sage/10 text-sage dark:text-sage"
+                    : "text-ink-muted hover:text-ink-light dark:hover:text-ink-dark hover:bg-paper-softgray dark:hover:bg-paper-dark"
                 }`}
               >
                 <Icon size={16} className="shrink-0" />
@@ -698,7 +698,7 @@ const SettingsPage = () => {
       </aside>
 
       {/* Content */}
-      <main className="flex-1 min-h-0 overflow-y-auto custom-scrollbar bg-zinc-50/80 dark:bg-[#0f0f10]">
+      <main className="flex-1 min-h-0 overflow-y-auto custom-scrollbar bg-paper-softgray/80 dark:bg-paper-dark">
         <div className="max-w-[560px] mx-auto px-5 sm:px-8 py-8">
           <h2 className="text-ui-title-2 font-bold tracking-tight mb-6">{active.label}</h2>
           {active.content}

@@ -36,7 +36,7 @@ type AgentRating = {
 
 function computeAgentScore(content: string): AgentRating {
   if (!content.trim()) {
-    return { score: 0, label: "Empty", colorClass: "text-zinc-400 dark:text-zinc-600", tips: [], breakdown: [] };
+    return { score: 0, label: "Empty", colorClass: "text-stone dark:text-fg-faint", tips: [], breakdown: [] };
   }
 
   let score = 0;
@@ -147,9 +147,9 @@ function computeAgentScore(content: string): AgentRating {
   ];
 
   if (pct >= 75) return { score: pct, label: "Structured", colorClass: "text-emerald-600 dark:text-emerald-400", tips, breakdown };
-  if (pct >= 50) return { score: pct, label: "Good",       colorClass: "text-blue-500 dark:text-blue-400",       tips, breakdown };
+  if (pct >= 50) return { score: pct, label: "Good",       colorClass: "text-sage dark:text-sage",               tips, breakdown };
   if (pct >= 25) return { score: pct, label: "Fair",       colorClass: "text-amber-500 dark:text-amber-400",     tips, breakdown };
-  return               { score: pct, label: "Weak",        colorClass: "text-zinc-400 dark:text-zinc-500",       tips, breakdown };
+  return               { score: pct, label: "Weak",        colorClass: "text-stone",    tips, breakdown };
 }
 
 // --- StatusBar ---
@@ -182,32 +182,35 @@ export default function StatusBar() {
 
   if (!showStats && !isZenModeActive) return null;
 
-  const barClasses = `relative shrink-0 pointer-events-auto z-40 select-none paper-grain bg-zinc-100/50 dark:bg-black/50 border-zinc-200/40 dark:border-zinc-800/40 flex items-center justify-between px-4 transition-colors duration-200 opacity-60 hover:opacity-100`;
+  const barClasses = `group relative shrink-0 pointer-events-auto z-40 select-none paper-grain bg-chrome border-edge-subtle transition-colors duration-200`;
+  const innerClasses = `flex items-center justify-between w-full h-full px-4 opacity-60 group-hover:opacity-100 transition-opacity duration-200`;
 
   if (!activeFilePath) {
     return (
       <footer className={`${barClasses} h-11 md:h-8 ${isZenModeActive ? "border-b" : "border-t"}`}>
-        <div className="w-32 flex items-center">
-          <span className="text-[12px] md:text-[10px] font-medium text-zinc-400 dark:text-zinc-500 lowercase tracking-tight">no file open</span>
-        </div>
-        
-        {isIndexing && (
-          <span className="absolute left-32 flex items-center gap-2 whitespace-nowrap" title="Indexing vault…">
-            <span className="w-2 h-2 rounded-full border border-zinc-400 dark:border-zinc-500 border-t-blue-500 dark:border-t-blue-400 animate-spin" />
-            {indexerCount > 0 && <span className="text-[10px] text-zinc-400 dark:text-zinc-500 tabular-nums font-medium">{indexerCount}</span>}
-          </span>
-        )}
+        <div className={innerClasses}>
+          <div className="w-32 flex items-center">
+            <span className="text-[12px] md:text-[10px] font-medium text-fg-faint lowercase tracking-tight">no file open</span>
+          </div>
 
-        {isZenModeActive && (
-          <Button
-            variant="bare"
-            onClick={() => setIsZenModeActive(false)}
-            className="h-full px-3 flex items-center text-[11px] font-medium text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 active:opacity-60 transition-colors lowercase tracking-tight"
-            title="Exit Zen Mode (Esc)"
-          >
-            exit
-          </Button>
-        )}
+          {isIndexing && (
+            <span className="absolute left-32 flex items-center gap-2 whitespace-nowrap" title="Indexing vault…">
+              <span className="w-2 h-2 rounded-full border border-fg-faint border-t-sage animate-spin" />
+              {indexerCount > 0 && <span className="text-[10px] text-fg-faint tabular-nums font-medium">{indexerCount}</span>}
+            </span>
+          )}
+
+          {isZenModeActive && (
+            <Button
+              variant="bare"
+              onClick={() => setIsZenModeActive(false)}
+              className="h-full px-3 flex items-center text-[11px] font-medium text-fg-muted hover:text-fg active:opacity-60 transition-colors lowercase tracking-tight"
+              title="Exit Zen Mode (Esc)"
+            >
+              exit
+            </Button>
+          )}
+        </div>
       </footer>
     );
   }
@@ -224,7 +227,7 @@ export default function StatusBar() {
   if (isSaving) {
     saveIcon = <HiOutlineRefresh size={14} className="animate-spin opacity-60" />;
     saveLabel = "saving";
-    saveLabelClass = "text-zinc-400 dark:text-zinc-500";
+    saveLabelClass = "text-stone";
   } else if (isError) {
     saveIcon = <HiOutlineExclamationCircle size={14} className="text-red-500" />;
     saveLabel = "error";
@@ -232,7 +235,7 @@ export default function StatusBar() {
   } else if (isDirty) {
     saveIcon = <HiOutlineCloudUpload size={14} className="opacity-40" />;
     saveLabel = "unsaved";
-    saveLabelClass = "text-zinc-400 dark:text-zinc-500";
+    saveLabelClass = "text-stone";
   } else {
     saveIcon = <HiOutlineCheckCircle size={14} className="text-emerald-500 opacity-80" />;
     saveLabel = "saved";
@@ -242,6 +245,7 @@ export default function StatusBar() {
   if (isZenModeActive) {
     return (
       <header className={`${barClasses} h-11 md:h-8 border-b`}>
+        <div className={innerClasses}>
         <div className="w-32 flex items-center gap-2">
           {saveIcon}
           <span 
@@ -257,15 +261,15 @@ export default function StatusBar() {
 
         {isIndexing && (
           <span className="absolute left-32 flex items-center gap-2 whitespace-nowrap" title="Indexing vault…">
-            <span className="w-2 h-2 rounded-full border border-zinc-400 dark:border-zinc-500 border-t-blue-500 dark:border-t-blue-400 animate-spin" />
-            {indexerCount > 0 && <span className="text-[10px] text-zinc-400 dark:text-zinc-500 tabular-nums font-medium">{indexerCount}</span>}
+            <span className="w-2 h-2 rounded-full border border-fg-faint border-t-sage animate-spin" />
+            {indexerCount > 0 && <span className="text-[10px] text-fg-faint tabular-nums font-medium">{indexerCount}</span>}
           </span>
         )}
 
         <Button
           variant="bare"
           onClick={() => setShowTokens(v => !v)}
-          className="flex-1 h-full flex justify-center items-center text-[12px] md:text-[10px] text-zinc-500 dark:text-zinc-400 cursor-pointer hover:text-zinc-900 dark:hover:text-zinc-100 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] lowercase tracking-tight hover:no-underline"
+          className="flex-1 h-full flex justify-center items-center text-[12px] md:text-[10px] text-fg-muted cursor-pointer hover:text-fg transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] lowercase tracking-tight hover:no-underline"
           title={showTokens ? "Switch to word count" : "Switch to token count (~cost)"}
           aria-label={showTokens ? "Switch to word count" : "Switch to token count (~cost)"}
         >
@@ -297,14 +301,14 @@ export default function StatusBar() {
                   setShowAiTip(false);
                 }} />
                 <span 
-                  className="absolute top-full right-0 mt-1 flex flex-col rounded-lg bg-white dark:bg-zinc-900 border border-zinc-200/50 dark:border-zinc-800/50 px-3 py-2 text-[10px] leading-snug text-zinc-800 dark:text-zinc-100 shadow-xl z-50 gap-1.5 w-[min(200px,_calc(100vw_-_1rem))] origin-top-right animate-dropdown-in"
+                  className="absolute top-full right-0 mt-1 flex flex-col rounded-lg bg-paper-light dark:bg-paper-dark border border-edge/50 px-3 py-2 text-[10px] leading-snug text-ink-light dark:text-ink-dark shadow-xl z-50 gap-1.5 w-[min(200px,_calc(100vw_-_1rem))] origin-top-right animate-dropdown-in"
                   onClick={(e) => e.stopPropagation()}
                 >
                   <span className="font-semibold mb-1 opacity-90">Agent readability — {agentRating.score}/100</span>
                   {agentRating.breakdown.map(({ label, score: s, max }, idx) => (
                     <span key={label} className="flex items-center gap-2 animate-row-in" style={{ animationDelay: `${idx * 60 + 50}ms` }}>
                       <span className="w-[70px] shrink-0 opacity-60 font-medium">{label}</span>
-                      <span className="flex-1 h-1 rounded-full bg-zinc-100 dark:bg-zinc-800 overflow-hidden">
+                      <span className="flex-1 h-1 rounded-full bg-paper-softgray dark:bg-paper-dark-surface overflow-hidden">
                         <span
                           className="block h-full rounded-full bg-emerald-500 animate-grow-x"
                           style={{ 
@@ -317,7 +321,7 @@ export default function StatusBar() {
                     </span>
                   ))}
                   {agentRating.tips.length > 0 && (
-                    <span className="flex flex-col gap-0.5 mt-1 pt-1.5 border-t border-zinc-100 dark:border-zinc-800 animate-row-in" style={{ animationDelay: `${agentRating.breakdown.length * 60 + 100}ms` }}>
+                    <span className="flex flex-col gap-0.5 mt-1 pt-1.5 border-t border-paper-softgray dark:border-paper-dark-surface animate-row-in" style={{ animationDelay: `${agentRating.breakdown.length * 60 + 100}ms` }}>
                       {agentRating.tips.map((tip, i) => (
                         <span key={i} className="opacity-60">↳ {tip}</span>
                       ))}
@@ -337,11 +341,12 @@ export default function StatusBar() {
           <Button
             variant="bare"
             onClick={() => setIsZenModeActive(false)}
-            className="h-full px-3 flex items-center text-[10px] font-medium text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 active:opacity-60 transition-colors lowercase tracking-tight"
+            className="h-full px-3 flex items-center text-[10px] font-medium text-fg-muted hover:text-fg active:opacity-60 transition-colors lowercase tracking-tight"
             title="Exit Zen Mode (Esc)"
           >
             exit
           </Button>
+        </div>
         </div>
       </header>
     );
@@ -349,10 +354,11 @@ export default function StatusBar() {
 
   return (
     <footer className={`${barClasses} h-11 md:h-8 border-t`}>
+      <div className={innerClasses}>
       {/* LEFT — save state */}
       <div className="w-32 flex items-center gap-2">
         {saveIcon}
-        <span 
+        <span
           className={`text-[12px] md:text-[10px] font-medium lowercase tracking-tight ${isError ? 'cursor-pointer hover:underline' : 'cursor-default'} ${saveLabelClass}`}
           title={saveStatus.message}
           onClick={() => {
@@ -366,21 +372,21 @@ export default function StatusBar() {
       {/* INDEXING — absolute positioned to prevent jump */}
       {isIndexing && (
         <span className="absolute left-32 flex items-center gap-2 whitespace-nowrap" title="Indexing vault…">
-          <span className="w-2 h-2 rounded-full border border-zinc-400 dark:border-zinc-500 border-t-blue-500 dark:border-t-blue-400 animate-spin" />
-          {indexerCount > 0 && <span className="text-[10px] text-zinc-400 dark:text-zinc-500 tabular-nums font-medium">{indexerCount}</span>}
+          <span className="w-2 h-2 rounded-full border border-fg-faint border-t-sage animate-spin" />
+          {indexerCount > 0 && <span className="text-[10px] text-fg-faint tabular-nums font-medium">{indexerCount}</span>}
         </span>
       )}
 
       <Button
         variant="bare"
         onClick={() => setShowTokens(v => !v)}
-        className="flex-1 h-full flex justify-center items-center text-[12px] md:text-[10px] text-zinc-500 dark:text-zinc-400 cursor-pointer hover:text-zinc-900 dark:hover:text-zinc-100 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] lowercase tracking-tight hover:no-underline"
+        className="flex-1 h-full flex justify-center items-center text-[12px] md:text-[10px] text-fg-muted cursor-pointer hover:text-fg transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] lowercase tracking-tight hover:no-underline"
         title={showTokens ? "Switch to word count" : "Switch to token count (~cost)"}
         aria-label={showTokens ? "Switch to word count" : "Switch to token count (~cost)"}
       >
-        {selectionCount > 0 
+        {selectionCount > 0
           ? `[${selectionCount}] words selected`
-          : showTokens 
+          : showTokens
             ? `~${tokenCount} tokens`
             : `${wordCount} words`
         }
@@ -407,14 +413,14 @@ export default function StatusBar() {
                 setShowAiTip(false);
               }} />
               <span 
-                className="absolute md:bottom-full md:mb-2 max-md:top-full max-md:mt-2 right-0 flex flex-col rounded-lg bg-white dark:bg-zinc-900 border border-zinc-200/50 dark:border-zinc-800/50 px-3 py-2 text-[10px] leading-snug text-zinc-800 dark:text-zinc-100 shadow-xl z-50 gap-1.5 w-[min(200px,_calc(100vw_-_1rem))] origin-bottom-right animate-dropdown-in-up"
+                className="absolute md:bottom-full md:mb-2 max-md:top-full max-md:mt-2 right-0 flex flex-col rounded-lg bg-paper-light dark:bg-paper-dark border border-edge/50 px-3 py-2 text-[10px] leading-snug text-ink-light dark:text-ink-dark shadow-xl z-50 gap-1.5 w-[min(200px,_calc(100vw_-_1rem))] origin-bottom-right animate-dropdown-in-up"
                 onClick={(e) => e.stopPropagation()}
               >
                 <span className="font-semibold mb-1 opacity-90">Agent readability — {agentRating.score}/100</span>
                 {agentRating.breakdown.map(({ label, score: s, max }, idx) => (
                   <span key={label} className="flex items-center gap-2 animate-row-in" style={{ animationDelay: `${idx * 60 + 50}ms` }}>
                     <span className="w-[70px] shrink-0 opacity-60 font-medium">{label}</span>
-                    <span className="flex-1 h-1 rounded-full bg-zinc-100 dark:bg-zinc-800 overflow-hidden">
+                    <span className="flex-1 h-1 rounded-full bg-paper-softgray dark:bg-paper-dark-surface overflow-hidden">
                       <span
                         className="block h-full rounded-full bg-emerald-500 animate-grow-x"
                         style={{ 
@@ -427,7 +433,7 @@ export default function StatusBar() {
                   </span>
                 ))}
                 {agentRating.tips.length > 0 && (
-                  <span className="flex flex-col gap-0.5 mt-1 pt-1.5 border-t border-zinc-100 dark:border-zinc-800 animate-row-in" style={{ animationDelay: `${agentRating.breakdown.length * 60 + 100}ms` }}>
+                  <span className="flex flex-col gap-0.5 mt-1 pt-1.5 border-t border-paper-softgray dark:border-paper-dark-surface animate-row-in" style={{ animationDelay: `${agentRating.breakdown.length * 60 + 100}ms` }}>
                     {agentRating.tips.map((tip, i) => (
                       <span key={i} className="opacity-60">↳ {tip}</span>
                     ))}
@@ -443,6 +449,7 @@ export default function StatusBar() {
             </>
           )}
         </Button>
+      </div>
       </div>
     </footer>
   );

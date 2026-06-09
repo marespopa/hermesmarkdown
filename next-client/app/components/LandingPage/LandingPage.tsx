@@ -25,7 +25,7 @@ const MarkdownEditor = dynamic(
 const FilesystemGraphic = () => (
   <div className="w-full h-full flex items-center justify-center p-6 relative">
     <div className="font-mono text-[11px] leading-relaxed text-left select-none w-full max-w-[260px]">
-      <div className="flex items-center gap-1.5 text-blue-500 dark:text-blue-400 font-semibold mb-1">
+      <div className="flex items-center gap-1.5 text-sage dark:text-sage font-semibold mb-1">
         <svg
           width="13"
           height="13"
@@ -72,8 +72,8 @@ const FilesystemGraphic = () => (
       </div>
     </div>
     <div className="absolute top-4 right-4 flex items-center gap-1.5">
-      <div className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
-      <span className="text-[9px] font-mono uppercase tracking-widest text-blue-500 dark:text-blue-400 opacity-70">
+      <div className="w-1.5 h-1.5 rounded-full bg-sage animate-pulse" />
+      <span className="text-[9px] font-mono uppercase tracking-widest text-sage dark:text-sage opacity-70">
         Connected
       </span>
     </div>
@@ -462,7 +462,7 @@ const GoogleDriveGraphic = () => (
   <div className="w-full h-full flex items-center justify-center p-6 relative select-none">
     <div className="flex items-center gap-8">
       <div className="flex flex-col items-center gap-2">
-        <div className="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center">
+        <div className="w-12 h-12 rounded-xl bg-sage/10 flex items-center justify-center">
           <svg
             width="24"
             height="24"
@@ -472,7 +472,7 @@ const GoogleDriveGraphic = () => (
             strokeWidth="2"
             strokeLinecap="round"
             strokeLinejoin="round"
-            className="text-blue-500"
+            className="text-sage"
           >
             <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
           </svg>
@@ -526,7 +526,7 @@ const GoogleDriveGraphic = () => (
 const AIKeyGraphic = () => (
   <div className="w-full h-full flex items-center justify-center p-6 relative select-none">
     <div className="w-full max-w-[280px] space-y-3">
-      <div className="p-3 rounded-lg border border-black/5 dark:border-white/10 bg-white dark:bg-neutral-900/50 space-y-2">
+      <div className="p-3 rounded-lg border border-black/5 dark:border-white/10 bg-surface dark:bg-surface/50 space-y-2">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="w-2 h-2 rounded-full bg-emerald-500" />
@@ -540,7 +540,7 @@ const AIKeyGraphic = () => (
           <div className="h-full w-full bg-emerald-500/20" />
         </div>
       </div>
-      <div className="p-3 rounded-lg border border-black/5 dark:border-white/10 bg-white dark:bg-neutral-900/50 space-y-2">
+      <div className="p-3 rounded-lg border border-black/5 dark:border-white/10 bg-surface dark:bg-surface/50 space-y-2">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="w-2 h-2 rounded-full bg-amber-500" />
@@ -614,7 +614,7 @@ export default function LandingPage() {
     realContent !== DEFAULT_DEMO_CONTENT;
 
   return (
-    <main className="min-h-screen selection:bg-blue-500/30 text-neutral-900 dark:text-neutral-100 bg-white dark:bg-[#050505] overflow-x-hidden font-sans">
+    <main className="min-h-screen selection:bg-sage/30 text-fg bg-surface overflow-x-hidden font-sans">
       <LoadingOverlay isVisible={showLoading} text="Opening editor..." />
 
       {/* PERSISTENT RESUME NOTIFICATION */}
@@ -622,7 +622,7 @@ export default function LandingPage() {
         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-3rem)] max-w-md">
           <div className="bg-white/80 dark:bg-neutral-900/80 backdrop-blur-xl border border-black/5 dark:border-white/10 rounded-2xl shadow-2xl p-4 flex items-center justify-between gap-4 animate-hero-fade-in">
             <div className="space-y-0.5 text-left">
-              <p className="text-ui-footnote font-bold uppercase tracking-wider text-blue-600 dark:text-blue-400">
+              <p className="text-ui-footnote font-bold uppercase tracking-wider text-sage dark:text-sage">
                 Welcome Back
               </p>
               <p className="text-xs opacity-60">
@@ -671,7 +671,7 @@ export default function LandingPage() {
 
           {/* INTERACTIVE EDITOR PREVIEW */}
           <div className="w-full max-w-4xl relative group animate-hero-fade-in [animation-fill-mode:forwards] [animation-delay:300ms] opacity-0">
-            <div className="bg-white dark:bg-neutral-900 rounded-2xl shadow-2xl border border-black/5 dark:border-white/10 overflow-hidden ring-1 ring-black/5 dark:ring-white/5 transition-all duration-500 group-hover:shadow-blue-500/5 group-hover:ring-blue-500/20">
+            <div className="bg-surface dark:bg-surface rounded-2xl shadow-2xl border border-black/5 dark:border-white/10 overflow-hidden ring-1 ring-black/5 dark:ring-white/5 transition-all duration-500 group-hover:shadow-sage/5 group-hover:ring-sage/20">
               <div className="h-10 bg-neutral-50 dark:bg-neutral-800/50 border-b border-black/5 dark:border-white/10 flex items-center px-4 gap-2">
                 <div className="flex gap-1.5">
                   <div className="w-3 h-3 rounded-full bg-red-400/20 border border-red-400/30" />
@@ -691,7 +691,7 @@ export default function LandingPage() {
                 )}
               </div>
             </div>
-            <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-2xl blur-2xl -z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+            <div className="absolute -inset-0.5 bg-gradient-to-r from-sage/20 to-beige/20 rounded-2xl blur-2xl -z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
           </div>
         </div>
       </div>
@@ -842,11 +842,11 @@ export default function LandingPage() {
         {/* 4. Vault Management */}
         <section className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 lg:gap-16 items-center">
           <div className="order-last md:order-first aspect-video bg-neutral-100 dark:bg-neutral-900 rounded-2xl border border-black/5 dark:border-white/5 flex items-center justify-center group overflow-hidden relative">
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-blue-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-sage/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
             <FilesystemGraphic />
           </div>
           <div className="space-y-6">
-            <div className="h-px w-12 bg-blue-600" />
+            <div className="h-px w-12 bg-sage" />
             <h2 className="text-3xl font-bold tracking-tight">
               Vault Management
             </h2>
@@ -982,8 +982,8 @@ export default function LandingPage() {
 
       {/* --- CALL TO ACTION --- */}
       <section className="py-24 md:py-32 px-6">
-        <div className="max-w-4xl mx-auto text-center space-y-8 bg-neutral-50 dark:bg-neutral-900/50 text-neutral-900 dark:text-neutral-100 p-8 md:p-16 lg:p-24 rounded-[2rem] md:rounded-[3rem] shadow-sm border border-black/5 dark:border-white/5 relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/5 blur-[100px] -mr-32 -mt-32" />
+        <div className="max-w-4xl mx-auto text-center space-y-8 bg-neutral-50 dark:bg-neutral-900/50 text-fg p-8 md:p-16 lg:p-24 rounded-[2rem] md:rounded-[3rem] shadow-sm border border-black/5 dark:border-white/5 relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-sage/5 blur-[100px] -mr-32 -mt-32" />
           <div className="absolute bottom-0 left-0 w-64 h-64 bg-purple-500/5 blur-[100px] -ml-32 -mb-32" />
 
           <h2 className="text-3xl md:text-5xl lg:text-6xl font-bold tracking-tight relative z-10">
@@ -997,7 +997,7 @@ export default function LandingPage() {
             <Button
               variant="hero"
               onClick={handleStart}
-              className="shadow-xl hover:shadow-blue-500/20 transition-all"
+              className="shadow-xl hover:shadow-sage/20 transition-all"
             >
               Launch Editor
             </Button>

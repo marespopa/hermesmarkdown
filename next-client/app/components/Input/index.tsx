@@ -36,9 +36,9 @@ export const Select = ({
         className={
           compact
             ? fullWidth
-              ? "bg-zinc-50 dark:bg-zinc-800/50 text-zinc-900 dark:text-zinc-100 border border-zinc-200 dark:border-zinc-700 rounded-xl font-sans px-3 py-2.5 text-ui-subhead h-11 w-full focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all"
-              : "bg-zinc-50 dark:bg-zinc-800/50 text-zinc-900 dark:text-zinc-100 border border-zinc-200 dark:border-zinc-700 rounded-lg font-sans px-2 py-1 text-ui-footnote h-8 focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all"
-            : "bg-zinc-50 dark:bg-zinc-800/50 text-zinc-900 dark:text-zinc-100 border border-zinc-200 dark:border-zinc-700 rounded-xl font-sans px-4 py-2.5 text-ui-subhead h-11 focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all"
+              ? "bg-paper-softgray dark:bg-paper-dark-surface/50 text-ink-light dark:text-ink-dark border border-edge rounded-xl font-sans px-3 py-2.5 text-ui-subhead h-11 w-full focus:ring-4 focus:ring-sage/10 focus:border-sage outline-none transition-all"
+              : "bg-paper-softgray dark:bg-paper-dark-surface/50 text-ink-light dark:text-ink-dark border border-edge rounded-lg font-sans px-2 py-1 text-ui-footnote h-8 focus:ring-4 focus:ring-sage/10 focus:border-sage outline-none transition-all"
+            : "bg-paper-softgray dark:bg-paper-dark-surface/50 text-ink-light dark:text-ink-dark border border-edge rounded-xl font-sans px-4 py-2.5 text-ui-subhead h-11 focus:ring-4 focus:ring-sage/10 focus:border-sage outline-none transition-all"
         }
         id={name}
         name={name}

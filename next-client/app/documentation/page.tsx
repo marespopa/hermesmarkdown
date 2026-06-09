@@ -5,17 +5,17 @@ import { useRouter } from "next/navigation";
 import Button from "@/app/components/Button/Button.component";
 
 const SECTIONS = [
-  { id: "knowledge", label: "01. Knowledge" },
-  { id: "writing", label: "02. Writing" },
-  { id: "syntax", label: "03. Syntax" },
-  { id: "templates", label: "04. Templates" },
-  { id: "ai", label: "05. AI" },
+  { id: "writing",   label: "01. Writing"   },
+  { id: "knowledge", label: "02. Knowledge" },
+  { id: "templates", label: "03. Templates" },
+  { id: "ai",        label: "04. AI"        },
+  { id: "syntax",    label: "05. Syntax"    },
 ];
 
 const BackgroundGraphics = () => (
   <div className="absolute inset-0 overflow-hidden pointer-events-none -z-10 select-none" aria-hidden="true">
     <div className="absolute inset-0 bg-[linear-gradient(to_right,#8080800a_1px,transparent_1px),linear-gradient(to_bottom,#8080800a_1px,transparent_1px)] bg-[size:32px_32px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)]" />
-    <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[1000px] bg-gradient-radial from-blue-500/[0.05] dark:from-blue-500/[0.03] via-transparent to-transparent blur-[120px]" />
+    <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[1000px] bg-gradient-radial from-sage/[0.05] dark:from-sage/[0.03] via-transparent to-transparent blur-[120px]" />
     <div className="absolute top-[20%] right-[10%] w-[500px] h-[500px] bg-purple-500/[0.03] dark:bg-purple-500/[0.02] rounded-full blur-[100px]" />
     <div className="absolute bottom-[20%] left-[5%] w-[600px] h-[600px] bg-amber-500/[0.02] dark:bg-amber-500/[0.01] rounded-full blur-[120px]" />
     <div className="absolute left-1/2 -translate-x-1/2 top-0 bottom-0 w-px bg-gradient-to-b from-transparent via-neutral-200 dark:via-neutral-800 to-transparent opacity-20" />
@@ -49,16 +49,16 @@ export default function Documentation() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const sectionHeading = "text-ui-footnote uppercase tracking-[0.3em] font-bold text-blue-600 dark:text-blue-400 mb-8 block";
+  const sectionHeading = "text-ui-footnote uppercase tracking-[0.3em] font-bold text-sage dark:text-sage mb-8 block";
   const guideRow = "flex justify-between border-b border-black/5 dark:border-white/5 py-4 last:border-none items-center gap-4";
-  const syntaxLabel = "font-mono text-blue-600 dark:text-blue-400 font-bold";
+  const syntaxLabel = "font-mono text-sage dark:text-sage font-bold";
   const resultLabel = "opacity-40 italic text-right text-ui-footnote uppercase tracking-wider font-bold";
 
   return (
-    <main className="min-h-screen selection:bg-blue-500/30 text-neutral-900 dark:text-neutral-100 bg-white dark:bg-[#050505] overflow-x-hidden font-sans relative">
+    <main className="min-h-screen selection:bg-sage/30 text-fg bg-surface overflow-x-clip font-sans relative">
       {/* Scroll progress bar */}
       <div
-        className="fixed top-0 left-0 h-[2px] bg-blue-500 z-50 transition-all duration-75"
+        className="fixed top-0 left-0 h-[2px] bg-sage z-50 transition-all duration-75"
         style={{ width: `${scrollProgress * 100}%` }}
       />
 
@@ -67,15 +67,15 @@ export default function Documentation() {
       <div className="max-w-7xl mx-auto px-6 pt-20 lg:pt-32 pb-20 lg:pb-32 flex flex-col lg:flex-row gap-12 lg:gap-16 items-start">
 
         {/* Sticky TOC sidebar */}
-        <aside className="hidden lg:block w-40 xl:w-44 shrink-0">
-          <nav className="sticky top-24 space-y-1 max-h-[calc(100vh-8rem)] overflow-y-auto [&::-webkit-scrollbar]:hidden" aria-label="Table of contents">
+        <aside className="hidden lg:flex w-40 xl:w-44 shrink-0 sticky top-24 self-start">
+          <nav className="space-y-1 w-full" aria-label="Table of contents">
             {SECTIONS.map((s) => (
               <a
                 key={s.id}
                 href={`#${s.id}`}
                 className={`block text-ui-footnote font-bold uppercase tracking-[0.2em] py-1.5 px-3 rounded-lg transition-all duration-200 ${
                   activeSection === s.id
-                    ? "text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-500/10"
+                    ? "text-sage dark:text-sage bg-blue-50 dark:bg-sage/10"
                     : "text-neutral-400 dark:text-neutral-600 hover:text-neutral-700 dark:hover:text-neutral-300"
                 }`}
               >
@@ -106,143 +106,20 @@ export default function Documentation() {
               </h1>
             </div>
             <p className="text-lg md:text-2xl leading-relaxed text-neutral-500 dark:text-neutral-400 max-w-3xl font-medium">
-              HermesMarkdown is a professional, local-first workspace built for deep work. No cloud, no tracking, no friction—just a clean canvas for your thoughts.
+              Your notes stay on your machine. Everything works offline, files are plain Markdown, and the editor stays out of your way.
             </p>
-            {/* Mobile section jump links */}
-            <div className="flex flex-wrap gap-2 lg:hidden pt-2">
-              {SECTIONS.map((s) => (
-                <a
-                  key={s.id}
-                  href={`#${s.id}`}
-                  className="text-ui-micro font-bold uppercase tracking-[0.2em] px-3 py-1.5 rounded-full border border-black/10 dark:border-white/10 text-neutral-500 dark:text-neutral-400 hover:border-blue-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
-                >
-                  {s.label}
-                </a>
-              ))}
-            </div>
           </section>
 
-          {/* --- 01. KNOWLEDGE MANAGEMENT --- */}
-          <section id="knowledge" className="border-t border-black/5 dark:border-white/10 pt-16 lg:pt-24 scroll-mt-24">
-            <span className={sectionHeading}>01. Knowledge Management</span>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-12 lg:gap-20">
-
-              <div className="space-y-8">
-                <div className="space-y-4">
-                  <h3 className="text-3xl font-bold tracking-tight">Local-First Vaults</h3>
-                  <p className="text-neutral-500 dark:text-neutral-400 leading-relaxed text-lg">
-                    Open any local directory to treat it as a writing vault. Browse files, manage folders, and save changes directly to your machine using modern web standards.
-                  </p>
-                </div>
-                <div className="p-8 bg-neutral-50/50 dark:bg-neutral-900/30 backdrop-blur-sm rounded-3xl border border-black/5 dark:border-white/5 shadow-inner">
-                  <div className={guideRow}><span className="text-sm font-medium">Open Vault</span><span className={resultLabel}>Ribbon Icon</span></div>
-                  <div className={guideRow}><span className="text-sm font-medium">New File</span><span className={resultLabel}>Sidebar + Button</span></div>
-                  <div className={guideRow}><span className="text-sm font-medium">Rename / Delete</span><span className={resultLabel}>Context Menu</span></div>
-                  <div className={guideRow}><span className="text-sm font-medium">New Folder</span><span className={resultLabel}>Sidebar + Button</span></div>
-                  <div className={guideRow}><span className="text-sm font-medium">Import File</span><span className={resultLabel}>Sidebar Import</span></div>
-                  <div className={guideRow}><span className="text-sm font-medium">Export File</span><span className={resultLabel}>Sidebar Export</span></div>
-                </div>
-                <div className="p-5 bg-amber-500/5 dark:bg-amber-900/10 border border-amber-500/10 rounded-2xl text-ui-footnote leading-relaxed uppercase tracking-wider font-bold text-amber-700 dark:text-amber-400/70">
-                  Note: Cloud storage sync (Dropbox, iCloud) may lock files. We recommend pausing sync during active writing sessions.
-                </div>
-              </div>
-
-              <div className="space-y-8">
-                <div className="space-y-4">
-                  <h3 className="text-3xl font-bold tracking-tight">Google Drive Sync</h3>
-                  <p className="text-neutral-500 dark:text-neutral-400 leading-relaxed text-lg">
-                    Optionally connect your vault to Google Drive to keep your notes in sync across devices. HermesMarkdown uses the official Drive API to manage a dedicated folder, ensuring your data remains private and accessible.
-                  </p>
-                </div>
-                <div className="p-8 bg-neutral-50/50 dark:bg-neutral-900/30 backdrop-blur-sm rounded-3xl border border-black/5 dark:border-white/5 shadow-inner">
-                  <div className={guideRow}><span className="text-sm font-medium">Connect Drive</span><span className={resultLabel}>Settings ➔ Storage</span></div>
-                  <div className={guideRow}><span className="text-sm font-medium">Sync Status</span><span className={resultLabel}>Status Bar Icon</span></div>
-                  <div className={guideRow}><span className="text-sm font-medium">Conflict Handling</span><span className={resultLabel}>Auto-Merge</span></div>
-                </div>
-              </div>
-
-              <div className="space-y-8">
-                <div className="space-y-4">
-                  <h3 className="text-3xl font-bold tracking-tight">Agent-Specific Frontmatter</h3>
-                  <p className="text-neutral-500 dark:text-neutral-400 leading-relaxed text-lg">
-                    HermesMarkdown auto-injects a strict YAML schema on every save so your notes are instantly parseable by LLMs and background agents. A step-by-step wizard opens automatically on new files to guide you through each field. For a deeper integration, you can manually install <strong>Agent Skills</strong> (context files like <code className="not-italic font-mono">_agent-context.md</code>) into your vault root via <strong>Settings → Guide</strong>.
-                  </p>
-                </div>
-                <div className="p-8 bg-neutral-50/50 dark:bg-neutral-900/30 backdrop-blur-sm rounded-3xl border border-black/5 dark:border-white/5 shadow-inner space-y-4">
-                  <div className={guideRow}><span className={syntaxLabel}>title: "Name"</span><span className={resultLabel}>Primary Identifier</span></div>
-                  <div className={guideRow}><span className={syntaxLabel}>status: draft</span><span className={resultLabel}>Lifecycle State</span></div>
-                  <div className={guideRow}><span className={syntaxLabel}>scope: "..."</span><span className={resultLabel}>Agent Summary</span></div>
-                  <div className={guideRow}><span className={syntaxLabel}>read_when: [...]</span><span className={resultLabel}>Agent Trigger</span></div>
-                  <div className={guideRow}><span className={syntaxLabel}>related: [...]</span><span className={resultLabel}>Linked Files</span></div>
-                  <div className={guideRow}><span className={syntaxLabel}>edit_elsewhere: [...]</span><span className={resultLabel}>External Locations</span></div>
-                  <div className={guideRow}><span className={syntaxLabel}>tags: [ai, work]</span><span className={resultLabel}>Smart Category</span></div>
-                </div>
-                <p className="text-ui-micro opacity-40 italic leading-relaxed font-bold uppercase tracking-[0.2em] text-center">
-                  Wizard auto-opens on new files. Click ✎ in the frontmatter header to edit later.
-                </p>
-              </div>
-
-              <div className="space-y-8">
-                <div className="space-y-4">
-                  <h3 className="text-3xl font-bold tracking-tight">Internal Connectivity</h3>
-                  <p className="text-neutral-500 dark:text-neutral-400 leading-relaxed text-lg">
-                    Connect your ideas using WikiLink syntax and organize them with tags. HermesMarkdown automatically indexes your vault for dynamic navigation.
-                  </p>
-                </div>
-                <div className="p-8 bg-neutral-50/50 dark:bg-neutral-900/30 backdrop-blur-sm rounded-3xl border border-black/5 dark:border-white/5 shadow-inner space-y-4">
-                  <div className={guideRow}><span className="font-mono text-sm text-purple-600 dark:text-purple-400 font-bold">{"[[Note Name]]"}</span><span className={resultLabel}>Internal Link</span></div>
-                  <div className={guideRow}><span className="font-mono text-sm text-purple-600 dark:text-purple-400 font-bold">{"[[Name|Display]]"}</span><span className={resultLabel}>Aliased Link</span></div>
-                  <div className={guideRow}><span className="font-mono text-sm text-purple-600 dark:text-purple-400 font-bold">{"[[2025-06-04]]"}</span><span className={resultLabel}>Date Link</span></div>
-                  <div className={guideRow}><span className="font-mono text-sm text-blue-600 dark:text-blue-400 font-bold">#todo / #draft</span><span className={resultLabel}>Lifecycle Cycling (‹ ›)</span></div>
-                </div>
-                <p className="text-ui-micro opacity-40 italic leading-relaxed font-bold uppercase tracking-[0.2em] text-center">
-                  Navigation: CTRL + Click to open links. Click tags to filter.
-                </p>
-              </div>
-
-              <div className="space-y-8">
-                <div className="space-y-4">
-                  <h3 className="text-3xl font-bold tracking-tight">Smart Workspaces</h3>
-                  <p className="text-neutral-500 dark:text-neutral-400 leading-relaxed text-lg">
-                    Workspaces are dynamic smart folders that filter your vault in real time. The built-in <strong>Today's Work</strong> folder shows files edited in the last 24 hours.
-                  </p>
-                </div>
-                <div className="p-8 bg-neutral-50/50 dark:bg-neutral-900/30 backdrop-blur-sm rounded-3xl border border-black/5 dark:border-white/5 shadow-inner">
-                  <div className={guideRow}><span className="text-sm font-medium">Filter by Tag</span><span className={resultLabel}>Query Builder</span></div>
-                  <div className={guideRow}><span className="text-sm font-medium">Filter by Name</span><span className={resultLabel}>Query Builder</span></div>
-                  <div className={guideRow}><span className="text-sm font-medium">Filter by Date</span><span className={resultLabel}>Query Builder</span></div>
-                  <div className={guideRow}><span className="text-sm font-medium">Filter by Word Count</span><span className={resultLabel}>Query Builder</span></div>
-                </div>
-              </div>
-
-              <div className="space-y-8">
-                <div className="space-y-4">
-                  <h3 className="text-3xl font-bold tracking-tight">Multi-Pane Editing</h3>
-                  <p className="text-neutral-500 dark:text-neutral-400 leading-relaxed text-lg">
-                    Split your workspace into multiple editor panes. Drag tabs between panes, resize with the draggable separator, and work on several files side-by-side.
-                  </p>
-                </div>
-                <div className="p-8 bg-neutral-50/50 dark:bg-neutral-900/30 backdrop-blur-sm rounded-3xl border border-black/5 dark:border-white/5 shadow-inner">
-                  <div className={guideRow}><span className="text-sm font-medium">Split Right</span><span className={resultLabel}>Tab Bar Icon</span></div>
-                  <div className={guideRow}><span className="text-sm font-medium">Move Tab</span><span className={resultLabel}>Drag & Drop</span></div>
-                  <div className={guideRow}><span className="text-sm font-medium">Resize Pane</span><span className={resultLabel}>Drag Divider</span></div>
-                  <div className={guideRow}><span className="text-sm font-medium">Close Pane</span><span className={resultLabel}>Tab Bar Icon</span></div>
-                </div>
-              </div>
-
-            </div>
-          </section>
-
-          {/* --- 02. WRITING EXPERIENCE --- */}
+          {/* --- 01. WRITING EXPERIENCE --- */}
           <section id="writing" className="border-t border-black/5 dark:border-white/10 pt-16 lg:pt-24 scroll-mt-24">
-            <span className={sectionHeading}>02. Writing Experience</span>
+            <span className={sectionHeading}>01. Writing Experience</span>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-12 lg:gap-20">
 
               <div className="space-y-8">
                 <div className="space-y-4">
                   <h3 className="text-3xl font-bold tracking-tight">Zen Mode</h3>
                   <p className="text-neutral-500 dark:text-neutral-400 leading-relaxed text-lg">
-                    Eliminate distractions and focus entirely on the active line. Zen Mode hides all sidebars and applies a subtle focus tint to isolate your current thought.
+                    Hides all sidebars and dims everything except the line you're on. Good for when you need to just write.
                   </p>
                 </div>
                 <div className="p-8 bg-neutral-50/50 dark:bg-neutral-900/30 backdrop-blur-sm rounded-3xl border border-black/5 dark:border-white/5 shadow-inner">
@@ -256,7 +133,7 @@ export default function Documentation() {
                 <div className="space-y-4">
                   <h3 className="text-3xl font-bold tracking-tight">Click Actions</h3>
                   <p className="text-neutral-500 dark:text-neutral-400 leading-relaxed text-lg">
-                    Elements in the editor are live. Clicking them modifies the underlying text automatically without needing to type syntax.
+                    Checkboxes toggle, tags cycle, and wiki links open — just click. No need to touch the raw Markdown.
                   </p>
                 </div>
                 <div className="p-8 bg-neutral-50/50 dark:bg-neutral-900/30 backdrop-blur-sm rounded-3xl border border-black/5 dark:border-white/5 shadow-inner">
@@ -271,13 +148,13 @@ export default function Documentation() {
                 <div className="space-y-4">
                   <h3 className="text-3xl font-bold tracking-tight">Date Picker</h3>
                   <p className="text-neutral-500 dark:text-neutral-400 leading-relaxed text-lg">
-                    A calendar popup appears when your cursor rests on any recognized date format. Quickly change dates without retyping.
+                    Hover over any date in the editor and a calendar appears. Click a new date to update it in place.
                   </p>
                 </div>
                 <div className="p-8 bg-neutral-50/50 dark:bg-neutral-900/30 backdrop-blur-sm rounded-3xl border border-black/5 dark:border-white/5 shadow-inner">
-                  <div className={guideRow}><span className="font-mono text-sm font-bold text-blue-600 dark:text-blue-400">2025-06-04</span><span className={resultLabel}>ISO Format</span></div>
-                  <div className={guideRow}><span className="font-mono text-sm font-bold text-blue-600 dark:text-blue-400">06/04/2025</span><span className={resultLabel}>Slashed</span></div>
-                  <div className={guideRow}><span className="font-mono text-sm font-bold text-blue-600 dark:text-blue-400">04.06.2025</span><span className={resultLabel}>Dotted</span></div>
+                  <div className={guideRow}><span className="font-mono text-sm font-bold text-sage dark:text-sage">2025-06-04</span><span className={resultLabel}>ISO Format</span></div>
+                  <div className={guideRow}><span className="font-mono text-sm font-bold text-sage dark:text-sage">06/04/2025</span><span className={resultLabel}>Slashed</span></div>
+                  <div className={guideRow}><span className="font-mono text-sm font-bold text-sage dark:text-sage">04.06.2025</span><span className={resultLabel}>Dotted</span></div>
                   <div className={guideRow}><span className="font-mono text-sm font-bold text-purple-600 dark:text-purple-400">{"[[2025-06-04]]"}</span><span className={resultLabel}>WikiLink Date</span></div>
                 </div>
               </div>
@@ -286,7 +163,7 @@ export default function Documentation() {
                 <div className="space-y-4">
                   <h3 className="text-3xl font-bold tracking-tight">Keyboard Shortcuts</h3>
                   <p className="text-neutral-500 dark:text-neutral-400 leading-relaxed text-lg">
-                    Most actions have a keyboard shortcut. Formatting shortcuts wrap any selected text automatically.
+                    Standard shortcuts for formatting and navigation. Select text first, then apply — it wraps automatically.
                   </p>
                 </div>
                 <div className="p-8 bg-neutral-50/50 dark:bg-neutral-900/30 backdrop-blur-sm rounded-3xl border border-black/5 dark:border-white/5 shadow-inner">
@@ -305,7 +182,7 @@ export default function Documentation() {
                 <div className="space-y-4">
                   <h3 className="text-3xl font-bold tracking-tight">Table Editor</h3>
                   <p className="text-neutral-500 dark:text-neutral-400 leading-relaxed text-lg">
-                    Place your cursor anywhere inside a pipe table to reveal a floating toolbar — open the Advanced Dialog, delete the whole table, or copy as CSV. The Advanced Dialog lets you add or remove rows and columns, sort with type detection, set per-column alignment, and preview auto-padded Markdown output.
+                    Click inside any pipe table to get a floating toolbar. Open the editor to manage rows, columns, sorting, and alignment — or grab a CSV copy with one click. Output is clean, auto-padded Markdown.
                   </p>
                 </div>
                 <div className="p-8 bg-neutral-50/50 dark:bg-neutral-900/30 backdrop-blur-sm rounded-3xl border border-black/5 dark:border-white/5 shadow-inner">
@@ -325,7 +202,7 @@ export default function Documentation() {
                 <div className="space-y-4">
                   <h3 className="text-3xl font-bold tracking-tight">Insert a Table</h3>
                   <p className="text-neutral-500 dark:text-neutral-400 leading-relaxed text-lg">
-                    Two ways to insert a starter 3×2 table — cursor lands in the first header cell automatically.
+                    Two ways to drop in a starter table. The cursor lands in the first cell, ready to type.
                   </p>
                 </div>
                 <div className="p-8 bg-neutral-50/50 dark:bg-neutral-900/30 backdrop-blur-sm rounded-3xl border border-black/5 dark:border-white/5 shadow-inner font-mono text-xs">
@@ -337,14 +214,207 @@ export default function Documentation() {
             </div>
           </section>
 
-          {/* --- 03. SYNTAX & SHORTCUTS --- */}
+          {/* --- 02. KNOWLEDGE MANAGEMENT --- */}
+          <section id="knowledge" className="border-t border-black/5 dark:border-white/10 pt-16 lg:pt-24 scroll-mt-24">
+            <span className={sectionHeading}>02. Knowledge Management</span>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-12 lg:gap-20">
+
+              <div className="space-y-8">
+                <div className="space-y-4">
+                  <h3 className="text-3xl font-bold tracking-tight">Local-First Vaults</h3>
+                  <p className="text-neutral-500 dark:text-neutral-400 leading-relaxed text-lg">
+                    Open any folder and it becomes your vault. Files are plain Markdown — always accessible, no lock-in.
+                  </p>
+                </div>
+                <div className="p-8 bg-neutral-50/50 dark:bg-neutral-900/30 backdrop-blur-sm rounded-3xl border border-black/5 dark:border-white/5 shadow-inner">
+                  <div className={guideRow}><span className="text-sm font-medium">Open Vault</span><span className={resultLabel}>Ribbon Icon</span></div>
+                  <div className={guideRow}><span className="text-sm font-medium">New File</span><span className={resultLabel}>Sidebar + Button</span></div>
+                  <div className={guideRow}><span className="text-sm font-medium">Rename / Delete</span><span className={resultLabel}>Context Menu</span></div>
+                  <div className={guideRow}><span className="text-sm font-medium">New Folder</span><span className={resultLabel}>Sidebar + Button</span></div>
+                  <div className={guideRow}><span className="text-sm font-medium">Import File</span><span className={resultLabel}>Sidebar Import</span></div>
+                  <div className={guideRow}><span className="text-sm font-medium">Export File</span><span className={resultLabel}>Sidebar Export</span></div>
+                </div>
+                <div className="p-5 bg-amber-500/5 dark:bg-amber-900/10 border border-amber-500/10 rounded-2xl text-ui-footnote leading-relaxed uppercase tracking-wider font-bold text-amber-700 dark:text-amber-400/70">
+                  Dropbox and iCloud can lock files while syncing. Pause them if you run into save issues.
+                </div>
+              </div>
+
+              <div className="space-y-8">
+                <div className="space-y-4">
+                  <h3 className="text-3xl font-bold tracking-tight">Internal Connectivity</h3>
+                  <p className="text-neutral-500 dark:text-neutral-400 leading-relaxed text-lg">
+                    Link notes together with [[WikiLink]] syntax. The vault indexes everything so navigation stays fast without leaving the keyboard.
+                  </p>
+                </div>
+                <div className="p-8 bg-neutral-50/50 dark:bg-neutral-900/30 backdrop-blur-sm rounded-3xl border border-black/5 dark:border-white/5 shadow-inner space-y-4">
+                  <div className={guideRow}><span className="font-mono text-sm text-purple-600 dark:text-purple-400 font-bold">{"[[Note Name]]"}</span><span className={resultLabel}>Internal Link</span></div>
+                  <div className={guideRow}><span className="font-mono text-sm text-purple-600 dark:text-purple-400 font-bold">{"[[Name|Display]]"}</span><span className={resultLabel}>Aliased Link</span></div>
+                  <div className={guideRow}><span className="font-mono text-sm text-purple-600 dark:text-purple-400 font-bold">{"[[2025-06-04]]"}</span><span className={resultLabel}>Date Link</span></div>
+                  <div className={guideRow}><span className="font-mono text-sm text-sage dark:text-sage font-bold">#todo / #draft</span><span className={resultLabel}>Lifecycle Cycling (‹ ›)</span></div>
+                </div>
+                <p className="text-ui-micro opacity-40 italic leading-relaxed font-bold uppercase tracking-[0.2em] text-center">
+                  Navigation: CTRL + Click to open links. Click tags to filter.
+                </p>
+              </div>
+
+              <div className="space-y-8">
+                <div className="space-y-4">
+                  <h3 className="text-3xl font-bold tracking-tight">Smart Workspaces</h3>
+                  <p className="text-neutral-500 dark:text-neutral-400 leading-relaxed text-lg">
+                    Smart folders that filter your vault by tag, name, date, or word count. <strong>Today's Work</strong> is built in and shows everything touched in the last 24 hours.
+                  </p>
+                </div>
+                <div className="p-8 bg-neutral-50/50 dark:bg-neutral-900/30 backdrop-blur-sm rounded-3xl border border-black/5 dark:border-white/5 shadow-inner">
+                  <div className={guideRow}><span className="text-sm font-medium">Filter by Tag</span><span className={resultLabel}>Query Builder</span></div>
+                  <div className={guideRow}><span className="text-sm font-medium">Filter by Name</span><span className={resultLabel}>Query Builder</span></div>
+                  <div className={guideRow}><span className="text-sm font-medium">Filter by Date</span><span className={resultLabel}>Query Builder</span></div>
+                  <div className={guideRow}><span className="text-sm font-medium">Filter by Word Count</span><span className={resultLabel}>Query Builder</span></div>
+                </div>
+              </div>
+
+              <div className="space-y-8">
+                <div className="space-y-4">
+                  <h3 className="text-3xl font-bold tracking-tight">Multi-Pane Editing</h3>
+                  <p className="text-neutral-500 dark:text-neutral-400 leading-relaxed text-lg">
+                    Open multiple files side by side. Drag tabs between panes and resize with the divider.
+                  </p>
+                </div>
+                <div className="p-8 bg-neutral-50/50 dark:bg-neutral-900/30 backdrop-blur-sm rounded-3xl border border-black/5 dark:border-white/5 shadow-inner">
+                  <div className={guideRow}><span className="text-sm font-medium">Split Right</span><span className={resultLabel}>Tab Bar Icon</span></div>
+                  <div className={guideRow}><span className="text-sm font-medium">Move Tab</span><span className={resultLabel}>Drag & Drop</span></div>
+                  <div className={guideRow}><span className="text-sm font-medium">Resize Pane</span><span className={resultLabel}>Drag Divider</span></div>
+                  <div className={guideRow}><span className="text-sm font-medium">Close Pane</span><span className={resultLabel}>Tab Bar Icon</span></div>
+                </div>
+              </div>
+
+              <div className="space-y-8">
+                <div className="space-y-4">
+                  <h3 className="text-3xl font-bold tracking-tight">Google Drive Sync</h3>
+                  <p className="text-neutral-500 dark:text-neutral-400 leading-relaxed text-lg">
+                    Connect to Google Drive to sync your vault across devices. Uses the official API, stores files in a dedicated folder, and keeps everything under your control.
+                  </p>
+                </div>
+                <div className="p-8 bg-neutral-50/50 dark:bg-neutral-900/30 backdrop-blur-sm rounded-3xl border border-black/5 dark:border-white/5 shadow-inner">
+                  <div className={guideRow}><span className="text-sm font-medium">Connect Drive</span><span className={resultLabel}>Settings ➔ Storage</span></div>
+                  <div className={guideRow}><span className="text-sm font-medium">Sync Status</span><span className={resultLabel}>Status Bar Icon</span></div>
+                  <div className={guideRow}><span className="text-sm font-medium">Conflict Handling</span><span className={resultLabel}>Auto-Merge</span></div>
+                </div>
+              </div>
+
+              <div className="space-y-8">
+                <div className="space-y-4">
+                  <h3 className="text-3xl font-bold tracking-tight">Agent-Specific Frontmatter</h3>
+                  <p className="text-neutral-500 dark:text-neutral-400 leading-relaxed text-lg">
+                    Every file gets a structured YAML block on save, making notes easy to parse with any AI tool. A wizard walks you through it on new files. For deeper automation, install <strong>Agent Skills</strong> into your vault root from <strong>Settings → Guide</strong>.
+                  </p>
+                </div>
+                <div className="p-8 bg-neutral-50/50 dark:bg-neutral-900/30 backdrop-blur-sm rounded-3xl border border-black/5 dark:border-white/5 shadow-inner space-y-4">
+                  <div className={guideRow}><span className={syntaxLabel}>title: "Name"</span><span className={resultLabel}>Primary Identifier</span></div>
+                  <div className={guideRow}><span className={syntaxLabel}>status: draft</span><span className={resultLabel}>Lifecycle State</span></div>
+                  <div className={guideRow}><span className={syntaxLabel}>scope: "..."</span><span className={resultLabel}>Agent Summary</span></div>
+                  <div className={guideRow}><span className={syntaxLabel}>read_when: [...]</span><span className={resultLabel}>Agent Trigger</span></div>
+                  <div className={guideRow}><span className={syntaxLabel}>related: [...]</span><span className={resultLabel}>Linked Files</span></div>
+                  <div className={guideRow}><span className={syntaxLabel}>edit_elsewhere: [...]</span><span className={resultLabel}>External Locations</span></div>
+                  <div className={guideRow}><span className={syntaxLabel}>tags: [ai, work]</span><span className={resultLabel}>Smart Category</span></div>
+                </div>
+                <p className="text-ui-micro opacity-40 italic leading-relaxed font-bold uppercase tracking-[0.2em] text-center">
+                  Wizard auto-opens on new files. Click ✎ in the frontmatter header to edit later.
+                </p>
+              </div>
+
+            </div>
+          </section>
+
+          {/* --- 03. TEMPLATES --- */}
+          <section id="templates" className="border-t border-black/5 dark:border-white/10 pt-16 lg:pt-24 scroll-mt-24">
+            <span className={sectionHeading}>03. Templates</span>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-12 lg:gap-20">
+
+              <div className="space-y-8">
+                <div className="space-y-4">
+                  <h3 className="text-3xl font-bold tracking-tight">Slash Command Menu</h3>
+                  <p className="text-neutral-500 dark:text-neutral-400 leading-relaxed text-lg">
+                    Type <code className="font-bold text-sage dark:text-sage">/</code> to open the command picker. Keep typing to filter — it matches as you go, highlights the characters, and shows each command's shortcut.
+                  </p>
+                </div>
+                <div className="p-8 bg-neutral-50/50 dark:bg-neutral-900/30 backdrop-blur-sm rounded-3xl border border-black/5 dark:border-white/5 shadow-inner">
+                  <div className={guideRow}><span className="text-sm font-medium">Open Menu</span><span className={resultLabel}>Type /</span></div>
+                  <div className={guideRow}><span className="text-sm font-medium">Fuzzy Filter</span><span className={resultLabel}>Keep Typing</span></div>
+                  <div className={guideRow}><span className="text-sm font-medium">Navigate</span><span className={resultLabel}>↑ / ↓ Arrow Keys</span></div>
+                  <div className={guideRow}><span className="text-sm font-medium">Insert</span><span className={resultLabel}>Enter or Tab</span></div>
+                  <div className={guideRow}><span className="text-sm font-medium">Dismiss</span><span className={resultLabel}>Escape</span></div>
+                  <div className={guideRow}><span className="text-sm font-medium">Insert Link</span><span className={resultLabel}>/ → link &nbsp;⌘K</span></div>
+                </div>
+              </div>
+
+              <div className="space-y-8">
+                <div className="space-y-4">
+                  <h3 className="text-3xl font-bold tracking-tight">Built-In Templates</h3>
+                  <p className="text-neutral-500 dark:text-neutral-400 leading-relaxed text-lg">
+                    A small set of ready-made templates for the things you write most often.
+                  </p>
+                </div>
+                <div className="p-8 bg-neutral-50/50 dark:bg-neutral-900/30 backdrop-blur-sm rounded-3xl border border-black/5 dark:border-white/5 shadow-inner">
+                  <div className={guideRow}><span className="text-sm font-medium">⊞ Table</span><span className={resultLabel}>3×2 Grid</span></div>
+                  <div className={guideRow}><span className="text-sm font-medium">🗓️ Daily Note</span><span className={resultLabel}>Journal</span></div>
+                  <div className={guideRow}><span className="text-sm font-medium">📋 Meeting Notes</span><span className={resultLabel}>Agenda</span></div>
+                  <div className={guideRow}><span className="text-sm font-medium">🧠 Atomic Note</span><span className={resultLabel}>Linked Idea</span></div>
+                  <div className={guideRow}><span className="text-sm font-medium">✍️ Essay</span><span className={resultLabel}>Long-form</span></div>
+                  <div className={guideRow}><span className="text-sm font-medium">📄 Frontmatter</span><span className={resultLabel}>YAML</span></div>
+                </div>
+              </div>
+
+            </div>
+          </section>
+
+          {/* --- 04. AI & INTEGRATIONS --- */}
+          <section id="ai" className="border-t border-black/5 dark:border-white/10 pt-16 lg:pt-24 scroll-mt-24">
+            <span className={sectionHeading}>04. AI & Integrations</span>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-12 lg:gap-20">
+
+              <div className="space-y-8">
+                <div className="space-y-4">
+                  <h3 className="text-3xl font-bold tracking-tight">Inline AI Toolbar</h3>
+                  <p className="text-neutral-500 dark:text-neutral-400 leading-relaxed text-lg">
+                    Select text and a toolbar appears. Prompt it, improve the writing, or expand an idea. Formatting stays intact.
+                  </p>
+                </div>
+                <div className="p-8 bg-neutral-50/50 dark:bg-neutral-900/30 backdrop-blur-sm rounded-3xl border border-black/5 dark:border-white/5 shadow-inner">
+                  <div className={guideRow}><span className="text-sm font-medium">✨ Prompt Selection</span><span className={resultLabel}>Select → Toolbar</span></div>
+                  <div className={guideRow}><span className="text-sm font-medium">⚡ Improve Writing</span><span className={resultLabel}>Select → Toolbar</span></div>
+                  <div className={guideRow}><span className="text-sm font-medium">＋ Expand Idea</span><span className={resultLabel}>Select → Toolbar</span></div>
+                  <div className={guideRow}><span className="text-sm font-medium">Generate Frontmatter</span><span className={resultLabel}>Wizard / /frontmatter</span></div>
+                </div>
+                <p className="text-ui-micro opacity-40 italic leading-relaxed font-bold uppercase tracking-[0.2em] text-center">
+                  All AI actions are triggered manually. Nothing runs without your intent.
+                </p>
+              </div>
+
+              <div className="space-y-8">
+                <div className="space-y-4">
+                  <h3 className="text-3xl font-bold tracking-tight">Bring Your Own Key (BYOK)</h3>
+                  <p className="text-neutral-500 dark:text-neutral-400 leading-relaxed text-lg">
+                    Bring your own API key for Anthropic or Google. Keys are stored locally and never sent anywhere else.
+                  </p>
+                </div>
+                <div className="p-8 bg-neutral-50/50 dark:bg-neutral-900/30 backdrop-blur-sm rounded-3xl border border-black/5 dark:border-white/5 shadow-inner">
+                  <div className={guideRow}><span className="text-sm font-medium">Anthropic Claude</span><span className={resultLabel}>Settings ➔ AI</span></div>
+                  <div className={guideRow}><span className="text-sm font-medium">Google Gemini</span><span className={resultLabel}>Settings ➔ AI</span></div>
+                  <div className={guideRow}><span className="text-sm font-medium">Local LLMs</span><span className={resultLabel}>Coming Soon</span></div>
+                </div>
+              </div>
+
+            </div>
+          </section>
+
+          {/* --- 05. SYNTAX & SHORTCUTS --- */}
           <section id="syntax" className="border-t border-black/5 dark:border-white/10 pt-16 lg:pt-24 scroll-mt-24">
-            <span className={sectionHeading}>03. Syntax & Shortcuts</span>
+            <span className={sectionHeading}>05. Syntax & Shortcuts</span>
 
             <div className="space-y-20">
               {/* Workflow Lifecycle */}
-              <div className="p-16 md:p-24 bg-neutral-950 dark:bg-neutral-900 text-white rounded-[4rem] shadow-2xl relative overflow-hidden border border-white/5">
-                <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-blue-600/10 blur-[120px] -mr-64 -mt-64" />
+              <div className="p-16 md:p-24 bg-neutral-100 dark:bg-neutral-900 text-neutral-900 dark:text-white rounded-[4rem] shadow-2xl relative overflow-hidden border border-black/5 dark:border-white/5">
+                <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-sage/10 blur-[120px] -mr-64 -mt-64" />
                 <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-purple-600/10 blur-[120px] -ml-64 -mb-64" />
 
                 <h3 className="text-xs font-bold mb-12 opacity-30 uppercase tracking-[0.4em] text-center relative z-10">
@@ -352,10 +422,10 @@ export default function Documentation() {
                 </h3>
                 <div className="flex flex-col sm:flex-row items-center justify-between gap-10 max-w-4xl mx-auto relative z-10">
                   {[
-                    { tag: "#draft",    label: "Draft",    color: "text-amber-400"  },
-                    { tag: "#review",   label: "Review",   color: "text-blue-400"   },
-                    { tag: "#active",   label: "Active",   color: "text-emerald-400"},
-                    { tag: "#archived", label: "Archived", color: "text-zinc-400"   },
+                    { tag: "#draft",    label: "Draft",    color: "text-amber-600 dark:text-amber-400"   },
+                    { tag: "#review",   label: "Review",   color: "text-blue-600 dark:text-blue-400"     },
+                    { tag: "#active",   label: "Active",   color: "text-emerald-600 dark:text-emerald-400"},
+                    { tag: "#archived", label: "Archived", color: "text-zinc-500 dark:text-zinc-400"     },
                   ].map(({ tag, label, color }, i, arr) => (
                     <React.Fragment key={tag}>
                       <div className="flex flex-col items-center gap-3 group">
@@ -371,16 +441,16 @@ export default function Documentation() {
                   ))}
                 </div>
 
-                <div className="my-12 border-t border-white/5 relative z-10" />
+                <div className="my-12 border-t border-black/10 dark:border-white/5 relative z-10" />
 
                 <h3 className="text-xs font-bold mb-12 opacity-30 uppercase tracking-[0.4em] text-center relative z-10">
                   Task Lifecycle
                 </h3>
                 <div className="flex flex-col sm:flex-row items-center justify-center gap-10 max-w-2xl mx-auto relative z-10">
                   {[
-                    { tag: "#todo", label: "To Do",       color: "text-violet-400" },
-                    { tag: "#prog", label: "In Progress",  color: "text-orange-400" },
-                    { tag: "#done", label: "Done",         color: "text-teal-400"   },
+                    { tag: "#todo", label: "To Do",      color: "text-violet-600 dark:text-violet-400" },
+                    { tag: "#prog", label: "In Progress", color: "text-orange-600 dark:text-orange-400" },
+                    { tag: "#done", label: "Done",        color: "text-teal-600 dark:text-teal-400"     },
                   ].map(({ tag, label, color }, i, arr) => (
                     <React.Fragment key={tag}>
                       <div className="flex flex-col items-center gap-3 group">
@@ -397,7 +467,7 @@ export default function Documentation() {
                 </div>
 
                 <p className="mt-16 text-center text-ui-footnote opacity-40 italic max-w-md mx-auto leading-relaxed relative z-10 font-medium">
-                  Place your cursor on any lifecycle tag to reveal a <code className="not-italic font-mono">‹ #tag ›</code> pill. Use the arrows to step forward or backward through states. Document tags also mirror the <code className="not-italic font-mono">status:</code> frontmatter field.
+                  Cursor on any lifecycle tag reveals a <code className="not-italic font-mono">‹ #tag ›</code> pill. Step forward or backward with the arrows. Document tags stay in sync with the <code className="not-italic font-mono">status:</code> frontmatter field.
                 </p>
               </div>
 
@@ -443,7 +513,7 @@ export default function Documentation() {
                   <div className="bg-neutral-50/50 dark:bg-neutral-900/30 backdrop-blur-sm p-8 rounded-3xl border border-black/5 dark:border-white/5 shadow-inner space-y-6">
                     <div className="space-y-3">
                       <p className="text-ui-footnote leading-relaxed text-neutral-500 dark:text-neutral-400 font-medium">
-                        A line starting with <code className="font-bold text-blue-600 dark:text-blue-400">Total:</code> auto-sums the currency values above it. Set your currency in <strong>Settings → Currency</strong>.
+                        A line starting with <code className="font-bold text-sage dark:text-sage">Total:</code> auto-sums the currency values above it. Set your currency in <strong>Settings → Currency</strong>.
                       </p>
                       <div className="p-5 bg-emerald-500/5 dark:bg-emerald-500/10 border border-emerald-500/10 rounded-2xl font-mono text-ui-footnote">
                         <div className="opacity-40">- Rent: $2,000</div>
@@ -453,7 +523,7 @@ export default function Documentation() {
                     </div>
                     <div className="space-y-3">
                       <p className="text-ui-footnote leading-relaxed text-neutral-500 dark:text-neutral-400 font-medium">
-                        Inside a table, place <code className="font-bold text-blue-600 dark:text-blue-400">Total:</code> in a cell to sum <em>only that column</em>. Use the <strong>Σ button</strong> in the table dialog header to insert a total row automatically.
+                        Inside a table, place <code className="font-bold text-sage dark:text-sage">Total:</code> in a cell to sum <em>only that column</em>. Use the <strong>Σ button</strong> in the table dialog header to insert a total row automatically.
                       </p>
                       <div className="p-5 bg-emerald-500/5 dark:bg-emerald-500/10 border border-emerald-500/10 rounded-2xl font-mono text-ui-footnote space-y-0.5">
                         <div className="opacity-40">| Item &nbsp;&nbsp; | Amount &nbsp;&nbsp;|</div>
@@ -467,7 +537,7 @@ export default function Documentation() {
                       <div className={guideRow}><span className={syntaxLabel}>calc(100+50)=</span><span className={resultLabel}>150</span></div>
                       <div className={guideRow}><span className="text-sm font-medium">Add Total Row</span><span className={resultLabel}>Σ in Table Dialog</span></div>
                       <div className={guideRow}><span className="text-sm font-medium">Set Currency</span><span className={resultLabel}>Settings → Currency</span></div>
-                      <div className="p-4 bg-blue-500/5 border border-blue-500/10 rounded-2xl text-ui-micro uppercase tracking-widest font-bold text-blue-600 dark:text-blue-400/70">
+                      <div className="p-4 bg-sage/5 border border-sage/10 rounded-2xl text-ui-micro uppercase tracking-widest font-bold text-sage dark:text-sage/70">
                         Multiple Currencies Supported: USD ($), EUR (€), GBP (£), JPY (¥), INR (₹), CAD (C$), AUD (A$), and RON (lei).
                       </div>
                     </div>
@@ -486,88 +556,6 @@ export default function Documentation() {
                   </p>
                 </div>
               </div>
-            </div>
-          </section>
-
-          {/* --- 04. TEMPLATES --- */}
-          <section id="templates" className="border-t border-black/5 dark:border-white/10 pt-16 lg:pt-24 scroll-mt-24">
-            <span className={sectionHeading}>04. Templates</span>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-12 lg:gap-20">
-
-              <div className="space-y-8">
-                <div className="space-y-4">
-                  <h3 className="text-3xl font-bold tracking-tight">Slash Command Menu</h3>
-                  <p className="text-neutral-500 dark:text-neutral-400 leading-relaxed text-lg">
-                    Type <code className="font-bold text-blue-600 dark:text-blue-400">/</code> at the start of a line or after a space to open the command picker. Continue typing to fuzzy-filter — matching characters are highlighted in-row. Each entry shows an icon, a short description, and an optional keyboard shortcut.
-                  </p>
-                </div>
-                <div className="p-8 bg-neutral-50/50 dark:bg-neutral-900/30 backdrop-blur-sm rounded-3xl border border-black/5 dark:border-white/5 shadow-inner">
-                  <div className={guideRow}><span className="text-sm font-medium">Open Menu</span><span className={resultLabel}>Type /</span></div>
-                  <div className={guideRow}><span className="text-sm font-medium">Fuzzy Filter</span><span className={resultLabel}>Keep Typing</span></div>
-                  <div className={guideRow}><span className="text-sm font-medium">Navigate</span><span className={resultLabel}>↑ / ↓ Arrow Keys</span></div>
-                  <div className={guideRow}><span className="text-sm font-medium">Insert</span><span className={resultLabel}>Enter or Tab</span></div>
-                  <div className={guideRow}><span className="text-sm font-medium">Dismiss</span><span className={resultLabel}>Escape</span></div>
-                  <div className={guideRow}><span className="text-sm font-medium">Insert Link</span><span className={resultLabel}>/ → link &nbsp;⌘K</span></div>
-                </div>
-              </div>
-
-              <div className="space-y-8">
-                <div className="space-y-4">
-                  <h3 className="text-3xl font-bold tracking-tight">Built-In Templates</h3>
-                  <p className="text-neutral-500 dark:text-neutral-400 leading-relaxed text-lg">
-                    A starter library covers the most common writing contexts—ready to use with a single keystroke.
-                  </p>
-                </div>
-                <div className="p-8 bg-neutral-50/50 dark:bg-neutral-900/30 backdrop-blur-sm rounded-3xl border border-black/5 dark:border-white/5 shadow-inner">
-                  <div className={guideRow}><span className="text-sm font-medium">⊞ Table</span><span className={resultLabel}>3×2 Grid</span></div>
-                  <div className={guideRow}><span className="text-sm font-medium">🗓️ Daily Note</span><span className={resultLabel}>Journal</span></div>
-                  <div className={guideRow}><span className="text-sm font-medium">📋 Meeting Notes</span><span className={resultLabel}>Agenda</span></div>
-                  <div className={guideRow}><span className="text-sm font-medium">🧠 Atomic Note</span><span className={resultLabel}>Linked Idea</span></div>
-                  <div className={guideRow}><span className="text-sm font-medium">✍️ Essay</span><span className={resultLabel}>Long-form</span></div>
-                  <div className={guideRow}><span className="text-sm font-medium">📄 Frontmatter</span><span className={resultLabel}>YAML</span></div>
-                </div>
-              </div>
-
-            </div>
-          </section>
-
-          {/* --- 05. AI & INTEGRATIONS --- */}
-          <section id="ai" className="border-t border-black/5 dark:border-white/10 pt-16 lg:pt-24 scroll-mt-24">
-            <span className={sectionHeading}>05. AI & Integrations</span>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-12 lg:gap-20">
-
-              <div className="space-y-8">
-                <div className="space-y-4">
-                  <h3 className="text-3xl font-bold tracking-tight">Bring Your Own Key (BYOK)</h3>
-                  <p className="text-neutral-500 dark:text-neutral-400 leading-relaxed text-lg">
-                    HermesMarkdown is powered by your own API keys. We support industry-leading providers, giving you full control over your AI usage and costs. Your keys never leave your machine.
-                  </p>
-                </div>
-                <div className="p-8 bg-neutral-50/50 dark:bg-neutral-900/30 backdrop-blur-sm rounded-3xl border border-black/5 dark:border-white/5 shadow-inner">
-                  <div className={guideRow}><span className="text-sm font-medium">Anthropic Claude</span><span className={resultLabel}>Settings ➔ AI</span></div>
-                  <div className={guideRow}><span className="text-sm font-medium">Google Gemini</span><span className={resultLabel}>Settings ➔ AI</span></div>
-                  <div className={guideRow}><span className="text-sm font-medium">Local LLMs</span><span className={resultLabel}>Coming Soon</span></div>
-                </div>
-              </div>
-
-              <div className="space-y-8">
-                <div className="space-y-4">
-                  <h3 className="text-3xl font-bold tracking-tight">Inline AI Toolbar</h3>
-                  <p className="text-neutral-500 dark:text-neutral-400 leading-relaxed text-lg">
-                    Select any text in the editor to reveal a floating AI toolbar. Actions can modify your selection or replace it entirely, preserving all Markdown formatting and your writing voice.
-                  </p>
-                </div>
-                <div className="p-8 bg-neutral-50/50 dark:bg-neutral-900/30 backdrop-blur-sm rounded-3xl border border-black/5 dark:border-white/5 shadow-inner">
-                  <div className={guideRow}><span className="text-sm font-medium">✨ Prompt Selection</span><span className={resultLabel}>Select → Toolbar</span></div>
-                  <div className={guideRow}><span className="text-sm font-medium">⚡ Improve Writing</span><span className={resultLabel}>Select → Toolbar</span></div>
-                  <div className={guideRow}><span className="text-sm font-medium">＋ Expand Idea</span><span className={resultLabel}>Select → Toolbar</span></div>
-                  <div className={guideRow}><span className="text-sm font-medium">Generate Frontmatter</span><span className={resultLabel}>Wizard / /frontmatter</span></div>
-                </div>
-                <p className="text-ui-micro opacity-40 italic leading-relaxed font-bold uppercase tracking-[0.2em] text-center">
-                  All AI actions are triggered manually. Nothing runs without your intent.
-                </p>
-              </div>
-
             </div>
           </section>
 

@@ -113,7 +113,7 @@ export default function Typeahead({
       />
 
       {isOpen && filteredOptions.length > 0 && (
-        <ul className="absolute z-[100] w-full max-h-56 overflow-y-auto mt-1 bg-white dark:bg-neutral-900 border border-zinc-200 dark:border-neutral-800 rounded-xl shadow-xl py-1.5 text-ui-subhead custom-scrollbar">
+        <ul className="absolute z-[100] w-full max-h-56 overflow-y-auto mt-1 bg-paper-light dark:bg-neutral-900 border border-beige dark:border-neutral-800 rounded-xl shadow-xl py-1.5 text-ui-subhead custom-scrollbar">
           {filteredOptions.map((opt, index) => (
             <li
               key={opt}
@@ -121,8 +121,8 @@ export default function Typeahead({
               onMouseEnter={() => setActiveIndex(index)}
               className={`px-4 py-2.5 cursor-pointer transition-colors ${
                 index === activeIndex
-                  ? "bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 font-medium"
-                  : "hover:bg-zinc-50 dark:hover:bg-neutral-800 text-neutral-700 dark:text-neutral-200"
+                  ? "bg-sage/10 dark:bg-sage/10 text-sage dark:text-sage font-medium"
+                  : "hover:bg-paper-softgray dark:hover:bg-neutral-800 text-neutral-700 dark:text-neutral-200"
               }`}
             >
               {opt}

@@ -15,7 +15,7 @@ const BackgroundGraphics = () => (
     <div className="absolute inset-0 bg-[linear-gradient(to_right,#8080800a_1px,transparent_1px),linear-gradient(to_bottom,#8080800a_1px,transparent_1px)] bg-[size:32px_32px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)]" />
     
     {/* Sophisticated Ambient Glows */}
-    <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[1000px] bg-gradient-radial from-blue-500/[0.05] dark:from-blue-500/[0.03] via-transparent to-transparent blur-[120px]" />
+    <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[1000px] bg-gradient-radial from-sage/[0.05] dark:from-sage/[0.03] via-transparent to-transparent blur-[120px]" />
     <div className="absolute top-[20%] right-[10%] w-[500px] h-[500px] bg-purple-500/[0.03] dark:bg-purple-500/[0.02] rounded-full blur-[100px]" />
     <div className="absolute bottom-[20%] left-[5%] w-[600px] h-[600px] bg-amber-500/[0.02] dark:bg-amber-500/[0.01] rounded-full blur-[120px]" />
     
@@ -30,7 +30,7 @@ export default function Error({ error, reset }: ErrorPageProps) {
   }, [error]);
 
   return (
-    <main className="min-h-screen flex flex-col items-center justify-center px-6 bg-white dark:bg-[#050505] text-neutral-900 dark:text-neutral-100 font-sans selection:bg-blue-500/30 relative overflow-hidden">
+    <main className="min-h-screen flex flex-col items-center justify-center px-6 bg-surface text-fg font-sans selection:bg-sage/30 relative overflow-hidden">
       <BackgroundGraphics />
       <div className="max-w-xl w-full text-center space-y-8 animate-hero-fade-in relative z-10">
         <div className="space-y-2">

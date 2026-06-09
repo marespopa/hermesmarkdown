@@ -130,7 +130,7 @@ export default function WorkspaceBuilder({ isOpen, onClose, editingWorkspace }: 
                     onClick={() => setOperator(op)}
                     className={`px-4 py-1.5 text-ui-footnote font-bold rounded-md transition-all ${
                       operator === op
-                        ? "bg-white dark:bg-neutral-800 shadow-sm text-blue-600 dark:text-blue-400"
+                        ? "bg-paper-light dark:bg-neutral-800 shadow-sm text-sage dark:text-sage"
                         : "text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300"
                     }`}
                   >
@@ -147,7 +147,7 @@ export default function WorkspaceBuilder({ isOpen, onClose, editingWorkspace }: 
                     <select
                       value={rule.field}
                       onChange={(e) => updateRule(idx, { field: e.target.value, condition: CONDITIONS[e.target.value][0].value })}
-                      className="flex-1 sm:w-28 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-lg px-2 py-2 text-ui-footnote font-medium outline-none focus:ring-2 focus:ring-blue-500/50"
+                      className="flex-1 sm:w-28 bg-paper-light dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-lg px-2 py-2 text-ui-footnote font-medium outline-none focus:ring-2 focus:ring-sage/50"
                     >
                       {FIELDS.map((f) => <option key={f.value} value={f.value}>{f.label}</option>)}
                     </select>
@@ -155,7 +155,7 @@ export default function WorkspaceBuilder({ isOpen, onClose, editingWorkspace }: 
                     <select
                       value={rule.condition}
                       onChange={(e) => updateRule(idx, { condition: e.target.value as any })}
-                      className="flex-1 sm:w-32 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-lg px-2 py-2 text-ui-footnote font-medium outline-none focus:ring-2 focus:ring-blue-500/50"
+                      className="flex-1 sm:w-32 bg-paper-light dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-lg px-2 py-2 text-ui-footnote font-medium outline-none focus:ring-2 focus:ring-sage/50"
                     >
                       {CONDITIONS[rule.field].map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
                     </select>
@@ -185,7 +185,7 @@ export default function WorkspaceBuilder({ isOpen, onClose, editingWorkspace }: 
               <Button
                 variant="outlined"
                 onClick={addRule}
-                className="w-full py-3 border-2 border-dashed border-neutral-200 dark:border-neutral-800 rounded-2xl text-neutral-400 hover:text-blue-500 hover:border-blue-500/50 transition-all flex items-center justify-center gap-2 text-ui-footnote font-medium"
+                className="w-full py-3 border-2 border-dashed border-neutral-200 dark:border-neutral-800 rounded-2xl text-neutral-400 hover:text-sage hover:border-sage/50 transition-all flex items-center justify-center gap-2 text-ui-footnote font-medium"
               >
                 <HiOutlinePlus className="w-4 h-4" />
                 Add Rule

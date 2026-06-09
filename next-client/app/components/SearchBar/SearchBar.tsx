@@ -58,19 +58,19 @@ const SIZE = {
 
 const VARIANT_CLASSES: Record<SearchBarVariant, string> = {
   default:
-    "bg-white dark:bg-zinc-800/50 " +
-    "border border-zinc-200 dark:border-zinc-700 " +
+    "bg-paper-light dark:bg-paper-dark-surface/50 " +
+    "border border-edge " +
     "rounded-full " +
-    "focus-within:ring-2 focus-within:ring-blue-500/20 focus-within:border-blue-500/40 " +
+    "focus-within:ring-2 focus-within:ring-sage/20 focus-within:border-sage/40 " +
     "transition-all duration-200 ease-out",
 
   floating:
-    "bg-white/80 dark:bg-zinc-900/80 " +
+    "bg-paper-light/80 dark:bg-paper-dark/80 " +
     "backdrop-blur-xl " +
     "border border-white/20 dark:border-zinc-800/50 " +
     "shadow-2xl " +
     "rounded-2xl " +
-    "focus-within:ring-2 focus-within:ring-blue-500/20 focus-within:border-blue-500/40 " +
+    "focus-within:ring-2 focus-within:ring-sage/20 focus-within:border-sage/40 " +
     "transition-all duration-200 ease-out " +
     "animate-fade-in",
 };
@@ -115,11 +115,11 @@ const SearchBar = forwardRef<HTMLInputElement, SearchBarProps>(
       >
         <span
           aria-hidden="true"
-          className={`absolute ${s.iconLeft} top-1/2 -translate-y-1/2 pointer-events-none flex items-center text-zinc-400 dark:text-zinc-500`}
+          className={`absolute ${s.iconLeft} top-1/2 -translate-y-1/2 pointer-events-none flex items-center text-stone`}
         >
           {isLoading ? (
             <span
-              className="block rounded-full border-2 border-zinc-300 dark:border-zinc-600 border-t-blue-500 animate-spin"
+              className="block rounded-full border-2 border-edge border-t-sage animate-spin"
               style={{ width: s.iconSize, height: s.iconSize }}
             />
           ) : (
@@ -143,8 +143,8 @@ const SearchBar = forwardRef<HTMLInputElement, SearchBarProps>(
           aria-label={placeholder}
           className={[
             "flex-1 h-full bg-transparent outline-none border-none",
-            "text-zinc-900 dark:text-zinc-100",
-            "placeholder:text-zinc-400 dark:placeholder:text-zinc-500",
+            "text-ink-light dark:text-ink-dark",
+            "placeholder:text-stone dark:placeholder:text-stone",
             "font-sans",
             s.inputText,
             s.padLeft,
@@ -158,14 +158,14 @@ const SearchBar = forwardRef<HTMLInputElement, SearchBarProps>(
             tabIndex={-1}
             onClick={handleClear}
             aria-label="Clear search"
-            className={`absolute ${s.iconRight} top-1/2 -translate-y-1/2 flex items-center justify-center w-5 h-5 rounded-full text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 bg-zinc-200/60 hover:bg-zinc-300/70 dark:bg-zinc-700/60 dark:hover:bg-zinc-600/70 transition-all duration-150 active:scale-90`}
+            className={`absolute ${s.iconRight} top-1/2 -translate-y-1/2 flex items-center justify-center w-5 h-5 rounded-full text-stone hover:text-ink-light dark:hover:text-ink-dark bg-beige/60 hover:bg-beige dark:bg-clay/60 dark:hover:bg-clay transition-all duration-150 active:scale-90`}
           >
             <HiX size={10} />
           </button>
         ) : shortcut ? (
           <span
             aria-hidden="true"
-            className={`absolute ${s.iconRight} top-1/2 -translate-y-1/2 px-1.5 py-0.5 rounded-md ${s.shortcutText} font-medium text-zinc-400 dark:text-zinc-500 bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 pointer-events-none select-none`}
+            className={`absolute ${s.iconRight} top-1/2 -translate-y-1/2 px-1.5 py-0.5 rounded-md ${s.shortcutText} font-medium text-stone bg-paper-softgray dark:bg-paper-dark-surface border border-edge pointer-events-none select-none`}
           >
             {shortcut}
           </span>

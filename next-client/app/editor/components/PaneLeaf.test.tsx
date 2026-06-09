@@ -67,7 +67,7 @@ describe("PaneLeaf Tab Indicators", () => {
 
     const dot = screen.getByTitle("Unsaved changes");
     expect(dot).toBeInTheDocument();
-    expect(dot).toHaveClass("bg-blue-400/80");
+    expect(dot).toHaveClass("bg-sage/80");
   });
 
   it("renders a pulsing blue dot when file is saving", () => {
@@ -88,7 +88,7 @@ describe("PaneLeaf Tab Indicators", () => {
 
     const dot = screen.getByTitle("Saving…");
     expect(dot).toBeInTheDocument();
-    expect(dot).toHaveClass("bg-blue-500");
+    expect(dot).toHaveClass("bg-sage");
     expect(dot).toHaveClass("animate-pulse");
   });
 

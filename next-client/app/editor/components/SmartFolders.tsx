@@ -125,12 +125,12 @@ export default function SmartFolders({
   return (
     <div className="flex flex-col h-full min-h-0">
       <div className="flex justify-between items-center px-4 py-2 shrink-0">
-        <span className="text-ui-caption font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-600">
+        <span className="text-ui-caption font-semibold uppercase tracking-wider text-stone dark:text-fg-faint">
           Your Views
         </span>
         <Button
           variant="icon"
-          className="w-6 h-6 opacity-60 hover:opacity-100 text-zinc-600 dark:text-zinc-400"
+          className="w-6 h-6 opacity-60 hover:opacity-100 text-ink-muted dark:text-stone"
           onClick={() => {
             setEditingWorkspace(null);
             setIsBuilderOpen(true);
@@ -152,8 +152,8 @@ export default function SmartFolders({
                   onClick={() => setSelectedFolderId(isSelected ? null : folder.id)}
                   className={`flex items-center gap-2 px-4 py-2 rounded-lg cursor-pointer transition-all text-ui-subhead pr-8 relative ${
                     isSelected
-                      ? "text-purple-600 dark:text-purple-400 font-medium before:absolute before:left-0 before:top-2 before:bottom-2 before:w-0.5 before:bg-purple-500 bg-purple-500/10"
-                      : "hover:bg-zinc-200/50 dark:hover:bg-zinc-800/40 text-zinc-600 dark:text-zinc-400 font-medium"
+                      ? "text-sage dark:text-sage font-medium before:absolute before:left-0 before:top-2 before:bottom-2 before:w-0.5 before:bg-sage bg-sage/10"
+                      : "hover:bg-paper-softgray dark:hover:bg-paper-dark-surface text-ink-muted dark:text-stone font-medium"
                   }`}
                 >
                   <span className="opacity-70">{folder.icon}</span>
@@ -180,7 +180,7 @@ export default function SmartFolders({
                 {actionMenuId === folder.id && (
                   <>
                     <div className="fixed inset-0 z-40" onClick={() => setActionMenuId(null)} />
-                    <div className="absolute right-2 top-[80%] z-50 bg-white/90 dark:bg-zinc-900/90 backdrop-blur-xl border border-zinc-200/50 dark:border-zinc-800/50 rounded-xl shadow-xl py-1 min-w-[120px] animate-in fade-in zoom-in-95 duration-100">
+                    <div className="absolute right-2 top-[80%] z-50 bg-paper-light/90 dark:bg-paper-dark/90 backdrop-blur-xl border border-edge/50 rounded-xl shadow-xl py-1 min-w-[120px] animate-in fade-in zoom-in-95 duration-100">
                       <Button
                         variant="menu-item"
                         onClick={(e) => handleEdit(folder.id, e)}
@@ -203,7 +203,7 @@ export default function SmartFolders({
               </div>
 
               {isSelected && (
-                <div className="ml-5 mt-1 border-l border-zinc-200 dark:border-zinc-800 space-y-0.5 pl-3 mb-3 animate-in fade-in slide-in-from-top-1 duration-200">
+                <div className="ml-5 mt-1 border-l border-edge space-y-0.5 pl-3 mb-3 animate-in fade-in slide-in-from-top-1 duration-200">
                   {matchedFiles.map((file) => (
                     <div
                       key={file.path}
@@ -214,8 +214,8 @@ export default function SmartFolders({
                         onClick={() => onFileSelect(file.handle, file.path)}
                         className={`flex items-center gap-2 px-3 py-1.5 rounded-md cursor-pointer transition-all text-ui-caption truncate pr-8 relative ${
                           activeFilePath === file.path
-                            ? "text-blue-600 dark:text-blue-400 font-bold before:absolute before:left-0 before:top-1.5 before:bottom-1.5 before:w-0.5 before:bg-blue-500 bg-blue-500/10"
-                            : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 font-medium hover:bg-zinc-100 dark:hover:bg-zinc-800/50"
+                            ? "text-sage dark:text-sage font-bold before:absolute before:left-0 before:top-1.5 before:bottom-1.5 before:w-0.5 before:bg-sage bg-sage/10"
+                            : "text-ink-muted hover:text-ink-light dark:hover:text-ink-dark font-medium hover:bg-paper-softgray dark:hover:bg-paper-dark-surface/50"
                         }`}
                       >
                         <HiOutlineDocumentText size={14} className="shrink-0 opacity-50" />
@@ -240,7 +240,7 @@ export default function SmartFolders({
                       {fileActionMenuPath === file.path && (
                         <>
                           <div className="fixed inset-0 z-40" onClick={() => setFileActionMenuPath(null)} />
-                          <div className="absolute right-1 top-[80%] z-50 bg-white/90 dark:bg-zinc-900/90 backdrop-blur-xl border border-zinc-200/50 dark:border-zinc-800/50 rounded-xl shadow-xl py-1 min-w-[120px] animate-in fade-in zoom-in-95 duration-100">
+                          <div className="absolute right-1 top-[80%] z-50 bg-paper-light/90 dark:bg-paper-dark/90 backdrop-blur-xl border border-edge/50 rounded-xl shadow-xl py-1 min-w-[120px] animate-in fade-in zoom-in-95 duration-100">
                             <Button
                               variant="menu-item"
                               onClick={(e) => { e.stopPropagation(); renameFile(file.handle); setFileActionMenuPath(null); }}

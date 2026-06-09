@@ -55,48 +55,48 @@ export default function Button({
 
 // Minimalistic Base: Standardized for a premium "Pro" feel
 const baseStyles =
-  "rounded-2xl flex items-center justify-center gap-2 transition-all duration-200 ease-out focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 disabled:opacity-30 disabled:pointer-events-none select-none border font-sans font-semibold text-ui-footnote sm:text-ui-subhead";
+  "rounded-2xl flex items-center justify-center gap-2 transition-all duration-200 ease-out focus:outline-none focus-visible:ring-2 focus-visible:ring-sage disabled:opacity-30 disabled:pointer-events-none select-none border font-sans font-semibold text-ui-footnote sm:text-ui-subhead";
 
 const variantStyles = (variant: ButtonVariant): string => {
   switch (variant) {
     case "hero":
-      return `${baseStyles} h-12 px-8 bg-blue-600 text-white border-blue-600 hover:bg-blue-500 shadow-md active:scale-[0.98]`;
+      return `${baseStyles} h-12 px-8 bg-accent text-white border-accent hover:bg-accent-hover shadow-md active:scale-[0.98]`;
 
     case "primary":
-      return `${baseStyles} h-11 px-6 bg-zinc-900 text-white border-zinc-900 hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-950 dark:border-zinc-100 dark:hover:bg-zinc-200 shadow-sm active:scale-[0.98]`;
+      return `${baseStyles} h-11 px-6 bg-ink-light text-white border-ink-light hover:bg-ink-hover dark:bg-ink-dark dark:text-ink-light dark:border-ink-dark dark:hover:bg-beige shadow-sm active:scale-[0.98]`;
 
     case "warning":
       return `${baseStyles} h-11 px-6 bg-amber-500 text-white border-amber-500 hover:bg-amber-600 dark:bg-amber-600 dark:border-amber-600 dark:hover:bg-amber-700 shadow-sm active:scale-[0.98]`;
 
     case "secondary":
-      return `${baseStyles} h-11 px-6 bg-white text-zinc-900 border-zinc-200 hover:bg-zinc-50 dark:bg-zinc-900 dark:text-zinc-100 dark:border-zinc-800 dark:hover:bg-zinc-800 shadow-sm active:scale-[0.98]`;
+      return `${baseStyles} h-11 px-6 bg-paper-light text-ink-light border-beige hover:bg-paper-softgray dark:bg-paper-dark-surface dark:text-ink-dark dark:border-clay dark:hover:bg-paper-dark-surface shadow-sm active:scale-[0.98]`;
 
     case "outlined":
-      return `${baseStyles} h-11 px-4 bg-transparent border-zinc-300 text-zinc-600 hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-400 dark:hover:bg-zinc-800/50 active:scale-[0.98]`;
+      return `${baseStyles} h-11 px-4 bg-transparent border-beige text-ink-muted hover:bg-paper-softgray dark:border-clay dark:text-stone dark:hover:bg-paper-dark-surface/50 active:scale-[0.98]`;
 
     case "icon":
-      return `${baseStyles} w-10 h-10 p-0 bg-transparent border-none text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-full active:scale-[0.96]`;
+      return `${baseStyles} w-10 h-10 p-0 bg-transparent border-none text-ink-muted hover:text-ink-light dark:text-stone dark:hover:text-ink-dark hover:bg-paper-softgray dark:hover:bg-paper-dark-surface rounded-full active:scale-[0.96]`;
 
     case "icon-bg":
-      return `${baseStyles} w-10 h-10 p-0 bg-white border-zinc-200 text-zinc-600 hover:bg-zinc-50 dark:bg-zinc-900 dark:border-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-800 shadow-sm active:scale-[0.96]`;
+      return `${baseStyles} w-10 h-10 p-0 bg-paper-light border-beige text-ink-muted hover:bg-paper-softgray dark:bg-paper-dark-surface dark:border-clay dark:text-ink-dark dark:hover:bg-paper-dark-surface shadow-sm active:scale-[0.96]`;
 
     case "tertiary":
-      return `${baseStyles} h-11 px-3 bg-transparent border-none text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100`;
+      return `${baseStyles} h-11 px-3 bg-transparent border-none text-ink-muted hover:text-ink-light dark:text-stone dark:hover:text-ink-dark`;
 
     case "bare":
       return "inline-flex items-center justify-center font-sans font-medium text-ui-footnote hover:underline focus:underline transition-all";
 
     case "fab-action":
-      return "inline-flex items-center gap-2 px-4 py-2 font-sans font-medium text-ui-footnote text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors group focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 disabled:opacity-30 disabled:pointer-events-none select-none";
+      return "inline-flex items-center gap-2 px-4 py-2 font-sans font-medium text-ui-footnote text-ink-muted dark:text-stone hover:text-ink-light dark:hover:text-ink-dark transition-colors group focus:outline-none focus-visible:ring-2 focus-visible:ring-sage disabled:opacity-30 disabled:pointer-events-none select-none";
 
     case "fab-toggle":
-      return "inline-flex items-center justify-center px-4 py-2 font-sans font-medium text-ui-footnote border-l border-zinc-200 dark:border-zinc-800 transition-all min-w-[48px] focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 disabled:opacity-30 disabled:pointer-events-none select-none";
+      return "inline-flex items-center justify-center px-4 py-2 font-sans font-medium text-ui-footnote border-l border-edge transition-all min-w-[48px] focus:outline-none focus-visible:ring-2 focus-visible:ring-sage disabled:opacity-30 disabled:pointer-events-none select-none";
 
     case "menu-item":
-      return "w-full inline-flex items-center justify-start gap-3 px-3 py-2.5 font-sans font-medium text-ui-footnote text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:bg-zinc-100 transition-all rounded-xl group focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 disabled:opacity-30 disabled:pointer-events-none select-none active:scale-[0.96]";
+      return "w-full inline-flex items-center justify-start gap-3 px-3 py-2.5 font-sans font-medium text-ui-footnote text-ink-muted dark:text-stone hover:bg-paper-softgray dark:hover:bg-paper-dark-surface hover:text-ink-light dark:hover:text-ink-dark transition-all rounded-xl group focus:outline-none focus-visible:ring-2 focus-visible:ring-sage disabled:opacity-30 disabled:pointer-events-none select-none active:scale-[0.96]";
 
     case "pill-icon":
-      return "flex items-center justify-center p-1 text-zinc-400 hover:text-blue-600 dark:text-zinc-500 dark:hover:text-blue-400 transition-all duration-200 ease-out rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 disabled:opacity-30 disabled:pointer-events-none select-none active:scale-[0.96]";
+      return "flex items-center justify-center p-1 text-ink-muted hover:text-sage dark:text-stone dark:hover:text-sage transition-all duration-200 ease-out rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-sage disabled:opacity-30 disabled:pointer-events-none select-none active:scale-[0.96]";
 
     default:
       return baseStyles;

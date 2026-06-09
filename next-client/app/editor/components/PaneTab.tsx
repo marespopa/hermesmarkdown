@@ -25,8 +25,8 @@ interface PaneTabProps {
 
 const statusDot: Record<TabSaveState, { className: string; title: string } | null> = {
   idle: null,
-  dirty: { className: "bg-blue-400/80", title: "Unsaved changes" },
-  saving: { className: "bg-blue-500 animate-pulse", title: "Saving…" },
+  dirty: { className: "bg-sage/80", title: "Unsaved changes" },
+  saving: { className: "bg-sage animate-pulse", title: "Saving…" },
   saved: { className: "bg-emerald-500", title: "Saved" },
   error: { className: "bg-red-500", title: "Save error" },
 };
@@ -66,9 +66,9 @@ export default function PaneTab({
         "min-w-[100px] md:min-w-[80px] lg:md:min-w-[100px] max-w-[200px] md:max-w-[160px]",
         "select-none transition-all duration-150 hover:scale-[1.01] active:scale-[0.99]",
         isActive
-          ? "bg-white/80 dark:bg-zinc-800/80 shadow-[0_1px_2px_rgba(0,0,0,0.04),0_0_0_0.5px_rgba(0,0,0,0.04)] dark:shadow-[0_1px_2px_rgba(0,0,0,0.2),0_0_0_0.5px_rgba(255,255,255,0.02)] text-zinc-900 dark:text-zinc-100"
-          : "text-zinc-400 dark:text-zinc-500 hover:text-zinc-600 dark:hover:text-zinc-400 hover:bg-white/30 dark:hover:bg-zinc-800/20",
-        isDraggedOver ? "ring-2 ring-blue-400/40 ring-inset" : "",
+          ? "bg-paper-light/80 dark:bg-paper-dark-surface/80 shadow-[0_1px_2px_rgba(0,0,0,0.04),0_0_0_0.5px_rgba(0,0,0,0.04)] dark:shadow-[0_1px_2px_rgba(0,0,0,0.2),0_0_0_0.5px_rgba(255,255,255,0.02)] text-ink-light dark:text-ink-dark"
+          : "text-stone hover:text-ink-muted dark:hover:text-stone hover:bg-paper-light/30 dark:hover:bg-paper-dark-surface/20",
+        isDraggedOver ? "ring-2 ring-sage/40 ring-inset" : "",
       ].join(" ")}
     >
       {/* File icon */}
@@ -76,7 +76,7 @@ export default function PaneTab({
         size={14}
         className={[
           "md:w-[11px] md:h-[11px] shrink-0 mr-2 md:mr-1 transition-colors duration-150",
-          isActive ? "text-blue-500/80" : "text-zinc-400/40 group-hover:text-zinc-400/60",
+          isActive ? "text-sage/80" : "text-stone/40 group-hover:text-stone/60",
         ].join(" ")}
       />
 
@@ -84,7 +84,7 @@ export default function PaneTab({
       <span
         className={[
           "flex-1 truncate text-[13px] md:text-[10px] leading-none tracking-tight",
-          isActive ? "font-medium text-zinc-700 dark:text-zinc-200" : "font-normal",
+          isActive ? "font-medium text-ink-light dark:text-ink-dark" : "font-normal",
         ].join(" ")}
       >
         {fileName}
@@ -107,8 +107,8 @@ export default function PaneTab({
             title="Close tab"
             className={[
               "flex items-center justify-center w-3.5 h-3.5 rounded-full",
-              "text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200",
-              "hover:bg-zinc-200/80 dark:hover:bg-zinc-600/60",
+              "text-stone hover:text-ink-light dark:hover:text-ink-dark",
+              "hover:bg-beige/80 dark:hover:bg-clay/60",
               "transition-all duration-100",
               isActive
                 ? "opacity-60 hover:opacity-100"

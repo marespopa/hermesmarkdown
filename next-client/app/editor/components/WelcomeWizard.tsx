@@ -73,7 +73,7 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
       case 0: // Welcome
         return (
           <div className="flex flex-col items-center text-center space-y-6 py-4">
-            <div className="w-20 h-20 bg-blue-50 dark:bg-blue-900/20 rounded-3xl flex items-center justify-center text-blue-600 dark:text-blue-400">
+            <div className="w-20 h-20 bg-sage/10 dark:bg-sage/10 rounded-3xl flex items-center justify-center text-sage dark:text-sage">
               <HiOutlineSparkles size={40} />
             </div>
             <div className="space-y-2">
@@ -106,7 +106,7 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
                 variant="secondary" 
                 onClick={openVault} 
                 disabled={!isVaultSupported}
-                className="flex items-center justify-between px-5 h-14 rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900"
+                className="flex items-center justify-between px-5 h-14 rounded-2xl border border-edge bg-paper-light dark:bg-paper-dark"
               >
                 <div className="flex items-center gap-3">
                   <HiOutlineFolder className="text-amber-500" size={24} />
@@ -121,10 +121,10 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
               <Button 
                 variant="secondary" 
                 onClick={openDriveVaultPicker}
-                className="flex items-center justify-between px-5 h-14 rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900"
+                className="flex items-center justify-between px-5 h-14 rounded-2xl border border-edge bg-paper-light dark:bg-paper-dark"
               >
                 <div className="flex items-center gap-3">
-                  <HiOutlineCloud className="text-blue-500" size={24} />
+                  <HiOutlineCloud className="text-sage" size={24} />
                   <div className="text-left">
                     <div className="font-bold text-ui-footnote">Google Drive</div>
                     <div className="text-[10px] opacity-50 uppercase tracking-wider font-bold">Cloud Sync</div>
@@ -144,7 +144,7 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
       case 2: // Preferences
         return (
           <div className="flex flex-col items-center text-center space-y-6 py-4">
-            <div className="w-16 h-16 bg-violet-50 dark:bg-violet-900/20 rounded-2xl flex items-center justify-center text-violet-600 dark:text-violet-400">
+            <div className="w-16 h-16 bg-sage/10 dark:bg-sage/10 rounded-2xl flex items-center justify-center text-sage dark:text-sage">
               <HiOutlineCurrencyDollar size={32} />
             </div>
             <div className="space-y-2">
@@ -186,7 +186,7 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
       case 3: // Showcase / Done
         return (
           <div className="flex flex-col items-center text-center space-y-6 py-4">
-            <div className="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-blue-500/20">
+            <div className="w-16 h-16 bg-sage rounded-2xl flex items-center justify-center text-white shadow-lg shadow-sage/20">
               <HiOutlineCheckCircle size={32} />
             </div>
             <div className="space-y-2">
@@ -197,22 +197,22 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
             </div>
 
             <div className="grid grid-cols-2 gap-3 w-full">
-               <div className="p-3 rounded-2xl bg-zinc-50 dark:bg-zinc-900/30 border border-zinc-100 dark:border-zinc-800 text-left space-y-1">
-                 <HiOutlineSparkles className="text-violet-500" size={18} />
+               <div className="p-3 rounded-2xl bg-paper-softgray dark:bg-paper-dark/30 border border-beige-light dark:border-clay text-left space-y-1">
+                 <HiOutlineSparkles className="text-sage" size={18} />
                  <div className="text-[11px] font-bold">AI toolbar</div>
                  <div className="text-[10px] opacity-50 leading-tight">Select text to improve or expand.</div>
                </div>
-               <div className="p-3 rounded-2xl bg-zinc-50 dark:bg-zinc-900/30 border border-zinc-100 dark:border-zinc-800 text-left space-y-1">
+               <div className="p-3 rounded-2xl bg-paper-softgray dark:bg-paper-dark/30 border border-beige-light dark:border-clay text-left space-y-1">
                  <HiOutlineCode className="text-amber-500" size={18} />
                  <div className="text-[11px] font-bold">Smart Metadata</div>
                  <div className="text-[10px] opacity-50 leading-tight">Auto-injected frontmatter and tags.</div>
                </div>
-               <div className="p-3 rounded-2xl bg-zinc-50 dark:bg-zinc-900/30 border border-zinc-100 dark:border-zinc-800 text-left space-y-1">
-                 <HiOutlineChartBar className="text-blue-500" size={18} />
+               <div className="p-3 rounded-2xl bg-paper-softgray dark:bg-paper-dark/30 border border-beige-light dark:border-clay text-left space-y-1">
+                 <HiOutlineChartBar className="text-sage" size={18} />
                  <div className="text-[11px] font-bold">Readability</div>
                  <div className="text-[10px] opacity-50 leading-tight">Live agent-readability scoring.</div>
                </div>
-               <div className="p-3 rounded-2xl bg-zinc-50 dark:bg-zinc-900/30 border border-zinc-100 dark:border-zinc-800 text-left space-y-1">
+               <div className="p-3 rounded-2xl bg-paper-softgray dark:bg-paper-dark/30 border border-beige-light dark:border-clay text-left space-y-1">
                  <HiOutlineTerminal className="text-emerald-500" size={18} />
                  <div className="text-[11px] font-bold">Slash Commands</div>
                  <div className="text-[10px] opacity-50 leading-tight">Type / for templates and context.</div>
@@ -242,7 +242,7 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
             {[1, 2, 3].map((i) => (
               <div 
                 key={i} 
-                className={`h-1 rounded-full transition-all ${i <= step ? "w-4 bg-blue-500" : "w-1 bg-neutral-200 dark:bg-neutral-800"}`} 
+                className={`h-1 rounded-full transition-all ${i <= step ? "w-4 bg-sage" : "w-1 bg-neutral-200 dark:bg-neutral-800"}`} 
               />
             ))}
           </div>

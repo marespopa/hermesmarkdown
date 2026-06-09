@@ -36,7 +36,7 @@ export default function VaultSidebarEmpty({
         {isVaultSupported ? (
           <div
             onClick={openVault}
-            className="flex items-center gap-3 px-4 py-3 rounded-xl cursor-pointer hover:bg-zinc-200/50 dark:hover:bg-zinc-800/40 transition-colors text-ui-footnote text-zinc-600 dark:text-zinc-400 font-medium"
+            className="flex items-center gap-3 px-4 py-3 rounded-xl cursor-pointer hover:bg-paper-softgray dark:hover:bg-paper-dark-surface/40 transition-colors text-ui-footnote text-ink-muted dark:text-stone font-medium"
           >
             <HiOutlineDatabase size={18} />
             <span>Open Folder</span>
@@ -54,7 +54,7 @@ export default function VaultSidebarEmpty({
              setActiveFilePath("draft");
              if (onClose && window.innerWidth < 1024) onClose();
           }}
-          className={`flex items-center gap-3 px-4 py-3 rounded-xl cursor-pointer transition-all text-ui-footnote relative ${activeFilePath === 'draft' ? "text-blue-600 dark:text-blue-400 font-bold bg-blue-500/10" : "hover:bg-zinc-200/50 dark:hover:bg-zinc-800/40 text-zinc-600 dark:text-zinc-400 font-medium"}`}
+          className={`flex items-center gap-3 px-4 py-3 rounded-xl cursor-pointer transition-all text-ui-footnote relative ${activeFilePath === 'draft' ? "text-sage dark:text-sage font-bold bg-sage/10" : "hover:bg-paper-softgray dark:hover:bg-paper-dark-surface/40 text-ink-muted dark:text-stone font-medium"}`}
         >
           <HiOutlineDocumentText size={18} />
           <span>Draft Mode</span>
@@ -65,14 +65,14 @@ export default function VaultSidebarEmpty({
         <SidebarHeader title="Actions" isExpanded={true} onToggle={() => {}} />
         <div
           onClick={onImport}
-          className="flex items-center gap-3 px-4 py-3 rounded-xl cursor-pointer hover:bg-zinc-200/50 dark:hover:bg-zinc-800/40 transition-colors text-ui-footnote text-zinc-600 dark:text-zinc-400 font-medium"
+          className="flex items-center gap-3 px-4 py-3 rounded-xl cursor-pointer hover:bg-paper-softgray dark:hover:bg-paper-dark-surface/40 transition-colors text-ui-footnote text-ink-muted dark:text-stone font-medium"
         >
           <HiOutlineCloudDownload size={18} />
           <span>Import Markdown</span>
         </div>
         <div
           onClick={onExport}
-          className="flex items-center gap-3 px-4 py-3 rounded-xl cursor-pointer hover:bg-zinc-200/50 dark:hover:bg-zinc-800/40 transition-colors text-ui-footnote text-zinc-600 dark:text-zinc-400 font-medium"
+          className="flex items-center gap-3 px-4 py-3 rounded-xl cursor-pointer hover:bg-paper-softgray dark:hover:bg-paper-dark-surface/40 transition-colors text-ui-footnote text-ink-muted dark:text-stone font-medium"
         >
           <HiOutlineCloudUpload size={18} />
           <span>Export Markdown</span>

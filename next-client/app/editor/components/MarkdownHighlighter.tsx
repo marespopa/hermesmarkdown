@@ -32,7 +32,7 @@ function processInlineMarkdown(
       (dateMatch && dateMatch.rawString === matchStr) ||
       (activeLink && activeLink.rawString === matchStr)
     ) {
-      return " underline decoration-blue-500 decoration-2 underline-offset-[3px] dark:decoration-blue-400";
+      return " underline decoration-sage decoration-2 underline-offset-[3px] dark:decoration-sage";
     }
     return "";
   };
@@ -63,14 +63,14 @@ function processInlineMarkdown(
       const parts = content.split("|");
       const displayText = parts.length > 1 ? parts[1].trim() : parts[0].trim();
       const underline = getUnderlineClass(match);
-      return `<span ${FADED}>[[</span><span class="text-blue-600 dark:text-blue-400 font-bold underline cursor-pointer${underline}">${displayText}</span><span ${FADED}>]]</span>`;
+      return `<span ${FADED}>[[</span><span class="text-sage dark:text-sage font-bold underline cursor-pointer${underline}">${displayText}</span><span ${FADED}>]]</span>`;
     });
   }
 
   if (html.includes("`")) {
     html = html.replace(
       REGEX_CODE_INLINE,
-      `<span ${FADED}>$1</span><span class="bg-zinc-100/80 dark:bg-zinc-800/50 rounded-sm">$2</span><span ${FADED}>$3</span>`,
+      `<span ${FADED}>$1</span><span class="bg-paper-softgray/80 dark:bg-paper-dark-surface/50 rounded-sm">$2</span><span ${FADED}>$3</span>`,
     );
   }
 
@@ -97,18 +97,18 @@ function processInlineMarkdown(
     html = html.replace(
       REGEX_LINK,
       (match, p1, p2, p3, p4, p5) =>
-        `<span ${FADED}>${p1}</span><span class="text-blue-600 dark:text-blue-400 underline${getUnderlineClass(match)}">${p2}</span><span ${FADED}>${p3}${p4}${p5}</span>`,
+        `<span ${FADED}>${p1}</span><span class="text-sage dark:text-sage underline${getUnderlineClass(match)}">${p2}</span><span ${FADED}>${p3}${p4}${p5}</span>`,
     );
   }
 
   if (html.includes("*") || html.includes("_")) {
     html = html.replace(
       REGEX_BOLD,
-      `<span ${FADED}>$1</span><strong class="font-bold text-zinc-900 dark:text-zinc-50">$2</strong><span ${FADED}>$1</span>`,
+      `<span ${FADED}>$1</span><strong class="font-bold text-ink-light dark:text-ink-dark">$2</strong><span ${FADED}>$1</span>`,
     );
     html = html.replace(
       REGEX_ITALIC,
-      `<span ${FADED}>$1</span><em class="italic text-zinc-800 dark:text-zinc-200">$2</em><span ${FADED}>$1</span>`,
+      `<span ${FADED}>$1</span><em class="italic text-ink-light dark:text-ink-dark">$2</em><span ${FADED}>$1</span>`,
     );
   }
 
@@ -145,21 +145,21 @@ export function highlightMarkdown(
       if (index === 0 && html === "---") {
         isInsideFrontmatter = true;
         const isActive = isZenModeActive && index === activeLineIndex;
-        return `<div class="transition-all duration-700 ease-in-out bg-violet-50/40 dark:bg-violet-950/20 ${isActive ? "-mx-6 px-6 rounded-lg" : ""} min-h-[1.8em]"><span class="text-zinc-400 dark:text-zinc-600">---</span></div>`;
+        return `<div class="transition-all duration-700 ease-in-out bg-sage/5 dark:bg-sage/5 ${isActive ? "-mx-6 px-6 rounded-lg" : ""} min-h-[1.8em]"><span class="text-zinc-400 dark:text-zinc-600">---</span></div>`;
       }
       if (isInsideFrontmatter && !frontmatterClosed) {
         if (html === "---") {
           isInsideFrontmatter = false;
           frontmatterClosed = true;
           const isActive = isZenModeActive && index === activeLineIndex;
-          return `<div class="transition-all duration-700 ease-in-out bg-violet-50/40 dark:bg-violet-950/20 ${isActive ? "-mx-6 px-6 rounded-lg" : ""} min-h-[1.8em]"><span class="text-zinc-400 dark:text-zinc-600">---</span></div>`;
+          return `<div class="transition-all duration-700 ease-in-out bg-sage/5 dark:bg-sage/5 ${isActive ? "-mx-6 px-6 rounded-lg" : ""} min-h-[1.8em]"><span class="text-zinc-400 dark:text-zinc-600">---</span></div>`;
         }
         const fmContent = html.replace(
           /^([a-zA-Z_][a-zA-Z0-9_]*)(:)(.*)/,
           `<span class="text-violet-500 dark:text-violet-400 opacity-80">$1</span><span class="opacity-30">$2</span><span class="text-zinc-600 dark:text-zinc-400">$3</span>`,
         );
         const isActive = isZenModeActive && index === activeLineIndex;
-        return `<div class="transition-all duration-700 ease-in-out bg-violet-50/40 dark:bg-violet-950/20 ${isActive ? "-mx-6 px-6 rounded-lg" : ""} min-h-[1.8em]">${fmContent || " "}</div>`;
+        return `<div class="transition-all duration-700 ease-in-out bg-sage/5 dark:bg-sage/5 ${isActive ? "-mx-6 px-6 rounded-lg" : ""} min-h-[1.8em]">${fmContent || " "}</div>`;
       }
 
       let content = "";
@@ -170,7 +170,7 @@ export function highlightMarkdown(
         content = `<span ${FADED}>${fence}${lang}</span>`;
       } else if (isInsideCodeBlock) {
         const inner = html === "" ? " " : html;
-        content = `<span class="bg-zinc-100/50 dark:bg-zinc-800/40">${inner}</span>`;
+        content = `<span class="bg-paper-softgray/50 dark:bg-paper-dark-surface/40">${inner}</span>`;
       } else if (!html.trim()) {
         content = html;
       } else if (/^( {0,3}([-*_])(?:\s*\2){2,}\s*)$/.test(html)) {
@@ -179,13 +179,13 @@ export function highlightMarkdown(
         content = html.replace(
           /^(#{1,6}\s+)(.*)$/,
           (m, hashes, label) =>
-            `<span ${FADED}>${hashes}</span><span class="font-bold text-zinc-900 dark:text-zinc-50">${processInlineMarkdown(label, dateMatch, activeLink)}</span>`,
+            `<span ${FADED}>${hashes}</span><span class="font-bold text-ink-light dark:text-ink-dark">${processInlineMarkdown(label, dateMatch, activeLink)}</span>`,
         );
       } else if (html.startsWith("&gt;")) {
         content = html.replace(
           /^(&gt;\s?)(.*)$/,
           (m, quote, label) =>
-            `<span ${FADED}>${quote}</span><span class="text-zinc-500 dark:text-zinc-400">${processInlineMarkdown(label, dateMatch, activeLink)}</span>`,
+            `<span ${FADED}>${quote}</span><span class="text-ink-muted dark:text-stone">${processInlineMarkdown(label, dateMatch, activeLink)}</span>`,
         );
       } else if (/^\s*[-*+]\s+/.test(html)) {
         content = html.replace(
@@ -193,7 +193,7 @@ export function highlightMarkdown(
           (m, bull, check, label) => {
             const isChecked = check?.toLowerCase().includes("x");
             const checkHtml = check ? `<span ${FADED}>${check}</span>` : "";
-            return `<span ${FADED}>${bull}</span>${checkHtml}<span class="${isChecked ? "line-through opacity-40" : "text-zinc-900 dark:text-zinc-100"}">${processInlineMarkdown(label, dateMatch, activeLink)}</span>`;
+            return `<span ${FADED}>${bull}</span>${checkHtml}<span class="${isChecked ? "line-through opacity-40" : "text-ink-light dark:text-ink-dark"}">${processInlineMarkdown(label, dateMatch, activeLink)}</span>`;
           },
         );
       } else if (/^\s*\|/.test(html)) {
@@ -209,7 +209,7 @@ export function highlightMarkdown(
       }
 
       const isActive = isZenModeActive && index === activeLineIndex;
-      return `<div class="transition-all duration-700 ease-in-out ${isActive ? "bg-zinc-400/5 dark:bg-zinc-400/10 -mx-6 px-6 rounded-lg scale-[1.005] opacity-100 shadow-[0_0_40px_-15px_rgba(0,0,0,0.05)]" : ""} min-h-[1.8em]">${content || " "}</div>`;
+      return `<div class="transition-all duration-700 ease-in-out ${isActive ? "bg-ink-muted/5 dark:bg-ink-muted/10 -mx-6 px-6 rounded-lg scale-[1.005] opacity-100 shadow-[0_0_40px_-15px_rgba(0,0,0,0.05)]" : ""} min-h-[1.8em]">${content || " "}</div>`;
     })
     .join("");
 }

@@ -133,14 +133,14 @@ const FolderTreeItem = memo(function FolderTreeItem({
             style={{ paddingLeft: `${level * 1.25}rem` }}
             className={`flex items-center gap-2 pr-12 py-2 rounded-xl cursor-pointer transition-all text-ui-subhead relative ${
               dragOver
-                ? "ring-2 ring-blue-500/50 bg-blue-500/10 text-blue-600 dark:text-blue-400 font-medium"
-                : "hover:bg-zinc-200/50 dark:hover:bg-zinc-800/40 text-zinc-600 dark:text-zinc-400 font-medium"
+                ? "ring-2 ring-sage/50 bg-sage/10 text-sage dark:text-sage font-medium"
+                : "hover:bg-paper-softgray dark:hover:bg-paper-dark-surface/40 text-ink-muted dark:text-stone font-medium"
             }`}
           >
             <span className="w-4 flex items-center justify-center opacity-40">
               {isExpanded ? <HiOutlineChevronDown size={14} /> : <HiOutlineChevronRight size={14} />}
             </span>
-            <HiOutlineFolder size={18} className="shrink-0 opacity-60 text-blue-500/60" />
+            <HiOutlineFolder size={18} className="shrink-0 opacity-60 text-sage/60" />
             <span className="truncate">{dirHandle.name}</span>
           </div>
 
@@ -173,7 +173,7 @@ const FolderTreeItem = memo(function FolderTreeItem({
                 onClick={(e) => { e.stopPropagation(); setActionMenuOpen(null); }}
               />
               <div 
-                className="fixed z-50 bg-white/90 dark:bg-zinc-900/90 backdrop-blur-xl border border-zinc-200/50 dark:border-zinc-800/50 rounded-2xl shadow-2xl py-1.5 min-w-[160px] animate-in fade-in zoom-in-95 duration-200"
+                className="fixed z-50 bg-paper-light/90 dark:bg-paper-dark/90 backdrop-blur-xl border border-edge/50 rounded-2xl shadow-2xl py-1.5 min-w-[160px] animate-in fade-in zoom-in-95 duration-200"
                 style={{ top: actionMenuOpen.y, left: actionMenuOpen.x - 160 }}
               >
                 <Button
@@ -188,7 +188,7 @@ const FolderTreeItem = memo(function FolderTreeItem({
                   <HiOutlinePlus size={16} className="opacity-60" />
                   New File
                 </Button>
-                <div className="mx-3 my-1 border-t border-zinc-200/50 dark:border-zinc-700/50" />
+                <div className="mx-3 my-1 border-t border-edge/50" />
                 <Button
                   variant="menu-item"
                   onClick={(e) => {

@@ -66,30 +66,30 @@ export const AISelectionToolbar: React.FC<AISelectionToolbarProps> = ({
     <Portal>
       <div className="fixed top-4 inset-x-0 z-[99] flex justify-center pointer-events-none">
         <div
-          className="ai-selection-toolbar pointer-events-auto flex items-center gap-0.5 p-1 bg-white/80 dark:bg-neutral-900/80 backdrop-blur-2xl border border-white/20 dark:border-neutral-800/50 shadow-[0_8px_30px_rgba(0,0,0,0.1)] rounded-full animate-in fade-in zoom-in-95 duration-200 select-none"
+          className="ai-selection-toolbar pointer-events-auto flex items-center gap-0.5 p-1 bg-paper-light/80 dark:bg-neutral-900/80 backdrop-blur-2xl border border-paper-light/20 dark:border-neutral-800/50 shadow-[0_8px_30px_rgba(0,0,0,0.1)] rounded-full animate-in fade-in zoom-in-95 duration-200 select-none"
         >
           <button
             onMouseDown={(e) => e.preventDefault()}
             onClick={(e) => { e.preventDefault(); e.stopPropagation(); onPrompt(); }}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-ui-footnote font-medium text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-500/10 rounded-full transition-colors"
+            className="flex items-center gap-1.5 px-3 py-1.5 text-ui-footnote font-medium text-sage dark:text-sage hover:bg-sage/10 dark:hover:bg-sage/10 rounded-full transition-colors"
           >
             <HiOutlineSparkles size={13} />
             Prompt
           </button>
-          <div className="w-px h-3.5 bg-zinc-200 dark:bg-zinc-700 my-auto" />
+          <div className="w-px h-3.5 bg-beige dark:bg-clay my-auto" />
           <button
             onMouseDown={(e) => e.preventDefault()}
             onClick={(e) => { e.preventDefault(); e.stopPropagation(); onImprove(); }}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-ui-footnote font-medium text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-500/10 rounded-full transition-colors"
+            className="flex items-center gap-1.5 px-3 py-1.5 text-ui-footnote font-medium text-sage dark:text-sage hover:bg-sage/10 dark:hover:bg-sage/10 rounded-full transition-colors"
           >
             <HiOutlineLightningBolt size={13} />
             Improve
           </button>
-          <div className="w-px h-3.5 bg-zinc-200 dark:bg-zinc-700 my-auto" />
+          <div className="w-px h-3.5 bg-beige dark:bg-clay my-auto" />
           <button
             onMouseDown={(e) => e.preventDefault()}
             onClick={(e) => { e.preventDefault(); e.stopPropagation(); onExpand(); }}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-ui-footnote font-medium text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-500/10 rounded-full transition-colors"
+            className="flex items-center gap-1.5 px-3 py-1.5 text-ui-footnote font-medium text-sage dark:text-sage hover:bg-sage/10 dark:hover:bg-sage/10 rounded-full transition-colors"
           >
             <HiOutlinePlus size={13} />
             Expand

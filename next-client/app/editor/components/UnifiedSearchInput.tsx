@@ -16,11 +16,11 @@ interface UnifiedSearchInputProps {
 function TagDot({ tag }: { tag: string }) {
   return (
     <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${
-      tag === "todo" ? "bg-blue-500"   :
+      tag === "todo" ? "bg-sage"   :
       tag === "prog" ? "bg-amber-500"  :
       tag === "done" ? "bg-green-500"  :
       tag === "urgn" ? "bg-red-500"    :
-      TAG_COLORS[tag] ? "bg-purple-500" : "bg-blue-400"
+      TAG_COLORS[tag] ? "bg-sage" : "bg-sage"
     }`} />
   );
 }
@@ -149,16 +149,16 @@ export default function UnifiedSearchInput({
         className={[
           "flex items-center h-11 sm:h-9 px-3 gap-2 cursor-text",
           "rounded-xl",
-          "bg-white dark:bg-zinc-900",
-          "border border-zinc-200 dark:border-zinc-800",
-          "shadow-md shadow-zinc-200/50 dark:shadow-black/40",
-          "focus-within:ring-2 focus-within:ring-blue-500/20",
+          "bg-paper-light dark:bg-paper-dark",
+          "border border-edge",
+          "shadow-md shadow-beige/50 dark:shadow-black/40",
+          "focus-within:ring-2 focus-within:ring-sage/20",
           "transition-all duration-150",
         ].join(" ")}
       >
         <HiOutlineSearch
           size={15}
-          className="shrink-0 text-zinc-400 dark:text-zinc-500"
+          className="shrink-0 text-stone"
           aria-hidden
         />
 
@@ -177,9 +177,9 @@ export default function UnifiedSearchInput({
           className={[
             "flex-1 min-w-0 bg-transparent outline-none border-none",
             "text-[13px] sm:text-xs leading-none",
-            "text-zinc-800 dark:text-zinc-200",
-            "placeholder:text-zinc-400 dark:placeholder:text-zinc-500",
-            "caret-blue-500",
+            "text-ink-light dark:text-ink-dark",
+            "placeholder:text-stone dark:placeholder:text-stone",
+            "caret-sage",
           ].join(" ")}
         />
 
@@ -192,8 +192,8 @@ export default function UnifiedSearchInput({
           className={[
             "shrink-0 w-4 h-4 flex items-center justify-center",
             "rounded-full",
-            "text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300",
-            "bg-zinc-300/60 hover:bg-zinc-300 dark:bg-zinc-600/60 dark:hover:bg-zinc-600",
+            "text-stone hover:text-ink-muted dark:hover:text-ink-dark",
+            "bg-beige/60 hover:bg-beige dark:bg-clay/60 dark:hover:bg-clay",
             "transition-all duration-150",
             hasContent ? "opacity-100" : "opacity-0 pointer-events-none",
           ].join(" ")}
@@ -214,8 +214,8 @@ export default function UnifiedSearchInput({
                 "inline-flex items-center gap-1 shrink-0",
                 "pl-2 pr-1 py-1 sm:py-0.5 rounded-full",
                 "text-[11px] font-medium leading-none",
-                "bg-zinc-200 dark:bg-zinc-700/80",
-                "text-zinc-600 dark:text-zinc-300",
+                "bg-beige dark:bg-clay/80",
+                "text-ink-muted dark:text-ink-dark",
               ].join(" ")}
             >
               <TagDot tag={token} />
@@ -224,7 +224,7 @@ export default function UnifiedSearchInput({
                 type="button"
                 tabIndex={-1}
                 onMouseDown={(e) => { e.preventDefault(); onTokenRemove(token); }}
-                className="ml-0.5 w-3.5 h-3.5 flex items-center justify-center rounded-full opacity-50 hover:opacity-100 hover:bg-zinc-300 dark:hover:bg-zinc-600 transition-all"
+                className="ml-0.5 w-3.5 h-3.5 flex items-center justify-center rounded-full opacity-50 hover:opacity-100 hover:bg-beige-light dark:hover:bg-clay transition-all"
                 aria-label={`Remove ${token}`}
               >
                 <HiX size={8} />
@@ -235,7 +235,7 @@ export default function UnifiedSearchInput({
           <button
             type="button"
             onMouseDown={(e) => { e.preventDefault(); tokens.forEach(t => onTokenRemove(t)); }}
-            className="ml-auto text-[11px] text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors"
+            className="ml-auto text-[11px] text-stone hover:text-ink-muted dark:hover:text-ink-dark transition-colors"
           >
             clear filters
           </button>
@@ -244,7 +244,7 @@ export default function UnifiedSearchInput({
 
       {/* ── Tag suggestion popover ────────────────────────────────────── */}
       {showPopover && (
-        <div className="absolute top-[calc(theme(spacing.11)+theme(spacing.1))] sm:top-[calc(theme(spacing.9)+theme(spacing.1))] left-0 right-0 z-50 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-xl border border-zinc-200/60 dark:border-zinc-800/60 rounded-2xl shadow-xl py-1 overflow-hidden">
+        <div className="absolute top-[calc(theme(spacing.11)+theme(spacing.1))] sm:top-[calc(theme(spacing.9)+theme(spacing.1))] left-0 right-0 z-50 bg-paper-light/95 dark:bg-paper-dark/95 backdrop-blur-xl border border-beige/60 dark:border-clay/60 rounded-2xl shadow-xl py-1 overflow-hidden">
           {filteredSuggestions.map((tag, idx) => (
             <button
               key={tag}
@@ -255,8 +255,8 @@ export default function UnifiedSearchInput({
                 "text-[13px] font-medium text-left",
                 "transition-colors duration-100",
                 idx === selectedSuggestionIdx
-                  ? "bg-blue-500/10 text-blue-600 dark:text-blue-400"
-                  : "text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800/60",
+                  ? "bg-sage/10 text-sage dark:text-sage"
+                  : "text-ink-muted dark:text-stone hover:bg-paper-softgray dark:hover:bg-paper-dark-surface/60",
               ].join(" ")}
             >
               <TagDot tag={tag} />

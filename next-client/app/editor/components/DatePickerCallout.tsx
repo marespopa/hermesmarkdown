@@ -126,7 +126,7 @@ export default function DatePickerCallout({
       >
         {/* Header */}
         <div className="flex items-center justify-between mb-4 px-1">
-          <span className="font-bold text-ui-callout text-zinc-900 dark:text-zinc-100">
+          <span className="font-bold text-ui-callout text-ink-light dark:text-ink-dark">
             {monthNames[viewDate.getMonth()]} {viewDate.getFullYear()}
           </span>
           <div className="flex items-center gap-1">
@@ -134,25 +134,25 @@ export default function DatePickerCallout({
               variant="icon"
               onClick={() => changeMonth(-1)}
               aria-label="Previous month"
-              className="p-1 h-8 w-8 flex items-center justify-center hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-full transition-colors"
+              className="p-1 h-8 w-8 flex items-center justify-center hover:bg-paper-softgray dark:hover:bg-paper-dark-surface rounded-full transition-colors"
             >
-              <HiChevronLeft className="w-5 h-5 text-blue-500" />
+              <HiChevronLeft className="w-5 h-5 text-sage" />
             </Button>
             <Button
               variant="icon"
               onClick={() => changeMonth(1)}
               aria-label="Next month"
-              className="p-1 h-8 w-8 flex items-center justify-center hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-full transition-colors"
+              className="p-1 h-8 w-8 flex items-center justify-center hover:bg-paper-softgray dark:hover:bg-paper-dark-surface rounded-full transition-colors"
             >
-              <HiChevronRight className="w-5 h-5 text-blue-500" />
+              <HiChevronRight className="w-5 h-5 text-sage" />
             </Button>
             <Button
               variant="icon"
               onClick={onClose}
               aria-label="Close calendar"
-              className="p-1 h-8 w-8 flex items-center justify-center hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-full transition-colors ml-1"
+              className="p-1 h-8 w-8 flex items-center justify-center hover:bg-paper-softgray dark:hover:bg-paper-dark-surface rounded-full transition-colors ml-1"
             >
-              <HiX className="w-4 h-4 text-zinc-400 dark:text-zinc-500" />
+              <HiX className="w-4 h-4 text-stone" />
             </Button>
           </div>
         </div>
@@ -160,7 +160,7 @@ export default function DatePickerCallout({
         {/* Calendar grid */}
         <div className="grid grid-cols-7 gap-1 mb-2 text-center">
           {["S", "M", "T", "W", "T", "F", "S"].map((d, idx) => (
-            <div key={idx} className="text-ui-caption font-medium text-zinc-400 uppercase h-6 flex items-center justify-center">
+            <div key={idx} className="text-ui-caption font-medium text-stone uppercase h-6 flex items-center justify-center">
               {d}
             </div>
           ))}
@@ -180,9 +180,9 @@ export default function DatePickerCallout({
                 onClick={() => day !== null && onSelectDate(new Date(viewDate.getFullYear(), viewDate.getMonth(), day))}
                 className={`
                   h-9 flex items-center justify-center text-ui-callout rounded-full transition-all
-                  ${day !== null ? "cursor-pointer hover:bg-zinc-100 dark:hover:bg-zinc-800" : ""}
-                  ${isFocused && !isSelected ? "ring-2 ring-blue-500 ring-inset" : ""}
-                  ${isSelected ? "bg-blue-500 text-white font-bold" : "text-zinc-700 dark:text-zinc-300"}
+                  ${day !== null ? "cursor-pointer hover:bg-paper-softgray dark:hover:bg-paper-dark-surface" : ""}
+                  ${isFocused && !isSelected ? "ring-2 ring-sage ring-inset" : ""}
+                  ${isSelected ? "bg-sage text-white font-bold" : "text-ink-light dark:text-ink-dark"}
                 `}
               >
                 {day ?? ""}
@@ -192,14 +192,14 @@ export default function DatePickerCallout({
         </div>
 
         {/* Quick actions */}
-        <div className="border-t border-zinc-100 dark:border-zinc-800 pt-3 mt-1">
+        <div className="border-t border-beige-light dark:border-clay pt-3 mt-1">
           <div className="flex flex-wrap gap-2 justify-center">
             {(["today", "tomorrow", "nextWeek", "nextMonth"] as const).map((action) => (
               <Button
                 key={action}
                 variant="bare"
                 onClick={() => handleQuickAction(action)}
-                className="text-ui-footnote py-1.5 px-3 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 hover:border-blue-500 hover:text-blue-500 rounded-full transition-all font-medium text-zinc-600 dark:text-zinc-400"
+                className="text-ui-footnote py-1.5 px-3 bg-paper-softgray dark:bg-paper-dark-surface border border-edge hover:border-sage hover:text-sage rounded-full transition-all font-medium text-ink-muted dark:text-stone"
               >
                 {{ today: "Today", tomorrow: "Tomorrow", nextWeek: "+1 Week", nextMonth: "+1 Month" }[action]}
               </Button>

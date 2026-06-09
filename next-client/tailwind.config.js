@@ -53,31 +53,56 @@ module.exports = {
         journal: ["Georgia", "ui-serif", "serif"],
       },
       colors: {
-        softyellow: {
-          DEFAULT: '#FFF6D6',
+        // ── Semantic tokens (CSS-var backed — dark mode is automatic) ──
+        surface: {
+          DEFAULT: 'var(--surface)',
+          raised:  'var(--surface-raised)',
         },
-        strongblack: {
-          DEFAULT: '#181818',
+        chrome:  'var(--chrome)',
+        overlay: 'var(--overlay)',
+        'input-bg': 'var(--input-bg)',
+        fg: {
+          DEFAULT: 'var(--fg)',
+          muted:   'var(--fg-muted)',
+          faint:   'var(--fg-faint)',
         },
-        darkbg: {
-          DEFAULT: '#181A1B', // accessible dark background
+        edge: {
+          DEFAULT: 'var(--border)',
+          subtle:  'var(--border-subtle)',
         },
-        softbg: {
-          DEFAULT: '#FFF9E5',
+
+        // ── Static neutral grays (same value in both modes) ──
+        stone: '#A8A098',   // muted placeholder / faint static gray
+        clay:  '#4A4440',   // dark-mode border / interactive surface
+
+        // ── Accent / brand (static — same in both modes) ──
+        sage: {
+          DEFAULT: '#647558',  /* WCAG AA 4.5:1 on light surface — safe for text */
+          subtle:  '#8B9B7E',  /* decorative/non-text use only (2.6:1 on light) */
+          light:   '#B5C4AC',
+          dark:    '#6B7A62',
+        },
+        accent: {
+          DEFAULT: '#C89B6F',
+          hover:   '#B88A5E',
+        },
+
+        // ── Static aliases (kept for explicit light/dark overrides) ──
+        beige: {
+          DEFAULT: '#D4C4A8',
+          light:   '#EDE5D4',
         },
         paper: {
-          light: '#FBFBFA',
-          dark: '#161617',
+          light:        '#F5F1E8',
+          softgray:     '#E8E6E1',
+          dark:         '#2C2C2C',
+          'dark-surface': '#363230',
         },
         ink: {
-          light: '#2A2A28',
-          dark: '#E3E3E1',
-        },
-        pastel: {
-          blue: '#D2E3FC',
-          sage: '#E2ECD8',
-          rose: '#FADADD',
-          amber: '#FCE8E6',
+          light: '#3A3226',
+          hover: '#4A3E32',   // primary button hover (darker than ink-light)
+          dark:  '#E8E4DC',
+          muted: '#6B6B6B',
         },
       },
       backgroundImage: {

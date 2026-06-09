@@ -17,7 +17,7 @@ export default function SidebarHeader({ title, isExpanded, onToggle, action }: S
       onClick={onToggle}
     >
       <div className="flex items-center gap-2">
-        <h3 className="text-ui-footnote font-medium text-zinc-500 dark:text-zinc-400 group-hover:text-zinc-900 dark:group-hover:text-zinc-100 transition-colors">
+        <h3 className="text-ui-footnote font-medium text-ink-muted dark:text-stone group-hover:text-ink-light dark:group-hover:text-ink-dark transition-colors">
           {title}
         </h3>
         {action && (
@@ -28,7 +28,7 @@ export default function SidebarHeader({ title, isExpanded, onToggle, action }: S
       </div>
       <HiOutlineChevronDown 
         size={14} 
-        className={`text-zinc-300 dark:text-zinc-600 group-hover:text-zinc-900 dark:group-hover:text-zinc-100 transition-all duration-200 ${isExpanded ? "" : "-rotate-90"}`} 
+        className={`text-beige dark:text-fg-faint group-hover:text-ink-light dark:group-hover:text-ink-dark transition-all duration-200 ${isExpanded ? "" : "-rotate-90"}`} 
       />
     </div>
   );
