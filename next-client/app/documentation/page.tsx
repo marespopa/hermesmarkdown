@@ -64,11 +64,11 @@ export default function Documentation() {
 
       <BackgroundGraphics />
 
-      <div className="max-w-7xl mx-auto px-6 pt-32 pb-32 flex gap-16 items-start">
+      <div className="max-w-7xl mx-auto px-6 pt-20 lg:pt-32 pb-20 lg:pb-32 flex flex-col lg:flex-row gap-12 lg:gap-16 items-start">
 
         {/* Sticky TOC sidebar */}
-        <aside className="hidden xl:block w-44 shrink-0">
-          <nav className="sticky top-24 space-y-1" aria-label="Table of contents">
+        <aside className="hidden lg:block w-40 xl:w-44 shrink-0">
+          <nav className="sticky top-24 space-y-1 max-h-[calc(100vh-8rem)] overflow-y-auto [&::-webkit-scrollbar]:hidden" aria-label="Table of contents">
             {SECTIONS.map((s) => (
               <a
                 key={s.id}
@@ -86,7 +86,7 @@ export default function Documentation() {
         </aside>
 
         {/* Main content */}
-        <div className="flex-1 min-w-0 space-y-32">
+        <div className="flex-1 min-w-0 space-y-24 lg:space-y-32">
 
           {/* --- HEADER --- */}
           <section className="space-y-8 animate-hero-fade-in">
@@ -98,7 +98,7 @@ export default function Documentation() {
               ← Back
             </Button>
             <div className="space-y-4">
-              <h1 className="text-5xl md:text-8xl font-bold tracking-tight leading-[1.05]">
+              <h1 className="text-4xl sm:text-5xl md:text-8xl font-bold tracking-tight leading-[1.05]">
                 Product{" "}
                 <span className="text-neutral-400 dark:text-neutral-600 italic font-serif">
                   Documentation.
@@ -109,7 +109,7 @@ export default function Documentation() {
               HermesMarkdown is a professional, local-first workspace built for deep work. No cloud, no tracking, no friction—just a clean canvas for your thoughts.
             </p>
             {/* Mobile section jump links */}
-            <div className="flex flex-wrap gap-2 xl:hidden pt-2">
+            <div className="flex flex-wrap gap-2 lg:hidden pt-2">
               {SECTIONS.map((s) => (
                 <a
                   key={s.id}
@@ -123,9 +123,9 @@ export default function Documentation() {
           </section>
 
           {/* --- 01. KNOWLEDGE MANAGEMENT --- */}
-          <section id="knowledge" className="border-t border-black/5 dark:border-white/10 pt-24">
+          <section id="knowledge" className="border-t border-black/5 dark:border-white/10 pt-16 lg:pt-24 scroll-mt-24">
             <span className={sectionHeading}>01. Knowledge Management</span>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-20">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-12 lg:gap-20">
 
               <div className="space-y-8">
                 <div className="space-y-4">
@@ -234,9 +234,9 @@ export default function Documentation() {
           </section>
 
           {/* --- 02. WRITING EXPERIENCE --- */}
-          <section id="writing" className="border-t border-black/5 dark:border-white/10 pt-24">
+          <section id="writing" className="border-t border-black/5 dark:border-white/10 pt-16 lg:pt-24 scroll-mt-24">
             <span className={sectionHeading}>02. Writing Experience</span>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-20">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-12 lg:gap-20">
 
               <div className="space-y-8">
                 <div className="space-y-4">
@@ -338,7 +338,7 @@ export default function Documentation() {
           </section>
 
           {/* --- 03. SYNTAX & SHORTCUTS --- */}
-          <section id="syntax" className="border-t border-black/5 dark:border-white/10 pt-24">
+          <section id="syntax" className="border-t border-black/5 dark:border-white/10 pt-16 lg:pt-24 scroll-mt-24">
             <span className={sectionHeading}>03. Syntax & Shortcuts</span>
 
             <div className="space-y-20">
@@ -402,7 +402,7 @@ export default function Documentation() {
               </div>
 
               {/* Syntax Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-20">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-12 lg:gap-20">
                 <div className="space-y-8">
                   <h3 className="text-xs font-bold opacity-30 uppercase tracking-[0.4em]">Date Shortcodes</h3>
                   <div className="bg-neutral-50/50 dark:bg-neutral-900/30 backdrop-blur-sm p-8 rounded-3xl border border-black/5 dark:border-white/5 shadow-inner font-mono text-xs">
@@ -437,7 +437,7 @@ export default function Documentation() {
               </div>
 
               {/* Financial */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-20">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-12 lg:gap-20">
                 <div className="space-y-8">
                   <h3 className="text-xs font-bold opacity-30 uppercase tracking-[0.4em]">Financial Intelligence</h3>
                   <div className="bg-neutral-50/50 dark:bg-neutral-900/30 backdrop-blur-sm p-8 rounded-3xl border border-black/5 dark:border-white/5 shadow-inner space-y-6">
@@ -446,9 +446,9 @@ export default function Documentation() {
                         A line starting with <code className="font-bold text-blue-600 dark:text-blue-400">Total:</code> auto-sums the currency values above it. Set your currency in <strong>Settings → Currency</strong>.
                       </p>
                       <div className="p-5 bg-emerald-500/5 dark:bg-emerald-500/10 border border-emerald-500/10 rounded-2xl font-mono text-ui-footnote">
-                        <div className="opacity-40">- Rent: 2,000 RON</div>
-                        <div className="opacity-40">- Food: 400 RON</div>
-                        <div className="text-emerald-600 dark:text-emerald-400 font-bold mt-2 pt-2 border-t border-emerald-500/10">Total: 2,400.00 RON</div>
+                        <div className="opacity-40">- Rent: $2,000</div>
+                        <div className="opacity-40">- Food: $400</div>
+                        <div className="text-emerald-600 dark:text-emerald-400 font-bold mt-2 pt-2 border-t border-emerald-500/10">Total: $2,400.00</div>
                       </div>
                     </div>
                     <div className="space-y-3">
@@ -458,15 +458,18 @@ export default function Documentation() {
                       <div className="p-5 bg-emerald-500/5 dark:bg-emerald-500/10 border border-emerald-500/10 rounded-2xl font-mono text-ui-footnote space-y-0.5">
                         <div className="opacity-40">| Item &nbsp;&nbsp; | Amount &nbsp;&nbsp;|</div>
                         <div className="opacity-40">| ------| ----------|</div>
-                        <div className="opacity-40">| Rent &nbsp; | 2,000 RON |</div>
-                        <div className="opacity-40">| Food &nbsp; | 400 RON &nbsp; |</div>
+                        <div className="opacity-40">| Rent &nbsp; | $2,000 &nbsp; |</div>
+                        <div className="opacity-40">| Food &nbsp; | $400 &nbsp;&nbsp; |</div>
                         <div className="text-emerald-600 dark:text-emerald-400 font-bold">| &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | Total: &nbsp;&nbsp;&nbsp;|</div>
                       </div>
                     </div>
-                    <div className="pt-4 border-t border-black/5 dark:border-white/5">
+                    <div className="pt-4 border-t border-black/5 dark:border-white/5 space-y-4">
                       <div className={guideRow}><span className={syntaxLabel}>calc(100+50)=</span><span className={resultLabel}>150</span></div>
                       <div className={guideRow}><span className="text-sm font-medium">Add Total Row</span><span className={resultLabel}>Σ in Table Dialog</span></div>
                       <div className={guideRow}><span className="text-sm font-medium">Set Currency</span><span className={resultLabel}>Settings → Currency</span></div>
+                      <div className="p-4 bg-blue-500/5 border border-blue-500/10 rounded-2xl text-ui-micro uppercase tracking-widest font-bold text-blue-600 dark:text-blue-400/70">
+                        Multiple Currencies Supported: USD ($), EUR (€), GBP (£), JPY (¥), INR (₹), CAD (C$), AUD (A$), and RON (lei).
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -487,9 +490,9 @@ export default function Documentation() {
           </section>
 
           {/* --- 04. TEMPLATES --- */}
-          <section id="templates" className="border-t border-black/5 dark:border-white/10 pt-24">
+          <section id="templates" className="border-t border-black/5 dark:border-white/10 pt-16 lg:pt-24 scroll-mt-24">
             <span className={sectionHeading}>04. Templates</span>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-20">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-12 lg:gap-20">
 
               <div className="space-y-8">
                 <div className="space-y-4">
@@ -529,9 +532,9 @@ export default function Documentation() {
           </section>
 
           {/* --- 05. AI & INTEGRATIONS --- */}
-          <section id="ai" className="border-t border-black/5 dark:border-white/10 pt-24">
+          <section id="ai" className="border-t border-black/5 dark:border-white/10 pt-16 lg:pt-24 scroll-mt-24">
             <span className={sectionHeading}>05. AI & Integrations</span>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-20">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-12 lg:gap-20">
 
               <div className="space-y-8">
                 <div className="space-y-4">
@@ -551,10 +554,11 @@ export default function Documentation() {
                 <div className="space-y-4">
                   <h3 className="text-3xl font-bold tracking-tight">Inline AI Toolbar</h3>
                   <p className="text-neutral-500 dark:text-neutral-400 leading-relaxed text-lg">
-                    Select any text in the editor to reveal a floating AI toolbar. Actions replace your selection in-place, preserving all Markdown formatting and your writing voice.
+                    Select any text in the editor to reveal a floating AI toolbar. Actions can modify your selection or replace it entirely, preserving all Markdown formatting and your writing voice.
                   </p>
                 </div>
                 <div className="p-8 bg-neutral-50/50 dark:bg-neutral-900/30 backdrop-blur-sm rounded-3xl border border-black/5 dark:border-white/5 shadow-inner">
+                  <div className={guideRow}><span className="text-sm font-medium">✨ Prompt Selection</span><span className={resultLabel}>Select → Toolbar</span></div>
                   <div className={guideRow}><span className="text-sm font-medium">⚡ Improve Writing</span><span className={resultLabel}>Select → Toolbar</span></div>
                   <div className={guideRow}><span className="text-sm font-medium">＋ Expand Idea</span><span className={resultLabel}>Select → Toolbar</span></div>
                   <div className={guideRow}><span className="text-sm font-medium">Generate Frontmatter</span><span className={resultLabel}>Wizard / /frontmatter</span></div>
