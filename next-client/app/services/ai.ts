@@ -40,7 +40,7 @@ const beautifyAIError = (error: string) => {
     return "The AI model is currently overloaded. Please try again in a few seconds.";
   }
   
-  if (lowerError.includes("invalid api key") || lowerError.includes("api key not found")) {
+  if (lowerError.includes("invalid") && (lowerError.includes("api key") || lowerError.includes("api-key") || lowerError.includes("authentication") || lowerError.includes("unauthorized"))) {
     return "Invalid API Key. Please check your settings and ensure your key is correct.";
   }
 

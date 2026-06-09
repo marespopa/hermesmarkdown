@@ -10,10 +10,7 @@ const createAIModel = (provider: string, apiKey: string, modelKey: string) => {
                     modelKey === 'haiku-4-5' ? 'claude-haiku-4-5' : 
                     'claude-sonnet-4-6';
                     
-    return createAnthropic({
-      apiKey,
-      headers: { "anthropic-dangerous-direct-browser-access": "true" }
-    })(modelId);
+    return createAnthropic({ apiKey })(modelId);
   } else {
     // Strip models/ prefix if present
     let modelId = modelKey.replace('models/', '');
@@ -97,7 +94,7 @@ export async function POST(req: Request) {
         ? 503
         : lowerMessage.includes("rate limit") || lowerMessage.includes("429")
         ? 429
-        : lowerMessage.includes("invalid") && lowerMessage.includes("key")
+        : lowerMessage.includes("unauthorized") || lowerMessage.includes("authentication") || (lowerMessage.includes("invalid") && (lowerMessage.includes("key") || lowerMessage.includes("api")))
         ? 401
         : 500;
 
