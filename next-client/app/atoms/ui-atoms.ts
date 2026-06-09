@@ -49,7 +49,7 @@ export const atom_autosaveMode = atomWithStorage<AutosaveMode>(
 );
 export const atom_autosaveDelay = atomWithStorage<number>(
   "autosaveDelay",
-  5000,
+  2000,
 );
 export const atom_editorWidth = atomWithStorage<"standard" | "narrow">(
   "editorWidth",
