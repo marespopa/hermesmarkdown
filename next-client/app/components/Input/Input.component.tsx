@@ -99,7 +99,13 @@ const Input = forwardRef<HTMLInputElement, Props>(
             type={type}
             value={value}
             onChange={handleInputChange}
-            onPaste={(e) => e.stopPropagation()}
+            onPaste={(e) => {
+              e.stopPropagation();
+              const target = e.currentTarget;
+              setTimeout(() => {
+                handleInputChange({ target, currentTarget: target } as React.ChangeEvent<HTMLInputElement>);
+              }, 0);
+            }}
             placeholder={placeholder}
             min={validation?.min}
             max={validation?.max}

@@ -6,8 +6,8 @@ import { NextResponse } from 'next/server';
 
 const createAIModel = (provider: string, apiKey: string, modelKey: string) => {
   if (provider === 'claude') {
-    const modelId = modelKey === 'opus-4-8' ? 'claude-opus-4-8' : 
-                    modelKey === 'haiku-4-5' ? 'claude-haiku-4-5' : 
+    const modelId = modelKey === 'opus-4-8' ? 'claude-opus-4-8' :
+                    modelKey === 'haiku-4-5' ? 'claude-haiku-4-5-20251001' :
                     'claude-sonnet-4-6';
                     
     return createAnthropic({ apiKey })(modelId);
