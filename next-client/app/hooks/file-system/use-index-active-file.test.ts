@@ -1,6 +1,6 @@
 import { renderHook, waitFor } from "@testing-library/react";
 import { useIndexActiveFile } from "./use-index-active-file";
-import { vi, describe, it, expect, beforeEach, afterEach } from "vitest";
+import { vi, describe, it, expect, beforeEach } from "vitest";
 import { useAtomValue, useSetAtom } from "jotai";
 import { metadataWorker } from "./shared";
 import {

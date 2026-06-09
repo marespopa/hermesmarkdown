@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useAtom, useAtomValue } from "jotai";
 import { atom_fileContent } from "@/app/atoms/file-atoms";
-import { atom_frontmatterWizardOpen } from "@/app/atoms/ui-atoms";
+import { atom_frontmatterWizardOpen, atom_isAiConfigured } from "@/app/atoms/ui-atoms";
 import { atom_fileMetadata } from "@/app/atoms/metadata";
 import { callAI, generateFrontmatterData } from "@/app/services/ai";
 import DialogModal from "@/app/components/DialogModal/DialogModal";
@@ -162,6 +162,7 @@ export default function FrontmatterWizard() {
   const isOpen = wizardPath !== null;
   const [content, setContent] = useAtom(atom_fileContent(wizardPath ?? "draft"));
   const metadata = useAtomValue(atom_fileMetadata);
+  const isAiConfigured = useAtomValue(atom_isAiConfigured);
   const [step, setStep] = useState(0);
   const [edits, setEdits] = useState<Record<string, string>>({});
   const [isGenerating, setIsGenerating] = useState(false);
@@ -365,19 +366,21 @@ Return the 3-5 most semantically related note titles as a JSON array.`
               >
                 Scope
               </label>
-              <button
-                type="button"
-                onClick={handleSummarizeScope}
-                disabled={isGenerating}
-                className="text-ui-caption font-medium text-blue-600 dark:text-blue-400 hover:underline disabled:opacity-50 flex items-center gap-1"
-              >
-                {isGenerating ? (
-                  <HiOutlineRefresh className="animate-spin" size={12} />
-                ) : (
-                  <HiOutlineLightningBolt size={12} />
-                )}
-                Summarize
-              </button>
+              {isAiConfigured && (
+                <button
+                  type="button"
+                  onClick={handleSummarizeScope}
+                  disabled={isGenerating}
+                  className="text-ui-caption font-medium text-blue-600 dark:text-blue-400 hover:underline disabled:opacity-50 flex items-center gap-1"
+                >
+                  {isGenerating ? (
+                    <HiOutlineRefresh className="animate-spin" size={12} />
+                  ) : (
+                    <HiOutlineLightningBolt size={12} />
+                  )}
+                  Summarize
+                </button>
+              )}
             </div>
             <textarea
               id="fm-scope"
@@ -432,19 +435,21 @@ Return the 3-5 most semantically related note titles as a JSON array.`
               >
                 Related
               </label>
-              <button
-                type="button"
-                onClick={handleSuggestRelated}
-                disabled={isGenerating}
-                className="text-ui-caption font-medium text-blue-600 dark:text-blue-400 hover:underline disabled:opacity-50 flex items-center gap-1"
-              >
-                {isGenerating ? (
-                  <HiOutlineRefresh className="animate-spin" size={12} />
-                ) : (
-                  <HiOutlineLink size={12} />
-                )}
-                Suggest
-              </button>
+              {isAiConfigured && (
+                <button
+                  type="button"
+                  onClick={handleSuggestRelated}
+                  disabled={isGenerating}
+                  className="text-ui-caption font-medium text-blue-600 dark:text-blue-400 hover:underline disabled:opacity-50 flex items-center gap-1"
+                >
+                  {isGenerating ? (
+                    <HiOutlineRefresh className="animate-spin" size={12} />
+                  ) : (
+                    <HiOutlineLink size={12} />
+                  )}
+                  Suggest
+                </button>
+              )}
             </div>
             <Input
               name="fm-related"
@@ -533,20 +538,22 @@ Return the 3-5 most semantically related note titles as a JSON array.`
             Skip
           </Button>
           <div className="flex items-center gap-2">
-            <Button
-              variant="bare"
-              onClick={handleGenerateAll}
-              disabled={isGenerating}
-              title="Auto-fill with AI"
-              className="text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-500/10 px-3 py-2 rounded-lg flex items-center gap-1.5"
-            >
-              {isGenerating ? (
-                <HiOutlineRefresh className="animate-spin" size={16} />
-              ) : (
-                <HiOutlineLightningBolt size={16} />
-              )}
-              <span className="text-ui-caption font-semibold">AI Magic</span>
-            </Button>
+            {isAiConfigured && (
+              <Button
+                variant="bare"
+                onClick={handleGenerateAll}
+                disabled={isGenerating}
+                title="Auto-fill with AI"
+                className="text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-500/10 px-3 py-2 rounded-lg flex items-center gap-1.5"
+              >
+                {isGenerating ? (
+                  <HiOutlineRefresh className="animate-spin" size={16} />
+                ) : (
+                  <HiOutlineLightningBolt size={16} />
+                )}
+                <span className="text-ui-caption font-semibold">AI Magic</span>
+              </Button>
+            )}
             <Button variant="primary" onClick={handleNext}>
               {isLastStep ? "Save & Close" : "Next"}
             </Button>

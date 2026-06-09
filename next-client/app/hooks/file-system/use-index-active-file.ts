@@ -8,7 +8,6 @@ import {
   atom_activeFilePath,
   atom_content,
   atom_indexerState,
-  atom_fileLastModified,
 } from "@/app/atoms/atoms";
 import { atom_fileMetadata } from "@/app/atoms/metadata";
 import { metadataWorker } from "./shared";
@@ -20,7 +19,6 @@ export function useIndexActiveFile() {
   const content = useAtomValue(atom_content);
   const setIndexerState = useSetAtom(atom_indexerState);
   const setFileMetadata = useSetAtom(atom_fileMetadata);
-  const fileLastModified = useAtomValue(atom_fileLastModified);
 
   // Debounced Active File Re-indexing
   useEffect(() => {
