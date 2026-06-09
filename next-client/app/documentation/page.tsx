@@ -165,7 +165,7 @@ export default function Documentation() {
                 <div className="space-y-4">
                   <h3 className="text-3xl font-bold tracking-tight">Agent-Specific Frontmatter</h3>
                   <p className="text-neutral-500 dark:text-neutral-400 leading-relaxed text-lg">
-                    HermesMarkdown auto-injects a strict YAML schema on every save so your notes are instantly parseable by LLMs and background agents. A step-by-step wizard opens automatically on new files to guide you through each field.
+                    HermesMarkdown auto-injects a strict YAML schema on every save so your notes are instantly parseable by LLMs and background agents. A step-by-step wizard opens automatically on new files to guide you through each field. For a deeper integration, you can manually install <strong>Agent Skills</strong> (context files like <code className="not-italic font-mono">_agent-context.md</code>) into your vault root via <strong>Settings → Guide</strong>.
                   </p>
                 </div>
                 <div className="p-8 bg-neutral-50/50 dark:bg-neutral-900/30 backdrop-blur-sm rounded-3xl border border-black/5 dark:border-white/5 shadow-inner space-y-4">
@@ -193,7 +193,7 @@ export default function Documentation() {
                   <div className={guideRow}><span className="font-mono text-sm text-purple-600 dark:text-purple-400 font-bold">{"[[Note Name]]"}</span><span className={resultLabel}>Internal Link</span></div>
                   <div className={guideRow}><span className="font-mono text-sm text-purple-600 dark:text-purple-400 font-bold">{"[[Name|Display]]"}</span><span className={resultLabel}>Aliased Link</span></div>
                   <div className={guideRow}><span className="font-mono text-sm text-purple-600 dark:text-purple-400 font-bold">{"[[2025-06-04]]"}</span><span className={resultLabel}>Date Link</span></div>
-                  <div className={guideRow}><span className="font-mono text-sm text-blue-600 dark:text-blue-400 font-bold">#todo</span><span className={resultLabel}>Smart Filter</span></div>
+                  <div className={guideRow}><span className="font-mono text-sm text-blue-600 dark:text-blue-400 font-bold">#todo / #draft</span><span className={resultLabel}>Lifecycle Cycling (‹ ›)</span></div>
                 </div>
                 <p className="text-ui-micro opacity-40 italic leading-relaxed font-bold uppercase tracking-[0.2em] text-center">
                   Navigation: CTRL + Click to open links. Click tags to filter.
