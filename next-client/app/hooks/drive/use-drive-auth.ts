@@ -2,6 +2,7 @@
 
 import { useEffect, useCallback } from 'react';
 import { useAtom, useAtomValue } from 'jotai';
+import toast from 'react-hot-toast';
 import {
   atom_driveAuthState,
   atom_driveVaultId,
@@ -28,10 +29,13 @@ export function useDriveAuth() {
       sessionStorage.removeItem('hermes_drive_just_authed');
       if (isTokenValid()) {
         setAuthState('authenticated');
-        // Open folder picker if this is the first time connecting (no vault yet)
         const storedVaultId = localStorage.getItem('hermes_drive_vault_id');
         if (!storedVaultId || storedVaultId === 'null') {
+          // First-time connection — open folder picker
           setShowDriveFolderPicker(true);
+        } else {
+          // Reconnect — vault will be restored by the vault manager mount effect
+          toast.success('Reconnected to Google Drive', { id: 'drive-reconnected' });
         }
         return;
       }

@@ -20,7 +20,6 @@ import { useLinkPill } from "./use-link-pill";
 import { useTableCallout } from "./use-table-callout";
 import { useTableDialog } from "./useTableDialog";
 import { useAIEditorActions } from "./useAIEditorActions";
-import { useVaultAgentContext } from "./useVaultAgentContext";
 import { extractTableSource } from "../utils/tableParser";
 
 interface UseMarkdownEditorProps {
@@ -97,13 +96,10 @@ export function useMarkdownEditor({
 
   const tableDialog = useTableDialog({ value, textareaRef });
 
-  const vaultAgentContext = useVaultAgentContext();
-
-  const { isAiLoading, improveWriting, expandIdea } = useAIEditorActions({
+  const { isAiLoading, improveWriting, expandIdea, runPrompt } = useAIEditorActions({
     value,
     onChange,
     textareaRef,
-    vaultAgentContext,
   });
 
   const handleOpenEditDialog = useCallback(() => {
@@ -475,5 +471,6 @@ export function useMarkdownEditor({
     isAiLoading,
     improveWriting,
     expandIdea,
+    runPrompt,
   };
 }

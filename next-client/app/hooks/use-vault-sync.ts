@@ -51,4 +51,6 @@ export function useVaultSync() {
     window.addEventListener("focus", handleFocus);
     return () => window.removeEventListener("focus", handleFocus);
   }, [vaultHandle]);
+
+  return { syncVault };
 }

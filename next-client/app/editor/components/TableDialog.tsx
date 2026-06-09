@@ -8,9 +8,36 @@ import type { SortState } from "../utils/tableSorter";
 
 type DialogMode = "create" | "edit";
 
+const CURRENCY_SYMBOLS: Record<string, string> = {
+  USD: "$", EUR: "€", GBP: "£", JPY: "¥", INR: "₹", CAD: "C$", AUD: "A$", RON: "RON",
+};
+const SUFFIX_CURRENCIES = new Set(["RON"]);
+
+function computeColTotal(rows: string[][], colIdx: number, totalRowIdx: number, currencyCode: string): string {
+  const symbol = CURRENCY_SYMBOLS[currencyCode] || "$";
+  const isSuffix = SUFFIX_CURRENCIES.has(currencyCode);
+  const esc = symbol.replace(/[.$*+?()[\]{}|]/g, "\\$&");
+  const re = new RegExp(isSuffix ? `-?[\\d,]+(?:\\.\\d+)?\\s?${esc}` : `-?${esc}\\s?[\\d,]+(?:\\.\\d+)?`, "g");
+
+  let total = 0;
+  for (let ri = 0; ri < rows.length; ri++) {
+    if (ri === totalRowIdx) continue;
+    const cell = rows[ri][colIdx] || "";
+    re.lastIndex = 0;
+    let m;
+    while ((m = re.exec(cell)) !== null) {
+      total += parseFloat(m[0].replace(/,/g, "").replace(new RegExp(esc, "g"), "").trim()) || 0;
+    }
+  }
+
+  const formatted = total.toLocaleString("en", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  return isSuffix ? `${formatted} ${symbol}` : `${symbol}${formatted}`;
+}
+
 interface TableDialogProps {
   isOpen: boolean;
   mode: DialogMode;
+  currencyCode?: string;
   headers: string[];
   rows: string[][];
   alignments: Alignment[];
@@ -66,6 +93,7 @@ export function TableDialog({
   onClose,
   focusRow,
   focusCol,
+  currencyCode = "USD",
 }: TableDialogProps) {
   const firstInputRef = useRef<HTMLInputElement>(null);
   const colCount = headers.length;
@@ -231,6 +259,26 @@ export function TableDialog({
                             {sortDir === "desc" ? "↓" : "↑"}
                           </Button>
 
+                          {/* Add total row for this column */}
+                          <Button
+                            variant="bare"
+                            type="button"
+                            onClick={() => {
+                              const newRowIdx = rows.length;
+                              onAddRow();
+                              setTimeout(() => onCellChange(newRowIdx, ci, "Total:"), 50);
+                            }}
+                            aria-label="Add total row for this column"
+                            title="Add total row"
+                            className="
+                              flex-shrink-0 w-8 h-8 sm:w-6 sm:h-6 flex items-center justify-center rounded
+                              text-[11px] leading-none transition-all duration-150
+                              text-zinc-400 dark:text-zinc-500 opacity-40 sm:opacity-0 sm:group-hover:opacity-40 hover:!opacity-100 focus-within:opacity-40 hover:text-blue-600 dark:hover:text-blue-400
+                            "
+                          >
+                            Σ
+                          </Button>
+
                           {/* Remove column — faint until hover */}
                           <Button
                             variant="icon"
@@ -322,18 +370,28 @@ export function TableDialog({
                         className={`
                           border border-zinc-200 dark:border-zinc-700 p-0 transition-colors
                           ${isSortedCol ? "bg-blue-50/25 dark:bg-blue-950/10" : ""}
+                          ${cell.trim().startsWith("Total:") ? "bg-zinc-50/80 dark:bg-zinc-800/40" : ""}
                         `}
                       >
-                        <input
-                          data-dcell={`${ri}-${ci}`}
-                          type="text"
-                          value={cell}
-                          onChange={(e) => onCellChange(ri, ci, e.target.value)}
-                          onKeyDown={(e) => handleKeyDown(e, ri, ci)}
-                          placeholder="…"
-                          style={{ textAlign: alignments[ci] }}
-                          className="w-full px-2 py-1.5 bg-transparent text-ui-footnote tabular-nums text-zinc-900 dark:text-zinc-100 focus:outline-none placeholder:text-zinc-300 dark:placeholder:text-zinc-600"
-                        />
+                        {cell.trim().startsWith("Total:") ? (
+                          <div
+                            className="w-full px-2 py-1.5 text-ui-footnote tabular-nums font-semibold text-zinc-700 dark:text-zinc-300 select-none"
+                            style={{ textAlign: alignments[ci] }}
+                          >
+                            Total: {computeColTotal(rows, ci, ri, currencyCode)}
+                          </div>
+                        ) : (
+                          <input
+                            data-dcell={`${ri}-${ci}`}
+                            type="text"
+                            value={cell}
+                            onChange={(e) => onCellChange(ri, ci, e.target.value)}
+                            onKeyDown={(e) => handleKeyDown(e, ri, ci)}
+                            placeholder="…"
+                            style={{ textAlign: alignments[ci] }}
+                            className="w-full px-2 py-1.5 bg-transparent text-ui-footnote tabular-nums text-zinc-900 dark:text-zinc-100 focus:outline-none placeholder:text-zinc-300 dark:placeholder:text-zinc-600"
+                          />
+                        )}
                       </td>
                     );
                   })}

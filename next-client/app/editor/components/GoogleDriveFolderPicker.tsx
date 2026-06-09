@@ -87,7 +87,14 @@ export default function GoogleDriveFolderPicker({ onSelect }: Props) {
     setBreadcrumbs([]);
   };
 
+  const [isSigningIn, setIsSigningIn] = useState(false);
   const needsAuth = authState === "expired" || authState === "unauthenticated" || !isTokenValid();
+  const isAuthenticating = authState === "authenticating";
+
+  const handleSignIn = () => {
+    setIsSigningIn(true);
+    startOAuthFlow();
+  };
 
   return (
     <DialogModal
@@ -100,19 +107,28 @@ export default function GoogleDriveFolderPicker({ onSelect }: Props) {
         id="drive-picker-title"
         className="text-base font-semibold text-neutral-900 dark:text-neutral-100 mb-4"
       >
-        {needsAuth ? "Connect Google Drive" : "Select a Google Drive Folder"}
+        {needsAuth || isAuthenticating ? "Connect Google Drive" : "Select a Google Drive Folder"}
       </h2>
 
-      {needsAuth ? (
+      {isAuthenticating ? (
+        <div className="flex flex-col items-center gap-3 py-6 text-center">
+          <div className="w-5 h-5 rounded-full border-2 border-neutral-200 dark:border-neutral-700 border-t-blue-500 animate-spin" />
+          <p className="text-sm text-neutral-500 dark:text-neutral-400">Redirecting to Google…</p>
+        </div>
+      ) : needsAuth ? (
         <div className="space-y-4 text-center py-2">
           <p className="text-sm text-neutral-500 dark:text-neutral-400">
             Sign in with Google to access your Drive folders.
           </p>
           <button
-            onClick={() => startOAuthFlow()}
-            className="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-medium hover:bg-blue-700 transition-colors"
+            onClick={handleSignIn}
+            disabled={isSigningIn}
+            className="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-medium hover:bg-blue-700 disabled:opacity-60 transition-colors"
           >
-            Sign in with Google
+            {isSigningIn ? (
+              <span className="w-4 h-4 rounded-full border-2 border-white/30 border-t-white animate-spin inline-block" />
+            ) : null}
+            {isSigningIn ? "Connecting…" : "Sign in with Google"}
           </button>
         </div>
       ) : (

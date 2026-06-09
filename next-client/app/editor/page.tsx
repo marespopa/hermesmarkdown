@@ -8,6 +8,7 @@ import { useAtom, useAtomValue } from "jotai";
 import {
   atom_fileName,
   atom_content,
+  atom_lastSavedContent,
   atom_activeFileHandle,
   atom_activeFilePath,
   atom_workspaceLayout,
@@ -26,7 +27,7 @@ import LoadingOverlay from "@/app/components/LoadingOverlay";
 import StatusBar from "./components/StatusBar";
 import ErrorBoundary from "@/app/components/ErrorBoundary";
 import { useFileSystem } from "@/app/hooks/use-file-system";
-import { useFileSync } from "@/app/hooks/use-file-sync";
+import { useFileWatcher } from "@/app/hooks/use-file-watcher";
 import { useVaultSync } from "@/app/hooks/use-vault-sync";
 import { useAutoSave } from "@/app/hooks/use-auto-save";
 import { useDialog } from "@/app/hooks/use-dialog";
@@ -46,6 +47,7 @@ export default function LiteEditor() {
   const router = useRouter();
   const [isMounting, setIsMounting] = useState(true);
   const [content, setContent] = useAtom(atom_content);
+  const lastSavedContent = useAtomValue(atom_lastSavedContent);
   const [fileName, setFileName] = useAtom(atom_fileName);
   const [activeFilePath, setActiveFilePath] = useAtom(atom_activeFilePath);
   const [, setActiveFileHandle] = useAtom(atom_activeFileHandle);
@@ -80,8 +82,8 @@ export default function LiteEditor() {
       handleSave();
     }
   });
-  useFileSync();
-  useVaultSync();
+  const { refresh: refreshFiles } = useFileWatcher();
+  const { syncVault } = useVaultSync();
 
   // Sync sidebar with active file folder
   const lastSyncedPathRef = useRef<string | null>(null);
@@ -155,6 +157,28 @@ export default function LiteEditor() {
   useEffect(() => {
     handleSaveRef.current = handleSave;
   }, [handleSave]);
+
+  const navigateWithGuard = useCallback(async (path: string) => {
+    const isDirty = content !== lastSavedContent && content.trim() !== "";
+    if (!isDirty) {
+      router.push(path);
+      return;
+    }
+    const choice = await dialog.select(
+      "You have unsaved changes.",
+      [
+        { label: "Save & Leave", value: "save" },
+        { label: "Discard Changes", value: "discard" },
+      ],
+      "Unsaved Changes"
+    );
+    if (choice === "save") {
+      await handleSaveRef.current();
+      router.push(path);
+    } else if (choice === "discard") {
+      router.push(path);
+    }
+  }, [content, lastSavedContent, router, dialog]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -285,12 +309,13 @@ export default function LiteEditor() {
         <div
           className={`transition-[width,opacity] duration-1000 [transition-timing-function:cubic-bezier(0.2,1,0.2,1)] flex shrink-0 h-full ${isZenModeActive || !isSidebarOpen ? "w-0 opacity-0 pointer-events-none overflow-hidden" : ""}`}
         >
-          <VaultSidebar 
-            onOpenSettings={() => router.push("/editor/settings")}
+          <VaultSidebar
+            onOpenSettings={() => navigateWithGuard("/editor/settings")}
             onNewFile={handleNewFile}
             onImport={handleImport}
             onExport={handleExport}
             onClose={() => setIsSidebarOpen(false)}
+            onRefresh={async () => { await syncVault(); await refreshFiles(); }}
           />
         </div>
 
@@ -303,7 +328,7 @@ export default function LiteEditor() {
                <div className="flex flex-col items-center gap-6">
                  <Button
                     variant="icon"
-                    onClick={() => router.push("/")}
+                    onClick={() => navigateWithGuard("/")}
                     className="w-10 h-10 opacity-60 hover:opacity-100 text-zinc-600 dark:text-zinc-400"
                     title="Home"
                   >
@@ -321,7 +346,7 @@ export default function LiteEditor() {
 
                   <Button
                     variant="icon"
-                    onClick={() => router.push("/editor/settings")}
+                    onClick={() => navigateWithGuard("/editor/settings")}
                     className="w-10 h-10 opacity-60 hover:opacity-100 text-zinc-600 dark:text-zinc-400"
                     title="Settings"
                   >

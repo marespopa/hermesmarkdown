@@ -115,21 +115,9 @@ export function useAutoSave(onDraftChange?: () => void) {
       }
     };
 
-    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      // Use refs to check current state without needing content in dependency array
-      if (prevContentRef.current !== prevLastSavedContentRef.current) {
-        e.preventDefault();
-        e.returnValue = ""; // Standard way to trigger the browser's "Unsaved changes" dialog
-      }
-    };
-
     window.addEventListener("blur", handleBlur);
-    window.addEventListener("beforeunload", handleBeforeUnload);
-    return () => {
-      window.removeEventListener("blur", handleBlur);
-      window.removeEventListener("beforeunload", handleBeforeUnload);
-    };
-  }, [autosaveMode, flush]); // Dependency array size reverted to original to fix HMR error
+    return () => window.removeEventListener("blur", handleBlur);
+  }, [autosaveMode, flush]);
 
   return { flush };
 }

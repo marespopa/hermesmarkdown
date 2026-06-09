@@ -24,7 +24,7 @@ status: active
 version: "${LATEST_AGENT_VERSION}"
 scope: "Vault overview for background agents and LLMs"
 read_when: [any query, orientation, vault structure]
-related: ["_skills/draft-note.md", "_skills/query-vault.md"]
+related: ["_skills/draft-note.md", "_skills/query-vault.md", "_skills/financial-table.md"]
 tags: [agent, context, meta]
 ---
 
@@ -41,6 +41,23 @@ Every file includes: \`title\`, \`status\`, \`scope\`, \`read_when\`, \`related\
 ## Tag Conventions
 Document lifecycle: \`#draft\` → \`#active\` → \`#archived\`  
 Task lifecycle: \`#todo\` → \`#prog\` → \`#done\`
+
+## Financial Tables
+Use \`Total:\` as a standalone line to auto-sum currency values above it.
+Inside a pipe table, put \`Total:\` in a cell to sum **only that column**.
+
+Example (column total):
+\`\`\`
+| Item   | Amount    |
+|--------|-----------|
+| Rent   | 2,000 RON |
+| Food   | 400 RON   |
+|        | Total:    |
+\`\`\`
+
+The currency is set by the user in Settings (e.g. RON, USD, EUR).
+Format: \`1,234.56 RON\` or \`$1,234.56\`.
+When asked to create a financial or budget table, always include a \`Total:\` row in the numeric column.
 
 ## Agent Instructions
 - Use \`read_when\` to decide whether a file is relevant to the current query
@@ -109,6 +126,56 @@ Find files relevant to a query by matching the \`read_when\` array against query
 1. \`status: active\` files over \`archived\`
 2. Higher frontmatter completeness (all 6 fields present)
 3. More recent \`related\` links to the current working file
+`,
+  },
+  {
+    path: "_skills/financial-table.md",
+    description: "How to create financial/budget tables with auto-totals",
+    content: `---
+title: "skill-financial-table"
+status: active
+version: "${LATEST_AGENT_VERSION}"
+scope: "How to create financial and budget tables with automatic column totals"
+read_when: [financial table, budget, expenses, debt, payments, currency, total, sum]
+related: ["_agent-context.md"]
+tags: [agent, skill, finance, tables]
+---
+
+# Skill: Financial Tables
+
+## Auto-Total Feature
+HermesMarkdown automatically computes \`Total:\` values on every keystroke.
+
+**Standalone total** — sums all currency values on plain-text lines above it:
+\`\`\`
+- Salary: 18,000 RON
+- Expenses: 5,000 RON
+Total: 23,000.00 RON
+\`\`\`
+
+**Column total** — put \`Total:\` in a table cell to sum only that column:
+\`\`\`
+| Creditor   | Plată     | Sold rămas  |
+| :--------- | :-------- | :---------- |
+| Ipoteca BT | 2,766 RON | 425,105 RON |
+| Revolut    | 3,276 RON | 90,442 RON  |
+| MOGO       | 780 RON   | 5,367 RON   |
+|            | Total:    | Total:      |
+\`\`\`
+The editor fills in the computed sums automatically.
+
+## Currency Format
+- **RON**: \`2,766 RON\` or \`2,766RON\` (suffix)
+- **USD**: \`$2,766\` or \`$2,766.50\` (prefix)
+- **EUR**: \`€2,766\` (prefix)
+Currency is set globally in Settings → Currency.
+
+## Rules for AI
+1. Always include a \`Total:\` cell in every numeric column of a financial table.
+2. Use the user's configured currency symbol and format — never mix formats.
+3. Leave the cell as exactly \`Total:\` — the editor computes and fills the value.
+4. For debt payoff plans: columns are typically \`Plată\` (payment) and \`Sold rămas\` (remaining balance).
+5. Do NOT hard-code the computed total — write \`Total:\` and let the editor calculate.
 `,
   },
 ];

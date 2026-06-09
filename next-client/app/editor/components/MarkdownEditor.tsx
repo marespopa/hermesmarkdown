@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useAtomValue, useSetAtom } from "jotai";
-import { atom_frontmatterWizardOpen, atom_isAiConfigured } from "@/app/atoms/ui-atoms";
+import { atom_frontmatterWizardOpen, atom_isAiConfigured, atom_currency } from "@/app/atoms/atoms";
 import Editor from "react-simple-code-editor";
 import { HiOutlineCalendar, HiChevronRight, HiChevronDown, HiOutlinePencil } from "react-icons/hi";
 import DatePickerCallout from "./DatePickerCallout";
@@ -13,6 +13,7 @@ import { WorkflowPill } from "./WorkflowPill";
 import { TableCallout } from "./TableCallout";
 import { TableDialog } from "./TableDialog";
 import { AISelectionToolbar } from "./AISelectionToolbar";
+import { AIThinkingOverlay } from "./AIThinkingOverlay";
 import { useMarkdownEditor } from "../hooks/useMarkdownEditor";
 import Button from "../../components/Button";
 import Input from "../../components/Input";
@@ -44,6 +45,7 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
   const setFrontmatterWizardOpen = useSetAtom(atom_frontmatterWizardOpen);
   const wizardPath = useAtomValue(atom_frontmatterWizardOpen);
   const isAiConfigured = useAtomValue(atom_isAiConfigured);
+  const currencyCode = useAtomValue(atom_currency);
   const filePath = props.filePath || "draft";
 
   const fmResult = FM_REGEX.exec(props.value);
@@ -183,6 +185,7 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
     isAiLoading,
     improveWriting,
     expandIdea,
+    runPrompt,
   } = useMarkdownEditor({
     ...props,
     value: editorValue,
@@ -353,9 +356,13 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
                     variant="bare"
                     onMouseDown={(e: React.MouseEvent<HTMLButtonElement>) => e.preventDefault()}
                     onClick={() => setFrontmatterWizardOpen(filePath)}
-                    className="justify-start shrink min-w-0 max-w-[40ch] opacity-30 text-[0.72em] truncate hover:opacity-60 transition-opacity"
+                    className="justify-start shrink min-w-0 max-w-[40ch] opacity-30 text-[0.72em] hover:opacity-60 transition-opacity"
                     title="Edit frontmatter"
-                  >{title}</Button>
+                  >
+                    <span className="truncate block min-w-0 text-left">
+                      {title}
+                    </span>
+                  </Button>
                 )}
 
                 {/* Spacer */}
@@ -363,7 +370,7 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
 
                 {/* Meta + chevron — right group */}
                 {isFmCollapsed && meta && (
-                  <span className="shrink-0 opacity-20 text-[0.72em] whitespace-nowrap">
+                  <span className="shrink min-w-0 truncate text-right opacity-20 text-[0.72em]">
                     {meta}
                   </span>
                 )}
@@ -485,8 +492,11 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
               isAiLoading={isAiLoading}
               onImprove={improveWriting}
               onExpand={expandIdea}
+              onPrompt={runPrompt}
             />
           )}
+
+          {isAiLoading && <AIThinkingOverlay />}
 
           {tableInfo && (
             <TableCallout
@@ -524,6 +534,7 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
             onInsert={tableDialog.handleInsert}
             onUpdate={tableDialog.handleUpdate}
             onClose={tableDialog.close}
+            currencyCode={currencyCode}
           />
 
           <WikiLinkDialog
@@ -602,6 +613,7 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
             onValueChange={handleValueChange}
             highlight={highlight}
             padding={0}
+            readOnly={isAiLoading}
             onClick={(e) => {
               handleEditorClick(e);
               // Collapse frontmatter when clicking into the body area

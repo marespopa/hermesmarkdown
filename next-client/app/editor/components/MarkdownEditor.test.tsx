@@ -20,6 +20,8 @@ vi.mock("@/app/atoms/atoms", async () => {
     atom_currency: atom("USD"),
     atom_selectionCount: atom(0),
     atom_autoInjectFrontmatter: atom(false),
+    atom_isAiConfigured: atom(true),
+    atom_frontmatterWizardOpen: atom(null),
   };
 });
 
@@ -279,8 +281,10 @@ describe("MarkdownEditor Functional Tests", () => {
       window.dispatchEvent(new MouseEvent("mouseup", { bubbles: true }));
     });
 
-    // The toolbar should appear after a frame/tick
-    const improveBtn = await screen.findByRole("button", { name: /Improve/i }, { timeout: 2000 });
+    const promptBtn = await screen.findByRole("button", { name: /Prompt/i }, { timeout: 2000 });
+    expect(promptBtn).toBeInTheDocument();
+
+    const improveBtn = screen.getByRole("button", { name: /Improve/i });
     expect(improveBtn).toBeInTheDocument();
     
     const expandBtn = screen.getByRole("button", { name: /Expand/i });

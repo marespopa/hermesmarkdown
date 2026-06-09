@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import { useFileSystem } from "@/app/hooks/use-file-system";
 import {
   HiOutlineChevronLeft,
@@ -26,6 +26,32 @@ import UnifiedSearchInput from "./UnifiedSearchInput";
 import DriveAuthBanner from "./DriveAuthBanner";
 import GoogleDriveFolderPicker from "./GoogleDriveFolderPicker";
 import { atom_driveVaultName } from "@/app/atoms/drive-atoms";
+import { HiOutlineRefresh } from "react-icons/hi";
+
+function DriveExpiredPanel({ vaultName, onReconnect }: { vaultName: string | null; onReconnect: () => void }) {
+  const [isConnecting, setIsConnecting] = React.useState(false);
+
+  const handleReconnect = () => {
+    setIsConnecting(true);
+    onReconnect();
+  };
+
+  return (
+    <div className="space-y-3 px-1">
+      <p className="text-ui-footnote text-zinc-500 dark:text-zinc-400 leading-relaxed">
+        Your Google Drive vault{vaultName ? ` "${vaultName}"` : ""} needs to reconnect.
+      </p>
+      <button
+        onClick={handleReconnect}
+        disabled={isConnecting}
+        className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-blue-500 hover:bg-blue-600 disabled:opacity-60 text-white text-ui-footnote font-semibold transition-colors"
+      >
+        <HiOutlineRefresh size={14} className={isConnecting ? "animate-spin" : ""} />
+        {isConnecting ? "Connecting…" : "Reconnect Google Drive"}
+      </button>
+    </div>
+  );
+}
 
 interface VaultSidebarProps {
   onClose?: () => void;
@@ -33,6 +59,7 @@ interface VaultSidebarProps {
   onNewFile?: () => void;
   onImport?: () => void;
   onExport?: () => void;
+  onRefresh?: () => Promise<void>;
 }
 
 export default function VaultSidebar({
@@ -41,6 +68,7 @@ export default function VaultSidebar({
   onNewFile,
   onImport,
   onExport,
+  onRefresh,
 }: VaultSidebarProps) {
   const {
     openFile,
@@ -64,6 +92,17 @@ export default function VaultSidebar({
   const driveVaultName = useAtomValue(atom_driveVaultName);
   const [isZenModeActive, setIsZenModeActive] = useAtom(atom_isZenModeActive);
   const [isResizing, setIsResizing] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const handleRefresh = useCallback(async () => {
+    if (isRefreshing || !vaultHandle) return;
+    setIsRefreshing(true);
+    try {
+      await onRefresh?.();
+    } finally {
+      setIsRefreshing(false);
+    }
+  }, [isRefreshing, vaultHandle, onRefresh]);
 
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [activeTab, setActiveTab] = useState<SidebarTab>(tabOrder[0] || "content");
@@ -138,6 +177,19 @@ export default function VaultSidebar({
           </div>
 
           <div className="flex items-center gap-1">
+              {vaultHandle && (
+                <Button
+                  variant="icon"
+                  className="w-10 h-10 opacity-60 hover:opacity-100"
+                  onClick={handleRefresh}
+                  title="Refresh vault"
+                  aria-label="Refresh vault"
+                  disabled={isRefreshing}
+                >
+                  <HiOutlineRefresh size={18} className={isRefreshing ? "animate-spin" : ""} />
+                </Button>
+              )}
+
               <Button
                 variant="icon"
                 className="w-10 h-10 opacity-60 hover:opacity-100 md:hidden"
@@ -167,17 +219,7 @@ export default function VaultSidebar({
         {!vaultHandle ? (
           <div className="flex-1 overflow-y-auto overscroll-none p-3 custom-scrollbar">
             {isDriveVault && driveAuthState === 'expired' ? (
-              <div className="space-y-3 px-1">
-                <p className="text-ui-footnote text-zinc-500 dark:text-zinc-400 leading-relaxed">
-                  Your Google Drive vault{driveVaultName ? ` "${driveVaultName}"` : ""} needs to reconnect.
-                </p>
-                <button
-                  onClick={driveSignIn}
-                  className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-blue-500 hover:bg-blue-600 text-white text-ui-footnote font-semibold transition-colors"
-                >
-                  Reconnect Google Drive
-                </button>
-              </div>
+              <DriveExpiredPanel vaultName={driveVaultName} onReconnect={driveSignIn} />
             ) : (
               <VaultSidebarEmpty
                 isVaultSupported={isVaultSupported}

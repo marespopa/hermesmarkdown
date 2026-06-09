@@ -1,13 +1,13 @@
 import React, { useEffect, useState, useRef } from "react";
-import getCaretCoordinates from "textarea-caret";
-import { HiOutlineLightningBolt, HiOutlinePlus, HiOutlineRefresh } from "react-icons/hi";
-import { PILL_CONTAINER_CLASSES } from "./constants";
+import { HiOutlineLightningBolt, HiOutlinePlus, HiOutlineSparkles } from "react-icons/hi";
+import Portal from "../../components/Portal/Portal";
 
 interface AISelectionToolbarProps {
   textareaRef: React.RefObject<HTMLTextAreaElement | null>;
   isAiLoading: boolean;
   onImprove: () => void;
   onExpand: () => void;
+  onPrompt: () => void;
 }
 
 export const AISelectionToolbar: React.FC<AISelectionToolbarProps> = ({
@@ -15,118 +15,87 @@ export const AISelectionToolbar: React.FC<AISelectionToolbarProps> = ({
   isAiLoading,
   onImprove,
   onExpand,
+  onPrompt,
 }) => {
-  const [pos, setPos] = useState<{ top: number; left: number } | null>(null);
   const [hasSelection, setHasSelection] = useState(false);
-  const checkSelectionRef = useRef<number | null>(null);
+  const rafRef = useRef<number | null>(null);
 
   useEffect(() => {
     const checkSelection = () => {
       const textarea = textareaRef.current;
       if (!textarea) return;
-
-      const start = textarea.selectionStart;
-      const end = textarea.selectionEnd;
-
-      if (start !== end && end - start > 0) {
-        // Only show if selection is not just whitespace
-        const selectedText = textarea.value.substring(start, end).trim();
-        if (selectedText) {
-          setHasSelection(true);
-          // Position at the end of the selection
-          const caret = getCaretCoordinates(textarea, end);
-          setPos({
-            top: caret.top - 36, // Position above
-            left: Math.min(caret.left, textarea.clientWidth - 160),
-          });
-          return;
-        }
+      const { selectionStart: s, selectionEnd: e } = textarea;
+      if (s !== e && textarea.value.substring(s, e).trim()) {
+        setHasSelection(true);
+      } else {
+        setHasSelection(false);
       }
+    };
+
+    const schedule = () => {
+      if (rafRef.current) window.cancelAnimationFrame(rafRef.current);
+      rafRef.current = window.requestAnimationFrame(checkSelection);
+    };
+
+    const handleMouseDown = (ev: MouseEvent) => {
+      if ((ev.target as HTMLElement).closest(".ai-selection-toolbar")) return;
       setHasSelection(false);
-      setPos(null);
     };
 
-    const handleInteraction = () => {
-      if (checkSelectionRef.current) window.cancelAnimationFrame(checkSelectionRef.current);
-      checkSelectionRef.current = window.requestAnimationFrame(checkSelection);
-    };
-
-    const handleMouseDown = (e: MouseEvent) => {
-      // Don't hide if clicking inside the toolbar itself
-      if ((e.target as HTMLElement).closest(".ai-selection-toolbar")) return;
-      setHasSelection(false);
-      setPos(null);
-    };
-
-    // Use window listeners to catch interactions that end outside the textarea
-    window.addEventListener("mouseup", handleInteraction);
-    window.addEventListener("keyup", handleInteraction);
+    window.addEventListener("mouseup", schedule);
+    window.addEventListener("keyup", schedule);
     window.addEventListener("mousedown", handleMouseDown);
-    window.addEventListener("resize", handleInteraction);
+    window.addEventListener("resize", schedule);
+    document.addEventListener("selectionchange", schedule);
 
-    // Also listen to scroll on the textarea itself (if it exists yet)
-    // or via capture on window if we want to be really robust
-    const handleScroll = (e: Event) => {
-      if (e.target === textareaRef.current) {
-        checkSelection();
-      }
-    };
-    window.addEventListener("scroll", handleScroll, true);
-
-    // Initial check just in case
     checkSelection();
 
     return () => {
-      window.removeEventListener("mouseup", handleInteraction);
-      window.removeEventListener("keyup", handleInteraction);
+      window.removeEventListener("mouseup", schedule);
+      window.removeEventListener("keyup", schedule);
       window.removeEventListener("mousedown", handleMouseDown);
-      window.removeEventListener("resize", handleInteraction);
-      window.removeEventListener("scroll", handleScroll, true);
-      if (checkSelectionRef.current) window.cancelAnimationFrame(checkSelectionRef.current);
+      window.removeEventListener("resize", schedule);
+      document.removeEventListener("selectionchange", schedule);
+      if (rafRef.current) window.cancelAnimationFrame(rafRef.current);
     };
   }, [textareaRef]);
 
-  if (!hasSelection || !pos) return null;
+  if (!hasSelection || isAiLoading) return null;
 
   return (
-    <div
-      className={`${PILL_CONTAINER_CLASSES} ai-selection-toolbar !z-[100] p-0.5 overflow-hidden animate-in fade-in zoom-in duration-200 shadow-xl border-zinc-200 dark:border-zinc-700`}
-      style={{
-        top: Math.max(8, pos.top),
-        left: Math.max(8, pos.left),
-      }}
-    >
-      <button
-        onMouseDown={(e) => e.preventDefault()}
-        onClick={(e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          onImprove();
-        }}
-        disabled={isAiLoading}
-        className="flex items-center gap-1.5 px-2 py-1 text-ui-footnote font-medium text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-500/10 rounded transition-colors disabled:opacity-50"
-      >
-        {isAiLoading ? (
-          <HiOutlineRefresh className="animate-spin" size={12} />
-        ) : (
-          <HiOutlineLightningBolt size={12} />
-        )}
-        Improve
-      </button>
-      <div className="w-px h-3 bg-zinc-200 dark:bg-zinc-800 my-auto mx-0.5" />
-      <button
-        onMouseDown={(e) => e.preventDefault()}
-        onClick={(e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          onExpand();
-        }}
-        disabled={isAiLoading}
-        className="flex items-center gap-1.5 px-2 py-1 text-ui-footnote font-medium text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-500/10 rounded transition-colors disabled:opacity-50"
-      >
-        <HiOutlinePlus size={12} />
-        Expand
-      </button>
-    </div>
+    <Portal>
+      <div className="fixed top-4 inset-x-0 z-[99] flex justify-center pointer-events-none">
+        <div
+          className="ai-selection-toolbar pointer-events-auto flex items-center gap-0.5 p-1 bg-white/80 dark:bg-neutral-900/80 backdrop-blur-2xl border border-white/20 dark:border-neutral-800/50 shadow-[0_8px_30px_rgba(0,0,0,0.1)] rounded-full animate-in fade-in zoom-in-95 duration-200 select-none"
+        >
+          <button
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={(e) => { e.preventDefault(); e.stopPropagation(); onPrompt(); }}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-ui-footnote font-medium text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-500/10 rounded-full transition-colors"
+          >
+            <HiOutlineSparkles size={13} />
+            Prompt
+          </button>
+          <div className="w-px h-3.5 bg-zinc-200 dark:bg-zinc-700 my-auto" />
+          <button
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={(e) => { e.preventDefault(); e.stopPropagation(); onImprove(); }}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-ui-footnote font-medium text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-500/10 rounded-full transition-colors"
+          >
+            <HiOutlineLightningBolt size={13} />
+            Improve
+          </button>
+          <div className="w-px h-3.5 bg-zinc-200 dark:bg-zinc-700 my-auto" />
+          <button
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={(e) => { e.preventDefault(); e.stopPropagation(); onExpand(); }}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-ui-footnote font-medium text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-500/10 rounded-full transition-colors"
+          >
+            <HiOutlinePlus size={13} />
+            Expand
+          </button>
+        </div>
+      </div>
+    </Portal>
   );
 };

@@ -11,6 +11,7 @@ import Button from "@/app/components/Button";
 import Input from "@/app/components/Input";
 import { HiOutlineLightningBolt, HiOutlineRefresh, HiOutlineLink } from "react-icons/hi";
 import { showSuccessToast, showErrorToast } from "@/app/components/Toastr";
+import { AIThinkingOverlay } from "./AIThinkingOverlay";
 
 // ---------------------------------------------------------------------------
 // Frontmatter helpers
@@ -478,6 +479,8 @@ Return the 3-5 most semantically related note titles as a JSON array.`
   // -------------------------------------------------------------------------
 
   return (
+    <>
+    {isGenerating && <AIThinkingOverlay />}
     <DialogModal
       isOpened={isOpen}
       onClose={() => setWizardPath(null)}
@@ -552,5 +555,6 @@ Return the 3-5 most semantically related note titles as a JSON array.`
 
       </div>
     </DialogModal>
+    </>
   );
 }

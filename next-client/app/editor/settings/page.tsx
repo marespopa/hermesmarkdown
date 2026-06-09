@@ -79,6 +79,12 @@ const SettingsPage = () => {
   const [, setDriveVaultId] = useAtom(atom_driveVaultId);
   const [driveVaultName] = useAtom(atom_driveVaultName);
   const { authState: driveAuthState, signIn: driveSignIn, signOut: driveSignOut } = useDriveAuth();
+  const [isDriveConnecting, setIsDriveConnecting] = useState(false);
+
+  const handleDriveSignIn = () => {
+    setIsDriveConnecting(true);
+    driveSignIn();
+  };
 
   const [availableGeminiModels, setAvailableGeminiModels] = useAtom(atom_availableGeminiModels);
   const [isFetchingModels, setIsFetchingModels] = useState(false);
@@ -502,7 +508,7 @@ const SettingsPage = () => {
                 }
               />
             )}
-            <div className="pt-2">
+            <div className="pt-2 pb-4">
               <Button
                 variant="secondary"
                 disabled={isTestingConnection}
@@ -561,10 +567,27 @@ const SettingsPage = () => {
                 control={
                   <Button
                     variant="primary"
-                    onClick={driveSignIn}
-                    className="h-8 px-4 text-ui-footnote font-medium"
+                    onClick={handleDriveSignIn}
+                    disabled={isDriveConnecting}
+                    className="h-8 px-4 text-ui-footnote font-medium flex items-center gap-1.5"
                   >
-                    Reconnect
+                    {isDriveConnecting && <HiOutlineRefresh size={13} className="animate-spin" />}
+                    {isDriveConnecting ? "Connecting…" : "Reconnect"}
+                  </Button>
+                }
+              />
+            ) : driveAuthState === "authenticating" ? (
+              <SettingItem
+                label="Connecting…"
+                description="Redirecting to Google to complete sign-in."
+                control={
+                  <Button
+                    variant="primary"
+                    disabled
+                    className="h-8 px-4 text-ui-footnote font-medium flex items-center gap-1.5"
+                  >
+                    <HiOutlineRefresh size={13} className="animate-spin" />
+                    Connecting…
                   </Button>
                 }
               />
@@ -575,10 +598,12 @@ const SettingsPage = () => {
                 control={
                   <Button
                     variant="primary"
-                    onClick={driveSignIn}
-                    className="h-8 px-4 text-ui-footnote font-medium"
+                    onClick={handleDriveSignIn}
+                    disabled={isDriveConnecting}
+                    className="h-8 px-4 text-ui-footnote font-medium flex items-center gap-1.5"
                   >
-                    Connect
+                    {isDriveConnecting && <HiOutlineRefresh size={13} className="animate-spin" />}
+                    {isDriveConnecting ? "Connecting…" : "Connect"}
                   </Button>
                 }
               />

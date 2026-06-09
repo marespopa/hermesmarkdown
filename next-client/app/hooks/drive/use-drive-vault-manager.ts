@@ -13,6 +13,7 @@ import {
   atom_activeFileHandle,
   atom_openFiles,
   atom_workspaceLayout,
+  atom_rebindDriveHandles,
 } from '@/app/atoms/atoms';
 import { atom_fileMetadata } from '@/app/atoms/metadata';
 import {
@@ -38,6 +39,7 @@ export function useDriveVaultManager() {
   const [isVaultPending, setIsVaultPending] = useAtom(atom_isVaultPending);
   const [, setFileMetadata] = useAtom(atom_fileMetadata);
   const setIndexerState = useSetAtom(atom_indexerState);
+  const rebindDriveHandles = useSetAtom(atom_rebindDriveHandles);
   const [, setActiveFilePath] = useAtom(atom_activeFilePath);
   const [, setActiveFileHandle] = useAtom(atom_activeFileHandle);
   const [, setOpenFiles] = useAtom(atom_openFiles);
@@ -263,11 +265,12 @@ export function useDriveVaultManager() {
         });
         return next;
       });
+      rebindDriveHandles();
     }
 
     await scanVault(handle);
     indexVaultTags(vaultId); // background
-  }, [driveVaultId, setDriveAuthState, setVaultHandle, setCurrentDirectoryHandle, setIsVaultPending, setIndexerState, setDrivePathIndex, setFileMetadata, scanVault, indexVaultTags]);
+  }, [driveVaultId, setDriveAuthState, setVaultHandle, setCurrentDirectoryHandle, setIsVaultPending, setIndexerState, setDrivePathIndex, setFileMetadata, scanVault, indexVaultTags, rebindDriveHandles]);
 
 
   const closeVault = useCallback(() => {
@@ -340,12 +343,13 @@ export function useDriveVaultManager() {
         });
         return next;
       });
+      rebindDriveHandles();
       setIndexerState('idle');
     };
 
     metadataWorker.addEventListener('message', handleMessage);
     return () => metadataWorker?.removeEventListener('message', handleMessage);
-  }, [isDriveVault, setFileMetadata, setIndexerState]);
+  }, [isDriveVault, setFileMetadata, setIndexerState, rebindDriveHandles]);
 
   // Auto-restore on mount — independent from local vault's hasLoadedVault
   useEffect(() => {
@@ -360,7 +364,7 @@ export function useDriveVaultManager() {
       return;
     }
 
-    restoreVault(vaultId);
+    restoreVault();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Mount only
 

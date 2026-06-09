@@ -12,9 +12,13 @@ function getInitialDriveAuthState(): DriveAuthState {
   return isTokenValid() ? 'authenticated' : 'expired';
 }
 
-// Persisted across sessions
-export const atom_driveVaultId = atomWithStorage<string | null>('hermes_drive_vault_id', null);
-export const atom_driveVaultName = atomWithStorage<string | null>('hermes_drive_vault_name', null);
+// Persisted across sessions.
+// getOnInit: true makes jotai read localStorage synchronously at atom initialization
+// time (during the first render), so mount effects see the stored value in their closure.
+// Without it, atomWithStorage initializes with null and only hydrates after onMount,
+// meaning the restoreVault() closure captures driveVaultId=null and returns early.
+export const atom_driveVaultId = atomWithStorage<string | null>('hermes_drive_vault_id', null, undefined, { getOnInit: true });
+export const atom_driveVaultName = atomWithStorage<string | null>('hermes_drive_vault_name', null, undefined, { getOnInit: true });
 
 // In-memory only — initialized from token state so isDriveVault is correct on first render
 export const atom_driveAuthState = atom<DriveAuthState>(getInitialDriveAuthState());

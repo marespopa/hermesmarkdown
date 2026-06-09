@@ -1,5 +1,6 @@
 import { atom } from "jotai";
 import { atom_openFiles, atom_liveHandles } from "./file-atoms";
+import { atom_fileMetadata } from "./metadata";
 
 // Vault / Local File System
 export const atom_vaultHandle = atom<FileSystemDirectoryHandle | null>(null);
@@ -16,6 +17,21 @@ export type VaultSetupStatus = 'idle' | 'checking' | 'needs_setup' | 'configured
 export const atom_vaultSetupStatus = atom<VaultSetupStatus>('idle');
 
 // Action atoms
+export const atom_rebindDriveHandles = atom(
+  null,
+  (get, set) => {
+    const openFiles = get(atom_openFiles);
+    const fileMetadata = get(atom_fileMetadata);
+    for (const path of Object.keys(openFiles)) {
+      if (path === 'draft') continue;
+      const meta = fileMetadata[path];
+      if (meta?.handle) {
+        set(atom_liveHandles(path), meta.handle as any);
+      }
+    }
+  }
+);
+
 export const atom_rebindHandles = atom(
   null,
   async (get, set, vaultHandle: FileSystemDirectoryHandle) => {

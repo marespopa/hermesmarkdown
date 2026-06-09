@@ -33,6 +33,16 @@ html.dark {
   }
 }
 
+/* Tell mobile browsers this page manages its own theme — prevents auto dark-mode
+   adaptation that can break the editor's color inheritance on iOS/Android. */
+html {
+  color-scheme: light;
+}
+
+html.dark {
+  color-scheme: dark;
+}
+
 /* Custom Pastel Text Selection */
 ::selection {
   background-color: theme('colors.pastel.blue');
@@ -42,6 +52,23 @@ html.dark {
 html.dark ::selection {
   background-color: #3A4D6B; /* Darker pastel for ink background */
   color: theme('colors.ink.dark');
+}
+
+/* Keep the editor's invisible textarea layer transparent during selection.
+   The pre element below is the visual layer; letting ::selection color bleed
+   through to the textarea causes raw text to appear on top of the highlighted
+   pre, which on mobile WebKit manifests as text "appearing" only when selected. */
+.editor-container textarea::selection,
+.editor-container textarea::-moz-selection {
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+/* Guarantee the highlighted pre always renders with the correct inherited color
+   on mobile WebKit, where -webkit-text-fill-color can sometimes be picked up
+   from a composited ancestor layer. */
+.editor-container pre {
+  -webkit-text-fill-color: currentColor;
 }
 
 html, body {

@@ -443,16 +443,30 @@ export default function Documentation() {
                   <div className="bg-neutral-50/50 dark:bg-neutral-900/30 backdrop-blur-sm p-8 rounded-3xl border border-black/5 dark:border-white/5 shadow-inner space-y-6">
                     <div className="space-y-3">
                       <p className="text-ui-footnote leading-relaxed text-neutral-500 dark:text-neutral-400 font-medium">
-                        HermesMarkdown sums all currency values found above a line starting with <code className="font-bold text-blue-600 dark:text-blue-400">Total:</code>.
+                        A line starting with <code className="font-bold text-blue-600 dark:text-blue-400">Total:</code> auto-sums the currency values above it. Set your currency in <strong>Settings → Currency</strong>.
                       </p>
                       <div className="p-5 bg-emerald-500/5 dark:bg-emerald-500/10 border border-emerald-500/10 rounded-2xl font-mono text-ui-footnote">
-                        <div className="opacity-40">- Rent: $2000</div>
-                        <div className="opacity-40">- Food: $400</div>
-                        <div className="text-emerald-600 dark:text-emerald-400 font-bold mt-2 pt-2 border-t border-emerald-500/10">Total: $2400.00</div>
+                        <div className="opacity-40">- Rent: 2,000 RON</div>
+                        <div className="opacity-40">- Food: 400 RON</div>
+                        <div className="text-emerald-600 dark:text-emerald-400 font-bold mt-2 pt-2 border-t border-emerald-500/10">Total: 2,400.00 RON</div>
+                      </div>
+                    </div>
+                    <div className="space-y-3">
+                      <p className="text-ui-footnote leading-relaxed text-neutral-500 dark:text-neutral-400 font-medium">
+                        Inside a table, place <code className="font-bold text-blue-600 dark:text-blue-400">Total:</code> in a cell to sum <em>only that column</em>. Use the <strong>Σ button</strong> in the table dialog header to insert a total row automatically.
+                      </p>
+                      <div className="p-5 bg-emerald-500/5 dark:bg-emerald-500/10 border border-emerald-500/10 rounded-2xl font-mono text-ui-footnote space-y-0.5">
+                        <div className="opacity-40">| Item &nbsp;&nbsp; | Amount &nbsp;&nbsp;|</div>
+                        <div className="opacity-40">| ------| ----------|</div>
+                        <div className="opacity-40">| Rent &nbsp; | 2,000 RON |</div>
+                        <div className="opacity-40">| Food &nbsp; | 400 RON &nbsp; |</div>
+                        <div className="text-emerald-600 dark:text-emerald-400 font-bold">| &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | Total: &nbsp;&nbsp;&nbsp;|</div>
                       </div>
                     </div>
                     <div className="pt-4 border-t border-black/5 dark:border-white/5">
                       <div className={guideRow}><span className={syntaxLabel}>calc(100+50)=</span><span className={resultLabel}>150</span></div>
+                      <div className={guideRow}><span className="text-sm font-medium">Add Total Row</span><span className={resultLabel}>Σ in Table Dialog</span></div>
+                      <div className={guideRow}><span className="text-sm font-medium">Set Currency</span><span className={resultLabel}>Settings → Currency</span></div>
                     </div>
                   </div>
                 </div>
