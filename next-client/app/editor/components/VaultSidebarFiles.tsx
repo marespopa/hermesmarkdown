@@ -146,7 +146,7 @@ export default function VaultSidebarFiles({
                 </Button>
               </div>
 
-              {actionMenuOpen?.path === entryId && (
+              {actionMenuOpen && actionMenuOpen.path === entryId && (
                 <>
                   <div
                     className="fixed inset-0 z-40"
