@@ -121,7 +121,7 @@ const FolderTreeItem = memo(function FolderTreeItem({
     <div className="flex flex-col">
       {!isRoot && (
         <div
-          className="group relative"
+          className={`group relative ${actionMenuOpen ? "z-20" : ""}`}
           draggable
           onDragStart={onDragStart}
           onDragOver={onDragOver}
@@ -140,11 +140,11 @@ const FolderTreeItem = memo(function FolderTreeItem({
             <span className="w-4 flex items-center justify-center opacity-40">
               {isExpanded ? <HiOutlineChevronDown size={14} /> : <HiOutlineChevronRight size={14} />}
             </span>
-            <HiOutlineFolder size={18} className="shrink-0 opacity-60 text-sage/60" />
+            <HiOutlineFolder size={18} className="shrink-0 opacity-80 text-sage/60" />
             <span className="truncate">{dirHandle.name}</span>
           </div>
 
-          <div className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity flex items-center">
+          <div className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 [@media(hover:none)]:opacity-100 transition-opacity flex items-center z-10">
             <Button
               variant="icon"
               className="w-8 h-8 flex items-center justify-center"
@@ -162,7 +162,7 @@ const FolderTreeItem = memo(function FolderTreeItem({
               title="Folder options"
               aria-label="Folder options"
             >
-              <HiOutlineDotsVertical size={16} className="opacity-60" />
+              <HiOutlineDotsVertical size={16} className="opacity-80" />
             </Button>
           </div>
 
@@ -173,7 +173,8 @@ const FolderTreeItem = memo(function FolderTreeItem({
                 onClick={(e) => { e.stopPropagation(); setActionMenuOpen(null); }}
               />
               <div 
-                className="fixed z-50 bg-paper-light/90 dark:bg-paper-dark/90 backdrop-blur-xl border border-edge-subtle rounded-2xl shadow-2xl py-1.5 min-w-[160px] animate-in fade-in zoom-in-95 duration-200"
+                onClick={(e) => e.stopPropagation()}
+                className="fixed z-50 bg-paper-light dark:bg-paper-dark backdrop-blur-xl border border-edge-subtle rounded-2xl shadow-2xl py-1.5 min-w-[160px] animate-in fade-in zoom-in-95 duration-200"
                 style={{ top: actionMenuOpen.y, left: actionMenuOpen.x - 160 }}
               >
                 <Button
@@ -185,7 +186,7 @@ const FolderTreeItem = memo(function FolderTreeItem({
                   }}
                   className="w-full flex items-center gap-3 px-4 py-2.5 text-ui-footnote font-medium hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
                 >
-                  <HiOutlinePlus size={16} className="opacity-60" />
+                  <HiOutlinePlus size={16} className="opacity-80" />
                   New File
                 </Button>
                 <div className="mx-3 my-1 border-t border-edge-subtle" />
@@ -198,7 +199,7 @@ const FolderTreeItem = memo(function FolderTreeItem({
                   }}
                   className="w-full flex items-center gap-3 px-4 py-2.5 text-ui-footnote font-medium hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
                 >
-                  <HiOutlinePencil size={16} className="opacity-60" />
+                  <HiOutlinePencil size={16} className="opacity-80" />
                   Rename
                 </Button>
                 <Button
@@ -210,7 +211,7 @@ const FolderTreeItem = memo(function FolderTreeItem({
                   }}
                   className="w-full flex items-center gap-3 px-4 py-2.5 text-ui-footnote font-medium hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors text-red-500"
                 >
-                  <HiOutlineTrash size={16} className="opacity-60" />
+                  <HiOutlineTrash size={16} className="opacity-80" />
                   Delete
                 </Button>
               </div>

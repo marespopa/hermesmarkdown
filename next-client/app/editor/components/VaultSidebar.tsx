@@ -167,7 +167,7 @@ export default function VaultSidebar({
       <div className="p-3 flex flex-col gap-2 shrink-0">
         <div className="flex justify-between items-center h-11 md:h-8">
           <div className="flex items-center gap-2">
-            <h2 className="text-ui-body md:text-ui-subhead font-medium text-ink-light dark:text-ink-dark truncate opacity-60 md:opacity-40 hover:opacity-100 transition-opacity flex items-center gap-1.5">
+            <h2 className="text-ui-body md:text-ui-subhead font-medium text-ink-light dark:text-ink-dark truncate opacity-80 md:opacity-60 hover:opacity-100 transition-opacity flex items-center gap-1.5">
               {vaultHandle?.name || driveVaultName || "Notes"}
               {isCloudVault && vaultHandle && (
                 <span title="Cloud sync detected. HermesMarkdown will use enhanced error recovery if files are locked." className="text-sage/60 dark:text-sage/60 cursor-help">
@@ -181,7 +181,7 @@ export default function VaultSidebar({
               {vaultHandle && (
                 <Button
                   variant="icon"
-                  className="w-10 h-10 opacity-60 hover:opacity-100"
+                  className="w-10 h-10 opacity-80 hover:opacity-100"
                   onClick={handleRefresh}
                   title="Refresh vault"
                   aria-label="Refresh vault"
@@ -193,7 +193,7 @@ export default function VaultSidebar({
 
               <Button
                 variant="icon"
-                className="w-10 h-10 opacity-60 hover:opacity-100 md:hidden"
+                className="w-10 h-10 opacity-80 hover:opacity-100 md:hidden"
                 onClick={onOpenSettings}
                 title="Settings"
                 aria-label="Settings"
@@ -204,7 +204,7 @@ export default function VaultSidebar({
               {onClose && (
                 <Button
                   variant="icon"
-                  className="w-10 h-10 opacity-60 hover:opacity-100"
+                  className="w-10 h-10 opacity-80 hover:opacity-100"
                   onClick={onClose}
                   title="Collapse Sidebar"
                   aria-label="Collapse Sidebar"

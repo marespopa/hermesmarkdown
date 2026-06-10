@@ -37,9 +37,6 @@ export default function Button({
   return (
     <button
       onClick={(e) => {
-        if ((rest.type || "button") !== "submit") {
-          e.preventDefault();
-        }
         if (onClick) {
           onClick(e);
         }

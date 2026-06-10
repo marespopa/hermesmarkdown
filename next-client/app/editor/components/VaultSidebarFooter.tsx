@@ -40,7 +40,7 @@ export default function VaultSidebarFooter({
           <Button
             variant="icon"
             onClick={() => router.push("/")}
-            className="w-10 h-10 opacity-60 hover:opacity-100"
+            className="w-10 h-10 opacity-80 hover:opacity-100"
             title="Go Home"
             aria-label="Go Home"
           >
@@ -50,7 +50,7 @@ export default function VaultSidebarFooter({
           <Button
             variant="icon"
             onClick={onOpenSettings}
-            className="w-10 h-10 opacity-60 hover:opacity-100"
+            className="w-10 h-10 opacity-80 hover:opacity-100"
             title="Settings"
             aria-label="Settings"
           >
@@ -60,7 +60,7 @@ export default function VaultSidebarFooter({
           <Button
             variant="icon"
             onClick={() => setIsZenModeActive(!isZenModeActive)}
-            className={`w-10 h-10 transition-colors ${isZenModeActive ? "text-sage opacity-100" : "opacity-60 hover:opacity-100"}`}
+            className={`w-10 h-10 transition-colors ${isZenModeActive ? "text-sage opacity-100" : "opacity-80 hover:opacity-100"}`}
             title="Toggle Zen Mode (Ctrl+Shift+Z)"
             aria-label="Toggle Zen Mode"
           >
@@ -73,7 +73,7 @@ export default function VaultSidebarFooter({
               <Button
                 variant="icon"
                 onClick={closeVault}
-                className="w-10 h-10 text-red-500/60 hover:text-red-500"
+                className="w-10 h-10 text-red-500/80 hover:text-red-500"
                 title="Close Vault"
                 aria-label="Close Vault"
               >
@@ -84,7 +84,7 @@ export default function VaultSidebarFooter({
                 variant="icon"
                 onClick={openVault}
                 disabled={!isVaultSupported}
-                className="w-10 h-10 text-sage/60 hover:text-sage"
+                className="w-10 h-10 text-sage/80 hover:text-sage"
                 title={isVaultSupported ? "Open Vault" : "Vault not supported"}
                 aria-label={isVaultSupported ? "Open Vault" : "Vault not supported"}
               >

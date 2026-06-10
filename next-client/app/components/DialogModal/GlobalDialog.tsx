@@ -82,19 +82,19 @@ export default function GlobalDialog() {
 
         <p
           id="dialog-description"
-          className="text-ui-subhead opacity-70 leading-relaxed"
+          className="text-ui-subhead leading-relaxed"
         >
           {config.message}
         </p>
 
         {config.subtext && (
-          <p className="text-ui-caption opacity-50 leading-relaxed">{config.subtext}</p>
+          <p className="text-ui-caption leading-relaxed">{config.subtext}</p>
         )}
 
         {(config.type === "prompt" || config.type === "new-file") && (
           <div className="py-2 space-y-4">
             <div className="space-y-1.5">
-              {config.type === "new-file" && <label className="text-ui-caption font-medium opacity-60">File Name</label>}
+              {config.type === "new-file" && <label className="text-ui-caption font-medium">File Name</label>}
               <Input
                 name="prompt-input"
                 value={promptValue}

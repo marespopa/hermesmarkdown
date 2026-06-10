@@ -65,7 +65,7 @@ const DialogModal = ({
   return (
     <Portal>
       <div
-        className={`fixed inset-0 z-[100] flex p-4 sm:p-6 ${
+        className={`fixed inset-0 z-[1000] flex p-4 sm:p-6 ${
           mobileSheet
             ? "items-end sm:items-center justify-center"
             : "items-center justify-center"
@@ -77,16 +77,18 @@ const DialogModal = ({
         aria-describedby={ariaDescribedBy}
       >
         {/* Backdrop */}
-        <div className="absolute inset-0 bg-black/5 dark:bg-black/20 backdrop-blur-md animate-in fade-in duration-300" />
+        <div className="absolute inset-0 bg-black/40 dark:bg-black/60 backdrop-blur-md animate-in fade-in duration-300" />
 
         {/* Modal Container */}
         <div
+          onClick={(e) => e.stopPropagation()}
           className={`
             relative z-10 w-full
-            bg-white/80 dark:bg-neutral-900/80 backdrop-blur-2xl
+            bg-white dark:bg-neutral-900 backdrop-blur-2xl
             border border-white/20 dark:border-neutral-800/50
             shadow-[0_20px_50px_rgba(0,0,0,0.1)]
             overflow-hidden flex flex-col
+            pointer-events-auto
             animate-in fade-in zoom-in-95 slide-in-from-bottom-4 sm:slide-in-from-bottom-0 duration-500 ease-out
             ${mobileSheet
               ? "max-w-none sm:max-w-sm my-0 rounded-t-[28px] rounded-b-none sm:rounded-[28px] sm:my-auto"

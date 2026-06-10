@@ -143,10 +143,13 @@ export function useDriveVaultManager() {
       handle: new DriveFileHandle(entry.name, entry.id),
     }));
 
-    setFileMetadata(() => {
+    setFileMetadata(prev => {
       const next: Record<string, any> = {};
       fileHandles.forEach(({ handle, path }) => {
-        next[path] = { path, name: handle.name, handle, tags: [], links: [], frontmatter: {}, modifiedAt: 0, wordCount: 0 };
+        const existing = prev[path];
+        next[path] = existing
+          ? { ...existing, handle }
+          : { path, name: handle.name, handle, tags: [], links: [], frontmatter: {}, modifiedAt: 0, wordCount: 0 };
       });
       return next;
     });

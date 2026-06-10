@@ -78,7 +78,7 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
             </div>
             <div className="space-y-2">
               <h2 className="text-ui-title-2 font-bold tracking-tight">Welcome to HermesMD</h2>
-              <p className="text-ui-subhead opacity-70 px-4">
+              <p className="text-ui-subhead px-4">
                 Your local-first, AI-enhanced Markdown vault. Let's get you set up in less than a minute.
               </p>
             </div>
@@ -96,7 +96,7 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
             </div>
             <div className="space-y-2">
               <h2 className="text-ui-title-3 font-bold">Connect Your Vault</h2>
-              <p className="text-ui-footnote opacity-70 px-4">
+              <p className="text-ui-footnote px-4">
                 Choose where your notes live. Local folders stay on your device, or sync via Google Drive.
               </p>
             </div>
@@ -149,14 +149,14 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
             </div>
             <div className="space-y-2">
               <h2 className="text-ui-title-3 font-bold">Configure Preferences</h2>
-              <p className="text-ui-footnote opacity-70 px-4">
+              <p className="text-ui-footnote px-4">
                 Set your preferred currency for financial tables and choose how your work is saved.
               </p>
             </div>
 
             <div className="w-full space-y-4 text-left">
               <div className="space-y-2">
-                <label className="text-[11px] font-bold uppercase tracking-wider opacity-40 ml-1">Currency</label>
+                <label className="text-[11px] font-bold uppercase tracking-wider ml-1">Currency</label>
                 <SelectControl value={currency} onChange={setCurrency}>
                   <option value="USD">USD ($)</option>
                   <option value="EUR">EUR (€)</option>
@@ -168,7 +168,7 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
               </div>
 
               <div className="space-y-2">
-                <label className="text-[11px] font-bold uppercase tracking-wider opacity-40 ml-1">Autosave</label>
+                <label className="text-[11px] font-bold uppercase tracking-wider ml-1">Autosave</label>
                 <SelectControl value={autosaveMode} onChange={(v) => setAutosaveMode(v as any)}>
                   <option value="afterDelay">After 2s Delay</option>
                   <option value="onFocusChange">On Focus Change</option>
@@ -191,7 +191,7 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
             </div>
             <div className="space-y-2">
               <h2 className="text-ui-title-3 font-bold">You're All Set!</h2>
-              <p className="text-ui-footnote opacity-70 px-4">
+              <p className="text-ui-footnote px-4">
                 HermesMD is ready. Here's a quick reminder of what's inside:
               </p>
             </div>
@@ -200,22 +200,22 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
                <div className="p-3 rounded-2xl bg-paper-softgray dark:bg-paper-dark/30 border border-beige-light dark:border-clay text-left space-y-1">
                  <HiOutlineSparkles className="text-sage" size={18} />
                  <div className="text-[11px] font-bold">AI toolbar</div>
-                 <div className="text-[10px] opacity-50 leading-tight">Select text to improve or expand.</div>
+                 <div className="text-[10px] leading-tight">Select text to improve or expand.</div>
                </div>
                <div className="p-3 rounded-2xl bg-paper-softgray dark:bg-paper-dark/30 border border-beige-light dark:border-clay text-left space-y-1">
                  <HiOutlineCode className="text-amber-500" size={18} />
                  <div className="text-[11px] font-bold">Smart Metadata</div>
-                 <div className="text-[10px] opacity-50 leading-tight">Auto-injected frontmatter and tags.</div>
+                 <div className="text-[10px] leading-tight">Auto-injected frontmatter and tags.</div>
                </div>
                <div className="p-3 rounded-2xl bg-paper-softgray dark:bg-paper-dark/30 border border-beige-light dark:border-clay text-left space-y-1">
                  <HiOutlineChartBar className="text-sage" size={18} />
                  <div className="text-[11px] font-bold">Readability</div>
-                 <div className="text-[10px] opacity-50 leading-tight">Live agent-readability scoring.</div>
+                 <div className="text-[10px] leading-tight">Live agent-readability scoring.</div>
                </div>
                <div className="p-3 rounded-2xl bg-paper-softgray dark:bg-paper-dark/30 border border-beige-light dark:border-clay text-left space-y-1">
                  <HiOutlineTerminal className="text-emerald-500" size={18} />
                  <div className="text-[11px] font-bold">Slash Commands</div>
-                 <div className="text-[10px] opacity-50 leading-tight">Type / for templates and context.</div>
+                 <div className="text-[10px] leading-tight">Type / for templates and context.</div>
                </div>
             </div>
 

@@ -52,8 +52,8 @@ export default function SmartFolders({
   const [customWorkspaces, setCustomWorkspaces] = useAtom(atom_customWorkspaces);
   const activeFilePath = useAtomValue(atom_activeFilePath);
   const [selectedFolderId, setSelectedFolderId] = React.useState<string | null>(null);
-  const [actionMenuId, setActionMenuId] = React.useState<string | null>(null);
-  const [fileActionMenuPath, setFileActionMenuPath] = React.useState<string | null>(null);
+  const [actionMenuOpen, setActionMenuOpen] = React.useState<{ x: number, y: number, id: string } | null>(null);
+  const [fileActionMenuOpen, setFileActionMenuOpen] = React.useState<{ x: number, y: number, path: string } | null>(null);
   const [isBuilderOpen, setIsBuilderOpen] = React.useState(false);
   const [editingWorkspace, setEditingWorkspace] = React.useState<CustomWorkspace | null>(null);
   const dialog = useDialog();
@@ -109,7 +109,7 @@ export default function SmartFolders({
       setCustomWorkspaces((prev) => prev.filter((w) => w.id !== id));
       if (selectedFolderId === id) setSelectedFolderId(null);
     }
-    setActionMenuId(null);
+    setActionMenuOpen(null);
   };
 
   const handleEdit = (workspaceId: string, e: React.MouseEvent) => {
@@ -119,7 +119,7 @@ export default function SmartFolders({
       setEditingWorkspace(ws);
       setIsBuilderOpen(true);
     }
-    setActionMenuId(null);
+    setActionMenuOpen(null);
   };
 
   return (
@@ -130,7 +130,7 @@ export default function SmartFolders({
         </span>
         <Button
           variant="icon"
-          className="w-6 h-6 opacity-60 hover:opacity-100 text-ink-muted dark:text-stone"
+          className="w-6 h-6 opacity-80 hover:opacity-100 text-ink-muted dark:text-stone"
           onClick={() => {
             setEditingWorkspace(null);
             setIsBuilderOpen(true);
@@ -161,32 +161,45 @@ export default function SmartFolders({
                 </div>
 
                 {!folder.isDefault && (
-                  <div className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 [@media(hover:none)]:opacity-100 transition-opacity z-10">
                     <Button
                       variant="icon"
                       className="w-7 h-7"
                       onClick={(e) => {
                         e.stopPropagation();
-                        setActionMenuId(actionMenuId === folder.id ? null : folder.id);
+                        if (actionMenuOpen?.id === folder.id) {
+                          setActionMenuOpen(null);
+                        } else {
+                          const rect = e.currentTarget.getBoundingClientRect();
+                          setActionMenuOpen({ 
+                            x: rect.right, 
+                            y: rect.bottom > window.innerHeight - 120 ? rect.top - 100 : rect.bottom + 4,
+                            id: folder.id 
+                          });
+                        }
                       }}
                       title="View options"
                       aria-label="View options"
                     >
-                      <HiOutlineDotsVertical size={14} className="opacity-60" />
+                      <HiOutlineDotsVertical size={14} className="opacity-80" />
                     </Button>
                   </div>
                 )}
 
-                {actionMenuId === folder.id && (
+                {actionMenuOpen?.id === folder.id && (
                   <>
-                    <div className="fixed inset-0 z-40" onClick={() => setActionMenuId(null)} />
-                    <div className="absolute right-2 top-[80%] z-50 bg-paper-light/90 dark:bg-paper-dark/90 backdrop-blur-xl border border-edge-subtle rounded-xl shadow-xl py-1 min-w-[120px] animate-in fade-in zoom-in-95 duration-100">
+                    <div className="fixed inset-0 z-40" onClick={() => setActionMenuOpen(null)} />
+                    <div 
+                      onClick={(e) => e.stopPropagation()}
+                      className="fixed z-50 bg-paper-light dark:bg-paper-dark backdrop-blur-xl border border-edge-subtle rounded-xl shadow-xl py-1 min-w-[120px] animate-in fade-in zoom-in-95 duration-100"
+                      style={{ top: actionMenuOpen.y, left: actionMenuOpen.x - 120 }}
+                    >
                       <Button
                         variant="menu-item"
                         onClick={(e) => handleEdit(folder.id, e)}
                         className="w-full flex items-center gap-3 px-4 py-2.5 text-ui-footnote font-medium hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
                       >
-                        <HiOutlinePencil size={14} className="opacity-60" />
+                        <HiOutlinePencil size={14} className="opacity-80" />
                         Edit
                       </Button>
                       <Button
@@ -194,7 +207,7 @@ export default function SmartFolders({
                         onClick={(e) => handleDelete(folder.id, e)}
                         className="w-full flex items-center gap-3 px-4 py-2.5 text-ui-footnote font-medium hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors text-red-500"
                       >
-                        <HiOutlineTrash size={14} className="opacity-60" />
+                        <HiOutlineTrash size={14} className="opacity-80" />
                         Delete
                       </Button>
                     </div>
@@ -207,7 +220,6 @@ export default function SmartFolders({
                   {matchedFiles.map((file) => (
                     <div
                       key={file.path}
-                      onMouseLeave={() => setFileActionMenuPath(null)}
                       className="group/file relative"
                     >
                       <div
@@ -222,7 +234,7 @@ export default function SmartFolders({
                         <span className="truncate">{file.name}</span>
                       </div>
 
-                      <div className="absolute right-1 top-1/2 -translate-y-1/2 opacity-0 group-hover/file:opacity-100 transition-opacity">
+                      <div className="absolute right-1 top-1/2 -translate-y-1/2 opacity-0 group-hover/file:opacity-100 [@media(hover:none)]:opacity-100 transition-opacity z-10">
                         <Button
                           variant="icon"
                           className="w-6 h-6"
@@ -230,31 +242,44 @@ export default function SmartFolders({
                           aria-label="File options"
                           onClick={(e) => {
                             e.stopPropagation();
-                            setFileActionMenuPath(fileActionMenuPath === file.path ? null : file.path);
+                            if (fileActionMenuOpen?.path === file.path) {
+                              setFileActionMenuOpen(null);
+                            } else {
+                              const rect = e.currentTarget.getBoundingClientRect();
+                              setFileActionMenuOpen({ 
+                                x: rect.right, 
+                                y: rect.bottom > window.innerHeight - 120 ? rect.top - 100 : rect.bottom + 4,
+                                path: file.path 
+                              });
+                            }
                           }}
                         >
-                          <HiOutlineDotsVertical size={12} className="opacity-60" />
+                          <HiOutlineDotsVertical size={12} className="opacity-80" />
                         </Button>
                       </div>
 
-                      {fileActionMenuPath === file.path && (
+                      {fileActionMenuOpen?.path === file.path && (
                         <>
-                          <div className="fixed inset-0 z-40" onClick={() => setFileActionMenuPath(null)} />
-                          <div className="absolute right-1 top-[80%] z-50 bg-paper-light/90 dark:bg-paper-dark/90 backdrop-blur-xl border border-edge-subtle rounded-xl shadow-xl py-1 min-w-[120px] animate-in fade-in zoom-in-95 duration-100">
+                          <div className="fixed inset-0 z-40" onClick={() => setFileActionMenuOpen(null)} />
+                          <div 
+                            onClick={(e) => e.stopPropagation()}
+                            className="fixed z-50 bg-paper-light dark:bg-paper-dark backdrop-blur-xl border border-edge-subtle rounded-xl shadow-xl py-1 min-w-[120px] animate-in fade-in zoom-in-95 duration-100"
+                            style={{ top: fileActionMenuOpen.y, left: fileActionMenuOpen.x - 120 }}
+                          >
                             <Button
                               variant="menu-item"
-                              onClick={(e) => { e.stopPropagation(); renameFile(file.handle); setFileActionMenuPath(null); }}
+                              onClick={(e) => { e.stopPropagation(); renameFile(file.handle); setFileActionMenuOpen(null); }}
                               className="w-full flex items-center gap-3 px-4 py-2 text-ui-footnote font-medium hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
                             >
-                              <HiOutlinePencil size={12} className="opacity-60" />
+                              <HiOutlinePencil size={12} className="opacity-80" />
                               Rename
                             </Button>
                             <Button
                               variant="menu-item"
-                              onClick={(e) => { e.stopPropagation(); deleteFile(file.handle); setFileActionMenuPath(null); }}
+                              onClick={(e) => { e.stopPropagation(); deleteFile(file.handle); setFileActionMenuOpen(null); }}
                               className="w-full flex items-center gap-3 px-4 py-2 text-ui-footnote font-medium hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors text-red-500"
                             >
-                              <HiOutlineTrash size={12} className="opacity-60" />
+                              <HiOutlineTrash size={12} className="opacity-80" />
                               Delete
                             </Button>
                           </div>

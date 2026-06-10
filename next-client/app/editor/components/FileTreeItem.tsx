@@ -38,7 +38,7 @@ export default function FileTreeItem({
 
   return (
     <div
-      className="group relative"
+      className={`group relative ${actionMenuOpen ? "z-20" : ""}`}
       draggable
       onDragStart={(e) => {
         setDraggedEntry(fileHandle);
@@ -57,11 +57,11 @@ export default function FileTreeItem({
             : "hover:bg-paper-softgray dark:hover:bg-paper-dark-surface/40 text-ink-muted dark:text-stone font-medium"
         }`}
       >
-        <HiOutlineDocumentText size={18} className="shrink-0 opacity-60" />
+        <HiOutlineDocumentText size={18} className="shrink-0 opacity-80" />
         <span className="truncate">{fileHandle.name}</span>
       </div>
 
-      <div className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity flex items-center">
+      <div className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 [@media(hover:none)]:opacity-100 transition-opacity flex items-center z-10">
         <Button
           variant="icon"
           className="w-8 h-8 flex items-center justify-center"
@@ -79,7 +79,7 @@ export default function FileTreeItem({
           title="File options"
           aria-label="File options"
         >
-          <HiOutlineDotsVertical size={16} className="opacity-60" />
+          <HiOutlineDotsVertical size={16} className="opacity-80" />
         </Button>
       </div>
 
@@ -90,7 +90,8 @@ export default function FileTreeItem({
             onClick={(e) => { e.stopPropagation(); setActionMenuOpen(null); }}
           />
           <div 
-            className="fixed z-50 bg-paper-light/90 dark:bg-paper-dark/90 backdrop-blur-xl border border-edge-subtle rounded-2xl shadow-2xl py-1.5 min-w-[160px] animate-in fade-in zoom-in-95 duration-200"
+            onClick={(e) => e.stopPropagation()}
+            className="fixed z-50 bg-paper-light dark:bg-paper-dark backdrop-blur-xl border border-edge-subtle rounded-2xl shadow-2xl py-1.5 min-w-[160px] animate-in fade-in zoom-in-95 duration-200"
             style={{ top: actionMenuOpen.y, left: actionMenuOpen.x - 160 }}
           >
             <Button
@@ -102,7 +103,7 @@ export default function FileTreeItem({
               }}
               className="w-full flex items-center gap-3 px-4 py-2.5 text-ui-footnote font-medium hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
             >
-              <HiOutlinePencil size={16} className="opacity-60" />
+              <HiOutlinePencil size={16} className="opacity-80" />
               Rename
             </Button>
             <Button
@@ -114,7 +115,7 @@ export default function FileTreeItem({
               }}
               className="w-full flex items-center gap-3 px-4 py-2.5 text-ui-footnote font-medium hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors text-red-500"
             >
-              <HiOutlineTrash size={16} className="opacity-60" />
+              <HiOutlineTrash size={16} className="opacity-80" />
               Delete
             </Button>
           </div>
