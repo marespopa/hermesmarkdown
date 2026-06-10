@@ -331,7 +331,10 @@ export function useMarkdownEditor({
     if (calcMatch) {
       const mathExpression = calcMatch[1];
       const fullMatchString = calcMatch[0];
-      const sanitized = mathExpression.replace(/[^-()\d/*+.]/g, "");
+      const normalized = mathExpression.replace(/(\d),(\d+)/g, (_, pre, post) =>
+        post.length <= 2 ? `${pre}.${post}` : `${pre}${post}`
+      );
+      const sanitized = normalized.replace(/[^-()\d/*+.]/g, "");
       try {
         const result = new Function(`return (${sanitized})`)();
         const replacement = (Math.round(result * 100) / 100).toString();
