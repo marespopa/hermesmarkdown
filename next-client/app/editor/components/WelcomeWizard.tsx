@@ -232,7 +232,7 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
   return (
     <DialogModal 
       isOpened={showWizard} 
-      onClose={() => step === 0 ? handleFinish() : setStep(step - 1)}
+      onClose={handleFinish}
       styles="!max-w-sm"
     >
       <div className="relative">
