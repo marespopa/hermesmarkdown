@@ -1,13 +1,14 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { HiOutlinePlus, HiOutlineTrash } from "react-icons/hi";
 import Button from "@/app/components/Button";
 import Input from "@/app/components/Input";
+import Typeahead from "@/app/components/Typeahead/Typeahead";
 import DialogModal from "@/app/components/DialogModal/DialogModal";
 import { QueryRule } from "@/app/utils/queryEngine";
 import { useAtom } from "jotai";
-import { atom_customWorkspaces, CustomWorkspace } from "@/app/atoms/metadata";
+import { atom_customWorkspaces, atom_fileMetadata, CustomWorkspace } from "@/app/atoms/metadata";
 
 interface WorkspaceBuilderProps {
   isOpen: boolean;
@@ -49,7 +50,14 @@ const CONDITIONS: Record<string, { label: string; value: QueryRule["condition"];
 
 export default function WorkspaceBuilder({ isOpen, onClose, editingWorkspace }: WorkspaceBuilderProps) {
   const [, setCustomWorkspaces] = useAtom(atom_customWorkspaces);
+  const [fileMetadata] = useAtom(atom_fileMetadata);
   const [name, setName] = useState("");
+
+  const allTags = useMemo(() => {
+    const tagSet = new Set<string>();
+    Object.values(fileMetadata).forEach((f) => f.tags?.forEach((t) => tagSet.add(t)));
+    return Array.from(tagSet).sort();
+  }, [fileMetadata]);
   const [operator, setOperator] = useState<"AND" | "OR">("AND");
   const [rules, setRules] = useState<QueryRule[]>([]);
 
@@ -162,13 +170,25 @@ export default function WorkspaceBuilder({ isOpen, onClose, editingWorkspace }: 
                   </div>
 
                   <div className="flex items-center gap-2 w-full">
-                    <Input
-                      name={`rule-value-${idx}`}
-                      value={rule.value}
-                      handleChange={(e) => updateRule(idx, { value: e.target.value })}
-                      placeholder="Value..."
-                      className="flex-1 my-0"
-                    />
+                    {CONDITIONS[rule.field].find((c) => c.value === rule.condition)?.type === "none" ? (
+                      <div className="flex-1" />
+                    ) : rule.field === "tags" ? (
+                      <Typeahead
+                        name={`rule-value-${idx}`}
+                        value={rule.value ?? ""}
+                        onChange={(val) => updateRule(idx, { value: val.trim() })}
+                        options={allTags}
+                        placeholder="Tag name..."
+                      />
+                    ) : (
+                      <Input
+                        name={`rule-value-${idx}`}
+                        value={rule.value}
+                        handleChange={(e) => updateRule(idx, { value: e.target.value })}
+                        placeholder="Value..."
+                        className="flex-1 my-0"
+                      />
+                    )}
 
                     <Button
                       variant="icon"
