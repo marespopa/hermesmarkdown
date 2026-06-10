@@ -151,6 +151,8 @@ export function useDriveVaultManager() {
       return next;
     });
 
+    pendingHandlesRef.current = new Map(fileHandles.map(f => [f.path, f.handle]));
+
     // Process in batches of 5 to avoid hitting Google Drive rate limits too hard
     const BATCH_SIZE = 5;
     const readable: any[] = [];
@@ -186,8 +188,6 @@ export function useDriveVaultManager() {
       // Small delay between batches
       await new Promise(r => setTimeout(r, 100));
     }
-
-    pendingHandlesRef.current = new Map(fileHandles.map(f => [f.path, f.handle]));
 
     if (metadataWorker && toSend.length > 0) {
       metadataWorker.postMessage({ files: toSend });

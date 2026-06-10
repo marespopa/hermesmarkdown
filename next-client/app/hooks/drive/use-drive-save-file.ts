@@ -73,7 +73,7 @@ export function useDriveSaveFile() {
         if (targetPath) {
           setOpenFiles(prev => {
             if (!prev[targetPath]) return prev;
-            return { ...prev, [targetPath]: { ...prev[targetPath], content: toWrite, lastSavedContent: toWrite } };
+            return { ...prev, [targetPath]: { ...prev[targetPath], ...(didInject ? { content: toWrite } : {}), lastSavedContent: toWrite } };
           });
 
           if (didInject) {

@@ -143,8 +143,11 @@ export function useSaveFile() {
                   ...prev,
                   [targetPath!]: {
                     ...prev[targetPath!],
-                    content: toWrite,
-                    lastSavedContent: toWrite
+                    // Only overwrite editor content when frontmatter was injected;
+                    // otherwise we'd clobber any keystrokes that arrived while the
+                    // async write was in flight, causing a cursor jump.
+                    ...(didInject ? { content: toWrite } : {}),
+                    lastSavedContent: toWrite,
                   }
                 };
               });

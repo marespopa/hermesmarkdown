@@ -63,7 +63,7 @@ export default function PaneTab({
       title={fileName}
       className={[
         "group relative flex items-center h-[38px] md:h-[26px] px-3 md:px-2 rounded-md mx-[2px] md:mx-[1px] cursor-pointer shrink-0",
-        "min-w-[100px] md:min-w-[80px] lg:md:min-w-[100px] max-w-[200px] md:max-w-[160px]",
+        "min-w-[80px] md:min-w-[64px] max-w-[160px] md:max-w-[130px]",
         "select-none transition-all duration-150 hover:scale-[1.01] active:scale-[0.99]",
         isActive
           ? "bg-paper-light/80 dark:bg-paper-dark-surface/80 shadow-[0_1px_2px_rgba(0,0,0,0.04),0_0_0_0.5px_rgba(0,0,0,0.04)] dark:shadow-[0_1px_2px_rgba(0,0,0,0.2),0_0_0_0.5px_rgba(255,255,255,0.02)] text-ink-light dark:text-ink-dark"

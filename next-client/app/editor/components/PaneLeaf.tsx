@@ -237,12 +237,16 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
     >
       {/* Pane Tabs Bar - Premium macOS Style */}
       {!isZenModeActive && (
-        <div 
-          className="flex items-center paper-grain bg-chrome border-b border-edge-subtle h-12 md:h-9 shrink-0 overflow-x-auto overflow-y-hidden scrollbar-none px-2 relative z-20"
-          onDragOver={(e) => handleDragOver(e)}
-          onDragLeave={handleDragLeave}
-          onDrop={(e) => handleDrop(e, leaf.openFilePaths.length)}
+        <div
+          className="flex items-center paper-grain bg-chrome border-b border-edge-subtle h-12 md:h-9 shrink-0 relative z-20"
         >
+          {/* Scrollable tabs strip */}
+          <div
+            className="flex items-center flex-1 overflow-x-auto overflow-y-hidden scrollbar-none h-full px-2 min-w-0"
+            onDragOver={(e) => handleDragOver(e)}
+            onDragLeave={handleDragLeave}
+            onDrop={(e) => handleDrop(e, leaf.openFilePaths.length)}
+          >
           {leaf.openFilePaths.map((path, index) => {
             const isTabActive = leaf.activeFilePath === path;
             const isDraggedOver = draggedOverIndex === index;
@@ -297,8 +301,10 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
             );
           })}
           
-          {/* Pane Actions - Minimalist */}
-          <div className="flex items-center gap-0.5 ml-auto pl-4 pr-1 sticky right-0 bg-gradient-to-l from-chrome via-chrome/80 to-transparent h-full shrink-0 z-20">
+          </div>{/* end scrollable tabs strip */}
+
+          {/* Fixed actions — always visible, never scrolled */}
+          <div className="flex items-center gap-0.5 pl-2 pr-1 shrink-0 h-full z-20">
             {isActive && leaf.openFilePaths.length > 0 && (
               <>
                 <Button
