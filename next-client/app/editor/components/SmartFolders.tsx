@@ -180,7 +180,7 @@ export default function SmartFolders({
                 {actionMenuId === folder.id && (
                   <>
                     <div className="fixed inset-0 z-40" onClick={() => setActionMenuId(null)} />
-                    <div className="absolute right-2 top-[80%] z-50 bg-paper-light/90 dark:bg-paper-dark/90 backdrop-blur-xl border border-edge/50 rounded-xl shadow-xl py-1 min-w-[120px] animate-in fade-in zoom-in-95 duration-100">
+                    <div className="absolute right-2 top-[80%] z-50 bg-paper-light/90 dark:bg-paper-dark/90 backdrop-blur-xl border border-edge-subtle rounded-xl shadow-xl py-1 min-w-[120px] animate-in fade-in zoom-in-95 duration-100">
                       <Button
                         variant="menu-item"
                         onClick={(e) => handleEdit(folder.id, e)}
@@ -240,7 +240,7 @@ export default function SmartFolders({
                       {fileActionMenuPath === file.path && (
                         <>
                           <div className="fixed inset-0 z-40" onClick={() => setFileActionMenuPath(null)} />
-                          <div className="absolute right-1 top-[80%] z-50 bg-paper-light/90 dark:bg-paper-dark/90 backdrop-blur-xl border border-edge/50 rounded-xl shadow-xl py-1 min-w-[120px] animate-in fade-in zoom-in-95 duration-100">
+                          <div className="absolute right-1 top-[80%] z-50 bg-paper-light/90 dark:bg-paper-dark/90 backdrop-blur-xl border border-edge-subtle rounded-xl shadow-xl py-1 min-w-[120px] animate-in fade-in zoom-in-95 duration-100">
                             <Button
                               variant="menu-item"
                               onClick={(e) => { e.stopPropagation(); renameFile(file.handle); setFileActionMenuPath(null); }}

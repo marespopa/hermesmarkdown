@@ -301,7 +301,7 @@ export default function StatusBar() {
                   setShowAiTip(false);
                 }} />
                 <span 
-                  className="absolute top-full right-0 mt-1 flex flex-col rounded-lg bg-paper-light dark:bg-paper-dark border border-edge/50 px-3 py-2 text-[10px] leading-snug text-ink-light dark:text-ink-dark shadow-xl z-50 gap-1.5 w-[min(200px,_calc(100vw_-_1rem))] origin-top-right animate-dropdown-in"
+                  className="absolute top-full right-0 mt-1 flex flex-col rounded-lg bg-paper-light dark:bg-paper-dark border border-edge-subtle px-3 py-2 text-[10px] leading-snug text-ink-light dark:text-ink-dark shadow-xl z-50 gap-1.5 w-[min(200px,_calc(100vw_-_1rem))] origin-top-right animate-dropdown-in"
                   onClick={(e) => e.stopPropagation()}
                 >
                   <span className="font-semibold mb-1 opacity-90">Agent readability — {agentRating.score}/100</span>
@@ -413,7 +413,7 @@ export default function StatusBar() {
                 setShowAiTip(false);
               }} />
               <span 
-                className="absolute md:bottom-full md:mb-2 max-md:top-full max-md:mt-2 right-0 flex flex-col rounded-lg bg-paper-light dark:bg-paper-dark border border-edge/50 px-3 py-2 text-[10px] leading-snug text-ink-light dark:text-ink-dark shadow-xl z-50 gap-1.5 w-[min(200px,_calc(100vw_-_1rem))] origin-bottom-right animate-dropdown-in-up"
+                className="absolute md:bottom-full md:mb-2 max-md:top-full max-md:mt-2 right-0 flex flex-col rounded-lg bg-paper-light dark:bg-paper-dark border border-edge-subtle px-3 py-2 text-[10px] leading-snug text-ink-light dark:text-ink-dark shadow-xl z-50 gap-1.5 w-[min(200px,_calc(100vw_-_1rem))] origin-bottom-right animate-dropdown-in-up"
                 onClick={(e) => e.stopPropagation()}
               >
                 <span className="font-semibold mb-1 opacity-90">Agent readability — {agentRating.score}/100</span>

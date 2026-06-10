@@ -236,7 +236,7 @@ export default function VaultSidebar({
         ) : (
           <div className="flex flex-col h-full overflow-hidden">
             {/* Unified search - always visible */}
-            <div className="px-3 pt-3 pb-2 shrink-0 border-b border-edge/40">
+            <div className="px-3 pt-3 pb-2 shrink-0 border-b border-edge-subtle">
               <UnifiedSearchInput
                 tokens={selectedTags}
                 text={searchQuery}
@@ -247,7 +247,7 @@ export default function VaultSidebar({
               />
             </div>
 
-            <div className="px-4 py-2 shrink-0 border-b border-edge/40">
+            <div className="px-4 py-2 shrink-0 border-b border-edge-subtle">
               <div className="relative flex bg-paper-softgray/80 dark:bg-paper-dark/60 rounded-lg p-0.5 gap-0.5">
                 {tabOrder.map((tab) => (
                   <button

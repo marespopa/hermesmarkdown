@@ -34,7 +34,7 @@ export default function VaultSidebarFooter({
   const router = useRouter();
 
   return (
-    <div className="p-4 border-t border-edge/50 bg-transparent shrink-0">
+    <div className="p-4 border-t border-edge-subtle bg-transparent shrink-0">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-1">
           <Button

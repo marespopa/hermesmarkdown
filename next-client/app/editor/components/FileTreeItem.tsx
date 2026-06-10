@@ -90,7 +90,7 @@ export default function FileTreeItem({
             onClick={(e) => { e.stopPropagation(); setActionMenuOpen(null); }}
           />
           <div 
-            className="fixed z-50 bg-paper-light/90 dark:bg-paper-dark/90 backdrop-blur-xl border border-edge/50 rounded-2xl shadow-2xl py-1.5 min-w-[160px] animate-in fade-in zoom-in-95 duration-200"
+            className="fixed z-50 bg-paper-light/90 dark:bg-paper-dark/90 backdrop-blur-xl border border-edge-subtle rounded-2xl shadow-2xl py-1.5 min-w-[160px] animate-in fade-in zoom-in-95 duration-200"
             style={{ top: actionMenuOpen.y, left: actionMenuOpen.x - 160 }}
           >
             <Button

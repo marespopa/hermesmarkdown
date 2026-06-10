@@ -51,7 +51,7 @@ export default function TabContextMenu({ x, y, items, onClose }: TabContextMenuP
     <div
       ref={menuRef}
       style={{ left: pos.x, top: pos.y }}
-      className={`fixed z-50 min-w-[180px] bg-paper-light/90 dark:bg-paper-dark/90 backdrop-blur-xl border border-edge/50 rounded-2xl shadow-2xl font-sans p-1.5 flex flex-col gap-0.5 origin-top-left transition-[opacity,transform] duration-150 ease-out ${pos.ready ? "opacity-100 scale-100" : "opacity-0 scale-95"}`}
+      className={`fixed z-50 min-w-[180px] bg-paper-light/90 dark:bg-paper-dark/90 backdrop-blur-xl border border-edge-subtle rounded-2xl shadow-2xl font-sans p-1.5 flex flex-col gap-0.5 origin-top-left transition-[opacity,transform] duration-150 ease-out ${pos.ready ? "opacity-100 scale-100" : "opacity-0 scale-95"}`}
     >
       {items.map((item) => (
         <Button

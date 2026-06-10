@@ -43,12 +43,12 @@ export const SelectControl = ({
   children: React.ReactNode;
   disabled?: boolean;
 }) => (
-  <div className="relative">
+  <div className="relative w-full">
     <select
       value={value}
       onChange={(e) => onChange(e.target.value)}
       disabled={disabled}
-      className="appearance-none bg-paper-softgray dark:bg-paper-dark-surface text-ui-footnote font-semibold rounded-xl px-3 pr-7 py-1.5 outline-none border border-transparent focus:border-sage/40 cursor-pointer transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+      className="w-full appearance-none bg-paper-softgray dark:bg-paper-dark-surface text-ui-footnote font-semibold rounded-xl px-3 pr-7 py-1.5 outline-none border border-transparent focus:border-sage/40 cursor-pointer transition-all disabled:opacity-50 disabled:cursor-not-allowed"
     >
       {children}
     </select>

@@ -125,7 +125,7 @@ export default function VaultSidebarFiles({
               {actionMenuOpen === (entryPath || entry.name) && (
                 <>
                   <div className="fixed inset-0 z-40" onClick={() => setActionMenuOpen(null)} />
-                  <div className="absolute right-2 top-[80%] z-50 bg-paper-light/95 dark:bg-paper-dark/95 backdrop-blur-xl border border-edge/50 rounded-xl shadow-2xl py-1 min-w-[120px] animate-in fade-in zoom-in-95 slide-in-from-top-2 duration-200 ease-out">
+                  <div className="absolute right-2 top-[80%] z-50 bg-paper-light/95 dark:bg-paper-dark/95 backdrop-blur-xl border border-edge-subtle rounded-xl shadow-2xl py-1 min-w-[120px] animate-in fade-in zoom-in-95 slide-in-from-top-2 duration-200 ease-out">
                     <Button
                       variant="menu-item"
                       onClick={(e) => { e.stopPropagation(); renameFile(entry.handle); setActionMenuOpen(null); }}
