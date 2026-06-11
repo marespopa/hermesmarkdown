@@ -145,21 +145,21 @@ export function highlightMarkdown(
       if (index === 0 && html === "---") {
         isInsideFrontmatter = true;
         const isActive = isZenModeActive && index === activeLineIndex;
-        return `<div class="transition-all duration-700 ease-in-out bg-sage/5 dark:bg-sage/5 ${isActive ? "-mx-6 px-6 rounded-lg" : ""} min-h-[1.8em]"><span class="text-zinc-400 dark:text-zinc-600">---</span></div>`;
+        return `<div class="${isZenModeActive ? "transition-all duration-700 ease-in-out" : ""} bg-sage/5 dark:bg-sage/5 ${isActive ? "-mx-6 px-6 rounded-lg" : ""} min-h-[1.8em]"><span class="text-zinc-400 dark:text-zinc-600">---</span></div>`;
       }
       if (isInsideFrontmatter && !frontmatterClosed) {
         if (html === "---") {
           isInsideFrontmatter = false;
           frontmatterClosed = true;
           const isActive = isZenModeActive && index === activeLineIndex;
-          return `<div class="transition-all duration-700 ease-in-out bg-sage/5 dark:bg-sage/5 ${isActive ? "-mx-6 px-6 rounded-lg" : ""} min-h-[1.8em]"><span class="text-zinc-400 dark:text-zinc-600">---</span></div>`;
+          return `<div class="${isZenModeActive ? "transition-all duration-700 ease-in-out" : ""} bg-sage/5 dark:bg-sage/5 ${isActive ? "-mx-6 px-6 rounded-lg" : ""} min-h-[1.8em]"><span class="text-zinc-400 dark:text-zinc-600">---</span></div>`;
         }
         const fmContent = html.replace(
           /^([a-zA-Z_][a-zA-Z0-9_]*)(:)(.*)/,
           `<span class="text-violet-500 dark:text-violet-400 opacity-80">$1</span><span class="opacity-30">$2</span><span class="text-zinc-600 dark:text-zinc-400">$3</span>`,
         );
         const isActive = isZenModeActive && index === activeLineIndex;
-        return `<div class="transition-all duration-700 ease-in-out bg-sage/5 dark:bg-sage/5 ${isActive ? "-mx-6 px-6 rounded-lg" : ""} min-h-[1.8em]">${fmContent || " "}</div>`;
+        return `<div class="${isZenModeActive ? "transition-all duration-700 ease-in-out" : ""} bg-sage/5 dark:bg-sage/5 ${isActive ? "-mx-6 px-6 rounded-lg" : ""} min-h-[1.8em]">${fmContent || " "}</div>`;
       }
 
       let content = "";
@@ -209,7 +209,7 @@ export function highlightMarkdown(
       }
 
       const isActive = isZenModeActive && index === activeLineIndex;
-      return `<div class="transition-all duration-700 ease-in-out ${isActive ? "bg-ink-muted/5 dark:bg-ink-muted/10 -mx-6 px-6 rounded-lg scale-[1.005] opacity-100 shadow-[0_0_40px_-15px_rgba(0,0,0,0.05)]" : ""} min-h-[1.8em]">${content || " "}</div>`;
+      return `<div class="${isZenModeActive ? "transition-all duration-700 ease-in-out" : ""} ${isActive ? "bg-ink-muted/5 dark:bg-ink-muted/10 -mx-6 px-6 rounded-lg scale-[1.005] opacity-100 shadow-[0_0_40px_-15px_rgba(0,0,0,0.05)]" : ""} min-h-[1.8em]">${content || " "}</div>`;
     })
     .join("");
 }

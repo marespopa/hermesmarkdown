@@ -47,7 +47,7 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#F5F1E8" },
+    { media: "(prefers-color-scheme: light)", color: "#FDFCFA" },
     { media: "(prefers-color-scheme: dark)", color: "#2C2C2C" },
   ],
   width: "device-width",
@@ -68,7 +68,7 @@ export default function RootLayout({
       className={`h-full overscroll-none ${jetBrainsMono.variable} ${firaCode.variable} ${ibmPlexMono.variable}`}
     >
       <body
-        className="h-full min-h-screen bg-paper-light dark:bg-paper-dark text-ink-light dark:text-ink-dark transition-colors duration-300 antialiased overscroll-none"
+        className="h-full min-h-screen bg-paper-pale dark:bg-paper-dark text-ink-light dark:text-ink-dark transition-colors duration-300 antialiased overscroll-none"
         suppressHydrationWarning
       >
         <MainPage>{children}</MainPage>

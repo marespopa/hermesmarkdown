@@ -182,7 +182,7 @@ export default function StatusBar() {
 
   if (!showStats && !isZenModeActive) return null;
 
-  const barClasses = `group relative shrink-0 pointer-events-auto z-40 select-none paper-grain bg-chrome border-edge-subtle transition-colors duration-200`;
+  const barClasses = `group relative shrink-0 pointer-events-auto z-40 select-none paper-grain bg-paper-pale dark:bg-paper-dark border-edge-subtle transition-colors duration-200`;
   const innerClasses = `flex items-center justify-between w-full h-full px-4 opacity-60 group-hover:opacity-100 transition-opacity duration-200`;
 
   if (!activeFilePath) {

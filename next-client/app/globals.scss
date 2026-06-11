@@ -21,21 +21,25 @@
   --fg:             #3A3226;  /* primary text */
   --fg-muted:       #6B6B6B;  /* secondary text */
   --fg-faint:       #716E66;  /* placeholder / tertiary — WCAG AA 4.5:1 on surface */
+
+  --accent:         #C89B6F;  /* trunk accent — warm golden */
 }
 
 html.dark {
-  --surface:        #2C2C2C;
+  --surface:        #1A1816;
   --surface-raised: #363230;
-  --chrome:         #242220;
+  --chrome:         #141210;
   --overlay:        #363230;
-  --input-bg:       #2C2C2C;
+  --input-bg:       #1A1816;
 
-  --border:         #4A4440;
-  --border-subtle:  rgba(74, 68, 64, 0.35);
+  --border:         #3A3530;
+  --border-subtle:  rgba(58, 53, 48, 0.35);
 
-  --fg:             #E8E4DC;
+  --fg:             #F0EDE6;
   --fg-muted:       #A8A098;
-  --fg-faint:       #979290;  /* WCAG AA 4.5:1 on dark surface */
+  --fg-faint:       #8A857E;  /* WCAG AA 4.5:1 on dark surface */
+
+  --accent:         #fef3c7;  /* Hermes pale gold — luminous on dark surface */
 }
 
 /* Custom Scrollbars - Minimalist Paper Style */
@@ -59,11 +63,11 @@ html.dark {
 
 html.dark {
   ::-webkit-scrollbar-thumb {
-    background-color: #4A4440;
+    background-color: #3A3530;
   }
 
   ::-webkit-scrollbar-thumb:hover {
-    background-color: #5A5250;
+    background-color: #4A4540;
   }
 }
 
@@ -84,7 +88,7 @@ html.dark {
 }
 
 html.dark ::selection {
-  background-color: #4A5A44;
+  background-color: #3A3210;
   color: theme('colors.ink.dark');
 }
 
@@ -106,7 +110,7 @@ html.dark ::selection {
 }
 
 html, body {
-  background-color: theme('colors.paper.light');
+  background-color: theme('colors.paper.pale');
   color: theme('colors.ink.light');
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -167,7 +171,7 @@ html.dark .paper-grain::before {
 
 /* Fix overscroll background color */
 html {
-  background-color: theme('colors.paper.light');
+  background-color: theme('colors.paper.pale');
 }
 
 html.dark {
@@ -366,6 +370,6 @@ html.dark .hermes-preview table tr:nth-child(even) td {
 
 html.dark .hermes-preview table th,
 html.dark .hermes-preview table td {
-  border-color: #4A4440;
+  border-color: #3A3530;
 }
 

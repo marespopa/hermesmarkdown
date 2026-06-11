@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useLayoutEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import Button from "@/app/components/Button";
 import DialogModal from "@/app/components/DialogModal/DialogModal";
 import ConflictDialog from "./components/ConflictDialog";
@@ -85,6 +85,9 @@ export default function LiteEditor() {
   const { refresh: refreshFiles } = useFileWatcher();
   const { syncVault } = useVaultSync();
 
+  const [isMounted, setIsMounted] = useState(false);
+  useEffect(() => { setIsMounted(true); }, []);
+
   // Sync sidebar with active file folder
   const lastSyncedPathRef = useRef<string | null>(null);
   useEffect(() => {
@@ -94,7 +97,6 @@ export default function LiteEditor() {
     }
   }, [activeFilePath, syncSidebarToPath]);
 
-  const [isPathSwitching, setIsPathSwitching] = useState(false);
   const [pendingFile, setPendingFile] = useState<{
     text: string;
     name: string;
@@ -212,14 +214,6 @@ export default function LiteEditor() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [setIsZenModeActive, flush, isZenModeActive]);
 
-  useLayoutEffect(() => {
-    if (!isMounting) {
-      setIsPathSwitching(true);
-      const timer = setTimeout(() => setIsPathSwitching(false), 500);
-      return () => clearTimeout(timer);
-    }
-  }, [activeFilePath, isMounting]);
-
   const handleNewFile = () => {
     if (!vaultHandle) {
       resetEditor();
@@ -276,9 +270,9 @@ export default function LiteEditor() {
 
   return (
     <ErrorBoundary>
-      <LoadingOverlay isVisible={isFileLoading} text="Loading file..." />
+      <LoadingOverlay isVisible={isMounting || isFileLoading} text={isFileLoading ? "Loading file..." : "Loading..."} />
       <div className={`fixed inset-0 flex flex-col bg-surface text-fg selection:bg-sage-light/30 font-sans overflow-hidden overscroll-none transition-all duration-500 ${isVaultPending ? "blur-md pointer-events-none select-none" : ""}`}>
-        {isDriveVault && driveAuthState === 'expired' && (
+        {isMounted && isDriveVault && driveAuthState === 'expired' && (
           <DriveReconnectBanner onReconnect={driveSignIn} />
         )}
         {/* Modals */}
@@ -324,7 +318,7 @@ export default function LiteEditor() {
           
           {/* Collapsed Sidebar Toggle Column */}
           {!isSidebarOpen && !isZenModeActive && (
-            <div className="w-12 h-full flex flex-col items-center py-6 border-r border-edge-subtle bg-chrome shrink-0 z-40">
+            <div className="w-12 h-full flex flex-col items-center py-6 border-r border-edge-subtle bg-paper-pale dark:bg-paper-dark shrink-0 z-40">
                <div className="flex flex-col items-center gap-6">
                  <Button
                     variant="icon"
@@ -368,7 +362,7 @@ export default function LiteEditor() {
           {/* Main Editor Area */}
           <div className="flex-1 flex flex-col min-w-0 relative">
             <div className="relative flex-1 min-h-0">
-              <main className={`h-full transition-all duration-700 ${isPathSwitching ? "opacity-30" : "opacity-100"}`}>
+              <main className="h-full">
                 {isMounting ? (
                   <div className="animate-pulse opacity-10 space-y-6 pt-20 px-12 max-w-2xl mx-auto">
                     <div className="h-8 bg-current w-1/3 rounded-lg mb-16" />

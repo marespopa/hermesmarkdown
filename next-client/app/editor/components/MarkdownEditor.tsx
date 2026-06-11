@@ -289,7 +289,7 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
           textareaRef.current.focus();
         }
       }}
-      className={`relative w-full h-full overflow-auto bg-chrome cursor-text ${isZenModeActive ? "no-scrollbar" : "p-2"}`}
+      className={`relative w-full h-full overflow-auto bg-paper-pale dark:bg-paper-dark cursor-text ${isZenModeActive ? "no-scrollbar" : ""}`}
       translate="no"
     >
       <div
@@ -312,11 +312,10 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
           }
         }}
         className={`editor-container relative min-h-full antialiased normal-nums [font-variant-ligatures:none] [font-feature-settings:'liga'_0,'calt'_0]
-          transition-[padding,max-width,opacity] duration-700 [transition-timing-function:cubic-bezier(0.4,0,0.2,1)]
+          transition-[padding,max-width] duration-700 [transition-timing-function:cubic-bezier(0.4,0,0.2,1)]
           ${isZenModeActive ? "max-w-[85ch] w-full mx-auto pt-8 pb-32 px-4 md:px-12" : `pt-1 pb-12 mx-auto ${widthClass} ${paddingClass}`}
           ${wordWrap ? "w-full" : "w-max min-w-full"}
-          bg-surface
-          rounded-2xl border border-edge-subtle
+          bg-white dark:bg-[#1E1C1A]
           text-ui-body
           [&_textarea]:!bg-transparent [&_textarea]:!text-transparent [&_textarea]:!caret-sage
           [&_textarea]:!z-10 [&_pre]:!z-0 [&_pre]:!pointer-events-none

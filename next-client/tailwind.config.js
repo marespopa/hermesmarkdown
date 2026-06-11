@@ -77,13 +77,13 @@ module.exports = {
 
         // ── Accent / brand (static — same in both modes) ──
         sage: {
-          DEFAULT: '#647558',  /* WCAG AA 4.5:1 on light surface — safe for text */
-          subtle:  '#8B9B7E',  /* decorative/non-text use only (2.6:1 on light) */
-          light:   '#B5C4AC',
-          dark:    '#6B7A62',
+          DEFAULT: 'var(--accent)',  /* #647558 light / #fef3c7 dark */
+          subtle:  '#8B9B7E',        /* decorative/non-text use only (2.6:1 on light) */
+          light:   '#fef3c7',        /* Hermes pale gold — selection bg / tints */
+          dark:    '#6B7A62',        /* hover / pressed state */
         },
         accent: {
-          DEFAULT: '#C89B6F',
+          DEFAULT: 'var(--accent)',
           hover:   '#B88A5E',
         },
 
@@ -93,14 +93,15 @@ module.exports = {
           light:   '#EDE5D4',
         },
         paper: {
-          light:        '#F5F1E8',
-          softgray:     '#E8E6E1',
-          dark:         '#2C2C2C',
+          pale:           '#FDFCFA',
+          light:          '#F5F1E8',
+          softgray:       '#E8E6E1',
+          dark:           '#1A1816',
           'dark-surface': '#363230',
         },
         ink: {
           light: '#3A3226',
-          hover: '#4A3E32',   // primary button hover (darker than ink-light)
+          hover: '#4A3E32',
           dark:  '#E8E4DC',
           muted: '#6B6B6B',
         },

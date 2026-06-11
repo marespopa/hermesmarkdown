@@ -9,14 +9,14 @@ export default function Footer() {
     <ClientOnly>
       <footer
         data-testid="GlobalFooter"
-        className="pt-24 pb-12 bg-white dark:bg-neutral-950 text-fg border-t border-black/5 dark:border-white/5 font-sans"
+        className="pt-24 pb-12 bg-neutral-900 dark:bg-neutral-950 text-ink-dark border-t border-white/5 font-sans"
       >
         <div className="container max-w-6xl mx-auto px-6">
           <div className="flex flex-col md:flex-row justify-between w-full items-start gap-12 md:gap-8">
             <div className="flex flex-col gap-6 max-w-sm">
               <div className="space-y-2">
                 <span className="text-ui-title-2 font-bold tracking-tight">HermesMarkdown</span>
-                <p className="text-ui-subhead text-neutral-500 dark:text-neutral-400 leading-relaxed">
+                <p className="text-ui-subhead text-neutral-400 leading-relaxed">
                   A premium, local-first workspace for focused writing and deep work. No cloud, no tracking, total privacy.
                 </p>
               </div>
@@ -59,7 +59,7 @@ export default function Footer() {
             </div>
           </div>
           
-          <div className="mt-20 pt-8 border-t border-black/5 dark:border-white/5 flex flex-col sm:flex-row justify-between items-center gap-4 opacity-30 text-ui-footnote uppercase tracking-[0.2em] font-bold">
+          <div className="mt-20 pt-8 border-t border-white/5 flex flex-col sm:flex-row justify-between items-center gap-4 opacity-30 text-ui-footnote uppercase tracking-[0.2em] font-bold">
              <span>© {new Date().getFullYear()} HermesMarkdown. All rights reserved.</span>
              <span className="flex items-center gap-2">
                 <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />

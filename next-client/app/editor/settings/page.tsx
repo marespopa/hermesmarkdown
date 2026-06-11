@@ -660,9 +660,9 @@ const SettingsPage = () => {
   const active = sections.find((s) => s.id === activeSection) ?? sections[0];
 
   return (
-    <div className="fixed inset-0 flex flex-col lg:flex-row font-sans overflow-hidden overscroll-none bg-paper-softgray dark:bg-paper-dark text-ink-light dark:text-ink-dark selection:bg-sage/10">
+    <div className="fixed inset-0 flex flex-col lg:flex-row font-sans overflow-hidden overscroll-none bg-paper-pale dark:bg-paper-dark text-ink-light dark:text-ink-dark selection:bg-sage/10">
       {/* Sidebar */}
-      <aside className="shrink-0 lg:w-60 flex flex-col border-b lg:border-b-0 lg:border-r border-beige/70 dark:border-paper-dark bg-paper-light dark:bg-paper-dark">
+      <aside className="shrink-0 lg:w-60 flex flex-col border-b lg:border-b-0 lg:border-r border-beige/70 dark:border-paper-dark bg-paper-pale dark:bg-paper-dark">
         <div className="px-5 pt-6 pb-4">
           <button
             onClick={() => router.push("/editor")}
@@ -698,7 +698,7 @@ const SettingsPage = () => {
       </aside>
 
       {/* Content */}
-      <main className="flex-1 min-h-0 overflow-y-auto custom-scrollbar bg-paper-softgray/80 dark:bg-paper-dark">
+      <main className="flex-1 min-h-0 overflow-y-auto custom-scrollbar bg-paper-pale dark:bg-paper-dark">
         <div className="max-w-[560px] mx-auto px-5 sm:px-8 py-8">
           <h2 className="text-ui-title-2 font-bold tracking-tight mb-6">{active.label}</h2>
           {active.content}

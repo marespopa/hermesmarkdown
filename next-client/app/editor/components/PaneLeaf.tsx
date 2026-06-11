@@ -230,15 +230,15 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
     <div 
       className={`h-full flex flex-col transition-all duration-300 overflow-hidden ${
         isActive && !isZenModeActive
-          ? "bg-surface z-10"
-          : "bg-surface"
+          ? "bg-paper-pale dark:bg-paper-dark z-10"
+          : "bg-paper-pale dark:bg-paper-dark"
       }`}
       onClick={() => setActivePaneId(leaf.id)}
     >
       {/* Pane Tabs Bar - Premium macOS Style */}
       {!isZenModeActive && (
         <div
-          className="flex items-center paper-grain bg-chrome border-b border-edge-subtle h-12 md:h-9 shrink-0 relative z-20"
+          className="flex items-center paper-grain bg-paper-pale dark:bg-paper-dark border-b border-edge-subtle h-12 md:h-9 shrink-0 relative z-20"
         >
           {/* Scrollable tabs strip */}
           <div
