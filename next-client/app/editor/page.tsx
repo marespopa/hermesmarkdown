@@ -274,7 +274,7 @@ export default function LiteEditor() {
 
   return (
     <ErrorBoundary>
-      <LoadingOverlay isVisible={isMounting || isFileLoading || isNavigating} text={isFileLoading ? "Loading file..." : isNavigating ? "Settings..." : "Loading..."} />
+      <LoadingOverlay isVisible={isMounting || isFileLoading || isNavigating || driveAuthState === 'authenticating'} text={isFileLoading ? "Loading file..." : isNavigating ? "Settings..." : driveAuthState === 'authenticating' ? "Connecting to Google Drive..." : "Loading..."} />
       <div className={`fixed inset-0 flex flex-col bg-surface text-fg selection:bg-sage-light/30 font-sans overflow-hidden overscroll-none transition-all duration-500 ${isVaultPending ? "blur-md pointer-events-none select-none" : ""}`}>
         {isMounted && isDriveVault && driveAuthState === 'expired' && (
           <DriveReconnectBanner onReconnect={driveSignIn} />
