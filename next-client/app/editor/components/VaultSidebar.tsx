@@ -300,6 +300,7 @@ export default function VaultSidebar({
                       setViewMatchCount(count);
                       setViewHasFolderSelected(hasFolderSelected);
                     }}
+                    onNewFile={onNewFile}
                   />
                 </div>
               )}

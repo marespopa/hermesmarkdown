@@ -157,6 +157,35 @@ describe("SmartFolders Component", () => {
     expect(mockRenameFile).toHaveBeenCalledWith(mockMetadata["file1.md"].handle);
   });
 
+  it("calls onNewFile when the new file button is clicked", () => {
+    mockMetadata = {};
+    const mockOnNewFile = vi.fn();
+    render(
+      <SmartFolders
+        onFileSelect={mockOnFileSelect}
+        renameFile={mockRenameFile}
+        deleteFile={mockDeleteFile}
+        onNewFile={mockOnNewFile}
+      />,
+    );
+
+    fireEvent.click(screen.getByTitle("New File"));
+    expect(mockOnNewFile).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not render new file button when onNewFile is not provided", () => {
+    mockMetadata = {};
+    render(
+      <SmartFolders
+        onFileSelect={mockOnFileSelect}
+        renameFile={mockRenameFile}
+        deleteFile={mockDeleteFile}
+      />,
+    );
+
+    expect(screen.queryByTitle("New File")).not.toBeInTheDocument();
+  });
+
   it("filters files by searchQuery", () => {
     mockMetadata = {
       "apple.md": {

@@ -38,6 +38,7 @@ interface SmartFoldersProps {
   searchQuery?: string;
   selectedTags?: string[];
   onMatchCountChange?: (count: number, hasFolderSelected: boolean) => void;
+  onNewFile?: () => void;
 }
 
 export default function SmartFolders({
@@ -47,6 +48,7 @@ export default function SmartFolders({
   searchQuery = "",
   selectedTags = [],
   onMatchCountChange,
+  onNewFile,
 }: SmartFoldersProps) {
   const [fileMetadata] = useAtom(atom_fileMetadata);
   const [customWorkspaces, setCustomWorkspaces] = useAtom(atom_customWorkspaces);
@@ -128,18 +130,31 @@ export default function SmartFolders({
         <span className="text-ui-caption font-semibold uppercase tracking-wider text-stone dark:text-fg-faint">
           Your Views
         </span>
-        <Button
-          variant="icon"
-          className="w-6 h-6 opacity-80 hover:opacity-100 text-ink-muted dark:text-stone"
-          onClick={() => {
-            setEditingWorkspace(null);
-            setIsBuilderOpen(true);
-          }}
-          title="Create New View"
-          aria-label="Create New View"
-        >
-          <HiOutlinePlus size={14} />
-        </Button>
+        <div className="flex items-center gap-1">
+          {onNewFile && (
+            <Button
+              variant="icon"
+              className="w-6 h-6 opacity-80 hover:opacity-100 text-ink-muted dark:text-stone"
+              onClick={onNewFile}
+              title="New File"
+              aria-label="New File"
+            >
+              <HiOutlineDocumentText size={14} />
+            </Button>
+          )}
+          <Button
+            variant="icon"
+            className="w-6 h-6 opacity-80 hover:opacity-100 text-ink-muted dark:text-stone"
+            onClick={() => {
+              setEditingWorkspace(null);
+              setIsBuilderOpen(true);
+            }}
+            title="Create New View"
+            aria-label="Create New View"
+          >
+            <HiOutlinePlus size={14} />
+          </Button>
+        </div>
       </div>
 
       <div className="flex-1 overflow-y-auto space-y-0.5 px-2 pb-2 custom-scrollbar">
