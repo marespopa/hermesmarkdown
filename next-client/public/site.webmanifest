@@ -1,22 +1,21 @@
 {
-    "name": "HermesMarkdown",
-    "short_name": "HermesMD",
-    "description": "HermesMarkdown is a modern markdown editor designed for privacy. It operates entirely offline, ensuring your data stays secure and local.",
-    "start_url": "/",
-    "icons": [
-        {
-            "src": "/android-chrome-192x192.png",
-            "sizes": "192x192",
-            "type": "image/png"
-        },
-        {
-            "src": "/android-chrome-512x512.png",
-            "sizes": "512x512",
-            "type": "image/png"
-        }
-    ],
-    "theme_color": "#fef3c7",
-    "background_color": "#ffffff",
-    "display": "standalone",
-    "prefer_related_applications": false
+  "name": "HermesMarkdown",
+  "short_name": "HermesMarkdown",
+  "icons": [
+    {
+      "src": "/web-app-manifest-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/web-app-manifest-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "theme_color": "#ffffff",
+  "background_color": "#ffffff",
+  "display": "standalone"
 }

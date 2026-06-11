@@ -4,17 +4,21 @@ import Image from "next/image";
 import Link from "next/link";
 import React, { useEffect, useState } from "react";
 import { FaBars } from "react-icons/fa";
-import logo from "../../../../assets/logo.svg";
+import { useAtomValue } from "jotai";
+import { atom_theme } from "@/app/atoms/atoms";
+import logoWhite from "../../../../assets/logo-white.svg";
+import logoDark from "../../../../assets/logo-dark.svg";
 import NavigationLinks from "../Navigation/NavigationLinks";
 import MobileNavigationLinks from "../Navigation/MobileNavigationLinks";
 import useIsMobile from "@/app/hooks/use-is-mobile";
 import Button from "../../Button";
 
 const Navbar = () => {
-  // State to manage the navbar's visibility
   const [isNavigationVisible, setIsNavigationVisible] = useState(false);
   const [mounted, setMounted] = useState(false);
   const isMobile = useIsMobile();
+  const theme = useAtomValue(atom_theme);
+  const logo = theme === "dark" ? logoDark : logoWhite;
 
   useEffect(() => {
     setMounted(true);
@@ -42,7 +46,6 @@ const Navbar = () => {
             src={logo}
             alt="HermesMarkdown"
             width={200}
-            className="dark:invert"
           />
         </Link>
 
