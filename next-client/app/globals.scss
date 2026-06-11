@@ -22,7 +22,7 @@
   --fg-muted:       #6B6B6B;  /* secondary text */
   --fg-faint:       #716E66;  /* placeholder / tertiary — WCAG AA 4.5:1 on surface */
 
-  --accent:         #C89B6F;  /* trunk accent — warm golden */
+  --accent:         #647558;  /* trunk accent — dark amber, AA-compliant with white text */
 }
 
 html.dark {
@@ -39,7 +39,7 @@ html.dark {
   --fg-muted:       #A8A098;
   --fg-faint:       #8A857E;  /* WCAG AA 4.5:1 on dark surface */
 
-  --accent:         #fef3c7;  /* Hermes pale gold — luminous on dark surface */
+  --accent:         #647558;  /* unified dark amber — same as light mode */
 }
 
 /* Custom Scrollbars - Minimalist Paper Style */

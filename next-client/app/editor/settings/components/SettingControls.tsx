@@ -22,7 +22,7 @@ export function SegmentedControl<T extends string>({
           className={`px-3.5 py-1.5 text-ui-footnote font-semibold rounded-[10px] transition-all duration-150 select-none focus:outline-none ${
             value === opt.value
               ? "bg-paper-light dark:bg-clay shadow-sm text-sage dark:text-sage"
-              : "text-ink-muted hover:text-ink-light dark:hover:text-ink-dark"
+              : "text-ink-muted hover:text-ink-light dark:hover:text-ink-dark hover:bg-black/8"
           }`}
         >
           {opt.label}
@@ -111,7 +111,7 @@ export const SettingGroup = ({
     <p className="text-ui-caption font-semibold uppercase tracking-wider text-neutral-400 dark:text-neutral-500 mb-2 px-1">
       {title}
     </p>
-    <div className="bg-paper-light dark:bg-paper-dark/80 rounded-2xl px-4 py-0.5 border border-neutral-200/60 dark:border-neutral-800/60 shadow-[0_1px_4px_rgba(0,0,0,0.04)] dark:shadow-none">
+    <div className="rounded-2xl px-4 py-0.5 border border-beige/60 dark:border-neutral-800/60 dark:bg-paper-dark/80">
       {children}
     </div>
   </div>

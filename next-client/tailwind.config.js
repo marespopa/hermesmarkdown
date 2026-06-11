@@ -84,7 +84,7 @@ module.exports = {
         },
         accent: {
           DEFAULT: 'var(--accent)',
-          hover:   '#B88A5E',
+          hover:   '#576648',
         },
 
         // ── Static aliases (kept for explicit light/dark overrides) ──

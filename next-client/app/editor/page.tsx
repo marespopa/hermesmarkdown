@@ -46,6 +46,7 @@ import { useRouter } from "next/navigation";
 export default function LiteEditor() {
   const router = useRouter();
   const [isMounting, setIsMounting] = useState(true);
+  const [isNavigating, setIsNavigating] = useState(false);
   const [content, setContent] = useAtom(atom_content);
   const lastSavedContent = useAtomValue(atom_lastSavedContent);
   const [fileName, setFileName] = useAtom(atom_fileName);
@@ -163,6 +164,7 @@ export default function LiteEditor() {
   const navigateWithGuard = useCallback(async (path: string) => {
     const isDirty = content !== lastSavedContent && content.trim() !== "";
     if (!isDirty) {
+      setIsNavigating(true);
       router.push(path);
       return;
     }
@@ -176,8 +178,10 @@ export default function LiteEditor() {
     );
     if (choice === "save") {
       await handleSaveRef.current();
+      setIsNavigating(true);
       router.push(path);
     } else if (choice === "discard") {
+      setIsNavigating(true);
       router.push(path);
     }
   }, [content, lastSavedContent, router, dialog]);
@@ -270,7 +274,7 @@ export default function LiteEditor() {
 
   return (
     <ErrorBoundary>
-      <LoadingOverlay isVisible={isMounting || isFileLoading} text={isFileLoading ? "Loading file..." : "Loading..."} />
+      <LoadingOverlay isVisible={isMounting || isFileLoading || isNavigating} text={isFileLoading ? "Loading file..." : isNavigating ? "Settings..." : "Loading..."} />
       <div className={`fixed inset-0 flex flex-col bg-surface text-fg selection:bg-sage-light/30 font-sans overflow-hidden overscroll-none transition-all duration-500 ${isVaultPending ? "blur-md pointer-events-none select-none" : ""}`}>
         {isMounted && isDriveVault && driveAuthState === 'expired' && (
           <DriveReconnectBanner onReconnect={driveSignIn} />

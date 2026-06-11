@@ -276,19 +276,19 @@ const SettingsPage = () => {
             <SettingItem
               label="Auto-inject Frontmatter"
               description="On manual save, prepend id / title / type / tags to files with no frontmatter."
-              control={<Toggle active={autoInjectFrontmatter} onChange={setAutoInjectFrontmatter} />}
+              control={<Toggle variant="soft" active={autoInjectFrontmatter} onChange={setAutoInjectFrontmatter} />}
             />
           </SettingGroup>
           <SettingGroup title="Display">
             <SettingItem
               label="Word Wrap"
               description="Wrap long lines to fit viewport."
-              control={<Toggle active={wordWrap} onChange={setWordWrap} />}
+              control={<Toggle variant="soft" active={wordWrap} onChange={setWordWrap} />}
             />
             <SettingItem
               label="Zen Mode"
               description="Focus on the active line."
-              control={<Toggle active={isZenModeActive} onChange={setIsZenModeActive} />}
+              control={<Toggle variant="soft" active={isZenModeActive} onChange={setIsZenModeActive} />}
             />
             <SettingItem
               label="Editor Width"
@@ -336,6 +336,7 @@ const SettingsPage = () => {
               description="Use dark application colors."
               control={
                 <Toggle
+                  variant="soft"
                   active={theme === "dark"}
                   onChange={(active) => setTheme(active ? "dark" : "light")}
                 />
@@ -344,7 +345,7 @@ const SettingsPage = () => {
             <SettingItem
               label="Status Bar"
               description="Show word and character counts."
-              control={<Toggle active={showStats} onChange={setShowStats} />}
+              control={<Toggle variant="soft" active={showStats} onChange={setShowStats} />}
             />
           </SettingGroup>
           <SettingGroup title="Navigation">
@@ -699,7 +700,7 @@ const SettingsPage = () => {
 
       {/* Content */}
       <main className="flex-1 min-h-0 overflow-y-auto custom-scrollbar bg-paper-pale dark:bg-paper-dark">
-        <div className="max-w-[560px] mx-auto px-5 sm:px-8 py-8">
+        <div className="px-5 sm:px-8 py-8">
           <h2 className="text-ui-title-2 font-bold tracking-tight mb-6">{active.label}</h2>
           {active.content}
         </div>

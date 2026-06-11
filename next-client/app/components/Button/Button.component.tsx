@@ -57,10 +57,10 @@ const baseStyles =
 const variantStyles = (variant: ButtonVariant): string => {
   switch (variant) {
     case "hero":
-      return `${baseStyles} h-12 px-8 bg-accent text-white border-accent hover:bg-accent-hover dark:text-ink-light shadow-md active:scale-[0.98]`;
+      return `${baseStyles} h-12 px-8 bg-accent text-white border-accent hover:bg-accent-hover shadow-md active:scale-[0.98]`;
 
     case "primary":
-      return `${baseStyles} h-11 px-6 bg-ink-light text-white border-ink-light hover:bg-ink-hover dark:bg-ink-dark dark:text-ink-light dark:border-ink-dark dark:hover:bg-beige shadow-sm active:scale-[0.98]`;
+      return `${baseStyles} h-11 px-6 bg-sage border-sage text-white hover:bg-accent-hover hover:border-accent-hover shadow-sm active:scale-[0.98]`;
 
     case "warning":
       return `${baseStyles} h-11 px-6 bg-amber-500 text-white border-amber-500 hover:bg-amber-600 dark:bg-amber-600 dark:border-amber-600 dark:hover:bg-amber-700 shadow-sm active:scale-[0.98]`;
