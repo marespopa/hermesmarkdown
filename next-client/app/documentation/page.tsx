@@ -106,7 +106,7 @@ export default function Documentation() {
               </h1>
             </div>
             <p className="text-lg md:text-2xl leading-relaxed text-neutral-500 dark:text-neutral-400 max-w-3xl font-medium">
-              Your notes stay on your machine. Everything works offline, files are plain Markdown, and the editor stays out of your way.
+              Plain <code className="text-[0.75em] bg-neutral-100 dark:bg-neutral-800 px-1.5 py-0.5 rounded font-mono not-italic">.md</code> files, structured for agents. Works offline, saves to your machine, and connects to Claude Code, Cowork, or any agent you use.
             </p>
           </section>
 

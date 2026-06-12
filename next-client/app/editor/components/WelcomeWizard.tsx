@@ -2,18 +2,18 @@
 
 import React, { useState, useEffect } from "react";
 import { useAtom, useAtomValue } from "jotai";
-import { 
-  atom_hasCompletedOnboarding, 
-  atom_isWizardOpen, 
-  atom_currency, 
+import {
+  atom_hasCompletedOnboarding,
+  atom_isWizardOpen,
+  atom_currency,
   atom_autosaveMode
 } from "@/app/atoms/atoms";
-import { 
-  atom_vaultHandle 
+import {
+  atom_vaultHandle
 } from "@/app/atoms/vault-atoms";
-import { 
-  atom_isDriveVault, 
-  atom_driveVaultId 
+import {
+  atom_isDriveVault,
+  atom_driveVaultId
 } from "@/app/atoms/drive-atoms";
 import DialogModal from "@/app/components/DialogModal/DialogModal";
 import Button from "@/app/components/Button";
@@ -25,10 +25,10 @@ import {
   HiOutlineTerminal,
   HiOutlineChartBar,
   HiOutlineCloud,
-  HiOutlineSparkles,
   HiOutlineChevronRight,
   HiOutlineCheckCircle,
   HiOutlineCurrencyDollar,
+  HiOutlineDocumentText,
 } from "react-icons/hi";
 
 const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
@@ -37,10 +37,8 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
   const [step, setStep] = useState(initialStep);
   const [isMounted, setIsMounted] = useState(false);
 
-  // Connection Hooks
   const { openVault, openDriveVaultPicker, isVaultSupported } = useFileSystem();
-  
-  // State Atoms
+
   const vaultHandle = useAtomValue(atom_vaultHandle);
   const isDriveVault = useAtomValue(atom_isDriveVault);
   const driveVaultId = useAtomValue(atom_driveVaultId);
@@ -51,7 +49,6 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
     setIsMounted(true);
   }, []);
 
-  // Step 1 -> 2 transition: proceed to Preferences when vault is connected
   useEffect(() => {
     if (step === 1 && (vaultHandle || (isDriveVault && driveVaultId))) {
       setStep(2);
@@ -70,25 +67,36 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
 
   const renderStep = () => {
     switch (step) {
-      case 0: // Welcome
+      case 0:
         return (
-          <div className="flex flex-col items-center text-center space-y-6 py-4">
-            <div className="w-20 h-20 bg-sage/10 dark:bg-sage/10 rounded-3xl flex items-center justify-center text-sage dark:text-sage">
-              <HiOutlineSparkles size={40} />
+          <div className="flex flex-col items-center text-center space-y-7 py-4">
+            <div className="w-20 h-20 bg-sage/10 rounded-3xl flex items-center justify-center text-sage relative">
+              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                <polyline points="14 2 14 8 20 8" />
+                <line x1="16" y1="13" x2="8" y2="13" />
+                <line x1="16" y1="17" x2="8" y2="17" />
+                <polyline points="10 9 9 9 8 9" />
+              </svg>
+              <span className="absolute -top-1 -right-1 w-5 h-5 bg-sage rounded-full flex items-center justify-center">
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="20 6 9 17 4 12" />
+                </svg>
+              </span>
             </div>
-            <div className="space-y-2">
-              <h2 className="text-ui-title-2 font-bold tracking-tight">Welcome to HermesMD</h2>
-              <p className="text-ui-subhead px-4">
-                Your local-first, AI-enhanced Markdown vault. Let's get you set up in less than a minute.
+            <div className="space-y-2.5">
+              <h2 className="text-ui-title-2 font-bold tracking-tight">Welcome to HermesMarkdown</h2>
+              <p className="text-ui-subhead opacity-60 px-2 leading-relaxed">
+                Plain <code className="text-[0.85em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">.md</code> files, structured so your AI agents know exactly what to read.
               </p>
             </div>
             <Button variant="primary" onClick={() => setStep(1)} className="w-full h-12 rounded-2xl text-ui-footnote font-bold">
-              Start Setup
+              Get Started
             </Button>
           </div>
         );
 
-      case 1: // Connect Vault
+      case 1:
         return (
           <div className="flex flex-col items-center text-center space-y-6 py-4">
             <div className="w-16 h-16 bg-amber-50 dark:bg-amber-900/20 rounded-2xl flex items-center justify-center text-amber-600 dark:text-amber-400">
@@ -96,15 +104,15 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
             </div>
             <div className="space-y-2">
               <h2 className="text-ui-title-3 font-bold">Connect Your Vault</h2>
-              <p className="text-ui-footnote px-4">
-                Choose where your notes live. Local folders stay on your device, or sync via Google Drive.
+              <p className="text-ui-footnote opacity-60 px-4">
+                Choose where your notes live. Files stay on your device — Drive sync is opt-in.
               </p>
             </div>
-            
+
             <div className="grid grid-cols-1 gap-3 w-full">
-              <Button 
-                variant="secondary" 
-                onClick={openVault} 
+              <Button
+                variant="secondary"
+                onClick={openVault}
                 disabled={!isVaultSupported}
                 className="flex items-center justify-between px-5 h-14 rounded-2xl border border-edge bg-paper-light dark:bg-paper-dark"
               >
@@ -112,14 +120,14 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
                   <HiOutlineFolder className="text-amber-500" size={24} />
                   <div className="text-left">
                     <div className="font-bold text-ui-footnote">Local Folder</div>
-                    <div className="text-[10px] opacity-50 uppercase tracking-wider font-bold">Local-First</div>
+                    <div className="text-[10px] opacity-50 uppercase tracking-wider font-bold">Offline · No upload</div>
                   </div>
                 </div>
                 <HiOutlineChevronRight opacity={0.3} />
               </Button>
 
-              <Button 
-                variant="secondary" 
+              <Button
+                variant="secondary"
                 onClick={openDriveVaultPicker}
                 className="flex items-center justify-between px-5 h-14 rounded-2xl border border-edge bg-paper-light dark:bg-paper-dark"
               >
@@ -127,7 +135,7 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
                   <HiOutlineCloud className="text-sage" size={24} />
                   <div className="text-left">
                     <div className="font-bold text-ui-footnote">Google Drive</div>
-                    <div className="text-[10px] opacity-50 uppercase tracking-wider font-bold">Cloud Sync</div>
+                    <div className="text-[10px] opacity-50 uppercase tracking-wider font-bold">Cloud Backup</div>
                   </div>
                 </div>
                 <HiOutlineChevronRight opacity={0.3} />
@@ -135,22 +143,22 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
             </div>
             {!isVaultSupported && (
               <p className="text-[11px] text-red-500 font-medium">
-                Local folder access is not supported in this browser. Please use Chrome, Edge, or Brave.
+                Local folder access requires Chrome, Edge, or Brave.
               </p>
             )}
           </div>
         );
 
-      case 2: // Preferences
+      case 2:
         return (
           <div className="flex flex-col items-center text-center space-y-6 py-4">
-            <div className="w-16 h-16 bg-sage/10 dark:bg-sage/10 rounded-2xl flex items-center justify-center text-sage dark:text-sage">
+            <div className="w-16 h-16 bg-sage/10 rounded-2xl flex items-center justify-center text-sage">
               <HiOutlineCurrencyDollar size={32} />
             </div>
             <div className="space-y-2">
-              <h2 className="text-ui-title-3 font-bold">Configure Preferences</h2>
-              <p className="text-ui-footnote px-4">
-                Set your preferred currency for financial tables and choose how your work is saved.
+              <h2 className="text-ui-title-3 font-bold">Quick Preferences</h2>
+              <p className="text-ui-footnote opacity-60 px-4">
+                Set your currency for financial tables and how your work is saved.
               </p>
             </div>
 
@@ -178,76 +186,76 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
             </div>
 
             <Button variant="primary" onClick={() => setStep(3)} className="w-full h-12 rounded-2xl text-ui-footnote font-bold">
-              Finish Setup
+              Continue
             </Button>
           </div>
         );
 
-      case 3: // Showcase / Done
+      case 3:
         return (
           <div className="flex flex-col items-center text-center space-y-6 py-4">
             <div className="w-16 h-16 bg-sage rounded-2xl flex items-center justify-center text-white shadow-lg shadow-sage/20">
               <HiOutlineCheckCircle size={32} />
             </div>
             <div className="space-y-2">
-              <h2 className="text-ui-title-3 font-bold">You're All Set!</h2>
-              <p className="text-ui-footnote px-4">
-                HermesMD is ready. Here's a quick reminder of what's inside:
+              <h2 className="text-ui-title-3 font-bold">You&apos;re ready to write.</h2>
+              <p className="text-ui-footnote opacity-60 px-4">
+                Here&apos;s what makes HermesMarkdown different:
               </p>
             </div>
 
-            <div className="grid grid-cols-2 gap-3 w-full">
-               <div className="p-3 rounded-2xl bg-paper-softgray dark:bg-paper-dark/30 border border-beige-light dark:border-clay text-left space-y-1">
-                 <HiOutlineSparkles className="text-sage" size={18} />
-                 <div className="text-[11px] font-bold">AI toolbar</div>
-                 <div className="text-[10px] leading-tight">Select text to improve or expand.</div>
-               </div>
-               <div className="p-3 rounded-2xl bg-paper-softgray dark:bg-paper-dark/30 border border-beige-light dark:border-clay text-left space-y-1">
-                 <HiOutlineCode className="text-amber-500" size={18} />
-                 <div className="text-[11px] font-bold">Smart Metadata</div>
-                 <div className="text-[10px] leading-tight">Auto-injected frontmatter and tags.</div>
-               </div>
-               <div className="p-3 rounded-2xl bg-paper-softgray dark:bg-paper-dark/30 border border-beige-light dark:border-clay text-left space-y-1">
-                 <HiOutlineChartBar className="text-sage" size={18} />
-                 <div className="text-[11px] font-bold">Readability</div>
-                 <div className="text-[10px] leading-tight">Live agent-readability scoring.</div>
-               </div>
-               <div className="p-3 rounded-2xl bg-paper-softgray dark:bg-paper-dark/30 border border-beige-light dark:border-clay text-left space-y-1">
-                 <HiOutlineTerminal className="text-emerald-500" size={18} />
-                 <div className="text-[11px] font-bold">Slash Commands</div>
-                 <div className="text-[10px] leading-tight">Type / for templates and context.</div>
-               </div>
+            <div className="grid grid-cols-2 gap-2.5 w-full">
+              <div className="p-3 rounded-2xl bg-paper-softgray dark:bg-paper-dark/30 border border-beige-light dark:border-clay text-left space-y-1.5">
+                <HiOutlineCode className="text-violet-500" size={18} />
+                <div className="text-[11px] font-bold">Agent Frontmatter</div>
+                <div className="text-[10px] opacity-50 leading-snug"><code className="not-italic">scope</code>, <code className="not-italic">read_when</code>, <code className="not-italic">related</code> — auto-generated per file.</div>
+              </div>
+              <div className="p-3 rounded-2xl bg-paper-softgray dark:bg-paper-dark/30 border border-beige-light dark:border-clay text-left space-y-1.5">
+                <HiOutlineDocumentText className="text-sky-500" size={18} />
+                <div className="text-[11px] font-bold">AGENTS.md</div>
+                <div className="text-[10px] opacity-50 leading-snug">Vault index any agent reads first — no manual context.</div>
+              </div>
+              <div className="p-3 rounded-2xl bg-paper-softgray dark:bg-paper-dark/30 border border-beige-light dark:border-clay text-left space-y-1.5">
+                <HiOutlineChartBar className="text-sage" size={18} />
+                <div className="text-[11px] font-bold">AI Score</div>
+                <div className="text-[10px] opacity-50 leading-snug">Live readability score in the status bar as you write.</div>
+              </div>
+              <div className="p-3 rounded-2xl bg-paper-softgray dark:bg-paper-dark/30 border border-beige-light dark:border-clay text-left space-y-1.5">
+                <HiOutlineTerminal className="text-amber-500" size={18} />
+                <div className="text-[11px] font-bold">Smart Syntax</div>
+                <div className="text-[10px] opacity-50 leading-snug">Type <code className="not-italic">/</code> for templates, <code className="not-italic">..d</code> for dates, auto-totals.</div>
+              </div>
             </div>
 
             <Button variant="primary" onClick={handleFinish} className="w-full h-12 rounded-2xl text-ui-footnote font-bold">
-              Get Started
+              Open Editor
             </Button>
           </div>
         );
+
       default:
         return null;
     }
   };
 
   return (
-    <DialogModal 
-      isOpened={showWizard} 
+    <DialogModal
+      isOpened={showWizard}
       onClose={handleFinish}
       styles="!max-w-sm"
     >
       <div className="relative">
-        {/* Progress Bar */}
         {step > 0 && (
           <div className="absolute -top-10 left-0 right-0 flex gap-1.5 justify-center">
             {[1, 2, 3].map((i) => (
-              <div 
-                key={i} 
-                className={`h-1 rounded-full transition-all ${i <= step ? "w-4 bg-sage" : "w-1 bg-neutral-200 dark:bg-neutral-800"}`} 
+              <div
+                key={i}
+                className={`h-1 rounded-full transition-all duration-300 ${i <= step ? "w-4 bg-sage" : "w-1 bg-neutral-200 dark:bg-neutral-800"}`}
               />
             ))}
           </div>
         )}
-        
+
         {renderStep()}
 
         {step > 0 && step < 3 && (

@@ -28,9 +28,11 @@ import {
 import { DrivePathIndex } from '@/app/services/drive/path-index';
 import { DriveFileHandle } from '@/app/services/drive/DriveFileHandle';
 import { DriveDirectoryHandle } from '@/app/services/drive/DriveDirectoryHandle';
-import { listFiles, FOLDER_MIME } from '@/app/services/drive/client';
+import { listFiles, deleteFile, FOLDER_MIME } from '@/app/services/drive/client';
 import { isTokenValid, startOAuthFlow } from '@/app/services/drive/auth';
 import { metadataWorker } from '../file-system/shared';
+import { readDriveVaultSchema, DEFAULT_SCHEMA } from '@/app/services/vault-schema';
+import { atom_vaultSchema } from '@/app/atoms/schema-atoms';
 
 export function useDriveVaultManager() {
   const [vaultHandle, setVaultHandle] = useAtom(atom_vaultHandle);
@@ -52,6 +54,7 @@ export function useDriveVaultManager() {
   const isDriveVault = useAtomValue(atom_isDriveVault);
   const [, setShowDriveFolderPicker] = useAtom(atom_showDriveFolderPicker);
   const [hasDriveLoaded, setHasDriveLoaded] = useAtom(atom_hasDriveLoaded);
+  const setVaultSchema = useSetAtom(atom_vaultSchema);
 
   const pendingHandlesRef = useRef<Map<string, DriveFileHandle>>(new Map());
 
@@ -77,8 +80,28 @@ export function useDriveVaultManager() {
         allFiles.push(...result.files);
       } while (pageToken);
 
-      const entries: any[] = allFiles
-        .filter(f => f.mimeType === FOLDER_MIME || f.name.endsWith('.md'))
+      const filteredFiles = allFiles.filter(f => f.mimeType === FOLDER_MIME || f.name.endsWith('.md'));
+
+      // Deduplicate folders by name — keep first, delete extras silently
+      const seenFolderNames = new Map<string, string>();
+      const duplicateFolderIds: string[] = [];
+      for (const f of filteredFiles) {
+        if (f.mimeType === FOLDER_MIME) {
+          if (seenFolderNames.has(f.name)) {
+            duplicateFolderIds.push(f.id);
+          } else {
+            seenFolderNames.set(f.name, f.id);
+          }
+        }
+      }
+      if (duplicateFolderIds.length > 0) {
+        Promise.all(duplicateFolderIds.map(id => deleteFile(id))).catch(() => {});
+      }
+      const deduplicatedFiles = filteredFiles.filter(
+        f => f.mimeType !== FOLDER_MIME || !duplicateFolderIds.includes(f.id)
+      );
+
+      const entries: any[] = deduplicatedFiles
         .map(f => {
           const entryPath = prefix ? `${prefix}/${f.name}` : f.name;
           if (f.mimeType === FOLDER_MIME) {
@@ -229,8 +252,12 @@ export function useDriveVaultManager() {
 
     await scanVault(handle);
     await indexVaultTags(folderId);
+
+    const schema = await readDriveVaultSchema(folderId);
+    setVaultSchema(schema ?? DEFAULT_SCHEMA);
+
     toast.success(`Vault opened: ${folderName}`);
-  }, [setDriveVaultId, setDriveVaultName, setDriveAuthState, setVaultHandle, setCurrentDirectoryHandle, setIsVaultPending, setIndexerState, setDrivePathIndex, setOpenFiles, setWorkspaceLayout, scanVault, indexVaultTags]);
+  }, [setDriveVaultId, setDriveVaultName, setDriveAuthState, setVaultHandle, setCurrentDirectoryHandle, setIsVaultPending, setIndexerState, setDrivePathIndex, setOpenFiles, setWorkspaceLayout, scanVault, indexVaultTags, setVaultSchema]);
 
   // Called by the folder picker's "Connect" button — first triggers OAuth if needed
   const openVault = useCallback(() => {
@@ -273,7 +300,9 @@ export function useDriveVaultManager() {
 
     await scanVault(handle);
     indexVaultTags(vaultId); // background
-  }, [driveVaultId, setDriveAuthState, setVaultHandle, setCurrentDirectoryHandle, setIsVaultPending, setIndexerState, setDrivePathIndex, setFileMetadata, scanVault, indexVaultTags, rebindDriveHandles]);
+
+    readDriveVaultSchema(vaultId).then(schema => setVaultSchema(schema ?? DEFAULT_SCHEMA));
+  }, [driveVaultId, setDriveAuthState, setVaultHandle, setCurrentDirectoryHandle, setIsVaultPending, setIndexerState, setDrivePathIndex, setFileMetadata, scanVault, indexVaultTags, rebindDriveHandles, setVaultSchema]);
 
 
   const closeVault = useCallback(() => {
@@ -293,8 +322,9 @@ export function useDriveVaultManager() {
     setWorkspaceLayout({
       rootContainer: { id: 'default-pane', type: 'editor', openFilePaths: ['draft'], activeFilePath: 'draft', isPinned: false },
     });
+    setVaultSchema(null);
     toast.success('Drive vault disconnected');
-  }, [setDriveVaultId, setDriveVaultName, setDriveAuthState, setDrivePathIndex, setVaultHandle, setCurrentDirectoryHandle, setVaultFiles, setFileMetadata, setActiveFileHandle, setActiveFilePath, setOpenFiles, setWorkspaceLayout]);
+  }, [setDriveVaultId, setDriveVaultName, setDriveAuthState, setDrivePathIndex, setVaultHandle, setCurrentDirectoryHandle, setVaultFiles, setFileMetadata, setActiveFileHandle, setActiveFilePath, setOpenFiles, setWorkspaceLayout, setVaultSchema]);
 
   const syncSidebarToPath = useCallback(async (path: string) => {
     if (!path || path === 'draft' || !driveVaultId) return;

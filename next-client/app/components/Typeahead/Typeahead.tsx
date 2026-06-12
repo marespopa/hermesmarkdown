@@ -2,6 +2,7 @@
 
 import React, { useState, useRef, useEffect, KeyboardEvent } from "react";
 import Input from "../Input";
+import Portal from "../Portal";
 
 interface TypeaheadProps {
   name: string;
@@ -26,6 +27,7 @@ export default function Typeahead({
 }: TypeaheadProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
+  const [dropdownStyle, setDropdownStyle] = useState<React.CSSProperties>({});
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Extract the current search term for filtering
@@ -51,6 +53,19 @@ export default function Typeahead({
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  useEffect(() => {
+    if (isOpen && containerRef.current) {
+      const rect = containerRef.current.getBoundingClientRect();
+      setDropdownStyle({
+        position: "fixed",
+        top: rect.bottom + 4,
+        left: rect.left,
+        width: rect.width,
+        zIndex: 9999,
+      });
+    }
+  }, [isOpen]);
 
   const handleSelect = (option: string) => {
     if (allowMultiple) {
@@ -113,22 +128,24 @@ export default function Typeahead({
       />
 
       {isOpen && filteredOptions.length > 0 && (
-        <ul className="absolute z-[100] w-full max-h-56 overflow-y-auto mt-1 bg-paper-light dark:bg-neutral-900 border border-beige dark:border-neutral-800 rounded-xl shadow-xl py-1.5 text-ui-subhead custom-scrollbar">
-          {filteredOptions.map((opt, index) => (
-            <li
-              key={opt}
-              onClick={() => handleSelect(opt)}
-              onMouseEnter={() => setActiveIndex(index)}
-              className={`px-4 py-2.5 cursor-pointer transition-colors ${
-                index === activeIndex
-                  ? "bg-sage/10 dark:bg-sage/10 text-sage dark:text-sage font-medium"
-                  : "hover:bg-paper-softgray dark:hover:bg-neutral-800 text-neutral-700 dark:text-neutral-200"
-              }`}
-            >
-              {opt}
-            </li>
-          ))}
-        </ul>
+        <Portal>
+          <ul style={dropdownStyle} className="max-h-56 overflow-y-auto bg-paper-light dark:bg-neutral-900 border border-beige dark:border-neutral-800 rounded-xl shadow-xl py-1.5 text-ui-subhead custom-scrollbar">
+            {filteredOptions.map((opt, index) => (
+              <li
+                key={opt}
+                onClick={() => handleSelect(opt)}
+                onMouseEnter={() => setActiveIndex(index)}
+                className={`px-4 py-2.5 cursor-pointer transition-colors ${
+                  index === activeIndex
+                    ? "bg-sage/10 dark:bg-sage/10 text-sage dark:text-sage font-medium"
+                    : "hover:bg-paper-softgray dark:hover:bg-neutral-800 text-neutral-700 dark:text-neutral-200"
+                }`}
+              >
+                {opt}
+              </li>
+            ))}
+          </ul>
+        </Portal>
       )}
     </div>
   );

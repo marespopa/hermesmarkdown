@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect, useRef } from "react";
 import { useAtom, useAtomValue } from "jotai";
 import Button from "../../components/Button";
 import {
@@ -12,7 +12,7 @@ import {
   atom_lastSavedContent,
   atom_activeFilePath,
 } from "@/app/atoms/atoms";
-import { atom_indexerState } from "@/app/atoms/ui-atoms";
+import { atom_indexerState, atom_indexTimestamp } from "@/app/atoms/ui-atoms";
 import toast from "react-hot-toast";
 import { 
   HiChevronDown, 
@@ -163,10 +163,22 @@ export default function StatusBar() {
   const selectionCount = useAtomValue(atom_selectionCount);
   const indexerState = useAtomValue(atom_indexerState);
 
+  const indexTimestamp = useAtomValue(atom_indexTimestamp);
   const [showTokens, setShowTokens] = useState(true);
   const [showAiTip, setShowAiTip] = useState(false);
+  const [showIndexUpdated, setShowIndexUpdated] = useState(false);
+  const prevIndexTimestampRef = useRef<number | null>(null);
 
   const activeFilePath = useAtomValue(atom_activeFilePath);
+
+  useEffect(() => {
+    if (indexTimestamp && indexTimestamp !== prevIndexTimestampRef.current) {
+      prevIndexTimestampRef.current = indexTimestamp;
+      setShowIndexUpdated(true);
+      const timer = setTimeout(() => setShowIndexUpdated(false), 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [indexTimestamp]);
 
   const indexerCount = typeof indexerState === 'object' ? indexerState.count : 0;
   const isIndexing = indexerState === "compiling" || (typeof indexerState === 'object' && indexerState.status === "compiling");
@@ -369,13 +381,17 @@ export default function StatusBar() {
         </span>
       </div>
 
-      {/* INDEXING — absolute positioned to prevent jump */}
-      {isIndexing && (
+      {/* INDEXING / INDEX UPDATED — absolute positioned to prevent jump */}
+      {isIndexing ? (
         <span className="absolute left-32 flex items-center gap-2 whitespace-nowrap" title="Indexing vault…">
           <span className="w-2 h-2 rounded-full border border-fg-faint border-t-sage animate-spin" />
           {indexerCount > 0 && <span className="text-[10px] text-fg-faint tabular-nums font-medium">{indexerCount}</span>}
         </span>
-      )}
+      ) : showIndexUpdated && indexTimestamp ? (
+        <span className="absolute left-32 flex items-center gap-1 whitespace-nowrap text-[10px] text-fg-faint lowercase tracking-tight" title="Vault index written to .hermes/index.yaml">
+          index updated {new Date(indexTimestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+        </span>
+      ) : null}
 
       <Button
         variant="bare"

@@ -58,6 +58,7 @@ interface VaultSidebarProps {
   onClose?: () => void;
   onOpenSettings?: () => void;
   onNewFile?: () => void;
+  onNewAIFile?: () => void;
   onImport?: () => void;
   onExport?: () => void;
   onRefresh?: () => Promise<void>;
@@ -67,6 +68,7 @@ export default function VaultSidebar({
   onClose,
   onOpenSettings,
   onNewFile,
+  onNewAIFile,
   onImport,
   onExport,
   onRefresh,
@@ -167,10 +169,22 @@ export default function VaultSidebar({
       <div className="p-3 flex flex-col gap-2 shrink-0">
         <div className="flex justify-between items-center h-11 md:h-8">
           <div className="flex items-center gap-2">
-            <h2 className="text-ui-body md:text-ui-subhead font-medium text-ink-light dark:text-ink-dark truncate opacity-80 md:opacity-60 hover:opacity-100 transition-opacity flex items-center gap-1.5">
-              {vaultHandle?.name || driveVaultName || "Notes"}
+            <h2 className="text-ui-body md:text-ui-subhead font-medium text-ink-light dark:text-ink-dark opacity-80 md:opacity-60 hover:opacity-100 transition-opacity flex items-center gap-1.5 min-w-0">
+              <span className="truncate">{vaultHandle?.name || driveVaultName || "Notes"}</span>
+              {isDriveVault && (
+                <span title="Google Drive vault" className="shrink-0 cursor-help opacity-70 -mt-2">
+                  <svg width="10" height="9" viewBox="0 0 87.3 78" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M6.6 66.85l3.85 6.65c.8 1.4 1.95 2.5 3.3 3.3l13.75-23.8H0a7.3 7.3 0 0 0 1.1 3.85z" fill="#0066da"/>
+                    <path d="M43.65 25L29.9 1.2A7.2 7.2 0 0 0 26.6 4.5L1.1 49.15A7.3 7.3 0 0 0 0 53h27.5z" fill="#00ac47"/>
+                    <path d="M73.55 76.8a7.2 7.2 0 0 0 3.3-3.3l1.6-2.75 7.65-13.25A7.3 7.3 0 0 0 87.3 53H59.8L73.55 76.8z" fill="#ea4335"/>
+                    <path d="M43.65 25L57.4 1.2A7.35 7.35 0 0 0 53.65 0h-20a7.35 7.35 0 0 0-3.75 1.2z" fill="#00832d"/>
+                    <path d="M59.8 53H87.3a7.3 7.3 0 0 0-1.1-3.85L60.7 4.5a7.2 7.2 0 0 0-3.3-3.3L43.65 25z" fill="#2684fc"/>
+                    <path d="M27.5 53L13.75 76.8a7.35 7.35 0 0 0 3.75 1.2h52.3a7.35 7.35 0 0 0 3.75-1.2L59.8 53z" fill="#ffba00"/>
+                  </svg>
+                </span>
+              )}
               {isCloudVault && vaultHandle && (
-                <span title="Cloud sync detected. HermesMarkdown will use enhanced error recovery if files are locked." className="text-sage/60 dark:text-sage/60 cursor-help">
+                <span title="Cloud sync detected. HermesMarkdown will use enhanced error recovery if files are locked." className="shrink-0 text-sage/60 dark:text-sage/60 cursor-help">
                   <HiOutlineCloud size={14} />
                 </span>
               )}
@@ -277,6 +291,7 @@ export default function VaultSidebar({
               {showAllFiles ? (
                 <VaultSidebarFiles
                   onNewFile={onNewFile}
+                  onNewAIFile={onNewAIFile}
                   processedFiles={processedFiles}
                   activeFilePath={activeFilePath}
                   openFile={openFile}
@@ -301,6 +316,7 @@ export default function VaultSidebar({
                       setViewHasFolderSelected(hasFolderSelected);
                     }}
                     onNewFile={onNewFile}
+                    onNewAIFile={onNewAIFile}
                   />
                 </div>
               )}

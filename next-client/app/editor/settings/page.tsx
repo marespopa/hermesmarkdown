@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useAtom } from "jotai";
+import { useAtom, useAtomValue } from "jotai";
 import { useRouter } from "next/navigation";
 import {
   atom_wordWrap,
@@ -18,6 +18,7 @@ import {
   atom_editorWidth,
   atom_currency,
   atom_autoInjectFrontmatter,
+  atom_schemaAutoCreate,
   atom_sidebarTabOrder,
   atom_aiProvider,
   atom_selectedAiModel,
@@ -25,8 +26,10 @@ import {
   atom_geminiKey,
   MONO_FONT_STACK,
 } from "@/app/atoms/atoms";
-import { atom_vaultSetupWizardOpen, atom_availableGeminiModels } from "@/app/atoms/ui-atoms";
-import { atom_driveVaultId, atom_driveVaultName } from "@/app/atoms/drive-atoms";
+import { atom_vaultSetupWizardOpen, atom_availableGeminiModels, atom_schemaWizardOpen, atom_vaultMigrateOpen } from "@/app/atoms/ui-atoms";
+import { atom_vaultSchema } from "@/app/atoms/schema-atoms";
+import { atom_vaultHandle } from "@/app/atoms/atoms";
+import { atom_driveVaultId, atom_driveVaultName, atom_isDriveVault } from "@/app/atoms/drive-atoms";
 import { useDriveAuth } from "@/app/hooks/drive/use-drive-auth";
 import { testAIConnection, fetchGeminiModels } from "@/app/services/ai";
 import {
@@ -37,6 +40,7 @@ import {
   HiOutlineAcademicCap,
   HiOutlineCloud,
   HiOutlineLightningBolt,
+  HiOutlineTemplate,
   HiCheck,
   HiChevronUp,
   HiChevronDown,
@@ -69,6 +73,12 @@ const SettingsPage = () => {
   const [editorWidth, setEditorWidth] = useAtom(atom_editorWidth);
   const [currencyCode, setCurrencyCode] = useAtom(atom_currency);
   const [autoInjectFrontmatter, setAutoInjectFrontmatter] = useAtom(atom_autoInjectFrontmatter);
+  const [schemaAutoCreate, setSchemaAutoCreate] = useAtom(atom_schemaAutoCreate);
+  const [, setSchemaWizardOpen] = useAtom(atom_schemaWizardOpen);
+  const [, setVaultMigrateOpen] = useAtom(atom_vaultMigrateOpen);
+  const vaultSchema = useAtomValue(atom_vaultSchema);
+  const vaultHandle = useAtomValue(atom_vaultHandle);
+  const isDriveVault = useAtomValue(atom_isDriveVault);
   const [sidebarTabOrder, setSidebarTabOrder] = useAtom(atom_sidebarTabOrder);
   const [aiProvider, setAiProvider] = useAtom(atom_aiProvider);
   const [selectedAiModel, setSelectedAiModel] = useAtom(atom_selectedAiModel);
@@ -245,22 +255,22 @@ const SettingsPage = () => {
       icon: HiOutlinePencilAlt,
       content: (
         <>
-          <SettingGroup title="Save">
+          <SettingGroup title="Autosave">
             <SettingItem
               label="Autosave Mode"
-              description="When to persist changes."
+              description="When unsaved changes are written to disk."
               control={
                 <SelectControl value={autosaveMode} onChange={(v) => setAutosaveMode(v as any)}>
                   <option value="afterDelay">After Delay</option>
                   <option value="onFocusChange">On Focus Change</option>
-                  <option value="manual">Manual Only</option>
+                  <option value="manual">Manual Only (⌘S)</option>
                 </SelectControl>
               }
             />
             {autosaveMode === "afterDelay" && (
               <SettingItem
-                label="Autosave Delay"
-                description="Wait time after typing."
+                label="Delay"
+                description="Idle time after the last keystroke before saving."
                 control={
                   <SelectControl value={autosaveDelay} onChange={(v) => setAutosaveDelay(Number(v))}>
                     <option value={500}>0.5s</option>
@@ -273,26 +283,33 @@ const SettingsPage = () => {
                 }
               />
             )}
+          </SettingGroup>
+          <SettingGroup title="Frontmatter">
             <SettingItem
-              label="Auto-inject Frontmatter"
-              description="On manual save, prepend id / title / type / tags to files with no frontmatter."
+              label="Auto-inject on Save"
+              description="When saving a file with no frontmatter block, prepend title, status, tags, and scope automatically."
               control={<Toggle variant="soft" active={autoInjectFrontmatter} onChange={setAutoInjectFrontmatter} />}
+            />
+            <SettingItem
+              label="Auto-create Schema"
+              description="Create .hermes/schema.yaml silently when opening a vault that has none. Off means you'll be prompted to confirm first."
+              control={<Toggle variant="soft" active={schemaAutoCreate} onChange={setSchemaAutoCreate} />}
             />
           </SettingGroup>
           <SettingGroup title="Display">
             <SettingItem
               label="Word Wrap"
-              description="Wrap long lines to fit viewport."
+              description="Wrap long lines to fit the viewport width."
               control={<Toggle variant="soft" active={wordWrap} onChange={setWordWrap} />}
             />
             <SettingItem
               label="Zen Mode"
-              description="Focus on the active line."
+              description="Dim everything except the active paragraph."
               control={<Toggle variant="soft" active={isZenModeActive} onChange={setIsZenModeActive} />}
             />
             <SettingItem
               label="Editor Width"
-              description="Maximum horizontal text span."
+              description="Maximum line width. Narrow gives a tighter reading column."
               layout="stack"
               control={
                 <SegmentedControl
@@ -305,8 +322,8 @@ const SettingsPage = () => {
           </SettingGroup>
           <SettingGroup title="Format">
             <SettingItem
-              label="Preferred Currency"
-              description="Used for budget calculations."
+              label="Currency"
+              description="Symbol used in financial tables and budget calculations."
               control={
                 <SelectControl value={currencyCode} onChange={setCurrencyCode}>
                   <option value="USD">USD ($)</option>
@@ -321,6 +338,66 @@ const SettingsPage = () => {
               }
             />
           </SettingGroup>
+        </>
+      ),
+    },
+    {
+      id: "schema",
+      label: "Schema",
+      icon: HiOutlineTemplate,
+      content: (
+        <>
+          <SettingGroup title="Frontmatter Structure">
+            <SettingItem
+              label="Vault Schema"
+              description={
+                vaultSchema
+                  ? `${vaultSchema.fields.length} field${vaultSchema.fields.length !== 1 ? "s" : ""} defined — saved to .hermes/schema.yaml`
+                  : vaultHandle || isDriveVault
+                  ? "No schema found in this vault."
+                  : "Open a vault to view or edit its schema."
+              }
+              control={
+                <Button
+                  variant="secondary"
+                  onClick={() => {
+                    setSchemaWizardOpen(true);
+                    router.push("/editor");
+                  }}
+                  className="h-8 px-4 text-ui-footnote font-medium"
+                >
+                  Edit Schema
+                </Button>
+              }
+            />
+          </SettingGroup>
+          <SettingGroup title="Vault Migration">
+            <SettingItem
+              label="Apply Schema to All Files"
+              description="Scan every file in the vault and add missing frontmatter fields. If an AI key is configured, content-based fields (scope, tags, read_when) are filled automatically."
+              control={
+                <Button
+                  variant="secondary"
+                  onClick={() => {
+                    setVaultMigrateOpen(true);
+                    router.push("/editor");
+                  }}
+                  disabled={!vaultHandle && !isDriveVault}
+                  className="h-8 px-4 text-ui-footnote font-medium shrink-0"
+                >
+                  Migrate
+                </Button>
+              }
+            />
+          </SettingGroup>
+          <div className="mt-2 px-1">
+            <p className="text-ui-caption text-stone leading-relaxed">
+              The schema defines which frontmatter fields appear in every note, their types, and whether they are required. Changes are written to{" "}
+              <code className="font-mono text-[11px]">.hermes/schema.yaml</code> and regenerate{" "}
+              <code className="font-mono text-[11px]">AGENTS.md</code> and{" "}
+              <code className="font-mono text-[11px]">template.md</code> so AI agents stay in sync.
+            </p>
+          </div>
         </>
       ),
     },
@@ -622,32 +699,32 @@ const SettingsPage = () => {
           <SettingGroup title="Onboarding">
             <SettingItem
               label="Welcome Tour"
-              description="Replay the introduction wizard."
+              description="Walk through the intro screens again to rediscover features."
               control={
                 <Button
                   variant="secondary"
                   onClick={startTour}
                   className="h-8 px-4 text-ui-footnote font-medium"
                 >
-                  Start
+                  Start Tour
                 </Button>
               }
             />
           </SettingGroup>
-          <SettingGroup title="Agent Skills">
+          <SettingGroup title="Agent Context Files">
             <SettingItem
-              label="Install / Update Skills"
-              description="Manually check for and install agent skills in the active vault."
+              label="Install / Update"
+              description="Check for missing or outdated agent context files (_agent-context.md, _skills/) in the active vault and install the latest versions."
               control={
                 <Button
                   variant="secondary"
                   onClick={() => {
                     setVaultSetupWizardOpen("vault-root");
-                    router.push("/editor"); // Take them back to editor to see the prompt
+                    router.push("/editor");
                   }}
                   className="h-8 px-4 text-ui-footnote font-medium"
                 >
-                  Install
+                  Check & Install
                 </Button>
               }
             />

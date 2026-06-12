@@ -16,6 +16,8 @@ export function useDialog() {
       confirmLabel?: string;
       cancelLabel?: string;
       defaultValue?: string;
+      multiline?: boolean;
+      allowReferences?: boolean;
       options?: DialogSelectOption[];
     }) => {
       return new Promise<any>((resolve) => {
@@ -49,6 +51,12 @@ export function useDialog() {
     [showDialog],
   );
 
+  const textarea = useCallback(
+    (message: string, defaultValue?: string, title?: string) =>
+      showDialog({ type: "prompt", message, defaultValue, title, multiline: true, allowReferences: true }),
+    [showDialog],
+  );
+
   const select = useCallback(
     (message: string, options: DialogSelectOption[], title?: string) =>
       showDialog({ type: "select", message, options, title }),
@@ -60,5 +68,5 @@ export function useDialog() {
     [showDialog],
   );
 
-  return { alert, confirm, prompt, select, newFile };
+  return { alert, confirm, prompt, textarea, select, newFile };
 }

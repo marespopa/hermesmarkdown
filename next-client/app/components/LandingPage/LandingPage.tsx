@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAtomValue } from "jotai";
 import { atom_content } from "@/app/atoms/atoms";
@@ -564,32 +564,41 @@ const AIKeyGraphic = () => (
 );
 
 const DEFAULT_DEMO_CONTENT = `---
-title: "ops-log-june"
+title: "v1 launch plan"
 status: active
-scope: "Daily operations log for the alpha-prod trading system."
-read_when: [ops queries, incident review]
-edit_elsewhere: []
-related: []
-tags: [trading, alpha-prod]
+scope: "Ship checklist, budget, and open questions for the public launch."
+read_when: ["launch", "ship", "release", "what are we shipping"]
+related: [[landing-page-copy, agent-schema-design, infra-setup]]
+tags: [launch, product]
 ---
 
-# Daily Operations Log
+# v1 Launch Plan
 
-## Tasks
+## Ship checklist
 
-- Fix auth token refresh  #review
-- Redesign API layer  #draft
-- Migrate vault to new schema  #active
+- Rewrite landing page copy  #done
+- Wire up AGENTS.md generator  #done
+- Finish frontmatter wizard  #prog
+- Add vault migration tool  #todo
+- Submit to HackerNews  #todo
+
+## Services
+
+| Service     | Status  | Cost/mo |
+|-------------|---------|---------|
+| Vercel      | live    | $20     |
+| Cloudflare  | live    | $5      |
+| Plausible   | pending | $9      |
 
 ## Budget
 
-+ 1,250.00
-- 450.00
-+ 85.50
+- Design: $800
+- Infra (3 mo): $102
+- Domain: $15
 
-Total: $885.50
+Total: $917.00
 
-Sprint ends [[2026-06-14]]`;
+Target ship date: [[2026-06-20]]`;
 
 export default function LandingPage() {
   const router = useRouter();
@@ -607,6 +616,25 @@ export default function LandingPage() {
     setShowLoading(true);
     router.push("/editor");
   };
+
+  const problemRef = useRef<HTMLElement>(null);
+  const [problemVisible, setProblemVisible] = useState(false);
+
+  useEffect(() => {
+    const el = problemRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setProblemVisible(true);
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.25 },
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
 
   const hasContent =
     realContent &&
@@ -645,15 +673,19 @@ export default function LandingPage() {
         <div className="max-w-6xl mx-auto flex flex-col items-center text-center space-y-12">
           <div className="space-y-6 max-w-3xl animate-hero-fade-in">
             <h1 className="text-4xl md:text-5xl lg:text-7xl font-bold tracking-tight leading-[1.1]">
-              Your Vault, Your Agents,{" "}
+              The Markdown editor that works with your AI agents,{" "}
               <span className="text-neutral-400 dark:text-neutral-600 italic font-serif">
-                Your Machine.
+                not against them.
               </span>
             </h1>
             <p className="text-lg md:text-xl leading-relaxed text-neutral-600 dark:text-neutral-400 max-w-2xl mx-auto">
-              A local-first Markdown workspace built for engineers and AI
-              practitioners. Structure your notes so both humans and background
-              agents can read them — offline by default, cloud-optional.
+              HermesMarkdown keeps your notes on your machine as plain{" "}
+              <code className="text-[0.85em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">
+                .md
+              </code>{" "}
+              files — and structures them so Claude Code, Cowork, or any other
+              agent can read, navigate, and update them without instructions
+              every time.
             </p>
             <div className="pt-4 flex flex-col sm:flex-row items-center justify-center gap-4">
               <Button
@@ -664,7 +696,7 @@ export default function LandingPage() {
                 Launch Editor
               </Button>
               <div className="text-ui-footnote uppercase tracking-widest opacity-40 font-bold hidden sm:block">
-                Free & Open Source
+                Free · No account required
               </div>
             </div>
           </div>
@@ -706,17 +738,45 @@ export default function LandingPage() {
           </div>
           <div className="flex items-center gap-2 text-ui-footnote font-bold uppercase tracking-[0.3em] whitespace-nowrap">
             <span className="w-1.5 h-1.5 rounded-full bg-current" />
-            Agent-Specific Frontmatter
+            Plain .md Files
           </div>
           <div className="flex items-center gap-2 text-ui-footnote font-bold uppercase tracking-[0.3em] whitespace-nowrap">
             <span className="w-1.5 h-1.5 rounded-full bg-current" />
-            Open Source
+            Structured for Agents
           </div>
           <div className="flex items-center gap-2 text-ui-footnote font-bold uppercase tracking-[0.3em] whitespace-nowrap">
             <span className="w-1.5 h-1.5 rounded-full bg-current" />
-            Privacy by Default
+            Your Keys Stay Local
           </div>
         </div>
+      </section>
+
+      {/* --- THE PROBLEM --- */}
+      <section
+        ref={problemRef}
+        className="max-w-3xl mx-auto px-6 py-24 md:py-36 text-center space-y-10"
+      >
+        <h2
+          className={`text-2xl md:text-3xl font-bold tracking-tight opacity-0 [animation-fill-mode:forwards] ${problemVisible ? "animate-hero-fade-in" : ""}`}
+        >
+          Most Markdown editors are great for writing.{" "}
+          <span className="text-neutral-400 dark:text-neutral-600">
+            They&apos;re terrible for agents.
+          </span>
+        </h2>
+        <p
+          className={`text-neutral-600 dark:text-neutral-400 leading-relaxed text-lg max-w-2xl mx-auto opacity-0 [animation-fill-mode:forwards] [animation-delay:150ms] ${problemVisible ? "animate-hero-fade-in" : ""}`}
+        >
+          When you drop a vault into Claude Code or Cowork, the agent starts
+          from scratch every time. It has no idea which files are relevant, what
+          they cover, or when to reach for them. It either burns through your
+          context window — or guesses, and pulls the wrong file.
+        </p>
+        <p
+          className={`text-neutral-600 dark:text-neutral-400 leading-relaxed text-lg max-w-2xl mx-auto opacity-0 [animation-fill-mode:forwards] [animation-delay:300ms] ${problemVisible ? "animate-hero-fade-in" : ""}`}
+        >
+          HermesMarkdown fixes this before the agent ever opens a file.
+        </p>
       </section>
 
       {/* --- FEATURES --- */}
@@ -726,68 +786,28 @@ export default function LandingPage() {
           <div className="space-y-6">
             <div className="h-px w-12 bg-sky-500" />
             <h2 className="text-3xl font-bold tracking-tight">
-              Agent-Specific Frontmatter
+              Your notes are structured for agents out of the box
             </h2>
             <p className="text-neutral-600 dark:text-neutral-400 leading-relaxed">
-              Every file is auto-injected with a strict YAML schema —{" "}
-              <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">
-                title
-              </code>
-              ,{" "}
-              <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">
-                status
-              </code>
-              ,{" "}
+              Every file gets a small YAML block at the top — automatically. It
+              tells any agent what the file is about (
               <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">
                 scope
               </code>
-              ,{" "}
+              ), when to load it (
               <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">
                 read_when
               </code>
-              ,{" "}
+              ), and how it connects to other notes (
               <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">
                 related
               </code>
-              , and{" "}
-              <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">
-                tags
-              </code>{" "}
-              — so background agents and LLMs can classify any file with a
-              single{" "}
-              <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">
-                grep
-              </code>
-              . A step-by-step wizard guides you through each field on new
-              files.
+              ). You fill it in once. Every agent that ever reads your vault
+              benefits permanently.
             </p>
             <p className="text-neutral-600 dark:text-neutral-400 leading-relaxed">
-              Two inline lifecycles keep your work moving: document state (
-              <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">
-                #draft
-              </code>{" "}
-              →{" "}
-              <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">
-                #active
-              </code>{" "}
-              →{" "}
-              <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">
-                #archived
-              </code>
-              ) and task state (
-              <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">
-                #todo
-              </code>{" "}
-              →{" "}
-              <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">
-                #prog
-              </code>{" "}
-              →{" "}
-              <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">
-                #done
-              </code>
-              ). Place your cursor on any tag and press ‹ › to step through
-              states.
+              No more pasting context into every chat. No more agents loading
+              files they don&apos;t need.
             </p>
           </div>
           <div className="aspect-video bg-paper-light dark:bg-neutral-900 rounded-2xl border border-black/5 dark:border-white/5 flex items-center justify-center group overflow-hidden relative">
@@ -805,16 +825,26 @@ export default function LandingPage() {
           <div className="space-y-6">
             <div className="h-px w-12 bg-emerald-600" />
             <h2 className="text-3xl font-bold tracking-tight">
-              Agent Readability Score
+              Agents know exactly what to read — and what to skip
             </h2>
             <p className="text-neutral-600 dark:text-neutral-400 leading-relaxed">
-              The status bar shows a live AI readability score —{" "}
-              <em>Structured</em>, <em>Good</em>, <em>Fair</em>, or{" "}
-              <em>Weak</em> — scored across frontmatter completeness, heading
-              continuity, typed code fences, tables, and consistent list syntax.
-              Hover to see exactly which fields are missing, in priority order.
-              Fix the tips once and every agent that reads your vault benefits
-              permanently.
+              HermesMarkdown generates an{" "}
+              <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">
+                AGENTS.md
+              </code>{" "}
+              file in your vault that any agent reads first. It describes your
+              vault structure, your schema, and a simple protocol: check{" "}
+              <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">
+                read_when
+              </code>{" "}
+              first, read{" "}
+              <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">
+                scope
+              </code>{" "}
+              only for most tasks, load the full file only when scope
+              isn&apos;t enough. This keeps agent context small, fast, and
+              relevant. The status bar shows a live readability score so you
+              know at a glance how well any file is structured.
             </p>
           </div>
         </section>
@@ -824,14 +854,20 @@ export default function LandingPage() {
           <div className="space-y-6">
             <div className="h-px w-12 bg-indigo-600" />
             <h2 className="text-3xl font-bold tracking-tight">
-              Bring Your Own AI
+              You bring your own AI keys
             </h2>
             <p className="text-neutral-600 dark:text-neutral-400 leading-relaxed">
-              HermesMarkdown doesn't force a specific model. Plug in your own
-              API keys for Anthropic Claude or Google Gemini to power summaries,
-              frontmatter generation, and agentic workflows. Your keys are
-              stored locally in your browser's encrypted storage — we never
-              proxy your data or see your keys.
+              Connect your Anthropic or Google Gemini API key. HermesMarkdown
+              uses it to auto-generate{" "}
+              <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">
+                scope
+              </code>{" "}
+              fields, suggest{" "}
+              <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">
+                related
+              </code>{" "}
+              links, and improve your writing — inline, in the editor. Your keys
+              stay in your browser. We never see them or proxy your requests.
             </p>
           </div>
           <div className="aspect-video bg-paper-light dark:bg-neutral-900 rounded-2xl border border-black/5 dark:border-white/5 flex items-center justify-center group overflow-hidden relative">
@@ -849,15 +885,18 @@ export default function LandingPage() {
           <div className="space-y-6">
             <div className="h-px w-12 bg-sage" />
             <h2 className="text-3xl font-bold tracking-tight">
-              Vault Management
+              Smart Workspaces
             </h2>
             <p className="text-neutral-600 dark:text-neutral-400 leading-relaxed">
-              Open any local directory as a writing vault and save directly to
-              your machine via the File System Access API — no upload required.
-              All files live flat in your vault root. Smart Workspaces filter
-              them in real time by tag, filename, date, or word count, with a
-              built-in <em>Today's Work</em> view for files edited in the last
-              24 hours.
+              Open any local directory as a vault and save directly to your
+              machine — no upload required. Filter your entire vault by tag,
+              date, or word count with Smart Workspaces. A built-in{" "}
+              <em>Today&apos;s Work</em> view shows everything you touched in
+              the last 24 hours. WikiLinks connect notes vault-wide — type{" "}
+              <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">
+                [[note name]]
+              </code>{" "}
+              and navigate with a click.
             </p>
           </div>
         </section>
@@ -867,14 +906,13 @@ export default function LandingPage() {
           <div className="space-y-6">
             <div className="h-px w-12 bg-emerald-600" />
             <h2 className="text-3xl font-bold tracking-tight">
-              Google Drive Integration
+              Google Drive sync
             </h2>
             <p className="text-neutral-600 dark:text-neutral-400 leading-relaxed">
-              When you want cloud backup, opt in. Connect your Google Drive and
-              HermesMarkdown syncs in the background — your vault stays on your
-              machine and works fully offline first. It&apos;s a one-way escape
-              hatch, not a dependency: disconnect at any time and your files
-              stay put.
+              Opt-in cloud backup. Connect your Google Drive and HermesMarkdown
+              syncs in the background — your vault stays on your machine and
+              works offline first. Disconnect any time, files stay put. It
+              &apos;s an escape hatch, not a dependency.
             </p>
           </div>
           <div className="aspect-video bg-paper-light dark:bg-neutral-900 rounded-2xl border border-black/5 dark:border-white/5 flex items-center justify-center group overflow-hidden relative">
@@ -892,16 +930,16 @@ export default function LandingPage() {
           <div className="space-y-6">
             <div className="h-px w-12 bg-purple-600" />
             <h2 className="text-3xl font-bold tracking-tight">
-              Writing Experience
+              Zen Mode & multi-pane editing
             </h2>
             <p className="text-neutral-600 dark:text-neutral-400 leading-relaxed">
-              Toggle Zen Mode (
+              Zen Mode (
               <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">
                 Ctrl+Shift+Z
               </code>
-              ) to collapse every panel and focus on a single line. Split the
-              workspace into side-by-side panes and drag tabs between them.
-              Elements in the editor are live — click{" "}
+              ) collapses every panel to one line, nothing else. Open files
+              side by side and drag tabs between panes. Elements in the editor
+              are live — click{" "}
               <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">
                 [ ]
               </code>{" "}
@@ -919,31 +957,28 @@ export default function LandingPage() {
           <div className="space-y-6">
             <div className="h-px w-12 bg-amber-500" />
             <h2 className="text-3xl font-bold tracking-tight">
-              Syntax & Shortcuts
+              Financial totals & smart syntax
             </h2>
             <p className="text-neutral-600 dark:text-neutral-400 leading-relaxed">
-              Type{" "}
-              <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">
-                /
-              </code>{" "}
-              to open the slash command menu — fuzzy-filter templates including
-              Daily Note, Meeting Notes, and ready-made{" "}
-              <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">
-                /agent
-              </code>{" "}
-              context blocks. Shortcodes expand inline:{" "}
-              <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">
-                ..d
-              </code>{" "}
-              for today's date,{" "}
-              <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">
-                calc()
-              </code>{" "}
-              for expressions, and a{" "}
+              Add a{" "}
               <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">
                 Total:
               </code>{" "}
-              line that auto-sums every currency value above it.
+              line to any list of currency values and it sums them
+              automatically. Type{" "}
+              <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">
+                /
+              </code>{" "}
+              for the template menu — Daily Note, Meeting Notes, and more.
+              Shortcodes expand inline:{" "}
+              <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">
+                ..d
+              </code>{" "}
+              for today&apos;s date,{" "}
+              <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">
+                calc()
+              </code>{" "}
+              for inline expressions.
             </p>
           </div>
           <div className="aspect-video bg-paper-light dark:bg-neutral-900 rounded-2xl border border-black/5 dark:border-white/5 flex items-center justify-center group overflow-hidden relative">
@@ -960,14 +995,11 @@ export default function LandingPage() {
           </div>
           <div className="space-y-6">
             <div className="h-px w-12 bg-indigo-500" />
-            <h2 className="text-3xl font-bold tracking-tight">Table Editor</h2>
+            <h2 className="text-3xl font-bold tracking-tight">Table editor</h2>
             <p className="text-neutral-600 dark:text-neutral-400 leading-relaxed">
-              Place your cursor inside any pipe table to reveal a floating
-              toolbar — open the Advanced Dialog, delete the whole table, or
-              copy as CSV. Inside the Dialog, add or remove rows and columns,
-              sort with type detection across dates, currency, and numbers, set
-              per-column alignment, and preview the auto-padded Markdown output.
-              Insert a starter 3×2 grid with{" "}
+              Click inside any Markdown table for a full toolbar. Add rows,
+              sort by date or number, export to CSV. Output is clean,
+              auto-padded Markdown. Insert a starter grid with{" "}
               <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">
                 /table
               </code>{" "}
@@ -991,8 +1023,12 @@ export default function LandingPage() {
             Own your context. Own your output.
           </h2>
           <p className="opacity-60 max-w-xl mx-auto text-lg relative z-10 font-medium">
-            Built for the era where your notes are also your agents&apos;
-            context.
+            Plain{" "}
+            <code className="text-[0.85em] bg-neutral-200 dark:bg-neutral-700 px-1 py-0.5 rounded not-italic">
+              .md
+            </code>{" "}
+            files. Structured for agents. Runs in your browser, saves to your
+            machine.
           </p>
           <div className="pt-6 relative z-10 flex justify-center">
             <Button

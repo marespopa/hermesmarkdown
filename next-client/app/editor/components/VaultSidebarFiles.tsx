@@ -7,6 +7,7 @@ import {
   HiOutlineTrash,
   HiOutlinePencil,
   HiOutlinePlus,
+  HiOutlineSparkles,
 } from "react-icons/hi";
 import { useAtomValue } from "jotai";
 import { atom_indexerState } from "@/app/atoms/ui-atoms";
@@ -14,6 +15,7 @@ import Button from "@/app/components/Button";
 
 interface VaultSidebarFilesProps {
   onNewFile?: () => void;
+  onNewAIFile?: () => void;
   processedFiles: any[];
   activeFilePath: string | null;
   openFile: (handle: FileSystemFileHandle, path?: string) => void;
@@ -25,6 +27,7 @@ interface VaultSidebarFilesProps {
 
 export default function VaultSidebarFiles({
   onNewFile,
+  onNewAIFile,
   processedFiles,
   activeFilePath,
   openFile,
@@ -63,16 +66,28 @@ export default function VaultSidebarFiles({
         <span className="text-ui-caption font-semibold uppercase tracking-wider text-stone dark:text-fg-faint">
           Your Files
         </span>
-        {onNewFile && (
-          <Button
-            variant="icon"
-            className="w-6 h-6 opacity-80 hover:opacity-100 text-ink-muted dark:text-stone"
-            onClick={onNewFile}
-            title="Create New File"
-          >
-            <HiOutlinePlus size={14} />
-          </Button>
-        )}
+        <div className="flex items-center gap-1">
+          {onNewAIFile && (
+            <Button
+              variant="icon"
+              className="w-6 h-6 opacity-80 hover:opacity-100 text-ink-muted dark:text-stone"
+              onClick={onNewAIFile}
+              title="Generate Note with AI"
+            >
+              <HiOutlineSparkles size={14} />
+            </Button>
+          )}
+          {onNewFile && (
+            <Button
+              variant="icon"
+              className="w-6 h-6 opacity-80 hover:opacity-100 text-ink-muted dark:text-stone"
+              onClick={onNewFile}
+              title="Create New File"
+            >
+              <HiOutlinePlus size={14} />
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* File list — fills remaining height */}

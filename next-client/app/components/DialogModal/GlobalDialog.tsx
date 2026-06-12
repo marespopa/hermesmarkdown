@@ -15,6 +15,7 @@ export default function GlobalDialog() {
   const [promptValue, setPromptValue] = useState("");
   const [newFileType, setNewFileType] = useState("note");
   const [newFileTags, setNewFileTags] = useState("");
+  const [refsValue, setRefsValue] = useState("");
 
   const existingTypes = Array.from(
     new Set(Object.values(fileMetadata).map((f) => f.frontmatter?.type).filter(Boolean))
@@ -25,9 +26,11 @@ export default function GlobalDialog() {
     new Set(Object.values(fileMetadata).flatMap((f) => f.tags || []))
   ).sort();
 
+  const allFilePaths = Object.keys(fileMetadata).sort();
   useEffect(() => {
     if (config?.type === "prompt") {
       setPromptValue(config.defaultValue || "");
+      setRefsValue("");
     }
     if (config?.type === "new-file") {
       setPromptValue("");
@@ -42,7 +45,12 @@ export default function GlobalDialog() {
     if (config.type === "new-file") {
       config.resolve({ name: promptValue, type: newFileType, tags: newFileTags });
     } else if (config.type === "prompt") {
-      config.resolve(promptValue);
+      if (config.allowReferences) {
+        const referencePaths = refsValue.split(",").map((s) => s.trim()).filter(Boolean);
+        config.resolve({ text: promptValue, referencePaths });
+      } else {
+        config.resolve(promptValue);
+      }
     } else if (config.type === "confirm") {
       config.resolve(true);
     } else {
@@ -95,14 +103,40 @@ export default function GlobalDialog() {
           <div className="py-2 space-y-4">
             <div className="space-y-1.5">
               {config.type === "new-file" && <label className="text-ui-caption font-medium">File Name</label>}
-              <Input
-                name="prompt-input"
-                value={promptValue}
-                handleChange={(e) => setPromptValue(e.target.value)}
-                placeholder={config.type === "new-file" ? "e.g. meeting-notes" : "Enter value..."}
-                autoFocus
-                selectOnFocus
-              />
+              {config.multiline ? (
+                <div className="space-y-2">
+                  <textarea
+                    className="w-full min-h-[120px] resize-y rounded-xl border border-edge-subtle bg-paper-pale dark:bg-paper-dark px-3 py-2.5 text-ui-subhead text-fg placeholder:text-fg-faint focus:outline-none focus:ring-2 focus:ring-sage/40"
+                    value={promptValue}
+                    onChange={(e) => setPromptValue(e.target.value)}
+                    placeholder="Describe what you want to write..."
+                    autoFocus
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) handleConfirm();
+                    }}
+                  />
+                  {config.allowReferences && (
+                    <Typeahead
+                      name="ref-files"
+                      label="Reference files (optional)"
+                      value={refsValue}
+                      onChange={setRefsValue}
+                      options={allFilePaths}
+                      placeholder="Type to search files..."
+                      allowMultiple
+                    />
+                  )}
+                </div>
+              ) : (
+                <Input
+                  name="prompt-input"
+                  value={promptValue}
+                  handleChange={(e) => setPromptValue(e.target.value)}
+                  placeholder={config.type === "new-file" ? "e.g. meeting-notes" : "Enter value..."}
+                  autoFocus
+                  selectOnFocus
+                />
+              )}
             </div>
             
             {config.type === "new-file" && (

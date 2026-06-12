@@ -20,6 +20,8 @@ import VaultSidebar from "./components/VaultSidebar";
 import WelcomeWizard from "./components/WelcomeWizard";
 import VaultSetupWizard from "./components/VaultSetupWizard";
 import FrontmatterWizard from "./components/FrontmatterWizard";
+import SchemaWizard from "./components/SchemaWizard";
+import VaultMigrateWizard from "./components/VaultMigrateWizard";
 import WorkspaceSplitter from "./components/WorkspaceSplitter";
 import VaultPendingOverlay from "./components/VaultPendingOverlay";
 import DriveReconnectBanner from "./components/DriveReconnectBanner";
@@ -42,6 +44,9 @@ import {
 } from "react-icons/hi";
 
 import { useRouter } from "next/navigation";
+import { atom_isAiConfigured } from "@/app/atoms/ui-atoms";
+import { generateFileFromPrompt } from "@/app/services/ai";
+import { withRetry } from "@/app/hooks/file-system/shared";
 
 export default function LiteEditor() {
   const router = useRouter();
@@ -56,9 +61,11 @@ export default function LiteEditor() {
   const [isZenModeActive, setIsZenModeActive] = useAtom(atom_isZenModeActive);
   const [isSidebarOpen, setIsSidebarOpen] = useAtom(atom_isSidebarOpen);
   const isFileLoading = useAtomValue(atom_isFileLoading);
+  const isAiConfigured = useAtomValue(atom_isAiConfigured);
 
   const {
     vaultHandle,
+    vaultFiles,
     activeFileHandle,
     isVaultPending,
     isDriveVault,
@@ -70,6 +77,7 @@ export default function LiteEditor() {
     importFile,
     createFile,
     createNewFile,
+    scanVault,
     syncSidebarToPath,
   } = useFileSystem();
 
@@ -226,6 +234,82 @@ export default function LiteEditor() {
     }
   };
 
+  const handleNewAIFile = async () => {
+    if (!vaultHandle) return;
+
+    const subDirs = vaultFiles.filter(
+      (f): f is FileSystemDirectoryHandle => (f as any).kind === "directory"
+    );
+    const folderOptions = [
+      { label: `/ ${vaultHandle.name} (root)`, value: "__root__" },
+      ...subDirs.map((d) => ({ label: d.name, value: d.name })),
+      { label: "+ New Folder", value: "__new_folder__" },
+    ];
+    const chosenFolder = await dialog.select("Choose a folder for the new file:", folderOptions, "New File");
+    if (!chosenFolder) return;
+
+    let targetDir: FileSystemDirectoryHandle = vaultHandle;
+    if (chosenFolder === "__new_folder__") {
+      const folderName = await dialog.prompt("Enter folder name:", "", "New Folder");
+      if (!folderName) return;
+      try {
+        targetDir = await withRetry(() => vaultHandle.getDirectoryHandle(folderName, { create: true }));
+        await scanVault(vaultHandle);
+      } catch {
+        toast.error("Failed to create folder");
+        return;
+      }
+    } else if (chosenFolder !== "__root__") {
+      const found = subDirs.find((d) => d.name === chosenFolder);
+      if (found) targetDir = found;
+    }
+
+    const result = await dialog.textarea("Describe what you want to write:", "", "Generate Note with AI");
+    if (!result?.text?.trim()) return;
+
+    const { text: promptText, referencePaths } = result as { text: string; referencePaths: string[] };
+
+    let fullPrompt = promptText;
+    if (referencePaths?.length) {
+      const refContents = await Promise.all(
+        referencePaths.map(async (refPath) => {
+          const handle = vaultFiles.find(
+            (f) => (f as any).path === refPath || f.name === refPath
+          );
+          if (!handle || handle.kind !== "file") return null;
+          try {
+            const file = await (handle as FileSystemFileHandle).getFile();
+            const content = await file.text();
+            const name = handle.name.replace(/\.md$/, "");
+            return `--- Reference: ${name} ---\n${content}\n--- End Reference ---`;
+          } catch {
+            return null;
+          }
+        })
+      );
+      const joined = refContents.filter(Boolean).join("\n\n");
+      if (joined) fullPrompt = `${promptText}\n\n${joined}`;
+    }
+
+    const toastId = toast.loading("Generating note...");
+    try {
+      const { body, title, scope, tags, read_when } = await generateFileFromPrompt(fullPrompt);
+      toast.dismiss(toastId);
+
+      const fileName = await dialog.prompt("File name:", title, "Save Note");
+      if (!fileName?.trim()) return;
+
+      const tagsStr = (tags ?? []).map((t: string) => t.toLowerCase()).join(", ");
+      const readWhenLines = (read_when ?? []).map((r: string) => `  - "${r}"`).join("\n");
+      const fm = `---\ntitle: "${title}"\nstatus: draft\nscope: "${scope}"\ntags: [${tagsStr}]\nread_when:\n${readWhenLines}\n---\n\n`;
+      await createFile(fileName, fm + body, targetDir);
+
+    } catch (err: any) {
+      toast.dismiss(toastId);
+      toast.error(err.message || "Failed to generate note");
+    }
+  };
+
   const resetEditor = () => {
     setContent("");
     setFileName("untitled");
@@ -283,6 +367,8 @@ export default function LiteEditor() {
         <WelcomeWizard />
         <VaultSetupWizard />
         <FrontmatterWizard />
+        <SchemaWizard />
+        <VaultMigrateWizard />
         <ConflictDialog />
         {isVaultPending && <VaultPendingOverlay restoreVault={restoreVault} isDriveVault={isDriveVault} />}
         
@@ -310,6 +396,7 @@ export default function LiteEditor() {
           <VaultSidebar
             onOpenSettings={() => navigateWithGuard("/editor/settings")}
             onNewFile={handleNewFile}
+            onNewAIFile={isAiConfigured ? handleNewAIFile : undefined}
             onImport={handleImport}
             onExport={handleExport}
             onClose={() => setIsSidebarOpen(false)}
@@ -332,6 +419,7 @@ export default function LiteEditor() {
                   >
                     <HiOutlineHome size={24} />
                   </Button>
+
 
                  <Button
                     variant="icon"

@@ -30,6 +30,18 @@ HermesMarkdown follows an Obsidian-inspired layout:
 - **Main Workspace**: A flush, multi-pane area powered by `react-resizable-panels`.
 - **Responsive Design**: The Ribbon and Sidebar are hidden on mobile, accessible via an off-canvas overlay.
 
+### Local vs Drive Vault Parity
+
+The app supports two vault backends: the browser **File System Access API** (local) and **Google Drive**. Each backend has its own set of hooks under `hooks/file-system/` and `hooks/drive/` respectively, unified by `hooks/use-file-system.ts`.
+
+**Rule: any feature added to one backend must be mirrored in the other.** Common areas where parity must be maintained:
+
+- Vault open/restore lifecycle (`use-vault-manager.ts` ↔ `use-drive-vault-manager.ts`)
+- File CRUD operations (`use-file-crud.ts` ↔ `use-drive-file-crud.ts`)
+- File save logic (`use-save-file.ts` ↔ `use-drive-save-file.ts`)
+
+If a backend doesn't support a feature natively (e.g. `DriveDirectoryHandle` lacks `getDirectoryHandle`), provide a Drive-specific implementation in `services/drive/` rather than skipping the feature.
+
 ### File System Access
 HermesMarkdown uses the modern **Browser File System Access API**.
 

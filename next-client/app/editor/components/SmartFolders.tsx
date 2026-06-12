@@ -4,7 +4,7 @@ import React from "react";
 import { useAtom, useAtomValue } from "jotai";
 import { atom_fileMetadata, atom_customWorkspaces, CustomWorkspace } from "@/app/atoms/metadata";
 import { evaluateQuery, WorkspaceQuery } from "@/app/utils/queryEngine";
-import { HiOutlineDocumentText, HiOutlineClock, HiOutlinePlus, HiOutlineDotsVertical, HiOutlinePencil, HiOutlineTrash, HiOutlineCollection } from "react-icons/hi";
+import { HiOutlineDocumentText, HiOutlineClock, HiOutlinePlus, HiOutlineDotsVertical, HiOutlinePencil, HiOutlineTrash, HiOutlineCollection, HiOutlineSparkles } from "react-icons/hi";
 import Button from "@/app/components/Button";
 import WorkspaceBuilder from "./WorkspaceBuilder";
 import { useDialog } from "@/app/hooks/use-dialog";
@@ -39,6 +39,7 @@ interface SmartFoldersProps {
   selectedTags?: string[];
   onMatchCountChange?: (count: number, hasFolderSelected: boolean) => void;
   onNewFile?: () => void;
+  onNewAIFile?: () => void;
 }
 
 export default function SmartFolders({
@@ -49,6 +50,7 @@ export default function SmartFolders({
   selectedTags = [],
   onMatchCountChange,
   onNewFile,
+  onNewAIFile,
 }: SmartFoldersProps) {
   const [fileMetadata] = useAtom(atom_fileMetadata);
   const [customWorkspaces, setCustomWorkspaces] = useAtom(atom_customWorkspaces);
@@ -131,6 +133,17 @@ export default function SmartFolders({
           Your Views
         </span>
         <div className="flex items-center gap-1">
+          {onNewAIFile && (
+            <Button
+              variant="icon"
+              className="w-6 h-6 opacity-80 hover:opacity-100 text-ink-muted dark:text-stone"
+              onClick={onNewAIFile}
+              title="Generate Note with AI"
+              aria-label="Generate Note with AI"
+            >
+              <HiOutlineSparkles size={14} />
+            </Button>
+          )}
           {onNewFile && (
             <Button
               variant="icon"

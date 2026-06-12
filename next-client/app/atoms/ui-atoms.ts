@@ -69,6 +69,12 @@ export const atom_frontmatterHasPrompted = atomWithStorage<boolean>(
   "frontmatterHasPrompted",
   false,
 );
+export const atom_schemaAutoCreate = atomWithStorage<boolean>(
+  "schemaAutoCreate",
+  false,
+);
+export const atom_schemaWizardOpen = atom<boolean>(false);
+export const atom_vaultMigrateOpen = atom<boolean>(false);
 
 export const atom_sidebarWidth = atomWithStorage<number>("sidebarWidth", 260);
 export const atom_isSidebarOpen = atomWithStorage<boolean>(
@@ -97,6 +103,8 @@ export interface DialogConfig {
   confirmLabel?: string;
   cancelLabel?: string;
   defaultValue?: string;
+  multiline?: boolean;
+  allowReferences?: boolean;
   options?: DialogSelectOption[];
   resolve: (value: any) => void;
 }
@@ -140,3 +148,5 @@ export const atom_isAiConfigured = atom((get) => {
 });
 
 export const atom_isFileLoading = atom<boolean>(false);
+
+export const atom_indexTimestamp = atom<number | null>(null);

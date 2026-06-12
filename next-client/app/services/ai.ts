@@ -142,6 +142,18 @@ export async function generateFrontmatterData(noteBody: string) {
 }
 
 /**
+ * Generates a complete markdown note (body + frontmatter metadata) from a user prompt.
+ */
+export async function generateFileFromPrompt(userPrompt: string) {
+  const body = await callAI(
+    "You are a markdown note writer. Write a well-structured, informative markdown note based on the user's prompt. Use headers, lists, and code blocks where appropriate. Do not include YAML frontmatter. Return only the markdown content.",
+    userPrompt
+  );
+  const meta = await generateFrontmatterData(body);
+  return { body, ...meta };
+}
+
+/**
  * Validates the connection for a given provider and key.
  */
 export async function testAIConnection(provider: AIProvider, apiKey: string) {

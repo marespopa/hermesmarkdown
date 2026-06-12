@@ -1,6 +1,6 @@
 "use client";
 
-import { useAtom, useSetAtom } from "jotai";
+import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { useCallback, useEffect, useRef } from "react";
 import toast from "react-hot-toast";
 import {
@@ -17,8 +17,12 @@ import {
   atom_autoInjectFrontmatter,
   atom_vaultSetupStatus,
 } from "@/app/atoms/atoms";
-import { atom_frontmatterWizardOpen, atom_vaultSetupWizardOpen, atom_autosaveMode } from "@/app/atoms/ui-atoms";
+import { atom_frontmatterWizardOpen, atom_vaultSetupWizardOpen, atom_autosaveMode, atom_indexTimestamp } from "@/app/atoms/ui-atoms";
 import { injectFrontmatter } from "@/app/utils/frontmatterInjector";
+import { atom_fileMetadata } from "@/app/atoms/metadata";
+import { writeVaultIndex } from "@/app/services/vault-index";
+import { atom_vaultSchema } from "@/app/atoms/schema-atoms";
+import { atom_isDriveVault } from "@/app/atoms/drive-atoms";
 
 export function useSaveFile() {
   const [vaultHandle] = useAtom(atom_vaultHandle);
@@ -31,18 +35,20 @@ export function useSaveFile() {
   const [, setFileConflict] = useAtom(atom_fileConflict);
   const [, setSaveStatus] = useAtom(atom_saveStatus);
   const [isCloudVault, setIsCloudVault] = useAtom(atom_isCloudVault);
+  const isDriveVault = useAtomValue(atom_isDriveVault);
   const [autoInjectFrontmatter] = useAtom(atom_autoInjectFrontmatter);
   const setFrontmatterWizardOpen = useSetAtom(atom_frontmatterWizardOpen);
   const setVaultSetupWizardOpen = useSetAtom(atom_vaultSetupWizardOpen);
   const [vaultSetupStatus] = useAtom(atom_vaultSetupStatus);
   const [autosaveMode, setAutosaveMode] = useAtom(atom_autosaveMode);
+  const [fileMetadata] = useAtom(atom_fileMetadata);
+  const setIndexTimestamp = useSetAtom(atom_indexTimestamp);
+  const [vaultSchema] = useAtom(atom_vaultSchema);
 
-  // Debounce re-indexing on auto-saves so rapid saves during typing don't
-  // repeatedly flash the "Scanning subfolders…" indicator in the sidebar.
-  const indexVaultTagsTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const indexWriteTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
-    const ref = indexVaultTagsTimerRef;
+    const ref = indexWriteTimerRef;
     return () => {
       if (ref.current) clearTimeout(ref.current);
     };
@@ -87,6 +93,30 @@ export function useSaveFile() {
         ? injectFrontmatter(content, fileToSave.name)
         : content;
       if (!toWrite) toWrite = "\n";
+
+      // Schema validation — warn on missing required fields (non-blocking)
+      if (vaultSchema && !isAutoSave) {
+        const fmMatch = /^---\n([\s\S]*?)\n---/.exec(toWrite);
+        if (fmMatch) {
+          const fmText = fmMatch[1];
+          const missing = vaultSchema.fields
+            .filter((f) => f.required)
+            .filter((f) => {
+              const m = new RegExp(`^${f.key}:\\s*(.*)`, "m").exec(fmText);
+              if (!m) return true;
+              const val = m[1].trim().replace(/^"|"$/g, "").replace(/^\[|\]$/g, "").trim();
+              return val === "" || val === "null";
+            })
+            .map((f) => f.key);
+          if (missing.length > 0) {
+            toast(`Missing required fields: ${missing.join(", ")}`, {
+              icon: "⚠️",
+              id: "schema-validation",
+              duration: 4000,
+            });
+          }
+        }
+      }
 
       let writable: FileSystemWritableFileStream | null = null;
       try {
@@ -231,9 +261,18 @@ export function useSaveFile() {
           }
         }
 
-        // We no longer trigger a full vault background re-index on every save.
-        // It was causing massive performance issues and timeout toasts for large Google Drive vaults.
-        // The index will just be updated on next launch or manual refresh.
+        // Debounced vault index update (local vaults only)
+        if (vaultHandle && !isCloudVault && !isDriveVault) {
+          if (indexWriteTimerRef.current) clearTimeout(indexWriteTimerRef.current);
+          const snapshot = fileMetadata;
+          const handle = vaultHandle;
+          indexWriteTimerRef.current = setTimeout(() => {
+            writeVaultIndex(snapshot, handle)
+              .then(() => setIndexTimestamp(Date.now()))
+              .catch((err) => console.warn("Failed to write vault index:", err));
+          }, 3000);
+        }
+
         setSaveStatus({ state: "saved", retryCount, path: targetPath });
         setTimeout(() => setSaveStatus({ state: "idle", retryCount: 0, path: undefined }), 2000);
 
@@ -363,12 +402,16 @@ export function useSaveFile() {
       setOpenFiles,
       isCloudVault,
       setIsCloudVault,
+      isDriveVault,
       autoInjectFrontmatter,
       vaultSetupStatus,
       setVaultSetupWizardOpen,
       setFrontmatterWizardOpen,
       autosaveMode,
       setAutosaveMode,
+      fileMetadata,
+      setIndexTimestamp,
+      vaultSchema,
     ],
   );
 
