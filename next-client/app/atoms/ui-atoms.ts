@@ -87,6 +87,10 @@ export const atom_sidebarTabOrder = atomWithStorage<SidebarTab[]>(
   "sidebarTabOrder",
   ["content", "views"],
 );
+export const atom_activeSidebarTab = atomWithStorage<SidebarTab>(
+  "activeSidebarTab",
+  "content",
+);
 
 export type DialogType = "alert" | "confirm" | "prompt" | "select" | "new-file";
 

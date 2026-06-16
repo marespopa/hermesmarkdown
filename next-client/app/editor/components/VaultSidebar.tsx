@@ -14,6 +14,7 @@ import {
   atom_isCloudVault,
   atom_isZenModeActive,
   atom_sidebarTabOrder,
+  atom_activeSidebarTab,
   SidebarTab
 } from "@/app/atoms/atoms";
 import { useAtom, useAtomValue } from "jotai";
@@ -108,7 +109,7 @@ export default function VaultSidebar({
   }, [isRefreshing, vaultHandle, onRefresh]);
 
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
-  const [activeTab, setActiveTab] = useState<SidebarTab>(tabOrder[0] || "content");
+  const [activeTab, setActiveTab] = useAtom(atom_activeSidebarTab);
   const [viewMatchCount, setViewMatchCount] = useState(0);
   const [viewHasFolderSelected, setViewHasFolderSelected] = useState(false);
 
