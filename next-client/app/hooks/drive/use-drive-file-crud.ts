@@ -136,9 +136,20 @@ export function useDriveFileCrud({ scanVault, openFile }: Props) {
   const createNewFile = useCallback(async (dirHandle?: any) => {
     if (!driveVaultId) return;
 
-    const subDirs = (vaultFiles as any[]).filter(
-      f => f instanceof DriveDirectoryHandle,
-    ) as DriveDirectoryHandle[];
+    // Use the recursive path index (covers nested subfolders), falling back to the
+    // shallow current-directory scan if the index hasn't built yet.
+    const subDirEntries = drivePathIndex
+      ? drivePathIndex.allEntries().filter(([, entry]) => entry.mimeType === FOLDER_MIME)
+      : null;
+    const subDirs = subDirEntries
+      ? subDirEntries
+          .map(([path, entry]) => {
+            const h = new DriveDirectoryHandle(entry.name, entry.id);
+            (h as any).path = path;
+            return h;
+          })
+          .sort((a, b) => ((a as any).path < (b as any).path ? -1 : 1))
+      : ((vaultFiles as any[]).filter(f => f instanceof DriveDirectoryHandle) as DriveDirectoryHandle[]);
 
     let targetDir: DriveDirectoryHandle = currentDirHandle() || new DriveDirectoryHandle('Drive', driveVaultId);
 
@@ -147,7 +158,7 @@ export function useDriveFileCrud({ scanVault, openFile }: Props) {
       const rootName = rawName ? JSON.parse(rawName) : 'Drive';
       const options = [
         { label: `/ ${rootName} (root)`, value: '__root__' },
-        ...subDirs.map(d => ({ label: d.name, value: d.folderId })),
+        ...subDirs.map(d => ({ label: (d as any).path || d.name, value: d.folderId })),
         { label: '+ New Folder', value: '__new_folder__' },
       ];
       const chosen = await dialog.select('Choose a folder for the new file:', options, 'New File');

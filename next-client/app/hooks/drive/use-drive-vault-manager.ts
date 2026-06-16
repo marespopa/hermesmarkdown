@@ -49,7 +49,7 @@ export function useDriveVaultManager() {
 
   const [driveVaultId, setDriveVaultId] = useAtom(atom_driveVaultId);
   const [, setDriveVaultName] = useAtom(atom_driveVaultName);
-  const [, setDriveAuthState] = useAtom(atom_driveAuthState);
+  const [driveAuthState, setDriveAuthState] = useAtom(atom_driveAuthState);
   const [drivePathIndex, setDrivePathIndex] = useAtom(atom_drivePathIndex);
   const isDriveVault = useAtomValue(atom_isDriveVault);
   const [, setShowDriveFolderPicker] = useAtom(atom_showDriveFolderPicker);
@@ -400,6 +400,19 @@ export function useDriveVaultManager() {
     restoreVault();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Mount only
+
+  // Re-restore whenever auth transitions from a non-authenticated state back to
+  // authenticated (e.g. the user re-grants permission after the token expired).
+  // The mount-only effect above won't fire again, so this is what guarantees the
+  // vault + active file are re-synced against the latest Drive state post-reauth.
+  const prevAuthStateRef = useRef(driveAuthState);
+  useEffect(() => {
+    const prev = prevAuthStateRef.current;
+    prevAuthStateRef.current = driveAuthState;
+    if (driveAuthState === 'authenticated' && prev !== 'authenticated' && hasDriveLoaded && driveVaultId) {
+      restoreVault();
+    }
+  }, [driveAuthState, hasDriveLoaded, driveVaultId, restoreVault]);
 
 
   return {

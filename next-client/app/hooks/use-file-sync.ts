@@ -1,6 +1,6 @@
 "use client";
 
-import { useAtom } from "jotai";
+import { useAtom, useAtomValue } from "jotai";
 import {
   atom_activeFileHandle,
   atom_content,
@@ -9,6 +9,7 @@ import {
   atom_fileConflict,
   atom_isVaultPending,
 } from "@/app/atoms/atoms";
+import { atom_driveAuthState } from "@/app/atoms/drive-atoms";
 import { useEffect, useCallback, useRef } from "react";
 import toast from "react-hot-toast";
 import { useInterval } from "./use-interval";
@@ -22,7 +23,8 @@ export function useFileSync() {
   const [fileLastModified, setFileLastModified] = useAtom(atom_fileLastModified);
   const [, setFileConflict] = useAtom(atom_fileConflict);
   const [isVaultPending] = useAtom(atom_isVaultPending);
-  
+  const driveAuthState = useAtomValue(atom_driveAuthState);
+
   const lastHandleRef = useRef<FileSystemFileHandle | null>(null);
 
   const checkSync = useCallback(async () => {
@@ -106,4 +108,15 @@ export function useFileSync() {
 
     return () => window.removeEventListener("focus", handleFocus);
   }, [activeFileHandle, checkSync]); // We still include checkSync here to trigger initial check when it changes
+
+  // Force an immediate check when Drive auth comes back from 'expired' — don't wait
+  // for the next interval tick or window focus to catch up on the latest version.
+  const prevDriveAuthRef = useRef(driveAuthState);
+  useEffect(() => {
+    const prev = prevDriveAuthRef.current;
+    prevDriveAuthRef.current = driveAuthState;
+    if (driveAuthState === 'authenticated' && prev === 'expired') {
+      checkSyncRef.current?.();
+    }
+  }, [driveAuthState]);
 }
