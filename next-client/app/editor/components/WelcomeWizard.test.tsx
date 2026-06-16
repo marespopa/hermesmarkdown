@@ -53,7 +53,7 @@ describe("WelcomeWizard", () => {
       </TestProvider>
     );
 
-    expect(screen.getByText("Welcome to HermesMD")).toBeInTheDocument();
+    expect(screen.getByText("Welcome to HermesMarkdown")).toBeInTheDocument();
   });
 
   it("advances to connection step when clicking Start Setup", () => {
@@ -63,7 +63,7 @@ describe("WelcomeWizard", () => {
       </TestProvider>
     );
 
-    fireEvent.click(screen.getByText("Start Setup"));
+    fireEvent.click(screen.getByText("Get Started"));
     expect(screen.getByText("Connect Your Vault")).toBeInTheDocument();
   });
 
@@ -81,7 +81,7 @@ describe("WelcomeWizard", () => {
 
     // Should now be on Step 2 (Preferences) due to the useEffect
     await waitFor(() => {
-      expect(screen.getByText("Configure Preferences")).toBeInTheDocument();
+      expect(screen.getByText("Quick Preferences")).toBeInTheDocument();
     });
   });
 
@@ -97,12 +97,12 @@ describe("WelcomeWizard", () => {
       </TestProvider>
     );
 
-    expect(screen.getByText("Configure Preferences")).toBeInTheDocument();
+    expect(screen.getByText("Quick Preferences")).toBeInTheDocument();
 
-    fireEvent.click(screen.getByText("Finish Setup"));
+    fireEvent.click(screen.getByText("Continue"));
 
     await waitFor(() => {
-      expect(screen.getByText("You're All Set!")).toBeInTheDocument();
+      expect(screen.getByText("You're ready to write.")).toBeInTheDocument();
     });
   });
 });

@@ -4,12 +4,13 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { Provider } from "jotai";
 import { useHydrateAtoms } from "jotai/utils";
 import VaultSetupWizard from "./VaultSetupWizard";
-import { 
-  atom_frontmatterWizardOpen, 
+import {
+  atom_frontmatterWizardOpen,
   atom_vaultSetupWizardOpen,
-  atom_vaultHandle, 
-  atom_vaultSetupStatus 
+  atom_vaultHandle,
+  atom_vaultSetupStatus
 } from "@/app/atoms/atoms";
+import { LATEST_AGENT_VERSION } from "@/app/utils/agent-version";
 
 // Helper to hydrate atoms for testing
 const HydrateAtoms = ({ initialValues, children }: { initialValues: any, children: React.ReactNode }) => {
@@ -106,7 +107,7 @@ describe("VaultSetupWizard", () => {
     fireEvent.click(skipButton);
 
     await waitFor(() => {
-      expect(window.localStorage.getItem("hermesSkipVaultSetup")).toBe("1.0");
+      expect(window.localStorage.getItem("hermesSkipVaultSetup")).toBe(LATEST_AGENT_VERSION);
     });
   });
 });

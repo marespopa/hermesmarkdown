@@ -110,7 +110,7 @@ describe("SettingsPage", () => {
     expect(screen.getByText("Editor Width")).toBeInTheDocument();
     expect(screen.getAllByText("Standard").length).toBeGreaterThanOrEqual(1);
     expect(screen.getByText("Narrow")).toBeInTheDocument();
-    expect(screen.getByText("Autosave Delay")).toBeInTheDocument();
+    expect(screen.getByText("Delay")).toBeInTheDocument();
   });
 
   it("calls setter when autosave delay is changed", () => {
