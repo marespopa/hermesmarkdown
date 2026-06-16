@@ -10,7 +10,7 @@ import {
 } from "@/app/atoms/atoms";
 import { SHORTCODES, TAG_CYCLE, TAG_CYCLE_PREV, TODO_CYCLE, TODO_CYCLE_PREV } from "../components/constants";
 import { runAutoBudget } from "../utils/budget";
-import { REGEX_CALC } from "../components/regex";
+import { REGEX_CALC, REGEX_CHECKBOX } from "../components/regex";
 import { highlightMarkdown } from "../components/MarkdownHighlighter";
 import { useEditorAppearance } from "./use-editor-appearance";
 import { useEditorSync } from "./use-editor-sync";
@@ -137,13 +137,51 @@ export function useMarkdownEditor({
     (direction: "prev" | "next") => {
       if (!todoMatch || !textareaRef.current) return;
       const cycle = direction === "next" ? TODO_CYCLE : TODO_CYCLE_PREV;
-      const nextTag = `#${cycle[todoMatch.tag]}`;
+      const nextTagName = cycle[todoMatch.tag];
+      const nextTag = `#${nextTagName}`;
       const textarea = textareaRef.current;
       textarea.focus();
+
+      // If the tag sits on a checkbox task line, keep the checkbox state and
+      // strikethrough in sync with the #done status (and revert them otherwise).
+      const lineStart = value.lastIndexOf("\n", todoMatch.start - 1) + 1;
+      const lineEndIdx = value.indexOf("\n", todoMatch.end);
+      const lineEnd = lineEndIdx === -1 ? value.length : lineEndIdx;
+      const line = value.slice(lineStart, lineEnd);
+
+      // Unwrap any existing strikethrough before checking for a checkbox, since
+      // `REGEX_CHECKBOX` is anchored to the start of the line.
+      const leadingWs = line.match(/^\s*/)?.[0] ?? "";
+      const rawContent = line.slice(leadingWs.length);
+      const wasStruck = rawContent.startsWith("~~") && rawContent.endsWith("~~");
+      const unwrappedContent = wasStruck ? rawContent.slice(2, -2) : rawContent;
+      const frontOffset = leadingWs.length + (wasStruck ? 2 : 0);
+      const checkboxMatch = REGEX_CHECKBOX.exec(unwrappedContent);
+
+      if (checkboxMatch) {
+        const tagStartInContent = todoMatch.start - lineStart - frontOffset;
+        const tagEndInContent = todoMatch.end - lineStart - frontOffset;
+        const desiredState = nextTagName === "done" ? "x" : " ";
+        let newContent =
+          unwrappedContent.slice(0, checkboxMatch[1].length) +
+          desiredState +
+          unwrappedContent.slice(checkboxMatch[1].length + 1);
+        newContent = newContent.slice(0, tagStartInContent) + nextTag + newContent.slice(tagEndInContent);
+
+        const shouldStrike = desiredState === "x";
+        const newLine = leadingWs + (shouldStrike ? `~~${newContent}~~` : newContent);
+
+        textarea.setSelectionRange(lineStart, lineEnd);
+        document.execCommand("insertText", false, newLine);
+        const newTagStart = lineStart + leadingWs.length + (shouldStrike ? 2 : 0) + tagStartInContent;
+        textarea.setSelectionRange(newTagStart + nextTag.length, newTagStart + nextTag.length);
+        return;
+      }
+
       textarea.setSelectionRange(todoMatch.start, todoMatch.end);
       document.execCommand("insertText", false, nextTag);
     },
-    [todoMatch, textareaRef],
+    [todoMatch, textareaRef, value],
   );
 
   const handleSaveLink = useCallback(
