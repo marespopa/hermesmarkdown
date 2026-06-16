@@ -131,6 +131,7 @@ export const TEMPLATES: Template[] = [
   { label: "WikiLink", icon: "[[", description: "Link to another note", content: WIKILINK_EDITOR_SENTINEL },
   { label: "Date", icon: "📅", description: "Pick a date from the calendar", content: DATE_EDITOR_SENTINEL },
   { label: "Table", icon: "⊞", description: "Insert a Markdown table", content: TABLE_DIALOG_SENTINEL },
+  { label: "Task", icon: "☑️", description: "Insert a checklist item", content: `- [ ] ${CURSOR_SENTINEL} #todo` },
   // --- Obsidian / Daily Driver ---
   {
     label: "Daily Note",

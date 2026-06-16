@@ -1,5 +1,6 @@
 import { render, screen, fireEvent, cleanup, act } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import { useState } from "react";
 import MarkdownEditor from "./MarkdownEditor";
 import { highlightMarkdown } from "./MarkdownHighlighter";
 import { Provider } from "jotai";
@@ -361,6 +362,44 @@ describe("MarkdownEditor Functional Tests", () => {
 
     expect(screen.getByRole("dialog")).toBeInTheDocument();
     expect(screen.getByText("Insert WikiLink")).toBeInTheDocument();
+
+    vi.useRealTimers();
+  });
+
+  it("inserts a task checklist item with cursor after '- [ ] ' when /task template is selected", async () => {
+    vi.useFakeTimers();
+
+    // Use a controlled wrapper so the textarea value actually updates on
+    // insert, letting us assert the resulting cursor position for real.
+    function ControlledEditor() {
+      const [value, setValue] = useState("");
+      return <MarkdownEditor value={value} onChange={setValue} />;
+    }
+    render(
+      <Provider>
+        <ControlledEditor />
+      </Provider>,
+    );
+    const textarea = screen.getByRole("textbox") as HTMLTextAreaElement;
+
+    textarea.focus();
+    act(() => {
+      textarea.selectionStart = 5;
+      textarea.selectionEnd = 5;
+      fireEvent.change(textarea, { target: { value: "/task" } });
+    });
+
+    act(() => {
+      fireEvent.keyDown(textarea, { key: "ArrowDown" });
+    });
+    act(() => {
+      fireEvent.keyDown(textarea, { key: "Enter" });
+      vi.runAllTimers();
+    });
+
+    expect(textarea.value).toBe("- [ ]  #todo");
+    expect(textarea.selectionStart).toBe("- [ ] ".length);
+    expect(textarea.selectionEnd).toBe("- [ ] ".length);
 
     vi.useRealTimers();
   });
