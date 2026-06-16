@@ -251,13 +251,13 @@ export function useVaultManager() {
               return next;
             });
           } else {
-            // Re-index after save: merge so existing tag metadata is preserved until the worker responds
+            // Re-index after save / periodic sync: merge so existing tag metadata is
+            // preserved until the worker responds, but drop entries for files that no
+            // longer exist on disk (deleted or renamed externally).
             setFileMetadata((prev) => {
-              const next = { ...prev };
+              const next: Record<string, any> = {};
               fileHandles.forEach(({ handle: fh, path }) => {
-                if (!next[path]) {
-                  next[path] = { path, name: fh.name, handle: fh, tags: [], links: [], frontmatter: {}, modifiedAt: 0, wordCount: 0 };
-                }
+                next[path] = prev[path] || { path, name: fh.name, handle: fh, tags: [], links: [], frontmatter: {}, modifiedAt: 0, wordCount: 0 };
               });
               return next;
             });
