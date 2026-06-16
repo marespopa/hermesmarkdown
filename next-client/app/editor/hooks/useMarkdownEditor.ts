@@ -142,38 +142,33 @@ export function useMarkdownEditor({
       const textarea = textareaRef.current;
       textarea.focus();
 
-      // If the tag sits on a checkbox task line, keep the checkbox state and
-      // strikethrough in sync with the #done status (and revert them otherwise).
+      // If the tag sits on a checkbox task line, keep the checkbox state in
+      // sync with the #done status (and revert it otherwise).
       const lineStart = value.lastIndexOf("\n", todoMatch.start - 1) + 1;
       const lineEndIdx = value.indexOf("\n", todoMatch.end);
       const lineEnd = lineEndIdx === -1 ? value.length : lineEndIdx;
       const line = value.slice(lineStart, lineEnd);
 
-      // Unwrap any existing strikethrough before checking for a checkbox, since
-      // `REGEX_CHECKBOX` is anchored to the start of the line.
       const leadingWs = line.match(/^\s*/)?.[0] ?? "";
       const rawContent = line.slice(leadingWs.length);
-      const wasStruck = rawContent.startsWith("~~") && rawContent.endsWith("~~");
-      const unwrappedContent = wasStruck ? rawContent.slice(2, -2) : rawContent;
-      const frontOffset = leadingWs.length + (wasStruck ? 2 : 0);
-      const checkboxMatch = REGEX_CHECKBOX.exec(unwrappedContent);
+      const frontOffset = leadingWs.length;
+      const checkboxMatch = REGEX_CHECKBOX.exec(rawContent);
 
       if (checkboxMatch) {
         const tagStartInContent = todoMatch.start - lineStart - frontOffset;
         const tagEndInContent = todoMatch.end - lineStart - frontOffset;
         const desiredState = nextTagName === "done" ? "x" : " ";
         let newContent =
-          unwrappedContent.slice(0, checkboxMatch[1].length) +
+          rawContent.slice(0, checkboxMatch[1].length) +
           desiredState +
-          unwrappedContent.slice(checkboxMatch[1].length + 1);
+          rawContent.slice(checkboxMatch[1].length + 1);
         newContent = newContent.slice(0, tagStartInContent) + nextTag + newContent.slice(tagEndInContent);
 
-        const shouldStrike = desiredState === "x";
-        const newLine = leadingWs + (shouldStrike ? `~~${newContent}~~` : newContent);
+        const newLine = leadingWs + newContent;
 
         textarea.setSelectionRange(lineStart, lineEnd);
         document.execCommand("insertText", false, newLine);
-        const newTagStart = lineStart + leadingWs.length + (shouldStrike ? 2 : 0) + tagStartInContent;
+        const newTagStart = lineStart + leadingWs.length + tagStartInContent;
         textarea.setSelectionRange(newTagStart + nextTag.length, newTagStart + nextTag.length);
         return;
       }

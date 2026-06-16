@@ -25,6 +25,7 @@ vi.mock("@/app/atoms/ui-atoms", async () => {
   const { atom } = await import("jotai");
   return {
     atom_indexerState: atom("idle"),
+    atom_indexTimestamp: atom(null),
   };
 });
 
