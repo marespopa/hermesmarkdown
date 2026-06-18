@@ -350,8 +350,8 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
                   onMouseDown={(e: React.MouseEvent<HTMLButtonElement>) => e.preventDefault()}
                   onClick={() => setFrontmatterWizardOpen(filePath)}
                   className="p-1.5 -ml-1.5 shrink-0 text-ink-muted dark:text-fg-faint hover:text-sage dark:hover:text-sage"
-                  title="Edit frontmatter"
-                  aria-label="Edit frontmatter"
+                  title="Add / edit agent metadata"
+                  aria-label="Add or edit agent metadata"
                 >
                   <HiOutlinePencil size={12} />
                 </Button>
@@ -361,7 +361,7 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
                     onMouseDown={(e: React.MouseEvent<HTMLButtonElement>) => e.preventDefault()}
                     onClick={() => setFrontmatterWizardOpen(filePath)}
                     className="justify-start shrink min-w-0 max-w-[40ch] opacity-30 text-[0.72em] hover:opacity-60 transition-opacity"
-                    title="Edit frontmatter"
+                    title="Add / edit agent metadata"
                   >
                     <span className="truncate block min-w-0 text-left">
                       {title}

@@ -56,7 +56,7 @@ function computeAgentScore(content: string): AgentRating {
     if (/^scope:\s*".+"|^scope:\s*\|/m.test(fm)) { fmScore += 5; } else { tips.push("Add `scope:` — one paragraph describing what this file covers"); }
     if (/^read_when:\s*\[.+\]|^read_when:\n\s+-/m.test(fm)) { fmScore += 5; } else { tips.push("Add `read_when:` — list the tasks or contexts where an agent should load this file"); }
   } else {
-    tips.push("Add a YAML frontmatter block (---) with title, status, tags, scope, read_when");
+    tips.push("Frontmatter adds up to 40 pts — optional, but adds scope and read_when for agents");
   }
   score += fmScore;
 
@@ -304,7 +304,7 @@ export default function StatusBar() {
             aria-label={`Agent readability: ${agentRating.score}/100`}
             aria-expanded={showAiTip}
           >
-            ai: {agentRating.label}
+            ai: {agentRating.score}/100
             <HiChevronDown className={`w-3 h-3 opacity-60 transition-transform duration-200 ${showAiTip ? 'rotate-180' : ''}`} />
             {showAiTip && (
               <>
@@ -420,7 +420,7 @@ export default function StatusBar() {
           aria-label={`Agent readability: ${agentRating.score}/100`}
           aria-expanded={showAiTip}
         >
-          ai: {agentRating.label}
+          ai: {agentRating.score}/100
           <HiChevronDown className={`w-3 h-3 opacity-60 transition-transform duration-200 ${showAiTip ? 'rotate-180' : ''}`} />
           {showAiTip && (
             <>

@@ -305,7 +305,7 @@ export default function Documentation() {
                 <div className="space-y-4">
                   <h3 className="text-3xl font-bold tracking-tight">Agent-Specific Frontmatter</h3>
                   <p className="text-neutral-500 dark:text-neutral-400 leading-relaxed text-lg">
-                    Every file gets a structured YAML block on save, making notes easy to parse with any AI tool. A wizard walks you through it on new files. For deeper automation, install <strong>Agent Skills</strong> into your vault root from <strong>Settings → Guide</strong>.
+                    The fields below are the <strong>default schema</strong> — not a requirement. Drop any field you don&apos;t need, rename them, or skip frontmatter entirely. HermesMarkdown scores heading structure, typed fences, and tables independently, so a plain note still earns a real readability rating. A wizard opens on new files; click ✎ to edit later. For deeper automation, install <strong>Agent Skills</strong> from <strong>Settings → Guide</strong>.
                   </p>
                 </div>
                 <div className="p-8 bg-neutral-50/50 dark:bg-neutral-900/30 backdrop-blur-sm rounded-3xl border border-black/5 dark:border-white/5 shadow-inner space-y-4">

@@ -673,19 +673,18 @@ export default function LandingPage() {
         <div className="max-w-6xl mx-auto flex flex-col items-center text-center space-y-12">
           <div className="space-y-6 max-w-3xl animate-hero-fade-in">
             <h1 className="text-4xl md:text-5xl lg:text-7xl font-bold tracking-tight leading-[1.1]">
-              The Markdown editor that works with your AI agents,{" "}
+              Notes your agent can navigate{" "}
               <span className="text-neutral-400 dark:text-neutral-600 italic font-serif">
-                not against them.
+                without burning its context window.
               </span>
             </h1>
             <p className="text-lg md:text-xl leading-relaxed text-neutral-600 dark:text-neutral-400 max-w-2xl mx-auto">
-              HermesMarkdown keeps your notes on your machine as plain{" "}
+              HermesMarkdown structures your vault so agents know what to read
+              — and what to skip. Plain{" "}
               <code className="text-[0.85em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">
                 .md
               </code>{" "}
-              files — and structures them so Claude Code, Cowork, or any other
-              agent can read, navigate, and update them without instructions
-              every time.
+              files your AI can query like a database, not brute-force through.
             </p>
             <div className="pt-4 flex flex-col sm:flex-row items-center justify-center gap-4">
               <Button
@@ -781,42 +780,7 @@ export default function LandingPage() {
 
       {/* --- FEATURES --- */}
       <div className="max-w-5xl mx-auto px-6 py-24 md:py-32 space-y-32">
-        {/* 1. Agent-Specific Frontmatter — core mission, first */}
-        <section className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 lg:gap-16 items-center">
-          <div className="space-y-6">
-            <div className="h-px w-12 bg-sky-500" />
-            <h2 className="text-3xl font-bold tracking-tight">
-              Your notes are structured for agents out of the box
-            </h2>
-            <p className="text-neutral-600 dark:text-neutral-400 leading-relaxed">
-              Every file gets a small YAML block at the top — automatically. It
-              tells any agent what the file is about (
-              <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">
-                scope
-              </code>
-              ), when to load it (
-              <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">
-                read_when
-              </code>
-              ), and how it connects to other notes (
-              <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">
-                related
-              </code>
-              ). You fill it in once. Every agent that ever reads your vault
-              benefits permanently.
-            </p>
-            <p className="text-neutral-600 dark:text-neutral-400 leading-relaxed">
-              No more pasting context into every chat. No more agents loading
-              files they don&apos;t need.
-            </p>
-          </div>
-          <div className="aspect-video bg-paper-light dark:bg-neutral-900 rounded-2xl border border-black/5 dark:border-white/5 flex items-center justify-center group overflow-hidden relative">
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-sky-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
-            <AgentContextGraphic />
-          </div>
-        </section>
-
-        {/* 2. AI Readability Score — key differentiator */}
+        {/* 1. Three-tier read protocol + score — lead with the differentiator */}
         <section className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 lg:gap-16 items-center">
           <div className="order-last md:order-first aspect-video bg-paper-light dark:bg-neutral-900 rounded-2xl border border-black/5 dark:border-white/5 flex items-center justify-center group overflow-hidden relative">
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-emerald-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
@@ -825,27 +789,71 @@ export default function LandingPage() {
           <div className="space-y-6">
             <div className="h-px w-12 bg-emerald-600" />
             <h2 className="text-3xl font-bold tracking-tight">
-              Agents know exactly what to read — and what to skip
+              Agents know what to read before they open a single file
             </h2>
             <p className="text-neutral-600 dark:text-neutral-400 leading-relaxed">
               HermesMarkdown generates an{" "}
               <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">
                 AGENTS.md
               </code>{" "}
-              file in your vault that any agent reads first. It describes your
-              vault structure, your schema, and a simple protocol: check{" "}
+              index your agent reads first. It defines a three-tier protocol:
+              scan{" "}
               <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">
                 read_when
               </code>{" "}
-              first, read{" "}
+              to filter without loading, read{" "}
               <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">
                 scope
               </code>{" "}
-              only for most tasks, load the full file only when scope
-              isn&apos;t enough. This keeps agent context small, fast, and
-              relevant. The status bar shows a live readability score so you
-              know at a glance how well any file is structured.
+              to confirm relevance, load the full file only when needed. Your
+              context window stays clean. Retrieval stays precise.
             </p>
+            <p className="text-neutral-600 dark:text-neutral-400 leading-relaxed">
+              The status bar shows a live readability score so you know at a
+              glance how well any file is structured — without opening a
+              separate tool.
+            </p>
+          </div>
+        </section>
+
+        {/* 2. Agent-Specific Frontmatter — optional schema framing */}
+        <section className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 lg:gap-16 items-center">
+          <div className="space-y-6">
+            <div className="h-px w-12 bg-sky-500" />
+            <h2 className="text-3xl font-bold tracking-tight">
+              Your notes, structured on your terms
+            </h2>
+            <p className="text-neutral-600 dark:text-neutral-400 leading-relaxed">
+              The four default fields —{" "}
+              <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">
+                scope
+              </code>
+              ,{" "}
+              <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">
+                read_when
+              </code>
+              ,{" "}
+              <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">
+                related
+              </code>
+              , and{" "}
+              <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">
+                tags
+              </code>{" "}
+              — are a starting point, not a contract. Drop the ones you
+              don&apos;t need, rename them, or skip frontmatter entirely.
+              HermesMarkdown scores heading structure, typed code fences, and
+              table formatting too — a clean plain note still earns a real
+              readability rating.
+            </p>
+            <p className="text-neutral-600 dark:text-neutral-400 leading-relaxed">
+              A wizard walks you through it on new files. Every agent that reads
+              your vault benefits from whatever structure you add — permanently.
+            </p>
+          </div>
+          <div className="aspect-video bg-paper-light dark:bg-neutral-900 rounded-2xl border border-black/5 dark:border-white/5 flex items-center justify-center group overflow-hidden relative">
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-sky-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+            <AgentContextGraphic />
           </div>
         </section>
 

@@ -15,19 +15,15 @@ export function injectFrontmatter(content: string, fileName: string): string {
   const tagsStr = tags.length > 0 ? `[${tags.join(", ")}]` : "[]";
 
   const title = toTitle(fileName);
-const fm = [
-  "---",
-  `title: "${title}"`,
-  "status: draft",
-  "scope: \"\"",
-  "read_when: []",
-  "edit_elsewhere: []",
-  "related: []",
-  `tags: ${tagsStr}`,
-  "---",
-  "",
-  "",
-].join("\n");
+  const fmLines = [
+    "---",
+    `title: "${title}"`,
+    "status: draft",
+    ...(tags.length > 0 ? [`tags: ${tagsStr}`] : []),
+    "---",
+    "",
+    "",
+  ];
 
-  return fm + content;
+  return fmLines.join("\n") + content;
 }

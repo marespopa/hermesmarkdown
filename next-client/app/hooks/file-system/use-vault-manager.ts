@@ -549,11 +549,22 @@ export function useVaultManager() {
       const savedHandle = await loadVaultHandle();
       if (savedHandle) {
         setVaultHandle(savedHandle);
-        setIsVaultPending(true);
+        const granted = await verifyPermission(savedHandle);
+        if (granted) {
+          setCurrentDirectoryHandle(savedHandle);
+          detectCloudVault(savedHandle);
+          await scanVault(savedHandle);
+          await indexVaultTags(savedHandle);
+          await rebindHandles(savedHandle);
+          await checkVaultSetup(savedHandle);
+          await loadSchema(savedHandle);
+        } else {
+          setIsVaultPending(true);
+        }
       }
     }
     init();
-  }, [setVaultHandle, setIsVaultPending, hasLoadedVault, setHasLoadedVault]);
+  }, [setVaultHandle, setIsVaultPending, hasLoadedVault, setHasLoadedVault, setCurrentDirectoryHandle, scanVault, indexVaultTags, rebindHandles, detectCloudVault, checkVaultSetup, loadSchema]);
 
   return {
     vaultHandle,

@@ -41,7 +41,7 @@ function buildWizardSteps(schema: VaultSchema): WizardStep[] {
   if (identifyFields.length > 0) {
     steps.push({
       label: "Identify",
-      description: "Give this file a clear title and set its current status. These help agents and collaborators understand the file at a glance.",
+      description: "Give this file a title and status. These are the only required fields — everything else is optional and can be added later.",
       fields: identifyFields,
     });
   }
@@ -71,9 +71,9 @@ function stepLabel(field: SchemaField): string {
 
 function stepDescription(field: SchemaField): string {
   const known: Record<string, string> = {
-    scope: "Describe what this file covers. Agents use this to decide whether to load the file.",
+    scope: "Tier 2 of the read protocol — agents read this before opening the file. One sentence on what it covers. If scope isn't enough, agents load the full file.",
     tags: "Add comma-separated tags to make this file discoverable. Tags should be lowercase.",
-    read_when: 'Describe when an AI agent should load this file. For example: "When answering questions about payments."',
+    read_when: "Tier 1 of the read protocol — the first thing agents check. Describe the tasks or contexts where this file is relevant. Agents scan this without loading the file.",
     related: "Add related notes to help agents find relevant information. Use [[WikiLinks]] or click Suggest.",
     edit_elsewhere: "List files or resources that are edited outside this vault.",
   };
@@ -512,7 +512,7 @@ Return the 3-5 most semantically related note titles as a JSON array.`,
           {/* Header */}
           <div className="flex flex-col gap-1 pr-10">
             <span className="text-ui-caption font-medium text-stone uppercase tracking-wider">
-              Step {step + 1} of {wizardSteps.length}
+              Agent metadata · {step + 1} of {wizardSteps.length}
             </span>
             <h2
               id="fm-wizard-heading"
