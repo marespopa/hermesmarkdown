@@ -83,7 +83,7 @@ const DialogModal = ({
         <div
           onClick={(e) => e.stopPropagation()}
           className={`
-            relative z-10 w-full
+            relative z-10 w-full max-h-[calc(100vh-2rem)] sm:max-h-[calc(100vh-3rem)]
             bg-white dark:bg-neutral-900 backdrop-blur-2xl
             border border-white/20 dark:border-neutral-800/50
             shadow-[0_20px_50px_rgba(0,0,0,0.1)]
@@ -115,7 +115,7 @@ const DialogModal = ({
             </Button>
           )}
 
-          <div className={`p-6 sm:p-8 text-neutral-900 dark:text-neutral-100 flex flex-col min-h-0 ${mobileSheet ? "overflow-y-auto" : ""}`}>
+          <div className="p-6 sm:p-8 text-neutral-900 dark:text-neutral-100 flex flex-col min-h-0 overflow-y-auto">
             {children}
           </div>
         </div>

@@ -17,11 +17,18 @@ import {
   atom_indexTimestamp,
   atom_frontmatterWizardOpen,
   atom_frontmatterWizardTargetField,
+  atom_isAiConfigured,
   atom_aiActionStatus,
 } from "@/app/atoms/ui-atoms";
+import { atom_vaultSchema } from "@/app/atoms/schema-atoms";
+import { DEFAULT_SCHEMA } from "@/app/services/vault-schema";
 import { dismissAiActionStatus } from "@/app/services/ai-status";
+import { generateFrontmatterData } from "@/app/services/ai";
+import { FM_REGEX, updateFmFields } from "@/app/utils/frontmatter-utils";
 import { computeAgentScore, ScoreCheck } from "@/app/utils/agentScore";
 import toast from "react-hot-toast";
+import useIsMobile from "@/app/hooks/use-is-mobile";
+import DialogModal from "@/app/components/DialogModal/DialogModal";
 import {
   HiChevronDown,
   HiOutlineCheckCircle,
@@ -29,6 +36,7 @@ import {
   HiOutlineExclamationCircle,
   HiOutlineRefresh,
   HiOutlineMinusCircle,
+  HiOutlineSparkles,
   HiX,
 } from "react-icons/hi";
 
@@ -114,13 +122,23 @@ function AgentScoreBadge({
   setShowAiTip,
   popoverAlign,
   onFix,
+  onAutoFix,
+  isAiConfigured,
+  isAutoFixing,
 }: {
   agentRating: ReturnType<typeof computeAgentScore>;
   showAiTip: boolean;
   setShowAiTip: (v: boolean | ((prev: boolean) => boolean)) => void;
   popoverAlign: "up" | "down";
   onFix: (fixField: string) => void;
+  onAutoFix: () => void;
+  isAiConfigured: boolean;
+  isAutoFixing: boolean;
 }) {
+  // Below md, the bar is too narrow and too close to the screen edge for an
+  // anchored popover to stay visible — use a centered dialog instead.
+  const isMobile = useIsMobile(767);
+
   const popoverPositionClass =
     popoverAlign === "up"
       ? "bottom-full mb-2 origin-bottom-right animate-dropdown-in-up"
@@ -148,7 +166,20 @@ function AgentScoreBadge({
         <HiChevronDown className={`w-3 h-3 opacity-50 transition-transform duration-200 ${showAiTip ? "rotate-180" : ""}`} />
       </button>
 
-      {showAiTip && (
+      {showAiTip && isMobile && (
+        <DialogModal isOpened={showAiTip} onClose={() => setShowAiTip(false)} styles="max-w-[340px]">
+          <AgentScorePanel
+            agentRating={agentRating}
+            onFix={onFix}
+            onClose={() => setShowAiTip(false)}
+            onAutoFix={isAiConfigured ? onAutoFix : undefined}
+            isAutoFixing={isAutoFixing}
+            variant="dialog"
+          />
+        </DialogModal>
+      )}
+
+      {showAiTip && !isMobile && (
         <>
           <div
             className="fixed inset-0 z-40 bg-black/5 animate-in fade-in duration-200"
@@ -161,7 +192,14 @@ function AgentScoreBadge({
             className={`absolute right-0 ${popoverPositionClass} flex flex-col rounded-xl bg-paper-light dark:bg-paper-dark border border-edge-subtle px-3.5 py-3 text-[11px] leading-snug text-ink-light dark:text-ink-dark shadow-xl z-50 gap-1.5 w-[min(300px,_calc(100vw_-_1rem))]`}
             onClick={(e) => e.stopPropagation()}
           >
-            <AgentScorePanel agentRating={agentRating} onFix={onFix} onClose={() => setShowAiTip(false)} />
+            <AgentScorePanel
+              agentRating={agentRating}
+              onFix={onFix}
+              onClose={() => setShowAiTip(false)}
+              onAutoFix={isAiConfigured ? onAutoFix : undefined}
+              isAutoFixing={isAutoFixing}
+              variant="popover"
+            />
           </div>
         </>
       )}
@@ -174,20 +212,23 @@ function AgentScoreBadge({
 function ScoreCheckRow({
   check,
   onFix,
+  compact,
 }: {
   check: ScoreCheck;
   onFix: (fixField: string) => void;
+  compact: boolean;
 }) {
+  const iconSize = compact ? "w-3 h-3" : "w-3.5 h-3.5";
   const icon = check.na ? (
-    <HiOutlineMinusCircle className="w-3 h-3 shrink-0 opacity-40" />
+    <HiOutlineMinusCircle className={`${iconSize} shrink-0 opacity-40`} />
   ) : check.passed ? (
-    <HiOutlineCheckCircle className="w-3 h-3 shrink-0 text-emerald-500" />
+    <HiOutlineCheckCircle className={`${iconSize} shrink-0 text-emerald-500`} />
   ) : (
-    <HiOutlineExclamationCircle className="w-3 h-3 shrink-0 text-amber-500" />
+    <HiOutlineExclamationCircle className={`${iconSize} shrink-0 text-amber-500`} />
   );
 
   return (
-    <div className="flex items-start gap-1.5">
+    <div className={`flex items-start ${compact ? "gap-1.5" : "gap-2"}`}>
       {icon}
       <span className="flex-1 opacity-80">{check.reason}</span>
       {!check.passed && !check.na && check.fixField && (
@@ -210,10 +251,16 @@ function AgentScorePanel({
   agentRating,
   onFix,
   onClose,
+  onAutoFix,
+  isAutoFixing,
+  variant = "popover",
 }: {
   agentRating: ReturnType<typeof computeAgentScore>;
   onFix: (fixField: string) => void;
   onClose: () => void;
+  onAutoFix?: () => void;
+  isAutoFixing?: boolean;
+  variant?: "popover" | "dialog";
 }) {
   const categories: { label: string; checks: ScoreCheck[] }[] = ["Frontmatter", "Headings", "Syntax"]
     .map((category) => ({
@@ -223,61 +270,90 @@ function AgentScorePanel({
     .filter((c) => c.checks.length > 0);
 
   const allPassed = agentRating.tips.length === 0 && agentRating.label !== "Empty";
+  const isDialog = variant === "dialog";
+
+  // The dialog has its own room to breathe (DialogModal's padding + close
+  // button), so it gets larger text and looser spacing than the compact
+  // popover, which has to fit inside a small anchored bubble.
+  const rootClasses = isDialog ? "flex flex-col gap-3 text-sm leading-relaxed" : "flex flex-col gap-1.5 text-[11px] leading-snug";
 
   return (
-    <>
+    <div className={rootClasses}>
       {/* Header — score takes visual priority over the close affordance */}
-      <div className="flex items-center justify-between gap-2 -mx-1 -mt-0.5 px-1">
+      <div className={`flex items-center ${isDialog ? "" : "justify-between gap-2 -mx-1 -mt-0.5 px-1"}`}>
         <div className="flex items-baseline gap-1.5">
-          <span className="text-[18px] font-bold tabular-nums leading-none opacity-95">{agentRating.score}</span>
+          <span className={`font-bold tabular-nums leading-none opacity-95 ${isDialog ? "text-[28px]" : "text-[18px]"}`}>{agentRating.score}</span>
           <span className="opacity-50 font-medium leading-none">/100</span>
           <span className={`font-semibold lowercase ${agentRating.colorClass}`}>{agentRating.label}</span>
         </div>
-        <button
-          type="button"
-          onClick={onClose}
-          aria-label="Close"
-          className="shrink-0 opacity-40 hover:opacity-80 transition-opacity p-0.5 -mr-1"
-        >
-          <HiX className="w-3.5 h-3.5" />
-        </button>
+        {!isDialog && (
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close"
+            className="shrink-0 opacity-40 hover:opacity-80 transition-opacity p-0.5 -mr-1"
+          >
+            <HiX className="w-3.5 h-3.5" />
+          </button>
+        )}
       </div>
 
-      {agentRating.breakdown.map(({ label, score: s, max }) => (
-        <div key={label} className="flex items-center gap-2">
-          <span className="w-[70px] shrink-0 opacity-60 font-medium">{label}</span>
-          <span className="flex-1 h-1.5 rounded-full bg-paper-softgray dark:bg-paper-dark-surface overflow-hidden">
-            <span
-              className="block h-full rounded-full bg-emerald-500"
-              style={{ width: `${Math.round((s / max) * 100)}%` }}
-            />
-          </span>
-          <span className="opacity-40 w-7 text-right shrink-0 font-medium">{s}/{max}</span>
-        </div>
-      ))}
+      <div className={`flex flex-col ${isDialog ? "gap-2" : "gap-1"}`}>
+        {agentRating.breakdown.map(({ label, score: s, max }) => (
+          <div key={label} className="flex items-center gap-2">
+            <span className={`shrink-0 opacity-60 font-medium ${isDialog ? "w-20" : "w-[70px]"}`}>{label}</span>
+            <span className={`flex-1 rounded-full bg-paper-softgray dark:bg-paper-dark-surface overflow-hidden ${isDialog ? "h-2" : "h-1.5"}`}>
+              <span
+                className="block h-full rounded-full bg-emerald-500"
+                style={{ width: `${Math.round((s / max) * 100)}%` }}
+              />
+            </span>
+            <span className="opacity-40 w-7 text-right shrink-0 font-medium">{s}/{max}</span>
+          </div>
+        ))}
+      </div>
 
       {categories.length > 0 && (
-        <div className="flex flex-col gap-1.5 mt-1 pt-2 border-t border-paper-softgray dark:border-paper-dark-surface">
+        <div className={`flex flex-col ${isDialog ? "gap-2.5 pt-3" : "gap-1.5 pt-2"} border-t border-paper-softgray dark:border-paper-dark-surface`}>
           {categories.map((cat) => {
             const failing = cat.checks.filter((c) => !c.passed && !c.na);
             const allCatPassed = failing.length === 0;
             return (
-              <div key={cat.label} className="flex flex-col gap-1">
-                <span className="opacity-50 font-semibold uppercase tracking-wide text-[9px]">{cat.label}</span>
+              <div key={cat.label} className={`flex flex-col ${isDialog ? "gap-1.5" : "gap-1"}`}>
+                <span className={`opacity-50 font-semibold uppercase tracking-wide ${isDialog ? "text-[10px]" : "text-[9px]"}`}>{cat.label}</span>
                 {allCatPassed ? (
                   <div className="flex items-start gap-1.5">
-                    <HiOutlineCheckCircle className="w-3 h-3 shrink-0 text-emerald-500" />
+                    <HiOutlineCheckCircle className={`${isDialog ? "w-3.5 h-3.5" : "w-3 h-3"} shrink-0 text-emerald-500`} />
                     <span className="flex-1 opacity-80">All checks passed</span>
                   </div>
                 ) : (
                   failing.map((check) => (
-                    <ScoreCheckRow key={check.id} check={check} onFix={onFix} />
+                    <ScoreCheckRow key={check.id} check={check} onFix={onFix} compact={!isDialog} />
                   ))
                 )}
               </div>
             );
           })}
         </div>
+      )}
+
+      {!allPassed && onAutoFix && (
+        <button
+          type="button"
+          disabled={isAutoFixing}
+          onClick={(e) => {
+            e.stopPropagation();
+            onAutoFix();
+          }}
+          className={`flex items-center justify-center gap-1.5 ${isDialog ? "mt-1 pt-3" : "mt-0.5 pt-2"} border-t border-paper-softgray dark:border-paper-dark-surface text-sage dark:text-sage font-semibold disabled:opacity-50 disabled:cursor-default ${isAutoFixing ? "" : "hover:underline"}`}
+        >
+          {isAutoFixing ? (
+            <HiOutlineRefresh className="w-3.5 h-3.5 shrink-0 animate-spin" />
+          ) : (
+            <HiOutlineSparkles className="w-3.5 h-3.5 shrink-0" />
+          )}
+          {isAutoFixing ? "Fixing…" : "Auto-fix with AI"}
+        </button>
       )}
 
       {allPassed && (
@@ -288,14 +364,14 @@ function AgentScorePanel({
       {agentRating.label === "Empty" && (
         <span className="opacity-50 mt-0.5 italic">Start typing to see AI readability tips.</span>
       )}
-    </>
+    </div>
   );
 }
 
 // --- StatusBar ---
 
 export default function StatusBar() {
-  const content = useAtomValue(atom_content);
+  const [content, setContent] = useAtom(atom_content);
   const lastSavedContent = useAtomValue(atom_lastSavedContent);
   const [saveStatus] = useAtom(atom_saveStatus);
   const [showStats] = useAtom(atom_showStats);
@@ -312,12 +388,42 @@ export default function StatusBar() {
   const activeFilePath = useAtomValue(atom_activeFilePath);
   const setFrontmatterWizardOpen = useAtom(atom_frontmatterWizardOpen)[1];
   const setFrontmatterWizardTargetField = useAtom(atom_frontmatterWizardTargetField)[1];
+  const isAiConfigured = useAtomValue(atom_isAiConfigured);
+  const rawSchema = useAtomValue(atom_vaultSchema);
+  const schema = rawSchema ?? DEFAULT_SCHEMA;
+  const [isAutoFixing, setIsAutoFixing] = useState(false);
 
   const handleFix = (fixField: string) => {
     if (!activeFilePath) return;
     setFrontmatterWizardTargetField(fixField);
     setFrontmatterWizardOpen(activeFilePath);
     setShowAiTip(false);
+  };
+
+  const handleAutoFix = async () => {
+    if (!activeFilePath) return;
+    const body = content.replace(FM_REGEX, "").trim();
+    if (!body) {
+      toast.error("Note is empty. Nothing to fix.");
+      return;
+    }
+
+    setIsAutoFixing(true);
+    try {
+      const data = await generateFrontmatterData(body);
+      const newEdits: Record<string, string> = {
+        scope: data.scope,
+        tags: (data.tags ?? []).join(", "),
+        read_when: (data.read_when ?? []).join(", "),
+      };
+      if (data.title) newEdits.title = data.title;
+      setContent(updateFmFields(content, newEdits, schema));
+      toast.success("Frontmatter auto-fixed with AI.");
+    } catch (error: any) {
+      toast.error(error.message || "Failed to auto-fix frontmatter.");
+    } finally {
+      setIsAutoFixing(false);
+    }
   };
 
   useEffect(() => {
@@ -451,6 +557,9 @@ export default function StatusBar() {
               showAiTip={showAiTip}
               setShowAiTip={setShowAiTip}
               onFix={handleFix}
+              onAutoFix={handleAutoFix}
+              isAiConfigured={isAiConfigured}
+              isAutoFixing={isAutoFixing}
               popoverAlign="down"
             />
             <Button
@@ -495,6 +604,9 @@ export default function StatusBar() {
             showAiTip={showAiTip}
             setShowAiTip={setShowAiTip}
             onFix={handleFix}
+            onAutoFix={handleAutoFix}
+            isAiConfigured={isAiConfigured}
+            isAutoFixing={isAutoFixing}
             popoverAlign="up"
           />
         </div>
