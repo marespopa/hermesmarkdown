@@ -21,6 +21,7 @@ vi.mock("@/app/atoms/atoms", async (importOriginal) => {
     atom_activeFilePath: { toString: () => "atom_activeFilePath", read: () => {} },
     atom_sidebarWidth: { toString: () => "atom_sidebarWidth", read: () => {} },
     atom_sidebarTabOrder: { toString: () => "atom_sidebarTabOrder", read: () => {} },
+    atom_activeSidebarTab: { toString: () => "atom_activeSidebarTab", read: () => {} },
   };
 });
 
@@ -101,6 +102,7 @@ describe("VaultSidebar Component", () => {
       if (atomStr === "atom_activeFilePath") return ["test.md", vi.fn()];
       if (atomStr === "atom_sidebarWidth") return [260, vi.fn()];
       if (atomStr === "atom_sidebarTabOrder") return [["content", "views"], vi.fn()];
+      if (atomStr === "atom_activeSidebarTab") return ["content", vi.fn()];
       if (atomStr === "atom_fileMetadata") {
         return [
           {
