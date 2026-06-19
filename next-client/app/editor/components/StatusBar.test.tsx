@@ -26,6 +26,9 @@ vi.mock("@/app/atoms/ui-atoms", async () => {
   return {
     atom_indexerState: atom("idle"),
     atom_indexTimestamp: atom(null),
+    atom_frontmatterWizardOpen: atom(null),
+    atom_frontmatterWizardTargetField: atom(null),
+    atom_aiActionStatus: atom({ seq: 0, status: "idle" }),
   };
 });
 
@@ -165,16 +168,16 @@ describe("StatusBar", () => {
     expect(text.includes("words") || text.includes("tokens")).toBe(true);
   });
 
-  it("shows ai: label in the footer", () => {
+  it("shows the agent readability badge in the footer", () => {
     render(
       <TestProvider initialValues={makeValues()}>
         <StatusBar />
       </TestProvider>
     );
-    expect(screen.getByRole("contentinfo").textContent).toContain("ai:");
+    expect(screen.getByLabelText(/Agent readability:/)).toBeDefined();
   });
 
-  it("shows ai: Empty for blank content", () => {
+  it("shows Empty for blank content", () => {
     render(
       <TestProvider initialValues={makeValues([
         [atom_content,          "   "],
@@ -183,7 +186,7 @@ describe("StatusBar", () => {
         <StatusBar />
       </TestProvider>
     );
-    expect(screen.getByRole("contentinfo").textContent).toContain("ai: Empty");
+    expect(screen.getByRole("contentinfo").textContent).toContain("Empty");
   });
 
   it("shows ai: Structured for a fully agent-readable document", () => {
@@ -226,10 +229,10 @@ describe("StatusBar", () => {
         <StatusBar />
       </TestProvider>
     );
-    expect(screen.getByRole("contentinfo").textContent).toContain("ai: Structured");
+    expect(screen.getByRole("contentinfo").textContent).toContain("Structured");
   });
 
-  it("shows ai: Weak for plain unstructured text", () => {
+  it("shows Weak for plain unstructured text", () => {
     render(
       <TestProvider initialValues={makeValues([
         [atom_content,          "Just some plain text without any structure or headings."],
@@ -238,7 +241,7 @@ describe("StatusBar", () => {
         <StatusBar />
       </TestProvider>
     );
-    expect(screen.getByRole("contentinfo").textContent).toContain("ai: Weak");
+    expect(screen.getByRole("contentinfo").textContent).toContain("Weak");
   });
 
   it("renders a header (top bar) in zen mode", () => {
@@ -292,12 +295,12 @@ describe("StatusBar", () => {
     );
     
     const aiButton = screen.getByLabelText(/Agent readability:/);
-    expect(screen.queryByText(/Agent readability —/)).toBeNull();
-    
+    expect(screen.queryByLabelText("Close")).toBeNull();
+
     fireEvent.click(aiButton);
-    expect(screen.getByText(/Agent readability —/)).toBeDefined();
-    
+    expect(screen.getByLabelText("Close")).toBeDefined();
+
     fireEvent.click(aiButton);
-    expect(screen.queryByText(/Agent readability —/)).toBeNull();
+    expect(screen.queryByLabelText("Close")).toBeNull();
   });
 });

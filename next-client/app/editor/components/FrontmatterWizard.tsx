@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useAtom, useAtomValue } from "jotai";
 import { atom_fileContent } from "@/app/atoms/file-atoms";
-import { atom_frontmatterWizardOpen, atom_isAiConfigured } from "@/app/atoms/ui-atoms";
+import { atom_frontmatterWizardOpen, atom_frontmatterWizardTargetField, atom_isAiConfigured } from "@/app/atoms/ui-atoms";
 import { atom_fileMetadata } from "@/app/atoms/metadata";
 import { callAI, generateFrontmatterData } from "@/app/services/ai";
 import DialogModal from "@/app/components/DialogModal/DialogModal";
@@ -90,6 +90,7 @@ function capitalize(s: string): string {
 
 export default function FrontmatterWizard() {
   const [wizardPath, setWizardPath] = useAtom(atom_frontmatterWizardOpen);
+  const [targetField, setTargetField] = useAtom(atom_frontmatterWizardTargetField);
   const isOpen = wizardPath !== null;
   const [content, setContent] = useAtom(atom_fileContent(wizardPath ?? "draft"));
   const metadata = useAtomValue(atom_fileMetadata);
@@ -106,7 +107,11 @@ export default function FrontmatterWizard() {
 
   useEffect(() => {
     if (isOpen) {
-      setStep(0);
+      const targetStep = targetField
+        ? wizardSteps.findIndex((s) => s.fields.some((f) => f.key === targetField))
+        : -1;
+      setStep(targetStep >= 0 ? targetStep : 0);
+      setTargetField(null);
       setSuggestions([]);
       const parsed = parseFmFields(content);
       const initial: Record<string, string> = {};

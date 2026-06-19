@@ -134,7 +134,19 @@ export const atom_availableGeminiModels = atom<GeminiModelInfo[]>([]);
 
 // Holds the file path being edited, or null when closed
 export const atom_frontmatterWizardOpen = atom<string | null>(null);
+// Schema field key to jump the wizard to on open (e.g. from the health score panel's Fix button)
+export const atom_frontmatterWizardTargetField = atom<string | null>(null);
 export const atom_vaultSetupWizardOpen = atom<string | null>(null);
+
+// Ambient AI action status, surfaced as the status bar's center pill.
+// `seq` lets a delayed "auto-clear to idle" timeout (see app/services/ai-status.ts)
+// confirm it's not clobbering a newer action that started during its delay.
+export type AiActionStatus =
+  | { seq: number; status: "idle" }
+  | { seq: number; status: "thinking"; label: string }
+  | { seq: number; status: "done"; label: string }
+  | { seq: number; status: "error"; message: string };
+export const atom_aiActionStatus = atom<AiActionStatus>({ seq: 0, status: "idle" });
 
 // AI Features
 export type AIProvider = "claude" | "gemini";

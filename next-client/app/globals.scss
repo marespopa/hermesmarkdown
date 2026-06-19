@@ -295,6 +295,40 @@ ul li::marker {
   animation: grow-x 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) both;
 }
 
+/* AI status pill — fade only, no slide/scale/bounce; pulse reads as "alive",
+   not "loading", so it's opacity-only too. */
+@keyframes pill-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes ai-pulse {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+
+.animate-pill-fade-in {
+  animation: pill-fade 0.18s ease forwards;
+}
+
+.animate-ai-pulse {
+  animation: ai-pulse 1.6s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-hero-fade-in,
+  .animate-fade-in,
+  .animate-dropdown-in,
+  .animate-dropdown-in-up,
+  .animate-row-in,
+  .animate-grow-x,
+  .animate-pill-fade-in,
+  .animate-ai-pulse {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
+
 .typewriter-cursor::after {
   content: "|";
   margin-left: 2px;

@@ -1,3 +1,5 @@
+import { beginAiAction, finishAiActionSuccess, finishAiActionError } from "./ai-status";
+
 export type AIProvider = 'claude' | 'gemini';
 
 const getFromStorage = (key: string) => {
@@ -90,9 +92,10 @@ export async function fetchGeminiModels(apiKey: string) {
  * Simple text generation for Summarize, Expand, Improve features.
  */
 export async function callAI(system: string, prompt: string) {
-  const config = getAIConfig();
+  const seq = beginAiAction("Thinking…");
 
   try {
+    const config = getAIConfig();
     const response = await fetch('/api/ai', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -106,11 +109,14 @@ export async function callAI(system: string, prompt: string) {
 
     const data = await response.json();
     if (!response.ok) throw new Error(data.error || "Failed to generate text");
-    
+
+    finishAiActionSuccess(seq, "Done");
     return data.text;
   } catch (error: any) {
     console.error("AI Generation Error:", error);
-    throw new Error(beautifyAIError(error.message || "An unexpected error occurred during AI generation."));
+    const message = beautifyAIError(error.message || "An unexpected error occurred during AI generation.");
+    finishAiActionError(seq, message);
+    throw new Error(message);
   }
 }
 
@@ -118,9 +124,10 @@ export async function callAI(system: string, prompt: string) {
  * Structured object generation for Frontmatter feature.
  */
 export async function generateFrontmatterData(noteBody: string) {
-  const config = getAIConfig();
+  const seq = beginAiAction("Generating frontmatter…");
 
   try {
+    const config = getAIConfig();
     const response = await fetch('/api/ai', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -133,11 +140,14 @@ export async function generateFrontmatterData(noteBody: string) {
 
     const data = await response.json();
     if (!response.ok) throw new Error(data.error || "Failed to generate structured frontmatter");
-    
+
+    finishAiActionSuccess(seq, "Frontmatter generated");
     return data.object;
   } catch (error: any) {
     console.error("AI Structured Data Error:", error);
-    throw new Error(beautifyAIError(error.message || "Failed to generate structured frontmatter."));
+    const message = beautifyAIError(error.message || "Failed to generate structured frontmatter.");
+    finishAiActionError(seq, message);
+    throw new Error(message);
   }
 }
 

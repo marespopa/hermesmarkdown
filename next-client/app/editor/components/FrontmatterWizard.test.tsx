@@ -1,7 +1,11 @@
 import { render, screen, cleanup } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import FrontmatterWizard from "./FrontmatterWizard";
-import { Provider } from "jotai";
+import { Provider, createStore } from "jotai";
+import {
+  atom_frontmatterWizardOpen as wizardOpenAtom,
+  atom_frontmatterWizardTargetField as wizardTargetFieldAtom,
+} from "@/app/atoms/ui-atoms";
 import "@testing-library/jest-dom";
 
 // Stable atom instances — must not be re-created per render or Jotai
@@ -10,6 +14,7 @@ vi.mock("@/app/atoms/ui-atoms", async () => {
   const { atom } = await import("jotai");
   return {
     atom_frontmatterWizardOpen: atom<string | null>("test.md"),
+    atom_frontmatterWizardTargetField: atom<string | null>(null),
     atom_isAiConfigured: atom(true),
   };
 });
@@ -47,5 +52,26 @@ describe("FrontmatterWizard AI Visibility", () => {
       </Provider>
     );
     expect(screen.getByText("AI Magic")).toBeInTheDocument();
+  });
+});
+
+describe("FrontmatterWizard target field jump", () => {
+  beforeEach(() => {
+    cleanup();
+    vi.clearAllMocks();
+  });
+
+  it("opens directly on the step containing the target field", () => {
+    const store = createStore();
+    store.set(wizardTargetFieldAtom, "scope");
+
+    render(
+      <Provider store={store}>
+        <FrontmatterWizard />
+      </Provider>
+    );
+
+    expect(screen.getByText("Describe")).toBeInTheDocument();
+    expect(screen.getByLabelText("Scope")).toBeInTheDocument();
   });
 });
