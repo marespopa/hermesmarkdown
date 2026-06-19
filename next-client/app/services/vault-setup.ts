@@ -185,9 +185,9 @@ Total: 23,000.00 RON
 \`\`\`
 | Creditor   | Plată     | Sold rămas  |
 | :--------- | :-------- | :---------- |
-| Ipoteca BT | 2,766 RON | 425,105 RON |
-| Revolut    | 3,276 RON | 90,442 RON  |
-| MOGO       | 780 RON   | 5,367 RON   |
+| Credit A   | 1,200 RON | 50,000 RON  |
+| Credit B   | 800 RON   | 20,000 RON  |
+| Credit C   | 300 RON   | 5,000 RON   |
 |            | Total:    | Total:      |
 \`\`\`
 The editor fills in the computed sums automatically.
