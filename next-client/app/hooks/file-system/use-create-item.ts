@@ -9,7 +9,6 @@ import {
   atom_autoInjectFrontmatter,
   atom_vaultSetupStatus,
 } from "@/app/atoms/atoms";
-import { atom_vaultFiles } from "@/app/atoms/vault-atoms";
 import { atom_frontmatterWizardOpen, atom_vaultSetupWizardOpen } from "@/app/atoms/ui-atoms";
 import { useDialog } from "../use-dialog";
 import { withRetry } from "./shared";
@@ -27,7 +26,6 @@ export function useCreateItem({ scanVault, openFile }: UseCreateItemProps) {
   const setFrontmatterWizardOpen = useSetAtom(atom_frontmatterWizardOpen);
   const setVaultSetupWizardOpen = useSetAtom(atom_vaultSetupWizardOpen);
   const vaultSetupStatus = useAtomValue(atom_vaultSetupStatus);
-  const vaultFiles = useAtomValue(atom_vaultFiles);
   const dialog = useDialog();
 
   const createFile = useCallback(
@@ -126,15 +124,21 @@ export function useCreateItem({ scanVault, openFile }: UseCreateItemProps) {
   const createNewFile = useCallback(async (dirHandle?: FileSystemDirectoryHandle) => {
     if (!vaultHandle) return;
 
-    // Collect subdirectories from the current vault scan
-    const subDirs = vaultFiles.filter(
-      (f): f is FileSystemDirectoryHandle => (f as any).kind === "directory"
-    );
-
     let targetDir: FileSystemDirectoryHandle = dirHandle || vaultHandle;
 
     // Only show folder picker when called from the header (no dirHandle)
     if (!dirHandle) {
+      // Read the vault root's subdirectories directly rather than relying on
+      // vaultFiles, which reflects whatever directory was last scanned (e.g.
+      // a subfolder from Content navigation) and can be stale/empty in Views.
+      const subDirs: FileSystemDirectoryHandle[] = [];
+      for await (const entry of (vaultHandle as any).values()) {
+        if (entry.kind === "directory" && !entry.name.startsWith(".")) {
+          subDirs.push(entry);
+        }
+      }
+      subDirs.sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0));
+
       const options = [
         { label: `/ ${vaultHandle.name} (root)`, value: "__root__" },
         ...subDirs.map((d) => ({ label: d.name, value: d.name })),
@@ -173,7 +177,7 @@ export function useCreateItem({ scanVault, openFile }: UseCreateItemProps) {
     const fm = `---\nid: ${slug}\ntitle: ${result.name}\ntype: ${result.type || "note"}\nstatus: "#draft"\ntags: ${tagsStr}\n---\n\n`;
 
     return await createFile(result.name, fm, targetDir);
-  }, [vaultHandle, vaultFiles, scanVault, createFile, dialog]);
+  }, [vaultHandle, scanVault, createFile, dialog]);
 
   return {
     createFile,
