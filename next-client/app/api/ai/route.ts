@@ -41,21 +41,15 @@ export async function POST(req: Request) {
     const model = createAIModel(provider, apiKey, modelKey);
 
     if (action === 'text') {
-      const messages = provider === 'gemini' 
-        ? [{ role: 'user', content: `${system}\n\n--- TASK ---\n\n${prompt}` }]
-        : [
-            { role: 'system', content: system },
-            { role: 'user', content: prompt }
-          ];
-
-      const { text } = await generateText({
-        model,
-        // @ts-expect-error: Vercel AI SDK types sometimes conflict with custom message folding
-        messages,
-      });
+      // Gemini's content-safety filtering behaves more reliably when the
+      // system instructions are folded into the user prompt rather than
+      // passed as a separate system message.
+      const { text } = provider === 'gemini'
+        ? await generateText({ model, prompt: `${system}\n\n--- TASK ---\n\n${prompt}` })
+        : await generateText({ model, system, prompt });
 
       return NextResponse.json({ text });
-    } 
+    }
     
     if (action === 'object') {
       const { object } = await generateObject({

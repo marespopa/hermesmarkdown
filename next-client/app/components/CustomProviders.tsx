@@ -1,6 +1,6 @@
 "use client";
 
-import { Provider as JotaiProvider } from "jotai";
+import { Provider as JotaiProvider, getDefaultStore } from "jotai";
 import React from "react";
 import ThemeProvider from "./ThemeProvider";
 
@@ -10,7 +10,11 @@ type Props = {
 
 const CustomProviders = ({ children }: Props) => {
   return (
-    <JotaiProvider>
+    // Explicitly use jotai's default store. Without this, <Provider> creates
+    // its own isolated store, so writes from plain-module code (e.g.
+    // app/services/ai-status.ts, which uses getDefaultStore()) never reach
+    // components rendered here.
+    <JotaiProvider store={getDefaultStore()}>
       <ThemeProvider>
         {children}
       </ThemeProvider>

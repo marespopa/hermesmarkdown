@@ -152,6 +152,24 @@ export async function generateFrontmatterData(noteBody: string) {
 }
 
 /**
+ * Fixes structural/formatting issues across the whole document (frontmatter,
+ * headings, syntax) in a single pass, returning the corrected markdown.
+ */
+export async function generateContentFix(content: string, issues: string[]) {
+  const system = `You are an expert markdown editor. Fix the structural and formatting issues listed below in the given document, while preserving its meaning and existing information.
+Rules:
+- Preserve existing frontmatter values that are already correct; only fill in or fix what's missing or wrong.
+- Keep the body content's meaning intact — only restructure headings, fences, bullets, tables, bold, etc. as needed to resolve the listed issues.
+- Return ONLY the complete corrected markdown document (including frontmatter) — no commentary, no explanation, no wrapping code fences.`;
+
+  const prompt = `Issues to fix:\n${issues.map((i) => `- ${i}`).join("\n")}\n\n--- DOCUMENT ---\n${content}`;
+
+  const text = await callAI(system, prompt);
+  const fenceMatch = text.trim().match(/^```(?:markdown|md)?\n([\s\S]*?)\n```$/);
+  return fenceMatch ? fenceMatch[1] : text.trim();
+}
+
+/**
  * Generates a complete markdown note (body + frontmatter metadata) from a user prompt.
  */
 export async function generateFileFromPrompt(userPrompt: string) {

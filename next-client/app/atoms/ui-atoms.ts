@@ -148,6 +148,11 @@ export type AiActionStatus =
   | { seq: number; status: "error"; message: string };
 export const atom_aiActionStatus = atom<AiActionStatus>({ seq: 0, status: "idle" });
 
+// Derived: true while any AI request (auto-fix, frontmatter wizard, selection
+// actions) is in flight, so the editor can block typing and show an overlay
+// regardless of which feature triggered the call.
+export const atom_isAiBusy = atom((get) => get(atom_aiActionStatus).status === "thinking");
+
 // AI Features
 export type AIProvider = "claude" | "gemini";
 export const atom_aiProvider = atomWithStorage<AIProvider>(

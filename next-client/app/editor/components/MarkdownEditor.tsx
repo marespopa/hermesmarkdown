@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useAtomValue, useSetAtom } from "jotai";
-import { atom_frontmatterWizardOpen, atom_isAiConfigured, atom_currency } from "@/app/atoms/atoms";
+import { atom_frontmatterWizardOpen, atom_isAiConfigured, atom_currency, atom_isAiBusy } from "@/app/atoms/atoms";
 import Editor from "react-simple-code-editor";
 import { HiOutlineCalendar, HiChevronRight, HiChevronDown, HiOutlinePencil } from "react-icons/hi";
 import DatePickerCallout from "./DatePickerCallout";
@@ -45,6 +45,7 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
   const setFrontmatterWizardOpen = useSetAtom(atom_frontmatterWizardOpen);
   const wizardPath = useAtomValue(atom_frontmatterWizardOpen);
   const isAiConfigured = useAtomValue(atom_isAiConfigured);
+  const isAiBusy = useAtomValue(atom_isAiBusy);
   const currencyCode = useAtomValue(atom_currency);
   const filePath = props.filePath || "draft";
 
@@ -192,6 +193,8 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
     onChange: editorOnChange,
     onFrontmatterWizard: useCallback(() => setFrontmatterWizardOpen(filePath), [setFrontmatterWizardOpen, filePath]),
   });
+
+  const isEditorBlocked = isAiLoading || isAiBusy;
 
   const [linkLabel, setLinkLabel] = useState("");
   const [linkUrl, setLinkUrl] = useState("");
@@ -500,7 +503,7 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
             />
           )}
 
-          {isAiLoading && <AIThinkingOverlay />}
+          {isEditorBlocked && <AIThinkingOverlay />}
 
           {tableInfo && (
             <TableCallout
@@ -617,7 +620,7 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
             onValueChange={handleValueChange}
             highlight={highlight}
             padding={0}
-            readOnly={isAiLoading}
+            readOnly={isEditorBlocked}
             onClick={(e) => {
               handleEditorClick(e);
               // Collapse frontmatter when clicking into the body area

@@ -530,14 +530,15 @@ Return the 3-5 most semantically related note titles as a JSON array.`,
             </p>
           </div>
 
-          {/* Step content */}
-          <div className="flex flex-col gap-4">
+          {/* Step content — disabled while AI is generating so concurrent edits
+              can't be clobbered when the response lands. */}
+          <fieldset disabled={isGenerating} className="flex flex-col gap-4 border-0 m-0 p-0 disabled:opacity-50">
             {currentStep.fields.map((field, i) => (
               <React.Fragment key={field.key}>
                 {renderField(field, i === 0)}
               </React.Fragment>
             ))}
-          </div>
+          </fieldset>
 
           {/* Progress dots */}
           <div className="flex items-center justify-center gap-1.5">
@@ -557,7 +558,7 @@ Return the 3-5 most semantically related note titles as a JSON array.`,
 
           {/* Actions */}
           <div className="flex items-center justify-between gap-2 pt-1">
-            <Button variant="outlined" onClick={handleSkip}>
+            <Button variant="outlined" onClick={handleSkip} disabled={isGenerating}>
               Skip
             </Button>
             <div className="flex items-center gap-2">
@@ -577,7 +578,7 @@ Return the 3-5 most semantically related note titles as a JSON array.`,
                   <span className="text-ui-caption font-semibold">AI Magic</span>
                 </Button>
               )}
-              <Button variant="primary" onClick={handleNext}>
+              <Button variant="primary" onClick={handleNext} disabled={isGenerating}>
                 {isLastStep ? "Save & Close" : "Next"}
               </Button>
             </div>

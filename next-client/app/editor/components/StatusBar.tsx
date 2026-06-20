@@ -20,11 +20,8 @@ import {
   atom_isAiConfigured,
   atom_aiActionStatus,
 } from "@/app/atoms/ui-atoms";
-import { atom_vaultSchema } from "@/app/atoms/schema-atoms";
-import { DEFAULT_SCHEMA } from "@/app/services/vault-schema";
 import { dismissAiActionStatus } from "@/app/services/ai-status";
-import { generateFrontmatterData } from "@/app/services/ai";
-import { FM_REGEX, updateFmFields } from "@/app/utils/frontmatter-utils";
+import { generateContentFix } from "@/app/services/ai";
 import { computeAgentScore, ScoreCheck } from "@/app/utils/agentScore";
 import toast from "react-hot-toast";
 import useIsMobile from "@/app/hooks/use-is-mobile";
@@ -389,8 +386,6 @@ export default function StatusBar() {
   const setFrontmatterWizardOpen = useAtom(atom_frontmatterWizardOpen)[1];
   const setFrontmatterWizardTargetField = useAtom(atom_frontmatterWizardTargetField)[1];
   const isAiConfigured = useAtomValue(atom_isAiConfigured);
-  const rawSchema = useAtomValue(atom_vaultSchema);
-  const schema = rawSchema ?? DEFAULT_SCHEMA;
   const [isAutoFixing, setIsAutoFixing] = useState(false);
 
   const handleFix = (fixField: string) => {
@@ -402,25 +397,20 @@ export default function StatusBar() {
 
   const handleAutoFix = async () => {
     if (!activeFilePath) return;
-    const body = content.replace(FM_REGEX, "").trim();
-    if (!body) {
+    if (!content.trim()) {
       toast.error("Note is empty. Nothing to fix.");
       return;
     }
+    const tips = computeAgentScore(content).tips;
+    if (tips.length === 0) return;
 
     setIsAutoFixing(true);
     try {
-      const data = await generateFrontmatterData(body);
-      const newEdits: Record<string, string> = {
-        scope: data.scope,
-        tags: (data.tags ?? []).join(", "),
-        read_when: (data.read_when ?? []).join(", "),
-      };
-      if (data.title) newEdits.title = data.title;
-      setContent(updateFmFields(content, newEdits, schema));
-      toast.success("Frontmatter auto-fixed with AI.");
+      const fixed = await generateContentFix(content, tips);
+      setContent(fixed);
+      toast.success("Document auto-fixed with AI.");
     } catch (error: any) {
-      toast.error(error.message || "Failed to auto-fix frontmatter.");
+      toast.error(error.message || "Failed to auto-fix document.");
     } finally {
       setIsAutoFixing(false);
     }
