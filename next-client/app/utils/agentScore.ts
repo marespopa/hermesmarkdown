@@ -64,7 +64,7 @@ export function computeAgentScore(content: string): AgentRating {
     passed: hasTags, reason: hasTags ? "Has `tags:`" : "Use explicit inline array for tags: `tags: [tag1, tag2]`", fixField: "tags",
   });
 
-  const hasScope = /^scope:\s*".+"|^scope:\s*\|/m.test(fm);
+  const hasScope = /^scope:\s*".+"|^scope:\s*[|>]/m.test(fm);
   checks.push({
     id: "fm-scope", category: "Frontmatter", points: hasScope ? 3 : 0, maxPoints: 3,
     passed: hasScope, reason: hasScope ? "Has `scope:`" : "Add `scope:` — one paragraph describing what this file covers", fixField: "scope",
