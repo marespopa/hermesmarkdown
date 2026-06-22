@@ -28,6 +28,7 @@ interface MarkdownEditorProps {
   onTextareaReady?: (element: HTMLTextAreaElement | null) => void;
   setMatchCount?: (count: number) => void;
   onWikiLinkClick?: (name: string) => void;
+  isActivePane?: boolean;
 }
 
 const FM_REGEX = /^---\n[\s\S]*?\n---\n?/;

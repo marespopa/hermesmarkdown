@@ -388,6 +388,7 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
             filePath={leaf.activeFilePath || "draft"}
             onWikiLinkClick={openFileByName}
             placeholder={`Editing ${leaf.activeFilePath || "Draft"}...`}
+            isActivePane={isActive}
           />
         ) : (
           <div className="flex flex-col items-center justify-center h-full opacity-20 space-y-2">

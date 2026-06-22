@@ -52,8 +52,8 @@ export function useDialog() {
   );
 
   const textarea = useCallback(
-    (message: string, defaultValue?: string, title?: string) =>
-      showDialog({ type: "prompt", message, defaultValue, title, multiline: true, allowReferences: true }),
+    (message: string, defaultValue?: string, title?: string, subtext?: string) =>
+      showDialog({ type: "prompt", message, defaultValue, title, subtext, multiline: true, allowReferences: true }),
     [showDialog],
   );
 

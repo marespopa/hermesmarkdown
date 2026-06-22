@@ -170,4 +170,9 @@ export const atom_isAiConfigured = atom((get) => {
 
 export const atom_isFileLoading = atom<boolean>(false);
 
+// Bumped to request the AI Builder dialog from outside the editor (e.g. the
+// status bar), since the actual handler lives inside useAIEditorActions,
+// scoped to the editor's textarea/value.
+export const atom_aiBuilderRequest = atom<number>(0);
+
 export const atom_indexTimestamp = atom<number | null>(null);

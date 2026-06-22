@@ -19,6 +19,7 @@ import {
   atom_frontmatterWizardTargetField,
   atom_isAiConfigured,
   atom_aiActionStatus,
+  atom_aiBuilderRequest,
 } from "@/app/atoms/ui-atoms";
 import { dismissAiActionStatus } from "@/app/services/ai-status";
 import { generateContentFix } from "@/app/services/ai";
@@ -387,6 +388,7 @@ export default function StatusBar() {
   const setFrontmatterWizardTargetField = useAtom(atom_frontmatterWizardTargetField)[1];
   const isAiConfigured = useAtomValue(atom_isAiConfigured);
   const [isAutoFixing, setIsAutoFixing] = useState(false);
+  const setAiBuilderRequest = useAtom(atom_aiBuilderRequest)[1];
 
   const handleFix = (fixField: string) => {
     if (!activeFilePath) return;
@@ -524,6 +526,19 @@ export default function StatusBar() {
     </Button>
   );
 
+  const aiBuilderChip = isAiConfigured && (
+    <Button
+      variant="bare"
+      onClick={() => setAiBuilderRequest((v) => v + 1)}
+      className={`${chipBase} text-sage bg-sage/10 hover:bg-sage/20 hover:no-underline hover:shadow-[0_0_12px_-2px_var(--accent)] transition-all duration-200`}
+      title="AI Builder — create or revise a section"
+      aria-label="AI Builder"
+    >
+      <HiOutlineSparkles className="w-3.5 h-3.5 shrink-0" />
+      <span className="hidden sm:inline font-semibold">Builder</span>
+    </Button>
+  );
+
   if (isZenModeActive) {
     return (
       <header className={`${barClasses} h-11 md:h-8 border-b`}>
@@ -542,6 +557,7 @@ export default function StatusBar() {
           {/* Right zone */}
           <div className="flex items-center gap-1.5">
             {metricChip}
+            {aiBuilderChip}
             <AgentScoreBadge
               agentRating={agentRating}
               showAiTip={showAiTip}
@@ -589,6 +605,7 @@ export default function StatusBar() {
         {/* Right zone — vault health is the natural neighbor of AI action state */}
         <div className="flex items-center gap-1.5">
           {metricChip}
+          {aiBuilderChip}
           <AgentScoreBadge
             agentRating={agentRating}
             showAiTip={showAiTip}

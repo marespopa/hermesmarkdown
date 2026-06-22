@@ -96,7 +96,9 @@ export default function GlobalDialog() {
         </p>
 
         {config.subtext && (
-          <p className="text-ui-caption leading-relaxed">{config.subtext}</p>
+          <p className="text-ui-caption leading-relaxed text-fg-muted rounded-lg border border-edge-subtle bg-paper-softgray/50 dark:bg-paper-dark-surface/50 px-3 py-2">
+            {config.subtext}
+          </p>
         )}
 
         {(config.type === "prompt" || config.type === "new-file") && (

@@ -110,9 +110,17 @@ export function useAIEditorActions({
       dialogMessage: string,
       systemPrompt: string,
       buildPrompt: (instruction: string, selectedText: string, surroundingText: string) => string,
+      showSelectionAsContext = false,
     ) => {
       const { selectedText, surroundingText, start, end } = getContext();
-      const result = await dialog.textarea(dialogMessage, "", dialogTitle);
+      const trimmedSelection = selectedText.trim();
+      const subtext =
+        showSelectionAsContext && trimmedSelection
+          ? `Selected text will be used as context: "${
+              trimmedSelection.length > 200 ? `${trimmedSelection.slice(0, 200)}…` : trimmedSelection
+            }"`
+          : undefined;
+      const result = await dialog.textarea(dialogMessage, "", dialogTitle, subtext);
       const instruction = (result as { text?: string } | null)?.text?.trim();
       if (!instruction) return;
 
@@ -163,6 +171,7 @@ export function useAIEditorActions({
           selectedText.trim()
             ? `INSTRUCTION:\n${instruction}\n\nEXISTING TEXT:\n${selectedText}`
             : instruction,
+        true,
       ),
     [runPromptAction],
   );
@@ -373,6 +382,7 @@ export function useAIEditorActions({
     improveWriting,
     expandIdea,
     runPrompt,
+    runBuilder,
     applyReplace,
     applyInsertBelow,
     dismissReview,

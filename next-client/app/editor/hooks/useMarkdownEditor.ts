@@ -7,6 +7,7 @@ import {
   atom_wordWrap,
   atom_isZenModeActive,
   atom_currency,
+  atom_aiBuilderRequest,
 } from "@/app/atoms/atoms";
 import { SHORTCODES, TAG_CYCLE, TAG_CYCLE_PREV, TODO_CYCLE, TODO_CYCLE_PREV } from "../components/constants";
 import { runAutoBudget } from "../utils/budget";
@@ -28,6 +29,7 @@ interface UseMarkdownEditorProps {
   onTextareaReady?: (element: HTMLTextAreaElement | null) => void;
   onWikiLinkClick?: (name: string) => void;
   onFrontmatterWizard?: () => void;
+  isActivePane?: boolean;
 }
 
 export function useMarkdownEditor({
@@ -36,6 +38,7 @@ export function useMarkdownEditor({
   onTextareaReady,
   onWikiLinkClick,
   onFrontmatterWizard,
+  isActivePane = true,
 }: UseMarkdownEditorProps) {
   const wrapperRef = useRef<HTMLDivElement | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
@@ -102,6 +105,7 @@ export function useMarkdownEditor({
     improveWriting,
     expandIdea,
     runPrompt,
+    runBuilder,
     applyReplace,
     applyInsertBelow,
     dismissReview,
@@ -111,6 +115,17 @@ export function useMarkdownEditor({
     onChange,
     textareaRef,
   });
+
+  // The AI Builder button lives in the status bar, outside this hook's
+  // scope, so it requests a run by bumping a shared counter atom instead.
+  const aiBuilderRequest = useAtomValue(atom_aiBuilderRequest);
+  const prevAiBuilderRequestRef = useRef(aiBuilderRequest);
+  useEffect(() => {
+    if (aiBuilderRequest !== prevAiBuilderRequestRef.current) {
+      prevAiBuilderRequestRef.current = aiBuilderRequest;
+      if (isActivePane) runBuilder();
+    }
+  }, [aiBuilderRequest, runBuilder, isActivePane]);
 
   const handleOpenEditDialog = useCallback(() => {
     if (!tableInfo) return;
