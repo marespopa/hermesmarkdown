@@ -24,7 +24,7 @@ export const AIReviewDialog: React.FC<AIReviewDialogProps> = ({
     <DialogModal
       isOpened={!!review}
       onClose={onClose}
-      styles="max-w-2xl"
+      styles="max-w-2xl lg:max-w-4xl xl:max-w-6xl"
       ariaLabelledBy="ai-review-title"
     >
       <div className="flex items-center gap-2 mb-4">
@@ -34,7 +34,7 @@ export const AIReviewDialog: React.FC<AIReviewDialogProps> = ({
         </h2>
       </div>
 
-      <div className="rounded-2xl border border-beige dark:border-clay bg-paper-light dark:bg-paper-dark-surface p-4 max-h-[50vh] overflow-y-auto whitespace-pre-wrap font-mono text-ui-footnote leading-relaxed">
+      <div className="rounded-2xl border border-beige dark:border-clay bg-paper-light dark:bg-paper-dark-surface p-4 max-h-[60vh] lg:max-h-[65vh] overflow-y-auto whitespace-pre-wrap font-mono text-ui-footnote leading-relaxed">
         {tokens.map((token, idx) => {
           if (token.type === "removed") {
             return (
@@ -60,14 +60,14 @@ export const AIReviewDialog: React.FC<AIReviewDialogProps> = ({
         })}
       </div>
 
-      <div className="flex flex-col sm:flex-row gap-2 mt-6">
-        <Button variant="outlined" onClick={onClose} className="sm:flex-1">
+      <div className="flex flex-col sm:flex-row gap-2 mt-6 sm:justify-end">
+        <Button variant="outlined" onClick={onClose} className="sm:flex-1 lg:flex-none lg:w-32">
           Cancel
         </Button>
-        <Button variant="secondary" onClick={onInsertBelow} className="sm:flex-1">
+        <Button variant="secondary" onClick={onInsertBelow} className="sm:flex-1 lg:flex-none lg:w-40">
           Insert Below
         </Button>
-        <Button variant="primary" onClick={onReplace} className="sm:flex-1">
+        <Button variant="primary" onClick={onReplace} className="sm:flex-1 lg:flex-none lg:w-44">
           Replace Selection
         </Button>
       </div>
