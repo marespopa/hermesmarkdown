@@ -111,8 +111,8 @@ export const WIKILINK_EDITOR_SENTINEL = "__OPEN_WIKILINK_EDITOR__";
 export const DATE_EDITOR_SENTINEL = "__OPEN_DATE_EDITOR__";
 export const TABLE_DIALOG_SENTINEL = "__OPEN_TABLE_DIALOG__";
 export const FRONTMATTER_WIZARD_SENTINEL = "__OPEN_FRONTMATTER_WIZARD__";
-export const AI_IMPROVE_SENTINEL = "__AI_IMPROVE__";
-export const AI_EXPAND_SENTINEL = "__AI_EXPAND__";
+export const AI_ACTION_SENTINEL_PREFIX = "__AI_ACTION__:";
+export const aiActionSentinel = (id: string) => `${AI_ACTION_SENTINEL_PREFIX}${id}`;
 export const CURSOR_SENTINEL = "\0";
 
 export const PILL_CONTAINER_CLASSES =
@@ -124,6 +124,8 @@ export interface Template {
   description: string;
   keybind?: string;
   content: string;
+  /** Only shown in the command menu when an AI provider/key is configured. */
+  aiOnly?: boolean;
 }
 
 export const TEMPLATES: Template[] = [
@@ -132,6 +134,125 @@ export const TEMPLATES: Template[] = [
   { label: "Date", icon: "📅", description: "Pick a date from the calendar", content: DATE_EDITOR_SENTINEL },
   { label: "Table", icon: "⊞", description: "Insert a Markdown table", content: TABLE_DIALOG_SENTINEL },
   { label: "Task", icon: "☑️", description: "Insert a checklist item", content: `- [ ] ${CURSOR_SENTINEL} #todo` },
+  // --- Structure ---
+  {
+    label: "Callout",
+    icon: "📌",
+    description: "Note, info, tip, warning, or danger block",
+    content: `:::callout note\n${CURSOR_SENTINEL}\n:::`,
+  },
+  {
+    label: "Collapse",
+    icon: "🔽",
+    description: "Collapsible section for long content",
+    content: `:::collapse Details\n${CURSOR_SENTINEL}\n:::`,
+  },
+  // --- AI ---
+  {
+    label: "AI Builder",
+    icon: "🧱",
+    description: "Create or revise a page section, then review before applying",
+    content: aiActionSentinel("builder"),
+    aiOnly: true,
+  },
+  {
+    label: "Improve writing",
+    icon: "✨",
+    description: "Rewrite selected text for clearer wording without changing its intent",
+    content: aiActionSentinel("improve"),
+    aiOnly: true,
+  },
+  {
+    label: "Fix spelling and grammar",
+    icon: "✅",
+    description: "Apply a light correction pass to selected text",
+    content: aiActionSentinel("fix-grammar"),
+    aiOnly: true,
+  },
+  {
+    label: "Shorten",
+    icon: "✂️",
+    description: "Compress verbose selected text",
+    content: aiActionSentinel("shorten"),
+    aiOnly: true,
+  },
+  {
+    label: "Expand",
+    icon: "➕",
+    description: "Elaborate on terse selected text",
+    content: aiActionSentinel("expand"),
+    aiOnly: true,
+  },
+  {
+    label: "Change tone: Formal",
+    icon: "🎩",
+    description: "Make selected text more formal",
+    content: aiActionSentinel("tone-formal"),
+    aiOnly: true,
+  },
+  {
+    label: "Change tone: Casual",
+    icon: "😊",
+    description: "Make selected text more casual",
+    content: aiActionSentinel("tone-casual"),
+    aiOnly: true,
+  },
+  {
+    label: "Change tone: Direct",
+    icon: "🎯",
+    description: "Make selected text more direct",
+    content: aiActionSentinel("tone-direct"),
+    aiOnly: true,
+  },
+  {
+    label: "Change tone: Polished",
+    icon: "💎",
+    description: "Make selected text more polished",
+    content: aiActionSentinel("tone-polished"),
+    aiOnly: true,
+  },
+  {
+    label: "Summarize",
+    icon: "📃",
+    description: "Turn selected text into a concise summary",
+    content: aiActionSentinel("summarize"),
+    aiOnly: true,
+  },
+  {
+    label: "Extract tasks",
+    icon: "🗒️",
+    description: "Convert selected text into actionable task items",
+    content: aiActionSentinel("extract-tasks"),
+    aiOnly: true,
+  },
+  {
+    label: "Create outline",
+    icon: "📑",
+    description: "Transform selected notes into headings and bullets",
+    content: aiActionSentinel("outline"),
+    aiOnly: true,
+  },
+  {
+    label: "Generate title",
+    icon: "🏷️",
+    description: "Suggest a page title from the current note or selection",
+    content: aiActionSentinel("title"),
+    aiOnly: true,
+  },
+  {
+    label: "Continue writing",
+    icon: "➡️",
+    description: "Continue from the cursor using nearby page context",
+    content: aiActionSentinel("continue"),
+    aiOnly: true,
+  },
+  {
+    label: "Explain selection",
+    icon: "❓",
+    description: "Explain the selected concept in simpler terms",
+    content: aiActionSentinel("explain"),
+    aiOnly: true,
+  },
   // --- Obsidian / Daily Driver ---
   {
     label: "Daily Note",
@@ -189,12 +310,6 @@ export const TEMPLATES: Template[] = [
     icon: "💻",
     description: "Changes, bugs, and dev log",
     content: "# 🛠️ Dev Log – {date}\n> 📅 Week: {week}\n> 🎯 Focus: \n\n## 🚀 Changes\n- [ ] Update  #todo\n- [ ] Refactor  #todo\n\n## 🐛 Bugs\n- [ ] Issue description  #urgn\n- See also: [[]]\n\nstatus: #prog",
-  },
-  {
-    label: "AI Prompt",
-    icon: "🤖",
-    description: "Objective, context, and output format",
-    content: "# AI Prompt – {date}\n\n## Objective\n\n\n## Context\n\n\n## Data\n\n\n## Output Format\n",
   },
   // --- Personal ---
   {

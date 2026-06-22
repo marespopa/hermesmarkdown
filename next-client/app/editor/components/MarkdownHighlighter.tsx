@@ -18,6 +18,23 @@ import {
 const FADED =
   'class="opacity-40 dark:opacity-50 transition-opacity duration-500 hover:opacity-100"';
 
+const CALLOUT_STYLES: Record<
+  string,
+  { border: string; bg: string; text: string; icon: string }
+> = {
+  note: { border: "border-sage", bg: "bg-sage/5", text: "text-sage", icon: "📝" },
+  info: { border: "border-blue-400", bg: "bg-blue-400/5", text: "text-blue-500 dark:text-blue-400", icon: "ℹ️" },
+  tip: { border: "border-emerald-400", bg: "bg-emerald-400/5", text: "text-emerald-600 dark:text-emerald-400", icon: "💡" },
+  warning: { border: "border-amber-500", bg: "bg-amber-500/5", text: "text-amber-600 dark:text-amber-400", icon: "⚠️" },
+  danger: { border: "border-red-500", bg: "bg-red-500/5", text: "text-red-600 dark:text-red-400", icon: "🔥" },
+};
+
+const REGEX_CALLOUT_START = /^:::callout(?:\s+(\w+))?\s*$/i;
+
+const COLLAPSE_STYLE = { border: "border-stone", bg: "bg-paper-softgray/60 dark:bg-paper-dark-surface/40" };
+
+const REGEX_COLLAPSE_START = /^:::collapse(?:\s+(.+))?\s*$/i;
+
 function processInlineMarkdown(
   text: string,
   dateMatch: DateMatch | null = null,
@@ -133,6 +150,9 @@ export function highlightMarkdown(
   let isInsideCodeBlock = false;
   let isInsideFrontmatter = false;
   let frontmatterClosed = false;
+  let calloutType: string | null = null;
+  let isInsideCollapse = false;
+  let collapseTitle = "";
 
   return lines
     .map((line, index) => {
@@ -163,7 +183,40 @@ export function highlightMarkdown(
       }
 
       let content = "";
-      if (html.startsWith("\u0060\u0060\u0060") || html.startsWith("~~~")) {
+      let blockClasses = "";
+      const trimmed = html.trim();
+      const calloutStartMatch = calloutType === null ? trimmed.match(REGEX_CALLOUT_START) : null;
+      const collapseStartMatch =
+        calloutType === null && !isInsideCollapse ? trimmed.match(REGEX_COLLAPSE_START) : null;
+
+      if (calloutStartMatch) {
+        const requestedType = (calloutStartMatch[1] || "note").toLowerCase();
+        calloutType = CALLOUT_STYLES[requestedType] ? requestedType : "note";
+        const style = CALLOUT_STYLES[calloutType];
+        content = `<span class="${style.text} font-bold uppercase text-ui-footnote tracking-wide">${style.icon} ${calloutType}</span>`;
+        blockClasses = `${style.bg} ${style.border} border-l-2 pl-3 -ml-3`;
+      } else if (calloutType !== null && trimmed === ":::") {
+        const style = CALLOUT_STYLES[calloutType];
+        content = `<span ${FADED}>:::</span>`;
+        blockClasses = `${style.bg} ${style.border} border-l-2 pl-3 -ml-3`;
+        calloutType = null;
+      } else if (calloutType !== null) {
+        const style = CALLOUT_STYLES[calloutType];
+        content = trimmed ? processInlineMarkdown(html, dateMatch, activeLink) : "";
+        blockClasses = `${style.bg} ${style.border} border-l-2 pl-3 -ml-3`;
+      } else if (collapseStartMatch) {
+        isInsideCollapse = true;
+        collapseTitle = (collapseStartMatch[1] || "Details").trim();
+        content = `<span class="text-ink-muted dark:text-stone font-bold text-ui-footnote">▸ ${collapseTitle}</span>`;
+        blockClasses = `${COLLAPSE_STYLE.bg} ${COLLAPSE_STYLE.border} border-l-2 pl-3 -ml-3`;
+      } else if (isInsideCollapse && trimmed === ":::") {
+        content = `<span ${FADED}>:::</span>`;
+        blockClasses = `${COLLAPSE_STYLE.bg} ${COLLAPSE_STYLE.border} border-l-2 pl-3 -ml-3`;
+        isInsideCollapse = false;
+      } else if (isInsideCollapse) {
+        content = trimmed ? processInlineMarkdown(html, dateMatch, activeLink) : "";
+        blockClasses = `${COLLAPSE_STYLE.bg} ${COLLAPSE_STYLE.border} border-l-2 pl-3 -ml-3`;
+      } else if (html.startsWith("\u0060\u0060\u0060") || html.startsWith("~~~")) {
         isInsideCodeBlock = !isInsideCodeBlock;
         const fence = html.slice(0, 3);
         const lang = html.slice(3);
@@ -209,7 +262,7 @@ export function highlightMarkdown(
       }
 
       const isActive = isZenModeActive && index === activeLineIndex;
-      return `<div class="${isZenModeActive ? "transition-all duration-700 ease-in-out" : ""} ${isActive ? "bg-ink-muted/5 dark:bg-ink-muted/10 -mx-6 px-6 rounded-lg scale-[1.005] opacity-100 shadow-[0_0_40px_-15px_rgba(0,0,0,0.05)]" : ""} min-h-[1.8em]">${content || " "}</div>`;
+      return `<div class="${isZenModeActive ? "transition-all duration-700 ease-in-out" : ""} ${blockClasses} ${isActive ? "bg-ink-muted/5 dark:bg-ink-muted/10 -mx-6 px-6 rounded-lg scale-[1.005] opacity-100 shadow-[0_0_40px_-15px_rgba(0,0,0,0.05)]" : ""} min-h-[1.8em]">${content || " "}</div>`;
     })
     .join("");
 }

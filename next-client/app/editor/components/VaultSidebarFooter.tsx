@@ -4,18 +4,16 @@ import React from "react";
 import {
   HiOutlineHome,
   HiOutlineCog,
-  HiOutlineEye,
-  HiOutlineEyeOff,
   HiOutlineLogout,
   HiOutlineDatabase,
+  HiOutlineBookOpen,
 } from "react-icons/hi";
 import Button from "@/app/components/Button";
 import { useRouter } from "next/navigation";
 
 interface VaultSidebarFooterProps {
   onOpenSettings?: () => void;
-  isZenModeActive: boolean;
-  setIsZenModeActive: (active: boolean) => void;
+  onOpenDocumentation?: () => void;
   vaultHandle: any;
   closeVault: () => void;
   openVault: () => void;
@@ -24,8 +22,7 @@ interface VaultSidebarFooterProps {
 
 export default function VaultSidebarFooter({
   onOpenSettings,
-  isZenModeActive,
-  setIsZenModeActive,
+  onOpenDocumentation,
   vaultHandle,
   closeVault,
   openVault,
@@ -59,12 +56,12 @@ export default function VaultSidebarFooter({
 
           <Button
             variant="icon"
-            onClick={() => setIsZenModeActive(!isZenModeActive)}
-            className={`w-10 h-10 transition-colors ${isZenModeActive ? "text-sage opacity-100" : "opacity-80 hover:opacity-100"}`}
-            title="Toggle Zen Mode (Ctrl+Shift+Z)"
-            aria-label="Toggle Zen Mode"
+            onClick={onOpenDocumentation}
+            className="w-10 h-10 opacity-80 hover:opacity-100"
+            title="Documentation"
+            aria-label="Documentation"
           >
-            {isZenModeActive ? <HiOutlineEye size={20} /> : <HiOutlineEyeOff size={20} />}
+            <HiOutlineBookOpen size={20} />
           </Button>
         </div>
 

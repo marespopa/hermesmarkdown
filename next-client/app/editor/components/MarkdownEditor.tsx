@@ -14,6 +14,7 @@ import { TableCallout } from "./TableCallout";
 import { TableDialog } from "./TableDialog";
 import { AISelectionToolbar } from "./AISelectionToolbar";
 import { AIThinkingOverlay } from "./AIThinkingOverlay";
+import { AIReviewDialog } from "./AIReviewDialog";
 import { useMarkdownEditor } from "../hooks/useMarkdownEditor";
 import Button from "../../components/Button";
 import Input from "../../components/Input";
@@ -184,9 +185,13 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
     todoMenuPos,
     handleTodoCycle,
     isAiLoading,
+    aiReview,
     improveWriting,
     expandIdea,
     runPrompt,
+    applyReplace,
+    applyInsertBelow,
+    dismissReview,
   } = useMarkdownEditor({
     ...props,
     value: editorValue,
@@ -504,6 +509,13 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
           )}
 
           {isEditorBlocked && <AIThinkingOverlay />}
+
+          <AIReviewDialog
+            review={aiReview}
+            onClose={dismissReview}
+            onReplace={applyReplace}
+            onInsertBelow={applyInsertBelow}
+          />
 
           {tableInfo && (
             <TableCallout

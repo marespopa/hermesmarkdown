@@ -22,7 +22,7 @@ import {
   atom_workspaceLayout,
   contentStore
 } from "@/app/atoms/atoms";
-import { HiOutlineDocumentText, HiOutlineEye, HiOutlineChartBar, HiOutlineX, HiOutlineClipboardCopy, HiOutlineSave, HiOutlineDotsHorizontal } from "react-icons/hi";
+import { HiOutlineDocumentText, HiOutlineEye, HiOutlineEyeOff, HiOutlineChartBar, HiOutlineX, HiOutlineClipboardCopy, HiOutlineSave, HiOutlineDotsHorizontal } from "react-icons/hi";
 import { VscSplitHorizontal } from "react-icons/vsc";
 import { showCopyToast, showErrorToast } from "@/app/components/Toastr";
 import PaneTab, { TabSaveState } from "./PaneTab";
@@ -43,7 +43,7 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
   const [, closeTab] = useAtom(atom_closeTab);
   const [, setActiveFilePath] = useAtom(atom_activeFilePath);
   const [, moveTab] = useAtom(atom_moveTab);
-  const [isZenModeActive] = useAtom(atom_isZenModeActive);
+  const [isZenModeActive, setIsZenModeActive] = useAtom(atom_isZenModeActive);
   const saveStatus = useAtomValue(atom_saveStatus);
   const vaultHandle = useAtomValue(atom_vaultHandle);
   const workspaceLayout = useAtomValue(atom_workspaceLayout);
@@ -340,6 +340,15 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
                 </Button>
               </>
             )}
+            <Button
+              variant="icon"
+              onClick={() => setIsZenModeActive(!isZenModeActive)}
+              title="Toggle Zen Mode (Ctrl+Shift+Z)"
+              aria-label="Toggle Zen Mode"
+              className={`w-9 h-9 flex items-center justify-center transition-all rounded-xl ${isZenModeActive ? "text-sage" : "text-ink-muted hover:text-ink-light dark:hover:text-ink-dark"}`}
+            >
+              {isZenModeActive ? <HiOutlineEye size={18} /> : <HiOutlineEyeOff size={18} />}
+            </Button>
             <Button
               variant="icon"
               onClick={() => splitPane({ id: leaf.id, direction: "horizontal" })}

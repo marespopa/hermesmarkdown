@@ -395,6 +395,7 @@ export default function LiteEditor() {
         >
           <VaultSidebar
             onOpenSettings={() => navigateWithGuard("/editor/settings")}
+            onOpenDocumentation={() => navigateWithGuard("/documentation")}
             onNewFile={handleNewFile}
             onNewAIFile={isAiConfigured ? handleNewAIFile : undefined}
             onImport={handleImport}

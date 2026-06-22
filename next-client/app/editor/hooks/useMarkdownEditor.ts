@@ -96,7 +96,17 @@ export function useMarkdownEditor({
 
   const tableDialog = useTableDialog({ value, textareaRef });
 
-  const { isAiLoading, improveWriting, expandIdea, runPrompt } = useAIEditorActions({
+  const {
+    isAiLoading,
+    aiReview,
+    improveWriting,
+    expandIdea,
+    runPrompt,
+    applyReplace,
+    applyInsertBelow,
+    dismissReview,
+    runAIActionById,
+  } = useAIEditorActions({
     value,
     onChange,
     textareaRef,
@@ -222,8 +232,7 @@ export function useMarkdownEditor({
     wrapperRef,
     onOpenTableCreate: tableDialog.openCreate,
     onFrontmatterWizard,
-    onAIImprove: improveWriting,
-    onAIExpand: expandIdea,
+    onAIAction: runAIActionById,
   });
 
   const handleSaveWikiLink = useCallback(
@@ -505,8 +514,12 @@ export function useMarkdownEditor({
     todoMenuPos,
     handleTodoCycle,
     isAiLoading,
+    aiReview,
     improveWriting,
     expandIdea,
     runPrompt,
+    applyReplace,
+    applyInsertBelow,
+    dismissReview,
   };
 }

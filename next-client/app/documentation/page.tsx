@@ -364,6 +364,20 @@ export default function Documentation() {
                 </div>
               </div>
 
+              <div className="space-y-8">
+                <div className="space-y-4">
+                  <h3 className="text-3xl font-bold tracking-tight">Structure Blocks</h3>
+                  <p className="text-neutral-500 dark:text-neutral-400 leading-relaxed text-lg">
+                    Obsidian-style callouts and collapsible sections, written in plain Markdown so agents can parse them too.
+                  </p>
+                </div>
+                <div className="p-8 bg-neutral-50/50 dark:bg-neutral-900/30 backdrop-blur-sm rounded-3xl border border-black/5 dark:border-white/5 shadow-inner font-mono text-xs">
+                  <div className={guideRow}><span className={syntaxLabel}>/callout</span><span className={resultLabel}>note · info · tip</span></div>
+                  <div className={guideRow}><span className={syntaxLabel}>/callout warning</span><span className={resultLabel}>danger Variants</span></div>
+                  <div className={guideRow}><span className={syntaxLabel}>/collapse</span><span className={resultLabel}>Titled Section</span></div>
+                </div>
+              </div>
+
             </div>
           </section>
 
@@ -374,9 +388,23 @@ export default function Documentation() {
 
               <div className="space-y-8">
                 <div className="space-y-4">
+                  <h3 className="text-3xl font-bold tracking-tight">Bring Your Own Key (BYOK)</h3>
+                  <p className="text-neutral-500 dark:text-neutral-400 leading-relaxed text-lg">
+                    Set this up first — every AI action below stays hidden until a key is configured. Bring your own API key for Anthropic or Google. Keys are stored locally and never sent anywhere else.
+                  </p>
+                </div>
+                <div className="p-8 bg-neutral-50/50 dark:bg-neutral-900/30 backdrop-blur-sm rounded-3xl border border-black/5 dark:border-white/5 shadow-inner">
+                  <div className={guideRow}><span className="text-sm font-medium">Anthropic Claude</span><span className={resultLabel}>Settings ➔ AI</span></div>
+                  <div className={guideRow}><span className="text-sm font-medium">Google Gemini</span><span className={resultLabel}>Settings ➔ AI</span></div>
+                  <div className={guideRow}><span className="text-sm font-medium">Local LLMs</span><span className={resultLabel}>Coming Soon</span></div>
+                </div>
+              </div>
+
+              <div className="space-y-8">
+                <div className="space-y-4">
                   <h3 className="text-3xl font-bold tracking-tight">Inline AI Toolbar</h3>
                   <p className="text-neutral-500 dark:text-neutral-400 leading-relaxed text-lg">
-                    Select text and a toolbar appears. Prompt it, improve the writing, or expand an idea. Formatting stays intact.
+                    Select text and a toolbar appears above it. Every action — including a free-form prompt — opens a review dialog before anything touches your note.
                   </p>
                 </div>
                 <div className="p-8 bg-neutral-50/50 dark:bg-neutral-900/30 backdrop-blur-sm rounded-3xl border border-black/5 dark:border-white/5 shadow-inner">
@@ -392,16 +420,27 @@ export default function Documentation() {
 
               <div className="space-y-8">
                 <div className="space-y-4">
-                  <h3 className="text-3xl font-bold tracking-tight">Bring Your Own Key (BYOK)</h3>
+                  <h3 className="text-3xl font-bold tracking-tight">AI Command Menu</h3>
                   <p className="text-neutral-500 dark:text-neutral-400 leading-relaxed text-lg">
-                    Bring your own API key for Anthropic or Google. Keys are stored locally and never sent anywhere else.
+                    Type <code className="font-bold text-sage dark:text-sage">/</code> and pick a command from the AI group — only visible once a key is configured. Selection-based commands rewrite what you've highlighted; <strong>AI Builder</strong>, <strong>Generate Title</strong>, and <strong>Continue Writing</strong> work from a typed instruction or the surrounding note instead.
                   </p>
                 </div>
                 <div className="p-8 bg-neutral-50/50 dark:bg-neutral-900/30 backdrop-blur-sm rounded-3xl border border-black/5 dark:border-white/5 shadow-inner">
-                  <div className={guideRow}><span className="text-sm font-medium">Anthropic Claude</span><span className={resultLabel}>Settings ➔ AI</span></div>
-                  <div className={guideRow}><span className="text-sm font-medium">Google Gemini</span><span className={resultLabel}>Settings ➔ AI</span></div>
-                  <div className={guideRow}><span className="text-sm font-medium">Local LLMs</span><span className={resultLabel}>Coming Soon</span></div>
+                  <div className={guideRow}><span className="text-sm font-medium">🧱 AI Builder</span><span className={resultLabel}>Create / Revise Section</span></div>
+                  <div className={guideRow}><span className="text-sm font-medium">✨ Improve Writing</span><span className={resultLabel}>Clarity Pass</span></div>
+                  <div className={guideRow}><span className="text-sm font-medium">✅ Fix Spelling & Grammar</span><span className={resultLabel}>Light Correction</span></div>
+                  <div className={guideRow}><span className="text-sm font-medium">✂️ Shorten / ➕ Expand</span><span className={resultLabel}>Compress / Elaborate</span></div>
+                  <div className={guideRow}><span className="text-sm font-medium">🎩 Change Tone</span><span className={resultLabel}>Formal · Casual · Direct · Polished</span></div>
+                  <div className={guideRow}><span className="text-sm font-medium">📃 Summarize</span><span className={resultLabel}>Concise Recap</span></div>
+                  <div className={guideRow}><span className="text-sm font-medium">🗒️ Extract Tasks</span><span className={resultLabel}>Markdown Checklist</span></div>
+                  <div className={guideRow}><span className="text-sm font-medium">📑 Create Outline</span><span className={resultLabel}>Headings + Bullets</span></div>
+                  <div className={guideRow}><span className="text-sm font-medium">🏷️ Generate Title</span><span className={resultLabel}>From Note / Selection</span></div>
+                  <div className={guideRow}><span className="text-sm font-medium">➡️ Continue Writing</span><span className={resultLabel}>From Cursor</span></div>
+                  <div className={guideRow}><span className="text-sm font-medium">❓ Explain Selection</span><span className={resultLabel}>Plain-Language Recap</span></div>
                 </div>
+                <p className="text-ui-micro opacity-40 italic leading-relaxed font-bold uppercase tracking-[0.2em] text-center">
+                  Diff Review: Red = Removed, Green = Added — then Replace, Insert Below, or Cancel.
+                </p>
               </div>
 
             </div>

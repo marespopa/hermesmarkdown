@@ -29,6 +29,7 @@ export default function Typeahead({
   const [activeIndex, setActiveIndex] = useState(-1);
   const [dropdownStyle, setDropdownStyle] = useState<React.CSSProperties>({});
   const containerRef = useRef<HTMLDivElement>(null);
+  const dropdownRef = useRef<HTMLUListElement>(null);
 
   // Extract the current search term for filtering
   const currentSearchTerm = allowMultiple
@@ -46,7 +47,10 @@ export default function Typeahead({
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+      const target = e.target as Node;
+      const isInsideContainer = containerRef.current?.contains(target);
+      const isInsideDropdown = dropdownRef.current?.contains(target);
+      if (!isInsideContainer && !isInsideDropdown) {
         setIsOpen(false);
       }
     };
@@ -129,7 +133,7 @@ export default function Typeahead({
 
       {isOpen && filteredOptions.length > 0 && (
         <Portal>
-          <ul style={dropdownStyle} className="max-h-56 overflow-y-auto bg-paper-light dark:bg-neutral-900 border border-beige dark:border-neutral-800 rounded-xl shadow-xl py-1.5 text-ui-subhead custom-scrollbar">
+          <ul ref={dropdownRef} style={dropdownStyle} className="max-h-56 overflow-y-auto bg-paper-light dark:bg-neutral-900 border border-beige dark:border-neutral-800 rounded-xl shadow-xl py-1.5 text-ui-subhead custom-scrollbar">
             {filteredOptions.map((opt, index) => (
               <li
                 key={opt}

@@ -3,9 +3,9 @@
 import { useState, useMemo, useCallback } from "react";
 import { flushSync } from "react-dom";
 import { useAtomValue } from "jotai";
-import { atom_currency } from "@/app/atoms/atoms";
+import { atom_currency, atom_isAiConfigured } from "@/app/atoms/atoms";
 import getCaretCoordinates from "textarea-caret";
-import { TEMPLATES, Template, SHORTCODES, LINK_EDITOR_SENTINEL, WIKILINK_EDITOR_SENTINEL, DATE_EDITOR_SENTINEL, TABLE_DIALOG_SENTINEL, FRONTMATTER_WIZARD_SENTINEL, AI_IMPROVE_SENTINEL, AI_EXPAND_SENTINEL, CURSOR_SENTINEL } from "../components/constants";
+import { TEMPLATES, Template, SHORTCODES, LINK_EDITOR_SENTINEL, WIKILINK_EDITOR_SENTINEL, DATE_EDITOR_SENTINEL, TABLE_DIALOG_SENTINEL, FRONTMATTER_WIZARD_SENTINEL, AI_ACTION_SENTINEL_PREFIX, CURSOR_SENTINEL } from "../components/constants";
 import { runAutoBudget } from "../utils/budget";
 
 interface UseEditorTemplatesProps {
@@ -15,8 +15,7 @@ interface UseEditorTemplatesProps {
   wrapperRef: React.RefObject<HTMLDivElement | null>;
   onOpenTableCreate?: (pos: number, filterLen: number) => void;
   onFrontmatterWizard?: () => void;
-  onAIImprove?: () => void;
-  onAIExpand?: () => void;
+  onAIAction?: (id: string) => void;
 }
 
 export function useEditorTemplates({
@@ -26,8 +25,7 @@ export function useEditorTemplates({
   wrapperRef,
   onOpenTableCreate,
   onFrontmatterWizard,
-  onAIImprove,
-  onAIExpand,
+  onAIAction,
 }: UseEditorTemplatesProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [menuPos, setMenuPos] = useState({ top: 0, left: 0 });
@@ -41,6 +39,11 @@ export function useEditorTemplates({
   const [dateInsertPos, setDateInsertPos] = useState<{ start: number; filterLen: number } | null>(null);
   const [dismissedSlashPos, setDismissedSlashPos] = useState<number | null>(null);
   const currencyCode = useAtomValue(atom_currency);
+  const isAiConfigured = useAtomValue(atom_isAiConfigured);
+  const availableTemplates = useMemo(
+    () => TEMPLATES.filter((t) => !t.aiOnly || isAiConfigured),
+    [isAiConfigured],
+  );
 
   const dismissMenu = useCallback(() => {
     const textarea = textareaRef.current;
@@ -57,10 +60,10 @@ export function useEditorTemplates({
   }, [value, textareaRef]);
 
   const filteredTemplatesList = useMemo(() => {
-    if (!filterQuery) return TEMPLATES.map((t) => ({ ...t, matchIndices: [] as number[] }));
+    if (!filterQuery) return availableTemplates.map((t) => ({ ...t, matchIndices: [] as number[] }));
     const q = filterQuery.toLowerCase();
     const results: (Template & { matchIndices: number[] })[] = [];
-    for (const t of TEMPLATES) {
+    for (const t of availableTemplates) {
       const hay = t.label.toLowerCase();
       const indices: number[] = [];
       let qi = 0;
@@ -70,7 +73,7 @@ export function useEditorTemplates({
       if (qi === q.length) results.push({ ...t, matchIndices: indices });
     }
     return results;
-  }, [filterQuery]);
+  }, [filterQuery, availableTemplates]);
 
   const insertTemplate = useCallback((content: string) => {
     const textarea = textareaRef.current;
@@ -118,7 +121,8 @@ export function useEditorTemplates({
       return;
     }
 
-    if (content === AI_IMPROVE_SENTINEL) {
+    if (content.startsWith(AI_ACTION_SENTINEL_PREFIX)) {
+      const actionId = content.slice(AI_ACTION_SENTINEL_PREFIX.length);
       setMenuOpen(false);
       setFilterQuery("");
       setSelectedIndex(-1);
@@ -129,24 +133,7 @@ export function useEditorTemplates({
       setTimeout(() => {
         if (textareaRef.current) {
           textareaRef.current.setSelectionRange(before.length, before.length);
-          onAIImprove?.();
-        }
-      }, 0);
-      return;
-    }
-
-    if (content === AI_EXPAND_SENTINEL) {
-      setMenuOpen(false);
-      setFilterQuery("");
-      setSelectedIndex(-1);
-      // Remove the slash command before calling the handler
-      const before = value.substring(0, start - lengthToRemove);
-      const after = value.substring(start);
-      onChange(before + after);
-      setTimeout(() => {
-        if (textareaRef.current) {
-          textareaRef.current.setSelectionRange(before.length, before.length);
-          onAIExpand?.();
+          onAIAction?.(actionId);
         }
       }, 0);
       return;
@@ -209,7 +196,7 @@ export function useEditorTemplates({
     if (wrapperRef.current && scrollPos !== undefined) {
       wrapperRef.current.scrollTop = scrollPos;
     }
-  }, [value, onChange, filterQuery, textareaRef, wrapperRef, currencyCode, onOpenTableCreate, onFrontmatterWizard, onAIImprove, onAIExpand]);
+  }, [value, onChange, filterQuery, textareaRef, wrapperRef, currencyCode, onOpenTableCreate, onFrontmatterWizard, onAIAction]);
 
   const handleSlashMenuTrigger = useCallback((val: string) => {
     const textarea = textareaRef.current;
@@ -250,7 +237,7 @@ export function useEditorTemplates({
           return;
         }
 
-        const queryFiltered = TEMPLATES.filter((t) =>
+        const queryFiltered = availableTemplates.filter((t) =>
           t.label.toLowerCase().includes(query.toLowerCase()),
         );
 
@@ -298,7 +285,7 @@ export function useEditorTemplates({
       setMenuOpen(false);
       setDismissedSlashPos(null);
     }
-  }, [textareaRef, dismissedSlashPos]);
+  }, [textareaRef, dismissedSlashPos, availableTemplates]);
 
   const insertDate = useCallback((date: Date) => {
     const textarea = textareaRef.current;

@@ -12,7 +12,6 @@ import {
   atom_activeFilePath,
   atom_sidebarWidth,
   atom_isCloudVault,
-  atom_isZenModeActive,
   atom_sidebarTabOrder,
   atom_activeSidebarTab,
   SidebarTab
@@ -58,6 +57,7 @@ function DriveExpiredPanel({ vaultName, onReconnect }: { vaultName: string | nul
 interface VaultSidebarProps {
   onClose?: () => void;
   onOpenSettings?: () => void;
+  onOpenDocumentation?: () => void;
   onNewFile?: () => void;
   onNewAIFile?: () => void;
   onImport?: () => void;
@@ -68,6 +68,7 @@ interface VaultSidebarProps {
 export default function VaultSidebar({
   onClose,
   onOpenSettings,
+  onOpenDocumentation,
   onNewFile,
   onNewAIFile,
   onImport,
@@ -94,7 +95,6 @@ export default function VaultSidebar({
   const isCloudVault = useAtomValue(atom_isCloudVault);
   const tabOrder = useAtomValue(atom_sidebarTabOrder);
   const driveVaultName = useAtomValue(atom_driveVaultName);
-  const [isZenModeActive, setIsZenModeActive] = useAtom(atom_isZenModeActive);
   const [isResizing, setIsResizing] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
@@ -332,8 +332,7 @@ export default function VaultSidebar({
 
       <VaultSidebarFooter
         onOpenSettings={onOpenSettings}
-        isZenModeActive={isZenModeActive}
-        setIsZenModeActive={setIsZenModeActive}
+        onOpenDocumentation={onOpenDocumentation}
         vaultHandle={vaultHandle}
         closeVault={closeVault}
         openVault={openVault}
