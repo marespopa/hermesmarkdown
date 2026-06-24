@@ -10,6 +10,7 @@ vi.mock("jotai", async (importOriginal) => {
     ...actual,
     useAtomValue: vi.fn(),
     useAtom: vi.fn(),
+    useSetAtom: vi.fn(() => vi.fn()),
   };
 });
 
@@ -20,8 +21,14 @@ vi.mock("@/app/atoms/atoms", async (importOriginal) => {
     ...actual,
     atom_activeFilePath: { toString: () => "atom_activeFilePath", read: () => {} },
     atom_sidebarWidth: { toString: () => "atom_sidebarWidth", read: () => {} },
-    atom_sidebarTabOrder: { toString: () => "atom_sidebarTabOrder", read: () => {} },
-    atom_activeSidebarTab: { toString: () => "atom_activeSidebarTab", read: () => {} },
+  };
+});
+
+vi.mock("@/app/atoms/ui-atoms", async (importOriginal) => {
+  const actual: any = await importOriginal();
+  return {
+    ...actual,
+    atom_railPanel: { toString: () => "atom_railPanel", read: () => {} },
   };
 });
 
@@ -92,7 +99,6 @@ describe("VaultSidebar Component", () => {
           },
         };
       }
-      if (str === "atom_sidebarTabOrder") return ["content", "views"];
       if (str === "atom_indexerState") return "idle";
       return {};
     });
@@ -101,8 +107,6 @@ describe("VaultSidebar Component", () => {
       const atomStr = atom.toString();
       if (atomStr === "atom_activeFilePath") return ["test.md", vi.fn()];
       if (atomStr === "atom_sidebarWidth") return [260, vi.fn()];
-      if (atomStr === "atom_sidebarTabOrder") return [["content", "views"], vi.fn()];
-      if (atomStr === "atom_activeSidebarTab") return ["content", vi.fn()];
       if (atomStr === "atom_fileMetadata") {
         return [
           {
@@ -122,24 +126,24 @@ describe("VaultSidebar Component", () => {
   });
 
   it("renders vault name", () => {
-    render(<VaultSidebar onClose={mockOnClose} />);
+    render(<VaultSidebar panel="search" onClose={mockOnClose} />);
     expect(screen.getByText("My Vault")).toBeInTheDocument();
   });
 
   it("renders file without .md extension", async () => {
-    render(<VaultSidebar onClose={mockOnClose} />);
+    render(<VaultSidebar panel="search" onClose={mockOnClose} />);
     expect(await screen.findByText("test")).toBeInTheDocument();
   });
 
   it("calls openFile when a file is clicked", async () => {
-    render(<VaultSidebar onClose={mockOnClose} />);
+    render(<VaultSidebar panel="search" onClose={mockOnClose} />);
     const file = await screen.findByText("test");
     fireEvent.click(file);
     expect(mockFileSystem.openFile).toHaveBeenCalled();
   });
 
   it("shows tag suggestion #work when typing # in search", () => {
-    render(<VaultSidebar onClose={mockOnClose} />);
+    render(<VaultSidebar panel="search" onClose={mockOnClose} />);
     const searchInput = screen.getByPlaceholderText("Search or #tag…");
     fireEvent.change(searchInput, { target: { value: "#" } });
     expect(screen.getByText("#work")).toBeInTheDocument();
@@ -158,12 +162,11 @@ describe("VaultSidebar Component", () => {
           },
         };
       }
-      if (str === "atom_sidebarTabOrder") return ["content", "views"];
       if (str === "atom_indexerState") return "idle";
       return {};
     });
 
-    render(<VaultSidebar onClose={mockOnClose} />);
+    render(<VaultSidebar panel="search" onClose={mockOnClose} />);
 
     const searchInput = screen.getByPlaceholderText("Search or #tag…");
     fireEvent.change(searchInput, { target: { value: "test" } });
@@ -186,12 +189,11 @@ describe("VaultSidebar Component", () => {
     (useAtomValue as any).mockImplementation((atom: any) => {
       const str = atom.toString();
       if (str === "atom_fileMetadata") return manyTags;
-      if (str === "atom_sidebarTabOrder") return ["content", "views"];
       if (str === "atom_indexerState") return "idle";
       return {};
     });
 
-    render(<VaultSidebar onClose={mockOnClose} />);
+    render(<VaultSidebar panel="search" onClose={mockOnClose} />);
     const searchInput = screen.getByPlaceholderText("Search or #tag…");
     fireEvent.change(searchInput, { target: { value: "#" } });
 
@@ -212,12 +214,11 @@ describe("VaultSidebar Component", () => {
           },
         };
       }
-      if (str === "atom_sidebarTabOrder") return ["content", "views"];
       if (str === "atom_indexerState") return "idle";
       return {};
     });
 
-    render(<VaultSidebar onClose={mockOnClose} />);
+    render(<VaultSidebar panel="search" onClose={mockOnClose} />);
     expect(await screen.findByText("nested")).toBeInTheDocument();
   });
 
@@ -234,12 +235,11 @@ describe("VaultSidebar Component", () => {
           },
         };
       }
-      if (str === "atom_sidebarTabOrder") return ["content", "views"];
       if (str === "atom_indexerState") return "idle";
       return {};
     });
 
-    render(<VaultSidebar onClose={mockOnClose} />);
+    render(<VaultSidebar panel="search" onClose={mockOnClose} />);
 
     const searchInput = screen.getByPlaceholderText("Search or #tag…");
     fireEvent.change(searchInput, { target: { value: "nested" } });

@@ -1,7 +1,7 @@
 // Agent-readability scoring: frontmatter completeness, heading continuity,
 // and syntax hygiene (typed fences, hyphen bullets, bold, tables).
-// Extracted from StatusBar.tsx so the health detail panel can reuse the
-// same itemized checks the status bar score is built from.
+// Shared by the on-demand DocInfoPanel and the AI auto-fix flow so both use
+// the same itemized checks.
 
 export type ScoreCategory = "Frontmatter" | "Headings" | "Syntax";
 

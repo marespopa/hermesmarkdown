@@ -39,7 +39,7 @@ const CookieConsent = () => {
   return (
     <section className="fixed bottom-0 left-0 right-0 p-4 md:p-6 z-50 pointer-events-none">
       <div className="max-w-screen-xl mx-auto pointer-events-auto">
-        <div className="flex flex-col gap-4 p-6 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 shadow-2xl rounded-lg lg:flex-row lg:items-center">
+        <div className="flex flex-col gap-4 p-6 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg lg:flex-row lg:items-center">
           <div className="flex-1 text-gray-700 dark:text-gray-300">
             <h2 className="text-ui-title-3 font-bold mb-2 text-gray-900 dark:text-gray-100">
               Privacy & Cookies

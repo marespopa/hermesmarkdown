@@ -36,9 +36,9 @@ export const Select = ({
         className={
           compact
             ? fullWidth
-              ? "bg-paper-softgray dark:bg-paper-dark-surface/50 text-ink-light dark:text-ink-dark border border-edge rounded-xl font-sans px-3 py-2.5 text-ui-subhead h-11 w-full focus:ring-4 focus:ring-sage/10 focus:border-sage outline-none transition-all"
-              : "bg-paper-softgray dark:bg-paper-dark-surface/50 text-ink-light dark:text-ink-dark border border-edge rounded-lg font-sans px-2 py-1 text-ui-footnote h-8 focus:ring-4 focus:ring-sage/10 focus:border-sage outline-none transition-all"
-            : "bg-paper-softgray dark:bg-paper-dark-surface/50 text-ink-light dark:text-ink-dark border border-edge rounded-xl font-sans px-4 py-2.5 text-ui-subhead h-11 focus:ring-4 focus:ring-sage/10 focus:border-sage outline-none transition-all"
+              ? "bg-paper-softgray dark:bg-paper-dark-surface/50 text-ink-light dark:text-ink-dark border border-edge rounded-xl font-sans px-3 py-2.5 text-ui-subhead h-11 w-full focus:ring-4 focus:ring-sage/10 outline-none transition-all"
+              : "bg-paper-softgray dark:bg-paper-dark-surface/50 text-ink-light dark:text-ink-dark border border-edge rounded-lg font-sans px-2 py-1 text-ui-footnote h-8 focus:ring-4 focus:ring-sage/10 outline-none transition-all"
+            : "bg-paper-softgray dark:bg-paper-dark-surface/50 text-ink-light dark:text-ink-dark border border-edge rounded-xl font-sans px-4 py-2.5 text-ui-subhead h-11 focus:ring-4 focus:ring-sage/10 outline-none transition-all"
         }
         id={name}
         name={name}

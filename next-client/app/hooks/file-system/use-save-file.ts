@@ -127,7 +127,9 @@ export function useSaveFile() {
           const permState = await (fileToSave as any).queryPermission({ mode: "readwrite" });
           if (permState !== "granted") {
             if (isAutoSave) {
-              setSaveStatus({ state: "error", retryCount: 0, message: "Tap to save — write permission needed", path: targetPath });
+              const msg = "Write permission needed — save manually to restore access.";
+              toast.error(msg, { id: "save-error" });
+              setSaveStatus({ state: "error", retryCount: 0, message: msg, path: targetPath });
               setTimeout(() => setSaveStatus({ state: "idle", retryCount: 0, path: undefined }), 6000);
               return false;
             }
@@ -135,7 +137,7 @@ export function useSaveFile() {
             try {
               const newState = await (fileToSave as any).requestPermission({ mode: "readwrite" });
               if (newState !== "granted") {
-                toast.error("Write permission denied. Re-open the vault to restore access.");
+                toast.error("Write permission denied. Re-open the vault to restore access.", { id: "save-error" });
                 setSaveStatus({ state: "error", retryCount: 0, message: "Permission denied", path: targetPath });
                 setTimeout(() => setSaveStatus({ state: "idle", retryCount: 0, path: undefined }), 5000);
                 return false;
@@ -328,7 +330,7 @@ export function useSaveFile() {
              // If we don't have a vaultHandle, we CANNOT recover from InvalidStateError!
              const msg = "File modified externally. Please re-open it to save.";
              setSaveStatus({ state: "error", retryCount: 0, message: msg, path: targetPath });
-             toast.error(msg);
+             toast.error(msg, { id: "save-error" });
              return false;
           }
 
@@ -348,7 +350,7 @@ export function useSaveFile() {
         if (isInvalidState && vaultHandle && targetPath) {
           if (!isAutoSave) {
             const msg = "Google Drive is syncing and locked the file. Please wait a moment and hit Save again.";
-            toast.error(msg, { duration: 6000 });
+            toast.error(msg, { id: "save-error", duration: 6000 });
             setSaveStatus({ state: "error", retryCount: 0, message: msg, path: targetPath });
             return false;
           } else {
@@ -367,15 +369,13 @@ export function useSaveFile() {
 
         if (err.name === "NotAllowedError") {
           const msg = isAutoSave
-            ? "Auto-save needs permission — tap anywhere then save manually."
+            ? "Auto-save needs permission — save manually to restore access."
             : "Write permission expired. Re-open the vault to restore access.";
           setSaveStatus({ state: "error", retryCount: 0, message: msg, path: targetPath });
           setTimeout(() => setSaveStatus({ state: "idle", retryCount: 0, path: undefined }), 6000);
-          if (!isAutoSave) toast.error(msg);
+          toast.error(msg, { id: "save-error" });
         } else if (err.name !== "AbortError") {
-          if (!isAutoSave) {
-            toast.error(`Failed to save: ${errorMsg}`);
-          }
+          toast.error(`Failed to save: ${errorMsg}`, { id: "save-error" });
         }
         return false;
       } finally {

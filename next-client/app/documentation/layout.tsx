@@ -3,7 +3,7 @@ import { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Documentation — HermesMarkdown",
   description:
-    "Full reference for HermesMarkdown: vaults, WikiLinks, Smart Workspaces, Slash Commands, shortcodes, the Table Editor, Zen Mode, and more.",
+    "Full reference for HermesMarkdown: vaults, WikiLinks, Smart Workspaces, Slash Commands, shortcodes, the Table Editor, and more.",
   alternates: { canonical: "/documentation" },
   openGraph: {
     title: "Documentation — HermesMarkdown",

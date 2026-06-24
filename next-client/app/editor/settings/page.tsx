@@ -10,8 +10,6 @@ import {
   atom_lineHeight,
   atom_letterSpacing,
   atom_theme,
-  atom_showStats,
-  atom_isZenModeActive,
   atom_isWizardOpen,
   atom_autosaveMode,
   atom_autosaveDelay,
@@ -19,7 +17,6 @@ import {
   atom_currency,
   atom_autoInjectFrontmatter,
   atom_schemaAutoCreate,
-  atom_sidebarTabOrder,
   atom_aiProvider,
   atom_selectedAiModel,
   atom_claudeKey,
@@ -42,8 +39,6 @@ import {
   HiOutlineLightningBolt,
   HiOutlineTemplate,
   HiCheck,
-  HiChevronUp,
-  HiChevronDown,
   HiOutlineRefresh,
 } from "react-icons/hi";
 import Button from "@/app/components/Button";
@@ -66,8 +61,6 @@ const SettingsPage = () => {
   const [letterSpacing, setLetterSpacing] = useAtom(atom_letterSpacing);
   const [theme, setTheme] = useAtom(atom_theme);
   const [wordWrap, setWordWrap] = useAtom(atom_wordWrap);
-  const [showStats, setShowStats] = useAtom(atom_showStats);
-  const [isZenModeActive, setIsZenModeActive] = useAtom(atom_isZenModeActive);
   const [autosaveMode, setAutosaveMode] = useAtom(atom_autosaveMode);
   const [autosaveDelay, setAutosaveDelay] = useAtom(atom_autosaveDelay);
   const [editorWidth, setEditorWidth] = useAtom(atom_editorWidth);
@@ -79,7 +72,6 @@ const SettingsPage = () => {
   const vaultSchema = useAtomValue(atom_vaultSchema);
   const vaultHandle = useAtomValue(atom_vaultHandle);
   const isDriveVault = useAtomValue(atom_isDriveVault);
-  const [sidebarTabOrder, setSidebarTabOrder] = useAtom(atom_sidebarTabOrder);
   const [aiProvider, setAiProvider] = useAtom(atom_aiProvider);
   const [selectedAiModel, setSelectedAiModel] = useAtom(atom_selectedAiModel);
   const [claudeKey, setClaudeKey] = useAtom(atom_claudeKey);
@@ -141,14 +133,6 @@ const SettingsPage = () => {
     } finally {
       setIsTestingConnection(false);
     }
-  };
-
-  const moveTab = (index: number, direction: "up" | "down") => {
-    const newOrder = [...sidebarTabOrder];
-    const targetIndex = direction === "up" ? index - 1 : index + 1;
-    if (targetIndex < 0 || targetIndex >= newOrder.length) return;
-    [newOrder[index], newOrder[targetIndex]] = [newOrder[targetIndex], newOrder[index]];
-    setSidebarTabOrder(newOrder);
   };
 
   const sizes = [
@@ -303,11 +287,6 @@ const SettingsPage = () => {
               control={<Toggle variant="soft" active={wordWrap} onChange={setWordWrap} />}
             />
             <SettingItem
-              label="Zen Mode"
-              description="Dim everything except the active paragraph."
-              control={<Toggle variant="soft" active={isZenModeActive} onChange={setIsZenModeActive} />}
-            />
-            <SettingItem
               label="Editor Width"
               description="Maximum line width. Narrow gives a tighter reading column."
               layout="stack"
@@ -417,50 +396,6 @@ const SettingsPage = () => {
                   active={theme === "dark"}
                   onChange={(active) => setTheme(active ? "dark" : "light")}
                 />
-              }
-            />
-            <SettingItem
-              label="Status Bar"
-              description="Show word and character counts."
-              control={<Toggle variant="soft" active={showStats} onChange={setShowStats} />}
-            />
-          </SettingGroup>
-          <SettingGroup title="Navigation">
-            <SettingItem
-              label="Sidebar Tab Order"
-              description="Arrange the tabs in your vault sidebar."
-              layout="stack"
-              control={
-                <div className="flex flex-col gap-1.5">
-                  {sidebarTabOrder.map((tab, idx) => (
-                    <div
-                      key={tab}
-                      className="flex items-center justify-between bg-paper-softgray dark:bg-paper-dark-surface/60 px-3.5 py-2.5 rounded-xl border border-neutral-200/60 dark:border-neutral-800/60"
-                    >
-                      <span className="text-ui-subhead font-medium capitalize text-ink-light dark:text-ink-dark">
-                        {tab}
-                      </span>
-                      <div className="flex gap-1">
-                        <Button
-                          variant="icon"
-                          className="w-7 h-7"
-                          disabled={idx === 0}
-                          onClick={() => moveTab(idx, "up")}
-                        >
-                          <HiChevronUp size={14} />
-                        </Button>
-                        <Button
-                          variant="icon"
-                          className="w-7 h-7"
-                          disabled={idx === sidebarTabOrder.length - 1}
-                          onClick={() => moveTab(idx, "down")}
-                        >
-                          <HiChevronDown size={14} />
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
               }
             />
           </SettingGroup>

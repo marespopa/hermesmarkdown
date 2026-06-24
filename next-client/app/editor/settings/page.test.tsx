@@ -32,7 +32,6 @@ vi.mock("@/app/atoms/atoms", async (importOriginal) => {
     atom_autosaveMode: { toString: () => "atom_autosaveMode" },
     atom_autosaveDelay: { toString: () => "atom_autosaveDelay" },
     atom_currency: { toString: () => "atom_currency" },
-    atom_sidebarTabOrder: { toString: () => "atom_sidebarTabOrder" },
     atom_autoInjectFrontmatter: { toString: () => "atom_autoInjectFrontmatter" },
     atom_showStats: { toString: () => "atom_showStats" },
   };
@@ -47,7 +46,6 @@ const openEditorSection = () => {
   const matches = screen.getAllByText("Editor");
   fireEvent.click(matches[matches.length - 1]);
 };
-const openInterfaceSection = () => fireEvent.click(screen.getByText("Interface"));
 
 describe("SettingsPage", () => {
   beforeEach(() => {
@@ -64,7 +62,6 @@ describe("SettingsPage", () => {
       if (atomStr === "atom_fontFamily") return ["MONO", vi.fn()];
       if (atomStr === "atom_lineHeight") return ["1.8", vi.fn()];
       if (atomStr === "atom_letterSpacing") return ["normal", vi.fn()];
-      if (atomStr === "atom_sidebarTabOrder") return [["content", "views"], vi.fn()];
       if (atomStr === "atom_autoInjectFrontmatter") return [false, vi.fn()];
       if (atomStr === "atom_showStats") return [true, vi.fn()];
       if (atomStr === "atom_theme") return ["light", vi.fn()];
@@ -86,7 +83,6 @@ describe("SettingsPage", () => {
     (useAtom as any).mockImplementation((atom: any) => {
       const str = atom.toString();
       if (str === "atom_lineHeight") return ["1.8", setLineHeight];
-      if (str === "atom_sidebarTabOrder") return [["content", "views"], vi.fn()];
       return ["", vi.fn()];
     });
 
@@ -98,7 +94,6 @@ describe("SettingsPage", () => {
   it("renders editor settings options", () => {
     (useAtom as any).mockImplementation((atom: any) => {
       const str = atom.toString();
-      if (str === "atom_sidebarTabOrder") return [["content", "views"], vi.fn()];
       if (str === "atom_autosaveMode") return ["afterDelay", vi.fn()];
       if (str === "atom_autosaveDelay") return [2000, vi.fn()];
       if (str === "atom_editorWidth") return ["standard", vi.fn()];
@@ -119,7 +114,6 @@ describe("SettingsPage", () => {
       const atomStr = atom.toString();
       if (atomStr === "atom_autosaveMode") return ["afterDelay", vi.fn()];
       if (atomStr === "atom_autosaveDelay") return [2000, setAutosaveDelay];
-      if (atomStr === "atom_sidebarTabOrder") return [["content", "views"], vi.fn()];
       return ["", vi.fn()];
     });
 
@@ -136,7 +130,6 @@ describe("SettingsPage", () => {
     (useAtom as any).mockImplementation((atom: any) => {
       const str = atom.toString();
       if (str === "atom_editorWidth") return ["standard", setEditorWidth];
-      if (str === "atom_sidebarTabOrder") return [["content", "views"], vi.fn()];
       return ["", vi.fn()];
     });
 
@@ -152,7 +145,6 @@ describe("SettingsPage", () => {
     (useAtom as any).mockImplementation((atom: any) => {
       const str = atom.toString();
       if (str === "atom_currency") return ["USD", setCurrency];
-      if (str === "atom_sidebarTabOrder") return [["content", "views"], vi.fn()];
       return ["", vi.fn()];
     });
 
@@ -162,27 +154,6 @@ describe("SettingsPage", () => {
     const select = screen.getByDisplayValue("USD ($)");
     fireEvent.change(select, { target: { value: "EUR" } });
     expect(setCurrency).toHaveBeenCalledWith("EUR");
-  });
-
-  it("calls setter when sidebar tab is reordered", () => {
-    const setTabOrder = vi.fn();
-    (useAtom as any).mockImplementation((atom: any) => {
-      if (atom.toString() === "atom_sidebarTabOrder") return [["content", "views"], setTabOrder];
-      return ["", vi.fn()];
-    });
-
-    render(<SettingsPage />);
-    openInterfaceSection();
-
-    // The first tab "content" should have the "down" button enabled.
-    // We'll find all buttons and look for the one that has the down icon content.
-    const allButtons = screen.getAllByRole("button");
-    const contentDownButton = allButtons.find(b => b.innerHTML.includes('HiChevronDown') && !(b as HTMLButtonElement).disabled);
-
-    if (contentDownButton) {
-      fireEvent.click(contentDownButton);
-      expect(setTabOrder).toHaveBeenCalledWith(["views", "content"]);
-    }
   });
 
   it("navigates back to the editor when back button is clicked", () => {

@@ -33,15 +33,15 @@ export function useEditorAppearance() {
 
   const widthClass = useMemo(() => {
     const widthClasses = {
-      standard: "max-w-full px-4 md:px-8",
-      narrow: "max-w-[95%] md:max-w-[850px] mx-auto",
+      standard: "max-w-[95%] md:max-w-[680px] mx-auto",
+      narrow: "max-w-[95%] md:max-w-[560px] mx-auto",
     };
     return (widthClasses as any)[editorWidth] || widthClasses.standard;
   }, [editorWidth]);
 
   const paddingClass = useMemo(() => {
     const paddingClasses = {
-      standard: "",
+      standard: "px-1",
       narrow: "px-1",
     };
     return (paddingClasses as any)[editorWidth] || paddingClasses.standard;

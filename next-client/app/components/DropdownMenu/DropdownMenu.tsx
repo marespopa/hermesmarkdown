@@ -76,7 +76,7 @@ const DropdownMenu = ({ label, options, isOpen, onOpenChange, selectedIndex, onS
       {isOpen && (
         <div
           ref={menuRef}
-          className={`absolute mt-2 min-w-[200px] max-w-xs bg-paper-light/80 dark:bg-neutral-900/80 backdrop-blur-xl border border-beige/50 dark:border-neutral-800/50 rounded-2xl shadow-2xl font-sans z-50 p-1.5 flex flex-col gap-0.5 animate-in fade-in zoom-in-95 duration-200 ${alignRight ? 'right-0' : 'left-0'}`}
+          className={`absolute mt-2 min-w-[200px] max-w-xs bg-paper-light/80 dark:bg-neutral-900/80 backdrop-blur-xl border border-beige/50 dark:border-neutral-800/50 rounded-2xl font-sans z-50 p-1.5 flex flex-col gap-0.5 animate-in fade-in zoom-in-95 duration-200 ${alignRight ? 'right-0' : 'left-0'}`}
         >
           {options.map((option, idx) => (
             <Button

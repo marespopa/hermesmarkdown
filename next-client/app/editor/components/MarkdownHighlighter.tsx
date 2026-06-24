@@ -22,18 +22,43 @@ const CALLOUT_STYLES: Record<
   string,
   { border: string; bg: string; text: string; icon: string }
 > = {
-  note: { border: "border-sage", bg: "bg-sage/5", text: "text-sage", icon: "📝" },
+  note: { border: "border-indigo-500", bg: "bg-indigo-500/5", text: "text-indigo-600 dark:text-indigo-400", icon: "📝" },
+  abstract: { border: "border-cyan-500", bg: "bg-cyan-500/5", text: "text-cyan-600 dark:text-cyan-400", icon: "📋" },
   info: { border: "border-blue-400", bg: "bg-blue-400/5", text: "text-blue-500 dark:text-blue-400", icon: "ℹ️" },
   tip: { border: "border-emerald-400", bg: "bg-emerald-400/5", text: "text-emerald-600 dark:text-emerald-400", icon: "💡" },
+  success: { border: "border-green-500", bg: "bg-green-500/5", text: "text-green-600 dark:text-green-400", icon: "✅" },
+  question: { border: "border-yellow-500", bg: "bg-yellow-500/5", text: "text-yellow-600 dark:text-yellow-400", icon: "❓" },
   warning: { border: "border-amber-500", bg: "bg-amber-500/5", text: "text-amber-600 dark:text-amber-400", icon: "⚠️" },
+  failure: { border: "border-orange-500", bg: "bg-orange-500/5", text: "text-orange-600 dark:text-orange-400", icon: "❌" },
   danger: { border: "border-red-500", bg: "bg-red-500/5", text: "text-red-600 dark:text-red-400", icon: "🔥" },
+  bug: { border: "border-rose-500", bg: "bg-rose-500/5", text: "text-rose-600 dark:text-rose-400", icon: "🐛" },
+  example: { border: "border-violet-500", bg: "bg-violet-500/5", text: "text-violet-600 dark:text-violet-400", icon: "📑" },
+  quote: { border: "border-stone", bg: "bg-paper-softgray/60 dark:bg-paper-dark-surface/40", text: "text-ink-muted dark:text-stone", icon: "💬" },
 };
 
-const REGEX_CALLOUT_START = /^:::callout(?:\s+(\w+))?\s*$/i;
+// Obsidian callout type aliases — resolved to a canonical CALLOUT_STYLES key
+// before lookup. See https://help.obsidian.md/Editing+and+formatting/Callouts
+const CALLOUT_ALIASES: Record<string, string> = {
+  summary: "abstract",
+  tldr: "abstract",
+  hint: "tip",
+  important: "tip",
+  check: "success",
+  done: "success",
+  help: "question",
+  faq: "question",
+  caution: "warning",
+  attention: "warning",
+  fail: "failure",
+  missing: "failure",
+  error: "danger",
+  cite: "quote",
+};
 
-const COLLAPSE_STYLE = { border: "border-stone", bg: "bg-paper-softgray/60 dark:bg-paper-dark-surface/40" };
-
-const REGEX_COLLAPSE_START = /^:::collapse(?:\s+(.+))?\s*$/i;
+// Obsidian callout syntax: `> [!type]+/- Optional title`. Operates on the
+// already-HTML-escaped line, so `>` has become `&gt;`.
+const REGEX_OBSIDIAN_CALLOUT = /^(&gt;\s*)+\[!(\w+)\]([+-]?)\s*(.*)$/i;
+const REGEX_OBSIDIAN_QUOTE_DEPTH = /^(&gt;\s*)+/;
 
 function processInlineMarkdown(
   text: string,
@@ -141,18 +166,13 @@ function processInlineMarkdown(
 
 export function highlightMarkdown(
   code: string,
-  isZenModeActive: boolean = false,
-  activeLineIndex: number = -1,
   dateMatch: DateMatch | null = null,
   activeLink: { rawString: string } | null = null,
 ) {
   const lines = code.split("\n");
   let isInsideCodeBlock = false;
-  let isInsideFrontmatter = false;
-  let frontmatterClosed = false;
-  let calloutType: string | null = null;
-  let isInsideCollapse = false;
-  let collapseTitle = "";
+  let obsidianCalloutType: string | null = null;
+  let obsidianCalloutDepth = 0;
 
   return lines
     .map((line, index) => {
@@ -161,61 +181,66 @@ export function highlightMarkdown(
         .replace(/</g, "&lt;")
         .replace(/>/g, "&gt;");
 
-      // Frontmatter block (only valid when it starts at line 0)
-      if (index === 0 && html === "---") {
-        isInsideFrontmatter = true;
-        const isActive = isZenModeActive && index === activeLineIndex;
-        return `<div class="${isZenModeActive ? "transition-all duration-700 ease-in-out" : ""} bg-sage/5 dark:bg-sage/5 ${isActive ? "-mx-6 px-6 rounded-lg" : ""} min-h-[1.8em]"><span class="text-zinc-400 dark:text-zinc-600">---</span></div>`;
-      }
-      if (isInsideFrontmatter && !frontmatterClosed) {
-        if (html === "---") {
-          isInsideFrontmatter = false;
-          frontmatterClosed = true;
-          const isActive = isZenModeActive && index === activeLineIndex;
-          return `<div class="${isZenModeActive ? "transition-all duration-700 ease-in-out" : ""} bg-sage/5 dark:bg-sage/5 ${isActive ? "-mx-6 px-6 rounded-lg" : ""} min-h-[1.8em]"><span class="text-zinc-400 dark:text-zinc-600">---</span></div>`;
-        }
-        const fmContent = html.replace(
-          /^([a-zA-Z_][a-zA-Z0-9_]*)(:)(.*)/,
-          `<span class="text-violet-500 dark:text-violet-400 opacity-80">$1</span><span class="opacity-30">$2</span><span class="text-zinc-600 dark:text-zinc-400">$3</span>`,
-        );
-        const isActive = isZenModeActive && index === activeLineIndex;
-        return `<div class="${isZenModeActive ? "transition-all duration-700 ease-in-out" : ""} bg-sage/5 dark:bg-sage/5 ${isActive ? "-mx-6 px-6 rounded-lg" : ""} min-h-[1.8em]">${fmContent || " "}</div>`;
-      }
-
       let content = "";
       let blockClasses = "";
-      const trimmed = html.trim();
-      const calloutStartMatch = calloutType === null ? trimmed.match(REGEX_CALLOUT_START) : null;
-      const collapseStartMatch =
-        calloutType === null && !isInsideCollapse ? trimmed.match(REGEX_COLLAPSE_START) : null;
 
-      if (calloutStartMatch) {
-        const requestedType = (calloutStartMatch[1] || "note").toLowerCase();
-        calloutType = CALLOUT_STYLES[requestedType] ? requestedType : "note";
-        const style = CALLOUT_STYLES[calloutType];
-        content = `<span class="${style.text} font-bold uppercase text-ui-footnote tracking-wide">${style.icon} ${calloutType}</span>`;
-        blockClasses = `${style.bg} ${style.border} border-l-2 pl-3 -ml-3`;
-      } else if (calloutType !== null && trimmed === ":::") {
-        const style = CALLOUT_STYLES[calloutType];
-        content = `<span ${FADED}>:::</span>`;
-        blockClasses = `${style.bg} ${style.border} border-l-2 pl-3 -ml-3`;
-        calloutType = null;
-      } else if (calloutType !== null) {
-        const style = CALLOUT_STYLES[calloutType];
-        content = trimmed ? processInlineMarkdown(html, dateMatch, activeLink) : "";
-        blockClasses = `${style.bg} ${style.border} border-l-2 pl-3 -ml-3`;
-      } else if (collapseStartMatch) {
-        isInsideCollapse = true;
-        collapseTitle = (collapseStartMatch[1] || "Details").trim();
-        content = `<span class="text-ink-muted dark:text-stone font-bold text-ui-footnote">▸ ${collapseTitle}</span>`;
-        blockClasses = `${COLLAPSE_STYLE.bg} ${COLLAPSE_STYLE.border} border-l-2 pl-3 -ml-3`;
-      } else if (isInsideCollapse && trimmed === ":::") {
-        content = `<span ${FADED}>:::</span>`;
-        blockClasses = `${COLLAPSE_STYLE.bg} ${COLLAPSE_STYLE.border} border-l-2 pl-3 -ml-3`;
-        isInsideCollapse = false;
-      } else if (isInsideCollapse) {
-        content = trimmed ? processInlineMarkdown(html, dateMatch, activeLink) : "";
-        blockClasses = `${COLLAPSE_STYLE.bg} ${COLLAPSE_STYLE.border} border-l-2 pl-3 -ml-3`;
+      if (
+        obsidianCalloutType === null &&
+        REGEX_OBSIDIAN_CALLOUT.test(html)
+      ) {
+        // Preserve every source character (just faded/colored in place) so the
+        // overlay's text columns never drift from the real textarea caret —
+        // inserting or stripping glyphs (e.g. swapping `[!type]` for an emoji)
+        // desyncs the transparent cursor from the rendered text behind it.
+        const m = html.match(REGEX_OBSIDIAN_CALLOUT)!;
+        const depthMatch = html.match(REGEX_OBSIDIAN_QUOTE_DEPTH)!;
+        const prefixText = depthMatch[0];
+        const depth = (prefixText.match(/&gt;/g) || []).length;
+        const requestedType = m[2].toLowerCase();
+        const fold = m[3] as "+" | "-" | "";
+        const resolvedType = CALLOUT_ALIASES[requestedType] ?? requestedType;
+        const style = CALLOUT_STYLES[resolvedType] ?? CALLOUT_STYLES.note;
+
+        obsidianCalloutType = requestedType;
+        obsidianCalloutDepth = depth;
+
+        const remainder = html.slice(prefixText.length);
+        const bracketEnd = remainder.indexOf("]");
+        const bracketText = remainder.slice(0, bracketEnd + 1);
+        const afterBracket = remainder.slice(bracketEnd + 1);
+        const rest = fold ? afterBracket.slice(1) : afterBracket;
+
+        // The `+`/`-` marker, if present, is shown as plain text — purely
+        // cosmetic/Obsidian-compatible display. It no longer drives
+        // collapse behavior (that's all in collapsedObsidianCallouts now,
+        // toggled by the real chevron button MarkdownEditor renders over
+        // this line), so there's nothing here to keep in sync.
+        const foldSpan = fold ? `<span class="${style.text} font-bold">${fold}</span>` : "";
+        const titleSpan = rest.trim()
+          ? `<span class="${style.text} font-bold">${rest}</span>`
+          : `<span class="${style.text} font-bold opacity-70">${requestedType.charAt(0).toUpperCase() + requestedType.slice(1)}</span>`;
+        content = `<span ${FADED}>${prefixText}${bracketText}</span>${foldSpan}${titleSpan}`;
+        blockClasses = `${style.bg} ${style.border} border-l-2 pl-2.5 -ml-3`;
+      } else if (
+        obsidianCalloutType !== null &&
+        (html.match(REGEX_OBSIDIAN_QUOTE_DEPTH)?.[0].match(/&gt;/g) || []).length >= obsidianCalloutDepth
+      ) {
+        const resolvedType = CALLOUT_ALIASES[obsidianCalloutType] ?? obsidianCalloutType;
+        const style = CALLOUT_STYLES[resolvedType] ?? CALLOUT_STYLES.note;
+
+        // Collapsed callout bodies are stripped out of the textarea's value
+        // entirely upstream (see callout-folding.ts), so this branch only
+        // ever runs for expanded callouts — there's no body line left to
+        // render when collapsed.
+        const bodyDepthMatch = html.match(REGEX_OBSIDIAN_QUOTE_DEPTH);
+        const bodyPrefix = bodyDepthMatch ? bodyDepthMatch[0] : "";
+        const body = html.slice(bodyPrefix.length);
+        content = `<span ${FADED}>${bodyPrefix}</span>${processInlineMarkdown(body, dateMatch, activeLink)}`;
+        blockClasses = `${style.bg} ${style.border} border-l-2 pl-2.5 -ml-3`;
+      } else if (obsidianCalloutType !== null) {
+        obsidianCalloutType = null;
+        obsidianCalloutDepth = 0;
+        content = processInlineMarkdown(html, dateMatch, activeLink);
       } else if (html.startsWith("\u0060\u0060\u0060") || html.startsWith("~~~")) {
         isInsideCodeBlock = !isInsideCodeBlock;
         const fence = html.slice(0, 3);
@@ -261,8 +286,7 @@ export function highlightMarkdown(
         content = processInlineMarkdown(html, dateMatch, activeLink);
       }
 
-      const isActive = isZenModeActive && index === activeLineIndex;
-      return `<div class="${isZenModeActive ? "transition-all duration-700 ease-in-out" : ""} ${blockClasses} ${isActive ? "bg-ink-muted/5 dark:bg-ink-muted/10 -mx-6 px-6 rounded-lg scale-[1.005] opacity-100 shadow-[0_0_40px_-15px_rgba(0,0,0,0.05)]" : ""} min-h-[1.8em]">${content || " "}</div>`;
+      return `<div class="${blockClasses} min-h-[1.8em]">${content || " "}</div>`;
     })
     .join("");
 }

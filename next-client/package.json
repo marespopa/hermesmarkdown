@@ -19,6 +19,7 @@
     "@google/genai": "^2.8.0",
     "@rolldown/binding-linux-arm64-gnu": "^1.1.0",
     "@tailwindcss/typography": "^0.5.15",
+    "@tanstack/react-virtual": "^3.14.3",
     "@testing-library/jest-dom": "^6.6.2",
     "@types/js-cookie": "^3.0.6",
     "@types/react": "19.0.8",

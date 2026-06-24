@@ -12,7 +12,7 @@ export const atom_fontFamily = atomWithStorage<string>(
   "editorFontFamily",
   MONO_FONT_STACK,
 );
-export const atom_fontSize = atomWithStorage<string>("editorFontSize", "16px");
+export const atom_fontSize = atomWithStorage<string>("editorFontSize", "17px");
 export const atom_lineHeight = atomWithStorage<string>(
   "editorLineHeight",
   "1.8",
@@ -21,12 +21,10 @@ export const atom_letterSpacing = atomWithStorage<string>(
   "editorLetterSpacing",
   "normal",
 );
-export const atom_showStats = atomWithStorage<boolean>("showStats", true);
-export const atom_isZenModeActive = atomWithStorage<boolean>(
-  "isZenModeActive",
-  false,
-);
 export const atom_isEditorFocused = atom<boolean>(false);
+// Transient — toggled via keyboard shortcut / command palette, not persisted.
+// The doc-info panel (word/token count, structured score) is on-demand only.
+export const atom_isDocInfoOpen = atom<boolean>(false);
 export const atom_cursorPosition = atom<{ line: number; col: number }>({
   line: 1,
   col: 1,
@@ -77,20 +75,12 @@ export const atom_schemaWizardOpen = atom<boolean>(false);
 export const atom_vaultMigrateOpen = atom<boolean>(false);
 
 export const atom_sidebarWidth = atomWithStorage<number>("sidebarWidth", 260);
-export const atom_isSidebarOpen = atomWithStorage<boolean>(
-  "isSidebarOpen",
-  true,
-);
 
-export type SidebarTab = "content" | "views";
-export const atom_sidebarTabOrder = atomWithStorage<SidebarTab[]>(
-  "sidebarTabOrder",
-  ["content", "views"],
-);
-export const atom_activeSidebarTab = atomWithStorage<SidebarTab>(
-  "activeSidebarTab",
-  "content",
-);
+// The rail is always visible; `atom_railPanel` is which panel (if any) is
+// open next to it — null means the sidebar is collapsed to just the rail.
+// Transient — never persisted, since writing mode always starts clean (collapsed).
+export type RailPanel = "files" | "search" | "tags" | "views";
+export const atom_railPanel = atom<RailPanel | null>(null);
 
 export type DialogType = "alert" | "confirm" | "prompt" | "select" | "new-file";
 
@@ -174,5 +164,9 @@ export const atom_isFileLoading = atom<boolean>(false);
 // status bar), since the actual handler lives inside useAIEditorActions,
 // scoped to the editor's textarea/value.
 export const atom_aiBuilderRequest = atom<number>(0);
+
+// Most-recently-used command ids for the command palette's empty-query state
+// ("feels intelligent" with zero visible "recent" UI). Capped at 8 on write.
+export const atom_recentCommandIds = atomWithStorage<string[]>("recentCommandIds", []);
 
 export const atom_indexTimestamp = atom<number | null>(null);

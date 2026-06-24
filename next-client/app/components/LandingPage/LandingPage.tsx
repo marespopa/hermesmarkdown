@@ -164,7 +164,7 @@ const ZenModeGraphic = () => {
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-40 h-40 bg-purple-500/10 dark:bg-purple-500/20 blur-[60px] pointer-events-none" />
       <div className="absolute top-4 right-4">
         <span className="text-[9px] font-mono uppercase tracking-[0.2em] text-purple-600 dark:text-purple-400 font-bold opacity-80">
-          Zen Mode
+          Writing Mode
         </span>
       </div>
     </div>
@@ -255,7 +255,7 @@ const TableGraphic = () => (
   <div className="w-full h-full flex items-center justify-center p-6 relative select-none">
     <div className="w-full max-w-[280px] space-y-2">
       {/* Floating toolbar */}
-      <div className="flex items-center gap-1 bg-white dark:bg-neutral-800 rounded-lg border border-black/5 dark:border-white/10 shadow-md px-2 py-1 w-fit mx-auto">
+      <div className="flex items-center gap-1 bg-white dark:bg-neutral-800 rounded-lg border border-black/5 dark:border-white/10 px-2 py-1 w-fit mx-auto">
         <span className="text-[9px] font-mono font-bold text-indigo-500 px-1.5 py-0.5 rounded bg-indigo-50 dark:bg-indigo-500/10 cursor-default">
           Edit
         </span>
@@ -267,7 +267,7 @@ const TableGraphic = () => (
         </span>
       </div>
       {/* Table */}
-      <div className="bg-white dark:bg-neutral-800 rounded-lg shadow-sm border border-black/5 dark:border-white/10 overflow-hidden group/table">
+      <div className="bg-white dark:bg-neutral-800 rounded-lg border border-black/5 dark:border-white/10 overflow-hidden group/table">
         <div className="grid grid-cols-3 bg-neutral-50 dark:bg-neutral-900/50 border-b border-black/5 dark:border-white/10 text-[9px] font-mono font-bold text-neutral-500 uppercase tracking-wider">
           <div className="p-2 border-r border-black/5 dark:border-white/10 flex items-center justify-between">
             Task
@@ -437,24 +437,6 @@ const AgentScoreGraphic = () => (
       ))}
     </div>
 
-    {/* Mock status bar — matches real StatusBar */}
-    <div
-      className="border-t border-zinc-200/50 dark:border-zinc-800/50 bg-paper-light/50 dark:bg-paper-dark/50 backdrop-blur-3xl flex items-center justify-between px-3 shrink-0"
-      style={{ height: "22px" }}
-    >
-      <span className="text-[11px] font-medium text-emerald-600 dark:text-emerald-400">
-        ✓ Saved
-      </span>
-      <span className="flex-1 flex justify-center text-[11px] text-zinc-500 dark:text-zinc-400">
-        <strong className="font-medium text-zinc-800 dark:text-zinc-200">
-          ~340
-        </strong>
-        &nbsp;tokens
-      </span>
-      <span className="text-[11px] font-medium text-emerald-600 dark:text-emerald-400 pl-2">
-        AI: Structured
-      </span>
-    </div>
   </div>
 );
 
@@ -648,7 +630,7 @@ export default function LandingPage() {
       {/* PERSISTENT RESUME NOTIFICATION */}
       {isMounted && hasContent && (
         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-3rem)] max-w-md">
-          <div className="bg-white/80 dark:bg-neutral-900/80 backdrop-blur-xl border border-black/5 dark:border-white/10 rounded-2xl shadow-2xl p-4 flex items-center justify-between gap-4 animate-hero-fade-in">
+          <div className="bg-white/80 dark:bg-neutral-900/80 backdrop-blur-xl border border-black/5 dark:border-white/10 rounded-2xl p-4 flex items-center justify-between gap-4 animate-hero-fade-in">
             <div className="space-y-0.5 text-left">
               <p className="text-ui-footnote font-bold uppercase tracking-wider text-sage dark:text-sage">
                 Welcome Back
@@ -702,7 +684,7 @@ export default function LandingPage() {
 
           {/* INTERACTIVE EDITOR PREVIEW */}
           <div className="w-full max-w-4xl relative group animate-hero-fade-in [animation-fill-mode:forwards] [animation-delay:300ms] opacity-0">
-            <div className="rounded-2xl shadow-2xl border border-black/5 dark:border-white/10 overflow-hidden ring-1 ring-black/5 dark:ring-white/5 transition-all duration-500 group-hover:shadow-sage/5 group-hover:ring-sage/20">
+            <div className="rounded-2xl border border-black/5 dark:border-white/10 overflow-hidden ring-1 ring-black/5 dark:ring-white/5 transition-all duration-500 group-hover:ring-sage/20">
               <div className="h-10 bg-paper-light dark:bg-paper-dark border-b border-black/5 dark:border-white/10 flex items-center px-4 gap-2">
                 <div className="flex gap-1.5">
                   <div className="w-3 h-3 rounded-full bg-red-400/20 border border-red-400/30" />
@@ -720,10 +702,8 @@ export default function LandingPage() {
                     onChange={setDemoContent}
                   />
                 )}
-                <div className="absolute bottom-0 inset-x-0 h-24 bg-gradient-to-t from-paper-light dark:from-paper-dark to-transparent pointer-events-none" />
               </div>
             </div>
-            <div className="absolute -inset-0.5 bg-gradient-to-r from-sage/20 to-beige/20 rounded-2xl blur-2xl -z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
           </div>
         </div>
       </div>
@@ -783,7 +763,6 @@ export default function LandingPage() {
         {/* 1. Three-tier read protocol + score — lead with the differentiator */}
         <section className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 lg:gap-16 items-center">
           <div className="order-last md:order-first aspect-video bg-paper-light dark:bg-neutral-900 rounded-2xl border border-black/5 dark:border-white/5 flex items-center justify-center group overflow-hidden relative">
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-emerald-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
             <AgentScoreGraphic />
           </div>
           <div className="space-y-6">
@@ -809,9 +788,9 @@ export default function LandingPage() {
               context window stays clean. Retrieval stays precise.
             </p>
             <p className="text-neutral-600 dark:text-neutral-400 leading-relaxed">
-              The status bar shows a live readability score so you know at a
-              glance how well any file is structured — without opening a
-              separate tool.
+              Pull up a live readability score on demand from the command
+              palette so you know how well any file is structured — without
+              it cluttering the page while you write.
             </p>
           </div>
         </section>
@@ -852,7 +831,6 @@ export default function LandingPage() {
             </p>
           </div>
           <div className="aspect-video bg-paper-light dark:bg-neutral-900 rounded-2xl border border-black/5 dark:border-white/5 flex items-center justify-center group overflow-hidden relative">
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-sky-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
             <AgentContextGraphic />
           </div>
         </section>
@@ -879,7 +857,6 @@ export default function LandingPage() {
             </p>
           </div>
           <div className="aspect-video bg-paper-light dark:bg-neutral-900 rounded-2xl border border-black/5 dark:border-white/5 flex items-center justify-center group overflow-hidden relative">
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-indigo-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
             <AIKeyGraphic />
           </div>
         </section>
@@ -887,7 +864,6 @@ export default function LandingPage() {
         {/* 4. Vault Management */}
         <section className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 lg:gap-16 items-center">
           <div className="order-last md:order-first aspect-video bg-paper-light dark:bg-neutral-900 rounded-2xl border border-black/5 dark:border-white/5 flex items-center justify-center group overflow-hidden relative">
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-sage/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
             <FilesystemGraphic />
           </div>
           <div className="space-y-6">
@@ -924,7 +900,6 @@ export default function LandingPage() {
             </p>
           </div>
           <div className="aspect-video bg-paper-light dark:bg-neutral-900 rounded-2xl border border-black/5 dark:border-white/5 flex items-center justify-center group overflow-hidden relative">
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-emerald-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
             <GoogleDriveGraphic />
           </div>
         </section>
@@ -932,21 +907,18 @@ export default function LandingPage() {
         {/* 4. Writing Experience */}
         <section className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 lg:gap-16 items-center">
           <div className="order-last md:order-first aspect-video bg-paper-light dark:bg-neutral-900 rounded-2xl border border-black/5 dark:border-white/5 flex items-center justify-center group overflow-hidden relative">
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-purple-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
             <ZenModeGraphic />
           </div>
           <div className="space-y-6">
             <div className="h-px w-12 bg-purple-600" />
             <h2 className="text-3xl font-bold tracking-tight">
-              Zen Mode & multi-pane editing
+              Distraction-free by default
             </h2>
             <p className="text-neutral-600 dark:text-neutral-400 leading-relaxed">
-              Zen Mode (
-              <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">
-                Ctrl+Shift+Z
-              </code>
-              ) collapses every panel to one line, nothing else. Open files
-              side by side and drag tabs between panes. Elements in the editor
+              The app opens straight into a full-screen writing surface — no
+              sidebar, no tabs, nothing else. Hover the left edge when you
+              need the file tree, or pin it open. Open files side by side and
+              drag tabs between panes. Elements in the editor
               are live — click{" "}
               <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">
                 [ ]
@@ -990,7 +962,6 @@ export default function LandingPage() {
             </p>
           </div>
           <div className="aspect-video bg-paper-light dark:bg-neutral-900 rounded-2xl border border-black/5 dark:border-white/5 flex items-center justify-center group overflow-hidden relative">
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-amber-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
             <SmartSyntaxGraphic />
           </div>
         </section>
@@ -998,7 +969,6 @@ export default function LandingPage() {
         {/* 6. Table Editor */}
         <section className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 lg:gap-16 items-center">
           <div className="order-last md:order-first aspect-video bg-paper-light dark:bg-neutral-900 rounded-2xl border border-black/5 dark:border-white/5 flex items-center justify-center group overflow-hidden relative">
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-indigo-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
             <TableGraphic />
           </div>
           <div className="space-y-6">
@@ -1023,7 +993,7 @@ export default function LandingPage() {
 
       {/* --- CALL TO ACTION --- */}
       <section className="py-24 md:py-32 px-6">
-        <div className="max-w-4xl mx-auto text-center space-y-8 bg-neutral-50 dark:bg-neutral-900/50 text-fg p-8 md:p-16 lg:p-24 rounded-[2rem] md:rounded-[3rem] shadow-sm border border-black/5 dark:border-white/5 relative overflow-hidden">
+        <div className="max-w-4xl mx-auto text-center space-y-8 bg-neutral-50 dark:bg-neutral-900/50 text-fg p-8 md:p-16 lg:p-24 rounded-[2rem] md:rounded-[3rem] border border-black/5 dark:border-white/5 relative overflow-hidden">
           <div className="absolute top-0 right-0 w-64 h-64 bg-sage/5 blur-[100px] -mr-32 -mt-32" />
           <div className="absolute bottom-0 left-0 w-64 h-64 bg-purple-500/5 blur-[100px] -ml-32 -mb-32" />
 
@@ -1042,7 +1012,7 @@ export default function LandingPage() {
             <Button
               variant="hero"
               onClick={handleStart}
-              className="shadow-xl hover:shadow-sage/20 transition-all"
+              className="transition-all"
             >
               Launch Editor
             </Button>

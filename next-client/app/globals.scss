@@ -7,42 +7,47 @@
 /* ─── Design Tokens ─────────────────────────────────────────────────────────
    Single source of truth for the color system. Tailwind tokens reference
    these vars so dark mode switching requires no `dark:` class duplication.
+   Neutral surfaces only — clay/moss accents never appear as backgrounds.
    ─────────────────────────────────────────────────────────────────────── */
 :root {
-  --surface:        #F5F1E8;  /* page background (cream) */
-  --surface-raised: #EDE5D4;  /* elevated cards / panels */
-  --chrome:         #E8E6E1;  /* sidebar, tab bar, status bar */
-  --overlay:        #F5F1E8;  /* modals / popovers */
-  --input-bg:       #FAF8F3;  /* form inputs */
+  --surface:        #FAF9F7;  /* editor surface — soft off-white, no color cast */
+  --surface-raised: #F2F1EE;  /* elevated cards / panels */
+  --chrome:         #F0EFEC;  /* sidebar, tab bar, status bar — visibly distinct from editor */
+  --overlay:        #FAF9F7;  /* modals / popovers / command palette */
+  --input-bg:       #FFFFFF;  /* form inputs */
 
-  --border:         #D4C4A8;
-  --border-subtle:  rgba(212, 196, 168, 0.35);
+  --border:         #DEDCD7;
+  --border-subtle:  rgba(60, 56, 50, 0.10);
 
-  --fg:             #3A3226;  /* primary text */
-  --fg-muted:       #6B6B6B;  /* secondary text */
-  --fg-faint:       #716E66;  /* placeholder / tertiary — WCAG AA 4.5:1 on surface */
+  --fg:             #2A2825;  /* primary text — near-black, slight warmth */
+  --fg-muted:       #6B6862;  /* secondary text */
+  --fg-faint:       #8A8782;  /* placeholder / tertiary */
 
-  --accent:         #647558;  /* trunk accent — dark amber, AA-compliant with white text */
+  --clay:           #B5694A;  /* primary accent — active states, focus, links, unsaved dot */
+  --moss:           #6E7D5E;  /* secondary accent — icons, muted interactive */
+  --moss-hover:     #5C6A4E;  /* moss, darkened — hover/active state for sage buttons */
 }
 
 html.dark {
-  --surface:        #1A1816;
-  --surface-raised: #363230;
-  --chrome:         #141210;
-  --overlay:        #363230;
-  --input-bg:       #1A1816;
+  --surface:        #211E1B;  /* warm dark, not pure black */
+  --surface-raised: #2A2622;
+  --chrome:         #29251F;
+  --overlay:        #2A2622;
+  --input-bg:       #1C1A17;
 
-  --border:         #3A3530;
-  --border-subtle:  rgba(58, 53, 48, 0.35);
+  --border:         #3D3833;
+  --border-subtle:  rgba(214, 207, 198, 0.10);
 
-  --fg:             #F0EDE6;
-  --fg-muted:       #A8A098;
-  --fg-faint:       #8A857E;  /* WCAG AA 4.5:1 on dark surface */
+  --fg:             #ECE7E0;  /* warm off-white */
+  --fg-muted:       #A8A199;
+  --fg-faint:       #847E75;
 
-  --accent:         #647558;  /* unified dark amber — same as light mode */
+  --clay:           #D88B68;  /* brightened for contrast on dark surfaces */
+  --moss:           #8FA178;
+  --moss-hover:     #A3B58C;  /* moss, brightened — hover/active state for sage buttons */
 }
 
-/* Custom Scrollbars - Minimalist Paper Style */
+/* Custom Scrollbars — thin, neutral track, clay thumb */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -53,22 +58,17 @@ html.dark {
 }
 
 ::-webkit-scrollbar-thumb {
-  border-radius: 9999px;
-  background-color: #D4C4A8;
+  background-color: var(--clay);
+  opacity: 0.5;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background-color: #C4B49A;
+  opacity: 0.8;
 }
 
-html.dark {
-  ::-webkit-scrollbar-thumb {
-    background-color: #3A3530;
-  }
-
-  ::-webkit-scrollbar-thumb:hover {
-    background-color: #4A4540;
-  }
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--clay) transparent;
 }
 
 /* Tell mobile browsers this page manages its own theme — prevents auto dark-mode
@@ -81,15 +81,35 @@ html.dark {
   color-scheme: dark;
 }
 
-/* Custom Pastel Text Selection */
+/* Text selection — clay at low opacity */
 ::selection {
-  background-color: theme('colors.sage.light');
+  background-color: rgba(181, 105, 74, 0.22);
   color: theme('colors.ink.light');
 }
 
 html.dark ::selection {
-  background-color: rgba(254, 243, 199, 0.22);
+  background-color: rgba(216, 139, 104, 0.28);
   color: theme('colors.ink.dark');
+}
+
+/* Focus rings — clay outline, no default browser blue */
+:focus-visible {
+  outline: 2px solid var(--clay);
+  outline-offset: 2px;
+}
+
+/* Form fields draw their own focus ring (Tailwind `focus:ring-sage`) — the
+   global clay outline above stacked on top of it produced a visible double
+   border. The editor's own textarea is unaffected and keeps the clay outline. */
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: none;
+}
+
+.editor-container textarea:focus-visible {
+  outline: 2px solid var(--clay);
+  outline-offset: 2px;
 }
 
 /* Keep the editor's invisible textarea layer transparent during selection.
@@ -121,53 +141,6 @@ html.dark, html.dark body {
   color: theme('colors.ink.dark');
 }
 
-/* Full-page paper grain — fixed overlay, multiply blend makes it consistent on any bg color */
-html::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 9999;
-  opacity: 0.18;
-  mix-blend-mode: multiply;
-  transform: translateZ(0);
-  will-change: transform;
-  background-size: 200px 200px;
-  background-repeat: repeat;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
-}
-
-html.dark::before {
-  opacity: 0.12;
-  mix-blend-mode: screen;
-}
-
-/* Component-level grain (sidebar, tabs, statusbar) — bounded, not scrollable */
-.paper-grain {
-  position: relative;
-}
-
-.paper-grain::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  z-index: 999;
-  opacity: 0.12;
-  mix-blend-mode: multiply;
-  background-size: 200px 200px;
-  background-repeat: repeat;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
-}
-
-html.dark .paper-grain::before {
-  opacity: 0.08;
-  mix-blend-mode: screen;
-}
-
-html.dark .paper-grain::before {
-  opacity: 0.025;
-}
 
 /* Fix overscroll background color */
 html {
@@ -209,7 +182,7 @@ html.dark {
 }
 
 .hermes-markdown-toast {
-  @apply bg-white text-black shadow-lg rounded-lg px-4 py-3 font-medium;
+  @apply bg-white text-black border border-edge px-4 py-3 font-medium;
 }
 
 /* Hide scrollbar for Chrome, Safari and Opera */
@@ -224,7 +197,7 @@ html.dark {
 }
 
 html.dark .hermes-markdown-toast {
-  @apply bg-neutral-800 text-white shadow-lg rounded-lg px-4 py-3 font-medium;
+  @apply bg-neutral-800 text-white border border-edge px-4 py-3 font-medium;
 }
 
 /* List styling using Tailwind colors */

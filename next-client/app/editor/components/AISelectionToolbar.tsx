@@ -66,7 +66,7 @@ export const AISelectionToolbar: React.FC<AISelectionToolbarProps> = ({
     <Portal>
       <div className="fixed top-4 inset-x-0 z-[99] flex justify-center pointer-events-none">
         <div
-          className="ai-selection-toolbar pointer-events-auto flex items-center gap-0.5 p-1 bg-paper-light/80 dark:bg-neutral-900/80 backdrop-blur-2xl border border-paper-light/20 dark:border-neutral-800/50 shadow-[0_8px_30px_rgba(0,0,0,0.1)] rounded-full animate-in fade-in zoom-in-95 duration-200 select-none"
+          className="ai-selection-toolbar pointer-events-auto flex items-center gap-0.5 p-1 bg-paper-light/80 dark:bg-neutral-900/80 backdrop-blur-2xl border border-paper-light/20 dark:border-neutral-800/50 rounded-full animate-in fade-in zoom-in-95 duration-200 select-none"
         >
           <button
             onMouseDown={(e) => e.preventDefault()}

@@ -1,22 +1,23 @@
 "use client";
 
 import React, { useState, useCallback } from "react";
+import toast from "react-hot-toast";
 import { useFileSystem } from "@/app/hooks/use-file-system";
+import { useDialog } from "@/app/hooks/use-dialog";
 import {
   HiOutlineChevronLeft,
-  HiOutlineCog,
   HiOutlineCloud,
+  HiOutlineDocumentAdd,
+  HiOutlineFolderAdd,
 } from "react-icons/hi";
 import Button from "@/app/components/Button";
 import {
   atom_activeFilePath,
   atom_sidebarWidth,
   atom_isCloudVault,
-  atom_sidebarTabOrder,
-  atom_activeSidebarTab,
-  SidebarTab
 } from "@/app/atoms/atoms";
-import { useAtom, useAtomValue } from "jotai";
+import { atom_railPanel, RailPanel } from "@/app/atoms/ui-atoms";
+import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import SmartFolders from "./SmartFolders";
 import { useSidebarSearch } from "../hooks/useSidebarSearch";
 import VaultSidebarEmpty from "./VaultSidebarEmpty";
@@ -55,9 +56,8 @@ function DriveExpiredPanel({ vaultName, onReconnect }: { vaultName: string | nul
 }
 
 interface VaultSidebarProps {
+  panel: RailPanel;
   onClose?: () => void;
-  onOpenSettings?: () => void;
-  onOpenDocumentation?: () => void;
   onNewFile?: () => void;
   onNewAIFile?: () => void;
   onImport?: () => void;
@@ -66,9 +66,8 @@ interface VaultSidebarProps {
 }
 
 export default function VaultSidebar({
+  panel,
   onClose,
-  onOpenSettings,
-  onOpenDocumentation,
   onNewFile,
   onNewAIFile,
   onImport,
@@ -88,13 +87,29 @@ export default function VaultSidebar({
     openDriveVault,
     driveAuthState,
     driveSignIn,
+    scanVault,
   } = useFileSystem();
+
+  const dialog = useDialog();
+
+  const handleNewFolder = useCallback(async () => {
+    if (!vaultHandle) return;
+    const folderName = await dialog.prompt("Enter folder name:", "", "New Folder");
+    if (!folderName) return;
+    try {
+      await (vaultHandle as any).getDirectoryHandle(folderName, { create: true });
+      await scanVault(vaultHandle);
+      toast.success("Created: " + folderName);
+    } catch {
+      toast.error("Failed to create folder");
+    }
+  }, [vaultHandle, dialog, scanVault]);
 
   const [activeFilePath, setActiveFilePath] = useAtom(atom_activeFilePath);
   const [sidebarWidth, setSidebarWidth] = useAtom(atom_sidebarWidth);
   const isCloudVault = useAtomValue(atom_isCloudVault);
-  const tabOrder = useAtomValue(atom_sidebarTabOrder);
   const driveVaultName = useAtomValue(atom_driveVaultName);
+  const setRailPanel = useSetAtom(atom_railPanel);
   const [isResizing, setIsResizing] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
@@ -109,19 +124,20 @@ export default function VaultSidebar({
   }, [isRefreshing, vaultHandle, onRefresh]);
 
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
-  const [activeTab, setActiveTab] = useAtom(atom_activeSidebarTab);
-  const [viewMatchCount, setViewMatchCount] = useState(0);
-  const [viewHasFolderSelected, setViewHasFolderSelected] = useState(false);
 
   const {
     searchQuery,
     setSearchQuery,
     processedFiles,
+    totalResultsCount,
+    hasMoreResults,
+    setShowAllResults,
+    allFiles,
     tags,
-  } = useSidebarSearch({ selectedTags });
+    tagCounts,
+  } = useSidebarSearch({ selectedTags, panel });
 
   const isSearching = searchQuery.trim().length > 0 || selectedTags.length > 0;
-  const showAllFiles = activeTab === "content" || (isSearching && (!viewHasFolderSelected || viewMatchCount === 0));
 
   // Resize logic
   const startResizing = React.useCallback((e: React.MouseEvent) => {
@@ -152,10 +168,10 @@ export default function VaultSidebar({
   if (!isMounted) return null;
 
   return (
-    <div
-      className="flex flex-col h-full animate-in slide-in-from-left duration-500 ease-out relative group/sidebar paper-grain bg-paper-pale dark:bg-paper-dark border-r border-edge-subtle"
-      style={{ width: `${sidebarWidth}px` }}
-    >
+      <div
+        className="flex flex-col h-full relative group/sidebar bg-chrome border-r border-edge-subtle"
+        style={{ width: `${sidebarWidth}px` }}
+      >
       {/* Resize Handle */}
       <div
         onMouseDown={startResizing}
@@ -168,8 +184,8 @@ export default function VaultSidebar({
 
       {/* Header */}
       <div className="p-3 flex flex-col gap-2 shrink-0">
-        <div className="flex justify-between items-center h-11 md:h-8">
-          <div className="flex items-center gap-2">
+        <div className="flex justify-between items-center gap-2 h-11 md:h-8">
+          <div className="flex items-center gap-2 min-w-0">
             <h2 className="text-ui-body md:text-ui-subhead font-medium text-ink-light dark:text-ink-dark opacity-80 md:opacity-60 hover:opacity-100 transition-opacity flex items-center gap-1.5 min-w-0">
               <span className="truncate">{vaultHandle?.name || driveVaultName || "Notes"}</span>
               {isDriveVault && (
@@ -192,43 +208,44 @@ export default function VaultSidebar({
             </h2>
           </div>
 
-          <div className="flex items-center gap-1">
-              {vaultHandle && (
-                <Button
-                  variant="icon"
-                  className="w-10 h-10 opacity-80 hover:opacity-100"
-                  onClick={handleRefresh}
-                  title="Refresh vault"
-                  aria-label="Refresh vault"
-                  disabled={isRefreshing}
-                >
-                  <HiOutlineRefresh size={18} className={isRefreshing ? "animate-spin" : ""} />
-                </Button>
-              )}
-
-              <Button
-                variant="icon"
-                className="w-10 h-10 opacity-80 hover:opacity-100 md:hidden"
-                onClick={onOpenSettings}
-                title="Settings"
-                aria-label="Settings"
-              >
-                <HiOutlineCog size={18} />
-              </Button>
-
-              {onClose && (
-                <Button
-                  variant="icon"
-                  className="w-10 h-10 opacity-80 hover:opacity-100"
-                  onClick={onClose}
-                  title="Collapse Sidebar"
-                  aria-label="Collapse Sidebar"
-                >
-                  <HiOutlineChevronLeft size={18} />
-                </Button>
-              )}
-          </div>
+          {onClose && (
+            <Button
+              variant="icon"
+              className="w-10 h-10 shrink-0 opacity-80 hover:opacity-100"
+              onClick={onClose}
+              title="Collapse Sidebar"
+              aria-label="Collapse Sidebar"
+            >
+              <HiOutlineChevronLeft size={18} />
+            </Button>
+          )}
         </div>
+
+        {vaultHandle && panel === "files" && (
+          <div className="-mx-3 px-1 flex items-stretch border-t border-b border-edge-subtle">
+            <button
+              type="button"
+              onClick={onNewFile}
+              title="New file"
+              aria-label="New file"
+              className="flex-1 flex flex-col items-center justify-center gap-1 py-2 text-ink-muted hover:text-ink-light dark:text-stone dark:hover:text-ink-dark hover:bg-paper-softgray dark:hover:bg-paper-dark-surface transition-colors"
+            >
+              <HiOutlineDocumentAdd size={17} />
+              <span className="text-ui-micro leading-none">New file</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={handleNewFolder}
+              title="New folder"
+              aria-label="New folder"
+              className="flex-1 flex flex-col items-center justify-center gap-1 py-2 text-ink-muted hover:text-ink-light dark:text-stone dark:hover:text-ink-dark hover:bg-paper-softgray dark:hover:bg-paper-dark-surface transition-colors border-l border-edge-subtle"
+            >
+              <HiOutlineFolderAdd size={17} />
+              <span className="text-ui-micro leading-none">New folder</span>
+            </button>
+          </div>
+        )}
       </div>
 
       <div className="flex-1 flex flex-col overflow-hidden min-h-0">
@@ -248,78 +265,78 @@ export default function VaultSidebar({
               />
             )}
           </div>
+        ) : panel === "tags" ? (
+          <div className="flex-1 overflow-y-auto custom-scrollbar py-1">
+            {tags.length === 0 && (
+              <p className="px-4 py-3 text-ui-footnote text-stone dark:text-fg-faint">No tags in this vault yet.</p>
+            )}
+            {tags.map((tag) => {
+              const isActive = selectedTags.includes(tag);
+              return (
+                <button
+                  key={tag}
+                  onClick={() => {
+                    setSelectedTags((prev) => (prev.includes(tag) ? prev : [...prev, tag]));
+                    setRailPanel("search");
+                  }}
+                  className={`flex w-full items-center justify-between px-4 py-2 text-ui-subhead relative ${
+                    isActive
+                      ? "text-accent font-medium before:absolute before:left-0 before:top-1 before:bottom-1 before:w-0.5 before:bg-accent"
+                      : "text-ink-muted hover:text-ink-light dark:text-stone dark:hover:text-ink-dark"
+                  }`}
+                >
+                  <span className="truncate">#{tag}</span>
+                  <span className="text-ui-caption text-fg-faint">{tagCounts[tag] ?? 0}</span>
+                </button>
+              );
+            })}
+          </div>
+        ) : panel === "views" ? (
+          <div className="flex-1 overflow-y-auto">
+            <SmartFolders
+              onFileSelect={(handle, path) => {
+                openFile(handle, path);
+                if (onClose && window.innerWidth < 1024) onClose();
+              }}
+              renameFile={renameFile}
+              deleteFile={deleteFile}
+            />
+          </div>
         ) : (
           <div className="flex flex-col h-full overflow-hidden">
-            {/* Unified search - always visible */}
-            <div className="px-3 pt-3 pb-2 shrink-0 border-b border-edge-subtle">
-              <UnifiedSearchInput
-                tokens={selectedTags}
-                text={searchQuery}
-                allTags={tags}
-                onTokenAdd={(tag) => setSelectedTags(prev => prev.includes(tag) ? prev : [...prev, tag])}
-                onTokenRemove={(tag) => setSelectedTags(prev => prev.filter(t => t !== tag))}
-                onTextChange={setSearchQuery}
-              />
-            </div>
-
-            <div className="px-4 py-2 shrink-0 border-b border-edge-subtle">
-              <div className="relative flex bg-paper-softgray/80 dark:bg-paper-dark/60 rounded-lg p-0.5 gap-0.5">
-                {tabOrder.map((tab) => (
-                  <button
-                    key={tab}
-                    onClick={() => setActiveTab(tab)}
-                    className={`
-                      relative flex-1 py-1.5 text-xs font-semibold tracking-wide rounded-md
-                      transition-all duration-200 ease-out cursor-pointer
-                      ${activeTab === tab
-                        ? "bg-paper-light dark:bg-paper-dark-surface text-ink-light dark:text-ink-dark shadow-md shadow-beige dark:shadow-black/60"
-                        : "text-stone hover:text-ink-muted dark:hover:text-ink-dark"
-                      }
-                    `}
-                  >
-                    {tab === "content" ? "Content" : "Views"}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="flex-1 overflow-hidden flex flex-col pt-3">
-              {showAllFiles && activeTab === "views" && (
-                <p className="px-4 pb-1 text-ui-caption text-stone dark:text-fg-faint shrink-0">
-                  Searching all files
-                </p>
-              )}
-              {showAllFiles ? (
-                <VaultSidebarFiles
-                  onNewFile={onNewFile}
-                  onNewAIFile={onNewAIFile}
-                  processedFiles={processedFiles}
-                  activeFilePath={activeFilePath}
-                  openFile={openFile}
-                  renameFile={renameFile}
-                  deleteFile={deleteFile}
-                  onClose={onClose}
-                  isSearchActive={isSearching}
+            {panel === "search" && (
+              <div className="px-3 pt-3 pb-2 shrink-0">
+                <UnifiedSearchInput
+                  autoFocus
+                  tokens={selectedTags}
+                  text={searchQuery}
+                  allTags={tags}
+                  onTokenAdd={(tag) => setSelectedTags(prev => prev.includes(tag) ? prev : [...prev, tag])}
+                  onTokenRemove={(tag) => setSelectedTags(prev => prev.filter(t => t !== tag))}
+                  onTextChange={setSearchQuery}
                 />
-              ) : (
-                <div className="flex-1 overflow-y-auto">
-                  <SmartFolders
-                    onFileSelect={(handle, path) => {
-                      openFile(handle, path);
-                      if (onClose && window.innerWidth < 1024) onClose();
-                    }}
-                    renameFile={renameFile}
-                    deleteFile={deleteFile}
-                    searchQuery={searchQuery}
-                    selectedTags={selectedTags}
-                    onMatchCountChange={(count, hasFolderSelected) => {
-                      setViewMatchCount(count);
-                      setViewHasFolderSelected(hasFolderSelected);
-                    }}
-                    onNewFile={onNewFile}
-                    onNewAIFile={onNewAIFile}
-                  />
-                </div>
+              </div>
+            )}
+
+            <div className="flex-1 overflow-hidden flex flex-col">
+              <VaultSidebarFiles
+                processedFiles={panel === "search" ? processedFiles : allFiles}
+                activeFilePath={activeFilePath}
+                openFile={openFile}
+                renameFile={renameFile}
+                deleteFile={deleteFile}
+                onClose={onClose}
+                isSearchActive={panel === "search" && isSearching}
+                highlightQuery={panel === "search" ? searchQuery : ""}
+              />
+              {panel === "search" && hasMoreResults && (
+                <button
+                  type="button"
+                  onClick={() => setShowAllResults(true)}
+                  className="shrink-0 w-full py-2 text-ui-footnote text-center text-fg-faint hover:text-fg-muted transition-colors"
+                >
+                  Show all {totalResultsCount} results
+                </button>
               )}
             </div>
           </div>
@@ -331,15 +348,15 @@ export default function VaultSidebar({
       )}
 
       <VaultSidebarFooter
-        onOpenSettings={onOpenSettings}
-        onOpenDocumentation={onOpenDocumentation}
         vaultHandle={vaultHandle}
         closeVault={closeVault}
         openVault={openVault}
         isVaultSupported={isVaultSupported}
+        onRefresh={handleRefresh}
+        isRefreshing={isRefreshing}
       />
 
       <GoogleDriveFolderPicker onSelect={openDriveVault} />
-    </div>
+      </div>
   );
 }

@@ -8,7 +8,6 @@ import {
   atom_openFiles, 
   atom_activeFilePath, 
   atom_saveStatus,
-  atom_isZenModeActive
 } from "@/app/atoms/atoms";
 import React from "react";
 
@@ -55,8 +54,7 @@ describe("PaneLeaf Tab Indicators", () => {
         "file2.md": { fileName: "file2.md", content: "clean", lastSavedContent: "clean" }
       }],
       [atom_activeFilePath, "file1.md"],
-      [atom_saveStatus, { state: "idle", retryCount: 0 }],
-      [atom_isZenModeActive, false]
+      [atom_saveStatus, { state: "idle", retryCount: 0 }]
     ];
 
     render(
@@ -76,8 +74,7 @@ describe("PaneLeaf Tab Indicators", () => {
       [atom_openFiles, { 
         "file1.md": { fileName: "file1.md", content: "dirty", lastSavedContent: "clean" }
       }],
-      [atom_saveStatus, { state: "saving", retryCount: 0, path: "file1.md" }],
-      [atom_isZenModeActive, false]
+      [atom_saveStatus, { state: "saving", retryCount: 0, path: "file1.md" }]
     ];
 
     render(
@@ -98,8 +95,7 @@ describe("PaneLeaf Tab Indicators", () => {
       [atom_openFiles, {
         "file1.md": { fileName: "file1.md", content: "clean", lastSavedContent: "clean" }
       }],
-      [atom_saveStatus, { state: "saved", retryCount: 0, path: "file1.md" }],
-      [atom_isZenModeActive, false]
+      [atom_saveStatus, { state: "saved", retryCount: 0, path: "file1.md" }]
     ];
 
     render(
@@ -119,8 +115,7 @@ describe("PaneLeaf Tab Indicators", () => {
       [atom_openFiles, { 
         "file1.md": { fileName: "file1.md", content: "dirty", lastSavedContent: "clean" }
       }],
-      [atom_saveStatus, { state: "error", retryCount: 0, path: "file1.md", message: "Disk full" }],
-      [atom_isZenModeActive, false]
+      [atom_saveStatus, { state: "error", retryCount: 0, path: "file1.md", message: "Disk full" }]
     ];
 
     render(
@@ -141,8 +136,7 @@ describe("PaneLeaf Tab Indicators", () => {
         "file1.md": { fileName: "file1.md", content: "clean", lastSavedContent: "clean" },
         "file2.md": { fileName: "file2.md", content: "clean", lastSavedContent: "clean" }
       }],
-      [atom_saveStatus, { state: "saving", retryCount: 0, path: "file2.md" }],
-      [atom_isZenModeActive, false]
+      [atom_saveStatus, { state: "saving", retryCount: 0, path: "file2.md" }]
     ];
 
     render(

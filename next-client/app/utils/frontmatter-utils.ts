@@ -1,4 +1,5 @@
 import type { SchemaField, VaultSchema } from "@/app/services/vault-schema";
+import type { FileMetadata } from "@/app/atoms/metadata";
 
 export const FM_REGEX = /^---\n([\s\S]*?)\n---\n?/;
 
@@ -45,6 +46,12 @@ export function parseFmFields(content: string): Record<string, string> {
   return fields;
 }
 
+/** Mimics the list normalization serializeField applies, so live-typing inputs
+ *  can tell whether an incoming value is just their own edit echoed back. */
+export function normalizeListString(val: string): string {
+  return val.split(",").map((s) => s.trim()).filter(Boolean).join(", ");
+}
+
 export function serializeField(key: string, val: string, field?: SchemaField): string {
   const isListField =
     field?.type === "list" ||
@@ -52,8 +59,7 @@ export function serializeField(key: string, val: string, field?: SchemaField): s
   const isBareField = field?.type === "enum" || (!field && key === "status");
 
   if (isListField) {
-    const items = val.split(",").map((s) => s.trim()).filter(Boolean);
-    return `${key}: [${items.join(", ")}]`;
+    return `${key}: [${normalizeListString(val)}]`;
   }
   if (isBareField) {
     return `${key}: ${val}`;
@@ -63,6 +69,19 @@ export function serializeField(key: string, val: string, field?: SchemaField): s
     return `${key}: |\n${indented}`;
   }
   return `${key}: "${val}"`;
+}
+
+/** Unique `scope` values seen across the vault, most-recently-modified first. */
+export function getAllScopes(fileMetadata: Record<string, FileMetadata>): string[] {
+  const seen = new Set<string>();
+  return Object.values(fileMetadata)
+    .sort((a, b) => b.modifiedAt - a.modifiedAt)
+    .map((m) => (m.frontmatter?.scope ?? "").toString().trim())
+    .filter((scope) => {
+      if (!scope || seen.has(scope)) return false;
+      seen.add(scope);
+      return true;
+    });
 }
 
 export function updateFmFields(

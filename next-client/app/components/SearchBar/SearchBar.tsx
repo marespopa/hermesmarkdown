@@ -61,16 +61,15 @@ const VARIANT_CLASSES: Record<SearchBarVariant, string> = {
     "bg-paper-light dark:bg-paper-dark-surface/50 " +
     "border border-edge " +
     "rounded-full " +
-    "focus-within:ring-2 focus-within:ring-sage/20 focus-within:border-sage/40 " +
+    "focus-within:ring-2 focus-within:ring-sage/20 " +
     "transition-all duration-200 ease-out",
 
   floating:
     "bg-paper-light/80 dark:bg-paper-dark/80 " +
     "backdrop-blur-xl " +
     "border border-white/20 dark:border-zinc-800/50 " +
-    "shadow-2xl " +
     "rounded-2xl " +
-    "focus-within:ring-2 focus-within:ring-sage/20 focus-within:border-sage/40 " +
+    "focus-within:ring-2 focus-within:ring-sage/20 " +
     "transition-all duration-200 ease-out " +
     "animate-fade-in",
 };
@@ -142,7 +141,7 @@ const SearchBar = forwardRef<HTMLInputElement, SearchBarProps>(
           spellCheck={false}
           aria-label={placeholder}
           className={[
-            "flex-1 h-full bg-transparent outline-none border-none",
+            "flex-1 h-full bg-transparent outline-none focus-visible:outline-none border-none",
             "text-ink-light dark:text-ink-dark",
             "placeholder:text-stone dark:placeholder:text-stone",
             "font-sans",

@@ -14,11 +14,9 @@ const SECTIONS = [
 
 const BackgroundGraphics = () => (
   <div className="absolute inset-0 overflow-hidden pointer-events-none -z-10 select-none" aria-hidden="true">
-    <div className="absolute inset-0 bg-[linear-gradient(to_right,#8080800a_1px,transparent_1px),linear-gradient(to_bottom,#8080800a_1px,transparent_1px)] bg-[size:32px_32px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)]" />
-    <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[1000px] bg-gradient-radial from-sage/[0.05] dark:from-sage/[0.03] via-transparent to-transparent blur-[120px]" />
+    <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[1000px] bg-sage/[0.05] dark:bg-sage/[0.03] blur-[120px]" />
     <div className="absolute top-[20%] right-[10%] w-[500px] h-[500px] bg-purple-500/[0.03] dark:bg-purple-500/[0.02] rounded-full blur-[100px]" />
     <div className="absolute bottom-[20%] left-[5%] w-[600px] h-[600px] bg-amber-500/[0.02] dark:bg-amber-500/[0.01] rounded-full blur-[120px]" />
-    <div className="absolute left-1/2 -translate-x-1/2 top-0 bottom-0 w-px bg-gradient-to-b from-transparent via-neutral-200 dark:via-neutral-800 to-transparent opacity-20" />
   </div>
 );
 
@@ -117,15 +115,15 @@ export default function Documentation() {
 
               <div className="space-y-8">
                 <div className="space-y-4">
-                  <h3 className="text-3xl font-bold tracking-tight">Zen Mode</h3>
+                  <h3 className="text-3xl font-bold tracking-tight">Writing Mode</h3>
                   <p className="text-neutral-500 dark:text-neutral-400 leading-relaxed text-lg">
-                    Hides all sidebars and dims everything except the line you're on. Good for when you need to just write.
+                    The app opens straight into a full-screen, chrome-free editor every time. Move your mouse to the left edge to peek at the sidebar, or pin it open when you need it.
                   </p>
                 </div>
-                <div className="p-8 bg-neutral-50/50 dark:bg-neutral-900/30 backdrop-blur-sm rounded-3xl border border-black/5 dark:border-white/5 shadow-inner">
-                  <div className={guideRow}><span className="text-sm font-medium">Toggle Zen</span><span className={resultLabel}>CTRL+SHIFT+Z</span></div>
-                  <div className={guideRow}><span className="text-sm font-medium">Focus Highlight</span><span className={resultLabel}>Active Line Tint</span></div>
-                  <div className={guideRow}><span className="text-sm font-medium">Narrow Width</span><span className={resultLabel}>~85 Characters</span></div>
+                <div className="p-8 bg-neutral-50/50 dark:bg-neutral-900/30 backdrop-blur-sm rounded-3xl border border-black/5 dark:border-white/5">
+                  <div className={guideRow}><span className="text-sm font-medium">Reveal Sidebar</span><span className={resultLabel}>Hover Left Edge</span></div>
+                  <div className={guideRow}><span className="text-sm font-medium">Pin Sidebar</span><span className={resultLabel}>CTRL+SHIFT+E</span></div>
+                  <div className={guideRow}><span className="text-sm font-medium">Command Palette</span><span className={resultLabel}>CTRL+SHIFT+P</span></div>
                 </div>
               </div>
 
@@ -136,7 +134,7 @@ export default function Documentation() {
                     Checkboxes toggle, tags cycle, and wiki links open — just click. No need to touch the raw Markdown.
                   </p>
                 </div>
-                <div className="p-8 bg-neutral-50/50 dark:bg-neutral-900/30 backdrop-blur-sm rounded-3xl border border-black/5 dark:border-white/5 shadow-inner">
+                <div className="p-8 bg-neutral-50/50 dark:bg-neutral-900/30 backdrop-blur-sm rounded-3xl border border-black/5 dark:border-white/5">
                   <div className={guideRow}><span className="text-sm font-medium">Toggle Task</span><span className={resultLabel}>Click {"[ ]"} or {"[x]"}</span></div>
                   <div className={guideRow}><span className="text-sm font-medium">Cycle Status</span><span className={resultLabel}>‹ #tag › Pill</span></div>
                   <div className={guideRow}><span className="text-sm font-medium">Navigate</span><span className={resultLabel}>CTRL + Click Link</span></div>
@@ -151,7 +149,7 @@ export default function Documentation() {
                     Hover over any date in the editor and a calendar appears. Click a new date to update it in place.
                   </p>
                 </div>
-                <div className="p-8 bg-neutral-50/50 dark:bg-neutral-900/30 backdrop-blur-sm rounded-3xl border border-black/5 dark:border-white/5 shadow-inner">
+                <div className="p-8 bg-neutral-50/50 dark:bg-neutral-900/30 backdrop-blur-sm rounded-3xl border border-black/5 dark:border-white/5">
                   <div className={guideRow}><span className="font-mono text-sm font-bold text-sage dark:text-sage">2025-06-04</span><span className={resultLabel}>ISO Format</span></div>
                   <div className={guideRow}><span className="font-mono text-sm font-bold text-sage dark:text-sage">06/04/2025</span><span className={resultLabel}>Slashed</span></div>
                   <div className={guideRow}><span className="font-mono text-sm font-bold text-sage dark:text-sage">04.06.2025</span><span className={resultLabel}>Dotted</span></div>
@@ -166,12 +164,15 @@ export default function Documentation() {
                     Standard shortcuts for formatting and navigation. Select text first, then apply — it wraps automatically.
                   </p>
                 </div>
-                <div className="p-8 bg-neutral-50/50 dark:bg-neutral-900/30 backdrop-blur-sm rounded-3xl border border-black/5 dark:border-white/5 shadow-inner">
+                <div className="p-8 bg-neutral-50/50 dark:bg-neutral-900/30 backdrop-blur-sm rounded-3xl border border-black/5 dark:border-white/5">
                   <div className={guideRow}><span className="text-sm font-medium">Save</span><span className={resultLabel}>CTRL+S</span></div>
                   <div className={guideRow}><span className="text-sm font-medium">Bold</span><span className={resultLabel}>CTRL+B</span></div>
                   <div className={guideRow}><span className="text-sm font-medium">Italic</span><span className={resultLabel}>CTRL+I</span></div>
                   <div className={guideRow}><span className="text-sm font-medium">Undo</span><span className={resultLabel}>CTRL+Z</span></div>
-                  <div className={guideRow}><span className="text-sm font-medium">Zen Mode</span><span className={resultLabel}>CTRL+SHIFT+Z</span></div>
+                  <div className={guideRow}><span className="text-sm font-medium">Command Palette</span><span className={resultLabel}>CTRL+SHIFT+P</span></div>
+                  <div className={guideRow}><span className="text-sm font-medium">Pin Sidebar</span><span className={resultLabel}>CTRL+SHIFT+E</span></div>
+                  <div className={guideRow}><span className="text-sm font-medium">Document Info</span><span className={resultLabel}>CTRL+SHIFT+I</span></div>
+                  <div className={guideRow}><span className="text-sm font-medium">AI Builder</span><span className={resultLabel}>CTRL+SHIFT+B</span></div>
                   <div className={guideRow}><span className="text-sm font-medium">Open Date Picker</span><span className={resultLabel}>ALT+↓ on date</span></div>
                   <div className={guideRow}><span className="text-sm font-medium">Open Link</span><span className={resultLabel}>CTRL+ENTER on pill</span></div>
                   <div className={guideRow}><span className="text-sm font-medium">Dismiss / Close</span><span className={resultLabel}>ESCAPE</span></div>
@@ -185,7 +186,7 @@ export default function Documentation() {
                     Click inside any pipe table to get a floating toolbar. Open the editor to manage rows, columns, sorting, and alignment — or grab a CSV copy with one click. Output is clean, auto-padded Markdown.
                   </p>
                 </div>
-                <div className="p-8 bg-neutral-50/50 dark:bg-neutral-900/30 backdrop-blur-sm rounded-3xl border border-black/5 dark:border-white/5 shadow-inner">
+                <div className="p-8 bg-neutral-50/50 dark:bg-neutral-900/30 backdrop-blur-sm rounded-3xl border border-black/5 dark:border-white/5">
                   <div className={guideRow}><span className="text-sm font-medium">Advanced Edit</span><span className={resultLabel}>Edit in Toolbar</span></div>
                   <div className={guideRow}><span className="text-sm font-medium">Delete Table</span><span className={resultLabel}>×Table in Toolbar</span></div>
                   <div className={guideRow}><span className="text-sm font-medium">Add / Delete Row</span><span className={resultLabel}>Advanced Dialog</span></div>
@@ -205,7 +206,7 @@ export default function Documentation() {
                     Two ways to drop in a starter table. The cursor lands in the first cell, ready to type.
                   </p>
                 </div>
-                <div className="p-8 bg-neutral-50/50 dark:bg-neutral-900/30 backdrop-blur-sm rounded-3xl border border-black/5 dark:border-white/5 shadow-inner font-mono text-xs">
+                <div className="p-8 bg-neutral-50/50 dark:bg-neutral-900/30 backdrop-blur-sm rounded-3xl border border-black/5 dark:border-white/5 font-mono text-xs">
                   <div className={guideRow}><span className={syntaxLabel}>/table</span><span className={resultLabel}>Slash Menu</span></div>
                   <div className={guideRow}><span className={syntaxLabel}>{"{table}"}</span><span className={resultLabel}>Shortcode</span></div>
                 </div>
@@ -226,7 +227,7 @@ export default function Documentation() {
                     Open any folder and it becomes your vault. Files are plain Markdown — always accessible, no lock-in.
                   </p>
                 </div>
-                <div className="p-8 bg-neutral-50/50 dark:bg-neutral-900/30 backdrop-blur-sm rounded-3xl border border-black/5 dark:border-white/5 shadow-inner">
+                <div className="p-8 bg-neutral-50/50 dark:bg-neutral-900/30 backdrop-blur-sm rounded-3xl border border-black/5 dark:border-white/5">
                   <div className={guideRow}><span className="text-sm font-medium">Open Vault</span><span className={resultLabel}>Ribbon Icon</span></div>
                   <div className={guideRow}><span className="text-sm font-medium">New File</span><span className={resultLabel}>Sidebar + Button</span></div>
                   <div className={guideRow}><span className="text-sm font-medium">Rename / Delete</span><span className={resultLabel}>Context Menu</span></div>
@@ -246,7 +247,7 @@ export default function Documentation() {
                     Link notes together with [[WikiLink]] syntax. The vault indexes everything so navigation stays fast without leaving the keyboard.
                   </p>
                 </div>
-                <div className="p-8 bg-neutral-50/50 dark:bg-neutral-900/30 backdrop-blur-sm rounded-3xl border border-black/5 dark:border-white/5 shadow-inner space-y-4">
+                <div className="p-8 bg-neutral-50/50 dark:bg-neutral-900/30 backdrop-blur-sm rounded-3xl border border-black/5 dark:border-white/5 space-y-4">
                   <div className={guideRow}><span className="font-mono text-sm text-purple-600 dark:text-purple-400 font-bold">{"[[Note Name]]"}</span><span className={resultLabel}>Internal Link</span></div>
                   <div className={guideRow}><span className="font-mono text-sm text-purple-600 dark:text-purple-400 font-bold">{"[[Name|Display]]"}</span><span className={resultLabel}>Aliased Link</span></div>
                   <div className={guideRow}><span className="font-mono text-sm text-purple-600 dark:text-purple-400 font-bold">{"[[2025-06-04]]"}</span><span className={resultLabel}>Date Link</span></div>
@@ -264,7 +265,7 @@ export default function Documentation() {
                     Smart folders that filter your vault by tag, name, date, or word count. <strong>Today's Work</strong> is built in and shows everything touched in the last 24 hours.
                   </p>
                 </div>
-                <div className="p-8 bg-neutral-50/50 dark:bg-neutral-900/30 backdrop-blur-sm rounded-3xl border border-black/5 dark:border-white/5 shadow-inner">
+                <div className="p-8 bg-neutral-50/50 dark:bg-neutral-900/30 backdrop-blur-sm rounded-3xl border border-black/5 dark:border-white/5">
                   <div className={guideRow}><span className="text-sm font-medium">Filter by Tag</span><span className={resultLabel}>Query Builder</span></div>
                   <div className={guideRow}><span className="text-sm font-medium">Filter by Name</span><span className={resultLabel}>Query Builder</span></div>
                   <div className={guideRow}><span className="text-sm font-medium">Filter by Date</span><span className={resultLabel}>Query Builder</span></div>
@@ -279,7 +280,7 @@ export default function Documentation() {
                     Open multiple files side by side. Drag tabs between panes and resize with the divider.
                   </p>
                 </div>
-                <div className="p-8 bg-neutral-50/50 dark:bg-neutral-900/30 backdrop-blur-sm rounded-3xl border border-black/5 dark:border-white/5 shadow-inner">
+                <div className="p-8 bg-neutral-50/50 dark:bg-neutral-900/30 backdrop-blur-sm rounded-3xl border border-black/5 dark:border-white/5">
                   <div className={guideRow}><span className="text-sm font-medium">Split Right</span><span className={resultLabel}>Tab Bar Icon</span></div>
                   <div className={guideRow}><span className="text-sm font-medium">Move Tab</span><span className={resultLabel}>Drag & Drop</span></div>
                   <div className={guideRow}><span className="text-sm font-medium">Resize Pane</span><span className={resultLabel}>Drag Divider</span></div>
@@ -294,7 +295,7 @@ export default function Documentation() {
                     Connect to Google Drive to sync your vault across devices. Uses the official API, stores files in a dedicated folder, and keeps everything under your control.
                   </p>
                 </div>
-                <div className="p-8 bg-neutral-50/50 dark:bg-neutral-900/30 backdrop-blur-sm rounded-3xl border border-black/5 dark:border-white/5 shadow-inner">
+                <div className="p-8 bg-neutral-50/50 dark:bg-neutral-900/30 backdrop-blur-sm rounded-3xl border border-black/5 dark:border-white/5">
                   <div className={guideRow}><span className="text-sm font-medium">Connect Drive</span><span className={resultLabel}>Settings ➔ Storage</span></div>
                   <div className={guideRow}><span className="text-sm font-medium">Sync Status</span><span className={resultLabel}>Status Bar Icon</span></div>
                   <div className={guideRow}><span className="text-sm font-medium">Conflict Handling</span><span className={resultLabel}>Auto-Merge</span></div>
@@ -308,7 +309,7 @@ export default function Documentation() {
                     The fields below are the <strong>default schema</strong> — not a requirement. Drop any field you don&apos;t need, rename them, or skip frontmatter entirely. HermesMarkdown scores heading structure, typed fences, and tables independently, so a plain note still earns a real readability rating. A wizard opens on new files; click ✎ to edit later. For deeper automation, install <strong>Agent Skills</strong> from <strong>Settings → Guide</strong>.
                   </p>
                 </div>
-                <div className="p-8 bg-neutral-50/50 dark:bg-neutral-900/30 backdrop-blur-sm rounded-3xl border border-black/5 dark:border-white/5 shadow-inner space-y-4">
+                <div className="p-8 bg-neutral-50/50 dark:bg-neutral-900/30 backdrop-blur-sm rounded-3xl border border-black/5 dark:border-white/5 space-y-4">
                   <div className={guideRow}><span className={syntaxLabel}>title: "Name"</span><span className={resultLabel}>Primary Identifier</span></div>
                   <div className={guideRow}><span className={syntaxLabel}>status: draft</span><span className={resultLabel}>Lifecycle State</span></div>
                   <div className={guideRow}><span className={syntaxLabel}>scope: "..."</span><span className={resultLabel}>Agent Summary</span></div>
@@ -337,7 +338,7 @@ export default function Documentation() {
                     Type <code className="font-bold text-sage dark:text-sage">/</code> to open the command picker. Keep typing to filter — it matches as you go, highlights the characters, and shows each command's shortcut.
                   </p>
                 </div>
-                <div className="p-8 bg-neutral-50/50 dark:bg-neutral-900/30 backdrop-blur-sm rounded-3xl border border-black/5 dark:border-white/5 shadow-inner">
+                <div className="p-8 bg-neutral-50/50 dark:bg-neutral-900/30 backdrop-blur-sm rounded-3xl border border-black/5 dark:border-white/5">
                   <div className={guideRow}><span className="text-sm font-medium">Open Menu</span><span className={resultLabel}>Type /</span></div>
                   <div className={guideRow}><span className="text-sm font-medium">Fuzzy Filter</span><span className={resultLabel}>Keep Typing</span></div>
                   <div className={guideRow}><span className="text-sm font-medium">Navigate</span><span className={resultLabel}>↑ / ↓ Arrow Keys</span></div>
@@ -354,7 +355,7 @@ export default function Documentation() {
                     A small set of ready-made templates for the things you write most often.
                   </p>
                 </div>
-                <div className="p-8 bg-neutral-50/50 dark:bg-neutral-900/30 backdrop-blur-sm rounded-3xl border border-black/5 dark:border-white/5 shadow-inner">
+                <div className="p-8 bg-neutral-50/50 dark:bg-neutral-900/30 backdrop-blur-sm rounded-3xl border border-black/5 dark:border-white/5">
                   <div className={guideRow}><span className="text-sm font-medium">⊞ Table</span><span className={resultLabel}>3×2 Grid</span></div>
                   <div className={guideRow}><span className="text-sm font-medium">🗓️ Daily Note</span><span className={resultLabel}>Journal</span></div>
                   <div className={guideRow}><span className="text-sm font-medium">📋 Meeting Notes</span><span className={resultLabel}>Agenda</span></div>
@@ -371,7 +372,7 @@ export default function Documentation() {
                     Obsidian-style callouts and collapsible sections, written in plain Markdown so agents can parse them too.
                   </p>
                 </div>
-                <div className="p-8 bg-neutral-50/50 dark:bg-neutral-900/30 backdrop-blur-sm rounded-3xl border border-black/5 dark:border-white/5 shadow-inner font-mono text-xs">
+                <div className="p-8 bg-neutral-50/50 dark:bg-neutral-900/30 backdrop-blur-sm rounded-3xl border border-black/5 dark:border-white/5 font-mono text-xs">
                   <div className={guideRow}><span className={syntaxLabel}>/callout</span><span className={resultLabel}>note · info · tip</span></div>
                   <div className={guideRow}><span className={syntaxLabel}>/callout warning</span><span className={resultLabel}>danger Variants</span></div>
                   <div className={guideRow}><span className={syntaxLabel}>/collapse</span><span className={resultLabel}>Titled Section</span></div>
@@ -393,7 +394,7 @@ export default function Documentation() {
                     Set this up first — every AI action below stays hidden until a key is configured. Bring your own API key for Anthropic or Google. Keys are stored locally and never sent anywhere else.
                   </p>
                 </div>
-                <div className="p-8 bg-neutral-50/50 dark:bg-neutral-900/30 backdrop-blur-sm rounded-3xl border border-black/5 dark:border-white/5 shadow-inner">
+                <div className="p-8 bg-neutral-50/50 dark:bg-neutral-900/30 backdrop-blur-sm rounded-3xl border border-black/5 dark:border-white/5">
                   <div className={guideRow}><span className="text-sm font-medium">Anthropic Claude</span><span className={resultLabel}>Settings ➔ AI</span></div>
                   <div className={guideRow}><span className="text-sm font-medium">Google Gemini</span><span className={resultLabel}>Settings ➔ AI</span></div>
                   <div className={guideRow}><span className="text-sm font-medium">Local LLMs</span><span className={resultLabel}>Coming Soon</span></div>
@@ -407,7 +408,7 @@ export default function Documentation() {
                     Select text and a toolbar appears above it. Every action — including a free-form prompt — opens a review dialog before anything touches your note.
                   </p>
                 </div>
-                <div className="p-8 bg-neutral-50/50 dark:bg-neutral-900/30 backdrop-blur-sm rounded-3xl border border-black/5 dark:border-white/5 shadow-inner">
+                <div className="p-8 bg-neutral-50/50 dark:bg-neutral-900/30 backdrop-blur-sm rounded-3xl border border-black/5 dark:border-white/5">
                   <div className={guideRow}><span className="text-sm font-medium">✨ Prompt Selection</span><span className={resultLabel}>Select → Toolbar</span></div>
                   <div className={guideRow}><span className="text-sm font-medium">⚡ Improve Writing</span><span className={resultLabel}>Select → Toolbar</span></div>
                   <div className={guideRow}><span className="text-sm font-medium">＋ Expand Idea</span><span className={resultLabel}>Select → Toolbar</span></div>
@@ -425,7 +426,7 @@ export default function Documentation() {
                     Type <code className="font-bold text-sage dark:text-sage">/</code> and pick a command from the AI group — only visible once a key is configured. Selection-based commands rewrite what you've highlighted; <strong>AI Builder</strong>, <strong>Generate Title</strong>, and <strong>Continue Writing</strong> work from a typed instruction or the surrounding note instead.
                   </p>
                 </div>
-                <div className="p-8 bg-neutral-50/50 dark:bg-neutral-900/30 backdrop-blur-sm rounded-3xl border border-black/5 dark:border-white/5 shadow-inner">
+                <div className="p-8 bg-neutral-50/50 dark:bg-neutral-900/30 backdrop-blur-sm rounded-3xl border border-black/5 dark:border-white/5">
                   <div className={guideRow}><span className="text-sm font-medium">🧱 AI Builder</span><span className={resultLabel}>Create / Revise Section</span></div>
                   <div className={guideRow}><span className="text-sm font-medium">✨ Improve Writing</span><span className={resultLabel}>Clarity Pass</span></div>
                   <div className={guideRow}><span className="text-sm font-medium">✅ Fix Spelling & Grammar</span><span className={resultLabel}>Light Correction</span></div>
@@ -452,7 +453,7 @@ export default function Documentation() {
 
             <div className="space-y-20">
               {/* Workflow Lifecycle */}
-              <div className="p-16 md:p-24 bg-neutral-100 dark:bg-neutral-900 text-neutral-900 dark:text-white rounded-[4rem] shadow-2xl relative overflow-hidden border border-black/5 dark:border-white/5">
+              <div className="p-16 md:p-24 bg-neutral-100 dark:bg-neutral-900 text-neutral-900 dark:text-white rounded-[4rem] relative overflow-hidden border border-black/5 dark:border-white/5">
                 <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-sage/10 blur-[120px] -mr-64 -mt-64" />
                 <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-purple-600/10 blur-[120px] -ml-64 -mb-64" />
 
@@ -514,7 +515,7 @@ export default function Documentation() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-12 lg:gap-20">
                 <div className="space-y-8">
                   <h3 className="text-xs font-bold opacity-30 uppercase tracking-[0.4em]">Date Shortcodes</h3>
-                  <div className="bg-neutral-50/50 dark:bg-neutral-900/30 backdrop-blur-sm p-8 rounded-3xl border border-black/5 dark:border-white/5 shadow-inner font-mono text-xs">
+                  <div className="bg-neutral-50/50 dark:bg-neutral-900/30 backdrop-blur-sm p-8 rounded-3xl border border-black/5 dark:border-white/5 font-mono text-xs">
                     <div className={guideRow}><span className={syntaxLabel}>..d &nbsp;or&nbsp; {"{date}"}</span><span className={resultLabel}>Today's Date</span></div>
                     <div className={guideRow}><span className={syntaxLabel}>..tomorrow</span><span className={resultLabel}>Tomorrow</span></div>
                     <div className={guideRow}><span className={syntaxLabel}>..yesterday</span><span className={resultLabel}>Yesterday</span></div>
@@ -529,7 +530,7 @@ export default function Documentation() {
 
                 <div className="space-y-8">
                   <h3 className="text-xs font-bold opacity-30 uppercase tracking-[0.4em]">Utility Shortcodes</h3>
-                  <div className="bg-neutral-50/50 dark:bg-neutral-900/30 backdrop-blur-sm p-8 rounded-3xl border border-black/5 dark:border-white/5 shadow-inner font-mono text-xs">
+                  <div className="bg-neutral-50/50 dark:bg-neutral-900/30 backdrop-blur-sm p-8 rounded-3xl border border-black/5 dark:border-white/5 font-mono text-xs">
                     <div className={guideRow}><span className={syntaxLabel}>{"{todo}"}</span><span className={resultLabel}>{"- [ ] "} Task</span></div>
                     <div className={guideRow}><span className={syntaxLabel}>{"{done}"}</span><span className={resultLabel}>{"- [x] "} Task</span></div>
                     <div className={guideRow}><span className={syntaxLabel}>{"{table}"}</span><span className={resultLabel}>3×2 Table</span></div>
@@ -549,7 +550,7 @@ export default function Documentation() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-12 lg:gap-20">
                 <div className="space-y-8">
                   <h3 className="text-xs font-bold opacity-30 uppercase tracking-[0.4em]">Financial Intelligence</h3>
-                  <div className="bg-neutral-50/50 dark:bg-neutral-900/30 backdrop-blur-sm p-8 rounded-3xl border border-black/5 dark:border-white/5 shadow-inner space-y-6">
+                  <div className="bg-neutral-50/50 dark:bg-neutral-900/30 backdrop-blur-sm p-8 rounded-3xl border border-black/5 dark:border-white/5 space-y-6">
                     <div className="space-y-3">
                       <p className="text-ui-footnote leading-relaxed text-neutral-500 dark:text-neutral-400 font-medium">
                         A line starting with <code className="font-bold text-sage dark:text-sage">Total:</code> auto-sums the currency values above it. Set your currency in <strong>Settings → Currency</strong>.
@@ -585,7 +586,7 @@ export default function Documentation() {
 
                 <div className="space-y-8">
                   <h3 className="text-xs font-bold opacity-30 uppercase tracking-[0.4em]">Auto-Save Modes</h3>
-                  <div className="bg-neutral-50/50 dark:bg-neutral-900/30 backdrop-blur-sm p-8 rounded-3xl border border-black/5 dark:border-white/5 shadow-inner">
+                  <div className="bg-neutral-50/50 dark:bg-neutral-900/30 backdrop-blur-sm p-8 rounded-3xl border border-black/5 dark:border-white/5">
                     <div className={guideRow}><span className="text-sm font-medium">After Delay</span><span className={resultLabel}>0.5s – 10s</span></div>
                     <div className={guideRow}><span className="text-sm font-medium">On Focus Change</span><span className={resultLabel}>Auto</span></div>
                     <div className={guideRow}><span className="text-sm font-medium">Manual</span><span className={resultLabel}>CTRL+S</span></div>

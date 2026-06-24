@@ -13,8 +13,7 @@ import {
   atom_closePane, 
   atom_closeTab, 
   atom_activeFilePath, 
-  atom_moveTab, 
-  atom_isZenModeActive,
+  atom_moveTab,
   atom_saveStatus,
   atom_liveHandles,
   atom_autosaveMode,
@@ -22,7 +21,7 @@ import {
   atom_workspaceLayout,
   contentStore
 } from "@/app/atoms/atoms";
-import { HiOutlineDocumentText, HiOutlineEye, HiOutlineEyeOff, HiOutlineChartBar, HiOutlineX, HiOutlineClipboardCopy, HiOutlineSave, HiOutlineDotsHorizontal } from "react-icons/hi";
+import { HiOutlineDocumentText, HiOutlineEye, HiOutlineChartBar, HiOutlineX, HiOutlineClipboardCopy, HiOutlineSave, HiOutlineDotsHorizontal } from "react-icons/hi";
 import { VscSplitHorizontal } from "react-icons/vsc";
 import { showCopyToast, showErrorToast } from "@/app/components/Toastr";
 import PaneTab, { TabSaveState } from "./PaneTab";
@@ -43,7 +42,6 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
   const [, closeTab] = useAtom(atom_closeTab);
   const [, setActiveFilePath] = useAtom(atom_activeFilePath);
   const [, moveTab] = useAtom(atom_moveTab);
-  const [isZenModeActive, setIsZenModeActive] = useAtom(atom_isZenModeActive);
   const saveStatus = useAtomValue(atom_saveStatus);
   const vaultHandle = useAtomValue(atom_vaultHandle);
   const workspaceLayout = useAtomValue(atom_workspaceLayout);
@@ -227,20 +225,18 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
   };
 
   return (
-    <div 
-      className={`h-full flex flex-col transition-all duration-300 overflow-hidden ${
-        isActive && !isZenModeActive
-          ? "bg-paper-pale dark:bg-paper-dark z-10"
-          : "bg-paper-pale dark:bg-paper-dark"
+    <div
+      className={`h-full flex flex-col transition-all duration-300 overflow-hidden bg-paper-pale dark:bg-paper-dark ${
+        isActive ? "z-10" : ""
       }`}
       onClick={() => setActivePaneId(leaf.id)}
     >
-      {/* Pane Tabs Bar - Premium macOS Style */}
-      {!isZenModeActive && (
-        <div
-          className="flex items-center paper-grain bg-paper-pale dark:bg-paper-dark border-b border-edge-subtle h-12 md:h-9 shrink-0 relative z-20"
-        >
-          {/* Scrollable tabs strip */}
+      {/* Pane Tabs Bar — always visible, even with a single file, so Split
+          Right and other pane actions stay reachable. */}
+      <div
+        className="flex items-center bg-chrome border-b border-edge-subtle h-12 md:h-9 shrink-0 relative z-20"
+      >
+        {/* Scrollable tabs strip */}
           <div
             className="flex items-center flex-1 overflow-x-auto overflow-y-hidden scrollbar-none h-full px-2 min-w-0"
             onDragOver={(e) => handleDragOver(e)}
@@ -342,15 +338,6 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
             )}
             <Button
               variant="icon"
-              onClick={() => setIsZenModeActive(!isZenModeActive)}
-              title="Toggle Zen Mode (Ctrl+Shift+Z)"
-              aria-label="Toggle Zen Mode"
-              className={`w-9 h-9 flex items-center justify-center transition-all rounded-xl ${isZenModeActive ? "text-sage" : "text-ink-muted hover:text-ink-light dark:hover:text-ink-dark"}`}
-            >
-              {isZenModeActive ? <HiOutlineEye size={18} /> : <HiOutlineEyeOff size={18} />}
-            </Button>
-            <Button
-              variant="icon"
               onClick={() => splitPane({ id: leaf.id, direction: "horizontal" })}
               title="Split Right"
               aria-label="Split Right"
@@ -370,11 +357,10 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
               </Button>
             )}
           </div>
-        </div>
-      )}
+      </div>
 
       {/* Pane Content */}
-      <div className={`flex-1 overscroll-none ${isZenModeActive ? "overflow-hidden" : "overflow-auto"}`}>
+      <div className="flex-1 overscroll-none overflow-auto">
         {leaf.openFilePaths.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full opacity-10 space-y-4">
              <HiOutlineDocumentText size={48} />

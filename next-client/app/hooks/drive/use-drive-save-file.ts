@@ -112,14 +112,14 @@ export function useDriveSaveFile() {
           setDriveAuthState('expired');
           setSaveStatus({ state: 'error', retryCount: 0, message: 'Drive disconnected — reconnect to save', path: targetPath });
           setTimeout(() => setSaveStatus({ state: 'idle', retryCount: 0, path: undefined }), 6000);
-          if (!isAutoSave) toast.error('Google Drive disconnected. Reconnect to save.');
+          toast.error('Google Drive disconnected. Reconnect to save.', { id: "save-error" });
           return false;
         }
 
         if (err.status === 404) {
           setSaveStatus({ state: 'error', retryCount: 0, message: 'File not found in Drive', path: targetPath });
           setTimeout(() => setSaveStatus({ state: 'idle', retryCount: 0, path: undefined }), 5000);
-          if (!isAutoSave) toast.error('File was deleted from Google Drive. Your content is still open.');
+          toast.error('File was deleted from Google Drive. Your content is still open.', { id: "save-error" });
           return false;
         }
 
@@ -131,7 +131,7 @@ export function useDriveSaveFile() {
 
         setSaveStatus({ state: 'error', retryCount: 0, message: err.message, path: targetPath });
         setTimeout(() => setSaveStatus({ state: 'idle', retryCount: 0, path: undefined }), 5000);
-        if (!isAutoSave) toast.error(`Failed to save: ${err.message}`);
+        toast.error(`Failed to save: ${err.message}`, { id: "save-error" });
         return false;
       }
     },

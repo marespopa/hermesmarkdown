@@ -59,7 +59,7 @@ export function AIThinkingOverlay() {
         <div className="absolute inset-0 bg-black/5 dark:bg-black/20 backdrop-blur-md animate-in fade-in duration-300" />
 
         {/* Card */}
-        <div className="relative z-10 flex flex-col items-center gap-3 px-8 py-6 bg-paper-light/80 dark:bg-neutral-900/80 backdrop-blur-2xl border border-paper-light/20 dark:border-neutral-800/50 shadow-[0_20px_50px_rgba(0,0,0,0.1)] rounded-[28px] animate-in fade-in zoom-in-95 duration-300 select-none max-w-[22rem] w-full mx-4">
+        <div className="relative z-10 flex flex-col items-center gap-3 px-8 py-6 bg-paper-light/80 dark:bg-neutral-900/80 backdrop-blur-2xl border border-paper-light/20 dark:border-neutral-800/50 rounded-[28px] animate-in fade-in zoom-in-95 duration-300 select-none max-w-[22rem] w-full mx-4">
           {/* Thinking dots */}
           <div className="flex items-center gap-2" aria-hidden="true">
             {[0, 1, 2].map((i) => (

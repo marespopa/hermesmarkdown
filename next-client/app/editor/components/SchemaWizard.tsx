@@ -229,10 +229,10 @@ export default function SchemaWizard() {
   // -------------------------------------------------------------------------
 
   const inputCls =
-    "w-full px-3 py-1.5 text-ui-footnote font-sans border rounded-lg outline-none transition-all " +
+    "w-full px-3 py-1.5 text-ui-footnote font-sans border rounded-lg outline-none focus-visible:outline-none transition-all " +
     "bg-paper-softgray border-beige text-ink-light placeholder:text-stone " +
     "dark:bg-paper-dark-surface/50 dark:border-clay dark:text-ink-dark dark:placeholder:text-stone " +
-    "focus:ring-2 focus:ring-sage/20 focus:border-sage";
+    "focus:ring-2 focus:ring-sage/20";
 
   // -------------------------------------------------------------------------
   // Render

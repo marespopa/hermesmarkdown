@@ -37,7 +37,7 @@ const Toggle = ({ active, onChange, label, variant = "default" }: ToggleProps) =
     >
       <span
         className={`
-          pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-sm ring-0
+          pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white ring-0
           transition duration-200 ease-in-out
           ${active ? 'translate-x-5' : 'translate-x-0'}
         `}

@@ -157,23 +157,7 @@ describe("SmartFolders Component", () => {
     expect(mockRenameFile).toHaveBeenCalledWith(mockMetadata["file1.md"].handle);
   });
 
-  it("calls onNewFile when the new file button is clicked", () => {
-    mockMetadata = {};
-    const mockOnNewFile = vi.fn();
-    render(
-      <SmartFolders
-        onFileSelect={mockOnFileSelect}
-        renameFile={mockRenameFile}
-        deleteFile={mockDeleteFile}
-        onNewFile={mockOnNewFile}
-      />,
-    );
-
-    fireEvent.click(screen.getByTitle("New File"));
-    expect(mockOnNewFile).toHaveBeenCalledTimes(1);
-  });
-
-  it("does not render new file button when onNewFile is not provided", () => {
+  it("renders a New View affordance at the bottom of the list", () => {
     mockMetadata = {};
     render(
       <SmartFolders
@@ -183,45 +167,6 @@ describe("SmartFolders Component", () => {
       />,
     );
 
-    expect(screen.queryByTitle("New File")).not.toBeInTheDocument();
-  });
-
-  it("filters files by searchQuery", () => {
-    mockMetadata = {
-      "apple.md": {
-        path: "apple.md",
-        name: "apple.md",
-        tags: [],
-        links: [],
-        frontmatter: {},
-        modifiedAt: Date.now(),
-        wordCount: 10,
-        handle: { name: "apple.md", kind: "file" } as any,
-      },
-      "banana.md": {
-        path: "banana.md",
-        name: "banana.md",
-        tags: [],
-        links: [],
-        frontmatter: {},
-        modifiedAt: Date.now(),
-        wordCount: 10,
-        handle: { name: "banana.md", kind: "file" } as any,
-      },
-    };
-
-    render(
-      <SmartFolders
-        onFileSelect={mockOnFileSelect}
-        renameFile={mockRenameFile}
-        deleteFile={mockDeleteFile}
-        searchQuery="apple"
-      />,
-    );
-
-    fireEvent.click(screen.getByText("Today's Work"));
-
-    expect(screen.getByText("apple.md")).toBeInTheDocument();
-    expect(screen.queryByText("banana.md")).not.toBeInTheDocument();
+    expect(screen.getByText("New View")).toBeInTheDocument();
   });
 });

@@ -66,7 +66,7 @@ export default function PaneTab({
         "min-w-[80px] md:min-w-[64px] max-w-[160px] md:max-w-[130px]",
         "select-none transition-all duration-150 hover:scale-[1.01] active:scale-[0.99]",
         isActive
-          ? "bg-paper-light/80 dark:bg-paper-dark-surface/80 shadow-[0_1px_2px_rgba(0,0,0,0.04),0_0_0_0.5px_rgba(0,0,0,0.04)] dark:shadow-[0_1px_2px_rgba(0,0,0,0.2),0_0_0_0.5px_rgba(255,255,255,0.02)] text-ink-light dark:text-ink-dark"
+          ? "bg-paper-light/80 dark:bg-paper-dark-surface/80 border border-edge-subtle text-ink-light dark:text-ink-dark"
           : "text-stone hover:text-ink-muted dark:hover:text-stone hover:bg-paper-light/30 dark:hover:bg-paper-dark-surface/20",
         isDraggedOver ? "ring-2 ring-sage/40 ring-inset" : "",
       ].join(" ")}

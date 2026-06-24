@@ -2,70 +2,46 @@
 
 import React from "react";
 import {
-  HiOutlineHome,
-  HiOutlineCog,
   HiOutlineLogout,
   HiOutlineDatabase,
-  HiOutlineBookOpen,
+  HiOutlineRefresh,
 } from "react-icons/hi";
 import Button from "@/app/components/Button";
-import { useRouter } from "next/navigation";
 
 interface VaultSidebarFooterProps {
-  onOpenSettings?: () => void;
-  onOpenDocumentation?: () => void;
   vaultHandle: any;
   closeVault: () => void;
   openVault: () => void;
   isVaultSupported: boolean;
+  onRefresh?: () => void;
+  isRefreshing?: boolean;
 }
 
 export default function VaultSidebarFooter({
-  onOpenSettings,
-  onOpenDocumentation,
   vaultHandle,
   closeVault,
   openVault,
   isVaultSupported,
+  onRefresh,
+  isRefreshing,
 }: VaultSidebarFooterProps) {
-  const router = useRouter();
-
   return (
     <div className="p-4 border-t border-edge-subtle bg-transparent shrink-0">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-end">
         <div className="flex items-center gap-1">
-          <Button
-            variant="icon"
-            onClick={() => router.push("/")}
-            className="w-10 h-10 opacity-80 hover:opacity-100"
-            title="Go Home"
-            aria-label="Go Home"
-          >
-            <HiOutlineHome size={20} />
-          </Button>
+           {vaultHandle && onRefresh && (
+              <Button
+                variant="icon"
+                onClick={onRefresh}
+                disabled={isRefreshing}
+                className="w-10 h-10 opacity-80 hover:opacity-100"
+                title="Refresh vault"
+                aria-label="Refresh vault"
+              >
+                <HiOutlineRefresh size={18} className={isRefreshing ? "animate-spin" : ""} />
+              </Button>
+           )}
 
-          <Button
-            variant="icon"
-            onClick={onOpenSettings}
-            className="w-10 h-10 opacity-80 hover:opacity-100"
-            title="Settings"
-            aria-label="Settings"
-          >
-            <HiOutlineCog size={20} />
-          </Button>
-
-          <Button
-            variant="icon"
-            onClick={onOpenDocumentation}
-            className="w-10 h-10 opacity-80 hover:opacity-100"
-            title="Documentation"
-            aria-label="Documentation"
-          >
-            <HiOutlineBookOpen size={20} />
-          </Button>
-        </div>
-
-        <div className="flex items-center gap-1">
            {vaultHandle ? (
               <Button
                 variant="icon"

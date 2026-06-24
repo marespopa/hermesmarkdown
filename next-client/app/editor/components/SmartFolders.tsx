@@ -4,7 +4,7 @@ import React from "react";
 import { useAtom, useAtomValue } from "jotai";
 import { atom_fileMetadata, atom_customWorkspaces, CustomWorkspace } from "@/app/atoms/metadata";
 import { evaluateQuery, WorkspaceQuery } from "@/app/utils/queryEngine";
-import { HiOutlineDocumentText, HiOutlineClock, HiOutlinePlus, HiOutlineDotsVertical, HiOutlinePencil, HiOutlineTrash, HiOutlineCollection, HiOutlineSparkles } from "react-icons/hi";
+import { HiOutlinePlus, HiOutlineDotsVertical, HiOutlinePencil, HiOutlineTrash } from "react-icons/hi";
 import Button from "@/app/components/Button";
 import WorkspaceBuilder from "./WorkspaceBuilder";
 import { useDialog } from "@/app/hooks/use-dialog";
@@ -13,7 +13,6 @@ import { atom_activeFilePath } from "@/app/atoms/atoms";
 interface SmartFolderConfig {
   id: string;
   name: string;
-  icon: React.ReactNode;
   query: WorkspaceQuery;
   isDefault?: boolean;
 }
@@ -22,7 +21,6 @@ const DEFAULT_SMART_FOLDERS: SmartFolderConfig[] = [
   {
     id: "today",
     name: "Today's Work",
-    icon: <HiOutlineClock size={16} />,
     query: {
       operator: "AND",
       rules: [{ field: "modifiedAt", condition: "after-days", value: 1 }],
@@ -35,22 +33,14 @@ interface SmartFoldersProps {
   onFileSelect: (handle: FileSystemFileHandle, path?: string) => void;
   renameFile: (handle: FileSystemHandle) => void;
   deleteFile: (handle: FileSystemHandle) => void;
-  searchQuery?: string;
-  selectedTags?: string[];
   onMatchCountChange?: (count: number, hasFolderSelected: boolean) => void;
-  onNewFile?: () => void;
-  onNewAIFile?: () => void;
 }
 
 export default function SmartFolders({
   onFileSelect,
   renameFile,
   deleteFile,
-  searchQuery = "",
-  selectedTags = [],
   onMatchCountChange,
-  onNewFile,
-  onNewAIFile,
 }: SmartFoldersProps) {
   const [fileMetadata] = useAtom(atom_fileMetadata);
   const [customWorkspaces, setCustomWorkspaces] = useAtom(atom_customWorkspaces);
@@ -66,10 +56,9 @@ export default function SmartFolders({
     const customConverted: SmartFolderConfig[] = customWorkspaces.map(cw => ({
       id: cw.id,
       name: cw.name,
-      icon: <HiOutlineCollection size={16} />, // Default icon for custom
       query: cw.query,
     }));
-    return [...customConverted, ...DEFAULT_SMART_FOLDERS];
+    return [...DEFAULT_SMART_FOLDERS, ...customConverted];
   }, [customWorkspaces]);
 
   const matchedFiles = React.useMemo(() => {
@@ -77,27 +66,10 @@ export default function SmartFolders({
     const config = allWorkspaces.find((f) => f.id === selectedFolderId);
     if (!config) return [];
 
-    let files = Object.values(fileMetadata).filter((meta) =>
+    return Object.values(fileMetadata).filter((meta) =>
       evaluateQuery(meta, config.query, fileMetadata)
     );
-
-    // Apply sidebar search filter
-    if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase().trim();
-      files = files.filter(f =>
-        f.name.toLowerCase().includes(q) ||
-        f.path.toLowerCase().includes(q)
-      );
-    }
-
-    if (selectedTags.length > 0) {
-      files = files.filter(f =>
-        selectedTags.every(t => f.tags.includes(t))
-      );
-    }
-
-    return files;
-  }, [selectedFolderId, fileMetadata, allWorkspaces, searchQuery, selectedTags]);
+  }, [selectedFolderId, fileMetadata, allWorkspaces]);
 
   React.useEffect(() => {
     onMatchCountChange?.(matchedFiles.length, selectedFolderId !== null);
@@ -128,49 +100,7 @@ export default function SmartFolders({
 
   return (
     <div className="flex flex-col h-full min-h-0">
-      <div className="flex justify-between items-center px-4 py-2 shrink-0">
-        <span className="text-ui-caption font-semibold uppercase tracking-wider text-stone dark:text-fg-faint">
-          Your Views
-        </span>
-        <div className="flex items-center gap-1">
-          {onNewAIFile && (
-            <Button
-              variant="icon"
-              className="w-6 h-6 opacity-80 hover:opacity-100 text-ink-muted dark:text-stone"
-              onClick={onNewAIFile}
-              title="Generate Note with AI"
-              aria-label="Generate Note with AI"
-            >
-              <HiOutlineSparkles size={14} />
-            </Button>
-          )}
-          {onNewFile && (
-            <Button
-              variant="icon"
-              className="w-6 h-6 opacity-80 hover:opacity-100 text-ink-muted dark:text-stone"
-              onClick={onNewFile}
-              title="New File"
-              aria-label="New File"
-            >
-              <HiOutlineDocumentText size={14} />
-            </Button>
-          )}
-          <Button
-            variant="icon"
-            className="w-6 h-6 opacity-80 hover:opacity-100 text-ink-muted dark:text-stone"
-            onClick={() => {
-              setEditingWorkspace(null);
-              setIsBuilderOpen(true);
-            }}
-            title="Create New View"
-            aria-label="Create New View"
-          >
-            <HiOutlinePlus size={14} />
-          </Button>
-        </div>
-      </div>
-
-      <div className="flex-1 overflow-y-auto space-y-0.5 px-2 pb-2 custom-scrollbar">
+      <div className="flex-1 overflow-y-auto space-y-0.5 px-2 pt-2 pb-2 custom-scrollbar">
         {allWorkspaces.map((folder) => {
           const isSelected = selectedFolderId === folder.id;
           return (
@@ -178,13 +108,13 @@ export default function SmartFolders({
               <div className="relative">
                 <div
                   onClick={() => setSelectedFolderId(isSelected ? null : folder.id)}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-lg cursor-pointer transition-all text-ui-subhead pr-8 relative ${
+                  className={`flex items-center gap-2 px-4 py-2 cursor-pointer transition-all text-ui-subhead pr-8 relative ${
                     isSelected
-                      ? "text-sage dark:text-sage font-medium before:absolute before:left-0 before:top-2 before:bottom-2 before:w-0.5 before:bg-sage bg-sage/10"
+                      ? "text-accent font-medium before:absolute before:left-0 before:top-2 before:bottom-2 before:w-0.5 before:bg-accent"
                       : "hover:bg-paper-softgray dark:hover:bg-paper-dark-surface text-ink-muted dark:text-stone font-medium"
                   }`}
                 >
-                  <span className="opacity-70">{folder.icon}</span>
+                  {folder.isDefault && <span className="w-1.5 h-1.5 rounded-full shrink-0 bg-accent" />}
                   <span className="truncate">{folder.name}</span>
                 </div>
 
@@ -219,7 +149,7 @@ export default function SmartFolders({
                     <div className="fixed inset-0 z-40" onClick={() => setActionMenuOpen(null)} />
                     <div 
                       onClick={(e) => e.stopPropagation()}
-                      className="fixed z-50 bg-paper-light dark:bg-paper-dark backdrop-blur-xl border border-edge-subtle rounded-xl shadow-xl py-1 min-w-[120px] animate-in fade-in zoom-in-95 duration-100"
+                      className="fixed z-50 bg-paper-light dark:bg-paper-dark backdrop-blur-xl border border-edge-subtle rounded-xl py-1 min-w-[120px] animate-in fade-in zoom-in-95 duration-100"
                       style={{ top: actionMenuOpen.y, left: actionMenuOpen.x - 120 }}
                     >
                       <Button
@@ -252,13 +182,12 @@ export default function SmartFolders({
                     >
                       <div
                         onClick={() => onFileSelect(file.handle, file.path)}
-                        className={`flex items-center gap-2 px-3 py-1.5 rounded-md cursor-pointer transition-all text-ui-caption truncate pr-8 relative ${
+                        className={`flex items-center gap-2 px-3 py-1.5 cursor-pointer transition-all text-ui-caption truncate pr-8 relative ${
                           activeFilePath === file.path
-                            ? "text-sage dark:text-sage font-bold before:absolute before:left-0 before:top-1.5 before:bottom-1.5 before:w-0.5 before:bg-sage bg-sage/10"
+                            ? "text-accent font-bold before:absolute before:left-0 before:top-1.5 before:bottom-1.5 before:w-0.5 before:bg-accent"
                             : "text-ink-muted hover:text-ink-light dark:hover:text-ink-dark font-medium hover:bg-paper-softgray dark:hover:bg-paper-dark-surface/50"
                         }`}
                       >
-                        <HiOutlineDocumentText size={14} className="shrink-0 opacity-50" />
                         <span className="truncate">{file.name}</span>
                       </div>
 
@@ -291,7 +220,7 @@ export default function SmartFolders({
                           <div className="fixed inset-0 z-40" onClick={() => setFileActionMenuOpen(null)} />
                           <div 
                             onClick={(e) => e.stopPropagation()}
-                            className="fixed z-50 bg-paper-light dark:bg-paper-dark backdrop-blur-xl border border-edge-subtle rounded-xl shadow-xl py-1 min-w-[120px] animate-in fade-in zoom-in-95 duration-100"
+                            className="fixed z-50 bg-paper-light dark:bg-paper-dark backdrop-blur-xl border border-edge-subtle rounded-xl py-1 min-w-[120px] animate-in fade-in zoom-in-95 duration-100"
                             style={{ top: fileActionMenuOpen.y, left: fileActionMenuOpen.x - 120 }}
                           >
                             <Button
@@ -325,6 +254,18 @@ export default function SmartFolders({
             </div>
           );
         })}
+
+        <button
+          type="button"
+          onClick={() => {
+            setEditingWorkspace(null);
+            setIsBuilderOpen(true);
+          }}
+          className="flex w-full items-center gap-2 px-4 py-2 text-ui-subhead text-stone hover:text-fg transition-colors"
+        >
+          <HiOutlinePlus size={14} className="opacity-80" />
+          New View
+        </button>
       </div>
 
       <WorkspaceBuilder

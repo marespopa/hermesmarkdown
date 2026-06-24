@@ -1,11 +1,10 @@
 "use client";
 
-import { useRef, useEffect, useCallback, useState } from "react";
+import { useRef, useEffect, useCallback, useState, useMemo } from "react";
 import { flushSync } from "react-dom";
 import { useAtomValue } from "jotai";
 import {
   atom_wordWrap,
-  atom_isZenModeActive,
   atom_currency,
   atom_aiBuilderRequest,
 } from "@/app/atoms/atoms";
@@ -22,6 +21,17 @@ import { useTableCallout } from "./use-table-callout";
 import { useTableDialog } from "./useTableDialog";
 import { useAIEditorActions } from "./useAIEditorActions";
 import { extractTableSource } from "../utils/tableParser";
+import getCaretCoordinates from "textarea-caret";
+import {
+  computeCollapsedCalloutRanges,
+  computeInitialCollapsedCallouts,
+  listCalloutTitles,
+  stripHiddenRanges,
+  restoreHiddenRanges,
+  shiftSegmentsForEdit,
+  valueOffsetToDisplayOffset,
+  displayOffsetToValueOffset,
+} from "../utils/callout-folding";
 
 interface UseMarkdownEditorProps {
   value: string;
@@ -43,10 +53,66 @@ export function useMarkdownEditor({
   const wrapperRef = useRef<HTMLDivElement | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const wordWrap = useAtomValue(atom_wordWrap);
-  const isZenModeActive = useAtomValue(atom_isZenModeActive);
   const currencyCode = useAtomValue(atom_currency);
 
   const [isDateExpanded, setIsDateExpanded] = useState(false);
+
+  // Obsidian callout collapse state — session-only, keyed by `${line}:${type}`,
+  // never persisted to the file. Seeded once from the file's own `-` markers
+  // (so a callout saved collapsed stays collapsed on open, like Obsidian);
+  // after that, only the chevron toggle changes it — the marker text itself
+  // is never read again.
+  const [collapsedObsidianCallouts, setCollapsedObsidianCallouts] = useState<Record<string, boolean>>(
+    () => computeInitialCollapsedCallouts(value),
+  );
+
+  // Collapsed callout bodies are excluded from the textarea's value entirely
+  // (same trick already used for frontmatter, one level up in
+  // MarkdownEditor.tsx) so they actually reclaim layout space and the caret
+  // skips over them, instead of being hidden-but-still-present like before.
+  const ranges = useMemo(
+    () => computeCollapsedCalloutRanges(value, collapsedObsidianCallouts),
+    [value, collapsedObsidianCallouts],
+  );
+  const { displayValue, segments } = useMemo(
+    () => stripHiddenRanges(value, ranges),
+    [value, ranges],
+  );
+
+  // Commits a new *display* value (what the textarea actually contains) by
+  // re-inserting the held-back collapsed bodies before calling the real
+  // onChange — every code path that mutates the editor's text funnels
+  // through here instead of calling onChange directly.
+  const commitDisplayValue = useCallback(
+    (newDisplayValue: string) => {
+      const shifted = shiftSegmentsForEdit(segments, displayValue, newDisplayValue);
+      onChange(restoreHiddenRanges(newDisplayValue, shifted));
+    },
+    [segments, displayValue, onChange],
+  );
+
+  const pendingSelectionRef = useRef<{ start: number; end: number } | null>(null);
+  const toggleObsidianCallout = useCallback((blockId: string, currentlyCollapsed: boolean) => {
+    const textarea = textareaRef.current;
+    if (textarea) {
+      pendingSelectionRef.current = {
+        start: displayOffsetToValueOffset(textarea.selectionStart, segments),
+        end: displayOffsetToValueOffset(textarea.selectionEnd, segments),
+      };
+    }
+    setCollapsedObsidianCallouts((prev) => ({ ...prev, [blockId]: !currentlyCollapsed }));
+  }, [segments]);
+
+  // After a collapse/expand toggle changes which ranges are hidden, restore
+  // the caret to the equivalent position in the new display value.
+  useEffect(() => {
+    const pending = pendingSelectionRef.current;
+    if (!pending || !textareaRef.current) return;
+    pendingSelectionRef.current = null;
+    const start = valueOffsetToDisplayOffset(pending.start, ranges);
+    const end = valueOffsetToDisplayOffset(pending.end, ranges);
+    textareaRef.current.setSelectionRange(start, end);
+  }, [ranges]);
 
   const {
     fontFamily,
@@ -70,7 +136,7 @@ export function useMarkdownEditor({
     syncActiveLine,
     syncScroll,
   } = useEditorSync({
-    value,
+    value: displayValue,
     textareaRef,
     isDateExpanded,
     setIsDateExpanded,
@@ -84,7 +150,7 @@ export function useMarkdownEditor({
     pillRange,
     setPillUrl,
     detectLinkAtCaret,
-  } = useLinkPill({ value, textareaRef });
+  } = useLinkPill({ value: displayValue, textareaRef });
 
   const {
     tableInfo,
@@ -95,9 +161,9 @@ export function useMarkdownEditor({
     handleCycleAlign,
     handleCopyCSV,
     handleTableKeyDown,
-  } = useTableCallout({ value, textareaRef });
+  } = useTableCallout({ value: displayValue, textareaRef });
 
-  const tableDialog = useTableDialog({ value, textareaRef });
+  const tableDialog = useTableDialog({ value: displayValue, textareaRef });
 
   const {
     isAiLoading,
@@ -111,8 +177,8 @@ export function useMarkdownEditor({
     dismissReview,
     runAIActionById,
   } = useAIEditorActions({
-    value,
-    onChange,
+    value: displayValue,
+    onChange: commitDisplayValue,
     textareaRef,
   });
 
@@ -169,10 +235,10 @@ export function useMarkdownEditor({
 
       // If the tag sits on a checkbox task line, keep the checkbox state in
       // sync with the #done status (and revert it otherwise).
-      const lineStart = value.lastIndexOf("\n", todoMatch.start - 1) + 1;
-      const lineEndIdx = value.indexOf("\n", todoMatch.end);
-      const lineEnd = lineEndIdx === -1 ? value.length : lineEndIdx;
-      const line = value.slice(lineStart, lineEnd);
+      const lineStart = displayValue.lastIndexOf("\n", todoMatch.start - 1) + 1;
+      const lineEndIdx = displayValue.indexOf("\n", todoMatch.end);
+      const lineEnd = lineEndIdx === -1 ? displayValue.length : lineEndIdx;
+      const line = displayValue.slice(lineStart, lineEnd);
 
       const leadingWs = line.match(/^\s*/)?.[0] ?? "";
       const rawContent = line.slice(leadingWs.length);
@@ -201,7 +267,7 @@ export function useMarkdownEditor({
       textarea.setSelectionRange(todoMatch.start, todoMatch.end);
       document.execCommand("insertText", false, nextTag);
     },
-    [todoMatch, textareaRef, value],
+    [todoMatch, textareaRef, displayValue],
   );
 
   const handleSaveLink = useCallback(
@@ -241,8 +307,8 @@ export function useMarkdownEditor({
     insertDate,
     dismissMenu,
   } = useEditorTemplates({
-    value,
-    onChange,
+    value: displayValue,
+    onChange: commitDisplayValue,
     textareaRef,
     wrapperRef,
     onOpenTableCreate: tableDialog.openCreate,
@@ -273,7 +339,7 @@ export function useMarkdownEditor({
     handleEditorClick,
     handleGlobalKeyDown,
   } = useEditorHandlers({
-    value,
+    value: displayValue,
     textareaRef,
     onWikiLinkClick,
     dateMatch,
@@ -294,13 +360,46 @@ export function useMarkdownEditor({
     onTableKeyDown: handleTableKeyDown,
   });
 
+  const [textareaMounted, setTextareaMounted] = useState(false);
   useEffect(() => {
     const textarea = wrapperRef.current?.querySelector("textarea");
     if (textarea) {
       textareaRef.current = textarea as HTMLTextAreaElement;
       if (onTextareaReady) onTextareaReady(textareaRef.current);
+      setTextareaMounted(true);
     }
   }, [onTextareaReady]);
+
+  // Real chevron buttons (rendered by MarkdownEditor, positioned here via
+  // caret coordinates) — same approach already used for the date/workflow
+  // pills, and the only reliable one: a click handler on the highlighted
+  // overlay can't actually receive clicks, since the transparent textarea
+  // sits in front of it and intercepts the hit-test first.
+  const [calloutChevrons, setCalloutChevrons] = useState<
+    { blockId: string; top: number; collapsed: boolean }[]
+  >([]);
+  useEffect(() => {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+    const titles = listCalloutTitles(displayValue, collapsedObsidianCallouts);
+    setCalloutChevrons(
+      titles.map((t) => ({
+        blockId: t.blockId,
+        collapsed: t.collapsed,
+        top: getCaretCoordinates(textarea, t.offset).top || 0,
+      })),
+    );
+  }, [
+    displayValue,
+    collapsedObsidianCallouts,
+    textareaMounted,
+    fontFamily,
+    displayFontSize,
+    lineHeight,
+    letterSpacing,
+    wordWrap,
+    windowWidth,
+  ]);
 
   const handleDateSelect = useCallback((newDate: Date) => {
     if (!dateMatch || !textareaRef.current) return;
@@ -325,7 +424,7 @@ export function useMarkdownEditor({
 
   const handleValueChange = useCallback((val: string) => {
     const textarea = textareaRef.current;
-    if (!textarea) return onChange(val);
+    if (!textarea) return commitDisplayValue(val);
 
     const start = textarea.selectionStart;
     const end = textarea.selectionEnd;
@@ -421,40 +520,34 @@ export function useMarkdownEditor({
       const scrollPos = wrapperRef.current?.scrollTop;
       
       flushSync(() => {
-        onChange(nextVal);
+        commitDisplayValue(nextVal);
       });
 
       if (textareaRef.current) {
         textareaRef.current.setSelectionRange(adjustedStart, adjustedEnd);
       }
-      
+
       if (wrapperRef.current && scrollPos !== undefined) {
         wrapperRef.current.scrollTop = scrollPos;
       }
-      
+
       syncActiveLine();
     } else {
-      onChange(nextVal);
+      commitDisplayValue(nextVal);
       syncActiveLine();
     }
-  }, [onChange, handleSlashMenuTrigger, syncActiveLine, currencyCode, wrapperRef]);
+  }, [commitDisplayValue, handleSlashMenuTrigger, syncActiveLine, currencyCode, wrapperRef]);
 
   const highlight = useCallback(
     (code: string) => {
-      return highlightMarkdown(
-        code,
-        isZenModeActive,
-        activeLineIndex,
-        dateMatch,
-        pillRange,
-      );
+      return highlightMarkdown(code, dateMatch, pillRange);
     },
-    [isZenModeActive, activeLineIndex, dateMatch, pillRange],
+    [dateMatch, pillRange],
   );
 
   return {
-    value,
-    onChange,
+    value: displayValue,
+    onChange: commitDisplayValue,
     handleValueChange,
     wrapperRef,
     textareaRef,
@@ -463,7 +556,6 @@ export function useMarkdownEditor({
     lineHeight,
     letterSpacing,
     wordWrap,
-    isZenModeActive,
     windowWidth,
     menuOpen,
     setMenuOpen,
@@ -482,6 +574,9 @@ export function useMarkdownEditor({
     dateMenuPos,
     isDateExpanded,
     setIsDateExpanded,
+    collapsedObsidianCallouts,
+    toggleObsidianCallout,
+    calloutChevrons,
     handleMouseMove,
     handlePaste,
     handleDateSelect,

@@ -6,15 +6,16 @@ import { highlightMarkdown } from "./MarkdownHighlighter";
 import { Provider } from "jotai";
 import "@testing-library/jest-dom";
 
-vi.mock("@/app/atoms/atoms", async () => {
+vi.mock("@/app/atoms/atoms", async (importOriginal) => {
+  const actual = await importOriginal<Record<string, unknown>>();
   const { atom } = await import("jotai");
   return {
+    ...actual,
     atom_wordWrap: atom(true),
     atom_fontSize: atom("16px"),
     atom_fontFamily: atom("monospace"),
     atom_lineHeight: atom("1.8"),
     atom_letterSpacing: atom("normal"),
-    atom_isZenModeActive: atom(false),
     atom_isEditorFocused: atom(false),
     atom_cursorPosition: atom({ line: 1, col: 1 }),
     atom_editorWidth: atom("standard"),
@@ -22,6 +23,7 @@ vi.mock("@/app/atoms/atoms", async () => {
     atom_selectionCount: atom(0),
     atom_autoInjectFrontmatter: atom(false),
     atom_isAiConfigured: atom(true),
+    atom_isAiBusy: atom(false),
     atom_frontmatterWizardOpen: atom(null),
   };
 });
@@ -432,22 +434,74 @@ describe("MarkdownEditor Functional Tests", () => {
   });
 });
 
-describe("highlightMarkdown Zen Mode", () => {
-  it("does not apply fading/blur/grayscale to inactive lines in Zen Mode", () => {
+describe("highlightMarkdown", () => {
+  it("renders plain lines without any active-line styling (zen mode removed)", () => {
     const code = "Line 1\nLine 2\nLine 3";
-    const isZenModeActive = true;
-    const activeLineIndex = 1; // "Line 2" is active
 
-    const result = highlightMarkdown(code, isZenModeActive, activeLineIndex);
+    const result = highlightMarkdown(code);
 
-    // Inactive lines (Line 1 and Line 3) should have opacity-100 and no blur/grayscale
     expect(result).not.toContain('opacity-20');
     expect(result).not.toContain('blur');
     expect(result).not.toContain('grayscale');
-    
-    // Specifically check an inactive line structure
-    // Line 1 is index 0
-    expect(result).toContain('<div class="transition-all duration-700 ease-in-out  min-h-[1.8em]">Line 1</div>');
+    expect(result).toContain('<div class=" min-h-[1.8em]">Line 1</div>');
   });
 
+  describe("Obsidian callouts", () => {
+    it("renders a basic non-collapsible callout with no toggle affordance", () => {
+      const result = highlightMarkdown("> [!tip]\n> Body text");
+      expect(result).toContain("Tip");
+      expect(result).toContain("Body text");
+      expect(result).not.toContain("data-obsidian-callout-id");
+    });
+
+    it("renders a collapsible callout collapsed by default with `-`", () => {
+      const result = highlightMarkdown("> [!warning]- Heads up\n> Hidden body");
+      expect(result).toContain('data-obsidian-callout-collapsed="true"');
+      expect(result).not.toContain("Hidden body");
+    });
+
+    it("renders a collapsible callout expanded by default with `+`", () => {
+      const result = highlightMarkdown("> [!note]+ Visible\n> Shown body");
+      expect(result).toContain('data-obsidian-callout-collapsed="false"');
+      expect(result).toContain("Shown body");
+    });
+
+    it("respects an explicit collapse override over the fold-marker default", () => {
+      const result = highlightMarkdown(
+        "> [!note]- Title\n> Body",
+        null,
+        null,
+        { "0:note": false },
+      );
+      expect(result).toContain('data-obsidian-callout-collapsed="false"');
+      expect(result).toContain("Body");
+    });
+
+    it("resolves aliases to their canonical type", () => {
+      const result = highlightMarkdown("> [!caution] Watch out");
+      expect(result).toContain("Watch out");
+    });
+
+    it("falls back to note styling for unknown types without dropping the label", () => {
+      const result = highlightMarkdown("> [!idea] A new idea");
+      expect(result).toContain("A new idea");
+    });
+
+    it("renders a title-only callout with no body lines", () => {
+      const result = highlightMarkdown("> [!note] Just a label\nNot part of the callout");
+      expect(result).toContain("Just a label");
+      expect(result).toContain("Not part of the callout");
+    });
+
+    it("ends the callout on a line that no longer starts with '>'", () => {
+      const result = highlightMarkdown("> [!info] Title\n> Body line\nPlain paragraph");
+      expect(result).toContain("Plain paragraph");
+    });
+
+    it("no longer treats :::callout as a special block", () => {
+      const result = highlightMarkdown(":::callout warning\nLegacy body\n:::");
+      expect(result).toContain(":::callout warning");
+      expect(result).toContain("Legacy body");
+    });
+  });
 });

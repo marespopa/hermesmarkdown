@@ -86,7 +86,6 @@ const DialogModal = ({
             relative z-10 w-full max-h-[calc(100vh-2rem)] sm:max-h-[calc(100vh-3rem)]
             bg-white dark:bg-neutral-900 backdrop-blur-2xl
             border border-white/20 dark:border-neutral-800/50
-            shadow-[0_20px_50px_rgba(0,0,0,0.1)]
             overflow-hidden flex flex-col
             pointer-events-auto
             animate-in fade-in zoom-in-95 slide-in-from-bottom-4 sm:slide-in-from-bottom-0 duration-500 ease-out

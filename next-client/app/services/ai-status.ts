@@ -1,12 +1,14 @@
 import { getDefaultStore } from "jotai/vanilla";
+import toast from "react-hot-toast";
 import { atom_aiActionStatus } from "@/app/atoms/ui-atoms";
 
 // Lets app/services/ai.ts — a plain async module, not a React hook — report
-// AI action progress to the status bar's pill. One global pill for the whole
-// app (per the status-bar-redesign spec: last action wins, no per-pane state).
+// AI action progress. There is no persistent status surface, so completion
+// and failure are reported as one-shot transient toasts; "thinking" is not
+// toasted — only start (atom only, used by AI-aware UI like the toolbar) and
+// finish (toast).
 
 let seqCounter = 0;
-const DONE_DISPLAY_MS = 2000;
 
 export function beginAiAction(label: string): number {
   const seq = ++seqCounter;
@@ -15,21 +17,17 @@ export function beginAiAction(label: string): number {
 }
 
 export function finishAiActionSuccess(seq: number, label: string): void {
-  const store = getDefaultStore();
-  store.set(atom_aiActionStatus, { seq, status: "done", label });
-  setTimeout(() => {
-    if (store.get(atom_aiActionStatus).seq === seq) {
-      store.set(atom_aiActionStatus, { seq, status: "idle" });
-    }
-  }, DONE_DISPLAY_MS);
+  getDefaultStore().set(atom_aiActionStatus, { seq, status: "idle" });
+  toast.success(label, { id: "ai-action" });
 }
 
 export function finishAiActionError(seq: number, message: string): void {
-  getDefaultStore().set(atom_aiActionStatus, { seq, status: "error", message });
+  getDefaultStore().set(atom_aiActionStatus, { seq, status: "idle" });
+  toast.error(message, { id: "ai-action" });
 }
 
-// Error pills wait for acknowledgment rather than auto-clearing — call this
-// when the user clicks the error pill.
+// Kept for call sites that acknowledge an in-flight action explicitly; with
+// no ambient pill left to dismiss, this is just a status reset.
 export function dismissAiActionStatus(seq: number): void {
   const store = getDefaultStore();
   if (store.get(atom_aiActionStatus).seq === seq) {

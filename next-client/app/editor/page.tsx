@@ -12,11 +12,12 @@ import {
   atom_activeFileHandle,
   atom_activeFilePath,
   atom_workspaceLayout,
-  atom_isZenModeActive,
-  atom_isSidebarOpen,
   atom_isFileLoading,
+  atom_sidebarWidth,
 } from "@/app/atoms/atoms";
+import useIsMobileChrome from "@/app/hooks/use-mobile-chrome";
 import VaultSidebar from "./components/VaultSidebar";
+import IconRail from "./components/IconRail";
 import WelcomeWizard from "./components/WelcomeWizard";
 import VaultSetupWizard from "./components/VaultSetupWizard";
 import FrontmatterWizard from "./components/FrontmatterWizard";
@@ -26,7 +27,15 @@ import WorkspaceSplitter from "./components/WorkspaceSplitter";
 import VaultPendingOverlay from "./components/VaultPendingOverlay";
 import DriveReconnectBanner from "./components/DriveReconnectBanner";
 import LoadingOverlay from "@/app/components/LoadingOverlay";
-import StatusBar from "./components/StatusBar";
+import DocInfoPanel from "./components/DocInfoPanel";
+import EditorCommands from "./components/EditorCommands";
+import { CommandPaletteProvider } from "@/app/components/CommandPalette/CommandPaletteContext";
+import CommandPalette from "@/app/components/CommandPalette/CommandPalette";
+import MobileBottomNav from "./components/MobileBottomNav";
+import MobileFileOverlay from "./components/MobileFileOverlay";
+import MobileSearchOverlay from "./components/MobileSearchOverlay";
+import MobileFileIndicator from "./components/MobileFileIndicator";
+import MobileSelectionToolbar from "./components/MobileSelectionToolbar";
 import ErrorBoundary from "@/app/components/ErrorBoundary";
 import { useFileSystem } from "@/app/hooks/use-file-system";
 import { useFileWatcher } from "@/app/hooks/use-file-watcher";
@@ -35,16 +44,9 @@ import { useAutoSave } from "@/app/hooks/use-auto-save";
 import { useDialog } from "@/app/hooks/use-dialog";
 import toast from "react-hot-toast";
 
-import {
-  HiOutlineChevronRight,
-  HiOutlineCog,
-  HiOutlineEye,
-  HiOutlineEyeOff,
-  HiOutlineHome,
-} from "react-icons/hi";
 
 import { useRouter } from "next/navigation";
-import { atom_isAiConfigured } from "@/app/atoms/ui-atoms";
+import { atom_isAiConfigured, atom_isDocInfoOpen, atom_aiBuilderRequest, atom_railPanel, RailPanel } from "@/app/atoms/ui-atoms";
 import { generateFileFromPrompt } from "@/app/services/ai";
 import { withRetry } from "@/app/hooks/file-system/shared";
 
@@ -58,10 +60,21 @@ export default function LiteEditor() {
   const [activeFilePath, setActiveFilePath] = useAtom(atom_activeFilePath);
   const [, setActiveFileHandle] = useAtom(atom_activeFileHandle);
   const workspaceLayout = useAtomValue(atom_workspaceLayout);
-  const [isZenModeActive, setIsZenModeActive] = useAtom(atom_isZenModeActive);
-  const [isSidebarOpen, setIsSidebarOpen] = useAtom(atom_isSidebarOpen);
+  const [railPanel, setRailPanel] = useAtom(atom_railPanel);
+  const sidebarWidth = useAtomValue(atom_sidebarWidth);
+  // Kept mounted while collapsing/expanding so the wrapper's width transition
+  // (below) can animate smoothly instead of the panel popping in/out on unmount.
+  const [lastPanel, setLastPanel] = useState<RailPanel>(railPanel ?? "files");
+  useEffect(() => {
+    if (railPanel !== null) setLastPanel(railPanel);
+  }, [railPanel]);
   const isFileLoading = useAtomValue(atom_isFileLoading);
   const isAiConfigured = useAtomValue(atom_isAiConfigured);
+  const [, setIsDocInfoOpen] = useAtom(atom_isDocInfoOpen);
+  const [, setAiBuilderRequest] = useAtom(atom_aiBuilderRequest);
+  const isMobileChrome = useIsMobileChrome();
+  const [isMobileFileOverlayOpen, setIsMobileFileOverlayOpen] = useState(false);
+  const [isMobileSearchOverlayOpen, setIsMobileSearchOverlayOpen] = useState(false);
 
   const {
     vaultHandle,
@@ -129,24 +142,6 @@ export default function LiteEditor() {
     return () => clearTimeout(timer);
   }, []);
 
-  useEffect(() => {
-    const handleResize = () => {
-      if (window.innerWidth < 1024 && isMounting) {
-        setIsSidebarOpen(false);
-      }
-    };
-
-    handleResize();
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, [setIsSidebarOpen, isMounting]);
-
-  useEffect(() => {
-    if (vaultHandle && !isVaultPending && window.innerWidth >= 1024) {
-      setIsSidebarOpen(true);
-    }
-  }, [vaultHandle, isVaultPending, setIsSidebarOpen]);
-
   const handleSave = useCallback(async () => {
     if (!content.trim()) return;
     
@@ -199,15 +194,29 @@ export default function LiteEditor() {
       // Prevent tablet/mobile browsers from navigating back on ESC.
       if (e.key === "Escape") e.preventDefault();
 
-      // Escape exits Zen Mode
-      if (e.key === "Escape" && isZenModeActive) {
-        setIsZenModeActive(false);
+      // Escape collapses the sidebar (rail itself always stays visible)
+      if (e.key === "Escape" && railPanel !== null) {
+        setRailPanel(null);
       }
 
-      // Zen Mode Shortcut
-      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === "z") {
+      // Expand/collapse sidebar
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === "e") {
         e.preventDefault();
-        setIsZenModeActive((prev) => !prev);
+        setRailPanel((prev) => (prev !== null ? null : "files"));
+      }
+
+      // Document info — word/token count, structured score (on-demand, not ambient)
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === "i") {
+        e.preventDefault();
+        setIsDocInfoOpen((prev) => !prev);
+      }
+
+      // AI Builder — on-demand, not a status bar button
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === "b") {
+        if (isAiConfigured) {
+          e.preventDefault();
+          setAiBuilderRequest((v) => v + 1);
+        }
       }
 
       // Manual Save Shortcut (Ctrl+S)
@@ -224,7 +233,7 @@ export default function LiteEditor() {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [setIsZenModeActive, flush, isZenModeActive]);
+  }, [flush, railPanel, setRailPanel, setIsDocInfoOpen, isAiConfigured, setAiBuilderRequest]);
 
   const handleNewFile = () => {
     if (!vaultHandle) {
@@ -358,6 +367,9 @@ export default function LiteEditor() {
 
   return (
     <ErrorBoundary>
+      <CommandPaletteProvider>
+      <EditorCommands onNewFile={handleNewFile} onExport={handleExport} onSave={() => handleSaveRef.current()} />
+      <CommandPalette />
       <LoadingOverlay isVisible={isMounting || isFileLoading || isNavigating || driveAuthState === 'authenticating'} text={isFileLoading ? "Loading file..." : isNavigating ? "Settings..." : driveAuthState === 'authenticating' ? "Connecting to Google Drive..." : "Loading..."} />
       <div className={`fixed inset-0 flex flex-col bg-surface text-fg selection:bg-sage-light/30 font-sans overflow-hidden overscroll-none transition-all duration-500 ${isVaultPending ? "blur-md pointer-events-none select-none" : ""}`}>
         {isMounted && isDriveVault && driveAuthState === 'expired' && (
@@ -370,9 +382,10 @@ export default function LiteEditor() {
         <SchemaWizard />
         <VaultMigrateWizard />
         <ConflictDialog />
+        <DocInfoPanel />
         {isVaultPending && <VaultPendingOverlay restoreVault={restoreVault} isDriveVault={isDriveVault} />}
         
-        <DialogModal isOpened={pendingFile !== null} onClose={() => setPendingFile(null)} styles="!rounded-[32px] !backdrop-blur-2xl !bg-paper-light/80 dark:!bg-paper-dark/80 !border-none !shadow-2xl">
+        <DialogModal isOpened={pendingFile !== null} onClose={() => setPendingFile(null)} styles="!rounded-[32px] !backdrop-blur-2xl !bg-paper-light/80 dark:!bg-paper-dark/80">
           <div className="flex flex-col gap-6 text-center py-4 px-2">
             <p className="text-lg font-bold tracking-tight">
               Overwrite draft with <br/><span className="text-sage italic">"{pendingFile?.name}"</span>?
@@ -387,74 +400,53 @@ export default function LiteEditor() {
         <input type="file" ref={fileInputRef} onChange={handleFileChange} accept=".md,.txt,.markdown" className="hidden" />
 
         {/* --- MAIN LAYOUT --- */}
-        <div className="flex flex-1 min-h-0 overflow-hidden">
+        <div className="flex flex-1 min-h-0 overflow-hidden relative">
 
-        {/* Sidebar (Explorer) */}
-        <div
-          className={`transition-[width,opacity] duration-1000 [transition-timing-function:cubic-bezier(0.2,1,0.2,1)] flex shrink-0 h-full ${isZenModeActive || !isSidebarOpen ? "w-0 opacity-0 pointer-events-none overflow-hidden" : ""}`}
-        >
-          <VaultSidebar
-            onOpenSettings={() => navigateWithGuard("/editor/settings")}
-            onOpenDocumentation={() => navigateWithGuard("/documentation")}
-            onNewFile={handleNewFile}
-            onNewAIFile={isAiConfigured ? handleNewAIFile : undefined}
-            onImport={handleImport}
-            onExport={handleExport}
-            onClose={() => setIsSidebarOpen(false)}
-            onRefresh={async () => { await syncVault(); await refreshFiles(); }}
-          />
-        </div>
+        {/* Rail + panel — rail always visible, reflowing the editor as a
+            normal flex sibling; the panel next to it toggles the sidebar
+            between expanded and collapsed. Mobile uses MobileBottomNav and
+            MobileFileOverlay/MobileSearchOverlay instead. */}
+        {!isMobileChrome && (
+          <div className="flex shrink-0 h-full">
+            <IconRail
+              activePanel={railPanel}
+              onPanelChange={(panel) => setRailPanel((prev) => (prev === panel ? null : panel))}
+              onOpenSettings={() => navigateWithGuard("/editor/settings")}
+              onOpenDocumentation={() => navigateWithGuard("/documentation")}
+              onHome={() => navigateWithGuard("/")}
+            />
+            <div
+              className="h-full overflow-hidden transition-[width] duration-300 ease-in-out shrink-0"
+              style={{ width: railPanel !== null ? sidebarWidth : 0 }}
+              aria-hidden={railPanel === null}
+              inert={railPanel === null ? true : undefined}
+            >
+              <div
+                className={`h-full transition-opacity duration-200 ease-in-out ${
+                  railPanel !== null ? "opacity-100" : "opacity-0"
+                }`}
+                style={{ width: sidebarWidth }}
+              >
+                <VaultSidebar
+                  panel={lastPanel}
+                  onNewFile={handleNewFile}
+                  onNewAIFile={isAiConfigured ? handleNewAIFile : undefined}
+                  onImport={handleImport}
+                  onExport={handleExport}
+                  onClose={() => setRailPanel(null)}
+                  onRefresh={async () => { await syncVault(true); await refreshFiles(); }}
+                />
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Workspace Content */}
         <div className="flex-1 flex min-w-0 bg-surface overflow-hidden relative">
-          
-          {/* Collapsed Sidebar Toggle Column */}
-          {!isSidebarOpen && !isZenModeActive && (
-            <div className="w-12 h-full flex flex-col items-center py-6 border-r border-edge-subtle bg-paper-pale dark:bg-paper-dark shrink-0 z-40">
-               <div className="flex flex-col items-center gap-6">
-                 <Button
-                    variant="icon"
-                    onClick={() => navigateWithGuard("/")}
-                    className="w-10 h-10 opacity-60 hover:opacity-100 text-ink-muted dark:text-stone"
-                    title="Home"
-                  >
-                    <HiOutlineHome size={24} />
-                  </Button>
-
-
-                 <Button
-                    variant="icon"
-                    onClick={() => setIsSidebarOpen(true)}
-                    className="w-10 h-10 opacity-60 hover:opacity-100 text-ink-muted dark:text-stone"
-                    title="Expand Sidebar"
-                  >
-                    <HiOutlineChevronRight size={24} />
-                  </Button>
-
-                  <Button
-                    variant="icon"
-                    onClick={() => navigateWithGuard("/editor/settings")}
-                    className="w-10 h-10 opacity-60 hover:opacity-100 text-ink-muted dark:text-stone"
-                    title="Settings"
-                  >
-                    <HiOutlineCog size={24} />
-                  </Button>
-
-                  <Button
-                    variant="icon"
-                    onClick={() => setIsZenModeActive(!isZenModeActive)}
-                    className={`w-10 h-10 transition-colors ${isZenModeActive ? "text-sage opacity-100" : "opacity-60 hover:opacity-100 text-ink-muted dark:text-stone"}`}
-                    title="Toggle Zen Mode (Ctrl+Shift+Z)"
-                  >
-                    {isZenModeActive ? <HiOutlineEye size={24} /> : <HiOutlineEyeOff size={24} />}
-                  </Button>
-               </div>
-            </div>
-          )}
-
           {/* Main Editor Area */}
           <div className="flex-1 flex flex-col min-w-0 relative">
-            <div className="relative flex-1 min-h-0">
+            {isMobileChrome && <MobileFileIndicator />}
+            <div className={`relative flex-1 min-h-0 ${isMobileChrome ? "pb-14" : ""}`}>
               <main className="h-full">
                 {isMounting ? (
                   <div className="animate-pulse opacity-10 space-y-6 pt-20 px-12 max-w-2xl mx-auto">
@@ -468,14 +460,32 @@ export default function LiteEditor() {
                 )}
               </main>
             </div>
-
-            <div className={`${isZenModeActive ? "order-first" : "max-md:order-first"} shrink-0`}>
-              <StatusBar />
-            </div>
+            {isMobileChrome && (
+              <MobileBottomNav
+                onFiles={() => setIsMobileFileOverlayOpen(true)}
+                onSearch={() => setIsMobileSearchOverlayOpen(true)}
+                onNewFile={handleNewFile}
+              />
+            )}
           </div>
         </div>
         </div>{/* end MAIN LAYOUT */}
+
+        {isMobileChrome && (
+          <>
+            <MobileSelectionToolbar />
+            <MobileFileOverlay
+              isOpen={isMobileFileOverlayOpen}
+              onClose={() => setIsMobileFileOverlayOpen(false)}
+            />
+            <MobileSearchOverlay
+              isOpen={isMobileSearchOverlayOpen}
+              onClose={() => setIsMobileSearchOverlayOpen(false)}
+            />
+          </>
+        )}
       </div>
+      </CommandPaletteProvider>
     </ErrorBoundary>
   );
 }

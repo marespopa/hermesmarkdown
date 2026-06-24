@@ -133,7 +133,7 @@ export default function Typeahead({
 
       {isOpen && filteredOptions.length > 0 && (
         <Portal>
-          <ul ref={dropdownRef} style={dropdownStyle} className="max-h-56 overflow-y-auto bg-paper-light dark:bg-neutral-900 border border-beige dark:border-neutral-800 rounded-xl shadow-xl py-1.5 text-ui-subhead custom-scrollbar">
+          <ul ref={dropdownRef} style={dropdownStyle} className="max-h-56 overflow-y-auto bg-paper-light dark:bg-neutral-900 border border-beige dark:border-neutral-800 rounded-xl py-1.5 text-ui-subhead custom-scrollbar">
             {filteredOptions.map((opt, index) => (
               <li
                 key={opt}

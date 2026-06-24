@@ -194,7 +194,7 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
       case 3:
         return (
           <div className="flex flex-col items-center text-center space-y-6 py-4">
-            <div className="w-16 h-16 bg-sage rounded-2xl flex items-center justify-center text-white shadow-lg shadow-sage/20">
+            <div className="w-16 h-16 bg-sage rounded-2xl flex items-center justify-center text-white">
               <HiOutlineCheckCircle size={32} />
             </div>
             <div className="space-y-2">

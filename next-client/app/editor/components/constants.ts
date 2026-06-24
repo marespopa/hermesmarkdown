@@ -139,13 +139,13 @@ export const TEMPLATES: Template[] = [
     label: "Callout",
     icon: "📌",
     description: "Note, info, tip, warning, or danger block",
-    content: `:::callout note\n${CURSOR_SENTINEL}\n:::`,
+    content: `> [!note] ${CURSOR_SENTINEL}\n> `,
   },
   {
     label: "Collapse",
     icon: "🔽",
     description: "Collapsible section for long content",
-    content: `:::collapse Details\n${CURSOR_SENTINEL}\n:::`,
+    content: `> [!note]- ${CURSOR_SENTINEL}\n> `,
   },
   // --- AI ---
   {

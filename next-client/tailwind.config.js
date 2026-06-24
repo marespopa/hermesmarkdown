@@ -21,11 +21,11 @@ module.exports = {
       },
       fontFamily: {
         sans: [
+          "Inter",
           "SF Pro Display",
           "SF Pro Text",
           "system-ui",
           "BlinkMacSystemFont",
-          "Inter",
           "ui-sans-serif",
           "sans-serif",
         ],
@@ -72,38 +72,42 @@ module.exports = {
         },
 
         // ── Static neutral grays (same value in both modes) ──
-        stone: '#A8A098',   // muted placeholder / faint static gray
-        clay:  '#4A4440',   // dark-mode border / interactive surface
+        stone: '#9A968F',   // muted placeholder / faint static gray
+        clay:  '#3A3631',   // dark-mode border / interactive surface (neutral — unrelated to the "clay" accent role, kept for naming-history reasons; see `accent` below for the design doc's clay accent)
 
-        // ── Accent / brand (static — same in both modes) ──
+        // ── Accent / brand (static — same in both modes; CSS-var backed so
+        //    dark mode brightens them automatically). `accent` = doc's "clay"
+        //    role (links, focus rings, active borders, unsaved dot).
+        //    `sage` = doc's "moss" role (icons, muted interactive). ──
         sage: {
-          DEFAULT: 'var(--accent)',  /* #647558 light / #fef3c7 dark */
-          subtle:  '#8B9B7E',        /* decorative/non-text use only (2.6:1 on light) */
-          light:   '#fef3c7',        /* Hermes pale gold — selection bg / tints */
-          dark:    '#6B7A62',        /* hover / pressed state */
+          DEFAULT: 'var(--moss)',
+          subtle:  'var(--moss)',
+          light:   'var(--moss)',
+          dark:    'var(--moss)',
+          hover:   'var(--moss-hover)',
         },
         accent: {
-          DEFAULT: 'var(--accent)',
-          hover:   '#576648',
+          DEFAULT: 'var(--clay)',
+          hover:   'var(--clay)',
         },
 
         // ── Static aliases (kept for explicit light/dark overrides) ──
         beige: {
-          DEFAULT: '#D4C4A8',
-          light:   '#EDE5D4',
+          DEFAULT: '#D8D5CE',
+          light:   '#E9E7E2',
         },
         paper: {
-          pale:           '#FDFCFA',
-          light:          '#F5F1E8',
-          softgray:       '#E8E6E1',
-          dark:           '#1A1816',
-          'dark-surface': '#363230',
+          pale:           '#FAF9F7',
+          light:          '#F2F1EE',
+          softgray:       '#E9E7E2',
+          dark:           '#211E1B',
+          'dark-surface': '#2A2622',
         },
         ink: {
-          light: '#3A3226',
-          hover: '#4A3E32',
-          dark:  '#E8E4DC',
-          muted: '#6B6B6B',
+          light: '#2A2825',
+          hover: '#3A3733',
+          dark:  '#ECE7E0',
+          muted: '#6B6862',
         },
       },
       backgroundImage: {

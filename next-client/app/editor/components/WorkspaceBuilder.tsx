@@ -138,7 +138,7 @@ export default function WorkspaceBuilder({ isOpen, onClose, editingWorkspace }: 
                     onClick={() => setOperator(op)}
                     className={`px-4 py-1.5 text-ui-footnote font-bold rounded-md transition-all ${
                       operator === op
-                        ? "bg-paper-light dark:bg-neutral-800 shadow-sm text-sage dark:text-sage"
+                        ? "bg-paper-light dark:bg-neutral-800 text-sage dark:text-sage"
                         : "text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300"
                     }`}
                   >

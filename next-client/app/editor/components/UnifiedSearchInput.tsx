@@ -11,6 +11,7 @@ interface UnifiedSearchInputProps {
   onTokenAdd: (tag: string) => void;
   onTokenRemove: (tag: string) => void;
   onTextChange: (text: string) => void;
+  autoFocus?: boolean;
 }
 
 function TagDot({ tag }: { tag: string }) {
@@ -32,6 +33,7 @@ export default function UnifiedSearchInput({
   onTokenAdd,
   onTokenRemove,
   onTextChange,
+  autoFocus = false,
 }: UnifiedSearchInputProps) {
   const [inputValue, setInputValue]               = useState(text);
   const [tagInputActive, setTagInputActive]       = useState(false);
@@ -45,6 +47,11 @@ export default function UnifiedSearchInput({
     if (text !== inputValue && !tagInputActive) setInputValue(text);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [text]);
+
+  useEffect(() => {
+    if (autoFocus) inputRef.current?.focus();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const filteredSuggestions = React.useMemo(() => {
     if (!tagInputActive) return [];
@@ -151,7 +158,6 @@ export default function UnifiedSearchInput({
           "rounded-xl",
           "bg-paper-light dark:bg-paper-dark",
           "border border-edge",
-          "shadow-md shadow-beige/50 dark:shadow-black/40",
           "focus-within:ring-2 focus-within:ring-sage/20",
           "transition-all duration-150",
         ].join(" ")}
@@ -175,7 +181,7 @@ export default function UnifiedSearchInput({
           spellCheck={false}
           aria-label="Search files"
           className={[
-            "flex-1 min-w-0 bg-transparent outline-none border-none",
+            "flex-1 min-w-0 bg-transparent outline-none focus-visible:outline-none border-none",
             "text-[13px] sm:text-xs leading-none",
             "text-ink-light dark:text-ink-dark",
             "placeholder:text-stone dark:placeholder:text-stone",
@@ -244,7 +250,7 @@ export default function UnifiedSearchInput({
 
       {/* ── Tag suggestion popover ────────────────────────────────────── */}
       {showPopover && (
-        <div className="absolute top-[calc(theme(spacing.11)+theme(spacing.1))] sm:top-[calc(theme(spacing.9)+theme(spacing.1))] left-0 right-0 z-50 bg-paper-light/95 dark:bg-paper-dark/95 backdrop-blur-xl border border-beige/60 dark:border-clay/60 rounded-2xl shadow-xl py-1 overflow-hidden">
+        <div className="absolute top-[calc(theme(spacing.11)+theme(spacing.1))] sm:top-[calc(theme(spacing.9)+theme(spacing.1))] left-0 right-0 z-50 bg-paper-light/95 dark:bg-paper-dark/95 backdrop-blur-xl border border-beige/60 dark:border-clay/60 rounded-2xl py-1 overflow-hidden">
           {filteredSuggestions.map((tag, idx) => (
             <button
               key={tag}
