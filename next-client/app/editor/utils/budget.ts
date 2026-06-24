@@ -52,6 +52,34 @@ function extractCellSum(cell: string, lineRegex: RegExp, symbol: string): curren
   return sum;
 }
 
+// Maps a cursor position from the pre-rewrite string to the post-rewrite
+// string using a common prefix/suffix diff, so the cursor tracks correctly
+// no matter which lines runAutoBudget rewrote (not just the current line).
+export function adjustPosForRewrite(original: string, next: string, pos: number): number {
+  if (original === next) return pos;
+
+  const maxPrefix = Math.min(original.length, next.length);
+  let prefixLen = 0;
+  while (prefixLen < maxPrefix && original[prefixLen] === next[prefixLen]) prefixLen++;
+
+  const maxSuffix = maxPrefix - prefixLen;
+  let suffixLen = 0;
+  while (
+    suffixLen < maxSuffix &&
+    original[original.length - 1 - suffixLen] === next[next.length - 1 - suffixLen]
+  ) {
+    suffixLen++;
+  }
+
+  if (pos <= prefixLen) return pos;
+  if (pos >= original.length - suffixLen) return next.length - (original.length - pos);
+
+  // Cursor was inside the changed region — anchor it relative to the end
+  // of that region so it stays put rather than jumping to the start.
+  const distFromRegionEnd = original.length - suffixLen - pos;
+  return Math.max(prefixLen, next.length - suffixLen - distFromRegionEnd);
+}
+
 export function runAutoBudget(val: string, currencyCode: string = "USD"): string {
   if (!val.includes("Total:")) return val;
 

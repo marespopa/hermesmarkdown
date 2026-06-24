@@ -447,7 +447,7 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
             onRemoveColumn={tableDialog.handleRemoveColumn}
             onConfirmRemoveColumn={tableDialog.handleConfirmRemoveColumn}
             onCancelRemoveColumn={tableDialog.handleCancelRemoveColumn}
-            onAddRow={() => tableDialog.handleAddRow(tableDialog.headers.length)}
+            onAddRow={(atIndex) => tableDialog.handleAddRow(tableDialog.headers.length, atIndex)}
             onRemoveRow={tableDialog.handleRemoveRow}
             onConfirmRemoveRow={tableDialog.handleConfirmRemoveRow}
             onCancelRemoveRow={tableDialog.handleCancelRemoveRow}

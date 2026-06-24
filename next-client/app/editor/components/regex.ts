@@ -16,4 +16,5 @@ export const REGEX_TODO_TAGS = /#(draft|review|active|archived)\b/gi;
 export const REGEX_TODO_STATUS_TAGS = /#(todo|prog|done)\b/gi;
 export const REGEX_CHECKBOX = /^(\s*[-*]\s*\[)([ xX])(\])/;
 export const REGEX_URL_PASTE = /^(https?:\/\/[^\s]+)$/i;
+export const REGEX_QUOTE_PREFIX = /^(>\s*)+/;
 export const REGEX_CALC = /calc\(([^)]+)\)=$/;

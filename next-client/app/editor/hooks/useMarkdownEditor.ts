@@ -9,7 +9,7 @@ import {
   atom_aiBuilderRequest,
 } from "@/app/atoms/atoms";
 import { SHORTCODES, TAG_CYCLE, TAG_CYCLE_PREV, TODO_CYCLE, TODO_CYCLE_PREV } from "../components/constants";
-import { runAutoBudget } from "../utils/budget";
+import { runAutoBudget, adjustPosForRewrite } from "../utils/budget";
 import { REGEX_CALC, REGEX_CHECKBOX } from "../components/regex";
 import { highlightMarkdown } from "../components/MarkdownHighlighter";
 import { useEditorAppearance } from "./use-editor-appearance";
@@ -295,6 +295,7 @@ export function useMarkdownEditor({
     filteredTemplates,
     insertTemplate,
     handleSlashMenuTrigger,
+    handleWikiLinkTrigger,
     linkDialogOpen,
     setLinkDialogOpen,
     insertLink,
@@ -431,57 +432,15 @@ export function useMarkdownEditor({
     const textUpToCursor = val.substring(0, start);
 
     handleSlashMenuTrigger(val);
+    handleWikiLinkTrigger(val);
 
     const nextVal = runAutoBudget(val, currencyCode);
-    
-    // Calculate cursor offset if the content changed
-    let adjustedStart = start;
-    let adjustedEnd = end;
 
-    if (nextVal !== val) {
-      const originalLines = val.split("\n");
-      const nextLines = nextVal.split("\n");
-      
-      // Find which line the cursor is on
-      const linesUpToCursor = textUpToCursor.split("\n");
-      const cursorLineIndex = linesUpToCursor.length - 1;
-
-      let offset = 0;
-      for (let i = 0; i < cursorLineIndex; i++) {
-        offset += (nextLines[i]?.length || 0) - (originalLines[i]?.length || 0);
-      }
-      
-      // If the change happened on the current line before the cursor
-      // (Though runAutoBudget currently only changes Total: lines, 
-      // which are usually separate lines)
-      const currentLineOriginal = originalLines[cursorLineIndex] || "";
-      const currentLineNext = nextLines[cursorLineIndex] || "";
-      if (currentLineOriginal !== currentLineNext) {
-        // Find if the change in the current line is before the cursor column
-        // This is a bit more complex, but for now we assume 
-        // runAutoBudget doesn't change the current line unless it's a Total: line.
-        // If it IS a Total: line, we want the cursor to stay where it was relative to the start of the line if possible,
-        // or just move with the text.
-        
-        // Simple heuristic: if the line changed, add the difference to the offset
-        // but only if we're sure it's before the cursor.
-        // Since runAutoBudget replaces the whole line, if we are on a Total: line,
-        // it's safest to just let the cursor be at the same relative position from the end if we were at the end,
-        // or same from start if we were at the start.
-        
-        // For now, let's just use the full line difference if it's a Total: line
-        if (currentLineOriginal.trim().startsWith("Total:")) {
-           // If the cursor is on the Total: line, we might need more care.
-           // But usually Total: lines aren't edited directly to trigger this.
-           // If they are, the offset should be based on where the cursor is.
-           // For simplicity, let's just add the difference.
-           offset += currentLineNext.length - currentLineOriginal.length;
-        }
-      }
-
-      adjustedStart += offset;
-      adjustedEnd += offset;
-    }
+    // Calculate cursor offset if the content changed, using a common
+    // prefix/suffix diff so the cursor tracks correctly regardless of
+    // which lines runAutoBudget rewrote (not just the current line).
+    const adjustedStart = adjustPosForRewrite(val, nextVal, start);
+    const adjustedEnd = adjustPosForRewrite(val, nextVal, end);
 
     const calcMatch = textUpToCursor.match(REGEX_CALC);
     if (calcMatch) {
@@ -536,7 +495,7 @@ export function useMarkdownEditor({
       commitDisplayValue(nextVal);
       syncActiveLine();
     }
-  }, [commitDisplayValue, handleSlashMenuTrigger, syncActiveLine, currencyCode, wrapperRef]);
+  }, [commitDisplayValue, handleSlashMenuTrigger, handleWikiLinkTrigger, syncActiveLine, currencyCode, wrapperRef]);
 
   const highlight = useCallback(
     (code: string) => {

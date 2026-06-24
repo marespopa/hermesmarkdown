@@ -103,19 +103,37 @@ export function useTableDialog({ value, textareaRef }: UseTableDialogProps) {
     setAlignments((a) => a.map((v, i) => (i === colIdx ? alignment : v)));
   }, []);
 
-  const handleAddColumn = useCallback(() => {
-    setHeaders((h) => [...h, `Header ${h.length + 1}`]);
-    setRows((r) => r.map((row) => [...row, ""]));
-    setOriginalRows((r) => r.map((row) => [...row, ""]));
-    setAlignments((a) => [...a, "left"]);
+  const handleAddColumn = useCallback((atIndex?: number) => {
+    setHeaders((h) => {
+      const idx = atIndex ?? h.length;
+      return [...h.slice(0, idx), `Header ${h.length + 1}`, ...h.slice(idx)];
+    });
+    setRows((r) => r.map((row) => {
+      const idx = atIndex ?? row.length;
+      return [...row.slice(0, idx), "", ...row.slice(idx)];
+    }));
+    setOriginalRows((r) => r.map((row) => {
+      const idx = atIndex ?? row.length;
+      return [...row.slice(0, idx), "", ...row.slice(idx)];
+    }));
+    setAlignments((a) => {
+      const idx = atIndex ?? a.length;
+      return [...a.slice(0, idx), "left", ...a.slice(idx)];
+    });
     setSortState(null);
     setPendingRemoveCol(null);
   }, []);
 
-  const handleAddRow = useCallback((colCount: number) => {
+  const handleAddRow = useCallback((colCount: number, atIndex?: number) => {
     const newRow = Array(colCount).fill("");
-    setRows((r) => [...r, [...newRow]]);
-    setOriginalRows((r) => [...r, [...newRow]]);
+    setRows((r) => {
+      const idx = atIndex ?? r.length;
+      return [...r.slice(0, idx), [...newRow], ...r.slice(idx)];
+    });
+    setOriginalRows((r) => {
+      const idx = atIndex ?? r.length;
+      return [...r.slice(0, idx), [...newRow], ...r.slice(idx)];
+    });
   }, []);
 
   const doRemoveColumn = useCallback((colIdx: number) => {

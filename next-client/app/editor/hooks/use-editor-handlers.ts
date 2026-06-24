@@ -4,7 +4,7 @@ import { useState, useCallback, useEffect } from "react";
 import { useAtom } from "jotai";
 import { atom_isEditorFocused } from "@/app/atoms/atoms";
 import { findLinkAtPos } from "../utils/link-detection";
-import { REGEX_URL_PASTE, REGEX_CHECKBOX } from "../components/regex";
+import { REGEX_URL_PASTE, REGEX_CHECKBOX, REGEX_QUOTE_PREFIX, REGEX_TODO_STATUS_TAGS } from "../components/regex";
 import { DateMatch } from "../types";
 
 interface UseEditorHandlersProps {
@@ -100,8 +100,29 @@ export function useEditorHandlers({
       requestAnimationFrame(() => {
         textarea.setSelectionRange(startPos, linkWordEnd);
       });
+      return;
     }
-  }, [textareaRef]);
+
+    if (pastedText.includes("\n")) {
+      const textarea = textareaRef.current;
+      if (!textarea) return;
+
+      const pos = textarea.selectionStart;
+      const lineStart = value.lastIndexOf("\n", pos - 1) + 1;
+      const currentLine = value.slice(lineStart, pos);
+      const quoteMatch = currentLine.match(REGEX_QUOTE_PREFIX);
+
+      if (quoteMatch) {
+        e.preventDefault();
+        const prefix = quoteMatch[0];
+        const toInsert = pastedText
+          .split("\n")
+          .map((line, i) => (i === 0 ? line : `${prefix}${line}`))
+          .join("\n");
+        document.execCommand("insertText", false, toInsert);
+      }
+    }
+  }, [value, textareaRef]);
 
   const handleEditorClick = useCallback((e: React.MouseEvent<any>) => {
     const textarea = e.currentTarget as HTMLTextAreaElement;
@@ -138,9 +159,24 @@ export function useEditorHandlers({
       if (pos >= boxStart && pos <= boxEnd) {
         e.preventDefault();
         const charIdx = lineStartIndex + checkboxMatch[1].length;
-        const nextChar = value[charIdx].toLowerCase() === "x" ? " " : "x";
+        const isChecking = value[charIdx].toLowerCase() !== "x";
+        const nextChar = isChecking ? "x" : " ";
         textarea.setSelectionRange(charIdx, charIdx + 1);
         document.execCommand("insertText", false, nextChar);
+
+        REGEX_TODO_STATUS_TAGS.lastIndex = 0;
+        const statusMatch = REGEX_TODO_STATUS_TAGS.exec(currentLine);
+        if (statusMatch) {
+          const desiredTag = isChecking ? "done" : "todo";
+          if (statusMatch[1].toLowerCase() !== desiredTag) {
+            const tagStart = lineStartIndex + statusMatch.index;
+            const tagEnd = tagStart + statusMatch[0].length;
+            textarea.setSelectionRange(tagStart, tagEnd);
+            document.execCommand("insertText", false, `#${desiredTag}`);
+          }
+        }
+
+        textarea.setSelectionRange(charIdx + 1, charIdx + 1);
       }
     }
 
@@ -233,6 +269,34 @@ export function useEditorHandlers({
           if (filteredTemplates[selectedIndex]) {
             insertTemplate(filteredTemplates[selectedIndex].content);
           }
+        }
+      }
+      return;
+    }
+
+    if (e.key === "Enter") {
+      const textarea = textareaRef.current;
+      if (!textarea) return;
+
+      const pos = textarea.selectionStart;
+      const lineStart = value.lastIndexOf("\n", pos - 1) + 1;
+      const lineEnd = value.indexOf("\n", pos) === -1 ? value.length : value.indexOf("\n", pos);
+      const currentLine = value.slice(lineStart, lineEnd);
+      const quoteMatch = currentLine.match(REGEX_QUOTE_PREFIX);
+
+      if (quoteMatch) {
+        e.preventDefault();
+        e.stopPropagation();
+        const prefix = quoteMatch[0];
+
+        if (currentLine.slice(prefix.length).trim() === "") {
+          // Empty quoted/callout line — exit the block by stripping the prefix
+          // instead of continuing it onto another quoted line.
+          textarea.setSelectionRange(lineStart, lineEnd);
+          document.execCommand("insertText", false, "");
+        } else {
+          textarea.setSelectionRange(pos, pos);
+          document.execCommand("insertText", false, `\n${prefix}`);
         }
       }
     }

@@ -7,9 +7,16 @@ export interface SortState {
 
 export type ColType = "number" | "date" | "string";
 
+function isTotalRow(row: string[]): boolean {
+  return row.some((c) => c.trim().startsWith("Total:"));
+}
+
 export function detectColumnType(rows: string[][], colIdx: number): ColType {
   const isEmpty = (v: string) => v.trim() === "";
-  const nonEmpty = rows.map((r) => r[colIdx] ?? "").filter((v) => !isEmpty(v));
+  const nonEmpty = rows
+    .filter((r) => !isTotalRow(r))
+    .map((r) => r[colIdx] ?? "")
+    .filter((v) => !isEmpty(v));
 
   if (nonEmpty.length === 0) return "string";
 
@@ -40,9 +47,13 @@ export function sortRows(
   direction: Exclude<SortDirection, "none">,
 ): string[][] {
   const isEmpty = (v: string) => v.trim() === "";
-  const colType = detectColumnType(rows, colIdx);
+  // Total: rows are computed summaries, not data — never sort them, always
+  // keep them pinned after the sorted data rows.
+  const dataRows = rows.filter((r) => !isTotalRow(r));
+  const totalRows = rows.filter(isTotalRow);
+  const colType = detectColumnType(dataRows, colIdx);
 
-  return [...rows].sort((a, b) => {
+  const sorted = [...dataRows].sort((a, b) => {
     const av = a[colIdx] ?? "";
     const bv = b[colIdx] ?? "";
 
@@ -64,6 +75,8 @@ export function sortRows(
 
     return direction === "asc" ? cmp : -cmp;
   });
+
+  return [...sorted, ...totalRows];
 }
 
 export function nextSortDirection(current: SortDirection): SortDirection {

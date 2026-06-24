@@ -140,7 +140,6 @@ export function useEditorTemplates({
     }
 
     const before = value.substring(0, start - lengthToRemove);
-    const after = value.substring(start);
 
     let processedContent = content;
     Object.entries(SHORTCODES).forEach(([code, getValue]) => {
@@ -158,45 +157,26 @@ export function useEditorTemplates({
       ? processedContent.replace(CURSOR_SENTINEL, "")
       : processedContent;
 
-    const fullNewValue = before + cleanContent + after;
-    const budgetedValue = runAutoBudget(fullNewValue, currencyCode);
-
     const scrollPos = wrapperRef.current?.scrollTop;
 
-    flushSync(() => {
-      onChange(budgetedValue);
-      setMenuOpen(false);
-      setFilterQuery("");
-    });
-
+    // Insert via execCommand (not a direct setState) so the browser records the
+    // edit on its native undo stack — same trick used for paste/calc/shortcodes.
     textarea.focus();
-    let newPos = sentinelIdx !== -1
-      ? before.length + sentinelIdx
-      : before.length + cleanContent.length;
+    textarea.setSelectionRange(start - lengthToRemove, start);
+    document.execCommand("insertText", false, cleanContent);
 
-    if (budgetedValue !== fullNewValue) {
-      const originalLines = fullNewValue.split("\n");
-      const nextLines = budgetedValue.split("\n");
-      const linesUpToCaret = (before + cleanContent).split("\n");
-      const caretLineIndex = linesUpToCaret.length - 1;
+    setMenuOpen(false);
+    setFilterQuery("");
 
-      let offset = 0;
-      for (let i = 0; i < caretLineIndex; i++) {
-        offset += (nextLines[i]?.length || 0) - (originalLines[i]?.length || 0);
-      }
-      // If the Total: line is the one we just inserted or is on the same line
-      if (originalLines[caretLineIndex]?.trim().startsWith("Total:")) {
-        offset += (nextLines[caretLineIndex]?.length || 0) - (originalLines[caretLineIndex]?.length || 0);
-      }
-      newPos += offset;
+    if (sentinelIdx !== -1) {
+      const newPos = before.length + sentinelIdx;
+      textarea.setSelectionRange(newPos, newPos);
     }
-
-    textarea.setSelectionRange(newPos, newPos);
 
     if (wrapperRef.current && scrollPos !== undefined) {
       wrapperRef.current.scrollTop = scrollPos;
     }
-  }, [value, onChange, filterQuery, textareaRef, wrapperRef, currencyCode, onOpenTableCreate, onFrontmatterWizard, onAIAction]);
+  }, [value, filterQuery, textareaRef, wrapperRef, onOpenTableCreate, onFrontmatterWizard, onAIAction]);
 
   const handleSlashMenuTrigger = useCallback((val: string) => {
     const textarea = textareaRef.current;
@@ -286,6 +266,22 @@ export function useEditorTemplates({
       setDismissedSlashPos(null);
     }
   }, [textareaRef, dismissedSlashPos, availableTemplates]);
+
+  const handleWikiLinkTrigger = useCallback((val: string) => {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+
+    const start = textarea.selectionStart;
+    const textUpToCursor = val.substring(0, start);
+
+    if (
+      textUpToCursor.endsWith("[[") &&
+      textUpToCursor[textUpToCursor.length - 3] !== "["
+    ) {
+      setWikiLinkInsertPos({ start, filterLen: 2 });
+      setWikiLinkDialogOpen(true);
+    }
+  }, [textareaRef]);
 
   const insertDate = useCallback((date: Date) => {
     const textarea = textareaRef.current;
@@ -383,6 +379,7 @@ export function useEditorTemplates({
     filteredTemplates: filteredTemplatesList,
     insertTemplate,
     handleSlashMenuTrigger,
+    handleWikiLinkTrigger,
     linkDialogOpen,
     setLinkDialogOpen,
     insertLink,

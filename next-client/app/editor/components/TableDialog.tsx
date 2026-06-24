@@ -1,10 +1,56 @@
 "use client";
 
-import React, { useRef, useEffect, useCallback } from "react";
+import React, { useRef, useEffect, useCallback, useState } from "react";
+import { IoTrashOutline, IoCalculatorOutline, IoChevronBackOutline, IoChevronForwardOutline } from "react-icons/io5";
 import DialogModal from "../../components/DialogModal/DialogModal";
 import Button from "../../components/Button";
 import type { Alignment } from "../utils/tableParser";
 import type { SortState } from "../utils/tableSorter";
+
+// Plain text ("+ Above" etc.) instead of directional arrow icons — arrows
+// read as cursor movement, not as an insert action.
+function ToolbarButton({
+  children,
+  label,
+  onClick,
+  disabled,
+  danger,
+}: {
+  children: React.ReactNode;
+  label: string;
+  onClick: () => void;
+  disabled?: boolean;
+  danger?: boolean;
+}) {
+  return (
+    <Button
+      variant="bare"
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      aria-label={label}
+      title={label}
+      className={`
+        h-9 sm:h-7 px-3 sm:px-2.5 flex items-center justify-center gap-1 rounded-lg text-ui-micro font-medium no-underline
+        text-ink-muted dark:text-stone hover:bg-paper-softgray dark:hover:bg-paper-dark-surface
+        ${danger ? "hover:text-red-500 dark:hover:text-red-400" : "hover:text-ink-light dark:hover:text-ink-dark"}
+        disabled:opacity-30 disabled:pointer-events-none transition-colors
+      `}
+    >
+      {children}
+    </Button>
+  );
+}
+
+function ToolbarConfirmRemove({ onConfirm, onCancel }: { onConfirm: () => void; onCancel: () => void }) {
+  return (
+    <div className="flex items-center gap-1.5 text-ui-micro text-amber-700 dark:text-amber-400 px-1.5">
+      <span>Has content.</span>
+      <Button variant="bare" onClick={onConfirm} className="underline hover:text-red-600 transition-colors">Remove</Button>
+      <Button variant="bare" onClick={onCancel} className="underline hover:text-ink-muted transition-colors">Cancel</Button>
+    </div>
+  );
+}
 
 type DialogMode = "create" | "edit";
 
@@ -49,11 +95,11 @@ interface TableDialogProps {
   onCellChange: (rowIdx: number, colIdx: number, val: string) => void;
   onAlignmentChange: (colIdx: number, alignment: Alignment) => void;
   onSortColumn: (colIdx: number) => void;
-  onAddColumn: () => void;
+  onAddColumn: (atIndex?: number) => void;
   onRemoveColumn: (colIdx: number) => void;
   onConfirmRemoveColumn: () => void;
   onCancelRemoveColumn: () => void;
-  onAddRow: () => void;
+  onAddRow: (atIndex?: number) => void;
   onRemoveRow: (rowIdx: number) => void;
   onConfirmRemoveRow: () => void;
   onCancelRemoveRow: () => void;
@@ -65,6 +111,11 @@ interface TableDialogProps {
 }
 
 const ALIGN_LABELS: Record<Alignment, string> = { left: "L", center: "C", right: "R" };
+
+interface FocusedCell {
+  rowIdx: number; // -1 = header
+  colIdx: number;
+}
 
 export function TableDialog({
   isOpen,
@@ -96,25 +147,45 @@ export function TableDialog({
   currencyCode = "USD",
 }: TableDialogProps) {
   const firstInputRef = useRef<HTMLInputElement>(null);
+  const gridRef = useRef<HTMLDivElement>(null);
   const colCount = headers.length;
+  const [focusedCell, setFocusedCell] = useState<FocusedCell>({ rowIdx: -1, colIdx: 0 });
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
 
   const getCellEl = (selector: string) =>
     document.querySelector<HTMLInputElement>(selector);
+
+  // Dragging a native scrollbar thumb is wildly inconsistent across OSes
+  // (hidden/overlay on macOS, absent on touch) — explicit arrow buttons give
+  // every platform the same reliable way to pan a wide table.
+  const updateScrollButtons = useCallback(() => {
+    const el = gridRef.current;
+    if (!el) return;
+    setCanScrollLeft(el.scrollLeft > 2);
+    setCanScrollRight(el.scrollLeft < el.scrollWidth - el.clientWidth - 2);
+  }, []);
+
+  useEffect(() => {
+    const t = setTimeout(updateScrollButtons, 50);
+    return () => clearTimeout(t);
+  }, [headers.length, rows.length, isOpen, updateScrollButtons]);
+
+  const scrollGridBy = useCallback((delta: number) => {
+    gridRef.current?.scrollBy({ left: delta, behavior: "smooth" });
+  }, []);
 
   useEffect(() => {
     if (isOpen) {
       const t = setTimeout(() => {
         let el: HTMLInputElement | null = null;
+        let targetRow = -1;
+        let targetCol = 0;
         if (focusRow !== undefined && focusCol !== undefined) {
-          // If focusRow is -1, it means the header row.
-          // Note: cursorRow is 0-indexed where 0 = header, 1 = separator, 2 = first data row.
-          // Wait, findTableAtPos calculates cursorRow based on lines!
-          // We need to map cursorRow to the Dialog's indexing:
-          // In the dialog, headers are -1, data rows are 0...n.
-          // Let's just pass focusRow and focusCol straight to getCellEl. Wait, I should do the math.
-          
-          let targetRow = focusRow - 2; // because 0=header, 1=sep, 2=data row 0
-          if (focusRow === 0) targetRow = -1; // header
+          // findTableAtPos's cursorRow is 0-indexed where 0 = header, 1 = separator,
+          // 2 = first data row. The dialog indexes headers as -1, data rows as 0...n.
+          targetRow = focusRow === 0 ? -1 : focusRow - 2;
+          targetCol = focusCol;
 
           if (targetRow < 0) {
             el = getCellEl(`[data-hcell="${focusCol}"]`);
@@ -122,6 +193,7 @@ export function TableDialog({
             el = getCellEl(`[data-dcell="${targetRow}-${focusCol}"]`);
           }
         }
+        setFocusedCell({ rowIdx: targetRow, colIdx: targetCol });
         (el || firstInputRef.current)?.focus();
       }, 120);
       return () => clearTimeout(t);
@@ -172,6 +244,15 @@ export function TableDialog({
   const confirmLabel = mode === "create" ? "Insert Table" : "Update Table";
   const onConfirm = mode === "create" ? onInsert : onUpdate;
 
+  const isHeaderFocused = focusedCell.rowIdx === -1;
+  const focusedCol = focusedCell.colIdx;
+
+  const handleAddTotal = useCallback(() => {
+    const newRowIdx = rows.length;
+    onAddRow();
+    setTimeout(() => onCellChange(newRowIdx, focusedCol, "Total:"), 50);
+  }, [rows.length, onAddRow, onCellChange, focusedCol]);
+
   return (
     <DialogModal
       isOpened={isOpen}
@@ -180,7 +261,7 @@ export function TableDialog({
       ariaLabelledBy="td-title"
       mobileSheet
     >
-      <div className="flex flex-col gap-4 min-h-0">
+      <div className="flex flex-col gap-3 min-h-0">
         <h2
           id="td-title"
           className="text-ui-body font-semibold text-ink-light dark:text-ink-dark pr-8"
@@ -188,14 +269,31 @@ export function TableDialog({
           {title}
         </h2>
 
-        {/* Scrollable cell grid */}
-        <div className="overflow-x-auto rounded-xl border border-edge max-h-[50vh] overflow-y-auto">
+        {/* Scrollable cell grid — sticky header keeps sort/align controls
+            reachable while scrolling rows; the scrollbar is forced on
+            (overflow-scroll, not auto) and styled with strong contrast, plus
+            explicit chevron buttons, since dragging a native scrollbar thumb
+            is wildly inconsistent across OSes (hidden/overlay on macOS,
+            absent on touch). Row/column insert & remove live in the toolbar
+            below, not inline, so they can't be hit accidentally while
+            scrolling. Square corners (no rounding) so the table's own cell
+            borders never look clipped. */}
+        <div className="relative border border-edge overflow-hidden">
+          <div
+            ref={gridRef}
+            onScroll={updateScrollButtons}
+            className="overflow-scroll max-h-[50vh]
+              [&::-webkit-scrollbar]:h-3.5 [&::-webkit-scrollbar]:w-3.5
+              [&::-webkit-scrollbar-thumb]:bg-stone/70 [&::-webkit-scrollbar-thumb]:rounded-full
+              [&::-webkit-scrollbar-track]:bg-paper-softgray dark:[&::-webkit-scrollbar-track]:bg-paper-dark-surface/40"
+          >
           <table className="border-collapse w-max min-w-full text-left">
-            <thead>
+            <thead className="sticky top-0 z-10">
               <tr>
                 {headers.map((header, ci) => {
                   const isSorted = sortState?.colIdx === ci;
                   const sortDir = isSorted ? sortState!.direction : null;
+                  const isHeaderCellFocused = isHeaderFocused && focusedCol === ci;
 
                   return (
                     <th
@@ -206,15 +304,16 @@ export function TableDialog({
                           : "none"
                       }
                       className={`
-                        group border border-edge p-0 min-w-[130px] align-top
+                        group relative border border-edge p-0 min-w-[130px] align-top
                         transition-colors duration-150
+                        ${isHeaderCellFocused ? "ring-2 ring-inset ring-sage z-10" : ""}
                         ${isSorted
                           ? "bg-sage/10 dark:bg-sage/5"
                           : "bg-paper-softgray dark:bg-paper-dark-surface/60"}
                       `}
                     >
                       <div className="flex flex-col">
-                        {/* Header input row — sort chevron + remove live here */}
+                        {/* Header input row — sort chevron lives here; insert/remove are in the toolbar below */}
                         <div className="flex items-center gap-0 pl-2 pr-0.5 pt-1.5 pb-0.5">
                           <input
                             ref={ci === 0 ? firstInputRef : undefined}
@@ -223,6 +322,7 @@ export function TableDialog({
                             value={header}
                             onChange={(e) => onHeaderChange(ci, e.target.value)}
                             onKeyDown={(e) => handleKeyDown(e, -1, ci)}
+                            onFocus={() => setFocusedCell({ rowIdx: -1, colIdx: ci })}
                             placeholder={`Header ${ci + 1}`}
                             className={`
                               flex-1 min-w-0 bg-transparent text-ui-footnote font-semibold tabular-nums
@@ -258,64 +358,7 @@ export function TableDialog({
                           >
                             {sortDir === "desc" ? "↓" : "↑"}
                           </Button>
-
-                          {/* Add total row for this column */}
-                          <Button
-                            variant="bare"
-                            type="button"
-                            onClick={() => {
-                              const newRowIdx = rows.length;
-                              onAddRow();
-                              setTimeout(() => onCellChange(newRowIdx, ci, "Total:"), 50);
-                            }}
-                            aria-label="Add total row for this column"
-                            title="Add total row"
-                            className="
-                              flex-shrink-0 w-8 h-8 sm:w-6 sm:h-6 flex items-center justify-center rounded
-                              text-[11px] leading-none transition-all duration-150
-                              text-stone opacity-40 sm:opacity-0 sm:group-hover:opacity-40 hover:!opacity-100 focus-within:opacity-40 hover:text-sage dark:hover:text-sage
-                            "
-                          >
-                            Σ
-                          </Button>
-
-                          {/* Remove column — faint until hover */}
-                          <Button
-                            variant="icon"
-                            type="button"
-                            onClick={() => onRemoveColumn(ci)}
-                            aria-label="Remove column"
-                            className="
-                              flex-shrink-0 w-8 h-8 sm:w-5 sm:h-5 flex items-center justify-center rounded
-                              text-[14px] sm:text-[11px] leading-none transition-all duration-150
-                              text-stone hover:text-red-500 dark:text-stone dark:hover:text-red-400
-                              opacity-40 sm:opacity-0 sm:group-hover:opacity-100 focus-within:opacity-100
-                            "
-                          >
-                            ×
-                          </Button>
                         </div>
-
-                        {/* Inline confirmation for non-empty column removal */}
-                        {pendingRemoveCol === ci && (
-                          <div className="px-2 py-0.5 text-ui-micro text-amber-700 dark:text-amber-400 flex items-center gap-1 flex-wrap">
-                            <span>Has content.</span>
-                            <Button
-                              variant="bare"
-                              onClick={onConfirmRemoveColumn}
-                              className="underline hover:text-red-600 transition-colors"
-                            >
-                              Remove
-                            </Button>
-                            <Button
-                              variant="bare"
-                              onClick={onCancelRemoveColumn}
-                              className="underline hover:text-ink-muted transition-colors"
-                            >
-                              Cancel
-                            </Button>
-                          </div>
-                        )}
 
                         {/* Alignment toggle */}
                         <div className="flex border-t border-edge mt-0.5">
@@ -342,115 +385,163 @@ export function TableDialog({
                     </th>
                   );
                 })}
-
-                {/* Add column */}
-                <th className="border border-edge bg-paper-softgray dark:bg-paper-dark-surface/60 w-9 p-0">
-                  <Button
-                    variant="pill-icon"
-                    type="button"
-                    onClick={onAddColumn}
-                    aria-label="Add column"
-                    title="Add column"
-                    className="w-full h-full min-h-[60px] text-stone hover:text-sage dark:hover:text-sage transition-colors text-ui-title-1"
-                  >
-                    +
-                  </Button>
-                </th>
               </tr>
             </thead>
 
             <tbody>
-              {rows.map((row, ri) => (
-                <tr key={ri}>
-                  {row.map((cell, ci) => {
-                    const isSortedCol = sortState?.colIdx === ci;
-                    return (
-                      <td
-                        key={ci}
-                        className={`
-                          border border-zinc-200 dark:border-zinc-700 p-0 transition-colors
-                          ${isSortedCol ? "bg-sage/5 dark:bg-sage/5" : ""}
-                          ${cell.trim().startsWith("Total:") ? "bg-paper-softgray/80 dark:bg-paper-dark-surface/40" : ""}
-                        `}
-                      >
-                        {cell.trim().startsWith("Total:") ? (
-                          <div
-                            className="w-full px-2 py-1.5 text-ui-footnote tabular-nums font-semibold text-ink-light dark:text-ink-dark select-none"
-                            style={{ textAlign: alignments[ci] }}
-                          >
-                            Total: {computeColTotal(rows, ci, ri, currencyCode)}
-                          </div>
-                        ) : (
-                          <input
-                            data-dcell={`${ri}-${ci}`}
-                            type="text"
-                            value={cell}
-                            onChange={(e) => onCellChange(ri, ci, e.target.value)}
-                            onKeyDown={(e) => handleKeyDown(e, ri, ci)}
-                            placeholder="…"
-                            style={{ textAlign: alignments[ci] }}
-                            className="w-full px-2 py-1.5 bg-transparent text-ui-footnote tabular-nums text-ink-light dark:text-ink-dark focus:outline-none placeholder:text-beige dark:placeholder:text-fg-faint"
-                          />
-                        )}
-                      </td>
-                    );
-                  })}
-
-                  {/* Remove row */}
-                  <td className="border border-edge w-9 p-0 align-middle">
-                    {pendingRemoveRow === ri ? (
-                      <div className="flex flex-col items-center py-0.5 gap-0.5">
-                        <Button
-                          variant="bare"
-                          onClick={onConfirmRemoveRow}
-                          aria-label="Confirm remove row"
-                          className="text-ui-micro text-red-500 hover:text-red-700 dark:text-red-400 underline"
+              {rows.map((row, ri) => {
+                const isFocusedRow = focusedCell.rowIdx === ri;
+                const rowBg = ri % 2 === 1 ? "bg-paper-softgray/50 dark:bg-paper-dark-surface/20" : "";
+                return (
+                  <tr key={ri} className={`${rowBg} transition-colors`}>
+                    {row.map((cell, ci) => {
+                      const isSortedCol = sortState?.colIdx === ci;
+                      const isFocusedCell = isFocusedRow && focusedCol === ci;
+                      return (
+                        <td
+                          key={ci}
+                          className={`
+                            relative border border-zinc-200 dark:border-zinc-700 p-0 transition-colors
+                            ${isFocusedCell ? "ring-2 ring-inset ring-sage z-10" : ""}
+                            ${isFocusedCell
+                              ? "bg-sage/10 dark:bg-sage/15"
+                              : isSortedCol
+                                ? "bg-sage/5 dark:bg-sage/5"
+                                : ""}
+                            ${cell.trim().startsWith("Total:") ? "bg-paper-softgray/80 dark:bg-paper-dark-surface/40" : ""}
+                          `}
                         >
-                          ×
-                        </Button>
-                        <Button
-                          variant="bare"
-                          onClick={onCancelRemoveRow}
-                          aria-label="Cancel remove row"
-                          className="text-ui-micro text-stone hover:text-ink-light underline"
-                        >
-                          ↩
-                        </Button>
-                      </div>
-                    ) : (
-                      <Button
-                        variant="icon"
-                        type="button"
-                        onClick={() => onRemoveRow(ri)}
-                        aria-label="Remove row"
-                        className="w-full h-full min-h-[44px] sm:min-h-[32px] text-stone hover:text-red-500 dark:text-stone dark:hover:text-red-400 transition-colors"
-                      >
-                        ×
-                      </Button>
-                    )}
-                  </td>
-                </tr>
-              ))}
-
-              {/* Add row */}
-              <tr>
-                <td
-                  colSpan={colCount + 1}
-                  className="border border-zinc-200 dark:border-zinc-700 p-0"
-                >
-                  <Button
-                    variant="pill-icon"
-                    type="button"
-                    onClick={onAddRow}
-                    aria-label="Add row"
-                    className="w-full py-2.5 sm:py-1.5 text-ui-micro text-stone hover:text-sage dark:hover:text-sage transition-colors"
-                  >
-                    + Add row
-                  </Button>
-                </td>
-              </tr>
+                          {cell.trim().startsWith("Total:") && !isFocusedCell ? (
+                            <div
+                              className="w-full px-2 py-1.5 text-ui-footnote tabular-nums font-semibold text-ink-light dark:text-ink-dark cursor-text"
+                              style={{ textAlign: alignments[ci] }}
+                              onClick={() => {
+                                setFocusedCell({ rowIdx: ri, colIdx: ci });
+                                setTimeout(() => getCellEl(`[data-dcell="${ri}-${ci}"]`)?.focus(), 0);
+                              }}
+                            >
+                              Total: {computeColTotal(rows, ci, ri, currencyCode)}
+                            </div>
+                          ) : (
+                            <input
+                              data-dcell={`${ri}-${ci}`}
+                              type="text"
+                              value={cell}
+                              onChange={(e) => onCellChange(ri, ci, e.target.value)}
+                              onKeyDown={(e) => handleKeyDown(e, ri, ci)}
+                              onFocus={() => setFocusedCell({ rowIdx: ri, colIdx: ci })}
+                              placeholder="…"
+                              style={{ textAlign: alignments[ci] }}
+                              className="w-full px-2 py-1.5 bg-transparent text-ui-footnote tabular-nums text-ink-light dark:text-ink-dark focus:outline-none placeholder:text-beige dark:placeholder:text-fg-faint"
+                            />
+                          )}
+                        </td>
+                      );
+                    })}
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
+          </div>
+
+          {canScrollLeft && (
+            <Button
+              variant="icon"
+              type="button"
+              onClick={() => scrollGridBy(-280)}
+              aria-label="Scroll table left"
+              title="Scroll left"
+              className="absolute left-1.5 top-1/2 -translate-y-1/2 z-20 w-8 h-8 bg-white/95 dark:bg-neutral-800/95 shadow-md border border-edge"
+            >
+              <IoChevronBackOutline />
+            </Button>
+          )}
+          {canScrollRight && (
+            <Button
+              variant="icon"
+              type="button"
+              onClick={() => scrollGridBy(280)}
+              aria-label="Scroll table right"
+              title="Scroll right"
+              className="absolute right-1.5 top-1/2 -translate-y-1/2 z-20 w-8 h-8 bg-white/95 dark:bg-neutral-800/95 shadow-md border border-edge"
+            >
+              <IoChevronForwardOutline />
+            </Button>
+          )}
+        </div>
+
+        {/* Row/column toolbar — acts on whichever cell is focused, kept
+            outside the scroll area so it's reachable and can't be triggered
+            by accident while scrolling a wide/tall table. Two clearly
+            separated segmented groups, uniform icon buttons. */}
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="flex items-center gap-0.5 rounded-xl border border-edge bg-paper-light dark:bg-paper-dark-surface/40 px-1.5 py-1">
+            <span className="text-ui-micro font-medium text-stone px-1.5 select-none">Row</span>
+            {pendingRemoveRow !== null ? (
+              <ToolbarConfirmRemove onConfirm={onConfirmRemoveRow} onCancel={onCancelRemoveRow} />
+            ) : (
+              <>
+                <ToolbarButton
+                  label="Insert row above the focused cell"
+                  disabled={isHeaderFocused}
+                  onClick={() => onAddRow(focusedCell.rowIdx)}
+                >
+                  + Above
+                </ToolbarButton>
+                <ToolbarButton
+                  label="Insert row below the focused cell"
+                  onClick={() => onAddRow(isHeaderFocused ? 0 : focusedCell.rowIdx + 1)}
+                >
+                  + Below
+                </ToolbarButton>
+                <ToolbarButton
+                  label="Remove focused row"
+                  disabled={isHeaderFocused}
+                  danger
+                  onClick={() => onRemoveRow(focusedCell.rowIdx)}
+                >
+                  <IoTrashOutline />
+                </ToolbarButton>
+              </>
+            )}
+          </div>
+
+          <div className="flex items-center gap-0.5 rounded-xl border border-edge bg-paper-light dark:bg-paper-dark-surface/40 px-1.5 py-1">
+            <span className="text-ui-micro font-medium text-stone px-1.5 select-none">Column</span>
+            {pendingRemoveCol !== null ? (
+              <ToolbarConfirmRemove onConfirm={onConfirmRemoveColumn} onCancel={onCancelRemoveColumn} />
+            ) : (
+              <>
+                <ToolbarButton
+                  label="Insert column left of the focused cell"
+                  onClick={() => onAddColumn(focusedCol)}
+                >
+                  + Left
+                </ToolbarButton>
+                <ToolbarButton
+                  label="Insert column right of the focused cell"
+                  onClick={() => onAddColumn(focusedCol + 1)}
+                >
+                  + Right
+                </ToolbarButton>
+                <ToolbarButton
+                  label="Add a Total: row for the focused column"
+                  onClick={handleAddTotal}
+                >
+                  <IoCalculatorOutline />
+                </ToolbarButton>
+                <ToolbarButton
+                  label="Remove focused column"
+                  disabled={colCount <= 1}
+                  danger
+                  onClick={() => onRemoveColumn(focusedCol)}
+                >
+                  <IoTrashOutline />
+                </ToolbarButton>
+              </>
+            )}
+          </div>
         </div>
 
         {/* Markdown preview */}
