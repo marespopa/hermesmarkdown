@@ -6,7 +6,7 @@ import { HiChevronRight, HiChevronDown } from "react-icons/hi";
 import { atom_fileMetadata } from "@/app/atoms/metadata";
 import { atom_vaultSchema } from "@/app/atoms/schema-atoms";
 import { DEFAULT_SCHEMA, type SchemaField } from "@/app/services/vault-schema";
-import { FM_REGEX, parseFmFields, updateFmFields, getAllScopes } from "@/app/utils/frontmatter-utils";
+import { FM_REGEX, parseFmFields, updateFmFields } from "@/app/utils/frontmatter-utils";
 import DialogModal from "../../components/DialogModal/DialogModal";
 import Button from "../../components/Button";
 import {
@@ -60,7 +60,6 @@ export default function FrontmatterPanel({
   const metadata = useAtomValue(atom_fileMetadata);
   const rawSchema = useAtomValue(atom_vaultSchema);
   const schema = rawSchema ?? DEFAULT_SCHEMA;
-  const allScopes = useMemo(() => getAllScopes(metadata), [metadata]);
   const notePaths = useMemo(() => Object.keys(metadata).map((p) => p.replace(/\.md$/, "")), [metadata]);
 
   const match = FM_REGEX.exec(content);
@@ -168,7 +167,7 @@ export default function FrontmatterPanel({
   const fieldList = [
     ...schema.fields.map((field) => (
       <div key={field.key} data-fm-field={field.key} onFocusCapture={() => (lastFocusedKeyRef.current = field.key)}>
-        {renderSchemaField(field, fields, set, { autoFocus: false, allScopes, notePaths })}
+        {renderSchemaField(field, fields, set, { autoFocus: false, notePaths })}
       </div>
     )),
     // Custom/unknown keys — preserved verbatim, never dropped, rendered as a
@@ -279,7 +278,7 @@ function renderSchemaField(
   field: SchemaField,
   fields: Record<string, string>,
   set: (key: string, val: string) => void,
-  opts: { autoFocus: boolean; allScopes: string[]; notePaths: string[] },
+  opts: { autoFocus: boolean; notePaths: string[] },
 ): React.ReactNode {
   const value = fields[field.key] ?? "";
   if (field.key === "title") return <TitleField value={value} onChange={(v) => set("title", v)} />;
@@ -290,7 +289,6 @@ function renderSchemaField(
         onChange={(v) => set("scope", v)}
         error={fields.status === "active" && !value.trim()}
         errorMessage="Required for active files"
-        suggestions={opts.allScopes}
       />
     );
   }

@@ -1,5 +1,4 @@
 import type { SchemaField, VaultSchema } from "@/app/services/vault-schema";
-import type { FileMetadata } from "@/app/atoms/metadata";
 
 export const FM_REGEX = /^---\n([\s\S]*?)\n---\n?/;
 
@@ -39,7 +38,7 @@ export function parseFmFields(content: string): Record<string, string> {
     } else if (isFlowArray) {
       fields[key] = rawVal.slice(1, -1).trim();
     } else {
-      fields[key] = rawVal.replace(/^"|"$/g, "").trim();
+      fields[key] = rawVal.replace(/^"|"$/g, "");
     }
   }
 
@@ -69,19 +68,6 @@ export function serializeField(key: string, val: string, field?: SchemaField): s
     return `${key}: |\n${indented}`;
   }
   return `${key}: "${val}"`;
-}
-
-/** Unique `scope` values seen across the vault, most-recently-modified first. */
-export function getAllScopes(fileMetadata: Record<string, FileMetadata>): string[] {
-  const seen = new Set<string>();
-  return Object.values(fileMetadata)
-    .sort((a, b) => b.modifiedAt - a.modifiedAt)
-    .map((m) => (m.frontmatter?.scope ?? "").toString().trim())
-    .filter((scope) => {
-      if (!scope || seen.has(scope)) return false;
-      seen.add(scope);
-      return true;
-    });
 }
 
 export function updateFmFields(

@@ -33,19 +33,13 @@ export function useEditorAppearance() {
 
   const widthClass = useMemo(() => {
     const widthClasses = {
-      standard: "max-w-[95%] md:max-w-[680px] mx-auto",
-      narrow: "max-w-[95%] md:max-w-[560px] mx-auto",
+      standard: "w-full md:max-w-[760px] xl:max-w-[860px] mx-auto",
+      narrow: "w-full md:max-w-[600px] mx-auto",
     };
     return (widthClasses as any)[editorWidth] || widthClasses.standard;
   }, [editorWidth]);
 
-  const paddingClass = useMemo(() => {
-    const paddingClasses = {
-      standard: "px-1",
-      narrow: "px-1",
-    };
-    return (paddingClasses as any)[editorWidth] || paddingClasses.standard;
-  }, [editorWidth]);
+  const paddingClass = "px-4 sm:px-6 md:px-0";
 
   return {
     fontFamily,

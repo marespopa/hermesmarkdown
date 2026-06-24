@@ -14,7 +14,7 @@ import { AIThinkingOverlay } from "./AIThinkingOverlay";
 import { atom_vaultSchema } from "@/app/atoms/schema-atoms";
 import { DEFAULT_SCHEMA, type SchemaField, type VaultSchema } from "@/app/services/vault-schema";
 
-import { FM_REGEX, parseFmFields, updateFmFields, getAllScopes } from "@/app/utils/frontmatter-utils";
+import { FM_REGEX, parseFmFields, updateFmFields } from "@/app/utils/frontmatter-utils";
 import {
   TitleField,
   EnumField,
@@ -113,7 +113,6 @@ export default function FrontmatterWizard() {
   const [suggestions, setSuggestions] = useState<string[]>([]);
 
   const wizardSteps = useMemo(() => buildWizardSteps(schema), [schema]);
-  const allScopes = useMemo(() => getAllScopes(metadata), [metadata]);
 
   useEffect(() => {
     if (isOpen) {
@@ -283,7 +282,6 @@ Return the 3-5 most semantically related note titles as a JSON array.`,
           error={scopeError}
           errorMessage="Required for active files"
           autoFocus={autoFocus}
-          suggestions={allScopes}
           headerActions={
             isAiConfigured && (
               <button
