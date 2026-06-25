@@ -28,8 +28,27 @@ export function useRenameItem({ scanVault, indexVaultTags }: UseRenameItemProps)
 
   const renameFile = useCallback(
     async (handle: FileSystemHandle) => {
-      const parentDir = currentDirectoryHandle || vaultHandle;
-      if (!parentDir) return;
+      if (!vaultHandle) return;
+
+      // Resolve the real parent directory by walking the handle's actual path,
+      // rather than assuming it's whatever directory the user last navigated to
+      // (atom_currentDirectoryHandle) — that assumption breaks for items nested
+      // deeper than the last-visited folder.
+      let parentDir: FileSystemDirectoryHandle = currentDirectoryHandle || vaultHandle;
+      try {
+        const pathParts = await (vaultHandle as any).resolve(handle);
+        if (pathParts && pathParts.length > 1) {
+          let dir: FileSystemDirectoryHandle = vaultHandle;
+          for (let i = 0; i < pathParts.length - 1; i++) {
+            dir = await dir.getDirectoryHandle(pathParts[i]);
+          }
+          parentDir = dir;
+        } else if (pathParts && pathParts.length === 1) {
+          parentDir = vaultHandle;
+        }
+      } catch {
+        // fall back to currentDirectoryHandle/vaultHandle above
+      }
 
       const newName = await dialog.prompt(
         "Enter new name:",

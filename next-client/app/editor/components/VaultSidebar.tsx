@@ -8,7 +8,6 @@ import {
   HiOutlineChevronLeft,
   HiOutlineCloud,
   HiOutlineDocumentAdd,
-  HiOutlineFolderAdd,
 } from "react-icons/hi";
 import Button from "@/app/components/Button";
 import {
@@ -26,8 +25,9 @@ import VaultSidebarFooter from "./VaultSidebarFooter";
 import UnifiedSearchInput from "./UnifiedSearchInput";
 import DriveAuthBanner from "./DriveAuthBanner";
 import GoogleDriveFolderPicker from "./GoogleDriveFolderPicker";
-import { atom_driveVaultName } from "@/app/atoms/drive-atoms";
+import { atom_driveVaultName, atom_drivePathIndex } from "@/app/atoms/drive-atoms";
 import { HiOutlineRefresh } from "react-icons/hi";
+import { DriveDirectoryHandle } from "@/app/services/drive/DriveDirectoryHandle";
 
 function DriveExpiredPanel({ vaultName, onReconnect }: { vaultName: string | null; onReconnect: () => void }) {
   const [isConnecting, setIsConnecting] = React.useState(false);
@@ -79,6 +79,8 @@ export default function VaultSidebar({
     vaultHandle,
     deleteFile,
     renameFile,
+    moveItem,
+    createNewFile,
     closeVault,
     isMounted,
     openVault,
@@ -91,19 +93,30 @@ export default function VaultSidebar({
   } = useFileSystem();
 
   const dialog = useDialog();
+  const drivePathIndex = useAtomValue(atom_drivePathIndex);
 
-  const handleNewFolder = useCallback(async () => {
-    if (!vaultHandle) return;
-    const folderName = await dialog.prompt("Enter folder name:", "", "New Folder");
-    if (!folderName) return;
-    try {
-      await (vaultHandle as any).getDirectoryHandle(folderName, { create: true });
-      await scanVault(vaultHandle);
-      toast.success("Created: " + folderName);
-    } catch {
-      toast.error("Failed to create folder");
+  // Resolves a directory handle for an arbitrary nested path (e.g. "a/b/c"),
+  // working for both local (File System Access API) and Google Drive vaults.
+  // Tree nodes only carry path strings (built from the flat indexed file list),
+  // so folder actions (rename/delete/new file/move) need this to get a real handle.
+  const resolveFolderHandle = useCallback(async (path: string): Promise<any | null> => {
+    if (!path) return vaultHandle;
+    if (isDriveVault) {
+      const entry = drivePathIndex?.getEntry(path);
+      if (!entry) return null;
+      return new DriveDirectoryHandle(entry.name, entry.id);
     }
-  }, [vaultHandle, dialog, scanVault]);
+    if (!vaultHandle) return null;
+    let dir: any = vaultHandle;
+    for (const segment of path.split("/")) {
+      try {
+        dir = await dir.getDirectoryHandle(segment);
+      } catch {
+        return null;
+      }
+    }
+    return dir;
+  }, [vaultHandle, isDriveVault, drivePathIndex]);
 
   const [activeFilePath, setActiveFilePath] = useAtom(atom_activeFilePath);
   const [sidebarWidth, setSidebarWidth] = useAtom(atom_sidebarWidth);
@@ -228,21 +241,10 @@ export default function VaultSidebar({
               onClick={onNewFile}
               title="New file"
               aria-label="New file"
-              className="flex-1 flex flex-col items-center justify-center gap-1 py-2 text-ink-muted hover:text-ink-light dark:text-stone dark:hover:text-ink-dark hover:bg-paper-softgray dark:hover:bg-paper-dark-surface transition-colors"
+              className="flex-1 flex items-center justify-center gap-1.5 py-2 text-ink-muted hover:text-ink-light dark:text-stone dark:hover:text-ink-dark hover:bg-paper-softgray dark:hover:bg-paper-dark-surface transition-colors"
             >
-              <HiOutlineDocumentAdd size={17} />
-              <span className="text-ui-micro leading-none">New file</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={handleNewFolder}
-              title="New folder"
-              aria-label="New folder"
-              className="flex-1 flex flex-col items-center justify-center gap-1 py-2 text-ink-muted hover:text-ink-light dark:text-stone dark:hover:text-ink-dark hover:bg-paper-softgray dark:hover:bg-paper-dark-surface transition-colors border-l border-edge-subtle"
-            >
-              <HiOutlineFolderAdd size={17} />
-              <span className="text-ui-micro leading-none">New folder</span>
+              <HiOutlineDocumentAdd size={15} />
+              <span className="text-ui-footnote leading-none">New file</span>
             </button>
           </div>
         )}
@@ -328,6 +330,10 @@ export default function VaultSidebar({
                 onClose={onClose}
                 isSearchActive={panel === "search" && isSearching}
                 highlightQuery={panel === "search" ? searchQuery : ""}
+                treeView={panel === "files"}
+                resolveFolderHandle={resolveFolderHandle}
+                createNewFile={createNewFile}
+                moveItem={moveItem}
               />
               {panel === "search" && hasMoreResults && (
                 <button
