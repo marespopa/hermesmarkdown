@@ -20,7 +20,6 @@ import {
   atom_selectedAiModel,
   atom_claudeKey,
   atom_geminiKey,
-  MONO_FONT_STACK,
 } from "@/app/atoms/atoms";
 import { atom_vaultSetupWizardOpen, atom_availableGeminiModels, atom_schemaWizardOpen, atom_vaultMigrateOpen } from "@/app/atoms/ui-atoms";
 import { atom_vaultSchema } from "@/app/atoms/schema-atoms";
@@ -50,6 +49,7 @@ import {
   SettingItem,
   SettingGroup,
 } from "./components/SettingControls";
+import { FONT_SIZES, LINE_HEIGHTS, LETTER_SPACINGS, FONTS } from "./font-options";
 
 const SettingsPage = () => {
   const router = useRouter();
@@ -133,39 +133,9 @@ const SettingsPage = () => {
     }
   };
 
-  const sizes = [
-    { label: "Compact", value: "14px" },
-    { label: "Standard", value: "16px" },
-    { label: "Large", value: "18px" },
-    { label: "XL", value: "22px" },
-  ];
-
   const widthOptions = [
     { label: "Standard", value: "standard" },
     { label: "Narrow", value: "narrow" },
-  ];
-
-  const fonts = [
-    { label: "System Mono", value: MONO_FONT_STACK },
-    { label: "JetBrains Mono", value: "var(--font-jetbrains), ui-monospace, monospace" },
-    { label: "Fira Code", value: "var(--font-fira), ui-monospace, monospace" },
-    { label: "IBM Plex Mono", value: "var(--font-ibm), ui-monospace, monospace" },
-    { label: "Journal (Serif)", value: "Georgia, ui-serif, serif" },
-  ];
-
-  // Values never go below the editor's known-good defaults (1.8 / normal). Tighter
-  // line-height or negative letter-spacing makes the transparent textarea diverge from
-  // the highlighted <pre> overlay in react-simple-code-editor, drifting the caret off the
-  // text — so we only offer the default-or-looser direction, which stays aligned.
-  const lineHeights = [
-    { label: "Normal", value: "1.8" },
-    { label: "Relaxed", value: "2.0" },
-    { label: "Loose", value: "2.3" },
-  ];
-
-  const letterSpacings = [
-    { label: "Normal", value: "normal" },
-    { label: "Wide", value: "0.04em" },
   ];
 
   const startTour = () => {
@@ -185,7 +155,7 @@ const SettingsPage = () => {
               label="Text Size"
               layout="stack"
               control={
-                <SegmentedControl options={sizes} value={fontSize} onChange={setFontSize} />
+                <SegmentedControl options={FONT_SIZES} value={fontSize} onChange={setFontSize} />
               }
             />
             <SettingItem
@@ -193,7 +163,7 @@ const SettingsPage = () => {
               description="Vertical spacing between lines."
               layout="stack"
               control={
-                <SegmentedControl options={lineHeights} value={lineHeight} onChange={setLineHeight} />
+                <SegmentedControl options={LINE_HEIGHTS} value={lineHeight} onChange={setLineHeight} />
               }
             />
             <SettingItem
@@ -201,12 +171,12 @@ const SettingsPage = () => {
               description="Horizontal spacing between glyphs."
               layout="stack"
               control={
-                <SegmentedControl options={letterSpacings} value={letterSpacing} onChange={setLetterSpacing} />
+                <SegmentedControl options={LETTER_SPACINGS} value={letterSpacing} onChange={setLetterSpacing} />
               }
             />
           </SettingGroup>
           <SettingGroup title="Typeface">
-            {fonts.map((f) => {
+            {FONTS.map((f) => {
               const isActive = fontFamily === f.value;
               return (
                 <button

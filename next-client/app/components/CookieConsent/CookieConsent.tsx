@@ -46,9 +46,9 @@ const CookieConsent = () => {
             </h2>
             <p className="text-ui-subhead leading-relaxed">
               This website uses basic, anonymous analytics to understand how
-              people use my site and improve the experience. No personal data is
+              people use our site and improve the experience. No personal data is
               shared with third parties, and your writing never leaves your
-              machine. Learn more in my{" "}
+              machine. Learn more in our{" "}
               <Link
                 href="/privacy-policy"
                 className="underline hover:text-lightAccent font-semibold"

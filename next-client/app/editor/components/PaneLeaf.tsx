@@ -21,7 +21,7 @@ import {
   atom_workspaceLayout,
   contentStore
 } from "@/app/atoms/atoms";
-import { HiOutlineDocumentText, HiOutlineEye, HiOutlineChartBar, HiOutlineX, HiOutlineClipboardCopy, HiOutlineSave, HiOutlineDotsHorizontal } from "react-icons/hi";
+import { HiOutlineDocumentText, HiOutlineEye, HiOutlineChartBar, HiOutlineX, HiOutlineClipboardCopy, HiOutlineSave, HiOutlineDotsHorizontal, HiOutlinePlus, HiOutlineFolderOpen, HiOutlineDatabase } from "react-icons/hi";
 import { VscSplitHorizontal } from "react-icons/vsc";
 import { showCopyToast, showErrorToast } from "@/app/components/Toastr";
 import PaneTab, { TabSaveState } from "./PaneTab";
@@ -29,6 +29,8 @@ import { useFileSystem } from "@/app/hooks/use-file-system";
 import { useAtomValue } from "jotai";
 import { useDialog } from "@/app/hooks/use-dialog";
 import Button from "../../components/Button";
+import { formatShortcut } from "@/app/utils/platform";
+import { useCommandPalette } from "@/app/components/CommandPalette/CommandPaletteContext";
 
 interface PaneLeafProps {
   leaf: PanelLeaf;
@@ -47,13 +49,50 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
   const workspaceLayout = useAtomValue(atom_workspaceLayout);
   const isOnlyPane = "type" in workspaceLayout.rootContainer;
 
-  const { openFileByName, saveFile, exportFile, createFile } = useFileSystem();
+  const { openFileByName, saveFile, exportFile, createFile, createNewFile, importFile, openVault, isVaultSupported } = useFileSystem();
   const dialog = useDialog();
   const filePath = leaf.activeFilePath || "draft";
   const [content, setContent] = useAtom(atom_fileContent(filePath));
   const liveHandle = useAtomValue(atom_liveHandles(filePath));
 
   const isActive = activePaneId === leaf.id;
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
+  const { open: openCommandPalette } = useCommandPalette();
+
+  const handleEmptyNewFile = () => {
+    if (vaultHandle) {
+      void createNewFile();
+    } else {
+      setActiveFilePath("draft");
+    }
+  };
+
+  const handleEmptyOpenFile = async () => {
+    // With a vault open, "Open File" should pick from the vault, not the
+    // local disk — the command palette already does fuzzy vault file search.
+    if (vaultHandle) {
+      openCommandPalette();
+      return;
+    }
+    const result = await importFile();
+    if (result === null) {
+      fileInputRef.current?.click();
+    }
+  };
+
+  const handleEmptyFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const text = event.target?.result as string;
+      setContent(text);
+      setActiveFilePath("draft");
+    };
+    reader.readAsText(file);
+  };
 
   const handleExport = async () => {
     if (!content.trim()) return;
@@ -362,9 +401,51 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
       {/* Pane Content */}
       <div className="flex-1 overscroll-none overflow-auto">
         {leaf.openFilePaths.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full opacity-10 space-y-4">
-             <HiOutlineDocumentText size={48} />
-             <span className="text-ui-caption font-medium">No file open</span>
+          <div className="flex flex-col items-center justify-center h-full space-y-6">
+            <div className="flex flex-col items-center space-y-3 opacity-30">
+              <HiOutlineDocumentText size={40} />
+              <span className="text-ui-caption font-medium">No file open</span>
+            </div>
+            <div className="flex flex-col items-stretch w-full max-w-xs px-4 space-y-1">
+              <button
+                onClick={handleEmptyNewFile}
+                className="flex items-center gap-3 px-3 py-2 rounded-xl text-ui-footnote text-ink-muted hover:text-ink-light dark:hover:text-ink-dark hover:bg-paper-softgray dark:hover:bg-paper-dark-surface/40 transition-colors"
+              >
+                <HiOutlinePlus size={16} className="shrink-0" />
+                <span className="truncate">New File</span>
+              </button>
+              <button
+                onClick={handleEmptyOpenFile}
+                className="flex items-center gap-3 px-3 py-2 rounded-xl text-ui-footnote text-ink-muted hover:text-ink-light dark:hover:text-ink-dark hover:bg-paper-softgray dark:hover:bg-paper-dark-surface/40 transition-colors"
+              >
+                <HiOutlineFolderOpen size={16} className="shrink-0" />
+                <span className="truncate">Open File</span>
+              </button>
+              {!vaultHandle && isVaultSupported && (
+                <button
+                  onClick={() => openVault()}
+                  className="flex items-center gap-3 px-3 py-2 rounded-xl text-ui-footnote text-ink-muted hover:text-ink-light dark:hover:text-ink-dark hover:bg-paper-softgray dark:hover:bg-paper-dark-surface/40 transition-colors"
+                >
+                  <HiOutlineDatabase size={16} className="shrink-0" />
+                  <span className="truncate">Open Folder</span>
+                </button>
+              )}
+              <button
+                onClick={openCommandPalette}
+                className="flex items-center gap-3 px-3 py-2 rounded-xl text-ui-footnote text-ink-muted hover:text-ink-light dark:hover:text-ink-dark hover:bg-paper-softgray dark:hover:bg-paper-dark-surface/40 transition-colors"
+              >
+                <HiOutlineDotsHorizontal size={16} className="shrink-0" />
+                <span className="truncate min-w-0 flex-1 text-left">Command Palette</span>
+                <span className="text-ui-caption opacity-50 shrink-0 whitespace-nowrap">{formatShortcut("P", { shift: true })}</span>
+              </button>
+            </div>
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleEmptyFileChange}
+              accept=".md,.txt,.markdown"
+              className="hidden"
+            />
           </div>
         ) : leaf.type === "editor" ? (
           <MarkdownEditor

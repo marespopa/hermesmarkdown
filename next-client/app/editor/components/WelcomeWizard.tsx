@@ -5,7 +5,12 @@ import { useAtom, useAtomValue } from "jotai";
 import {
   atom_hasCompletedOnboarding,
   atom_isWizardOpen,
-  atom_autosaveMode
+  atom_welcomeWizardStep,
+  atom_autosaveMode,
+  atom_fontSize,
+  atom_fontFamily,
+  atom_lineHeight,
+  atom_letterSpacing,
 } from "@/app/atoms/atoms";
 import {
   atom_vaultHandle
@@ -16,7 +21,8 @@ import {
 } from "@/app/atoms/drive-atoms";
 import DialogModal from "@/app/components/DialogModal/DialogModal";
 import Button from "@/app/components/Button";
-import { SelectControl } from "@/app/editor/settings/components/SettingControls";
+import { SelectControl, SegmentedControl } from "@/app/editor/settings/components/SettingControls";
+import { FONT_SIZES, LINE_HEIGHTS, LETTER_SPACINGS, FONTS } from "@/app/editor/settings/font-options";
 import { useFileSystem } from "@/app/hooks/use-file-system";
 import { formatShortcut } from "@/app/utils/platform";
 import useIsMobileChrome from "@/app/hooks/use-mobile-chrome";
@@ -27,12 +33,19 @@ import {
   HiOutlineCheckCircle,
   HiOutlineRefresh,
   HiOutlineMenu,
+  HiOutlineDocumentText,
+  HiOutlineSwitchVertical,
+  HiOutlineColorSwatch,
+  HiOutlineArrowLeft,
+  HiCheck,
 } from "react-icons/hi";
+
+const TOTAL_STEPS = 6;
 
 const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
   const [hasCompleted, setHasCompleted] = useAtom(atom_hasCompletedOnboarding);
   const [isWizardOpen, setIsWizardOpen] = useAtom(atom_isWizardOpen);
-  const [step, setStep] = useState(initialStep);
+  const [step, setStep] = useAtom(atom_welcomeWizardStep);
   const [isMounted, setIsMounted] = useState(false);
 
   const { openVault, openDriveVaultPicker, isVaultSupported } = useFileSystem();
@@ -41,10 +54,16 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
   const isDriveVault = useAtomValue(atom_isDriveVault);
   const driveVaultId = useAtomValue(atom_driveVaultId);
   const [autosaveMode, setAutosaveMode] = useAtom(atom_autosaveMode);
+  const [fontSize, setFontSize] = useAtom(atom_fontSize);
+  const [fontFamily, setFontFamily] = useAtom(atom_fontFamily);
+  const [lineHeight, setLineHeight] = useAtom(atom_lineHeight);
+  const [letterSpacing, setLetterSpacing] = useAtom(atom_letterSpacing);
   const isMobileChrome = useIsMobileChrome();
 
   useEffect(() => {
     setIsMounted(true);
+    if (initialStep !== 0) setStep(initialStep);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -153,23 +172,25 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
         return (
           <div className="flex flex-col items-center text-center space-y-6 py-4">
             <div className="w-16 h-16 bg-sage/10 rounded-2xl flex items-center justify-center text-sage">
-              <HiOutlineRefresh size={32} />
+              <HiOutlineDocumentText size={32} />
             </div>
             <div className="space-y-2">
-              <h2 className="text-ui-title-3 font-bold">Autosave</h2>
+              <h2 className="text-ui-title-3 font-bold">Text Size</h2>
               <p className="text-ui-footnote opacity-60 px-4">
-                Choose when changes get written to disk. You can change this later.
+                How large should your words be? You can change this later in Settings.
               </p>
             </div>
 
-            <div className="w-full space-y-4 text-left">
-              <div className="space-y-2">
-                <label className="text-[11px] font-bold uppercase tracking-wider ml-1">Autosave</label>
-                <SelectControl value={autosaveMode} onChange={(v) => setAutosaveMode(v as any)}>
-                  <option value="afterDelay">After 2s Delay</option>
-                  <option value="onFocusChange">On Focus Change</option>
-                  <option value="manual">Manual Only</option>
-                </SelectControl>
+            <div className="w-full space-y-3 text-left">
+              <p
+                style={{ fontSize, fontFamily }}
+                className="px-1 leading-snug text-ink-light dark:text-ink-dark transition-all duration-200"
+              >
+                The quick brown fox jumps.
+              </p>
+              <div className="rounded-2xl border border-edge p-4 bg-paper-softgray/40 dark:bg-paper-dark/30">
+                <label className="text-[11px] font-bold uppercase tracking-wider ml-1 opacity-70 block mb-2">Size</label>
+                <SegmentedControl options={FONT_SIZES} value={fontSize} onChange={setFontSize} />
               </div>
             </div>
 
@@ -180,6 +201,120 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
         );
 
       case 3:
+        return (
+          <div className="flex flex-col items-center text-center space-y-6 py-4">
+            <div className="w-16 h-16 bg-sage/10 rounded-2xl flex items-center justify-center text-sage">
+              <HiOutlineSwitchVertical size={32} />
+            </div>
+            <div className="space-y-2">
+              <h2 className="text-ui-title-3 font-bold">Spacing</h2>
+              <p className="text-ui-footnote opacity-60 px-4">
+                Breathing room between lines and letters.
+              </p>
+            </div>
+
+            <div className="w-full space-y-3 text-left">
+              <p
+                style={{ lineHeight, letterSpacing, fontFamily }}
+                className="px-1 text-ui-footnote text-ink-light dark:text-ink-dark transition-all duration-200"
+              >
+                The quick brown fox jumps over the lazy dog.
+              </p>
+              <div className="rounded-2xl border border-edge p-4 space-y-4 bg-paper-softgray/40 dark:bg-paper-dark/30">
+                <div className="space-y-2">
+                  <label className="text-[11px] font-bold uppercase tracking-wider ml-1 opacity-70 block">Line Height</label>
+                  <SegmentedControl options={LINE_HEIGHTS} value={lineHeight} onChange={setLineHeight} />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[11px] font-bold uppercase tracking-wider ml-1 opacity-70 block">Letter Spacing</label>
+                  <SegmentedControl options={LETTER_SPACINGS} value={letterSpacing} onChange={setLetterSpacing} />
+                </div>
+              </div>
+            </div>
+
+            <Button variant="primary" onClick={() => setStep(4)} className="w-full h-12 rounded-2xl text-ui-footnote font-bold">
+              Continue
+            </Button>
+          </div>
+        );
+
+      case 4:
+        return (
+          <div className="flex flex-col items-center text-center space-y-6 py-4">
+            <div className="w-16 h-16 bg-sage/10 rounded-2xl flex items-center justify-center text-sage">
+              <HiOutlineColorSwatch size={32} />
+            </div>
+            <div className="space-y-2">
+              <h2 className="text-ui-title-3 font-bold">Typeface</h2>
+              <p className="text-ui-footnote opacity-60 px-4">
+                Choose the font used in the editor.
+              </p>
+            </div>
+
+            <div className="w-full text-left">
+              <label className="text-[11px] font-bold uppercase tracking-wider ml-1 opacity-70 block mb-2">Font</label>
+              <div className="rounded-2xl border border-edge px-4 bg-paper-softgray/40 dark:bg-paper-dark/30 max-h-[40vh] overflow-y-auto">
+                {FONTS.map((f) => {
+                  const isActive = fontFamily === f.value;
+                  return (
+                    <button
+                      key={f.label}
+                      type="button"
+                      onClick={() => setFontFamily(f.value)}
+                      className="w-full flex items-center justify-between gap-4 py-2.5 border-b border-neutral-100 dark:border-neutral-800/40 last:border-0 focus:outline-none active:scale-[0.99] transition-transform"
+                    >
+                      <div className="flex flex-col items-start gap-1 min-w-0">
+                        <span className={`text-ui-footnote font-medium leading-none ${isActive ? "text-sage dark:text-sage" : "text-ink-light dark:text-ink-dark"}`}>
+                          {f.label}
+                        </span>
+                        <span style={{ fontFamily: f.value }} className="text-[11px] text-neutral-400 dark:text-neutral-500 truncate">
+                          The quick brown fox 0123
+                        </span>
+                      </div>
+                      {isActive && <HiCheck size={15} className="shrink-0 text-sage dark:text-sage" />}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <Button variant="primary" onClick={() => setStep(5)} className="w-full h-12 rounded-2xl text-ui-footnote font-bold">
+              Continue
+            </Button>
+          </div>
+        );
+
+      case 5:
+        return (
+          <div className="flex flex-col items-center text-center space-y-6 py-4">
+            <div className="w-16 h-16 bg-sage/10 rounded-2xl flex items-center justify-center text-sage">
+              <HiOutlineRefresh size={32} />
+            </div>
+            <div className="space-y-2">
+              <h2 className="text-ui-title-3 font-bold">Autosave</h2>
+              <p className="text-ui-footnote opacity-60 px-4">
+                Choose when changes get written to disk. You can change this later.
+              </p>
+            </div>
+
+            <div className="w-full text-left">
+              <div className="rounded-2xl border border-edge p-4 space-y-2 bg-paper-softgray/40 dark:bg-paper-dark/30">
+                <label className="text-[11px] font-bold uppercase tracking-wider ml-1 opacity-70">Autosave</label>
+                <SelectControl value={autosaveMode} onChange={(v) => setAutosaveMode(v as any)}>
+                  <option value="afterDelay">After 2s Delay</option>
+                  <option value="onFocusChange">On Focus Change</option>
+                  <option value="manual">Manual Only</option>
+                </SelectControl>
+              </div>
+            </div>
+
+            <Button variant="primary" onClick={() => setStep(6)} className="w-full h-12 rounded-2xl text-ui-footnote font-bold">
+              Continue
+            </Button>
+          </div>
+        );
+
+      case 6:
         return (
           <div className="flex flex-col items-center text-center space-y-6 py-4">
             <div className="w-16 h-16 bg-sage rounded-2xl flex items-center justify-center text-white">
@@ -222,34 +357,61 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
     }
   };
 
+  // Step 2 auto-advances from step 1 once a vault is connected, so going back there
+  // would immediately bounce forward again — disable the back arrow on that landing.
+  const canGoBack = step > 0 && step !== 2;
+
   return (
     <DialogModal
       isOpened={showWizard}
       onClose={handleFinish}
       styles="!max-w-sm"
+      mobileSheet
+      hideCloseButton
     >
       <div className="relative">
         {step > 0 && (
-          <div className="absolute -top-10 left-0 right-0 flex gap-1.5 justify-center">
-            {[1, 2, 3].map((i) => (
-              <div
-                key={i}
-                className={`h-1 rounded-full transition-all duration-300 ${i <= step ? "w-4 bg-sage" : "w-1 bg-neutral-200 dark:bg-neutral-800"}`}
-              />
-            ))}
+          <div className="flex items-center justify-between mb-5">
+            <button
+              type="button"
+              onClick={() => canGoBack && setStep(step - 1)}
+              aria-label="Back"
+              tabIndex={canGoBack ? 0 : -1}
+              className={`p-1.5 -ml-1.5 rounded-full transition-all active:scale-90 ${
+                canGoBack
+                  ? "opacity-60 hover:opacity-100 hover:bg-black/5 dark:hover:bg-white/10"
+                  : "opacity-0 pointer-events-none"
+              }`}
+            >
+              <HiOutlineArrowLeft size={18} />
+            </button>
+
+            <div className="flex gap-1.5">
+              {Array.from({ length: TOTAL_STEPS }, (_, i) => i + 1).map((i) => (
+                <div
+                  key={i}
+                  className={`h-1 rounded-full transition-all duration-300 ${i <= step ? "w-4 bg-sage" : "w-1 bg-neutral-200 dark:bg-neutral-800"}`}
+                />
+              ))}
+            </div>
+
+            {step < TOTAL_STEPS ? (
+              <button
+                type="button"
+                onClick={handleFinish}
+                className="text-[11px] font-bold uppercase tracking-wider opacity-40 hover:opacity-100 transition-opacity"
+              >
+                Skip
+              </button>
+            ) : (
+              <span className="w-[18px]" />
+            )}
           </div>
         )}
 
-        {renderStep()}
-
-        {step > 0 && step < 3 && (
-          <button
-            onClick={handleFinish}
-            className="w-full mt-4 text-[11px] font-bold uppercase tracking-wider opacity-30 hover:opacity-100 transition-opacity"
-          >
-            Skip Setup
-          </button>
-        )}
+        <div key={step} className="animate-in fade-in slide-in-from-right-2 duration-300">
+          {renderStep()}
+        </div>
       </div>
     </DialogModal>
   );

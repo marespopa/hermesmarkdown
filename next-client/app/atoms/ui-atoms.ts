@@ -56,6 +56,12 @@ export const atom_hasCompletedOnboarding = atomWithStorage<boolean>(
   false,
 );
 export const atom_isWizardOpen = atom<boolean>(false);
+// Survives the full-page reload caused by the Google Drive OAuth round-trip, so the
+// wizard resumes where the user left off instead of restarting at the welcome step.
+export const atom_welcomeWizardStep = atomWithStorage<number>(
+  "welcomeWizardStep",
+  0,
+);
 
 export const atom_autoInjectFrontmatter = atomWithStorage<boolean>(
   "autoInjectFrontmatter",
