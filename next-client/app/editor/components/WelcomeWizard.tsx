@@ -18,12 +18,15 @@ import DialogModal from "@/app/components/DialogModal/DialogModal";
 import Button from "@/app/components/Button";
 import { SelectControl } from "@/app/editor/settings/components/SettingControls";
 import { useFileSystem } from "@/app/hooks/use-file-system";
+import { formatShortcut } from "@/app/utils/platform";
+import useIsMobileChrome from "@/app/hooks/use-mobile-chrome";
 import {
   HiOutlineFolder,
   HiOutlineCloud,
   HiOutlineChevronRight,
   HiOutlineCheckCircle,
   HiOutlineRefresh,
+  HiOutlineMenu,
 } from "react-icons/hi";
 
 const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
@@ -38,6 +41,7 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
   const isDriveVault = useAtomValue(atom_isDriveVault);
   const driveVaultId = useAtomValue(atom_driveVaultId);
   const [autosaveMode, setAutosaveMode] = useAtom(atom_autosaveMode);
+  const isMobileChrome = useIsMobileChrome();
 
   useEffect(() => {
     setIsMounted(true);
@@ -188,6 +192,24 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
                 happens as you go.
               </p>
             </div>
+
+            <p className="text-[11px] opacity-50 flex flex-wrap items-center justify-center text-center gap-x-1.5 gap-y-1 leading-relaxed">
+              {isMobileChrome ? (
+                <>
+                  <span>Tap</span>
+                  <HiOutlineMenu className="inline shrink-0" size={14} />
+                  <span>anytime to open the command palette</span>
+                </>
+              ) : (
+                <>
+                  <span>Press</span>
+                  <kbd className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-paper-softgray dark:bg-paper-dark-surface text-ink-muted dark:text-fg-faint border border-edge">
+                    {formatShortcut("p", { shift: true })}
+                  </kbd>
+                  <span>anytime to open the command palette</span>
+                </>
+              )}
+            </p>
 
             <Button variant="primary" onClick={handleFinish} className="w-full h-12 rounded-2xl text-ui-footnote font-bold">
               Open Editor

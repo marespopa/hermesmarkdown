@@ -1,4 +1,4 @@
-import { getDefaultStore } from "jotai/vanilla";
+import { getDefaultStore } from "jotai";
 import toast from "react-hot-toast";
 import { atom_aiActionStatus } from "@/app/atoms/ui-atoms";
 

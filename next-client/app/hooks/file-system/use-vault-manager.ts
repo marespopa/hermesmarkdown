@@ -20,7 +20,6 @@ import {
   atom_frontmatterHasPrompted,
   atom_indexerState,
   atom_vaultSetupStatus,
-  atom_vaultSetupWizardOpen,
 } from "@/app/atoms/atoms";
 import { atom_fileMetadata } from "@/app/atoms/metadata";
 import {
@@ -51,7 +50,6 @@ export function useVaultManager() {
   const [, setIsCloudVault] = useAtom(atom_isCloudVault);
   const [, setFileSystemVersion] = useAtom(atom_fileSystemVersion);
   const [, setVaultSetupStatus] = useAtom(atom_vaultSetupStatus);
-  const [, setVaultSetupWizardOpen] = useAtom(atom_vaultSetupWizardOpen);
   const setVaultSchema = useSetAtom(atom_vaultSchema);
   const [schemaAutoCreate] = useAtom(atom_schemaAutoCreate);
   const rebindHandles = useSetAtom(atom_rebindHandles);
@@ -81,20 +79,20 @@ export function useVaultManager() {
 
       if (compareVersions(localVersion, LATEST_AGENT_VERSION) < 0) {
         setVaultSetupStatus("needs_setup");
-        setVaultSetupWizardOpen("vault-root");
       } else {
         setVaultSetupStatus("configured");
       }
     } catch (err: any) {
       if (err.name === "NotFoundError") {
+        // Don't auto-open the wizard on vault load — status drives the
+        // "Check & Install" button in Settings > Guide instead.
         setVaultSetupStatus("needs_setup");
-        setVaultSetupWizardOpen("vault-root"); // Use a sentinel to indicate vault-level setup
       } else {
         console.warn("Failed to check vault setup:", err);
         setVaultSetupStatus("idle");
       }
     }
-  }, [setVaultSetupStatus, setVaultSetupWizardOpen]);
+  }, [setVaultSetupStatus]);
 
   const detectCloudVault = useCallback(
     (handle: FileSystemDirectoryHandle) => {
