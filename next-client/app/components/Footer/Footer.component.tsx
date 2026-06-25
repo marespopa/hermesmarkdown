@@ -3,13 +3,14 @@
 import Link from "next/link";
 import ProductHuntBadge from "./components/ProductHuntBadge";
 import ClientOnly from "../ClientOnly";
+import packageJson from "@/package.json";
 
 export default function Footer() {
   return (
     <ClientOnly>
       <footer
         data-testid="GlobalFooter"
-        className="pt-24 pb-12 bg-neutral-900 dark:bg-neutral-950 text-ink-dark border-t border-white/5 font-sans"
+        className="pt-24 pb-12 bg-neutral-900 dark:bg-neutral-950 text-ink-dark border-t border-white/5 font-sans selection:bg-sage/40 selection:text-white"
       >
         <div className="container max-w-6xl mx-auto px-6">
           <div className="flex flex-col md:flex-row justify-between w-full items-start gap-12 md:gap-8">
@@ -54,17 +55,22 @@ export default function Footer() {
                   <div className="flex flex-col gap-4">
                     <ProductHuntBadge />
                     <Link href="/contact" className="text-ui-subhead font-medium hover:text-sage transition-colors">Contact Us</Link>
+                    <a
+                      href="https://github.com/marespopa/hermesmarkdown"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-ui-subhead font-medium hover:text-sage transition-colors"
+                    >
+                      Source Code
+                    </a>
                   </div>
                </div>
             </div>
           </div>
           
-          <div className="mt-20 pt-8 border-t border-white/5 flex flex-col sm:flex-row justify-between items-center gap-4 opacity-30 text-ui-footnote uppercase tracking-[0.2em] font-bold">
+          <div className="mt-20 pt-8 border-t border-white/5 flex flex-col sm:flex-row justify-between items-center gap-2 opacity-30 text-ui-footnote uppercase tracking-[0.2em] font-bold">
              <span>© {new Date().getFullYear()} HermesMarkdown. All rights reserved.</span>
-             <span className="flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-                Status: Local-First Operational
-             </span>
+             <span className="text-ui-caption tracking-[0.1em]">v{packageJson.version}</span>
           </div>
         </div>
       </footer>

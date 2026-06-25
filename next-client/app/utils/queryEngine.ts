@@ -32,6 +32,19 @@ export interface WorkspaceQuery {
 }
 
 /**
+ * Normalizes a field value into a lowercase string list. `file.tags` is a
+ * real array; frontmatter list fields (e.g. `related`) are stored as
+ * comma-separated strings, matching the rest of the app's frontmatter
+ * convention (see frontmatter-utils.ts).
+ */
+function toList(fieldValue: any): string[] {
+  const items = Array.isArray(fieldValue)
+    ? fieldValue
+    : String(fieldValue ?? "").split(",");
+  return items.map((v) => String(v).trim().toLowerCase()).filter(Boolean);
+}
+
+/**
  * Evaluates a file against a set of rules.
  */
 export const evaluateQuery = (
@@ -92,9 +105,9 @@ export const evaluateQuery = (
           .toLowerCase()
           .endsWith(String(rule.value).toLowerCase());
       case "includes":
-        return Array.isArray(fieldValue) && fieldValue.includes(String(rule.value).toLowerCase());
+        return toList(fieldValue).includes(String(rule.value).toLowerCase());
       case "not_includes":
-        return !Array.isArray(fieldValue) || !fieldValue.includes(String(rule.value).toLowerCase());
+        return !toList(fieldValue).includes(String(rule.value).toLowerCase());
       case "before":
         return Number(fieldValue) < Number(rule.value);
       case "after":

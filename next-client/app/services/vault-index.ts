@@ -33,6 +33,8 @@ function buildYaml(fileMetadata: Record<string, FileMetadata>): string {
   } else {
     for (const entry of entries) {
       const fm = entry.frontmatter || {};
+      // Title fallback: frontmatter title -> first H1 (already promoted into
+      // fm.title by the metadata worker) -> filename.
       const title = stripQuotes(fm.title) || entry.name.replace(/\.md$/, "");
       const status = fm.status ? stripQuotes(fm.status) : "null";
       const scope = yamlScalar(fm.scope);

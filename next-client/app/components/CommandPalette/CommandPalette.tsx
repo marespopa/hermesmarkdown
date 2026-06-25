@@ -49,9 +49,10 @@ type Row =
   | { kind: "file"; file: FileResult; indices: number[]; matchedTag?: string };
 
 // Matches a file by name, path, or any of its tags — typing "#tag" searches
-// tags exclusively (mirrors the sidebar's `#tag` convention); a plain query
-// checks name first (highlighted), then path, then tags (shown as the
-// secondary line instead of the path when that's what matched).
+// tags exclusively (mirrors the sidebar's `#tag` convention and VSCode's Go
+// to Symbol prefix); a plain query checks name first (highlighted), then
+// path, then tags (shown as the secondary line instead of the path when
+// that's what matched).
 function matchFile(query: string, file: FileResult): { score: number; indices: number[]; matchedTag?: string } | null {
   if (query.startsWith("#")) {
     const tagQuery = query.slice(1);
@@ -107,16 +108,15 @@ export default function CommandPalette() {
     [fileMetadata],
   );
 
-  // ">" explicitly switches to file search (mirrors the app's only mode
-  // switch — VSCode-style — without a separate UI state); a query that
-  // matches zero commands also falls through to file search automatically,
-  // with no label change or layout shift.
-  const isExplicitFileMode = query.startsWith(">");
-  const fileQuery = isExplicitFileMode ? query.slice(1).trimStart() : query.trim();
+  // VSCode-style prefixes: ">" switches to the command list, "#" searches
+  // tags exclusively (handled inside matchFile); a bare query is a file
+  // search by name/path, matching the app's default "quick open" behavior.
+  const isCommandMode = query.startsWith(">");
+  const fileQuery = query.trim();
 
   const commandRows: Row[] = useMemo(() => {
-    if (isExplicitFileMode) return [];
-    const trimmed = query.trim();
+    if (!isCommandMode) return [];
+    const trimmed = query.slice(1).trimStart();
     if (!trimmed) {
       const byRecent = [...commands].sort((a, b) => {
         const ai = recentCommandIds.indexOf(a.id);
@@ -137,12 +137,10 @@ export default function CommandPalette() {
       .filter((r): r is { command: Command; score: number; indices: number[] } => r !== null)
       .sort((a, b) => b.score - a.score)
       .map((r) => ({ kind: "command" as const, command: r.command, indices: r.indices }));
-  }, [commands, query, isExplicitFileMode, recentCommandIds]);
-
-  const inFileFallback = !isExplicitFileMode && query.trim().length > 0 && commandRows.length === 0;
+  }, [commands, query, isCommandMode, recentCommandIds]);
 
   const fileRows: Row[] = useMemo(() => {
-    if (!isExplicitFileMode && !inFileFallback) return [];
+    if (isCommandMode) return [];
     const q = fileQuery;
     if (!q) {
       return fileResults
@@ -159,9 +157,9 @@ export default function CommandPalette() {
       .filter((r): r is { file: FileResult; score: number; indices: number[]; matchedTag: string | undefined } => r !== null)
       .sort((a, b) => b.score - a.score)
       .map((r) => ({ kind: "file" as const, file: r.file, indices: r.indices, matchedTag: r.matchedTag }));
-  }, [fileResults, fileQuery, isExplicitFileMode, inFileFallback]);
+  }, [fileResults, fileQuery, isCommandMode]);
 
-  const rows: Row[] = isExplicitFileMode || inFileFallback ? fileRows : commandRows;
+  const rows: Row[] = isCommandMode ? commandRows : fileRows;
 
   useEffect(() => {
     setSelectedIndex(0);
@@ -224,6 +222,7 @@ export default function CommandPalette() {
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 onKeyDown={handleKeyDown}
+                placeholder="Search files, > for commands, # for tags"
                 className="flex-1 min-w-0 bg-transparent text-fg text-[15px] outline-none focus-visible:outline-none caret-accent"
                 autoComplete="off"
                 autoCorrect="off"

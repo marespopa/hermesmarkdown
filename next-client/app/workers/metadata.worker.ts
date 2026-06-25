@@ -1,4 +1,5 @@
 // app/workers/metadata.worker.ts
+import { parseFmFields } from "@/app/utils/frontmatter-utils";
 
 const REGEX_TAG = /(?<=^|\s)#(?=[a-zA-Z0-9_\-/]*[a-zA-Z])([a-zA-Z0-9_\-/]+)/g;
 const REGEX_LINK = /\[\[(.*?)\]\]/g;
@@ -38,24 +39,11 @@ self.onmessage = (event: MessageEvent) => {
     try {
       const { path, name, content, modifiedAt } = fileInfo;
 
-      // Frontmatter Extraction
-      const frontmatter: Record<string, any> = {};
+      // Frontmatter Extraction — reuses parseFmFields so Obsidian-style block
+      // lists (e.g. `related:\n  - "[[Note]]"`) are captured for every field,
+      // not just `tags` which has its own dedicated parser below.
       const fmMatch = content.match(REGEX_FRONTMATTER);
-      if (fmMatch) {
-        const fmContent = fmMatch[1];
-        const lines = fmContent.split("\n");
-        for (const line of lines) {
-          if (/^\s*-\s+/.test(line)) continue;
-          const colonIndex = line.indexOf(":");
-          if (colonIndex !== -1) {
-            const key = line.slice(0, colonIndex).trim();
-            const value = line.slice(colonIndex + 1).trim();
-            if (key) {
-              frontmatter[key] = value;
-            }
-          }
-        }
-      }
+      const frontmatter: Record<string, any> = fmMatch ? parseFmFields(content) : {};
 
       // Tag Extraction: frontmatter tags + inline #hashtags from body only
       const fmTags = fmMatch ? parseFrontmatterTags(fmMatch[1]) : [];
@@ -63,6 +51,12 @@ self.onmessage = (event: MessageEvent) => {
       const tagMatches = Array.from(bodyContent.matchAll(REGEX_TAG));
       const inlineTags = tagMatches.map((m: any) => m[1].toLowerCase());
       const tags = Array.from(new Set([...fmTags, ...inlineTags]));
+
+      // Title fallback: frontmatter title -> first H1 in body -> filename
+      if (!frontmatter.title) {
+        const h1Match = bodyContent.match(/^#\s+(.+)$/m);
+        if (h1Match) frontmatter.title = h1Match[1].trim();
+      }
 
       // Wiki Link Extraction
       const linkMatches = Array.from(content.matchAll(REGEX_LINK));
