@@ -23,8 +23,27 @@ export function useMoveItem({ scanVault, indexVaultTags }: UseMoveItemProps) {
 
   const moveItem = useCallback(
     async (handle: FileSystemHandle, targetDir: FileSystemDirectoryHandle) => {
-      const sourceParent = currentDirectoryHandle || vaultHandle;
-      if (!sourceParent || !targetDir) return;
+      if (!vaultHandle || !targetDir) return;
+
+      // Resolve the real parent directory by walking the handle's actual path,
+      // rather than assuming it's whatever directory the user last navigated to
+      // (atom_currentDirectoryHandle) — that assumption breaks for items nested
+      // deeper than the last-visited folder (e.g. dragging from a tree view).
+      let sourceParent: FileSystemDirectoryHandle = currentDirectoryHandle || vaultHandle;
+      try {
+        const pathParts = await (vaultHandle as any).resolve(handle);
+        if (pathParts && pathParts.length > 1) {
+          let dir: FileSystemDirectoryHandle = vaultHandle;
+          for (let i = 0; i < pathParts.length - 1; i++) {
+            dir = await dir.getDirectoryHandle(pathParts[i]);
+          }
+          sourceParent = dir;
+        } else if (pathParts && pathParts.length === 1) {
+          sourceParent = vaultHandle;
+        }
+      } catch {
+        // fall back to currentDirectoryHandle/vaultHandle above
+      }
 
       const attemptMove = async (retryCount = 0): Promise<void> => {
         try {
