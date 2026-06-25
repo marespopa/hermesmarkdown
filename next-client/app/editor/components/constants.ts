@@ -316,7 +316,7 @@ export const TEMPLATES: Template[] = [
     label: "Financial Plan",
     icon: "💰",
     description: "Monthly budget allocation",
-    content: "# 📊 Monthly Allocation\n\n## 🏦 Credit Management\n- Credit Card: -$200\n- Bank Loan: -$150\n- Other Credit: -$100\n\n## 🛒 Variable Spending\n- Groceries: $400\n- Dining: $150\n- Transport: $100\n- Other Expenses: $100\n\n---\nTotal: $1250 (Auto-calculated)\n\n> 💡 Tip: Update the values above and the total will be automatically calculated.",
+    content: "# 📊 Monthly Allocation\n\n## 🏦 Credit Management\n- Credit Card: -$200\n- Bank Loan: -$150\n- Other Credit: -$100\n\n## 🛒 Variable Spending\n- Groceries: $400\n- Dining: $150\n- Transport: $100\n- Other Expenses: $100\n\n---\n| Item | Amount |\n| ---- | ------ |\n| Credit Card | -$200 |\n| Bank Loan | -$150 |\n| Other Credit | -$100 |\n| Groceries | $400 |\n| Dining | $150 |\n| Transport | $100 |\n| Other Expenses | $100 |\n| Total | =SUM(B2:B8) |\n\n> 💡 Tip: Update the values above — the Total row recalculates live.",
   },
   {
     label: "Gym Log",

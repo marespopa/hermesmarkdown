@@ -1,5 +1,6 @@
 import { WORKFLOW_TAGS, TODO_TAGS, TAG_COLORS } from "./constants";
 import { DateMatch } from "../types";
+import { TableInfo } from "../utils/table-detection";
 import {
   REGEX_DATE_ISO,
   REGEX_DATE_SLASHED,
@@ -168,11 +169,16 @@ export function highlightMarkdown(
   code: string,
   dateMatch: DateMatch | null = null,
   activeLink: { rawString: string } | null = null,
+  tableInfo: TableInfo | null = null,
 ) {
   const lines = code.split("\n");
   let isInsideCodeBlock = false;
   let obsidianCalloutType: string | null = null;
   let obsidianCalloutDepth = 0;
+  // Tracks position within a run of consecutive pipe-table lines so header/
+  // zebra styling applies to every table in the doc, not just the one under
+  // the cursor. -1 = not currently inside a table; 0 = header row.
+  let tableRowCounter = -1;
 
   return lines
     .map((line, index) => {
@@ -183,6 +189,14 @@ export function highlightMarkdown(
 
       let content = "";
       let blockClasses = "";
+
+      const isPipeLine =
+        /^\s*\|/.test(html) &&
+        !isInsideCodeBlock &&
+        obsidianCalloutType === null &&
+        !html.startsWith("```") &&
+        !html.startsWith("~~~");
+      tableRowCounter = isPipeLine ? (tableRowCounter < 0 ? 0 : tableRowCounter + 1) : -1;
 
       if (
         obsidianCalloutType === null &&
@@ -274,13 +288,45 @@ export function highlightMarkdown(
             return `<span ${FADED}>${bull}</span>${checkHtml}<span class="${isChecked ? "line-through opacity-40" : "text-ink-light dark:text-ink-dark"}">${processInlineMarkdown(label, dateMatch, activeLink)}</span>`;
           },
         );
-      } else if (/^\s*\|/.test(html)) {
+      } else if (isPipeLine) {
         const isSeparator = /^\s*\|[\s:|-]+\|/.test(html);
+        const nextLine = lines[index + 1] ?? "";
+        const isHeader = tableRowCounter === 0 && /^\s*\|[\s:|-]+\|/.test(nextLine);
+        const inActiveTable =
+          !!tableInfo && index >= tableInfo.tableStart && index <= tableInfo.tableEnd;
+        const activeCol = inActiveTable ? tableInfo!.cursorCol : -1;
+        const isActiveRow = inActiveTable && index === tableInfo!.lineIdx;
+
         if (isSeparator) {
           content = `<span ${FADED}>${html}</span>`;
         } else {
-          const processedHtml = processInlineMarkdown(html, dateMatch, activeLink);
-          content = processedHtml.replace(/\|/g, `<span ${FADED}>|</span>`);
+          const cells = html.split("|");
+          content = cells
+            .map((cell, i) => {
+              const processedCell = processInlineMarkdown(cell, dateMatch, activeLink);
+              const cellIndex = i - 1;
+              const cellHtml = isHeader
+                ? `<span class="font-bold text-ink-light dark:text-ink-dark">${processedCell}</span>`
+                : processedCell;
+              if (cellIndex !== activeCol) return cellHtml;
+              // The active cell gets an Excel-style green box around it. Built with
+              // `ring` (box-shadow), not `border` — a real border would add width and
+              // desync this overlay's text columns from the transparent textarea's
+              // caret, since the two must stay character-for-character aligned.
+              const cellClasses = isActiveRow
+                ? "ring-2 ring-inset ring-sage"
+                : "bg-sage/10 dark:bg-sage/15 rounded-sm";
+              return `<span class="${cellClasses}">${cellHtml}</span>`;
+            })
+            .join(`<span ${FADED}>|</span>`);
+        }
+
+        if (isHeader) {
+          blockClasses += " bg-paper-softgray/60 dark:bg-paper-dark-surface/50";
+        } else if (!isSeparator && tableRowCounter >= 2 && tableRowCounter % 2 === 1) {
+          // Zebra-stripe alternating data rows (every table in the doc, not
+          // just the one under the cursor).
+          blockClasses += " bg-black/[0.03] dark:bg-white/[0.04]";
         }
       } else {
         content = processInlineMarkdown(html, dateMatch, activeLink);

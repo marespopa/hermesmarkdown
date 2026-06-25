@@ -19,7 +19,6 @@ vi.mock("@/app/atoms/atoms", async (importOriginal) => {
     atom_isEditorFocused: atom(false),
     atom_cursorPosition: atom({ line: 1, col: 1 }),
     atom_editorWidth: atom("standard"),
-    atom_currency: atom("USD"),
     atom_selectionCount: atom(0),
     atom_autoInjectFrontmatter: atom(false),
     atom_isAiConfigured: atom(true),
@@ -454,27 +453,21 @@ describe("highlightMarkdown", () => {
       expect(result).not.toContain("data-obsidian-callout-id");
     });
 
-    it("renders a collapsible callout collapsed by default with `-`", () => {
-      const result = highlightMarkdown("> [!warning]- Heads up\n> Hidden body");
-      expect(result).toContain('data-obsidian-callout-collapsed="true"');
-      expect(result).not.toContain("Hidden body");
-    });
-
-    it("renders a collapsible callout expanded by default with `+`", () => {
-      const result = highlightMarkdown("> [!note]+ Visible\n> Shown body");
-      expect(result).toContain('data-obsidian-callout-collapsed="false"');
-      expect(result).toContain("Shown body");
-    });
-
-    it("respects an explicit collapse override over the fold-marker default", () => {
-      const result = highlightMarkdown(
-        "> [!note]- Title\n> Body",
-        null,
-        null,
-        { "0:note": false },
-      );
-      expect(result).toContain('data-obsidian-callout-collapsed="false"');
+    // Collapse/expand state lives upstream in callout-folding.ts, which strips
+    // hidden body lines out of the textarea's value entirely before it ever
+    // reaches highlightMarkdown — so the highlighter just renders the `-`/`+`
+    // fold marker as plain text and always renders whatever body it's given.
+    it("renders the `-` fold marker as plain text without hiding the body", () => {
+      const result = highlightMarkdown("> [!warning]- Heads up\n> Body");
+      expect(result).toContain(">-<");
+      expect(result).toContain("Heads up");
       expect(result).toContain("Body");
+    });
+
+    it("renders the `+` fold marker as plain text", () => {
+      const result = highlightMarkdown("> [!note]+ Visible\n> Shown body");
+      expect(result).toContain(">+<");
+      expect(result).toContain("Shown body");
     });
 
     it("resolves aliases to their canonical type", () => {

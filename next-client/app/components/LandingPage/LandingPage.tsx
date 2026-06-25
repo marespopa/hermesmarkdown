@@ -210,12 +210,12 @@ const SmartSyntaxGraphic = () => (
 
       <div className="h-px bg-neutral-300 dark:bg-neutral-700 opacity-40 my-1" />
 
-      <div className="opacity-50">- Hosting: $120</div>
-      <div className="opacity-50">- Design: $340</div>
+      <div className="opacity-50">| Hosting | $120 |</div>
+      <div className="opacity-50">| Design | $340 |</div>
       <div className="flex items-center gap-1.5">
-        <span className="opacity-50">Total:</span>
+        <span className="opacity-50">| =SUM(B2:B3) |</span>
         <span className="text-amber-500 font-semibold">$460.00</span>
-        <span className="text-[9px] opacity-30">← auto</span>
+        <span className="text-[9px] opacity-30">← live</span>
       </div>
 
       <div className="h-px bg-neutral-300 dark:bg-neutral-700 opacity-40 my-1" />
@@ -436,7 +436,6 @@ const AgentScoreGraphic = () => (
         </div>
       ))}
     </div>
-
   </div>
 );
 
@@ -545,42 +544,67 @@ const AIKeyGraphic = () => (
   </div>
 );
 
+// Keeps the landing demo's ship date a couple weeks out from "today" insteadlanding
+// of a fixed string that quietly goes stale.
+function getDemoShipDate(daysFromNow: number): string {
+  const d = new Date();
+  d.setDate(d.getDate() + daysFromNow);
+  return d.toLocaleDateString("en-CA");
+}
+
 const DEFAULT_DEMO_CONTENT = `---
-title: "v1 launch plan"
+title: "Weekly Vault Review"
 status: active
-scope: "Ship checklist, budget, and open questions for the public launch."
-read_when: ["launch", "ship", "release", "what are we shipping"]
-related: [[landing-page-copy, agent-schema-design, infra-setup]]
-tags: [launch, product]
+scope: "Maintenance checklist, tool subscriptions, and book budget for personal knowledge management."
+read_when: 
+  - weekly review
+  - vault maintenance
+  - zettelkasten
+  - subscriptions
+related: 
+  - personal-knowledge-management
+  - daily-notes
+tags: 
+  - review
+  - obsidian
+  - pkm
 ---
 
-# v1 Launch Plan
+# Weekly Vault Review
 
-## Ship checklist
+## Maintenance Checklist
 
-- Rewrite landing page copy  #done
-- Wire up AGENTS.md generator  #done
-- Finish frontmatter wizard  #prog
-- Add vault migration tool  #todo
-- Submit to HackerNews  #todo
+- Process inbox notes  #done
+- Update daily journal templates  #done
+- Organize Zettelkasten orphans  #prog
+- Refactor project MOCs  #todo
+- Archive completed reading notes  #todo
 
-## Services
+## Workflow Questions
 
-| Service     | Status  | Cost/mo |
-|-------------|---------|---------|
-| Vercel      | live    | $20     |
-| Cloudflare  | live    | $5      |
-| Plausible   | pending | $9      |
+- Should I transition my task management entirely to Dataview queries, or keep it simple?
+- Is the current folder structure getting too deep for quick mobile capture?
 
-## Budget
+## AI Tools
 
-- Design: $800
-- Infra (3 mo): $102
-- Domain: $15
+| Service    | Status  | Cost/mo |
+| :--------- | :------ | :------ |
+| ChatGPT Plus| live    | $20     |
+| Claude Pro | live    | $20     |
+| Midjourney | pending | $10     |
+| Total      |         | $50     |
 
-Total: $917.00
+## Monthly Book Budget
 
-Target ship date: [[2026-06-20]]`;
+| Title             | Cost |
+| :---------------- | :--- |
+| Atomic Habits     | $15  |
+| Deep Work         | $14  |
+| Essentialism      | $12  |
+| Total             | $41  |
+
+
+Next Review date: ${getDemoShipDate(7)}`;
 
 export default function LandingPage() {
   const router = useRouter();
@@ -661,8 +685,8 @@ export default function LandingPage() {
               </span>
             </h1>
             <p className="text-lg md:text-xl leading-relaxed text-neutral-600 dark:text-neutral-400 max-w-2xl mx-auto">
-              HermesMarkdown structures your vault so agents know what to read
-              — and what to skip. Plain{" "}
+              HermesMarkdown structures your vault so agents know what to read —
+              and what to skip. Plain{" "}
               <code className="text-[0.85em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">
                 .md
               </code>{" "}
@@ -674,7 +698,7 @@ export default function LandingPage() {
                 onClick={handleStart}
                 className="w-full sm:w-auto px-10"
               >
-                Launch Editor
+                Open Editor
               </Button>
               <div className="text-ui-footnote uppercase tracking-widest opacity-40 font-bold hidden sm:block">
                 Free · No account required
@@ -789,8 +813,8 @@ export default function LandingPage() {
             </p>
             <p className="text-neutral-600 dark:text-neutral-400 leading-relaxed">
               Pull up a live readability score on demand from the command
-              palette so you know how well any file is structured — without
-              it cluttering the page while you write.
+              palette so you know how well any file is structured — without it
+              cluttering the page while you write.
             </p>
           </div>
         </section>
@@ -835,7 +859,33 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* 3. Bring Your Own AI */}
+        {/* 3. Table Editor */}
+        <section className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 lg:gap-16 items-center">
+          <div className="order-last md:order-first aspect-video bg-paper-light dark:bg-neutral-900 rounded-2xl border border-black/5 dark:border-white/5 flex items-center justify-center group overflow-hidden relative">
+            <TableGraphic />
+          </div>
+          <div className="space-y-6">
+            <div className="h-px w-12 bg-indigo-500" />
+            <h2 className="text-3xl font-bold tracking-tight">Table editor</h2>
+            <p className="text-neutral-600 dark:text-neutral-400 leading-relaxed">
+              Click inside any Markdown table for a full toolbar. In the editor
+              dialog, click a cell to select it and double-click (or hit Enter)
+              to type — arrow keys and Tab move between cells. Add rows, sort by
+              date or number, export to CSV. Output is clean, auto-padded
+              Markdown. Insert a starter grid with{" "}
+              <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">
+                /table
+              </code>{" "}
+              or the{" "}
+              <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">
+                {"{table}"}
+              </code>{" "}
+              shortcode.
+            </p>
+          </div>
+        </section>
+
+        {/* 5. Bring Your Own AI */}
         <section className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 lg:gap-16 items-center">
           <div className="space-y-6">
             <div className="h-px w-12 bg-indigo-600" />
@@ -861,7 +911,7 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* 4. Vault Management */}
+        {/* 6. Vault Management */}
         <section className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 lg:gap-16 items-center">
           <div className="order-last md:order-first aspect-video bg-paper-light dark:bg-neutral-900 rounded-2xl border border-black/5 dark:border-white/5 flex items-center justify-center group overflow-hidden relative">
             <FilesystemGraphic />
@@ -869,7 +919,7 @@ export default function LandingPage() {
           <div className="space-y-6">
             <div className="h-px w-12 bg-sage" />
             <h2 className="text-3xl font-bold tracking-tight">
-              Smart Workspaces
+              Filter the whole vault, not just one file
             </h2>
             <p className="text-neutral-600 dark:text-neutral-400 leading-relaxed">
               Open any local directory as a vault and save directly to your
@@ -885,7 +935,7 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* 5. Google Drive Integration — reframe to match "offline-first, cloud-optional" */}
+        {/* 7. Google Drive Integration — reframe to match "offline-first, cloud-optional" */}
         <section className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 lg:gap-16 items-center">
           <div className="space-y-6">
             <div className="h-px w-12 bg-emerald-600" />
@@ -904,7 +954,7 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* 4. Writing Experience */}
+        {/* 8. Writing Experience */}
         <section className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 lg:gap-16 items-center">
           <div className="order-last md:order-first aspect-video bg-paper-light dark:bg-neutral-900 rounded-2xl border border-black/5 dark:border-white/5 flex items-center justify-center group overflow-hidden relative">
             <ZenModeGraphic />
@@ -912,14 +962,13 @@ export default function LandingPage() {
           <div className="space-y-6">
             <div className="h-px w-12 bg-purple-600" />
             <h2 className="text-3xl font-bold tracking-tight">
-              Distraction-free by default
+              Nothing but the page, until you ask for more
             </h2>
             <p className="text-neutral-600 dark:text-neutral-400 leading-relaxed">
               The app opens straight into a full-screen writing surface — no
-              sidebar, no tabs, nothing else. Hover the left edge when you
-              need the file tree, or pin it open. Open files side by side and
-              drag tabs between panes. Elements in the editor
-              are live — click{" "}
+              sidebar, no tabs, nothing else. Hover the left edge when you need
+              the file tree, or pin it open. Open files side by side and drag
+              tabs between panes. Elements in the editor are live — click{" "}
               <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">
                 [ ]
               </code>{" "}
@@ -932,20 +981,31 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* 5. Syntax & Shortcuts */}
+        {/* 9. Syntax & Shortcuts */}
         <section className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 lg:gap-16 items-center">
           <div className="space-y-6">
             <div className="h-px w-12 bg-amber-500" />
             <h2 className="text-3xl font-bold tracking-tight">
-              Financial totals & smart syntax
+              Real formulas & smart syntax
             </h2>
             <p className="text-neutral-600 dark:text-neutral-400 leading-relaxed">
-              Add a{" "}
+              Type{" "}
               <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">
-                Total:
+                =SUM(B2:D2)
               </code>{" "}
-              line to any list of currency values and it sums them
-              automatically. Type{" "}
+              into any table cell — Excel-style formulas with cell references,
+              ranges, and functions like{" "}
+              <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">
+                AVERAGE
+              </code>{" "}
+              and{" "}
+              <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">
+                IF
+              </code>
+              , computed live right where you're typing. Click cells to build a
+              reference instead of typing it — Excel-style point mode — and
+              currency symbols in referenced cells carry through to the result
+              automatically, no setup needed. Type{" "}
               <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">
                 /
               </code>{" "}
@@ -963,30 +1023,6 @@ export default function LandingPage() {
           </div>
           <div className="aspect-video bg-paper-light dark:bg-neutral-900 rounded-2xl border border-black/5 dark:border-white/5 flex items-center justify-center group overflow-hidden relative">
             <SmartSyntaxGraphic />
-          </div>
-        </section>
-
-        {/* 6. Table Editor */}
-        <section className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 lg:gap-16 items-center">
-          <div className="order-last md:order-first aspect-video bg-paper-light dark:bg-neutral-900 rounded-2xl border border-black/5 dark:border-white/5 flex items-center justify-center group overflow-hidden relative">
-            <TableGraphic />
-          </div>
-          <div className="space-y-6">
-            <div className="h-px w-12 bg-indigo-500" />
-            <h2 className="text-3xl font-bold tracking-tight">Table editor</h2>
-            <p className="text-neutral-600 dark:text-neutral-400 leading-relaxed">
-              Click inside any Markdown table for a full toolbar. Add rows,
-              sort by date or number, export to CSV. Output is clean,
-              auto-padded Markdown. Insert a starter grid with{" "}
-              <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">
-                /table
-              </code>{" "}
-              or the{" "}
-              <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">
-                {"{table}"}
-              </code>{" "}
-              shortcode.
-            </p>
           </div>
         </section>
       </div>
@@ -1014,7 +1050,7 @@ export default function LandingPage() {
               onClick={handleStart}
               className="transition-all"
             >
-              Launch Editor
+              Open Editor
             </Button>
           </div>
         </div>

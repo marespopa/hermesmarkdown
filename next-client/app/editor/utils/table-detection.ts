@@ -21,6 +21,40 @@ function cursorColInLine(line: string, posInLine: number): number {
   return Math.max(0, pipes - 1);
 }
 
+export interface TableBlock {
+  tableStart: number;
+  tableEnd: number;
+  tableStartOffset: number;
+  lines: string[];
+}
+
+// Every table block in the document, not just the one under the cursor —
+// used to render live formula results everywhere, regardless of where the
+// caret currently is.
+export function findAllTables(text: string): TableBlock[] {
+  const lines = text.split("\n");
+  const blocks: TableBlock[] = [];
+  let offset = 0;
+  let i = 0;
+
+  while (i < lines.length) {
+    if (isTableLine(lines[i])) {
+      const tableStart = i;
+      const tableStartOffset = offset;
+      while (i < lines.length && isTableLine(lines[i])) {
+        offset += lines[i].length + 1;
+        i++;
+      }
+      blocks.push({ tableStart, tableEnd: i - 1, tableStartOffset, lines });
+    } else {
+      offset += lines[i].length + 1;
+      i++;
+    }
+  }
+
+  return blocks;
+}
+
 export function findTableAtPos(text: string, pos: number): TableInfo | null {
   const lines = text.split("\n");
 

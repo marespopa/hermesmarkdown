@@ -14,7 +14,6 @@ import {
   atom_autosaveMode,
   atom_autosaveDelay,
   atom_editorWidth,
-  atom_currency,
   atom_autoInjectFrontmatter,
   atom_schemaAutoCreate,
   atom_aiProvider,
@@ -64,7 +63,6 @@ const SettingsPage = () => {
   const [autosaveMode, setAutosaveMode] = useAtom(atom_autosaveMode);
   const [autosaveDelay, setAutosaveDelay] = useAtom(atom_autosaveDelay);
   const [editorWidth, setEditorWidth] = useAtom(atom_editorWidth);
-  const [currencyCode, setCurrencyCode] = useAtom(atom_currency);
   const [autoInjectFrontmatter, setAutoInjectFrontmatter] = useAtom(atom_autoInjectFrontmatter);
   const [schemaAutoCreate, setSchemaAutoCreate] = useAtom(atom_schemaAutoCreate);
   const [, setSchemaWizardOpen] = useAtom(atom_schemaWizardOpen);
@@ -296,24 +294,6 @@ const SettingsPage = () => {
                   value={editorWidth}
                   onChange={(v) => setEditorWidth(v as any)}
                 />
-              }
-            />
-          </SettingGroup>
-          <SettingGroup title="Format">
-            <SettingItem
-              label="Currency"
-              description="Symbol used in financial tables and budget calculations."
-              control={
-                <SelectControl value={currencyCode} onChange={setCurrencyCode}>
-                  <option value="USD">USD ($)</option>
-                  <option value="EUR">EUR (€)</option>
-                  <option value="GBP">GBP (£)</option>
-                  <option value="JPY">JPY (¥)</option>
-                  <option value="INR">INR (₹)</option>
-                  <option value="CAD">CAD (C$)</option>
-                  <option value="AUD">AUD (A$)</option>
-                  <option value="RON">RON (lei)</option>
-                </SelectControl>
               }
             />
           </SettingGroup>

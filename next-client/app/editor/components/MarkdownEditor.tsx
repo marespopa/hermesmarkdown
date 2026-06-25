@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useAtomValue, useSetAtom } from "jotai";
-import { atom_frontmatterWizardOpen, atom_isAiConfigured, atom_currency, atom_isAiBusy } from "@/app/atoms/atoms";
+import { atom_frontmatterWizardOpen, atom_isAiConfigured, atom_isAiBusy } from "@/app/atoms/atoms";
 import Editor from "react-simple-code-editor";
 import { HiOutlineCalendar, HiChevronDown, HiChevronRight } from "react-icons/hi";
 import DatePickerCallout from "./DatePickerCallout";
@@ -10,6 +10,7 @@ import WikiLinkDialog from "./WikiLinkDialog";
 import DialogModal from "../../components/DialogModal/DialogModal";
 import { LinkPill } from "./LinkPill";
 import { WorkflowPill } from "./WorkflowPill";
+import { FormulaResultOverlay } from "./FormulaResultOverlay";
 import { TableCallout } from "./TableCallout";
 import { TableDialog } from "./TableDialog";
 import { AISelectionToolbar } from "./AISelectionToolbar";
@@ -37,7 +38,6 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
   const setFrontmatterWizardOpen = useSetAtom(atom_frontmatterWizardOpen);
   const isAiConfigured = useAtomValue(atom_isAiConfigured);
   const isAiBusy = useAtomValue(atom_isAiBusy);
-  const currencyCode = useAtomValue(atom_currency);
   const filePath = props.filePath || "draft";
 
   // Frontmatter is now entirely owned by <FrontmatterPanel/> — it never
@@ -109,6 +109,7 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
     tableInfo,
     setTableInfo,
     calloutPos,
+    formulaBadges,
 
     handleRemoveTable,
     handleCopyCSV,
@@ -399,6 +400,8 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
             />
           )}
 
+          <FormulaResultOverlay badges={formulaBadges} />
+
           {isAiConfigured && (
             <AISelectionToolbar
               textareaRef={textareaRef}
@@ -454,7 +457,6 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
             onInsert={tableDialog.handleInsert}
             onUpdate={tableDialog.handleUpdate}
             onClose={tableDialog.close}
-            currencyCode={currencyCode}
           />
 
           <WikiLinkDialog

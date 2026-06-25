@@ -3,10 +3,9 @@
 import { useState, useMemo, useCallback } from "react";
 import { flushSync } from "react-dom";
 import { useAtomValue } from "jotai";
-import { atom_currency, atom_isAiConfigured } from "@/app/atoms/atoms";
+import { atom_isAiConfigured } from "@/app/atoms/atoms";
 import getCaretCoordinates from "textarea-caret";
 import { TEMPLATES, Template, SHORTCODES, LINK_EDITOR_SENTINEL, WIKILINK_EDITOR_SENTINEL, DATE_EDITOR_SENTINEL, TABLE_DIALOG_SENTINEL, FRONTMATTER_WIZARD_SENTINEL, AI_ACTION_SENTINEL_PREFIX, CURSOR_SENTINEL } from "../components/constants";
-import { runAutoBudget } from "../utils/budget";
 
 interface UseEditorTemplatesProps {
   value: string;
@@ -38,7 +37,6 @@ export function useEditorTemplates({
   const [datePickerOpen, setDatePickerOpen] = useState(false);
   const [dateInsertPos, setDateInsertPos] = useState<{ start: number; filterLen: number } | null>(null);
   const [dismissedSlashPos, setDismissedSlashPos] = useState<number | null>(null);
-  const currencyCode = useAtomValue(atom_currency);
   const isAiConfigured = useAtomValue(atom_isAiConfigured);
   const availableTemplates = useMemo(
     () => TEMPLATES.filter((t) => !t.aiOnly || isAiConfigured),

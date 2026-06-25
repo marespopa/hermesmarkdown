@@ -38,8 +38,9 @@ Document lifecycle: \`#draft\` → \`#active\` → \`#archived\`
 Task lifecycle: \`#todo\` → \`#prog\` → \`#done\`
 
 ## Financial Tables
-Use \`Total:\` as a standalone line to auto-sum currency values above it.
-Inside a pipe table, put \`Total:\` in a cell to sum **only that column**.
+Table cells support Excel-style formulas: \`=SUM(B2:D2)\`, \`=AVERAGE(...)\`,
+\`=IF(...)\`, and more. \`A\`/\`B\`/\`C\`... are columns; row 1 is the header,
+row 2 is the first data row.
 
 Example (column total):
 \`\`\`
@@ -47,12 +48,13 @@ Example (column total):
 |--------|-----------|
 | Rent   | 2,000 RON |
 | Food   | 400 RON   |
-|        | Total:    |
+|        | =SUM(B2:B3) |
 \`\`\`
 
-The currency is set by the user in Settings (e.g. RON, USD, EUR).
-Format: \`1,234.56 RON\` or \`$1,234.56\`.
-When asked to create a financial or budget table, always include a \`Total:\` row in the numeric column.
+Currency symbols ($, €, RON, etc.) in referenced cells are stripped
+automatically — formulas work whether a cell is \`2000\`, \`$2,000\`, or
+\`2,000 RON\`, prefix or suffix, with or without a space. No currency setting
+needed.
 
 ## Context Loading Protocol
 
@@ -158,52 +160,49 @@ Find files relevant to a query by matching the \`read_when\` array against query
   },
   {
     path: "_skills/financial-table.md",
-    description: "How to create financial/budget tables with auto-totals",
+    description: "How to create financial/budget tables with formulas",
     content: `---
 title: "skill-financial-table"
 status: active
 version: "${LATEST_AGENT_VERSION}"
-scope: "How to create financial and budget tables with automatic column totals"
-read_when: [financial table, budget, expenses, debt, payments, currency, total, sum]
+scope: "How to create financial and budget tables using Excel-style formulas"
+read_when: [financial table, budget, expenses, debt, payments, currency, total, sum, formula]
 related: ["_agent-context.md"]
 tags: [agent, skill, finance, tables]
 ---
 
 # Skill: Financial Tables
 
-## Auto-Total Feature
-HermesMarkdown automatically computes \`Total:\` values on every keystroke.
+## Formula Engine
+Any table cell starting with \`=\` is a live formula, evaluated against the
+table's own cells using A1-style references: column 0 is \`A\`, column 1 is
+\`B\`, etc. Row 1 is the header row; row 2 is the first data row.
 
-**Standalone total** — sums all currency values on plain-text lines above it:
-\`\`\`
-- Salary: 18,000 RON
-- Expenses: 5,000 RON
-Total: 23,000.00 RON
-\`\`\`
+Supported: \`SUM AVERAGE MIN MAX COUNT COUNTA ABS ROUND IF AND OR NOT CONCAT\`,
+arithmetic (\`+ - * /\`), and comparisons (\`= <> < > <= >=\`).
 
-**Column total** — put \`Total:\` in a table cell to sum only that column:
+**Column total** — sum a range of cells:
 \`\`\`
 | Creditor   | Plată     | Sold rămas  |
 | :--------- | :-------- | :---------- |
 | Credit A   | 1,200 RON | 50,000 RON  |
 | Credit B   | 800 RON   | 20,000 RON  |
 | Credit C   | 300 RON   | 5,000 RON   |
-|            | Total:    | Total:      |
+|            | =SUM(B2:B4) | =SUM(C2:C4) |
 \`\`\`
-The editor fills in the computed sums automatically.
+The editor shows the computed result live; the formula itself is what's
+saved to the file.
 
-## Currency Format
-- **RON**: \`2,766 RON\` or \`2,766RON\` (suffix)
-- **USD**: \`$2,766\` or \`$2,766.50\` (prefix)
-- **EUR**: \`€2,766\` (prefix)
-Currency is set globally in Settings → Currency.
+## Currency-Agnostic
+Referenced cells can hold \`2766\`, \`2,766 RON\`, \`2766RON\`, or \`$2,766\` —
+the engine strips any recognized currency symbol (any placement, with or
+without a space) before coercing to a number. No currency setting needed.
 
 ## Rules for AI
-1. Always include a \`Total:\` cell in every numeric column of a financial table.
-2. Use the user's configured currency symbol and format — never mix formats.
-3. Leave the cell as exactly \`Total:\` — the editor computes and fills the value.
-4. For debt payoff plans: columns are typically \`Plată\` (payment) and \`Sold rămas\` (remaining balance).
-5. Do NOT hard-code the computed total — write \`Total:\` and let the editor calculate.
+1. Use a formula (\`=SUM(...)\`, \`=AVERAGE(...)\`, etc.) for any computed cell — never hard-code the result.
+2. Reference the actual data range above the formula cell with A1 notation.
+3. For debt payoff plans: columns are typically \`Plată\` (payment) and \`Sold rămas\` (remaining balance).
+4. Formulas only resolve within the same table — there's no cross-table reference support.
 `,
   },
 ];

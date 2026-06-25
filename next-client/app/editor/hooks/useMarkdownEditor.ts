@@ -1,15 +1,12 @@
 "use client";
 
 import { useRef, useEffect, useCallback, useState, useMemo } from "react";
-import { flushSync } from "react-dom";
 import { useAtomValue } from "jotai";
 import {
   atom_wordWrap,
-  atom_currency,
   atom_aiBuilderRequest,
 } from "@/app/atoms/atoms";
 import { SHORTCODES, TAG_CYCLE, TAG_CYCLE_PREV, TODO_CYCLE, TODO_CYCLE_PREV } from "../components/constants";
-import { runAutoBudget, adjustPosForRewrite } from "../utils/budget";
 import { REGEX_CALC, REGEX_CHECKBOX } from "../components/regex";
 import { highlightMarkdown } from "../components/MarkdownHighlighter";
 import { useEditorAppearance } from "./use-editor-appearance";
@@ -19,6 +16,7 @@ import { useEditorHandlers } from "./use-editor-handlers";
 import { useLinkPill } from "./use-link-pill";
 import { useTableCallout } from "./use-table-callout";
 import { useTableDialog } from "./useTableDialog";
+import { useFormulaOverlay } from "./use-formula-overlay";
 import { useAIEditorActions } from "./useAIEditorActions";
 import { extractTableSource } from "../utils/tableParser";
 import getCaretCoordinates from "textarea-caret";
@@ -53,7 +51,6 @@ export function useMarkdownEditor({
   const wrapperRef = useRef<HTMLDivElement | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const wordWrap = useAtomValue(atom_wordWrap);
-  const currencyCode = useAtomValue(atom_currency);
 
   const [isDateExpanded, setIsDateExpanded] = useState(false);
 
@@ -161,7 +158,7 @@ export function useMarkdownEditor({
     handleCycleAlign,
     handleCopyCSV,
     handleTableKeyDown,
-  } = useTableCallout({ value: displayValue, textareaRef });
+  } = useTableCallout({ value: displayValue, textareaRef, onChange: commitDisplayValue });
 
   const tableDialog = useTableDialog({ value: displayValue, textareaRef });
 
@@ -371,6 +368,8 @@ export function useMarkdownEditor({
     }
   }, [onTextareaReady]);
 
+  const { formulaBadges } = useFormulaOverlay({ value: displayValue, textareaRef, textareaMounted, isActivePane });
+
   // Real chevron buttons (rendered by MarkdownEditor, positioned here via
   // caret coordinates) — same approach already used for the date/workflow
   // pills, and the only reliable one: a click handler on the highlighted
@@ -434,14 +433,6 @@ export function useMarkdownEditor({
     handleSlashMenuTrigger(val);
     handleWikiLinkTrigger(val);
 
-    const nextVal = runAutoBudget(val, currencyCode);
-
-    // Calculate cursor offset if the content changed, using a common
-    // prefix/suffix diff so the cursor tracks correctly regardless of
-    // which lines runAutoBudget rewrote (not just the current line).
-    const adjustedStart = adjustPosForRewrite(val, nextVal, start);
-    const adjustedEnd = adjustPosForRewrite(val, nextVal, end);
-
     const calcMatch = textUpToCursor.match(REGEX_CALC);
     if (calcMatch) {
       const mathExpression = calcMatch[1];
@@ -473,35 +464,15 @@ export function useMarkdownEditor({
       }
     }
 
-    if (nextVal !== val) {
-      // Synchronously flush the state update to prevent the browser from 
-      // scrolling to the bottom of the textarea when the value is replaced.
-      const scrollPos = wrapperRef.current?.scrollTop;
-      
-      flushSync(() => {
-        commitDisplayValue(nextVal);
-      });
-
-      if (textareaRef.current) {
-        textareaRef.current.setSelectionRange(adjustedStart, adjustedEnd);
-      }
-
-      if (wrapperRef.current && scrollPos !== undefined) {
-        wrapperRef.current.scrollTop = scrollPos;
-      }
-
-      syncActiveLine();
-    } else {
-      commitDisplayValue(nextVal);
-      syncActiveLine();
-    }
-  }, [commitDisplayValue, handleSlashMenuTrigger, handleWikiLinkTrigger, syncActiveLine, currencyCode, wrapperRef]);
+    commitDisplayValue(val);
+    syncActiveLine();
+  }, [commitDisplayValue, handleSlashMenuTrigger, handleWikiLinkTrigger, syncActiveLine]);
 
   const highlight = useCallback(
     (code: string) => {
-      return highlightMarkdown(code, dateMatch, pillRange);
+      return highlightMarkdown(code, dateMatch, pillRange, tableInfo);
     },
-    [dateMatch, pillRange],
+    [dateMatch, pillRange, tableInfo],
   );
 
   return {
@@ -576,6 +547,7 @@ export function useMarkdownEditor({
     handleCopyCSV,
     tableDialog,
     handleOpenEditDialog,
+    formulaBadges,
     workflowMatch,
     workflowMenuPos,
     handleWorkflowCycle,

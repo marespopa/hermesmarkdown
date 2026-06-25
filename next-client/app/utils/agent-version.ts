@@ -1,4 +1,4 @@
-export const LATEST_AGENT_VERSION = "1.1";
+export const LATEST_AGENT_VERSION = "1.2";
 
 export function compareVersions(a: string, b: string): number {
   const partsA = a.split(".").map(Number);

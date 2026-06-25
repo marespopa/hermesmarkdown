@@ -5,7 +5,6 @@ import { useAtom, useAtomValue } from "jotai";
 import {
   atom_hasCompletedOnboarding,
   atom_isWizardOpen,
-  atom_currency,
   atom_autosaveMode
 } from "@/app/atoms/atoms";
 import {
@@ -21,14 +20,10 @@ import { SelectControl } from "@/app/editor/settings/components/SettingControls"
 import { useFileSystem } from "@/app/hooks/use-file-system";
 import {
   HiOutlineFolder,
-  HiOutlineCode,
-  HiOutlineTerminal,
-  HiOutlineChartBar,
   HiOutlineCloud,
   HiOutlineChevronRight,
   HiOutlineCheckCircle,
-  HiOutlineCurrencyDollar,
-  HiOutlineDocumentText,
+  HiOutlineRefresh,
 } from "react-icons/hi";
 
 const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
@@ -42,7 +37,6 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
   const vaultHandle = useAtomValue(atom_vaultHandle);
   const isDriveVault = useAtomValue(atom_isDriveVault);
   const driveVaultId = useAtomValue(atom_driveVaultId);
-  const [currency, setCurrency] = useAtom(atom_currency);
   const [autosaveMode, setAutosaveMode] = useAtom(atom_autosaveMode);
 
   useEffect(() => {
@@ -91,7 +85,7 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
               </p>
             </div>
             <Button variant="primary" onClick={() => setStep(1)} className="w-full h-12 rounded-2xl text-ui-footnote font-bold">
-              Get Started
+              Set up vault
             </Button>
           </div>
         );
@@ -105,7 +99,9 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
             <div className="space-y-2">
               <h2 className="text-ui-title-3 font-bold">Connect Your Vault</h2>
               <p className="text-ui-footnote opacity-60 px-4">
-                Choose where your notes live. Files stay on your device — Drive sync is opt-in.
+                Pick where your notes live. A <code className="not-italic">.hermes</code> folder
+                goes alongside them — an index for agents to read later, nothing you need to
+                touch. Drive sync is optional, on or off anytime.
               </p>
             </div>
 
@@ -153,28 +149,16 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
         return (
           <div className="flex flex-col items-center text-center space-y-6 py-4">
             <div className="w-16 h-16 bg-sage/10 rounded-2xl flex items-center justify-center text-sage">
-              <HiOutlineCurrencyDollar size={32} />
+              <HiOutlineRefresh size={32} />
             </div>
             <div className="space-y-2">
-              <h2 className="text-ui-title-3 font-bold">Quick Preferences</h2>
+              <h2 className="text-ui-title-3 font-bold">Autosave</h2>
               <p className="text-ui-footnote opacity-60 px-4">
-                Set your currency for financial tables and how your work is saved.
+                Choose when changes get written to disk. You can change this later.
               </p>
             </div>
 
             <div className="w-full space-y-4 text-left">
-              <div className="space-y-2">
-                <label className="text-[11px] font-bold uppercase tracking-wider ml-1">Currency</label>
-                <SelectControl value={currency} onChange={setCurrency}>
-                  <option value="USD">USD ($)</option>
-                  <option value="EUR">EUR (€)</option>
-                  <option value="GBP">GBP (£)</option>
-                  <option value="JPY">JPY (¥)</option>
-                  <option value="INR">INR (₹)</option>
-                  <option value="RON">RON (lei)</option>
-                </SelectControl>
-              </div>
-
               <div className="space-y-2">
                 <label className="text-[11px] font-bold uppercase tracking-wider ml-1">Autosave</label>
                 <SelectControl value={autosaveMode} onChange={(v) => setAutosaveMode(v as any)}>
@@ -200,31 +184,9 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
             <div className="space-y-2">
               <h2 className="text-ui-title-3 font-bold">You&apos;re ready to write.</h2>
               <p className="text-ui-footnote opacity-60 px-4">
-                Here&apos;s what makes HermesMarkdown different:
+                Your vault is set up. Everything else — agent indexing, syntax helpers —
+                happens as you go.
               </p>
-            </div>
-
-            <div className="grid grid-cols-2 gap-2.5 w-full">
-              <div className="p-3 rounded-2xl bg-paper-softgray dark:bg-paper-dark/30 border border-beige-light dark:border-clay text-left space-y-1.5">
-                <HiOutlineCode className="text-violet-500" size={18} />
-                <div className="text-[11px] font-bold">Agent Frontmatter</div>
-                <div className="text-[10px] opacity-50 leading-snug"><code className="not-italic">scope</code>, <code className="not-italic">read_when</code>, <code className="not-italic">related</code> — auto-generated per file.</div>
-              </div>
-              <div className="p-3 rounded-2xl bg-paper-softgray dark:bg-paper-dark/30 border border-beige-light dark:border-clay text-left space-y-1.5">
-                <HiOutlineDocumentText className="text-sky-500" size={18} />
-                <div className="text-[11px] font-bold">AGENTS.md</div>
-                <div className="text-[10px] opacity-50 leading-snug">Vault index any agent reads first — no manual context.</div>
-              </div>
-              <div className="p-3 rounded-2xl bg-paper-softgray dark:bg-paper-dark/30 border border-beige-light dark:border-clay text-left space-y-1.5">
-                <HiOutlineChartBar className="text-sage" size={18} />
-                <div className="text-[11px] font-bold">AI Score</div>
-                <div className="text-[10px] opacity-50 leading-snug">Live readability score in the status bar as you write.</div>
-              </div>
-              <div className="p-3 rounded-2xl bg-paper-softgray dark:bg-paper-dark/30 border border-beige-light dark:border-clay text-left space-y-1.5">
-                <HiOutlineTerminal className="text-amber-500" size={18} />
-                <div className="text-[11px] font-bold">Smart Syntax</div>
-                <div className="text-[10px] opacity-50 leading-snug">Type <code className="not-italic">/</code> for templates, <code className="not-italic">..d</code> for dates, auto-totals.</div>
-              </div>
             </div>
 
             <Button variant="primary" onClick={handleFinish} className="w-full h-12 rounded-2xl text-ui-footnote font-bold">

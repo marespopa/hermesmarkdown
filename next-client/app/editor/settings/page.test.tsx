@@ -31,7 +31,6 @@ vi.mock("@/app/atoms/atoms", async (importOriginal) => {
     atom_theme: { toString: () => "atom_theme" },
     atom_autosaveMode: { toString: () => "atom_autosaveMode" },
     atom_autosaveDelay: { toString: () => "atom_autosaveDelay" },
-    atom_currency: { toString: () => "atom_currency" },
     atom_autoInjectFrontmatter: { toString: () => "atom_autoInjectFrontmatter" },
     atom_showStats: { toString: () => "atom_showStats" },
   };
@@ -58,7 +57,6 @@ describe("SettingsPage", () => {
       if (atomStr === "atom_fontSize") return ["16px", vi.fn()];
       if (atomStr === "atom_autosaveMode") return ["afterDelay", vi.fn()];
       if (atomStr === "atom_autosaveDelay") return [2000, vi.fn()];
-      if (atomStr === "atom_currency") return ["USD", vi.fn()];
       if (atomStr === "atom_fontFamily") return ["MONO", vi.fn()];
       if (atomStr === "atom_lineHeight") return ["1.8", vi.fn()];
       if (atomStr === "atom_letterSpacing") return ["normal", vi.fn()];
@@ -138,22 +136,6 @@ describe("SettingsPage", () => {
 
     fireEvent.click(screen.getByText("Narrow"));
     expect(setEditorWidth).toHaveBeenCalledWith("narrow");
-  });
-
-  it("calls setter when currency option is changed", () => {
-    const setCurrency = vi.fn();
-    (useAtom as any).mockImplementation((atom: any) => {
-      const str = atom.toString();
-      if (str === "atom_currency") return ["USD", setCurrency];
-      return ["", vi.fn()];
-    });
-
-    render(<SettingsPage />);
-    openEditorSection();
-
-    const select = screen.getByDisplayValue("USD ($)");
-    fireEvent.change(select, { target: { value: "EUR" } });
-    expect(setCurrency).toHaveBeenCalledWith("EUR");
   });
 
   it("navigates back to the editor when back button is clicked", () => {
