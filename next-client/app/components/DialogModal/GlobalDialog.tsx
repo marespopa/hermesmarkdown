@@ -108,6 +108,7 @@ export default function GlobalDialog() {
               {config.multiline ? (
                 <div className="space-y-2">
                   <textarea
+                    aria-label={config.message ?? "Input"}
                     className="w-full min-h-[120px] resize-y rounded-xl border border-edge-subtle bg-paper-pale dark:bg-paper-dark px-3 py-2.5 text-ui-subhead text-fg placeholder:text-fg-faint focus:outline-none focus:ring-2 focus:ring-sage/40"
                     value={promptValue}
                     onChange={(e) => setPromptValue(e.target.value)}

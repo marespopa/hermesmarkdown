@@ -734,7 +734,7 @@ export default function LandingPage() {
 
       {/* --- TRUST SIGNALS --- */}
       <section className="py-12 border-y border-black/5 dark:border-white/5 bg-neutral-50/50 dark:bg-neutral-900/30 overflow-hidden">
-        <div className="max-w-6xl mx-auto px-6 flex flex-wrap items-center justify-center md:justify-between gap-8 opacity-40">
+        <div className="max-w-6xl mx-auto px-6 flex flex-wrap items-center justify-center md:justify-between gap-8 opacity-70">
           <div className="flex items-center gap-2 text-ui-footnote font-bold uppercase tracking-[0.3em] whitespace-nowrap">
             <span className="w-1.5 h-1.5 rounded-full bg-current" />
             No Account Required

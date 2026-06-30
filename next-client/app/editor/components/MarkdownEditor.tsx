@@ -557,7 +557,7 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
             textareaClassName={
               isCtrlPressed && isOverLink ? "!cursor-pointer" : "!cursor-text"
             }
-            {...({ autoComplete: "off" } as any)}
+            {...({ autoComplete: "off", "aria-label": "Markdown editor" } as any)}
           />
 
           {!value && (

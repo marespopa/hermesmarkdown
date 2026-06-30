@@ -205,6 +205,7 @@ export default function FrontmatterPanel({
       ) : (
         <div className="flex flex-col gap-1.5">
           <textarea
+            aria-label="Raw frontmatter YAML"
             value={rawDraft}
             onChange={(e) => applyRawDraft(e.target.value)}
             rows={Math.max(6, rawDraft.split("\n").length)}
