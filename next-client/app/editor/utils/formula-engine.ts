@@ -243,7 +243,12 @@ function tokenize(src: string): Token[] {
     if (/\d/.test(ch) || (ch === "." && /\d/.test(src[i + 1] || ""))) {
       let j = i;
       while (j < n && /[\d.]/.test(src[j])) j++;
-      tokens.push({ type: "NUMBER", value: src.slice(i, j) });
+      let numStr = src.slice(i, j);
+      if (j < n && src[j] === "%") {
+        numStr = String(parseFloat(numStr) / 100);
+        j++;
+      }
+      tokens.push({ type: "NUMBER", value: numStr });
       i = j;
       continue;
     }
@@ -263,6 +268,7 @@ type Node =
   | { kind: "bool"; value: boolean }
   | { kind: "ref"; row: number; col: number }
   | ({ kind: "range" } & RangeRef)
+  | { kind: "col"; col: number }
   | { kind: "unary"; op: "-"; arg: Node }
   | { kind: "binary"; op: string; left: Node; right: Node }
   | { kind: "call"; name: string; args: Node[] };
@@ -305,6 +311,10 @@ function parseFormulaTokens(tokens: Token[]): Node {
         }
         expect("RPAREN");
         return { kind: "call", name: upper, args };
+      }
+      // Bare A-Z identifier (not a bool) = whole-column reference, e.g. SUM(B)
+      if (/^[A-Za-z]+$/.test(t.value) && upper !== "TRUE" && upper !== "FALSE") {
+        return { kind: "col", col: letterToColIndex(upper) };
       }
       throw new ParseError("#NAME?");
     }
@@ -624,6 +634,7 @@ export function evaluateTable(data: TableData): Map<string, FormulaCellResult> {
   // (a stack, via this one mutable slot) so a dependency's references don't
   // bleed into the cell that's asking for them.
   let currencyVotes: Map<string, boolean> | null = null;
+  let currentEvalRow = -1;
 
   function recordCurrency(text: string) {
     if (!currencyVotes) return;
@@ -668,7 +679,9 @@ export function evaluateTable(data: TableData): Map<string, FormulaCellResult> {
 
     evaluating.add(k);
     const prevVotes = currencyVotes;
+    const prevEvalRow = currentEvalRow;
     currencyVotes = new Map();
+    currentEvalRow = row;
     let value: FormulaValue;
     let ast: Node | null = null;
     try {
@@ -677,6 +690,7 @@ export function evaluateTable(data: TableData): Map<string, FormulaCellResult> {
     } catch (e) {
       value = new FormulaError(e instanceof ParseError ? e.code : "#VALUE!");
     }
+    currentEvalRow = prevEvalRow;
     // COUNT/COUNTA return a dimensionless count, not a currency amount, even
     // when counting cells in a currency column.
     const isCountFn = ast?.kind === "call" && (ast.name === "COUNT" || ast.name === "COUNTA");
@@ -702,6 +716,20 @@ export function evaluateTable(data: TableData): Map<string, FormulaCellResult> {
     return out;
   }
 
+  function flattenColumn(col: number): FormulaValue[] | FormulaError {
+    const out: FormulaValue[] = [];
+    const lastRow = data.rows.length + 1; // last A1 data row index
+    for (let r = 2; r <= lastRow; r++) {
+      if (r === currentEvalRow) continue; // skip the formula's own row
+      const rowCells = data.rows[r - 2];
+      if (rowCells.every((c) => !c || c.trim() === "")) continue; // skip spacer rows
+      const v = evalCell(r, col);
+      if (isFormulaError(v)) return v;
+      out.push(v);
+    }
+    return out;
+  }
+
   function evalNode(node: Node): FormulaValue {
     switch (node.kind) {
       case "num":
@@ -713,7 +741,9 @@ export function evaluateTable(data: TableData): Map<string, FormulaCellResult> {
       case "ref":
         return evalCell(node.row, node.col);
       case "range":
-        // A bare range with no aggregating function around it has no scalar value.
+        // A bare range/column with no aggregating function around it has no scalar value.
+        return new FormulaError("#VALUE!");
+      case "col":
         return new FormulaError("#VALUE!");
       case "unary": {
         const v = evalNode(node.arg);
@@ -733,6 +763,10 @@ export function evaluateTable(data: TableData): Map<string, FormulaCellResult> {
         for (const a of node.args) {
           if (a.kind === "range") {
             const flattened = flattenRange(a);
+            if (isFormulaError(flattened)) return flattened;
+            argValues.push(...flattened);
+          } else if (a.kind === "col") {
+            const flattened = flattenColumn(a.col);
             if (isFormulaError(flattened)) return flattened;
             argValues.push(...flattened);
           } else {

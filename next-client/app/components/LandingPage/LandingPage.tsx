@@ -1004,26 +1004,34 @@ export default function LandingPage() {
             <p className="text-neutral-600 dark:text-neutral-400 leading-relaxed">
               Type{" "}
               <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">
-                =SUM(B2:D2)
+                =
               </code>{" "}
-              into any table cell — Excel-style formulas with cell references,
-              ranges, and functions like{" "}
+              into any table cell and a function autocomplete appears — keep
+              typing to filter, arrow keys to navigate, Enter to insert.
+              Formulas support cell references, ranges, percentage literals
+              like{" "}
+              <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">
+                =8.5%*B2
+              </code>
+              , and 13 functions including{" "}
+              <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">
+                SUM
+              </code>
+              ,{" "}
               <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">
                 AVERAGE
-              </code>{" "}
-              and{" "}
+              </code>
+              , and{" "}
               <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">
                 IF
               </code>
-              , computed live right where you're typing. Click cells to build a
-              reference instead of typing it — Excel-style point mode — and
-              currency symbols in referenced cells carry through to the result
-              automatically, no setup needed. Type{" "}
+              . Click cells to build references instead of typing — point mode
+              — and currency symbols carry through to the result automatically.
+              Type{" "}
               <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">
                 /
               </code>{" "}
-              for the template menu — Daily Note, Meeting Notes, and more.
-              Shortcodes expand inline:{" "}
+              for the template menu. Shortcodes expand inline:{" "}
               <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">
                 ..d
               </code>{" "}
@@ -1031,7 +1039,7 @@ export default function LandingPage() {
               <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">
                 calc()
               </code>{" "}
-              for inline expressions.
+              for inline math.
             </p>
           </div>
         </section>

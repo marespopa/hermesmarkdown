@@ -366,12 +366,12 @@ tags: [engineering, meeting, template]
 const financeFiles: ManagedFile[] = [
   {
     path: "budget-tracker.md",
-    description: "Monthly budget with income and expense tables",
+    description: "Monthly budget with income, expenses, and net summary",
     content: `---
 title: "budget-tracker"
 status: active
-scope: "Monthly income and expense budget with running totals"
-read_when: [budget, expenses, monthly finances, spending, income]
+scope: "Monthly income and expense budget with running totals, savings target, and net balance"
+read_when: [budget, expenses, monthly finances, spending, income, savings]
 related: ["debt-tracker.md", "recurring-expenses.md"]
 tags: [finance, budget]
 ---
@@ -381,60 +381,81 @@ tags: [finance, budget]
 ## Income
 
 | Source | Amount |
-|--------|--------|
-| Salary | 5,000 RON |
-| Freelance | 800 RON |
-| Total | =SUM(B2:B3) |
+|--------|-------:|
+| Salary | $5,000 |
+| Freelance | $800 |
+| Side project | $400 |
+| Total | =SUM(B2:B4) |
 
 ## Expenses
 
 | Category | Amount |
-|----------|--------|
-| Rent | 1,800 RON |
-| Groceries | 600 RON |
-| Utilities | 250 RON |
-| Transport | 200 RON |
-| Total | =SUM(B2:B5) |
+|----------|-------:|
+| Rent | $1,800 |
+| Groceries | $600 |
+| Utilities | $250 |
+| Transport | $200 |
+| Subscriptions | $307 |
+| Total | =SUM(B2:B6) |
+
+## Summary
+
+| | Amount |
+|--|-------:|
+| Income | $6,200 |
+| Expenses | $3,157 |
+| Net | =B2-B3 |
+| Savings target (20%) | =20%*B2 |
+| Saving enough? | =IF(B4>=B5,"Yes ✓","No ✗") |
 
 ---
 
 > [!tip] Formulas
-> Cells like \`=SUM(B2:B3)\` are computed automatically. Currency symbols (RON, $, €) are stripped before calculation — write amounts in whichever format you prefer. To track your net, subtract your Expenses total from your Income total manually, or add a third table with a fixed value.
+> Cells starting with \`=\` are live formulas — type \`=\` in any cell to see all available functions. The \`$\` currency symbol carries through to results automatically. \`=20%*B2\` is shorthand for 20 ÷ 100 × B2.
 `,
   },
   {
     path: "debt-tracker.md",
-    description: "Active debts and monthly payment schedule",
+    description: "Active debts, balances, interest costs, and payoff schedule",
     content: `---
 title: "debt-tracker"
 status: active
-scope: "Active debts, balances, and monthly payment schedule"
-read_when: [debt, loans, payoff, liabilities, credit]
+scope: "Active debts with balances, monthly payments, interest costs, and payoff schedule"
+read_when: [debt, loans, payoff, liabilities, credit, interest]
 related: ["budget-tracker.md", "recurring-expenses.md"]
 tags: [finance, debt]
 ---
 
 # Debt Tracker
 
-| Creditor | Balance | Monthly Payment | Remaining Months |
-|----------|---------|-----------------|------------------|
-| Bank loan | 12,000 RON | 500 RON | 24 |
-| Credit card | 2,400 RON | 300 RON | 8 |
-| Friend loan | 1,000 RON | 200 RON | 5 |
-| Total | =SUM(B2:B4) | =SUM(C2:C4) | — |
+| Creditor | Balance | Rate | Monthly Interest | Monthly Payment | Months Left |
+|----------|--------:|-----:|-----------------:|----------------:|------------:|
+| Bank loan | $12,000 | 8.5% | =8.5%*B2/12 | $500 | 24 |
+| Credit card | $2,400 | 24% | =24%*B3/12 | $300 | 8 |
+| Friend loan | $1,000 | 0% | $0 | $200 | 5 |
+| **Total** | =SUM(B2:B4) | — | =SUM(D2:D4) | =SUM(E2:E4) | — |
+
+## Payoff Stats
+
+| | Value |
+|--|------:|
+| Total debt | =SUM(B2:B4) |
+| Avg monthly interest | =AVERAGE(D2:D3) |
+| Highest balance | =MAX(B2:B4) |
 
 ---
 
-**Payoff tip:** Sort by interest rate (highest first) and direct extra payments there — this is the avalanche method and minimises total interest paid.
+> [!tip] Avalanche method
+> Pay minimums on all debts, then direct extra cash to the highest-rate one first — this minimises total interest paid. Sort by Rate descending to see the priority order.
 `,
   },
   {
     path: "recurring-expenses.md",
-    description: "Monthly recurring subscriptions and fixed costs",
+    description: "Monthly subscriptions and fixed costs normalised to monthly amounts",
     content: `---
 title: "recurring-expenses"
 status: active
-scope: "Monthly recurring subscriptions and fixed costs, normalised to monthly amounts"
+scope: "Monthly recurring subscriptions and fixed costs, normalised to monthly amounts with average and total"
 read_when: [subscriptions, recurring, fixed costs, monthly outgoings]
 related: ["budget-tracker.md", "debt-tracker.md"]
 tags: [finance, expenses, subscriptions]
@@ -442,20 +463,23 @@ tags: [finance, expenses, subscriptions]
 
 # Recurring Expenses
 
-| Service | Amount | Frequency | Monthly Equivalent |
-|---------|--------|-----------|--------------------|
-| Internet | 60 RON | Monthly | 60 RON |
-| Phone plan | 40 RON | Monthly | 40 RON |
-| Streaming A | 45 RON | Monthly | 45 RON |
-| Streaming B | 120 RON | Annual | 10 RON |
-| Cloud storage | 24 RON | Annual | 2 RON |
-| Gym | 150 RON | Monthly | 150 RON |
-| Total | — | — | =SUM(D2:D7) |
+| Service | Billed | Frequency | Monthly |
+|---------|-------:|:---------:|--------:|
+| Internet | $60 | Monthly | $60 |
+| Phone plan | $40 | Monthly | $40 |
+| Streaming A | $45 | Monthly | $45 |
+| Streaming B | $120 | Annual | =ROUND(B5/12,0) |
+| Cloud storage | $36 | Annual | =ROUND(B6/12,0) |
+| Gym | $150 | Monthly | $150 |
+| News | $84 | Annual | =ROUND(B8/12,0) |
+| Total | — | — | =SUM(D2:D8) |
+| Average | — | — | =AVERAGE(D2:D8) |
+| Share of $5,000 salary | — | — | =ROUND(D9/5000*100,1) |
 
 ---
 
 > [!tip] Annual subscriptions
-> Divide annual costs by 12 to compare them fairly with monthly ones. The "Monthly Equivalent" column already does this.
+> Annual costs are divided by 12 using \`=ROUND(B/12, 0)\` so they compare fairly with monthly ones. The last row shows what percentage of a $5,000 salary these subscriptions consume.
 `,
   },
 ];

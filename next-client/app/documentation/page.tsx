@@ -407,31 +407,42 @@ const GROUPS: Group[] = [
               renders live in both the editor and the dialog; the formula itself is what's saved to the
               file.
             </p>
-            <Code>{`| Item | Amount             |
-| ---- | ------------------- |
-| Rent | $2,000              |
-| Food | $400                |
-|      | =SUM(B2:B3) → $2,400 |`}</Code>
+            <Code>{`| Item    | Amount                   |
+| ------- | ------------------------ |
+| Rent    | $2,000                   |
+| Food    | $400                     |
+| Total   | =SUM(B2:B3)              |
+| Tax     | =8.5%*B4                 |
+| Savings | =IF(B4>2000,"Yes","No")  |`}</Code>
             <p>
               Referenced cells can hold <code>2000</code>, <code>$2,000</code>, or{" "}
-              <code>2,000 RON</code> — any placement, with or without a space — and still resolve as a
-              number. The result formats back as that same currency automatically; summing a column of
-              RON values produces a RON total with no currency setting required.
+              <code>€1,500</code> — currency symbol, any placement, with or without a space — and
+              still resolve as a number. The result formats back as that same currency
+              automatically; summing a column of <code>$</code> values produces a{" "}
+              <code>$</code> total with no setup required.
             </p>
             <p>
-              In the dialog, typing <code>=</code> into a cell switches into point mode: click another
-              cell to insert its reference, Shift+click for a range, or a column letter for the whole
-              column — without losing your place in the formula.
+              Percentage literals work directly: <code>8.5%</code> evaluates to{" "}
+              <code>0.085</code>, so <code>=8.5%*B2</code> and <code>=B2*0.085</code> are
+              equivalent.
+            </p>
+            <p>
+              In the dialog, typing <code>=</code> into a cell opens a function autocomplete —
+              keep typing to filter (<code>=SU</code> narrows to SUM), arrow keys move the
+              selection, Enter inserts with the opening parenthesis. It also switches into point
+              mode: click another cell to insert its A1 reference, Shift+click for a range, or a
+              column letter for the whole column — without losing your place in the formula.
             </p>
             <KV
               rows={[
-                { label: "calc(100+50)=", value: "150" },
+                { label: "Function autocomplete", value: "Type = in any cell" },
                 { label: "Insert =SUM(...) row", value: "Σ in dialog toolbar" },
+                { label: "calc(100+50)=", value: "150 (inline shortcode)" },
               ]}
             />
             <Callout type="tip">
               Functions: SUM · AVERAGE · MIN · MAX · COUNT · COUNTA · ABS · ROUND · IF · AND · OR · NOT ·
-              CONCAT.
+              CONCAT. Arithmetic and comparisons work anywhere: <code>=IF(A2&gt;0, SUM(B), 0)</code>.
             </Callout>
           </>
         ),

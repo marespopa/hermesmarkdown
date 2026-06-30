@@ -1,12 +1,44 @@
 "use client";
 
 import React, { useRef, useEffect, useCallback, useState, useMemo } from "react";
+import { createPortal } from "react-dom";
 import { IoTrashOutline, IoCalculatorOutline, IoChevronBackOutline, IoChevronForwardOutline } from "react-icons/io5";
 import DialogModal from "../../components/DialogModal/DialogModal";
 import Button from "../../components/Button";
 import type { Alignment } from "../utils/tableParser";
 import type { SortState } from "../utils/tableSorter";
 import { evaluateTable, isFormulaCell, colIndexToLetter, type RangeRef } from "../utils/formula-engine";
+
+const AC_FUNCTIONS = ["SUM", "AVERAGE", "MIN", "MAX", "COUNT", "COUNTA", "ABS", "ROUND", "IF", "AND", "OR", "NOT", "CONCAT"];
+
+// Measures the pixel x-coordinate of the caret inside a text <input> in
+// viewport space, accounting for text that has scrolled out of view.
+function getCaretLeft(input: HTMLInputElement, caretPos: number): number {
+  const style = window.getComputedStyle(input);
+  const mirror = document.createElement("span");
+  mirror.style.cssText = `position:fixed;visibility:hidden;white-space:pre;font:${style.font};letter-spacing:${style.letterSpacing};`;
+  mirror.textContent = input.value.slice(0, caretPos);
+  document.body.appendChild(mirror);
+  const textWidth = mirror.getBoundingClientRect().width;
+  document.body.removeChild(mirror);
+  const rect = input.getBoundingClientRect();
+  const paddingLeft = parseFloat(style.paddingLeft) || 0;
+  const x = rect.left + paddingLeft + textWidth - input.scrollLeft;
+  return Math.min(Math.max(x, rect.left), rect.right);
+}
+
+// Returns the function name being typed at the caret, or null if not in a
+// function-name position. Matches letters immediately after = or an operator/paren.
+function detectFnAtCaret(value: string, caretPos: number): { query: string; start: number } | null {
+  if (!value.startsWith("=") || caretPos < 1) return null;
+  const before = value.slice(0, caretPos);
+  const m = /(?:^=|[+\-*/,(])([A-Za-z]*)$/.exec(before);
+  if (!m) return null;
+  const query = m[1];
+  const afterEquals = m[0].startsWith("=");
+  if (query.length === 0 && !afterEquals) return null;
+  return { query: query.toUpperCase(), start: caretPos - query.length };
+}
 
 // Plain text ("+ Above" etc.) instead of directional arrow icons — arrows
 // read as cursor movement, not as an insert action.
@@ -133,6 +165,13 @@ export function TableDialog({
   const [selectionAnchor, setSelectionAnchor] = useState<FocusedCell | null>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
+
+  // Formula autocomplete: which cell is showing the popup and what's typed so far.
+  const [acState, setAcState] = useState<{
+    rowIdx: number; colIdx: number; query: string; start: number; end: number;
+    x: number; top: number; bottom: number; // viewport-space anchor (input top/bottom + caret x)
+  } | null>(null);
+  const [acActiveIdx, setAcActiveIdx] = useState(0);
 
   const getCellEl = <T extends HTMLElement = HTMLElement>(selector: string) =>
     document.querySelector<T>(selector);
@@ -428,6 +467,15 @@ export function TableDialog({
   // into editing the next cell (keeps fast spreadsheet-style data entry).
   const handleEditKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLInputElement>, rowIdx: number, colIdx: number) => {
+      // Formula autocomplete navigation takes priority when the popup is open.
+      if (acState && acState.rowIdx === rowIdx && acState.colIdx === colIdx) {
+        const filtered = AC_FUNCTIONS.filter((fn) => fn.startsWith(acState.query));
+        if (e.key === "ArrowDown") { e.preventDefault(); setAcActiveIdx((i) => Math.min(i + 1, filtered.length - 1)); return; }
+        if (e.key === "ArrowUp") { e.preventDefault(); setAcActiveIdx((i) => Math.max(i - 1, 0)); return; }
+        if (e.key === "Enter" && filtered.length > 0) { e.preventDefault(); e.stopPropagation(); insertAcFunction(filtered[acActiveIdx] ?? filtered[0], rowIdx, colIdx); return; }
+        if (e.key === "Escape") { e.preventDefault(); setAcState(null); return; }
+      }
+
       if (e.key === "Enter") {
         e.stopPropagation();
         e.preventDefault();
@@ -463,10 +511,25 @@ export function TableDialog({
   const handleAddFormulaRow = useCallback(() => {
     const newRowIdx = rows.length;
     const colLetter = colIndexToLetter(focusedCol);
-    const formula = rows.length > 0 ? `=SUM(${colLetter}2:${colLetter}${rows.length + 1})` : "=0";
+    const formula = rows.length > 0 ? `=SUM(${colLetter})` : "=0";
     onAddRow();
     setTimeout(() => onCellChange(newRowIdx, focusedCol, formula), 50);
   }, [rows.length, onAddRow, onCellChange, focusedCol]);
+
+  const insertAcFunction = useCallback((fnName: string, rowIdx: number, colIdx: number) => {
+    if (!acState) return;
+    const currentValue = rowIdx === -1 ? headers[colIdx] : rows[rowIdx]?.[colIdx] ?? "";
+    const newValue = currentValue.slice(0, acState.start) + fnName + "(" + currentValue.slice(acState.end);
+    if (rowIdx === -1) onHeaderChange(colIdx, newValue);
+    else onCellChange(rowIdx, colIdx, newValue);
+    setAcState(null);
+    const caretPos = acState.start + fnName.length + 1;
+    setTimeout(() => {
+      const el = getCellEl<HTMLInputElement>(inputSelector(rowIdx, colIdx));
+      el?.focus();
+      el?.setSelectionRange(caretPos, caretPos);
+    }, 0);
+  }, [acState, headers, rows, onHeaderChange, onCellChange]);
 
   // Recomputed whenever the grid's own data changes — table sizes here are
   // small (tens of cells), so a full recompute per render is cheap and
@@ -767,9 +830,18 @@ export function TableDialog({
                                 setPointSpan(null);
                                 setPointRange(null);
                                 onCellChange(ri, ci, e.target.value);
+                                const pos = e.target.selectionStart ?? e.target.value.length;
+                                const det = detectFnAtCaret(e.target.value, pos);
+                                if (det) {
+                                  const r = e.target.getBoundingClientRect();
+                                  setAcState({ rowIdx: ri, colIdx: ci, query: det.query, start: det.start, end: pos, x: getCaretLeft(e.target, pos), top: r.top, bottom: r.bottom });
+                                  setAcActiveIdx(0);
+                                } else {
+                                  setAcState(null);
+                                }
                               }}
                               onKeyDown={(e) => handleEditKeyDown(e, ri, ci)}
-                              onBlur={() => setEditingCell(null)}
+                              onBlur={() => { setEditingCell(null); setAcState(null); }}
                               placeholder="…"
                               style={{ textAlign: alignments[ci] }}
                               className="w-full px-2 py-1.5 bg-transparent text-ui-footnote tabular-nums text-ink-light dark:text-ink-dark focus:outline-none placeholder:text-beige dark:placeholder:text-fg-faint"
@@ -918,6 +990,49 @@ export function TableDialog({
           <Button variant="primary" onClick={onConfirm}>{confirmLabel}</Button>
         </div>
       </div>
+
+      {/* Formula function autocomplete — portalled to body so fixed coords
+          are always relative to the viewport, not the dialog's stacking context. */}
+      {(() => {
+        if (!acState) return null;
+        const filtered = AC_FUNCTIONS.filter((fn) => fn.startsWith(acState.query));
+        if (filtered.length === 0) return null;
+
+        // visualViewport reflects the shrunk viewport when the soft keyboard is
+        // open on mobile; innerHeight does not.
+        const vh = window.visualViewport?.height ?? window.innerHeight;
+        const vw = window.visualViewport?.width ?? window.innerWidth;
+        const estimatedH = filtered.length * 40;
+        const spaceBelow = vh - acState.bottom - 8;
+        const showAbove = spaceBelow < estimatedH && acState.top > estimatedH;
+        // Clamp left so the dropdown never bleeds off the right edge.
+        const left = Math.min(acState.x, vw - 136);
+        const posStyle: React.CSSProperties = showAbove
+          ? { position: "fixed", bottom: vh - acState.top + 4, left }
+          : { position: "fixed", top: acState.bottom + 4, left };
+
+        return createPortal(
+          <ul role="listbox" style={posStyle} className="z-[9999] min-w-[8rem] bg-paper-light dark:bg-paper-dark-surface border border-edge rounded-lg shadow-xl py-1">
+            {filtered.map((fn, i) => (
+              <li
+                key={fn}
+                role="option"
+                aria-selected={i === acActiveIdx}
+                onPointerDown={(e) => { e.preventDefault(); insertAcFunction(fn, acState.rowIdx, acState.colIdx); }}
+                className={`
+                  px-3 py-2.5 sm:py-1.5 text-ui-micro font-mono cursor-pointer select-none
+                  ${i === acActiveIdx
+                    ? "bg-sage/15 text-ink-light dark:text-ink-dark"
+                    : "text-ink-muted dark:text-stone hover:bg-paper-softgray dark:hover:bg-paper-dark-surface/60"}
+                `}
+              >
+                {fn}
+              </li>
+            ))}
+          </ul>,
+          document.body,
+        );
+      })()}
     </DialogModal>
   );
 }
