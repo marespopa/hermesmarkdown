@@ -10,7 +10,7 @@ import Button from "@/app/components/Button/Button.component";
 
 function Code({ children }: { children: ReactNode }) {
   return (
-    <pre className="p-5 bg-neutral-900 dark:bg-black/40 text-neutral-100 rounded-2xl overflow-x-auto font-mono text-sm leading-relaxed">
+    <pre className="p-5 bg-neutral-900 dark:bg-black/40 text-neutral-100 rounded-2xl overflow-x-auto font-mono text-sm leading-relaxed w-full min-w-0">
       <code>{children}</code>
     </pre>
   );
@@ -36,7 +36,7 @@ function KV({ rows }: { rows: { label: ReactNode; value: ReactNode }[] }) {
     <div className="p-5 sm:p-8 bg-neutral-50/50 dark:bg-neutral-900/30 backdrop-blur-sm rounded-3xl border border-black/5 dark:border-white/5">
       {rows.map((r, i) => (
         <div key={i} className="flex flex-wrap justify-between border-b border-black/5 dark:border-white/5 py-3 sm:py-4 last:border-none items-baseline gap-x-4 gap-y-1">
-          <span className="text-sm font-medium min-w-0 shrink">{r.label}</span>
+          <span className="text-sm font-medium min-w-0 shrink break-words">{r.label}</span>
           <span className="opacity-40 italic text-right text-ui-footnote uppercase tracking-wider font-bold shrink-0 max-w-full break-words">{r.value}</span>
         </div>
       ))}
@@ -1145,13 +1145,13 @@ export default function Documentation() {
         </div>
       )}
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-20 lg:pt-32 pb-20 lg:pb-32 flex flex-col lg:flex-row gap-12 lg:gap-16 items-start">
+      <div className="container pt-20 lg:pt-32 pb-20 lg:pb-32 flex flex-col lg:flex-row gap-12 lg:gap-16 items-start">
 
         <aside className="hidden lg:flex w-52 xl:w-56 shrink-0 sticky top-24 self-start max-h-[calc(100vh-7rem)] overflow-y-auto p-1.5">
           <NavContent />
         </aside>
 
-        <div className="flex-1 min-w-0 space-y-20 lg:space-y-24">
+        <div className="flex-1 min-w-0 w-full space-y-20 lg:space-y-24">
 
           <section className="space-y-8 animate-hero-fade-in">
             <Button
@@ -1162,7 +1162,7 @@ export default function Documentation() {
               ← Back
             </Button>
             <div className="space-y-4">
-              <h1 className="text-4xl sm:text-5xl md:text-8xl font-bold tracking-tight leading-[1.05]">
+              <h1 className="text-3xl sm:text-5xl md:text-8xl font-bold tracking-tight leading-[1.05]">
                 Product{" "}
                 <span className="text-neutral-600 dark:text-neutral-400 italic font-serif">Documentation.</span>
               </h1>
@@ -1189,7 +1189,7 @@ export default function Documentation() {
                     >
                       <h3 className="text-lg md:text-xl font-medium tracking-tight">{item.title}</h3>
                       <p className="text-neutral-500 dark:text-neutral-400 leading-relaxed text-lg">{item.lead}</p>
-                      <div className="space-y-5 [&_h4]:text-lg [&_h4]:font-bold [&_h4]:tracking-tight [&_p]:text-neutral-500 [&_p]:dark:text-neutral-400 [&_p]:leading-relaxed [&_p]:text-base">
+                      <div className="space-y-5 [&_h4]:text-lg [&_h4]:font-bold [&_h4]:tracking-tight [&_p]:text-neutral-500 [&_p]:dark:text-neutral-400 [&_p]:leading-relaxed [&_p]:text-base [&_p]:break-words [&_li]:break-words">
                         {item.body}
                       </div>
                     </article>

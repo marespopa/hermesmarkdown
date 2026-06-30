@@ -10,9 +10,9 @@ export default function Footer() {
     <ClientOnly>
       <footer
         data-testid="GlobalFooter"
-        className="pt-24 pb-12 bg-neutral-900 dark:bg-neutral-950 text-ink-dark border-t border-white/5 font-sans selection:bg-sage/40 selection:text-white"
+        className="pt-16 md:pt-24 pb-10 md:pb-12 bg-neutral-900 dark:bg-neutral-950 text-ink-dark border-t border-white/5 font-sans selection:bg-sage/40 selection:text-white"
       >
-        <div className="container max-w-6xl mx-auto px-6">
+        <div className="container max-w-6xl">
           <div className="flex flex-col md:flex-row justify-between w-full items-start gap-12 md:gap-8">
             <div className="flex flex-col gap-6 max-w-sm">
               <div className="space-y-2">
@@ -69,9 +69,9 @@ export default function Footer() {
             </div>
           </div>
           
-          <div className="mt-20 pt-8 border-t border-white/5 flex flex-col sm:flex-row justify-between items-center gap-2 opacity-50 text-ui-footnote uppercase tracking-[0.2em] font-bold">
-             <span>© {new Date().getFullYear()} HermesMarkdown. All rights reserved.</span>
-             <span>v{packageJson.version}</span>
+          <div className="mt-16 pt-8 border-t border-white/5 flex flex-row flex-wrap justify-between items-baseline gap-x-6 gap-y-2">
+             <span className="text-ui-footnote uppercase tracking-[0.2em] font-bold opacity-50">© {new Date().getFullYear()} HermesMarkdown. All rights reserved.</span>
+             <span className="text-[10px] uppercase tracking-[0.15em] font-bold opacity-25 shrink-0">v{packageJson.version}</span>
           </div>
         </div>
       </footer>

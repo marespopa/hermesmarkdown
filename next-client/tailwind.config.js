@@ -7,6 +7,15 @@ module.exports = {
   ],
   darkMode: "class",
   theme: {
+    container: {
+      center: true,
+      padding: {
+        DEFAULT: '1rem',
+        sm: '1.5rem',
+        lg: '2rem',
+        xl: '2.5rem',
+      },
+    },
     extend: {
       fontSize: {
         'ui-title-1': ['1.75rem', { lineHeight: '2.25rem', letterSpacing: '-0.022em' }], // 28px
