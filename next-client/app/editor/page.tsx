@@ -23,6 +23,7 @@ import VaultSetupWizard from "./components/VaultSetupWizard";
 import FrontmatterWizard from "./components/FrontmatterWizard";
 import SchemaWizard from "./components/SchemaWizard";
 import VaultMigrateWizard from "./components/VaultMigrateWizard";
+import NewVaultDialog from "./components/NewVaultDialog";
 import WorkspaceSplitter from "./components/WorkspaceSplitter";
 import VaultPendingOverlay from "./components/VaultPendingOverlay";
 import DriveReconnectBanner from "./components/DriveReconnectBanner";
@@ -381,6 +382,7 @@ export default function LiteEditor() {
         <FrontmatterWizard />
         <SchemaWizard />
         <VaultMigrateWizard />
+        <NewVaultDialog />
         <ConflictDialog />
         <DocInfoPanel />
         {isVaultPending && <VaultPendingOverlay restoreVault={restoreVault} isDriveVault={isDriveVault} />}

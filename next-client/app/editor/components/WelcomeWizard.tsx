@@ -38,7 +38,10 @@ import {
   HiOutlineColorSwatch,
   HiOutlineArrowLeft,
   HiCheck,
+  HiOutlineFolderAdd,
 } from "react-icons/hi";
+import { useCreateVault } from "@/app/hooks/file-system/use-create-vault";
+import CreateVaultSubSteps from "./CreateVaultSubSteps";
 
 const TOTAL_STEPS = 6;
 
@@ -49,6 +52,7 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
   const [isMounted, setIsMounted] = useState(false);
 
   const { openVault, openDriveVaultPicker, isVaultSupported } = useFileSystem();
+  const createVaultFlow = useCreateVault();
 
   const vaultHandle = useAtomValue(atom_vaultHandle);
   const isDriveVault = useAtomValue(atom_isDriveVault);
@@ -114,6 +118,9 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
         );
 
       case 1:
+        if (createVaultFlow.subStep) {
+          return <CreateVaultSubSteps {...createVaultFlow} />;
+        }
         return (
           <div className="flex flex-col items-center text-center space-y-6 py-4">
             <div className="w-16 h-16 bg-amber-50 dark:bg-amber-900/20 rounded-2xl flex items-center justify-center text-amber-600 dark:text-amber-400">
@@ -131,6 +138,22 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
             <div className="grid grid-cols-1 gap-3 w-full">
               <Button
                 variant="secondary"
+                onClick={createVaultFlow.startCreationFlow}
+                disabled={!isVaultSupported}
+                className="flex items-center justify-between px-5 h-14 rounded-2xl border border-edge bg-paper-light dark:bg-paper-dark"
+              >
+                <div className="flex items-center gap-3">
+                  <HiOutlineFolderAdd className="text-sage" size={24} />
+                  <div className="text-left">
+                    <div className="font-bold text-ui-footnote">Create New Vault</div>
+                    <div className="text-[10px] opacity-50 uppercase tracking-wider font-bold">New folder · Starter packs</div>
+                  </div>
+                </div>
+                <HiOutlineChevronRight opacity={0.3} />
+              </Button>
+
+              <Button
+                variant="secondary"
                 onClick={openVault}
                 disabled={!isVaultSupported}
                 className="flex items-center justify-between px-5 h-14 rounded-2xl border border-edge bg-paper-light dark:bg-paper-dark"
@@ -138,7 +161,7 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
                 <div className="flex items-center gap-3">
                   <HiOutlineFolder className="text-amber-500" size={24} />
                   <div className="text-left">
-                    <div className="font-bold text-ui-footnote">Local Folder</div>
+                    <div className="font-bold text-ui-footnote">Open Existing Folder</div>
                     <div className="text-[10px] opacity-50 uppercase tracking-wider font-bold">Offline · No upload</div>
                   </div>
                 </div>
@@ -359,7 +382,17 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
 
   // Step 2 auto-advances from step 1 once a vault is connected, so going back there
   // would immediately bounce forward again — disable the back arrow on that landing.
-  const canGoBack = step > 0 && step !== 2;
+  // Within step 1's creation sub-flow, the back arrow navigates sub-steps instead.
+  const inCreationSubStep = step === 1 && !!createVaultFlow.subStep && createVaultFlow.subStep !== "installing";
+  const canGoBack = inCreationSubStep || (step > 0 && step !== 2);
+
+  const handleBack = () => {
+    if (inCreationSubStep) {
+      createVaultFlow.goBack();
+    } else if (canGoBack) {
+      setStep(step - 1);
+    }
+  };
 
   return (
     <DialogModal
@@ -374,7 +407,7 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
           <div className="flex items-center justify-between mb-5">
             <button
               type="button"
-              onClick={() => canGoBack && setStep(step - 1)}
+              onClick={handleBack}
               aria-label="Back"
               tabIndex={canGoBack ? 0 : -1}
               className={`p-1.5 -ml-1.5 rounded-full transition-all active:scale-90 ${

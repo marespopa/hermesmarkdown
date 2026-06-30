@@ -341,6 +341,47 @@ export function useVaultManager() {
     [setVaultSchema, schemaAutoCreate, dialog],
   );
 
+  const initVaultFromHandle = useCallback(async (
+    handle: FileSystemDirectoryHandle,
+    options?: {
+      isNewVault?: boolean;
+      overrideSetupStatus?: "idle" | "checking" | "needs_setup" | "configured" | "skipped";
+      skipFrontmatterPrompt?: boolean;
+    }
+  ) => {
+    const { isNewVault = false, overrideSetupStatus, skipFrontmatterPrompt = false } = options ?? {};
+
+    setFileMetadata({});
+    setOpenFiles({});
+    setWorkspaceLayout({
+      rootContainer: {
+        id: "default-pane",
+        type: "editor",
+        openFilePaths: [],
+        activeFilePath: null as any,
+        isPinned: false,
+      },
+    });
+    setVaultHandle(handle);
+    setCurrentDirectoryHandle(handle);
+    setIsVaultPending(false);
+    detectCloudVault(handle);
+    await saveVaultHandle(handle);
+    await scanVault(handle);
+    await indexVaultTags(handle);
+    await rebindHandles(handle);
+
+    if (overrideSetupStatus !== undefined) {
+      setVaultSetupStatus(overrideSetupStatus);
+    } else {
+      await checkVaultSetup(handle);
+    }
+
+    await loadSchema(handle, isNewVault);
+    toast.success(isNewVault ? `Vault created: ${handle.name}` : `Vault opened: ${handle.name}`);
+    if (!skipFrontmatterPrompt) await promptFrontmatter();
+  }, [setVaultHandle, setCurrentDirectoryHandle, setIsVaultPending, setFileMetadata, setOpenFiles, setWorkspaceLayout, scanVault, indexVaultTags, rebindHandles, detectCloudVault, promptFrontmatter, checkVaultSetup, loadSchema, setVaultSetupStatus]);
+
   const openVault = useCallback(async () => {
     if (!isVaultSupported) {
       toast.error("Your browser does not support local folder access. Try Chrome or Edge.");
@@ -359,34 +400,12 @@ export function useVaultManager() {
     if (!handle) return;
 
     try {
-      setFileMetadata({});
-      setOpenFiles({});
-      setWorkspaceLayout({
-        rootContainer: {
-          id: "default-pane",
-          type: "editor",
-          openFilePaths: [],
-          activeFilePath: null as any,
-          isPinned: false,
-        },
-      });
-      setVaultHandle(handle);
-      setCurrentDirectoryHandle(handle);
-      setIsVaultPending(false);
-      detectCloudVault(handle);
-      await saveVaultHandle(handle);
-      await scanVault(handle);
-      await indexVaultTags(handle);
-      await rebindHandles(handle);
-      await checkVaultSetup(handle);
-      await loadSchema(handle);
-      toast.success("Vault opened: " + handle.name);
-      await promptFrontmatter();
+      await initVaultFromHandle(handle);
     } catch (err: any) {
       console.error("File System Error:", err?.message || err);
       toast.error("Failed to open vault");
     }
-  }, [setVaultHandle, setCurrentDirectoryHandle, setIsVaultPending, setFileMetadata, setOpenFiles, setWorkspaceLayout, scanVault, indexVaultTags, rebindHandles, detectCloudVault, promptFrontmatter, checkVaultSetup, loadSchema]);
+  }, [initVaultFromHandle]);
 
   const restoreVault = useCallback(async () => {
     if (!vaultHandle) return;
@@ -570,6 +589,7 @@ export function useVaultManager() {
     isVaultPending,
     scanVault,
     indexVaultTags,
+    initVaultFromHandle,
     openVault,
     restoreVault,
     closeVault,
