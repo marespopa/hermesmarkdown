@@ -2,7 +2,12 @@
 
 import React, { useState, useEffect } from "react";
 import { useAtom, useAtomValue } from "jotai";
-import { atom_frontmatterWizardOpen, atom_vaultSetupWizardOpen } from "@/app/atoms/ui-atoms";
+import {
+  atom_frontmatterWizardOpen,
+  atom_vaultSetupWizardOpen,
+  atom_autoInjectFrontmatter,
+  atom_frontmatterHasPrompted,
+} from "@/app/atoms/ui-atoms";
 import { atom_vaultHandle, atom_vaultSetupStatus } from "@/app/atoms/vault-atoms";
 import { atom_isDriveVault, atom_driveVaultId, atom_drivePathIndex, atom_driveAuthState } from "@/app/atoms/drive-atoms";
 import DialogModal from "@/app/components/DialogModal/DialogModal";
@@ -21,6 +26,8 @@ export default function VaultSetupWizard() {
   const isOpen = wizardPath !== null;
   const vaultHandle = useAtomValue(atom_vaultHandle);
   const [, setSetupStatus] = useAtom(atom_vaultSetupStatus);
+  const [autoInject, setAutoInject] = useAtom(atom_autoInjectFrontmatter);
+  const [, setFrontmatterHasPrompted] = useAtom(atom_frontmatterHasPrompted);
   const isDriveVault = useAtomValue(atom_isDriveVault);
   const driveVaultId = useAtomValue(atom_driveVaultId);
   const [drivePathIndex, setDrivePathIndex] = useAtom(atom_drivePathIndex);
@@ -65,6 +72,7 @@ export default function VaultSetupWizard() {
 
   const closeAndContinue = () => {
     const path = wizardPath;
+    setFrontmatterHasPrompted(true);
     setWizardPath(null);
     if (path && path !== "vault-root") {
       setFmWizardPath(path);
@@ -110,6 +118,7 @@ export default function VaultSetupWizard() {
   const handleSkip = () => {
     localStorage.setItem("hermesSkipVaultSetup", LATEST_AGENT_VERSION);
     setSetupStatus("skipped");
+    setFrontmatterHasPrompted(true);
     const path = wizardPath;
     setWizardPath(null);
     if (path && path !== "vault-root") {
@@ -165,6 +174,24 @@ export default function VaultSetupWizard() {
 
         {/* Content */}
         <div className={`flex flex-col gap-4 ${installSuccess ? "hidden" : ""}`}>
+          {/* Auto-inject preference — captured here instead of a separate dialog */}
+          <label className="flex items-start gap-3 p-3 rounded-xl border border-beige-light dark:border-clay bg-paper-softgray/50 dark:bg-paper-dark/30 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={autoInject}
+              onChange={(e) => setAutoInject(e.target.checked)}
+              className="mt-0.5 w-4 h-4 rounded border-beige text-sage focus:ring-sage"
+            />
+            <span className="flex flex-col gap-0.5">
+              <span className="text-ui-footnote font-medium text-ink-light dark:text-ink-dark">
+                Auto-inject Frontmatter on Save
+              </span>
+              <span className="text-ui-caption text-ink-muted dark:text-stone">
+                Prepend title, status, tags, and scope to files that have no frontmatter block. You can change this any time in Settings.
+              </span>
+            </span>
+          </label>
+
           {!vaultHandle && !isDriveVault ? (
             <p className="text-ui-footnote text-amber-600 dark:text-amber-500 bg-amber-50 dark:bg-amber-900/20 p-3 rounded-lg border border-amber-100 dark:border-amber-800">
               Open a vault folder first to install these agent-context files.

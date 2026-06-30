@@ -213,7 +213,7 @@ const SmartSyntaxGraphic = () => (
       <div className="opacity-50">| Hosting | $120 |</div>
       <div className="opacity-50">| Design | $340 |</div>
       <div className="flex items-center gap-1.5">
-        <span className="opacity-50">| =SUM(B2:B3) |</span>
+        <span className="opacity-50">| =SUM(B) |</span>
         <span className="text-amber-500 font-semibold">$460.00</span>
         <span className="text-[9px] opacity-30">← live</span>
       </div>
@@ -538,6 +538,86 @@ const GoogleDriveGraphic = () => (
   </div>
 );
 
+const TokenGraphic = () => (
+  <div className="w-full h-full flex items-center justify-center p-6 relative select-none">
+    <div className="w-full max-w-[290px] space-y-2">
+      <div className="text-[9px] font-mono font-bold text-neutral-400 dark:text-neutral-500 uppercase tracking-widest mb-2">
+        Vault token estimate
+      </div>
+      {[
+        { name: "weekly-review.md", tokens: "2,340", cost: "$0.007" },
+        { name: "ops-log-june.md", tokens: "4,120", cost: "$0.012" },
+        { name: "api-design.md", tokens: "1,890", cost: "$0.006" },
+      ].map(({ name, tokens, cost }) => (
+        <div key={name} className="flex items-center gap-2 font-mono text-[10px]">
+          <span className="opacity-40 truncate flex-1">{name}</span>
+          <span className="opacity-50 tabular-nums">{tokens}</span>
+          <span className="text-rose-500 tabular-nums w-12 text-right">{cost}</span>
+        </div>
+      ))}
+      <div className="h-px bg-neutral-300 dark:bg-neutral-700 opacity-40 my-1" />
+      <div className="flex items-center gap-2 font-mono text-[10px] font-bold">
+        <span className="opacity-50 flex-1">vault total</span>
+        <span className="opacity-50 tabular-nums">8,350</span>
+        <span className="text-rose-500 tabular-nums w-12 text-right">~$0.025</span>
+      </div>
+    </div>
+    <div className="absolute top-4 right-4">
+      <span className="text-[9px] font-mono uppercase tracking-widest text-rose-500 opacity-60">
+        Token Budget
+      </span>
+    </div>
+  </div>
+);
+
+const LocalFirstGraphic = () => (
+  <div className="w-full h-full flex items-center justify-center p-6 relative select-none">
+    <div className="w-full max-w-[260px] space-y-4">
+      <div className="flex items-center gap-3">
+        <div className="w-10 h-10 rounded-xl bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center shrink-0">
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="opacity-50"
+          >
+            <rect x="2" y="3" width="20" height="14" rx="2" />
+            <line x1="8" y1="21" x2="16" y2="21" />
+            <line x1="12" y1="17" x2="12" y2="21" />
+          </svg>
+        </div>
+        <div className="space-y-1">
+          <div className="text-[11px] font-mono font-bold opacity-70">Your device</div>
+          <div className="text-[9px] font-mono opacity-40 uppercase tracking-widest">All files stay here</div>
+        </div>
+      </div>
+      <div className="space-y-1.5 font-mono text-[10px]">
+        {[
+          { label: "Account required", value: "no" },
+          { label: "Notes leave device", value: "no" },
+          { label: "API keys proxied", value: "no" },
+          { label: "Proprietary format", value: "no" },
+        ].map(({ label, value }) => (
+          <div key={label} className="flex items-center justify-between">
+            <span className="opacity-40">{label}</span>
+            <span className="text-emerald-500">{value}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+    <div className="absolute top-4 right-4">
+      <span className="text-[9px] font-mono uppercase tracking-widest text-neutral-500 opacity-60">
+        Local-First
+      </span>
+    </div>
+  </div>
+);
+
 const AIKeyGraphic = () => (
   <div className="w-full h-full flex items-center justify-center p-6 relative select-none">
     <div className="w-full max-w-[280px] space-y-3">
@@ -587,58 +667,32 @@ function getDemoShipDate(daysFromNow: number): string {
 }
 
 const DEFAULT_DEMO_CONTENT = `---
-title: "Weekly Vault Review"
+title: "weekly-review"
 status: active
-scope: "Maintenance checklist, tool subscriptions, and book budget for personal knowledge management."
-read_when: 
-  - weekly review
-  - vault maintenance
-  - zettelkasten
-  - subscriptions
-related: 
-  - personal-knowledge-management
-  - daily-notes
-tags: 
-  - review
-  - obsidian
-  - pkm
+scope: "Checklist and AI tool costs for weekly vault maintenance."
+read_when: [weekly review, vault, subscriptions]
+tags: [review, pkm]
 ---
 
-# Weekly Vault Review
+# Weekly Review
 
-## Maintenance Checklist
+## Checklist
 
 - Process inbox notes  #done
-- Update daily journal templates  #done
-- Organize Zettelkasten orphans  #prog
+- Update daily templates  #done
+- Organize orphan notes  #prog
 - Refactor project MOCs  #todo
-- Archive completed reading notes  #todo
 
-## Workflow Questions
+## AI Subscriptions
 
-- Should I transition my task management entirely to Dataview queries, or keep it simple?
-- Is the current folder structure getting too deep for quick mobile capture?
+| Service    | Cost/mo |
+| :--------- | ------: |
+| Claude Pro | $20     |
+| ChatGPT    | $20     |
+| Midjourney | $10     |
+| Total      | =SUM(B) |
 
-## AI Tools
-
-| Service    | Status  | Cost/mo |
-| :--------- | :------ | :------ |
-| ChatGPT Plus| live    | $20     |
-| Claude Pro | live    | $20     |
-| Midjourney | pending | $10     |
-| Total      |         | $50     |
-
-## Monthly Book Budget
-
-| Title             | Cost |
-| :---------------- | :--- |
-| Atomic Habits     | $15  |
-| Deep Work         | $14  |
-| Essentialism      | $12  |
-| Total             | $41  |
-
-
-Next Review date: ${getDemoShipDate(7)}`;
+Next review: ${getDemoShipDate(7)}`;
 
 export default function LandingPage() {
   const router = useRouter();
@@ -804,15 +858,15 @@ export default function LandingPage() {
         <p
           className={`text-neutral-600 dark:text-neutral-400 leading-relaxed text-lg max-w-2xl mx-auto opacity-0 [animation-fill-mode:forwards] [animation-delay:150ms] ${problemVisible ? "animate-hero-fade-in" : ""}`}
         >
-          When you drop a vault into Claude Code or Cowork, the agent starts
-          from scratch every time. It has no idea which files are relevant, what
-          they cover, or when to reach for them. It either burns through your
-          context window — or guesses, and pulls the wrong file.
+          Standard Markdown vaults confuse LLM agents. Tools like Claude Code or
+          RepoAgent have to scan your entire directory from scratch — burning
+          through context or pulling irrelevant files.
         </p>
         <p
           className={`text-neutral-600 dark:text-neutral-400 leading-relaxed text-lg max-w-2xl mx-auto opacity-0 [animation-fill-mode:forwards] [animation-delay:300ms] ${problemVisible ? "animate-hero-fade-in" : ""}`}
         >
-          HermesMarkdown fixes this before the agent ever opens a file.
+          HermesMarkdown structures your vault so agents know exactly what to
+          parse before they open a single file.
         </p>
       </section>
 
@@ -827,30 +881,35 @@ export default function LandingPage() {
           <div className="space-y-6">
             <div className="h-px w-12 bg-emerald-600" />
             <h2 className="text-3xl font-bold tracking-tight">
-              Agents know what to read before they open a single file
+              Agents scan before they read
             </h2>
             <p className="text-neutral-600 dark:text-neutral-400 leading-relaxed">
-              HermesMarkdown generates an{" "}
+              HermesMarkdown automatically generates a lightweight{" "}
               <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">
                 AGENTS.md
               </code>{" "}
-              index your agent reads first. It defines a three-tier protocol:
-              scan{" "}
+              index. Agents parse this file first to filter by metadata (
               <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">
                 read_when
-              </code>{" "}
-              to filter without loading, read{" "}
+              </code>
+              ,{" "}
               <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">
                 scope
-              </code>{" "}
-              to confirm relevance, load the full file only when needed. Your
-              context window stays clean. Retrieval stays precise.
+              </code>
+              ) without loading raw notes into the context window. Precise
+              retrieval, zero wasted tokens.
             </p>
-            <p className="text-neutral-600 dark:text-neutral-400 leading-relaxed">
-              Pull up a live readability score on demand from the command
-              palette so you know how well any file is structured — without it
-              cluttering the page while you write.
-            </p>
+            <ul className="space-y-2">
+              {[
+                "Automated detection of ambiguous cross-references or sprawling frontmatter",
+                "Real-time structural score card (0–100) computed purely on-device",
+              ].map((item) => (
+                <li key={item} className="flex items-start gap-2 text-neutral-600 dark:text-neutral-400 leading-relaxed">
+                  <span className="mt-2.5 w-1 h-1 rounded-full bg-neutral-400 dark:bg-neutral-500 shrink-0" />
+                  {item}
+                </li>
+              ))}
+            </ul>
           </div>
         </section>
 
@@ -859,14 +918,18 @@ export default function LandingPage() {
           <div className="space-y-6">
             <div className="h-px w-12 bg-teal-500" />
             <h2 className="text-3xl font-bold tracking-tight">
-              Create a vault from a starter pack
+              Start fresh or open what you already have
             </h2>
             <p className="text-neutral-600 dark:text-neutral-400 leading-relaxed">
-              Name your vault, pick a parent folder, and choose a starter pack — HermesMarkdown creates the directory, writes the{" "}
+              Open any existing local folder as a vault instantly — no
+              migration, no conversion. Or create a new one from a starter
+              pack: HermesMarkdown names the directory, writes the{" "}
               <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">
                 .hermes/
               </code>{" "}
-              scaffolding, and navigates you straight into a working vault. Four packs ship out of the box: an empty slate, Notes/PKM (atomic notes and a daily journal template), Engineering (ADRs, bug tracker, and meeting notes), and Personal Finance (budget and debt tables with live formulas).
+              scaffolding, and drops you straight into a working vault. Four
+              packs ship out of the box: empty slate, Notes/PKM, Engineering,
+              and Personal Finance.
             </p>
           </div>
           <div className="aspect-video bg-paper-light dark:bg-neutral-900 rounded-2xl border border-black/5 dark:border-white/5 flex items-center justify-center group overflow-hidden relative">
@@ -874,71 +937,7 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* 3. Agent-Specific Frontmatter */}
-        <section className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 lg:gap-16 items-center">
-          <div className="order-last md:order-first aspect-video bg-paper-light dark:bg-neutral-900 rounded-2xl border border-black/5 dark:border-white/5 flex items-center justify-center group overflow-hidden relative">
-            <AgentContextGraphic />
-          </div>
-          <div className="space-y-6">
-            <div className="h-px w-12 bg-sky-500" />
-            <h2 className="text-3xl font-bold tracking-tight">
-              Your notes, structured on your terms
-            </h2>
-            <p className="text-neutral-600 dark:text-neutral-400 leading-relaxed">
-              The four default fields —{" "}
-              <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">
-                scope
-              </code>
-              ,{" "}
-              <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">
-                read_when
-              </code>
-              ,{" "}
-              <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">
-                related
-              </code>
-              , and{" "}
-              <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">
-                tags
-              </code>{" "}
-              — are a starting point, not a contract. Drop the ones you
-              don&apos;t need, rename them, or skip frontmatter entirely.
-              HermesMarkdown scores heading structure, typed code fences, and
-              table formatting too — a clean plain note still earns a real
-              readability rating.
-            </p>
-            <p className="text-neutral-600 dark:text-neutral-400 leading-relaxed">
-              A wizard walks you through it on new files. Every agent that reads
-              your vault benefits from whatever structure you add — permanently.
-            </p>
-          </div>
-        </section>
-
-        {/* 4. Vault Management */}
-        <section className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 lg:gap-16 items-center">
-          <div className="space-y-6">
-            <div className="h-px w-12 bg-sage" />
-            <h2 className="text-3xl font-bold tracking-tight">
-              Filter the whole vault, not just one file
-            </h2>
-            <p className="text-neutral-600 dark:text-neutral-400 leading-relaxed">
-              Open any local directory as a vault and save directly to your
-              machine — no upload required. Filter your entire vault by tag,
-              date, or word count with Smart Workspaces. A built-in{" "}
-              <em>Today&apos;s Work</em> view shows everything you touched in
-              the last 24 hours. WikiLinks connect notes vault-wide — type{" "}
-              <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">
-                [[note name]]
-              </code>{" "}
-              and navigate with a click.
-            </p>
-          </div>
-          <div className="aspect-video bg-paper-light dark:bg-neutral-900 rounded-2xl border border-black/5 dark:border-white/5 flex items-center justify-center group overflow-hidden relative">
-            <FilesystemGraphic />
-          </div>
-        </section>
-
-        {/* 5. Writing Experience */}
+        {/* 3. Writing Experience */}
         <section className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 lg:gap-16 items-center">
           <div aria-hidden="true" className="order-last md:order-first aspect-video bg-paper-light dark:bg-neutral-900 rounded-2xl border border-black/5 dark:border-white/5 flex items-center justify-center group overflow-hidden relative">
             <ZenModeGraphic />
@@ -949,103 +948,69 @@ export default function LandingPage() {
               Nothing but the page, until you ask for more
             </h2>
             <p className="text-neutral-600 dark:text-neutral-400 leading-relaxed">
-              The app opens straight into a full-screen writing surface — no
-              sidebar, no tabs, nothing else. Hover the left edge when you need
-              the file tree, or pin it open. Open files side by side and drag
-              tabs between panes. Elements in the editor are live — click{" "}
-              <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">
-                [ ]
-              </code>{" "}
-              to toggle tasks, click any date to open a calendar picker, and{" "}
+              Full-screen by default. A pinned icon rail on the left expands
+              the file tree, search, and panels on demand — nothing else
+              visible until you need it. Open files side by side, drag tabs
+              between panes. Checkboxes toggle on click, dates open a calendar
+              picker,{" "}
               <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">
                 Ctrl+Click
               </code>{" "}
-              any WikiLink to navigate instantly.
+              any WikiLink to jump instantly.
             </p>
           </div>
         </section>
 
-        {/* 6. Table Editor */}
+        {/* 4. Formulas + Slash Commands */}
         <section className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 lg:gap-16 items-center">
-          <div className="space-y-6">
-            <div className="h-px w-12 bg-indigo-500" />
-            <h2 className="text-3xl font-bold tracking-tight">Table editor</h2>
-            <p className="text-neutral-600 dark:text-neutral-400 leading-relaxed">
-              Click inside any Markdown table for a full toolbar. In the editor
-              dialog, click a cell to select it and double-click (or hit Enter)
-              to type — arrow keys and Tab move between cells. Add rows, sort by
-              date or number, export to CSV. Output is clean, auto-padded
-              Markdown. Insert a starter grid with{" "}
-              <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">
-                /table
-              </code>{" "}
-              or the{" "}
-              <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">
-                {"{table}"}
-              </code>{" "}
-              shortcode.
-            </p>
-          </div>
-          <div className="aspect-video bg-paper-light dark:bg-neutral-900 rounded-2xl border border-black/5 dark:border-white/5 flex items-center justify-center group overflow-hidden relative">
-            <TableGraphic />
-          </div>
-        </section>
-
-        {/* 7. Real formulas & smart syntax */}
-        <section className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 lg:gap-16 items-center">
-          <div className="order-last md:order-first aspect-video bg-paper-light dark:bg-neutral-900 rounded-2xl border border-black/5 dark:border-white/5 flex items-center justify-center group overflow-hidden relative">
-            <SmartSyntaxGraphic />
-          </div>
           <div className="space-y-6">
             <div className="h-px w-12 bg-amber-500" />
             <h2 className="text-3xl font-bold tracking-tight">
-              Real formulas & smart syntax
+              Live formulas &amp; keyboard-driven workflows
             </h2>
             <p className="text-neutral-600 dark:text-neutral-400 leading-relaxed">
-              Type{" "}
+              A keyboard-first table editor with native Excel-style formulas —
+              {" "}
               <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">
-                =
-              </code>{" "}
-              into any table cell and a function autocomplete appears — keep
-              typing to filter, arrow keys to navigate, Enter to insert.
-              Formulas support cell references, ranges, percentage literals
-              like{" "}
-              <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">
-                =8.5%*B2
-              </code>
-              , and 13 functions including{" "}
-              <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">
-                SUM
+                =SUM(B)
               </code>
               ,{" "}
               <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">
                 AVERAGE
               </code>
-              , and{" "}
+              ,{" "}
               <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">
                 IF
               </code>
-              . Click cells to build references instead of typing — point mode
-              — and currency symbols carry through to the result automatically.
-              Type{" "}
+              {" "}— computed live in the editor. Tables on the same page can reference each other:{" "}
               <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">
-                /
-              </code>{" "}
-              for the template menu. Shortcodes expand inline:{" "}
-              <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">
-                ..d
-              </code>{" "}
-              for today&apos;s date,{" "}
-              <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">
-                calc()
-              </code>{" "}
-              for inline math.
+                =SUM(Income!B)
+              </code>
+              {" "}pulls the total from a table named by its heading. Trigger slash commands anywhere to
+              insert templates, calculate metrics, or format layouts instantly.
             </p>
+            <ul className="space-y-2">
+              {[
+                "#todo transitions dynamically to #prog and #done via native keyboard interaction",
+                "Export tables to CSV — everything writes back to clean, auto-padded Markdown",
+              ].map((item) => (
+                <li key={item} className="flex items-start gap-2 text-neutral-600 dark:text-neutral-400 leading-relaxed">
+                  <span className="mt-2.5 w-1 h-1 rounded-full bg-neutral-400 dark:bg-neutral-500 shrink-0" />
+                  {item}
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div aria-hidden="true" className="aspect-video bg-paper-light dark:bg-neutral-900 rounded-2xl border border-black/5 dark:border-white/5 flex items-center justify-center group overflow-hidden relative">
+            <SmartSyntaxGraphic />
           </div>
         </section>
 
-        {/* 8. Bring Your Own AI */}
+        {/* 5. BYO AI + Token awareness */}
         <section className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 lg:gap-16 items-center">
+          <div aria-hidden="true" className="order-last md:order-first aspect-video bg-paper-light dark:bg-neutral-900 rounded-2xl border border-black/5 dark:border-white/5 flex items-center justify-center group overflow-hidden relative">
+            <AIKeyGraphic />
+          </div>
           <div className="space-y-6">
             <div className="h-px w-12 bg-indigo-600" />
             <h2 className="text-3xl font-bold tracking-tight">
@@ -1061,31 +1026,40 @@ export default function LandingPage() {
               <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">
                 related
               </code>{" "}
-              links, and improve your writing — inline, in the editor. Your keys
-              stay in your browser. We never see them or proxy your requests.
+              links, and improve your writing inline. Your keys stay in your
+              browser — we never see them or proxy your requests.
             </p>
-          </div>
-          <div className="aspect-video bg-paper-light dark:bg-neutral-900 rounded-2xl border border-black/5 dark:border-white/5 flex items-center justify-center group overflow-hidden relative">
-            <AIKeyGraphic />
           </div>
         </section>
 
-        {/* 9. Google Drive — most optional, last */}
+        {/* 6. Local-First */}
         <section className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 lg:gap-16 items-center">
-          <div className="order-last md:order-first aspect-video bg-paper-light dark:bg-neutral-900 rounded-2xl border border-black/5 dark:border-white/5 flex items-center justify-center group overflow-hidden relative">
-            <GoogleDriveGraphic />
-          </div>
           <div className="space-y-6">
-            <div className="h-px w-12 bg-emerald-600" />
+            <div className="h-px w-12 bg-neutral-500" />
             <h2 className="text-3xl font-bold tracking-tight">
-              Google Drive sync
+              No cloud. Your notes stay yours.
             </h2>
             <p className="text-neutral-600 dark:text-neutral-400 leading-relaxed">
-              Opt-in cloud backup. Connect your Google Drive and HermesMarkdown
-              syncs in the background — your vault stays on your machine and
-              works offline first. Disconnect any time, files stay put. It
-              &apos;s an escape hatch, not a dependency.
+              Built on a local-first philosophy. Your files reside exclusively
+              on your machine in standard, human-readable Markdown — no
+              account, no upload, no lock-in. Open any local directory as a
+              vault, filter by tag or date, connect notes via WikiLinks.
+              Opt-in Google Drive sync available for cross-device backups.
             </p>
+            <ul className="space-y-2">
+              {[
+                "Your notes and API keys never leave your device",
+                "Complete ownership of your data and knowledge graph",
+              ].map((item) => (
+                <li key={item} className="flex items-start gap-2 text-neutral-600 dark:text-neutral-400 leading-relaxed">
+                  <span className="mt-2.5 w-1 h-1 rounded-full bg-neutral-400 dark:bg-neutral-500 shrink-0" />
+                  {item}
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div className="aspect-video bg-paper-light dark:bg-neutral-900 rounded-2xl border border-black/5 dark:border-white/5 flex items-center justify-center group overflow-hidden relative">
+            <LocalFirstGraphic />
           </div>
         </section>
 

@@ -271,7 +271,8 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
         }}
         className={`editor-container relative min-h-full antialiased normal-nums [font-variant-ligatures:none] [font-feature-settings:'liga'_0,'calt'_0]
           transition-[padding,max-width] duration-700 [transition-timing-function:cubic-bezier(0.4,0,0.2,1)]
-          pt-1 pb-12 mx-auto ${widthClass} ${paddingClass}
+          pt-1 pb-12
+          ${wordWrap ? `mx-auto ${widthClass} ${paddingClass}` : "px-4 sm:px-6 md:px-10"}
           ${wordWrap ? "w-full" : "w-max min-w-full"}
           text-ui-body
           [&_textarea]:!bg-transparent [&_textarea]:!text-transparent [&_textarea]:!caret-sage

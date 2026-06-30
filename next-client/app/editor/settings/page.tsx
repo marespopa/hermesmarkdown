@@ -22,6 +22,8 @@ import {
   atom_geminiKey,
 } from "@/app/atoms/atoms";
 import { atom_vaultSetupWizardOpen, atom_availableGeminiModels, atom_schemaWizardOpen, atom_vaultMigrateOpen } from "@/app/atoms/ui-atoms";
+import type { StarterPackId } from "@/app/atoms/ui-atoms";
+import { STARTER_PACKS, installStarterPack } from "@/app/services/starter-packs";
 import { atom_vaultSchema } from "@/app/atoms/schema-atoms";
 import { atom_vaultHandle } from "@/app/atoms/atoms";
 import { atom_driveVaultId, atom_driveVaultName, atom_isDriveVault } from "@/app/atoms/drive-atoms";
@@ -36,6 +38,7 @@ import {
   HiOutlineCloud,
   HiOutlineLightningBolt,
   HiOutlineTemplate,
+  HiOutlineArchive,
   HiCheck,
   HiOutlineRefresh,
 } from "react-icons/hi";
@@ -80,6 +83,23 @@ const SettingsPage = () => {
   const [driveVaultName] = useAtom(atom_driveVaultName);
   const { authState: driveAuthState, signIn: driveSignIn, signOut: driveSignOut } = useDriveAuth();
   const [isDriveConnecting, setIsDriveConnecting] = useState(false);
+
+  const applyableStarterPacks = STARTER_PACKS.filter((p) => p.id !== "empty");
+  const [selectedPackId, setSelectedPackId] = useState<StarterPackId>(applyableStarterPacks[0]?.id ?? "notes-pkm");
+  const [isApplyingPack, setIsApplyingPack] = useState(false);
+
+  const handleApplyStarterPack = async () => {
+    if (!vaultHandle) return;
+    setIsApplyingPack(true);
+    try {
+      await installStarterPack(selectedPackId, vaultHandle);
+      showSuccessToast("Starter pack applied successfully.");
+    } catch {
+      showErrorToast("Failed to apply starter pack.");
+    } finally {
+      setIsApplyingPack(false);
+    }
+  };
 
   const handleDriveSignIn = () => {
     setIsDriveConnecting(true);
@@ -145,12 +165,42 @@ const SettingsPage = () => {
 
   const sections = [
     {
-      id: "typography",
-      label: "Typography",
-      icon: HiOutlineDocumentText,
+      id: "editor",
+      label: "Editor",
+      icon: HiOutlinePencilAlt,
       content: (
         <>
-          <SettingGroup title="Size & Spacing">
+          <SettingGroup title="Appearance">
+            <SettingItem
+              label="Dark Theme"
+              description="Use dark application colors."
+              control={
+                <Toggle
+                  variant="soft"
+                  active={theme === "dark"}
+                  onChange={(active) => setTheme(active ? "dark" : "light")}
+                />
+              }
+            />
+            <SettingItem
+              label="Word Wrap"
+              description="Wrap long lines to fit the viewport width."
+              control={<Toggle variant="soft" active={wordWrap} onChange={setWordWrap} />}
+            />
+            <SettingItem
+              label="Editor Width"
+              description="Maximum line width. Narrow gives a tighter reading column."
+              layout="stack"
+              control={
+                <SegmentedControl
+                  options={widthOptions}
+                  value={editorWidth}
+                  onChange={(v) => setEditorWidth(v as any)}
+                />
+              }
+            />
+          </SettingGroup>
+          <SettingGroup title="Typography">
             <SettingItem
               label="Text Size"
               layout="stack"
@@ -174,8 +224,6 @@ const SettingsPage = () => {
                 <SegmentedControl options={LETTER_SPACINGS} value={letterSpacing} onChange={setLetterSpacing} />
               }
             />
-          </SettingGroup>
-          <SettingGroup title="Typeface">
             {FONTS.map((f) => {
               const isActive = fontFamily === f.value;
               return (
@@ -198,15 +246,6 @@ const SettingsPage = () => {
               );
             })}
           </SettingGroup>
-        </>
-      ),
-    },
-    {
-      id: "editor",
-      label: "Editor",
-      icon: HiOutlinePencilAlt,
-      content: (
-        <>
           <SettingGroup title="Autosave">
             <SettingItem
               label="Autosave Mode"
@@ -246,107 +285,6 @@ const SettingsPage = () => {
               label="Auto-create Schema"
               description="Create .hermes/schema.yaml silently when opening a vault that has none. Off means you'll be prompted to confirm first."
               control={<Toggle variant="soft" active={schemaAutoCreate} onChange={setSchemaAutoCreate} />}
-            />
-          </SettingGroup>
-          <SettingGroup title="Display">
-            <SettingItem
-              label="Word Wrap"
-              description="Wrap long lines to fit the viewport width."
-              control={<Toggle variant="soft" active={wordWrap} onChange={setWordWrap} />}
-            />
-            <SettingItem
-              label="Editor Width"
-              description="Maximum line width. Narrow gives a tighter reading column."
-              layout="stack"
-              control={
-                <SegmentedControl
-                  options={widthOptions}
-                  value={editorWidth}
-                  onChange={(v) => setEditorWidth(v as any)}
-                />
-              }
-            />
-          </SettingGroup>
-        </>
-      ),
-    },
-    {
-      id: "schema",
-      label: "Schema",
-      icon: HiOutlineTemplate,
-      content: (
-        <>
-          <SettingGroup title="Frontmatter Structure">
-            <SettingItem
-              label="Vault Schema"
-              description={
-                vaultSchema
-                  ? `${vaultSchema.fields.length} field${vaultSchema.fields.length !== 1 ? "s" : ""} defined — saved to .hermes/schema.yaml`
-                  : vaultHandle || isDriveVault
-                  ? "No schema found in this vault."
-                  : "Open a vault to view or edit its schema."
-              }
-              control={
-                <Button
-                  variant="secondary"
-                  onClick={() => {
-                    setSchemaWizardOpen(true);
-                    router.push("/editor");
-                  }}
-                  className="h-8 px-4 text-ui-footnote font-medium"
-                >
-                  Edit Schema
-                </Button>
-              }
-            />
-          </SettingGroup>
-          <SettingGroup title="Vault Migration">
-            <SettingItem
-              label="Apply Schema to All Files"
-              description="Scan every file in the vault and add missing frontmatter fields. If an AI key is configured, content-based fields (scope, tags, read_when) are filled automatically."
-              control={
-                <Button
-                  variant="secondary"
-                  onClick={() => {
-                    setVaultMigrateOpen(true);
-                    router.push("/editor");
-                  }}
-                  disabled={!vaultHandle && !isDriveVault}
-                  className="h-8 px-4 text-ui-footnote font-medium shrink-0"
-                >
-                  Migrate
-                </Button>
-              }
-            />
-          </SettingGroup>
-          <div className="mt-2 px-1">
-            <p className="text-ui-caption text-stone leading-relaxed">
-              The schema defines which frontmatter fields appear in every note, their types, and whether they are required. Changes are written to{" "}
-              <code className="font-mono text-[11px]">.hermes/schema.yaml</code> and regenerate{" "}
-              <code className="font-mono text-[11px]">AGENTS.md</code> and{" "}
-              <code className="font-mono text-[11px]">template.md</code> so AI agents stay in sync.
-            </p>
-          </div>
-        </>
-      ),
-    },
-    {
-      id: "interface",
-      label: "Interface",
-      icon: HiOutlineColorSwatch,
-      content: (
-        <>
-          <SettingGroup title="Appearance">
-            <SettingItem
-              label="Dark Theme"
-              description="Use dark application colors."
-              control={
-                <Toggle
-                  variant="soft"
-                  active={theme === "dark"}
-                  onChange={(active) => setTheme(active ? "dark" : "light")}
-                />
-              }
             />
           </SettingGroup>
         </>
@@ -576,22 +514,77 @@ const SettingsPage = () => {
       ),
     },
     {
-      id: "guide",
-      label: "Guide",
-      icon: HiOutlineAcademicCap,
+      id: "vault",
+      label: "Vault",
+      icon: HiOutlineArchive,
       content: (
         <>
-          <SettingGroup title="Onboarding">
+          <SettingGroup title="Starter Pack">
             <SettingItem
-              label="Welcome Tour"
-              description="Walk through the intro screens again to rediscover features."
+              label="Apply to Current Vault"
+              description="Populate the open vault with a starter pack's example files. Existing files with the same names will be overwritten."
+              layout="stack"
+              control={
+                <div className="flex items-center gap-2 w-full">
+                  <div className="flex-1">
+                    <SelectControl
+                      value={selectedPackId}
+                      onChange={(v) => setSelectedPackId(v as StarterPackId)}
+                    >
+                      {applyableStarterPacks.map((p) => (
+                        <option key={p.id} value={p.id}>{p.icon} {p.label}</option>
+                      ))}
+                    </SelectControl>
+                  </div>
+                  <Button
+                    variant="secondary"
+                    onClick={handleApplyStarterPack}
+                    disabled={!vaultHandle || isApplyingPack}
+                    className="h-8 px-4 text-ui-footnote font-medium shrink-0"
+                  >
+                    {isApplyingPack ? "Applying…" : "Apply"}
+                  </Button>
+                </div>
+              }
+            />
+          </SettingGroup>
+          <SettingGroup title="Schema">
+            <SettingItem
+              label="Frontmatter Structure"
+              description={
+                vaultSchema
+                  ? `${vaultSchema.fields.length} field${vaultSchema.fields.length !== 1 ? "s" : ""} defined — saved to .hermes/schema.yaml`
+                  : vaultHandle || isDriveVault
+                  ? "No schema found in this vault."
+                  : "Open a vault to view or edit its schema."
+              }
               control={
                 <Button
                   variant="secondary"
-                  onClick={startTour}
+                  onClick={() => {
+                    setSchemaWizardOpen(true);
+                    router.push("/editor");
+                  }}
                   className="h-8 px-4 text-ui-footnote font-medium"
                 >
-                  Start Tour
+                  Edit Schema
+                </Button>
+              }
+            />
+            <SettingItem
+              label="Apply to All Files"
+              description="Scan every file in the vault and add missing frontmatter fields. If an AI key is configured, content-based fields are filled automatically."
+              control={
+                <Button
+                  variant="secondary"
+                  onClick={() => {
+                    setVaultMigrateOpen(true);
+                    router.push("/editor");
+                  }}
+                  disabled={!vaultHandle && !isDriveVault}
+                  className="h-8 px-4 text-ui-footnote font-medium shrink-0"
+                >
+                  Migrate
                 </Button>
               }
             />
@@ -610,6 +603,30 @@ const SettingsPage = () => {
                   className="h-8 px-4 text-ui-footnote font-medium"
                 >
                   Check & Install
+                </Button>
+              }
+            />
+          </SettingGroup>
+        </>
+      ),
+    },
+    {
+      id: "guide",
+      label: "Guide",
+      icon: HiOutlineAcademicCap,
+      content: (
+        <>
+          <SettingGroup title="Onboarding">
+            <SettingItem
+              label="Welcome Tour"
+              description="Walk through the intro screens again to rediscover features."
+              control={
+                <Button
+                  variant="secondary"
+                  onClick={startTour}
+                  className="h-8 px-4 text-ui-footnote font-medium"
+                >
+                  Start Tour
                 </Button>
               }
             />

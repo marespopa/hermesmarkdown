@@ -23,6 +23,7 @@ import {
   HiOutlineRefresh,
   HiOutlineMinusCircle,
   HiOutlineSparkles,
+  HiOutlineX,
 } from "react-icons/hi";
 
 function agentDotClass(label: string): string {
@@ -74,7 +75,6 @@ export default function DocInfoPanel() {
   const isAiConfigured = useAtomValue(atom_isAiConfigured);
   const [, setFrontmatterWizardOpen] = useAtom(atom_frontmatterWizardOpen);
   const [, setFrontmatterWizardTargetField] = useAtom(atom_frontmatterWizardTargetField);
-  const [showTokens, setShowTokens] = useState(false);
   const [isAutoFixing, setIsAutoFixing] = useState(false);
 
   const wordCount = useMemo(
@@ -82,6 +82,7 @@ export default function DocInfoPanel() {
     [content],
   );
   const tokenCount = useMemo(() => Math.ceil(content.length / 4), [content]);
+  const estimatedCost = useMemo(() => (tokenCount * 0.000003).toFixed(4), [tokenCount]);
   const agentRating = useMemo(() => computeAgentScore(content), [content]);
 
   if (!isOpen) return null;
@@ -123,7 +124,7 @@ export default function DocInfoPanel() {
   const allPassed = agentRating.tips.length === 0 && agentRating.label !== "Empty";
 
   return (
-    <DialogModal isOpened={isOpen} onClose={() => setIsOpen(false)} styles="max-w-[380px]">
+    <DialogModal isOpened={isOpen} onClose={() => setIsOpen(false)} styles="max-w-[380px]" hideCloseButton>
       <div className="flex flex-col gap-4 text-sm leading-relaxed">
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-baseline gap-1.5">
@@ -132,17 +133,31 @@ export default function DocInfoPanel() {
             <span className="opacity-50 font-medium leading-none">/100</span>
             <span className="font-semibold lowercase">{agentRating.label}</span>
           </div>
-          <button
-            type="button"
-            onClick={() => setShowTokens((v) => !v)}
-            className="text-ui-footnote text-fg-muted hover:text-fg"
-          >
-            {selectionCount > 0
-              ? `${selectionCount} selected`
-              : showTokens
-                ? `~${tokenCount} tokens`
-                : `${wordCount} words`}
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setIsOpen(false)}
+              className="p-1 rounded-full text-fg-muted hover:text-fg hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
+              aria-label="Close"
+            >
+              <HiOutlineX size={16} />
+            </button>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-4 text-ui-footnote text-fg-muted border-t border-edge-subtle pt-3 -mt-1">
+          <span>
+            <span className="font-semibold text-fg">
+              {selectionCount > 0 ? selectionCount : wordCount}
+            </span>{" "}
+            {selectionCount > 0 ? "selected" : "words"}
+          </span>
+          <span>
+            <span className="font-semibold text-fg">~{tokenCount.toLocaleString()}</span> tokens
+          </span>
+          <span>
+            <span className="font-semibold text-fg">${estimatedCost}</span> est.
+          </span>
         </div>
 
         <div className="flex flex-col gap-2">

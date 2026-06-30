@@ -5,14 +5,14 @@ import { PanelLeaf } from "@/app/types/workspace";
 import MarkdownEditor from "./MarkdownEditor";
 import TabContextMenu, { TabContextMenuItem } from "./TabContextMenu";
 import { useAtom } from "jotai";
-import { 
-  atom_activePaneId, 
-  atom_fileContent, 
-  atom_openFiles, 
-  atom_splitPane, 
-  atom_closePane, 
-  atom_closeTab, 
-  atom_activeFilePath, 
+import {
+  atom_activePaneId,
+  atom_fileContent,
+  atom_openFiles,
+  atom_splitPane,
+  atom_closePane,
+  atom_closeTab,
+  atom_activeFilePath,
   atom_moveTab,
   atom_saveStatus,
   atom_liveHandles,
@@ -21,7 +21,8 @@ import {
   atom_workspaceLayout,
   contentStore
 } from "@/app/atoms/atoms";
-import { HiOutlineDocumentText, HiOutlineEye, HiOutlineChartBar, HiOutlineX, HiOutlineClipboardCopy, HiOutlineSave, HiOutlineDotsHorizontal, HiOutlinePlus, HiOutlineFolderOpen, HiOutlineDatabase } from "react-icons/hi";
+import { atom_newVaultFlowOpen, atom_isDocInfoOpen } from "@/app/atoms/ui-atoms";
+import { HiOutlineDocumentText, HiOutlineEye, HiOutlineChartBar, HiOutlineX, HiOutlineClipboardCopy, HiOutlineSave, HiOutlineDotsHorizontal, HiOutlinePlus, HiOutlineFolderOpen, HiOutlineDatabase, HiOutlineCollection, HiOutlineInformationCircle } from "react-icons/hi";
 import { VscSplitHorizontal } from "react-icons/vsc";
 import { showCopyToast, showErrorToast } from "@/app/components/Toastr";
 import PaneTab, { TabSaveState } from "./PaneTab";
@@ -47,6 +48,8 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
   const saveStatus = useAtomValue(atom_saveStatus);
   const vaultHandle = useAtomValue(atom_vaultHandle);
   const workspaceLayout = useAtomValue(atom_workspaceLayout);
+  const [, setNewVaultFlowOpen] = useAtom(atom_newVaultFlowOpen);
+  const [, setIsDocInfoOpen] = useAtom(atom_isDocInfoOpen);
   const isOnlyPane = "type" in workspaceLayout.rootContainer;
 
   const { openFileByName, saveFile, exportFile, createFile, createNewFile, importFile, openVault, isVaultSupported } = useFileSystem();
@@ -344,6 +347,15 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
               <>
                 <Button
                   variant="icon"
+                  onClick={() => setIsDocInfoOpen((v) => !v)}
+                  title="Document info"
+                  aria-label="Document info"
+                  className="w-9 h-9 flex items-center justify-center text-ink-muted hover:text-sage transition-all rounded-xl"
+                >
+                  <HiOutlineInformationCircle size={18} />
+                </Button>
+                <Button
+                  variant="icon"
                   onClick={handleCopy}
                   title="Copy Markdown"
                   aria-label="Copy Markdown"
@@ -428,6 +440,15 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
                 >
                   <HiOutlineDatabase size={16} className="shrink-0" />
                   <span className="truncate">Open Folder</span>
+                </button>
+              )}
+              {isVaultSupported && (
+                <button
+                  onClick={() => setNewVaultFlowOpen(true)}
+                  className="flex items-center gap-3 px-3 py-2 rounded-xl text-ui-footnote text-ink-muted hover:text-ink-light dark:hover:text-ink-dark hover:bg-paper-softgray dark:hover:bg-paper-dark-surface/40 transition-colors"
+                >
+                  <HiOutlineCollection size={16} className="shrink-0" />
+                  <span className="truncate">Create Vault</span>
                 </button>
               )}
               <button

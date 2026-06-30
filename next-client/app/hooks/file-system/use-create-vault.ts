@@ -15,6 +15,8 @@ import {
   atom_vaultCreationPackId,
   atom_vaultCreationError,
   atom_newVaultFlowOpen,
+  atom_autoInjectFrontmatter,
+  atom_frontmatterHasPrompted,
   type StarterPackId,
   type VaultCreationSubStep,
 } from "@/app/atoms/ui-atoms";
@@ -51,6 +53,8 @@ export function useCreateVault() {
   const [packId, setPackId] = useAtom(atom_vaultCreationPackId);
   const [error, setError] = useAtom(atom_vaultCreationError);
   const setNewVaultFlowOpen = useSetAtom(atom_newVaultFlowOpen);
+  const setAutoInjectFrontmatter = useSetAtom(atom_autoInjectFrontmatter);
+  const setFrontmatterHasPrompted = useSetAtom(atom_frontmatterHasPrompted);
 
   const { initVaultFromHandle } = useVaultManager();
   const { openFile } = useOpenFile();
@@ -132,6 +136,9 @@ export function useCreateVault() {
     setSubStep("installing");
     setError(null);
 
+    const currentPackId = packId;
+
+    let newVaultHandle: FileSystemDirectoryHandle;
     try {
       const trimmedName = vaultName.trim();
 
@@ -142,39 +149,42 @@ export function useCreateVault() {
         return;
       }
 
-      const newVaultHandle = await parentHandle.getDirectoryHandle(trimmedName, { create: true });
-
+      newVaultHandle = await parentHandle.getDirectoryHandle(trimmedName, { create: true });
       await installVaultFiles(MANAGED_FILES, newVaultHandle, false, null, null);
-      await installStarterPack(packId, newVaultHandle);
+      await installStarterPack(currentPackId, newVaultHandle);
       await ensureHermesFiles(newVaultHandle, true);
-
-      await initVaultFromHandle(newVaultHandle, {
-        isNewVault: true,
-        overrideSetupStatus: "configured",
-        skipFrontmatterPrompt: true,
-      });
-
-      const pack = getStarterPack(packId);
-      if (pack.entryPoint) {
-        try {
-          const parts = pack.entryPoint.split("/");
-          let dir: FileSystemDirectoryHandle = newVaultHandle;
-          for (let i = 0; i < parts.length - 1; i++) {
-            dir = await dir.getDirectoryHandle(parts[i]);
-          }
-          const entryHandle = await dir.getFileHandle(parts[parts.length - 1]);
-          await openFile(entryHandle, pack.entryPoint, true);
-        } catch {
-          // Non-critical: vault is mounted, entry-point open failed
-        }
-      }
-
-      resetFlow();
     } catch (err: any) {
       setError(err?.message ?? "Failed to create vault. Please try again.");
       setSubStep("starter-pack");
+      return;
     }
-  }, [parentHandle, vaultName, packId, initVaultFromHandle, openFile, resetFlow, setError, setSubStep]);
+
+    // Enable auto-inject by default for new vaults and mark as prompted
+    // so no separate dialog interrupts the post-creation flow.
+    setAutoInjectFrontmatter(true);
+    setFrontmatterHasPrompted(true);
+    resetFlow();
+
+    await initVaultFromHandle(newVaultHandle, {
+      isNewVault: true,
+      overrideSetupStatus: "configured",
+    });
+
+    const pack = getStarterPack(currentPackId);
+    if (pack.entryPoint) {
+      try {
+        const parts = pack.entryPoint.split("/");
+        let dir: FileSystemDirectoryHandle = newVaultHandle;
+        for (let i = 0; i < parts.length - 1; i++) {
+          dir = await dir.getDirectoryHandle(parts[i]);
+        }
+        const entryHandle = await dir.getFileHandle(parts[parts.length - 1]);
+        await openFile(entryHandle, pack.entryPoint, true);
+      } catch {
+        // Non-critical: vault is mounted, entry-point open failed
+      }
+    }
+  }, [parentHandle, vaultName, packId, initVaultFromHandle, openFile, resetFlow, setError, setSubStep, setAutoInjectFrontmatter, setFrontmatterHasPrompted]);
 
   return {
     subStep,

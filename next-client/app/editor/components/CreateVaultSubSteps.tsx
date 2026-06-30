@@ -123,6 +123,11 @@ export default function CreateVaultSubSteps(props: CreateVaultProps) {
           </span>
         </button>
 
+        <p className="text-[10px] opacity-40 px-1 leading-relaxed">
+          Picking a folder inside Google Drive, iCloud, or Dropbox syncs via the desktop app.
+          For browser-only Drive sync, use the Drive integration in Settings after creating the vault.
+        </p>
+
         {error && !nameError && (
           <p className="text-amber-500 text-[11px] px-1">{error}</p>
         )}
