@@ -2,6 +2,7 @@
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useAtomValue } from "jotai";
+import { atom_frontmatterDefaultMode } from "@/app/atoms/atoms";
 import { HiChevronRight, HiChevronDown } from "react-icons/hi";
 import { atom_fileMetadata } from "@/app/atoms/metadata";
 import { atom_vaultSchema } from "@/app/atoms/schema-atoms";
@@ -59,6 +60,7 @@ export default function FrontmatterPanel({
 }: FrontmatterPanelProps) {
   const metadata = useAtomValue(atom_fileMetadata);
   const rawSchema = useAtomValue(atom_vaultSchema);
+  const defaultMode = useAtomValue(atom_frontmatterDefaultMode);
   const schema = rawSchema ?? DEFAULT_SCHEMA;
   const notePaths = useMemo(() => Object.keys(metadata).map((p) => p.replace(/\.md$/, "")), [metadata]);
 
@@ -69,7 +71,7 @@ export default function FrontmatterPanel({
   const missingRequired = REQUIRED_KEYS.some((k) => !fields[k]?.trim());
 
   const [expanded, setExpanded] = useState(missingRequired);
-  const [mode, setMode] = useState<"fields" | "raw">("fields");
+  const [mode, setMode] = useState<"fields" | "raw">(defaultMode);
   const [rawDraft, setRawDraft] = useState(rawFrontmatter ?? "");
   const [rawError, setRawError] = useState<string | null>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
@@ -85,7 +87,7 @@ export default function FrontmatterPanel({
     if (prevFilePathRef.current !== filePath) {
       prevFilePathRef.current = filePath;
       setExpanded(missingRequired);
-      setMode("fields");
+      setMode(defaultMode);
       setSheetOpen(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps

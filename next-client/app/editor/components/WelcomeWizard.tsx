@@ -7,6 +7,7 @@ import {
   atom_isWizardOpen,
   atom_welcomeWizardStep,
   atom_autosaveMode,
+  atom_frontmatterDefaultMode,
   atom_fontSize,
   atom_fontFamily,
   atom_lineHeight,
@@ -37,13 +38,14 @@ import {
   HiOutlineSwitchVertical,
   HiOutlineColorSwatch,
   HiOutlineArrowLeft,
+  HiOutlineViewList,
   HiCheck,
   HiOutlineFolderAdd,
 } from "react-icons/hi";
 import { useCreateVault } from "@/app/hooks/file-system/use-create-vault";
 import CreateVaultSubSteps from "./CreateVaultSubSteps";
 
-const TOTAL_STEPS = 6;
+const TOTAL_STEPS = 7;
 
 const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
   const [hasCompleted, setHasCompleted] = useAtom(atom_hasCompletedOnboarding);
@@ -58,6 +60,7 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
   const isDriveVault = useAtomValue(atom_isDriveVault);
   const driveVaultId = useAtomValue(atom_driveVaultId);
   const [autosaveMode, setAutosaveMode] = useAtom(atom_autosaveMode);
+  const [frontmatterDefaultMode, setFrontmatterDefaultMode] = useAtom(atom_frontmatterDefaultMode);
   const [fontSize, setFontSize] = useAtom(atom_fontSize);
   const [fontFamily, setFontFamily] = useAtom(atom_fontFamily);
   const [lineHeight, setLineHeight] = useAtom(atom_lineHeight);
@@ -338,6 +341,52 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
         );
 
       case 6:
+        return (
+          <div className="flex flex-col items-center text-center space-y-6 py-4">
+            <div className="w-16 h-16 bg-sage/10 rounded-2xl flex items-center justify-center text-sage">
+              <HiOutlineViewList size={32} />
+            </div>
+            <div className="space-y-2">
+              <h2 className="text-ui-title-3 font-bold">Frontmatter View</h2>
+              <p className="text-ui-footnote opacity-60 px-4">
+                How should note metadata open by default — structured fields or raw YAML?
+              </p>
+            </div>
+
+            <div className="w-full rounded-2xl border border-edge p-4 space-y-4 bg-paper-softgray/40 dark:bg-paper-dark/30 text-left">
+              <div className="space-y-3">
+                {(["fields", "raw"] as const).map((opt) => (
+                  <button
+                    key={opt}
+                    type="button"
+                    onClick={() => setFrontmatterDefaultMode(opt)}
+                    className={`w-full flex items-center justify-between px-4 py-3 rounded-xl border transition-all ${
+                      frontmatterDefaultMode === opt
+                        ? "border-sage bg-sage/5 dark:bg-sage/10"
+                        : "border-edge bg-paper-light dark:bg-paper-dark hover:border-sage/40"
+                    }`}
+                  >
+                    <div className="text-left">
+                      <div className={`text-ui-footnote font-semibold ${frontmatterDefaultMode === opt ? "text-sage" : ""}`}>
+                        {opt === "fields" ? "Fields" : "Raw YAML"}
+                      </div>
+                      <div className="text-[11px] opacity-50 mt-0.5">
+                        {opt === "fields" ? "Editable form with labels and inputs" : "Direct YAML text editor"}
+                      </div>
+                    </div>
+                    {frontmatterDefaultMode === opt && <HiCheck size={15} className="shrink-0 text-sage" />}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <Button variant="primary" onClick={() => setStep(7)} className="w-full h-12 rounded-2xl text-ui-footnote font-bold">
+              Continue
+            </Button>
+          </div>
+        );
+
+      case 7:
         return (
           <div className="flex flex-col items-center text-center space-y-6 py-4">
             <div className="w-16 h-16 bg-sage rounded-2xl flex items-center justify-center text-white">

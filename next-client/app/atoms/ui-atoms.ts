@@ -67,6 +67,10 @@ export const atom_autoInjectFrontmatter = atomWithStorage<boolean>(
   "autoInjectFrontmatter",
   false,
 );
+export const atom_frontmatterDefaultMode = atomWithStorage<"fields" | "raw">(
+  "frontmatterDefaultMode",
+  "fields",
+);
 export const atom_frontmatterHasPrompted = atomWithStorage<boolean>(
   "frontmatterHasPrompted",
   false,

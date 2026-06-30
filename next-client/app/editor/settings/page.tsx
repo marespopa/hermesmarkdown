@@ -15,6 +15,7 @@ import {
   atom_autosaveDelay,
   atom_editorWidth,
   atom_autoInjectFrontmatter,
+  atom_frontmatterDefaultMode,
   atom_schemaAutoCreate,
   atom_aiProvider,
   atom_selectedAiModel,
@@ -67,6 +68,7 @@ const SettingsPage = () => {
   const [autosaveDelay, setAutosaveDelay] = useAtom(atom_autosaveDelay);
   const [editorWidth, setEditorWidth] = useAtom(atom_editorWidth);
   const [autoInjectFrontmatter, setAutoInjectFrontmatter] = useAtom(atom_autoInjectFrontmatter);
+  const [frontmatterDefaultMode, setFrontmatterDefaultMode] = useAtom(atom_frontmatterDefaultMode);
   const [schemaAutoCreate, setSchemaAutoCreate] = useAtom(atom_schemaAutoCreate);
   const [, setSchemaWizardOpen] = useAtom(atom_schemaWizardOpen);
   const [, setVaultMigrateOpen] = useAtom(atom_vaultMigrateOpen);
@@ -276,6 +278,20 @@ const SettingsPage = () => {
             )}
           </SettingGroup>
           <SettingGroup title="Frontmatter">
+            <SettingItem
+              label="Default View"
+              description="Whether to open the frontmatter panel in structured Fields view or raw YAML by default."
+              control={
+                <SegmentedControl
+                  options={[
+                    { label: "Fields", value: "fields" },
+                    { label: "Raw YAML", value: "raw" },
+                  ]}
+                  value={frontmatterDefaultMode}
+                  onChange={setFrontmatterDefaultMode}
+                />
+              }
+            />
             <SettingItem
               label="Auto-inject on Save"
               description="When saving a file with no frontmatter block, prepend title, status, tags, and scope automatically."
