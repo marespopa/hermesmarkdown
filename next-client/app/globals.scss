@@ -344,6 +344,7 @@ ul li::marker {
   border: 1px solid theme('colors.beige.DEFAULT');
   padding: 0.4rem 0.75rem;
   text-align: left;
+  white-space: nowrap;
 }
 
 .hermes-preview table th {

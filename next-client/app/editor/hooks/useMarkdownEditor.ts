@@ -154,21 +154,45 @@ export function useMarkdownEditor({
     setTableInfo,
     calloutPos,
     currentAlignment,
+    canRemoveRow,
+    canRemoveCol,
+    isOnHeader,
+    cursorDataRowNumber,
     handleRemoveTable,
     handleCycleAlign,
     handleCopyCSV,
+    handleAddRow,
+    handleRemoveRow,
+    handleAddColumn,
+    handleRemoveColumn,
+    handleSortColumn,
     handleTableKeyDown,
   } = useTableCallout({ value: displayValue, textareaRef, onChange: commitDisplayValue });
 
   const tableDialog = useTableDialog({ value: displayValue, textareaRef });
 
+  const handleOpenEditDialog = useCallback(() => {
+    if (!tableInfo) return;
+    let endOffset = tableInfo.tableStartOffset;
+    for (let i = tableInfo.tableStart; i <= tableInfo.tableEnd; i++) {
+      endOffset += tableInfo.lines[i].length;
+      if (i < tableInfo.tableEnd) endOffset += 1;
+    }
+    const source = extractTableSource(tableInfo.lines, tableInfo.tableStart, tableInfo.tableEnd);
+    tableDialog.openEdit(source, tableInfo.tableStartOffset, endOffset, tableInfo.cursorRow, tableInfo.cursorCol);
+  }, [tableInfo, tableDialog]);
+
   const {
     isAiLoading,
     aiReview,
+    isChatOpen,
+    chatSelectedText,
     improveWriting,
     expandIdea,
     runPrompt,
-    runBuilder,
+    openChat,
+    closeChat,
+    applyFromChat,
     applyReplace,
     applyInsertBelow,
     dismissReview,
@@ -179,32 +203,17 @@ export function useMarkdownEditor({
     textareaRef,
   });
 
-  // The AI Builder button lives in the status bar, outside this hook's
-  // scope, so it requests a run by bumping a shared counter atom instead.
+  // atom_aiBuilderRequest is bumped by the keyboard shortcut / command palette
+  // to open the AI Chat dialog from outside the editor's scope.
   const aiBuilderRequest = useAtomValue(atom_aiBuilderRequest);
   const prevAiBuilderRequestRef = useRef(aiBuilderRequest);
   useEffect(() => {
     if (aiBuilderRequest !== prevAiBuilderRequestRef.current) {
       prevAiBuilderRequestRef.current = aiBuilderRequest;
-      if (isActivePane) runBuilder();
+      if (isActivePane) openChat();
     }
-  }, [aiBuilderRequest, runBuilder, isActivePane]);
+  }, [aiBuilderRequest, openChat, isActivePane]);
 
-  const handleOpenEditDialog = useCallback(() => {
-    if (!tableInfo) return;
-    // Compute character end offset of the table block
-    let endOffset = tableInfo.tableStartOffset;
-    for (let i = tableInfo.tableStart; i <= tableInfo.tableEnd; i++) {
-      endOffset += tableInfo.lines[i].length;
-      if (i < tableInfo.tableEnd) endOffset += 1; // \n
-    }
-    const source = extractTableSource(
-      tableInfo.lines,
-      tableInfo.tableStart,
-      tableInfo.tableEnd,
-    );
-    tableDialog.openEdit(source, tableInfo.tableStartOffset, endOffset, tableInfo.cursorRow, tableInfo.cursorCol);
-  }, [tableInfo, tableDialog]);
 
   const handleWorkflowCycle = useCallback(
     (direction: "prev" | "next") => {
@@ -309,7 +318,6 @@ export function useMarkdownEditor({
     onChange: commitDisplayValue,
     textareaRef,
     wrapperRef,
-    onOpenTableCreate: tableDialog.openCreate,
     onFrontmatterWizard,
     onAIAction: runAIActionById,
   });
@@ -545,6 +553,15 @@ export function useMarkdownEditor({
     handleRemoveTable,
     handleCycleAlign,
     handleCopyCSV,
+    handleAddRow,
+    handleRemoveRow,
+    handleAddColumn,
+    handleRemoveColumn,
+    handleSortColumn,
+    isOnHeader,
+    canRemoveRow,
+    canRemoveCol,
+    cursorDataRowNumber,
     tableDialog,
     handleOpenEditDialog,
     formulaBadges,
@@ -556,9 +573,14 @@ export function useMarkdownEditor({
     handleTodoCycle,
     isAiLoading,
     aiReview,
+    isChatOpen,
+    chatSelectedText,
     improveWriting,
     expandIdea,
     runPrompt,
+    openChat,
+    closeChat,
+    applyFromChat,
     applyReplace,
     applyInsertBelow,
     dismissReview,

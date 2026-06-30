@@ -28,6 +28,35 @@ export function addRow(lines: string[], tableEnd: number): string[] {
   return result;
 }
 
+// Insert an empty row immediately after `insertAfterLineIdx` in the full
+// lines array. Column count is inferred from the referenced line.
+export function insertRowAt(lines: string[], insertAfterLineIdx: number): string[] {
+  const refLine = lines[insertAfterLineIdx];
+  const cols = parseRow(refLine).length;
+  const newRow = serializeRow(Array(cols).fill(""));
+  const result = [...lines];
+  result.splice(insertAfterLineIdx + 1, 0, newRow);
+  return result;
+}
+
+// Insert an empty column immediately after `colIdx` (0-based) in every row
+// of the table spanning `tableStart..tableEnd`.
+export function insertColumnAt(
+  lines: string[],
+  colIdx: number,
+  tableStart: number,
+  tableEnd: number,
+): string[] {
+  const result = [...lines];
+  for (let i = tableStart; i <= tableEnd; i++) {
+    const isSep = isSeparatorRow(result[i]);
+    const cells = parseRow(result[i]);
+    cells.splice(colIdx + 1, 0, isSep ? " -------- " : "");
+    result[i] = isSep ? serializeSeparator(cells) : serializeRow(cells);
+  }
+  return result;
+}
+
 export function addColumn(lines: string[], tableStart: number, tableEnd: number): string[] {
   const result = [...lines];
   for (let i = tableStart; i <= tableEnd; i++) {

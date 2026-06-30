@@ -12,7 +12,6 @@ interface UseEditorTemplatesProps {
   onChange: (value: string) => void;
   textareaRef: React.RefObject<HTMLTextAreaElement | null>;
   wrapperRef: React.RefObject<HTMLDivElement | null>;
-  onOpenTableCreate?: (pos: number, filterLen: number) => void;
   onFrontmatterWizard?: () => void;
   onAIAction?: (id: string) => void;
 }
@@ -22,7 +21,6 @@ export function useEditorTemplates({
   onChange,
   textareaRef,
   wrapperRef,
-  onOpenTableCreate,
   onFrontmatterWizard,
   onAIAction,
 }: UseEditorTemplatesProps) {
@@ -105,9 +103,23 @@ export function useEditorTemplates({
     }
 
     if (content === TABLE_DIALOG_SENTINEL) {
+      const defaultTable =
+        `| ${CURSOR_SENTINEL}Header 1 | Header 2 | Header 3 |\n` +
+        `| -------- | -------- | -------- |\n` +
+        `|          |          |          |\n` +
+        `|          |          |          |`;
+      const sentinelIdx = defaultTable.indexOf(CURSOR_SENTINEL);
+      const cleanTable = defaultTable.replace(CURSOR_SENTINEL, "");
+      const insertStart = start - lengthToRemove;
+      textarea.focus();
+      textarea.setSelectionRange(insertStart, start);
+      document.execCommand("insertText", false, cleanTable);
       setMenuOpen(false);
       setFilterQuery("");
-      onOpenTableCreate?.(start, lengthToRemove);
+      if (sentinelIdx !== -1) {
+        const newPos = insertStart + sentinelIdx;
+        textarea.setSelectionRange(newPos, newPos);
+      }
       return;
     }
 
@@ -174,7 +186,7 @@ export function useEditorTemplates({
     if (wrapperRef.current && scrollPos !== undefined) {
       wrapperRef.current.scrollTop = scrollPos;
     }
-  }, [value, filterQuery, textareaRef, wrapperRef, onOpenTableCreate, onFrontmatterWizard, onAIAction]);
+  }, [value, filterQuery, textareaRef, wrapperRef, onFrontmatterWizard, onAIAction]);
 
   const handleSlashMenuTrigger = useCallback((val: string) => {
     const textarea = textareaRef.current;

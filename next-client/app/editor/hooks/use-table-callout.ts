@@ -5,12 +5,17 @@ import getCaretCoordinates from "textarea-caret";
 import { findTableAtPos, TableInfo } from "../utils/table-detection";
 import {
   addRow,
+  insertRowAt,
+  insertColumnAt,
+  removeRow,
+  removeColumn,
   cycleAlignment,
   getColumnAlignment,
   tableToCSV,
 } from "../utils/table-manipulation";
 import { parseTable, extractTableSource } from "../utils/tableParser";
 import { serializeTable } from "../utils/tableSerializer";
+import { sortRows, type SortDirection } from "../utils/tableSorter";
 
 interface UseTableCalloutProps {
   value: string;
@@ -169,10 +174,16 @@ export function useTableCallout({ value, textareaRef, onChange }: UseTableCallou
       return;
     }
 
-    const caret = getCaretCoordinates(textarea, pos);
+    // Pin the toolbar above the table's header row so it never overlaps
+    // table content. When the header scrolls above the visible area, clamp
+    // so the toolbar stays at the top of the visible editor (sticky effect).
+    const headerCoords = getCaretCoordinates(textarea, result.tableStartOffset);
+    const caretCoords = getCaretCoordinates(textarea, pos);
+    const scrollTop = textarea.scrollTop || 0;
+    const topAboveHeader = headerCoords.top - 36;
     setCalloutPos({
-      top: (caret.top || 0) - 36,
-      left: Math.min(caret.left || 0, textarea.clientWidth - CALLOUT_WIDTH),
+      top: Math.max(topAboveHeader, scrollTop + 4),
+      left: Math.min(caretCoords.left || 0, textarea.clientWidth - CALLOUT_WIDTH),
     });
 
     lastTableRef.current = result;
@@ -404,14 +415,126 @@ export function useTableCallout({ value, textareaRef, onChange }: UseTableCallou
     ? getColumnAlignment(tableInfo.lines, tableInfo.cursorCol, tableInfo.tableStart)
     : "none";
 
+  // Row/column counts for guarding destructive actions.
+  const isOnHeader = !!tableInfo && tableInfo.lineIdx === tableInfo.tableStart;
+  const canRemoveRow = !!tableInfo && tableInfo.lineIdx > tableInfo.tableStart + 1;
+  // 1-based data row number for the "−Row N" label (0 when not on a data row).
+  const cursorDataRowNumber =
+    tableInfo && canRemoveRow ? tableInfo.lineIdx - tableInfo.tableStart - 1 : 0;
+  const colCount = tableInfo
+    ? Math.max(0, (tableInfo.lines[tableInfo.tableStart]?.split("|").length ?? 2) - 2)
+    : 0;
+  const canRemoveCol = colCount > 1;
+
+  const handleAddRow = useCallback(() => {
+    if (!tableInfo) return;
+    // Insert after separator → first data row; otherwise after current row.
+    const insertAfter =
+      tableInfo.lineIdx <= tableInfo.tableStart + 1
+        ? tableInfo.tableStart + 1
+        : tableInfo.lineIdx;
+    const newLines = insertRowAt(tableInfo.lines, insertAfter);
+    const newTableEnd = tableInfo.tableEnd + 1;
+    const realigned = realignTableLines(newLines, tableInfo.tableStart, newTableEnd);
+    const newRowIdx = insertAfter + 1;
+    const targetLine = realigned[newRowIdx];
+    const pipeIdx = nthPipeIndex(targetLine, 0);
+    const cursorPos =
+      computeLineOffset(realigned, newRowIdx) + (pipeIdx === -1 ? 0 : pipeIdx + 2);
+    applyTableChange(realigned, cursorPos);
+  }, [tableInfo, applyTableChange]);
+
+  const handleRemoveRow = useCallback(() => {
+    if (!tableInfo || !canRemoveRow) return;
+    const newLines = removeRow(tableInfo.lines, tableInfo.lineIdx, tableInfo.tableStart);
+    const newTableEnd = tableInfo.tableEnd - 1;
+    // Land on the row that slid up, or the one above if we removed the last.
+    const targetLineIdx = Math.min(tableInfo.lineIdx, newTableEnd);
+    const realigned = realignTableLines(newLines, tableInfo.tableStart, newTableEnd);
+    const targetLine = realigned[targetLineIdx] ?? realigned[tableInfo.tableStart];
+    const pipeIdx = nthPipeIndex(targetLine, tableInfo.cursorCol);
+    const cursorPos =
+      computeLineOffset(realigned, targetLineIdx) + (pipeIdx === -1 ? 0 : pipeIdx + 2);
+    applyTableChange(realigned, cursorPos);
+  }, [tableInfo, canRemoveRow, applyTableChange]);
+
+  const handleAddColumn = useCallback(() => {
+    if (!tableInfo) return;
+    const newLines = insertColumnAt(
+      tableInfo.lines,
+      tableInfo.cursorCol,
+      tableInfo.tableStart,
+      tableInfo.tableEnd,
+    );
+    const realigned = realignTableLines(newLines, tableInfo.tableStart, tableInfo.tableEnd);
+    const newCol = tableInfo.cursorCol + 1;
+    const targetLine = realigned[tableInfo.lineIdx];
+    const pipeIdx = nthPipeIndex(targetLine, newCol);
+    const cursorPos =
+      computeLineOffset(realigned, tableInfo.lineIdx) + (pipeIdx === -1 ? 0 : pipeIdx + 2);
+    applyTableChange(realigned, cursorPos);
+  }, [tableInfo, applyTableChange]);
+
+  const handleRemoveColumn = useCallback(() => {
+    if (!tableInfo || !canRemoveCol) return;
+    const newLines = removeColumn(
+      tableInfo.lines,
+      tableInfo.cursorCol,
+      tableInfo.tableStart,
+      tableInfo.tableEnd,
+    );
+    const realigned = realignTableLines(newLines, tableInfo.tableStart, tableInfo.tableEnd);
+    const newCol = Math.max(0, tableInfo.cursorCol - 1);
+    const targetLine = realigned[tableInfo.lineIdx];
+    const pipeIdx = nthPipeIndex(targetLine, newCol);
+    const cursorPos =
+      computeLineOffset(realigned, tableInfo.lineIdx) + (pipeIdx === -1 ? 0 : pipeIdx + 2);
+    applyTableChange(realigned, cursorPos);
+  }, [tableInfo, canRemoveCol, applyTableChange]);
+
+  const handleSortColumn = useCallback(
+    (direction: Exclude<SortDirection, "none">) => {
+      if (!tableInfo) return;
+      const source = extractTableSource(
+        tableInfo.lines,
+        tableInfo.tableStart,
+        tableInfo.tableEnd,
+      );
+      const data = parseTable(source);
+      if (!data) return;
+      const sortedRows = sortRows(data.rows, tableInfo.cursorCol, direction);
+      const serialized = serializeTable({ ...data, rows: sortedRows }, true).split("\n");
+      const newLines = [
+        ...tableInfo.lines.slice(0, tableInfo.tableStart),
+        ...serialized,
+        ...tableInfo.lines.slice(tableInfo.tableEnd + 1),
+      ];
+      const targetLine = newLines[tableInfo.lineIdx];
+      const pipeIdx = nthPipeIndex(targetLine, tableInfo.cursorCol);
+      const cursorPos =
+        computeLineOffset(newLines, tableInfo.lineIdx) + (pipeIdx === -1 ? 0 : pipeIdx + 2);
+      applyTableChange(newLines, cursorPos);
+    },
+    [tableInfo, applyTableChange],
+  );
+
   return {
     tableInfo,
     setTableInfo,
     calloutPos,
     currentAlignment,
+    isOnHeader,
+    canRemoveRow,
+    canRemoveCol,
+    cursorDataRowNumber,
     handleRemoveTable,
     handleCycleAlign,
     handleCopyCSV,
+    handleAddRow,
+    handleRemoveRow,
+    handleAddColumn,
+    handleRemoveColumn,
+    handleSortColumn,
     handleTableKeyDown,
   };
 }

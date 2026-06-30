@@ -104,7 +104,10 @@ export default function CommandPalette() {
   }, [isOpen]);
 
   const fileResults: FileResult[] = useMemo(
-    () => Object.values(fileMetadata).map((m) => ({ path: m.path, name: m.name, handle: m.handle, tags: m.tags })),
+    () =>
+      Object.values(fileMetadata)
+        .filter((m) => !m.path.split("/").some((seg) => seg.startsWith("_")))
+        .map((m) => ({ path: m.path, name: m.name, handle: m.handle, tags: m.tags })),
     [fileMetadata],
   );
 

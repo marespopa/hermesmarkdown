@@ -138,9 +138,9 @@ export default function EditorCommands({
     isAiConfigured
       ? {
           id: "ai-builder",
-          label: "Open AI Builder",
+          label: "Open AI Chat",
           shortcut: formatShortcut("B", { shift: true }),
-          keywords: "ai generate create revise section",
+          keywords: "ai chat generate create revise section ask",
           action: () => setAiBuilderRequest((v) => v + 1),
         }
       : null,

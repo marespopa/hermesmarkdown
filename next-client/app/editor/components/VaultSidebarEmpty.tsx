@@ -50,7 +50,7 @@ export default function VaultSidebarEmpty({
               className="flex items-center gap-3 px-4 py-3 rounded-xl cursor-pointer hover:bg-paper-softgray dark:hover:bg-paper-dark-surface/40 transition-colors text-ui-footnote text-ink-muted dark:text-stone font-medium"
             >
               <HiOutlineDatabase size={18} />
-              <span>Open Folder</span>
+              <span>Open Vault</span>
             </div>
           </>
         ) : (

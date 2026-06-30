@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
-import { HiOutlineLightningBolt, HiOutlinePlus, HiOutlineSparkles } from "react-icons/hi";
+import { HiOutlineLightningBolt, HiOutlinePlus, HiOutlineChatAlt2 } from "react-icons/hi";
 import Portal from "../../components/Portal/Portal";
 
 interface AISelectionToolbarProps {
@@ -73,8 +73,8 @@ export const AISelectionToolbar: React.FC<AISelectionToolbarProps> = ({
             onClick={(e) => { e.preventDefault(); e.stopPropagation(); onPrompt(); }}
             className="flex items-center gap-1.5 px-3 py-1.5 text-ui-footnote font-medium text-sage dark:text-sage hover:bg-sage/10 dark:hover:bg-sage/10 rounded-full transition-colors"
           >
-            <HiOutlineSparkles size={13} />
-            Prompt
+            <HiOutlineChatAlt2 size={13} />
+            Ask AI
           </button>
           <div className="w-px h-3.5 bg-beige dark:bg-clay my-auto" />
           <button
@@ -83,7 +83,7 @@ export const AISelectionToolbar: React.FC<AISelectionToolbarProps> = ({
             className="flex items-center gap-1.5 px-3 py-1.5 text-ui-footnote font-medium text-sage dark:text-sage hover:bg-sage/10 dark:hover:bg-sage/10 rounded-full transition-colors"
           >
             <HiOutlineLightningBolt size={13} />
-            Improve
+            Polish
           </button>
           <div className="w-px h-3.5 bg-beige dark:bg-clay my-auto" />
           <button
@@ -92,7 +92,7 @@ export const AISelectionToolbar: React.FC<AISelectionToolbarProps> = ({
             className="flex items-center gap-1.5 px-3 py-1.5 text-ui-footnote font-medium text-sage dark:text-sage hover:bg-sage/10 dark:hover:bg-sage/10 rounded-full transition-colors"
           >
             <HiOutlinePlus size={13} />
-            Expand
+            Elaborate
           </button>
         </div>
       </div>

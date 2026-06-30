@@ -79,6 +79,7 @@ export function parseRangeRef(ref: string): RangeRef | null {
 }
 
 export function isFormulaCell(text: string): boolean {
+  if (!text) return false;
   const t = text.trim();
   return t.startsWith("=") && t.length > 1;
 }
@@ -636,11 +637,13 @@ export function formatFormulaValue(v: FormulaValue, currency?: CurrencyHint | nu
   if (isFormulaError(v)) return v.code;
   if (typeof v === "boolean") return v ? "TRUE" : "FALSE";
   if (typeof v === "number") {
+    const rounded = Math.round(v * 100) / 100;
+    const isInt = Number.isInteger(rounded);
     if (!currency) {
-      return Number.isInteger(v) ? String(v) : String(Math.round(v * 100) / 100);
+      return isInt ? String(rounded) : String(rounded);
     }
-    const formatted = (Math.round(v * 100) / 100).toLocaleString("en", {
-      minimumFractionDigits: 2,
+    const formatted = rounded.toLocaleString("en", {
+      minimumFractionDigits: isInt ? 0 : 2,
       maximumFractionDigits: 2,
     });
     return currency.suffix ? `${formatted} ${currency.symbol}` : `${currency.symbol}${formatted}`;
@@ -817,11 +820,13 @@ export function evaluateTable(
       const k = key(r, col);
       const cached = tResults.get(k);
       if (cached) {
+        if (isFormulaCell(cached.raw)) continue;
         recordCurrencyHint(cached.currency);
         out.push(cached.value);
       } else {
         const raw = resolveCellText(otherData, r, col);
         if (raw === null) return new FormulaError("#REF!");
+        if (isFormulaCell(raw)) continue;
         recordCurrency(raw);
         out.push(raw);
       }

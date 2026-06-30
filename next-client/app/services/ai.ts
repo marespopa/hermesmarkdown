@@ -89,6 +89,42 @@ export async function fetchGeminiModels(apiKey: string) {
 }
 
 /**
+ * Multi-turn chat generation for the AI Chat dialog.
+ */
+export type ApiPart =
+  | { type: 'text'; text: string }
+  | { type: 'image'; image: string; mimeType: string };
+
+export type ApiMessage = {
+  role: 'user' | 'assistant';
+  content: string | ApiPart[];
+};
+
+export async function callAIChat(system: string, messages: ApiMessage[]) {
+  const seq = beginAiAction("Thinking…");
+
+  try {
+    const config = getAIConfig();
+    const response = await fetch('/api/ai', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'chat', ...config, system, messages }),
+    });
+
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error || "Failed to generate response");
+
+    finishAiActionSuccess(seq, "Done");
+    return data.text as string;
+  } catch (error: any) {
+    console.error("AI Chat Error:", error);
+    const message = beautifyAIError(error.message || "An unexpected error occurred.");
+    finishAiActionError(seq, message);
+    throw new Error(message);
+  }
+}
+
+/**
  * Simple text generation for Summarize, Expand, Improve features.
  */
 export async function callAI(system: string, prompt: string) {

@@ -161,7 +161,7 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
                 <div className="flex items-center gap-3">
                   <HiOutlineFolder className="text-amber-500" size={24} />
                   <div className="text-left">
-                    <div className="font-bold text-ui-footnote">Open Existing Folder</div>
+                    <div className="font-bold text-ui-footnote">Open Existing Vault</div>
                     <div className="text-[10px] opacity-50 uppercase tracking-wider font-bold">Offline · No upload</div>
                   </div>
                 </div>

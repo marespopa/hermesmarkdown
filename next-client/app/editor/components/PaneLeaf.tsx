@@ -439,7 +439,7 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
                   className="flex items-center gap-3 px-3 py-2 rounded-xl text-ui-footnote text-ink-muted hover:text-ink-light dark:hover:text-ink-dark hover:bg-paper-softgray dark:hover:bg-paper-dark-surface/40 transition-colors"
                 >
                   <HiOutlineDatabase size={16} className="shrink-0" />
-                  <span className="truncate">Open Folder</span>
+                  <span className="truncate">Open Vault</span>
                 </button>
               )}
               {isVaultSupported && (
