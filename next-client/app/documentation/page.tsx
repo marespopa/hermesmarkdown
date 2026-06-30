@@ -713,6 +713,41 @@ read_when: never
           </>
         ),
       },
+      {
+        id: "hermes-md-vs-agents-md",
+        title: "Is hermes.md the same as HermesMarkdown's vault system?",
+        lead: "No — the hermes.md convention belongs to a different project. Here's the short version.",
+        keywords: "hermes.md .hermes.md NousResearch disambiguation agent context",
+        body: (
+          <>
+            <p>
+              <code>hermes.md</code> and <code>.hermes.md</code> are project-context filenames used by{" "}
+              <strong>Hermes Agent</strong> (NousResearch) and compatible AI coding tools. They serve the
+              same conceptual purpose as <code>CLAUDE.md</code> or <code>.cursorrules</code> — a file placed
+              in a repo so an agent starts with context about the codebase. They are not part of HermesMarkdown.
+            </p>
+            <p>
+              HermesMarkdown uses a different system: a <code>.hermes/</code> folder (not a single file)
+              generated inside any vault you open, containing <code>AGENTS.md</code>,{" "}
+              <code>index.yaml</code>, and <code>schema.yaml</code>. See{" "}
+              <a href="#hermes-architecture" className="text-sage font-semibold hover:underline">
+                .hermes/ architecture
+              </a>{" "}
+              and{" "}
+              <a href="#agent-context-protocol" className="text-sage font-semibold hover:underline">
+                Agent context protocol
+              </a>{" "}
+              above for how that system works.
+            </p>
+            <p>
+              For the full explanation of the naming overlap and why "hermes.md file" searches spiked, see{" "}
+              <a href="/what-is-hermes-md" className="text-sage font-semibold hover:underline">
+                What is a hermes.md file?
+              </a>
+            </p>
+          </>
+        ),
+      },
     ],
   },
   {
