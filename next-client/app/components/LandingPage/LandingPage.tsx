@@ -439,6 +439,40 @@ const AgentScoreGraphic = () => (
   </div>
 );
 
+const StarterPacksGraphic = () => (
+  <div className="w-full h-full flex items-center justify-center p-5 relative select-none">
+    <div className="w-full max-w-[280px] space-y-2">
+      {[
+        { icon: "🗂", label: "Empty Vault", active: false },
+        { icon: "📓", label: "Notes / PKM", active: true },
+        { icon: "⚙️", label: "Engineering", active: false },
+        { icon: "💰", label: "Personal Finance", active: false },
+      ].map(({ icon, label, active }, i) => (
+        <div
+          key={label}
+          className={`flex items-center gap-3 px-3 h-11 rounded-xl border transition-all ${
+            active
+              ? "border-sage bg-sage/5 dark:bg-sage/10"
+              : "border-black/5 dark:border-white/10 bg-paper-light dark:bg-paper-dark"
+          }`}
+          style={{ opacity: 1 - i * 0.12 }}
+        >
+          <span className="text-lg">{icon}</span>
+          <span className={`text-[11px] font-bold ${active ? "" : "opacity-60"}`}>{label}</span>
+          {active && (
+            <span className="ml-auto text-sage text-sm">✓</span>
+          )}
+        </div>
+      ))}
+    </div>
+    <div className="absolute top-4 right-4">
+      <span className="text-[9px] font-mono uppercase tracking-widest text-teal-500 opacity-60">
+        Starter Packs
+      </span>
+    </div>
+  </div>
+);
+
 const GoogleDriveGraphic = () => (
   <div className="w-full h-full flex items-center justify-center p-6 relative select-none">
     <div className="flex items-center gap-8">
@@ -784,7 +818,8 @@ export default function LandingPage() {
 
       {/* --- FEATURES --- */}
       <div className="max-w-5xl mx-auto px-6 py-24 md:py-32 space-y-32">
-        {/* 1. Three-tier read protocol + score — lead with the differentiator */}
+
+        {/* 1. Three-tier read protocol + score — the core differentiator */}
         <section className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 lg:gap-16 items-center">
           <div aria-hidden="true" className="order-last md:order-first aspect-video bg-paper-light dark:bg-neutral-900 rounded-2xl border border-black/5 dark:border-white/5 flex items-center justify-center group overflow-hidden relative">
             <AgentScoreGraphic />
@@ -819,8 +854,31 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* 2. Agent-Specific Frontmatter — optional schema framing */}
+        {/* 2. Starter Packs — onboarding hook */}
         <section className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 lg:gap-16 items-center">
+          <div className="space-y-6">
+            <div className="h-px w-12 bg-teal-500" />
+            <h2 className="text-3xl font-bold tracking-tight">
+              Create a vault from a starter pack
+            </h2>
+            <p className="text-neutral-600 dark:text-neutral-400 leading-relaxed">
+              Name your vault, pick a parent folder, and choose a starter pack — HermesMarkdown creates the directory, writes the{" "}
+              <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">
+                .hermes/
+              </code>{" "}
+              scaffolding, and navigates you straight into a working vault. Four packs ship out of the box: an empty slate, Notes/PKM (atomic notes and a daily journal template), Engineering (ADRs, bug tracker, and meeting notes), and Personal Finance (budget and debt tables with live formulas).
+            </p>
+          </div>
+          <div className="aspect-video bg-paper-light dark:bg-neutral-900 rounded-2xl border border-black/5 dark:border-white/5 flex items-center justify-center group overflow-hidden relative">
+            <StarterPacksGraphic />
+          </div>
+        </section>
+
+        {/* 3. Agent-Specific Frontmatter */}
+        <section className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 lg:gap-16 items-center">
+          <div className="order-last md:order-first aspect-video bg-paper-light dark:bg-neutral-900 rounded-2xl border border-black/5 dark:border-white/5 flex items-center justify-center group overflow-hidden relative">
+            <AgentContextGraphic />
+          </div>
           <div className="space-y-6">
             <div className="h-px w-12 bg-sky-500" />
             <h2 className="text-3xl font-bold tracking-tight">
@@ -854,68 +912,10 @@ export default function LandingPage() {
               your vault benefits from whatever structure you add — permanently.
             </p>
           </div>
-          <div aria-hidden="true" className="aspect-video bg-paper-light dark:bg-neutral-900 rounded-2xl border border-black/5 dark:border-white/5 flex items-center justify-center group overflow-hidden relative">
-            <AgentContextGraphic />
-          </div>
         </section>
 
-        {/* 3. Table Editor */}
+        {/* 4. Vault Management */}
         <section className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 lg:gap-16 items-center">
-          <div aria-hidden="true" className="order-last md:order-first aspect-video bg-paper-light dark:bg-neutral-900 rounded-2xl border border-black/5 dark:border-white/5 flex items-center justify-center group overflow-hidden relative">
-            <TableGraphic />
-          </div>
-          <div className="space-y-6">
-            <div className="h-px w-12 bg-indigo-500" />
-            <h2 className="text-3xl font-bold tracking-tight">Table editor</h2>
-            <p className="text-neutral-600 dark:text-neutral-400 leading-relaxed">
-              Click inside any Markdown table for a full toolbar. In the editor
-              dialog, click a cell to select it and double-click (or hit Enter)
-              to type — arrow keys and Tab move between cells. Add rows, sort by
-              date or number, export to CSV. Output is clean, auto-padded
-              Markdown. Insert a starter grid with{" "}
-              <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">
-                /table
-              </code>{" "}
-              or the{" "}
-              <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">
-                {"{table}"}
-              </code>{" "}
-              shortcode.
-            </p>
-          </div>
-        </section>
-
-        {/* 5. Bring Your Own AI */}
-        <section className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 lg:gap-16 items-center">
-          <div className="space-y-6">
-            <div className="h-px w-12 bg-indigo-600" />
-            <h2 className="text-3xl font-bold tracking-tight">
-              You bring your own AI keys
-            </h2>
-            <p className="text-neutral-600 dark:text-neutral-400 leading-relaxed">
-              Connect your Anthropic or Google Gemini API key. HermesMarkdown
-              uses it to auto-generate{" "}
-              <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">
-                scope
-              </code>{" "}
-              fields, suggest{" "}
-              <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">
-                related
-              </code>{" "}
-              links, and improve your writing — inline, in the editor. Your keys
-              stay in your browser. We never see them or proxy your requests.
-            </p>
-          </div>
-          <div aria-hidden="true" className="aspect-video bg-paper-light dark:bg-neutral-900 rounded-2xl border border-black/5 dark:border-white/5 flex items-center justify-center group overflow-hidden relative">
-            <AIKeyGraphic />
-          </div>
-        </section>
-
-        {/* 6. Vault Management */}
-        <section className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 lg:gap-16 items-center">
-          <div aria-hidden="true" className="order-last md:order-first aspect-video bg-paper-light dark:bg-neutral-900 rounded-2xl border border-black/5 dark:border-white/5 flex items-center justify-center group overflow-hidden relative">
-            <FilesystemGraphic />
-          </div>
           <div className="space-y-6">
             <div className="h-px w-12 bg-sage" />
             <h2 className="text-3xl font-bold tracking-tight">
@@ -933,28 +933,12 @@ export default function LandingPage() {
               and navigate with a click.
             </p>
           </div>
-        </section>
-
-        {/* 7. Google Drive Integration — reframe to match "offline-first, cloud-optional" */}
-        <section className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 lg:gap-16 items-center">
-          <div className="space-y-6">
-            <div className="h-px w-12 bg-emerald-600" />
-            <h2 className="text-3xl font-bold tracking-tight">
-              Google Drive sync
-            </h2>
-            <p className="text-neutral-600 dark:text-neutral-400 leading-relaxed">
-              Opt-in cloud backup. Connect your Google Drive and HermesMarkdown
-              syncs in the background — your vault stays on your machine and
-              works offline first. Disconnect any time, files stay put. It
-              &apos;s an escape hatch, not a dependency.
-            </p>
-          </div>
-          <div aria-hidden="true" className="aspect-video bg-paper-light dark:bg-neutral-900 rounded-2xl border border-black/5 dark:border-white/5 flex items-center justify-center group overflow-hidden relative">
-            <GoogleDriveGraphic />
+          <div className="aspect-video bg-paper-light dark:bg-neutral-900 rounded-2xl border border-black/5 dark:border-white/5 flex items-center justify-center group overflow-hidden relative">
+            <FilesystemGraphic />
           </div>
         </section>
 
-        {/* 8. Writing Experience */}
+        {/* 5. Writing Experience */}
         <section className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 lg:gap-16 items-center">
           <div aria-hidden="true" className="order-last md:order-first aspect-video bg-paper-light dark:bg-neutral-900 rounded-2xl border border-black/5 dark:border-white/5 flex items-center justify-center group overflow-hidden relative">
             <ZenModeGraphic />
@@ -981,8 +965,37 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* 9. Syntax & Shortcuts */}
+        {/* 6. Table Editor */}
         <section className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 lg:gap-16 items-center">
+          <div className="space-y-6">
+            <div className="h-px w-12 bg-indigo-500" />
+            <h2 className="text-3xl font-bold tracking-tight">Table editor</h2>
+            <p className="text-neutral-600 dark:text-neutral-400 leading-relaxed">
+              Click inside any Markdown table for a full toolbar. In the editor
+              dialog, click a cell to select it and double-click (or hit Enter)
+              to type — arrow keys and Tab move between cells. Add rows, sort by
+              date or number, export to CSV. Output is clean, auto-padded
+              Markdown. Insert a starter grid with{" "}
+              <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">
+                /table
+              </code>{" "}
+              or the{" "}
+              <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">
+                {"{table}"}
+              </code>{" "}
+              shortcode.
+            </p>
+          </div>
+          <div className="aspect-video bg-paper-light dark:bg-neutral-900 rounded-2xl border border-black/5 dark:border-white/5 flex items-center justify-center group overflow-hidden relative">
+            <TableGraphic />
+          </div>
+        </section>
+
+        {/* 7. Real formulas & smart syntax */}
+        <section className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 lg:gap-16 items-center">
+          <div className="order-last md:order-first aspect-video bg-paper-light dark:bg-neutral-900 rounded-2xl border border-black/5 dark:border-white/5 flex items-center justify-center group overflow-hidden relative">
+            <SmartSyntaxGraphic />
+          </div>
           <div className="space-y-6">
             <div className="h-px w-12 bg-amber-500" />
             <h2 className="text-3xl font-bold tracking-tight">
@@ -1021,10 +1034,53 @@ export default function LandingPage() {
               for inline expressions.
             </p>
           </div>
-          <div aria-hidden="true" className="aspect-video bg-paper-light dark:bg-neutral-900 rounded-2xl border border-black/5 dark:border-white/5 flex items-center justify-center group overflow-hidden relative">
-            <SmartSyntaxGraphic />
+        </section>
+
+        {/* 8. Bring Your Own AI */}
+        <section className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 lg:gap-16 items-center">
+          <div className="space-y-6">
+            <div className="h-px w-12 bg-indigo-600" />
+            <h2 className="text-3xl font-bold tracking-tight">
+              You bring your own AI keys
+            </h2>
+            <p className="text-neutral-600 dark:text-neutral-400 leading-relaxed">
+              Connect your Anthropic or Google Gemini API key. HermesMarkdown
+              uses it to auto-generate{" "}
+              <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">
+                scope
+              </code>{" "}
+              fields, suggest{" "}
+              <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">
+                related
+              </code>{" "}
+              links, and improve your writing — inline, in the editor. Your keys
+              stay in your browser. We never see them or proxy your requests.
+            </p>
+          </div>
+          <div className="aspect-video bg-paper-light dark:bg-neutral-900 rounded-2xl border border-black/5 dark:border-white/5 flex items-center justify-center group overflow-hidden relative">
+            <AIKeyGraphic />
           </div>
         </section>
+
+        {/* 9. Google Drive — most optional, last */}
+        <section className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 lg:gap-16 items-center">
+          <div className="order-last md:order-first aspect-video bg-paper-light dark:bg-neutral-900 rounded-2xl border border-black/5 dark:border-white/5 flex items-center justify-center group overflow-hidden relative">
+            <GoogleDriveGraphic />
+          </div>
+          <div className="space-y-6">
+            <div className="h-px w-12 bg-emerald-600" />
+            <h2 className="text-3xl font-bold tracking-tight">
+              Google Drive sync
+            </h2>
+            <p className="text-neutral-600 dark:text-neutral-400 leading-relaxed">
+              Opt-in cloud backup. Connect your Google Drive and HermesMarkdown
+              syncs in the background — your vault stays on your machine and
+              works offline first. Disconnect any time, files stay put. It
+              &apos;s an escape hatch, not a dependency.
+            </p>
+          </div>
+        </section>
+
       </div>
 
       {/* --- CALL TO ACTION --- */}

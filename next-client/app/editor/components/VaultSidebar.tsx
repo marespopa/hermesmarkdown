@@ -15,7 +15,7 @@ import {
   atom_sidebarWidth,
   atom_isCloudVault,
 } from "@/app/atoms/atoms";
-import { atom_railPanel, RailPanel } from "@/app/atoms/ui-atoms";
+import { atom_railPanel, atom_newVaultFlowOpen, RailPanel } from "@/app/atoms/ui-atoms";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import SmartFolders from "./SmartFolders";
 import { useSidebarSearch } from "../hooks/useSidebarSearch";
@@ -94,6 +94,7 @@ export default function VaultSidebar({
 
   const dialog = useDialog();
   const drivePathIndex = useAtomValue(atom_drivePathIndex);
+  const setNewVaultFlowOpen = useSetAtom(atom_newVaultFlowOpen);
 
   // Resolves a directory handle for an arbitrary nested path (e.g. "a/b/c"),
   // working for both local (File System Access API) and Google Drive vaults.
@@ -259,6 +260,7 @@ export default function VaultSidebar({
               <VaultSidebarEmpty
                 isVaultSupported={isVaultSupported}
                 openVault={openVault}
+                onCreateVault={() => setNewVaultFlowOpen(true)}
                 onImport={onImport}
                 onExport={onExport}
                 setActiveFilePath={setActiveFilePath}

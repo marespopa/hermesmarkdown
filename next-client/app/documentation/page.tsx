@@ -141,6 +141,39 @@ const GROUPS: Group[] = [
         ),
       },
       {
+        id: "starter-packs",
+        title: "Starter packs",
+        lead: "Create a new vault with example notes pre-loaded — pick a pack, name it, and start writing.",
+        keywords: "starter pack new vault create template notes pkm engineering finance budget adr meeting",
+        body: (
+          <>
+            <p>
+              In the sidebar, click the vault icon and choose <strong>New Vault</strong>, or run it from the command palette. A two-step dialog opens.
+            </p>
+            <p>
+              <strong>Step 1 — Name and location.</strong> Type a vault name (this becomes the folder name on disk) and click <em>Choose parent folder</em> to pick where the folder will be created.
+            </p>
+            <p>
+              <strong>Step 2 — Starter pack.</strong> Pick one of four packs and click <em>Create Vault</em>:
+            </p>
+            <KV
+              rows={[
+                { label: "🗂 Empty Vault", value: "No example files — blank slate" },
+                { label: "📓 Notes / PKM", value: "Map of Content, atomic notes guide, daily journal template, callout demo" },
+                { label: "⚙️ Engineering", value: "AGENTS.md, two ADRs, bug tracker table, meeting notes template" },
+                { label: "💰 Personal Finance", value: "Budget tracker, debt tracker, recurring expenses — all with live formula cells" },
+              ]}
+            />
+            <p>
+              HermesMarkdown creates the folder, writes <code>.hermes/</code> scaffolding, installs the pack's example files, then opens the vault and navigates to the pack's entry note automatically.
+            </p>
+            <Callout type="note">
+              The dialog checks for an existing folder with the same name at the chosen location and stops if one is found — it will never overwrite an existing directory.
+            </Callout>
+          </>
+        ),
+      },
+      {
         id: "agent-context",
         title: "Set up agent context",
         lead: "The .hermes/ folder is what lets a coding agent skim your vault instead of reading every file in full.",
