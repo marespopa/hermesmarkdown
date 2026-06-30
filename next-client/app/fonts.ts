@@ -1,4 +1,10 @@
-import { JetBrains_Mono, Fira_Code, IBM_Plex_Mono } from "next/font/google";
+import { Inter, JetBrains_Mono, Fira_Code, IBM_Plex_Mono } from "next/font/google";
+
+export const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-inter",
+  display: "swap",
+});
 
 // 1. JetBrains Mono - The "Modern Standard"
 export const jetBrainsMono = JetBrains_Mono({

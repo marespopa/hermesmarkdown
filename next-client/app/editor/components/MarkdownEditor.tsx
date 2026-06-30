@@ -530,6 +530,7 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
             onClose={() => { setDatePickerOpen(false); textareaRef.current?.focus(); }}
           />
 
+          <label htmlFor="md-editor-textarea" className="sr-only">Markdown editor</label>
           <Editor
             value={value}
             onValueChange={handleValueChange}
@@ -554,10 +555,11 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
               }, 150);
             }}
             onKeyDown={handleGlobalKeyDown}
+            textareaId="md-editor-textarea"
             textareaClassName={
               isCtrlPressed && isOverLink ? "!cursor-pointer" : "!cursor-text"
             }
-            {...({ autoComplete: "off", "aria-label": "Markdown editor" } as any)}
+            {...({ autoComplete: "off" } as any)}
           />
 
           {!value && (

@@ -1,7 +1,7 @@
 import "./globals.scss";
 import MainPage from "./components/MainPage";
 import { Metadata, Viewport } from "next";
-import { jetBrainsMono, firaCode, ibmPlexMono } from "./fonts";
+import { inter, jetBrainsMono, firaCode, ibmPlexMono } from "./fonts";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://hermesmarkdown.com"),
@@ -77,7 +77,7 @@ export default function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className={`h-full overscroll-none ${jetBrainsMono.variable} ${firaCode.variable} ${ibmPlexMono.variable}`}
+      className={`h-full overscroll-none ${inter.variable} ${jetBrainsMono.variable} ${firaCode.variable} ${ibmPlexMono.variable}`}
     >
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />

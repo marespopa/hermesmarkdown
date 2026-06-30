@@ -41,7 +41,7 @@ export default function WhatIsHermesMd() {
           <div className="space-y-4">
             <h1 className="text-5xl md:text-7xl font-bold tracking-tight leading-[1.05]">
               What is a{" "}
-              <span className="text-neutral-400 dark:text-neutral-600 italic font-serif">hermes.md</span>{" "}
+              <span className="text-neutral-600 dark:text-neutral-400 italic font-serif">hermes.md</span>{" "}
               file?
             </h1>
           </div>

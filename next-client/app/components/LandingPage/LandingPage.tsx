@@ -680,7 +680,7 @@ export default function LandingPage() {
           <div className="space-y-6 max-w-3xl animate-hero-fade-in">
             <h1 className="text-4xl md:text-5xl lg:text-7xl font-bold tracking-tight leading-[1.1]">
               Notes your agent can navigate{" "}
-              <span className="text-neutral-400 dark:text-neutral-600 italic font-serif">
+              <span className="text-neutral-600 dark:text-neutral-400 italic font-serif">
                 without burning its context window.
               </span>
             </h1>
@@ -763,7 +763,7 @@ export default function LandingPage() {
           className={`text-2xl md:text-3xl font-bold tracking-tight opacity-0 [animation-fill-mode:forwards] ${problemVisible ? "animate-hero-fade-in" : ""}`}
         >
           Most Markdown editors are great for writing.{" "}
-          <span className="text-neutral-400 dark:text-neutral-600">
+          <span className="text-neutral-600 dark:text-neutral-400">
             They&apos;re terrible for agents.
           </span>
         </h2>
@@ -786,7 +786,7 @@ export default function LandingPage() {
       <div className="max-w-5xl mx-auto px-6 py-24 md:py-32 space-y-32">
         {/* 1. Three-tier read protocol + score — lead with the differentiator */}
         <section className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 lg:gap-16 items-center">
-          <div className="order-last md:order-first aspect-video bg-paper-light dark:bg-neutral-900 rounded-2xl border border-black/5 dark:border-white/5 flex items-center justify-center group overflow-hidden relative">
+          <div aria-hidden="true" className="order-last md:order-first aspect-video bg-paper-light dark:bg-neutral-900 rounded-2xl border border-black/5 dark:border-white/5 flex items-center justify-center group overflow-hidden relative">
             <AgentScoreGraphic />
           </div>
           <div className="space-y-6">
@@ -854,14 +854,14 @@ export default function LandingPage() {
               your vault benefits from whatever structure you add — permanently.
             </p>
           </div>
-          <div className="aspect-video bg-paper-light dark:bg-neutral-900 rounded-2xl border border-black/5 dark:border-white/5 flex items-center justify-center group overflow-hidden relative">
+          <div aria-hidden="true" className="aspect-video bg-paper-light dark:bg-neutral-900 rounded-2xl border border-black/5 dark:border-white/5 flex items-center justify-center group overflow-hidden relative">
             <AgentContextGraphic />
           </div>
         </section>
 
         {/* 3. Table Editor */}
         <section className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 lg:gap-16 items-center">
-          <div className="order-last md:order-first aspect-video bg-paper-light dark:bg-neutral-900 rounded-2xl border border-black/5 dark:border-white/5 flex items-center justify-center group overflow-hidden relative">
+          <div aria-hidden="true" className="order-last md:order-first aspect-video bg-paper-light dark:bg-neutral-900 rounded-2xl border border-black/5 dark:border-white/5 flex items-center justify-center group overflow-hidden relative">
             <TableGraphic />
           </div>
           <div className="space-y-6">
@@ -906,14 +906,14 @@ export default function LandingPage() {
               stay in your browser. We never see them or proxy your requests.
             </p>
           </div>
-          <div className="aspect-video bg-paper-light dark:bg-neutral-900 rounded-2xl border border-black/5 dark:border-white/5 flex items-center justify-center group overflow-hidden relative">
+          <div aria-hidden="true" className="aspect-video bg-paper-light dark:bg-neutral-900 rounded-2xl border border-black/5 dark:border-white/5 flex items-center justify-center group overflow-hidden relative">
             <AIKeyGraphic />
           </div>
         </section>
 
         {/* 6. Vault Management */}
         <section className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 lg:gap-16 items-center">
-          <div className="order-last md:order-first aspect-video bg-paper-light dark:bg-neutral-900 rounded-2xl border border-black/5 dark:border-white/5 flex items-center justify-center group overflow-hidden relative">
+          <div aria-hidden="true" className="order-last md:order-first aspect-video bg-paper-light dark:bg-neutral-900 rounded-2xl border border-black/5 dark:border-white/5 flex items-center justify-center group overflow-hidden relative">
             <FilesystemGraphic />
           </div>
           <div className="space-y-6">
@@ -949,14 +949,14 @@ export default function LandingPage() {
               &apos;s an escape hatch, not a dependency.
             </p>
           </div>
-          <div className="aspect-video bg-paper-light dark:bg-neutral-900 rounded-2xl border border-black/5 dark:border-white/5 flex items-center justify-center group overflow-hidden relative">
+          <div aria-hidden="true" className="aspect-video bg-paper-light dark:bg-neutral-900 rounded-2xl border border-black/5 dark:border-white/5 flex items-center justify-center group overflow-hidden relative">
             <GoogleDriveGraphic />
           </div>
         </section>
 
         {/* 8. Writing Experience */}
         <section className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 lg:gap-16 items-center">
-          <div className="order-last md:order-first aspect-video bg-paper-light dark:bg-neutral-900 rounded-2xl border border-black/5 dark:border-white/5 flex items-center justify-center group overflow-hidden relative">
+          <div aria-hidden="true" className="order-last md:order-first aspect-video bg-paper-light dark:bg-neutral-900 rounded-2xl border border-black/5 dark:border-white/5 flex items-center justify-center group overflow-hidden relative">
             <ZenModeGraphic />
           </div>
           <div className="space-y-6">
@@ -1021,7 +1021,7 @@ export default function LandingPage() {
               for inline expressions.
             </p>
           </div>
-          <div className="aspect-video bg-paper-light dark:bg-neutral-900 rounded-2xl border border-black/5 dark:border-white/5 flex items-center justify-center group overflow-hidden relative">
+          <div aria-hidden="true" className="aspect-video bg-paper-light dark:bg-neutral-900 rounded-2xl border border-black/5 dark:border-white/5 flex items-center justify-center group overflow-hidden relative">
             <SmartSyntaxGraphic />
           </div>
         </section>

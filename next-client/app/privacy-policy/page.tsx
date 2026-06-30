@@ -33,7 +33,7 @@ export default function PrivacyPolicy() {
           <div className="space-y-4">
             <h1 className="text-5xl md:text-8xl font-bold tracking-tight leading-[1.05]">
               Privacy{" "}
-              <span className="text-neutral-400 dark:text-neutral-600 italic font-serif">
+              <span className="text-neutral-600 dark:text-neutral-400 italic font-serif">
                 Policy.
               </span>
             </h1>

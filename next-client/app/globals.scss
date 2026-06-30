@@ -2,8 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Merriweather:wght@400;700&family=Source+Code+Pro:wght@400;700&display=swap');
-
 /* ─── Design Tokens ─────────────────────────────────────────────────────────
    Single source of truth for the color system. Tailwind tokens reference
    these vars so dark mode switching requires no `dark:` class duplication.
@@ -23,7 +21,7 @@
   --fg-muted:       #6B6862;  /* secondary text */
   --fg-faint:       #8A8782;  /* placeholder / tertiary */
 
-  --clay:           #B5694A;  /* primary accent — active states, focus, links, unsaved dot */
+  --clay:           #AA5B41;  /* primary accent — active states, focus, links, unsaved dot */
   --moss:           #6E7D5E;  /* secondary accent — icons, muted interactive */
   --moss-hover:     #5C6A4E;  /* moss, darkened — hover/active state for sage buttons */
 }

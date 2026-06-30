@@ -74,6 +74,20 @@
   "overrides": {
     "postcss": "^8.5.15"
   },
+  "browserslist": {
+    "production": [
+      "chrome >= 94",
+      "edge >= 94",
+      "firefox >= 93",
+      "safari >= 15.4",
+      "not dead"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
   "optionalDependencies": {
     "@rolldown/binding-android-arm64": "^1.1.0",
     "@rollup/rollup-linux-arm64-gnu": "^4.61.1"

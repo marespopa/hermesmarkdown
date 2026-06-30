@@ -46,7 +46,7 @@ export default function Error({ error, reset }: ErrorPageProps) {
         </p>
 
         {error.digest && (
-          <p className="font-mono text-ui-footnote text-neutral-400 dark:text-neutral-600">
+          <p className="font-mono text-ui-footnote text-neutral-600 dark:text-neutral-400">
             Digest: {error.digest}
           </p>
         )}

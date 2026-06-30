@@ -1164,7 +1164,7 @@ export default function Documentation() {
             <div className="space-y-4">
               <h1 className="text-4xl sm:text-5xl md:text-8xl font-bold tracking-tight leading-[1.05]">
                 Product{" "}
-                <span className="text-neutral-400 dark:text-neutral-600 italic font-serif">Documentation.</span>
+                <span className="text-neutral-600 dark:text-neutral-400 italic font-serif">Documentation.</span>
               </h1>
             </div>
             <p className="text-lg md:text-2xl leading-relaxed text-neutral-500 dark:text-neutral-400 max-w-3xl font-medium">

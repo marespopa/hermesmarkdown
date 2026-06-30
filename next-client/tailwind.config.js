@@ -21,6 +21,7 @@ module.exports = {
       },
       fontFamily: {
         sans: [
+          "var(--font-inter)",
           "Inter",
           "SF Pro Display",
           "SF Pro Text",
