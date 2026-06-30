@@ -33,11 +33,11 @@ function Callout({ type = "note", children }: { type?: "note" | "warning" | "tip
 
 function KV({ rows }: { rows: { label: ReactNode; value: ReactNode }[] }) {
   return (
-    <div className="p-8 bg-neutral-50/50 dark:bg-neutral-900/30 backdrop-blur-sm rounded-3xl border border-black/5 dark:border-white/5">
+    <div className="p-5 sm:p-8 bg-neutral-50/50 dark:bg-neutral-900/30 backdrop-blur-sm rounded-3xl border border-black/5 dark:border-white/5">
       {rows.map((r, i) => (
-        <div key={i} className="flex justify-between border-b border-black/5 dark:border-white/5 py-4 last:border-none items-center gap-4">
-          <span className="text-sm font-medium">{r.label}</span>
-          <span className="opacity-40 italic text-right text-ui-footnote uppercase tracking-wider font-bold">{r.value}</span>
+        <div key={i} className="flex flex-wrap justify-between border-b border-black/5 dark:border-white/5 py-3 sm:py-4 last:border-none items-baseline gap-x-4 gap-y-1">
+          <span className="text-sm font-medium min-w-0 shrink">{r.label}</span>
+          <span className="opacity-40 italic text-right text-ui-footnote uppercase tracking-wider font-bold shrink-0 max-w-full break-words">{r.value}</span>
         </div>
       ))}
     </div>
@@ -1089,7 +1089,7 @@ export default function Documentation() {
   );
 
   return (
-    <main className="selection:bg-sage/30 overflow-x-clip font-sans relative">
+    <main className="selection:bg-sage/30 overflow-x-hidden font-sans relative">
       <div
         className="fixed top-0 left-0 h-[2px] bg-sage z-50 transition-all duration-75"
         style={{ width: `${scrollProgress * 100}%` }}
@@ -1145,7 +1145,7 @@ export default function Documentation() {
         </div>
       )}
 
-      <div className="max-w-7xl mx-auto px-6 pt-20 lg:pt-32 pb-20 lg:pb-32 flex flex-col lg:flex-row gap-12 lg:gap-16 items-start">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-20 lg:pt-32 pb-20 lg:pb-32 flex flex-col lg:flex-row gap-12 lg:gap-16 items-start">
 
         <aside className="hidden lg:flex w-52 xl:w-56 shrink-0 sticky top-24 self-start max-h-[calc(100vh-7rem)] overflow-y-auto p-1.5">
           <NavContent />
@@ -1184,7 +1184,7 @@ export default function Documentation() {
                       key={item.id}
                       id={item.id}
                       className={`scroll-mt-24 space-y-4 max-w-3xl rounded-2xl transition-all ${
-                        highlight ? "ring-2 ring-sage/30 bg-sage/[0.03] -mx-4 px-4 py-4" : ""
+                        highlight ? "ring-2 ring-sage/30 bg-sage/[0.03] -mx-2 px-2 sm:-mx-4 sm:px-4 py-4" : ""
                       }`}
                     >
                       <h3 className="text-lg md:text-xl font-medium tracking-tight">{item.title}</h3>
