@@ -26,6 +26,18 @@ export interface TableBlock {
   tableEnd: number;
   tableStartOffset: number;
   lines: string[];
+  /** The text of the nearest markdown heading above this table (stripped of `#` markers), or null if none found. */
+  heading: string | null;
+}
+
+function findHeadingAbove(lines: string[], tableStart: number): string | null {
+  for (let h = tableStart - 1; h >= Math.max(0, tableStart - 10); h--) {
+    const trimmed = lines[h].trim();
+    if (trimmed === "") continue;
+    const m = /^#{1,6}\s+(.+)$/.exec(trimmed);
+    return m ? m[1].trim() : null;
+  }
+  return null;
 }
 
 // Every table block in the document, not just the one under the cursor —
@@ -45,7 +57,8 @@ export function findAllTables(text: string): TableBlock[] {
         offset += lines[i].length + 1;
         i++;
       }
-      blocks.push({ tableStart, tableEnd: i - 1, tableStartOffset, lines });
+      const heading = findHeadingAbove(lines, tableStart);
+      blocks.push({ tableStart, tableEnd: i - 1, tableStartOffset, lines, heading });
     } else {
       offset += lines[i].length + 1;
       i++;

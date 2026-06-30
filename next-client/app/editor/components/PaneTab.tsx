@@ -83,7 +83,7 @@ export default function PaneTab({
       {/* File name */}
       <span
         className={[
-          "flex-1 truncate text-[13px] md:text-[10px] leading-none tracking-tight",
+          "flex-1 truncate text-[13px] md:text-[12px] leading-none tracking-tight",
           isActive ? "font-medium text-ink-light dark:text-ink-dark" : "font-normal",
         ].join(" ")}
       >

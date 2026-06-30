@@ -14,6 +14,7 @@ import {
   atom_isDocInfoOpen,
   atom_aiBuilderRequest,
   atom_isAiConfigured,
+  atom_newVaultFlowOpen,
 } from "@/app/atoms/ui-atoms";
 import { useFileSystem } from "@/app/hooks/use-file-system";
 import { useDialog } from "@/app/hooks/use-dialog";
@@ -45,6 +46,7 @@ export default function EditorCommands({
   const workspaceLayout = useAtomValue(atom_workspaceLayout);
   const activePaneId = useAtomValue(atom_activePaneId);
   const [, closeTab] = useAtom(atom_closeTab);
+  const [, setNewVaultFlowOpen] = useAtom(atom_newVaultFlowOpen);
 
   useRegisterCommand({
     id: "save-file",
@@ -91,6 +93,13 @@ export default function EditorCommands({
   });
 
   useRegisterCommand({
+    id: "create-new-vault",
+    label: "Create new vault",
+    keywords: "vault new folder starter pack",
+    action: () => setNewVaultFlowOpen(true),
+  });
+
+  useRegisterCommand({
     id: "open-vault",
     label: "Open vault",
     keywords: "vault folder",
@@ -129,9 +138,9 @@ export default function EditorCommands({
     isAiConfigured
       ? {
           id: "ai-builder",
-          label: "Open AI Builder",
+          label: "Open AI Chat",
           shortcut: formatShortcut("B", { shift: true }),
-          keywords: "ai generate create revise section",
+          keywords: "ai chat generate create revise section ask",
           action: () => setAiBuilderRequest((v) => v + 1),
         }
       : null,

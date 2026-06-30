@@ -26,8 +26,8 @@ export function detectColumnType(rows: string[][], colIdx: number): ColType {
 
   // Check if all are valid numbers/currencies
   const isNumeric = nonEmpty.every((v) => {
-    // Strip common currency symbols, commas, and spaces
-    const clean = v.replace(/[$€£¥,%\s]/g, "");
+    // Strip currency symbols, thousands separators, spaces, and trailing alpha suffixes (e.g. "RON", "USD")
+    const clean = v.replace(/[$€£¥%\s,]/g, "").replace(/[A-Z]{2,4}$/i, "").trim();
     return clean !== "" && !isNaN(Number(clean));
   });
 
@@ -68,8 +68,8 @@ export function sortRows(
 
     let cmp = 0;
     if (colType === "number") {
-      const numA = Number(av.replace(/[$€£¥,%\s]/g, ""));
-      const numB = Number(bv.replace(/[$€£¥,%\s]/g, ""));
+      const numA = Number(av.replace(/[$€£¥%\s,]/g, "").replace(/[A-Z]{2,4}$/i, "").trim());
+      const numB = Number(bv.replace(/[$€£¥%\s,]/g, "").replace(/[A-Z]{2,4}$/i, "").trim());
       cmp = numA - numB;
     } else if (colType === "date") {
       cmp = Date.parse(av) - Date.parse(bv);

@@ -16,8 +16,6 @@ import {
   atom_rebindHandles,
   atom_isCloudVault,
   atom_fileSystemVersion,
-  atom_autoInjectFrontmatter,
-  atom_frontmatterHasPrompted,
   atom_indexerState,
   atom_vaultSetupStatus,
 } from "@/app/atoms/atoms";
@@ -27,6 +25,7 @@ import {
   loadVaultHandle,
   clearVaultHandle,
   verifyPermission,
+  queryPermission,
 } from "@/app/services/idb";
 import { useDialog } from "../use-dialog";
 import { metadataWorker, withPickerLock, isVaultSupported, isIdbSupported } from "./shared";
@@ -54,8 +53,6 @@ export function useVaultManager() {
   const [schemaAutoCreate] = useAtom(atom_schemaAutoCreate);
   const rebindHandles = useSetAtom(atom_rebindHandles);
   const setIndexerState = useSetAtom(atom_indexerState);
-  const [frontmatterHasPrompted, setFrontmatterHasPrompted] = useAtom(atom_frontmatterHasPrompted);
-  const [, setAutoInjectFrontmatter] = useAtom(atom_autoInjectFrontmatter);
   const setIndexTimestamp = useSetAtom(atom_indexTimestamp);
   const dialog = useDialog();
   const pendingHandlesRef = useRef<Map<string, FileSystemFileHandle>>(new Map());
@@ -296,17 +293,6 @@ export function useVaultManager() {
   );
 
 
-  const promptFrontmatter = useCallback(async () => {
-    if (frontmatterHasPrompted) return;
-    const enabled = await dialog.confirm(
-      "Automatically prepend id, title, type, and tags to new or unstructured files when they are saved? You can change this any time in Settings.",
-      "Auto-inject Frontmatter?",
-      "Enable",
-      "Skip",
-    );
-    setAutoInjectFrontmatter(enabled);
-    setFrontmatterHasPrompted(true);
-  }, [frontmatterHasPrompted, setAutoInjectFrontmatter, setFrontmatterHasPrompted, dialog]);
 
   const loadSchema = useCallback(
     async (handle: FileSystemDirectoryHandle, isNewVault = false) => {
@@ -341,6 +327,45 @@ export function useVaultManager() {
     [setVaultSchema, schemaAutoCreate, dialog],
   );
 
+  const initVaultFromHandle = useCallback(async (
+    handle: FileSystemDirectoryHandle,
+    options?: {
+      isNewVault?: boolean;
+      overrideSetupStatus?: "idle" | "checking" | "needs_setup" | "configured" | "skipped";
+    }
+  ) => {
+    const { isNewVault = false, overrideSetupStatus } = options ?? {};
+
+    setFileMetadata({});
+    setOpenFiles({});
+    setWorkspaceLayout({
+      rootContainer: {
+        id: "default-pane",
+        type: "editor",
+        openFilePaths: [],
+        activeFilePath: null as any,
+        isPinned: false,
+      },
+    });
+    setVaultHandle(handle);
+    setCurrentDirectoryHandle(handle);
+    setIsVaultPending(false);
+    detectCloudVault(handle);
+    await saveVaultHandle(handle);
+    await scanVault(handle);
+    await indexVaultTags(handle);
+    await rebindHandles(handle);
+
+    if (overrideSetupStatus !== undefined) {
+      setVaultSetupStatus(overrideSetupStatus);
+    } else {
+      await checkVaultSetup(handle);
+    }
+
+    await loadSchema(handle, isNewVault);
+    toast.success(isNewVault ? `Vault created: ${handle.name}` : `Vault opened: ${handle.name}`);
+  }, [setVaultHandle, setCurrentDirectoryHandle, setIsVaultPending, setFileMetadata, setOpenFiles, setWorkspaceLayout, scanVault, indexVaultTags, rebindHandles, detectCloudVault, checkVaultSetup, loadSchema, setVaultSetupStatus]);
+
   const openVault = useCallback(async () => {
     if (!isVaultSupported) {
       toast.error("Your browser does not support local folder access. Try Chrome or Edge.");
@@ -359,34 +384,12 @@ export function useVaultManager() {
     if (!handle) return;
 
     try {
-      setFileMetadata({});
-      setOpenFiles({});
-      setWorkspaceLayout({
-        rootContainer: {
-          id: "default-pane",
-          type: "editor",
-          openFilePaths: [],
-          activeFilePath: null as any,
-          isPinned: false,
-        },
-      });
-      setVaultHandle(handle);
-      setCurrentDirectoryHandle(handle);
-      setIsVaultPending(false);
-      detectCloudVault(handle);
-      await saveVaultHandle(handle);
-      await scanVault(handle);
-      await indexVaultTags(handle);
-      await rebindHandles(handle);
-      await checkVaultSetup(handle);
-      await loadSchema(handle);
-      toast.success("Vault opened: " + handle.name);
-      await promptFrontmatter();
+      await initVaultFromHandle(handle);
     } catch (err: any) {
       console.error("File System Error:", err?.message || err);
       toast.error("Failed to open vault");
     }
-  }, [setVaultHandle, setCurrentDirectoryHandle, setIsVaultPending, setFileMetadata, setOpenFiles, setWorkspaceLayout, scanVault, indexVaultTags, rebindHandles, detectCloudVault, promptFrontmatter, checkVaultSetup, loadSchema]);
+  }, [initVaultFromHandle]);
 
   const restoreVault = useCallback(async () => {
     if (!vaultHandle) return;
@@ -403,13 +406,12 @@ export function useVaultManager() {
         await checkVaultSetup(vaultHandle);
         await loadSchema(vaultHandle);
         toast.success("Vault restored");
-        await promptFrontmatter();
       }
     } catch (err: any) {
       console.error("File System Error:", err?.message || err);
       toast.error("Failed to restore vault");
     }
-  }, [vaultHandle, setIsVaultPending, setCurrentDirectoryHandle, scanVault, indexVaultTags, rebindHandles, detectCloudVault, promptFrontmatter, checkVaultSetup, loadSchema]);
+  }, [vaultHandle, setIsVaultPending, setCurrentDirectoryHandle, scanVault, indexVaultTags, rebindHandles, detectCloudVault, checkVaultSetup, loadSchema]);
 
   const syncSidebarToPath = useCallback(
     async (path: string) => {
@@ -547,7 +549,9 @@ export function useVaultManager() {
       const savedHandle = await loadVaultHandle();
       if (savedHandle) {
         setVaultHandle(savedHandle);
-        const granted = await verifyPermission(savedHandle);
+        // Only query permission on mount — requestPermission requires a user
+        // gesture and will throw a SecurityError if called automatically.
+        const granted = await queryPermission(savedHandle);
         if (granted) {
           setCurrentDirectoryHandle(savedHandle);
           detectCloudVault(savedHandle);
@@ -570,6 +574,7 @@ export function useVaultManager() {
     isVaultPending,
     scanVault,
     indexVaultTags,
+    initVaultFromHandle,
     openVault,
     restoreVault,
     closeVault,

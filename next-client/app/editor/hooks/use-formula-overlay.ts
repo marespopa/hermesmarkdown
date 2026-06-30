@@ -4,7 +4,7 @@ import { useCallback, useEffect, useLayoutEffect, useState } from "react";
 import getCaretCoordinates from "textarea-caret";
 import { findAllTables } from "../utils/table-detection";
 import { getTableCellOffsets } from "../utils/table-cell-offsets";
-import { extractTableSource, parseTableLenient, type Alignment } from "../utils/tableParser";
+import { extractTableSource, parseTableLenient, type Alignment, type TableData } from "../utils/tableParser";
 import { evaluateTable, isFormulaCell, FormulaError } from "../utils/formula-engine";
 
 export interface FormulaBadge {
@@ -55,28 +55,31 @@ export function useFormulaOverlay({
     const hasCollapsedCaret = textarea.selectionStart === textarea.selectionEnd;
     const caretPos = textarea.selectionStart;
 
-    const next: FormulaBadge[] = [];
-    for (const table of findAllTables(value)) {
-      const source = extractTableSource(table.lines, table.tableStart, table.tableEnd);
-      const data = parseTableLenient(source);
-      if (!data) continue;
+    // Pre-parse all tables and build a heading→data map so cross-table
+    // references like =SUM(Income!B) can be resolved during evaluation.
+    const allBlocks = findAllTables(value);
+    const namedTables = new Map<string, TableData>();
+    const pairs: Array<{ block: (typeof allBlocks)[number]; data: TableData }> = [];
+    for (const block of allBlocks) {
+      const src = extractTableSource(block.lines, block.tableStart, block.tableEnd);
+      const d = parseTableLenient(src);
+      if (!d) continue;
+      pairs.push({ block, data: d });
+      if (block.heading) namedTables.set(block.heading, d);
+    }
 
+    const next: FormulaBadge[] = [];
+    for (const { block: table, data } of pairs) {
       const offsets = getTableCellOffsets(table);
-      const formulaResults = evaluateTable(data);
+      const formulaResults = evaluateTable(data, namedTables);
 
       for (const cell of offsets) {
         if (!isFormulaCell(cell.text)) continue;
-        // Use the full pipe-to-pipe span (not just the trimmed text) so the
-        // caret anywhere in the cell's padding still counts as "editing it",
-        // matching how clicking anywhere in a spreadsheet cell edits it.
         if (hasCollapsedCaret && caretPos >= cell.fullStart && caretPos <= cell.fullEnd) continue;
 
         const computed = formulaResults.get(`${cell.row}_${cell.col}`);
         if (!computed) continue;
 
-        // Span the full column width (not just the trimmed text) so the
-        // badge can honor the column's own left/center/right alignment —
-        // a badge sized to the trimmed text has no room to align within.
         const startCoords = getCaretCoordinates(textarea, cell.fullStart);
         const endCoords = getCaretCoordinates(textarea, cell.fullEnd);
 

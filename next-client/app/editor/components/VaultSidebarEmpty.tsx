@@ -6,12 +6,14 @@ import {
   HiOutlineDatabase,
   HiOutlineCloudDownload,
   HiOutlineCloudUpload,
+  HiOutlineFolderAdd,
 } from "react-icons/hi";
 import SidebarHeader from "./SidebarHeader";
 
 interface VaultSidebarEmptyProps {
   isVaultSupported: boolean;
   openVault: () => void;
+  onCreateVault?: () => void;
   onImport?: () => void;
   onExport?: () => void;
   setActiveFilePath: (path: string) => void;
@@ -22,6 +24,7 @@ interface VaultSidebarEmptyProps {
 export default function VaultSidebarEmpty({
   isVaultSupported,
   openVault,
+  onCreateVault,
   onImport,
   onExport,
   setActiveFilePath,
@@ -34,13 +37,22 @@ export default function VaultSidebarEmpty({
         <SidebarHeader title="Locations" isExpanded={true} onToggle={() => {}} />
 
         {isVaultSupported ? (
-          <div
-            onClick={openVault}
-            className="flex items-center gap-3 px-4 py-3 rounded-xl cursor-pointer hover:bg-paper-softgray dark:hover:bg-paper-dark-surface/40 transition-colors text-ui-footnote text-ink-muted dark:text-stone font-medium"
-          >
-            <HiOutlineDatabase size={18} />
-            <span>Open Folder</span>
-          </div>
+          <>
+            <div
+              onClick={onCreateVault}
+              className="flex items-center gap-3 px-4 py-3 rounded-xl cursor-pointer hover:bg-paper-softgray dark:hover:bg-paper-dark-surface/40 transition-colors text-ui-footnote text-ink-muted dark:text-stone font-medium"
+            >
+              <HiOutlineFolderAdd size={18} />
+              <span>Create New Vault</span>
+            </div>
+            <div
+              onClick={openVault}
+              className="flex items-center gap-3 px-4 py-3 rounded-xl cursor-pointer hover:bg-paper-softgray dark:hover:bg-paper-dark-surface/40 transition-colors text-ui-footnote text-ink-muted dark:text-stone font-medium"
+            >
+              <HiOutlineDatabase size={18} />
+              <span>Open Vault</span>
+            </div>
+          </>
         ) : (
           <div className="px-4 py-3 rounded-xl bg-amber-500/5 border border-amber-500/10 mb-2">
             <p className="text-ui-footnote text-amber-600 dark:text-amber-400 leading-relaxed font-medium">

@@ -141,6 +141,39 @@ const GROUPS: Group[] = [
         ),
       },
       {
+        id: "starter-packs",
+        title: "Starter packs",
+        lead: "Create a new vault with example notes pre-loaded — pick a pack, name it, and start writing.",
+        keywords: "starter pack new vault create template notes pkm engineering finance budget adr meeting",
+        body: (
+          <>
+            <p>
+              In the sidebar, click the vault icon and choose <strong>New Vault</strong>, or run it from the command palette. A two-step dialog opens.
+            </p>
+            <p>
+              <strong>Step 1 — Name and location.</strong> Type a vault name (this becomes the folder name on disk) and click <em>Choose parent folder</em> to pick where the folder will be created.
+            </p>
+            <p>
+              <strong>Step 2 — Starter pack.</strong> Pick one of four packs and click <em>Create Vault</em>:
+            </p>
+            <KV
+              rows={[
+                { label: "🗂 Empty Vault", value: "No example files — blank slate" },
+                { label: "📓 Notes / PKM", value: "Map of Content, atomic notes guide, daily journal template, callout demo" },
+                { label: "⚙️ Engineering", value: "AGENTS.md, two ADRs, bug tracker table, meeting notes template" },
+                { label: "💰 Personal Finance", value: "Budget tracker, debt tracker, recurring expenses — all with live formula cells" },
+              ]}
+            />
+            <p>
+              HermesMarkdown creates the folder, writes <code>.hermes/</code> scaffolding, installs the pack's example files, then opens the vault and navigates to the pack's entry note automatically.
+            </p>
+            <Callout type="note">
+              The dialog checks for an existing folder with the same name at the chosen location and stops if one is found — it will never overwrite an existing directory.
+            </Callout>
+          </>
+        ),
+      },
+      {
         id: "agent-context",
         title: "Set up agent context",
         lead: "The .hermes/ folder is what lets a coding agent skim your vault instead of reading every file in full.",
@@ -374,31 +407,42 @@ const GROUPS: Group[] = [
               renders live in both the editor and the dialog; the formula itself is what's saved to the
               file.
             </p>
-            <Code>{`| Item | Amount             |
-| ---- | ------------------- |
-| Rent | $2,000              |
-| Food | $400                |
-|      | =SUM(B2:B3) → $2,400 |`}</Code>
+            <Code>{`| Item    | Amount                   |
+| ------- | ------------------------ |
+| Rent    | $2,000                   |
+| Food    | $400                     |
+| Total   | =SUM(B2:B3)              |
+| Tax     | =8.5%*B4                 |
+| Savings | =IF(B4>2000,"Yes","No")  |`}</Code>
             <p>
               Referenced cells can hold <code>2000</code>, <code>$2,000</code>, or{" "}
-              <code>2,000 RON</code> — any placement, with or without a space — and still resolve as a
-              number. The result formats back as that same currency automatically; summing a column of
-              RON values produces a RON total with no currency setting required.
+              <code>€1,500</code> — currency symbol, any placement, with or without a space — and
+              still resolve as a number. The result formats back as that same currency
+              automatically; summing a column of <code>$</code> values produces a{" "}
+              <code>$</code> total with no setup required.
             </p>
             <p>
-              In the dialog, typing <code>=</code> into a cell switches into point mode: click another
-              cell to insert its reference, Shift+click for a range, or a column letter for the whole
-              column — without losing your place in the formula.
+              Percentage literals work directly: <code>8.5%</code> evaluates to{" "}
+              <code>0.085</code>, so <code>=8.5%*B2</code> and <code>=B2*0.085</code> are
+              equivalent.
+            </p>
+            <p>
+              In the dialog, typing <code>=</code> into a cell opens a function autocomplete —
+              keep typing to filter (<code>=SU</code> narrows to SUM), arrow keys move the
+              selection, Enter inserts with the opening parenthesis. It also switches into point
+              mode: click another cell to insert its A1 reference, Shift+click for a range, or a
+              column letter for the whole column — without losing your place in the formula.
             </p>
             <KV
               rows={[
-                { label: "calc(100+50)=", value: "150" },
+                { label: "Function autocomplete", value: "Type = in any cell" },
                 { label: "Insert =SUM(...) row", value: "Σ in dialog toolbar" },
+                { label: "calc(100+50)=", value: "150 (inline shortcode)" },
               ]}
             />
             <Callout type="tip">
               Functions: SUM · AVERAGE · MIN · MAX · COUNT · COUNTA · ABS · ROUND · IF · AND · OR · NOT ·
-              CONCAT.
+              CONCAT. Arithmetic and comparisons work anywhere: <code>=IF(A2&gt;0, SUM(B), 0)</code>.
             </Callout>
           </>
         ),

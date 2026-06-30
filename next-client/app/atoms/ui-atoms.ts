@@ -67,6 +67,10 @@ export const atom_autoInjectFrontmatter = atomWithStorage<boolean>(
   "autoInjectFrontmatter",
   false,
 );
+export const atom_frontmatterDefaultMode = atomWithStorage<"fields" | "raw">(
+  "frontmatterDefaultMode",
+  "fields",
+);
 export const atom_frontmatterHasPrompted = atomWithStorage<boolean>(
   "frontmatterHasPrompted",
   false,
@@ -77,6 +81,17 @@ export const atom_schemaAutoCreate = atomWithStorage<boolean>(
 );
 export const atom_schemaWizardOpen = atom<boolean>(false);
 export const atom_vaultMigrateOpen = atom<boolean>(false);
+
+// Vault creation flow — transient, never persisted
+export type StarterPackId = "empty" | "notes-pkm" | "engineering" | "finance";
+export type VaultCreationSubStep = "name-and-folder" | "starter-pack" | "installing";
+export const atom_vaultCreationSubStep = atom<VaultCreationSubStep | null>(null);
+export const atom_vaultCreationName = atom<string>("");
+export const atom_vaultCreationParentHandle = atom<FileSystemDirectoryHandle | null>(null);
+export const atom_vaultCreationPackId = atom<StarterPackId>("empty");
+export const atom_vaultCreationError = atom<string | null>(null);
+// Post-onboarding trigger: set true to open the NewVaultDialog
+export const atom_newVaultFlowOpen = atom<boolean>(false);
 
 export const atom_sidebarWidth = atomWithStorage<number>("sidebarWidth", 260);
 

@@ -23,6 +23,7 @@ import VaultSetupWizard from "./components/VaultSetupWizard";
 import FrontmatterWizard from "./components/FrontmatterWizard";
 import SchemaWizard from "./components/SchemaWizard";
 import VaultMigrateWizard from "./components/VaultMigrateWizard";
+import NewVaultDialog from "./components/NewVaultDialog";
 import WorkspaceSplitter from "./components/WorkspaceSplitter";
 import VaultPendingOverlay from "./components/VaultPendingOverlay";
 import DriveReconnectBanner from "./components/DriveReconnectBanner";
@@ -49,6 +50,7 @@ import { useRouter } from "next/navigation";
 import { atom_isAiConfigured, atom_isDocInfoOpen, atom_aiBuilderRequest, atom_railPanel, RailPanel } from "@/app/atoms/ui-atoms";
 import { generateFileFromPrompt } from "@/app/services/ai";
 import { withRetry } from "@/app/hooks/file-system/shared";
+import AIFab from "./components/AIFab";
 
 export default function LiteEditor() {
   const router = useRouter();
@@ -381,6 +383,7 @@ export default function LiteEditor() {
         <FrontmatterWizard />
         <SchemaWizard />
         <VaultMigrateWizard />
+        <NewVaultDialog />
         <ConflictDialog />
         <DocInfoPanel />
         {isVaultPending && <VaultPendingOverlay restoreVault={restoreVault} isDriveVault={isDriveVault} />}
@@ -470,6 +473,10 @@ export default function LiteEditor() {
           </div>
         </div>
         </div>{/* end MAIN LAYOUT */}
+
+        {isAiConfigured && (
+          <AIFab onClick={() => setAiBuilderRequest((v) => v + 1)} />
+        )}
 
         {isMobileChrome && (
           <>

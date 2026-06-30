@@ -42,12 +42,14 @@ const MainPage = ({ children }: Props) => {
         <CookieConsent />
         <GlobalDialog />
       </div>
-      <Script
-        defer
-        async
-        data-host="hermesmarkdown.com"
-        src="https://liteanalytics.com/lite.js"
-      ></Script>
+      {process.env.NODE_ENV === "production" && (
+        <Script
+          defer
+          async
+          data-host="hermesmarkdown.com"
+          src="https://liteanalytics.com/lite.js"
+        ></Script>
+      )}
     </CustomProviders>
   );
 };

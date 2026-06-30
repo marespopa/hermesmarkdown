@@ -3,6 +3,9 @@ import { callAI } from "@/app/services/ai";
 import { showSuccessToast, showErrorToast } from "@/app/components/Toastr";
 import { useDialog } from "@/app/hooks/use-dialog";
 
+export const FORMULA_PRESERVATION_RULE =
+  "IMPORTANT: HermesMarkdown formula expressions (e.g. =SUM(A:A), =AVG(B2:B5), =COUNT(C:C)) must NEVER be evaluated or replaced with numeric values. Preserve all formula expressions exactly as written.";
+
 interface UseAIEditorActionsProps {
   value: string;
   onChange: (value: string) => void;
@@ -24,6 +27,12 @@ export function useAIEditorActions({
 }: UseAIEditorActionsProps) {
   const [isAiLoading, setIsAiLoading] = useState(false);
   const [aiReview, setAiReview] = useState<AIReviewState | null>(null);
+  const [isChatOpen, setIsChatOpen] = useState(false);
+  const [chatContext, setChatContext] = useState<{ start: number; end: number; selected: string }>({
+    start: 0,
+    end: 0,
+    selected: "",
+  });
   const dialog = useDialog();
 
   const getContext = useCallback(() => {
@@ -137,11 +146,50 @@ export function useAIEditorActions({
     [getContext, dialog],
   );
 
+  const openChat = useCallback(() => {
+    const { selectedText, start, end } = getContext();
+    setChatContext({ start, end, selected: selectedText });
+    setIsChatOpen(true);
+  }, [getContext]);
+
+  const closeChat = useCallback(() => {
+    setIsChatOpen(false);
+  }, []);
+
+  const applyFromChat = useCallback(
+    (suggestion: string, mode: "insert" | "replace-all" = "insert") => {
+      const textarea = textareaRef.current;
+
+      if (mode === "replace-all") {
+        if (textarea) {
+          textarea.focus();
+          textarea.setRangeText(suggestion, 0, textarea.value.length, "end");
+          textarea.dispatchEvent(new Event("input", { bubbles: true }));
+        } else {
+          onChange(suggestion);
+        }
+        showSuccessToast("Document replaced.");
+      } else {
+        const { start, end } = chatContext;
+        if (textarea) {
+          textarea.focus();
+          textarea.setRangeText(suggestion, start, end, "end");
+          textarea.dispatchEvent(new Event("input", { bubbles: true }));
+        } else {
+          onChange(value.substring(0, start) + suggestion + value.substring(end));
+        }
+        showSuccessToast("Inserted into document.");
+      }
+      setIsChatOpen(false);
+    },
+    [chatContext, onChange, textareaRef, value],
+  );
+
   const improveWriting = useCallback(
     () =>
       runSelectionAction(
         "Improve writing",
-        "You are a writing editor. Improve clarity, flow, and conciseness. Preserve the author's voice, meaning, and any Markdown formatting (bold, italics, lists) exactly. Do NOT add blockquote markers (>) to any line that did not already have them. Return ONLY the rewritten text with no preamble, explanation, or surrounding quotes.",
+        `You are a writing editor. Improve clarity, flow, and conciseness. Preserve the author's voice, meaning, and any Markdown formatting (bold, italics, lists) exactly. Do NOT add blockquote markers (>) to any line that did not already have them. ${FORMULA_PRESERVATION_RULE} Return ONLY the rewritten text with no preamble, explanation, or surrounding quotes.`,
         (text) => `REWRITE THIS TEXT:\n${text}`,
         "Select some text to improve.",
       ),
@@ -152,7 +200,7 @@ export function useAIEditorActions({
     () =>
       runSelectionAction(
         "Expand idea",
-        "You are a thinking partner. Expand the selected idea with depth and clarity. Match the writer's existing tone and preserve any existing Markdown syntax. Do NOT add blockquote markers (>) to any line that did not already have them. Do NOT repeat the original text as a header or preamble. Return ONLY the final expanded text with no explanation or surrounding quotes.",
+        `You are a thinking partner. Expand the selected idea with depth and clarity. Match the writer's existing tone and preserve any existing Markdown syntax. Do NOT add blockquote markers (>) to any line that did not already have them. Do NOT repeat the original text as a header or preamble. ${FORMULA_PRESERVATION_RULE} Return ONLY the final expanded text with no explanation or surrounding quotes.`,
         (text, surrounding) =>
           `EXPAND THIS IDEA:\n${text}${surrounding ? `\n\nSURROUNDING CONTEXT (for tone reference only):\n${surrounding}` : ""}`,
         "Select an idea to expand.",
@@ -166,7 +214,7 @@ export function useAIEditorActions({
         "Prompt",
         "AI Prompt",
         "What would you like the AI to do?",
-        "You are a helpful assistant. Fulfill the user's request. If existing text is provided for context, use it as the basis for your response. Return ONLY the result with no preamble, explanation, or surrounding quotes. Preserve Markdown formatting where appropriate.",
+        `You are a helpful assistant. Fulfill the user's request. If existing text is provided for context, use it as the basis for your response. Return ONLY the result with no preamble, explanation, or surrounding quotes. Preserve Markdown formatting where appropriate. ${FORMULA_PRESERVATION_RULE}`,
         (instruction, selectedText) =>
           selectedText.trim()
             ? `INSTRUCTION:\n${instruction}\n\nEXISTING TEXT:\n${selectedText}`
@@ -182,7 +230,7 @@ export function useAIEditorActions({
         "AI Builder",
         "AI Builder",
         "Describe the section you want to create or revise:",
-        "You are a document builder. Create or revise a Markdown section of the note per the user's instruction. If an existing section is provided, revise it in place; otherwise write a new, well-structured section using headings and bullet points where appropriate. Preserve any unrelated Markdown formatting in the existing text. Return ONLY the resulting section with no preamble, explanation, or surrounding quotes.",
+        `You are a document builder. Create or revise a Markdown section of the note per the user's instruction. If an existing section is provided, revise it in place; otherwise write a new, well-structured section using headings and bullet points where appropriate. Preserve any unrelated Markdown formatting in the existing text. ${FORMULA_PRESERVATION_RULE} Return ONLY the resulting section with no preamble, explanation, or surrounding quotes.`,
         (instruction, selectedText) =>
           selectedText.trim()
             ? `INSTRUCTION:\n${instruction}\n\nEXISTING SECTION TO REVISE:\n${selectedText}`
@@ -288,9 +336,10 @@ export function useAIEditorActions({
     [runContextAction],
   );
 
-  const applyReplace = useCallback(() => {
+  const applyReplace = useCallback((customSuggestion?: string) => {
     if (!aiReview) return;
-    const { suggestion, start, end } = aiReview;
+    const suggestion = customSuggestion ?? aiReview.suggestion;
+    const { start, end } = aiReview;
     const textarea = textareaRef.current;
     if (textarea) {
       textarea.focus();
@@ -303,9 +352,10 @@ export function useAIEditorActions({
     setAiReview(null);
   }, [aiReview, onChange, textareaRef, value]);
 
-  const applyInsertBelow = useCallback(() => {
+  const applyInsertBelow = useCallback((customSuggestion?: string) => {
     if (!aiReview) return;
-    const { suggestion, end } = aiReview;
+    const suggestion = customSuggestion ?? aiReview.suggestion;
+    const { end } = aiReview;
     const insertion = `\n\n${suggestion}`;
     const textarea = textareaRef.current;
     if (textarea) {
@@ -355,7 +405,7 @@ export function useAIEditorActions({
         case "explain":
           return explainSelection();
         case "builder":
-          return runBuilder();
+          return openChat();
         default:
           return;
       }
@@ -372,17 +422,21 @@ export function useAIEditorActions({
       generateTitle,
       continueWriting,
       explainSelection,
-      runBuilder,
+      openChat,
     ],
   );
 
   return {
     isAiLoading,
     aiReview,
+    isChatOpen,
+    chatSelectedText: chatContext.selected,
     improveWriting,
     expandIdea,
     runPrompt,
-    runBuilder,
+    openChat,
+    closeChat,
+    applyFromChat,
     applyReplace,
     applyInsertBelow,
     dismissReview,

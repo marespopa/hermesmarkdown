@@ -32,7 +32,7 @@ const createAIModel = (provider: string, apiKey: string, modelKey: string) => {
 
 export async function POST(req: Request) {
   try {
-    const { action, provider, apiKey, modelKey, system, prompt, noteBody } = await req.json();
+    const { action, provider, apiKey, modelKey, system, prompt, noteBody, messages } = await req.json();
 
     if (!apiKey) {
       return NextResponse.json({ error: "API key is required" }, { status: 400 });
@@ -66,6 +66,34 @@ export async function POST(req: Request) {
       });
 
       return NextResponse.json({ object });
+    }
+
+    if (action === 'chat') {
+      // messages may have content as a plain string or a content-parts array (for images)
+      const msgs = messages as Array<{ role: 'user' | 'assistant'; content: any }>;
+
+      if (provider === 'gemini') {
+        // Gemini: fold system into the first user message text part
+        const firstContent = msgs[0]?.content;
+        const firstText = typeof firstContent === 'string'
+          ? firstContent
+          : (firstContent as any[]).find((p: any) => p.type === 'text')?.text ?? '';
+        const firstParts = typeof firstContent === 'string'
+          ? [{ type: 'text' as const, text: `${system}\n\n${firstContent}` }]
+          : [{ type: 'text' as const, text: `${system}\n\n${firstText}` }, ...(firstContent as any[]).filter((p: any) => p.type !== 'text')];
+
+        const { text } = await generateText({
+          model,
+          messages: [
+            { role: 'user' as const, content: firstParts },
+            ...msgs.slice(1),
+          ],
+        });
+        return NextResponse.json({ text });
+      }
+
+      const { text } = await generateText({ model, system, messages: msgs });
+      return NextResponse.json({ text });
     }
 
     if (action === 'test') {

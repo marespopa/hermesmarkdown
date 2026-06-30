@@ -83,14 +83,17 @@ export async function verifyPermission(handle: FileSystemHandle, readWrite = tru
   if (readWrite) {
     options.mode = "readwrite";
   }
-  // Check if we already have permission, if so, return true.
   if ((await (handle as any).queryPermission(options)) === "granted") {
     return true;
   }
-  // Request permission to the file, if the user grants permission, return true.
+  // requestPermission requires a user gesture — only call it when inside one.
   if ((await (handle as any).requestPermission(options)) === "granted") {
     return true;
   }
-  // The user did not grant permission, return false.
   return false;
+}
+
+export async function queryPermission(handle: FileSystemHandle, readWrite = true): Promise<boolean> {
+  const options: any = readWrite ? { mode: "readwrite" } : {};
+  return (await (handle as any).queryPermission(options)) === "granted";
 }

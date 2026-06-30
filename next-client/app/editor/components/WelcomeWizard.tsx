@@ -7,6 +7,7 @@ import {
   atom_isWizardOpen,
   atom_welcomeWizardStep,
   atom_autosaveMode,
+  atom_frontmatterDefaultMode,
   atom_fontSize,
   atom_fontFamily,
   atom_lineHeight,
@@ -37,10 +38,14 @@ import {
   HiOutlineSwitchVertical,
   HiOutlineColorSwatch,
   HiOutlineArrowLeft,
+  HiOutlineViewList,
   HiCheck,
+  HiOutlineFolderAdd,
 } from "react-icons/hi";
+import { useCreateVault } from "@/app/hooks/file-system/use-create-vault";
+import CreateVaultSubSteps from "./CreateVaultSubSteps";
 
-const TOTAL_STEPS = 6;
+const TOTAL_STEPS = 7;
 
 const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
   const [hasCompleted, setHasCompleted] = useAtom(atom_hasCompletedOnboarding);
@@ -49,11 +54,13 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
   const [isMounted, setIsMounted] = useState(false);
 
   const { openVault, openDriveVaultPicker, isVaultSupported } = useFileSystem();
+  const createVaultFlow = useCreateVault();
 
   const vaultHandle = useAtomValue(atom_vaultHandle);
   const isDriveVault = useAtomValue(atom_isDriveVault);
   const driveVaultId = useAtomValue(atom_driveVaultId);
   const [autosaveMode, setAutosaveMode] = useAtom(atom_autosaveMode);
+  const [frontmatterDefaultMode, setFrontmatterDefaultMode] = useAtom(atom_frontmatterDefaultMode);
   const [fontSize, setFontSize] = useAtom(atom_fontSize);
   const [fontFamily, setFontFamily] = useAtom(atom_fontFamily);
   const [lineHeight, setLineHeight] = useAtom(atom_lineHeight);
@@ -114,6 +121,9 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
         );
 
       case 1:
+        if (createVaultFlow.subStep) {
+          return <CreateVaultSubSteps {...createVaultFlow} />;
+        }
         return (
           <div className="flex flex-col items-center text-center space-y-6 py-4">
             <div className="w-16 h-16 bg-amber-50 dark:bg-amber-900/20 rounded-2xl flex items-center justify-center text-amber-600 dark:text-amber-400">
@@ -131,6 +141,22 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
             <div className="grid grid-cols-1 gap-3 w-full">
               <Button
                 variant="secondary"
+                onClick={createVaultFlow.startCreationFlow}
+                disabled={!isVaultSupported}
+                className="flex items-center justify-between px-5 h-14 rounded-2xl border border-edge bg-paper-light dark:bg-paper-dark"
+              >
+                <div className="flex items-center gap-3">
+                  <HiOutlineFolderAdd className="text-sage" size={24} />
+                  <div className="text-left">
+                    <div className="font-bold text-ui-footnote">Create New Vault</div>
+                    <div className="text-[10px] opacity-50 uppercase tracking-wider font-bold">New folder · Starter packs</div>
+                  </div>
+                </div>
+                <HiOutlineChevronRight opacity={0.3} />
+              </Button>
+
+              <Button
+                variant="secondary"
                 onClick={openVault}
                 disabled={!isVaultSupported}
                 className="flex items-center justify-between px-5 h-14 rounded-2xl border border-edge bg-paper-light dark:bg-paper-dark"
@@ -138,7 +164,7 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
                 <div className="flex items-center gap-3">
                   <HiOutlineFolder className="text-amber-500" size={24} />
                   <div className="text-left">
-                    <div className="font-bold text-ui-footnote">Local Folder</div>
+                    <div className="font-bold text-ui-footnote">Open Existing Vault</div>
                     <div className="text-[10px] opacity-50 uppercase tracking-wider font-bold">Offline · No upload</div>
                   </div>
                 </div>
@@ -317,6 +343,52 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
       case 6:
         return (
           <div className="flex flex-col items-center text-center space-y-6 py-4">
+            <div className="w-16 h-16 bg-sage/10 rounded-2xl flex items-center justify-center text-sage">
+              <HiOutlineViewList size={32} />
+            </div>
+            <div className="space-y-2">
+              <h2 className="text-ui-title-3 font-bold">Frontmatter View</h2>
+              <p className="text-ui-footnote opacity-60 px-4">
+                How should note metadata open by default — structured fields or raw YAML?
+              </p>
+            </div>
+
+            <div className="w-full rounded-2xl border border-edge p-4 space-y-4 bg-paper-softgray/40 dark:bg-paper-dark/30 text-left">
+              <div className="space-y-3">
+                {(["fields", "raw"] as const).map((opt) => (
+                  <button
+                    key={opt}
+                    type="button"
+                    onClick={() => setFrontmatterDefaultMode(opt)}
+                    className={`w-full flex items-center justify-between px-4 py-3 rounded-xl border transition-all ${
+                      frontmatterDefaultMode === opt
+                        ? "border-sage bg-sage/5 dark:bg-sage/10"
+                        : "border-edge bg-paper-light dark:bg-paper-dark hover:border-sage/40"
+                    }`}
+                  >
+                    <div className="text-left">
+                      <div className={`text-ui-footnote font-semibold ${frontmatterDefaultMode === opt ? "text-sage" : ""}`}>
+                        {opt === "fields" ? "Fields" : "Raw YAML"}
+                      </div>
+                      <div className="text-[11px] opacity-50 mt-0.5">
+                        {opt === "fields" ? "Editable form with labels and inputs" : "Direct YAML text editor"}
+                      </div>
+                    </div>
+                    {frontmatterDefaultMode === opt && <HiCheck size={15} className="shrink-0 text-sage" />}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <Button variant="primary" onClick={() => setStep(7)} className="w-full h-12 rounded-2xl text-ui-footnote font-bold">
+              Continue
+            </Button>
+          </div>
+        );
+
+      case 7:
+        return (
+          <div className="flex flex-col items-center text-center space-y-6 py-4">
             <div className="w-16 h-16 bg-sage rounded-2xl flex items-center justify-center text-white">
               <HiOutlineCheckCircle size={32} />
             </div>
@@ -359,7 +431,17 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
 
   // Step 2 auto-advances from step 1 once a vault is connected, so going back there
   // would immediately bounce forward again — disable the back arrow on that landing.
-  const canGoBack = step > 0 && step !== 2;
+  // Within step 1's creation sub-flow, the back arrow navigates sub-steps instead.
+  const inCreationSubStep = step === 1 && !!createVaultFlow.subStep && createVaultFlow.subStep !== "installing";
+  const canGoBack = inCreationSubStep || (step > 0 && step !== 2);
+
+  const handleBack = () => {
+    if (inCreationSubStep) {
+      createVaultFlow.goBack();
+    } else if (canGoBack) {
+      setStep(step - 1);
+    }
+  };
 
   return (
     <DialogModal
@@ -374,7 +456,7 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
           <div className="flex items-center justify-between mb-5">
             <button
               type="button"
-              onClick={() => canGoBack && setStep(step - 1)}
+              onClick={handleBack}
               aria-label="Back"
               tabIndex={canGoBack ? 0 : -1}
               className={`p-1.5 -ml-1.5 rounded-full transition-all active:scale-90 ${

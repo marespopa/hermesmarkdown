@@ -13,9 +13,9 @@ import { WorkflowPill } from "./WorkflowPill";
 import { FormulaResultOverlay } from "./FormulaResultOverlay";
 import { TableCallout } from "./TableCallout";
 import { TableDialog } from "./TableDialog";
-import { AISelectionToolbar } from "./AISelectionToolbar";
 import { AIThinkingOverlay } from "./AIThinkingOverlay";
 import { AIReviewDialog } from "./AIReviewDialog";
+import AIChatDialog from "./AIChatDialog";
 import { useMarkdownEditor } from "../hooks/useMarkdownEditor";
 import Button from "../../components/Button";
 import Input from "../../components/Input";
@@ -109,10 +109,21 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
     tableInfo,
     setTableInfo,
     calloutPos,
+    currentAlignment,
+    isOnHeader,
+    canRemoveRow,
+    canRemoveCol,
+    cursorDataRowNumber,
     formulaBadges,
 
     handleRemoveTable,
+    handleCycleAlign,
     handleCopyCSV,
+    handleAddRow,
+    handleRemoveRow,
+    handleAddColumn,
+    handleRemoveColumn,
+    handleSortColumn,
     tableDialog,
     handleOpenEditDialog,
     workflowMatch,
@@ -123,9 +134,11 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
     handleTodoCycle,
     isAiLoading,
     aiReview,
-    improveWriting,
-    expandIdea,
-    runPrompt,
+    isChatOpen,
+    chatSelectedText,
+    openChat,
+    closeChat,
+    applyFromChat,
     applyReplace,
     applyInsertBelow,
     dismissReview,
@@ -271,7 +284,8 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
         }}
         className={`editor-container relative min-h-full antialiased normal-nums [font-variant-ligatures:none] [font-feature-settings:'liga'_0,'calt'_0]
           transition-[padding,max-width] duration-700 [transition-timing-function:cubic-bezier(0.4,0,0.2,1)]
-          pt-1 pb-12 mx-auto ${widthClass} ${paddingClass}
+          pt-1 pb-12
+          ${wordWrap ? `mx-auto ${widthClass} ${paddingClass}` : "px-4 sm:px-6 md:px-10"}
           ${wordWrap ? "w-full" : "w-max min-w-full"}
           text-ui-body
           [&_textarea]:!bg-transparent [&_textarea]:!text-transparent [&_textarea]:!caret-sage
@@ -402,16 +416,6 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
 
           <FormulaResultOverlay badges={formulaBadges} />
 
-          {isAiConfigured && (
-            <AISelectionToolbar
-              textareaRef={textareaRef}
-              isAiLoading={isAiLoading}
-              onImprove={improveWriting}
-              onExpand={expandIdea}
-              onPrompt={runPrompt}
-            />
-          )}
-
           {isEditorBlocked && <AIThinkingOverlay />}
 
           <AIReviewDialog
@@ -421,9 +425,31 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
             onInsertBelow={applyInsertBelow}
           />
 
+          <AIChatDialog
+            isOpen={isChatOpen}
+            onClose={closeChat}
+            documentContent={value}
+            selectedText={chatSelectedText}
+            currentFilePath={filePath}
+            onApply={applyFromChat}
+          />
+
           {tableInfo && (
             <TableCallout
               pos={calloutPos}
+              isMobile={isMobile}
+              currentAlignment={currentAlignment}
+              isOnHeader={isOnHeader}
+              canRemoveRow={canRemoveRow}
+              canRemoveCol={canRemoveCol}
+              cursorDataRowNumber={cursorDataRowNumber}
+              onAddRow={handleAddRow}
+              onRemoveRow={handleRemoveRow}
+              onAddColumn={handleAddColumn}
+              onRemoveColumn={handleRemoveColumn}
+              onSortAsc={() => handleSortColumn("asc")}
+              onSortDesc={() => handleSortColumn("desc")}
+              onCycleAlign={handleCycleAlign}
               onRemoveTable={handleRemoveTable}
               onCopyCSV={handleCopyCSV}
               onEditDialog={handleOpenEditDialog}

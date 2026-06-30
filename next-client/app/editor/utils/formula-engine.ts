@@ -79,6 +79,7 @@ export function parseRangeRef(ref: string): RangeRef | null {
 }
 
 export function isFormulaCell(text: string): boolean {
+  if (!text) return false;
   const t = text.trim();
   return t.startsWith("=") && t.length > 1;
 }
@@ -151,6 +152,7 @@ type TokenType =
   | "RPAREN"
   | "COMMA"
   | "COLON"
+  | "BANG"
   | "EOF";
 
 interface Token {
@@ -186,6 +188,11 @@ function tokenize(src: string): Token[] {
     }
     if (ch === ":") {
       tokens.push({ type: "COLON", value: ch });
+      i++;
+      continue;
+    }
+    if (ch === "!") {
+      tokens.push({ type: "BANG", value: ch });
       i++;
       continue;
     }
@@ -243,7 +250,12 @@ function tokenize(src: string): Token[] {
     if (/\d/.test(ch) || (ch === "." && /\d/.test(src[i + 1] || ""))) {
       let j = i;
       while (j < n && /[\d.]/.test(src[j])) j++;
-      tokens.push({ type: "NUMBER", value: src.slice(i, j) });
+      let numStr = src.slice(i, j);
+      if (j < n && src[j] === "%") {
+        numStr = String(parseFloat(numStr) / 100);
+        j++;
+      }
+      tokens.push({ type: "NUMBER", value: numStr });
       i = j;
       continue;
     }
@@ -263,6 +275,9 @@ type Node =
   | { kind: "bool"; value: boolean }
   | { kind: "ref"; row: number; col: number }
   | ({ kind: "range" } & RangeRef)
+  | { kind: "col"; col: number }
+  | { kind: "tableref"; tableName: string; row: number; col: number }
+  | { kind: "tablecol"; tableName: string; col: number }
   | { kind: "unary"; op: "-"; arg: Node }
   | { kind: "binary"; op: string; left: Node; right: Node }
   | { kind: "call"; name: string; args: Node[] };
@@ -284,6 +299,22 @@ function parseFormulaTokens(tokens: Token[]): Node {
     }
     if (t.type === "STRING") {
       advance();
+      // Quoted cross-table ref: "Heading Name"!C2 or "Heading Name"!B
+      if (peek().type === "BANG") {
+        advance(); // consume !
+        const next = peek();
+        if (next.type === "CELLREF") {
+          advance();
+          const ref = parseCellRef(next.value);
+          if (!ref) throw new ParseError("#REF!");
+          return { kind: "tableref", tableName: t.value, row: ref.row, col: ref.col };
+        }
+        if (next.type === "IDENT") {
+          advance();
+          return { kind: "tablecol", tableName: t.value, col: letterToColIndex(next.value) };
+        }
+        throw new ParseError("#REF!");
+      }
       return { kind: "str", value: t.value };
     }
     if (t.type === "IDENT") {
@@ -305,6 +336,26 @@ function parseFormulaTokens(tokens: Token[]): Node {
         }
         expect("RPAREN");
         return { kind: "call", name: upper, args };
+      }
+      // Cross-table reference: HeadingName!C2 or HeadingName!B (column)
+      if (peek().type === "BANG") {
+        advance(); // consume !
+        const next = peek();
+        if (next.type === "CELLREF") {
+          advance();
+          const ref = parseCellRef(next.value);
+          if (!ref) throw new ParseError("#REF!");
+          return { kind: "tableref", tableName: t.value, row: ref.row, col: ref.col };
+        }
+        if (next.type === "IDENT") {
+          advance();
+          return { kind: "tablecol", tableName: t.value, col: letterToColIndex(next.value) };
+        }
+        throw new ParseError("#REF!");
+      }
+      // Bare A-Z identifier (not a bool) = whole-column reference, e.g. SUM(B)
+      if (/^[A-Za-z]+$/.test(t.value) && upper !== "TRUE" && upper !== "FALSE") {
+        return { kind: "col", col: letterToColIndex(upper) };
       }
       throw new ParseError("#NAME?");
     }
@@ -586,11 +637,13 @@ export function formatFormulaValue(v: FormulaValue, currency?: CurrencyHint | nu
   if (isFormulaError(v)) return v.code;
   if (typeof v === "boolean") return v ? "TRUE" : "FALSE";
   if (typeof v === "number") {
+    const rounded = Math.round(v * 100) / 100;
+    const isInt = Number.isInteger(rounded);
     if (!currency) {
-      return Number.isInteger(v) ? String(v) : String(Math.round(v * 100) / 100);
+      return isInt ? String(rounded) : String(rounded);
     }
-    const formatted = (Math.round(v * 100) / 100).toLocaleString("en", {
-      minimumFractionDigits: 2,
+    const formatted = rounded.toLocaleString("en", {
+      minimumFractionDigits: isInt ? 0 : 2,
       maximumFractionDigits: 2,
     });
     return currency.suffix ? `${formatted} ${currency.symbol}` : `${currency.symbol}${formatted}`;
@@ -611,7 +664,14 @@ function resolveCellText(data: TableData, row: number, col: number): string | nu
 // this to decide which cells need a computed display instead of raw text.
 // Full recompute on every call: table sizes here are small (tens of cells),
 // so there's no need for an incremental dependency graph.
-export function evaluateTable(data: TableData): Map<string, FormulaCellResult> {
+//
+// `namedTables` maps the markdown heading above each table (case-insensitive)
+// to its parsed TableData, enabling cross-table references like `=SUM(Income!B)`
+// or `=Expenses!B3`.
+export function evaluateTable(
+  data: TableData,
+  namedTables: Map<string, TableData> = new Map(),
+): Map<string, FormulaCellResult> {
   const results = new Map<string, FormulaCellResult>();
   const evaluating = new Set<string>();
 
@@ -624,6 +684,7 @@ export function evaluateTable(data: TableData): Map<string, FormulaCellResult> {
   // (a stack, via this one mutable slot) so a dependency's references don't
   // bleed into the cell that's asking for them.
   let currencyVotes: Map<string, boolean> | null = null;
+  let currentEvalRow = -1;
 
   function recordCurrency(text: string) {
     if (!currencyVotes) return;
@@ -668,7 +729,9 @@ export function evaluateTable(data: TableData): Map<string, FormulaCellResult> {
 
     evaluating.add(k);
     const prevVotes = currencyVotes;
+    const prevEvalRow = currentEvalRow;
     currencyVotes = new Map();
+    currentEvalRow = row;
     let value: FormulaValue;
     let ast: Node | null = null;
     try {
@@ -677,6 +740,7 @@ export function evaluateTable(data: TableData): Map<string, FormulaCellResult> {
     } catch (e) {
       value = new FormulaError(e instanceof ParseError ? e.code : "#VALUE!");
     }
+    currentEvalRow = prevEvalRow;
     // COUNT/COUNTA return a dimensionless count, not a currency amount, even
     // when counting cells in a currency column.
     const isCountFn = ast?.kind === "call" && (ast.name === "COUNT" || ast.name === "COUNTA");
@@ -702,6 +766,74 @@ export function evaluateTable(data: TableData): Map<string, FormulaCellResult> {
     return out;
   }
 
+  function flattenColumn(col: number): FormulaValue[] | FormulaError {
+    const out: FormulaValue[] = [];
+    const lastRow = data.rows.length + 1; // last A1 data row index
+    for (let r = 2; r <= lastRow; r++) {
+      if (r === currentEvalRow) continue; // skip the formula's own row
+      const rowCells = data.rows[r - 2];
+      if (rowCells.every((c) => !c || c.trim() === "")) continue; // skip spacer rows
+      const v = evalCell(r, col);
+      if (isFormulaError(v)) return v;
+      out.push(v);
+    }
+    return out;
+  }
+
+  // --- Cross-table helpers ---------------------------------------------------
+
+  const otherTableResultsCache = new Map<string, Map<string, FormulaCellResult>>();
+
+  function resolveNamedTable(name: string): TableData | null {
+    const lower = name.toLowerCase();
+    for (const [k, v] of namedTables) {
+      if (k.toLowerCase() === lower && v !== data) return v;
+    }
+    return null;
+  }
+
+  function getOtherTableResults(name: string): Map<string, FormulaCellResult> | null {
+    const lower = name.toLowerCase();
+    const otherData = resolveNamedTable(name);
+    if (!otherData) return null;
+    if (!otherTableResultsCache.has(lower)) {
+      // Pass namedTables minus `otherData` to avoid infinite recursion
+      const subMap = new Map<string, TableData>();
+      for (const [k, v] of namedTables) {
+        if (v !== otherData) subMap.set(k, v);
+      }
+      otherTableResultsCache.set(lower, evaluateTable(otherData, subMap));
+    }
+    return otherTableResultsCache.get(lower)!;
+  }
+
+  function flattenOtherTableColumn(tableName: string, col: number): FormulaValue[] | FormulaError {
+    const otherData = resolveNamedTable(tableName);
+    if (!otherData) return new FormulaError("#REF!");
+    const tResults = getOtherTableResults(tableName);
+    if (!tResults) return new FormulaError("#REF!");
+    const out: FormulaValue[] = [];
+    const lastRow = otherData.rows.length + 1;
+    for (let r = 2; r <= lastRow; r++) {
+      const rowCells = otherData.rows[r - 2];
+      if (rowCells.every((c) => !c || c.trim() === "")) continue;
+      const k = key(r, col);
+      const cached = tResults.get(k);
+      if (cached) {
+        if (isFormulaCell(cached.raw)) continue;
+        recordCurrencyHint(cached.currency);
+        out.push(cached.value);
+      } else {
+        const raw = resolveCellText(otherData, r, col);
+        if (raw === null) return new FormulaError("#REF!");
+        if (isFormulaCell(raw)) continue;
+        recordCurrency(raw);
+        out.push(raw);
+      }
+    }
+    return out;
+  }
+
   function evalNode(node: Node): FormulaValue {
     switch (node.kind) {
       case "num":
@@ -713,7 +845,27 @@ export function evaluateTable(data: TableData): Map<string, FormulaCellResult> {
       case "ref":
         return evalCell(node.row, node.col);
       case "range":
-        // A bare range with no aggregating function around it has no scalar value.
+        // A bare range/column with no aggregating function around it has no scalar value.
+        return new FormulaError("#VALUE!");
+      case "col":
+        return new FormulaError("#VALUE!");
+      case "tableref": {
+        const tResults = getOtherTableResults(node.tableName);
+        if (!tResults) return new FormulaError("#REF!");
+        const otherData = resolveNamedTable(node.tableName)!;
+        const k = key(node.row, node.col);
+        const cached = tResults.get(k);
+        if (cached) {
+          recordCurrencyHint(cached.currency);
+          return cached.value;
+        }
+        const raw = resolveCellText(otherData, node.row, node.col);
+        if (raw === null) return new FormulaError("#REF!");
+        recordCurrency(raw);
+        return raw;
+      }
+      case "tablecol":
+        // Only valid inside a function — bare tablecol has no scalar value.
         return new FormulaError("#VALUE!");
       case "unary": {
         const v = evalNode(node.arg);
@@ -733,6 +885,14 @@ export function evaluateTable(data: TableData): Map<string, FormulaCellResult> {
         for (const a of node.args) {
           if (a.kind === "range") {
             const flattened = flattenRange(a);
+            if (isFormulaError(flattened)) return flattened;
+            argValues.push(...flattened);
+          } else if (a.kind === "col") {
+            const flattened = flattenColumn(a.col);
+            if (isFormulaError(flattened)) return flattened;
+            argValues.push(...flattened);
+          } else if (a.kind === "tablecol") {
+            const flattened = flattenOtherTableColumn(a.tableName, a.col);
             if (isFormulaError(flattened)) return flattened;
             argValues.push(...flattened);
           } else {
