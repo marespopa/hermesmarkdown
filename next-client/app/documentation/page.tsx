@@ -261,6 +261,7 @@ const GROUPS: Group[] = [
                 { label: "Command Palette", value: "CTRL+SHIFT+P" },
                 { label: "Document Info", value: "CTRL+SHIFT+I" },
                 { label: "AI Builder", value: "CTRL+SHIFT+B" },
+                { label: "Voice input", value: "CTRL+SHIFT+V" },
                 { label: "Frontmatter panel", value: "✎ in document header" },
               ]}
             />
@@ -291,6 +292,7 @@ const GROUPS: Group[] = [
                   { label: "Toggle sidebar", shortcut: "CTRL+SHIFT+E" },
                   { label: "Document info", shortcut: "CTRL+SHIFT+I" },
                   { label: "AI Builder", shortcut: "CTRL+SHIFT+B" },
+                  { label: "Voice input", shortcut: "CTRL+SHIFT+V" },
                   { label: "Dismiss / close", shortcut: "ESCAPE" },
                 ],
               },
@@ -531,9 +533,11 @@ const GROUPS: Group[] = [
         body: (
           <>
             <p>
-              Click the mic icon (in the AI Builder FAB group on desktop, or the bottom nav on mobile) to
-              start listening. Speech is transcribed as you talk — a dimmed preview of the current phrase
-              appears inline and is replaced by the final result once you pause.
+              Click the mic icon (in the icon rail on desktop, or the bottom nav on mobile) to start
+              listening. Speech accumulates in an editable preview box instead of the document itself, so
+              you can fix a mishear before it ever touches your note. Press <code>Enter</code> to insert the
+              reviewed text at the cursor, <code>Shift+Enter</code> to add a line break within the preview,
+              or <code>Escape</code> to discard it.
             </p>
             <Callout type="warning">
               Voice input uses the browser's built-in Web Speech API, which only Chromium-based browsers
@@ -565,7 +569,7 @@ const GROUPS: Group[] = [
             </p>
             <KV
               rows={[
-                { label: '"new line" / "new paragraph"', value: "Line break / blank line" },
+                { label: '"new line" / "new row" / "new paragraph"', value: "Line break / blank line" },
                 { label: '"period" / "comma" / "question mark" / "exclamation point"', value: "Punctuation" },
                 { label: '"colon" / "semicolon"', value: "Punctuation" },
                 { label: '"outdent" / "unindent"', value: "Back out one list level" },
@@ -578,6 +582,9 @@ const GROUPS: Group[] = [
               Commands nest — <code>&quot;bullet bold important&quot;</code> produces{" "}
               <code>- **important**</code>, and the same applies inside headings and tasks. Anything that
               doesn&apos;t match a command is inserted as plain text, so ordinary dictation always works.
+              Sentences capitalize themselves automatically after a spoken &quot;period&quot;, &quot;question
+              mark&quot;, or &quot;exclamation point&quot; (a comma doesn&apos;t count), and a heading always
+              starts its own line.
             </Callout>
             <p>
               Listening stops automatically when the pane loses focus, the tab is backgrounded, or the mic

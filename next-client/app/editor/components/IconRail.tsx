@@ -10,6 +10,8 @@ import {
   HiOutlineCog,
   HiOutlineSun,
   HiOutlineMoon,
+  HiOutlineMicrophone,
+  HiMicrophone,
 } from "react-icons/hi";
 import { useAtom } from "jotai";
 import { atom_theme } from "@/app/atoms/atoms";
@@ -20,11 +22,13 @@ export type { RailPanel };
 function RailButton({
   icon,
   label,
+  shortcut,
   isActive,
   onClick,
 }: {
   icon: React.ReactNode;
   label: string;
+  shortcut?: string;
   isActive: boolean;
   onClick: () => void;
 }) {
@@ -33,7 +37,7 @@ function RailButton({
       <button
         type="button"
         onClick={onClick}
-        aria-label={label}
+        aria-label={shortcut ? `${label} (${shortcut})` : label}
         className={`w-9 h-9 flex items-center justify-center transition-colors ${
           isActive ? "text-accent" : "text-sage hover:text-fg"
         }`}
@@ -44,6 +48,7 @@ function RailButton({
         className="pointer-events-none absolute left-full top-1/2 -translate-y-1/2 ml-2 whitespace-nowrap bg-overlay border border-edge text-fg text-ui-caption px-2 py-1 opacity-0 group-hover/rail-item:opacity-100 transition-opacity delay-[400ms] z-50"
       >
         {label}
+        {shortcut && <span className="opacity-50 ml-1.5">{shortcut}</span>}
       </span>
     </div>
   );
@@ -55,12 +60,18 @@ export default function IconRail({
   onOpenSettings,
   onOpenDocumentation,
   onHome,
+  isVoiceSupported,
+  isVoiceListening,
+  onVoiceClick,
 }: {
   activePanel: RailPanel | null;
   onPanelChange: (panel: RailPanel) => void;
   onOpenSettings?: () => void;
   onOpenDocumentation?: () => void;
   onHome?: () => void;
+  isVoiceSupported?: boolean;
+  isVoiceListening?: boolean;
+  onVoiceClick?: () => void;
 }) {
   const [theme, setTheme] = useAtom(atom_theme);
 
@@ -85,6 +96,15 @@ export default function IconRail({
           isActive={activePanel === "tags"}
           onClick={() => onPanelChange("tags")}
         />
+        {isVoiceSupported && (
+          <RailButton
+            icon={isVoiceListening ? <HiMicrophone size={18} /> : <HiOutlineMicrophone size={18} />}
+            label={isVoiceListening ? "Stop voice input" : "Start voice input"}
+            shortcut="Ctrl+Shift+V"
+            isActive={!!isVoiceListening}
+            onClick={() => onVoiceClick?.()}
+          />
+        )}
         <RailButton
           icon={<HiOutlineCollection size={18} />}
           label="Views"

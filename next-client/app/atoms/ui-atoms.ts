@@ -185,13 +185,28 @@ export const atom_isFileLoading = atom<boolean>(false);
 export const atom_aiBuilderRequest = atom<number>(0);
 
 // Bumped to toggle voice dictation from outside the editor (the FAB group
-// next to the AI chat button), since the actual SpeechRecognition session
-// lives inside useVoiceInput, scoped to the active pane's textarea.
+// next to the AI chat button). The SpeechRecognition session itself is a
+// single instance shared by the whole app (see use-global-voice-input.ts),
+// not one per pane — so switching panes mid-dictation never drops it.
 export const atom_voiceInputRequest = atom<number>(0);
-// Mirrors the active pane's voice-input hook state so a single shared button
-// can reflect listening/support status without owning the recognition itself.
+// Mirrors the shared voice-input hook state so any button can reflect
+// listening/support status without owning the recognition itself.
 export const atom_isVoiceInputListening = atom<boolean>(false);
 export const atom_isVoiceInputSupported = atom<boolean>(false);
+// Mirrors whether the voice preview panel is on screen (listening, or an
+// unconfirmed draft/interim transcript left over), so panes other than the
+// active one can dim themselves — a committed dictation always lands in the
+// active pane, and dimming the rest makes that unambiguous at a glance.
+export const atom_isVoicePreviewVisible = atom<boolean>(false);
+// The DOM textarea belonging to whichever pane is currently active. The
+// global voice-input hook inserts a committed dictation here, so "Insert"
+// always lands in the pane the user is looking at regardless of which pane
+// was active when dictation started.
+export const atom_activeTextareaElement = atom<HTMLTextAreaElement | null>(null);
+// Bumped when a voice command ("insert link") should pop open the link
+// dialog. The dialog itself is per-pane state (useEditorTemplates), so only
+// the active pane reacts to this, same request/mirror pattern as above.
+export const atom_voiceOpenLinkDialogRequest = atom<number>(0);
 
 // Most-recently-used command ids for the command palette's empty-query state
 // ("feels intelligent" with zero visible "recent" UI). Capped at 8 on write.

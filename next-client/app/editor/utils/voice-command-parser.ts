@@ -6,16 +6,21 @@
 export interface VoiceListState {
   indentLevel: number;
   inCodeBlock: boolean;
+  /** Whether the next word dictated should be capitalized — set after a
+   * sentence-ending punctuation mark or a structural command (heading,
+   * bullet, new line, ...), since each of those starts a fresh sentence. */
+  capitalizeNext: boolean;
 }
 
 export const initialVoiceListState: VoiceListState = {
   indentLevel: 0,
   inCodeBlock: false,
+  capitalizeNext: true,
 };
 
 export type VoiceInsertion =
-  | { kind: "markdown"; text: string; cursorOffset?: number }
-  | { kind: "plain-text"; text: string }
+  | { kind: "markdown"; text: string; cursorOffset?: number; replacePrevious?: boolean }
+  | { kind: "plain-text"; text: string; replacePrevious?: boolean }
   | { kind: "open-link-dialog" }
   | { kind: "delete-last" }
   | { kind: "none" };
@@ -33,13 +38,71 @@ const PUNCTUATION_WORDS: Record<string, string> = {
   semicolon: ";",
 };
 
+// Matches punctuation words anywhere inside a longer dictated phrase (plus
+// their surrounding whitespace), not just as a whole standalone utterance —
+// users commonly speak them inline ("...using AI period next thought...")
+// rather than pausing to say "period" on its own.
+const INLINE_PUNCTUATION_PATTERN = new RegExp(
+  `\\s*\\b(${Object.keys(PUNCTUATION_WORDS).join("|")})\\b\\s*`,
+  "gi",
+);
+
+const SENTENCE_END_SYMBOLS = new Set([".", "!", "?"]);
+
+// Replaces inline punctuation words with their symbol, attached directly to
+// the preceding word (no space before) with a single trailing space (unless
+// it's the last thing said, in which case there's nothing to trim to). Also
+// capitalizes the start of each sentence: the first word if `capitalizeFirst`
+// is set, and the first word following any ".", "!", or "?" produced along
+// the way — a comma/colon/semicolon doesn't end a sentence, so it doesn't
+// trigger capitalization of what follows.
+function substituteInlinePunctuation(
+  text: string,
+  capitalizeFirst: boolean,
+): { text: string; capitalizeNext: boolean } {
+  let result = "";
+  let lastIndex = 0;
+  let capitalizeNext = capitalizeFirst;
+  const pattern = new RegExp(INLINE_PUNCTUATION_PATTERN.source, "gi");
+  let match: RegExpExecArray | null;
+  while ((match = pattern.exec(text))) {
+    const before = text.slice(lastIndex, match.index);
+    if (capitalizeNext && /[a-zA-Z]/.test(before)) {
+      result += capitalizeFirstLetter(before);
+      capitalizeNext = false;
+    } else {
+      result += before;
+    }
+    const symbol = PUNCTUATION_WORDS[match[1].toLowerCase()];
+    result += `${symbol} `;
+    if (SENTENCE_END_SYMBOLS.has(symbol)) capitalizeNext = true;
+    lastIndex = pattern.lastIndex;
+  }
+  const rest = text.slice(lastIndex);
+  if (capitalizeNext && /[a-zA-Z]/.test(rest)) {
+    result += capitalizeFirstLetter(rest);
+    capitalizeNext = false;
+  } else {
+    result += rest;
+  }
+  return { text: result.trimEnd(), capitalizeNext };
+}
+
 const NUMBER_WORDS: Record<string, number> = {
   one: 1, two: 2, three: 3, four: 4, five: 5, six: 6,
+};
+
+// Homophones the Web Speech API commonly substitutes for a number word right
+// after "heading"/"levels deep" — scoped to this narrow position only, since
+// e.g. "for"/"ate" are too common as ordinary words to alias globally.
+const NUMBER_HOMOPHONES: Record<string, number> = {
+  to: 2, too: 2,
 };
 
 function parseHeadingLevel(raw: string): number | null {
   const lower = raw.toLowerCase();
   if (NUMBER_WORDS[lower] !== undefined) return NUMBER_WORDS[lower];
+  if (NUMBER_HOMOPHONES[lower] !== undefined) return NUMBER_HOMOPHONES[lower];
   const n = parseInt(lower, 10);
   if (n >= 1 && n <= 6) return n;
   return null;
@@ -56,22 +119,34 @@ function applyInlinePhraseTransform(content: string): string {
   const trimmed = content.trim();
 
   let m = /^wiki\s*link(?:\s+to)?\s+(.+)$/i.exec(trimmed);
-  if (m) return `[[${m[1].trim()}]]`;
+  if (m) return `[[${capitalizeFirstLetter(m[1].trim())}]]`;
 
   m = /^link(?:\s+to)?\s+(.+)$/i.exec(trimmed);
-  if (m) return `[[${m[1].trim()}]]`;
+  if (m) return `[[${capitalizeFirstLetter(m[1].trim())}]]`;
 
   m = /^bold\s+(.+)$/i.exec(trimmed);
-  if (m) return `**${m[1].trim()}**`;
+  if (m) return `**${capitalizeFirstLetter(m[1].trim())}**`;
 
   m = /^italic\s+(.+)$/i.exec(trimmed);
-  if (m) return `*${m[1].trim()}*`;
+  if (m) return `*${capitalizeFirstLetter(m[1].trim())}*`;
 
-  return trimmed;
+  // Each structural command (bullet, task, quote, heading, ...) starts a
+  // fresh grammatical unit, so its content always capitalizes its own start
+  // regardless of the surrounding dictation's sentence-capitalization state.
+  return substituteInlinePunctuation(trimmed, true).text;
 }
 
 function indent(state: VoiceListState): string {
   return INDENT_UNIT.repeat(state.indentLevel);
+}
+
+// Capitalizes the first letter found, skipping any leading markdown syntax
+// (e.g. "**" from a nested bold transform) so dictated headings read like
+// normal titles without requiring the speaker to say "capital".
+function capitalizeFirstLetter(text: string): string {
+  const idx = text.search(/[a-zA-Z]/);
+  if (idx === -1) return text;
+  return text.slice(0, idx) + text[idx].toUpperCase() + text.slice(idx + 1);
 }
 
 /**
@@ -93,7 +168,7 @@ export function parseVoiceSegment(
     if (/^end code block$/i.test(trimmed)) {
       return {
         insertion: { kind: "markdown", text: "\n```\n" },
-        nextState: { ...state, inCodeBlock: false },
+        nextState: { ...state, inCodeBlock: false, capitalizeNext: true },
       };
     }
     return {
@@ -111,17 +186,25 @@ export function parseVoiceSegment(
 
   m = /^new paragraph$/i.exec(trimmed);
   if (m) {
-    return { insertion: { kind: "markdown", text: "\n\n" }, nextState: state };
+    return { insertion: { kind: "markdown", text: "\n\n" }, nextState: { ...state, capitalizeNext: true } };
   }
 
-  m = /^new line$/i.exec(trimmed);
+  // "new row" is a natural way to say "press enter"; the Web Speech API
+  // commonly mishears it as "neuro" as a single whole utterance, so that
+  // mishearing is aliased here too rather than requiring the speaker to
+  // re-say it more clearly.
+  m = /^(?:new line|new row|neuro)$/i.exec(trimmed);
   if (m) {
-    return { insertion: { kind: "markdown", text: "\n" }, nextState: state };
+    return { insertion: { kind: "markdown", text: "\n" }, nextState: { ...state, capitalizeNext: true } };
   }
 
   m = /^(period|comma|question mark|exclamation mark|exclamation point|colon|semicolon)$/i.exec(trimmed);
   if (m) {
-    return { insertion: { kind: "markdown", text: PUNCTUATION_WORDS[m[1].toLowerCase()] }, nextState: state };
+    const symbol = PUNCTUATION_WORDS[m[1].toLowerCase()];
+    return {
+      insertion: { kind: "markdown", text: symbol },
+      nextState: SENTENCE_END_SYMBOLS.has(symbol) ? { ...state, capitalizeNext: true } : state,
+    };
   }
 
   m = /^(?:done with list|end list)$/i.exec(trimmed);
@@ -137,7 +220,7 @@ export function parseVoiceSegment(
     };
   }
 
-  m = /^(?:go\s+)?(one|two|three|four|five|six|\d+)\s+levels?\s+deep$/i.exec(trimmed);
+  m = /^(?:go\s+)?(one|two|to|too|three|four|five|six|\d+)\s+levels?\s+deep$/i.exec(trimmed);
   if (m) {
     const level = parseHeadingLevel(m[1]) ?? parseInt(m[1], 10);
     return {
@@ -163,20 +246,23 @@ export function parseVoiceSegment(
     };
   }
 
-  m = /^h(?:eading)?\s*(one|two|three|four|five|six|[1-6])\s+(.+)$/i.exec(trimmed);
+  m = /^h(?:eading)?\s*(one|two|to|too|three|four|five|six|[1-6])\s+(.+)$/i.exec(trimmed);
   if (m) {
     const level = parseHeadingLevel(m[1]);
     if (level) {
+      const content = applyInlinePhraseTransform(m[2]);
       return {
-        insertion: { kind: "markdown", text: `${"#".repeat(level)} ${applyInlinePhraseTransform(m[2])}` },
-        nextState: state,
+        // Trailing newline so dictation continuing after a heading lands on
+        // its own row instead of running on into the heading text.
+        insertion: { kind: "markdown", text: `${"#".repeat(level)} ${content}\n` },
+        nextState: { ...state, capitalizeNext: true },
       };
     }
   }
 
   m = /^indent\s+(?:bullet|list item)\s+(.+)$/i.exec(trimmed);
   if (m) {
-    const nextState = { ...state, indentLevel: state.indentLevel + 1 };
+    const nextState = { ...state, indentLevel: state.indentLevel + 1, capitalizeNext: true };
     return {
       insertion: { kind: "markdown", text: `${indent(nextState)}- ${applyInlinePhraseTransform(m[1])}` },
       nextState,
@@ -187,13 +273,13 @@ export function parseVoiceSegment(
   if (m) {
     return {
       insertion: { kind: "markdown", text: `${indent(state)}- ${applyInlinePhraseTransform(m[1])}` },
-      nextState: state,
+      nextState: { ...state, capitalizeNext: true },
     };
   }
 
   m = /^indent\s+numbered\s+item\s+(.+)$/i.exec(trimmed);
   if (m) {
-    const nextState = { ...state, indentLevel: state.indentLevel + 1 };
+    const nextState = { ...state, indentLevel: state.indentLevel + 1, capitalizeNext: true };
     return {
       insertion: { kind: "markdown", text: `${indent(nextState)}1. ${applyInlinePhraseTransform(m[1])}` },
       nextState,
@@ -204,7 +290,7 @@ export function parseVoiceSegment(
   if (m) {
     return {
       insertion: { kind: "markdown", text: `${indent(state)}1. ${applyInlinePhraseTransform(m[1])}` },
-      nextState: state,
+      nextState: { ...state, capitalizeNext: true },
     };
   }
 
@@ -212,23 +298,26 @@ export function parseVoiceSegment(
   if (m) {
     return {
       insertion: { kind: "markdown", text: `${indent(state)}> ${applyInlinePhraseTransform(m[1])}` },
-      nextState: state,
+      nextState: { ...state, capitalizeNext: true },
     };
   }
 
   m = /^inline\s*code\s+(.+)$/i.exec(trimmed);
   if (m) {
-    return { insertion: { kind: "markdown", text: `\`${m[1].trim()}\`` }, nextState: state };
+    return { insertion: { kind: "markdown", text: `\`${m[1].trim()}\`` }, nextState: { ...state, capitalizeNext: true } };
   }
 
   m = /^strikethrough\s+(.+)$/i.exec(trimmed);
   if (m) {
-    return { insertion: { kind: "markdown", text: `~~${m[1].trim()}~~` }, nextState: state };
+    return {
+      insertion: { kind: "markdown", text: `~~${capitalizeFirstLetter(m[1].trim())}~~` },
+      nextState: { ...state, capitalizeNext: true },
+    };
   }
 
   m = /^indent\s+task\s+(?:incomplete|todo|unchecked)\s+(.+)$/i.exec(trimmed);
   if (m) {
-    const nextState = { ...state, indentLevel: state.indentLevel + 1 };
+    const nextState = { ...state, indentLevel: state.indentLevel + 1, capitalizeNext: true };
     return {
       insertion: { kind: "markdown", text: `${indent(nextState)}- [ ] ${applyInlinePhraseTransform(m[1])}` },
       nextState,
@@ -237,7 +326,7 @@ export function parseVoiceSegment(
 
   m = /^indent\s+task\s+(?:complete|done|checked)\s+(.+)$/i.exec(trimmed);
   if (m) {
-    const nextState = { ...state, indentLevel: state.indentLevel + 1 };
+    const nextState = { ...state, indentLevel: state.indentLevel + 1, capitalizeNext: true };
     return {
       insertion: { kind: "markdown", text: `${indent(nextState)}- [x] ${applyInlinePhraseTransform(m[1])}` },
       nextState,
@@ -248,7 +337,7 @@ export function parseVoiceSegment(
   if (m) {
     return {
       insertion: { kind: "markdown", text: `${indent(state)}- [ ] ${applyInlinePhraseTransform(m[1])}` },
-      nextState: state,
+      nextState: { ...state, capitalizeNext: true },
     };
   }
 
@@ -256,13 +345,16 @@ export function parseVoiceSegment(
   if (m) {
     return {
       insertion: { kind: "markdown", text: `${indent(state)}- [x] ${applyInlinePhraseTransform(m[1])}` },
-      nextState: state,
+      nextState: { ...state, capitalizeNext: true },
     };
   }
 
   m = /^wiki\s*link(?:\s+to)?\s+(.+)$/i.exec(trimmed);
   if (m) {
-    return { insertion: { kind: "markdown", text: `[[${m[1].trim()}]]` }, nextState: state };
+    return {
+      insertion: { kind: "markdown", text: `[[${capitalizeFirstLetter(m[1].trim())}]]` },
+      nextState: { ...state, capitalizeNext: true },
+    };
   }
 
   m = /^(?:insert\s+)?link$/i.exec(trimmed);
@@ -272,22 +364,29 @@ export function parseVoiceSegment(
 
   m = /^bold\s+(.+)$/i.exec(trimmed);
   if (m) {
-    return { insertion: { kind: "markdown", text: `**${m[1].trim()}**` }, nextState: state };
+    return {
+      insertion: { kind: "markdown", text: `**${capitalizeFirstLetter(m[1].trim())}**` },
+      nextState: { ...state, capitalizeNext: true },
+    };
   }
 
   m = /^italic\s+(.+)$/i.exec(trimmed);
   if (m) {
-    return { insertion: { kind: "markdown", text: `*${m[1].trim()}*` }, nextState: state };
+    return {
+      insertion: { kind: "markdown", text: `*${capitalizeFirstLetter(m[1].trim())}*` },
+      nextState: { ...state, capitalizeNext: true },
+    };
   }
 
   m = /^(?:horizontal rule|divider)$/i.exec(trimmed);
   if (m) {
-    return { insertion: { kind: "markdown", text: "\n---\n" }, nextState: state };
+    return { insertion: { kind: "markdown", text: "\n---\n" }, nextState: { ...state, capitalizeNext: true } };
   }
 
   if (!trimmed) {
     return { insertion: { kind: "none" }, nextState: state };
   }
 
-  return { insertion: { kind: "plain-text", text: rawTranscript }, nextState: state };
+  const { text, capitalizeNext } = substituteInlinePunctuation(rawTranscript, state.capitalizeNext);
+  return { insertion: { kind: "plain-text", text }, nextState: { ...state, capitalizeNext } };
 }

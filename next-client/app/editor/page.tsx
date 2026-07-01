@@ -44,10 +44,13 @@ import { useVaultSync } from "@/app/hooks/use-vault-sync";
 import { useAutoSave } from "@/app/hooks/use-auto-save";
 import { useDialog } from "@/app/hooks/use-dialog";
 import toast from "react-hot-toast";
+import { showErrorToast } from "@/app/components/Toastr";
+import { useGlobalVoiceInput } from "./hooks/use-global-voice-input";
+import VoicePreviewPanel from "./components/VoicePreviewPanel";
 
 
 import { useRouter } from "next/navigation";
-import { atom_isAiConfigured, atom_isDocInfoOpen, atom_aiBuilderRequest, atom_railPanel, RailPanel, atom_voiceInputRequest, atom_isVoiceInputListening, atom_isVoiceInputSupported } from "@/app/atoms/ui-atoms";
+import { atom_isAiConfigured, atom_isDocInfoOpen, atom_aiBuilderRequest, atom_railPanel, RailPanel, atom_voiceInputRequest, atom_isVoiceInputListening, atom_isVoiceInputSupported, atom_activeTextareaElement } from "@/app/atoms/ui-atoms";
 import { generateFileFromPrompt } from "@/app/services/ai";
 import { withRetry } from "@/app/hooks/file-system/shared";
 import AssistantFab from "./components/AssistantFab";
@@ -77,6 +80,19 @@ export default function LiteEditor() {
   const [, setVoiceInputRequest] = useAtom(atom_voiceInputRequest);
   const isVoiceListening = useAtomValue(atom_isVoiceInputListening);
   const isVoiceSupported = useAtomValue(atom_isVoiceInputSupported);
+  // Single dictation session shared by the whole app (not one per pane), so
+  // switching the active pane mid-dictation never drops the in-progress
+  // preview — "Insert" lands wherever the active pane currently is.
+  const {
+    voiceError,
+    voicePreviewText,
+    setVoicePreviewText,
+    voiceInterimText,
+    commitVoicePreview,
+    discardVoicePreview,
+    toggleVoiceListening,
+  } = useGlobalVoiceInput();
+  const activeTextareaElement = useAtomValue(atom_activeTextareaElement);
   const isMobileChrome = useIsMobileChrome();
   const [isMobileFileOverlayOpen, setIsMobileFileOverlayOpen] = useState(false);
   const [isMobileSearchOverlayOpen, setIsMobileSearchOverlayOpen] = useState(false);
@@ -147,6 +163,16 @@ export default function LiteEditor() {
     return () => clearTimeout(timer);
   }, []);
 
+  useEffect(() => {
+    if (voiceError === "permission-denied") {
+      showErrorToast("Microphone access was denied");
+    } else if (voiceError === "network") {
+      showErrorToast("Voice input lost its network connection");
+    } else if (voiceError === "no-microphone") {
+      showErrorToast("No microphone was found");
+    }
+  }, [voiceError]);
+
   const handleSave = useCallback(async () => {
     if (!content.trim()) return;
     
@@ -196,6 +222,15 @@ export default function LiteEditor() {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      // The voice preview panel renders through a React Portal into
+      // document.body, outside this app's DOM subtree — but its keystrokes
+      // still reach this window-level listener via native DOM bubbling.
+      // Its own textarea already owns Enter/Escape, so every other global
+      // shortcut here (Ctrl+B, Ctrl+S, sidebar toggles, ...) needs to stay
+      // out of it entirely rather than double-firing against the real
+      // document.
+      if ((e.target as HTMLElement)?.closest?.("[data-voice-preview-panel]")) return;
+
       // Prevent tablet/mobile browsers from navigating back on ESC.
       if (e.key === "Escape") e.preventDefault();
 
@@ -224,6 +259,14 @@ export default function LiteEditor() {
         }
       }
 
+      // Voice input — toggle start/stop
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === "v") {
+        if (isVoiceSupported) {
+          e.preventDefault();
+          setVoiceInputRequest((v) => v + 1);
+        }
+      }
+
       // Manual Save Shortcut (Ctrl+S)
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s") {
         e.preventDefault();
@@ -238,7 +281,7 @@ export default function LiteEditor() {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [flush, railPanel, setRailPanel, setIsDocInfoOpen, isAiConfigured, setAiBuilderRequest]);
+  }, [flush, railPanel, setRailPanel, setIsDocInfoOpen, isAiConfigured, setAiBuilderRequest, isVoiceSupported, setVoiceInputRequest]);
 
   const handleNewFile = () => {
     if (!vaultHandle) {
@@ -420,6 +463,9 @@ export default function LiteEditor() {
               onOpenSettings={() => navigateWithGuard("/editor/settings")}
               onOpenDocumentation={() => navigateWithGuard("/documentation")}
               onHome={() => navigateWithGuard("/")}
+              isVoiceSupported={isVoiceSupported}
+              isVoiceListening={isVoiceListening}
+              onVoiceClick={() => setVoiceInputRequest((v) => v + 1)}
             />
             <div
               className="h-full overflow-hidden transition-[width] duration-300 ease-in-out shrink-0"
@@ -481,16 +527,21 @@ export default function LiteEditor() {
         </div>{/* end MAIN LAYOUT */}
 
         {isAiConfigured && (
-          <AssistantFab
-            onClick={() => setAiBuilderRequest((v) => v + 1)}
-            // On mobile the mic toggle lives in the fixed bottom nav instead —
-            // a draggable satellite button is the wrong pattern for touch and
-            // would just duplicate the control.
-            isVoiceSupported={!isMobileChrome && isVoiceSupported}
-            isVoiceListening={isVoiceListening}
-            onVoiceClick={() => setVoiceInputRequest((v) => v + 1)}
-          />
+          <AssistantFab onClick={() => setAiBuilderRequest((v) => v + 1)} />
         )}
+
+        <VoicePreviewPanel
+          isListening={isVoiceListening}
+          previewText={voicePreviewText}
+          onPreviewTextChange={setVoicePreviewText}
+          interimText={voiceInterimText}
+          onCommit={commitVoicePreview}
+          onDiscard={() => {
+            discardVoicePreview();
+            if (isVoiceListening) toggleVoiceListening();
+            activeTextareaElement?.focus();
+          }}
+        />
 
         {isMobileChrome && (
           <>

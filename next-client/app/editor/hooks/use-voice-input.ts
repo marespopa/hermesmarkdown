@@ -5,6 +5,7 @@ import {
   parseVoiceSegment,
   initialVoiceListState,
   type VoiceInsertion,
+  type VoiceListState,
 } from "../utils/voice-command-parser";
 
 export type VoiceInputError = "permission-denied" | "network" | "no-microphone" | null;
@@ -13,6 +14,26 @@ export type VoiceInputError = "permission-denied" | "network" | "no-microphone" 
 // (e.g. a brief silence) — anything else is treated as fatal so a persistent
 // error can't cause onend to restart recognition in an infinite loop.
 const TRANSIENT_RECOGNITION_ERRORS = new Set(["no-speech", "aborted"]);
+
+// Chrome's continuous-mode SpeechRecognition frequently marks a
+// still-in-progress utterance as "final" more than once — emitting a growing
+// or self-corrected prefix (e.g. "why" → "why is" → "why is the") as a
+// sequence of distinct final results instead of one true final at the actual
+// pause, and the gap between those re-finalizations isn't reliably short, so
+// a fixed debounce window can't be trusted to catch them all. Instead, each
+// new final is compared against the raw text of the last *committed* final:
+// if one is a prefix of the other, it's treated as a refinement of the same
+// utterance and replaces it in the document instead of stacking after it.
+// Bounded by this window so a genuinely unrelated later phrase that happens
+// to share a prefix (rare, but possible) isn't clobbered.
+const CONTINUATION_WINDOW_MS = 15000;
+
+// Separately, an exact-duplicate final (the literal replay-tail glitch, not
+// a growing/corrected refinement) is only ever a same-instant browser artifact
+// — it fires within a couple hundred ms of the original. This window has to
+// stay short: a user legitimately repeating a short command like "new line"
+// a few seconds apart is common and must not be silently swallowed.
+const EXACT_DUPLICATE_WINDOW_MS = 1500;
 
 interface UseVoiceInputProps {
   onInsertion: (insertion: VoiceInsertion) => void;
@@ -39,6 +60,11 @@ export function useVoiceInput({ onInsertion, onInterimTranscript, isActivePane =
 
   const recognitionRef = useRef<SpeechRecognition | null>(null);
   const listStateRef = useRef(initialVoiceListState);
+  // `stateBefore` is the grammar state as it was *before* the previous
+  // commit, so a growing/corrected refinement of the same utterance can be
+  // re-parsed from that same starting point instead of the state the first
+  // (now-superseded) fragment already advanced past.
+  const lastCommittedRef = useRef<{ raw: string; at: number; stateBefore: VoiceListState } | null>(null);
   // Tracks whether stop() was user-initiated so onend doesn't auto-restart it.
   const shouldRestartRef = useRef(false);
   const onInsertionRef = useRef(onInsertion);
@@ -63,6 +89,7 @@ export function useVoiceInput({ onInsertion, onInterimTranscript, isActivePane =
 
     setError(null);
     listStateRef.current = initialVoiceListState;
+    lastCommittedRef.current = null;
 
     const recognition = new Ctor();
     recognition.continuous = true;
@@ -78,9 +105,33 @@ export function useVoiceInput({ onInsertion, onInterimTranscript, isActivePane =
           continue;
         }
         onInterimTranscriptRef.current?.(null);
-        const { insertion, nextState } = parseVoiceSegment(transcript, listStateRef.current);
+
+        const normalized = transcript.trim().toLowerCase();
+        if (!normalized) continue;
+
+        const last = lastCommittedRef.current;
+        const now = Date.now();
+        const lastNormalized = last?.raw.trim().toLowerCase() ?? "";
+        const isExactDuplicate = !!last && now - last.at < EXACT_DUPLICATE_WINDOW_MS && normalized === lastNormalized;
+        if (isExactDuplicate) continue;
+
+        const withinContinuationWindow = !!last && now - last.at < CONTINUATION_WINDOW_MS;
+        const isContinuation =
+          withinContinuationWindow &&
+          lastNormalized.length > 0 &&
+          normalized !== lastNormalized &&
+          (normalized.startsWith(lastNormalized) || lastNormalized.startsWith(normalized));
+
+        const parseFromState = isContinuation && last ? last.stateBefore : listStateRef.current;
+        lastCommittedRef.current = { raw: transcript, at: now, stateBefore: parseFromState };
+
+        const { insertion, nextState } = parseVoiceSegment(transcript, parseFromState);
         listStateRef.current = nextState;
-        onInsertionRef.current(insertion);
+        if (isContinuation && (insertion.kind === "markdown" || insertion.kind === "plain-text")) {
+          onInsertionRef.current({ ...insertion, replacePrevious: true });
+        } else {
+          onInsertionRef.current(insertion);
+        }
       }
     };
 

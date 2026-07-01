@@ -8,32 +8,51 @@ function run(transcript: string, state: VoiceListState = initialVoiceListState) 
 describe("parseVoiceSegment", () => {
   it("parses word-form heading levels", () => {
     const { insertion } = run("heading two Project Notes");
-    expect(insertion).toEqual({ kind: "markdown", text: "## Project Notes" });
+    expect(insertion).toEqual({ kind: "markdown", text: "## Project Notes\n" });
   });
 
   it("parses digit-form and short-form headings", () => {
-    expect(run("heading 3 Notes").insertion).toEqual({ kind: "markdown", text: "### Notes" });
-    expect(run("h1 Title").insertion).toEqual({ kind: "markdown", text: "# Title" });
+    expect(run("heading 3 Notes").insertion).toEqual({ kind: "markdown", text: "### Notes\n" });
+    expect(run("h1 Title").insertion).toEqual({ kind: "markdown", text: "# Title\n" });
+  });
+
+  it("capitalizes dictated heading text", () => {
+    expect(run("heading 1 why is the ai not the future").insertion).toEqual({
+      kind: "markdown",
+      text: "# Why is the ai not the future\n",
+    });
+  });
+
+  it("capitalizes heading text past a nested inline transform", () => {
+    expect(run("heading 2 wiki link to dashboard").insertion).toEqual({
+      kind: "markdown",
+      text: "## [[Dashboard]]\n",
+    });
+  });
+
+  it("puts a heading's next state on a fresh, capitalized line", () => {
+    const { nextState } = run("heading 1 title");
+    expect(nextState.capitalizeNext).toBe(true);
   });
 
   it("parses a plain bullet", () => {
-    expect(run("bullet buy milk").insertion).toEqual({ kind: "markdown", text: "- buy milk" });
+    expect(run("bullet buy milk").insertion).toEqual({ kind: "markdown", text: "- Buy milk" });
   });
 
   it("resolves a wikilink phrase nested inside a bullet", () => {
     expect(run("bullet link to dashboard").insertion).toEqual({
       kind: "markdown",
-      text: "- [[dashboard]]",
+      text: "- [[Dashboard]]",
     });
   });
 
   it("indents a bullet and persists the indent level", () => {
     const { insertion, nextState } = run("indent bullet link to daily note");
-    expect(insertion).toEqual({ kind: "markdown", text: "  - [[daily note]]" });
+    expect(insertion).toEqual({ kind: "markdown", text: "  - [[Daily note]]" });
     expect(nextState.indentLevel).toBe(1);
 
     const second = run("bullet another item", nextState);
-    expect(second.insertion).toEqual({ kind: "markdown", text: "  - another item" });
+    expect(second.insertion).toEqual({ kind: "markdown", text: "  - Another item" });
   });
 
   it("outdent clamps at zero", () => {
@@ -44,11 +63,11 @@ describe("parseVoiceSegment", () => {
   it("supports task incomplete and complete variants", () => {
     expect(run("task incomplete buy groceries").insertion).toEqual({
       kind: "markdown",
-      text: "- [ ] buy groceries",
+      text: "- [ ] Buy groceries",
     });
     expect(run("task complete review PR").insertion).toEqual({
       kind: "markdown",
-      text: "- [x] review PR",
+      text: "- [x] Review PR",
     });
   });
 
@@ -69,7 +88,7 @@ describe("parseVoiceSegment", () => {
   it("parses a bare wiki link command", () => {
     expect(run("wiki link to dashboard").insertion).toEqual({
       kind: "markdown",
-      text: "[[dashboard]]",
+      text: "[[Dashboard]]",
     });
   });
 
@@ -78,15 +97,37 @@ describe("parseVoiceSegment", () => {
   });
 
   it("parses bold, italic and horizontal rule", () => {
-    expect(run("bold important").insertion).toEqual({ kind: "markdown", text: "**important**" });
-    expect(run("italic important").insertion).toEqual({ kind: "markdown", text: "*important*" });
+    expect(run("bold important").insertion).toEqual({ kind: "markdown", text: "**Important**" });
+    expect(run("italic important").insertion).toEqual({ kind: "markdown", text: "*Important*" });
     expect(run("horizontal rule").insertion).toEqual({ kind: "markdown", text: "\n---\n" });
   });
 
-  it("falls back to plain text for unrecognized speech", () => {
+  it("capitalizes the first word of a fresh dictated sentence", () => {
     expect(run("this is just a regular sentence").insertion).toEqual({
       kind: "plain-text",
-      text: "this is just a regular sentence",
+      text: "This is just a regular sentence",
+    });
+  });
+
+  it("does not re-capitalize mid-sentence dictation carried over in state", () => {
+    const state: VoiceListState = { ...initialVoiceListState, capitalizeNext: false };
+    expect(run("this continues a sentence", state).insertion).toEqual({
+      kind: "plain-text",
+      text: "this continues a sentence",
+    });
+  });
+
+  it("capitalizes the next word after inline sentence-ending punctuation", () => {
+    expect(run("i like this period next thought").insertion).toEqual({
+      kind: "plain-text",
+      text: "I like this. Next thought",
+    });
+  });
+
+  it("does not capitalize after a comma", () => {
+    expect(run("apples comma bananas").insertion).toEqual({
+      kind: "plain-text",
+      text: "Apples, bananas",
     });
   });
 
@@ -102,6 +143,11 @@ describe("parseVoiceSegment", () => {
     expect(run("new paragraph").insertion).toEqual({ kind: "markdown", text: "\n\n" });
   });
 
+  it("treats 'new row' and its mishearing 'neuro' as 'new line'", () => {
+    expect(run("new row").insertion).toEqual({ kind: "markdown", text: "\n" });
+    expect(run("neuro").insertion).toEqual({ kind: "markdown", text: "\n" });
+  });
+
   it("emits a delete-last insertion for correction phrases", () => {
     expect(run("scratch that").insertion).toEqual({ kind: "delete-last" });
     expect(run("delete last").insertion).toEqual({ kind: "delete-last" });
@@ -111,33 +157,33 @@ describe("parseVoiceSegment", () => {
   it("parses numbered list items, including indented ones", () => {
     expect(run("numbered item first step").insertion).toEqual({
       kind: "markdown",
-      text: "1. first step",
+      text: "1. First step",
     });
     const { insertion, nextState } = run("indent numbered item nested step");
-    expect(insertion).toEqual({ kind: "markdown", text: "  1. nested step" });
+    expect(insertion).toEqual({ kind: "markdown", text: "  1. Nested step" });
     expect(nextState.indentLevel).toBe(1);
   });
 
   it("parses blockquotes, inline code and strikethrough", () => {
     expect(run("quote to be or not to be").insertion).toEqual({
       kind: "markdown",
-      text: "> to be or not to be",
+      text: "> To be or not to be",
     });
     expect(run("inline code const x").insertion).toEqual({ kind: "markdown", text: "`const x`" });
     expect(run("strikethrough not needed").insertion).toEqual({
       kind: "markdown",
-      text: "~~not needed~~",
+      text: "~~Not needed~~",
     });
   });
 
   it("indents tasks like it indents bullets", () => {
     expect(run("indent task incomplete sub todo").insertion).toEqual({
       kind: "markdown",
-      text: "  - [ ] sub todo",
+      text: "  - [ ] Sub todo",
     });
     expect(run("indent task complete sub done").insertion).toEqual({
       kind: "markdown",
-      text: "  - [x] sub done",
+      text: "  - [x] Sub done",
     });
   });
 
@@ -149,6 +195,6 @@ describe("parseVoiceSegment", () => {
     state = run("outdent", state).nextState;
     expect(state.indentLevel).toBe(1);
     const final = run("bullet three", state);
-    expect(final.insertion).toEqual({ kind: "markdown", text: "  - three" });
+    expect(final.insertion).toEqual({ kind: "markdown", text: "  - Three" });
   });
 });

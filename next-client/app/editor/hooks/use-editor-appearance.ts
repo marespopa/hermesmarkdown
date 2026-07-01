@@ -10,7 +10,7 @@ import {
   atom_letterSpacing,
 } from "@/app/atoms/atoms";
 
-export function useEditorAppearance() {
+export function useEditorAppearance(isSplit = false) {
   const fontFamily = useAtomValue(atom_fontFamily);
   const fontSize = useAtomValue(atom_fontSize);
   const editorWidth = useAtomValue(atom_editorWidth);
@@ -39,7 +39,11 @@ export function useEditorAppearance() {
     return (widthClasses as any)[editorWidth] || widthClasses.standard;
   }, [editorWidth]);
 
-  const paddingClass = "px-4 sm:px-6 md:px-0";
+  // md:px-0 relies on the *window* crossing the md breakpoint, but a split
+  // pane can be narrower than that while the window itself is still wide —
+  // so the padding would vanish and long lines run to the pane's edge.
+  // Split panes keep the sm padding at every width instead of dropping it.
+  const paddingClass = isSplit ? "px-4 sm:px-6" : "px-4 sm:px-6 md:px-0";
 
   return {
     fontFamily,

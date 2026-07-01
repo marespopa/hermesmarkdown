@@ -21,7 +21,7 @@ import {
   atom_workspaceLayout,
   contentStore
 } from "@/app/atoms/atoms";
-import { atom_newVaultFlowOpen, atom_isDocInfoOpen } from "@/app/atoms/ui-atoms";
+import { atom_newVaultFlowOpen, atom_isDocInfoOpen, atom_isVoicePreviewVisible } from "@/app/atoms/ui-atoms";
 import { HiOutlineDocumentText, HiOutlineEye, HiOutlineChartBar, HiOutlineX, HiOutlineClipboardCopy, HiOutlineSave, HiOutlineDotsHorizontal, HiOutlinePlus, HiOutlineFolderOpen, HiOutlineDatabase, HiOutlineCollection, HiOutlineInformationCircle } from "react-icons/hi";
 import { VscSplitHorizontal } from "react-icons/vsc";
 import { showCopyToast, showErrorToast } from "@/app/components/Toastr";
@@ -59,6 +59,8 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
   const liveHandle = useAtomValue(atom_liveHandles(filePath));
 
   const isActive = activePaneId === leaf.id;
+  const isVoicePreviewVisible = useAtomValue(atom_isVoicePreviewVisible);
+  const isDimmed = isVoicePreviewVisible && !isActive;
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   const { open: openCommandPalette } = useCommandPalette();
 
@@ -270,7 +272,7 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
     <div
       className={`h-full flex flex-col transition-all duration-300 overflow-hidden bg-paper-pale dark:bg-paper-dark ${
         isActive ? "z-10" : ""
-      }`}
+      } ${isDimmed ? "opacity-40 saturate-50" : ""}`}
       onClick={() => setActivePaneId(leaf.id)}
     >
       {/* Pane Tabs Bar — always visible, even with a single file, so Split
@@ -477,6 +479,7 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
             onWikiLinkClick={openFileByName}
             placeholder={`Editing ${leaf.activeFilePath || "Draft"}...`}
             isActivePane={isActive}
+            isSplit={!isOnlyPane}
           />
         ) : (
           <div className="flex flex-col items-center justify-center h-full opacity-20 space-y-2">

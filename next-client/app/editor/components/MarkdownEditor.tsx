@@ -22,7 +22,6 @@ import Input from "../../components/Input";
 import FrontmatterPanel from "./FrontmatterPanel";
 import { PILL_CONTAINER_CLASSES } from "./constants";
 import { FM_REGEX } from "@/app/utils/frontmatter-utils";
-import { showErrorToast } from "@/app/components/Toastr";
 
 interface MarkdownEditorProps {
   value: string;
@@ -33,6 +32,7 @@ interface MarkdownEditorProps {
   setMatchCount?: (count: number) => void;
   onWikiLinkClick?: (name: string) => void;
   isActivePane?: boolean;
+  isSplit?: boolean;
 }
 
 export default function MarkdownEditor(props: MarkdownEditorProps) {
@@ -143,7 +143,6 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
     applyReplace,
     applyInsertBelow,
     dismissReview,
-    voiceError,
   } = useMarkdownEditor({
     ...props,
     value: editorValue,
@@ -164,16 +163,6 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
       setLinkUrl("");
     }
   }, [linkDialogOpen]);
-
-  useEffect(() => {
-    if (voiceError === "permission-denied") {
-      showErrorToast("Microphone access was denied");
-    } else if (voiceError === "network") {
-      showErrorToast("Voice input lost its network connection");
-    } else if (voiceError === "no-microphone") {
-      showErrorToast("No microphone was found");
-    }
-  }, [voiceError]);
 
   useEffect(() => {
     if (menuOpen && selectedIndex !== -1 && templateContainerRef.current) {
