@@ -47,10 +47,10 @@ import toast from "react-hot-toast";
 
 
 import { useRouter } from "next/navigation";
-import { atom_isAiConfigured, atom_isDocInfoOpen, atom_aiBuilderRequest, atom_railPanel, RailPanel } from "@/app/atoms/ui-atoms";
+import { atom_isAiConfigured, atom_isDocInfoOpen, atom_aiBuilderRequest, atom_railPanel, RailPanel, atom_voiceInputRequest, atom_isVoiceInputListening, atom_isVoiceInputSupported } from "@/app/atoms/ui-atoms";
 import { generateFileFromPrompt } from "@/app/services/ai";
 import { withRetry } from "@/app/hooks/file-system/shared";
-import AIFab from "./components/AIFab";
+import AssistantFab from "./components/AssistantFab";
 
 export default function LiteEditor() {
   const router = useRouter();
@@ -74,6 +74,9 @@ export default function LiteEditor() {
   const isAiConfigured = useAtomValue(atom_isAiConfigured);
   const [, setIsDocInfoOpen] = useAtom(atom_isDocInfoOpen);
   const [, setAiBuilderRequest] = useAtom(atom_aiBuilderRequest);
+  const [, setVoiceInputRequest] = useAtom(atom_voiceInputRequest);
+  const isVoiceListening = useAtomValue(atom_isVoiceInputListening);
+  const isVoiceSupported = useAtomValue(atom_isVoiceInputSupported);
   const isMobileChrome = useIsMobileChrome();
   const [isMobileFileOverlayOpen, setIsMobileFileOverlayOpen] = useState(false);
   const [isMobileSearchOverlayOpen, setIsMobileSearchOverlayOpen] = useState(false);
@@ -468,6 +471,9 @@ export default function LiteEditor() {
                 onFiles={() => setIsMobileFileOverlayOpen(true)}
                 onSearch={() => setIsMobileSearchOverlayOpen(true)}
                 onNewFile={handleNewFile}
+                isVoiceSupported={isVoiceSupported}
+                isVoiceListening={isVoiceListening}
+                onVoiceClick={() => setVoiceInputRequest((v) => v + 1)}
               />
             )}
           </div>
@@ -475,7 +481,15 @@ export default function LiteEditor() {
         </div>{/* end MAIN LAYOUT */}
 
         {isAiConfigured && (
-          <AIFab onClick={() => setAiBuilderRequest((v) => v + 1)} />
+          <AssistantFab
+            onClick={() => setAiBuilderRequest((v) => v + 1)}
+            // On mobile the mic toggle lives in the fixed bottom nav instead —
+            // a draggable satellite button is the wrong pattern for touch and
+            // would just duplicate the control.
+            isVoiceSupported={!isMobileChrome && isVoiceSupported}
+            isVoiceListening={isVoiceListening}
+            onVoiceClick={() => setVoiceInputRequest((v) => v + 1)}
+          />
         )}
 
         {isMobileChrome && (

@@ -638,12 +638,11 @@ export function formatFormulaValue(v: FormulaValue, currency?: CurrencyHint | nu
   if (typeof v === "boolean") return v ? "TRUE" : "FALSE";
   if (typeof v === "number") {
     const rounded = Math.round(v * 100) / 100;
-    const isInt = Number.isInteger(rounded);
     if (!currency) {
-      return isInt ? String(rounded) : String(rounded);
+      return String(rounded);
     }
     const formatted = rounded.toLocaleString("en", {
-      minimumFractionDigits: isInt ? 0 : 2,
+      minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     });
     return currency.suffix ? `${formatted} ${currency.symbol}` : `${currency.symbol}${formatted}`;

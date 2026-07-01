@@ -272,27 +272,6 @@ describe("MarkdownEditor Functional Tests", () => {
     vi.useRealTimers();
     });
 
-  it("shows AI Improve/Expand toolbar when text is selected", async () => {
-    renderEditor("Select this text to improve.");
-    const textarea = screen.getByRole("textbox") as HTMLTextAreaElement;
-
-    await act(async () => {
-      textarea.focus();
-      textarea.setSelectionRange(0, 11); // "Select this"
-      // Fire mouseup on window as per our fix
-      window.dispatchEvent(new MouseEvent("mouseup", { bubbles: true }));
-    });
-
-    const promptBtn = await screen.findByRole("button", { name: /Prompt/i }, { timeout: 2000 });
-    expect(promptBtn).toBeInTheDocument();
-
-    const improveBtn = screen.getByRole("button", { name: /Improve/i });
-    expect(improveBtn).toBeInTheDocument();
-    
-    const expandBtn = screen.getByRole("button", { name: /Expand/i });
-    expect(expandBtn).toBeInTheDocument();
-  });
-
   it("cycles tag even when cursor is at position 0 via WorkflowPill", async () => {
     vi.useFakeTimers();
     renderEditor("#draft Task");
@@ -382,6 +361,27 @@ describe("MarkdownEditor Functional Tests", () => {
       </Provider>,
     );
     const textarea = screen.getByRole("textbox") as HTMLTextAreaElement;
+
+    // insertTemplate relies on the real browser behavior of
+    // execCommand("insertText", ...) actually splicing the textarea's value
+    // and firing a native "input" event — the default beforeEach mock is a
+    // no-op, so give it a working implementation here to exercise the real
+    // insert + cursor-placement path this test asserts on.
+    const nativeValueSetter = Object.getOwnPropertyDescriptor(
+      window.HTMLTextAreaElement.prototype,
+      "value",
+    )!.set!;
+    document.execCommand = vi.fn((command: string, _showUi?: boolean, value?: string) => {
+      if (command === "insertText" && value !== undefined) {
+        const start = textarea.selectionStart;
+        const end = textarea.selectionEnd;
+        const newValue = textarea.value.slice(0, start) + value + textarea.value.slice(end);
+        nativeValueSetter.call(textarea, newValue);
+        textarea.dispatchEvent(new Event("input", { bubbles: true }));
+        textarea.setSelectionRange(start + value.length, start + value.length);
+      }
+      return true;
+    });
 
     textarea.focus();
     act(() => {

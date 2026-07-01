@@ -1,10 +1,13 @@
 "use client";
 
 import { useRef, useEffect, useCallback, useState, useMemo } from "react";
-import { useAtomValue } from "jotai";
+import { useAtomValue, useSetAtom } from "jotai";
 import {
   atom_wordWrap,
   atom_aiBuilderRequest,
+  atom_voiceInputRequest,
+  atom_isVoiceInputListening,
+  atom_isVoiceInputSupported,
 } from "@/app/atoms/atoms";
 import { SHORTCODES, TAG_CYCLE, TAG_CYCLE_PREV, TODO_CYCLE, TODO_CYCLE_PREV } from "../components/constants";
 import { REGEX_CALC, REGEX_CHECKBOX } from "../components/regex";
@@ -18,6 +21,8 @@ import { useTableCallout } from "./use-table-callout";
 import { useTableDialog } from "./useTableDialog";
 import { useFormulaOverlay } from "./use-formula-overlay";
 import { useAIEditorActions } from "./useAIEditorActions";
+import { useVoiceInput } from "./use-voice-input";
+import type { VoiceInsertion } from "../utils/voice-command-parser";
 import { extractTableSource } from "../utils/tableParser";
 import getCaretCoordinates from "textarea-caret";
 import {
@@ -322,6 +327,113 @@ export function useMarkdownEditor({
     onAIAction: runAIActionById,
   });
 
+  // Range of the most recently finalized voice insertion, so a single
+  // "scratch that" can remove it. Only tracks one level back, not a stack.
+  const lastVoiceInsertionRangeRef = useRef<{ start: number; length: number } | null>(null);
+
+  const handleVoiceInsertion = useCallback(
+    (insertion: VoiceInsertion) => {
+      const textarea = textareaRef.current;
+      if (!textarea) return;
+
+      if (insertion.kind === "none") return;
+
+      if (insertion.kind === "open-link-dialog") {
+        setLinkDialogOpen(true);
+        return;
+      }
+
+      if (insertion.kind === "delete-last") {
+        const range = lastVoiceInsertionRangeRef.current;
+        if (!range) return;
+        textarea.focus();
+        textarea.setSelectionRange(range.start, range.start + range.length);
+        document.execCommand("insertText", false, "");
+        lastVoiceInsertionRangeRef.current = null;
+        return;
+      }
+
+      if (!insertion.text) return;
+
+      const start = textarea.selectionStart;
+      const end = textarea.selectionEnd;
+      textarea.focus();
+      textarea.setSelectionRange(start, end);
+      document.execCommand("insertText", false, insertion.text);
+      lastVoiceInsertionRangeRef.current = { start, length: insertion.text.length };
+
+      if (insertion.kind === "markdown" && insertion.cursorOffset !== undefined) {
+        const newPos = start + insertion.cursorOffset;
+        textarea.setSelectionRange(newPos, newPos);
+      }
+    },
+    [textareaRef, setLinkDialogOpen],
+  );
+
+  // Live "ghost text" preview of the current in-progress utterance — tracks
+  // the range it occupies so each interim update can replace just that
+  // range, and a `null` transcript (finalized/cleared) removes it entirely.
+  const voiceInterimRangeRef = useRef<{ start: number; length: number } | null>(null);
+  const handleVoiceInterimTranscript = useCallback((transcript: string | null) => {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+
+    const range = voiceInterimRangeRef.current;
+
+    if (transcript === null) {
+      if (range) {
+        textarea.focus();
+        textarea.setSelectionRange(range.start, range.start + range.length);
+        document.execCommand("insertText", false, "");
+        voiceInterimRangeRef.current = null;
+      }
+      return;
+    }
+
+    const start = range ? range.start : textarea.selectionStart;
+    textarea.focus();
+    textarea.setSelectionRange(start, range ? start + range.length : start);
+    document.execCommand("insertText", false, transcript);
+    voiceInterimRangeRef.current = { start, length: transcript.length };
+  }, [textareaRef]);
+
+  const {
+    isSupported: isVoiceSupported,
+    isListening: isVoiceListening,
+    error: voiceError,
+    toggleListening: toggleVoiceListening,
+  } = useVoiceInput({
+    onInsertion: handleVoiceInsertion,
+    onInterimTranscript: handleVoiceInterimTranscript,
+    isActivePane,
+  });
+
+  // The mic button lives in the global AI-chat FAB group (page.tsx), not
+  // inside this pane, since there's only one such button for the whole app.
+  // Its clicks are broadcast as a bumped counter and its listening/support
+  // state is mirrored back out to shared atoms, the same request/mirror
+  // pattern atom_aiBuilderRequest already uses for the AI chat dialog.
+  const voiceInputRequest = useAtomValue(atom_voiceInputRequest);
+  const prevVoiceInputRequestRef = useRef(voiceInputRequest);
+  useEffect(() => {
+    if (voiceInputRequest !== prevVoiceInputRequestRef.current) {
+      prevVoiceInputRequestRef.current = voiceInputRequest;
+      if (isActivePane) toggleVoiceListening();
+    }
+  }, [voiceInputRequest, toggleVoiceListening, isActivePane]);
+
+  // Inactive panes always have isVoiceListening === false (use-voice-input
+  // stops them), so syncing unconditionally never lets a background pane
+  // clobber the active one's "listening" state.
+  const setIsVoiceInputListening = useSetAtom(atom_isVoiceInputListening);
+  const setIsVoiceInputSupported = useSetAtom(atom_isVoiceInputSupported);
+  useEffect(() => {
+    setIsVoiceInputListening(isVoiceListening);
+  }, [isVoiceListening, setIsVoiceInputListening]);
+  useEffect(() => {
+    setIsVoiceInputSupported(isVoiceSupported);
+  }, [isVoiceSupported, setIsVoiceInputSupported]);
+
   const handleSaveWikiLink = useCallback(
     (newName: string) => {
       if (!pillRange || !textareaRef.current) return;
@@ -584,5 +696,9 @@ export function useMarkdownEditor({
     applyReplace,
     applyInsertBelow,
     dismissReview,
+    isVoiceSupported,
+    isVoiceListening,
+    voiceError,
+    toggleVoiceListening,
   };
 }

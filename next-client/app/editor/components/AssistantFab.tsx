@@ -1,21 +1,27 @@
 "use client";
 
 import React, { useRef, useState, useEffect, useCallback } from "react";
-import { HiOutlineChatAlt2 } from "react-icons/hi";
+import { HiOutlineChatAlt2, HiOutlineMicrophone, HiMicrophone } from "react-icons/hi";
 import Portal from "../../components/Portal";
 import { useAtomValue } from "jotai";
 import { atom_isAiBusy } from "@/app/atoms/atoms";
 
 const STORAGE_KEY = "hermes_fab_pos";
 const FAB_SIZE = 52;
+const MIC_SIZE = 40;
+const GROUP_GAP = 10;
 const EDGE_PAD = 16;
 const DRAG_THRESHOLD = 6;
 
-interface AIFabProps {
+interface AssistantFabProps {
   onClick: () => void;
+  /** Voice input satellite button — omitted entirely when unsupported. */
+  isVoiceSupported?: boolean;
+  isVoiceListening?: boolean;
+  onVoiceClick?: () => void;
 }
 
-export default function AIFab({ onClick }: AIFabProps) {
+export default function AssistantFab({ onClick, isVoiceSupported, isVoiceListening, onVoiceClick }: AssistantFabProps) {
   const isAiBusy = useAtomValue(atom_isAiBusy);
 
   const loadPos = (): { x: number; y: number } | null => {
@@ -121,6 +127,31 @@ export default function AIFab({ onClick }: AIFabProps) {
 
   return (
     <Portal>
+      {isVoiceSupported && (
+        <button
+          type="button"
+          aria-label={isVoiceListening ? "Stop voice input" : "Start voice input"}
+          aria-pressed={isVoiceListening}
+          onClick={(e) => { e.preventDefault(); e.stopPropagation(); onVoiceClick?.(); }}
+          className={`fixed z-[90] flex items-center justify-center rounded-full shadow-lg transition-shadow select-none
+            border border-sage/30 bg-paper-light dark:bg-paper-dark-surface text-sage
+            hover:shadow-xl active:scale-95
+            ${isVoiceListening ? "animate-pulse" : ""}
+          `}
+          style={{
+            left: pos.x + (FAB_SIZE - MIC_SIZE) / 2,
+            top: pos.y - MIC_SIZE - GROUP_GAP,
+            width: MIC_SIZE,
+            height: MIC_SIZE,
+          }}
+        >
+          {isVoiceListening ? <HiMicrophone size={18} /> : <HiOutlineMicrophone size={18} />}
+          {isVoiceListening && (
+            <span className="absolute inset-0 rounded-full border-2 border-sage/50 animate-ping" />
+          )}
+        </button>
+      )}
+
       <button
         type="button"
         aria-label="Open AI Chat"

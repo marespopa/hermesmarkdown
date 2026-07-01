@@ -46,7 +46,8 @@
       "node",
       "vitest/globals",
       "@testing-library/jest-dom",
-      "@types/wicg-file-system-access"
+      "@types/wicg-file-system-access",
+      "dom-speech-recognition"
     ]
   },
   "include": [

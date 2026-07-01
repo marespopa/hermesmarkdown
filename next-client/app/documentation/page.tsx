@@ -524,6 +524,71 @@ const GROUPS: Group[] = [
         ),
       },
       {
+        id: "voice-input",
+        title: "Voice input",
+        lead: "Dictate straight into a note — the mic understands a small grammar of spoken commands for lists, headings, and formatting, not just plain sentences.",
+        keywords: "voice mic microphone dictation speech speech-to-text talk grammar commands",
+        body: (
+          <>
+            <p>
+              Click the mic icon (in the AI Builder FAB group on desktop, or the bottom nav on mobile) to
+              start listening. Speech is transcribed as you talk — a dimmed preview of the current phrase
+              appears inline and is replaced by the final result once you pause.
+            </p>
+            <Callout type="warning">
+              Voice input uses the browser's built-in Web Speech API, which only Chromium-based browsers
+              implement — see{" "}
+              <a href="#installation" className="text-sage font-semibold hover:underline">Installation</a>.
+              The mic button is hidden entirely on unsupported browsers.
+            </Callout>
+            <p>
+              Most speech is inserted as plain text, but starting a phrase with one of the keywords below
+              is parsed as a command instead:
+            </p>
+            <KV
+              rows={[
+                { label: '"heading two Project Notes"', value: "## Project Notes" },
+                { label: '"bullet buy milk"', value: "- buy milk" },
+                { label: '"numbered item first step"', value: "1. first step" },
+                { label: '"indent bullet …" / "indent numbered item …"', value: "Nested one level deeper" },
+                { label: '"task incomplete / complete …"', value: "- [ ] … / - [x] …" },
+                { label: '"quote to be or not to be"', value: "> to be or not to be" },
+                { label: '"bold …" / "italic …" / "strikethrough …"', value: "**…** / *…* / ~~…~~" },
+                { label: '"inline code const x"', value: "`const x`" },
+                { label: '"code block python" … "end code block"', value: "Fenced code, dictated literally until closed" },
+                { label: '"wiki link to dashboard" / "link"', value: "[[dashboard]] / opens the link dialog" },
+                { label: '"horizontal rule" / "divider"', value: "---" },
+              ]}
+            />
+            <p>
+              A few words control layout and punctuation instead of inserting Markdown syntax directly:
+            </p>
+            <KV
+              rows={[
+                { label: '"new line" / "new paragraph"', value: "Line break / blank line" },
+                { label: '"period" / "comma" / "question mark" / "exclamation point"', value: "Punctuation" },
+                { label: '"colon" / "semicolon"', value: "Punctuation" },
+                { label: '"outdent" / "unindent"', value: "Back out one list level" },
+                { label: '"two levels deep"', value: "Jump list indentation to a specific level" },
+                { label: '"done with list" / "end list"', value: "Reset indentation to zero" },
+                { label: '"scratch that" / "delete last" / "undo that"', value: "Remove the previous dictated phrase" },
+              ]}
+            />
+            <Callout type="tip">
+              Commands nest — <code>&quot;bullet bold important&quot;</code> produces{" "}
+              <code>- **important**</code>, and the same applies inside headings and tasks. Anything that
+              doesn&apos;t match a command is inserted as plain text, so ordinary dictation always works.
+            </Callout>
+            <p>
+              Listening stops automatically when the pane loses focus, the tab is backgrounded, or the mic
+              button is clicked again. If the browser denies microphone access, loses its network
+              connection mid-session, or can&apos;t find a microphone, a toast explains why and listening
+              stops rather than retrying silently.
+            </p>
+          </>
+        ),
+      },
+      {
         id: "command-palette",
         title: "Command palette",
         lead: "A fuzzy-searchable list of every app-level action — open it instead of hunting for a menu.",
@@ -1094,7 +1159,7 @@ export default function Documentation() {
         : "text-neutral-500 dark:text-neutral-400 hover:text-neutral-800 dark:hover:text-neutral-200"
     }`;
 
-  const NavContent = () => (
+  const navContent = (
     <nav className="space-y-6 w-full" aria-label="Table of contents">
       <div className="relative">
         <HiOutlineSearch
@@ -1183,7 +1248,7 @@ export default function Documentation() {
               <HiOutlineX size={20} />
             </button>
             <div className="mt-10">
-              <NavContent />
+              {navContent}
             </div>
           </div>
         </div>
@@ -1192,7 +1257,7 @@ export default function Documentation() {
       <div className="container pt-20 lg:pt-32 pb-20 lg:pb-32 flex flex-col lg:flex-row gap-12 lg:gap-16 items-start">
 
         <aside className="hidden lg:flex w-52 xl:w-56 shrink-0 sticky top-24 self-start max-h-[calc(100vh-7rem)] overflow-y-auto p-1.5">
-          <NavContent />
+          {navContent}
         </aside>
 
         <div className="flex-1 min-w-0 w-full space-y-20 lg:space-y-24">

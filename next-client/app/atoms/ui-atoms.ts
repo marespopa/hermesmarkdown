@@ -184,6 +184,15 @@ export const atom_isFileLoading = atom<boolean>(false);
 // scoped to the editor's textarea/value.
 export const atom_aiBuilderRequest = atom<number>(0);
 
+// Bumped to toggle voice dictation from outside the editor (the FAB group
+// next to the AI chat button), since the actual SpeechRecognition session
+// lives inside useVoiceInput, scoped to the active pane's textarea.
+export const atom_voiceInputRequest = atom<number>(0);
+// Mirrors the active pane's voice-input hook state so a single shared button
+// can reflect listening/support status without owning the recognition itself.
+export const atom_isVoiceInputListening = atom<boolean>(false);
+export const atom_isVoiceInputSupported = atom<boolean>(false);
+
 // Most-recently-used command ids for the command palette's empty-query state
 // ("feels intelligent" with zero visible "recent" UI). Capped at 8 on write.
 export const atom_recentCommandIds = atomWithStorage<string[]>("recentCommandIds", []);

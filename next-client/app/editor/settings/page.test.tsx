@@ -71,9 +71,10 @@ describe("SettingsPage", () => {
     render(<SettingsPage />);
     // Typography is the default-active section — no nav click needed.
     expect(screen.getByText("Text Size")).toBeInTheDocument();
-    expect(screen.getByText("Typeface")).toBeInTheDocument();
     expect(screen.getByText("Line Height")).toBeInTheDocument();
     expect(screen.getByText("Letter Spacing")).toBeInTheDocument();
+    // Font family choices render as individual rows (no single "Typeface" label).
+    expect(screen.getByText("System Mono")).toBeInTheDocument();
   });
 
   it("calls setter when line height option is clicked", () => {
