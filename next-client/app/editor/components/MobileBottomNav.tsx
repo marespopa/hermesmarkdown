@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { HiOutlineDocument, HiOutlineSearch, HiOutlinePlus, HiOutlineMenu } from "react-icons/hi";
+import { HiOutlineDocument, HiOutlineSearch, HiOutlinePlus, HiOutlineMenu, HiOutlineMicrophone, HiMicrophone } from "react-icons/hi";
 import { useCommandPalette } from "@/app/components/CommandPalette/CommandPaletteContext";
 
 // Detects the on-screen keyboard via visualViewport height shrinking
@@ -28,10 +28,16 @@ export default function MobileBottomNav({
   onFiles,
   onSearch,
   onNewFile,
+  isVoiceSupported,
+  isVoiceListening,
+  onVoiceClick,
 }: {
   onFiles: () => void;
   onSearch: () => void;
   onNewFile: () => void;
+  isVoiceSupported?: boolean;
+  isVoiceListening?: boolean;
+  onVoiceClick?: () => void;
 }) {
   const isKeyboardOpen = useIsKeyboardOpen();
   const { open: openCommandPalette } = useCommandPalette();
@@ -42,6 +48,14 @@ export default function MobileBottomNav({
     { icon: <HiOutlineDocument size={22} />, label: "Files", onClick: onFiles },
     { icon: <HiOutlineSearch size={22} />, label: "Search", onClick: onSearch },
     { icon: <HiOutlinePlus size={22} />, label: "New File", onClick: onNewFile },
+    ...(isVoiceSupported
+      ? [{
+          icon: isVoiceListening ? <HiMicrophone size={22} /> : <HiOutlineMicrophone size={22} />,
+          label: isVoiceListening ? "Stop voice input" : "Start voice input",
+          onClick: () => onVoiceClick?.(),
+          active: isVoiceListening,
+        }]
+      : []),
     { icon: <HiOutlineMenu size={22} />, label: "Menu", onClick: openCommandPalette },
   ];
 
@@ -53,7 +67,10 @@ export default function MobileBottomNav({
           type="button"
           onClick={item.onClick}
           aria-label={item.label}
-          className="flex-1 h-full flex items-center justify-center text-fg-muted active:text-accent"
+          aria-pressed={"active" in item ? item.active : undefined}
+          className={`flex-1 h-full flex items-center justify-center active:text-accent ${
+            "active" in item && item.active ? "text-accent animate-pulse" : "text-fg-muted"
+          }`}
         >
           {item.icon}
         </button>

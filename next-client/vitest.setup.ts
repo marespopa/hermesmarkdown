@@ -26,3 +26,16 @@ Object.defineProperty(window, "localStorage", {
 
 // Mock scrollIntoView
 window.HTMLElement.prototype.scrollIntoView = vi.fn();
+
+// jsdom doesn't implement matchMedia — used by responsive hooks like
+// use-is-mobile/use-mobile-chrome.
+window.matchMedia = window.matchMedia || vi.fn().mockImplementation((query: string) => ({
+  matches: false,
+  media: query,
+  onchange: null,
+  addListener: vi.fn(),
+  removeListener: vi.fn(),
+  addEventListener: vi.fn(),
+  removeEventListener: vi.fn(),
+  dispatchEvent: vi.fn(),
+}));

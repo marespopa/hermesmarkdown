@@ -3,12 +3,13 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import PaneLeaf from "./PaneLeaf";
 import { Provider } from "jotai";
 import { useHydrateAtoms } from "jotai/utils";
-import { 
-  atom_activePaneId, 
-  atom_openFiles, 
-  atom_activeFilePath, 
+import {
+  atom_activePaneId,
+  atom_openFiles,
+  atom_activeFilePath,
   atom_saveStatus,
 } from "@/app/atoms/atoms";
+import { CommandPaletteProvider } from "@/app/components/CommandPalette/CommandPaletteContext";
 import React from "react";
 
 // Mock hooks
@@ -28,7 +29,9 @@ const HydrateAtoms = ({ initialValues, children }: { initialValues: any, childre
 
 const TestProvider = ({ initialValues, children }: { initialValues: any, children: React.ReactNode }) => (
   <Provider>
-    <HydrateAtoms initialValues={initialValues}>{children}</HydrateAtoms>
+    <HydrateAtoms initialValues={initialValues}>
+      <CommandPaletteProvider>{children}</CommandPaletteProvider>
+    </HydrateAtoms>
   </Provider>
 );
 

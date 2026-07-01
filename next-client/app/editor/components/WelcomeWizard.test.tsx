@@ -56,14 +56,14 @@ describe("WelcomeWizard", () => {
     expect(screen.getByText("Welcome to HermesMarkdown")).toBeInTheDocument();
   });
 
-  it("advances to connection step when clicking Start Setup", () => {
+  it("advances to connection step when clicking Set up vault", () => {
     render(
       <TestProvider initialValues={defaultInitialValues}>
         <WelcomeWizard />
       </TestProvider>
     );
 
-    fireEvent.click(screen.getByText("Get Started"));
+    fireEvent.click(screen.getByText("Set up vault"));
     expect(screen.getByText("Connect Your Vault")).toBeInTheDocument();
   });
 
@@ -79,9 +79,9 @@ describe("WelcomeWizard", () => {
       </TestProvider>
     );
 
-    // Should now be on Step 2 (Preferences) due to the useEffect
+    // Should now be on Step 2 (Text Size, the first preferences step) due to the useEffect
     await waitFor(() => {
-      expect(screen.getByText("Quick Preferences")).toBeInTheDocument();
+      expect(screen.getByText("Text Size")).toBeInTheDocument();
     });
   });
 
@@ -97,9 +97,14 @@ describe("WelcomeWizard", () => {
       </TestProvider>
     );
 
-    expect(screen.getByText("Quick Preferences")).toBeInTheDocument();
+    expect(screen.getByText("Text Size")).toBeInTheDocument();
 
-    fireEvent.click(screen.getByText("Continue"));
+    // Steps 2-6 (Text Size, Spacing, Typeface, Autosave, Frontmatter View) each
+    // advance one step at a time via their own "Continue" button before
+    // reaching the final showcase step.
+    for (let i = 0; i < 5; i++) {
+      fireEvent.click(screen.getByText("Continue"));
+    }
 
     await waitFor(() => {
       expect(screen.getByText("You're ready to write.")).toBeInTheDocument();
