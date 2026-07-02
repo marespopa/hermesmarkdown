@@ -710,9 +710,12 @@ export function getStarterPack(id: StarterPackId): StarterPack {
 
 export async function installStarterPack(
   packId: StarterPackId,
-  vaultHandle: FileSystemDirectoryHandle,
+  vaultHandle: FileSystemDirectoryHandle | null,
+  isDriveVault: boolean = false,
+  driveVaultId: string | null = null,
+  drivePathIndex: any | null = null,
 ): Promise<void> {
   const pack = STARTER_PACKS.find((p) => p.id === packId);
   if (!pack || pack.files.length === 0) return;
-  await installVaultFiles(pack.files, vaultHandle, false, null, null);
+  await installVaultFiles(pack.files, vaultHandle, isDriveVault, driveVaultId, drivePathIndex);
 }

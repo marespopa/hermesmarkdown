@@ -27,7 +27,7 @@ import type { StarterPackId } from "@/app/atoms/ui-atoms";
 import { STARTER_PACKS, installStarterPack } from "@/app/services/starter-packs";
 import { atom_vaultSchema } from "@/app/atoms/schema-atoms";
 import { atom_vaultHandle } from "@/app/atoms/atoms";
-import { atom_driveVaultId, atom_driveVaultName, atom_isDriveVault } from "@/app/atoms/drive-atoms";
+import { atom_driveVaultId, atom_driveVaultName, atom_isDriveVault, atom_drivePathIndex } from "@/app/atoms/drive-atoms";
 import { useDriveAuth } from "@/app/hooks/drive/use-drive-auth";
 import { testAIConnection, fetchGeminiModels } from "@/app/services/ai";
 import {
@@ -83,6 +83,8 @@ const SettingsPage = () => {
   const [, setVaultSetupWizardOpen] = useAtom(atom_vaultSetupWizardOpen);
   const [, setDriveVaultId] = useAtom(atom_driveVaultId);
   const [driveVaultName] = useAtom(atom_driveVaultName);
+  const driveVaultId = useAtomValue(atom_driveVaultId);
+  const [drivePathIndex, setDrivePathIndex] = useAtom(atom_drivePathIndex);
   const { authState: driveAuthState, signIn: driveSignIn, signOut: driveSignOut } = useDriveAuth();
   const [isDriveConnecting, setIsDriveConnecting] = useState(false);
 
@@ -91,13 +93,19 @@ const SettingsPage = () => {
   const [isApplyingPack, setIsApplyingPack] = useState(false);
 
   const handleApplyStarterPack = async () => {
-    if (!vaultHandle) return;
+    if (!vaultHandle && !(isDriveVault && driveVaultId)) return;
     setIsApplyingPack(true);
     try {
-      await installStarterPack(selectedPackId, vaultHandle);
+      await installStarterPack(selectedPackId, vaultHandle, isDriveVault, driveVaultId, drivePathIndex);
+      if (isDriveVault && driveVaultId && drivePathIndex) {
+        drivePathIndex.saveToCache(driveVaultId);
+        setDrivePathIndex(drivePathIndex);
+      }
       showSuccessToast("Starter pack applied successfully.");
-    } catch {
-      showErrorToast("Failed to apply starter pack.");
+    } catch (err) {
+      console.error("Failed to apply starter pack:", err);
+      const message = err instanceof Error ? err.message : "Failed to apply starter pack.";
+      showErrorToast(message);
     } finally {
       setIsApplyingPack(false);
     }
@@ -555,7 +563,7 @@ const SettingsPage = () => {
                   <Button
                     variant="secondary"
                     onClick={handleApplyStarterPack}
-                    disabled={!vaultHandle || isApplyingPack}
+                    disabled={(!vaultHandle && !(isDriveVault && driveVaultId)) || isApplyingPack}
                     className="h-8 px-4 text-ui-footnote font-medium shrink-0"
                   >
                     {isApplyingPack ? "Applying…" : "Apply"}

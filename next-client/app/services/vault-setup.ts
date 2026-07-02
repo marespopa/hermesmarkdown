@@ -309,6 +309,15 @@ export async function installVaultFiles(
       }
     }
   } else if (vaultHandle) {
+    if (typeof (vaultHandle as any).queryPermission === "function") {
+      const permState = await (vaultHandle as any).queryPermission({ mode: "readwrite" });
+      if (permState !== "granted") {
+        const newState = await (vaultHandle as any).requestPermission({ mode: "readwrite" });
+        if (newState !== "granted") {
+          throw new Error("Write permission denied. Re-open the vault to restore access.");
+        }
+      }
+    }
     for (const file of filesToInstall) {
       const parts = file.path.split("/");
       let current: any = vaultHandle;
