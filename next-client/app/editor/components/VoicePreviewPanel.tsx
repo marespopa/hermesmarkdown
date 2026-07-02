@@ -5,6 +5,7 @@ import { HiX } from "react-icons/hi";
 import Portal from "../../components/Portal";
 import Button from "../../components/Button";
 import useIsMobileChrome from "@/app/hooks/use-mobile-chrome";
+import { SHORTCODES } from "./constants";
 
 const STORAGE_KEY = "hermes_voice_panel_pos";
 const EDGE_PAD = 16;
@@ -167,6 +168,28 @@ export default function VoicePreviewPanel({
     textareaRef.current?.focus();
   };
 
+  // Same inline "..d" / "{date}" / etc. expansion the main editor supports —
+  // this box is a plain textarea (not react-simple-code-editor), so it needs
+  // its own copy of the SHORTCODES check instead of inheriting it for free.
+  const handlePreviewChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const textarea = e.target;
+    const val = textarea.value;
+    const start = textarea.selectionStart;
+
+    for (const [code, getValue] of Object.entries(SHORTCODES)) {
+      const sliceStart = Math.max(0, start - code.length);
+      if (val.substring(sliceStart, start) === code) {
+        const replacement = getValue();
+        textarea.setSelectionRange(sliceStart, start);
+        document.execCommand("insertText", false, replacement);
+        onPreviewTextChange(textarea.value);
+        return;
+      }
+    }
+
+    onPreviewTextChange(val);
+  };
+
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     // This panel renders through a Portal, so React's tree-based (not
     // DOM-based) event bubbling would otherwise carry every keystroke here up
@@ -222,7 +245,7 @@ export default function VoicePreviewPanel({
         <textarea
           ref={textareaRef}
           value={previewText}
-          onChange={(e) => onPreviewTextChange(e.target.value)}
+          onChange={handlePreviewChange}
           onKeyDown={handleKeyDown}
           placeholder="Dictated text will appear here for review…"
           rows={3}

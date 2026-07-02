@@ -5,8 +5,7 @@ import { textareaClass, fieldHelperFadeClass, FIELD_HELP } from "./sharedStyles"
 interface ScopeFieldProps {
   value: string;
   onChange: (value: string) => void;
-  error?: boolean;
-  errorMessage?: string;
+  recommended?: boolean;
   autoFocus?: boolean;
   headerActions?: React.ReactNode;
 }
@@ -16,13 +15,12 @@ const WORD_LIMIT = 30;
 export default function ScopeField({
   value,
   onChange,
-  error,
-  errorMessage,
+  recommended,
   autoFocus,
   headerActions,
 }: ScopeFieldProps) {
   const wordCount = value.trim() ? value.trim().split(/\s+/).filter(Boolean).length : 0;
-  const cls = textareaClass + (error ? " !border-red-400 dark:!border-red-500" : "");
+  const cls = textareaClass + (recommended ? " !border-amber-400 dark:!border-amber-500" : "");
 
   return (
     <div className="flex flex-col gap-1.5 relative">
@@ -43,9 +41,9 @@ export default function ScopeField({
         className={cls}
       />
       <div className="flex items-center justify-between px-0.5">
-        {error ? (
-          <span className="text-ui-caption text-red-500 dark:text-red-400">
-            {errorMessage ?? "Required"}
+        {recommended ? (
+          <span className="text-ui-caption text-amber-500 dark:text-amber-400">
+            Recommended for active files
           </span>
         ) : (
           <span />

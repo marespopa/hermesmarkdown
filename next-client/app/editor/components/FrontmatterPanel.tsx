@@ -21,8 +21,6 @@ import {
   GenericField,
 } from "./frontmatter";
 
-const REQUIRED_KEYS = ["title", "scope", "read_when"];
-
 interface FrontmatterPanelProps {
   filePath: string;
   content: string;
@@ -68,9 +66,9 @@ export default function FrontmatterPanel({
   const rawFrontmatter = match ? match[0] : null;
   const fields = useMemo(() => parseFmFields(content), [content]);
 
-  const missingRequired = REQUIRED_KEYS.some((k) => !fields[k]?.trim());
-
-  const [expanded, setExpanded] = useState(missingRequired);
+  // Fields are recommended, never enforced — the panel always opens collapsed
+  // so an incomplete frontmatter block never interrupts the editing flow.
+  const [expanded, setExpanded] = useState(false);
   const [mode, setMode] = useState<"fields" | "raw">(defaultMode);
   const [rawDraft, setRawDraft] = useState(rawFrontmatter ?? "");
   const [rawError, setRawError] = useState<string | null>(null);
@@ -81,12 +79,11 @@ export default function FrontmatterPanel({
   const prevFilePathRef = useRef(filePath);
   const keyboardInset = useKeyboardInset();
 
-  // Reset open/raw state when switching files — each file's required-field
-  // completeness decides the default state independently.
+  // Reset open/raw state when switching files — always starts collapsed.
   useEffect(() => {
     if (prevFilePathRef.current !== filePath) {
       prevFilePathRef.current = filePath;
-      setExpanded(missingRequired);
+      setExpanded(false);
       setMode(defaultMode);
       setSheetOpen(false);
     }
@@ -290,8 +287,7 @@ function renderSchemaField(
       <ScopeField
         value={value}
         onChange={(v) => set("scope", v)}
-        error={fields.status === "active" && !value.trim()}
-        errorMessage="Required for active files"
+        recommended={fields.status === "active" && !value.trim()}
       />
     );
   }

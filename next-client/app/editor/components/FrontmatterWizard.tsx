@@ -273,14 +273,13 @@ Return the 3-5 most semantically related note titles as a JSON array.`,
     }
     if (field.key === "scope") {
       const isActiveFile = edits.status === "active";
-      const scopeError = isActiveFile && !edits.scope?.trim();
+      const scopeRecommended = isActiveFile && !edits.scope?.trim();
       return (
         <ScopeField
           key={field.key}
           value={edits.scope ?? ""}
           onChange={(v) => set("scope", v)}
-          error={scopeError}
-          errorMessage="Required for active files"
+          recommended={scopeRecommended}
           autoFocus={autoFocus}
           headerActions={
             isAiConfigured && (
