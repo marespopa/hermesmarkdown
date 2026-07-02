@@ -4,6 +4,7 @@ import React, { useEffect } from "react";
 import { IoClose } from "react-icons/io5";
 import Portal from "../Portal";
 import Button from "../Button";
+import { useBackButtonClose } from "@/app/hooks/use-back-button-close";
 
 type Props = {
   isOpened: boolean;
@@ -29,6 +30,8 @@ const DialogModal = ({
   hideCloseButton = false,
   mobileSheet = false,
 }: Props) => {
+  useBackButtonClose(isOpened, onClose);
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {

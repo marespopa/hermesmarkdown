@@ -1,8 +1,10 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { HiOutlineDocument, HiOutlineSearch, HiOutlinePlus, HiOutlineMenu, HiOutlineMicrophone, HiMicrophone } from "react-icons/hi";
+import { HiOutlineDocument, HiOutlineSearch, HiOutlinePlus, HiOutlineChatAlt2, HiOutlineMicrophone, HiMicrophone } from "react-icons/hi";
 import { useCommandPalette } from "@/app/components/CommandPalette/CommandPaletteContext";
+import { useAtomValue } from "jotai";
+import { atom_isAiBusy } from "@/app/atoms/atoms";
 
 // Detects the on-screen keyboard via visualViewport height shrinking
 // relative to the layout viewport — there's no direct "keyboard open" API.
@@ -26,27 +28,29 @@ function useIsKeyboardOpen() {
 
 export default function MobileBottomNav({
   onFiles,
-  onSearch,
   onNewFile,
+  onChat,
+  isChatAvailable,
   isVoiceSupported,
   isVoiceListening,
   onVoiceClick,
 }: {
   onFiles: () => void;
-  onSearch: () => void;
   onNewFile: () => void;
+  onChat?: () => void;
+  isChatAvailable?: boolean;
   isVoiceSupported?: boolean;
   isVoiceListening?: boolean;
   onVoiceClick?: () => void;
 }) {
   const isKeyboardOpen = useIsKeyboardOpen();
   const { open: openCommandPalette } = useCommandPalette();
+  const isAiBusy = useAtomValue(atom_isAiBusy);
 
   if (isKeyboardOpen) return null;
 
   const items = [
     { icon: <HiOutlineDocument size={22} />, label: "Files", onClick: onFiles },
-    { icon: <HiOutlineSearch size={22} />, label: "Search", onClick: onSearch },
     { icon: <HiOutlinePlus size={22} />, label: "New File", onClick: onNewFile },
     ...(isVoiceSupported
       ? [{
@@ -56,7 +60,15 @@ export default function MobileBottomNav({
           active: isVoiceListening,
         }]
       : []),
-    { icon: <HiOutlineMenu size={22} />, label: "Menu", onClick: openCommandPalette },
+    ...(isChatAvailable
+      ? [{
+          icon: <HiOutlineChatAlt2 size={22} />,
+          label: "Open AI Chat",
+          onClick: () => onChat?.(),
+          active: isAiBusy,
+        }]
+      : []),
+    { icon: <HiOutlineSearch size={22} />, label: "Search", onClick: openCommandPalette },
   ];
 
   return (

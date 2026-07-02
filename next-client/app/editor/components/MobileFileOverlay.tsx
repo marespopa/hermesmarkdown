@@ -10,6 +10,7 @@ import SmartFolders from "./SmartFolders";
 import VaultSidebarFiles from "./VaultSidebarFiles";
 import UnifiedSearchInput from "./UnifiedSearchInput";
 import { HiOutlineX } from "react-icons/hi";
+import { useBackButtonClose } from "@/app/hooks/use-back-button-close";
 
 export default function MobileFileOverlay({
   isOpen,
@@ -24,6 +25,8 @@ export default function MobileFileOverlay({
   const { searchQuery, setSearchQuery, processedFiles, totalResultsCount, hasMoreResults, setShowAllResults, tags } =
     useSidebarSearch({ selectedTags, panel: "search" });
   const isSearching = searchQuery.trim().length > 0 || selectedTags.length > 0;
+
+  useBackButtonClose(isOpen, onClose);
 
   if (!isOpen) return null;
 

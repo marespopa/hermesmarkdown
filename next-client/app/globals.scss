@@ -304,6 +304,36 @@ ul li::marker {
   animation: ai-pulse 1.6s ease-in-out infinite;
 }
 
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -24px) scale(0.92);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0) scale(1);
+  }
+}
+
+@keyframes toast-out {
+  from {
+    opacity: 1;
+    transform: translate(-50%, 0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translate(-50%, -16px) scale(0.94);
+  }
+}
+
+.animate-toast-in {
+  animation: toast-in 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+.animate-toast-out {
+  animation: toast-out 0.2s ease-in forwards;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .animate-hero-fade-in,
   .animate-fade-in,
@@ -312,7 +342,9 @@ ul li::marker {
   .animate-row-in,
   .animate-grow-x,
   .animate-pill-fade-in,
-  .animate-ai-pulse {
+  .animate-ai-pulse,
+  .animate-toast-in,
+  .animate-toast-out {
     animation-duration: 0.001ms !important;
     animation-iteration-count: 1 !important;
   }

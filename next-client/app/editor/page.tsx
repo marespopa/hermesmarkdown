@@ -34,7 +34,6 @@ import { CommandPaletteProvider } from "@/app/components/CommandPalette/CommandP
 import CommandPalette from "@/app/components/CommandPalette/CommandPalette";
 import MobileBottomNav from "./components/MobileBottomNav";
 import MobileFileOverlay from "./components/MobileFileOverlay";
-import MobileSearchOverlay from "./components/MobileSearchOverlay";
 import MobileFileIndicator from "./components/MobileFileIndicator";
 import MobileSelectionToolbar from "./components/MobileSelectionToolbar";
 import ErrorBoundary from "@/app/components/ErrorBoundary";
@@ -95,7 +94,6 @@ export default function LiteEditor() {
   const activeTextareaElement = useAtomValue(atom_activeTextareaElement);
   const isMobileChrome = useIsMobileChrome();
   const [isMobileFileOverlayOpen, setIsMobileFileOverlayOpen] = useState(false);
-  const [isMobileSearchOverlayOpen, setIsMobileSearchOverlayOpen] = useState(false);
 
   const {
     vaultHandle,
@@ -454,7 +452,7 @@ export default function LiteEditor() {
         {/* Rail + panel — rail always visible, reflowing the editor as a
             normal flex sibling; the panel next to it toggles the sidebar
             between expanded and collapsed. Mobile uses MobileBottomNav and
-            MobileFileOverlay/MobileSearchOverlay instead. */}
+            MobileFileOverlay instead. */}
         {!isMobileChrome && (
           <div className="flex shrink-0 h-full">
             <IconRail
@@ -515,8 +513,9 @@ export default function LiteEditor() {
             {isMobileChrome && (
               <MobileBottomNav
                 onFiles={() => setIsMobileFileOverlayOpen(true)}
-                onSearch={() => setIsMobileSearchOverlayOpen(true)}
                 onNewFile={handleNewFile}
+                onChat={() => setAiBuilderRequest((v) => v + 1)}
+                isChatAvailable={isAiConfigured}
                 isVoiceSupported={isVoiceSupported}
                 isVoiceListening={isVoiceListening}
                 onVoiceClick={() => setVoiceInputRequest((v) => v + 1)}
@@ -526,7 +525,7 @@ export default function LiteEditor() {
         </div>
         </div>{/* end MAIN LAYOUT */}
 
-        {isAiConfigured && (
+        {isAiConfigured && !isMobileChrome && (
           <AssistantFab onClick={() => setAiBuilderRequest((v) => v + 1)} />
         )}
 
@@ -549,10 +548,6 @@ export default function LiteEditor() {
             <MobileFileOverlay
               isOpen={isMobileFileOverlayOpen}
               onClose={() => setIsMobileFileOverlayOpen(false)}
-            />
-            <MobileSearchOverlay
-              isOpen={isMobileSearchOverlayOpen}
-              onClose={() => setIsMobileSearchOverlayOpen(false)}
             />
           </>
         )}

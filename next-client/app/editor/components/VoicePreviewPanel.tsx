@@ -4,6 +4,7 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import { HiX } from "react-icons/hi";
 import Portal from "../../components/Portal";
 import Button from "../../components/Button";
+import useIsMobileChrome from "@/app/hooks/use-mobile-chrome";
 
 const STORAGE_KEY = "hermes_voice_panel_pos";
 const EDGE_PAD = 16;
@@ -41,10 +42,32 @@ export default function VoicePreviewPanel({
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const panelRef = useRef<HTMLDivElement | null>(null);
   const visible = isListening || previewText.length > 0 || !!interimText;
+  const isMobileChrome = useIsMobileChrome();
 
   useEffect(() => {
-    if (visible) textareaRef.current?.focus();
-  }, [visible]);
+    // On mobile, focusing pops the on-screen keyboard — but dictation needs
+    // no caret, and the keyboard has no way to fit alongside this panel on a
+    // small screen. Only autofocus on desktop; mobile users can still tap in
+    // to edit manually, at which point the keyboard-avoidance below kicks in.
+    if (visible && !isMobileChrome) textareaRef.current?.focus();
+  }, [visible, isMobileChrome]);
+
+  // Tracks how much the on-screen keyboard has eaten into the viewport, so
+  // the panel can lift itself clear instead of being rendered underneath it
+  // (a `fixed bottom-*` element doesn't move on its own when the keyboard
+  // opens on most mobile browsers).
+  const [keyboardInset, setKeyboardInset] = useState(0);
+  useEffect(() => {
+    const vv = window.visualViewport;
+    if (!vv) return;
+    const handleResize = () => {
+      const shrink = window.innerHeight - vv.height;
+      setKeyboardInset(shrink > 150 ? shrink : 0);
+    };
+    handleResize();
+    vv.addEventListener("resize", handleResize);
+    return () => vv.removeEventListener("resize", handleResize);
+  }, []);
 
   // Undragged, the panel sits centered via CSS (see `pos === null` below).
   // Once dragged, its position is pinned in pixels and remembered across
@@ -63,11 +86,14 @@ export default function VoicePreviewPanel({
   const lastDragPosRef = useRef<{ x: number; y: number } | null>(null);
 
   useEffect(() => {
+    // On mobile there's no drag affordance (touch just taps), so a pos
+    // saved from a desktop session must never carry over — always centered.
+    if (isMobileChrome) return;
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
       if (raw) setPos(JSON.parse(raw));
     } catch {}
-  }, []);
+  }, [isMobileChrome]);
 
   useEffect(() => {
     const clamp = () => {
@@ -85,7 +111,7 @@ export default function VoicePreviewPanel({
   }, []);
 
   const onHandleMouseDown = useCallback((e: React.MouseEvent) => {
-    if (e.button !== 0) return;
+    if (e.button !== 0 || isMobileChrome) return;
     const rect = panelRef.current?.getBoundingClientRect();
     if (!rect) return;
     dragState.current = {
@@ -126,9 +152,11 @@ export default function VoicePreviewPanel({
 
     window.addEventListener("mousemove", onMove);
     window.addEventListener("mouseup", onUp);
-  }, []);
+  }, [isMobileChrome]);
 
   if (!visible) return null;
+
+  const effectivePos = isMobileChrome ? null : pos;
 
   // The panel stays open after a commit (voice input keeps listening), so
   // focus needs to be put back explicitly — the "stays visible" effect above
@@ -163,10 +191,14 @@ export default function VoicePreviewPanel({
         className={`fixed z-[95] w-[min(90vw,32rem)]
           flex flex-col gap-2 rounded-2xl border border-sage/30 bg-paper-light dark:bg-paper-dark-surface
           shadow-lg p-3
-          ${pos ? "" : "bottom-20 left-1/2 -translate-x-1/2"}
+          ${effectivePos ? "" : "left-1/2 -translate-x-1/2"}
           ${isDragging ? "shadow-xl" : ""}
         `}
-        style={pos ? { left: pos.x, top: pos.y } : undefined}
+        style={
+          effectivePos
+            ? { left: effectivePos.x, top: effectivePos.y }
+            : { bottom: keyboardInset > 0 ? keyboardInset + EDGE_PAD : 80 }
+        }
       >
         <div
           onMouseDown={onHandleMouseDown}

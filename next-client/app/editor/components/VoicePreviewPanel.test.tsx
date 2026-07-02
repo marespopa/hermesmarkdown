@@ -1,4 +1,4 @@
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen, fireEvent, act } from "@testing-library/react";
 import { describe, it, expect, vi } from "vitest";
 import "@testing-library/jest-dom";
 import VoicePreviewPanel from "./VoicePreviewPanel";
@@ -121,5 +121,63 @@ describe("VoicePreviewPanel", () => {
 
     fireEvent.keyDown(screen.getByPlaceholderText(PLACEHOLDER), { key: "b", ctrlKey: true });
     expect(outerHandler).not.toHaveBeenCalled();
+  });
+
+  // Regression: autofocusing on mobile pops the on-screen keyboard even
+  // during pure dictation (no typing needed), which then covers the panel.
+  it("does not autofocus the textarea on mobile", () => {
+    const originalMatchMedia = window.matchMedia;
+    window.matchMedia = vi.fn().mockImplementation((query: string) => ({
+      matches: true,
+      media: query,
+      onchange: null,
+      addListener: vi.fn(),
+      removeListener: vi.fn(),
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      dispatchEvent: vi.fn(),
+    }));
+
+    try {
+      renderPanel({ isListening: true, previewText: "" });
+      expect(screen.getByPlaceholderText(PLACEHOLDER)).not.toHaveFocus();
+    } finally {
+      window.matchMedia = originalMatchMedia;
+    }
+  });
+
+  // Regression: a `fixed bottom-*` panel doesn't move on its own when the
+  // on-screen keyboard opens, so it must track visualViewport shrinkage and
+  // lift itself clear instead of rendering underneath the keyboard.
+  it("lifts the panel above the on-screen keyboard via visualViewport", () => {
+    const listeners: Record<string, Array<() => void>> = {};
+    const vv = {
+      height: 800,
+      addEventListener: (type: string, cb: () => void) => {
+        (listeners[type] ??= []).push(cb);
+      },
+      removeEventListener: vi.fn(),
+    };
+    const originalVv = window.visualViewport;
+    const originalInnerHeight = window.innerHeight;
+    Object.defineProperty(window, "visualViewport", { value: vv, configurable: true });
+    Object.defineProperty(window, "innerHeight", { value: 800, configurable: true });
+
+    try {
+      renderPanel({ isListening: true, previewText: "" });
+      const panel = document.querySelector("[data-voice-preview-panel]") as HTMLElement;
+      expect(panel.style.bottom).toBe("80px");
+
+      // Keyboard opens: visualViewport shrinks by 300px.
+      act(() => {
+        vv.height = 500;
+        listeners["resize"]?.forEach((cb) => cb());
+      });
+
+      expect(panel.style.bottom).toBe("316px");
+    } finally {
+      Object.defineProperty(window, "visualViewport", { value: originalVv, configurable: true });
+      Object.defineProperty(window, "innerHeight", { value: originalInnerHeight, configurable: true });
+    }
   });
 });

@@ -7,6 +7,8 @@ import { atom_content } from "@/app/atoms/atoms";
 import LoadingOverlay from "@/app/components/LoadingOverlay/LoadingOverlay";
 import Button from "@/app/components/Button/Button.component";
 import dynamic from "next/dynamic";
+import Toast from "@/app/components/Toast";
+import { FiFileText } from "react-icons/fi";
 
 const MarkdownEditor = dynamic(
   () => import("@/app/editor/components/MarkdownEditor"),
@@ -739,28 +741,14 @@ export default function LandingPage() {
     <main className="selection:bg-sage/30 overflow-x-hidden font-sans">
       <LoadingOverlay isVisible={showLoading} text="Opening editor..." />
 
-      {/* PERSISTENT RESUME NOTIFICATION */}
-      {isMounted && hasContent && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-3rem)] max-w-md">
-          <div className="bg-white/80 dark:bg-neutral-900/80 backdrop-blur-xl border border-black/5 dark:border-white/10 rounded-2xl p-4 flex items-center justify-between gap-4 animate-hero-fade-in">
-            <div className="space-y-0.5 text-left">
-              <p className="text-ui-footnote font-bold uppercase tracking-wider text-sage dark:text-sage">
-                Welcome Back
-              </p>
-              <p className="text-xs opacity-60">
-                You have a draft waiting in your local vault.
-              </p>
-            </div>
-            <Button
-              variant="primary"
-              onClick={handleStart}
-              className="h-9 px-4 !text-ui-footnote"
-            >
-              Resume Session
-            </Button>
-          </div>
-        </div>
-      )}
+      <Toast
+        isVisible={isMounted && Boolean(hasContent)}
+        icon={<FiFileText size={16} />}
+        title="Welcome Back"
+        description="You have a draft waiting in your local vault."
+        actionLabel="Resume"
+        onAction={handleStart}
+      />
 
       {/* --- HERO SECTION --- */}
       <div className="relative pt-24 pb-20 md:pt-32 md:pb-32 px-6">

@@ -7,7 +7,8 @@ import { atom_fileMetadata } from "@/app/atoms/metadata";
 import { useFileSystem } from "@/app/hooks/use-file-system";
 import { useCommandPalette, type Command } from "./CommandPaletteContext";
 import useIsMobileChrome from "@/app/hooks/use-mobile-chrome";
-import { HiOutlineSearch } from "react-icons/hi";
+import { HiOutlineSearch, HiOutlineX } from "react-icons/hi";
+import { useBackButtonClose } from "@/app/hooks/use-back-button-close";
 
 const ROW_HEIGHT = 36;
 const MAX_VISIBLE_ROWS = 8;
@@ -90,6 +91,8 @@ export default function CommandPalette() {
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => setMounted(true), []);
+
+  useBackButtonClose(isOpen, close);
 
   useEffect(() => {
     if (isOpen) {
@@ -215,8 +218,8 @@ export default function CommandPalette() {
               : "fixed left-1/2 top-[35vh] -translate-x-1/2 w-[560px] max-w-[calc(100vw-2rem)] max-h-[calc(100vh-35vh-2rem)] flex flex-col bg-chrome border border-edge rounded-2xl overflow-hidden"
           }
         >
-          <div className="p-2 border-b border-b-edge">
-            <div className="flex items-center h-11 sm:h-9 px-3 gap-2 rounded-xl border border-edge bg-paper-light dark:bg-paper-dark focus-within:ring-2 focus-within:ring-sage/20 transition-all duration-150">
+          <div className="p-2 border-b border-b-edge flex items-center gap-2">
+            <div className="flex-1 flex items-center h-11 sm:h-9 px-3 gap-2 rounded-xl border border-edge bg-paper-light dark:bg-paper-dark focus-within:ring-2 focus-within:ring-sage/20 transition-all duration-150">
               <HiOutlineSearch size={15} className="shrink-0 text-fg-faint" />
               <input
                 ref={inputRef}
@@ -236,6 +239,16 @@ export default function CommandPalette() {
                 data-nordpass-ignore="true"
               />
             </div>
+            {isMobileChrome && (
+              <button
+                type="button"
+                onClick={close}
+                aria-label="Close"
+                className="shrink-0 w-11 h-11 flex items-center justify-center text-fg-muted"
+              >
+                <HiOutlineX size={20} />
+              </button>
+            )}
           </div>
           <div
             className="flex-1 min-h-0 overflow-y-auto"
