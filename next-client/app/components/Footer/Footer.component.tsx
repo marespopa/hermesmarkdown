@@ -18,7 +18,7 @@ export default function Footer() {
               <div className="space-y-2">
                 <span className="text-ui-title-2 font-bold tracking-tight">HermesMarkdown</span>
                 <p className="text-ui-subhead text-neutral-400 leading-relaxed">
-                  A premium, local-first workspace for focused writing and deep work. No cloud, no tracking, total privacy.
+                  A local-first workspace for focused writing and deep work. No cloud, no tracking, total privacy.
                 </p>
               </div>
               <div className="text-ui-footnote uppercase tracking-[0.2em] font-bold opacity-50">
