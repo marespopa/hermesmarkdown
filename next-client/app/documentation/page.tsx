@@ -260,7 +260,7 @@ const GROUPS: Group[] = [
                 { label: "Sidebar", value: "Hover edge / CTRL+SHIFT+E" },
                 { label: "Command Palette", value: "CTRL+SHIFT+P" },
                 { label: "Document Info", value: "CTRL+SHIFT+I" },
-                { label: "AI Builder", value: "CTRL+SHIFT+B" },
+                { label: "AI Chat", value: "CTRL+SHIFT+B" },
                 { label: "Voice input", value: "CTRL+SHIFT+V" },
                 { label: "Frontmatter panel", value: "✎ in document header" },
               ]}
@@ -291,7 +291,7 @@ const GROUPS: Group[] = [
                   { label: "Expand date picker", shortcut: "ALT+↓" },
                   { label: "Toggle sidebar", shortcut: "CTRL+SHIFT+E" },
                   { label: "Document info", shortcut: "CTRL+SHIFT+I" },
-                  { label: "AI Builder", shortcut: "CTRL+SHIFT+B" },
+                  { label: "AI Chat", shortcut: "CTRL+SHIFT+B" },
                   { label: "Voice input", shortcut: "CTRL+SHIFT+V" },
                   { label: "Dismiss / close", shortcut: "ESCAPE" },
                 ],
@@ -380,7 +380,7 @@ const GROUPS: Group[] = [
               rows={[
                 { label: "Advanced edit", value: "Open the dialog" },
                 { label: "Delete table", value: "× in toolbar" },
-                { label: "CSV export", value: "CSV in toolbar" },
+                { label: "Copy as CSV", value: "CSV in toolbar" },
               ]}
             />
             <p>
@@ -518,9 +518,14 @@ const GROUPS: Group[] = [
             />
             <Callout type="note">
               Aliases resolve to one of the types above — e.g. <code>tldr</code> and <code>summary</code>{" "}
-              map to <code>abstract</code>; <code>caution</code> and <code>attention</code> map to{" "}
-              <code>warning</code>; <code>error</code> maps to <code>danger</code>. An unrecognized type
-              falls back to the <code>note</code> style with your own label.
+              map to <code>abstract</code>; <code>hint</code> and <code>important</code> map to{" "}
+              <code>tip</code>; <code>check</code> and <code>done</code> map to <code>success</code>;{" "}
+              <code>help</code> and <code>faq</code> map to <code>question</code>;{" "}
+              <code>caution</code> and <code>attention</code> map to <code>warning</code>;{" "}
+              <code>fail</code> and <code>missing</code> map to <code>failure</code>;{" "}
+              <code>error</code> maps to <code>danger</code>; and <code>cite</code> maps to{" "}
+              <code>quote</code>. An unrecognized type falls back to the <code>note</code> style with your
+              own label.
             </Callout>
           </>
         ),
@@ -620,8 +625,9 @@ const GROUPS: Group[] = [
                 { label: "Open settings", value: "—" },
                 { label: "Open vault", value: "—" },
                 { label: "New folder", value: "When a vault is open" },
+                { label: "Create new vault", value: "—" },
                 { label: "Document info", value: "CTRL+SHIFT+I" },
-                { label: "Open AI Builder", value: "CTRL+SHIFT+B · when AI is configured" },
+                { label: "Open AI Chat", value: "CTRL+SHIFT+B · when AI is configured" },
                 { label: "Focus editor", value: "—" },
                 { label: "Close current tab", value: "—" },
                 { label: "Close all tabs", value: "—" },
@@ -904,7 +910,7 @@ read_when: never
         id: "ai-commands",
         title: "AI commands",
         lead: "Selection-based commands rewrite what you've highlighted; a few others work from a typed instruction or the surrounding note instead.",
-        keywords: "improve writing tone summarize extract tasks outline title continue explain builder",
+        keywords: "improve writing tone summarize extract tasks outline title continue explain chat",
         body: (
           <>
             <p>
@@ -913,12 +919,11 @@ read_when: never
             </p>
             <KV
               rows={[
-                { label: "🧱 AI Builder", value: "Create or revise a section, then review" },
                 { label: "✨ Improve writing", value: "Clearer wording, same intent" },
                 { label: "✅ Fix spelling & grammar", value: "Light correction pass" },
                 { label: "✂️ Shorten", value: "Compress verbose text" },
                 { label: "➕ Expand", value: "Elaborate on terse text" },
-                { label: "🎩 Change tone", value: "Formal · Casual · Direct · Polished" },
+                { label: "🎩 Change tone: Formal / Casual / Direct / Polished", value: "Four separate commands" },
                 { label: "📃 Summarize", value: "Concise recap" },
                 { label: "🗒️ Extract tasks", value: "Convert to a checklist" },
                 { label: "📑 Create outline", value: "Headings and bullets" },
@@ -928,8 +933,8 @@ read_when: never
               ]}
             />
             <p>
-              Selection-based commands need text highlighted first. AI Builder, Generate title, and
-              Continue writing work without a selection — they read the surrounding note instead.
+              Selection-based commands need text highlighted first. Generate title and Continue writing
+              work without a selection — they read the surrounding note instead.
             </p>
             <Callout type="tip">
               Every action opens a diff review before anything touches your note — red for removed, green
@@ -984,7 +989,7 @@ read_when: never
             <KV
               rows={[
                 { label: "Dark theme", value: "Settings → Interface" },
-                { label: "Text size", value: "S / M / L / XL" },
+                { label: "Text size", value: "Compact / Standard / Large / XL" },
                 { label: "Line height", value: "Normal / Relaxed / Loose" },
                 { label: "Letter spacing", value: "Normal / Wide" },
                 { label: "Typeface", value: "System Mono, JetBrains Mono, Fira Code, IBM Plex Mono, Journal (Serif)" },
@@ -1044,9 +1049,9 @@ read_when: never
         body: (
           <>
             <p>
-              The bottom nav gives four actions — Files, Search, New File, and Menu (the command
-              palette) — and hides automatically whenever the on-screen keyboard is open, so it doesn't
-              compete for space with the text you're typing.
+              The bottom nav gives Files, New File, and Search — Search doubles as the command palette
+              trigger — plus Voice and AI Chat when those are available. It hides automatically whenever
+              the on-screen keyboard is open, so it doesn't compete for space with the text you're typing.
             </p>
             <p>
               With more than one file open, a thin indicator bar above the editor shows the active file's
