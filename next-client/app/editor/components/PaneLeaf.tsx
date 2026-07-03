@@ -21,7 +21,7 @@ import {
   atom_workspaceLayout,
   contentStore
 } from "@/app/atoms/atoms";
-import { atom_newVaultFlowOpen, atom_isDocInfoOpen, atom_isVoicePreviewVisible } from "@/app/atoms/ui-atoms";
+import { atom_newVaultFlowOpen, atom_isDocInfoOpen, atom_isVaultHealthOpen, atom_isVoicePreviewVisible } from "@/app/atoms/ui-atoms";
 import { HiOutlineDocumentText, HiOutlineEye, HiOutlineChartBar, HiOutlineX, HiOutlineClipboardCopy, HiOutlineSave, HiOutlineDotsHorizontal, HiOutlinePlus, HiOutlineFolderOpen, HiOutlineDatabase, HiOutlineCollection, HiOutlineInformationCircle } from "react-icons/hi";
 import { VscSplitHorizontal } from "react-icons/vsc";
 import { showCopyToast, showErrorToast } from "@/app/components/Toastr";
@@ -50,6 +50,7 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
   const workspaceLayout = useAtomValue(atom_workspaceLayout);
   const [, setNewVaultFlowOpen] = useAtom(atom_newVaultFlowOpen);
   const [, setIsDocInfoOpen] = useAtom(atom_isDocInfoOpen);
+  const [, setIsVaultHealthOpen] = useAtom(atom_isVaultHealthOpen);
   const isOnlyPane = "type" in workspaceLayout.rootContainer;
 
   const { openFileByName, saveFile, exportFile, createFile, createNewFile, importFile, openVault, isVaultSupported } = useFileSystem();
@@ -355,6 +356,15 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
                   className="w-9 h-9 flex items-center justify-center text-ink-muted hover:text-sage transition-all rounded-xl"
                 >
                   <HiOutlineInformationCircle size={18} />
+                </Button>
+                <Button
+                  variant="icon"
+                  onClick={() => setIsVaultHealthOpen((v) => !v)}
+                  title="Vault health"
+                  aria-label="Vault health"
+                  className="w-9 h-9 flex items-center justify-center text-ink-muted hover:text-sage transition-all rounded-xl"
+                >
+                  <HiOutlineChartBar size={18} />
                 </Button>
                 <Button
                   variant="icon"

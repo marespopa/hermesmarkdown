@@ -8,6 +8,7 @@ import { atom_fileMetadata } from "@/app/atoms/metadata";
 import { atom_vaultSchema } from "@/app/atoms/schema-atoms";
 import { DEFAULT_SCHEMA, type SchemaField } from "@/app/services/vault-schema";
 import { FM_REGEX, parseFmFields, updateFmFields } from "@/app/utils/frontmatter-utils";
+import { computeTokenEstimate } from "@/app/utils/tokenEstimate";
 import DialogModal from "../../components/DialogModal/DialogModal";
 import Button from "../../components/Button";
 import {
@@ -65,6 +66,11 @@ export default function FrontmatterPanel({
   const match = FM_REGEX.exec(content);
   const rawFrontmatter = match ? match[0] : null;
   const fields = useMemo(() => parseFmFields(content), [content]);
+  // Save-triggered token cost estimate — prefer the last-saved value from
+  // metadata (set on save; see use-save-file.ts), falling back to a live
+  // computation only for files that haven't been saved yet.
+  const liveTokenEstimate = useMemo(() => computeTokenEstimate(content), [content]);
+  const tokenEstimate = metadata[filePath]?.tokens ?? liveTokenEstimate;
 
   // Fields are recommended, never enforced — the panel always opens collapsed
   // so an incomplete frontmatter block never interrupts the editing flow.
@@ -189,6 +195,17 @@ export default function FrontmatterPanel({
         >
           {mode === "fields" ? "Raw YAML" : "Fields"}
         </button>
+      </div>
+      <div className="flex items-center gap-3 text-ui-caption text-fg-muted -mt-2">
+        <span title="Tokens an agent loads when only read_when is checked">
+          <span className="font-semibold text-fg">{tokenEstimate.readWhen}</span> read_when
+        </span>
+        <span title="Tokens an agent loads at the scope-only tier">
+          <span className="font-semibold text-fg">{tokenEstimate.scoped}</span> +scope
+        </span>
+        <span title="Tokens an agent loads at the full-content tier">
+          <span className="font-semibold text-fg">{tokenEstimate.full}</span> full
+        </span>
       </div>
       {mode === "fields" ? (
         <>

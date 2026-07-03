@@ -24,6 +24,8 @@ import { writeVaultIndex } from "@/app/services/vault-index";
 import { atom_vaultSchema } from "@/app/atoms/schema-atoms";
 import { atom_isDriveVault } from "@/app/atoms/drive-atoms";
 import { extractTasks } from "@/app/utils/taskExtractor";
+import { computeTokenEstimate } from "@/app/utils/tokenEstimate";
+import { computeAgentScore } from "@/app/utils/agentScore";
 
 export function useSaveFile() {
   const [vaultHandle] = useAtom(atom_vaultHandle);
@@ -158,17 +160,28 @@ export function useSaveFile() {
 
         const didInject = toWrite !== content;
 
-        // Re-derive this file's tasks synchronously from the content just
-        // written to disk, so the Tasks view reflects a save immediately —
-        // regardless of whether this file is the active tab, a background
-        // tab, or not open at all (e.g. Tasks view's own write-back). Without
-        // this, `.tasks` only refreshes on the next full vault rescan
-        // (5-min interval, window refocus, or manual refresh).
+        // Re-derive this file's tasks/tokens/score synchronously from the
+        // content just written to disk, so the Tasks view and token cost
+        // estimate reflect a save immediately — regardless of whether this
+        // file is the active tab, a background tab, or not open at all (e.g.
+        // Tasks view's own write-back). Without this, these fields only
+        // refresh on the next full vault rescan (5-min interval, window
+        // refocus, or manual refresh). This is the "save-triggered, not
+        // live" computation point for the token cost estimate.
         if (targetPath) {
+          const scoreResult = toWrite.trim() ? computeAgentScore(toWrite) : null;
           setFileMetadata((prev) => {
             const entry = prev[targetPath!];
             if (!entry) return prev;
-            return { ...prev, [targetPath!]: { ...entry, tasks: extractTasks(targetPath!, toWrite) } };
+            return {
+              ...prev,
+              [targetPath!]: {
+                ...entry,
+                tasks: extractTasks(targetPath!, toWrite),
+                tokens: computeTokenEstimate(toWrite),
+                agentScore: scoreResult ? { score: scoreResult.score, label: scoreResult.label } : null,
+              },
+            };
           });
         }
 

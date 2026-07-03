@@ -2,6 +2,7 @@ import { atom } from "jotai";
 import { atomWithStorage } from "jotai/utils";
 import { WorkspaceQuery } from "../utils/queryEngine";
 import { TaskItem } from "../utils/taskExtractor";
+import { TokenEstimate } from "../utils/tokenEstimate";
 
 export interface FileMetadata {
   path: string;
@@ -13,6 +14,8 @@ export interface FileMetadata {
   wordCount: number;
   tasks: TaskItem[];
   handle: any; // FileSystemFileHandle | DriveFileHandle
+  tokens: TokenEstimate;
+  agentScore: { score: number; label: string } | null;
 }
 
 export const atom_fileMetadata = atom<Record<string, FileMetadata>>({});

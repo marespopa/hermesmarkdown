@@ -1,6 +1,6 @@
 {
   "name": "hermesmarkdown",
-  "version": "3.6.4",
+  "version": "3.7.0",
   "private": true,
   "scripts": {
     "dev": "next dev --port 3000",
@@ -27,6 +27,7 @@
     "ai": "^6.0.198",
     "autoprefixer": "^10.4.20",
     "currency.js": "^2.0.4",
+    "gpt-tokenizer": "^3.4.0",
     "jotai": "^2.10.1",
     "jotai-family": "^1.0.2",
     "js-cookie": "^3.0.5",

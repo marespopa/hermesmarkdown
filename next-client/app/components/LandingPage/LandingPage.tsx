@@ -761,14 +761,13 @@ export default function LandingPage() {
               </span>
             </h1>
             <p className="text-lg md:text-xl leading-relaxed text-neutral-600 dark:text-neutral-400 max-w-2xl mx-auto">
-              A local-first Markdown editor for engineers. HermesMarkdown
-              structures your vault the way you already structure context for
-              your coding agent — so it knows what to read, and what to skip.
-              Plain{" "}
+              A local-first Markdown editor that structures your vault the way
+              you structure context for your coding agent — plain{" "}
               <code className="text-[0.85em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">
                 .md
               </code>{" "}
-              files your AI can query like a database, not brute-force through.
+              files your AI can query like a database, not brute-force
+              through.
             </p>
             <div className="pt-4 flex flex-col sm:flex-row items-center justify-center gap-4">
               <Button
