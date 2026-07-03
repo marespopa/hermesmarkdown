@@ -25,6 +25,7 @@ export const atom_isEditorFocused = atom<boolean>(false);
 // Transient — toggled via keyboard shortcut / command palette, not persisted.
 // The doc-info panel (word/token count, structured score) is on-demand only.
 export const atom_isDocInfoOpen = atom<boolean>(false);
+export const atom_isVaultHealthOpen = atom<boolean>(false);
 export const atom_cursorPosition = atom<{ line: number; col: number }>({
   line: 1,
   col: 1,

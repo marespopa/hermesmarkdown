@@ -29,6 +29,7 @@ import VaultPendingOverlay from "./components/VaultPendingOverlay";
 import DriveReconnectBanner from "./components/DriveReconnectBanner";
 import LoadingOverlay from "@/app/components/LoadingOverlay";
 import DocInfoPanel from "./components/DocInfoPanel";
+import VaultHealthPanel from "./components/VaultHealthPanel";
 import EditorCommands from "./components/EditorCommands";
 import { CommandPaletteProvider } from "@/app/components/CommandPalette/CommandPaletteContext";
 import CommandPalette from "@/app/components/CommandPalette/CommandPalette";
@@ -430,6 +431,7 @@ export default function LiteEditor() {
         <NewVaultDialog />
         <ConflictDialog />
         <DocInfoPanel />
+        <VaultHealthPanel />
         {isVaultPending && <VaultPendingOverlay restoreVault={restoreVault} isDriveVault={isDriveVault} />}
         
         <DialogModal isOpened={pendingFile !== null} onClose={() => setPendingFile(null)} styles="!rounded-[32px] !backdrop-blur-2xl !bg-paper-light/80 dark:!bg-paper-dark/80">
