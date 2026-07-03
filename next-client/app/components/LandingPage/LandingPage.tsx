@@ -755,15 +755,16 @@ export default function LandingPage() {
         <div className="max-w-6xl mx-auto flex flex-col items-center text-center space-y-12">
           <div className="space-y-6 max-w-3xl animate-hero-fade-in">
             <h1 className="text-4xl md:text-5xl lg:text-7xl font-bold tracking-tight leading-[1.1]">
-              Notes your agent can navigate{" "}
+              Context engineering{" "}
               <span className="text-neutral-600 dark:text-neutral-400 italic font-serif">
-                without burning its context window.
+                for your notes.
               </span>
             </h1>
             <p className="text-lg md:text-xl leading-relaxed text-neutral-600 dark:text-neutral-400 max-w-2xl mx-auto">
-              HermesMarkdown is a local-first Markdown editor for engineers. It
-              structures your vault so agents know what to read — and what to
-              skip. Plain{" "}
+              A local-first Markdown editor for engineers. HermesMarkdown
+              structures your vault the way you already structure context for
+              your coding agent — so it knows what to read, and what to skip.
+              Plain{" "}
               <code className="text-[0.85em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">
                 .md
               </code>{" "}
@@ -901,8 +902,99 @@ export default function LandingPage() {
             </ul>
             <p className="text-neutral-600 dark:text-neutral-400 leading-relaxed">
               That index updates as you write — no separate step, no manual
-              re-indexing.
+              re-indexing. Scored across the four operations of context
+              engineering: write, select, compress, isolate.
             </p>
+          </div>
+        </section>
+
+        {/* 1b. Write / Select / Compress / Isolate — the framework */}
+        <section className="space-y-12">
+          <div className="text-center space-y-4 max-w-2xl mx-auto">
+            <div className="h-px w-12 bg-sky-500 mx-auto" />
+            <h2 className="text-3xl font-bold tracking-tight">
+              Write. Select. Compress. Isolate.
+            </h2>
+            <p className="text-neutral-600 dark:text-neutral-400 leading-relaxed">
+              The four operations of context engineering — controlling what
+              your agent sees on every call. HermesMarkdown builds each one
+              into the vault itself.
+            </p>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 md:gap-8">
+            {[
+              {
+                title: "Write",
+                color: "bg-emerald-600",
+                body: (
+                  <>
+                    Every note lives in a plain{" "}
+                    <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">
+                      .md
+                    </code>{" "}
+                    file in your vault — not locked in a conversation, not
+                    lost when the context window rolls over.
+                  </>
+                ),
+              },
+              {
+                title: "Select",
+                color: "bg-sky-500",
+                body: (
+                  <>
+                    <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">
+                      scope
+                    </code>{" "}
+                    and{" "}
+                    <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">
+                      read_when
+                    </code>{" "}
+                    frontmatter tell your agent which files matter for a given
+                    task, before it reads a single word of body text.
+                  </>
+                ),
+              },
+              {
+                title: "Compress",
+                color: "bg-amber-500",
+                body: (
+                  <>
+                    Agents load your vault in three tiers —{" "}
+                    <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">
+                      read_when
+                    </code>
+                    , then{" "}
+                    <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">
+                      scope
+                    </code>
+                    , then full content — so they get just enough, not
+                    everything.
+                  </>
+                ),
+              },
+              {
+                title: "Isolate",
+                color: "bg-violet-500",
+                body: (
+                  <>
+                    WikiLinks make relationships between notes explicit.
+                    Agents follow a link instead of grepping your whole vault
+                    to guess what&apos;s related.
+                  </>
+                ),
+              },
+            ].map(({ title, color, body }) => (
+              <div
+                key={title}
+                className="p-6 md:p-8 rounded-2xl border border-black/5 dark:border-white/5 bg-paper-light dark:bg-neutral-900 space-y-3"
+              >
+                <div className={`h-px w-8 ${color}`} />
+                <h3 className="text-xl font-bold tracking-tight">{title}</h3>
+                <p className="text-neutral-600 dark:text-neutral-400 leading-relaxed">
+                  {body}
+                </p>
+              </div>
+            ))}
           </div>
         </section>
 
@@ -1076,12 +1168,11 @@ export default function LandingPage() {
             Own your context. Own your output.
           </h2>
           <p className="opacity-60 max-w-xl mx-auto text-lg relative z-10 font-medium">
-            A Markdown editor that runs in your browser, saves to your
-            machine, and structures plain{" "}
+            A Markdown editor structured for context engineering. Plain{" "}
             <code className="text-[0.85em] bg-neutral-200 dark:bg-neutral-700 px-1 py-0.5 rounded not-italic">
               .md
             </code>{" "}
-            files for agents.
+            files. Runs in your browser, saves to your machine.
           </p>
           <div className="pt-6 relative z-10 flex justify-center">
             <Button

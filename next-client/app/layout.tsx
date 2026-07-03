@@ -5,15 +5,17 @@ import { inter, jetBrainsMono, firaCode, ibmPlexMono } from "./fonts";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://hermesmarkdown.com"),
-  title: "HermesMarkdown — The Agent-Readable Workspace for Engineers",
+  title: "HermesMarkdown — Context Engineering for Your Notes",
   description:
-    "A local-first Markdown workspace for software engineers and AI practitioners. A .hermes/ folder (AGENTS.md, schema.yaml, index.yaml) lets coding agents index your vault without reading every file. Smart Workspaces, WikiLinks, live-formula tables, BYOK AI — your data never leaves your device.",
+    "A local-first Markdown editor for engineers. HermesMarkdown structures your vault the way you already structure context for your coding agent — write, select, compress, isolate. A .hermes/ folder (AGENTS.md, schema.yaml, index.yaml) lets coding agents index your vault without reading every file. WikiLinks, live-formula tables, BYOK AI — your data never leaves your device.",
   applicationName: "HermesMarkdown",
   authors: [{ name: "Mares Popa", url: "https://www.marespopa.com/" }],
   keywords: [
+    "context engineering",
+    "context engineering for notes",
     "local-first markdown editor",
     "agent-readable workspace",
-    "markdown for engineers",
+    "markdown editor for engineers",
     "AGENTS.md",
     "AI-readable notes",
     "frontmatter schema",
@@ -30,9 +32,9 @@ export const metadata: Metadata = {
   robots: { index: true, follow: true },
   alternates: { canonical: "/" },
   openGraph: {
-    title: "HermesMarkdown — The Agent-Readable Workspace for Engineers",
+    title: "HermesMarkdown — Context Engineering for Your Notes",
     description:
-      "Local-first Markdown with frontmatter schemas, Smart Workspaces, WikiLinks, and a table editor. Built for engineers and AI workflows. Your data never leaves your device.",
+      "A local-first Markdown editor for engineers. Structures your vault for write, select, compress, isolate — frontmatter schemas, Smart Workspaces, WikiLinks, and a table editor. Your data never leaves your device.",
     url: "https://hermesmarkdown.com",
     siteName: "HermesMarkdown",
     type: "website",
@@ -40,9 +42,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "HermesMarkdown — The Agent-Readable Workspace for Engineers",
+    title: "HermesMarkdown — Context Engineering for Your Notes",
     description:
-      "Local-first Markdown with frontmatter schemas, Smart Workspaces, WikiLinks, and a table editor. No cloud, no tracking.",
+      "A local-first Markdown editor for engineers, structured for context engineering: write, select, compress, isolate. No cloud, no tracking.",
     images: ["/assets/og-image.jpg"],
   },
 };

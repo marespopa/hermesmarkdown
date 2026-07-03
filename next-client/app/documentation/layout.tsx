@@ -3,12 +3,12 @@ import { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Documentation — HermesMarkdown",
   description:
-    "Full reference for HermesMarkdown: vaults, the .hermes/ agent context protocol (AGENTS.md, schema.yaml, index.yaml), WikiLinks, Smart Workspaces, Slash Commands, the Table Editor, and more.",
+    "Full reference for how HermesMarkdown puts context engineering — write, select, compress, isolate — into practice: vaults, the .hermes/ agent context protocol (AGENTS.md, schema.yaml, index.yaml), WikiLinks, Smart Workspaces, Slash Commands, the Table Editor, and more.",
   alternates: { canonical: "/documentation" },
   openGraph: {
     title: "Documentation — HermesMarkdown",
     description:
-      "Everything you need to know about writing, navigating, and setting up agent context in HermesMarkdown.",
+      "How HermesMarkdown implements context engineering file by file — writing, navigating, and setting up agent context.",
     url: "https://hermesmarkdown.com/documentation",
     siteName: "HermesMarkdown",
     type: "website",
@@ -18,7 +18,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "HermesMarkdown Documentation",
     description:
-      "Everything you need to know about writing and navigating in HermesMarkdown.",
+      "How HermesMarkdown implements context engineering — write, select, compress, isolate — file by file.",
     images: ["/assets/og-image.jpg"],
   },
 };

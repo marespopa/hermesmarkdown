@@ -810,7 +810,9 @@ files:
             <h4 className="text-lg font-bold tracking-tight !mb-2 !mt-6">related</h4>
             <p>
               Wikilinks to other notes worth checking alongside this one — <code>[[Note Name]]</code>{" "}
-              entries that an agent can follow without re-deriving the relationship from content.
+              entries that an agent can follow without re-deriving the relationship from content. This is
+              isolate in practice: an explicit edge instead of a full-vault search to guess what's
+              relevant.
             </p>
             <h4 className="text-lg font-bold tracking-tight !mb-2 !mt-6">tags</h4>
             <p>Free-form domain tags, distinct from the lifecycle tag that mirrors <code>status</code>.</p>
@@ -833,6 +835,11 @@ files:
         keywords: "tier protocol index.yaml read_when scope never",
         body: (
           <>
+            <p>
+              This is select and compress worked out in file terms: <code>read_when</code> decides what's
+              worth loading at all, and the tiers below decide how much of it actually enters the context
+              window.
+            </p>
             <ol className="space-y-4 list-decimal list-outside pl-5 marker:font-bold marker:text-sage dark:marker:text-sage text-neutral-500 dark:text-neutral-400 leading-relaxed text-base">
               <li>
                 <span className="font-bold tracking-tight text-ink-light dark:text-ink-dark">Filter by read_when.</span>{" "}
@@ -1326,7 +1333,7 @@ export default function Documentation() {
               </h1>
             </div>
             <p className="text-lg md:text-2xl leading-relaxed text-neutral-500 dark:text-neutral-400 max-w-3xl font-medium">
-              Plain <code className="text-[0.75em] bg-neutral-100 dark:bg-neutral-800 px-1.5 py-0.5 rounded font-mono not-italic">.md</code> files, structured for agents. Works offline, saves to your machine, and connects to Claude Code, Cowork, or any agent you use.
+              How HermesMarkdown puts context engineering — write, select, compress, isolate — into practice, file by file. Plain <code className="text-[0.75em] bg-neutral-100 dark:bg-neutral-800 px-1.5 py-0.5 rounded font-mono not-italic">.md</code> files, structured for agents. Works offline, saves to your machine, and connects to Claude Code, Cowork, or any agent you use.
             </p>
           </section>
 
