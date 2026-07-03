@@ -3,12 +3,12 @@ import { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Documentation — HermesMarkdown",
   description:
-    "Full reference for HermesMarkdown: vaults, WikiLinks, Smart Workspaces, Slash Commands, shortcodes, the Table Editor, and more.",
+    "Full reference for HermesMarkdown: vaults, the .hermes/ agent context protocol (AGENTS.md, schema.yaml, index.yaml), WikiLinks, Smart Workspaces, Slash Commands, the Table Editor, and more.",
   alternates: { canonical: "/documentation" },
   openGraph: {
     title: "Documentation — HermesMarkdown",
     description:
-      "Everything you need to know about writing and navigating in HermesMarkdown.",
+      "Everything you need to know about writing, navigating, and setting up agent context in HermesMarkdown.",
     url: "https://hermesmarkdown.com/documentation",
     siteName: "HermesMarkdown",
     type: "website",

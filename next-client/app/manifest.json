@@ -1,7 +1,7 @@
 {
   "name": "HermesMarkdown",
   "short_name": "HermesMD",
-  "description": "HermesMarkdown is a modern markdown editor designed for privacy. It operates entirely offline, ensuring your data stays secure and local.",
+  "description": "The agent-readable workspace for engineers. Local-first Markdown with a .hermes/ schema and AGENTS.md so coding agents can index your vault without reading every file. Your data never leaves your device.",
   "start_url": "/",
   "icons": [
     {

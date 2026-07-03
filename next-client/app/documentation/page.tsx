@@ -194,7 +194,7 @@ const GROUPS: Group[] = [
             </p>
             <KV
               rows={[
-                { label: "Where it's set up", value: "Settings → Guide" },
+                { label: "Where it's set up", value: "Settings → Vault → Agent Context Files" },
                 { label: "Action", value: "Check & Install" },
                 { label: "Re-run anytime", value: "Safe — won't overwrite your notes" },
               ]}

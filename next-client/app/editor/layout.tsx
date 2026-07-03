@@ -3,7 +3,7 @@ import { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Editor — HermesMarkdown",
   description:
-    "The HermesMarkdown editor. Local-first, privacy-centric Markdown editing with Smart Workspaces, WikiLinks, and AI-readable frontmatter.",
+    "The HermesMarkdown editor. Local-first Markdown editing with Smart Workspaces, WikiLinks, live-formula tables, and a .hermes/ frontmatter schema agents can index without opening every file.",
   alternates: { canonical: "/editor" },
   robots: { index: false, follow: false },
 };

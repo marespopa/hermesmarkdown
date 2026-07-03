@@ -7,15 +7,17 @@ export const metadata: Metadata = {
   metadataBase: new URL("https://hermesmarkdown.com"),
   title: "HermesMarkdown — The Agent-Readable Workspace for Engineers",
   description:
-    "A local-first, privacy-centric Markdown editor for software engineers and AI practitioners. Smart Workspaces, WikiLinks, frontmatter schemas, table editor, and more — your data never leaves your device.",
+    "A local-first Markdown workspace for software engineers and AI practitioners. A .hermes/ folder (AGENTS.md, schema.yaml, index.yaml) lets coding agents index your vault without reading every file. Smart Workspaces, WikiLinks, live-formula tables, BYOK AI — your data never leaves your device.",
   applicationName: "HermesMarkdown",
   authors: [{ name: "Mares Popa", url: "https://www.marespopa.com/" }],
   keywords: [
     "local-first markdown editor",
     "agent-readable workspace",
     "markdown for engineers",
+    "AGENTS.md",
     "AI-readable notes",
     "frontmatter schema",
+    "agent context protocol",
     "smart workspaces",
     "wikilinks",
     "offline markdown editor",

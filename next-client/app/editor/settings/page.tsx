@@ -616,7 +616,7 @@ const SettingsPage = () => {
           <SettingGroup title="Agent Context Files">
             <SettingItem
               label="Install / Update"
-              description="Check for missing or outdated agent context files (_agent-context.md, _skills/) in the active vault and install the latest versions."
+              description="Check for missing or outdated agent context files (AGENTS.md, schema.yaml) in the active vault and install the latest versions."
               control={
                 <Button
                   variant="secondary"
