@@ -1,6 +1,7 @@
 import { atom } from "jotai";
 import { atomWithStorage } from "jotai/utils";
 import { WorkspaceQuery } from "../utils/queryEngine";
+import { TaskItem } from "../utils/taskExtractor";
 
 export interface FileMetadata {
   path: string;
@@ -10,6 +11,7 @@ export interface FileMetadata {
   frontmatter: Record<string, any>;
   modifiedAt: number;
   wordCount: number;
+  tasks: TaskItem[];
   handle: any; // FileSystemFileHandle | DriveFileHandle
 }
 

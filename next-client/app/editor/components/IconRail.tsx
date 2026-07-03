@@ -5,6 +5,7 @@ import {
   HiOutlineSearch,
   HiOutlineTag,
   HiOutlineCollection,
+  HiOutlineCheckCircle,
   HiOutlineHome,
   HiOutlineBookOpen,
   HiOutlineCog,
@@ -96,6 +97,18 @@ export default function IconRail({
           isActive={activePanel === "tags"}
           onClick={() => onPanelChange("tags")}
         />
+        <RailButton
+          icon={<HiOutlineCheckCircle size={18} />}
+          label="Tasks"
+          isActive={activePanel === "tasks"}
+          onClick={() => onPanelChange("tasks")}
+        />
+        <RailButton
+          icon={<HiOutlineCollection size={18} />}
+          label="Views"
+          isActive={activePanel === "views"}
+          onClick={() => onPanelChange("views")}
+        />
         {isVoiceSupported && (
           <RailButton
             icon={isVoiceListening ? <HiMicrophone size={18} /> : <HiOutlineMicrophone size={18} />}
@@ -105,12 +118,6 @@ export default function IconRail({
             onClick={() => onVoiceClick?.()}
           />
         )}
-        <RailButton
-          icon={<HiOutlineCollection size={18} />}
-          label="Views"
-          isActive={activePanel === "views"}
-          onClick={() => onPanelChange("views")}
-        />
       </div>
       <div className="flex flex-col items-center gap-3">
         <RailButton

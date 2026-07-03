@@ -23,6 +23,7 @@ import { atom_fileMetadata } from "@/app/atoms/metadata";
 import { writeVaultIndex } from "@/app/services/vault-index";
 import { atom_vaultSchema } from "@/app/atoms/schema-atoms";
 import { atom_isDriveVault } from "@/app/atoms/drive-atoms";
+import { extractTasks } from "@/app/utils/taskExtractor";
 
 export function useSaveFile() {
   const [vaultHandle] = useAtom(atom_vaultHandle);
@@ -41,7 +42,7 @@ export function useSaveFile() {
   const setVaultSetupWizardOpen = useSetAtom(atom_vaultSetupWizardOpen);
   const [vaultSetupStatus] = useAtom(atom_vaultSetupStatus);
   const [autosaveMode, setAutosaveMode] = useAtom(atom_autosaveMode);
-  const [fileMetadata] = useAtom(atom_fileMetadata);
+  const [fileMetadata, setFileMetadata] = useAtom(atom_fileMetadata);
   const setIndexTimestamp = useSetAtom(atom_indexTimestamp);
   const [vaultSchema] = useAtom(atom_vaultSchema);
 
@@ -156,6 +157,20 @@ export function useSaveFile() {
         }
 
         const didInject = toWrite !== content;
+
+        // Re-derive this file's tasks synchronously from the content just
+        // written to disk, so the Tasks view reflects a save immediately —
+        // regardless of whether this file is the active tab, a background
+        // tab, or not open at all (e.g. Tasks view's own write-back). Without
+        // this, `.tasks` only refreshes on the next full vault rescan
+        // (5-min interval, window refocus, or manual refresh).
+        if (targetPath) {
+          setFileMetadata((prev) => {
+            const entry = prev[targetPath!];
+            if (!entry) return prev;
+            return { ...prev, [targetPath!]: { ...entry, tasks: extractTasks(targetPath!, toWrite) } };
+          });
+        }
 
         // Secondary task: Update metadata.
         const updateMetadata = async (retries = 3) => {
@@ -400,6 +415,7 @@ export function useSaveFile() {
       activeFilePath,
       setSaveStatus,
       setOpenFiles,
+      setFileMetadata,
       isCloudVault,
       setIsCloudVault,
       isDriveVault,

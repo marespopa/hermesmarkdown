@@ -53,6 +53,28 @@ function buildYaml(fileMetadata: Record<string, FileMetadata>): string {
     }
   }
 
+  // Outstanding Tasks — aggregated across all files so an agent can answer
+  // "what's outstanding in this vault" from a single read, without opening
+  // every note. Only unchecked checklist items are listed.
+  const openTasks = entries.flatMap((e) =>
+    (e.tasks || [])
+      .filter((t) => !t.checked)
+      .map((t) => ({ ...t, filePath: e.path })),
+  );
+  const prog = openTasks.filter((t) => t.inProgress);
+  const todo = openTasks.filter((t) => !t.inProgress);
+
+  const taskLine = (t: (typeof openTasks)[number]) =>
+    `    - {path: ${t.filePath}, line: ${t.line}, text: ${yamlScalar(t.text)}}`;
+
+  lines.push("tasks:");
+  lines.push("  prog:");
+  if (prog.length === 0) lines.push("    []");
+  else prog.forEach((t) => lines.push(taskLine(t)));
+  lines.push("  todo:");
+  if (todo.length === 0) lines.push("    []");
+  else todo.forEach((t) => lines.push(taskLine(t)));
+
   return lines.join("\n") + "\n";
 }
 
