@@ -404,8 +404,6 @@ export function useAIEditorActions({
           return continueWriting();
         case "explain":
           return explainSelection();
-        case "builder":
-          return openChat();
         default:
           return;
       }
@@ -422,7 +420,6 @@ export function useAIEditorActions({
       generateTitle,
       continueWriting,
       explainSelection,
-      openChat,
     ],
   );
 

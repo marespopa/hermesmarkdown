@@ -450,6 +450,43 @@ const GROUPS: Group[] = [
         ),
       },
       {
+        id: "tasks-pane",
+        title: "Tasks pane",
+        lead: "A vault-wide checklist — every checkbox task across every note, grouped into To Do, In Progress, and Done.",
+        keywords: "task tasks checkbox todo prog done pane sidebar aggregate",
+        body: (
+          <>
+            <p>
+              Click the ✓ icon in the sidebar's icon rail to open it. The pane scans every file in the
+              vault for Markdown task lines and lists them grouped by status.
+            </p>
+            <KV
+              rows={[
+                { label: "- [ ] task", value: "To Do" },
+                { label: "- [ ] task #prog", value: "In Progress" },
+                { label: "- [x] task", value: "Done" },
+              ]}
+            />
+            <p>
+              A task counts as In Progress when it's unchecked and tagged <code>#prog</code> anywhere on
+              the line. The <code>#prog</code> tag itself — along with <code>#todo</code> and{" "}
+              <code>#done</code>, which are purely cosmetic — is stripped from the text shown in the
+              pane. Within each group, tasks are sorted by their note's title.
+            </p>
+            <p>
+              Click a task's checkbox to toggle it — the change writes straight back to the source line
+              in the file, no need to open it first. Click the task text instead to open its note and
+              jump to that line.
+            </p>
+            <Callout type="note">
+              The Done group starts collapsed so completed work doesn't crowd out what's still
+              outstanding; To Do and In Progress start expanded. Click a group header to fold or unfold
+              it.
+            </Callout>
+          </>
+        ),
+      },
+      {
         id: "frontmatter-panel",
         title: "Frontmatter panel",
         lead: "A structured form over the YAML block at the top of a file — edit fields without writing YAML by hand.",

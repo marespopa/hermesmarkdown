@@ -149,13 +149,6 @@ export const TEMPLATES: Template[] = [
   },
   // --- AI ---
   {
-    label: "AI Builder",
-    icon: "🧱",
-    description: "Create or revise a page section, then review before applying",
-    content: aiActionSentinel("builder"),
-    aiOnly: true,
-  },
-  {
     label: "Improve writing",
     icon: "✨",
     description: "Rewrite selected text for clearer wording without changing its intent",
