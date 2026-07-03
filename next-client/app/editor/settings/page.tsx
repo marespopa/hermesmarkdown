@@ -54,6 +54,9 @@ import {
   SettingGroup,
 } from "./components/SettingControls";
 import { FONT_SIZES, LINE_HEIGHTS, LETTER_SPACINGS, FONTS } from "./font-options";
+import VaultMigrateWizard from "../components/VaultMigrateWizard";
+import VaultSetupWizard from "../components/VaultSetupWizard";
+import SchemaWizard from "../components/SchemaWizard";
 
 const SettingsPage = () => {
   const router = useRouter();
@@ -585,10 +588,7 @@ const SettingsPage = () => {
               control={
                 <Button
                   variant="secondary"
-                  onClick={() => {
-                    setSchemaWizardOpen(true);
-                    router.push("/editor");
-                  }}
+                  onClick={() => setSchemaWizardOpen(true)}
                   className="h-8 px-4 text-ui-footnote font-medium"
                 >
                   Edit Schema
@@ -601,10 +601,7 @@ const SettingsPage = () => {
               control={
                 <Button
                   variant="secondary"
-                  onClick={() => {
-                    setVaultMigrateOpen(true);
-                    router.push("/editor");
-                  }}
+                  onClick={() => setVaultMigrateOpen(true)}
                   disabled={!vaultHandle && !isDriveVault}
                   className="h-8 px-4 text-ui-footnote font-medium shrink-0"
                 >
@@ -620,10 +617,7 @@ const SettingsPage = () => {
               control={
                 <Button
                   variant="secondary"
-                  onClick={() => {
-                    setVaultSetupWizardOpen("vault-root");
-                    router.push("/editor");
-                  }}
+                  onClick={() => setVaultSetupWizardOpen("vault-root")}
                   className="h-8 px-4 text-ui-footnote font-medium"
                 >
                   Check & Install
@@ -708,6 +702,10 @@ const SettingsPage = () => {
           {active.content}
         </div>
       </main>
+
+      <VaultMigrateWizard />
+      <VaultSetupWizard />
+      <SchemaWizard />
     </div>
   );
 };
