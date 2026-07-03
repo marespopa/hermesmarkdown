@@ -761,8 +761,9 @@ export default function LandingPage() {
               </span>
             </h1>
             <p className="text-lg md:text-xl leading-relaxed text-neutral-600 dark:text-neutral-400 max-w-2xl mx-auto">
-              HermesMarkdown structures your vault so agents know what to read —
-              and what to skip. Plain{" "}
+              HermesMarkdown is a local-first Markdown editor for engineers. It
+              structures your vault so agents know what to read — and what to
+              skip. Plain{" "}
               <code className="text-[0.85em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">
                 .md
               </code>{" "}
@@ -898,6 +899,10 @@ export default function LandingPage() {
                 </li>
               ))}
             </ul>
+            <p className="text-neutral-600 dark:text-neutral-400 leading-relaxed">
+              That index updates as you write — no separate step, no manual
+              re-indexing.
+            </p>
           </div>
         </section>
 
@@ -918,6 +923,14 @@ export default function LandingPage() {
               scaffolding, and drops you straight into a working vault. Four
               packs ship out of the box: empty slate, Notes/PKM, Engineering,
               and Personal Finance.
+            </p>
+            <p className="text-neutral-600 dark:text-neutral-400 leading-relaxed">
+              Every pack ships with frontmatter schema and an{" "}
+              <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">
+                AGENTS.md
+              </code>{" "}
+              index already in place — not just filled-in templates, but a
+              vault that's agent-readable from the first file.
             </p>
           </div>
           <div className="aspect-video bg-paper-light dark:bg-neutral-900 rounded-2xl border border-black/5 dark:border-white/5 flex items-center justify-center group overflow-hidden relative">
@@ -1063,12 +1076,12 @@ export default function LandingPage() {
             Own your context. Own your output.
           </h2>
           <p className="opacity-60 max-w-xl mx-auto text-lg relative z-10 font-medium">
-            Plain{" "}
+            A Markdown editor that runs in your browser, saves to your
+            machine, and structures plain{" "}
             <code className="text-[0.85em] bg-neutral-200 dark:bg-neutral-700 px-1 py-0.5 rounded not-italic">
               .md
             </code>{" "}
-            files. Structured for agents. Runs in your browser, saves to your
-            machine.
+            files for agents.
           </p>
           <div className="pt-6 relative z-10 flex justify-center">
             <Button
