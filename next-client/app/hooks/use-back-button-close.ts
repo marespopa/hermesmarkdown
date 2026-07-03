@@ -12,6 +12,11 @@ export function useBackButtonClose(isOpen: boolean, onClose: () => void) {
   const pushedRef = useRef(false);
   const onCloseRef = useRef(onClose);
   onCloseRef.current = onClose;
+  // `history.back()` below is async — its popstate can arrive after this
+  // effect has already re-run (e.g. React Strict Mode's dev-only
+  // mount->cleanup->mount), so a fresh listener would otherwise catch our
+  // own programmatic back-navigation and mistake it for a user back-press.
+  const skipNextPopRef = useRef(false);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -21,6 +26,10 @@ export function useBackButtonClose(isOpen: boolean, onClose: () => void) {
 
     const handlePopState = () => {
       pushedRef.current = false;
+      if (skipNextPopRef.current) {
+        skipNextPopRef.current = false;
+        return;
+      }
       onCloseRef.current();
     };
     window.addEventListener("popstate", handlePopState);
@@ -29,6 +38,7 @@ export function useBackButtonClose(isOpen: boolean, onClose: () => void) {
       window.removeEventListener("popstate", handlePopState);
       if (pushedRef.current) {
         pushedRef.current = false;
+        skipNextPopRef.current = true;
         history.back();
       }
     };
