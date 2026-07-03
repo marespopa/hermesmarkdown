@@ -15,9 +15,10 @@ import {
   atom_sidebarWidth,
   atom_isCloudVault,
 } from "@/app/atoms/atoms";
-import { atom_railPanel, atom_newVaultFlowOpen, RailPanel } from "@/app/atoms/ui-atoms";
+import { atom_railPanel, atom_newVaultFlowOpen, atom_pendingScrollTarget, RailPanel } from "@/app/atoms/ui-atoms";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import SmartFolders from "./SmartFolders";
+import VaultSidebarTasks from "./VaultSidebarTasks";
 import { useSidebarSearch } from "../hooks/useSidebarSearch";
 import VaultSidebarEmpty from "./VaultSidebarEmpty";
 import VaultSidebarFiles from "./VaultSidebarFiles";
@@ -95,6 +96,7 @@ export default function VaultSidebar({
   const dialog = useDialog();
   const drivePathIndex = useAtomValue(atom_drivePathIndex);
   const setNewVaultFlowOpen = useSetAtom(atom_newVaultFlowOpen);
+  const setPendingScrollTarget = useSetAtom(atom_pendingScrollTarget);
 
   // Resolves a directory handle for an arbitrary nested path (e.g. "a/b/c"),
   // working for both local (File System Access API) and Google Drive vaults.
@@ -304,6 +306,16 @@ export default function VaultSidebar({
               }}
               renameFile={renameFile}
               deleteFile={deleteFile}
+            />
+          </div>
+        ) : panel === "tasks" ? (
+          <div className="flex-1 overflow-y-auto">
+            <VaultSidebarTasks
+              onFileSelect={(handle, path, line) => {
+                openFile(handle, path);
+                setPendingScrollTarget({ path, line });
+                if (onClose && window.innerWidth < 1024) onClose();
+              }}
             />
           </div>
         ) : (

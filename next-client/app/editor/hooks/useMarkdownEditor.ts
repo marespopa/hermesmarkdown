@@ -1,13 +1,14 @@
 "use client";
 
 import { useRef, useEffect, useCallback, useState, useMemo } from "react";
-import { useAtomValue, useSetAtom } from "jotai";
+import { useAtomValue, useSetAtom, useAtom } from "jotai";
 import {
   atom_wordWrap,
   atom_aiBuilderRequest,
   atom_activeTextareaElement,
   atom_voiceOpenLinkDialogRequest,
 } from "@/app/atoms/atoms";
+import { atom_pendingScrollTarget } from "@/app/atoms/ui-atoms";
 import { SHORTCODES, TAG_CYCLE, TAG_CYCLE_PREV, TODO_CYCLE, TODO_CYCLE_PREV } from "../components/constants";
 import { REGEX_CALC, REGEX_CHECKBOX } from "../components/regex";
 import { highlightMarkdown } from "../components/MarkdownHighlighter";
@@ -41,6 +42,7 @@ interface UseMarkdownEditorProps {
   onFrontmatterWizard?: () => void;
   isActivePane?: boolean;
   isSplit?: boolean;
+  filePath?: string;
 }
 
 export function useMarkdownEditor({
@@ -51,6 +53,7 @@ export function useMarkdownEditor({
   onFrontmatterWizard,
   isActivePane = true,
   isSplit = false,
+  filePath,
 }: UseMarkdownEditorProps) {
   const wrapperRef = useRef<HTMLDivElement | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
@@ -114,6 +117,27 @@ export function useMarkdownEditor({
     const end = valueOffsetToDisplayOffset(pending.end, ranges);
     textareaRef.current.setSelectionRange(start, end);
   }, [ranges]);
+
+  // One-shot "jump to line" consumed after navigating here from Tasks view —
+  // computes the raw-value offset for the target line, maps it through any
+  // collapsed-callout ranges, then moves the caret and scrolls it into view.
+  const [pendingScrollTarget, setPendingScrollTarget] = useAtom(atom_pendingScrollTarget);
+  useEffect(() => {
+    if (!pendingScrollTarget || pendingScrollTarget.path !== filePath) return;
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+    const lines = value.split("\n");
+    let rawOffset = 0;
+    for (let i = 0; i < pendingScrollTarget.line && i < lines.length; i++) {
+      rawOffset += lines[i].length + 1;
+    }
+    const displayOffset = valueOffsetToDisplayOffset(rawOffset, ranges);
+    textarea.focus();
+    textarea.setSelectionRange(displayOffset, displayOffset);
+    const lineHeight = parseFloat(getComputedStyle(textarea).lineHeight || "20") || 20;
+    textarea.scrollTop = Math.max(0, lineHeight * pendingScrollTarget.line - textarea.clientHeight / 2);
+    setPendingScrollTarget(null);
+  }, [pendingScrollTarget, filePath, value, ranges, setPendingScrollTarget]);
 
   const {
     fontFamily,

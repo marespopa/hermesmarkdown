@@ -293,6 +293,12 @@ export function generateAgentsMd(
     ? `\n## Vault Structure\n\`\`\`\n${folderTree}\n\`\`\`\n`
     : "";
 
+  const taskMetadataSection = `\n## Task Metadata
+Checklist items (\`- [ ]\` / \`- [x]\`) are tasks. An unchecked item tagged \`#prog\` is in progress:
+\`- [ ] Ship report #prog\`
+See \`.hermes/index.yaml\` → \`tasks.prog\` / \`tasks.todo\` for outstanding work across the vault without parsing every file.
+`;
+
   return `---
 schema_hash: "${schemaHash}"
 generated: "${now}"
@@ -321,7 +327,7 @@ ${allFields}
 - related: use [[WikiLink]] syntax; links must resolve to existing files
 - tags: use existing vault tags where possible
 - Unknown fields not in schema: preserve as-is, do not strip
-${statusSection}${structureSection}`;
+${statusSection}${taskMetadataSection}${structureSection}`;
 }
 
 // ---------------------------------------------------------------------------

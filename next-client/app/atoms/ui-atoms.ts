@@ -98,8 +98,13 @@ export const atom_sidebarWidth = atomWithStorage<number>("sidebarWidth", 260);
 // The rail is always visible; `atom_railPanel` is which panel (if any) is
 // open next to it — null means the sidebar is collapsed to just the rail.
 // Transient — never persisted, since writing mode always starts clean (collapsed).
-export type RailPanel = "files" | "search" | "tags" | "views";
+export type RailPanel = "files" | "search" | "tags" | "views" | "tasks";
 export const atom_railPanel = atom<RailPanel | null>(null);
+
+// Set when navigating to a task from the Tasks view; consumed once by the
+// editor pane whose filePath matches, to move the caret to that line, then
+// cleared. Never persisted — purely a one-shot navigation signal.
+export const atom_pendingScrollTarget = atom<{ path: string; line: number } | null>(null);
 
 export type DialogType = "alert" | "confirm" | "prompt" | "select" | "new-file";
 

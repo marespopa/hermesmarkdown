@@ -172,7 +172,7 @@ export function useDriveVaultManager() {
         const existing = prev[path];
         next[path] = existing
           ? { ...existing, handle }
-          : { path, name: handle.name, handle, tags: [], links: [], frontmatter: {}, modifiedAt: 0, wordCount: 0 };
+          : { path, name: handle.name, handle, tags: [], links: [], frontmatter: {}, modifiedAt: 0, wordCount: 0, tasks: [] };
       });
       return next;
     });
@@ -291,7 +291,7 @@ export function useDriveVaultManager() {
         const next: Record<string, any> = {};
         mdFiles.forEach(([path, entry]) => {
           const h = new DriveFileHandle(entry.name, entry.id);
-          next[path] = { path, name: h.name, handle: h, tags: [], links: [], frontmatter: {}, modifiedAt: entry.modifiedAt, wordCount: 0 };
+          next[path] = { path, name: h.name, handle: h, tags: [], links: [], frontmatter: {}, modifiedAt: entry.modifiedAt, wordCount: 0, tasks: [] };
         });
         return next;
       });
