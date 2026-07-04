@@ -73,6 +73,12 @@ export function useTableCallout({ value, textareaRef, onChange }: UseTableCallou
   // moment the caret moves to a different table (or out of any table)
   // without disturbing the in-progress edit while the caret is still there.
   const lastTableRef = useRef<TableInfo | null>(null);
+  // Cursor position to restore once React re-renders the textarea with the
+  // edited value. Applied in a useLayoutEffect (see below) rather than a
+  // setTimeout so it happens before the browser paints — a macrotask delay
+  // lets the browser paint the intermediate "cursor at end" state first,
+  // producing a visible jump-to-end-then-back flash.
+  const pendingSelectionRef = useRef<number | null>(null);
 
   // Replace `target`'s table range in the textarea using execCommand so the
   // operation is recorded in the browser's native undo/redo stack.
@@ -97,10 +103,13 @@ export function useTableCallout({ value, textareaRef, onChange }: UseTableCallou
       document.execCommand("insertText", false, newTableContent);
 
       if (cursorPos !== undefined) {
-        // Defer past React's state flush so setSelectionRange isn't overwritten
-        setTimeout(() => {
-          textarea.setSelectionRange(cursorPos, cursorPos);
-        }, 0);
+        // Correct the caret immediately — execCommand's native behavior
+        // otherwise leaves it at the end of the inserted content, which is
+        // visible for a frame if we only wait for the deferred re-apply below.
+        textarea.setSelectionRange(cursorPos, cursorPos);
+        // Re-apply once React's controlled re-render lands (it may reset the
+        // caret when it syncs the textarea's value), via the useLayoutEffect below.
+        pendingSelectionRef.current = cursorPos;
       }
     },
     [textareaRef],
@@ -136,16 +145,10 @@ export function useTableCallout({ value, textareaRef, onChange }: UseTableCallou
       const tableEndOffset = exited.tableStartOffset + oldContent.length;
       const adjustedCaretPos = caretPos >= tableEndOffset ? caretPos + delta : caretPos;
 
+      pendingSelectionRef.current = adjustedCaretPos;
       onChange(newLines.join("\n"));
-
-      const textarea = textareaRef.current;
-      if (textarea) {
-        setTimeout(() => {
-          textarea.setSelectionRange(adjustedCaretPos, adjustedCaretPos);
-        }, 0);
-      }
     },
-    [onChange, textareaRef],
+    [onChange],
   );
 
   const detectTableAtCaret = useCallback(() => {
@@ -192,8 +195,13 @@ export function useTableCallout({ value, textareaRef, onChange }: UseTableCallou
 
   // Immediately recalculate callout position on value change for smooth animation
   useLayoutEffect(() => {
+    if (pendingSelectionRef.current !== null) {
+      const pos = pendingSelectionRef.current;
+      pendingSelectionRef.current = null;
+      textareaRef.current?.setSelectionRange(pos, pos);
+    }
     detectTableAtCaret();
-  }, [value, detectTableAtCaret]);
+  }, [value, detectTableAtCaret, textareaRef]);
 
   useEffect(() => {
     document.addEventListener("selectionchange", detectTableAtCaret);
@@ -274,16 +282,13 @@ export function useTableCallout({ value, textareaRef, onChange }: UseTableCallou
       const textarea = textareaRef.current;
       if (!textarea || document.activeElement !== textarea) return false;
 
-      const line = tableInfo.lines[tableInfo.lineIdx];
-      const lineStart = computeLineOffset(tableInfo.lines, tableInfo.lineIdx);
-      const posInLine = textarea.selectionStart - lineStart;
-
       let targetRow = -1;
       let targetCol = -1;
 
       if (!e.shiftKey) {
-        const nextPipe = line.indexOf("|", posInLine + 1);
-        if (nextPipe !== -1 && nextPipe < line.length - 1) {
+        const pipeCount = (tableInfo.lines[tableInfo.lineIdx].match(/\|/g) || []).length;
+        const lastCol = Math.max(0, pipeCount - 2);
+        if (tableInfo.cursorCol < lastCol) {
           targetRow = tableInfo.lineIdx;
           targetCol = tableInfo.cursorCol + 1;
         } else {
