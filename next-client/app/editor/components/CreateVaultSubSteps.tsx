@@ -124,8 +124,9 @@ export default function CreateVaultSubSteps(props: CreateVaultProps) {
         </button>
 
         <p className="text-[10px] opacity-40 px-1 leading-relaxed">
-          Picking a folder inside Google Drive, iCloud, or Dropbox syncs via the desktop app.
-          For browser-only Drive sync, use the Drive integration in Settings after creating the vault.
+          Google Drive, iCloud, and Dropbox sync via their own sync client on your computer. Don&apos;t select a
+          Drive folder directly — it can break sync. Instead, connect Drive via the Drive integration in Settings
+          after creating the vault, which uses the API.
         </p>
 
         {error && !nameError && (

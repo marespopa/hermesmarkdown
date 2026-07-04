@@ -88,6 +88,7 @@ export default function VaultSidebar({
     isVaultSupported,
     isDriveVault,
     openDriveVault,
+    openDriveVaultPicker,
     driveAuthState,
     driveSignIn,
     scanVault,
@@ -127,6 +128,11 @@ export default function VaultSidebar({
   const driveVaultName = useAtomValue(atom_driveVaultName);
   const setRailPanel = useSetAtom(atom_railPanel);
   const [isResizing, setIsResizing] = useState(false);
+
+  const handleDriveConnected = useCallback(async (folderId: string, folderName: string) => {
+    await openDriveVault(folderId, folderName);
+    setRailPanel("files");
+  }, [openDriveVault, setRailPanel]);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   const handleRefresh = useCallback(async () => {
@@ -263,6 +269,7 @@ export default function VaultSidebar({
                 isVaultSupported={isVaultSupported}
                 openVault={openVault}
                 onCreateVault={() => setNewVaultFlowOpen(true)}
+                onConnectDrive={openDriveVaultPicker}
                 onImport={onImport}
                 onExport={onExport}
                 setActiveFilePath={setActiveFilePath}
@@ -376,7 +383,7 @@ export default function VaultSidebar({
         isRefreshing={isRefreshing}
       />
 
-      <GoogleDriveFolderPicker onSelect={openDriveVault} />
+      <GoogleDriveFolderPicker onSelect={handleDriveConnected} />
       </div>
   );
 }

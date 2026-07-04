@@ -1254,7 +1254,7 @@ export default function Documentation() {
   );
 
   return (
-    <main className="selection:bg-sage/30 overflow-x-hidden font-sans relative">
+    <main className="selection:bg-sage/30 overflow-x-clip font-sans relative">
       <div
         className="fixed top-0 left-0 h-[2px] bg-sage z-50 transition-all duration-75"
         style={{ width: `${scrollProgress * 100}%` }}

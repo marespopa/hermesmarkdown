@@ -39,7 +39,7 @@ This note is your vault's entry point. Each link below points to a note covering
 ---
 
 > [!tip] WikiLinks
-> Click any \`[[link]]\` to open the referenced note. Type \`[[\` in the editor to create a new one.
+> Click any of the links above to open the referenced note. Type \`[[\` in the editor to create a new one.
 `,
   },
   {
@@ -145,10 +145,10 @@ HermesMarkdown supports Obsidian-compatible callout blocks. Use them to highligh
 > [!tip] Tip
 > Use this for shortcuts, best practices, or optional enhancements.
 
-## Important
+## Danger
 
-> [!important] Important
-> Use this for must-read information that would cause problems if missed.
+> [!danger] Danger
+> Use this for critical, high-consequence information — something that will break or cause real damage if ignored.
 
 ---
 
@@ -215,6 +215,7 @@ tags: [domain, tags]
     path: ".hermes/index.yaml",
     description: "Machine-readable vault index with scope and read_when metadata per file",
     content: `version: 1
+generated: 2026-06-25T10:00:00Z
 
 # Vault index for the Lighthouse Engineering starter pack.
 # read_when values are agent filter hints — load a file only when the task
@@ -223,56 +224,52 @@ tags: [domain, tags]
 
 files:
   - path: AGENTS.md
+    title: AGENTS
+    status: active
     scope: "Entry point for the Lighthouse project vault — orients agents and readers, links to all other files"
     read_when: [always]
+    related: ["architecture.md", "adr-001-database.md", "adr-002-repo-structure.md", "bug-tracker.md", "meeting-notes.md"]
+    tags: [meta, agent, index]
 
   - path: architecture.md
+    title: architecture
+    status: active
     scope: "System architecture overview — components, data flow, deployment topology, and known constraints"
-    read_when:
-      - architecture
-      - system design
-      - how does X work
-      - deployment topology
-      - data flow
-      - component relationships
-      - known constraints
+    read_when: [architecture, system design, how does X work, deployment topology, data flow, component relationships, known constraints]
+    related: ["AGENTS.md", "adr-001-database.md", "adr-002-repo-structure.md", "bug-tracker.md"]
+    tags: [architecture, reference]
 
   - path: adr-001-database.md
+    title: adr-001-database
+    status: active
     scope: "Decision record for choosing PostgreSQL as the primary datastore over MongoDB"
-    read_when:
-      - database choice
-      - storage decision
-      - why PostgreSQL
-      - schema design
-      - architecture decisions
+    read_when: [database choice, storage decision, why PostgreSQL, schema design, architecture decisions]
+    related: ["AGENTS.md", "architecture.md", "adr-002-repo-structure.md"]
+    tags: [adr, architecture, database]
 
   - path: adr-002-repo-structure.md
+    title: adr-002-repo-structure
+    status: active
     scope: "Decision record for adopting a monorepo over separate per-service repositories"
-    read_when:
-      - repo structure
-      - monorepo
-      - code organisation
-      - build pipeline
-      - architecture decisions
+    read_when: [repo structure, monorepo, code organisation, build pipeline, architecture decisions]
+    related: ["AGENTS.md", "architecture.md", "adr-001-database.md"]
+    tags: [adr, architecture, repo, ci]
 
   - path: bug-tracker.md
+    title: bug-tracker
+    status: active
     scope: "Open and recently resolved bugs — severity, status, and date logged"
-    read_when:
-      - bugs
-      - open issues
-      - what is broken
-      - severity
-      - incident follow-up
+    read_when: [bugs, open issues, what is broken, severity, incident follow-up]
+    related: ["AGENTS.md", "meeting-notes.md", "architecture.md"]
+    tags: [bugs, tracking]
 
   - path: meeting-notes.md
+    title: meeting-notes
+    status: active
     scope: "Informal team meeting notes — decisions, blockers, and action items by date"
-    read_when:
-      - meeting
-      - team sync
-      - what was decided
-      - recent discussions
-      - action items
-      - retrospective
+    read_when: [meeting, team sync, what was decided, recent discussions, action items, retrospective]
+    related: ["AGENTS.md", "bug-tracker.md", "architecture.md"]
+    tags: [meeting, team]
 `,
   },
   {
@@ -598,7 +595,7 @@ tags: [finance, budget]
 ---
 
 > [!tip] Formulas
-> Cells starting with \`=\` are live formulas. \`Income!B\` references column B of the Income table above — tables are linked by their heading names. The \`$\` currency symbol carries through to results automatically.
+> Cells starting with \`=\` are live formulas. \`Income!B\` references column B of the Income table above — **tables are linked by their heading names, not by position**. The \`$\` currency symbol carries through to results automatically.
 `,
   },
   {
@@ -633,7 +630,7 @@ tags: [finance, debt]
 ---
 
 > [!tip] Avalanche method
-> Pay minimums on all debts, then direct extra cash to the highest-rate one first — this minimises total interest paid. The Payoff Stats table reads live from the table above: \`=SUM("Debt Tracker"!B)\` references column B of any table whose heading matches.
+> **Pay minimums on all debts, then direct extra cash to the highest-rate one first** — this minimises total interest paid. The Payoff Stats table reads live from the table above: \`=SUM("Debt Tracker"!B)\` references column B of any table whose heading matches.
 `,
   },
   {
@@ -660,11 +657,12 @@ tags: [finance, expenses, subscriptions]
 | Gym | $150 | Monthly | $150 |
 | News | $84 | Annual | =ROUND(B8/12,0) |
 | Total | — | — | =SUM(D2:D8) |
+| % of salary | — | — | =ROUND(D9/5000*100,1) |
 
 ---
 
 > [!tip] Annual subscriptions
-> Annual costs are divided by 12 using \`=ROUND(B5/12, 0)\` so they compare fairly with monthly ones. The last row shows what percentage of a $5,000 salary these subscriptions consume — it references the Total row directly with \`=ROUND(D9/5000*100,1)\`.
+> **Annual costs are divided by 12 so they compare fairly with monthly ones** — e.g. \`=ROUND(B5/12, 0)\`. The last row shows what percentage of a $5,000 salary these subscriptions consume — it references the Total row directly with \`=ROUND(D9/5000*100,1)\`.
 `,
   },
 ];

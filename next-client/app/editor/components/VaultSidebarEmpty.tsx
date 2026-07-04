@@ -4,6 +4,7 @@ import React from "react";
 import {
   HiOutlineDocumentText,
   HiOutlineDatabase,
+  HiOutlineCloud,
   HiOutlineCloudDownload,
   HiOutlineCloudUpload,
   HiOutlineFolderAdd,
@@ -14,6 +15,7 @@ interface VaultSidebarEmptyProps {
   isVaultSupported: boolean;
   openVault: () => void;
   onCreateVault?: () => void;
+  onConnectDrive?: () => void;
   onImport?: () => void;
   onExport?: () => void;
   setActiveFilePath: (path: string) => void;
@@ -25,6 +27,7 @@ export default function VaultSidebarEmpty({
   isVaultSupported,
   openVault,
   onCreateVault,
+  onConnectDrive,
   onImport,
   onExport,
   setActiveFilePath,
@@ -56,10 +59,18 @@ export default function VaultSidebarEmpty({
         ) : (
           <div className="px-4 py-3 rounded-xl bg-amber-500/5 border border-amber-500/10 mb-2">
             <p className="text-ui-footnote text-amber-600 dark:text-amber-400 leading-relaxed font-medium">
-              Vaults require Desktop.
+              Local vaults require Desktop.
             </p>
           </div>
         )}
+
+        <div
+          onClick={onConnectDrive}
+          className="flex items-center gap-3 px-4 py-3 rounded-xl cursor-pointer hover:bg-paper-softgray dark:hover:bg-paper-dark-surface/40 transition-colors text-ui-footnote text-ink-muted dark:text-stone font-medium"
+        >
+          <HiOutlineCloud size={18} />
+          <span>Connect Google Drive</span>
+        </div>
 
         <div
           onClick={() => {
