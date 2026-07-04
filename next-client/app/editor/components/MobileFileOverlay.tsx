@@ -1,9 +1,10 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import Portal from "@/app/components/Portal/Portal";
 import { useAtom, useAtomValue } from "jotai";
 import { atom_activeFilePath } from "@/app/atoms/atoms";
+import { atom_drivePathIndex } from "@/app/atoms/drive-atoms";
 import { useFileSystem } from "@/app/hooks/use-file-system";
 import { useSidebarSearch } from "../hooks/useSidebarSearch";
 import SmartFolders from "./SmartFolders";
@@ -11,6 +12,7 @@ import VaultSidebarFiles from "./VaultSidebarFiles";
 import UnifiedSearchInput from "./UnifiedSearchInput";
 import { HiOutlineX } from "react-icons/hi";
 import { useBackButtonClose } from "@/app/hooks/use-back-button-close";
+import { DriveDirectoryHandle } from "@/app/services/drive/DriveDirectoryHandle";
 
 export default function MobileFileOverlay({
   isOpen,
@@ -19,12 +21,42 @@ export default function MobileFileOverlay({
   isOpen: boolean;
   onClose: () => void;
 }) {
-  const { openFile, renameFile, deleteFile, duplicateFile } = useFileSystem();
+  const {
+    openFile,
+    renameFile,
+    deleteFile,
+    duplicateFile,
+    moveItem,
+    createNewFile,
+    vaultHandle,
+    isDriveVault,
+  } = useFileSystem();
   const activeFilePath = useAtomValue(atom_activeFilePath);
+  const drivePathIndex = useAtomValue(atom_drivePathIndex);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
-  const { searchQuery, setSearchQuery, processedFiles, totalResultsCount, hasMoreResults, setShowAllResults, tags } =
+  const [activeTab, setActiveTab] = useState<"files" | "views">("files");
+  const { searchQuery, setSearchQuery, processedFiles, totalResultsCount, hasMoreResults, setShowAllResults, allFiles, tags } =
     useSidebarSearch({ selectedTags, panel: "search" });
   const isSearching = searchQuery.trim().length > 0 || selectedTags.length > 0;
+
+  const resolveFolderHandle = useCallback(async (path: string): Promise<any | null> => {
+    if (!path) return vaultHandle;
+    if (isDriveVault) {
+      const entry = drivePathIndex?.getEntry(path);
+      if (!entry) return null;
+      return new DriveDirectoryHandle(entry.name, entry.id);
+    }
+    if (!vaultHandle) return null;
+    let dir: any = vaultHandle;
+    for (const segment of path.split("/")) {
+      try {
+        dir = await dir.getDirectoryHandle(segment);
+      } catch {
+        return null;
+      }
+    }
+    return dir;
+  }, [vaultHandle, isDriveVault, drivePathIndex]);
 
   useBackButtonClose(isOpen, onClose);
 
@@ -49,6 +81,24 @@ export default function MobileFileOverlay({
             onTextChange={setSearchQuery}
           />
         </div>
+        {!isSearching && (
+          <div className="flex border-b border-edge-subtle shrink-0">
+            {(["files", "views"] as const).map((tab) => (
+              <button
+                key={tab}
+                type="button"
+                onClick={() => setActiveTab(tab)}
+                className={`flex-1 py-2 text-ui-footnote text-center capitalize transition-colors ${
+                  activeTab === tab
+                    ? "text-accent font-medium border-b-2 border-accent"
+                    : "text-fg-faint hover:text-fg-muted"
+                }`}
+              >
+                {tab}
+              </button>
+            ))}
+          </div>
+        )}
         <div className="flex-1 overflow-y-auto">
           {isSearching ? (
             <div className="flex flex-col h-full">
@@ -73,7 +123,7 @@ export default function MobileFileOverlay({
                 </button>
               )}
             </div>
-          ) : (
+          ) : activeTab === "views" ? (
             <SmartFolders
               onFileSelect={(handle, path) => {
                 openFile(handle, path);
@@ -83,6 +133,22 @@ export default function MobileFileOverlay({
               deleteFile={deleteFile}
               duplicateFile={duplicateFile}
               onMatchCountChange={() => {}}
+            />
+          ) : (
+            <VaultSidebarFiles
+              processedFiles={allFiles}
+              activeFilePath={activeFilePath}
+              openFile={openFile}
+              renameFile={renameFile}
+              deleteFile={deleteFile}
+              duplicateFile={duplicateFile}
+              onClose={onClose}
+              isSearchActive={false}
+              highlightQuery=""
+              treeView
+              resolveFolderHandle={resolveFolderHandle}
+              createNewFile={createNewFile}
+              moveItem={moveItem}
             />
           )}
         </div>
