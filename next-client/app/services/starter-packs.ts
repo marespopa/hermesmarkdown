@@ -36,10 +36,23 @@ This note is your vault's entry point. Each link below points to a note covering
 
 - [[callout-demo]] — All supported callout block styles
 
+## File Index
+
+| File | Status |
+|------|--------|
+| [[atomic-notes-guide]] | active |
+| [[daily-note]] | draft |
+| [[callout-demo]] | active |
+
 ---
 
 > [!tip] WikiLinks
-> Click any of the links above to open the referenced note. Type \`[[\` in the editor to create a new one.
+> Click any of the links above to open the referenced note. Type \`[[\` in the editor to create a new one. **WikiLinks are resolved by filename, not by path.**
+
+\`\`\`text
+[[note-name]]        -> links to note-name.md
+[[note-name|Label]]  -> links to note-name.md, displays "Label"
+\`\`\`
 `,
   },
   {
@@ -74,6 +87,23 @@ An atomic note captures exactly one idea — small enough to fit in your head, l
 
 - Multiple unrelated ideas (split them into separate files instead).
 - Raw captured text you haven't processed — that belongs in a daily note first.
+
+## Atomic vs. Non-Atomic
+
+| Trait | Atomic note | Non-atomic note |
+|-------|-------------|------------------|
+| Idea count | One | Many |
+| Reusability | High | Low |
+| Typical length | Short | Long |
+
+## Example
+
+\`\`\`markdown
+---
+title: "example-note"
+scope: "One sentence describing what this note covers."
+---
+\`\`\`
 
 ## Related
 
@@ -112,6 +142,26 @@ What slowed you down or is still unresolved?
 ## Tomorrow
 
 What's the first thing you'll do when you sit down?
+
+## Checklist
+
+- [ ] Review yesterday's blockers
+- [ ] Log time entries
+- [ ] Plan tomorrow's top priority
+
+## Mood & Energy
+
+| Metric | Rating (1-5) |
+|--------|:---:|
+| Mood | |
+| Energy | |
+| Focus | |
+
+**Tip:** Rate honestly — this data is only useful if you're consistent about it.
+
+\`\`\`text
+2026-07-01.md
+\`\`\`
 `,
   },
   {
@@ -150,9 +200,28 @@ HermesMarkdown supports Obsidian-compatible callout blocks. Use them to highligh
 > [!danger] Danger
 > Use this for critical, high-consequence information — something that will break or cause real damage if ignored.
 
+## Callout Types
+
+| Type | Use case |
+|------|----------|
+| note | Supplementary information |
+| warning | Requires care or a prerequisite |
+| tip | Shortcuts and best practices |
+| danger | Critical, high-consequence information |
+
+- Use \`[!note]\` for general information
+- Use \`[!warning]\` for cautions
+- Use \`[!tip]\` for suggestions
+- Use \`[!danger]\` for critical warnings
+
 ---
 
 **Syntax:** \`> [!type] Optional title\` followed by the body on indented lines.
+
+\`\`\`markdown
+> [!note] Title
+> Body text, indented with a leading \`>\` on each line.
+\`\`\`
 `,
   },
 ];
@@ -301,7 +370,7 @@ Lighthouse has three runtime services and one shared library, all in a monorepo 
 
 ## Data Flow
 
-\`\`\`
+\`\`\`text
 Upstream services
       |
    [Kafka]
@@ -350,6 +419,12 @@ On every pull request:
 | Ingestor buffer ceiling: in-memory queue caps at 10,000 messages; excess metrics are dropped with no back-pressure to the upstream queue | [[bug-tracker]] BUG-012 |
 | Alert deduplication state is in-memory and resets on restart | [[bug-tracker]] BUG-011 |
 | No \`/healthz\` endpoint on the Ingestor reflecting queue pressure; load balancers cannot route around a saturated instance | Agreed fix, unticketted |
+
+## Related Reading
+
+- [[adr-001-database]] — datastore rationale and trade-offs
+- [[adr-002-repo-structure]] — repo structure rationale
+- [[bug-tracker]] — known constraints tracked as bugs
 `,
   },
   {
@@ -384,6 +459,15 @@ The data model has two distinct shapes:
 
 See [[architecture]] for how the datastore fits into the overall system.
 
+## Alternatives Compared
+
+| Aspect | PostgreSQL | MongoDB |
+|--------|-----------|---------|
+| Schema | Strict, relational | Flexible, document |
+| ACID guarantees | Full | Partial (multi-doc since v4) |
+| Semi-structured data | JSONB columns | Native |
+| Team familiarity | High | Low |
+
 ## Decision
 
 Adopt **PostgreSQL** with JSONB columns for semi-structured payloads.
@@ -398,6 +482,12 @@ Reasons:
 - Schema migrations are required for structural changes to core tables. Use a migration tool (Flyway or golang-migrate) from day one — ad-hoc \`ALTER TABLE\` in production is not acceptable.
 - JSONB query syntax (\`->>\`, \`@>\`) is less ergonomic than native document queries; comment non-obvious queries in code.
 - Horizontal write scaling (sharding) is harder than with MongoDB. Current load projections do not require it for at least 18 months; revisit if sustained ingest volume exceeds 5k events/sec.
+
+\`\`\`sql
+SELECT payload->>'event_type'
+FROM webhook_events
+WHERE payload @> '{"source": "github"}';
+\`\`\`
 `,
   },
   {
@@ -427,6 +517,14 @@ Lighthouse consists of three services (API, Ingestor, Notifier) and a shared lib
 
 See [[architecture]] for the service breakdown.
 
+## Alternatives Compared
+
+| Aspect | Polyrepo | Monorepo |
+|--------|----------|----------|
+| Dependency drift | High risk | Prevented via atomic commits |
+| CI rebuild scope | Per-repo | Incremental (Turborepo) |
+| Publish overhead | Semver + registry | None (workspace import) |
+
 ## Decision
 
 Adopt a **monorepo** managed with Turborepo.
@@ -442,6 +540,10 @@ Reasons:
 - The CI pipeline must be Turborepo-aware; a naive "run everything" approach negates the incremental build savings.
 - Onboarding requires familiarity with pnpm workspaces. Document the \`pnpm install && turbo run build\` bootstrap in the repo README.
 - If services need divergent Node.js major versions in future, the monorepo constraint becomes a friction point; evaluate then.
+
+\`\`\`bash
+pnpm install && turbo run build
+\`\`\`
 `,
   },
   {
@@ -458,6 +560,8 @@ tags: [bugs, tracking]
 
 # Bug Tracker
 
+## Open Issues
+
 | ID | Description | Severity | Status | Logged |
 |----|-------------|:--------:|--------|-------:|
 | BUG-012 | Ingestor drops metrics when in-memory buffer exceeds 10k messages | high | open | 2026-06-18 |
@@ -466,12 +570,16 @@ tags: [bugs, tracking]
 | BUG-009 | Dashboard sparklines misalign on Safari 17 | low | open | 2026-06-07 |
 | BUG-008 | Deployment event timestamps stored in local time instead of UTC | medium | resolved | 2026-05-29 |
 
----
-
-**Severity:** \`high\` · \`medium\` · \`low\`
-**Status:** \`open\` · \`in-progress\` · \`resolved\`
-
 Add new rows at the top. Move resolved rows to the archive once the sprint closes.
+
+## Legend
+
+\`\`\`text
+severity: high | medium | low
+status: open | in-progress | resolved
+\`\`\`
+
+## Notes
 
 Context on open high-severity items:
 - **BUG-012** — root cause and short-term fix discussed in [[meeting-notes]] (2026-06-18 retro). See also [[architecture#Known Constraints]].
@@ -500,6 +608,14 @@ tags: [meeting, team]
 # Meeting Notes
 
 Most recent first. Architectural decisions go in [[architecture]] or a new ADR — not here.
+
+## Action Item Owners
+
+| Owner | Open items |
+|-------|-----------:|
+| Sam | 1 |
+| Mira | 1 |
+| Dev | 1 |
 
 ---
 
@@ -543,6 +659,10 @@ Reviewed the draft [[architecture]] doc. Two open questions going in:
    Already captured in [[adr-002-repo-structure]]. Decision made; closed.
 
 No new action items beyond Dev pushing the architecture update before the next planning session.
+
+\`\`\`text
+YYYY-MM-DD — Meeting Title
+\`\`\`
 `,
   },
 ];
@@ -592,6 +712,16 @@ tags: [finance, budget]
 | Savings target (20%) | =20%*B2 |
 | Saving enough? | =IF(B4>=B5,"Yes ✓","No ✗") |
 
+## Notes
+
+- **Update amounts monthly** — replace static row values as your income or expenses change.
+- Formulas recalculate automatically when a referenced cell changes.
+
+\`\`\`text
+=SUM(range)       total a column
+=IF(cond,a,b)     conditional value
+\`\`\`
+
 ---
 
 > [!tip] Formulas
@@ -612,6 +742,8 @@ tags: [finance, debt]
 
 # Debt Tracker
 
+## Balances
+
 | Creditor | Balance | Rate | Monthly Interest | Monthly Payment | Months Left |
 |----------|--------:|-----:|-----------------:|----------------:|------------:|
 | Bank loan | $12,000 | 8.5% | =8.5%*B2/12 | $500 | 24 |
@@ -626,6 +758,16 @@ tags: [finance, debt]
 | Total debt | =SUM("Debt Tracker"!B) |
 | Monthly interest | =SUM("Debt Tracker"!D) |
 | Monthly payments | =SUM("Debt Tracker"!E) |
+
+## Strategy
+
+- **Avalanche method** — pay minimums on all debts, then direct extra cash to the highest-rate one first.
+- Track monthly interest against monthly payments to see how much reduces principal.
+
+\`\`\`text
+priority: highest interest rate first (avalanche)
+alternative: smallest balance first (snowball)
+\`\`\`
 
 ---
 
@@ -647,6 +789,8 @@ tags: [finance, expenses, subscriptions]
 
 # Recurring Expenses
 
+## Subscriptions
+
 | Service | Billed | Frequency | Monthly |
 |---------|-------:|:---------:|--------:|
 | Internet | $60 | Monthly | $60 |
@@ -658,6 +802,16 @@ tags: [finance, expenses, subscriptions]
 | News | $84 | Annual | =ROUND(B8/12,0) |
 | Total | — | — | =SUM(D2:D8) |
 | % of salary | — | — | =ROUND(D9/5000*100,1) |
+
+## Totals
+
+- **Total monthly cost** is computed from the Monthly column above.
+- **Percent of salary** compares the total against a $5,000 baseline salary.
+
+\`\`\`text
+frequency: Monthly | Annual
+formula: annual_amount / 12 = monthly_equivalent
+\`\`\`
 
 ---
 
