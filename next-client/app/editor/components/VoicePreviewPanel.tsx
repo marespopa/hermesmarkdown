@@ -1,11 +1,13 @@
 "use client";
 
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { HiX } from "react-icons/hi";
+import { HiX, HiOutlineQuestionMarkCircle, HiChevronDown, HiChevronUp } from "react-icons/hi";
 import Portal from "../../components/Portal";
 import Button from "../../components/Button";
 import useIsMobileChrome from "@/app/hooks/use-mobile-chrome";
+import useKeyboardInset from "@/app/hooks/use-keyboard-inset";
 import { SHORTCODES } from "./constants";
+import { VOICE_COMMAND_HELP } from "../utils/voice-command-parser";
 
 const STORAGE_KEY = "hermes_voice_panel_pos";
 const EDGE_PAD = 16;
@@ -57,18 +59,57 @@ export default function VoicePreviewPanel({
   // the panel can lift itself clear instead of being rendered underneath it
   // (a `fixed bottom-*` element doesn't move on its own when the keyboard
   // opens on most mobile browsers).
-  const [keyboardInset, setKeyboardInset] = useState(0);
+  const keyboardInset = useKeyboardInset();
+
+  // What's actually painted in the textarea. Lags behind `previewText` when
+  // a new voice chunk lands, so it can be revealed with a typewriter effect.
+  // Manual edits (typing directly in the box) update this synchronously in
+  // the same tick as the keystroke (see handlePreviewChange), so by the time
+  // `previewText` itself changes to match, this effect's early-return above
+  // already skips it — no animation for anything the user typed themselves.
+  const [displayedText, setDisplayedText] = useState(previewText);
+  const typewriterTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
   useEffect(() => {
-    const vv = window.visualViewport;
-    if (!vv) return;
-    const handleResize = () => {
-      const shrink = window.innerHeight - vv.height;
-      setKeyboardInset(shrink > 150 ? shrink : 0);
+    if (previewText === displayedText) return;
+
+    if (typewriterTimerRef.current) {
+      clearInterval(typewriterTimerRef.current);
+      typewriterTimerRef.current = null;
+    }
+
+    // Not a simple append (discard/replace-previous/delete-last) — nothing
+    // sensible to "type out", just snap to the new value.
+    if (!previewText.startsWith(displayedText)) {
+      setDisplayedText(previewText);
+      return;
+    }
+
+    let i = displayedText.length;
+    typewriterTimerRef.current = setInterval(() => {
+      i++;
+      setDisplayedText(previewText.slice(0, i));
+      if (i >= previewText.length && typewriterTimerRef.current) {
+        clearInterval(typewriterTimerRef.current);
+        typewriterTimerRef.current = null;
+      }
+    }, 18);
+
+    return () => {
+      if (typewriterTimerRef.current) {
+        clearInterval(typewriterTimerRef.current);
+        typewriterTimerRef.current = null;
+      }
     };
-    handleResize();
-    vv.addEventListener("resize", handleResize);
-    return () => vv.removeEventListener("resize", handleResize);
-  }, []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [previewText]);
+
+  // Always keep the newest dictated/typed text in view rather than leaving
+  // the scroll position wherever it was when the box last had focus.
+  useEffect(() => {
+    const el = textareaRef.current;
+    if (el) el.scrollTop = el.scrollHeight;
+  }, [displayedText, interimText]);
 
   // Undragged, the panel sits centered via CSS (see `pos === null` below).
   // Once dragged, its position is pinned in pixels and remembered across
@@ -155,6 +196,8 @@ export default function VoicePreviewPanel({
     window.addEventListener("mouseup", onUp);
   }, [isMobileChrome]);
 
+  const [showCommands, setShowCommands] = useState(false);
+
   if (!visible) return null;
 
   const effectivePos = isMobileChrome ? null : pos;
@@ -182,11 +225,13 @@ export default function VoicePreviewPanel({
         const replacement = getValue();
         textarea.setSelectionRange(sliceStart, start);
         document.execCommand("insertText", false, replacement);
+        setDisplayedText(textarea.value);
         onPreviewTextChange(textarea.value);
         return;
       }
     }
 
+    setDisplayedText(val);
     onPreviewTextChange(val);
   };
 
@@ -244,7 +289,7 @@ export default function VoicePreviewPanel({
 
         <textarea
           ref={textareaRef}
-          value={previewText}
+          value={displayedText}
           onChange={handlePreviewChange}
           onKeyDown={handleKeyDown}
           placeholder="Dictated text will appear here for review…"
@@ -255,10 +300,44 @@ export default function VoicePreviewPanel({
 
         {interimText && <div className="text-ui-footnote italic text-ink-muted px-1">{interimText}</div>}
 
-        <div className="flex justify-end gap-2">
-          <Button variant="primary" isDisabled={!previewText.trim()} onClick={commitAndRefocus}>
-            Insert
-          </Button>
+        {showCommands && (
+          <div className="rounded-lg border border-edge bg-paper-pale dark:bg-paper-dark max-h-40 overflow-y-auto">
+            {VOICE_COMMAND_HELP.map((cmd) => (
+              <div
+                key={cmd.phrase}
+                className="flex items-baseline justify-between gap-3 px-3 py-1.5 text-ui-caption border-b border-edge-subtle last:border-b-0"
+              >
+                <span className="font-mono text-ink-light dark:text-ink-dark truncate">{cmd.phrase}</span>
+                <span className="text-ink-muted shrink-0">{cmd.result}</span>
+              </div>
+            ))}
+          </div>
+        )}
+
+        <div className="flex items-center justify-between gap-2">
+          <button
+            type="button"
+            onClick={() => setShowCommands((v) => !v)}
+            aria-expanded={showCommands}
+            aria-label="Show voice commands"
+            className={`flex items-center gap-1 text-ui-caption transition-colors ${
+              showCommands ? "text-sage" : "text-ink-muted hover:text-sage"
+            }`}
+          >
+            <HiOutlineQuestionMarkCircle size={16} />
+            Commands
+            {showCommands ? <HiChevronUp size={12} /> : <HiChevronDown size={12} />}
+          </button>
+          <div className="flex items-center gap-2">
+            {isListening && (
+              <Button variant="outlined" onClick={onDiscard}>
+                Stop Listening
+              </Button>
+            )}
+            <Button variant="primary" isDisabled={!previewText.trim()} onClick={commitAndRefocus}>
+              Insert
+            </Button>
+          </div>
         </div>
       </div>
     </Portal>

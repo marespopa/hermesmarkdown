@@ -22,6 +22,7 @@ import Input from "../../components/Input";
 import FrontmatterPanel from "./FrontmatterPanel";
 import { PILL_CONTAINER_CLASSES } from "./constants";
 import { FM_REGEX } from "@/app/utils/frontmatter-utils";
+import useKeyboardInset from "@/app/hooks/use-keyboard-inset";
 
 interface MarkdownEditorProps {
   value: string;
@@ -151,6 +152,7 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
   });
 
   const isEditorBlocked = isAiLoading || isAiBusy;
+  const keyboardInset = useKeyboardInset();
 
   const [linkLabel, setLinkLabel] = useState("");
   const [linkUrl, setLinkUrl] = useState("");
@@ -302,6 +304,11 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
           "--editor-font-size": displayFontSize,
           "--editor-line-height": lineHeight,
           "--editor-letter-spacing": letterSpacing,
+          // Reserve extra scroll room so the caret/last lines can clear the
+          // on-screen keyboard instead of being trapped underneath it — a
+          // `fixed`/absolutely-positioned keyboard doesn't shrink this
+          // flex-derived container on its own.
+          paddingBottom: keyboardInset > 0 ? `calc(3rem + ${keyboardInset}px)` : undefined,
         } as React.CSSProperties}
       >
         <div className="relative">

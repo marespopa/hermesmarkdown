@@ -15,6 +15,11 @@ export function findLeaf(
   return null;
 }
 
+export function getFirstLeaf(node: WorkspaceContainer | PanelLeaf): PanelLeaf {
+  if ("type" in node) return node;
+  return getFirstLeaf(node.children[0]);
+}
+
 export function updateLeaf(
   node: WorkspaceContainer | PanelLeaf,
   id: string,
