@@ -108,6 +108,15 @@ export async function deleteFile(fileId: string): Promise<void> {
   await req(`${BASE}/files/${fileId}`, { method: 'DELETE' });
 }
 
+export async function copyFile(fileId: string, name: string, parentId: string): Promise<DriveFile> {
+  const res = await req(`${BASE}/files/${fileId}/copy?fields=id,name,mimeType,modifiedTime`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name, parents: [parentId] }),
+  });
+  return res.json();
+}
+
 export async function moveFile(fileId: string, newParentId: string, oldParentId: string): Promise<DriveFile> {
   const params = new URLSearchParams({
     addParents: newParentId,

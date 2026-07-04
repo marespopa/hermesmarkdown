@@ -3,6 +3,7 @@
 import { useCreateItem } from "./use-create-item";
 import { useDeleteItem } from "./use-delete-item";
 import { useRenameItem } from "./use-rename-item";
+import { useDuplicateItem } from "./use-duplicate-item";
 import { useMoveItem } from "./use-move-item";
 import { useImportItem } from "./use-import-item";
 
@@ -32,6 +33,12 @@ export function useFileCrud({ scanVault, indexVaultTags, openFile }: UseFileCrud
     indexVaultTags,
   });
 
+  const { duplicateFile } = useDuplicateItem({
+    scanVault,
+    indexVaultTags,
+    openFile,
+  });
+
   const { moveItem } = useMoveItem({
     scanVault,
     indexVaultTags,
@@ -46,6 +53,7 @@ export function useFileCrud({ scanVault, indexVaultTags, openFile }: UseFileCrud
     createNewFile,
     deleteFile,
     renameFile,
+    duplicateFile,
     moveItem,
     importFile,
   };

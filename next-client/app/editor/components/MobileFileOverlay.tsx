@@ -19,7 +19,7 @@ export default function MobileFileOverlay({
   isOpen: boolean;
   onClose: () => void;
 }) {
-  const { openFile, renameFile, deleteFile } = useFileSystem();
+  const { openFile, renameFile, deleteFile, duplicateFile } = useFileSystem();
   const activeFilePath = useAtomValue(atom_activeFilePath);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const { searchQuery, setSearchQuery, processedFiles, totalResultsCount, hasMoreResults, setShowAllResults, tags } =
@@ -58,6 +58,7 @@ export default function MobileFileOverlay({
                 openFile={openFile}
                 renameFile={renameFile}
                 deleteFile={deleteFile}
+                duplicateFile={duplicateFile}
                 onClose={onClose}
                 isSearchActive={isSearching}
                 highlightQuery={searchQuery}
@@ -80,6 +81,7 @@ export default function MobileFileOverlay({
               }}
               renameFile={renameFile}
               deleteFile={deleteFile}
+              duplicateFile={duplicateFile}
               onMatchCountChange={() => {}}
             />
           )}

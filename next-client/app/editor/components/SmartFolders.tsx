@@ -4,7 +4,7 @@ import React from "react";
 import { useAtom, useAtomValue } from "jotai";
 import { atom_fileMetadata, atom_customWorkspaces, CustomWorkspace } from "@/app/atoms/metadata";
 import { evaluateQuery, WorkspaceQuery } from "@/app/utils/queryEngine";
-import { HiOutlinePlus, HiOutlineDotsVertical, HiOutlinePencil, HiOutlineTrash } from "react-icons/hi";
+import { HiOutlinePlus, HiOutlineDotsVertical, HiOutlinePencil, HiOutlineDuplicate, HiOutlineTrash } from "react-icons/hi";
 import Button from "@/app/components/Button";
 import WorkspaceBuilder from "./WorkspaceBuilder";
 import { useDialog } from "@/app/hooks/use-dialog";
@@ -33,6 +33,7 @@ interface SmartFoldersProps {
   onFileSelect: (handle: FileSystemFileHandle, path?: string) => void;
   renameFile: (handle: FileSystemHandle) => void;
   deleteFile: (handle: FileSystemHandle) => void;
+  duplicateFile?: (handle: FileSystemHandle) => void;
   onMatchCountChange?: (count: number, hasFolderSelected: boolean) => void;
 }
 
@@ -40,6 +41,7 @@ export default function SmartFolders({
   onFileSelect,
   renameFile,
   deleteFile,
+  duplicateFile,
   onMatchCountChange,
 }: SmartFoldersProps) {
   const [fileMetadata] = useAtom(atom_fileMetadata);
@@ -231,6 +233,16 @@ export default function SmartFolders({
                               <HiOutlinePencil size={12} className="opacity-80" />
                               Rename
                             </Button>
+                            {duplicateFile && (
+                              <Button
+                                variant="menu-item"
+                                onClick={(e) => { e.stopPropagation(); duplicateFile(file.handle); setFileActionMenuOpen(null); }}
+                                className="w-full flex items-center gap-3 px-4 py-2 text-ui-footnote font-medium hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
+                              >
+                                <HiOutlineDuplicate size={12} className="opacity-80" />
+                                Duplicate
+                              </Button>
+                            )}
                             <Button
                               variant="menu-item"
                               onClick={(e) => { e.stopPropagation(); deleteFile(file.handle); setFileActionMenuOpen(null); }}

@@ -80,6 +80,7 @@ export default function VaultSidebar({
     vaultHandle,
     deleteFile,
     renameFile,
+    duplicateFile,
     moveItem,
     createNewFile,
     closeVault,
@@ -313,6 +314,7 @@ export default function VaultSidebar({
               }}
               renameFile={renameFile}
               deleteFile={deleteFile}
+              duplicateFile={duplicateFile}
             />
           </div>
         ) : panel === "tasks" ? (
@@ -348,6 +350,7 @@ export default function VaultSidebar({
                 openFile={openFile}
                 renameFile={renameFile}
                 deleteFile={deleteFile}
+                duplicateFile={duplicateFile}
                 onClose={onClose}
                 isSearchActive={panel === "search" && isSearching}
                 highlightQuery={panel === "search" ? searchQuery : ""}

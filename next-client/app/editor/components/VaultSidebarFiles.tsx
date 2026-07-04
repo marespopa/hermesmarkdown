@@ -5,6 +5,7 @@ import {
   HiOutlineDotsVertical,
   HiOutlineTrash,
   HiOutlinePencil,
+  HiOutlineDuplicate,
   HiOutlineFolder,
   HiOutlineChevronRight,
   HiOutlineChevronDown,
@@ -26,6 +27,7 @@ interface VaultSidebarFilesProps {
   openFile: (handle: FileSystemFileHandle, path?: string) => void;
   renameFile: (handle: FileSystemHandle) => void;
   deleteFile: (handle: FileSystemHandle) => void;
+  duplicateFile?: (handle: FileSystemHandle) => void;
   onClose?: () => void;
   isSearchActive?: boolean;
   highlightQuery?: string;
@@ -125,6 +127,7 @@ interface FileRowProps {
   openFile: (handle: FileSystemFileHandle, path?: string) => void;
   renameFile: (handle: FileSystemHandle) => void;
   deleteFile: (handle: FileSystemHandle) => void;
+  duplicateFile?: (handle: FileSystemHandle) => void;
   onClose?: () => void;
   hideFolderPath?: boolean;
   indentLevel?: number;
@@ -143,6 +146,7 @@ function FileRow({
   openFile,
   renameFile,
   deleteFile,
+  duplicateFile,
   onClose,
   hideFolderPath = false,
   indentLevel = 0,
@@ -231,6 +235,20 @@ function FileRow({
               <HiOutlinePencil size={14} className="opacity-80" />
               Rename
             </Button>
+            {duplicateFile && (
+              <Button
+                variant="menu-item"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  duplicateFile(entry.handle);
+                  setActionMenuOpen(null);
+                }}
+                className="w-full flex items-center gap-3 px-4 py-2.5 text-ui-footnote font-medium hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
+              >
+                <HiOutlineDuplicate size={14} className="opacity-80" />
+                Duplicate
+              </Button>
+            )}
             <Button
               variant="menu-item"
               onClick={(e) => {
@@ -498,6 +516,7 @@ export default function VaultSidebarFiles({
   openFile,
   renameFile,
   deleteFile,
+  duplicateFile,
   onClose,
   isSearchActive = false,
   highlightQuery = "",
@@ -619,6 +638,7 @@ export default function VaultSidebarFiles({
       openFile,
       renameFile,
       deleteFile,
+      duplicateFile,
       onClose,
     };
   };

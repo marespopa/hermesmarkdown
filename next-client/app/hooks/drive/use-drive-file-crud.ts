@@ -350,6 +350,63 @@ export function useDriveFileCrud({ scanVault, openFile }: Props) {
     toast.success(`Renamed to ${finalName}`);
   }, [currentDirectoryHandle, drivePathIndex, setDrivePathIndex, setDriveAuthState, setOpenFiles, setFileMetadata, activeFileHandle, setActiveFilePath, setFileName, setActiveFileHandle, scanVault, dialog]);
 
+  const duplicateFile = useCallback(async (handle: any) => {
+    const isFile = handle instanceof DriveFileHandle;
+    if (!isFile) return;
+
+    const currentBaseName = handle.name.endsWith('.md') ? handle.name.slice(0, -3) : handle.name;
+    const enteredName = await dialog.prompt(
+      'Enter name for duplicate:',
+      `${currentBaseName} copy`,
+      'Duplicate File',
+    );
+    if (!enteredName) return;
+
+    const id = (handle as DriveFileHandle).fileId;
+    let oldPath: string | undefined;
+    if (drivePathIndex) oldPath = drivePathIndex.getPathForId(id);
+    const parentPath = oldPath ? oldPath.split('/').slice(0, -1).join('/') : '';
+    const parentEntry = parentPath ? drivePathIndex?.getEntry(parentPath) : undefined;
+    const parentId = parentEntry?.id || driveVaultId;
+    if (!parentId) return;
+
+    const baseName = enteredName.endsWith('.md') ? enteredName.slice(0, -3) : enteredName;
+    let newName = `${baseName}.md`;
+    let counter = 2;
+    if (drivePathIndex) {
+      const candidatePath = (n: string) => (parentPath ? `${parentPath}/${n}` : n);
+      while (drivePathIndex.getEntry(candidatePath(newName))) {
+        newName = `${baseName} (${counter++}).md`;
+      }
+    }
+
+    try {
+      const copied = await client.copyFile(id, newName, parentId);
+      const newHandle = new DriveFileHandle(copied.name, copied.id);
+      const newPath = parentPath ? `${parentPath}/${copied.name}` : copied.name;
+
+      if (drivePathIndex) {
+        drivePathIndex.addEntry(newPath, {
+          id: copied.id,
+          name: copied.name,
+          mimeType: 'text/markdown',
+          modifiedAt: new Date(copied.modifiedTime).getTime(),
+          parentId,
+        });
+        setDrivePathIndex(drivePathIndex);
+      }
+
+      (newHandle as any).path = newPath;
+      const dir = currentDirectoryHandle as any;
+      if (dir instanceof DriveDirectoryHandle) await scanVault(dir);
+      await openFile(newHandle, newPath, true);
+      toast.success('Duplicated: ' + copied.name);
+    } catch (err: any) {
+      if (err.status === 401) setDriveAuthState('expired');
+      toast.error('Failed to duplicate file');
+    }
+  }, [drivePathIndex, setDrivePathIndex, driveVaultId, setDriveAuthState, currentDirectoryHandle, scanVault, openFile, dialog]);
+
   const moveItem = useCallback(async (handle: any, targetDirHandle: any) => {
     const isFile = handle instanceof DriveFileHandle;
     const isDir = handle instanceof DriveDirectoryHandle;
@@ -397,5 +454,5 @@ export function useDriveFileCrud({ scanVault, openFile }: Props) {
     }
   }, [openFile]);
 
-  return { createFile, createNewFile, deleteFile, renameFile, moveItem, importFile };
+  return { createFile, createNewFile, deleteFile, renameFile, duplicateFile, moveItem, importFile };
 }
