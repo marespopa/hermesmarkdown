@@ -3,7 +3,7 @@
 import { useAtom } from "jotai";
 import { useCallback } from "react";
 import toast from "react-hot-toast";
-import { atom_vaultHandle, atom_currentDirectoryHandle } from "@/app/atoms/atoms";
+import { atom_vaultHandle } from "@/app/atoms/atoms";
 import { useDialog } from "../use-dialog";
 import { withRetry } from "./shared";
 
@@ -15,7 +15,6 @@ interface UseDuplicateItemProps {
 
 export function useDuplicateItem({ scanVault, indexVaultTags, openFile }: UseDuplicateItemProps) {
   const [vaultHandle] = useAtom(atom_vaultHandle);
-  const [currentDirectoryHandle] = useAtom(atom_currentDirectoryHandle);
   const dialog = useDialog();
 
   const duplicateFile = useCallback(
@@ -23,31 +22,48 @@ export function useDuplicateItem({ scanVault, indexVaultTags, openFile }: UseDup
       if (!vaultHandle || handle.kind !== "file") return;
 
       const currentBaseName = handle.name.endsWith(".md") ? handle.name.slice(0, -3) : handle.name;
+
+      // Same folder-picker used by "New File", so the duplicate can be placed
+      // in a different folder instead of always landing next to the original.
+      const subDirs: FileSystemDirectoryHandle[] = [];
+      for await (const entry of (vaultHandle as any).values()) {
+        if (entry.kind === "directory" && !entry.name.startsWith(".")) {
+          subDirs.push(entry);
+        }
+      }
+      subDirs.sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0));
+
+      const options = [
+        { label: `/ ${vaultHandle.name} (root)`, value: "__root__" },
+        ...subDirs.map((d) => ({ label: d.name, value: d.name })),
+        { label: "+ New Folder", value: "__new_folder__" },
+      ];
+      const chosen = await dialog.select("Choose a folder for the duplicate:", options, "Duplicate File");
+      if (!chosen) return;
+
+      let parentDir: FileSystemDirectoryHandle = vaultHandle;
+      if (chosen === "__new_folder__") {
+        const folderName = await dialog.prompt("Enter folder name:", "", "New Folder");
+        if (!folderName) return;
+        try {
+          parentDir = await withRetry(() => vaultHandle.getDirectoryHandle(folderName, { create: true }));
+          await scanVault(vaultHandle);
+        } catch (err: any) {
+          console.error("File System Error:", err?.message || err);
+          toast.error("Failed to create folder");
+          return;
+        }
+      } else if (chosen !== "__root__") {
+        const found = subDirs.find((d) => d.name === chosen);
+        if (found) parentDir = found;
+      }
+
       const enteredName = await dialog.prompt(
         "Enter name for duplicate:",
         `${currentBaseName} copy`,
         "Duplicate File",
       );
       if (!enteredName) return;
-
-      // Resolve the real parent directory by walking the handle's actual path,
-      // same approach as rename/delete — the currently-navigated directory can
-      // differ from the item's actual parent for nested files.
-      let parentDir: FileSystemDirectoryHandle = currentDirectoryHandle || vaultHandle;
-      try {
-        const pathParts = await (vaultHandle as any).resolve(handle);
-        if (pathParts && pathParts.length > 1) {
-          let dir: FileSystemDirectoryHandle = vaultHandle;
-          for (let i = 0; i < pathParts.length - 1; i++) {
-            dir = await dir.getDirectoryHandle(pathParts[i]);
-          }
-          parentDir = dir;
-        } else if (pathParts && pathParts.length === 1) {
-          parentDir = vaultHandle;
-        }
-      } catch {
-        // fall back to currentDirectoryHandle/vaultHandle above
-      }
 
       try {
         const fileHandle = handle as FileSystemFileHandle;
@@ -98,7 +114,7 @@ export function useDuplicateItem({ scanVault, indexVaultTags, openFile }: UseDup
         toast.error(err.message || "Failed to duplicate file");
       }
     },
-    [vaultHandle, currentDirectoryHandle, scanVault, indexVaultTags, openFile, dialog],
+    [vaultHandle, scanVault, indexVaultTags, openFile, dialog],
   );
 
   return { duplicateFile };
