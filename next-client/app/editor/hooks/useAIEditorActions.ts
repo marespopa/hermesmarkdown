@@ -2,6 +2,7 @@ import { useCallback, useState } from "react";
 import { callAI } from "@/app/services/ai";
 import { showSuccessToast, showErrorToast } from "@/app/components/Toastr";
 import { useDialog } from "@/app/hooks/use-dialog";
+import { typewriterInsertText } from "../utils/typewriter-insert";
 
 export const FORMULA_PRESERVATION_RULE =
   "IMPORTANT: HermesMarkdown formula expressions (e.g. =SUM(A:A), =AVG(B2:B5), =COUNT(C:C)) must NEVER be evaluated or replaced with numeric values. Preserve all formula expressions exactly as written.";
@@ -173,8 +174,8 @@ export function useAIEditorActions({
         const { start, end } = chatContext;
         if (textarea) {
           textarea.focus();
-          textarea.setRangeText(suggestion, start, end, "end");
-          textarea.dispatchEvent(new Event("input", { bubbles: true }));
+          textarea.setSelectionRange(start, end);
+          typewriterInsertText(textarea, suggestion);
         } else {
           onChange(value.substring(0, start) + suggestion + value.substring(end));
         }
@@ -343,8 +344,8 @@ export function useAIEditorActions({
     const textarea = textareaRef.current;
     if (textarea) {
       textarea.focus();
-      textarea.setRangeText(suggestion, start, end, "end");
-      textarea.dispatchEvent(new Event("input", { bubbles: true }));
+      textarea.setSelectionRange(start, end);
+      typewriterInsertText(textarea, suggestion);
     } else {
       onChange(value.substring(0, start) + suggestion + value.substring(end));
     }
@@ -360,8 +361,8 @@ export function useAIEditorActions({
     const textarea = textareaRef.current;
     if (textarea) {
       textarea.focus();
-      textarea.setRangeText(insertion, end, end, "end");
-      textarea.dispatchEvent(new Event("input", { bubbles: true }));
+      textarea.setSelectionRange(end, end);
+      typewriterInsertText(textarea, insertion);
     } else {
       onChange(value.substring(0, end) + insertion + value.substring(end));
     }

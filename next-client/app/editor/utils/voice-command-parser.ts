@@ -3,6 +3,8 @@
 // it stays trivially unit-testable and reusable if macros/revision commands
 // are added later.
 
+import { SHORTCODES } from "../components/constants";
+
 export interface VoiceListState {
   indentLevel: number;
   inCodeBlock: boolean;
@@ -18,12 +20,69 @@ export const initialVoiceListState: VoiceListState = {
   capitalizeNext: true,
 };
 
+// Curated subset of the full grammar below — just the phrases someone
+// dictating for the first time is most likely to reach for. Shown in the
+// voice preview panel's help section; see the "Voice input" documentation
+// page for the complete command reference.
+export const VOICE_COMMAND_HELP: { phrase: string; result: string }[] = [
+  { phrase: '"new paragraph" / "new line"', result: "Blank line / line break" },
+  { phrase: '"bullet …"', result: "- …" },
+  { phrase: '"numbered item …"', result: "1. …" },
+  { phrase: '"new task buy milk"', result: "- [ ] buy milk" },
+  { phrase: '"heading two …"', result: "## …" },
+  { phrase: '"bold …" / "italic …"', result: "**…** / *…*" },
+  { phrase: '"wiki link to …"', result: "[[…]]" },
+  { phrase: '"scratch that"', result: "Undo the last phrase" },
+  { phrase: '"scratch all text" / "clear all text"', result: "Clear the whole preview" },
+  { phrase: '"insert this/it/text" / "commit this/it/text"', result: "Insert into the document" },
+  { phrase: '"insert this and stop listening"', result: "Insert, then turn the mic off" },
+  { phrase: '"emoji checkmark/warning/idea/bug/fix/error/star"', result: "✅ / ⚠️ / 💡 / 🐛 / 🛠️ / ❌ / ⭐" },
+  { phrase: '"current date" / "current time"', result: "Today's date / current time" },
+  { phrase: '"insert table"', result: "Markdown table skeleton" },
+  { phrase: '"stop listening" / "done listening"', result: "Discard preview, turn mic off" },
+];
+
 export type VoiceInsertion =
   | { kind: "markdown"; text: string; cursorOffset?: number; replacePrevious?: boolean }
   | { kind: "plain-text"; text: string; replacePrevious?: boolean }
   | { kind: "open-link-dialog" }
   | { kind: "delete-last" }
+  | { kind: "clear-all" }
+  | { kind: "commit" }
+  | { kind: "commit-and-stop" }
+  | { kind: "stop-listening" }
   | { kind: "none" };
+
+// Chrome's continuous recognition doesn't reliably include a boundary space
+// between two separately finalized segments (most noticeable after a longer
+// pause), so naively concatenating chunks can glue words together — "new
+// task" + "buy milk" landing as two finals becomes "new taskbuy milk". This
+// inserts a separating space unless one side already provides one, or the
+// new chunk is punctuation that should hug the previous word (".", ",", …).
+export function joinVoiceChunks(base: string, next: string): string {
+  if (!base) return next;
+  if (!next) return base;
+  if (/\s$/.test(base) || /^[\s.,!?;:)]/.test(next)) return base + next;
+  return `${base} ${next}`;
+}
+
+// Spoken names for the emoji shortcuts already available via typed shortcodes
+// (see SHORTCODES in components/constants.ts) — reuses the same glyphs so
+// voice and keyboard shortcuts never drift apart.
+const EMOJI_ALIASES: Record<string, string> = {
+  check: "check",
+  checkmark: "check",
+  "check mark": "check",
+  error: "error",
+  idea: "idea",
+  "light bulb": "idea",
+  lightbulb: "idea",
+  warn: "warn",
+  warning: "warn",
+  fix: "fix",
+  bug: "bug",
+  star: "star",
+};
 
 // Dictated punctuation/layout words that would otherwise be spoken literally
 // ("period", "comma") get mapped to their symbol/whitespace equivalent so
@@ -184,6 +243,41 @@ export function parseVoiceSegment(
     return { insertion: { kind: "delete-last" }, nextState: state };
   }
 
+  m = /^(?:scratch all text|clear all text|clear all|clear everything)$/i.exec(trimmed);
+  if (m) {
+    return { insertion: { kind: "clear-all" }, nextState: initialVoiceListState };
+  }
+
+  // Combined "commit, then turn the mic off" — the natural way to end a
+  // dictation session in one breath. Checked before the plain commit below
+  // so "insert this and stop listening" doesn't get shadowed.
+  m = /^(?:insert|commit)\s+(?:this|it|text)(?:\s+and)?\s+stop\s+(?:listening|dictating)$/i.exec(trimmed);
+  if (m) {
+    return { insertion: { kind: "commit-and-stop" }, nextState: state };
+  }
+
+  // Hands-free way to commit the dictated preview into the real document —
+  // matched as a whole utterance (like every other command here), so saying
+  // "insert this/it/text" or "commit this/it/text" mid-sentence while
+  // dictating normal prose can't misfire. Deliberately not "insert"/"commit"
+  // alone: bare "insert" already means "insert link" below, and bare
+  // "commit" is too common a word on its own (e.g. dictating about a git
+  // commit) to hijack.
+  m = /^(?:insert|commit)\s+(?:this|it|text)$/i.exec(trimmed);
+  if (m) {
+    return { insertion: { kind: "commit" }, nextState: state };
+  }
+
+  // Hands-free way to turn the mic off — a spoken alternative to the
+  // "Stop Listening" button. Behaves like discarding: mic off, preview
+  // buffer cleared, panel closes — same as the X button, just voice-driven.
+  // "don't listening" is included because the Web Speech API commonly mishears
+  // "done listening" that way.
+  m = /^(?:stop|done|don'?t|finish(?:ed)?)\s+(?:listening|dictating|dictation)$/i.exec(trimmed);
+  if (m) {
+    return { insertion: { kind: "stop-listening" }, nextState: state };
+  }
+
   m = /^new paragraph$/i.exec(trimmed);
   if (m) {
     return { insertion: { kind: "markdown", text: "\n\n" }, nextState: { ...state, capitalizeNext: true } };
@@ -333,7 +427,11 @@ export function parseVoiceSegment(
     };
   }
 
-  m = /^task\s+(?:incomplete|todo|unchecked)\s+(.+)$/i.exec(trimmed);
+  // "new task buy milk" is the friendlier everyday phrasing for the common
+  // case (a fresh, unchecked item) — "task incomplete/todo/unchecked …"
+  // below still works too, for anyone dictating "complete"/"incomplete" as a
+  // pair.
+  m = /^(?:task\s+(?:incomplete|todo|unchecked)|new\s+task:?)\s+(.+)$/i.exec(trimmed);
   if (m) {
     return {
       insertion: { kind: "markdown", text: `${indent(state)}- [ ] ${applyInlinePhraseTransform(m[1])}` },
@@ -381,6 +479,40 @@ export function parseVoiceSegment(
   m = /^(?:horizontal rule|divider)$/i.exec(trimmed);
   if (m) {
     return { insertion: { kind: "markdown", text: "\n---\n" }, nextState: { ...state, capitalizeNext: true } };
+  }
+
+  m = /^emoji\s+(.+)$/i.exec(trimmed);
+  if (m) {
+    const key = EMOJI_ALIASES[m[1].trim().toLowerCase()];
+    if (key) {
+      return { insertion: { kind: "markdown", text: SHORTCODES[`{${key}}`]() }, nextState: { ...state, capitalizeNext: false } };
+    }
+    // Unrecognized emoji name — fall through and dictate "emoji ..." literally.
+  }
+
+  m = /^(?:current|today'?s?)\s+date$/i.exec(trimmed);
+  if (m) {
+    return { insertion: { kind: "markdown", text: SHORTCODES["{date}"]() }, nextState: state };
+  }
+
+  m = /^(?:current|the)\s+time$/i.exec(trimmed);
+  if (m) {
+    return { insertion: { kind: "markdown", text: SHORTCODES["{time}"]() }, nextState: state };
+  }
+
+  m = /^tomorrow'?s?\s+date$/i.exec(trimmed);
+  if (m) {
+    return { insertion: { kind: "markdown", text: SHORTCODES["..tomorrow"]() }, nextState: state };
+  }
+
+  m = /^yesterday'?s?\s+date$/i.exec(trimmed);
+  if (m) {
+    return { insertion: { kind: "markdown", text: SHORTCODES["..yesterday"]() }, nextState: state };
+  }
+
+  m = /^(?:insert\s+)?table$/i.exec(trimmed);
+  if (m) {
+    return { insertion: { kind: "markdown", text: SHORTCODES["{table}"]() }, nextState: state };
   }
 
   if (!trimmed) {

@@ -56,6 +56,10 @@ export const viewport: Viewport = {
   ],
   width: "device-width",
   initialScale: 1,
+  // Without this, Android Chrome overlays the on-screen keyboard instead of
+  // shrinking the layout viewport — visualViewport never reports a shrink,
+  // so fixed/bottom-anchored UI and scroll-to-caret both stay covered.
+  interactiveWidget: "resizes-content",
 };
 
 const THEME_INIT_SCRIPT = `

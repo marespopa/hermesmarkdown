@@ -25,12 +25,16 @@ function RailButton({
   label,
   shortcut,
   isActive,
+  activeClassName = "text-accent",
+  pill = false,
   onClick,
 }: {
   icon: React.ReactNode;
   label: string;
   shortcut?: string;
   isActive: boolean;
+  activeClassName?: string;
+  pill?: boolean;
   onClick: () => void;
 }) {
   return (
@@ -39,9 +43,15 @@ function RailButton({
         type="button"
         onClick={onClick}
         aria-label={shortcut ? `${label} (${shortcut})` : label}
-        className={`w-9 h-9 flex items-center justify-center transition-colors ${
-          isActive ? "text-accent" : "text-sage hover:text-fg"
-        }`}
+        className={
+          pill
+            ? `w-9 h-9 rounded-full flex items-center justify-center transition-colors text-white ${
+                isActive ? "bg-accent animate-pulse" : "bg-sage hover:bg-accent"
+              }`
+            : `w-9 h-9 flex items-center justify-center transition-colors ${
+                isActive ? activeClassName : "text-sage hover:text-fg"
+              }`
+        }
       >
         {icon}
       </button>
@@ -80,16 +90,26 @@ export default function IconRail({
     <div className="flex flex-col items-center justify-between py-3 w-10 shrink-0 border-r border-edge-subtle bg-chrome">
       <div className="flex flex-col items-center gap-3">
         <RailButton
-          icon={<HiOutlineDocument size={18} />}
-          label="Files"
-          isActive={activePanel === "files"}
-          onClick={() => onPanelChange("files")}
-        />
-        <RailButton
           icon={<HiOutlineSearch size={18} />}
           label="Search"
           isActive={activePanel === "search"}
           onClick={() => onPanelChange("search")}
+        />
+        {isVoiceSupported && (
+          <RailButton
+            icon={isVoiceListening ? <HiMicrophone size={16} /> : <HiOutlineMicrophone size={16} />}
+            label={isVoiceListening ? "Stop voice input" : "Start voice input"}
+            shortcut="Ctrl+Shift+V"
+            isActive={!!isVoiceListening}
+            pill
+            onClick={() => onVoiceClick?.()}
+          />
+        )}
+        <RailButton
+          icon={<HiOutlineDocument size={18} />}
+          label="Files"
+          isActive={activePanel === "files"}
+          onClick={() => onPanelChange("files")}
         />
         <RailButton
           icon={<HiOutlineTag size={18} />}
@@ -109,15 +129,6 @@ export default function IconRail({
           isActive={activePanel === "views"}
           onClick={() => onPanelChange("views")}
         />
-        {isVoiceSupported && (
-          <RailButton
-            icon={isVoiceListening ? <HiMicrophone size={18} /> : <HiOutlineMicrophone size={18} />}
-            label={isVoiceListening ? "Stop voice input" : "Start voice input"}
-            shortcut="Ctrl+Shift+V"
-            isActive={!!isVoiceListening}
-            onClick={() => onVoiceClick?.()}
-          />
-        )}
       </div>
       <div className="flex flex-col items-center gap-3">
         <RailButton

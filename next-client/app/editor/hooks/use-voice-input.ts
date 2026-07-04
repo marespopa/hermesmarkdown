@@ -46,6 +46,14 @@ interface UseVoiceInputProps {
   onInterimTranscript?: (transcript: string | null) => void;
   /** Voice input stops listening automatically when the pane is not active. */
   isActivePane?: boolean;
+  /**
+   * Skips the markdown command grammar (bullets, headings, "scratch that",
+   * "insert that", …) entirely — every final result is emitted verbatim as
+   * `plain-text`. For dictation targets that aren't a markdown document (e.g.
+   * an AI chat message box), where a spoken word like "commit" should just be
+   * typed, not interpreted as a command.
+   */
+  plainText?: boolean;
 }
 
 function getSpeechRecognitionCtor(): (new () => SpeechRecognition) | null {
@@ -53,7 +61,7 @@ function getSpeechRecognitionCtor(): (new () => SpeechRecognition) | null {
   return window.SpeechRecognition || window.webkitSpeechRecognition || null;
 }
 
-export function useVoiceInput({ onInsertion, onInterimTranscript, isActivePane = true }: UseVoiceInputProps) {
+export function useVoiceInput({ onInsertion, onInterimTranscript, isActivePane = true, plainText = false }: UseVoiceInputProps) {
   const [isSupported, setIsSupported] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const [error, setError] = useState<VoiceInputError>(null);
@@ -125,7 +133,9 @@ export function useVoiceInput({ onInsertion, onInterimTranscript, isActivePane =
         const parseFromState = isContinuation && last ? last.stateBefore : listStateRef.current;
         lastCommittedRef.current = { raw: transcript, at: now, stateBefore: parseFromState };
 
-        const { insertion, nextState } = parseVoiceSegment(transcript, parseFromState);
+        const { insertion, nextState } = plainText
+          ? { insertion: { kind: "plain-text" as const, text: transcript }, nextState: parseFromState }
+          : parseVoiceSegment(transcript, parseFromState);
         listStateRef.current = nextState;
         if (isContinuation && (insertion.kind === "markdown" || insertion.kind === "plain-text")) {
           onInsertionRef.current({ ...insertion, replacePrevious: true });
@@ -165,7 +175,7 @@ export function useVoiceInput({ onInsertion, onInterimTranscript, isActivePane =
     shouldRestartRef.current = true;
     recognition.start();
     setIsListening(true);
-  }, []);
+  }, [plainText]);
 
   const toggleListening = useCallback(() => {
     if (isListening) stopListening();

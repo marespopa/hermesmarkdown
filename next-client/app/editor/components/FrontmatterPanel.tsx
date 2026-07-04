@@ -9,6 +9,7 @@ import { atom_vaultSchema } from "@/app/atoms/schema-atoms";
 import { DEFAULT_SCHEMA, type SchemaField } from "@/app/services/vault-schema";
 import { FM_REGEX, parseFmFields, updateFmFields } from "@/app/utils/frontmatter-utils";
 import { computeTokenEstimate } from "@/app/utils/tokenEstimate";
+import useKeyboardInset from "@/app/hooks/use-keyboard-inset";
 import DialogModal from "../../components/DialogModal/DialogModal";
 import Button from "../../components/Button";
 import {
@@ -29,24 +30,6 @@ interface FrontmatterPanelProps {
   fontFamily: string;
   displayFontSize: number | string;
   isMobile: boolean;
-}
-
-// Detects the on-screen keyboard via visualViewport height shrinking, same
-// heuristic used by MobileBottomNav, so the bottom sheet can shrink to fit.
-function useKeyboardInset() {
-  const [inset, setInset] = useState(0);
-  useEffect(() => {
-    const vv = window.visualViewport;
-    if (!vv) return;
-    const handleResize = () => {
-      const shrink = window.innerHeight - vv.height;
-      setInset(shrink > 150 ? shrink : 0);
-    };
-    handleResize();
-    vv.addEventListener("resize", handleResize);
-    return () => vv.removeEventListener("resize", handleResize);
-  }, []);
-  return inset;
 }
 
 export default function FrontmatterPanel({

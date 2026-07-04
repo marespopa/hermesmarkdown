@@ -11,7 +11,8 @@ import {
   atom_voiceOpenLinkDialogRequest,
 } from "@/app/atoms/atoms";
 import { useVoiceInput } from "./use-voice-input";
-import type { VoiceInsertion } from "../utils/voice-command-parser";
+import { joinVoiceChunks, type VoiceInsertion } from "../utils/voice-command-parser";
+import { typewriterInsertText } from "../utils/typewriter-insert";
 
 // A single shared dictation session for the whole app — instantiated once
 // (in page.tsx), not per pane. Switching the active pane mid-dictation must
@@ -40,8 +41,52 @@ export function useGlobalVoiceInput() {
   const lastVoiceChunkLengthRef = useRef<number | null>(null);
   const setVoiceOpenLinkDialogRequest = useSetAtom(atom_voiceOpenLinkDialogRequest);
 
+  const clearVoicePreview = useCallback(() => {
+    voicePreviewTextRef.current = "";
+    setVoicePreviewTextState("");
+    setVoiceInterimText(null);
+    lastVoiceChunkLengthRef.current = null;
+  }, []);
+
+  // `commitVoicePreview` and `toggleVoiceListening` are both defined further
+  // down — the former depends on `clearVoicePreview` and the active textarea
+  // atom, the latter comes back out of `useVoiceInput` itself, which takes
+  // `handleVoiceInsertion` as an input. Voice commands need to trigger both
+  // from inside this callback, so they're kept in refs (refreshed on every
+  // render below) rather than reordering all of this hook's interdependent
+  // callbacks.
+  const commitVoicePreviewRef = useRef<() => void>(() => {});
+  const toggleVoiceListeningRef = useRef<() => void>(() => {});
+  const isVoiceListeningRef = useRef(false);
+
+  const stopListening = useCallback(() => {
+    if (isVoiceListeningRef.current) toggleVoiceListeningRef.current();
+  }, []);
+
   const handleVoiceInsertion = useCallback((insertion: VoiceInsertion) => {
     if (insertion.kind === "none") return;
+
+    if (insertion.kind === "commit") {
+      commitVoicePreviewRef.current();
+      return;
+    }
+
+    if (insertion.kind === "commit-and-stop") {
+      commitVoicePreviewRef.current();
+      stopListening();
+      return;
+    }
+
+    if (insertion.kind === "stop-listening") {
+      clearVoicePreview();
+      stopListening();
+      return;
+    }
+
+    if (insertion.kind === "clear-all") {
+      clearVoicePreview();
+      return;
+    }
 
     if (insertion.kind === "open-link-dialog") {
       setVoiceOpenLinkDialogRequest((v) => v + 1);
@@ -64,11 +109,11 @@ export function useGlobalVoiceInput() {
       insertion.replacePrevious && lastVoiceChunkLengthRef.current
         ? voicePreviewTextRef.current.slice(0, -lastVoiceChunkLengthRef.current)
         : voicePreviewTextRef.current;
-    const next = base + insertion.text;
+    const next = joinVoiceChunks(base, insertion.text);
     voicePreviewTextRef.current = next;
     setVoicePreviewTextState(next);
     lastVoiceChunkLengthRef.current = insertion.text.length;
-  }, [setVoiceOpenLinkDialogRequest]);
+  }, [setVoiceOpenLinkDialogRequest, clearVoicePreview, stopListening]);
 
   const handleVoiceInterimTranscript = useCallback((transcript: string | null) => {
     setVoiceInterimText(transcript);
@@ -83,13 +128,8 @@ export function useGlobalVoiceInput() {
     onInsertion: handleVoiceInsertion,
     onInterimTranscript: handleVoiceInterimTranscript,
   });
-
-  const clearVoicePreview = useCallback(() => {
-    voicePreviewTextRef.current = "";
-    setVoicePreviewTextState("");
-    setVoiceInterimText(null);
-    lastVoiceChunkLengthRef.current = null;
-  }, []);
+  toggleVoiceListeningRef.current = toggleVoiceListening;
+  isVoiceListeningRef.current = isVoiceListening;
 
   // Starting a fresh listening session discards any leftover unconfirmed
   // preview from before, rather than silently continuing to build on it.
@@ -108,10 +148,11 @@ export function useGlobalVoiceInput() {
       const end = textarea.selectionEnd;
       textarea.focus();
       textarea.setSelectionRange(start, end);
-      document.execCommand("insertText", false, text);
+      typewriterInsertText(textarea, text);
     }
     clearVoicePreview();
   }, [activeTextareaElement, clearVoicePreview]);
+  commitVoicePreviewRef.current = commitVoicePreview;
 
   // The mic button lives in the global AI-chat FAB group / icon rail
   // (page.tsx). Its clicks are broadcast as a bumped counter, the same

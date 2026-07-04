@@ -11,27 +11,23 @@ import {
   atom_openFiles,
   atom_splitPane,
   atom_closePane,
-  atom_closeTab,
   atom_activeFilePath,
   atom_moveTab,
   atom_saveStatus,
-  atom_liveHandles,
-  atom_autosaveMode,
   atom_vaultHandle,
   atom_workspaceLayout,
-  contentStore
 } from "@/app/atoms/atoms";
 import { atom_newVaultFlowOpen, atom_isDocInfoOpen, atom_isVaultHealthOpen, atom_isVoicePreviewVisible } from "@/app/atoms/ui-atoms";
 import { HiOutlineDocumentText, HiOutlineEye, HiOutlineChartBar, HiOutlineX, HiOutlineClipboardCopy, HiOutlineSave, HiOutlineDotsHorizontal, HiOutlinePlus, HiOutlineFolderOpen, HiOutlineDatabase, HiOutlineCollection, HiOutlineInformationCircle } from "react-icons/hi";
 import { VscSplitHorizontal } from "react-icons/vsc";
-import { showCopyToast, showErrorToast } from "@/app/components/Toastr";
 import PaneTab, { TabSaveState } from "./PaneTab";
 import { useFileSystem } from "@/app/hooks/use-file-system";
 import { useAtomValue } from "jotai";
-import { useDialog } from "@/app/hooks/use-dialog";
 import Button from "../../components/Button";
 import { formatShortcut } from "@/app/utils/platform";
 import { useCommandPalette } from "@/app/components/CommandPalette/CommandPaletteContext";
+import useIsMobileChrome from "@/app/hooks/use-mobile-chrome";
+import { usePaneFileActions } from "../hooks/use-pane-file-actions";
 
 interface PaneLeafProps {
   leaf: PanelLeaf;
@@ -42,7 +38,6 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
   const [openFiles] = useAtom(atom_openFiles);
   const [, splitPane] = useAtom(atom_splitPane);
   const [, closePane] = useAtom(atom_closePane);
-  const [, closeTab] = useAtom(atom_closeTab);
   const [, setActiveFilePath] = useAtom(atom_activeFilePath);
   const [, moveTab] = useAtom(atom_moveTab);
   const saveStatus = useAtomValue(atom_saveStatus);
@@ -52,12 +47,11 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
   const [, setIsDocInfoOpen] = useAtom(atom_isDocInfoOpen);
   const [, setIsVaultHealthOpen] = useAtom(atom_isVaultHealthOpen);
   const isOnlyPane = "type" in workspaceLayout.rootContainer;
+  const isMobileChrome = useIsMobileChrome();
 
-  const { openFileByName, saveFile, exportFile, createFile, createNewFile, importFile, openVault, isVaultSupported } = useFileSystem();
-  const dialog = useDialog();
+  const { openFileByName, createNewFile, importFile, openVault, isVaultSupported } = useFileSystem();
   const filePath = leaf.activeFilePath || "draft";
   const [content, setContent] = useAtom(atom_fileContent(filePath));
-  const liveHandle = useAtomValue(atom_liveHandles(filePath));
 
   const isActive = activePaneId === leaf.id;
   const isVoicePreviewVisible = useAtomValue(atom_isVoicePreviewVisible);
@@ -100,58 +94,7 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
     reader.readAsText(file);
   };
 
-  const handleExport = async () => {
-    if (!content.trim()) return;
-    const fileState = openFiles[filePath];
-    const fileName = fileState?.fileName || "Untitled";
-
-    if (liveHandle) {
-      const success = await saveFile(content, liveHandle, 0, false, filePath);
-      if (success) return;
-    }
-    await exportFile(content, fileName);
-  };
-
-  const handleSave = async () => {
-    if (!content.trim()) return;
-
-    // Save in place if we already have a live handle.
-    if (liveHandle) {
-      await saveFile(content, liveHandle, 0, false, filePath);
-      return;
-    }
-
-    // Real file that lost its handle (e.g. after reload, before vault rebind).
-    // Walk the vault to recover the handle before falling back to "save as".
-    if (filePath !== "draft" && vaultHandle) {
-      try {
-        const parts = filePath.split("/");
-        let current: FileSystemDirectoryHandle = vaultHandle;
-        for (let i = 0; i < parts.length - 1; i++) {
-          current = await current.getDirectoryHandle(parts[i]);
-        }
-        const recovered = await current.getFileHandle(parts[parts.length - 1]);
-        await saveFile(content, recovered, 0, false, filePath);
-        return;
-      } catch {
-        // Couldn't recover — fall through to the draft/save-as path below.
-      }
-    }
-
-    // Draft saved to the vault for the first time → prompt for a name and create.
-    if (vaultHandle) {
-      const fileState = openFiles[filePath];
-      const fileName = fileState?.fileName || "untitled";
-      const name = await dialog.prompt("Enter file name:", fileName.replace(".md", ""), "Save to Vault");
-      if (name) {
-        await createFile(name, content);
-      }
-      return;
-    }
-
-    // No vault → download.
-    await handleExport();
-  };
+  const { handleSave, handleCopy, closeTabWithAutosave, buildTabMenuItems } = usePaneFileActions(leaf);
 
   const getIcon = (type: string) => {
     switch (type) {
@@ -164,28 +107,6 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
 
   const [draggedOverIndex, setDraggedOverIndex] = React.useState<number | null>(null);
   const [tabMenu, setTabMenu] = React.useState<{ x: number; y: number; path: string } | null>(null);
-
-  const closeTabWithAutosave = React.useCallback(async (path: string) => {
-    const autosaveMode = contentStore.get(atom_autosaveMode);
-    if (autosaveMode !== "manual") {
-      const fileState = contentStore.get(atom_openFiles)[path];
-      const tabHandle = contentStore.get(atom_liveHandles(path));
-      if (fileState && fileState.content !== fileState.lastSavedContent && tabHandle) {
-        // Fire and forget so we don't block tab closing if the file system is locked (e.g. Google Drive 45s retries)
-        void saveFile(fileState.content, tabHandle, 0, true, path);
-      }
-    }
-    closeTab({ paneId: leaf.id, filePath: path });
-  }, [closeTab, leaf.id, saveFile]);
-
-  const buildTabMenuItems = (targetPath: string): TabContextMenuItem[] => {
-    const others = leaf.openFilePaths.filter((p) => p !== targetPath);
-    return [
-      { label: "Close", onClick: () => { void closeTabWithAutosave(targetPath); } },
-      { label: "Close Others", disabled: others.length === 0, onClick: () => { for (const p of others) void closeTabWithAutosave(p); } },
-      { label: "Close All", onClick: () => { for (const p of [...leaf.openFilePaths]) void closeTabWithAutosave(p); } },
-    ];
-  };
 
   const handleDragStart = (e: React.DragEvent, path: string) => {
     const data = JSON.stringify({ 
@@ -228,16 +149,6 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
     }
   };
 
-  const handleCopy = async () => {
-    try {
-      await navigator.clipboard.writeText(content);
-      showCopyToast("Markdown copied to clipboard!");
-    } catch (err) {
-      console.error("Failed to copy:", err);
-      showErrorToast("Failed to copy markdown");
-    }
-  };
-
   const handleDragLeave = () => {
     setDraggedOverIndex(null);
   };
@@ -276,10 +187,13 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
       } ${isDimmed ? "opacity-40 saturate-50" : ""}`}
       onClick={() => setActivePaneId(leaf.id)}
     >
-      {/* Pane Tabs Bar — always visible, even with a single file, so Split
-          Right and other pane actions stay reachable. */}
+      {/* Pane Tabs Bar — desktop only. On mobile there are no split panes
+          and no visible tab strip (MobileControlRail/MobileFileIndicator
+          handle switching and file actions instead), so this whole bar
+          would be dead weight. */}
+      {!isMobileChrome && (
       <div
-        className="flex items-center bg-chrome border-b border-edge-subtle h-12 md:h-9 shrink-0 relative z-20"
+        className="flex items-center bg-chrome border-b border-edge-subtle h-9 shrink-0 relative z-20"
       >
         {/* Scrollable tabs strip */}
           <div
@@ -404,7 +318,7 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
               onClick={() => splitPane({ id: leaf.id, direction: "horizontal" })}
               title="Split Right"
               aria-label="Split Right"
-              className="w-9 h-9 flex items-center justify-center text-ink-muted hover:text-ink-light dark:hover:text-ink-dark transition-all hidden sm:flex rounded-xl"
+              className="w-9 h-9 flex items-center justify-center text-ink-muted hover:text-ink-light dark:hover:text-ink-dark transition-all rounded-xl"
             >
               <VscSplitHorizontal size={16} />
             </Button>
@@ -421,6 +335,7 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
             )}
           </div>
       </div>
+      )}
 
       {/* Pane Content */}
       <div className="flex-1 overscroll-none overflow-auto">

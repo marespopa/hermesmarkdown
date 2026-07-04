@@ -12,8 +12,11 @@ import {
   atom_activeFileHandle,
   atom_activeFilePath,
   atom_workspaceLayout,
+  atom_activePaneId,
   atom_isFileLoading,
   atom_sidebarWidth,
+  findLeaf,
+  getFirstLeaf,
 } from "@/app/atoms/atoms";
 import useIsMobileChrome from "@/app/hooks/use-mobile-chrome";
 import VaultSidebar from "./components/VaultSidebar";
@@ -25,6 +28,7 @@ import SchemaWizard from "./components/SchemaWizard";
 import VaultMigrateWizard from "./components/VaultMigrateWizard";
 import NewVaultDialog from "./components/NewVaultDialog";
 import WorkspaceSplitter from "./components/WorkspaceSplitter";
+import PaneLeaf from "./components/PaneLeaf";
 import VaultPendingOverlay from "./components/VaultPendingOverlay";
 import DriveReconnectBanner from "./components/DriveReconnectBanner";
 import LoadingOverlay from "@/app/components/LoadingOverlay";
@@ -33,8 +37,9 @@ import VaultHealthPanel from "./components/VaultHealthPanel";
 import EditorCommands from "./components/EditorCommands";
 import { CommandPaletteProvider } from "@/app/components/CommandPalette/CommandPaletteContext";
 import CommandPalette from "@/app/components/CommandPalette/CommandPalette";
-import MobileBottomNav from "./components/MobileBottomNav";
+import MobileControlRail from "./components/MobileControlRail";
 import MobileFileOverlay from "./components/MobileFileOverlay";
+import MobileTasksOverlay from "./components/MobileTasksOverlay";
 import MobileFileIndicator from "./components/MobileFileIndicator";
 import MobileSelectionToolbar from "./components/MobileSelectionToolbar";
 import ErrorBoundary from "@/app/components/ErrorBoundary";
@@ -65,6 +70,10 @@ export default function LiteEditor() {
   const [activeFilePath, setActiveFilePath] = useAtom(atom_activeFilePath);
   const [, setActiveFileHandle] = useAtom(atom_activeFileHandle);
   const workspaceLayout = useAtomValue(atom_workspaceLayout);
+  const activePaneId = useAtomValue(atom_activePaneId);
+  // No split panes on mobile — always resolve to a single leaf, ignoring
+  // any split tree a desktop session may have saved.
+  const mobileLeaf = findLeaf(workspaceLayout.rootContainer, activePaneId) ?? getFirstLeaf(workspaceLayout.rootContainer);
   const [railPanel, setRailPanel] = useAtom(atom_railPanel);
   const sidebarWidth = useAtomValue(atom_sidebarWidth);
   // Kept mounted while collapsing/expanding so the wrapper's width transition
@@ -95,6 +104,7 @@ export default function LiteEditor() {
   const activeTextareaElement = useAtomValue(atom_activeTextareaElement);
   const isMobileChrome = useIsMobileChrome();
   const [isMobileFileOverlayOpen, setIsMobileFileOverlayOpen] = useState(false);
+  const [isMobileTasksOverlayOpen, setIsMobileTasksOverlayOpen] = useState(false);
 
   const {
     vaultHandle,
@@ -453,7 +463,7 @@ export default function LiteEditor() {
 
         {/* Rail + panel — rail always visible, reflowing the editor as a
             normal flex sibling; the panel next to it toggles the sidebar
-            between expanded and collapsed. Mobile uses MobileBottomNav and
+            between expanded and collapsed. Mobile uses MobileControlRail and
             MobileFileOverlay instead. */}
         {!isMobileChrome && (
           <div className="flex shrink-0 h-full">
@@ -497,24 +507,11 @@ export default function LiteEditor() {
         <div className="flex-1 flex min-w-0 bg-surface overflow-hidden relative">
           {/* Main Editor Area */}
           <div className="flex-1 flex flex-col min-w-0 relative">
-            {isMobileChrome && <MobileFileIndicator />}
-            <div className={`relative flex-1 min-h-0 ${isMobileChrome ? "pb-14" : ""}`}>
-              <main className="h-full">
-                {isMounting ? (
-                  <div className="animate-pulse opacity-10 space-y-6 pt-20 px-12 max-w-2xl mx-auto">
-                    <div className="h-8 bg-current w-1/3 rounded-lg mb-16" />
-                    <div className="h-4 bg-current w-full rounded-md" />
-                    <div className="h-4 bg-current w-11/12 rounded-md" />
-                    <div className="h-4 bg-current w-5/6 rounded-md" />
-                  </div>
-                ) : (
-                  <WorkspaceSplitter node={workspaceLayout.rootContainer} />
-                )}
-              </main>
-            </div>
             {isMobileChrome && (
-              <MobileBottomNav
+              <MobileControlRail
+                leaf={mobileLeaf}
                 onFiles={() => setIsMobileFileOverlayOpen(true)}
+                onTasks={() => setIsMobileTasksOverlayOpen(true)}
                 onNewFile={handleNewFile}
                 onChat={() => setAiBuilderRequest((v) => v + 1)}
                 isChatAvailable={isAiConfigured}
@@ -523,6 +520,23 @@ export default function LiteEditor() {
                 onVoiceClick={() => setVoiceInputRequest((v) => v + 1)}
               />
             )}
+            {isMobileChrome && <MobileFileIndicator />}
+            <div className="relative flex-1 min-h-0">
+              <main className="h-full">
+                {isMounting ? (
+                  <div className="animate-pulse opacity-10 space-y-6 pt-20 px-12 max-w-2xl mx-auto">
+                    <div className="h-8 bg-current w-1/3 rounded-lg mb-16" />
+                    <div className="h-4 bg-current w-full rounded-md" />
+                    <div className="h-4 bg-current w-11/12 rounded-md" />
+                    <div className="h-4 bg-current w-5/6 rounded-md" />
+                  </div>
+                ) : isMobileChrome ? (
+                  <PaneLeaf leaf={mobileLeaf} />
+                ) : (
+                  <WorkspaceSplitter node={workspaceLayout.rootContainer} />
+                )}
+              </main>
+            </div>
           </div>
         </div>
         </div>{/* end MAIN LAYOUT */}
@@ -550,6 +564,10 @@ export default function LiteEditor() {
             <MobileFileOverlay
               isOpen={isMobileFileOverlayOpen}
               onClose={() => setIsMobileFileOverlayOpen(false)}
+            />
+            <MobileTasksOverlay
+              isOpen={isMobileTasksOverlayOpen}
+              onClose={() => setIsMobileTasksOverlayOpen(false)}
             />
           </>
         )}
