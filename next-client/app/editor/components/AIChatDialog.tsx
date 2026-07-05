@@ -12,6 +12,8 @@ import {
   HiOutlineClipboardCheck,
   HiOutlineCamera,
   HiOutlineDocument,
+  HiOutlineFolder,
+  HiOutlineCollection,
   HiOutlineMicrophone,
   HiMicrophone,
 } from "react-icons/hi";
@@ -51,6 +53,70 @@ interface Attachment {
 interface VaultRef {
   label: string;   // "@filename" exactly as it appears in the text
   content: string;
+}
+
+// @mention dropdown entries: a single file, a whole-vault index, or a folder-scoped index.
+// @vault/@folder inject a lightweight index (path + title/scope + tags) rather than full file
+// contents — dumping every note's body would blow past the model's context on any real vault.
+type MentionOption =
+  | { kind: "file"; file: FileMetadata }
+  | { kind: "vault" }
+  | { kind: "folder"; path: string };
+
+function describeFile(m: FileMetadata): string {
+  const title = m.frontmatter?.title || m.name.replace(/\.md$/, "");
+  const scope = m.frontmatter?.scope ? ` — ${m.frontmatter.scope}` : "";
+  const tags = m.tags?.length ? ` [${m.tags.join(", ")}]` : "";
+  return `- ${m.path}: ${title}${scope}${tags}`;
+}
+
+function buildIndex(fileMetadata: Record<string, FileMetadata>, pathPrefix?: string): string {
+  const files = Object.values(fileMetadata)
+    .filter((m) => !m.path.split("/").some((seg) => seg.startsWith("_")))
+    .filter((m) => !pathPrefix || m.path.startsWith(pathPrefix))
+    .sort((a, b) => a.path.localeCompare(b.path));
+  return files.map(describeFile).join("\n");
+}
+
+// Picking a mention from the dropdown is what actually loads its content into `vaultRefs`.
+// If the user types straight through (e.g. "@vault Update all files…") the dropdown closes
+// on the next space before it's ever "selected", so the token would otherwise reach the model
+// as inert text with no data attached. This re-scans the final message for any @vault,
+// @folder:<path>, or @<file> token not already resolved and loads it just before sending.
+async function resolveMentionRefs(
+  text: string,
+  existing: VaultRef[],
+  fileMetadata: Record<string, FileMetadata>,
+  vaultHandle: any,
+  isDriveVault: boolean,
+  drivePathIndex: any,
+): Promise<VaultRef[]> {
+  const existingLabels = new Set(existing.map((r) => r.label));
+  const tokens = Array.from(new Set(text.match(/@[^\s@]+/g) || []))
+    .map((t) => t.replace(/[.,!?;:)\]]+$/, ""))
+    .filter((t) => t.length > 1 && !existingLabels.has(t));
+
+  const resolved: VaultRef[] = [];
+  for (const token of tokens) {
+    try {
+      if (token === "@vault") {
+        resolved.push({ label: token, content: buildIndex(fileMetadata) });
+      } else if (token.startsWith("@folder:")) {
+        const path = token.slice("@folder:".length);
+        resolved.push({ label: token, content: buildIndex(fileMetadata, `${path}/`) });
+      } else {
+        const name = token.slice(1).toLowerCase();
+        const file = Object.values(fileMetadata).find((m) => m.name.replace(/\.md$/, "").toLowerCase() === name);
+        if (file) {
+          const content = await readVaultFile(file.path, vaultHandle, isDriveVault, drivePathIndex);
+          resolved.push({ label: token, content });
+        }
+      }
+    } catch {
+      // Unresolvable token — leave as plain text rather than failing the whole send
+    }
+  }
+  return resolved;
 }
 
 export type ApplyMode = "insert" | "replace-all";
@@ -162,20 +228,43 @@ export default function AIChatDialog({
   const imageInputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Filtered vault files for @ mention (exclude _-prefixed paths)
-  const mentionFiles = useMemo<FileMetadata[]>(() => {
+  // All folder paths present in the vault (nested included), excluding _-prefixed segments
+  const mentionFolders = useMemo<string[]>(() => {
+    const set = new Set<string>();
+    for (const m of Object.values(fileMetadata)) {
+      const segs = m.path.split("/");
+      if (segs.some((seg) => seg.startsWith("_"))) continue;
+      for (let i = 1; i < segs.length; i++) set.add(segs.slice(0, i).join("/"));
+    }
+    return Array.from(set).sort();
+  }, [fileMetadata]);
+
+  // Combined @ mention options: whole-vault index, folder-scoped index, or a single file
+  // (exclude _-prefixed paths). Vault/folder options come first, capped at 8 total.
+  const mentionOptions = useMemo<MentionOption[]>(() => {
     if (!mention) return [];
     const q = mention.query.toLowerCase();
-    return Object.values(fileMetadata)
-      .filter((m) => !m.path.split("/").some((seg) => seg.startsWith("_")))
-      .filter((m) => m.path !== currentFilePath)
-      .filter((m) => !q || m.name.toLowerCase().includes(q) || m.path.toLowerCase().includes(q))
-      .sort((a, b) => a.name.localeCompare(b.name))
-      .slice(0, 8);
-  }, [fileMetadata, mention, currentFilePath]);
+    const options: MentionOption[] = [];
+    if ("vault".includes(q)) options.push({ kind: "vault" });
+    for (const folder of mentionFolders) {
+      if (options.length >= 8) break;
+      if (folder.toLowerCase().includes(q)) options.push({ kind: "folder", path: folder });
+    }
+    if (options.length < 8) {
+      for (const file of Object.values(fileMetadata)
+        .filter((m) => !m.path.split("/").some((seg) => seg.startsWith("_")))
+        .filter((m) => m.path !== currentFilePath)
+        .filter((m) => !q || m.name.toLowerCase().includes(q) || m.path.toLowerCase().includes(q))
+        .sort((a, b) => a.name.localeCompare(b.name))) {
+        if (options.length >= 8) break;
+        options.push({ kind: "file", file });
+      }
+    }
+    return options;
+  }, [fileMetadata, mention, currentFilePath, mentionFolders]);
 
   // Reset mention index when filtered list changes
-  useEffect(() => { setMentionIndex(0); }, [mentionFiles]);
+  useEffect(() => { setMentionIndex(0); }, [mentionOptions]);
 
   useEffect(() => {
     if (isOpen) {
@@ -246,10 +335,13 @@ export default function AIChatDialog({
     }
   };
 
-  const selectMention = useCallback(async (file: FileMetadata) => {
+  const selectMention = useCallback(async (option: MentionOption) => {
     if (!mention) return;
     // Replace @<query> with @<resolved-name> inline, keeping the mention in the text
-    const label = `@${file.name.replace(/\.md$/, "")}`;
+    const label =
+      option.kind === "vault" ? "@vault" :
+      option.kind === "folder" ? `@folder:${option.path}` :
+      `@${option.file.name.replace(/\.md$/, "")}`;
     const before = input.slice(0, mention.start);
     const after = input.slice(mention.start + 1 + mention.query.length);
     const newInput = before + label + after;
@@ -265,14 +357,18 @@ export default function AIChatDialog({
         inputRef.current.focus();
       }
     }, 0);
-    // Load file content; deduplicate by label
+    // Load content; deduplicate by label. @vault/@folder build a lightweight index from
+    // in-memory metadata (no extra file reads); a single file is read from disk/Drive.
     try {
-      const content = await readVaultFile(file.path, vaultHandle, isDriveVault, drivePathIndex);
+      const content =
+        option.kind === "vault" ? buildIndex(fileMetadata) :
+        option.kind === "folder" ? buildIndex(fileMetadata, `${option.path}/`) :
+        await readVaultFile(option.file.path, vaultHandle, isDriveVault, drivePathIndex);
       setVaultRefs((prev) => [...prev.filter((r) => r.label !== label), { label, content }]);
     } catch {
-      showErrorToast(`Could not read ${file.name}`);
+      showErrorToast(`Could not load ${label}`);
     }
-  }, [mention, input, vaultHandle, isDriveVault, drivePathIndex]);
+  }, [mention, input, vaultHandle, isDriveVault, drivePathIndex, fileMetadata]);
 
   const buildSystemPrompt = useCallback(() => {
     const parts = [SYSTEM_PROMPT];
@@ -314,8 +410,13 @@ export default function AIChatDialog({
     if (!trimmed && !attachments.length) return;
     if (isLoading) return;
 
+    // Catch any @vault/@folder/@file tokens typed straight through without ever being
+    // picked from the dropdown, so they still resolve instead of reaching the model as text.
+    const autoRefs = await resolveMentionRefs(trimmed, vaultRefs, fileMetadata, vaultHandle, isDriveVault, drivePathIndex);
+    const allRefs = [...vaultRefs, ...autoRefs];
+
     // Build API text: append vault ref content blocks after the user's message
-    const refBlocks = vaultRefs
+    const refBlocks = allRefs
       .map((r) => `\n--- ${r.label} ---\n${r.content}\n--- End ${r.label} ---`)
       .join("\n");
     const apiText = trimmed + refBlocks;
@@ -346,13 +447,13 @@ export default function AIChatDialog({
       setIsLoading(false);
       setTimeout(() => inputRef.current?.focus(), 50);
     }
-  }, [input, attachments, messages, isLoading, buildSystemPrompt]);
+  }, [input, attachments, messages, isLoading, buildSystemPrompt, vaultRefs, fileMetadata, vaultHandle, isDriveVault, drivePathIndex]);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (mention && mentionFiles.length > 0) {
-      if (e.key === "ArrowDown") { e.preventDefault(); setMentionIndex((i) => (i + 1) % mentionFiles.length); return; }
-      if (e.key === "ArrowUp") { e.preventDefault(); setMentionIndex((i) => (i - 1 + mentionFiles.length) % mentionFiles.length); return; }
-      if (e.key === "Enter" || e.key === "Tab") { e.preventDefault(); selectMention(mentionFiles[mentionIndex]); return; }
+    if (mention && mentionOptions.length > 0) {
+      if (e.key === "ArrowDown") { e.preventDefault(); setMentionIndex((i) => (i + 1) % mentionOptions.length); return; }
+      if (e.key === "ArrowUp") { e.preventDefault(); setMentionIndex((i) => (i - 1 + mentionOptions.length) % mentionOptions.length); return; }
+      if (e.key === "Enter" || e.key === "Tab") { e.preventDefault(); selectMention(mentionOptions[mentionIndex]); return; }
       if (e.key === "Escape") { e.preventDefault(); setMention(null); return; }
     }
     if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); }
@@ -413,7 +514,7 @@ export default function AIChatDialog({
               </div>
               <p className="text-ui-footnote text-neutral-400 dark:text-neutral-500">
                 Ask anything about your document,<br />or describe what you want to create.<br />
-                <span className="text-neutral-300 dark:text-neutral-600">Type @ to reference a vault file.</span>
+                <span className="text-neutral-300 dark:text-neutral-600">Type @ to reference a file, folder, or the whole vault.</span>
               </p>
             </div>
           )}
@@ -491,29 +592,48 @@ export default function AIChatDialog({
         {/* Input box */}
         <div className="shrink-0 pt-2 relative">
           {/* @ mention dropdown — floats above the input */}
-          {mention && mentionFiles.length > 0 && (
+          {mention && mentionOptions.length > 0 && (
             <div className="absolute bottom-full left-0 right-0 mb-1 bg-paper-light dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 rounded-xl shadow-lg overflow-hidden z-50">
-              {mentionFiles.map((file, i) => (
-                <button
-                  key={file.path}
-                  type="button"
-                  onMouseDown={(e) => { e.preventDefault(); selectMention(file); }}
-                  className={`w-full flex items-center gap-2.5 px-3 py-2 text-left transition-colors ${
-                    i === mentionIndex
-                      ? "bg-sage/10 text-sage"
-                      : "text-ink-light dark:text-ink-dark hover:bg-neutral-50 dark:hover:bg-neutral-800"
-                  }`}
-                >
-                  <HiOutlineDocument size={14} className="shrink-0 text-neutral-400" />
-                  <span className="text-ui-footnote font-medium truncate">{file.name.replace(/\.md$/, "")}</span>
-                  {file.path.includes("/") && (
-                    <span className="text-ui-caption text-neutral-400 dark:text-neutral-500 truncate ml-auto">
-                      {file.path.split("/").slice(0, -1).join("/")}
-                    </span>
-                  )}
-                </button>
-              ))}
-              {mention.query && mentionFiles.length === 0 && (
+              {mentionOptions.map((option, i) => {
+                const key = option.kind === "vault" ? "@vault" : option.kind === "folder" ? `folder:${option.path}` : option.file.path;
+                const isActive = i === mentionIndex;
+                const rowClass = `w-full flex items-center gap-2.5 px-3 py-2 text-left transition-colors ${
+                  isActive
+                    ? "bg-sage/10 text-sage"
+                    : "text-ink-light dark:text-ink-dark hover:bg-neutral-50 dark:hover:bg-neutral-800"
+                }`;
+                if (option.kind === "vault") {
+                  return (
+                    <button key={key} type="button" onMouseDown={(e) => { e.preventDefault(); selectMention(option); }} className={rowClass}>
+                      <HiOutlineCollection size={14} className="shrink-0 text-neutral-400" />
+                      <span className="text-ui-footnote font-medium truncate">vault</span>
+                      <span className="text-ui-caption text-neutral-400 dark:text-neutral-500 truncate ml-auto">whole-vault index</span>
+                    </button>
+                  );
+                }
+                if (option.kind === "folder") {
+                  return (
+                    <button key={key} type="button" onMouseDown={(e) => { e.preventDefault(); selectMention(option); }} className={rowClass}>
+                      <HiOutlineFolder size={14} className="shrink-0 text-neutral-400" />
+                      <span className="text-ui-footnote font-medium truncate">folder:{option.path}</span>
+                      <span className="text-ui-caption text-neutral-400 dark:text-neutral-500 truncate ml-auto">folder index</span>
+                    </button>
+                  );
+                }
+                const file = option.file;
+                return (
+                  <button key={key} type="button" onMouseDown={(e) => { e.preventDefault(); selectMention(option); }} className={rowClass}>
+                    <HiOutlineDocument size={14} className="shrink-0 text-neutral-400" />
+                    <span className="text-ui-footnote font-medium truncate">{file.name.replace(/\.md$/, "")}</span>
+                    {file.path.includes("/") && (
+                      <span className="text-ui-caption text-neutral-400 dark:text-neutral-500 truncate ml-auto">
+                        {file.path.split("/").slice(0, -1).join("/")}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+              {mention.query && mentionOptions.length === 0 && (
                 <p className="px-3 py-2 text-ui-caption text-neutral-400">No files found</p>
               )}
             </div>
@@ -622,7 +742,7 @@ export default function AIChatDialog({
             </div>
           </div>
           <p className="text-center text-[10px] text-neutral-300 dark:text-neutral-600 mt-1.5">
-            Shift+Enter for new line · @ to reference vault files
+            Shift+Enter for new line · @ to reference a file, @vault, or @folder:path
           </p>
         </div>
       </div>
