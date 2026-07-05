@@ -7,6 +7,9 @@ export interface TabContextMenuItem {
   label: string;
   onClick: () => void;
   disabled?: boolean;
+  icon?: React.ReactNode;
+  /** Renders a separator above this item, marking the start of a new group. */
+  divider?: boolean;
 }
 
 interface TabContextMenuProps {
@@ -53,20 +56,25 @@ export default function TabContextMenu({ x, y, items, onClose }: TabContextMenuP
       style={{ left: pos.x, top: pos.y }}
       className={`fixed z-50 min-w-[180px] bg-paper-light/90 dark:bg-paper-dark/90 backdrop-blur-xl border border-edge-subtle rounded-2xl font-sans p-1.5 flex flex-col gap-0.5 origin-top-left transition-[opacity,transform] duration-150 ease-out ${pos.ready ? "opacity-100 scale-100" : "opacity-0 scale-95"}`}
     >
-      {items.map((item) => (
-        <Button
-          key={item.label}
-          variant="menu-item"
-          isDisabled={item.disabled}
-          onClick={() => {
-            if (item.disabled) return;
-            item.onClick();
-            onClose();
-          }}
-          className="w-full text-left text-ui-footnote text-ink-light dark:text-ink-dark hover:bg-paper-softgray/80 dark:hover:bg-paper-dark-surface/80 hover:text-ink-light dark:hover:text-ink-dark rounded-xl px-3.5 py-2 transition-colors disabled:opacity-40 disabled:hover:bg-transparent disabled:cursor-not-allowed"
-        >
-          {item.label}
-        </Button>
+      {items.map((item, i) => (
+        <React.Fragment key={item.label}>
+          {item.divider && i > 0 && (
+            <div className="my-1 mx-1.5 border-t border-edge-subtle" />
+          )}
+          <Button
+            variant="menu-item"
+            isDisabled={item.disabled}
+            onClick={() => {
+              if (item.disabled) return;
+              item.onClick();
+              onClose();
+            }}
+            className="w-full flex items-center gap-2.5 text-left text-ui-footnote text-ink-light dark:text-ink-dark hover:bg-paper-softgray/80 dark:hover:bg-paper-dark-surface/80 hover:text-ink-light dark:hover:text-ink-dark rounded-xl px-3.5 py-2 transition-colors disabled:opacity-40 disabled:hover:bg-transparent disabled:cursor-not-allowed"
+          >
+            {item.icon && <span className="shrink-0 opacity-70">{item.icon}</span>}
+            <span className="truncate">{item.label}</span>
+          </Button>
+        </React.Fragment>
       ))}
     </div>
   );

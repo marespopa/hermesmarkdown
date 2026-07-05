@@ -43,6 +43,7 @@ import MobileTasksOverlay from "./components/MobileTasksOverlay";
 import MobileFileIndicator from "./components/MobileFileIndicator";
 import MobileSelectionToolbar from "./components/MobileSelectionToolbar";
 import ErrorBoundary from "@/app/components/ErrorBoundary";
+import GoogleDriveFolderPicker from "./components/GoogleDriveFolderPicker";
 import { useFileSystem } from "@/app/hooks/use-file-system";
 import { useFileWatcher } from "@/app/hooks/use-file-watcher";
 import { useVaultSync } from "@/app/hooks/use-vault-sync";
@@ -63,7 +64,7 @@ import AssistantFab from "./components/AssistantFab";
 export default function LiteEditor() {
   const router = useRouter();
   const [isMounting, setIsMounting] = useState(true);
-  const [isNavigating, setIsNavigating] = useState(false);
+  const [navigatingLabel, setNavigatingLabel] = useState<string | null>(null);
   const [content, setContent] = useAtom(atom_content);
   const lastSavedContent = useAtomValue(atom_lastSavedContent);
   const [fileName, setFileName] = useAtom(atom_fileName);
@@ -122,7 +123,13 @@ export default function LiteEditor() {
     createNewFile,
     scanVault,
     syncSidebarToPath,
+    openDriveVault,
   } = useFileSystem();
+
+  const handleDriveConnected = useCallback(async (folderId: string, folderName: string) => {
+    await openDriveVault(folderId, folderName);
+    setRailPanel("files");
+  }, [openDriveVault, setRailPanel]);
 
   const dialog = useDialog();
   const hasPromptedForNameRef = useRef(false);
@@ -172,6 +179,27 @@ export default function LiteEditor() {
     return () => clearTimeout(timer);
   }, []);
 
+  const hasShownDriveExpiredDialogRef = useRef(false);
+  useEffect(() => {
+    if (!isDriveVault) return;
+    if (driveAuthState === 'expired') {
+      if (hasShownDriveExpiredDialogRef.current) return;
+      hasShownDriveExpiredDialogRef.current = true;
+      dialog
+        .confirm(
+          "Your Google Drive session expired, so changes won't save until you reconnect.",
+          "Drive session expired",
+          "Reconnect",
+          "Dismiss",
+        )
+        .then((confirmed) => {
+          if (confirmed) driveSignIn();
+        });
+    } else {
+      hasShownDriveExpiredDialogRef.current = false;
+    }
+  }, [driveAuthState, isDriveVault, dialog, driveSignIn]);
+
   useEffect(() => {
     if (voiceError === "permission-denied") {
       showErrorToast("Microphone access was denied");
@@ -204,10 +232,10 @@ export default function LiteEditor() {
     handleSaveRef.current = handleSave;
   }, [handleSave]);
 
-  const navigateWithGuard = useCallback(async (path: string) => {
+  const navigateWithGuard = useCallback(async (path: string, label: string) => {
     const isDirty = content !== lastSavedContent && content.trim() !== "";
     if (!isDirty) {
-      setIsNavigating(true);
+      setNavigatingLabel(label);
       router.push(path);
       return;
     }
@@ -221,10 +249,10 @@ export default function LiteEditor() {
     );
     if (choice === "save") {
       await handleSaveRef.current();
-      setIsNavigating(true);
+      setNavigatingLabel(label);
       router.push(path);
     } else if (choice === "discard") {
-      setIsNavigating(true);
+      setNavigatingLabel(label);
       router.push(path);
     }
   }, [content, lastSavedContent, router, dialog]);
@@ -427,7 +455,7 @@ export default function LiteEditor() {
       <CommandPaletteProvider>
       <EditorCommands onNewFile={handleNewFile} onExport={handleExport} onSave={() => handleSaveRef.current()} />
       <CommandPalette />
-      <LoadingOverlay isVisible={isMounting || isFileLoading || isNavigating || driveAuthState === 'authenticating'} text={isFileLoading ? "Loading file..." : isNavigating ? "Settings..." : driveAuthState === 'authenticating' ? "Connecting to Google Drive..." : "Loading..."} />
+      <LoadingOverlay isVisible={isMounting || isFileLoading || !!navigatingLabel || driveAuthState === 'authenticating'} text={isFileLoading ? "Loading file..." : navigatingLabel ? `${navigatingLabel}...` : driveAuthState === 'authenticating' ? "Connecting to Google Drive..." : "Loading..."} />
       <div className={`fixed inset-0 flex flex-col bg-surface text-fg selection:bg-sage-light/30 font-sans overflow-hidden overscroll-none transition-all duration-500 ${isVaultPending ? "blur-md pointer-events-none select-none" : ""}`}>
         {isMounted && isDriveVault && driveAuthState === 'expired' && (
           <DriveReconnectBanner onReconnect={driveSignIn} />
@@ -439,6 +467,7 @@ export default function LiteEditor() {
         <SchemaWizard />
         <VaultMigrateWizard />
         <NewVaultDialog />
+        <GoogleDriveFolderPicker onSelect={handleDriveConnected} />
         <ConflictDialog />
         <DocInfoPanel />
         <VaultHealthPanel />
@@ -470,9 +499,9 @@ export default function LiteEditor() {
             <IconRail
               activePanel={railPanel}
               onPanelChange={(panel) => setRailPanel((prev) => (prev === panel ? null : panel))}
-              onOpenSettings={() => navigateWithGuard("/editor/settings")}
-              onOpenDocumentation={() => navigateWithGuard("/documentation")}
-              onHome={() => navigateWithGuard("/")}
+              onOpenSettings={() => navigateWithGuard("/editor/settings", "Settings")}
+              onOpenDocumentation={() => navigateWithGuard("/documentation", "Documentation")}
+              onHome={() => navigateWithGuard("/", "Home")}
               isVoiceSupported={isVoiceSupported}
               isVoiceListening={isVoiceListening}
               onVoiceClick={() => setVoiceInputRequest((v) => v + 1)}
@@ -518,6 +547,9 @@ export default function LiteEditor() {
                 isVoiceSupported={isVoiceSupported}
                 isVoiceListening={isVoiceListening}
                 onVoiceClick={() => setVoiceInputRequest((v) => v + 1)}
+                onOpenSettings={() => navigateWithGuard("/editor/settings", "Settings")}
+                onOpenDocumentation={() => navigateWithGuard("/documentation", "Documentation")}
+                onHome={() => navigateWithGuard("/", "Home")}
               />
             )}
             {isMobileChrome && <MobileFileIndicator />}
@@ -564,6 +596,8 @@ export default function LiteEditor() {
             <MobileFileOverlay
               isOpen={isMobileFileOverlayOpen}
               onClose={() => setIsMobileFileOverlayOpen(false)}
+              onImport={handleImport}
+              onExport={handleExport}
             />
             <MobileTasksOverlay
               isOpen={isMobileTasksOverlayOpen}

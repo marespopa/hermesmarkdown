@@ -1,5 +1,6 @@
 import { useAtom, useAtomValue } from "jotai";
 import { useCallback } from "react";
+import { HiOutlineInformationCircle, HiOutlineShieldCheck } from "react-icons/hi";
 import { PanelLeaf } from "@/app/types/workspace";
 import {
   atom_fileContent,
@@ -116,15 +117,16 @@ export function usePaneFileActions(leaf: PanelLeaf | null) {
     ];
   }, [leaf, closeTabWithAutosave]);
 
-  // Mobile has no visible tab strip, so "Close Others"/"Close All" have
-  // nothing concrete to refer to — only a plain "Close" reads sensibly here.
-  // Save is surfaced as its own top-level icon on mobile, so it's left out.
-  const buildMoreMenuItems = useCallback((targetPath: string): TabContextMenuItem[] => [
-    { label: "Document Info", onClick: () => setIsDocInfoOpen((v) => !v) },
-    { label: "Vault Health", onClick: () => setIsVaultHealthOpen((v) => !v) },
-    { label: "Copy Markdown", onClick: () => { void handleCopy(); } },
-    { label: "Close", onClick: () => { void closeTabWithAutosave(targetPath); } },
-  ], [setIsDocInfoOpen, setIsVaultHealthOpen, handleCopy, closeTabWithAutosave]);
+  // Save is surfaced as its own top-level icon on mobile, so it's left out
+  // here. Closing the current file isn't offered from this menu — it reads
+  // as "close the vault/app" when grouped with Vault Health, so it stays
+  // tab-strip-only (buildTabMenuItems) instead of duplicated here. Copy
+  // Markdown lives with the file actions group instead of here — it acts on
+  // the file's content, not the vault/document metadata this group covers.
+  const buildMoreMenuItems = useCallback((): TabContextMenuItem[] => [
+    { label: "Document Info", icon: <HiOutlineInformationCircle size={16} />, divider: true, onClick: () => setIsDocInfoOpen((v) => !v) },
+    { label: "Vault Health", icon: <HiOutlineShieldCheck size={16} />, onClick: () => setIsVaultHealthOpen((v) => !v) },
+  ], [setIsDocInfoOpen, setIsVaultHealthOpen]);
 
   return { filePath, content, handleSave, handleExport, handleCopy, closeTabWithAutosave, buildTabMenuItems, buildMoreMenuItems };
 }

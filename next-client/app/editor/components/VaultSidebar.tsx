@@ -25,7 +25,6 @@ import VaultSidebarFiles from "./VaultSidebarFiles";
 import VaultSidebarFooter from "./VaultSidebarFooter";
 import UnifiedSearchInput from "./UnifiedSearchInput";
 import DriveAuthBanner from "./DriveAuthBanner";
-import GoogleDriveFolderPicker from "./GoogleDriveFolderPicker";
 import { atom_driveVaultName, atom_drivePathIndex } from "@/app/atoms/drive-atoms";
 import { HiOutlineRefresh } from "react-icons/hi";
 import { DriveDirectoryHandle } from "@/app/services/drive/DriveDirectoryHandle";
@@ -88,7 +87,6 @@ export default function VaultSidebar({
     openVault,
     isVaultSupported,
     isDriveVault,
-    openDriveVault,
     openDriveVaultPicker,
     driveAuthState,
     driveSignIn,
@@ -130,10 +128,6 @@ export default function VaultSidebar({
   const setRailPanel = useSetAtom(atom_railPanel);
   const [isResizing, setIsResizing] = useState(false);
 
-  const handleDriveConnected = useCallback(async (folderId: string, folderName: string) => {
-    await openDriveVault(folderId, folderName);
-    setRailPanel("files");
-  }, [openDriveVault, setRailPanel]);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   const handleRefresh = useCallback(async () => {
@@ -385,8 +379,6 @@ export default function VaultSidebar({
         onRefresh={handleRefresh}
         isRefreshing={isRefreshing}
       />
-
-      <GoogleDriveFolderPicker onSelect={handleDriveConnected} />
       </div>
   );
 }

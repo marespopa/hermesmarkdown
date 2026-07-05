@@ -2,24 +2,30 @@
 
 import React, { useState, useCallback } from "react";
 import Portal from "@/app/components/Portal/Portal";
-import { useAtom, useAtomValue } from "jotai";
+import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { atom_activeFilePath } from "@/app/atoms/atoms";
 import { atom_drivePathIndex } from "@/app/atoms/drive-atoms";
 import { useFileSystem } from "@/app/hooks/use-file-system";
 import { useSidebarSearch } from "../hooks/useSidebarSearch";
 import SmartFolders from "./SmartFolders";
 import VaultSidebarFiles from "./VaultSidebarFiles";
+import VaultSidebarEmpty from "./VaultSidebarEmpty";
 import UnifiedSearchInput from "./UnifiedSearchInput";
 import { HiOutlineX } from "react-icons/hi";
 import { useBackButtonClose } from "@/app/hooks/use-back-button-close";
 import { DriveDirectoryHandle } from "@/app/services/drive/DriveDirectoryHandle";
+import { atom_newVaultFlowOpen } from "@/app/atoms/ui-atoms";
 
 export default function MobileFileOverlay({
   isOpen,
   onClose,
+  onImport,
+  onExport,
 }: {
   isOpen: boolean;
   onClose: () => void;
+  onImport?: () => void;
+  onExport?: () => void;
 }) {
   const {
     openFile,
@@ -30,9 +36,13 @@ export default function MobileFileOverlay({
     createNewFile,
     vaultHandle,
     isDriveVault,
+    openVault,
+    isVaultSupported,
+    openDriveVaultPicker,
   } = useFileSystem();
-  const activeFilePath = useAtomValue(atom_activeFilePath);
+  const [activeFilePath, setActiveFilePath] = useAtom(atom_activeFilePath);
   const drivePathIndex = useAtomValue(atom_drivePathIndex);
+  const setNewVaultFlowOpen = useSetAtom(atom_newVaultFlowOpen);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [activeTab, setActiveTab] = useState<"files" | "views">("files");
   const { searchQuery, setSearchQuery, processedFiles, totalResultsCount, hasMoreResults, setShowAllResults, allFiles, tags } =
@@ -71,6 +81,22 @@ export default function MobileFileOverlay({
             <HiOutlineX size={20} />
           </button>
         </div>
+        {!vaultHandle ? (
+          <div className="flex-1 overflow-y-auto p-3">
+            <VaultSidebarEmpty
+              isVaultSupported={isVaultSupported}
+              openVault={openVault}
+              onCreateVault={() => setNewVaultFlowOpen(true)}
+              onConnectDrive={openDriveVaultPicker}
+              onImport={onImport}
+              onExport={onExport}
+              setActiveFilePath={setActiveFilePath}
+              activeFilePath={activeFilePath}
+              onClose={onClose}
+            />
+          </div>
+        ) : (
+        <>
         <div className="px-4 py-2 border-b border-edge-subtle shrink-0">
           <UnifiedSearchInput
             tokens={selectedTags}
@@ -152,6 +178,8 @@ export default function MobileFileOverlay({
             />
           )}
         </div>
+        </>
+        )}
       </div>
     </Portal>
   );

@@ -6,41 +6,32 @@ import { useEffect, useRef } from "react";
 // or the browser's back button) so it closes the open overlay instead of
 // navigating away from the editor. While open, we push a dummy history
 // entry; popping it (via back) calls onClose instead of leaving the page.
-// If the overlay closes some other way (e.g. an explicit X button), we pop
-// that dummy entry ourselves so history doesn't accumulate no-op steps.
+//
+// We deliberately never call history.back()/replaceState ourselves to clean
+// up after a non-back close (e.g. an explicit X button, or a menu item that
+// both closes the overlay and routes elsewhere via next/navigation). Doing
+// so raced with Next's router — calling history.back() right as router.push
+// was committing a new entry desynced Next's internal history bookkeeping
+// from the real browser stack, and it silently dropped the navigation
+// (confirmed: the route's data fetched fine, but the URL never changed).
+// The cost of not popping is one harmless extra history entry left behind
+// per non-back close, which just takes one extra back-press to skip past.
 export function useBackButtonClose(isOpen: boolean, onClose: () => void) {
-  const pushedRef = useRef(false);
   const onCloseRef = useRef(onClose);
   onCloseRef.current = onClose;
-  // `history.back()` below is async — its popstate can arrive after this
-  // effect has already re-run (e.g. React Strict Mode's dev-only
-  // mount->cleanup->mount), so a fresh listener would otherwise catch our
-  // own programmatic back-navigation and mistake it for a user back-press.
-  const skipNextPopRef = useRef(false);
 
   useEffect(() => {
     if (!isOpen) return;
 
     history.pushState({ hermesOverlay: true }, "");
-    pushedRef.current = true;
 
     const handlePopState = () => {
-      pushedRef.current = false;
-      if (skipNextPopRef.current) {
-        skipNextPopRef.current = false;
-        return;
-      }
       onCloseRef.current();
     };
     window.addEventListener("popstate", handlePopState);
 
     return () => {
       window.removeEventListener("popstate", handlePopState);
-      if (pushedRef.current) {
-        pushedRef.current = false;
-        skipNextPopRef.current = true;
-        history.back();
-      }
     };
   }, [isOpen]);
 }

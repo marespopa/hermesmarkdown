@@ -1,7 +1,8 @@
 "use client";
 
-import React, { forwardRef, useRef } from "react";
+import React, { forwardRef, useRef, useState } from "react";
 import { FaTimes } from "react-icons/fa";
+import { HiOutlineEye, HiOutlineEyeOff } from "react-icons/hi";
 
 interface Props extends React.InputHTMLAttributes<HTMLInputElement> {
   name: string;
@@ -47,6 +48,8 @@ const Input = forwardRef<HTMLInputElement, Props>(
   ) => {
     const inputRef = useRef<HTMLInputElement>(null);
     const debounceRef = useRef<NodeJS.Timeout | null>(null);
+    const [isPasswordVisible, setIsPasswordVisible] = useState(false);
+    const isPassword = type === "password";
 
     // Merge forwarded ref with internal ref
     React.useImperativeHandle(ref, () => inputRef.current!);
@@ -96,7 +99,7 @@ const Input = forwardRef<HTMLInputElement, Props>(
           <input
             id={name}
             name={name}
-            type={type}
+            type={isPassword && isPasswordVisible ? "text" : type}
             value={value}
             onChange={handleInputChange}
             onPaste={(e) => {
@@ -117,15 +120,30 @@ const Input = forwardRef<HTMLInputElement, Props>(
             {...rest}
           />
 
-          {onClear && value && String(value).length > 0 && (
-            <button
-              type="button"
-              onClick={onClear}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-stone hover:text-ink-light dark:hover:text-ink-dark p-1.5 transition-colors rounded-full hover:bg-beige/50 dark:hover:bg-clay/50"
-              tabIndex={-1}
-            >
-              <FaTimes size={12} />
-            </button>
+          {(isPassword || (onClear && value && String(value).length > 0)) && (
+            <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-0.5">
+              {isPassword && (
+                <button
+                  type="button"
+                  onClick={() => setIsPasswordVisible((v) => !v)}
+                  className="text-stone hover:text-ink-light dark:hover:text-ink-dark p-1.5 transition-colors rounded-full hover:bg-beige/50 dark:hover:bg-clay/50"
+                  tabIndex={-1}
+                  aria-label={isPasswordVisible ? "Hide value" : "Show value"}
+                >
+                  {isPasswordVisible ? <HiOutlineEyeOff size={16} /> : <HiOutlineEye size={16} />}
+                </button>
+              )}
+              {onClear && value && String(value).length > 0 && (
+                <button
+                  type="button"
+                  onClick={onClear}
+                  className="text-stone hover:text-ink-light dark:hover:text-ink-dark p-1.5 transition-colors rounded-full hover:bg-beige/50 dark:hover:bg-clay/50"
+                  tabIndex={-1}
+                >
+                  <FaTimes size={12} />
+                </button>
+              )}
+            </div>
           )}
         </div>
 
