@@ -1,6 +1,6 @@
 "use client";
 
-import { useAtom } from "jotai";
+import { useAtom, useSetAtom } from "jotai";
 import { useCallback } from "react";
 import toast from "react-hot-toast";
 import {
@@ -10,6 +10,11 @@ import {
   atom_fileName,
   atom_activeFilePath,
 } from "@/app/atoms/atoms";
+import { atom_fileMetadata } from "@/app/atoms/metadata";
+import { atom_isCloudVault } from "@/app/atoms/vault-atoms";
+import { atom_isDriveVault } from "@/app/atoms/drive-atoms";
+import { atom_indexTimestamp } from "@/app/atoms/ui-atoms";
+import { writeVaultIndex } from "@/app/services/vault-index";
 import { useDialog } from "../use-dialog";
 import { withRetry } from "./shared";
 
@@ -24,6 +29,10 @@ export function useRenameItem({ scanVault, indexVaultTags }: UseRenameItemProps)
   const [activeFileHandle, setActiveFileHandle] = useAtom(atom_activeFileHandle);
   const [, setFileName] = useAtom(atom_fileName);
   const [, setActiveFilePath] = useAtom(atom_activeFilePath);
+  const setFileMetadata = useSetAtom(atom_fileMetadata);
+  const isCloudVault = useAtom(atom_isCloudVault)[0];
+  const isDriveVault = useAtom(atom_isDriveVault)[0];
+  const setIndexTimestamp = useSetAtom(atom_indexTimestamp);
   const dialog = useDialog();
 
   const renameFile = useCallback(
@@ -154,6 +163,31 @@ export function useRenameItem({ scanVault, indexVaultTags }: UseRenameItemProps)
               throw new Error("Folder renaming not supported in this browser");
             }
           }
+          // Patch fileMetadata's key/path for the renamed entry immediately, and
+          // write the index off that snapshot, rather than waiting on the full
+          // worker rescan round-trip triggered by scanVault below.
+          if (vaultHandle) {
+            try {
+              const dirParts = parentDir === vaultHandle ? [] : (await (vaultHandle as any).resolve(parentDir)) || [];
+              const oldPath = [...dirParts, handle.name].join("/");
+              const newPath = [...dirParts, newName].join("/");
+              setFileMetadata((prev) => {
+                if (!(oldPath in prev)) return prev;
+                const next = { ...prev };
+                next[newPath] = { ...next[oldPath], path: newPath, name: newName };
+                delete next[oldPath];
+                if (!isCloudVault && !isDriveVault) {
+                  writeVaultIndex(next, vaultHandle)
+                    .then(() => setIndexTimestamp(Date.now()))
+                    .catch((err) => console.warn("Failed to write vault index:", err));
+                }
+                return next;
+              });
+            } catch (err) {
+              console.warn("Failed to patch metadata path for rename:", err);
+            }
+          }
+
           await scanVault(parentDir);
           indexVaultTags();
           toast.success("Renamed successfully");
@@ -192,6 +226,10 @@ export function useRenameItem({ scanVault, indexVaultTags }: UseRenameItemProps)
       setFileName,
       setActiveFileHandle,
       setActiveFilePath,
+      setFileMetadata,
+      isCloudVault,
+      isDriveVault,
+      setIndexTimestamp,
       dialog,
     ],
   );

@@ -93,3 +93,20 @@ export async function writeVaultIndex(
   await writable.write(yaml);
   await writable.close();
 }
+
+export async function writeDriveVaultIndex(
+  fileMetadata: Record<string, FileMetadata>,
+  rootFolderId: string,
+): Promise<void> {
+  const { listFiles, createFile, updateFile, createFolder, FOLDER_MIME } = await import("./drive/client");
+  const yaml = buildYaml(fileMetadata);
+
+  const { files: rootFiles } = await listFiles(rootFolderId);
+  let hermesFolder = rootFiles.find((f) => f.mimeType === FOLDER_MIME && f.name === ".hermes");
+  if (!hermesFolder) hermesFolder = await createFolder(".hermes", rootFolderId);
+
+  const { files: hermesFiles } = await listFiles(hermesFolder.id);
+  const existing = hermesFiles.find((f) => f.name === "index.yaml");
+  if (existing) await updateFile(existing.id, yaml);
+  else await createFile("index.yaml", hermesFolder.id, yaml);
+}

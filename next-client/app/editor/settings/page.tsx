@@ -22,11 +22,13 @@ import {
   atom_claudeKey,
   atom_geminiKey,
 } from "@/app/atoms/atoms";
-import { atom_vaultSetupWizardOpen, atom_availableGeminiModels, atom_schemaWizardOpen, atom_vaultMigrateOpen } from "@/app/atoms/ui-atoms";
+import { atom_vaultSetupWizardOpen, atom_availableGeminiModels, atom_schemaWizardOpen, atom_vaultMigrateOpen, atom_indexTimestamp } from "@/app/atoms/ui-atoms";
 import type { StarterPackId } from "@/app/atoms/ui-atoms";
 import { STARTER_PACKS, installStarterPack } from "@/app/services/starter-packs";
 import { atom_vaultSchema } from "@/app/atoms/schema-atoms";
 import { atom_vaultHandle } from "@/app/atoms/atoms";
+import { atom_fileMetadata } from "@/app/atoms/metadata";
+import { writeVaultIndex, writeDriveVaultIndex } from "@/app/services/vault-index";
 import { atom_driveVaultId, atom_driveVaultName, atom_isDriveVault, atom_drivePathIndex } from "@/app/atoms/drive-atoms";
 import { useDriveAuth } from "@/app/hooks/drive/use-drive-auth";
 import { testAIConnection, fetchGeminiModels } from "@/app/services/ai";
@@ -78,6 +80,9 @@ const SettingsPage = () => {
   const vaultSchema = useAtomValue(atom_vaultSchema);
   const vaultHandle = useAtomValue(atom_vaultHandle);
   const isDriveVault = useAtomValue(atom_isDriveVault);
+  const fileMetadata = useAtomValue(atom_fileMetadata);
+  const [, setIndexTimestamp] = useAtom(atom_indexTimestamp);
+  const [isRebuildingIndex, setIsRebuildingIndex] = useState(false);
   const [aiProvider, setAiProvider] = useAtom(atom_aiProvider);
   const [selectedAiModel, setSelectedAiModel] = useAtom(atom_selectedAiModel);
   const [claudeKey, setClaudeKey] = useAtom(atom_claudeKey);
@@ -111,6 +116,25 @@ const SettingsPage = () => {
       showErrorToast(message);
     } finally {
       setIsApplyingPack(false);
+    }
+  };
+
+  const handleRebuildIndex = async () => {
+    if (!vaultHandle && !(isDriveVault && driveVaultId)) return;
+    setIsRebuildingIndex(true);
+    try {
+      if (vaultHandle) {
+        await writeVaultIndex(fileMetadata, vaultHandle);
+      } else if (isDriveVault && driveVaultId) {
+        await writeDriveVaultIndex(fileMetadata, driveVaultId);
+      }
+      setIndexTimestamp(Date.now());
+      showSuccessToast(".hermes/index.yaml rebuilt.");
+    } catch (err) {
+      console.error("Failed to rebuild vault index:", err);
+      showErrorToast("Failed to rebuild index.");
+    } finally {
+      setIsRebuildingIndex(false);
     }
   };
 
@@ -621,6 +645,20 @@ const SettingsPage = () => {
                   className="h-8 px-4 text-ui-footnote font-medium"
                 >
                   Check & Install
+                </Button>
+              }
+            />
+            <SettingItem
+              label="Rebuild Index"
+              description="Regenerate .hermes/index.yaml from the current vault state. Use this if the index and vault ever drift out of sync."
+              control={
+                <Button
+                  variant="secondary"
+                  onClick={handleRebuildIndex}
+                  disabled={(!vaultHandle && !(isDriveVault && driveVaultId)) || isRebuildingIndex}
+                  className="h-8 px-4 text-ui-footnote font-medium shrink-0"
+                >
+                  {isRebuildingIndex ? "Rebuilding…" : "Rebuild Index"}
                 </Button>
               }
             />

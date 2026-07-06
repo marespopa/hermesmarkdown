@@ -16,6 +16,7 @@ import {
   atom_rebindDriveHandles,
 } from '@/app/atoms/atoms';
 import { atom_fileMetadata } from '@/app/atoms/metadata';
+import { atom_indexTimestamp } from '@/app/atoms/ui-atoms';
 import {
   atom_driveVaultId,
   atom_driveVaultName,
@@ -32,6 +33,7 @@ import { listFiles, deleteFile, FOLDER_MIME } from '@/app/services/drive/client'
 import { isTokenValid, startOAuthFlow } from '@/app/services/drive/auth';
 import { metadataWorker } from '../file-system/shared';
 import { readDriveVaultSchema, DEFAULT_SCHEMA } from '@/app/services/vault-schema';
+import { writeDriveVaultIndex } from '@/app/services/vault-index';
 import { atom_vaultSchema } from '@/app/atoms/schema-atoms';
 
 export function useDriveVaultManager() {
@@ -41,6 +43,7 @@ export function useDriveVaultManager() {
   const [isVaultPending, setIsVaultPending] = useAtom(atom_isVaultPending);
   const [, setFileMetadata] = useAtom(atom_fileMetadata);
   const setIndexerState = useSetAtom(atom_indexerState);
+  const setIndexTimestamp = useSetAtom(atom_indexTimestamp);
   const rebindDriveHandles = useSetAtom(atom_rebindDriveHandles);
   const [, setActiveFilePath] = useAtom(atom_activeFilePath);
   const [, setActiveFileHandle] = useAtom(atom_activeFileHandle);
@@ -368,21 +371,29 @@ export function useDriveVaultManager() {
     const handleMessage = (event: MessageEvent) => {
       const { results } = event.data;
       if (!results) return;
+      let updatedMetadata: Record<string, any> = {};
       setFileMetadata(prev => {
         const next = { ...prev };
         results.forEach((res: any) => {
           const handle = pendingHandlesRef.current.get(res.path);
           if (handle) next[res.path] = { ...res, handle };
         });
+        updatedMetadata = next;
         return next;
       });
       rebindDriveHandles();
       setIndexerState('idle');
+
+      if (driveVaultId) {
+        writeDriveVaultIndex(updatedMetadata, driveVaultId)
+          .then(() => setIndexTimestamp(Date.now()))
+          .catch((err) => console.warn('Failed to write Drive vault index:', err));
+      }
     };
 
     metadataWorker.addEventListener('message', handleMessage);
     return () => metadataWorker?.removeEventListener('message', handleMessage);
-  }, [isDriveVault, setFileMetadata, setIndexerState, rebindDriveHandles]);
+  }, [isDriveVault, setFileMetadata, setIndexerState, rebindDriveHandles, driveVaultId, setIndexTimestamp]);
 
   // Auto-restore on mount — independent from local vault's hasLoadedVault
   useEffect(() => {

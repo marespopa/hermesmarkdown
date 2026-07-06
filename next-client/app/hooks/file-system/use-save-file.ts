@@ -23,6 +23,7 @@ import { atom_fileMetadata } from "@/app/atoms/metadata";
 import { writeVaultIndex } from "@/app/services/vault-index";
 import { atom_vaultSchema } from "@/app/atoms/schema-atoms";
 import { atom_isDriveVault } from "@/app/atoms/drive-atoms";
+import { withRetry } from "./shared";
 import { extractTasks } from "@/app/utils/taskExtractor";
 import { computeTokenEstimate } from "@/app/utils/tokenEstimate";
 import { computeAgentScore } from "@/app/utils/agentScore";
@@ -291,16 +292,19 @@ export function useSaveFile() {
           }
         }
 
-        // Debounced vault index update (local vaults only)
-        if (vaultHandle && !isCloudVault && !isDriveVault) {
+        // Debounced vault index update (any local FS vault, including cloud-synced
+        // folders — those get a longer debounce + retries since the OS sync client
+        // can transiently lock the file mid-write, same risk the main save path
+        // already handles via withRetry).
+        if (vaultHandle && !isDriveVault) {
           if (indexWriteTimerRef.current) clearTimeout(indexWriteTimerRef.current);
           const snapshot = fileMetadata;
           const handle = vaultHandle;
           indexWriteTimerRef.current = setTimeout(() => {
-            writeVaultIndex(snapshot, handle)
+            withRetry(() => writeVaultIndex(snapshot, handle), isCloudVault ? 4 : 2)
               .then(() => setIndexTimestamp(Date.now()))
               .catch((err) => console.warn("Failed to write vault index:", err));
-          }, 3000);
+          }, isCloudVault ? 8000 : 3000);
         }
 
         setSaveStatus({ state: "saved", retryCount, path: targetPath });

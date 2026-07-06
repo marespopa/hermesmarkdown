@@ -36,12 +36,14 @@ export default function WikiLinkDialog({
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   const items = useMemo((): SearchItem[] => {
-    return Object.values(fileMetadata).map((m) => ({
-      id: `file:${m.path}`,
-      name: m.name.replace(/\.md$/, ""),
-      path: m.path.replace(/\.md$/, ""),
-      type: "file" as const,
-    }));
+    return Object.values(fileMetadata)
+      .filter((m) => !m.path.startsWith(".hermes/"))
+      .map((m) => ({
+        id: `file:${m.path}`,
+        name: m.name.replace(/\.md$/, ""),
+        path: m.path.replace(/\.md$/, ""),
+        type: "file" as const,
+      }));
   }, [fileMetadata]);
 
   const filteredItems = useMemo(() => {

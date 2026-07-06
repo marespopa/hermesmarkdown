@@ -1,7 +1,7 @@
 "use client";
 
-import { useAtom, useSetAtom } from 'jotai';
-import { useCallback } from 'react';
+import { useAtom, useAtomValue, useSetAtom } from 'jotai';
+import { useCallback, useRef } from 'react';
 import toast from 'react-hot-toast';
 import {
   atom_activeFileHandle,
@@ -15,10 +15,12 @@ import {
   atom_autoInjectFrontmatter,
   atom_vaultSetupStatus,
 } from '@/app/atoms/atoms';
-import { atom_frontmatterWizardOpen, atom_vaultSetupWizardOpen } from '@/app/atoms/ui-atoms';
-import { atom_driveAuthState } from '@/app/atoms/drive-atoms';
+import { atom_frontmatterWizardOpen, atom_vaultSetupWizardOpen, atom_indexTimestamp } from '@/app/atoms/ui-atoms';
+import { atom_driveAuthState, atom_driveVaultId } from '@/app/atoms/drive-atoms';
+import { atom_fileMetadata } from '@/app/atoms/metadata';
 import { DriveFileHandle } from '@/app/services/drive/DriveFileHandle';
 import { updateFile } from '@/app/services/drive/client';
+import { writeDriveVaultIndex } from '@/app/services/vault-index';
 import { injectFrontmatter } from '@/app/utils/frontmatterInjector';
 
 export function useDriveSaveFile() {
@@ -35,6 +37,10 @@ export function useDriveSaveFile() {
   const setVaultSetupWizardOpen = useSetAtom(atom_vaultSetupWizardOpen);
   const [vaultSetupStatus] = useAtom(atom_vaultSetupStatus);
   const [, setDriveAuthState] = useAtom(atom_driveAuthState);
+  const driveVaultId = useAtomValue(atom_driveVaultId);
+  const fileMetadata = useAtomValue(atom_fileMetadata);
+  const setIndexTimestamp = useSetAtom(atom_indexTimestamp);
+  const indexWriteTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const saveFile = useCallback(
     async (
@@ -105,6 +111,16 @@ export function useDriveSaveFile() {
         setSaveStatus({ state: 'saved', retryCount: 0, path: targetPath });
         setTimeout(() => setSaveStatus({ state: 'idle', retryCount: 0, path: undefined }), 2000);
 
+        if (driveVaultId) {
+          if (indexWriteTimerRef.current) clearTimeout(indexWriteTimerRef.current);
+          const snapshot = fileMetadata;
+          indexWriteTimerRef.current = setTimeout(() => {
+            writeDriveVaultIndex(snapshot, driveVaultId)
+              .then(() => setIndexTimestamp(Date.now()))
+              .catch((err) => console.warn('Failed to write Drive vault index:', err));
+          }, 3000);
+        }
+
         if (!isAutoSave) toast.success('Saved to ' + fileHandle.name);
         return true;
       } catch (err: any) {
@@ -150,6 +166,9 @@ export function useDriveSaveFile() {
       setFrontmatterWizardOpen,
       setVaultSetupWizardOpen,
       setDriveAuthState,
+      driveVaultId,
+      fileMetadata,
+      setIndexTimestamp,
     ],
   );
 

@@ -4,9 +4,11 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useAtom, useAtomValue } from "jotai";
 import { atom_fileMetadata } from "@/app/atoms/metadata";
 import { atom_vaultHandle } from "@/app/atoms/vault-atoms";
-import { atom_isVaultHealthOpen } from "@/app/atoms/ui-atoms";
+import { atom_isVaultHealthOpen, atom_indexTimestamp, atom_indexerState } from "@/app/atoms/ui-atoms";
+import { atom_isDriveVault, atom_driveVaultId } from "@/app/atoms/drive-atoms";
 import { computeVaultHealth, Pillar } from "@/app/utils/vaultHealth";
 import { parseVaultIndex, VaultIndex } from "@/app/services/vault-index-reader";
+import { listFiles, getFileContent, FOLDER_MIME } from "@/app/services/drive/client";
 import DialogModal from "@/app/components/DialogModal/DialogModal";
 import { HiOutlineX, HiOutlineCheckCircle, HiOutlineExclamationCircle, HiOutlineChevronDown, HiOutlineChevronUp } from "react-icons/hi";
 
@@ -25,6 +27,16 @@ function scoreDotClass(label: string): string {
   }
 }
 
+function formatTimeAgo(timestamp: number): string {
+  const seconds = Math.max(0, Math.floor((Date.now() - timestamp) / 1000));
+  if (seconds < 60) return "just now";
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return `${minutes}m ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+  return `${Math.floor(hours / 24)}d ago`;
+}
+
 const PILLAR_HINT: Record<Pillar, string> = {
   Write: "Structure exists",
   Select: "Agents can find the right thing",
@@ -36,22 +48,38 @@ export default function VaultHealthPanel() {
   const [isOpen, setIsOpen] = useAtom(atom_isVaultHealthOpen);
   const fileMetadata = useAtomValue(atom_fileMetadata);
   const vaultHandle = useAtomValue(atom_vaultHandle);
+  const isDriveVault = useAtomValue(atom_isDriveVault);
+  const driveVaultId = useAtomValue(atom_driveVaultId);
   const [vaultIndex, setVaultIndex] = useState<VaultIndex | null>(null);
   const [expandedPillar, setExpandedPillar] = useState<Pillar | null>(null);
+  const indexTimestamp = useAtomValue(atom_indexTimestamp);
+  const indexerState = useAtomValue(atom_indexerState);
+  const isIndexing = indexerState !== "idle";
 
   useEffect(() => {
-    if (!isOpen || !vaultHandle) {
+    if (!isOpen || (!vaultHandle && !(isDriveVault && driveVaultId))) {
       setVaultIndex(null);
       return;
     }
     let cancelled = false;
     (async () => {
       try {
-        const hermesDir = await vaultHandle.getDirectoryHandle(".hermes");
-        const fileHandle = await hermesDir.getFileHandle("index.yaml");
-        const file = await fileHandle.getFile();
-        const text = await file.text();
-        if (!cancelled) setVaultIndex(parseVaultIndex(text));
+        if (vaultHandle) {
+          const hermesDir = await vaultHandle.getDirectoryHandle(".hermes");
+          const fileHandle = await hermesDir.getFileHandle("index.yaml");
+          const file = await fileHandle.getFile();
+          const text = await file.text();
+          if (!cancelled) setVaultIndex(parseVaultIndex(text));
+        } else if (isDriveVault && driveVaultId) {
+          const { files: rootFiles } = await listFiles(driveVaultId);
+          const hermesFolder = rootFiles.find((f) => f.mimeType === FOLDER_MIME && f.name === ".hermes");
+          if (!hermesFolder) throw new Error("no .hermes folder");
+          const { files: hermesFiles } = await listFiles(hermesFolder.id);
+          const indexFile = hermesFiles.find((f) => f.name === "index.yaml");
+          if (!indexFile) throw new Error("no index.yaml");
+          const text = await getFileContent(indexFile.id);
+          if (!cancelled) setVaultIndex(parseVaultIndex(text));
+        }
       } catch {
         if (!cancelled) setVaultIndex(null);
       }
@@ -59,7 +87,7 @@ export default function VaultHealthPanel() {
     return () => {
       cancelled = true;
     };
-  }, [isOpen, vaultHandle]);
+  }, [isOpen, vaultHandle, isDriveVault, driveVaultId]);
 
   const tokenStats = useMemo(() => {
     const files = Object.values(fileMetadata).filter((f) => f.tokens);
@@ -132,6 +160,14 @@ export default function VaultHealthPanel() {
                 <span className="font-semibold lowercase">{health.label}</span>
               </div>
               <span className="text-ui-footnote text-fg-muted">vault health</span>
+            </div>
+
+            <div className="text-ui-footnote text-fg-muted italic">
+              {isIndexing
+                ? "Index rebuilding…"
+                : indexTimestamp
+                ? `Index updated ${formatTimeAgo(indexTimestamp)}`
+                : "Index not yet written this session"}
             </div>
 
             <div className="flex flex-col gap-2">

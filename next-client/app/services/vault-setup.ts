@@ -57,38 +57,9 @@ automatically — formulas work whether a cell is \`2000\`, \`$2,000\`, or
 needed.
 
 ## Context Loading Protocol
-
-Before loading any file into context, follow this exact sequence:
-
-### Step 1 — Filter by read_when
-Read \`.hermes/index.yaml\` first — it is a frontmatter-only index with no file body content.
-Check the \`read_when\` field of every entry against the current task.
-- If \`read_when\` is empty or does not match the task: skip the file entirely (Tier 0)
-- If \`read_when\` matches, or is set to \`always\`: proceed to Step 2
-- If \`read_when\` is set to \`never\`: skip unconditionally
-
-### Step 2 — Load scope only (Tier 1)
-For all files that passed Step 1, read their \`scope\` field from the index.
-The \`scope\` is a one-sentence summary of what the file covers.
-If the task can be completed using scope fields alone: do not load full file content.
-
-### Step 3 — Load full content only if needed (Tier 2)
-If a specific file's scope is insufficient for the task, load its full content.
-Load files one at a time and re-evaluate after each load whether more are needed.
-Do not pre-load multiple files in full — load on demand.
-Files with no \`scope\` field must be loaded in full if \`read_when\` matches.
-
-### read_when format
-Entries in \`read_when\` follow these conventions:
-- Plain sentence: \`"user is asking about X"\` — semantic match
-- Keyword hint: \`"keywords: a, b, c"\` — keyword match first, semantic fallback
-- Always load: \`"always"\` — included regardless of task
-- Never load: \`"never"\` — excluded from all agent context
-
-### Staleness
-\`.hermes/index.yaml\` is maintained automatically by the editor.
-If its \`generated\` timestamp is older than 5 minutes, the editor may not have been
-running during recent agent writes — warn the user if stale data could affect the task.
+See \`.hermes/AGENTS.md\` for the full context loading protocol (how to read
+\`.hermes/index.yaml\`, the read_when/scope tiers, and staleness handling).
+Read that file first, before this one, for any agent task.
 
 ## Agent Instructions
 - Never modify files prefixed with \`_\` unless explicitly instructed
