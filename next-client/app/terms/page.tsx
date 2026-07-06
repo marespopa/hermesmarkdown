@@ -77,7 +77,14 @@ export default function TermsAndConditions() {
           </div>
 
           <div className="space-y-4">
-            <h2 className="text-xl font-bold tracking-tight uppercase tracking-widest text-sage dark:text-sage text-xs">3. Liability & Disclaimers</h2>
+            <h2 className="text-xl font-bold tracking-tight uppercase tracking-widest text-sage dark:text-sage text-xs">3. Cookies</h2>
+            <p>
+              The Service does not use cookies. See our <a href="/privacy-policy" className="underline">Privacy Policy</a> for details on the analytics we use.
+            </p>
+          </div>
+
+          <div className="space-y-4">
+            <h2 className="text-xl font-bold tracking-tight uppercase tracking-widest text-sage dark:text-sage text-xs">4. Liability & Disclaimers</h2>
             <p>
               HERMESMARKDOWN AND ITS CREATOR, MARES POPA, BEAR NO RESPONSIBILITY FOR DATA LOSS, SECURITY BREACHES ON YOUR LOCAL DEVICE, OR THE OPERABILITY OF THIRD-PARTY SERVICES. THE SERVICE IS PROVIDED &quot;AS IS&quot; WITHOUT WARRANTIES OF ANY KIND.
             </p>

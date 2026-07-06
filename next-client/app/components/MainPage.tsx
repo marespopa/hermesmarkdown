@@ -2,7 +2,6 @@
 
 import Script from "next/script";
 import { Toaster } from "react-hot-toast";
-import CookieConsent from "./CookieConsent";
 import CustomProviders from "./CustomProviders";
 import Footer from "./Footer/Footer.component";
 import Header from "./Header";
@@ -39,7 +38,6 @@ const MainPage = ({ children }: Props) => {
         </main>
         
         {showFooter && <Footer />}
-        <CookieConsent />
         <GlobalDialog />
       </div>
       {process.env.NODE_ENV === "production" && (

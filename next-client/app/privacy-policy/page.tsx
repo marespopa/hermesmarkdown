@@ -79,6 +79,13 @@ export default function PrivacyPolicy() {
           </div>
 
           <div className="space-y-4">
+            <h2 className="text-xl font-bold tracking-tight uppercase tracking-widest text-sage dark:text-sage text-xs">Cookies</h2>
+            <p>
+              HermesMarkdown does not use cookies. Our analytics provider, LiteAnalytics, is cookieless by design, and we do not set any cookies of our own for tracking, advertising, or session management on the marketing site.
+            </p>
+          </div>
+
+          <div className="space-y-4">
             <h2 className="text-xl font-bold tracking-tight uppercase tracking-widest text-sage dark:text-sage text-xs">Your Rights</h2>
             <p>
               Since we do not collect or store your personal data or content, there is no data for us to "export" or "delete" upon request. You have full control over your data because you own the physical files on your device.
