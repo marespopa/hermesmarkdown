@@ -1,12 +1,14 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import Script from "next/script";
 import { Toaster } from "react-hot-toast";
 import CustomProviders from "./CustomProviders";
 import Footer from "./Footer/Footer.component";
 import Header from "./Header";
 import { usePathname } from "next/navigation";
-import GlobalDialog from "./DialogModal/GlobalDialog";
+
+const GlobalDialog = dynamic(() => import("./DialogModal/GlobalDialog"));
 
 type Props = {
   children: React.ReactNode;
@@ -38,7 +40,7 @@ const MainPage = ({ children }: Props) => {
         </main>
         
         {showFooter && <Footer />}
-        <GlobalDialog />
+        {isEditor && <GlobalDialog />}
       </div>
       {process.env.NODE_ENV === "production" && (
         <Script

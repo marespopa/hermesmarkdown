@@ -14,7 +14,7 @@ export default function ProductHuntBadge() {
           alt="HermesMarkdown - The Markdown Editor That Respects Your Privacy | Product Hunt"
           width={250}
           height={54}
-          style={{ width: "250px", height: "54px" }}
+          style={{ width: "250px", height: "auto" }}
           unoptimized
         />
       </a>

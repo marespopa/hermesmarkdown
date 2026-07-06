@@ -116,33 +116,12 @@ html.dark ::selection {
 
 /* Form fields draw their own focus ring (Tailwind `focus:ring-sage`) — the
    global clay outline above stacked on top of it produced a visible double
-   border. The editor's own textarea is unaffected and keeps the clay outline. */
+   border. The editor's own textarea is unaffected and keeps the clay outline
+   (see app/editor/editor.scss). */
 input:focus-visible,
 textarea:focus-visible,
 select:focus-visible {
   outline: none;
-}
-
-.editor-container textarea:focus-visible {
-  outline: 2px solid var(--clay);
-  outline-offset: 2px;
-}
-
-/* Keep the editor's invisible textarea layer transparent during selection.
-   The pre element below is the visual layer; letting ::selection color bleed
-   through to the textarea causes raw text to appear on top of the highlighted
-   pre, which on mobile WebKit manifests as text "appearing" only when selected. */
-.editor-container textarea::selection,
-.editor-container textarea::-moz-selection {
-  -webkit-text-fill-color: transparent;
-  color: transparent;
-}
-
-/* Guarantee the highlighted pre always renders with the correct inherited color
-   on mobile WebKit, where -webkit-text-fill-color can sometimes be picked up
-   from a composited ancestor layer. */
-.editor-container pre {
-  -webkit-text-fill-color: currentColor;
 }
 
 html, body {
@@ -355,77 +334,5 @@ ul li::marker {
   margin-left: 2px;
   animation: blink 1s step-end infinite;
   @apply text-sage;
-}
-
-/* Premium Animated Caret */
-.editor-container textarea {
-  caret-color: theme('colors.sage.DEFAULT');
-}
-
-/* Typography settings — driven by CSS vars on .editor-container.
-   Applied identically to both overlay layers so the caret stays aligned.
-   !important overrides react-simple-code-editor's own inline styles. */
-.editor-container,
-.editor-container textarea,
-.editor-container pre {
-  font-size: var(--editor-font-size, 16px) !important;
-  line-height: var(--editor-line-height, 1.8) !important;
-  letter-spacing: var(--editor-letter-spacing, normal) !important;
-}
-
-@media (min-width: 1280px) {
-  .editor-container,
-  .editor-container textarea,
-  .editor-container pre {
-    font-size: calc(var(--editor-font-size, 16px) + 1px) !important;
-  }
-}
-
-/* Table rendering — activated when preview pane wraps content in .hermes-preview */
-.hermes-preview table {
-  width: 100%;
-  border-collapse: collapse;
-  overflow-x: auto;
-  display: block;
-}
-
-.hermes-preview table th,
-.hermes-preview table td {
-  border: 1px solid theme('colors.beige.DEFAULT');
-  padding: 0.4rem 0.75rem;
-  text-align: left;
-  white-space: nowrap;
-}
-
-.hermes-preview table th {
-  background-color: theme('colors.beige.light');
-  font-weight: 600;
-}
-
-.hermes-preview table tr:nth-child(even) td {
-  background-color: theme('colors.paper.softgray');
-}
-
-.hermes-preview table td.text-center,
-.hermes-preview table th.text-center {
-  text-align: center;
-}
-
-.hermes-preview table td.text-right,
-.hermes-preview table th.text-right {
-  text-align: right;
-}
-
-html.dark .hermes-preview table th {
-  background-color: theme('colors.paper.dark-surface');
-}
-
-html.dark .hermes-preview table tr:nth-child(even) td {
-  background-color: theme('colors.paper.dark');
-}
-
-html.dark .hermes-preview table th,
-html.dark .hermes-preview table td {
-  border-color: #3A3530;
 }
 

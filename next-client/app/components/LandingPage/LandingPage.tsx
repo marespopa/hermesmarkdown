@@ -777,7 +777,7 @@ export default function LandingPage() {
               >
                 Open Editor
               </Button>
-              <div className="text-ui-footnote uppercase tracking-widest opacity-40 font-bold hidden sm:block">
+              <div className="text-ui-footnote uppercase tracking-widest text-fg-muted font-bold hidden sm:block">
                 Free · No account required
               </div>
             </div>
