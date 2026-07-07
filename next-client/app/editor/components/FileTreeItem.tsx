@@ -58,7 +58,7 @@ export default function FileTreeItem({
         }`}
       >
         <HiOutlineDocumentText size={18} className="shrink-0 opacity-80" />
-        <span className="truncate">{fileHandle.name}</span>
+        <span className="truncate" title={fileHandle.name}>{fileHandle.name}</span>
       </div>
 
       <div className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 [@media(hover:none)]:opacity-100 transition-opacity flex items-center z-10">

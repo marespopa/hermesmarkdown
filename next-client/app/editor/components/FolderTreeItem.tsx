@@ -141,7 +141,7 @@ const FolderTreeItem = memo(function FolderTreeItem({
               {isExpanded ? <HiOutlineChevronDown size={14} /> : <HiOutlineChevronRight size={14} />}
             </span>
             <HiOutlineFolder size={18} className="shrink-0 opacity-80 text-sage/60" />
-            <span className="truncate">{dirHandle.name}</span>
+            <span className="truncate" title={dirHandle.name}>{dirHandle.name}</span>
           </div>
 
           <div className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 [@media(hover:none)]:opacity-100 transition-opacity flex items-center z-10">
