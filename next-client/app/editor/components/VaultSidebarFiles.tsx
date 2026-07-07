@@ -116,6 +116,36 @@ function HighlightedName({ name, query }: { name: string; query: string }) {
   );
 }
 
+interface TreeGutterInfo {
+  ancestorLines: boolean[];
+  isLast: boolean;
+}
+
+// Renders VSCode/`tree`-style indent guides: a vertical line per ancestor
+// folder that still has siblings below it, plus this row's own branch
+// connector (either a mid-height elbow for the last child, or a full-height
+// tee for any other child).
+function TreeGutter({ ancestorLines, isLast }: TreeGutterInfo) {
+  return (
+    <div className="flex items-stretch shrink-0">
+      {ancestorLines.map((hasLine, i) => (
+        <span key={i} className="relative w-5 shrink-0">
+          {hasLine && (
+            <span className="absolute inset-y-0 left-1/2 -translate-x-1/2 w-px bg-edge-subtle" />
+          )}
+        </span>
+      ))}
+      <span className="relative w-5 shrink-0">
+        <span
+          className="absolute left-1/2 -translate-x-1/2 w-px bg-edge-subtle"
+          style={{ top: 0, bottom: isLast ? "50%" : 0 }}
+        />
+        <span className="absolute top-1/2 left-1/2 right-1.5 h-px -translate-y-1/2 bg-edge-subtle" />
+      </span>
+    </div>
+  );
+}
+
 interface FileRowProps {
   entry: any;
   entryPath?: string;
@@ -130,7 +160,7 @@ interface FileRowProps {
   duplicateFile?: (handle: FileSystemHandle) => void;
   onClose?: () => void;
   hideFolderPath?: boolean;
-  indentLevel?: number;
+  treeGutter?: TreeGutterInfo;
   draggable?: boolean;
   onDragStartEntry?: () => void;
 }
@@ -149,7 +179,7 @@ function FileRow({
   duplicateFile,
   onClose,
   hideFolderPath = false,
-  indentLevel = 0,
+  treeGutter,
   draggable = false,
   onDragStartEntry,
 }: FileRowProps) {
@@ -171,15 +201,21 @@ function FileRow({
           onDragStartEntry?.();
           e.dataTransfer.effectAllowed = "move";
         }}
-        style={indentLevel ? { paddingLeft: `${indentLevel * 1.25}rem` } : undefined}
-        className={`flex items-center gap-2 px-4 py-2 cursor-pointer transition-all duration-200 text-ui-subhead pr-8 relative ${
-          isActive
-            ? "text-accent font-bold before:absolute before:left-0 before:top-2 before:bottom-2 before:w-0.5 before:bg-accent"
-            : "hover:bg-paper-softgray/60 dark:hover:bg-paper-dark-surface/50 text-ink-muted dark:text-stone font-medium"
+        className={`flex items-stretch cursor-pointer transition-all duration-200 text-ui-subhead pr-8 ${
+          isActive ? "text-accent" : "text-ink-muted dark:text-stone font-medium"
         }`}
       >
-        <div className="flex flex-col truncate leading-tight">
-          <span className="truncate">
+        {treeGutter && <TreeGutter {...treeGutter} />}
+        <div
+          className={`flex flex-col truncate leading-tight pl-2 pr-4 py-2 min-w-0 flex-1 ${
+            isActive ? "" : "hover:bg-paper-softgray/60 dark:hover:bg-paper-dark-surface/50"
+          }`}
+        >
+          <span
+            className={`truncate w-fit max-w-full ${
+              isActive ? "font-semibold bg-accent/15 rounded px-1 -mx-1" : ""
+            }`}
+          >
             <HighlightedName name={entry.name.replace(/\.md$/, "")} query={highlightQuery} />
           </span>
           {folderPath && (
@@ -282,8 +318,12 @@ function isDescendantOrSelf(ancestorPath: string, path: string): boolean {
 
 interface FolderRowProps {
   node: TreeFolderNode;
-  level: number;
+  treeGutter?: TreeGutterInfo;
   isCollapsed: boolean;
+  // True when this folder is an ancestor of the currently active file —
+  // gives the whole chain leading to the open file a subtle tint so it
+  // reads as "this file lives here" at a glance.
+  isActiveChain?: boolean;
   onToggle: (path: string) => void;
   actionMenuOpen: { x: number; y: number; path: string } | null;
   setActionMenuOpen: (v: { x: number; y: number; path: string } | null) => void;
@@ -298,8 +338,9 @@ interface FolderRowProps {
 
 function FolderRow({
   node,
-  level,
+  treeGutter,
   isCollapsed,
+  isActiveChain = false,
   onToggle,
   actionMenuOpen,
   setActionMenuOpen,
@@ -343,18 +384,22 @@ function FolderRow({
           if (canAcceptDrop) onDropInto(node.path);
           setDraggedEntry(null);
         }}
-        style={{ paddingLeft: `${level * 1.25}rem` }}
-        className={`flex items-center gap-2 mx-1 pr-8 px-4 py-2 cursor-pointer text-ui-subhead transition-colors relative ${
+        className={`flex items-stretch mx-1 pr-8 cursor-pointer text-ui-subhead transition-colors relative ${
           dragOver
             ? "ring-2 ring-sage/50 bg-sage/10 text-sage dark:text-sage font-medium"
-            : "text-ink-muted dark:text-stone font-medium hover:bg-paper-softgray/60 dark:hover:bg-paper-dark-surface/50"
+            : isActiveChain
+              ? "text-ink-light dark:text-ink-dark font-medium hover:bg-paper-softgray/60 dark:hover:bg-paper-dark-surface/50"
+              : "text-ink-muted dark:text-stone font-medium hover:bg-paper-softgray/60 dark:hover:bg-paper-dark-surface/50"
         }`}
       >
-        <span className="w-3.5 flex items-center justify-center opacity-40 shrink-0">
-          {isCollapsed ? <HiOutlineChevronRight size={13} /> : <HiOutlineChevronDown size={13} />}
-        </span>
-        <HiOutlineFolder size={16} className="shrink-0 opacity-70" />
-        <span className="truncate">{node.name}</span>
+        {treeGutter && <TreeGutter {...treeGutter} />}
+        <div className="flex items-center gap-1 pl-2 pr-4 py-2 min-w-0 flex-1">
+          <span className="w-3 flex items-center justify-center opacity-40 shrink-0">
+            {isCollapsed ? <HiOutlineChevronRight size={13} /> : <HiOutlineChevronDown size={13} />}
+          </span>
+          <HiOutlineFolder size={16} className="shrink-0 opacity-70" />
+          <span className="truncate">{node.name}</span>
+        </div>
       </div>
 
       <div className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 [@media(hover:none)]:opacity-100 transition-opacity z-10">
@@ -440,7 +485,9 @@ function FolderRow({
 function TreeNodes({
   nodes,
   level,
+  ancestorLines,
   isFolderCollapsed,
+  isActiveAncestor,
   onToggleFolder,
   rowProps,
   draggedEntry,
@@ -450,25 +497,35 @@ function TreeNodes({
 }: {
   nodes: TreeNode[];
   level: number;
+  // Continuation flags for each ancestor column above this row's own branch
+  // (true = that ancestor still has siblings below it, so its line continues).
+  // The root call passes [] — level 0 renders flush, with no gutter at all.
+  ancestorLines: boolean[];
   isFolderCollapsed: (path: string) => boolean;
+  isActiveAncestor: (path: string) => boolean;
   onToggleFolder: (path: string) => void;
   rowProps: (entry: any) => any;
   draggedEntry: DraggedEntry | null;
   setDraggedEntry: (v: DraggedEntry | null) => void;
   onDropInto: (targetPath: string) => void;
-  folderRowExtras: Omit<FolderRowProps, "node" | "level" | "isCollapsed" | "onToggle" | "draggedEntry" | "setDraggedEntry" | "onDropInto">;
+  folderRowExtras: Omit<FolderRowProps, "node" | "treeGutter" | "isCollapsed" | "isActiveChain" | "onToggle" | "draggedEntry" | "setDraggedEntry" | "onDropInto">;
 }) {
   return (
     <>
-      {nodes.map((node) => {
+      {nodes.map((node, index) => {
+        const isLast = index === nodes.length - 1;
+        const treeGutter = level > 0 ? { ancestorLines, isLast } : undefined;
+
         if (node.type === "folder") {
           const isCollapsed = isFolderCollapsed(node.path);
+          const childAncestorLines = level === 0 ? [] : [...ancestorLines, !isLast];
           return (
             <div key={`folder-${node.path}`} data-path={node.path}>
               <FolderRow
                 node={node}
-                level={level}
+                treeGutter={treeGutter}
                 isCollapsed={isCollapsed}
+                isActiveChain={isActiveAncestor(node.path)}
                 onToggle={onToggleFolder}
                 draggedEntry={draggedEntry}
                 setDraggedEntry={setDraggedEntry}
@@ -479,7 +536,9 @@ function TreeNodes({
                 <TreeNodes
                   nodes={node.children}
                   level={level + 1}
+                  ancestorLines={childAncestorLines}
                   isFolderCollapsed={isFolderCollapsed}
+                  isActiveAncestor={isActiveAncestor}
                   onToggleFolder={onToggleFolder}
                   rowProps={rowProps}
                   draggedEntry={draggedEntry}
@@ -497,7 +556,7 @@ function TreeNodes({
             <FileRow
               {...rowProps(node.entry)}
               hideFolderPath
-              indentLevel={level}
+              treeGutter={treeGutter}
               draggable
               onDragStartEntry={() =>
                 setDraggedEntry({ kind: "file", path: node.path, name: node.name, handle: node.entry.handle })
@@ -670,7 +729,9 @@ export default function VaultSidebarFiles({
           <TreeNodes
             nodes={tree}
             level={0}
+            ancestorLines={[]}
             isFolderCollapsed={isFolderCollapsed}
+            isActiveAncestor={(path) => activeAncestorPaths.has(path)}
             onToggleFolder={toggleFolder}
             rowProps={rowProps}
             draggedEntry={draggedEntry}
