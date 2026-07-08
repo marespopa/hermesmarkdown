@@ -4,6 +4,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useAtomValue } from "jotai";
 import { atom_fileMetadata } from "@/app/atoms/metadata";
+import { atom_showHiddenFiles } from "@/app/atoms/ui-atoms";
 import { useFileSystem } from "@/app/hooks/use-file-system";
 import { useCommandPalette, type Command } from "./CommandPaletteContext";
 import useIsMobileChrome from "@/app/hooks/use-mobile-chrome";
@@ -82,6 +83,7 @@ function matchFile(query: string, file: FileResult): { score: number; indices: n
 export default function CommandPalette() {
   const { isOpen, close, commands, recentCommandIds, markUsed } = useCommandPalette();
   const fileMetadata = useAtomValue(atom_fileMetadata);
+  const showHiddenFiles = useAtomValue(atom_showHiddenFiles);
   const { openFile } = useFileSystem();
   const isMobileChrome = useIsMobileChrome();
   const [mounted, setMounted] = useState(false);
@@ -109,9 +111,9 @@ export default function CommandPalette() {
   const fileResults: FileResult[] = useMemo(
     () =>
       Object.values(fileMetadata)
-        .filter((m) => !m.path.split("/").some((seg) => seg.startsWith("_")))
+        .filter((m) => showHiddenFiles || !m.path.split("/").some((seg) => seg.startsWith("_")))
         .map((m) => ({ path: m.path, name: m.name, handle: m.handle, tags: m.tags })),
-    [fileMetadata],
+    [fileMetadata, showHiddenFiles],
   );
 
   // VSCode-style prefixes: ">" switches to the command list, "#" searches

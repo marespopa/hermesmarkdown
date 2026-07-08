@@ -117,7 +117,17 @@ export function useDriveSaveFile() {
           indexWriteTimerRef.current = setTimeout(() => {
             writeDriveVaultIndex(snapshot, driveVaultId)
               .then(() => setIndexTimestamp(Date.now()))
-              .catch((err) => console.warn('Failed to write Drive vault index:', err));
+              .catch(async (err) => {
+                console.warn('Failed to write Drive vault index, retrying once:', err);
+                try {
+                  await new Promise((r) => setTimeout(r, 2000));
+                  await writeDriveVaultIndex(snapshot, driveVaultId);
+                  setIndexTimestamp(Date.now());
+                } catch (err2) {
+                  console.error('Failed to write Drive vault index after retry:', err2);
+                  toast.error('Could not update .hermes/index.yaml — Vault Health may show stale data until the next save.', { id: 'drive-index-write-failed', duration: 6000 });
+                }
+              });
           }, 3000);
         }
 

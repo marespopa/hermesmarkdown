@@ -212,6 +212,7 @@ function FileRow({
           }`}
         >
           <span
+            title={entry.name.replace(/\.md$/, "")}
             className={`truncate w-fit max-w-full ${
               isActive ? "font-semibold bg-accent/15 rounded px-1 -mx-1" : ""
             }`}
@@ -219,7 +220,7 @@ function FileRow({
             <HighlightedName name={entry.name.replace(/\.md$/, "")} query={highlightQuery} />
           </span>
           {folderPath && (
-            <span className="text-ui-caption opacity-40 truncate mt-0.5">
+            <span title={folderPath} className="text-ui-caption opacity-40 truncate mt-0.5">
               {folderPath}
             </span>
           )}
@@ -398,7 +399,7 @@ function FolderRow({
             {isCollapsed ? <HiOutlineChevronRight size={13} /> : <HiOutlineChevronDown size={13} />}
           </span>
           <HiOutlineFolder size={16} className="shrink-0 opacity-70" />
-          <span className="truncate">{node.name}</span>
+          <span title={node.name} className="truncate">{node.name}</span>
         </div>
       </div>
 

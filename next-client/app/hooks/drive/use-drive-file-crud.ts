@@ -34,7 +34,7 @@ interface Props {
   openFile: (handle: any, path?: string, force?: boolean) => Promise<void>;
 }
 
-export function useDriveFileCrud({ scanVault, openFile }: Props) {
+export function useDriveFileCrud({ scanVault, indexVaultTags, openFile }: Props) {
   const [currentDirectoryHandle] = useAtom(atom_currentDirectoryHandle);
   const [activeFileHandle, setActiveFileHandle] = useAtom(atom_activeFileHandle);
   const [, setFileName] = useAtom(atom_fileName);
@@ -493,8 +493,13 @@ export function useDriveFileCrud({ scanVault, openFile }: Props) {
 
     const dir = currentDirectoryHandle as any;
     if (dir instanceof DriveDirectoryHandle) await scanVault(dir);
+    // The Files-tab tree and Command Palette are built from atom_fileMetadata,
+    // not from drivePathIndex/scanVault — without this, a moved item keeps
+    // showing at its old path there even though the move itself succeeded
+    // (mirrors the full re-index the local-vault moveItem already does).
+    await indexVaultTags?.();
     toast.success(`Moved ${handle.name}`);
-  }, [driveVaultId, drivePathIndex, setDrivePathIndex, setDriveAuthState, currentDirectoryHandle, scanVault]);
+  }, [driveVaultId, drivePathIndex, setDrivePathIndex, setDriveAuthState, currentDirectoryHandle, scanVault, indexVaultTags]);
 
   const importFile = useCallback(async () => {
     // Import falls back to local file picker + openFile — works regardless of vault backend

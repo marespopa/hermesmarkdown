@@ -15,10 +15,11 @@ import {
   atom_sidebarWidth,
   atom_isCloudVault,
 } from "@/app/atoms/atoms";
-import { atom_railPanel, atom_newVaultFlowOpen, atom_pendingScrollTarget, RailPanel } from "@/app/atoms/ui-atoms";
+import { atom_railPanel, atom_newVaultFlowOpen, atom_pendingScrollTarget, atom_showHiddenFiles, RailPanel } from "@/app/atoms/ui-atoms";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import SmartFolders from "./SmartFolders";
 import VaultSidebarTasks from "./VaultSidebarTasks";
+import VaultSidebarTags from "./VaultSidebarTags";
 import { useSidebarSearch } from "../hooks/useSidebarSearch";
 import VaultSidebarEmpty from "./VaultSidebarEmpty";
 import VaultSidebarFiles from "./VaultSidebarFiles";
@@ -91,12 +92,24 @@ export default function VaultSidebar({
     driveAuthState,
     driveSignIn,
     scanVault,
+    indexVaultTags,
   } = useFileSystem();
 
   const dialog = useDialog();
   const drivePathIndex = useAtomValue(atom_drivePathIndex);
   const setNewVaultFlowOpen = useSetAtom(atom_newVaultFlowOpen);
   const setPendingScrollTarget = useSetAtom(atom_pendingScrollTarget);
+  const [showHiddenFiles, setShowHiddenFiles] = useAtom(atom_showHiddenFiles);
+
+  // Settings has the full description of what this reveals; here it's a quick
+  // toggle so hiding system/skill files never requires leaving the sidebar.
+  const handleToggleHiddenFiles = useCallback(() => {
+    const next = !showHiddenFiles;
+    setShowHiddenFiles(next);
+    if (!vaultHandle) return;
+    scanVault(vaultHandle as any, next);
+    indexVaultTags?.(vaultHandle as any, next);
+  }, [showHiddenFiles, setShowHiddenFiles, vaultHandle, scanVault, indexVaultTags]);
 
   // Resolves a directory handle for an arbitrary nested path (e.g. "a/b/c"),
   // working for both local (File System Access API) and Google Drive vaults.
@@ -274,31 +287,15 @@ export default function VaultSidebar({
             )}
           </div>
         ) : panel === "tags" ? (
-          <div className="flex-1 overflow-y-auto custom-scrollbar py-1">
-            {tags.length === 0 && (
-              <p className="px-4 py-3 text-ui-footnote text-stone dark:text-fg-faint">No tags in this vault yet.</p>
-            )}
-            {tags.map((tag) => {
-              const isActive = selectedTags.includes(tag);
-              return (
-                <button
-                  key={tag}
-                  onClick={() => {
-                    setSelectedTags((prev) => (prev.includes(tag) ? prev : [...prev, tag]));
-                    setRailPanel("search");
-                  }}
-                  className={`flex w-full items-center justify-between px-4 py-2 text-ui-subhead relative ${
-                    isActive
-                      ? "text-accent font-medium before:absolute before:left-0 before:top-1 before:bottom-1 before:w-0.5 before:bg-accent"
-                      : "text-ink-muted hover:text-ink-light dark:text-stone dark:hover:text-ink-dark"
-                  }`}
-                >
-                  <span className="truncate">#{tag}</span>
-                  <span className="text-ui-caption text-fg-faint">{tagCounts[tag] ?? 0}</span>
-                </button>
-              );
-            })}
-          </div>
+          <VaultSidebarTags
+            tags={tags}
+            tagCounts={tagCounts}
+            selectedTags={selectedTags}
+            onSelectTag={(tag) => {
+              setSelectedTags((prev) => (prev.includes(tag) ? prev : [...prev, tag]));
+              setRailPanel("search");
+            }}
+          />
         ) : panel === "views" ? (
           <div className="flex-1 overflow-y-auto">
             <SmartFolders
@@ -378,6 +375,8 @@ export default function VaultSidebar({
         isVaultSupported={isVaultSupported}
         onRefresh={handleRefresh}
         isRefreshing={isRefreshing}
+        showHiddenFiles={showHiddenFiles}
+        onToggleHiddenFiles={handleToggleHiddenFiles}
       />
       </div>
   );

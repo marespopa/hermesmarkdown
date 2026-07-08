@@ -14,6 +14,9 @@ export interface VaultHealthMetric {
   pass: number;
   total: number;
   reason: string;
+  /** Relative importance within its pillar — how much this check actually
+   * changes what an agent reads or pays for. Defaults to 1 (see `scoreOf`). */
+  weight?: number;
 }
 
 export interface PillarResult {
@@ -57,9 +60,18 @@ function relatedListOf(f: FileMetadata): string[] {
     .filter(Boolean);
 }
 
+// Weighted rather than plain average — some checks in a pillar are direct
+// proxies for what an agent actually reads/pays for (e.g. index freshness,
+// scoped-load savings) while others are weak or near-tautological (e.g. tag
+// consistency, whether a token estimate exists at all). Equal weighting let
+// the weak ones dilute the pillar's score; see the per-metric `weight` below.
 function scoreOf(metrics: VaultHealthMetric[]): number {
-  const ratios = metrics.map((m) => (m.total > 0 ? m.pass / m.total : 1));
-  return Math.round((ratios.reduce((sum, r) => sum + r, 0) / ratios.length) * 100);
+  const totalWeight = metrics.reduce((sum, m) => sum + (m.weight ?? 1), 0);
+  const weighted = metrics.reduce((sum, m) => {
+    const ratio = m.total > 0 ? m.pass / m.total : 1;
+    return sum + ratio * (m.weight ?? 1);
+  }, 0);
+  return Math.round((weighted / totalWeight) * 100);
 }
 
 export function computeVaultHealth(
@@ -108,17 +120,21 @@ export function computeVaultHealth(
   }).length;
 
   const writeMetrics: VaultHealthMetric[] = [
+    // frontmatter/read_when gate the tiered-read protocol directly — without
+    // them an agent has no choice but to full-load the note.
     {
       id: "frontmatter", label: "Frontmatter present", pass: withFrontmatter, total: fileCount,
-      reason: `${fileCount - withFrontmatter} note(s) missing frontmatter`,
+      reason: `${fileCount - withFrontmatter} note(s) missing frontmatter`, weight: 3,
     },
     {
       id: "read-when", label: "read_when defined", pass: withReadWhen, total: fileCount,
-      reason: `${fileCount - withReadWhen} note(s) missing read_when`,
+      reason: `${fileCount - withReadWhen} note(s) missing read_when`, weight: 3,
     },
+    // Discoverability heuristic, not a hard requirement — a self-contained
+    // note with no links can still be perfectly readable by an agent.
     {
       id: "orphans", label: "Not orphaned", pass: notOrphaned, total: fileCount,
-      reason: `${fileCount - notOrphaned} orphaned note(s) with no inbound or outbound links`,
+      reason: `${fileCount - notOrphaned} orphaned note(s) with no inbound or outbound links`, weight: 1,
     },
   ];
 
@@ -139,17 +155,21 @@ export function computeVaultHealth(
   }).length;
 
   const selectMetrics: VaultHealthMetric[] = [
+    // scope is the field an agent's selection pass actually keys off of.
     {
       id: "scope", label: "Scope defined", pass: withScope, total: fileCount,
-      reason: `${fileCount - withScope} note(s) missing scope`,
+      reason: `${fileCount - withScope} note(s) missing scope`, weight: 3,
     },
+    // A broken link sends an agent chasing a dead reference — real wasted
+    // context, not a style nit.
     {
       id: "links", label: "Links resolve", pass: notBroken, total: fileCount,
-      reason: `${filesWithBrokenLinks} note(s) with broken links`,
+      reason: `${filesWithBrokenLinks} note(s) with broken links`, weight: 3,
     },
+    // Duplicate titles are a minor disambiguation annoyance, not a blocker.
     {
       id: "titles", label: "Unique titles", pass: fileCount - duplicateTitleFiles, total: fileCount,
-      reason: `${duplicateTitleFiles} note(s) share a duplicate title`,
+      reason: `${duplicateTitleFiles} note(s) share a duplicate title`, weight: 1,
     },
   ];
 
@@ -165,17 +185,21 @@ export function computeVaultHealth(
   }).length;
 
   const compressMetrics: VaultHealthMetric[] = [
+    // A generous, soft threshold — flagged above but not a real tax yet.
     {
       id: "size", label: "Within healthy size", pass: withinHealthySize, total: fileCount,
-      reason: `${fileCount - withinHealthySize} note(s) above ${COMPRESS_HEALTHY_TOKENS.toLocaleString()} tokens`,
+      reason: `${fileCount - withinHealthySize} note(s) above ${COMPRESS_HEALTHY_TOKENS.toLocaleString()} tokens`, weight: 1,
     },
+    // The point where a full-load actually costs an agent real tokens.
     {
       id: "oversized", label: "Not oversized", pass: notOversized, total: fileCount,
-      reason: `${fileCount - notOversized} note(s) above ${COMPRESS_OVERSIZED_TOKENS.toLocaleString()} tokens`,
+      reason: `${fileCount - notOversized} note(s) above ${COMPRESS_OVERSIZED_TOKENS.toLocaleString()} tokens`, weight: 2,
     },
+    // The core value prop of scoping at all — does writing scope/read_when
+    // actually shrink what an agent has to load, or was it wasted effort.
     {
       id: "scoped-savings", label: "Scoped load meaningfully cheaper", pass: meaningfullyScoped, total: fileCount,
-      reason: `${fileCount - meaningfullyScoped} note(s) where scoping saves less than ${Math.round(COMPRESS_MEANINGFUL_REDUCTION * 100)}%`,
+      reason: `${fileCount - meaningfullyScoped} note(s) where scoping saves less than ${Math.round(COMPRESS_MEANINGFUL_REDUCTION * 100)}%`, weight: 3,
     },
   ];
 
@@ -203,18 +227,22 @@ export function computeVaultHealth(
   const withTokenEstimate = files.filter((f) => (f.tokens?.full ?? 0) > 0).length;
 
   const isolateMetrics: VaultHealthMetric[] = [
+    // Stale index directly misleads the read protocol an agent follows —
+    // the single highest-stakes check in this pillar.
     {
       id: "index-freshness", label: "Index freshness", pass: freshnessPass, total: freshnessTotal,
-      reason: freshnessReason,
+      reason: freshnessReason, weight: 3,
     },
+    // Cosmetic tidiness — a numeric tag doesn't confuse an agent.
     {
       id: "tag-consistency", label: "Tag consistency", pass: totalTags === 0 ? 1 : totalTags - numericTags,
       total: totalTags === 0 ? 1 : totalTags,
-      reason: numericTags > 0 ? `${numericTags} numeric-only tag(s) found` : "No numeric-only tags",
+      reason: numericTags > 0 ? `${numericTags} numeric-only tag(s) found` : "No numeric-only tags", weight: 1,
     },
+    // Near-tautological — true unless the indexer itself failed to run.
     {
       id: "token-estimate", label: "Token cost estimable", pass: withTokenEstimate, total: fileCount,
-      reason: `${fileCount - withTokenEstimate} note(s) without a token estimate`,
+      reason: `${fileCount - withTokenEstimate} note(s) without a token estimate`, weight: 1,
     },
   ];
 

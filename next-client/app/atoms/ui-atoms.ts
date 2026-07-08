@@ -80,11 +80,31 @@ export const atom_schemaAutoCreate = atomWithStorage<boolean>(
   "schemaAutoCreate",
   false,
 );
+// Shows dotfiles/dotfolders (e.g. .hermes/) and underscore-prefixed skill/meta
+// files in the sidebar tree and search. On by default — the app writes files
+// into the vault on the user's behalf (skills, AGENTS.md, voice.md, etc.), and
+// a user should always be able to see everything that's actually in their
+// vault rather than trust that nothing hidden is unwanted or unexpected. This
+// is a "reveal less" opt-out, not a "reveal more" opt-in. node_modules and
+// vendor stay excluded regardless, since they're never vault content.
+export const atom_showHiddenFiles = atomWithStorage<boolean>(
+  "hermes_show_hidden_files",
+  true,
+);
 export const atom_schemaWizardOpen = atom<boolean>(false);
 export const atom_vaultMigrateOpen = atom<boolean>(false);
+export const atom_voiceWizardOpen = atom<boolean>(false);
+export const atom_repurposeWizardOpen = atom<boolean>(false);
+// One-time nudge suggesting voice.md setup — set once the nudge has been
+// shown (dismissed or acted on) or once a voice.md is found to already exist,
+// so it never asks again.
+export const atom_voiceMdNudgeDismissed = atomWithStorage<boolean>(
+  "voiceMdNudgeDismissed",
+  false,
+);
 
 // Vault creation flow — transient, never persisted
-export type StarterPackId = "empty" | "notes-pkm" | "engineering" | "finance";
+export type StarterPackId = "empty" | "notes-pkm" | "engineering" | "finance" | "creator-content";
 export type VaultCreationSubStep = "name-and-folder" | "starter-pack" | "installing";
 export const atom_vaultCreationSubStep = atom<VaultCreationSubStep | null>(null);
 export const atom_vaultCreationName = atom<string>("");

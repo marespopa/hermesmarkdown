@@ -11,10 +11,10 @@ import SmartFolders from "./SmartFolders";
 import VaultSidebarFiles from "./VaultSidebarFiles";
 import VaultSidebarEmpty from "./VaultSidebarEmpty";
 import UnifiedSearchInput from "./UnifiedSearchInput";
-import { HiOutlineX } from "react-icons/hi";
+import { HiOutlineX, HiOutlineEye, HiOutlineEyeOff } from "react-icons/hi";
 import { useBackButtonClose } from "@/app/hooks/use-back-button-close";
 import { DriveDirectoryHandle } from "@/app/services/drive/DriveDirectoryHandle";
-import { atom_newVaultFlowOpen } from "@/app/atoms/ui-atoms";
+import { atom_newVaultFlowOpen, atom_showHiddenFiles } from "@/app/atoms/ui-atoms";
 
 export default function MobileFileOverlay({
   isOpen,
@@ -39,10 +39,13 @@ export default function MobileFileOverlay({
     openVault,
     isVaultSupported,
     openDriveVaultPicker,
+    scanVault,
+    indexVaultTags,
   } = useFileSystem();
   const [activeFilePath, setActiveFilePath] = useAtom(atom_activeFilePath);
   const drivePathIndex = useAtomValue(atom_drivePathIndex);
   const setNewVaultFlowOpen = useSetAtom(atom_newVaultFlowOpen);
+  const [showHiddenFiles, setShowHiddenFiles] = useAtom(atom_showHiddenFiles);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [activeTab, setActiveTab] = useState<"files" | "views">("files");
   const { searchQuery, setSearchQuery, processedFiles, totalResultsCount, hasMoreResults, setShowAllResults, allFiles, tags } =
@@ -68,6 +71,14 @@ export default function MobileFileOverlay({
     return dir;
   }, [vaultHandle, isDriveVault, drivePathIndex]);
 
+  const handleToggleHiddenFiles = useCallback(() => {
+    const next = !showHiddenFiles;
+    setShowHiddenFiles(next);
+    if (!vaultHandle) return;
+    scanVault(vaultHandle as any, next);
+    indexVaultTags?.(vaultHandle as any, next);
+  }, [showHiddenFiles, setShowHiddenFiles, vaultHandle, scanVault, indexVaultTags]);
+
   useBackButtonClose(isOpen, onClose);
 
   if (!isOpen) return null;
@@ -77,9 +88,23 @@ export default function MobileFileOverlay({
       <div className="fixed inset-0 z-[1000] flex flex-col bg-surface animate-in slide-in-from-bottom duration-200">
         <div className="flex items-center justify-between px-4 py-3 border-b border-edge-subtle shrink-0">
           <span className="text-ui-subhead font-medium text-fg">Files</span>
-          <button type="button" onClick={onClose} aria-label="Close" className="p-2 text-fg-muted">
-            <HiOutlineX size={20} />
-          </button>
+          <div className="flex items-center gap-1">
+            {vaultHandle && (
+              <button
+                type="button"
+                onClick={handleToggleHiddenFiles}
+                title="Show hidden files"
+                aria-label="Show hidden files"
+                aria-pressed={showHiddenFiles}
+                className="p-2 text-fg-muted"
+              >
+                {showHiddenFiles ? <HiOutlineEye size={20} /> : <HiOutlineEyeOff size={20} />}
+              </button>
+            )}
+            <button type="button" onClick={onClose} aria-label="Close" className="p-2 text-fg-muted">
+              <HiOutlineX size={20} />
+            </button>
+          </div>
         </div>
         {!vaultHandle ? (
           <div className="flex-1 overflow-y-auto p-3">

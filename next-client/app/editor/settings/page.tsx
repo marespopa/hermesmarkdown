@@ -22,7 +22,7 @@ import {
   atom_claudeKey,
   atom_geminiKey,
 } from "@/app/atoms/atoms";
-import { atom_vaultSetupWizardOpen, atom_availableGeminiModels, atom_schemaWizardOpen, atom_vaultMigrateOpen, atom_indexTimestamp } from "@/app/atoms/ui-atoms";
+import { atom_vaultSetupWizardOpen, atom_availableGeminiModels, atom_schemaWizardOpen, atom_vaultMigrateOpen, atom_indexTimestamp, atom_showHiddenFiles, atom_voiceWizardOpen, atom_isAiConfigured } from "@/app/atoms/ui-atoms";
 import type { StarterPackId } from "@/app/atoms/ui-atoms";
 import { STARTER_PACKS, installStarterPack } from "@/app/services/starter-packs";
 import { atom_vaultSchema } from "@/app/atoms/schema-atoms";
@@ -31,6 +31,7 @@ import { atom_fileMetadata } from "@/app/atoms/metadata";
 import { writeVaultIndex, writeDriveVaultIndex } from "@/app/services/vault-index";
 import { atom_driveVaultId, atom_driveVaultName, atom_isDriveVault, atom_drivePathIndex } from "@/app/atoms/drive-atoms";
 import { useDriveAuth } from "@/app/hooks/drive/use-drive-auth";
+import { useFileSystem } from "@/app/hooks/use-file-system";
 import { testAIConnection, fetchGeminiModels } from "@/app/services/ai";
 import {
   HiOutlineArrowLeft,
@@ -59,6 +60,9 @@ import { FONT_SIZES, LINE_HEIGHTS, LETTER_SPACINGS, FONTS } from "./font-options
 import VaultMigrateWizard from "../components/VaultMigrateWizard";
 import VaultSetupWizard from "../components/VaultSetupWizard";
 import SchemaWizard from "../components/SchemaWizard";
+import VoiceWizard from "../components/VoiceWizard";
+import { openOrCreateVoiceMd } from "@/app/services/vault-schema";
+import { useVoiceMdStatus } from "../hooks/use-voice-md-status";
 
 const SettingsPage = () => {
   const router = useRouter();
@@ -75,6 +79,38 @@ const SettingsPage = () => {
   const [autoInjectFrontmatter, setAutoInjectFrontmatter] = useAtom(atom_autoInjectFrontmatter);
   const [frontmatterDefaultMode, setFrontmatterDefaultMode] = useAtom(atom_frontmatterDefaultMode);
   const [schemaAutoCreate, setSchemaAutoCreate] = useAtom(atom_schemaAutoCreate);
+  const [showHiddenFiles, setShowHiddenFiles] = useAtom(atom_showHiddenFiles);
+  const { scanVault, indexVaultTags, vaultHandle: fsVaultHandle, openFile } = useFileSystem();
+  const [, setVoiceWizardOpen] = useAtom(atom_voiceWizardOpen);
+  const isAiConfigured = useAtomValue(atom_isAiConfigured);
+  const voiceMdExists = useVoiceMdStatus();
+
+  const [isCreatingVoiceMd, setIsCreatingVoiceMd] = useState(false);
+  const handleCreateVoiceMd = async () => {
+    if (isCreatingVoiceMd) return;
+    if (isDriveVault ? !driveVaultId : !vaultHandle) return;
+    setIsCreatingVoiceMd(true);
+    try {
+      const { opened } = await openOrCreateVoiceMd({ vaultHandle, isDriveVault, driveVaultId, openFile });
+      if (!opened) showSuccessToast("voice.md created.");
+      // This button lives on a separate /editor/settings route — opening the
+      // file only updates editor state, so without this the user stays on
+      // Settings looking at nothing having visibly happened.
+      router.push("/editor");
+    } catch (err: any) {
+      showErrorToast(err.message || "Failed to create voice.md.");
+    } finally {
+      setIsCreatingVoiceMd(false);
+    }
+  };
+  const handleShowHiddenFilesChange = (next: boolean) => {
+    setShowHiddenFiles(next);
+    // Rescan immediately — this page is a separate route from the editor, so
+    // the tree-owning hook isn't mounted here to react to the atom change itself.
+    if (!fsVaultHandle) return;
+    scanVault(fsVaultHandle as any, next);
+    indexVaultTags(fsVaultHandle as any, next);
+  };
   const [, setSchemaWizardOpen] = useAtom(atom_schemaWizardOpen);
   const [, setVaultMigrateOpen] = useAtom(atom_vaultMigrateOpen);
   const vaultSchema = useAtomValue(atom_vaultSchema);
@@ -123,10 +159,10 @@ const SettingsPage = () => {
     if (!vaultHandle && !(isDriveVault && driveVaultId)) return;
     setIsRebuildingIndex(true);
     try {
-      if (vaultHandle) {
-        await writeVaultIndex(fileMetadata, vaultHandle);
-      } else if (isDriveVault && driveVaultId) {
+      if (isDriveVault && driveVaultId) {
         await writeDriveVaultIndex(fileMetadata, driveVaultId);
+      } else if (vaultHandle) {
+        await writeVaultIndex(fileMetadata, vaultHandle);
       }
       setIndexTimestamp(Date.now());
       showSuccessToast(".hermes/index.yaml rebuilt.");
@@ -235,6 +271,11 @@ const SettingsPage = () => {
                   onChange={(v) => setEditorWidth(v as any)}
                 />
               }
+            />
+            <SettingItem
+              label="Show Hidden Files"
+              description="Reveal .hermes/* and _-prefixed skill files in the sidebar tree and search, so anything the app writes into your vault is always visible and editable. On by default; turn off to declutter everyday browsing."
+              control={<Toggle variant="soft" active={showHiddenFiles} onChange={handleShowHiddenFilesChange} />}
             />
           </SettingGroup>
           <SettingGroup title="Typography">
@@ -483,6 +524,37 @@ const SettingsPage = () => {
               Note: Your API keys are stored locally in your browser and never sent to HermesMarkdown servers.
             </p>
           </div>
+          <SettingGroup title="Voice & Tone">
+            <div className="px-1 pb-2">
+              <p className="text-ui-caption text-stone leading-relaxed">
+                <code className="not-italic">.hermes/voice.md</code> describes your audience, tone, recurring themes,
+                and things to avoid — the AI reads it before generation or rewrite tasks where tone matters. It's a
+                plain Markdown file you edit yourself; nothing is created automatically.
+              </p>
+            </div>
+            {(isDriveVault ? !driveVaultId : !vaultHandle) ? (
+              <p className="text-ui-caption text-stone px-1">Open a vault to set up voice.md.</p>
+            ) : (
+              <div className="flex flex-col gap-2 sm:flex-row">
+                <Button
+                  variant="secondary"
+                  disabled={isCreatingVoiceMd}
+                  onClick={handleCreateVoiceMd}
+                  className="flex-1 h-10 text-ui-footnote font-medium"
+                >
+                  {isCreatingVoiceMd ? "Opening…" : voiceMdExists ? "Edit voice.md" : "New voice.md"}
+                </Button>
+                <Button
+                  variant="secondary"
+                  disabled={!isAiConfigured}
+                  onClick={() => setVoiceWizardOpen(true)}
+                  className="flex-1 h-10 text-ui-footnote font-medium"
+                >
+                  Draft from notes…
+                </Button>
+              </div>
+            )}
+          </SettingGroup>
         </>
       ),
     },
@@ -742,6 +814,7 @@ const SettingsPage = () => {
       </main>
 
       <VaultMigrateWizard />
+      <VoiceWizard />
       <VaultSetupWizard />
       <SchemaWizard />
     </div>

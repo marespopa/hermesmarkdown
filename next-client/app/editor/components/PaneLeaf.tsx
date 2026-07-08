@@ -24,6 +24,7 @@ import PaneTab, { TabSaveState } from "./PaneTab";
 import { useFileSystem } from "@/app/hooks/use-file-system";
 import { useAtomValue } from "jotai";
 import Button from "../../components/Button";
+import Tooltip from "@/app/components/Tooltip";
 import { formatShortcut } from "@/app/utils/platform";
 import { useCommandPalette } from "@/app/components/CommandPalette/CommandPaletteContext";
 import useIsMobileChrome from "@/app/hooks/use-mobile-chrome";
@@ -262,76 +263,83 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
           <div className="flex items-center gap-0.5 pl-2 pr-1 shrink-0 h-full z-20">
             {isActive && leaf.openFilePaths.length > 0 && (
               <>
-                <Button
-                  variant="icon"
-                  onClick={() => setIsDocInfoOpen((v) => !v)}
-                  title="Document info"
-                  aria-label="Document info"
-                  className="w-9 h-9 flex items-center justify-center text-ink-muted hover:text-sage transition-all rounded-xl"
-                >
-                  <HiOutlineInformationCircle size={18} />
-                </Button>
-                <Button
-                  variant="icon"
-                  onClick={() => setIsVaultHealthOpen((v) => !v)}
-                  title="Vault health"
-                  aria-label="Vault health"
-                  className="w-9 h-9 flex items-center justify-center text-ink-muted hover:text-sage transition-all rounded-xl"
-                >
-                  <HiOutlineChartBar size={18} />
-                </Button>
-                <Button
-                  variant="icon"
-                  onClick={handleCopy}
-                  title="Copy Markdown"
-                  aria-label="Copy Markdown"
-                  className="w-9 h-9 flex items-center justify-center text-ink-muted hover:text-sage transition-all rounded-xl"
-                >
-                  <HiOutlineClipboardCopy size={18} />
-                </Button>
-                <Button
-                  variant="icon"
-                  onClick={handleSave}
-                  title="Save"
-                  aria-label="Save"
-                  className="w-9 h-9 flex items-center justify-center text-ink-muted hover:text-sage transition-all rounded-xl"
-                >
-                  <HiOutlineSave size={18} />
-                </Button>
+                <Tooltip label="Document info">
+                  <Button
+                    variant="icon"
+                    onClick={() => setIsDocInfoOpen((v) => !v)}
+                    aria-label="Document info"
+                    className="w-9 h-9 flex items-center justify-center text-ink-muted hover:text-sage transition-all rounded-xl"
+                  >
+                    <HiOutlineInformationCircle size={18} />
+                  </Button>
+                </Tooltip>
+                <Tooltip label="Vault health">
+                  <Button
+                    variant="icon"
+                    onClick={() => setIsVaultHealthOpen((v) => !v)}
+                    aria-label="Vault health"
+                    className="w-9 h-9 flex items-center justify-center text-ink-muted hover:text-sage transition-all rounded-xl"
+                  >
+                    <HiOutlineChartBar size={18} />
+                  </Button>
+                </Tooltip>
+                <Tooltip label="Copy Markdown">
+                  <Button
+                    variant="icon"
+                    onClick={handleCopy}
+                    aria-label="Copy Markdown"
+                    className="w-9 h-9 flex items-center justify-center text-ink-muted hover:text-sage transition-all rounded-xl"
+                  >
+                    <HiOutlineClipboardCopy size={18} />
+                  </Button>
+                </Tooltip>
+                <Tooltip label="Save" shortcut={formatShortcut("S")}>
+                  <Button
+                    variant="icon"
+                    onClick={handleSave}
+                    aria-label="Save"
+                    className="w-9 h-9 flex items-center justify-center text-ink-muted hover:text-sage transition-all rounded-xl"
+                  >
+                    <HiOutlineSave size={18} />
+                  </Button>
+                </Tooltip>
                 <div className="w-px h-3 bg-beige dark:bg-clay mx-1 opacity-50" />
-                <Button
-                  variant="icon"
-                  onClick={(e) => {
-                    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
-                    setTabMenu({ x: rect.left, y: rect.bottom + 4, path: leaf.activeFilePath || "draft" });
-                  }}
-                  title="Tab options"
-                  aria-label="Tab options"
-                  className="w-9 h-9 flex items-center justify-center text-ink-muted hover:text-ink-light dark:hover:text-ink-dark transition-all rounded-xl"
-                >
-                  <HiOutlineDotsHorizontal size={16} />
-                </Button>
+                <Tooltip label="Tab options">
+                  <Button
+                    variant="icon"
+                    onClick={(e) => {
+                      const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+                      setTabMenu({ x: rect.left, y: rect.bottom + 4, path: leaf.activeFilePath || "draft" });
+                    }}
+                    aria-label="Tab options"
+                    className="w-9 h-9 flex items-center justify-center text-ink-muted hover:text-ink-light dark:hover:text-ink-dark transition-all rounded-xl"
+                  >
+                    <HiOutlineDotsHorizontal size={16} />
+                  </Button>
+                </Tooltip>
               </>
             )}
-            <Button
-              variant="icon"
-              onClick={() => splitPane({ id: leaf.id, direction: "horizontal" })}
-              title="Split Right"
-              aria-label="Split Right"
-              className="w-9 h-9 flex items-center justify-center text-ink-muted hover:text-ink-light dark:hover:text-ink-dark transition-all rounded-xl"
-            >
-              <VscSplitHorizontal size={16} />
-            </Button>
-            {!isOnlyPane && (
+            <Tooltip label="Split Right">
               <Button
                 variant="icon"
-                onClick={() => closePane(leaf.id)}
-                title="Close Pane"
-                aria-label="Close Pane"
-                className="w-9 h-9 flex items-center justify-center text-zinc-400 hover:text-red-500 transition-all rounded-xl"
+                onClick={() => splitPane({ id: leaf.id, direction: "horizontal" })}
+                aria-label="Split Right"
+                className="w-9 h-9 flex items-center justify-center text-ink-muted hover:text-ink-light dark:hover:text-ink-dark transition-all rounded-xl"
               >
-                <HiOutlineX size={18} />
+                <VscSplitHorizontal size={16} />
               </Button>
+            </Tooltip>
+            {!isOnlyPane && (
+              <Tooltip label="Close Pane">
+                <Button
+                  variant="icon"
+                  onClick={() => closePane(leaf.id)}
+                  aria-label="Close Pane"
+                  className="w-9 h-9 flex items-center justify-center text-zinc-400 hover:text-red-500 transition-all rounded-xl"
+                >
+                  <HiOutlineX size={18} />
+                </Button>
+              </Tooltip>
             )}
           </div>
       </div>

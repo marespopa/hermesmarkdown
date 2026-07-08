@@ -12,6 +12,9 @@ import {
   atom_fontFamily,
   atom_lineHeight,
   atom_letterSpacing,
+  atom_aiProvider,
+  atom_claudeKey,
+  atom_geminiKey,
 } from "@/app/atoms/atoms";
 import {
   atom_vaultHandle
@@ -22,6 +25,9 @@ import {
 } from "@/app/atoms/drive-atoms";
 import DialogModal from "@/app/components/DialogModal/DialogModal";
 import Button from "@/app/components/Button";
+import Input from "@/app/components/Input";
+import { testAIConnection } from "@/app/services/ai";
+import { showSuccessToast, showErrorToast } from "@/app/components/Toastr";
 import { SelectControl, SegmentedControl } from "@/app/editor/settings/components/SettingControls";
 import { FONT_SIZES, LINE_HEIGHTS, LETTER_SPACINGS, FONTS } from "@/app/editor/settings/font-options";
 import { useFileSystem } from "@/app/hooks/use-file-system";
@@ -41,11 +47,12 @@ import {
   HiOutlineViewList,
   HiCheck,
   HiOutlineFolderAdd,
+  HiOutlineLightningBolt,
 } from "react-icons/hi";
 import { useCreateVault } from "@/app/hooks/file-system/use-create-vault";
 import CreateVaultSubSteps from "./CreateVaultSubSteps";
 
-const TOTAL_STEPS = 7;
+const TOTAL_STEPS = 8;
 
 const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
   const [hasCompleted, setHasCompleted] = useAtom(atom_hasCompletedOnboarding);
@@ -65,6 +72,10 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
   const [fontFamily, setFontFamily] = useAtom(atom_fontFamily);
   const [lineHeight, setLineHeight] = useAtom(atom_lineHeight);
   const [letterSpacing, setLetterSpacing] = useAtom(atom_letterSpacing);
+  const [aiProvider, setAiProvider] = useAtom(atom_aiProvider);
+  const [claudeKey, setClaudeKey] = useAtom(atom_claudeKey);
+  const [geminiKey, setGeminiKey] = useAtom(atom_geminiKey);
+  const [isTestingConnection, setIsTestingConnection] = useState(false);
   const isMobileChrome = useIsMobileChrome();
 
   useEffect(() => {
@@ -386,7 +397,65 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
           </div>
         );
 
-      case 7:
+      case 7: {
+        const key = aiProvider === "gemini" ? geminiKey : claudeKey;
+        const setKey = aiProvider === "gemini" ? setGeminiKey : setClaudeKey;
+        return (
+          <div className="flex flex-col items-center text-center space-y-6 py-4">
+            <div className="w-16 h-16 bg-sage/10 rounded-2xl flex items-center justify-center text-sage">
+              <HiOutlineLightningBolt size={32} />
+            </div>
+            <div className="space-y-2">
+              <h2 className="text-ui-title-3 font-bold">AI Features (optional)</h2>
+              <p className="text-ui-footnote opacity-60 px-4">
+                Bring your own API key to unlock rewriting, summarizing, and chat.
+                Stored locally in your browser only — never sent to us. Skip this
+                anytime and add it later in Settings.
+              </p>
+            </div>
+
+            <div className="w-full rounded-2xl border border-edge p-4 space-y-3 bg-paper-softgray/40 dark:bg-paper-dark/30 text-left">
+              <div className="space-y-2">
+                <label className="text-[11px] font-bold uppercase tracking-wider ml-1 opacity-70 block">Provider</label>
+                <SelectControl value={aiProvider} onChange={(v) => setAiProvider(v as any)}>
+                  <option value="claude">Claude (Anthropic)</option>
+                  <option value="gemini">Gemini (Google)</option>
+                </SelectControl>
+              </div>
+              <div className="space-y-2">
+                <label className="text-[11px] font-bold uppercase tracking-wider ml-1 opacity-70 block">API Key</label>
+                <Input
+                  name="welcome-ai-key"
+                  type="password"
+                  value={key}
+                  handleChange={(e) => setKey(e.target.value)}
+                  placeholder={aiProvider === "gemini" ? "AIza..." : "sk-ant-..."}
+                />
+              </div>
+              <Button
+                variant="secondary"
+                disabled={!key.trim() || isTestingConnection}
+                onClick={async () => {
+                  setIsTestingConnection(true);
+                  const result = await testAIConnection(aiProvider, key.trim());
+                  setIsTestingConnection(false);
+                  if (result.success) showSuccessToast("Connection successful.");
+                  else showErrorToast(result.error || "Connection failed.");
+                }}
+                className="w-full h-10 rounded-xl text-ui-footnote font-semibold"
+              >
+                {isTestingConnection ? "Testing…" : "Test Connection"}
+              </Button>
+            </div>
+
+            <Button variant="primary" onClick={() => setStep(8)} className="w-full h-12 rounded-2xl text-ui-footnote font-bold">
+              Continue
+            </Button>
+          </div>
+        );
+      }
+
+      case 8:
         return (
           <div className="flex flex-col items-center text-center space-y-6 py-4">
             <div className="w-16 h-16 bg-sage rounded-2xl flex items-center justify-center text-white">

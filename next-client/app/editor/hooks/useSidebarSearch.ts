@@ -4,7 +4,7 @@ import { useState, useMemo, useEffect } from "react";
 import { useAtomValue } from "jotai";
 import { atom_fileMetadata } from "@/app/atoms/metadata";
 import { atom_vaultFiles } from "@/app/atoms/vault-atoms";
-import { RailPanel } from "@/app/atoms/ui-atoms";
+import { RailPanel, atom_showHiddenFiles } from "@/app/atoms/ui-atoms";
 
 interface UseSidebarSearchProps {
   selectedTags: string[];
@@ -16,6 +16,7 @@ const MAX_SEARCH_RESULTS = 6;
 export function useSidebarSearch({ selectedTags, panel }: UseSidebarSearchProps) {
   const fileMetadata = useAtomValue(atom_fileMetadata);
   const vaultFiles = useAtomValue(atom_vaultFiles);
+  const showHiddenFiles = useAtomValue(atom_showHiddenFiles);
   const [searchQuery, setSearchQuery] = useState("");
 
   const vaultTags = useMemo(() => {
@@ -37,27 +38,39 @@ export function useSidebarSearch({ selectedTags, panel }: UseSidebarSearchProps)
     Object.fromEntries(Object.entries(vaultTags).map(([tag, files]) => [tag, files.length])),
   [vaultTags]);
 
+  // "Show Hidden Files" reveals everything a user might want to audit —
+  // dotfiles (already handled upstream, before files ever reach fileMetadata)
+  // and underscore-prefixed skill/meta files alike. Nothing should be
+  // permanently un-revealable, so trust in what's actually in the vault
+  // isn't undermined by files a user has no in-app way to see.
   const isHiddenPath = (path: string) =>
-    path.split("/").some((segment) => segment.startsWith("_"));
+    !showHiddenFiles && path.split("/").some((segment) => segment.startsWith("_"));
 
-  // Unfiltered — every .md file in the vault, ignoring search/tag filters.
+  // Non-.md files (index.yaml, schema.yaml, etc.) only ever reach fileMetadata
+  // when they're inside a dotfolder and hidden files are shown (see the
+  // indexers) — so gating on extension here just needs to let those through
+  // too, rather than assuming every visible entry is markdown.
+  const isVisibleFile = (path: string) =>
+    path.endsWith(".md") || (showHiddenFiles && path.split("/").some((segment) => segment.startsWith(".")));
+
+  // Unfiltered — every visible file in the vault, ignoring search/tag filters.
   // Used by the Files panel, which always shows the full tree.
   const allFiles = useMemo(() => {
     const hasMetadata = Object.keys(fileMetadata).length > 0;
 
     if (hasMetadata) {
       return Object.values(fileMetadata)
-        .filter((m) => m.name.endsWith(".md") && !isHiddenPath(m.path))
+        .filter((m) => isVisibleFile(m.path) && !isHiddenPath(m.path))
         .sort((a, b) => a.name.localeCompare(b.name))
         .map((m) => ({ name: m.name, kind: "file" as const, handle: m.handle, path: m.path }));
     }
 
     // Fallback: vaultFiles (immediate, from scanVault) — used while indexVaultTags is still running
     return vaultFiles
-      .filter((f: any) => f.kind === "file" && f.name.endsWith(".md") && !isHiddenPath((f as any).path || f.name))
+      .filter((f: any) => f.kind === "file" && isVisibleFile((f as any).path || f.name) && !isHiddenPath((f as any).path || f.name))
       .sort((a: any, b: any) => a.name.localeCompare(b.name))
       .map((f: any) => ({ name: f.name, kind: "file" as const, handle: f as FileSystemFileHandle, path: (f as any).path || f.name }));
-  }, [fileMetadata, vaultFiles]);
+  }, [fileMetadata, vaultFiles, showHiddenFiles]);
 
   const [showAllResults, setShowAllResults] = useState(false);
 
@@ -69,10 +82,10 @@ export function useSidebarSearch({ selectedTags, panel }: UseSidebarSearchProps)
   const matchedFiles = useMemo(() => {
     const hasMetadata = Object.keys(fileMetadata).length > 0;
 
-    // Tag filter: .md files matching ALL selected tags (AND logic) — always from metadata
+    // Tag filter: visible files matching ALL selected tags (AND logic) — always from metadata
     if (selectedTags.length > 0) {
       return Object.values(fileMetadata)
-        .filter((m) => m.name.endsWith(".md") && !isHiddenPath(m.path) && selectedTags.every(t => m.tags.includes(t)))
+        .filter((m) => isVisibleFile(m.path) && !isHiddenPath(m.path) && selectedTags.every(t => m.tags.includes(t)))
         .sort((a, b) => a.name.localeCompare(b.name))
         .map((m) => ({ name: m.name, kind: "file" as const, handle: m.handle, path: m.path }));
     }
@@ -82,18 +95,18 @@ export function useSidebarSearch({ selectedTags, panel }: UseSidebarSearchProps)
       const q = searchQuery.toLowerCase().trim();
       if (hasMetadata) {
         return Object.values(fileMetadata)
-          .filter((m) => m.name.endsWith(".md") && !isHiddenPath(m.path) && (m.name.toLowerCase().includes(q) || m.path.toLowerCase().includes(q)))
+          .filter((m) => isVisibleFile(m.path) && !isHiddenPath(m.path) && (m.name.toLowerCase().includes(q) || m.path.toLowerCase().includes(q)))
           .sort((a, b) => a.name.localeCompare(b.name))
           .map((m) => ({ name: m.name, kind: "file" as const, handle: m.handle, path: m.path }));
       }
       return vaultFiles
-        .filter((f: any) => f.kind === "file" && f.name.endsWith(".md") && !isHiddenPath((f as any).path || f.name) && f.name.toLowerCase().includes(q))
+        .filter((f: any) => f.kind === "file" && isVisibleFile((f as any).path || f.name) && !isHiddenPath((f as any).path || f.name) && f.name.toLowerCase().includes(q))
         .sort((a: any, b: any) => a.name.localeCompare(b.name))
         .map((f: any) => ({ name: f.name, kind: "file" as const, handle: f as FileSystemFileHandle, path: (f as any).path || f.name }));
     }
 
     return allFiles;
-  }, [fileMetadata, vaultFiles, selectedTags, searchQuery, allFiles]);
+  }, [fileMetadata, vaultFiles, selectedTags, searchQuery, allFiles, showHiddenFiles]);
 
   const processedFiles = showAllResults
     ? matchedFiles
