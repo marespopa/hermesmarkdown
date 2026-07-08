@@ -1,4 +1,4 @@
-import { getStoredAccessToken } from './auth';
+import { ensureAccessToken, refreshTokenSilently } from './auth';
 
 export interface DriveFile {
   id: string;
@@ -21,8 +21,8 @@ export class DriveError extends Error {
   }
 }
 
-async function req(url: string, opts: RequestInit = {}, retried = false, signal?: AbortSignal): Promise<Response> {
-  const token = getStoredAccessToken();
+async function req(url: string, opts: RequestInit = {}, retried = false, signal?: AbortSignal, authRetried = false): Promise<Response> {
+  const token = await ensureAccessToken();
   if (!token) throw new DriveError(401, 'Drive token expired or missing');
 
   try {
@@ -35,7 +35,14 @@ async function req(url: string, opts: RequestInit = {}, retried = false, signal?
     if (res.status === 429 && !retried) {
       const after = parseInt(res.headers.get('Retry-After') || '5', 10);
       await new Promise(r => setTimeout(r, after * 1000));
-      return req(url, opts, true, signal);
+      return req(url, opts, true, signal, authRetried);
+    }
+
+    // Token may have been revoked/expired mid-flight (stored expiry can be stale
+    // vs. Google's actual clock) — try one silent refresh before giving up.
+    if (res.status === 401 && !authRetried) {
+      const refreshed = await refreshTokenSilently();
+      if (refreshed) return req(url, opts, retried, signal, true);
     }
 
     if (!res.ok) {

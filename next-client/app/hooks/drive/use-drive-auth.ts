@@ -12,7 +12,12 @@ import {
   isTokenValid,
   clearTokens,
   startOAuthFlow,
+  refreshTokenSilently,
+  getTokenExpiry,
 } from '@/app/services/drive/auth';
+
+// Refresh this long before actual expiry so requests never race a stale token.
+const REFRESH_MARGIN_MS = 5 * 60 * 1000;
 
 export function useDriveAuth() {
   const [authState, setAuthState] = useAtom(atom_driveAuthState);
@@ -41,12 +46,50 @@ export function useDriveAuth() {
       }
     }
 
-    // Restore from existing token if a vault is configured
+    // Restore from existing token if a vault is configured. If the stored
+    // token has expired, try a silent refresh (same Google session, prior
+    // consent) before falling back to the "expired" reconnect banner.
     if (driveVaultId) {
-      setAuthState(isTokenValid() ? 'authenticated' : 'expired');
+      if (isTokenValid()) {
+        setAuthState('authenticated');
+        return;
+      }
+      setAuthState('authenticating');
+      refreshTokenSilently().then((token) => {
+        setAuthState(token ? 'authenticated' : 'expired');
+      });
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Mount only
+
+  // While authenticated, proactively refresh the token before it expires so
+  // in-flight/background saves never hit a 401 in the first place.
+  useEffect(() => {
+    if (authState !== 'authenticated') return;
+
+    let cancelled = false;
+    let timer: ReturnType<typeof setTimeout>;
+
+    const scheduleNext = () => {
+      const expiry = getTokenExpiry();
+      const delay = expiry ? Math.max(expiry - Date.now() - REFRESH_MARGIN_MS, 0) : REFRESH_MARGIN_MS;
+      timer = setTimeout(async () => {
+        const token = await refreshTokenSilently();
+        if (cancelled) return;
+        if (!token) {
+          setAuthState('expired');
+          return;
+        }
+        scheduleNext();
+      }, delay);
+    };
+
+    scheduleNext();
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [authState, setAuthState]);
 
   const signIn = useCallback(() => {
     setAuthState('authenticating');

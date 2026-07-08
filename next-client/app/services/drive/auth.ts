@@ -68,7 +68,95 @@ export function isTokenValid(): boolean {
   return getStoredAccessToken() !== null;
 }
 
+// Raw expiry timestamp (ms), even if already past the 5-minute safety margin
+// used by getStoredAccessToken. Used to schedule proactive background refreshes.
+export function getTokenExpiry(): number | null {
+  if (typeof window === 'undefined') return null;
+  const expiry = localStorage.getItem(KEYS.tokenExpiry);
+  return expiry ? parseInt(expiry, 10) : null;
+}
+
 export function clearTokens(): void {
   localStorage.removeItem(KEYS.accessToken);
   localStorage.removeItem(KEYS.tokenExpiry);
+}
+
+// Silent re-auth via Google Identity Services — gets a fresh access token
+// without a full redirect, as long as the browser still has an active
+// Google session and consent was previously granted. Falls back to null
+// (caller should show the reconnect banner) if silent auth isn't possible,
+// e.g. third-party cookies blocked or the Google session itself expired.
+let gisLoadPromise: Promise<void> | null = null;
+
+function loadGis(): Promise<void> {
+  if (typeof window === 'undefined') return Promise.reject(new Error('no window'));
+  if ((window as any).google?.accounts?.oauth2) return Promise.resolve();
+  if (gisLoadPromise) return gisLoadPromise;
+
+  gisLoadPromise = new Promise((resolve, reject) => {
+    const script = document.createElement('script');
+    script.src = 'https://accounts.google.com/gsi/client';
+    script.async = true;
+    script.defer = true;
+    script.onload = () => resolve();
+    script.onerror = () => reject(new Error('Failed to load Google Identity Services'));
+    document.head.appendChild(script);
+  });
+  return gisLoadPromise;
+}
+
+let tokenClient: any = null;
+
+async function getTokenClient() {
+  await loadGis();
+  if (!tokenClient) {
+    tokenClient = (window as any).google.accounts.oauth2.initTokenClient({
+      client_id: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID!,
+      scope: SCOPES,
+      callback: () => {}, // overridden per-request below
+    });
+  }
+  return tokenClient;
+}
+
+let inFlightRefresh: Promise<string | null> | null = null;
+
+export async function refreshTokenSilently(): Promise<string | null> {
+  if (typeof window === 'undefined') return null;
+  if (inFlightRefresh) return inFlightRefresh;
+
+  inFlightRefresh = (async () => {
+    try {
+      const client = await getTokenClient();
+      return await new Promise<string | null>((resolve) => {
+        client.callback = (resp: any) => {
+          if (resp.error) {
+            console.warn('Drive: silent token refresh failed', resp.error);
+            resolve(null);
+            return;
+          }
+          storeToken(resp.access_token, resp.expires_in);
+          resolve(resp.access_token);
+        };
+        client.requestAccessToken({ prompt: '' });
+      });
+    } catch (err) {
+      console.warn('Drive: silent token refresh error', err);
+      return null;
+    }
+  })();
+
+  try {
+    return await inFlightRefresh;
+  } finally {
+    inFlightRefresh = null;
+  }
+}
+
+// Returns a valid access token, transparently attempting a silent refresh
+// if the stored one is missing or within 5 minutes of expiry.
+export async function ensureAccessToken(): Promise<string | null> {
+  const stored = getStoredAccessToken();
+  if (stored) return stored;
+  return refreshTokenSilently();
 }
