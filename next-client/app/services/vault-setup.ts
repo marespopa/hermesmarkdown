@@ -44,16 +44,16 @@ row 2 is the first data row.
 
 Example (column total):
 \`\`\`
-| Item   | Amount    |
-|--------|-----------|
-| Rent   | 2,000 RON |
-| Food   | 400 RON   |
+| Item   | Amount  |
+|--------|---------|
+| Rent   | $2,000  |
+| Food   | $400    |
 |        | =SUM(B2:B3) |
 \`\`\`
 
-Currency symbols ($, €, RON, etc.) in referenced cells are stripped
+Currency symbols ($, €, £, etc.) in referenced cells are stripped
 automatically — formulas work whether a cell is \`2000\`, \`$2,000\`, or
-\`2,000 RON\`, prefix or suffix, with or without a space. No currency setting
+\`2,000 USD\`, prefix or suffix, with or without a space. No currency setting
 needed.
 
 ## Context Loading Protocol
@@ -154,25 +154,25 @@ arithmetic (\`+ - * /\`), and comparisons (\`= <> < > <= >=\`).
 
 **Column total** — sum a range of cells:
 \`\`\`
-| Creditor   | Plată     | Sold rămas  |
-| :--------- | :-------- | :---------- |
-| Credit A   | 1,200 RON | 50,000 RON  |
-| Credit B   | 800 RON   | 20,000 RON  |
-| Credit C   | 300 RON   | 5,000 RON   |
-|            | =SUM(B2:B4) | =SUM(C2:C4) |
+| Creditor   | Payment   | Remaining Balance |
+| :--------- | :-------- | :----------------- |
+| Loan A     | $1,200    | $50,000             |
+| Loan B     | $800      | $20,000             |
+| Loan C     | $300      | $5,000              |
+|            | =SUM(B2:B4) | =SUM(C2:C4)       |
 \`\`\`
 The editor shows the computed result live; the formula itself is what's
 saved to the file.
 
 ## Currency-Agnostic
-Referenced cells can hold \`2766\`, \`2,766 RON\`, \`2766RON\`, or \`$2,766\` —
+Referenced cells can hold \`2766\`, \`$2,766\`, \`2766USD\`, or \`€2,766\` —
 the engine strips any recognized currency symbol (any placement, with or
 without a space) before coercing to a number. No currency setting needed.
 
 ## Rules for AI
 1. Use a formula (\`=SUM(...)\`, \`=AVERAGE(...)\`, etc.) for any computed cell — never hard-code the result.
 2. Reference the actual data range above the formula cell with A1 notation.
-3. For debt payoff plans: columns are typically \`Plată\` (payment) and \`Sold rămas\` (remaining balance).
+3. For debt payoff plans: columns are typically \`Payment\` and \`Remaining Balance\`.
 4. Formulas only resolve within the same table — there's no cross-table reference support.
 `,
   },
@@ -233,6 +233,30 @@ export async function checkVaultFiles(
   return results;
 }
 
+// Drive allows multiple files/folders with the identical name in one parent,
+// so a check-then-create against the (possibly stale) cached drivePathIndex
+// is a race: if the cache hasn't caught up yet, this would create a
+// duplicate `.hermes` folder/file every time setup runs. List the parent
+// live and take the oldest (lowest-id) match instead, self-healing any
+// duplicate files left over from before this fix — mirrors the fix already
+// applied to index.yaml writes in vault-index.ts.
+async function findExisting(
+  parentId: string,
+  name: string,
+  mimeType?: string,
+): Promise<driveClient.DriveFile[]> {
+  const matches: driveClient.DriveFile[] = [];
+  let pageToken: string | undefined;
+  do {
+    const { files, nextPageToken } = await driveClient.listFiles(parentId, pageToken);
+    for (const f of files) {
+      if (f.name === name && (!mimeType || f.mimeType === mimeType)) matches.push(f);
+    }
+    pageToken = nextPageToken;
+  } while (pageToken);
+  return matches.sort((a, b) => a.id.localeCompare(b.id));
+}
+
 export async function installVaultFiles(
   filesToInstall: ManagedFile[],
   vaultHandle: FileSystemDirectoryHandle | null,
@@ -248,9 +272,16 @@ export async function installVaultFiles(
       for (let i = 0; i < parts.length - 1; i++) {
         const folderName = parts[i];
         const folderPath = parts.slice(0, i + 1).join("/");
-        const existing = drivePathIndex?.getEntry(folderPath);
-        if (existing) {
-          parentId = existing.id;
+        const existing = await findExisting(parentId, folderName, driveClient.FOLDER_MIME);
+        if (existing.length > 0) {
+          parentId = existing[0].id;
+          drivePathIndex?.addEntry(folderPath, {
+            id: existing[0].id,
+            name: existing[0].name,
+            mimeType: driveClient.FOLDER_MIME,
+            modifiedAt: new Date(existing[0].modifiedTime).getTime(),
+            parentId,
+          });
         } else {
           const newFolder = await driveClient.createFolder(folderName, parentId);
           drivePathIndex?.addEntry(folderPath, {
@@ -264,11 +295,25 @@ export async function installVaultFiles(
         }
       }
 
-      const existingEntry = drivePathIndex?.getEntry(file.path);
-      if (existingEntry) {
-        await driveClient.updateFile(existingEntry.id, file.content);
+      const fileName = parts[parts.length - 1];
+      const existingFiles = await findExisting(parentId, fileName);
+      if (existingFiles.length > 0) {
+        await driveClient.updateFile(existingFiles[0].id, file.content);
+        for (const dupe of existingFiles.slice(1)) {
+          try {
+            await driveClient.deleteFile(dupe.id);
+          } catch {
+            // best-effort cleanup — leaving a stale duplicate is harmless
+          }
+        }
+        drivePathIndex?.addEntry(file.path, {
+          id: existingFiles[0].id,
+          name: existingFiles[0].name,
+          mimeType: "text/markdown",
+          modifiedAt: Date.now(),
+          parentId,
+        });
       } else {
-        const fileName = parts[parts.length - 1];
         const driveFile = await driveClient.createFile(fileName, parentId, file.content);
         drivePathIndex?.addEntry(file.path, {
           id: driveFile.id,

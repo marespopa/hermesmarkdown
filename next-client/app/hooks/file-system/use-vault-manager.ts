@@ -30,7 +30,7 @@ import {
 import { useDialog } from "../use-dialog";
 import { metadataWorker, withPickerLock, isVaultSupported, isIdbSupported } from "./shared";
 import { LATEST_AGENT_VERSION, compareVersions } from "@/app/utils/agent-version";
-import { atom_indexTimestamp, atom_schemaAutoCreate } from "@/app/atoms/ui-atoms";
+import { atom_indexTimestamp, atom_schemaAutoCreate, atom_showHiddenFiles } from "@/app/atoms/ui-atoms";
 import { writeVaultIndex } from "@/app/services/vault-index";
 import { atom_vaultSchema } from "@/app/atoms/schema-atoms";
 import { ensureHermesFiles, readVaultSchema, DEFAULT_SCHEMA } from "@/app/services/vault-schema";
@@ -51,6 +51,7 @@ export function useVaultManager() {
   const [, setVaultSetupStatus] = useAtom(atom_vaultSetupStatus);
   const setVaultSchema = useSetAtom(atom_vaultSchema);
   const [schemaAutoCreate] = useAtom(atom_schemaAutoCreate);
+  const [showHiddenFiles] = useAtom(atom_showHiddenFiles);
   const rebindHandles = useSetAtom(atom_rebindHandles);
   const setIndexerState = useSetAtom(atom_indexerState);
   const setIndexTimestamp = useSetAtom(atom_indexTimestamp);
@@ -129,11 +130,17 @@ export function useVaultManager() {
   );
 
   const scanVault = useCallback(
-    async (handle: FileSystemDirectoryHandle) => {
+    // `showHiddenOverride` lets callers that just flipped atom_showHiddenFiles
+    // (e.g. the Settings toggle) pass the new value directly — `showHiddenFiles`
+    // here would otherwise still read the pre-update value, since setState from
+    // the same event handler hasn't re-rendered (and re-closed this callback)
+    // yet by the time the caller invokes scanVault.
+    async (handle: FileSystemDirectoryHandle, showHiddenOverride?: boolean) => {
+      const includeHidden = showHiddenOverride ?? showHiddenFiles;
       try {
         setFileSystemVersion((v) => v + 1);
         const entries: any[] = [];
-        
+
         // Construct the base path for entries in this directory
         let dirPath = "";
         if (vaultHandle && handle !== vaultHandle) {
@@ -154,7 +161,7 @@ export function useVaultManager() {
 
           if (entry.kind === "file" && entry.name.endsWith(".md")) {
             entries.push(entry);
-          } else if (entry.kind === "directory" && !entry.name.startsWith(".")) {
+          } else if (entry.kind === "directory" && (includeHidden || !entry.name.startsWith("."))) {
             entries.push(entry);
           }
         }
@@ -163,11 +170,12 @@ export function useVaultManager() {
         console.warn("Failed to scan vault:", err);
       }
     },
-    [setVaultFiles, vaultHandle, setFileSystemVersion],
+    [setVaultFiles, vaultHandle, setFileSystemVersion, showHiddenFiles],
   );
 
   const indexVaultTags = useCallback(
-    async (passedHandle?: FileSystemDirectoryHandle) => {
+    async (passedHandle?: FileSystemDirectoryHandle, showHiddenOverride?: boolean) => {
+      const includeHidden = showHiddenOverride ?? showHiddenFiles;
       try {
         const handle = passedHandle || vaultHandle;
         if (!handle) return;
@@ -183,7 +191,13 @@ export function useVaultManager() {
         const isIgnoredDir = (name: string) =>
           name === "node_modules" ||
           name === "vendor" ||
-          name.startsWith(".");
+          (!includeHidden && name.startsWith("."));
+
+        // When hidden files are shown, non-.md files inside a dotfolder (e.g.
+        // .hermes/index.yaml, .hermes/schema.yaml) should be visible too —
+        // otherwise "show hidden files" would still leave some of what's
+        // actually in the vault permanently unseeable.
+        const isInHiddenDir = (path: string) => path.split("/").some((seg) => seg.startsWith("."));
 
         async function collectFiles(
           dirHandle: FileSystemDirectoryHandle,
@@ -192,7 +206,7 @@ export function useVaultManager() {
           try {
             for await (const entry of (dirHandle as any).values()) {
               const currentPath = path ? `${path}/${entry.name}` : entry.name;
-              if (entry.kind === "file" && entry.name.endsWith(".md")) {
+              if (entry.kind === "file" && (entry.name.endsWith(".md") || (includeHidden && isInHiddenDir(currentPath)))) {
                 fileHandles.push({
                   handle: entry as FileSystemFileHandle,
                   path: currentPath,
@@ -289,7 +303,7 @@ export function useVaultManager() {
         setIndexerState("idle");
       }
     },
-    [vaultHandle, setIndexerState, setFileMetadata],
+    [vaultHandle, setIndexerState, setFileMetadata, showHiddenFiles],
   );
 
 

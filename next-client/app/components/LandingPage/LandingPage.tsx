@@ -449,6 +449,7 @@ const StarterPacksGraphic = () => (
         { icon: "📓", label: "Notes / PKM", active: true },
         { icon: "⚙️", label: "Engineering", active: false },
         { icon: "💰", label: "Personal Finance", active: false },
+        { icon: "✍️", label: "Creator / Content", active: false },
       ].map(({ icon, label, active }, i) => (
         <div
           key={label}
@@ -1011,9 +1012,9 @@ export default function LandingPage() {
               <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">
                 .hermes/
               </code>{" "}
-              scaffolding, and drops you straight into a working vault. Four
+              scaffolding, and drops you straight into a working vault. Five
               packs ship out of the box: empty slate, Notes/PKM, Engineering,
-              and Personal Finance.
+              Personal Finance, and Creator/Content.
             </p>
             <p className="text-neutral-600 dark:text-neutral-400 leading-relaxed">
               Every pack ships with frontmatter schema and an{" "}

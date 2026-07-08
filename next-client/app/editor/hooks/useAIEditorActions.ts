@@ -1,5 +1,7 @@
 import { useCallback, useState } from "react";
-import { callAI } from "@/app/services/ai";
+import { useAtomValue } from "jotai";
+import { callAI, withVoiceContext } from "@/app/services/ai";
+import { atom_vaultHandle } from "@/app/atoms/vault-atoms";
 import { showSuccessToast, showErrorToast } from "@/app/components/Toastr";
 import { useDialog } from "@/app/hooks/use-dialog";
 import { typewriterInsertText } from "../utils/typewriter-insert";
@@ -35,6 +37,7 @@ export function useAIEditorActions({
     selected: "",
   });
   const dialog = useDialog();
+  const vaultHandle = useAtomValue(atom_vaultHandle);
 
   const getContext = useCallback(() => {
     const textarea = textareaRef.current;
@@ -68,7 +71,8 @@ export function useAIEditorActions({
 
       setIsAiLoading(true);
       try {
-        const result = await callAI(systemPrompt, buildPrompt(selectedText, surroundingText));
+        const system = await withVoiceContext(systemPrompt, vaultHandle);
+        const result = await callAI(system, buildPrompt(selectedText, surroundingText));
         setAiReview({ label, original: selectedText, suggestion: result.trim(), start, end });
       } catch (error: any) {
         showErrorToast(error.message || `Failed to run "${label}".`);
@@ -76,7 +80,7 @@ export function useAIEditorActions({
         setIsAiLoading(false);
       }
     },
-    [getContext],
+    [getContext, vaultHandle],
   );
 
   const runContextAction = useCallback(
@@ -96,7 +100,8 @@ export function useAIEditorActions({
 
       setIsAiLoading(true);
       try {
-        const result = await callAI(systemPrompt, buildPrompt(precedingText, noteExcerpt));
+        const system = await withVoiceContext(systemPrompt, vaultHandle);
+        const result = await callAI(system, buildPrompt(precedingText, noteExcerpt));
         setAiReview({
           label,
           original: selectedText,
@@ -110,7 +115,7 @@ export function useAIEditorActions({
         setIsAiLoading(false);
       }
     },
-    [value, textareaRef],
+    [value, textareaRef, vaultHandle],
   );
 
   const runPromptAction = useCallback(
@@ -136,7 +141,8 @@ export function useAIEditorActions({
 
       setIsAiLoading(true);
       try {
-        const output = await callAI(systemPrompt, buildPrompt(instruction, selectedText, surroundingText));
+        const system = await withVoiceContext(systemPrompt, vaultHandle);
+        const output = await callAI(system, buildPrompt(instruction, selectedText, surroundingText));
         setAiReview({ label, original: selectedText, suggestion: output.trim(), start, end });
       } catch (error: any) {
         showErrorToast(error.message || `Failed to run "${label}".`);
@@ -144,7 +150,7 @@ export function useAIEditorActions({
         setIsAiLoading(false);
       }
     },
-    [getContext, dialog],
+    [getContext, dialog, vaultHandle],
   );
 
   const openChat = useCallback(() => {

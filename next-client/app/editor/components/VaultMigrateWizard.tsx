@@ -165,6 +165,7 @@ export default function VaultMigrateWizard() {
 
     for (const meta of entries) {
       if (!meta.handle) continue;
+      if (meta.path.startsWith(".hermes/")) continue;
       const parsed: Record<string, string> = meta.frontmatter
         ? Object.fromEntries(
             Object.entries(meta.frontmatter).map(([k, v]) => [
@@ -228,7 +229,7 @@ export default function VaultMigrateWizard() {
   // Derived stats
   // -------------------------------------------------------------------------
 
-  const totalFiles = Object.keys(fileMetadata).length;
+  const totalFiles = Object.values(fileMetadata).filter((f) => !f.path.startsWith(".hermes/")).length;
   const affectedCount = plans.length;
   const aiNeededCount = plans.filter((p) => p.needsAI).length;
 

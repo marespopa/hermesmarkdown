@@ -821,6 +821,274 @@ formula: annual_amount / 12 = monthly_equivalent
   },
 ];
 
+const creatorContentFiles: ManagedFile[] = [
+  {
+    path: "content-hub.md",
+    description: "Map of Content — entry point for the Creator/Content starter pack",
+    content: `---
+title: "content-hub"
+status: active
+scope: "Index note linking the repurposing workflow, format templates, and an example source note"
+read_when: [orientation, vault overview, where to start, repurpose a note, turn notes into a post]
+related: ["_skills/repurpose-note.md", "templates/blog-post.md", "templates/social-post.md", "templates/newsletter.md", "source-example.md"]
+tags: [content, index]
+---
+
+# Content Hub
+
+This vault turns one raw source note (rough thoughts, a meeting transcript, a voice memo transcript) into purpose-shaped drafts — a blog post, a social snippet, a newsletter issue — without ever overwriting the source.
+
+## Workflow
+
+1. Write or paste your raw material into a note (see [[source-example]] for what "raw" looks like — it doesn't need to be polished).
+2. Pick a target format and open its template: [[templates/blog-post]], [[templates/social-post]], or [[templates/newsletter]].
+3. Duplicate the template into a new file, then either fill it in by hand or ask the AI to draft it from your source note using the prompt in [[_skills/repurpose-note]].
+4. Review and edit — the template's structure keeps the draft's shape consistent even when the content changes.
+
+## Templates
+
+| Template | Use for |
+|----------|---------|
+| [[templates/blog-post]] | A long-form post: full argument, examples, a clear takeaway |
+| [[templates/social-post]] | A single short, punchy post for a social platform |
+| [[templates/newsletter]] | An email-style issue with a short intro and scannable sections |
+
+## Format Selection
+
+One format per run — pick the template that matches your goal, don't try to fill in all three from the same pass. Running the same source note through multiple templates on separate passes is expected and fine.
+
+## File Naming
+
+New drafts follow this vault's normal naming: lowercase kebab-case, no date prefix unless the content is dated (e.g. a newsletter issue). Keep the source note's topic in the filename so the draft and its source stay associable at a glance, e.g. \`pricing-launch.md\` → \`pricing-launch-blog.md\`.
+`,
+  },
+  {
+    path: "_skills/repurpose-note.md",
+    description: "Prompt templates and instructions for turning a source note into a blog/social/newsletter draft",
+    content: `---
+title: "skill-repurpose-note"
+status: active
+scope: "Prompt templates for drafting a blog post, social snippet, or newsletter issue from a source note"
+read_when: [repurpose a note, turn notes into a post, blog draft, social draft, newsletter draft, format a note]
+related: ["content-hub.md", "templates/blog-post.md", "templates/social-post.md", "templates/newsletter.md"]
+tags: [agent, skill, content, drafting]
+---
+
+# Skill: Repurpose a Note into a Draft
+
+Turn one source note into exactly one purpose-shaped draft. Never edit or overwrite the source note — always create a new file for the draft.
+
+## Input Assembly
+
+Before drafting, gather:
+1. **The source note's content** — the raw material to draw from.
+2. **\`.hermes/voice.md\`, if present** — read it and match its audience/tone/recurring-themes/avoid guidance. If it's absent, draft in a neutral, direct register instead — do not block on its absence.
+3. **The target format** — exactly one of Blog, Social, or Newsletter (see prompts below). Multiple formats from the same source are separate runs, not one combined pass.
+
+## Prompt: Blog Post
+
+\`\`\`text
+You are drafting a blog post from the source note below. Write a full-length
+post with a clear thesis, supporting points or examples drawn from the
+source material, and a concrete takeaway at the end. Match the tone and
+audience described in voice.md if provided. Do not invent facts not present
+in the source note — flag gaps instead of filling them with generic filler.
+
+Structure: title, one-sentence hook, 2-4 body sections with subheadings,
+a short closing takeaway.
+
+Source note:
+{{source_note_content}}
+
+voice.md (if present):
+{{voice_md_content}}
+\`\`\`
+
+## Prompt: Social Post
+
+\`\`\`text
+You are drafting a single short social media post from the source note
+below. Pick the single most interesting idea — do not try to cover
+everything. Punchy, scroll-stopping opening line. No hashtags unless the
+source note or voice.md explicitly calls for them. Match the tone described
+in voice.md if provided.
+
+Source note:
+{{source_note_content}}
+
+voice.md (if present):
+{{voice_md_content}}
+\`\`\`
+
+## Prompt: Newsletter
+
+\`\`\`text
+You are drafting a newsletter issue from the source note below. Short,
+personal-feeling intro (1-2 sentences), then 2-3 scannable sections with
+short headers — each section should stand alone for a skimming reader.
+Close with a single clear next step or call to action. Match the tone
+described in voice.md if provided.
+
+Source note:
+{{source_note_content}}
+
+voice.md (if present):
+{{voice_md_content}}
+\`\`\`
+
+## Rules for AI
+
+1. Use exactly one prompt per run — the one matching the user's chosen format.
+2. Never modify or delete the source note.
+3. Write the draft to a new file, following [[content-hub#File Naming]].
+4. If \`.hermes/voice.md\` doesn't exist, proceed without it rather than asking the user to create one first.
+5. These prompts are starting points — a user is free to edit them in this file to match their own voice or format conventions.
+`,
+  },
+  {
+    path: "templates/blog-post.md",
+    description: "Format preset — long-form blog post structure",
+    content: `---
+title: "template-blog-post"
+status: draft
+scope: "Reusable structure for a long-form blog post — duplicate this file per post"
+read_when: [blog post, long-form draft, blog template]
+related: ["content-hub.md", "_skills/repurpose-note.md"]
+tags: [content, template, blog]
+---
+
+# {{Post Title}}
+
+> [!tip] Using this template
+> Duplicate this file and rename it before writing. Replace every \`{{placeholder}}\` — don't leave any in the published draft.
+
+{{One-sentence hook — the idea that makes someone want to keep reading.}}
+
+## {{First supporting point}}
+
+{{Body paragraph. Draw on the source note's specifics — examples, numbers, quotes — rather than generic statements.}}
+
+## {{Second supporting point}}
+
+{{Body paragraph.}}
+
+## {{Third supporting point (optional)}}
+
+{{Body paragraph — delete this section if the post only needs two.}}
+
+## Takeaway
+
+{{One concrete, actionable closing thought. What should the reader do or remember?}}
+
+---
+
+**Source:** {{link to the source note this was drafted from, e.g. [[source-example]]}}
+`,
+  },
+  {
+    path: "templates/social-post.md",
+    description: "Format preset — single short social media post",
+    content: `---
+title: "template-social-post"
+status: draft
+scope: "Reusable structure for a single short social media post — duplicate this file per post"
+read_when: [social post, social media draft, social template]
+related: ["content-hub.md", "_skills/repurpose-note.md"]
+tags: [content, template, social]
+---
+
+# {{Working title (not published — for your own reference only)}}
+
+> [!tip] Using this template
+> One idea per post. If the source note has three good ideas, that's three separate posts, not one crowded one.
+
+{{Scroll-stopping opening line — this is the whole post's first impression.}}
+
+{{1-3 short follow-up lines expanding the idea. Keep it skimmable — short lines, no dense paragraphs.}}
+
+{{Optional closing line: a question, a call to action, or a punchy last thought.}}
+
+---
+
+**Source:** {{link to the source note this was drafted from, e.g. [[source-example]]}}
+`,
+  },
+  {
+    path: "templates/newsletter.md",
+    description: "Format preset — email-style newsletter issue",
+    content: `---
+title: "template-newsletter"
+status: draft
+scope: "Reusable structure for a newsletter issue — duplicate this file per issue"
+read_when: [newsletter, newsletter issue, email draft, newsletter template]
+related: ["content-hub.md", "_skills/repurpose-note.md"]
+tags: [content, template, newsletter]
+---
+
+# {{Issue title or date}}
+
+{{Short, personal-feeling intro — 1-2 sentences. Why is this issue worth opening?}}
+
+## {{First section header}}
+
+{{Scannable section — a reader skimming just the headers should still get the gist.}}
+
+## {{Second section header}}
+
+{{Scannable section.}}
+
+## {{Third section header (optional)}}
+
+{{Scannable section — delete if the issue only needs two.}}
+
+## Next Step
+
+{{One clear call to action — a link, a reply prompt, or a single next step for the reader.}}
+
+---
+
+**Source:** {{link to the source note this was drafted from, e.g. [[source-example]]}}
+`,
+  },
+  {
+    path: "source-example.md",
+    description: "Example raw source note demonstrating the input this pack's workflow expects",
+    content: `---
+title: "source-example"
+status: active
+scope: "Example of a raw, unpolished source note — the kind of input the repurposing workflow expects"
+read_when: [example note, what counts as raw material, source note example]
+related: ["content-hub.md", "_skills/repurpose-note.md"]
+tags: [content, example]
+---
+
+# Source Example
+
+> [!note] This is intentionally rough
+> A source note doesn't need headings, polish, or complete sentences — it needs the raw material. Cleaning it up is the draft's job, not the source note's.
+
+launched the new pricing page today. went from 3 tiers to 2 — merged the
+"pro" and "team" tiers because almost nobody was picking the middle one
+anyway, they'd either go cheap or go all-in. simplified the whole decision.
+
+early numbers (first few hours, so take with a grain of salt): checkout
+completion up noticeably. support already got two "wait, where did team
+tier go" emails, need a redirect/explainer for people with old pricing
+links bookmarked.
+
+biggest surprise: expected pushback on removing a tier, got none so far.
+maybe the naming was the confusing part more than the tier itself.
+
+next: watch the numbers for a week before calling it a win. write up
+something explaining the change for the people asking.
+
+---
+
+Try running this through [[templates/blog-post]], [[templates/social-post]], or [[templates/newsletter]] using the prompts in [[_skills/repurpose-note]] to see the same raw material become three different shapes.
+`,
+  },
+];
+
 export const STARTER_PACKS: StarterPack[] = [
   {
     id: "empty",
@@ -853,6 +1121,14 @@ export const STARTER_PACKS: StarterPack[] = [
     icon: "💰",
     files: financeFiles,
     entryPoint: "budget-tracker.md",
+  },
+  {
+    id: "creator-content",
+    label: "Creator / Content",
+    description: "Repurpose one source note into a blog post, social snippet, or newsletter issue — templates plus the prompts to draft each.",
+    icon: "✍️",
+    files: creatorContentFiles,
+    entryPoint: "content-hub.md",
   },
 ];
 

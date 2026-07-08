@@ -16,7 +16,7 @@ import {
   atom_rebindDriveHandles,
 } from '@/app/atoms/atoms';
 import { atom_fileMetadata } from '@/app/atoms/metadata';
-import { atom_indexTimestamp } from '@/app/atoms/ui-atoms';
+import { atom_indexTimestamp, atom_showHiddenFiles } from '@/app/atoms/ui-atoms';
 import {
   atom_driveVaultId,
   atom_driveVaultName,
@@ -58,6 +58,7 @@ export function useDriveVaultManager() {
   const [, setShowDriveFolderPicker] = useAtom(atom_showDriveFolderPicker);
   const [hasDriveLoaded, setHasDriveLoaded] = useAtom(atom_hasDriveLoaded);
   const setVaultSchema = useSetAtom(atom_vaultSchema);
+  const showHiddenFiles = useAtomValue(atom_showHiddenFiles);
 
   const pendingHandlesRef = useRef<Map<string, DriveFileHandle>>(new Map());
 
@@ -127,9 +128,14 @@ export function useDriveVaultManager() {
     }
   }, [drivePathIndex, setVaultFiles, setDriveAuthState]);
 
-  const indexVaultTags = useCallback(async (id?: string) => {
-    const folderId = id || driveVaultId;
+  const indexVaultTags = useCallback(async (idOrHandle?: string | { folderId: string }, includeHiddenOverride?: boolean) => {
+    // Settings page (a separate route from the editor) passes the current
+    // vaultHandle, which for Drive is a DriveDirectoryHandle, not a plain
+    // folder-id string — normalize both shapes here.
+    const folderId = (typeof idOrHandle === 'string' ? idOrHandle : idOrHandle?.folderId) || driveVaultId;
     if (!folderId) return;
+
+    const includeHidden = includeHiddenOverride ?? showHiddenFiles;
 
     setIndexerState({ status: 'compiling', count: 0 });
 
@@ -141,7 +147,7 @@ export function useDriveVaultManager() {
     try {
       await index.build(folderId, controller.signal, (count) => {
         setIndexerState({ status: 'compiling', count });
-      });
+      }, includeHidden);
       buildSucceeded = !controller.signal.aborted;
     } catch (err: any) {
       if (err.name === 'AbortError' || controller.signal.aborted) {
@@ -163,7 +169,12 @@ export function useDriveVaultManager() {
 
     setDrivePathIndex(index);
 
-    const mdFiles = index.allEntries().filter(([p]) => p.endsWith('.md'));
+    // When hidden files are shown, non-.md files inside a dotfolder (e.g.
+    // .hermes/index.yaml, .hermes/schema.yaml) should be visible too — mirrors
+    // the same relaxation in the local-vault indexer.
+    const isInHiddenDir = (p: string) => p.split('/').some((seg) => seg.startsWith('.'));
+    const mdFiles = index.allEntries().filter(([p, entry]) =>
+      entry.mimeType !== FOLDER_MIME && (p.endsWith('.md') || (includeHidden && isInHiddenDir(p))));
     const fileHandles: { handle: DriveFileHandle; path: string }[] = mdFiles.map(([path, entry]) => ({
       path,
       handle: new DriveFileHandle(entry.name, entry.id),
@@ -225,7 +236,7 @@ export function useDriveVaultManager() {
     }
 
     index.saveToCache(folderId);
-  }, [driveVaultId, setDrivePathIndex, setFileMetadata, setIndexerState, setDriveAuthState]);
+  }, [driveVaultId, showHiddenFiles, setDrivePathIndex, setFileMetadata, setIndexerState, setDriveAuthState]);
 
 
 
@@ -387,7 +398,17 @@ export function useDriveVaultManager() {
       if (driveVaultId) {
         writeDriveVaultIndex(updatedMetadata, driveVaultId)
           .then(() => setIndexTimestamp(Date.now()))
-          .catch((err) => console.warn('Failed to write Drive vault index:', err));
+          .catch(async (err) => {
+            console.warn('Failed to write Drive vault index, retrying once:', err);
+            try {
+              await new Promise((r) => setTimeout(r, 2000));
+              await writeDriveVaultIndex(updatedMetadata, driveVaultId);
+              setIndexTimestamp(Date.now());
+            } catch (err2) {
+              console.error('Failed to write Drive vault index after retry:', err2);
+              toast.error('Could not update .hermes/index.yaml — Vault Health may show stale data until the next save.', { id: 'drive-index-write-failed', duration: 6000 });
+            }
+          });
       }
     };
 

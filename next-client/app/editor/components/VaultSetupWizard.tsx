@@ -7,11 +7,13 @@ import {
   atom_vaultSetupWizardOpen,
   atom_autoInjectFrontmatter,
   atom_frontmatterHasPrompted,
+  atom_indexerState,
 } from "@/app/atoms/ui-atoms";
 import { atom_vaultHandle, atom_vaultSetupStatus } from "@/app/atoms/vault-atoms";
 import { atom_isDriveVault, atom_driveVaultId, atom_drivePathIndex, atom_driveAuthState } from "@/app/atoms/drive-atoms";
 import DialogModal from "@/app/components/DialogModal/DialogModal";
 import Button from "@/app/components/Button";
+import { HiOutlineRefresh } from "react-icons/hi";
 import { LATEST_AGENT_VERSION } from "@/app/utils/agent-version";
 import { 
   MANAGED_FILES, 
@@ -32,6 +34,7 @@ export default function VaultSetupWizard() {
   const driveVaultId = useAtomValue(atom_driveVaultId);
   const [drivePathIndex, setDrivePathIndex] = useAtom(atom_drivePathIndex);
   const [, setDriveAuthState] = useAtom(atom_driveAuthState);
+  const indexerState = useAtomValue(atom_indexerState);
 
   // Setup Checklist State
   const [installChecked, setInstallChecked] = useState<Record<string, boolean>>({});
@@ -39,13 +42,28 @@ export default function VaultSetupWizard() {
   const [isInstalling, setIsInstalling] = useState(false);
   const [installError, setInstallError] = useState<string | null>(null);
   const [installSuccess, setInstallSuccess] = useState(false);
+  // Drive vaults resolve file status against a separately-built path index
+  // that can still be walking the Drive tree (or hold a stale/aborted cache)
+  // when this wizard opens — show a loading state rather than a false
+  // "missing"/"outdated" verdict until that settles.
+  const [isChecking, setIsChecking] = useState(true);
+
+  const isDriveIndexing =
+    isDriveVault &&
+    (indexerState === "compiling" || (typeof indexerState === "object" && indexerState.status === "compiling"));
 
   useEffect(() => {
     const hasVault = vaultHandle || (isDriveVault && driveVaultId);
     if (!isOpen || !hasVault) return;
 
     setInstallError(null);
-    
+
+    if (isDriveIndexing) {
+      setIsChecking(true);
+      return;
+    }
+
+    setIsChecking(true);
     const checkFiles = async () => {
       const nextResults = await checkVaultFiles(
         vaultHandle,
@@ -63,10 +81,11 @@ export default function VaultSetupWizard() {
 
       setInstallResults(nextResults);
       setInstallChecked(initialChecked);
+      setIsChecking(false);
     };
 
     checkFiles();
-  }, [isOpen, vaultHandle, isDriveVault, driveVaultId, drivePathIndex]);
+  }, [isOpen, vaultHandle, isDriveVault, driveVaultId, drivePathIndex, isDriveIndexing]);
 
   if (!isOpen) return null;
 
@@ -196,6 +215,13 @@ export default function VaultSetupWizard() {
             <p className="text-ui-footnote text-amber-600 dark:text-amber-500 bg-amber-50 dark:bg-amber-900/20 p-3 rounded-lg border border-amber-100 dark:border-amber-800">
               Open a vault folder first to install these agent-context files.
             </p>
+          ) : isChecking ? (
+            <div className="flex items-center gap-3 py-6 justify-center">
+              <HiOutlineRefresh size={16} className="animate-spin text-stone shrink-0" />
+              <span className="text-ui-footnote text-stone">
+                {isDriveIndexing ? "Indexing Drive vault…" : "Checking installed files…"}
+              </span>
+            </div>
           ) : (
             <div className="flex flex-col gap-2">
               {MANAGED_FILES.map((file) => (

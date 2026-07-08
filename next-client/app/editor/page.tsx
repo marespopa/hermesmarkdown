@@ -53,6 +53,9 @@ import toast from "react-hot-toast";
 import { showErrorToast } from "@/app/components/Toastr";
 import { useGlobalVoiceInput } from "./hooks/use-global-voice-input";
 import VoicePreviewPanel from "./components/VoicePreviewPanel";
+import RepurposeNoteWizard from "./components/RepurposeNoteWizard";
+import VoiceWizard from "./components/VoiceWizard";
+import { useVoiceMdNudge } from "./hooks/use-voice-md-nudge";
 
 
 import { useRouter } from "next/navigation";
@@ -143,6 +146,7 @@ export default function LiteEditor() {
   });
   const { refresh: refreshFiles } = useFileWatcher();
   const { syncVault } = useVaultSync();
+  useVoiceMdNudge();
 
   const [isMounted, setIsMounted] = useState(false);
   useEffect(() => { setIsMounted(true); }, []);
@@ -387,7 +391,7 @@ export default function LiteEditor() {
 
     const toastId = toast.loading("Generating note...");
     try {
-      const { body, title, scope, tags, read_when } = await generateFileFromPrompt(fullPrompt);
+      const { body, title, scope, tags, read_when } = await generateFileFromPrompt(fullPrompt, vaultHandle);
       toast.dismiss(toastId);
 
       const fileName = await dialog.prompt("File name:", title, "Save Note");
@@ -471,6 +475,8 @@ export default function LiteEditor() {
         <ConflictDialog />
         <DocInfoPanel />
         <VaultHealthPanel />
+        <RepurposeNoteWizard />
+        <VoiceWizard />
         {isVaultPending && <VaultPendingOverlay restoreVault={restoreVault} isDriveVault={isDriveVault} />}
         
         <DialogModal isOpened={pendingFile !== null} onClose={() => setPendingFile(null)} styles="!rounded-[32px] !backdrop-blur-2xl !bg-paper-light/80 dark:!bg-paper-dark/80">

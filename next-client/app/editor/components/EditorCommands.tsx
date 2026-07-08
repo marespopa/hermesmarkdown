@@ -12,13 +12,21 @@ import {
   atom_theme,
   atom_railPanel,
   atom_isDocInfoOpen,
+  atom_isVaultHealthOpen,
   atom_aiBuilderRequest,
   atom_isAiConfigured,
   atom_newVaultFlowOpen,
+  atom_repurposeWizardOpen,
+  atom_voiceWizardOpen,
 } from "@/app/atoms/ui-atoms";
+import { atom_content } from "@/app/atoms/file-atoms";
+import { atom_isDriveVault, atom_driveVaultId } from "@/app/atoms/drive-atoms";
 import { useFileSystem } from "@/app/hooks/use-file-system";
 import { useDialog } from "@/app/hooks/use-dialog";
 import toast from "react-hot-toast";
+import { showSuccessToast, showErrorToast } from "@/app/components/Toastr";
+import { openOrCreateVoiceMd } from "@/app/services/vault-schema";
+import { useVoiceMdStatus } from "../hooks/use-voice-md-status";
 import { useRegisterCommand } from "@/app/components/CommandPalette/CommandPaletteContext";
 import { formatShortcut } from "@/app/utils/platform";
 
@@ -36,13 +44,20 @@ export default function EditorCommands({
   onSave: () => void;
 }) {
   const router = useRouter();
-  const { openVault, vaultHandle, scanVault } = useFileSystem();
+  const { openVault, vaultHandle, scanVault, openFile } = useFileSystem();
   const dialog = useDialog();
   const [theme, setTheme] = useAtom(atom_theme);
   const [railPanel, setRailPanel] = useAtom(atom_railPanel);
   const [, setIsDocInfoOpen] = useAtom(atom_isDocInfoOpen);
+  const [, setIsVaultHealthOpen] = useAtom(atom_isVaultHealthOpen);
   const [, setAiBuilderRequest] = useAtom(atom_aiBuilderRequest);
+  const [, setRepurposeWizardOpen] = useAtom(atom_repurposeWizardOpen);
+  const [, setVoiceWizardOpen] = useAtom(atom_voiceWizardOpen);
   const isAiConfigured = useAtomValue(atom_isAiConfigured);
+  const isDriveVault = useAtomValue(atom_isDriveVault);
+  const driveVaultId = useAtomValue(atom_driveVaultId);
+  const voiceMdExists = useVoiceMdStatus();
+  const content = useAtomValue(atom_content);
   const workspaceLayout = useAtomValue(atom_workspaceLayout);
   const activePaneId = useAtomValue(atom_activePaneId);
   const [, closeTab] = useAtom(atom_closeTab);
@@ -134,6 +149,13 @@ export default function EditorCommands({
     action: () => setIsDocInfoOpen((v) => !v),
   });
 
+  useRegisterCommand({
+    id: "vault-health",
+    label: "Vault health score",
+    keywords: "health score stats orphan broken links frontmatter tokens",
+    action: () => setIsVaultHealthOpen((v) => !v),
+  });
+
   useRegisterCommand(
     isAiConfigured
       ? {
@@ -142,6 +164,46 @@ export default function EditorCommands({
           shortcut: formatShortcut("B", { shift: true }),
           keywords: "ai chat generate create revise section ask",
           action: () => setAiBuilderRequest((v) => v + 1),
+        }
+      : null,
+  );
+
+  useRegisterCommand(
+    vaultHandle || (isDriveVault && driveVaultId)
+      ? {
+          id: "create-voice-md",
+          label: voiceMdExists ? "Voice & Tone: Edit voice.md" : "Voice & Tone: Create voice.md",
+          keywords: "voice profile tone audience create new edit",
+          action: async () => {
+            try {
+              const { opened } = await openOrCreateVoiceMd({ vaultHandle, isDriveVault, driveVaultId, openFile });
+              if (!opened) showSuccessToast("voice.md created.");
+            } catch (err: any) {
+              showErrorToast(err.message || "Failed to create voice.md.");
+            }
+          },
+        }
+      : null,
+  );
+
+  useRegisterCommand(
+    isAiConfigured && (vaultHandle || (isDriveVault && driveVaultId))
+      ? {
+          id: "draft-voice-md",
+          label: "Voice & Tone: Draft voice.md from notes…",
+          keywords: "voice profile tone audience draft generate ai",
+          action: () => setVoiceWizardOpen(true),
+        }
+      : null,
+  );
+
+  useRegisterCommand(
+    isAiConfigured && content.trim()
+      ? {
+          id: "repurpose-note",
+          label: "Repurpose note into blog / social / newsletter draft…",
+          keywords: "repurpose content creator blog social newsletter draft format",
+          action: () => setRepurposeWizardOpen(true),
         }
       : null,
   );

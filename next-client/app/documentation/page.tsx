@@ -44,6 +44,25 @@ function KV({ rows }: { rows: { label: ReactNode; value: ReactNode }[] }) {
   );
 }
 
+function PackGrid({ packs }: { packs: { icon: string; name: string; description: string }[] }) {
+  return (
+    <div className="grid gap-3 sm:grid-cols-2">
+      {packs.map((p) => (
+        <div
+          key={p.name}
+          className="p-5 bg-neutral-50/50 dark:bg-neutral-900/30 backdrop-blur-sm rounded-3xl border border-black/5 dark:border-white/5 hover:border-sage/30 transition-colors"
+        >
+          <div className="flex items-center gap-2.5 mb-2">
+            <span className="text-xl leading-none">{p.icon}</span>
+            <span className="text-sm font-bold">{p.name}</span>
+          </div>
+          <p className="text-sm leading-relaxed opacity-60">{p.description}</p>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function ShortcutGroups({ groups }: { groups: { context: string; rows: { label: string; shortcut: string }[] }[] }) {
   return (
     <div className="space-y-8">
@@ -144,7 +163,7 @@ const GROUPS: Group[] = [
         id: "starter-packs",
         title: "Starter packs",
         lead: "Create a new vault with example notes pre-loaded — pick a pack, name it, and start writing.",
-        keywords: "starter pack new vault create template notes pkm engineering finance budget adr meeting",
+        keywords: "starter pack new vault create template notes pkm engineering finance budget adr meeting creator content blog social newsletter repurpose",
         body: (
           <>
             <p>
@@ -154,14 +173,15 @@ const GROUPS: Group[] = [
               <strong>Step 1 — Name and location.</strong> Type a vault name (this becomes the folder name on disk) and click <em>Choose parent folder</em> to pick where the folder will be created.
             </p>
             <p>
-              <strong>Step 2 — Starter pack.</strong> Pick one of four packs and click <em>Create Vault</em>:
+              <strong>Step 2 — Starter pack.</strong> Pick one of five packs and click <em>Create Vault</em>:
             </p>
-            <KV
-              rows={[
-                { label: "🗂 Empty Vault", value: "No example files — blank slate" },
-                { label: "📓 Notes / PKM", value: "Map of Content, atomic notes guide, daily journal template, callout demo" },
-                { label: "⚙️ Engineering", value: "AGENTS.md, two ADRs, bug tracker table, meeting notes template" },
-                { label: "💰 Personal Finance", value: "Budget tracker, debt tracker, recurring expenses — all with live formula cells" },
+            <PackGrid
+              packs={[
+                { icon: "🗂", name: "Empty Vault", description: "No example files — blank slate" },
+                { icon: "📓", name: "Notes / PKM", description: "Map of Content, atomic notes guide, daily journal template, callout demo" },
+                { icon: "⚙️", name: "Engineering", description: "AGENTS.md, two ADRs, bug tracker table, meeting notes template" },
+                { icon: "💰", name: "Personal Finance", description: "Budget tracker, debt tracker, recurring expenses — all with live formula cells" },
+                { icon: "✍️", name: "Creator / Content", description: "Blog/social/newsletter templates, the prompts to draft each from a source note, and an example source note" },
               ]}
             />
             <p>
@@ -999,6 +1019,75 @@ read_when: never
         ),
       },
       {
+        id: "repurpose-note",
+        title: "Repurpose a note",
+        lead: "Turn the note you're editing into a blog post, social post, or newsletter draft — as new files, with the source note left untouched.",
+        keywords: "repurpose content creator blog social newsletter draft format capture pipeline",
+        body: (
+          <>
+            <p>
+              Run <strong>Repurpose note into blog / social / newsletter draft…</strong> from the
+              command palette (only visible once a key is configured, and only with an open note
+              that has content).
+            </p>
+            <p>
+              Pick one or more target formats, then <strong>Draft</strong>. The AI drafts each
+              selected format from the current note's content — reading <code>.hermes/voice.md</code>
+              {" "}for tone if it exists — and shows every draft for review before anything is saved.
+            </p>
+            <p>
+              Confirming writes one new file per format, named after the source note (e.g.{" "}
+              <code>pricing-launch-blog.md</code>, <code>pricing-launch-social.md</code>). The
+              original note is never modified.
+            </p>
+            <Callout type="tip">
+              This is the same workflow documented by the <strong>Creator / Content</strong> starter
+              pack's repurpose-note skill — this command runs it as a single in-app action instead of
+              a manual prompt.
+            </Callout>
+          </>
+        ),
+      },
+      {
+        id: "voice-profile",
+        title: "Voice profile",
+        lead: "A .hermes/voice.md file describing your audience, tone, and recurring themes — the AI reads it before generation or rewrite tasks where tone matters.",
+        keywords: "voice profile tone audience voice.md draft from notes creator content nudge command palette",
+        body: (
+          <>
+            <p>
+              Three ways to set it up: Settings → AI Features → <strong>Voice &amp; Tone</strong>,
+              or the command palette entries <strong>Voice &amp; Tone: Create voice.md</strong> and{" "}
+              <strong>Voice &amp; Tone: Draft voice.md from notes…</strong> (the second needs an AI
+              key configured).
+            </p>
+            <KV
+              rows={[
+                { label: "Create voice.md", value: "Opens a blank file at .hermes/voice.md for you to fill in by hand" },
+                { label: "Draft from notes…", value: "Pick a few existing notes; the AI reads them once and drafts Audience / Tone / Recurring themes / Avoid sections for you to review and edit before saving" },
+              ]}
+            />
+            <p>
+              It's a plain Markdown file — nothing is created or overwritten automatically. Once it
+              exists, AI commands that generate or rewrite text read it for tone guidance, and the{" "}
+              <strong>Creator / Content</strong> starter pack's repurpose-note skill uses it to match
+              voice when drafting a blog post, social snippet, or newsletter from a source note.
+            </p>
+            <Callout type="tip">
+              The first time you have an AI key configured and open a vault with no voice.md, a
+              one-time toast offers to set one up. It shows at most once — dismissing it (or already
+              having a voice.md) means you won't see it again, but the Settings page and command
+              palette entries stay available regardless.
+            </Callout>
+            <Callout type="note">
+              Requires an AI key for the "Draft from notes…" option — see{" "}
+              <a href="#byok-setup" className="text-sage font-semibold hover:underline">BYOK setup</a>.
+              Creating voice.md by hand needs no key at all.
+            </Callout>
+          </>
+        ),
+      },
+      {
         id: "privacy-model",
         title: "Privacy model",
         lead: "No AI request leaves your machine unless you've configured a key, and the key itself never touches HermesMarkdown's servers at rest.",
@@ -1343,7 +1432,7 @@ export default function Documentation() {
               </h1>
             </div>
             <p className="text-lg md:text-2xl leading-relaxed text-neutral-500 dark:text-neutral-400 max-w-3xl font-medium">
-              How HermesMarkdown puts context engineering — write, select, compress, isolate — into practice, file by file. Plain <code className="text-[0.75em] bg-neutral-100 dark:bg-neutral-800 px-1.5 py-0.5 rounded font-mono not-italic">.md</code> files, structured for agents. Works offline, saves to your machine, and connects to Claude Code, Cowork, or any agent you use.
+              How HermesMarkdown puts context engineering — write, select, compress, isolate — into practice, file by file. Plain <code className="text-[0.75em] bg-neutral-100 dark:bg-neutral-800 px-1.5 py-0.5 rounded font-mono not-italic">.md</code> files, structured for agents. Works offline, saves to your machine, and connects to Claude, Gemini, or any agent you use.
             </p>
           </section>
 

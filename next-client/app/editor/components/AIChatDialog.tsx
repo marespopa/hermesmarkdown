@@ -172,6 +172,20 @@ function buildApiContent(text: string, atts: Attachment[]): string | ApiPart[] {
   return parts;
 }
 
+// Loose match: a skill's `read_when` is a comma-joined string of trigger
+// phrases (see parseFmFields); the file counts as relevant if the user's
+// message contains any of them as a substring. Deliberately permissive —
+// missing a relevant skill is worse than including an occasionally-irrelevant
+// one, and skill files are small enough that a false positive is cheap.
+function matchesReadWhen(query: string, readWhen: unknown): boolean {
+  const keywords = String(readWhen ?? "")
+    .split(",")
+    .map((s) => s.trim().toLowerCase())
+    .filter(Boolean);
+  const q = query.toLowerCase();
+  return keywords.some((kw) => q.includes(kw));
+}
+
 async function readVaultFile(
   path: string,
   vaultHandle: any,
@@ -370,10 +384,13 @@ export default function AIChatDialog({
     }
   }, [mention, input, vaultHandle, isDriveVault, drivePathIndex, fileMetadata]);
 
-  const buildSystemPrompt = useCallback(() => {
+  const buildSystemPrompt = useCallback((skillsContext?: string) => {
     const parts = [SYSTEM_PROMPT];
     if (vaultAgentContext) {
       parts.push(`\n--- VAULT CONTEXT (_agent-context.md) ---\n${vaultAgentContext}\n--- END VAULT CONTEXT ---`);
+    }
+    if (skillsContext) {
+      parts.push(`\n--- MATCHED SKILLS (triggered by this message's read_when keywords) ---\n${skillsContext}\n--- END MATCHED SKILLS ---`);
     }
     if (selectedText.trim()) {
       parts.push(`\n--- SELECTED TEXT (target for edits) ---\n${selectedText}\n--- END SELECTED TEXT ---`);
@@ -415,6 +432,26 @@ export default function AIChatDialog({
     const autoRefs = await resolveMentionRefs(trimmed, vaultRefs, fileMetadata, vaultHandle, isDriveVault, drivePathIndex);
     const allRefs = [...vaultRefs, ...autoRefs];
 
+    // Skills the user's message triggers via read_when keywords — loaded fresh per
+    // message (not cached) since which skills match depends on the message text.
+    const matchedSkills = Object.values(fileMetadata).filter(
+      (m) => m.path.startsWith("_skills/") && m.path.endsWith(".md") && matchesReadWhen(trimmed, m.frontmatter?.read_when),
+    );
+    let skillsContext = "";
+    if (matchedSkills.length) {
+      try {
+        const blocks = await Promise.all(
+          matchedSkills.map(async (m) => {
+            const content = await readVaultFile(m.path, vaultHandle, isDriveVault, drivePathIndex);
+            return `\n--- SKILL (${m.path}) ---\n${content}\n--- END SKILL ---`;
+          }),
+        );
+        skillsContext = blocks.join("\n");
+      } catch {
+        // Best-effort — proceed without skill context rather than blocking the message.
+      }
+    }
+
     // Build API text: append vault ref content blocks after the user's message
     const refBlocks = allRefs
       .map((r) => `\n--- ${r.label} ---\n${r.content}\n--- End ${r.label} ---`)
@@ -439,7 +476,7 @@ export default function AIChatDialog({
 
     try {
       const apiMessages: ApiMessage[] = newMessages.map((m) => ({ role: m.role, content: m.apiContent }));
-      const reply = await callAIChat(buildSystemPrompt(), apiMessages);
+      const reply = await callAIChat(buildSystemPrompt(skillsContext), apiMessages);
       setMessages((prev) => [...prev, { role: "assistant", displayContent: reply, apiContent: reply }]);
     } catch (err: any) {
       showErrorToast(err.message || "AI request failed.");

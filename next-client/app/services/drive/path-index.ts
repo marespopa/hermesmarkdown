@@ -76,20 +76,35 @@ export class DrivePathIndex {
     this.byId.clear();
   }
 
-  async build(rootFolderId: string, signal?: AbortSignal, onProgress?: (count: number) => void): Promise<void> {
+  async build(
+    rootFolderId: string,
+    signal?: AbortSignal,
+    onProgress?: (count: number) => void,
+    includeHidden = false,
+  ): Promise<void> {
     this.clear();
     let count = 0;
     const increment = () => {
       count++;
       onProgress?.(count);
     };
-    await this.walk(rootFolderId, '', signal, increment);
+    await this.walk(rootFolderId, '', signal, increment, includeHidden);
   }
 
-  private async walk(folderId: string, prefix: string, signal?: AbortSignal, onEntry?: () => void): Promise<void> {
+  private async walk(
+    folderId: string,
+    prefix: string,
+    signal?: AbortSignal,
+    onEntry?: () => void,
+    includeHidden = false,
+  ): Promise<void> {
     let pageToken: string | undefined;
+    // node_modules/vendor are never markdown vaults but can hold huge trees,
+    // so they're always skipped. Dotfolders/dotfiles (e.g. .hermes) are only
+    // skipped when the "show hidden files" setting is off, matching the
+    // local-vault indexer's behavior.
     const isIgnored = (name: string) =>
-      name === 'node_modules' || name === 'vendor' || name.startsWith('.');
+      name === 'node_modules' || name === 'vendor' || (!includeHidden && name.startsWith('.'));
 
     do {
       if (signal?.aborted) return;
@@ -113,7 +128,7 @@ export class DrivePathIndex {
 
         if (file.mimeType === FOLDER_MIME) {
           try {
-            await this.walk(file.id, path, signal, onEntry);
+            await this.walk(file.id, path, signal, onEntry, includeHidden);
           } catch (err: any) {
             if (err.name === 'AbortError') throw err; // propagate aborts
             console.warn(`Drive: skipping folder "${path}" due to error:`, err);

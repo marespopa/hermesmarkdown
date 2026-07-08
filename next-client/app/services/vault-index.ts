@@ -94,7 +94,27 @@ export async function writeVaultIndex(
   await writable.close();
 }
 
+// Drive allows multiple files with the same name in one folder, so the
+// find-existing-then-create/update sequence below is a check-then-act race:
+// two callers (e.g. a save-triggered write and the debounced worker-driven
+// write) can both see "no index.yaml yet" and both create one, producing
+// duplicate `.hermes/index.yaml` files. Serialize writes per vault so each
+// call sees the result of the previous one before deciding create vs. update.
+const driveIndexWriteQueues = new Map<string, Promise<void>>();
+
 export async function writeDriveVaultIndex(
+  fileMetadata: Record<string, FileMetadata>,
+  rootFolderId: string,
+): Promise<void> {
+  const previous = driveIndexWriteQueues.get(rootFolderId) ?? Promise.resolve();
+  const next = previous
+    .catch(() => {})
+    .then(() => writeDriveVaultIndexUnsafe(fileMetadata, rootFolderId));
+  driveIndexWriteQueues.set(rootFolderId, next);
+  return next;
+}
+
+async function writeDriveVaultIndexUnsafe(
   fileMetadata: Record<string, FileMetadata>,
   rootFolderId: string,
 ): Promise<void> {
@@ -102,11 +122,24 @@ export async function writeDriveVaultIndex(
   const yaml = buildYaml(fileMetadata);
 
   const { files: rootFiles } = await listFiles(rootFolderId);
-  let hermesFolder = rootFiles.find((f) => f.mimeType === FOLDER_MIME && f.name === ".hermes");
-  if (!hermesFolder) hermesFolder = await createFolder(".hermes", rootFolderId);
+  const hermesFolders = rootFiles.filter((f) => f.mimeType === FOLDER_MIME && f.name === ".hermes");
+  const hermesFolder = hermesFolders[0] ?? (await createFolder(".hermes", rootFolderId));
 
   const { files: hermesFiles } = await listFiles(hermesFolder.id);
-  const existing = hermesFiles.find((f) => f.name === "index.yaml");
-  if (existing) await updateFile(existing.id, yaml);
-  else await createFile("index.yaml", hermesFolder.id, yaml);
+  const existing = hermesFiles.filter((f) => f.name === "index.yaml").sort((a, b) => a.id.localeCompare(b.id));
+  if (existing.length > 0) {
+    // Also self-heals a vault that already has duplicates from before this
+    // fix: keep the first (stable, lowest-id) file, drop the rest.
+    await updateFile(existing[0].id, yaml);
+    for (const dupe of existing.slice(1)) {
+      try {
+        const { deleteFile } = await import("./drive/client");
+        await deleteFile(dupe.id);
+      } catch {
+        // best-effort cleanup — leaving a stale duplicate is harmless
+      }
+    }
+  } else {
+    await createFile("index.yaml", hermesFolder.id, yaml);
+  }
 }
