@@ -9,6 +9,7 @@ import {
   atom_voiceOpenLinkDialogRequest,
 } from "@/app/atoms/atoms";
 import { atom_pendingScrollTarget } from "@/app/atoms/ui-atoms";
+import { atom_fileMetadata } from "@/app/atoms/metadata";
 import { SHORTCODES, TAG_CYCLE, TAG_CYCLE_PREV, TODO_CYCLE, TODO_CYCLE_PREV } from "../components/constants";
 import { REGEX_CALC, REGEX_CHECKBOX } from "../components/regex";
 import { highlightMarkdown } from "../components/MarkdownHighlighter";
@@ -427,7 +428,14 @@ export function useMarkdownEditor({
     }
   }, [isActivePane, textareaMounted, setActiveTextareaElement]);
 
-  const { formulaBadges } = useFormulaOverlay({ value: displayValue, textareaRef, textareaMounted, isActivePane });
+  const fileMetadata = useAtomValue(atom_fileMetadata);
+  const { formulaBadges } = useFormulaOverlay({
+    value: displayValue,
+    textareaRef,
+    textareaMounted,
+    isActivePane,
+    fileMetadata,
+  });
 
   // Real chevron buttons (rendered by MarkdownEditor, positioned here via
   // caret coordinates) — same approach already used for the date/workflow

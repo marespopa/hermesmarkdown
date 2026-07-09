@@ -17,6 +17,7 @@ import {
 import { atom_fileMetadata } from "@/app/atoms/metadata";
 import { atom_isFileLoading } from "@/app/atoms/ui-atoms";
 import { useDialog } from "../use-dialog";
+import { resolveFileMetaByName } from "./resolve-file-by-name";
 
 export function useOpenFile() {
   const [vaultHandle] = useAtom(atom_vaultHandle);
@@ -183,33 +184,11 @@ export function useOpenFile() {
 
   const openFileByName = useCallback(
     async (name: string) => {
-      const cleanName = name.split("|")[0].trim();
-      const fileName = cleanName.endsWith(".md")
-        ? cleanName
-        : `${cleanName}.md`;
-
-      const exactMatch = Object.values(fileMetadata).find(
-        (meta) => meta.path.toLowerCase() === fileName.toLowerCase(),
-      );
-
-      if (exactMatch) {
-        await openFile(exactMatch.handle, exactMatch.path);
-        return;
-      }
-
-      const nameOnly = cleanName.split("/").pop() || "";
-      const nameOnlyWithExt = nameOnly.endsWith(".md")
-        ? nameOnly.toLowerCase()
-        : `${nameOnly.toLowerCase()}.md`;
-
-      const fuzzyMatch = Object.values(fileMetadata).find(
-        (meta) => meta.name.toLowerCase() === nameOnlyWithExt,
-      );
-
-      if (fuzzyMatch) {
-        await openFile(fuzzyMatch.handle, fuzzyMatch.path);
+      const match = resolveFileMetaByName(name, fileMetadata);
+      if (match) {
+        await openFile(match.handle, match.path);
       } else {
-        toast.error(`File not found: ${cleanName}`);
+        toast.error(`File not found: ${name.split("|")[0].trim()}`);
       }
     },
     [fileMetadata, openFile],

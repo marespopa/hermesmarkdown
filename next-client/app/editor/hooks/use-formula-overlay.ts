@@ -2,10 +2,12 @@
 
 import { useCallback, useEffect, useLayoutEffect, useState } from "react";
 import getCaretCoordinates from "textarea-caret";
+import type { FileMetadata } from "@/app/atoms/metadata";
 import { findAllTables } from "../utils/table-detection";
 import { getTableCellOffsets } from "../utils/table-cell-offsets";
 import { extractTableSource, parseTableLenient, type Alignment, type TableData } from "../utils/tableParser";
 import { evaluateTable, isFormulaCell, FormulaError } from "../utils/formula-engine";
+import { useCrossFileTables } from "./use-cross-file-tables";
 
 export interface FormulaBadge {
   key: string;
@@ -29,6 +31,7 @@ interface UseFormulaOverlayProps {
   // positioning the callout chevrons in useMarkdownEditor.ts).
   textareaMounted?: boolean;
   isActivePane?: boolean;
+  fileMetadata?: Record<string, FileMetadata>;
 }
 
 // Renders live computed values for every formula cell in every table in the
@@ -40,8 +43,10 @@ export function useFormulaOverlay({
   textareaRef,
   textareaMounted,
   isActivePane = true,
+  fileMetadata = {},
 }: UseFormulaOverlayProps) {
   const [formulaBadges, setFormulaBadges] = useState<FormulaBadge[]>([]);
+  const fileTables = useCrossFileTables(value, fileMetadata, isActivePane);
 
   const recompute = useCallback(() => {
     const textarea = textareaRef.current;
@@ -71,7 +76,7 @@ export function useFormulaOverlay({
     const next: FormulaBadge[] = [];
     for (const { block: table, data } of pairs) {
       const offsets = getTableCellOffsets(table);
-      const formulaResults = evaluateTable(data, namedTables);
+      const formulaResults = evaluateTable(data, namedTables, fileTables);
 
       for (const cell of offsets) {
         if (!isFormulaCell(cell.text)) continue;
@@ -97,7 +102,7 @@ export function useFormulaOverlay({
     }
 
     setFormulaBadges(next);
-  }, [value, textareaRef, textareaMounted, isActivePane]);
+  }, [value, textareaRef, textareaMounted, isActivePane, fileTables]);
 
   // Recompute on every edit (formula results or table boundaries may have
   // changed) and on every caret move (toggles which cell's badge is hidden).

@@ -84,6 +84,20 @@ export function isFormulaCell(text: string): boolean {
   return t.startsWith("=") && t.length > 1;
 }
 
+// --- Cross-file note references ----------------------------------------
+// `[[Note]]!B4` / `[[Note#Heading]]!B4` inside a formula. Strips a trailing
+// `#Heading` (table disambiguation, for notes with more than one table) and
+// any `|alias`, then normalizes the name the same way note navigation does
+// so lookups agree with `resolveFileMetaByName`.
+
+export function normalizeNoteKey(raw: string): { key: string; heading: string | null } {
+  const withoutAlias = raw.split("|")[0];
+  const hashIdx = withoutAlias.indexOf("#");
+  const namePart = (hashIdx === -1 ? withoutAlias : withoutAlias.slice(0, hashIdx)).trim();
+  const heading = hashIdx === -1 ? null : withoutAlias.slice(hashIdx + 1).trim() || null;
+  return { key: namePart.toLowerCase(), heading };
+}
+
 // --- Currency-tolerant single-cell number coercion --------------------
 // A formula referencing a cell like "$2,000" or "1000 RON" should still
 // treat it as a number — strip any recognized currency token (any
@@ -153,6 +167,7 @@ type TokenType =
   | "COMMA"
   | "COLON"
   | "BANG"
+  | "WIKILINK"
   | "EOF";
 
 interface Token {
@@ -194,6 +209,13 @@ function tokenize(src: string): Token[] {
     if (ch === "!") {
       tokens.push({ type: "BANG", value: ch });
       i++;
+      continue;
+    }
+    if (ch === "[" && src[i + 1] === "[") {
+      const end = src.indexOf("]]", i + 2);
+      if (end === -1) throw new ParseError("#VALUE!");
+      tokens.push({ type: "WIKILINK", value: src.slice(i + 2, end) });
+      i = end + 2;
       continue;
     }
     if (ch === '"') {
@@ -278,6 +300,8 @@ type Node =
   | { kind: "col"; col: number }
   | { kind: "tableref"; tableName: string; row: number; col: number }
   | { kind: "tablecol"; tableName: string; col: number }
+  | { kind: "filetableref"; noteRef: string; row: number; col: number }
+  | { kind: "filetablecol"; noteRef: string; col: number }
   | { kind: "unary"; op: "-"; arg: Node }
   | { kind: "binary"; op: string; left: Node; right: Node }
   | { kind: "call"; name: string; args: Node[] };
@@ -364,6 +388,23 @@ function parseFormulaTokens(tokens: Token[]): Node {
       const ref = parseCellRef(t.value);
       if (!ref) throw new ParseError("#REF!");
       return { kind: "ref", row: ref.row, col: ref.col };
+    }
+    if (t.type === "WIKILINK") {
+      advance();
+      if (peek().type !== "BANG") throw new ParseError("#REF!");
+      advance(); // consume !
+      const next = peek();
+      if (next.type === "CELLREF") {
+        advance();
+        const ref = parseCellRef(next.value);
+        if (!ref) throw new ParseError("#REF!");
+        return { kind: "filetableref", noteRef: t.value, row: ref.row, col: ref.col };
+      }
+      if (next.type === "IDENT") {
+        advance();
+        return { kind: "filetablecol", noteRef: t.value, col: letterToColIndex(next.value) };
+      }
+      throw new ParseError("#REF!");
     }
     if (t.type === "LPAREN") {
       advance();
@@ -667,9 +708,17 @@ function resolveCellText(data: TableData, row: number, col: number): string | nu
 // `namedTables` maps the markdown heading above each table (case-insensitive)
 // to its parsed TableData, enabling cross-table references like `=SUM(Income!B)`
 // or `=Expenses!B3`.
+//
+// `fileTables` maps a normalized note key (see `normalizeNoteKey`) to that
+// file's own heading->TableData map, enabling cross-*file* references like
+// `=[[Budget Tracker]]!B5` or `=[[Budget Tracker#Income]]!B5`. Cells in the
+// referenced file are evaluated using only that file's own `namedTables` —
+// nested `[[...]]` refs inside it are not chained (resolve to `#REF!`) to
+// keep this a bounded, synchronous, one-hop lookup.
 export function evaluateTable(
   data: TableData,
   namedTables: Map<string, TableData> = new Map(),
+  fileTables: Map<string, Map<string, TableData>> = new Map(),
 ): Map<string, FormulaCellResult> {
   const results = new Map<string, FormulaCellResult>();
   const evaluating = new Set<string>();
@@ -833,6 +882,67 @@ export function evaluateTable(
     return out;
   }
 
+  // --- Cross-file helpers -----------------------------------------------
+
+  const otherFileResultsCache = new Map<string, Map<string, FormulaCellResult>>();
+
+  function resolveFileTable(noteRef: string): TableData | null {
+    const { key: fileKey, heading } = normalizeNoteKey(noteRef);
+    const tables = fileTables.get(fileKey);
+    if (!tables || tables.size === 0) return null;
+    if (heading) {
+      const lower = heading.toLowerCase();
+      for (const [h, d] of tables) {
+        if (h.toLowerCase() === lower) return d;
+      }
+      return null;
+    }
+    // No heading given — use the single table, or the first by document
+    // order when the file has more than one.
+    return tables.values().next().value ?? null;
+  }
+
+  function getOtherFileResults(noteRef: string): Map<string, FormulaCellResult> | null {
+    const { key: fileKey, heading } = normalizeNoteKey(noteRef);
+    const otherData = resolveFileTable(noteRef);
+    if (!otherData) return null;
+    const cacheKey = `${fileKey}::${heading ?? ""}`;
+    if (!otherFileResultsCache.has(cacheKey)) {
+      // Deliberately no `fileTables` passed through — cross-file refs don't
+      // chain, so any `[[...]]` formula inside the other file resolves to #REF!.
+      const otherNamedTables = fileTables.get(fileKey) ?? new Map<string, TableData>();
+      otherFileResultsCache.set(cacheKey, evaluateTable(otherData, otherNamedTables));
+    }
+    return otherFileResultsCache.get(cacheKey)!;
+  }
+
+  function flattenOtherFileTableColumn(noteRef: string, col: number): FormulaValue[] | FormulaError {
+    const otherData = resolveFileTable(noteRef);
+    if (!otherData) return new FormulaError("#REF!");
+    const tResults = getOtherFileResults(noteRef);
+    if (!tResults) return new FormulaError("#REF!");
+    const out: FormulaValue[] = [];
+    const lastRow = otherData.rows.length + 1;
+    for (let r = 2; r <= lastRow; r++) {
+      const rowCells = otherData.rows[r - 2];
+      if (rowCells.every((c) => !c || c.trim() === "")) continue;
+      const k = key(r, col);
+      const cached = tResults.get(k);
+      if (cached) {
+        if (isFormulaCell(cached.raw)) continue;
+        recordCurrencyHint(cached.currency);
+        out.push(cached.value);
+      } else {
+        const raw = resolveCellText(otherData, r, col);
+        if (raw === null) return new FormulaError("#REF!");
+        if (isFormulaCell(raw)) continue;
+        recordCurrency(raw);
+        out.push(raw);
+      }
+    }
+    return out;
+  }
+
   function evalNode(node: Node): FormulaValue {
     switch (node.kind) {
       case "num":
@@ -866,6 +976,24 @@ export function evaluateTable(
       case "tablecol":
         // Only valid inside a function — bare tablecol has no scalar value.
         return new FormulaError("#VALUE!");
+      case "filetableref": {
+        const tResults = getOtherFileResults(node.noteRef);
+        if (!tResults) return new FormulaError("#REF!");
+        const otherData = resolveFileTable(node.noteRef)!;
+        const k = key(node.row, node.col);
+        const cached = tResults.get(k);
+        if (cached) {
+          recordCurrencyHint(cached.currency);
+          return cached.value;
+        }
+        const raw = resolveCellText(otherData, node.row, node.col);
+        if (raw === null) return new FormulaError("#REF!");
+        recordCurrency(raw);
+        return raw;
+      }
+      case "filetablecol":
+        // Only valid inside a function — bare filetablecol has no scalar value.
+        return new FormulaError("#VALUE!");
       case "unary": {
         const v = evalNode(node.arg);
         if (isFormulaError(v)) return v;
@@ -892,6 +1020,10 @@ export function evaluateTable(
             argValues.push(...flattened);
           } else if (a.kind === "tablecol") {
             const flattened = flattenOtherTableColumn(a.tableName, a.col);
+            if (isFormulaError(flattened)) return flattened;
+            argValues.push(...flattened);
+          } else if (a.kind === "filetablecol") {
+            const flattened = flattenOtherFileTableColumn(a.noteRef, a.col);
             if (isFormulaError(flattened)) return flattened;
             argValues.push(...flattened);
           } else {

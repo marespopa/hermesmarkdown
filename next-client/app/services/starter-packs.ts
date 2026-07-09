@@ -758,6 +758,8 @@ tags: [finance, debt]
 | Total debt | =SUM("Debt Tracker"!B) |
 | Monthly interest | =SUM("Debt Tracker"!D) |
 | Monthly payments | =SUM("Debt Tracker"!E) |
+| Monthly income (Budget Tracker) | =[[Budget Tracker#Income]]!B5 |
+| Debt-to-income ratio (%) | =ROUND(B4/B5*100,1) |
 
 ## Strategy
 
@@ -772,7 +774,7 @@ alternative: smallest balance first (snowball)
 ---
 
 > [!tip] Avalanche method
-> **Pay minimums on all debts, then direct extra cash to the highest-rate one first** — this minimises total interest paid. The Payoff Stats table reads live from the table above: \`=SUM("Debt Tracker"!B)\` references column B of any table whose heading matches.
+> **Pay minimums on all debts, then direct extra cash to the highest-rate one first** — this minimises total interest paid. The Payoff Stats table reads live from the table above: \`=SUM("Debt Tracker"!B)\` references column B of any table whose heading matches. It also pulls a number from a *different file*: \`=[[Budget Tracker#Income]]!B5\` reads cell B5 of the Income table in budget-tracker.md — the \`#Income\` picks which table, since that note has more than one.
 `,
   },
   {
