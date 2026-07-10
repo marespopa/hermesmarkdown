@@ -119,7 +119,7 @@ describe("SmartFolders Component", () => {
     const deleteButton = screen.getByText("Delete");
     fireEvent.click(deleteButton);
 
-    expect(mockDeleteFile).toHaveBeenCalledWith(mockMetadata["file1.md"].handle);
+    expect(mockDeleteFile).toHaveBeenCalledWith(mockMetadata["file1.md"].handle, "file1.md");
   });
 
   it("calls renameFile when rename is clicked in file action menu", () => {

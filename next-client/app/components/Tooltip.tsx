@@ -30,7 +30,7 @@ export default function Tooltip({
     <span className="relative inline-flex group/tooltip">
       {children}
       <span
-        className={`pointer-events-none absolute whitespace-nowrap bg-overlay border border-edge text-fg text-ui-caption px-2 py-1 opacity-0 group-hover/tooltip:opacity-100 transition-opacity delay-[400ms] z-50 ${POSITION_CLASSES[position]}`}
+        className={`pointer-events-none absolute whitespace-nowrap bg-overlay border border-edge text-fg text-ui-caption px-2 py-1 opacity-0 group-hover/tooltip:opacity-100 transition-opacity [transition-delay:400ms] z-50 ${POSITION_CLASSES[position]}`}
       >
         {label}
         {shortcut && <span className="opacity-50 ml-1.5">{shortcut}</span>}

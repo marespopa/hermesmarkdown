@@ -29,7 +29,7 @@ interface VaultSidebarFooterProps {
 // side since this is a horizontal row at the bottom of the sidebar.
 function FooterTooltip({ label }: { label: string }) {
   return (
-    <span className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-2 whitespace-nowrap bg-overlay border border-edge text-fg text-ui-caption px-2 py-1 opacity-0 group-hover/footer-item:opacity-100 transition-opacity delay-[400ms] z-50">
+    <span className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-2 whitespace-nowrap bg-overlay border border-edge text-fg text-ui-caption px-2 py-1 opacity-0 group-hover/footer-item:opacity-100 transition-opacity [transition-delay:400ms] z-50">
       {label}
     </span>
   );

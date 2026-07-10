@@ -55,11 +55,6 @@ export function useVaultManager() {
         "icloud",
         "onedrive",
         "dropbox",
-        "google drive",
-        "google-drive",
-        "googledrive",
-        "gdrive",
-        "g-drive",
         "box",
         "pcloud",
         "nextcloud",
@@ -431,14 +426,13 @@ export function useVaultManager() {
     toast.success("Vault closed");
   }, [setVaultHandle, setCurrentDirectoryHandle, setVaultFiles, setFileMetadata, setActiveFileHandle, setActiveFilePath, setIsVaultPending, setOpenFiles, setWorkspaceLayout, setIsCloudVault]);
 
-  // Worker Message Listener — only active when using a local (non-Drive) vault
+  // Worker Message Listener
   useEffect(() => {
     if (!metadataWorker) return;
 
     const handleMessage = (event: MessageEvent) => {
       const { results } = event.data;
       if (!results) return;
-      // Ignore messages when a Drive vault is handling the worker output
       if (pendingHandlesRef.current.size === 0) return;
 
       setFileMetadata((prev) => {
@@ -456,11 +450,9 @@ export function useVaultManager() {
     return () => metadataWorker?.removeEventListener("message", handleMessage);
   }, [setFileMetadata, setIndexerState]);
 
-  // Load vault on mount — skipped when a Google Drive vault is configured
+  // Load vault on mount
   useEffect(() => {
     if (hasLoadedVault || !isIdbSupported) return;
-    const driveVaultId = typeof window !== 'undefined' ? localStorage.getItem('hermes_drive_vault_id') : null;
-    if (driveVaultId && driveVaultId !== 'null') return;
 
     async function init() {
       setHasLoadedVault(true);

@@ -17,8 +17,7 @@ type Props = {
 const MainPage = ({ children }: Props) => {
   const pathname = usePathname();
   const isEditor = pathname?.startsWith("/editor");
-  const isAuthCallback = pathname === "/auth/google/callback";
-  const hideNav = isEditor || isAuthCallback;
+  const hideNav = isEditor;
   
   const showHeader = !hideNav;
   const showFooter = !hideNav;

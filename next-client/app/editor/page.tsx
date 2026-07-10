@@ -26,7 +26,6 @@ import NewVaultDialog from "./components/NewVaultDialog";
 import WorkspaceSplitter from "./components/WorkspaceSplitter";
 import PaneLeaf from "./components/PaneLeaf";
 import VaultPendingOverlay from "./components/VaultPendingOverlay";
-import DriveReconnectBanner from "./components/DriveReconnectBanner";
 import LoadingOverlay from "@/app/components/LoadingOverlay";
 import EditorCommands from "./components/EditorCommands";
 import { CommandPaletteProvider } from "@/app/components/CommandPalette/CommandPaletteContext";
@@ -36,7 +35,6 @@ import MobileTasksOverlay from "./components/MobileTasksOverlay";
 import MobileFileIndicator from "./components/MobileFileIndicator";
 import MobileSelectionToolbar from "./components/MobileSelectionToolbar";
 import ErrorBoundary from "@/app/components/ErrorBoundary";
-import GoogleDriveFolderPicker from "./components/GoogleDriveFolderPicker";
 import { useFileSystem } from "@/app/hooks/use-file-system";
 import { useFileWatcher } from "@/app/hooks/use-file-watcher";
 import { useVaultSync } from "@/app/hooks/use-vault-sync";
@@ -123,9 +121,6 @@ export default function LiteEditor() {
     vaultFiles,
     activeFileHandle,
     isVaultPending,
-    isDriveVault,
-    driveAuthState,
-    driveSignIn,
     restoreVault,
     saveFile,
     exportFile,
@@ -134,13 +129,7 @@ export default function LiteEditor() {
     createNewFile,
     scanVault,
     syncSidebarToPath,
-    openDriveVault,
   } = useFileSystem();
-
-  const handleDriveConnected = useCallback(async (folderId: string, folderName: string) => {
-    await openDriveVault(folderId, folderName);
-    setRailPanel("files");
-  }, [openDriveVault, setRailPanel]);
 
   const dialog = useDialog();
   const hasPromptedForNameRef = useRef(false);
@@ -155,9 +144,6 @@ export default function LiteEditor() {
   const { refresh: refreshFiles } = useFileWatcher();
   const { syncVault } = useVaultSync();
   useVoiceMdNudge();
-
-  const [isMounted, setIsMounted] = useState(false);
-  useEffect(() => { setIsMounted(true); }, []);
 
   // Sync sidebar with active file folder
   const lastSyncedPathRef = useRef<string | null>(null);
@@ -190,27 +176,6 @@ export default function LiteEditor() {
     const timer = setTimeout(() => setIsMounting(false), 200);
     return () => clearTimeout(timer);
   }, []);
-
-  const hasShownDriveExpiredDialogRef = useRef(false);
-  useEffect(() => {
-    if (!isDriveVault) return;
-    if (driveAuthState === 'expired') {
-      if (hasShownDriveExpiredDialogRef.current) return;
-      hasShownDriveExpiredDialogRef.current = true;
-      dialog
-        .confirm(
-          "Your Google Drive session expired, so changes won't save until you reconnect.",
-          "Drive session expired",
-          "Reconnect",
-          "Dismiss",
-        )
-        .then((confirmed) => {
-          if (confirmed) driveSignIn();
-        });
-    } else {
-      hasShownDriveExpiredDialogRef.current = false;
-    }
-  }, [driveAuthState, isDriveVault, dialog, driveSignIn]);
 
   useEffect(() => {
     if (voiceError === "permission-denied") {
@@ -470,19 +435,15 @@ export default function LiteEditor() {
         onOpenDocumentation={() => navigateWithGuard("/documentation", "Documentation")}
       />
       <CommandPalette />
-      <LoadingOverlay isVisible={isMounting || isFileLoading || !!navigatingLabel || driveAuthState === 'authenticating'} text={isFileLoading ? "Loading file..." : navigatingLabel ? `${navigatingLabel}...` : driveAuthState === 'authenticating' ? "Connecting to Google Drive..." : "Loading..."} />
+      <LoadingOverlay isVisible={isMounting || isFileLoading || !!navigatingLabel} text={isFileLoading ? "Loading file..." : navigatingLabel ? `${navigatingLabel}...` : "Loading..."} />
       <div className={`fixed inset-0 flex flex-col bg-surface text-fg selection:bg-sage-light/30 font-sans overflow-hidden overscroll-none transition-all duration-500 ${isVaultPending ? "blur-md pointer-events-none select-none" : ""}`}>
-        {isMounted && isDriveVault && driveAuthState === 'expired' && (
-          <DriveReconnectBanner onReconnect={driveSignIn} />
-        )}
         {/* Modals */}
         <WelcomeWizard />
         <NewVaultDialog />
-        <GoogleDriveFolderPicker onSelect={handleDriveConnected} />
         <ConflictDialog />
         <RepurposeNoteWizard />
         <VoiceWizard />
-        {isVaultPending && <VaultPendingOverlay restoreVault={restoreVault} isDriveVault={isDriveVault} />}
+        {isVaultPending && <VaultPendingOverlay restoreVault={restoreVault} />}
         
         <DialogModal isOpened={pendingFile !== null} onClose={() => setPendingFile(null)} styles="!rounded-[32px] !backdrop-blur-2xl !bg-paper-light/80 dark:!bg-paper-dark/80">
           <div className="flex flex-col gap-6 text-center py-4 px-2">

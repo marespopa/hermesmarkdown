@@ -82,8 +82,11 @@ export function findCalloutFoldRanges(doc: string): CalloutFoldRange[] {
       blockId = `${idx}:${requestedType}`;
       titleOffset = lineStarts[idx];
       initiallyCollapsed = fold === "-";
-      // Body starts right after the title line's own newline.
-      bodyFrom = lineStarts[idx] + line.length + 1;
+      // Body starts at the title line's own trailing newline (not after it),
+      // so folding swallows that newline too. That attaches the (invisible)
+      // fold placeholder to the end of the title's own line instead of
+      // giving it a separate, visually blank row of its own.
+      bodyFrom = lineStarts[idx] + line.length;
       bodyEnd = -1;
     }
   }

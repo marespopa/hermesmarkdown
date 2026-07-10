@@ -35,7 +35,7 @@ export function useFileWatcher() {
 
     for (const path of paths) {
       const handle = store.get(atom_liveHandles(path));
-      // Only poll native File System Access handles — not Drive handles
+      // Only poll native File System Access handles
       if (!handle || !("kind" in handle)) continue;
 
       try {

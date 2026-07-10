@@ -26,14 +26,14 @@ interface VaultSidebarFilesProps {
   activeFilePath: string | null;
   openFile: (handle: FileSystemFileHandle, path?: string) => void;
   renameFile: (handle: FileSystemHandle) => void;
-  deleteFile: (handle: FileSystemHandle) => void;
+  deleteFile: (handle: FileSystemHandle, path?: string) => void;
   duplicateFile?: (handle: FileSystemHandle) => void;
   onClose?: () => void;
   isSearchActive?: boolean;
   highlightQuery?: string;
   treeView?: boolean;
   // Tree-only: folders are inferred from paths, so folder actions need a way
-  // to resolve a real handle (local FileSystemDirectoryHandle or DriveDirectoryHandle).
+  // to resolve a real FileSystemDirectoryHandle.
   resolveFolderHandle?: (path: string) => Promise<any | null>;
   createNewFile?: (dirHandle?: any) => void;
   moveItem?: (handle: any, targetDir: any) => void;
@@ -156,7 +156,7 @@ interface FileRowProps {
   setActionMenuOpen: (v: { x: number; y: number; path: string } | null) => void;
   openFile: (handle: FileSystemFileHandle, path?: string) => void;
   renameFile: (handle: FileSystemHandle) => void;
-  deleteFile: (handle: FileSystemHandle) => void;
+  deleteFile: (handle: FileSystemHandle, path?: string) => void;
   duplicateFile?: (handle: FileSystemHandle) => void;
   onClose?: () => void;
   hideFolderPath?: boolean;
@@ -290,7 +290,7 @@ function FileRow({
               variant="menu-item"
               onClick={(e) => {
                 e.stopPropagation();
-                deleteFile(entry.handle);
+                deleteFile(entry.handle, getEntryPath(entry));
                 setActionMenuOpen(null);
               }}
               className="w-full flex items-center gap-3 px-4 py-2.5 text-ui-footnote font-medium hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors text-red-500"
@@ -334,7 +334,7 @@ interface FolderRowProps {
   resolveFolderHandle?: (path: string) => Promise<any | null>;
   createNewFile?: (dirHandle?: any) => void;
   renameFile: (handle: any) => void;
-  deleteFile: (handle: any) => void;
+  deleteFile: (handle: any, path?: string) => void;
 }
 
 function FolderRow({
@@ -469,7 +469,7 @@ function FolderRow({
                 e.stopPropagation();
                 setActionMenuOpen(null);
                 const handle = await resolveFolderHandle?.(node.path);
-                if (handle) deleteFile(handle);
+                if (handle) deleteFile(handle, node.path);
               }}
               className="w-full flex items-center gap-3 px-4 py-2.5 text-ui-footnote font-medium hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors text-red-500"
             >

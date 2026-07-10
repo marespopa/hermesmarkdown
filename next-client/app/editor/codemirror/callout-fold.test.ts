@@ -16,7 +16,7 @@ describe("findCalloutFoldRanges", () => {
     expect(ranges).toHaveLength(1);
     expect(ranges[0].initiallyCollapsed).toBe(false);
     const body = doc.slice(ranges[0].bodyFrom, ranges[0].bodyTo);
-    expect(body).toBe("> Body line one\n> Body line two");
+    expect(body).toBe("\n> Body line one\n> Body line two");
   });
 
   it("marks a callout with a trailing '-' as initially collapsed", () => {

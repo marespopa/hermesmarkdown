@@ -314,7 +314,7 @@ export function useSaveFile() {
 
         if (isInvalidState && vaultHandle && targetPath) {
           if (!isAutoSave) {
-            const msg = "Google Drive is syncing and locked the file. Please wait a moment and hit Save again.";
+            const msg = "Cloud sync is syncing and locked the file. Please wait a moment and hit Save again.";
             toast.error(msg, { id: "save-error", duration: 6000 });
             setSaveStatus({ state: "error", retryCount: 0, message: msg, path: targetPath });
             return false;

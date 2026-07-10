@@ -97,7 +97,7 @@ export function usePaneFileActions(leaf: PanelLeaf | null) {
       const fileState = contentStore.get(atom_openFiles)[path];
       const tabHandle = contentStore.get(atom_liveHandles(path));
       if (fileState && fileState.content !== fileState.lastSavedContent && tabHandle) {
-        // Fire and forget so we don't block tab closing if the file system is locked (e.g. Google Drive 45s retries)
+        // Fire and forget so we don't block tab closing if the file system is locked (e.g. cloud sync retries)
         void saveFile(fileState.content, tabHandle, 0, true, path);
       }
     }

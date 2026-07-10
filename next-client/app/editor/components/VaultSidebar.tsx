@@ -30,10 +30,6 @@ import VaultSidebarEmpty from "./VaultSidebarEmpty";
 import VaultSidebarFiles from "./VaultSidebarFiles";
 import VaultSidebarFooter from "./VaultSidebarFooter";
 import UnifiedSearchInput from "./UnifiedSearchInput";
-import DriveAuthBanner from "./DriveAuthBanner";
-import { atom_driveVaultName, atom_drivePathIndex } from "@/app/atoms/drive-atoms";
-import { HiOutlineRefresh } from "react-icons/hi";
-import { DriveDirectoryHandle } from "@/app/services/drive/DriveDirectoryHandle";
 
 const SIDEBAR_PANELS: { id: RailPanel; label: string; Icon: React.ComponentType<{ size?: number }> }[] = [
   { id: "files", label: "Files", Icon: HiOutlineFolder },
@@ -42,32 +38,6 @@ const SIDEBAR_PANELS: { id: RailPanel; label: string; Icon: React.ComponentType<
   { id: "views", label: "Views", Icon: HiOutlineCollection },
   { id: "tasks", label: "Tasks", Icon: HiOutlineClipboardList },
 ];
-
-function DriveExpiredPanel({ vaultName, onReconnect }: { vaultName: string | null; onReconnect: () => void }) {
-  const [isConnecting, setIsConnecting] = React.useState(false);
-
-  const handleReconnect = () => {
-    setIsConnecting(true);
-    onReconnect();
-  };
-
-  return (
-    <div className="space-y-3 px-1">
-      <p className="text-ui-footnote text-ink-muted dark:text-stone leading-relaxed">
-        Your Google Drive vault{vaultName ? ` "${vaultName}"` : ""} needs to reconnect.
-      </p>
-      <Button
-        variant="primary"
-        onClick={handleReconnect}
-        isDisabled={isConnecting}
-        className="w-full"
-      >
-        <HiOutlineRefresh size={14} className={isConnecting ? "animate-spin" : ""} />
-        {isConnecting ? "Connecting…" : "Reconnect Google Drive"}
-      </Button>
-    </div>
-  );
-}
 
 interface VaultSidebarProps {
   panel: RailPanel;
@@ -104,16 +74,11 @@ export default function VaultSidebar({
     isMounted,
     openVault,
     isVaultSupported,
-    isDriveVault,
-    openDriveVaultPicker,
-    driveAuthState,
-    driveSignIn,
     scanVault,
     indexVaultTags,
   } = useFileSystem();
 
   const dialog = useDialog();
-  const drivePathIndex = useAtomValue(atom_drivePathIndex);
   const setNewVaultFlowOpen = useSetAtom(atom_newVaultFlowOpen);
   const setPendingScrollTarget = useSetAtom(atom_pendingScrollTarget);
   const [showHiddenFiles, setShowHiddenFiles] = useAtom(atom_showHiddenFiles);
@@ -128,17 +93,11 @@ export default function VaultSidebar({
     indexVaultTags?.(vaultHandle as any, next);
   }, [showHiddenFiles, setShowHiddenFiles, vaultHandle, scanVault, indexVaultTags]);
 
-  // Resolves a directory handle for an arbitrary nested path (e.g. "a/b/c"),
-  // working for both local (File System Access API) and Google Drive vaults.
+  // Resolves a directory handle for an arbitrary nested path (e.g. "a/b/c").
   // Tree nodes only carry path strings (built from the flat indexed file list),
   // so folder actions (rename/delete/new file/move) need this to get a real handle.
   const resolveFolderHandle = useCallback(async (path: string): Promise<any | null> => {
     if (!path) return vaultHandle;
-    if (isDriveVault) {
-      const entry = drivePathIndex?.getEntry(path);
-      if (!entry) return null;
-      return new DriveDirectoryHandle(entry.name, entry.id);
-    }
     if (!vaultHandle) return null;
     let dir: any = vaultHandle;
     for (const segment of path.split("/")) {
@@ -149,12 +108,11 @@ export default function VaultSidebar({
       }
     }
     return dir;
-  }, [vaultHandle, isDriveVault, drivePathIndex]);
+  }, [vaultHandle]);
 
   const [activeFilePath, setActiveFilePath] = useAtom(atom_activeFilePath);
   const [sidebarWidth, setSidebarWidth] = useAtom(atom_sidebarWidth);
   const isCloudVault = useAtomValue(atom_isCloudVault);
-  const driveVaultName = useAtomValue(atom_driveVaultName);
   const setRailPanel = useSetAtom(atom_railPanel);
   const [isResizing, setIsResizing] = useState(false);
 
@@ -234,19 +192,7 @@ export default function VaultSidebar({
         <div className="flex justify-between items-center gap-2 h-11 md:h-8">
           <div className="flex items-center gap-2 min-w-0">
             <h2 className="text-ui-body md:text-ui-subhead font-medium text-ink-light dark:text-ink-dark opacity-80 md:opacity-60 hover:opacity-100 transition-opacity flex items-center gap-1.5 min-w-0">
-              <span className="truncate">{vaultHandle?.name || driveVaultName || "Notes"}</span>
-              {isDriveVault && (
-                <span title="Google Drive vault" className="shrink-0 cursor-help opacity-70 -mt-2">
-                  <svg width="10" height="9" viewBox="0 0 87.3 78" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M6.6 66.85l3.85 6.65c.8 1.4 1.95 2.5 3.3 3.3l13.75-23.8H0a7.3 7.3 0 0 0 1.1 3.85z" fill="#0066da"/>
-                    <path d="M43.65 25L29.9 1.2A7.2 7.2 0 0 0 26.6 4.5L1.1 49.15A7.3 7.3 0 0 0 0 53h27.5z" fill="#00ac47"/>
-                    <path d="M73.55 76.8a7.2 7.2 0 0 0 3.3-3.3l1.6-2.75 7.65-13.25A7.3 7.3 0 0 0 87.3 53H59.8L73.55 76.8z" fill="#ea4335"/>
-                    <path d="M43.65 25L57.4 1.2A7.35 7.35 0 0 0 53.65 0h-20a7.35 7.35 0 0 0-3.75 1.2z" fill="#00832d"/>
-                    <path d="M59.8 53H87.3a7.3 7.3 0 0 0-1.1-3.85L60.7 4.5a7.2 7.2 0 0 0-3.3-3.3L43.65 25z" fill="#2684fc"/>
-                    <path d="M27.5 53L13.75 76.8a7.35 7.35 0 0 0 3.75 1.2h52.3a7.35 7.35 0 0 0 3.75-1.2L59.8 53z" fill="#ffba00"/>
-                  </svg>
-                </span>
-              )}
+              <span className="truncate">{vaultHandle?.name || "Notes"}</span>
               {isCloudVault && vaultHandle && (
                 <span title="Cloud sync detected. HermesMarkdown will use enhanced error recovery if files are locked." className="shrink-0 text-sage/60 dark:text-sage/60 cursor-help">
                   <HiOutlineCloud size={14} />
@@ -309,21 +255,16 @@ export default function VaultSidebar({
       <div className="flex-1 flex flex-col overflow-hidden min-h-0">
         {!vaultHandle ? (
           <div className="flex-1 overflow-y-auto overscroll-none p-3 custom-scrollbar">
-            {isDriveVault && driveAuthState === 'expired' ? (
-              <DriveExpiredPanel vaultName={driveVaultName} onReconnect={driveSignIn} />
-            ) : (
-              <VaultSidebarEmpty
-                isVaultSupported={isVaultSupported}
-                openVault={openVault}
-                onCreateVault={() => setNewVaultFlowOpen(true)}
-                onConnectDrive={openDriveVaultPicker}
-                onImport={onImport}
-                onExport={onExport}
-                setActiveFilePath={setActiveFilePath}
-                activeFilePath={activeFilePath}
-                onClose={onClose}
-              />
-            )}
+            <VaultSidebarEmpty
+              isVaultSupported={isVaultSupported}
+              openVault={openVault}
+              onCreateVault={() => setNewVaultFlowOpen(true)}
+              onImport={onImport}
+              onExport={onExport}
+              setActiveFilePath={setActiveFilePath}
+              activeFilePath={activeFilePath}
+              onClose={onClose}
+            />
           </div>
         ) : panel === "tags" ? (
           <VaultSidebarTags
@@ -402,10 +343,6 @@ export default function VaultSidebar({
           </div>
         )}
       </div>
-
-      {isDriveVault && vaultHandle && driveAuthState === 'expired' && (
-        <DriveAuthBanner onReconnect={driveSignIn} />
-      )}
 
       <VaultSidebarFooter
         vaultHandle={vaultHandle}

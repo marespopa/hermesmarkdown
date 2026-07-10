@@ -26,8 +26,6 @@ import { useVoiceInput } from "../hooks/use-voice-input";
 import { joinVoiceChunks, type VoiceInsertion } from "../utils/voice-command-parser";
 import { atom_fileMetadata, type FileMetadata } from "@/app/atoms/metadata";
 import { atom_vaultHandle } from "@/app/atoms/vault-atoms";
-import { atom_isDriveVault, atom_drivePathIndex } from "@/app/atoms/drive-atoms";
-import * as driveClient from "@/app/services/drive/client";
 
 const IMAGE_TYPES = new Set(["image/png", "image/jpeg", "image/gif", "image/webp"]);
 const MAX_SIZE = 5_000_000;
@@ -86,8 +84,6 @@ async function resolveMentionRefs(
   existing: VaultRef[],
   fileMetadata: Record<string, FileMetadata>,
   vaultHandle: any,
-  isDriveVault: boolean,
-  drivePathIndex: any,
 ): Promise<VaultRef[]> {
   const existingLabels = new Set(existing.map((r) => r.label));
   const tokens = Array.from(new Set(text.match(/@[^\s@]+/g) || []))
@@ -106,7 +102,7 @@ async function resolveMentionRefs(
         const name = token.slice(1).toLowerCase();
         const file = Object.values(fileMetadata).find((m) => m.name.replace(/\.md$/, "").toLowerCase() === name);
         if (file) {
-          const content = await readVaultFile(file.path, vaultHandle, isDriveVault, drivePathIndex);
+          const content = await readVaultFile(file.path, vaultHandle);
           resolved.push({ label: token, content });
         }
       }
@@ -173,14 +169,7 @@ function buildApiContent(text: string, atts: Attachment[]): string | ApiPart[] {
 async function readVaultFile(
   path: string,
   vaultHandle: any,
-  isDriveVault: boolean,
-  drivePathIndex: any,
 ): Promise<string> {
-  if (isDriveVault && drivePathIndex) {
-    const entry = drivePathIndex.getEntry(path);
-    if (!entry) throw new Error(`File not found: ${path}`);
-    return await driveClient.getFileContent(entry.id);
-  }
   if (vaultHandle) {
     const parts = path.split("/");
     let current: any = vaultHandle;
@@ -204,8 +193,6 @@ export default function AIChatDialog({
 }: AIChatDialogProps) {
   const fileMetadata = useAtomValue(atom_fileMetadata);
   const vaultHandle = useAtomValue(atom_vaultHandle);
-  const isDriveVault = useAtomValue(atom_isDriveVault);
-  const drivePathIndex = useAtomValue(atom_drivePathIndex);
 
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
@@ -355,17 +342,17 @@ export default function AIChatDialog({
       }
     }, 0);
     // Load content; deduplicate by label. @vault/@folder build a lightweight index from
-    // in-memory metadata (no extra file reads); a single file is read from disk/Drive.
+    // in-memory metadata (no extra file reads); a single file is read from disk.
     try {
       const content =
         option.kind === "vault" ? buildIndex(fileMetadata) :
         option.kind === "folder" ? buildIndex(fileMetadata, `${option.path}/`) :
-        await readVaultFile(option.file.path, vaultHandle, isDriveVault, drivePathIndex);
+        await readVaultFile(option.file.path, vaultHandle);
       setVaultRefs((prev) => [...prev.filter((r) => r.label !== label), { label, content }]);
     } catch {
       showErrorToast(`Could not load ${label}`);
     }
-  }, [mention, input, vaultHandle, isDriveVault, drivePathIndex, fileMetadata]);
+  }, [mention, input, vaultHandle, fileMetadata]);
 
   const buildSystemPrompt = useCallback(() => {
     const parts = [SYSTEM_PROMPT];
@@ -406,7 +393,7 @@ export default function AIChatDialog({
 
     // Catch any @vault/@folder/@file tokens typed straight through without ever being
     // picked from the dropdown, so they still resolve instead of reaching the model as text.
-    const autoRefs = await resolveMentionRefs(trimmed, vaultRefs, fileMetadata, vaultHandle, isDriveVault, drivePathIndex);
+    const autoRefs = await resolveMentionRefs(trimmed, vaultRefs, fileMetadata, vaultHandle);
     const allRefs = [...vaultRefs, ...autoRefs];
 
     // Build API text: append vault ref content blocks after the user's message
@@ -441,7 +428,7 @@ export default function AIChatDialog({
       setIsLoading(false);
       setTimeout(() => inputRef.current?.focus(), 50);
     }
-  }, [input, attachments, messages, isLoading, buildSystemPrompt, vaultRefs, fileMetadata, vaultHandle, isDriveVault, drivePathIndex]);
+  }, [input, attachments, messages, isLoading, buildSystemPrompt, vaultRefs, fileMetadata, vaultHandle]);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (mention && mentionOptions.length > 0) {

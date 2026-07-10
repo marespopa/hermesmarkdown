@@ -6,7 +6,6 @@ import { useHydrateAtoms } from "jotai/utils";
 import WelcomeWizard from "./WelcomeWizard";
 import { atom_hasCompletedOnboarding, atom_isWizardOpen } from "@/app/atoms/ui-atoms";
 import { atom_vaultHandle } from "@/app/atoms/vault-atoms";
-import { atom_driveVaultId, atom_driveAuthState } from "@/app/atoms/drive-atoms";
 import { useFileSystem } from "@/app/hooks/use-file-system";
 
 // Mock hooks
@@ -27,21 +26,17 @@ const TestProvider = ({ initialValues, children }: { initialValues: any, childre
 
 describe("WelcomeWizard", () => {
   const mockOpenVault = vi.fn();
-  const mockOpenDriveVaultPicker = vi.fn();
 
   const defaultInitialValues: any = [
     [atom_hasCompletedOnboarding, false],
     [atom_isWizardOpen, true],
     [atom_vaultHandle, null],
-    [atom_driveVaultId, null],
-    [atom_driveAuthState, "unauthenticated"],
   ];
 
   beforeEach(() => {
     vi.clearAllMocks();
     (useFileSystem as any).mockReturnValue({
       openVault: mockOpenVault,
-      openDriveVaultPicker: mockOpenDriveVaultPicker,
       isVaultSupported: true,
     });
   });

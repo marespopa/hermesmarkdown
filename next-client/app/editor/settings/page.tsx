@@ -23,15 +23,12 @@ import {
 } from "@/app/atoms/atoms";
 import { atom_availableGeminiModels, atom_showHiddenFiles, atom_voiceWizardOpen, atom_isAiConfigured } from "@/app/atoms/ui-atoms";
 import { atom_vaultHandle } from "@/app/atoms/atoms";
-import { atom_driveVaultId, atom_driveVaultName, atom_isDriveVault } from "@/app/atoms/drive-atoms";
-import { useDriveAuth } from "@/app/hooks/drive/use-drive-auth";
 import { useFileSystem } from "@/app/hooks/use-file-system";
 import { testAIConnection, fetchGeminiModels } from "@/app/services/ai";
 import {
   HiOutlineArrowLeft,
   HiOutlinePencilAlt,
   HiOutlineAcademicCap,
-  HiOutlineCloud,
   HiOutlineLightningBolt,
   HiCheck,
   HiOutlineRefresh,
@@ -74,10 +71,10 @@ const SettingsPage = () => {
   const [isCreatingVoiceMd, setIsCreatingVoiceMd] = useState(false);
   const handleCreateVoiceMd = async () => {
     if (isCreatingVoiceMd) return;
-    if (isDriveVault ? !driveVaultId : !vaultHandle) return;
+    if (!vaultHandle) return;
     setIsCreatingVoiceMd(true);
     try {
-      const { opened } = await openOrCreateVoiceMd({ vaultHandle, isDriveVault, driveVaultId, openFile });
+      const { opened } = await openOrCreateVoiceMd({ vaultHandle, openFile });
       if (!opened) showSuccessToast("voice.md created.");
       // This button lives on a separate /editor/settings route — opening the
       // file only updates editor state, so without this the user stays on
@@ -98,22 +95,11 @@ const SettingsPage = () => {
     indexVaultTags(fsVaultHandle as any, next);
   };
   const vaultHandle = useAtomValue(atom_vaultHandle);
-  const isDriveVault = useAtomValue(atom_isDriveVault);
   const [aiProvider, setAiProvider] = useAtom(atom_aiProvider);
   const [selectedAiModel, setSelectedAiModel] = useAtom(atom_selectedAiModel);
   const [claudeKey, setClaudeKey] = useAtom(atom_claudeKey);
   const [geminiKey, setGeminiKey] = useAtom(atom_geminiKey);
   const [, setIsWizardOpen] = useAtom(atom_isWizardOpen);
-  const [, setDriveVaultId] = useAtom(atom_driveVaultId);
-  const [driveVaultName] = useAtom(atom_driveVaultName);
-  const driveVaultId = useAtomValue(atom_driveVaultId);
-  const { authState: driveAuthState, signIn: driveSignIn, signOut: driveSignOut } = useDriveAuth();
-  const [isDriveConnecting, setIsDriveConnecting] = useState(false);
-
-  const handleDriveSignIn = () => {
-    setIsDriveConnecting(true);
-    driveSignIn();
-  };
 
   const [availableGeminiModels, setAvailableGeminiModels] = useAtom(atom_availableGeminiModels);
   const [isFetchingModels, setIsFetchingModels] = useState(false);
@@ -463,7 +449,7 @@ const SettingsPage = () => {
                 plain Markdown file you edit yourself; nothing is created automatically.
               </p>
             </div>
-            {(isDriveVault ? !driveVaultId : !vaultHandle) ? (
+            {!vaultHandle ? (
               <p className="text-ui-caption text-stone px-1">Open a vault to set up voice.md.</p>
             ) : (
               <div className="flex flex-col gap-2 sm:flex-row">
@@ -484,84 +470,6 @@ const SettingsPage = () => {
                   Draft from notes…
                 </Button>
               </div>
-            )}
-          </SettingGroup>
-        </>
-      ),
-    },
-    {
-      id: "integrations",
-      label: "Integrations",
-      icon: HiOutlineCloud,
-      content: (
-        <>
-          <SettingGroup title="Google Drive">
-            {driveAuthState === "authenticated" ? (
-              <>
-                <SettingItem
-                  label="Connected Vault"
-                  description={driveVaultName ? `Syncing with "${driveVaultName}"` : "Drive vault is active."}
-                  control={
-                    <Button
-                      variant="secondary"
-                      onClick={() => {
-                        driveSignOut();
-                        setDriveVaultId(null);
-                      }}
-                      className="h-8 px-4 text-ui-footnote font-medium"
-                    >
-                      Disconnect
-                    </Button>
-                  }
-                />
-              </>
-            ) : driveAuthState === "expired" ? (
-              <SettingItem
-                label="Session Expired"
-                description="Your Drive session expired. Reconnect to continue syncing."
-                control={
-                  <Button
-                    variant="primary"
-                    onClick={handleDriveSignIn}
-                    disabled={isDriveConnecting}
-                    className="h-8 px-4 text-ui-footnote font-medium flex items-center gap-1.5"
-                  >
-                    {isDriveConnecting && <HiOutlineRefresh size={13} className="animate-spin" />}
-                    {isDriveConnecting ? "Connecting…" : "Reconnect"}
-                  </Button>
-                }
-              />
-            ) : driveAuthState === "authenticating" ? (
-              <SettingItem
-                label="Connecting…"
-                description="Redirecting to Google to complete sign-in."
-                control={
-                  <Button
-                    variant="primary"
-                    disabled
-                    className="h-8 px-4 text-ui-footnote font-medium flex items-center gap-1.5"
-                  >
-                    <HiOutlineRefresh size={13} className="animate-spin" />
-                    Connecting…
-                  </Button>
-                }
-              />
-            ) : (
-              <SettingItem
-                label="Connect Google Drive"
-                description="Use a Google Drive folder as your vault. Files are saved directly to your Drive."
-                control={
-                  <Button
-                    variant="primary"
-                    onClick={handleDriveSignIn}
-                    disabled={isDriveConnecting}
-                    className="h-8 px-4 text-ui-footnote font-medium flex items-center gap-1.5"
-                  >
-                    {isDriveConnecting && <HiOutlineRefresh size={13} className="animate-spin" />}
-                    {isDriveConnecting ? "Connecting…" : "Connect"}
-                  </Button>
-                }
-              />
             )}
           </SettingGroup>
         </>

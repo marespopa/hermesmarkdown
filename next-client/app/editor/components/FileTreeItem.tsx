@@ -16,7 +16,7 @@ interface FileTreeItemProps {
   activeFilePath: string | null;
   openFile: (handle: FileSystemFileHandle, path?: string) => void;
   renameFile: (handle: FileSystemHandle) => void;
-  deleteFile: (handle: FileSystemHandle) => void;
+  deleteFile: (handle: FileSystemHandle, path?: string) => void;
   onClose?: () => void;
   setDraggedEntry: (entry: any) => void;
 }
@@ -110,7 +110,7 @@ export default function FileTreeItem({
               variant="menu-item"
               onClick={(e) => {
                 e.stopPropagation();
-                deleteFile(fileHandle);
+                deleteFile(fileHandle, path);
                 setActionMenuOpen(null);
               }}
               className="w-full flex items-center gap-3 px-4 py-2.5 text-ui-footnote font-medium hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors text-red-500"

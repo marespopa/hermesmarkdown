@@ -23,7 +23,7 @@ interface FolderTreeItemProps {
   openFile: (handle: FileSystemFileHandle, path?: string) => void;
   createNewFile: (dirHandle: FileSystemDirectoryHandle) => void;
   renameFile: (handle: FileSystemHandle) => void;
-  deleteFile: (handle: FileSystemHandle) => void;
+  deleteFile: (handle: FileSystemHandle, path?: string) => void;
   moveItem: (handle: FileSystemHandle, targetDir: FileSystemDirectoryHandle) => void;
   onClose?: () => void;
   isRoot?: boolean;
@@ -206,7 +206,7 @@ const FolderTreeItem = memo(function FolderTreeItem({
                   variant="menu-item"
                   onClick={(e) => {
                     e.stopPropagation();
-                    deleteFile(dirHandle);
+                    deleteFile(dirHandle, path);
                     setActionMenuOpen(null);
                   }}
                   className="w-full flex items-center gap-3 px-4 py-2.5 text-ui-footnote font-medium hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors text-red-500"

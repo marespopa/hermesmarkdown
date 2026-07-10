@@ -71,9 +71,8 @@ export default function CreateVaultSubSteps(props: CreateVaultProps) {
         </button>
 
         <p className="text-[10px] opacity-40 px-1 leading-relaxed">
-          Google Drive, iCloud, and Dropbox sync via their own sync client on your computer. Don&apos;t select a
-          Drive folder directly — it can break sync. Instead, connect Drive via the Drive integration in Settings
-          after creating the vault, which uses the API.
+          iCloud and Dropbox sync via their own sync client on your computer. If your vault lives in a
+          synced folder, HermesMarkdown uses enhanced error recovery to handle files being locked mid-sync.
         </p>
 
         {error && !nameError && (

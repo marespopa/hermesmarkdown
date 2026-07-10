@@ -21,7 +21,6 @@ import {
   atom_isVoiceInputSupported,
 } from "@/app/atoms/ui-atoms";
 import { atom_content } from "@/app/atoms/file-atoms";
-import { atom_isDriveVault, atom_driveVaultId } from "@/app/atoms/drive-atoms";
 import { useFileSystem } from "@/app/hooks/use-file-system";
 import { useDialog } from "@/app/hooks/use-dialog";
 import toast from "react-hot-toast";
@@ -67,8 +66,6 @@ export default function EditorCommands({
   const [, setRepurposeWizardOpen] = useAtom(atom_repurposeWizardOpen);
   const [, setVoiceWizardOpen] = useAtom(atom_voiceWizardOpen);
   const isAiConfigured = useAtomValue(atom_isAiConfigured);
-  const isDriveVault = useAtomValue(atom_isDriveVault);
-  const driveVaultId = useAtomValue(atom_driveVaultId);
   const voiceMdExists = useVoiceMdStatus();
   const content = useAtomValue(atom_content);
   const workspaceLayout = useAtomValue(atom_workspaceLayout);
@@ -263,14 +260,14 @@ export default function EditorCommands({
   );
 
   useRegisterCommand(
-    vaultHandle || (isDriveVault && driveVaultId)
+    vaultHandle
       ? {
           id: "create-voice-md",
           label: voiceMdExists ? "Voice & Tone: Edit voice.md" : "Voice & Tone: Create voice.md",
           keywords: "voice profile tone audience create new edit",
           action: async () => {
             try {
-              const { opened } = await openOrCreateVoiceMd({ vaultHandle, isDriveVault, driveVaultId, openFile });
+              const { opened } = await openOrCreateVoiceMd({ vaultHandle, openFile });
               if (!opened) showSuccessToast("voice.md created.");
             } catch (err: any) {
               showErrorToast(err.message || "Failed to create voice.md.");
@@ -281,7 +278,7 @@ export default function EditorCommands({
   );
 
   useRegisterCommand(
-    isAiConfigured && (vaultHandle || (isDriveVault && driveVaultId))
+    isAiConfigured && vaultHandle
       ? {
           id: "draft-voice-md",
           label: "Voice & Tone: Draft voice.md from notes…",

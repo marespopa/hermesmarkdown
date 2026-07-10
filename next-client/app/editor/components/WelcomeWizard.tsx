@@ -19,10 +19,6 @@ import {
 import {
   atom_vaultHandle
 } from "@/app/atoms/vault-atoms";
-import {
-  atom_isDriveVault,
-  atom_driveVaultId
-} from "@/app/atoms/drive-atoms";
 import DialogModal from "@/app/components/DialogModal/DialogModal";
 import Button from "@/app/components/Button";
 import Input from "@/app/components/Input";
@@ -35,7 +31,6 @@ import { formatShortcut } from "@/app/utils/platform";
 import useIsMobileChrome from "@/app/hooks/use-mobile-chrome";
 import {
   HiOutlineFolder,
-  HiOutlineCloud,
   HiOutlineChevronRight,
   HiOutlineCheckCircle,
   HiOutlineRefresh,
@@ -60,12 +55,10 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
   const [step, setStep] = useAtom(atom_welcomeWizardStep);
   const [isMounted, setIsMounted] = useState(false);
 
-  const { openVault, openDriveVaultPicker, isVaultSupported } = useFileSystem();
+  const { openVault, isVaultSupported } = useFileSystem();
   const createVaultFlow = useCreateVault();
 
   const vaultHandle = useAtomValue(atom_vaultHandle);
-  const isDriveVault = useAtomValue(atom_isDriveVault);
-  const driveVaultId = useAtomValue(atom_driveVaultId);
   const [autosaveMode, setAutosaveMode] = useAtom(atom_autosaveMode);
   const [frontmatterDefaultMode, setFrontmatterDefaultMode] = useAtom(atom_frontmatterDefaultMode);
   const [fontSize, setFontSize] = useAtom(atom_fontSize);
@@ -85,10 +78,10 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
   }, []);
 
   useEffect(() => {
-    if (step === 1 && (vaultHandle || (isDriveVault && driveVaultId))) {
+    if (step === 1 && vaultHandle) {
       setStep(2);
     }
-  }, [step, vaultHandle, isDriveVault, driveVaultId]);
+  }, [step, vaultHandle]);
 
   const showWizard = isMounted && (!hasCompleted || isWizardOpen);
 
@@ -145,7 +138,7 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
               <p className="text-ui-footnote opacity-60 px-4">
                 Pick where your notes live. A <code className="not-italic">.hermes</code> folder
                 goes alongside them — an index for agents to read later, nothing you need to
-                touch. Drive sync is optional, on or off anytime.
+                touch.
               </p>
             </div>
 
@@ -177,21 +170,6 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
                   <div className="text-left">
                     <div className="font-bold text-ui-footnote">Open Existing Vault</div>
                     <div className="text-[10px] opacity-50 uppercase tracking-wider font-bold">Offline · No upload</div>
-                  </div>
-                </div>
-                <HiOutlineChevronRight opacity={0.3} />
-              </Button>
-
-              <Button
-                variant="secondary"
-                onClick={openDriveVaultPicker}
-                className="flex items-center justify-between px-5 h-14 rounded-2xl border border-edge bg-paper-light dark:bg-paper-dark"
-              >
-                <div className="flex items-center gap-3">
-                  <HiOutlineCloud className="text-sage" size={24} />
-                  <div className="text-left">
-                    <div className="font-bold text-ui-footnote">Google Drive</div>
-                    <div className="text-[10px] opacity-50 uppercase tracking-wider font-bold">Cloud Backup</div>
                   </div>
                 </div>
                 <HiOutlineChevronRight opacity={0.3} />

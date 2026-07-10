@@ -12,7 +12,7 @@ export interface FileMetadata {
   modifiedAt: number;
   wordCount: number;
   tasks: TaskItem[];
-  handle: any; // FileSystemFileHandle | DriveFileHandle
+  handle: any; // FileSystemFileHandle
 }
 
 export const atom_fileMetadata = atom<Record<string, FileMetadata>>({});

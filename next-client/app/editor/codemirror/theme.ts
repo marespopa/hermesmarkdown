@@ -43,6 +43,19 @@ export const baseTheme = EditorView.theme({
   ".cm-gutters": {
     display: "none",
   },
+  // CM6's default fold-placeholder widget ("…") ships a hardcoded light-gray
+  // box (@codemirror/language baseTheme) with no dark-mode variant, so it
+  // reads as a stray white pill in dark mode. Callout fold state is already
+  // shown by our own chevron UI (use-codemirror-callout-fold.ts), so the
+  // placeholder itself is redundant — made transparent rather than reskinned.
+  // Do NOT zero its width/use `display: none`/`overflow: hidden`: CM6's
+  // posAtCoords hit-testing walks this widget's DOM box and needs it to keep
+  // its normal (glyph-sized) layout dimensions, or clicks near it crash.
+  ".cm-foldPlaceholder": {
+    backgroundColor: "transparent",
+    border: "none",
+    color: "transparent",
+  },
 });
 
 // The slash-command menu is CodeMirror's built-in autocomplete tooltip

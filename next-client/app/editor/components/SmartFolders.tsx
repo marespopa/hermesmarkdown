@@ -32,7 +32,7 @@ const DEFAULT_SMART_FOLDERS: SmartFolderConfig[] = [
 interface SmartFoldersProps {
   onFileSelect: (handle: FileSystemFileHandle, path?: string) => void;
   renameFile: (handle: FileSystemHandle) => void;
-  deleteFile: (handle: FileSystemHandle) => void;
+  deleteFile: (handle: FileSystemHandle, path?: string) => void;
   duplicateFile?: (handle: FileSystemHandle) => void;
   onMatchCountChange?: (count: number, hasFolderSelected: boolean) => void;
 }
@@ -245,7 +245,7 @@ export default function SmartFolders({
                             )}
                             <Button
                               variant="menu-item"
-                              onClick={(e) => { e.stopPropagation(); deleteFile(file.handle); setFileActionMenuOpen(null); }}
+                              onClick={(e) => { e.stopPropagation(); deleteFile(file.handle, file.path); setFileActionMenuOpen(null); }}
                               className="w-full flex items-center gap-3 px-4 py-2 text-ui-footnote font-medium hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors text-red-500"
                             >
                               <HiOutlineTrash size={12} className="opacity-80" />

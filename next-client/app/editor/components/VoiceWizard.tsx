@@ -5,14 +5,12 @@ import { useAtom, useAtomValue } from "jotai";
 import { atom_voiceWizardOpen, atom_isAiConfigured } from "@/app/atoms/ui-atoms";
 import { atom_vaultHandle } from "@/app/atoms/vault-atoms";
 import { atom_fileMetadata } from "@/app/atoms/metadata";
-import { atom_isDriveVault, atom_driveVaultId } from "@/app/atoms/drive-atoms";
 import DialogModal from "@/app/components/DialogModal/DialogModal";
 import Button from "@/app/components/Button";
 import { useDialog } from "@/app/hooks/use-dialog";
 import { useFileSystem } from "@/app/hooks/use-file-system";
 import { callAI } from "@/app/services/ai";
-import { writeHermesFile, readDriveHermesFile, writeDriveHermesFile } from "@/app/services/vault-schema";
-import { DriveFileHandle } from "@/app/services/drive/DriveFileHandle";
+import { writeHermesFile } from "@/app/services/vault-schema";
 import { showSuccessToast, showErrorToast } from "@/app/components/Toastr";
 import { HiOutlineRefresh, HiOutlineDocumentText } from "react-icons/hi";
 
@@ -46,8 +44,6 @@ export default function VoiceWizard() {
   const vaultHandle = useAtomValue(atom_vaultHandle);
   const fileMetadata = useAtomValue(atom_fileMetadata);
   const isAiConfigured = useAtomValue(atom_isAiConfigured);
-  const isDriveVault = useAtomValue(atom_isDriveVault);
-  const driveVaultId = useAtomValue(atom_driveVaultId);
   const dialog = useDialog();
   const { openFile } = useFileSystem();
 
@@ -112,12 +108,10 @@ export default function VoiceWizard() {
 
   const handleConfirm = async () => {
     if (!draft.trim()) return;
-    if (isDriveVault ? !driveVaultId : !vaultHandle) return;
+    if (!vaultHandle) return;
     setIsSaving(true);
     try {
-      const existing = isDriveVault && driveVaultId
-        ? await readDriveHermesFile(driveVaultId, "voice.md")
-        : await readExistingVoiceMd(vaultHandle!);
+      const existing = await readExistingVoiceMd(vaultHandle);
       if (existing) {
         const confirmed = await dialog.confirm(
           ".hermes/voice.md already exists. Overwrite it with this draft?",
@@ -132,16 +126,10 @@ export default function VoiceWizard() {
       }
 
       const content = `${draft.trim()}\n`;
-      if (isDriveVault && driveVaultId) {
-        const driveFile = await writeDriveHermesFile(driveVaultId, "voice.md", content);
-        const fileHandle = new DriveFileHandle("voice.md", driveFile.id);
-        await openFile(fileHandle as any, ".hermes/voice.md", true);
-      } else {
-        await writeHermesFile(vaultHandle!, "voice.md", content);
-        const hermesDir = await vaultHandle!.getDirectoryHandle(".hermes");
-        const fileHandle = await hermesDir.getFileHandle("voice.md");
-        await openFile(fileHandle, ".hermes/voice.md", true);
-      }
+      await writeHermesFile(vaultHandle, "voice.md", content);
+      const hermesDir = await vaultHandle.getDirectoryHandle(".hermes");
+      const fileHandle = await hermesDir.getFileHandle("voice.md");
+      await openFile(fileHandle, ".hermes/voice.md", true);
 
       showSuccessToast("voice.md saved.");
       setIsOpen(false);

@@ -2,9 +2,8 @@
 
 import React, { useState, useCallback } from "react";
 import OverlayPanel from "@/app/components/OverlayLayer/OverlayPanel";
-import { useAtom, useAtomValue, useSetAtom } from "jotai";
+import { useAtom, useSetAtom } from "jotai";
 import { atom_activeFilePath } from "@/app/atoms/atoms";
-import { atom_drivePathIndex } from "@/app/atoms/drive-atoms";
 import { useFileSystem } from "@/app/hooks/use-file-system";
 import { useSidebarSearch } from "../hooks/useSidebarSearch";
 import SmartFolders from "./SmartFolders";
@@ -12,7 +11,6 @@ import VaultSidebarFiles from "./VaultSidebarFiles";
 import VaultSidebarEmpty from "./VaultSidebarEmpty";
 import UnifiedSearchInput from "./UnifiedSearchInput";
 import { HiOutlineX, HiOutlineEye, HiOutlineEyeOff } from "react-icons/hi";
-import { DriveDirectoryHandle } from "@/app/services/drive/DriveDirectoryHandle";
 import { atom_newVaultFlowOpen, atom_showHiddenFiles } from "@/app/atoms/ui-atoms";
 
 export default function MobileFileOverlay({
@@ -34,15 +32,12 @@ export default function MobileFileOverlay({
     moveItem,
     createNewFile,
     vaultHandle,
-    isDriveVault,
     openVault,
     isVaultSupported,
-    openDriveVaultPicker,
     scanVault,
     indexVaultTags,
   } = useFileSystem();
   const [activeFilePath, setActiveFilePath] = useAtom(atom_activeFilePath);
-  const drivePathIndex = useAtomValue(atom_drivePathIndex);
   const setNewVaultFlowOpen = useSetAtom(atom_newVaultFlowOpen);
   const [showHiddenFiles, setShowHiddenFiles] = useAtom(atom_showHiddenFiles);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
@@ -53,11 +48,6 @@ export default function MobileFileOverlay({
 
   const resolveFolderHandle = useCallback(async (path: string): Promise<any | null> => {
     if (!path) return vaultHandle;
-    if (isDriveVault) {
-      const entry = drivePathIndex?.getEntry(path);
-      if (!entry) return null;
-      return new DriveDirectoryHandle(entry.name, entry.id);
-    }
     if (!vaultHandle) return null;
     let dir: any = vaultHandle;
     for (const segment of path.split("/")) {
@@ -68,7 +58,7 @@ export default function MobileFileOverlay({
       }
     }
     return dir;
-  }, [vaultHandle, isDriveVault, drivePathIndex]);
+  }, [vaultHandle]);
 
   const handleToggleHiddenFiles = useCallback(() => {
     const next = !showHiddenFiles;
@@ -112,7 +102,6 @@ export default function MobileFileOverlay({
               isVaultSupported={isVaultSupported}
               openVault={openVault}
               onCreateVault={() => setNewVaultFlowOpen(true)}
-              onConnectDrive={openDriveVaultPicker}
               onImport={onImport}
               onExport={onExport}
               setActiveFilePath={setActiveFilePath}
