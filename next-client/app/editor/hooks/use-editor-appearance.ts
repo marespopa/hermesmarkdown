@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef, RefObject } from "react";
 import { useAtomValue } from "jotai";
 import {
   atom_fontSize,
@@ -10,6 +10,11 @@ import {
   atom_letterSpacing,
 } from "@/app/atoms/atoms";
 
+// Breakpoints below are keyed off the *pane's* own width (measured via
+// ResizeObserver), not window.innerWidth — a Tailwind md:/xl: prefix reacts
+// to the whole viewport, so with the vault sidebar open (or in a split pane)
+// the editor kept centering its max-width column as if it had the full
+// window to itself, leaving an oversized, sidebar-unaware margin.
 export function useEditorAppearance(isSplit = false) {
   const fontFamily = useAtomValue(atom_fontFamily);
   const fontSize = useAtomValue(atom_fontSize);
@@ -27,23 +32,47 @@ export function useEditorAppearance(isSplit = false) {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
+  const paneRef = useRef<HTMLElement | null>(null);
+  const [paneWidth, setPaneWidth] = useState(windowWidth);
+
+  useEffect(() => {
+    const el = paneRef.current;
+    if (!el) return;
+    setPaneWidth(el.getBoundingClientRect().width);
+    const observer = new ResizeObserver((entries) => setPaneWidth(entries[0].contentRect.width));
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
   const displayFontSize = useMemo(() => {
     return fontSize;
   }, [fontSize]);
 
-  const widthClass = useMemo(() => {
-    const widthClasses = {
-      standard: "w-full md:max-w-[760px] xl:max-w-[860px] mx-auto",
-      narrow: "w-full md:max-w-[600px] mx-auto",
-    };
-    return (widthClasses as any)[editorWidth] || widthClasses.standard;
-  }, [editorWidth]);
+  // Numeric max-width for the centered column, resolved against paneWidth.
+  const maxContentWidth = useMemo(() => {
+    if (editorWidth === "narrow") {
+      return paneWidth >= 768 ? 600 : undefined;
+    }
+    if (paneWidth >= 1280) return 860;
+    if (paneWidth >= 768) return 760;
+    return undefined;
+  }, [editorWidth, paneWidth]);
 
-  // md:px-0 relies on the *window* crossing the md breakpoint, but a split
-  // pane can be narrower than that while the window itself is still wide —
-  // so the padding would vanish and long lines run to the pane's edge.
-  // Split panes keep the sm padding at every width instead of dropping it.
-  const paddingClass = isSplit ? "px-4 sm:px-6" : "px-4 sm:px-6 md:px-0";
+  // A split pane can be narrower than the md breakpoint while the window
+  // itself is still wide, so it keeps the sm padding at every width instead
+  // of dropping it the way a full-width pane does past md.
+  const contentPaddingX = useMemo(() => {
+    if (paneWidth >= 640) return isSplit ? 24 : paneWidth >= 768 ? 0 : 24;
+    return 16;
+  }, [isSplit, paneWidth]);
+
+  // Padding used when word wrap is off (editor scrolls horizontally instead
+  // of centering a fixed-width column).
+  const noWrapPaddingX = useMemo(() => {
+    if (paneWidth >= 768) return 40;
+    if (paneWidth >= 640) return 24;
+    return 16;
+  }, [paneWidth]);
 
   return {
     fontFamily,
@@ -51,7 +80,9 @@ export function useEditorAppearance(isSplit = false) {
     lineHeight,
     letterSpacing,
     windowWidth,
-    widthClass,
-    paddingClass,
+    paneRef: paneRef as RefObject<HTMLDivElement | null>,
+    maxContentWidth,
+    contentPaddingX,
+    noWrapPaddingX,
   };
 }

@@ -68,7 +68,7 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [props.onChange]);
 
-  const { fontFamily, displayFontSize, lineHeight, letterSpacing, windowWidth, widthClass, paddingClass } =
+  const { fontFamily, displayFontSize, lineHeight, letterSpacing, windowWidth, paneRef, maxContentWidth, contentPaddingX, noWrapPaddingX } =
     useEditorAppearance(props.isSplit);
 
   const keyboardInset = useKeyboardInset();
@@ -165,11 +165,15 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
 
   return (
     <div
+      ref={paneRef}
       className="relative w-full h-full overflow-auto bg-white dark:bg-paper-dark cursor-text"
       translate="no"
     >
       {rawFrontmatter && (
-        <div className={`mx-auto ${widthClass} ${paddingClass} pt-1`} style={{ fontFamily }}>
+        <div
+          className="mx-auto w-full pt-1"
+          style={{ fontFamily, maxWidth: maxContentWidth, paddingLeft: contentPaddingX, paddingRight: contentPaddingX }}
+        >
           <FrontmatterPanel
             filePath={filePath}
             content={props.value}
@@ -185,8 +189,7 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
         className={`editor-container relative min-h-full antialiased normal-nums [font-variant-ligatures:none] [font-feature-settings:'liga'_0,'calt'_0]
           transition-[padding,max-width] duration-700 [transition-timing-function:cubic-bezier(0.4,0,0.2,1)]
           pt-1 pb-12
-          ${wordWrap ? `mx-auto ${widthClass} ${paddingClass}` : "px-4 sm:px-6 md:px-10"}
-          ${wordWrap ? "w-full" : "w-max min-w-full"}
+          ${wordWrap ? "mx-auto w-full" : "w-max min-w-full"}
           text-ui-body
         `}
         style={{
@@ -194,6 +197,9 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
           "--editor-font-size": displayFontSize,
           "--editor-line-height": lineHeight,
           "--editor-letter-spacing": letterSpacing,
+          maxWidth: wordWrap ? maxContentWidth : undefined,
+          paddingLeft: wordWrap ? contentPaddingX : noWrapPaddingX,
+          paddingRight: wordWrap ? contentPaddingX : noWrapPaddingX,
           paddingBottom: keyboardInset > 0 ? `calc(3rem + ${keyboardInset}px)` : undefined,
         } as React.CSSProperties}
       >

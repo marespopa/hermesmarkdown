@@ -18,7 +18,7 @@ import {
   atom_workspaceLayout,
 } from "@/app/atoms/atoms";
 import { atom_newVaultFlowOpen, atom_isVoicePreviewVisible } from "@/app/atoms/ui-atoms";
-import { HiOutlineDocumentText, HiOutlineEye, HiOutlineChartBar, HiOutlineX, HiOutlineClipboardCopy, HiOutlineSave, HiOutlineDotsHorizontal, HiOutlinePlus, HiOutlineFolderOpen, HiOutlineDatabase, HiOutlineCollection } from "react-icons/hi";
+import { HiOutlineDocumentText, HiOutlineEye, HiOutlineChartBar, HiOutlineX, HiOutlineClipboardCopy, HiOutlineSave, HiOutlineDotsHorizontal, HiOutlinePlus, HiOutlineFolderOpen, HiOutlineDatabase, HiOutlineCollection, HiOutlineChevronDown, HiOutlineChevronUp } from "react-icons/hi";
 import { VscSplitHorizontal } from "react-icons/vsc";
 import PaneTab, { TabSaveState } from "./PaneTab";
 import { useFileSystem } from "@/app/hooks/use-file-system";
@@ -106,10 +106,28 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
   };
 
   const [draggedOverIndex, setDraggedOverIndex] = React.useState<number | null>(null);
-  const [tabMenu, setTabMenu] = React.useState<{ x: number; y: number; path: string } | null>(null);
+  const [tabMenu, setTabMenu] = React.useState<{ x: number; y: number; path: string; includeActions?: boolean } | null>(null);
+
+  // Progressive collapse: as the pane narrows (e.g. after a split), fold
+  // lower-priority actions into the "Tab options" menu instead of letting
+  // them get clipped by the row's overflow-hidden. Save and Close Pane stay
+  // put — they're the ones people reach for even in a squeezed pane.
+  const tabBarRowRef = React.useRef<HTMLDivElement>(null);
+  const [tabBarRowWidth, setTabBarRowWidth] = React.useState(Infinity);
+  React.useEffect(() => {
+    const el = tabBarRowRef.current;
+    if (!el) return;
+    const observer = new ResizeObserver((entries) => {
+      setTabBarRowWidth(entries[0].contentRect.width);
+    });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+  const hideCopyMarkdown = tabBarRowWidth < 440;
+  const hideSplitRight = tabBarRowWidth < 360;
   // Chrome-at-rest: the tab bar fades out while idly focused in the editor,
   // reveals on top-edge hover, and stays put while its own context menu is open.
-  const { visible: tabBarVisible, reveal: revealTabBar } = useChromeVisibility({ forceVisible: tabMenu !== null });
+  const { visible: tabBarVisible, reveal: revealTabBar, hide: hideTabBar } = useChromeVisibility({ forceVisible: tabMenu !== null });
 
   const handleDragStart = (e: React.DragEvent, path: string) => {
     const data = JSON.stringify({ 
@@ -201,13 +219,23 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
             somewhere to land and bring the bar back once its height has
             collapsed to 0. */}
         <div className="absolute left-0 top-0 w-full h-2 z-30" onMouseEnter={revealTabBar} />
+        <button
+          type="button"
+          onClick={() => (tabBarVisible ? hideTabBar() : revealTabBar())}
+          aria-label={tabBarVisible ? "Hide tabs" : "Show tabs"}
+          title={tabBarVisible ? "Hide tabs" : "Show tabs"}
+          className="absolute left-1/2 top-0 -translate-x-1/2 z-30 w-10 h-2.5 rounded-b-lg bg-chrome border border-t-0 border-edge-subtle flex items-center justify-center text-fg-faint opacity-50 hover:opacity-100 hover:text-fg transition-opacity"
+        >
+          {tabBarVisible ? <HiOutlineChevronUp size={10} /> : <HiOutlineChevronDown size={10} />}
+        </button>
         <div
-          className={`h-9 transition-opacity duration-200 ease-in-out ${
-            tabBarVisible ? "opacity-100" : "opacity-0 pointer-events-none"
+          className={`shrink-0 overflow-hidden transition-[max-height,opacity] duration-200 ease-in-out ${
+            tabBarVisible ? "max-h-9 opacity-100" : "max-h-0 opacity-0 pointer-events-none"
           }`}
           onMouseEnter={revealTabBar}
         >
       <div
+        ref={tabBarRowRef}
         className="flex items-center bg-chrome border-b border-edge-subtle h-9 shrink-0 relative z-20"
       >
         {/* Scrollable tabs strip */}
@@ -277,16 +305,18 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
           <div className="flex items-center gap-0.5 pl-2 pr-1 shrink-0 h-full z-20">
             {isActive && leaf.openFilePaths.length > 0 && (
               <>
-                <Tooltip label="Copy Markdown">
-                  <Button
-                    variant="icon"
-                    onClick={handleCopy}
-                    aria-label="Copy Markdown"
-                    className="w-9 h-9 flex items-center justify-center text-ink-muted hover:text-sage transition-all rounded-xl"
-                  >
-                    <HiOutlineClipboardCopy size={18} />
-                  </Button>
-                </Tooltip>
+                {!hideCopyMarkdown && (
+                  <Tooltip label="Copy Markdown">
+                    <Button
+                      variant="icon"
+                      onClick={handleCopy}
+                      aria-label="Copy Markdown"
+                      className="w-9 h-9 flex items-center justify-center text-ink-muted hover:text-sage transition-all rounded-xl"
+                    >
+                      <HiOutlineClipboardCopy size={18} />
+                    </Button>
+                  </Tooltip>
+                )}
                 <Tooltip label="Save" shortcut={formatShortcut("S")}>
                   <Button
                     variant="icon"
@@ -303,7 +333,7 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
                     variant="icon"
                     onClick={(e) => {
                       const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
-                      setTabMenu({ x: rect.left, y: rect.bottom + 4, path: leaf.activeFilePath || "draft" });
+                      setTabMenu({ x: rect.left, y: rect.bottom + 4, path: leaf.activeFilePath || "draft", includeActions: true });
                     }}
                     aria-label="Tab options"
                     className="w-9 h-9 flex items-center justify-center text-ink-muted hover:text-ink-light dark:hover:text-ink-dark transition-all rounded-xl"
@@ -313,16 +343,18 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
                 </Tooltip>
               </>
             )}
-            <Tooltip label="Split Right">
-              <Button
-                variant="icon"
-                onClick={() => splitPane({ id: leaf.id, direction: "horizontal" })}
-                aria-label="Split Right"
-                className="w-9 h-9 flex items-center justify-center text-ink-muted hover:text-ink-light dark:hover:text-ink-dark transition-all rounded-xl"
-              >
-                <VscSplitHorizontal size={16} />
-              </Button>
-            </Tooltip>
+            {!hideSplitRight && (
+              <Tooltip label="Split Right">
+                <Button
+                  variant="icon"
+                  onClick={() => splitPane({ id: leaf.id, direction: "horizontal" })}
+                  aria-label="Split Right"
+                  className="w-9 h-9 flex items-center justify-center text-ink-muted hover:text-ink-light dark:hover:text-ink-dark transition-all rounded-xl"
+                >
+                  <VscSplitHorizontal size={16} />
+                </Button>
+              </Tooltip>
+            )}
             {!isOnlyPane && (
               <Tooltip label="Close Pane">
                 <Button
@@ -423,7 +455,14 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
         <TabContextMenu
           x={tabMenu.x}
           y={tabMenu.y}
-          items={buildTabMenuItems(tabMenu.path)}
+          items={(() => {
+            const collapsedActions: TabContextMenuItem[] = [];
+            if (tabMenu.includeActions && hideCopyMarkdown) collapsedActions.push({ label: "Copy Markdown", onClick: handleCopy });
+            if (tabMenu.includeActions && hideSplitRight) collapsedActions.push({ label: "Split Right", onClick: () => splitPane({ id: leaf.id, direction: "horizontal" }) });
+            const closeItems = buildTabMenuItems(tabMenu.path);
+            if (collapsedActions.length > 0) closeItems[0] = { ...closeItems[0], divider: true };
+            return [...collapsedActions, ...closeItems];
+          })()}
           onClose={() => setTabMenu(null)}
         />
       )}

@@ -1,24 +1,25 @@
 "use client";
 
 import React from "react";
+import { useAtom } from "jotai";
 import {
   HiOutlineLogout,
   HiOutlineDatabase,
-  HiOutlineRefresh,
+  HiOutlineSun,
+  HiOutlineMoon,
   HiOutlineEye,
   HiOutlineEyeOff,
   HiOutlineHome,
   HiOutlineBookOpen,
 } from "react-icons/hi";
 import Button from "@/app/components/Button";
+import { atom_theme } from "@/app/atoms/ui-atoms";
 
 interface VaultSidebarFooterProps {
   vaultHandle: any;
   closeVault: () => void;
   openVault: () => void;
   isVaultSupported: boolean;
-  onRefresh?: () => void;
-  isRefreshing?: boolean;
   showHiddenFiles?: boolean;
   onToggleHiddenFiles?: () => void;
   onHome?: () => void;
@@ -40,13 +41,13 @@ export default function VaultSidebarFooter({
   closeVault,
   openVault,
   isVaultSupported,
-  onRefresh,
-  isRefreshing,
   showHiddenFiles,
   onToggleHiddenFiles,
   onHome,
   onOpenDocumentation,
 }: VaultSidebarFooterProps) {
+  const [theme, setTheme] = useAtom(atom_theme);
+
   return (
     <div className="p-4 border-t border-edge-subtle bg-transparent shrink-0">
       <div className="flex items-center justify-between">
@@ -96,20 +97,17 @@ export default function VaultSidebarFooter({
               </div>
            )}
 
-           {vaultHandle && onRefresh && (
-              <div className="relative group/footer-item">
-                <Button
-                  variant="icon"
-                  onClick={onRefresh}
-                  disabled={isRefreshing}
-                  className="w-10 h-10 opacity-80 hover:opacity-100"
-                  aria-label="Refresh vault"
-                >
-                  <HiOutlineRefresh size={18} className={isRefreshing ? "animate-spin" : ""} />
-                </Button>
-                <FooterTooltip label="Refresh vault" />
-              </div>
-           )}
+           <div className="relative group/footer-item">
+              <Button
+                variant="icon"
+                onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+                className="w-10 h-10 opacity-80 hover:opacity-100"
+                aria-label={theme === "dark" ? "Switch to light theme" : "Switch to dark theme"}
+              >
+                {theme === "dark" ? <HiOutlineSun size={18} /> : <HiOutlineMoon size={18} />}
+              </Button>
+              <FooterTooltip label={theme === "dark" ? "Switch to light theme" : "Switch to dark theme"} />
+           </div>
 
            {vaultHandle ? (
               <div className="relative group/footer-item">

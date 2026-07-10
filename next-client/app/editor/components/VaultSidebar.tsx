@@ -46,7 +46,6 @@ interface VaultSidebarProps {
   onNewAIFile?: () => void;
   onImport?: () => void;
   onExport?: () => void;
-  onRefresh?: () => Promise<void>;
   onHome?: () => void;
   onOpenDocumentation?: () => void;
 }
@@ -58,7 +57,6 @@ export default function VaultSidebar({
   onNewAIFile,
   onImport,
   onExport,
-  onRefresh,
   onHome,
   onOpenDocumentation,
 }: VaultSidebarProps) {
@@ -115,18 +113,6 @@ export default function VaultSidebar({
   const isCloudVault = useAtomValue(atom_isCloudVault);
   const setRailPanel = useSetAtom(atom_railPanel);
   const [isResizing, setIsResizing] = useState(false);
-
-  const [isRefreshing, setIsRefreshing] = useState(false);
-
-  const handleRefresh = useCallback(async () => {
-    if (isRefreshing || !vaultHandle) return;
-    setIsRefreshing(true);
-    try {
-      await onRefresh?.();
-    } finally {
-      setIsRefreshing(false);
-    }
-  }, [isRefreshing, vaultHandle, onRefresh]);
 
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
 
@@ -349,8 +335,6 @@ export default function VaultSidebar({
         closeVault={closeVault}
         openVault={openVault}
         isVaultSupported={isVaultSupported}
-        onRefresh={handleRefresh}
-        isRefreshing={isRefreshing}
         showHiddenFiles={showHiddenFiles}
         onToggleHiddenFiles={handleToggleHiddenFiles}
         onHome={onHome}

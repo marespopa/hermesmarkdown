@@ -21,6 +21,11 @@ interface UseChromeVisibilityOptions {
 // editor at all — e.g. the user just clicked into this chrome itself).
 export function useChromeVisibility({ idleMs = 2500, forceVisible = false }: UseChromeVisibilityOptions = {}) {
   const [visible, setVisible] = useState(true);
+  // Set by the manual toggle's `hide()`, so a deliberate collapse sticks
+  // through focus changes instead of being reopened the instant the user
+  // clicks back into the editor — only an explicit `reveal()` (toggle click
+  // or edge-hover) clears it.
+  const [pinnedHidden, setPinnedHidden] = useState(false);
   const isEditorFocused = useAtomValue(atom_isEditorFocused);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -32,6 +37,7 @@ export function useChromeVisibility({ idleMs = 2500, forceVisible = false }: Use
   }, []);
 
   const reveal = useCallback(() => {
+    setPinnedHidden(false);
     setVisible(true);
     clearTimer();
     if (isEditorFocused && !forceVisible) {
@@ -39,8 +45,26 @@ export function useChromeVisibility({ idleMs = 2500, forceVisible = false }: Use
     }
   }, [isEditorFocused, forceVisible, idleMs, clearTimer]);
 
+  // Manual collapse, for an always-visible toggle affordance rather than
+  // only the idle-timeout auto-hide.
+  const hide = useCallback(() => {
+    setPinnedHidden(true);
+    setVisible(false);
+    clearTimer();
+  }, [clearTimer]);
+
   useEffect(() => {
-    if (forceVisible || !isEditorFocused) {
+    if (forceVisible) {
+      setVisible(true);
+      clearTimer();
+      return clearTimer;
+    }
+    if (pinnedHidden) {
+      setVisible(false);
+      clearTimer();
+      return clearTimer;
+    }
+    if (!isEditorFocused) {
       setVisible(true);
       clearTimer();
       return clearTimer;
@@ -48,7 +72,7 @@ export function useChromeVisibility({ idleMs = 2500, forceVisible = false }: Use
     reveal();
     return clearTimer;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isEditorFocused, forceVisible]);
+  }, [isEditorFocused, forceVisible, pinnedHidden]);
 
-  return { visible, reveal };
+  return { visible, reveal, hide };
 }

@@ -12,6 +12,7 @@ import {
 } from "@/app/atoms/atoms";
 import { atom_fileMetadata } from "@/app/atoms/metadata";
 import { atom_vaultFiles } from "@/app/atoms/vault-atoms";
+import { removePathsFromLayout } from "@/app/atoms/utils";
 import { useDialog } from "../use-dialog";
 
 interface UseDeleteItemProps {
@@ -175,29 +176,10 @@ export function useDeleteItem({ scanVault, indexVaultTags }: UseDeleteItemProps)
         setVaultFiles((prev) => prev.filter((f) => !isDeletedPath((f as any).path || f.name)));
 
         // Update workspace layout to remove all tabs matching the deleted item
-        setWorkspaceLayout((prev) => {
-          const removePathFromNode = (node: any): any => {
-            if ("type" in node && node.type === "editor") {
-              const newPaths = node.openFilePaths.filter((p: string) => !isDeletedPath(p));
-
-              let newActive = node.activeFilePath;
-              if (newPaths.length === 0) {
-                newPaths.push("draft");
-                newActive = "draft";
-              } else if (!newPaths.includes(newActive)) {
-                newActive = newPaths[newPaths.length - 1];
-              }
-
-              return { ...node, openFilePaths: newPaths, activeFilePath: newActive };
-            }
-            if ("children" in node) {
-              return { ...node, children: node.children.map(removePathFromNode) };
-            }
-            return node;
-          };
-
-          return { ...prev, rootContainer: removePathFromNode(prev.rootContainer) };
-        });
+        setWorkspaceLayout((prev) => ({
+          ...prev,
+          rootContainer: removePathsFromLayout(prev.rootContainer, isDeletedPath) as typeof prev.rootContainer,
+        }));
 
         // Clean up openFiles registry
         setOpenFiles((prev) => {

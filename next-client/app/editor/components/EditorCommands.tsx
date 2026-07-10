@@ -188,7 +188,7 @@ export default function EditorCommands({
       ? {
           id: "close-vault",
           label: "Close vault",
-          keywords: "disconnect vault switch",
+          keywords: "disconnect vault switch exit",
           action: async () => {
             const confirmed = await dialog.confirm(
               "You can reopen it later — this just disconnects the current vault.",

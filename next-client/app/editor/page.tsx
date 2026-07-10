@@ -55,6 +55,7 @@ import { generateFileFromPrompt } from "@/app/services/ai";
 import { withRetry } from "@/app/hooks/file-system/shared";
 import { useChromeVisibility } from "@/app/hooks/use-chrome-visibility";
 import FabBar from "./components/FabBar";
+import { HiOutlineChevronRight, HiOutlineChevronLeft } from "react-icons/hi";
 
 export default function LiteEditor() {
   const router = useRouter();
@@ -141,8 +142,8 @@ export default function LiteEditor() {
       handleSave();
     }
   });
-  const { refresh: refreshFiles } = useFileWatcher();
-  const { syncVault } = useVaultSync();
+  useFileWatcher();
+  useVaultSync();
   useVoiceMdNudge();
 
   // Sync sidebar with active file folder
@@ -476,6 +477,16 @@ export default function LiteEditor() {
               className="absolute left-0 top-0 h-full w-3 z-40"
               onMouseEnter={() => setRailPanel((prev) => prev ?? lastPanel)}
             />
+            <button
+              type="button"
+              onClick={() => setRailPanel(railPanel === null ? lastPanel : null)}
+              aria-label={railPanel === null ? "Show sidebar" : "Hide sidebar"}
+              title={railPanel === null ? "Show sidebar" : "Hide sidebar"}
+              style={{ left: railPanel !== null ? sidebarWidth : 0 }}
+              className="absolute top-1/2 -translate-x-1/2 -translate-y-1/2 z-40 w-2.5 h-11 rounded-lg bg-chrome border border-edge-subtle transition-[left,opacity] duration-300 ease-in-out flex items-center justify-center text-fg-faint opacity-50 hover:opacity-100 hover:text-fg"
+            >
+              {railPanel === null ? <HiOutlineChevronRight size={10} /> : <HiOutlineChevronLeft size={10} />}
+            </button>
             <div
               className="h-full overflow-hidden transition-[width] duration-300 ease-in-out shrink-0"
               style={{ width: railPanel !== null ? sidebarWidth : 0 }}
@@ -495,7 +506,6 @@ export default function LiteEditor() {
                   onImport={handleImport}
                   onExport={handleExport}
                   onClose={() => setRailPanel(null)}
-                  onRefresh={async () => { await syncVault(true); await refreshFiles(); }}
                   onHome={() => navigateWithGuard("/", "Home")}
                   onOpenDocumentation={() => navigateWithGuard("/documentation", "Documentation")}
                 />

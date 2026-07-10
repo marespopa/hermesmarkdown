@@ -5,12 +5,13 @@ import OverlayPanel from "@/app/components/OverlayLayer/OverlayPanel";
 import { useAtom, useSetAtom } from "jotai";
 import { atom_activeFilePath } from "@/app/atoms/atoms";
 import { useFileSystem } from "@/app/hooks/use-file-system";
+import { useDialog } from "@/app/hooks/use-dialog";
 import { useSidebarSearch } from "../hooks/useSidebarSearch";
 import SmartFolders from "./SmartFolders";
 import VaultSidebarFiles from "./VaultSidebarFiles";
 import VaultSidebarEmpty from "./VaultSidebarEmpty";
 import UnifiedSearchInput from "./UnifiedSearchInput";
-import { HiOutlineX, HiOutlineEye, HiOutlineEyeOff } from "react-icons/hi";
+import { HiOutlineX, HiOutlineEye, HiOutlineEyeOff, HiOutlineLogout } from "react-icons/hi";
 import { atom_newVaultFlowOpen, atom_showHiddenFiles } from "@/app/atoms/ui-atoms";
 
 export default function MobileFileOverlay({
@@ -33,10 +34,12 @@ export default function MobileFileOverlay({
     createNewFile,
     vaultHandle,
     openVault,
+    closeVault,
     isVaultSupported,
     scanVault,
     indexVaultTags,
   } = useFileSystem();
+  const dialog = useDialog();
   const [activeFilePath, setActiveFilePath] = useAtom(atom_activeFilePath);
   const setNewVaultFlowOpen = useSetAtom(atom_newVaultFlowOpen);
   const [showHiddenFiles, setShowHiddenFiles] = useAtom(atom_showHiddenFiles);
@@ -68,6 +71,16 @@ export default function MobileFileOverlay({
     indexVaultTags?.(vaultHandle as any, next);
   }, [showHiddenFiles, setShowHiddenFiles, vaultHandle, scanVault, indexVaultTags]);
 
+  const handleCloseVault = useCallback(async () => {
+    const confirmed = await dialog.confirm(
+      "You can reopen it later — this just disconnects the current vault.",
+      "Close this vault?",
+      "Close Vault",
+      "Cancel",
+    );
+    if (confirmed) closeVault();
+  }, [dialog, closeVault]);
+
   return (
     <OverlayPanel
       isOpen={isOpen}
@@ -89,6 +102,17 @@ export default function MobileFileOverlay({
                 className="p-2 text-fg-muted"
               >
                 {showHiddenFiles ? <HiOutlineEye size={20} /> : <HiOutlineEyeOff size={20} />}
+              </button>
+            )}
+            {vaultHandle && (
+              <button
+                type="button"
+                onClick={handleCloseVault}
+                title="Close Vault"
+                aria-label="Close Vault"
+                className="p-2 text-red-500/80"
+              >
+                <HiOutlineLogout size={20} />
               </button>
             )}
             <button type="button" onClick={onClose} aria-label="Close" className="p-2 text-fg-muted">
