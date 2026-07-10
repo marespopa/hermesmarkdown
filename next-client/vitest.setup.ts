@@ -27,6 +27,16 @@ Object.defineProperty(window, "localStorage", {
 // Mock scrollIntoView
 window.HTMLElement.prototype.scrollIntoView = vi.fn();
 
+// jsdom doesn't implement Range.getClientRects, which CodeMirror 6's
+// internal layout-measure loop calls (via requestAnimationFrame) even for
+// headless EditorViews with no `parent` DOM node — without this, every CM6
+// test throws an uncaught "getClientRects is not a function" between tests.
+if (!Range.prototype.getClientRects) {
+  Range.prototype.getClientRects = function () {
+    return [] as unknown as DOMRectList;
+  };
+}
+
 // jsdom doesn't implement matchMedia — used by responsive hooks like
 // use-is-mobile/use-mobile-chrome.
 window.matchMedia = window.matchMedia || vi.fn().mockImplementation((query: string) => ({

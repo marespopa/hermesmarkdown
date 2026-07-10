@@ -1,8 +1,6 @@
 // app/workers/metadata.worker.ts
 import { parseFmFields } from "@/app/utils/frontmatter-utils";
 import { extractTasks } from "@/app/utils/taskExtractor";
-import { computeTokenEstimate } from "@/app/utils/tokenEstimate";
-import { computeAgentScore } from "@/app/utils/agentScore";
 
 const REGEX_TAG = /(?<=^|\s)#(?=[a-zA-Z0-9_\-/]*[a-zA-Z])([a-zA-Z0-9_\-/]+)/g;
 const REGEX_LINK = /\[\[(.*?)\]\]/g;
@@ -67,15 +65,12 @@ self.onmessage = (event: MessageEvent) => {
 
       // Metrics
       const wordCount = content.trim().split(/\s+/).filter(Boolean).length;
-      const tokens = computeTokenEstimate(content);
-      const scoreResult = content.trim() ? computeAgentScore(content) : null;
-      const agentScore = scoreResult ? { score: scoreResult.score, label: scoreResult.label } : null;
 
       // Task Extraction: checklist items anywhere in the file, with an
       // optional inline #prog tag (see app/utils/taskExtractor.ts)
       const tasks = extractTasks(path, content);
 
-      results.push({ path, name, tags, links, frontmatter, modifiedAt, wordCount, tasks, tokens, agentScore });
+      results.push({ path, name, tags, links, frontmatter, modifiedAt, wordCount, tasks });
     } catch (err: any) {
       console.error(`Worker error processing file (${fileInfo.path}):`, err?.message || err);
     }

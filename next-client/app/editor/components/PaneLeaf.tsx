@@ -17,8 +17,8 @@ import {
   atom_vaultHandle,
   atom_workspaceLayout,
 } from "@/app/atoms/atoms";
-import { atom_newVaultFlowOpen, atom_isDocInfoOpen, atom_isVaultHealthOpen, atom_isVoicePreviewVisible } from "@/app/atoms/ui-atoms";
-import { HiOutlineDocumentText, HiOutlineEye, HiOutlineChartBar, HiOutlineX, HiOutlineClipboardCopy, HiOutlineSave, HiOutlineDotsHorizontal, HiOutlinePlus, HiOutlineFolderOpen, HiOutlineDatabase, HiOutlineCollection, HiOutlineInformationCircle } from "react-icons/hi";
+import { atom_newVaultFlowOpen, atom_isVoicePreviewVisible } from "@/app/atoms/ui-atoms";
+import { HiOutlineDocumentText, HiOutlineEye, HiOutlineChartBar, HiOutlineX, HiOutlineClipboardCopy, HiOutlineSave, HiOutlineDotsHorizontal, HiOutlinePlus, HiOutlineFolderOpen, HiOutlineDatabase, HiOutlineCollection } from "react-icons/hi";
 import { VscSplitHorizontal } from "react-icons/vsc";
 import PaneTab, { TabSaveState } from "./PaneTab";
 import { useFileSystem } from "@/app/hooks/use-file-system";
@@ -29,6 +29,7 @@ import { formatShortcut } from "@/app/utils/platform";
 import { useCommandPalette } from "@/app/components/CommandPalette/CommandPaletteContext";
 import useIsMobileChrome from "@/app/hooks/use-mobile-chrome";
 import { usePaneFileActions } from "../hooks/use-pane-file-actions";
+import { useChromeVisibility } from "@/app/hooks/use-chrome-visibility";
 
 interface PaneLeafProps {
   leaf: PanelLeaf;
@@ -45,8 +46,6 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
   const vaultHandle = useAtomValue(atom_vaultHandle);
   const workspaceLayout = useAtomValue(atom_workspaceLayout);
   const [, setNewVaultFlowOpen] = useAtom(atom_newVaultFlowOpen);
-  const [, setIsDocInfoOpen] = useAtom(atom_isDocInfoOpen);
-  const [, setIsVaultHealthOpen] = useAtom(atom_isVaultHealthOpen);
   const isOnlyPane = "type" in workspaceLayout.rootContainer;
   const isMobileChrome = useIsMobileChrome();
 
@@ -108,6 +107,9 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
 
   const [draggedOverIndex, setDraggedOverIndex] = React.useState<number | null>(null);
   const [tabMenu, setTabMenu] = React.useState<{ x: number; y: number; path: string } | null>(null);
+  // Chrome-at-rest: the tab bar fades out while idly focused in the editor,
+  // reveals on top-edge hover, and stays put while its own context menu is open.
+  const { visible: tabBarVisible, reveal: revealTabBar } = useChromeVisibility({ forceVisible: tabMenu !== null });
 
   const handleDragStart = (e: React.DragEvent, path: string) => {
     const data = JSON.stringify({ 
@@ -191,8 +193,20 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
       {/* Pane Tabs Bar — desktop only. On mobile there are no split panes
           and no visible tab strip (MobileControlRail/MobileFileIndicator
           handle switching and file actions instead), so this whole bar
-          would be dead weight. */}
+          would be dead weight. Chrome-at-rest: fades out while idly
+          focused in the editor, reveals on top-edge hover. */}
       {!isMobileChrome && (
+      <div className="shrink-0 relative">
+        {/* Always-present, invisible top-edge strip so the mouse has
+            somewhere to land and bring the bar back once its height has
+            collapsed to 0. */}
+        <div className="absolute left-0 top-0 w-full h-2 z-30" onMouseEnter={revealTabBar} />
+        <div
+          className={`h-9 transition-opacity duration-200 ease-in-out ${
+            tabBarVisible ? "opacity-100" : "opacity-0 pointer-events-none"
+          }`}
+          onMouseEnter={revealTabBar}
+        >
       <div
         className="flex items-center bg-chrome border-b border-edge-subtle h-9 shrink-0 relative z-20"
       >
@@ -263,26 +277,6 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
           <div className="flex items-center gap-0.5 pl-2 pr-1 shrink-0 h-full z-20">
             {isActive && leaf.openFilePaths.length > 0 && (
               <>
-                <Tooltip label="Document info">
-                  <Button
-                    variant="icon"
-                    onClick={() => setIsDocInfoOpen((v) => !v)}
-                    aria-label="Document info"
-                    className="w-9 h-9 flex items-center justify-center text-ink-muted hover:text-sage transition-all rounded-xl"
-                  >
-                    <HiOutlineInformationCircle size={18} />
-                  </Button>
-                </Tooltip>
-                <Tooltip label="Vault health">
-                  <Button
-                    variant="icon"
-                    onClick={() => setIsVaultHealthOpen((v) => !v)}
-                    aria-label="Vault health"
-                    className="w-9 h-9 flex items-center justify-center text-ink-muted hover:text-sage transition-all rounded-xl"
-                  >
-                    <HiOutlineChartBar size={18} />
-                  </Button>
-                </Tooltip>
                 <Tooltip label="Copy Markdown">
                   <Button
                     variant="icon"
@@ -342,6 +336,8 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
               </Tooltip>
             )}
           </div>
+      </div>
+        </div>
       </div>
       )}
 

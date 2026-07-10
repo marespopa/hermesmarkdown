@@ -99,10 +99,10 @@ describe("WelcomeWizard", () => {
 
     expect(screen.getByText("Text Size")).toBeInTheDocument();
 
-    // Steps 2-6 (Text Size, Spacing, Typeface, Autosave, Frontmatter View) each
-    // advance one step at a time via their own "Continue" button before
-    // reaching the final showcase step.
-    for (let i = 0; i < 5; i++) {
+    // Steps 2-7 (Text Size, Spacing, Typeface, Autosave, Frontmatter View, AI
+    // Features) each advance one step at a time via their own "Continue"
+    // button before reaching the final showcase step.
+    for (let i = 0; i < 6; i++) {
       fireEvent.click(screen.getByText("Continue"));
     }
 

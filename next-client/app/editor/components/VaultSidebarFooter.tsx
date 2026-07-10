@@ -7,6 +7,8 @@ import {
   HiOutlineRefresh,
   HiOutlineEye,
   HiOutlineEyeOff,
+  HiOutlineHome,
+  HiOutlineBookOpen,
 } from "react-icons/hi";
 import Button from "@/app/components/Button";
 
@@ -19,6 +21,8 @@ interface VaultSidebarFooterProps {
   isRefreshing?: boolean;
   showHiddenFiles?: boolean;
   onToggleHiddenFiles?: () => void;
+  onHome?: () => void;
+  onOpenDocumentation?: () => void;
 }
 
 // Mirrors IconRail's RailButton tooltip, anchored above instead of to the
@@ -40,10 +44,42 @@ export default function VaultSidebarFooter({
   isRefreshing,
   showHiddenFiles,
   onToggleHiddenFiles,
+  onHome,
+  onOpenDocumentation,
 }: VaultSidebarFooterProps) {
   return (
     <div className="p-4 border-t border-edge-subtle bg-transparent shrink-0">
-      <div className="flex items-center justify-end">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-1">
+           {onHome && (
+              <div className="relative group/footer-item">
+                <Button
+                  variant="icon"
+                  onClick={onHome}
+                  className="w-10 h-10 opacity-80 hover:opacity-100"
+                  aria-label="Home"
+                >
+                  <HiOutlineHome size={18} />
+                </Button>
+                <FooterTooltip label="Home" />
+              </div>
+           )}
+
+           {onOpenDocumentation && (
+              <div className="relative group/footer-item">
+                <Button
+                  variant="icon"
+                  onClick={onOpenDocumentation}
+                  className="w-10 h-10 opacity-80 hover:opacity-100"
+                  aria-label="Documentation"
+                >
+                  <HiOutlineBookOpen size={18} />
+                </Button>
+                <FooterTooltip label="Documentation" />
+              </div>
+           )}
+        </div>
+
         <div className="flex items-center gap-1">
            {vaultHandle && onToggleHiddenFiles && (
               <div className="relative group/footer-item">

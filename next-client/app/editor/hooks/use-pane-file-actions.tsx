@@ -1,6 +1,5 @@
 import { useAtom, useAtomValue } from "jotai";
 import { useCallback } from "react";
-import { HiOutlineInformationCircle, HiOutlineShieldCheck } from "react-icons/hi";
 import { PanelLeaf } from "@/app/types/workspace";
 import {
   atom_fileContent,
@@ -11,22 +10,19 @@ import {
   atom_vaultHandle,
   contentStore,
 } from "@/app/atoms/atoms";
-import { atom_isDocInfoOpen, atom_isVaultHealthOpen } from "@/app/atoms/ui-atoms";
 import { useFileSystem } from "@/app/hooks/use-file-system";
 import { useDialog } from "@/app/hooks/use-dialog";
 import { showCopyToast, showErrorToast } from "@/app/components/Toastr";
 import { TabContextMenuItem } from "../components/TabContextMenu";
 
 // Shared between the desktop pane tab bar and the mobile control rail so
-// Save/Copy/Close/Doc-info behavior stays a single source of truth even
-// though the two surfaces render completely different UI around it.
+// Save/Copy/Close behavior stays a single source of truth even though the
+// two surfaces render completely different UI around it.
 export function usePaneFileActions(leaf: PanelLeaf | null) {
   const filePath = leaf?.activeFilePath || "draft";
   const [content] = useAtom(atom_fileContent(filePath));
   const [openFiles] = useAtom(atom_openFiles);
   const [, closeTab] = useAtom(atom_closeTab);
-  const [, setIsDocInfoOpen] = useAtom(atom_isDocInfoOpen);
-  const [, setIsVaultHealthOpen] = useAtom(atom_isVaultHealthOpen);
   const vaultHandle = useAtomValue(atom_vaultHandle);
   const liveHandle = useAtomValue(atom_liveHandles(filePath));
   const { saveFile, exportFile, createFile } = useFileSystem();
@@ -117,16 +113,5 @@ export function usePaneFileActions(leaf: PanelLeaf | null) {
     ];
   }, [leaf, closeTabWithAutosave]);
 
-  // Save is surfaced as its own top-level icon on mobile, so it's left out
-  // here. Closing the current file isn't offered from this menu — it reads
-  // as "close the vault/app" when grouped with Vault Health, so it stays
-  // tab-strip-only (buildTabMenuItems) instead of duplicated here. Copy
-  // Markdown lives with the file actions group instead of here — it acts on
-  // the file's content, not the vault/document metadata this group covers.
-  const buildMoreMenuItems = useCallback((): TabContextMenuItem[] => [
-    { label: "Document Info", icon: <HiOutlineInformationCircle size={16} />, divider: true, onClick: () => setIsDocInfoOpen((v) => !v) },
-    { label: "Vault Health", icon: <HiOutlineShieldCheck size={16} />, onClick: () => setIsVaultHealthOpen((v) => !v) },
-  ], [setIsDocInfoOpen, setIsVaultHealthOpen]);
-
-  return { filePath, content, handleSave, handleExport, handleCopy, closeTabWithAutosave, buildTabMenuItems, buildMoreMenuItems };
+  return { filePath, content, handleSave, handleExport, handleCopy, closeTabWithAutosave, buildTabMenuItems };
 }

@@ -1,5 +1,6 @@
 import { atom } from "jotai";
 import { atomWithStorage } from "jotai/utils";
+import type { EditorView } from "@codemirror/view";
 
 // Theme & appearance
 export const atom_theme = atomWithStorage<"light" | "dark">("theme", "light");
@@ -22,10 +23,6 @@ export const atom_letterSpacing = atomWithStorage<string>(
   "normal",
 );
 export const atom_isEditorFocused = atom<boolean>(false);
-// Transient — toggled via keyboard shortcut / command palette, not persisted.
-// The doc-info panel (word/token count, structured score) is on-demand only.
-export const atom_isDocInfoOpen = atom<boolean>(false);
-export const atom_isVaultHealthOpen = atom<boolean>(false);
 export const atom_cursorPosition = atom<{ line: number; col: number }>({
   line: 1,
   col: 1,
@@ -76,10 +73,6 @@ export const atom_frontmatterHasPrompted = atomWithStorage<boolean>(
   "frontmatterHasPrompted",
   false,
 );
-export const atom_schemaAutoCreate = atomWithStorage<boolean>(
-  "schemaAutoCreate",
-  false,
-);
 // Shows dotfiles/dotfolders (e.g. .hermes/) and underscore-prefixed skill/meta
 // files in the sidebar tree and search. On by default — the app writes files
 // into the vault on the user's behalf (skills, AGENTS.md, voice.md, etc.), and
@@ -91,8 +84,6 @@ export const atom_showHiddenFiles = atomWithStorage<boolean>(
   "hermes_show_hidden_files",
   true,
 );
-export const atom_schemaWizardOpen = atom<boolean>(false);
-export const atom_vaultMigrateOpen = atom<boolean>(false);
 export const atom_voiceWizardOpen = atom<boolean>(false);
 export const atom_repurposeWizardOpen = atom<boolean>(false);
 // One-time nudge suggesting voice.md setup — set once the nudge has been
@@ -104,12 +95,10 @@ export const atom_voiceMdNudgeDismissed = atomWithStorage<boolean>(
 );
 
 // Vault creation flow — transient, never persisted
-export type StarterPackId = "empty" | "notes-pkm" | "engineering" | "finance" | "creator-content";
-export type VaultCreationSubStep = "name-and-folder" | "starter-pack" | "installing";
+export type VaultCreationSubStep = "name-and-folder" | "installing";
 export const atom_vaultCreationSubStep = atom<VaultCreationSubStep | null>(null);
 export const atom_vaultCreationName = atom<string>("");
 export const atom_vaultCreationParentHandle = atom<FileSystemDirectoryHandle | null>(null);
-export const atom_vaultCreationPackId = atom<StarterPackId>("empty");
 export const atom_vaultCreationError = atom<string | null>(null);
 // Post-onboarding trigger: set true to open the NewVaultDialog
 export const atom_newVaultFlowOpen = atom<boolean>(false);
@@ -169,9 +158,8 @@ export const atom_availableGeminiModels = atom<GeminiModelInfo[]>([]);
 
 // Holds the file path being edited, or null when closed
 export const atom_frontmatterWizardOpen = atom<string | null>(null);
-// Schema field key to jump the wizard to on open (e.g. from the health score panel's Fix button)
+// Field key to jump the wizard to on open
 export const atom_frontmatterWizardTargetField = atom<string | null>(null);
-export const atom_vaultSetupWizardOpen = atom<string | null>(null);
 
 // Ambient AI action status, surfaced as the status bar's center pill.
 // `seq` lets a delayed "auto-clear to idle" timeout (see app/services/ai-status.ts)
@@ -224,15 +212,11 @@ export const atom_isVoiceInputSupported = atom<boolean>(false);
 // active one can dim themselves — a committed dictation always lands in the
 // active pane, and dimming the rest makes that unambiguous at a glance.
 export const atom_isVoicePreviewVisible = atom<boolean>(false);
-// The DOM textarea belonging to whichever pane is currently active. The
+// The CM6 EditorView belonging to whichever pane is currently active. The
 // global voice-input hook inserts a committed dictation here, so "Insert"
 // always lands in the pane the user is looking at regardless of which pane
 // was active when dictation started.
-export const atom_activeTextareaElement = atom<HTMLTextAreaElement | null>(null);
-// Bumped when a voice command ("insert link") should pop open the link
-// dialog. The dialog itself is per-pane state (useEditorTemplates), so only
-// the active pane reacts to this, same request/mirror pattern as above.
-export const atom_voiceOpenLinkDialogRequest = atom<number>(0);
+export const atom_activeEditorView = atom<EditorView | null>(null);
 
 // Most-recently-used command ids for the command palette's empty-query state
 // ("feels intelligent" with zero visible "recent" UI). Capped at 8 on write.

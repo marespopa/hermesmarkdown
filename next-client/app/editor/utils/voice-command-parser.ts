@@ -1,51 +1,34 @@
-// Pure grammar engine for the voice input feature: turns one recognized
-// speech segment into a markdown insertion, with no DOM/React dependency so
-// it stays trivially unit-testable and reusable if macros/revision commands
-// are added later.
-
-import { SHORTCODES } from "../components/constants";
+// Plain-transcription grammar for the voice input feature: turns one
+// recognized speech segment into text, with no DOM/React dependency so it
+// stays trivially unit-testable. Dictation is transcription only — it does
+// not insert markdown syntax or otherwise format the note from speech,
+// since that would be the app editing the file without a manual step. It
+// still recognizes a small set of SESSION-CONTROL phrases ("scratch that",
+// "insert this", "stop listening") because those operate on the review
+// buffer before anything is committed, not on the document itself.
 
 export interface VoiceListState {
-  indentLevel: number;
-  inCodeBlock: boolean;
   /** Whether the next word dictated should be capitalized — set after a
-   * sentence-ending punctuation mark or a structural command (heading,
-   * bullet, new line, ...), since each of those starts a fresh sentence. */
+   * sentence-ending punctuation mark, since that starts a fresh sentence. */
   capitalizeNext: boolean;
 }
 
 export const initialVoiceListState: VoiceListState = {
-  indentLevel: 0,
-  inCodeBlock: false,
   capitalizeNext: true,
 };
 
-// Curated subset of the full grammar below — just the phrases someone
-// dictating for the first time is most likely to reach for. Shown in the
-// voice preview panel's help section; see the "Voice input" documentation
-// page for the complete command reference.
 export const VOICE_COMMAND_HELP: { phrase: string; result: string }[] = [
   { phrase: '"new paragraph" / "new line"', result: "Blank line / line break" },
-  { phrase: '"bullet …"', result: "- …" },
-  { phrase: '"numbered item …"', result: "1. …" },
-  { phrase: '"new task buy milk"', result: "- [ ] buy milk" },
-  { phrase: '"heading two …"', result: "## …" },
-  { phrase: '"bold …" / "italic …"', result: "**…** / *…*" },
-  { phrase: '"wiki link to …"', result: "[[…]]" },
   { phrase: '"scratch that"', result: "Undo the last phrase" },
   { phrase: '"scratch all text" / "clear all text"', result: "Clear the whole preview" },
   { phrase: '"insert this/it/text" / "commit this/it/text"', result: "Insert into the document" },
   { phrase: '"insert this and stop listening"', result: "Insert, then turn the mic off" },
-  { phrase: '"emoji checkmark/warning/idea/bug/fix/error/star"', result: "✅ / ⚠️ / 💡 / 🐛 / 🛠️ / ❌ / ⭐" },
-  { phrase: '"current date" / "current time"', result: "Today's date / current time" },
-  { phrase: '"insert table"', result: "Markdown table skeleton" },
   { phrase: '"stop listening" / "done listening"', result: "Discard preview, turn mic off" },
 ];
 
 export type VoiceInsertion =
   | { kind: "markdown"; text: string; cursorOffset?: number; replacePrevious?: boolean }
   | { kind: "plain-text"; text: string; replacePrevious?: boolean }
-  | { kind: "open-link-dialog" }
   | { kind: "delete-last" }
   | { kind: "clear-all" }
   | { kind: "commit" }
@@ -55,8 +38,7 @@ export type VoiceInsertion =
 
 // Chrome's continuous recognition doesn't reliably include a boundary space
 // between two separately finalized segments (most noticeable after a longer
-// pause), so naively concatenating chunks can glue words together — "new
-// task" + "buy milk" landing as two finals becomes "new taskbuy milk". This
+// pause), so naively concatenating chunks can glue words together. This
 // inserts a separating space unless one side already provides one, or the
 // new chunk is punctuation that should hug the previous word (".", ",", …).
 export function joinVoiceChunks(base: string, next: string): string {
@@ -65,24 +47,6 @@ export function joinVoiceChunks(base: string, next: string): string {
   if (/\s$/.test(base) || /^[\s.,!?;:)]/.test(next)) return base + next;
   return `${base} ${next}`;
 }
-
-// Spoken names for the emoji shortcuts already available via typed shortcodes
-// (see SHORTCODES in components/constants.ts) — reuses the same glyphs so
-// voice and keyboard shortcuts never drift apart.
-const EMOJI_ALIASES: Record<string, string> = {
-  check: "check",
-  checkmark: "check",
-  "check mark": "check",
-  error: "error",
-  idea: "idea",
-  "light bulb": "idea",
-  lightbulb: "idea",
-  warn: "warn",
-  warning: "warn",
-  fix: "fix",
-  bug: "bug",
-  star: "star",
-};
 
 // Dictated punctuation/layout words that would otherwise be spoken literally
 // ("period", "comma") get mapped to their symbol/whitespace equivalent so
@@ -107,6 +71,13 @@ const INLINE_PUNCTUATION_PATTERN = new RegExp(
 );
 
 const SENTENCE_END_SYMBOLS = new Set([".", "!", "?"]);
+
+// Capitalizes the first letter found.
+function capitalizeFirstLetter(text: string): string {
+  const idx = text.search(/[a-zA-Z]/);
+  if (idx === -1) return text;
+  return text.slice(0, idx) + text[idx].toUpperCase() + text.slice(idx + 1);
+}
 
 // Replaces inline punctuation words with their symbol, attached directly to
 // the preceding word (no space before) with a single trailing space (unless
@@ -147,94 +118,17 @@ function substituteInlinePunctuation(
   return { text: result.trimEnd(), capitalizeNext };
 }
 
-const NUMBER_WORDS: Record<string, number> = {
-  one: 1, two: 2, three: 3, four: 4, five: 5, six: 6,
-};
-
-// Homophones the Web Speech API commonly substitutes for a number word right
-// after "heading"/"levels deep" — scoped to this narrow position only, since
-// e.g. "for"/"ate" are too common as ordinary words to alias globally.
-const NUMBER_HOMOPHONES: Record<string, number> = {
-  to: 2, too: 2,
-};
-
-function parseHeadingLevel(raw: string): number | null {
-  const lower = raw.toLowerCase();
-  if (NUMBER_WORDS[lower] !== undefined) return NUMBER_WORDS[lower];
-  if (NUMBER_HOMOPHONES[lower] !== undefined) return NUMBER_HOMOPHONES[lower];
-  const n = parseInt(lower, 10);
-  if (n >= 1 && n <= 6) return n;
-  return null;
-}
-
-const CURSOR_SENTINEL = "\0";
-const INDENT_UNIT = "  ";
-
-// Restricted sub-grammar applied to captured tail content (e.g. what follows
-// "bullet"/"task complete") — only inline phrase transforms, never
-// structural commands, so "bullet wiki link to dashboard" produces
-// `- [[dashboard]]` while nested list/heading commands stay unambiguous.
-function applyInlinePhraseTransform(content: string): string {
-  const trimmed = content.trim();
-
-  let m = /^wiki\s*link(?:\s+to)?\s+(.+)$/i.exec(trimmed);
-  if (m) return `[[${capitalizeFirstLetter(m[1].trim())}]]`;
-
-  m = /^link(?:\s+to)?\s+(.+)$/i.exec(trimmed);
-  if (m) return `[[${capitalizeFirstLetter(m[1].trim())}]]`;
-
-  m = /^bold\s+(.+)$/i.exec(trimmed);
-  if (m) return `**${capitalizeFirstLetter(m[1].trim())}**`;
-
-  m = /^italic\s+(.+)$/i.exec(trimmed);
-  if (m) return `*${capitalizeFirstLetter(m[1].trim())}*`;
-
-  // Each structural command (bullet, task, quote, heading, ...) starts a
-  // fresh grammatical unit, so its content always capitalizes its own start
-  // regardless of the surrounding dictation's sentence-capitalization state.
-  return substituteInlinePunctuation(trimmed, true).text;
-}
-
-function indent(state: VoiceListState): string {
-  return INDENT_UNIT.repeat(state.indentLevel);
-}
-
-// Capitalizes the first letter found, skipping any leading markdown syntax
-// (e.g. "**" from a nested bold transform) so dictated headings read like
-// normal titles without requiring the speaker to say "capital".
-function capitalizeFirstLetter(text: string): string {
-  const idx = text.search(/[a-zA-Z]/);
-  if (idx === -1) return text;
-  return text.slice(0, idx) + text[idx].toUpperCase() + text.slice(idx + 1);
-}
-
 /**
- * Parses one finalized speech segment against the current list/code-block
- * state and returns what to insert plus the updated state. Command keywords
- * are matched only at the start of the (trimmed) utterance, checked in
- * priority order from most to least specific, so multi-word phrases like
- * "end code block" are tried before the shorter "code block".
+ * Parses one finalized speech segment into plain text, recognizing only
+ * session-control phrases (scratch that, insert this, stop listening, ...)
+ * as commands — everything else is transcribed as-is (with punctuation-word
+ * substitution), never turned into markdown syntax.
  */
 export function parseVoiceSegment(
   rawTranscript: string,
   state: VoiceListState,
 ): { insertion: VoiceInsertion; nextState: VoiceListState } {
   const trimmed = rawTranscript.trim();
-
-  // While inside a dictated code block, nothing is grammar-parsed — every
-  // segment is literal code content — until the user explicitly closes it.
-  if (state.inCodeBlock) {
-    if (/^end code block$/i.test(trimmed)) {
-      return {
-        insertion: { kind: "markdown", text: "\n```\n" },
-        nextState: { ...state, inCodeBlock: false, capitalizeNext: true },
-      };
-    }
-    return {
-      insertion: { kind: "plain-text", text: rawTranscript },
-      nextState: state,
-    };
-  }
 
   let m: RegExpExecArray | null;
 
@@ -256,23 +150,15 @@ export function parseVoiceSegment(
     return { insertion: { kind: "commit-and-stop" }, nextState: state };
   }
 
-  // Hands-free way to commit the dictated preview into the real document —
-  // matched as a whole utterance (like every other command here), so saying
-  // "insert this/it/text" or "commit this/it/text" mid-sentence while
-  // dictating normal prose can't misfire. Deliberately not "insert"/"commit"
-  // alone: bare "insert" already means "insert link" below, and bare
-  // "commit" is too common a word on its own (e.g. dictating about a git
-  // commit) to hijack.
+  // Hands-free way to commit the dictated preview into the real document.
   m = /^(?:insert|commit)\s+(?:this|it|text)$/i.exec(trimmed);
   if (m) {
     return { insertion: { kind: "commit" }, nextState: state };
   }
 
   // Hands-free way to turn the mic off — a spoken alternative to the
-  // "Stop Listening" button. Behaves like discarding: mic off, preview
-  // buffer cleared, panel closes — same as the X button, just voice-driven.
-  // "don't listening" is included because the Web Speech API commonly mishears
-  // "done listening" that way.
+  // "Stop Listening" button. "don't listening" is included because the Web
+  // Speech API commonly mishears "done listening" that way.
   m = /^(?:stop|done|don'?t|finish(?:ed)?)\s+(?:listening|dictating|dictation)$/i.exec(trimmed);
   if (m) {
     return { insertion: { kind: "stop-listening" }, nextState: state };
@@ -280,7 +166,7 @@ export function parseVoiceSegment(
 
   m = /^new paragraph$/i.exec(trimmed);
   if (m) {
-    return { insertion: { kind: "markdown", text: "\n\n" }, nextState: { ...state, capitalizeNext: true } };
+    return { insertion: { kind: "plain-text", text: "\n\n" }, nextState: { capitalizeNext: true } };
   }
 
   // "new row" is a natural way to say "press enter"; the Web Speech API
@@ -289,230 +175,16 @@ export function parseVoiceSegment(
   // re-say it more clearly.
   m = /^(?:new line|new row|neuro)$/i.exec(trimmed);
   if (m) {
-    return { insertion: { kind: "markdown", text: "\n" }, nextState: { ...state, capitalizeNext: true } };
+    return { insertion: { kind: "plain-text", text: "\n" }, nextState: { capitalizeNext: true } };
   }
 
   m = /^(period|comma|question mark|exclamation mark|exclamation point|colon|semicolon)$/i.exec(trimmed);
   if (m) {
     const symbol = PUNCTUATION_WORDS[m[1].toLowerCase()];
     return {
-      insertion: { kind: "markdown", text: symbol },
-      nextState: SENTENCE_END_SYMBOLS.has(symbol) ? { ...state, capitalizeNext: true } : state,
+      insertion: { kind: "plain-text", text: symbol },
+      nextState: { capitalizeNext: SENTENCE_END_SYMBOLS.has(symbol) },
     };
-  }
-
-  m = /^(?:done with list|end list)$/i.exec(trimmed);
-  if (m) {
-    return { insertion: { kind: "none" }, nextState: { ...state, indentLevel: 0 } };
-  }
-
-  m = /^(?:outdent|unindent)$/i.exec(trimmed);
-  if (m) {
-    return {
-      insertion: { kind: "none" },
-      nextState: { ...state, indentLevel: Math.max(0, state.indentLevel - 1) },
-    };
-  }
-
-  m = /^(?:go\s+)?(one|two|to|too|three|four|five|six|\d+)\s+levels?\s+deep$/i.exec(trimmed);
-  if (m) {
-    const level = parseHeadingLevel(m[1]) ?? parseInt(m[1], 10);
-    return {
-      insertion: { kind: "none" },
-      nextState: { ...state, indentLevel: Math.max(0, level) },
-    };
-  }
-
-  m = /^end code block$/i.exec(trimmed);
-  if (m) {
-    // Not currently in a code block — no-op, nothing to close.
-    return { insertion: { kind: "none" }, nextState: state };
-  }
-
-  m = /^code\s*block\s*([a-zA-Z0-9+#]*)$/i.exec(trimmed);
-  if (m) {
-    const lang = m[1] || "";
-    const fence = `\`\`\`${lang}\n${CURSOR_SENTINEL}\n\`\`\``;
-    const sentinelIdx = fence.indexOf(CURSOR_SENTINEL);
-    return {
-      insertion: { kind: "markdown", text: fence.replace(CURSOR_SENTINEL, ""), cursorOffset: sentinelIdx },
-      nextState: { ...state, inCodeBlock: true },
-    };
-  }
-
-  m = /^h(?:eading)?\s*(one|two|to|too|three|four|five|six|[1-6])\s+(.+)$/i.exec(trimmed);
-  if (m) {
-    const level = parseHeadingLevel(m[1]);
-    if (level) {
-      const content = applyInlinePhraseTransform(m[2]);
-      return {
-        // Trailing newline so dictation continuing after a heading lands on
-        // its own row instead of running on into the heading text.
-        insertion: { kind: "markdown", text: `${"#".repeat(level)} ${content}\n` },
-        nextState: { ...state, capitalizeNext: true },
-      };
-    }
-  }
-
-  m = /^indent\s+(?:bullet|list item)\s+(.+)$/i.exec(trimmed);
-  if (m) {
-    const nextState = { ...state, indentLevel: state.indentLevel + 1, capitalizeNext: true };
-    return {
-      insertion: { kind: "markdown", text: `${indent(nextState)}- ${applyInlinePhraseTransform(m[1])}` },
-      nextState,
-    };
-  }
-
-  m = /^(?:bullet|list item)\s+(.+)$/i.exec(trimmed);
-  if (m) {
-    return {
-      insertion: { kind: "markdown", text: `${indent(state)}- ${applyInlinePhraseTransform(m[1])}` },
-      nextState: { ...state, capitalizeNext: true },
-    };
-  }
-
-  m = /^indent\s+numbered\s+item\s+(.+)$/i.exec(trimmed);
-  if (m) {
-    const nextState = { ...state, indentLevel: state.indentLevel + 1, capitalizeNext: true };
-    return {
-      insertion: { kind: "markdown", text: `${indent(nextState)}1. ${applyInlinePhraseTransform(m[1])}` },
-      nextState,
-    };
-  }
-
-  m = /^numbered\s+item\s+(.+)$/i.exec(trimmed);
-  if (m) {
-    return {
-      insertion: { kind: "markdown", text: `${indent(state)}1. ${applyInlinePhraseTransform(m[1])}` },
-      nextState: { ...state, capitalizeNext: true },
-    };
-  }
-
-  m = /^quote\s+(.+)$/i.exec(trimmed);
-  if (m) {
-    return {
-      insertion: { kind: "markdown", text: `${indent(state)}> ${applyInlinePhraseTransform(m[1])}` },
-      nextState: { ...state, capitalizeNext: true },
-    };
-  }
-
-  m = /^inline\s*code\s+(.+)$/i.exec(trimmed);
-  if (m) {
-    return { insertion: { kind: "markdown", text: `\`${m[1].trim()}\`` }, nextState: { ...state, capitalizeNext: true } };
-  }
-
-  m = /^strikethrough\s+(.+)$/i.exec(trimmed);
-  if (m) {
-    return {
-      insertion: { kind: "markdown", text: `~~${capitalizeFirstLetter(m[1].trim())}~~` },
-      nextState: { ...state, capitalizeNext: true },
-    };
-  }
-
-  m = /^indent\s+task\s+(?:incomplete|todo|unchecked)\s+(.+)$/i.exec(trimmed);
-  if (m) {
-    const nextState = { ...state, indentLevel: state.indentLevel + 1, capitalizeNext: true };
-    return {
-      insertion: { kind: "markdown", text: `${indent(nextState)}- [ ] ${applyInlinePhraseTransform(m[1])}` },
-      nextState,
-    };
-  }
-
-  m = /^indent\s+task\s+(?:complete|done|checked)\s+(.+)$/i.exec(trimmed);
-  if (m) {
-    const nextState = { ...state, indentLevel: state.indentLevel + 1, capitalizeNext: true };
-    return {
-      insertion: { kind: "markdown", text: `${indent(nextState)}- [x] ${applyInlinePhraseTransform(m[1])}` },
-      nextState,
-    };
-  }
-
-  // "new task buy milk" is the friendlier everyday phrasing for the common
-  // case (a fresh, unchecked item) — "task incomplete/todo/unchecked …"
-  // below still works too, for anyone dictating "complete"/"incomplete" as a
-  // pair.
-  m = /^(?:task\s+(?:incomplete|todo|unchecked)|new\s+task:?)\s+(.+)$/i.exec(trimmed);
-  if (m) {
-    return {
-      insertion: { kind: "markdown", text: `${indent(state)}- [ ] ${applyInlinePhraseTransform(m[1])}` },
-      nextState: { ...state, capitalizeNext: true },
-    };
-  }
-
-  m = /^task\s+(?:complete|done|checked)\s+(.+)$/i.exec(trimmed);
-  if (m) {
-    return {
-      insertion: { kind: "markdown", text: `${indent(state)}- [x] ${applyInlinePhraseTransform(m[1])}` },
-      nextState: { ...state, capitalizeNext: true },
-    };
-  }
-
-  m = /^wiki\s*link(?:\s+to)?\s+(.+)$/i.exec(trimmed);
-  if (m) {
-    return {
-      insertion: { kind: "markdown", text: `[[${capitalizeFirstLetter(m[1].trim())}]]` },
-      nextState: { ...state, capitalizeNext: true },
-    };
-  }
-
-  m = /^(?:insert\s+)?link$/i.exec(trimmed);
-  if (m) {
-    return { insertion: { kind: "open-link-dialog" }, nextState: state };
-  }
-
-  m = /^bold\s+(.+)$/i.exec(trimmed);
-  if (m) {
-    return {
-      insertion: { kind: "markdown", text: `**${capitalizeFirstLetter(m[1].trim())}**` },
-      nextState: { ...state, capitalizeNext: true },
-    };
-  }
-
-  m = /^italic\s+(.+)$/i.exec(trimmed);
-  if (m) {
-    return {
-      insertion: { kind: "markdown", text: `*${capitalizeFirstLetter(m[1].trim())}*` },
-      nextState: { ...state, capitalizeNext: true },
-    };
-  }
-
-  m = /^(?:horizontal rule|divider)$/i.exec(trimmed);
-  if (m) {
-    return { insertion: { kind: "markdown", text: "\n---\n" }, nextState: { ...state, capitalizeNext: true } };
-  }
-
-  m = /^emoji\s+(.+)$/i.exec(trimmed);
-  if (m) {
-    const key = EMOJI_ALIASES[m[1].trim().toLowerCase()];
-    if (key) {
-      return { insertion: { kind: "markdown", text: SHORTCODES[`{${key}}`]() }, nextState: { ...state, capitalizeNext: false } };
-    }
-    // Unrecognized emoji name — fall through and dictate "emoji ..." literally.
-  }
-
-  m = /^(?:current|today'?s?)\s+date$/i.exec(trimmed);
-  if (m) {
-    return { insertion: { kind: "markdown", text: SHORTCODES["{date}"]() }, nextState: state };
-  }
-
-  m = /^(?:current|the)\s+time$/i.exec(trimmed);
-  if (m) {
-    return { insertion: { kind: "markdown", text: SHORTCODES["{time}"]() }, nextState: state };
-  }
-
-  m = /^tomorrow'?s?\s+date$/i.exec(trimmed);
-  if (m) {
-    return { insertion: { kind: "markdown", text: SHORTCODES["..tomorrow"]() }, nextState: state };
-  }
-
-  m = /^yesterday'?s?\s+date$/i.exec(trimmed);
-  if (m) {
-    return { insertion: { kind: "markdown", text: SHORTCODES["..yesterday"]() }, nextState: state };
-  }
-
-  m = /^(?:insert\s+)?table$/i.exec(trimmed);
-  if (m) {
-    return { insertion: { kind: "markdown", text: SHORTCODES["{table}"]() }, nextState: state };
   }
 
   if (!trimmed) {
@@ -520,5 +192,5 @@ export function parseVoiceSegment(
   }
 
   const { text, capitalizeNext } = substituteInlinePunctuation(rawTranscript, state.capitalizeNext);
-  return { insertion: { kind: "plain-text", text }, nextState: { ...state, capitalizeNext } };
+  return { insertion: { kind: "plain-text", text }, nextState: { capitalizeNext } };
 }

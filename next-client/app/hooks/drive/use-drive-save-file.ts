@@ -1,7 +1,7 @@
 "use client";
 
-import { useAtom, useAtomValue, useSetAtom } from 'jotai';
-import { useCallback, useRef } from 'react';
+import { useAtom, useSetAtom } from 'jotai';
+import { useCallback } from 'react';
 import toast from 'react-hot-toast';
 import {
   atom_activeFileHandle,
@@ -13,14 +13,11 @@ import {
   atom_openFiles,
   atom_saveStatus,
   atom_autoInjectFrontmatter,
-  atom_vaultSetupStatus,
 } from '@/app/atoms/atoms';
-import { atom_frontmatterWizardOpen, atom_vaultSetupWizardOpen, atom_indexTimestamp } from '@/app/atoms/ui-atoms';
-import { atom_driveAuthState, atom_driveVaultId } from '@/app/atoms/drive-atoms';
-import { atom_fileMetadata } from '@/app/atoms/metadata';
+import { atom_frontmatterWizardOpen } from '@/app/atoms/ui-atoms';
+import { atom_driveAuthState } from '@/app/atoms/drive-atoms';
 import { DriveFileHandle } from '@/app/services/drive/DriveFileHandle';
 import { updateFile } from '@/app/services/drive/client';
-import { writeDriveVaultIndex } from '@/app/services/vault-index';
 import { injectFrontmatter } from '@/app/utils/frontmatterInjector';
 
 export function useDriveSaveFile() {
@@ -34,13 +31,7 @@ export function useDriveSaveFile() {
   const [, setSaveStatus] = useAtom(atom_saveStatus);
   const [autoInjectFrontmatter] = useAtom(atom_autoInjectFrontmatter);
   const setFrontmatterWizardOpen = useSetAtom(atom_frontmatterWizardOpen);
-  const setVaultSetupWizardOpen = useSetAtom(atom_vaultSetupWizardOpen);
-  const [vaultSetupStatus] = useAtom(atom_vaultSetupStatus);
   const [, setDriveAuthState] = useAtom(atom_driveAuthState);
-  const driveVaultId = useAtomValue(atom_driveVaultId);
-  const fileMetadata = useAtomValue(atom_fileMetadata);
-  const setIndexTimestamp = useSetAtom(atom_indexTimestamp);
-  const indexWriteTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const saveFile = useCallback(
     async (
@@ -83,11 +74,7 @@ export function useDriveSaveFile() {
           });
 
           if (didInject) {
-            if (vaultSetupStatus === 'needs_setup') {
-              setVaultSetupWizardOpen(targetPath);
-            } else {
-              setFrontmatterWizardOpen(targetPath);
-            }
+            setFrontmatterWizardOpen(targetPath);
           }
         }
 
@@ -110,26 +97,6 @@ export function useDriveSaveFile() {
 
         setSaveStatus({ state: 'saved', retryCount: 0, path: targetPath });
         setTimeout(() => setSaveStatus({ state: 'idle', retryCount: 0, path: undefined }), 2000);
-
-        if (driveVaultId) {
-          if (indexWriteTimerRef.current) clearTimeout(indexWriteTimerRef.current);
-          const snapshot = fileMetadata;
-          indexWriteTimerRef.current = setTimeout(() => {
-            writeDriveVaultIndex(snapshot, driveVaultId)
-              .then(() => setIndexTimestamp(Date.now()))
-              .catch(async (err) => {
-                console.warn('Failed to write Drive vault index, retrying once:', err);
-                try {
-                  await new Promise((r) => setTimeout(r, 2000));
-                  await writeDriveVaultIndex(snapshot, driveVaultId);
-                  setIndexTimestamp(Date.now());
-                } catch (err2) {
-                  console.error('Failed to write Drive vault index after retry:', err2);
-                  toast.error('Could not update .hermes/index.yaml — Vault Health may show stale data until the next save.', { id: 'drive-index-write-failed', duration: 6000 });
-                }
-              });
-          }, 3000);
-        }
 
         if (!isAutoSave) toast.success('Saved to ' + fileHandle.name);
         return true;
@@ -165,7 +132,6 @@ export function useDriveSaveFile() {
       activeFileHandle,
       activeFilePath,
       autoInjectFrontmatter,
-      vaultSetupStatus,
       setActiveFileHandle,
       setFileName,
       setOpenFiles,
@@ -174,11 +140,7 @@ export function useDriveSaveFile() {
       setFileConflict,
       setSaveStatus,
       setFrontmatterWizardOpen,
-      setVaultSetupWizardOpen,
       setDriveAuthState,
-      driveVaultId,
-      fileMetadata,
-      setIndexTimestamp,
     ],
   );
 

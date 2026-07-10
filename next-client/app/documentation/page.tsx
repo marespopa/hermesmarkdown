@@ -17,15 +17,10 @@ function Code({ children }: { children: ReactNode }) {
 }
 
 function Callout({ type = "note", children }: { type?: "note" | "warning" | "tip"; children: ReactNode }) {
-  const styles = {
-    note: "bg-blue-500/5 dark:bg-blue-900/10 border-blue-500/10 text-blue-700 dark:text-blue-400/80",
-    warning: "bg-amber-500/5 dark:bg-amber-900/10 border-amber-500/10 text-amber-700 dark:text-amber-400/70",
-    tip: "bg-emerald-500/5 dark:bg-emerald-900/10 border-emerald-500/10 text-emerald-700 dark:text-emerald-400/80",
-  };
   const labels = { note: "Note", warning: "Warning", tip: "Tip" };
   return (
-    <div className={`p-5 border rounded-2xl text-sm leading-relaxed ${styles[type]}`}>
-      <span className="block text-ui-footnote uppercase tracking-[0.2em] font-bold mb-2 opacity-80">{labels[type]}</span>
+    <div className="pl-5 py-1 border-l-2 border-black/10 dark:border-white/15 text-sm leading-relaxed text-neutral-600 dark:text-neutral-400">
+      <span className="block text-ui-footnote uppercase tracking-[0.2em] font-bold mb-2 opacity-50">{labels[type]}</span>
       {children}
     </div>
   );
@@ -38,25 +33,6 @@ function KV({ rows }: { rows: { label: ReactNode; value: ReactNode }[] }) {
         <div key={i} className="flex flex-wrap justify-between border-b border-black/5 dark:border-white/5 py-3 sm:py-4 last:border-none items-baseline gap-x-4 gap-y-1">
           <span className="text-sm font-medium min-w-0 shrink break-words">{r.label}</span>
           <span className="opacity-40 italic text-right text-ui-footnote uppercase tracking-wider font-bold shrink-0 max-w-full break-words">{r.value}</span>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-function PackGrid({ packs }: { packs: { icon: string; name: string; description: string }[] }) {
-  return (
-    <div className="grid gap-3 sm:grid-cols-2">
-      {packs.map((p) => (
-        <div
-          key={p.name}
-          className="p-5 bg-neutral-50/50 dark:bg-neutral-900/30 backdrop-blur-sm rounded-3xl border border-black/5 dark:border-white/5 hover:border-sage/30 transition-colors"
-        >
-          <div className="flex items-center gap-2.5 mb-2">
-            <span className="text-xl leading-none">{p.icon}</span>
-            <span className="text-sm font-bold">{p.name}</span>
-          </div>
-          <p className="text-sm leading-relaxed opacity-60">{p.description}</p>
         </div>
       ))}
     </div>
@@ -133,7 +109,7 @@ const GROUPS: Group[] = [
         id: "create-a-vault",
         title: "Create a vault",
         lead: "A vault is any folder on disk that HermesMarkdown reads and writes Markdown files in directly.",
-        keywords: "vault folder open dropbox icloud sync schema hermes",
+        keywords: "vault folder open dropbox icloud sync",
         body: (
           <>
             <p>Click the vault icon in the sidebar and pick an existing folder, or create a new one in the picker.</p>
@@ -141,16 +117,10 @@ const GROUPS: Group[] = [
               The browser grants HermesMarkdown direct read/write access to that folder for the
               session. Nothing is uploaded — files stay where they are on disk.
             </p>
-            <p>Opening a folder for the first time adds one hidden directory:</p>
-            <Code>{`.hermes/
-  schema.yaml
-  AGENTS.md
-  template.md`}</Code>
             <p>
-              These three files are generated once, on first open — see{" "}
-              <a href="#hermes-architecture" className="text-sage font-semibold hover:underline">.hermes/ architecture</a>.
-              Everything else in the folder — your notes, your subfolders — is yours; HermesMarkdown never
-              restructures it.
+              Everything in the folder — your notes, your subfolders — is yours; HermesMarkdown never
+              restructures it. A hidden <code>.hermes/</code> directory only appears if you set up a{" "}
+              <a href="#voice-profile" className="text-sage font-semibold hover:underline">voice profile</a>, and holds nothing but that one file.
             </p>
             <Callout type="warning">
               Dropbox and iCloud can lock files mid-sync. If saves start failing inside a synced folder,
@@ -160,93 +130,43 @@ const GROUPS: Group[] = [
         ),
       },
       {
-        id: "starter-packs",
-        title: "Starter packs",
-        lead: "Create a new vault with example notes pre-loaded — pick a pack, name it, and start writing.",
-        keywords: "starter pack new vault create template notes pkm engineering finance budget adr meeting creator content blog social newsletter repurpose",
+        id: "new-vault",
+        title: "New vault",
+        lead: "Create a fresh, empty vault — name it, pick a location, and start writing.",
+        keywords: "new vault create folder name location",
         body: (
           <>
             <p>
-              In the sidebar, click the vault icon and choose <strong>New Vault</strong>, or run it from the command palette. A two-step dialog opens.
+              In the sidebar, click the vault icon and choose <strong>New Vault</strong>, or run it from the command palette.
             </p>
             <p>
-              <strong>Step 1 — Name and location.</strong> Type a vault name (this becomes the folder name on disk) and click <em>Choose parent folder</em> to pick where the folder will be created.
+              Type a vault name (this becomes the folder name on disk) and click <em>Choose parent folder</em> to pick
+              where the folder will be created, then click <em>Create Vault</em>.
             </p>
             <p>
-              <strong>Step 2 — Starter pack.</strong> Pick one of five packs and click <em>Create Vault</em>:
-            </p>
-            <PackGrid
-              packs={[
-                { icon: "🗂", name: "Empty Vault", description: "No example files — blank slate" },
-                { icon: "📓", name: "Notes / PKM", description: "Map of Content, atomic notes guide, daily journal template, callout demo" },
-                { icon: "⚙️", name: "Engineering", description: "AGENTS.md, two ADRs, bug tracker table, meeting notes template" },
-                { icon: "💰", name: "Personal Finance", description: "Budget tracker, debt tracker, recurring expenses — all with live formula cells" },
-                { icon: "✍️", name: "Creator / Content", description: "Blog/social/newsletter templates, the prompts to draft each from a source note, and an example source note" },
-              ]}
-            />
-            <p>
-              HermesMarkdown creates the folder, writes <code>.hermes/</code> scaffolding, installs the pack's example files, then opens the vault and navigates to the pack's entry note automatically.
+              HermesMarkdown creates the folder and opens the vault on a blank note. No example content
+              is added.
             </p>
             <Callout type="note">
-              The dialog checks for an existing folder with the same name at the chosen location and stops if one is found — it will never overwrite an existing directory.
+              The dialog checks for an existing folder with the same name at the chosen location and stops if one is
+              found — it will never overwrite an existing directory.
             </Callout>
-          </>
-        ),
-      },
-      {
-        id: "agent-context",
-        title: "Set up agent context",
-        lead: "The .hermes/ folder is what lets a coding agent skim your vault instead of reading every file in full.",
-        keywords: "agent context settings guide install AGENTS.md",
-        body: (
-          <>
-            <p>
-              <code>.hermes/</code> is a hidden folder created the first time you open a vault. It holds
-              a schema, an agent-facing reference doc, and a frontmatter template — nothing that touches
-              your notes' content.
-            </p>
-            <p>
-              An agent pointed at your vault reads <code>.hermes/AGENTS.md</code> first — it contains the
-              context loading protocol itself, plus the frontmatter schema. Following that protocol, the
-              agent reads <code>.hermes/index.yaml</code> next: a pre-built list of every file's{" "}
-              <code>scope</code> and <code>read_when</code> field, generated by the editor, not the agent —
-              the basis of the three-tier read protocol described in{" "}
-              <a href="#agent-context-protocol" className="text-sage font-semibold hover:underline">Agent context protocol</a>.
-            </p>
-            <KV
-              rows={[
-                { label: "Where it's set up", value: "Settings → Vault → Agent Context Files" },
-                { label: "Install / update AGENTS.md + schema.yaml", value: "Check & Install" },
-                { label: "Force-regenerate index.yaml", value: "Rebuild Index" },
-                { label: "Re-run anytime", value: "Safe — won't overwrite your notes" },
-              ]}
-            />
-            <Callout type="note">
-              Skipping this step doesn't break anything. Your vault still works, and you can still write
-              frontmatter by hand — an agent just has to read full files instead of scope summaries.
-            </Callout>
-            <p>
-              <code>index.yaml</code> normally keeps itself current automatically as you save, delete, or
-              rename files. <strong>Rebuild Index</strong>, next to Check &amp; Install, forces an
-              immediate regeneration if it ever looks out of sync — see{" "}
-              <a href="#hermes-architecture" className="text-sage font-semibold hover:underline">.hermes/ architecture</a>.
-            </p>
           </>
         ),
       },
       {
         id: "first-note",
         title: "Your first note",
-        lead: "New File opens a blank Markdown file with a frontmatter wizard ready to fill in.",
-        keywords: "new file wizard title status save autosave",
+        lead: "New File opens a blank Markdown file with its frontmatter panel ready to fill in.",
+        keywords: "new file title status save autosave frontmatter",
         body: (
           <>
             <p>Use the + button in the sidebar, or run New file from the command palette.</p>
             <p>
-              A wizard opens automatically on every new file, prompting for the fields defined in your
-              vault's schema — <code>title</code>, <code>status</code>, and whatever else you've
-              configured. Fill in what's relevant and skip the rest; nothing here is required beyond{" "}
-              <code>title</code>.
+              The frontmatter panel opens automatically on every new file, prompting for the fields
+              defined in your vault's schema — <code>title</code>, <code>status</code>, and whatever
+              else you've configured. Fill in what's relevant and skip the rest; nothing here is
+              required beyond <code>title</code>.
             </p>
             <KV
               rows={[
@@ -256,7 +176,7 @@ const GROUPS: Group[] = [
               ]}
             />
             <Callout type="tip">
-              Closed the wizard without finishing? Click the ✎ icon in the frontmatter header to reopen
+              Closed the panel without finishing? Click the ✎ icon in the frontmatter header to reopen
               it at any time.
             </Callout>
             <p>
@@ -271,7 +191,7 @@ const GROUPS: Group[] = [
         id: "editor-layout",
         title: "Editor layout",
         lead: "The app opens straight into a full-screen editor — every panel is summoned, not docked by default.",
-        keywords: "sidebar icon rail pin pane split toolbar",
+        keywords: "sidebar pin pane split toolbar command palette",
         body: (
           <>
             <p>
@@ -279,15 +199,14 @@ const GROUPS: Group[] = [
               keyboard shortcuts, and the slash command menu.
             </p>
             <p>
-              A thin icon rail sits at the left edge. Hover it to peek at the sidebar (files, search,
-              smart workspaces); pin it open with <code>CTRL+SHIFT+E</code> when you need it visible
-              while you work.
+              The sidebar (files, search, tasks) stays hidden at rest. Move the mouse to the left edge
+              to open it, or pin it with <code>CTRL+SHIFT+E</code>; switching between its panels happens
+              from the command palette rather than a row of icons.
             </p>
             <KV
               rows={[
                 { label: "Sidebar", value: "Hover edge / CTRL+SHIFT+E" },
                 { label: "Command Palette", value: "CTRL+SHIFT+P" },
-                { label: "Document Info", value: "CTRL+SHIFT+I" },
                 { label: "AI Chat", value: "CTRL+SHIFT+B" },
                 { label: "Voice input", value: "CTRL+SHIFT+V" },
                 { label: "Frontmatter panel", value: "✎ in document header" },
@@ -318,7 +237,6 @@ const GROUPS: Group[] = [
                   { label: "Open link pill", shortcut: "CTRL+ENTER" },
                   { label: "Expand date picker", shortcut: "ALT+↓" },
                   { label: "Toggle sidebar", shortcut: "CTRL+SHIFT+E" },
-                  { label: "Document info", shortcut: "CTRL+SHIFT+I" },
                   { label: "AI Chat", shortcut: "CTRL+SHIFT+B" },
                   { label: "Voice input", shortcut: "CTRL+SHIFT+V" },
                   { label: "Dismiss / close", shortcut: "ESCAPE" },
@@ -329,8 +247,6 @@ const GROUPS: Group[] = [
                 rows: [
                   { label: "Move between cells", shortcut: "TAB / SHIFT+TAB / ARROWS" },
                   { label: "Edit focused cell", shortcut: "ENTER" },
-                  { label: "Select a range", shortcut: "SHIFT+CLICK / SHIFT+ARROWS" },
-                  { label: "Start a formula", shortcut: "TYPE =" },
                   { label: "New row at end", shortcut: "ENTER on last row" },
                 ],
               },
@@ -395,8 +311,8 @@ const GROUPS: Group[] = [
       {
         id: "tables",
         title: "Tables",
-        lead: "Click inside a pipe table for a floating toolbar, or open the dialog for spreadsheet-style editing with live formulas.",
-        keywords: "table formula sum average csv sort alignment a1",
+        lead: "Click inside a pipe table for a floating toolbar, and edit cells directly in the text — no separate view to switch to.",
+        keywords: "table csv sort alignment",
         body: (
           <>
             <p>
@@ -406,23 +322,15 @@ const GROUPS: Group[] = [
             <p>Click inside any table to get a floating toolbar over it.</p>
             <KV
               rows={[
-                { label: "Advanced edit", value: "Open the dialog" },
                 { label: "Delete table", value: "× in toolbar" },
                 { label: "Copy as CSV", value: "CSV in toolbar" },
+                { label: "Sort a column", value: "↑ / ↓ in toolbar" },
               ]}
             />
-            <p>
-              The dialog is a spreadsheet-style grid: A1-style column letters and row numbers stay
-              visible while you scroll, the active cell gets a green border, and rows/columns are added
-              or removed from a toolbar — never inline, so you can't delete one by accident while
-              scrolling.
-            </p>
             <KV
               rows={[
                 { label: "Cell navigation", value: "Tab / Shift+Tab / Arrows" },
-                { label: "Select a cell", value: "Click" },
-                { label: "Edit a cell", value: "Double-click or Enter" },
-                { label: "Select a range", value: "Shift+Click / Shift+Arrows" },
+                { label: "Edit a cell", value: "Enter" },
                 { label: "New row at end", value: "Enter on last row" },
               ]}
             />
@@ -431,48 +339,9 @@ const GROUPS: Group[] = [
               alignment. Output stays clean, auto-padded Markdown that respects left, center, or right
               alignment markers.
             </p>
-            <p>
-              Any cell starting with <code>=</code> is a live formula, using A1 references —{" "}
-              <code>B2</code>, <code>B2:D2</code> — the same as a spreadsheet. The computed value
-              renders live in both the editor and the dialog; the formula itself is what's saved to the
-              file.
-            </p>
-            <Code>{`| Item    | Amount                   |
-| ------- | ------------------------ |
-| Rent    | $2,000                   |
-| Food    | $400                     |
-| Total   | =SUM(B2:B3)              |
-| Tax     | =8.5%*B4                 |
-| Savings | =IF(B4>2000,"Yes","No")  |`}</Code>
-            <p>
-              Referenced cells can hold <code>2000</code>, <code>$2,000</code>, or{" "}
-              <code>€1,500</code> — currency symbol, any placement, with or without a space — and
-              still resolve as a number. The result formats back as that same currency
-              automatically; summing a column of <code>$</code> values produces a{" "}
-              <code>$</code> total with no setup required.
-            </p>
-            <p>
-              Percentage literals work directly: <code>8.5%</code> evaluates to{" "}
-              <code>0.085</code>, so <code>=8.5%*B2</code> and <code>=B2*0.085</code> are
-              equivalent.
-            </p>
-            <p>
-              In the dialog, typing <code>=</code> into a cell opens a function autocomplete —
-              keep typing to filter (<code>=SU</code> narrows to SUM), arrow keys move the
-              selection, Enter inserts with the opening parenthesis. It also switches into point
-              mode: click another cell to insert its A1 reference, Shift+click for a range, or a
-              column letter for the whole column — without losing your place in the formula.
-            </p>
-            <KV
-              rows={[
-                { label: "Function autocomplete", value: "Type = in any cell" },
-                { label: "Insert =SUM(...) row", value: "Σ in dialog toolbar" },
-                { label: "calc(100+50)=", value: "150 (inline shortcode)" },
-              ]}
-            />
-            <Callout type="tip">
-              Functions: SUM · AVERAGE · MIN · MAX · COUNT · COUNTA · ABS · ROUND · IF · AND · OR · NOT ·
-              CONCAT. Arithmetic and comparisons work anywhere: <code>=IF(A2&gt;0, SUM(B), 0)</code>.
+            <Callout type="note">
+              Table cells hold plain text — there&apos;s no formula engine or spreadsheet-style
+              calculation. What you type is what gets written back to the file.
             </Callout>
           </>
         ),
@@ -485,7 +354,7 @@ const GROUPS: Group[] = [
         body: (
           <>
             <p>
-              Click the ✓ icon in the sidebar's icon rail to open it. The pane scans every file in the
+              Open it from the command palette (Open Tasks). The pane scans every file in the
               vault for Markdown task lines and lists them grouped by status.
             </p>
             <KV
@@ -518,19 +387,17 @@ const GROUPS: Group[] = [
         id: "frontmatter-panel",
         title: "Frontmatter panel",
         lead: "A structured form over the YAML block at the top of a file — edit fields without writing YAML by hand.",
-        keywords: "yaml schema panel sheet mobile",
+        keywords: "yaml panel sheet mobile title status tags",
         body: (
           <>
             <p>
               Click the ✎ icon in a document's frontmatter header to open the panel. It also opens
-              automatically as the wizard on new files.
+              automatically on new files.
             </p>
             <p>
-              The panel renders whatever fields your vault's schema defines — by default{" "}
-              <code>title</code>, <code>status</code>, <code>scope</code>, <code>read_when</code>,{" "}
-              <code>related</code>, <code>tags</code>, and <code>edit_elsewhere</code>. Field types
-              (text, list, enum) come from <code>.hermes/schema.yaml</code>, so a custom schema changes
-              what the panel shows.
+              The panel renders three fields: <code>title</code>, <code>status</code>, and{" "}
+              <code>tags</code>. That's the whole schema — fixed, not configurable, kept deliberately
+              small.
             </p>
             <p>
               Every change in the panel writes straight back to the YAML block at the top of the file —
@@ -538,8 +405,7 @@ const GROUPS: Group[] = [
               drifting apart.
             </p>
             <Callout type="note">
-              On a mobile screen, the panel uses the same bottom-sheet layout as the table dialog, to
-              stay clear of the soft keyboard.
+              On a mobile screen, the panel uses a bottom-sheet layout to stay clear of the soft keyboard.
             </Callout>
           </>
         ),
@@ -603,8 +469,8 @@ const GROUPS: Group[] = [
         body: (
           <>
             <p>
-              Click the mic icon (in the icon rail on desktop, or the bottom nav on mobile) to start
-              listening. Speech accumulates in an editable preview box instead of the document itself, so
+              Start voice input from the command palette (Start voice input) to start listening. Speech
+              accumulates in an editable preview box instead of the document itself, so
               you can fix a mishear before it ever touches your note. Press <code>Enter</code> to insert the
               reviewed text at the cursor, <code>Shift+Enter</code> to add a line break within the preview,
               or <code>Escape</code> to discard it.
@@ -691,7 +557,6 @@ const GROUPS: Group[] = [
                 { label: "Open vault", value: "—" },
                 { label: "New folder", value: "When a vault is open" },
                 { label: "Create new vault", value: "—" },
-                { label: "Document info", value: "CTRL+SHIFT+I" },
                 { label: "Open AI Chat", value: "CTRL+SHIFT+B · when AI is configured" },
                 { label: "Focus editor", value: "—" },
                 { label: "Close current tab", value: "—" },
@@ -716,7 +581,7 @@ const GROUPS: Group[] = [
       {
         id: "vault-overview",
         title: "Vault overview",
-        lead: "A vault is a folder. HermesMarkdown adds one hidden directory to it and otherwise leaves your files alone.",
+        lead: "A vault is a folder. HermesMarkdown reads and writes plain Markdown files in it and otherwise leaves it alone.",
         keywords: "directory structure plain files lock-in",
         body: (
           <>
@@ -725,92 +590,32 @@ const GROUPS: Group[] = [
               yours — HermesMarkdown doesn't enforce a structure or move files around.
             </p>
             <Code>{`my-vault/
-  .hermes/          ← created by HermesMarkdown
-    schema.yaml
-    AGENTS.md
-    template.md
   projects/         ← yours
     roadmap.md
   daily/            ← yours
     2026-06-25.md`}</Code>
-            <KV
-              rows={[
-                { label: ".hermes/schema.yaml", value: "Generated" },
-                { label: ".hermes/AGENTS.md", value: "Generated" },
-                { label: ".hermes/template.md", value: "Generated" },
-                { label: ".hermes/index.yaml", value: "Generated on demand" },
-                { label: "Everything else", value: "Yours" },
-              ]}
-            />
             <p>
-              Every note is a plain <code>.md</code> file with YAML frontmatter. Open the folder in any
-              other editor, sync it with Dropbox or Google Drive, or move it to another machine — nothing
-              about it depends on HermesMarkdown being installed.
+              Every note is a plain <code>.md</code> file with a small YAML frontmatter block. Open the
+              folder in any other editor, sync it with Dropbox or Google Drive, or move it to another
+              machine — nothing about it depends on HermesMarkdown being installed. The only thing
+              HermesMarkdown ever adds is a hidden <code>.hermes/</code> folder, and only if you set up a{" "}
+              <a href="#voice-profile" className="text-sage font-semibold hover:underline">voice profile</a>.
             </p>
-          </>
-        ),
-      },
-      {
-        id: "hermes-architecture",
-        title: ".hermes/ architecture",
-        lead: "Four files, generated into a hidden folder, that let an agent understand your vault without opening every note.",
-        keywords: "schema.yaml AGENTS.md template.md index.yaml stale",
-        body: (
-          <>
-            <h4 className="text-lg font-bold tracking-tight !mb-2">schema.yaml</h4>
-            <p>
-              The frontmatter schema for this vault — which fields exist, their types, and their
-              defaults. Edit it from Settings → Schema; every new note's frontmatter wizard reads from
-              it.
-            </p>
-            <h4 className="text-lg font-bold tracking-tight !mb-2 !mt-6">AGENTS.md</h4>
-            <p>
-              The file an agent is expected to read first. It opens with the context loading protocol
-              itself — read <code>index.yaml</code>, filter by <code>read_when</code>, load{" "}
-              <code>scope</code> before full content — followed by the current schema (with a hash so an
-              agent can detect drift), field-by-field documentation, and a tree of the vault's structure.
-            </p>
-            <h4 className="text-lg font-bold tracking-tight !mb-2 !mt-6">template.md</h4>
-            <p>A frontmatter block pre-filled with this schema's default values, used when creating new files programmatically.</p>
-            <h4 className="text-lg font-bold tracking-tight !mb-2 !mt-6">index.yaml</h4>
-            <p>
-              Built on demand, not stored permanently — a flat list of every file in the vault with just
-              its frontmatter: path, title, status, scope, read_when, related, tags. No file body
-              content.
-            </p>
-            <Code>{`generated: 2026-06-25T10:03:00Z
-files:
-  - path: projects/roadmap.md
-    title: Roadmap
-    status: active
-    scope: "Q3 priorities and current blockers"
-    read_when: "keywords: roadmap, priorities, planning"
-    tags: [project]`}</Code>
-            <Callout type="note">
-              <code>index.yaml</code> carries a <code>generated</code> timestamp. It's maintained
-              automatically by the editor — an agent never writes to it. If it's more than five minutes
-              old, the editor may not have been running during recent changes; warn the user that stale
-              data could affect the task rather than trying to regenerate it directly.
-            </Callout>
           </>
         ),
       },
       {
         id: "frontmatter-conventions",
         title: "Frontmatter conventions",
-        lead: "The default schema's fields, their types, and what each is for — all optional except title.",
-        keywords: "title status scope read_when related tags edit_elsewhere",
+        lead: "Three fields, fixed — all optional except title.",
+        keywords: "title status tags",
         body: (
           <>
             <KV
               rows={[
                 { label: "title", value: "string · required" },
                 { label: "status", value: "enum · default draft" },
-                { label: "scope", value: "string · optional" },
-                { label: "read_when", value: "list · optional" },
-                { label: "related", value: "list · optional" },
                 { label: "tags", value: "list · optional" },
-                { label: "edit_elsewhere", value: "list · optional" },
               ]}
             />
             <h4 className="text-lg font-bold tracking-tight !mb-2 !mt-6">title</h4>
@@ -821,126 +626,8 @@ files:
               <code>archived</code>. Stays in sync with the document's lifecycle tag — change one and the
               other follows.
             </p>
-            <h4 className="text-lg font-bold tracking-tight !mb-2 !mt-6">scope</h4>
-            <p>
-              A one-line summary written for an agent, not a human. This is what gets loaded at Tier 1 of
-              the agent context protocol, before any agent opens the full file.
-            </p>
-            <Code>{`scope: "Pricing decisions for the Q3 launch, not engineering details"`}</Code>
-            <h4 className="text-lg font-bold tracking-tight !mb-2 !mt-6">read_when</h4>
-            <p>Controls whether an agent loads this file at all. Accepts:</p>
-            <KV
-              rows={[
-                { label: "A plain sentence", value: "Matched semantically" },
-                { label: '"keywords: a, b, c"', value: "Matched by keyword" },
-                { label: '"always"', value: "Always loaded" },
-                { label: '"never"', value: "Always skipped" },
-              ]}
-            />
-            <h4 className="text-lg font-bold tracking-tight !mb-2 !mt-6">related</h4>
-            <p>
-              Wikilinks to other notes worth checking alongside this one — <code>[[Note Name]]</code>{" "}
-              entries that an agent can follow without re-deriving the relationship from content. This is
-              isolate in practice: an explicit edge instead of a full-vault search to guess what's
-              relevant.
-            </p>
             <h4 className="text-lg font-bold tracking-tight !mb-2 !mt-6">tags</h4>
             <p>Free-form domain tags, distinct from the lifecycle tag that mirrors <code>status</code>.</p>
-            <h4 className="text-lg font-bold tracking-tight !mb-2 !mt-6">edit_elsewhere</h4>
-            <p>
-              External locations this note's content is duplicated to or sourced from — a flag so an
-              agent doesn't treat this file as the single source of truth.
-            </p>
-            <Callout type="tip">
-              None of this is fixed. The schema in <code>.hermes/schema.yaml</code> is editable from
-              Settings → Schema — drop fields you don't use, rename them, or add your own.
-            </Callout>
-          </>
-        ),
-      },
-      {
-        id: "agent-context-protocol",
-        title: "Agent context protocol",
-        lead: "Three tiers — skip, scope-only, full load — let an agent traverse a large vault without reading every file.",
-        keywords: "tier protocol index.yaml read_when scope never",
-        body: (
-          <>
-            <p>
-              This is select and compress worked out in file terms: <code>read_when</code> decides what's
-              worth loading at all, and the tiers below decide how much of it actually enters the context
-              window.
-            </p>
-            <ol className="space-y-4 list-decimal list-outside pl-5 marker:font-bold marker:text-sage dark:marker:text-sage text-neutral-500 dark:text-neutral-400 leading-relaxed text-base">
-              <li>
-                <span className="font-bold tracking-tight text-ink-light dark:text-ink-dark">Filter by read_when.</span>{" "}
-                An agent starts at <code>.hermes/index.yaml</code>, not the vault's files. For each entry,
-                it checks <code>read_when</code>: an empty value, an unmatched query context, or an
-                explicit <code>"never"</code> means the file is skipped entirely — Tier 0.
-              </li>
-              <li>
-                <span className="font-bold tracking-tight text-ink-light dark:text-ink-dark">Load scope only.</span>{" "}
-                For files that pass the filter, the agent reads only the <code>scope</code> field from the
-                index — Tier 1. If that one-line summary is enough to answer the task at hand, the agent
-                stops there without opening the file.
-              </li>
-              <li>
-                <span className="font-bold tracking-tight text-ink-light dark:text-ink-dark">Load full content.</span>{" "}
-                Only when <code>scope</code> is missing or insufficient does the agent open the file in
-                full — Tier 2. This is the expensive path, reserved for files the earlier tiers couldn't
-                resolve.
-              </li>
-            </ol>
-            <h4 className="text-lg font-bold tracking-tight !mb-2 !mt-6">How to write for it</h4>
-            <p>
-              Write <code>scope</code> as if an agent will never read past it. Use <code>read_when</code>{" "}
-              to rule files out explicitly — a stale meeting note marked <code>read_when: never</code>{" "}
-              never costs a Tier 2 load, no matter how it's named or where it sits in the vault.
-            </p>
-            <Code>{`---
-title: Q2 Retro
-status: archived
-scope: "Closed-out retro notes, superseded by Q3 planning"
-read_when: never
----`}</Code>
-            <Callout type="note">
-              This protocol is what <code>.hermes/index.yaml</code> exists to serve. Without it, an agent
-              has no shortcut and falls back to reading files directly.
-            </Callout>
-          </>
-        ),
-      },
-      {
-        id: "hermes-md-vs-agents-md",
-        title: "Is hermes.md the same as HermesMarkdown's vault system?",
-        lead: "No — the hermes.md convention belongs to a different project. Here's the short version.",
-        keywords: "hermes.md .hermes.md NousResearch disambiguation agent context",
-        body: (
-          <>
-            <p>
-              <code>hermes.md</code> and <code>.hermes.md</code> are project-context filenames used by{" "}
-              <strong>Hermes Agent</strong> (NousResearch) and compatible AI coding tools. They serve the
-              same conceptual purpose as <code>CLAUDE.md</code> or <code>.cursorrules</code> — a file placed
-              in a repo so an agent starts with context about the codebase. They are not part of HermesMarkdown.
-            </p>
-            <p>
-              HermesMarkdown uses a different system: a <code>.hermes/</code> folder (not a single file)
-              generated inside any vault you open, containing <code>AGENTS.md</code>,{" "}
-              <code>index.yaml</code>, and <code>schema.yaml</code>. See{" "}
-              <a href="#hermes-architecture" className="text-sage font-semibold hover:underline">
-                .hermes/ architecture
-              </a>{" "}
-              and{" "}
-              <a href="#agent-context-protocol" className="text-sage font-semibold hover:underline">
-                Agent context protocol
-              </a>{" "}
-              above for how that system works.
-            </p>
-            <p>
-              For the full explanation of the naming overlap and why "hermes.md file" searches spiked, see{" "}
-              <a href="/what-is-hermes-md" className="text-sage font-semibold hover:underline">
-                What is a hermes.md file?
-              </a>
-            </p>
           </>
         ),
       },
@@ -1041,9 +728,8 @@ read_when: never
               original note is never modified.
             </p>
             <Callout type="tip">
-              This is the same workflow documented by the <strong>Creator / Content</strong> starter
-              pack's repurpose-note skill — this command runs it as a single in-app action instead of
-              a manual prompt.
+              This is a single in-app action instead of a manual prompt — the AI drafts every format
+              in one pass and nothing is written until you confirm.
             </Callout>
           </>
         ),
@@ -1069,9 +755,8 @@ read_when: never
             />
             <p>
               It's a plain Markdown file — nothing is created or overwritten automatically. Once it
-              exists, AI commands that generate or rewrite text read it for tone guidance, and the{" "}
-              <strong>Creator / Content</strong> starter pack's repurpose-note skill uses it to match
-              voice when drafting a blog post, social snippet, or newsletter from a source note.
+              exists, AI commands that generate or rewrite text read it for tone guidance, including
+              repurposing a note into a blog post, social snippet, or newsletter draft.
             </p>
             <Callout type="tip">
               The first time you have an AI key configured and open a vault with no voice.md, a
@@ -1187,14 +872,14 @@ read_when: never
       {
         id: "mobile-layout",
         title: "Mobile layout",
-        lead: "Below a 768px viewport, the sidebar and tab bar are replaced by a bottom nav and full-screen overlays.",
-        keywords: "mobile bottom nav overlay breakpoint chrome",
+        lead: "Below a 768px viewport, the sidebar and tab bar are replaced by a single floating button and full-screen overlays.",
+        keywords: "mobile fab overlay breakpoint chrome command palette",
         body: (
           <>
             <p>
-              The bottom nav gives Files, New File, and Search — Search doubles as the command palette
-              trigger — plus Voice and AI Chat when those are available. It hides automatically whenever
-              the on-screen keyboard is open, so it doesn't compete for space with the text you're typing.
+              A single draggable button opens the command palette — Files, New File, Search, Voice, and
+              AI Chat all live there, the same as on desktop. Drag it out of the way of what you're
+              typing; its position is remembered between sessions.
             </p>
             <p>
               With more than one file open, a thin indicator bar above the editor shows the active file's
@@ -1207,18 +892,19 @@ read_when: never
       {
         id: "table-editor-mobile",
         title: "Table editor on mobile",
-        lead: "The table dialog and frontmatter panel both open as a bottom sheet instead of a centered dialog.",
-        keywords: "table dialog bottom sheet mobile drag",
+        lead: "Tables edit in place, same as desktop — only the frontmatter panel switches to a bottom sheet.",
+        keywords: "table bottom sheet mobile drag frontmatter",
         body: (
           <>
             <p>
-              Tapping into a table or the frontmatter ✎ icon slides a sheet up from the bottom edge,
-              capped to a portion of the screen height so the soft keyboard never covers it. Drag the
-              handle down to dismiss.
+              Tables use the same floating toolbar and in-place cell editing as desktop — there's no
+              separate view to switch to. Tapping the frontmatter ✎ icon instead slides a sheet up from
+              the bottom edge, capped to a portion of the screen height so the soft keyboard never covers
+              it. Drag the handle down to dismiss.
             </p>
             <p>
-              Cell navigation, range selection, and the formula engine work the same as desktop — only
-              the surrounding chrome changes.
+              Cell navigation and range selection work the same as desktop — only the surrounding chrome
+              changes.
             </p>
           </>
         ),
@@ -1232,8 +918,8 @@ read_when: never
           <>
             <KV
               rows={[
-                { label: "Sidebar", value: "Bottom nav + full-screen overlays" },
-                { label: "Table dialog / frontmatter panel", value: "Bottom sheet, not centered dialog" },
+                { label: "Sidebar", value: "Floating button + full-screen overlays" },
+                { label: "Frontmatter panel", value: "Bottom sheet, not centered dialog" },
                 { label: "Selection toolbar", value: "Bold, Italic, Link only" },
               ]}
             />
@@ -1256,9 +942,7 @@ const ALL_IDS = GROUPS.flatMap((g) => g.items.map((i) => i.id));
 
 const BackgroundGraphics = () => (
   <div className="absolute inset-0 overflow-hidden pointer-events-none -z-10 select-none" aria-hidden="true">
-    <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[1000px] bg-sage/[0.05] dark:bg-sage/[0.03] blur-[120px]" />
-    <div className="absolute top-[20%] right-[10%] w-[500px] h-[500px] bg-purple-500/[0.03] dark:bg-purple-500/[0.02] rounded-full blur-[100px]" />
-    <div className="absolute bottom-[20%] left-[5%] w-[600px] h-[600px] bg-amber-500/[0.02] dark:bg-amber-500/[0.01] rounded-full blur-[120px]" />
+    <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[800px] bg-neutral-500/[0.03] dark:bg-neutral-400/[0.02] blur-[120px]" />
   </div>
 );
 
@@ -1355,7 +1039,7 @@ export default function Documentation() {
   return (
     <main className="selection:bg-sage/30 overflow-x-clip font-sans relative">
       <div
-        className="fixed top-0 left-0 h-[2px] bg-sage z-50 transition-all duration-75"
+        className="fixed top-0 left-0 h-px bg-neutral-400 dark:bg-neutral-600 z-50 transition-all duration-75"
         style={{ width: `${scrollProgress * 100}%` }}
       />
 
@@ -1432,7 +1116,7 @@ export default function Documentation() {
               </h1>
             </div>
             <p className="text-lg md:text-2xl leading-relaxed text-neutral-500 dark:text-neutral-400 max-w-3xl font-medium">
-              How HermesMarkdown puts context engineering — write, select, compress, isolate — into practice, file by file. Plain <code className="text-[0.75em] bg-neutral-100 dark:bg-neutral-800 px-1.5 py-0.5 rounded font-mono not-italic">.md</code> files, structured for agents. Works offline, saves to your machine, and connects to Claude, Gemini, or any agent you use.
+              How HermesMarkdown works, feature by feature. Plain <code className="text-[0.75em] bg-neutral-100 dark:bg-neutral-800 px-1.5 py-0.5 rounded font-mono not-italic">.md</code> files, a minimalist writing surface, and optional AI assistance when you want it. Works offline, saves straight to your machine.
             </p>
           </section>
 

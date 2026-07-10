@@ -11,10 +11,7 @@ import {
   atom_workspaceLayout,
 } from "@/app/atoms/atoms";
 import { atom_fileMetadata } from "@/app/atoms/metadata";
-import { atom_vaultFiles, atom_isCloudVault } from "@/app/atoms/vault-atoms";
-import { atom_isDriveVault } from "@/app/atoms/drive-atoms";
-import { atom_indexTimestamp } from "@/app/atoms/ui-atoms";
-import { writeVaultIndex } from "@/app/services/vault-index";
+import { atom_vaultFiles } from "@/app/atoms/vault-atoms";
 import { useDialog } from "../use-dialog";
 
 interface UseDeleteItemProps {
@@ -30,9 +27,6 @@ export function useDeleteItem({ scanVault, indexVaultTags }: UseDeleteItemProps)
   const [, setWorkspaceLayout] = useAtom(atom_workspaceLayout);
   const setFileMetadata = useSetAtom(atom_fileMetadata);
   const setVaultFiles = useSetAtom(atom_vaultFiles);
-  const isCloudVault = useAtom(atom_isCloudVault)[0];
-  const isDriveVault = useAtom(atom_isDriveVault)[0];
-  const setIndexTimestamp = useSetAtom(atom_indexTimestamp);
   const dialog = useDialog();
 
   const deleteFile = useCallback(
@@ -116,13 +110,6 @@ export function useDeleteItem({ scanVault, indexVaultTags }: UseDeleteItemProps)
         setFileMetadata((prev) => {
           const next = { ...prev };
           Object.keys(next).forEach((path) => { if (isDeletedPath(path)) delete next[path]; });
-          // Write the index immediately off this optimistic snapshot so it doesn't
-          // wait on the full worker rescan round-trip triggered by scanVault below.
-          if (vaultHandle && !isCloudVault && !isDriveVault) {
-            writeVaultIndex(next, vaultHandle)
-              .then(() => setIndexTimestamp(Date.now()))
-              .catch((err) => console.warn("Failed to write vault index:", err));
-          }
           return next;
         });
         setVaultFiles((prev) => prev.filter((f) => !isDeletedPath((f as any).path || f.name)));
@@ -194,9 +181,6 @@ export function useDeleteItem({ scanVault, indexVaultTags }: UseDeleteItemProps)
     },
     [
       vaultHandle,
-      isCloudVault,
-      isDriveVault,
-      setIndexTimestamp,
       currentDirectoryHandle,
       activeFileHandle,
       scanVault,

@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   metadataBase: new URL("https://hermesmarkdown.com"),
   title: "HermesMarkdown — Context Engineering for Your Notes",
   description:
-    "A local-first Markdown editor for engineers. HermesMarkdown structures your vault the way you already structure context for your coding agent — write, select, compress, isolate. A .hermes/ folder (AGENTS.md, schema.yaml, index.yaml) lets coding agents index your vault without reading every file. WikiLinks, live-formula tables, BYOK AI — your data never leaves your device.",
+    "A local-first Markdown editor for engineers. HermesMarkdown structures your vault the way you already structure context for your coding agent — write, select, compress, isolate. A .hermes/ folder (AGENTS.md, schema.yaml, index.yaml) lets coding agents index your vault without reading every file. WikiLinks, a keyboard-driven table editor, BYOK AI — your data never leaves your device.",
   applicationName: "HermesMarkdown",
   authors: [{ name: "Mares Popa", url: "https://www.marespopa.com/" }],
   keywords: [
@@ -91,7 +91,7 @@ export default function RootLayout({
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
       </head>
       <body
-        className="h-full min-h-screen bg-paper-pale dark:bg-paper-dark text-ink-light dark:text-ink-dark transition-colors duration-300 antialiased overscroll-none"
+        className="h-full min-h-screen bg-paper-pale dark:bg-paper-dark text-ink-light dark:text-ink-dark antialiased overscroll-none"
         suppressHydrationWarning
       >
         <MainPage>{children}</MainPage>

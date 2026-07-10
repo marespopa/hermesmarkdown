@@ -13,11 +13,7 @@ export const fieldHelperClass = "text-ui-caption text-fg-faint px-0.5";
 export const fieldHelperFadeClass = (active: boolean) =>
   `${fieldHelperClass} transition-opacity duration-150 ${active ? "opacity-100" : "opacity-0"}`;
 
-export const FIELD_HELP: Record<string, string> = {
-  read_when: `Phrase that triggers agents to load this note — e.g. "before touching the payment flow"`,
-  scope: "Defines what this note covers. Agents use this to decide relevance.",
-  related: "Paths to notes this one connects with. Used by the vault health scorer.",
-};
+export const FIELD_HELP: Record<string, string> = {};
 
 export function capitalize(s: string): string {
   return s.charAt(0).toUpperCase() + s.slice(1);

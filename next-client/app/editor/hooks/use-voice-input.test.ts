@@ -111,13 +111,13 @@ describe("useVoiceInput", () => {
     const recognition = MockSpeechRecognition.instances[0];
 
     act(() => {
-      recognition.onresult?.(finalResult("bullet apples"));
-      recognition.onresult?.(finalResult("bullet bananas"));
+      recognition.onresult?.(finalResult("apples"));
+      recognition.onresult?.(finalResult("bananas"));
     });
 
     expect(onInsertion).toHaveBeenCalledTimes(2);
-    expect(onInsertion).toHaveBeenNthCalledWith(1, expect.objectContaining({ text: "- Apples" }));
-    expect(onInsertion).toHaveBeenNthCalledWith(2, expect.objectContaining({ text: "- Bananas" }));
+    expect(onInsertion).toHaveBeenNthCalledWith(1, expect.objectContaining({ text: "Apples" }));
+    expect(onInsertion).toHaveBeenNthCalledWith(2, expect.objectContaining({ text: "bananas" }));
     expect(onInsertion.mock.calls[0][0].replacePrevious).toBeUndefined();
     expect(onInsertion.mock.calls[1][0].replacePrevious).toBeUndefined();
   });

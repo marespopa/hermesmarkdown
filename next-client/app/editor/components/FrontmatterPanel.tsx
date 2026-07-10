@@ -1,27 +1,21 @@
 "use client";
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { useAtomValue } from "jotai";
-import { atom_frontmatterDefaultMode } from "@/app/atoms/atoms";
+import { useAtom, useAtomValue } from "jotai";
+import { atom_frontmatterDefaultMode, atom_frontmatterWizardOpen } from "@/app/atoms/atoms";
 import { HiChevronRight, HiChevronDown } from "react-icons/hi";
-import { atom_fileMetadata } from "@/app/atoms/metadata";
-import { atom_vaultSchema } from "@/app/atoms/schema-atoms";
-import { DEFAULT_SCHEMA, type SchemaField } from "@/app/services/vault-schema";
 import { FM_REGEX, parseFmFields, updateFmFields } from "@/app/utils/frontmatter-utils";
-import { computeTokenEstimate } from "@/app/utils/tokenEstimate";
 import useKeyboardInset from "@/app/hooks/use-keyboard-inset";
 import DialogModal from "../../components/DialogModal/DialogModal";
 import Button from "../../components/Button";
 import {
   TitleField,
   EnumField,
-  ScopeField,
-  ReadWhenField,
   TagsChipInput,
-  RelatedField,
-  DateField,
   GenericField,
 } from "./frontmatter";
+
+const STATUS_VALUES = ["draft", "review", "active", "archived"];
 
 interface FrontmatterPanelProps {
   filePath: string;
@@ -40,20 +34,12 @@ export default function FrontmatterPanel({
   displayFontSize,
   isMobile,
 }: FrontmatterPanelProps) {
-  const metadata = useAtomValue(atom_fileMetadata);
-  const rawSchema = useAtomValue(atom_vaultSchema);
   const defaultMode = useAtomValue(atom_frontmatterDefaultMode);
-  const schema = rawSchema ?? DEFAULT_SCHEMA;
-  const notePaths = useMemo(() => Object.keys(metadata).map((p) => p.replace(/\.md$/, "")), [metadata]);
+  const [wizardPath, setWizardPath] = useAtom(atom_frontmatterWizardOpen);
 
   const match = FM_REGEX.exec(content);
   const rawFrontmatter = match ? match[0] : null;
   const fields = useMemo(() => parseFmFields(content), [content]);
-  // Save-triggered token cost estimate — prefer the last-saved value from
-  // metadata (set on save; see use-save-file.ts), falling back to a live
-  // computation only for files that haven't been saved yet.
-  const liveTokenEstimate = useMemo(() => computeTokenEstimate(content), [content]);
-  const tokenEstimate = metadata[filePath]?.tokens ?? liveTokenEstimate;
 
   // Fields are recommended, never enforced — the panel always opens collapsed
   // so an incomplete frontmatter block never interrupts the editing flow.
@@ -84,6 +70,17 @@ export default function FrontmatterPanel({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mode]);
 
+  // Opening the wizard for this file (new-file flow, slash command) just
+  // expands the panel — there's no separate step-by-step dialog anymore,
+  // the fixed 3-field form is the whole thing.
+  useEffect(() => {
+    if (wizardPath !== filePath) return;
+    if (isMobile) setSheetOpen(true);
+    else setExpanded(true);
+    setWizardPath(null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [wizardPath, filePath, isMobile]);
+
   // Desktop sticky-bar: observe whether the panel root is in view within its
   // nearest scroll ancestor, so a slim summary bar can pin below the tab bar.
   useEffect(() => {
@@ -110,7 +107,7 @@ export default function FrontmatterPanel({
   if (!rawFrontmatter) return null;
 
   const set = (key: string, val: string) => {
-    onChange(updateFmFields(content, { [key]: val }, schema));
+    onChange(updateFmFields(content, { [key]: val }));
   };
 
   const applyRawDraft = (text: string) => {
@@ -126,11 +123,7 @@ export default function FrontmatterPanel({
 
   const title = fields.title ?? "";
   const tagCount = (fields.tags ?? "").split(",").map((t) => t.trim()).filter(Boolean).length;
-  const summaryText = [fields.scope, fields.read_when]
-    .filter(Boolean)
-    .map((s) => (s.length > 40 ? `${s.slice(0, 40)}…` : s))
-    .join("  ·  ");
-  const summaryLine = [summaryText, tagCount > 0 ? `${tagCount} tag${tagCount === 1 ? "" : "s"}` : null]
+  const summaryLine = [fields.status, tagCount > 0 ? `${tagCount} tag${tagCount === 1 ? "" : "s"}` : null]
     .filter(Boolean)
     .join("  ·  ");
 
@@ -149,17 +142,21 @@ export default function FrontmatterPanel({
     </button>
   );
 
-  const schemaKeys = new Set(schema.fields.map((f) => f.key));
-  const customKeys = Object.keys(fields).filter((k) => !schemaKeys.has(k));
+  const FIXED_KEYS = ["title", "status", "tags"];
+  const customKeys = Object.keys(fields).filter((k) => !FIXED_KEYS.includes(k));
 
   const fieldList = [
-    ...schema.fields.map((field) => (
-      <div key={field.key} data-fm-field={field.key} onFocusCapture={() => (lastFocusedKeyRef.current = field.key)}>
-        {renderSchemaField(field, fields, set, { autoFocus: false, notePaths })}
-      </div>
-    )),
+    <div key="title" data-fm-field="title" onFocusCapture={() => (lastFocusedKeyRef.current = "title")}>
+      <TitleField value={fields.title ?? ""} onChange={(v) => set("title", v)} />
+    </div>,
+    <div key="status" data-fm-field="status" onFocusCapture={() => (lastFocusedKeyRef.current = "status")}>
+      <EnumField fieldKey="status" values={STATUS_VALUES} value={fields.status ?? "draft"} onChange={(v) => set("status", v)} />
+    </div>,
+    <div key="tags" data-fm-field="tags" onFocusCapture={() => (lastFocusedKeyRef.current = "tags")}>
+      <TagsChipInput value={fields.tags ?? ""} onChange={(v) => set("tags", v)} />
+    </div>,
     // Custom/unknown keys — preserved verbatim, never dropped, rendered as a
-    // plain fallback input so they remain editable without schema knowledge.
+    // plain fallback input so they remain editable without fixed-field knowledge.
     ...customKeys.map((key) => (
       <div key={key} data-fm-field={key} onFocusCapture={() => (lastFocusedKeyRef.current = key)}>
         <GenericField fieldKey={key} value={fields[key] ?? ""} onChange={(v) => set(key, v)} autoFocus={false} />
@@ -178,17 +175,6 @@ export default function FrontmatterPanel({
         >
           {mode === "fields" ? "Raw YAML" : "Fields"}
         </button>
-      </div>
-      <div className="flex items-center gap-3 text-ui-caption text-fg-muted -mt-2">
-        <span title="Tokens an agent loads when only read_when is checked">
-          <span className="font-semibold text-fg">{tokenEstimate.readWhen}</span> read_when
-        </span>
-        <span title="Tokens an agent loads at the scope-only tier">
-          <span className="font-semibold text-fg">{tokenEstimate.scoped}</span> +scope
-        </span>
-        <span title="Tokens an agent loads at the full-content tier">
-          <span className="font-semibold text-fg">{tokenEstimate.full}</span> full
-        </span>
       </div>
       {mode === "fields" ? (
         <>
@@ -271,51 +257,5 @@ export default function FrontmatterPanel({
         </div>
       )}
     </div>
-  );
-}
-
-function renderSchemaField(
-  field: SchemaField,
-  fields: Record<string, string>,
-  set: (key: string, val: string) => void,
-  opts: { autoFocus: boolean; notePaths: string[] },
-): React.ReactNode {
-  const value = fields[field.key] ?? "";
-  if (field.key === "title") return <TitleField value={value} onChange={(v) => set("title", v)} />;
-  if (field.key === "scope") {
-    return (
-      <ScopeField
-        value={value}
-        onChange={(v) => set("scope", v)}
-        recommended={fields.status === "active" && !value.trim()}
-      />
-    );
-  }
-  if (field.key === "read_when") {
-    return (
-      <ReadWhenField
-        value={value}
-        onChange={(v) => set("read_when", v)}
-        warning={fields.status === "active" && !value.trim()}
-      />
-    );
-  }
-  if (field.key === "related") {
-    return <RelatedField value={value} onChange={(v) => set("related", v)} notePaths={opts.notePaths} />;
-  }
-  if (field.key === "tags") return <TagsChipInput value={value} onChange={(v) => set("tags", v)} />;
-  if (field.type === "enum") {
-    return <EnumField fieldKey={field.key} values={field.values ?? []} value={value} onChange={(v) => set(field.key, v)} />;
-  }
-  if (field.type === "date") return <DateField value={value} onChange={(v) => set(field.key, v)} />;
-  return (
-    <GenericField
-      fieldKey={field.key}
-      value={value}
-      onChange={(v) => set(field.key, v)}
-      type={field.type === "list" ? "list" : "string"}
-      description={field.description}
-      autoFocus={false}
-    />
   );
 }

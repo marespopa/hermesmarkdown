@@ -1,5 +1,3 @@
-import type { SchemaField, VaultSchema } from "@/app/services/vault-schema";
-
 export const FM_REGEX = /^---\n([\s\S]*?)\n---\n?/;
 
 export function parseFmFields(content: string): Record<string, string> {
@@ -51,11 +49,9 @@ export function normalizeListString(val: string): string {
   return val.split(",").map((s) => s.trim()).filter(Boolean).join(", ");
 }
 
-export function serializeField(key: string, val: string, field?: SchemaField): string {
-  const isListField =
-    field?.type === "list" ||
-    (!field && ["tags", "read_when", "related", "edit_elsewhere"].includes(key));
-  const isBareField = field?.type === "enum" || (!field && key === "status");
+export function serializeField(key: string, val: string): string {
+  const isListField = ["tags"].includes(key);
+  const isBareField = key === "status";
 
   if (isListField) {
     return `${key}: [${normalizeListString(val)}]`;
@@ -73,15 +69,13 @@ export function serializeField(key: string, val: string, field?: SchemaField): s
 export function updateFmFields(
   content: string,
   edits: Record<string, string>,
-  schema?: VaultSchema,
 ): string {
-  const fieldMap = new Map(schema?.fields.map((f) => [f.key, f]));
   const m = FM_REGEX.exec(content);
 
   if (!m) {
     const newLines = Object.entries(edits)
       .filter(([, val]) => val.trim() !== "")
-      .map(([key, val]) => serializeField(key, val, fieldMap.get(key)));
+      .map(([key, val]) => serializeField(key, val));
     if (newLines.length === 0) return content;
     return `---\n${newLines.join("\n")}\n---\n\n${content.trim()}`;
   }
@@ -97,7 +91,7 @@ export function updateFmFields(
     if (lm && lm[1] in edits) {
       const key = lm[1];
       seen.add(key);
-      updatedLines.push(serializeField(key, edits[key], fieldMap.get(key)));
+      updatedLines.push(serializeField(key, edits[key]));
       i++;
       while (i < lines.length && /^\s/.test(lines[i])) i++;
     } else {
@@ -108,7 +102,7 @@ export function updateFmFields(
 
   for (const [key, val] of Object.entries(edits)) {
     if (!seen.has(key) && val.trim() !== "") {
-      updatedLines.push(serializeField(key, val, fieldMap.get(key)));
+      updatedLines.push(serializeField(key, val));
     }
   }
 

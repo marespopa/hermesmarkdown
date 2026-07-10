@@ -11,10 +11,6 @@ import {
   atom_activeFilePath,
 } from "@/app/atoms/atoms";
 import { atom_fileMetadata } from "@/app/atoms/metadata";
-import { atom_isCloudVault } from "@/app/atoms/vault-atoms";
-import { atom_isDriveVault } from "@/app/atoms/drive-atoms";
-import { atom_indexTimestamp } from "@/app/atoms/ui-atoms";
-import { writeVaultIndex } from "@/app/services/vault-index";
 import { useDialog } from "../use-dialog";
 import { withRetry } from "./shared";
 
@@ -30,9 +26,6 @@ export function useRenameItem({ scanVault, indexVaultTags }: UseRenameItemProps)
   const [, setFileName] = useAtom(atom_fileName);
   const [, setActiveFilePath] = useAtom(atom_activeFilePath);
   const setFileMetadata = useSetAtom(atom_fileMetadata);
-  const isCloudVault = useAtom(atom_isCloudVault)[0];
-  const isDriveVault = useAtom(atom_isDriveVault)[0];
-  const setIndexTimestamp = useSetAtom(atom_indexTimestamp);
   const dialog = useDialog();
 
   const renameFile = useCallback(
@@ -176,11 +169,6 @@ export function useRenameItem({ scanVault, indexVaultTags }: UseRenameItemProps)
                 const next = { ...prev };
                 next[newPath] = { ...next[oldPath], path: newPath, name: newName };
                 delete next[oldPath];
-                if (!isCloudVault && !isDriveVault) {
-                  writeVaultIndex(next, vaultHandle)
-                    .then(() => setIndexTimestamp(Date.now()))
-                    .catch((err) => console.warn("Failed to write vault index:", err));
-                }
                 return next;
               });
             } catch (err) {
@@ -227,9 +215,6 @@ export function useRenameItem({ scanVault, indexVaultTags }: UseRenameItemProps)
       setActiveFileHandle,
       setActiveFilePath,
       setFileMetadata,
-      isCloudVault,
-      isDriveVault,
-      setIndexTimestamp,
       dialog,
     ],
   );

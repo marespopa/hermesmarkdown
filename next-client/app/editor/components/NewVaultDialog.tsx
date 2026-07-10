@@ -27,7 +27,7 @@ export default function NewVaultDialog() {
 
   if (!isVisible) return null;
 
-  const canGoBack = vault.subStep === "name-and-folder" || vault.subStep === "starter-pack";
+  const canGoBack = vault.subStep === "name-and-folder";
 
   return (
     <DialogModal

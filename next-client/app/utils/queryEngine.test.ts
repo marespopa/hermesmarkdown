@@ -13,8 +13,6 @@ describe("queryEngine", () => {
     links: [],
     tasks: [],
     handle: {} as any,
-    tokens: { readWhen: 0, scoped: 0, full: 25 },
-    agentScore: null,
   };
 
   it("should match tags with includes", () => {

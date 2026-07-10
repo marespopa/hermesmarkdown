@@ -7,19 +7,18 @@ import {
   atom_isVoiceInputListening,
   atom_isVoiceInputSupported,
   atom_isVoicePreviewVisible,
-  atom_activeTextareaElement,
-  atom_voiceOpenLinkDialogRequest,
 } from "@/app/atoms/atoms";
+import { atom_activeEditorView } from "@/app/atoms/ui-atoms";
 import { useVoiceInput } from "./use-voice-input";
 import { joinVoiceChunks, type VoiceInsertion } from "../utils/voice-command-parser";
-import { typewriterInsertText } from "../utils/typewriter-insert";
+import { typewriterInsertCM6 } from "../codemirror/typewriter-insert";
 
 // A single shared dictation session for the whole app — instantiated once
 // (in page.tsx), not per pane. Switching the active pane mid-dictation must
 // not drop the in-progress preview or restart the mic, so neither the
 // SpeechRecognition session nor the preview buffer is scoped to any one
-// pane's lifecycle. "Insert" writes into whichever textarea is currently
-// registered as active (see atom_activeTextareaElement).
+// pane's lifecycle. "Insert" writes into whichever CM6 view is currently
+// registered as active (see atom_activeEditorView).
 export function useGlobalVoiceInput() {
   // Dictated speech accumulates here instead of going straight into the
   // document, so mishears/garbling can be reviewed and hand-edited before
@@ -39,7 +38,6 @@ export function useGlobalVoiceInput() {
   // refinement or a "scratch that" can remove exactly that much from the
   // tail of the buffer. Only tracks one level back, not a stack.
   const lastVoiceChunkLengthRef = useRef<number | null>(null);
-  const setVoiceOpenLinkDialogRequest = useSetAtom(atom_voiceOpenLinkDialogRequest);
 
   const clearVoicePreview = useCallback(() => {
     voicePreviewTextRef.current = "";
@@ -88,11 +86,6 @@ export function useGlobalVoiceInput() {
       return;
     }
 
-    if (insertion.kind === "open-link-dialog") {
-      setVoiceOpenLinkDialogRequest((v) => v + 1);
-      return;
-    }
-
     if (insertion.kind === "delete-last") {
       const chunkLength = lastVoiceChunkLengthRef.current;
       if (!chunkLength) return;
@@ -113,7 +106,7 @@ export function useGlobalVoiceInput() {
     voicePreviewTextRef.current = next;
     setVoicePreviewTextState(next);
     lastVoiceChunkLengthRef.current = insertion.text.length;
-  }, [setVoiceOpenLinkDialogRequest, clearVoicePreview, stopListening]);
+  }, [clearVoicePreview, stopListening]);
 
   const handleVoiceInterimTranscript = useCallback((transcript: string | null) => {
     setVoiceInterimText(transcript);
@@ -139,19 +132,15 @@ export function useGlobalVoiceInput() {
     wasVoiceListeningRef.current = isVoiceListening;
   }, [isVoiceListening, clearVoicePreview]);
 
-  const activeTextareaElement = useAtomValue(atom_activeTextareaElement);
+  const activeEditorView = useAtomValue(atom_activeEditorView);
   const commitVoicePreview = useCallback(() => {
     const text = voicePreviewTextRef.current;
-    const textarea = activeTextareaElement;
-    if (text && textarea) {
-      const start = textarea.selectionStart;
-      const end = textarea.selectionEnd;
-      textarea.focus();
-      textarea.setSelectionRange(start, end);
-      typewriterInsertText(textarea, text);
+    const view = activeEditorView;
+    if (text && view) {
+      typewriterInsertCM6(view, text);
     }
     clearVoicePreview();
-  }, [activeTextareaElement, clearVoicePreview]);
+  }, [activeEditorView, clearVoicePreview]);
   commitVoicePreviewRef.current = commitVoicePreview;
 
   // The mic button lives in the global AI-chat FAB group / icon rail

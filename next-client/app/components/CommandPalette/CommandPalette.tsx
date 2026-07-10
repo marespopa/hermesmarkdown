@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { createPortal } from "react-dom";
 import { useAtomValue } from "jotai";
 import { atom_fileMetadata } from "@/app/atoms/metadata";
 import { atom_showHiddenFiles } from "@/app/atoms/ui-atoms";
@@ -9,7 +8,7 @@ import { useFileSystem } from "@/app/hooks/use-file-system";
 import { useCommandPalette, type Command } from "./CommandPaletteContext";
 import useIsMobileChrome from "@/app/hooks/use-mobile-chrome";
 import { HiOutlineSearch, HiOutlineX } from "react-icons/hi";
-import { useBackButtonClose } from "@/app/hooks/use-back-button-close";
+import OverlayPanel from "@/app/components/OverlayLayer/OverlayPanel";
 
 const ROW_HEIGHT = 36;
 const MAX_VISIBLE_ROWS = 8;
@@ -86,25 +85,15 @@ export default function CommandPalette() {
   const showHiddenFiles = useAtomValue(atom_showHiddenFiles);
   const { openFile } = useFileSystem();
   const isMobileChrome = useIsMobileChrome();
-  const [mounted, setMounted] = useState(false);
-  const [showBackdrop, setShowBackdrop] = useState(false);
   const [query, setQuery] = useState("");
   const [selectedIndex, setSelectedIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => setMounted(true), []);
-
-  useBackButtonClose(isOpen, close);
 
   useEffect(() => {
     if (isOpen) {
       setQuery("");
       setSelectedIndex(0);
-      setShowBackdrop(true);
       requestAnimationFrame(() => inputRef.current?.focus());
-    } else {
-      const t = setTimeout(() => setShowBackdrop(false), 100);
-      return () => clearTimeout(t);
     }
   }, [isOpen]);
 
@@ -196,108 +185,102 @@ export default function CommandPalette() {
     } else if (e.key === "Enter" || e.key === "Tab") {
       e.preventDefault();
       execute(selectedIndex);
-    } else if (e.key === "Escape") {
-      e.preventDefault();
-      close();
     }
+    // Escape is handled globally by OverlayPanel's useOverlayDismissal.
   };
-
-  if (!mounted || !showBackdrop) return null;
 
   const rowHeightClass = isMobileChrome ? "min-h-11" : "h-9";
 
-  return createPortal(
-    <div className="fixed inset-0 z-[1000]">
-      <div
-        className={`absolute inset-0 bg-fg/30 transition-opacity duration-100 ${isOpen ? "opacity-100" : "opacity-0"}`}
-        onClick={close}
-      />
-      {isOpen && (
-        <div
-          className={
-            isMobileChrome
-              ? "fixed inset-0 flex flex-col bg-chrome animate-in slide-in-from-bottom duration-200"
-              : "fixed left-1/2 top-[35vh] -translate-x-1/2 w-[560px] max-w-[calc(100vw-2rem)] max-h-[calc(100vh-35vh-2rem)] flex flex-col bg-chrome border border-edge rounded-2xl overflow-hidden"
-          }
-        >
-          <div className="p-2 border-b border-b-edge flex items-center gap-2">
-            <div className="flex-1 flex items-center h-11 sm:h-9 px-3 gap-2 rounded-xl border border-edge bg-paper-light dark:bg-paper-dark focus-within:ring-2 focus-within:ring-sage/20 transition-all duration-150">
-              <HiOutlineSearch size={15} className="shrink-0 text-fg-faint" />
-              <input
-                ref={inputRef}
-                type="search"
-                autoFocus
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                onKeyDown={handleKeyDown}
-                placeholder="Search files, > for commands, # for tags"
-                className="flex-1 min-w-0 bg-transparent text-fg text-[15px] outline-none focus-visible:outline-none caret-accent"
-                autoComplete="off"
-                autoCorrect="off"
-                spellCheck={false}
-                data-lpignore="true"
-                data-1p-ignore
-                data-bwignore="true"
-                data-nordpass-ignore="true"
-              />
-            </div>
-            {isMobileChrome && (
-              <button
-                type="button"
-                onClick={close}
-                aria-label="Close"
-                className="shrink-0 w-11 h-11 flex items-center justify-center text-fg-muted"
-              >
-                <HiOutlineX size={20} />
-              </button>
-            )}
-          </div>
-          <div
-            className="flex-1 min-h-0 overflow-y-auto"
-            style={!isMobileChrome ? { maxHeight: ROW_HEIGHT * MAX_VISIBLE_ROWS } : undefined}
-          >
-            {rows.length === 0 && (
-              <div className="flex items-center justify-center h-9 text-ui-footnote text-fg-muted">No results</div>
-            )}
-            {rows.map((row, index) => {
-              const key = row.kind === "command" ? row.command.id : row.file.path;
-              const isSelected = index === selectedIndex;
-              return (
-                <button
-                  key={key}
-                  type="button"
-                  onClick={() => execute(index)}
-                  onMouseEnter={() => setSelectedIndex(index)}
-                  className={`w-full flex items-center justify-between gap-3 pl-10 pr-4 ${rowHeightClass} text-left text-[14px] cursor-pointer select-none ${
-                    isSelected ? "border-l-2 border-accent bg-accent/10 text-fg" : "border-l-2 border-transparent text-fg"
-                  }`}
-                >
-                  {row.kind === "command" ? (
-                    <>
-                      <span className="truncate">
-                        <HighlightedText text={row.command.label} indices={row.indices} />
-                      </span>
-                      {row.command.shortcut && !isMobileChrome && (
-                        <span className="shrink-0 font-mono text-ui-micro text-fg-muted">{row.command.shortcut}</span>
-                      )}
-                    </>
-                  ) : (
-                    <>
-                      <span className="truncate">
-                        <HighlightedText text={row.file.name} indices={row.indices} />
-                      </span>
-                      <span className="shrink-0 truncate text-ui-micro text-fg-muted">
-                        {row.matchedTag ? `#${row.matchedTag}` : row.file.path}
-                      </span>
-                    </>
-                  )}
-                </button>
-              );
-            })}
-          </div>
+  return (
+    <OverlayPanel
+      isOpen={isOpen}
+      onClose={close}
+      variant={isMobileChrome ? "sheet" : "modal"}
+      backdrop="dim"
+      backdropClassName={`transition-opacity duration-overlay-backdrop ${isOpen ? "opacity-100" : "opacity-0"}`}
+      exitDurationMs={100}
+      containerClassName={isMobileChrome ? "" : "items-start justify-center pt-[18vh] px-4"}
+      panelClassName={
+        isMobileChrome
+          ? "flex-1 flex flex-col bg-chrome animate-in slide-in-from-bottom duration-overlay-panel"
+          : "w-[560px] max-w-[calc(100vw-2rem)] max-h-[calc(100vh-18vh-2rem)] flex flex-col bg-chrome border border-edge rounded-2xl overflow-hidden"
+      }
+    >
+      <div className="p-2 border-b border-b-edge flex items-center gap-2">
+        <div className="flex-1 flex items-center h-11 sm:h-9 px-3 gap-2 rounded-xl border border-edge bg-paper-light dark:bg-paper-dark focus-within:ring-2 focus-within:ring-sage/20 transition-all duration-150">
+          <HiOutlineSearch size={15} className="shrink-0 text-fg-faint" />
+          <input
+            ref={inputRef}
+            type="search"
+            autoFocus
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder="Search files, > for commands, # for tags"
+            className="flex-1 min-w-0 bg-transparent text-fg text-[15px] outline-none focus-visible:outline-none caret-accent"
+            autoComplete="off"
+            autoCorrect="off"
+            spellCheck={false}
+            data-lpignore="true"
+            data-1p-ignore
+            data-bwignore="true"
+            data-nordpass-ignore="true"
+          />
         </div>
-      )}
-    </div>,
-    document.body,
+        {isMobileChrome && (
+          <button
+            type="button"
+            onClick={close}
+            aria-label="Close"
+            className="shrink-0 w-11 h-11 flex items-center justify-center text-fg-muted"
+          >
+            <HiOutlineX size={20} />
+          </button>
+        )}
+      </div>
+      <div
+        className="flex-1 min-h-0 overflow-y-auto"
+        style={!isMobileChrome ? { maxHeight: ROW_HEIGHT * MAX_VISIBLE_ROWS } : undefined}
+      >
+        {rows.length === 0 && (
+          <div className="flex items-center justify-center h-9 text-ui-footnote text-fg-muted">No results</div>
+        )}
+        {rows.map((row, index) => {
+          const key = row.kind === "command" ? row.command.id : row.file.path;
+          const isSelected = index === selectedIndex;
+          return (
+            <button
+              key={key}
+              type="button"
+              onClick={() => execute(index)}
+              onMouseEnter={() => setSelectedIndex(index)}
+              className={`w-full flex items-center justify-between gap-3 pl-10 pr-4 ${rowHeightClass} text-left text-[14px] cursor-pointer select-none ${
+                isSelected ? "border-l-2 border-accent bg-accent/10 text-fg" : "border-l-2 border-transparent text-fg"
+              }`}
+            >
+              {row.kind === "command" ? (
+                <>
+                  <span className="truncate">
+                    <HighlightedText text={row.command.label} indices={row.indices} />
+                  </span>
+                  {row.command.shortcut && !isMobileChrome && (
+                    <span className="shrink-0 font-mono text-ui-micro text-fg-muted">{row.command.shortcut}</span>
+                  )}
+                </>
+              ) : (
+                <>
+                  <span className="truncate">
+                    <HighlightedText text={row.file.name} indices={row.indices} />
+                  </span>
+                  <span className="shrink-0 truncate text-ui-micro text-fg-muted">
+                    {row.matchedTag ? `#${row.matchedTag}` : row.file.path}
+                  </span>
+                </>
+              )}
+            </button>
+          );
+        })}
+      </div>
+    </OverlayPanel>
   );
 }

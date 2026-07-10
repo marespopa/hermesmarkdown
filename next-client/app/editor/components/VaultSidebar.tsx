@@ -8,6 +8,11 @@ import {
   HiOutlineChevronLeft,
   HiOutlineCloud,
   HiOutlineDocumentAdd,
+  HiOutlineFolder,
+  HiOutlineSearch,
+  HiOutlineTag,
+  HiOutlineCollection,
+  HiOutlineClipboardList,
 } from "react-icons/hi";
 import Button from "@/app/components/Button";
 import {
@@ -29,6 +34,14 @@ import DriveAuthBanner from "./DriveAuthBanner";
 import { atom_driveVaultName, atom_drivePathIndex } from "@/app/atoms/drive-atoms";
 import { HiOutlineRefresh } from "react-icons/hi";
 import { DriveDirectoryHandle } from "@/app/services/drive/DriveDirectoryHandle";
+
+const SIDEBAR_PANELS: { id: RailPanel; label: string; Icon: React.ComponentType<{ size?: number }> }[] = [
+  { id: "files", label: "Files", Icon: HiOutlineFolder },
+  { id: "search", label: "Search", Icon: HiOutlineSearch },
+  { id: "tags", label: "Tags", Icon: HiOutlineTag },
+  { id: "views", label: "Views", Icon: HiOutlineCollection },
+  { id: "tasks", label: "Tasks", Icon: HiOutlineClipboardList },
+];
 
 function DriveExpiredPanel({ vaultName, onReconnect }: { vaultName: string | null; onReconnect: () => void }) {
   const [isConnecting, setIsConnecting] = React.useState(false);
@@ -64,6 +77,8 @@ interface VaultSidebarProps {
   onImport?: () => void;
   onExport?: () => void;
   onRefresh?: () => Promise<void>;
+  onHome?: () => void;
+  onOpenDocumentation?: () => void;
 }
 
 export default function VaultSidebar({
@@ -74,6 +89,8 @@ export default function VaultSidebar({
   onImport,
   onExport,
   onRefresh,
+  onHome,
+  onOpenDocumentation,
 }: VaultSidebarProps) {
   const {
     openFile,
@@ -251,6 +268,28 @@ export default function VaultSidebar({
           )}
         </div>
 
+        {vaultHandle && (
+          <div className="-mx-3 px-2 flex items-stretch gap-0.5 border-t border-edge-subtle">
+            {SIDEBAR_PANELS.map(({ id, label, Icon }) => (
+              <button
+                key={id}
+                type="button"
+                onClick={() => setRailPanel(id)}
+                title={label}
+                aria-label={label}
+                aria-pressed={panel === id}
+                className={`flex-1 flex items-center justify-center py-2 transition-colors ${
+                  panel === id
+                    ? "text-sage"
+                    : "text-ink-muted hover:text-ink-light dark:text-stone dark:hover:text-ink-dark"
+                }`}
+              >
+                <Icon size={16} />
+              </button>
+            ))}
+          </div>
+        )}
+
         {vaultHandle && panel === "files" && (
           <div className="-mx-3 px-1 flex items-stretch border-t border-b border-edge-subtle">
             <button
@@ -377,6 +416,8 @@ export default function VaultSidebar({
         isRefreshing={isRefreshing}
         showHiddenFiles={showHiddenFiles}
         onToggleHiddenFiles={handleToggleHiddenFiles}
+        onHome={onHome}
+        onOpenDocumentation={onOpenDocumentation}
       />
       </div>
   );

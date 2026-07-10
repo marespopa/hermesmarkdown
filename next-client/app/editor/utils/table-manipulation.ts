@@ -160,3 +160,70 @@ export function tableToCSV(lines: string[], tableStart: number, tableEnd: number
   }
   return rows.join("\n");
 }
+
+// Splits one CSV/TSV line into cells, honoring double-quoted fields (with
+// "" as an escaped quote) so a delimiter or newline inside quotes doesn't
+// split the field — mirrors what escapeCSVCell produces on the way out.
+function splitDelimitedLine(line: string, delimiter: string): string[] {
+  const cells: string[] = [];
+  let current = "";
+  let inQuotes = false;
+  for (let i = 0; i < line.length; i++) {
+    const char = line[i];
+    if (inQuotes) {
+      if (char === '"') {
+        if (line[i + 1] === '"') {
+          current += '"';
+          i++;
+        } else {
+          inQuotes = false;
+        }
+      } else {
+        current += char;
+      }
+    } else if (char === '"' && current === "") {
+      inQuotes = true;
+    } else if (char === delimiter) {
+      cells.push(current);
+      current = "";
+    } else {
+      current += char;
+    }
+  }
+  cells.push(current);
+  return cells;
+}
+
+// Detects whether pasted text is shaped like tabular data worth offering to
+// convert: at least two lines, sharing a delimiter (tab takes priority since
+// that's what spreadsheet apps put on the clipboard; comma is the plain-CSV
+// fallback) that appears a consistent number of times per line. Returns null
+// for anything that doesn't clearly qualify, so ambiguous prose is left alone.
+export function detectDelimitedTable(text: string): "\t" | "," | null {
+  const lines = text.replace(/\r\n/g, "\n").split("\n").filter((l) => l.length > 0);
+  if (lines.length < 2) return null;
+
+  for (const delimiter of ["\t", ","] as const) {
+    const counts = lines.map((l) => splitDelimitedLine(l, delimiter).length);
+    if (counts[0] > 1 && counts.every((c) => c === counts[0])) {
+      return delimiter;
+    }
+  }
+  return null;
+}
+
+// Converts delimited text (as detected by detectDelimitedTable) into a
+// Markdown table, treating the first row as the header.
+export function delimitedTextToMarkdownTable(text: string, delimiter: "\t" | ","): string {
+  const lines = text.replace(/\r\n/g, "\n").split("\n").filter((l) => l.length > 0);
+  const rows = lines.map((l) => splitDelimitedLine(l, delimiter).map((c) => c.trim()));
+  const colCount = rows[0].length;
+
+  const out = [serializeRow(rows[0])];
+  out.push(serializeSeparator(Array(colCount).fill("")));
+  for (let i = 1; i < rows.length; i++) {
+    const cells = rows[i].length === colCount ? rows[i] : [...rows[i], ...Array(colCount - rows[i].length).fill("")].slice(0, colCount);
+    out.push(serializeRow(cells));
+  }
+  return out.join("\n");
+}

@@ -22,7 +22,6 @@ import DialogModal from "../../components/DialogModal/DialogModal";
 import { callAIChat, type ApiMessage, type ApiPart } from "@/app/services/ai";
 import { showErrorToast } from "@/app/components/Toastr";
 import { FORMULA_PRESERVATION_RULE } from "../hooks/useAIEditorActions";
-import { useVaultAgentContext } from "../hooks/useVaultAgentContext";
 import { useVoiceInput } from "../hooks/use-voice-input";
 import { joinVoiceChunks, type VoiceInsertion } from "../utils/voice-command-parser";
 import { atom_fileMetadata, type FileMetadata } from "@/app/atoms/metadata";
@@ -56,7 +55,7 @@ interface VaultRef {
 }
 
 // @mention dropdown entries: a single file, a whole-vault index, or a folder-scoped index.
-// @vault/@folder inject a lightweight index (path + title/scope + tags) rather than full file
+// @vault/@folder inject a lightweight index (path + title + tags) rather than full file
 // contents — dumping every note's body would blow past the model's context on any real vault.
 type MentionOption =
   | { kind: "file"; file: FileMetadata }
@@ -65,9 +64,8 @@ type MentionOption =
 
 function describeFile(m: FileMetadata): string {
   const title = m.frontmatter?.title || m.name.replace(/\.md$/, "");
-  const scope = m.frontmatter?.scope ? ` — ${m.frontmatter.scope}` : "";
   const tags = m.tags?.length ? ` [${m.tags.join(", ")}]` : "";
-  return `- ${m.path}: ${title}${scope}${tags}`;
+  return `- ${m.path}: ${title}${tags}`;
 }
 
 function buildIndex(fileMetadata: Record<string, FileMetadata>, pathPrefix?: string): string {
@@ -172,20 +170,6 @@ function buildApiContent(text: string, atts: Attachment[]): string | ApiPart[] {
   return parts;
 }
 
-// Loose match: a skill's `read_when` is a comma-joined string of trigger
-// phrases (see parseFmFields); the file counts as relevant if the user's
-// message contains any of them as a substring. Deliberately permissive —
-// missing a relevant skill is worse than including an occasionally-irrelevant
-// one, and skill files are small enough that a false positive is cheap.
-function matchesReadWhen(query: string, readWhen: unknown): boolean {
-  const keywords = String(readWhen ?? "")
-    .split(",")
-    .map((s) => s.trim().toLowerCase())
-    .filter(Boolean);
-  const q = query.toLowerCase();
-  return keywords.some((kw) => q.includes(kw));
-}
-
 async function readVaultFile(
   path: string,
   vaultHandle: any,
@@ -218,7 +202,6 @@ export default function AIChatDialog({
   currentFilePath,
   onApply,
 }: AIChatDialogProps) {
-  const vaultAgentContext = useVaultAgentContext();
   const fileMetadata = useAtomValue(atom_fileMetadata);
   const vaultHandle = useAtomValue(atom_vaultHandle);
   const isDriveVault = useAtomValue(atom_isDriveVault);
@@ -384,14 +367,8 @@ export default function AIChatDialog({
     }
   }, [mention, input, vaultHandle, isDriveVault, drivePathIndex, fileMetadata]);
 
-  const buildSystemPrompt = useCallback((skillsContext?: string) => {
+  const buildSystemPrompt = useCallback(() => {
     const parts = [SYSTEM_PROMPT];
-    if (vaultAgentContext) {
-      parts.push(`\n--- VAULT CONTEXT (_agent-context.md) ---\n${vaultAgentContext}\n--- END VAULT CONTEXT ---`);
-    }
-    if (skillsContext) {
-      parts.push(`\n--- MATCHED SKILLS (triggered by this message's read_when keywords) ---\n${skillsContext}\n--- END MATCHED SKILLS ---`);
-    }
     if (selectedText.trim()) {
       parts.push(`\n--- SELECTED TEXT (target for edits) ---\n${selectedText}\n--- END SELECTED TEXT ---`);
     } else if (documentContent.trim()) {
@@ -402,7 +379,7 @@ export default function AIChatDialog({
       parts.push(`\n--- CURRENT DOCUMENT (for context only — output only the requested content, not the full document) ---\n${preview}\n--- END DOCUMENT ---`);
     }
     return parts.join("\n");
-  }, [documentContent, selectedText, vaultAgentContext]);
+  }, [documentContent, selectedText]);
 
   const handleAttachFiles = async (files: FileList | null) => {
     if (!files) return;
@@ -432,26 +409,6 @@ export default function AIChatDialog({
     const autoRefs = await resolveMentionRefs(trimmed, vaultRefs, fileMetadata, vaultHandle, isDriveVault, drivePathIndex);
     const allRefs = [...vaultRefs, ...autoRefs];
 
-    // Skills the user's message triggers via read_when keywords — loaded fresh per
-    // message (not cached) since which skills match depends on the message text.
-    const matchedSkills = Object.values(fileMetadata).filter(
-      (m) => m.path.startsWith("_skills/") && m.path.endsWith(".md") && matchesReadWhen(trimmed, m.frontmatter?.read_when),
-    );
-    let skillsContext = "";
-    if (matchedSkills.length) {
-      try {
-        const blocks = await Promise.all(
-          matchedSkills.map(async (m) => {
-            const content = await readVaultFile(m.path, vaultHandle, isDriveVault, drivePathIndex);
-            return `\n--- SKILL (${m.path}) ---\n${content}\n--- END SKILL ---`;
-          }),
-        );
-        skillsContext = blocks.join("\n");
-      } catch {
-        // Best-effort — proceed without skill context rather than blocking the message.
-      }
-    }
-
     // Build API text: append vault ref content blocks after the user's message
     const refBlocks = allRefs
       .map((r) => `\n--- ${r.label} ---\n${r.content}\n--- End ${r.label} ---`)
@@ -476,7 +433,7 @@ export default function AIChatDialog({
 
     try {
       const apiMessages: ApiMessage[] = newMessages.map((m) => ({ role: m.role, content: m.apiContent }));
-      const reply = await callAIChat(buildSystemPrompt(skillsContext), apiMessages);
+      const reply = await callAIChat(buildSystemPrompt(), apiMessages);
       setMessages((prev) => [...prev, { role: "assistant", displayContent: reply, apiContent: reply }]);
     } catch (err: any) {
       showErrorToast(err.message || "AI request failed.");

@@ -16,6 +16,49 @@ The app opens in writing mode every time. Navigation is a deliberate action, nev
 
 ---
 
+## Structural Architecture
+
+Building on the UX behaviors above, this section defines the actual structural breakdown — layout hierarchy, states, and how the pieces relate.
+
+### Layout Hierarchy (outside-in)
+
+1. **Viewport** — full browser/window height and width, no app frame visible
+2. **Content column** — fixed max-width, horizontally centered, this is the only thing that's always present
+3. **Overlays** — sidebar, command palette, quick switcher, WikiLink preview — all absolutely positioned over the content column, never pushing it or resizing it. The column's width never changes when an overlay opens; overlays float above it or slide in from an edge and get dismissed without a layout reflow.
+
+This is the core structural rule: **the writing column is layout-stable.** Nothing that opens or closes should reflow the text you're looking at. That's what makes "no chrome at rest" feel true rather than just visually true — chrome that pushes content around still feels present even when it's invisible 90% of the time.
+
+### States the Editor Needs to Support
+
+| State | Trigger | Behavior |
+|---|---|---|
+| Rest | default | column only, everything else hidden |
+| Sidebar open | keystroke / edge hover | slides in from left, overlays column, doesn't resize it |
+| Command palette | keystroke | centered modal overlay, dims background slightly |
+| Quick switcher | keystroke | same treatment as command palette, different content |
+| Focus mode | toggle | dims all text except current sentence/paragraph within the same column |
+| WikiLink hover | mouse/keyboard hover on a link | small popover near the link, dismisses on move-away |
+| Full-screen | toggle | hides OS chrome too; column position/width unchanged from rest state |
+
+### Component Boundaries
+
+Useful for scoping actual build tickets.
+
+- `EditorColumn` — owns text rendering, inline formatting, typewriter-mode scroll behavior. Has zero knowledge of sidebar/palette state.
+- `OverlayLayer` — single layer above the column that mounts/unmounts sidebar, palette, switcher, hover previews. One system, not four separate ones, so they share dismissal logic (click-outside, Escape) consistently.
+- `CommandRegistry` — the single source of truth for every action (format, navigate, AI command, toggle focus mode). Palette, keyboard shortcuts, and any future menu all read from this one registry rather than each implementing their own action list — this is what keeps "command palette is the only menu" actually true as the app grows.
+
+### Mobile Structure
+
+- Sidebar/palette overlays become bottom sheets or full-screen takeovers rather than side panels — same "doesn't reflow the column" rule applies, just a different overlay shape.
+- Typewriter mode and focus mode both still apply; touch keyboards eat more vertical space, so fixed-line-position matters more on mobile, not less.
+
+### Structural Decision: Build `OverlayLayer` Generically, Now
+
+Given how much of the "feels minimal" experience depends on all overlays behaving identically (same dismiss behavior, same animation timing, same z-index rules), build the generic overlay layer first, even though it's more upfront work. Retrofitting four inconsistent overlay implementations into one system later is a bigger rewrite than building it right once.
+
+---
+
 ## Color System
 
 Replace all earth-tone surface tokens with neutrals. Clay and moss become accent-only — they appear exclusively on interactive elements, never as backgrounds.
@@ -94,9 +137,9 @@ Opens a centered modal above the editor. Fuzzy search across all registered comm
 
 **2. Mouse to left edge — hover sidebar**
 
-Moving the mouse to the left edge of the viewport slides the sidebar in as an overlay. It does not push or reflow the editor. A semi-transparent backdrop sits behind it.
+Moving the mouse to the left edge of the viewport opens the sidebar directly, defaulting to the last-used panel — there is no intermediate icon rail to reveal first; panel switching (Files/Search/Tags/Views/Tasks) lives in the command palette (see Icon Rail, below).
 
-Moving the mouse back to the editor or pressing `Escape` dismisses it automatically.
+Pressing `Escape` or returning focus to the editor dismisses it. Today this still reflows the editor's content width, matching the current desktop implementation — converting it to a true non-reflowing overlay is tracked separately.
 
 **3. Pinned sidebar — explicit toggle**
 
@@ -142,17 +185,19 @@ Formerly called Smart Workspaces. Renamed to Views — more familiar, maps to wh
 
 ### Search and Tags
 
-Accessible via icon rail icons — same overlay behavior as the sidebar. Icon rail is only visible when the sidebar is open, not at rest in writing mode.
+Accessible via command palette commands (Search, Open Tags, Open Views, Open Tasks — see Command Registry), or by opening the sidebar and switching sections there. There is no icon rail; see Icon Rail, below.
+
+### Footer
+
+Bottom row of the sidebar, icon-only buttons: **Home** and **Documentation** on the left (one-tap navigation, redundant with their command-palette entries but reachable without invoking the palette whenever the sidebar happens to already be open); vault-scoped actions on the right — Show Hidden Files, Refresh Vault, Close/Open Vault.
 
 ---
 
 ## Icon Rail
 
-Narrow vertical strip on the absolute left edge of the sidebar. Visible only when the sidebar is open.
+There is no panel-switching icon rail. The command palette is the primary control surface for nearly everything that used to be a rail button — opening Files/Search/Tags/Views/Tasks, Home, Documentation, Voice, Settings, and Toggle Theme are all commands (see Command Registry).
 
-Icons: Files, Search, Tags in top section. Settings, Theme toggle in bottom section.
-
-Active icon: clay color. Inactive: moss color. Hover: steps toward primary text color. No backgrounds, no border-radius on any icon button. Tooltip on hover after 400ms delay, positioned to the right of the icon.
+The one exception is **Chat** (`FabBar`): a single draggable floating button, present on both desktop and mobile, position persisted to `localStorage`. It's the one action kept outside the palette because it's a live-status toggle you want glanceable while writing (it pulses while the AI is busy) rather than a one-off navigation action — the same reasoning doesn't apply to Voice, which is a command like everything else despite also being a toggle, since its state is better surfaced elsewhere (recording indicator) than by needing a permanent floating button. Chat only renders when an AI provider is configured. Everything that used to live in the mobile control rail's "More" sheet (Open Files, Save, Copy Markdown, Document Info, Vault Health, Close Vault, Settings, Theme, Home, Documentation) is command-palette-only, matching desktop. On mobile, `MobileFileIndicator` (the persistent top bar showing the current filename) doubles as the tap target for the command palette when no files are open yet, since there's no keyboard shortcut on touch devices.
 
 ---
 
@@ -173,11 +218,17 @@ All existing app actions must be registered:
 - Open file (fuzzy file search mode)
 - New file
 - New folder
+- Open Files / Search / Tags / Views / Tasks (panel switches — mobile-aware: branches to the mobile file/tasks overlays instead of a sidebar panel)
 - Toggle sidebar (pin/unpin)
 - Toggle right sidebar
 - Toggle theme
+- Toggle voice input
 - Open settings
 - Open vault
+- Home
+- Documentation
+- Copy Markdown
+- Close vault
 - Export current file
 - Toggle frontmatter collapse
 - Open Builder / AI
@@ -196,25 +247,17 @@ Implemented as a `CommandPaletteProvider` context. Commands register via a `useR
 
 Full viewport, no chrome visible while writing. Content full width with horizontal padding only. Line height and font size match desktop. Virtual keyboard detection via `visualViewport` API — when keyboard opens, all chrome hides automatically.
 
-### Bottom Navigation Bar
+### Navigation
 
-Always visible when keyboard is closed. Hides when virtual keyboard opens. Reappears when keyboard closes.
-
-Four icons only, left to right:
-1. Files
-2. Search
-3. New File
-4. Menu (command palette)
+No bottom navigation bar. Same command-palette-first model as desktop — Files, Search, Tasks, and everything else open via command palette commands (mobile-aware ones open a full-screen overlay instead of a sidebar panel where the two differ, e.g. Files/Tasks). The only persistent floating control is the draggable Chat button (`FabBar`), shown only when an AI provider is configured — see Icon Rail.
 
 ### File Switching
 
-Tap Files → full-screen overlay slides up. File tree same structure as desktop sidebar. Includes Views section above file tree. Tap a file → overlay dismisses → editor focuses that file.
-
-Tap Search → full-screen search overlay. Same dismiss behavior.
+The "Open Files" command → full-screen overlay slides up (`MobileFileOverlay`). File tree same structure as desktop sidebar, includes a Views tab. Tap a file → overlay dismisses → editor focuses that file. The "Open Tasks" command opens the equivalent full-screen tasks overlay.
 
 ### Current File Indicator
 
-Minimal top bar, single line height, current filename only. Visible when keyboard is closed. Tappable — shows list of open files if more than one is open. Hides when keyboard is open.
+Minimal top bar (`MobileFileIndicator`), single line height. Shows the current filename once a file is open — tappable, shows a list of open files if more than one is open, with a "Search all files…" row to reach the command palette. Before any file is open, this bar instead shows a plain "Search files…" tap target, so the command palette always has a reachable entry point on touch devices (no keyboard shortcut). Idle-fades while the editor is focused; reappears on a top-edge tap. Hides when the virtual keyboard is open.
 
 ### Formatting
 
@@ -222,7 +265,7 @@ No persistent toolbar. Select text → minimal floating toolbar appears above th
 
 ### Command Palette on Mobile
 
-Opens as a full-screen overlay from the Menu icon. Same fuzzy search and command registry as desktop. Keyboard opens automatically on palette open.
+Opens as a full-screen overlay, triggered by tapping the current-file indicator (or its "Search all files…" row). Same fuzzy search and command registry as desktop. Keyboard opens automatically on palette open.
 
 ---
 
@@ -231,7 +274,7 @@ Opens as a full-screen overlay from the Menu icon. Same fuzzy search and command
 The default writing mode already functions as zen mode. The existing `Ctrl+Shift+Z` toggle remains but its behavior narrows:
 
 - Desktop: force-dismisses any pinned sidebar
-- Mobile: hides the current file indicator top bar and bottom navigation
+- Mobile: hides the current file indicator top bar and the floating Chat button
 
 Essentially: even more nothing.
 

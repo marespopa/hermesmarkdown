@@ -16,33 +16,23 @@ import {
   atom_editorWidth,
   atom_autoInjectFrontmatter,
   atom_frontmatterDefaultMode,
-  atom_schemaAutoCreate,
   atom_aiProvider,
   atom_selectedAiModel,
   atom_claudeKey,
   atom_geminiKey,
 } from "@/app/atoms/atoms";
-import { atom_vaultSetupWizardOpen, atom_availableGeminiModels, atom_schemaWizardOpen, atom_vaultMigrateOpen, atom_indexTimestamp, atom_showHiddenFiles, atom_voiceWizardOpen, atom_isAiConfigured } from "@/app/atoms/ui-atoms";
-import type { StarterPackId } from "@/app/atoms/ui-atoms";
-import { STARTER_PACKS, installStarterPack } from "@/app/services/starter-packs";
-import { atom_vaultSchema } from "@/app/atoms/schema-atoms";
+import { atom_availableGeminiModels, atom_showHiddenFiles, atom_voiceWizardOpen, atom_isAiConfigured } from "@/app/atoms/ui-atoms";
 import { atom_vaultHandle } from "@/app/atoms/atoms";
-import { atom_fileMetadata } from "@/app/atoms/metadata";
-import { writeVaultIndex, writeDriveVaultIndex } from "@/app/services/vault-index";
-import { atom_driveVaultId, atom_driveVaultName, atom_isDriveVault, atom_drivePathIndex } from "@/app/atoms/drive-atoms";
+import { atom_driveVaultId, atom_driveVaultName, atom_isDriveVault } from "@/app/atoms/drive-atoms";
 import { useDriveAuth } from "@/app/hooks/drive/use-drive-auth";
 import { useFileSystem } from "@/app/hooks/use-file-system";
 import { testAIConnection, fetchGeminiModels } from "@/app/services/ai";
 import {
   HiOutlineArrowLeft,
-  HiOutlineDocumentText,
   HiOutlinePencilAlt,
-  HiOutlineColorSwatch,
   HiOutlineAcademicCap,
   HiOutlineCloud,
   HiOutlineLightningBolt,
-  HiOutlineTemplate,
-  HiOutlineArchive,
   HiCheck,
   HiOutlineRefresh,
 } from "react-icons/hi";
@@ -57,9 +47,6 @@ import {
   SettingGroup,
 } from "./components/SettingControls";
 import { FONT_SIZES, LINE_HEIGHTS, LETTER_SPACINGS, FONTS } from "./font-options";
-import VaultMigrateWizard from "../components/VaultMigrateWizard";
-import VaultSetupWizard from "../components/VaultSetupWizard";
-import SchemaWizard from "../components/SchemaWizard";
 import VoiceWizard from "../components/VoiceWizard";
 import { openOrCreateVoiceMd } from "@/app/services/vault-schema";
 import { useVoiceMdStatus } from "../hooks/use-voice-md-status";
@@ -78,7 +65,6 @@ const SettingsPage = () => {
   const [editorWidth, setEditorWidth] = useAtom(atom_editorWidth);
   const [autoInjectFrontmatter, setAutoInjectFrontmatter] = useAtom(atom_autoInjectFrontmatter);
   const [frontmatterDefaultMode, setFrontmatterDefaultMode] = useAtom(atom_frontmatterDefaultMode);
-  const [schemaAutoCreate, setSchemaAutoCreate] = useAtom(atom_schemaAutoCreate);
   const [showHiddenFiles, setShowHiddenFiles] = useAtom(atom_showHiddenFiles);
   const { scanVault, indexVaultTags, vaultHandle: fsVaultHandle, openFile } = useFileSystem();
   const [, setVoiceWizardOpen] = useAtom(atom_voiceWizardOpen);
@@ -111,68 +97,18 @@ const SettingsPage = () => {
     scanVault(fsVaultHandle as any, next);
     indexVaultTags(fsVaultHandle as any, next);
   };
-  const [, setSchemaWizardOpen] = useAtom(atom_schemaWizardOpen);
-  const [, setVaultMigrateOpen] = useAtom(atom_vaultMigrateOpen);
-  const vaultSchema = useAtomValue(atom_vaultSchema);
   const vaultHandle = useAtomValue(atom_vaultHandle);
   const isDriveVault = useAtomValue(atom_isDriveVault);
-  const fileMetadata = useAtomValue(atom_fileMetadata);
-  const [, setIndexTimestamp] = useAtom(atom_indexTimestamp);
-  const [isRebuildingIndex, setIsRebuildingIndex] = useState(false);
   const [aiProvider, setAiProvider] = useAtom(atom_aiProvider);
   const [selectedAiModel, setSelectedAiModel] = useAtom(atom_selectedAiModel);
   const [claudeKey, setClaudeKey] = useAtom(atom_claudeKey);
   const [geminiKey, setGeminiKey] = useAtom(atom_geminiKey);
   const [, setIsWizardOpen] = useAtom(atom_isWizardOpen);
-  const [, setVaultSetupWizardOpen] = useAtom(atom_vaultSetupWizardOpen);
   const [, setDriveVaultId] = useAtom(atom_driveVaultId);
   const [driveVaultName] = useAtom(atom_driveVaultName);
   const driveVaultId = useAtomValue(atom_driveVaultId);
-  const [drivePathIndex, setDrivePathIndex] = useAtom(atom_drivePathIndex);
   const { authState: driveAuthState, signIn: driveSignIn, signOut: driveSignOut } = useDriveAuth();
   const [isDriveConnecting, setIsDriveConnecting] = useState(false);
-
-  const applyableStarterPacks = STARTER_PACKS.filter((p) => p.id !== "empty");
-  const [selectedPackId, setSelectedPackId] = useState<StarterPackId>(applyableStarterPacks[0]?.id ?? "notes-pkm");
-  const [isApplyingPack, setIsApplyingPack] = useState(false);
-
-  const handleApplyStarterPack = async () => {
-    if (!vaultHandle && !(isDriveVault && driveVaultId)) return;
-    setIsApplyingPack(true);
-    try {
-      await installStarterPack(selectedPackId, vaultHandle, isDriveVault, driveVaultId, drivePathIndex);
-      if (isDriveVault && driveVaultId && drivePathIndex) {
-        drivePathIndex.saveToCache(driveVaultId);
-        setDrivePathIndex(drivePathIndex);
-      }
-      showSuccessToast("Starter pack applied successfully.");
-    } catch (err) {
-      console.error("Failed to apply starter pack:", err);
-      const message = err instanceof Error ? err.message : "Failed to apply starter pack.";
-      showErrorToast(message);
-    } finally {
-      setIsApplyingPack(false);
-    }
-  };
-
-  const handleRebuildIndex = async () => {
-    if (!vaultHandle && !(isDriveVault && driveVaultId)) return;
-    setIsRebuildingIndex(true);
-    try {
-      if (isDriveVault && driveVaultId) {
-        await writeDriveVaultIndex(fileMetadata, driveVaultId);
-      } else if (vaultHandle) {
-        await writeVaultIndex(fileMetadata, vaultHandle);
-      }
-      setIndexTimestamp(Date.now());
-      showSuccessToast(".hermes/index.yaml rebuilt.");
-    } catch (err) {
-      console.error("Failed to rebuild vault index:", err);
-      showErrorToast("Failed to rebuild index.");
-    } finally {
-      setIsRebuildingIndex(false);
-    }
-  };
 
   const handleDriveSignIn = () => {
     setIsDriveConnecting(true);
@@ -372,11 +308,6 @@ const SettingsPage = () => {
               label="Auto-inject on Save"
               description="When saving a file with no frontmatter block, prepend title, status, tags, and scope automatically."
               control={<Toggle variant="soft" active={autoInjectFrontmatter} onChange={setAutoInjectFrontmatter} />}
-            />
-            <SettingItem
-              label="Auto-create Schema"
-              description="Create .hermes/schema.yaml silently when opening a vault that has none. Off means you'll be prompted to confirm first."
-              control={<Toggle variant="soft" active={schemaAutoCreate} onChange={setSchemaAutoCreate} />}
             />
           </SettingGroup>
         </>
@@ -637,108 +568,6 @@ const SettingsPage = () => {
       ),
     },
     {
-      id: "vault",
-      label: "Vault",
-      icon: HiOutlineArchive,
-      content: (
-        <>
-          <SettingGroup title="Starter Pack">
-            <SettingItem
-              label="Apply to Current Vault"
-              description="Populate the open vault with a starter pack's example files. Existing files with the same names will be overwritten."
-              layout="stack"
-              control={
-                <div className="flex items-center gap-2 w-full">
-                  <div className="flex-1">
-                    <SelectControl
-                      value={selectedPackId}
-                      onChange={(v) => setSelectedPackId(v as StarterPackId)}
-                    >
-                      {applyableStarterPacks.map((p) => (
-                        <option key={p.id} value={p.id}>{p.icon} {p.label}</option>
-                      ))}
-                    </SelectControl>
-                  </div>
-                  <Button
-                    variant="secondary"
-                    onClick={handleApplyStarterPack}
-                    disabled={(!vaultHandle && !(isDriveVault && driveVaultId)) || isApplyingPack}
-                    className="h-8 px-4 text-ui-footnote font-medium shrink-0"
-                  >
-                    {isApplyingPack ? "Applying…" : "Apply"}
-                  </Button>
-                </div>
-              }
-            />
-          </SettingGroup>
-          <SettingGroup title="Schema">
-            <SettingItem
-              label="Frontmatter Structure"
-              description={
-                vaultSchema
-                  ? `${vaultSchema.fields.length} field${vaultSchema.fields.length !== 1 ? "s" : ""} defined — saved to .hermes/schema.yaml`
-                  : vaultHandle || isDriveVault
-                  ? "No schema found in this vault."
-                  : "Open a vault to view or edit its schema."
-              }
-              control={
-                <Button
-                  variant="secondary"
-                  onClick={() => setSchemaWizardOpen(true)}
-                  className="h-8 px-4 text-ui-footnote font-medium"
-                >
-                  Edit Schema
-                </Button>
-              }
-            />
-            <SettingItem
-              label="Apply to All Files"
-              description="Scan every file in the vault and add missing frontmatter fields. If an AI key is configured, content-based fields are filled automatically."
-              control={
-                <Button
-                  variant="secondary"
-                  onClick={() => setVaultMigrateOpen(true)}
-                  disabled={!vaultHandle && !isDriveVault}
-                  className="h-8 px-4 text-ui-footnote font-medium shrink-0"
-                >
-                  Migrate
-                </Button>
-              }
-            />
-          </SettingGroup>
-          <SettingGroup title="Agent Context Files">
-            <SettingItem
-              label="Install / Update"
-              description="Check for missing or outdated agent context files (AGENTS.md, schema.yaml) in the active vault and install the latest versions."
-              control={
-                <Button
-                  variant="secondary"
-                  onClick={() => setVaultSetupWizardOpen("vault-root")}
-                  className="h-8 px-4 text-ui-footnote font-medium"
-                >
-                  Check & Install
-                </Button>
-              }
-            />
-            <SettingItem
-              label="Rebuild Index"
-              description="Regenerate .hermes/index.yaml from the current vault state. Use this if the index and vault ever drift out of sync."
-              control={
-                <Button
-                  variant="secondary"
-                  onClick={handleRebuildIndex}
-                  disabled={(!vaultHandle && !(isDriveVault && driveVaultId)) || isRebuildingIndex}
-                  className="h-8 px-4 text-ui-footnote font-medium shrink-0"
-                >
-                  {isRebuildingIndex ? "Rebuilding…" : "Rebuild Index"}
-                </Button>
-              }
-            />
-          </SettingGroup>
-        </>
-      ),
-    },
-    {
       id: "guide",
       label: "Guide",
       icon: HiOutlineAcademicCap,
@@ -813,10 +642,7 @@ const SettingsPage = () => {
         </div>
       </main>
 
-      <VaultMigrateWizard />
       <VoiceWizard />
-      <VaultSetupWizard />
-      <SchemaWizard />
     </div>
   );
 };

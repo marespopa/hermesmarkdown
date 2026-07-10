@@ -1,7 +1,7 @@
 "use client";
 
-import { useAtom, useAtomValue, useSetAtom } from "jotai";
-import { useCallback, useEffect, useRef } from "react";
+import { useAtom, useSetAtom } from "jotai";
+import { useCallback } from "react";
 import toast from "react-hot-toast";
 import {
   atom_vaultHandle,
@@ -15,18 +15,11 @@ import {
   atom_saveStatus,
   atom_isCloudVault,
   atom_autoInjectFrontmatter,
-  atom_vaultSetupStatus,
 } from "@/app/atoms/atoms";
-import { atom_frontmatterWizardOpen, atom_vaultSetupWizardOpen, atom_autosaveMode, atom_indexTimestamp } from "@/app/atoms/ui-atoms";
+import { atom_frontmatterWizardOpen, atom_autosaveMode } from "@/app/atoms/ui-atoms";
 import { injectFrontmatter } from "@/app/utils/frontmatterInjector";
 import { atom_fileMetadata } from "@/app/atoms/metadata";
-import { writeVaultIndex } from "@/app/services/vault-index";
-import { atom_vaultSchema } from "@/app/atoms/schema-atoms";
-import { atom_isDriveVault } from "@/app/atoms/drive-atoms";
-import { withRetry } from "./shared";
 import { extractTasks } from "@/app/utils/taskExtractor";
-import { computeTokenEstimate } from "@/app/utils/tokenEstimate";
-import { computeAgentScore } from "@/app/utils/agentScore";
 
 export function useSaveFile() {
   const [vaultHandle] = useAtom(atom_vaultHandle);
@@ -39,24 +32,10 @@ export function useSaveFile() {
   const [, setFileConflict] = useAtom(atom_fileConflict);
   const [, setSaveStatus] = useAtom(atom_saveStatus);
   const [isCloudVault, setIsCloudVault] = useAtom(atom_isCloudVault);
-  const isDriveVault = useAtomValue(atom_isDriveVault);
   const [autoInjectFrontmatter] = useAtom(atom_autoInjectFrontmatter);
   const setFrontmatterWizardOpen = useSetAtom(atom_frontmatterWizardOpen);
-  const setVaultSetupWizardOpen = useSetAtom(atom_vaultSetupWizardOpen);
-  const [vaultSetupStatus] = useAtom(atom_vaultSetupStatus);
   const [autosaveMode, setAutosaveMode] = useAtom(atom_autosaveMode);
-  const [fileMetadata, setFileMetadata] = useAtom(atom_fileMetadata);
-  const setIndexTimestamp = useSetAtom(atom_indexTimestamp);
-  const [vaultSchema] = useAtom(atom_vaultSchema);
-
-  const indexWriteTimerRef = useRef<NodeJS.Timeout | null>(null);
-
-  useEffect(() => {
-    const ref = indexWriteTimerRef;
-    return () => {
-      if (ref.current) clearTimeout(ref.current);
-    };
-  }, []);
+  const [, setFileMetadata] = useAtom(atom_fileMetadata);
 
   const saveFile = useCallback(
     async (
@@ -97,30 +76,6 @@ export function useSaveFile() {
         ? injectFrontmatter(content, fileToSave.name)
         : content;
       if (!toWrite) toWrite = "\n";
-
-      // Schema validation — warn on missing required fields (non-blocking)
-      if (vaultSchema && !isAutoSave) {
-        const fmMatch = /^---\n([\s\S]*?)\n---/.exec(toWrite);
-        if (fmMatch) {
-          const fmText = fmMatch[1];
-          const missing = vaultSchema.fields
-            .filter((f) => f.required)
-            .filter((f) => {
-              const m = new RegExp(`^${f.key}:\\s*(.*)`, "m").exec(fmText);
-              if (!m) return true;
-              const val = m[1].trim().replace(/^"|"$/g, "").replace(/^\[|\]$/g, "").trim();
-              return val === "" || val === "null";
-            })
-            .map((f) => f.key);
-          if (missing.length > 0) {
-            toast(`Missing required fields: ${missing.join(", ")}`, {
-              icon: "⚠️",
-              id: "schema-validation",
-              duration: 4000,
-            });
-          }
-        }
-      }
 
       let writable: FileSystemWritableFileStream | null = null;
       try {
@@ -170,7 +125,6 @@ export function useSaveFile() {
         // refocus, or manual refresh). This is the "save-triggered, not
         // live" computation point for the token cost estimate.
         if (targetPath) {
-          const scoreResult = toWrite.trim() ? computeAgentScore(toWrite) : null;
           setFileMetadata((prev) => {
             const entry = prev[targetPath!];
             if (!entry) return prev;
@@ -179,8 +133,6 @@ export function useSaveFile() {
               [targetPath!]: {
                 ...entry,
                 tasks: extractTasks(targetPath!, toWrite),
-                tokens: computeTokenEstimate(toWrite),
-                agentScore: scoreResult ? { score: scoreResult.score, label: scoreResult.label } : null,
               },
             };
           });
@@ -214,11 +166,7 @@ export function useSaveFile() {
               });
               // Open wizard only after the atom has been updated with the injected content
               if (didInject) {
-                if (vaultSetupStatus === "needs_setup") {
-                  setVaultSetupWizardOpen(targetPath);
-                } else {
-                  setFrontmatterWizardOpen(targetPath);
-                }
+                setFrontmatterWizardOpen(targetPath);
               }
             }
             return true;
@@ -290,21 +238,6 @@ export function useSaveFile() {
           if (wasActive) {
             setActiveFilePath(finalPath);
           }
-        }
-
-        // Debounced vault index update (any local FS vault, including cloud-synced
-        // folders — those get a longer debounce + retries since the OS sync client
-        // can transiently lock the file mid-write, same risk the main save path
-        // already handles via withRetry).
-        if (vaultHandle && !isDriveVault) {
-          if (indexWriteTimerRef.current) clearTimeout(indexWriteTimerRef.current);
-          const snapshot = fileMetadata;
-          const handle = vaultHandle;
-          indexWriteTimerRef.current = setTimeout(() => {
-            withRetry(() => writeVaultIndex(snapshot, handle), isCloudVault ? 4 : 2)
-              .then(() => setIndexTimestamp(Date.now()))
-              .catch((err) => console.warn("Failed to write vault index:", err));
-          }, isCloudVault ? 8000 : 3000);
         }
 
         setSaveStatus({ state: "saved", retryCount, path: targetPath });
@@ -435,16 +368,10 @@ export function useSaveFile() {
       setFileMetadata,
       isCloudVault,
       setIsCloudVault,
-      isDriveVault,
       autoInjectFrontmatter,
-      vaultSetupStatus,
-      setVaultSetupWizardOpen,
       setFrontmatterWizardOpen,
       autosaveMode,
       setAutosaveMode,
-      fileMetadata,
-      setIndexTimestamp,
-      vaultSchema,
     ],
   );
 

@@ -125,7 +125,11 @@ module.exports = {
         "gradient-conic":
           "conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))",
       },
+      transitionDuration: {
+        'overlay-backdrop': '150ms', // OverlayLayer backdrop opacity fade
+        'overlay-panel':    '200ms', // OverlayLayer sheet/edge-panel/popover slide
+      },
     }
   },
-  plugins: [require("@tailwindcss/typography")],
+  plugins: [require("@tailwindcss/typography"), require("tailwindcss-animate")],
 };

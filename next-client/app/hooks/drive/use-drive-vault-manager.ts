@@ -16,7 +16,7 @@ import {
   atom_rebindDriveHandles,
 } from '@/app/atoms/atoms';
 import { atom_fileMetadata } from '@/app/atoms/metadata';
-import { atom_indexTimestamp, atom_showHiddenFiles } from '@/app/atoms/ui-atoms';
+import { atom_showHiddenFiles } from '@/app/atoms/ui-atoms';
 import {
   atom_driveVaultId,
   atom_driveVaultName,
@@ -32,9 +32,6 @@ import { DriveDirectoryHandle } from '@/app/services/drive/DriveDirectoryHandle'
 import { listFiles, deleteFile, FOLDER_MIME } from '@/app/services/drive/client';
 import { isTokenValid, startOAuthFlow } from '@/app/services/drive/auth';
 import { metadataWorker } from '../file-system/shared';
-import { readDriveVaultSchema, DEFAULT_SCHEMA } from '@/app/services/vault-schema';
-import { writeDriveVaultIndex } from '@/app/services/vault-index';
-import { atom_vaultSchema } from '@/app/atoms/schema-atoms';
 
 export function useDriveVaultManager() {
   const [vaultHandle, setVaultHandle] = useAtom(atom_vaultHandle);
@@ -43,7 +40,6 @@ export function useDriveVaultManager() {
   const [isVaultPending, setIsVaultPending] = useAtom(atom_isVaultPending);
   const [, setFileMetadata] = useAtom(atom_fileMetadata);
   const setIndexerState = useSetAtom(atom_indexerState);
-  const setIndexTimestamp = useSetAtom(atom_indexTimestamp);
   const rebindDriveHandles = useSetAtom(atom_rebindDriveHandles);
   const [, setActiveFilePath] = useAtom(atom_activeFilePath);
   const [, setActiveFileHandle] = useAtom(atom_activeFileHandle);
@@ -57,7 +53,6 @@ export function useDriveVaultManager() {
   const isDriveVault = useAtomValue(atom_isDriveVault);
   const [, setShowDriveFolderPicker] = useAtom(atom_showDriveFolderPicker);
   const [hasDriveLoaded, setHasDriveLoaded] = useAtom(atom_hasDriveLoaded);
-  const setVaultSchema = useSetAtom(atom_vaultSchema);
   const showHiddenFiles = useAtomValue(atom_showHiddenFiles);
 
   const pendingHandlesRef = useRef<Map<string, DriveFileHandle>>(new Map());
@@ -267,11 +262,8 @@ export function useDriveVaultManager() {
     await scanVault(handle);
     await indexVaultTags(folderId);
 
-    const schema = await readDriveVaultSchema(folderId);
-    setVaultSchema(schema ?? DEFAULT_SCHEMA);
-
     toast.success(`Vault opened: ${folderName}`);
-  }, [setDriveVaultId, setDriveVaultName, setDriveAuthState, setVaultHandle, setCurrentDirectoryHandle, setIsVaultPending, setIndexerState, setDrivePathIndex, setOpenFiles, setWorkspaceLayout, scanVault, indexVaultTags, setVaultSchema]);
+  }, [setDriveVaultId, setDriveVaultName, setDriveAuthState, setVaultHandle, setCurrentDirectoryHandle, setIsVaultPending, setIndexerState, setDrivePathIndex, setOpenFiles, setWorkspaceLayout, scanVault, indexVaultTags]);
 
   // Called by the folder picker's "Connect" button — first triggers OAuth if needed
   const openVault = useCallback(() => {
@@ -314,9 +306,7 @@ export function useDriveVaultManager() {
 
     await scanVault(handle);
     indexVaultTags(vaultId); // background
-
-    readDriveVaultSchema(vaultId).then(schema => setVaultSchema(schema ?? DEFAULT_SCHEMA));
-  }, [driveVaultId, setDriveAuthState, setVaultHandle, setCurrentDirectoryHandle, setIsVaultPending, setIndexerState, setDrivePathIndex, setFileMetadata, scanVault, indexVaultTags, rebindDriveHandles, setVaultSchema]);
+  }, [driveVaultId, setDriveAuthState, setVaultHandle, setCurrentDirectoryHandle, setIsVaultPending, setIndexerState, setDrivePathIndex, setFileMetadata, scanVault, indexVaultTags, rebindDriveHandles]);
 
 
   const closeVault = useCallback(() => {
@@ -336,9 +326,8 @@ export function useDriveVaultManager() {
     setWorkspaceLayout({
       rootContainer: { id: 'default-pane', type: 'editor', openFilePaths: ['draft'], activeFilePath: 'draft', isPinned: false },
     });
-    setVaultSchema(null);
     toast.success('Drive vault disconnected');
-  }, [setDriveVaultId, setDriveVaultName, setDriveAuthState, setDrivePathIndex, setVaultHandle, setCurrentDirectoryHandle, setVaultFiles, setFileMetadata, setActiveFileHandle, setActiveFilePath, setOpenFiles, setWorkspaceLayout, setVaultSchema]);
+  }, [setDriveVaultId, setDriveVaultName, setDriveAuthState, setDrivePathIndex, setVaultHandle, setCurrentDirectoryHandle, setVaultFiles, setFileMetadata, setActiveFileHandle, setActiveFilePath, setOpenFiles, setWorkspaceLayout]);
 
   const syncSidebarToPath = useCallback(async (path: string) => {
     if (!path || path === 'draft' || !driveVaultId) return;
@@ -382,39 +371,21 @@ export function useDriveVaultManager() {
     const handleMessage = (event: MessageEvent) => {
       const { results } = event.data;
       if (!results) return;
-      let updatedMetadata: Record<string, any> = {};
       setFileMetadata(prev => {
         const next = { ...prev };
         results.forEach((res: any) => {
           const handle = pendingHandlesRef.current.get(res.path);
           if (handle) next[res.path] = { ...res, handle };
         });
-        updatedMetadata = next;
         return next;
       });
       rebindDriveHandles();
       setIndexerState('idle');
-
-      if (driveVaultId) {
-        writeDriveVaultIndex(updatedMetadata, driveVaultId)
-          .then(() => setIndexTimestamp(Date.now()))
-          .catch(async (err) => {
-            console.warn('Failed to write Drive vault index, retrying once:', err);
-            try {
-              await new Promise((r) => setTimeout(r, 2000));
-              await writeDriveVaultIndex(updatedMetadata, driveVaultId);
-              setIndexTimestamp(Date.now());
-            } catch (err2) {
-              console.error('Failed to write Drive vault index after retry:', err2);
-              toast.error('Could not update .hermes/index.yaml — Vault Health may show stale data until the next save.', { id: 'drive-index-write-failed', duration: 6000 });
-            }
-          });
-      }
     };
 
     metadataWorker.addEventListener('message', handleMessage);
     return () => metadataWorker?.removeEventListener('message', handleMessage);
-  }, [isDriveVault, setFileMetadata, setIndexerState, rebindDriveHandles, driveVaultId, setIndexTimestamp]);
+  }, [isDriveVault, setFileMetadata, setIndexerState, rebindDriveHandles]);
 
   // Auto-restore on mount — independent from local vault's hasLoadedVault
   useEffect(() => {

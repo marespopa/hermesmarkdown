@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useCallback } from "react";
-import Portal from "@/app/components/Portal/Portal";
+import OverlayPanel from "@/app/components/OverlayLayer/OverlayPanel";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { atom_activeFilePath } from "@/app/atoms/atoms";
 import { atom_drivePathIndex } from "@/app/atoms/drive-atoms";
@@ -12,7 +12,6 @@ import VaultSidebarFiles from "./VaultSidebarFiles";
 import VaultSidebarEmpty from "./VaultSidebarEmpty";
 import UnifiedSearchInput from "./UnifiedSearchInput";
 import { HiOutlineX, HiOutlineEye, HiOutlineEyeOff } from "react-icons/hi";
-import { useBackButtonClose } from "@/app/hooks/use-back-button-close";
 import { DriveDirectoryHandle } from "@/app/services/drive/DriveDirectoryHandle";
 import { atom_newVaultFlowOpen, atom_showHiddenFiles } from "@/app/atoms/ui-atoms";
 
@@ -79,13 +78,14 @@ export default function MobileFileOverlay({
     indexVaultTags?.(vaultHandle as any, next);
   }, [showHiddenFiles, setShowHiddenFiles, vaultHandle, scanVault, indexVaultTags]);
 
-  useBackButtonClose(isOpen, onClose);
-
-  if (!isOpen) return null;
-
   return (
-    <Portal>
-      <div className="fixed inset-0 z-[1000] flex flex-col bg-surface animate-in slide-in-from-bottom duration-200">
+    <OverlayPanel
+      isOpen={isOpen}
+      onClose={onClose}
+      variant="sheet"
+      backdrop="none"
+      panelClassName="flex-1 flex flex-col bg-surface animate-in slide-in-from-bottom duration-overlay-panel"
+    >
         <div className="flex items-center justify-between px-4 py-3 border-b border-edge-subtle shrink-0">
           <span className="text-ui-subhead font-medium text-fg">Files</span>
           <div className="flex items-center gap-1">
@@ -205,7 +205,6 @@ export default function MobileFileOverlay({
         </div>
         </>
         )}
-      </div>
-    </Portal>
+    </OverlayPanel>
   );
 }

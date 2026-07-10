@@ -15,29 +15,22 @@ import {
   atom_activePaneId,
   atom_isFileLoading,
   atom_sidebarWidth,
+  atom_isEditorFocused,
   findLeaf,
   getFirstLeaf,
 } from "@/app/atoms/atoms";
 import useIsMobileChrome from "@/app/hooks/use-mobile-chrome";
 import VaultSidebar from "./components/VaultSidebar";
-import IconRail from "./components/IconRail";
 import WelcomeWizard from "./components/WelcomeWizard";
-import VaultSetupWizard from "./components/VaultSetupWizard";
-import FrontmatterWizard from "./components/FrontmatterWizard";
-import SchemaWizard from "./components/SchemaWizard";
-import VaultMigrateWizard from "./components/VaultMigrateWizard";
 import NewVaultDialog from "./components/NewVaultDialog";
 import WorkspaceSplitter from "./components/WorkspaceSplitter";
 import PaneLeaf from "./components/PaneLeaf";
 import VaultPendingOverlay from "./components/VaultPendingOverlay";
 import DriveReconnectBanner from "./components/DriveReconnectBanner";
 import LoadingOverlay from "@/app/components/LoadingOverlay";
-import DocInfoPanel from "./components/DocInfoPanel";
-import VaultHealthPanel from "./components/VaultHealthPanel";
 import EditorCommands from "./components/EditorCommands";
 import { CommandPaletteProvider } from "@/app/components/CommandPalette/CommandPaletteContext";
 import CommandPalette from "@/app/components/CommandPalette/CommandPalette";
-import MobileControlRail from "./components/MobileControlRail";
 import MobileFileOverlay from "./components/MobileFileOverlay";
 import MobileTasksOverlay from "./components/MobileTasksOverlay";
 import MobileFileIndicator from "./components/MobileFileIndicator";
@@ -59,10 +52,11 @@ import { useVoiceMdNudge } from "./hooks/use-voice-md-nudge";
 
 
 import { useRouter } from "next/navigation";
-import { atom_isAiConfigured, atom_isDocInfoOpen, atom_aiBuilderRequest, atom_railPanel, RailPanel, atom_voiceInputRequest, atom_isVoiceInputListening, atom_isVoiceInputSupported, atom_activeTextareaElement } from "@/app/atoms/ui-atoms";
+import { atom_isAiConfigured, atom_aiBuilderRequest, atom_railPanel, RailPanel, atom_voiceInputRequest, atom_isVoiceInputListening, atom_isVoiceInputSupported, atom_activeEditorView } from "@/app/atoms/ui-atoms";
 import { generateFileFromPrompt } from "@/app/services/ai";
 import { withRetry } from "@/app/hooks/file-system/shared";
-import AssistantFab from "./components/AssistantFab";
+import { useChromeVisibility } from "@/app/hooks/use-chrome-visibility";
+import FabBar from "./components/FabBar";
 
 export default function LiteEditor() {
   const router = useRouter();
@@ -86,9 +80,17 @@ export default function LiteEditor() {
   useEffect(() => {
     if (railPanel !== null) setLastPanel(railPanel);
   }, [railPanel]);
+  // Sidebar auto-retracts the moment focus returns to the text — matches
+  // "borrowing space, not living there." Safe without an extra "is the
+  // sidebar mid-interaction" check: this only fires when the CM6 editor
+  // itself gains DOM focus, which by definition means no sidebar element
+  // (a search input, etc.) currently has focus.
+  const isEditorFocused = useAtomValue(atom_isEditorFocused);
+  useEffect(() => {
+    if (isEditorFocused) setRailPanel(null);
+  }, [isEditorFocused, setRailPanel]);
   const isFileLoading = useAtomValue(atom_isFileLoading);
   const isAiConfigured = useAtomValue(atom_isAiConfigured);
-  const [, setIsDocInfoOpen] = useAtom(atom_isDocInfoOpen);
   const [, setAiBuilderRequest] = useAtom(atom_aiBuilderRequest);
   const [, setVoiceInputRequest] = useAtom(atom_voiceInputRequest);
   const isVoiceListening = useAtomValue(atom_isVoiceInputListening);
@@ -105,10 +107,16 @@ export default function LiteEditor() {
     discardVoicePreview,
     toggleVoiceListening,
   } = useGlobalVoiceInput();
-  const activeTextareaElement = useAtomValue(atom_activeTextareaElement);
+  const activeEditorView = useAtomValue(atom_activeEditorView);
   const isMobileChrome = useIsMobileChrome();
   const [isMobileFileOverlayOpen, setIsMobileFileOverlayOpen] = useState(false);
   const [isMobileTasksOverlayOpen, setIsMobileTasksOverlayOpen] = useState(false);
+  // Chrome-at-rest, mobile: the control rail fades out while idly focused
+  // in the editor, reveals on a tap near the top of the screen, and stays
+  // up while a sheet it opened is still open.
+  const { visible: mobileRailVisible, reveal: revealMobileRail } = useChromeVisibility({
+    forceVisible: isMobileFileOverlayOpen || isMobileTasksOverlayOpen,
+  });
 
   const {
     vaultHandle,
@@ -275,7 +283,7 @@ export default function LiteEditor() {
       // Prevent tablet/mobile browsers from navigating back on ESC.
       if (e.key === "Escape") e.preventDefault();
 
-      // Escape collapses the sidebar (rail itself always stays visible)
+      // Escape collapses the sidebar
       if (e.key === "Escape" && railPanel !== null) {
         setRailPanel(null);
       }
@@ -284,12 +292,6 @@ export default function LiteEditor() {
       if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === "e") {
         e.preventDefault();
         setRailPanel((prev) => (prev !== null ? null : "files"));
-      }
-
-      // Document info — word/token count, structured score (on-demand, not ambient)
-      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === "i") {
-        e.preventDefault();
-        setIsDocInfoOpen((prev) => !prev);
       }
 
       // AI Builder — on-demand, not a status bar button
@@ -322,7 +324,7 @@ export default function LiteEditor() {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [flush, railPanel, setRailPanel, setIsDocInfoOpen, isAiConfigured, setAiBuilderRequest, isVoiceSupported, setVoiceInputRequest]);
+  }, [flush, railPanel, setRailPanel, isAiConfigured, setAiBuilderRequest, isVoiceSupported, setVoiceInputRequest]);
 
   const handleNewFile = () => {
     if (!vaultHandle) {
@@ -457,7 +459,16 @@ export default function LiteEditor() {
   return (
     <ErrorBoundary>
       <CommandPaletteProvider>
-      <EditorCommands onNewFile={handleNewFile} onExport={handleExport} onSave={() => handleSaveRef.current()} />
+      <EditorCommands
+        onNewFile={handleNewFile}
+        onExport={handleExport}
+        onSave={() => handleSaveRef.current()}
+        isMobileChrome={isMobileChrome}
+        onOpenMobileFiles={() => { revealMobileRail(); setIsMobileFileOverlayOpen(true); }}
+        onOpenMobileTasks={() => { revealMobileRail(); setIsMobileTasksOverlayOpen(true); }}
+        onHome={() => navigateWithGuard("/", "Home")}
+        onOpenDocumentation={() => navigateWithGuard("/documentation", "Documentation")}
+      />
       <CommandPalette />
       <LoadingOverlay isVisible={isMounting || isFileLoading || !!navigatingLabel || driveAuthState === 'authenticating'} text={isFileLoading ? "Loading file..." : navigatingLabel ? `${navigatingLabel}...` : driveAuthState === 'authenticating' ? "Connecting to Google Drive..." : "Loading..."} />
       <div className={`fixed inset-0 flex flex-col bg-surface text-fg selection:bg-sage-light/30 font-sans overflow-hidden overscroll-none transition-all duration-500 ${isVaultPending ? "blur-md pointer-events-none select-none" : ""}`}>
@@ -466,15 +477,9 @@ export default function LiteEditor() {
         )}
         {/* Modals */}
         <WelcomeWizard />
-        <VaultSetupWizard />
-        <FrontmatterWizard />
-        <SchemaWizard />
-        <VaultMigrateWizard />
         <NewVaultDialog />
         <GoogleDriveFolderPicker onSelect={handleDriveConnected} />
         <ConflictDialog />
-        <DocInfoPanel />
-        <VaultHealthPanel />
         <RepurposeNoteWizard />
         <VoiceWizard />
         {isVaultPending && <VaultPendingOverlay restoreVault={restoreVault} isDriveVault={isDriveVault} />}
@@ -496,21 +501,19 @@ export default function LiteEditor() {
         {/* --- MAIN LAYOUT --- */}
         <div className="flex flex-1 min-h-0 overflow-hidden relative">
 
-        {/* Rail + panel — rail always visible, reflowing the editor as a
-            normal flex sibling; the panel next to it toggles the sidebar
-            between expanded and collapsed. Mobile uses MobileControlRail and
-            MobileFileOverlay instead. */}
+        {/* Sidebar panel — hidden at rest; mouse-to-left-edge opens it
+            directly (no intermediate rail-reveal step, since panel
+            switching now lives in the command palette — see
+            EditorCommands.tsx). Mobile uses MobileFileOverlay/
+            MobileTasksOverlay instead. */}
         {!isMobileChrome && (
-          <div className="flex shrink-0 h-full">
-            <IconRail
-              activePanel={railPanel}
-              onPanelChange={(panel) => setRailPanel((prev) => (prev === panel ? null : panel))}
-              onOpenSettings={() => navigateWithGuard("/editor/settings", "Settings")}
-              onOpenDocumentation={() => navigateWithGuard("/documentation", "Documentation")}
-              onHome={() => navigateWithGuard("/", "Home")}
-              isVoiceSupported={isVoiceSupported}
-              isVoiceListening={isVoiceListening}
-              onVoiceClick={() => setVoiceInputRequest((v) => v + 1)}
+          <div className="flex shrink-0 h-full relative">
+            {/* Always-present, invisible edge strip so the mouse has
+                somewhere to land and open the sidebar once its width has
+                collapsed to 0. */}
+            <div
+              className="absolute left-0 top-0 h-full w-3 z-40"
+              onMouseEnter={() => setRailPanel((prev) => prev ?? lastPanel)}
             />
             <div
               className="h-full overflow-hidden transition-[width] duration-300 ease-in-out shrink-0"
@@ -532,6 +535,8 @@ export default function LiteEditor() {
                   onExport={handleExport}
                   onClose={() => setRailPanel(null)}
                   onRefresh={async () => { await syncVault(true); await refreshFiles(); }}
+                  onHome={() => navigateWithGuard("/", "Home")}
+                  onOpenDocumentation={() => navigateWithGuard("/documentation", "Documentation")}
                 />
               </div>
             </div>
@@ -543,22 +548,16 @@ export default function LiteEditor() {
           {/* Main Editor Area */}
           <div className="flex-1 flex flex-col min-w-0 relative">
             {isMobileChrome && (
-              <MobileControlRail
-                leaf={mobileLeaf}
-                onFiles={() => setIsMobileFileOverlayOpen(true)}
-                onTasks={() => setIsMobileTasksOverlayOpen(true)}
-                onNewFile={handleNewFile}
-                onChat={() => setAiBuilderRequest((v) => v + 1)}
-                isChatAvailable={isAiConfigured}
-                isVoiceSupported={isVoiceSupported}
-                isVoiceListening={isVoiceListening}
-                onVoiceClick={() => setVoiceInputRequest((v) => v + 1)}
-                onOpenSettings={() => navigateWithGuard("/editor/settings", "Settings")}
-                onOpenDocumentation={() => navigateWithGuard("/documentation", "Documentation")}
-                onHome={() => navigateWithGuard("/", "Home")}
+              // Always-present, invisible top-edge strip so a tap near the
+              // top of the screen brings the file indicator back once it's
+              // faded — touch has no hover, so this is the mobile
+              // equivalent of the desktop sidebar's edge-hover zone.
+              <div
+                className="absolute left-0 top-0 w-full h-4 z-40"
+                onTouchStart={revealMobileRail}
               />
             )}
-            {isMobileChrome && <MobileFileIndicator />}
+            {isMobileChrome && mobileRailVisible && <MobileFileIndicator />}
             <div className="relative flex-1 min-h-0">
               <main className="h-full">
                 {isMounting ? (
@@ -579,9 +578,7 @@ export default function LiteEditor() {
         </div>
         </div>{/* end MAIN LAYOUT */}
 
-        {isAiConfigured && !isMobileChrome && (
-          <AssistantFab onClick={() => setAiBuilderRequest((v) => v + 1)} />
-        )}
+        <FabBar />
 
         <VoicePreviewPanel
           isListening={isVoiceListening}
@@ -592,7 +589,7 @@ export default function LiteEditor() {
           onDiscard={() => {
             discardVoicePreview();
             if (isVoiceListening) toggleVoiceListening();
-            activeTextareaElement?.focus();
+            activeEditorView?.focus();
           }}
         />
 

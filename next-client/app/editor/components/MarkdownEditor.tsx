@@ -1,28 +1,31 @@
 "use client";
 
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useAtomValue, useSetAtom } from "jotai";
-import { atom_frontmatterWizardOpen, atom_isAiConfigured, atom_isAiBusy } from "@/app/atoms/atoms";
-import Editor from "react-simple-code-editor";
+import { atom_frontmatterWizardOpen, atom_wordWrap, atom_isEditorFocused } from "@/app/atoms/atoms";
+import { atom_activeEditorView } from "@/app/atoms/ui-atoms";
+import { useAtom } from "jotai";
+import { EditorView } from "@codemirror/view";
 import { HiOutlineCalendar, HiChevronDown, HiChevronRight } from "react-icons/hi";
-import DatePickerCallout from "./DatePickerCallout";
-import WikiLinkDialog from "./WikiLinkDialog";
-import DialogModal from "../../components/DialogModal/DialogModal";
-import { LinkPill } from "./LinkPill";
-import { WorkflowPill } from "./WorkflowPill";
-import { FormulaResultOverlay } from "./FormulaResultOverlay";
-import { TableCallout } from "./TableCallout";
-import { TableDialog } from "./TableDialog";
-import { AIThinkingOverlay } from "./AIThinkingOverlay";
-import { AIReviewDialog } from "./AIReviewDialog";
-import AIChatDialog from "./AIChatDialog";
-import { useMarkdownEditor } from "../hooks/useMarkdownEditor";
+import FrontmatterPanel from "./FrontmatterPanel";
 import Button from "../../components/Button";
 import Input from "../../components/Input";
-import FrontmatterPanel from "./FrontmatterPanel";
+import DialogModal from "../../components/DialogModal/DialogModal";
+import DatePickerCallout from "./DatePickerCallout";
+import WikiLinkDialog from "./WikiLinkDialog";
+import { LinkPill } from "./LinkPill";
+import { WorkflowPill } from "./WorkflowPill";
+import { TableCallout } from "./TableCallout";
 import { PILL_CONTAINER_CLASSES } from "./constants";
 import { FM_REGEX } from "@/app/utils/frontmatter-utils";
 import useKeyboardInset from "@/app/hooks/use-keyboard-inset";
+import { useDialog } from "@/app/hooks/use-dialog";
+import { useEditorAppearance } from "../hooks/use-editor-appearance";
+import { useCodeMirrorEditor } from "../hooks/use-codemirror-editor";
+import { useCodeMirrorFeatures } from "../hooks/use-codemirror-features";
+import { useCodeMirrorTemplates } from "../hooks/use-codemirror-templates";
+import { useCodeMirrorTable } from "../hooks/use-codemirror-table";
+import { useCodeMirrorCalloutFold } from "../hooks/use-codemirror-callout-fold";
 
 interface MarkdownEditorProps {
   value: string;
@@ -36,19 +39,27 @@ interface MarkdownEditorProps {
   isSplit?: boolean;
 }
 
+// NOTE: this is the CM6 migration (through Step 4 of the migration plan).
+// It intentionally does not yet include the template/slash menu, table
+// editor, formula badges, or callout folding — those are ported in later
+// steps (see task list). Behavior covered so far: typing, undo/redo (CM6
+// history), bold/italic/strikethrough/inline-code wrap, checkbox toggle
+// (click), quote-continue on Enter, quote-aware paste, URL-paste-as-link,
+// full markdown syntax highlighting, link pill (cursor-driven, Ctrl/Cmd+
+// click to open/navigate), date picker (Alt+ArrowDown), workflow/todo tag
+// cycling pills.
 export default function MarkdownEditor(props: MarkdownEditorProps) {
   const setFrontmatterWizardOpen = useSetAtom(atom_frontmatterWizardOpen);
-  const isAiConfigured = useAtomValue(atom_isAiConfigured);
-  const isAiBusy = useAtomValue(atom_isAiBusy);
+  const wordWrap = useAtomValue(atom_wordWrap);
+  const [, setIsEditorFocused] = useAtom(atom_isEditorFocused);
   const filePath = props.filePath || "draft";
 
-  // Frontmatter is now entirely owned by <FrontmatterPanel/> — it never
-  // appears in the body textarea, so the editable value always excludes it.
+  // Frontmatter is entirely owned by <FrontmatterPanel/> — it never appears
+  // in the CM6 doc, so the editable value always excludes it.
   const fmResult = FM_REGEX.exec(props.value);
   const rawFrontmatter = fmResult ? fmResult[0] : null;
   const editorValue = rawFrontmatter ? props.value.slice(rawFrontmatter.length) : props.value;
 
-  // Stable ref so the onChange callback doesn't need to re-create on every render
   const rawFmRef = useRef<string | null>(null);
   rawFmRef.current = rawFrontmatter;
 
@@ -57,199 +68,103 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [props.onChange]);
 
-  const {
-    value,
-    handleValueChange,
-    fontFamily,
-    displayFontSize,
-    lineHeight,
-    letterSpacing,
-    wordWrap,
-    windowWidth,
-    menuOpen,
-    menuPos,
-    selectedIndex,
-    isCtrlPressed,
-    isOverLink,
-    dateMatch,
-    setDateMatch,
-    dateMenuPos,
-    isDateExpanded,
-    setIsDateExpanded,
-    toggleObsidianCallout,
-    calloutChevrons,
-    wrapperRef,
-    textareaRef,
-    handleMouseMove,
-    handlePaste,
-    handleDateSelect,
-    handleEditorClick,
-    handleGlobalKeyDown,
-    insertTemplate,
-    filteredTemplates,
-    highlight,
-    widthClass,
-    paddingClass,
-    setIsEditorFocused,
-    pillUrl,
-    pillLabel,
-    pillPos,
-    pillType,
-    setPillUrl,
-    handleSaveLink,
-    handleSaveWikiLink,
-    linkDialogOpen,
-    setLinkDialogOpen,
-    wikiLinkDialogOpen,
-    setWikiLinkDialogOpen,
-    insertWikiLink,
-    wikiLinkInsertPos,
-    insertLink,
-    datePickerOpen,
-    setDatePickerOpen,
-    insertDate,
-    tableInfo,
-    setTableInfo,
-    calloutPos,
-    currentAlignment,
-    isOnHeader,
-    canRemoveRow,
-    canRemoveCol,
-    cursorDataRowNumber,
-    formulaBadges,
+  const { fontFamily, displayFontSize, lineHeight, letterSpacing, windowWidth, widthClass, paddingClass } =
+    useEditorAppearance(props.isSplit);
 
-    handleRemoveTable,
-    handleCycleAlign,
-    handleCopyCSV,
-    handleAddRow,
-    handleRemoveRow,
-    handleAddColumn,
-    handleRemoveColumn,
-    handleSortColumn,
-    tableDialog,
-    handleOpenEditDialog,
-    workflowMatch,
-    workflowMenuPos,
-    handleWorkflowCycle,
-    todoMatch,
-    todoMenuPos,
-    handleTodoCycle,
-    isAiLoading,
-    aiReview,
-    isChatOpen,
-    chatSelectedText,
-    openChat,
-    closeChat,
-    applyFromChat,
-    applyReplace,
-    applyInsertBelow,
-    dismissReview,
-  } = useMarkdownEditor({
-    ...props,
-    value: editorValue,
-    onChange: editorOnChange,
+  const keyboardInset = useKeyboardInset();
+  const isMobile = windowWidth < 768;
+
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const viewRef = useRef<EditorView | null>(null);
+
+  const dialog = useDialog();
+  const csvConfirmRef = useRef<((preview: string) => Promise<boolean>) | null>(null);
+  csvConfirmRef.current = useCallback(
+    (preview: string) =>
+      dialog.confirm(
+        `Pasted content looks like tabular data (${preview.split("\n").length} rows). Convert it into a Markdown table?`,
+        "Convert to table?",
+        "Convert to table",
+        "Paste as text",
+      ),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [dialog],
+  );
+
+  const {
+    pillUrl, pillLabel, pillPos, pillType, setPillUrl, handleSaveLink,
+    dateMatch, isDateExpanded, setIsDateExpanded, dateMenuPos, handleDateSelect,
+    workflowMatch, workflowMenuPos, handleWorkflowCycle,
+    todoMatch, todoMenuPos, handleTodoCycle,
+    onCursorActivity,
+  } = useCodeMirrorFeatures({ viewRef, containerRef, onWikiLinkClick: props.onWikiLinkClick });
+
+  const {
+    linkDialogOpen, setLinkDialogOpen, insertLink,
+    wikiLinkDialogOpen, setWikiLinkDialogOpen, insertWikiLink,
+    templateDatePickerOpen, setTemplateDatePickerOpen, insertTemplateDate,
+    slashMenuCallbacksRef, wikiLinkTriggerRef,
+  } = useCodeMirrorTemplates({
+    viewRef,
     onFrontmatterWizard: useCallback(() => setFrontmatterWizardOpen(filePath), [setFrontmatterWizardOpen, filePath]),
   });
 
-  const isEditorBlocked = isAiLoading || isAiBusy;
-  const keyboardInset = useKeyboardInset();
+  const {
+    tableInfo, calloutPos, currentAlignment, isOnHeader, canRemoveRow, canRemoveCol, cursorDataRowNumber,
+    handleRemoveTable, handleCycleAlign, handleCopyCSV, handleAddRow, handleRemoveRow,
+    handleAddColumn, handleRemoveColumn, handleSortColumn,
+    onCursorActivity: onTableCursorActivity,
+  } = useCodeMirrorTable({ viewRef, containerRef });
+
+  const { chevrons, toggle: toggleCalloutFold, onCursorActivity: onFoldCursorActivity, onViewCreated } =
+    useCodeMirrorCalloutFold({ containerRef });
+
+  const onCombinedCursorActivity = useCallback((view: EditorView) => {
+    onCursorActivity(view);
+    onTableCursorActivity(view);
+    onFoldCursorActivity(view);
+  }, [onCursorActivity, onTableCursorActivity, onFoldCursorActivity]);
+
+  useCodeMirrorEditor({
+    value: editorValue,
+    onChange: editorOnChange,
+    wordWrap,
+    placeholder: props.placeholder || "Type / for templates",
+    readOnly: false,
+    onFocusChange: setIsEditorFocused,
+    onCursorActivity: onCombinedCursorActivity,
+    containerRef,
+    viewRef,
+    slashMenuCallbacksRef,
+    wikiLinkTriggerRef,
+    csvConfirmRef,
+    onViewCreated,
+  });
+
+  // The global voice-input hook (use-global-voice-input.ts) is a single
+  // instance shared by the whole app, not one per pane. It inserts a
+  // committed dictation into whichever view this atom currently points at,
+  // so this pane only needs to claim that slot while it's the active one.
+  const setActiveEditorView = useSetAtom(atom_activeEditorView);
+  useEffect(() => {
+    if (props.isActivePane) {
+      setActiveEditorView(viewRef.current);
+    }
+  }, [props.isActivePane, setActiveEditorView, viewRef]);
 
   const [linkLabel, setLinkLabel] = useState("");
   const [linkUrl, setLinkUrl] = useState("");
   const linkUrlInputRef = useRef<HTMLInputElement>(null);
-  const templateContainerRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
+  React.useEffect(() => {
     if (linkDialogOpen) {
       setLinkLabel("");
       setLinkUrl("");
     }
   }, [linkDialogOpen]);
 
-  useEffect(() => {
-    if (menuOpen && selectedIndex !== -1 && templateContainerRef.current) {
-      const container = templateContainerRef.current;
-      const selectedItem = container.children[selectedIndex] as HTMLElement;
-      if (selectedItem) {
-        selectedItem.scrollIntoView({ block: "nearest" });
-      }
-    }
-  }, [selectedIndex, menuOpen]);
-
-  const isMobile = windowWidth < 768;
-
-  function renderFuzzyLabel(label: string, matchIndices: number[]) {
-    const indexSet = new Set(matchIndices);
-    return label.split("").map((char, i) =>
-      indexSet.has(i)
-        ? <strong key={i} className="font-bold not-italic">{char}</strong>
-        : <span key={i}>{char}</span>
-    );
-  }
-
-  const templateList = (
-    <div
-      ref={templateContainerRef}
-      id="cmd-listbox"
-      role="listbox"
-      aria-label="Insert command"
-      className={`overflow-y-auto py-1 ${isMobile ? "max-h-[55vh]" : "max-h-52"}`}
-    >
-      {filteredTemplates.length === 0 ? (
-        <div className="px-3 py-2 text-ui-footnote text-ink-muted dark:text-fg-faint">
-          No results
-        </div>
-      ) : (
-        filteredTemplates.map((t, i) => {
-          const isActive = i === selectedIndex;
-          return (
-            <div
-              key={t.label}
-              role="option"
-              aria-selected={isActive}
-              id={`cmd-item-${i}`}
-              onMouseDown={(e) => {
-                e.preventDefault();
-                insertTemplate(t.content);
-              }}
-              className={`flex items-center gap-2.5 px-3 py-1.5 cursor-pointer transition-colors ${
-                isActive
-                  ? "bg-beige/40 dark:bg-sage/20"
-                  : "hover:bg-paper-softgray dark:hover:bg-paper-dark-surface"
-              }`}
-            >
-              <span className="shrink-0 w-6 text-center text-base leading-none select-none" aria-hidden="true">
-                {t.icon}
-              </span>
-              <div className="flex flex-col min-w-0 flex-1">
-                <span className={`text-ui-footnote font-medium leading-tight truncate ${isActive ? "text-ink-light dark:text-ink-dark" : "text-ink-light dark:text-ink-dark"}`}>
-                  {renderFuzzyLabel(t.label, t.matchIndices)}
-                </span>
-                <span className="text-[10px] leading-tight text-ink-muted dark:text-fg-faint truncate mt-0.5">
-                  {t.description}
-                </span>
-              </div>
-              {t.keybind && (
-                <kbd className="shrink-0 text-[10px] font-mono px-1.5 py-0.5 rounded bg-paper-softgray dark:bg-paper-dark-surface text-ink-muted dark:text-fg-faint border border-edge">
-                  {t.keybind}
-                </kbd>
-              )}
-            </div>
-          );
-        })
-      )}
-    </div>
-  );
-
   return (
     <div
-      ref={wrapperRef}
-      onKeyDown={handleGlobalKeyDown}
-      onClick={(e) => {
-        if (e.target === e.currentTarget && textareaRef.current) {
-          textareaRef.current.focus();
-        }
-      }}
       className="relative w-full h-full overflow-auto bg-white dark:bg-paper-dark cursor-text"
       translate="no"
     >
@@ -267,59 +182,33 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
       )}
 
       <div
-        onClick={(e) => {
-          if (e.target === e.currentTarget && textareaRef.current) {
-            const textarea = textareaRef.current;
-            // Preserve any active drag-selection that ended outside the textarea
-            if (textarea.selectionStart !== textarea.selectionEnd) {
-              textarea.focus();
-              return;
-            }
-            textarea.focus();
-            const rect = textarea.getBoundingClientRect();
-            if (e.clientY < rect.top) {
-              textarea.setSelectionRange(0, 0);
-            } else {
-              const length = textarea.value.length;
-              textarea.setSelectionRange(length, length);
-            }
-          }
-        }}
         className={`editor-container relative min-h-full antialiased normal-nums [font-variant-ligatures:none] [font-feature-settings:'liga'_0,'calt'_0]
           transition-[padding,max-width] duration-700 [transition-timing-function:cubic-bezier(0.4,0,0.2,1)]
           pt-1 pb-12
           ${wordWrap ? `mx-auto ${widthClass} ${paddingClass}` : "px-4 sm:px-6 md:px-10"}
           ${wordWrap ? "w-full" : "w-max min-w-full"}
           text-ui-body
-          [&_textarea]:!bg-transparent [&_textarea]:!text-transparent [&_textarea]:!caret-sage
-          [&_textarea]:!z-10 [&_pre]:!z-0 [&_pre]:!pointer-events-none
-          [&_textarea]:!outline-none [&_textarea]:!p-0 [&_pre]:!p-0
-          [&_textarea]:![border-radius:inherit] [&_pre]:![border-radius:inherit]
-          [&_textarea]:!border-none [&_pre]:!border-none
-          [&_textarea]:!m-0 [&_pre]:!m-0
-          ${wordWrap ? "[&_textarea]:!white-space-pre-wrap [&_pre]:!white-space-pre-wrap" : "[&_textarea]:!white-space-pre [&_pre]:!white-space-pre"}
         `}
         style={{
           fontFamily,
           "--editor-font-size": displayFontSize,
           "--editor-line-height": lineHeight,
           "--editor-letter-spacing": letterSpacing,
-          // Reserve extra scroll room so the caret/last lines can clear the
-          // on-screen keyboard instead of being trapped underneath it — a
-          // `fixed`/absolutely-positioned keyboard doesn't shrink this
-          // flex-derived container on its own.
           paddingBottom: keyboardInset > 0 ? `calc(3rem + ${keyboardInset}px)` : undefined,
         } as React.CSSProperties}
       >
-        <div className="relative">
-          {calloutChevrons.map((chevron) => (
+        <div className="relative h-full">
+          <label htmlFor="md-editor" className="sr-only">Markdown editor</label>
+          <div id="md-editor" ref={containerRef} className="h-full" />
+
+          {chevrons.map((chevron) => (
             <button
               key={chevron.blockId}
               type="button"
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                toggleObsidianCallout(chevron.blockId, chevron.collapsed);
+                if (viewRef.current) toggleCalloutFold(viewRef.current, chevron.blockId);
               }}
               className="absolute right-1 z-20 p-0.5 rounded text-ink-muted dark:text-fg-faint hover:text-sage dark:hover:text-sage"
               style={{ top: chevron.top }}
@@ -341,10 +230,7 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
               className={PILL_CONTAINER_CLASSES}
               style={{
                 top: dateMenuPos.top - 2,
-                left: Math.min(
-                  dateMenuPos.endLeft + 8,
-                  (textareaRef.current?.clientWidth || 500) - 30,
-                ),
+                left: Math.min(dateMenuPos.endLeft + 8, (containerRef.current?.clientWidth || 500) - 30),
               }}
               title="Toggle calendar"
               aria-label="Toggle calendar"
@@ -362,20 +248,6 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
             />
           )}
 
-          {menuOpen && (
-            <div
-              role="combobox"
-              aria-expanded="true"
-              aria-controls="cmd-listbox"
-              aria-haspopup="listbox"
-              aria-activedescendant={selectedIndex !== -1 ? `cmd-item-${selectedIndex}` : undefined}
-              className="absolute z-50 w-[min(18rem,_calc(100vw_-_2rem))] bg-paper-light dark:bg-paper-dark-surface border border-edge rounded-xl overflow-hidden"
-              style={{ top: menuPos.top, left: menuPos.left, fontFamily }}
-            >
-              {templateList}
-            </div>
-          )}
-
           {pillUrl && (
             <LinkPill
               url={pillUrl}
@@ -391,15 +263,7 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
                 setPillUrl(null);
               }}
               onSave={handleSaveLink}
-              onEdit={() => {
-                if (pillType === "wiki") {
-                  setWikiLinkDialogOpen(true);
-                }
-              }}
-              onDismiss={() => {
-                setPillUrl(null);
-                textareaRef.current?.focus();
-              }}
+              onDismiss={() => setPillUrl(null)}
             />
           )}
 
@@ -422,26 +286,6 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
             />
           )}
 
-          <FormulaResultOverlay badges={formulaBadges} />
-
-          {isEditorBlocked && <AIThinkingOverlay />}
-
-          <AIReviewDialog
-            review={aiReview}
-            onClose={dismissReview}
-            onReplace={applyReplace}
-            onInsertBelow={applyInsertBelow}
-          />
-
-          <AIChatDialog
-            isOpen={isChatOpen}
-            onClose={closeChat}
-            documentContent={value}
-            selectedText={chatSelectedText}
-            currentFilePath={filePath}
-            onApply={applyFromChat}
-          />
-
           {tableInfo && (
             <TableCallout
               pos={calloutPos}
@@ -460,54 +304,28 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
               onCycleAlign={handleCycleAlign}
               onRemoveTable={handleRemoveTable}
               onCopyCSV={handleCopyCSV}
-              onEditDialog={handleOpenEditDialog}
+              onEditDialog={() => {}}
             />
           )}
 
-          <TableDialog
-            isOpen={tableDialog.isOpen}
-            mode={tableDialog.mode}
-            headers={tableDialog.headers}
-            rows={tableDialog.rows}
-            alignments={tableDialog.alignments}
-            sortState={tableDialog.sortState}
-            focusRow={tableDialog.editCtx?.cursorRow}
-            focusCol={tableDialog.editCtx?.cursorCol}
-            pendingRemoveCol={tableDialog.pendingRemoveCol}
-            pendingRemoveRow={tableDialog.pendingRemoveRow}
-            markdownPreview={tableDialog.getMarkdownPreview()}
-            onHeaderChange={tableDialog.handleHeaderChange}
-            onCellChange={tableDialog.handleCellChange}
-            onAlignmentChange={tableDialog.handleAlignmentChange}
-            onSortColumn={tableDialog.handleSortColumn}
-            onAddColumn={tableDialog.handleAddColumn}
-            onRemoveColumn={tableDialog.handleRemoveColumn}
-            onConfirmRemoveColumn={tableDialog.handleConfirmRemoveColumn}
-            onCancelRemoveColumn={tableDialog.handleCancelRemoveColumn}
-            onAddRow={(atIndex) => tableDialog.handleAddRow(tableDialog.headers.length, atIndex)}
-            onRemoveRow={tableDialog.handleRemoveRow}
-            onConfirmRemoveRow={tableDialog.handleConfirmRemoveRow}
-            onCancelRemoveRow={tableDialog.handleCancelRemoveRow}
-            onInsert={tableDialog.handleInsert}
-            onUpdate={tableDialog.handleUpdate}
-            onClose={tableDialog.close}
-          />
-
           <WikiLinkDialog
             isOpen={wikiLinkDialogOpen}
-            onClose={() => {
-              setWikiLinkDialogOpen(false);
-              textareaRef.current?.focus();
-            }}
-            onConfirm={wikiLinkInsertPos ? insertWikiLink : handleSaveWikiLink}
-            initialValue={wikiLinkInsertPos ? "" : pillLabel}
-            title={wikiLinkInsertPos ? "Insert WikiLink" : "Edit WikiLink"}
+            onClose={() => setWikiLinkDialogOpen(false)}
+            onConfirm={insertWikiLink}
+            title="Insert WikiLink"
+          />
+
+          <DatePickerCallout
+            isOpen={templateDatePickerOpen}
+            initialDate={new Date()}
+            onSelectDate={insertTemplateDate}
+            onClose={() => setTemplateDatePickerOpen(false)}
           />
 
           {linkDialogOpen && (
             <DialogModal
               isOpened={linkDialogOpen}
-              onClose={() => { setLinkDialogOpen(false); textareaRef.current?.focus(); }}
+              onClose={() => setLinkDialogOpen(false)}
               styles="!max-w-sm"
               ariaLabelledBy="link-insert-heading"
             >
@@ -523,7 +341,7 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
                   handleChange={(e) => setLinkLabel(e.target.value)}
                   onKeyDown={(e) => {
                     if (e.key === "Enter") { e.preventDefault(); linkUrlInputRef.current?.focus(); }
-                    if (e.key === "Escape") { setLinkDialogOpen(false); textareaRef.current?.focus(); }
+                    if (e.key === "Escape") setLinkDialogOpen(false);
                   }}
                   autoFocus
                   placeholder="Link text"
@@ -539,14 +357,14 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
                   handleChange={(e) => setLinkUrl(e.target.value)}
                   onKeyDown={(e) => {
                     if (e.key === "Enter") { e.preventDefault(); insertLink(linkLabel || "link", linkUrl); }
-                    if (e.key === "Escape") { setLinkDialogOpen(false); textareaRef.current?.focus(); }
+                    if (e.key === "Escape") setLinkDialogOpen(false);
                   }}
                   placeholder="https://"
                   className="my-0"
                 />
 
                 <div className="flex justify-end gap-2 pt-1">
-                  <Button variant="outlined" onClick={() => { setLinkDialogOpen(false); textareaRef.current?.focus(); }}>
+                  <Button variant="outlined" onClick={() => setLinkDialogOpen(false)}>
                     Cancel
                   </Button>
                   <Button variant="primary" onClick={() => insertLink(linkLabel || "link", linkUrl)}>
@@ -555,51 +373,6 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
                 </div>
               </div>
             </DialogModal>
-          )}
-
-          <DatePickerCallout
-            isOpen={datePickerOpen}
-            initialDate={new Date()}
-            onSelectDate={(date) => insertDate(date)}
-            onClose={() => { setDatePickerOpen(false); textareaRef.current?.focus(); }}
-          />
-
-          <label htmlFor="md-editor-textarea" className="sr-only">Markdown editor</label>
-          <Editor
-            value={value}
-            onValueChange={handleValueChange}
-            highlight={highlight}
-            padding={0}
-            readOnly={isEditorBlocked}
-            onClick={handleEditorClick}
-            onPaste={handlePaste}
-            onMouseMove={handleMouseMove}
-            onFocus={() => setIsEditorFocused(true)}
-            onBlur={() => {
-              setIsEditorFocused(false);
-              // Dismiss pill when focus leaves the editor, unless focus moved into a
-              // dialog (e.g. the mobile action sheet or the desktop edit modal).
-              setTimeout(() => {
-                if (!document.activeElement?.closest('[role="dialog"]')) {
-                  setPillUrl(null);
-                  setDateMatch(null);
-                  setIsDateExpanded(false);
-                  setTableInfo(null);
-                }
-              }, 150);
-            }}
-            onKeyDown={handleGlobalKeyDown}
-            textareaId="md-editor-textarea"
-            textareaClassName={
-              isCtrlPressed && isOverLink ? "!cursor-pointer" : "!cursor-text"
-            }
-            {...({ autoComplete: "off" } as any)}
-          />
-
-          {!value && (
-            <div className="absolute top-0 left-0 right-0 opacity-20 pointer-events-none italic">
-              {props.placeholder || "Type / for templates"}
-            </div>
           )}
         </div>
       </div>

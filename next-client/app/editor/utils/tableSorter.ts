@@ -1,5 +1,3 @@
-import { isFormulaCell } from "./formula-engine";
-
 export type SortDirection = "asc" | "desc" | "none";
 
 export interface SortState {
@@ -9,8 +7,15 @@ export interface SortState {
 
 export type ColType = "number" | "date" | "string";
 
-// A row containing a formula cell is a computed summary, not data — e.g. the
-// `=SUM(...)` row the Table Dialog's Σ button inserts.
+// A row starting a cell with "=" (Markdown table formula/summary syntax,
+// e.g. a `=SUM(...)` row) is a computed summary, not data, and should stay
+// pinned rather than participate in sorting.
+function isFormulaCell(text: string): boolean {
+  if (!text) return false;
+  const t = text.trim();
+  return t.startsWith("=") && t.length > 1;
+}
+
 function isSummaryRow(row: string[]): boolean {
   return row.some((c) => isFormulaCell(c));
 }

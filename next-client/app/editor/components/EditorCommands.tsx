@@ -11,13 +11,14 @@ import {
 import {
   atom_theme,
   atom_railPanel,
-  atom_isDocInfoOpen,
-  atom_isVaultHealthOpen,
   atom_aiBuilderRequest,
   atom_isAiConfigured,
   atom_newVaultFlowOpen,
   atom_repurposeWizardOpen,
   atom_voiceWizardOpen,
+  atom_voiceInputRequest,
+  atom_isVoiceInputListening,
+  atom_isVoiceInputSupported,
 } from "@/app/atoms/ui-atoms";
 import { atom_content } from "@/app/atoms/file-atoms";
 import { atom_isDriveVault, atom_driveVaultId } from "@/app/atoms/drive-atoms";
@@ -29,27 +30,39 @@ import { openOrCreateVoiceMd } from "@/app/services/vault-schema";
 import { useVoiceMdStatus } from "../hooks/use-voice-md-status";
 import { useRegisterCommand } from "@/app/components/CommandPalette/CommandPaletteContext";
 import { formatShortcut } from "@/app/utils/platform";
+import { usePaneFileActions } from "../hooks/use-pane-file-actions";
 
 // Registers the app's global command-palette entries. Mounted once inside
 // the editor route, alongside CommandPaletteProvider. Each command is a thin
 // wrapper around an existing handler/atom — no new behavior, just a second
-// entry point for it.
+// entry point for it. Now also the sole home for actions that used to live
+// only in MobileControlRail's "More" sheet (now retired) — Home,
+// Documentation, Copy Markdown, Close Vault — plus mobile-aware branching
+// for Open Files/Open Tasks, since mobile has no sidebar panel to drive.
 export default function EditorCommands({
   onNewFile,
   onExport,
   onSave,
+  isMobileChrome,
+  onOpenMobileFiles,
+  onOpenMobileTasks,
+  onHome,
+  onOpenDocumentation,
 }: {
   onNewFile: () => void;
   onExport: () => void;
   onSave: () => void;
+  isMobileChrome?: boolean;
+  onOpenMobileFiles?: () => void;
+  onOpenMobileTasks?: () => void;
+  onHome: () => void;
+  onOpenDocumentation: () => void;
 }) {
   const router = useRouter();
-  const { openVault, vaultHandle, scanVault, openFile } = useFileSystem();
+  const { openVault, vaultHandle, scanVault, openFile, closeVault } = useFileSystem();
   const dialog = useDialog();
   const [theme, setTheme] = useAtom(atom_theme);
   const [railPanel, setRailPanel] = useAtom(atom_railPanel);
-  const [, setIsDocInfoOpen] = useAtom(atom_isDocInfoOpen);
-  const [, setIsVaultHealthOpen] = useAtom(atom_isVaultHealthOpen);
   const [, setAiBuilderRequest] = useAtom(atom_aiBuilderRequest);
   const [, setRepurposeWizardOpen] = useAtom(atom_repurposeWizardOpen);
   const [, setVoiceWizardOpen] = useAtom(atom_voiceWizardOpen);
@@ -62,6 +75,11 @@ export default function EditorCommands({
   const activePaneId = useAtomValue(atom_activePaneId);
   const [, closeTab] = useAtom(atom_closeTab);
   const [, setNewVaultFlowOpen] = useAtom(atom_newVaultFlowOpen);
+  const [, setVoiceInputRequest] = useAtom(atom_voiceInputRequest);
+  const isVoiceListening = useAtomValue(atom_isVoiceInputListening);
+  const isVoiceSupported = useAtomValue(atom_isVoiceInputSupported);
+  const activeLeaf = activePaneId ? findLeaf(workspaceLayout.rootContainer, activePaneId) : null;
+  const { handleCopy } = usePaneFileActions(activeLeaf);
 
   useRegisterCommand({
     id: "save-file",
@@ -94,6 +112,41 @@ export default function EditorCommands({
   });
 
   useRegisterCommand({
+    id: "open-files-panel",
+    label: "Open Files",
+    keywords: "files browse explorer sidebar",
+    action: () => (isMobileChrome ? onOpenMobileFiles?.() : setRailPanel("files")),
+  });
+
+  useRegisterCommand({
+    id: "open-search-panel",
+    label: "Search",
+    keywords: "find files search sidebar",
+    action: () => setRailPanel("search"),
+  });
+
+  useRegisterCommand({
+    id: "open-tags-panel",
+    label: "Open Tags",
+    keywords: "tags sidebar browse",
+    action: () => setRailPanel("tags"),
+  });
+
+  useRegisterCommand({
+    id: "open-views-panel",
+    label: "Open Views",
+    keywords: "views smart workspaces sidebar",
+    action: () => setRailPanel("views"),
+  });
+
+  useRegisterCommand({
+    id: "open-tasks-panel",
+    label: "Open Tasks",
+    keywords: "tasks todos sidebar",
+    action: () => (isMobileChrome ? onOpenMobileTasks?.() : setRailPanel("tasks")),
+  });
+
+  useRegisterCommand({
     id: "toggle-theme",
     label: theme === "dark" ? "Switch to light theme" : "Switch to dark theme",
     keywords: "dark light theme appearance",
@@ -107,10 +160,66 @@ export default function EditorCommands({
     action: () => router.push("/editor/settings"),
   });
 
+  useRegisterCommand(
+    isVoiceSupported
+      ? {
+          id: "toggle-voice-input",
+          label: isVoiceListening ? "Stop voice input" : "Start voice input",
+          shortcut: formatShortcut("V", { shift: true }),
+          keywords: "voice mic dictate speak",
+          action: () => setVoiceInputRequest((v) => v + 1),
+        }
+      : null,
+  );
+
+  useRegisterCommand({
+    id: "go-home",
+    label: "Home",
+    keywords: "home vault switcher",
+    action: onHome,
+  });
+
+  useRegisterCommand({
+    id: "open-documentation",
+    label: "Documentation",
+    keywords: "docs help guide",
+    action: onOpenDocumentation,
+  });
+
+  useRegisterCommand(
+    vaultHandle
+      ? {
+          id: "close-vault",
+          label: "Close vault",
+          keywords: "disconnect vault switch",
+          action: async () => {
+            const confirmed = await dialog.confirm(
+              "You can reopen it later — this just disconnects the current vault.",
+              "Close this vault?",
+              "Close Vault",
+              "Cancel",
+            );
+            if (confirmed) closeVault();
+          },
+        }
+      : null,
+  );
+
+  useRegisterCommand(
+    activeLeaf && activeLeaf.openFilePaths.length > 0
+      ? {
+          id: "copy-markdown",
+          label: "Copy Markdown",
+          keywords: "copy clipboard content",
+          action: () => { void handleCopy(); },
+        }
+      : null,
+  );
+
   useRegisterCommand({
     id: "create-new-vault",
     label: "Create new vault",
-    keywords: "vault new folder starter pack",
+    keywords: "vault new folder",
     action: () => setNewVaultFlowOpen(true),
   });
 
@@ -140,21 +249,6 @@ export default function EditorCommands({
         }
       : null,
   );
-
-  useRegisterCommand({
-    id: "doc-info",
-    label: "Document info — word count, score",
-    shortcut: formatShortcut("I", { shift: true }),
-    keywords: "word count tokens score structured stats",
-    action: () => setIsDocInfoOpen((v) => !v),
-  });
-
-  useRegisterCommand({
-    id: "vault-health",
-    label: "Vault health score",
-    keywords: "health score stats orphan broken links frontmatter tokens",
-    action: () => setIsVaultHealthOpen((v) => !v),
-  });
 
   useRegisterCommand(
     isAiConfigured
@@ -217,8 +311,6 @@ export default function EditorCommands({
       el?.focus();
     },
   });
-
-  const activeLeaf = activePaneId ? findLeaf(workspaceLayout.rootContainer, activePaneId) : null;
 
   useRegisterCommand(
     activeLeaf && activeLeaf.activeFilePath

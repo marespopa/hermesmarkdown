@@ -11,11 +11,10 @@ import {
   atom_openFiles,
   atom_workspaceLayout,
   atom_autoInjectFrontmatter,
-  atom_vaultSetupStatus,
 } from '@/app/atoms/atoms';
 import { atom_fileMetadata } from '@/app/atoms/metadata';
 import { atom_vaultFiles } from '@/app/atoms/vault-atoms';
-import { atom_frontmatterWizardOpen, atom_vaultSetupWizardOpen } from '@/app/atoms/ui-atoms';
+import { atom_frontmatterWizardOpen } from '@/app/atoms/ui-atoms';
 import {
   atom_driveVaultId,
   atom_drivePathIndex,
@@ -45,8 +44,6 @@ export function useDriveFileCrud({ scanVault, indexVaultTags, openFile }: Props)
   const setVaultFiles = useSetAtom(atom_vaultFiles);
   const [autoInjectFrontmatter] = useAtom(atom_autoInjectFrontmatter);
   const setFrontmatterWizardOpen = useSetAtom(atom_frontmatterWizardOpen);
-  const setVaultSetupWizardOpen = useSetAtom(atom_vaultSetupWizardOpen);
-  const [vaultSetupStatus] = useAtom(atom_vaultSetupStatus);
   const driveVaultId = useAtomValue(atom_driveVaultId);
   const [drivePathIndex, setDrivePathIndex] = useAtom(atom_drivePathIndex);
   const [, setDriveAuthState] = useAtom(atom_driveAuthState);
@@ -114,11 +111,7 @@ export function useDriveFileCrud({ scanVault, indexVaultTags, openFile }: Props)
         await openFile(handle, path, true);
 
         if (didInject) {
-          if (vaultSetupStatus === 'needs_setup') {
-            setVaultSetupWizardOpen(path);
-          } else {
-            setFrontmatterWizardOpen(path);
-          }
+          setFrontmatterWizardOpen(path);
         }
 
         toast.success('Created: ' + fileName);
@@ -130,7 +123,7 @@ export function useDriveFileCrud({ scanVault, indexVaultTags, openFile }: Props)
         return null;
       }
     },
-    [currentDirHandle, drivePathIndex, buildPath, autoInjectFrontmatter, scanVault, openFile, vaultSetupStatus, setVaultSetupWizardOpen, setFrontmatterWizardOpen, setDrivePathIndex, setDriveAuthState],
+    [currentDirHandle, drivePathIndex, buildPath, autoInjectFrontmatter, scanVault, openFile, setFrontmatterWizardOpen, setDrivePathIndex, setDriveAuthState],
   );
 
   const createNewFile = useCallback(async (dirHandle?: any) => {

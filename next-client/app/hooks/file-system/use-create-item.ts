@@ -1,15 +1,14 @@
 "use client";
 
-import { useAtom, useAtomValue, useSetAtom } from "jotai";
+import { useAtom, useSetAtom } from "jotai";
 import { useCallback } from "react";
 import toast from "react-hot-toast";
 import {
   atom_vaultHandle,
   atom_currentDirectoryHandle,
   atom_autoInjectFrontmatter,
-  atom_vaultSetupStatus,
 } from "@/app/atoms/atoms";
-import { atom_frontmatterWizardOpen, atom_vaultSetupWizardOpen } from "@/app/atoms/ui-atoms";
+import { atom_frontmatterWizardOpen } from "@/app/atoms/ui-atoms";
 import { useDialog } from "../use-dialog";
 import { withRetry } from "./shared";
 import { injectFrontmatter } from "@/app/utils/frontmatterInjector";
@@ -24,8 +23,6 @@ export function useCreateItem({ scanVault, openFile }: UseCreateItemProps) {
   const [currentDirectoryHandle] = useAtom(atom_currentDirectoryHandle);
   const [autoInjectFrontmatter] = useAtom(atom_autoInjectFrontmatter);
   const setFrontmatterWizardOpen = useSetAtom(atom_frontmatterWizardOpen);
-  const setVaultSetupWizardOpen = useSetAtom(atom_vaultSetupWizardOpen);
-  const vaultSetupStatus = useAtomValue(atom_vaultSetupStatus);
   const dialog = useDialog();
 
   const createFile = useCallback(
@@ -98,11 +95,7 @@ export function useCreateItem({ scanVault, openFile }: UseCreateItemProps) {
         await openFile(newFileHandle, path, true);
 
         if (contentToWrite !== content) {
-          if (vaultSetupStatus === "needs_setup") {
-            setVaultSetupWizardOpen(path);
-          } else {
-            setFrontmatterWizardOpen(path);
-          }
+          setFrontmatterWizardOpen(path);
         }
 
         toast.success("Created: " + fileName);
@@ -118,7 +111,7 @@ export function useCreateItem({ scanVault, openFile }: UseCreateItemProps) {
         return null;
       }
     },
-    [vaultHandle, currentDirectoryHandle, scanVault, openFile, autoInjectFrontmatter, vaultSetupStatus, setVaultSetupWizardOpen, setFrontmatterWizardOpen],
+    [vaultHandle, currentDirectoryHandle, scanVault, openFile, autoInjectFrontmatter, setFrontmatterWizardOpen],
   );
 
   const createNewFile = useCallback(async (dirHandle?: FileSystemDirectoryHandle) => {
