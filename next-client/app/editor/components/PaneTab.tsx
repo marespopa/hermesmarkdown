@@ -23,9 +23,9 @@ interface PaneTabProps {
   onDrop?: (e: React.DragEvent) => void;
 }
 
-const statusDot: Record<TabSaveState, { className: string; title: string } | null> = {
-  idle: null,
-  dirty: { className: "bg-sage/80", title: "Unsaved changes" },
+export const statusDot: Record<TabSaveState, { className: string; title: string }> = {
+  idle: { className: "bg-stone/40 dark:bg-fg-faint/40", title: "Saved" },
+  dirty: { className: "bg-amber-500", title: "Unsaved changes" },
   saving: { className: "bg-sage animate-pulse", title: "Saving…" },
   saved: { className: "bg-emerald-500", title: "Saved" },
   error: { className: "bg-red-500", title: "Save error" },

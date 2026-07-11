@@ -2,12 +2,18 @@
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useAtom, useAtomValue } from "jotai";
-import { atom_frontmatterDefaultMode, atom_frontmatterWizardOpen } from "@/app/atoms/atoms";
+import {
+  atom_frontmatterDefaultMode,
+  atom_frontmatterWizardOpen,
+  atom_openFiles,
+  atom_saveStatus,
+} from "@/app/atoms/atoms";
 import { HiChevronRight, HiChevronDown } from "react-icons/hi";
 import { FM_REGEX, parseFmFields, updateFmFields } from "@/app/utils/frontmatter-utils";
 import useKeyboardInset from "@/app/hooks/use-keyboard-inset";
 import DialogModal from "../../components/DialogModal/DialogModal";
 import Button from "../../components/Button";
+import { TabSaveState, statusDot } from "./PaneTab";
 import {
   TitleField,
   EnumField,
@@ -36,6 +42,8 @@ export default function FrontmatterPanel({
 }: FrontmatterPanelProps) {
   const defaultMode = useAtomValue(atom_frontmatterDefaultMode);
   const [wizardPath, setWizardPath] = useAtom(atom_frontmatterWizardOpen);
+  const openFiles = useAtomValue(atom_openFiles);
+  const saveStatus = useAtomValue(atom_saveStatus);
 
   const match = FM_REGEX.exec(content);
   const rawFrontmatter = match ? match[0] : null;
@@ -104,41 +112,93 @@ export default function FrontmatterPanel({
     el?.focus();
   }, [expanded]);
 
-  if (!rawFrontmatter) return null;
-
   const set = (key: string, val: string) => {
     onChange(updateFmFields(content, { [key]: val }));
   };
 
   const applyRawDraft = (text: string) => {
     setRawDraft(text);
+
+    // Clearing the textarea entirely is how you remove frontmatter — treat
+    // it as "delete the block", not as invalid YAML.
+    if (text.trim() === "") {
+      setRawError(null);
+      onChange(content.slice(rawFrontmatter?.length ?? 0).replace(/^\n+/, ""));
+      return;
+    }
+
     const candidate = text.endsWith("\n") ? text : `${text}\n`;
     if (!FM_REGEX.test(candidate)) {
       setRawError("Invalid frontmatter — must be a YAML block between `---` lines.");
       return;
     }
     setRawError(null);
-    onChange(candidate + content.slice(rawFrontmatter.length));
+    onChange(candidate + content.slice(rawFrontmatter?.length ?? 0));
   };
 
+  const fileState = openFiles[filePath];
   const title = fields.title ?? "";
+  // Same fallback chain the tabs use — a filename is always something to
+  // show, and frontmatter stays entirely optional either way.
+  const fallbackName = (fileState?.fileName || filePath.split("/").pop() || "").replace(/\.md$/, "");
+  const displayTitle = title || fallbackName;
   const tagCount = (fields.tags ?? "").split(",").map((t) => t.trim()).filter(Boolean).length;
   const summaryLine = [fields.status, tagCount > 0 ? `${tagCount} tag${tagCount === 1 ? "" : "s"}` : null]
     .filter(Boolean)
     .join("  ·  ");
 
+  // Mirrors the tab-bar save dot so save state is still visible here when
+  // the tab bar itself is hidden, regardless of whether this file has a
+  // frontmatter title.
+  const isDirty = !!fileState && fileState.content !== fileState.lastSavedContent;
+  const saveState: TabSaveState =
+    saveStatus.path === filePath && saveStatus.state === "error"
+      ? "error"
+      : saveStatus.path === filePath && saveStatus.state === "saving"
+      ? "saving"
+      : saveStatus.path === filePath && saveStatus.state === "saved"
+      ? "saved"
+      : isDirty
+      ? "dirty"
+      : "idle";
+  const dot = statusDot[saveState];
+
+  // Frontmatter is optional — the bar is purely informational (save status +
+  // title) for a file that doesn't have any. Only files that already have a
+  // frontmatter block are clickable into the fields/YAML editor.
   const SummaryBar = ({ sticky = false }: { sticky?: boolean }) => (
     <button
       type="button"
-      onClick={() => (isMobile ? setSheetOpen(true) : setExpanded(true))}
+      disabled={!rawFrontmatter}
+      onClick={() => {
+        if (!rawFrontmatter) return;
+        if (isMobile) setSheetOpen(true);
+        else setExpanded(true);
+      }}
       className={`flex items-center gap-2 w-full text-left select-none px-0.5 ${
+        rawFrontmatter ? "" : "cursor-default"
+      } ${
         sticky ? "sticky top-0 z-30 bg-chrome/95 backdrop-blur-sm py-1.5 border-b border-edge-subtle" : "mb-1"
       }`}
       style={{ fontFamily, fontSize: displayFontSize }}
     >
-      {title && <span className="shrink min-w-0 max-w-[30ch] truncate opacity-50 text-[0.72em] font-medium">{title}</span>}
+      {dot && (
+        <span
+          className={`shrink-0 block w-1.5 h-1.5 rounded-full ${dot.className}`}
+          title={saveState === "error" ? saveStatus.message || dot.title : dot.title}
+        />
+      )}
+      {displayTitle && (
+        <span
+          className={`shrink min-w-0 max-w-[30ch] truncate text-[0.72em] ${
+            title ? "opacity-50 font-medium" : "opacity-35"
+          }`}
+        >
+          {displayTitle}
+        </span>
+      )}
       {summaryLine && <span className="flex-1 min-w-0 truncate text-right opacity-30 text-[0.72em]">{summaryLine}</span>}
-      <HiChevronRight size={13} className="shrink-0 text-ink-muted dark:text-fg-faint" />
+      {rawFrontmatter && <HiChevronRight size={13} className="shrink-0 text-ink-muted dark:text-fg-faint" />}
     </button>
   );
 

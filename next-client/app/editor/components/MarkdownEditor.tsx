@@ -169,21 +169,19 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
       className="relative w-full h-full overflow-auto bg-white dark:bg-paper-dark cursor-text"
       translate="no"
     >
-      {rawFrontmatter && (
-        <div
-          className="mx-auto w-full pt-1"
-          style={{ fontFamily, maxWidth: maxContentWidth, paddingLeft: contentPaddingX, paddingRight: contentPaddingX }}
-        >
-          <FrontmatterPanel
-            filePath={filePath}
-            content={props.value}
-            onChange={props.onChange}
-            fontFamily={fontFamily}
-            displayFontSize={displayFontSize}
-            isMobile={isMobile}
-          />
-        </div>
-      )}
+      <div
+        className="mx-auto w-full pt-1"
+        style={{ fontFamily, maxWidth: maxContentWidth, paddingLeft: contentPaddingX, paddingRight: contentPaddingX }}
+      >
+        <FrontmatterPanel
+          filePath={filePath}
+          content={props.value}
+          onChange={props.onChange}
+          fontFamily={fontFamily}
+          displayFontSize={displayFontSize}
+          isMobile={isMobile}
+        />
+      </div>
 
       <div
         className={`editor-container relative min-h-full antialiased normal-nums [font-variant-ligatures:none] [font-feature-settings:'liga'_0,'calt'_0]

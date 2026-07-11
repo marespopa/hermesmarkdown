@@ -10,7 +10,6 @@ import {
   atom_vaultCreationParentHandle,
   atom_vaultCreationError,
   atom_newVaultFlowOpen,
-  atom_autoInjectFrontmatter,
   atom_frontmatterHasPrompted,
   type VaultCreationSubStep,
 } from "@/app/atoms/ui-atoms";
@@ -46,7 +45,6 @@ export function useCreateVault() {
   const [parentHandle, setParentHandle] = useAtom(atom_vaultCreationParentHandle);
   const [error, setError] = useAtom(atom_vaultCreationError);
   const setNewVaultFlowOpen = useSetAtom(atom_newVaultFlowOpen);
-  const setAutoInjectFrontmatter = useSetAtom(atom_autoInjectFrontmatter);
   const setFrontmatterHasPrompted = useSetAtom(atom_frontmatterHasPrompted);
 
   const { initVaultFromHandle } = useVaultManager();
@@ -125,14 +123,11 @@ export function useCreateVault() {
       return;
     }
 
-    // Enable auto-inject by default for new vaults and mark as prompted
-    // so no separate dialog interrupts the post-creation flow.
-    setAutoInjectFrontmatter(true);
     setFrontmatterHasPrompted(true);
     resetFlow();
 
     await initVaultFromHandle(newVaultHandle, { isNewVault: true });
-  }, [parentHandle, vaultName, initVaultFromHandle, resetFlow, setError, setSubStep, setAutoInjectFrontmatter, setFrontmatterHasPrompted]);
+  }, [parentHandle, vaultName, initVaultFromHandle, resetFlow, setError, setSubStep, setFrontmatterHasPrompted]);
 
   return {
     subStep,
