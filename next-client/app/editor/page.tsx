@@ -53,7 +53,6 @@ import { atom_isAiConfigured, atom_aiBuilderRequest, atom_railPanel, RailPanel, 
 import { generateFileFromPrompt } from "@/app/services/ai";
 import { withRetry } from "@/app/hooks/file-system/shared";
 import FabBar from "./components/FabBar";
-import SaveStatusFab from "./components/SaveStatusFab";
 import { HiOutlineChevronRight, HiOutlineChevronLeft } from "react-icons/hi";
 
 export default function LiteEditor() {
@@ -517,7 +516,6 @@ export default function LiteEditor() {
         </div>{/* end MAIN LAYOUT */}
 
         <FabBar />
-        {!isMobileChrome && <SaveStatusFab onSave={() => handleSaveRef.current()} />}
 
         <VoicePreviewPanel
           isListening={isVoiceListening}

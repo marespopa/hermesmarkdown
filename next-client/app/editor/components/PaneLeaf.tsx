@@ -20,7 +20,7 @@ import {
 import { atom_newVaultFlowOpen, atom_isVoicePreviewVisible } from "@/app/atoms/ui-atoms";
 import { HiOutlineDocumentText, HiOutlineEye, HiOutlineChartBar, HiOutlineX, HiOutlineClipboardCopy, HiOutlineSave, HiOutlineDotsHorizontal, HiOutlinePlus, HiOutlineFolderOpen, HiOutlineDatabase, HiOutlineCollection, HiOutlineChevronDown, HiOutlineChevronUp } from "react-icons/hi";
 import { VscSplitHorizontal } from "react-icons/vsc";
-import PaneTab, { TabSaveState } from "./PaneTab";
+import PaneTab, { TabSaveState, statusMeta } from "./PaneTab";
 import { useFileSystem } from "@/app/hooks/use-file-system";
 import { useAtomValue } from "jotai";
 import Button from "../../components/Button";
@@ -94,6 +94,24 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
   };
 
   const { handleSave, handleCopy, closeTabWithAutosave, buildTabMenuItems } = usePaneFileActions(leaf);
+
+  // Drives the tab bar's Save button — replaces the old floating,
+  // draggable SaveStatusFab, which people found unintuitive to reposition.
+  // Docked in the tab bar's own layout instead, so it can't overlap or
+  // need dragging in the first place.
+  const activeFileState = leaf.activeFilePath ? openFiles[leaf.activeFilePath] : undefined;
+  const activeIsDirty = !!activeFileState && activeFileState.content !== activeFileState.lastSavedContent;
+  const activeSaveState: TabSaveState =
+    saveStatus.path === leaf.activeFilePath && saveStatus.state === "error"
+      ? "error"
+      : saveStatus.path === leaf.activeFilePath && saveStatus.state === "saving"
+      ? "saving"
+      : saveStatus.path === leaf.activeFilePath && saveStatus.state === "saved"
+      ? "saved"
+      : activeIsDirty
+      ? "dirty"
+      : "idle";
+  const activeSaveMeta = statusMeta[activeSaveState];
 
   const getIcon = (type: string) => {
     switch (type) {
@@ -223,6 +241,29 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
             {tabBarVisible ? <HiOutlineChevronUp size={12} /> : <HiOutlineChevronDown size={12} />}
           </span>
         </button>
+        {/* Save status has nowhere to live once the tab bar is collapsed —
+            stand in for it with a compact dot in the same corner so save
+            state doesn't disappear entirely. */}
+        {!tabBarVisible && isActive && leaf.openFilePaths.length > 0 && (
+          <button
+            type="button"
+            onClick={handleSave}
+            disabled={activeSaveState === "saving"}
+            aria-label={`Save — ${activeSaveMeta.title}`}
+            title={activeSaveState === "error" ? (saveStatus.message || activeSaveMeta.title) : activeSaveMeta.title}
+            className={`absolute right-2 top-1.5 z-30 flex items-center justify-center w-6 h-6 rounded-full bg-chrome border border-edge-subtle shadow-sm transition-colors disabled:pointer-events-none ${
+              activeSaveState === "idle" ? "text-fg-faint hover:text-sage" : activeSaveMeta.className
+            }`}
+          >
+            {activeSaveState === "saving" ? (
+              <span className="w-2.5 h-2.5 rounded-full border-2 border-edge border-t-sage animate-spin" />
+            ) : activeSaveMeta.Icon ? (
+              <activeSaveMeta.Icon size={12} />
+            ) : (
+              <HiOutlineSave size={12} />
+            )}
+          </button>
+        )}
         <div
           className={`shrink-0 overflow-hidden transition-[max-height,opacity] duration-200 ease-in-out ${
             tabBarVisible ? "max-h-9 opacity-100" : "max-h-0 opacity-0 pointer-events-none"
@@ -311,14 +352,26 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
                     </Button>
                   </Tooltip>
                 )}
-                <Tooltip label="Save" shortcut={formatShortcut("S")}>
+                <Tooltip
+                  label={activeSaveState === "error" ? (saveStatus.message || activeSaveMeta.title) : activeSaveMeta.title}
+                  shortcut={formatShortcut("S")}
+                >
                   <Button
                     variant="icon"
                     onClick={handleSave}
-                    aria-label="Save"
-                    className="w-9 h-9 flex items-center justify-center text-ink-muted hover:text-sage transition-all rounded-xl"
+                    disabled={activeSaveState === "saving"}
+                    aria-label={`Save — ${activeSaveMeta.title}`}
+                    className={`w-9 h-9 flex items-center justify-center transition-all rounded-xl disabled:opacity-40 disabled:pointer-events-none ${
+                      activeSaveState === "idle" ? "text-ink-muted hover:text-sage" : activeSaveMeta.className
+                    }`}
                   >
-                    <HiOutlineSave size={18} />
+                    {activeSaveState === "saving" ? (
+                      <span className="w-3.5 h-3.5 rounded-full border-2 border-edge border-t-sage animate-spin" />
+                    ) : activeSaveMeta.Icon ? (
+                      <activeSaveMeta.Icon size={18} />
+                    ) : (
+                      <HiOutlineSave size={18} />
+                    )}
                   </Button>
                 </Tooltip>
                 <div className="w-px h-3 bg-beige dark:bg-clay mx-1 opacity-50" />
