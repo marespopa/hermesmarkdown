@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { PanelLeaf } from "@/app/types/workspace";
 import MarkdownEditor from "./MarkdownEditor";
 import TabContextMenu, { TabContextMenuItem } from "./TabContextMenu";
@@ -29,7 +29,6 @@ import { formatShortcut } from "@/app/utils/platform";
 import { useCommandPalette } from "@/app/components/CommandPalette/CommandPaletteContext";
 import useIsMobileChrome from "@/app/hooks/use-mobile-chrome";
 import { usePaneFileActions } from "../hooks/use-pane-file-actions";
-import { useChromeVisibility } from "@/app/hooks/use-chrome-visibility";
 
 interface PaneLeafProps {
   leaf: PanelLeaf;
@@ -125,9 +124,7 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
   }, []);
   const hideCopyMarkdown = tabBarRowWidth < 440;
   const hideSplitRight = tabBarRowWidth < 360;
-  // Chrome-at-rest: the tab bar fades out while idly focused in the editor,
-  // reveals on top-edge hover, and stays put while its own context menu is open.
-  const { visible: tabBarVisible, reveal: revealTabBar, hide: hideTabBar } = useChromeVisibility({ forceVisible: tabMenu !== null });
+  const [tabBarVisible, setTabBarVisible] = useState(true);
 
   const handleDragStart = (e: React.DragEvent, path: string) => {
     const data = JSON.stringify({ 
@@ -211,28 +208,25 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
       {/* Pane Tabs Bar — desktop only. On mobile there are no split panes
           and no visible tab strip (MobileControlRail/MobileFileIndicator
           handle switching and file actions instead), so this whole bar
-          would be dead weight. Chrome-at-rest: fades out while idly
-          focused in the editor, reveals on top-edge hover. */}
+          would be dead weight. Shown/hidden only via the explicit toggle
+          button below. */}
       {!isMobileChrome && (
       <div className="shrink-0 relative">
-        {/* Always-present, invisible top-edge strip so the mouse has
-            somewhere to land and bring the bar back once its height has
-            collapsed to 0. */}
-        <div className="absolute left-0 top-0 w-full h-2 z-30" onMouseEnter={revealTabBar} />
         <button
           type="button"
-          onClick={() => (tabBarVisible ? hideTabBar() : revealTabBar())}
+          onClick={() => setTabBarVisible((v) => !v)}
           aria-label={tabBarVisible ? "Hide tabs" : "Show tabs"}
           title={tabBarVisible ? "Hide tabs" : "Show tabs"}
-          className="absolute left-1/2 top-0 -translate-x-1/2 z-30 w-10 h-2.5 rounded-b-lg bg-chrome border border-t-0 border-edge-subtle flex items-center justify-center text-fg-faint opacity-50 hover:opacity-100 hover:text-fg transition-opacity"
+          className="group absolute left-1/2 top-0 -translate-x-1/2 z-30 w-12 h-3 hover:h-5 rounded-b-lg bg-chrome border border-t-0 border-edge-subtle shadow-sm transition-[height] duration-300 ease-in-out hover:duration-150 flex items-center justify-center text-fg-faint hover:text-sage hover:border-sage/40"
         >
-          {tabBarVisible ? <HiOutlineChevronUp size={10} /> : <HiOutlineChevronDown size={10} />}
+          <span className="transition-transform duration-150 ease-out group-hover:translate-y-0.5">
+            {tabBarVisible ? <HiOutlineChevronUp size={12} /> : <HiOutlineChevronDown size={12} />}
+          </span>
         </button>
         <div
           className={`shrink-0 overflow-hidden transition-[max-height,opacity] duration-200 ease-in-out ${
             tabBarVisible ? "max-h-9 opacity-100" : "max-h-0 opacity-0 pointer-events-none"
           }`}
-          onMouseEnter={revealTabBar}
         >
       <div
         ref={tabBarRowRef}

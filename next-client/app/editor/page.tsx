@@ -15,7 +15,6 @@ import {
   atom_activePaneId,
   atom_isFileLoading,
   atom_sidebarWidth,
-  atom_isEditorFocused,
   findLeaf,
   getFirstLeaf,
 } from "@/app/atoms/atoms";
@@ -79,15 +78,6 @@ export default function LiteEditor() {
   useEffect(() => {
     if (railPanel !== null) setLastPanel(railPanel);
   }, [railPanel]);
-  // Sidebar auto-retracts the moment focus returns to the text — matches
-  // "borrowing space, not living there." Safe without an extra "is the
-  // sidebar mid-interaction" check: this only fires when the CM6 editor
-  // itself gains DOM focus, which by definition means no sidebar element
-  // (a search input, etc.) currently has focus.
-  const isEditorFocused = useAtomValue(atom_isEditorFocused);
-  useEffect(() => {
-    if (isEditorFocused) setRailPanel(null);
-  }, [isEditorFocused, setRailPanel]);
   const isFileLoading = useAtomValue(atom_isFileLoading);
   const isAiConfigured = useAtomValue(atom_isAiConfigured);
   const [, setAiBuilderRequest] = useAtom(atom_aiBuilderRequest);
@@ -456,29 +446,23 @@ export default function LiteEditor() {
         {/* --- MAIN LAYOUT --- */}
         <div className="flex flex-1 min-h-0 overflow-hidden relative">
 
-        {/* Sidebar panel — hidden at rest; mouse-to-left-edge opens it
-            directly (no intermediate rail-reveal step, since panel
-            switching now lives in the command palette — see
+        {/* Sidebar panel — shown/hidden only via the explicit toggle button
+            below (panel switching lives in the command palette — see
             EditorCommands.tsx). Mobile uses MobileFileOverlay/
             MobileTasksOverlay instead. */}
         {!isMobileChrome && (
           <div className="flex shrink-0 h-full relative">
-            {/* Always-present, invisible edge strip so the mouse has
-                somewhere to land and open the sidebar once its width has
-                collapsed to 0. */}
-            <div
-              className="absolute left-0 top-0 h-full w-3 z-40"
-              onMouseEnter={() => setRailPanel((prev) => prev ?? lastPanel)}
-            />
             <button
               type="button"
               onClick={() => setRailPanel(railPanel === null ? lastPanel : null)}
               aria-label={railPanel === null ? "Show sidebar" : "Hide sidebar"}
               title={railPanel === null ? "Show sidebar" : "Hide sidebar"}
               style={{ left: railPanel !== null ? sidebarWidth : 0 }}
-              className="absolute top-1/2 -translate-x-1/2 -translate-y-1/2 z-40 w-2.5 h-11 rounded-lg bg-chrome border border-edge-subtle transition-[left,opacity] duration-300 ease-in-out flex items-center justify-center text-fg-faint opacity-50 hover:opacity-100 hover:text-fg"
+              className="group absolute top-1/2 -translate-y-1/2 z-40 w-4 hover:w-7 h-12 rounded-r-lg bg-chrome border border-l-0 border-edge-subtle shadow-sm transition-[left,width] duration-300 ease-in-out hover:duration-150 flex items-center justify-center text-fg-faint hover:text-sage hover:border-sage/40"
             >
-              {railPanel === null ? <HiOutlineChevronRight size={10} /> : <HiOutlineChevronLeft size={10} />}
+              <span className="transition-transform duration-150 ease-out group-hover:translate-x-0.5">
+                {railPanel === null ? <HiOutlineChevronRight size={12} /> : <HiOutlineChevronLeft size={12} />}
+              </span>
             </button>
             <div
               className="h-full overflow-hidden transition-[width] duration-300 ease-in-out shrink-0"
