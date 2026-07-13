@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { HiOutlineDocumentText } from "react-icons/hi";
+import { HiOutlineDocumentText, HiCheck, HiPencilAlt, HiExclamationCircle } from "react-icons/hi";
 import { VscClose } from "react-icons/vsc";
 
 export type TabSaveState = "idle" | "dirty" | "saving" | "saved" | "error";
@@ -29,6 +29,20 @@ export const statusDot: Record<TabSaveState, { className: string; title: string 
   saving: { className: "bg-sage animate-pulse", title: "Saving…" },
   saved: { className: "bg-emerald-500", title: "Saved" },
   error: { className: "bg-red-500", title: "Save error" },
+};
+
+// Icon + label version — used where there's room to spell out the state
+// explicitly (mobile header, desktop save-status FAB) rather than relying on
+// a color-coded dot, which tested as unclear on its own.
+export const statusMeta: Record<
+  TabSaveState,
+  { Icon: React.ComponentType<{ size?: number; className?: string }> | null; className: string; title: string; label: string }
+> = {
+  idle: { Icon: HiCheck, className: "text-fg-faint", title: "Saved", label: "Saved" },
+  dirty: { Icon: HiPencilAlt, className: "text-amber-500", title: "Unsaved changes", label: "Unsaved" },
+  saving: { Icon: null, className: "text-sage", title: "Saving…", label: "Saving…" },
+  saved: { Icon: HiCheck, className: "text-emerald-500", title: "Saved", label: "Saved" },
+  error: { Icon: HiExclamationCircle, className: "text-red-500", title: "Save error", label: "Error" },
 };
 
 export default function PaneTab({

@@ -6,14 +6,12 @@ import {
   atom_frontmatterDefaultMode,
   atom_frontmatterWizardOpen,
   atom_openFiles,
-  atom_saveStatus,
 } from "@/app/atoms/atoms";
 import { HiChevronRight, HiChevronDown } from "react-icons/hi";
 import { FM_REGEX, parseFmFields, updateFmFields } from "@/app/utils/frontmatter-utils";
 import useKeyboardInset from "@/app/hooks/use-keyboard-inset";
 import DialogModal from "../../components/DialogModal/DialogModal";
 import Button from "../../components/Button";
-import { TabSaveState, statusDot } from "./PaneTab";
 import {
   TitleField,
   EnumField,
@@ -43,7 +41,6 @@ export default function FrontmatterPanel({
   const defaultMode = useAtomValue(atom_frontmatterDefaultMode);
   const [wizardPath, setWizardPath] = useAtom(atom_frontmatterWizardOpen);
   const openFiles = useAtomValue(atom_openFiles);
-  const saveStatus = useAtomValue(atom_saveStatus);
 
   const match = FM_REGEX.exec(content);
   const rawFrontmatter = match ? match[0] : null;
@@ -147,22 +144,6 @@ export default function FrontmatterPanel({
     .filter(Boolean)
     .join("  ·  ");
 
-  // Mirrors the tab-bar save dot so save state is still visible here when
-  // the tab bar itself is hidden, regardless of whether this file has a
-  // frontmatter title.
-  const isDirty = !!fileState && fileState.content !== fileState.lastSavedContent;
-  const saveState: TabSaveState =
-    saveStatus.path === filePath && saveStatus.state === "error"
-      ? "error"
-      : saveStatus.path === filePath && saveStatus.state === "saving"
-      ? "saving"
-      : saveStatus.path === filePath && saveStatus.state === "saved"
-      ? "saved"
-      : isDirty
-      ? "dirty"
-      : "idle";
-  const dot = statusDot[saveState];
-
   // Frontmatter is optional — the bar is purely informational (save status +
   // title) for a file that doesn't have any. Only files that already have a
   // frontmatter block are clickable into the fields/YAML editor.
@@ -182,12 +163,6 @@ export default function FrontmatterPanel({
       }`}
       style={{ fontFamily, fontSize: displayFontSize }}
     >
-      {dot && (
-        <span
-          className={`shrink-0 block w-1.5 h-1.5 rounded-full ${dot.className}`}
-          title={saveState === "error" ? saveStatus.message || dot.title : dot.title}
-        />
-      )}
       {displayTitle && (
         <span
           className={`shrink min-w-0 max-w-[30ch] truncate text-[0.72em] ${

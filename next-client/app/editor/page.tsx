@@ -53,8 +53,8 @@ import { useRouter } from "next/navigation";
 import { atom_isAiConfigured, atom_aiBuilderRequest, atom_railPanel, RailPanel, atom_voiceInputRequest, atom_isVoiceInputListening, atom_isVoiceInputSupported, atom_activeEditorView } from "@/app/atoms/ui-atoms";
 import { generateFileFromPrompt } from "@/app/services/ai";
 import { withRetry } from "@/app/hooks/file-system/shared";
-import { useChromeVisibility } from "@/app/hooks/use-chrome-visibility";
 import FabBar from "./components/FabBar";
+import SaveStatusFab from "./components/SaveStatusFab";
 import { HiOutlineChevronRight, HiOutlineChevronLeft } from "react-icons/hi";
 
 export default function LiteEditor() {
@@ -110,13 +110,6 @@ export default function LiteEditor() {
   const isMobileChrome = useIsMobileChrome();
   const [isMobileFileOverlayOpen, setIsMobileFileOverlayOpen] = useState(false);
   const [isMobileTasksOverlayOpen, setIsMobileTasksOverlayOpen] = useState(false);
-  // Chrome-at-rest, mobile: the control rail fades out while idly focused
-  // in the editor, reveals on a tap near the top of the screen, and stays
-  // up while a sheet it opened is still open.
-  const { visible: mobileRailVisible, reveal: revealMobileRail } = useChromeVisibility({
-    forceVisible: isMobileFileOverlayOpen || isMobileTasksOverlayOpen,
-  });
-
   const {
     vaultHandle,
     vaultFiles,
@@ -430,8 +423,8 @@ export default function LiteEditor() {
         onExport={handleExport}
         onSave={() => handleSaveRef.current()}
         isMobileChrome={isMobileChrome}
-        onOpenMobileFiles={() => { revealMobileRail(); setIsMobileFileOverlayOpen(true); }}
-        onOpenMobileTasks={() => { revealMobileRail(); setIsMobileTasksOverlayOpen(true); }}
+        onOpenMobileFiles={() => setIsMobileFileOverlayOpen(true)}
+        onOpenMobileTasks={() => setIsMobileTasksOverlayOpen(true)}
         onHome={() => navigateWithGuard("/", "Home")}
         onOpenDocumentation={() => navigateWithGuard("/documentation", "Documentation")}
       />
@@ -518,17 +511,7 @@ export default function LiteEditor() {
         <div className="flex-1 flex min-w-0 bg-surface overflow-hidden relative">
           {/* Main Editor Area */}
           <div className="flex-1 flex flex-col min-w-0 relative">
-            {isMobileChrome && (
-              // Always-present, invisible top-edge strip so a tap near the
-              // top of the screen brings the file indicator back once it's
-              // faded — touch has no hover, so this is the mobile
-              // equivalent of the desktop sidebar's edge-hover zone.
-              <div
-                className="absolute left-0 top-0 w-full h-4 z-40"
-                onTouchStart={revealMobileRail}
-              />
-            )}
-            {isMobileChrome && mobileRailVisible && <MobileFileIndicator />}
+            {isMobileChrome && <MobileFileIndicator onSave={() => handleSaveRef.current()} />}
             <div className="relative flex-1 min-h-0">
               <main className="h-full">
                 {isMounting ? (
@@ -550,6 +533,7 @@ export default function LiteEditor() {
         </div>{/* end MAIN LAYOUT */}
 
         <FabBar />
+        {!isMobileChrome && <SaveStatusFab onSave={() => handleSaveRef.current()} />}
 
         <VoicePreviewPanel
           isListening={isVoiceListening}
