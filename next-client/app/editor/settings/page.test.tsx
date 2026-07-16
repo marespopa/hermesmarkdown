@@ -74,7 +74,7 @@ describe("SettingsPage", () => {
     expect(screen.getByText("Line Height")).toBeInTheDocument();
     expect(screen.getByText("Letter Spacing")).toBeInTheDocument();
     // Font family choices render as individual rows (no single "Typeface" label).
-    expect(screen.getByText("System Mono")).toBeInTheDocument();
+    expect(screen.getByText("IBM Plex Mono")).toBeInTheDocument();
   });
 
   it("calls setter when line height option is clicked", () => {

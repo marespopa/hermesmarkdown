@@ -299,7 +299,7 @@ export function useVaultManager() {
 
     const handle = await withPickerLock(async () => {
       try {
-        return await window.showDirectoryPicker();
+        return await window.showDirectoryPicker({ mode: "readwrite" });
       } catch (err: any) {
         if (err.name === "AbortError" || err.name === "NotAllowedError") return undefined;
         throw err;

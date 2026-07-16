@@ -49,6 +49,17 @@ export const atom_splitPane = atom(
   },
 );
 
+export const atom_setPaneType = atom(
+  null,
+  (get, set, { id, type }: { id: string; type: PanelLeaf["type"] }) => {
+    const layout = get(atom_workspaceLayout);
+    set(atom_workspaceLayout, {
+      ...layout,
+      rootContainer: updateLeaf(layout.rootContainer, id, { type }),
+    });
+  },
+);
+
 export const atom_closePane = atom(null, (get, set, id: string) => {
   const layout = get(atom_workspaceLayout);
 

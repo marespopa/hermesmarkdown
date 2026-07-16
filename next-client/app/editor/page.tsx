@@ -20,6 +20,7 @@ import {
 } from "@/app/atoms/atoms";
 import useIsMobileChrome from "@/app/hooks/use-mobile-chrome";
 import VaultSidebar from "./components/VaultSidebar";
+import SidebarRail from "./components/SidebarRail";
 import WelcomeWizard from "./components/WelcomeWizard";
 import NewVaultDialog from "./components/NewVaultDialog";
 import WorkspaceSplitter from "./components/WorkspaceSplitter";
@@ -49,11 +50,9 @@ import { useVoiceMdNudge } from "./hooks/use-voice-md-nudge";
 
 
 import { useRouter } from "next/navigation";
-import { atom_isAiConfigured, atom_aiBuilderRequest, atom_railPanel, RailPanel, atom_voiceInputRequest, atom_isVoiceInputListening, atom_isVoiceInputSupported, atom_activeEditorView } from "@/app/atoms/ui-atoms";
+import { atom_isAiConfigured, atom_aiBuilderRequest, atom_railPanel, atom_showHiddenFiles, RailPanel, atom_voiceInputRequest, atom_isVoiceInputListening, atom_isVoiceInputSupported, atom_activeEditorView, atom_isSidebarResizing } from "@/app/atoms/ui-atoms";
 import { generateFileFromPrompt } from "@/app/services/ai";
 import { withRetry } from "@/app/hooks/file-system/shared";
-import FabBar from "./components/FabBar";
-import { HiOutlineChevronRight, HiOutlineChevronLeft } from "react-icons/hi";
 
 export default function LiteEditor() {
   const router = useRouter();
@@ -71,12 +70,19 @@ export default function LiteEditor() {
   const mobileLeaf = findLeaf(workspaceLayout.rootContainer, activePaneId) ?? getFirstLeaf(workspaceLayout.rootContainer);
   const [railPanel, setRailPanel] = useAtom(atom_railPanel);
   const sidebarWidth = useAtomValue(atom_sidebarWidth);
+  const isSidebarResizing = useAtomValue(atom_isSidebarResizing);
   // Kept mounted while collapsing/expanding so the wrapper's width transition
   // (below) can animate smoothly instead of the panel popping in/out on unmount.
   const [lastPanel, setLastPanel] = useState<RailPanel>(railPanel ?? "files");
   useEffect(() => {
     if (railPanel !== null) setLastPanel(railPanel);
   }, [railPanel]);
+  // Rail icon click: open/switch to that panel, or collapse if it's already
+  // the one showing. The rail itself is always visible, so there's no
+  // separate "reveal" step — a click just toggles the detail panel beside it.
+  const handleSelectPanel = useCallback((id: RailPanel) => {
+    setRailPanel((prev) => (prev === id ? null : id));
+  }, [setRailPanel]);
   const isFileLoading = useAtomValue(atom_isFileLoading);
   const isAiConfigured = useAtomValue(atom_isAiConfigured);
   const [, setAiBuilderRequest] = useAtom(atom_aiBuilderRequest);
@@ -111,8 +117,15 @@ export default function LiteEditor() {
     createFile,
     createNewFile,
     scanVault,
+    indexVaultTags,
     syncSidebarToPath,
   } = useFileSystem();
+  const showHiddenFiles = useAtomValue(atom_showHiddenFiles);
+  const handleRefreshVault = useCallback(() => {
+    if (!vaultHandle) return;
+    scanVault(vaultHandle as any, showHiddenFiles);
+    indexVaultTags?.(vaultHandle as any, showHiddenFiles);
+  }, [vaultHandle, showHiddenFiles, scanVault, indexVaultTags]);
 
   const dialog = useDialog();
   const hasPromptedForNameRef = useRef(false);
@@ -239,7 +252,7 @@ export default function LiteEditor() {
       // Expand/collapse sidebar
       if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === "e") {
         e.preventDefault();
-        setRailPanel((prev) => (prev !== null ? null : "files"));
+        setRailPanel((prev) => (prev !== null ? null : lastPanel));
       }
 
       // AI Builder — on-demand, not a status bar button
@@ -272,7 +285,7 @@ export default function LiteEditor() {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [flush, railPanel, setRailPanel, isAiConfigured, setAiBuilderRequest, isVoiceSupported, setVoiceInputRequest]);
+  }, [flush, railPanel, setRailPanel, lastPanel, isAiConfigured, setAiBuilderRequest, isVoiceSupported, setVoiceInputRequest]);
 
   const handleNewFile = () => {
     if (!vaultHandle) {
@@ -445,26 +458,36 @@ export default function LiteEditor() {
         {/* --- MAIN LAYOUT --- */}
         <div className="flex flex-1 min-h-0 overflow-hidden relative">
 
-        {/* Sidebar panel — shown/hidden only via the explicit toggle button
-            below (panel switching lives in the command palette — see
-            EditorCommands.tsx). Mobile uses MobileFileOverlay/
-            MobileTasksOverlay instead. */}
+        {/* Icon rail (SidebarRail) stays out of the way on desktop until a
+            panel is open or the edge is hovered — a thin 8px grip peeks out
+            and the full rail slides in over the content. Once a panel is
+            open the rail takes its normal place in the layout so it doesn't
+            vanish mid-use. Also reachable via the command palette and
+            Ctrl+Shift+E. Mobile uses MobileFileOverlay/MobileTasksOverlay
+            instead. */}
         {!isMobileChrome && (
-          <div className="flex shrink-0 h-full relative">
-            <button
-              type="button"
-              onClick={() => setRailPanel(railPanel === null ? lastPanel : null)}
-              aria-label={railPanel === null ? "Show sidebar" : "Hide sidebar"}
-              title={railPanel === null ? "Show sidebar" : "Hide sidebar"}
-              style={{ left: railPanel !== null ? sidebarWidth : 0 }}
-              className="group absolute top-1/2 -translate-y-1/2 z-40 w-4 hover:w-7 h-12 rounded-r-lg bg-chrome border border-l-0 border-edge-subtle shadow-sm transition-[left,width] duration-300 ease-in-out hover:duration-150 flex items-center justify-center text-fg-faint hover:text-sage hover:border-sage/40"
-            >
-              <span className="transition-transform duration-150 ease-out group-hover:translate-x-0.5">
-                {railPanel === null ? <HiOutlineChevronRight size={12} /> : <HiOutlineChevronLeft size={12} />}
-              </span>
-            </button>
+          <div className="flex shrink-0 h-full items-center">
+            {railPanel !== null ? (
+              <SidebarRail
+                panel={railPanel}
+                onSelectPanel={handleSelectPanel}
+                onSettings={() => navigateWithGuard("/editor/settings", "Settings")}
+                onRefreshVault={handleRefreshVault}
+              />
+            ) : (
+              <div className="group/railzone relative h-full w-2 shrink-0">
+                <div className="absolute left-0 top-0 h-full w-14 -translate-x-[calc(100%-0.5rem)] group-hover/railzone:translate-x-0 transition-transform duration-200 ease-in-out z-30">
+                  <SidebarRail
+                    panel={railPanel}
+                    onSelectPanel={handleSelectPanel}
+                    onSettings={() => navigateWithGuard("/editor/settings", "Settings")}
+                    onRefreshVault={handleRefreshVault}
+                  />
+                </div>
+              </div>
+            )}
             <div
-              className="h-full overflow-hidden transition-[width] duration-300 ease-in-out shrink-0"
+              className={`h-full overflow-hidden shrink-0 ${isSidebarResizing ? "" : "transition-[width] duration-300 ease-in-out"}`}
               style={{ width: railPanel !== null ? sidebarWidth : 0 }}
               aria-hidden={railPanel === null}
               inert={railPanel === null ? true : undefined}
@@ -482,8 +505,6 @@ export default function LiteEditor() {
                   onImport={handleImport}
                   onExport={handleExport}
                   onClose={() => setRailPanel(null)}
-                  onHome={() => navigateWithGuard("/", "Home")}
-                  onOpenDocumentation={() => navigateWithGuard("/documentation", "Documentation")}
                 />
               </div>
             </div>
@@ -514,8 +535,6 @@ export default function LiteEditor() {
           </div>
         </div>
         </div>{/* end MAIN LAYOUT */}
-
-        <FabBar />
 
         <VoicePreviewPanel
           isListening={isVoiceListening}

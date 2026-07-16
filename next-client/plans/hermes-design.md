@@ -135,15 +135,13 @@ Note: `Ctrl+P` is reserved by the browser for print. Do not use it.
 
 Opens a centered modal above the editor. Fuzzy search across all registered commands and files. Clay accent on selected item. Dismisses on `Escape` or action execution.
 
-**2. Mouse to left edge — hover sidebar**
+**2. Icon rail — always visible**
 
-Moving the mouse to the left edge of the viewport opens the sidebar directly, defaulting to the last-used panel — there is no intermediate icon rail to reveal first; panel switching (Files/Search/Tags/Views/Tasks) lives in the command palette (see Icon Rail, below).
+A persistent, minimal icon rail sits at the left edge on desktop at all times (see Icon Rail, below). Clicking one of its panel icons (Files/Search/Tags/Views/Tasks) opens the detail panel beside it, defaulting to whichever panel was last open; clicking the active icon again collapses it back to just the rail.
 
-Pressing `Escape` or returning focus to the editor dismisses it. Today this still reflows the editor's content width, matching the current desktop implementation — converting it to a true non-reflowing overlay is tracked separately.
+**3. Keyboard toggle**
 
-**3. Pinned sidebar — explicit toggle**
-
-`Ctrl+Shift+E` pins the sidebar open persistently. When pinned, the editor content area adjusts its left offset to accommodate. Pinned state persists to `localStorage` and restores on next open.
+`Ctrl+Shift+E` (also in the command palette as "Expand/Collapse sidebar") opens or closes the detail panel the same way clicking a rail icon does. `Escape` closes it. This still reflows the editor's content width, matching the current desktop implementation — converting it to a true non-reflowing overlay is tracked separately. No separate persisted "pin" state — the rail itself is the permanent, always-reachable affordance, so the detail panel's open/closed state is simply the current session's, not saved across reloads.
 
 ### Tab Bar
 
@@ -163,7 +161,7 @@ Position: bottom center of the editor, floating above the content.
 
 ## Sidebar Contents
 
-Applies when sidebar is open via hover or pinned.
+Applies when the detail panel beside the icon rail is open.
 
 ### Views Section (top)
 
@@ -185,19 +183,24 @@ Formerly called Smart Workspaces. Renamed to Views — more familiar, maps to wh
 
 ### Search and Tags
 
-Accessible via command palette commands (Search, Open Tags, Open Views, Open Tasks — see Command Registry), or by opening the sidebar and switching sections there. There is no icon rail; see Icon Rail, below.
+Accessible via command palette commands (Search, Open Tags, Open Views, Open Tasks — see Command Registry), or by clicking the corresponding icon on the rail (see Icon Rail, below).
 
 ### Footer
 
-Bottom row of the sidebar, icon-only buttons: **Home** and **Documentation** on the left (one-tap navigation, redundant with their command-palette entries but reachable without invoking the palette whenever the sidebar happens to already be open); vault-scoped actions on the right — Show Hidden Files, Refresh Vault, Close/Open Vault.
+None — the sidebar itself has no footer. The utility actions that used to live in one (Settings, Theme, Refresh Vault, Close/Open Vault) live in the icon rail's bottom group instead (see Icon Rail, below). Home and Documentation are command-palette-only, not rail or footer icons.
 
 ---
 
 ## Icon Rail
 
-There is no panel-switching icon rail. The command palette is the primary control surface for nearly everything that used to be a rail button — opening Files/Search/Tags/Views/Tasks, Home, Documentation, Voice, Settings, and Toggle Theme are all commands (see Command Registry).
+A persistent, minimal icon-only rail (~56px wide) sits at the left edge on desktop, always visible — not conditional on the sidebar being open. No border-radius, no box-shadow, matching the rest of the chrome; active items get a left-border accent plus a light tint, the same convention used elsewhere (Views, file tree).
 
-The one exception is **Chat** (`FabBar`): a single draggable floating button, present on both desktop and mobile, position persisted to `localStorage`. It's the one action kept outside the palette because it's a live-status toggle you want glanceable while writing (it pulses while the AI is busy) rather than a one-off navigation action — the same reasoning doesn't apply to Voice, which is a command like everything else despite also being a toggle, since its state is better surfaced elsewhere (recording indicator) than by needing a permanent floating button. Chat only renders when an AI provider is configured. Everything that used to live in the mobile control rail's "More" sheet (Open Files, Save, Copy Markdown, Document Info, Vault Health, Close Vault, Settings, Theme, Home, Documentation) is command-palette-only, matching desktop. On mobile, `MobileFileIndicator` (the persistent top bar showing the current filename) doubles as the tap target for the command palette when no files are open yet, since there's no keyboard shortcut on touch devices.
+- **Top group**: Files, Search, Tags, Views, Tasks. Clicking one opens the detail panel beside the rail showing that section; clicking the currently-active one again collapses it.
+- **Bottom group**: Settings, Toggle Theme, Refresh Vault (vault-scoped, hidden with no vault open), Close/Open Vault (single icon, state-dependent).
+
+The command palette remains available as a second entry point for the same actions (opening Files/Search/Tags/Views/Tasks, Home, Documentation, Voice, Settings, Toggle Theme are all still registered commands), but is no longer the *only* one for panel switching and the rail's own actions.
+
+The one addition kept outside both the rail and the palette is **Chat** (`FabBar`): a single draggable floating button, present on both desktop and mobile, position persisted to `localStorage`. It's the one action kept outside the palette because it's a live-status toggle you want glanceable while writing (it pulses while the AI is busy) rather than a one-off navigation action — the same reasoning doesn't apply to Voice, which is a command like everything else despite also being a toggle, since its state is better surfaced elsewhere (recording indicator) than by needing a permanent floating button. Chat only renders when an AI provider is configured. Everything that used to live in the mobile control rail's "More" sheet (Open Files, Save, Copy Markdown, Document Info, Vault Health, Close Vault, Settings, Theme, Home, Documentation) is command-palette-only on mobile, since there's no icon rail there. On mobile, `MobileFileIndicator` (the persistent top bar showing the current filename) doubles as the tap target for the command palette when no files are open yet, since there's no keyboard shortcut on touch devices.
 
 ---
 
@@ -342,12 +345,11 @@ Single breakpoint: below 768px is mobile layout, above is desktop. No tablet-spe
 | 1 | Color system update | Restyle |
 | 2 | Editor surface — content width, line height, padding | Restyle |
 | 3 | Desktop chrome hide/show — sidebar as overlay, tab bar conditional, status bar pill | Behavior |
-| 4 | Left edge hover trigger — sidebar slide-in on mouse proximity | Behavior |
-| 5 | Pinned sidebar — `Ctrl+Shift+E`, localStorage persistence | Behavior |
+| 4 | Icon rail — persistent, always visible on desktop | New |
+| 5 | Sidebar toggle — `Ctrl+Shift+E`, rail click, Escape (no persistence) | Behavior |
 | 6 | Mobile bottom bar — four icons, visualViewport keyboard detection | New |
 | 7 | Mobile overlays — file tree, search, command palette as full-screen sheets | New |
 | 8 | Command palette | New |
-| 9 | Icon rail — simplified, only visible when sidebar is open | Restyle + Behavior |
 
 ---
 
@@ -355,13 +357,13 @@ Single breakpoint: below 768px is mobile layout, above is desktop. No tablet-spe
 
 - [ ] App opens to full-screen editor with no chrome visible
 - [ ] Content width is constrained and centered on desktop
-- [ ] Mouse to left edge reveals sidebar as overlay without pushing editor
-- [ ] Sidebar dismisses on mouse-out or Escape
+- [ ] Icon rail is always visible on desktop; clicking a rail icon opens the detail panel without pushing the whole viewport (still reflows the content column today, tracked separately)
+- [ ] Detail panel dismisses on Escape or clicking its active rail icon again
 - [ ] Tab bar only appears when two or more files are open
 - [ ] Status bar is pill-only, idle-hidden
 - [ ] No earth-tone backgrounds anywhere — all surfaces are neutral
 - [ ] Clay and moss appear only on interactive elements
-- [ ] Icon rail only visible when sidebar is open
+- [ ] Icon rail is always visible on desktop (not conditional on the sidebar being open)
 - [ ] Mobile bottom bar hides when virtual keyboard is open
 - [ ] Mobile file switching is full-screen overlay
 - [ ] Dark mode uses warm dark surfaces, not pure black

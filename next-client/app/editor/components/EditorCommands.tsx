@@ -101,7 +101,7 @@ export default function EditorCommands({
   });
 
   useRegisterCommand({
-    id: "toggle-sidebar-pin",
+    id: "toggle-sidebar",
     label: railPanel !== null ? "Collapse sidebar" : "Expand sidebar",
     shortcut: formatShortcut("E", { shift: true }),
     keywords: "sidebar collapse expand explorer files",

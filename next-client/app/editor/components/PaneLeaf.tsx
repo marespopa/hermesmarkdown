@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { PanelLeaf } from "@/app/types/workspace";
 import MarkdownEditor from "./MarkdownEditor";
+import Preview from "./Preview";
 import TabContextMenu, { TabContextMenuItem } from "./TabContextMenu";
 import { useAtom } from "jotai";
 import {
@@ -16,6 +17,7 @@ import {
   atom_saveStatus,
   atom_vaultHandle,
   atom_workspaceLayout,
+  atom_setPaneType,
 } from "@/app/atoms/atoms";
 import { atom_newVaultFlowOpen, atom_isVoicePreviewVisible } from "@/app/atoms/ui-atoms";
 import { HiOutlineDocumentText, HiOutlineEye, HiOutlineChartBar, HiOutlineX, HiOutlineClipboardCopy, HiOutlineSave, HiOutlineDotsHorizontal, HiOutlinePlus, HiOutlineFolderOpen, HiOutlineDatabase, HiOutlineCollection, HiOutlineChevronDown, HiOutlineChevronUp } from "react-icons/hi";
@@ -38,6 +40,7 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
   const [activePaneId, setActivePaneId] = useAtom(atom_activePaneId);
   const [openFiles] = useAtom(atom_openFiles);
   const [, splitPane] = useAtom(atom_splitPane);
+  const [, setPaneType] = useAtom(atom_setPaneType);
   const [, closePane] = useAtom(atom_closePane);
   const [, setActiveFilePath] = useAtom(atom_activeFilePath);
   const [, moveTab] = useAtom(atom_moveTab);
@@ -142,7 +145,10 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
   }, []);
   const hideCopyMarkdown = tabBarRowWidth < 440;
   const hideSplitRight = tabBarRowWidth < 360;
-  const [tabBarVisible, setTabBarVisible] = useState(true);
+  // Defaults to hidden — the tab bar is chrome you reach for, not chrome
+  // you look at. The hover chevron and the collapsed save-status dot below
+  // keep it discoverable without occupying the top edge at rest.
+  const [tabBarVisible, setTabBarVisible] = useState(false);
 
   const handleDragStart = (e: React.DragEvent, path: string) => {
     const data = JSON.stringify({ 
@@ -390,6 +396,21 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
                 </Tooltip>
               </>
             )}
+            {leaf.activeFilePath && (
+              <Tooltip label={leaf.type === "preview" ? "Edit" : "Preview"}>
+                <Button
+                  variant="icon"
+                  onClick={() => setPaneType({ id: leaf.id, type: leaf.type === "preview" ? "editor" : "preview" })}
+                  aria-label={leaf.type === "preview" ? "Switch to editor" : "Switch to preview"}
+                  aria-pressed={leaf.type === "preview"}
+                  className={`w-9 h-9 flex items-center justify-center transition-all rounded-xl ${
+                    leaf.type === "preview" ? "text-sage" : "text-ink-muted hover:text-ink-light dark:hover:text-ink-dark"
+                  }`}
+                >
+                  <HiOutlineEye size={16} />
+                </Button>
+              </Tooltip>
+            )}
             {!hideSplitRight && (
               <Tooltip label="Split Right">
                 <Button
@@ -489,6 +510,8 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
             isActivePane={isActive}
             isSplit={!isOnlyPane}
           />
+        ) : leaf.type === "preview" ? (
+          <Preview content={content} />
         ) : (
           <div className="flex flex-col items-center justify-center h-full opacity-20 space-y-2">
             {getIcon(leaf.type)}

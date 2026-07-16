@@ -23,9 +23,8 @@ export const LETTER_SPACINGS = [
 ];
 
 export const FONTS = [
-  { label: "System Mono", value: MONO_FONT_STACK },
-  { label: "JetBrains Mono", value: "var(--font-jetbrains), ui-monospace, monospace" },
-  { label: "Fira Code", value: "var(--font-fira), ui-monospace, monospace" },
-  { label: "IBM Plex Mono", value: "var(--font-ibm), ui-monospace, monospace" },
-  { label: "Journal (Serif)", value: "Georgia, ui-serif, serif" },
+  { label: "IBM Plex Mono", value: MONO_FONT_STACK },
+  { label: "Space Mono", value: "var(--font-space-mono), ui-monospace, monospace" },
+  { label: "IBM Plex Sans", value: "var(--font-ibm-sans), ui-sans-serif, sans-serif" },
+  { label: "Literata (Serif)", value: "var(--font-literata), Georgia, ui-serif, serif" },
 ];

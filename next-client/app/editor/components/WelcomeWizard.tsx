@@ -153,7 +153,7 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
                   <HiOutlineFolderAdd className="text-sage" size={24} />
                   <div className="text-left">
                     <div className="font-bold text-ui-footnote">Create New Vault</div>
-                    <div className="text-[10px] opacity-50 uppercase tracking-wider font-bold">New folder · Starter packs</div>
+                    <div className="text-[10px] opacity-50 uppercase tracking-wider font-bold">New folder · Empty vault</div>
                   </div>
                 </div>
                 <HiOutlineChevronRight opacity={0.3} />
@@ -379,11 +379,11 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
         const key = aiProvider === "gemini" ? geminiKey : claudeKey;
         const setKey = aiProvider === "gemini" ? setGeminiKey : setClaudeKey;
         return (
-          <div className="flex flex-col items-center text-center space-y-6 py-4">
-            <div className="w-16 h-16 bg-sage/10 rounded-2xl flex items-center justify-center text-sage">
-              <HiOutlineLightningBolt size={32} />
+          <div className="flex flex-col items-center text-center space-y-4 py-2">
+            <div className="w-12 h-12 bg-sage/10 rounded-2xl flex items-center justify-center text-sage shrink-0">
+              <HiOutlineLightningBolt size={24} />
             </div>
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               <h2 className="text-ui-title-3 font-bold">AI Features (optional)</h2>
               <p className="text-ui-footnote opacity-60 px-4">
                 Bring your own API key to unlock rewriting, summarizing, and chat.
@@ -392,15 +392,15 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
               </p>
             </div>
 
-            <div className="w-full rounded-2xl border border-edge p-4 space-y-3 bg-paper-softgray/40 dark:bg-paper-dark/30 text-left">
-              <div className="space-y-2">
+            <div className="w-full rounded-2xl border border-edge p-3.5 space-y-2.5 bg-paper-softgray/40 dark:bg-paper-dark/30 text-left">
+              <div className="space-y-1.5">
                 <label className="text-[11px] font-bold uppercase tracking-wider ml-1 opacity-70 block">Provider</label>
                 <SelectControl value={aiProvider} onChange={(v) => setAiProvider(v as any)}>
                   <option value="claude">Claude (Anthropic)</option>
                   <option value="gemini">Gemini (Google)</option>
                 </SelectControl>
               </div>
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 <label className="text-[11px] font-bold uppercase tracking-wider ml-1 opacity-70 block">API Key</label>
                 <Input
                   name="welcome-ai-key"
@@ -420,13 +420,13 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
                   if (result.success) showSuccessToast("Connection successful.");
                   else showErrorToast(result.error || "Connection failed.");
                 }}
-                className="w-full h-10 rounded-xl text-ui-footnote font-semibold"
+                className="w-full h-9 rounded-xl text-ui-footnote font-semibold"
               >
                 {isTestingConnection ? "Testing…" : "Test Connection"}
               </Button>
             </div>
 
-            <Button variant="primary" onClick={() => setStep(8)} className="w-full h-12 rounded-2xl text-ui-footnote font-bold">
+            <Button variant="primary" onClick={() => setStep(8)} className="w-full h-11 rounded-2xl text-ui-footnote font-bold shrink-0">
               Continue
             </Button>
           </div>

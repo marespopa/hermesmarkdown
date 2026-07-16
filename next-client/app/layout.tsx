@@ -1,13 +1,13 @@
 import "./globals.scss";
 import MainPage from "./components/MainPage";
 import { Metadata, Viewport } from "next";
-import { inter, jetBrainsMono, firaCode, ibmPlexMono } from "./fonts";
+import { inter, ibmPlexMono, spaceMono, ibmPlexSans, literata } from "./fonts";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://hermesmarkdown.com"),
-  title: "HermesMarkdown — Context Engineering for Your Notes",
+  title: "HermesMarkdown — Runs in Browser, Files Stay on Disk",
   description:
-    "A local-first Markdown editor for engineers. HermesMarkdown structures your vault the way you already structure context for your coding agent — write, select, compress, isolate. A .hermes/ folder (AGENTS.md, schema.yaml, index.yaml) lets coding agents index your vault without reading every file. WikiLinks, a keyboard-driven table editor, BYOK AI — your data never leaves your device.",
+    "Edit local Markdown folders in your browser — reads and writes files directly on disk. Nothing touches a server. No accounts, no cloud uploads.",
   applicationName: "HermesMarkdown",
   authors: [{ name: "Mares Popa", url: "https://www.marespopa.com/" }],
   keywords: [
@@ -32,9 +32,9 @@ export const metadata: Metadata = {
   robots: { index: true, follow: true },
   alternates: { canonical: "/" },
   openGraph: {
-    title: "HermesMarkdown — Context Engineering for Your Notes",
+    title: "HermesMarkdown — Runs in Browser, Files Stay on Disk",
     description:
-      "A local-first Markdown editor for engineers. Structures your vault for write, select, compress, isolate — frontmatter schemas, Smart Workspaces, WikiLinks, and a table editor. Your data never leaves your device.",
+      "Edit local Markdown folders in your browser — reads and writes files directly on disk. Nothing touches a server. No accounts, no cloud uploads.",
     url: "https://hermesmarkdown.com",
     siteName: "HermesMarkdown",
     type: "website",
@@ -42,9 +42,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "HermesMarkdown — Context Engineering for Your Notes",
+    title: "HermesMarkdown — Runs in Browser, Files Stay on Disk",
     description:
-      "A local-first Markdown editor for engineers, structured for context engineering: write, select, compress, isolate. No cloud, no tracking.",
+      "Edit local Markdown folders in your browser — reads and writes files directly on disk. Nothing touches a server. No accounts, no cloud uploads.",
     images: ["/assets/og-image.jpg"],
   },
 };
@@ -85,7 +85,7 @@ export default function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className={`h-full overscroll-none ${inter.variable} ${jetBrainsMono.variable} ${firaCode.variable} ${ibmPlexMono.variable}`}
+      className={`h-full overscroll-none ${inter.variable} ${ibmPlexMono.variable} ${spaceMono.variable} ${ibmPlexSans.variable} ${literata.variable}`}
     >
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />

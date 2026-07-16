@@ -5,22 +5,17 @@ import toast from "react-hot-toast";
 import { useFileSystem } from "@/app/hooks/use-file-system";
 import { useDialog } from "@/app/hooks/use-dialog";
 import {
-  HiOutlineChevronLeft,
   HiOutlineCloud,
   HiOutlineDocumentAdd,
-  HiOutlineFolder,
-  HiOutlineSearch,
-  HiOutlineTag,
-  HiOutlineCollection,
-  HiOutlineClipboardList,
+  HiOutlineEye,
+  HiOutlineEyeOff,
 } from "react-icons/hi";
-import Button from "@/app/components/Button";
 import {
   atom_activeFilePath,
   atom_sidebarWidth,
   atom_isCloudVault,
 } from "@/app/atoms/atoms";
-import { atom_railPanel, atom_newVaultFlowOpen, atom_pendingScrollTarget, atom_showHiddenFiles, RailPanel } from "@/app/atoms/ui-atoms";
+import { atom_railPanel, atom_newVaultFlowOpen, atom_pendingScrollTarget, atom_showHiddenFiles, atom_isSidebarResizing, RailPanel } from "@/app/atoms/ui-atoms";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import SmartFolders from "./SmartFolders";
 import VaultSidebarTasks from "./VaultSidebarTasks";
@@ -28,16 +23,13 @@ import VaultSidebarTags from "./VaultSidebarTags";
 import { useSidebarSearch } from "../hooks/useSidebarSearch";
 import VaultSidebarEmpty from "./VaultSidebarEmpty";
 import VaultSidebarFiles from "./VaultSidebarFiles";
-import VaultSidebarFooter from "./VaultSidebarFooter";
 import UnifiedSearchInput from "./UnifiedSearchInput";
 
-const SIDEBAR_PANELS: { id: RailPanel; label: string; Icon: React.ComponentType<{ size?: number }> }[] = [
-  { id: "files", label: "Files", Icon: HiOutlineFolder },
-  { id: "search", label: "Search", Icon: HiOutlineSearch },
-  { id: "tags", label: "Tags", Icon: HiOutlineTag },
-  { id: "views", label: "Views", Icon: HiOutlineCollection },
-  { id: "tasks", label: "Tasks", Icon: HiOutlineClipboardList },
-];
+// The rail (SidebarRail.tsx) is always visible at a fixed width, so this
+// panel's own floor is just whatever its content needs — the search input
+// with tag tokens and file-tree rows with hover actions are the narrowest
+// things it has to fit, not a footer icon row (that lives in the rail now).
+const MIN_SIDEBAR_WIDTH = 200;
 
 interface VaultSidebarProps {
   panel: RailPanel;
@@ -46,8 +38,6 @@ interface VaultSidebarProps {
   onNewAIFile?: () => void;
   onImport?: () => void;
   onExport?: () => void;
-  onHome?: () => void;
-  onOpenDocumentation?: () => void;
 }
 
 export default function VaultSidebar({
@@ -57,8 +47,6 @@ export default function VaultSidebar({
   onNewAIFile,
   onImport,
   onExport,
-  onHome,
-  onOpenDocumentation,
 }: VaultSidebarProps) {
   const {
     openFile,
@@ -68,7 +56,6 @@ export default function VaultSidebar({
     duplicateFile,
     moveItem,
     createNewFile,
-    closeVault,
     isMounted,
     openVault,
     isVaultSupported,
@@ -112,7 +99,7 @@ export default function VaultSidebar({
   const [sidebarWidth, setSidebarWidth] = useAtom(atom_sidebarWidth);
   const isCloudVault = useAtomValue(atom_isCloudVault);
   const setRailPanel = useSetAtom(atom_railPanel);
-  const [isResizing, setIsResizing] = useState(false);
+  const [isResizing, setIsResizing] = useAtom(atom_isSidebarResizing);
 
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
 
@@ -142,7 +129,7 @@ export default function VaultSidebar({
 
   const resize = React.useCallback((e: MouseEvent) => {
     if (isResizing) {
-      const newWidth = Math.max(200, Math.min(600, e.clientX));
+      const newWidth = Math.max(MIN_SIDEBAR_WIDTH, Math.min(600, e.clientX));
       setSidebarWidth(newWidth);
     }
   }, [isResizing, setSidebarWidth]);
@@ -155,6 +142,17 @@ export default function VaultSidebar({
       window.removeEventListener('mouseup', stopResizing);
     };
   }, [resize, stopResizing]);
+
+  // Persisted widths saved before MIN_SIDEBAR_WIDTH existed (or otherwise
+  // corrupted) can be narrower than the content needs, clipping the search
+  // input or file-tree row actions. Self-heal once on mount rather than
+  // trusting the stored value forever.
+  React.useEffect(() => {
+    if (sidebarWidth < MIN_SIDEBAR_WIDTH) {
+      setSidebarWidth(MIN_SIDEBAR_WIDTH);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   if (!isMounted) return null;
 
@@ -186,41 +184,7 @@ export default function VaultSidebar({
               )}
             </h2>
           </div>
-
-          {onClose && (
-            <Button
-              variant="icon"
-              className="w-10 h-10 shrink-0 opacity-80 hover:opacity-100"
-              onClick={onClose}
-              title="Collapse Sidebar"
-              aria-label="Collapse Sidebar"
-            >
-              <HiOutlineChevronLeft size={18} />
-            </Button>
-          )}
         </div>
-
-        {vaultHandle && (
-          <div className="-mx-3 px-2 flex items-stretch gap-0.5 border-t border-edge-subtle">
-            {SIDEBAR_PANELS.map(({ id, label, Icon }) => (
-              <button
-                key={id}
-                type="button"
-                onClick={() => setRailPanel(id)}
-                title={label}
-                aria-label={label}
-                aria-pressed={panel === id}
-                className={`flex-1 flex items-center justify-center py-2 transition-colors ${
-                  panel === id
-                    ? "text-sage"
-                    : "text-ink-muted hover:text-ink-light dark:text-stone dark:hover:text-ink-dark"
-                }`}
-              >
-                <Icon size={16} />
-              </button>
-            ))}
-          </div>
-        )}
 
         {vaultHandle && panel === "files" && (
           <div className="-mx-3 px-1 flex items-stretch border-t border-b border-edge-subtle">
@@ -233,6 +197,16 @@ export default function VaultSidebar({
             >
               <HiOutlineDocumentAdd size={15} />
               <span className="text-ui-footnote leading-none">New file</span>
+            </button>
+            <button
+              type="button"
+              onClick={handleToggleHiddenFiles}
+              title="Show hidden files"
+              aria-label="Show hidden files"
+              aria-pressed={showHiddenFiles}
+              className="shrink-0 w-9 flex items-center justify-center text-ink-muted hover:text-ink-light dark:text-stone dark:hover:text-ink-dark hover:bg-paper-softgray dark:hover:bg-paper-dark-surface transition-colors"
+            >
+              {showHiddenFiles ? <HiOutlineEye size={15} /> : <HiOutlineEyeOff size={15} />}
             </button>
           </div>
         )}
@@ -329,17 +303,6 @@ export default function VaultSidebar({
           </div>
         )}
       </div>
-
-      <VaultSidebarFooter
-        vaultHandle={vaultHandle}
-        closeVault={closeVault}
-        openVault={openVault}
-        isVaultSupported={isVaultSupported}
-        showHiddenFiles={showHiddenFiles}
-        onToggleHiddenFiles={handleToggleHiddenFiles}
-        onHome={onHome}
-        onOpenDocumentation={onOpenDocumentation}
-      />
       </div>
   );
 }

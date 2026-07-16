@@ -7,7 +7,7 @@ import { atom_showHiddenFiles } from "@/app/atoms/ui-atoms";
 import { useFileSystem } from "@/app/hooks/use-file-system";
 import { useCommandPalette, type Command } from "./CommandPaletteContext";
 import useIsMobileChrome from "@/app/hooks/use-mobile-chrome";
-import { HiOutlineSearch, HiOutlineX } from "react-icons/hi";
+import { HiOutlineSearch, HiOutlineX, HiOutlineTerminal } from "react-icons/hi";
 import OverlayPanel from "@/app/components/OverlayLayer/OverlayPanel";
 
 const ROW_HEIGHT = 36;
@@ -226,6 +226,25 @@ export default function CommandPalette() {
             data-bwignore="true"
             data-nordpass-ignore="true"
           />
+          {/* Tap equivalent of typing ">" to reach command mode (see
+              isCommandMode below) — most useful on mobile, where touch
+              keyboards bury ">" behind a symbols layer, but shown on
+              desktop too as a discoverable, mouse-friendly alternative to
+              remembering the prefix. */}
+          <button
+            type="button"
+            onClick={() => {
+              setQuery((q) => (q.startsWith(">") ? q.slice(1).trimStart() : `>${q}`));
+              inputRef.current?.focus();
+            }}
+            aria-label={isCommandMode ? "Switch to file search" : "Switch to commands"}
+            aria-pressed={isCommandMode}
+            className={`shrink-0 w-8 h-8 flex items-center justify-center rounded-lg transition-colors ${
+              isCommandMode ? "bg-sage/10 text-sage" : "text-fg-faint hover:text-fg-muted"
+            }`}
+          >
+            <HiOutlineTerminal size={16} />
+          </button>
         </div>
         {isMobileChrome && (
           <button

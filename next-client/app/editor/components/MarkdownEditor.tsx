@@ -186,7 +186,7 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
       <div
         className={`editor-container relative min-h-full antialiased normal-nums [font-variant-ligatures:none] [font-feature-settings:'liga'_0,'calt'_0]
           transition-[padding,max-width] duration-700 [transition-timing-function:cubic-bezier(0.4,0,0.2,1)]
-          pt-1 pb-12
+          pt-3 pb-12
           ${wordWrap ? "mx-auto w-full" : "w-max min-w-full"}
           text-ui-body
         `}

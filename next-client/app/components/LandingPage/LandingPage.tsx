@@ -240,54 +240,6 @@ const SmartSyntaxGraphic = () => (
   </div>
 );
 
-const LocalFirstGraphic = () => (
-  <div className="w-full h-full flex items-center justify-center p-6 relative select-none">
-    <div className="w-full max-w-[260px] space-y-4">
-      <div className="flex items-center gap-3">
-        <div className="w-10 h-10 rounded-xl bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center shrink-0">
-          <svg
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="opacity-50"
-          >
-            <rect x="2" y="3" width="20" height="14" rx="2" />
-            <line x1="8" y1="21" x2="16" y2="21" />
-            <line x1="12" y1="17" x2="12" y2="21" />
-          </svg>
-        </div>
-        <div className="space-y-1">
-          <div className="text-[11px] font-mono font-bold opacity-70">Your device</div>
-          <div className="text-[9px] font-mono opacity-40 uppercase tracking-widest">All files stay here</div>
-        </div>
-      </div>
-      <div className="space-y-1.5 font-mono text-[10px]">
-        {[
-          { label: "Account required", value: "no" },
-          { label: "Notes leave device", value: "no" },
-          { label: "API keys proxied", value: "no" },
-          { label: "Proprietary format", value: "no" },
-        ].map(({ label, value }) => (
-          <div key={label} className="flex items-center justify-between">
-            <span className="opacity-40">{label}</span>
-            <span className="text-emerald-500">{value}</span>
-          </div>
-        ))}
-      </div>
-    </div>
-    <div className="absolute top-4 right-4">
-      <span className="text-[9px] font-mono uppercase tracking-widest text-neutral-500 opacity-60">
-        Local-First
-      </span>
-    </div>
-  </div>
-);
-
 const AIKeyGraphic = () => (
   <div className="w-full h-full flex items-center justify-center p-6 relative select-none">
     <div className="w-full max-w-[280px] space-y-3">
@@ -419,26 +371,40 @@ export default function LandingPage() {
       {/* --- HERO SECTION --- */}
       <div className="relative pt-24 pb-20 md:pt-32 md:pb-24 px-6">
         <div className="max-w-6xl mx-auto flex flex-col items-center text-center">
-          <div className="space-y-6 max-w-3xl animate-hero-fade-in">
-            <h1 className="text-4xl md:text-5xl lg:text-7xl font-bold tracking-tight leading-[1.1]">
-              A local-first Markdown editor.
+          <div className="space-y-5 max-w-4xl animate-hero-fade-in">
+            <div className="text-ui-footnote font-bold uppercase tracking-[0.3em] text-sage dark:text-sage">
+              Hermes&middot;Markdown
+            </div>
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight leading-tight">
+              A place where all you can do is write.
             </h1>
             <p className="text-lg md:text-xl leading-relaxed text-neutral-600 dark:text-neutral-400 max-w-2xl mx-auto">
-              Full-screen by default. You own the bytes, you own the focus.
+              A Markdown editor that runs in your browser and saves straight
+              to disk. No accounts, no cloud, nothing between you and the
+              page.
             </p>
-            <div className="pt-4 flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Button
-                variant="hero"
-                onClick={handleStart}
-                className="w-full sm:w-auto px-10"
-              >
-                Launch HermesMarkdown
-              </Button>
-              <Link href="/documentation" className="w-full sm:w-auto">
-                <Button variant="outlined" className="w-full sm:w-auto px-10">
-                  Read the docs
+            <div className="pt-4 flex flex-col items-center justify-center gap-3">
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
+                <Button
+                  variant="hero"
+                  onClick={handleStart}
+                  className="w-full sm:w-auto px-10"
+                >
+                  Open a Local Folder &amp; Write
                 </Button>
-              </Link>
+                <Link
+                  href="/documentation"
+                  className="text-ui-callout font-semibold text-neutral-600 dark:text-neutral-400 hover:text-fg dark:hover:text-fg transition-colors inline-flex items-center gap-1.5 group"
+                >
+                  Read the docs
+                  <span className="transition-transform group-hover:translate-x-0.5">
+                    →
+                  </span>
+                </Link>
+              </div>
+              <span className="text-ui-footnote text-neutral-500 dark:text-neutral-500">
+                100% private. Runs entirely in your browser.
+              </span>
             </div>
           </div>
         </div>
@@ -490,55 +456,11 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* --- TRUST SIGNALS --- */}
-      <section className="py-12 border-y border-black/5 dark:border-white/5 bg-neutral-50/50 dark:bg-neutral-900/30 overflow-hidden">
-        <div className="max-w-6xl mx-auto px-6 flex flex-wrap items-center justify-center md:justify-between gap-8 opacity-70">
-          <div className="flex items-center gap-2 text-ui-footnote font-bold uppercase tracking-[0.3em] whitespace-nowrap">
-            <span className="w-1.5 h-1.5 rounded-full bg-current" />
-            No Account Required
-          </div>
-          <div className="flex items-center gap-2 text-ui-footnote font-bold uppercase tracking-[0.3em] whitespace-nowrap">
-            <span className="w-1.5 h-1.5 rounded-full bg-current" />
-            Plain .md Files
-          </div>
-          <div className="flex items-center gap-2 text-ui-footnote font-bold uppercase tracking-[0.3em] whitespace-nowrap">
-            <span className="w-1.5 h-1.5 rounded-full bg-current" />
-            Distraction-Free by Default
-          </div>
-          <div className="flex items-center gap-2 text-ui-footnote font-bold uppercase tracking-[0.3em] whitespace-nowrap">
-            <span className="w-1.5 h-1.5 rounded-full bg-current" />
-            Your Files Stay Local
-          </div>
-        </div>
-      </section>
-
       {/* --- FEATURES --- */}
       <div className="max-w-5xl mx-auto px-6 py-24 md:py-32 space-y-32">
 
-        {/* 1. Writing Experience — the core differentiator */}
-        <section className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 lg:gap-16 items-center">
-          <div aria-hidden="true" className="order-last md:order-first aspect-video bg-paper-light dark:bg-neutral-900 rounded-2xl border border-black/5 dark:border-white/5 flex items-center justify-center group overflow-hidden relative">
-            <ZenModeGraphic />
-          </div>
-          <div className="space-y-6">
-            <div className="h-px w-12 bg-purple-600" />
-            <h2 className="text-3xl font-bold tracking-tight">
-              Nothing but the page, until you ask for more
-            </h2>
-            <p className="text-neutral-600 dark:text-neutral-400 leading-relaxed">
-              Full-screen by default — no toolbar, no rail, no panel until you
-              ask for one. The sidebar opens on hover or from the command
-              palette; open files side by side, drag tabs between panes.
-              Checkboxes toggle on click, dates open a calendar picker,{" "}
-              <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">
-                Ctrl+Click
-              </code>{" "}
-              any WikiLink to jump instantly.
-            </p>
-          </div>
-        </section>
-
-        {/* 2. Start fresh or open what you already have */}
+        {/* 1. Start fresh or open what you already have — the core hook,
+            matches the hero's "runs in your browser, saves to disk" claim */}
         <section className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 lg:gap-16 items-center">
           <div className="space-y-6">
             <div className="h-px w-12 bg-teal-500" />
@@ -566,22 +488,41 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* 4. Tables + Slash Commands */}
+        {/* 2. Writing Experience */}
         <section className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 lg:gap-16 items-center">
           <div aria-hidden="true" className="order-last md:order-first aspect-video bg-paper-light dark:bg-neutral-900 rounded-2xl border border-black/5 dark:border-white/5 flex items-center justify-center group overflow-hidden relative">
-            <SmartSyntaxGraphic />
+            <ZenModeGraphic />
           </div>
+          <div className="space-y-6">
+            <div className="h-px w-12 bg-purple-600" />
+            <h2 className="text-3xl font-bold tracking-tight">
+              Nothing but the page, until you ask for more
+            </h2>
+            <p className="text-neutral-600 dark:text-neutral-400 leading-relaxed">
+              Full-screen by default — no toolbar, no rail, no panel until you
+              ask for one. The sidebar opens on hover or from the command
+              palette; open files side by side, drag tabs between panes.
+            </p>
+          </div>
+        </section>
+
+        {/* 3. Smart Syntax + Tables */}
+        <section className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 lg:gap-16 items-center">
           <div className="space-y-6">
             <div className="h-px w-12 bg-amber-500" />
             <h2 className="text-3xl font-bold tracking-tight">
-              Build tables without touching the mouse
+              Syntax that reacts, not just renders
             </h2>
             <p className="text-neutral-600 dark:text-neutral-400 leading-relaxed">
               A keyboard-first table editor for structuring data — cell
               grids you navigate and edit without touching the mouse. Not a
               formula engine: what you type is what gets written back to
-              clean, auto-padded Markdown. Trigger slash commands anywhere to
-              insert templates or format layouts instantly.
+              clean, auto-padded Markdown. Checkboxes toggle on click, dates
+              open a calendar picker, and{" "}
+              <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">
+                Ctrl+Click
+              </code>{" "}
+              any WikiLink to jump instantly.
             </p>
             <ul className="space-y-2">
               {[
@@ -595,10 +536,16 @@ export default function LandingPage() {
               ))}
             </ul>
           </div>
+          <div aria-hidden="true" className="aspect-video bg-paper-light dark:bg-neutral-900 rounded-2xl border border-black/5 dark:border-white/5 flex items-center justify-center group overflow-hidden relative">
+            <SmartSyntaxGraphic />
+          </div>
         </section>
 
-        {/* 5. BYO AI + Token awareness */}
+        {/* 4. BYO AI + Token awareness */}
         <section className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 lg:gap-16 items-center">
+          <div aria-hidden="true" className="order-last md:order-first aspect-video bg-paper-light dark:bg-neutral-900 rounded-2xl border border-black/5 dark:border-white/5 flex items-center justify-center group overflow-hidden relative">
+            <AIKeyGraphic />
+          </div>
           <div className="space-y-6">
             <div className="h-px w-12 bg-indigo-600" />
             <h2 className="text-3xl font-bold tracking-tight">
@@ -618,12 +565,9 @@ export default function LandingPage() {
               browser — we never see them or proxy your requests.
             </p>
           </div>
-          <div aria-hidden="true" className="aspect-video bg-paper-light dark:bg-neutral-900 rounded-2xl border border-black/5 dark:border-white/5 flex items-center justify-center group overflow-hidden relative">
-            <AIKeyGraphic />
-          </div>
         </section>
 
-        {/* 6. Privacy */}
+        {/* 5. Privacy */}
         <section className="space-y-10 text-center">
           <div className="space-y-3 max-w-2xl mx-auto">
             <div className="h-px w-12 bg-neutral-500 mx-auto" />
@@ -663,7 +607,7 @@ export default function LandingPage() {
           <div className="absolute bottom-0 left-0 w-64 h-64 bg-purple-500/5 blur-[100px] -ml-32 -mb-32" />
 
           <h2 className="text-3xl md:text-5xl lg:text-6xl font-bold tracking-tight relative z-10">
-            Close the tabs. Open a page.
+            Open a folder. Start writing.
           </h2>
           <p className="opacity-60 max-w-xl mx-auto text-lg relative z-10 font-medium">
             A minimalist Markdown editor built for focus. Plain{" "}

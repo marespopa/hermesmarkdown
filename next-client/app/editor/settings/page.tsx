@@ -224,27 +224,36 @@ const SettingsPage = () => {
                 <SegmentedControl options={LETTER_SPACINGS} value={letterSpacing} onChange={setLetterSpacing} />
               }
             />
-            {FONTS.map((f) => {
-              const isActive = fontFamily === f.value;
-              return (
-                <button
-                  key={f.label}
-                  type="button"
-                  onClick={() => setFontFamily(f.value)}
-                  className="w-full flex items-center justify-between gap-4 py-3.5 border-b border-neutral-100 dark:border-neutral-800/40 last:border-0 focus:outline-none"
-                >
-                  <div className="flex flex-col items-start gap-1 min-w-0">
-                    <span className={`text-ui-subhead font-medium leading-none ${isActive ? "text-sage dark:text-sage" : "text-ink-light dark:text-ink-dark"}`}>
-                      {f.label}
-                    </span>
-                    <span style={{ fontFamily: f.value }} className="text-ui-footnote text-neutral-400 dark:text-neutral-500">
-                      The quick brown fox 0123
-                    </span>
-                  </div>
-                  {isActive && <HiCheck size={15} className="shrink-0 text-sage dark:text-sage" />}
-                </button>
-              );
-            })}
+            <SettingItem
+              label="Font"
+              description="Used in the editor's writing pane."
+              layout="stack"
+              control={
+                <div className="rounded-xl border border-neutral-100 dark:border-neutral-800/40 px-3 -mx-1">
+                  {FONTS.map((f) => {
+                    const isActive = fontFamily === f.value;
+                    return (
+                      <button
+                        key={f.label}
+                        type="button"
+                        onClick={() => setFontFamily(f.value)}
+                        className="w-full flex items-center justify-between gap-4 py-3 border-b border-neutral-100 dark:border-neutral-800/40 last:border-0 focus:outline-none"
+                      >
+                        <div className="flex flex-col items-start gap-1 min-w-0">
+                          <span className={`text-ui-subhead font-medium leading-none ${isActive ? "text-sage dark:text-sage" : "text-ink-light dark:text-ink-dark"}`}>
+                            {f.label}
+                          </span>
+                          <span style={{ fontFamily: f.value }} className="text-ui-footnote text-neutral-400 dark:text-neutral-500">
+                            The quick brown fox 0123
+                          </span>
+                        </div>
+                        {isActive && <HiCheck size={15} className="shrink-0 text-sage dark:text-sage" />}
+                      </button>
+                    );
+                  })}
+                </div>
+              }
+            />
           </SettingGroup>
           <SettingGroup title="Autosave">
             <SettingItem

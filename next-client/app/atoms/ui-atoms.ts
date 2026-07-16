@@ -5,10 +5,9 @@ import type { EditorView } from "@codemirror/view";
 // Theme & appearance
 export const atom_theme = atomWithStorage<"light" | "dark">("theme", "light");
 export const atom_wordWrap = atomWithStorage<boolean>("wordWrap", true);
-// Shared default monospace stack. Used both as the atom_fontFamily default and as the
-// "System Mono" option value in settings, so active-state matching can't drift.
-export const MONO_FONT_STACK =
-  'ui-monospace, "SF Mono", "Cascadia Code", "JetBrains Mono", Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace';
+// Shared default monospace stack, used as the atom_fontFamily default so active-state
+// matching in settings can't drift from the IBM Plex Mono entry in FONTS.
+export const MONO_FONT_STACK = "var(--font-ibm-mono), ui-monospace, monospace";
 export const atom_fontFamily = atomWithStorage<string>(
   "editorFontFamily",
   MONO_FONT_STACK,
@@ -103,11 +102,24 @@ export const atom_vaultCreationError = atom<string | null>(null);
 // Post-onboarding trigger: set true to open the NewVaultDialog
 export const atom_newVaultFlowOpen = atom<boolean>(false);
 
+// No getOnInit: the server has no localStorage and always renders the 260
+// default, so reading it eagerly on the client would mismatch the SSR HTML
+// and trigger a hydration error. The default-then-localStorage-on-mount
+// jump is expected; see atom_isSidebarResizing below for why that jump
+// used to leave a visible gap during resize.
 export const atom_sidebarWidth = atomWithStorage<number>("sidebarWidth", 260);
 
-// The rail is always visible; `atom_railPanel` is which panel (if any) is
-// open next to it — null means the sidebar is collapsed to just the rail.
-// Transient — never persisted, since writing mode always starts clean (collapsed).
+// True only while the sidebar's drag-resize handle is active. The width
+// transitions on the toggle button/clip container in page.tsx are meant
+// for the open/close animation only — during a live drag they'd otherwise
+// keep easing toward each mousemove target instead of tracking the mouse,
+// leaving a lagging gap for ~300ms after the drag ends.
+export const atom_isSidebarResizing = atom<boolean>(false);
+
+// The icon rail (SidebarRail.tsx) is always visible; atom_railPanel is
+// which panel (if any) is open next to it — null means the sidebar is
+// collapsed to just the rail. Transient — never persisted, since writing
+// mode always starts clean (collapsed) on load.
 export type RailPanel = "files" | "search" | "tags" | "views" | "tasks";
 export const atom_railPanel = atom<RailPanel | null>(null);
 

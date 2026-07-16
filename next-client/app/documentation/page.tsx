@@ -820,7 +820,7 @@ const GROUPS: Group[] = [
                 { label: "Text size", value: "Compact / Standard / Large / XL" },
                 { label: "Line height", value: "Normal / Relaxed / Loose" },
                 { label: "Letter spacing", value: "Normal / Wide" },
-                { label: "Typeface", value: "System Mono, JetBrains Mono, Fira Code, IBM Plex Mono, Journal (Serif)" },
+                { label: "Typeface", value: "IBM Plex Mono, Space Mono, IBM Plex Sans, Literata (Serif)" },
               ]}
             />
             <Callout type="note">
