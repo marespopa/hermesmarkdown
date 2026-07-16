@@ -40,6 +40,16 @@ export default function Footer() {
                     <li><Link href="/" className="hover:text-sage transition-colors">Editor</Link></li>
                     <li><Link href="/documentation" className="hover:text-sage transition-colors">Documentation</Link></li>
                     <li><Link href="/what-is-hermes-md" className="hover:text-sage transition-colors">What is hermes.md?</Link></li>
+                    <li>
+                      <a
+                        href="https://github.com/marespopa/hermesmarkdown/issues"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="hover:text-sage transition-colors"
+                      >
+                        Issues
+                      </a>
+                    </li>
                   </ul>
                </div>
 
