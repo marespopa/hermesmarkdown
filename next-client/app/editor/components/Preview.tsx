@@ -104,14 +104,20 @@ function MermaidDiagram({ code }: { code: string }) {
     );
   }
 
+  if (svg) {
+    return (
+      <div
+        className="my-4 flex justify-center overflow-x-auto not-prose"
+        // Mermaid's own output, not user HTML — securityLevel: "strict" above
+        // has mermaid sanitize the SVG itself before it ever reaches here.
+        dangerouslySetInnerHTML={{ __html: svg }}
+      />
+    );
+  }
+
   return (
-    <div
-      className="my-4 flex justify-center overflow-x-auto not-prose"
-      // Mermaid's own output, not user HTML — securityLevel: "strict" above
-      // has mermaid sanitize the SVG itself before it ever reaches here.
-      dangerouslySetInnerHTML={svg ? { __html: svg } : undefined}
-    >
-      {!svg && <span className="text-ui-footnote opacity-40 py-6">Rendering diagram…</span>}
+    <div className="my-4 flex justify-center overflow-x-auto not-prose">
+      <span className="text-ui-footnote opacity-40 py-6">Rendering diagram…</span>
     </div>
   );
 }
