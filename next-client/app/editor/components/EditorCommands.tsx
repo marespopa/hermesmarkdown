@@ -2,10 +2,17 @@
 
 import { useAtom, useAtomValue } from "jotai";
 import { useRouter } from "next/navigation";
+import { undo, redo } from "@codemirror/commands";
 import {
   atom_workspaceLayout,
   atom_activePaneId,
   atom_closeTab,
+  atom_splitPane,
+  atom_closePane,
+  atom_setPaneType,
+  atom_wordWrap,
+  atom_autoInjectFrontmatter,
+  atom_isWizardOpen,
   findLeaf,
 } from "@/app/atoms/atoms";
 import {
@@ -19,8 +26,10 @@ import {
   atom_voiceInputRequest,
   atom_isVoiceInputListening,
   atom_isVoiceInputSupported,
+  atom_showHiddenFiles,
+  atom_activeEditorView,
 } from "@/app/atoms/ui-atoms";
-import { atom_content } from "@/app/atoms/file-atoms";
+import { atom_content, atom_activeFileHandle } from "@/app/atoms/file-atoms";
 import { useFileSystem } from "@/app/hooks/use-file-system";
 import { useDialog } from "@/app/hooks/use-dialog";
 import toast from "react-hot-toast";
@@ -47,6 +56,7 @@ export default function EditorCommands({
   onOpenMobileTasks,
   onHome,
   onOpenDocumentation,
+  onRefreshVault,
 }: {
   onNewFile: () => void;
   onExport: () => void;
@@ -56,11 +66,13 @@ export default function EditorCommands({
   onOpenMobileTasks?: () => void;
   onHome: () => void;
   onOpenDocumentation: () => void;
+  onRefreshVault?: () => void;
 }) {
   const router = useRouter();
-  const { openVault, vaultHandle, scanVault, openFile, closeVault } = useFileSystem();
+  const { openVault, vaultHandle, scanVault, indexVaultTags, openFile, closeVault, renameFile, deleteFile } = useFileSystem();
   const dialog = useDialog();
   const [theme, setTheme] = useAtom(atom_theme);
+  const [showHiddenFiles, setShowHiddenFiles] = useAtom(atom_showHiddenFiles);
   const [railPanel, setRailPanel] = useAtom(atom_railPanel);
   const [, setAiBuilderRequest] = useAtom(atom_aiBuilderRequest);
   const [, setRepurposeWizardOpen] = useAtom(atom_repurposeWizardOpen);
@@ -75,8 +87,17 @@ export default function EditorCommands({
   const [, setVoiceInputRequest] = useAtom(atom_voiceInputRequest);
   const isVoiceListening = useAtomValue(atom_isVoiceInputListening);
   const isVoiceSupported = useAtomValue(atom_isVoiceInputSupported);
+  const [, splitPane] = useAtom(atom_splitPane);
+  const [, closePane] = useAtom(atom_closePane);
+  const [, setPaneType] = useAtom(atom_setPaneType);
+  const [wordWrap, setWordWrap] = useAtom(atom_wordWrap);
+  const [autoInjectFrontmatter, setAutoInjectFrontmatter] = useAtom(atom_autoInjectFrontmatter);
+  const [, setIsWizardOpen] = useAtom(atom_isWizardOpen);
+  const activeFileHandle = useAtomValue(atom_activeFileHandle);
+  const activeEditorView = useAtomValue(atom_activeEditorView);
   const activeLeaf = activePaneId ? findLeaf(workspaceLayout.rootContainer, activePaneId) : null;
-  const { handleCopy } = usePaneFileActions(activeLeaf);
+  const isOnlyPane = "type" in workspaceLayout.rootContainer;
+  const { filePath: activeFilePath, handleCopy, closeTabWithAutosave } = usePaneFileActions(activeLeaf);
 
   useRegisterCommand({
     id: "save-file",
@@ -143,6 +164,55 @@ export default function EditorCommands({
     action: () => (isMobileChrome ? onOpenMobileTasks?.() : setRailPanel("tasks")),
   });
 
+  useRegisterCommand(
+    activeLeaf
+      ? {
+          id: "split-pane-right",
+          label: "Split Right",
+          keywords: "split pane layout workspace",
+          action: () => splitPane({ id: activeLeaf.id, direction: "horizontal" }),
+        }
+      : null,
+  );
+
+  useRegisterCommand(
+    activeLeaf && !isOnlyPane
+      ? {
+          id: "close-pane",
+          label: "Close Pane",
+          keywords: "close pane layout workspace",
+          action: () => closePane(activeLeaf.id),
+        }
+      : null,
+  );
+
+  useRegisterCommand(
+    activeLeaf && activeLeaf.activeFilePath
+      ? {
+          id: "toggle-pane-preview",
+          label: activeLeaf.type === "preview" ? "Switch pane to editor" : "Switch pane to preview",
+          keywords: "preview edit pane view",
+          action: () =>
+            setPaneType({ id: activeLeaf.id, type: activeLeaf.type === "preview" ? "editor" : "preview" }),
+        }
+      : null,
+  );
+
+  useRegisterCommand(
+    activeLeaf && activeLeaf.openFilePaths.length > 1
+      ? {
+          id: "close-other-tabs",
+          label: "Close other tabs",
+          keywords: "close tabs files",
+          action: () => {
+            for (const p of activeLeaf.openFilePaths) {
+              if (p !== activeFilePath) void closeTabWithAutosave(p);
+            }
+          },
+        }
+      : null,
+  );
+
   useRegisterCommand({
     id: "toggle-theme",
     label: theme === "dark" ? "Switch to light theme" : "Switch to dark theme",
@@ -151,10 +221,47 @@ export default function EditorCommands({
   });
 
   useRegisterCommand({
+    id: "toggle-hidden-files",
+    label: showHiddenFiles ? "Hide hidden files" : "Show hidden files",
+    keywords: "hidden dotfiles skills files sidebar reveal",
+    action: () => {
+      const next = !showHiddenFiles;
+      setShowHiddenFiles(next);
+      if (!vaultHandle) return;
+      scanVault(vaultHandle as any, next);
+      indexVaultTags?.(vaultHandle as any, next);
+    },
+  });
+
+  useRegisterCommand({
     id: "open-settings",
     label: "Open settings",
     keywords: "preferences config",
     action: () => router.push("/editor/settings"),
+  });
+
+  useRegisterCommand({
+    id: "toggle-word-wrap",
+    label: wordWrap ? "Disable word wrap" : "Enable word wrap",
+    keywords: "wrap line editor",
+    action: () => setWordWrap(!wordWrap),
+  });
+
+  useRegisterCommand({
+    id: "toggle-auto-frontmatter",
+    label: autoInjectFrontmatter ? "Disable auto frontmatter" : "Enable auto frontmatter",
+    keywords: "frontmatter metadata auto inject",
+    action: () => setAutoInjectFrontmatter(!autoInjectFrontmatter),
+  });
+
+  useRegisterCommand({
+    id: "start-welcome-tour",
+    label: "Start welcome tour",
+    keywords: "onboarding guide help tour walkthrough",
+    action: () => {
+      setIsWizardOpen(true);
+      router.push("/editor");
+    },
   });
 
   useRegisterCommand(
@@ -209,6 +316,39 @@ export default function EditorCommands({
           label: "Copy Markdown",
           keywords: "copy clipboard content",
           action: () => { void handleCopy(); },
+        }
+      : null,
+  );
+
+  useRegisterCommand(
+    activeFileHandle
+      ? {
+          id: "rename-current-file",
+          label: "Rename current file",
+          keywords: "rename move file",
+          action: () => renameFile(activeFileHandle),
+        }
+      : null,
+  );
+
+  useRegisterCommand(
+    activeFileHandle
+      ? {
+          id: "delete-current-file",
+          label: "Delete current file",
+          keywords: "delete remove trash file",
+          action: () => deleteFile(activeFileHandle, activeFilePath),
+        }
+      : null,
+  );
+
+  useRegisterCommand(
+    vaultHandle && onRefreshVault
+      ? {
+          id: "refresh-vault",
+          label: "Refresh vault",
+          keywords: "rescan reload vault files",
+          action: () => onRefreshVault(),
         }
       : null,
   );
@@ -308,6 +448,28 @@ export default function EditorCommands({
       el?.focus();
     },
   });
+
+  useRegisterCommand(
+    activeEditorView
+      ? {
+          id: "undo-edit",
+          label: "Undo",
+          keywords: "undo revert history",
+          action: () => undo(activeEditorView),
+        }
+      : null,
+  );
+
+  useRegisterCommand(
+    activeEditorView
+      ? {
+          id: "redo-edit",
+          label: "Redo",
+          keywords: "redo history",
+          action: () => redo(activeEditorView),
+        }
+      : null,
+  );
 
   useRegisterCommand(
     activeLeaf && activeLeaf.activeFilePath

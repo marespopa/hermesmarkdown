@@ -73,15 +73,15 @@ export const atom_frontmatterHasPrompted = atomWithStorage<boolean>(
   false,
 );
 // Shows dotfiles/dotfolders (e.g. .hermes/) and underscore-prefixed skill/meta
-// files in the sidebar tree and search. On by default — the app writes files
-// into the vault on the user's behalf (skills, AGENTS.md, voice.md, etc.), and
-// a user should always be able to see everything that's actually in their
-// vault rather than trust that nothing hidden is unwanted or unexpected. This
-// is a "reveal less" opt-out, not a "reveal more" opt-in. node_modules and
-// vendor stay excluded regardless, since they're never vault content.
+// files in the sidebar tree and search. Off by default, so the file tree
+// stays focused on the user's own notes; the sidebar toggle, settings page,
+// and command palette all offer a quick opt-in for when someone needs to see
+// skills, AGENTS.md, voice.md, and other files the app writes on their
+// behalf. node_modules and vendor stay excluded regardless, since they're
+// never vault content.
 export const atom_showHiddenFiles = atomWithStorage<boolean>(
   "hermes_show_hidden_files",
-  true,
+  false,
 );
 export const atom_voiceWizardOpen = atom<boolean>(false);
 export const atom_repurposeWizardOpen = atom<boolean>(false);

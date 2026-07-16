@@ -429,6 +429,7 @@ export default function LiteEditor() {
         onOpenMobileTasks={() => setIsMobileTasksOverlayOpen(true)}
         onHome={() => navigateWithGuard("/", "Home")}
         onOpenDocumentation={() => navigateWithGuard("/documentation", "Documentation")}
+        onRefreshVault={handleRefreshVault}
       />
       <CommandPalette />
       <LoadingOverlay isVisible={isMounting || isFileLoading || !!navigatingLabel} text={isFileLoading ? "Loading file..." : navigatingLabel ? `${navigatingLabel}...` : "Loading..."} />
