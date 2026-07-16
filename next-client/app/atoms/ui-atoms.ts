@@ -235,3 +235,11 @@ export const atom_activeEditorView = atom<EditorView | null>(null);
 export const atom_recentCommandIds = atomWithStorage<string[]>("recentCommandIds", []);
 
 export const atom_indexTimestamp = atom<number | null>(null);
+
+// Whether the pane tab bar starts expanded or collapsed. Each pane still
+// tracks its own open/closed state locally (see PaneLeaf.tsx) so a user can
+// toggle it per-pane during a session; this only controls the initial value.
+export const atom_tabsBarVisibleByDefault = atomWithStorage<boolean>(
+  "tabsBarVisibleByDefault",
+  false,
+);

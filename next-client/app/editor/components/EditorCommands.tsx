@@ -28,6 +28,7 @@ import {
   atom_isVoiceInputSupported,
   atom_showHiddenFiles,
   atom_activeEditorView,
+  atom_tabsBarVisibleByDefault,
 } from "@/app/atoms/ui-atoms";
 import { atom_content, atom_activeFileHandle } from "@/app/atoms/file-atoms";
 import { useFileSystem } from "@/app/hooks/use-file-system";
@@ -91,6 +92,7 @@ export default function EditorCommands({
   const [, closePane] = useAtom(atom_closePane);
   const [, setPaneType] = useAtom(atom_setPaneType);
   const [wordWrap, setWordWrap] = useAtom(atom_wordWrap);
+  const [tabsBarVisibleByDefault, setTabsBarVisibleByDefault] = useAtom(atom_tabsBarVisibleByDefault);
   const [autoInjectFrontmatter, setAutoInjectFrontmatter] = useAtom(atom_autoInjectFrontmatter);
   const [, setIsWizardOpen] = useAtom(atom_isWizardOpen);
   const activeFileHandle = useAtomValue(atom_activeFileHandle);
@@ -245,6 +247,13 @@ export default function EditorCommands({
     label: wordWrap ? "Disable word wrap" : "Enable word wrap",
     keywords: "wrap line editor",
     action: () => setWordWrap(!wordWrap),
+  });
+
+  useRegisterCommand({
+    id: "toggle-tabs-bar-default",
+    label: tabsBarVisibleByDefault ? "Hide tabs bar by default" : "Show tabs bar by default",
+    keywords: "tabs bar pane visible default settings",
+    action: () => setTabsBarVisibleByDefault(!tabsBarVisibleByDefault),
   });
 
   useRegisterCommand({

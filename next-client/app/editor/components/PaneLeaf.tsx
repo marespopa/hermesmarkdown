@@ -19,7 +19,7 @@ import {
   atom_workspaceLayout,
   atom_setPaneType,
 } from "@/app/atoms/atoms";
-import { atom_newVaultFlowOpen, atom_isVoicePreviewVisible } from "@/app/atoms/ui-atoms";
+import { atom_newVaultFlowOpen, atom_isVoicePreviewVisible, atom_tabsBarVisibleByDefault } from "@/app/atoms/ui-atoms";
 import { HiOutlineDocumentText, HiOutlineEye, HiOutlineChartBar, HiOutlineX, HiOutlineClipboardCopy, HiOutlineSave, HiOutlineDotsHorizontal, HiOutlinePlus, HiOutlineFolderOpen, HiOutlineDatabase, HiOutlineCollection, HiOutlineChevronDown, HiOutlineChevronUp } from "react-icons/hi";
 import { VscSplitHorizontal } from "react-icons/vsc";
 import PaneTab, { TabSaveState, statusMeta } from "./PaneTab";
@@ -145,10 +145,14 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
   }, []);
   const hideCopyMarkdown = tabBarRowWidth < 440;
   const hideSplitRight = tabBarRowWidth < 360;
-  // Defaults to hidden — the tab bar is chrome you reach for, not chrome
-  // you look at. The hover chevron and the collapsed save-status dot below
-  // keep it discoverable without occupying the top edge at rest.
-  const [tabBarVisible, setTabBarVisible] = useState(false);
+  // Defaults per the Settings page's "Tabs Bar" toggle — the tab bar is
+  // chrome you reach for, not chrome you look at, so it defaults to hidden
+  // unless the user opts in. The hover chevron and the collapsed
+  // save-status dot below keep it discoverable without occupying the top
+  // edge at rest. Each pane still tracks its own open/closed state locally
+  // once mounted, so toggling the setting only affects panes opened after.
+  const tabsBarVisibleByDefault = useAtomValue(atom_tabsBarVisibleByDefault);
+  const [tabBarVisible, setTabBarVisible] = useState(tabsBarVisibleByDefault);
 
   const handleDragStart = (e: React.DragEvent, path: string) => {
     const data = JSON.stringify({ 

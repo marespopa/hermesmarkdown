@@ -21,7 +21,7 @@ import {
   atom_claudeKey,
   atom_geminiKey,
 } from "@/app/atoms/atoms";
-import { atom_availableGeminiModels, atom_showHiddenFiles, atom_voiceWizardOpen, atom_isAiConfigured } from "@/app/atoms/ui-atoms";
+import { atom_availableGeminiModels, atom_showHiddenFiles, atom_voiceWizardOpen, atom_isAiConfigured, atom_tabsBarVisibleByDefault } from "@/app/atoms/ui-atoms";
 import { atom_vaultHandle } from "@/app/atoms/atoms";
 import { useFileSystem } from "@/app/hooks/use-file-system";
 import { testAIConnection, fetchGeminiModels } from "@/app/services/ai";
@@ -63,6 +63,7 @@ const SettingsPage = () => {
   const [autoInjectFrontmatter, setAutoInjectFrontmatter] = useAtom(atom_autoInjectFrontmatter);
   const [frontmatterDefaultMode, setFrontmatterDefaultMode] = useAtom(atom_frontmatterDefaultMode);
   const [showHiddenFiles, setShowHiddenFiles] = useAtom(atom_showHiddenFiles);
+  const [tabsBarVisibleByDefault, setTabsBarVisibleByDefault] = useAtom(atom_tabsBarVisibleByDefault);
   const { scanVault, indexVaultTags, vaultHandle: fsVaultHandle, openFile } = useFileSystem();
   const [, setVoiceWizardOpen] = useAtom(atom_voiceWizardOpen);
   const isAiConfigured = useAtomValue(atom_isAiConfigured);
@@ -181,6 +182,11 @@ const SettingsPage = () => {
               label="Word Wrap"
               description="Wrap long lines to fit the viewport width."
               control={<Toggle variant="soft" active={wordWrap} onChange={setWordWrap} />}
+            />
+            <SettingItem
+              label="Show Tabs Bar"
+              description="Show the open-file tabs strip by default. Off by default; each pane can still be toggled open with the chevron above it."
+              control={<Toggle variant="soft" active={tabsBarVisibleByDefault} onChange={setTabsBarVisibleByDefault} />}
             />
             <SettingItem
               label="Editor Width"
