@@ -9,6 +9,7 @@ import {
   HiOutlineDocumentAdd,
   HiOutlineEye,
   HiOutlineEyeOff,
+  HiChevronLeft,
 } from "react-icons/hi";
 import {
   atom_activeFilePath,
@@ -184,6 +185,15 @@ export default function VaultSidebar({
               )}
             </h2>
           </div>
+          <button
+            type="button"
+            onClick={() => setRailPanel(null)}
+            title="Collapse sidebar"
+            aria-label="Collapse sidebar"
+            className="shrink-0 flex items-center justify-center w-6 h-6 rounded text-ink-muted hover:text-ink-light dark:text-stone dark:hover:text-ink-dark hover:bg-paper-softgray dark:hover:bg-paper-dark-surface transition-colors"
+          >
+            <HiChevronLeft size={16} />
+          </button>
         </div>
 
         {vaultHandle && panel === "files" && (

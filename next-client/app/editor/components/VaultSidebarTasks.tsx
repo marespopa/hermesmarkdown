@@ -2,7 +2,7 @@
 
 import React from "react";
 import { useAtomValue } from "jotai";
-import { HiOutlineCheckCircle, HiChevronRight, HiChevronDown } from "react-icons/hi";
+import { HiOutlineCheckCircle, HiChevronRight, HiChevronDown, HiOutlineDocumentText, HiOutlineViewList } from "react-icons/hi";
 import { atom_allTasks } from "@/app/atoms/task-atoms";
 import { atom_fileMetadata } from "@/app/atoms/metadata";
 import { TaskItem } from "@/app/utils/taskExtractor";
@@ -13,6 +13,7 @@ interface VaultSidebarTasksProps {
 }
 
 type Group = "todo" | "prog" | "done";
+type GroupBy = "status" | "file";
 
 const GROUP_LABEL: Record<Group, string> = { todo: "To Do", prog: "In Progress", done: "Done" };
 
@@ -52,13 +53,17 @@ export default function VaultSidebarTasks({ onFileSelect }: VaultSidebarTasksPro
   const allTasks = useAtomValue(atom_allTasks);
   const fileMetadata = useAtomValue(atom_fileMetadata);
   const { toggleTask } = useTaskWriteback();
+  const [groupBy, setGroupBy] = React.useState<GroupBy>("status");
   const [collapsed, setCollapsed] = React.useState<Record<Group, boolean>>({
     todo: false,
     prog: false,
     done: true,
   });
+  const [collapsedFiles, setCollapsedFiles] = React.useState<Record<string, boolean>>({});
   const toggleCollapsed = (g: Group) =>
     setCollapsed((prev) => ({ ...prev, [g]: !prev[g] }));
+  const toggleCollapsedFile = (path: string) =>
+    setCollapsedFiles((prev) => ({ ...prev, [path]: !prev[path] }));
 
   const noteTitle = React.useCallback(
     (path: string) => {
@@ -68,11 +73,22 @@ export default function VaultSidebarTasks({ onFileSelect }: VaultSidebarTasksPro
     [fileMetadata],
   );
 
-  const groups = React.useMemo(() => {
+  const statusGroups = React.useMemo(() => {
     const out: Record<Group, TaskItem[]> = { todo: [], prog: [], done: [] };
     for (const t of allTasks) out[groupOf(t)].push(t);
     for (const g of Object.values(out)) g.sort((a, b) => noteTitle(a.path).localeCompare(noteTitle(b.path)));
     return out;
+  }, [allTasks, noteTitle]);
+
+  const fileGroups = React.useMemo(() => {
+    const byPath = new Map<string, TaskItem[]>();
+    for (const t of allTasks) {
+      const list = byPath.get(t.path);
+      if (list) list.push(t);
+      else byPath.set(t.path, [t]);
+    }
+    for (const list of byPath.values()) list.sort((a, b) => a.line - b.line);
+    return Array.from(byPath.entries()).sort((a, b) => noteTitle(a[0]).localeCompare(noteTitle(b[0])));
   }, [allTasks, noteTitle]);
 
   const handleNavigate = (task: TaskItem) => {
@@ -82,10 +98,34 @@ export default function VaultSidebarTasks({ onFileSelect }: VaultSidebarTasksPro
   };
 
   const visibleGroups: Group[] = ["todo", "prog", "done"];
-  const isEmpty = visibleGroups.every((g) => groups[g].length === 0);
+  const isEmpty = allTasks.length === 0;
 
   return (
     <div className="flex flex-col h-full min-h-0">
+      <div className="flex items-center justify-end px-3 pt-2">
+        <div className="flex items-center rounded-md bg-paper-softgray dark:bg-paper-dark-surface/50 p-0.5">
+          <button
+            type="button"
+            title="Group by status"
+            onClick={() => setGroupBy("status")}
+            className={`flex items-center justify-center w-6 h-6 rounded transition-colors ${
+              groupBy === "status" ? "bg-paper-light dark:bg-paper-dark-surface shadow-sm text-ink-light dark:text-ink-dark" : "text-ink-muted dark:text-stone opacity-60 hover:opacity-100"
+            }`}
+          >
+            <HiOutlineViewList size={14} />
+          </button>
+          <button
+            type="button"
+            title="Group by file"
+            onClick={() => setGroupBy("file")}
+            className={`flex items-center justify-center w-6 h-6 rounded transition-colors ${
+              groupBy === "file" ? "bg-paper-light dark:bg-paper-dark-surface shadow-sm text-ink-light dark:text-ink-dark" : "text-ink-muted dark:text-stone opacity-60 hover:opacity-100"
+            }`}
+          >
+            <HiOutlineDocumentText size={14} />
+          </button>
+        </div>
+      </div>
       <div className="flex-1 overflow-y-auto space-y-3 px-2 pt-2 pb-2 custom-scrollbar">
         {isEmpty && (
           <div className="px-3 py-6 text-ui-footnote italic opacity-40 text-center">
@@ -93,44 +133,90 @@ export default function VaultSidebarTasks({ onFileSelect }: VaultSidebarTasksPro
             No outstanding tasks
           </div>
         )}
-        {visibleGroups.map((g) =>
-          groups[g].length === 0 ? null : (
-            <div key={g}>
+        {!isEmpty && groupBy === "status" &&
+          visibleGroups.map((g) =>
+            statusGroups[g].length === 0 ? null : (
+              <div key={g}>
+                <button
+                  type="button"
+                  onClick={() => toggleCollapsed(g)}
+                  className="flex items-center gap-1 w-full px-3 pb-1 text-ui-footnote font-medium uppercase tracking-wide text-ink-muted dark:text-stone opacity-60 hover:opacity-100 transition-opacity"
+                >
+                  {collapsed[g] ? <HiChevronRight size={12} /> : <HiChevronDown size={12} />}
+                  {GROUP_LABEL[g]}
+                  <span className="font-normal normal-case opacity-70">({statusGroups[g].length})</span>
+                </button>
+                {!collapsed[g] && (
+                  <div className="space-y-0.5">
+                    {statusGroups[g].map((task) => (
+                      <TaskRow
+                        key={task.id}
+                        task={task}
+                        subtitle={noteTitle(task.path)}
+                        onToggle={() => toggleTask(task)}
+                        onNavigate={() => handleNavigate(task)}
+                      />
+                    ))}
+                  </div>
+                )}
+              </div>
+            ),
+          )}
+        {!isEmpty && groupBy === "file" &&
+          fileGroups.map(([path, tasks]) => (
+            <div key={path}>
               <button
                 type="button"
-                onClick={() => toggleCollapsed(g)}
-                className="flex items-center gap-1 w-full px-3 pb-1 text-ui-footnote font-medium uppercase tracking-wide text-ink-muted dark:text-stone opacity-60 hover:opacity-100 transition-opacity"
+                onClick={() => toggleCollapsedFile(path)}
+                className="flex items-center gap-1 w-full px-3 pb-1 text-ui-footnote font-medium text-ink-muted dark:text-stone opacity-60 hover:opacity-100 transition-opacity"
               >
-                {collapsed[g] ? <HiChevronRight size={12} /> : <HiChevronDown size={12} />}
-                {GROUP_LABEL[g]}
-                <span className="font-normal normal-case opacity-70">({groups[g].length})</span>
+                {collapsedFiles[path] ? <HiChevronRight size={12} /> : <HiChevronDown size={12} />}
+                <span className="truncate">{noteTitle(path)}</span>
+                <span className="font-normal opacity-70 shrink-0">({tasks.length})</span>
               </button>
-              {!collapsed[g] && (
+              {!collapsedFiles[path] && (
                 <div className="space-y-0.5">
-                  {groups[g].map((task) => (
-                    <div
+                  {tasks.map((task) => (
+                    <TaskRow
                       key={task.id}
-                      className="group flex items-start gap-2 px-3 py-1.5 rounded-md hover:bg-paper-softgray dark:hover:bg-paper-dark-surface/50 transition-colors"
-                    >
-                      <TaskCheckbox checked={task.checked} onChange={() => toggleTask(task)} />
-                      <div className="min-w-0 flex-1 cursor-pointer" onClick={() => handleNavigate(task)}>
-                        <div
-                          className={`text-ui-caption truncate ${
-                            task.checked ? "line-through opacity-50" : "text-ink-light dark:text-ink-dark"
-                          }`}
-                        >
-                          {task.text || "(empty task)"}
-                        </div>
-                        <span className="text-ui-footnote text-ink-muted dark:text-stone truncate block">
-                          {noteTitle(task.path)}
-                        </span>
-                      </div>
-                    </div>
+                      task={task}
+                      onToggle={() => toggleTask(task)}
+                      onNavigate={() => handleNavigate(task)}
+                    />
                   ))}
                 </div>
               )}
             </div>
-          ),
+          ))}
+      </div>
+    </div>
+  );
+}
+
+function TaskRow({
+  task,
+  subtitle,
+  onToggle,
+  onNavigate,
+}: {
+  task: TaskItem;
+  subtitle?: string;
+  onToggle: () => void;
+  onNavigate: () => void;
+}) {
+  return (
+    <div className="group flex items-start gap-2 px-3 py-1.5 rounded-md hover:bg-paper-softgray dark:hover:bg-paper-dark-surface/50 transition-colors">
+      <TaskCheckbox checked={task.checked} onChange={onToggle} />
+      <div className="min-w-0 flex-1 cursor-pointer" onClick={onNavigate}>
+        <div
+          className={`text-ui-caption truncate ${
+            task.checked ? "line-through opacity-50" : "text-ink-light dark:text-ink-dark"
+          }`}
+        >
+          {task.text || "(empty task)"}
+        </div>
+        {subtitle && (
+          <span className="text-ui-footnote text-ink-muted dark:text-stone truncate block">{subtitle}</span>
         )}
       </div>
     </div>
