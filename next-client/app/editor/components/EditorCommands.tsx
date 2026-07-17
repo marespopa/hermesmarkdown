@@ -11,7 +11,6 @@ import {
   atom_closePane,
   atom_setPaneType,
   atom_wordWrap,
-  atom_autoInjectFrontmatter,
   atom_isWizardOpen,
   findLeaf,
 } from "@/app/atoms/atoms";
@@ -22,7 +21,6 @@ import {
   atom_isAiConfigured,
   atom_newVaultFlowOpen,
   atom_repurposeWizardOpen,
-  atom_voiceWizardOpen,
   atom_voiceInputRequest,
   atom_isVoiceInputListening,
   atom_isVoiceInputSupported,
@@ -34,9 +32,6 @@ import { atom_content, atom_activeFileHandle } from "@/app/atoms/file-atoms";
 import { useFileSystem } from "@/app/hooks/use-file-system";
 import { useDialog } from "@/app/hooks/use-dialog";
 import toast from "react-hot-toast";
-import { showSuccessToast, showErrorToast } from "@/app/components/Toastr";
-import { openOrCreateVoiceMd } from "@/app/services/vault-schema";
-import { useVoiceMdStatus } from "../hooks/use-voice-md-status";
 import { useRegisterCommand } from "@/app/components/CommandPalette/CommandPaletteContext";
 import { formatShortcut } from "@/app/utils/platform";
 import { usePaneFileActions } from "../hooks/use-pane-file-actions";
@@ -70,16 +65,14 @@ export default function EditorCommands({
   onRefreshVault?: () => void;
 }) {
   const router = useRouter();
-  const { openVault, vaultHandle, scanVault, indexVaultTags, openFile, closeVault, renameFile, deleteFile } = useFileSystem();
+  const { openVault, vaultHandle, scanVault, indexVaultTags, closeVault, renameFile, deleteFile } = useFileSystem();
   const dialog = useDialog();
   const [theme, setTheme] = useAtom(atom_theme);
   const [showHiddenFiles, setShowHiddenFiles] = useAtom(atom_showHiddenFiles);
   const [railPanel, setRailPanel] = useAtom(atom_railPanel);
   const [, setAiBuilderRequest] = useAtom(atom_aiBuilderRequest);
   const [, setRepurposeWizardOpen] = useAtom(atom_repurposeWizardOpen);
-  const [, setVoiceWizardOpen] = useAtom(atom_voiceWizardOpen);
   const isAiConfigured = useAtomValue(atom_isAiConfigured);
-  const voiceMdExists = useVoiceMdStatus();
   const content = useAtomValue(atom_content);
   const workspaceLayout = useAtomValue(atom_workspaceLayout);
   const activePaneId = useAtomValue(atom_activePaneId);
@@ -93,7 +86,6 @@ export default function EditorCommands({
   const [, setPaneType] = useAtom(atom_setPaneType);
   const [wordWrap, setWordWrap] = useAtom(atom_wordWrap);
   const [tabsBarVisibleByDefault, setTabsBarVisibleByDefault] = useAtom(atom_tabsBarVisibleByDefault);
-  const [autoInjectFrontmatter, setAutoInjectFrontmatter] = useAtom(atom_autoInjectFrontmatter);
   const [, setIsWizardOpen] = useAtom(atom_isWizardOpen);
   const activeFileHandle = useAtomValue(atom_activeFileHandle);
   const activeEditorView = useAtomValue(atom_activeEditorView);
@@ -257,13 +249,6 @@ export default function EditorCommands({
   });
 
   useRegisterCommand({
-    id: "toggle-auto-frontmatter",
-    label: autoInjectFrontmatter ? "Disable auto frontmatter" : "Enable auto frontmatter",
-    keywords: "frontmatter metadata auto inject",
-    action: () => setAutoInjectFrontmatter(!autoInjectFrontmatter),
-  });
-
-  useRegisterCommand({
     id: "start-welcome-tour",
     label: "Start welcome tour",
     keywords: "onboarding guide help tour walkthrough",
@@ -404,35 +389,6 @@ export default function EditorCommands({
           shortcut: formatShortcut("B", { shift: true }),
           keywords: "ai chat generate create revise section ask",
           action: () => setAiBuilderRequest((v) => v + 1),
-        }
-      : null,
-  );
-
-  useRegisterCommand(
-    vaultHandle
-      ? {
-          id: "create-voice-md",
-          label: voiceMdExists ? "Voice & Tone: Edit voice.md" : "Voice & Tone: Create voice.md",
-          keywords: "voice profile tone audience create new edit",
-          action: async () => {
-            try {
-              const { opened } = await openOrCreateVoiceMd({ vaultHandle, openFile });
-              if (!opened) showSuccessToast("voice.md created.");
-            } catch (err: any) {
-              showErrorToast(err.message || "Failed to create voice.md.");
-            }
-          },
-        }
-      : null,
-  );
-
-  useRegisterCommand(
-    isAiConfigured && vaultHandle
-      ? {
-          id: "draft-voice-md",
-          label: "Voice & Tone: Draft voice.md from notes…",
-          keywords: "voice profile tone audience draft generate ai",
-          action: () => setVoiceWizardOpen(true),
         }
       : null,
   );

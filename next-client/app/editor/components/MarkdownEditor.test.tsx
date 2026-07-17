@@ -33,7 +33,6 @@ vi.mock("@/app/atoms/atoms", async (importOriginal) => {
     atom_cursorPosition: atom({ line: 1, col: 1 }),
     atom_editorWidth: atom("standard"),
     atom_selectionCount: atom(0),
-    atom_autoInjectFrontmatter: atom(false),
     atom_isAiConfigured: atom(true),
     atom_isAiBusy: atom(false),
     atom_frontmatterWizardOpen: atom(null),

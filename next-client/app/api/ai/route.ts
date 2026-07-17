@@ -6,10 +6,15 @@ import { NextResponse } from 'next/server';
 
 const createAIModel = (provider: string, apiKey: string, modelKey: string) => {
   if (provider === 'claude') {
+    // Short tier keys (from the static fallback list) map to a known model ID.
+    // Anything else is assumed to already be a real Anthropic model ID, as
+    // returned by the dynamic /v1/models lookup used to populate the picker.
     const modelId = modelKey === 'opus-4-8' ? 'claude-opus-4-8' :
                     modelKey === 'haiku-4-5' ? 'claude-haiku-4-5-20251001' :
-                    'claude-sonnet-4-6';
-                    
+                    modelKey === 'sonnet-5' ? 'claude-sonnet-5' :
+                    modelKey && modelKey.startsWith('claude-') ? modelKey :
+                    'claude-sonnet-5';
+
     return createAnthropic({ apiKey, baseURL: 'https://api.anthropic.com/v1' })(modelId);
   } else {
     // Strip models/ prefix if present
@@ -36,6 +41,22 @@ export async function POST(req: Request) {
 
     if (!apiKey) {
       return NextResponse.json({ error: "API key is required" }, { status: 400 });
+    }
+
+    if (action === 'models') {
+      if (provider === 'claude') {
+        const res = await fetch('https://api.anthropic.com/v1/models?limit=100', {
+          headers: { 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' },
+        });
+        if (!res.ok) {
+          const errorData = await res.json().catch(() => ({}));
+          return NextResponse.json({ error: errorData.error?.message || `Failed to fetch models (Status ${res.status})` }, { status: res.status });
+        }
+        const data = await res.json();
+        const models = (data.data || []).map((m: any) => ({ id: m.id, name: m.display_name || m.id }));
+        return NextResponse.json({ models });
+      }
+      return NextResponse.json({ error: "Model listing is not supported for this provider" }, { status: 400 });
     }
 
     const model = createAIModel(provider, apiKey, modelKey);

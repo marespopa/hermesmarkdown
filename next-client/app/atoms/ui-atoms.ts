@@ -60,10 +60,6 @@ export const atom_welcomeWizardStep = atomWithStorage<number>(
   0,
 );
 
-export const atom_autoInjectFrontmatter = atomWithStorage<boolean>(
-  "autoInjectFrontmatter",
-  false,
-);
 export const atom_frontmatterDefaultMode = atomWithStorage<"fields" | "raw">(
   "frontmatterDefaultMode",
   "fields",
@@ -76,22 +72,14 @@ export const atom_frontmatterHasPrompted = atomWithStorage<boolean>(
 // files in the sidebar tree and search. Off by default, so the file tree
 // stays focused on the user's own notes; the sidebar toggle, settings page,
 // and command palette all offer a quick opt-in for when someone needs to see
-// skills, AGENTS.md, voice.md, and other files the app writes on their
-// behalf. node_modules and vendor stay excluded regardless, since they're
-// never vault content.
+// skills, AGENTS.md, and other files the app writes on their behalf.
+// node_modules and vendor stay excluded regardless, since they're never
+// vault content.
 export const atom_showHiddenFiles = atomWithStorage<boolean>(
   "hermes_show_hidden_files",
   false,
 );
-export const atom_voiceWizardOpen = atom<boolean>(false);
 export const atom_repurposeWizardOpen = atom<boolean>(false);
-// One-time nudge suggesting voice.md setup — set once the nudge has been
-// shown (dismissed or acted on) or once a voice.md is found to already exist,
-// so it never asks again.
-export const atom_voiceMdNudgeDismissed = atomWithStorage<boolean>(
-  "voiceMdNudgeDismissed",
-  false,
-);
 
 // Vault creation flow — transient, never persisted
 export type VaultCreationSubStep = "name-and-folder" | "installing";
@@ -159,7 +147,7 @@ export const atom_indexerState = atom<IndexerState>("idle");
 export type AiModelKey = string;
 export const atom_selectedAiModel = atomWithStorage<AiModelKey>(
   "selectedAiModel",
-  "sonnet-4-6",
+  "sonnet-5",
 );
 
 export interface GeminiModelInfo {
@@ -167,6 +155,12 @@ export interface GeminiModelInfo {
   name: string;
 }
 export const atom_availableGeminiModels = atom<GeminiModelInfo[]>([]);
+
+export interface ClaudeModelInfo {
+  id: string;
+  name: string;
+}
+export const atom_availableClaudeModels = atom<ClaudeModelInfo[]>([]);
 
 // Holds the file path being edited, or null when closed
 export const atom_frontmatterWizardOpen = atom<string | null>(null);

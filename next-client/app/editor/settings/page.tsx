@@ -14,17 +14,15 @@ import {
   atom_autosaveMode,
   atom_autosaveDelay,
   atom_editorWidth,
-  atom_autoInjectFrontmatter,
   atom_frontmatterDefaultMode,
   atom_aiProvider,
   atom_selectedAiModel,
   atom_claudeKey,
   atom_geminiKey,
 } from "@/app/atoms/atoms";
-import { atom_availableGeminiModels, atom_showHiddenFiles, atom_voiceWizardOpen, atom_isAiConfigured, atom_tabsBarVisibleByDefault } from "@/app/atoms/ui-atoms";
-import { atom_vaultHandle } from "@/app/atoms/atoms";
+import { atom_availableGeminiModels, atom_availableClaudeModels, atom_showHiddenFiles, atom_tabsBarVisibleByDefault } from "@/app/atoms/ui-atoms";
 import { useFileSystem } from "@/app/hooks/use-file-system";
-import { testAIConnection, fetchGeminiModels } from "@/app/services/ai";
+import { testAIConnection, fetchGeminiModels, fetchClaudeModels } from "@/app/services/ai";
 import {
   HiOutlineArrowLeft,
   HiOutlinePencilAlt,
@@ -44,9 +42,6 @@ import {
   SettingGroup,
 } from "./components/SettingControls";
 import { FONT_SIZES, LINE_HEIGHTS, LETTER_SPACINGS, FONTS } from "./font-options";
-import VoiceWizard from "../components/VoiceWizard";
-import { openOrCreateVoiceMd } from "@/app/services/vault-schema";
-import { useVoiceMdStatus } from "../hooks/use-voice-md-status";
 
 const SettingsPage = () => {
   const router = useRouter();
@@ -60,33 +55,11 @@ const SettingsPage = () => {
   const [autosaveMode, setAutosaveMode] = useAtom(atom_autosaveMode);
   const [autosaveDelay, setAutosaveDelay] = useAtom(atom_autosaveDelay);
   const [editorWidth, setEditorWidth] = useAtom(atom_editorWidth);
-  const [autoInjectFrontmatter, setAutoInjectFrontmatter] = useAtom(atom_autoInjectFrontmatter);
   const [frontmatterDefaultMode, setFrontmatterDefaultMode] = useAtom(atom_frontmatterDefaultMode);
   const [showHiddenFiles, setShowHiddenFiles] = useAtom(atom_showHiddenFiles);
   const [tabsBarVisibleByDefault, setTabsBarVisibleByDefault] = useAtom(atom_tabsBarVisibleByDefault);
-  const { scanVault, indexVaultTags, vaultHandle: fsVaultHandle, openFile } = useFileSystem();
-  const [, setVoiceWizardOpen] = useAtom(atom_voiceWizardOpen);
-  const isAiConfigured = useAtomValue(atom_isAiConfigured);
-  const voiceMdExists = useVoiceMdStatus();
+  const { scanVault, indexVaultTags, vaultHandle: fsVaultHandle } = useFileSystem();
 
-  const [isCreatingVoiceMd, setIsCreatingVoiceMd] = useState(false);
-  const handleCreateVoiceMd = async () => {
-    if (isCreatingVoiceMd) return;
-    if (!vaultHandle) return;
-    setIsCreatingVoiceMd(true);
-    try {
-      const { opened } = await openOrCreateVoiceMd({ vaultHandle, openFile });
-      if (!opened) showSuccessToast("voice.md created.");
-      // This button lives on a separate /editor/settings route — opening the
-      // file only updates editor state, so without this the user stays on
-      // Settings looking at nothing having visibly happened.
-      router.push("/editor");
-    } catch (err: any) {
-      showErrorToast(err.message || "Failed to create voice.md.");
-    } finally {
-      setIsCreatingVoiceMd(false);
-    }
-  };
   const handleShowHiddenFilesChange = (next: boolean) => {
     setShowHiddenFiles(next);
     // Rescan immediately — this page is a separate route from the editor, so
@@ -95,7 +68,6 @@ const SettingsPage = () => {
     scanVault(fsVaultHandle as any, next);
     indexVaultTags(fsVaultHandle as any, next);
   };
-  const vaultHandle = useAtomValue(atom_vaultHandle);
   const [aiProvider, setAiProvider] = useAtom(atom_aiProvider);
   const [selectedAiModel, setSelectedAiModel] = useAtom(atom_selectedAiModel);
   const [claudeKey, setClaudeKey] = useAtom(atom_claudeKey);
@@ -103,6 +75,7 @@ const SettingsPage = () => {
   const [, setIsWizardOpen] = useAtom(atom_isWizardOpen);
 
   const [availableGeminiModels, setAvailableGeminiModels] = useAtom(atom_availableGeminiModels);
+  const [availableClaudeModels, setAvailableClaudeModels] = useAtom(atom_availableClaudeModels);
   const [isFetchingModels, setIsFetchingModels] = useState(false);
   const [fetchError, setFetchError] = useState<string | null>(null);
 
@@ -124,6 +97,25 @@ const SettingsPage = () => {
       loadModels();
     }
   }, [aiProvider, geminiKey, availableGeminiModels.length, setAvailableGeminiModels, fetchError]);
+
+  useEffect(() => {
+    if (aiProvider === "claude" && claudeKey && availableClaudeModels.length === 0 && !fetchError) {
+      const loadModels = async () => {
+        setIsFetchingModels(true);
+        setFetchError(null);
+        try {
+          const models = await fetchClaudeModels(claudeKey);
+          setAvailableClaudeModels(models);
+        } catch (error: any) {
+          console.error("Failed to fetch models", error);
+          setFetchError(error.message || "Failed to load models");
+        } finally {
+          setIsFetchingModels(false);
+        }
+      };
+      loadModels();
+    }
+  }, [aiProvider, claudeKey, availableClaudeModels.length, setAvailableClaudeModels, fetchError]);
 
   const [isTestingConnection, setIsTestingConnection] = useState(false);
 
@@ -305,11 +297,6 @@ const SettingsPage = () => {
                 />
               }
             />
-            <SettingItem
-              label="Auto-inject on Save"
-              description="When saving a file with no frontmatter block, prepend title, status, tags, and scope automatically."
-              control={<Toggle variant="soft" active={autoInjectFrontmatter} onChange={setAutoInjectFrontmatter} />}
-            />
           </SettingGroup>
         </>
       ),
@@ -331,7 +318,7 @@ const SettingsPage = () => {
                     const p = v as any;
                     setAiProvider(p);
                     // Reset selected model to appropriate default for provider
-                    if (p === "claude") setSelectedAiModel("sonnet-4-6");
+                    if (p === "claude") setSelectedAiModel("sonnet-5");
                     else setSelectedAiModel("gemini-3.5-flash");
                   }}
                 >
@@ -343,16 +330,45 @@ const SettingsPage = () => {
             {aiProvider === "claude" && (
               <SettingItem
                 label="Model Tier"
-                description="Haiku is fast, Opus is most powerful."
+                description={
+                  isFetchingModels
+                    ? "Fetching available models..."
+                    : fetchError
+                      ? `Error: ${fetchError}`
+                      : "Choose from models available to your API key."
+                }
                 control={
-                  <SelectControl
-                    value={selectedAiModel}
-                    onChange={(v) => setSelectedAiModel(v as any)}
-                  >
-                    <option value="sonnet-4-6">Claude 4.6 Sonnet</option>
-                    <option value="haiku-4-5">Claude 4.5 Haiku</option>
-                    <option value="opus-4-8">Claude 4.8 Opus</option>
-                  </SelectControl>
+                  <div className="flex items-center gap-2">
+                    <SelectControl
+                      value={selectedAiModel}
+                      onChange={(v) => setSelectedAiModel(v as any)}
+                      disabled={isFetchingModels}
+                    >
+                      {availableClaudeModels.length > 0 ? (
+                        availableClaudeModels.map((m) => (
+                          <option key={m.id} value={m.id}>
+                            {m.name}
+                          </option>
+                        ))
+                      ) : (
+                        <>
+                          <option value="sonnet-5">Claude Sonnet 5</option>
+                          <option value="haiku-4-5">Claude 4.5 Haiku</option>
+                          <option value="opus-4-8">Claude 4.8 Opus</option>
+                        </>
+                      )}
+                    </SelectControl>
+                    <button
+                      onClick={() => {
+                        setAvailableClaudeModels([]);
+                        setFetchError(null);
+                      }}
+                      className="p-1.5 text-stone hover:text-sage transition-colors"
+                      title="Refresh models"
+                    >
+                      <HiOutlineRefresh size={18} className={isFetchingModels ? "animate-spin" : ""} />
+                    </button>
+                  </div>
                 }
               />
             )}
@@ -451,42 +467,6 @@ const SettingsPage = () => {
               </Button>
             </div>
           </SettingGroup>
-          <div className="mt-4 px-1">
-            <p className="text-ui-caption text-stone italic">
-              Note: Your API keys are stored locally in your browser and never sent to HermesMarkdown servers.
-            </p>
-          </div>
-          <SettingGroup title="Voice & Tone">
-            <div className="px-1 pb-2">
-              <p className="text-ui-caption text-stone leading-relaxed">
-                <code className="not-italic">.hermes/voice.md</code> describes your audience, tone, recurring themes,
-                and things to avoid — the AI reads it before generation or rewrite tasks where tone matters. It's a
-                plain Markdown file you edit yourself; nothing is created automatically.
-              </p>
-            </div>
-            {!vaultHandle ? (
-              <p className="text-ui-caption text-stone px-1">Open a vault to set up voice.md.</p>
-            ) : (
-              <div className="flex flex-col gap-2 sm:flex-row">
-                <Button
-                  variant="secondary"
-                  disabled={isCreatingVoiceMd}
-                  onClick={handleCreateVoiceMd}
-                  className="flex-1 h-10 text-ui-footnote font-medium"
-                >
-                  {isCreatingVoiceMd ? "Opening…" : voiceMdExists ? "Edit voice.md" : "New voice.md"}
-                </Button>
-                <Button
-                  variant="secondary"
-                  disabled={!isAiConfigured}
-                  onClick={() => setVoiceWizardOpen(true)}
-                  className="flex-1 h-10 text-ui-footnote font-medium"
-                >
-                  Draft from notes…
-                </Button>
-              </div>
-            )}
-          </SettingGroup>
         </>
       ),
     },
@@ -564,8 +544,6 @@ const SettingsPage = () => {
           {active.content}
         </div>
       </main>
-
-      <VoiceWizard />
     </div>
   );
 };

@@ -71,3 +71,20 @@ export function typewriterInsertCM6(
 
   return finish;
 }
+
+// Replaces [from, to) with `text`, revealed via the same typewriter effect —
+// used when an AI suggestion is applied over an existing selection instead
+// of inserted at the cursor.
+export function typewriterReplaceCM6(
+  view: EditorView,
+  from: number,
+  to: number,
+  text: string,
+  options: { intervalMs?: number; onDone?: () => void } = {},
+): () => void {
+  view.dispatch({
+    changes: { from, to, insert: "" },
+    selection: EditorSelection.cursor(from),
+  });
+  return typewriterInsertCM6(view, text, options);
+}

@@ -119,8 +119,7 @@ const GROUPS: Group[] = [
             </p>
             <p>
               Everything in the folder — your notes, your subfolders — is yours; HermesMarkdown never
-              restructures it. A hidden <code>.hermes/</code> directory only appears if you set up a{" "}
-              <a href="#voice-profile" className="text-sage font-semibold hover:underline">voice profile</a>, and holds nothing but that one file.
+              restructures it or writes files of its own into it.
             </p>
             <Callout type="warning">
               Dropbox and iCloud can lock files mid-sync. If saves start failing inside a synced folder,
@@ -597,9 +596,8 @@ const GROUPS: Group[] = [
             <p>
               Every note is a plain <code>.md</code> file with a small YAML frontmatter block. Open the
               folder in any other editor, sync it with Dropbox or Google Drive, or move it to another
-              machine — nothing about it depends on HermesMarkdown being installed. The only thing
-              HermesMarkdown ever adds is a hidden <code>.hermes/</code> folder, and only if you set up a{" "}
-              <a href="#voice-profile" className="text-sage font-semibold hover:underline">voice profile</a>.
+              machine — nothing about it depends on HermesMarkdown being installed. HermesMarkdown never
+              writes files of its own into the vault.
             </p>
           </>
         ),
@@ -719,8 +717,8 @@ const GROUPS: Group[] = [
             </p>
             <p>
               Pick one or more target formats, then <strong>Draft</strong>. The AI drafts each
-              selected format from the current note's content — reading <code>.hermes/voice.md</code>
-              {" "}for tone if it exists — and shows every draft for review before anything is saved.
+              selected format from the current note's content and shows every draft for review
+              before anything is saved.
             </p>
             <p>
               Confirming writes one new file per format, named after the source note (e.g.{" "}
@@ -730,44 +728,6 @@ const GROUPS: Group[] = [
             <Callout type="tip">
               This is a single in-app action instead of a manual prompt — the AI drafts every format
               in one pass and nothing is written until you confirm.
-            </Callout>
-          </>
-        ),
-      },
-      {
-        id: "voice-profile",
-        title: "Voice profile",
-        lead: "A .hermes/voice.md file describing your audience, tone, and recurring themes — the AI reads it before generation or rewrite tasks where tone matters.",
-        keywords: "voice profile tone audience voice.md draft from notes creator content nudge command palette",
-        body: (
-          <>
-            <p>
-              Three ways to set it up: Settings → AI Features → <strong>Voice &amp; Tone</strong>,
-              or the command palette entries <strong>Voice &amp; Tone: Create voice.md</strong> and{" "}
-              <strong>Voice &amp; Tone: Draft voice.md from notes…</strong> (the second needs an AI
-              key configured).
-            </p>
-            <KV
-              rows={[
-                { label: "Create voice.md", value: "Opens a blank file at .hermes/voice.md for you to fill in by hand" },
-                { label: "Draft from notes…", value: "Pick a few existing notes; the AI reads them once and drafts Audience / Tone / Recurring themes / Avoid sections for you to review and edit before saving" },
-              ]}
-            />
-            <p>
-              It's a plain Markdown file — nothing is created or overwritten automatically. Once it
-              exists, AI commands that generate or rewrite text read it for tone guidance, including
-              repurposing a note into a blog post, social snippet, or newsletter draft.
-            </p>
-            <Callout type="tip">
-              The first time you have an AI key configured and open a vault with no voice.md, a
-              one-time toast offers to set one up. It shows at most once — dismissing it (or already
-              having a voice.md) means you won't see it again, but the Settings page and command
-              palette entries stay available regardless.
-            </Callout>
-            <Callout type="note">
-              Requires an AI key for the "Draft from notes…" option — see{" "}
-              <a href="#byok-setup" className="text-sage font-semibold hover:underline">BYOK setup</a>.
-              Creating voice.md by hand needs no key at all.
             </Callout>
           </>
         ),

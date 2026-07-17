@@ -17,15 +17,34 @@ import {
   HiOutlineMicrophone,
   HiMicrophone,
 } from "react-icons/hi";
-import { useAtomValue } from "jotai";
+import { useAtom, useAtomValue } from "jotai";
 import DialogModal from "../../components/DialogModal/DialogModal";
-import { callAIChat, type ApiMessage, type ApiPart } from "@/app/services/ai";
+import { callAIChat, fetchClaudeModels, fetchGeminiModels, type ApiMessage, type ApiPart } from "@/app/services/ai";
 import { showErrorToast } from "@/app/components/Toastr";
 import { FORMULA_PRESERVATION_RULE } from "../hooks/useAIEditorActions";
 import { useVoiceInput } from "../hooks/use-voice-input";
 import { joinVoiceChunks, type VoiceInsertion } from "../utils/voice-command-parser";
 import { atom_fileMetadata, type FileMetadata } from "@/app/atoms/metadata";
 import { atom_vaultHandle } from "@/app/atoms/vault-atoms";
+import {
+  atom_aiProvider,
+  atom_selectedAiModel,
+  atom_claudeKey,
+  atom_geminiKey,
+  atom_availableClaudeModels,
+  atom_availableGeminiModels,
+} from "@/app/atoms/ui-atoms";
+
+const FALLBACK_CLAUDE_MODELS = [
+  { id: "sonnet-5", name: "Claude Sonnet 5" },
+  { id: "haiku-4-5", name: "Claude 4.5 Haiku" },
+  { id: "opus-4-8", name: "Claude 4.8 Opus" },
+];
+const FALLBACK_GEMINI_MODELS = [
+  { id: "gemini-3.5-flash", name: "Gemini 3.5 Flash" },
+  { id: "gemini-3.1-pro", name: "Gemini 3.1 Pro (Preview)" },
+  { id: "gemini-3.1-flash-lite", name: "Gemini 3.1 Flash-Lite" },
+];
 
 const IMAGE_TYPES = new Set(["image/png", "image/jpeg", "image/gif", "image/webp"]);
 const MAX_SIZE = 5_000_000;
@@ -193,6 +212,37 @@ export default function AIChatDialog({
 }: AIChatDialogProps) {
   const fileMetadata = useAtomValue(atom_fileMetadata);
   const vaultHandle = useAtomValue(atom_vaultHandle);
+
+  const aiProvider = useAtomValue(atom_aiProvider);
+  const [selectedAiModel, setSelectedAiModel] = useAtom(atom_selectedAiModel);
+  const claudeKey = useAtomValue(atom_claudeKey);
+  const geminiKey = useAtomValue(atom_geminiKey);
+  const [availableClaudeModels, setAvailableClaudeModels] = useAtom(atom_availableClaudeModels);
+  const [availableGeminiModels, setAvailableGeminiModels] = useAtom(atom_availableGeminiModels);
+  const [isFetchingModels, setIsFetchingModels] = useState(false);
+
+  const modelOptions = aiProvider === "claude"
+    ? (availableClaudeModels.length > 0 ? availableClaudeModels : FALLBACK_CLAUDE_MODELS)
+    : (availableGeminiModels.length > 0 ? availableGeminiModels : FALLBACK_GEMINI_MODELS);
+
+  // Load the real model list for the picker on first open, same lookup Settings uses —
+  // reused here via the shared atoms so it only happens once per session either way.
+  useEffect(() => {
+    if (!isOpen) return;
+    if (aiProvider === "claude" && claudeKey && availableClaudeModels.length === 0) {
+      setIsFetchingModels(true);
+      fetchClaudeModels(claudeKey)
+        .then(setAvailableClaudeModels)
+        .catch(() => {})
+        .finally(() => setIsFetchingModels(false));
+    } else if (aiProvider === "gemini" && geminiKey && availableGeminiModels.length === 0) {
+      setIsFetchingModels(true);
+      fetchGeminiModels(geminiKey)
+        .then(setAvailableGeminiModels)
+        .catch(() => {})
+        .finally(() => setIsFetchingModels(false));
+    }
+  }, [isOpen, aiProvider, claudeKey, geminiKey, availableClaudeModels.length, availableGeminiModels.length, setAvailableClaudeModels, setAvailableGeminiModels]);
 
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
@@ -474,6 +524,18 @@ export default function AIChatDialog({
           <h2 id="ai-chat-title" className="text-ui-body font-semibold text-ink-light dark:text-ink-dark">
             AI Chat
           </h2>
+          <select
+            value={selectedAiModel}
+            onChange={(e) => setSelectedAiModel(e.target.value)}
+            disabled={isFetchingModels}
+            title="Model"
+            aria-label="Model"
+            className="ml-auto text-ui-caption bg-transparent border border-neutral-200 dark:border-neutral-700 rounded-lg px-2 py-1 text-neutral-500 dark:text-neutral-400 outline-none disabled:opacity-50 max-w-[140px] truncate"
+          >
+            {modelOptions.map((m) => (
+              <option key={m.id} value={m.id}>{m.name}</option>
+            ))}
+          </select>
         </div>
 
         {/* Messages */}

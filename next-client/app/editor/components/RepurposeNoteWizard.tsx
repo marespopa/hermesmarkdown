@@ -3,12 +3,11 @@
 import React, { useEffect, useState } from "react";
 import { useAtom, useAtomValue } from "jotai";
 import { atom_repurposeWizardOpen } from "@/app/atoms/ui-atoms";
-import { atom_vaultHandle } from "@/app/atoms/vault-atoms";
 import { atom_content, atom_fileName } from "@/app/atoms/file-atoms";
 import DialogModal from "@/app/components/DialogModal/DialogModal";
 import Button from "@/app/components/Button";
 import { useFileSystem } from "@/app/hooks/use-file-system";
-import { callAI, withVoiceContext } from "@/app/services/ai";
+import { callAI } from "@/app/services/ai";
 import { showSuccessToast, showErrorToast } from "@/app/components/Toastr";
 import { HiOutlineRefresh } from "react-icons/hi";
 
@@ -45,7 +44,6 @@ function slugify(name: string): string {
 
 export default function RepurposeNoteWizard() {
   const [isOpen, setIsOpen] = useAtom(atom_repurposeWizardOpen);
-  const vaultHandle = useAtomValue(atom_vaultHandle);
   const content = useAtomValue(atom_content);
   const fileName = useAtomValue(atom_fileName);
   const { createFile } = useFileSystem();
@@ -82,8 +80,7 @@ export default function RepurposeNoteWizard() {
       const formats = Array.from(selected);
       const results = await Promise.all(
         formats.map(async (format) => {
-          const system = await withVoiceContext(FORMAT_PROMPTS[format], vaultHandle);
-          const result = await callAI(system, `Source note:\n${content}`);
+          const result = await callAI(FORMAT_PROMPTS[format], `Source note:\n${content}`);
           return [format, result.trim()] as const;
         }),
       );

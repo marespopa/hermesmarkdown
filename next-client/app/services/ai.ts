@@ -16,7 +16,7 @@ const getFromStorage = (key: string) => {
 const getAIConfig = () => {
   const provider = (getFromStorage("hermes_ai_provider") as AIProvider) || 'claude';
   const apiKey = getFromStorage(`hermes_${provider}_key`);
-  const modelKey = getFromStorage("selectedAiModel") || (provider === 'claude' ? 'sonnet-4-6' : 'gemini-3.5-flash');
+  const modelKey = getFromStorage("selectedAiModel") || (provider === 'claude' ? 'sonnet-5' : 'gemini-3.5-flash');
   
   if (!apiKey) {
     throw new Error(`No API key set for ${provider}. Please add it in Settings.`);
@@ -60,6 +60,28 @@ const beautifyAIError = (error: string) => {
 /**
  * Fetches available Gemini models using a direct REST call for maximum compatibility.
  */
+/**
+ * Fetches available Claude models via the server proxy (Anthropic's API doesn't
+ * allow direct browser calls, unlike Gemini's).
+ */
+export async function fetchClaudeModels(apiKey: string) {
+  try {
+    const response = await fetch('/api/ai', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'models', provider: 'claude', apiKey }),
+    });
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.error || `Failed to fetch models (Status ${response.status})`);
+    }
+    return data.models as { id: string; name: string }[];
+  } catch (error: any) {
+    console.error("Error fetching Claude models:", error);
+    throw new Error(beautifyAIError(error.message || "Failed to fetch models."));
+  }
+}
+
 export async function fetchGeminiModels(apiKey: string) {
   try {
     const url = `https://generativelanguage.googleapis.com/v1/models`;
@@ -188,38 +210,6 @@ export async function generateFrontmatterData(noteBody: string) {
 }
 
 /**
- * Reads `.hermes/voice.md` if it exists, for prepending to system prompts on
- * tone-sensitive generation/rewrite calls. Returns null (silently) when the
- * file or vault handle is absent — voice.md is optional and never required.
- */
-export async function loadVoiceContext(
-  vaultHandle: FileSystemDirectoryHandle | null | undefined,
-): Promise<string | null> {
-  if (!vaultHandle) return null;
-  try {
-    const hermesDir = await vaultHandle.getDirectoryHandle(".hermes");
-    const fileHandle = await hermesDir.getFileHandle("voice.md");
-    const file = await fileHandle.getFile();
-    const text = (await file.text()).trim();
-    return text || null;
-  } catch {
-    return null;
-  }
-}
-
-/**
- * Prepends the vault's voice.md content (if any) to a system prompt.
- */
-export async function withVoiceContext(
-  systemPrompt: string,
-  vaultHandle: FileSystemDirectoryHandle | null | undefined,
-): Promise<string> {
-  const voice = await loadVoiceContext(vaultHandle);
-  if (!voice) return systemPrompt;
-  return `${systemPrompt}\n\nVOICE & TONE GUIDE (from .hermes/voice.md — follow unless it conflicts with the instruction below):\n${voice}`;
-}
-
-/**
  * Fixes structural/formatting issues across the whole document (frontmatter,
  * headings, syntax) in a single pass, returning the corrected markdown.
  */
@@ -240,14 +230,9 @@ Rules:
 /**
  * Generates a complete markdown note (body + frontmatter metadata) from a user prompt.
  */
-export async function generateFileFromPrompt(
-  userPrompt: string,
-  vaultHandle?: FileSystemDirectoryHandle | null,
-) {
-  const system = await withVoiceContext(
-    "You are a markdown note writer. Write a well-structured, informative markdown note based on the user's prompt. Use headers, lists, and code blocks where appropriate. Do not include YAML frontmatter. Return only the markdown content.",
-    vaultHandle,
-  );
+export async function generateFileFromPrompt(userPrompt: string) {
+  const system =
+    "You are a markdown note writer. Write a well-structured, informative markdown note based on the user's prompt. Use headers, lists, and code blocks where appropriate. Do not include YAML frontmatter. Return only the markdown content.";
   const body = await callAI(system, userPrompt);
   const meta = await generateFrontmatterData(body);
   return { body, ...meta };
@@ -257,7 +242,7 @@ export async function generateFileFromPrompt(
  * Validates the connection for a given provider and key.
  */
 export async function testAIConnection(provider: AIProvider, apiKey: string) {
-  const modelKey = getFromStorage("selectedAiModel") || (provider === 'claude' ? 'sonnet-4-6' : 'gemini-3.5-flash');
+  const modelKey = getFromStorage("selectedAiModel") || (provider === 'claude' ? 'sonnet-5' : 'gemini-3.5-flash');
 
   try {
     const response = await fetch('/api/ai', {

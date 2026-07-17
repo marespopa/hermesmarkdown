@@ -45,8 +45,10 @@ import { showErrorToast } from "@/app/components/Toastr";
 import { useGlobalVoiceInput } from "./hooks/use-global-voice-input";
 import VoicePreviewPanel from "./components/VoicePreviewPanel";
 import RepurposeNoteWizard from "./components/RepurposeNoteWizard";
-import VoiceWizard from "./components/VoiceWizard";
-import { useVoiceMdNudge } from "./hooks/use-voice-md-nudge";
+import { useAIEditorActions } from "./hooks/useAIEditorActions";
+import AIChatDialog from "./components/AIChatDialog";
+import { AIReviewDialog } from "./components/AIReviewDialog";
+import { AISelectionToolbar } from "./components/AISelectionToolbar";
 
 
 import { useRouter } from "next/navigation";
@@ -85,7 +87,7 @@ export default function LiteEditor() {
   }, [setRailPanel]);
   const isFileLoading = useAtomValue(atom_isFileLoading);
   const isAiConfigured = useAtomValue(atom_isAiConfigured);
-  const [, setAiBuilderRequest] = useAtom(atom_aiBuilderRequest);
+  const [aiBuilderRequest, setAiBuilderRequest] = useAtom(atom_aiBuilderRequest);
   const [, setVoiceInputRequest] = useAtom(atom_voiceInputRequest);
   const isVoiceListening = useAtomValue(atom_isVoiceInputListening);
   const isVoiceSupported = useAtomValue(atom_isVoiceInputSupported);
@@ -102,6 +104,10 @@ export default function LiteEditor() {
     toggleVoiceListening,
   } = useGlobalVoiceInput();
   const activeEditorView = useAtomValue(atom_activeEditorView);
+  // Single AI-chat/actions session shared by the whole app (not one per
+  // pane) — targets whichever CM6 view is currently active, same convention
+  // as useGlobalVoiceInput.
+  const aiActions = useAIEditorActions();
   const isMobileChrome = useIsMobileChrome();
   const [isMobileFileOverlayOpen, setIsMobileFileOverlayOpen] = useState(false);
   const [isMobileTasksOverlayOpen, setIsMobileTasksOverlayOpen] = useState(false);
@@ -139,7 +145,19 @@ export default function LiteEditor() {
   });
   useFileWatcher();
   useVaultSync();
-  useVoiceMdNudge();
+
+  // "Open AI Chat" (keyboard shortcut / command palette) bumps this counter
+  // from outside the editor, the same request/mirror pattern voice input
+  // uses — the actual open() call has to happen here since it needs the
+  // current selection at request time, not whenever this atom last changed.
+  const { openChat: openAiChat } = aiActions;
+  const prevAiBuilderRequestRef = useRef(aiBuilderRequest);
+  useEffect(() => {
+    if (aiBuilderRequest !== prevAiBuilderRequestRef.current) {
+      prevAiBuilderRequestRef.current = aiBuilderRequest;
+      openAiChat();
+    }
+  }, [aiBuilderRequest, openAiChat]);
 
   // Sync sidebar with active file folder
   const lastSyncedPathRef = useRef<string | null>(null);
@@ -354,7 +372,7 @@ export default function LiteEditor() {
 
     const toastId = toast.loading("Generating note...");
     try {
-      const { body, title, scope, tags, read_when } = await generateFileFromPrompt(fullPrompt, vaultHandle);
+      const { body, title, scope, tags, read_when } = await generateFileFromPrompt(fullPrompt);
       toast.dismiss(toastId);
 
       const fileName = await dialog.prompt("File name:", title, "Save Note");
@@ -439,7 +457,6 @@ export default function LiteEditor() {
         <NewVaultDialog />
         <ConflictDialog />
         <RepurposeNoteWizard />
-        <VoiceWizard />
         {isVaultPending && <VaultPendingOverlay restoreVault={restoreVault} />}
         
         <DialogModal isOpened={pendingFile !== null} onClose={() => setPendingFile(null)} styles="!rounded-[32px] !backdrop-blur-2xl !bg-paper-light/80 dark:!bg-paper-dark/80">
@@ -474,6 +491,7 @@ export default function LiteEditor() {
                 onSelectPanel={handleSelectPanel}
                 onSettings={() => navigateWithGuard("/editor/settings", "Settings")}
                 onRefreshVault={handleRefreshVault}
+                onOpenAIChat={isAiConfigured ? openAiChat : undefined}
               />
             ) : (
               <div className="group/railzone relative h-full w-2 shrink-0">
@@ -483,6 +501,7 @@ export default function LiteEditor() {
                     onSelectPanel={handleSelectPanel}
                     onSettings={() => navigateWithGuard("/editor/settings", "Settings")}
                     onRefreshVault={handleRefreshVault}
+                    onOpenAIChat={isAiConfigured ? openAiChat : undefined}
                   />
                 </div>
               </div>
@@ -516,7 +535,12 @@ export default function LiteEditor() {
         <div className="flex-1 flex min-w-0 bg-surface overflow-hidden relative">
           {/* Main Editor Area */}
           <div className="flex-1 flex flex-col min-w-0 relative">
-            {isMobileChrome && <MobileFileIndicator onSave={() => handleSaveRef.current()} />}
+            {isMobileChrome && (
+              <MobileFileIndicator
+                onSave={() => handleSaveRef.current()}
+                onOpenAIChat={isAiConfigured ? openAiChat : undefined}
+              />
+            )}
             <div className="relative flex-1 min-h-0">
               <main className="h-full">
                 {isMounting ? (
@@ -548,6 +572,29 @@ export default function LiteEditor() {
             if (isVoiceListening) toggleVoiceListening();
             activeEditorView?.focus();
           }}
+        />
+
+        {isAiConfigured && !isMobileChrome && (
+          <AISelectionToolbar
+            isAiLoading={aiActions.isAiLoading}
+            onImprove={aiActions.improveWriting}
+            onExpand={aiActions.expandIdea}
+            onPrompt={aiActions.runPrompt}
+          />
+        )}
+        <AIChatDialog
+          isOpen={aiActions.isChatOpen}
+          onClose={aiActions.closeChat}
+          documentContent={content}
+          selectedText={aiActions.chatSelectedText}
+          currentFilePath={activeFilePath ?? undefined}
+          onApply={aiActions.applyFromChat}
+        />
+        <AIReviewDialog
+          review={aiActions.aiReview}
+          onClose={aiActions.dismissReview}
+          onReplace={aiActions.applyReplace}
+          onInsertBelow={aiActions.applyInsertBelow}
         />
 
         {isMobileChrome && (

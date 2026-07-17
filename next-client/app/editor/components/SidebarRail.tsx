@@ -8,6 +8,7 @@ import {
   HiOutlineTag,
   HiOutlineCollection,
   HiOutlineClipboardList,
+  HiOutlineChatAlt2,
   HiOutlineCog,
   HiOutlineSun,
   HiOutlineMoon,
@@ -32,6 +33,7 @@ interface SidebarRailProps {
   onSelectPanel: (id: RailPanel) => void;
   onSettings?: () => void;
   onRefreshVault?: () => void;
+  onOpenAIChat?: () => void;
 }
 
 // Anchored to the right of the rail (rather than above, like the old
@@ -44,7 +46,7 @@ function RailTooltip({ label }: { label: string }) {
   );
 }
 
-export default function SidebarRail({ panel, onSelectPanel, onSettings, onRefreshVault }: SidebarRailProps) {
+export default function SidebarRail({ panel, onSelectPanel, onSettings, onRefreshVault, onOpenAIChat }: SidebarRailProps) {
   const { vaultHandle, closeVault, openVault, isVaultSupported } = useFileSystem();
   const [theme, setTheme] = useAtom(atom_theme);
 
@@ -70,6 +72,20 @@ export default function SidebarRail({ panel, onSelectPanel, onSettings, onRefres
             <RailTooltip label={label} />
           </div>
         ))}
+        {onOpenAIChat && (
+          <div className="relative group/rail-item w-full flex justify-center">
+            <button
+              type="button"
+              onClick={onOpenAIChat}
+              title="AI Chat"
+              aria-label="AI Chat"
+              className="w-11 h-10 flex items-center justify-center border-l-2 border-transparent text-ink-muted transition-colors hover:text-ink-light dark:text-stone dark:hover:text-ink-dark"
+            >
+              <HiOutlineChatAlt2 size={18} />
+            </button>
+            <RailTooltip label="AI Chat" />
+          </div>
+        )}
       </div>
 
       <div className="flex flex-col items-center gap-1 w-full">

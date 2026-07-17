@@ -1,19 +1,16 @@
+"use client";
+
 import { useCallback, useState } from "react";
 import { useAtomValue } from "jotai";
-import { callAI, withVoiceContext } from "@/app/services/ai";
-import { atom_vaultHandle } from "@/app/atoms/vault-atoms";
+import { EditorSelection } from "@codemirror/state";
+import { callAI } from "@/app/services/ai";
+import { atom_activeEditorView } from "@/app/atoms/ui-atoms";
 import { showSuccessToast, showErrorToast } from "@/app/components/Toastr";
 import { useDialog } from "@/app/hooks/use-dialog";
-import { typewriterInsertText } from "../utils/typewriter-insert";
+import { typewriterInsertCM6, typewriterReplaceCM6 } from "../codemirror/typewriter-insert";
 
 export const FORMULA_PRESERVATION_RULE =
   "IMPORTANT: HermesMarkdown formula expressions (e.g. =SUM(A:A), =AVG(B2:B5), =COUNT(C:C)) must NEVER be evaluated or replaced with numeric values. Preserve all formula expressions exactly as written.";
-
-interface UseAIEditorActionsProps {
-  value: string;
-  onChange: (value: string) => void;
-  textareaRef: React.RefObject<HTMLTextAreaElement | null>;
-}
 
 export interface AIReviewState {
   label: string;
@@ -23,11 +20,9 @@ export interface AIReviewState {
   end: number;
 }
 
-export function useAIEditorActions({
-  value,
-  onChange,
-  textareaRef,
-}: UseAIEditorActionsProps) {
+// Global (not per-pane) — targets whichever CM6 view is currently registered
+// as active via atom_activeEditorView, same convention as useGlobalVoiceInput.
+export function useAIEditorActions() {
   const [isAiLoading, setIsAiLoading] = useState(false);
   const [aiReview, setAiReview] = useState<AIReviewState | null>(null);
   const [isChatOpen, setIsChatOpen] = useState(false);
@@ -37,24 +32,23 @@ export function useAIEditorActions({
     selected: "",
   });
   const dialog = useDialog();
-  const vaultHandle = useAtomValue(atom_vaultHandle);
+  const activeEditorView = useAtomValue(atom_activeEditorView);
 
   const getContext = useCallback(() => {
-    const textarea = textareaRef.current;
-    if (!textarea) return { selectedText: "", surroundingText: "", start: 0, end: 0 };
+    const view = activeEditorView;
+    if (!view) return { selectedText: "", surroundingText: "", start: 0, end: 0 };
 
-    const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
-    const selectedText = value.substring(start, end);
+    const { from: start, to: end } = view.state.selection.main;
+    const selectedText = view.state.sliceDoc(start, end);
 
     // Get surrounding context for expansion
     const contextStart = Math.max(0, start - 300);
-    const contextEnd = Math.min(value.length, end + 300);
+    const contextEnd = Math.min(view.state.doc.length, end + 300);
     const surroundingText =
-      value.substring(contextStart, start) + value.substring(end, contextEnd);
+      view.state.sliceDoc(contextStart, start) + view.state.sliceDoc(end, contextEnd);
 
     return { selectedText, surroundingText, start, end };
-  }, [value, textareaRef]);
+  }, [activeEditorView]);
 
   const runSelectionAction = useCallback(
     async (
@@ -71,8 +65,7 @@ export function useAIEditorActions({
 
       setIsAiLoading(true);
       try {
-        const system = await withVoiceContext(systemPrompt, vaultHandle);
-        const result = await callAI(system, buildPrompt(selectedText, surroundingText));
+        const result = await callAI(systemPrompt, buildPrompt(selectedText, surroundingText));
         setAiReview({ label, original: selectedText, suggestion: result.trim(), start, end });
       } catch (error: any) {
         showErrorToast(error.message || `Failed to run "${label}".`);
@@ -80,7 +73,7 @@ export function useAIEditorActions({
         setIsAiLoading(false);
       }
     },
-    [getContext, vaultHandle],
+    [getContext],
   );
 
   const runContextAction = useCallback(
@@ -89,19 +82,18 @@ export function useAIEditorActions({
       systemPrompt: string,
       buildPrompt: (precedingText: string, noteExcerpt: string) => string,
     ) => {
-      const textarea = textareaRef.current;
-      if (!textarea) return;
+      const view = activeEditorView;
+      if (!view) return;
 
-      const cursor = textarea.selectionStart;
-      const selectionEnd = textarea.selectionEnd;
-      const selectedText = value.substring(cursor, selectionEnd);
-      const precedingText = value.substring(Math.max(0, cursor - 1500), cursor);
-      const noteExcerpt = selectedText.trim() || value.slice(0, 1500);
+      const cursor = view.state.selection.main.from;
+      const selectionEnd = view.state.selection.main.to;
+      const selectedText = view.state.sliceDoc(cursor, selectionEnd);
+      const precedingText = view.state.sliceDoc(Math.max(0, cursor - 1500), cursor);
+      const noteExcerpt = selectedText.trim() || view.state.sliceDoc(0, Math.min(1500, view.state.doc.length));
 
       setIsAiLoading(true);
       try {
-        const system = await withVoiceContext(systemPrompt, vaultHandle);
-        const result = await callAI(system, buildPrompt(precedingText, noteExcerpt));
+        const result = await callAI(systemPrompt, buildPrompt(precedingText, noteExcerpt));
         setAiReview({
           label,
           original: selectedText,
@@ -115,7 +107,7 @@ export function useAIEditorActions({
         setIsAiLoading(false);
       }
     },
-    [value, textareaRef, vaultHandle],
+    [activeEditorView],
   );
 
   const runPromptAction = useCallback(
@@ -141,8 +133,7 @@ export function useAIEditorActions({
 
       setIsAiLoading(true);
       try {
-        const system = await withVoiceContext(systemPrompt, vaultHandle);
-        const output = await callAI(system, buildPrompt(instruction, selectedText, surroundingText));
+        const output = await callAI(systemPrompt, buildPrompt(instruction, selectedText, surroundingText));
         setAiReview({ label, original: selectedText, suggestion: output.trim(), start, end });
       } catch (error: any) {
         showErrorToast(error.message || `Failed to run "${label}".`);
@@ -150,7 +141,7 @@ export function useAIEditorActions({
         setIsAiLoading(false);
       }
     },
-    [getContext, dialog, vaultHandle],
+    [getContext, dialog],
   );
 
   const openChat = useCallback(() => {
@@ -165,31 +156,20 @@ export function useAIEditorActions({
 
   const applyFromChat = useCallback(
     (suggestion: string, mode: "insert" | "replace-all" = "insert") => {
-      const textarea = textareaRef.current;
+      const view = activeEditorView;
+      if (!view) return;
 
       if (mode === "replace-all") {
-        if (textarea) {
-          textarea.focus();
-          textarea.setRangeText(suggestion, 0, textarea.value.length, "end");
-          textarea.dispatchEvent(new Event("input", { bubbles: true }));
-        } else {
-          onChange(suggestion);
-        }
+        typewriterReplaceCM6(view, 0, view.state.doc.length, suggestion);
         showSuccessToast("Document replaced.");
       } else {
         const { start, end } = chatContext;
-        if (textarea) {
-          textarea.focus();
-          textarea.setSelectionRange(start, end);
-          typewriterInsertText(textarea, suggestion);
-        } else {
-          onChange(value.substring(0, start) + suggestion + value.substring(end));
-        }
+        typewriterReplaceCM6(view, start, end, suggestion);
         showSuccessToast("Inserted into document.");
       }
       setIsChatOpen(false);
     },
-    [chatContext, onChange, textareaRef, value],
+    [activeEditorView, chatContext],
   );
 
   const improveWriting = useCallback(
@@ -347,34 +327,27 @@ export function useAIEditorActions({
     if (!aiReview) return;
     const suggestion = customSuggestion ?? aiReview.suggestion;
     const { start, end } = aiReview;
-    const textarea = textareaRef.current;
-    if (textarea) {
-      textarea.focus();
-      textarea.setSelectionRange(start, end);
-      typewriterInsertText(textarea, suggestion);
-    } else {
-      onChange(value.substring(0, start) + suggestion + value.substring(end));
+    const view = activeEditorView;
+    if (view) {
+      typewriterReplaceCM6(view, start, end, suggestion);
     }
     showSuccessToast("AI suggestion applied.");
     setAiReview(null);
-  }, [aiReview, onChange, textareaRef, value]);
+  }, [aiReview, activeEditorView]);
 
   const applyInsertBelow = useCallback((customSuggestion?: string) => {
     if (!aiReview) return;
     const suggestion = customSuggestion ?? aiReview.suggestion;
     const { end } = aiReview;
     const insertion = `\n\n${suggestion}`;
-    const textarea = textareaRef.current;
-    if (textarea) {
-      textarea.focus();
-      textarea.setSelectionRange(end, end);
-      typewriterInsertText(textarea, insertion);
-    } else {
-      onChange(value.substring(0, end) + insertion + value.substring(end));
+    const view = activeEditorView;
+    if (view) {
+      view.dispatch({ selection: EditorSelection.cursor(end) });
+      typewriterInsertCM6(view, insertion);
     }
     showSuccessToast("AI suggestion inserted.");
     setAiReview(null);
-  }, [aiReview, onChange, textareaRef, value]);
+  }, [aiReview, activeEditorView]);
 
   const dismissReview = useCallback(() => {
     setAiReview(null);
@@ -438,6 +411,7 @@ export function useAIEditorActions({
     improveWriting,
     expandIdea,
     runPrompt,
+    runBuilder,
     openChat,
     closeChat,
     applyFromChat,

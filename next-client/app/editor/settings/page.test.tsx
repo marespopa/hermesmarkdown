@@ -31,7 +31,6 @@ vi.mock("@/app/atoms/atoms", async (importOriginal) => {
     atom_theme: { toString: () => "atom_theme" },
     atom_autosaveMode: { toString: () => "atom_autosaveMode" },
     atom_autosaveDelay: { toString: () => "atom_autosaveDelay" },
-    atom_autoInjectFrontmatter: { toString: () => "atom_autoInjectFrontmatter" },
     atom_showStats: { toString: () => "atom_showStats" },
   };
 });
@@ -60,7 +59,6 @@ describe("SettingsPage", () => {
       if (atomStr === "atom_fontFamily") return ["MONO", vi.fn()];
       if (atomStr === "atom_lineHeight") return ["1.8", vi.fn()];
       if (atomStr === "atom_letterSpacing") return ["normal", vi.fn()];
-      if (atomStr === "atom_autoInjectFrontmatter") return [false, vi.fn()];
       if (atomStr === "atom_showStats") return [true, vi.fn()];
       if (atomStr === "atom_theme") return ["light", vi.fn()];
       return ["", vi.fn()];

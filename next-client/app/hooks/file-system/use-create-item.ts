@@ -1,17 +1,14 @@
 "use client";
 
-import { useAtom, useSetAtom } from "jotai";
+import { useAtom } from "jotai";
 import { useCallback } from "react";
 import toast from "react-hot-toast";
 import {
   atom_vaultHandle,
   atom_currentDirectoryHandle,
-  atom_autoInjectFrontmatter,
 } from "@/app/atoms/atoms";
-import { atom_frontmatterWizardOpen } from "@/app/atoms/ui-atoms";
 import { useDialog } from "../use-dialog";
 import { withRetry } from "./shared";
-import { injectFrontmatter } from "@/app/utils/frontmatterInjector";
 
 interface UseCreateItemProps {
   scanVault: (handle: FileSystemDirectoryHandle) => Promise<void>;
@@ -21,8 +18,6 @@ interface UseCreateItemProps {
 export function useCreateItem({ scanVault, openFile }: UseCreateItemProps) {
   const [vaultHandle] = useAtom(atom_vaultHandle);
   const [currentDirectoryHandle] = useAtom(atom_currentDirectoryHandle);
-  const [autoInjectFrontmatter] = useAtom(atom_autoInjectFrontmatter);
-  const setFrontmatterWizardOpen = useSetAtom(atom_frontmatterWizardOpen);
   const dialog = useDialog();
 
   const createFile = useCallback(
@@ -57,9 +52,7 @@ export function useCreateItem({ scanVault, openFile }: UseCreateItemProps) {
         // Write content immediately if provided.
         // If empty, pad with a newline to prevent creating a 0-byte file,
         // which causes Google Drive to hang in an infinite sync loop.
-        let contentToWrite = autoInjectFrontmatter
-          ? injectFrontmatter(content, fileName)
-          : content;
+        let contentToWrite = content;
         if (!contentToWrite) contentToWrite = "\n";
         await withRetry(async () => {
           const writable = await (newFileHandle as any).createWritable();
@@ -94,10 +87,6 @@ export function useCreateItem({ scanVault, openFile }: UseCreateItemProps) {
 
         await openFile(newFileHandle, path, true);
 
-        if (contentToWrite !== content) {
-          setFrontmatterWizardOpen(path);
-        }
-
         toast.success("Created: " + fileName);
         return newFileHandle;
       } catch (err: any) {
@@ -111,7 +100,7 @@ export function useCreateItem({ scanVault, openFile }: UseCreateItemProps) {
         return null;
       }
     },
-    [vaultHandle, currentDirectoryHandle, scanVault, openFile, autoInjectFrontmatter, setFrontmatterWizardOpen],
+    [vaultHandle, currentDirectoryHandle, scanVault, openFile],
   );
 
   const createNewFile = useCallback(async (dirHandle?: FileSystemDirectoryHandle) => {

@@ -1,9 +1,10 @@
 import React, { useEffect, useState, useRef } from "react";
+import { useAtomValue } from "jotai";
 import { HiOutlineLightningBolt, HiOutlinePlus, HiOutlineChatAlt2 } from "react-icons/hi";
 import Portal from "../../components/Portal/Portal";
+import { atom_activeEditorView } from "@/app/atoms/ui-atoms";
 
 interface AISelectionToolbarProps {
-  textareaRef: React.RefObject<HTMLTextAreaElement | null>;
   isAiLoading: boolean;
   onImprove: () => void;
   onExpand: () => void;
@@ -11,21 +12,26 @@ interface AISelectionToolbarProps {
 }
 
 export const AISelectionToolbar: React.FC<AISelectionToolbarProps> = ({
-  textareaRef,
   isAiLoading,
   onImprove,
   onExpand,
   onPrompt,
 }) => {
+  const activeEditorView = useAtomValue(atom_activeEditorView);
+  const viewRef = useRef(activeEditorView);
+  viewRef.current = activeEditorView;
   const [hasSelection, setHasSelection] = useState(false);
   const rafRef = useRef<number | null>(null);
 
   useEffect(() => {
     const checkSelection = () => {
-      const textarea = textareaRef.current;
-      if (!textarea) return;
-      const { selectionStart: s, selectionEnd: e } = textarea;
-      if (s !== e && textarea.value.substring(s, e).trim()) {
+      const view = viewRef.current;
+      if (!view || !view.hasFocus) {
+        setHasSelection(false);
+        return;
+      }
+      const { from, to } = view.state.selection.main;
+      if (from !== to && view.state.sliceDoc(from, to).trim()) {
         setHasSelection(true);
       } else {
         setHasSelection(false);
@@ -58,7 +64,7 @@ export const AISelectionToolbar: React.FC<AISelectionToolbarProps> = ({
       document.removeEventListener("selectionchange", schedule);
       if (rafRef.current) window.cancelAnimationFrame(rafRef.current);
     };
-  }, [textareaRef]);
+  }, []);
 
   if (!hasSelection || isAiLoading) return null;
 

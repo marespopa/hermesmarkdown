@@ -1,6 +1,6 @@
 "use client";
 
-import { useAtom, useSetAtom } from "jotai";
+import { useAtom } from "jotai";
 import { useCallback } from "react";
 import toast from "react-hot-toast";
 import {
@@ -14,10 +14,8 @@ import {
   atom_openFiles,
   atom_saveStatus,
   atom_isCloudVault,
-  atom_autoInjectFrontmatter,
 } from "@/app/atoms/atoms";
-import { atom_frontmatterWizardOpen, atom_autosaveMode } from "@/app/atoms/ui-atoms";
-import { injectFrontmatter } from "@/app/utils/frontmatterInjector";
+import { atom_autosaveMode } from "@/app/atoms/ui-atoms";
 import { atom_fileMetadata } from "@/app/atoms/metadata";
 import { extractTasks } from "@/app/utils/taskExtractor";
 
@@ -32,8 +30,6 @@ export function useSaveFile() {
   const [, setFileConflict] = useAtom(atom_fileConflict);
   const [, setSaveStatus] = useAtom(atom_saveStatus);
   const [isCloudVault, setIsCloudVault] = useAtom(atom_isCloudVault);
-  const [autoInjectFrontmatter] = useAtom(atom_autoInjectFrontmatter);
-  const setFrontmatterWizardOpen = useSetAtom(atom_frontmatterWizardOpen);
   const [autosaveMode, setAutosaveMode] = useAtom(atom_autosaveMode);
   const [, setFileMetadata] = useAtom(atom_fileMetadata);
 
@@ -72,9 +68,7 @@ export function useSaveFile() {
         path: targetPath,
       });
 
-      let toWrite = autoInjectFrontmatter
-        ? injectFrontmatter(content, fileToSave.name)
-        : content;
+      let toWrite = content;
       if (!toWrite) toWrite = "\n";
 
       let writable: FileSystemWritableFileStream | null = null;
@@ -113,8 +107,6 @@ export function useSaveFile() {
           await writable.close();
           writable = null;
         }
-
-        const didInject = toWrite !== content;
 
         // Re-derive this file's tasks/tokens/score synchronously from the
         // content just written to disk, so the Tasks view and token cost
@@ -156,18 +148,10 @@ export function useSaveFile() {
                   ...prev,
                   [targetPath!]: {
                     ...prev[targetPath!],
-                    // Only overwrite editor content when frontmatter was injected;
-                    // otherwise we'd clobber any keystrokes that arrived while the
-                    // async write was in flight, causing a cursor jump.
-                    ...(didInject ? { content: toWrite } : {}),
                     lastSavedContent: toWrite,
                   }
                 };
               });
-              // Open wizard only after the atom has been updated with the injected content
-              if (didInject) {
-                setFrontmatterWizardOpen(targetPath);
-              }
             }
             return true;
           } catch {
@@ -368,8 +352,6 @@ export function useSaveFile() {
       setFileMetadata,
       isCloudVault,
       setIsCloudVault,
-      autoInjectFrontmatter,
-      setFrontmatterWizardOpen,
       autosaveMode,
       setAutosaveMode,
     ],
