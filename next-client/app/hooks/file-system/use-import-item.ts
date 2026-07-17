@@ -39,7 +39,12 @@ export function useImportItem({ openFile }: UseImportItemProps) {
         });
 
         if (handle) {
-          await openFile(handle);
+          // Imported via showOpenFilePicker: the handle is outside the vault
+          // tree, so it has no vault-relative path. Pass the file name
+          // explicitly — otherwise openFile falls back to the handle's
+          // non-standard `.path` property, which on some Android browsers
+          // holds a raw SAF content-URI document ID instead of a real path.
+          await openFile(handle, handle.name);
           return true;
         }
         return false;
