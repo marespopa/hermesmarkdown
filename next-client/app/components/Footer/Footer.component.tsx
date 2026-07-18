@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import ProductHuntBadge from "./components/ProductHuntBadge";
+import ToolsCafeBadge from "./components/ToolsCafeBadge";
 import ClientOnly from "../ClientOnly";
 import packageJson from "@/package.json";
 
@@ -65,6 +66,7 @@ export default function Footer() {
                   <h3 className="text-ui-footnote uppercase tracking-[0.3em] font-bold opacity-50">Social</h3>
                   <div className="flex flex-col gap-4">
                     <ProductHuntBadge />
+                    <ToolsCafeBadge />
                     <Link href="/contact" className="text-ui-subhead font-medium hover:text-sage transition-colors">Contact Us</Link>
                     <a
                       href="https://github.com/marespopa/hermesmarkdown"
