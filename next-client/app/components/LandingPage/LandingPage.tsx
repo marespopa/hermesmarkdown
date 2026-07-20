@@ -10,9 +10,24 @@ import Button from "@/app/components/Button/Button.component";
 import dynamic from "next/dynamic";
 import Toast from "@/app/components/Toast";
 import { FiFileText } from "react-icons/fi";
+import { HiOutlineEye } from "react-icons/hi";
 
 const MarkdownEditor = dynamic(
   () => import("@/app/editor/components/MarkdownEditor"),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="h-[400px] w-full flex items-center justify-center bg-paper-light dark:bg-paper-dark rounded-b-xl border border-t-0 border-black/5 dark:border-white/5">
+        <div className="text-xs uppercase tracking-widest opacity-30 animate-pulse">
+          Initializing Workspace...
+        </div>
+      </div>
+    ),
+  },
+);
+
+const EditablePreview = dynamic(
+  () => import("@/app/editor/components/EditablePreview"),
   {
     ssr: false,
     loading: () => (
@@ -318,6 +333,7 @@ export default function LandingPage() {
   const router = useRouter();
   const realContent = useAtomValue(atom_content);
   const [demoContent, setDemoContent] = useState(DEFAULT_DEMO_CONTENT);
+  const [demoMode, setDemoMode] = useState<"editor" | "preview">("editor");
   const [showLoading, setShowLoading] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
 
@@ -442,11 +458,35 @@ export default function LandingPage() {
                 <div className="flex-1 text-ui-footnote font-mono opacity-30 text-center pr-10 overflow-hidden text-ellipsis whitespace-nowrap">
                   landing_demo.md — hermes_vault
                 </div>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setDemoMode((m) => (m === "preview" ? "editor" : "preview"))
+                  }
+                  aria-label={
+                    demoMode === "preview" ? "Switch to Source" : "Switch to Rendered"
+                  }
+                  aria-pressed={demoMode === "preview"}
+                  title={demoMode === "preview" ? "Source" : "Rendered"}
+                  className={`shrink-0 w-7 h-7 flex items-center justify-center rounded-lg transition-colors ${
+                    demoMode === "preview"
+                      ? "text-sage bg-sage/10"
+                      : "text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300"
+                  }`}
+                >
+                  <HiOutlineEye size={14} />
+                </button>
               </div>
               <div className="h-[400px] md:h-[500px] text-left relative">
-                {isMounted && (
+                {isMounted && demoMode === "editor" && (
                   <MarkdownEditor
                     value={demoContent}
+                    onChange={setDemoContent}
+                  />
+                )}
+                {isMounted && demoMode === "preview" && (
+                  <EditablePreview
+                    content={demoContent}
                     onChange={setDemoContent}
                   />
                 )}

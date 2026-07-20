@@ -1,7 +1,7 @@
 import "./globals.scss";
 import MainPage from "./components/MainPage";
 import { Metadata, Viewport } from "next";
-import { inter, ibmPlexMono, spaceMono, ibmPlexSans, literata } from "./fonts";
+import { inter, ibmPlexMono, spaceMono, ibmPlexSans, literata, jetbrainsMono, firaCode, workSans, sourceSerif4 } from "./fonts";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://hermesmarkdown.com"),
@@ -85,7 +85,7 @@ export default function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className={`h-full overscroll-none ${inter.variable} ${ibmPlexMono.variable} ${spaceMono.variable} ${ibmPlexSans.variable} ${literata.variable}`}
+      className={`h-full overscroll-none ${inter.variable} ${ibmPlexMono.variable} ${spaceMono.variable} ${ibmPlexSans.variable} ${literata.variable} ${jetbrainsMono.variable} ${firaCode.variable} ${workSans.variable} ${sourceSerif4.variable}`}
     >
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />

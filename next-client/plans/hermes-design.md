@@ -103,8 +103,13 @@ Everywhere else is neutral.
 
 ## Typography
 
-- **Editor**: User-selected monospace. Default `JetBrains Mono`. User-configurable. Do not change font logic.
+Both writing surfaces are editable — this app has no true read-only preview, so the font split below is about *representation*, not read/write capability. **Source** is where you see raw markdown syntax (`#`, `*`, `[[wikilink]]`); **Rendered** is where you see the formatted document. They're different jobs — Source is scanned line-by-line while typing, Rendered is read like a finished page — so they get different fonts, sizes, and measure.
+
+- **Source**: User-selected monospace. Default `JetBrains Mono` in this doc's original language / `IBM Plex Mono` in the actual `FONTS` list (`app/editor/settings/font-options.ts`). User-configurable. Do not change font logic. Monospace keeps markdown syntax characters honestly aligned, which matters since raw syntax stays visible here.
+- **Rendered**: Its own atoms (`atom_renderedFontFamily`, `atom_renderedFontSize` in `app/atoms/ui-atoms.ts`), separate from Source's. Defaults to `Literata` (serif) at `18px` — one size step up from Source's `17px` default, reinforcing "finished document" over "draft." User-configurable via a second font picker in Settings > Editor > Rendered View Typography, mirroring the Source picker, reusing the same `FONTS` list. Line height and letter spacing stay shared with Source (not split) — only family and size diverge.
 - **UI chrome**: `Inter`, small size, regular weight. Hierarchy through size and color only — no bold labels in chrome.
+
+Resolved: the Source→Rendered font switch is subtle, not deliberately jarring (no separate transition/animation on view switch), and the Rendered font is user-configurable, not a fixed default.
 
 ---
 

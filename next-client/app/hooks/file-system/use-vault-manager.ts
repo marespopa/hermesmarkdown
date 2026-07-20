@@ -27,7 +27,7 @@ import {
   queryPermission,
 } from "@/app/services/idb";
 import { metadataWorker, withPickerLock, isVaultSupported, isIdbSupported } from "./shared";
-import { atom_showHiddenFiles } from "@/app/atoms/ui-atoms";
+import { atom_showHiddenFiles, atom_defaultPaneMode } from "@/app/atoms/ui-atoms";
 
 export function useVaultManager() {
   const [vaultHandle, setVaultHandle] = useAtom(atom_vaultHandle);
@@ -43,6 +43,7 @@ export function useVaultManager() {
   const [, setIsCloudVault] = useAtom(atom_isCloudVault);
   const [, setFileSystemVersion] = useAtom(atom_fileSystemVersion);
   const [showHiddenFiles] = useAtom(atom_showHiddenFiles);
+  const [defaultPaneMode] = useAtom(atom_defaultPaneMode);
   const rebindHandles = useSetAtom(atom_rebindHandles);
   const setIndexerState = useSetAtom(atom_indexerState);
   const pendingHandlesRef = useRef<Map<string, FileSystemFileHandle>>(new Map());
@@ -273,7 +274,7 @@ export function useVaultManager() {
     setWorkspaceLayout({
       rootContainer: {
         id: "default-pane",
-        type: "editor",
+        type: defaultPaneMode,
         openFilePaths: [],
         activeFilePath: null as any,
         isPinned: false,
@@ -289,7 +290,7 @@ export function useVaultManager() {
     await rebindHandles(handle);
 
     toast.success(isNewVault ? `Vault created: ${handle.name}` : `Vault opened: ${handle.name}`);
-  }, [setVaultHandle, setCurrentDirectoryHandle, setIsVaultPending, setFileMetadata, setOpenFiles, setWorkspaceLayout, scanVault, indexVaultTags, rebindHandles, detectCloudVault]);
+  }, [setVaultHandle, setCurrentDirectoryHandle, setIsVaultPending, setFileMetadata, setOpenFiles, setWorkspaceLayout, scanVault, indexVaultTags, rebindHandles, detectCloudVault, defaultPaneMode]);
 
   const openVault = useCallback(async () => {
     if (!isVaultSupported) {
@@ -415,7 +416,7 @@ export function useVaultManager() {
     setWorkspaceLayout({
       rootContainer: {
         id: "default-pane",
-        type: "editor",
+        type: defaultPaneMode,
         openFilePaths: ["draft"],
         activeFilePath: "draft",
         isPinned: false
@@ -424,7 +425,7 @@ export function useVaultManager() {
 
     clearVaultHandle();
     toast.success("Vault closed");
-  }, [setVaultHandle, setCurrentDirectoryHandle, setVaultFiles, setFileMetadata, setActiveFileHandle, setActiveFilePath, setIsVaultPending, setOpenFiles, setWorkspaceLayout, setIsCloudVault]);
+  }, [setVaultHandle, setCurrentDirectoryHandle, setVaultFiles, setFileMetadata, setActiveFileHandle, setActiveFilePath, setIsVaultPending, setOpenFiles, setWorkspaceLayout, setIsCloudVault, defaultPaneMode]);
 
   // Worker Message Listener
   useEffect(() => {

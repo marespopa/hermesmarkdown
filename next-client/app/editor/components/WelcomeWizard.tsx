@@ -8,6 +8,7 @@ import {
   atom_welcomeWizardStep,
   atom_autosaveMode,
   atom_frontmatterDefaultMode,
+  atom_defaultPaneMode,
   atom_fontSize,
   atom_fontFamily,
   atom_lineHeight,
@@ -26,6 +27,7 @@ import { testAIConnection } from "@/app/services/ai";
 import { showSuccessToast, showErrorToast } from "@/app/components/Toastr";
 import { SelectControl, SegmentedControl } from "@/app/editor/settings/components/SettingControls";
 import { FONT_SIZES, LINE_HEIGHTS, LETTER_SPACINGS, FONTS } from "@/app/editor/settings/font-options";
+import FontPicker from "@/app/editor/settings/components/FontPicker";
 import { useFileSystem } from "@/app/hooks/use-file-system";
 import { formatShortcut } from "@/app/utils/platform";
 import useIsMobileChrome from "@/app/hooks/use-mobile-chrome";
@@ -43,11 +45,12 @@ import {
   HiCheck,
   HiOutlineFolderAdd,
   HiOutlineLightningBolt,
+  HiOutlineEye,
 } from "react-icons/hi";
 import { useCreateVault } from "@/app/hooks/file-system/use-create-vault";
 import CreateVaultSubSteps from "./CreateVaultSubSteps";
 
-const TOTAL_STEPS = 8;
+const TOTAL_STEPS = 9;
 
 const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
   const [hasCompleted, setHasCompleted] = useAtom(atom_hasCompletedOnboarding);
@@ -61,6 +64,7 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
   const vaultHandle = useAtomValue(atom_vaultHandle);
   const [autosaveMode, setAutosaveMode] = useAtom(atom_autosaveMode);
   const [frontmatterDefaultMode, setFrontmatterDefaultMode] = useAtom(atom_frontmatterDefaultMode);
+  const [defaultPaneMode, setDefaultPaneMode] = useAtom(atom_defaultPaneMode);
   const [fontSize, setFontSize] = useAtom(atom_fontSize);
   const [fontFamily, setFontFamily] = useAtom(atom_fontFamily);
   const [lineHeight, setLineHeight] = useAtom(atom_lineHeight);
@@ -192,7 +196,7 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
             <div className="space-y-2">
               <h2 className="text-ui-title-3 font-bold">Text Size</h2>
               <p className="text-ui-footnote opacity-60 px-4">
-                How large should your words be? You can change this later in Settings.
+                How large should your words be in Source view? You can change this later in Settings.
               </p>
             </div>
 
@@ -262,34 +266,14 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
             <div className="space-y-2">
               <h2 className="text-ui-title-3 font-bold">Typeface</h2>
               <p className="text-ui-footnote opacity-60 px-4">
-                Choose the font used in the editor.
+                Choose the font used in Source view, where you write raw markdown. Rendered view (the WYSIWYG preview) has its own font, set separately in Settings.
               </p>
             </div>
 
             <div className="w-full text-left">
               <label className="text-[11px] font-bold uppercase tracking-wider ml-1 opacity-70 block mb-2">Font</label>
-              <div className="rounded-2xl border border-edge px-4 bg-paper-softgray/40 dark:bg-paper-dark/30 max-h-[40vh] overflow-y-auto">
-                {FONTS.map((f) => {
-                  const isActive = fontFamily === f.value;
-                  return (
-                    <button
-                      key={f.label}
-                      type="button"
-                      onClick={() => setFontFamily(f.value)}
-                      className="w-full flex items-center justify-between gap-4 py-2.5 border-b border-neutral-100 dark:border-neutral-800/40 last:border-0 focus:outline-none active:scale-[0.99] transition-transform"
-                    >
-                      <div className="flex flex-col items-start gap-1 min-w-0">
-                        <span className={`text-ui-footnote font-medium leading-none ${isActive ? "text-sage dark:text-sage" : "text-ink-light dark:text-ink-dark"}`}>
-                          {f.label}
-                        </span>
-                        <span style={{ fontFamily: f.value }} className="text-[11px] text-neutral-400 dark:text-neutral-500 truncate">
-                          The quick brown fox 0123
-                        </span>
-                      </div>
-                      {isActive && <HiCheck size={15} className="shrink-0 text-sage dark:text-sage" />}
-                    </button>
-                  );
-                })}
+              <div className="max-h-[40vh] overflow-y-auto">
+                <FontPicker fonts={FONTS} value={fontFamily} onChange={setFontFamily} />
               </div>
             </div>
 
@@ -375,7 +359,53 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
           </div>
         );
 
-      case 7: {
+      case 7:
+        return (
+          <div className="flex flex-col items-center text-center space-y-6 py-4">
+            <div className="w-16 h-16 bg-sage/10 rounded-2xl flex items-center justify-center text-sage">
+              <HiOutlineEye size={32} />
+            </div>
+            <div className="space-y-2">
+              <h2 className="text-ui-title-3 font-bold">Default View</h2>
+              <p className="text-ui-footnote opacity-60 px-4">
+                Should new files open in Source (raw markdown) or Rendered (WYSIWYG)? You can toggle per-file anytime.
+              </p>
+            </div>
+
+            <div className="w-full rounded-2xl border border-edge p-4 space-y-4 bg-paper-softgray/40 dark:bg-paper-dark/30 text-left">
+              <div className="space-y-3">
+                {(["editor", "preview"] as const).map((opt) => (
+                  <button
+                    key={opt}
+                    type="button"
+                    onClick={() => setDefaultPaneMode(opt)}
+                    className={`w-full flex items-center justify-between px-4 py-3 rounded-xl border transition-all ${
+                      defaultPaneMode === opt
+                        ? "border-sage bg-sage/5 dark:bg-sage/10"
+                        : "border-edge bg-paper-light dark:bg-paper-dark hover:border-sage/40"
+                    }`}
+                  >
+                    <div className="text-left">
+                      <div className={`text-ui-footnote font-semibold ${defaultPaneMode === opt ? "text-sage" : ""}`}>
+                        {opt === "editor" ? "Source" : "Rendered"}
+                      </div>
+                      <div className="text-[11px] opacity-50 mt-0.5">
+                        {opt === "editor" ? "Raw markdown text" : "WYSIWYG rendered view"}
+                      </div>
+                    </div>
+                    {defaultPaneMode === opt && <HiCheck size={15} className="shrink-0 text-sage" />}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <Button variant="primary" onClick={() => setStep(8)} className="w-full h-12 rounded-2xl text-ui-footnote font-bold">
+              Continue
+            </Button>
+          </div>
+        );
+
+      case 8: {
         const key = aiProvider === "gemini" ? geminiKey : claudeKey;
         const setKey = aiProvider === "gemini" ? setGeminiKey : setClaudeKey;
         return (
@@ -426,14 +456,14 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
               </Button>
             </div>
 
-            <Button variant="primary" onClick={() => setStep(8)} className="w-full h-11 rounded-2xl text-ui-footnote font-bold shrink-0">
+            <Button variant="primary" onClick={() => setStep(9)} className="w-full h-11 rounded-2xl text-ui-footnote font-bold shrink-0">
               Continue
             </Button>
           </div>
         );
       }
 
-      case 8:
+      case 9:
         return (
           <div className="flex flex-col items-center text-center space-y-6 py-4">
             <div className="w-16 h-16 bg-sage rounded-2xl flex items-center justify-center text-white">

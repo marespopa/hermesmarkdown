@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { PanelLeaf } from "@/app/types/workspace";
 import MarkdownEditor from "./MarkdownEditor";
-import Preview from "./Preview";
+import EditablePreview from "./EditablePreview";
 import TabContextMenu, { TabContextMenuItem } from "./TabContextMenu";
 import { useAtom } from "jotai";
 import {
@@ -401,11 +401,11 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
               </>
             )}
             {leaf.activeFilePath && (
-              <Tooltip label={leaf.type === "preview" ? "Edit" : "Preview"}>
+              <Tooltip label={leaf.type === "preview" ? "Source" : "Rendered"}>
                 <Button
                   variant="icon"
                   onClick={() => setPaneType({ id: leaf.id, type: leaf.type === "preview" ? "editor" : "preview" })}
-                  aria-label={leaf.type === "preview" ? "Switch to editor" : "Switch to preview"}
+                  aria-label={leaf.type === "preview" ? "Switch to Source" : "Switch to Rendered"}
                   aria-pressed={leaf.type === "preview"}
                   className={`w-9 h-9 flex items-center justify-center transition-all rounded-xl ${
                     leaf.type === "preview" ? "text-sage" : "text-ink-muted hover:text-ink-light dark:hover:text-ink-dark"
@@ -515,7 +515,7 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
             isSplit={!isOnlyPane}
           />
         ) : leaf.type === "preview" ? (
-          <Preview content={content} />
+          <EditablePreview key={leaf.activeFilePath || "draft"} content={content} onChange={setContent} onWikiLinkClick={openFileByName} />
         ) : (
           <div className="flex flex-col items-center justify-center h-full opacity-20 space-y-2">
             {getIcon(leaf.type)}

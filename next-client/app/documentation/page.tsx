@@ -280,14 +280,19 @@ const GROUPS: Group[] = [
       {
         id: "writing",
         title: "Writing",
-        lead: "One view, not two — the editor highlights Markdown inline over the raw text instead of switching between source and preview.",
-        keywords: "preview rendering inline width narrow standard",
+        lead: "Two views of the same file — Source shows raw Markdown, Rendered shows the formatted document. Both are editable; toggle between them anytime.",
+        keywords: "preview rendering source render inline width narrow standard",
         body: (
           <>
             <p>
-              What you see is the file's actual content — headings, bold, links, and lifecycle tags are
-              rendered inline over the text you're typing, not in a separate pane. There's nothing to
-              toggle between.
+              Source highlights Markdown inline over the raw text as you type — headings, bold, links,
+              and lifecycle tags render in place, without hiding the underlying syntax. Rendered shows
+              the same file as a formatted, WYSIWYG document instead. Both surfaces write to the same
+              file; switching between them never loses changes.
+            </p>
+            <p>
+              Toggle a pane between Source and Rendered with the eye icon in its tab bar, or set which
+              one new files open in by default from Settings → Editor → Default View.
             </p>
             <p>
               Two column widths are available from Settings → Editor: Standard and Narrow. Below the

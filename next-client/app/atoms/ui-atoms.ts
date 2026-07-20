@@ -21,6 +21,19 @@ export const atom_letterSpacing = atomWithStorage<string>(
   "editorLetterSpacing",
   "normal",
 );
+// Rendered surface (EditablePreview) fonts — deliberately separate from the
+// Source atoms above. Source is scanned character-by-character while typing
+// raw markdown, Rendered reads like a finished document, so they default to
+// different families/sizes. See plans/hermes-design.md > Typography.
+export const RENDERED_FONT_STACK = "var(--font-literata), Georgia, ui-serif, serif";
+export const atom_renderedFontFamily = atomWithStorage<string>(
+  "renderedFontFamily",
+  RENDERED_FONT_STACK,
+);
+export const atom_renderedFontSize = atomWithStorage<string>(
+  "renderedFontSize",
+  "18px",
+);
 export const atom_isEditorFocused = atom<boolean>(false);
 export const atom_cursorPosition = atom<{ line: number; col: number }>({
   line: 1,
@@ -63,6 +76,14 @@ export const atom_welcomeWizardStep = atomWithStorage<number>(
 export const atom_frontmatterDefaultMode = atomWithStorage<"fields" | "raw">(
   "frontmatterDefaultMode",
   "fields",
+);
+
+// Which pane type a fresh single-pane workspace starts in — set on vault
+// open/create/clear (use-vault-manager.ts), not on every file switch
+// within an already-open pane (those keep whatever mode that pane is in).
+export const atom_defaultPaneMode = atomWithStorage<"editor" | "preview">(
+  "defaultPaneMode",
+  "editor",
 );
 export const atom_frontmatterHasPrompted = atomWithStorage<boolean>(
   "frontmatterHasPrompted",

@@ -1,3 +1,10 @@
+/* Milkdown/ProseMirror requires this to be set explicitly on its content
+   editable root, else it warns and falls back to the browser default
+   (which collapses runs of whitespace instead of preserving them). */
+.ProseMirror {
+  white-space: pre-wrap;
+}
+
 /* Form fields draw their own focus ring (Tailwind `focus:ring-sage`) — the
    global clay outline stacked on top of it produced a visible double
    border. The editor's own textarea is unaffected and keeps the clay outline. */

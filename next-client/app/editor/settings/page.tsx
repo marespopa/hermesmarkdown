@@ -15,12 +15,13 @@ import {
   atom_autosaveDelay,
   atom_editorWidth,
   atom_frontmatterDefaultMode,
+  atom_defaultPaneMode,
   atom_aiProvider,
   atom_selectedAiModel,
   atom_claudeKey,
   atom_geminiKey,
 } from "@/app/atoms/atoms";
-import { atom_availableGeminiModels, atom_availableClaudeModels, atom_showHiddenFiles, atom_tabsBarVisibleByDefault } from "@/app/atoms/ui-atoms";
+import { atom_availableGeminiModels, atom_availableClaudeModels, atom_showHiddenFiles, atom_tabsBarVisibleByDefault, atom_renderedFontFamily, atom_renderedFontSize } from "@/app/atoms/ui-atoms";
 import { useFileSystem } from "@/app/hooks/use-file-system";
 import { testAIConnection, fetchGeminiModels, fetchClaudeModels } from "@/app/services/ai";
 import {
@@ -28,7 +29,6 @@ import {
   HiOutlinePencilAlt,
   HiOutlineAcademicCap,
   HiOutlineLightningBolt,
-  HiCheck,
   HiOutlineRefresh,
 } from "react-icons/hi";
 import Button from "@/app/components/Button";
@@ -42,6 +42,7 @@ import {
   SettingGroup,
 } from "./components/SettingControls";
 import { FONT_SIZES, LINE_HEIGHTS, LETTER_SPACINGS, FONTS } from "./font-options";
+import FontPicker from "./components/FontPicker";
 
 const SettingsPage = () => {
   const router = useRouter();
@@ -56,8 +57,11 @@ const SettingsPage = () => {
   const [autosaveDelay, setAutosaveDelay] = useAtom(atom_autosaveDelay);
   const [editorWidth, setEditorWidth] = useAtom(atom_editorWidth);
   const [frontmatterDefaultMode, setFrontmatterDefaultMode] = useAtom(atom_frontmatterDefaultMode);
+  const [defaultPaneMode, setDefaultPaneMode] = useAtom(atom_defaultPaneMode);
   const [showHiddenFiles, setShowHiddenFiles] = useAtom(atom_showHiddenFiles);
   const [tabsBarVisibleByDefault, setTabsBarVisibleByDefault] = useAtom(atom_tabsBarVisibleByDefault);
+  const [renderedFontFamily, setRenderedFontFamily] = useAtom(atom_renderedFontFamily);
+  const [renderedFontSize, setRenderedFontSize] = useAtom(atom_renderedFontSize);
   const { scanVault, indexVaultTags, vaultHandle: fsVaultHandle } = useFileSystem();
 
   const handleShowHiddenFilesChange = (next: boolean) => {
@@ -224,33 +228,25 @@ const SettingsPage = () => {
             />
             <SettingItem
               label="Font"
-              description="Used in the editor's writing pane."
+              description="Used in the editor's writing pane (Source view)."
+              layout="stack"
+              control={<FontPicker fonts={FONTS} value={fontFamily} onChange={setFontFamily} />}
+            />
+          </SettingGroup>
+          <SettingGroup title="Rendered View Typography">
+            <SettingItem
+              label="Text Size"
+              description="Used in the WYSIWYG preview pane (Rendered view)."
               layout="stack"
               control={
-                <div className="rounded-xl border border-neutral-100 dark:border-neutral-800/40 px-3 -mx-1">
-                  {FONTS.map((f) => {
-                    const isActive = fontFamily === f.value;
-                    return (
-                      <button
-                        key={f.label}
-                        type="button"
-                        onClick={() => setFontFamily(f.value)}
-                        className="w-full flex items-center justify-between gap-4 py-3 border-b border-neutral-100 dark:border-neutral-800/40 last:border-0 focus:outline-none"
-                      >
-                        <div className="flex flex-col items-start gap-1 min-w-0">
-                          <span className={`text-ui-subhead font-medium leading-none ${isActive ? "text-sage dark:text-sage" : "text-ink-light dark:text-ink-dark"}`}>
-                            {f.label}
-                          </span>
-                          <span style={{ fontFamily: f.value }} className="text-ui-footnote text-neutral-400 dark:text-neutral-500">
-                            The quick brown fox 0123
-                          </span>
-                        </div>
-                        {isActive && <HiCheck size={15} className="shrink-0 text-sage dark:text-sage" />}
-                      </button>
-                    );
-                  })}
-                </div>
+                <SegmentedControl options={FONT_SIZES} value={renderedFontSize} onChange={setRenderedFontSize} />
               }
+            />
+            <SettingItem
+              label="Font"
+              description="Rendered view reads like a finished document, so it defaults to a serif distinct from the Source font above."
+              layout="stack"
+              control={<FontPicker fonts={FONTS} value={renderedFontFamily} onChange={setRenderedFontFamily} />}
             />
           </SettingGroup>
           <SettingGroup title="Autosave">
@@ -294,6 +290,23 @@ const SettingsPage = () => {
                   ]}
                   value={frontmatterDefaultMode}
                   onChange={setFrontmatterDefaultMode}
+                />
+              }
+            />
+          </SettingGroup>
+
+          <SettingGroup title="Default View">
+            <SettingItem
+              label="New Files Open In"
+              description="Whether a fresh single-pane workspace (new vault, cleared vault) starts in Source (raw markdown) or Rendered (WYSIWYG). Doesn't affect panes that are already open."
+              control={
+                <SegmentedControl
+                  options={[
+                    { label: "Source", value: "editor" },
+                    { label: "Rendered", value: "preview" },
+                  ]}
+                  value={defaultPaneMode}
+                  onChange={setDefaultPaneMode}
                 />
               }
             />

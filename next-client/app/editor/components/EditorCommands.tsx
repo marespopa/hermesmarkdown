@@ -184,8 +184,8 @@ export default function EditorCommands({
     activeLeaf && activeLeaf.activeFilePath
       ? {
           id: "toggle-pane-preview",
-          label: activeLeaf.type === "preview" ? "Switch pane to editor" : "Switch pane to preview",
-          keywords: "preview edit pane view",
+          label: activeLeaf.type === "preview" ? "Switch pane to Source" : "Switch pane to Rendered",
+          keywords: "preview edit source rendered pane view",
           action: () =>
             setPaneType({ id: activeLeaf.id, type: activeLeaf.type === "preview" ? "editor" : "preview" }),
         }

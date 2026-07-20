@@ -4,21 +4,13 @@ import React, { useEffect, useId, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { useAtomValue } from "jotai";
-import { HiOutlineInformationCircle, HiOutlineExclamation, HiOutlineExclamationCircle, HiOutlineLightBulb, HiOutlineCheckCircle } from "react-icons/hi";
 import { atom_theme } from "@/app/atoms/ui-atoms";
 import { FM_REGEX } from "@/app/utils/frontmatter-utils";
+import { CALLOUT_META, resolveCalloutType } from "../constants/callouts";
 
 interface PreviewProps {
   content: string;
 }
-
-const CALLOUT_META: Record<string, { Icon: React.ComponentType<{ size?: number }>; className: string }> = {
-  note: { Icon: HiOutlineInformationCircle, className: "border-sky-500/30 bg-sky-500/5 text-sky-600 dark:text-sky-400" },
-  tip: { Icon: HiOutlineLightBulb, className: "border-emerald-500/30 bg-emerald-500/5 text-emerald-600 dark:text-emerald-400" },
-  warning: { Icon: HiOutlineExclamation, className: "border-amber-500/30 bg-amber-500/5 text-amber-600 dark:text-amber-400" },
-  danger: { Icon: HiOutlineExclamationCircle, className: "border-red-500/30 bg-red-500/5 text-red-600 dark:text-red-400" },
-  success: { Icon: HiOutlineCheckCircle, className: "border-emerald-500/30 bg-emerald-500/5 text-emerald-600 dark:text-emerald-400" },
-};
 
 const REGEX_CALLOUT_TITLE = /^(>\s*)+\[!(\w+)\]([+-]?)\s*(.*)$/i;
 const REGEX_QUOTE_DEPTH = /^(>\s*)+/;
@@ -43,7 +35,7 @@ function preprocessCallouts(markdown: string): string {
       i++;
       continue;
     }
-    const type = m[2].toLowerCase();
+    const type = resolveCalloutType(m[2]);
     const title = m[4] || m[2];
     const bodyLines: string[] = [];
     i++;
@@ -125,7 +117,7 @@ function MermaidDiagram({ code }: { code: string }) {
 function Callout({ type, title, body }: { type: string; title: string; body: string }) {
   const meta = CALLOUT_META[type] ?? CALLOUT_META.note;
   return (
-    <div className={`my-4 rounded-lg border px-4 py-3 not-prose ${meta.className}`}>
+    <div className={`my-4 rounded-lg border px-4 py-3 not-prose ${meta.border} ${meta.bg} ${meta.text}`}>
       <div className="flex items-center gap-2 font-semibold text-ui-body">
         <meta.Icon size={16} />
         {title}

@@ -1,6 +1,7 @@
 import { EditorView, Decoration, DecorationSet, ViewPlugin, ViewUpdate } from "@codemirror/view";
 import { EditorState, Range } from "@codemirror/state";
 import { WORKFLOW_TAGS, TODO_TAGS, TAG_COLORS } from "../components/constants";
+import { CALLOUT_META, CALLOUT_ALIASES } from "../constants/callouts";
 import {
   REGEX_DATE_ISO,
   REGEX_DATE_SLASHED,
@@ -31,28 +32,6 @@ import {
 
 const FADED = "opacity-40 dark:opacity-50 transition-opacity duration-500 hover:opacity-100";
 const TRANSITION = "transition-all duration-100 ease-in-out";
-
-const CALLOUT_STYLES: Record<string, { border: string; bg: string; text: string }> = {
-  note: { border: "border-indigo-500", bg: "bg-indigo-500/5", text: "text-indigo-600 dark:text-indigo-400" },
-  abstract: { border: "border-cyan-500", bg: "bg-cyan-500/5", text: "text-cyan-600 dark:text-cyan-400" },
-  info: { border: "border-blue-400", bg: "bg-blue-400/5", text: "text-blue-500 dark:text-blue-400" },
-  tip: { border: "border-emerald-400", bg: "bg-emerald-400/5", text: "text-emerald-600 dark:text-emerald-400" },
-  success: { border: "border-green-500", bg: "bg-green-500/5", text: "text-green-600 dark:text-green-400" },
-  question: { border: "border-yellow-500", bg: "bg-yellow-500/5", text: "text-yellow-600 dark:text-yellow-400" },
-  warning: { border: "border-amber-500", bg: "bg-amber-500/5", text: "text-amber-600 dark:text-amber-400" },
-  failure: { border: "border-orange-500", bg: "bg-orange-500/5", text: "text-orange-600 dark:text-orange-400" },
-  danger: { border: "border-red-500", bg: "bg-red-500/5", text: "text-red-600 dark:text-red-400" },
-  bug: { border: "border-rose-500", bg: "bg-rose-500/5", text: "text-rose-600 dark:text-rose-400" },
-  example: { border: "border-violet-500", bg: "bg-violet-500/5", text: "text-violet-600 dark:text-violet-400" },
-  quote: { border: "border-stone", bg: "bg-paper-softgray/60 dark:bg-paper-dark-surface/40", text: "text-ink-muted dark:text-stone" },
-};
-
-const CALLOUT_ALIASES: Record<string, string> = {
-  summary: "abstract", tldr: "abstract", hint: "tip", important: "tip",
-  check: "success", done: "success", help: "question", faq: "question",
-  caution: "warning", attention: "warning", fail: "failure", missing: "failure",
-  error: "danger", cite: "quote",
-};
 
 const REGEX_OBSIDIAN_CALLOUT = /^(>\s*)+\[!(\w+)\]([+-]?)\s*(.*)$/i;
 const REGEX_OBSIDIAN_QUOTE_DEPTH = /^(>\s*)+/;
@@ -194,7 +173,7 @@ export function computeMarkdownDecorations(state: EditorState): DecorationSet {
       const requestedType = m[2].toLowerCase();
       const fold = m[3];
       const resolvedType = CALLOUT_ALIASES[requestedType] ?? requestedType;
-      const style = CALLOUT_STYLES[resolvedType] ?? CALLOUT_STYLES.note;
+      const style = CALLOUT_META[resolvedType] ?? CALLOUT_META.note;
 
       calloutType = requestedType;
       calloutDepth = depth;
@@ -218,7 +197,7 @@ export function computeMarkdownDecorations(state: EditorState): DecorationSet {
       (text.match(REGEX_OBSIDIAN_QUOTE_DEPTH)?.[0].match(/>/g) || []).length >= calloutDepth
     ) {
       const resolvedType = CALLOUT_ALIASES[calloutType] ?? calloutType;
-      const style = CALLOUT_STYLES[resolvedType] ?? CALLOUT_STYLES.note;
+      const style = CALLOUT_META[resolvedType] ?? CALLOUT_META.note;
       const bodyDepthMatch = text.match(REGEX_OBSIDIAN_QUOTE_DEPTH);
       const bodyPrefix = bodyDepthMatch ? bodyDepthMatch[0] : "";
       mark(ranges, base, base + bodyPrefix.length, FADED);
