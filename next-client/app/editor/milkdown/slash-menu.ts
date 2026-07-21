@@ -2,14 +2,29 @@ import type { Ctx } from "@milkdown/kit/ctx";
 import type { EditorView } from "@milkdown/kit/prose/view";
 import type { PluginSpec } from "@milkdown/kit/prose/state";
 import { parserCtx } from "@milkdown/kit/core";
+import { $ctx } from "@milkdown/kit/utils";
 import { wrapInList } from "@milkdown/kit/prose/schema-list";
 import { wrapIn, setBlockType } from "@milkdown/kit/prose/commands";
 import { slashFactory, SlashProvider } from "@milkdown/kit/plugin/slash";
 import { TextSelection, NodeSelection } from "@milkdown/kit/prose/state";
-import { headingSchema, bulletListSchema, orderedListSchema, codeBlockSchema, blockquoteSchema } from "@milkdown/kit/preset/commonmark";
+import { headingSchema, bulletListSchema, orderedListSchema, codeBlockSchema, blockquoteSchema, linkSchema } from "@milkdown/kit/preset/commonmark";
 import { SHORTCODES } from "../components/constants";
 import { CALLOUT_META } from "../constants/callouts";
 import { mathBlockSchema } from "./math-schema";
+
+// Bridges this vanilla-DOM slash menu to the React-side link dialog the
+// same way onWikiLinkClickCtx/onTableCalloutUpdateCtx bridge their plugins:
+// the callback receives an `insert` closure that already has ctx/view/range
+// captured, so the React dialog only needs to call it with (label, url)
+// once the user confirms — it doesn't need its own way to reach ProseMirror.
+export const onOpenLinkDialogCtx = $ctx<((insert: (label: string, url: string) => void) => void) | undefined, "onOpenLinkDialog">(
+  undefined,
+  "onOpenLinkDialog",
+);
+
+export function configureOpenLinkDialog(ctx: Ctx, onOpenLinkDialog?: (insert: (label: string, url: string) => void) => void) {
+  ctx.set(onOpenLinkDialogCtx.key, onOpenLinkDialog);
+}
 
 interface SlashRange {
   from: number;
@@ -59,6 +74,7 @@ const ICON = {
   quote: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 8c-2 0-3.5 1.6-3.5 4S5 16 7 16"/><path d="M17 8c-2 0-3.5 1.6-3.5 4S15 16 17 16"/></svg>',
   doc: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 3h9l4 4v14H6z"/><line x1="9" y1="12" x2="16" y2="12"/><line x1="9" y1="16" x2="16" y2="16"/></svg>',
   calendar: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="16" rx="1.5"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="3" x2="8" y2="7"/><line x1="16" y1="3" x2="16" y2="7"/></svg>',
+  link: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.07 0l2.83-2.83a5 5 0 0 0-7.07-7.07l-1.5 1.5"/><path d="M14 11a5 5 0 0 0-7.07 0l-2.83 2.83a5 5 0 0 0 7.07 7.07l1.5-1.5"/></svg>',
 };
 
 function headingIcon(level: 1 | 2 | 3): string {
@@ -198,6 +214,23 @@ function buildCommands(): SlashCommand[] {
           view.dispatch(view.state.tr.setNodeMarkup(pos, undefined, { ...node.attrs, checked: false }));
           break;
         }
+      },
+    },
+    {
+      title: "Link",
+      description: "Insert a hyperlink",
+      category: "Insert",
+      keywords: ["link", "url", "hyperlink"],
+      icon: ICON.link,
+      run: (ctx, view, range) => {
+        const onOpenLinkDialog = ctx.get(onOpenLinkDialogCtx.key);
+        if (!onOpenLinkDialog) return;
+        onOpenLinkDialog((label, url) => {
+          const linkMark = linkSchema.type(ctx).create({ href: url });
+          const text = view.state.schema.text(label || url, [linkMark]);
+          view.dispatch(view.state.tr.replaceWith(range.from, range.to, text));
+          view.focus();
+        });
       },
     },
     {

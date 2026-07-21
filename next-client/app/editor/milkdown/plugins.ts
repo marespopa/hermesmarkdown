@@ -5,7 +5,7 @@ import type { EditorView, NodeView, ViewMutationRecord } from "@milkdown/kit/pro
 import { Decoration, DecorationSet } from "@milkdown/kit/prose/view";
 import { Plugin, PluginKey, TextSelection } from "@milkdown/kit/prose/state";
 import { parserCtx, commandsCtx, schemaCtx, serializerCtx } from "@milkdown/kit/core";
-import { setBlockType } from "@milkdown/kit/prose/commands";
+import { setBlockType, splitBlock } from "@milkdown/kit/prose/commands";
 import { $command, $inputRule, $prose, $useKeymap, $view } from "@milkdown/kit/utils";
 import { extendListItemSchemaForTask } from "@milkdown/kit/preset/gfm";
 import {
@@ -302,6 +302,7 @@ class CalloutBlockquoteView implements NodeView {
   private label: HTMLElement | null = null;
   private chevron: HTMLElement | null = null;
   private currentType: string | null = null;
+  private currentFold: "" | "+" | "-" | null = null;
   private foldable = false;
   private collapsed = false;
 
@@ -374,6 +375,30 @@ class CalloutBlockquoteView implements NodeView {
     if (this.chevron) this.chevron.style.transform = collapsed ? "" : "rotate(90deg)";
   }
 
+  // The chevron used to only flip the local `collapsed` flag — a purely
+  // visual toggle that never touched the saved "+"/"-" in the markdown, so
+  // detectFold() (which re-derives fold state from the text on every
+  // update()) would snap it right back on the next edit or reload, and
+  // there was no way to actually change a callout's fold marker from
+  // Preview mode at all (the marker text itself is hidden by
+  // calloutMarkerDecorations). This rewrites the "+"/"-" character in the
+  // document directly, so the toggle is what gets saved.
+  private toggleFold() {
+    const pos = this.getPos();
+    if (pos == null) return;
+    const first = this.node.firstChild;
+    if (!first) return;
+    const m = first.textContent.match(REGEX_CALLOUT_MARKER);
+    if (!m || (m[2] !== "+" && m[2] !== "-")) return;
+
+    const foldCharOffset = m[0].length - m[2].length;
+    // +1 to enter the blockquote, +1 to enter the first paragraph.
+    const foldCharPos = pos + 2 + foldCharOffset;
+    const newFold = m[2] === "+" ? "-" : "+";
+    const tr = this.view.state.tr.insertText(newFold, foldCharPos, foldCharPos + 1);
+    this.view.dispatch(tr);
+  }
+
   private applyCalloutState(type: string | null, title: string, fold: "" | "+" | "-") {
     const isNewCallout = type !== this.currentType;
     if (isNewCallout) {
@@ -415,7 +440,7 @@ class CalloutBlockquoteView implements NodeView {
           '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>';
         chevron.addEventListener("mousedown", (e) => {
           e.preventDefault();
-          this.setCollapsed(!this.collapsed);
+          this.toggleFold();
         });
         this.label.insertBefore(chevron, this.label.firstChild);
         this.chevron = chevron;
@@ -435,7 +460,14 @@ class CalloutBlockquoteView implements NodeView {
       }
     }
 
-    if (isNewCallout) this.setCollapsed(fold === "-");
+    // Not just `isNewCallout`: toggleFold() rewrites the "+"/"-" character
+    // on the SAME callout (type unchanged), so the visual collapsed state
+    // has to follow the fold marker whenever it changes too, not only when
+    // the callout type itself changes — otherwise the chevron's rotation
+    // and the hidden/shown body would silently disagree with what just got
+    // written to the document.
+    if (isNewCallout || fold !== this.currentFold) this.setCollapsed(fold === "-");
+    this.currentFold = fold;
   }
 
   update(node: ProseNode): boolean {
@@ -513,15 +545,16 @@ const CLEANUP_ON_EMPTY_TYPES = new Set(["blockquote", "bullet_list", "ordered_li
 // this repurposes it as an explicit "get me out" escape hatch: exits the
 // TOP-LEVEL block the cursor is in (found once, at depth 1, so a list
 // nested inside a callout exits the whole callout in one press, not one
-// level at a time) and lands the cursor just after it — moving into
-// whatever already follows if something does, the same as pressing
-// ArrowDown onto the next row, or creating a fresh paragraph only if this
-// is the last block in the document. Plain paragraphs are left alone
-// (their existing Shift-Enter soft-break behavior is unaffected), since
-// there's no "formatting" to exit there. Code blocks and math nodes are
-// naturally excluded too — both intercept all their own key events via
-// NodeView.stopEvent, so this handler never sees Shift-Enter typed inside
-// either.
+// level at a time) and always inserts a fresh empty paragraph right after
+// it, landing the cursor there — even if something already follows, so
+// there's always a clean blank line between the exited block and whatever
+// comes next rather than butting straight up against it. Plain paragraphs
+// are left alone (their existing Shift-Enter soft-break behavior is
+// unaffected), since there's no "formatting" to exit there. Code blocks and
+// math nodes are naturally excluded too — both intercept all their own key
+// events via NodeView.stopEvent, so this handler never sees Shift-Enter
+// typed inside either (code blocks get the equivalent behavior directly
+// from their own CM6 keymap — see code-block-view.ts's exitCodeBlock).
 export const exitBlockOnShiftEnter = $prose(() => {
   return new Plugin({
     key: new PluginKey("EXIT_BLOCK_SHIFT_ENTER"),
@@ -554,8 +587,6 @@ export const exitBlockOnShiftEnter = $prose(() => {
         if (emptyAndSole) {
           tr = tr.replaceWith(outerStart, outerEnd, paragraphType.createChecked());
           cursorAt = outerStart + 1;
-        } else if (outerEnd < state.doc.content.size) {
-          cursorAt = outerEnd;
         } else {
           tr = tr.insert(outerEnd, paragraphType.createChecked());
           cursorAt = outerEnd + 1;
@@ -588,6 +619,46 @@ export const clipboardCopyFix = $prose((ctx) => {
         const doc = schema.topNodeType.createAndFill(undefined, slice.content);
         if (!doc) return "";
         return unescapeKnownMarkdownPatterns(serializer(doc));
+      },
+    },
+  });
+});
+
+// Milkdown registers no keymap for plain Enter at all (nor, elsewhere in
+// this file, does anything but Shift-Enter get one) — everywhere else
+// relies on the browser's own contentEditable "split this paragraph"/
+// "insert newline" DOM behavior, which ProseMirror then reconciles via its
+// mutation observer. That's fine for plain text, but browsers have
+// long-standing quirks splitting an inline <a> element specifically, and
+// the reconciliation can end up rejecting the result — so pressing Enter or
+// Shift-Enter with the cursor inside a link mark visibly did nothing.
+// Narrowly intercepted only when a link mark is actually active (so plain-
+// paragraph Enter everywhere else keeps its native, undo/IME-friendly
+// behavior unchanged), running the split/hardbreak ourselves via an
+// explicit transaction instead of leaning on the browser.
+export const enterInLinkFix = $prose(() => {
+  return new Plugin({
+    key: new PluginKey("ENTER_IN_LINK_FIX"),
+    props: {
+      handleKeyDown(view, event) {
+        if (event.key !== "Enter") return false;
+        const { state } = view;
+        const linkType = state.schema.marks.link;
+        if (!linkType) return false;
+        if (!linkType.isInSet(state.selection.$from.marks())) return false;
+
+        if (event.shiftKey) {
+          const hardbreakType = state.schema.nodes.hardbreak;
+          if (!hardbreakType) return false;
+          let tr = state.tr.replaceSelectionWith(hardbreakType.create(), true);
+          tr = tr.removeStoredMark(linkType);
+          view.dispatch(tr.scrollIntoView());
+        } else {
+          if (!splitBlock(state, view.dispatch)) return false;
+          view.dispatch(view.state.tr.removeStoredMark(linkType));
+        }
+        event.preventDefault();
+        return true;
       },
     },
   });

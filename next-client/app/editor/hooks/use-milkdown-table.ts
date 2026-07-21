@@ -44,9 +44,18 @@ export function useMilkdownTable({ containerRef }: UseMilkdownTableOptions) {
 
     const wrapperRect = containerRef.current?.getBoundingClientRect();
     if (!wrapperRect) return;
-    const caretTop = info.caretTop - wrapperRect.top;
-    const caretLeft = info.caretLeft - wrapperRect.left;
     const scrollTop = containerRef.current?.scrollTop ?? 0;
+    // info.caretTop/Left are viewport coordinates (from view.coordsAtPos);
+    // subtracting the container's viewport rect gives the caret's position
+    // relative to the container's visible top edge, but this callout is
+    // `position: absolute` inside a `position: relative` + `overflow-y-auto`
+    // container — its `top` is measured against the scrollable CONTENT box,
+    // which keeps moving with scroll, not the momentarily-visible viewport
+    // slice. Without adding scrollTop back in, the callout was computed as
+    // if the container were always scrolled to the top, so it landed further
+    // and further from the actual cursor the more the pane was scrolled.
+    const caretTop = info.caretTop - wrapperRect.top + scrollTop;
+    const caretLeft = info.caretLeft - wrapperRect.left;
     setCalloutPos({
       top: Math.max(caretTop - 36, scrollTop + 4),
       left: Math.min(caretLeft, (containerRef.current?.clientWidth ?? 500) - CALLOUT_WIDTH),

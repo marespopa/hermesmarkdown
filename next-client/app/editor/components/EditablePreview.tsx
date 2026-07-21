@@ -14,11 +14,12 @@ import { replaceAll } from "@milkdown/kit/utils";
 import { Milkdown, MilkdownProvider, useEditor } from "@milkdown/react";
 import { FM_REGEX } from "@/app/utils/frontmatter-utils";
 import { unescapeKnownMarkdownPatterns } from "../milkdown/markdown-escape";
-import { shortcodeInputRules, calcInputRule, taskListItemView, calloutBlockquoteView, calloutMarkerDecorations, htmlPassthroughView, exitBlockOnShiftEnter, configureHeadingKeymap, collapseEmptyHeadingKeymap, clipboardCopyFix } from "../milkdown/plugins";
+import { shortcodeInputRules, calcInputRule, taskListItemView, calloutBlockquoteView, calloutMarkerDecorations, htmlPassthroughView, exitBlockOnShiftEnter, enterInLinkFix, configureHeadingKeymap, collapseEmptyHeadingKeymap, clipboardCopyFix } from "../milkdown/plugins";
 import { codeBlockView } from "../milkdown/code-block-view";
 import { remarkMathPlugin, inlineMathSchema, mathBlockSchema, inlineMathInputRule, inlineMathView, mathBlockView } from "../milkdown/math-schema";
-import { slashMenu, configureSlashMenu } from "../milkdown/slash-menu";
+import { slashMenu, configureSlashMenu, onOpenLinkDialogCtx, configureOpenLinkDialog } from "../milkdown/slash-menu";
 import { wikiLinkClickPlugin, configureWikiLinkClick, onWikiLinkClickCtx, linkClickPlugin } from "../milkdown/wikilink-click";
+import { linkPastePlugin } from "../milkdown/link-paste";
 import { userInputTrackerPlugin, configureUserInputTracking, onUserInputCtx } from "../milkdown/user-input-tracker";
 import { lifecycleTagDecorations } from "../milkdown/lifecycle-tags";
 import { dateClickPlugin, onDateClickCtx, configureDateClick } from "../milkdown/date-picker";
@@ -28,12 +29,23 @@ import {
   configureTableCalloutUpdate,
   type MilkdownTableInfo,
 } from "../milkdown/table-callout-plugin";
+import {
+  linkCalloutPlugin,
+  onLinkCalloutUpdateCtx,
+  configureLinkCalloutUpdate,
+  type MilkdownLinkInfo,
+} from "../milkdown/link-callout-plugin";
 import type { EditorView } from "@milkdown/kit/prose/view";
 import { useMilkdownTable } from "../hooks/use-milkdown-table";
+import { useMilkdownLink } from "../hooks/use-milkdown-link";
 import { TableCallout } from "./TableCallout";
+import { LinkPill } from "./LinkPill";
 import FrontmatterPanel from "./FrontmatterPanel";
 import useIsMobile from "@/app/hooks/use-is-mobile";
 import DatePickerCallout from "./DatePickerCallout";
+import Button from "../../components/Button";
+import Input from "../../components/Input";
+import DialogModal from "../../components/DialogModal/DialogModal";
 
 interface EditablePreviewProps {
   content: string;
@@ -41,6 +53,7 @@ interface EditablePreviewProps {
   filePath?: string;
   onWikiLinkClick?: (name: string) => void;
   onTableCalloutUpdate?: (info: MilkdownTableInfo | null, view: EditorView) => void;
+  onLinkCalloutUpdate?: (info: MilkdownLinkInfo | null, view: EditorView) => void;
 }
 
 function stripFrontmatter(content: string): { frontmatter: string; body: string } {
@@ -56,7 +69,7 @@ function stripFrontmatter(content: string): { frontmatter: string; body: string 
 // didn't originate from this instance's own last emission — otherwise
 // every local keystroke would round-trip back in as a "remote" update and
 // fight the caret.
-function EditorHost({ content, onChange, onWikiLinkClick, onTableCalloutUpdate }: EditablePreviewProps) {
+function EditorHost({ content, onChange, onWikiLinkClick, onTableCalloutUpdate, onLinkCalloutUpdate }: EditablePreviewProps) {
   const latestContentRef = useRef(content);
   const lastEmittedBodyRef = useRef<string>(stripFrontmatter(content).body);
   const onChangeRef = useRef(onChange);
@@ -65,12 +78,26 @@ function EditorHost({ content, onChange, onWikiLinkClick, onTableCalloutUpdate }
   onWikiLinkClickRef.current = onWikiLinkClick;
   const onTableCalloutUpdateRef = useRef(onTableCalloutUpdate);
   onTableCalloutUpdateRef.current = onTableCalloutUpdate;
+  const onLinkCalloutUpdateRef = useRef(onLinkCalloutUpdate);
+  onLinkCalloutUpdateRef.current = onLinkCalloutUpdate;
   // Gates markdownUpdated write-back until the user has actually typed —
   // otherwise merely opening a file in preview mode re-serializes it
   // through Milkdown's canonical formatting and silently dirties content
   // nobody touched.
   const hasUserInteractedRef = useRef(false);
   const [datePicker, setDatePicker] = useState<{ date: Date; onSelect: (date: Date) => void } | null>(null);
+  const [linkDialog, setLinkDialog] = useState<{ insert: (label: string, url: string) => void } | null>(null);
+  const [linkLabel, setLinkLabel] = useState("");
+  const [linkUrl, setLinkUrl] = useState("");
+  const linkUrlInputRef = useRef<HTMLInputElement>(null);
+
+  const closeLinkDialog = () => setLinkDialog(null);
+  const confirmLinkDialog = () => {
+    if (!linkDialog) return;
+    if (!linkUrl.trim()) return;
+    linkDialog.insert(linkLabel, linkUrl);
+    setLinkDialog(null);
+  };
 
   const { get } = useEditor((root) => {
     const { body } = stripFrontmatter(content);
@@ -93,14 +120,21 @@ function EditorHost({ content, onChange, onWikiLinkClick, onTableCalloutUpdate }
         configureSlashMenu(ctx);
         configureWikiLinkClick(ctx, (name) => onWikiLinkClickRef.current?.(name));
         configureDateClick(ctx, (payload) => setDatePicker(payload));
+        configureOpenLinkDialog(ctx, (insert) => {
+          setLinkLabel("");
+          setLinkUrl("");
+          setLinkDialog({ insert });
+        });
         configureUserInputTracking(ctx, () => {
           hasUserInteractedRef.current = true;
         });
         configureTableCalloutUpdate(ctx, (info, view) => onTableCalloutUpdateRef.current?.(info, view));
+        configureLinkCalloutUpdate(ctx, (info, view) => onLinkCalloutUpdateRef.current?.(info, view));
       })
       .use(commonmark)
       .use(gfm)
       .use(listener)
+      .use(linkPastePlugin)
       .use(clipboardCopyFix)
       .use(clipboard)
       .use(history)
@@ -110,6 +144,7 @@ function EditorHost({ content, onChange, onWikiLinkClick, onTableCalloutUpdate }
       .use(calloutMarkerDecorations)
       .use(htmlPassthroughView)
       .use(exitBlockOnShiftEnter)
+      .use(enterInLinkFix)
       .use(collapseEmptyHeadingKeymap)
       .use(codeBlockView)
       .use(remarkMathPlugin)
@@ -130,6 +165,9 @@ function EditorHost({ content, onChange, onWikiLinkClick, onTableCalloutUpdate }
       .use(calcInputRule)
       .use(onTableCalloutUpdateCtx)
       .use(tableCalloutPlugin)
+      .use(onLinkCalloutUpdateCtx)
+      .use(linkCalloutPlugin)
+      .use(onOpenLinkDialogCtx)
       .use(slashMenu);
   }, []);
 
@@ -156,6 +194,58 @@ function EditorHost({ content, onChange, onWikiLinkClick, onTableCalloutUpdate }
           onClose={() => setDatePicker(null)}
         />
       )}
+      {linkDialog && (
+        <DialogModal
+          isOpened
+          onClose={closeLinkDialog}
+          styles="!max-w-sm"
+          ariaLabelledBy="preview-link-insert-heading"
+        >
+          <div className="flex flex-col gap-5">
+            <h2 id="preview-link-insert-heading" className="text-ui-body font-semibold text-ink-light dark:text-ink-dark">
+              Add Link
+            </h2>
+
+            <Input
+              name="preview-link-label"
+              label="Text"
+              value={linkLabel}
+              handleChange={(e) => setLinkLabel(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") { e.preventDefault(); linkUrlInputRef.current?.focus(); }
+                if (e.key === "Escape") closeLinkDialog();
+              }}
+              autoFocus
+              placeholder="Link text"
+              className="my-0"
+            />
+
+            <Input
+              ref={linkUrlInputRef}
+              name="preview-link-url"
+              label="URL"
+              type="text"
+              value={linkUrl}
+              handleChange={(e) => setLinkUrl(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") { e.preventDefault(); confirmLinkDialog(); }
+                if (e.key === "Escape") closeLinkDialog();
+              }}
+              placeholder="https://"
+              className="my-0"
+            />
+
+            <div className="flex justify-end gap-2 pt-1">
+              <Button variant="outlined" onClick={closeLinkDialog}>
+                Cancel
+              </Button>
+              <Button variant="primary" onClick={confirmLinkDialog}>
+                Insert
+              </Button>
+            </div>
+          </div>
+        </DialogModal>
+      )}
     </>
   );
 }
@@ -180,6 +270,10 @@ export default function EditablePreview({ content, onChange, filePath, onWikiLin
     onTableCalloutUpdate,
   } = useMilkdownTable({ containerRef });
 
+  const {
+    linkInfo, pillPos, onLinkCalloutUpdate, handleOpenLink, handleSaveLink, handleDismissLink,
+  } = useMilkdownLink({ containerRef });
+
   return (
     <div ref={containerRef} className="relative h-full overflow-y-auto px-6 py-8 md:px-12 md:py-12">
       <div className="max-w-3xl mx-auto mb-4" style={{ fontFamily, fontSize }}>
@@ -202,6 +296,7 @@ export default function EditablePreview({ content, onChange, filePath, onWikiLin
             onChange={onChange}
             onWikiLinkClick={onWikiLinkClick}
             onTableCalloutUpdate={onTableCalloutUpdate}
+            onLinkCalloutUpdate={onLinkCalloutUpdate}
           />
         </MilkdownProvider>
       </div>
@@ -225,6 +320,18 @@ export default function EditablePreview({ content, onChange, filePath, onWikiLin
           onRemoveTable={handleRemoveTable}
           onCopyCSV={handleCopyCSV}
           onEditDialog={() => {}}
+        />
+      )}
+
+      {linkInfo && (
+        <LinkPill
+          url={linkInfo.href}
+          label={linkInfo.label}
+          pos={pillPos}
+          type="url"
+          onOpen={handleOpenLink}
+          onSave={handleSaveLink}
+          onDismiss={handleDismissLink}
         />
       )}
     </div>

@@ -163,7 +163,9 @@ export function TableCallout({
   // Tracking the previous `pos` lets us tell "caret moved, recompute" apart
   // from "we're the ones who just changed position by dragging."
   const [dragOffset, setDragOffset] = useState({ top: 0, left: 0 });
+  const [isDragging, setIsDragging] = useState(false);
   const prevPosRef = useRef(pos);
+  const dragElRef = useRef<HTMLDivElement>(null);
   const draggingRef = useRef<{ startX: number; startY: number; startTop: number; startLeft: number } | null>(null);
 
   useEffect(() => {
@@ -173,9 +175,19 @@ export function TableCallout({
     }
   }, [pos]);
 
+  // Dragging used to call setDragOffset on every single pointermove, which
+  // re-renders this whole toolbar (all its Sections/PillBtns) once per pixel
+  // of mouse movement, AND the container's own `transition-all duration-200`
+  // (meant for the expand/collapse animation) was catching those top/left
+  // changes too — so the pill visibly eased toward the cursor over 200ms
+  // instead of tracking it, reading as laggy/"clunky". Fixed by writing
+  // position directly to the DOM node during the drag (no re-render at all
+  // until pointerup commits the final offset once) and suppressing the
+  // transition class for the duration of the drag.
   const handleDragPointerDown = (e: React.PointerEvent<HTMLButtonElement>) => {
     e.preventDefault();
     e.currentTarget.setPointerCapture(e.pointerId);
+    setIsDragging(true);
     draggingRef.current = {
       startX: e.clientX,
       startY: e.clientY,
@@ -184,14 +196,23 @@ export function TableCallout({
     };
 
     const handleMove = (ev: PointerEvent) => {
-      if (!draggingRef.current) return;
-      setDragOffset({
-        top: draggingRef.current.startTop + (ev.clientY - draggingRef.current.startY),
-        left: draggingRef.current.startLeft + (ev.clientX - draggingRef.current.startX),
-      });
+      const drag = draggingRef.current;
+      if (!drag || !dragElRef.current) return;
+      const top = drag.startTop + (ev.clientY - drag.startY);
+      const left = drag.startLeft + (ev.clientX - drag.startX);
+      dragElRef.current.style.top = `${pos.top + top}px`;
+      dragElRef.current.style.left = `${pos.left + left}px`;
     };
-    const handleUp = () => {
+    const handleUp = (ev: PointerEvent) => {
+      const drag = draggingRef.current;
       draggingRef.current = null;
+      setIsDragging(false);
+      if (drag) {
+        setDragOffset({
+          top: drag.startTop + (ev.clientY - drag.startY),
+          left: drag.startLeft + (ev.clientX - drag.startX),
+        });
+      }
       window.removeEventListener("pointermove", handleMove);
       window.removeEventListener("pointerup", handleUp);
     };
@@ -204,8 +225,9 @@ export function TableCallout({
   if (isMobile) {
     return (
       <div
+        ref={dragElRef}
         style={style}
-        className={`${PILL_CONTAINER_CLASSES} gap-0.5`}
+        className={`${PILL_CONTAINER_CLASSES} gap-0.5 ${isDragging ? "!transition-none" : ""}`}
         onMouseDown={(e) => e.preventDefault()}
       >
         <DragHandle onPointerDown={handleDragPointerDown} />
@@ -233,8 +255,9 @@ export function TableCallout({
 
   return (
     <div
+      ref={dragElRef}
       style={style}
-      className="absolute z-40 flex flex-col gap-0.5 p-1 w-36 bg-paper-light dark:bg-paper-dark border border-edge rounded-md shadow-sm pointer-events-auto select-none transition-all duration-200 ease-in-out"
+      className={`absolute z-40 flex flex-col gap-0.5 p-1 w-36 bg-paper-light dark:bg-paper-dark border border-edge rounded-md shadow-sm pointer-events-auto select-none ${isDragging ? "" : "transition-all duration-200 ease-in-out"}`}
       onMouseDown={(e) => e.preventDefault()}
     >
       {pendingDelete ? (

@@ -38,6 +38,7 @@ class CodeBlockView implements NodeView {
   dom: HTMLElement;
   private node: ProseNode;
   private cm: CMView;
+  private cmHost: HTMLElement;
   private languageCompartment = new Compartment();
   private syncingFromCM = false;
   private destroyed = false;
@@ -46,6 +47,8 @@ class CodeBlockView implements NodeView {
   private diagramId = "";
   private diagramInside = false;
   private themeObserver: MutationObserver | null = null;
+  private mermaidToggle: HTMLElement | null = null;
+  private mermaidToggleButtons: { diagram: HTMLButtonElement; code: HTMLButtonElement } | null = null;
 
   constructor(
     node: ProseNode,
@@ -63,6 +66,7 @@ class CodeBlockView implements NodeView {
     const cmHost = document.createElement("div");
     cmHost.className = "px-3 py-2 font-mono text-ui-footnote";
     wrapper.appendChild(cmHost);
+    this.cmHost = cmHost;
 
     this.cm = new CMView({
       parent: cmHost,
@@ -75,7 +79,11 @@ class CodeBlockView implements NodeView {
           drawSelection(),
           indentOnInput(),
           bracketMatching(),
-          cmKeymap.of([...defaultKeymap, ...historyKeymap]),
+          cmKeymap.of([
+            { key: "Shift-Enter", run: () => this.exitCodeBlock() },
+            ...defaultKeymap,
+            ...historyKeymap,
+          ]),
           this.languageCompartment.of([]),
           CMView.lineWrapping,
           CMView.updateListener.of((update) => {
@@ -91,6 +99,28 @@ class CodeBlockView implements NodeView {
     }
 
     this.loadLanguage(this.currentLanguage);
+  }
+
+  // ProseMirror's own EXIT_BLOCK_SHIFT_ENTER plugin (plugins.ts) never sees
+  // this key: CM6 owns its own contentEditable focus context inside cmHost,
+  // and this NodeView's stopEvent() unconditionally returns true, which
+  // makes ProseMirror's eventBelongsToView() treat every DOM event bubbling
+  // out of this node as not belonging to it — so its handleKeyDown props
+  // are never invoked for keys pressed while CM6 has focus. Bound directly
+  // in CM6's own keymap instead, mirroring that plugin's behavior: always
+  // insert a fresh empty paragraph right after this block and land the
+  // cursor there, even if something already follows it.
+  private exitCodeBlock() {
+    const pos = this.getPos();
+    if (pos == null) return false;
+    const { state } = this.view;
+    const afterPos = pos + this.node.nodeSize;
+    const paragraphType = state.schema.nodes.paragraph;
+    const tr = state.tr.insert(afterPos, paragraphType.createChecked());
+    tr.setSelection(TextSelection.near(tr.doc.resolve(afterPos + 1)));
+    this.view.dispatch(tr.scrollIntoView());
+    this.view.focus();
+    return true;
   }
 
   private syncToProseMirror(text: string) {
@@ -125,23 +155,83 @@ class CodeBlockView implements NodeView {
     }
   }
 
+  // Moves the selection in or out of this node, which is what actually
+  // drives render-vs-edit (see update()'s isSelectionInside check). The
+  // corner tab and the "click diagram to edit" gesture both funnel through
+  // this — there's no separate forced-mode flag to keep in sync.
+  private setMermaidMode(mode: "diagram" | "code") {
+    const pos = this.getPos();
+    if (pos == null) return;
+    const { state } = this.view;
+    const wantInside = mode === "code";
+
+    if (wantInside) {
+      this.view.dispatch(state.tr.setSelection(TextSelection.near(state.doc.resolve(pos + 1))));
+    } else {
+      // Land strictly outside [pos, pos + nodeSize] so a later isSelectionInside
+      // check agrees; at the doc's last node "after" would otherwise sit exactly
+      // on the boundary.
+      const afterPos = pos + this.node.nodeSize + 1;
+      const beforePos = pos - 1;
+      const target = afterPos <= state.doc.content.size ? afterPos : Math.max(beforePos, 0);
+      this.view.dispatch(state.tr.setSelection(TextSelection.near(state.doc.resolve(target))));
+    }
+    this.view.focus();
+
+    // A transaction that only changes the selection doesn't necessarily make
+    // ProseMirror re-invoke NodeView.update (prosemirror-view's updateStateInner
+    // skips docView.update unless the doc/decorations actually changed) — so
+    // relying on update()'s isSelectionInside check alone to flip visibility is
+    // flaky: it only "happens" to work when some other selection-dependent
+    // decoration elsewhere in the doc forces a full redraw. Set it directly
+    // here instead, so the corner tab (and the "click diagram to edit" gesture,
+    // both funnel through this) always takes effect immediately regardless of
+    // whether ProseMirror's own redraw pass runs.
+    if (wantInside !== this.diagramInside) {
+      this.diagramInside = wantInside;
+      this.applyMermaidVisibility();
+      if (!wantInside) this.renderMermaid();
+    }
+  }
+
   // Rendered diagram replaces the CM6 surface when the selection isn't
   // inside this node ("click away to render"); clicking the diagram moves
-  // the selection back in and reveals the raw ```mermaid source.
+  // the selection back in and reveals the raw ```mermaid source. The
+  // always-visible corner tab offers the same two moves explicitly, since
+  // "click the diagram to edit" isn't discoverable on its own.
   private setupMermaid() {
     const diagram = document.createElement("div");
     diagram.contentEditable = "false";
     diagram.className = "mermaid-diagram flex justify-center overflow-x-auto px-3 py-3 cursor-text";
     diagram.addEventListener("mousedown", (e) => {
       e.preventDefault();
-      const pos = this.getPos();
-      if (pos == null) return;
-      const tr = this.view.state.tr.setSelection(TextSelection.near(this.view.state.doc.resolve(pos + 1)));
-      this.view.dispatch(tr);
-      this.view.focus();
+      this.setMermaidMode("code");
     });
     this.dom.insertBefore(diagram, this.dom.firstChild);
     this.diagramEl = diagram;
+
+    this.dom.style.position = "relative";
+    const toggle = document.createElement("div");
+    toggle.contentEditable = "false";
+    toggle.className =
+      "mermaid-toggle absolute top-2 right-2 z-10 flex items-center gap-0.5 p-0.5 bg-paper-light dark:bg-paper-dark border border-edge rounded-md shadow-sm select-none";
+    const makeToggleBtn = (label: string, mode: "diagram" | "code") => {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.textContent = label;
+      btn.className = "px-2 py-0.5 rounded text-ui-micro font-medium transition-colors";
+      btn.addEventListener("mousedown", (e) => {
+        e.preventDefault();
+        this.setMermaidMode(mode);
+      });
+      return btn;
+    };
+    const diagramBtn = makeToggleBtn("Diagram", "diagram");
+    const codeBtn = makeToggleBtn("Code", "code");
+    toggle.append(diagramBtn, codeBtn);
+    this.dom.appendChild(toggle);
+    this.mermaidToggle = toggle;
+    this.mermaidToggleButtons = { diagram: diagramBtn, code: codeBtn };
 
     const pos = this.getPos();
     this.diagramInside = pos != null && isSelectionInside(this.view, pos, this.node.nodeSize);
@@ -158,6 +248,10 @@ class CodeBlockView implements NodeView {
   private teardownMermaid() {
     this.diagramEl?.remove();
     this.diagramEl = null;
+    this.mermaidToggle?.remove();
+    this.mermaidToggle = null;
+    this.mermaidToggleButtons = null;
+    this.cmHost.style.display = "";
     this.themeObserver?.disconnect();
     this.themeObserver = null;
   }
@@ -165,7 +259,19 @@ class CodeBlockView implements NodeView {
   private applyMermaidVisibility() {
     if (!this.diagramEl) return;
     this.diagramEl.style.display = this.diagramInside ? "none" : "";
-    this.cm.dom.style.display = this.diagramInside ? "" : "none";
+    // Hide the whole padded host, not just CM6's own root — otherwise its
+    // px-3/py-2 padding stays laid out as an empty box under the diagram.
+    this.cmHost.style.display = this.diagramInside ? "" : "none";
+
+    if (this.mermaidToggleButtons) {
+      const activeCls = ["bg-paper-softgray", "dark:bg-paper-dark-surface", "text-ink-light", "dark:text-ink-dark"];
+      const inactiveCls = ["text-ink-muted", "dark:text-stone"];
+      const { diagram, code } = this.mermaidToggleButtons;
+      diagram.classList.remove(...activeCls, ...inactiveCls);
+      code.classList.remove(...activeCls, ...inactiveCls);
+      diagram.classList.add(...(this.diagramInside ? inactiveCls : activeCls));
+      code.classList.add(...(this.diagramInside ? activeCls : inactiveCls));
+    }
   }
 
   private renderMermaid() {

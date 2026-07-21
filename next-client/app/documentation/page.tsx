@@ -233,7 +233,7 @@ const GROUPS: Group[] = [
                   { label: "Bold", shortcut: "CTRL+B" },
                   { label: "Italic", shortcut: "CTRL+I" },
                   { label: "Undo", shortcut: "CTRL+Z" },
-                  { label: "Exit a list or callout", shortcut: "SHIFT+ENTER" },
+                  { label: "Exit a block, leaving a blank line", shortcut: "SHIFT+ENTER" },
                   { label: "Expand date picker", shortcut: "ALT+↓" },
                   { label: "Toggle sidebar", shortcut: "CTRL+SHIFT+E" },
                   { label: "AI Chat", shortcut: "CTRL+SHIFT+B" },
@@ -372,9 +372,10 @@ const GROUPS: Group[] = [
             </p>
             <p>
               A ```` ```mermaid ```` fence is a special case: instead of highlighted text, it renders as
-              a live diagram. Click the diagram to reveal the raw Mermaid source underneath and edit it;
-              click away and it re-renders. Invalid syntax shows an inline error instead of a blank
-              diagram.
+              a live diagram, with a small <strong>Diagram / Code</strong> tab in the corner to switch
+              between the rendered view and the raw source — clicking the diagram itself also drops
+              straight into the source, the same as clicking the tab. Invalid syntax shows an inline error
+              instead of a blank diagram.
             </p>
             <Code>{`\`\`\`mermaid
 graph TD
@@ -393,6 +394,30 @@ graph TD
               block on disk, a diagram is still a ```mermaid fence, and a formula is still literal
               <code>$...$</code> text. Nothing HermesMarkdown-specific gets written to the file.
             </Callout>
+          </>
+        ),
+      },
+      {
+        id: "links",
+        title: "Links",
+        lead: "Insert a link from the slash menu, or just paste a URL — both give you a title to type over immediately.",
+        keywords: "link url hyperlink paste title pill edit",
+        body: (
+          <>
+            <p>
+              Type <code>/link</code> in the slash menu (or <code>CTRL+K</code> in Source) to open the Add
+              Link dialog — fill in the link text and the URL, then Insert.
+            </p>
+            <p>
+              Pasting a bare URL on its own does the same thing automatically: it lands as a link with a
+              placeholder label already selected, so typing immediately replaces it with a real title
+              instead of leaving the raw URL as the visible text.
+            </p>
+            <p>
+              Rest the cursor on any link and a small floating pill appears with two actions: the pencil
+              reopens the same dialog to edit its text or URL, and the external-link icon opens it.
+              <code>CTRL+Click</code> the link directly to open it without the pill.
+            </p>
           </>
         ),
       },
