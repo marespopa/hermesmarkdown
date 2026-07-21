@@ -295,45 +295,78 @@ const AIKeyGraphic = () => (
   </div>
 );
 
-// Keeps the landing demo's ship date a couple weeks out from "today" insteadlanding
-// of a fixed string that quietly goes stale.
-function getDemoShipDate(daysFromNow: number): string {
-  const d = new Date();
-  d.setDate(d.getDate() + daysFromNow);
-  return d.toLocaleDateString("en-CA");
-}
-
 const DEFAULT_DEMO_CONTENT = `---
-title: "weekly-review"
-status: active
-tags: [review, pkm]
+title: Welcome to HermesMarkdown
+status: draft
+tags: [demo, getting-started]
 ---
 
-# Weekly Review
+# HermesMarkdown
 
-## Checklist
+Hello — let's meet the markdown editor that keeps your notes plain, local, and readable by both you and your AI agents.
 
-- Process inbox notes  #done
-- Update daily templates  #done
-- Organize orphan notes  #prog
-- Refactor project MOCs  #todo
+This file *is* the demo. Everything below is a real note, in a real vault, doing what it looks like it's doing.
 
-## AI Subscriptions
+## It's just a file
 
-| Service    | Cost/mo |
-| :--------- | ------: |
-| Claude Pro | $20     |
-| ChatGPT    | $20     |
-| Midjourney | $10     |
-| Total      | $50     |
+No account, no database, no upload step. This note is a real file in a real vault — open it in any other editor, sync it with Dropbox, or move it to another machine. HermesMarkdown never restructures your folders or writes files of its own into them.
 
-Next review: ${getDemoShipDate(7)}`;
+> [!tip] Try it
+> Click anywhere in this paragraph. You're editing the rendered document directly — no separate source view to hop into.
+
+## Write the way you already do
+
+**Bold**, *italic*, ~~strikethrough~~, \`inline code\` — all standard Markdown, all rendered as you type.
+
+- Bulleted lists
+- Nest them with Tab
+  - Like this
+
+1. Numbered lists work too
+2. And renumber themselves automatically
+
+- [ ] Uncompleted task — click the box
+- [x] Completed task
+- [ ] Task in progress #prog
+
+Every checkbox here is live. Toggle one and it writes straight back to this file — no separate save step, no separate view.
+
+## Tables that stay plain text
+
+Click into a table for a floating toolbar — sort a column, copy as CSV, delete a row. What gets written back is clean, auto-padded Markdown.
+
+| Feature | Category | Released | Rating |
+|---|---|---|---|
+| Voice input | Editing | 2025 | 4 |
+| Diff review | AI | 2026 | 5 |
+| Command palette | Navigation | 2024 | 5 |
+| Callout blocks | Editing | 2025 | 4 |
+| Task pane | Editing | 2024 | 3 |
+| Slash menu | AI | 2025 | 5 |
+
+Click any header — Feature, Category, Released, or Rating — to sort by that column. Click again to reverse the order.
+
+## Callouts for anything that needs to stand out
+
+> [!warning] Nothing leaves your machine
+> AI features are hidden until you connect your own Anthropic or Google Gemini key. Without one, no note content is ever sent anywhere.
+
+> [!info]- This one starts collapsed
+> Click the title to expand it. Foldable callouts are handy for long asides you don't want cluttering the page by default.
+
+## AI, only when you ask
+
+AI is a chat box, connected to your own Anthropic or Google Gemini key — nothing more elaborate than that, and nothing runs until you've connected one.
+
+---
+
+That's HermesMarkdown: a plain-text writing surface, local-first by default, with AI as an optional layer you turn on — never the other way around.`;
 
 export default function LandingPage() {
   const router = useRouter();
   const realContent = useAtomValue(atom_content);
   const [demoContent, setDemoContent] = useState(DEFAULT_DEMO_CONTENT);
-  const [demoMode, setDemoMode] = useState<"editor" | "preview">("editor");
+  const [demoMode, setDemoMode] = useState<"editor" | "preview">("preview");
   const [showLoading, setShowLoading] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
 
@@ -543,6 +576,11 @@ export default function LandingPage() {
               ask for one. The sidebar opens on hover or from the command
               palette; open files side by side, drag tabs between panes.
             </p>
+            <p className="text-neutral-600 dark:text-neutral-400 leading-relaxed">
+              Type and watch it render: headings, code blocks with real
+              syntax highlighting, diagrams, and math formulas all format
+              live, in place — no separate preview pane to check.
+            </p>
           </div>
         </section>
 
@@ -554,24 +592,35 @@ export default function LandingPage() {
               Syntax that reacts, not just renders
             </h2>
             <p className="text-neutral-600 dark:text-neutral-400 leading-relaxed">
-              A keyboard-first table editor for structuring data — cell
-              grids you navigate and edit without touching the mouse. Not a
-              formula engine: what you type is what gets written back to
-              clean, auto-padded Markdown. Checkboxes toggle on click, dates
-              open a calendar picker, and{" "}
-              <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">
-                Ctrl+Click
-              </code>{" "}
-              any WikiLink to jump instantly.
+              Stop wrestling with raw Markdown syntax or reaching for your
+              mouse to format a simple table. This is a keyboard-first,
+              ultra-responsive table editor built for effortless data
+              structuring.
             </p>
             <ul className="space-y-2">
               {[
-                "#todo transitions dynamically to #prog and #done via native keyboard interaction",
-                "Export tables to CSV — everything writes back to clean, auto-padded Markdown",
-              ].map((item) => (
-                <li key={item} className="flex items-start gap-2 text-neutral-600 dark:text-neutral-400 leading-relaxed">
+                {
+                  label: "Flow-state navigation",
+                  detail: "Navigate, edit, and reorganize entire cell grids entirely from your keyboard.",
+                },
+                {
+                  label: "Smart native controls",
+                  detail: "Toggle checkboxes instantly, pick dates with a native calendar, or Ctrl+Click any WikiLink to jump across your vault without breaking stride.",
+                },
+                {
+                  label: "Dynamic status cycling",
+                  detail: "Cycle tasks smoothly between #todo, #prog, and #done using native keyboard shortcuts.",
+                },
+                {
+                  label: "Zero friction, zero lock-in",
+                  detail: "Export to CSV anytime. Everything writes back directly to clean, auto-padded Markdown — rich, interactive tables that stay 100% future-proof.",
+                },
+              ].map(({ label, detail }) => (
+                <li key={label} className="flex items-start gap-2 text-neutral-600 dark:text-neutral-400 leading-relaxed">
                   <span className="mt-2.5 w-1 h-1 rounded-full bg-neutral-400 dark:bg-neutral-500 shrink-0" />
-                  {item}
+                  <span>
+                    <span className="font-semibold text-fg">{label}:</span> {detail}
+                  </span>
                 </li>
               ))}
             </ul>

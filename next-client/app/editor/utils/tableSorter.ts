@@ -50,21 +50,31 @@ export function detectColumnType(rows: string[][], colIdx: number): ColType {
   return "string";
 }
 
-export function sortRows(
-  rows: string[][],
+// Generic sort core shared by sortRows (works on plain string[][] rows, used
+// by the CodeMirror/source-mode table toolbar) and the Rendered-mode Milkdown
+// table view (works on live ProseMirror row nodes, which carry rich content
+// like bold/links that plain strings would lose). Returns the original
+// indices of `rows` in sorted order rather than the rows themselves, so
+// callers can reorder whatever row representation they hold.
+export function sortRowIndices<T>(
+  rows: T[],
+  getCellText: (row: T, colIdx: number) => string | undefined,
   colIdx: number,
   direction: Exclude<SortDirection, "none">,
-): string[][] {
+): number[] {
   const isEmpty = (v: string) => v.trim() === "";
+  const cellTextAt = (i: number) => getCellText(rows[i], colIdx) ?? "";
+
   // Summary rows (containing a formula) are computed, not data — never sort
   // them, always keep them pinned after the sorted data rows.
-  const dataRows = rows.filter((r) => !isSummaryRow(r));
-  const summaryRows = rows.filter(isSummaryRow);
-  const colType = detectColumnType(dataRows, colIdx);
+  const indices = rows.map((_, i) => i);
+  const dataIndices = indices.filter((i) => !isFormulaCell(cellTextAt(i)) && !isSummaryRowIdx(rows, getCellText, i));
+  const summaryIndices = indices.filter((i) => isSummaryRowIdx(rows, getCellText, i));
+  const colType = detectColumnTypeFromTexts(dataIndices.map((i) => cellTextAt(i)));
 
-  const sorted = [...dataRows].sort((a, b) => {
-    const av = a[colIdx] ?? "";
-    const bv = b[colIdx] ?? "";
+  const sorted = [...dataIndices].sort((ia, ib) => {
+    const av = cellTextAt(ia);
+    const bv = cellTextAt(ib);
 
     // Empty cells always go to the bottom regardless of direction
     if (isEmpty(av) && isEmpty(bv)) return 0;
@@ -85,7 +95,53 @@ export function sortRows(
     return direction === "asc" ? cmp : -cmp;
   });
 
-  return [...sorted, ...summaryRows];
+  return [...sorted, ...summaryIndices];
+}
+
+function isSummaryRowIdx<T>(rows: T[], getCellText: (row: T, colIdx: number) => string | undefined, idx: number): boolean {
+  const row = rows[idx];
+  // A row is a summary row if any of its cells (up to a reasonable column
+  // scan) is a formula cell — mirrors isSummaryRow's `row.some(...)` over
+  // string[][], but rows here may not be plain arrays.
+  for (let c = 0; ; c++) {
+    const text = getCellText(row, c);
+    if (text === undefined) break;
+    if (isFormulaCell(text)) return true;
+    if (c > 64) break;
+  }
+  return false;
+}
+
+function detectColumnTypeFromTexts(texts: string[]): ColType {
+  const isEmpty = (v: string) => v.trim() === "";
+  const nonEmpty = texts.filter((v) => !isEmpty(v));
+
+  if (nonEmpty.length === 0) return "string";
+
+  const isNumeric = nonEmpty.every((v) => {
+    const clean = v.replace(/[$€£¥%\s,]/g, "").replace(/[A-Z]{2,4}$/i, "").trim();
+    return clean !== "" && !isNaN(Number(clean));
+  });
+  if (isNumeric) return "number";
+
+  const isDate = nonEmpty.every((v) => {
+    const d = Date.parse(v);
+    return !isNaN(d) && isNaN(Number(v));
+  });
+  if (isDate) return "date";
+
+  return "string";
+}
+
+export function sortRows(
+  rows: string[][],
+  colIdx: number,
+  direction: Exclude<SortDirection, "none">,
+): string[][] {
+  // Summary rows are computed, not data — sortRowIndices already pins them
+  // after the sorted data rows, so a plain index remap is all that's needed.
+  const order = sortRowIndices(rows, (row, i) => row[i] ?? "", colIdx, direction);
+  return order.map((i) => rows[i]);
 }
 
 export function nextSortDirection(current: SortDirection): SortDirection {

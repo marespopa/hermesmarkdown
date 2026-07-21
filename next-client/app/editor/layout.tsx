@@ -1,5 +1,4 @@
 import { Metadata } from "next";
-import "./editor.scss";
 
 export const metadata: Metadata = {
   title: "Editor — HermesMarkdown",

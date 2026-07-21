@@ -233,7 +233,7 @@ const GROUPS: Group[] = [
                   { label: "Bold", shortcut: "CTRL+B" },
                   { label: "Italic", shortcut: "CTRL+I" },
                   { label: "Undo", shortcut: "CTRL+Z" },
-                  { label: "Open link pill", shortcut: "CTRL+ENTER" },
+                  { label: "Exit a list or callout", shortcut: "SHIFT+ENTER" },
                   { label: "Expand date picker", shortcut: "ALT+↓" },
                   { label: "Toggle sidebar", shortcut: "CTRL+SHIFT+E" },
                   { label: "AI Chat", shortcut: "CTRL+SHIFT+B" },
@@ -280,19 +280,20 @@ const GROUPS: Group[] = [
       {
         id: "writing",
         title: "Writing",
-        lead: "Two views of the same file — Source shows raw Markdown, Rendered shows the formatted document. Both are editable; toggle between them anytime.",
-        keywords: "preview rendering source render inline width narrow standard",
+        lead: "Two views of the same file — Rendered shows a formatted WYSIWYG document, Source shows raw Markdown with inline highlighting. Both are editable; toggle between them anytime.",
+        keywords: "preview rendering source render inline width narrow standard wysiwyg default",
         body: (
           <>
             <p>
-              Source highlights Markdown inline over the raw text as you type — headings, bold, links,
-              and lifecycle tags render in place, without hiding the underlying syntax. Rendered shows
-              the same file as a formatted, WYSIWYG document instead. Both surfaces write to the same
-              file; switching between them never loses changes.
+              New files and vaults open in Rendered by default — type directly into a formatted
+              document instead of raw syntax. Source is still there for anyone who wants the plain-text
+              view: it highlights Markdown inline over the raw text as you type — headings, bold, links,
+              and lifecycle tags render in place, without hiding the underlying syntax. Both surfaces
+              write to the same file; switching between them never loses changes.
             </p>
             <p>
-              Toggle a pane between Source and Rendered with the eye icon in its tab bar, or set which
-              one new files open in by default from Settings → Editor → Default View.
+              Toggle a pane between Source and Rendered with the eye icon in its tab bar, or change the
+              default new files open in from Settings → Editor → Default View.
             </p>
             <p>
               Two column widths are available from Settings → Editor: Standard and Narrow. Below the
@@ -323,12 +324,19 @@ const GROUPS: Group[] = [
               Type <code>/table</code> in the slash menu, or the <code>{"{table}"}</code> shortcode. Both
               drop a 3×2 starter table with the cursor in the first cell.
             </p>
-            <p>Click inside any table to get a floating toolbar over it.</p>
+            <p>
+              Click inside any table to get a floating toolbar over it. Drag it out of the way by its
+              grip handle if it's covering something you need to see.
+            </p>
             <KV
               rows={[
-                { label: "Delete table", value: "× in toolbar" },
+                { label: "Move the toolbar", value: "Drag the grip handle" },
+                { label: "Add / remove row", value: "+Row / −Row" },
+                { label: "Add / remove column", value: "+Col / −Col" },
+                { label: "Cycle column alignment", value: "Left / Center / Right" },
+                { label: "Sort a column", value: "↑ / ↓, header cell only" },
                 { label: "Copy as CSV", value: "CSV in toolbar" },
-                { label: "Sort a column", value: "↑ / ↓ in toolbar" },
+                { label: "Delete table", value: "× in toolbar" },
               ]}
             />
             <KV
@@ -347,6 +355,69 @@ const GROUPS: Group[] = [
               Table cells hold plain text — there&apos;s no formula engine or spreadsheet-style
               calculation. What you type is what gets written back to the file.
             </Callout>
+          </>
+        ),
+      },
+      {
+        id: "code-diagrams-math",
+        title: "Code, diagrams & math",
+        lead: "Fenced code blocks get real syntax highlighting, ```mermaid fences render as live diagrams, and $...$ / $$...$$ render as formulas — all inline, in Rendered view.",
+        keywords: "code block syntax highlighting mermaid diagram math latex formula katex",
+        body: (
+          <>
+            <p>
+              Any fenced code block (<code>/code</code> in the slash menu, or typing ```` ```lang ````
+              yourself) is syntax-highlighted as you type, for any language CodeMirror recognizes from
+              the fence's language tag.
+            </p>
+            <p>
+              A ```` ```mermaid ```` fence is a special case: instead of highlighted text, it renders as
+              a live diagram. Click the diagram to reveal the raw Mermaid source underneath and edit it;
+              click away and it re-renders. Invalid syntax shows an inline error instead of a blank
+              diagram.
+            </p>
+            <Code>{`\`\`\`mermaid
+graph TD
+  A[Start] --> B{Decision}
+  B -->|Yes| C[Do it]
+  B -->|No| D[Skip it]
+\`\`\``}</Code>
+            <p>
+              Math works the same way: type <code>$E=mc^2$</code> and the closing <code>$</code>{" "}
+              instantly renders it as a formula. For a multi-line or display formula, use{" "}
+              <code>/math</code> from the slash menu, or wrap it in <code>$$...$$</code> yourself. Click
+              a formula to edit its raw LaTeX; click away to render it again.
+            </p>
+            <Callout type="note">
+              All three round-trip as plain Markdown — a highlighted code block is still a fenced code
+              block on disk, a diagram is still a ```mermaid fence, and a formula is still literal
+              <code>$...$</code> text. Nothing HermesMarkdown-specific gets written to the file.
+            </Callout>
+          </>
+        ),
+      },
+      {
+        id: "slash-menu",
+        title: "Slash menu",
+        lead: "Type / anywhere in Rendered view for a searchable, categorized menu of everything insertable — headings, lists, tables, code, callouts, math, and starter templates.",
+        keywords: "slash menu templates meeting notes daily note insert",
+        body: (
+          <>
+            <p>
+              Keep typing after <code>/</code> to filter by title or keyword; <code>↑</code>/<code>↓</code>{" "}
+              to move the selection, <code>Enter</code> to insert, <code>Escape</code> to dismiss.
+              Results are grouped under Text, Lists, Insert, Callouts, and Templates.
+            </p>
+            <p>
+              Templates are pre-formatted starting points inserted as regular Markdown you then edit —
+              not a separate file type or a live-linked structure.
+            </p>
+            <KV
+              rows={[
+                { label: "Meeting Notes", value: "Attendees, agenda, notes, action items" },
+                { label: "Daily Note", value: "Today's focus, tasks, notes" },
+              ]}
+            />
           </>
         ),
       },
@@ -424,8 +495,9 @@ const GROUPS: Group[] = [
             <Code>{`> [!tip] Optional title
 > Body text, same as a regular blockquote.`}</Code>
             <p>
-              Insert one from the slash menu with <code>/callout</code>, which defaults to{" "}
-              <code>note</code>.
+              Insert one from the slash menu — search "Callout" for Note, Tip, or Warning. Slash-menu
+              callouts start foldable with a click-to-collapse chevron next to the title; hand-typed
+              callouts are foldable only if you add <code>+</code> or <code>-</code> yourself.
             </p>
             <p>
               Add <code>+</code> or <code>-</code> after the type to make it foldable: <code>+</code>{" "}
@@ -468,16 +540,16 @@ const GROUPS: Group[] = [
       {
         id: "voice-input",
         title: "Voice input",
-        lead: "Dictate straight into a note — the mic understands a small grammar of spoken commands for lists, headings, and formatting, not just plain sentences.",
+        lead: "Dictate straight into a note — transcription only, with a small set of spoken commands to control the session, not to format the note.",
         keywords: "voice mic microphone dictation speech speech-to-text talk grammar commands",
         body: (
           <>
             <p>
               Start voice input from the command palette (Start voice input) to start listening. Speech
               accumulates in an editable preview box instead of the document itself, so
-              you can fix a mishear before it ever touches your note. Press <code>Enter</code> to insert the
-              reviewed text at the cursor, <code>Shift+Enter</code> to add a line break within the preview,
-              or <code>Escape</code> to discard it.
+              you can fix a mishear before it ever touches your note. Say <code>&quot;insert this&quot;</code>{" "}
+              (or press <code>Enter</code>) to commit the reviewed text at the cursor, <code>Shift+Enter</code>{" "}
+              to add a line break within the preview, or <code>Escape</code> to discard it.
             </p>
             <Callout type="warning">
               Voice input uses the browser's built-in Web Speech API, which only Chromium-based browsers
@@ -486,45 +558,26 @@ const GROUPS: Group[] = [
               The mic button is hidden entirely on unsupported browsers.
             </Callout>
             <p>
-              Most speech is inserted as plain text, but starting a phrase with one of the keywords below
-              is parsed as a command instead:
+              Dictation is transcription only — it never inserts Markdown syntax or otherwise formats the
+              note from speech. A small set of session-control phrases works instead, since those act on
+              the preview buffer rather than the document:
             </p>
             <KV
               rows={[
-                { label: '"heading two Project Notes"', value: "## Project Notes" },
-                { label: '"bullet buy milk"', value: "- buy milk" },
-                { label: '"numbered item first step"', value: "1. first step" },
-                { label: '"indent bullet …" / "indent numbered item …"', value: "Nested one level deeper" },
-                { label: '"task incomplete / complete …"', value: "- [ ] … / - [x] …" },
-                { label: '"quote to be or not to be"', value: "> to be or not to be" },
-                { label: '"bold …" / "italic …" / "strikethrough …"', value: "**…** / *…* / ~~…~~" },
-                { label: '"inline code const x"', value: "`const x`" },
-                { label: '"code block python" … "end code block"', value: "Fenced code, dictated literally until closed" },
-                { label: '"wiki link to dashboard" / "link"', value: "[[dashboard]] / opens the link dialog" },
-                { label: '"horizontal rule" / "divider"', value: "---" },
-              ]}
-            />
-            <p>
-              A few words control layout and punctuation instead of inserting Markdown syntax directly:
-            </p>
-            <KV
-              rows={[
-                { label: '"new line" / "new row" / "new paragraph"', value: "Line break / blank line" },
-                { label: '"period" / "comma" / "question mark" / "exclamation point"', value: "Punctuation" },
+                { label: '"new paragraph" / "new line" / "new row"', value: "Blank line / line break" },
+                { label: '"period" / "comma" / "question mark" / "exclamation point"', value: "Punctuation, mid-sentence or standalone" },
                 { label: '"colon" / "semicolon"', value: "Punctuation" },
-                { label: '"outdent" / "unindent"', value: "Back out one list level" },
-                { label: '"two levels deep"', value: "Jump list indentation to a specific level" },
-                { label: '"done with list" / "end list"', value: "Reset indentation to zero" },
                 { label: '"scratch that" / "delete last" / "undo that"', value: "Remove the previous dictated phrase" },
+                { label: '"scratch all text" / "clear all text" / "clear everything"', value: "Clear the whole preview" },
+                { label: '"insert this/it/text" / "commit this/it/text"', value: "Commit the preview into the document" },
+                { label: '"insert this and stop listening"', value: "Commit, then turn the mic off" },
+                { label: '"stop listening" / "done listening"', value: "Discard the preview and turn the mic off" },
               ]}
             />
             <Callout type="tip">
-              Commands nest — <code>&quot;bullet bold important&quot;</code> produces{" "}
-              <code>- **important**</code>, and the same applies inside headings and tasks. Anything that
-              doesn&apos;t match a command is inserted as plain text, so ordinary dictation always works.
-              Sentences capitalize themselves automatically after a spoken &quot;period&quot;, &quot;question
-              mark&quot;, or &quot;exclamation point&quot; (a comma doesn&apos;t count), and a heading always
-              starts its own line.
+              Everything else is transcribed as plain text, so ordinary dictation always works. Sentences
+              capitalize themselves automatically after a spoken &quot;period&quot;, &quot;question
+              mark&quot;, or &quot;exclamation point&quot; (a comma or colon doesn&apos;t count).
             </Callout>
             <p>
               Listening stops automatically when the pane loses focus, the tab is backgrounded, or the mic
@@ -548,23 +601,46 @@ const GROUPS: Group[] = [
             </p>
             <p>
               Every command here is a second entry point to something also reachable another way —
-              there's no command-only behavior.
+              there's no command-only behavior. The palette adapts to context: pane- and file-scoped
+              commands only appear when there's an active pane or open file to act on.
             </p>
             <KV
               rows={[
                 { label: "Save", value: "CTRL+S" },
                 { label: "New file", value: "—" },
                 { label: "Export current file", value: "—" },
-                { label: "Toggle sidebar", value: "CTRL+SHIFT+E" },
-                { label: "Switch theme", value: "—" },
-                { label: "Open settings", value: "—" },
-                { label: "Open vault", value: "—" },
-                { label: "New folder", value: "When a vault is open" },
-                { label: "Create new vault", value: "—" },
-                { label: "Open AI Chat", value: "CTRL+SHIFT+B · when AI is configured" },
-                { label: "Focus editor", value: "—" },
+                { label: "Rename current file", value: "—" },
+                { label: "Delete current file", value: "—" },
+                { label: "Copy Markdown", value: "—" },
+                { label: "Undo / Redo", value: "—" },
                 { label: "Close current tab", value: "—" },
                 { label: "Close all tabs", value: "—" },
+              ]}
+            />
+            <KV
+              rows={[
+                { label: "Open Files / Search / Open Tags / Open Views / Open Tasks", value: "—" },
+                { label: "Toggle sidebar", value: "CTRL+SHIFT+E" },
+                { label: "Split Right / Close Pane / Close other tabs", value: "When more than one pane is open" },
+                { label: "Switch pane to Source / Rendered", value: "—" },
+                { label: "Toggle hidden files", value: "—" },
+                { label: "Toggle word wrap", value: "—" },
+                { label: "Toggle tabs bar by default", value: "—" },
+                { label: "Switch theme", value: "—" },
+                { label: "Open settings", value: "—" },
+                { label: "Start welcome tour", value: "—" },
+              ]}
+            />
+            <KV
+              rows={[
+                { label: "Open vault / Close vault / Refresh vault", value: "—" },
+                { label: "Create new vault", value: "—" },
+                { label: "New folder", value: "When a vault is open" },
+                { label: "Start / Stop voice input", value: "CTRL+SHIFT+V" },
+                { label: "Open AI Chat", value: "CTRL+SHIFT+B · when AI is configured" },
+                { label: "Repurpose note into blog / social / newsletter draft…", value: "When AI is configured, on a note with content" },
+                { label: "Home / Documentation", value: "—" },
+                { label: "Focus editor", value: "—" },
               ]}
             />
             <p>
@@ -837,18 +913,15 @@ const GROUPS: Group[] = [
       {
         id: "mobile-layout",
         title: "Mobile layout",
-        lead: "Below a 768px viewport, the sidebar and tab bar are replaced by a single floating button and full-screen overlays.",
-        keywords: "mobile fab overlay breakpoint chrome command palette",
+        lead: "Below a 768px viewport, the sidebar and tab bar are replaced by a fixed file indicator bar and full-screen overlays.",
+        keywords: "mobile overlay breakpoint chrome command palette file indicator",
         body: (
           <>
             <p>
-              A single draggable button opens the command palette — Files, New File, Search, Voice, and
-              AI Chat all live there, the same as on desktop. Drag it out of the way of what you're
-              typing; its position is remembered between sessions.
-            </p>
-            <p>
-              With more than one file open, a thin indicator bar above the editor shows the active file's
-              name and expands into a switcher on tap.
+              A thin bar stays fixed at the top of the screen showing the active file's name and save
+              status — there's no keyboard shortcut for the command palette on mobile, so tapping this
+              bar is the one always-present way to open it. From there, Open Files, Search, Open Tasks,
+              New file, and every other command work exactly as they do on desktop.
             </p>
             <p>Files and Search open as full-screen overlays rather than a docked sidebar panel.</p>
           </>

@@ -56,3 +56,34 @@ export const wikiLinkClickPlugin = $prose((ctx) => {
     },
   });
 });
+
+// Plain Markdown links (`[text](url)`) render as real `<a href>` elements
+// via commonmark's linkSchema — inside a contentEditable doc that means a
+// bare click risks the browser navigating away mid-edit instead of just
+// placing the cursor, which is the opposite of what someone editing text
+// through a link wants. Same Ctrl/Cmd+click convention as the wikilink
+// plugin above (and the Source-mode CodeMirror editor): a plain click
+// always just positions the cursor, only a modifier click opens it — in a
+// new tab, since navigating the editor itself away would lose the note.
+export const linkClickPlugin = $prose(() => {
+  return new Plugin({
+    key: new PluginKey("LINK_CLICK"),
+    props: {
+      handleClick(view, pos, event) {
+        const $pos = view.state.doc.resolve(pos);
+        const linkMark = $pos.marks().find((m) => m.type.name === "link");
+        if (!linkMark) return false;
+
+        // Always prevent the browser's own <a> navigation — ProseMirror
+        // already placed the cursor from the click before handleClick
+        // runs, so this only blocks the page from leaving underneath it.
+        event.preventDefault();
+        if (event.ctrlKey || event.metaKey) {
+          const href = linkMark.attrs.href as string | undefined;
+          if (href) window.open(href, "_blank", "noopener,noreferrer");
+        }
+        return true;
+      },
+    },
+  });
+});

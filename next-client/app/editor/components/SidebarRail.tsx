@@ -9,6 +9,7 @@ import {
   HiOutlineCollection,
   HiOutlineClipboardList,
   HiOutlineChatAlt2,
+  HiOutlineBookOpen,
   HiOutlineCog,
   HiOutlineSun,
   HiOutlineMoon,
@@ -34,6 +35,7 @@ interface SidebarRailProps {
   onSettings?: () => void;
   onRefreshVault?: () => void;
   onOpenAIChat?: () => void;
+  onOpenDocumentation?: () => void;
 }
 
 // Anchored to the right of the rail (rather than above, like the old
@@ -46,7 +48,7 @@ function RailTooltip({ label }: { label: string }) {
   );
 }
 
-export default function SidebarRail({ panel, onSelectPanel, onSettings, onRefreshVault, onOpenAIChat }: SidebarRailProps) {
+export default function SidebarRail({ panel, onSelectPanel, onSettings, onRefreshVault, onOpenAIChat, onOpenDocumentation }: SidebarRailProps) {
   const { vaultHandle, closeVault, openVault, isVaultSupported } = useFileSystem();
   const [theme, setTheme] = useAtom(atom_theme);
 
@@ -89,6 +91,20 @@ export default function SidebarRail({ panel, onSelectPanel, onSettings, onRefres
       </div>
 
       <div className="flex flex-col items-center gap-1 w-full">
+        {onOpenDocumentation && (
+          <div className="relative group/rail-item w-full flex justify-center">
+            <Button
+              variant="icon"
+              onClick={onOpenDocumentation}
+              className="w-10 h-10 opacity-80 hover:opacity-100 !rounded-none"
+              aria-label="Documentation"
+            >
+              <HiOutlineBookOpen size={18} />
+            </Button>
+            <RailTooltip label="Documentation" />
+          </div>
+        )}
+
         {onSettings && (
           <div className="relative group/rail-item w-full flex justify-center">
             <Button

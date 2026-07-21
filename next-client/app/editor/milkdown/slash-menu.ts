@@ -5,19 +5,28 @@ import { parserCtx } from "@milkdown/kit/core";
 import { wrapInList } from "@milkdown/kit/prose/schema-list";
 import { wrapIn, setBlockType } from "@milkdown/kit/prose/commands";
 import { slashFactory, SlashProvider } from "@milkdown/kit/plugin/slash";
-import { TextSelection } from "@milkdown/kit/prose/state";
+import { TextSelection, NodeSelection } from "@milkdown/kit/prose/state";
 import { headingSchema, bulletListSchema, orderedListSchema, codeBlockSchema, blockquoteSchema } from "@milkdown/kit/preset/commonmark";
-import { extendListItemSchemaForTask } from "@milkdown/kit/preset/gfm";
 import { SHORTCODES } from "../components/constants";
+import { CALLOUT_META } from "../constants/callouts";
+import { mathBlockSchema } from "./math-schema";
 
 interface SlashRange {
   from: number;
   to: number;
 }
 
+type SlashCategory = "Text" | "Lists" | "Insert" | "Callouts" | "Templates";
+
 interface SlashCommand {
   title: string;
+  description: string;
+  category: SlashCategory;
   keywords: string[];
+  // Either a small inline SVG string or plain text badge (e.g. "H1") —
+  // this menu is built with vanilla DOM (see createSlashPluginSpec), not
+  // React, so icons are markup strings rather than components.
+  icon: string;
   run: (ctx: Ctx, view: EditorView, range: SlashRange) => void;
 }
 
@@ -29,13 +38,71 @@ function insertBlock(ctx: Ctx, view: EditorView, range: SlashRange, block: impor
   view.dispatch(view.state.tr.replaceWith(range.from, range.to, block));
 }
 
+function insertMarkdownTemplate(ctx: Ctx, view: EditorView, range: SlashRange, markdown: string) {
+  const parsed = ctx.get(parserCtx)(markdown);
+  if (parsed) insertBlock(ctx, view, range, parsed.content as unknown as import("@milkdown/kit/prose/model").Node);
+}
+
 const CALLOUT_TYPES = ["note", "tip", "warning"] as const;
+
+// Small, reused-across-rows icon set — outline style matching the chevron
+// already used elsewhere in this file's sibling plugins.ts (stroke-based,
+// 24x24 viewBox), kept as plain SVG strings rather than react-icons
+// components since this menu is hand-built DOM, not React.
+const ICON = {
+  list: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="9" y1="6" x2="20" y2="6"/><line x1="9" y1="12" x2="20" y2="12"/><line x1="9" y1="18" x2="20" y2="18"/><circle cx="4.5" cy="6" r="1.2" fill="currentColor" stroke="none"/><circle cx="4.5" cy="12" r="1.2" fill="currentColor" stroke="none"/><circle cx="4.5" cy="18" r="1.2" fill="currentColor" stroke="none"/></svg>',
+  orderedList: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="9" y1="6" x2="20" y2="6"/><line x1="9" y1="12" x2="20" y2="12"/><line x1="9" y1="18" x2="20" y2="18"/><text x="2" y="9" font-size="7" fill="currentColor" stroke="none">1</text><text x="2" y="15" font-size="7" fill="currentColor" stroke="none">2</text><text x="2" y="21" font-size="7" fill="currentColor" stroke="none">3</text></svg>',
+  checkbox: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="8" height="8" rx="1.5"/><polyline points="4.5 7 6.5 9 9.5 5"/><line x1="14" y1="7" x2="21" y2="7"/><line x1="14" y1="17" x2="21" y2="17"/><rect x="3" y="13" width="8" height="8" rx="1.5"/></svg>',
+  table: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="1.5"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="3" y1="16" x2="21" y2="16"/><line x1="11" y1="4" x2="11" y2="20"/></svg>',
+  code: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="8 6 3 12 8 18"/><polyline points="16 6 21 12 16 18"/></svg>',
+  sigma: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 5H7l6 7-6 7h11"/></svg>',
+  quote: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 8c-2 0-3.5 1.6-3.5 4S5 16 7 16"/><path d="M17 8c-2 0-3.5 1.6-3.5 4S15 16 17 16"/></svg>',
+  doc: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 3h9l4 4v14H6z"/><line x1="9" y1="12" x2="16" y2="12"/><line x1="9" y1="16" x2="16" y2="16"/></svg>',
+  calendar: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="16" rx="1.5"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="3" x2="8" y2="7"/><line x1="16" y1="3" x2="16" y2="7"/></svg>',
+};
+
+function headingIcon(level: 1 | 2 | 3): string {
+  return `<span class="text-[11px] font-bold tabular-nums">H${level}</span>`;
+}
+
+function calloutIcon(type: (typeof CALLOUT_TYPES)[number]): string {
+  const meta = CALLOUT_META[type] ?? CALLOUT_META.note;
+  return `<span class="inline-block w-2.5 h-2.5 rounded-full ${meta.border.replace("border-", "bg-")}"></span>`;
+}
+
+const TEMPLATE_MEETING_NOTES = `## Meeting Notes
+
+**Date:**
+**Attendees:**
+
+### Agenda
+
+
+### Notes
+
+
+### Action Items
+- [ ] `;
+
+const TEMPLATE_DAILY_NOTE = `## Daily Note
+
+### Today's Focus
+
+
+### Tasks
+- [ ]
+
+### Notes
+`;
 
 function buildCommands(): SlashCommand[] {
   return [
     {
       title: "Heading 1",
+      description: "Large section heading",
+      category: "Text",
       keywords: ["h1", "heading1", "heading"],
+      icon: headingIcon(1),
       run: (ctx, view, range) => {
         deleteRange(view, range);
         setBlockType(headingSchema.type(ctx), { level: 1 })(view.state, view.dispatch);
@@ -43,7 +110,10 @@ function buildCommands(): SlashCommand[] {
     },
     {
       title: "Heading 2",
+      description: "Medium section heading",
+      category: "Text",
       keywords: ["h2", "heading2"],
+      icon: headingIcon(2),
       run: (ctx, view, range) => {
         deleteRange(view, range);
         setBlockType(headingSchema.type(ctx), { level: 2 })(view.state, view.dispatch);
@@ -51,15 +121,32 @@ function buildCommands(): SlashCommand[] {
     },
     {
       title: "Heading 3",
+      description: "Small section heading",
+      category: "Text",
       keywords: ["h3", "heading3"],
+      icon: headingIcon(3),
       run: (ctx, view, range) => {
         deleteRange(view, range);
         setBlockType(headingSchema.type(ctx), { level: 3 })(view.state, view.dispatch);
       },
     },
     {
+      title: "Quote",
+      description: "Blockquote for a citation or aside",
+      category: "Text",
+      keywords: ["quote", "blockquote"],
+      icon: ICON.quote,
+      run: (ctx, view, range) => {
+        deleteRange(view, range);
+        wrapIn(blockquoteSchema.type(ctx))(view.state, view.dispatch);
+      },
+    },
+    {
       title: "Bullet List",
+      description: "Unordered list",
+      category: "Lists",
       keywords: ["ul", "bullet", "list", "unordered"],
+      icon: ICON.list,
       run: (ctx, view, range) => {
         deleteRange(view, range);
         wrapInList(bulletListSchema.type(ctx))(view.state, view.dispatch);
@@ -67,7 +154,10 @@ function buildCommands(): SlashCommand[] {
     },
     {
       title: "Ordered List",
+      description: "Numbered list",
+      category: "Lists",
       keywords: ["ol", "ordered", "numbered"],
+      icon: ICON.orderedList,
       run: (ctx, view, range) => {
         deleteRange(view, range);
         wrapInList(orderedListSchema.type(ctx))(view.state, view.dispatch);
@@ -75,20 +165,47 @@ function buildCommands(): SlashCommand[] {
     },
     {
       title: "Task List",
+      description: "Checkbox list item",
+      category: "Lists",
       keywords: ["todo", "task", "checkbox"],
+      icon: ICON.checkbox,
       run: (ctx, view, range) => {
-        const listItemType = extendListItemSchemaForTask.type(ctx);
+        deleteRange(view, range);
         const bulletListType = bulletListSchema.type(ctx);
-        const item = listItemType.createChecked(
-          { label: "•", listType: "bullet", spread: "false", checked: false },
-          view.state.schema.nodes.paragraph.createChecked(),
-        );
-        insertBlock(ctx, view, range, bulletListType.createChecked({ spread: "false" }, item));
+        // wrapInList (same command Bullet List/Ordered List above use) wraps
+        // the CURRENT paragraph in place, leaving the cursor exactly where
+        // it already was, ready to type. An earlier version instead built
+        // a brand-new list+item+empty-paragraph from scratch and inserted
+        // it, which left the cursor wherever ProseMirror's default
+        // replace-mapping happened to land it — and that untouched,
+        // zero-content paragraph got written straight back out through
+        // Milkdown's own "preserve empty line" paragraph serializer as a
+        // literal "<br />" in the saved markdown until the user's first
+        // keystroke. Wrapping the existing paragraph avoids creating that
+        // orphan node at all.
+        if (!wrapInList(bulletListType)(view.state, view.dispatch)) return;
+        // wrapInList only produces a plain bullet list_item (checked: null,
+        // no box) — extendListItemSchemaForTask patches that same node
+        // type's attrs shape in place rather than defining a separate node
+        // (see TaskListItemView's comment), so flipping `checked` to a real
+        // boolean here is enough to turn it into a checkbox item; no need
+        // to touch the node's type.
+        const { $from } = view.state.selection;
+        for (let depth = $from.depth; depth >= 0; depth--) {
+          const node = $from.node(depth);
+          if (node.type.name !== "list_item") continue;
+          const pos = $from.before(depth);
+          view.dispatch(view.state.tr.setNodeMarkup(pos, undefined, { ...node.attrs, checked: false }));
+          break;
+        }
       },
     },
     {
       title: "Table",
+      description: "Insert a GFM table",
+      category: "Insert",
       keywords: ["table", "grid"],
+      icon: ICON.table,
       run: (ctx, view, range) => {
         const parsed = ctx.get(parserCtx)(SHORTCODES["{table}"]());
         if (parsed) insertBlock(ctx, view, range, parsed.content as unknown as import("@milkdown/kit/prose/model").Node);
@@ -96,26 +213,44 @@ function buildCommands(): SlashCommand[] {
     },
     {
       title: "Code Block",
+      description: "Syntax-highlighted code",
+      category: "Insert",
       keywords: ["code", "codeblock"],
+      icon: ICON.code,
       run: (ctx, view, range) => {
         deleteRange(view, range);
         setBlockType(codeBlockSchema.type(ctx))(view.state, view.dispatch);
       },
     },
     {
-      title: "Quote",
-      keywords: ["quote", "blockquote"],
+      title: "Math Block",
+      description: "LaTeX formula, rendered live",
+      category: "Insert",
+      keywords: ["math", "latex", "formula", "equation"],
+      icon: ICON.sigma,
       run: (ctx, view, range) => {
-        deleteRange(view, range);
-        wrapIn(blockquoteSchema.type(ctx))(view.state, view.dispatch);
+        const node = mathBlockSchema.type(ctx).createChecked({ value: "" });
+        const tr = view.state.tr.replaceWith(range.from, range.to, node);
+        // NodeSelection on the freshly-inserted (empty) node puts MathView
+        // straight into its edit box — same reasoning as the callout
+        // command below, so there's somewhere to type immediately.
+        tr.setSelection(NodeSelection.create(tr.doc, range.from));
+        view.dispatch(tr);
       },
     },
     ...CALLOUT_TYPES.map((type) => ({
       title: `Callout: ${type[0].toUpperCase()}${type.slice(1)}`,
+      description: `${type[0].toUpperCase()}${type.slice(1)} callout box`,
+      category: "Callouts" as const,
       keywords: ["callout", type],
+      icon: calloutIcon(type),
       run: (ctx: Ctx, view: EditorView, range: SlashRange) => {
         const blockquoteType = blockquoteSchema.type(ctx);
-        const marker = `[!${type}] `;
+        // "+" marks it foldable-but-expanded (CalloutBlockquoteView shows a
+        // chevron for +/-, nothing for a bare marker) — inserted from the
+        // slash menu so the fold toggle is available immediately instead of
+        // only for callouts the user hand-typed with a +/- suffix.
+        const marker = `[!${type}]+ `;
         const text = view.state.schema.text(marker);
         // A trailing hardbreak gives the callout a second "> " row for the
         // body, matching Obsidian's own layout (title line, then content).
@@ -141,21 +276,60 @@ function buildCommands(): SlashCommand[] {
         view.dispatch(tr);
       },
     })),
+    {
+      title: "Meeting Notes",
+      description: "Agenda, notes, action items",
+      category: "Templates",
+      keywords: ["template", "meeting"],
+      icon: ICON.doc,
+      run: (ctx, view, range) => insertMarkdownTemplate(ctx, view, range, TEMPLATE_MEETING_NOTES),
+    },
+    {
+      title: "Daily Note",
+      description: "Focus, tasks, notes",
+      category: "Templates",
+      keywords: ["template", "daily", "journal"],
+      icon: ICON.calendar,
+      run: (ctx, view, range) => insertMarkdownTemplate(ctx, view, range, TEMPLATE_DAILY_NOTE),
+    },
   ];
 }
 
-const MENU_ITEM_CLASS = "w-full text-left px-3 py-1.5 rounded-sm text-ui-body cursor-pointer";
+const MENU_ITEM_CLASS =
+  "w-full text-left px-2.5 py-1.5 rounded-lg text-ui-body cursor-pointer flex items-center gap-2.5";
 const MENU_ITEM_SELECTED_CLASS = "bg-paper-softgray dark:bg-paper-dark-surface";
+const CATEGORY_LABEL_CLASS =
+  "px-2.5 pt-2.5 pb-1 text-[10px] font-semibold uppercase tracking-wider text-ink-muted dark:text-stone select-none";
+
+function escapeHtml(value: string): string {
+  return value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+// Wraps the substring of `title` that matched the typed query in a <mark>,
+// so filtering gives visible feedback on WHY a row matched (e.g. typing
+// "tbl" against "Table" — the query can match keywords, not just the
+// title, so there may be nothing to highlight; that's fine, it's a bonus
+// cue, not the only feedback).
+function highlightMatch(title: string, query: string): string {
+  if (!query) return escapeHtml(title);
+  const idx = title.toLowerCase().indexOf(query);
+  if (idx === -1) return escapeHtml(title);
+  const before = escapeHtml(title.slice(0, idx));
+  const match = escapeHtml(title.slice(idx, idx + query.length));
+  const after = escapeHtml(title.slice(idx + query.length));
+  return `${before}<mark class="bg-transparent text-sage font-semibold">${match}</mark>${after}`;
+}
 
 function createSlashPluginSpec(ctx: Ctx): Partial<PluginSpec<unknown>> {
   const commands = buildCommands();
   let filtered = commands;
+  let query = "";
   let selectedIndex = 0;
   let range: SlashRange | null = null;
 
   const content = document.createElement("div");
   content.className =
-    "z-50 w-56 max-h-72 overflow-y-auto py-1 bg-paper-light dark:bg-paper-dark border border-edge rounded-md shadow-lg";
+    "z-50 w-72 max-h-80 overflow-y-auto py-1.5 bg-paper-light dark:bg-paper-dark border border-edge rounded-2xl shadow-lg";
   content.style.position = "absolute";
   content.style.display = "none";
 
@@ -204,11 +378,37 @@ function createSlashPluginSpec(ctx: Ctx): Partial<PluginSpec<unknown>> {
       content.appendChild(empty);
       return;
     }
+    let lastCategory: SlashCategory | null = null;
     filtered.forEach((cmd, i) => {
+      if (cmd.category !== lastCategory) {
+        lastCategory = cmd.category;
+        const label = document.createElement("div");
+        label.className = CATEGORY_LABEL_CLASS;
+        label.textContent = cmd.category;
+        content.appendChild(label);
+      }
+
       const btn = document.createElement("button");
       btn.type = "button";
-      btn.textContent = cmd.title;
       btn.className = `${MENU_ITEM_CLASS} ${i === selectedIndex ? MENU_ITEM_SELECTED_CLASS : ""}`;
+
+      const iconWrap = document.createElement("span");
+      iconWrap.className = "shrink-0 w-5 h-5 flex items-center justify-center text-ink-muted dark:text-stone";
+      iconWrap.innerHTML = cmd.icon;
+      btn.appendChild(iconWrap);
+
+      const textWrap = document.createElement("span");
+      textWrap.className = "min-w-0 flex-1 flex flex-col";
+      const titleEl = document.createElement("span");
+      titleEl.className = "truncate";
+      titleEl.innerHTML = highlightMatch(cmd.title, query);
+      const descEl = document.createElement("span");
+      descEl.className = "truncate text-ui-footnote text-ink-muted dark:text-stone";
+      descEl.textContent = cmd.description;
+      textWrap.appendChild(titleEl);
+      textWrap.appendChild(descEl);
+      btn.appendChild(textWrap);
+
       btn.addEventListener("mousedown", (e) => {
         e.preventDefault();
         selectedIndex = i;
@@ -228,7 +428,7 @@ function createSlashPluginSpec(ctx: Ctx): Partial<PluginSpec<unknown>> {
           range = null;
           return;
         }
-        const query = match[1].toLowerCase();
+        query = match[1].toLowerCase();
         const to = view.state.selection.from;
         range = { from: to - match[0].length, to };
         filtered = query

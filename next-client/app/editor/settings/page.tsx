@@ -181,7 +181,7 @@ const SettingsPage = () => {
             />
             <SettingItem
               label="Show Tabs Bar"
-              description="Show the open-file tabs strip by default. Off by default; each pane can still be toggled open with the chevron above it."
+              description="Show the open-file tabs strip by default. On by default on desktop; each pane can still be toggled with the chevron above it."
               control={<Toggle variant="soft" active={tabsBarVisibleByDefault} onChange={setTabsBarVisibleByDefault} />}
             />
             <SettingItem

@@ -145,14 +145,14 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
   }, []);
   const hideCopyMarkdown = tabBarRowWidth < 440;
   const hideSplitRight = tabBarRowWidth < 360;
-  // Defaults per the Settings page's "Tabs Bar" toggle — the tab bar is
-  // chrome you reach for, not chrome you look at, so it defaults to hidden
-  // unless the user opts in. The hover chevron and the collapsed
-  // save-status dot below keep it discoverable without occupying the top
-  // edge at rest. Each pane still tracks its own open/closed state locally
-  // once mounted, so toggling the setting only affects panes opened after.
+  // Defaults per the Settings page's "Tabs Bar" toggle, itself defaulted to
+  // visible on desktop where the horizontal space is there to spare; mobile
+  // stays collapsed to save vertical space, discoverable via the hover
+  // chevron and the collapsed save-status dot below. Each pane still tracks
+  // its own open/closed state locally once mounted, so toggling the setting
+  // only affects panes opened after.
   const tabsBarVisibleByDefault = useAtomValue(atom_tabsBarVisibleByDefault);
-  const [tabBarVisible, setTabBarVisible] = useState(tabsBarVisibleByDefault);
+  const [tabBarVisible, setTabBarVisible] = useState(tabsBarVisibleByDefault && !isMobileChrome);
 
   const handleDragStart = (e: React.DragEvent, path: string) => {
     const data = JSON.stringify({ 

@@ -2,7 +2,7 @@ import { InputRule } from "@milkdown/kit/prose/inputrules";
 import type { Node as ProseNode } from "@milkdown/kit/prose/model";
 import type { EditorView, NodeView, ViewMutationRecord } from "@milkdown/kit/prose/view";
 import { Decoration, DecorationSet } from "@milkdown/kit/prose/view";
-import { Plugin, PluginKey } from "@milkdown/kit/prose/state";
+import { Plugin, PluginKey, TextSelection } from "@milkdown/kit/prose/state";
 import { parserCtx } from "@milkdown/kit/core";
 import { $inputRule, $prose, $view } from "@milkdown/kit/utils";
 import { extendListItemSchemaForTask } from "@milkdown/kit/preset/gfm";
@@ -108,7 +108,7 @@ class TaskListItemView implements NodeView {
     // space for the `::marker` we no longer render (list-none) — without
     // this the checkbox sits far right of where the bullet used to be.
     li.style.display = "flex";
-    li.style.alignItems = "flex-start";
+    li.style.alignItems = "center";
     li.style.gap = "0.5rem";
     li.style.paddingLeft = "0";
     li.style.marginLeft = "0";
@@ -118,10 +118,6 @@ class TaskListItemView implements NodeView {
     checkbox.checked = !!node.attrs.checked;
     checkbox.contentEditable = "false";
     checkbox.className = "cursor-pointer accent-sage";
-    // Paragraph margins inside task items are zeroed via
-    // EditablePreview's `[&_.task-list-item_p]:my-0`, so this only needs
-    // to offset the checkbox's own height against the text line-height.
-    checkbox.style.marginTop = "0.3em";
     checkbox.style.flexShrink = "0";
     // Prevents ProseMirror from stealing focus/selection on click while
     // still letting the browser toggle the checkbox and fire "change".
@@ -129,11 +125,13 @@ class TaskListItemView implements NodeView {
     checkbox.addEventListener("change", () => {
       const pos = this.getPos();
       if (pos == null) return;
+      // Not calling tr.scrollIntoView() here is deliberate — Transaction
+      // selection maps through automatically by default, so this never
+      // moves the cursor; explicitly requesting a scroll would risk
+      // yanking the viewport to follow a checkbox the user clicked
+      // somewhere they can already see.
       this.view.dispatch(
-        this.view.state.tr.setNodeMarkup(pos, undefined, {
-          ...this.node.attrs,
-          checked: checkbox.checked,
-        }),
+        this.view.state.tr.setNodeMarkup(pos, undefined, { ...this.node.attrs, checked: checkbox.checked }),
       );
     });
     this.checkbox = checkbox;
@@ -206,6 +204,19 @@ export const htmlPassthroughView = $view(
 );
 
 const REGEX_CALLOUT_MARKER = /^\[!(\w+)\]([+-]?)/i;
+// Kept as a literal string (not built from parts) so Tailwind's static
+// source scan picks it up and generates the CSS. Hides the whole
+// .callout-content div (title stays visible via the separate `label`
+// element, which lives outside .callout-content). Deliberately NOT
+// ":not(:first-child)" scoped to "children after the first" — a callout's
+// body usually isn't a separate block at all: typing a one-line body right
+// after "[!note] Title" keeps it in the SAME paragraph as the (already
+// content-hidden) marker, joined by the hardbreak calloutMarkerDecorations
+// hides through. In that (most common) case .callout-content has exactly
+// one child, so "children after the first" hides nothing — the bug this
+// replaced. Hiding the container outright covers both that case and
+// genuinely multi-block bodies uniformly.
+const COLLAPSED_BODY_CLASS = "[&>.callout-content]:hidden";
 
 // Obsidian-style callouts (`> [!note] Title`) are, to the schema, just a
 // plain blockquote whose first paragraph happens to start with a
@@ -230,7 +241,10 @@ class CalloutBlockquoteView implements NodeView {
   contentDOM: HTMLElement;
   private node: ProseNode;
   private label: HTMLElement | null = null;
+  private chevron: HTMLElement | null = null;
   private currentType: string | null = null;
+  private foldable = false;
+  private collapsed = false;
 
   constructor(
     node: ProseNode,
@@ -242,11 +256,13 @@ class CalloutBlockquoteView implements NodeView {
     this.dom = quote;
 
     const content = document.createElement("div");
+    content.className = "callout-content [&_ul]:list-disc [&_ol]:list-decimal [&_ul]:pl-5 [&_ol]:pl-5 [&_li]:my-0.5";
     quote.appendChild(content);
     this.contentDOM = content;
 
     const type = this.detectType(node);
-    this.applyCalloutState(type, type ? this.detectTitle(node, type) : "");
+    const fold = this.detectFold(node);
+    this.applyCalloutState(type, type ? this.detectTitle(node, type) : "", fold);
   }
 
   private detectType(node: ProseNode): string | null {
@@ -255,6 +271,13 @@ class CalloutBlockquoteView implements NodeView {
     const m = first.textContent.match(REGEX_CALLOUT_MARKER);
     if (!m) return null;
     return resolveCalloutType(m[1]);
+  }
+
+  private detectFold(node: ProseNode): "" | "+" | "-" {
+    const first = node.firstChild;
+    if (!first || first.type.name !== "paragraph") return "";
+    const m = first.textContent.match(REGEX_CALLOUT_MARKER);
+    return (m?.[2] as "" | "+" | "-" | undefined) || "";
   }
 
   // Title = the rest of the first line after the marker, up to the first
@@ -286,8 +309,15 @@ class CalloutBlockquoteView implements NodeView {
     return title || `${type[0].toUpperCase()}${type.slice(1)}`;
   }
 
-  private applyCalloutState(type: string | null, title: string) {
-    if (type !== this.currentType) {
+  private setCollapsed(collapsed: boolean) {
+    this.collapsed = collapsed;
+    this.dom.classList.toggle(COLLAPSED_BODY_CLASS, collapsed);
+    if (this.chevron) this.chevron.style.transform = collapsed ? "" : "rotate(90deg)";
+  }
+
+  private applyCalloutState(type: string | null, title: string, fold: "" | "+" | "-") {
+    const isNewCallout = type !== this.currentType;
+    if (isNewCallout) {
       this.currentType = type;
 
       if (!type) {
@@ -295,7 +325,10 @@ class CalloutBlockquoteView implements NodeView {
         if (this.label) {
           this.label.remove();
           this.label = null;
+          this.chevron = null;
         }
+        this.foldable = false;
+        this.setCollapsed(false);
         return;
       }
 
@@ -305,20 +338,53 @@ class CalloutBlockquoteView implements NodeView {
       if (!this.label) {
         const label = document.createElement("div");
         label.contentEditable = "false";
-        label.className = "font-semibold text-ui-body mb-1.5";
+        label.className = "font-semibold text-ui-body mb-1.5 flex items-center gap-1.5";
         this.label = label;
         this.dom.insertBefore(label, this.contentDOM);
       }
     }
 
-    if (type && this.label) this.label.textContent = title;
+    if (!type) return;
+
+    this.foldable = fold === "+" || fold === "-";
+    if (this.label) {
+      if (this.foldable && !this.chevron) {
+        const chevron = document.createElement("span");
+        chevron.contentEditable = "false";
+        chevron.className = "shrink-0 transition-transform cursor-pointer select-none";
+        chevron.innerHTML =
+          '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>';
+        chevron.addEventListener("mousedown", (e) => {
+          e.preventDefault();
+          this.setCollapsed(!this.collapsed);
+        });
+        this.label.insertBefore(chevron, this.label.firstChild);
+        this.chevron = chevron;
+      } else if (!this.foldable && this.chevron) {
+        this.chevron.remove();
+        this.chevron = null;
+      }
+
+      const titleNode = this.label.querySelector(".callout-title-text");
+      if (titleNode) {
+        titleNode.textContent = title;
+      } else {
+        const span = document.createElement("span");
+        span.className = "callout-title-text";
+        span.textContent = title;
+        this.label.appendChild(span);
+      }
+    }
+
+    if (isNewCallout) this.setCollapsed(fold === "-");
   }
 
   update(node: ProseNode): boolean {
     if (node.type !== this.node.type) return false;
     this.node = node;
     const type = this.detectType(node);
-    this.applyCalloutState(type, type ? this.detectTitle(node, type) : "");
+    const fold = this.detectFold(node);
+    this.applyCalloutState(type, type ? this.detectTitle(node, type) : "", fold);
     return true;
   }
 
@@ -372,6 +438,73 @@ export const calloutMarkerDecorations = $prose(() => {
           decos.push(Decoration.inline(paraContentStart, hideEnd, { class: "callout-marker-hidden" }));
         });
         return DecorationSet.create(state.doc, decos);
+      },
+    },
+  });
+});
+
+// Nested list/blockquote-style structures where an empty, sole child means
+// there's genuinely nothing left worth keeping (see emptyAndSole below) —
+// headings and tables don't have an equivalent "empty wrapper" shape, so
+// that cleanup only applies to these.
+const CLEANUP_ON_EMPTY_TYPES = new Set(["blockquote", "bullet_list", "ordered_list"]);
+
+// Shift-Enter inside any structural block (heading, list, callout, table
+// cell, …) normally either does nothing special or inserts a hardbreak —
+// this repurposes it as an explicit "get me out" escape hatch: exits the
+// TOP-LEVEL block the cursor is in (found once, at depth 1, so a list
+// nested inside a callout exits the whole callout in one press, not one
+// level at a time) and lands the cursor just after it — moving into
+// whatever already follows if something does, the same as pressing
+// ArrowDown onto the next row, or creating a fresh paragraph only if this
+// is the last block in the document. Plain paragraphs are left alone
+// (their existing Shift-Enter soft-break behavior is unaffected), since
+// there's no "formatting" to exit there. Code blocks and math nodes are
+// naturally excluded too — both intercept all their own key events via
+// NodeView.stopEvent, so this handler never sees Shift-Enter typed inside
+// either.
+export const exitBlockOnShiftEnter = $prose(() => {
+  return new Plugin({
+    key: new PluginKey("EXIT_BLOCK_SHIFT_ENTER"),
+    props: {
+      handleKeyDown(view, event) {
+        if (event.key !== "Enter" || !event.shiftKey) return false;
+        const { state } = view;
+        const { $from } = state.selection;
+        if ($from.depth < 1) return false;
+
+        const outerNode = $from.node(1);
+        if (outerNode.type.name === "paragraph") return false;
+
+        const outerStart = $from.before(1);
+        const outerEnd = $from.after(1);
+        const paragraphType = state.schema.nodes.paragraph;
+
+        // If the item/block the cursor is actually in is empty and it's
+        // the only child of the thing we're exiting, there's nothing left
+        // worth keeping — replace the whole callout/list with a fresh
+        // paragraph instead of leaving an empty, still-indented "-" (or
+        // an empty ">" callout shell) behind it.
+        const emptyAndSole =
+          CLEANUP_ON_EMPTY_TYPES.has(outerNode.type.name) &&
+          $from.parent.content.size === 0 &&
+          outerNode.childCount === 1;
+
+        let tr = state.tr;
+        let cursorAt: number;
+        if (emptyAndSole) {
+          tr = tr.replaceWith(outerStart, outerEnd, paragraphType.createChecked());
+          cursorAt = outerStart + 1;
+        } else if (outerEnd < state.doc.content.size) {
+          cursorAt = outerEnd;
+        } else {
+          tr = tr.insert(outerEnd, paragraphType.createChecked());
+          cursorAt = outerEnd + 1;
+        }
+        tr.setSelection(TextSelection.near(tr.doc.resolve(cursorAt)));
+        view.dispatch(tr.scrollIntoView());
+        event.preventDefault();
+        return true;
       },
     },
   });

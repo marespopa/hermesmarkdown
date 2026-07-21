@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { HiChevronRight } from "react-icons/hi";
+import React, { useState, useEffect, useRef } from "react";
+import { HiChevronRight, HiOutlineDotsVertical } from "react-icons/hi";
 import Button from "../../components/Button";
 import { PILL_CONTAINER_CLASSES } from "./constants";
 
@@ -63,6 +63,23 @@ function Sep() {
   return <div className="w-px h-4 bg-beige dark:bg-clay mx-0.5" />;
 }
 
+// Grabbing this handle repositions the whole callout via a translate offset
+// (see dragOffset below) rather than moving it into normal flow, so it can
+// be dropped anywhere without disturbing the coords computed from the
+// cursor/caret position.
+function DragHandle({ onPointerDown }: { onPointerDown: (e: React.PointerEvent<HTMLButtonElement>) => void }) {
+  return (
+    <button
+      type="button"
+      onPointerDown={onPointerDown}
+      title="Drag to move"
+      className="flex items-center justify-center w-5 h-6 shrink-0 text-stone/60 hover:text-stone cursor-grab active:cursor-grabbing touch-none"
+    >
+      <HiOutlineDotsVertical size={13} />
+    </button>
+  );
+}
+
 export function TableCallout({
   pos,
   isMobile,
@@ -89,13 +106,59 @@ export function TableCallout({
     if (isOnHeader) setExpanded(true);
   }, [isOnHeader]);
 
+  // The base `pos` is recomputed by the caller every time the caret moves,
+  // so a drag offset needs to reset whenever that happens — otherwise a
+  // drag from an earlier cell would keep displacing the toolbar forever.
+  // Tracking the previous `pos` lets us tell "caret moved, recompute" apart
+  // from "we're the ones who just changed position by dragging."
+  const [dragOffset, setDragOffset] = useState({ top: 0, left: 0 });
+  const prevPosRef = useRef(pos);
+  const draggingRef = useRef<{ startX: number; startY: number; startTop: number; startLeft: number } | null>(null);
+
+  useEffect(() => {
+    if (pos.top !== prevPosRef.current.top || pos.left !== prevPosRef.current.left) {
+      prevPosRef.current = pos;
+      if (!draggingRef.current) setDragOffset({ top: 0, left: 0 });
+    }
+  }, [pos]);
+
+  const handleDragPointerDown = (e: React.PointerEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    e.currentTarget.setPointerCapture(e.pointerId);
+    draggingRef.current = {
+      startX: e.clientX,
+      startY: e.clientY,
+      startTop: dragOffset.top,
+      startLeft: dragOffset.left,
+    };
+
+    const handleMove = (ev: PointerEvent) => {
+      if (!draggingRef.current) return;
+      setDragOffset({
+        top: draggingRef.current.startTop + (ev.clientY - draggingRef.current.startY),
+        left: draggingRef.current.startLeft + (ev.clientX - draggingRef.current.startX),
+      });
+    };
+    const handleUp = () => {
+      draggingRef.current = null;
+      window.removeEventListener("pointermove", handleMove);
+      window.removeEventListener("pointerup", handleUp);
+    };
+    window.addEventListener("pointermove", handleMove);
+    window.addEventListener("pointerup", handleUp);
+  };
+
+  const style = { top: pos.top + dragOffset.top, left: pos.left + dragOffset.left };
+
   if (isMobile) {
     return (
       <div
-        style={{ top: pos.top, left: pos.left }}
+        style={style}
         className={`${PILL_CONTAINER_CLASSES} gap-0.5`}
         onMouseDown={(e) => e.preventDefault()}
       >
+        <DragHandle onPointerDown={handleDragPointerDown} />
+        <Sep />
         {pendingDelete ? (
           <>
             <span className="px-2 text-ui-micro font-medium text-red-500 dark:text-red-400 select-none">
@@ -119,12 +182,14 @@ export function TableCallout({
 
   return (
     <div
-      style={{ top: pos.top, left: pos.left }}
+      style={style}
       className={`${PILL_CONTAINER_CLASSES} gap-0.5`}
       onMouseDown={(e) => e.preventDefault()}
     >
+      <DragHandle onPointerDown={handleDragPointerDown} />
       {pendingDelete ? (
         <>
+          <Sep />
           <span className="px-2 text-ui-micro font-medium text-red-500 dark:text-red-400 select-none">
             Delete table?
           </span>
@@ -134,6 +199,7 @@ export function TableCallout({
         </>
       ) : (
         <>
+          <Sep />
           <button
             type="button"
             onClick={() => setExpanded((v) => !v)}

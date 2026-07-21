@@ -11,6 +11,8 @@ import {
   atom_defaultPaneMode,
   atom_fontSize,
   atom_fontFamily,
+  atom_renderedFontFamily,
+  atom_renderedFontSize,
   atom_lineHeight,
   atom_letterSpacing,
   atom_aiProvider,
@@ -67,6 +69,8 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
   const [defaultPaneMode, setDefaultPaneMode] = useAtom(atom_defaultPaneMode);
   const [fontSize, setFontSize] = useAtom(atom_fontSize);
   const [fontFamily, setFontFamily] = useAtom(atom_fontFamily);
+  const [renderedFontFamily, setRenderedFontFamily] = useAtom(atom_renderedFontFamily);
+  const [renderedFontSize, setRenderedFontSize] = useAtom(atom_renderedFontSize);
   const [lineHeight, setLineHeight] = useAtom(atom_lineHeight);
   const [letterSpacing, setLetterSpacing] = useAtom(atom_letterSpacing);
   const [aiProvider, setAiProvider] = useAtom(atom_aiProvider);
@@ -74,6 +78,14 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
   const [geminiKey, setGeminiKey] = useAtom(atom_geminiKey);
   const [isTestingConnection, setIsTestingConnection] = useState(false);
   const isMobileChrome = useIsMobileChrome();
+
+  // Text size and typeface steps come after Default View, so they can target
+  // whichever surface (Source vs. Rendered) the user just chose as default.
+  const isRendered = defaultPaneMode === "preview";
+  const activeFontSize = isRendered ? renderedFontSize : fontSize;
+  const setActiveFontSize = isRendered ? setRenderedFontSize : setFontSize;
+  const activeFontFamily = isRendered ? renderedFontFamily : fontFamily;
+  const setActiveFontFamily = isRendered ? setRenderedFontFamily : setFontFamily;
 
   useEffect(() => {
     setIsMounted(true);
@@ -191,25 +203,39 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
         return (
           <div className="flex flex-col items-center text-center space-y-6 py-4">
             <div className="w-16 h-16 bg-sage/10 rounded-2xl flex items-center justify-center text-sage">
-              <HiOutlineDocumentText size={32} />
+              <HiOutlineEye size={32} />
             </div>
             <div className="space-y-2">
-              <h2 className="text-ui-title-3 font-bold">Text Size</h2>
+              <h2 className="text-ui-title-3 font-bold">Default View</h2>
               <p className="text-ui-footnote opacity-60 px-4">
-                How large should your words be in Source view? You can change this later in Settings.
+                Should new files open in Source (raw markdown) or Rendered (WYSIWYG)? The next few steps tailor text size and font to whichever you pick. You can toggle per-file anytime.
               </p>
             </div>
 
-            <div className="w-full space-y-3 text-left">
-              <p
-                style={{ fontSize, fontFamily }}
-                className="px-1 leading-snug text-ink-light dark:text-ink-dark transition-all duration-200"
-              >
-                The quick brown fox jumps.
-              </p>
-              <div className="rounded-2xl border border-edge p-4 bg-paper-softgray/40 dark:bg-paper-dark/30">
-                <label className="text-[11px] font-bold uppercase tracking-wider ml-1 opacity-70 block mb-2">Size</label>
-                <SegmentedControl options={FONT_SIZES} value={fontSize} onChange={setFontSize} />
+            <div className="w-full rounded-2xl border border-edge p-4 space-y-4 bg-paper-softgray/40 dark:bg-paper-dark/30 text-left">
+              <div className="space-y-3">
+                {(["preview", "editor"] as const).map((opt) => (
+                  <button
+                    key={opt}
+                    type="button"
+                    onClick={() => setDefaultPaneMode(opt)}
+                    className={`w-full flex items-center justify-between px-4 py-3 rounded-xl border transition-all ${
+                      defaultPaneMode === opt
+                        ? "border-sage bg-sage/5 dark:bg-sage/10"
+                        : "border-edge bg-paper-light dark:bg-paper-dark hover:border-sage/40"
+                    }`}
+                  >
+                    <div className="text-left">
+                      <div className={`text-ui-footnote font-semibold ${defaultPaneMode === opt ? "text-sage" : ""}`}>
+                        {opt === "editor" ? "Source" : "Rendered"}
+                      </div>
+                      <div className="text-[11px] opacity-50 mt-0.5">
+                        {opt === "editor" ? "Raw markdown text" : "WYSIWYG rendered view"}
+                      </div>
+                    </div>
+                    {defaultPaneMode === opt && <HiCheck size={15} className="shrink-0 text-sage" />}
+                  </button>
+                ))}
               </div>
             </div>
 
@@ -220,6 +246,38 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
         );
 
       case 3:
+        return (
+          <div className="flex flex-col items-center text-center space-y-6 py-4">
+            <div className="w-16 h-16 bg-sage/10 rounded-2xl flex items-center justify-center text-sage">
+              <HiOutlineDocumentText size={32} />
+            </div>
+            <div className="space-y-2">
+              <h2 className="text-ui-title-3 font-bold">Text Size</h2>
+              <p className="text-ui-footnote opacity-60 px-4">
+                How large should your words be in {isRendered ? "Rendered view" : "Source view"}? You can change this later in Settings.
+              </p>
+            </div>
+
+            <div className="w-full space-y-3 text-left">
+              <p
+                style={{ fontSize: activeFontSize, fontFamily: activeFontFamily }}
+                className="px-1 leading-snug text-ink-light dark:text-ink-dark transition-all duration-200"
+              >
+                The quick brown fox jumps.
+              </p>
+              <div className="rounded-2xl border border-edge p-4 bg-paper-softgray/40 dark:bg-paper-dark/30">
+                <label className="text-[11px] font-bold uppercase tracking-wider ml-1 opacity-70 block mb-2">Size</label>
+                <SegmentedControl options={FONT_SIZES} value={activeFontSize} onChange={setActiveFontSize} />
+              </div>
+            </div>
+
+            <Button variant="primary" onClick={() => setStep(4)} className="w-full h-12 rounded-2xl text-ui-footnote font-bold">
+              Continue
+            </Button>
+          </div>
+        );
+
+      case 4:
         return (
           <div className="flex flex-col items-center text-center space-y-6 py-4">
             <div className="w-16 h-16 bg-sage/10 rounded-2xl flex items-center justify-center text-sage">
@@ -234,7 +292,7 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
 
             <div className="w-full space-y-3 text-left">
               <p
-                style={{ lineHeight, letterSpacing, fontFamily }}
+                style={{ lineHeight, letterSpacing, fontFamily: activeFontFamily }}
                 className="px-1 text-ui-footnote text-ink-light dark:text-ink-dark transition-all duration-200"
               >
                 The quick brown fox jumps over the lazy dog.
@@ -251,13 +309,13 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
               </div>
             </div>
 
-            <Button variant="primary" onClick={() => setStep(4)} className="w-full h-12 rounded-2xl text-ui-footnote font-bold">
+            <Button variant="primary" onClick={() => setStep(5)} className="w-full h-12 rounded-2xl text-ui-footnote font-bold">
               Continue
             </Button>
           </div>
         );
 
-      case 4:
+      case 5:
         return (
           <div className="flex flex-col items-center text-center space-y-6 py-4">
             <div className="w-16 h-16 bg-sage/10 rounded-2xl flex items-center justify-center text-sage">
@@ -266,24 +324,24 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
             <div className="space-y-2">
               <h2 className="text-ui-title-3 font-bold">Typeface</h2>
               <p className="text-ui-footnote opacity-60 px-4">
-                Choose the font used in Source view, where you write raw markdown. Rendered view (the WYSIWYG preview) has its own font, set separately in Settings.
+                Choose the font used in {isRendered ? "Rendered view, where you read and write WYSIWYG" : "Source view, where you write raw markdown"}. You can set the other view&apos;s font separately in Settings.
               </p>
             </div>
 
             <div className="w-full text-left">
               <label className="text-[11px] font-bold uppercase tracking-wider ml-1 opacity-70 block mb-2">Font</label>
               <div className="max-h-[40vh] overflow-y-auto">
-                <FontPicker fonts={FONTS} value={fontFamily} onChange={setFontFamily} />
+                <FontPicker fonts={FONTS} value={activeFontFamily} onChange={setActiveFontFamily} />
               </div>
             </div>
 
-            <Button variant="primary" onClick={() => setStep(5)} className="w-full h-12 rounded-2xl text-ui-footnote font-bold">
+            <Button variant="primary" onClick={() => setStep(6)} className="w-full h-12 rounded-2xl text-ui-footnote font-bold">
               Continue
             </Button>
           </div>
         );
 
-      case 5:
+      case 6:
         return (
           <div className="flex flex-col items-center text-center space-y-6 py-4">
             <div className="w-16 h-16 bg-sage/10 rounded-2xl flex items-center justify-center text-sage">
@@ -307,13 +365,13 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
               </div>
             </div>
 
-            <Button variant="primary" onClick={() => setStep(6)} className="w-full h-12 rounded-2xl text-ui-footnote font-bold">
+            <Button variant="primary" onClick={() => setStep(7)} className="w-full h-12 rounded-2xl text-ui-footnote font-bold">
               Continue
             </Button>
           </div>
         );
 
-      case 6:
+      case 7:
         return (
           <div className="flex flex-col items-center text-center space-y-6 py-4">
             <div className="w-16 h-16 bg-sage/10 rounded-2xl flex items-center justify-center text-sage">
@@ -348,52 +406,6 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
                       </div>
                     </div>
                     {frontmatterDefaultMode === opt && <HiCheck size={15} className="shrink-0 text-sage" />}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <Button variant="primary" onClick={() => setStep(7)} className="w-full h-12 rounded-2xl text-ui-footnote font-bold">
-              Continue
-            </Button>
-          </div>
-        );
-
-      case 7:
-        return (
-          <div className="flex flex-col items-center text-center space-y-6 py-4">
-            <div className="w-16 h-16 bg-sage/10 rounded-2xl flex items-center justify-center text-sage">
-              <HiOutlineEye size={32} />
-            </div>
-            <div className="space-y-2">
-              <h2 className="text-ui-title-3 font-bold">Default View</h2>
-              <p className="text-ui-footnote opacity-60 px-4">
-                Should new files open in Source (raw markdown) or Rendered (WYSIWYG)? You can toggle per-file anytime.
-              </p>
-            </div>
-
-            <div className="w-full rounded-2xl border border-edge p-4 space-y-4 bg-paper-softgray/40 dark:bg-paper-dark/30 text-left">
-              <div className="space-y-3">
-                {(["editor", "preview"] as const).map((opt) => (
-                  <button
-                    key={opt}
-                    type="button"
-                    onClick={() => setDefaultPaneMode(opt)}
-                    className={`w-full flex items-center justify-between px-4 py-3 rounded-xl border transition-all ${
-                      defaultPaneMode === opt
-                        ? "border-sage bg-sage/5 dark:bg-sage/10"
-                        : "border-edge bg-paper-light dark:bg-paper-dark hover:border-sage/40"
-                    }`}
-                  >
-                    <div className="text-left">
-                      <div className={`text-ui-footnote font-semibold ${defaultPaneMode === opt ? "text-sage" : ""}`}>
-                        {opt === "editor" ? "Source" : "Rendered"}
-                      </div>
-                      <div className="text-[11px] opacity-50 mt-0.5">
-                        {opt === "editor" ? "Raw markdown text" : "WYSIWYG rendered view"}
-                      </div>
-                    </div>
-                    {defaultPaneMode === opt && <HiCheck size={15} className="shrink-0 text-sage" />}
                   </button>
                 ))}
               </div>
@@ -524,7 +536,7 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
     <DialogModal
       isOpened={showWizard}
       onClose={handleFinish}
-      styles="!max-w-sm"
+      styles="!max-w-sm sm:!max-w-lg md:!max-w-2xl"
       mobileSheet
       hideCloseButton
     >

@@ -83,7 +83,7 @@ export const atom_frontmatterDefaultMode = atomWithStorage<"fields" | "raw">(
 // within an already-open pane (those keep whatever mode that pane is in).
 export const atom_defaultPaneMode = atomWithStorage<"editor" | "preview">(
   "defaultPaneMode",
-  "editor",
+  "preview",
 );
 export const atom_frontmatterHasPrompted = atomWithStorage<boolean>(
   "frontmatterHasPrompted",
@@ -254,7 +254,9 @@ export const atom_indexTimestamp = atom<number | null>(null);
 // Whether the pane tab bar starts expanded or collapsed. Each pane still
 // tracks its own open/closed state locally (see PaneLeaf.tsx) so a user can
 // toggle it per-pane during a session; this only controls the initial value.
+// Desktop shows it by default (PaneLeaf.tsx additionally hides it on mobile
+// regardless of this setting, to save vertical space there).
 export const atom_tabsBarVisibleByDefault = atomWithStorage<boolean>(
   "tabsBarVisibleByDefault",
-  false,
+  true,
 );

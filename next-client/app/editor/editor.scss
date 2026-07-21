@@ -54,50 +54,50 @@
   }
 }
 
-/* Table rendering — activated when preview pane wraps content in .hermes-preview */
-.hermes-preview table {
-  width: 100%;
-  border-collapse: collapse;
+/* Table rendering in Rendered mode (EditablePreview's Milkdown/ProseMirror
+   surface — the only place .ProseMirror is used in this app). prosemirror-tables
+   wraps every table in a .tableWrapper for column-resize support, so overflow
+   scrolling lives there instead of `display: block` on the table itself. */
+.ProseMirror .tableWrapper {
   overflow-x: auto;
-  display: block;
 }
 
-.hermes-preview table th,
-.hermes-preview table td {
+.ProseMirror table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.ProseMirror table th,
+.ProseMirror table td {
   border: 1px solid theme('colors.beige.DEFAULT');
   padding: 0.4rem 0.75rem;
   text-align: left;
-  white-space: nowrap;
 }
 
-.hermes-preview table th {
+.ProseMirror table th {
   background-color: theme('colors.beige.light');
   font-weight: 600;
 }
 
-.hermes-preview table tr:nth-child(even) td {
-  background-color: theme('colors.paper.softgray');
+/* Zebra striping on data rows only — tr[data-is-header] marks the header
+   row, so :nth-child still lines up (header is always child 1). A
+   translucent overlay (rather than a solid paper.* swatch) so the stripe
+   stays visible regardless of which surface the pane itself sits on — a
+   solid color here previously matched dark:bg-paper-dark on the pane
+   (PaneLeaf.tsx) exactly, so the "stripe" was rendering but invisible. */
+.ProseMirror table tr:not([data-is-header]):nth-child(even) td {
+  background-color: rgb(0 0 0 / 4%);
 }
 
-.hermes-preview table td.text-center,
-.hermes-preview table th.text-center {
-  text-align: center;
-}
-
-.hermes-preview table td.text-right,
-.hermes-preview table th.text-right {
-  text-align: right;
-}
-
-html.dark .hermes-preview table th {
+html.dark .ProseMirror table th {
   background-color: theme('colors.paper.dark-surface');
 }
 
-html.dark .hermes-preview table tr:nth-child(even) td {
-  background-color: theme('colors.paper.dark');
+html.dark .ProseMirror table tr:not([data-is-header]):nth-child(even) td {
+  background-color: rgb(255 255 255 / 5%);
 }
 
-html.dark .hermes-preview table th,
-html.dark .hermes-preview table td {
+html.dark .ProseMirror table th,
+html.dark .ProseMirror table td {
   border-color: #3A3530;
 }

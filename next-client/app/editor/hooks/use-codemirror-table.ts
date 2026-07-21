@@ -68,14 +68,13 @@ export function useCodeMirrorTable({ viewRef, containerRef }: UseCodeMirrorTable
     }
 
     const wrapperRect = containerRef.current?.getBoundingClientRect();
-    const headerCoords = view.coordsAtPos(result.tableStartOffset);
     const caretCoords = view.coordsAtPos(pos);
-    if (wrapperRect && headerCoords && caretCoords) {
-      const headerTop = headerCoords.top - wrapperRect.top;
+    if (wrapperRect && caretCoords) {
+      const caretTop = caretCoords.top - wrapperRect.top;
       const caretLeft = caretCoords.left - wrapperRect.left;
       const scrollTop = containerRef.current?.scrollTop ?? 0;
       setCalloutPos({
-        top: Math.max(headerTop - 36, scrollTop + 4),
+        top: Math.max(caretTop - 36, scrollTop + 4),
         left: Math.min(caretLeft, (containerRef.current?.clientWidth ?? 500) - CALLOUT_WIDTH),
       });
     }

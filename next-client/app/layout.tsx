@@ -1,4 +1,6 @@
 import "./globals.scss";
+import "./editor/editor.scss";
+import "katex/dist/katex.min.css";
 import MainPage from "./components/MainPage";
 import { Metadata, Viewport } from "next";
 import { inter, ibmPlexMono, spaceMono, ibmPlexSans, literata, jetbrainsMono, firaCode, workSans, sourceSerif4 } from "./fonts";

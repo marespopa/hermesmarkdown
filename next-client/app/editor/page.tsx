@@ -492,6 +492,7 @@ export default function LiteEditor() {
                 onSettings={() => navigateWithGuard("/editor/settings", "Settings")}
                 onRefreshVault={handleRefreshVault}
                 onOpenAIChat={isAiConfigured ? openAiChat : undefined}
+                onOpenDocumentation={() => navigateWithGuard("/documentation", "Documentation")}
               />
             ) : (
               <div className="group/railzone relative h-full w-2 shrink-0">
@@ -502,6 +503,7 @@ export default function LiteEditor() {
                     onSettings={() => navigateWithGuard("/editor/settings", "Settings")}
                     onRefreshVault={handleRefreshVault}
                     onOpenAIChat={isAiConfigured ? openAiChat : undefined}
+                    onOpenDocumentation={() => navigateWithGuard("/documentation", "Documentation")}
                   />
                 </div>
               </div>
