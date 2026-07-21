@@ -3,12 +3,12 @@ import React from "react";
 
 export default function ToolsCafeBadge() {
   return (
-    <a href="https://tools.cafe" target="_blank" rel="noopener">
+    <a href="https://tools.cafe/p/tool-1784368796535" target="_blank" rel="noopener">
       <Image
-        src="https://tools.cafe/b/dark.svg"
-        alt="Featured on tools.cafe"
-        width={256}
-        height={80}
+        src="https://tools.cafe/badge.png"
+        alt="Listed on tools.cafe"
+        width={180}
+        height={54}
         unoptimized
       />
     </a>
