@@ -4,7 +4,7 @@ import type { Node as ProseNode } from "@milkdown/kit/prose/model";
 import type { EditorView, NodeView, ViewMutationRecord } from "@milkdown/kit/prose/view";
 import { Decoration, DecorationSet } from "@milkdown/kit/prose/view";
 import { Plugin, PluginKey, TextSelection } from "@milkdown/kit/prose/state";
-import { parserCtx, commandsCtx } from "@milkdown/kit/core";
+import { parserCtx, commandsCtx, schemaCtx, serializerCtx } from "@milkdown/kit/core";
 import { setBlockType } from "@milkdown/kit/prose/commands";
 import { $command, $inputRule, $prose, $useKeymap, $view } from "@milkdown/kit/utils";
 import { extendListItemSchemaForTask } from "@milkdown/kit/preset/gfm";
@@ -19,6 +19,7 @@ import {
 import { SHORTCODES } from "../components/constants";
 import { REGEX_CALC } from "../components/regex";
 import { CALLOUT_META, resolveCalloutType } from "../constants/callouts";
+import { unescapeKnownMarkdownPatterns } from "./markdown-escape";
 
 function escapeRegExp(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -563,6 +564,30 @@ export const exitBlockOnShiftEnter = $prose(() => {
         view.dispatch(tr.scrollIntoView());
         event.preventDefault();
         return true;
+      },
+    },
+  });
+});
+
+// @milkdown/plugin-clipboard's own clipboardTextSerializer runs a copied
+// selection through the same remark serializer used for saving (see
+// unescapeKnownMarkdownPatterns' doc comment for why that escapes things
+// like "> [!note]" and "[[wikilink]]"), but only the save path unwinds
+// those escapes — a copy from Render/Preview mode was landing on the
+// clipboard still backslash-escaped. ProseMirror's EditorView.someProp
+// resolves clipboardTextSerializer to whichever plugin defines it first,
+// so this plugin must be registered before `.use(clipboard)` to take
+// priority over the built-in one.
+export const clipboardCopyFix = $prose((ctx) => {
+  return new Plugin({
+    key: new PluginKey("HERMES_CLIPBOARD_COPY_FIX"),
+    props: {
+      clipboardTextSerializer: (slice) => {
+        const schema = ctx.get(schemaCtx);
+        const serializer = ctx.get(serializerCtx);
+        const doc = schema.topNodeType.createAndFill(undefined, slice.content);
+        if (!doc) return "";
+        return unescapeKnownMarkdownPatterns(serializer(doc));
       },
     },
   });

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import { HiChevronRight, HiOutlineDotsVertical } from "react-icons/hi";
+import { HiChevronRight, HiChevronDown, HiOutlineDotsVertical } from "react-icons/hi";
 import Button from "../../components/Button";
 import { PILL_CONTAINER_CLASSES } from "./constants";
 
@@ -38,12 +38,14 @@ function PillBtn({
   disabled,
   title,
   danger,
+  fullWidth,
 }: {
   children: React.ReactNode;
   onClick: () => void;
   disabled?: boolean;
   title?: string;
   danger?: boolean;
+  fullWidth?: boolean;
 }) {
   return (
     <Button
@@ -52,7 +54,7 @@ function PillBtn({
       onClick={onClick}
       disabled={disabled}
       title={title}
-      className={`px-2 text-ui-micro font-medium ${danger ? "text-red-500 dark:text-red-400 hover:text-red-600 dark:hover:text-red-300" : ""}`}
+      className={`${fullWidth ? "w-full justify-start" : ""} px-2 text-ui-micro font-medium ${danger ? "text-red-500 dark:text-red-400 hover:text-red-600 dark:hover:text-red-300" : ""}`}
     >
       {children}
     </Button>
@@ -61,6 +63,10 @@ function PillBtn({
 
 function Sep() {
   return <div className="w-px h-4 bg-beige dark:bg-clay mx-0.5" />;
+}
+
+function HSep() {
+  return <div className="h-px w-full bg-beige dark:bg-clay my-0.5" />;
 }
 
 // Grabbing this handle repositions the whole callout via a translate offset
@@ -79,6 +85,40 @@ function DragHandle({ onPointerDown }: { onPointerDown: (e: React.PointerEvent<H
     </button>
   );
 }
+
+// A labeled, individually collapsible group within the vertical toolbar
+// (Rows / Columns / Sort / Align) — keeps the panel short by default even
+// though it now grows down instead of sideways.
+function Section({
+  label,
+  open,
+  onToggle,
+  children,
+}: {
+  label: string;
+  open: boolean;
+  onToggle: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <div>
+      <button
+        type="button"
+        onClick={onToggle}
+        className="flex items-center gap-1 w-full h-6 px-1 rounded text-ui-micro font-medium text-ink-muted dark:text-stone hover:text-ink-light dark:hover:text-ink-dark transition-colors"
+      >
+        <HiChevronRight
+          size={11}
+          className={`transition-transform duration-150 ${open ? "rotate-90" : "rotate-0"}`}
+        />
+        {label}
+      </button>
+      {open && <div className="flex flex-col gap-0.5 pl-3 pb-0.5">{children}</div>}
+    </div>
+  );
+}
+
+type SectionKey = "rows" | "columns" | "sort" | "align";
 
 export function TableCallout({
   pos,
@@ -101,9 +141,20 @@ export function TableCallout({
 }: TableCalloutProps) {
   const [expanded, setExpanded] = useState(false);
   const [pendingDelete, setPendingDelete] = useState(false);
+  const [openSections, setOpenSections] = useState<Record<SectionKey, boolean>>({
+    rows: false,
+    columns: false,
+    sort: false,
+    align: false,
+  });
+  const toggleSection = (key: SectionKey) =>
+    setOpenSections((prev) => ({ ...prev, [key]: !prev[key] }));
 
   useEffect(() => {
-    if (isOnHeader) setExpanded(true);
+    if (isOnHeader) {
+      setExpanded(true);
+      setOpenSections((prev) => (prev.sort ? prev : { ...prev, sort: true }));
+    }
   }, [isOnHeader]);
 
   // The base `pos` is recomputed by the caller every time the caret moves,
@@ -183,69 +234,80 @@ export function TableCallout({
   return (
     <div
       style={style}
-      className={`${PILL_CONTAINER_CLASSES} gap-0.5`}
+      className="absolute z-40 flex flex-col gap-0.5 p-1 w-36 bg-paper-light dark:bg-paper-dark border border-edge rounded-md shadow-sm pointer-events-auto select-none transition-all duration-200 ease-in-out"
       onMouseDown={(e) => e.preventDefault()}
     >
-      <DragHandle onPointerDown={handleDragPointerDown} />
       {pendingDelete ? (
         <>
-          <Sep />
-          <span className="px-2 text-ui-micro font-medium text-red-500 dark:text-red-400 select-none">
+          <span className="px-2 py-1 text-ui-micro font-medium text-red-500 dark:text-red-400 select-none">
             Delete table?
           </span>
-          <Sep />
-          <PillBtn onClick={() => setPendingDelete(false)}>Cancel</PillBtn>
-          <PillBtn danger onClick={() => { onRemoveTable(); setPendingDelete(false); }}>Delete</PillBtn>
+          <div className="flex gap-0.5">
+            <PillBtn onClick={() => setPendingDelete(false)}>Cancel</PillBtn>
+            <PillBtn danger onClick={() => { onRemoveTable(); setPendingDelete(false); }}>Delete</PillBtn>
+          </div>
         </>
       ) : (
         <>
-          <Sep />
-          <button
-            type="button"
-            onClick={() => setExpanded((v) => !v)}
-            title={expanded ? "Collapse toolbar" : "Expand table toolbar"}
-            className="flex items-center justify-center w-6 h-6 rounded text-stone hover:text-ink-light dark:hover:text-ink-dark transition-colors"
-          >
-            <HiChevronRight
-              size={13}
-              className={`transition-transform duration-200 ${expanded ? "rotate-180" : "rotate-0"}`}
-            />
-          </button>
+          <div className="flex items-center gap-0.5">
+            <DragHandle onPointerDown={handleDragPointerDown} />
+            <button
+              type="button"
+              onClick={() => setExpanded((v) => !v)}
+              title={expanded ? "Collapse toolbar" : "Expand table toolbar"}
+              className="flex flex-1 items-center justify-center h-6 rounded text-stone hover:text-ink-light dark:hover:text-ink-dark transition-colors"
+            >
+              <HiChevronDown
+                size={13}
+                className={`transition-transform duration-200 ${expanded ? "rotate-180" : "rotate-0"}`}
+              />
+            </button>
+          </div>
 
           {expanded && (
             <>
-              <Sep />
-              <PillBtn onClick={onAddRow} title="Add row below">+Row</PillBtn>
-              {canRemoveRow && (
-                <PillBtn
-                  onClick={onRemoveRow}
-                  title={`Remove row ${cursorDataRowNumber}`}
-                  danger
-                >
-                  −Row {cursorDataRowNumber}
-                </PillBtn>
-              )}
-              <Sep />
-              <PillBtn onClick={onAddColumn} title="Add column to the right">+Col</PillBtn>
-              <PillBtn onClick={onRemoveColumn} disabled={!canRemoveCol} title="Remove current column" danger>−Col</PillBtn>
+              <HSep />
+
+              <Section label="Rows" open={openSections.rows} onToggle={() => toggleSection("rows")}>
+                <PillBtn fullWidth onClick={onAddRow} title="Add row below">+ Row</PillBtn>
+                {canRemoveRow && (
+                  <PillBtn
+                    fullWidth
+                    onClick={onRemoveRow}
+                    title={`Remove row ${cursorDataRowNumber}`}
+                    danger
+                  >
+                    − Row {cursorDataRowNumber}
+                  </PillBtn>
+                )}
+              </Section>
+
+              <Section label="Columns" open={openSections.columns} onToggle={() => toggleSection("columns")}>
+                <PillBtn fullWidth onClick={onAddColumn} title="Add column to the right">+ Col</PillBtn>
+                <PillBtn fullWidth onClick={onRemoveColumn} disabled={!canRemoveCol} title="Remove current column" danger>− Col</PillBtn>
+              </Section>
+
               {isOnHeader && (
-                <>
-                  <Sep />
-                  <PillBtn onClick={onSortAsc} title="Sort column A → Z">↑</PillBtn>
-                  <PillBtn onClick={onSortDesc} title="Sort column Z → A">↓</PillBtn>
-                </>
+                <Section label="Sort" open={openSections.sort} onToggle={() => toggleSection("sort")}>
+                  <PillBtn fullWidth onClick={onSortAsc} title="Sort column A → Z">↑ A → Z</PillBtn>
+                  <PillBtn fullWidth onClick={onSortDesc} title="Sort column Z → A">↓ Z → A</PillBtn>
+                </Section>
               )}
-              <Sep />
-              <PillBtn onClick={onCycleAlign} title={`Alignment: ${currentAlignment} — click to cycle`}>
-                {ALIGN_LABELS[currentAlignment] ?? "—"}
-              </PillBtn>
-              <Sep />
+
+              <Section label={`Align: ${ALIGN_LABELS[currentAlignment] ?? "—"}`} open={openSections.align} onToggle={() => toggleSection("align")}>
+                <PillBtn fullWidth onClick={onCycleAlign} title={`Alignment: ${currentAlignment} — click to cycle`}>
+                  Cycle ({ALIGN_LABELS[currentAlignment] ?? "—"})
+                </PillBtn>
+              </Section>
+
+              <HSep />
             </>
           )}
 
-          <Sep />
-          <PillBtn onClick={onCopyCSV} title="Copy as CSV">CSV</PillBtn>
-          <PillBtn danger onClick={() => setPendingDelete(true)} title="Delete table">×</PillBtn>
+          <div className="flex gap-0.5">
+            <PillBtn fullWidth onClick={onCopyCSV} title="Copy as CSV">CSV</PillBtn>
+            <PillBtn danger onClick={() => setPendingDelete(true)} title="Delete table">×</PillBtn>
+          </div>
         </>
       )}
     </div>

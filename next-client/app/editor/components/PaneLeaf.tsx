@@ -515,7 +515,13 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
             isSplit={!isOnlyPane}
           />
         ) : leaf.type === "preview" ? (
-          <EditablePreview key={leaf.activeFilePath || "draft"} content={content} onChange={setContent} onWikiLinkClick={openFileByName} />
+          <EditablePreview
+            key={leaf.activeFilePath || "draft"}
+            content={content}
+            onChange={setContent}
+            filePath={leaf.activeFilePath || "draft"}
+            onWikiLinkClick={openFileByName}
+          />
         ) : (
           <div className="flex flex-col items-center justify-center h-full opacity-20 space-y-2">
             {getIcon(leaf.type)}
