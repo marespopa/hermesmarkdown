@@ -1,12 +1,21 @@
+import type { Ctx } from "@milkdown/kit/ctx";
 import { InputRule } from "@milkdown/kit/prose/inputrules";
 import type { Node as ProseNode } from "@milkdown/kit/prose/model";
 import type { EditorView, NodeView, ViewMutationRecord } from "@milkdown/kit/prose/view";
 import { Decoration, DecorationSet } from "@milkdown/kit/prose/view";
 import { Plugin, PluginKey, TextSelection } from "@milkdown/kit/prose/state";
-import { parserCtx } from "@milkdown/kit/core";
-import { $inputRule, $prose, $view } from "@milkdown/kit/utils";
+import { parserCtx, commandsCtx } from "@milkdown/kit/core";
+import { setBlockType } from "@milkdown/kit/prose/commands";
+import { $command, $inputRule, $prose, $useKeymap, $view } from "@milkdown/kit/utils";
 import { extendListItemSchemaForTask } from "@milkdown/kit/preset/gfm";
-import { bulletListSchema, blockquoteSchema, htmlSchema } from "@milkdown/kit/preset/commonmark";
+import {
+  bulletListSchema,
+  blockquoteSchema,
+  htmlSchema,
+  headingSchema,
+  paragraphSchema,
+  headingKeymap,
+} from "@milkdown/kit/preset/commonmark";
 import { SHORTCODES } from "../components/constants";
 import { REGEX_CALC } from "../components/regex";
 import { CALLOUT_META, resolveCalloutType } from "../constants/callouts";
@@ -27,6 +36,55 @@ const PARSE_AS_MARKDOWN_SHORTCODES = new Set(["{table}"]);
 // a plain list item containing the literal text "[ ]" rather than a real
 // checkbox. Built directly as a task list_item node instead.
 const TASK_SHORTCODES: Record<string, boolean> = { "{todo}": false, "{done}": true };
+
+// preset-commonmark's default heading keymap binds Backspace/Delete to
+// "DowngradeHeading": pressing either at the very start of a heading
+// decrements its level (H2 -> H1, H1 -> paragraph), independent of the
+// literal "#"/"##" markdown syntax. That makes Backspace-merging the line
+// above an H2 (or Delete-merging the line below an H1) silently promote
+// the heading a level — surprising since nothing about the heading's own
+// text changed. Disabled here by clearing the shortcut list for that one
+// binding while leaving the Mod-Alt-N "turn into H1..6" shortcuts intact;
+// collapseEmptyHeadingKeymap below replaces it with Notion's behavior.
+export function configureHeadingKeymap(ctx: Ctx) {
+  ctx.update(headingKeymap.key, (keys) => ({
+    ...keys,
+    DowngradeHeading: { ...keys.DowngradeHeading, shortcuts: [] },
+  }));
+}
+
+// Mirrors how Notion treats Backspace/Delete at a heading boundary: an
+// EMPTY heading first peels off its heading formatting (becomes a plain
+// paragraph) rather than merging into its neighbor — a second
+// Backspace/Delete then deletes/merges it as an ordinary empty paragraph
+// would. A heading that still has text in it isn't special-cased at all:
+// falling through (returning false) lets the default join command run,
+// which merges the text into the neighboring block and keeps THAT block's
+// type — so deleting the row above an H2 turns the merged line into
+// whatever the row above was, never a promoted H1.
+const collapseEmptyHeadingCommand = $command("CollapseEmptyHeading", (ctx) => () => (state, dispatch, view) => {
+  const { $from, empty } = state.selection;
+  if (!empty || $from.parentOffset !== 0) return false;
+  const node = $from.parent;
+  if (node.type !== headingSchema.type(ctx) || node.content.size > 0) return false;
+  return setBlockType(paragraphSchema.type(ctx))(state, dispatch, view);
+});
+
+const collapseEmptyHeadingUserKeymap = $useKeymap("collapseEmptyHeading", {
+  CollapseEmptyHeading: {
+    shortcuts: ["Backspace", "Delete"],
+    command: (ctx) => {
+      const commands = ctx.get(commandsCtx);
+      return () => commands.call(collapseEmptyHeadingCommand.key);
+    },
+    // Must win the tie against Milkdown's own base Backspace/Delete
+    // chain (unspecified priority defaults to 50) so the empty-heading
+    // case is caught before the default join command consumes the key.
+    priority: 100,
+  },
+});
+
+export const collapseEmptyHeadingKeymap = [collapseEmptyHeadingCommand, ...collapseEmptyHeadingUserKeymap];
 
 // Port of shortcode-expand.ts's SHORTCODES map (`..d`, `{date}`, `{todo}`,
 // etc.) as ProseMirror input rules — same "text immediately before the

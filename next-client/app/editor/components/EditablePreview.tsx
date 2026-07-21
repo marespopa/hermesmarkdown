@@ -13,7 +13,7 @@ import { trailing } from "@milkdown/kit/plugin/trailing";
 import { replaceAll } from "@milkdown/kit/utils";
 import { Milkdown, MilkdownProvider, useEditor } from "@milkdown/react";
 import { FM_REGEX } from "@/app/utils/frontmatter-utils";
-import { shortcodeInputRules, calcInputRule, taskListItemView, calloutBlockquoteView, calloutMarkerDecorations, htmlPassthroughView, exitBlockOnShiftEnter } from "../milkdown/plugins";
+import { shortcodeInputRules, calcInputRule, taskListItemView, calloutBlockquoteView, calloutMarkerDecorations, htmlPassthroughView, exitBlockOnShiftEnter, configureHeadingKeymap, collapseEmptyHeadingKeymap } from "../milkdown/plugins";
 import { codeBlockView } from "../milkdown/code-block-view";
 import { remarkMathPlugin, inlineMathSchema, mathBlockSchema, inlineMathInputRule, inlineMathView, mathBlockView } from "../milkdown/math-schema";
 import { slashMenu, configureSlashMenu } from "../milkdown/slash-menu";
@@ -137,6 +137,7 @@ function EditorHost({ content, onChange, onWikiLinkClick, onTableCalloutUpdate }
           latestContentRef.current = next;
           onChangeRef.current(next);
         });
+        configureHeadingKeymap(ctx);
         configureSlashMenu(ctx);
         configureWikiLinkClick(ctx, (name) => onWikiLinkClickRef.current?.(name));
         configureDateClick(ctx, (payload) => setDatePicker(payload));
@@ -156,6 +157,7 @@ function EditorHost({ content, onChange, onWikiLinkClick, onTableCalloutUpdate }
       .use(calloutMarkerDecorations)
       .use(htmlPassthroughView)
       .use(exitBlockOnShiftEnter)
+      .use(collapseEmptyHeadingKeymap)
       .use(codeBlockView)
       .use(remarkMathPlugin)
       .use(inlineMathSchema)
