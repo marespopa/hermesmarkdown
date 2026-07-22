@@ -26,7 +26,7 @@ import { unescapeKnownMarkdownPatterns } from "../milkdown/markdown-escape";
 import { shortcodeInputRules, calcInputRule, taskListItemView, calloutBlockquoteView, calloutMarkerDecorations, htmlPassthroughView, exitBlockOnShiftEnter, enterInLinkFix, configureHeadingKeymap, collapseEmptyHeadingKeymap, clipboardCopyFix } from "../milkdown/plugins";
 import { codeBlockView } from "../milkdown/code-block-view";
 import { remarkMathPlugin, inlineMathSchema, mathBlockSchema, inlineMathInputRule, inlineMathView, mathBlockView } from "../milkdown/math-schema";
-import { slashMenu, configureSlashMenu, onOpenLinkDialogCtx, configureOpenLinkDialog } from "../milkdown/slash-menu";
+import { slashMenu, configureSlashMenu, onOpenLinkDialogCtx, configureOpenLinkDialog, onOpenWikiLinkDialogCtx, configureOpenWikiLinkDialog } from "../milkdown/slash-menu";
 import { wikiLinkClickPlugin, configureWikiLinkClick, onWikiLinkClickCtx, linkClickPlugin } from "../milkdown/wikilink-click";
 import { linkPastePlugin } from "../milkdown/link-paste";
 import { imagePastePlugin, onPasteImageCtx, configurePasteImage } from "../milkdown/image-paste";
@@ -57,6 +57,7 @@ import DatePickerCallout from "./DatePickerCallout";
 import Button from "../../components/Button";
 import Input from "../../components/Input";
 import DialogModal from "../../components/DialogModal/DialogModal";
+import WikiLinkDialog from "./WikiLinkDialog";
 
 interface EditablePreviewProps {
   content: string;
@@ -127,6 +128,7 @@ function EditorHost({ content, onChange, onWikiLinkClick, onTableCalloutUpdate, 
   const [linkLabel, setLinkLabel] = useState("");
   const [linkUrl, setLinkUrl] = useState("");
   const linkUrlInputRef = useRef<HTMLInputElement>(null);
+  const [wikiLinkDialog, setWikiLinkDialog] = useState<{ insert: (name: string) => void } | null>(null);
 
   const closeLinkDialog = () => setLinkDialog(null);
   const confirmLinkDialog = () => {
@@ -134,6 +136,13 @@ function EditorHost({ content, onChange, onWikiLinkClick, onTableCalloutUpdate, 
     if (!linkUrl.trim()) return;
     linkDialog.insert(linkLabel, linkUrl);
     setLinkDialog(null);
+  };
+
+  const closeWikiLinkDialog = () => setWikiLinkDialog(null);
+  const confirmWikiLinkDialog = (name: string) => {
+    if (!wikiLinkDialog) return;
+    wikiLinkDialog.insert(name);
+    setWikiLinkDialog(null);
   };
 
   const { get } = useEditor((root) => {
@@ -161,6 +170,9 @@ function EditorHost({ content, onChange, onWikiLinkClick, onTableCalloutUpdate, 
           setLinkLabel("");
           setLinkUrl("");
           setLinkDialog({ insert });
+        });
+        configureOpenWikiLinkDialog(ctx, (insert) => {
+          setWikiLinkDialog({ insert });
         });
         configureUserInputTracking(ctx, () => {
           hasUserInteractedRef.current = true;
@@ -211,6 +223,7 @@ function EditorHost({ content, onChange, onWikiLinkClick, onTableCalloutUpdate, 
       .use(onLinkCalloutUpdateCtx)
       .use(linkCalloutPlugin)
       .use(onOpenLinkDialogCtx)
+      .use(onOpenWikiLinkDialogCtx)
       .use(slashMenu);
   }, []);
 
@@ -289,6 +302,12 @@ function EditorHost({ content, onChange, onWikiLinkClick, onTableCalloutUpdate, 
           </div>
         </DialogModal>
       )}
+      <WikiLinkDialog
+        isOpen={!!wikiLinkDialog}
+        onClose={closeWikiLinkDialog}
+        onConfirm={confirmWikiLinkDialog}
+        title="Insert WikiLink"
+      />
     </>
   );
 }

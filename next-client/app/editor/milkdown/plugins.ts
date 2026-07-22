@@ -6,6 +6,7 @@ import { Decoration, DecorationSet } from "@milkdown/kit/prose/view";
 import { Plugin, PluginKey, TextSelection } from "@milkdown/kit/prose/state";
 import { parserCtx, commandsCtx, schemaCtx, serializerCtx } from "@milkdown/kit/core";
 import { setBlockType, splitBlock } from "@milkdown/kit/prose/commands";
+import { splitListItem } from "@milkdown/kit/prose/schema-list";
 import { $command, $inputRule, $prose, $useKeymap, $view } from "@milkdown/kit/utils";
 import { extendListItemSchemaForTask } from "@milkdown/kit/preset/gfm";
 import {
@@ -167,7 +168,7 @@ class TaskListItemView implements NodeView {
     // space for the `::marker` we no longer render (list-none) — without
     // this the checkbox sits far right of where the bullet used to be.
     li.style.display = "flex";
-    li.style.alignItems = "center";
+    li.style.alignItems = "flex-start";
     li.style.gap = "0.5rem";
     li.style.paddingLeft = "0";
     li.style.marginLeft = "0";
@@ -178,6 +179,10 @@ class TaskListItemView implements NodeView {
     checkbox.contentEditable = "false";
     checkbox.className = "cursor-pointer accent-sage";
     checkbox.style.flexShrink = "0";
+    // alignItems: flex-start keeps the box pinned to the row's top edge
+    // even when the text wraps to multiple lines; this nudges it back down
+    // to sit level with the first line of text instead of the row's edge.
+    checkbox.style.marginTop = "0.35rem";
     // Prevents ProseMirror from stealing focus/selection on click while
     // still letting the browser toggle the checkbox and fire "change".
     checkbox.addEventListener("mousedown", (e) => e.preventDefault());
@@ -654,7 +659,16 @@ export const enterInLinkFix = $prose(() => {
           tr = tr.removeStoredMark(linkType);
           view.dispatch(tr.scrollIntoView());
         } else {
-          if (!splitBlock(state, view.dispatch)) return false;
+          // splitBlock only splits the immediate textblock (the paragraph),
+          // not the surrounding list_item — inside a list that leaves two
+          // paragraphs stacked in one bullet instead of creating a new one.
+          // Reach for schema-list's own list-aware split when the paragraph
+          // being split sits inside a list_item.
+          const listItemType = state.schema.nodes.list_item;
+          const split = listItemType && state.selection.$from.node(-1)?.type === listItemType
+            ? splitListItem(listItemType)
+            : splitBlock;
+          if (!split(state, view.dispatch)) return false;
           view.dispatch(view.state.tr.removeStoredMark(linkType));
         }
         event.preventDefault();

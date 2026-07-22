@@ -424,25 +424,15 @@ graph TD
       {
         id: "slash-menu",
         title: "Slash menu",
-        lead: "Type / anywhere in Rendered view for a searchable, categorized menu of everything insertable — headings, lists, tables, code, callouts, math, and starter templates.",
-        keywords: "slash menu templates meeting notes daily note insert",
+        lead: "Type / anywhere in Rendered view for a searchable, categorized menu of everything insertable — headings, lists, tables, code, callouts, and math.",
+        keywords: "slash menu insert",
         body: (
           <>
             <p>
               Keep typing after <code>/</code> to filter by title or keyword; <code>↑</code>/<code>↓</code>{" "}
               to move the selection, <code>Enter</code> to insert, <code>Escape</code> to dismiss.
-              Results are grouped under Text, Lists, Insert, Callouts, and Templates.
+              Results are grouped under Text, Lists, Insert, and Callouts.
             </p>
-            <p>
-              Templates are pre-formatted starting points inserted as regular Markdown you then edit —
-              not a separate file type or a live-linked structure.
-            </p>
-            <KV
-              rows={[
-                { label: "Meeting Notes", value: "Attendees, agenda, notes, action items" },
-                { label: "Daily Note", value: "Today's focus, tasks, notes" },
-              ]}
-            />
           </>
         ),
       },

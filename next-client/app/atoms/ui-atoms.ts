@@ -112,6 +112,12 @@ export const atom_vaultCreationError = atom<string | null>(null);
 export const atom_newVaultFlowOpen = atom<boolean>(false);
 export const atom_keyboardShortcutsOpen = atom<boolean>(false);
 
+// Tasks panel grouping mode ("status" or "file"), remembered across sessions
+export const atom_tasksGroupBy = atomWithStorage<"status" | "file">(
+  "tasksGroupBy",
+  "status",
+);
+
 // No getOnInit: the server has no localStorage and always renders the 260
 // default, so reading it eagerly on the client would mismatch the SSR HTML
 // and trigger a hydration error. The default-then-localStorage-on-mount

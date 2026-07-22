@@ -1,10 +1,11 @@
 "use client";
 
 import React from "react";
-import { useAtomValue } from "jotai";
+import { useAtom, useAtomValue } from "jotai";
 import { HiOutlineCheckCircle, HiChevronRight, HiChevronDown, HiOutlineDocumentText, HiOutlineViewList } from "react-icons/hi";
 import { atom_allTasks } from "@/app/atoms/task-atoms";
 import { atom_fileMetadata } from "@/app/atoms/metadata";
+import { atom_tasksGroupBy } from "@/app/atoms/ui-atoms";
 import { TaskItem } from "@/app/utils/taskExtractor";
 import { useTaskWriteback } from "@/app/hooks/use-task-writeback";
 
@@ -53,7 +54,7 @@ export default function VaultSidebarTasks({ onFileSelect }: VaultSidebarTasksPro
   const allTasks = useAtomValue(atom_allTasks);
   const fileMetadata = useAtomValue(atom_fileMetadata);
   const { toggleTask } = useTaskWriteback();
-  const [groupBy, setGroupBy] = React.useState<GroupBy>("status");
+  const [groupBy, setGroupBy] = useAtom(atom_tasksGroupBy);
   const [collapsed, setCollapsed] = React.useState<Record<Group, boolean>>({
     todo: false,
     prog: false,

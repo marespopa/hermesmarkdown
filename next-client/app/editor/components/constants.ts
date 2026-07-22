@@ -246,112 +246,11 @@ export const TEMPLATES: Template[] = [
     content: aiActionSentinel("explain"),
     aiOnly: true,
   },
-  // --- Obsidian / Daily Driver ---
-  {
-    label: "Daily Note",
-    icon: "🗓️",
-    description: "Journal, tasks, and links for today",
-    content: "# {day}, {date}\n> 📅 Week: {week}\n\n## 📓 Journal\n\n\n## ✅ Tasks\n- [ ] \n- [ ] \n- [ ] \n\n## 🔗 Links\n- [[{date}]]\n\n#todo",
-  },
-  {
-    label: "Meeting Notes",
-    icon: "📋",
-    description: "Agenda, decisions, and action items",
-    content: "# Meeting – {date}\n> 🕐 {time}\n> 📌 Topic: \n\n## 👥 Attendees\n- \n\n## 📋 Agenda\n- \n\n## ✅ Decisions\n- \n\n## 🎯 Action Items\n- [ ]  #todo\n- [ ]  #todo",
-  },
-  {
-    label: "Atomic Note",
-    icon: "🧠",
-    description: "Zettelkasten-style single idea",
-    content: "# \n> 📅 {date}  ·  Source: [[]]\n\n## Summary\n\n\n## Key Ideas\n- \n- \n\n## Links\n- [[]]\n- [[]]",
-  },
-  {
-    label: "Weekly Review",
-    icon: "📆",
-    description: "Wins, carry-overs, and next week goals",
-    content: "# Weekly Review – {week}\n> 📅 {date}\n\n## 🏆 Wins\n- \n\n## 🔄 Carry-overs\n- [ ]  #wait\n- [ ]  #wait\n\n## 🎯 Next Week\n- [ ]  #todo\n- [ ]  #todo\n- [ ]  #todo\n\n## 💡 Reflection\n",
-  },
-  // --- Writing ---
-  {
-    label: "Essay",
-    icon: "✍️",
-    description: "Lead, body, and closing structure",
-    content: "# Title\n> {date}\n\n## Lead\n\n\n## Body\n\n### \n\n### \n\n## Closing\n",
-  },
   // --- Productivity ---
   {
     label: "Frontmatter",
     icon: "📄",
     description: "Open the frontmatter wizard",
     content: FRONTMATTER_WIZARD_SENTINEL,
-  },
-  {
-    label: "To-Do List",
-    icon: "📝",
-    description: "Priority and task checklist",
-    content: "# ✏️ To-Do – {date}\n\n## 🎯 Priority\n- [ ]  #urgn\n- [ ]  #urgn\n\n## 📋 Tasks\n- [ ]  #todo\n- [ ]  #todo\n- [ ]  #todo\n\n## ✅ Done\n- [x] Example task #done",
-  },
-  {
-    label: "Notes",
-    icon: "📝",
-    description: "Summary and quick actions",
-    content: "# {day}, {date} – Notes\n\n## Summary\n\n\n## Actions\n- [ ] \n- [ ] ",
-  },
-  // --- Dev ---
-  {
-    label: "Dev Sprint",
-    icon: "💻",
-    description: "Changes, bugs, and dev log",
-    content: "# 🛠️ Dev Log – {date}\n> 📅 Week: {week}\n> 🎯 Focus: \n\n## 🚀 Changes\n- [ ] Update  #todo\n- [ ] Refactor  #todo\n\n## 🐛 Bugs\n- [ ] Issue description  #urgn\n- See also: [[]]\n\nstatus: #prog",
-  },
-  // --- Personal ---
-  {
-    label: "Financial Plan",
-    icon: "💰",
-    description: "Monthly budget allocation",
-    content: "# 📊 Monthly Allocation\n\n## 🏦 Credit Management\n- Credit Card: -$200\n- Bank Loan: -$150\n- Other Credit: -$100\n\n## 🛒 Variable Spending\n- Groceries: $400\n- Dining: $150\n- Transport: $100\n- Other Expenses: $100\n\n---\n| Item | Amount |\n| ---- | ------ |\n| Credit Card | -$200 |\n| Bank Loan | -$150 |\n| Other Credit | -$100 |\n| Groceries | $400 |\n| Dining | $150 |\n| Transport | $100 |\n| Other Expenses | $100 |\n| Total | =SUM(B2:B8) |\n\n> 💡 Tip: Update the values above — the Total row recalculates live.",
-  },
-  {
-    label: "Gym Log",
-    icon: "💪",
-    description: "Workout split and exercise tracker",
-    content: "# 🏋️ Workout – {day}\n> 📅 {date}\n> ⚡ Split: (Push / Pull / Legs / Upper / Lower)\n\n## 🏃 Exercises\n- [ ] \n- [ ] \n- [ ] ",
-  },
-  {
-    label: "Kanban Board",
-    icon: "🗂️",
-    description: "Draft, review, active, archived lifecycle board",
-    content: "# 🗂️ Kanban – {date}\n\n## 📝 Draft\n- [ ] Task  #draft\n- [ ] Task  #draft\n\n## 🔍 Review\n- [ ] Task  #review\n- [ ] Task  #review\n\n## ✅ Active\n- [x] Task  #active\n\n## 🗄️ Archived\n- [x] Example task  #archived",
-  },
-  // --- Agent / Prompt Engineering ---
-  {
-    label: "Agent",
-    icon: "🧩",
-    description: "Role, goal, and constraints block",
-    content: "<AGENT>\n  role: \n  goal: \n  constraints:\n    - \n    - \n</AGENT>\n",
-  },
-  {
-    label: "Role",
-    icon: "🎭",
-    description: "Persona definition block",
-    content: "<ROLE>\n  You are a \n  Your expertise: \n  Tone: \n</ROLE>\n",
-  },
-  {
-    label: "Context",
-    icon: "📦",
-    description: "Context wrapper block",
-    content: "<CONTEXT>\n\n</CONTEXT>\n",
-  },
-  {
-    label: "Constraints",
-    icon: "🚧",
-    description: "Do-not / always / format rules",
-    content: "<CONSTRAINTS>\n  - Do not \n  - Always \n  - Output format: \n</CONSTRAINTS>\n",
-  },
-  {
-    label: "Output",
-    icon: "📤",
-    description: "Output format specification",
-    content: "<OUTPUT_FORMAT>\n  format: \n  length: \n  language: \n  example:\n    \n</OUTPUT_FORMAT>\n",
   },
 ];

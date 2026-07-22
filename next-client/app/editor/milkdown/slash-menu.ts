@@ -26,12 +26,24 @@ export function configureOpenLinkDialog(ctx: Ctx, onOpenLinkDialog?: (insert: (l
   ctx.set(onOpenLinkDialogCtx.key, onOpenLinkDialog);
 }
 
+// Same bridge pattern as onOpenLinkDialogCtx above, but the insert closure
+// only takes the chosen note name — WikiLinkDialog resolves that name
+// against atom_fileMetadata itself.
+export const onOpenWikiLinkDialogCtx = $ctx<((insert: (name: string) => void) => void) | undefined, "onOpenWikiLinkDialog">(
+  undefined,
+  "onOpenWikiLinkDialog",
+);
+
+export function configureOpenWikiLinkDialog(ctx: Ctx, onOpenWikiLinkDialog?: (insert: (name: string) => void) => void) {
+  ctx.set(onOpenWikiLinkDialogCtx.key, onOpenWikiLinkDialog);
+}
+
 interface SlashRange {
   from: number;
   to: number;
 }
 
-type SlashCategory = "Text" | "Lists" | "Insert" | "Callouts" | "Templates";
+type SlashCategory = "Text" | "Lists" | "Insert" | "Callouts";
 
 interface SlashCommand {
   title: string;
@@ -53,11 +65,6 @@ function insertBlock(ctx: Ctx, view: EditorView, range: SlashRange, block: impor
   view.dispatch(view.state.tr.replaceWith(range.from, range.to, block));
 }
 
-function insertMarkdownTemplate(ctx: Ctx, view: EditorView, range: SlashRange, markdown: string) {
-  const parsed = ctx.get(parserCtx)(markdown);
-  if (parsed) insertBlock(ctx, view, range, parsed.content as unknown as import("@milkdown/kit/prose/model").Node);
-}
-
 const CALLOUT_TYPES = ["note", "tip", "warning"] as const;
 
 // Small, reused-across-rows icon set — outline style matching the chevron
@@ -72,9 +79,8 @@ const ICON = {
   code: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="8 6 3 12 8 18"/><polyline points="16 6 21 12 16 18"/></svg>',
   sigma: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 5H7l6 7-6 7h11"/></svg>',
   quote: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 8c-2 0-3.5 1.6-3.5 4S5 16 7 16"/><path d="M17 8c-2 0-3.5 1.6-3.5 4S15 16 17 16"/></svg>',
-  doc: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 3h9l4 4v14H6z"/><line x1="9" y1="12" x2="16" y2="12"/><line x1="9" y1="16" x2="16" y2="16"/></svg>',
-  calendar: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="16" rx="1.5"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="3" x2="8" y2="7"/><line x1="16" y1="3" x2="16" y2="7"/></svg>',
   link: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.07 0l2.83-2.83a5 5 0 0 0-7.07-7.07l-1.5 1.5"/><path d="M14 11a5 5 0 0 0-7.07 0l-2.83 2.83a5 5 0 0 0 7.07 7.07l1.5-1.5"/></svg>',
+  wikilink: '<span class="text-[11px] font-bold tabular-nums">[[ ]]</span>',
 };
 
 function headingIcon(level: 1 | 2 | 3): string {
@@ -85,31 +91,6 @@ function calloutIcon(type: (typeof CALLOUT_TYPES)[number]): string {
   const meta = CALLOUT_META[type] ?? CALLOUT_META.note;
   return `<span class="inline-block w-2.5 h-2.5 rounded-full ${meta.border.replace("border-", "bg-")}"></span>`;
 }
-
-const TEMPLATE_MEETING_NOTES = `## Meeting Notes
-
-**Date:**
-**Attendees:**
-
-### Agenda
-
-
-### Notes
-
-
-### Action Items
-- [ ] `;
-
-const TEMPLATE_DAILY_NOTE = `## Daily Note
-
-### Today's Focus
-
-
-### Tasks
-- [ ]
-
-### Notes
-`;
 
 function buildCommands(): SlashCommand[] {
   return [
@@ -234,6 +215,22 @@ function buildCommands(): SlashCommand[] {
       },
     },
     {
+      title: "WikiLink",
+      description: "Link to another note",
+      category: "Insert",
+      keywords: ["wikilink", "note", "[["],
+      icon: ICON.wikilink,
+      run: (ctx, view, range) => {
+        const onOpenWikiLinkDialog = ctx.get(onOpenWikiLinkDialogCtx.key);
+        if (!onOpenWikiLinkDialog) return;
+        onOpenWikiLinkDialog((name) => {
+          const text = view.state.schema.text(`[[${name}]]`);
+          view.dispatch(view.state.tr.replaceWith(range.from, range.to, text));
+          view.focus();
+        });
+      },
+    },
+    {
       title: "Table",
       description: "Insert a GFM table",
       category: "Insert",
@@ -309,22 +306,6 @@ function buildCommands(): SlashCommand[] {
         view.dispatch(tr);
       },
     })),
-    {
-      title: "Meeting Notes",
-      description: "Agenda, notes, action items",
-      category: "Templates",
-      keywords: ["template", "meeting"],
-      icon: ICON.doc,
-      run: (ctx, view, range) => insertMarkdownTemplate(ctx, view, range, TEMPLATE_MEETING_NOTES),
-    },
-    {
-      title: "Daily Note",
-      description: "Focus, tasks, notes",
-      category: "Templates",
-      keywords: ["template", "daily", "journal"],
-      icon: ICON.calendar,
-      run: (ctx, view, range) => insertMarkdownTemplate(ctx, view, range, TEMPLATE_DAILY_NOTE),
-    },
   ];
 }
 
