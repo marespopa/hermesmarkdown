@@ -110,6 +110,7 @@ export const atom_vaultCreationParentHandle = atom<FileSystemDirectoryHandle | n
 export const atom_vaultCreationError = atom<string | null>(null);
 // Post-onboarding trigger: set true to open the NewVaultDialog
 export const atom_newVaultFlowOpen = atom<boolean>(false);
+export const atom_keyboardShortcutsOpen = atom<boolean>(false);
 
 // No getOnInit: the server has no localStorage and always renders the 260
 // default, so reading it eagerly on the client would mismatch the SSR HTML

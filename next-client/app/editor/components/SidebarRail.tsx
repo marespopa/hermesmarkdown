@@ -16,6 +16,7 @@ import {
   HiOutlineRefresh,
   HiOutlineLogout,
   HiOutlineDatabase,
+  HiOutlineQuestionMarkCircle,
 } from "react-icons/hi";
 import Button from "@/app/components/Button";
 import { useFileSystem } from "@/app/hooks/use-file-system";
@@ -36,6 +37,7 @@ interface SidebarRailProps {
   onRefreshVault?: () => void;
   onOpenAIChat?: () => void;
   onOpenDocumentation?: () => void;
+  onOpenKeyboardShortcuts?: () => void;
 }
 
 // Anchored to the right of the rail (rather than above, like the old
@@ -48,7 +50,7 @@ function RailTooltip({ label }: { label: string }) {
   );
 }
 
-export default function SidebarRail({ panel, onSelectPanel, onSettings, onRefreshVault, onOpenAIChat, onOpenDocumentation }: SidebarRailProps) {
+export default function SidebarRail({ panel, onSelectPanel, onSettings, onRefreshVault, onOpenAIChat, onOpenDocumentation, onOpenKeyboardShortcuts }: SidebarRailProps) {
   const { vaultHandle, closeVault, openVault, isVaultSupported } = useFileSystem();
   const [theme, setTheme] = useAtom(atom_theme);
 
@@ -102,6 +104,20 @@ export default function SidebarRail({ panel, onSelectPanel, onSettings, onRefres
               <HiOutlineBookOpen size={18} />
             </Button>
             <RailTooltip label="Documentation" />
+          </div>
+        )}
+
+        {onOpenKeyboardShortcuts && (
+          <div className="relative group/rail-item w-full flex justify-center">
+            <Button
+              variant="icon"
+              onClick={onOpenKeyboardShortcuts}
+              className="w-10 h-10 opacity-80 hover:opacity-100 !rounded-none"
+              aria-label="Keyboard shortcuts"
+            >
+              <HiOutlineQuestionMarkCircle size={18} />
+            </Button>
+            <RailTooltip label="Keyboard shortcuts" />
           </div>
         )}
 

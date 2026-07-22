@@ -167,6 +167,45 @@ export function handlePasteTransform(
   return false;
 }
 
+// Pasting/dropping an image inserts a placeholder immediately (so the user
+// sees feedback before the async write to the vault's assets/ folder
+// finishes), then swaps it for the final markdown image link once
+// saveImage resolves. Looks the placeholder back up by text rather than
+// tracking a position, since typing elsewhere in the doc while the write
+// is in flight would otherwise shift a tracked offset out from under it.
+export function insertPastedImage(
+  view: EditorView,
+  file: File,
+  saveImage: (file: File) => Promise<string | null>,
+  at?: number,
+): void {
+  const range = view.state.selection.main;
+  const from = at ?? range.from;
+  const to = at ?? range.to;
+  const placeholder = `![Uploading ${file.name || "image"}...]()`;
+  view.dispatch(
+    view.state.update({
+      changes: { from, to, insert: placeholder },
+      selection: EditorSelection.cursor(from + placeholder.length),
+      userEvent: "input.paste.image",
+      scrollIntoView: true,
+    }),
+  );
+
+  saveImage(file).then((relPath) => {
+    const text = view.state.doc.toString();
+    const idx = text.indexOf(placeholder);
+    if (idx === -1) return;
+    const finalText = relPath ? `![](${relPath})` : "";
+    view.dispatch(
+      view.state.update({
+        changes: { from: idx, to: idx + placeholder.length, insert: finalText },
+        userEvent: "input.paste.image",
+      }),
+    );
+  });
+}
+
 export const formatKeymap: readonly KeyBinding[] = [
   { key: "Mod-b", run: toggleBold, preventDefault: true },
   { key: "Mod-i", run: toggleItalic, preventDefault: true },

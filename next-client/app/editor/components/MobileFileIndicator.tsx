@@ -10,7 +10,7 @@ import {
   atom_setPaneType,
   findLeaf,
 } from "@/app/atoms/atoms";
-import { HiOutlineChevronDown, HiOutlineChatAlt2, HiOutlineSave, HiOutlineEye } from "react-icons/hi";
+import { HiOutlineChevronDown, HiOutlineChatAlt2, HiOutlineEye } from "react-icons/hi";
 import { useCommandPalette } from "@/app/components/CommandPalette/CommandPaletteContext";
 import { TabSaveState, statusMeta } from "./PaneTab";
 
@@ -58,13 +58,6 @@ export default function MobileFileIndicator({ onSave, onOpenAIChat }: MobileFile
       ? "dirty"
       : "idle";
   const meta = hasOpenFiles ? statusMeta[saveState] : null;
-  // Silent when clean (saved/idle) — spelling out "Saved" on every load
-  // would just be noise; the icon alone still confirms it at a glance. The
-  // label still reserves its full width even when hidden (via `invisible`,
-  // not conditional rendering) so this segment never changes width across
-  // states — otherwise the title next to it kept jumping left/right as the
-  // status text appeared and disappeared.
-  const showLabel = saveState === "dirty" || saveState === "saving" || saveState === "error";
 
   return (
     <div className="relative shrink-0 flex items-center h-11 bg-chrome border-b border-edge-subtle">
@@ -79,16 +72,22 @@ export default function MobileFileIndicator({ onSave, onOpenAIChat }: MobileFile
           <HiOutlineChatAlt2 size={18} />
         </button>
       )}
-      {hasOpenFiles && (
+      {hasOpenFiles && meta && (
         <button
           type="button"
           onClick={onSave}
           disabled={saveState === "saving"}
-          aria-label="Save file"
-          title="Save now"
-          className="flex items-center justify-center h-11 min-w-11 shrink-0 text-fg-faint hover:text-sage disabled:opacity-40 disabled:pointer-events-none transition-colors"
+          aria-label={`Save — ${meta.title}`}
+          title={saveState === "error" ? saveStatus.message || meta.title : meta.title}
+          className={`flex items-center justify-center h-11 min-w-11 shrink-0 disabled:pointer-events-none transition-colors ${
+            saveState === "idle" ? "text-fg-faint hover:text-sage" : meta.className
+          }`}
         >
-          <HiOutlineSave size={18} />
+          {saveState === "saving" ? (
+            <span className="w-3 h-3 rounded-full border-2 border-edge border-t-sage animate-spin" />
+          ) : (
+            meta.Icon && <meta.Icon size={18} />
+          )}
         </button>
       )}
       {hasOpenFiles && leaf && (
@@ -104,23 +103,6 @@ export default function MobileFileIndicator({ onSave, onOpenAIChat }: MobileFile
         >
           <HiOutlineEye size={18} />
         </button>
-      )}
-      {meta && (
-        <span
-          className="flex items-center gap-1 shrink-0 w-[88px]"
-          title={saveState === "error" ? saveStatus.message || meta.title : meta.title}
-        >
-          <span className="flex items-center justify-center w-3 h-3 shrink-0">
-            {saveState === "saving" ? (
-              <span className="w-2.5 h-2.5 rounded-full border-2 border-edge border-t-sage animate-spin" />
-            ) : (
-              meta.Icon && <meta.Icon size={12} className={meta.className} />
-            )}
-          </span>
-          <span className={`text-[10px] font-medium whitespace-nowrap ${showLabel ? meta.className : "invisible"}`}>
-            {meta.label}
-          </span>
-        </span>
       )}
       <button
         type="button"

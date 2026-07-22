@@ -371,14 +371,20 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
                     onClick={handleSave}
                     disabled={activeSaveState === "saving"}
                     aria-label={`Save — ${activeSaveMeta.title}`}
-                    className={`w-9 h-9 flex items-center justify-center transition-all rounded-xl disabled:opacity-40 disabled:pointer-events-none ${
-                      activeSaveState === "idle" ? "text-ink-muted hover:text-sage" : activeSaveMeta.className
-                    }`}
+                    className="w-9 h-9 flex items-center justify-center transition-all rounded-xl disabled:opacity-40 disabled:pointer-events-none"
                   >
                     {activeSaveState === "saving" ? (
                       <span className="w-3.5 h-3.5 rounded-full border-2 border-edge border-t-sage animate-spin" />
                     ) : activeSaveMeta.Icon ? (
-                      <activeSaveMeta.Icon size={18} />
+                      // Colored directly on the icon rather than the Button
+                      // wrapper — Button's own base classes (variant="icon")
+                      // set a text color too, and since both are plain
+                      // utility classes at equal specificity, whichever
+                      // lands later in Tailwind's generated stylesheet wins
+                      // regardless of the order they're listed in here. A
+                      // class on the icon itself always beats an inherited
+                      // value from its parent, so it can't be shadowed that way.
+                      <activeSaveMeta.Icon size={18} className={activeSaveState === "idle" ? undefined : activeSaveMeta.className} />
                     ) : (
                       <HiOutlineSave size={18} />
                     )}

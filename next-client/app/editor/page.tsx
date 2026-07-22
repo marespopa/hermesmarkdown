@@ -30,6 +30,7 @@ import LoadingOverlay from "@/app/components/LoadingOverlay";
 import EditorCommands from "./components/EditorCommands";
 import { CommandPaletteProvider } from "@/app/components/CommandPalette/CommandPaletteContext";
 import CommandPalette from "@/app/components/CommandPalette/CommandPalette";
+import KeyboardShortcutsOverlay from "@/app/components/KeyboardShortcutsOverlay/KeyboardShortcutsOverlay";
 import MobileFileOverlay from "./components/MobileFileOverlay";
 import MobileTasksOverlay from "./components/MobileTasksOverlay";
 import MobileFileIndicator from "./components/MobileFileIndicator";
@@ -52,7 +53,7 @@ import { AISelectionToolbar } from "./components/AISelectionToolbar";
 
 
 import { useRouter } from "next/navigation";
-import { atom_isAiConfigured, atom_aiBuilderRequest, atom_railPanel, atom_showHiddenFiles, RailPanel, atom_voiceInputRequest, atom_isVoiceInputListening, atom_isVoiceInputSupported, atom_activeEditorView, atom_isSidebarResizing } from "@/app/atoms/ui-atoms";
+import { atom_isAiConfigured, atom_aiBuilderRequest, atom_railPanel, atom_showHiddenFiles, RailPanel, atom_voiceInputRequest, atom_isVoiceInputListening, atom_isVoiceInputSupported, atom_activeEditorView, atom_isSidebarResizing, atom_keyboardShortcutsOpen } from "@/app/atoms/ui-atoms";
 import { generateFileFromPrompt } from "@/app/services/ai";
 import { withRetry } from "@/app/hooks/file-system/shared";
 
@@ -71,6 +72,7 @@ export default function LiteEditor() {
   // any split tree a desktop session may have saved.
   const mobileLeaf = findLeaf(workspaceLayout.rootContainer, activePaneId) ?? getFirstLeaf(workspaceLayout.rootContainer);
   const [railPanel, setRailPanel] = useAtom(atom_railPanel);
+  const [, setKeyboardShortcutsOpen] = useAtom(atom_keyboardShortcutsOpen);
   const sidebarWidth = useAtomValue(atom_sidebarWidth);
   const isSidebarResizing = useAtomValue(atom_isSidebarResizing);
   // Kept mounted while collapsing/expanding so the wrapper's width transition
@@ -450,6 +452,7 @@ export default function LiteEditor() {
         onRefreshVault={handleRefreshVault}
       />
       <CommandPalette />
+      <KeyboardShortcutsOverlay />
       <LoadingOverlay isVisible={isMounting || isFileLoading || !!navigatingLabel} text={isFileLoading ? "Loading file..." : navigatingLabel ? `${navigatingLabel}...` : "Loading..."} />
       <div className={`fixed inset-0 flex flex-col bg-surface text-fg selection:bg-sage-light/30 font-sans overflow-hidden overscroll-none transition-all duration-500 ${isVaultPending ? "blur-md pointer-events-none select-none" : ""}`}>
         {/* Modals */}
@@ -493,6 +496,7 @@ export default function LiteEditor() {
                 onRefreshVault={handleRefreshVault}
                 onOpenAIChat={isAiConfigured ? openAiChat : undefined}
                 onOpenDocumentation={() => navigateWithGuard("/documentation", "Documentation")}
+                onOpenKeyboardShortcuts={() => setKeyboardShortcutsOpen(true)}
               />
             ) : (
               <div className="group/railzone relative h-full w-2 shrink-0">
@@ -504,6 +508,7 @@ export default function LiteEditor() {
                     onRefreshVault={handleRefreshVault}
                     onOpenAIChat={isAiConfigured ? openAiChat : undefined}
                     onOpenDocumentation={() => navigateWithGuard("/documentation", "Documentation")}
+                    onOpenKeyboardShortcuts={() => setKeyboardShortcutsOpen(true)}
                   />
                 </div>
               </div>

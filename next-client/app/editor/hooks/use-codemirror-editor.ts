@@ -20,6 +20,7 @@ interface UseCodeMirrorEditorOptions {
   slashMenuCallbacksRef: { current: SlashMenuCallbacks };
   wikiLinkTriggerRef: { current: WikiLinkTriggerCallback | null };
   csvConfirmRef?: { current: ((preview: string) => Promise<boolean>) | null };
+  pasteImageRef?: { current: ((file: File) => Promise<string | null>) | null };
   onViewCreated?: (view: EditorView) => void;
 }
 
@@ -44,6 +45,7 @@ export function useCodeMirrorEditor({
   slashMenuCallbacksRef,
   wikiLinkTriggerRef,
   csvConfirmRef,
+  pasteImageRef,
   onViewCreated,
 }: UseCodeMirrorEditorOptions) {
   const onChangeRef = useRef(onChange);
@@ -65,6 +67,7 @@ export function useCodeMirrorEditor({
         slashMenuCallbacksRef,
         wikiLinkTriggerRef,
         csvConfirmRef,
+        pasteImageRef,
       }),
     });
 

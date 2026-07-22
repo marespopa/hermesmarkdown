@@ -1,8 +1,17 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
+import toast from "react-hot-toast";
 import { useAtomValue } from "jotai";
-import { atom_renderedFontFamily, atom_renderedFontSize, atom_lineHeight, atom_letterSpacing } from "@/app/atoms/atoms";
+import {
+  atom_renderedFontFamily,
+  atom_renderedFontSize,
+  atom_lineHeight,
+  atom_letterSpacing,
+  atom_vaultHandle,
+  atom_currentDirectoryHandle,
+} from "@/app/atoms/atoms";
+import { savePastedImage, resolveVaultImageSrc } from "@/app/utils/paste-image";
 import { Editor, rootCtx, defaultValueCtx } from "@milkdown/kit/core";
 import { commonmark } from "@milkdown/kit/preset/commonmark";
 import { gfm } from "@milkdown/kit/preset/gfm";
@@ -20,6 +29,8 @@ import { remarkMathPlugin, inlineMathSchema, mathBlockSchema, inlineMathInputRul
 import { slashMenu, configureSlashMenu, onOpenLinkDialogCtx, configureOpenLinkDialog } from "../milkdown/slash-menu";
 import { wikiLinkClickPlugin, configureWikiLinkClick, onWikiLinkClickCtx, linkClickPlugin } from "../milkdown/wikilink-click";
 import { linkPastePlugin } from "../milkdown/link-paste";
+import { imagePastePlugin, onPasteImageCtx, configurePasteImage } from "../milkdown/image-paste";
+import { imageView, onResolveImageSrcCtx, configureResolveImageSrc } from "../milkdown/image-view";
 import { userInputTrackerPlugin, configureUserInputTracking, onUserInputCtx } from "../milkdown/user-input-tracker";
 import { lifecycleTagDecorations } from "../milkdown/lifecycle-tags";
 import { dateClickPlugin, onDateClickCtx, configureDateClick } from "../milkdown/date-picker";
@@ -74,6 +85,32 @@ function EditorHost({ content, onChange, onWikiLinkClick, onTableCalloutUpdate, 
   const lastEmittedBodyRef = useRef<string>(stripFrontmatter(content).body);
   const onChangeRef = useRef(onChange);
   onChangeRef.current = onChange;
+  const vaultHandle = useAtomValue(atom_vaultHandle);
+  const currentDirectoryHandle = useAtomValue(atom_currentDirectoryHandle);
+  const pasteImageRef = useRef<(file: File) => Promise<string | null>>(null!);
+  pasteImageRef.current = async (file: File) => {
+    if (!vaultHandle) {
+      toast.error("Open a vault folder before pasting images");
+      return null;
+    }
+    try {
+      return await savePastedImage(vaultHandle, currentDirectoryHandle, file);
+    } catch (err: any) {
+      console.warn("Failed to save pasted image:", err?.message || err);
+      toast.error("Failed to save pasted image");
+      return null;
+    }
+  };
+  const resolveImageSrcRef = useRef<(src: string) => Promise<string | null>>(null!);
+  resolveImageSrcRef.current = async (src: string) => {
+    if (!vaultHandle) return null;
+    try {
+      return await resolveVaultImageSrc(vaultHandle, currentDirectoryHandle, src);
+    } catch (err: any) {
+      console.warn("Failed to resolve image src:", err?.message || err);
+      return null;
+    }
+  };
   const onWikiLinkClickRef = useRef(onWikiLinkClick);
   onWikiLinkClickRef.current = onWikiLinkClick;
   const onTableCalloutUpdateRef = useRef(onTableCalloutUpdate);
@@ -130,11 +167,17 @@ function EditorHost({ content, onChange, onWikiLinkClick, onTableCalloutUpdate, 
         });
         configureTableCalloutUpdate(ctx, (info, view) => onTableCalloutUpdateRef.current?.(info, view));
         configureLinkCalloutUpdate(ctx, (info, view) => onLinkCalloutUpdateRef.current?.(info, view));
+        configurePasteImage(ctx, (file) => pasteImageRef.current(file));
+        configureResolveImageSrc(ctx, (src) => resolveImageSrcRef.current(src));
       })
       .use(commonmark)
       .use(gfm)
       .use(listener)
       .use(linkPastePlugin)
+      .use(onPasteImageCtx)
+      .use(imagePastePlugin)
+      .use(onResolveImageSrcCtx)
+      .use(imageView)
       .use(clipboardCopyFix)
       .use(clipboard)
       .use(history)

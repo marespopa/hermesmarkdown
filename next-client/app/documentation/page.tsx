@@ -774,32 +774,23 @@ graph TD
       {
         id: "ai-commands",
         title: "AI commands",
-        lead: "Selection-based commands rewrite what you've highlighted; a few others work from a typed instruction or the surrounding note instead.",
-        keywords: "improve writing tone summarize extract tasks outline title continue explain chat",
+        lead: "Highlight text in the editor to bring up a floating toolbar with three actions — only visible once a key is configured.",
+        keywords: "improve writing polish elaborate ask ai selection toolbar chat",
         body: (
           <>
             <p>
-              Type <code>/</code> and pick a command from the AI group — only visible once a key is
-              configured.
+              Select some text and a small toolbar appears above it:
             </p>
             <KV
               rows={[
-                { label: "✨ Improve writing", value: "Clearer wording, same intent" },
-                { label: "✅ Fix spelling & grammar", value: "Light correction pass" },
-                { label: "✂️ Shorten", value: "Compress verbose text" },
-                { label: "➕ Expand", value: "Elaborate on terse text" },
-                { label: "🎩 Change tone: Formal / Casual / Direct / Polished", value: "Four separate commands" },
-                { label: "📃 Summarize", value: "Concise recap" },
-                { label: "🗒️ Extract tasks", value: "Convert to a checklist" },
-                { label: "📑 Create outline", value: "Headings and bullets" },
-                { label: "🏷️ Generate title", value: "From the note or selection" },
-                { label: "➡️ Continue writing", value: "From the cursor, using nearby context" },
-                { label: "❓ Explain selection", value: "Plain-language recap" },
+                { label: "💬 Ask AI", value: "Type any instruction — rewrite, translate, convert, anything" },
+                { label: "⚡ Polish", value: "Clearer wording, same intent" },
+                { label: "➕ Elaborate", value: "Expand the selection with more depth and detail" },
               ]}
             />
             <p>
-              Selection-based commands need text highlighted first. Generate title and Continue writing
-              work without a selection — they read the surrounding note instead.
+              All three need text highlighted first — the toolbar only appears while something is
+              selected.
             </p>
             <Callout type="tip">
               Every action opens a diff review before anything touches your note — red for removed, green
@@ -987,10 +978,10 @@ graph TD
               ]}
             />
             <p>
-              On desktop, selecting text surfaces a toolbar with Improve Writing, Expand, and a free-form
-              prompt action alongside formatting. On mobile, the equivalent toolbar is pared down to
-              Bold, Italic, and Link — AI actions on a selection are reached through the slash menu or
-              command palette instead.
+              On desktop, selecting text surfaces a toolbar with Ask AI, Polish, and Elaborate. On
+              mobile, the equivalent toolbar is pared down to Bold, Italic, and Link — there's no
+              per-selection AI toolbar on mobile yet. AI Chat and Repurpose Note are still reachable from
+              the command palette on either platform.
             </p>
           </>
         ),

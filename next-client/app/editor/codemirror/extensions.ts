@@ -1,4 +1,4 @@
-import { Extension } from "@codemirror/state";
+import { Extension, EditorSelection } from "@codemirror/state";
 import { EditorView, keymap, drawSelection, placeholder as placeholderExt } from "@codemirror/view";
 import { history, historyKeymap, defaultKeymap } from "@codemirror/commands";
 import { markdown, markdownLanguage } from "@codemirror/lang-markdown";
@@ -6,7 +6,8 @@ import { ViewUpdate } from "@codemirror/view";
 import { autocompletion } from "@codemirror/autocomplete";
 import { codeFolding } from "@codemirror/language";
 import { editorTheme } from "./theme";
-import { formatKeymap, toggleCheckboxOnLine, handlePasteTransform } from "./commands";
+import { formatKeymap, toggleCheckboxOnLine, handlePasteTransform, insertPastedImage } from "./commands";
+import { getImageFile, getImageFromClipboardItems } from "@/app/utils/paste-image";
 import { REGEX_CHECKBOX } from "../components/regex";
 import { markdownHighlightPlugin } from "./highlight";
 import { shortcodeExpandPlugin } from "./shortcode-expand";
@@ -29,6 +30,7 @@ interface BuildExtensionsOptions {
   slashMenuCallbacksRef: { current: SlashMenuCallbacks };
   wikiLinkTriggerRef: { current: WikiLinkTriggerCallback | null };
   csvConfirmRef?: { current: ((preview: string) => Promise<boolean>) | null };
+  pasteImageRef?: { current: ((file: File) => Promise<string | null>) | null };
 }
 
 export function buildExtensions(opts: BuildExtensionsOptions): Extension[] {
@@ -66,8 +68,26 @@ export function buildExtensions(opts: BuildExtensionsOptions): Extension[] {
     keymap.of([...formatKeymap, ...historyKeymap, ...defaultKeymap]),
     EditorView.editable.of(!opts.readOnly),
     EditorView.domEventHandlers({
-      paste: (event, view) =>
-        handlePasteTransform(view, event, opts.csvConfirmRef?.current ?? undefined),
+      paste: (event, view) => {
+        const saveImage = opts.pasteImageRef?.current;
+        const imageFile = saveImage ? getImageFromClipboardItems(event.clipboardData?.items ?? null) : null;
+        if (imageFile && saveImage) {
+          event.preventDefault();
+          insertPastedImage(view, imageFile, saveImage);
+          return true;
+        }
+        return handlePasteTransform(view, event, opts.csvConfirmRef?.current ?? undefined);
+      },
+      drop: (event, view) => {
+        const saveImage = opts.pasteImageRef?.current;
+        const imageFile = saveImage ? getImageFile(event.dataTransfer ?? null) : null;
+        if (!imageFile || !saveImage) return false;
+        const pos = view.posAtCoords({ x: event.clientX, y: event.clientY });
+        if (pos == null) return false;
+        event.preventDefault();
+        insertPastedImage(view, imageFile, saveImage, pos);
+        return true;
+      },
       mousedown: (event, view) => {
         const pos = view.posAtCoords({ x: event.clientX, y: event.clientY });
         if (pos == null) return false;

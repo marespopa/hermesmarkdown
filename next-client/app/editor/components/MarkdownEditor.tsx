@@ -1,10 +1,12 @@
 "use client";
 
 import React, { useCallback, useEffect, useRef, useState } from "react";
+import toast from "react-hot-toast";
 import { useAtomValue, useSetAtom } from "jotai";
-import { atom_frontmatterWizardOpen, atom_wordWrap, atom_isEditorFocused } from "@/app/atoms/atoms";
+import { atom_frontmatterWizardOpen, atom_wordWrap, atom_isEditorFocused, atom_vaultHandle, atom_currentDirectoryHandle } from "@/app/atoms/atoms";
 import { atom_activeEditorView } from "@/app/atoms/ui-atoms";
 import { useAtom } from "jotai";
+import { savePastedImage } from "@/app/utils/paste-image";
 import { EditorView } from "@codemirror/view";
 import { HiOutlineCalendar, HiChevronDown, HiChevronRight } from "react-icons/hi";
 import FrontmatterPanel from "./FrontmatterPanel";
@@ -91,6 +93,26 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
     [dialog],
   );
 
+  const vaultHandle = useAtomValue(atom_vaultHandle);
+  const currentDirectoryHandle = useAtomValue(atom_currentDirectoryHandle);
+  const pasteImageRef = useRef<((file: File) => Promise<string | null>) | null>(null);
+  pasteImageRef.current = useCallback(
+    async (file: File) => {
+      if (!vaultHandle) {
+        toast.error("Open a vault folder before pasting images");
+        return null;
+      }
+      try {
+        return await savePastedImage(vaultHandle, currentDirectoryHandle, file);
+      } catch (err: any) {
+        console.warn("Failed to save pasted image:", err?.message || err);
+        toast.error("Failed to save pasted image");
+        return null;
+      }
+    },
+    [vaultHandle, currentDirectoryHandle],
+  );
+
   const {
     pillUrl, pillLabel, pillPos, pillType, setPillUrl, handleSaveLink,
     dateMatch, isDateExpanded, setIsDateExpanded, dateMenuPos, handleDateSelect,
@@ -138,6 +160,7 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
     slashMenuCallbacksRef,
     wikiLinkTriggerRef,
     csvConfirmRef,
+    pasteImageRef,
     onViewCreated,
   });
 

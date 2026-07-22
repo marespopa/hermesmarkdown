@@ -27,6 +27,7 @@ import {
   atom_showHiddenFiles,
   atom_activeEditorView,
   atom_tabsBarVisibleByDefault,
+  atom_keyboardShortcutsOpen,
 } from "@/app/atoms/ui-atoms";
 import { atom_content, atom_activeFileHandle } from "@/app/atoms/file-atoms";
 import { useFileSystem } from "@/app/hooks/use-file-system";
@@ -87,6 +88,7 @@ export default function EditorCommands({
   const [wordWrap, setWordWrap] = useAtom(atom_wordWrap);
   const [tabsBarVisibleByDefault, setTabsBarVisibleByDefault] = useAtom(atom_tabsBarVisibleByDefault);
   const [, setIsWizardOpen] = useAtom(atom_isWizardOpen);
+  const [, setKeyboardShortcutsOpen] = useAtom(atom_keyboardShortcutsOpen);
   const activeFileHandle = useAtomValue(atom_activeFileHandle);
   const activeEditorView = useAtomValue(atom_activeEditorView);
   const activeLeaf = activePaneId ? findLeaf(workspaceLayout.rootContainer, activePaneId) : null;
@@ -225,6 +227,13 @@ export default function EditorCommands({
       scanVault(vaultHandle as any, next);
       indexVaultTags?.(vaultHandle as any, next);
     },
+  });
+
+  useRegisterCommand({
+    id: "show-keyboard-shortcuts",
+    label: "Show keyboard shortcuts",
+    keywords: "shortcuts hotkeys keybindings help",
+    action: () => setKeyboardShortcutsOpen(true),
   });
 
   useRegisterCommand({
