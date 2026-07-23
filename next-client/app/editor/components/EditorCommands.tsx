@@ -1,6 +1,7 @@
 "use client";
 
-import { useAtom, useAtomValue } from "jotai";
+import { useAtom, useAtomValue, useSetAtom } from "jotai";
+import { useResolvedTheme } from "@/app/hooks/use-resolved-theme";
 import { useRouter } from "next/navigation";
 import { undo, redo } from "@codemirror/commands";
 import {
@@ -68,7 +69,10 @@ export default function EditorCommands({
   const router = useRouter();
   const { openVault, vaultHandle, scanVault, indexVaultTags, closeVault, renameFile, deleteFile } = useFileSystem();
   const dialog = useDialog();
-  const [theme, setTheme] = useAtom(atom_theme);
+  const setTheme = useSetAtom(atom_theme);
+  // Quick toggle always sets an explicit light/dark choice (not "system") —
+  // the three-way picker for that lives in Settings.
+  const theme = useResolvedTheme();
   const [showHiddenFiles, setShowHiddenFiles] = useAtom(atom_showHiddenFiles);
   const [railPanel, setRailPanel] = useAtom(atom_railPanel);
   const [, setAiBuilderRequest] = useAtom(atom_aiBuilderRequest);

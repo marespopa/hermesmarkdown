@@ -1,9 +1,11 @@
 import { atom } from "jotai";
 import { atomWithStorage } from "jotai/utils";
 import type { EditorView } from "@codemirror/view";
+import type { EditorView as MilkdownEditorView } from "@milkdown/kit/prose/view";
 
 // Theme & appearance
-export const atom_theme = atomWithStorage<"light" | "dark">("theme", "light");
+export type Theme = "light" | "dark" | "system";
+export const atom_theme = atomWithStorage<Theme>("theme", "system");
 export const atom_wordWrap = atomWithStorage<boolean>("wordWrap", true);
 // Shared default monospace stack, used as the atom_fontFamily default so active-state
 // matching in settings can't drift from the IBM Plex Mono entry in FONTS.
@@ -251,6 +253,15 @@ export const atom_isVoicePreviewVisible = atom<boolean>(false);
 // always lands in the pane the user is looking at regardless of which pane
 // was active when dictation started.
 export const atom_activeEditorView = atom<EditorView | null>(null);
+// Rendered mode's counterpart — the Milkdown/ProseMirror EditorView belonging
+// to whichever Rendered pane is currently active. Dictation targets whichever
+// of this or atom_activeEditorView matches atom_activeEditorKind, so
+// committing a voice insertion in Rendered mode lands at the real cursor
+// there instead of being silently routed through a CM6 view that was never
+// actually visible.
+export const atom_activeMilkdownView = atom<MilkdownEditorView | null>(null);
+export type ActiveEditorKind = "cm6" | "milkdown";
+export const atom_activeEditorKind = atom<ActiveEditorKind | null>(null);
 
 // Most-recently-used command ids for the command palette's empty-query state
 // ("feels intelligent" with zero visible "recent" UI). Capped at 8 on write.

@@ -10,7 +10,8 @@ import Button from "@/app/components/Button/Button.component";
 import dynamic from "next/dynamic";
 import Toast from "@/app/components/Toast";
 import { FiFileText } from "react-icons/fi";
-import { HiOutlineEye } from "react-icons/hi";
+import { HiOutlineEye, HiMicrophone, HiOutlineMicrophone } from "react-icons/hi";
+import { useGlobalVoiceInput } from "@/app/editor/hooks/use-global-voice-input";
 
 const MarkdownEditor = dynamic(
   () => import("@/app/editor/components/MarkdownEditor"),
@@ -38,6 +39,11 @@ const EditablePreview = dynamic(
       </div>
     ),
   },
+);
+
+const VoicePreviewPanel = dynamic(
+  () => import("@/app/editor/components/VoicePreviewPanel"),
+  { ssr: false },
 );
 
 const FilesystemGraphic = () => (
@@ -305,14 +311,18 @@ tags: [demo, getting-started]
 
 Hello — let's meet the markdown editor that keeps your notes plain, local, and readable by both you and your AI agents.
 
-This file *is* the demo. Everything below is a real note, in a real vault, doing what it looks like it's doing.
-
 ## It's just a file
 
-No account, no database, no upload step. This note is a real file in a real vault — open it in any other editor, sync it with Dropbox, or move it to another machine. HermesMarkdown never restructures your folders or writes files of its own into them.
+No account, no database, no upload step. This note lives as a plain file on disk — open it in any other editor, sync it with Dropbox, or move it to another machine. HermesMarkdown never restructures your folders or writes files of its own into them.
 
 > [!tip] Try it
-> Click anywhere in this paragraph. You're editing the rendered document directly — no separate source view to hop into.
+> Click anywhere in this paragraph. You're editing the rendered document directly, no raw Markdown in sight — though a Source view is one click away, if you ever want it (see below).
+
+## Two views, one file
+
+This paragraph is rendered — formatted text, not raw syntax. Click the eye icon in the tab bar and the same file reopens in Source, with Markdown highlighted inline over the plain text as you type. Switch back and forth as often as you like; both surfaces write to the same file, so nothing is ever lost in the swap.
+
+New files open in Rendered by default, but if you live in raw Markdown, set Source as your default view from Settings → Editor.
 
 ## Write the way you already do
 
@@ -354,6 +364,12 @@ Click any header — Feature, Category, Released, or Rating — to sort by that 
 > [!info]- This one starts collapsed
 > Click the title to expand it. Foldable callouts are handy for long asides you don't want cluttering the page by default.
 
+## Or just talk
+
+\`CTRL+SHIFT+V\` starts listening. Speech lands in an editable preview first — not straight into the note — so you can fix a mishear before it ever touches this file. Say "insert this," or just press Enter, to commit it at the cursor.
+
+It's transcription, not formatting-by-voice: say "new paragraph" for a line break, "period" or "comma" for punctuation, "scratch that" to undo the last phrase. Everything else you say just becomes text, capitalized the way you'd expect.
+
 ## AI, only when you ask
 
 AI is a chat box, connected to your own Anthropic or Google Gemini key — nothing more elaborate than that, and nothing runs until you've connected one.
@@ -369,6 +385,43 @@ export default function LandingPage() {
   const [demoMode, setDemoMode] = useState<"editor" | "preview">("preview");
   const [showLoading, setShowLoading] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
+
+  // Real dictation, not a copy-only demo — same hook the actual /editor route
+  // uses (use-global-voice-input.ts), writing into whichever CM6 view is
+  // registered as active (atom_activeEditorView). That atom is only ever set
+  // by MarkdownEditor (Source), never EditablePreview (Rendered) — true in
+  // the real app too (see PaneLeaf.tsx) — so the mic only appears in Source
+  // mode here.
+  const {
+    isVoiceSupported,
+    isVoiceListening,
+    toggleVoiceListening,
+    voicePreviewText,
+    setVoicePreviewText,
+    voiceInterimText,
+    commitVoicePreview,
+    discardVoicePreview,
+  } = useGlobalVoiceInput();
+
+  // Ctrl/Cmd+Shift+V is also the browser's native "paste without formatting"
+  // shortcut — without an explicit binding here it falls through to that
+  // instead of toggling dictation, unlike the real /editor route (see its
+  // own window keydown handler in page.tsx). MarkdownEditor is kept mounted
+  // in both demo modes (see the render below), so this works the same in
+  // Source and Rendered — no demoMode check needed here.
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.target as HTMLElement)?.closest?.("[data-voice-preview-panel]")) return;
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === "v") {
+        if (isVoiceSupported) {
+          e.preventDefault();
+          toggleVoiceListening();
+        }
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isVoiceSupported, toggleVoiceListening]);
 
   useEffect(() => {
     setIsMounted(true);
@@ -491,6 +544,22 @@ export default function LandingPage() {
                 <div className="flex-1 text-ui-footnote font-mono opacity-30 text-center pr-10 overflow-hidden text-ellipsis whitespace-nowrap">
                   landing_demo.md — hermes_vault
                 </div>
+                {isMounted && isVoiceSupported && (
+                  <button
+                    type="button"
+                    onClick={toggleVoiceListening}
+                    aria-label={isVoiceListening ? "Stop voice input" : "Start voice input"}
+                    aria-pressed={isVoiceListening}
+                    title="Voice input"
+                    className={`shrink-0 w-7 h-7 flex items-center justify-center rounded-lg transition-colors ${
+                      isVoiceListening
+                        ? "text-sage bg-sage/10"
+                        : "text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300"
+                    }`}
+                  >
+                    {isVoiceListening ? <HiMicrophone size={14} /> : <HiOutlineMicrophone size={14} />}
+                  </button>
+                )}
                 <button
                   type="button"
                   onClick={() =>
@@ -515,12 +584,14 @@ export default function LandingPage() {
                   <MarkdownEditor
                     value={demoContent}
                     onChange={setDemoContent}
+                    isActivePane
                   />
                 )}
                 {isMounted && demoMode === "preview" && (
                   <EditablePreview
                     content={demoContent}
                     onChange={setDemoContent}
+                    isActivePane
                   />
                 )}
               </div>
@@ -528,6 +599,20 @@ export default function LandingPage() {
           </div>
         </div>
       </section>
+
+      {isMounted && (
+        <VoicePreviewPanel
+          isListening={isVoiceListening}
+          previewText={voicePreviewText}
+          onPreviewTextChange={setVoicePreviewText}
+          interimText={voiceInterimText}
+          onCommit={commitVoicePreview}
+          onDiscard={() => {
+            discardVoicePreview();
+            if (isVoiceListening) toggleVoiceListening();
+          }}
+        />
+      )}
 
       {/* --- FEATURES --- */}
       <div className="max-w-5xl mx-auto px-6 py-24 md:py-32 space-y-32">

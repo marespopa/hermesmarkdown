@@ -3,6 +3,7 @@
 import React from "react";
 import { HiOutlineDocumentText, HiCheck, HiPencilAlt, HiExclamationCircle } from "react-icons/hi";
 import { VscClose } from "react-icons/vsc";
+import Tooltip from "@/app/components/Tooltip";
 
 export type TabSaveState = "idle" | "dirty" | "saving" | "saved" | "error";
 
@@ -114,23 +115,24 @@ export default function PaneTab({
           />
         ) : (
           /* Close button — contained within the slot, never overflows the tab */
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="Close tab"
-            title="Close tab"
-            className={[
-              "flex items-center justify-center w-3.5 h-3.5 rounded-full",
-              "text-stone hover:text-ink-light dark:hover:text-ink-dark",
-              "hover:bg-beige/80 dark:hover:bg-clay/60",
-              "transition-all duration-100",
-              isActive
-                ? "opacity-60 hover:opacity-100"
-                : "opacity-0 group-hover:opacity-50 hover:!opacity-100",
-            ].join(" ")}
-          >
-            <VscClose size={10} />
-          </button>
+          <Tooltip label="Close tab" position="bottom">
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label="Close tab"
+              className={[
+                "flex items-center justify-center w-3.5 h-3.5 rounded-full",
+                "text-stone hover:text-ink-light dark:hover:text-ink-dark",
+                "hover:bg-beige/80 dark:hover:bg-clay/60",
+                "transition-all duration-100",
+                isActive
+                  ? "opacity-60 hover:opacity-100"
+                  : "opacity-0 group-hover:opacity-50 hover:!opacity-100",
+              ].join(" ")}
+            >
+              <VscClose size={10} />
+            </button>
+          </Tooltip>
         )}
       </span>
     </div>

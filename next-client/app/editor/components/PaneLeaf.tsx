@@ -275,8 +275,14 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
           </button>
         )}
         <div
-          className={`shrink-0 overflow-hidden transition-[max-height,opacity] duration-200 ease-in-out ${
-            tabBarVisible ? "max-h-9 opacity-100" : "max-h-0 opacity-0 pointer-events-none"
+          // overflow only while collapsed/collapsing — kept permanently
+          // hidden here it clips any tooltip (Copy Markdown, Save,
+          // position="bottom" by default) trying to pop out below this
+          // 36px row, since the popped-out span still lives inside this
+          // max-height-animated wrapper. Once fully expanded there's
+          // nothing left to clip, so overflow can open back up.
+          className={`shrink-0 transition-[max-height,opacity] duration-200 ease-in-out ${
+            tabBarVisible ? "max-h-9 opacity-100 overflow-visible" : "max-h-0 opacity-0 pointer-events-none overflow-hidden"
           }`}
         >
       <div
@@ -422,7 +428,7 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
               </Tooltip>
             )}
             {!hideSplitRight && (
-              <Tooltip label="Split Right">
+              <Tooltip label="Split Right" position="bottom-end">
                 <Button
                   variant="icon"
                   onClick={() => splitPane({ id: leaf.id, direction: "horizontal" })}
@@ -434,7 +440,7 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
               </Tooltip>
             )}
             {!isOnlyPane && (
-              <Tooltip label="Close Pane">
+              <Tooltip label="Close Pane" position="bottom-end">
                 <Button
                   variant="icon"
                   onClick={() => closePane(leaf.id)}
@@ -527,6 +533,7 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
             onChange={setContent}
             filePath={leaf.activeFilePath || "draft"}
             onWikiLinkClick={openFileByName}
+            isActivePane={isActive}
           />
         ) : (
           <div className="flex flex-col items-center justify-center h-full opacity-20 space-y-2">

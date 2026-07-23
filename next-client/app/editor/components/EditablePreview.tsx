@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
-import { useAtomValue } from "jotai";
+import { useAtomValue, useSetAtom } from "jotai";
 import {
   atom_renderedFontFamily,
   atom_renderedFontSize,
@@ -11,6 +11,7 @@ import {
   atom_vaultHandle,
   atom_currentDirectoryHandle,
 } from "@/app/atoms/atoms";
+import { atom_activeMilkdownView, atom_activeEditorKind } from "@/app/atoms/ui-atoms";
 import { savePastedImage, resolveVaultImageSrc } from "@/app/utils/paste-image";
 import { Editor, rootCtx, defaultValueCtx } from "@milkdown/kit/core";
 import { commonmark } from "@milkdown/kit/preset/commonmark";
@@ -33,6 +34,13 @@ import { imagePastePlugin, onPasteImageCtx, configurePasteImage } from "../milkd
 import { imageView, onResolveImageSrcCtx, configureResolveImageSrc } from "../milkdown/image-view";
 import { userInputTrackerPlugin, configureUserInputTracking, onUserInputCtx } from "../milkdown/user-input-tracker";
 import { lifecycleTagDecorations } from "../milkdown/lifecycle-tags";
+import {
+  lifecycleTagCalloutPlugin,
+  onTagCalloutUpdateCtx,
+  configureTagCalloutUpdate,
+  tagStates,
+  type MilkdownTagInfo,
+} from "../milkdown/lifecycle-tag-callout-plugin";
 import { dateClickPlugin, onDateClickCtx, configureDateClick } from "../milkdown/date-picker";
 import {
   tableCalloutPlugin,
@@ -46,11 +54,18 @@ import {
   configureLinkCalloutUpdate,
   type MilkdownLinkInfo,
 } from "../milkdown/link-callout-plugin";
+import {
+  activeViewPlugin,
+  onMilkdownViewReadyCtx,
+  configureMilkdownViewReady,
+} from "../milkdown/active-view-plugin";
 import type { EditorView } from "@milkdown/kit/prose/view";
 import { useMilkdownTable } from "../hooks/use-milkdown-table";
 import { useMilkdownLink } from "../hooks/use-milkdown-link";
+import { useMilkdownTagCallout } from "../hooks/use-milkdown-tag-callout";
 import { TableCallout } from "./TableCallout";
 import { LinkPill } from "./LinkPill";
+import { TagStatusCallout } from "./TagStatusCallout";
 import FrontmatterPanel from "./FrontmatterPanel";
 import useIsMobile from "@/app/hooks/use-is-mobile";
 import DatePickerCallout from "./DatePickerCallout";
@@ -67,6 +82,8 @@ interface EditablePreviewProps {
   onWikiLinkClick?: (name: string) => void;
   onTableCalloutUpdate?: (info: MilkdownTableInfo | null, view: EditorView) => void;
   onLinkCalloutUpdate?: (info: MilkdownLinkInfo | null, view: EditorView) => void;
+  onTagCalloutUpdate?: (info: MilkdownTagInfo | null, view: EditorView) => void;
+  isActivePane?: boolean;
 }
 
 function stripFrontmatter(content: string): { frontmatter: string; body: string } {
@@ -82,11 +99,29 @@ function stripFrontmatter(content: string): { frontmatter: string; body: string 
 // didn't originate from this instance's own last emission — otherwise
 // every local keystroke would round-trip back in as a "remote" update and
 // fight the caret.
-function EditorHost({ content, onChange, onWikiLinkClick, onTableCalloutUpdate, onLinkCalloutUpdate }: EditablePreviewProps) {
+function EditorHost({ content, onChange, onWikiLinkClick, onTableCalloutUpdate, onLinkCalloutUpdate, onTagCalloutUpdate, isActivePane }: EditablePreviewProps) {
   const latestContentRef = useRef(content);
   const lastEmittedBodyRef = useRef<string>(stripFrontmatter(content).body);
   const onChangeRef = useRef(onChange);
   onChangeRef.current = onChange;
+
+  // Rendered-mode counterpart to MarkdownEditor.tsx's atom_activeEditorView
+  // registration — lets the global voice-input hook dictate at the real
+  // cursor here instead of only ever targeting a CM6 view (see
+  // active-view-plugin.ts and use-global-voice-input.ts).
+  const [milkdownView, setMilkdownView] = useState<EditorView | null>(null);
+  const setActiveMilkdownView = useSetAtom(atom_activeMilkdownView);
+  const setActiveEditorKind = useSetAtom(atom_activeEditorKind);
+  useEffect(() => {
+    if (!isActivePane || !milkdownView) return;
+    setActiveMilkdownView(milkdownView);
+    setActiveEditorKind("milkdown");
+    return () => {
+      setActiveMilkdownView(null);
+      setActiveEditorKind((prev) => (prev === "milkdown" ? null : prev));
+    };
+  }, [isActivePane, milkdownView, setActiveMilkdownView, setActiveEditorKind]);
+
   const vaultHandle = useAtomValue(atom_vaultHandle);
   const currentDirectoryHandle = useAtomValue(atom_currentDirectoryHandle);
   const pasteImageRef = useRef<(file: File) => Promise<string | null>>(null!);
@@ -119,6 +154,8 @@ function EditorHost({ content, onChange, onWikiLinkClick, onTableCalloutUpdate, 
   onTableCalloutUpdateRef.current = onTableCalloutUpdate;
   const onLinkCalloutUpdateRef = useRef(onLinkCalloutUpdate);
   onLinkCalloutUpdateRef.current = onLinkCalloutUpdate;
+  const onTagCalloutUpdateRef = useRef(onTagCalloutUpdate);
+  onTagCalloutUpdateRef.current = onTagCalloutUpdate;
   // Gates markdownUpdated write-back until the user has actually typed —
   // otherwise merely opening a file in preview mode re-serializes it
   // through Milkdown's canonical formatting and silently dirties content
@@ -181,6 +218,8 @@ function EditorHost({ content, onChange, onWikiLinkClick, onTableCalloutUpdate, 
         });
         configureTableCalloutUpdate(ctx, (info, view) => onTableCalloutUpdateRef.current?.(info, view));
         configureLinkCalloutUpdate(ctx, (info, view) => onLinkCalloutUpdateRef.current?.(info, view));
+        configureTagCalloutUpdate(ctx, (info, view) => onTagCalloutUpdateRef.current?.(info, view));
+        configureMilkdownViewReady(ctx, setMilkdownView);
         configurePasteImage(ctx, (file) => pasteImageRef.current(file));
         configureResolveImageSrc(ctx, (src) => resolveImageSrcRef.current(src));
       })
@@ -214,6 +253,8 @@ function EditorHost({ content, onChange, onWikiLinkClick, onTableCalloutUpdate, 
       .use(wikiLinkClickPlugin)
       .use(linkClickPlugin)
       .use(lifecycleTagDecorations)
+      .use(onTagCalloutUpdateCtx)
+      .use(lifecycleTagCalloutPlugin)
       .use(onDateClickCtx)
       .use(dateClickPlugin)
       .use(onUserInputCtx)
@@ -224,6 +265,8 @@ function EditorHost({ content, onChange, onWikiLinkClick, onTableCalloutUpdate, 
       .use(tableCalloutPlugin)
       .use(onLinkCalloutUpdateCtx)
       .use(linkCalloutPlugin)
+      .use(onMilkdownViewReadyCtx)
+      .use(activeViewPlugin)
       .use(onOpenLinkDialogCtx)
       .use(onOpenWikiLinkDialogCtx)
       .use(slashMenu);
@@ -353,7 +396,7 @@ function EditorHost({ content, onChange, onWikiLinkClick, onTableCalloutUpdate, 
   );
 }
 
-export default function EditablePreview({ content, onChange, filePath, onWikiLinkClick }: EditablePreviewProps) {
+export default function EditablePreview({ content, onChange, filePath, onWikiLinkClick, isActivePane }: EditablePreviewProps) {
   // Its own font atoms, distinct from the source editor's — the Rendered
   // surface reads like a finished document rather than raw markdown, so it
   // gets a serif/proportional default instead of the editor's monospace.
@@ -376,6 +419,10 @@ export default function EditablePreview({ content, onChange, filePath, onWikiLin
   const {
     linkInfo, pillPos, onLinkCalloutUpdate, handleOpenLink, handleSaveLink, handleDismissLink,
   } = useMilkdownLink({ containerRef });
+
+  const {
+    tagInfo, calloutPos: tagCalloutPos, onTagCalloutUpdate, handleSelectState,
+  } = useMilkdownTagCallout({ containerRef });
 
   return (
     <div ref={containerRef} className="relative h-full overflow-y-auto px-6 py-8 md:px-12 md:py-12">
@@ -400,9 +447,20 @@ export default function EditablePreview({ content, onChange, filePath, onWikiLin
             onWikiLinkClick={onWikiLinkClick}
             onTableCalloutUpdate={onTableCalloutUpdate}
             onLinkCalloutUpdate={onLinkCalloutUpdate}
+            onTagCalloutUpdate={onTagCalloutUpdate}
+            isActivePane={isActivePane}
           />
         </MilkdownProvider>
       </div>
+
+      {tagInfo && (
+        <TagStatusCallout
+          tag={tagInfo.tag}
+          states={tagStates(tagInfo.isWorkflow)}
+          pos={tagCalloutPos}
+          onSelect={handleSelectState}
+        />
+      )}
 
       {tableInfo && (
         <TableCallout

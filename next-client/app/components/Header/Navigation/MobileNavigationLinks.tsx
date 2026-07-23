@@ -3,8 +3,9 @@
 import React from "react";
 import { FaSun, FaMoon } from "react-icons/fa";
 import { IoClose } from "react-icons/io5";
-import { useAtom } from "jotai";
+import { useSetAtom } from "jotai";
 import { atom_theme } from "@/app/atoms/atoms";
+import { useResolvedTheme } from "@/app/hooks/use-resolved-theme";
 import { useRouter } from "next/navigation";
 import Button from "@/app/components/Button/Button.component";
 import Portal from "@/app/components/Portal";
@@ -14,7 +15,10 @@ type Props = {
 };
 
 export default function MobileNavigationLinks({ handleClose }: Props) {
-  const [theme, setTheme] = useAtom(atom_theme);
+  const setTheme = useSetAtom(atom_theme);
+  // Quick toggle always sets an explicit light/dark choice (not "system") —
+  // the three-way picker for that lives in Settings.
+  const theme = useResolvedTheme();
   const router = useRouter();
 
   const navBtnStyles =
@@ -75,6 +79,9 @@ export default function MobileNavigationLinks({ handleClose }: Props) {
               variant="bare"
               onClick={() => setTheme(theme === "light" ? "dark" : "light")}
               className={`${navBtnStyles} flex items-center justify-center gap-2`}
+              // "system" resolves from the OS preference, unknown to SSR —
+              // see use-resolved-theme.ts.
+              suppressHydrationWarning
             >
               {theme === "light" ? (
                 <FaMoon className="w-5 h-5" />

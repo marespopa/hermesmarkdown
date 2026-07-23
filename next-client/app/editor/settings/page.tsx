@@ -10,6 +10,7 @@ import {
   atom_lineHeight,
   atom_letterSpacing,
   atom_theme,
+  type Theme,
   atom_isWizardOpen,
   atom_autosaveMode,
   atom_autosaveDelay,
@@ -150,6 +151,12 @@ const SettingsPage = () => {
     { label: "Narrow", value: "narrow" },
   ];
 
+  const THEME_OPTIONS: { label: string; value: Theme }[] = [
+    { label: "Light", value: "light" },
+    { label: "Dark", value: "dark" },
+    { label: "System", value: "system" },
+  ];
+
   const startTour = () => {
     setIsWizardOpen(true);
     router.push("/editor");
@@ -164,13 +171,13 @@ const SettingsPage = () => {
         <>
           <SettingGroup title="Appearance">
             <SettingItem
-              label="Dark Theme"
-              description="Use dark application colors."
+              label="Theme"
+              description="System follows your OS's light/dark setting and switches automatically when it changes."
               control={
-                <Toggle
-                  variant="soft"
-                  active={theme === "dark"}
-                  onChange={(active) => setTheme(active ? "dark" : "light")}
+                <SegmentedControl
+                  options={THEME_OPTIONS}
+                  value={theme}
+                  onChange={setTheme}
                 />
               }
             />

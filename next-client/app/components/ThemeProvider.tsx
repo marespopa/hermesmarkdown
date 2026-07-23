@@ -1,15 +1,17 @@
 "use client";
 
-import { useAtom } from "jotai";
 import { useLayoutEffect } from "react";
-import { atom_theme } from "@/app/atoms/atoms";
+import { useResolvedTheme } from "@/app/hooks/use-resolved-theme";
 
 type Props = {
   children: React.ReactNode;
 };
 
 export default function ThemeProvider({ children }: Props) {
-  const [theme] = useAtom(atom_theme);
+  // Already resolves "system" against the live OS preference (and re-renders
+  // on change) — see use-resolved-theme.ts — so this effect only ever sees
+  // a paintable "light"/"dark" value.
+  const resolvedTheme = useResolvedTheme();
 
   // useLayoutEffect (not useEffect) — applies the class synchronously before
   // the browser paints. With useEffect there's a one-frame gap on toggle
@@ -19,12 +21,12 @@ export default function ThemeProvider({ children }: Props) {
   useLayoutEffect(() => {
     const root = window.document.documentElement;
 
-    if (theme === "dark") {
+    if (resolvedTheme === "dark") {
       root.classList.add("dark");
     } else {
       root.classList.remove("dark");
     }
-  }, [theme]);
+  }, [resolvedTheme]);
 
   return <>{children}</>;
-} 
+}

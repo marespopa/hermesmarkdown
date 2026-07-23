@@ -17,9 +17,10 @@ import {
   paragraphSchema,
   headingKeymap,
 } from "@milkdown/kit/preset/commonmark";
-import { SHORTCODES } from "../components/constants";
+import { SHORTCODES, TODO_TAGS } from "../components/constants";
 import { REGEX_CALC } from "../components/regex";
 import { CALLOUT_META, resolveCalloutType } from "../constants/callouts";
+import { matchesFor } from "./lifecycle-tags";
 import {
   unescapeKnownMarkdownPatterns,
   markdownToVisibleText,
@@ -151,6 +152,8 @@ class TaskListItemView implements NodeView {
   contentDOM: HTMLElement;
   private checkbox: HTMLInputElement | null = null;
   private node: ProseNode;
+  private destroyed = false;
+  private handleCheckboxChange: (() => void) | null = null;
 
   constructor(
     node: ProseNode,
@@ -191,7 +194,13 @@ class TaskListItemView implements NodeView {
     // Prevents ProseMirror from stealing focus/selection on click while
     // still letting the browser toggle the checkbox and fire "change".
     checkbox.addEventListener("mousedown", (e) => e.preventDefault());
-    checkbox.addEventListener("change", () => {
+    this.handleCheckboxChange = () => {
+      // Guards against a "change" event that fires after this NodeView (and
+      // the editor it belonged to) has already been torn down — e.g. the
+      // pane was closed/unmounted between the click and the event actually
+      // dispatching. Without this, `this.view.dispatch` can reach into a
+      // destroyed Milkdown ctx container and throw "Context ... not found".
+      if (this.destroyed) return;
       const pos = this.getPos();
       if (pos == null) return;
       // Not calling tr.scrollIntoView() here is deliberate — Transaction
@@ -199,10 +208,26 @@ class TaskListItemView implements NodeView {
       // moves the cursor; explicitly requesting a scroll would risk
       // yanking the viewport to follow a checkbox the user clicked
       // somewhere they can already see.
-      this.view.dispatch(
-        this.view.state.tr.setNodeMarkup(pos, undefined, { ...this.node.attrs, checked: checkbox.checked }),
-      );
-    });
+      let tr = this.view.state.tr.setNodeMarkup(pos, undefined, { ...this.node.attrs, checked: checkbox.checked });
+
+      // Checking/unchecking the box also mirrors the state onto the line's
+      // own #todo/#prog/#done tag (checkbox is a real list_item `checked`
+      // attr, tag is inline text — same dual representation as
+      // WorkflowPill's todo cycling and lifecycle-tag-callout-plugin.ts's
+      // picker) so the two don't drift out of sync when the user only
+      // touches the checkbox.
+      const targetTag = checkbox.checked ? "done" : "todo";
+      const tagMatches: { start: number; end: number }[] = [];
+      this.node.descendants((child, relPos) => {
+        if (tagMatches.length || !child.isText || !child.text) return;
+        const match = matchesFor(child.text).find((m) => !m.isWorkflow && TODO_TAGS.includes(m.tag) && m.tag !== targetTag);
+        if (match) tagMatches.push({ start: pos + 1 + relPos + match.start, end: pos + 1 + relPos + match.end });
+      });
+      if (tagMatches.length) tr = tr.insertText(`#${targetTag}`, tagMatches[0].start, tagMatches[0].end);
+
+      this.view.dispatch(tr);
+    };
+    checkbox.addEventListener("change", this.handleCheckboxChange);
     this.checkbox = checkbox;
     li.appendChild(checkbox);
 

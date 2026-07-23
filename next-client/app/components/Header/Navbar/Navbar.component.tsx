@@ -4,21 +4,20 @@ import Image from "next/image";
 import Link from "next/link";
 import React, { useEffect, useState } from "react";
 import { FaBars } from "react-icons/fa";
-import { useAtomValue } from "jotai";
-import { atom_theme } from "@/app/atoms/atoms";
 import logoWhite from "../../../../assets/logo-white.svg";
 import logoDark from "../../../../assets/logo-dark.svg";
 import NavigationLinks from "../Navigation/NavigationLinks";
 import MobileNavigationLinks from "../Navigation/MobileNavigationLinks";
 import useIsMobile from "@/app/hooks/use-is-mobile";
+import { useResolvedTheme } from "@/app/hooks/use-resolved-theme";
 import Button from "../../Button";
 
 const Navbar = () => {
   const [isNavigationVisible, setIsNavigationVisible] = useState(false);
   const [mounted, setMounted] = useState(false);
   const isMobile = useIsMobile();
-  const theme = useAtomValue(atom_theme);
-  const logo = theme === "dark" ? logoDark : logoWhite;
+  const resolvedTheme = useResolvedTheme();
+  const logo = resolvedTheme === "dark" ? logoDark : logoWhite;
 
   useEffect(() => {
     setMounted(true);

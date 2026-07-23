@@ -9,6 +9,8 @@ import {
   atom_autosaveMode,
   atom_frontmatterDefaultMode,
   atom_defaultPaneMode,
+  atom_theme,
+  type Theme,
   atom_fontSize,
   atom_fontFamily,
   atom_renderedFontFamily,
@@ -48,11 +50,18 @@ import {
   HiOutlineFolderAdd,
   HiOutlineLightningBolt,
   HiOutlineEye,
+  HiOutlineDesktopComputer,
 } from "react-icons/hi";
 import { useCreateVault } from "@/app/hooks/file-system/use-create-vault";
 import CreateVaultSubSteps from "./CreateVaultSubSteps";
 
-const TOTAL_STEPS = 9;
+const TOTAL_STEPS = 10;
+
+const THEME_OPTIONS: { label: string; value: Theme }[] = [
+  { label: "Light", value: "light" },
+  { label: "Dark", value: "dark" },
+  { label: "System", value: "system" },
+];
 
 const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
   const [hasCompleted, setHasCompleted] = useAtom(atom_hasCompletedOnboarding);
@@ -67,6 +76,7 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
   const [autosaveMode, setAutosaveMode] = useAtom(atom_autosaveMode);
   const [frontmatterDefaultMode, setFrontmatterDefaultMode] = useAtom(atom_frontmatterDefaultMode);
   const [defaultPaneMode, setDefaultPaneMode] = useAtom(atom_defaultPaneMode);
+  const [theme, setTheme] = useAtom(atom_theme);
   const [fontSize, setFontSize] = useAtom(atom_fontSize);
   const [fontFamily, setFontFamily] = useAtom(atom_fontFamily);
   const [renderedFontFamily, setRenderedFontFamily] = useAtom(atom_renderedFontFamily);
@@ -249,6 +259,29 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
         return (
           <div className="flex flex-col items-center text-center space-y-6 py-4">
             <div className="w-16 h-16 bg-sage/10 rounded-2xl flex items-center justify-center text-sage">
+              <HiOutlineDesktopComputer size={32} />
+            </div>
+            <div className="space-y-2">
+              <h2 className="text-ui-title-3 font-bold">Theme</h2>
+              <p className="text-ui-footnote opacity-60 px-4">
+                System follows your OS's light/dark setting and switches automatically when it changes. You can change this later in Settings.
+              </p>
+            </div>
+
+            <div className="w-full rounded-2xl border border-edge p-4 bg-paper-softgray/40 dark:bg-paper-dark/30">
+              <SegmentedControl options={THEME_OPTIONS} value={theme} onChange={setTheme} />
+            </div>
+
+            <Button variant="primary" onClick={() => setStep(4)} className="w-full h-12 rounded-2xl text-ui-footnote font-bold">
+              Continue
+            </Button>
+          </div>
+        );
+
+      case 4:
+        return (
+          <div className="flex flex-col items-center text-center space-y-6 py-4">
+            <div className="w-16 h-16 bg-sage/10 rounded-2xl flex items-center justify-center text-sage">
               <HiOutlineDocumentText size={32} />
             </div>
             <div className="space-y-2">
@@ -271,13 +304,13 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
               </div>
             </div>
 
-            <Button variant="primary" onClick={() => setStep(4)} className="w-full h-12 rounded-2xl text-ui-footnote font-bold">
+            <Button variant="primary" onClick={() => setStep(5)} className="w-full h-12 rounded-2xl text-ui-footnote font-bold">
               Continue
             </Button>
           </div>
         );
 
-      case 4:
+      case 5:
         return (
           <div className="flex flex-col items-center text-center space-y-6 py-4">
             <div className="w-16 h-16 bg-sage/10 rounded-2xl flex items-center justify-center text-sage">
@@ -309,13 +342,13 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
               </div>
             </div>
 
-            <Button variant="primary" onClick={() => setStep(5)} className="w-full h-12 rounded-2xl text-ui-footnote font-bold">
+            <Button variant="primary" onClick={() => setStep(6)} className="w-full h-12 rounded-2xl text-ui-footnote font-bold">
               Continue
             </Button>
           </div>
         );
 
-      case 5:
+      case 6:
         return (
           <div className="flex flex-col items-center text-center space-y-6 py-4">
             <div className="w-16 h-16 bg-sage/10 rounded-2xl flex items-center justify-center text-sage">
@@ -335,13 +368,13 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
               </div>
             </div>
 
-            <Button variant="primary" onClick={() => setStep(6)} className="w-full h-12 rounded-2xl text-ui-footnote font-bold">
+            <Button variant="primary" onClick={() => setStep(7)} className="w-full h-12 rounded-2xl text-ui-footnote font-bold">
               Continue
             </Button>
           </div>
         );
 
-      case 6:
+      case 7:
         return (
           <div className="flex flex-col items-center text-center space-y-6 py-4">
             <div className="w-16 h-16 bg-sage/10 rounded-2xl flex items-center justify-center text-sage">
@@ -365,13 +398,13 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
               </div>
             </div>
 
-            <Button variant="primary" onClick={() => setStep(7)} className="w-full h-12 rounded-2xl text-ui-footnote font-bold">
+            <Button variant="primary" onClick={() => setStep(8)} className="w-full h-12 rounded-2xl text-ui-footnote font-bold">
               Continue
             </Button>
           </div>
         );
 
-      case 7:
+      case 8:
         return (
           <div className="flex flex-col items-center text-center space-y-6 py-4">
             <div className="w-16 h-16 bg-sage/10 rounded-2xl flex items-center justify-center text-sage">
@@ -411,13 +444,13 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
               </div>
             </div>
 
-            <Button variant="primary" onClick={() => setStep(8)} className="w-full h-12 rounded-2xl text-ui-footnote font-bold">
+            <Button variant="primary" onClick={() => setStep(9)} className="w-full h-12 rounded-2xl text-ui-footnote font-bold">
               Continue
             </Button>
           </div>
         );
 
-      case 8: {
+      case 9: {
         const key = aiProvider === "gemini" ? geminiKey : claudeKey;
         const setKey = aiProvider === "gemini" ? setGeminiKey : setClaudeKey;
         return (
@@ -468,14 +501,14 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
               </Button>
             </div>
 
-            <Button variant="primary" onClick={() => setStep(9)} className="w-full h-11 rounded-2xl text-ui-footnote font-bold shrink-0">
+            <Button variant="primary" onClick={() => setStep(10)} className="w-full h-11 rounded-2xl text-ui-footnote font-bold shrink-0">
               Continue
             </Button>
           </div>
         );
       }
 
-      case 9:
+      case 10:
         return (
           <div className="flex flex-col items-center text-center space-y-6 py-4">
             <div className="w-16 h-16 bg-sage rounded-2xl flex items-center justify-center text-white">

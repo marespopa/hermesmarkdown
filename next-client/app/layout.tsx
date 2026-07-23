@@ -68,12 +68,10 @@ const THEME_INIT_SCRIPT = `
 (function () {
   try {
     var stored = localStorage.getItem("theme");
-    var theme = stored ? JSON.parse(stored) : null;
-    if (theme !== "light" && theme !== "dark") {
-      theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
-      localStorage.setItem("theme", JSON.stringify(theme));
-    }
-    if (theme === "dark") document.documentElement.classList.add("dark");
+    var theme = stored ? JSON.parse(stored) : "system";
+    if (theme !== "light" && theme !== "dark" && theme !== "system") theme = "system";
+    var isDark = theme === "dark" || (theme === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches);
+    if (isDark) document.documentElement.classList.add("dark");
   } catch (e) {}
 })();
 `;
