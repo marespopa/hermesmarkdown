@@ -20,7 +20,12 @@ import {
 import { SHORTCODES } from "../components/constants";
 import { REGEX_CALC } from "../components/regex";
 import { CALLOUT_META, resolveCalloutType } from "../constants/callouts";
-import { unescapeKnownMarkdownPatterns, markdownToVisibleText } from "./markdown-escape";
+import {
+  unescapeKnownMarkdownPatterns,
+  markdownToVisibleText,
+  stripSpuriousLeadingMarker,
+  stripSpuriousTrailingMarker,
+} from "./markdown-escape";
 
 function escapeRegExp(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -614,19 +619,56 @@ export const exitBlockOnShiftEnter = $prose(() => {
 // resolves clipboardTextSerializer to whichever plugin defines it first,
 // so this plugin must be registered before `.use(clipboard)` to take
 // priority over the built-in one.
-function serializeSliceToMarkdown(ctx: Ctx, slice: Slice): string {
+//
+// The slice handed in here (and by `selection.content()` below) is always
+// built with ProseMirror's `includeParents: true` (see Selection.content in
+// prosemirror-state), which re-includes the *entire* ancestor chain — list
+// item, heading, blockquote, code block — down to the selection, however
+// little of that ancestor's own content is actually selected.
+// `createAndFill` then treats that reconstructed ancestor as a real, closed
+// node, so the markdown serializer dutifully re-emits its marker: a word
+// selected mid-task-item copies as "- [ ] word", a mid-line code selection
+// grows its own ```fence```. We rebuild the slice ourselves with
+// `doc.slice(from, to)` (includeParents defaults to false there), which
+// only keeps ancestors down to the selection's shared depth — for a
+// selection that lives entirely inside one block, that excludes the block
+// wrapper entirely, so no marker gets reconstructed in the first place.
+// That only fully solves single-block selections, though: a selection
+// that starts partway through one list item and continues into a fully
+// selected sibling still forces that boundary item's own marker back in
+// (the shared ancestor is the list, not the item). `dropLeadingMarker` /
+// `dropTrailingMarker` are the fallback for exactly that edge — computed
+// from whether the selection's start/end actually sits at its immediate
+// block's own boundary — and strip a marker line/prefix left over from a
+// block that was only partially, not fully, part of the selection.
+function serializeSliceToMarkdown(
+  ctx: Ctx,
+  slice: Slice,
+  dropLeadingMarker: boolean,
+  dropTrailingMarker: boolean,
+): string {
   const schema = ctx.get(schemaCtx);
   const serializer = ctx.get(serializerCtx);
   const doc = schema.topNodeType.createAndFill(undefined, slice.content);
   if (!doc) return "";
-  return unescapeKnownMarkdownPatterns(serializer(doc));
+  let markdown = unescapeKnownMarkdownPatterns(serializer(doc));
+  if (dropLeadingMarker) markdown = stripSpuriousLeadingMarker(markdown);
+  if (dropTrailingMarker) markdown = stripSpuriousTrailingMarker(markdown);
+  return markdown;
 }
 
 export const clipboardCopyFix = $prose((ctx) => {
   return new Plugin({
     key: new PluginKey("HERMES_CLIPBOARD_COPY_FIX"),
     props: {
-      clipboardTextSerializer: (slice) => markdownToVisibleText(serializeSliceToMarkdown(ctx, slice)),
+      clipboardTextSerializer: (_slice, view) => {
+        const { doc, selection } = view.state;
+        const { from, to, $from, $to } = selection;
+        const slice = doc.slice(from, to);
+        const dropLeadingMarker = $from.parentOffset !== 0;
+        const dropTrailingMarker = $to.parentOffset !== $to.parent.content.size;
+        return markdownToVisibleText(serializeSliceToMarkdown(ctx, slice, dropLeadingMarker, dropTrailingMarker));
+      },
     },
   });
 });
@@ -638,9 +680,13 @@ export const clipboardCopyFix = $prose((ctx) => {
 // agree on exactly what was selected.
 export function getSelectionCopyPayload(ctx: Ctx): { source: string; text: string } | null {
   const view = ctx.get(editorViewCtx);
-  if (view.state.selection.empty) return null;
-  const slice = view.state.selection.content();
-  const source = serializeSliceToMarkdown(ctx, slice);
+  const { doc, selection } = view.state;
+  if (selection.empty) return null;
+  const { from, to, $from, $to } = selection;
+  const slice = doc.slice(from, to);
+  const dropLeadingMarker = $from.parentOffset !== 0;
+  const dropTrailingMarker = $to.parentOffset !== $to.parent.content.size;
+  const source = serializeSliceToMarkdown(ctx, slice, dropLeadingMarker, dropTrailingMarker);
   if (!source) return null;
   return { source, text: markdownToVisibleText(source) };
 }

@@ -68,6 +68,47 @@ const CALLOUT_MARKER_LINE = /^\[!\w+\]([+-]?)\s*.*$/i;
 const FENCE_LINE = /^(?:```|~~~)/;
 const TASK_ITEM = /^(\s*)-\s\[([ xX])\]\s+/;
 const UNORDERED_ITEM = /^(\s*)[-*+]\s+/;
+const ORDERED_ITEM = /^(\s*)\d+[.)]\s+/;
+const LEADING_HEADING = /^#{1,6}\s+/;
+const LEADING_BLOCKQUOTE = /^(?:>\s?)+/;
+
+// plugins.ts's serializeSliceToMarkdown rebuilds its slice with
+// `doc.slice(from, to)` precisely so a selection contained in one block
+// never picks up that block's own wrapper (see the doc comment there), but
+// a selection that starts partway into one block and continues into a
+// fully-selected sibling still forces that boundary block's node — and
+// with it its marker ("- [ ] ", "## ", "> ", an opening ```fence — back
+// into the reconstructed doc, on a line whose actual selected text never
+// included it. Called only when the caller has confirmed (via the original
+// selection's $from.parentOffset) that the selection didn't start at that
+// block's own beginning, so the marker is spurious rather than genuinely
+// selected. A fence marker sits alone on its own line, so it's dropped
+// outright rather than trimmed as a same-line prefix.
+export function stripSpuriousLeadingMarker(markdown: string): string {
+  const lines = markdown.split("\n");
+  if (FENCE_LINE.test(lines[0] ?? "")) {
+    lines.shift();
+    return lines.join("\n");
+  }
+  let first = lines[0] ?? "";
+  first = first.replace(LEADING_BLOCKQUOTE, "").replace(LEADING_HEADING, "");
+  const task = first.match(TASK_ITEM);
+  first = task ? first.slice(task[0].length) : first.replace(UNORDERED_ITEM, "").replace(ORDERED_ITEM, "");
+  lines[0] = first;
+  return lines.join("\n");
+}
+
+// Symmetric case: a selection that ends partway into a block and continues
+// back from a fully-selected sibling forces that boundary block's closing
+// syntax back in even though the selection never reached it — the only
+// marker type in this schema with a *closing* line is a fenced code
+// block's trailing ```. Same trigger as stripSpuriousLeadingMarker, mirrored
+// against $to.parentOffset instead of $from's.
+export function stripSpuriousTrailingMarker(markdown: string): string {
+  const lines = markdown.split("\n");
+  if (FENCE_LINE.test(lines[lines.length - 1] ?? "")) lines.pop();
+  return lines.join("\n");
+}
 
 // Order matters: images before links (image syntax is a strict superset),
 // bold before italic (an unstripped "**" would otherwise parse as two
