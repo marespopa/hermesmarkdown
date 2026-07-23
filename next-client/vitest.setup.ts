@@ -49,3 +49,12 @@ window.matchMedia = window.matchMedia || vi.fn().mockImplementation((query: stri
   removeEventListener: vi.fn(),
   dispatchEvent: vi.fn(),
 }));
+
+// jsdom doesn't implement ResizeObserver — used by layout-measuring hooks
+// like use-editor-appearance and PaneLeaf's tab-bar width tracking.
+class ResizeObserverMock {
+  observe = vi.fn();
+  unobserve = vi.fn();
+  disconnect = vi.fn();
+}
+window.ResizeObserver = window.ResizeObserver || (ResizeObserverMock as unknown as typeof ResizeObserver);

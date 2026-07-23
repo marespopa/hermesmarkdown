@@ -74,9 +74,9 @@ describe("WelcomeWizard", () => {
       </TestProvider>
     );
 
-    // Should now be on Step 2 (Text Size, the first preferences step) due to the useEffect
+    // Should now be on Step 2 (Default View, the first preferences step) due to the useEffect
     await waitFor(() => {
-      expect(screen.getByText("Text Size")).toBeInTheDocument();
+      expect(screen.getByText("Default View")).toBeInTheDocument();
     });
   });
 
@@ -92,12 +92,12 @@ describe("WelcomeWizard", () => {
       </TestProvider>
     );
 
-    expect(screen.getByText("Text Size")).toBeInTheDocument();
+    expect(screen.getByText("Default View")).toBeInTheDocument();
 
-    // Steps 2-7 (Text Size, Spacing, Typeface, Autosave, Frontmatter View, AI
-    // Features) each advance one step at a time via their own "Continue"
-    // button before reaching the final showcase step.
-    for (let i = 0; i < 6; i++) {
+    // Steps 2-9 (Default View, Text Size, Spacing, Typeface, Autosave,
+    // Frontmatter View, AI Features, ...) each advance one step at a time via
+    // their own "Continue" button before reaching the final showcase step (10).
+    for (let i = 0; i < 8; i++) {
       fireEvent.click(screen.getByText("Continue"));
     }
 

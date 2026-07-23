@@ -68,7 +68,7 @@ describe("PaneLeaf Tab Indicators", () => {
 
     const dot = screen.getByTitle("Unsaved changes");
     expect(dot).toBeInTheDocument();
-    expect(dot).toHaveClass("bg-sage/80");
+    expect(dot).toHaveClass("bg-amber-500");
   });
 
   it("renders a pulsing blue dot when file is saving", () => {
@@ -107,9 +107,11 @@ describe("PaneLeaf Tab Indicators", () => {
       </TestProvider>
     );
 
-    // Saved state reverts to showing the close button, not a status dot
+    // Saved state reverts to showing the close button, not a status dot.
+    // The close button's label is exposed via aria-label + a hover Tooltip,
+    // not a title attribute.
     expect(screen.queryByTitle("Saved")).not.toBeInTheDocument();
-    expect(screen.getAllByTitle("Close tab").length).toBeGreaterThan(0);
+    expect(screen.getAllByLabelText("Close tab").length).toBeGreaterThan(0);
   });
 
   it("renders a red dot when there is a save error", () => {

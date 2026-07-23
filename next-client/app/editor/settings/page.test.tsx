@@ -68,11 +68,13 @@ describe("SettingsPage", () => {
   it("renders typography controls on the default tab", () => {
     render(<SettingsPage />);
     // Typography is the default-active section — no nav click needed.
-    expect(screen.getByText("Text Size")).toBeInTheDocument();
+    // "Text Size" now appears twice (editor + rendered-view typography groups).
+    expect(screen.getAllByText("Text Size").length).toBeGreaterThanOrEqual(1);
     expect(screen.getByText("Line Height")).toBeInTheDocument();
     expect(screen.getByText("Letter Spacing")).toBeInTheDocument();
-    // Font family choices render as individual rows (no single "Typeface" label).
-    expect(screen.getByText("IBM Plex Mono")).toBeInTheDocument();
+    // Font family choices render as individual rows (no single "Typeface" label);
+    // now duplicated across the editor and rendered-view typography groups.
+    expect(screen.getAllByText("IBM Plex Mono").length).toBeGreaterThanOrEqual(1);
   });
 
   it("calls setter when line height option is clicked", () => {
