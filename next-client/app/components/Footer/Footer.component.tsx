@@ -40,7 +40,7 @@ export default function Footer() {
                   <ul className="flex flex-col gap-2 text-ui-subhead font-medium">
                     <li><Link href="/" className="hover:text-sage transition-colors">Editor</Link></li>
                     <li><Link href="/documentation" className="hover:text-sage transition-colors">Documentation</Link></li>
-                    <li><Link href="/what-is-hermes-md" className="hover:text-sage transition-colors">What is hermes.md?</Link></li>
+                    <li><Link href="/what-is-hermes-md" className="hover:text-sage transition-colors">HermesMarkdown vs Hermes Agent</Link></li>
                     <li>
                       <a
                         href="https://github.com/marespopa/hermesmarkdown/issues"

@@ -64,6 +64,23 @@ export const viewport: Viewport = {
   interactiveWidget: "resizes-content",
 };
 
+const SOFTWARE_APPLICATION_JSON_LD = {
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  name: "HermesMarkdown",
+  applicationCategory: "productivity, text editor",
+  operatingSystem: "Web browser",
+  url: "https://hermesmarkdown.com",
+  description:
+    "HermesMarkdown is a local-first Markdown editor that runs entirely in your browser and reads/writes files directly on disk. No accounts, no cloud sync. It is unrelated to Hermes Agent's SOUL.md, memory.md, or plan-mode files.",
+  offers: {
+    "@type": "Offer",
+    price: "0",
+    priceCurrency: "USD",
+  },
+  sameAs: ["https://github.com/marespopa/hermesmarkdown"],
+};
+
 const THEME_INIT_SCRIPT = `
 (function () {
   try {
@@ -89,6 +106,10 @@ export default function RootLayout({
     >
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(SOFTWARE_APPLICATION_JSON_LD) }}
+        />
       </head>
       <body
         className="h-full min-h-screen bg-paper-pale dark:bg-paper-dark text-ink-light dark:text-ink-dark antialiased overscroll-none"
