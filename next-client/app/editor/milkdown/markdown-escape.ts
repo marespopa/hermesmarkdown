@@ -49,3 +49,66 @@ export function unescapeKnownMarkdownPatterns(markdown: string): string {
     .map((line) => (TASK_CHECKBOX_ONLY_BR.test(line) ? line : line.replace(/<br \/>[ \t]*$/, "")))
     .join("\n");
 }
+
+// Render/Preview mode is WYSIWYG: a heading looks like large bold text with
+// no "#", a bold word looks bold with no "**", a callout looks like a
+// bordered box with no "> ". Milkdown's remark serializer doesn't know any
+// of that — clipboardTextSerializer always re-renders a copied selection
+// back to its raw markdown source, so selecting and copying what's visibly
+// just "key1" inside a callout used to land on the clipboard as "> key1",
+// a bold word as "**word**", a heading as "## Heading", a link's label as
+// "[label](https://...)". Right-clicking a selection offers an explicit
+// "Copy source" for when the markdown *is* wanted (see the editor's
+// context menu); plain copy (Ctrl+C) should match what the eye actually
+// selected. This walks the serialized markdown back down to that visible
+// text, on the clipboard path only — never in unescapeKnownMarkdownPatterns
+// above, since that one also runs on save and the saved file must keep its
+// real markdown syntax.
+const CALLOUT_MARKER_LINE = /^\[!\w+\]([+-]?)\s*.*$/i;
+const FENCE_LINE = /^(?:```|~~~)/;
+const TASK_ITEM = /^(\s*)-\s\[([ xX])\]\s+/;
+const UNORDERED_ITEM = /^(\s*)[-*+]\s+/;
+
+// Order matters: images before links (image syntax is a strict superset),
+// bold before italic (an unstripped "**" would otherwise parse as two
+// stray "*" italics), and the backslash-escape unwind last, since the
+// upstream escapes (e.g. "\*", "\[") only mean anything once every real
+// piece of formatting syntax around them is already gone.
+function stripInlineMarkdown(line: string): string {
+  return line
+    .replace(/!\[([^\]]*)\]\([^)]*\)/g, "$1")
+    .replace(/\[([^\]]*)\]\([^)]*\)/g, "$1")
+    .replace(/\*\*([^*]+?)\*\*/g, "$1")
+    .replace(/__([^_]+?)__/g, "$1")
+    .replace(/~~([^~]+?)~~/g, "$1")
+    .replace(/(?<![*\w])\*([^*]+?)\*(?!\w)/g, "$1")
+    .replace(/(?<![_\w])_([^_]+?)_(?!\w)/g, "$1")
+    .replace(/`([^`]+?)`/g, "$1")
+    .replace(/\\([\\*_[\]~`#>])/g, "$1");
+}
+
+export function markdownToVisibleText(markdown: string): string {
+  const rawLines = markdown.split("\n").map((line) => line.replace(/^(?:>\s?)+/, ""));
+  if (rawLines.length && CALLOUT_MARKER_LINE.test(rawLines[0])) rawLines.shift();
+
+  let inFence = false;
+  const lines = rawLines.map((line) => {
+    if (FENCE_LINE.test(line)) {
+      inFence = !inFence;
+      return null;
+    }
+    if (inFence) return line;
+
+    let text = line.replace(/^(\s*)#{1,6}\s+/, "$1");
+    const task = text.match(TASK_ITEM);
+    if (task) {
+      const checked = task[2].toLowerCase() === "x";
+      text = `${task[1]}${checked ? "☑" : "☐"} ${text.slice(task[0].length)}`;
+    } else {
+      text = text.replace(UNORDERED_ITEM, "$1• ");
+    }
+    return stripInlineMarkdown(text);
+  });
+
+  return lines.filter((line): line is string => line !== null).join("\n");
+}

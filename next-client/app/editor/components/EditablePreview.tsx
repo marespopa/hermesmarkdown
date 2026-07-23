@@ -23,7 +23,7 @@ import { replaceAll } from "@milkdown/kit/utils";
 import { Milkdown, MilkdownProvider, useEditor } from "@milkdown/react";
 import { FM_REGEX } from "@/app/utils/frontmatter-utils";
 import { unescapeKnownMarkdownPatterns } from "../milkdown/markdown-escape";
-import { shortcodeInputRules, calcInputRule, taskListItemView, calloutBlockquoteView, calloutMarkerDecorations, htmlPassthroughView, exitBlockOnShiftEnter, enterInLinkFix, configureHeadingKeymap, collapseEmptyHeadingKeymap, clipboardCopyFix } from "../milkdown/plugins";
+import { shortcodeInputRules, calcInputRule, taskListItemView, calloutBlockquoteView, calloutMarkerDecorations, htmlPassthroughView, exitBlockOnShiftEnter, enterInLinkFix, configureHeadingKeymap, collapseEmptyHeadingKeymap, clipboardCopyFix, getSelectionCopyPayload } from "../milkdown/plugins";
 import { codeBlockView } from "../milkdown/code-block-view";
 import { remarkMathPlugin, inlineMathSchema, mathBlockSchema, inlineMathInputRule, inlineMathView, mathBlockView } from "../milkdown/math-schema";
 import { slashMenu, configureSlashMenu, onOpenLinkDialogCtx, configureOpenLinkDialog, onOpenWikiLinkDialogCtx, configureOpenWikiLinkDialog } from "../milkdown/slash-menu";
@@ -58,6 +58,7 @@ import Button from "../../components/Button";
 import Input from "../../components/Input";
 import DialogModal from "../../components/DialogModal/DialogModal";
 import WikiLinkDialog from "./WikiLinkDialog";
+import TabContextMenu from "./TabContextMenu";
 
 interface EditablePreviewProps {
   content: string;
@@ -129,6 +130,7 @@ function EditorHost({ content, onChange, onWikiLinkClick, onTableCalloutUpdate, 
   const [linkUrl, setLinkUrl] = useState("");
   const linkUrlInputRef = useRef<HTMLInputElement>(null);
   const [wikiLinkDialog, setWikiLinkDialog] = useState<{ insert: (name: string) => void } | null>(null);
+  const [copyMenu, setCopyMenu] = useState<{ x: number; y: number; source: string; text: string } | null>(null);
 
   const closeLinkDialog = () => setLinkDialog(null);
   const confirmLinkDialog = () => {
@@ -236,9 +238,48 @@ function EditorHost({ content, onChange, onWikiLinkClick, onTableCalloutUpdate, 
     editor?.action(replaceAll(body));
   }, [content, get]);
 
+  // Ctrl+C already copies visible text (clipboardCopyFix), matching what's
+  // selected on screen. Some users still want the raw markdown behind a
+  // selection (e.g. pasting a callout into another markdown doc) — this
+  // right-click menu is the explicit escape hatch, offering both without
+  // guessing which one Ctrl+C should default to.
+  const handleContextMenu = (event: React.MouseEvent) => {
+    const editor = get();
+    if (!editor) return;
+    const payload = editor.action((ctx) => getSelectionCopyPayload(ctx));
+    if (!payload) return;
+    event.preventDefault();
+    setCopyMenu({ x: event.clientX, y: event.clientY, ...payload });
+  };
+
   return (
     <>
-      <Milkdown />
+      <div onContextMenu={handleContextMenu}>
+        <Milkdown />
+      </div>
+      {copyMenu && (
+        <TabContextMenu
+          x={copyMenu.x}
+          y={copyMenu.y}
+          onClose={() => setCopyMenu(null)}
+          items={[
+            {
+              label: "Copy text",
+              onClick: () => {
+                navigator.clipboard.writeText(copyMenu.text);
+                toast.success("Copied text");
+              },
+            },
+            {
+              label: "Copy source",
+              onClick: () => {
+                navigator.clipboard.writeText(copyMenu.source);
+                toast.success("Copied markdown source");
+              },
+            },
+          ]}
+        />
+      )}
       {datePicker && (
         <DatePickerCallout
           isOpen

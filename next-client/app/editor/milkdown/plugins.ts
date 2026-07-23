@@ -1,10 +1,10 @@
 import type { Ctx } from "@milkdown/kit/ctx";
 import { InputRule } from "@milkdown/kit/prose/inputrules";
-import type { Node as ProseNode } from "@milkdown/kit/prose/model";
+import type { Node as ProseNode, Slice } from "@milkdown/kit/prose/model";
 import type { EditorView, NodeView, ViewMutationRecord } from "@milkdown/kit/prose/view";
 import { Decoration, DecorationSet } from "@milkdown/kit/prose/view";
 import { Plugin, PluginKey, TextSelection } from "@milkdown/kit/prose/state";
-import { parserCtx, commandsCtx, schemaCtx, serializerCtx } from "@milkdown/kit/core";
+import { parserCtx, commandsCtx, schemaCtx, serializerCtx, editorViewCtx } from "@milkdown/kit/core";
 import { setBlockType, splitBlock } from "@milkdown/kit/prose/commands";
 import { splitListItem } from "@milkdown/kit/prose/schema-list";
 import { $command, $inputRule, $prose, $useKeymap, $view } from "@milkdown/kit/utils";
@@ -20,7 +20,7 @@ import {
 import { SHORTCODES } from "../components/constants";
 import { REGEX_CALC } from "../components/regex";
 import { CALLOUT_META, resolveCalloutType } from "../constants/callouts";
-import { unescapeKnownMarkdownPatterns } from "./markdown-escape";
+import { unescapeKnownMarkdownPatterns, markdownToVisibleText } from "./markdown-escape";
 
 function escapeRegExp(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -614,20 +614,36 @@ export const exitBlockOnShiftEnter = $prose(() => {
 // resolves clipboardTextSerializer to whichever plugin defines it first,
 // so this plugin must be registered before `.use(clipboard)` to take
 // priority over the built-in one.
+function serializeSliceToMarkdown(ctx: Ctx, slice: Slice): string {
+  const schema = ctx.get(schemaCtx);
+  const serializer = ctx.get(serializerCtx);
+  const doc = schema.topNodeType.createAndFill(undefined, slice.content);
+  if (!doc) return "";
+  return unescapeKnownMarkdownPatterns(serializer(doc));
+}
+
 export const clipboardCopyFix = $prose((ctx) => {
   return new Plugin({
     key: new PluginKey("HERMES_CLIPBOARD_COPY_FIX"),
     props: {
-      clipboardTextSerializer: (slice) => {
-        const schema = ctx.get(schemaCtx);
-        const serializer = ctx.get(serializerCtx);
-        const doc = schema.topNodeType.createAndFill(undefined, slice.content);
-        if (!doc) return "";
-        return unescapeKnownMarkdownPatterns(serializer(doc));
-      },
+      clipboardTextSerializer: (slice) => markdownToVisibleText(serializeSliceToMarkdown(ctx, slice)),
     },
   });
 });
+
+// Backs the editor's right-click "Copy text" / "Copy source" menu (see
+// EditablePreview's contextmenu handler): both options need the current
+// selection's markdown, one rendered down to visible text, one left as
+// raw source, and both need to run off the same slice so they always
+// agree on exactly what was selected.
+export function getSelectionCopyPayload(ctx: Ctx): { source: string; text: string } | null {
+  const view = ctx.get(editorViewCtx);
+  if (view.state.selection.empty) return null;
+  const slice = view.state.selection.content();
+  const source = serializeSliceToMarkdown(ctx, slice);
+  if (!source) return null;
+  return { source, text: markdownToVisibleText(source) };
+}
 
 // Milkdown registers no keymap for plain Enter at all (nor, elsewhere in
 // this file, does anything but Shift-Enter get one) — everywhere else
