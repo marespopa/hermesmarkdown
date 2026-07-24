@@ -1,9 +1,0 @@
-{
-  "setupTasks": [
-    {
-      "command": "cd next-client && npm i",
-      "name": "setup next"
-    }
-  ],
-  "tasks": {}
-}
