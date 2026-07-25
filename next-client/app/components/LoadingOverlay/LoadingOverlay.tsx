@@ -1,7 +1,7 @@
 "use client";
 import React from "react";
 import { useAtom } from "jotai";
-import { atom_fontFamily } from "@/app/atoms/atoms";
+import { atom_renderedFontFamily } from "@/app/atoms/atoms";
 
 interface Props {
   isVisible: boolean;
@@ -9,7 +9,7 @@ interface Props {
 }
 
 const LoadingOverlay = ({ isVisible, text = "Loading..." }: Props) => {
-  const [fontFamily] = useAtom(atom_fontFamily);
+  const [fontFamily] = useAtom(atom_renderedFontFamily);
 
   if (!isVisible) return null;
 

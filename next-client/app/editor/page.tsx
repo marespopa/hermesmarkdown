@@ -50,6 +50,7 @@ import { useAIEditorActions } from "./hooks/useAIEditorActions";
 import AIChatDialog from "./components/AIChatDialog";
 import { AIReviewDialog } from "./components/AIReviewDialog";
 import { AISelectionToolbar } from "./components/AISelectionToolbar";
+import { AIThinkingOverlay } from "./components/AIThinkingOverlay";
 
 
 import { useRouter } from "next/navigation";
@@ -584,8 +585,6 @@ export default function LiteEditor() {
         {isAiConfigured && !isMobileChrome && (
           <AISelectionToolbar
             isAiLoading={aiActions.isAiLoading}
-            onImprove={aiActions.improveWriting}
-            onExpand={aiActions.expandIdea}
             onPrompt={aiActions.runPrompt}
           />
         )}
@@ -603,6 +602,7 @@ export default function LiteEditor() {
           onReplace={aiActions.applyReplace}
           onInsertBelow={aiActions.applyInsertBelow}
         />
+        {aiActions.isAiLoading && <AIThinkingOverlay />}
 
         {isMobileChrome && (
           <>

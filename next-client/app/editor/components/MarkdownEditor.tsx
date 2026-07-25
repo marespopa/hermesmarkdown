@@ -70,7 +70,7 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [props.onChange]);
 
-  const { fontFamily, displayFontSize, lineHeight, letterSpacing, windowWidth, paneRef, maxContentWidth, contentPaddingX, noWrapPaddingX } =
+  const { fontFamily, displayFontSize, lineHeight, windowWidth, paneRef, maxContentWidth, contentPaddingX, noWrapPaddingX } =
     useEditorAppearance(props.isSplit);
 
   const keyboardInset = useKeyboardInset();
@@ -225,7 +225,6 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
           fontFamily,
           "--editor-font-size": displayFontSize,
           "--editor-line-height": lineHeight,
-          "--editor-letter-spacing": letterSpacing,
           maxWidth: wordWrap ? maxContentWidth : undefined,
           paddingLeft: wordWrap ? contentPaddingX : noWrapPaddingX,
           paddingRight: wordWrap ? contentPaddingX : noWrapPaddingX,

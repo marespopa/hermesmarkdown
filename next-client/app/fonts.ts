@@ -1,4 +1,4 @@
-import { Inter, IBM_Plex_Mono, IBM_Plex_Sans, Space_Mono, Literata, JetBrains_Mono, Fira_Code, Work_Sans, Source_Serif_4 } from "next/font/google";
+import { Inter, IBM_Plex_Mono, Literata, JetBrains_Mono, Work_Sans } from "next/font/google";
 
 // UI chrome only (sidebar, menus, buttons, labels) — never used in the writing pane.
 export const inter = Inter({
@@ -14,24 +14,6 @@ export const ibmPlexMono = IBM_Plex_Mono({
   weight: ["400", "500", "700"],
   style: ["normal", "italic"],
   variable: "--font-ibm-mono",
-  display: "swap",
-});
-
-// Editor mono alt — quirky, confident, expressive.
-export const spaceMono = Space_Mono({
-  subsets: ["latin"],
-  weight: ["400", "700"],
-  style: ["normal", "italic"],
-  variable: "--font-space-mono",
-  display: "swap",
-});
-
-// Editor sans-serif option — pairs with IBM Plex Mono, distinct from Inter (UI chrome).
-export const ibmPlexSans = IBM_Plex_Sans({
-  subsets: ["latin"],
-  weight: ["400", "500", "700"],
-  style: ["normal", "italic"],
-  variable: "--font-ibm-sans",
   display: "swap",
 });
 
@@ -52,28 +34,11 @@ export const jetbrainsMono = JetBrains_Mono({
   display: "swap",
 });
 
-// Editor mono alt — ligature-friendly, popular for code-heavy notes.
-export const firaCode = Fira_Code({
-  subsets: ["latin"],
-  weight: ["400", "500", "700"],
-  variable: "--font-fira-code",
-  display: "swap",
-});
-
-// Editor sans-serif option — humanist, warmer than IBM Plex Sans.
+// Editor sans-serif option — humanist and warm, fits the app's warm-neutral palette.
 export const workSans = Work_Sans({
   subsets: ["latin"],
   weight: ["400", "500", "700"],
   style: ["normal", "italic"],
   variable: "--font-work-sans",
-  display: "swap",
-});
-
-// Editor serif option — pairs with Literata, a second long-form reading choice.
-export const sourceSerif4 = Source_Serif_4({
-  subsets: ["latin"],
-  weight: ["400", "500", "700"],
-  style: ["normal", "italic"],
-  variable: "--font-source-serif",
   display: "swap",
 });

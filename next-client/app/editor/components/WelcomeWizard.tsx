@@ -11,12 +11,8 @@ import {
   atom_defaultPaneMode,
   atom_theme,
   type Theme,
-  atom_fontSize,
-  atom_fontFamily,
   atom_renderedFontFamily,
   atom_renderedFontSize,
-  atom_lineHeight,
-  atom_letterSpacing,
   atom_aiProvider,
   atom_claudeKey,
   atom_geminiKey,
@@ -30,7 +26,7 @@ import Input from "@/app/components/Input";
 import { testAIConnection } from "@/app/services/ai";
 import { showSuccessToast, showErrorToast } from "@/app/components/Toastr";
 import { SelectControl, SegmentedControl } from "@/app/editor/settings/components/SettingControls";
-import { FONT_SIZES, LINE_HEIGHTS, LETTER_SPACINGS, FONTS } from "@/app/editor/settings/font-options";
+import { FONT_SIZES, FONTS } from "@/app/editor/settings/font-options";
 import FontPicker from "@/app/editor/settings/components/FontPicker";
 import { useFileSystem } from "@/app/hooks/use-file-system";
 import { formatShortcut } from "@/app/utils/platform";
@@ -41,8 +37,6 @@ import {
   HiOutlineCheckCircle,
   HiOutlineRefresh,
   HiOutlineMenu,
-  HiOutlineDocumentText,
-  HiOutlineSwitchVertical,
   HiOutlineColorSwatch,
   HiOutlineArrowLeft,
   HiOutlineViewList,
@@ -55,7 +49,7 @@ import {
 import { useCreateVault } from "@/app/hooks/file-system/use-create-vault";
 import CreateVaultSubSteps from "./CreateVaultSubSteps";
 
-const TOTAL_STEPS = 10;
+const TOTAL_STEPS = 8;
 
 const THEME_OPTIONS: { label: string; value: Theme }[] = [
   { label: "Light", value: "light" },
@@ -77,25 +71,13 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
   const [frontmatterDefaultMode, setFrontmatterDefaultMode] = useAtom(atom_frontmatterDefaultMode);
   const [defaultPaneMode, setDefaultPaneMode] = useAtom(atom_defaultPaneMode);
   const [theme, setTheme] = useAtom(atom_theme);
-  const [fontSize, setFontSize] = useAtom(atom_fontSize);
-  const [fontFamily, setFontFamily] = useAtom(atom_fontFamily);
   const [renderedFontFamily, setRenderedFontFamily] = useAtom(atom_renderedFontFamily);
   const [renderedFontSize, setRenderedFontSize] = useAtom(atom_renderedFontSize);
-  const [lineHeight, setLineHeight] = useAtom(atom_lineHeight);
-  const [letterSpacing, setLetterSpacing] = useAtom(atom_letterSpacing);
   const [aiProvider, setAiProvider] = useAtom(atom_aiProvider);
   const [claudeKey, setClaudeKey] = useAtom(atom_claudeKey);
   const [geminiKey, setGeminiKey] = useAtom(atom_geminiKey);
   const [isTestingConnection, setIsTestingConnection] = useState(false);
   const isMobileChrome = useIsMobileChrome();
-
-  // Text size and typeface steps come after Default View, so they can target
-  // whichever surface (Source vs. Rendered) the user just chose as default.
-  const isRendered = defaultPaneMode === "preview";
-  const activeFontSize = isRendered ? renderedFontSize : fontSize;
-  const setActiveFontSize = isRendered ? setRenderedFontSize : setFontSize;
-  const activeFontFamily = isRendered ? renderedFontFamily : fontFamily;
-  const setActiveFontFamily = isRendered ? setRenderedFontFamily : setFontFamily;
 
   useEffect(() => {
     setIsMounted(true);
@@ -282,25 +264,25 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
         return (
           <div className="flex flex-col items-center text-center space-y-6 py-4">
             <div className="w-16 h-16 bg-sage/10 rounded-2xl flex items-center justify-center text-sage">
-              <HiOutlineDocumentText size={32} />
+              <HiOutlineColorSwatch size={32} />
             </div>
             <div className="space-y-2">
-              <h2 className="text-ui-title-3 font-bold">Text Size</h2>
+              <h2 className="text-ui-title-3 font-bold">Pick your writing font</h2>
               <p className="text-ui-footnote opacity-60 px-4">
-                How large should your words be in {isRendered ? "Rendered view" : "Source view"}? You can change this later in Settings.
+                Used in Rendered (WYSIWYG) view. Source view always uses a fixed monospace font. You can change this later in Settings.
               </p>
             </div>
 
-            <div className="w-full space-y-3 text-left">
-              <p
-                style={{ fontSize: activeFontSize, fontFamily: activeFontFamily }}
-                className="px-1 leading-snug text-ink-light dark:text-ink-dark transition-all duration-200"
-              >
-                The quick brown fox jumps.
-              </p>
+            <div className="w-full text-left">
+              <div className="max-h-[40vh] overflow-y-auto">
+                <FontPicker fonts={FONTS} value={renderedFontFamily} onChange={setRenderedFontFamily} />
+              </div>
+            </div>
+
+            <div className="w-full space-y-2 text-left">
+              <label className="text-[11px] font-bold uppercase tracking-wider ml-1 opacity-70 block">Size</label>
               <div className="rounded-2xl border border-edge p-4 bg-paper-softgray/40 dark:bg-paper-dark/30">
-                <label className="text-[11px] font-bold uppercase tracking-wider ml-1 opacity-70 block mb-2">Size</label>
-                <SegmentedControl options={FONT_SIZES} value={activeFontSize} onChange={setActiveFontSize} />
+                <SegmentedControl options={FONT_SIZES} value={renderedFontSize} onChange={setRenderedFontSize} />
               </div>
             </div>
 
@@ -311,70 +293,6 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
         );
 
       case 5:
-        return (
-          <div className="flex flex-col items-center text-center space-y-6 py-4">
-            <div className="w-16 h-16 bg-sage/10 rounded-2xl flex items-center justify-center text-sage">
-              <HiOutlineSwitchVertical size={32} />
-            </div>
-            <div className="space-y-2">
-              <h2 className="text-ui-title-3 font-bold">Spacing</h2>
-              <p className="text-ui-footnote opacity-60 px-4">
-                Breathing room between lines and letters.
-              </p>
-            </div>
-
-            <div className="w-full space-y-3 text-left">
-              <p
-                style={{ lineHeight, letterSpacing, fontFamily: activeFontFamily }}
-                className="px-1 text-ui-footnote text-ink-light dark:text-ink-dark transition-all duration-200"
-              >
-                The quick brown fox jumps over the lazy dog.
-              </p>
-              <div className="rounded-2xl border border-edge p-4 space-y-4 bg-paper-softgray/40 dark:bg-paper-dark/30">
-                <div className="space-y-2">
-                  <label className="text-[11px] font-bold uppercase tracking-wider ml-1 opacity-70 block">Line Height</label>
-                  <SegmentedControl options={LINE_HEIGHTS} value={lineHeight} onChange={setLineHeight} />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-[11px] font-bold uppercase tracking-wider ml-1 opacity-70 block">Letter Spacing</label>
-                  <SegmentedControl options={LETTER_SPACINGS} value={letterSpacing} onChange={setLetterSpacing} />
-                </div>
-              </div>
-            </div>
-
-            <Button variant="primary" onClick={() => setStep(6)} className="w-full h-12 rounded-2xl text-ui-footnote font-bold">
-              Continue
-            </Button>
-          </div>
-        );
-
-      case 6:
-        return (
-          <div className="flex flex-col items-center text-center space-y-6 py-4">
-            <div className="w-16 h-16 bg-sage/10 rounded-2xl flex items-center justify-center text-sage">
-              <HiOutlineColorSwatch size={32} />
-            </div>
-            <div className="space-y-2">
-              <h2 className="text-ui-title-3 font-bold">Typeface</h2>
-              <p className="text-ui-footnote opacity-60 px-4">
-                Choose the font used in {isRendered ? "Rendered view, where you read and write WYSIWYG" : "Source view, where you write raw markdown"}. You can set the other view&apos;s font separately in Settings.
-              </p>
-            </div>
-
-            <div className="w-full text-left">
-              <label className="text-[11px] font-bold uppercase tracking-wider ml-1 opacity-70 block mb-2">Font</label>
-              <div className="max-h-[40vh] overflow-y-auto">
-                <FontPicker fonts={FONTS} value={activeFontFamily} onChange={setActiveFontFamily} />
-              </div>
-            </div>
-
-            <Button variant="primary" onClick={() => setStep(7)} className="w-full h-12 rounded-2xl text-ui-footnote font-bold">
-              Continue
-            </Button>
-          </div>
-        );
-
-      case 7:
         return (
           <div className="flex flex-col items-center text-center space-y-6 py-4">
             <div className="w-16 h-16 bg-sage/10 rounded-2xl flex items-center justify-center text-sage">
@@ -398,13 +316,13 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
               </div>
             </div>
 
-            <Button variant="primary" onClick={() => setStep(8)} className="w-full h-12 rounded-2xl text-ui-footnote font-bold">
+            <Button variant="primary" onClick={() => setStep(6)} className="w-full h-12 rounded-2xl text-ui-footnote font-bold">
               Continue
             </Button>
           </div>
         );
 
-      case 8:
+      case 6:
         return (
           <div className="flex flex-col items-center text-center space-y-6 py-4">
             <div className="w-16 h-16 bg-sage/10 rounded-2xl flex items-center justify-center text-sage">
@@ -444,13 +362,13 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
               </div>
             </div>
 
-            <Button variant="primary" onClick={() => setStep(9)} className="w-full h-12 rounded-2xl text-ui-footnote font-bold">
+            <Button variant="primary" onClick={() => setStep(7)} className="w-full h-12 rounded-2xl text-ui-footnote font-bold">
               Continue
             </Button>
           </div>
         );
 
-      case 9: {
+      case 7: {
         const key = aiProvider === "gemini" ? geminiKey : claudeKey;
         const setKey = aiProvider === "gemini" ? setGeminiKey : setClaudeKey;
         return (
@@ -501,14 +419,14 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
               </Button>
             </div>
 
-            <Button variant="primary" onClick={() => setStep(10)} className="w-full h-11 rounded-2xl text-ui-footnote font-bold shrink-0">
+            <Button variant="primary" onClick={() => setStep(8)} className="w-full h-11 rounded-2xl text-ui-footnote font-bold shrink-0">
               Continue
             </Button>
           </div>
         );
       }
 
-      case 10:
+      case 8:
         return (
           <div className="flex flex-col items-center text-center space-y-6 py-4">
             <div className="w-16 h-16 bg-sage rounded-2xl flex items-center justify-center text-white">

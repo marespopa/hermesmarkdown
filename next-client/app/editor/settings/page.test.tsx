@@ -24,10 +24,7 @@ vi.mock("@/app/atoms/atoms", async (importOriginal) => {
   return {
     ...actual,
     atom_editorWidth: { toString: () => "atom_editorWidth" },
-    atom_fontSize: { toString: () => "atom_fontSize" },
-    atom_fontFamily: { toString: () => "atom_fontFamily" },
     atom_lineHeight: { toString: () => "atom_lineHeight" },
-    atom_letterSpacing: { toString: () => "atom_letterSpacing" },
     atom_theme: { toString: () => "atom_theme" },
     atom_autosaveMode: { toString: () => "atom_autosaveMode" },
     atom_autosaveDelay: { toString: () => "atom_autosaveDelay" },
@@ -53,12 +50,9 @@ describe("SettingsPage", () => {
     (useAtom as any).mockImplementation((atom: any) => {
       const atomStr = atom.toString();
       if (atomStr === "atom_editorWidth") return ["standard", vi.fn()];
-      if (atomStr === "atom_fontSize") return ["16px", vi.fn()];
       if (atomStr === "atom_autosaveMode") return ["afterDelay", vi.fn()];
       if (atomStr === "atom_autosaveDelay") return [2000, vi.fn()];
-      if (atomStr === "atom_fontFamily") return ["MONO", vi.fn()];
       if (atomStr === "atom_lineHeight") return ["1.8", vi.fn()];
-      if (atomStr === "atom_letterSpacing") return ["normal", vi.fn()];
       if (atomStr === "atom_showStats") return [true, vi.fn()];
       if (atomStr === "atom_theme") return ["light", vi.fn()];
       return ["", vi.fn()];
@@ -68,12 +62,16 @@ describe("SettingsPage", () => {
   it("renders typography controls on the default tab", () => {
     render(<SettingsPage />);
     // Typography is the default-active section — no nav click needed.
-    // "Text Size" now appears twice (editor + rendered-view typography groups).
-    expect(screen.getAllByText("Text Size").length).toBeGreaterThanOrEqual(1);
+    // Font/Text Size/Line Height are now single shared controls, no Source split.
+    expect(screen.getByText("Font")).toBeInTheDocument();
+    expect(screen.getByText("Text Size")).toBeInTheDocument();
     expect(screen.getByText("Line Height")).toBeInTheDocument();
-    expect(screen.getByText("Letter Spacing")).toBeInTheDocument();
-    // Font family choices render as individual rows (no single "Typeface" label);
-    // now duplicated across the editor and rendered-view typography groups.
+    expect(screen.queryByText("Letter Spacing")).not.toBeInTheDocument();
+    expect(screen.queryByText("Loose")).not.toBeInTheDocument();
+    expect(screen.getByText("Relaxed")).toBeInTheDocument();
+    // Source view's font is fixed monospace, not a picker anymore.
+    expect(screen.queryByText("Source Font")).not.toBeInTheDocument();
+    expect(screen.queryByText(/fixed monospace font/i)).toBeInTheDocument();
     expect(screen.getAllByText("IBM Plex Mono").length).toBeGreaterThanOrEqual(1);
   });
 

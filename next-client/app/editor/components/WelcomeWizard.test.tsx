@@ -94,10 +94,10 @@ describe("WelcomeWizard", () => {
 
     expect(screen.getByText("Default View")).toBeInTheDocument();
 
-    // Steps 2-9 (Default View, Text Size, Spacing, Typeface, Autosave,
-    // Frontmatter View, AI Features, ...) each advance one step at a time via
-    // their own "Continue" button before reaching the final showcase step (10).
-    for (let i = 0; i < 8; i++) {
+    // Steps 2-7 (Default View, Theme, Pick your writing font, Autosave,
+    // Frontmatter View, AI Features) each advance one step at a time via
+    // their own "Continue" button before reaching the final showcase step (8).
+    for (let i = 0; i < 6; i++) {
       fireEvent.click(screen.getByText("Continue"));
     }
 

@@ -26,10 +26,14 @@ export function useDuplicateItem({ scanVault, indexVaultTags, openFile }: UseDup
       // Same folder-picker used by "New File", so the duplicate can be placed
       // in a different folder instead of always landing next to the original.
       const subDirs: FileSystemDirectoryHandle[] = [];
-      for await (const entry of (vaultHandle as any).values()) {
-        if (entry.kind === "directory" && !entry.name.startsWith(".")) {
-          subDirs.push(entry);
+      try {
+        for await (const entry of (vaultHandle as any).values()) {
+          if (entry.kind === "directory" && !entry.name.startsWith(".")) {
+            subDirs.push(entry);
+          }
         }
+      } catch (err: any) {
+        console.warn("Failed to list vault subdirectories:", err?.message || err);
       }
       subDirs.sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0));
 

@@ -71,10 +71,17 @@ export function useCodeMirrorTable({ viewRef, containerRef }: UseCodeMirrorTable
     const caretCoords = view.coordsAtPos(pos);
     if (wrapperRect && caretCoords) {
       const caretTop = caretCoords.top - wrapperRect.top;
+      const caretBottom = caretCoords.bottom - wrapperRect.top;
       const caretLeft = caretCoords.left - wrapperRect.left;
       const scrollTop = containerRef.current?.scrollTop ?? 0;
+      // Prefer sitting just above the caret's row; if there isn't room (the
+      // row is near the top of the visible/scrolled area), drop the toolbar
+      // below the row instead of clamping it upward — clamping used to pin
+      // the panel right on top of the row being edited, covering the caret.
+      const above = caretTop - 36;
+      const top = above >= scrollTop + 4 ? above : caretBottom + 8;
       setCalloutPos({
-        top: Math.max(caretTop - 36, scrollTop + 4),
+        top,
         left: Math.min(caretLeft, (containerRef.current?.clientWidth ?? 500) - CALLOUT_WIDTH),
       });
     }

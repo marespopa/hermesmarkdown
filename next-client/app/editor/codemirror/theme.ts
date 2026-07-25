@@ -20,7 +20,6 @@ export const baseTheme = EditorView.theme({
     fontFamily: "inherit",
     fontSize: "var(--editor-font-size, inherit)",
     lineHeight: "var(--editor-line-height, inherit)",
-    letterSpacing: "var(--editor-letter-spacing, inherit)",
     padding: 0,
   },
   ".cm-line": {

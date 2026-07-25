@@ -7,7 +7,6 @@ import {
   atom_renderedFontFamily,
   atom_renderedFontSize,
   atom_lineHeight,
-  atom_letterSpacing,
   atom_vaultHandle,
   atom_currentDirectoryHandle,
 } from "@/app/atoms/atoms";
@@ -25,7 +24,7 @@ import { replaceAll } from "@milkdown/kit/utils";
 import { Milkdown, MilkdownProvider, useEditor } from "@milkdown/react";
 import { FM_REGEX } from "@/app/utils/frontmatter-utils";
 import { unescapeKnownMarkdownPatterns } from "../milkdown/markdown-escape";
-import { shortcodeInputRules, calcInputRule, taskListItemView, calloutBlockquoteView, calloutMarkerDecorations, htmlPassthroughView, exitBlockOnShiftEnter, enterInLinkFix, configureHeadingKeymap, collapseEmptyHeadingKeymap, clipboardCopyFix, getSelectionCopyPayload } from "../milkdown/plugins";
+import { shortcodeInputRules, calcInputRule, taskListItemView, calloutBlockquoteView, calloutMarkerDecorations, htmlPassthroughView, exitBlockOnShiftEnter, enterInLinkFix, configureHeadingKeymap, configureBlockquoteKeymap, collapseEmptyHeadingKeymap, clipboardCopyFix, getSelectionCopyPayload } from "../milkdown/plugins";
 import { codeBlockView } from "../milkdown/code-block-view";
 import { remarkMathPlugin, inlineMathSchema, mathBlockSchema, inlineMathInputRule, inlineMathView, mathBlockView } from "../milkdown/math-schema";
 import { slashMenu, configureSlashMenu, onOpenLinkDialogCtx, configureOpenLinkDialog, onOpenWikiLinkDialogCtx, configureOpenWikiLinkDialog } from "../milkdown/slash-menu";
@@ -211,6 +210,7 @@ function EditorHost({ content, onChange, onWikiLinkClick, onTableCalloutUpdate, 
           onChangeRef.current(next);
         });
         configureHeadingKeymap(ctx);
+        configureBlockquoteKeymap(ctx);
         configureSlashMenu(ctx);
         configureWikiLinkClick(ctx, (name) => onWikiLinkClickRef.current?.(name));
         configureDateClick(ctx, (payload) => setDatePicker(payload));
@@ -406,15 +406,11 @@ function EditorHost({ content, onChange, onWikiLinkClick, onTableCalloutUpdate, 
 }
 
 export default function EditablePreview({ content, onChange, filePath, onWikiLinkClick, isActivePane }: EditablePreviewProps) {
-  // Its own font atoms, distinct from the source editor's — the Rendered
-  // surface reads like a finished document rather than raw markdown, so it
-  // gets a serif/proportional default instead of the editor's monospace.
-  // Line height and letter spacing still follow Source (atom_lineHeight,
-  // atom_letterSpacing) since those aren't part of this split.
+  // Font/size are also the ones Source's text size follows (see
+  // use-editor-appearance.ts) — Source's family stays fixed monospace.
   const fontFamily = useAtomValue(atom_renderedFontFamily);
   const fontSize = useAtomValue(atom_renderedFontSize);
   const lineHeight = useAtomValue(atom_lineHeight);
-  const letterSpacing = useAtomValue(atom_letterSpacing);
   const isMobile = useIsMobile(768);
 
   const containerRef = useRef<HTMLDivElement>(null);
@@ -447,7 +443,7 @@ export default function EditablePreview({ content, onChange, filePath, onWikiLin
       </div>
       <div
         className="prose dark:prose-invert prose-neutral max-w-3xl mx-auto prose-headings:font-bold prose-a:text-sage prose-a:cursor-pointer prose-code:before:content-none prose-code:after:content-none focus:outline-none [&_.milkdown]:outline-none [&_.ProseMirror]:outline-none [&_.task-list-item_p]:my-0 [&_ul:has(>.task-list-item)]:pl-0 [&_.callout-marker-hidden]:hidden [&_.callout-title-text]:font-semibold [&_.wikilink-text]:text-sage [&_.wikilink-text]:font-bold [&_.wikilink-text]:underline [&_.wikilink-text]:cursor-pointer"
-        style={{ fontFamily, fontSize, lineHeight, letterSpacing }}
+        style={{ fontFamily, fontSize, lineHeight }}
       >
         <MilkdownProvider>
           <EditorHost

@@ -16,6 +16,7 @@ import {
   headingSchema,
   paragraphSchema,
   headingKeymap,
+  blockquoteKeymap,
 } from "@milkdown/kit/preset/commonmark";
 import { SHORTCODES, TODO_TAGS } from "../components/constants";
 import { REGEX_CALC } from "../components/regex";
@@ -58,6 +59,21 @@ export function configureHeadingKeymap(ctx: Ctx) {
   ctx.update(headingKeymap.key, (keys) => ({
     ...keys,
     DowngradeHeading: { ...keys.DowngradeHeading, shortcuts: [] },
+  }));
+}
+
+// preset-commonmark's default blockquote keymap binds Mod-Shift-b to
+// "wrap selection in blockquote" — the same combo the app's global keydown
+// listener (editor/page.tsx) uses to open AI Chat. ProseMirror's keymap
+// handler calls preventDefault() but never stopPropagation(), so the
+// keydown bubbles up to that window listener too: one keypress both wraps
+// the selection in a blockquote AND opens AI Chat. Disabled here the same
+// way DowngradeHeading is disabled above, since nothing in this app
+// intentionally exposed blockquote-wrapping on this shortcut.
+export function configureBlockquoteKeymap(ctx: Ctx) {
+  ctx.update(blockquoteKeymap.key, (keys) => ({
+    ...keys,
+    WrapInBlockquote: { ...keys.WrapInBlockquote, shortcuts: [] },
   }));
 }
 

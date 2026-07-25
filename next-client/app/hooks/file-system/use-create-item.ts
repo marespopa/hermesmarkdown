@@ -114,10 +114,16 @@ export function useCreateItem({ scanVault, openFile }: UseCreateItemProps) {
       // vaultFiles, which reflects whatever directory was last scanned (e.g.
       // a subfolder from Content navigation) and can be stale/empty in Views.
       const subDirs: FileSystemDirectoryHandle[] = [];
-      for await (const entry of (vaultHandle as any).values()) {
-        if (entry.kind === "directory" && !entry.name.startsWith(".")) {
-          subDirs.push(entry);
+      try {
+        for await (const entry of (vaultHandle as any).values()) {
+          if (entry.kind === "directory" && !entry.name.startsWith(".")) {
+            subDirs.push(entry);
+          }
         }
+      } catch (err: any) {
+        // Transient (e.g. cloud sync momentarily unreachable) — fall back to
+        // root-only options rather than crashing the whole "New File" action.
+        console.warn("Failed to list vault subdirectories:", err?.message || err);
       }
       subDirs.sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0));
 

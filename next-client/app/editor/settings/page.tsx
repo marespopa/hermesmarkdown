@@ -5,10 +5,7 @@ import { useAtom, useAtomValue } from "jotai";
 import { useRouter } from "next/navigation";
 import {
   atom_wordWrap,
-  atom_fontSize,
-  atom_fontFamily,
   atom_lineHeight,
-  atom_letterSpacing,
   atom_theme,
   type Theme,
   atom_isWizardOpen,
@@ -42,16 +39,13 @@ import {
   SettingItem,
   SettingGroup,
 } from "./components/SettingControls";
-import { FONT_SIZES, LINE_HEIGHTS, LETTER_SPACINGS, FONTS } from "./font-options";
+import { FONT_SIZES, LINE_HEIGHTS, FONTS } from "./font-options";
 import FontPicker from "./components/FontPicker";
 
 const SettingsPage = () => {
   const router = useRouter();
 
-  const [fontSize, setFontSize] = useAtom(atom_fontSize);
-  const [fontFamily, setFontFamily] = useAtom(atom_fontFamily);
   const [lineHeight, setLineHeight] = useAtom(atom_lineHeight);
-  const [letterSpacing, setLetterSpacing] = useAtom(atom_letterSpacing);
   const [theme, setTheme] = useAtom(atom_theme);
   const [wordWrap, setWordWrap] = useAtom(atom_wordWrap);
   const [autosaveMode, setAutosaveMode] = useAtom(atom_autosaveMode);
@@ -211,49 +205,24 @@ const SettingsPage = () => {
           </SettingGroup>
           <SettingGroup title="Typography">
             <SettingItem
-              label="Text Size"
-              layout="stack"
-              control={
-                <SegmentedControl options={FONT_SIZES} value={fontSize} onChange={setFontSize} />
-              }
-            />
-            <SettingItem
-              label="Line Height"
-              description="Vertical spacing between lines."
-              layout="stack"
-              control={
-                <SegmentedControl options={LINE_HEIGHTS} value={lineHeight} onChange={setLineHeight} />
-              }
-            />
-            <SettingItem
-              label="Letter Spacing"
-              description="Horizontal spacing between glyphs."
-              layout="stack"
-              control={
-                <SegmentedControl options={LETTER_SPACINGS} value={letterSpacing} onChange={setLetterSpacing} />
-              }
-            />
-            <SettingItem
               label="Font"
-              description="Used in the editor's writing pane (Source view)."
+              description="Used in the Rendered (WYSIWYG) view. Source view always uses a fixed monospace font, to keep raw markdown syntax honestly aligned."
               layout="stack"
-              control={<FontPicker fonts={FONTS} value={fontFamily} onChange={setFontFamily} />}
+              control={<FontPicker fonts={FONTS} value={renderedFontFamily} onChange={setRenderedFontFamily} />}
             />
-          </SettingGroup>
-          <SettingGroup title="Rendered View Typography">
             <SettingItem
               label="Text Size"
-              description="Used in the WYSIWYG preview pane (Rendered view)."
               layout="stack"
               control={
                 <SegmentedControl options={FONT_SIZES} value={renderedFontSize} onChange={setRenderedFontSize} />
               }
             />
             <SettingItem
-              label="Font"
-              description="Rendered view reads like a finished document, so it defaults to a serif distinct from the Source font above."
+              label="Line Height"
               layout="stack"
-              control={<FontPicker fonts={FONTS} value={renderedFontFamily} onChange={setRenderedFontFamily} />}
+              control={
+                <SegmentedControl options={LINE_HEIGHTS} value={lineHeight} onChange={setLineHeight} />
+              }
             />
           </SettingGroup>
           <SettingGroup title="Autosave">

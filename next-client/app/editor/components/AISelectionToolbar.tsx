@@ -1,20 +1,23 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useAtomValue } from "jotai";
-import { HiOutlineLightningBolt, HiOutlinePlus, HiOutlineChatAlt2 } from "react-icons/hi";
+import { HiOutlineChatAlt2 } from "react-icons/hi";
 import Portal from "../../components/Portal/Portal";
 import { atom_activeEditorView, atom_activeMilkdownView, atom_activeEditorKind } from "@/app/atoms/ui-atoms";
 
 interface AISelectionToolbarProps {
   isAiLoading: boolean;
-  onImprove: () => void;
-  onExpand: () => void;
   onPrompt: () => void;
 }
 
+// Estimated pill size for clamping/centering before the DOM node exists —
+// it's a single "Ask AI" button, so this stays a tight, fairly stable guess.
+const TOOLBAR_WIDTH = 92;
+const TOOLBAR_GAP = 8;
+
+type Pos = { top: number; left: number };
+
 export const AISelectionToolbar: React.FC<AISelectionToolbarProps> = ({
   isAiLoading,
-  onImprove,
-  onExpand,
   onPrompt,
 }) => {
   const activeEditorView = useAtomValue(atom_activeEditorView);
@@ -27,6 +30,7 @@ export const AISelectionToolbar: React.FC<AISelectionToolbarProps> = ({
   const kindRef = useRef(activeEditorKind);
   kindRef.current = activeEditorKind;
   const [hasSelection, setHasSelection] = useState(false);
+  const [pos, setPos] = useState<Pos | null>(null);
   const rafRef = useRef<number | null>(null);
 
   useEffect(() => {
@@ -35,6 +39,7 @@ export const AISelectionToolbar: React.FC<AISelectionToolbarProps> = ({
       // from CM6's, see atom_activeMilkdownView) — without this branch the
       // toolbar could only ever see a CM6 selection and never appeared at
       // all when selecting text in Preview mode.
+      let selected: boolean;
       if (kindRef.current === "milkdown") {
         const view = milkdownViewRef.current;
         if (!view || !view.hasFocus()) {
@@ -42,25 +47,36 @@ export const AISelectionToolbar: React.FC<AISelectionToolbarProps> = ({
           return;
         }
         const { from, to } = view.state.selection;
-        if (from !== to && view.state.doc.textBetween(from, to, "\n").trim()) {
-          setHasSelection(true);
-        } else {
+        selected = from !== to && !!view.state.doc.textBetween(from, to, "\n").trim();
+      } else {
+        const view = viewRef.current;
+        if (!view || !view.hasFocus) {
           setHasSelection(false);
+          return;
         }
-        return;
+        const { from, to } = view.state.selection.main;
+        selected = from !== to && !!view.state.sliceDoc(from, to).trim();
       }
 
-      const view = viewRef.current;
-      if (!view || !view.hasFocus) {
-        setHasSelection(false);
-        return;
-      }
-      const { from, to } = view.state.selection.main;
-      if (from !== to && view.state.sliceDoc(from, to).trim()) {
-        setHasSelection(true);
-      } else {
-        setHasSelection(false);
-      }
+      setHasSelection(selected);
+      if (!selected) return;
+
+      // Both editors are contenteditable surfaces backed by the native
+      // browser Selection API, so the same DOM range works for anchoring
+      // the toolbar regardless of which one is active — no per-editor
+      // coordinate lookup needed.
+      const domSelection = window.getSelection();
+      const range = domSelection && domSelection.rangeCount > 0 ? domSelection.getRangeAt(0) : null;
+      const rect = range?.getBoundingClientRect();
+      if (!rect || (!rect.width && !rect.height)) return;
+
+      setPos({
+        top: Math.max(TOOLBAR_GAP, rect.top - 44),
+        left: Math.min(
+          Math.max(TOOLBAR_GAP, rect.left + rect.width / 2 - TOOLBAR_WIDTH / 2),
+          window.innerWidth - TOOLBAR_WIDTH - TOOLBAR_GAP,
+        ),
+      });
     };
 
     const schedule = () => {
@@ -91,11 +107,11 @@ export const AISelectionToolbar: React.FC<AISelectionToolbarProps> = ({
     };
   }, []);
 
-  if (!hasSelection || isAiLoading) return null;
+  if (!hasSelection || isAiLoading || !pos) return null;
 
   return (
     <Portal>
-      <div className="fixed top-4 inset-x-0 z-[99] flex justify-center pointer-events-none">
+      <div className="fixed z-[99] pointer-events-none" style={{ top: pos.top, left: pos.left }}>
         <div
           className="ai-selection-toolbar pointer-events-auto flex items-center gap-0.5 p-1 bg-paper-light/80 dark:bg-neutral-900/80 backdrop-blur-2xl border border-paper-light/20 dark:border-neutral-800/50 rounded-full animate-in fade-in zoom-in-95 duration-200 select-none"
         >
@@ -106,24 +122,6 @@ export const AISelectionToolbar: React.FC<AISelectionToolbarProps> = ({
           >
             <HiOutlineChatAlt2 size={13} />
             Ask AI
-          </button>
-          <div className="w-px h-3.5 bg-beige dark:bg-clay my-auto" />
-          <button
-            onMouseDown={(e) => e.preventDefault()}
-            onClick={(e) => { e.preventDefault(); e.stopPropagation(); onImprove(); }}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-ui-footnote font-medium text-sage dark:text-sage hover:bg-sage/10 dark:hover:bg-sage/10 rounded-full transition-colors"
-          >
-            <HiOutlineLightningBolt size={13} />
-            Polish
-          </button>
-          <div className="w-px h-3.5 bg-beige dark:bg-clay my-auto" />
-          <button
-            onMouseDown={(e) => e.preventDefault()}
-            onClick={(e) => { e.preventDefault(); e.stopPropagation(); onExpand(); }}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-ui-footnote font-medium text-sage dark:text-sage hover:bg-sage/10 dark:hover:bg-sage/10 rounded-full transition-colors"
-          >
-            <HiOutlinePlus size={13} />
-            Elaborate
           </button>
         </div>
       </div>

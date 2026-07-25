@@ -22,6 +22,7 @@ export interface MilkdownTableInfo {
   // moves between rows, rather than sitting pinned at the top of the table.
   caretTop: number;
   caretLeft: number;
+  caretBottom: number;
 }
 
 // Passes the live EditorView alongside the info so the React-side hook can
@@ -75,6 +76,7 @@ function computeTableInfo(view: EditorView): MilkdownTableInfo | null {
     currentAlignment,
     caretTop: caretCoords.top,
     caretLeft: caretCoords.left,
+    caretBottom: caretCoords.bottom,
   };
 }
 

@@ -764,26 +764,23 @@ graph TD
       {
         id: "ai-commands",
         title: "AI commands",
-        lead: "Highlight text in the editor to bring up a floating toolbar with three actions — only visible once a key is configured.",
-        keywords: "improve writing polish elaborate ask ai selection toolbar chat",
+        lead: "Highlight text in the editor to bring up a small floating toolbar — only visible once a key is configured.",
+        keywords: "ask ai selection toolbar chat",
         body: (
           <>
             <p>
-              Select some text and a small toolbar appears above it:
+              Select some text and a small toolbar appears right above the selection:
             </p>
             <KV
               rows={[
                 { label: "💬 Ask AI", value: "Type any instruction — rewrite, translate, convert, anything" },
-                { label: "⚡ Polish", value: "Clearer wording, same intent" },
-                { label: "➕ Elaborate", value: "Expand the selection with more depth and detail" },
               ]}
             />
             <p>
-              All three need text highlighted first — the toolbar only appears while something is
-              selected.
+              It only appears while something is selected, positioned at the selection itself.
             </p>
             <Callout type="tip">
-              Every action opens a diff review before anything touches your note — red for removed, green
+              Ask AI opens a diff review before anything touches your note — red for removed, green
               for added — then Replace, Insert Below, or Cancel. Nothing is applied without a confirmed
               review.
             </Callout>
@@ -968,10 +965,10 @@ graph TD
               ]}
             />
             <p>
-              On desktop, selecting text surfaces a toolbar with Ask AI, Polish, and Elaborate. On
-              mobile, the equivalent toolbar is pared down to Bold, Italic, and Link — there's no
-              per-selection AI toolbar on mobile yet. AI Chat and Repurpose Note are still reachable from
-              the command palette on either platform.
+              On desktop, selecting text surfaces a toolbar with Ask AI. On mobile, the equivalent
+              toolbar is pared down to Bold, Italic, and Link — there's no per-selection AI toolbar on
+              mobile yet. AI Chat and Repurpose Note are still reachable from the command palette on
+              either platform.
             </p>
           </>
         ),

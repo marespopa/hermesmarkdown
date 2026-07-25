@@ -3,11 +3,10 @@
 import { useState, useEffect, useMemo, useRef, RefObject } from "react";
 import { useAtomValue } from "jotai";
 import {
-  atom_fontSize,
-  atom_fontFamily,
   atom_editorWidth,
   atom_lineHeight,
-  atom_letterSpacing,
+  atom_renderedFontSize,
+  MONO_FONT_STACK,
 } from "@/app/atoms/atoms";
 
 // Breakpoints below are keyed off the *pane's* own width (measured via
@@ -16,11 +15,13 @@ import {
 // the editor kept centering its max-width column as if it had the full
 // window to itself, leaving an oversized, sidebar-unaware margin.
 export function useEditorAppearance(isSplit = false) {
-  const fontFamily = useAtomValue(atom_fontFamily);
-  const fontSize = useAtomValue(atom_fontSize);
+  // Source's font family is fixed monospace, not user-configurable — see
+  // MONO_FONT_STACK's comment in ui-atoms.ts. Size and line-height still
+  // follow the shared Settings controls.
+  const fontFamily = MONO_FONT_STACK;
+  const fontSize = useAtomValue(atom_renderedFontSize);
   const editorWidth = useAtomValue(atom_editorWidth);
   const lineHeight = useAtomValue(atom_lineHeight);
-  const letterSpacing = useAtomValue(atom_letterSpacing);
 
   const [windowWidth, setWindowWidth] = useState(
     typeof window !== "undefined" ? window.innerWidth : 1200,
@@ -78,7 +79,6 @@ export function useEditorAppearance(isSplit = false) {
     fontFamily,
     displayFontSize,
     lineHeight,
-    letterSpacing,
     windowWidth,
     paneRef: paneRef as RefObject<HTMLDivElement | null>,
     maxContentWidth,

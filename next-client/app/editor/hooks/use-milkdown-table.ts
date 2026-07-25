@@ -55,9 +55,16 @@ export function useMilkdownTable({ containerRef }: UseMilkdownTableOptions) {
     // if the container were always scrolled to the top, so it landed further
     // and further from the actual cursor the more the pane was scrolled.
     const caretTop = info.caretTop - wrapperRect.top + scrollTop;
+    const caretBottom = info.caretBottom - wrapperRect.top + scrollTop;
     const caretLeft = info.caretLeft - wrapperRect.left;
+    // Prefer sitting just above the caret's row; if there isn't room (the
+    // row is near the top of the visible/scrolled area), drop the toolbar
+    // below the row instead of clamping it upward — clamping used to pin
+    // the panel right on top of the row being edited, covering the caret.
+    const above = caretTop - 36;
+    const top = above >= scrollTop + 4 ? above : caretBottom + 8;
     setCalloutPos({
-      top: Math.max(caretTop - 36, scrollTop + 4),
+      top,
       left: Math.min(caretLeft, (containerRef.current?.clientWidth ?? 500) - CALLOUT_WIDTH),
     });
   }, [containerRef]);

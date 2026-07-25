@@ -115,7 +115,15 @@ export function useFocusTrap(panel: HTMLElement | null, isOpen: boolean) {
     return () => {
       cancelAnimationFrame(raf);
       panel.removeEventListener("keydown", handleKeyDown);
-      previouslyFocused.current?.focus?.();
+      // Only restore focus if it's still inside the panel — a confirm/select
+      // action (e.g. DatePickerCallout's onSelectDate) may have already
+      // moved focus somewhere deliberate (like back into the editor) before
+      // this cleanup runs. Blindly restoring here would steal focus back
+      // and, for CodeMirror, drop the `cm-focused` class that its drawn
+      // cursor layer depends on — making the caret vanish entirely.
+      if (panel.contains(document.activeElement)) {
+        previouslyFocused.current?.focus?.();
+      }
     };
   }, [isOpen, panel]);
 }

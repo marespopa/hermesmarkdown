@@ -25,10 +25,8 @@ vi.mock("@/app/atoms/atoms", async (importOriginal) => {
   return {
     ...actual,
     atom_wordWrap: atom(true),
-    atom_fontSize: atom("16px"),
-    atom_fontFamily: atom("monospace"),
+    atom_renderedFontSize: atom("16px"),
     atom_lineHeight: atom("1.8"),
-    atom_letterSpacing: atom("normal"),
     atom_isEditorFocused: atom(false),
     atom_cursorPosition: atom({ line: 1, col: 1 }),
     atom_editorWidth: atom("standard"),

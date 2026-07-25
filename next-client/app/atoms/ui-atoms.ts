@@ -8,26 +8,17 @@ import type { Ctx as MilkdownCtx } from "@milkdown/kit/ctx";
 export type Theme = "light" | "dark" | "system";
 export const atom_theme = atomWithStorage<Theme>("theme", "system");
 export const atom_wordWrap = atomWithStorage<boolean>("wordWrap", true);
-// Shared default monospace stack, used as the atom_fontFamily default so active-state
-// matching in settings can't drift from the IBM Plex Mono entry in FONTS.
+// Source view's font is fixed, not user-configurable — raw markdown syntax
+// (`#`, `*`, `[[wikilink]]`) needs a monospace face to stay honestly aligned,
+// and letting it drift from monospace would desync the transparent textarea
+// from the highlighted <pre> overlay in react-simple-code-editor.
 export const MONO_FONT_STACK = "var(--font-ibm-mono), ui-monospace, monospace";
-export const atom_fontFamily = atomWithStorage<string>(
-  "editorFontFamily",
-  MONO_FONT_STACK,
-);
-export const atom_fontSize = atomWithStorage<string>("editorFontSize", "17px");
 export const atom_lineHeight = atomWithStorage<string>(
   "editorLineHeight",
   "1.8",
 );
-export const atom_letterSpacing = atomWithStorage<string>(
-  "editorLetterSpacing",
-  "normal",
-);
-// Rendered surface (EditablePreview) fonts — deliberately separate from the
-// Source atoms above. Source is scanned character-by-character while typing
-// raw markdown, Rendered reads like a finished document, so they default to
-// different families/sizes. See plans/hermes-design.md > Typography.
+// Primary "everywhere" font/size — drives Rendered, and Source's size (Source's
+// family stays fixed to MONO_FONT_STACK above). See plans/hermes-design.md > Typography.
 export const RENDERED_FONT_STACK = "var(--font-literata), Georgia, ui-serif, serif";
 export const atom_renderedFontFamily = atomWithStorage<string>(
   "renderedFontFamily",
