@@ -2,6 +2,7 @@ import { atom } from "jotai";
 import { atomWithStorage } from "jotai/utils";
 import type { EditorView } from "@codemirror/view";
 import type { EditorView as MilkdownEditorView } from "@milkdown/kit/prose/view";
+import type { Ctx as MilkdownCtx } from "@milkdown/kit/ctx";
 
 // Theme & appearance
 export type Theme = "light" | "dark" | "system";
@@ -262,6 +263,12 @@ export const atom_activeEditorView = atom<EditorView | null>(null);
 export const atom_activeMilkdownView = atom<MilkdownEditorView | null>(null);
 export type ActiveEditorKind = "cm6" | "milkdown";
 export const atom_activeEditorKind = atom<ActiveEditorKind | null>(null);
+// The Milkdown Ctx paired with atom_activeMilkdownView — plain React state
+// only ever gets the raw ProseMirror view, but writing markdown-formatted
+// content into Rendered mode (AI chat insert/replace) needs parserCtx to
+// turn that markdown into real nodes instead of literal asterisk/heading
+// characters, so the Ctx has to be threaded out alongside the view.
+export const atom_activeMilkdownCtx = atom<MilkdownCtx | null>(null);
 
 // Most-recently-used command ids for the command palette's empty-query state
 // ("feels intelligent" with zero visible "recent" UI). Capped at 8 on write.

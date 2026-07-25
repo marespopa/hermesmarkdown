@@ -11,8 +11,9 @@ import {
   atom_vaultHandle,
   atom_currentDirectoryHandle,
 } from "@/app/atoms/atoms";
-import { atom_activeMilkdownView, atom_activeEditorKind } from "@/app/atoms/ui-atoms";
+import { atom_activeMilkdownView, atom_activeEditorKind, atom_activeMilkdownCtx } from "@/app/atoms/ui-atoms";
 import { savePastedImage, resolveVaultImageSrc } from "@/app/utils/paste-image";
+import type { Ctx } from "@milkdown/kit/ctx";
 import { Editor, rootCtx, defaultValueCtx } from "@milkdown/kit/core";
 import { commonmark } from "@milkdown/kit/preset/commonmark";
 import { gfm } from "@milkdown/kit/preset/gfm";
@@ -110,17 +111,25 @@ function EditorHost({ content, onChange, onWikiLinkClick, onTableCalloutUpdate, 
   // cursor here instead of only ever targeting a CM6 view (see
   // active-view-plugin.ts and use-global-voice-input.ts).
   const [milkdownView, setMilkdownView] = useState<EditorView | null>(null);
+  const [milkdownCtx, setMilkdownCtx] = useState<Ctx | null>(null);
   const setActiveMilkdownView = useSetAtom(atom_activeMilkdownView);
+  const setActiveMilkdownCtx = useSetAtom(atom_activeMilkdownCtx);
   const setActiveEditorKind = useSetAtom(atom_activeEditorKind);
+  const handleMilkdownViewReady = useCallback((view: EditorView | null, viewCtx?: Ctx) => {
+    setMilkdownView(view);
+    setMilkdownCtx(viewCtx ?? null);
+  }, []);
   useEffect(() => {
-    if (!isActivePane || !milkdownView) return;
+    if (!isActivePane || !milkdownView || !milkdownCtx) return;
     setActiveMilkdownView(milkdownView);
+    setActiveMilkdownCtx(milkdownCtx);
     setActiveEditorKind("milkdown");
     return () => {
       setActiveMilkdownView(null);
+      setActiveMilkdownCtx(null);
       setActiveEditorKind((prev) => (prev === "milkdown" ? null : prev));
     };
-  }, [isActivePane, milkdownView, setActiveMilkdownView, setActiveEditorKind]);
+  }, [isActivePane, milkdownView, milkdownCtx, setActiveMilkdownView, setActiveMilkdownCtx, setActiveEditorKind]);
 
   const vaultHandle = useAtomValue(atom_vaultHandle);
   const currentDirectoryHandle = useAtomValue(atom_currentDirectoryHandle);
@@ -219,7 +228,7 @@ function EditorHost({ content, onChange, onWikiLinkClick, onTableCalloutUpdate, 
         configureTableCalloutUpdate(ctx, (info, view) => onTableCalloutUpdateRef.current?.(info, view));
         configureLinkCalloutUpdate(ctx, (info, view) => onLinkCalloutUpdateRef.current?.(info, view));
         configureTagCalloutUpdate(ctx, (info, view) => onTagCalloutUpdateRef.current?.(info, view));
-        configureMilkdownViewReady(ctx, setMilkdownView);
+        configureMilkdownViewReady(ctx, handleMilkdownViewReady);
         configurePasteImage(ctx, (file) => pasteImageRef.current(file));
         configureResolveImageSrc(ctx, (src) => resolveImageSrcRef.current(src));
       })

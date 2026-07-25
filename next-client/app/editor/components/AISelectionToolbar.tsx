@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef } from "react";
 import { useAtomValue } from "jotai";
 import { HiOutlineLightningBolt, HiOutlinePlus, HiOutlineChatAlt2 } from "react-icons/hi";
 import Portal from "../../components/Portal/Portal";
-import { atom_activeEditorView } from "@/app/atoms/ui-atoms";
+import { atom_activeEditorView, atom_activeMilkdownView, atom_activeEditorKind } from "@/app/atoms/ui-atoms";
 
 interface AISelectionToolbarProps {
   isAiLoading: boolean;
@@ -18,13 +18,38 @@ export const AISelectionToolbar: React.FC<AISelectionToolbarProps> = ({
   onPrompt,
 }) => {
   const activeEditorView = useAtomValue(atom_activeEditorView);
+  const activeMilkdownView = useAtomValue(atom_activeMilkdownView);
+  const activeEditorKind = useAtomValue(atom_activeEditorKind);
   const viewRef = useRef(activeEditorView);
   viewRef.current = activeEditorView;
+  const milkdownViewRef = useRef(activeMilkdownView);
+  milkdownViewRef.current = activeMilkdownView;
+  const kindRef = useRef(activeEditorKind);
+  kindRef.current = activeEditorKind;
   const [hasSelection, setHasSelection] = useState(false);
   const rafRef = useRef<number | null>(null);
 
   useEffect(() => {
     const checkSelection = () => {
+      // Rendered mode has its own ProseMirror view (registered separately
+      // from CM6's, see atom_activeMilkdownView) — without this branch the
+      // toolbar could only ever see a CM6 selection and never appeared at
+      // all when selecting text in Preview mode.
+      if (kindRef.current === "milkdown") {
+        const view = milkdownViewRef.current;
+        if (!view || !view.hasFocus()) {
+          setHasSelection(false);
+          return;
+        }
+        const { from, to } = view.state.selection;
+        if (from !== to && view.state.doc.textBetween(from, to, "\n").trim()) {
+          setHasSelection(true);
+        } else {
+          setHasSelection(false);
+        }
+        return;
+      }
+
       const view = viewRef.current;
       if (!view || !view.hasFocus) {
         setHasSelection(false);

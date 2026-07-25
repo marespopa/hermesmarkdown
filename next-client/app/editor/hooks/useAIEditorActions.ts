@@ -1,13 +1,15 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useAtomValue } from "jotai";
 import { EditorSelection } from "@codemirror/state";
 import { callAI } from "@/app/services/ai";
-import { atom_activeEditorView } from "@/app/atoms/ui-atoms";
+import { atom_activeEditorView, atom_activeMilkdownView, atom_activeEditorKind, atom_activeMilkdownCtx } from "@/app/atoms/ui-atoms";
 import { showSuccessToast, showErrorToast } from "@/app/components/Toastr";
 import { useDialog } from "@/app/hooks/use-dialog";
 import { typewriterInsertCM6, typewriterReplaceCM6 } from "../codemirror/typewriter-insert";
+import { replaceMilkdownRange } from "../milkdown/markdown-replace";
+import { getSelectionCopyPayload } from "../milkdown/plugins";
 
 export const FORMULA_PRESERVATION_RULE =
   "IMPORTANT: HermesMarkdown formula expressions (e.g. =SUM(A:A), =AVG(B2:B5), =COUNT(C:C)) must NEVER be evaluated or replaced with numeric values. Preserve all formula expressions exactly as written.";
@@ -20,8 +22,9 @@ export interface AIReviewState {
   end: number;
 }
 
-// Global (not per-pane) — targets whichever CM6 view is currently registered
-// as active via atom_activeEditorView, same convention as useGlobalVoiceInput.
+// Global (not per-pane) — targets whichever view (CM6 in Source mode, or
+// Milkdown/ProseMirror in Rendered mode) is currently registered as active,
+// same convention as useGlobalVoiceInput.
 export function useAIEditorActions() {
   const [isAiLoading, setIsAiLoading] = useState(false);
   const [aiReview, setAiReview] = useState<AIReviewState | null>(null);
@@ -33,11 +36,51 @@ export function useAIEditorActions() {
   });
   const dialog = useDialog();
   const activeEditorView = useAtomValue(atom_activeEditorView);
+  const activeMilkdownView = useAtomValue(atom_activeMilkdownView);
+  const activeMilkdownCtx = useAtomValue(atom_activeMilkdownCtx);
+  const activeEditorKind = useAtomValue(atom_activeEditorKind);
+
+  // Two independent view types can each be registered (Source's CM6 and
+  // Rendered's ProseMirror) — atom_activeEditorKind picks whichever one the
+  // user is actually looking at right now, same convention as
+  // use-global-voice-input.ts's commitVoicePreview. Every action below reads
+  // through this instead of assuming CM6, so AI chat/review actions work the
+  // same in either pane mode.
+  const activeTarget = useMemo(() => {
+    if (activeEditorKind === "milkdown" && activeMilkdownView && activeMilkdownCtx) {
+      return { kind: "milkdown" as const, view: activeMilkdownView, ctx: activeMilkdownCtx };
+    }
+    if (activeEditorKind === "cm6" && activeEditorView) {
+      return { kind: "cm6" as const, view: activeEditorView };
+    }
+    return null;
+  }, [activeEditorKind, activeEditorView, activeMilkdownView, activeMilkdownCtx]);
 
   const getContext = useCallback(() => {
-    const view = activeEditorView;
-    if (!view) return { selectedText: "", surroundingText: "", start: 0, end: 0 };
+    if (!activeTarget) return { selectedText: "", surroundingText: "", start: 0, end: 0 };
 
+    if (activeTarget.kind === "milkdown") {
+      const { view, ctx } = activeTarget;
+      const { from: start, to: end } = view.state.selection;
+      // .text, not .source — Rendered mode is WYSIWYG (a callout looks like
+      // a bordered box with no "> ", a heading has no "#"), so what the AI
+      // chat shows back as "Selected text" (and what the model itself sees)
+      // should match what was visibly highlighted, same call already made
+      // for plain Ctrl+C copy in plugins.ts's clipboardCopyFix. .source
+      // would otherwise leak raw markdown syntax — a selection inside a
+      // callout would show as "> [!note] ..." and read as if the selection
+      // had been turned into a blockquote.
+      const selectedText = getSelectionCopyPayload(ctx)?.text ?? "";
+      const docSize = view.state.doc.content.size;
+      const contextStart = Math.max(0, start - 300);
+      const contextEnd = Math.min(docSize, end + 300);
+      const surroundingText =
+        view.state.doc.textBetween(contextStart, start, "\n") +
+        view.state.doc.textBetween(end, contextEnd, "\n");
+      return { selectedText, surroundingText, start, end };
+    }
+
+    const view = activeTarget.view;
     const { from: start, to: end } = view.state.selection.main;
     const selectedText = view.state.sliceDoc(start, end);
 
@@ -48,7 +91,7 @@ export function useAIEditorActions() {
       view.state.sliceDoc(contextStart, start) + view.state.sliceDoc(end, contextEnd);
 
     return { selectedText, surroundingText, start, end };
-  }, [activeEditorView]);
+  }, [activeTarget]);
 
   const runSelectionAction = useCallback(
     async (
@@ -82,14 +125,31 @@ export function useAIEditorActions() {
       systemPrompt: string,
       buildPrompt: (precedingText: string, noteExcerpt: string) => string,
     ) => {
-      const view = activeEditorView;
-      if (!view) return;
+      if (!activeTarget) return;
 
-      const cursor = view.state.selection.main.from;
-      const selectionEnd = view.state.selection.main.to;
-      const selectedText = view.state.sliceDoc(cursor, selectionEnd);
-      const precedingText = view.state.sliceDoc(Math.max(0, cursor - 1500), cursor);
-      const noteExcerpt = selectedText.trim() || view.state.sliceDoc(0, Math.min(1500, view.state.doc.length));
+      let cursor: number;
+      let selectionEnd: number;
+      let selectedText: string;
+      let precedingText: string;
+      let noteExcerpt: string;
+
+      if (activeTarget.kind === "milkdown") {
+        const { view } = activeTarget;
+        cursor = view.state.selection.from;
+        selectionEnd = view.state.selection.to;
+        selectedText = view.state.doc.textBetween(cursor, selectionEnd, "\n");
+        precedingText = view.state.doc.textBetween(Math.max(0, cursor - 1500), cursor, "\n");
+        noteExcerpt =
+          selectedText.trim() ||
+          view.state.doc.textBetween(0, Math.min(1500, view.state.doc.content.size), "\n");
+      } else {
+        const { view } = activeTarget;
+        cursor = view.state.selection.main.from;
+        selectionEnd = view.state.selection.main.to;
+        selectedText = view.state.sliceDoc(cursor, selectionEnd);
+        precedingText = view.state.sliceDoc(Math.max(0, cursor - 1500), cursor);
+        noteExcerpt = selectedText.trim() || view.state.sliceDoc(0, Math.min(1500, view.state.doc.length));
+      }
 
       setIsAiLoading(true);
       try {
@@ -107,7 +167,7 @@ export function useAIEditorActions() {
         setIsAiLoading(false);
       }
     },
-    [activeEditorView],
+    [activeTarget],
   );
 
   const runPromptAction = useCallback(
@@ -156,20 +216,23 @@ export function useAIEditorActions() {
 
   const applyFromChat = useCallback(
     (suggestion: string, mode: "insert" | "replace-all" = "insert") => {
-      const view = activeEditorView;
-      if (!view) return;
+      if (!activeTarget) return;
 
-      if (mode === "replace-all") {
-        typewriterReplaceCM6(view, 0, view.state.doc.length, suggestion);
-        showSuccessToast("Document replaced.");
+      if (activeTarget.kind === "milkdown") {
+        const { view, ctx } = activeTarget;
+        const { start, end } =
+          mode === "replace-all" ? { start: 0, end: view.state.doc.content.size } : chatContext;
+        if (!replaceMilkdownRange(ctx, view, start, end, suggestion)) return;
       } else {
-        const { start, end } = chatContext;
+        const { view } = activeTarget;
+        const { start, end } = mode === "replace-all" ? { start: 0, end: view.state.doc.length } : chatContext;
         typewriterReplaceCM6(view, start, end, suggestion);
-        showSuccessToast("Inserted into document.");
       }
+
+      showSuccessToast(mode === "replace-all" ? "Document replaced." : "Inserted into document.");
       setIsChatOpen(false);
     },
-    [activeEditorView, chatContext],
+    [activeTarget, chatContext],
   );
 
   const improveWriting = useCallback(
@@ -327,27 +390,30 @@ export function useAIEditorActions() {
     if (!aiReview) return;
     const suggestion = customSuggestion ?? aiReview.suggestion;
     const { start, end } = aiReview;
-    const view = activeEditorView;
-    if (view) {
-      typewriterReplaceCM6(view, start, end, suggestion);
+    if (activeTarget?.kind === "milkdown") {
+      replaceMilkdownRange(activeTarget.ctx, activeTarget.view, start, end, suggestion);
+    } else if (activeTarget?.kind === "cm6") {
+      typewriterReplaceCM6(activeTarget.view, start, end, suggestion);
     }
     showSuccessToast("AI suggestion applied.");
     setAiReview(null);
-  }, [aiReview, activeEditorView]);
+  }, [aiReview, activeTarget]);
 
   const applyInsertBelow = useCallback((customSuggestion?: string) => {
     if (!aiReview) return;
     const suggestion = customSuggestion ?? aiReview.suggestion;
     const { end } = aiReview;
-    const insertion = `\n\n${suggestion}`;
-    const view = activeEditorView;
-    if (view) {
+    if (activeTarget?.kind === "milkdown") {
+      replaceMilkdownRange(activeTarget.ctx, activeTarget.view, end, end, suggestion);
+    } else if (activeTarget?.kind === "cm6") {
+      const view = activeTarget.view;
+      const insertion = `\n\n${suggestion}`;
       view.dispatch({ selection: EditorSelection.cursor(end) });
       typewriterInsertCM6(view, insertion);
     }
     showSuccessToast("AI suggestion inserted.");
     setAiReview(null);
-  }, [aiReview, activeEditorView]);
+  }, [aiReview, activeTarget]);
 
   const dismissReview = useCallback(() => {
     setAiReview(null);

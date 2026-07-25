@@ -1,8 +1,12 @@
 /* Milkdown/ProseMirror requires this to be set explicitly on its content
    editable root, else it warns and falls back to the browser default
-   (which collapses runs of whitespace instead of preserving them). */
+   (which collapses runs of whitespace instead of preserving them).
+   caret-color is pinned here too — otherwise it inherits `color` from
+   whatever local context the cursor sits in (e.g. table cell backgrounds,
+   inline date decorations), which can wash the caret out to invisible. */
 .ProseMirror {
   white-space: pre-wrap;
+  caret-color: var(--clay);
 }
 
 /* Form fields draw their own focus ring (Tailwind `focus:ring-sage`) — the
