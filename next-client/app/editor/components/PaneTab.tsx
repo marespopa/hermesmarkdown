@@ -79,10 +79,10 @@ export default function PaneTab({
       className={[
         "group relative flex items-center h-[38px] md:h-[26px] px-3 md:px-2 rounded-md mx-[2px] md:mx-[1px] cursor-pointer shrink-0",
         "min-w-[80px] md:min-w-[64px] max-w-[240px] md:max-w-[200px] w-fit",
-        "select-none transition-all duration-150 hover:scale-[1.01] active:scale-[0.99]",
+        "select-none transition-all duration-150 hover:scale-[1.01] active:scale-[0.99] border",
         isActive
-          ? "bg-paper-light/80 dark:bg-paper-dark-surface/80 border border-edge-subtle text-ink-light dark:text-ink-dark"
-          : "text-stone hover:text-ink-muted dark:hover:text-stone hover:bg-paper-light/30 dark:hover:bg-paper-dark-surface/20",
+          ? "bg-paper-light/80 dark:bg-paper-dark-surface/80 border-edge-subtle text-ink-light dark:text-ink-dark"
+          : "border-transparent text-stone hover:text-ink-muted dark:hover:text-stone hover:bg-paper-light/30 dark:hover:bg-paper-dark-surface/20",
         isDraggedOver ? "ring-2 ring-sage/40 ring-inset" : "",
       ].join(" ")}
     >

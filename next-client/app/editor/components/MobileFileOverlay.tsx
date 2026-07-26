@@ -152,10 +152,10 @@ export default function MobileFileOverlay({
                 key={tab}
                 type="button"
                 onClick={() => setActiveTab(tab)}
-                className={`flex-1 py-2 text-ui-footnote text-center capitalize transition-colors ${
+                className={`flex-1 py-2 text-ui-footnote text-center capitalize border-b-2 transition-colors ${
                   activeTab === tab
-                    ? "text-accent font-medium border-b-2 border-accent"
-                    : "text-fg-faint hover:text-fg-muted"
+                    ? "text-accent font-medium border-accent"
+                    : "text-fg-faint hover:text-fg-muted border-transparent"
                 }`}
               >
                 {tab}
