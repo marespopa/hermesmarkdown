@@ -22,6 +22,7 @@ import { SHORTCODES, TODO_TAGS } from "../components/constants";
 import { REGEX_CALC } from "../components/regex";
 import { CALLOUT_META, resolveCalloutType } from "../constants/callouts";
 import { matchesFor } from "./lifecycle-tags";
+import { onUserInputCtx } from "./user-input-tracker";
 import {
   unescapeKnownMarkdownPatterns,
   markdownToVisibleText,
@@ -175,6 +176,7 @@ class TaskListItemView implements NodeView {
     node: ProseNode,
     private view: EditorView,
     private getPos: () => number | undefined,
+    private ctx: Ctx,
   ) {
     this.node = node;
     const li = document.createElement("li");
@@ -219,6 +221,14 @@ class TaskListItemView implements NodeView {
       if (this.destroyed) return;
       const pos = this.getPos();
       if (pos == null) return;
+      // Clicking the checkbox never fires beforeinput/paste/cut/drop on the
+      // contentEditable (it's a native <input>, and mousedown is
+      // preventDefault()-ed above), so userInputTrackerPlugin never sees
+      // this interaction. Without notifying here, EditorHost's
+      // hasUserInteractedRef stays false and markdownUpdated's write-back
+      // silently drops this change — the checkbox flips visually but the
+      // file never saves.
+      this.ctx.get(onUserInputCtx.key)?.();
       // Not calling tr.scrollIntoView() here is deliberate — Transaction
       // selection maps through automatically by default, so this never
       // moves the cursor; explicitly requesting a scroll would risk
@@ -250,6 +260,10 @@ class TaskListItemView implements NodeView {
     const content = document.createElement("div");
     content.style.flex = "1";
     content.style.minWidth = "0";
+    // Mirrors Source mode's checked-line dimming (see highlight.ts's
+    // `isChecked ? "line-through opacity-40" : ...`) — without this a
+    // checked task looked identical to an unchecked one in Rendered view.
+    content.className = node.attrs.checked ? "line-through opacity-40" : "";
     li.appendChild(content);
     this.contentDOM = content;
   }
@@ -259,6 +273,7 @@ class TaskListItemView implements NodeView {
     if ((node.attrs.checked == null) !== (this.node.attrs.checked == null)) return false;
     this.node = node;
     if (this.checkbox) this.checkbox.checked = !!node.attrs.checked;
+    this.contentDOM.className = node.attrs.checked ? "line-through opacity-40" : "";
     return true;
   }
 
@@ -274,7 +289,7 @@ class TaskListItemView implements NodeView {
 
 export const taskListItemView = $view(
   extendListItemSchemaForTask.node,
-  () => (node, view, getPos) => new TaskListItemView(node, view, getPos),
+  (ctx) => (node, view, getPos) => new TaskListItemView(node, view, getPos, ctx),
 );
 
 const REGEX_BR_TAG = /^<br\s*\/?>$/i;

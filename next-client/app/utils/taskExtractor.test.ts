@@ -23,7 +23,20 @@ describe("extractTasks", () => {
     expect(task.inProgress).toBe(false);
   });
 
-  it("strips #todo and #done tags from display text too, not just #prog", () => {
+  it("parses inline #hold metadata and strips it from display text", () => {
+    const content = "- [ ] Ship report #hold\n";
+    const [task] = extractTasks("note.md", content);
+    expect(task.onHold).toBe(true);
+    expect(task.text).toBe("Ship report");
+  });
+
+  it("does not mark a checked task as on hold even if tagged #hold", () => {
+    const content = "- [x] Ship report #hold\n";
+    const [task] = extractTasks("note.md", content);
+    expect(task.onHold).toBe(false);
+  });
+
+  it("strips #todo and #done tags from display text too, not just #prog/#hold", () => {
     const content = "- [ ] Ship report #todo\n- [x] Ship report #done\n";
     const tasks = extractTasks("note.md", content);
     expect(tasks[0].text).toBe("Ship report");

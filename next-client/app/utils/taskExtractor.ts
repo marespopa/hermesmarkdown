@@ -4,17 +4,19 @@ export interface TaskItem {
   line: number; // 0-indexed
   checked: boolean;
   inProgress: boolean; // unchecked task tagged #prog
-  text: string; // display text, checkbox marker + #todo/#prog/#done tags stripped
+  onHold: boolean; // unchecked task tagged #hold
+  text: string; // display text, checkbox marker + #todo/#prog/#hold/#done tags stripped
   raw: string; // full original line, used for write-back
   lineHash: string; // fingerprint of `raw`, staleness guard for write-back
 }
 
 export const REGEX_TASK_LINE = /^(\s*[-*]\s*\[)([ xX])(\]\s*)(.*)$/;
 export const REGEX_TASK_PROG = /#prog\b/i;
+export const REGEX_TASK_HOLD = /#hold\b/i;
 // #todo/#done are purely cosmetic status tags people type by habit — the
-// checkbox + #prog already drive grouping, so strip all three from the
+// checkbox + #prog/#hold already drive grouping, so strip all four from the
 // displayed text rather than only #prog (which left #todo/#done visible).
-const REGEX_TASK_STATUS_TAGS = /#(?:todo|prog|done)\b/gi;
+const REGEX_TASK_STATUS_TAGS = /#(?:todo|prog|hold|done)\b/gi;
 
 export function simpleHash(s: string): string {
   let h = 0;
@@ -30,6 +32,7 @@ export function extractTasks(path: string, content: string): TaskItem[] {
     if (!m) return;
     const checked = m[2].toLowerCase() === "x";
     const inProgress = !checked && REGEX_TASK_PROG.test(raw);
+    const onHold = !checked && !inProgress && REGEX_TASK_HOLD.test(raw);
     const text = m[4].replace(REGEX_TASK_STATUS_TAGS, "").replace(/\s+/g, " ").trim();
     tasks.push({
       id: `${path}#${i}`,
@@ -37,6 +40,7 @@ export function extractTasks(path: string, content: string): TaskItem[] {
       line: i,
       checked,
       inProgress,
+      onHold,
       text,
       raw,
       lineHash: simpleHash(raw),

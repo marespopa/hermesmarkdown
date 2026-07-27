@@ -13,14 +13,15 @@ interface VaultSidebarTasksProps {
   onFileSelect: (handle: FileSystemFileHandle, path: string, line: number) => void;
 }
 
-type Group = "todo" | "prog" | "done";
+type Group = "todo" | "prog" | "hold" | "done";
 type GroupBy = "status" | "file";
 
-const GROUP_LABEL: Record<Group, string> = { todo: "To Do", prog: "In Progress", done: "Done" };
+const GROUP_LABEL: Record<Group, string> = { todo: "To Do", prog: "In Progress", hold: "On Hold", done: "Done" };
 
 function groupOf(task: TaskItem): Group {
   if (task.checked) return "done";
   if (task.inProgress) return "prog";
+  if (task.onHold) return "hold";
   return "todo";
 }
 
@@ -58,6 +59,7 @@ export default function VaultSidebarTasks({ onFileSelect }: VaultSidebarTasksPro
   const [collapsed, setCollapsed] = React.useState<Record<Group, boolean>>({
     todo: false,
     prog: false,
+    hold: false,
     done: true,
   });
   const [collapsedFiles, setCollapsedFiles] = React.useState<Record<string, boolean>>({});
@@ -75,7 +77,7 @@ export default function VaultSidebarTasks({ onFileSelect }: VaultSidebarTasksPro
   );
 
   const statusGroups = React.useMemo(() => {
-    const out: Record<Group, TaskItem[]> = { todo: [], prog: [], done: [] };
+    const out: Record<Group, TaskItem[]> = { todo: [], prog: [], hold: [], done: [] };
     for (const t of allTasks) out[groupOf(t)].push(t);
     for (const g of Object.values(out)) g.sort((a, b) => noteTitle(a.path).localeCompare(noteTitle(b.path)));
     return out;
@@ -98,7 +100,7 @@ export default function VaultSidebarTasks({ onFileSelect }: VaultSidebarTasksPro
     onFileSelect(meta.handle, task.path, task.line);
   };
 
-  const visibleGroups: Group[] = ["todo", "prog", "done"];
+  const visibleGroups: Group[] = ["todo", "prog", "hold", "done"];
   const isEmpty = allTasks.length === 0;
 
   return (
