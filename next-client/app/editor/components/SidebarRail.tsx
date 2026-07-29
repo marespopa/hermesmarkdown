@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { useSetAtom } from "jotai";
+import { useAtom } from "jotai";
 import {
   HiOutlineFolder,
   HiOutlineSearch,
@@ -13,6 +13,7 @@ import {
   HiOutlineCog,
   HiOutlineSun,
   HiOutlineMoon,
+  HiOutlineDesktopComputer,
   HiOutlineRefresh,
   HiOutlineLogout,
   HiOutlineDatabase,
@@ -21,8 +22,7 @@ import {
 import Button from "@/app/components/Button";
 import Tooltip from "@/app/components/Tooltip";
 import { useFileSystem } from "@/app/hooks/use-file-system";
-import { atom_theme, RailPanel } from "@/app/atoms/ui-atoms";
-import { useResolvedTheme } from "@/app/hooks/use-resolved-theme";
+import { atom_theme, RailPanel, type Theme } from "@/app/atoms/ui-atoms";
 
 const SIDEBAR_PANELS: { id: RailPanel; label: string; Icon: React.ComponentType<{ size?: number }> }[] = [
   { id: "files", label: "Files", Icon: HiOutlineFolder },
@@ -30,6 +30,14 @@ const SIDEBAR_PANELS: { id: RailPanel; label: string; Icon: React.ComponentType<
   { id: "tags", label: "Tags", Icon: HiOutlineTag },
   { id: "views", label: "Views", Icon: HiOutlineCollection },
   { id: "tasks", label: "Tasks", Icon: HiOutlineClipboardList },
+];
+
+// Click cycles system -> light -> dark -> system. Each entry's Icon/label
+// describes that state itself (not the state the click leads to).
+const THEME_CYCLE: { value: Theme; label: string; Icon: React.ComponentType<{ size?: number }> }[] = [
+  { value: "system", label: "Theme: System", Icon: HiOutlineDesktopComputer },
+  { value: "light", label: "Theme: Light", Icon: HiOutlineSun },
+  { value: "dark", label: "Theme: Dark", Icon: HiOutlineMoon },
 ];
 
 interface SidebarRailProps {
@@ -44,10 +52,9 @@ interface SidebarRailProps {
 
 export default function SidebarRail({ panel, onSelectPanel, onSettings, onRefreshVault, onOpenAIChat, onOpenDocumentation, onOpenKeyboardShortcuts }: SidebarRailProps) {
   const { vaultHandle, closeVault, openVault, isVaultSupported } = useFileSystem();
-  const setTheme = useSetAtom(atom_theme);
-  // Quick toggle always sets an explicit light/dark choice (not "system") —
-  // the three-way picker for that lives in Settings.
-  const theme = useResolvedTheme();
+  const [rawTheme, setTheme] = useAtom(atom_theme);
+  const themeCycleIndex = THEME_CYCLE.findIndex((t) => t.value === rawTheme);
+  const { label: themeCycleLabel, Icon: ThemeCycleIcon } = THEME_CYCLE[themeCycleIndex];
 
   return (
     <nav className="w-14 h-full shrink-0 flex flex-col items-center justify-between py-3 bg-chrome border-r border-edge-subtle">
@@ -149,19 +156,19 @@ export default function SidebarRail({ panel, onSelectPanel, onSettings, onRefres
         )}
 
         <div className="w-full flex justify-center">
-          <Tooltip label={theme === "dark" ? "Switch to light theme" : "Switch to dark theme"} position="right">
+          <Tooltip label={themeCycleLabel} position="right">
             <Button
               variant="icon"
-              onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+              onClick={() => setTheme(THEME_CYCLE[(themeCycleIndex + 1) % THEME_CYCLE.length].value)}
               className="w-10 h-10 opacity-80 hover:opacity-100 !rounded-none"
-              aria-label={theme === "dark" ? "Switch to light theme" : "Switch to dark theme"}
+              aria-label={themeCycleLabel}
               // "system" resolves from the OS preference, which SSR has no
               // access to — the icon/label here can only be known correct
               // after mount (see use-resolved-theme.ts), so the first-paint
               // mismatch this suppresses is expected, not a bug.
               suppressHydrationWarning
             >
-              {theme === "dark" ? <HiOutlineSun size={18} /> : <HiOutlineMoon size={18} />}
+              <ThemeCycleIcon size={18} />
             </Button>
           </Tooltip>
         </div>
