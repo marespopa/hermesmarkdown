@@ -7,7 +7,7 @@ import { wrapInList } from "@milkdown/kit/prose/schema-list";
 import { wrapIn, setBlockType } from "@milkdown/kit/prose/commands";
 import { slashFactory, SlashProvider } from "@milkdown/kit/plugin/slash";
 import { TextSelection, NodeSelection } from "@milkdown/kit/prose/state";
-import { headingSchema, bulletListSchema, orderedListSchema, codeBlockSchema, blockquoteSchema, linkSchema } from "@milkdown/kit/preset/commonmark";
+import { headingSchema, bulletListSchema, orderedListSchema, codeBlockSchema, blockquoteSchema, linkSchema, inlineCodeSchema } from "@milkdown/kit/preset/commonmark";
 import { SHORTCODES } from "../components/constants";
 import { CALLOUT_META } from "../constants/callouts";
 import { mathBlockSchema } from "./math-schema";
@@ -82,6 +82,18 @@ const ICON = {
   link: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.07 0l2.83-2.83a5 5 0 0 0-7.07-7.07l-1.5 1.5"/><path d="M14 11a5 5 0 0 0-7.07 0l-2.83 2.83a5 5 0 0 0 7.07 7.07l1.5-1.5"/></svg>',
   wikilink: '<span class="text-[11px] font-bold tabular-nums">[[ ]]</span>',
 };
+
+// A "/" only opens the menu at the start of a line or right after a space
+// (same boundary rule as the raw-markdown editor's validBoundary in
+// ../codemirror/slash-menu.ts) — otherwise moving the cursor into existing
+// text like "api.kraken.com/0/public" re-triggers the menu on every "/".
+function matchSlashTrigger(text: string): RegExpMatchArray | null {
+  const match = text.match(/\/(\S*)$/);
+  if (!match) return null;
+  const idx = match.index ?? text.length - match[0].length;
+  if (idx > 0 && text[idx - 1] !== " ") return null;
+  return match;
+}
 
 function headingIcon(level: 1 | 2 | 3): string {
   return `<span class="text-[11px] font-bold tabular-nums">H${level}</span>`;
@@ -359,13 +371,15 @@ function createSlashPluginSpec(ctx: Ctx): Partial<PluginSpec<unknown>> {
     if (!(selection instanceof TextSelection) || !selection.empty) return false;
     const { $from } = selection;
     if ($from.parent.type.name !== "paragraph") return false;
+    const marks = $from.marks();
+    if (linkSchema.type(ctx).isInSet(marks) || inlineCodeSchema.type(ctx).isInSet(marks)) return false;
     const text = $from.parent.textBetween(
       Math.max(0, $from.parentOffset - 500),
       $from.parentOffset,
       undefined,
       "￼",
     );
-    return /\/(\S*)$/.test(text);
+    return !!matchSlashTrigger(text);
   };
 
   const provider = new SlashProvider({ content, trigger: "/", shouldShow });
@@ -437,7 +451,7 @@ function createSlashPluginSpec(ctx: Ctx): Partial<PluginSpec<unknown>> {
       update: (view: EditorView, prevState?: import("@milkdown/kit/prose/state").EditorState) => {
         provider.update(view, prevState);
         const text = provider.getContent(view);
-        const match = text?.match(/\/(\S*)$/);
+        const match = text ? matchSlashTrigger(text) : null;
         if (!match) {
           range = null;
           return;
