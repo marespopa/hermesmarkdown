@@ -1,9 +1,11 @@
 "use client";
 
 import { useCallback, useRef, useState } from "react";
+import type { Ctx } from "@milkdown/kit/ctx";
 import type { EditorView } from "@milkdown/kit/prose/view";
 import { TODO_TAGS } from "../components/constants";
 import type { MilkdownTagInfo } from "../milkdown/lifecycle-tag-callout-plugin";
+import { onUserInputCtx } from "../milkdown/user-input-tracker";
 
 interface Pos {
   top: number;
@@ -27,9 +29,11 @@ export function useMilkdownTagCallout({ containerRef }: UseMilkdownTagCalloutOpt
   const [tagInfo, setTagInfo] = useState<MilkdownTagInfo | null>(null);
   const [calloutPos, setCalloutPos] = useState<Pos>({ top: 0, left: 0 });
   const viewRef = useRef<EditorView | null>(null);
+  const ctxRef = useRef<Ctx | null>(null);
 
-  const handleTagUpdate = useCallback((info: MilkdownTagInfo | null, view: EditorView) => {
+  const handleTagUpdate = useCallback((info: MilkdownTagInfo | null, view: EditorView, ctx: Ctx) => {
     viewRef.current = view;
+    ctxRef.current = ctx;
     setTagInfo(info);
     if (!info) return;
 
@@ -72,6 +76,15 @@ export function useMilkdownTagCallout({ containerRef }: UseMilkdownTagCalloutOpt
       }
     }
 
+    // Clicking a pill in the floating TagStatusCallout never fires
+    // beforeinput/paste/cut/drop on the contentEditable (it's a React
+    // button living outside the ProseMirror DOM, and its mousedown is
+    // preventDefault()-ed), so userInputTrackerPlugin never sees this
+    // interaction. Without notifying here, EditorHost's
+    // hasUserInteractedRef stays false and markdownUpdated's write-back
+    // silently drops this change — same failure mode fixed for the
+    // checkbox click in plugins.ts's handleCheckboxChange.
+    ctxRef.current?.get(onUserInputCtx.key)?.();
     view.dispatch(tr);
     setTagInfo(null);
   }, [tagInfo]);

@@ -82,7 +82,7 @@ interface EditablePreviewProps {
   onWikiLinkClick?: (name: string) => void;
   onTableCalloutUpdate?: (info: MilkdownTableInfo | null, view: EditorView) => void;
   onLinkCalloutUpdate?: (info: MilkdownLinkInfo | null, view: EditorView) => void;
-  onTagCalloutUpdate?: (info: MilkdownTagInfo | null, view: EditorView) => void;
+  onTagCalloutUpdate?: (info: MilkdownTagInfo | null, view: EditorView, ctx: Ctx) => void;
   isActivePane?: boolean;
 }
 
@@ -227,7 +227,7 @@ function EditorHost({ content, onChange, onWikiLinkClick, onTableCalloutUpdate, 
         });
         configureTableCalloutUpdate(ctx, (info, view) => onTableCalloutUpdateRef.current?.(info, view));
         configureLinkCalloutUpdate(ctx, (info, view) => onLinkCalloutUpdateRef.current?.(info, view));
-        configureTagCalloutUpdate(ctx, (info, view) => onTagCalloutUpdateRef.current?.(info, view));
+        configureTagCalloutUpdate(ctx, (info, view) => onTagCalloutUpdateRef.current?.(info, view, ctx));
         configureMilkdownViewReady(ctx, handleMilkdownViewReady);
         configurePasteImage(ctx, (file) => pasteImageRef.current(file));
         configureResolveImageSrc(ctx, (src) => resolveImageSrcRef.current(src));
