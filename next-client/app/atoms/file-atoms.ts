@@ -6,6 +6,12 @@ import { findLeaf, updateLeaf } from "./utils";
 import { PanelLeaf } from "../types/workspace";
 
 // File contents & metadata
+export interface Snapshot {
+  timestamp: number;
+  type: "local" | "remote";
+  content: string;
+}
+
 export interface FileState {
   content: string;
   lastSavedContent: string;
@@ -13,6 +19,7 @@ export interface FileState {
   activeFilePath: string | null;
   lastModified?: number;
   conflict?: { remoteContent: string };
+  snapshots?: Snapshot[];
 }
 
 export const atom_openFiles = atomWithStorage<Record<string, FileState>>(

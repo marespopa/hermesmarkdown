@@ -2,6 +2,7 @@
 
 import { useAtom, useStore } from "jotai";
 import { atom_openFiles, atom_liveHandles, atom_isVaultPending } from "@/app/atoms/atoms";
+import { atom_snapshotOnConflict } from "@/app/atoms/ui-atoms";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 const MIN_INTERVAL = 30_000;
@@ -63,24 +64,47 @@ export function useFileWatcher() {
                 },
               };
             } else if (remoteContent !== fileState.content) {
-              return {
-                ...prev,
-                [path]: {
-                  ...fileState,
-                  conflict: { remoteContent },
-                  lastModified: file.lastModified,
-                },
-              };
-            } else {
-              return {
-                ...prev,
-                [path]: {
-                  ...fileState,
-                  lastModified: file.lastModified,
-                  lastSavedContent: remoteContent,
-                },
-              };
-            }
+                // Save snapshots for later merge/inspection (respect user preference)
+              const ts = Date.now();
+              const existingSnapshots = fileState.snapshots ?? [];
+
+                if (store.get(atom_snapshotOnConflict)) {
+                  const nextSnapshots = [
+                    ...existingSnapshots,
+                    { timestamp: ts, type: "remote", content: remoteContent },
+                    { timestamp: ts, type: "local", content: fileState.content },
+                  ];
+
+                  return {
+                    ...prev,
+                    [path]: {
+                      ...fileState,
+                      conflict: { remoteContent },
+                      lastModified: file.lastModified,
+                      snapshots: nextSnapshots,
+                    },
+                  };
+                }
+
+                // Snapshotting disabled — still mark conflict but don't record snapshots
+                return {
+                  ...prev,
+                  [path]: {
+                    ...fileState,
+                    conflict: { remoteContent },
+                    lastModified: file.lastModified,
+                  },
+                };
+              } else {
+                return {
+                  ...prev,
+                  [path]: {
+                    ...fileState,
+                    lastModified: file.lastModified,
+                    lastSavedContent: remoteContent,
+                  },
+                };
+              }
           });
 
           anyChanged = true;

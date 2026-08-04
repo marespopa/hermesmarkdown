@@ -1,11 +1,10 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { EditorView } from "@codemirror/view";
-import { EditorState } from "@codemirror/state";
-import { buildExtensions } from "../codemirror/extensions";
-import { SlashMenuCallbacks } from "../codemirror/slash-menu";
-import { WikiLinkTriggerCallback } from "../codemirror/wikilink-trigger";
+import type { EditorView } from "@codemirror/view";
+import type { EditorState } from "@codemirror/state";
+import type { SlashMenuCallbacks } from "../codemirror/slash-menu";
+import type { WikiLinkTriggerCallback } from "../codemirror/wikilink-trigger";
 
 interface UseCodeMirrorEditorOptions {
   value: string;
@@ -56,43 +55,59 @@ export function useCodeMirrorEditor({
   useEffect(() => {
     if (!containerRef.current) return;
 
-    const state = EditorState.create({
-      doc: value,
-      extensions: buildExtensions({
-        wordWrap,
-        placeholder,
-        readOnly,
-        onFocusChange,
-        onCursorActivity: (view) => onCursorActivityRef.current?.(view),
-        slashMenuCallbacksRef,
-        wikiLinkTriggerRef,
-        csvConfirmRef,
-        pasteImageRef,
-      }),
-    });
+    let destroyed = false;
 
-    const view = new EditorView({
-      state,
-      parent: containerRef.current,
-      dispatchTransactions: (trs) => {
-        view.update(trs);
-        if (trs.some((tr) => tr.docChanged)) {
-          onChangeRef.current(view.state.doc.toString());
-        }
-      },
-    });
+    (async () => {
+      const [{ EditorState }, { EditorView: CMView }, extensionsModule] = await Promise.all([
+        import("@codemirror/state"),
+        import("@codemirror/view"),
+        import("../codemirror/extensions"),
+      ]);
 
-    viewRef.current = view;
-    onViewCreated?.(view);
+      if (destroyed) return;
+
+      const buildExtensions = extensionsModule.buildExtensions as (
+        opts: any,
+      ) => import("@codemirror/state").Extension[];
+
+      const state = EditorState.create({
+        doc: value,
+        extensions: buildExtensions({
+          wordWrap,
+          placeholder,
+          readOnly,
+          onFocusChange,
+          onCursorActivity: (view: any) => onCursorActivityRef.current?.(view),
+          slashMenuCallbacksRef,
+          wikiLinkTriggerRef,
+          csvConfirmRef,
+          pasteImageRef,
+        }),
+      });
+
+      const view = new CMView({
+        state,
+        parent: containerRef.current as HTMLElement,
+        dispatchTransactions: (trs: any) => {
+          view.update(trs);
+          if (trs.some((tr: any) => tr.docChanged)) {
+            onChangeRef.current(view.state.doc.toString());
+          }
+        },
+      });
+
+      viewRef.current = view as unknown as EditorView;
+      onViewCreated?.(view as unknown as EditorView);
+    })();
 
     return () => {
-      view.destroy();
-      viewRef.current = null;
+      destroyed = true;
+      const v = viewRef.current as unknown as { destroy?: () => void } | null;
+      if (v && typeof v.destroy === "function") {
+        v.destroy();
+        viewRef.current = null;
+      }
     };
-    // Extensions that depend on wordWrap/placeholder/readOnly are baked in
-    // at construction; a file switch remounts this component entirely
-    // (PaneLeaf.tsx keys on filePath), so re-running this effect per-file
-    // is the intended lifecycle, not a bug.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

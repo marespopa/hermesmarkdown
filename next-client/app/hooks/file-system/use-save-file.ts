@@ -15,7 +15,7 @@ import {
   atom_saveStatus,
   atom_isCloudVault,
 } from "@/app/atoms/atoms";
-import { atom_autosaveMode } from "@/app/atoms/ui-atoms";
+import { atom_autosaveMode, atom_snapshotOnConflict } from "@/app/atoms/ui-atoms";
 import { atom_fileMetadata } from "@/app/atoms/metadata";
 import { extractTasks } from "@/app/utils/taskExtractor";
 
@@ -31,6 +31,7 @@ export function useSaveFile() {
   const [, setSaveStatus] = useAtom(atom_saveStatus);
   const [isCloudVault, setIsCloudVault] = useAtom(atom_isCloudVault);
   const [autosaveMode, setAutosaveMode] = useAtom(atom_autosaveMode);
+  const [snapshotOnConflict] = useAtom(atom_snapshotOnConflict);
   const [, setFileMetadata] = useAtom(atom_fileMetadata);
 
   const saveFile = useCallback(
@@ -313,6 +314,32 @@ export function useSaveFile() {
           errorMsg = "Cloud sync lock detected. Retries failed. Try pausing sync.";
         }
         
+        // Record a local snapshot for recovery/merge UI so users don't lose edits.
+        try {
+          if (snapshotOnConflict && targetPath) {
+            const ts = Date.now();
+            const localSnapshot = { timestamp: ts, type: "local", content } as any;
+            let remoteSnapshot = null as null | { timestamp: number; type: string; content: string };
+            try {
+              const f = await fileToSave.getFile();
+              const remoteText = await f.text();
+              remoteSnapshot = { timestamp: ts, type: "remote", content: remoteText } as any;
+            } catch (readErr) {
+              // ignore - may be locked
+            }
+            setOpenFiles(prev => {
+              const fileState = prev[targetPath!];
+              if (!fileState) return prev;
+              const existing = fileState.snapshots ?? [];
+              const next = [...existing, localSnapshot];
+              if (remoteSnapshot) next.push(remoteSnapshot);
+              return { ...prev, [targetPath!]: { ...fileState, snapshots: next } };
+            });
+          }
+        } catch (snapshotErr) {
+          console.warn("Failed to record snapshot:", snapshotErr);
+        }
+
         setSaveStatus({ state: "error", retryCount, message: errorMsg, path: targetPath });
         setTimeout(() => setSaveStatus({ state: "idle", retryCount: 0, path: undefined }), 5000);
 

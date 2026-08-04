@@ -4,7 +4,7 @@ import { NodeSelection } from "@milkdown/kit/prose/state";
 import { InputRule } from "@milkdown/kit/prose/inputrules";
 import { $nodeSchema, $view, $inputRule, $remark } from "@milkdown/kit/utils";
 import remarkMath from "remark-math";
-import katex from "katex";
+let katexPromise: Promise<any> | null = null;
 import { isSelectionInside } from "./node-view-utils";
 
 // Wires remark-math (mdast "inlineMath"/"math" nodes, backed by
@@ -135,7 +135,7 @@ class MathView implements NodeView {
     this.syncEditState();
   }
 
-  private renderMath() {
+  private async renderMath() {
     const value = this.node.attrs.value || "";
     if (!value.trim()) {
       this.rendered.textContent = this.displayMode ? "Empty formula" : "$…$";
@@ -143,6 +143,7 @@ class MathView implements NodeView {
       return;
     }
     try {
+      const katex = await (katexPromise ??= import("katex").then((m) => (m.default ? m.default : m)));
       this.rendered.innerHTML = katex.renderToString(value, { throwOnError: true, displayMode: this.displayMode });
       this.rendered.className = "";
     } catch (err) {

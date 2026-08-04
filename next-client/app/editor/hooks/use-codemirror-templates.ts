@@ -1,10 +1,10 @@
 "use client";
 
 import { useCallback, useRef, useState } from "react";
-import { EditorView } from "@codemirror/view";
-import { EditorSelection } from "@codemirror/state";
-import { SlashMenuCallbacks } from "../codemirror/slash-menu";
-import { WikiLinkTriggerCallback } from "../codemirror/wikilink-trigger";
+import type { EditorView } from "@codemirror/view";
+import type { EditorSelection } from "@codemirror/state";
+import type { SlashMenuCallbacks } from "../codemirror/slash-menu";
+import type { WikiLinkTriggerCallback } from "../codemirror/wikilink-trigger";
 
 interface Range {
   from: number;

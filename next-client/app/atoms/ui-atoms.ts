@@ -47,6 +47,13 @@ export const atom_autosaveMode = atomWithStorage<AutosaveMode>(
   "autosaveMode",
   "afterDelay",
 );
+
+// Whether to record local/remote snapshots when a conflict is detected.
+// Enabled by default to protect user edits; users can opt out in Settings.
+export const atom_snapshotOnConflict = atomWithStorage<boolean>(
+  "snapshotOnConflict",
+  true,
+);
 export const atom_autosaveDelay = atomWithStorage<number>(
   "autosaveDelay",
   2000,

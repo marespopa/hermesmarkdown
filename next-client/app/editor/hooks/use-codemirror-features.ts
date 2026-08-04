@@ -1,8 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { EditorView } from "@codemirror/view";
-import { EditorSelection } from "@codemirror/state";
+import type { EditorView } from "@codemirror/view";
+import type { EditorSelection } from "@codemirror/state";
 import { findLinkAtPos } from "../utils/link-detection";
 import { findDateAtPos } from "../utils/date-detection";
 import { REGEX_TODO_TAGS, REGEX_TODO_STATUS_TAGS, REGEX_CHECKBOX } from "../components/regex";

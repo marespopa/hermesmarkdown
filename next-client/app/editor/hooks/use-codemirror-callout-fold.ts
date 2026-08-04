@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useState } from "react";
-import { EditorView } from "@codemirror/view";
+import type { EditorView } from "@codemirror/view";
 import { findCalloutFoldRanges, toggleCalloutFold, isRangeFolded } from "../codemirror/callout-fold";
 
 interface Chevron {
