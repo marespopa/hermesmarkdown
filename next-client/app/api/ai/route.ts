@@ -4,6 +4,14 @@ import { generateText, generateObject } from 'ai';
 import { z } from 'zod';
 import { NextResponse } from 'next/server';
 
+const sanitizeMessage = (message: string): string => {
+  const stripped = message.replace(/^Failed after \d+ attempts?\. Last error:\s*/i, "");
+  return stripped.replace(/((?:sk|ghp|github_pat|xox[baprs]-|AIza)[A-Za-z0-9_\-]{12,})/g, "[REDACTED]")
+    .replace(/(Bearer\s+)[A-Za-z0-9._\-]+/gi, "$1[REDACTED]")
+    .replace(/(api[_-]?key\s*[:=]\s*)([^\s,;]+)/gi, "$1[REDACTED]")
+    .replace(/([A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,})/g, "[REDACTED_EMAIL]");
+};
+
 const createAIModel = (provider: string, apiKey: string, modelKey: string) => {
   if (provider === 'claude') {
     // Short tier keys (from the static fallback list) map to a known model ID.
@@ -50,7 +58,8 @@ export async function POST(req: Request) {
         });
         if (!res.ok) {
           const errorData = await res.json().catch(() => ({}));
-          return NextResponse.json({ error: errorData.error?.message || `Failed to fetch models (Status ${res.status})` }, { status: res.status });
+          const modelErrorMessage = errorData.error?.message || `Failed to fetch models (Status ${res.status})`;
+          return NextResponse.json({ error: sanitizeMessage(modelErrorMessage) }, { status: res.status });
         }
         const data = await res.json();
         const models = (data.data || []).map((m: any) => ({ id: m.id, name: m.display_name || m.id }));
@@ -141,8 +150,7 @@ export async function POST(req: Request) {
         ? 401
         : 500;
 
-    // Strip SDK retry prefix ("Failed after N attempts. Last error: ...") for a cleaner message
-    const cleanMessage = message.replace(/^Failed after \d+ attempts?\. Last error:\s*/i, "");
+    const cleanMessage = sanitizeMessage(message);
 
     return NextResponse.json({ error: cleanMessage }, { status });
   }

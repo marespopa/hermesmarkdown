@@ -14,6 +14,7 @@ import {
 import { atom_snapshotOnConflict } from "@/app/atoms/ui-atoms";
 import { useEffect, useCallback, useRef } from "react";
 import toast from "react-hot-toast";
+import type { FileState } from "@/app/atoms/file-atoms";
 import { useInterval } from "./use-interval";
 
 const FILE_SYNC_INTERVAL = 60 * 1000; // 1 minute
@@ -61,16 +62,25 @@ export function useFileSync() {
 
             if (snapshotOnConflict && activePath) {
               const ts = Date.now();
-              setOpenFiles(prev => {
-                const fileState = prev[activePath!];
+              setOpenFiles((prev) => {
+                const fileState = prev[activePath];
                 if (!fileState) return prev;
+
                 const existing = fileState.snapshots ?? [];
-                const next = [
+                const nextSnapshots: FileState["snapshots"] = [
                   ...existing,
                   { timestamp: ts, type: "remote", content: remoteContent },
                   { timestamp: ts, type: "local", content: fileState.content },
                 ];
-                return { ...prev, [activePath!]: { ...fileState, snapshots: next } };
+
+                const nextFileState: FileState = {
+                  ...fileState,
+                  snapshots: nextSnapshots,
+                };
+
+                const nextState: Record<string, FileState> = Object.assign({}, prev);
+                nextState[activePath] = nextFileState;
+                return nextState;
               });
             }
           } else {

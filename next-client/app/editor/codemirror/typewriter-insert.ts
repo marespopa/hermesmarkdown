@@ -1,5 +1,5 @@
 import type { EditorView } from "@codemirror/view";
-import type { EditorSelection } from "@codemirror/state";
+import { EditorSelection } from "@codemirror/state";
 
 // CM6 port of utils/typewriter-insert.ts — reveals `text` into the editor a
 // few characters at a time instead of all at once, mirroring the effect

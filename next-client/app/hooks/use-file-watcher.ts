@@ -3,6 +3,7 @@
 import { useAtom, useStore } from "jotai";
 import { atom_openFiles, atom_liveHandles, atom_isVaultPending } from "@/app/atoms/atoms";
 import { atom_snapshotOnConflict } from "@/app/atoms/ui-atoms";
+import type { FileState } from "@/app/atoms/file-atoms";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 const MIN_INTERVAL = 30_000;
@@ -49,62 +50,56 @@ export function useFileWatcher() {
           const remoteContent = await file.text();
           const isDirty = stored.content !== stored.lastSavedContent;
 
-          setOpenFiles(prev => {
+          setOpenFiles((prev) => {
             const fileState = prev[path];
             if (!fileState) return prev;
 
+            const nextState: Record<string, FileState> = Object.assign({}, prev);
+
             if (!isDirty) {
-              return {
-                ...prev,
-                [path]: {
-                  ...fileState,
-                  content: remoteContent,
-                  lastSavedContent: remoteContent,
-                  lastModified: file.lastModified,
-                },
+              nextState[path] = {
+                ...fileState,
+                content: remoteContent,
+                lastSavedContent: remoteContent,
+                lastModified: file.lastModified,
               };
-            } else if (remoteContent !== fileState.content) {
-                // Save snapshots for later merge/inspection (respect user preference)
+              return nextState;
+            }
+
+            if (remoteContent !== fileState.content) {
               const ts = Date.now();
               const existingSnapshots = fileState.snapshots ?? [];
 
-                if (store.get(atom_snapshotOnConflict)) {
-                  const nextSnapshots = [
-                    ...existingSnapshots,
-                    { timestamp: ts, type: "remote", content: remoteContent },
-                    { timestamp: ts, type: "local", content: fileState.content },
-                  ];
+              if (store.get(atom_snapshotOnConflict)) {
+                const nextSnapshots: FileState["snapshots"] = [
+                  ...existingSnapshots,
+                  { timestamp: ts, type: "remote", content: remoteContent },
+                  { timestamp: ts, type: "local", content: fileState.content },
+                ];
 
-                  return {
-                    ...prev,
-                    [path]: {
-                      ...fileState,
-                      conflict: { remoteContent },
-                      lastModified: file.lastModified,
-                      snapshots: nextSnapshots,
-                    },
-                  };
-                }
-
-                // Snapshotting disabled — still mark conflict but don't record snapshots
-                return {
-                  ...prev,
-                  [path]: {
-                    ...fileState,
-                    conflict: { remoteContent },
-                    lastModified: file.lastModified,
-                  },
+                nextState[path] = {
+                  ...fileState,
+                  conflict: { remoteContent },
+                  lastModified: file.lastModified,
+                  snapshots: nextSnapshots,
                 };
-              } else {
-                return {
-                  ...prev,
-                  [path]: {
-                    ...fileState,
-                    lastModified: file.lastModified,
-                    lastSavedContent: remoteContent,
-                  },
-                };
+                return nextState;
               }
+
+              nextState[path] = {
+                ...fileState,
+                conflict: { remoteContent },
+                lastModified: file.lastModified,
+              };
+              return nextState;
+            }
+
+            nextState[path] = {
+              ...fileState,
+              lastModified: file.lastModified,
+              lastSavedContent: remoteContent,
+            };
+            return nextState;
           });
 
           anyChanged = true;

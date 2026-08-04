@@ -21,6 +21,7 @@ import {
 import { SHORTCODES, TODO_TAGS } from "../components/constants";
 import { REGEX_CALC } from "../components/regex";
 import { CALLOUT_META, resolveCalloutType } from "../constants/callouts";
+import { evaluateMath } from "../utils/math-eval";
 import { matchesFor } from "./lifecycle-tags";
 import { onUserInputCtx } from "./user-input-tracker";
 import {
@@ -148,8 +149,10 @@ export const calcInputRule = $inputRule(
       );
       const sanitized = normalized.replace(/[^-()\d/*+.]/g, "");
       try {
-        // eslint-disable-next-line no-new-func
-        const result = new Function(`return (${sanitized})`)();
+        const result = evaluateMath(sanitized);
+        if (result == null) {
+          throw new Error("invalid expression");
+        }
         const replacement = (Math.round(result * 100) / 100).toString();
         return state.tr.insertText(replacement, start, end);
       } catch {

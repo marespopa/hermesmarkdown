@@ -2,7 +2,7 @@
 
 import { useCallback, useRef, useState } from "react";
 import type { EditorView } from "@codemirror/view";
-import type { EditorSelection } from "@codemirror/state";
+import { EditorSelection } from "@codemirror/state";
 import type { SlashMenuCallbacks } from "../codemirror/slash-menu";
 import type { WikiLinkTriggerCallback } from "../codemirror/wikilink-trigger";
 

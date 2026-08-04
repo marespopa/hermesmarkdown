@@ -2,6 +2,7 @@ import { EditorView, ViewPlugin, ViewUpdate } from "@codemirror/view";
 import { EditorSelection } from "@codemirror/state";
 import { SHORTCODES } from "../components/constants";
 import { REGEX_CALC } from "../components/regex";
+import { evaluateMath } from "../utils/math-eval";
 
 // Port of useMarkdownEditor.ts's handleValueChange calc()=/shortcode
 // auto-expand (SHORTCODES map + inline calc(...)= evaluator). Runs after
@@ -35,8 +36,10 @@ function tryExpand(view: EditorView) {
     );
     const sanitized = normalized.replace(/[^-()\d/*+.]/g, "");
     try {
-      // eslint-disable-next-line no-new-func
-      const result = new Function(`return (${sanitized})`)();
+      const result = evaluateMath(sanitized);
+      if (result == null) {
+        throw new Error("invalid expression");
+      }
       const replacement = (Math.round(result * 100) / 100).toString();
       const sliceStart = pos - fullMatchString.length;
       view.dispatch({
