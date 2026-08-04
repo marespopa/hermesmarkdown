@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useRef, useState } from "react";
-import { EditorView } from "@codemirror/view";
+import type { EditorView } from "@codemirror/view";
 import { findTableAtPos, TableInfo } from "../utils/table-detection";
 import {
   removeTableAction,

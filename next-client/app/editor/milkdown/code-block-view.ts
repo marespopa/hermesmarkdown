@@ -23,6 +23,19 @@ function loadMermaid() {
 }
 let mermaidIdCounter = 0;
 
+// Worker-backed mermaid renderer. Falls back to in-main rendering if workers unavailable.
+let mermaidWorker: Worker | null = null;
+function getMermaidWorker() {
+  if (mermaidWorker) return mermaidWorker;
+  try {
+    // Module worker; bundlers that support `new URL(..., import.meta.url)` will create a separate chunk.
+    mermaidWorker = new Worker(new URL("../workers/mermaid-worker.ts", import.meta.url), { type: "module" });
+  } catch (err) {
+    mermaidWorker = null;
+  }
+  return mermaidWorker;
+}
+
 // Fenced code blocks (any language, including ```mermaid) are all one
 // schema node — codeBlockSchema — so this single NodeView handles both
 // "code highlighting" and "mermaid diagram" duties, branching on
@@ -282,6 +295,37 @@ class CodeBlockView implements NodeView {
       return;
     }
     const isDark = document.documentElement.classList.contains("dark");
+
+    // Try worker-first to keep heavy parsing off the main thread.
+    const worker = getMermaidWorker();
+    if (worker) {
+      const id = `${this.diagramId}-${Date.now()}-${Math.floor(Math.random() * 1e6)}`;
+      const onMessage = (e: MessageEvent) => {
+        const data = e.data || {};
+        if (data.id !== id) return;
+        worker.removeEventListener("message", onMessage);
+        if (!this.diagramEl) return;
+        if (data.error) {
+          this.diagramEl.replaceChildren();
+          const p = document.createElement("p");
+          p.className = "text-ui-footnote text-red-500 dark:text-red-400 py-2";
+          p.textContent = data.error || "Failed to render diagram";
+          this.diagramEl.appendChild(p);
+        } else {
+          this.diagramEl.innerHTML = data.svg || "";
+        }
+      };
+      worker.addEventListener("message", onMessage);
+      try {
+        worker.postMessage({ id, source, theme: isDark ? "dark" : "default" });
+        return;
+      } catch (err) {
+        worker.removeEventListener("message", onMessage);
+        // fall through to in-main render
+      }
+    }
+
+    // Fallback: render in main thread
     loadMermaid()
       .then((mermaid) => {
         mermaid.initialize({ startOnLoad: false, theme: isDark ? "dark" : "default", securityLevel: "strict" });

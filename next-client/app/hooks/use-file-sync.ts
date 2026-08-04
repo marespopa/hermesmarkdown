@@ -8,7 +8,10 @@ import {
   atom_fileLastModified,
   atom_fileConflict,
   atom_isVaultPending,
+  atom_openFiles,
+  atom_activeFilePath,
 } from "@/app/atoms/atoms";
+import { atom_snapshotOnConflict } from "@/app/atoms/ui-atoms";
 import { useEffect, useCallback, useRef } from "react";
 import toast from "react-hot-toast";
 import { useInterval } from "./use-interval";
@@ -22,6 +25,9 @@ export function useFileSync() {
   const [fileLastModified, setFileLastModified] = useAtom(atom_fileLastModified);
   const [, setFileConflict] = useAtom(atom_fileConflict);
   const [isVaultPending] = useAtom(atom_isVaultPending);
+  const [, setOpenFiles] = useAtom(atom_openFiles);
+  const [activePath] = useAtom(atom_activeFilePath);
+  const [snapshotOnConflict] = useAtom(atom_snapshotOnConflict);
 
   const lastHandleRef = useRef<FileSystemFileHandle | null>(null);
 
@@ -50,7 +56,23 @@ export function useFileSync() {
         } else {
           // Potential conflict if there are local changes
           if (remoteContent !== content) {
+            // Record conflict and optionally snapshot current and remote content
             setFileConflict({ remoteContent });
+
+            if (snapshotOnConflict && activePath) {
+              const ts = Date.now();
+              setOpenFiles(prev => {
+                const fileState = prev[activePath!];
+                if (!fileState) return prev;
+                const existing = fileState.snapshots ?? [];
+                const next = [
+                  ...existing,
+                  { timestamp: ts, type: "remote", content: remoteContent },
+                  { timestamp: ts, type: "local", content: fileState.content },
+                ];
+                return { ...prev, [activePath!]: { ...fileState, snapshots: next } };
+              });
+            }
           } else {
             // Content is same, just update timestamp to avoid re-triggering
             setFileLastModified(file.lastModified);
@@ -83,6 +105,9 @@ export function useFileSync() {
     setLastSavedContent,
     setFileLastModified,
     setFileConflict,
+    setOpenFiles,
+    activePath,
+    snapshotOnConflict,
   ]);
 
   // Periodic sync

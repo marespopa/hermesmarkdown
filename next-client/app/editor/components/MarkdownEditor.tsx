@@ -7,7 +7,7 @@ import { atom_frontmatterWizardOpen, atom_wordWrap, atom_isEditorFocused, atom_v
 import { atom_activeEditorView, atom_activeEditorKind } from "@/app/atoms/ui-atoms";
 import { useAtom } from "jotai";
 import { savePastedImage } from "@/app/utils/paste-image";
-import { EditorView } from "@codemirror/view";
+import type { EditorView } from "@codemirror/view";
 import { HiOutlineCalendar, HiChevronDown, HiChevronRight } from "react-icons/hi";
 import FrontmatterPanel from "./FrontmatterPanel";
 import Button from "../../components/Button";
