@@ -1,4 +1,4 @@
-import { getDefaultStore } from "jotai";
+import { createStore, getDefaultStore } from "jotai";
 import { describe, it, expect, beforeEach } from "vitest";
 import {
   atom_openFiles,

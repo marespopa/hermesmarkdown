@@ -32,7 +32,8 @@ function getDiagramSize(svg: string): DiagramSize | null {
   const width = values?.[2];
   const height = values?.[3];
 
-  return Number.isFinite(width) && width! > 0 && Number.isFinite(height) && height! > 0
+  return typeof width === "number" && Number.isFinite(width) && width > 0
+    && typeof height === "number" && Number.isFinite(height) && height > 0
     ? { width, height }
     : null;
 }
@@ -113,7 +114,7 @@ export default function MermaidDialog() {
     const previewBounds = previewRef.current?.getBoundingClientRect();
     const diagramBounds = diagramRef.current?.getBoundingClientRect();
 
-    if (!previewBounds || !diagramBounds.width || !diagramBounds.height) return;
+    if (!previewBounds || !diagramBounds || !diagramBounds.width || !diagramBounds.height) return;
 
     const availableWidth = previewBounds.width - 32;
     const availableHeight = previewBounds.height - 32;
