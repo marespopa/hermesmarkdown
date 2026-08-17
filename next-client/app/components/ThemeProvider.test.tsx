@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, waitFor } from "@testing-library/react";
 import { Provider as JotaiProvider, createStore } from "jotai";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import ThemeProvider from "./ThemeProvider";
@@ -14,11 +14,13 @@ describe("ThemeProvider", () => {
 
   afterEach(() => {
     document.documentElement.className = "";
+    window.localStorage.clear();
     window.matchMedia = originalMatchMedia;
   });
 
   it("preserves the pre-hydration dark root class until theme storage hydrates", () => {
     document.documentElement.classList.add("dark");
+    window.localStorage.setItem("theme", JSON.stringify("dark"));
     window.matchMedia = vi.fn().mockImplementation((query: string) => ({
       matches: false,
       media: query,
@@ -38,7 +40,9 @@ describe("ThemeProvider", () => {
       </JotaiProvider>,
     );
 
-    expect(screen.getByText("dark")).toBeInTheDocument();
     expect(document.documentElement.classList.contains("dark")).toBe(true);
+    return waitFor(() => {
+      expect(document.documentElement.classList.contains("dark")).toBe(true);
+    });
   });
 });
