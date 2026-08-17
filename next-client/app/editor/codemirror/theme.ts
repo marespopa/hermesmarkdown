@@ -16,7 +16,13 @@ export const baseTheme = EditorView.theme({
     outline: "none",
   },
   ".cm-content": {
-    caretColor: "var(--clay)",
+    // caretColor is intentionally omitted here: drawSelection() owns the
+    // native caret by setting `caret-color: transparent` in its base theme.
+    // A user-theme `caret-color` would have higher CSS specificity and
+    // override the transparent value, causing both the native caret and the
+    // drawSelection cursor widget to render simultaneously — leading to the
+    // cursor appearing to flicker or wash out to white in light mode after
+    // typing. The custom cursor (.cm-cursor below) is the only visible cursor.
     fontFamily: "inherit",
     fontSize: "var(--editor-font-size, inherit)",
     lineHeight: "var(--editor-line-height, inherit)",
@@ -32,8 +38,12 @@ export const baseTheme = EditorView.theme({
     fontFamily: "inherit",
     overflow: "visible",
   },
+  // !important: Tailwind's preflight resets border-color to currentColor on
+  // all elements, which can override this rule for equal-specificity selectors.
+  // Pinning with !important guarantees the custom cursor is always clay-colored
+  // in both light and dark mode, regardless of surrounding decoration classes.
   ".cm-cursor": {
-    borderLeftColor: "var(--clay)",
+    borderLeftColor: "var(--clay) !important",
   },
   ".cm-selectionBackground, &.cm-focused .cm-selectionBackground": {
     backgroundColor: "var(--clay) !important",
