@@ -6,6 +6,12 @@ import { atom_theme } from "@/app/atoms/atoms";
 
 const DARK_MEDIA_QUERY = "(prefers-color-scheme: dark)";
 
+function getInitialSystemPrefersDark() {
+  if (typeof window === "undefined") return false;
+  if (window.document.documentElement.classList.contains("dark")) return true;
+  return window.matchMedia(DARK_MEDIA_QUERY).matches;
+}
+
 // atom_theme can be "system", which isn't itself a paintable value — this
 // resolves it down to "light" | "dark", live-updating whenever the OS
 // preference changes while "system" is selected. Anything that needs to
@@ -13,14 +19,11 @@ const DARK_MEDIA_QUERY = "(prefers-color-scheme: dark)";
 // Navbar's logo swap, ...) should read this instead of the raw atom.
 export function useResolvedTheme(): "light" | "dark" {
   const theme = useAtomValue(atom_theme);
-  // Always starts false, on both server and the first client render — this
-  // has to stay in lockstep with what got server-rendered (which never has
-  // a `window` to check), or React flags a hydration mismatch the instant
-  // this differs from the SSR'd markup. The real value is read in the
-  // effect below, which runs post-hydration (a normal client-only update,
-  // not part of the SSR diff), same discipline atomWithStorage itself uses
-  // for atom_theme's own persisted value.
-  const [systemPrefersDark, setSystemPrefersDark] = useState(false);
+  // On the first client render, prefer the already-applied root class from
+  // THEME_INIT_SCRIPT before falling back to matchMedia. That preserves the
+  // pre-hydration dark theme for pages that intentionally delay client-only UI
+  // (like the landing-page "Welcome Back" toast) until after mount.
+  const [systemPrefersDark, setSystemPrefersDark] = useState(getInitialSystemPrefersDark);
 
   useEffect(() => {
     if (theme !== "system") return;
