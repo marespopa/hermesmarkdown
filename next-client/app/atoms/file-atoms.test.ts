@@ -9,6 +9,7 @@ import {
   atom_lastSavedContent,
   clearLegacyPaneModePreference,
   contentStore,
+  migrateLegacyWorkspaceLayout,
 } from "./atoms";
 
 describe("file-atoms", () => {
@@ -110,5 +111,23 @@ describe("file-atoms", () => {
     clearLegacyPaneModePreference();
 
     expect(localStorage.getItem("defaultPaneMode")).toBeNull();
+  });
+
+  it("migrates legacy preview panes to the source editor", () => {
+    localStorage.setItem("workspaceLayout", JSON.stringify({
+      rootContainer: {
+        id: "split",
+        direction: "horizontal",
+        sizes: [50, 50],
+        children: [
+          { id: "preview-pane", type: "preview", openFilePaths: ["note.md"], activeFilePath: "note.md", isPinned: false },
+          { id: "editor-pane", type: "editor", openFilePaths: ["draft"], activeFilePath: "draft", isPinned: false },
+        ],
+      },
+    }));
+
+    migrateLegacyWorkspaceLayout();
+
+    expect(JSON.parse(localStorage.getItem("workspaceLayout")!).rootContainer.children[0].type).toBe("editor");
   });
 });
