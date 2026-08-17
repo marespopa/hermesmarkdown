@@ -2,6 +2,28 @@
 
 Hermes Markdown is a professional, local-first workspace built for markdown editing. No cloud, no tracking, no friction—just a clean canvas for your thoughts. It turns any local directory into a powerful writing vault using modern web standards.
 
+## Architecture
+
+```mermaid
+architecture-beta
+    group browser(internet)[Browser]
+    service workspace(server)[HermesMarkdown Workspace] in browser
+    service vault(disk)[Local Markdown Vault] in browser
+
+    group application(cloud)[Nextjs Application]
+    service web(server)[Nextjs Web App] in application
+    service ai(server)[AI API Route] in application
+
+    service provider(internet)[AI Provider]
+
+    workspace:R -- L:vault
+    web:R -- L:workspace
+    web:B -- T:ai
+    ai:R -- L:provider
+```
+
+HermesMarkdown keeps markdown files in the user-selected local vault. The Next.js application serves the workspace, and the optional AI route connects only when an AI action is requested.
+
 ## 🚀 Key Features
 
 ### 01. Knowledge Management

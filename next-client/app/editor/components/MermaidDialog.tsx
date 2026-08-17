@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useCallback, useEffect, useState, useRef } from "react";
+import mermaid from "mermaid";
 import { HiMinus, HiOutlineArrowsExpand, HiOutlineDownload, HiPlus } from "react-icons/hi";
 import DialogModal from "@/app/components/DialogModal/DialogModal";
 import Button from "@/app/components/Button";
@@ -96,7 +97,6 @@ export default function MermaidDialog() {
     setScale(1);
     setDiagramSize(null);
     try {
-      const mermaid = (await import("mermaid")).default;
       mermaid.initialize({ startOnLoad: false, theme, securityLevel: "strict" });
       const { svg: rendered } = await mermaid.render(`mermaid-dialog-${Date.now()}`, source);
       setSvg(rendered);
