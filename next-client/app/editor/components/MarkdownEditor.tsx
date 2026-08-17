@@ -27,6 +27,7 @@ import { useCodeMirrorEditor } from "../hooks/use-codemirror-editor";
 import { useCodeMirrorFeatures } from "../hooks/use-codemirror-features";
 import { useCodeMirrorTemplates } from "../hooks/use-codemirror-templates";
 import { useCodeMirrorTable } from "../hooks/use-codemirror-table";
+import { useCodeMirrorMermaid } from "../hooks/use-codemirror-mermaid";
 import { useCodeMirrorCalloutFold } from "../hooks/use-codemirror-callout-fold";
 
 interface MarkdownEditorProps {
@@ -138,14 +139,21 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
     onCursorActivity: onTableCursorActivity,
   } = useCodeMirrorTable({ viewRef, containerRef });
 
+  const {
+    mermaidInfo,
+    buttonPos: mermaidButtonPos,
+    onCursorActivity: onMermaidCursorActivity,
+  } = useCodeMirrorMermaid({ viewRef, containerRef });
+
   const { chevrons, toggle: toggleCalloutFold, onCursorActivity: onFoldCursorActivity, onViewCreated } =
     useCodeMirrorCalloutFold({ containerRef });
 
   const onCombinedCursorActivity = useCallback((view: EditorView) => {
     onCursorActivity(view);
     onTableCursorActivity(view);
+    onMermaidCursorActivity(view);
     onFoldCursorActivity(view);
-  }, [onCursorActivity, onTableCursorActivity, onFoldCursorActivity]);
+  }, [onCursorActivity, onTableCursorActivity, onMermaidCursorActivity, onFoldCursorActivity]);
 
   useCodeMirrorEditor({
     value: editorValue,
@@ -318,6 +326,28 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
               onPrev={() => handleTodoCycle("prev")}
               onNext={() => handleTodoCycle("next")}
             />
+          )}
+
+          {mermaidInfo && (
+            <div
+              style={{ top: mermaidButtonPos.top, left: mermaidButtonPos.left }}
+              className={PILL_CONTAINER_CLASSES}
+              onMouseDown={(e) => e.preventDefault()}
+            >
+              <Button
+                variant="pill-icon"
+                onClick={() => {
+                  const theme = typeof document !== "undefined" && document.documentElement.classList.contains("dark") ? "dark" : "default";
+                  document.dispatchEvent(new CustomEvent("hermes:open-mermaid-dialog", {
+                    detail: { source: mermaidInfo.source, theme },
+                    bubbles: true,
+                  }));
+                }}
+                title="View Mermaid diagram"
+              >
+                ⎇
+              </Button>
+            </div>
           )}
 
           {tableInfo && (

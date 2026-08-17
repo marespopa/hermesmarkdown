@@ -2,7 +2,7 @@ export type PaneDirection = "horizontal" | "vertical";
 
 export interface PanelLeaf {
   id: string; // Unique pane identifier
-  type: "editor" | "preview" | "metrics";
+  type: "editor" | "metrics";
   activeFilePath?: string;
   openFilePaths: string[]; // List of files open in this pane (tabs)
   isPinned: boolean;

@@ -1,4 +1,4 @@
-import { createStore } from "jotai";
+import { getDefaultStore } from "jotai";
 import { describe, it, expect, beforeEach } from "vitest";
 import {
   atom_openFiles,
@@ -6,7 +6,9 @@ import {
   atom_content,
   atom_workspaceLayout,
   atom_fileName,
-  atom_lastSavedContent
+  atom_lastSavedContent,
+  clearLegacyPaneModePreference,
+  contentStore,
 } from "./atoms";
 
 describe("file-atoms", () => {
@@ -94,5 +96,19 @@ describe("file-atoms", () => {
     store.set(atom_content, "updated b");
     expect(store.get(atom_fileContent(fileB))).toBe("updated b");
     expect(store.get(atom_fileContent(fileA))).toBe("content a");
+  });
+
+  it("should use the singleton default Jotai store", () => {
+    expect(contentStore).toBe(getDefaultStore());
+  });
+
+  it("should clear the legacy preview/edit mode storage key", () => {
+    localStorage.setItem("defaultPaneMode", "preview");
+
+    expect(localStorage.getItem("defaultPaneMode")).toBe("preview");
+
+    clearLegacyPaneModePreference();
+
+    expect(localStorage.getItem("defaultPaneMode")).toBeNull();
   });
 });

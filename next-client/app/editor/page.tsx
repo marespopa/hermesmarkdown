@@ -46,6 +46,7 @@ import { showErrorToast } from "@/app/components/Toastr";
 import { useGlobalVoiceInput } from "./hooks/use-global-voice-input";
 import VoicePreviewPanel from "./components/VoicePreviewPanel";
 import RepurposeNoteWizard from "./components/RepurposeNoteWizard";
+import MermaidDialog from "./components/MermaidDialog";
 import { useAIEditorActions } from "./hooks/useAIEditorActions";
 import AIChatDialog from "./components/AIChatDialog";
 import { AIReviewDialog } from "./components/AIReviewDialog";
@@ -462,6 +463,7 @@ export default function LiteEditor() {
         <ConflictDialog />
         <RepurposeNoteWizard />
         {isVaultPending && <VaultPendingOverlay restoreVault={restoreVault} />}
+        <MermaidDialog />
         
         <DialogModal isOpened={pendingFile !== null} onClose={() => setPendingFile(null)} styles="!rounded-[32px] !backdrop-blur-2xl !bg-paper-light/80 dark:!bg-paper-dark/80">
           <div className="flex flex-col gap-6 text-center py-4 px-2">

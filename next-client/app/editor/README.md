@@ -2,13 +2,13 @@
 
 The editor is the primary workspace of HermesMarkdown, located in `app/editor`.
 
-## Components
+## Core Editor
 
 ### `MarkdownEditor`
-The core editor component (wrapper around `react-simple-code-editor` — textarea + `<pre>` overlay).
-- Synchronizes content with the `atom_content` Jotai atom.
-- Handles auto-saving when integrated with `useFileSystem`.
-- Floating callouts (date picker, link pill, table callout) are positioned with `textarea-caret` and rendered as absolute overlays inside the editor container.
+The app's current editor is built on CodeMirror 6, with the source-mode implementation in `app/editor/codemirror` and the feature overlays in `app/editor/hooks`.
+- Synchronizes content with the active file and frontmatter handling for document metadata.
+- Supports slash commands, wiki links, date pickers, tables, and workflow/todo pills.
+- Renders Mermaid fenced blocks via a small dialog trigger attached to the Mermaid code block so the full diagram can open in the dedicated Mermaid viewer.
 
 ### `VaultSidebar`
 The sidebar manages navigation within the opened "Vault" (local directory).
@@ -18,13 +18,17 @@ The sidebar manages navigation within the opened "Vault" (local directory).
 
 ## Interactions
 
-1. **Opening a File**: When a user clicks a file in the `VaultSidebar`, it calls `openFile` from `useFileSystem`. This reads the file content, sets the `atom_content`, and updates the `atom_activeFileHandle`.
-2. **Editing**: As the user types in `MarkdownEditor`, the `atom_content` is updated.
-3. **Saving**: Saving can be manual or automatic. It uses the `atom_activeFileHandle` to write the current `atom_content` back to the local disk.
+1. **Opening a File**: When a user clicks a file in the `VaultSidebar`, it calls `openFile` from `useFileSystem`. This reads the file content, sets the document content, and updates the active file handle.
+2. **Editing**: As the user types in the editor, the document state is updated in real time.
+3. **Saving**: Saving can be manual or automatic. It uses the active file handle to write the current content back to the local disk.
 4. **File Synchronization**: When the window regains focus, HermesMarkdown checks if the active file has been modified externally.
     - **Auto-Sync**: If no local changes exist, it automatically reloads the new content from disk.
     - **Conflict Resolution**: If local changes exist and the file was modified externally, a **Conflict Dialog** appears, allowing the user to either "Reload External Changes" or "Keep Local Edits".
 5. **Folder Management**: Creating a folder in the sidebar uses `targetDir.getDirectoryHandle(name, { create: true })` and refreshes the directory listing.
+
+## Mermaid flow
+
+When the cursor is in a fenced Mermaid block, a small trigger button appears in the block. Clicking it opens the dedicated Mermaid dialog for the rendered diagram.
 
 ## Table Flow
 

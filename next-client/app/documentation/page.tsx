@@ -280,24 +280,17 @@ const GROUPS: Group[] = [
       {
         id: "writing",
         title: "Writing",
-        lead: "Two views of the same file — Rendered shows a formatted WYSIWYG document, Source shows raw Markdown with inline highlighting. Both are editable; toggle between them anytime.",
+        lead: "Write Markdown with inline highlighting and click actions.",
         keywords: "preview rendering source render inline width narrow standard wysiwyg default",
         body: (
           <>
             <p>
-              New files and vaults open in Rendered by default — type directly into a formatted
-              document instead of raw syntax. Source is still there for anyone who wants the plain-text
-              view: it highlights Markdown inline over the raw text as you type — headings, bold, links,
-              and lifecycle tags render in place, without hiding the underlying syntax. Both surfaces
-              write to the same file; switching between them never loses changes.
+              Mermaid diagrams and formulas open in a lightweight dialog for inspection, zooming, and
+              download.
             </p>
             <p>
-              Toggle a pane between Source and Rendered with the eye icon in its tab bar, or change the
-              default new files open in from Settings → Editor → Default View.
-            </p>
-            <p>
-              Two column widths are available from Settings → Editor: Standard and Narrow. Below the
-              medium breakpoint, the column collapses to full width regardless of the setting.
+              Choose either Standard or Narrow column width in Settings → Editor. On small screens,
+              the editor uses the full available width regardless of this setting.
             </p>
             <KV
               rows={[
@@ -361,7 +354,7 @@ const GROUPS: Group[] = [
       {
         id: "code-diagrams-math",
         title: "Code, diagrams & math",
-        lead: "Fenced code blocks get real syntax highlighting, ```mermaid fences render as live diagrams, and $...$ / $$...$$ render as formulas — all inline, in Rendered view.",
+        lead: "Fenced code blocks get real syntax highlighting, ```mermaid fences render as live diagrams, and $...$ / $$...$$ render as formulas — all inline in the editor. Diagrams open in a dialog for zoom and download.",
         keywords: "code block syntax highlighting mermaid diagram math latex formula katex",
         body: (
           <>
@@ -371,11 +364,9 @@ const GROUPS: Group[] = [
               the fence's language tag.
             </p>
             <p>
-              A ```` ```mermaid ```` fence is a special case: instead of highlighted text, it renders as
-              a live diagram, with a small <strong>Diagram / Code</strong> tab in the corner to switch
-              between the rendered view and the raw source — clicking the diagram itself also drops
-              straight into the source, the same as clicking the tab. Invalid syntax shows an inline error
-              instead of a blank diagram.
+              A <code>```mermaid</code> fence renders as a live diagram. Click the diagram to open the
+              dedicated Mermaid dialog where you can zoom, fit-to-width, and download the SVG. Invalid
+              syntax shows an inline error in-place.
             </p>
             <Code>{`\`\`\`mermaid
 graph TD

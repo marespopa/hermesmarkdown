@@ -13,7 +13,6 @@ import {
   atom_autosaveDelay,
   atom_editorWidth,
   atom_frontmatterDefaultMode,
-  atom_defaultPaneMode,
   atom_aiProvider,
   atom_selectedAiModel,
   atom_claudeKey,
@@ -52,7 +51,6 @@ const SettingsPage = () => {
   const [autosaveDelay, setAutosaveDelay] = useAtom(atom_autosaveDelay);
   const [editorWidth, setEditorWidth] = useAtom(atom_editorWidth);
   const [frontmatterDefaultMode, setFrontmatterDefaultMode] = useAtom(atom_frontmatterDefaultMode);
-  const [defaultPaneMode, setDefaultPaneMode] = useAtom(atom_defaultPaneMode);
   const [showHiddenFiles, setShowHiddenFiles] = useAtom(atom_showHiddenFiles);
   const [tabsBarVisibleByDefault, setTabsBarVisibleByDefault] = useAtom(atom_tabsBarVisibleByDefault);
   const [renderedFontFamily, setRenderedFontFamily] = useAtom(atom_renderedFontFamily);
@@ -206,7 +204,7 @@ const SettingsPage = () => {
           <SettingGroup title="Typography">
             <SettingItem
               label="Font"
-              description="Used in the Rendered (WYSIWYG) view. Source view always uses a fixed monospace font, to keep raw markdown syntax honestly aligned."
+              description="Used for the editor's reading typography. Source text remains fixed-width so markdown syntax stays aligned while you write."
               layout="stack"
               control={<FontPicker fonts={FONTS} value={renderedFontFamily} onChange={setRenderedFontFamily} />}
             />
@@ -256,8 +254,8 @@ const SettingsPage = () => {
           </SettingGroup>
           <SettingGroup title="Frontmatter">
             <SettingItem
-              label="Default View"
-              description="Whether to open the frontmatter panel in structured Fields view or raw YAML by default."
+              label="Default Frontmatter Mode"
+              description="Whether the frontmatter panel opens in structured Fields mode or raw YAML by default."
               control={
                 <SegmentedControl
                   options={[
@@ -266,23 +264,6 @@ const SettingsPage = () => {
                   ]}
                   value={frontmatterDefaultMode}
                   onChange={setFrontmatterDefaultMode}
-                />
-              }
-            />
-          </SettingGroup>
-
-          <SettingGroup title="Default View">
-            <SettingItem
-              label="New Files Open In"
-              description="Whether a fresh single-pane workspace (new vault, cleared vault) starts in Source (raw markdown) or Rendered (WYSIWYG). Doesn't affect panes that are already open."
-              control={
-                <SegmentedControl
-                  options={[
-                    { label: "Source", value: "editor" },
-                    { label: "Rendered", value: "preview" },
-                  ]}
-                  value={defaultPaneMode}
-                  onChange={setDefaultPaneMode}
                 />
               }
             />

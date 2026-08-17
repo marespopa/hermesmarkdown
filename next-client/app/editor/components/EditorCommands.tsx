@@ -186,17 +186,7 @@ export default function EditorCommands({
       : null,
   );
 
-  useRegisterCommand(
-    activeLeaf && activeLeaf.activeFilePath
-      ? {
-          id: "toggle-pane-preview",
-          label: activeLeaf.type === "preview" ? "Switch pane to Source" : "Switch pane to Rendered",
-          keywords: "preview edit source rendered pane view",
-          action: () =>
-            setPaneType({ id: activeLeaf.id, type: activeLeaf.type === "preview" ? "editor" : "preview" }),
-        }
-      : null,
-  );
+  // Preview mode removed — no toggle command registered.
 
   useRegisterCommand(
     activeLeaf && activeLeaf.openFilePaths.length > 1

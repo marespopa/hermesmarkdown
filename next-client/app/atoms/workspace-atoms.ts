@@ -8,7 +8,7 @@ export const atom_workspaceLayout = atomWithStorage<WorkspaceState>(
   {
     rootContainer: {
       id: "default-pane",
-      type: "preview",
+      type: "editor",
       openFilePaths: ["draft"],
       activeFilePath: "draft",
       isPinned: false,

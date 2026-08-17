@@ -6,6 +6,18 @@ import type { Ctx as MilkdownCtx } from "@milkdown/kit/ctx";
 
 // Theme & appearance
 export type Theme = "light" | "dark" | "system";
+
+export function clearLegacyPaneModePreference() {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.removeItem("defaultPaneMode");
+  } catch {
+    // Ignore storage access failures; the app should still boot in the source editor.
+  }
+}
+
+clearLegacyPaneModePreference();
+
 export const atom_theme = atomWithStorage<Theme>("theme", "system");
 export const atom_wordWrap = atomWithStorage<boolean>("wordWrap", true);
 // Source view's font is fixed, not user-configurable — raw markdown syntax
@@ -79,13 +91,7 @@ export const atom_frontmatterDefaultMode = atomWithStorage<"fields" | "raw">(
   "fields",
 );
 
-// Which pane type a fresh single-pane workspace starts in — set on vault
-// open/create/clear (use-vault-manager.ts), not on every file switch
-// within an already-open pane (those keep whatever mode that pane is in).
-export const atom_defaultPaneMode = atomWithStorage<"editor" | "preview">(
-  "defaultPaneMode",
-  "preview",
-);
+// Fresh workspaces open directly in the source editor and never switch into a preview pane.
 export const atom_frontmatterHasPrompted = atomWithStorage<boolean>(
   "frontmatterHasPrompted",
   false,

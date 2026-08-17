@@ -10,7 +10,7 @@ import Button from "@/app/components/Button/Button.component";
 import dynamic from "next/dynamic";
 import Toast from "@/app/components/Toast";
 import { FiFileText } from "react-icons/fi";
-import { HiOutlineEye, HiMicrophone, HiOutlineMicrophone } from "react-icons/hi";
+import { HiMicrophone, HiOutlineMicrophone } from "react-icons/hi";
 import { useGlobalVoiceInput } from "@/app/editor/hooks/use-global-voice-input";
 
 const MarkdownEditor = dynamic(
@@ -27,19 +27,7 @@ const MarkdownEditor = dynamic(
   },
 );
 
-const EditablePreview = dynamic(
-  () => import("@/app/editor/components/EditablePreview"),
-  {
-    ssr: false,
-    loading: () => (
-      <div className="h-[400px] w-full flex items-center justify-center bg-paper-light dark:bg-paper-dark rounded-b-xl border border-t-0 border-black/5 dark:border-white/5">
-        <div className="text-xs uppercase tracking-widest opacity-30 animate-pulse">
-          Initializing Workspace...
-        </div>
-      </div>
-    ),
-  },
-);
+// EditablePreview removed — demo uses MarkdownEditor only
 
 const VoicePreviewPanel = dynamic(
   () => import("@/app/editor/components/VoicePreviewPanel"),
@@ -316,13 +304,11 @@ Hello — let's meet the markdown editor that keeps your notes plain, local, and
 No account, no database, no upload step. This note lives as a plain file on disk — open it in any other editor, sync it with Dropbox, or move it to another machine. HermesMarkdown never restructures your folders or writes files of its own into them.
 
 > [!tip] Try it
-> Click anywhere in this paragraph. You're editing the rendered document directly, no raw Markdown in sight — though a Source view is one click away, if you ever want it (see below).
+> Click anywhere in this paragraph to start writing. Open Mermaid diagrams in a dialog whenever you want to inspect them visually.
 
-## Two views, one file
+## Write directly in Markdown
 
-This paragraph is rendered — formatted text, not raw syntax. Click the eye icon in the tab bar and the same file reopens in Source, with Markdown highlighted inline over the plain text as you type. Switch back and forth as often as you like; both surfaces write to the same file, so nothing is ever lost in the swap.
-
-New files open in Rendered by default, but if you live in raw Markdown, set Source as your default view from Settings → Editor.
+This note stays a plain Markdown file. HermesMarkdown lets you write directly in it, while Mermaid diagrams open in a dialog with zoom controls when you need a closer look.
 
 ## Write the way you already do
 
@@ -345,14 +331,14 @@ Every checkbox here is live. Toggle one and it writes straight back to this file
 
 Click into a table for a floating toolbar — sort a column, copy as CSV, delete a row. What gets written back is clean, auto-padded Markdown.
 
-| Feature | Category | Released | Rating |
-|---|---|---|---|
-| Voice input | Editing | 2025 | 4 |
-| Diff review | AI | 2026 | 5 |
-| Command palette | Navigation | 2024 | 5 |
-| Callout blocks | Editing | 2025 | 4 |
-| Task pane | Editing | 2024 | 3 |
-| Slash menu | AI | 2025 | 5 |
+| Feature         | Category   | Released | Rating |
+| --------------- | ---------- | -------- | ------ |
+| Voice input     | Editing    | 2025     | 4      |
+| Diff review     | AI         | 2026     | 5      |
+| Command palette | Navigation | 2024     | 5      |
+| Callout blocks  | Editing    | 2025     | 4      |
+| Task pane       | Editing    | 2024     | 3      |
+| Slash menu      | AI         | 2025     | 5      |
 
 Click any header — Feature, Category, Released, or Rating — to sort by that column. Click again to reverse the order.
 
@@ -382,7 +368,6 @@ export default function LandingPage() {
   const router = useRouter();
   const realContent = useAtomValue(atom_content);
   const [demoContent, setDemoContent] = useState(DEFAULT_DEMO_CONTENT);
-  const [demoMode, setDemoMode] = useState<"editor" | "preview">("preview");
   const [showLoading, setShowLoading] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
 
@@ -560,40 +545,17 @@ export default function LandingPage() {
                     {isVoiceListening ? <HiMicrophone size={14} /> : <HiOutlineMicrophone size={14} />}
                   </button>
                 )}
-                <button
-                  type="button"
-                  onClick={() =>
-                    setDemoMode((m) => (m === "preview" ? "editor" : "preview"))
-                  }
-                  aria-label={
-                    demoMode === "preview" ? "Switch to Source" : "Switch to Rendered"
-                  }
-                  aria-pressed={demoMode === "preview"}
-                  title={demoMode === "preview" ? "Source" : "Rendered"}
-                  className={`shrink-0 w-7 h-7 flex items-center justify-center rounded-lg transition-colors ${
-                    demoMode === "preview"
-                      ? "text-sage bg-sage/10"
-                      : "text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300"
-                  }`}
-                >
-                  <HiOutlineEye size={14} />
-                </button>
+                {/* Preview removed from demo — always show Source editor */}
               </div>
               <div className="h-[400px] md:h-[500px] text-left relative">
-                {isMounted && demoMode === "editor" && (
+                {isMounted && (
                   <MarkdownEditor
                     value={demoContent}
                     onChange={setDemoContent}
                     isActivePane
                   />
                 )}
-                {isMounted && demoMode === "preview" && (
-                  <EditablePreview
-                    content={demoContent}
-                    onChange={setDemoContent}
-                    isActivePane
-                  />
-                )}
+                
               </div>
             </div>
           </div>
@@ -664,7 +626,7 @@ export default function LandingPage() {
             <p className="text-neutral-600 dark:text-neutral-400 leading-relaxed">
               Type and watch it render: headings, code blocks with real
               syntax highlighting, diagrams, and math formulas all format
-              live, in place — no separate preview pane to check.
+              live, in place — no extra editor mode to switch into.
             </p>
           </div>
         </section>

@@ -62,7 +62,7 @@ describe("WelcomeWizard", () => {
     expect(screen.getByText("Connect Your Vault")).toBeInTheDocument();
   });
 
-  it("advances to preferences automatically if vault is already connected in step 1", async () => {
+  it("advances to the theme step automatically if vault is already connected in step 1", async () => {
     const connectedValues = [
       ...defaultInitialValues.filter(([a]: any) => a !== atom_vaultHandle),
       [atom_vaultHandle, { name: "TestVault" }],
@@ -74,9 +74,8 @@ describe("WelcomeWizard", () => {
       </TestProvider>
     );
 
-    // Should now be on Step 2 (Default View, the first preferences step) due to the useEffect
     await waitFor(() => {
-      expect(screen.getByText("Default View")).toBeInTheDocument();
+      expect(screen.getByText("Theme")).toBeInTheDocument();
     });
   });
 
@@ -92,12 +91,12 @@ describe("WelcomeWizard", () => {
       </TestProvider>
     );
 
-    expect(screen.getByText("Default View")).toBeInTheDocument();
+    expect(screen.getByText("Theme")).toBeInTheDocument();
 
-    // Steps 2-7 (Default View, Theme, Pick your writing font, Autosave,
-    // Frontmatter View, AI Features) each advance one step at a time via
-    // their own "Continue" button before reaching the final showcase step (8).
-    for (let i = 0; i < 6; i++) {
+    // Steps 2-6 (Theme, Pick your writing font, Autosave, Frontmatter View,
+    // AI Features) each advance one step at a time via their own
+    // "Continue" button before reaching the final showcase step (7).
+    for (let i = 0; i < 5; i++) {
       fireEvent.click(screen.getByText("Continue"));
     }
 

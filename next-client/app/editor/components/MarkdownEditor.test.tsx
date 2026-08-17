@@ -3,6 +3,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { EditorView } from "@codemirror/view";
 import { undo } from "@codemirror/commands";
 import MarkdownEditor from "./MarkdownEditor";
+import { TEMPLATES } from "./constants";
 import { Provider } from "jotai";
 import "@testing-library/jest-dom";
 
@@ -73,6 +74,10 @@ describe("MarkdownEditor", () => {
   it("shows the placeholder text when empty", () => {
     renderEditor("", { placeholder: "Type / for templates" });
     expect(screen.getByText("Type / for templates")).toBeInTheDocument();
+  });
+
+  it("includes a Mermaid template in the slash menu list", () => {
+    expect(TEMPLATES.map((template) => template.label)).toContain("Mermaid");
   });
 
   it("strips frontmatter out of the CM6 doc and shows it via FrontmatterPanel instead", () => {

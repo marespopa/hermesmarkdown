@@ -104,7 +104,7 @@ function calloutIcon(type: (typeof CALLOUT_TYPES)[number]): string {
   return `<span class="inline-block w-2.5 h-2.5 rounded-full ${meta.border.replace("border-", "bg-")}"></span>`;
 }
 
-function buildCommands(): SlashCommand[] {
+export function buildCommands(): SlashCommand[] {
   return [
     {
       title: "Heading 1",
@@ -262,6 +262,21 @@ function buildCommands(): SlashCommand[] {
       run: (ctx, view, range) => {
         deleteRange(view, range);
         setBlockType(codeBlockSchema.type(ctx))(view.state, view.dispatch);
+      },
+    },
+    {
+      title: "Mermaid Block",
+      description: "Insert a Mermaid diagram block",
+      category: "Insert",
+      keywords: ["mermaid", "diagram", "flowchart", "graph"],
+      icon: ICON.sigma,
+      run: (ctx, view, range) => {
+        deleteRange(view, range);
+        const block = codeBlockSchema.type(ctx).createChecked({ language: "mermaid" }, [view.state.schema.text("")]);
+        const tr = view.state.tr.replaceWith(range.from, range.to, block);
+        tr.setSelection(TextSelection.near(tr.doc.resolve(range.from + 1)));
+        view.dispatch(tr);
+        view.focus();
       },
     },
     {

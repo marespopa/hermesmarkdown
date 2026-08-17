@@ -7,10 +7,9 @@ import {
   atom_activePaneId,
   atom_openFiles,
   atom_saveStatus,
-  atom_setPaneType,
   findLeaf,
 } from "@/app/atoms/atoms";
-import { HiOutlineChevronDown, HiOutlineChatAlt2, HiOutlineEye } from "react-icons/hi";
+import { HiOutlineChevronDown, HiOutlineChatAlt2 } from "react-icons/hi";
 import { useCommandPalette } from "@/app/components/CommandPalette/CommandPaletteContext";
 import { TabSaveState, statusMeta } from "./PaneTab";
 
@@ -29,7 +28,6 @@ export default function MobileFileIndicator({ onSave, onOpenAIChat }: MobileFile
   const activePaneId = useAtomValue(atom_activePaneId);
   const openFiles = useAtomValue(atom_openFiles);
   const saveStatus = useAtomValue(atom_saveStatus);
-  const [, setPaneType] = useAtom(atom_setPaneType);
   const { open: openCommandPalette } = useCommandPalette();
 
   const leaf = activePaneId ? findLeaf(workspaceLayout.rootContainer, activePaneId) : null;
@@ -88,20 +86,6 @@ export default function MobileFileIndicator({ onSave, onOpenAIChat }: MobileFile
           ) : (
             meta.Icon && <meta.Icon size={18} />
           )}
-        </button>
-      )}
-      {hasOpenFiles && leaf && (
-        <button
-          type="button"
-          onClick={() => setPaneType({ id: leaf.id, type: leaf.type === "preview" ? "editor" : "preview" })}
-          aria-label={leaf.type === "preview" ? "Switch to Source" : "Switch to Rendered"}
-          aria-pressed={leaf.type === "preview"}
-          title={leaf.type === "preview" ? "Source" : "Rendered"}
-          className={`flex items-center justify-center h-11 min-w-11 shrink-0 transition-colors ${
-            leaf.type === "preview" ? "text-sage" : "text-fg-faint hover:text-sage"
-          }`}
-        >
-          <HiOutlineEye size={18} />
         </button>
       )}
       <button

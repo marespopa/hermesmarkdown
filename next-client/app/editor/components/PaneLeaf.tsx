@@ -3,7 +3,6 @@
 import React, { useState } from "react";
 import { PanelLeaf } from "@/app/types/workspace";
 import MarkdownEditor from "./MarkdownEditor";
-import EditablePreview from "./EditablePreview";
 import TabContextMenu, { TabContextMenuItem } from "./TabContextMenu";
 import { useAtom } from "jotai";
 import {
@@ -17,10 +16,9 @@ import {
   atom_saveStatus,
   atom_vaultHandle,
   atom_workspaceLayout,
-  atom_setPaneType,
 } from "@/app/atoms/atoms";
 import { atom_newVaultFlowOpen, atom_isVoicePreviewVisible, atom_tabsBarVisibleByDefault } from "@/app/atoms/ui-atoms";
-import { HiOutlineDocumentText, HiOutlineEye, HiOutlineChartBar, HiOutlineX, HiOutlineClipboardCopy, HiOutlineSave, HiOutlineDotsHorizontal, HiOutlinePlus, HiOutlineFolderOpen, HiOutlineDatabase, HiOutlineCollection, HiOutlineChevronDown, HiOutlineChevronUp } from "react-icons/hi";
+import { HiOutlineDocumentText, HiOutlineChartBar, HiOutlineX, HiOutlineClipboardCopy, HiOutlineSave, HiOutlineDotsHorizontal, HiOutlinePlus, HiOutlineFolderOpen, HiOutlineDatabase, HiOutlineCollection, HiOutlineChevronDown, HiOutlineChevronUp } from "react-icons/hi";
 import { VscSplitHorizontal } from "react-icons/vsc";
 import PaneTab, { TabSaveState, statusMeta } from "./PaneTab";
 import { useFileSystem } from "@/app/hooks/use-file-system";
@@ -40,7 +38,6 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
   const [activePaneId, setActivePaneId] = useAtom(atom_activePaneId);
   const [openFiles] = useAtom(atom_openFiles);
   const [, splitPane] = useAtom(atom_splitPane);
-  const [, setPaneType] = useAtom(atom_setPaneType);
   const [, closePane] = useAtom(atom_closePane);
   const [, setActiveFilePath] = useAtom(atom_activeFilePath);
   const [, moveTab] = useAtom(atom_moveTab);
@@ -119,7 +116,6 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
   const getIcon = (type: string) => {
     switch (type) {
       case "editor": return <HiOutlineDocumentText size={14} />;
-      case "preview": return <HiOutlineEye size={14} />;
       case "metrics": return <HiOutlineChartBar size={14} />;
       default: return <HiOutlineDocumentText size={14} />;
     }
@@ -412,21 +408,6 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
                 </Tooltip>
               </>
             )}
-            {leaf.activeFilePath && (
-              <Tooltip label={leaf.type === "preview" ? "Source" : "Rendered"}>
-                <Button
-                  variant="icon"
-                  onClick={() => setPaneType({ id: leaf.id, type: leaf.type === "preview" ? "editor" : "preview" })}
-                  aria-label={leaf.type === "preview" ? "Switch to Source" : "Switch to Rendered"}
-                  aria-pressed={leaf.type === "preview"}
-                  className={`w-9 h-9 flex items-center justify-center transition-all rounded-xl ${
-                    leaf.type === "preview" ? "text-sage" : "text-ink-muted hover:text-ink-light dark:hover:text-ink-dark"
-                  }`}
-                >
-                  <HiOutlineEye size={16} />
-                </Button>
-              </Tooltip>
-            )}
             {!hideSplitRight && (
               <Tooltip label="Split Right" position="bottom-end">
                 <Button
@@ -525,15 +506,6 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
             placeholder={`Editing ${leaf.activeFilePath || "Draft"}...`}
             isActivePane={isActive}
             isSplit={!isOnlyPane}
-          />
-        ) : leaf.type === "preview" ? (
-          <EditablePreview
-            key={leaf.activeFilePath || "draft"}
-            content={content}
-            onChange={setContent}
-            filePath={leaf.activeFilePath || "draft"}
-            onWikiLinkClick={openFileByName}
-            isActivePane={isActive}
           />
         ) : (
           <div className="flex flex-col items-center justify-center h-full opacity-20 space-y-2">

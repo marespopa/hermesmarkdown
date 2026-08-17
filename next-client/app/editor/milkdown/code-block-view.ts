@@ -212,18 +212,41 @@ class CodeBlockView implements NodeView {
   // the selection back in and reveals the raw ```mermaid source. The
   // always-visible corner tab offers the same two moves explicitly, since
   // "click the diagram to edit" isn't discoverable on its own.
+  private openMermaidDialog() {
+    const source = this.cm.state.doc.toString();
+    const isDark = document.documentElement.classList.contains("dark");
+    const evt = new CustomEvent("hermes:open-mermaid-dialog", {
+      detail: { source, theme: isDark ? "dark" : "default" },
+      bubbles: true,
+    });
+    document.dispatchEvent(evt);
+  }
+
   private setupMermaid() {
     const diagram = document.createElement("div");
     diagram.contentEditable = "false";
     diagram.className = "mermaid-diagram flex justify-center overflow-x-auto px-3 py-3 cursor-text";
     diagram.addEventListener("mousedown", (e) => {
       e.preventDefault();
-      this.setMermaidMode("code");
+      this.openMermaidDialog();
     });
     this.dom.insertBefore(diagram, this.dom.firstChild);
     this.diagramEl = diagram;
 
     this.dom.style.position = "relative";
+    const trigger = document.createElement("button");
+    trigger.type = "button";
+    trigger.textContent = "Open diagram";
+    trigger.className =
+      "absolute top-2 left-2 z-10 rounded-md border border-edge bg-paper-light/95 px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-ink-light shadow-sm transition hover:bg-paper-softgray dark:bg-paper-dark/95 dark:text-ink-dark dark:hover:bg-paper-dark-surface";
+    trigger.setAttribute("aria-label", "Open Mermaid diagram in dialog");
+    trigger.addEventListener("mousedown", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      this.openMermaidDialog();
+    });
+    this.dom.appendChild(trigger);
+
     const toggle = document.createElement("div");
     toggle.contentEditable = "false";
     toggle.className =

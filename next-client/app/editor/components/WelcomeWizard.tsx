@@ -8,7 +8,6 @@ import {
   atom_welcomeWizardStep,
   atom_autosaveMode,
   atom_frontmatterDefaultMode,
-  atom_defaultPaneMode,
   atom_theme,
   type Theme,
   atom_renderedFontFamily,
@@ -43,13 +42,12 @@ import {
   HiCheck,
   HiOutlineFolderAdd,
   HiOutlineLightningBolt,
-  HiOutlineEye,
   HiOutlineDesktopComputer,
 } from "react-icons/hi";
 import { useCreateVault } from "@/app/hooks/file-system/use-create-vault";
 import CreateVaultSubSteps from "./CreateVaultSubSteps";
 
-const TOTAL_STEPS = 8;
+const TOTAL_STEPS = 7;
 
 const THEME_OPTIONS: { label: string; value: Theme }[] = [
   { label: "Light", value: "light" },
@@ -69,7 +67,6 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
   const vaultHandle = useAtomValue(atom_vaultHandle);
   const [autosaveMode, setAutosaveMode] = useAtom(atom_autosaveMode);
   const [frontmatterDefaultMode, setFrontmatterDefaultMode] = useAtom(atom_frontmatterDefaultMode);
-  const [defaultPaneMode, setDefaultPaneMode] = useAtom(atom_defaultPaneMode);
   const [theme, setTheme] = useAtom(atom_theme);
   const [renderedFontFamily, setRenderedFontFamily] = useAtom(atom_renderedFontFamily);
   const [renderedFontSize, setRenderedFontSize] = useAtom(atom_renderedFontSize);
@@ -195,52 +192,6 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
         return (
           <div className="flex flex-col items-center text-center space-y-6 py-4">
             <div className="w-16 h-16 bg-sage/10 rounded-2xl flex items-center justify-center text-sage">
-              <HiOutlineEye size={32} />
-            </div>
-            <div className="space-y-2">
-              <h2 className="text-ui-title-3 font-bold">Default View</h2>
-              <p className="text-ui-footnote opacity-60 px-4">
-                Should new files open in Source (raw markdown) or Rendered (WYSIWYG)? The next few steps tailor text size and font to whichever you pick. You can toggle per-file anytime.
-              </p>
-            </div>
-
-            <div className="w-full rounded-2xl border border-edge p-4 space-y-4 bg-paper-softgray/40 dark:bg-paper-dark/30 text-left">
-              <div className="space-y-3">
-                {(["preview", "editor"] as const).map((opt) => (
-                  <button
-                    key={opt}
-                    type="button"
-                    onClick={() => setDefaultPaneMode(opt)}
-                    className={`w-full flex items-center justify-between px-4 py-3 rounded-xl border transition-all ${
-                      defaultPaneMode === opt
-                        ? "border-sage bg-sage/5 dark:bg-sage/10"
-                        : "border-edge bg-paper-light dark:bg-paper-dark hover:border-sage/40"
-                    }`}
-                  >
-                    <div className="text-left">
-                      <div className={`text-ui-footnote font-semibold ${defaultPaneMode === opt ? "text-sage" : ""}`}>
-                        {opt === "editor" ? "Source" : "Rendered"}
-                      </div>
-                      <div className="text-[11px] opacity-50 mt-0.5">
-                        {opt === "editor" ? "Raw markdown text" : "WYSIWYG rendered view"}
-                      </div>
-                    </div>
-                    {defaultPaneMode === opt && <HiCheck size={15} className="shrink-0 text-sage" />}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <Button variant="primary" onClick={() => setStep(3)} className="w-full h-12 rounded-2xl text-ui-footnote font-bold">
-              Continue
-            </Button>
-          </div>
-        );
-
-      case 3:
-        return (
-          <div className="flex flex-col items-center text-center space-y-6 py-4">
-            <div className="w-16 h-16 bg-sage/10 rounded-2xl flex items-center justify-center text-sage">
               <HiOutlineDesktopComputer size={32} />
             </div>
             <div className="space-y-2">
@@ -254,13 +205,13 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
               <SegmentedControl options={THEME_OPTIONS} value={theme} onChange={setTheme} />
             </div>
 
-            <Button variant="primary" onClick={() => setStep(4)} className="w-full h-12 rounded-2xl text-ui-footnote font-bold">
+            <Button variant="primary" onClick={() => setStep(3)} className="w-full h-12 rounded-2xl text-ui-footnote font-bold">
               Continue
             </Button>
           </div>
         );
 
-      case 4:
+      case 3:
         return (
           <div className="flex flex-col items-center text-center space-y-6 py-4">
             <div className="w-16 h-16 bg-sage/10 rounded-2xl flex items-center justify-center text-sage">
@@ -269,7 +220,7 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
             <div className="space-y-2">
               <h2 className="text-ui-title-3 font-bold">Pick your writing font</h2>
               <p className="text-ui-footnote opacity-60 px-4">
-                Used in Rendered (WYSIWYG) view. Source view always uses a fixed monospace font. You can change this later in Settings.
+                This controls the reading typography for the main document. Source markdown keeps its fixed monospace styling for clean editing.
               </p>
             </div>
 
@@ -286,13 +237,13 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
               </div>
             </div>
 
-            <Button variant="primary" onClick={() => setStep(5)} className="w-full h-12 rounded-2xl text-ui-footnote font-bold">
+            <Button variant="primary" onClick={() => setStep(4)} className="w-full h-12 rounded-2xl text-ui-footnote font-bold">
               Continue
             </Button>
           </div>
         );
 
-      case 5:
+      case 4:
         return (
           <div className="flex flex-col items-center text-center space-y-6 py-4">
             <div className="w-16 h-16 bg-sage/10 rounded-2xl flex items-center justify-center text-sage">
@@ -316,13 +267,13 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
               </div>
             </div>
 
-            <Button variant="primary" onClick={() => setStep(6)} className="w-full h-12 rounded-2xl text-ui-footnote font-bold">
+            <Button variant="primary" onClick={() => setStep(5)} className="w-full h-12 rounded-2xl text-ui-footnote font-bold">
               Continue
             </Button>
           </div>
         );
 
-      case 6:
+      case 5:
         return (
           <div className="flex flex-col items-center text-center space-y-6 py-4">
             <div className="w-16 h-16 bg-sage/10 rounded-2xl flex items-center justify-center text-sage">
@@ -362,13 +313,13 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
               </div>
             </div>
 
-            <Button variant="primary" onClick={() => setStep(7)} className="w-full h-12 rounded-2xl text-ui-footnote font-bold">
+            <Button variant="primary" onClick={() => setStep(6)} className="w-full h-12 rounded-2xl text-ui-footnote font-bold">
               Continue
             </Button>
           </div>
         );
 
-      case 7: {
+      case 6: {
         const key = aiProvider === "gemini" ? geminiKey : claudeKey;
         const setKey = aiProvider === "gemini" ? setGeminiKey : setClaudeKey;
         return (
@@ -419,14 +370,14 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
               </Button>
             </div>
 
-            <Button variant="primary" onClick={() => setStep(8)} className="w-full h-11 rounded-2xl text-ui-footnote font-bold shrink-0">
+            <Button variant="primary" onClick={() => setStep(7)} className="w-full h-11 rounded-2xl text-ui-footnote font-bold shrink-0">
               Continue
             </Button>
           </div>
         );
       }
 
-      case 8:
+      case 7:
         return (
           <div className="flex flex-col items-center text-center space-y-6 py-4">
             <div className="w-16 h-16 bg-sage rounded-2xl flex items-center justify-center text-white">

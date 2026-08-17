@@ -1,6 +1,6 @@
-import { createStore } from "jotai";
+import { getDefaultStore } from "jotai";
 
-export const contentStore = createStore();
+export const contentStore = getDefaultStore();
 
 export * from "./ui-atoms";
 export * from "./workspace-atoms";
