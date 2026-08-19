@@ -68,47 +68,55 @@ function findMermaidAtPos(doc: string, pos: number): MermaidInfo | null {
   return { source, lineStart: startLine, lineEnd: endLine };
 }
 
-export function useCodeMirrorMermaid({ viewRef, containerRef }: UseCodeMirrorMermaidOptions) {
-  const [mermaidInfo, setMermaidInfo] = useState<MermaidInfo | null>(null);
-  const [buttonPos, setButtonPos] = useState<Pos>({ top: 0, left: 0 });
+interface MermaidDisplay {
+  info: MermaidInfo;
+  buttonPos: Pos;
+}
+
+function computeMermaidDisplay(
+  view: EditorView,
+  pos: number,
+  containerRef: React.RefObject<HTMLDivElement | null>,
+): MermaidDisplay | null {
+  const result = findMermaidAtPos(view.state.doc.toString(), pos);
+  if (!result) return null;
+
+  const wrapperRect = containerRef.current?.getBoundingClientRect();
+
+  // Get position of the start of the opening fence line
+  let charCount = 0;
+  const lines = view.state.doc.toString().split("\n");
+  for (let i = 0; i < result.lineStart; i++) {
+    charCount += lines[i].length + 1;
+  }
+
+  const caretCoords = view.coordsAtPos(charCount);
+  if (!wrapperRect || !caretCoords) return { info: result, buttonPos: { top: 0, left: 0 } };
+
+  const caretTop = caretCoords.top - wrapperRect.top;
+  const caretLeft = caretCoords.left - wrapperRect.left;
+  const scrollTop = containerRef.current?.scrollTop ?? 0;
+
+  return {
+    info: result,
+    buttonPos: {
+      top: caretTop + scrollTop,
+      left: caretLeft + 100, // Position to the right of the fence
+    },
+  };
+}
+
+export function useCodeMirrorMermaid({ containerRef }: UseCodeMirrorMermaidOptions) {
+  const [display, setDisplay] = useState<MermaidDisplay | null>(null);
 
   const detectMermaidAtCaret = useCallback((view: EditorView) => {
     const sel = view.state.selection.main;
-    const pos = sel.head;
-    const result = sel.empty ? findMermaidAtPos(view.state.doc.toString(), pos) : null;
-
-    if (!result) {
-      setMermaidInfo(null);
-      return;
-    }
-
-    const wrapperRect = containerRef.current?.getBoundingClientRect();
-    
-    // Get position of the start of the opening fence line
-    let charCount = 0;
-    const lines = view.state.doc.toString().split("\n");
-    for (let i = 0; i < result.lineStart; i++) {
-      charCount += lines[i].length + 1;
-    }
-
-    const caretCoords = view.coordsAtPos(charCount);
-    if (wrapperRect && caretCoords) {
-      const caretTop = caretCoords.top - wrapperRect.top;
-      const caretLeft = caretCoords.left - wrapperRect.left;
-      const scrollTop = containerRef.current?.scrollTop ?? 0;
-      
-      setButtonPos({
-        top: caretTop + scrollTop,
-        left: caretLeft + 100, // Position to the right of the fence
-      });
-    }
-
-    setMermaidInfo(result);
+    setDisplay(sel.empty ? computeMermaidDisplay(view, sel.head, containerRef) : null);
   }, [containerRef]);
 
   return {
-    mermaidInfo,
-    buttonPos,
+    mermaidInfo: display?.info ?? null,
+    buttonPos: display?.buttonPos ?? { top: 0, left: 0 },
     onCursorActivity: detectMermaidAtCaret,
   };
 }

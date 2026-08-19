@@ -34,6 +34,16 @@ const VoicePreviewPanel = dynamic(
   { ssr: false },
 );
 
+const MermaidDialog = dynamic(
+  () => import("@/app/editor/components/MermaidDialog"),
+  { ssr: false },
+);
+
+const ImageDialog = dynamic(
+  () => import("@/app/editor/components/ImageDialog"),
+  { ssr: false },
+);
+
 const FilesystemGraphic = () => (
   <div className="w-full h-full flex items-center justify-center p-6 relative">
     <div className="font-mono text-[11px] leading-relaxed text-left select-none w-full max-w-[260px]">
@@ -310,6 +320,26 @@ No account, no database, no upload step. This note lives as a plain file on disk
 
 This note stays a plain Markdown file. HermesMarkdown lets you write directly in it, while Mermaid diagrams open in a dialog with zoom controls when you need a closer look.
 
+\`\`\`mermaid
+flowchart LR
+    A[Write Markdown] --> B{Need a diagram?}
+    B -- Yes --> C[Add a mermaid block]
+    C --> D[Click to view full-size]
+    B -- No --> D
+\`\`\`
+
+Hover the block above and click the trigger button to open it full-size in a dedicated dialog with zoom and pan.
+
+Need quick arithmetic? Type \`calc(4*12)=\` anywhere and it resolves itself the moment you type the closing \`=\`: calc(4*12)=48.
+
+## Images, viewed full-size
+
+Drop an image into a note the usual way and it stays a plain link — nothing is copied into the document itself.
+
+![A calm morning view](/assets/hero/niceday.jpg)
+
+Hover the image above and click the trigger button to open the actual image in a dialog, the same way Mermaid diagrams do.
+
 ## Write the way you already do
 
 **Bold**, *italic*, ~~strikethrough~~, \`inline code\` — all standard Markdown, all rendered as you type.
@@ -339,6 +369,7 @@ Click into a table for a floating toolbar — sort a column, copy as CSV, delete
 | Callout blocks  | Editing    | 2025     | 4      |
 | Task pane       | Editing    | 2024     | 3      |
 | Slash menu      | AI         | 2025     | 5      |
+| Inline calc()   | Editing    | 2026     | 5      |
 
 Click any header — Feature, Category, Released, or Rating — to sort by that column. Click again to reverse the order.
 
@@ -575,6 +606,9 @@ export default function LandingPage() {
           }}
         />
       )}
+
+      {isMounted && <MermaidDialog />}
+      {isMounted && <ImageDialog />}
 
       {/* --- FEATURES --- */}
       <div className="max-w-5xl mx-auto px-6 py-24 md:py-32 space-y-32">
