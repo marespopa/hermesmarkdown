@@ -173,7 +173,22 @@ export function useVoiceInput({ onInsertion, onInterimTranscript, isActivePane =
 
     recognitionRef.current = recognition;
     shouldRestartRef.current = true;
-    recognition.start();
+    try {
+      recognition.start();
+    } catch (error) {
+      if (
+        typeof error === "object" &&
+        error !== null &&
+        "name" in error &&
+        error.name === "NotAllowedError"
+      ) {
+        setError("permission-denied");
+      }
+      shouldRestartRef.current = false;
+      setIsListening(false);
+      onInterimTranscriptRef.current?.(null);
+      return;
+    }
     setIsListening(true);
   }, [plainText]);
 

@@ -4,13 +4,14 @@ import { useVoiceInput } from "./use-voice-input";
 
 class MockSpeechRecognition {
   static instances: MockSpeechRecognition[] = [];
+  static startImplementation: (() => void) | null = null;
   continuous = false;
   interimResults = false;
   lang = "";
   onresult: ((event: unknown) => void) | null = null;
   onerror: ((event: { error: string }) => void) | null = null;
   onend: (() => void) | null = null;
-  start = vi.fn();
+  start = vi.fn(() => MockSpeechRecognition.startImplementation?.());
   stop = vi.fn();
 
   constructor() {
@@ -26,6 +27,7 @@ function finalResult(transcript: string) {
 describe("useVoiceInput", () => {
   beforeEach(() => {
     MockSpeechRecognition.instances = [];
+    MockSpeechRecognition.startImplementation = null;
     (window as unknown as { SpeechRecognition: unknown }).SpeechRecognition = MockSpeechRecognition;
   });
 
@@ -48,6 +50,19 @@ describe("useVoiceInput", () => {
     expect(result.current.error).toBe("no-microphone");
     expect(result.current.isListening).toBe(false);
     expect(recognition.start).toHaveBeenCalledTimes(1);
+  });
+
+  it("reports denied microphone access when start throws NotAllowedError", () => {
+    const startError = new DOMException("Permission denied", "NotAllowedError");
+    MockSpeechRecognition.startImplementation = () => {
+      throw startError;
+    };
+    const { result } = renderHook(() => useVoiceInput({ onInsertion: vi.fn() }));
+
+    act(() => result.current.toggleListening());
+
+    expect(result.current.error).toBe("permission-denied");
+    expect(result.current.isListening).toBe(false);
   });
 
   it("treats 'no-speech' as transient and restarts on end", () => {
