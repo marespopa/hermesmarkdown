@@ -28,7 +28,9 @@ import { useCodeMirrorFeatures } from "../hooks/use-codemirror-features";
 import { useCodeMirrorTemplates } from "../hooks/use-codemirror-templates";
 import { useCodeMirrorTable } from "../hooks/use-codemirror-table";
 import { useCodeMirrorMermaid } from "../hooks/use-codemirror-mermaid";
+import { useCodeMirrorImage } from "../hooks/use-codemirror-image";
 import { useCodeMirrorCalloutFold } from "../hooks/use-codemirror-callout-fold";
+import { HiOutlinePhotograph } from "react-icons/hi";
 
 interface MarkdownEditorProps {
   value: string;
@@ -116,7 +118,7 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
   );
 
   const {
-    pillUrl, pillLabel, pillPos, pillType, setPillUrl, handleSaveLink,
+    pillUrl, pillLabel, pillPos, pillType, dismissPill, handleSaveLink,
     dateMatch, isDateExpanded, setIsDateExpanded, dateMenuPos, handleDateSelect,
     workflowMatch, workflowMenuPos, handleWorkflowCycle,
     todoMatch, todoMenuPos, handleTodoCycle,
@@ -146,6 +148,12 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
     onCursorActivity: onMermaidCursorActivity,
   } = useCodeMirrorMermaid({ viewRef, containerRef });
 
+  const {
+    imageInfo,
+    buttonPos: imageButtonPos,
+    onCursorActivity: onImageCursorActivity,
+  } = useCodeMirrorImage({ viewRef, containerRef });
+
   const { chevrons, toggle: toggleCalloutFold, onCursorActivity: onFoldCursorActivity, onViewCreated } =
     useCodeMirrorCalloutFold({ containerRef });
 
@@ -153,8 +161,9 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
     onCursorActivity(view);
     onTableCursorActivity(view);
     onMermaidCursorActivity(view);
+    onImageCursorActivity(view);
     onFoldCursorActivity(view);
-  }, [onCursorActivity, onTableCursorActivity, onMermaidCursorActivity, onFoldCursorActivity]);
+  }, [onCursorActivity, onTableCursorActivity, onMermaidCursorActivity, onImageCursorActivity, onFoldCursorActivity]);
 
   useCodeMirrorEditor({
     value: editorValue,
@@ -300,10 +309,10 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
                 } else {
                   window.open(pillUrl, "_blank", "noopener,noreferrer");
                 }
-                setPillUrl(null);
+                dismissPill();
               }}
               onSave={handleSaveLink}
-              onDismiss={() => setPillUrl(null)}
+              onDismiss={dismissPill}
             />
           )}
 
@@ -344,6 +353,28 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
                 title="View Mermaid diagram"
               >
                 ⎇
+              </Button>
+            </div>
+          )}
+
+          {imageInfo && (
+            <div
+              style={{ top: imageButtonPos.top, left: imageButtonPos.left }}
+              className={PILL_CONTAINER_CLASSES}
+              onMouseDown={(e) => e.preventDefault()}
+            >
+              <Button
+                variant="pill-icon"
+                onClick={() => {
+                  document.dispatchEvent(new CustomEvent("hermes:open-image-dialog", {
+                    detail: { src: imageInfo.src, alt: imageInfo.alt },
+                    bubbles: true,
+                  }));
+                }}
+                title="View actual image"
+                aria-label="View actual image"
+              >
+                <HiOutlinePhotograph size={14} />
               </Button>
             </div>
           )}

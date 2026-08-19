@@ -12,6 +12,7 @@ export const REGEX_BOLD = /(\*\*|__)(.*?)\1/g;
 export const REGEX_ITALIC = /(\*|_)(.*?)\1/g;
 export const REGEX_STRIKETHROUGH = /(~~)(.*?)(~~)/g;
 export const REGEX_MD_LINK = /\[[^\]]+\]\((https?:\/\/[^\s)]+)\)/g;
+export const REGEX_MD_IMAGE = /!\[[^\]]*\]\(([^)\s]+)\)/g;
 export const REGEX_TODO_TAGS = /#(draft|review|active|archived)\b/gi;
 export const REGEX_TODO_STATUS_TAGS = /#(todo|prog|hold|done)\b/gi;
 export const REGEX_CHECKBOX = /^(\s*[-*]\s*\[)([ xX])(\])/;

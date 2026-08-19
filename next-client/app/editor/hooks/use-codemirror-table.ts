@@ -40,6 +40,27 @@ export function useCodeMirrorTable({ viewRef, containerRef }: UseCodeMirrorTable
   const [calloutPos, setCalloutPos] = useState<Pos>({ top: 0, left: 0 });
   const lastTableRef = useRef<TableInfo | null>(null);
 
+  const positionCallout = useCallback((view: EditorView, pos: number): Pos | null => {
+    const wrapperRect = containerRef.current?.getBoundingClientRect();
+    const caretCoords = view.coordsAtPos(pos);
+    if (!wrapperRect || !caretCoords) return null;
+
+    const caretTop = caretCoords.top - wrapperRect.top;
+    const caretBottom = caretCoords.bottom - wrapperRect.top;
+    const caretLeft = caretCoords.left - wrapperRect.left;
+    const scrollTop = containerRef.current?.scrollTop ?? 0;
+    // Prefer sitting just above the caret's row; if there isn't room (the
+    // row is near the top of the visible/scrolled area), drop the toolbar
+    // below the row instead of clamping it upward — clamping used to pin
+    // the panel right on top of the row being edited, covering the caret.
+    const above = caretTop - 36;
+    const top = above >= scrollTop + 4 ? above : caretBottom + 8;
+    return {
+      top,
+      left: Math.min(caretLeft, (containerRef.current?.clientWidth ?? 500) - CALLOUT_WIDTH),
+    };
+  }, [containerRef]);
+
   const detectTableAtCaret = useCallback((view: EditorView) => {
     const sel = view.state.selection.main;
     const pos = sel.head;
@@ -67,28 +88,12 @@ export function useCodeMirrorTable({ viewRef, containerRef }: UseCodeMirrorTable
       return;
     }
 
-    const wrapperRect = containerRef.current?.getBoundingClientRect();
-    const caretCoords = view.coordsAtPos(pos);
-    if (wrapperRect && caretCoords) {
-      const caretTop = caretCoords.top - wrapperRect.top;
-      const caretBottom = caretCoords.bottom - wrapperRect.top;
-      const caretLeft = caretCoords.left - wrapperRect.left;
-      const scrollTop = containerRef.current?.scrollTop ?? 0;
-      // Prefer sitting just above the caret's row; if there isn't room (the
-      // row is near the top of the visible/scrolled area), drop the toolbar
-      // below the row instead of clamping it upward — clamping used to pin
-      // the panel right on top of the row being edited, covering the caret.
-      const above = caretTop - 36;
-      const top = above >= scrollTop + 4 ? above : caretBottom + 8;
-      setCalloutPos({
-        top,
-        left: Math.min(caretLeft, (containerRef.current?.clientWidth ?? 500) - CALLOUT_WIDTH),
-      });
-    }
+    const pos2 = positionCallout(view, pos);
+    if (pos2) setCalloutPos(pos2);
 
     lastTableRef.current = result;
     setTableInfo(result);
-  }, [containerRef]);
+  }, [positionCallout]);
 
   const currentAlignment = tableInfo ? getCurrentAlignment(tableInfo) : "none";
   const isOnHeader = !!tableInfo && tableInfo.lineIdx === tableInfo.tableStart;
