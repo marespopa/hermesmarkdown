@@ -51,11 +51,9 @@ export function detectColumnType(rows: string[][], colIdx: number): ColType {
 }
 
 // Generic sort core shared by sortRows (works on plain string[][] rows, used
-// by the CodeMirror/source-mode table toolbar) and the Rendered-mode Milkdown
-// table view (works on live ProseMirror row nodes, which carry rich content
-// like bold/links that plain strings would lose). Returns the original
-// indices of `rows` in sorted order rather than the rows themselves, so
-// callers can reorder whatever row representation they hold.
+// by the CodeMirror table toolbar). Returns the original indices of `rows`
+// in sorted order rather than the rows themselves, so callers can reorder
+// whatever row representation they hold.
 export function sortRowIndices<T>(
   rows: T[],
   getCellText: (row: T, colIdx: number) => string | undefined,

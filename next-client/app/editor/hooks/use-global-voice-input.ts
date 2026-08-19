@@ -8,11 +8,10 @@ import {
   atom_isVoiceInputSupported,
   atom_isVoicePreviewVisible,
 } from "@/app/atoms/atoms";
-import { atom_activeEditorView, atom_activeMilkdownView, atom_activeEditorKind } from "@/app/atoms/ui-atoms";
+import { atom_activeEditorView } from "@/app/atoms/ui-atoms";
 import { useVoiceInput } from "./use-voice-input";
 import { joinVoiceChunks, type VoiceInsertion } from "../utils/voice-command-parser";
 import { typewriterInsertCM6 } from "../codemirror/typewriter-insert";
-import { typewriterInsertMilkdown } from "../milkdown/typewriter-insert";
 
 // A single shared dictation session for the whole app — instantiated once
 // (in page.tsx), not per pane. Switching the active pane mid-dictation must
@@ -134,23 +133,13 @@ export function useGlobalVoiceInput() {
   }, [isVoiceListening, clearVoicePreview]);
 
   const activeEditorView = useAtomValue(atom_activeEditorView);
-  const activeMilkdownView = useAtomValue(atom_activeMilkdownView);
-  const activeEditorKind = useAtomValue(atom_activeEditorKind);
   const commitVoicePreview = useCallback(() => {
     const text = voicePreviewTextRef.current;
-    if (text) {
-      // Two independent view types can each be registered (Source's CM6 and
-      // Rendered's ProseMirror) — atom_activeEditorKind picks whichever one
-      // the user is actually looking at right now, so dictation lands at
-      // the real cursor in either mode instead of always assuming CM6.
-      if (activeEditorKind === "cm6" && activeEditorView) {
-        typewriterInsertCM6(activeEditorView, text);
-      } else if (activeEditorKind === "milkdown" && activeMilkdownView) {
-        typewriterInsertMilkdown(activeMilkdownView, text);
-      }
+    if (text && activeEditorView) {
+      typewriterInsertCM6(activeEditorView, text);
     }
     clearVoicePreview();
-  }, [activeEditorKind, activeEditorView, activeMilkdownView, clearVoicePreview]);
+  }, [activeEditorView, clearVoicePreview]);
   commitVoicePreviewRef.current = commitVoicePreview;
 
   // The mic button lives in the global AI-chat FAB group / icon rail

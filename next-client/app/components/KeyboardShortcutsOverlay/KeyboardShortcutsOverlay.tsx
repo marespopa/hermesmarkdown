@@ -52,10 +52,6 @@ function getShortcutGroups(): ShortcutGroup[] {
         { label: "Move up / down a row", keys: "↑ / ↓" },
       ],
     },
-    {
-      title: "Dates",
-      shortcuts: [{ label: "Open date picker", keys: "Alt+↓" }],
-    },
   ];
 }
 

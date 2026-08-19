@@ -25,8 +25,6 @@
     "@google/genai": "^2.8.0",
     "@lezer/highlight": "^1.2.3",
     "@lezer/markdown": "^1.7.1",
-    "@milkdown/kit": "^7.21.3",
-    "@milkdown/react": "^7.21.3",
     "@tailwindcss/typography": "^0.5.15",
     "@tanstack/react-virtual": "^3.14.3",
     "@testing-library/jest-dom": "^6.6.2",

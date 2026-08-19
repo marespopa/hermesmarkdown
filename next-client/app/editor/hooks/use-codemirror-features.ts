@@ -186,17 +186,12 @@ export function useCodeMirrorFeatures({ viewRef, containerRef, onWikiLinkClick }
     return () => dom.removeEventListener("mousedown", handleMouseDown, true);
   }, [viewRef, onWikiLinkClick]);
 
-  // Alt+ArrowDown expands the date picker; Escape dismisses the open popup.
+  // Escape dismisses the open link/date popup.
   useEffect(() => {
     const view = viewRef.current;
     if (!view) return;
     const dom = view.dom;
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.altKey && e.key === "ArrowDown" && dateMatch) {
-        e.preventDefault();
-        setIsDateExpanded(true);
-        return;
-      }
       if (e.key === "Escape") {
         if (pillUrl) { setPillUrl(null); return; }
         if (isDateExpanded) { setIsDateExpanded(false); return; }
@@ -204,7 +199,7 @@ export function useCodeMirrorFeatures({ viewRef, containerRef, onWikiLinkClick }
     };
     dom.addEventListener("keydown", handleKeyDown, true);
     return () => dom.removeEventListener("keydown", handleKeyDown, true);
-  }, [viewRef, dateMatch, isDateExpanded, pillUrl]);
+  }, [viewRef, isDateExpanded, pillUrl]);
 
   const dispatchReplace = useCallback((from: number, to: number, insert: string) => {
     const view = viewRef.current;

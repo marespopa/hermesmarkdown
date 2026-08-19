@@ -150,27 +150,3 @@ export const markdownHighlightStyle = HighlightStyle.define([
 export function editorTheme() {
   return [baseTheme, slashMenuTheme];
 }
-
-// General-purpose lezer tag → color mapping for fenced code blocks (any
-// language, not just markdown), used by the Rendered pane's embedded CM6
-// code-block NodeView (milkdown/code-block-view.ts). Distinct from
-// markdownHighlightStyle above since that one only covers markdown's own
-// small tag set (heading/strong/link/…) — real language grammars use
-// keyword/string/number/comment/etc, which need their own mapping. Kept to
-// the app's existing accent palette (--clay, --moss) rather than a
-// rainbow scheme, to match the rest of the UI.
-export const codeBlockHighlightStyle = HighlightStyle.define([
-  { tag: t.keyword, color: "var(--clay)", fontWeight: "600" },
-  { tag: [t.name, t.deleted, t.character, t.macroName], color: "var(--fg)" },
-  { tag: [t.function(t.variableName), t.labelName], color: "var(--moss)" },
-  { tag: [t.color, t.constant(t.name), t.standard(t.name), t.atom, t.bool, t.special(t.variableName)], color: "var(--clay)" },
-  { tag: [t.definition(t.name), t.separator], color: "var(--fg)" },
-  { tag: [t.typeName, t.className, t.number, t.changed, t.annotation, t.modifier, t.self, t.namespace], color: "var(--moss)" },
-  { tag: [t.operator, t.operatorKeyword, t.url, t.escape, t.regexp, t.link, t.special(t.string)], color: "var(--clay)" },
-  { tag: [t.meta, t.comment], color: "var(--fg-faint)", fontStyle: "italic" },
-  { tag: t.strong, fontWeight: "bold" },
-  { tag: t.emphasis, fontStyle: "italic" },
-  { tag: t.strikethrough, textDecoration: "line-through" },
-  { tag: [t.processingInstruction, t.string, t.inserted], color: "var(--moss)" },
-  { tag: t.invalid, color: "#e5484d" },
-]);

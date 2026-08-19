@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef } from "react";
 import { useAtomValue } from "jotai";
 import { HiOutlineChatAlt2 } from "react-icons/hi";
 import Portal from "../../components/Portal/Portal";
-import { atom_activeEditorView, atom_activeMilkdownView, atom_activeEditorKind } from "@/app/atoms/ui-atoms";
+import { atom_activeEditorView } from "@/app/atoms/ui-atoms";
 
 interface AISelectionToolbarProps {
   isAiLoading: boolean;
@@ -21,50 +21,25 @@ export const AISelectionToolbar: React.FC<AISelectionToolbarProps> = ({
   onPrompt,
 }) => {
   const activeEditorView = useAtomValue(atom_activeEditorView);
-  const activeMilkdownView = useAtomValue(atom_activeMilkdownView);
-  const activeEditorKind = useAtomValue(atom_activeEditorKind);
   const viewRef = useRef(activeEditorView);
   viewRef.current = activeEditorView;
-  const milkdownViewRef = useRef(activeMilkdownView);
-  milkdownViewRef.current = activeMilkdownView;
-  const kindRef = useRef(activeEditorKind);
-  kindRef.current = activeEditorKind;
   const [hasSelection, setHasSelection] = useState(false);
   const [pos, setPos] = useState<Pos | null>(null);
   const rafRef = useRef<number | null>(null);
 
   useEffect(() => {
     const checkSelection = () => {
-      // Rendered mode has its own ProseMirror view (registered separately
-      // from CM6's, see atom_activeMilkdownView) — without this branch the
-      // toolbar could only ever see a CM6 selection and never appeared at
-      // all when selecting text in Preview mode.
-      let selected: boolean;
-      if (kindRef.current === "milkdown") {
-        const view = milkdownViewRef.current;
-        if (!view || !view.hasFocus()) {
-          setHasSelection(false);
-          return;
-        }
-        const { from, to } = view.state.selection;
-        selected = from !== to && !!view.state.doc.textBetween(from, to, "\n").trim();
-      } else {
-        const view = viewRef.current;
-        if (!view || !view.hasFocus) {
-          setHasSelection(false);
-          return;
-        }
-        const { from, to } = view.state.selection.main;
-        selected = from !== to && !!view.state.sliceDoc(from, to).trim();
+      const view = viewRef.current;
+      if (!view || !view.hasFocus) {
+        setHasSelection(false);
+        return;
       }
+      const { from, to } = view.state.selection.main;
+      const selected = from !== to && !!view.state.sliceDoc(from, to).trim();
 
       setHasSelection(selected);
       if (!selected) return;
 
-      // Both editors are contenteditable surfaces backed by the native
-      // browser Selection API, so the same DOM range works for anchoring
-      // the toolbar regardless of which one is active — no per-editor
-      // coordinate lookup needed.
       const domSelection = window.getSelection();
       const range = domSelection && domSelection.rangeCount > 0 ? domSelection.getRangeAt(0) : null;
       const rect = range?.getBoundingClientRect();

@@ -4,7 +4,7 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
 import { useAtomValue, useSetAtom } from "jotai";
 import { atom_frontmatterWizardOpen, atom_wordWrap, atom_isEditorFocused, atom_vaultHandle, atom_currentDirectoryHandle } from "@/app/atoms/atoms";
-import { atom_activeEditorView, atom_activeEditorKind, atom_lineNumbers } from "@/app/atoms/ui-atoms";
+import { atom_activeEditorView, atom_lineNumbers } from "@/app/atoms/ui-atoms";
 import { useAtom } from "jotai";
 import { savePastedImage } from "@/app/utils/paste-image";
 import type { EditorView } from "@codemirror/view";
@@ -49,8 +49,8 @@ interface MarkdownEditorProps {
 // history), bold/italic/strikethrough/inline-code wrap, checkbox toggle
 // (click), quote-continue on Enter, quote-aware paste, URL-paste-as-link,
 // full markdown syntax highlighting, link pill (cursor-driven, Ctrl/Cmd+
-// click to open/navigate), date picker (Alt+ArrowDown), workflow/todo tag
-// cycling pills.
+// click to open/navigate), date picker (click the calendar icon),
+// workflow/todo tag cycling pills.
 export default function MarkdownEditor(props: MarkdownEditorProps) {
   const setFrontmatterWizardOpen = useSetAtom(atom_frontmatterWizardOpen);
   const wordWrap = useAtomValue(atom_wordWrap);
@@ -179,19 +179,15 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
   // committed dictation into whichever view this atom currently points at,
   // so this pane only needs to claim that slot while it's the active one.
   const setActiveEditorView = useSetAtom(atom_activeEditorView);
-  const setActiveEditorKind = useSetAtom(atom_activeEditorKind);
   useEffect(() => {
     if (!props.isActivePane) return;
     setActiveEditorView(viewRef.current);
-    setActiveEditorKind("cm6");
     // Cleared on unmount/deactivation so a later dictation commit can't
-    // target a torn-down view — see atom_activeEditorKind's role in
-    // use-global-voice-input.ts picking between this and the Milkdown view.
+    // target a torn-down view.
     return () => {
       setActiveEditorView(null);
-      setActiveEditorKind((prev) => (prev === "cm6" ? null : prev));
     };
-  }, [props.isActivePane, setActiveEditorView, setActiveEditorKind, viewRef]);
+  }, [props.isActivePane, setActiveEditorView, viewRef]);
 
   const [linkLabel, setLinkLabel] = useState("");
   const [linkUrl, setLinkUrl] = useState("");

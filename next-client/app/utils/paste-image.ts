@@ -65,63 +65,6 @@ export async function savePastedImage(
   return `assets/${fileName}`;
 }
 
-const REGEX_ABSOLUTE_SRC = /^(https?:|data:|blob:)/i;
-
-// Vault-relative image paths (e.g. "assets/foo.png", "../assets/foo.png")
-// have no server behind them — a plain <img src="assets/foo.png"> can't
-// load anything in the browser. Milkdown's image NodeView (image-view.ts)
-// calls this to turn such a path into a `blob:` URL via the File System
-// Access API, mirroring savePastedImage's directory-walk in reverse.
-// Cached per resolved absolute path (module-level, for the session) so the
-// same image referenced from multiple notes/positions doesn't re-read the
-// file or mint a new blob URL each time.
-const resolvedImageCache = new Map<string, Promise<string | null>>();
-
-export async function resolveVaultImageSrc(
-  vaultHandle: FileSystemDirectoryHandle,
-  currentDirectoryHandle: FileSystemDirectoryHandle | null,
-  src: string,
-): Promise<string | null> {
-  if (REGEX_ABSOLUTE_SRC.test(src)) return src;
-
-  let baseSegments: string[] = [];
-  if (currentDirectoryHandle) {
-    try {
-      const isRoot = await (vaultHandle as any).isSameEntry(currentDirectoryHandle);
-      if (!isRoot) baseSegments = (await (vaultHandle as any).resolve(currentDirectoryHandle)) || [];
-    } catch {
-      // Treat as root if resolution fails.
-    }
-  }
-
-  const segments = [...baseSegments];
-  for (const part of src.split("/").filter(Boolean)) {
-    if (part === "..") segments.pop();
-    else if (part !== ".") segments.push(part);
-  }
-  const fileName = segments.pop();
-  if (!fileName) return null;
-
-  const cacheKey = [...segments, fileName].join("/");
-  const cached = resolvedImageCache.get(cacheKey);
-  if (cached) return cached;
-
-  const promise = (async () => {
-    try {
-      let dir: FileSystemDirectoryHandle = vaultHandle;
-      for (const seg of segments) dir = await dir.getDirectoryHandle(seg);
-      const fileHandle = await dir.getFileHandle(fileName);
-      const file = await fileHandle.getFile();
-      return URL.createObjectURL(file);
-    } catch (err) {
-      console.warn("Failed to resolve image:", cacheKey, err);
-      return null;
-    }
-  })();
-  resolvedImageCache.set(cacheKey, promise);
-  return promise;
-}
-
 // Clipboard/DataTransfer items also fire for copied text, files of other
 // kinds, etc. — callers must filter to images before invoking savePastedImage.
 export function getImageFile(data: DataTransfer | null): File | null {

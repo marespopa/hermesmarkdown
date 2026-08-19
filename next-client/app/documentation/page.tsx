@@ -234,7 +234,6 @@ const GROUPS: Group[] = [
                   { label: "Italic", shortcut: "CTRL+I" },
                   { label: "Undo", shortcut: "CTRL+Z" },
                   { label: "Exit a block, leaving a blank line", shortcut: "SHIFT+ENTER" },
-                  { label: "Expand date picker", shortcut: "ALT+↓" },
                   { label: "Toggle sidebar", shortcut: "CTRL+SHIFT+E" },
                   { label: "AI Chat", shortcut: "CTRL+SHIFT+B" },
                   { label: "Voice input", shortcut: "CTRL+SHIFT+V" },
