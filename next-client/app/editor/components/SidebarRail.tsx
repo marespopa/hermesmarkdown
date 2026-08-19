@@ -23,6 +23,7 @@ import Button from "@/app/components/Button";
 import Tooltip from "@/app/components/Tooltip";
 import { useFileSystem } from "@/app/hooks/use-file-system";
 import { atom_theme, RailPanel, type Theme } from "@/app/atoms/ui-atoms";
+import { version } from "@/package.json";
 
 const SIDEBAR_PANELS: { id: RailPanel; label: string; Icon: React.ComponentType<{ size?: number }> }[] = [
   { id: "files", label: "Files", Icon: HiOutlineFolder },
@@ -201,6 +202,14 @@ export default function SidebarRail({ panel, onSelectPanel, onSettings, onRefres
             </Tooltip>
           </div>
         )}
+
+        <div className="w-full flex justify-center pt-1 pb-0.5">
+          <Tooltip label={`Hermes Markdown v${version}`} position="right">
+            <span className="text-[10px] font-mono select-none text-ink-muted/60 hover:text-ink-light dark:text-stone/60 dark:hover:text-ink-dark transition-colors cursor-default">
+              v{version}
+            </span>
+          </Tooltip>
+        </div>
       </div>
     </nav>
   );
