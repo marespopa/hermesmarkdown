@@ -19,9 +19,11 @@ import {
 import {
   atom_vaultHandle
 } from "@/app/atoms/vault-atoms";
+import { atom_lineNumbers } from "@/app/atoms/ui-atoms";
 import DialogModal from "@/app/components/DialogModal/DialogModal";
 import Button from "@/app/components/Button";
 import Input from "@/app/components/Input";
+import Toggle from "@/app/components/Toggle";
 import { testAIConnection } from "@/app/services/ai";
 import { showSuccessToast, showErrorToast } from "@/app/components/Toastr";
 import { SelectControl, SegmentedControl } from "@/app/editor/settings/components/SettingControls";
@@ -47,7 +49,7 @@ import {
 import { useCreateVault } from "@/app/hooks/file-system/use-create-vault";
 import CreateVaultSubSteps from "./CreateVaultSubSteps";
 
-const TOTAL_STEPS = 7;
+const TOTAL_STEPS = 8;
 
 const THEME_OPTIONS: { label: string; value: Theme }[] = [
   { label: "Light", value: "light" },
@@ -70,6 +72,7 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
   const [theme, setTheme] = useAtom(atom_theme);
   const [renderedFontFamily, setRenderedFontFamily] = useAtom(atom_renderedFontFamily);
   const [renderedFontSize, setRenderedFontSize] = useAtom(atom_renderedFontSize);
+  const [lineNumbers, setLineNumbers] = useAtom(atom_lineNumbers);
   const [aiProvider, setAiProvider] = useAtom(atom_aiProvider);
   const [claudeKey, setClaudeKey] = useAtom(atom_claudeKey);
   const [geminiKey, setGeminiKey] = useAtom(atom_geminiKey);
@@ -247,6 +250,31 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
         return (
           <div className="flex flex-col items-center text-center space-y-6 py-4">
             <div className="w-16 h-16 bg-sage/10 rounded-2xl flex items-center justify-center text-sage">
+              <HiOutlineViewList size={32} />
+            </div>
+            <div className="space-y-2">
+              <h2 className="text-ui-title-3 font-bold">Show line numbers?</h2>
+              <p className="text-ui-footnote opacity-60 px-4">
+                Line numbers make it easier to navigate and discuss specific parts of a note.
+                You can change this later in Settings.
+              </p>
+            </div>
+
+            <div className="w-full flex items-center justify-between rounded-2xl border border-edge p-4 bg-paper-softgray/40 dark:bg-paper-dark/30 text-left">
+              <span className="text-ui-footnote font-semibold">Line numbers</span>
+              <Toggle variant="soft" active={lineNumbers} onChange={setLineNumbers} />
+            </div>
+
+            <Button variant="primary" onClick={() => setStep(5)} className="w-full h-12 rounded-2xl text-ui-footnote font-bold">
+              Continue
+            </Button>
+          </div>
+        );
+
+      case 5:
+        return (
+          <div className="flex flex-col items-center text-center space-y-6 py-4">
+            <div className="w-16 h-16 bg-sage/10 rounded-2xl flex items-center justify-center text-sage">
               <HiOutlineRefresh size={32} />
             </div>
             <div className="space-y-2">
@@ -267,13 +295,13 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
               </div>
             </div>
 
-            <Button variant="primary" onClick={() => setStep(5)} className="w-full h-12 rounded-2xl text-ui-footnote font-bold">
+            <Button variant="primary" onClick={() => setStep(6)} className="w-full h-12 rounded-2xl text-ui-footnote font-bold">
               Continue
             </Button>
           </div>
         );
 
-      case 5:
+      case 6:
         return (
           <div className="flex flex-col items-center text-center space-y-6 py-4">
             <div className="w-16 h-16 bg-sage/10 rounded-2xl flex items-center justify-center text-sage">
@@ -313,13 +341,13 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
               </div>
             </div>
 
-            <Button variant="primary" onClick={() => setStep(6)} className="w-full h-12 rounded-2xl text-ui-footnote font-bold">
+            <Button variant="primary" onClick={() => setStep(7)} className="w-full h-12 rounded-2xl text-ui-footnote font-bold">
               Continue
             </Button>
           </div>
         );
 
-      case 6: {
+      case 7: {
         const key = aiProvider === "gemini" ? geminiKey : claudeKey;
         const setKey = aiProvider === "gemini" ? setGeminiKey : setClaudeKey;
         return (
@@ -370,14 +398,14 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
               </Button>
             </div>
 
-            <Button variant="primary" onClick={() => setStep(7)} className="w-full h-11 rounded-2xl text-ui-footnote font-bold shrink-0">
+            <Button variant="primary" onClick={() => setStep(8)} className="w-full h-11 rounded-2xl text-ui-footnote font-bold shrink-0">
               Continue
             </Button>
           </div>
         );
       }
 
-      case 7:
+      case 8:
         return (
           <div className="flex flex-col items-center text-center space-y-6 py-4">
             <div className="w-16 h-16 bg-sage rounded-2xl flex items-center justify-center text-white">

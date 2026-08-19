@@ -38,6 +38,20 @@ export const baseTheme = EditorView.theme({
     fontFamily: "inherit",
     overflow: "visible",
   },
+  ".cm-lineNumbers": {
+    color: "var(--fg-faint) !important",
+    fontSize: "0.75em",
+    minWidth: "2.5em",
+  },
+  ".cm-lineNumbers .cm-gutterElement": {
+    color: "var(--fg-faint) !important",
+    paddingRight: "0.75em",
+  },
+  ".cm-gutters": {
+    backgroundColor: "transparent",
+    border: "none",
+    paddingRight: "0.75rem",
+  },
   // !important: Tailwind's preflight resets border-color to currentColor on
   // all elements, which can override this rule for equal-specificity selectors.
   // Pinning with !important guarantees the custom cursor is always clay-colored
@@ -48,9 +62,6 @@ export const baseTheme = EditorView.theme({
   ".cm-selectionBackground, &.cm-focused .cm-selectionBackground": {
     backgroundColor: "var(--clay) !important",
     opacity: "0.25",
-  },
-  ".cm-gutters": {
-    display: "none",
   },
   // CM6's default fold-placeholder widget ("…") ships a hardcoded light-gray
   // box (@codemirror/language baseTheme) with no dark-mode variant, so it

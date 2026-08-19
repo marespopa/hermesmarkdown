@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import type { EditorView } from "@codemirror/view";
-import type { EditorState } from "@codemirror/state";
+import type { Compartment, EditorState } from "@codemirror/state";
 import type { SlashMenuCallbacks } from "../codemirror/slash-menu";
 import type { WikiLinkTriggerCallback } from "../codemirror/wikilink-trigger";
 
@@ -10,6 +10,7 @@ interface UseCodeMirrorEditorOptions {
   value: string;
   onChange: (value: string) => void;
   wordWrap: boolean;
+  lineNumbers: boolean;
   placeholder?: string;
   readOnly: boolean;
   onFocusChange: (focused: boolean) => void;
@@ -35,6 +36,7 @@ export function useCodeMirrorEditor({
   value,
   onChange,
   wordWrap,
+  lineNumbers,
   placeholder,
   readOnly,
   onFocusChange,
@@ -51,6 +53,7 @@ export function useCodeMirrorEditor({
   onChangeRef.current = onChange;
   const onCursorActivityRef = useRef(onCursorActivity);
   onCursorActivityRef.current = onCursorActivity;
+  const lineNumbersCompartmentRef = useRef<Compartment | null>(null);
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -58,7 +61,7 @@ export function useCodeMirrorEditor({
     let destroyed = false;
 
     (async () => {
-      const [{ EditorState }, { EditorView: CMView }, extensionsModule] = await Promise.all([
+      const [{ EditorState, Compartment }, { EditorView: CMView, lineNumbers: cmLineNumbers }, extensionsModule] = await Promise.all([
         import("@codemirror/state"),
         import("@codemirror/view"),
         import("../codemirror/extensions"),
@@ -69,11 +72,15 @@ export function useCodeMirrorEditor({
       const buildExtensions = extensionsModule.buildExtensions as (
         opts: any,
       ) => import("@codemirror/state").Extension[];
+      const lineNumbersCompartment = new Compartment();
+      lineNumbersCompartmentRef.current = lineNumbersCompartment;
 
       const state = EditorState.create({
         doc: value,
         extensions: buildExtensions({
           wordWrap,
+          lineNumbers,
+          lineNumbersCompartment,
           placeholder,
           readOnly,
           onFocusChange,
@@ -110,6 +117,15 @@ export function useCodeMirrorEditor({
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    const view = viewRef.current;
+    const compartment = lineNumbersCompartmentRef.current;
+    if (!view || !compartment) return;
+    import("@codemirror/view").then(({ lineNumbers: cmLineNumbers }) => {
+      view.dispatch({ effects: compartment.reconfigure(lineNumbers ? cmLineNumbers() : []) });
+    });
+  }, [lineNumbers, viewRef]);
 
   // Keep the view in sync when `value` changes for a reason other than
   // the user typing in it (e.g. external file reload, undo outside CM6).

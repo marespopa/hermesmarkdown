@@ -18,7 +18,7 @@ import {
   atom_claudeKey,
   atom_geminiKey,
 } from "@/app/atoms/atoms";
-import { atom_availableGeminiModels, atom_availableClaudeModels, atom_showHiddenFiles, atom_tabsBarVisibleByDefault, atom_renderedFontFamily, atom_renderedFontSize } from "@/app/atoms/ui-atoms";
+import { atom_availableGeminiModels, atom_availableClaudeModels, atom_lineNumbers, atom_showHiddenFiles, atom_tabsBarVisibleByDefault, atom_renderedFontFamily, atom_renderedFontSize } from "@/app/atoms/ui-atoms";
 import { useFileSystem } from "@/app/hooks/use-file-system";
 import { testAIConnection, fetchGeminiModels, fetchClaudeModels } from "@/app/services/ai";
 import {
@@ -47,6 +47,7 @@ const SettingsPage = () => {
   const [lineHeight, setLineHeight] = useAtom(atom_lineHeight);
   const [theme, setTheme] = useAtom(atom_theme);
   const [wordWrap, setWordWrap] = useAtom(atom_wordWrap);
+  const [lineNumbers, setLineNumbers] = useAtom(atom_lineNumbers);
   const [autosaveMode, setAutosaveMode] = useAtom(atom_autosaveMode);
   const [autosaveDelay, setAutosaveDelay] = useAtom(atom_autosaveDelay);
   const [editorWidth, setEditorWidth] = useAtom(atom_editorWidth);
@@ -177,6 +178,11 @@ const SettingsPage = () => {
               label="Word Wrap"
               description="Wrap long lines to fit the viewport width."
               control={<Toggle variant="soft" active={wordWrap} onChange={setWordWrap} />}
+            />
+            <SettingItem
+              label="Line Numbers"
+              description="Show line numbers beside the source editor."
+              control={<Toggle variant="soft" active={lineNumbers} onChange={setLineNumbers} />}
             />
             <SettingItem
               label="Show Tabs Bar"

@@ -20,6 +20,7 @@ clearLegacyPaneModePreference();
 
 export const atom_theme = atomWithStorage<Theme>("theme", "system");
 export const atom_wordWrap = atomWithStorage<boolean>("wordWrap", true);
+export const atom_lineNumbers = atomWithStorage<boolean>("lineNumbers", true);
 // Source view's font is fixed, not user-configurable — raw markdown syntax
 // (`#`, `*`, `[[wikilink]]`) needs a monospace face to stay honestly aligned,
 // and letting it drift from monospace would desync the transparent textarea

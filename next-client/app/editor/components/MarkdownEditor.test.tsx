@@ -71,6 +71,13 @@ describe("MarkdownEditor", () => {
     expect(container.querySelector(".cm-content")?.textContent).toContain("hello world");
   });
 
+  it("shows line numbers for each editor line", () => {
+    const { container } = renderEditor("first\nsecond\nthird");
+    const lineNumbers = Array.from(container.querySelectorAll(".cm-lineNumbers .cm-gutterElement"));
+
+    expect(lineNumbers.map((lineNumber) => lineNumber.textContent)).toEqual(["1", "2", "3"]);
+  });
+
   it("shows the placeholder text when empty", () => {
     renderEditor("", { placeholder: "Type / for templates" });
     expect(screen.getByText("Type / for templates")).toBeInTheDocument();

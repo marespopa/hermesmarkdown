@@ -4,7 +4,7 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
 import { useAtomValue, useSetAtom } from "jotai";
 import { atom_frontmatterWizardOpen, atom_wordWrap, atom_isEditorFocused, atom_vaultHandle, atom_currentDirectoryHandle } from "@/app/atoms/atoms";
-import { atom_activeEditorView, atom_activeEditorKind } from "@/app/atoms/ui-atoms";
+import { atom_activeEditorView, atom_activeEditorKind, atom_lineNumbers } from "@/app/atoms/ui-atoms";
 import { useAtom } from "jotai";
 import { savePastedImage } from "@/app/utils/paste-image";
 import type { EditorView } from "@codemirror/view";
@@ -54,6 +54,7 @@ interface MarkdownEditorProps {
 export default function MarkdownEditor(props: MarkdownEditorProps) {
   const setFrontmatterWizardOpen = useSetAtom(atom_frontmatterWizardOpen);
   const wordWrap = useAtomValue(atom_wordWrap);
+  const lineNumbers = useAtomValue(atom_lineNumbers);
   const [, setIsEditorFocused] = useAtom(atom_isEditorFocused);
   const filePath = props.filePath || "draft";
 
@@ -159,6 +160,7 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
     value: editorValue,
     onChange: editorOnChange,
     wordWrap,
+    lineNumbers,
     placeholder: props.placeholder || "Type / for templates",
     readOnly: false,
     onFocusChange: setIsEditorFocused,

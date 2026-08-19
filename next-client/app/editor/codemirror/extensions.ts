@@ -1,5 +1,5 @@
-import { Extension, EditorSelection } from "@codemirror/state";
-import { EditorView, keymap, drawSelection, placeholder as placeholderExt } from "@codemirror/view";
+import { Compartment, Extension, EditorSelection } from "@codemirror/state";
+import { EditorView, keymap, drawSelection, lineNumbers, placeholder as placeholderExt } from "@codemirror/view";
 import { history, historyKeymap, defaultKeymap } from "@codemirror/commands";
 import { markdown, markdownLanguage } from "@codemirror/lang-markdown";
 import { ViewUpdate } from "@codemirror/view";
@@ -23,6 +23,8 @@ import {
 
 interface BuildExtensionsOptions {
   wordWrap: boolean;
+  lineNumbers: boolean;
+  lineNumbersCompartment: Compartment;
   placeholder?: string;
   readOnly: boolean;
   onFocusChange: (focused: boolean) => void;
@@ -36,6 +38,7 @@ interface BuildExtensionsOptions {
 export function buildExtensions(opts: BuildExtensionsOptions): Extension[] {
   const extensions: Extension[] = [
     editorTheme(),
+    opts.lineNumbersCompartment.of(opts.lineNumbers ? lineNumbers() : []),
     history(),
     drawSelection(),
     // addKeymap: false — lang-markdown's built-in Enter continuation for

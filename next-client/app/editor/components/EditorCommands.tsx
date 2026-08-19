@@ -26,6 +26,7 @@ import {
   atom_isVoiceInputListening,
   atom_isVoiceInputSupported,
   atom_showHiddenFiles,
+  atom_lineNumbers,
   atom_activeEditorView,
   atom_tabsBarVisibleByDefault,
   atom_keyboardShortcutsOpen,
@@ -90,6 +91,7 @@ export default function EditorCommands({
   const [, closePane] = useAtom(atom_closePane);
   const [, setPaneType] = useAtom(atom_setPaneType);
   const [wordWrap, setWordWrap] = useAtom(atom_wordWrap);
+  const [lineNumbers, setLineNumbers] = useAtom(atom_lineNumbers);
   const [tabsBarVisibleByDefault, setTabsBarVisibleByDefault] = useAtom(atom_tabsBarVisibleByDefault);
   const [, setIsWizardOpen] = useAtom(atom_isWizardOpen);
   const [, setKeyboardShortcutsOpen] = useAtom(atom_keyboardShortcutsOpen);
@@ -242,6 +244,13 @@ export default function EditorCommands({
     label: wordWrap ? "Disable word wrap" : "Enable word wrap",
     keywords: "wrap line editor",
     action: () => setWordWrap(!wordWrap),
+  });
+
+  useRegisterCommand({
+    id: "toggle-line-numbers",
+    label: lineNumbers ? "Hide line numbers" : "Show line numbers",
+    keywords: "line numbers gutter editor",
+    action: () => setLineNumbers(!lineNumbers),
   });
 
   useRegisterCommand({
