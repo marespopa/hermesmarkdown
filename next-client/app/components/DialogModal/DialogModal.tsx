@@ -48,8 +48,8 @@ const DialogModal = ({
         overflow-hidden flex flex-col
         animate-in fade-in zoom-in-95 slide-in-from-bottom-4 sm:slide-in-from-bottom-0 duration-500 ease-out
         ${mobileSheet
-          ? "max-w-none sm:max-w-sm my-0 rounded-t-[28px] rounded-b-none sm:rounded-[28px] sm:my-auto"
-          : "max-w-sm my-auto rounded-[28px]"
+          ? "max-w-none sm:max-w-2xl my-0 rounded-t-[28px] rounded-b-none sm:rounded-[28px] sm:my-auto"
+          : "max-w-[calc(100vw-2rem)] sm:max-w-2xl my-auto rounded-[28px]"
         }
         ${styles}
       `}
