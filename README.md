@@ -1,6 +1,6 @@
 # 🏛️ Hermes Markdown
 
-Hermes Markdown is a professional, local-first workspace built for markdown editing. No cloud, no tracking, no friction—just a clean canvas for your thoughts. It turns any local directory into a powerful writing vault using modern web standards.
+Hermes Markdown is a professional, local-first workspace built for markdown editing. No cloud, no tracking, no friction—just a clean canvas for your thoughts. It turns any local directory into a powerful writing vault using modern web standards. It started back in 2022.
 
 ## Architecture
 
