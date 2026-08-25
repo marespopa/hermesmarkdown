@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Button from "@/app/components/Button/Button.component";
 
@@ -82,11 +83,37 @@ export default function ContactPage() {
               <p className="text-sm leading-relaxed text-neutral-600 dark:text-neutral-400">
                 HermesMarkdown is open source. If you&apos;ve encountered a
                 technical issue or have a code contribution, the best place is our
-                public repository.
+                <a
+                  href="https://github.com/marespopa/hermesmarkdown"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline underline-offset-4 hover:text-purple-600"
+                >
+                  public repository
+                </a>
+                . For a specific bug, open a
+                <a
+                  href="https://github.com/marespopa/hermesmarkdown/issues"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline underline-offset-4 hover:text-purple-600"
+                >
+                  GitHub issue
+                </a>
+                .
               </p>
             </div>
           </div>
         </section>
+
+        <nav aria-label="Related pages" className="border-t border-black/5 dark:border-white/10 pt-8">
+          <p className="text-xs font-bold uppercase tracking-[0.2em] opacity-40">More from HermesMarkdown</p>
+          <div className="mt-4 flex flex-wrap gap-x-6 gap-y-3 text-sm font-medium">
+            <Link href="/privacy-policy" className="underline underline-offset-4 hover:text-sage">Privacy Policy</Link>
+            <Link href="/terms" className="underline underline-offset-4 hover:text-sage">Terms of Service</Link>
+            <Link href="/documentation" className="underline underline-offset-4 hover:text-sage">Documentation</Link>
+          </div>
+        </nav>
 
         {/* --- FOOTER SIGNAL --- */}
         <footer className="text-center pt-12 opacity-20">

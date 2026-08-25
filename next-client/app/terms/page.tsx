@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Button from "@/app/components/Button/Button.component";
 
@@ -95,6 +96,14 @@ export default function TermsAndConditions() {
             <a href="mailto:office@marespopa.com" className="hover:opacity-100 transition-opacity">Contact: office@marespopa.com</a>
           </div>
         </section>
+
+        <nav aria-label="Related pages" className="border-t border-black/5 dark:border-white/10 pt-8">
+          <p className="text-xs font-bold uppercase tracking-[0.2em] opacity-40">Related pages</p>
+          <div className="mt-4 flex flex-wrap gap-x-6 gap-y-3 text-sm font-medium">
+            <Link href="/privacy-policy" className="underline underline-offset-4 hover:text-sage">Privacy Policy</Link>
+            <Link href="/contact" className="underline underline-offset-4 hover:text-sage">Contact</Link>
+          </div>
+        </nav>
       </div>
     </main>
   );
