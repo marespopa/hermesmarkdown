@@ -28,7 +28,7 @@ The sidebar manages navigation within the opened "Vault" (local directory).
 
 ## Mermaid flow
 
-When the cursor is in a fenced Mermaid block, a small trigger button appears in the block. Clicking it opens the dedicated Mermaid dialog for the rendered diagram.
+When the cursor is in a fenced Mermaid block, a small trigger button appears beside the active line. Clicking it opens the dedicated Mermaid dialog for the rendered diagram.
 
 ## Table Flow
 

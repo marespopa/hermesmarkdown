@@ -8,7 +8,7 @@ import { atom_activeEditorView, atom_lineNumbers } from "@/app/atoms/ui-atoms";
 import { useAtom } from "jotai";
 import { savePastedImage } from "@/app/utils/paste-image";
 import type { EditorView } from "@codemirror/view";
-import { HiOutlineCalendar, HiChevronDown, HiChevronRight } from "react-icons/hi";
+import { HiOutlineCalendar, HiChevronDown, HiChevronRight, HiOutlineArrowsExpand } from "react-icons/hi";
 import FrontmatterPanel from "./FrontmatterPanel";
 import Button from "../../components/Button";
 import Input from "../../components/Input";
@@ -352,7 +352,7 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
                 }}
                 title="View Mermaid diagram"
               >
-                ⎇
+                <HiOutlineArrowsExpand size={14} aria-hidden="true" />
               </Button>
             </div>
           )}

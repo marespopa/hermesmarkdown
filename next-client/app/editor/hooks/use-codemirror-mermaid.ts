@@ -83,14 +83,7 @@ function computeMermaidDisplay(
 
   const wrapperRect = containerRef.current?.getBoundingClientRect();
 
-  // Get position of the start of the opening fence line
-  let charCount = 0;
-  const lines = view.state.doc.toString().split("\n");
-  for (let i = 0; i < result.lineStart; i++) {
-    charCount += lines[i].length + 1;
-  }
-
-  const caretCoords = view.coordsAtPos(charCount);
+  const caretCoords = view.coordsAtPos(pos);
   if (!wrapperRect || !caretCoords) return { info: result, buttonPos: { top: 0, left: 0 } };
 
   const caretTop = caretCoords.top - wrapperRect.top;
@@ -100,8 +93,8 @@ function computeMermaidDisplay(
   return {
     info: result,
     buttonPos: {
-      top: caretTop + scrollTop,
-      left: caretLeft + 100, // Position to the right of the fence
+      top: caretTop - 26 + scrollTop,
+      left: caretLeft,
     },
   };
 }

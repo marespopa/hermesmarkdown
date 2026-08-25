@@ -28,7 +28,7 @@ function computeImageDisplay(
   if (!result) return null;
 
   const wrapperRect = containerRef.current?.getBoundingClientRect();
-  const coords = view.coordsAtPos(result.start);
+  const coords = view.coordsAtPos(pos);
   if (!wrapperRect || !coords) return { info: result, buttonPos: { top: 0, left: 0 } };
 
   const scrollTop = containerRef.current?.scrollTop ?? 0;

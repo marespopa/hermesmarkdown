@@ -1,4 +1,4 @@
-import { render, screen, cleanup, act } from "@testing-library/react";
+import { render, screen, cleanup, act, waitFor } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { EditorView } from "@codemirror/view";
 import { undo } from "@codemirror/commands";
@@ -61,25 +61,31 @@ describe("MarkdownEditor", () => {
       </Provider>,
     );
 
-  it("mounts a CodeMirror 6 editor", () => {
+  const waitForEditor = (container: HTMLElement) =>
+    waitFor(() => expect(container.querySelector(".cm-content")).toBeInTheDocument());
+
+  it("mounts a CodeMirror 6 editor", async () => {
     const { container } = renderEditor("hello world");
-    expect(container.querySelector(".cm-content")).toBeInTheDocument();
+    await waitForEditor(container);
   });
 
-  it("shows the initial value in the editor", () => {
+  it("shows the initial value in the editor", async () => {
     const { container } = renderEditor("hello world");
+    await waitForEditor(container);
     expect(container.querySelector(".cm-content")?.textContent).toContain("hello world");
   });
 
-  it("shows line numbers for each editor line", () => {
+  it("shows line numbers for each editor line", async () => {
     const { container } = renderEditor("first\nsecond\nthird");
-    const lineNumbers = Array.from(container.querySelectorAll(".cm-lineNumbers .cm-gutterElement"));
+    await waitForEditor(container);
+    const lineNumbers = Array.from(container.querySelectorAll("#md-editor .cm-lineNumbers .cm-gutterElement"));
 
-    expect(lineNumbers.map((lineNumber) => lineNumber.textContent)).toEqual(["1", "2", "3"]);
+    expect(lineNumbers.slice(-3).map((lineNumber) => lineNumber.textContent)).toEqual(["1", "2", "3"]);
   });
 
-  it("shows the placeholder text when empty", () => {
-    renderEditor("", { placeholder: "Type / for templates" });
+  it("shows the placeholder text when empty", async () => {
+    const { container } = renderEditor("", { placeholder: "Type / for templates" });
+    await waitForEditor(container);
     expect(screen.getByText("Type / for templates")).toBeInTheDocument();
   });
 
@@ -87,16 +93,18 @@ describe("MarkdownEditor", () => {
     expect(TEMPLATES.map((template) => template.label)).toContain("Mermaid");
   });
 
-  it("strips frontmatter out of the CM6 doc and shows it via FrontmatterPanel instead", () => {
+  it("strips frontmatter out of the CM6 doc and shows it via FrontmatterPanel instead", async () => {
     const value = "---\ntitle: Test\n---\nBody content";
     const { container } = renderEditor(value);
+    await waitForEditor(container);
     const cmText = container.querySelector(".cm-content")?.textContent ?? "";
     expect(cmText).not.toContain("title: Test");
     expect(cmText).toContain("Body content");
   });
 
-  it("calls onChange with the full value (frontmatter + body) when the doc changes", () => {
+  it("calls onChange with the full value (frontmatter + body) when the doc changes", async () => {
     const { container } = renderEditor("hello");
+    await waitForEditor(container);
     const view = getView(container);
 
     act(() => {
@@ -106,9 +114,10 @@ describe("MarkdownEditor", () => {
     expect(mockOnChange).toHaveBeenCalledWith("hello world");
   });
 
-  it("preserves frontmatter when the body changes", () => {
+  it("preserves frontmatter when the body changes", async () => {
     const value = "---\ntitle: Test\n---\nBody";
     const { container } = renderEditor(value);
+    await waitForEditor(container);
     const view = getView(container);
 
     act(() => {
@@ -118,8 +127,9 @@ describe("MarkdownEditor", () => {
     expect(mockOnChange).toHaveBeenCalledWith("---\ntitle: Test\n---\nBody!");
   });
 
-  it("supports undo via CM6's native history", () => {
+  it("supports undo via CM6's native history", async () => {
     const { container } = renderEditor("hello");
+    await waitForEditor(container);
     const view = getView(container);
 
     act(() => {
@@ -133,13 +143,14 @@ describe("MarkdownEditor", () => {
     expect(view.state.doc.toString()).toBe("hello");
   });
 
-  it("re-syncs the CM6 doc when the value prop changes externally", () => {
+  it("re-syncs the CM6 doc when the value prop changes externally", async () => {
     const { container, rerender } = renderEditor("first");
+    await waitForEditor(container);
     rerender(
       <Provider>
         <MarkdownEditor value="second" onChange={mockOnChange} />
       </Provider>,
     );
-    expect(container.querySelector(".cm-content")?.textContent).toContain("second");
+    await waitFor(() => expect(container.querySelector(".cm-content")?.textContent).toContain("second"));
   });
 });

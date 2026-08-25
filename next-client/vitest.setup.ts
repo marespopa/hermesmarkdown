@@ -1,6 +1,19 @@
 import "@testing-library/jest-dom";
 import { vi } from "vitest";
 
+// jsdom does not provide Worker, but file-system modules create one at import time.
+class WorkerMock {
+  postMessage = vi.fn();
+  addEventListener = vi.fn();
+  removeEventListener = vi.fn();
+  terminate = vi.fn();
+}
+
+Object.defineProperty(globalThis, "Worker", {
+  value: WorkerMock,
+  configurable: true,
+});
+
 // Mock localStorage
 const localStorageMock = (() => {
   let store: Record<string, string> = {};

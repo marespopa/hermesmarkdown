@@ -152,7 +152,7 @@ export function useCodeMirrorFeatures({ viewRef, containerRef, onWikiLinkClick }
       if (localPos >= tagStart && localPos <= tagEnd) {
         const p = posToXY(view, lineStart + tagStart);
         setTodoMatch({ tag: tdMatch[1].toLowerCase(), start: lineStart + tagStart, end: lineStart + tagEnd });
-        setTodoMenuPos({ top: p.top - 26, left: Math.max(0, p.left - 4) });
+        setTodoMenuPos({ top: p.top - 34, left: Math.max(0, p.left - 4) });
         foundTodo = true;
         break;
       }
