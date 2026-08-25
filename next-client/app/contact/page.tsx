@@ -82,7 +82,7 @@ export default function ContactPage() {
               </h2>
               <p className="text-sm leading-relaxed text-neutral-600 dark:text-neutral-400">
                 HermesMarkdown is open source. If you&apos;ve encountered a
-                technical issue or have a code contribution, the best place is our
+                technical issue or have a code contribution, the best place is our&nbsp;
                 <a
                   href="https://github.com/marespopa/hermesmarkdown"
                   target="_blank"
@@ -91,7 +91,7 @@ export default function ContactPage() {
                 >
                   public repository
                 </a>
-                . For a specific bug, open a
+                . For a specific bug, open a&nbsp;
                 <a
                   href="https://github.com/marespopa/hermesmarkdown/issues"
                   target="_blank"
