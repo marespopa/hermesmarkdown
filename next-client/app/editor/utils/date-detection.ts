@@ -27,6 +27,8 @@ export const findDateAtPos = (text: string, pos: number): DateMatch | null => {
         let dateStr = match[0];
         if (format === "wiki") {
           dateStr = dateStr.slice(2, -2);
+        } else if (regex === REGEX_DATE_DUE) {
+          dateStr = dateStr.slice(5, -1);
         }
 
         let parsedDate;
