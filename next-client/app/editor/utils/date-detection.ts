@@ -4,6 +4,7 @@ import {
   REGEX_DATE_SLASHED,
   REGEX_DATE_DOTTED,
   REGEX_DATE_WIKI,
+  REGEX_DATE_DUE,
 } from "../components/regex";
 
 export const findDateAtPos = (text: string, pos: number): DateMatch | null => {
@@ -55,6 +56,7 @@ export const findDateAtPos = (text: string, pos: number): DateMatch | null => {
 
   return (
     checkRegex(REGEX_DATE_WIKI, "wiki") ||
+    checkRegex(REGEX_DATE_DUE, "iso") ||
     checkRegex(REGEX_DATE_ISO, "iso") ||
     checkRegex(REGEX_DATE_SLASHED, "slashed") ||
     checkRegex(REGEX_DATE_DOTTED, "dotted")

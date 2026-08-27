@@ -33,6 +33,9 @@ export function useCodeMirrorTemplates({ viewRef, onFrontmatterWizard, onCodeBlo
   const [templateDatePickerOpen, setTemplateDatePickerOpen] = useState(false);
   const dateRangeRef = useRef<Range | null>(null);
 
+  const [taskDialogOpen, setTaskDialogOpen] = useState(false);
+  const taskRangeRef = useRef<Range | null>(null);
+
   const replaceRange = useCallback((range: Range, insert: string) => {
     const view = viewRef.current;
     if (!view) return;
@@ -66,9 +69,17 @@ export function useCodeMirrorTemplates({ viewRef, onFrontmatterWizard, onCodeBlo
     const y = date.getFullYear();
     const m = String(date.getMonth() + 1).padStart(2, "0");
     const d = String(date.getDate()).padStart(2, "0");
-    replaceRange(range, `${y}-${m}-${d}`);
+    replaceRange(range, `@due(${y}-${m}-${d})`);
     setTemplateDatePickerOpen(false);
     dateRangeRef.current = null;
+  }, [replaceRange]);
+
+  const insertTask = useCallback((value: string) => {
+    const range = taskRangeRef.current;
+    if (!range) return;
+    replaceRange(range, value);
+    setTaskDialogOpen(false);
+    taskRangeRef.current = null;
   }, [replaceRange]);
 
   const slashMenuCallbacksRef = useRef<SlashMenuCallbacks>({
@@ -83,6 +94,10 @@ export function useCodeMirrorTemplates({ viewRef, onFrontmatterWizard, onCodeBlo
     onOpenDatePicker: (range) => {
       dateRangeRef.current = range;
       setTemplateDatePickerOpen(true);
+    },
+    onOpenTaskDialog: (range) => {
+      taskRangeRef.current = range;
+      setTaskDialogOpen(true);
     },
     onFrontmatterWizard: () => onFrontmatterWizard(),
     onCodeBlockInserted: () => {},
@@ -106,6 +121,9 @@ export function useCodeMirrorTemplates({ viewRef, onFrontmatterWizard, onCodeBlo
     templateDatePickerOpen,
     setTemplateDatePickerOpen,
     insertTemplateDate,
+    taskDialogOpen,
+    setTaskDialogOpen,
+    insertTask,
     slashMenuCallbacksRef,
     wikiLinkTriggerRef,
   };

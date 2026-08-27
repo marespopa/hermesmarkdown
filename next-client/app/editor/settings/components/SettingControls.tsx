@@ -37,24 +37,32 @@ export const SelectControl = ({
   onChange,
   children,
   disabled,
+  size = "md",
+  fullWidth = true,
 }: {
   value: string | number;
   onChange: (v: string) => void;
   children: React.ReactNode;
   disabled?: boolean;
+  size?: "sm" | "md";
+  fullWidth?: boolean;
 }) => (
-  <div className="relative w-full">
+  <div className={`relative ${fullWidth ? "w-full" : "inline-block"}`}>
     <select
       value={value}
       onChange={(e) => onChange(e.target.value)}
       disabled={disabled}
-      className="w-full appearance-none bg-paper-softgray dark:bg-paper-dark-surface text-ui-footnote font-semibold rounded-xl px-3 pr-7 py-1.5 outline-none border border-transparent focus:border-sage/40 cursor-pointer transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+      className={`appearance-none bg-paper-softgray dark:bg-paper-dark-surface text-ink-light dark:text-ink-dark font-semibold outline-none border border-transparent focus:border-sage/40 cursor-pointer transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
+        fullWidth ? "w-full" : ""
+      } ${
+        size === "sm" ? "text-ui-footnote rounded-md px-2 pr-6 py-1" : "text-ui-footnote rounded-xl px-3 pr-7 py-1.5"
+      }`}
     >
       {children}
     </select>
     <HiChevronDown
-      size={13}
-      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-stone pointer-events-none"
+      size={size === "sm" ? 11 : 13}
+      className="absolute right-2 top-1/2 -translate-y-1/2 text-stone pointer-events-none"
     />
   </div>
 );

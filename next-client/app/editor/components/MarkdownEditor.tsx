@@ -15,6 +15,7 @@ import Input from "../../components/Input";
 import DialogModal from "../../components/DialogModal/DialogModal";
 import DatePickerCallout from "./DatePickerCallout";
 import WikiLinkDialog from "./WikiLinkDialog";
+import TaskDialog from "./TaskDialog";
 import { LinkPill } from "./LinkPill";
 import { WorkflowPill } from "./WorkflowPill";
 import { TableCallout } from "./TableCallout";
@@ -168,6 +169,7 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
     linkDialogOpen, setLinkDialogOpen, insertLink,
     wikiLinkDialogOpen, setWikiLinkDialogOpen, insertWikiLink,
     templateDatePickerOpen, setTemplateDatePickerOpen, insertTemplateDate,
+    taskDialogOpen, setTaskDialogOpen, insertTask,
     slashMenuCallbacksRef, wikiLinkTriggerRef,
   } = useCodeMirrorTemplates({
     viewRef,
@@ -490,6 +492,12 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
             initialDate={new Date()}
             onSelectDate={insertTemplateDate}
             onClose={() => setTemplateDatePickerOpen(false)}
+          />
+
+          <TaskDialog
+            isOpen={taskDialogOpen}
+            onClose={() => setTaskDialogOpen(false)}
+            onConfirm={insertTask}
           />
 
           {linkDialogOpen && (

@@ -1,3 +1,5 @@
+export type TaskPriority = "high" | "med" | "low";
+
 export interface TaskItem {
   id: string; // `${path}#${line}`
   path: string;
@@ -5,20 +7,26 @@ export interface TaskItem {
   checked: boolean;
   inProgress: boolean; // unchecked task tagged #prog
   onHold: boolean; // unchecked task tagged #hold
-  text: string; // display text, checkbox marker + #todo/#prog/#hold/#done tags stripped
+  dueDate: string | null; // from @due(YYYY-MM-DD), verbatim string
+  priority: TaskPriority | null; // from @priority(high|med|low)
+  tags: string[]; // non-status #tags, lowercase, de-duplicated, in appearance order
+  text: string; // display text, checkbox marker + tags + @due()/@priority() stripped
   raw: string; // full original line, used for write-back
   lineHash: string; // fingerprint of `raw`, staleness guard for write-back
 }
 
-export const REGEX_TASK_LINE = /^(\s*[-*]\s*\[)([ xX])(\]\s*)(.*)$/;
+export const REGEX_TASK_LINE = /^(\s*[-*]\s*\[)([ xX/])(\]\s*)(.*)$/;
 export const REGEX_TASK_PROG = /#prog\b/i;
 export const REGEX_TASK_HOLD = /#hold\b/i;
-// #todo/#done are purely cosmetic status tags people type by habit — the
-// checkbox + #prog/#hold already drive grouping, so strip all four from the
-// displayed text rather than only #prog (which left #todo/#done visible).
-// Also swallows an enclosing pair of parens (e.g. "(#todo)") so stripping
-// doesn't leave a bare "()" behind in the displayed text.
-const REGEX_TASK_STATUS_TAGS = /\(\s*#(?:todo|prog|hold|done)\s*\)|#(?:todo|prog|hold|done)\b/gi;
+export const REGEX_TASK_DUE = /@due\(\s*([^)]+?)\s*\)/i;
+export const REGEX_TASK_PRIORITY = /@priority\(\s*(high|med|low)\s*\)/i;
+const STATUS_TAG_NAMES = new Set(["todo", "prog", "hold", "done"]);
+const REGEX_TASK_TAG = /#([a-z][\w-]*)/gi;
+// Strips @due()/@priority() metadata plus every #tag (status and custom
+// alike — custom tags are surfaced separately as pills, not left inline) from
+// the displayed text. Also swallows an enclosing pair of parens (e.g.
+// "(#todo)") so stripping doesn't leave a bare "()" behind.
+const REGEX_TASK_CLEANUP = /@(?:due|priority)\([^)]*\)|\(\s*#(?:todo|prog|hold|done)\s*\)|#[\w-]+/gi;
 
 export function simpleHash(s: string): string {
   let h = 0;
@@ -33,9 +41,22 @@ export function extractTasks(path: string, content: string): TaskItem[] {
     const m = raw.match(REGEX_TASK_LINE);
     if (!m) return;
     const checked = m[2].toLowerCase() === "x";
-    const inProgress = !checked && REGEX_TASK_PROG.test(raw);
+    // "/" is the widely-used Obsidian-style in-progress marker, in addition
+    // to the existing #prog tag convention.
+    const inProgress = !checked && (m[2] === "/" || REGEX_TASK_PROG.test(raw));
     const onHold = !checked && !inProgress && REGEX_TASK_HOLD.test(raw);
-    const text = m[4].replace(REGEX_TASK_STATUS_TAGS, "").replace(/\s+/g, " ").trim();
+    const dueMatch = m[4].match(REGEX_TASK_DUE);
+    const dueDate = dueMatch ? dueMatch[1].trim() : null;
+    const priorityMatch = m[4].match(REGEX_TASK_PRIORITY);
+    const priority = priorityMatch ? (priorityMatch[1].toLowerCase() as TaskPriority) : null;
+    const tags = Array.from(
+      new Set(
+        Array.from(m[4].matchAll(REGEX_TASK_TAG))
+          .map((tm) => tm[1].toLowerCase())
+          .filter((tag) => !STATUS_TAG_NAMES.has(tag)),
+      ),
+    );
+    const text = m[4].replace(REGEX_TASK_CLEANUP, "").replace(/\s+/g, " ").trim();
     tasks.push({
       id: `${path}#${i}`,
       path,
@@ -43,6 +64,9 @@ export function extractTasks(path: string, content: string): TaskItem[] {
       checked,
       inProgress,
       onHold,
+      dueDate,
+      priority,
+      tags,
       text,
       raw,
       lineHash: simpleHash(raw),

@@ -229,9 +229,11 @@ export function useCodeMirrorFeatures({ viewRef, containerRef, onWikiLinkClick }
     const y = newDate.getFullYear();
     const m = String(newDate.getMonth() + 1).padStart(2, "0");
     const d = String(newDate.getDate()).padStart(2, "0");
+    const iso = `${y}-${m}-${d}`;
     let formatted = "";
-    if (dateMatch.format === "iso") formatted = `${y}-${m}-${d}`;
-    else if (dateMatch.format === "wiki") formatted = `[[${y}-${m}-${d}]]`;
+    if (dateMatch.format === "iso") {
+      formatted = dateMatch.rawString.startsWith("@due(") ? `@due(${iso})` : iso;
+    } else if (dateMatch.format === "wiki") formatted = `[[${iso}]]`;
     else if (dateMatch.format === "slashed") formatted = `${m}/${d}/${y}`;
     else if (dateMatch.format === "dotted") formatted = `${d}.${m}.${y}`;
     dispatchReplace(dateMatch.start, dateMatch.end, formatted);

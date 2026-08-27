@@ -11,7 +11,7 @@ interface Props extends React.InputHTMLAttributes<HTMLInputElement> {
   placeholder?: string;
   helperText?: string;
   handleChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  type?: "number" | "text" | "password";
+  type?: "number" | "text" | "password" | "date";
   validation?: {
     min: number;
     max: number;
@@ -77,7 +77,7 @@ const Input = forwardRef<HTMLInputElement, Props>(
     };
 
     const baseStyles =
-      "w-full px-4 py-2.5 text-ui-subhead font-sans transition-all duration-150 ease-in-out border rounded-xl outline-none focus-visible:outline-none";
+      "w-full px-4 py-2.5 text-ui-subhead font-sans transition-all duration-150 ease-in-out border rounded-xl outline-none focus-visible:outline-none [color-scheme:light] dark:[color-scheme:dark]";
 
     const variantStyles =
       "bg-paper-softgray border-beige text-ink-light placeholder:text-stone " +

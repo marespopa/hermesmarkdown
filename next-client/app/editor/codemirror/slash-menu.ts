@@ -9,6 +9,7 @@ import {
   DATE_EDITOR_SENTINEL,
   TABLE_DIALOG_SENTINEL,
   FRONTMATTER_WIZARD_SENTINEL,
+  TASK_EDITOR_SENTINEL,
   CURSOR_SENTINEL,
   CODE_BLOCK_TEMPLATE_CONTENT,
 } from "../components/constants";
@@ -22,6 +23,7 @@ export interface SlashMenuCallbacks {
   onOpenLinkDialog: (range: { from: number; to: number }) => void;
   onOpenWikiLinkDialog: (range: { from: number; to: number }) => void;
   onOpenDatePicker: (range: { from: number; to: number }) => void;
+  onOpenTaskDialog: (range: { from: number; to: number }) => void;
   onFrontmatterWizard: () => void;
   onCodeBlockInserted: (pos: number) => void;
 }
@@ -86,6 +88,10 @@ function applyTemplate(
   if (content === FRONTMATTER_WIZARD_SENTINEL) {
     view.dispatch({ changes: { from, to, insert: "" }, userEvent: "input.replace.template" });
     callbacks.onFrontmatterWizard();
+    return;
+  }
+  if (content === TASK_EDITOR_SENTINEL) {
+    callbacks.onOpenTaskDialog({ from, to });
     return;
   }
   if (content === TABLE_DIALOG_SENTINEL) {
