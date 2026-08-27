@@ -117,6 +117,7 @@ export const FRONTMATTER_WIZARD_SENTINEL = "__OPEN_FRONTMATTER_WIZARD__";
 export const AI_ACTION_SENTINEL_PREFIX = "__AI_ACTION__:";
 export const aiActionSentinel = (id: string) => `${AI_ACTION_SENTINEL_PREFIX}${id}`;
 export const CURSOR_SENTINEL = "\0";
+export const CODE_BLOCK_TEMPLATE_CONTENT = `\n\`\`\`${CURSOR_SENTINEL}\n\n\`\`\`\n`;
 
 export const PILL_CONTAINER_CLASSES =
   "absolute z-40 flex items-center gap-1 p-1 bg-paper-light dark:bg-paper-dark border border-edge rounded-md shadow-sm pointer-events-auto select-none transition-all duration-200 ease-in-out";
@@ -136,6 +137,12 @@ export const TEMPLATES: Template[] = [
   { label: "WikiLink", icon: "[[", description: "Link to another note", content: WIKILINK_EDITOR_SENTINEL },
   { label: "Date", icon: "📅", description: "Pick a date from the calendar", content: DATE_EDITOR_SENTINEL },
   { label: "Table", icon: "⊞", description: "Insert a Markdown table", content: TABLE_DIALOG_SENTINEL },
+  {
+    label: "Code",
+    icon: "</>",
+    description: "Insert a code block",
+    content: CODE_BLOCK_TEMPLATE_CONTENT,
+  },
   {
     label: "Mermaid",
     icon: "⎇",

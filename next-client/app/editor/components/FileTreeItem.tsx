@@ -15,6 +15,7 @@ interface FileTreeItemProps {
   level: number;
   activeFilePath: string | null;
   openFile: (handle: FileSystemFileHandle, path?: string) => void;
+  openFileInPane?: (handle: FileSystemFileHandle, path?: string) => void;
   renameFile: (handle: FileSystemHandle) => void;
   deleteFile: (handle: FileSystemHandle, path?: string) => void;
   onClose?: () => void;
@@ -27,6 +28,7 @@ export default function FileTreeItem({
   level,
   activeFilePath,
   openFile,
+  openFileInPane,
   renameFile,
   deleteFile,
   onClose,
@@ -94,6 +96,18 @@ export default function FileTreeItem({
             className="fixed z-50 bg-paper-light dark:bg-paper-dark backdrop-blur-xl border border-edge-subtle rounded-2xl py-1.5 min-w-[160px] animate-in fade-in zoom-in-95 duration-200"
             style={{ top: actionMenuOpen.y, left: actionMenuOpen.x - 160 }}
           >
+            <Button
+              variant="menu-item"
+              onClick={(e) => {
+                e.stopPropagation();
+                openFileInPane?.(fileHandle, path);
+                setActionMenuOpen(null);
+              }}
+              className="w-full flex items-center gap-3 px-4 py-2.5 text-ui-footnote font-medium hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
+            >
+              <HiOutlineDocumentText size={16} className="opacity-80" />
+              Open in pane
+            </Button>
             <Button
               variant="menu-item"
               onClick={(e) => {

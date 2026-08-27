@@ -26,13 +26,16 @@ export default function WorkspaceSplitter({ node }: WorkspaceSplitterProps) {
             </div>
           </Panel>
           {index < node.children.length - 1 && (
-            <Separator className={`
-              ${node.direction === "horizontal" ? "w-1" : "h-1"} 
-              bg-neutral-100 dark:bg-neutral-800 
-              hover:bg-sage/50 active:bg-sage
-              transition-colors duration-200
-              z-10
-            `} />
+            <Separator
+              aria-label={node.direction === "horizontal" ? "Resize panes horizontally" : "Resize panes vertically"}
+              className={`
+                ${node.direction === "horizontal" ? "w-1.5 cursor-col-resize" : "h-1.5 cursor-row-resize"}
+                bg-edge-subtle dark:bg-clay/70
+                hover:bg-sage/60 active:bg-sage
+                transition-colors duration-200
+                z-10
+              `}
+            />
           )}
         </React.Fragment>
       ))}

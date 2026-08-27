@@ -73,6 +73,10 @@ export const atom_editorWidth = atomWithStorage<"standard" | "narrow">(
   "editorWidth",
   "standard",
 );
+export const atom_editorContentWidth = atomWithStorage<number | null>(
+  "editorContentWidth",
+  null,
+);
 export const atom_hasCompletedOnboarding = atomWithStorage<boolean>(
   "hasCompletedOnboarding",
   false,

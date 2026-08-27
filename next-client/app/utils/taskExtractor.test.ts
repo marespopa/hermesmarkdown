@@ -43,6 +43,12 @@ describe("extractTasks", () => {
     expect(tasks[1].text).toBe("Ship report");
   });
 
+  it("strips a tag wrapped in parens without leaving an empty () behind", () => {
+    const content = "- [ ] Uncompleted task (#todo)\n";
+    const [task] = extractTasks("note.md", content);
+    expect(task.text).toBe("Uncompleted task");
+  });
+
   it("finds tasks regardless of heading/indentation", () => {
     const content = "# Heading\n\nSome text\n\n## Sub\n  - [ ] Nested task\n";
     const tasks = extractTasks("note.md", content);

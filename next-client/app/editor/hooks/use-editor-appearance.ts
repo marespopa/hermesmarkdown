@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo, useRef, RefObject } from "react";
 import { useAtomValue } from "jotai";
 import {
   atom_editorWidth,
+  atom_editorContentWidth,
   atom_lineHeight,
   atom_renderedFontSize,
   MONO_FONT_STACK,
@@ -21,6 +22,7 @@ export function useEditorAppearance(isSplit = false) {
   const fontFamily = MONO_FONT_STACK;
   const fontSize = useAtomValue(atom_renderedFontSize);
   const editorWidth = useAtomValue(atom_editorWidth);
+  const editorContentWidth = useAtomValue(atom_editorContentWidth);
   const lineHeight = useAtomValue(atom_lineHeight);
 
   const [windowWidth, setWindowWidth] = useState(
@@ -54,10 +56,13 @@ export function useEditorAppearance(isSplit = false) {
     if (editorWidth === "narrow") {
       return paneWidth >= 768 ? 600 : undefined;
     }
+    if (editorContentWidth !== null && paneWidth >= 768) {
+      return editorContentWidth;
+    }
     if (paneWidth >= 1280) return 860;
     if (paneWidth >= 768) return 760;
     return undefined;
-  }, [editorWidth, paneWidth]);
+  }, [editorContentWidth, editorWidth, paneWidth]);
 
   // A split pane can be narrower than the md breakpoint while the window
   // itself is still wide, so it keeps the sm padding at every width instead

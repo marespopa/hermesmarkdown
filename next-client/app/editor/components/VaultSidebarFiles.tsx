@@ -25,6 +25,7 @@ interface VaultSidebarFilesProps {
   processedFiles: any[];
   activeFilePath: string | null;
   openFile: (handle: FileSystemFileHandle, path?: string) => void;
+  openFileInPane?: (handle: FileSystemFileHandle, path?: string) => void;
   renameFile: (handle: FileSystemHandle) => void;
   deleteFile: (handle: FileSystemHandle, path?: string) => void;
   duplicateFile?: (handle: FileSystemHandle) => void;
@@ -155,6 +156,7 @@ interface FileRowProps {
   actionMenuOpen: { x: number; y: number; path: string } | null;
   setActionMenuOpen: (v: { x: number; y: number; path: string } | null) => void;
   openFile: (handle: FileSystemFileHandle, path?: string) => void;
+  openFileInPane?: (handle: FileSystemFileHandle, path?: string) => void;
   renameFile: (handle: FileSystemHandle) => void;
   deleteFile: (handle: FileSystemHandle, path?: string) => void;
   duplicateFile?: (handle: FileSystemHandle) => void;
@@ -174,6 +176,7 @@ function FileRow({
   actionMenuOpen,
   setActionMenuOpen,
   openFile,
+  openFileInPane,
   renameFile,
   deleteFile,
   duplicateFile,
@@ -260,6 +263,18 @@ function FileRow({
             className="fixed z-50 bg-paper-light dark:bg-paper-dark backdrop-blur-xl border border-edge-subtle rounded-xl py-1 min-w-[120px] animate-in fade-in zoom-in-95 slide-in-from-top-2 duration-200 ease-out"
             style={{ top: actionMenuOpen.y, left: actionMenuOpen.x - 120 }}
           >
+            <Button
+              variant="menu-item"
+              onClick={(e) => {
+                e.stopPropagation();
+                openFileInPane?.(entry.handle as FileSystemFileHandle, getEntryPath(entry));
+                setActionMenuOpen(null);
+              }}
+              className="w-full flex items-center gap-3 px-4 py-2.5 text-ui-footnote font-medium hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
+            >
+              <HiOutlineFolder size={14} className="opacity-80" />
+              Open in pane
+            </Button>
             <Button
               variant="menu-item"
               onClick={(e) => {
@@ -574,6 +589,7 @@ export default function VaultSidebarFiles({
   processedFiles,
   activeFilePath,
   openFile,
+  openFileInPane,
   renameFile,
   deleteFile,
   duplicateFile,
@@ -696,6 +712,7 @@ export default function VaultSidebarFiles({
       actionMenuOpen,
       setActionMenuOpen,
       openFile,
+      openFileInPane,
       renameFile,
       deleteFile,
       duplicateFile,

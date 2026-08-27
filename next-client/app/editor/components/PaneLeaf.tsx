@@ -141,6 +141,9 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
   }, []);
   const hideCopyMarkdown = tabBarRowWidth < 440;
   const hideSplitRight = tabBarRowWidth < 360;
+  const openFileInPane = (filePath = leaf.activeFilePath) => {
+    splitPane({ id: leaf.id, direction: "horizontal", filePath });
+  };
   // Defaults per the Settings page's "Tabs Bar" toggle, itself defaulted to
   // visible on desktop where the horizontal space is there to spare; mobile
   // stays collapsed to save vertical space, discoverable via the hover
@@ -409,11 +412,11 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
               </>
             )}
             {!hideSplitRight && (
-              <Tooltip label="Split Right" position="bottom-end">
+              <Tooltip label="Open in pane" position="bottom-end">
                 <Button
                   variant="icon"
-                  onClick={() => splitPane({ id: leaf.id, direction: "horizontal" })}
-                  aria-label="Split Right"
+                  onClick={() => openFileInPane()}
+                  aria-label="Open in pane"
                   className="w-9 h-9 flex items-center justify-center text-ink-muted hover:text-ink-light dark:hover:text-ink-dark transition-all rounded-xl"
                 >
                   <VscSplitHorizontal size={16} />
@@ -521,12 +524,18 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
           x={tabMenu.x}
           y={tabMenu.y}
           items={(() => {
-            const collapsedActions: TabContextMenuItem[] = [];
-            if (tabMenu.includeActions && hideCopyMarkdown) collapsedActions.push({ label: "Copy Markdown", onClick: handleCopy });
-            if (tabMenu.includeActions && hideSplitRight) collapsedActions.push({ label: "Split Right", onClick: () => splitPane({ id: leaf.id, direction: "horizontal" }) });
+            const menuActions: TabContextMenuItem[] = [];
+            if (tabMenu.includeActions && hideCopyMarkdown) {
+              menuActions.push({ label: "Copy Markdown", onClick: handleCopy, icon: <HiOutlineClipboardCopy size={15} /> });
+            }
+            menuActions.push({
+              label: "Open in pane",
+              onClick: () => openFileInPane(tabMenu.path),
+              icon: <VscSplitHorizontal size={15} />,
+            });
             const closeItems = buildTabMenuItems(tabMenu.path);
-            if (collapsedActions.length > 0) closeItems[0] = { ...closeItems[0], divider: true };
-            return [...collapsedActions, ...closeItems];
+            if (menuActions.length > 0) closeItems[0] = { ...closeItems[0], divider: true };
+            return [...menuActions, ...closeItems];
           })()}
           onClose={() => setTabMenu(null)}
         />

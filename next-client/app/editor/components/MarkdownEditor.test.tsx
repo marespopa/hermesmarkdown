@@ -3,7 +3,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { EditorView } from "@codemirror/view";
 import { undo } from "@codemirror/commands";
 import MarkdownEditor from "./MarkdownEditor";
-import { TEMPLATES } from "./constants";
+import { CODE_BLOCK_TEMPLATE_CONTENT, CURSOR_SENTINEL, TEMPLATES } from "./constants";
 import { Provider } from "jotai";
 import "@testing-library/jest-dom";
 
@@ -91,6 +91,13 @@ describe("MarkdownEditor", () => {
 
   it("includes a Mermaid template in the slash menu list", () => {
     expect(TEMPLATES.map((template) => template.label)).toContain("Mermaid");
+  });
+
+  it("defines the Code template as an empty fenced block with a language cursor", () => {
+    const codeTemplate = TEMPLATES.find((template) => template.label === "Code");
+    expect(codeTemplate?.content).toBe(CODE_BLOCK_TEMPLATE_CONTENT);
+    expect(codeTemplate?.content).toContain(`\`\`\`${CURSOR_SENTINEL}`);
+    expect(codeTemplate?.content).toContain("\n\n\`\`\`");
   });
 
   it("strips frontmatter out of the CM6 doc and shows it via FrontmatterPanel instead", async () => {

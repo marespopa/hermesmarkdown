@@ -164,9 +164,9 @@ export default function EditorCommands({
     activeLeaf
       ? {
           id: "split-pane-right",
-          label: "Split Right",
-          keywords: "split pane layout workspace",
-          action: () => splitPane({ id: activeLeaf.id, direction: "horizontal" }),
+          label: "Open in pane",
+          keywords: "open split pane layout workspace",
+          action: () => splitPane({ id: activeLeaf.id, direction: "horizontal", filePath: activeFilePath }),
         }
       : null,
   );

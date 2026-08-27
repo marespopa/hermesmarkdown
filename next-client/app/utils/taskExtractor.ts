@@ -16,7 +16,9 @@ export const REGEX_TASK_HOLD = /#hold\b/i;
 // #todo/#done are purely cosmetic status tags people type by habit — the
 // checkbox + #prog/#hold already drive grouping, so strip all four from the
 // displayed text rather than only #prog (which left #todo/#done visible).
-const REGEX_TASK_STATUS_TAGS = /#(?:todo|prog|hold|done)\b/gi;
+// Also swallows an enclosing pair of parens (e.g. "(#todo)") so stripping
+// doesn't leave a bare "()" behind in the displayed text.
+const REGEX_TASK_STATUS_TAGS = /\(\s*#(?:todo|prog|hold|done)\s*\)|#(?:todo|prog|hold|done)\b/gi;
 
 export function simpleHash(s: string): string {
   let h = 0;
