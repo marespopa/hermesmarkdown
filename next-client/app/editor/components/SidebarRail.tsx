@@ -18,10 +18,13 @@ import {
   HiOutlineLogout,
   HiOutlineDatabase,
   HiOutlineQuestionMarkCircle,
+  HiOutlineViewGrid,
 } from "react-icons/hi";
 import Button from "@/app/components/Button";
 import Tooltip from "@/app/components/Tooltip";
+import { useCommandPalette } from "@/app/components/CommandPalette/CommandPaletteContext";
 import { useFileSystem } from "@/app/hooks/use-file-system";
+import { formatShortcut } from "@/app/utils/platform";
 import { atom_theme, RailPanel, type Theme } from "@/app/atoms/ui-atoms";
 import { version } from "@/package.json";
 
@@ -53,6 +56,7 @@ interface SidebarRailProps {
 
 export default function SidebarRail({ panel, onSelectPanel, onSettings, onRefreshVault, onOpenAIChat, onOpenDocumentation, onOpenKeyboardShortcuts }: SidebarRailProps) {
   const { vaultHandle, closeVault, openVault, isVaultSupported } = useFileSystem();
+  const { open: openCommandPalette } = useCommandPalette();
   const [rawTheme, setTheme] = useAtom(atom_theme);
   const themeCycleIndex = THEME_CYCLE.findIndex((t) => t.value === rawTheme);
   const { label: themeCycleLabel, Icon: ThemeCycleIcon } = THEME_CYCLE[themeCycleIndex];
@@ -79,6 +83,22 @@ export default function SidebarRail({ panel, onSelectPanel, onSettings, onRefres
             </Tooltip>
           </div>
         ))}
+      </div>
+
+      <div className="flex flex-col items-center gap-1 w-full">
+        <div className="w-full flex justify-center mt-2 pt-2 border-t border-edge-subtle">
+          <Tooltip label="Command palette" shortcut={formatShortcut("P", { shift: true })} position="right">
+            <Button
+              variant="icon"
+              onClick={openCommandPalette}
+              className="w-10 h-10 opacity-80 hover:opacity-100 !rounded-none"
+              aria-label="Command palette"
+            >
+              <HiOutlineViewGrid size={18} />
+            </Button>
+          </Tooltip>
+        </div>
+
         {onOpenAIChat && (
           <div className="w-full flex justify-center">
             <Tooltip label="AI Chat" position="right">
@@ -93,11 +113,9 @@ export default function SidebarRail({ panel, onSelectPanel, onSettings, onRefres
             </Tooltip>
           </div>
         )}
-      </div>
 
-      <div className="flex flex-col items-center gap-1 w-full">
         {onOpenDocumentation && (
-          <div className="w-full flex justify-center">
+          <div className="w-full flex justify-center mt-2 pt-2 border-t border-edge-subtle">
             <Tooltip label="Documentation" position="right">
               <Button
                 variant="icon"
@@ -126,23 +144,8 @@ export default function SidebarRail({ panel, onSelectPanel, onSettings, onRefres
           </div>
         )}
 
-        {onSettings && (
-          <div className="w-full flex justify-center">
-            <Tooltip label="Settings" position="right">
-              <Button
-                variant="icon"
-                onClick={onSettings}
-                className="w-10 h-10 opacity-80 hover:opacity-100 !rounded-none"
-                aria-label="Settings"
-              >
-                <HiOutlineCog size={18} />
-              </Button>
-            </Tooltip>
-          </div>
-        )}
-
         {vaultHandle && onRefreshVault && (
-          <div className="w-full flex justify-center">
+          <div className="w-full flex justify-center mt-2 pt-2 border-t border-edge-subtle">
             <Tooltip label="Refresh vault" position="right">
               <Button
                 variant="icon"
@@ -151,6 +154,21 @@ export default function SidebarRail({ panel, onSelectPanel, onSettings, onRefres
                 aria-label="Refresh vault"
               >
                 <HiOutlineRefresh size={18} />
+              </Button>
+            </Tooltip>
+          </div>
+        )}
+
+        {onSettings && (
+          <div className="w-full flex justify-center mt-2 pt-2 border-t border-edge-subtle">
+            <Tooltip label="Settings" position="right">
+              <Button
+                variant="icon"
+                onClick={onSettings}
+                className="w-10 h-10 opacity-80 hover:opacity-100 !rounded-none"
+                aria-label="Settings"
+              >
+                <HiOutlineCog size={18} />
               </Button>
             </Tooltip>
           </div>
@@ -175,7 +193,7 @@ export default function SidebarRail({ panel, onSelectPanel, onSettings, onRefres
         </div>
 
         {vaultHandle ? (
-          <div className="w-full flex justify-center">
+          <div className={`w-full flex justify-center ${onRefreshVault ? "" : "mt-2 pt-2 border-t border-edge-subtle"}`}>
             <Tooltip label="Close Vault" position="right">
               <Button
                 variant="icon"
@@ -188,7 +206,7 @@ export default function SidebarRail({ panel, onSelectPanel, onSettings, onRefres
             </Tooltip>
           </div>
         ) : (
-          <div className="w-full flex justify-center">
+          <div className="w-full flex justify-center mt-2 pt-2 border-t border-edge-subtle">
             <Tooltip label={isVaultSupported ? "Open Vault" : "Vault not supported"} position="right">
               <Button
                 variant="icon"

@@ -29,6 +29,17 @@ describe("computeMarkdownDecorations", () => {
     expect(decos.some((d) => d.from === labelFrom && d.class.includes("font-bold"))).toBe(true);
   });
 
+  it("scales each ATX heading level relative to the editor font", () => {
+    const doc = "# One\n## Two\n### Three\n#### Four\n##### Five\n###### Six";
+    const decos = decorationsFor(doc);
+    const expectedSizes = ["1.5em", "1.35em", "1.2em", "1.1em", "1em", "0.95em"];
+
+    for (const [index, size] of expectedSizes.entries()) {
+      const lineStart = doc.split("\n").slice(0, index).join("\n").length + (index > 0 ? 1 : 0);
+      expect(decos.some((d) => d.from === lineStart && d.class.includes(`!text-[${size}]`))).toBe(true);
+    }
+  });
+
   it("marks bold text with font-bold, keeping markers faded", () => {
     const doc = "a **bold** word";
     const decos = decorationsFor(doc);

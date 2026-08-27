@@ -22,9 +22,6 @@ import {
   atom_isAiConfigured,
   atom_newVaultFlowOpen,
   atom_repurposeWizardOpen,
-  atom_voiceInputRequest,
-  atom_isVoiceInputListening,
-  atom_isVoiceInputSupported,
   atom_showHiddenFiles,
   atom_lineNumbers,
   atom_activeEditorView,
@@ -84,9 +81,6 @@ export default function EditorCommands({
   const activePaneId = useAtomValue(atom_activePaneId);
   const [, closeTab] = useAtom(atom_closeTab);
   const [, setNewVaultFlowOpen] = useAtom(atom_newVaultFlowOpen);
-  const [, setVoiceInputRequest] = useAtom(atom_voiceInputRequest);
-  const isVoiceListening = useAtomValue(atom_isVoiceInputListening);
-  const isVoiceSupported = useAtomValue(atom_isVoiceInputSupported);
   const [, splitPane] = useAtom(atom_splitPane);
   const [, closePane] = useAtom(atom_closePane);
   const [, setPaneType] = useAtom(atom_setPaneType);
@@ -269,18 +263,6 @@ export default function EditorCommands({
       router.push("/editor");
     },
   });
-
-  useRegisterCommand(
-    isVoiceSupported
-      ? {
-          id: "toggle-voice-input",
-          label: isVoiceListening ? "Stop voice input" : "Start voice input",
-          shortcut: formatShortcut("V", { shift: true }),
-          keywords: "voice mic dictate speak",
-          action: () => setVoiceInputRequest((v) => v + 1),
-        }
-      : null,
-  );
 
   useRegisterCommand({
     id: "go-home",

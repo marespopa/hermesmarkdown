@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useAtomValue, useSetAtom } from "jotai";
 import {
-  atom_voiceInputRequest,
   atom_isVoiceInputListening,
   atom_isVoiceInputSupported,
   atom_isVoicePreviewVisible,
@@ -141,18 +140,6 @@ export function useGlobalVoiceInput() {
     clearVoicePreview();
   }, [activeEditorView, clearVoicePreview]);
   commitVoicePreviewRef.current = commitVoicePreview;
-
-  // The mic button lives in the global AI-chat FAB group / icon rail
-  // (page.tsx). Its clicks are broadcast as a bumped counter, the same
-  // request/mirror pattern atom_aiBuilderRequest uses for the AI chat dialog.
-  const voiceInputRequest = useAtomValue(atom_voiceInputRequest);
-  const prevVoiceInputRequestRef = useRef(voiceInputRequest);
-  useEffect(() => {
-    if (voiceInputRequest !== prevVoiceInputRequestRef.current) {
-      prevVoiceInputRequestRef.current = voiceInputRequest;
-      toggleVoiceListening();
-    }
-  }, [voiceInputRequest, toggleVoiceListening]);
 
   const setIsVoiceInputListening = useSetAtom(atom_isVoiceInputListening);
   const setIsVoiceInputSupported = useSetAtom(atom_isVoiceInputSupported);

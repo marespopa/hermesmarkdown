@@ -1,5 +1,5 @@
 import { EditorView } from "@codemirror/view";
-import { HighlightStyle } from "@codemirror/language";
+import { HighlightStyle, syntaxHighlighting } from "@codemirror/language";
 import { tags as t } from "@lezer/highlight";
 
 // Structural theme only — no color literals. Colors come from the
@@ -135,18 +135,20 @@ export const markdownHighlightStyle = HighlightStyle.define([
   { tag: t.strikethrough, textDecoration: "line-through", color: "var(--fg-muted)" },
   { tag: t.link, color: "var(--clay)", textDecoration: "underline" },
   { tag: t.url, color: "var(--clay)" },
-  { tag: t.monospace, fontFamily: "var(--font-mono, monospace)", color: "var(--moss)" },
+  { tag: t.monospace, fontFamily: "var(--font-mono, monospace)" },
   { tag: t.quote, color: "var(--fg-muted)", fontStyle: "italic" },
   { tag: t.list, color: "var(--fg)" },
   { tag: t.meta, color: "var(--fg-faint)" },
   { tag: t.processingInstruction, color: "var(--fg-faint)" },
+  { tag: t.comment, color: "var(--fg-faint)", fontStyle: "italic" },
+  { tag: [t.keyword, t.definitionKeyword, t.controlKeyword], color: "var(--clay)" },
+  { tag: [t.typeName, t.className], color: "var(--moss)" },
+  { tag: [t.string, t.special(t.string)], color: "var(--sage)" },
+  { tag: [t.number, t.bool, t.atom], color: "var(--clay)" },
+  { tag: [t.variableName, t.propertyName], color: "var(--fg)" },
+  { tag: t.operator, color: "var(--fg-muted)" },
 ]);
 
-// The custom markdown-highlight ViewPlugin (highlight.ts) is a direct port
-// of the app's existing regex tokenizer and owns all visual coloring;
-// this lezer-based HighlightStyle is intentionally unused for now to avoid
-// double-applying/conflicting styles. Kept in case a lezer-tree-based pass
-// (better perf, real nesting awareness) replaces the regex port later.
 export function editorTheme() {
-  return [baseTheme, slashMenuTheme];
+  return [baseTheme, slashMenuTheme, syntaxHighlighting(markdownHighlightStyle)];
 }

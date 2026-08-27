@@ -8,6 +8,7 @@ import {
   REGEX_URL_PASTE,
 } from "../components/regex";
 import { detectDelimitedTable, delimitedTextToMarkdownTable } from "../utils/table-manipulation";
+import { indentSubtree, outdentSubtree, toggleTaskStatus } from "./lineMutations";
 
 function wrapSelection(marker: string, userEvent: string) {
   return (view: EditorView): boolean => {
@@ -30,6 +31,18 @@ export const toggleBold = wrapSelection("**", "input.format.bold");
 export const toggleItalic = wrapSelection("_", "input.format.italic");
 export const toggleStrikethrough = wrapSelection("~~", "input.format.strikethrough");
 export const toggleInlineCode = wrapSelection("`", "input.format.code");
+
+export function indentCurrentSubtree(view: EditorView): boolean {
+  return indentSubtree(view, view.state.doc.lineAt(view.state.selection.main.head).number);
+}
+
+export function outdentCurrentSubtree(view: EditorView): boolean {
+  return outdentSubtree(view, view.state.doc.lineAt(view.state.selection.main.head).number);
+}
+
+export function cycleTaskStatusOnCurrentLine(view: EditorView): boolean {
+  return toggleTaskStatus(view, view.state.doc.lineAt(view.state.selection.main.head).number);
+}
 
 // Toggle the checkbox on the current line: [ ] <-> [x], keeping any
 // #todo/#done status tag on the same line in sync — mirrors the click
@@ -207,6 +220,9 @@ export function insertPastedImage(
 }
 
 export const formatKeymap: readonly KeyBinding[] = [
+  { key: "Tab", run: indentCurrentSubtree, preventDefault: true },
+  { key: "Shift-Tab", run: outdentCurrentSubtree, preventDefault: true },
+  { key: "Mod-Enter", run: cycleTaskStatusOnCurrentLine, preventDefault: true },
   { key: "Mod-b", run: toggleBold, preventDefault: true },
   { key: "Mod-i", run: toggleItalic, preventDefault: true },
   { key: "Mod-Shift-x", run: toggleStrikethrough, preventDefault: true },

@@ -43,8 +43,6 @@ import { useAutoSave } from "@/app/hooks/use-auto-save";
 import { useDialog } from "@/app/hooks/use-dialog";
 import toast from "react-hot-toast";
 import { showErrorToast } from "@/app/components/Toastr";
-import { useGlobalVoiceInput } from "./hooks/use-global-voice-input";
-import VoicePreviewPanel from "./components/VoicePreviewPanel";
 import RepurposeNoteWizard from "./components/RepurposeNoteWizard";
 import MermaidDialog from "./components/MermaidDialog";
 import ImageDialog from "./components/ImageDialog";
@@ -56,7 +54,7 @@ import { AIThinkingOverlay } from "./components/AIThinkingOverlay";
 
 
 import { useRouter } from "next/navigation";
-import { atom_isAiConfigured, atom_aiBuilderRequest, atom_railPanel, atom_showHiddenFiles, RailPanel, atom_voiceInputRequest, atom_isVoiceInputListening, atom_isVoiceInputSupported, atom_activeEditorView, atom_isSidebarResizing, atom_keyboardShortcutsOpen } from "@/app/atoms/ui-atoms";
+import { atom_isAiConfigured, atom_aiBuilderRequest, atom_railPanel, atom_showHiddenFiles, RailPanel, atom_activeEditorView, atom_isSidebarResizing, atom_keyboardShortcutsOpen } from "@/app/atoms/ui-atoms";
 import { generateFileFromPrompt } from "@/app/services/ai";
 import { withRetry } from "@/app/hooks/file-system/shared";
 
@@ -93,21 +91,9 @@ export default function LiteEditor() {
   const isFileLoading = useAtomValue(atom_isFileLoading);
   const isAiConfigured = useAtomValue(atom_isAiConfigured);
   const [aiBuilderRequest, setAiBuilderRequest] = useAtom(atom_aiBuilderRequest);
-  const [, setVoiceInputRequest] = useAtom(atom_voiceInputRequest);
-  const isVoiceListening = useAtomValue(atom_isVoiceInputListening);
-  const isVoiceSupported = useAtomValue(atom_isVoiceInputSupported);
   // Single dictation session shared by the whole app (not one per pane), so
   // switching the active pane mid-dictation never drops the in-progress
   // preview — "Insert" lands wherever the active pane currently is.
-  const {
-    voiceError,
-    voicePreviewText,
-    setVoicePreviewText,
-    voiceInterimText,
-    commitVoicePreview,
-    discardVoicePreview,
-    toggleVoiceListening,
-  } = useGlobalVoiceInput();
   const activeEditorView = useAtomValue(atom_activeEditorView);
   // Single AI-chat/actions session shared by the whole app (not one per
   // pane) — targets whichever CM6 view is currently active, same convention
@@ -152,9 +138,9 @@ export default function LiteEditor() {
   useVaultSync();
 
   // "Open AI Chat" (keyboard shortcut / command palette) bumps this counter
-  // from outside the editor, the same request/mirror pattern voice input
-  // uses — the actual open() call has to happen here since it needs the
-  // current selection at request time, not whenever this atom last changed.
+  // from outside the editor; the actual open() call has to happen here since
+  // it needs the current selection at request time, not whenever this atom
+  // last changed.
   const { openChat: openAiChat } = aiActions;
   const prevAiBuilderRequestRef = useRef(aiBuilderRequest);
   useEffect(() => {
@@ -195,16 +181,6 @@ export default function LiteEditor() {
     const timer = setTimeout(() => setIsMounting(false), 200);
     return () => clearTimeout(timer);
   }, []);
-
-  useEffect(() => {
-    if (voiceError === "permission-denied") {
-      showErrorToast("Microphone access was denied");
-    } else if (voiceError === "network") {
-      showErrorToast("Voice input lost its network connection");
-    } else if (voiceError === "no-microphone") {
-      showErrorToast("No microphone was found");
-    }
-  }, [voiceError]);
 
   const handleSave = useCallback(async () => {
     if (!content.trim()) return;
@@ -255,15 +231,6 @@ export default function LiteEditor() {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // The voice preview panel renders through a React Portal into
-      // document.body, outside this app's DOM subtree — but its keystrokes
-      // still reach this window-level listener via native DOM bubbling.
-      // Its own textarea already owns Enter/Escape, so every other global
-      // shortcut here (Ctrl+B, Ctrl+S, sidebar toggles, ...) needs to stay
-      // out of it entirely rather than double-firing against the real
-      // document.
-      if ((e.target as HTMLElement)?.closest?.("[data-voice-preview-panel]")) return;
-
       // Prevent tablet/mobile browsers from navigating back on ESC.
       if (e.key === "Escape") e.preventDefault();
 
@@ -286,14 +253,6 @@ export default function LiteEditor() {
         }
       }
 
-      // Voice input — toggle start/stop
-      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === "v") {
-        if (isVoiceSupported) {
-          e.preventDefault();
-          setVoiceInputRequest((v) => v + 1);
-        }
-      }
-
       // Manual Save Shortcut (Ctrl+S)
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s") {
         e.preventDefault();
@@ -308,7 +267,7 @@ export default function LiteEditor() {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [flush, railPanel, setRailPanel, lastPanel, isAiConfigured, setAiBuilderRequest, isVoiceSupported, setVoiceInputRequest]);
+  }, [flush, railPanel, setRailPanel, lastPanel, isAiConfigured, setAiBuilderRequest]);
 
   const handleNewFile = () => {
     if (!vaultHandle) {
@@ -573,19 +532,6 @@ export default function LiteEditor() {
           </div>
         </div>
         </div>{/* end MAIN LAYOUT */}
-
-        <VoicePreviewPanel
-          isListening={isVoiceListening}
-          previewText={voicePreviewText}
-          onPreviewTextChange={setVoicePreviewText}
-          interimText={voiceInterimText}
-          onCommit={commitVoicePreview}
-          onDiscard={() => {
-            discardVoicePreview();
-            if (isVoiceListening) toggleVoiceListening();
-            activeEditorView?.focus();
-          }}
-        />
 
         {isAiConfigured && !isMobileChrome && (
           <AISelectionToolbar

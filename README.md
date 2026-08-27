@@ -24,6 +24,8 @@ architecture-beta
 
 HermesMarkdown keeps markdown files in the user-selected local vault. The Next.js application serves the workspace, and the optional AI route connects only when an AI action is requested.
 
+See [architecture.md](architecture.md) for the detailed system architecture and runtime data flow.
+
 ## 🚀 Key Features
 
 ### 01. Knowledge Management

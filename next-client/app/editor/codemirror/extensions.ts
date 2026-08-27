@@ -2,6 +2,7 @@ import { Compartment, Extension, EditorSelection } from "@codemirror/state";
 import { EditorView, keymap, drawSelection, lineNumbers, placeholder as placeholderExt } from "@codemirror/view";
 import { history, historyKeymap, defaultKeymap } from "@codemirror/commands";
 import { markdown, markdownLanguage } from "@codemirror/lang-markdown";
+import { languages } from "@codemirror/language-data";
 import { ViewUpdate } from "@codemirror/view";
 import { autocompletion } from "@codemirror/autocomplete";
 import { codeFolding } from "@codemirror/language";
@@ -46,7 +47,7 @@ export function buildExtensions(opts: BuildExtensionsOptions): Extension[] {
     // (formatKeymap), producing doubled "> " prefixes. We own continuation
     // logic explicitly instead (matches the old app, which never
     // auto-continued plain "- " list items either).
-    markdown({ base: markdownLanguage, codeLanguages: undefined, addKeymap: false }),
+    markdown({ base: markdownLanguage, codeLanguages: languages, addKeymap: false }),
     codeFolding(),
     markdownHighlightPlugin,
     shortcodeExpandPlugin,
