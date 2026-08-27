@@ -13,8 +13,10 @@ import {
 } from "react-icons/hi";
 import {
   atom_activeFilePath,
+  atom_activePaneId,
   atom_sidebarWidth,
   atom_isCloudVault,
+  atom_splitPane,
 } from "@/app/atoms/atoms";
 import { atom_railPanel, atom_newVaultFlowOpen, atom_pendingScrollTarget, atom_showHiddenFiles, atom_isSidebarResizing, RailPanel } from "@/app/atoms/ui-atoms";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
@@ -97,6 +99,8 @@ export default function VaultSidebar({
   }, [vaultHandle]);
 
   const [activeFilePath, setActiveFilePath] = useAtom(atom_activeFilePath);
+  const activePaneId = useAtomValue(atom_activePaneId);
+  const [, splitPane] = useAtom(atom_splitPane);
   const [sidebarWidth, setSidebarWidth] = useAtom(atom_sidebarWidth);
   const isCloudVault = useAtomValue(atom_isCloudVault);
   const setRailPanel = useSetAtom(atom_railPanel);
@@ -117,6 +121,13 @@ export default function VaultSidebar({
   } = useSidebarSearch({ selectedTags, panel });
 
   const isSearching = searchQuery.trim().length > 0 || selectedTags.length > 0;
+
+  const openFileInPane = useCallback((handle: FileSystemFileHandle, path?: string) => {
+    if (!path || !activePaneId) return;
+    splitPane({ id: activePaneId, direction: "horizontal", filePath: path });
+    openFile(handle, path);
+    onClose?.();
+  }, [activePaneId, onClose, openFile, splitPane]);
 
   // Resize logic
   const startResizing = React.useCallback((e: React.MouseEvent) => {
@@ -289,6 +300,7 @@ export default function VaultSidebar({
                 processedFiles={panel === "search" ? processedFiles : allFiles}
                 activeFilePath={activeFilePath}
                 openFile={openFile}
+                openFileInPane={openFileInPane}
                 renameFile={renameFile}
                 deleteFile={deleteFile}
                 duplicateFile={duplicateFile}

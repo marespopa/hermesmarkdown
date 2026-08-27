@@ -8,7 +8,11 @@ export const atom_splitPane = atom(
   (
     get,
     set,
-    { id, direction }: { id: string; direction: "horizontal" | "vertical" },
+    {
+      id,
+      direction,
+      filePath,
+    }: { id: string; direction: "horizontal" | "vertical"; filePath?: string },
   ) => {
     const layout = get(atom_workspaceLayout);
     const leaf = findLeaf(layout.rootContainer, id);
@@ -18,8 +22,20 @@ export const atom_splitPane = atom(
     const newLeaf: PanelLeaf = {
       ...leaf,
       id: newLeafId,
-      openFilePaths: [...leaf.openFilePaths],
+      openFilePaths: filePath ? [filePath] : [...leaf.openFilePaths],
+      activeFilePath: filePath ?? leaf.activeFilePath,
     };
+
+    const sourceLeaf: PanelLeaf = filePath
+      ? {
+          ...leaf,
+          openFilePaths: leaf.openFilePaths.filter((path) => path !== filePath),
+          activeFilePath:
+            leaf.activeFilePath === filePath
+              ? leaf.openFilePaths.find((path) => path !== filePath)
+              : leaf.activeFilePath,
+        }
+      : leaf;
 
     const splitNode = (
       node: WorkspaceContainer | PanelLeaf,
@@ -30,7 +46,7 @@ export const atom_splitPane = atom(
             id: generateId(),
             direction,
             sizes: [50, 50],
-            children: [node, newLeaf],
+            children: [sourceLeaf, newLeaf],
           } as WorkspaceContainer;
         }
         return node;

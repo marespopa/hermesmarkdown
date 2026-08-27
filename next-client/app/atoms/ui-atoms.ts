@@ -73,6 +73,10 @@ export const atom_editorWidth = atomWithStorage<"standard" | "narrow">(
   "editorWidth",
   "standard",
 );
+export const atom_editorContentWidth = atomWithStorage<number | null>(
+  "editorContentWidth",
+  null,
+);
 export const atom_hasCompletedOnboarding = atomWithStorage<boolean>(
   "hasCompletedOnboarding",
   false,
@@ -238,11 +242,6 @@ export const atom_isFileLoading = atom<boolean>(false);
 // scoped to the editor's textarea/value.
 export const atom_aiBuilderRequest = atom<number>(0);
 
-// Bumped to toggle voice dictation from outside the editor (the FAB group
-// next to the AI chat button). The SpeechRecognition session itself is a
-// single instance shared by the whole app (see use-global-voice-input.ts),
-// not one per pane — so switching panes mid-dictation never drops it.
-export const atom_voiceInputRequest = atom<number>(0);
 // Mirrors the shared voice-input hook state so any button can reflect
 // listening/support status without owning the recognition itself.
 export const atom_isVoiceInputListening = atom<boolean>(false);

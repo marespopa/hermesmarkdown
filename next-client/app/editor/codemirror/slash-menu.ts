@@ -9,7 +9,9 @@ import {
   DATE_EDITOR_SENTINEL,
   TABLE_DIALOG_SENTINEL,
   FRONTMATTER_WIZARD_SENTINEL,
+  TASK_EDITOR_SENTINEL,
   CURSOR_SENTINEL,
+  CODE_BLOCK_TEMPLATE_CONTENT,
 } from "../components/constants";
 
 // Non-AI templates only — AI action entries (aiOnly: true) aren't ported in
@@ -21,7 +23,9 @@ export interface SlashMenuCallbacks {
   onOpenLinkDialog: (range: { from: number; to: number }) => void;
   onOpenWikiLinkDialog: (range: { from: number; to: number }) => void;
   onOpenDatePicker: (range: { from: number; to: number }) => void;
+  onOpenTaskDialog: (range: { from: number; to: number }) => void;
   onFrontmatterWizard: () => void;
+  onCodeBlockInserted: (pos: number) => void;
 }
 
 function fuzzyMatch(label: string, query: string): boolean {
@@ -35,7 +39,7 @@ function fuzzyMatch(label: string, query: string): boolean {
   return qi === q.length;
 }
 
-function insertPlainContent(view: EditorView, from: number, to: number, content: string) {
+function insertPlainContent(view: EditorView, from: number, to: number, content: string): number {
   let processed = content;
   Object.entries(SHORTCODES).forEach(([code, getValue]) => {
     const escaped = code.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -53,6 +57,7 @@ function insertPlainContent(view: EditorView, from: number, to: number, content:
     selection: EditorSelection.cursor(sentinelIdx !== -1 ? from + sentinelIdx : from + clean.length),
     userEvent: "input.replace.template",
   });
+  return sentinelIdx !== -1 ? from + sentinelIdx : from + clean.length;
 }
 
 const DEFAULT_TABLE =
@@ -85,11 +90,16 @@ function applyTemplate(
     callbacks.onFrontmatterWizard();
     return;
   }
+  if (content === TASK_EDITOR_SENTINEL) {
+    callbacks.onOpenTaskDialog({ from, to });
+    return;
+  }
   if (content === TABLE_DIALOG_SENTINEL) {
     insertPlainContent(view, from, to, DEFAULT_TABLE);
     return;
   }
-  insertPlainContent(view, from, to, content);
+  const cursorPos = insertPlainContent(view, from, to, content);
+  if (content === CODE_BLOCK_TEMPLATE_CONTENT) callbacks.onCodeBlockInserted(cursorPos);
 }
 
 // A "path-like" trigger (e.g. "/Users/name", "./foo") shouldn't pop the

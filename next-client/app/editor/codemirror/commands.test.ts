@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { EditorView } from "@codemirror/view";
+import { EditorView, keymap, runScopeHandlers } from "@codemirror/view";
 import { EditorState, EditorSelection } from "@codemirror/state";
 import {
   toggleBold,
@@ -8,6 +8,9 @@ import {
   toggleInlineCode,
   toggleCheckboxOnLine,
   continueQuoteOnEnter,
+  indentCurrentSubtree,
+  outdentCurrentSubtree,
+  cycleTaskStatusOnCurrentLine,
 } from "./commands";
 
 // Headless EditorView: no `parent` DOM node, so no real layout — fine for
@@ -98,5 +101,61 @@ describe("continueQuoteOnEnter", () => {
   it("does nothing (returns false) on a non-quoted line", () => {
     const view = makeView("plain text", { anchor: 5 });
     expect(continueQuoteOnEnter(view)).toBe(false);
+  });
+});
+
+describe("outline indentation commands", () => {
+  it("indents and outdents the current list subtree", () => {
+    const view = makeView("- Parent\n  - Child\n- Sibling", { anchor: 2 });
+
+    expect(indentCurrentSubtree(view)).toBe(true);
+    expect(view.state.doc.toString()).toBe("  - Parent\n    - Child\n- Sibling");
+    expect(view.state.selection.main.head).toBe(4);
+    expect(outdentCurrentSubtree(view)).toBe(true);
+    expect(view.state.doc.toString()).toBe("- Parent\n  - Child\n- Sibling");
+    expect(view.state.selection.main.head).toBe(2);
+  });
+
+  it("leaves non-list lines available for normal Tab behavior", () => {
+    const view = makeView("plain text", { anchor: 3 });
+
+    expect(indentCurrentSubtree(view)).toBe(false);
+    expect(view.state.doc.toString()).toBe("plain text");
+  });
+});
+
+describe("cycleTaskStatusOnCurrentLine", () => {
+  it("cycles a task through todo, in-progress, done, and todo", () => {
+    const view = makeView("- [ ] Task", { anchor: 4 });
+
+    expect(cycleTaskStatusOnCurrentLine(view)).toBe(true);
+    expect(view.state.doc.toString()).toBe("- [/] Task");
+    cycleTaskStatusOnCurrentLine(view);
+    expect(view.state.doc.toString()).toBe("- [x] Task");
+    cycleTaskStatusOnCurrentLine(view);
+    expect(view.state.doc.toString()).toBe("- [ ] Task");
+  });
+
+  it("returns false for a non-task line", () => {
+    const view = makeView("- A", { anchor: 2 });
+
+    expect(cycleTaskStatusOnCurrentLine(view)).toBe(false);
+  });
+
+  it("handles mixed unordered and ordered lists through the CodeMirror keymap", () => {
+    const content = "* Level 1\n      * Level 2\n          * Level 3\n1. Ordered one\n2. Ordered two\n     1. Sub-item A\n   2. Sub-item B";
+    const state = EditorState.create({
+      doc: content,
+      extensions: [keymap.of([{ key: "Tab", run: indentCurrentSubtree }])],
+    });
+    const view = new EditorView({ state });
+    view.dispatch({ selection: EditorSelection.cursor(content.indexOf("1. Ordered one")) });
+    view.focus();
+    const tabEvent = new KeyboardEvent("keydown", { key: "Tab" });
+    Object.defineProperty(tabEvent, "keyCode", { value: 9 });
+
+    expect(runScopeHandlers(view, tabEvent, "editor")).toBe(true);
+    expect(view.state.doc.toString()).toContain("  1. Ordered one");
+    view.destroy();
   });
 });

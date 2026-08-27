@@ -14,6 +14,7 @@ interface Range {
 interface UseCodeMirrorTemplatesOptions {
   viewRef: React.RefObject<EditorView | null>;
   onFrontmatterWizard: () => void;
+  onCodeBlockInserted: (pos: number) => void;
 }
 
 // Step 5: slash/template menu insertion targets. The actual menu UI is
@@ -22,7 +23,7 @@ interface UseCodeMirrorTemplatesOptions {
 // Date) and performs the final text replacement once one is confirmed —
 // mirrors insertLink/insertWikiLink/insertDate in the old
 // use-editor-templates.ts.
-export function useCodeMirrorTemplates({ viewRef, onFrontmatterWizard }: UseCodeMirrorTemplatesOptions) {
+export function useCodeMirrorTemplates({ viewRef, onFrontmatterWizard, onCodeBlockInserted }: UseCodeMirrorTemplatesOptions) {
   const [linkDialogOpen, setLinkDialogOpen] = useState(false);
   const linkRangeRef = useRef<Range | null>(null);
 
@@ -31,6 +32,9 @@ export function useCodeMirrorTemplates({ viewRef, onFrontmatterWizard }: UseCode
 
   const [templateDatePickerOpen, setTemplateDatePickerOpen] = useState(false);
   const dateRangeRef = useRef<Range | null>(null);
+
+  const [taskDialogOpen, setTaskDialogOpen] = useState(false);
+  const taskRangeRef = useRef<Range | null>(null);
 
   const replaceRange = useCallback((range: Range, insert: string) => {
     const view = viewRef.current;
@@ -65,9 +69,17 @@ export function useCodeMirrorTemplates({ viewRef, onFrontmatterWizard }: UseCode
     const y = date.getFullYear();
     const m = String(date.getMonth() + 1).padStart(2, "0");
     const d = String(date.getDate()).padStart(2, "0");
-    replaceRange(range, `${y}-${m}-${d}`);
+    replaceRange(range, `@due(${y}-${m}-${d})`);
     setTemplateDatePickerOpen(false);
     dateRangeRef.current = null;
+  }, [replaceRange]);
+
+  const insertTask = useCallback((value: string) => {
+    const range = taskRangeRef.current;
+    if (!range) return;
+    replaceRange(range, value);
+    setTaskDialogOpen(false);
+    taskRangeRef.current = null;
   }, [replaceRange]);
 
   const slashMenuCallbacksRef = useRef<SlashMenuCallbacks>({
@@ -83,10 +95,16 @@ export function useCodeMirrorTemplates({ viewRef, onFrontmatterWizard }: UseCode
       dateRangeRef.current = range;
       setTemplateDatePickerOpen(true);
     },
+    onOpenTaskDialog: (range) => {
+      taskRangeRef.current = range;
+      setTaskDialogOpen(true);
+    },
     onFrontmatterWizard: () => onFrontmatterWizard(),
+    onCodeBlockInserted: () => {},
   });
   // Keep the frontmatter callback current across renders (filePath can change).
   slashMenuCallbacksRef.current.onFrontmatterWizard = onFrontmatterWizard;
+  slashMenuCallbacksRef.current.onCodeBlockInserted = onCodeBlockInserted;
 
   const wikiLinkTriggerRef = useRef<WikiLinkTriggerCallback | null>((_view, from, to) => {
     wikiLinkRangeRef.current = { from, to };
@@ -103,6 +121,9 @@ export function useCodeMirrorTemplates({ viewRef, onFrontmatterWizard }: UseCode
     templateDatePickerOpen,
     setTemplateDatePickerOpen,
     insertTemplateDate,
+    taskDialogOpen,
+    setTaskDialogOpen,
+    insertTask,
     slashMenuCallbacksRef,
     wikiLinkTriggerRef,
   };

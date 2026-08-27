@@ -13,6 +13,8 @@ interface TypeaheadProps {
   placeholder?: string;
   allowMultiple?: boolean;
   autoFocus?: boolean;
+  onOptionSelect?: (option: string) => void;
+  onDismiss?: () => void;
 }
 
 export default function Typeahead({
@@ -24,6 +26,8 @@ export default function Typeahead({
   placeholder,
   allowMultiple = false,
   autoFocus,
+  onOptionSelect,
+  onDismiss,
 }: TypeaheadProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
@@ -52,11 +56,12 @@ export default function Typeahead({
       const isInsideDropdown = dropdownRef.current?.contains(target);
       if (!isInsideContainer && !isInsideDropdown) {
         setIsOpen(false);
+        onDismiss?.();
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+  }, [onDismiss]);
 
   useEffect(() => {
     if (isOpen && containerRef.current) {
@@ -79,6 +84,7 @@ export default function Typeahead({
       onChange(newParts.join(", "));
     } else {
       onChange(option);
+      onOptionSelect?.(option);
     }
     setIsOpen(false);
     setActiveIndex(-1);
@@ -110,6 +116,7 @@ export default function Typeahead({
       e.preventDefault();
       e.stopPropagation();
       setIsOpen(false);
+      onDismiss?.();
     }
   };
 

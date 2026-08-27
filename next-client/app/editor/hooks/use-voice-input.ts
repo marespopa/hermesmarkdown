@@ -8,7 +8,7 @@ import {
   type VoiceListState,
 } from "../utils/voice-command-parser";
 
-export type VoiceInputError = "permission-denied" | "network" | "no-microphone" | null;
+export type VoiceInputError = "permission-denied" | "speech-service-denied" | "network" | "no-microphone" | null;
 
 // Errors that are expected to occur transiently during continuous dictation
 // (e.g. a brief silence) — anything else is treated as fatal so a persistent
@@ -150,7 +150,9 @@ export function useVoiceInput({ onInsertion, onInterimTranscript, isActivePane =
         // Let onend decide whether to restart.
         return;
       }
-      if (event.error === "not-allowed" || event.error === "service-not-allowed") {
+      if (event.error === "service-not-allowed") {
+        setError("speech-service-denied");
+      } else if (event.error === "not-allowed") {
         setError("permission-denied");
       } else if (event.error === "network") {
         setError("network");

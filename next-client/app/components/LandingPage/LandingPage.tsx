@@ -354,6 +354,7 @@ Hover the image above and click the trigger button to open the actual image in a
 - [ ] Uncompleted task — click the box
 - [x] Completed task
 - [ ] Task in progress #prog
+- [ ] Ship release notes @due(2026-09-01) @priority(high) #launch
 
 Every checkbox here is live. Toggle one and it writes straight back to this file — no separate save step, no separate view.
 

@@ -1,5 +1,6 @@
 .DS_Store
 
+.plans
 node_modules/
 logs
 *.log

@@ -21,6 +21,7 @@ interface FolderTreeItemProps {
   level: number;
   activeFilePath: string | null;
   openFile: (handle: FileSystemFileHandle, path?: string) => void;
+  openFileInPane?: (handle: FileSystemFileHandle, path?: string) => void;
   createNewFile: (dirHandle: FileSystemDirectoryHandle) => void;
   renameFile: (handle: FileSystemHandle) => void;
   deleteFile: (handle: FileSystemHandle, path?: string) => void;
@@ -37,6 +38,7 @@ const FolderTreeItem = memo(function FolderTreeItem({
   level,
   activeFilePath,
   openFile,
+  openFileInPane,
   createNewFile,
   renameFile,
   deleteFile,
@@ -233,6 +235,7 @@ const FolderTreeItem = memo(function FolderTreeItem({
                   level={isRoot ? level : level + 1}
                   activeFilePath={activeFilePath}
                   openFile={openFile}
+                  openFileInPane={openFileInPane}
                   createNewFile={createNewFile}
                   renameFile={renameFile}
                   deleteFile={deleteFile}
@@ -251,6 +254,7 @@ const FolderTreeItem = memo(function FolderTreeItem({
                   level={isRoot ? level : level + 1}
                   activeFilePath={activeFilePath}
                   openFile={openFile}
+                  openFileInPane={openFileInPane}
                   renameFile={renameFile}
                   deleteFile={deleteFile}
                   onClose={onClose}

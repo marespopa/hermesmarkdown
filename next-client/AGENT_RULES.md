@@ -30,6 +30,7 @@ You are a senior software engineer agent working on HermesMarkdown. You must adh
 
 ## 📚 Documentation & Maintenance
 
+- **Plan Location**: Save all implementation plans in `next-client/.plans/`.
 - **Mandatory READMEs**: Every major component or complex module must have a `README.md` explaining its purpose, props, and logic.
 - **Small Files**: Keep files under **400 lines**. If a file grows larger, refactor by extracting subcomponents, hooks, or utility functions.
 - **Small Edits**: Prefer minimal, precise changes over large-scale rewrites unless explicitly instructed.

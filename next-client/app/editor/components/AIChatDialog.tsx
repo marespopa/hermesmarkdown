@@ -14,16 +14,12 @@ import {
   HiOutlineDocument,
   HiOutlineFolder,
   HiOutlineCollection,
-  HiOutlineMicrophone,
-  HiMicrophone,
 } from "react-icons/hi";
 import { useAtom, useAtomValue } from "jotai";
 import DialogModal from "../../components/DialogModal/DialogModal";
 import { callAIChat, fetchClaudeModels, fetchGeminiModels, type ApiMessage, type ApiPart } from "@/app/services/ai";
 import { showErrorToast } from "@/app/components/Toastr";
 import { FORMULA_PRESERVATION_RULE } from "../hooks/useAIEditorActions";
-import { useVoiceInput } from "../hooks/use-voice-input";
-import { joinVoiceChunks, type VoiceInsertion } from "../utils/voice-command-parser";
 import { atom_fileMetadata, type FileMetadata } from "@/app/atoms/metadata";
 import { atom_vaultHandle } from "@/app/atoms/vault-atoms";
 import {
@@ -308,7 +304,6 @@ export default function AIChatDialog({
       setVaultRefs([]);
       setEditingIndex(null);
       setMention(null);
-      lastVoiceChunkLenRef.current = null;
       setTimeout(() => inputRef.current?.focus(), 50);
     }
   }, [isOpen]);
@@ -316,32 +311,6 @@ export default function AIChatDialog({
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isLoading]);
-
-  // Dictation for the chat box itself — plain text, not the document's
-  // markdown grammar (a chat message shouldn't turn "new paragraph" into a
-  // blank line or "task incomplete" into a checkbox). Chrome's continuous
-  // recognition still re-finalizes a growing utterance more than once, so
-  // the same "replace the last chunk instead of stacking after it" handling
-  // useGlobalVoiceInput does for the document is reproduced here for input.
-  const lastVoiceChunkLenRef = useRef<number | null>(null);
-  const handleVoiceInsertion = useCallback((insertion: VoiceInsertion) => {
-    if (insertion.kind !== "plain-text" || !insertion.text) return;
-    setInput((prev) => {
-      const base =
-        insertion.replacePrevious && lastVoiceChunkLenRef.current
-          ? prev.slice(0, -lastVoiceChunkLenRef.current)
-          : prev;
-      const next = joinVoiceChunks(base, insertion.text);
-      lastVoiceChunkLenRef.current = insertion.text.length;
-      return next;
-    });
-  }, []);
-
-  const {
-    isSupported: isVoiceSupported,
-    isListening: isVoiceListening,
-    toggleListening: toggleVoiceListening,
-  } = useVoiceInput({ onInsertion: handleVoiceInsertion, plainText: true, isActivePane: isOpen });
 
   // Voice-dictated text bypasses the textarea's own onChange, so the
   // auto-resize it normally does on keystroke has to be reproduced here too.
@@ -752,19 +721,6 @@ export default function AIChatDialog({
                   className="w-8 h-8 flex items-center justify-center rounded-lg text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors">
                   <HiOutlinePaperClip size={17} />
                 </button>
-                {isVoiceSupported && (
-                  <button type="button" onClick={toggleVoiceListening}
-                    title={isVoiceListening ? "Stop voice input" : "Start voice input"}
-                    aria-label={isVoiceListening ? "Stop voice input" : "Start voice input"}
-                    aria-pressed={isVoiceListening}
-                    className={`w-8 h-8 flex items-center justify-center rounded-lg transition-colors ${
-                      isVoiceListening
-                        ? "text-sage bg-sage/10 animate-pulse"
-                        : "text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800"
-                    }`}>
-                    {isVoiceListening ? <HiMicrophone size={17} /> : <HiOutlineMicrophone size={17} />}
-                  </button>
-                )}
               </div>
 
               <input ref={imageInputRef} type="file" className="hidden" multiple accept={ACCEPT_IMAGES}

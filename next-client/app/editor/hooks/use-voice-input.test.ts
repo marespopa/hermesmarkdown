@@ -65,6 +65,20 @@ describe("useVoiceInput", () => {
     expect(result.current.isListening).toBe(false);
   });
 
+  it("reports speech service denial separately from microphone permission", () => {
+    const { result } = renderHook(() => useVoiceInput({ onInsertion: vi.fn() }));
+
+    act(() => result.current.toggleListening());
+    const recognition = MockSpeechRecognition.instances[0];
+
+    act(() => {
+      recognition.onerror?.({ error: "service-not-allowed" });
+    });
+
+    expect(result.current.error).toBe("speech-service-denied");
+    expect(result.current.isListening).toBe(false);
+  });
+
   it("treats 'no-speech' as transient and restarts on end", () => {
     const { result } = renderHook(() => useVoiceInput({ onInsertion: vi.fn() }));
 

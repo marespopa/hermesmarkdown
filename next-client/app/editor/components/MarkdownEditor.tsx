@@ -4,7 +4,7 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
 import { useAtomValue, useSetAtom } from "jotai";
 import { atom_frontmatterWizardOpen, atom_wordWrap, atom_isEditorFocused, atom_vaultHandle, atom_currentDirectoryHandle } from "@/app/atoms/atoms";
-import { atom_activeEditorView, atom_lineNumbers } from "@/app/atoms/ui-atoms";
+import { atom_activeEditorView, atom_editorContentWidth, atom_lineNumbers } from "@/app/atoms/ui-atoms";
 import { useAtom } from "jotai";
 import { savePastedImage } from "@/app/utils/paste-image";
 import type { EditorView } from "@codemirror/view";
@@ -15,6 +15,7 @@ import Input from "../../components/Input";
 import DialogModal from "../../components/DialogModal/DialogModal";
 import DatePickerCallout from "./DatePickerCallout";
 import WikiLinkDialog from "./WikiLinkDialog";
+import TaskDialog from "./TaskDialog";
 import { LinkPill } from "./LinkPill";
 import { WorkflowPill } from "./WorkflowPill";
 import { TableCallout } from "./TableCallout";
@@ -28,9 +29,12 @@ import { useCodeMirrorFeatures } from "../hooks/use-codemirror-features";
 import { useCodeMirrorTemplates } from "../hooks/use-codemirror-templates";
 import { useCodeMirrorTable } from "../hooks/use-codemirror-table";
 import { useCodeMirrorMermaid } from "../hooks/use-codemirror-mermaid";
+import { useCodeMirrorCodeLanguagePicker } from "../hooks/use-codemirror-code-language-picker";
 import { useCodeMirrorImage } from "../hooks/use-codemirror-image";
 import { useCodeMirrorCalloutFold } from "../hooks/use-codemirror-callout-fold";
 import { HiOutlinePhotograph } from "react-icons/hi";
+import Typeahead from "../../components/Typeahead/Typeahead";
+import { languages } from "@codemirror/language-data";
 
 interface MarkdownEditorProps {
   value: string;
@@ -57,6 +61,7 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
   const setFrontmatterWizardOpen = useSetAtom(atom_frontmatterWizardOpen);
   const wordWrap = useAtomValue(atom_wordWrap);
   const lineNumbers = useAtomValue(atom_lineNumbers);
+  const [, setEditorContentWidth] = useAtom(atom_editorContentWidth);
   const [, setIsEditorFocused] = useAtom(atom_isEditorFocused);
   const filePath = props.filePath || "draft";
 
@@ -79,6 +84,24 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
 
   const keyboardInset = useKeyboardInset();
   const isMobile = windowWidth < 768;
+  const resizeRef = useRef<{ center: number } | null>(null);
+
+  const handleEditorResizeStart = useCallback((event: React.PointerEvent<HTMLButtonElement>) => {
+    if (!maxContentWidth || isMobile) return;
+    event.preventDefault();
+    resizeRef.current = { center: event.currentTarget.parentElement?.getBoundingClientRect().left! + event.currentTarget.parentElement!.getBoundingClientRect().width / 2 };
+    event.currentTarget.setPointerCapture?.(event.pointerId);
+  }, [isMobile, maxContentWidth]);
+
+  const handleEditorResize = useCallback((event: React.PointerEvent<HTMLButtonElement>) => {
+    if (!resizeRef.current) return;
+    const width = Math.max(600, Math.min(1200, Math.abs(event.clientX - resizeRef.current.center) * 2));
+    setEditorContentWidth(width);
+  }, [setEditorContentWidth]);
+
+  const handleEditorResizeEnd = useCallback(() => {
+    resizeRef.current = null;
+  }, []);
 
   const containerRef = useRef<HTMLDivElement | null>(null);
   const viewRef = useRef<EditorView | null>(null);
@@ -126,12 +149,31 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
   } = useCodeMirrorFeatures({ viewRef, containerRef, onWikiLinkClick: props.onWikiLinkClick });
 
   const {
+    languagePickerInfo,
+    pickerPos,
+    query,
+    pickerRef,
+    activate: activateCodeLanguagePicker,
+    onCursorActivity: onCodeLanguagePickerCursorActivity,
+    changeQuery,
+    selectLanguage,
+    deactivate: deactivateCodeLanguagePicker,
+  } = useCodeMirrorCodeLanguagePicker({ viewRef, containerRef });
+
+  const handleCodeBlockInserted = useCallback((pos: number) => {
+    const view = viewRef.current;
+    if (view) activateCodeLanguagePicker(view, pos);
+  }, [activateCodeLanguagePicker, viewRef]);
+
+  const {
     linkDialogOpen, setLinkDialogOpen, insertLink,
     wikiLinkDialogOpen, setWikiLinkDialogOpen, insertWikiLink,
     templateDatePickerOpen, setTemplateDatePickerOpen, insertTemplateDate,
+    taskDialogOpen, setTaskDialogOpen, insertTask,
     slashMenuCallbacksRef, wikiLinkTriggerRef,
   } = useCodeMirrorTemplates({
     viewRef,
+    onCodeBlockInserted: handleCodeBlockInserted,
     onFrontmatterWizard: useCallback(() => setFrontmatterWizardOpen(filePath), [setFrontmatterWizardOpen, filePath]),
   });
 
@@ -161,9 +203,10 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
     onCursorActivity(view);
     onTableCursorActivity(view);
     onMermaidCursorActivity(view);
+    onCodeLanguagePickerCursorActivity(view);
     onImageCursorActivity(view);
     onFoldCursorActivity(view);
-  }, [onCursorActivity, onTableCursorActivity, onMermaidCursorActivity, onImageCursorActivity, onFoldCursorActivity]);
+  }, [onCursorActivity, onTableCursorActivity, onMermaidCursorActivity, onCodeLanguagePickerCursorActivity, onImageCursorActivity, onFoldCursorActivity]);
 
   useCodeMirrorEditor({
     value: editorValue,
@@ -246,6 +289,19 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
           paddingBottom: keyboardInset > 0 ? `calc(3rem + ${keyboardInset}px)` : undefined,
         } as React.CSSProperties}
       >
+        {wordWrap && maxContentWidth && !isMobile && (
+          <button
+            type="button"
+            aria-label="Resize editor width"
+            title="Resize editor width"
+            className="absolute top-0 bottom-0 z-10 w-2 -translate-x-1/2 cursor-col-resize opacity-0 hover:opacity-100 focus:opacity-100 bg-sage/20 transition-opacity"
+            style={{ left: `calc(50% + ${maxContentWidth / 2}px)` }}
+            onPointerDown={handleEditorResizeStart}
+            onPointerMove={handleEditorResize}
+            onPointerUp={handleEditorResizeEnd}
+            onPointerCancel={handleEditorResizeEnd}
+          />
+        )}
         <div className="relative h-full">
           <label htmlFor="md-editor" className="sr-only">Markdown editor</label>
           <div id="md-editor" ref={containerRef} className="h-full" />
@@ -357,6 +413,29 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
             </div>
           )}
 
+          {languagePickerInfo && (
+            <div
+              ref={pickerRef}
+              style={{ top: pickerPos.top, left: pickerPos.left }}
+              className={`${PILL_CONTAINER_CLASSES} w-48`}
+              onMouseDown={(e) => e.preventDefault()}
+              onKeyDown={(e) => {
+                if (e.key === "Escape") deactivateCodeLanguagePicker();
+              }}
+            >
+              <Typeahead
+                name="code-block-language"
+                value={query}
+                onChange={changeQuery}
+                onOptionSelect={selectLanguage}
+                onDismiss={deactivateCodeLanguagePicker}
+                options={languages.map((language) => language.name.toLowerCase())}
+                autoFocus
+                placeholder="Language..."
+              />
+            </div>
+          )}
+
           {imageInfo && (
             <div
               style={{ top: imageButtonPos.top, left: imageButtonPos.left }}
@@ -413,6 +492,12 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
             initialDate={new Date()}
             onSelectDate={insertTemplateDate}
             onClose={() => setTemplateDatePickerOpen(false)}
+          />
+
+          <TaskDialog
+            isOpen={taskDialogOpen}
+            onClose={() => setTaskDialogOpen(false)}
+            onConfirm={insertTask}
           />
 
           {linkDialogOpen && (

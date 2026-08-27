@@ -17,6 +17,14 @@ describe("extractTasks", () => {
     expect(task.text).toBe("Ship report");
   });
 
+  it("treats a [/] marker as in-progress, same as #prog", () => {
+    const content = "- [/] In-progress item (#prog)\n";
+    const [task] = extractTasks("note.md", content);
+    expect(task.checked).toBe(false);
+    expect(task.inProgress).toBe(true);
+    expect(task.text).toBe("In-progress item");
+  });
+
   it("does not mark a checked task as in progress even if tagged #prog", () => {
     const content = "- [x] Ship report #prog\n";
     const [task] = extractTasks("note.md", content);
@@ -41,6 +49,12 @@ describe("extractTasks", () => {
     const tasks = extractTasks("note.md", content);
     expect(tasks[0].text).toBe("Ship report");
     expect(tasks[1].text).toBe("Ship report");
+  });
+
+  it("strips a tag wrapped in parens without leaving an empty () behind", () => {
+    const content = "- [ ] Uncompleted task (#todo)\n";
+    const [task] = extractTasks("note.md", content);
+    expect(task.text).toBe("Uncompleted task");
   });
 
   it("finds tasks regardless of heading/indentation", () => {

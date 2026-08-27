@@ -35,6 +35,30 @@ describe("layout-actions", () => {
     expect(store.get(atom_activePaneId)).toBe(newPaneId);
   });
 
+  it("should open only the selected tab in the new pane", () => {
+    const paneId = "default-pane";
+    const layout = store.get(atom_workspaceLayout);
+    store.set(atom_workspaceLayout, {
+      ...layout,
+      rootContainer: {
+        ...layout.rootContainer,
+        openFilePaths: ["a.md", "b.md"],
+        activeFilePath: "b.md",
+      } as PanelLeaf,
+    });
+
+    store.set(atom_splitPane, {
+      id: paneId,
+      direction: "horizontal",
+      filePath: "b.md",
+    });
+
+    const container = store.get(atom_workspaceLayout).rootContainer as WorkspaceContainer;
+    expect((container.children[0] as PanelLeaf).openFilePaths).toEqual(["a.md"]);
+    expect((container.children[1] as PanelLeaf).openFilePaths).toEqual(["b.md"]);
+    expect((container.children[1] as PanelLeaf).activeFilePath).toBe("b.md");
+  });
+
   it("should close a pane and reassign activePaneId", () => {
     const initialPaneId = "default-pane";
     store.set(atom_splitPane, { id: initialPaneId, direction: "vertical" });

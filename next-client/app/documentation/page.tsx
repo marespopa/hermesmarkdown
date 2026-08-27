@@ -429,8 +429,9 @@ graph TD
       {
         id: "tasks-pane",
         title: "Tasks pane",
-        lead: "A vault-wide checklist — every checkbox task across every note, grouped into To Do, In Progress, and Done.",
-        keywords: "task tasks checkbox todo prog done pane sidebar aggregate",
+        lead: "A vault-wide checklist — every checkbox task across every note, grouped into To Do, In Progress, On Hold, and Done.",
+        keywords:
+          "task tasks checkbox todo prog hold done pane sidebar aggregate due date priority tags filter",
         body: (
           <>
             <p>
@@ -440,15 +441,29 @@ graph TD
             <KV
               rows={[
                 { label: "- [ ] task", value: "To Do" },
-                { label: "- [ ] task #prog", value: "In Progress" },
+                { label: "- [ ] task #prog  /  - [/] task", value: "In Progress" },
+                { label: "- [ ] task #hold", value: "On Hold" },
                 { label: "- [x] task", value: "Done" },
               ]}
             />
             <p>
-              A task counts as In Progress when it's unchecked and tagged <code>#prog</code> anywhere on
-              the line. The <code>#prog</code> tag itself — along with <code>#todo</code> and{" "}
-              <code>#done</code>, which are purely cosmetic — is stripped from the text shown in the
-              pane. Within each group, tasks are sorted by their note's title.
+              A task counts as In Progress when it's unchecked and either tagged <code>#prog</code>{" "}
+              anywhere on the line or uses the <code>[/]</code> checkbox marker. It counts as On Hold
+              when it's unchecked and tagged <code>#hold</code>. The <code>#prog</code>/<code>#hold</code>{" "}
+              tags — along with <code>#todo</code> and <code>#done</code>, which are purely cosmetic — are
+              stripped from the text shown in the pane. Within each group, tasks are sorted by their
+              note's title.
+            </p>
+            <p>
+              A task can also carry a due date (<code>@due(2026-01-31)</code>), a priority (
+              <code>@priority(high|med|low)</code>), and any number of custom <code>#tags</code> — all
+              stripped from the display text and shown separately under the task. Due dates are
+              color-coded: overdue tasks are flagged in red, tasks due today in amber.
+            </p>
+            <p>
+              The toolbar above the list lets you switch between grouping by status and grouping by
+              file, filter by search text, due-date bucket (overdue, due today, upcoming, no due date),
+              or one or more custom tags. A Clear button appears once any filter is active.
             </p>
             <p>
               Click a task's checkbox to toggle it — the change writes straight back to the source line
@@ -457,12 +472,13 @@ graph TD
             </p>
             <Callout type="note">
               The Done group starts collapsed so completed work doesn't crowd out what's still
-              outstanding; To Do and In Progress start expanded. Click a group header to fold or unfold
-              it.
+              outstanding; To Do, In Progress, and On Hold start expanded. Click a group header to fold
+              or unfold it.
             </Callout>
           </>
         ),
       },
+
       {
         id: "frontmatter-panel",
         title: "Frontmatter panel",
