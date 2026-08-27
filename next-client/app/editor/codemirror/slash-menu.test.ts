@@ -39,7 +39,8 @@ function applyOption(doc: string, label: string, callbacks = makeCallbacks()) {
   const option = result?.options.find((entry) => entry.label === label);
   if (!result || !option) throw new Error(`Missing slash-menu option: ${label}`);
   const view = makeView(doc);
-  option.apply(view, option, result.from, result.to);
+  if (typeof option.apply !== "function") throw new Error(`Invalid slash-menu option: ${label}`);
+  option.apply(view, option, result.from, result.to ?? result.from);
   return { callbacks, result, view };
 }
 

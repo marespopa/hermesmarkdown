@@ -64,7 +64,7 @@ function groupOf(task: TaskItem): Group {
 
 function TaskCheckbox({ checked, onChange }: { checked: boolean; onChange: () => void }) {
   return (
-    <label className="relative flex items-center mt-0.5 shrink-0 cursor-pointer">
+    <label className="relative flex h-7 w-7 -m-1.5 items-center justify-center shrink-0 cursor-pointer">
       <input
         type="checkbox"
         checked={checked}
@@ -155,75 +155,92 @@ export default function VaultSidebarTasks({ onFileSelect }: VaultSidebarTasksPro
   const noMatches = !isEmpty && tasks.length === 0;
 
   return (
-    <div className="flex flex-col h-full min-h-0">
-      <div className="flex items-center justify-between gap-2 px-3 pt-2">
-        <div className="relative flex-1 min-w-0">
-          <HiOutlineSearch size={13} className="absolute left-2 top-1/2 -translate-y-1/2 text-stone pointer-events-none" />
+    <div className="flex flex-col h-full min-h-0 bg-paper-pale/40 dark:bg-paper-dark/30">
+      <div className="shrink-0 border-b border-beige/70 px-3 pt-3 pb-2.5 dark:border-clay/40">
+        <div className="flex items-center justify-between gap-3 mb-2.5">
+          <div className="flex min-w-0 items-baseline gap-2">
+            <h2 className="text-ui-subhead font-semibold text-ink-light dark:text-ink-dark">Tasks</h2>
+            <span className="text-ui-footnote tabular-nums text-ink-muted dark:text-stone">{allTasks.length}</span>
+          </div>
+          <div className="flex items-center rounded-lg border border-beige/70 bg-paper-softgray/70 p-0.5 dark:border-clay/50 dark:bg-paper-dark-surface/60">
+            <button
+              type="button"
+              title="Group by status"
+              aria-label="Group by status"
+              aria-pressed={groupBy === "status"}
+              onClick={() => setGroupBy("status")}
+              className={`flex h-6 w-7 items-center justify-center rounded-md transition-colors ${groupBy === "status" ? "bg-paper-light text-sage shadow-sm dark:bg-paper-dark-surface dark:text-sage" : "text-ink-muted hover:text-ink-light dark:text-stone dark:hover:text-ink-dark"
+                }`}
+            >
+              <HiOutlineViewList size={14} />
+            </button>
+            <button
+              type="button"
+              title="Group by file"
+              aria-label="Group by file"
+              aria-pressed={groupBy === "file"}
+              onClick={() => setGroupBy("file")}
+              className={`flex h-6 w-7 items-center justify-center rounded-md transition-colors ${groupBy === "file" ? "bg-paper-light text-sage shadow-sm dark:bg-paper-dark-surface dark:text-sage" : "text-ink-muted hover:text-ink-light dark:text-stone dark:hover:text-ink-dark"
+                }`}
+            >
+              <HiOutlineDocumentText size={14} />
+            </button>
+          </div>
+        </div>
+        <div className="relative">
+          <HiOutlineSearch size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-stone pointer-events-none" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Filter tasks..."
-            className="w-full pl-6 pr-2 py-1 text-ui-caption rounded-md bg-paper-softgray dark:bg-paper-dark-surface/50 text-ink-light dark:text-ink-dark placeholder:text-stone outline-none focus-visible:ring-2 focus-visible:ring-sage/30"
+            className="h-8 w-full rounded-lg border border-beige/70 bg-paper-light pl-8 pr-2 text-ui-caption text-ink-light outline-none placeholder:text-stone focus:border-sage/60 focus:ring-2 focus:ring-sage/15 dark:border-clay/50 dark:bg-paper-dark-surface dark:text-ink-dark"
           />
-        </div>
-        <div className="flex items-center rounded-md bg-paper-softgray dark:bg-paper-dark-surface/50 p-0.5 shrink-0">
-          <button
-            type="button"
-            title="Group by status"
-            onClick={() => setGroupBy("status")}
-            className={`flex items-center justify-center w-6 h-6 rounded transition-colors ${groupBy === "status" ? "bg-paper-light dark:bg-paper-dark-surface shadow-sm text-ink-light dark:text-ink-dark" : "text-ink-muted dark:text-stone opacity-60 hover:opacity-100"
-              }`}
-          >
-            <HiOutlineViewList size={14} />
-          </button>
-          <button
-            type="button"
-            title="Group by file"
-            onClick={() => setGroupBy("file")}
-            className={`flex items-center justify-center w-6 h-6 rounded transition-colors ${groupBy === "file" ? "bg-paper-light dark:bg-paper-dark-surface shadow-sm text-ink-light dark:text-ink-dark" : "text-ink-muted dark:text-stone opacity-60 hover:opacity-100"
-              }`}
-          >
-            <HiOutlineDocumentText size={14} />
-          </button>
         </div>
       </div>
 
-      <div className="flex flex-wrap items-center gap-1 px-3 pt-2">
-        <SelectControl value={dueFilter} onChange={(v) => setDueFilter(v as TaskDueFilter)} size="sm" fullWidth={false}>
-          {DUE_FILTER_OPTIONS.map((opt) => (
-            <option key={opt.value} value={opt.value}>
-              {opt.label}
-            </option>
-          ))}
-        </SelectControl>
-        {allTags.map((tag) => (
-          <button
-            key={tag}
-            type="button"
-            onClick={() => toggleTagFilter(tag)}
-            className={`text-ui-footnote px-2 py-1 rounded-full border transition-colors ${
-              tagFilter.includes(tag)
-                ? "bg-sage/15 border-sage text-sage"
-                : "bg-transparent border-beige dark:border-clay text-ink-muted dark:text-stone hover:border-sage hover:text-sage"
-            }`}
-          >
-            #{tag}
-          </button>
-        ))}
-        {hasActiveFilters && (
+      <div className="shrink-0 border-b border-beige/70 px-3 py-2 dark:border-clay/40">
+        <div className="flex items-center justify-between gap-2">
+          <SelectControl value={dueFilter} onChange={(v) => setDueFilter(v as TaskDueFilter)} size="sm" fullWidth={false}>
+            {DUE_FILTER_OPTIONS.map((opt) => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
+              </option>
+            ))}
+          </SelectControl>
+          {hasActiveFilters && (
           <button
             type="button"
             onClick={clearFilters}
-            className="flex items-center gap-0.5 text-ui-footnote px-1.5 py-1 text-ink-muted dark:text-stone hover:text-ink-light dark:hover:text-ink-dark transition-colors"
+            className="flex items-center gap-1 rounded-md px-1.5 py-1 text-ui-footnote text-ink-muted transition-colors hover:bg-paper-softgray hover:text-ink-light dark:text-stone dark:hover:bg-paper-dark-surface dark:hover:text-ink-dark"
           >
             <HiX size={11} />
             Clear
           </button>
+          )}
+        </div>
+        {allTags.length > 0 && (
+          <div className="mt-2 flex max-h-16 flex-wrap gap-1 overflow-y-auto custom-scrollbar">
+            {allTags.map((tag) => (
+              <button
+                key={tag}
+                type="button"
+                aria-pressed={tagFilter.includes(tag)}
+                onClick={() => toggleTagFilter(tag)}
+                className={`rounded-md border px-1.5 py-0.5 text-ui-footnote transition-colors ${
+                  tagFilter.includes(tag)
+                    ? "border-sage/60 bg-sage/15 text-sage"
+                    : "border-beige/70 bg-transparent text-ink-muted hover:border-sage/60 hover:text-sage dark:border-clay/50 dark:text-stone"
+                }`}
+              >
+                #{tag}
+              </button>
+            ))}
+          </div>
         )}
       </div>
 
-      <div className="flex-1 overflow-y-auto space-y-3 px-2 pt-2 pb-2 custom-scrollbar">
+      <div className="flex-1 overflow-y-auto space-y-4 px-2.5 pt-3 pb-3 custom-scrollbar">
         {isEmpty && (
           <div className="px-3 py-6 text-ui-footnote italic opacity-40 text-center">
             <HiOutlineCheckCircle size={20} className="mx-auto mb-1 opacity-60" />
@@ -240,10 +257,10 @@ export default function VaultSidebarTasks({ onFileSelect }: VaultSidebarTasksPro
                 <button
                   type="button"
                   onClick={() => toggleCollapsed(g)}
-                  className="flex items-center gap-1 w-full px-3 pb-1 text-ui-footnote font-medium uppercase tracking-wide text-ink-muted dark:text-stone opacity-60 hover:opacity-100 transition-opacity"
+                  className="flex w-full items-center gap-1.5 px-2 pb-1.5 text-left text-ui-footnote font-semibold uppercase tracking-wide text-ink-muted transition-opacity hover:text-ink-light dark:text-stone dark:hover:text-ink-dark"
                 >
                   {collapsed[g] ? <HiChevronRight size={12} /> : <HiChevronDown size={12} />}
-                  <span className={`w-1.5 h-1.5 rounded-full ${GROUP_ACCENT[g].dot}`} />
+                  <span className={`h-1.5 w-1.5 rounded-full shadow-[0_0_0_2px_rgba(255,255,255,0.45)] dark:shadow-[0_0_0_2px_rgba(42,38,34,0.6)] ${GROUP_ACCENT[g].dot}`} />
                   {GROUP_LABEL[g]}
                   <span className="font-normal normal-case opacity-70">({statusGroups[g].length})</span>
                 </button>
@@ -269,7 +286,7 @@ export default function VaultSidebarTasks({ onFileSelect }: VaultSidebarTasksPro
               <button
                 type="button"
                 onClick={() => toggleCollapsedFile(path)}
-                className="flex items-center gap-1 w-full px-3 pb-1 text-ui-footnote font-medium text-ink-muted dark:text-stone opacity-60 hover:opacity-100 transition-opacity"
+                className="flex w-full items-center gap-1.5 px-2 pb-1.5 text-left text-ui-footnote font-semibold text-ink-muted hover:text-ink-light dark:text-stone dark:hover:text-ink-dark"
               >
                 {collapsedFiles[path] ? <HiChevronRight size={12} /> : <HiChevronDown size={12} />}
                 <span className="truncate">{noteTitle(path)}</span>
@@ -315,9 +332,9 @@ function TaskRow({
 }) {
   const due = task.dueDate ? formatDueDate(task.dueDate, task.checked) : null;
   return (
-    <div className="group flex items-start gap-2 px-3 py-1.5 rounded-md hover:bg-paper-softgray dark:hover:bg-paper-dark-surface/50 transition-colors">
+    <div className="group flex items-start gap-2 rounded-lg border border-transparent px-2.5 py-2 transition-colors hover:border-beige/70 hover:bg-paper-light dark:hover:border-clay/50 dark:hover:bg-paper-dark-surface/70">
       <TaskCheckbox checked={task.checked} onChange={onToggle} />
-      <div className="min-w-0 flex-1 cursor-pointer" onClick={onNavigate}>
+      <button type="button" className="min-w-0 flex-1 cursor-pointer text-left" onClick={onNavigate}>
         <div
           className={`text-ui-caption truncate ${task.checked ? "line-through opacity-50" : "text-ink-light dark:text-ink-dark"
             }`}
@@ -335,7 +352,7 @@ function TaskRow({
             ))}
           </div>
         )}
-      </div>
+      </button>
     </div>
   );
 }

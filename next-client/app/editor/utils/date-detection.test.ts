@@ -13,13 +13,14 @@ describe("findDateAtPos", () => {
     const match = findDateAtPos(text, text.indexOf(value) + 2);
 
     expect(match).not.toBeNull();
+    if (!match) throw new Error(`Failed to detect date: ${value}`);
     expect(match).toMatchObject({ format, rawString: value, start: 5, end: 5 + value.length });
     if (format === "iso" || format === "wiki") {
-      expect(match?.date.toISOString().slice(0, 10)).toBe(
+      expect(match.date.toISOString().slice(0, 10)).toBe(
         `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`,
       );
     } else {
-      expect([match?.date.getFullYear(), match?.date.getMonth() + 1, match?.date.getDate()]).toEqual([
+      expect([match.date.getFullYear(), match.date.getMonth() + 1, match.date.getDate()]).toEqual([
         year,
         month,
         day,

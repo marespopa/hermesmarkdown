@@ -1,11 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { parseTable } from "./tableParser";
+import type { TableData } from "./tableParser";
 import { serializeTable } from "./tableSerializer";
 
-const data = {
+const data: TableData = {
   headers: ["Name", "Age"],
   rows: [["Ada", "36"], ["Lin", "8"]],
-  alignments: ["left", "right"] as const,
+  alignments: ["left", "right"],
 };
 
 describe("serializeTable", () => {
