@@ -733,12 +733,8 @@ export default function LandingPage() {
               <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">
                 scope
               </code>{" "}
-              fields, suggest{" "}
-              <code className="text-[0.8em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">
-                related
-              </code>{" "}
-              links, and improve your writing inline. Your keys stay in your
-              browser — we never see them or proxy your requests.
+              fields and improve your writing inline. Your key is stored in
+              your browser and never logged or saved on our servers.
             </p>
           </div>
         </section>
