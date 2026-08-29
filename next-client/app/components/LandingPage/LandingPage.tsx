@@ -3,7 +3,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useAtomValue } from "jotai";
+import { useAtom, useAtomValue } from "jotai";
 import { atom_hasOpenFileContent, atom_userName } from "@/app/atoms/atoms";
 import LoadingOverlay from "@/app/components/LoadingOverlay/LoadingOverlay";
 import Button from "@/app/components/Button/Button.component";
@@ -399,7 +399,10 @@ That's HermesMarkdown: a plain-text writing surface, local-first by default, wit
 export default function LandingPage() {
   const router = useRouter();
   const hasOpenFileContent = useAtomValue(atom_hasOpenFileContent);
-  const userName = useAtomValue(atom_userName);
+  const [userName, setUserName] = useAtom(atom_userName);
+  // Draft for the resume toast's inline name field — only committed to
+  // atom_userName when the user actually resumes, not on every keystroke.
+  const [nameDraft, setNameDraft] = useState("");
   const [demoContent, setDemoContent] = useState(DEFAULT_DEMO_CONTENT);
   const [showLoading, setShowLoading] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
@@ -447,6 +450,7 @@ export default function LandingPage() {
   }, [router]);
 
   const handleStart = () => {
+    if (!userName.trim() && nameDraft.trim()) setUserName(nameDraft.trim());
     setShowLoading(true);
     router.push("/editor");
   };
@@ -481,6 +485,11 @@ export default function LandingPage() {
         description="You have a draft waiting in your local vault."
         actionLabel="Resume"
         onAction={handleStart}
+        {...(!userName.trim() && {
+          nameValue: nameDraft,
+          onNameChange: setNameDraft,
+          namePlaceholder: "What should we call you?",
+        })}
       />
 
       {/* --- HERO SECTION --- */}
