@@ -34,6 +34,10 @@ export const atom_openFiles = atomWithStorage<Record<string, FileState>>(
   },
 );
 
+export const atom_hasOpenFileContent = atom((get) =>
+  Object.values(get(atom_openFiles)).some((file) => file.content.trim().length > 0),
+);
+
 // Non-persisted file handles (indexed by path)
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export const atom_liveHandles = atomFamily((path: string) =>

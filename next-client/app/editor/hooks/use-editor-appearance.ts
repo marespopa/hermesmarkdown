@@ -5,9 +5,9 @@ import { useAtomValue } from "jotai";
 import {
   atom_editorWidth,
   atom_editorContentWidth,
+  atom_editorFontFamily,
   atom_lineHeight,
   atom_renderedFontSize,
-  MONO_FONT_STACK,
 } from "@/app/atoms/atoms";
 
 // Breakpoints below are keyed off the *pane's* own width (measured via
@@ -15,11 +15,17 @@ import {
 // to the whole viewport, so with the vault sidebar open (or in a split pane)
 // the editor kept centering its max-width column as if it had the full
 // window to itself, leaving an oversized, sidebar-unaware margin.
+
+// Max-width per preset at the md (>=768) and xl (>=1280) pane breakpoints.
+// Narrow is handled separately below since it doesn't grow past 600 at xl.
+const PRESET_MAX_WIDTHS: Record<"standard" | "medium" | "wide", { md: number; xl: number }> = {
+  standard: { md: 760, xl: 860 },
+  medium: { md: 960, xl: 1060 },
+  wide: { md: 1160, xl: 1260 },
+};
+
 export function useEditorAppearance(isSplit = false) {
-  // Source's font family is fixed monospace, not user-configurable — see
-  // MONO_FONT_STACK's comment in ui-atoms.ts. Size and line-height still
-  // follow the shared Settings controls.
-  const fontFamily = MONO_FONT_STACK;
+  const fontFamily = useAtomValue(atom_editorFontFamily);
   const fontSize = useAtomValue(atom_renderedFontSize);
   const editorWidth = useAtomValue(atom_editorWidth);
   const editorContentWidth = useAtomValue(atom_editorContentWidth);
@@ -59,10 +65,12 @@ export function useEditorAppearance(isSplit = false) {
     if (editorContentWidth !== null && paneWidth >= 768) {
       return editorContentWidth;
     }
-    if (paneWidth >= 1280) return 860;
-    if (paneWidth >= 768) return 760;
+    const preset = PRESET_MAX_WIDTHS[editorWidth];
+    if (paneWidth >= 1280) return preset.xl;
+    if (paneWidth >= 768) return preset.md;
     return undefined;
   }, [editorContentWidth, editorWidth, paneWidth]);
+
 
   // A split pane can be narrower than the md breakpoint while the window
   // itself is still wide, so it keeps the sm padding at every width instead

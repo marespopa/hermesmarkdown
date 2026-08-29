@@ -2,6 +2,7 @@ import { createStore, getDefaultStore } from "jotai";
 import { describe, it, expect, beforeEach } from "vitest";
 import {
   atom_openFiles,
+  atom_hasOpenFileContent,
   atom_fileContent,
   atom_content,
   atom_workspaceLayout,
@@ -24,6 +25,14 @@ describe("file-atoms", () => {
     expect(openFiles).toHaveProperty("draft");
     expect(openFiles.draft.fileName).toBe("untitled");
     expect(openFiles.draft.content).toBe("");
+  });
+
+  it("detects content in any persisted open file", () => {
+    expect(store.get(atom_hasOpenFileContent)).toBe(false);
+
+    store.set(atom_fileContent("notes/idea.md"), "A saved idea");
+
+    expect(store.get(atom_hasOpenFileContent)).toBe(true);
   });
 
   it("should update file content via atom_fileContent family", () => {

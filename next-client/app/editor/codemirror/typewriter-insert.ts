@@ -1,15 +1,10 @@
 import type { EditorView } from "@codemirror/view";
 import { EditorSelection } from "@codemirror/state";
 
-// CM6 port of utils/typewriter-insert.ts — reveals `text` into the editor a
-// few characters at a time instead of all at once, mirroring the effect
-// VoicePreviewPanel uses in its own (isolated, cheap) preview box.
-//
-// The original textarea version used execCommand("insertText", ...) per
-// chunk specifically so each one landed on the browser's native undo stack.
-// CM6 has its own history() — each dispatched chunk here is tagged with the
-// same userEvent ("input.type") so CM6's history groups them into one undo
-// step, same practical effect via the CM6-native mechanism instead.
+// Reveals `text` into the editor a few characters at a time instead of all
+// at once, mirroring the effect VoicePreviewPanel uses in its own (isolated,
+// cheap) preview box. Each dispatched chunk is tagged with the same
+// userEvent ("input.type") so CM6's history() groups them into one undo step.
 export function typewriterInsertCM6(
   view: EditorView,
   text: string,

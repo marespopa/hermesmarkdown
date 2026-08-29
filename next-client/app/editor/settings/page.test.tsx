@@ -24,6 +24,7 @@ vi.mock("@/app/atoms/atoms", async (importOriginal) => {
   return {
     ...actual,
     atom_editorWidth: { toString: () => "atom_editorWidth" },
+    atom_editorFontFamily: { toString: () => "atom_editorFontFamily" },
     atom_lineHeight: { toString: () => "atom_lineHeight" },
     atom_theme: { toString: () => "atom_theme" },
     atom_autosaveMode: { toString: () => "atom_autosaveMode" },
@@ -62,17 +63,29 @@ describe("SettingsPage", () => {
   it("renders typography controls on the default tab", () => {
     render(<SettingsPage />);
     // Typography is the default-active section — no nav click needed.
-    // Font/Text Size/Line Height are now single shared controls, no Source split.
+    // Font/Text Size/Line Height are now single shared controls.
     expect(screen.getByText("Font")).toBeInTheDocument();
     expect(screen.getByText("Text Size")).toBeInTheDocument();
     expect(screen.getByText("Line Height")).toBeInTheDocument();
     expect(screen.queryByText("Letter Spacing")).not.toBeInTheDocument();
     expect(screen.queryByText("Loose")).not.toBeInTheDocument();
-    expect(screen.getByText("Relaxed")).toBeInTheDocument();
-    // Source view's font is fixed monospace, not a picker anymore.
-    expect(screen.queryByText("Source Font")).not.toBeInTheDocument();
-    expect(screen.queryByText(/fixed monospace font/i)).toBeInTheDocument();
+    expect(screen.getByText("2.0")).toBeInTheDocument();
+    expect(screen.getByText("Monospace")).toBeInTheDocument();
+    expect(screen.getByText("Sans-serif")).toBeInTheDocument();
+    expect(screen.getByText("Serif")).toBeInTheDocument();
     expect(screen.getAllByText("IBM Plex Mono").length).toBeGreaterThanOrEqual(1);
+  });
+
+  it("calls the source font setter when a generic font is selected", () => {
+    const setEditorFontFamily = vi.fn();
+    (useAtom as any).mockImplementation((atom: any) => {
+      if (atom.toString() === "atom_editorFontFamily") return ["ui-monospace, monospace", setEditorFontFamily];
+      return ["", vi.fn()];
+    });
+
+    render(<SettingsPage />);
+    fireEvent.click(screen.getByText("Sans-serif"));
+    expect(setEditorFontFamily).toHaveBeenCalledWith("ui-sans-serif, sans-serif");
   });
 
   it("calls setter when line height option is clicked", () => {
@@ -84,7 +97,7 @@ describe("SettingsPage", () => {
     });
 
     render(<SettingsPage />);
-    fireEvent.click(screen.getByText("Relaxed"));
+    fireEvent.click(screen.getByText("2.0"));
     expect(setLineHeight).toHaveBeenCalledWith("2.0");
   });
 
@@ -102,6 +115,8 @@ describe("SettingsPage", () => {
     expect(screen.getByText("Editor Width")).toBeInTheDocument();
     expect(screen.getAllByText("Standard").length).toBeGreaterThanOrEqual(1);
     expect(screen.getByText("Narrow")).toBeInTheDocument();
+    expect(screen.getByText("Medium")).toBeInTheDocument();
+    expect(screen.getByText("Wide")).toBeInTheDocument();
     expect(screen.getByText("Delay")).toBeInTheDocument();
   });
 

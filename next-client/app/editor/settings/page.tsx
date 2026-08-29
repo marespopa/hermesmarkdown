@@ -5,6 +5,7 @@ import { useAtom, useAtomValue } from "jotai";
 import { useRouter } from "next/navigation";
 import {
   atom_wordWrap,
+  atom_editorFontFamily,
   atom_lineHeight,
   atom_theme,
   type Theme,
@@ -18,7 +19,7 @@ import {
   atom_claudeKey,
   atom_geminiKey,
 } from "@/app/atoms/atoms";
-import { atom_availableGeminiModels, atom_availableClaudeModels, atom_lineNumbers, atom_showHiddenFiles, atom_tabsBarVisibleByDefault, atom_renderedFontFamily, atom_renderedFontSize } from "@/app/atoms/ui-atoms";
+import { atom_availableGeminiModels, atom_availableClaudeModels, atom_lineNumbers, atom_showHiddenFiles, atom_tabsBarVisibleByDefault, atom_renderedFontSize } from "@/app/atoms/ui-atoms";
 import { useFileSystem } from "@/app/hooks/use-file-system";
 import { testAIConnection, fetchGeminiModels, fetchClaudeModels } from "@/app/services/ai";
 import {
@@ -54,7 +55,7 @@ const SettingsPage = () => {
   const [frontmatterDefaultMode, setFrontmatterDefaultMode] = useAtom(atom_frontmatterDefaultMode);
   const [showHiddenFiles, setShowHiddenFiles] = useAtom(atom_showHiddenFiles);
   const [tabsBarVisibleByDefault, setTabsBarVisibleByDefault] = useAtom(atom_tabsBarVisibleByDefault);
-  const [renderedFontFamily, setRenderedFontFamily] = useAtom(atom_renderedFontFamily);
+  const [editorFontFamily, setEditorFontFamily] = useAtom(atom_editorFontFamily);
   const [renderedFontSize, setRenderedFontSize] = useAtom(atom_renderedFontSize);
   const { scanVault, indexVaultTags, vaultHandle: fsVaultHandle } = useFileSystem();
 
@@ -140,8 +141,10 @@ const SettingsPage = () => {
   };
 
   const widthOptions = [
-    { label: "Standard", value: "standard" },
     { label: "Narrow", value: "narrow" },
+    { label: "Standard", value: "standard" },
+    { label: "Medium", value: "medium" },
+    { label: "Wide", value: "wide" },
   ];
 
   const THEME_OPTIONS: { label: string; value: Theme }[] = [
@@ -210,9 +213,9 @@ const SettingsPage = () => {
           <SettingGroup title="Typography">
             <SettingItem
               label="Font"
-              description="Used for the editor's reading typography. Source text remains fixed-width so markdown syntax stays aligned while you write."
+              description="Used by the source editor. System fonts fall back to their matching generic family when unavailable."
               layout="stack"
-              control={<FontPicker fonts={FONTS} value={renderedFontFamily} onChange={setRenderedFontFamily} />}
+              control={<FontPicker fonts={FONTS} value={editorFontFamily} onChange={setEditorFontFamily} />}
             />
             <SettingItem
               label="Text Size"

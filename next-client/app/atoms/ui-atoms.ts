@@ -19,17 +19,17 @@ clearLegacyPaneModePreference();
 export const atom_theme = atomWithStorage<Theme>("theme", "system");
 export const atom_wordWrap = atomWithStorage<boolean>("wordWrap", true);
 export const atom_lineNumbers = atomWithStorage<boolean>("lineNumbers", true);
-// Source view's font is fixed, not user-configurable — raw markdown syntax
-// (`#`, `*`, `[[wikilink]]`) needs a monospace face to stay honestly aligned,
-// and letting it drift from monospace would desync the transparent textarea
-// from the highlighted <pre> overlay in react-simple-code-editor.
 export const MONO_FONT_STACK = "var(--font-ibm-mono), ui-monospace, monospace";
+export const atom_editorFontFamily = atomWithStorage<string>(
+  "editorFontFamily",
+  MONO_FONT_STACK,
+);
 export const atom_lineHeight = atomWithStorage<string>(
   "editorLineHeight",
   "1.8",
 );
-// Primary "everywhere" font/size — drives Rendered, and Source's size (Source's
-// family stays fixed to MONO_FONT_STACK above). See plans/hermes-design.md > Typography.
+// Primary reading font and size. Source-editor typography has its own persisted
+// font-family preference above.
 export const RENDERED_FONT_STACK = "var(--font-literata), Georgia, ui-serif, serif";
 export const atom_renderedFontFamily = atomWithStorage<string>(
   "renderedFontFamily",
@@ -69,10 +69,9 @@ export const atom_autosaveDelay = atomWithStorage<number>(
   "autosaveDelay",
   2000,
 );
-export const atom_editorWidth = atomWithStorage<"standard" | "narrow">(
-  "editorWidth",
-  "standard",
-);
+export const atom_editorWidth = atomWithStorage<
+  "narrow" | "standard" | "medium" | "wide"
+>("editorWidth", "standard");
 export const atom_editorContentWidth = atomWithStorage<number | null>(
   "editorContentWidth",
   null,
