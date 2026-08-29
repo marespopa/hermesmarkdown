@@ -9,6 +9,7 @@ import {
   HiOutlineDocumentText,
   HiOutlineViewList,
   HiOutlineSearch,
+  HiOutlineArrowsExpand,
   HiX,
 } from "react-icons/hi";
 import {
@@ -28,6 +29,8 @@ import { SelectControl } from "@/app/editor/settings/components/SettingControls"
 
 interface VaultSidebarTasksProps {
   onFileSelect: (handle: FileSystemFileHandle, path: string, line: number) => void;
+  /** Shown only by the desktop rail panel, to open the same list in a bigger overlay. */
+  onExpand?: () => void;
 }
 
 type Group = "todo" | "prog" | "hold" | "done";
@@ -87,7 +90,7 @@ function TaskCheckbox({ checked, onChange }: { checked: boolean; onChange: () =>
   );
 }
 
-export default function VaultSidebarTasks({ onFileSelect }: VaultSidebarTasksProps) {
+export default function VaultSidebarTasks({ onFileSelect, onExpand }: VaultSidebarTasksProps) {
   const allTasks = useAtomValue(atom_allTasks);
   const tasks = useAtomValue(atom_filteredTasks);
   const allTags = useAtomValue(atom_allTaskTags);
@@ -162,6 +165,18 @@ export default function VaultSidebarTasks({ onFileSelect }: VaultSidebarTasksPro
             <h2 className="text-ui-subhead font-semibold text-ink-light dark:text-ink-dark">Tasks</h2>
             <span className="text-ui-footnote tabular-nums text-ink-muted dark:text-stone">{allTasks.length}</span>
           </div>
+          <div className="flex items-center gap-1.5 shrink-0">
+          {onExpand && (
+            <button
+              type="button"
+              title="Expand tasks"
+              aria-label="Expand tasks"
+              onClick={onExpand}
+              className="flex h-6 w-6 items-center justify-center rounded-md text-ink-muted hover:text-ink-light hover:bg-paper-softgray dark:text-stone dark:hover:text-ink-dark dark:hover:bg-paper-dark-surface transition-colors"
+            >
+              <HiOutlineArrowsExpand size={14} />
+            </button>
+          )}
           <div className="flex items-center rounded-lg border border-beige/70 bg-paper-softgray/70 p-0.5 dark:border-clay/50 dark:bg-paper-dark-surface/60">
             <button
               type="button"
@@ -185,6 +200,7 @@ export default function VaultSidebarTasks({ onFileSelect }: VaultSidebarTasksPro
             >
               <HiOutlineDocumentText size={14} />
             </button>
+          </div>
           </div>
         </div>
         <div className="relative">

@@ -22,6 +22,7 @@ import { atom_railPanel, atom_newVaultFlowOpen, atom_pendingScrollTarget, atom_s
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import SmartFolders from "./SmartFolders";
 import VaultSidebarTasks from "./VaultSidebarTasks";
+import DesktopTasksOverlay from "./DesktopTasksOverlay";
 import VaultSidebarTags from "./VaultSidebarTags";
 import { useSidebarSearch } from "../hooks/useSidebarSearch";
 import VaultSidebarEmpty from "./VaultSidebarEmpty";
@@ -107,6 +108,7 @@ export default function VaultSidebar({
   const [isResizing, setIsResizing] = useAtom(atom_isSidebarResizing);
 
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [isTasksExpanded, setIsTasksExpanded] = useState(false);
 
   const {
     searchQuery,
@@ -277,7 +279,9 @@ export default function VaultSidebar({
                 setPendingScrollTarget({ path, line });
                 if (onClose && window.innerWidth < 1024) onClose();
               }}
+              onExpand={() => setIsTasksExpanded(true)}
             />
+            <DesktopTasksOverlay isOpen={isTasksExpanded} onClose={() => setIsTasksExpanded(false)} />
           </div>
         ) : (
           <div className="flex flex-col h-full overflow-hidden">
