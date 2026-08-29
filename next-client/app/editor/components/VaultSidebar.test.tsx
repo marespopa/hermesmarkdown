@@ -56,6 +56,8 @@ vi.mock("next/navigation", () => ({
 
 import { useFileSystem } from "@/app/hooks/use-file-system";
 import { useAtomValue, useAtom } from "jotai";
+import { atom_userName } from "@/app/atoms/ui-atoms";
+import { atom_vaultFiles } from "@/app/atoms/vault-atoms";
 
 describe("VaultSidebar Component", () => {
   const mockOnClose = vi.fn();
@@ -88,6 +90,7 @@ describe("VaultSidebar Component", () => {
     (useFileSystem as any).mockReturnValue(mockFileSystem);
 
     (useAtomValue as any).mockImplementation((atom: any) => {
+      if (atom === atom_userName) return "Ada";
       const str = atom.toString();
       if (str === "atom_fileMetadata") {
         return {
@@ -128,6 +131,24 @@ describe("VaultSidebar Component", () => {
   it("renders vault name", () => {
     render(<VaultSidebar panel="search" onClose={mockOnClose} />);
     expect(screen.getByText("My Vault")).toBeInTheDocument();
+  });
+
+  it("greets the user in the Files panel", () => {
+    render(<VaultSidebar panel="files" onClose={mockOnClose} />);
+    expect(screen.getByText("Welcome back, Ada")).toBeInTheDocument();
+  });
+
+  it("does not render an empty greeting", () => {
+    (useAtomValue as any).mockImplementation((atom: any) => {
+      if (atom === atom_userName) return "";
+      if (atom === atom_vaultFiles) return [];
+      if (atom.toString() === "atom_fileMetadata") return {};
+      if (atom.toString() === "atom_indexerState") return "idle";
+      return {};
+    });
+
+    render(<VaultSidebar panel="files" onClose={mockOnClose} />);
+    expect(screen.queryByText(/Welcome back,/)).not.toBeInTheDocument();
   });
 
   it("renders file without .md extension", async () => {

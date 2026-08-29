@@ -52,6 +52,7 @@ export default function Toast({
         <Button
           variant="primary"
           onClick={onAction}
+          tabIndex={1}
           className="h-9 px-4 !text-ui-footnote shrink-0"
         >
           {actionLabel}
@@ -60,6 +61,7 @@ export default function Toast({
           type="button"
           onClick={dismiss}
           aria-label="Dismiss"
+          tabIndex={2}
           className="shrink-0 w-6 h-6 flex items-center justify-center rounded-full text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300 hover:bg-black/5 dark:hover:bg-white/10 hover:scale-110 active:scale-90 transition-all duration-150"
         >
           <FiX size={14} />

@@ -6,6 +6,7 @@ import {
   atom_hasCompletedOnboarding,
   atom_isWizardOpen,
   atom_welcomeWizardStep,
+    atom_userName,
   atom_autosaveMode,
   atom_frontmatterDefaultMode,
   atom_theme,
@@ -61,6 +62,7 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
   const [hasCompleted, setHasCompleted] = useAtom(atom_hasCompletedOnboarding);
   const [isWizardOpen, setIsWizardOpen] = useAtom(atom_isWizardOpen);
   const [step, setStep] = useAtom(atom_welcomeWizardStep);
+  const [userName, setUserName] = useAtom(atom_userName);
   const [isMounted, setIsMounted] = useState(false);
 
   const { openVault, isVaultSupported } = useFileSystem();
@@ -77,6 +79,7 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
   const [claudeKey, setClaudeKey] = useAtom(atom_claudeKey);
   const [geminiKey, setGeminiKey] = useAtom(atom_geminiKey);
   const [isTestingConnection, setIsTestingConnection] = useState(false);
+  const [isConnectionSuccessful, setIsConnectionSuccessful] = useState(false);
   const isMobileChrome = useIsMobileChrome();
 
   useEffect(() => {
@@ -126,7 +129,26 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
                 Plain <code className="text-[0.85em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">.md</code> files, structured so your AI agents know exactly what to read.
               </p>
             </div>
-            <Button variant="primary" onClick={() => setStep(1)} className="w-full h-12 rounded-2xl text-ui-footnote font-bold">
+              <div className="w-full space-y-2 text-left">
+                <label htmlFor="welcome-user-name" className="text-[11px] font-bold uppercase tracking-wider ml-1 opacity-70 block">
+                  What should we call you?
+                </label>
+                <Input
+                  name="welcome-user-name"
+                  value={userName}
+                  handleChange={(event) => setUserName(event.target.value)}
+                  placeholder="Your name"
+                />
+              </div>
+              <Button
+                variant="primary"
+                onClick={() => {
+                  setUserName(userName.trim());
+                  setStep(1);
+                }}
+                disabled={!userName.trim()}
+                className="w-full h-12 rounded-2xl text-ui-footnote font-bold"
+              >
               Set up vault
             </Button>
           </div>
@@ -367,7 +389,13 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
             <div className="w-full rounded-2xl border border-edge p-3.5 space-y-2.5 bg-paper-softgray/40 dark:bg-paper-dark/30 text-left">
               <div className="space-y-1.5">
                 <label className="text-[11px] font-bold uppercase tracking-wider ml-1 opacity-70 block">Provider</label>
-                <SelectControl value={aiProvider} onChange={(v) => setAiProvider(v as any)}>
+                <SelectControl
+                  value={aiProvider}
+                  onChange={(value) => {
+                    setAiProvider(value as typeof aiProvider);
+                    setIsConnectionSuccessful(false);
+                  }}
+                >
                   <option value="claude">Claude (Anthropic)</option>
                   <option value="gemini">Gemini (Google)</option>
                 </SelectControl>
@@ -378,24 +406,38 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
                   name="welcome-ai-key"
                   type="password"
                   value={key}
-                  handleChange={(e) => setKey(e.target.value)}
+                  handleChange={(event) => {
+                    setKey(event.target.value);
+                    setIsConnectionSuccessful(false);
+                  }}
                   placeholder={aiProvider === "gemini" ? "AIza..." : "sk-ant-..."}
                 />
               </div>
-              <Button
-                variant="secondary"
-                disabled={!key.trim() || isTestingConnection}
-                onClick={async () => {
-                  setIsTestingConnection(true);
-                  const result = await testAIConnection(aiProvider, key.trim());
-                  setIsTestingConnection(false);
-                  if (result.success) showSuccessToast("Connection successful.");
-                  else showErrorToast(result.error || "Connection failed.");
-                }}
-                className="w-full h-9 rounded-xl text-ui-footnote font-semibold"
-              >
-                {isTestingConnection ? "Testing…" : "Test Connection"}
-              </Button>
+              {isConnectionSuccessful ? (
+                <div className="w-full h-9 rounded-xl bg-sage/10 text-sage flex items-center justify-center gap-1.5 text-ui-footnote font-semibold" role="status">
+                  <HiOutlineCheckCircle size={17} />
+                  Connection successful.
+                </div>
+              ) : (
+                <Button
+                  variant="secondary"
+                  disabled={!key.trim() || isTestingConnection}
+                  onClick={async () => {
+                    setIsTestingConnection(true);
+                    const result = await testAIConnection(aiProvider, key.trim());
+                    setIsTestingConnection(false);
+                    if (result.success) {
+                      setIsConnectionSuccessful(true);
+                      showSuccessToast("Connection successful.");
+                    } else {
+                      showErrorToast(result.error || "Connection failed.");
+                    }
+                  }}
+                  className="w-full h-9 rounded-xl text-ui-footnote font-semibold"
+                >
+                  {isTestingConnection ? "Testing…" : "Test Connection"}
+                </Button>
+              )}
             </div>
 
             <Button variant="primary" onClick={() => setStep(8)} className="w-full h-11 rounded-2xl text-ui-footnote font-bold shrink-0">

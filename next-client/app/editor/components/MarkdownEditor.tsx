@@ -199,6 +199,13 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
   const { chevrons, toggle: toggleCalloutFold, onCursorActivity: onFoldCursorActivity, onViewCreated } =
     useCodeMirrorCalloutFold({ containerRef });
 
+  // Auto-focus so typing works immediately after opening the editor, no
+  // click required. Skipped for inactive split panes.
+  const handleViewCreated = useCallback((view: EditorView) => {
+    onViewCreated(view);
+    if (props.isActivePane !== false) view.focus();
+  }, [onViewCreated, props.isActivePane]);
+
   const onCombinedCursorActivity = useCallback((view: EditorView) => {
     onCursorActivity(view);
     onTableCursorActivity(view);
@@ -223,7 +230,7 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
     wikiLinkTriggerRef,
     csvConfirmRef,
     pasteImageRef,
-    onViewCreated,
+    onViewCreated: handleViewCreated,
   });
 
   // The global voice-input hook (use-global-voice-input.ts) is a single
@@ -304,7 +311,7 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
         )}
         <div className="relative h-full">
           <label htmlFor="md-editor" className="sr-only">Markdown editor</label>
-          <div id="md-editor" ref={containerRef} className="h-full" />
+          <div id="md-editor" ref={containerRef} className="h-full" tabIndex={0} />
 
           {chevrons.map((chevron) => (
             <button

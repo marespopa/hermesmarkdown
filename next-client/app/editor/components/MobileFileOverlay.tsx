@@ -2,7 +2,7 @@
 
 import React, { useState, useCallback } from "react";
 import OverlayPanel from "@/app/components/OverlayLayer/OverlayPanel";
-import { useAtom, useSetAtom } from "jotai";
+import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { atom_activeFilePath } from "@/app/atoms/atoms";
 import { useFileSystem } from "@/app/hooks/use-file-system";
 import { useDialog } from "@/app/hooks/use-dialog";
@@ -12,7 +12,7 @@ import VaultSidebarFiles from "./VaultSidebarFiles";
 import VaultSidebarEmpty from "./VaultSidebarEmpty";
 import UnifiedSearchInput from "./UnifiedSearchInput";
 import { HiOutlineX, HiOutlineEye, HiOutlineEyeOff, HiOutlineLogout } from "react-icons/hi";
-import { atom_newVaultFlowOpen, atom_showHiddenFiles } from "@/app/atoms/ui-atoms";
+import { atom_newVaultFlowOpen, atom_showHiddenFiles, atom_userName } from "@/app/atoms/ui-atoms";
 
 export default function MobileFileOverlay({
   isOpen,
@@ -43,6 +43,7 @@ export default function MobileFileOverlay({
   const [activeFilePath, setActiveFilePath] = useAtom(atom_activeFilePath);
   const setNewVaultFlowOpen = useSetAtom(atom_newVaultFlowOpen);
   const [showHiddenFiles, setShowHiddenFiles] = useAtom(atom_showHiddenFiles);
+  const userName = useAtomValue(atom_userName);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [activeTab, setActiveTab] = useState<"files" | "views">("files");
   const { searchQuery, setSearchQuery, processedFiles, totalResultsCount, hasMoreResults, setShowAllResults, allFiles, tags } =
@@ -90,7 +91,10 @@ export default function MobileFileOverlay({
       panelClassName="flex-1 flex flex-col bg-surface animate-in slide-in-from-bottom duration-overlay-panel"
     >
         <div className="flex items-center justify-between px-4 py-3 border-b border-edge-subtle shrink-0">
-          <span className="text-ui-subhead font-medium text-fg">Files</span>
+          <div className="min-w-0">
+            <span className="text-ui-subhead font-medium text-fg block">Files</span>
+            {userName && <p className="text-ui-footnote text-fg-muted truncate">Welcome back, {userName}</p>}
+          </div>
           <div className="flex items-center gap-1">
             {vaultHandle && (
               <button

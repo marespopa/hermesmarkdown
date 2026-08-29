@@ -18,7 +18,7 @@ import {
   atom_isCloudVault,
   atom_splitPane,
 } from "@/app/atoms/atoms";
-import { atom_railPanel, atom_newVaultFlowOpen, atom_pendingScrollTarget, atom_showHiddenFiles, atom_isSidebarResizing, RailPanel } from "@/app/atoms/ui-atoms";
+import { atom_railPanel, atom_newVaultFlowOpen, atom_pendingScrollTarget, atom_showHiddenFiles, atom_isSidebarResizing, atom_userName, RailPanel } from "@/app/atoms/ui-atoms";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import SmartFolders from "./SmartFolders";
 import VaultSidebarTasks from "./VaultSidebarTasks";
@@ -104,6 +104,7 @@ export default function VaultSidebar({
   const [, splitPane] = useAtom(atom_splitPane);
   const [sidebarWidth, setSidebarWidth] = useAtom(atom_sidebarWidth);
   const isCloudVault = useAtomValue(atom_isCloudVault);
+  const userName = useAtomValue(atom_userName);
   const setRailPanel = useSetAtom(atom_railPanel);
   const [isResizing, setIsResizing] = useAtom(atom_isSidebarResizing);
 
@@ -187,6 +188,11 @@ export default function VaultSidebar({
 
       {/* Header */}
       <div className="p-3 flex flex-col gap-2 shrink-0">
+        {panel === "files" && userName && (
+          <p className="text-ui-footnote text-ink-muted dark:text-stone truncate">
+            Welcome back, {userName}!
+          </p>
+        )}
         <div className="flex justify-between items-center gap-2 h-11 md:h-8">
           <div className="flex items-center gap-2 min-w-0">
             <h2 className="text-ui-body md:text-ui-subhead font-medium text-ink-light dark:text-ink-dark opacity-80 md:opacity-60 hover:opacity-100 transition-opacity flex items-center gap-1.5 min-w-0">

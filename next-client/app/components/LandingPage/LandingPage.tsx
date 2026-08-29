@@ -4,7 +4,7 @@ import React, { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAtomValue } from "jotai";
-import { atom_content } from "@/app/atoms/atoms";
+import { atom_content, atom_userName } from "@/app/atoms/atoms";
 import LoadingOverlay from "@/app/components/LoadingOverlay/LoadingOverlay";
 import Button from "@/app/components/Button/Button.component";
 import dynamic from "next/dynamic";
@@ -399,6 +399,7 @@ That's HermesMarkdown: a plain-text writing surface, local-first by default, wit
 export default function LandingPage() {
   const router = useRouter();
   const realContent = useAtomValue(atom_content);
+  const userName = useAtomValue(atom_userName);
   const [demoContent, setDemoContent] = useState(DEFAULT_DEMO_CONTENT);
   const [showLoading, setShowLoading] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
@@ -481,7 +482,7 @@ export default function LandingPage() {
       <Toast
         isVisible={isMounted && Boolean(hasContent)}
         icon={<FiFileText size={16} />}
-        title="Welcome Back"
+        title={userName.trim() ? `Welcome back, ${userName.trim()}` : "Welcome Back"}
         description="You have a draft waiting in your local vault."
         actionLabel="Resume"
         onAction={handleStart}
