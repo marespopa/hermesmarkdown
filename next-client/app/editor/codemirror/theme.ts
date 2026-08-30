@@ -52,6 +52,22 @@ export const baseTheme = EditorView.theme({
     border: "none",
     paddingRight: "0.75rem",
   },
+  ".cm-panels": {
+    backgroundColor: "var(--chrome)",
+    borderTop: "1px solid var(--border)",
+  },
+  ".cm-vim-panel": {
+    alignItems: "center",
+    color: "var(--fg-muted)",
+    fontFamily: "var(--font-ibm-mono), ui-monospace, monospace",
+    fontSize: "0.75rem",
+    lineHeight: "1.75rem",
+    minHeight: "1.75rem",
+  },
+  ".cm-vim-panel > span:first-child": {
+    color: "var(--sage)",
+    fontWeight: "700",
+  },
   // !important: Tailwind's preflight resets border-color to currentColor on
   // all elements, which can override this rule for equal-specificity selectors.
   // Pinning with !important guarantees the custom cursor is always clay-colored

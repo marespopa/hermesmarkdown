@@ -54,7 +54,7 @@ import { AIThinkingOverlay } from "./components/AIThinkingOverlay";
 
 
 import { useRouter } from "next/navigation";
-import { atom_isAiConfigured, atom_aiBuilderRequest, atom_railPanel, atom_showHiddenFiles, RailPanel, atom_activeEditorView, atom_isSidebarResizing, atom_keyboardShortcutsOpen } from "@/app/atoms/ui-atoms";
+import { atom_isAiConfigured, atom_aiBuilderRequest, atom_railPanel, atom_showHiddenFiles, RailPanel, atom_activeEditorView, atom_isSidebarResizing, atom_keyboardShortcutsOpen, atom_vimMode } from "@/app/atoms/ui-atoms";
 import { generateFileFromPrompt } from "@/app/services/ai";
 import { withRetry } from "@/app/hooks/file-system/shared";
 
@@ -90,6 +90,7 @@ export default function LiteEditor() {
   }, [setRailPanel]);
   const isFileLoading = useAtomValue(atom_isFileLoading);
   const isAiConfigured = useAtomValue(atom_isAiConfigured);
+  const vimMode = useAtomValue(atom_vimMode);
   const [aiBuilderRequest, setAiBuilderRequest] = useAtom(atom_aiBuilderRequest);
   // Single dictation session shared by the whole app (not one per pane), so
   // switching the active pane mid-dictation never drops the in-progress
@@ -231,6 +232,9 @@ export default function LiteEditor() {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      const isVimEditorEvent = vimMode && (e.target as HTMLElement | null)?.closest?.(".cm-editor");
+      if (e.key === "Escape" && isVimEditorEvent) return;
+
       // Prevent tablet/mobile browsers from navigating back on ESC.
       if (e.key === "Escape") e.preventDefault();
 
@@ -267,7 +271,7 @@ export default function LiteEditor() {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [flush, railPanel, setRailPanel, lastPanel, isAiConfigured, setAiBuilderRequest]);
+  }, [flush, railPanel, setRailPanel, lastPanel, isAiConfigured, setAiBuilderRequest, vimMode]);
 
   const handleNewFile = () => {
     if (!vaultHandle) {

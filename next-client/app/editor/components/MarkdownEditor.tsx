@@ -4,7 +4,7 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
 import { useAtomValue, useSetAtom } from "jotai";
 import { atom_frontmatterWizardOpen, atom_wordWrap, atom_isEditorFocused, atom_vaultHandle, atom_currentDirectoryHandle } from "@/app/atoms/atoms";
-import { atom_activeEditorView, atom_editorContentWidth, atom_lineNumbers } from "@/app/atoms/ui-atoms";
+import { atom_activeEditorView, atom_editorContentWidth, atom_lineNumbers, atom_vimMode } from "@/app/atoms/ui-atoms";
 import { useAtom } from "jotai";
 import { savePastedImage } from "@/app/utils/paste-image";
 import type { EditorView } from "@codemirror/view";
@@ -61,6 +61,7 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
   const setFrontmatterWizardOpen = useSetAtom(atom_frontmatterWizardOpen);
   const wordWrap = useAtomValue(atom_wordWrap);
   const lineNumbers = useAtomValue(atom_lineNumbers);
+  const vimMode = useAtomValue(atom_vimMode);
   const [, setEditorContentWidth] = useAtom(atom_editorContentWidth);
   const [, setIsEditorFocused] = useAtom(atom_isEditorFocused);
   const filePath = props.filePath || "draft";
@@ -196,6 +197,39 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
     onCursorActivity: onImageCursorActivity,
   } = useCodeMirrorImage({ viewRef, containerRef });
 
+  const openActiveHelperRef = useRef<() => boolean>(() => false);
+  openActiveHelperRef.current = () => {
+    if (pillUrl) {
+      if (pillType === "wiki") {
+        props.onWikiLinkClick?.(pillUrl);
+      } else {
+        window.open(pillUrl, "_blank", "noopener,noreferrer");
+      }
+      dismissPill();
+      return true;
+    }
+    if (dateMatch) {
+      setIsDateExpanded(true);
+      return true;
+    }
+    if (mermaidInfo) {
+      const theme = document.documentElement.classList.contains("dark") ? "dark" : "default";
+      document.dispatchEvent(new CustomEvent("hermes:open-mermaid-dialog", {
+        detail: { source: mermaidInfo.source, theme },
+        bubbles: true,
+      }));
+      return true;
+    }
+    if (imageInfo) {
+      document.dispatchEvent(new CustomEvent("hermes:open-image-dialog", {
+        detail: { src: imageInfo.src, alt: imageInfo.alt },
+        bubbles: true,
+      }));
+      return true;
+    }
+    return false;
+  };
+
   const { chevrons, toggle: toggleCalloutFold, onCursorActivity: onFoldCursorActivity, onViewCreated } =
     useCodeMirrorCalloutFold({ containerRef });
 
@@ -220,6 +254,8 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
     onChange: editorOnChange,
     wordWrap,
     lineNumbers,
+    vimMode,
+    onOpenActiveHelperRef: openActiveHelperRef,
     placeholder: props.placeholder || "Type / for templates",
     readOnly: false,
     onFocusChange: setIsEditorFocused,
@@ -344,8 +380,8 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
                 top: dateMenuPos.top - 2,
                 left: Math.min(dateMenuPos.endLeft + 8, (containerRef.current?.clientWidth || 500) - 30),
               }}
-              title="Toggle calendar"
-              aria-label="Toggle calendar"
+              title="Toggle calendar (Ctrl/Cmd+Shift+Enter)"
+              aria-label="Toggle calendar (Ctrl/Cmd+Shift+Enter)"
             >
               <HiOutlineCalendar size={16} />
             </Button>
@@ -413,7 +449,7 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
                     bubbles: true,
                   }));
                 }}
-                title="View Mermaid diagram"
+                title="View Mermaid diagram (Ctrl/Cmd+Shift+Enter)"
               >
                 <HiOutlineArrowsExpand size={14} aria-hidden="true" />
               </Button>
@@ -457,8 +493,8 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
                     bubbles: true,
                   }));
                 }}
-                title="View actual image"
-                aria-label="View actual image"
+                title="View actual image (Ctrl/Cmd+Shift+Enter)"
+                aria-label="View actual image (Ctrl/Cmd+Shift+Enter)"
               >
                 <HiOutlinePhotograph size={14} />
               </Button>

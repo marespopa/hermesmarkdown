@@ -70,7 +70,7 @@ export function LinkPill({
           <Button
             variant="pill-icon"
             onClick={onOpen}
-            title={type === "wiki" ? "Open note" : "Open link"}
+            title={type === "wiki" ? "Open note (Ctrl/Cmd+Shift+Enter)" : "Open link (Ctrl/Cmd+Shift+Enter)"}
           >
             <HiOutlineExternalLink size={16} />
           </Button>

@@ -666,6 +666,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@codemirror/search@npm:^6.7.1":
+  version: 6.7.1
+  resolution: "@codemirror/search@npm:6.7.1"
+  dependencies:
+    "@codemirror/state": "npm:^6.0.0"
+    "@codemirror/view": "npm:^6.37.0"
+    crelt: "npm:^1.0.5"
+  checksum: 10c0/2930c4139340da4b52f217dc0a7040e36aa122279911894ebb06c5ea7364d91e73c8e195db5610caa9474ef45a99552ad944a416fa9c381a336f1f39bf0e71ad
+  languageName: node
+  linkType: hard
+
 "@codemirror/state@npm:^6.0.0, @codemirror/state@npm:^6.7.0, @codemirror/state@npm:^6.7.1":
   version: 6.7.1
   resolution: "@codemirror/state@npm:6.7.1"
@@ -684,6 +695,18 @@ __metadata:
     style-mod: "npm:^4.1.0"
     w3c-keyname: "npm:^2.2.4"
   checksum: 10c0/930b043b8d48e02421a1cb15eb311fb39edbb9709a107eeea8de133aad8ab3fb9bbfae9e829216914cb997026d06d26a71768ff0e2a8d679c9d27d3cb1b940eb
+  languageName: node
+  linkType: hard
+
+"@codemirror/view@npm:^6.37.0":
+  version: 6.43.9
+  resolution: "@codemirror/view@npm:6.43.9"
+  dependencies:
+    "@codemirror/state": "npm:^6.7.0"
+    crelt: "npm:^1.0.6"
+    style-mod: "npm:^4.1.0"
+    w3c-keyname: "npm:^2.2.4"
+  checksum: 10c0/c64b076f2739a9fa8b8c67e01091ddc8d7f653dd66954088fa5837ab30b59152efb959b359b7806662add8cd97011030e0eef8eb77ca71840acd5d824af00b8e
   languageName: node
   linkType: hard
 
@@ -1937,6 +1960,28 @@ __metadata:
   version: 1.1.1
   resolution: "@protobufjs/utf8@npm:1.1.1"
   checksum: 10c0/641fc145f00626405e8984b6e90b9edcbcc072ffc82d0647ca3176e09c730b2d022f988e65f011a7a17e2e4d77cde7733643aa10d8ac2bfa30f134dbcad553fd
+  languageName: node
+  linkType: hard
+
+"@replit/codemirror-vim-core@npm:^0.1.0":
+  version: 0.1.0
+  resolution: "@replit/codemirror-vim-core@npm:0.1.0"
+  checksum: 10c0/29388ddbf0d60c0c32cdbf1939a5f3df276c71f0edea4df2468777c3cf57379f2ee256ab0cdef9de7eafc11f08d4a149a21df3cb4b04db91da82c83fcfb0c562
+  languageName: node
+  linkType: hard
+
+"@replit/codemirror-vim@npm:^6.4.0":
+  version: 6.4.0
+  resolution: "@replit/codemirror-vim@npm:6.4.0"
+  dependencies:
+    "@replit/codemirror-vim-core": "npm:^0.1.0"
+  peerDependencies:
+    "@codemirror/commands": 6.x.x
+    "@codemirror/language": 6.x.x
+    "@codemirror/search": 6.x.x
+    "@codemirror/state": 6.x.x
+    "@codemirror/view": 6.x.x
+  checksum: 10c0/9aa5501df2169618b6b34f4e0d313b043ec36438d2de71037903b59a06886c58f7072e79e8f69a0552042a9b35f5adf5dbb9d62d0693cd28771d20c777df52f2
   languageName: node
   linkType: hard
 
@@ -5485,6 +5530,7 @@ __metadata:
     "@codemirror/lang-markdown": "npm:^6.5.0"
     "@codemirror/language": "npm:^6.12.4"
     "@codemirror/language-data": "npm:^6.5.2"
+    "@codemirror/search": "npm:^6.7.1"
     "@codemirror/state": "npm:^6.7.1"
     "@codemirror/view": "npm:^6.43.6"
     "@eslint/js": "npm:^9.18.0"
@@ -5492,6 +5538,7 @@ __metadata:
     "@lezer/highlight": "npm:^1.2.3"
     "@lezer/markdown": "npm:^1.7.1"
     "@next/eslint-plugin-next": "npm:^16.3.3"
+    "@replit/codemirror-vim": "npm:^6.4.0"
     "@rolldown/binding-android-arm64": "npm:^1.1.0"
     "@rolldown/binding-linux-arm64-gnu": "npm:^1.1.0"
     "@rollup/rollup-linux-arm64-gnu": "npm:^4.61.1"

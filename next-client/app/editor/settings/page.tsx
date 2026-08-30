@@ -18,6 +18,7 @@ import {
   atom_selectedAiModel,
   atom_claudeKey,
   atom_geminiKey,
+  atom_vimMode,
 } from "@/app/atoms/atoms";
 import { atom_availableGeminiModels, atom_availableClaudeModels, atom_lineNumbers, atom_showHiddenFiles, atom_tabsBarVisibleByDefault, atom_renderedFontSize } from "@/app/atoms/ui-atoms";
 import { useFileSystem } from "@/app/hooks/use-file-system";
@@ -49,6 +50,7 @@ const SettingsPage = () => {
   const [theme, setTheme] = useAtom(atom_theme);
   const [wordWrap, setWordWrap] = useAtom(atom_wordWrap);
   const [lineNumbers, setLineNumbers] = useAtom(atom_lineNumbers);
+  const [vimMode, setVimMode] = useAtom(atom_vimMode);
   const [autosaveMode, setAutosaveMode] = useAtom(atom_autosaveMode);
   const [autosaveDelay, setAutosaveDelay] = useAtom(atom_autosaveDelay);
   const [editorWidth, setEditorWidth] = useAtom(atom_editorWidth);
@@ -186,6 +188,11 @@ const SettingsPage = () => {
               label="Line Numbers"
               description="Show line numbers beside the source editor."
               control={<Toggle variant="soft" active={lineNumbers} onChange={setLineNumbers} />}
+            />
+            <SettingItem
+              label="Vim Mode"
+              description="Use Vim motions and editing modes in the source editor."
+              control={<Toggle variant="soft" active={vimMode} onChange={setVimMode} />}
             />
             <SettingItem
               label="Show Tabs Bar"

@@ -6,6 +6,7 @@ import { languages } from "@codemirror/language-data";
 import { ViewUpdate } from "@codemirror/view";
 import { autocompletion } from "@codemirror/autocomplete";
 import { codeFolding } from "@codemirror/language";
+import { getCM, Vim, vim } from "@replit/codemirror-vim";
 import { editorTheme } from "./theme";
 import { formatKeymap, toggleCheckboxOnLine, handlePasteTransform, insertPastedImage } from "./commands";
 import { getImageFile, getImageFromClipboardItems } from "@/app/utils/paste-image";
@@ -26,6 +27,9 @@ interface BuildExtensionsOptions {
   wordWrap: boolean;
   lineNumbers: boolean;
   lineNumbersCompartment: Compartment;
+  vimMode: boolean;
+  vimModeCompartment: Compartment;
+  onOpenActiveHelperRef: { current: () => boolean };
   placeholder?: string;
   readOnly: boolean;
   onFocusChange: (focused: boolean) => void;
@@ -52,6 +56,7 @@ export function buildExtensions(opts: BuildExtensionsOptions): Extension[] {
     markdownHighlightPlugin,
     shortcodeExpandPlugin,
     createWikiLinkTriggerPlugin(opts.wikiLinkTriggerRef),
+    opts.vimModeCompartment.of(opts.vimMode ? vim({ status: true }) : []),
     autocompletion({
       override: [createSlashMenuSource(opts.slashMenuCallbacksRef)],
       activateOnTyping: true,
@@ -72,6 +77,21 @@ export function buildExtensions(opts: BuildExtensionsOptions): Extension[] {
     keymap.of([...formatKeymap, ...historyKeymap, ...defaultKeymap]),
     EditorView.editable.of(!opts.readOnly),
     EditorView.domEventHandlers({
+      keydown: (event, view) => {
+        if (event.key === "Enter" && event.shiftKey && (event.ctrlKey || event.metaKey)) {
+          if (!opts.onOpenActiveHelperRef.current()) return false;
+          event.preventDefault();
+          event.stopPropagation();
+          return true;
+        }
+        if (event.key !== "Escape") return false;
+        const cm = getCM(view);
+        if (!cm) return false;
+        Vim.handleKey(cm, "<Esc>", "user");
+        event.preventDefault();
+        event.stopPropagation();
+        return true;
+      },
       paste: (event, view) => {
         const saveImage = opts.pasteImageRef?.current;
         const imageFile = saveImage ? getImageFromClipboardItems(event.clipboardData?.items ?? null) : null;

@@ -691,6 +691,10 @@ export default function LandingPage() {
                   detail: "Navigate, edit, and reorganize entire cell grids entirely from your keyboard.",
                 },
                 {
+                  label: "Optional Vim mode",
+                  detail: "Enable familiar Vim motions and editing modes during setup, or turn them on later in Settings.",
+                },
+                {
                   label: "Smart native controls",
                   detail: "Toggle checkboxes instantly, pick dates with a native calendar, or Ctrl+Click any WikiLink to jump across your vault without breaking stride.",
                 },

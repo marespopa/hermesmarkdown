@@ -29,6 +29,7 @@ vi.mock("@/app/atoms/atoms", async (importOriginal) => {
     atom_theme: { toString: () => "atom_theme" },
     atom_autosaveMode: { toString: () => "atom_autosaveMode" },
     atom_autosaveDelay: { toString: () => "atom_autosaveDelay" },
+    atom_vimMode: { toString: () => "atom_vimMode" },
     atom_showStats: { toString: () => "atom_showStats" },
   };
 });
@@ -113,6 +114,7 @@ describe("SettingsPage", () => {
     openEditorSection();
 
     expect(screen.getByText("Editor Width")).toBeInTheDocument();
+    expect(screen.getByText("Vim Mode")).toBeInTheDocument();
     expect(screen.getAllByText("Standard").length).toBeGreaterThanOrEqual(1);
     expect(screen.getByText("Narrow")).toBeInTheDocument();
     expect(screen.getByText("Medium")).toBeInTheDocument();

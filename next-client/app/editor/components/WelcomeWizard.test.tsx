@@ -112,10 +112,10 @@ describe("WelcomeWizard", () => {
 
     expect(screen.getByText("Theme")).toBeInTheDocument();
 
-    // Steps 2-7 (Theme, Pick your writing font, Line Numbers, Autosave,
-    // Frontmatter View, AI Features) each advance one step at a time via
-    // their own "Continue" button before reaching the final showcase step (8).
-    for (let i = 0; i < 6; i++) {
+    // Steps 2-8 (Theme, Pick your writing font, Line Numbers, Vim Mode,
+    // Autosave, Frontmatter View, AI Features) each advance one step at a time
+    // via their own "Continue" button before reaching the final step (9).
+    for (let i = 0; i < 7; i++) {
       fireEvent.click(screen.getByText("Continue"));
     }
 
@@ -127,7 +127,7 @@ describe("WelcomeWizard", () => {
   it("replaces the test button with a connection confirmation after success", async () => {
     render(
       <TestProvider initialValues={defaultInitialValues}>
-        <WelcomeWizard initialStep={7} />
+        <WelcomeWizard initialStep={8} />
       </TestProvider>
     );
 

@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import type { EditorView } from "@codemirror/view";
 import type { Compartment, EditorState } from "@codemirror/state";
+import { getCM, Vim, vim } from "@replit/codemirror-vim";
 import type { SlashMenuCallbacks } from "../codemirror/slash-menu";
 import type { WikiLinkTriggerCallback } from "../codemirror/wikilink-trigger";
 
@@ -11,6 +12,8 @@ interface UseCodeMirrorEditorOptions {
   onChange: (value: string) => void;
   wordWrap: boolean;
   lineNumbers: boolean;
+  vimMode: boolean;
+  onOpenActiveHelperRef: { current: () => boolean };
   placeholder?: string;
   readOnly: boolean;
   onFocusChange: (focused: boolean) => void;
@@ -37,6 +40,8 @@ export function useCodeMirrorEditor({
   onChange,
   wordWrap,
   lineNumbers,
+  vimMode,
+  onOpenActiveHelperRef,
   placeholder,
   readOnly,
   onFocusChange,
@@ -54,11 +59,13 @@ export function useCodeMirrorEditor({
   const onCursorActivityRef = useRef(onCursorActivity);
   onCursorActivityRef.current = onCursorActivity;
   const lineNumbersCompartmentRef = useRef<Compartment | null>(null);
+  const vimModeCompartmentRef = useRef<Compartment | null>(null);
 
   useEffect(() => {
     if (!containerRef.current) return;
 
     let destroyed = false;
+    let handleVimEscape: ((event: KeyboardEvent) => void) | null = null;
 
     (async () => {
       const [{ EditorState, Compartment }, { EditorView: CMView, lineNumbers: cmLineNumbers }, extensionsModule] = await Promise.all([
@@ -73,7 +80,9 @@ export function useCodeMirrorEditor({
         opts: any,
       ) => import("@codemirror/state").Extension[];
       const lineNumbersCompartment = new Compartment();
+      const vimModeCompartment = new Compartment();
       lineNumbersCompartmentRef.current = lineNumbersCompartment;
+      vimModeCompartmentRef.current = vimModeCompartment;
 
       const state = EditorState.create({
         doc: value,
@@ -81,6 +90,9 @@ export function useCodeMirrorEditor({
           wordWrap,
           lineNumbers,
           lineNumbersCompartment,
+          vimMode,
+          vimModeCompartment,
+          onOpenActiveHelperRef,
           placeholder,
           readOnly,
           onFocusChange,
@@ -104,6 +116,15 @@ export function useCodeMirrorEditor({
       });
 
       viewRef.current = view as unknown as EditorView;
+      handleVimEscape = (event: KeyboardEvent) => {
+        if (event.key !== "Escape") return;
+        const cm = getCM(view as unknown as EditorView);
+        if (!cm) return;
+        Vim.handleKey(cm, "<Esc>", "user");
+        event.preventDefault();
+        event.stopImmediatePropagation();
+      };
+      view.dom.addEventListener("keydown", handleVimEscape, true);
       onViewCreated?.(view as unknown as EditorView);
     })();
 
@@ -111,6 +132,9 @@ export function useCodeMirrorEditor({
       destroyed = true;
       const v = viewRef.current as unknown as { destroy?: () => void } | null;
       if (v && typeof v.destroy === "function") {
+        if (handleVimEscape) {
+          (v as unknown as EditorView).dom.removeEventListener("keydown", handleVimEscape, true);
+        }
         v.destroy();
         viewRef.current = null;
       }
@@ -126,6 +150,13 @@ export function useCodeMirrorEditor({
       view.dispatch({ effects: compartment.reconfigure(lineNumbers ? cmLineNumbers() : []) });
     });
   }, [lineNumbers, viewRef]);
+
+  useEffect(() => {
+    const view = viewRef.current;
+    const compartment = vimModeCompartmentRef.current;
+    if (!view || !compartment) return;
+    view.dispatch({ effects: compartment.reconfigure(vimMode ? vim({ status: true }) : []) });
+  }, [vimMode, viewRef]);
 
   // Keep the view in sync when `value` changes for a reason other than
   // the user typing in it (e.g. external file reload, undo outside CM6).

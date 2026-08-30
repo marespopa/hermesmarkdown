@@ -65,7 +65,7 @@ export default function Toast({
             <Button
               variant="primary"
               onClick={onAction}
-              tabIndex={1}
+              tabIndex={0}
               className="h-9 px-4 !text-ui-footnote shrink-0"
             >
               {actionLabel}
@@ -97,6 +97,7 @@ export default function Toast({
             <Button
               variant="primary"
               onClick={onAction}
+              tabIndex={0}
               className="h-9 px-4 !text-ui-footnote shrink-0"
             >
               {actionLabel}
