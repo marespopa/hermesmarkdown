@@ -692,7 +692,7 @@ export default function LandingPage() {
                 },
                 {
                   label: "Optional Vim mode",
-                  detail: "Enable familiar Vim motions and editing modes during setup, or turn them on later in Settings.",
+                  detail: "Use familiar Vim motions and editing modes throughout the source editor. Enable it during setup, or turn it on later in Settings.",
                 },
                 {
                   label: "Smart native controls",

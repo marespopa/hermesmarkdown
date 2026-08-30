@@ -306,6 +306,23 @@ const GROUPS: Group[] = [
         ),
       },
       {
+        id: "vim-mode",
+        title: "Vim mode",
+        lead: "Use familiar Vim motions and editing modes in the source editor.",
+        keywords: "vim vi keybindings normal insert escape settings setup",
+        body: (
+          <>
+            <p>
+              Turn on Vim mode during the welcome setup, or enable it later under Settings → Editor.
+              It applies to the source editor and shows the current mode in the status panel.
+            </p>
+            <Callout type="tip">
+              Press <code>Escape</code> to leave Insert mode and return to Normal mode.
+            </Callout>
+          </>
+        ),
+      },
+      {
         id: "tables",
         title: "Tables",
         lead: "Click inside a pipe table for a floating toolbar, and edit cells directly in the text — no separate view to switch to.",
