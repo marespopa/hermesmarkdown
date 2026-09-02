@@ -74,11 +74,17 @@ export function useEditorAppearance(isSplit = false) {
 
   // A split pane can be narrower than the md breakpoint while the window
   // itself is still wide, so it keeps the sm padding at every width instead
-  // of dropping it the way a full-width pane does past md.
+  // of dropping it the way a full-width pane does past md. Dropping to 0 is
+  // only safe once the centered column actually has room to breathe — at
+  // lower resolutions (e.g. a narrow window with the vault sidebar open)
+  // maxContentWidth can clamp to paneWidth, leaving mx-auto with no space
+  // to create a margin and the text flush against the pane edge.
   const contentPaddingX = useMemo(() => {
-    if (paneWidth >= 640) return isSplit ? 24 : paneWidth >= 768 ? 0 : 24;
-    return 16;
-  }, [isSplit, paneWidth]);
+    if (paneWidth < 640) return 16;
+    if (isSplit) return 24;
+    if (paneWidth >= 768 && maxContentWidth !== undefined && paneWidth > maxContentWidth) return 0;
+    return 24;
+  }, [isSplit, paneWidth, maxContentWidth]);
 
   // Padding used when word wrap is off (editor scrolls horizontally instead
   // of centering a fixed-width column).

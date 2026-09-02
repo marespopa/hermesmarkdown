@@ -26,7 +26,7 @@ const REGEX_TASK_TAG = /#([a-z][\w-]*)/gi;
 // alike — custom tags are surfaced separately as pills, not left inline) from
 // the displayed text. Also swallows an enclosing pair of parens (e.g.
 // "(#todo)") so stripping doesn't leave a bare "()" behind.
-const REGEX_TASK_CLEANUP = /@(?:due|priority)\([^)]*\)|\(\s*#(?:todo|prog|hold|done)\s*\)|#[\w-]+/gi;
+const REGEX_TASK_CLEANUP = /@(?:due|priority)\([^)]*\)|\(\s*#(?:todo|prog|hold|done)\s*\)|#[a-z][\w-]*/gi;
 
 export function simpleHash(s: string): string {
   let h = 0;

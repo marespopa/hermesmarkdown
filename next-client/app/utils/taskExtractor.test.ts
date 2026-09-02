@@ -57,6 +57,12 @@ describe("extractTasks", () => {
     expect(task.text).toBe("Uncompleted task");
   });
 
+  it("preserves numeric ticket references in display text", () => {
+    const content = "- [ ] SSO Groups page Bugfixes (#1, #2, #3)\n";
+    const [task] = extractTasks("note.md", content);
+    expect(task.text).toBe("SSO Groups page Bugfixes (#1, #2, #3)");
+  });
+
   it("finds tasks regardless of heading/indentation", () => {
     const content = "# Heading\n\nSome text\n\n## Sub\n  - [ ] Nested task\n";
     const tasks = extractTasks("note.md", content);
