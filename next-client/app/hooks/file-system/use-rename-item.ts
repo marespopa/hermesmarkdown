@@ -29,7 +29,7 @@ export function useRenameItem({ scanVault, indexVaultTags }: UseRenameItemProps)
   const dialog = useDialog();
 
   const renameFile = useCallback(
-    async (handle: FileSystemHandle) => {
+    async (handle: FileSystemHandle, requestedName?: string) => {
       if (!vaultHandle) return;
 
       // Resolve the real parent directory by walking the handle's actual path,
@@ -52,7 +52,7 @@ export function useRenameItem({ scanVault, indexVaultTags }: UseRenameItemProps)
         // fall back to currentDirectoryHandle/vaultHandle above
       }
 
-      const newName = await dialog.prompt(
+      const newName = requestedName ?? await dialog.prompt(
         "Enter new name:",
         handle.name,
         "Rename Item",

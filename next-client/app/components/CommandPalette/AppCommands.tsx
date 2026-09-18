@@ -27,7 +27,7 @@ export default function AppCommands() {
 
   useRegisterCommand({
     id: "go-editor",
-    label: "Open editor",
+    label: "Open Editor",
     description: "Return to the Markdown editor",
     category: "Navigation",
     keywords: "write notes vault",
@@ -40,7 +40,7 @@ export default function AppCommands() {
       ? null
       : {
           id: "open-documentation",
-          label: "Open documentation",
+          label: "Open Documentation",
           category: "Help",
           keywords: "docs help guide",
           disabledReason: pathname === "/documentation" ? "Already viewing documentation" : undefined,
@@ -50,7 +50,7 @@ export default function AppCommands() {
 
   useRegisterCommand({
     id: "open-settings",
-    label: "Open settings",
+    label: "Open Settings",
     category: "Settings",
     keywords: "preferences configuration",
     disabledReason: pathname === "/editor/settings" ? "Already in settings" : undefined,

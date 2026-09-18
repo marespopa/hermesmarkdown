@@ -663,9 +663,10 @@ export default function LandingPage() {
               Nothing but the page, until you ask for more
             </h2>
             <p className="text-neutral-600 dark:text-neutral-400 leading-relaxed">
-              Full-screen by default — no toolbar, no rail, no panel until you
-              ask for one. The sidebar opens on hover or from the command
-              palette; open files side by side, drag tabs between panes.
+              Full-screen by default — no toolbar, rail, or persistent panel until you
+              ask for one. Press <kbd>⌘B</kbd> (or <kbd>Ctrl+B</kbd>) to open the dedicated
+              Explorer for files and folders. <kbd>⌘K</kbd> or <kbd>⌘P</kbd> opens the quick
+              switcher for notes, tags, views, and commands.
             </p>
             <p className="text-neutral-600 dark:text-neutral-400 leading-relaxed">
               Type and watch it render: headings, code blocks with real

@@ -31,8 +31,8 @@ See [next-client/ARCHITECTURE.md](next-client/ARCHITECTURE.md) for the detailed 
 ### Local-first workspace
 
 - Open an existing folder or create a new vault; create, rename, move, duplicate, and delete Markdown files and folders.
-- Browse files in multiple resizable editor panes with tabs, search, tags, a vault-wide Tasks page, and smart workspace views.
-- Use the command palette (`Ctrl/Cmd+K` or `Ctrl/Cmd+Shift+P`) to find files, views, tasks, headings, and commands.
+- Browse files in multiple editor panes with tabs, search, tags, a vault-wide Tasks page, and smart workspace views.
+- Use the command-first quick switcher (`Ctrl/Cmd+K` or `Ctrl/Cmd+P`) to find recent files, notes, tags, views, tasks, headings, and commands. The sidebar is an on-demand overlay with a three-note Recents strip and local file tree, so it never interrupts the writing canvas.
 - External file changes are detected when the window regains focus. If both local and external edits exist, a conflict dialog lets you reload or keep local changes.
 - Install the app from a supported Chromium-based browser as a PWA. Firefox and Safari can load the app, but do not provide the folder picker required for vault access.
 
@@ -96,8 +96,10 @@ Autosave can be configured under Settings → Editor to save after a delay from 
 | Save document | `Ctrl/Cmd+S` |
 | Bold / italic | `Ctrl/Cmd+B` / `Ctrl/Cmd+I` |
 | Undo | `Ctrl/Cmd+Z` |
-| Toggle sidebar | `Ctrl/Cmd+Shift+E` |
-| Open command palette | `Ctrl/Cmd+K` or `Ctrl/Cmd+Shift+P` |
+| Toggle sidebar drawer | `Ctrl/Cmd+B` or `Ctrl/Cmd+Alt+S` |
+| Open quick switcher | `Ctrl/Cmd+K` or `Ctrl/Cmd+P` |
+| Open command palette | `Ctrl/Cmd+Shift+K` or `Ctrl/Cmd+Shift+P` |
+| Open global search | `Ctrl/Cmd+Shift+F` |
 | Open AI chat | `Ctrl/Cmd+Shift+B` |
 | Start/stop voice input | `Ctrl/Cmd+Shift+V` |
 | Open a link or date | `Ctrl/Cmd+Click` |

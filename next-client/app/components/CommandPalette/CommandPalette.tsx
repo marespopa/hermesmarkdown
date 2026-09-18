@@ -62,7 +62,7 @@ function matchFile(query: string, file: FileResult): { score: number; indices: n
 }
 
 export default function CommandPalette() {
-  const { isOpen, close, commands, recentCommandIds, markUsed } = useCommandPalette();
+  const { isOpen, initialQuery, close, commands, recentCommandIds, markUsed } = useCommandPalette();
   const fileMetadata = useAtomValue(atom_fileMetadata);
   const tasks = useAtomValue(atom_allTasks);
   const customWorkspaces = useAtomValue(atom_customWorkspaces);
@@ -83,11 +83,11 @@ export default function CommandPalette() {
 
   useEffect(() => {
     if (isOpen) {
-      setQuery("");
+      setQuery(initialQuery);
       setSelectedIndex(0);
       requestAnimationFrame(() => inputRef.current?.focus());
     }
-  }, [isOpen]);
+  }, [initialQuery, isOpen]);
 
   const fileResults: FileResult[] = useMemo(
     () =>
@@ -267,7 +267,7 @@ export default function CommandPalette() {
         setRecentFilePaths((previous) => [
           row.file.path,
           ...previous.filter((path) => path !== row.file.path),
-        ].slice(0, 8));
+        ].slice(0, 3));
         if (!pathname.startsWith("/editor")) router.push("/editor");
         close();
       } catch (error) {
