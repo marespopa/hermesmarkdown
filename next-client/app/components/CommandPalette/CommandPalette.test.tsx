@@ -187,11 +187,8 @@ describe("CommandPalette", () => {
     expect(screen.getByRole("listbox")).toHaveTextContent("Ship command palette");
     fireEvent.click(screen.getAllByRole("option")[0]);
 
-    expect(screen.getByTestId("tag-selection")).toHaveTextContent("tasks:");
-    expect(openFile).toHaveBeenCalledWith(
-      expect.objectContaining({ name: "Work.md" }),
-      "Work.md",
-    );
+    expect(push).toHaveBeenCalledWith("/editor/tasks");
+    expect(openFile).not.toHaveBeenCalled();
 
     fireEvent.keyDown(document, { key: "k", ctrlKey: true });
     const reopenedInput = await screen.findByRole("combobox");

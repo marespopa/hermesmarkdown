@@ -8,7 +8,6 @@ import { atom_customWorkspaces } from "@/app/atoms/metadata";
 import { atom_allTasks } from "@/app/atoms/task-atoms";
 import {
   atom_activeEditorView,
-  atom_pendingScrollTarget,
   atom_railPanel,
   atom_recentFilePaths,
   atom_selectedFileTags,
@@ -70,7 +69,6 @@ export default function CommandPalette() {
   const activeEditorView = useAtomValue(atom_activeEditorView);
   const showHiddenFiles = useAtomValue(atom_showHiddenFiles);
   const [recentFilePaths, setRecentFilePaths] = useAtom(atom_recentFilePaths);
-  const [, setPendingScrollTarget] = useAtom(atom_pendingScrollTarget);
   const [, setRailPanel] = useAtom(atom_railPanel);
   const [, setSelectedWorkspaceId] = useAtom(atom_selectedWorkspaceId);
   const [, setSelectedFileTags] = useAtom(atom_selectedFileTags);
@@ -280,21 +278,8 @@ export default function CommandPalette() {
       return;
     }
     if (row.kind === "task") {
-      setRunningId(`task:${row.id}`);
-      try {
-        await openFile(row.handle, row.path);
-        setPendingScrollTarget({ path: row.path, line: row.line });
-        setRecentFilePaths((previous) => [
-          row.path,
-          ...previous.filter((path) => path !== row.path),
-        ].slice(0, 8));
-        if (!pathname.startsWith("/editor")) router.push("/editor");
-        close();
-      } catch (error) {
-        showErrorToast(error instanceof Error ? error.message : "Failed to open task file");
-      } finally {
-        setRunningId(null);
-      }
+      router.push("/editor/tasks");
+      close();
       return;
     }
     if (row.kind === "view") {

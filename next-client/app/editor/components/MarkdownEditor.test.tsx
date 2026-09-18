@@ -5,7 +5,9 @@ import { undo } from "@codemirror/commands";
 import MarkdownEditor from "./MarkdownEditor";
 import { CODE_BLOCK_TEMPLATE_CONTENT, CURSOR_SENTINEL, TEMPLATES } from "./constants";
 import { Provider, useAtomValue } from "jotai";
+import { useHydrateAtoms } from "jotai/utils";
 import { atom_activeEditorView } from "@/app/atoms/ui-atoms";
+import { atom_pendingScrollTarget } from "@/app/atoms/atoms";
 import "@testing-library/jest-dom";
 
 // MarkdownEditor now runs on CodeMirror 6, which renders a contenteditable
@@ -52,6 +54,14 @@ function ActiveEditorObserver() {
   return <output data-testid="active-editor-state">{activeEditorView ? "registered" : "none"}</output>;
 }
 
+function Hydrate({ children, pendingScrollTarget }: {
+  children: React.ReactNode;
+  pendingScrollTarget: { path: string; line: number } | null;
+}) {
+  useHydrateAtoms([[atom_pendingScrollTarget, pendingScrollTarget]]);
+  return children;
+}
+
 describe("MarkdownEditor", () => {
   const mockOnChange = vi.fn();
 
@@ -60,11 +70,17 @@ describe("MarkdownEditor", () => {
     cleanup();
   });
 
-  const renderEditor = (value = "", props = {}) =>
+  const renderEditor = (
+    value = "",
+    props = {},
+    pendingScrollTarget: { path: string; line: number } | null = null,
+  ) =>
     render(
       <Provider>
-        <MarkdownEditor value={value} onChange={mockOnChange} {...props} />
-        <ActiveEditorObserver />
+        <Hydrate pendingScrollTarget={pendingScrollTarget}>
+          <MarkdownEditor value={value} onChange={mockOnChange} {...props} />
+          <ActiveEditorObserver />
+        </Hydrate>
       </Provider>,
     );
 
@@ -81,6 +97,20 @@ describe("MarkdownEditor", () => {
     await waitForEditor(container);
 
     await waitFor(() => expect(screen.getByTestId("active-editor-state")).toHaveTextContent("registered"));
+  });
+
+  it("focuses a queued task line after opening a file with frontmatter", async () => {
+    const { container } = renderEditor(
+      "---\ntitle: Note\n---\nFirst line\n- [ ] Target task",
+      { filePath: "note.md" },
+      { path: "note.md", line: 4 },
+    );
+    await waitForEditor(container);
+
+    await waitFor(() => {
+      const view = getView(container);
+      expect(view.state.selection.main.head).toBe(view.state.doc.line(2).from);
+    });
   });
 
   it("shows the initial value in the editor", async () => {
