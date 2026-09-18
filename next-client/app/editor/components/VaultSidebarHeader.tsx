@@ -1,8 +1,9 @@
 "use client";
 
-import { HiChevronLeft, HiOutlineCloud, HiOutlineCog, HiOutlineFolder, HiOutlineBookOpen, HiOutlineSun, HiOutlineMoon, HiOutlineDesktopComputer } from "react-icons/hi";
+import { HiChevronLeft, HiOutlineCheckCircle, HiOutlineCloud, HiOutlineCog, HiOutlineFolder, HiOutlineBookOpen, HiOutlineSun, HiOutlineMoon, HiOutlineDesktopComputer } from "react-icons/hi";
 import { useAtom } from "jotai";
 import { atom_theme, type Theme } from "@/app/atoms/ui-atoms";
+import Tooltip from "@/app/components/Tooltip";
 
 const THEME_CYCLE: { value: Theme; label: string; Icon: React.ComponentType<{ size?: number }> }[] = [
   { value: "system", label: "Theme: System", Icon: HiOutlineDesktopComputer },
@@ -16,6 +17,7 @@ interface VaultSidebarHeaderProps {
   isCloudVault: boolean;
   hasVault: boolean;
   onSettings?: () => void;
+  onTasks?: () => void;
   onDocumentation?: () => void;
   onCollapse: () => void;
 }
@@ -26,6 +28,7 @@ export default function VaultSidebarHeader({
   isCloudVault,
   hasVault,
   onSettings,
+  onTasks,
   onDocumentation,
   onCollapse,
 }: VaultSidebarHeaderProps) {
@@ -52,14 +55,45 @@ export default function VaultSidebarHeader({
           )}
         </h2>
         <div className="flex items-center gap-1">
-          {onSettings && <button type="button" onClick={onSettings} title="Settings" aria-label="Settings" className="flex items-center justify-center w-7 h-7 rounded text-ink-muted hover:text-ink-light dark:text-stone dark:hover:text-ink-dark"><HiOutlineCog size={15} /></button>}
-          {onDocumentation && <button type="button" onClick={onDocumentation} title="Documentation" aria-label="Documentation" className="flex items-center justify-center w-7 h-7 rounded text-ink-muted hover:text-ink-light dark:text-stone dark:hover:text-ink-dark"><HiOutlineBookOpen size={15} /></button>}
-          <button type="button" onClick={() => setTheme(THEME_CYCLE[(themeCycleIndex + 1) % THEME_CYCLE.length].value)} title={themeCycle.label} aria-label={themeCycle.label} className="flex items-center justify-center w-7 h-7 rounded text-ink-muted hover:text-ink-light dark:text-stone dark:hover:text-ink-dark">
-            <themeCycle.Icon size={15} />
-          </button>
           <button type="button" onClick={onCollapse} title="Collapse sidebar" aria-label="Collapse sidebar" className="flex items-center justify-center w-7 h-7 rounded text-ink-muted hover:text-ink-light dark:text-stone dark:hover:text-ink-dark">
             <HiChevronLeft size={16} />
           </button>
+        </div>
+      </div>
+      <div className="grid grid-cols-4 items-center border-t border-edge-subtle pt-2">
+        <div className="flex justify-center">
+          {onTasks && (
+            <Tooltip label="Tasks">
+              <button type="button" onClick={onTasks} aria-label="Tasks" className="flex h-9 w-9 items-center justify-center rounded-lg text-ink-muted transition-colors hover:bg-paper-softgray hover:text-ink-light focus:outline-none focus-visible:ring-2 focus-visible:ring-sage/40 dark:text-stone dark:hover:bg-paper-dark-surface dark:hover:text-ink-dark">
+                <HiOutlineCheckCircle size={17} />
+              </button>
+            </Tooltip>
+          )}
+        </div>
+        <div className="flex justify-center">
+          {onSettings && (
+            <Tooltip label="Settings">
+              <button type="button" onClick={onSettings} aria-label="Settings" className="flex h-9 w-9 items-center justify-center rounded-lg text-ink-muted transition-colors hover:bg-paper-softgray hover:text-ink-light focus:outline-none focus-visible:ring-2 focus-visible:ring-sage/40 dark:text-stone dark:hover:bg-paper-dark-surface dark:hover:text-ink-dark">
+                <HiOutlineCog size={17} />
+              </button>
+            </Tooltip>
+          )}
+        </div>
+        <div className="flex justify-center">
+          {onDocumentation && (
+            <Tooltip label="Documentation">
+              <button type="button" onClick={onDocumentation} aria-label="Documentation" className="flex h-9 w-9 items-center justify-center rounded-lg text-ink-muted transition-colors hover:bg-paper-softgray hover:text-ink-light focus:outline-none focus-visible:ring-2 focus-visible:ring-sage/40 dark:text-stone dark:hover:bg-paper-dark-surface dark:hover:text-ink-dark">
+                <HiOutlineBookOpen size={17} />
+              </button>
+            </Tooltip>
+          )}
+        </div>
+        <div className="flex justify-center">
+          <Tooltip label={themeCycle.label}>
+            <button type="button" onClick={() => setTheme(THEME_CYCLE[(themeCycleIndex + 1) % THEME_CYCLE.length].value)} aria-label={themeCycle.label} className="flex h-9 w-9 items-center justify-center rounded-lg text-ink-muted transition-colors hover:bg-paper-softgray hover:text-ink-light focus:outline-none focus-visible:ring-2 focus-visible:ring-sage/40 dark:text-stone dark:hover:bg-paper-dark-surface dark:hover:text-ink-dark">
+              <themeCycle.Icon size={17} />
+            </button>
+          </Tooltip>
         </div>
       </div>
     </header>

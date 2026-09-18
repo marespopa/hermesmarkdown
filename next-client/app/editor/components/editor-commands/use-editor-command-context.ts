@@ -50,7 +50,7 @@ export type EditorCommandsProps = {
   onSave: () => void;
   isMobileChrome?: boolean;
   onOpenMobileFiles?: () => void;
-  onOpenMobileTasks?: () => void;
+  onOpenTasks: () => void;
   onHome: () => void;
   onOpenDocumentation: () => void;
   onRefreshVault?: () => void;

@@ -40,6 +40,7 @@ export const SelectControl = ({
   disabled,
   size = "md",
   fullWidth = true,
+  ariaLabel,
 }: {
   value: string | number;
   onChange: (v: string) => void;
@@ -47,12 +48,14 @@ export const SelectControl = ({
   disabled?: boolean;
   size?: "sm" | "md";
   fullWidth?: boolean;
+  ariaLabel?: string;
 }) => (
   <div className={`relative ${fullWidth ? "w-full" : "inline-block"}`}>
     <select
       value={value}
       onChange={(e) => onChange(e.target.value)}
       disabled={disabled}
+      aria-label={ariaLabel}
       className={`appearance-none bg-paper-softgray dark:bg-paper-dark-surface text-ink-light dark:text-ink-dark font-semibold outline-none border border-transparent focus:border-sage/40 cursor-pointer transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
         fullWidth ? "w-full" : ""
       } ${

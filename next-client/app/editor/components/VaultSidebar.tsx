@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useCallback } from "react";
 import { HiOutlineLogout } from "react-icons/hi";
 import { useFileSystem } from "@/app/hooks/use-file-system";
 import { useDialog } from "@/app/hooks/use-dialog";
@@ -12,11 +12,9 @@ import {
   atom_splitPane,
   atom_vaultDescriptor,
 } from "@/app/atoms/atoms";
-import { atom_githubVaultDialogOpen, atom_railPanel, atom_lastSidebarPanel, atom_newVaultFlowOpen, atom_pendingScrollTarget, atom_selectedFileTags, atom_userName, RailPanel } from "@/app/atoms/ui-atoms";
+import { atom_githubVaultDialogOpen, atom_railPanel, atom_lastSidebarPanel, atom_newVaultFlowOpen, atom_selectedFileTags, atom_userName, RailPanel } from "@/app/atoms/ui-atoms";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import SmartFolders from "./SmartFolders";
-import VaultSidebarTasks from "./VaultSidebarTasks";
-import DesktopTasksOverlay from "./DesktopTasksOverlay";
 import VaultSidebarTags from "./VaultSidebarTags";
 import { useSidebarSearch } from "../hooks/useSidebarSearch";
 import VaultSidebarEmpty from "./VaultSidebarEmpty";
@@ -38,6 +36,7 @@ interface VaultSidebarProps {
   onNewFile?: () => void;
   onNewAIFile?: () => void;
   onSettings?: () => void;
+  onTasks?: () => void;
   onDocumentation?: () => void;
   onImport?: () => void;
   onExport?: () => void;
@@ -50,6 +49,7 @@ export default function VaultSidebar({
   onClose,
   onNewFile,
   onSettings,
+  onTasks,
   onDocumentation,
   onImport,
   onExport,
@@ -74,7 +74,6 @@ export default function VaultSidebar({
   const dialog = useDialog();
   const setNewVaultFlowOpen = useSetAtom(atom_newVaultFlowOpen);
   const setGitHubVaultDialogOpen = useSetAtom(atom_githubVaultDialogOpen);
-  const setPendingScrollTarget = useSetAtom(atom_pendingScrollTarget);
   // Resolves a directory handle for an arbitrary nested path (e.g. "a/b/c").
   // Tree nodes only carry path strings (built from the flat indexed file list),
   // so folder actions (rename/delete/new file/move) need this to get a real handle.
@@ -103,7 +102,6 @@ export default function VaultSidebar({
   const { sidebarWidth, isResizing, startResizing } = useSidebarResize();
 
   const [selectedTags, setSelectedTags] = useAtom(atom_selectedFileTags);
-  const [isTasksExpanded, setIsTasksExpanded] = useState(false);
 
   const {
     searchQuery,
@@ -154,6 +152,7 @@ export default function VaultSidebar({
         isCloudVault={isCloudVault}
         hasVault={Boolean(vaultHandle)}
         onSettings={onSettings}
+        onTasks={onTasks}
         onDocumentation={onDocumentation}
         onCollapse={() => setRailPanel(null)}
       />
@@ -229,18 +228,6 @@ export default function VaultSidebar({
               deleteFile={deleteFile}
               duplicateFile={duplicateFile}
             />
-          </div>
-        ) : panel === "tasks" ? (
-          <div className="flex-1 overflow-y-auto">
-            <VaultSidebarTasks
-              onFileSelect={(handle, path, line) => {
-                openFile(handle, path);
-                setPendingScrollTarget({ path, line });
-                if (onClose && window.innerWidth < 1024) onClose();
-              }}
-              onExpand={() => setIsTasksExpanded(true)}
-            />
-            <DesktopTasksOverlay isOpen={isTasksExpanded} onClose={() => setIsTasksExpanded(false)} />
           </div>
         ) : (
           <div className="flex flex-col h-full overflow-hidden">

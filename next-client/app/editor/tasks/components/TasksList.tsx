@@ -9,7 +9,6 @@ import {
   HiOutlineDocumentText,
   HiOutlineViewList,
   HiOutlineSearch,
-  HiOutlineArrowsExpand,
   HiX,
 } from "react-icons/hi";
 import {
@@ -26,20 +25,18 @@ import { atom_tasksGroupBy } from "@/app/atoms/ui-atoms";
 import { TaskItem } from "@/app/utils/taskExtractor";
 import { useTaskWriteback } from "@/app/hooks/use-task-writeback";
 import { SelectControl } from "@/app/editor/settings/components/SettingControls";
+import { sortTasks, type TaskSortDirection, type TaskSortField } from "../task-sort";
 
-interface VaultSidebarTasksProps {
+interface TasksListProps {
   onFileSelect: (handle: FileSystemFileHandle, path: string, line: number) => void;
-  /** Shown only by the desktop rail panel, to open the same list in a bigger overlay. */
-  onExpand?: () => void;
 }
 
 type Group = "todo" | "prog" | "hold" | "done";
 
 const GROUP_LABEL: Record<Group, string> = { todo: "To Do", prog: "In Progress", hold: "On Hold", done: "Done" };
 
-// Shared status dot color per group — same tokens used by the Tasks dialog /
-// search input, kept consistent here so a task's color means the same thing
-// everywhere. Explicit dark: variants since these are plain Tailwind hues,
+// Shared status dot color per group, kept consistent with task search
+// results. Explicit dark: variants since these are plain Tailwind hues,
 // not the app's CSS-var-backed semantic colors.
 const GROUP_ACCENT: Record<Group, { dot: string }> = {
   todo: { dot: "bg-sage" },
@@ -54,6 +51,19 @@ const DUE_FILTER_OPTIONS: { value: TaskDueFilter; label: string }[] = [
   { value: "today", label: "Due today" },
   { value: "upcoming", label: "Upcoming" },
   { value: "none", label: "No due date" },
+];
+
+const SORT_OPTIONS: { value: `${TaskSortField}:${TaskSortDirection}`; label: string }[] = [
+  { value: "dueDate:asc", label: "Due date · earliest first" },
+  { value: "dueDate:desc", label: "Due date · latest first" },
+  { value: "priority:desc", label: "Priority · high first" },
+  { value: "priority:asc", label: "Priority · low first" },
+  { value: "status:asc", label: "Status · to do first" },
+  { value: "status:desc", label: "Status · done first" },
+  { value: "note:asc", label: "Note · A–Z" },
+  { value: "note:desc", label: "Note · Z–A" },
+  { value: "text:asc", label: "Task · A–Z" },
+  { value: "text:desc", label: "Task · Z–A" },
 ];
 
 function groupOf(task: TaskItem): Group {
@@ -89,7 +99,7 @@ function TaskCheckbox({ checked, onChange }: { checked: boolean; onChange: () =>
   );
 }
 
-export default function VaultSidebarTasks({ onFileSelect, onExpand }: VaultSidebarTasksProps) {
+export default function TasksList({ onFileSelect }: TasksListProps) {
   const allTasks = useAtomValue(atom_allTasks);
   const tasks = useAtomValue(atom_filteredTasks);
   const allTags = useAtomValue(atom_allTaskTags);
@@ -99,6 +109,7 @@ export default function VaultSidebarTasks({ onFileSelect, onExpand }: VaultSideb
   const [searchQuery, setSearchQuery] = useAtom(atom_taskSearchQuery);
   const [tagFilter, setTagFilter] = useAtom(atom_taskTagFilter);
   const [dueFilter, setDueFilter] = useAtom(atom_taskDueFilter);
+  const [sort, setSort] = React.useState<`${TaskSortField}:${TaskSortDirection}`>("dueDate:asc");
   const [collapsed, setCollapsed] = React.useState<Record<Group, boolean>>({
     todo: false,
     prog: false,
@@ -131,9 +142,12 @@ export default function VaultSidebarTasks({ onFileSelect, onExpand }: VaultSideb
   const statusGroups = React.useMemo(() => {
     const out: Record<Group, TaskItem[]> = { todo: [], prog: [], hold: [], done: [] };
     for (const t of tasks) out[groupOf(t)].push(t);
-    for (const g of Object.values(out)) g.sort((a, b) => noteTitle(a.path).localeCompare(noteTitle(b.path)));
+    const [field, direction] = sort.split(":") as [TaskSortField, TaskSortDirection];
+    for (const [group, groupTasks] of Object.entries(out) as [Group, TaskItem[]][]) {
+      out[group] = sortTasks(groupTasks, field, direction, noteTitle);
+    }
     return out;
-  }, [tasks, noteTitle]);
+  }, [tasks, noteTitle, sort]);
 
   const fileGroups = React.useMemo(() => {
     const byPath = new Map<string, TaskItem[]>();
@@ -142,9 +156,11 @@ export default function VaultSidebarTasks({ onFileSelect, onExpand }: VaultSideb
       if (list) list.push(t);
       else byPath.set(t.path, [t]);
     }
-    for (const list of byPath.values()) list.sort((a, b) => a.line - b.line);
-    return Array.from(byPath.entries()).sort((a, b) => noteTitle(a[0]).localeCompare(noteTitle(b[0])));
-  }, [tasks, noteTitle]);
+    const [field, direction] = sort.split(":") as [TaskSortField, TaskSortDirection];
+    return Array.from(byPath.entries())
+      .map(([path, list]) => [path, sortTasks(list, field, direction, noteTitle)] as const)
+      .sort(([a], [b]) => noteTitle(a).localeCompare(noteTitle(b)));
+  }, [tasks, noteTitle, sort]);
 
   const handleNavigate = (task: TaskItem) => {
     const meta = fileMetadata[task.path];
@@ -165,17 +181,6 @@ export default function VaultSidebarTasks({ onFileSelect, onExpand }: VaultSideb
             <span className="text-ui-footnote tabular-nums text-ink-muted dark:text-stone">{allTasks.length}</span>
           </div>
           <div className="flex items-center gap-1.5 shrink-0">
-          {onExpand && (
-            <button
-              type="button"
-              title="Expand tasks"
-              aria-label="Expand tasks"
-              onClick={onExpand}
-              className="flex h-6 w-6 items-center justify-center rounded-md text-ink-muted hover:text-ink-light hover:bg-paper-softgray dark:text-stone dark:hover:text-ink-dark dark:hover:bg-paper-dark-surface transition-colors"
-            >
-              <HiOutlineArrowsExpand size={14} />
-            </button>
-          )}
           <div className="flex items-center rounded-lg border border-beige/70 bg-paper-softgray/70 p-0.5 dark:border-clay/50 dark:bg-paper-dark-surface/60">
             <button
               type="button"
@@ -221,6 +226,11 @@ export default function VaultSidebarTasks({ onFileSelect, onExpand }: VaultSideb
               <option key={opt.value} value={opt.value}>
                 {opt.label}
               </option>
+            ))}
+          </SelectControl>
+          <SelectControl value={sort} onChange={(value) => setSort(value as typeof sort)} size="sm" fullWidth={false} ariaLabel="Sort tasks">
+            {SORT_OPTIONS.map((option) => (
+              <option key={option.value} value={option.value}>{option.label}</option>
             ))}
           </SelectControl>
           {hasActiveFilters && (

@@ -280,7 +280,6 @@ export default function CommandPalette() {
       return;
     }
     if (row.kind === "task") {
-      setRailPanel("tasks");
       setRunningId(`task:${row.id}`);
       try {
         await openFile(row.handle, row.path);
