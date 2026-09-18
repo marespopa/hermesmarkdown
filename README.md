@@ -31,7 +31,7 @@ See [next-client/ARCHITECTURE.md](next-client/ARCHITECTURE.md) for the detailed 
 ### Local-first workspace
 
 - Open an existing folder or create a new vault; create, rename, move, duplicate, and delete Markdown files and folders.
-- Browse files in multiple resizable editor panes with tabs, search, tags, tasks, and smart workspace views.
+- Browse files in multiple resizable editor panes with tabs, search, tags, a vault-wide Tasks page, and smart workspace views.
 - Use the command palette (`Ctrl/Cmd+K` or `Ctrl/Cmd+Shift+P`) to find files, views, tasks, headings, and commands.
 - External file changes are detected when the window regains focus. If both local and external edits exist, a conflict dialog lets you reload or keep local changes.
 - Install the app from a supported Chromium-based browser as a PWA. Firefox and Safari can load the app, but do not provide the folder picker required for vault access.
@@ -54,7 +54,9 @@ Task tags cycle through:
 
 `#todo` → `#prog` → `#hold` → `#done`
 
-Frontmatter status and inline lifecycle tags are kept semantically aligned. Smart views expose task, date, overdue, tag, and other indexed workspace information.
+The Tasks page collects checkbox tasks from every note in the vault. Open it from the sidebar or command palette to search task text; filter by due date and one or more custom tags; group by status or note; and sort by due date, priority, status, note, or task text. Click a task to open its source note at that line, or toggle its checkbox to save the change directly back to Markdown.
+
+Use `@due(YYYY-MM-DD)` for a due date and `@priority(high|med|low)` for priority. The Tasks page highlights overdue and due-today tasks, and recognizes `#prog` or `[/]` as In Progress and `#hold` as On Hold. Frontmatter status and inline lifecycle tags are kept semantically aligned. Smart views expose task, date, overdue, tag, and other indexed workspace information.
 
 ### Tables
 
