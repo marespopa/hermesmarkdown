@@ -447,16 +447,16 @@ graph TD
         ),
       },
       {
-        id: "tasks-pane",
-        title: "Tasks pane",
-        lead: "A vault-wide checklist — every checkbox task across every note, grouped into To Do, In Progress, On Hold, and Done.",
+        id: "tasks-page",
+        title: "Tasks page",
+        lead: "A vault-wide checklist — every checkbox task across every note, grouped by status or note.",
         keywords:
           "task tasks checkbox todo prog hold done pane sidebar aggregate due date priority tags filter",
         body: (
           <>
             <p>
-              Open it from the command palette (Open Tasks). The pane scans every file in the
-              vault for Markdown task lines and lists them grouped by status.
+              Open it from the Tasks button in the sidebar header or from the command palette (Open
+              Tasks). The page scans every file in the vault for Markdown task lines.
             </p>
             <KV
               rows={[
@@ -471,8 +471,7 @@ graph TD
               anywhere on the line or uses the <code>[/]</code> checkbox marker. It counts as On Hold
               when it's unchecked and tagged <code>#hold</code>. The <code>#prog</code>/<code>#hold</code>{" "}
               tags — along with <code>#todo</code> and <code>#done</code>, which are purely cosmetic — are
-              stripped from the text shown in the pane. Within each group, tasks are sorted by their
-              note's title.
+              stripped from the text shown on the page.
             </p>
             <p>
               A task can also carry a due date (<code>@due(2026-01-31)</code>), a priority (
@@ -483,7 +482,9 @@ graph TD
             <p>
               The toolbar above the list lets you switch between grouping by status and grouping by
               file, filter by search text, due-date bucket (overdue, due today, upcoming, no due date),
-              or one or more custom tags. A Clear button appears once any filter is active.
+              or one or more custom tags. Combine tag filters to show only tasks carrying every selected
+              tag. Sort tasks by due date, priority, status, note, or task text in either direction. A
+              Clear button appears once any filter is active.
             </p>
             <p>
               Click a task's checkbox to toggle it — the change writes straight back to the source line

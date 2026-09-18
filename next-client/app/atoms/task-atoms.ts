@@ -22,7 +22,7 @@ export const atom_allTaskTags = atom<string[]>((get) => {
 
 export type TaskDueFilter = "all" | "overdue" | "today" | "upcoming" | "none";
 
-// Transient filter state for the Tasks sidebar — not persisted, since it's
+// Transient filter state for the Tasks page — not persisted, since it's
 // meant to help focus on the current session rather than survive as a
 // hidden, easily-forgotten leftover filter next time the app opens.
 export const atom_taskSearchQuery = atom<string>("");
@@ -50,4 +50,3 @@ export const atom_filteredTasks = atom<TaskItem[]>((get) => {
     return true;
   });
 });
-

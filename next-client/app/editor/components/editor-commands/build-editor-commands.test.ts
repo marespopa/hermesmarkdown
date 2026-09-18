@@ -25,7 +25,7 @@ function createContext(overrides: Partial<EditorCommandContext> = {}): EditorCom
     onSave: vi.fn(),
     isMobileChrome: true,
     onOpenMobileFiles: vi.fn(),
-    onOpenMobileTasks: vi.fn(),
+    onOpenTasks: vi.fn(),
     onHome: vi.fn(),
     onOpenDocumentation: vi.fn(),
     onRefreshVault: vi.fn(),
@@ -220,11 +220,13 @@ describe("buildEditorCommands", () => {
 
     command("save-file")?.action();
     command("open-files-panel")?.action();
+    command("open-tasks-panel")?.action();
     command("toggle-theme")?.action();
     command("ai-improve")?.action();
 
     expect(context.onSave).toHaveBeenCalledOnce();
     expect(context.onOpenMobileFiles).toHaveBeenCalledOnce();
+    expect(context.onOpenTasks).toHaveBeenCalledOnce();
     expect(context.setTheme).toHaveBeenCalledWith("light");
     expect(context.onRunAIAction).toHaveBeenCalledWith("improve");
   });

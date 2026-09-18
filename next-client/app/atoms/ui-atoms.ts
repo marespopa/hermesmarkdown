@@ -152,7 +152,7 @@ export const atom_isSidebarResizing = atom<boolean>(false);
 // The expanded navigator is visible by default; null means it has been
 // explicitly collapsed from the sidebar header. Transient — never persisted,
 // so each editor session starts with the navigator open.
-export type RailPanel = "files" | "search" | "tags" | "views" | "tasks";
+export type RailPanel = "files" | "search" | "tags" | "views";
 export const atom_railPanel = atom<RailPanel | null>("files");
 export const atom_lastSidebarPanel = atomWithStorage<RailPanel>("lastSidebarPanel", "files");
 export const atom_sidebarExpandedByDefault = atomWithStorage<boolean>(

@@ -17,7 +17,6 @@ const sections: { id: RailPanel; label: string }[] = [
   { id: "files", label: "Files" },
   { id: "views", label: "Views" },
   { id: "tags", label: "Tags" },
-  { id: "tasks", label: "Tasks" },
 ];
 
 export default function VaultSidebarNavigator({ panel, onSelectPanel, search, children, onNewFile, onNewFolder }: VaultSidebarNavigatorProps) {

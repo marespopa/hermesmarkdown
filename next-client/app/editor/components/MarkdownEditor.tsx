@@ -3,11 +3,11 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
 import { useAtomValue, useSetAtom } from "jotai";
-import { atom_frontmatterWizardOpen, atom_wordWrap, atom_isEditorFocused, atom_vaultHandle, atom_currentDirectoryHandle } from "@/app/atoms/atoms";
+import { atom_frontmatterWizardOpen, atom_wordWrap, atom_isEditorFocused, atom_vaultHandle, atom_currentDirectoryHandle, atom_pendingScrollTarget } from "@/app/atoms/atoms";
 import { atom_activeEditorView, atom_editorContentWidth, atom_lineNumbers, atom_vimMode } from "@/app/atoms/ui-atoms";
 import { useAtom } from "jotai";
 import { savePastedImage } from "@/app/utils/paste-image";
-import type { EditorView } from "@codemirror/view";
+import { EditorView } from "@codemirror/view";
 import { HiOutlineCalendar, HiChevronDown, HiChevronRight, HiOutlineArrowsExpand } from "react-icons/hi";
 import FrontmatterPanel from "./FrontmatterPanel";
 import Button from "../../components/Button";
@@ -66,7 +66,9 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
   const vimMode = useAtomValue(atom_vimMode);
   const [, setEditorContentWidth] = useAtom(atom_editorContentWidth);
   const [, setIsEditorFocused] = useAtom(atom_isEditorFocused);
+  const [pendingScrollTarget, setPendingScrollTarget] = useAtom(atom_pendingScrollTarget);
   const filePath = props.filePath || "draft";
+  const [editorView, setEditorView] = useState<EditorView | null>(null);
 
   // Frontmatter is entirely owned by <FrontmatterPanel/> — it never appears
   // in the CM6 doc, so the editable value always excludes it.
@@ -260,6 +262,7 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
   // click required. Skipped for inactive split panes.
   const handleViewCreated = useCallback((view: EditorView) => {
     onViewCreated(view);
+    setEditorView(view);
     if (props.isActivePane !== false) {
       registeredActiveViewRef.current = view;
       setActiveEditorView(view);
@@ -295,6 +298,35 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
     pasteImageRef,
     onViewCreated: handleViewCreated,
   });
+
+  useEffect(() => {
+    if (!editorView || !pendingScrollTarget || pendingScrollTarget.path !== filePath) return;
+
+    const frontmatterLines = rawFrontmatter ? rawFrontmatter.split(/\r?\n/).length - 1 : 0;
+    const lineNumber = Math.min(
+      Math.max(1, pendingScrollTarget.line - frontmatterLines + 1),
+      editorView.state.doc.lines,
+    );
+    const line = editorView.state.doc.line(lineNumber);
+    editorView.dispatch({
+      selection: { anchor: line.from },
+      effects: EditorView.scrollIntoView(line.from, { y: "center" }),
+    });
+    editorView.focus();
+    requestAnimationFrame(() => {
+      if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return;
+      const node = editorView.domAtPos(line.from).node;
+      const lineElement = (node instanceof HTMLElement ? node : node.parentElement)?.closest(".cm-line");
+      lineElement?.animate?.(
+        [
+          { backgroundColor: "rgba(107, 142, 35, 0.24)" },
+          { backgroundColor: "rgba(107, 142, 35, 0)" },
+        ],
+        { duration: 1400, easing: "ease-out" },
+      );
+    });
+    setPendingScrollTarget(null);
+  }, [editorView, filePath, pendingScrollTarget, rawFrontmatter, setPendingScrollTarget]);
 
   // The global voice-input hook (use-global-voice-input.ts) is a single
   // instance shared by the whole app, not one per pane. It inserts a

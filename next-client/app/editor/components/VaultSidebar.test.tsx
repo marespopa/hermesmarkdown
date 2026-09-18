@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, cleanup, waitFor } from "@testing-library/react";
+import { render, screen, fireEvent, cleanup, waitFor, within } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import VaultSidebar from "./VaultSidebar";
 import "@testing-library/jest-dom";
@@ -164,6 +164,30 @@ describe("VaultSidebar Component", () => {
     render(<VaultSidebar panel="search" onClose={mockOnClose} />);
     fireEvent.click(screen.getByRole("button", { name: "Close Vault" }));
     expect(mockFileSystem.closeVault).toHaveBeenCalledOnce();
+  });
+
+  it("places the Tasks page control with the header utilities", () => {
+    const onTasks = vi.fn();
+    const onSettings = vi.fn();
+    const onDocumentation = vi.fn();
+    render(
+      <VaultSidebar
+        panel="files"
+        onClose={mockOnClose}
+        onTasks={onTasks}
+        onSettings={onSettings}
+        onDocumentation={onDocumentation}
+      />,
+    );
+
+    const header = screen.getByRole("banner");
+    expect(within(header).getByRole("button", { name: "Settings" })).toHaveClass("h-9", "w-9");
+    expect(within(header).getByRole("button", { name: "Documentation" })).toHaveClass("h-9", "w-9");
+    expect(within(header).getByRole("button", { name: "Theme: System" })).toHaveClass("h-9", "w-9");
+    fireEvent.click(within(header).getByRole("button", { name: "Tasks" }));
+
+    expect(onTasks).toHaveBeenCalledOnce();
+    expect(screen.queryByPlaceholderText("Filter tasks...")).not.toBeInTheDocument();
   });
 
   it("greets the user in the Files panel", () => {

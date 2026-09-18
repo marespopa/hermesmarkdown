@@ -34,7 +34,6 @@ import LoadingOverlay from "@/app/components/LoadingOverlay";
 import EditorCommands from "./components/EditorCommands";
 import { useCommandPalette } from "@/app/components/CommandPalette/CommandPaletteContext";
 import MobileFileOverlay from "./components/MobileFileOverlay";
-import MobileTasksOverlay from "./components/MobileTasksOverlay";
 import MobileFileIndicator from "./components/MobileFileIndicator";
 import MobileSelectionToolbar from "./components/MobileSelectionToolbar";
 import ErrorBoundary from "@/app/components/ErrorBoundary";
@@ -93,6 +92,12 @@ function CollapsedSidebarControls({ onShowSidebar }: { onShowSidebar: () => void
   );
 }
 
+function normalizeSidebarPanel(panel: unknown): RailPanel {
+  return panel === "files" || panel === "search" || panel === "tags" || panel === "views"
+    ? panel
+    : "files";
+}
+
 export default function LiteEditor() {
   const router = useRouter();
   const [isMounting, setIsMounting] = useState(true);
@@ -119,18 +124,18 @@ export default function LiteEditor() {
   const isSidebarResizing = useAtomValue(atom_isSidebarResizing);
   // Kept mounted while collapsing/expanding so the wrapper's width transition
   // (below) can animate smoothly instead of the panel popping in/out on unmount.
-  const [lastPanel, setLastPanel] = useState<RailPanel>(railPanel ?? "files");
+  const [lastPanel, setLastPanel] = useState<RailPanel>(normalizeSidebarPanel(railPanel));
   const hasInitializedSidebarDefault = useRef(false);
   useEffect(() => {
     const timeoutId = window.setTimeout(() => {
       if (hasInitializedSidebarDefault.current) return;
-      setRailPanel(sidebarExpandedByDefault ? lastSidebarPanel : null);
+      setRailPanel(sidebarExpandedByDefault ? normalizeSidebarPanel(lastSidebarPanel) : null);
       hasInitializedSidebarDefault.current = true;
     }, 0);
     return () => window.clearTimeout(timeoutId);
   }, [lastSidebarPanel, setRailPanel, sidebarExpandedByDefault]);
   useEffect(() => {
-    if (railPanel !== null) setLastPanel(railPanel);
+    if (railPanel !== null) setLastPanel(normalizeSidebarPanel(railPanel));
   }, [railPanel]);
   const isFileLoading = useAtomValue(atom_isFileLoading);
   const isAiConfigured = useAtomValue(atom_isAiConfigured);
@@ -155,7 +160,6 @@ export default function LiteEditor() {
   } = useGlobalVoiceInput();
   const isMobileChrome = useIsMobileChrome();
   const [isMobileFileOverlayOpen, setIsMobileFileOverlayOpen] = useState(false);
-  const [isMobileTasksOverlayOpen, setIsMobileTasksOverlayOpen] = useState(false);
   const {
     vaultHandle,
     vaultFiles,
@@ -548,7 +552,7 @@ export default function LiteEditor() {
         onSave={() => handleSaveRef.current()}
         isMobileChrome={isMobileChrome}
         onOpenMobileFiles={() => setIsMobileFileOverlayOpen(true)}
-        onOpenMobileTasks={() => setIsMobileTasksOverlayOpen(true)}
+        onOpenTasks={() => navigateWithGuard("/editor/tasks", "Tasks")}
         onHome={() => navigateWithGuard("/", "Home")}
         onOpenDocumentation={() => navigateWithGuard("/documentation", "Documentation")}
         onRefreshVault={handleRefreshVault}
@@ -619,6 +623,7 @@ export default function LiteEditor() {
                   onSyncGitHub={handleSyncGitHub}
                   onPullGitHub={() => void runGitHubPullCommand()}
                   onSettings={() => navigateWithGuard("/editor/settings", "Settings")}
+                  onTasks={() => navigateWithGuard("/editor/tasks", "Tasks")}
                   onDocumentation={() => navigateWithGuard("/documentation", "Documentation")}
                   onClose={() => setRailPanel(null)}
                 />
@@ -698,10 +703,6 @@ export default function LiteEditor() {
               onClose={() => setIsMobileFileOverlayOpen(false)}
               onImport={handleImport}
               onExport={handleExport}
-            />
-            <MobileTasksOverlay
-              isOpen={isMobileTasksOverlayOpen}
-              onClose={() => setIsMobileTasksOverlayOpen(false)}
             />
           </>
         )}

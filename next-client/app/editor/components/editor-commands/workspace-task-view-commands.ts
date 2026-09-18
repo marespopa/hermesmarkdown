@@ -20,7 +20,7 @@ export function buildWorkspaceTaskViewCommandGroups(context: EditorCommandContex
     isOnlyPane,
     lineNumbers,
     onOpenMobileFiles,
-    onOpenMobileTasks,
+    onOpenTasks,
     railPanel,
     requestTabsBarToggle,
     requestWorkspaceBuilder,
@@ -85,7 +85,7 @@ export function buildWorkspaceTaskViewCommandGroups(context: EditorCommandContex
       id: "open-tasks-panel",
       label: "Open Tasks",
       keywords: "tasks todos sidebar",
-      action: () => (isMobileChrome ? onOpenMobileTasks?.() : setRailPanel("tasks")),
+      action: onOpenTasks,
     },
   ];
 
@@ -282,7 +282,7 @@ export function buildWorkspaceTaskViewCommandGroups(context: EditorCommandContex
       keywords: "todo organize",
       action: () => {
         setTasksGroupBy("status");
-        setRailPanel("tasks");
+        onOpenTasks();
       },
     },
     {
@@ -292,7 +292,7 @@ export function buildWorkspaceTaskViewCommandGroups(context: EditorCommandContex
       keywords: "todo organize note",
       action: () => {
         setTasksGroupBy("file");
-        setRailPanel("tasks");
+        onOpenTasks();
       },
     },
     {
@@ -304,7 +304,7 @@ export function buildWorkspaceTaskViewCommandGroups(context: EditorCommandContex
         setTaskSearchQuery("");
         setTaskTagFilter([]);
         setTaskDueFilter("all");
-        setRailPanel("tasks");
+        onOpenTasks();
       },
     },
     ...([
@@ -320,7 +320,7 @@ export function buildWorkspaceTaskViewCommandGroups(context: EditorCommandContex
       keywords: "todo filter due date",
       action: () => {
         setTaskDueFilter(filter);
-        setRailPanel("tasks");
+        onOpenTasks();
       },
     })),
   ];

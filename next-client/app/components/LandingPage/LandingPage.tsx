@@ -358,6 +358,10 @@ Hover the image above and click the trigger button to open the actual image in a
 
 Every checkbox here is live. Toggle one and it writes straight back to this file — no separate save step, no separate view.
 
+Open the Tasks page to collect every checkbox across your vault. Search task text, filter by due date
+or custom tags, group by status or note, sort by due date or priority, and jump straight to the
+source line when it is time to work.
+
 ## Tables that stay plain text
 
 Click into a table for a floating toolbar — sort a column, copy as CSV, delete a row. What gets written back is clean, auto-padded Markdown.
@@ -368,7 +372,7 @@ Click into a table for a floating toolbar — sort a column, copy as CSV, delete
 | Diff review     | AI         | 2026     | 5      |
 | Command palette | Navigation | 2024     | 5      |
 | Callout blocks  | Editing    | 2025     | 4      |
-| Task pane       | Editing    | 2024     | 3      |
+| Tasks page      | Planning   | 2026     | 5      |
 | Slash menu      | AI         | 2025     | 5      |
 | Inline calc()   | Editing    | 2026     | 5      |
 
@@ -701,6 +705,10 @@ export default function LandingPage() {
                 {
                   label: "Dynamic status cycling",
                   detail: "Cycle tasks smoothly between #todo, #prog, and #done using native keyboard shortcuts.",
+                },
+                {
+                  label: "Vault-wide task focus",
+                  detail: "Open the Tasks page to filter, group, sort, and complete Markdown tasks across every note, then jump to their source lines.",
                 },
                 {
                   label: "Zero friction, zero lock-in",

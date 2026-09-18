@@ -16,6 +16,12 @@ The sidebar manages navigation within the opened "Vault" (local directory).
 - **Actions**: Provides UI for creating new files and folders, renaming, and deleting entries.
 - **Smart Filters**: Automatically extracts and displays tags (hashtags) found within markdown files in the vault.
 
+### Tasks page
+The Tasks page (`app/editor/tasks`) is a vault-wide view over the derived task index.
+- **Navigation**: Selecting a task opens its source file and queues the editor to focus its source line.
+- **Filtering and grouping**: Task text, custom tags, due-date buckets, status/file grouping, and configurable sorting are client-side derived state.
+- **Write-back**: Toggling a checkbox patches the original Markdown source line and saves it through the normal file-save path, which refreshes the task index.
+
 ## Interactions
 
 1. **Opening a File**: When a user clicks a file in the `VaultSidebar`, it calls `openFile` from `useFileSystem`. This reads the file content, sets the document content, and updates the active file handle.
