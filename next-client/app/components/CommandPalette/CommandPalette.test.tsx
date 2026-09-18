@@ -83,7 +83,7 @@ describe("CommandPalette", () => {
 
   it("keeps commands out of the default file search and shows them after >", async () => {
     renderPalette();
-    fireEvent.keyDown(document, { key: "p", ctrlKey: true, shiftKey: true });
+    fireEvent.keyDown(document, { key: "p", ctrlKey: true });
 
     const input = await screen.findByRole("combobox");
     expect(screen.queryByText("Test command")).not.toBeInTheDocument();
@@ -91,6 +91,14 @@ describe("CommandPalette", () => {
     fireEvent.change(input, { target: { value: ">test" } });
 
     await waitFor(() => expect(screen.getByRole("listbox")).toHaveTextContent("Test command"));
+  });
+
+  it("opens command mode from Ctrl/Cmd+Shift+P", async () => {
+    renderPalette();
+    fireEvent.keyDown(document, { key: "p", ctrlKey: true, shiftKey: true });
+
+    expect(await screen.findByRole("combobox")).toHaveValue(">");
+    expect(screen.getByRole("listbox")).toHaveTextContent("Test command");
   });
 
   it("searches the vault-wide tag catalog with #", async () => {

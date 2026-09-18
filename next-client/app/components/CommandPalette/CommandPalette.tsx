@@ -62,7 +62,7 @@ function matchFile(query: string, file: FileResult): { score: number; indices: n
 }
 
 export default function CommandPalette() {
-  const { isOpen, close, commands, recentCommandIds, markUsed } = useCommandPalette();
+  const { isOpen, initialQuery, close, commands, recentCommandIds, markUsed } = useCommandPalette();
   const fileMetadata = useAtomValue(atom_fileMetadata);
   const tasks = useAtomValue(atom_allTasks);
   const customWorkspaces = useAtomValue(atom_customWorkspaces);
@@ -83,11 +83,11 @@ export default function CommandPalette() {
 
   useEffect(() => {
     if (isOpen) {
-      setQuery("");
+      setQuery(initialQuery);
       setSelectedIndex(0);
       requestAnimationFrame(() => inputRef.current?.focus());
     }
-  }, [isOpen]);
+  }, [initialQuery, isOpen]);
 
   const fileResults: FileResult[] = useMemo(
     () =>
@@ -240,11 +240,11 @@ export default function CommandPalette() {
   const rows: Row[] = useMemo(
     () => (
       isCommandMode ? commandRows :
-      isTagMode ? tagRows :
-      isTaskMode ? taskRows :
-      isViewMode ? viewRows :
-      isHeadingMode ? headingRows :
-      fileRows
+        isTagMode ? tagRows :
+          isTaskMode ? taskRows :
+            isViewMode ? viewRows :
+              isHeadingMode ? headingRows :
+                fileRows
     ).slice(0, MAX_VISIBLE_ROWS),
     [commandRows, fileRows, headingRows, isCommandMode, isHeadingMode, isTagMode, isTaskMode, isViewMode, tagRows, taskRows, viewRows],
   );
@@ -267,7 +267,7 @@ export default function CommandPalette() {
         setRecentFilePaths((previous) => [
           row.file.path,
           ...previous.filter((path) => path !== row.file.path),
-        ].slice(0, 8));
+        ].slice(0, 3));
         if (!pathname.startsWith("/editor")) router.push("/editor");
         close();
       } catch (error) {
@@ -280,7 +280,6 @@ export default function CommandPalette() {
     if (row.kind === "task") {
       router.push("/editor/tasks");
       close();
-      return;
     }
     if (row.kind === "view") {
       setSelectedWorkspaceId(row.id);
@@ -377,74 +376,73 @@ export default function CommandPalette() {
           </span>
         </div>
         <div className="flex items-center gap-2">
-        <div className="flex-1 flex items-center h-11 sm:h-9 px-3 gap-2 rounded-xl border border-edge bg-paper-light dark:bg-paper-dark focus-within:ring-2 focus-within:ring-sage/20 transition-all duration-150">
-          <HiOutlineSearch size={15} className="shrink-0 text-fg-faint" />
-          <input
-            ref={inputRef}
-            type="search"
-            autoFocus
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder="Search files"
-            className="flex-1 min-w-0 bg-transparent text-fg text-[15px] outline-none focus-visible:outline-none caret-accent [&::-webkit-search-cancel-button]:hidden"
-            autoComplete="off"
-            autoCorrect="off"
-            spellCheck={false}
-            data-lpignore="true"
-            data-1p-ignore
-            data-bwignore="true"
-            data-nordpass-ignore="true"
-            role="combobox"
-            aria-label="Search files and command palette modes"
-            aria-describedby="command-palette-search-help"
-            aria-expanded={isOpen}
-            aria-controls="command-palette-results"
-            aria-activedescendant={rows[selectedIndex] ? `command-palette-option-${selectedIndex}` : undefined}
-          />
-          {query && (
-            <Button
-              variant="icon"
-              onClick={() => {
-                setQuery("");
-                inputRef.current?.focus();
-              }}
-              aria-label="Clear search"
-              className="shrink-0 !w-8 !h-8 !rounded-lg text-fg-faint hover:text-fg-muted"
-            >
-              <HiOutlineX size={16} />
-            </Button>
-          )}
-          {/* Tap equivalent of typing ">" to reach command mode (see
+          <div className="flex-1 flex items-center h-11 sm:h-9 px-3 gap-2 rounded-xl border border-edge bg-paper-light dark:bg-paper-dark focus-within:ring-2 focus-within:ring-sage/20 transition-all duration-150">
+            <HiOutlineSearch size={15} className="shrink-0 text-fg-faint" />
+            <input
+              ref={inputRef}
+              type="search"
+              autoFocus
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder="Search files"
+              className="flex-1 min-w-0 bg-transparent text-fg text-[15px] outline-none focus-visible:outline-none caret-accent [&::-webkit-search-cancel-button]:hidden"
+              autoComplete="off"
+              autoCorrect="off"
+              spellCheck={false}
+              data-lpignore="true"
+              data-1p-ignore
+              data-bwignore="true"
+              data-nordpass-ignore="true"
+              role="combobox"
+              aria-label="Search files and command palette modes"
+              aria-describedby="command-palette-search-help"
+              aria-expanded={isOpen}
+              aria-controls="command-palette-results"
+              aria-activedescendant={rows[selectedIndex] ? `command-palette-option-${selectedIndex}` : undefined}
+            />
+            {query && (
+              <Button
+                variant="icon"
+                onClick={() => {
+                  setQuery("");
+                  inputRef.current?.focus();
+                }}
+                aria-label="Clear search"
+                className="shrink-0 !w-8 !h-8 !rounded-lg text-fg-faint hover:text-fg-muted"
+              >
+                <HiOutlineX size={16} />
+              </Button>
+            )}
+            {/* Tap equivalent of typing ">" to reach command mode (see
               isCommandMode below) — most useful on mobile, where touch
               keyboards bury ">" behind a symbols layer, but shown on
               desktop too as a discoverable, mouse-friendly alternative to
               remembering the prefix. */}
-          <Button
-            variant="icon"
-            onClick={() => {
-              setQuery((q) => (q.startsWith(">") ? q.slice(1).trimStart() : `>${q}`));
-              inputRef.current?.focus();
-            }}
-            aria-label={isCommandMode ? "Switch to file search" : "Switch to commands"}
-            aria-pressed={isCommandMode}
-            className={`shrink-0 w-8 h-8 flex items-center justify-center rounded-lg transition-colors ${
-              isCommandMode ? "bg-sage/10 text-sage" : "text-fg-faint hover:text-fg-muted"
-            }`}
-          >
-            <HiOutlineTerminal size={16} />
-          </Button>
-        </div>
-        {isMobileChrome && (
-          <Button
-            variant="icon"
-            onClick={close}
-            aria-label="Close"
-            className="shrink-0 w-11 h-11 flex items-center justify-center text-fg-muted"
-          >
-            <HiOutlineX size={20} />
-          </Button>
-        )}
+            <Button
+              variant="icon"
+              onClick={() => {
+                setQuery((q) => (q.startsWith(">") ? q.slice(1).trimStart() : `>${q}`));
+                inputRef.current?.focus();
+              }}
+              aria-label={isCommandMode ? "Switch to file search" : "Switch to commands"}
+              aria-pressed={isCommandMode}
+              className={`shrink-0 w-8 h-8 flex items-center justify-center rounded-lg transition-colors ${isCommandMode ? "bg-sage/10 text-sage" : "text-fg-faint hover:text-fg-muted"
+                }`}
+            >
+              <HiOutlineTerminal size={16} />
+            </Button>
+          </div>
+          {isMobileChrome && (
+            <Button
+              variant="icon"
+              onClick={close}
+              aria-label="Close"
+              className="shrink-0 w-11 h-11 flex items-center justify-center text-fg-muted"
+            >
+              <HiOutlineX size={20} />
+            </Button>
+          )}
         </div>
       </div>
       <div
@@ -460,9 +458,9 @@ export default function CommandPalette() {
         {rows.map((row, index) => {
           const key =
             row.kind === "command" ? row.command.id :
-            row.kind === "file" ? row.file.path :
-            row.kind === "heading" ? `heading:${row.from}` :
-            `${row.kind}:${row.id}`;
+              row.kind === "file" ? row.file.path :
+                row.kind === "heading" ? `heading:${row.from}` :
+                  `${row.kind}:${row.id}`;
           const isSelected = index === selectedIndex;
           return (
             <Button
@@ -475,9 +473,8 @@ export default function CommandPalette() {
               isDisabled={runningId !== null || (row.kind === "command" && !!row.command.disabledReason)}
               onClick={() => void execute(index)}
               onMouseEnter={() => setSelectedIndex(index)}
-              className={`relative w-full flex items-center justify-between gap-3 pl-10 pr-4 ${rowHeightClass} text-left text-[14px] cursor-pointer select-none ${
-                isSelected ? "before:absolute before:left-0 before:top-1 before:bottom-1 before:w-0.5 before:bg-accent bg-accent/10 text-fg" : "text-fg"
-              }`}
+              className={`relative w-full flex items-center justify-between gap-3 pl-10 pr-4 ${rowHeightClass} text-left text-[14px] cursor-pointer select-none ${isSelected ? "before:absolute before:left-0 before:top-1 before:bottom-1 before:w-0.5 before:bg-accent bg-accent/10 text-fg" : "text-fg"
+                }`}
             >
               {row.kind === "command" ? (
                 <>

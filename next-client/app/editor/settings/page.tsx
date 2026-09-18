@@ -20,7 +20,7 @@ import {
   atom_geminiKey,
   atom_vimMode,
 } from "@/app/atoms/atoms";
-import { atom_availableGeminiModels, atom_availableClaudeModels, atom_lineNumbers, atom_showHiddenFiles, atom_sidebarExpandedByDefault, atom_tabsBarVisibleByDefault, atom_renderedFontSize } from "@/app/atoms/ui-atoms";
+import { atom_availableGeminiModels, atom_availableClaudeModels, atom_lineNumbers, atom_showCommandPaletteFab, atom_showHiddenFiles, atom_tabsBarVisibleByDefault, atom_renderedFontSize } from "@/app/atoms/ui-atoms";
 import { useFileSystem } from "@/app/hooks/use-file-system";
 import { testAIConnection, fetchGeminiModels, fetchClaudeModels } from "@/app/services/ai";
 import {
@@ -59,8 +59,8 @@ const SettingsPage = () => {
   const [editorWidth, setEditorWidth] = useAtom(atom_editorWidth);
   const [frontmatterDefaultMode, setFrontmatterDefaultMode] = useAtom(atom_frontmatterDefaultMode);
   const [showHiddenFiles, setShowHiddenFiles] = useAtom(atom_showHiddenFiles);
-  const [sidebarExpandedByDefault, setSidebarExpandedByDefault] = useAtom(atom_sidebarExpandedByDefault);
   const [tabsBarVisibleByDefault, setTabsBarVisibleByDefault] = useAtom(atom_tabsBarVisibleByDefault);
+  const [showCommandPaletteFab, setShowCommandPaletteFab] = useAtom(atom_showCommandPaletteFab);
   const [editorFontFamily, setEditorFontFamily] = useAtom(atom_editorFontFamily);
   const [renderedFontSize, setRenderedFontSize] = useAtom(atom_renderedFontSize);
   const { scanVault, indexVaultTags, vaultHandle: fsVaultHandle } = useFileSystem();
@@ -93,7 +93,6 @@ const SettingsPage = () => {
           const models = await fetchGeminiModels(geminiKey);
           setAvailableGeminiModels(models);
         } catch (error: any) {
-          console.error("Failed to fetch models", error);
           setFetchError(error.message || "Failed to load models");
         } finally {
           setIsFetchingModels(false);
@@ -112,7 +111,6 @@ const SettingsPage = () => {
           const models = await fetchClaudeModels(claudeKey);
           setAvailableClaudeModels(models);
         } catch (error: any) {
-          console.error("Failed to fetch models", error);
           setFetchError(error.message || "Failed to load models");
         } finally {
           setIsFetchingModels(false);
@@ -144,6 +142,17 @@ const SettingsPage = () => {
     } finally {
       setIsTestingConnection(false);
     }
+  };
+
+  const removeAiKey = () => {
+    if (aiProvider === "claude") {
+      setClaudeKey("");
+      setAvailableClaudeModels([]);
+    } else {
+      setGeminiKey("");
+      setAvailableGeminiModels([]);
+    }
+    setFetchError(null);
   };
 
   const widthOptions = [
@@ -204,9 +213,9 @@ const SettingsPage = () => {
               control={<Toggle variant="soft" active={tabsBarVisibleByDefault} onChange={setTabsBarVisibleByDefault} />}
             />
             <SettingItem
-              label="Expand Sidebar by Default"
-              description="Open the Files sidebar automatically when starting or refreshing the editor."
-              control={<Toggle variant="soft" active={sidebarExpandedByDefault} onChange={setSidebarExpandedByDefault} />}
+              label="Command Palette Button"
+              description="Show a floating button that opens the Command Palette. Keyboard shortcuts remain available when hidden."
+              control={<Toggle variant="soft" active={showCommandPaletteFab} onChange={setShowCommandPaletteFab} />}
             />
             <SettingItem
               label="Editor Width"
@@ -415,32 +424,52 @@ const SettingsPage = () => {
             {aiProvider === "claude" && (
               <SettingItem
                 label="Claude API Key"
-                description="Your Anthropic API key."
+                description="Your Anthropic API key. Remove it to disable AI features for this provider."
                 layout="stack"
                 control={
-                  <Input
-                    name="claudeKey"
-                    value={claudeKey}
-                    type="password"
-                    placeholder="sk-ant-..."
-                    handleChange={(e) => setClaudeKey(e.target.value.trim())}
-                  />
+                  <div className="flex flex-col gap-2">
+                    <Input
+                      name="claudeKey"
+                      value={claudeKey}
+                      type="password"
+                      placeholder="sk-ant-..."
+                      handleChange={(e) => setClaudeKey(e.target.value.trim())}
+                    />
+                    <Button
+                      variant="secondary"
+                      onClick={removeAiKey}
+                      disabled={!claudeKey}
+                      className="h-8 self-start px-3 text-ui-footnote text-red-500 hover:bg-red-500/10 disabled:text-fg-faint"
+                    >
+                      Remove AI key
+                    </Button>
+                  </div>
                 }
               />
             )}
             {aiProvider === "gemini" && (
               <SettingItem
                 label="Gemini API Key"
-                description="Your Google AI Studio API key."
+                description="Your Google AI Studio API key. Remove it to disable AI features for this provider."
                 layout="stack"
                 control={
-                  <Input
-                    name="geminiKey"
-                    value={geminiKey}
-                    type="password"
-                    placeholder="AIza..."
-                    handleChange={(e) => setGeminiKey(e.target.value.trim())}
-                  />
+                  <div className="flex flex-col gap-2">
+                    <Input
+                      name="geminiKey"
+                      value={geminiKey}
+                      type="password"
+                      placeholder="AIza..."
+                      handleChange={(e) => setGeminiKey(e.target.value.trim())}
+                    />
+                    <Button
+                      variant="secondary"
+                      onClick={removeAiKey}
+                      disabled={!geminiKey}
+                      className="h-8 self-start px-3 text-ui-footnote text-red-500 hover:bg-red-500/10 disabled:text-fg-faint"
+                    >
+                      Remove AI key
+                    </Button>
+                  </div>
                 }
               />
             )}
@@ -495,22 +524,21 @@ const SettingsPage = () => {
   const active = sections.find((s) => s.id === activeSection) ?? sections[0];
 
   return (
-    <div className="fixed inset-0 flex flex-col lg:flex-row font-sans overflow-hidden overscroll-none bg-paper-pale dark:bg-paper-dark text-ink-light dark:text-ink-dark selection:bg-sage/10">
-      {/* Sidebar */}
-      <aside className="shrink-0 lg:w-60 flex flex-col border-b lg:border-b-0 lg:border-r border-beige/70 dark:border-paper-dark bg-paper-pale dark:bg-paper-dark">
-        <div className="px-5 pt-6 pb-4">
+    <div className="fixed inset-0 flex flex-col overflow-hidden overscroll-none bg-paper-pale font-sans text-ink-light selection:bg-sage/10 dark:bg-paper-dark dark:text-ink-dark lg:flex-row">
+      <aside className="flex shrink-0 flex-col border-b border-edge-subtle bg-chrome/85 backdrop-blur-2xl lg:w-72 lg:border-b-0 lg:border-r">
+        <div className="border-b border-edge-subtle px-4 pb-3 pt-4">
           <button
             onClick={() => router.push("/editor")}
             title="Back to editor"
-            className="inline-flex items-center gap-1.5 text-ui-footnote font-medium text-stone hover:text-ink-light dark:hover:text-ink-dark transition-colors mb-5 group focus:outline-none"
+            className="group mb-3 inline-flex items-center gap-1.5 rounded-md px-1 py-1 text-ui-footnote font-medium text-ink-muted transition-colors hover:bg-paper-light/70 hover:text-ink-light focus:outline-none dark:text-stone dark:hover:bg-paper-dark-surface dark:hover:text-ink-dark"
           >
             <HiOutlineArrowLeft size={13} className="group-hover:-translate-x-0.5 transition-transform" />
             Editor
           </button>
-          <h1 className="text-ui-title-3 font-bold tracking-tight">Settings</h1>
+          <h1 className="text-ui-title-3 font-semibold tracking-tight">Settings</h1>
         </div>
 
-        <nav className="flex lg:flex-col gap-0.5 px-3 pb-4 overflow-x-auto lg:overflow-visible">
+        <nav aria-label="Settings sections" className="flex gap-0.5 overflow-x-auto px-3 py-3 lg:flex-col lg:overflow-visible">
           {sections.map((s) => {
             const Icon = s.icon;
             const isActive = s.id === activeSection;
@@ -518,10 +546,10 @@ const SettingsPage = () => {
               <button
                 key={s.id}
                 onClick={() => setActiveSection(s.id)}
-                className={`flex items-center gap-2.5 shrink-0 px-3 py-2.5 rounded-xl text-ui-subhead font-medium transition-all focus:outline-none ${
+                className={`flex h-8 shrink-0 items-center gap-2 px-2.5 rounded-lg text-ui-subhead font-medium transition-colors focus:outline-none ${
                   isActive
-                    ? "bg-sage/10 dark:bg-sage/10 text-sage dark:text-sage"
-                    : "text-ink-muted hover:text-ink-light dark:hover:text-ink-dark hover:bg-paper-softgray dark:hover:bg-paper-dark"
+                    ? "bg-paper-light/80 text-ink-light shadow-sm dark:bg-white/10 dark:text-ink-dark"
+                    : "text-ink-muted hover:bg-paper-light/70 hover:text-ink-light dark:text-stone dark:hover:bg-paper-dark-surface dark:hover:text-ink-dark"
                 }`}
               >
                 <Icon size={16} className="shrink-0" />
@@ -532,10 +560,9 @@ const SettingsPage = () => {
         </nav>
       </aside>
 
-      {/* Content */}
-      <main className="flex-1 min-h-0 overflow-y-auto custom-scrollbar bg-paper-pale dark:bg-paper-dark">
-        <div className="px-5 sm:px-8 py-8">
-          <h2 className="text-ui-title-2 font-bold tracking-tight mb-6">{active.label}</h2>
+      <main className="min-h-0 flex-1 overflow-y-auto bg-paper-pale custom-scrollbar dark:bg-paper-dark">
+        <div className="mx-auto max-w-3xl px-5 py-7 sm:px-8">
+          <h2 className="mb-5 text-ui-title-2 font-semibold tracking-tight">{active.label}</h2>
           {active.content}
         </div>
       </main>

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { HiChevronRight, HiOutlineViewGrid } from "react-icons/hi";
+import { HiChevronLeft, HiChevronRight, HiOutlineViewGrid } from "react-icons/hi";
 import Button from "@/app/components/Button";
 import DialogModal from "@/app/components/DialogModal/DialogModal";
 import ConflictDialog from "./components/ConflictDialog";
@@ -56,50 +56,131 @@ import { useGlobalVoiceInput } from "./hooks/use-global-voice-input";
 
 
 import { useRouter } from "next/navigation";
-import { atom_isAiConfigured, atom_aiBuilderRequest, atom_railPanel, atom_lastSidebarPanel, atom_sidebarExpandedByDefault, atom_showHiddenFiles, RailPanel, atom_isSidebarResizing, atom_vimMode } from "@/app/atoms/ui-atoms";
+import { atom_isAiConfigured, atom_aiBuilderRequest, atom_railPanel, atom_lastSidebarPanel, atom_showCommandPaletteFab, atom_showHiddenFiles, RailPanel, atom_vimMode } from "@/app/atoms/ui-atoms";
 import { generateFileFromPrompt } from "@/app/services/ai";
 import { withRetry } from "@/app/hooks/file-system/shared";
-import { formatShortcut } from "@/app/utils/platform";
 import { pullGitHubVault, syncGitHubVault } from "@/app/services/github-vault-sync";
 
-function CollapsedSidebarControls({ onShowSidebar }: { onShowSidebar: () => void }) {
-  const { open: openCommandPalette } = useCommandPalette();
+const SIDEBAR_PULL_DISTANCE = 112;
+
+function CollapsedSidebarControls({
+  onShowSidebar,
+  onPullProgress,
+  onPullEnd,
+}: {
+  onShowSidebar: () => void;
+  onPullProgress: (progress: number) => void;
+  onPullEnd: (shouldOpen: boolean) => void;
+}) {
+  const dragStartX = useRef<number | null>(null);
+  const dragged = useRef(false);
+  const pullProgress = useRef(0);
+
+  const resetDrag = () => {
+    dragStartX.current = null;
+  };
 
   return (
-    <div className="w-16 shrink-0 flex flex-col items-center gap-2 pt-4 text-ink-muted dark:text-stone border-r border-edge-subtle">
-      <button
-        type="button"
-        onClick={onShowSidebar}
+    <div className="fixed left-0 top-1/2 z-30 -translate-y-1/2 text-ink-muted dark:text-stone">
+      <Button
+        variant="icon"
+        onClick={() => {
+          if (dragged.current) {
+            dragged.current = false;
+            return;
+          }
+          onShowSidebar();
+        }}
+        onPointerDown={(event: React.PointerEvent<HTMLButtonElement>) => {
+          if (event.button !== 0) return;
+          dragStartX.current = event.clientX;
+          dragged.current = false;
+          pullProgress.current = 0;
+          event.currentTarget.setPointerCapture?.(event.pointerId);
+        }}
+        onPointerMove={(event: React.PointerEvent<HTMLButtonElement>) => {
+          if (dragStartX.current === null) return;
+          const distance = Math.max(0, event.clientX - dragStartX.current);
+          const progress = Math.min(1, distance / SIDEBAR_PULL_DISTANCE);
+          pullProgress.current = progress;
+          if (distance > 4) dragged.current = true;
+          onPullProgress(progress);
+        }}
+        onPointerUp={() => {
+          if (dragged.current) onPullEnd(pullProgress.current >= 0.35);
+          resetDrag();
+        }}
+        onPointerCancel={() => {
+          if (dragged.current) onPullEnd(false);
+          resetDrag();
+        }}
         title="Show sidebar"
         aria-label="Show sidebar"
-        className="w-7 flex flex-col items-center gap-0.5 hover:text-ink-light dark:hover:text-ink-dark transition-colors"
+        className="group relative h-12 w-11 border-0 bg-transparent p-0 shadow-none"
       >
-        <HiChevronRight size={17} />
-        <span className="text-[9px] leading-none">{formatShortcut("E", { shift: true })}</span>
-      </button>
-      <span aria-hidden="true" className="w-8 border-t border-edge-subtle" />
-      <button
-        type="button"
-        onClick={openCommandPalette}
-        title="Command palette"
-        aria-label="Command palette"
-        className="w-7 flex flex-col items-center gap-0.5 hover:text-ink-light dark:hover:text-ink-dark transition-colors"
+        <span className="absolute left-0 top-1/2 flex h-10 w-6 -translate-y-1/2 items-center justify-center rounded-r-lg border border-l-0 border-edge bg-paper-light text-ink-muted shadow-[1px_0_0_var(--edge-subtle)] transition-[width,background-color,color,transform] duration-300 ease-out group-hover:w-9 group-hover:bg-paper-softgray group-hover:text-ink-light group-hover:duration-150 group-active:scale-y-95 dark:bg-paper-dark-surface dark:text-stone dark:group-hover:bg-clay dark:group-hover:text-ink-dark">
+          <HiChevronRight size={14} className="transition-transform duration-150 ease-out group-hover:translate-x-0.5" />
+        </span>
+      </Button>
+    </div>
+  );
+}
+
+function ExpandedSidebarControls({ onHideSidebar }: { onHideSidebar: () => void }) {
+  const dragStartX = useRef<number | null>(null);
+  const dragged = useRef(false);
+
+  const resetDrag = () => {
+    dragStartX.current = null;
+  };
+
+  return (
+    <div className="absolute right-0 top-1/2 z-50 -translate-y-1/2 translate-x-full text-ink-muted dark:text-stone">
+      <Button
+        variant="icon"
+        onClick={() => {
+          if (dragged.current) {
+            dragged.current = false;
+            return;
+          }
+          onHideSidebar();
+        }}
+        onPointerDown={(event: React.PointerEvent<HTMLButtonElement>) => {
+          if (event.button !== 0) return;
+          dragStartX.current = event.clientX;
+          dragged.current = false;
+          event.currentTarget.setPointerCapture?.(event.pointerId);
+        }}
+        onPointerMove={(event: React.PointerEvent<HTMLButtonElement>) => {
+          if (dragStartX.current === null || dragStartX.current - event.clientX < 24) return;
+          dragged.current = true;
+          onHideSidebar();
+          resetDrag();
+        }}
+        onPointerUp={resetDrag}
+        onPointerCancel={resetDrag}
+        title="Hide sidebar"
+        aria-label="Hide sidebar"
+        className="group relative h-12 w-11 border-0 bg-transparent p-0 shadow-none"
       >
-        <HiOutlineViewGrid size={17} />
-        <span className="text-[9px] leading-none">{formatShortcut("K")}</span>
-      </button>
+        <span className="absolute left-0 top-1/2 flex h-10 w-6 -translate-y-1/2 items-center justify-center rounded-r-lg border border-l-0 border-edge bg-paper-light text-ink-muted shadow-[1px_0_0_var(--edge-subtle)] transition-[width,background-color,color,transform] duration-300 ease-out group-hover:w-9 group-hover:bg-paper-softgray group-hover:text-ink-light group-hover:duration-150 group-active:scale-y-95 dark:bg-paper-dark-surface dark:text-stone dark:group-hover:bg-clay dark:group-hover:text-ink-dark">
+          <HiChevronLeft size={14} className="transition-transform duration-150 ease-out group-hover:-translate-x-0.5" />
+        </span>
+      </Button>
     </div>
   );
 }
 
 function normalizeSidebarPanel(panel: unknown): RailPanel {
-  return panel === "files" || panel === "search" || panel === "tags" || panel === "views"
+  return panel === "files" || panel === "search" || panel === "tags" || panel === "views" ||
+    panel === "recent"
     ? panel
     : "files";
 }
 
 export default function LiteEditor() {
   const router = useRouter();
+  const { open: openCommandPalette } = useCommandPalette();
   const [isMounting, setIsMounting] = useState(true);
   const [navigatingLabel, setNavigatingLabel] = useState<string | null>(null);
   const [content, setContent] = useAtom(atom_content);
@@ -119,24 +200,29 @@ export default function LiteEditor() {
   const mobileLeaf = findLeaf(workspaceLayout.rootContainer, activePaneId) ?? getFirstLeaf(workspaceLayout.rootContainer);
   const [railPanel, setRailPanel] = useAtom(atom_railPanel);
   const lastSidebarPanel = useAtomValue(atom_lastSidebarPanel);
-  const sidebarExpandedByDefault = useAtomValue(atom_sidebarExpandedByDefault);
   const sidebarWidth = useAtomValue(atom_sidebarWidth);
-  const isSidebarResizing = useAtomValue(atom_isSidebarResizing);
   // Kept mounted while collapsing/expanding so the wrapper's width transition
   // (below) can animate smoothly instead of the panel popping in/out on unmount.
   const [lastPanel, setLastPanel] = useState<RailPanel>(normalizeSidebarPanel(railPanel));
-  const hasInitializedSidebarDefault = useRef(false);
-  useEffect(() => {
-    const timeoutId = window.setTimeout(() => {
-      if (hasInitializedSidebarDefault.current) return;
-      setRailPanel(sidebarExpandedByDefault ? normalizeSidebarPanel(lastSidebarPanel) : null);
-      hasInitializedSidebarDefault.current = true;
-    }, 0);
-    return () => window.clearTimeout(timeoutId);
-  }, [lastSidebarPanel, setRailPanel, sidebarExpandedByDefault]);
+  const [sidebarPullProgress, setSidebarPullProgress] = useState(0);
+  const edgeOpenTimerRef = useRef<number | null>(null);
   useEffect(() => {
     if (railPanel !== null) setLastPanel(normalizeSidebarPanel(railPanel));
   }, [railPanel]);
+  const cancelEdgeOpen = useCallback(() => {
+    if (edgeOpenTimerRef.current !== null) {
+      window.clearTimeout(edgeOpenTimerRef.current);
+      edgeOpenTimerRef.current = null;
+    }
+  }, []);
+  const scheduleEdgeOpen = useCallback(() => {
+    cancelEdgeOpen();
+    edgeOpenTimerRef.current = window.setTimeout(() => {
+      edgeOpenTimerRef.current = null;
+      setRailPanel(lastPanel);
+    }, 400);
+  }, [cancelEdgeOpen, lastPanel, setRailPanel]);
+  useEffect(() => cancelEdgeOpen, [cancelEdgeOpen]);
   const isFileLoading = useAtomValue(atom_isFileLoading);
   const isAiConfigured = useAtomValue(atom_isAiConfigured);
   const vimMode = useAtomValue(atom_vimMode);
@@ -159,6 +245,7 @@ export default function LiteEditor() {
     discardVoicePreview,
   } = useGlobalVoiceInput();
   const isMobileChrome = useIsMobileChrome();
+  const showCommandPaletteFab = useAtomValue(atom_showCommandPaletteFab);
   const [isMobileFileOverlayOpen, setIsMobileFileOverlayOpen] = useState(false);
   const {
     vaultHandle,
@@ -170,7 +257,6 @@ export default function LiteEditor() {
     exportFile,
     importFile,
     createFile,
-    createNewFile,
     scanVault,
     indexVaultTags,
     syncSidebarToPath,
@@ -361,21 +447,26 @@ export default function LiteEditor() {
       // Prevent tablet/mobile browsers from navigating back on ESC.
       if (e.key === "Escape") e.preventDefault();
 
-      // Escape collapses the sidebar
-      if (e.key === "Escape" && railPanel !== null) {
-        setRailPanel(null);
+      if ((e.ctrlKey || e.metaKey) && !e.shiftKey && e.key.toLowerCase() === "b") {
+        e.preventDefault();
+        void navigateWithGuard("/editor/files", "Files");
       }
 
-      // Toggle the sidebar navigator (Ctrl+/ or Cmd+/).
-      if ((e.ctrlKey || e.metaKey) && e.key === "/") {
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === "f") {
         e.preventDefault();
-        setRailPanel((prev) => (prev !== null ? null : lastPanel));
+        openCommandPalette();
       }
 
-      // Expand/collapse sidebar
-      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === "e") {
+      if ((e.ctrlKey || e.metaKey) && !e.shiftKey && !e.altKey && e.key === "1") {
         e.preventDefault();
-        setRailPanel((prev) => (prev !== null ? null : lastPanel));
+        void navigateWithGuard("/editor/files", "Files");
+      }
+
+      if ((e.ctrlKey || e.metaKey) && !e.shiftKey && !e.altKey && e.key === "2") {
+        e.preventDefault();
+        requestAnimationFrame(() =>
+          document.querySelector<HTMLElement>(".cm-content")?.focus(),
+        );
       }
 
       // AI Builder — on-demand, not a status bar button
@@ -407,45 +498,57 @@ export default function LiteEditor() {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [flush, railPanel, setRailPanel, lastPanel, isAiConfigured, setAiBuilderRequest, vimMode, isVoiceSupported, toggleVoiceListening]);
+  }, [flush, isAiConfigured, setAiBuilderRequest, vimMode, isVoiceSupported, toggleVoiceListening, openCommandPalette, navigateWithGuard]);
 
-  const handleNewFile = () => {
+  const chooseFileDestination = useCallback(async (): Promise<FileSystemDirectoryHandle | null> => {
+    if (!vaultHandle) return null;
+
+    const subDirs = vaultFiles.filter(
+      (file): file is FileSystemDirectoryHandle => (file as any).kind === "directory"
+    );
+    const folderOptions = [
+      { label: `/ ${vaultHandle.name} (root)`, value: "__root__" },
+      ...subDirs.map((directory) => ({ label: directory.name, value: directory.name })),
+      { label: "+ New Folder", value: "__new_folder__" },
+    ];
+    const chosenFolder = await dialog.select("Choose a folder for the new file:", folderOptions, "New File");
+    if (!chosenFolder) return null;
+
+    if (chosenFolder === "__new_folder__") {
+      const folderName = await dialog.prompt("Enter folder name:", "", "New Folder");
+      if (!folderName?.trim()) return null;
+      try {
+        const targetDir = await withRetry(() => vaultHandle.getDirectoryHandle(folderName.trim(), { create: true }));
+        await scanVault(vaultHandle);
+        return targetDir;
+      } catch {
+        toast.error("Failed to create folder");
+        return null;
+      }
+    }
+
+    if (chosenFolder === "__root__") return vaultHandle;
+    return subDirs.find((directory) => directory.name === chosenFolder) ?? null;
+  }, [dialog, scanVault, vaultFiles, vaultHandle]);
+
+  const handleNewFile = async () => {
     if (!vaultHandle) {
       resetEditor();
-    } else {
-      createNewFile();
+      return;
     }
+
+    const targetDir = await chooseFileDestination();
+    if (!targetDir) return;
+    const fileName = await dialog.prompt("Enter file name:", "", "New File");
+    if (!fileName?.trim()) return;
+    await createFile(fileName.trim(), "", targetDir);
   };
 
   const handleNewAIFile = async () => {
     if (!vaultHandle) return;
 
-    const subDirs = vaultFiles.filter(
-      (f): f is FileSystemDirectoryHandle => (f as any).kind === "directory"
-    );
-    const folderOptions = [
-      { label: `/ ${vaultHandle.name} (root)`, value: "__root__" },
-      ...subDirs.map((d) => ({ label: d.name, value: d.name })),
-      { label: "+ New Folder", value: "__new_folder__" },
-    ];
-    const chosenFolder = await dialog.select("Choose a folder for the new file:", folderOptions, "New File");
-    if (!chosenFolder) return;
-
-    let targetDir: FileSystemDirectoryHandle = vaultHandle;
-    if (chosenFolder === "__new_folder__") {
-      const folderName = await dialog.prompt("Enter folder name:", "", "New Folder");
-      if (!folderName) return;
-      try {
-        targetDir = await withRetry(() => vaultHandle.getDirectoryHandle(folderName, { create: true }));
-        await scanVault(vaultHandle);
-      } catch {
-        toast.error("Failed to create folder");
-        return;
-      }
-    } else if (chosenFolder !== "__root__") {
-      const found = subDirs.find((d) => d.name === chosenFolder);
-      if (found) targetDir = found;
-    }
+    const targetDir = await chooseFileDestination();
+    if (!targetDir) return;
 
     const result = await dialog.textarea("Describe what you want to write:", "", "Generate Note with AI");
     if (!result?.text?.trim()) return;
@@ -596,42 +699,6 @@ export default function LiteEditor() {
         {/* --- MAIN LAYOUT --- */}
         <div className="flex flex-1 min-h-0 overflow-hidden relative">
 
-        {/* The navigator is a plain, persistent column. Ctrl+/ toggles it. */}
-        {!isMobileChrome && (
-          <div className="flex shrink-0 h-full">
-            {railPanel === null && (
-              <CollapsedSidebarControls onShowSidebar={() => setRailPanel(lastPanel)} />
-            )}
-            <div
-              className={`h-full overflow-hidden shrink-0 ${isSidebarResizing ? "" : "transition-[width] duration-300 ease-in-out"}`}
-              style={{ width: railPanel !== null ? sidebarWidth : 0 }}
-              aria-hidden={railPanel === null}
-              inert={railPanel === null ? true : undefined}
-            >
-              <div
-                className={`h-full transition-opacity duration-200 ease-in-out ${
-                  railPanel !== null ? "opacity-100" : "opacity-0"
-                }`}
-                style={{ width: sidebarWidth }}
-              >
-                <VaultSidebar
-                  panel={lastPanel}
-                  onNewFile={handleNewFile}
-                  onNewAIFile={isAiConfigured ? handleNewAIFile : undefined}
-                  onImport={handleImport}
-                  onExport={handleExport}
-                  onSyncGitHub={handleSyncGitHub}
-                  onPullGitHub={() => void runGitHubPullCommand()}
-                  onSettings={() => navigateWithGuard("/editor/settings", "Settings")}
-                  onTasks={() => navigateWithGuard("/editor/tasks", "Tasks")}
-                  onDocumentation={() => navigateWithGuard("/documentation", "Documentation")}
-                  onClose={() => setRailPanel(null)}
-                />
-              </div>
-            </div>
-          </div>
-        )}
-
         {/* Workspace Content */}
         <div className="flex-1 flex min-w-0 bg-surface overflow-hidden relative">
           {/* Main Editor Area */}
@@ -643,7 +710,9 @@ export default function LiteEditor() {
               />
             )}
             <div className="relative flex-1 min-h-0">
-              <main className="h-full">
+              <main
+                className="h-full"
+              >
                 {isMounting ? (
                   <div className="animate-pulse opacity-10 space-y-6 pt-20 px-12 max-w-2xl mx-auto">
                     <div className="h-8 bg-current w-1/3 rounded-lg mb-16" />
@@ -661,6 +730,17 @@ export default function LiteEditor() {
           </div>
         </div>
         </div>{/* end MAIN LAYOUT */}
+        {showCommandPaletteFab && !isMobileChrome && (
+          <Button
+            variant="icon"
+            onClick={() => openCommandPalette()}
+            className="fixed bottom-5 right-5 z-30 h-11 w-11 rounded-full border border-edge bg-chrome text-ink-muted shadow-lg transition-transform hover:scale-105 hover:text-ink-light dark:text-stone dark:hover:text-ink-dark"
+            aria-label="Open command palette"
+            title="Command palette (Ctrl/Cmd+K)"
+          >
+            <HiOutlineViewGrid size={19} />
+          </Button>
+        )}
 
         {isAiConfigured && !isMobileChrome && (
           <AISelectionToolbar

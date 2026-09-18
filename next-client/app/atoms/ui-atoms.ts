@@ -18,7 +18,7 @@ clearLegacyPaneModePreference();
 
 export const atom_theme = atomWithStorage<Theme>("theme", "system");
 export const atom_wordWrap = atomWithStorage<boolean>("wordWrap", true);
-export const atom_lineNumbers = atomWithStorage<boolean>("lineNumbers", true);
+export const atom_lineNumbers = atomWithStorage<boolean>("lineNumbers", false);
 export const atom_vimMode = atomWithStorage<boolean>("vimMode", false);
 export const MONO_FONT_STACK = "var(--font-ibm-mono), ui-monospace, monospace";
 export const atom_editorFontFamily = atomWithStorage<string>(
@@ -128,6 +128,10 @@ export const atom_workspaceBuilderRequest = atom<number>(0);
 export const atom_selectedWorkspaceId = atom<string | null>(null);
 export const atom_selectedFileTags = atom<string[]>([]);
 export const atom_tabsBarToggleRequest = atom<number>(0);
+export const atom_showCommandPaletteFab = atomWithStorage<boolean>(
+  "showCommandPaletteFab",
+  true,
+);
 
 // Tasks panel grouping mode ("status" or "file"), remembered across sessions
 export const atom_tasksGroupBy = atomWithStorage<"status" | "file">(
@@ -152,13 +156,9 @@ export const atom_isSidebarResizing = atom<boolean>(false);
 // The expanded navigator is visible by default; null means it has been
 // explicitly collapsed from the sidebar header. Transient — never persisted,
 // so each editor session starts with the navigator open.
-export type RailPanel = "files" | "search" | "tags" | "views";
-export const atom_railPanel = atom<RailPanel | null>("files");
+export type RailPanel = "files" | "search" | "tags" | "views" | "recent";
+export const atom_railPanel = atom<RailPanel | null>(null);
 export const atom_lastSidebarPanel = atomWithStorage<RailPanel>("lastSidebarPanel", "files");
-export const atom_sidebarExpandedByDefault = atomWithStorage<boolean>(
-  "sidebarExpandedByDefault",
-  true,
-);
 
 // Set when navigating to a task from the Tasks view; consumed once by the
 // editor pane whose filePath matches, to move the caret to that line, then

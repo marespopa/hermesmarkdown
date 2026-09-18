@@ -13,16 +13,16 @@ export function SegmentedControl<T extends string>({
   onChange: (v: T) => void;
 }) {
   return (
-    <div className="inline-flex flex-wrap bg-paper-softgray dark:bg-paper-dark-surface p-0.5 rounded-xl gap-0.5">
+    <div className="inline-flex flex-wrap gap-0.5 rounded-lg bg-paper-softgray/75 p-0.5 dark:bg-paper-dark-surface/80">
       {options.map((opt) => (
         <button
           key={opt.value}
           type="button"
           onClick={() => onChange(opt.value)}
-          className={`px-3.5 py-1.5 text-ui-footnote font-semibold rounded-[10px] transition-all duration-150 select-none focus:outline-none ${
+          className={`rounded-md px-3 py-1.5 text-ui-footnote font-medium transition-colors duration-150 select-none focus:outline-none ${
             value === opt.value
-              ? "bg-paper-light dark:bg-clay text-sage dark:text-sage"
-              : "text-ink-muted hover:text-ink-light dark:hover:text-ink-dark hover:bg-black/8"
+              ? "bg-paper-light text-ink-light shadow-sm dark:bg-white/10 dark:text-ink-dark"
+              : "text-ink-muted hover:bg-paper-light/70 hover:text-ink-light dark:text-stone dark:hover:bg-paper-dark-surface dark:hover:text-ink-dark"
           }`}
         >
           {opt.Icon && <opt.Icon size={14} />}
@@ -83,13 +83,13 @@ export const SettingItem = ({
   layout?: "row" | "stack";
 }) =>
   layout === "row" ? (
-    <div className="flex items-center justify-between gap-4 py-3.5 border-b border-neutral-100 dark:border-neutral-800/40 last:border-0">
+    <div className="flex items-center justify-between gap-4 border-b border-edge-subtle py-3 last:border-0">
       <div className="flex flex-col min-w-0">
         <span className="text-ui-subhead font-medium text-ink-light dark:text-ink-dark leading-none">
           {label}
         </span>
         {description && (
-          <span className="text-ui-footnote text-neutral-500 dark:text-neutral-400 mt-1.5 leading-snug">
+          <span className="mt-1 text-ui-footnote leading-snug text-ink-muted dark:text-stone">
             {description}
           </span>
         )}
@@ -97,13 +97,13 @@ export const SettingItem = ({
       <div className="shrink-0">{control}</div>
     </div>
   ) : (
-    <div className="flex flex-col gap-2.5 py-3.5 border-b border-neutral-100 dark:border-neutral-800/40 last:border-0">
+    <div className="flex flex-col gap-2.5 border-b border-edge-subtle py-3 last:border-0">
       <div className="flex flex-col">
         <span className="text-ui-subhead font-medium text-ink-light dark:text-ink-dark leading-none">
           {label}
         </span>
         {description && (
-          <span className="text-ui-footnote text-neutral-500 dark:text-neutral-400 mt-1.5 leading-snug">
+          <span className="mt-1 text-ui-footnote leading-snug text-ink-muted dark:text-stone">
             {description}
           </span>
         )}
@@ -120,10 +120,10 @@ export const SettingGroup = ({
   children: React.ReactNode;
 }) => (
   <div className="mb-5 last:mb-0">
-    <p className="text-ui-caption font-semibold uppercase tracking-wider text-neutral-400 dark:text-neutral-500 mb-2 px-1">
+    <p className="mb-2 px-1 text-ui-caption font-semibold uppercase tracking-wider text-fg-muted/45">
       {title}
     </p>
-    <div className="rounded-2xl px-4 py-0.5 border border-beige/60 dark:border-neutral-800/60 dark:bg-paper-dark/80">
+    <div className="rounded-xl border border-edge-subtle bg-chrome/60 px-4 py-0.5 backdrop-blur-xl">
       {children}
     </div>
   </div>

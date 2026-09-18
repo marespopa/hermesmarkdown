@@ -77,7 +77,6 @@ export async function fetchClaudeModels(apiKey: string) {
     }
     return data.models as { id: string; name: string }[];
   } catch (error: any) {
-    console.error("Error fetching Claude models:", error);
     throw new Error(beautifyAIError(error.message || "Failed to fetch models."));
   }
 }
@@ -105,7 +104,6 @@ export async function fetchGeminiModels(apiKey: string) {
       name: m.displayName || m.name
     }));
   } catch (error: any) {
-    console.error("Error fetching Gemini models:", error);
     throw new Error(beautifyAIError(error.message || "Failed to fetch models."));
   }
 }

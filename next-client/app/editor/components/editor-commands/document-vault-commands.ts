@@ -166,7 +166,7 @@ export function buildDocumentVaultCommandGroups(context: EditorCommandContext) {
     },
     {
       id: "open-vault",
-      label: "Open vault",
+      label: "Open Vault",
       keywords: "vault folder",
       action: () => openVault(),
     },

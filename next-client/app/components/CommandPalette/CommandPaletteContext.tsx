@@ -19,7 +19,8 @@ export type Command = {
 
 type CommandPaletteContextValue = {
   isOpen: boolean;
-  open: () => void;
+  initialQuery: string;
+  open: (initialQuery?: string) => void;
   close: () => void;
   commands: Command[];
   register: (command: Command) => () => void;
@@ -31,6 +32,7 @@ const CommandPaletteContext = createContext<CommandPaletteContextValue | null>(n
 
 export function CommandPaletteProvider({ children }: { children: React.ReactNode }) {
   const [isOpen, setIsOpen] = useState(false);
+  const [initialQuery, setInitialQuery] = useState("");
   const commandsRef = useRef<Map<string, Map<symbol, Command>>>(new Map());
   const [version, setVersion] = useState(0);
   const [recentCommandIds, setRecentCommandIds] = useAtom(atom_recentCommandIds);
@@ -49,8 +51,14 @@ export function CommandPaletteProvider({ children }: { children: React.ReactNode
     };
   }, []);
 
-  const open = useCallback(() => setIsOpen(true), []);
-  const close = useCallback(() => setIsOpen(false), []);
+  const open = useCallback((query: string = "") => {
+    setInitialQuery(query);
+    setIsOpen(true);
+  }, []);
+  const close = useCallback(() => {
+    setIsOpen(false);
+    setInitialQuery("");
+  }, []);
 
   const markUsed = useCallback((id: string) => {
     setRecentCommandIds((prev) => [id, ...prev.filter((existing) => existing !== id)].slice(0, 8));
@@ -59,16 +67,18 @@ export function CommandPaletteProvider({ children }: { children: React.ReactNode
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       const key = e.key.toLowerCase();
-      const isPaletteShortcut =
-        (e.ctrlKey || e.metaKey) && (key === "k" || (e.shiftKey && key === "p"));
-      if (isPaletteShortcut) {
+      const hasPrimaryModifier = e.ctrlKey || e.metaKey;
+      if (hasPrimaryModifier && e.shiftKey && (key === "k" || key === "p")) {
         e.preventDefault();
-        setIsOpen(true);
+        open(">");
+      } else if (hasPrimaryModifier && !e.shiftKey && (key === "k" || key === "p")) {
+        e.preventDefault();
+        open();
       }
     };
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
-  }, []);
+  }, [open]);
 
   const commands = useMemo(
     () => {
@@ -83,8 +93,8 @@ export function CommandPaletteProvider({ children }: { children: React.ReactNode
   );
 
   const value = useMemo(
-    () => ({ isOpen, open, close, commands, register, recentCommandIds, markUsed }),
-    [isOpen, open, close, commands, register, recentCommandIds, markUsed],
+    () => ({ isOpen, initialQuery, open, close, commands, register, recentCommandIds, markUsed }),
+    [isOpen, initialQuery, open, close, commands, register, recentCommandIds, markUsed],
   );
 
   return <CommandPaletteContext.Provider value={value}>{children}</CommandPaletteContext.Provider>;

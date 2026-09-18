@@ -16,12 +16,9 @@ export function buildWorkspaceTaskViewCommandGroups(context: EditorCommandContex
     closeTab,
     closeTabWithAutosave,
     indexVaultTags,
-    isMobileChrome,
     isOnlyPane,
     lineNumbers,
-    onOpenMobileFiles,
     onOpenTasks,
-    railPanel,
     requestTabsBarToggle,
     requestWorkspaceBuilder,
     router,
@@ -51,35 +48,11 @@ export function buildWorkspaceTaskViewCommandGroups(context: EditorCommandContex
 
   const panels: Command[] = [
     {
-      id: "toggle-sidebar",
-      label: railPanel !== null ? "Collapse sidebar" : "Expand sidebar",
+      id: "open-explorer",
+      label: "Open Explorer",
       shortcut: formatShortcut("E", { shift: true }),
-      keywords: "sidebar collapse expand explorer files",
-      action: () => setRailPanel((previous) => (previous !== null ? null : "files")),
-    },
-    {
-      id: "open-files-panel",
-      label: "Open Files",
-      keywords: "files browse explorer sidebar",
-      action: () => (isMobileChrome ? onOpenMobileFiles?.() : setRailPanel("files")),
-    },
-    {
-      id: "open-search-panel",
-      label: "Search",
-      keywords: "find files search sidebar",
-      action: () => setRailPanel("search"),
-    },
-    {
-      id: "open-tags-panel",
-      label: "Open Tags",
-      keywords: "tags sidebar browse",
-      action: () => setRailPanel("tags"),
-    },
-    {
-      id: "open-views-panel",
-      label: "Open Views",
-      keywords: "views smart workspaces sidebar",
-      action: () => setRailPanel("views"),
+      keywords: "files browse explorer",
+      action: () => router.push("/editor/files"),
     },
     {
       id: "open-tasks-panel",
@@ -148,7 +121,7 @@ export function buildWorkspaceTaskViewCommandGroups(context: EditorCommandContex
     },
     {
       id: "open-settings",
-      label: "Open settings",
+      label: "Open Settings",
       keywords: "preferences config",
       action: () => router.push("/editor/settings"),
     },
