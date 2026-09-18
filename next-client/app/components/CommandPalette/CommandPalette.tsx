@@ -280,7 +280,6 @@ export default function CommandPalette() {
     if (row.kind === "task") {
       router.push("/editor/tasks");
       close();
-      return;
     }
     if (row.kind === "view") {
       setSelectedWorkspaceId(row.id);
