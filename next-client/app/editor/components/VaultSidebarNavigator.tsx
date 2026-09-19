@@ -1,95 +1,57 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
-import { HiOutlineDocumentAdd, HiOutlineFolderAdd } from "react-icons/hi";
-import type { RailPanel } from "@/app/atoms/ui-atoms";
+import { HiOutlineClock, HiOutlineFolder, HiOutlineSearch } from "react-icons/hi";
+import { formatShortcut } from "@/app/utils/platform";
 
 interface VaultSidebarNavigatorProps {
-  panel: RailPanel;
-  onSelectPanel: (panel: RailPanel) => void;
-  search: React.ReactNode;
   children: React.ReactNode;
-  onNewFile?: () => void;
-  onNewFolder?: () => void;
+  recentFiles: { path: string; name: string }[];
+  onOpenRecent: (path: string) => void;
 }
 
-const sections: { id: RailPanel; label: string }[] = [
-  { id: "files", label: "Files" },
-  { id: "views", label: "Views" },
-  { id: "tags", label: "Tags" },
-];
-
-export default function VaultSidebarNavigator({ panel, onSelectPanel, search, children, onNewFile, onNewFolder }: VaultSidebarNavigatorProps) {
-  const activePanel = panel === "search" ? "files" : panel;
-  const [expandedPanel, setExpandedPanel] = useState<RailPanel | null>(activePanel);
-
-  useEffect(() => {
-    setExpandedPanel(activePanel);
-  }, [activePanel]);
+export default function VaultSidebarNavigator({ children, recentFiles, onOpenRecent }: VaultSidebarNavigatorProps) {
+  const openCommandPalette = () =>
+    document.dispatchEvent(new KeyboardEvent("keydown", { key: "k", ctrlKey: true }));
 
   return (
-    <div className="flex flex-col h-full min-h-0">
-      <div className="px-3 pb-2 shrink-0 flex items-center gap-2">
-        <div className="flex-1">{search}</div>
+    <div className="flex h-full min-h-0 flex-col">
+      {recentFiles.length > 0 && (
+        <section className="shrink-0 border-b border-edge-subtle px-3 py-2" aria-labelledby="sidebar-recents">
+          <p id="sidebar-recents" className="px-1 pb-1 text-[11px] font-semibold uppercase tracking-wider text-fg-muted/45">Recents</p>
+          <div className="space-y-0.5">
+            {recentFiles.map((file) => (
+              <button
+                key={file.path}
+                type="button"
+                onClick={() => onOpenRecent(file.path)}
+                className="flex h-7 w-full items-center gap-2 rounded-lg px-2 text-left text-ui-footnote text-ink-muted transition-colors hover:bg-paper-light/70 hover:text-ink-light dark:text-stone dark:hover:bg-paper-dark-surface"
+              >
+                <HiOutlineClock size={13} className="shrink-0 opacity-60" />
+                <span className="truncate">{file.name.replace(/\.md$/, "")}</span>
+              </button>
+            ))}
+          </div>
+        </section>
+      )}
+      <div className="flex shrink-0 items-center gap-1 border-b border-edge-subtle px-3 py-2">
+        <div className="flex flex-1 items-center text-ui-footnote text-ink-light dark:text-ink-dark">
+          <HiOutlineFolder size={14} className="mr-1.5" />
+          Files
+        </div>
         <button
           type="button"
-          onClick={() => document.dispatchEvent(new KeyboardEvent("keydown", { key: "k", ctrlKey: true }))}
-          title="Command palette (Ctrl+K)"
-          aria-label="Command palette"
-          className="shrink-0 px-2 py-1.5 text-ui-footnote text-ink-muted dark:text-stone hover:text-ink-light dark:hover:text-ink-dark"
+          onClick={openCommandPalette}
+          title="Command palette (Ctrl/Cmd+K)"
+          aria-label="Open command palette"
+          className="flex h-6 items-center gap-0.5 rounded-md px-1.5 text-[9px] leading-none text-ink-muted transition-colors hover:bg-paper-light/70 hover:text-ink-light dark:text-stone dark:hover:bg-paper-dark-surface"
         >
-          ⌘K
+          <HiOutlineSearch size={13} />
+          <span>{formatShortcut("K")} / {formatShortcut("P")}</span>
         </button>
       </div>
-      <div className="flex-1 min-h-0 overflow-hidden">
-        <nav aria-label="Notes sections" className="px-3 pb-2">
-          {sections.map(({ id, label }) => {
-            const active = activePanel === id;
-            const expanded = expandedPanel === id;
-            return (
-              <React.Fragment key={id}>
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (activePanel !== id) {
-                      onSelectPanel(id);
-                      setExpandedPanel(id);
-                    } else {
-                      setExpandedPanel((current) => (current === id ? null : id));
-                    }
-                  }}
-                  aria-expanded={expanded}
-                  className={`flex items-center w-full py-1.5 text-left text-ui-footnote border-b border-edge-subtle ${
-                    active
-                      ? "text-ink-light dark:text-ink-dark"
-                      : "text-ink-muted dark:text-stone hover:text-ink-light dark:hover:text-ink-dark"
-                  }`}
-                >
-                  <span className={`mr-2 text-xs ${expanded ? "text-sage" : "text-ink-muted/50"}`}>{expanded ? "−" : "+"}</span>
-                  <span>{label}</span>
-                </button>
-                {expanded && (
-                  <div className="min-h-0 overflow-hidden">
-                    {id === "files" && (
-                      <div className="flex items-center gap-1 px-2 py-1.5 mb-1 border-y border-edge-subtle bg-paper-softgray/30 dark:bg-paper-dark-surface/30">
-                        <button type="button" onClick={onNewFile} title="New File" aria-label="New File" className="flex items-center gap-1.5 rounded-md px-2 py-1 text-ui-footnote text-ink-muted dark:text-stone hover:text-ink-light dark:hover:text-ink-dark hover:bg-paper-softgray dark:hover:bg-paper-dark-surface">
-                          <HiOutlineDocumentAdd size={15} />
-                          <span>New File</span>
-                        </button>
-                        <button type="button" onClick={onNewFolder} title="New Folder" aria-label="New Folder" className="flex items-center gap-1.5 rounded-md px-2 py-1 text-ui-footnote text-ink-muted dark:text-stone hover:text-ink-light dark:hover:text-ink-dark hover:bg-paper-softgray dark:hover:bg-paper-dark-surface">
-                          <HiOutlineFolderAdd size={15} />
-                          <span>New Folder</span>
-                        </button>
-                      </div>
-                    )}
-                    <div className="min-h-0 overflow-y-auto">{children}</div>
-                  </div>
-                )}
-              </React.Fragment>
-            );
-          })}
-        </nav>
-      </div>
+      <nav aria-label="Vault explorer" className="flex min-h-0 flex-1 flex-col overflow-hidden px-3 pb-2">
+        <div className="min-h-0 flex-1 overflow-y-auto">{children}</div>
+      </nav>
     </div>
   );
 }

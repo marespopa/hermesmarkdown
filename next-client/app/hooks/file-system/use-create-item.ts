@@ -99,9 +99,16 @@ export function useCreateItem({ scanVault, indexVaultTags, openFile }: UseCreate
         let contentToWrite = content;
         if (!contentToWrite) contentToWrite = "\n";
         await withRetry(async () => {
-          const writable = await (newFileHandle as any).createWritable();
-          await writable.write(contentToWrite);
-          await writable.close();
+          let writable: FileSystemWritableFileStream | null = null;
+          try {
+            const stream = await (newFileHandle as any).createWritable() as FileSystemWritableFileStream;
+            writable = stream;
+            await stream.write(contentToWrite);
+            await stream.close();
+            writable = null;
+          } finally {
+            if (writable) await writable.close();
+          }
         });
 
         await scanVault(targetDir);
@@ -206,26 +213,8 @@ export function useCreateItem({ scanVault, indexVaultTags, openFile }: UseCreate
   const createNewFile = useCallback(async (dirHandle?: FileSystemDirectoryHandle) => {
     if (!vaultHandle) return;
 
-    let targetDir: FileSystemDirectoryHandle = dirHandle || vaultHandle;
-
-    // Only show folder picker when called from the header (no dirHandle)
-    if (!dirHandle) {
-      const chosenDir = await chooseTargetDirectory();
-      if (!chosenDir) return;
-      targetDir = chosenDir;
-    }
-
-    const result = await dialog.newFile();
-    if (!result || !result.name) return;
-
-    const slug = result.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
-    const tagsStr = result.tags 
-      ? `[${result.tags.split(",").map((t: string) => t.trim().toLowerCase()).filter(Boolean).join(", ")}]` 
-      : "[]";
-    const fm = `---\nid: ${slug}\ntitle: ${result.name}\ntype: ${result.type || "note"}\nstatus: "#draft"\ntags: ${tagsStr}\n---\n\n`;
-
-    return await createFile(result.name, fm, targetDir);
-  }, [vaultHandle, createFile, chooseTargetDirectory, dialog]);
+    return createFile("Untitled", "", dirHandle || currentDirectoryHandle || vaultHandle);
+  }, [vaultHandle, currentDirectoryHandle, createFile]);
 
   return {
     createFile,

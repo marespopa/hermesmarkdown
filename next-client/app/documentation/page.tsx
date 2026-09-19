@@ -112,7 +112,7 @@ const GROUPS: Group[] = [
         keywords: "vault folder open dropbox icloud sync",
         body: (
           <>
-            <p>Click the vault icon in the sidebar and pick an existing folder, or create a new one in the picker.</p>
+            <p>Choose <strong>Open Vault</strong> from the command palette and pick an existing folder, or create a new one in the picker.</p>
             <p>
               The browser grants HermesMarkdown direct read/write access to that folder for the
               session. Nothing is uploaded — files stay where they are on disk.
@@ -136,7 +136,7 @@ const GROUPS: Group[] = [
         body: (
           <>
             <p>
-              In the sidebar, click the vault icon and choose <strong>New Vault</strong>, or run it from the command palette.
+              Choose <strong>New Vault</strong> from the command palette.
             </p>
             <p>
               Type a vault name (this becomes the folder name on disk) and click <em>Choose parent folder</em> to pick
@@ -156,13 +156,13 @@ const GROUPS: Group[] = [
       {
         id: "first-note",
         title: "Your first note",
-        lead: "New File opens a blank Markdown file with its frontmatter panel ready to fill in.",
+        lead: "Start a blank note immediately; organize it after you have begun writing.",
         keywords: "new file title status save autosave frontmatter",
         body: (
           <>
-            <p>Use the + button in the sidebar, or run New file from the command palette.</p>
+            <p>Choose <strong>New File</strong> from the command palette, then select a destination folder and enter a file name.</p>
             <p>
-              The frontmatter panel opens automatically on every new file, prompting for the fields
+              New notes stay local and unobtrusive: HermesMarkdown creates them in the folder you select with the name you provide. The frontmatter panel opens automatically on every new file, prompting for the fields
               defined in your vault's schema — <code>title</code>, <code>status</code>, and whatever
               else you've configured. Fill in what's relevant and skip the rest; nothing here is
               required beyond <code>title</code>.
@@ -189,8 +189,8 @@ const GROUPS: Group[] = [
       {
         id: "editor-layout",
         title: "Editor layout",
-        lead: "The app opens straight into a full-screen editor with a docked, collapsible sidebar.",
-        keywords: "sidebar collapse expand files search views tags tasks settings theme pane split toolbar command palette",
+        lead: "The app opens straight into a full-screen editor; navigation lives in dedicated views and the command palette.",
+        keywords: "explorer files search views tags tasks settings theme pane split toolbar command palette",
         body: (
           <>
             <p>
@@ -198,17 +198,18 @@ const GROUPS: Group[] = [
               keyboard shortcuts, and the slash command menu.
             </p>
             <p>
-              The sidebar contains expandable <strong>Files</strong>, <strong>Views</strong>, <strong>Tags</strong>,
-              and <strong>Tasks</strong> sections. The Files section includes the search field, New File, and
-              New Folder actions. Use the chevron in the sidebar header to collapse it; use the sidebar
-              button in the narrow rail, or <code>CTRL+SHIFT+E</code>, to expand it again.
+              Open the dedicated Explorer with <code>CTRL/CMD+B</code> or the <strong>Open Explorer</strong> command.
+              It provides a full workspace view for browsing, organizing, renaming, moving, and deleting files and folders without
+              covering the editor. Tasks uses a matching dedicated view; search, tags, and smart views remain available through the command palette.
             </p>
             <KV
               rows={[
-                { label: "Sidebar", value: "Docked panel / CTRL+SHIFT+E to toggle" },
-                { label: "Command Palette", value: "CTRL/CMD+K or CTRL+SHIFT+P" },
+                { label: "Explorer", value: "Dedicated files view / CTRL/CMD+B" },
+                { label: "Quick switcher", value: "CTRL/CMD+K or CTRL/CMD+P" },
+                { label: "Command palette", value: "CTRL/CMD+SHIFT+K or CTRL/CMD+SHIFT+P" },
+                { label: "Global search", value: "CTRL/CMD+SHIFT+F" },
                 { label: "Palette modes", value: "# vault tags · > commands · ! tasks · % views · : current-note headings" },
-                { label: "Sidebar header", value: "Settings, theme, and collapse controls" },
+                { label: "Explorer controls", value: "New note, new folder, and file actions" },
                 { label: "AI Chat", value: "CTRL+SHIFT+B" },
                 { label: "Voice input", value: "CTRL+SHIFT+V" },
                 { label: "Frontmatter panel", value: "✎ in document header" },
@@ -237,7 +238,7 @@ const GROUPS: Group[] = [
                   { label: "Italic", shortcut: "CTRL+I" },
                   { label: "Undo", shortcut: "CTRL+Z" },
                   { label: "Exit a block, leaving a blank line", shortcut: "SHIFT+ENTER" },
-                  { label: "Toggle sidebar", shortcut: "CTRL+SHIFT+E" },
+                  { label: "Open Explorer", shortcut: "CTRL/CMD+B" },
                   { label: "AI Chat", shortcut: "CTRL+SHIFT+B" },
                   { label: "Voice input", shortcut: "CTRL+SHIFT+V" },
                   { label: "Dismiss / close", shortcut: "ESCAPE" },
@@ -254,7 +255,7 @@ const GROUPS: Group[] = [
               {
                 context: "Navigation",
                 rows: [
-                  { label: "Open link or date", shortcut: "CTRL+CLICK" },
+                  { label: "Open Link or Date", shortcut: "CTRL+CLICK" },
                   { label: "Toggle task checkbox", shortcut: "CLICK [ ] / [x]" },
                   { label: "Cycle lifecycle tag", shortcut: "CLICK ‹ #tag ›" },
                 ],
@@ -262,7 +263,9 @@ const GROUPS: Group[] = [
               {
                 context: "Command Palette",
                 rows: [
-                  { label: "Open", shortcut: "CTRL/CMD+K or CTRL/CMD+SHIFT+P" },
+                  { label: "Open Quick Switcher", shortcut: "CTRL/CMD+K or CTRL/CMD+P" },
+                  { label: "Open Command Palette", shortcut: "CTRL/CMD+SHIFT+K or CTRL/CMD+SHIFT+P" },
+                  { label: "Global search", shortcut: "CTRL/CMD+SHIFT+F" },
                   { label: "Filter", shortcut: "Keep typing" },
                   { label: "Navigate results", shortcut: "↑ / ↓" },
                   { label: "Run command", shortcut: "ENTER" },
@@ -451,12 +454,11 @@ graph TD
         title: "Tasks page",
         lead: "A vault-wide checklist — every checkbox task across every note, grouped by status or note.",
         keywords:
-          "task tasks checkbox todo prog hold done pane sidebar aggregate due date priority tags filter",
+          "task tasks checkbox todo prog hold done pane explorer aggregate due date priority tags filter",
         body: (
           <>
             <p>
-              Open it from the Tasks button in the sidebar header or from the command palette (Open
-              Tasks). The page scans every file in the vault for Markdown task lines.
+              Open it from the command palette (Open Tasks). The page scans every file in the vault for Markdown task lines.
             </p>
             <KV
               rows={[
@@ -673,8 +675,8 @@ graph TD
             />
             <KV
               rows={[
-                { label: "Open Files / Search / Open Tags / Open Views / Open Tasks", value: "—" },
-                { label: "Toggle sidebar", value: "CTRL+SHIFT+E" },
+                { label: "Explorer / Open Tasks", value: "—" },
+                { label: "Open Explorer", value: "CTRL+SHIFT+E" },
                 { label: "Panes", value: "Split right/down, next/previous, close" },
                 { label: "Tabs", value: "Next/previous, close current/other/all, toggle tab bar" },
                 { label: "Tasks", value: "Grouping, due-date filters, and clear filters" },
@@ -686,7 +688,7 @@ graph TD
             />
             <KV
               rows={[
-                { label: "Open vault / Close vault / Refresh vault", value: "—" },
+                { label: "Open Vault / Close Vault / Refresh Vault", value: "—" },
                 { label: "Create new vault", value: "—" },
                 { label: "New folder", value: "Supports nested paths when a vault is open" },
                 { label: "Start / Stop voice input", value: "CTRL+SHIFT+V" },
@@ -854,7 +856,7 @@ graph TD
               for the full picture.
             </p>
             <Callout type="note">
-              Remove a key by clearing the field in Settings → AI Features and saving. AI actions
+              Remove a key with the <strong>Remove AI key</strong> button in Settings → AI Features. AI actions
               disappear again until a new key is set.
             </Callout>
           </>
@@ -929,7 +931,7 @@ graph TD
             <KV
               rows={[
                 { label: "Vault files", value: "Never leave your machine" },
-                { label: "App settings (theme, font, sidebar width)", value: "Browser localStorage / IndexedDB" },
+                { label: "App settings (theme, font, editor layout)", value: "Browser localStorage / IndexedDB" },
                 { label: "AI API key", value: "Browser localStorage" },
               ]}
             />
@@ -1015,17 +1017,17 @@ graph TD
       {
         id: "mobile-layout",
         title: "Mobile layout",
-        lead: "Below a 768px viewport, the sidebar and tab bar are replaced by a fixed file indicator bar and full-screen overlays.",
+        lead: "Below a 768px viewport, the tab bar is replaced by a fixed file indicator bar and full-screen overlays.",
         keywords: "mobile overlay breakpoint chrome command palette file indicator",
         body: (
           <>
             <p>
               A thin bar stays fixed at the top of the screen showing the active file's name and save
               status — there's no keyboard shortcut for the command palette on mobile, so tapping this
-              bar is the one always-present way to open it. From there, Open Files, Search, Open Tasks,
+              bar is the one always-present way to open it. From there, Open Explorer, Search, Open Tasks,
               New file, and every other command work exactly as they do on desktop.
             </p>
-            <p>Files and Search open as full-screen overlays rather than a docked sidebar panel.</p>
+            <p>Explorer and Search open as full-screen overlays rather than docked panels.</p>
           </>
         ),
       },
@@ -1058,7 +1060,7 @@ graph TD
           <>
             <KV
               rows={[
-                { label: "Sidebar", value: "Floating button + full-screen overlays" },
+                { label: "Explorer", value: "Full-screen file-management view" },
                 { label: "Frontmatter panel", value: "Bottom sheet, not centered dialog" },
                 { label: "Selection toolbar", value: "Bold, Italic, Link only" },
               ]}

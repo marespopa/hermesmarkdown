@@ -27,7 +27,9 @@ function getShortcutGroups(commands: Command[]): ShortcutGroup[] {
     {
       title: "General",
       shortcuts: [
-        { label: "Command palette", keys: `${formatShortcut("K")} / ${formatShortcut("P", { shift: true })}` },
+        { label: "Quick switcher", keys: `${formatShortcut("K")} / ${formatShortcut("P")}` },
+        { label: "Command palette", keys: `${formatShortcut("K", { shift: true })} / ${formatShortcut("P", { shift: true })}` },
+        { label: "Global search", keys: formatShortcut("F", { shift: true }) },
         ...commandShortcuts(commands, ["save-file", "toggle-sidebar", "ai-builder", "toggle-voice-input"]),
         { label: "Close dialog / collapse sidebar", keys: "Esc" },
       ],

@@ -3,10 +3,6 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import VaultSidebar from "./VaultSidebar";
 import "@testing-library/jest-dom";
 
-const { mockFolderPrompt } = vi.hoisted(() => ({
-  mockFolderPrompt: vi.fn(),
-}));
-
 // Mock jotai
 vi.mock("jotai", async (importOriginal) => {
   const actual: any = await importOriginal();
@@ -51,11 +47,7 @@ vi.mock("@/app/hooks/use-file-system", () => ({
   useFileSystem: vi.fn(),
 }));
 
-vi.mock("@/app/hooks/use-dialog", () => ({
-  useDialog: vi.fn(() => ({
-    prompt: mockFolderPrompt,
-  })),
-}));
+vi.mock("@/app/hooks/use-dialog", () => ({ useDialog: vi.fn() }));
 
 // Mock next/navigation
 vi.mock("next/navigation", () => ({
@@ -66,10 +58,10 @@ vi.mock("next/navigation", () => ({
 }));
 
 import { useFileSystem } from "@/app/hooks/use-file-system";
+import { useDialog } from "@/app/hooks/use-dialog";
 import { useAtomValue, useAtom } from "jotai";
 import { atom_userName } from "@/app/atoms/ui-atoms";
 import { atom_vaultFiles } from "@/app/atoms/vault-atoms";
-import { version } from "@/package.json";
 
 describe("VaultSidebar Component", () => {
   const mockOnClose = vi.fn();
@@ -80,8 +72,6 @@ describe("VaultSidebar Component", () => {
     vi.clearAllMocks();
     cleanup();
     mockVaultFiles = [];
-    mockFolderPrompt.mockResolvedValue("Projects");
-
     const mockVaultHandle = {
       name: "My Vault",
       kind: "directory",
@@ -102,12 +92,11 @@ describe("VaultSidebar Component", () => {
       isVaultSupported: true,
       isMounted: true,
       closeVault: vi.fn(),
-      scanVault: vi.fn(async () => {
-        mockVaultFiles = [{ name: "Projects", kind: "directory", path: "Projects" }];
-      }),
+      scanVault: vi.fn(),
     };
 
     (useFileSystem as any).mockReturnValue(mockFileSystem);
+    (useDialog as any).mockReturnValue({ prompt: vi.fn() });
 
     (useAtomValue as any).mockImplementation((atom: any) => {
       if (atom === atom_userName) return "Ada";
@@ -155,44 +144,46 @@ describe("VaultSidebar Component", () => {
     expect(screen.getByText("My Vault")).toBeInTheDocument();
   });
 
-  it("renders the HermesMarkdown version in the footer", () => {
+  it("renders the note and folder metrics in the footer", () => {
     render(<VaultSidebar panel="search" onClose={mockOnClose} />);
-    expect(screen.getByText(`HermesMarkdown v${version}`)).toBeInTheDocument();
+    expect(screen.getByLabelText("Vault metrics")).toHaveTextContent("1 note, 0 folders");
   });
 
-  it("closes the vault from the footer", () => {
+  it("provides a vault reveal utility in the footer", () => {
     render(<VaultSidebar panel="search" onClose={mockOnClose} />);
-    fireEvent.click(screen.getByRole("button", { name: "Close Vault" }));
-    expect(mockFileSystem.closeVault).toHaveBeenCalledOnce();
+    expect(screen.getByRole("button", { name: "Reveal vault in file picker" })).toBeInTheDocument();
   });
 
-  it("places the Tasks page control with the header utilities", () => {
-    const onTasks = vi.fn();
-    const onSettings = vi.fn();
-    const onDocumentation = vi.fn();
-    render(
-      <VaultSidebar
-        panel="files"
-        onClose={mockOnClose}
-        onTasks={onTasks}
-        onSettings={onSettings}
-        onDocumentation={onDocumentation}
-      />,
-    );
-
+  it("keeps the header limited to vault controls and puts new note in the footer", () => {
+    const onNewFile = vi.fn();
+    render(<VaultSidebar panel="files" onClose={mockOnClose} onNewFile={onNewFile} />);
     const header = screen.getByRole("banner");
-    expect(within(header).getByRole("button", { name: "Settings" })).toHaveClass("h-9", "w-9");
-    expect(within(header).getByRole("button", { name: "Documentation" })).toHaveClass("h-9", "w-9");
-    expect(within(header).getByRole("button", { name: "Theme: System" })).toHaveClass("h-9", "w-9");
-    fireEvent.click(within(header).getByRole("button", { name: "Tasks" }));
-
-    expect(onTasks).toHaveBeenCalledOnce();
-    expect(screen.queryByPlaceholderText("Filter tasks...")).not.toBeInTheDocument();
+    expect(within(header).getByRole("button", { name: "Switch vault" })).toBeInTheDocument();
+    expect(within(header).queryByRole("button", { name: "Tasks" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Open command palette" })).toBeInTheDocument();
+    expect(screen.queryByText("Root")).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "New note" }));
+    expect(onNewFile).toHaveBeenCalledOnce();
+    expect(screen.getByRole("button", { name: "New folder" })).toBeInTheDocument();
   });
 
-  it("greets the user in the Files panel", () => {
+  it("creates a root folder from the footer", async () => {
+    const prompt = vi.fn().mockResolvedValue("Projects");
+    (useDialog as any).mockReturnValue({ prompt });
     render(<VaultSidebar panel="files" onClose={mockOnClose} />);
-    expect(screen.getByText("Welcome back, Ada")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "New folder" }));
+
+    await waitFor(() => {
+      expect(prompt).toHaveBeenCalledWith("Enter folder name:", "", "New Folder");
+      expect(mockFileSystem.vaultHandle.getDirectoryHandle).toHaveBeenCalledWith("Projects", { create: true });
+      expect(mockFileSystem.scanVault).toHaveBeenCalledWith(mockFileSystem.vaultHandle);
+    });
+  });
+
+  it("does not add a greeting to the minimal header", () => {
+    render(<VaultSidebar panel="files" onClose={mockOnClose} />);
+    expect(screen.queryByText("Welcome back, Ada")).not.toBeInTheDocument();
   });
 
   it("does not render an empty greeting", () => {
@@ -220,122 +211,4 @@ describe("VaultSidebar Component", () => {
     expect(mockFileSystem.openFile).toHaveBeenCalled();
   });
 
-  it("shows a newly created empty folder in the Files tree", async () => {
-    render(<VaultSidebar panel="files" onClose={mockOnClose} />);
-
-    fireEvent.click(screen.getByRole("button", { name: "New Folder" }));
-
-    await waitFor(() => {
-      expect(mockFileSystem.vaultHandle.getDirectoryHandle).toHaveBeenCalledWith("Projects", { create: true });
-      expect(mockFileSystem.scanVault).toHaveBeenCalledWith(mockFileSystem.vaultHandle);
-    });
-
-    render(<VaultSidebar panel="files" onClose={mockOnClose} />);
-    expect(screen.getByText("Projects")).toBeInTheDocument();
-  });
-
-  it("shows tag suggestion #work when typing # in search", () => {
-    render(<VaultSidebar panel="search" onClose={mockOnClose} />);
-    const searchInput = screen.getByPlaceholderText("Search or #tag…");
-    fireEvent.change(searchInput, { target: { value: "#" } });
-    expect(screen.getByText("#work")).toBeInTheDocument();
-  });
-
-  it("filters files by search query", async () => {
-    (useAtomValue as any).mockImplementation((atom: any) => {
-      const str = atom.toString();
-      if (str === "atom_fileMetadata") {
-        return {
-          "test.md": {
-            tags: [], handle: { name: "test.md", kind: "file" }, path: "test.md", name: "test.md",
-          },
-          "alpha.md": {
-            tags: [], handle: { name: "alpha.md", kind: "file" }, path: "alpha.md", name: "alpha.md",
-          },
-        };
-      }
-      if (str === "atom_indexerState") return "idle";
-      return {};
-    });
-
-    render(<VaultSidebar panel="search" onClose={mockOnClose} />);
-
-    const searchInput = screen.getByPlaceholderText("Search or #tag…");
-    fireEvent.change(searchInput, { target: { value: "test" } });
-
-    expect(await screen.findByText("test")).toBeInTheDocument();
-    expect(screen.queryByText("alpha")).not.toBeInTheDocument();
-  });
-
-  it("shows multiple tag suggestions when typing # with many tags", () => {
-    const manyTags: Record<string, any> = {};
-    for (let i = 0; i < 6; i++) {
-      manyTags[`file_tag${i}.md`] = {
-        tags: [`tag${i}`],
-        handle: { name: `file_tag${i}.md`, kind: "file" },
-        path: `file_tag${i}.md`,
-        name: `file_tag${i}.md`,
-      };
-    }
-
-    (useAtomValue as any).mockImplementation((atom: any) => {
-      const str = atom.toString();
-      if (str === "atom_fileMetadata") return manyTags;
-      if (str === "atom_indexerState") return "idle";
-      return {};
-    });
-
-    render(<VaultSidebar panel="search" onClose={mockOnClose} />);
-    const searchInput = screen.getByPlaceholderText("Search or #tag…");
-    fireEvent.change(searchInput, { target: { value: "#" } });
-
-    expect(screen.getByText("#tag0")).toBeInTheDocument();
-    expect(screen.getByText("#tag1")).toBeInTheDocument();
-  });
-
-  it("renders files from a subfolder with path hint", async () => {
-    (useAtomValue as any).mockImplementation((atom: any) => {
-      const str = atom.toString();
-      if (str === "atom_fileMetadata") {
-        return {
-          "subfolder/nested.md": {
-            tags: [],
-            handle: { name: "nested.md", kind: "file" },
-            path: "subfolder/nested.md",
-            name: "nested.md",
-          },
-        };
-      }
-      if (str === "atom_indexerState") return "idle";
-      return {};
-    });
-
-    render(<VaultSidebar panel="search" onClose={mockOnClose} />);
-    expect(await screen.findByText("nested")).toBeInTheDocument();
-  });
-
-  it("performs recursive search across subfolders", async () => {
-    (useAtomValue as any).mockImplementation((atom: any) => {
-      const str = atom.toString();
-      if (str === "atom_fileMetadata") {
-        return {
-          "folder/nested.md": {
-            tags: [], handle: { name: "nested.md", kind: "file" }, path: "folder/nested.md", name: "nested.md",
-          },
-          "root-file.md": {
-            tags: [], handle: { name: "root-file.md", kind: "file" }, path: "root-file.md", name: "root-file.md",
-          },
-        };
-      }
-      if (str === "atom_indexerState") return "idle";
-      return {};
-    });
-
-    render(<VaultSidebar panel="search" onClose={mockOnClose} />);
-
-    const searchInput = screen.getByPlaceholderText("Search or #tag…");
-    fireEvent.change(searchInput, { target: { value: "nested" } });
-
-    expect(await screen.findByText("nested")).toBeInTheDocument();
-  });
 });

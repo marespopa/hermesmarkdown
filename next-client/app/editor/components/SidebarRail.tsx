@@ -69,7 +69,7 @@ export default function SidebarRail({ panel, onSelectPanel, reopenPanel = "files
           <Tooltip label="Command palette" shortcut={formatShortcut("K")} position="right">
             <Button
               variant="icon"
-              onClick={openCommandPalette}
+              onClick={() => openCommandPalette()}
               className="w-10 h-10 opacity-80 hover:opacity-100 !rounded-none"
               aria-label="Command palette"
               data-command-palette-trigger

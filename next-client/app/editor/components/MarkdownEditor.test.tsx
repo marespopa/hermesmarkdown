@@ -6,7 +6,7 @@ import MarkdownEditor from "./MarkdownEditor";
 import { CODE_BLOCK_TEMPLATE_CONTENT, CURSOR_SENTINEL, TEMPLATES } from "./constants";
 import { Provider, useAtomValue } from "jotai";
 import { useHydrateAtoms } from "jotai/utils";
-import { atom_activeEditorView } from "@/app/atoms/ui-atoms";
+import { atom_activeEditorView, atom_lineNumbers } from "@/app/atoms/ui-atoms";
 import { atom_pendingScrollTarget } from "@/app/atoms/atoms";
 import "@testing-library/jest-dom";
 
@@ -54,11 +54,15 @@ function ActiveEditorObserver() {
   return <output data-testid="active-editor-state">{activeEditorView ? "registered" : "none"}</output>;
 }
 
-function Hydrate({ children, pendingScrollTarget }: {
+function Hydrate({ children, pendingScrollTarget, lineNumbers = false }: {
   children: React.ReactNode;
   pendingScrollTarget: { path: string; line: number } | null;
+  lineNumbers?: boolean;
 }) {
-  useHydrateAtoms([[atom_pendingScrollTarget, pendingScrollTarget]]);
+  useHydrateAtoms([
+    [atom_pendingScrollTarget, pendingScrollTarget],
+    [atom_lineNumbers, lineNumbers],
+  ]);
   return children;
 }
 
@@ -74,10 +78,11 @@ describe("MarkdownEditor", () => {
     value = "",
     props = {},
     pendingScrollTarget: { path: string; line: number } | null = null,
+    lineNumbers = false,
   ) =>
     render(
       <Provider>
-        <Hydrate pendingScrollTarget={pendingScrollTarget}>
+        <Hydrate pendingScrollTarget={pendingScrollTarget} lineNumbers={lineNumbers}>
           <MarkdownEditor value={value} onChange={mockOnChange} {...props} />
           <ActiveEditorObserver />
         </Hydrate>
@@ -120,7 +125,7 @@ describe("MarkdownEditor", () => {
   });
 
   it("shows line numbers for each editor line", async () => {
-    const { container } = renderEditor("first\nsecond\nthird");
+    const { container } = renderEditor("first\nsecond\nthird", {}, null, true);
     await waitForEditor(container);
     const lineNumbers = Array.from(container.querySelectorAll("#md-editor .cm-lineNumbers .cm-gutterElement"));
 

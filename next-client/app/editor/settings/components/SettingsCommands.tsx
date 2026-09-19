@@ -16,7 +16,6 @@ import {
 import {
   atom_lineNumbers,
   atom_renderedFontSize,
-  atom_sidebarExpandedByDefault,
   atom_tabsBarVisibleByDefault,
 } from "@/app/atoms/ui-atoms";
 import { useRegisterCommand, type Command } from "@/app/components/CommandPalette/CommandPaletteContext";
@@ -31,7 +30,6 @@ export default function SettingsCommands() {
   const [wordWrap, setWordWrap] = useAtom(atom_wordWrap);
   const [lineNumbers, setLineNumbers] = useAtom(atom_lineNumbers);
   const [vimMode, setVimMode] = useAtom(atom_vimMode);
-  const [sidebarExpanded, setSidebarExpanded] = useAtom(atom_sidebarExpandedByDefault);
   const [tabsVisible, setTabsVisible] = useAtom(atom_tabsBarVisibleByDefault);
   const [, setEditorWidth] = useAtom(atom_editorWidth);
   const [, setEditorFontFamily] = useAtom(atom_editorFontFamily);
@@ -47,7 +45,6 @@ export default function SettingsCommands() {
     { id: "toggle-word-wrap", label: wordWrap ? "Disable word wrap" : "Enable word wrap", category: "Settings", keywords: "editor lines", action: () => setWordWrap(!wordWrap) },
     { id: "toggle-line-numbers", label: lineNumbers ? "Hide line numbers" : "Show line numbers", category: "Settings", keywords: "editor gutter", action: () => setLineNumbers(!lineNumbers) },
     { id: "toggle-vim-mode", label: vimMode ? "Disable Vim mode" : "Enable Vim mode", category: "Settings", keywords: "editor keybindings modal", action: () => setVimMode(!vimMode) },
-    { id: "toggle-sidebar-default", label: sidebarExpanded ? "Start with sidebar collapsed" : "Start with sidebar expanded", category: "Settings", keywords: "default layout", action: () => setSidebarExpanded(!sidebarExpanded) },
     { id: "toggle-tabs-bar-default", label: tabsVisible ? "Hide tabs bar by default" : "Show tabs bar by default", category: "Settings", keywords: "pane files", action: () => setTabsVisible(!tabsVisible) },
     ...(["narrow", "standard", "medium", "wide"] as const).map((value) => ({
       id: `set-editor-width-${value}`,

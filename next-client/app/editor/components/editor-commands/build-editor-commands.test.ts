@@ -120,11 +120,7 @@ describe("buildEditorCommands", () => {
       "new-file",
       "export-file",
       "import-file",
-      "toggle-sidebar",
-      "open-files-panel",
-      "open-search-panel",
-      "open-tags-panel",
-      "open-views-panel",
+      "open-explorer",
       "open-tasks-panel",
       "split-pane-right",
       "duplicate-current-file",
@@ -219,13 +215,13 @@ describe("buildEditorCommands", () => {
     expect(command("commit-voice-preview")?.disabledReason).toBe("No voice preview to insert");
 
     command("save-file")?.action();
-    command("open-files-panel")?.action();
+    command("open-explorer")?.action();
     command("open-tasks-panel")?.action();
     command("toggle-theme")?.action();
     command("ai-improve")?.action();
 
     expect(context.onSave).toHaveBeenCalledOnce();
-    expect(context.onOpenMobileFiles).toHaveBeenCalledOnce();
+    expect(context.router.push).toHaveBeenCalledWith("/editor/files");
     expect(context.onOpenTasks).toHaveBeenCalledOnce();
     expect(context.setTheme).toHaveBeenCalledWith("light");
     expect(context.onRunAIAction).toHaveBeenCalledWith("improve");

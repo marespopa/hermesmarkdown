@@ -30,6 +30,8 @@ import { useCommandPalette } from "@/app/components/CommandPalette/CommandPalett
 import useIsMobileChrome from "@/app/hooks/use-mobile-chrome";
 import { usePaneFileActions } from "../hooks/use-pane-file-actions";
 
+const TAB_PULL_DISTANCE = 96;
+
 interface PaneLeafProps {
   leaf: PanelLeaf;
 }
@@ -152,12 +154,25 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
   // only affects panes opened after.
   const tabsBarVisibleByDefault = useAtomValue(atom_tabsBarVisibleByDefault);
   const [tabBarVisible, setTabBarVisible] = useState(tabsBarVisibleByDefault && !isMobileChrome);
+  const [tabPullProgress, setTabPullProgress] = useState(tabsBarVisibleByDefault && !isMobileChrome ? 1 : 0);
   const [tabsBarToggleRequest, setTabsBarToggleRequest] = useAtom(atom_tabsBarToggleRequest);
+  const tabDragStartY = React.useRef<number | null>(null);
+  const tabDragStartProgress = React.useRef(0);
+  const tabDragProgress = React.useRef(0);
+  const tabControlDragged = React.useRef(false);
   React.useEffect(() => {
     if (!isActive || tabsBarToggleRequest === 0) return;
-    setTabBarVisible((visible) => !visible);
+    setTabBarVisible((visible) => {
+      const next = !visible;
+      setTabPullProgress(next ? 1 : 0);
+      return next;
+    });
     setTabsBarToggleRequest(0);
   }, [isActive, setTabsBarToggleRequest, tabsBarToggleRequest]);
+
+  const resetTabControlDrag = () => {
+    tabDragStartY.current = null;
+  };
 
   const handleDragStart = (e: React.DragEvent, path: string) => {
     const data = JSON.stringify({ 
@@ -247,13 +262,54 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
       <div className="shrink-0 relative">
         <button
           type="button"
-          onClick={() => setTabBarVisible((v) => !v)}
+          onClick={() => {
+            if (tabControlDragged.current) {
+              tabControlDragged.current = false;
+              return;
+            }
+            setTabBarVisible((visible) => {
+              const next = !visible;
+              setTabPullProgress(next ? 1 : 0);
+              return next;
+            });
+          }}
+          onPointerDown={(event) => {
+            if (event.button !== 0) return;
+            tabDragStartY.current = event.clientY;
+            tabDragStartProgress.current = tabPullProgress;
+            tabDragProgress.current = tabPullProgress;
+            tabControlDragged.current = false;
+            event.currentTarget.setPointerCapture?.(event.pointerId);
+          }}
+          onPointerMove={(event) => {
+            if (tabDragStartY.current === null) return;
+            const distance = event.clientY - tabDragStartY.current;
+            const progress = Math.min(1, Math.max(0, tabDragStartProgress.current + distance / TAB_PULL_DISTANCE));
+            tabDragProgress.current = progress;
+            if (Math.abs(distance) > 4) tabControlDragged.current = true;
+            setTabPullProgress(progress);
+          }}
+          onPointerUp={() => {
+            if (tabControlDragged.current) {
+              const next = tabDragProgress.current >= 0.5;
+              setTabBarVisible(next);
+              setTabPullProgress(next ? 1 : 0);
+            }
+            resetTabControlDrag();
+          }}
+          onPointerCancel={() => {
+            setTabPullProgress(tabBarVisible ? 1 : 0);
+            resetTabControlDrag();
+          }}
           aria-label={tabBarVisible ? "Hide tabs" : "Show tabs"}
           title={tabBarVisible ? "Hide tabs" : "Show tabs"}
-          className="group absolute left-1/2 top-0 -translate-x-1/2 z-30 w-12 h-3 hover:h-5 rounded-b-lg bg-chrome border border-t-0 border-edge-subtle shadow-sm transition-[height] duration-300 ease-in-out hover:duration-150 flex items-center justify-center text-fg-faint hover:text-sage hover:border-sage/40"
+          className="group absolute left-1/2 z-30 h-11 w-11 -translate-x-1/2 border-0 bg-transparent p-0 shadow-none"
+          style={{ top: `${tabPullProgress * 36}px` }}
         >
-          <span className="transition-transform duration-150 ease-out group-hover:translate-y-0.5">
-            {tabBarVisible ? <HiOutlineChevronUp size={12} /> : <HiOutlineChevronDown size={12} />}
+          <span className="absolute left-1/2 top-0 flex h-3 w-10 -translate-x-1/2 items-center justify-center rounded-b-lg border border-t-0 border-edge bg-paper-light text-ink-muted transition-[height,background-color,color,transform] duration-300 ease-out group-hover:h-5 group-hover:bg-paper-softgray group-hover:text-ink-light group-hover:duration-150 group-active:scale-x-95 dark:bg-paper-dark-surface dark:text-stone dark:group-hover:bg-clay dark:group-hover:text-ink-dark">
+            <span className="transition-transform duration-150 ease-out group-hover:translate-y-0.5">
+              {tabBarVisible ? <HiOutlineChevronUp size={12} /> : <HiOutlineChevronDown size={12} />}
+            </span>
           </span>
         </button>
         {/* Save status has nowhere to live once the tab bar is collapsed —
@@ -286,9 +342,10 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
           // 36px row, since the popped-out span still lives inside this
           // max-height-animated wrapper. Once fully expanded there's
           // nothing left to clip, so overflow can open back up.
-          className={`shrink-0 transition-[max-height,opacity] duration-200 ease-in-out ${
-            tabBarVisible ? "max-h-9 opacity-100 overflow-visible" : "max-h-0 opacity-0 pointer-events-none overflow-hidden"
+          className={`shrink-0 overflow-hidden transition-[max-height,opacity] duration-300 ease-out ${
+            tabPullProgress > 0 ? "pointer-events-auto" : "pointer-events-none"
           }`}
+          style={{ maxHeight: `${tabPullProgress * 36}px`, opacity: tabPullProgress }}
         >
       <div
         ref={tabBarRowRef}
@@ -489,7 +546,7 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
                 </button>
               )}
               <button
-                onClick={openCommandPalette}
+                onClick={() => openCommandPalette()}
                 className="flex items-center gap-3 px-3 py-2 rounded-xl text-ui-footnote text-ink-muted hover:text-ink-light dark:hover:text-ink-dark hover:bg-paper-softgray dark:hover:bg-paper-dark-surface/40 transition-colors"
               >
                 <HiOutlineDotsHorizontal size={16} className="shrink-0" />
