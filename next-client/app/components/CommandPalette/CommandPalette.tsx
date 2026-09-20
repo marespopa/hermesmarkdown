@@ -302,11 +302,15 @@ export default function CommandPalette() {
   const isPinned = (row: Row) => (row.kind === "file" || row.kind === "command") && pinnedItems.some((item) => pinnedKey(item) === `${row.kind}:${row.id}`);
   const rowHeight = isMobileChrome ? "min-h-11" : "h-9";
 
-  return <OverlayPanel isOpen={isOpen} onClose={close} variant={isMobileChrome ? "sheet" : "modal"} backdrop="dim" backdropClassName="animate-in fade-in duration-overlay-backdrop motion-reduce:animate-none" exitDurationMs={100}
+  return <OverlayPanel isOpen={isOpen} onClose={close} variant={isMobileChrome ? "sheet" : "modal"} backdrop="dim"
+    backdropClassName={isOpen
+      ? "animate-in fade-in duration-overlay-backdrop motion-reduce:animate-none"
+      : "animate-out fade-out duration-overlay-backdrop motion-reduce:animate-none"}
+    exitDurationMs={200}
     containerClassName={isMobileChrome ? "" : "items-start justify-center pt-[18vh] px-4"}
     panelClassName={isMobileChrome
-      ? "flex-1 flex flex-col bg-chrome animate-in fade-in slide-in-from-bottom-2 duration-overlay-panel ease-out motion-reduce:animate-none"
-      : "w-[560px] max-w-[calc(100vw-2rem)] max-h-[calc(100vh-18vh-2rem)] flex flex-col bg-chrome border border-edge rounded-2xl overflow-hidden animate-in fade-in zoom-in-95 slide-in-from-top-2 duration-overlay-panel ease-out motion-reduce:animate-none"}>
+      ? `flex-1 flex flex-col bg-chrome duration-overlay-panel motion-reduce:animate-none ${isOpen ? "animate-in fade-in slide-in-from-bottom-2 ease-out" : "animate-out fade-out slide-out-to-bottom-2 ease-in"}`
+      : `w-[560px] max-w-[calc(100vw-2rem)] max-h-[calc(100vh-18vh-2rem)] flex flex-col bg-chrome border border-edge rounded-2xl overflow-hidden duration-overlay-panel motion-reduce:animate-none ${isOpen ? "animate-in fade-in zoom-in-95 slide-in-from-top-2 ease-out" : "animate-out fade-out zoom-out-95 slide-out-to-top-2 ease-in"}`}>
     <div className="p-2 border-b border-b-edge" style={{ fontFamily }}>
       <div className="flex items-center justify-between gap-2 px-2 pb-1.5"><span className="text-ui-micro font-medium text-fg">Hermes Markdown</span><span className="text-ui-micro text-fg-faint">v{packageJson.version}</span></div>
       <div className="flex items-center gap-2">
