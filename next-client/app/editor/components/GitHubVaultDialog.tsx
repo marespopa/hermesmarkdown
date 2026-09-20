@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useAtom } from "jotai";
 import Button from "@/app/components/Button";
 import DialogModal from "@/app/components/DialogModal/DialogModal";
@@ -49,13 +49,13 @@ export default function GitHubVaultDialog() {
     setError(null);
   };
 
-  const loadRepositories = async (requestedPage = 1) => {
+  const loadRepositories = useCallback(async (requestedPage = 1) => {
     setIsLoading(true);
     setError(null);
     try {
       const session = await responseJson(await fetch("/api/github/auth/session", { cache: "no-store" }));
       if (!session.authenticated) {
-        window.location.assign("/api/github/auth/login");
+        window.location.assign(new URL("/api/github/auth/login", window.location.origin));
         return;
       }
       const result = await responseJson(await fetch(
@@ -73,13 +73,11 @@ export default function GitHubVaultDialog() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     if (isOpen) void loadRepositories();
-    // Reload only when the dialog opens; loadRepositories intentionally resets request state.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isOpen]);
+  }, [isOpen, loadRepositories]);
 
   const selectRepository = async (repository: Pick<Repository, "owner" | "name">) => {
     setIsLoading(true);

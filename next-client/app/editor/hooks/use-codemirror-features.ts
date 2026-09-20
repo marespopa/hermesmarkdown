@@ -158,7 +158,7 @@ export function useCodeMirrorFeatures({ viewRef, containerRef, onWikiLinkClick }
       }
     }
     if (!foundTodo) setTodoMatch(null);
-  }, [posToXY, containerRef]);
+  }, [posToXY, buildLinkPill]);
 
   const onCursorActivity = useCallback((view: EditorView) => {
     if (debounceRef.current) clearTimeout(debounceRef.current);

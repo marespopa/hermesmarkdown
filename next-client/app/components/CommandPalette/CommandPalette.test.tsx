@@ -1,8 +1,9 @@
 import React from "react";
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { Provider, useAtomValue } from "jotai";
 import { useHydrateAtoms } from "jotai/utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import packageJson from "@/package.json";
 import CommandPalette from "./CommandPalette";
 import { CommandPaletteProvider, useRegisterCommand } from "./CommandPaletteContext";
 import { atom_fileMetadata, atom_customWorkspaces } from "@/app/atoms/metadata";
@@ -98,7 +99,27 @@ describe("CommandPalette", () => {
     renderPalette();
     fireEvent.keyDown(document, { key: "k", ctrlKey: true });
 
-    expect(await screen.findByText("v5.7.0")).toBeInTheDocument();
+    expect(await screen.findByText(`v${packageJson.version}`)).toBeInTheDocument();
+  });
+
+  it("remains mounted until its exit animation finishes", async () => {
+    renderPalette();
+    fireEvent.keyDown(document, { key: "k", ctrlKey: true });
+    await screen.findByRole("combobox");
+
+    vi.useFakeTimers();
+    try {
+      fireEvent.keyDown(window, { key: "Escape" });
+      expect(screen.getByRole("combobox")).toBeInTheDocument();
+
+      await act(async () => { await vi.advanceTimersByTimeAsync(199); });
+      expect(screen.getByRole("combobox")).toBeInTheDocument();
+
+      await act(async () => { await vi.advanceTimersByTimeAsync(1); });
+      expect(screen.queryByRole("combobox")).not.toBeInTheDocument();
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it("explains how to begin on a first-run empty state", async () => {

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { HiChevronLeft, HiChevronRight, HiOutlineViewGrid } from "react-icons/hi";
+import { HiOutlineViewGrid } from "react-icons/hi";
 import Button from "@/app/components/Button";
 import DialogModal from "@/app/components/DialogModal/DialogModal";
 import ConflictDialog from "./components/ConflictDialog";
@@ -15,7 +15,6 @@ import {
   atom_workspaceLayout,
   atom_activePaneId,
   atom_isFileLoading,
-  atom_sidebarWidth,
   atom_vaultDescriptor,
   atom_openFiles,
   atom_rebindHandles,
@@ -23,7 +22,6 @@ import {
   getFirstLeaf,
 } from "@/app/atoms/atoms";
 import useIsMobileChrome from "@/app/hooks/use-mobile-chrome";
-import VaultSidebar from "./components/VaultSidebar";
 import WelcomeWizard from "./components/WelcomeWizard";
 import NewVaultDialog from "./components/NewVaultDialog";
 import GitHubVaultDialog from "./components/GitHubVaultDialog";
@@ -56,127 +54,10 @@ import { useGlobalVoiceInput } from "./hooks/use-global-voice-input";
 
 
 import { useRouter } from "next/navigation";
-import { atom_isAiConfigured, atom_aiBuilderRequest, atom_railPanel, atom_lastSidebarPanel, atom_showCommandPaletteFab, atom_showHiddenFiles, RailPanel, atom_vimMode } from "@/app/atoms/ui-atoms";
+import { atom_isAiConfigured, atom_aiBuilderRequest, atom_showCommandPaletteFab, atom_showHiddenFiles, atom_vimMode } from "@/app/atoms/ui-atoms";
 import { generateFileFromPrompt } from "@/app/services/ai";
 import { withRetry } from "@/app/hooks/file-system/shared";
 import { pullGitHubVault, syncGitHubVault } from "@/app/services/github-vault-sync";
-
-const SIDEBAR_PULL_DISTANCE = 112;
-
-function CollapsedSidebarControls({
-  onShowSidebar,
-  onPullProgress,
-  onPullEnd,
-}: {
-  onShowSidebar: () => void;
-  onPullProgress: (progress: number) => void;
-  onPullEnd: (shouldOpen: boolean) => void;
-}) {
-  const dragStartX = useRef<number | null>(null);
-  const dragged = useRef(false);
-  const pullProgress = useRef(0);
-
-  const resetDrag = () => {
-    dragStartX.current = null;
-  };
-
-  return (
-    <div className="fixed left-0 top-1/2 z-30 -translate-y-1/2 text-ink-muted dark:text-stone">
-      <Button
-        variant="icon"
-        onClick={() => {
-          if (dragged.current) {
-            dragged.current = false;
-            return;
-          }
-          onShowSidebar();
-        }}
-        onPointerDown={(event: React.PointerEvent<HTMLButtonElement>) => {
-          if (event.button !== 0) return;
-          dragStartX.current = event.clientX;
-          dragged.current = false;
-          pullProgress.current = 0;
-          event.currentTarget.setPointerCapture?.(event.pointerId);
-        }}
-        onPointerMove={(event: React.PointerEvent<HTMLButtonElement>) => {
-          if (dragStartX.current === null) return;
-          const distance = Math.max(0, event.clientX - dragStartX.current);
-          const progress = Math.min(1, distance / SIDEBAR_PULL_DISTANCE);
-          pullProgress.current = progress;
-          if (distance > 4) dragged.current = true;
-          onPullProgress(progress);
-        }}
-        onPointerUp={() => {
-          if (dragged.current) onPullEnd(pullProgress.current >= 0.35);
-          resetDrag();
-        }}
-        onPointerCancel={() => {
-          if (dragged.current) onPullEnd(false);
-          resetDrag();
-        }}
-        title="Show sidebar"
-        aria-label="Show sidebar"
-        className="group relative h-12 w-11 border-0 bg-transparent p-0 shadow-none"
-      >
-        <span className="absolute left-0 top-1/2 flex h-10 w-6 -translate-y-1/2 items-center justify-center rounded-r-lg border border-l-0 border-edge bg-paper-light text-ink-muted shadow-[1px_0_0_var(--edge-subtle)] transition-[width,background-color,color,transform] duration-300 ease-out group-hover:w-9 group-hover:bg-paper-softgray group-hover:text-ink-light group-hover:duration-150 group-active:scale-y-95 dark:bg-paper-dark-surface dark:text-stone dark:group-hover:bg-clay dark:group-hover:text-ink-dark">
-          <HiChevronRight size={14} className="transition-transform duration-150 ease-out group-hover:translate-x-0.5" />
-        </span>
-      </Button>
-    </div>
-  );
-}
-
-function ExpandedSidebarControls({ onHideSidebar }: { onHideSidebar: () => void }) {
-  const dragStartX = useRef<number | null>(null);
-  const dragged = useRef(false);
-
-  const resetDrag = () => {
-    dragStartX.current = null;
-  };
-
-  return (
-    <div className="absolute right-0 top-1/2 z-50 -translate-y-1/2 translate-x-full text-ink-muted dark:text-stone">
-      <Button
-        variant="icon"
-        onClick={() => {
-          if (dragged.current) {
-            dragged.current = false;
-            return;
-          }
-          onHideSidebar();
-        }}
-        onPointerDown={(event: React.PointerEvent<HTMLButtonElement>) => {
-          if (event.button !== 0) return;
-          dragStartX.current = event.clientX;
-          dragged.current = false;
-          event.currentTarget.setPointerCapture?.(event.pointerId);
-        }}
-        onPointerMove={(event: React.PointerEvent<HTMLButtonElement>) => {
-          if (dragStartX.current === null || dragStartX.current - event.clientX < 24) return;
-          dragged.current = true;
-          onHideSidebar();
-          resetDrag();
-        }}
-        onPointerUp={resetDrag}
-        onPointerCancel={resetDrag}
-        title="Hide sidebar"
-        aria-label="Hide sidebar"
-        className="group relative h-12 w-11 border-0 bg-transparent p-0 shadow-none"
-      >
-        <span className="absolute left-0 top-1/2 flex h-10 w-6 -translate-y-1/2 items-center justify-center rounded-r-lg border border-l-0 border-edge bg-paper-light text-ink-muted shadow-[1px_0_0_var(--edge-subtle)] transition-[width,background-color,color,transform] duration-300 ease-out group-hover:w-9 group-hover:bg-paper-softgray group-hover:text-ink-light group-hover:duration-150 group-active:scale-y-95 dark:bg-paper-dark-surface dark:text-stone dark:group-hover:bg-clay dark:group-hover:text-ink-dark">
-          <HiChevronLeft size={14} className="transition-transform duration-150 ease-out group-hover:-translate-x-0.5" />
-        </span>
-      </Button>
-    </div>
-  );
-}
-
-function normalizeSidebarPanel(panel: unknown): RailPanel {
-  return panel === "files" || panel === "search" || panel === "tags" || panel === "views" ||
-    panel === "recent"
-    ? panel
-    : "files";
-}
 
 export default function LiteEditor() {
   const router = useRouter();
@@ -198,31 +79,6 @@ export default function LiteEditor() {
   // No split panes on mobile — always resolve to a single leaf, ignoring
   // any split tree a desktop session may have saved.
   const mobileLeaf = findLeaf(workspaceLayout.rootContainer, activePaneId) ?? getFirstLeaf(workspaceLayout.rootContainer);
-  const [railPanel, setRailPanel] = useAtom(atom_railPanel);
-  const lastSidebarPanel = useAtomValue(atom_lastSidebarPanel);
-  const sidebarWidth = useAtomValue(atom_sidebarWidth);
-  // Kept mounted while collapsing/expanding so the wrapper's width transition
-  // (below) can animate smoothly instead of the panel popping in/out on unmount.
-  const [lastPanel, setLastPanel] = useState<RailPanel>(normalizeSidebarPanel(railPanel));
-  const [sidebarPullProgress, setSidebarPullProgress] = useState(0);
-  const edgeOpenTimerRef = useRef<number | null>(null);
-  useEffect(() => {
-    if (railPanel !== null) setLastPanel(normalizeSidebarPanel(railPanel));
-  }, [railPanel]);
-  const cancelEdgeOpen = useCallback(() => {
-    if (edgeOpenTimerRef.current !== null) {
-      window.clearTimeout(edgeOpenTimerRef.current);
-      edgeOpenTimerRef.current = null;
-    }
-  }, []);
-  const scheduleEdgeOpen = useCallback(() => {
-    cancelEdgeOpen();
-    edgeOpenTimerRef.current = window.setTimeout(() => {
-      edgeOpenTimerRef.current = null;
-      setRailPanel(lastPanel);
-    }, 400);
-  }, [cancelEdgeOpen, lastPanel, setRailPanel]);
-  useEffect(() => cancelEdgeOpen, [cancelEdgeOpen]);
   const isFileLoading = useAtomValue(atom_isFileLoading);
   const isAiConfigured = useAtomValue(atom_isAiConfigured);
   const vimMode = useAtomValue(atom_vimMode);
@@ -354,7 +210,7 @@ export default function LiteEditor() {
     const result = await syncGitHubVault(vaultHandle, vaultDescriptor, message.trim());
     setVaultDescriptor(result.descriptor);
     return result;
-  }, [activeFileHandle, content, dialog, lastSavedContent, saveFile, setVaultDescriptor, vaultDescriptor, vaultHandle]);
+  }, [activeFileHandle, content, lastSavedContent, saveFile, setVaultDescriptor, vaultDescriptor, vaultHandle]);
 
   const runGitHubPullCommand = useCallback(async () => {
     if (!vaultHandle || vaultDescriptor?.kind !== "github") return;
@@ -640,7 +496,7 @@ export default function LiteEditor() {
   };
 
   return (
-    <ErrorBoundary>
+    <ErrorBoundary onGoHome={() => router.push("/")}>
       <EditorCommands
         onNewFile={handleNewFile}
         onExport={handleExport}

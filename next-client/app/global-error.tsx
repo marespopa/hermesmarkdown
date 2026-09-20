@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import Button from './components/Button';
 
 interface GlobalErrorProps {
@@ -9,6 +10,7 @@ interface GlobalErrorProps {
 }
 
 export default function GlobalError({ error, reset }: GlobalErrorProps) {
+  const router = useRouter();
   useEffect(() => {
     console.error(error);
   }, [error]);
@@ -51,7 +53,7 @@ export default function GlobalError({ error, reset }: GlobalErrorProps) {
             </Button>
             <Button
               variant="secondary"
-              onClick={() => { window.location.href = '/'; }}
+              onClick={() => router.push('/')}
               className="!px-10 !rounded-full"
             >
               Go Home

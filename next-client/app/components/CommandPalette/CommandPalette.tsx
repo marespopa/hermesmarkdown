@@ -302,13 +302,19 @@ export default function CommandPalette() {
   const isPinned = (row: Row) => (row.kind === "file" || row.kind === "command") && pinnedItems.some((item) => pinnedKey(item) === `${row.kind}:${row.id}`);
   const rowHeight = isMobileChrome ? "min-h-11" : "h-9";
 
-  return <OverlayPanel isOpen={isOpen} onClose={close} variant={isMobileChrome ? "sheet" : "modal"} backdrop="dim" exitDurationMs={100}
+  return <OverlayPanel isOpen={isOpen} onClose={close} variant={isMobileChrome ? "sheet" : "modal"} backdrop="dim"
+    backdropClassName={isOpen
+      ? "animate-in fade-in duration-overlay-backdrop motion-reduce:animate-none"
+      : "animate-out fade-out duration-overlay-backdrop motion-reduce:animate-none"}
+    exitDurationMs={200}
     containerClassName={isMobileChrome ? "" : "items-start justify-center pt-[18vh] px-4"}
-    panelClassName={isMobileChrome ? "flex-1 flex flex-col bg-chrome" : "w-[560px] max-w-[calc(100vw-2rem)] max-h-[calc(100vh-18vh-2rem)] flex flex-col bg-chrome border border-edge rounded-2xl overflow-hidden"}>
+    panelClassName={isMobileChrome
+      ? `flex-1 flex flex-col bg-chrome duration-overlay-panel motion-reduce:animate-none ${isOpen ? "animate-in fade-in slide-in-from-bottom-2 ease-out" : "animate-out fade-out slide-out-to-bottom-2 ease-in"}`
+      : `w-[560px] max-w-[calc(100vw-2rem)] max-h-[calc(100vh-18vh-2rem)] flex flex-col bg-chrome border border-edge rounded-2xl overflow-hidden duration-overlay-panel motion-reduce:animate-none ${isOpen ? "animate-in fade-in zoom-in-95 slide-in-from-top-2 ease-out" : "animate-out fade-out zoom-out-95 slide-out-to-top-2 ease-in"}`}>
     <div className="p-2 border-b border-b-edge" style={{ fontFamily }}>
-      <div className="flex items-center justify-between gap-2 px-2 pb-1.5"><span className="text-ui-micro font-medium text-fg">Command Palette</span><span className="text-ui-micro text-fg-faint">v{packageJson.version}</span></div>
+      <div className="flex items-center justify-between gap-2 px-2 pb-1.5"><span className="text-ui-micro font-medium text-fg">Hermes Markdown</span><span className="text-ui-micro text-fg-faint">v{packageJson.version}</span></div>
       <div className="flex items-center gap-2">
-        <div className="flex-1 flex items-center min-h-11 sm:min-h-9 px-3 gap-2 rounded-xl border border-edge bg-paper-light dark:bg-paper-dark focus-within:ring-2 focus-within:ring-sage/20">
+        <div className="flex-1 flex items-center min-h-11 sm:min-h-9 px-3 gap-2 rounded-xl border border-edge bg-paper-light dark:bg-paper-dark transition-[background-color,border-color,box-shadow] duration-200 ease-out focus-within:border-sage/50 focus-within:shadow-[0_0_0_4px_color-mix(in_srgb,var(--moss)_12%,transparent)] motion-reduce:transition-none">
           <HiOutlineSearch size={15} className="shrink-0 text-fg-faint" />
           {scope && <Button variant="bare" onClick={() => setScope(null)} aria-label={`Remove ${scopes.find((candidate) => candidate.id === scope)!.label} scope`} className="rounded-md bg-sage/10 px-1.5 py-0.5 text-sage">{scopes.find((candidate) => candidate.id === scope)!.label} ×</Button>}
           <input ref={inputRef} type="search" value={query} onChange={(event) => { const parsed = scopeFromPrefix(event.target.value); if (parsed) { setScope(parsed.scope); setQuery(parsed.query); } else setQuery(event.target.value); }} onKeyDown={handleKeyDown}
@@ -319,11 +325,11 @@ export default function CommandPalette() {
         </div>
         {isMobileChrome && <Button variant="icon" onClick={close} aria-label="Close" className="shrink-0"><HiOutlineX size={20} /></Button>}
       </div>
-      <div className="flex flex-wrap gap-1 px-2 pt-1.5" aria-label="Search scopes">{scopes.map((candidate) => <Button key={candidate.id} variant="bare" onClick={() => setScope(scope === candidate.id ? null : candidate.id)} aria-pressed={scope === candidate.id} className={`rounded-md px-1.5 py-0.5 text-ui-micro ${scope === candidate.id ? "bg-sage/10 text-sage" : "bg-paper-softgray text-fg-muted dark:bg-paper-dark-surface"}`}>{candidate.label}</Button>)}</div>
+      <div className="flex flex-wrap gap-1 px-2 pt-1.5" aria-label="Search scopes">{scopes.map((candidate) => <Button key={candidate.id} variant="bare" onClick={() => setScope(scope === candidate.id ? null : candidate.id)} aria-pressed={scope === candidate.id} className={`rounded-md px-1.5 py-0.5 text-ui-micro transition-[background-color,color,transform] duration-150 ease-out hover:-translate-y-px active:translate-y-0 active:scale-95 motion-reduce:transition-none motion-reduce:hover:translate-y-0 ${scope === candidate.id ? "bg-sage/10 text-sage" : "bg-paper-softgray text-fg-muted dark:bg-paper-dark-surface"}`}>{candidate.label}</Button>)}</div>
     </div>
     <div id="command-palette-results" role="listbox" aria-label="Command palette results" className="flex-1 min-h-0 overflow-y-auto" style={{ fontFamily }}>
       {groups.length === 0 && !query && !scope && (
-        <div className="px-6 py-8 text-center text-ui-footnote text-fg-muted">
+        <div className="animate-in fade-in slide-in-from-top-1 px-6 py-8 text-center text-ui-footnote text-fg-muted duration-200 motion-reduce:animate-none">
           <p className="font-medium text-fg">Search files or choose a scope</p>
           <p className="mt-1">Start typing to find notes, or select a chip to search commands and workspace content.</p>
         </div>
@@ -333,12 +339,12 @@ export default function CommandPalette() {
         const index = rows.indexOf(row); const selected = index === selectedIndex;
         return <Button key={`${row.kind}:${row.id}`} variant="menu-item" id={`command-palette-option-${index}`} role="option" aria-label={`${row.label} ${row.detail}`} aria-selected={selected} aria-disabled={row.kind === "command" && !!row.command.disabledReason}
           isDisabled={runningId !== null || (row.kind === "command" && !!row.command.disabledReason)} onClick={() => void execute(row)} onMouseEnter={() => setSelectedIndex(index)} onContextMenu={(event: React.MouseEvent) => { if (row.kind === "file" || row.kind === "command") { event.preventDefault(); setContextRow(row); } }}
-          className={`relative !rounded-none ${rowHeight} justify-between gap-3 pl-10 pr-4 text-left ${selected ? "before:absolute before:left-0 before:top-1 before:bottom-1 before:w-0.5 before:bg-accent bg-accent/10" : ""}`}>
+          className={`relative !rounded-none ${rowHeight} justify-between gap-3 pl-10 pr-4 text-left before:absolute before:bottom-1 before:left-0 before:top-1 before:w-0.5 before:scale-y-50 before:bg-accent before:opacity-0 before:transition-[opacity,transform] before:duration-150 hover:translate-x-px motion-reduce:before:transition-none motion-reduce:hover:translate-x-0 ${selected ? "before:scale-y-100 before:opacity-100 bg-accent/10" : ""}`}>
           <span className="truncate"><HighlightedText text={row.label} indices={row.titleIndices} /></span><span className="shrink-0 truncate text-ui-micro text-fg-muted"><HighlightedText text={row.detail} indices={row.detailIndices} /></span>
         </Button>;
       })}</div>)}
     </div>
-    {contextRow && <div role="menu" aria-label="Palette item actions" className="absolute right-3 top-28 z-10 rounded-lg border border-edge bg-chrome p-1 shadow-lg"><Button variant="menu-item" role="menuitem" onClick={() => togglePin(contextRow)}>{isPinned(contextRow) ? "Unpin item" : "Pin item"} <span className="ml-auto text-fg-faint">Ctrl+D</span></Button></div>}
-    {previewRow && <div role="dialog" aria-label="Quick preview" className="absolute inset-3 z-20 flex flex-col rounded-xl border border-edge bg-chrome p-4 shadow-xl" style={{ fontFamily }}><div className="flex items-center justify-between gap-2"><h2 className="font-semibold text-fg">Quick preview</h2><Button variant="icon" onClick={() => setPreviewRow(null)} aria-label="Close quick preview"><HiOutlineX size={16} /></Button></div><div className="mt-4 min-h-0 overflow-auto"><p className="font-medium text-fg">{previewRow.label}</p><p className="mt-1 text-ui-footnote text-fg-muted">{previewRow.detail}</p><p className="mt-4 text-ui-footnote text-fg-muted">Item details stay available while the palette remains open.</p></div></div>}
+    {contextRow && <div role="menu" aria-label="Palette item actions" className="absolute right-3 top-28 z-10 animate-in fade-in zoom-in-95 slide-in-from-top-1 rounded-lg border border-edge bg-chrome p-1 shadow-lg duration-150 motion-reduce:animate-none"><Button variant="menu-item" role="menuitem" onClick={() => togglePin(contextRow)}>{isPinned(contextRow) ? "Unpin item" : "Pin item"} <span className="ml-auto text-fg-faint">Ctrl+D</span></Button></div>}
+    {previewRow && <div role="dialog" aria-label="Quick preview" className="absolute inset-3 z-20 flex animate-in fade-in zoom-in-95 flex-col rounded-xl border border-edge bg-chrome p-4 shadow-xl duration-200 motion-reduce:animate-none" style={{ fontFamily }}><div className="flex items-center justify-between gap-2"><h2 className="font-semibold text-fg">Quick preview</h2><Button variant="icon" onClick={() => setPreviewRow(null)} aria-label="Close quick preview"><HiOutlineX size={16} /></Button></div><div className="mt-4 min-h-0 overflow-auto"><p className="font-medium text-fg">{previewRow.label}</p><p className="mt-1 text-ui-footnote text-fg-muted">{previewRow.detail}</p><p className="mt-4 text-ui-footnote text-fg-muted">Item details stay available while the palette remains open.</p></div></div>}
   </OverlayPanel>;
 }

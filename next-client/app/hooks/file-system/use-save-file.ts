@@ -381,6 +381,7 @@ export function useSaveFile() {
       setIsCloudVault,
       autosaveMode,
       setAutosaveMode,
+      snapshotOnConflict,
     ],
   );
 

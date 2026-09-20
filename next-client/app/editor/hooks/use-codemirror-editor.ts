@@ -140,7 +140,7 @@ export function useCodeMirrorEditor({
       }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [viewRef]);
 
   useEffect(() => {
     const view = viewRef.current;
@@ -169,7 +169,7 @@ export function useCodeMirrorEditor({
       changes: { from: 0, to: current.length, insert: value },
       userEvent: "input.external",
     });
-  }, [value]);
+  }, [value, viewRef]);
 
   return { containerRef, viewRef };
 }
