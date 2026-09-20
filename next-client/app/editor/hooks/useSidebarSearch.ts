@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import { useAtomValue } from "jotai";
 import { atom_fileMetadata } from "@/app/atoms/metadata";
 import { atom_vaultFiles } from "@/app/atoms/vault-atoms";
@@ -43,15 +43,17 @@ export function useSidebarSearch({ selectedTags, panel }: UseSidebarSearchProps)
   // and underscore-prefixed skill/meta files alike. Nothing should be
   // permanently un-revealable, so trust in what's actually in the vault
   // isn't undermined by files a user has no in-app way to see.
-  const isHiddenPath = (path: string) =>
-    !showHiddenFiles && path.split("/").some((segment) => segment.startsWith("_"));
+  const isHiddenPath = useCallback((path: string) =>
+    !showHiddenFiles && path.split("/").some((segment) => segment.startsWith("_")),
+  [showHiddenFiles]);
 
   // Non-.md files (index.yaml, schema.yaml, etc.) only ever reach fileMetadata
   // when they're inside a dotfolder and hidden files are shown (see the
   // indexers) — so gating on extension here just needs to let those through
   // too, rather than assuming every visible entry is markdown.
-  const isVisibleFile = (path: string) =>
-    path.endsWith(".md") || (showHiddenFiles && path.split("/").some((segment) => segment.startsWith(".")));
+  const isVisibleFile = useCallback((path: string) =>
+    path.endsWith(".md") || (showHiddenFiles && path.split("/").some((segment) => segment.startsWith("."))),
+  [showHiddenFiles]);
 
   // Unfiltered — every visible file in the vault, ignoring search/tag filters.
   // Used by the Files panel, which always shows the full tree.
@@ -70,7 +72,7 @@ export function useSidebarSearch({ selectedTags, panel }: UseSidebarSearchProps)
       .filter((f: any) => f.kind === "file" && isVisibleFile((f as any).path || f.name) && !isHiddenPath((f as any).path || f.name))
       .sort((a: any, b: any) => a.name.localeCompare(b.name))
       .map((f: any) => ({ name: f.name, kind: "file" as const, handle: f as FileSystemFileHandle, path: (f as any).path || f.name }));
-  }, [fileMetadata, vaultFiles, showHiddenFiles]);
+  }, [fileMetadata, vaultFiles, isHiddenPath, isVisibleFile]);
 
   // Metadata only indexes files, so retain scanned directory paths separately
   // for the Files tree. This lets empty folders remain visible.
@@ -117,7 +119,7 @@ export function useSidebarSearch({ selectedTags, panel }: UseSidebarSearchProps)
     }
 
     return allFiles;
-  }, [fileMetadata, vaultFiles, selectedTags, searchQuery, allFiles, showHiddenFiles]);
+  }, [fileMetadata, vaultFiles, selectedTags, searchQuery, allFiles, isHiddenPath, isVisibleFile]);
 
   const processedFiles = showAllResults
     ? matchedFiles

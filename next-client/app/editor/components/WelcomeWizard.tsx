@@ -90,14 +90,13 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
   useEffect(() => {
     setIsMounted(true);
     if (initialStep !== 0) setStep(initialStep);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [initialStep, setStep]);
 
   useEffect(() => {
     if (step === 1 && vaultHandle) {
       setStep(2);
     }
-  }, [step, vaultHandle]);
+  }, [step, vaultHandle, setStep]);
 
   const showWizard = isMounted && (!hasCompleted || isWizardOpen);
 

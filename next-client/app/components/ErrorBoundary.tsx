@@ -7,6 +7,7 @@ import { HiOutlineRefresh, HiOutlineHome } from "react-icons/hi";
 interface Props {
   children: ReactNode;
   fallback?: ReactNode;
+  onGoHome: () => void;
 }
 
 interface State {
@@ -34,7 +35,7 @@ class ErrorBoundary extends Component<Props, State> {
   };
 
   private handleGoHome = () => {
-    window.location.href = "/";
+    this.props.onGoHome();
   };
 
   public render() {
