@@ -7,6 +7,7 @@ import {
   HiOutlinePencil,
   HiOutlineDuplicate,
   HiOutlineFolder,
+  HiOutlineDocumentText,
   HiOutlineChevronRight,
   HiOutlineChevronDown,
 } from "react-icons/hi";
@@ -37,7 +38,7 @@ interface VaultSidebarFilesProps {
   // Tree-only: folders are inferred from paths, so folder actions need a way
   // to resolve a real FileSystemDirectoryHandle.
   resolveFolderHandle?: (path: string) => Promise<any | null>;
-  createNewFile?: (dirHandle?: any) => void;
+  createNewFile?: () => void;
   moveItem?: (handle: any, targetDir: any) => void;
 }
 
@@ -270,10 +271,6 @@ function FileRow({
   return (
     <div className="group relative">
       <div
-        onClick={() => {
-          openFile(entry.handle as FileSystemFileHandle, entryPath);
-          if (onClose && window.innerWidth < 1024) onClose();
-        }}
         draggable={draggable}
         onDragStart={(e) => {
           if (!draggable) return;
@@ -283,7 +280,7 @@ function FileRow({
         onDragEnd={() => onDragEndEntry?.()}
         tabIndex={renaming ? undefined : -1}
         ref={rowRef}
-        className={`mx-1 flex items-stretch cursor-pointer transition-all duration-200 text-ui-subhead pr-8 ${
+        className={`mx-1 flex items-stretch transition-all duration-200 text-ui-subhead pr-8 ${
           isActive ? "text-accent" : "text-ink-muted dark:text-stone font-medium"
         }`}
       >
@@ -356,14 +353,29 @@ function FileRow({
               variant="menu-item"
               onClick={(e) => {
                 e.stopPropagation();
-                openFileInPane?.(entry.handle as FileSystemFileHandle, getEntryPath(entry));
+                openFile(entry.handle as FileSystemFileHandle, entryPath);
+                if (onClose && window.innerWidth < 1024) onClose();
                 setActionMenuOpen(null);
               }}
               className="w-full flex items-center gap-3 px-4 py-2.5 text-ui-footnote font-medium hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
             >
-              <HiOutlineFolder size={14} className="opacity-80" />
-              Open in pane
+              <HiOutlineDocumentText size={14} className="opacity-80" />
+              Open file
             </Button>
+            {openFileInPane && (
+              <Button
+                variant="menu-item"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  openFileInPane(entry.handle as FileSystemFileHandle, getEntryPath(entry));
+                  setActionMenuOpen(null);
+                }}
+                className="w-full flex items-center gap-3 px-4 py-2.5 text-ui-footnote font-medium hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
+              >
+                <HiOutlineFolder size={14} className="opacity-80" />
+                Open in pane
+              </Button>
+            )}
             <Button
               variant="menu-item"
               onClick={(e) => {
@@ -436,7 +448,7 @@ interface FolderRowProps {
   setDraggedEntry: (v: DraggedEntry | null) => void;
   onDropInto: (targetPath: string) => void;
   resolveFolderHandle?: (path: string) => Promise<any | null>;
-  createNewFile?: (dirHandle?: any) => void;
+  createNewFile?: () => void;
   renameFile: (handle: any, newName?: string) => void | Promise<void>;
   deleteFile: (handle: any, path?: string) => void;
 }
@@ -587,8 +599,7 @@ function FolderRow({
                 onClick={async (e) => {
                   e.stopPropagation();
                   setActionMenuOpen(null);
-                  const handle = await resolveFolderHandle?.(node.path);
-                  if (handle) createNewFile(handle);
+                  createNewFile();
                 }}
                 className="w-full flex items-center gap-3 px-4 py-2.5 text-ui-footnote font-medium hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
               >

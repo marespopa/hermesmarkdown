@@ -18,7 +18,6 @@ export default function FilesPage() {
   const dialog = useDialog();
   const [activeFilePath, setActiveFilePath] = useAtom(atom_activeFilePath);
   const {
-    createFile,
     createNewFile,
     deleteFile,
     duplicateFile,
@@ -44,50 +43,9 @@ export default function FilesPage() {
     return directory;
   }, [vaultHandle]);
 
-  const chooseFolder = useCallback(async (): Promise<FileSystemDirectoryHandle | null> => {
-    if (!vaultHandle) return null;
-
-    const directories = await Promise.all(folderPaths.map(resolveFolderHandle));
-    const options = [
-      { label: `/ ${vaultHandle.name} (root)`, value: "__root__" },
-      ...folderPaths.flatMap((path, index) => {
-        const directory = directories[index];
-        return directory ? [{ label: path, value: path }] : [];
-      }),
-      { label: "+ New Folder", value: "__new_folder__" },
-    ];
-    const selected = await dialog.select("Choose a folder for the new file:", options, "New File");
-    if (!selected) return null;
-    if (selected === "__root__") return vaultHandle;
-
-    if (selected === "__new_folder__") {
-      const name = String(await dialog.prompt("Enter folder name:", "", "New Folder") ?? "").trim();
-      if (!name) return null;
-      if (/[\\/]/.test(name)) {
-        toast.error("Folder names cannot contain slashes.");
-        return null;
-      }
-      try {
-        const directory = await withRetry(() => vaultHandle.getDirectoryHandle(name, { create: true }));
-        await scanVault(vaultHandle);
-        return directory;
-      } catch (error) {
-        console.error("Failed to create folder:", error);
-        toast.error("Failed to create folder.");
-        return null;
-      }
-    }
-
-    return directories[folderPaths.indexOf(selected)] ?? null;
-  }, [dialog, folderPaths, resolveFolderHandle, scanVault, vaultHandle]);
-
   const createNote = useCallback(async () => {
-    const directory = await chooseFolder();
-    if (!directory) return;
-    const name = String(await dialog.prompt("Enter file name:", "", "New File") ?? "").trim();
-    if (!name) return;
-    await createFile(name, "", directory);
-  }, [chooseFolder, createFile, dialog]);
+    await createNewFile();
+  }, [createNewFile]);
 
   const createFolder = useCallback(async () => {
     if (!vaultHandle) return;

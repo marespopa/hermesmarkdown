@@ -257,6 +257,7 @@ export default function LiteEditor() {
     exportFile,
     importFile,
     createFile,
+    createNewFile,
     scanVault,
     indexVaultTags,
     syncSidebarToPath,
@@ -537,11 +538,7 @@ export default function LiteEditor() {
       return;
     }
 
-    const targetDir = await chooseFileDestination();
-    if (!targetDir) return;
-    const fileName = await dialog.prompt("Enter file name:", "", "New File");
-    if (!fileName?.trim()) return;
-    await createFile(fileName.trim(), "", targetDir);
+    await createNewFile();
   };
 
   const handleNewAIFile = async () => {

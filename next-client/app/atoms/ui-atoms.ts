@@ -268,10 +268,15 @@ export const atom_isVoicePreviewVisible = atom<boolean>(false);
 // was active when dictation started.
 export const atom_activeEditorView = atom<EditorView | null>(null);
 
-// Most-recently-used command ids for the command palette's empty-query state
-// ("feels intelligent" with zero visible "recent" UI). Capped at 8 on write.
+export type PalettePinnedItem =
+  | { kind: "file"; id: string }
+  | { kind: "command"; id: string };
+
+// Palette history stays on-device through the app's configured atom storage.
 export const atom_recentCommandIds = atomWithStorage<string[]>("recentCommandIds", []);
 export const atom_recentFilePaths = atomWithStorage<string[]>("recentFilePaths", []);
+export const atom_commandUseCounts = atomWithStorage<Record<string, number>>("commandUseCounts", {});
+export const atom_palettePinnedItems = atomWithStorage<PalettePinnedItem[]>("palettePinnedItems", []);
 
 export const atom_indexTimestamp = atom<number | null>(null);
 

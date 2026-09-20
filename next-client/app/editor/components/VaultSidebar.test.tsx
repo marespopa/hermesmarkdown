@@ -204,11 +204,18 @@ describe("VaultSidebar Component", () => {
     expect(await screen.findByText("test")).toBeInTheDocument();
   });
 
-  it("calls openFile when a file is clicked", async () => {
+  it("opens a file from its options menu", async () => {
     render(<VaultSidebar panel="search" onClose={mockOnClose} />);
     const file = await screen.findByText("test");
     fireEvent.click(file);
-    expect(mockFileSystem.openFile).toHaveBeenCalled();
+    expect(mockFileSystem.openFile).not.toHaveBeenCalled();
+
+    fireEvent.click(screen.getByLabelText("File options"));
+    fireEvent.click(screen.getByText("Open file"));
+    expect(mockFileSystem.openFile).toHaveBeenCalledWith(
+      { name: "test.md", kind: "file" },
+      "test.md",
+    );
   });
 
 });
