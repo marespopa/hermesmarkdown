@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { renderHook } from "@testing-library/react";
 import { useFileSystem } from "./use-file-system";
+import { useDialog } from "./use-dialog";
 import { useAtom, useSetAtom, useAtomValue } from "jotai";
 import {
   atom_currentDirectoryHandle,
@@ -54,6 +55,7 @@ vi.mock("react-hot-toast", () => ({
 describe("useFileSystem - createFile conflict resolution", () => {
   const setVaultFiles = vi.fn();
   const mockVaultHandle = {
+    name: "Vault",
     getDirectoryHandle: vi.fn(),
     getFileHandle: vi.fn(),
     values: vi.fn(async function* () {
@@ -163,5 +165,45 @@ describe("useFileSystem - createFile conflict resolution", () => {
     expect(mockVaultHandle.getFileHandle).toHaveBeenNthCalledWith(1, "new.md", { create: false });
     expect(mockVaultHandle.getFileHandle).toHaveBeenNthCalledWith(2, "new.md", { create: true });
     expect(handle).toBe(mockFileHandle);
+  });
+
+  it("selects a destination and creates an empty untitled file", async () => {
+    const mockFileHandle = {
+      name: "Untitled.md",
+      createWritable: vi.fn().mockResolvedValue(mockWritable),
+      getFile: vi.fn().mockResolvedValue({
+        lastModified: Date.now(),
+        size: 0,
+        text: vi.fn().mockResolvedValue(""),
+      }),
+    };
+    const prompt = vi.fn();
+    const select = vi.fn().mockResolvedValue("__root__");
+    (useDialog as any).mockReturnValue({
+      prompt,
+      select,
+      confirm: vi.fn(),
+      alert: vi.fn(),
+    });
+    mockVaultHandle.getFileHandle
+      .mockRejectedValueOnce({ name: "NotFoundError" })
+      .mockResolvedValueOnce(mockFileHandle);
+
+    const { result } = renderHook(() => useFileSystem());
+
+    await result.current.createNewFile();
+
+    expect(select).toHaveBeenCalledWith(
+      "Choose a folder for the new file:",
+      [
+        { label: "/ Vault (root)", value: "__root__" },
+        { label: "+ New Folder", value: "__new_folder__" },
+      ],
+      "New File",
+    );
+    expect(mockVaultHandle.getFileHandle).toHaveBeenNthCalledWith(1, "Untitled.md", { create: false });
+    expect(mockVaultHandle.getFileHandle).toHaveBeenNthCalledWith(2, "Untitled.md", { create: true });
+    expect(mockWritable.write).toHaveBeenCalledWith("\n");
+    expect(prompt).not.toHaveBeenCalled();
   });
 });

@@ -210,11 +210,14 @@ export function useCreateItem({ scanVault, indexVaultTags, openFile }: UseCreate
     }
   }, [chooseTargetDirectory, scanVault, indexVaultTags, vaultHandle]);
 
-  const createNewFile = useCallback(async (dirHandle?: FileSystemDirectoryHandle) => {
+  const createNewFile = useCallback(async () => {
     if (!vaultHandle) return;
 
-    return createFile("Untitled", "", dirHandle || currentDirectoryHandle || vaultHandle);
-  }, [vaultHandle, currentDirectoryHandle, createFile]);
+    const targetDir = await chooseTargetDirectory();
+    if (!targetDir) return;
+
+    return createFile("Untitled", "", targetDir);
+  }, [vaultHandle, chooseTargetDirectory, createFile]);
 
   return {
     createFile,

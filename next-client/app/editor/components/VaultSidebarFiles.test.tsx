@@ -27,6 +27,17 @@ afterEach(() => {
 });
 
 describe("VaultSidebarFiles tree interactions", () => {
+  it("opens files only from the file options menu", () => {
+    const { props } = renderFiles();
+
+    fireEvent.click(screen.getByText("note"));
+    expect(props.openFile).not.toHaveBeenCalled();
+
+    fireEvent.click(screen.getByLabelText("File options"));
+    fireEvent.click(screen.getByText("Open file"));
+    expect(props.openFile).toHaveBeenCalledWith(fileHandle, "note.md");
+  });
+
   it("auto-expands a valid closed drop target after 400ms", () => {
     vi.useFakeTimers();
     renderFiles({
