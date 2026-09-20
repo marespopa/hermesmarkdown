@@ -38,6 +38,12 @@ function TestCommand() {
     category: "Help",
     action: vi.fn(),
   });
+  useRegisterCommand({
+    id: "new-file",
+    label: "New file",
+    category: "Vault",
+    action: vi.fn(),
+  });
   return null;
 }
 
@@ -139,6 +145,19 @@ describe("CommandPalette", () => {
 
     fireEvent.keyDown(input, { key: "Tab" });
     expect(screen.getByRole("button", { name: "Remove Tags scope" })).toBeInTheDocument();
+  });
+
+  it("opens Explorer scope with file-management commands and navigation", async () => {
+    renderPalette();
+    fireEvent.keyDown(document, { key: "k", ctrlKey: true });
+    fireEvent.click(await screen.findByRole("button", { name: "Explorer" }));
+
+    expect(screen.getByRole("button", { name: "Remove Explorer scope" })).toBeInTheDocument();
+    expect(screen.getByRole("listbox")).toHaveTextContent("Open Explorer");
+    expect(screen.getByRole("listbox")).toHaveTextContent("New file");
+
+    fireEvent.click(screen.getByRole("option", { name: /Open Explorer/ }));
+    await waitFor(() => expect(screen.getByTestId("tag-selection")).toHaveTextContent("files:"));
   });
 
   it("shows pinned, recent, and frequent items before typing", async () => {

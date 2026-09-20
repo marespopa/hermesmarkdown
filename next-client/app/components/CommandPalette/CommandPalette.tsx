@@ -37,6 +37,7 @@ const scopes = [
   { id: "task", prefix: "!", label: "Tasks" },
   { id: "view", prefix: "%", label: "Views" },
   { id: "heading", prefix: ":", label: "Headings" },
+  { id: "explorer", label: "Explorer" },
 ] as const;
 
 type Scope = (typeof scopes)[number]["id"];
@@ -59,7 +60,7 @@ function HighlightedText({ text, indices }: { text: string; indices: number[] })
 }
 
 function scopeFromPrefix(value: string) {
-  const scope = scopes.find((candidate) => candidate.prefix === value[0]);
+  const scope = scopes.find((candidate) => "prefix" in candidate && candidate.prefix === value[0]);
   return scope ? { scope: scope.id, query: value.slice(1).trimStart() } : null;
 }
 
@@ -111,6 +112,37 @@ export default function CommandPalette() {
 
   const scopedRows = useMemo<Row[]>(() => {
     if (!scope) return [];
+    if (scope === "explorer") {
+      const explorerCommand: Command = {
+        id: "open-explorer",
+        label: "Open Explorer",
+        category: "Navigation",
+        keywords: "files navigator sidebar browse",
+        action: () => {
+          setRailPanel("files");
+          if (!pathname.startsWith("/editor")) router.push("/editor");
+        },
+      };
+      const explorerCommandIds = new Set([
+        "new-file",
+        "new-folder",
+        "import-file",
+        "open-vault",
+        "close-vault",
+        "refresh-vault",
+        "create-new-vault",
+      ]);
+      return [explorerCommand, ...commands.filter((command) => explorerCommandIds.has(command.id))]
+        .map((command) => {
+          const match = matchCommand(query, command);
+          return match ? {
+            kind: "command" as const, id: command.id, label: command.label,
+            detail: command.disabledReason ?? command.category ?? "Explorer", command,
+            titleIndices: match.indices, detailIndices: [] as number[], score: match.score,
+          } : null;
+        }).filter((row): row is Extract<Row, { kind: "command" }> => row !== null)
+        .sort((a, b) => b.score - a.score || a.label.localeCompare(b.label));
+    }
     if (scope === "command") {
       return commands.map((command) => {
         const match = matchCommand(query, command);
@@ -158,7 +190,7 @@ export default function CommandPalette() {
       if (match) headings.push({ kind: "heading", id: `${line.from}`, label: heading[2], detail: `H${heading[1].length}`, from: line.from, titleIndices: match.indices, detailIndices: [], score: match.score });
     }
     return headings.sort((a, b) => b.score - a.score || a.from - b.from);
-  }, [activeEditorView, commands, customWorkspaces, fileMetadata, query, scope, tasks]);
+  }, [activeEditorView, commands, customWorkspaces, fileMetadata, pathname, query, router, scope, setRailPanel, tasks]);
 
   const fileRows = useMemo<Row[]>(() => {
     if (scope || !query) return [];
@@ -299,7 +331,7 @@ export default function CommandPalette() {
       {groups.length === 0 && (query || scope) && <div className="flex items-center justify-center h-9 text-ui-footnote text-fg-muted">No results</div>}
       {groups.map((group) => <div key={group.label}><div className="px-4 pt-2 text-ui-micro font-medium text-fg-faint">{group.label}</div>{group.rows.map((row) => {
         const index = rows.indexOf(row); const selected = index === selectedIndex;
-        return <Button key={`${row.kind}:${row.id}`} variant="menu-item" id={`command-palette-option-${index}`} role="option" aria-selected={selected} aria-disabled={row.kind === "command" && !!row.command.disabledReason}
+        return <Button key={`${row.kind}:${row.id}`} variant="menu-item" id={`command-palette-option-${index}`} role="option" aria-label={`${row.label} ${row.detail}`} aria-selected={selected} aria-disabled={row.kind === "command" && !!row.command.disabledReason}
           isDisabled={runningId !== null || (row.kind === "command" && !!row.command.disabledReason)} onClick={() => void execute(row)} onMouseEnter={() => setSelectedIndex(index)} onContextMenu={(event: React.MouseEvent) => { if (row.kind === "file" || row.kind === "command") { event.preventDefault(); setContextRow(row); } }}
           className={`relative !rounded-none ${rowHeight} justify-between gap-3 pl-10 pr-4 text-left ${selected ? "before:absolute before:left-0 before:top-1 before:bottom-1 before:w-0.5 before:bg-accent bg-accent/10" : ""}`}>
           <span className="truncate"><HighlightedText text={row.label} indices={row.titleIndices} /></span><span className="shrink-0 truncate text-ui-micro text-fg-muted"><HighlightedText text={row.detail} indices={row.detailIndices} /></span>
