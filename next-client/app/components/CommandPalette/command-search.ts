@@ -21,6 +21,14 @@ function normalizeKeywords(keywords?: string | string[]) {
   return Array.isArray(keywords) ? keywords.join(" ") : keywords ?? "";
 }
 
+function indicesForRange(start: number, length: number) {
+  const indices = new Array<number>(length);
+  for (let index = 0; index < length; index++) {
+    indices[index] = start + index;
+  }
+  return indices;
+}
+
 export function fuzzyMatch(query: string, target: string): MatchResult | null {
   const normalizedQuery = query.trim().toLowerCase();
   const normalizedTarget = target.toLowerCase();
@@ -28,7 +36,7 @@ export function fuzzyMatch(query: string, target: string): MatchResult | null {
 
   const exactIndex = normalizedTarget.indexOf(normalizedQuery);
   if (exactIndex !== -1) {
-    const indices = Array.from({ length: normalizedQuery.length }, (_, index) => exactIndex + index);
+    const indices = indicesForRange(exactIndex, normalizedQuery.length);
     const startsWord = exactIndex === 0 || /[\s/._-]/.test(normalizedTarget[exactIndex - 1]);
     return {
       score: 1000 - exactIndex * 2 + (exactIndex === 0 ? 300 : 0) + (startsWord ? 150 : 0),
@@ -73,10 +81,10 @@ export function matchFile(query: string, file: { name: string; path: string }): 
   const directTitleIndex = normalizedName.indexOf(normalizedQuery);
   if (directTitleIndex !== -1) {
     const directPathIndex = file.path.toLowerCase().indexOf(normalizedQuery);
-    const titleIndices = Array.from({ length: normalizedQuery.length }, (_, index) => directTitleIndex + index);
+    const titleIndices = indicesForRange(directTitleIndex, normalizedQuery.length);
     const pathIndices = directPathIndex === -1
       ? []
-      : Array.from({ length: normalizedQuery.length }, (_, index) => directPathIndex + index);
+      : indicesForRange(directPathIndex, normalizedQuery.length);
     return {
       score: 1_300 - directTitleIndex * 2 + (directPathIndex === -1 ? 0 : 80),
       titleIndices,
