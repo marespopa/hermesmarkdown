@@ -11,6 +11,12 @@ export type MatchResult = {
   indices: number[];
 };
 
+export type FileMatchResult = {
+  score: number;
+  titleIndices: number[];
+  pathIndices: number[];
+};
+
 function normalizeKeywords(keywords?: string | string[]) {
   return Array.isArray(keywords) ? keywords.join(" ") : keywords ?? "";
 }
@@ -61,3 +67,40 @@ export function matchCommand(query: string, command: SearchableCommand): MatchRe
   return labelMatch.score >= metadataMatch.score ? labelMatch : { ...metadataMatch, indices: [] };
 }
 
+export function matchFile(query: string, file: { name: string; path: string }): FileMatchResult | null {
+  const normalizedQuery = query.trim().toLowerCase();
+  const normalizedName = file.name.toLowerCase();
+  const directTitleIndex = normalizedName.indexOf(normalizedQuery);
+  if (directTitleIndex !== -1) {
+    const directPathIndex = file.path.toLowerCase().indexOf(normalizedQuery);
+    const titleIndices = Array.from({ length: normalizedQuery.length }, (_, index) => directTitleIndex + index);
+    const pathIndices = directPathIndex === -1
+      ? []
+      : Array.from({ length: normalizedQuery.length }, (_, index) => directPathIndex + index);
+    return {
+      score: 1_300 - directTitleIndex * 2 + (directPathIndex === -1 ? 0 : 80),
+      titleIndices,
+      pathIndices,
+    };
+  }
+
+  const titleMatch = fuzzyMatch(query, file.name);
+  const pathMatch = fuzzyMatch(query, file.path);
+  if (!titleMatch && !pathMatch) return null;
+
+  // Titles are the primary identification surface. A path hit can only win
+  // when there is no title hit, so breadcrumbs stay useful without hiding a
+  // stronger file-name match.
+  if (titleMatch) {
+    return {
+      score: titleMatch.score + (pathMatch ? Math.min(pathMatch.score, 80) : 0),
+      titleIndices: titleMatch.indices,
+      pathIndices: pathMatch?.indices ?? [],
+    };
+  }
+  return {
+    score: pathMatch!.score * 0.35,
+    titleIndices: [],
+    pathIndices: pathMatch!.indices,
+  };
+}

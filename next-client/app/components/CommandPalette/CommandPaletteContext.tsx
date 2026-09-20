@@ -2,7 +2,7 @@
 
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { useAtom } from "jotai";
-import { atom_recentCommandIds } from "@/app/atoms/ui-atoms";
+import { atom_commandUseCounts, atom_recentCommandIds } from "@/app/atoms/ui-atoms";
 
 export type Command = {
   id: string;
@@ -36,6 +36,7 @@ export function CommandPaletteProvider({ children }: { children: React.ReactNode
   const commandsRef = useRef<Map<string, Map<symbol, Command>>>(new Map());
   const [version, setVersion] = useState(0);
   const [recentCommandIds, setRecentCommandIds] = useAtom(atom_recentCommandIds);
+  const [, setCommandUseCounts] = useAtom(atom_commandUseCounts);
 
   const register = useCallback((command: Command) => {
     const registrationId = Symbol(command.id);
@@ -61,8 +62,9 @@ export function CommandPaletteProvider({ children }: { children: React.ReactNode
   }, []);
 
   const markUsed = useCallback((id: string) => {
-    setRecentCommandIds((prev) => [id, ...prev.filter((existing) => existing !== id)].slice(0, 8));
-  }, [setRecentCommandIds]);
+    setRecentCommandIds((prev) => [id, ...prev.filter((existing) => existing !== id)].slice(0, 3));
+    setCommandUseCounts((previous) => ({ ...previous, [id]: (previous[id] ?? 0) + 1 }));
+  }, [setCommandUseCounts, setRecentCommandIds]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {

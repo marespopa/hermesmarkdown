@@ -6,7 +6,14 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import CommandPalette from "./CommandPalette";
 import { CommandPaletteProvider, useRegisterCommand } from "./CommandPaletteContext";
 import { atom_fileMetadata, atom_customWorkspaces } from "@/app/atoms/metadata";
-import { atom_activeEditorView, atom_railPanel, atom_selectedFileTags } from "@/app/atoms/ui-atoms";
+import {
+  atom_activeEditorView,
+  atom_commandUseCounts,
+  atom_palettePinnedItems,
+  atom_railPanel,
+  atom_recentFilePaths,
+  atom_selectedFileTags,
+} from "@/app/atoms/ui-atoms";
 
 const openFile = vi.fn();
 const push = vi.fn();
@@ -81,6 +88,13 @@ describe("CommandPalette", () => {
     expect(screen.getByRole("listbox")).toBeInTheDocument();
   });
 
+  it("shows the current application version in the header", async () => {
+    renderPalette();
+    fireEvent.keyDown(document, { key: "k", ctrlKey: true });
+
+    expect(await screen.findByText("v5.7.0")).toBeInTheDocument();
+  });
+
   it("keeps commands out of the default file search and shows them after >", async () => {
     renderPalette();
     fireEvent.keyDown(document, { key: "p", ctrlKey: true });
@@ -97,8 +111,103 @@ describe("CommandPalette", () => {
     renderPalette();
     fireEvent.keyDown(document, { key: "p", ctrlKey: true, shiftKey: true });
 
-    expect(await screen.findByRole("combobox")).toHaveValue(">");
+    expect(await screen.findByRole("combobox")).toHaveValue("");
+    expect(screen.getByRole("button", { name: "Remove Commands scope" })).toBeInTheDocument();
     expect(screen.getByRole("listbox")).toHaveTextContent("Test command");
+  });
+
+  it("converts typed prefixes into removable scope chips and cycles scopes with Tab", async () => {
+    renderPalette();
+    fireEvent.keyDown(document, { key: "k", ctrlKey: true });
+    const input = await screen.findByRole("combobox");
+
+    fireEvent.change(input, { target: { value: "#plan" } });
+    expect(input).toHaveValue("plan");
+    expect(screen.getByRole("button", { name: "Remove Tags scope" })).toBeInTheDocument();
+
+    fireEvent.change(input, { target: { value: "" } });
+    fireEvent.keyDown(input, { key: "Backspace" });
+    expect(screen.queryByRole("button", { name: "Remove Tags scope" })).not.toBeInTheDocument();
+
+    fireEvent.keyDown(input, { key: "Tab" });
+    expect(screen.getByRole("button", { name: "Remove Tags scope" })).toBeInTheDocument();
+  });
+
+  it("shows pinned, recent, and frequent items before typing", async () => {
+    renderPalette([
+      [atom_fileMetadata, {
+        "Roadmap.md": {
+          path: "Roadmap.md", name: "Roadmap.md", handle: { kind: "file", name: "Roadmap.md" },
+          tags: [], links: [], frontmatter: {}, modifiedAt: 1, wordCount: 1, tasks: [],
+        },
+      }],
+      [atom_palettePinnedItems, [{ kind: "file", id: "Roadmap.md" }]],
+      [atom_recentFilePaths, ["Roadmap.md"]],
+      [atom_commandUseCounts, { "test-command": 3 }],
+    ]);
+    fireEvent.keyDown(document, { key: "k", ctrlKey: true });
+
+    expect(await screen.findByText("Pinned")).toBeInTheDocument();
+    expect(screen.getByText("Frequently Used Commands")).toBeInTheDocument();
+    expect(screen.queryByText("Recently Opened Files")).not.toBeInTheDocument();
+  });
+
+  it("pins and previews the selected item with keyboard shortcuts", async () => {
+    renderPalette([
+      [atom_fileMetadata, {
+        "Roadmap.md": {
+          path: "Roadmap.md", name: "Roadmap.md", handle: { kind: "file", name: "Roadmap.md" },
+          tags: [], links: [], frontmatter: {}, modifiedAt: 1, wordCount: 1, tasks: [],
+        },
+      }],
+    ]);
+    fireEvent.keyDown(document, { key: "k", ctrlKey: true });
+    const input = await screen.findByRole("combobox");
+    fireEvent.change(input, { target: { value: "road" } });
+
+    fireEvent.keyDown(input, { key: "d", ctrlKey: true });
+    fireEvent.change(input, { target: { value: "" } });
+    expect(screen.getByText("Pinned")).toBeInTheDocument();
+
+    fireEvent.keyDown(input, { key: "Enter", shiftKey: true });
+    expect(screen.getByRole("dialog", { name: "Quick preview" })).toHaveTextContent("Roadmap.md");
+  });
+
+  it("offers row pinning through the context menu", async () => {
+    renderPalette([
+      [atom_fileMetadata, {
+        "Roadmap.md": {
+          path: "Roadmap.md", name: "Roadmap.md", handle: { kind: "file", name: "Roadmap.md" },
+          tags: [], links: [], frontmatter: {}, modifiedAt: 1, wordCount: 1, tasks: [],
+        },
+      }],
+    ]);
+    fireEvent.keyDown(document, { key: "k", ctrlKey: true });
+    const input = await screen.findByRole("combobox");
+    fireEvent.change(input, { target: { value: "road" } });
+    fireEvent.contextMenu(screen.getByRole("option"));
+    fireEvent.click(screen.getByRole("menuitem", { name: /Pin item/ }));
+    fireEvent.change(input, { target: { value: "" } });
+
+    expect(screen.getByText("Pinned")).toBeInTheDocument();
+  });
+
+  it("keeps Ctrl/Cmd+Enter in the active-pane file-open workflow", async () => {
+    const handle = { kind: "file", name: "Roadmap.md" };
+    renderPalette([
+      [atom_fileMetadata, {
+        "Roadmap.md": {
+          path: "Roadmap.md", name: "Roadmap.md", handle,
+          tags: [], links: [], frontmatter: {}, modifiedAt: 1, wordCount: 1, tasks: [],
+        },
+      }],
+    ]);
+    fireEvent.keyDown(document, { key: "k", ctrlKey: true });
+    const input = await screen.findByRole("combobox");
+    fireEvent.change(input, { target: { value: "road" } });
+    fireEvent.keyDown(input, { key: "Enter", ctrlKey: true });
+
+    await waitFor(() => expect(openFile).toHaveBeenCalledWith(handle, "Roadmap.md"));
   });
 
   it("searches the vault-wide tag catalog with #", async () => {
