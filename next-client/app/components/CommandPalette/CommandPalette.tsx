@@ -290,7 +290,13 @@ export default function CommandPalette() {
       <div className="flex flex-wrap gap-1 px-2 pt-1.5" aria-label="Search scopes">{scopes.map((candidate) => <Button key={candidate.id} variant="bare" onClick={() => setScope(scope === candidate.id ? null : candidate.id)} aria-pressed={scope === candidate.id} className={`rounded-md px-1.5 py-0.5 text-ui-micro ${scope === candidate.id ? "bg-sage/10 text-sage" : "bg-paper-softgray text-fg-muted dark:bg-paper-dark-surface"}`}>{candidate.label}</Button>)}</div>
     </div>
     <div id="command-palette-results" role="listbox" aria-label="Command palette results" className="flex-1 min-h-0 overflow-y-auto" style={{ fontFamily }}>
-      {groups.length === 0 && <div className="flex items-center justify-center h-9 text-ui-footnote text-fg-muted">No results</div>}
+      {groups.length === 0 && !query && !scope && (
+        <div className="px-6 py-8 text-center text-ui-footnote text-fg-muted">
+          <p className="font-medium text-fg">Search files or choose a scope</p>
+          <p className="mt-1">Start typing to find notes, or select a chip to search commands and workspace content.</p>
+        </div>
+      )}
+      {groups.length === 0 && (query || scope) && <div className="flex items-center justify-center h-9 text-ui-footnote text-fg-muted">No results</div>}
       {groups.map((group) => <div key={group.label}><div className="px-4 pt-2 text-ui-micro font-medium text-fg-faint">{group.label}</div>{group.rows.map((row) => {
         const index = rows.indexOf(row); const selected = index === selectedIndex;
         return <Button key={`${row.kind}:${row.id}`} variant="menu-item" id={`command-palette-option-${index}`} role="option" aria-selected={selected} aria-disabled={row.kind === "command" && !!row.command.disabledReason}

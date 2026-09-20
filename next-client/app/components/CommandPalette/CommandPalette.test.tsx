@@ -95,6 +95,14 @@ describe("CommandPalette", () => {
     expect(await screen.findByText("v5.7.0")).toBeInTheDocument();
   });
 
+  it("explains how to begin on a first-run empty state", async () => {
+    renderPalette();
+    fireEvent.keyDown(document, { key: "k", ctrlKey: true });
+
+    expect(await screen.findByText("Search files or choose a scope")).toBeInTheDocument();
+    expect(screen.getByText("Start typing to find notes, or select a chip to search commands and workspace content.")).toBeInTheDocument();
+  });
+
   it("keeps commands out of the default file search and shows them after >", async () => {
     renderPalette();
     fireEvent.keyDown(document, { key: "p", ctrlKey: true });
