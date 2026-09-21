@@ -95,10 +95,17 @@ export function useSidebarSearch({ selectedTags, panel }: UseSidebarSearchProps)
   const matchedFiles = useMemo(() => {
     const hasMetadata = Object.keys(fileMetadata).length > 0;
 
-    // Tag filter: visible files matching ALL selected tags (AND logic) — always from metadata
+    // Tag filters use AND logic. When text is also present, it narrows the
+    // tagged results rather than replacing the tag query.
     if (selectedTags.length > 0) {
+      const q = searchQuery.toLowerCase().trim();
       return Object.values(fileMetadata)
-        .filter((m) => isVisibleFile(m.path) && !isHiddenPath(m.path) && selectedTags.every(t => m.tags.includes(t)))
+        .filter((m) =>
+          isVisibleFile(m.path) &&
+          !isHiddenPath(m.path) &&
+          selectedTags.every((tag) => m.tags.includes(tag)) &&
+          (!q || m.name.toLowerCase().includes(q) || m.path.toLowerCase().includes(q)),
+        )
         .sort((a, b) => a.name.localeCompare(b.name))
         .map((m) => ({ name: m.name, kind: "file" as const, handle: m.handle, path: m.path }));
     }

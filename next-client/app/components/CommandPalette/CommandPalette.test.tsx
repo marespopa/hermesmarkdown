@@ -178,7 +178,26 @@ describe("CommandPalette", () => {
     expect(screen.getByRole("listbox")).toHaveTextContent("New file");
 
     fireEvent.click(screen.getByRole("option", { name: /Open Explorer/ }));
-    await waitFor(() => expect(screen.getByTestId("tag-selection")).toHaveTextContent("files:"));
+    await waitFor(() => expect(push).toHaveBeenCalledWith("/editor/files"));
+  });
+
+  it("opens the Explorer filtered to the selected tag", async () => {
+    renderPalette([
+      [atom_fileMetadata, {
+        "Roadmap.md": {
+          path: "Roadmap.md", name: "Roadmap.md", handle: { kind: "file", name: "Roadmap.md" },
+          tags: ["planning"], links: [], frontmatter: {}, modifiedAt: 1, wordCount: 1, tasks: [],
+        },
+      }],
+    ]);
+    fireEvent.keyDown(document, { key: "k", ctrlKey: true });
+    const input = await screen.findByRole("combobox");
+    fireEvent.change(input, { target: { value: "#planning" } });
+
+    fireEvent.click(screen.getByRole("option", { name: /#planning/ }));
+
+    await waitFor(() => expect(push).toHaveBeenCalledWith("/editor/files"));
+    expect(screen.getByTestId("tag-selection")).toHaveTextContent(":planning");
   });
 
   it("shows pinned, recent, and frequent items before typing", async () => {
@@ -285,7 +304,7 @@ describe("CommandPalette", () => {
 
   });
 
-  it("opens file search with the chosen vault tag", async () => {
+  it("opens the Explorer with the chosen vault tag", async () => {
     renderPalette([
       [atom_fileMetadata, {
         "Roadmap.md": {
@@ -307,7 +326,8 @@ describe("CommandPalette", () => {
     fireEvent.change(input, { target: { value: "#plan" } });
     fireEvent.click(screen.getAllByRole("option")[0]);
 
-    expect(screen.getByTestId("tag-selection")).toHaveTextContent("search:planning");
+    expect(push).toHaveBeenCalledWith("/editor/files");
+    expect(screen.getByTestId("tag-selection")).toHaveTextContent(":planning");
   });
 
   it("searches tasks with ! and smart views with %", async () => {
