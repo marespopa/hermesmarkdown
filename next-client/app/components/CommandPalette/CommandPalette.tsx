@@ -120,7 +120,7 @@ export default function CommandPalette() {
         keywords: "files navigator sidebar browse",
         action: () => {
           setRailPanel("files");
-          if (!pathname.startsWith("/editor")) router.push("/editor");
+          router.push("/editor/files");
         },
       };
       const explorerCommandIds = new Set([
@@ -246,7 +246,7 @@ export default function CommandPalette() {
     }
     if (row.kind === "task") { router.push("/editor/tasks"); close(); return; }
     if (row.kind === "view") { setSelectedWorkspaceId(row.id); setRailPanel("views"); if (!pathname.startsWith("/editor")) router.push("/editor"); close(); return; }
-    if (row.kind === "tag") { setSelectedFileTags([row.id]); setRailPanel("search"); if (!pathname.startsWith("/editor")) router.push("/editor"); close(); return; }
+    if (row.kind === "tag") { setSelectedFileTags([row.id]); router.push("/editor/files"); close(); return; }
     if (row.kind === "heading") {
       activeEditorView?.dispatch({ selection: { anchor: row.from }, effects: EditorView.scrollIntoView(row.from, { y: "start", yMargin: 16 }) });
       activeEditorView?.focus(); close(); return;

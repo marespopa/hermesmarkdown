@@ -7,16 +7,19 @@ import { HiOutlineArrowLeft, HiOutlineDocumentAdd, HiOutlineFolderAdd } from "re
 import toast from "react-hot-toast";
 import Button from "@/app/components/Button";
 import { atom_activeFilePath } from "@/app/atoms/atoms";
+import { atom_selectedFileTags } from "@/app/atoms/ui-atoms";
 import { useDialog } from "@/app/hooks/use-dialog";
 import { useFileSystem } from "@/app/hooks/use-file-system";
 import { withRetry } from "@/app/hooks/file-system/shared";
 import { useSidebarSearch } from "../hooks/useSidebarSearch";
 import VaultSidebarFiles from "../components/VaultSidebarFiles";
+import UnifiedSearchInput from "../components/UnifiedSearchInput";
 
 export default function FilesPage() {
   const router = useRouter();
   const dialog = useDialog();
   const [activeFilePath, setActiveFilePath] = useAtom(atom_activeFilePath);
+  const [selectedTags, setSelectedTags] = useAtom(atom_selectedFileTags);
   const {
     createNewFile,
     deleteFile,
@@ -28,7 +31,18 @@ export default function FilesPage() {
     scanVault,
     vaultHandle,
   } = useFileSystem();
-  const { allFiles, folderPaths } = useSidebarSearch({ selectedTags: [], panel: "files" });
+  const {
+    allFiles,
+    folderPaths,
+    processedFiles,
+    totalResultsCount,
+    hasMoreResults,
+    searchQuery,
+    setSearchQuery,
+    setShowAllResults,
+    tags,
+  } = useSidebarSearch({ selectedTags, panel: "files" });
+  const isFiltered = selectedTags.length > 0 || searchQuery.trim().length > 0;
 
   const resolveFolderHandle = useCallback(async (path: string): Promise<FileSystemDirectoryHandle | null> => {
     if (!vaultHandle) return null;
@@ -107,23 +121,43 @@ export default function FilesPage() {
         </div>
         {vaultHandle ? (
           <>
-            <p className="mb-3 text-ui-footnote text-fg-muted">
-              {allFiles.length} {allFiles.length === 1 ? "note" : "notes"}, {folderPaths.length} {folderPaths.length === 1 ? "folder" : "folders"}
-            </p>
+            <div className="mb-3">
+              <UnifiedSearchInput
+                tokens={selectedTags}
+                text={searchQuery}
+                allTags={tags}
+                onTokenAdd={(tag) => setSelectedTags((previous) => previous.includes(tag) ? previous : [...previous, tag])}
+                onTokenRemove={(tag) => setSelectedTags((previous) => previous.filter((selectedTag) => selectedTag !== tag))}
+                onTextChange={setSearchQuery}
+                autoFocus={selectedTags.length > 0}
+              />
+            </div>
+            <div className="mb-3 flex items-center justify-between gap-3 text-ui-footnote text-fg-muted">
+              <p>
+                {isFiltered
+                  ? `${totalResultsCount} matching ${totalResultsCount === 1 ? "note" : "notes"}`
+                  : `${allFiles.length} ${allFiles.length === 1 ? "note" : "notes"}, ${folderPaths.length} ${folderPaths.length === 1 ? "folder" : "folders"}`}
+              </p>
+            </div>
             <div className="min-h-0 flex-1 overflow-y-auto rounded-xl border border-edge-subtle bg-chrome">
               <VaultSidebarFiles
-                processedFiles={allFiles}
+                processedFiles={isFiltered ? processedFiles : allFiles}
                 activeFilePath={activeFilePath}
                 openFile={openSelectedFile}
                 renameFile={renameFile}
                 deleteFile={deleteFile}
                 duplicateFile={duplicateFile}
                 treeView
-                folderPaths={folderPaths}
+                folderPaths={isFiltered ? [] : folderPaths}
                 resolveFolderHandle={resolveFolderHandle}
                 createNewFile={createNewFile}
                 moveItem={moveItem}
               />
+              {isFiltered && hasMoreResults && (
+                <Button variant="bare" onClick={() => setShowAllResults(true)} className="w-full py-2 text-ui-footnote text-fg-muted hover:text-fg">
+                  Show all {totalResultsCount} notes
+                </Button>
+              )}
             </div>
           </>
         ) : (
