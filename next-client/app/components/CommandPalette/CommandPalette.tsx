@@ -4,7 +4,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useAtom, useAtomValue } from "jotai";
 import { usePathname, useRouter } from "next/navigation";
 import { EditorView } from "@codemirror/view";
-import { HiOutlineSearch, HiOutlineX } from "react-icons/hi";
+import { HiOutlineCog, HiOutlineDesktopComputer, HiOutlineMoon, HiOutlineQuestionMarkCircle, HiOutlineSearch, HiOutlineSun, HiOutlineX } from "react-icons/hi";
 import { atom_fileMetadata } from "@/app/atoms/metadata";
 import { atom_allTasks } from "@/app/atoms/task-atoms";
 import {
@@ -15,7 +15,9 @@ import {
   atom_railPanel,
   atom_recentFilePaths,
   atom_showHiddenFiles,
+  atom_theme,
   type PalettePinnedItem,
+  type Theme,
 } from "@/app/atoms/ui-atoms";
 import Button from "@/app/components/Button";
 import OverlayPanel from "@/app/components/OverlayLayer/OverlayPanel";
@@ -24,9 +26,15 @@ import { useFileSystem } from "@/app/hooks/use-file-system";
 import useIsMobileChrome from "@/app/hooks/use-mobile-chrome";
 import { matchCommand, matchFile, fuzzyMatch } from "./command-search";
 import { useCommandPalette, type Command } from "./CommandPaletteContext";
+import { version } from "../../../package.json";
 
 const MAX_VISIBLE_ROWS = 12;
 const MAX_PINS = 5;
+const THEME_CYCLE: { value: Theme; label: string; Icon: React.ComponentType<{ size?: number }> }[] = [
+  { value: "system", label: "Theme: System", Icon: HiOutlineDesktopComputer },
+  { value: "light", label: "Theme: Light", Icon: HiOutlineSun },
+  { value: "dark", label: "Theme: Dark", Icon: HiOutlineMoon },
+];
 
 const scopes = [
   { id: "tag", prefix: "#", label: "Tags" },
@@ -78,10 +86,13 @@ export default function CommandPalette() {
   const [recentFilePaths, setRecentFilePaths] = useAtom(atom_recentFilePaths);
   const [pinnedItems, setPinnedItems] = useAtom(atom_palettePinnedItems);
   const [, setRailPanel] = useAtom(atom_railPanel);
+  const [theme, setTheme] = useAtom(atom_theme);
   const { openFile } = useFileSystem();
   const router = useRouter();
   const pathname = usePathname();
   const isMobileChrome = useIsMobileChrome();
+  const themeCycleIndex = THEME_CYCLE.findIndex((entry) => entry.value === theme);
+  const { label: themeCycleLabel, Icon: ThemeCycleIcon } = THEME_CYCLE[themeCycleIndex];
   const [query, setQuery] = useState("");
   const [scope, setScope] = useState<Scope | null>(null);
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -292,6 +303,12 @@ export default function CommandPalette() {
     if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "d") {
       event.preventDefault(); togglePin(rows[selectedIndex]); return;
     }
+    if (event.key === "Tab") {
+      event.preventDefault();
+      setSelectedIndex((index) => rows.length ? (index + (event.shiftKey ? rows.length - 1 : 1)) % rows.length : 0);
+      inputRef.current?.focus();
+      return;
+    }
     if (event.key === "ArrowDown") { event.preventDefault(); setSelectedIndex((index) => rows.length ? (index + 1) % rows.length : 0); return; }
     if (event.key === "ArrowUp") { event.preventDefault(); setSelectedIndex((index) => rows.length ? (index - 1 + rows.length) % rows.length : 0); return; }
     if (event.key === "Enter") {
@@ -321,17 +338,50 @@ export default function CommandPalette() {
     panelClassName={isMobileChrome
       ? `flex-1 flex flex-col bg-overlay duration-overlay-panel motion-reduce:animate-none ${isOpen ? "animate-in fade-in slide-in-from-bottom-2 ease-out" : "animate-out fade-out slide-out-to-bottom-2 ease-in"}`
       : `w-[560px] max-w-[calc(100vw-2rem)] max-h-[calc(100vh-18vh-2rem)] flex flex-col bg-gradient-to-b from-overlay via-overlay to-surface-raised border border-edge rounded-lg overflow-hidden duration-overlay-panel motion-reduce:animate-none ${isOpen ? "animate-in fade-in slide-in-from-top-1 ease-out" : "animate-out fade-out slide-out-to-top-1 ease-in"}`}>
-    <div className="flex h-16 items-center gap-2 border-b border-edge bg-gradient-to-b from-surface/60 to-transparent px-6 font-sans">
+    <div className="flex min-h-0 flex-1 flex-col" onKeyDown={handleKeyDown}>
+    <div className="border-b border-edge bg-gradient-to-b from-surface/60 to-transparent px-6 py-2 font-sans">
+      <div className="flex h-10 items-center gap-2">
         <div className="flex flex-1 items-center gap-3">
           <HiOutlineSearch size={14} className="shrink-0 text-fg-muted" />
-          <input ref={inputRef} type="search" value={displayQuery} onChange={(event) => { const value = event.target.value; const parsed = scopeFromPrefix(value); setScope(parsed?.scope ?? null); setQuery(parsed?.query ?? value); }} onKeyDown={handleKeyDown}
+          <input ref={inputRef} type="search" value={displayQuery} onChange={(event) => { const value = event.target.value; const parsed = scopeFromPrefix(value); setScope(parsed?.scope ?? null); setQuery(parsed?.query ?? value); }}
             placeholder="Search files or type a command..." className="min-w-0 flex-1 bg-transparent text-ui-callout font-normal text-fg outline-none caret-accent placeholder:text-fg-faint [&::-webkit-search-cancel-button]:hidden"
             autoComplete="off" autoCorrect="off" spellCheck={false} role="combobox" aria-label="Search files and command palette modes" aria-expanded={isOpen} aria-controls="command-palette-results" aria-activedescendant={rows[selectedIndex] ? `command-palette-option-${selectedIndex}` : undefined} />
           {query && <Button variant="icon" onClick={() => { setQuery(""); inputRef.current?.focus(); }} aria-label="Clear search" className="!w-8 !h-8"><HiOutlineX size={16} /></Button>}
         </div>
+        <div className="ml-1 flex items-center gap-1 border-l border-edge-subtle pl-2">
+          <Button
+            variant="icon"
+            onClick={() => setTheme(THEME_CYCLE[(themeCycleIndex + 1) % THEME_CYCLE.length].value)}
+            aria-label={themeCycleLabel}
+            title={themeCycleLabel}
+            className="!w-8 !h-8"
+            suppressHydrationWarning
+          >
+            <ThemeCycleIcon size={16} />
+          </Button>
+          <Button
+            variant="icon"
+            onClick={() => { router.push("/editor/settings"); close(); }}
+            aria-label="Settings"
+            title="Settings"
+            className="!w-8 !h-8"
+          >
+            <HiOutlineCog size={16} />
+          </Button>
+          <Button
+            variant="icon"
+            onClick={() => { router.push("/documentation"); close(); }}
+            aria-label="Documentation and help"
+            title="Documentation and help"
+            className="!w-8 !h-8"
+          >
+            <HiOutlineQuestionMarkCircle size={16} />
+          </Button>
+        </div>
         {isMobileChrome && <Button variant="icon" onClick={close} aria-label="Close" className="shrink-0"><HiOutlineX size={20} /></Button>}
+      </div>
     </div>
-    <div id="command-palette-results" role="listbox" aria-label="Command palette results" className="flex-1 min-h-0 overflow-y-auto" style={{ fontFamily }}>
+    <div id="command-palette-results" role="listbox" aria-label="Command palette results" className="flex-1 min-h-0 overflow-x-hidden overflow-y-auto" style={{ fontFamily }}>
       {rows.length === 0 && !query && !scope && (
         <div className="animate-in fade-in slide-in-from-top-1 px-6 py-8 text-center text-ui-footnote text-fg-muted duration-200 motion-reduce:animate-none">
           <p className="font-medium text-fg">Start typing to find a note or action.</p>
@@ -350,12 +400,16 @@ export default function CommandPalette() {
         const context = resultContext(row, duplicateNames);
         return <Button key={`${row.kind}:${row.id}`} variant="menu-item" id={`command-palette-option-${index}`} role="option" aria-label={context ? `${row.label} ${context}` : row.label} aria-selected={selected} aria-disabled={row.kind === "command" && !!row.command.disabledReason}
           isDisabled={runningId !== null || (row.kind === "command" && !!row.command.disabledReason)} onClick={() => void execute(row)} onMouseEnter={() => setSelectedIndex(index)} onContextMenu={(event: React.MouseEvent) => { if (row.kind === "file" || row.kind === "command") { event.preventDefault(); setContextRow(row); } }}
-          className={`mx-2 w-[calc(100%-1rem)] !rounded-md ${rowHeight} justify-between gap-3 px-3 text-left font-normal hover:bg-surface-raised ${selected ? "bg-surface-raised text-fg" : ""}`}>
-          <span className="min-w-0 truncate"><HighlightedText text={row.label} indices={row.titleIndices} />{context && <span className="ml-2 text-ui-footnote text-fg-muted"><HighlightedText text={context} indices={row.detailIndices} /></span>}</span>
+          className={`mx-2 w-[calc(100%_-_1rem)] !rounded-md ${rowHeight} justify-between gap-3 border px-3 text-left font-normal ${selected ? "border-edge bg-chrome text-fg shadow-sm hover:bg-chrome dark:bg-surface dark:hover:bg-surface" : "border-transparent hover:bg-surface-raised"}`}>
+          <span className="min-w-0 flex-1 truncate"><HighlightedText text={row.label} indices={row.titleIndices} />{context && <span className="ml-2 text-ui-footnote text-fg-muted"><HighlightedText text={context} indices={row.detailIndices} /></span>}</span>
           {row.kind === "command" && row.command.shortcut && <span className="shrink-0 font-mono text-ui-micro text-fg-muted">{row.command.shortcut}</span>}
         </Button>;
       })}</div>
     </div>
+    <footer className="flex items-center justify-end border-t border-edge-subtle bg-chrome px-6 py-1.5 text-right text-[10px] text-fg-muted">
+      <span className="font-medium">HermesMarkdown v{version}</span>
+    </footer>
     {contextRow && <div role="menu" aria-label="Palette item actions" className="absolute right-3 top-28 z-10 animate-in fade-in zoom-in-95 slide-in-from-top-1 rounded-lg border border-edge bg-chrome p-1 shadow-lg duration-150 motion-reduce:animate-none"><Button variant="menu-item" role="menuitem" onClick={() => togglePin(contextRow)}>{isPinned(contextRow) ? "Unpin item" : "Pin item"} <span className="ml-auto text-fg-faint">Ctrl+D</span></Button></div>}
+    </div>
   </OverlayPanel>;
 }

@@ -11,6 +11,7 @@ import {
   atom_commandUseCounts,
   atom_palettePinnedItems,
   atom_recentFilePaths,
+  atom_theme,
 } from "@/app/atoms/ui-atoms";
 
 const openFile = vi.fn();
@@ -115,6 +116,37 @@ describe("CommandPalette", () => {
     expect(screen.queryByText("Frequently Used Commands")).not.toBeInTheDocument();
   });
 
+  it("cycles the theme from the palette header", async () => {
+    renderPalette([[atom_theme, "system"]]);
+    fireEvent.keyDown(document, { key: "k", ctrlKey: true });
+
+    fireEvent.click(await screen.findByRole("button", { name: "Theme: System" }));
+    expect(screen.getByRole("button", { name: "Theme: Light" })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Theme: Light" }));
+    expect(screen.getByRole("button", { name: "Theme: Dark" })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Theme: Dark" }));
+    expect(screen.getByRole("button", { name: "Theme: System" })).toBeInTheDocument();
+  });
+
+  it("opens Settings from the palette header", async () => {
+    renderPalette();
+    fireEvent.keyDown(document, { key: "k", ctrlKey: true });
+
+    fireEvent.click(await screen.findByRole("button", { name: "Settings" }));
+
+    expect(push).toHaveBeenCalledWith("/editor/settings");
+  });
+
+  it("shows the app version and opens Documentation and help from the palette header", async () => {
+    renderPalette();
+    fireEvent.keyDown(document, { key: "k", ctrlKey: true });
+
+    expect(await screen.findByText("HermesMarkdown v5.7.4")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Documentation and help" }));
+
+    expect(push).toHaveBeenCalledWith("/documentation");
+  });
+
   it("keeps commands out of the default file search and shows them after >", async () => {
     renderPalette();
     fireEvent.keyDown(document, { key: "p", ctrlKey: true });
@@ -146,6 +178,25 @@ describe("CommandPalette", () => {
 
     expect(await screen.findByRole("combobox")).toHaveValue(">");
     expect(screen.getByRole("listbox")).toHaveTextContent("Test command");
+  });
+
+  it("cycles command results with Tab and arrow keys", async () => {
+    renderPalette();
+    fireEvent.keyDown(document, { key: "k", ctrlKey: true });
+    const input = await screen.findByRole("combobox");
+    fireEvent.change(input, { target: { value: ">" } });
+
+    const initialActiveDescendant = input.getAttribute("aria-activedescendant");
+    fireEvent.keyDown(input, { key: "ArrowDown" });
+    const arrowActiveDescendant = input.getAttribute("aria-activedescendant");
+    expect(arrowActiveDescendant).not.toBe(initialActiveDescendant);
+
+    fireEvent.keyDown(input, { key: "Tab" });
+    const tabActiveDescendant = input.getAttribute("aria-activedescendant");
+    expect(tabActiveDescendant).not.toBe(arrowActiveDescendant);
+
+    fireEvent.keyDown(input, { key: "Tab", shiftKey: true });
+    expect(input).toHaveAttribute("aria-activedescendant", arrowActiveDescendant);
   });
 
   it("keeps modes in the query without scope controls", async () => {
