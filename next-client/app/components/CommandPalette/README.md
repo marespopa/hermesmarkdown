@@ -18,13 +18,13 @@ including confirmation dialogs and error reporting.
 
 ## Search and keyboard behavior
 
-- `Ctrl/Cmd+K` opens file search; `Ctrl/Cmd+Shift+P` opens the Commands scope.
-- A plain query searches vault files only. Select a scope chip (or type its trigger) to search tags, commands, tasks, Smart Views, or live headings.
-- Typed triggers become removable scope chips: `#` Tags, `>` Commands, `!` Tasks, `%` Views, and `:` Headings. The **Explorer** chip is click/Tab-only and offers explorer navigation plus available new/import/vault/folder actions. Click a chip to select it, press Tab with an empty query to cycle scopes, or press Backspace with an empty query to remove the active chip.
-- The zero state shows locally persisted pinned files/commands, up to five recently opened files, and up to three frequently used commands. Pin or unpin the selected file/command with `Ctrl/Cmd+D`, or use its context menu. At most five entries may be pinned.
-- On a first run with no local palette history, the zero state explains that typing searches files and scope chips search commands or workspace content.
+- `Ctrl/Cmd+K` opens file search; `Ctrl/Cmd+Shift+P` opens with the `>` command prefix.
+- A plain query searches vault files. Type `#` for tags, `>` for commands, `!` for tasks, or `@` for live headings; these prefixes stay in the input rather than becoming scope controls.
+- The initial unified list combines locally persisted pinned files/commands, up to five recent files, top actions (including **Open Explorer**), and up to three frequently used commands. Pin or unpin the selected file/command with `Ctrl/Cmd+D`, or use its context menu. At most five entries may be pinned.
+- Rows present only the result name and necessary disambiguation. Command shortcuts appear at the right edge only when the command defines one.
+- Empty searches display a small decorative emoji and text-only quick-query tips for file names, `#` tags, `>` commands, `!` tasks, and `@` headings.
 - Results are ranked client-side by title prefix, title fuzzy/substring match, then path/breadcrumb match. Matching characters are emphasized in both labels where applicable. Palette operations make no network requests.
-- Arrow keys change the active result. Enter and Ctrl/Cmd+Enter run/open it in the current pane; Shift+Enter displays a non-closing item-details preview. Escape closes the palette.
+- Arrow keys change the active result. Enter and Ctrl/Cmd+Enter run/open it in the current pane. Escape closes the palette.
 
 The result surface uses combobox/listbox semantics. Disabled commands remain discoverable
 and explain which context or capability is required.
