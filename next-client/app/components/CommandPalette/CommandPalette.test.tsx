@@ -1,19 +1,16 @@
 import React from "react";
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { Provider, useAtomValue } from "jotai";
+import { Provider } from "jotai";
 import { useHydrateAtoms } from "jotai/utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import packageJson from "@/package.json";
 import CommandPalette from "./CommandPalette";
 import { CommandPaletteProvider, useRegisterCommand } from "./CommandPaletteContext";
-import { atom_fileMetadata, atom_customWorkspaces } from "@/app/atoms/metadata";
+import { atom_fileMetadata } from "@/app/atoms/metadata";
 import {
   atom_activeEditorView,
   atom_commandUseCounts,
   atom_palettePinnedItems,
-  atom_railPanel,
   atom_recentFilePaths,
-  atom_selectedFileTags,
 } from "@/app/atoms/ui-atoms";
 
 const openFile = vi.fn();
@@ -37,6 +34,7 @@ function TestCommand() {
     id: "test-command",
     label: "Test command",
     category: "Help",
+    shortcut: "Ctrl+T",
     action: vi.fn(),
   });
   useRegisterCommand({
@@ -53,12 +51,6 @@ function Hydrate({ values, children }: { values: any[]; children: React.ReactNod
   return children;
 }
 
-function TagSelectionObserver() {
-  const selectedTags = useAtomValue(atom_selectedFileTags);
-  const railPanel = useAtomValue(atom_railPanel);
-  return <output data-testid="tag-selection">{railPanel}:{selectedTags.join(",")}</output>;
-}
-
 function renderPalette(values: any[] = []) {
   return render(
     <Provider>
@@ -66,7 +58,6 @@ function renderPalette(values: any[] = []) {
         <CommandPaletteProvider>
           <TestCommand />
           <CommandPalette />
-          <TagSelectionObserver />
         </CommandPaletteProvider>
       </Hydrate>
     </Provider>,
@@ -95,13 +86,6 @@ describe("CommandPalette", () => {
     expect(screen.getByRole("listbox")).toBeInTheDocument();
   });
 
-  it("shows the current application version in the header", async () => {
-    renderPalette();
-    fireEvent.keyDown(document, { key: "k", ctrlKey: true });
-
-    expect(await screen.findByText(`v${packageJson.version}`)).toBeInTheDocument();
-  });
-
   it("remains mounted until its exit animation finishes", async () => {
     renderPalette();
     fireEvent.keyDown(document, { key: "k", ctrlKey: true });
@@ -122,12 +106,13 @@ describe("CommandPalette", () => {
     }
   });
 
-  it("explains how to begin on a first-run empty state", async () => {
+  it("shows a unified default list with the Explorer action", async () => {
     renderPalette();
     fireEvent.keyDown(document, { key: "k", ctrlKey: true });
 
-    expect(await screen.findByText("Search files or choose a scope")).toBeInTheDocument();
-    expect(screen.getByText("Start typing to find notes, or select a chip to search commands and workspace content.")).toBeInTheDocument();
+    expect(await screen.findByRole("option", { name: /Open Explorer/ })).toBeInTheDocument();
+    expect(screen.queryByText("Recently Opened Files")).not.toBeInTheDocument();
+    expect(screen.queryByText("Frequently Used Commands")).not.toBeInTheDocument();
   });
 
   it("keeps commands out of the default file search and shows them after >", async () => {
@@ -140,52 +125,55 @@ describe("CommandPalette", () => {
     fireEvent.change(input, { target: { value: ">test" } });
 
     await waitFor(() => expect(screen.getByRole("listbox")).toHaveTextContent("Test command"));
+    expect(screen.getByRole("option", { name: /Test command/ })).toHaveTextContent("Ctrl+T");
+  });
+
+  it("offers quick-query tips when a search has no matches", async () => {
+    renderPalette();
+    fireEvent.keyDown(document, { key: "k", ctrlKey: true });
+
+    const input = await screen.findByRole("combobox");
+    fireEvent.change(input, { target: { value: "no-match" } });
+
+    expect(screen.getByText("No matches found")).toBeInTheDocument();
+    expect(screen.getByText("Try a file name, #tag, >command, !task, or @heading.")).toBeInTheDocument();
+    expect(screen.getByText("🪴")).toHaveAttribute("aria-hidden", "true");
   });
 
   it("opens command mode from Ctrl/Cmd+Shift+P", async () => {
     renderPalette();
     fireEvent.keyDown(document, { key: "p", ctrlKey: true, shiftKey: true });
 
-    expect(await screen.findByRole("combobox")).toHaveValue("");
-    expect(screen.getByRole("button", { name: "Remove Commands scope" })).toBeInTheDocument();
+    expect(await screen.findByRole("combobox")).toHaveValue(">");
     expect(screen.getByRole("listbox")).toHaveTextContent("Test command");
   });
 
-  it("converts typed prefixes into removable scope chips and cycles scopes with Tab", async () => {
+  it("keeps modes in the query without scope controls", async () => {
     renderPalette();
     fireEvent.keyDown(document, { key: "k", ctrlKey: true });
     const input = await screen.findByRole("combobox");
 
     fireEvent.change(input, { target: { value: "#plan" } });
-    expect(input).toHaveValue("plan");
-    expect(screen.getByRole("button", { name: "Remove Tags scope" })).toBeInTheDocument();
-
-    fireEvent.change(input, { target: { value: "" } });
-    fireEvent.keyDown(input, { key: "Backspace" });
-    expect(screen.queryByRole("button", { name: "Remove Tags scope" })).not.toBeInTheDocument();
-
-    fireEvent.keyDown(input, { key: "Tab" });
-    expect(screen.getByRole("button", { name: "Remove Tags scope" })).toBeInTheDocument();
+    expect(input).toHaveValue("#plan");
+    expect(screen.queryByRole("button", { name: "Tags" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Commands" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Explorer" })).not.toBeInTheDocument();
   });
 
-  it("opens Explorer scope with file-management commands and navigation", async () => {
+  it("opens Explorer from the initial unified action list", async () => {
     renderPalette();
     fireEvent.keyDown(document, { key: "k", ctrlKey: true });
-    fireEvent.click(await screen.findByRole("button", { name: "Explorer" }));
 
-    expect(screen.getByRole("button", { name: "Remove Explorer scope" })).toBeInTheDocument();
-    expect(screen.getByRole("listbox")).toHaveTextContent("Open Explorer");
-    expect(screen.getByRole("listbox")).toHaveTextContent("New file");
-
-    fireEvent.click(screen.getByRole("option", { name: /Open Explorer/ }));
+    fireEvent.click(await screen.findByRole("option", { name: /Open Explorer/ }));
     await waitFor(() => expect(push).toHaveBeenCalledWith("/editor/files"));
   });
 
-  it("opens the Explorer filtered to the selected tag", async () => {
+  it("opens a file directly from an exact tag search", async () => {
+    const handle = { kind: "file", name: "Roadmap.md" };
     renderPalette([
       [atom_fileMetadata, {
         "Roadmap.md": {
-          path: "Roadmap.md", name: "Roadmap.md", handle: { kind: "file", name: "Roadmap.md" },
+          path: "Roadmap.md", name: "Roadmap.md", handle,
           tags: ["planning"], links: [], frontmatter: {}, modifiedAt: 1, wordCount: 1, tasks: [],
         },
       }],
@@ -194,13 +182,13 @@ describe("CommandPalette", () => {
     const input = await screen.findByRole("combobox");
     fireEvent.change(input, { target: { value: "#planning" } });
 
-    fireEvent.click(screen.getByRole("option", { name: /#planning/ }));
+    fireEvent.click(screen.getByRole("option", { name: /Roadmap.md/ }));
 
-    await waitFor(() => expect(push).toHaveBeenCalledWith("/editor/files"));
-    expect(screen.getByTestId("tag-selection")).toHaveTextContent(":planning");
+    await waitFor(() => expect(openFile).toHaveBeenCalledWith(handle, "Roadmap.md"));
+    expect(push).not.toHaveBeenCalled();
   });
 
-  it("shows pinned, recent, and frequent items before typing", async () => {
+  it("combines pinned, recent, and frequent items without section labels", async () => {
     renderPalette([
       [atom_fileMetadata, {
         "Roadmap.md": {
@@ -214,12 +202,14 @@ describe("CommandPalette", () => {
     ]);
     fireEvent.keyDown(document, { key: "k", ctrlKey: true });
 
-    expect(await screen.findByText("Pinned")).toBeInTheDocument();
-    expect(screen.getByText("Frequently Used Commands")).toBeInTheDocument();
-    expect(screen.queryByText("Recently Opened Files")).not.toBeInTheDocument();
+    expect(await screen.findByRole("listbox")).toHaveTextContent("Roadmap.md");
+    expect(screen.getByRole("listbox")).toHaveTextContent("Test command");
+    expect(screen.getByRole("listbox")).toHaveTextContent("Open Explorer");
+    expect(screen.queryByText("Pinned")).not.toBeInTheDocument();
+    expect(screen.queryByText("Frequently Used Commands")).not.toBeInTheDocument();
   });
 
-  it("pins and previews the selected item with keyboard shortcuts", async () => {
+  it("pins and opens the selected item with keyboard shortcuts", async () => {
     renderPalette([
       [atom_fileMetadata, {
         "Roadmap.md": {
@@ -234,10 +224,10 @@ describe("CommandPalette", () => {
 
     fireEvent.keyDown(input, { key: "d", ctrlKey: true });
     fireEvent.change(input, { target: { value: "" } });
-    expect(screen.getByText("Pinned")).toBeInTheDocument();
+    expect(screen.getByRole("listbox")).toHaveTextContent("Roadmap.md");
 
     fireEvent.keyDown(input, { key: "Enter", shiftKey: true });
-    expect(screen.getByRole("dialog", { name: "Quick preview" })).toHaveTextContent("Roadmap.md");
+    await waitFor(() => expect(openFile).toHaveBeenCalledWith(expect.anything(), "Roadmap.md"));
   });
 
   it("offers row pinning through the context menu", async () => {
@@ -256,7 +246,7 @@ describe("CommandPalette", () => {
     fireEvent.click(screen.getByRole("menuitem", { name: /Pin item/ }));
     fireEvent.change(input, { target: { value: "" } });
 
-    expect(screen.getByText("Pinned")).toBeInTheDocument();
+    expect(screen.getByRole("listbox")).toHaveTextContent("Roadmap.md");
   });
 
   it("keeps Ctrl/Cmd+Enter in the active-pane file-open workflow", async () => {
@@ -277,7 +267,7 @@ describe("CommandPalette", () => {
     await waitFor(() => expect(openFile).toHaveBeenCalledWith(handle, "Roadmap.md"));
   });
 
-  it("searches the vault-wide tag catalog with #", async () => {
+  it("shows files matching fuzzy tag searches and excludes untagged files", async () => {
     const linkedHandle = { kind: "file", name: "Roadmap.md" };
     renderPalette([
       [atom_fileMetadata, {
@@ -292,25 +282,37 @@ describe("CommandPalette", () => {
           wordCount: 1,
           tasks: [],
         },
+        "Archive.md": {
+          path: "Archive.md",
+          name: "Archive.md",
+          handle: { kind: "file", name: "Archive.md" },
+          tags: ["archive"],
+          links: [],
+          frontmatter: {},
+          modifiedAt: 1,
+          wordCount: 1,
+          tasks: [],
+        },
       }],
     ]);
     fireEvent.keyDown(document, { key: "k", ctrlKey: true });
     const input = await screen.findByRole("combobox");
 
     fireEvent.change(input, { target: { value: "#plan" } });
+    expect(screen.getByRole("listbox")).toHaveTextContent("Roadmap.md");
     expect(screen.getByRole("listbox")).toHaveTextContent("#planning");
-    expect(screen.getByRole("listbox")).toHaveTextContent("1 note");
-    expect(screen.getByRole("listbox")).not.toHaveTextContent("Roadmap.md");
+    expect(screen.getByRole("listbox")).not.toHaveTextContent("Archive.md");
 
   });
 
-  it("opens the Explorer with the chosen vault tag", async () => {
+  it("does not route to Explorer when choosing a fuzzy tag match", async () => {
+    const handle = { kind: "file", name: "Roadmap.md" };
     renderPalette([
       [atom_fileMetadata, {
         "Roadmap.md": {
           path: "Roadmap.md",
           name: "Roadmap.md",
-          handle: { kind: "file", name: "Roadmap.md" },
+          handle,
           tags: ["planning"],
           links: [],
           frontmatter: {},
@@ -326,11 +328,40 @@ describe("CommandPalette", () => {
     fireEvent.change(input, { target: { value: "#plan" } });
     fireEvent.click(screen.getAllByRole("option")[0]);
 
-    expect(push).toHaveBeenCalledWith("/editor/files");
-    expect(screen.getByTestId("tag-selection")).toHaveTextContent(":planning");
+    await waitFor(() => expect(openFile).toHaveBeenCalledWith(handle, "Roadmap.md"));
+    expect(push).not.toHaveBeenCalled();
   });
 
-  it("searches tasks with ! and smart views with %", async () => {
+  it("intersects space- and comma-separated tag searches", async () => {
+    renderPalette([
+      [atom_fileMetadata, {
+        "Roadmap.md": {
+          path: "Roadmap.md", name: "Roadmap.md", handle: { kind: "file", name: "Roadmap.md" },
+          tags: ["planning", "work"], links: [], frontmatter: {}, modifiedAt: 1, wordCount: 1, tasks: [],
+        },
+        "Planning.md": {
+          path: "Planning.md", name: "Planning.md", handle: { kind: "file", name: "Planning.md" },
+          tags: ["planning"], links: [], frontmatter: {}, modifiedAt: 1, wordCount: 1, tasks: [],
+        },
+        "Work.md": {
+          path: "Work.md", name: "Work.md", handle: { kind: "file", name: "Work.md" },
+          tags: ["work"], links: [], frontmatter: {}, modifiedAt: 1, wordCount: 1, tasks: [],
+        },
+      }],
+    ]);
+    fireEvent.keyDown(document, { key: "k", ctrlKey: true });
+    const input = await screen.findByRole("combobox");
+
+    fireEvent.change(input, { target: { value: "#plan #work" } });
+    expect(screen.getByRole("listbox")).toHaveTextContent("#planning #work");
+    expect(screen.getByRole("listbox")).not.toHaveTextContent("Planning.md");
+    expect(screen.getByRole("listbox")).not.toHaveTextContent("Work.md");
+
+    fireEvent.change(input, { target: { value: "#plan, #work" } });
+    expect(screen.getByRole("listbox")).toHaveTextContent("#planning #work");
+  });
+
+  it("searches tasks with !", async () => {
     renderPalette([
       [atom_fileMetadata, {
         "Work.md": {
@@ -358,12 +389,6 @@ describe("CommandPalette", () => {
           }],
         },
       }],
-      [atom_customWorkspaces, [{
-        id: "planning",
-        name: "Planning",
-        icon: "folder",
-        query: { operator: "AND", rules: [] },
-      }]],
     ]);
     fireEvent.keyDown(document, { key: "k", ctrlKey: true });
     const input = await screen.findByRole("combobox");
@@ -374,11 +399,6 @@ describe("CommandPalette", () => {
 
     expect(push).toHaveBeenCalledWith("/editor/tasks");
     expect(openFile).not.toHaveBeenCalled();
-
-    fireEvent.keyDown(document, { key: "k", ctrlKey: true });
-    const reopenedInput = await screen.findByRole("combobox");
-    fireEvent.change(reopenedInput, { target: { value: "%plan" } });
-    expect(screen.getByRole("listbox")).toHaveTextContent("Planning");
   });
 
   it("searches headings in the active editor and navigates to the selected heading", async () => {
@@ -403,7 +423,7 @@ describe("CommandPalette", () => {
     fireEvent.keyDown(document, { key: "k", ctrlKey: true });
     const input = await screen.findByRole("combobox");
 
-    fireEvent.change(input, { target: { value: ":deploy" } });
+    fireEvent.change(input, { target: { value: "@deploy" } });
     expect(screen.getByRole("listbox")).toHaveTextContent("Deployment Guide");
     fireEvent.click(screen.getAllByRole("option")[0]);
 
