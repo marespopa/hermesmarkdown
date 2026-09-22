@@ -4,31 +4,27 @@ import { useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useAtom } from "jotai";
 import { HiOutlineArrowLeft, HiOutlineDocumentAdd, HiOutlineFolderAdd } from "react-icons/hi";
-import toast from "react-hot-toast";
 import Button from "@/app/components/Button";
 import { atom_activeFilePath } from "@/app/atoms/atoms";
 import { atom_selectedFileTags } from "@/app/atoms/ui-atoms";
-import { useDialog } from "@/app/hooks/use-dialog";
 import { useFileSystem } from "@/app/hooks/use-file-system";
-import { withRetry } from "@/app/hooks/file-system/shared";
 import { useSidebarSearch } from "../hooks/useSidebarSearch";
 import VaultSidebarFiles from "../components/VaultSidebarFiles";
 import UnifiedSearchInput from "../components/UnifiedSearchInput";
 
 export default function FilesPage() {
   const router = useRouter();
-  const dialog = useDialog();
   const [activeFilePath, setActiveFilePath] = useAtom(atom_activeFilePath);
   const [selectedTags, setSelectedTags] = useAtom(atom_selectedFileTags);
   const {
     createNewFile,
+    createFolder,
     deleteFile,
     duplicateFile,
     isMounted,
     moveItem,
     openFile,
     renameFile,
-    scanVault,
     vaultHandle,
   } = useFileSystem();
   const {
@@ -60,24 +56,6 @@ export default function FilesPage() {
   const createNote = useCallback(async () => {
     await createNewFile();
   }, [createNewFile]);
-
-  const createFolder = useCallback(async () => {
-    if (!vaultHandle) return;
-    const name = String(await dialog.prompt("Enter folder name:", "", "New Folder") ?? "").trim();
-    if (!name) return;
-    if (/[\\/]/.test(name)) {
-      toast.error("Folder names cannot contain slashes.");
-      return;
-    }
-    try {
-      await withRetry(() => vaultHandle.getDirectoryHandle(name, { create: true }));
-      await scanVault(vaultHandle);
-      toast.success(`Created: ${name}`);
-    } catch (error) {
-      console.error("Failed to create folder:", error);
-      toast.error("Failed to create folder.");
-    }
-  }, [dialog, scanVault, vaultHandle]);
 
   const openSelectedFile = useCallback((handle: FileSystemFileHandle, path?: string) => {
     void openFile(handle, path);
@@ -151,6 +129,7 @@ export default function FilesPage() {
                 folderPaths={isFiltered ? [] : folderPaths}
                 resolveFolderHandle={resolveFolderHandle}
                 createNewFile={createNewFile}
+                createFolder={createFolder}
                 moveItem={moveItem}
               />
               {isFiltered && hasMoreResults && (

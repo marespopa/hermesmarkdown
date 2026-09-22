@@ -3,6 +3,7 @@ import { act, fireEvent, render, screen, waitFor } from "@testing-library/react"
 import { Provider } from "jotai";
 import { useHydrateAtoms } from "jotai/utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { version } from "../../../package.json";
 import CommandPalette from "./CommandPalette";
 import { CommandPaletteProvider, useRegisterCommand } from "./CommandPaletteContext";
 import { atom_fileMetadata } from "@/app/atoms/metadata";
@@ -141,7 +142,7 @@ describe("CommandPalette", () => {
     renderPalette();
     fireEvent.keyDown(document, { key: "k", ctrlKey: true });
 
-    expect(await screen.findByText("HermesMarkdown v5.7.4")).toBeInTheDocument();
+    expect(await screen.findByText(`HermesMarkdown v${version}`)).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Documentation and help" }));
 
     expect(push).toHaveBeenCalledWith("/documentation");
@@ -172,12 +173,20 @@ describe("CommandPalette", () => {
     expect(screen.getByText("🪴")).toHaveAttribute("aria-hidden", "true");
   });
 
-  it("opens command mode from Ctrl/Cmd+Shift+P", async () => {
+  it("opens command mode from Ctrl/Cmd+Shift+K", async () => {
     renderPalette();
-    fireEvent.keyDown(document, { key: "p", ctrlKey: true, shiftKey: true });
+    fireEvent.keyDown(document, { key: "k", ctrlKey: true, shiftKey: true });
 
     expect(await screen.findByRole("combobox")).toHaveValue(">");
     expect(screen.getByRole("listbox")).toHaveTextContent("Test command");
+  });
+
+  it("prioritizes frequently used commands in empty command mode", async () => {
+    renderPalette([[atom_commandUseCounts, { "test-command": 3, "new-file": 1 }]]);
+    fireEvent.keyDown(document, { key: "k", ctrlKey: true, shiftKey: true });
+
+    await screen.findByRole("combobox");
+    expect(screen.getAllByRole("option")[0]).toHaveAccessibleName(/Test command/);
   });
 
   it("cycles command results with Tab and arrow keys", async () => {

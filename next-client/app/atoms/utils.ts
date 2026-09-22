@@ -1,5 +1,20 @@
 import { WorkspaceContainer, PanelLeaf } from "@/app/types/workspace";
 
+export interface WorkspaceTab {
+  paneId: string;
+  filePath: string;
+}
+
+export function getWorkspaceTabs(
+  node: WorkspaceContainer | PanelLeaf,
+): WorkspaceTab[] {
+  if ("type" in node) {
+    return node.openFilePaths.map((filePath) => ({ paneId: node.id, filePath }));
+  }
+
+  return node.children.flatMap(getWorkspaceTabs);
+}
+
 export function findLeaf(
   node: WorkspaceContainer | PanelLeaf,
   id: string | null,

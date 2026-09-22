@@ -10,6 +10,7 @@ import {
   atom_saveStatus,
 } from "@/app/atoms/atoms";
 import { CommandPaletteProvider } from "@/app/components/CommandPalette/CommandPaletteContext";
+import { formatShortcut } from "@/app/utils/platform";
 import React from "react";
 
 // Mock hooks
@@ -178,5 +179,27 @@ describe("PaneLeaf Tab Indicators", () => {
     fireEvent(control, new MouseEvent("pointerup", { bubbles: true }));
 
     expect(screen.getByRole("button", { name: "Show tabs" })).toBeInTheDocument();
+  });
+
+  it("guides an empty pane toward creating or opening a note", () => {
+    render(
+      <TestProvider initialValues={[[atom_activePaneId, "empty-pane"]]}>
+        <PaneLeaf
+          leaf={{
+            id: "empty-pane",
+            type: "editor",
+            openFilePaths: [],
+            isPinned: false,
+          }}
+        />
+      </TestProvider>
+    );
+
+    expect(screen.getByRole("heading", { name: "Start writing" })).toBeInTheDocument();
+    expect(screen.getByText("Create a new note, open a file from your device, or connect a vault.")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /New File/ })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Open File" })).toBeInTheDocument();
+    const commandButton = screen.getByRole("button", { name: /Browse all commands/ });
+    expect(commandButton).toHaveTextContent(formatShortcut("K", { shift: true }));
   });
 });

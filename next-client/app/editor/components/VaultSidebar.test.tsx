@@ -93,6 +93,7 @@ describe("VaultSidebar Component", () => {
       isMounted: true,
       closeVault: vi.fn(),
       scanVault: vi.fn(),
+      createFolder: vi.fn(),
     };
 
     (useFileSystem as any).mockReturnValue(mockFileSystem);
@@ -168,16 +169,12 @@ describe("VaultSidebar Component", () => {
   });
 
   it("creates a root folder from the footer", async () => {
-    const prompt = vi.fn().mockResolvedValue("Projects");
-    (useDialog as any).mockReturnValue({ prompt });
     render(<VaultSidebar panel="files" onClose={mockOnClose} />);
 
     fireEvent.click(screen.getByRole("button", { name: "New folder" }));
 
     await waitFor(() => {
-      expect(prompt).toHaveBeenCalledWith("Enter folder name:", "", "New Folder");
-      expect(mockFileSystem.vaultHandle.getDirectoryHandle).toHaveBeenCalledWith("Projects", { create: true });
-      expect(mockFileSystem.scanVault).toHaveBeenCalledWith(mockFileSystem.vaultHandle);
+      expect(mockFileSystem.createFolder).toHaveBeenCalledOnce();
     });
   });
 

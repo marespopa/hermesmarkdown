@@ -4,11 +4,13 @@ import React from "react";
 import { HiOutlineDocumentText, HiCheck, HiPencilAlt, HiExclamationCircle } from "react-icons/hi";
 import { VscClose } from "react-icons/vsc";
 import Tooltip from "@/app/components/Tooltip";
+import { formatShortcut } from "@/app/utils/platform";
 
 export type TabSaveState = "idle" | "dirty" | "saving" | "saved" | "error";
 
 interface PaneTabProps {
   fileName: string;
+  shortcutNumber?: number;
   isActive: boolean;
   saveState: TabSaveState;
   saveErrorMessage?: string;
@@ -48,6 +50,7 @@ export const statusMeta: Record<
 
 export default function PaneTab({
   fileName,
+  shortcutNumber,
   isActive,
   saveState,
   saveErrorMessage,
@@ -104,6 +107,15 @@ export default function PaneTab({
       >
         {fileName}
       </span>
+
+      {shortcutNumber && (
+        <sup
+          aria-hidden="true"
+          className="ml-2 mr-0.5 shrink-0 font-mono text-[7px] leading-none text-stone/45 dark:text-fg-faint/50"
+        >
+          {formatShortcut(String(shortcutNumber))}
+        </sup>
+      )}
 
       {/* Right slot: status dot OR close button */}
       <span className="ml-1.5 shrink-0 flex items-center justify-center w-3.5 h-3.5">

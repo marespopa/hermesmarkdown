@@ -11,8 +11,9 @@ import SmartFolders from "./SmartFolders";
 import VaultSidebarFiles from "./VaultSidebarFiles";
 import VaultSidebarEmpty from "./VaultSidebarEmpty";
 import UnifiedSearchInput from "./UnifiedSearchInput";
-import { HiOutlineX, HiOutlineEye, HiOutlineEyeOff, HiOutlineLogout } from "react-icons/hi";
+import { HiOutlineX, HiOutlineEye, HiOutlineEyeOff, HiOutlineLogout, HiOutlineFolderAdd } from "react-icons/hi";
 import { atom_newVaultFlowOpen, atom_selectedFileTags, atom_showHiddenFiles, atom_userName } from "@/app/atoms/ui-atoms";
+import Button from "@/app/components/Button";
 
 export default function MobileFileOverlay({
   isOpen,
@@ -32,6 +33,7 @@ export default function MobileFileOverlay({
     duplicateFile,
     moveItem,
     createNewFile,
+    createFolder,
     vaultHandle,
     openVault,
     closeVault,
@@ -46,7 +48,7 @@ export default function MobileFileOverlay({
   const userName = useAtomValue(atom_userName);
   const [selectedTags, setSelectedTags] = useAtom(atom_selectedFileTags);
   const [activeTab, setActiveTab] = useState<"files" | "views">("files");
-  const { searchQuery, setSearchQuery, processedFiles, totalResultsCount, hasMoreResults, setShowAllResults, allFiles, tags } =
+  const { searchQuery, setSearchQuery, processedFiles, totalResultsCount, hasMoreResults, setShowAllResults, allFiles, folderPaths, tags } =
     useSidebarSearch({ selectedTags, panel: "search" });
   const isSearching = searchQuery.trim().length > 0 || selectedTags.length > 0;
 
@@ -96,6 +98,17 @@ export default function MobileFileOverlay({
             {userName && <p className="text-ui-footnote text-fg-muted truncate">Welcome back, {userName}</p>}
           </div>
           <div className="flex items-center gap-1">
+            {vaultHandle && (
+              <Button
+                variant="icon"
+                onClick={() => void createFolder()}
+                aria-label="New folder"
+                title="New folder"
+                className="!h-10 !w-10"
+              >
+                <HiOutlineFolderAdd size={20} />
+              </Button>
+            )}
             {vaultHandle && (
               <button
                 type="button"
@@ -214,8 +227,10 @@ export default function MobileFileOverlay({
               isSearchActive={false}
               highlightQuery=""
               treeView
+              folderPaths={folderPaths}
               resolveFolderHandle={resolveFolderHandle}
               createNewFile={createNewFile}
+              createFolder={createFolder}
               moveItem={moveItem}
             />
           )}

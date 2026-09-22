@@ -83,6 +83,49 @@ describe("VaultSidebarFiles tree interactions", () => {
     expect(screen.queryByText("nested")).not.toBeInTheDocument();
   });
 
+  it("moves a dropped file into the target folder", async () => {
+    const folderHandle = { kind: "directory", name: "Folder" } as FileSystemDirectoryHandle;
+    const resolveFolderHandle = vi.fn().mockResolvedValue(folderHandle);
+    const moveItem = vi.fn();
+    renderFiles({
+      treeView: true,
+      folderPaths: ["Folder"],
+      resolveFolderHandle,
+      moveItem,
+    });
+
+    const source = screen.getByText("note").closest("[draggable]");
+    const target = screen.getByText("Folder").closest("[draggable]");
+    fireEvent.dragStart(source!, { dataTransfer: { effectAllowed: "", dropEffect: "" } });
+    fireEvent.dragOver(target!, { dataTransfer: { effectAllowed: "", dropEffect: "" } });
+    fireEvent.drop(target!, { dataTransfer: { effectAllowed: "", dropEffect: "" } });
+
+    await waitFor(() => {
+      expect(resolveFolderHandle).toHaveBeenCalledWith("Folder");
+      expect(moveItem).toHaveBeenCalledWith(fileHandle, folderHandle);
+    });
+  });
+
+  it("creates a subfolder from a folder options menu", async () => {
+    const folderHandle = { kind: "directory", name: "Folder" } as FileSystemDirectoryHandle;
+    const resolveFolderHandle = vi.fn().mockResolvedValue(folderHandle);
+    const createFolder = vi.fn().mockResolvedValue(null);
+    renderFiles({
+      treeView: true,
+      folderPaths: ["Folder"],
+      resolveFolderHandle,
+      createFolder,
+    });
+
+    fireEvent.click(screen.getByLabelText("Folder options"));
+    fireEvent.click(screen.getByText("New Folder"));
+
+    await waitFor(() => {
+      expect(resolveFolderHandle).toHaveBeenCalledWith("Folder");
+      expect(createFolder).toHaveBeenCalledWith(folderHandle);
+    });
+  });
+
   it("renames files inline while selecting only the Markdown basename", async () => {
     const { props } = renderFiles();
 

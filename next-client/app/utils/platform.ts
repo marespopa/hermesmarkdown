@@ -6,9 +6,9 @@ export function isMacPlatform(): boolean {
   return /Mac|iPhone|iPad|iPod/.test(navigator.platform || navigator.userAgent);
 }
 
-export function formatShortcut(letter: string, opts: { shift?: boolean } = {}): string {
+export function formatShortcut(letter: string, opts: { shift?: boolean; alt?: boolean } = {}): string {
   if (isMacPlatform()) {
-    return `⌘${opts.shift ? "⇧" : ""}${letter.toUpperCase()}`;
+    return `⌘${opts.shift ? "⇧" : ""}${opts.alt ? "⌥" : ""}${letter.toUpperCase()}`;
   }
-  return `Ctrl+${opts.shift ? "Shift+" : ""}${letter.toUpperCase()}`;
+  return `Ctrl+${opts.shift ? "Shift+" : ""}${opts.alt ? "Alt+" : ""}${letter.toUpperCase()}`;
 }
