@@ -1,7 +1,30 @@
 import { atom } from "jotai";
 import { atom_workspaceLayout, atom_activePaneId } from "./workspace-atoms";
-import { findLeaf, updateLeaf, generateId } from "./utils";
+import { findLeaf, updateLeaf, generateId, getWorkspaceTabs } from "./utils";
 import { WorkspaceContainer, PanelLeaf } from "@/app/types/workspace";
+
+export const atom_workspaceTabs = atom((get) =>
+  getWorkspaceTabs(get(atom_workspaceLayout).rootContainer),
+);
+
+export const atom_activateWorkspaceTab = atom(
+  null,
+  (get, set, index: number) => {
+    if (index < 0 || index >= 9) return;
+
+    const layout = get(atom_workspaceLayout);
+    const tab = getWorkspaceTabs(layout.rootContainer)[index];
+    if (!tab) return;
+
+    set(atom_workspaceLayout, {
+      ...layout,
+      rootContainer: updateLeaf(layout.rootContainer, tab.paneId, {
+        activeFilePath: tab.filePath,
+      }),
+    });
+    set(atom_activePaneId, tab.paneId);
+  },
+);
 
 export const atom_splitPane = atom(
   null,

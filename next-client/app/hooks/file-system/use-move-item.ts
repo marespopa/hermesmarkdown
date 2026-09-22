@@ -165,7 +165,7 @@ export function useMoveItem({ scanVault, indexVaultTags }: UseMoveItemProps) {
             }
           }
 
-          await scanVault(sourceParent);
+          await scanVault(vaultHandle);
           indexVaultTags();
           toast.success(`Moved ${handle.name} to ${targetDir.name}`);
         } catch (err: any) {

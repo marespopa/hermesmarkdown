@@ -219,9 +219,33 @@ export function useCreateItem({ scanVault, indexVaultTags, openFile }: UseCreate
     return createFile("Untitled", "", targetDir);
   }, [vaultHandle, chooseTargetDirectory, createFile]);
 
+  const createFolder = useCallback(async (parentDirectory?: FileSystemDirectoryHandle) => {
+    const targetDirectory = parentDirectory || vaultHandle;
+    if (!targetDirectory || !vaultHandle) return null;
+
+    const folderName = String(await dialog.prompt("Enter folder name:", "", "New Folder") ?? "").trim();
+    if (!folderName) return null;
+    if (/[\\/]/.test(folderName)) {
+      toast.error("Folder names cannot contain slashes.");
+      return null;
+    }
+
+    try {
+      const folder = await withRetry(() => targetDirectory.getDirectoryHandle(folderName, { create: true }));
+      await scanVault(vaultHandle);
+      toast.success(`Created: ${folderName}`);
+      return folder;
+    } catch (error) {
+      console.error("Failed to create folder:", error);
+      toast.error("Failed to create folder.");
+      return null;
+    }
+  }, [dialog, scanVault, vaultHandle]);
+
   return {
     createFile,
     createWikiLinkFile,
     createNewFile,
+    createFolder,
   };
 }

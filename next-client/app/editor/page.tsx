@@ -18,6 +18,8 @@ import {
   atom_vaultDescriptor,
   atom_openFiles,
   atom_rebindHandles,
+  atom_activateWorkspaceTab,
+  atom_workspaceTabs,
   findLeaf,
   getFirstLeaf,
 } from "@/app/atoms/atoms";
@@ -58,6 +60,9 @@ import { atom_isAiConfigured, atom_aiBuilderRequest, atom_showCommandPaletteFab,
 import { generateFileFromPrompt } from "@/app/services/ai";
 import { withRetry } from "@/app/hooks/file-system/shared";
 import { pullGitHubVault, syncGitHubVault } from "@/app/services/github-vault-sync";
+import { focusPaneEditor } from "./utils/focus-pane-editor";
+import { usePaneFileActions } from "./hooks/use-pane-file-actions";
+import { isCloseTabShortcut, isNewFileShortcut } from "./utils/tab-shortcuts";
 
 export default function LiteEditor() {
   const router = useRouter();
@@ -75,10 +80,13 @@ export default function LiteEditor() {
   const setVaultDescriptor = useSetAtom(atom_vaultDescriptor);
   const [, setActiveFileHandle] = useAtom(atom_activeFileHandle);
   const workspaceLayout = useAtomValue(atom_workspaceLayout);
+  const workspaceTabs = useAtomValue(atom_workspaceTabs);
   const activePaneId = useAtomValue(atom_activePaneId);
+  const activateWorkspaceTab = useSetAtom(atom_activateWorkspaceTab);
   // No split panes on mobile — always resolve to a single leaf, ignoring
   // any split tree a desktop session may have saved.
   const mobileLeaf = findLeaf(workspaceLayout.rootContainer, activePaneId) ?? getFirstLeaf(workspaceLayout.rootContainer);
+  const { closeTabWithAutosave } = usePaneFileActions(mobileLeaf);
   const isFileLoading = useAtomValue(atom_isFileLoading);
   const isAiConfigured = useAtomValue(atom_isAiConfigured);
   const vimMode = useAtomValue(atom_vimMode);
@@ -267,6 +275,7 @@ export default function LiteEditor() {
 
   // Shortcut Listener with Ref Pattern for stability
   const handleSaveRef = useRef(handleSave);
+  const handleNewFileRef = useRef<() => Promise<void>>(async () => {});
   useEffect(() => {
     handleSaveRef.current = handleSave;
   }, [handleSave]);
@@ -314,16 +323,27 @@ export default function LiteEditor() {
         openCommandPalette();
       }
 
-      if ((e.ctrlKey || e.metaKey) && !e.shiftKey && !e.altKey && e.key === "1") {
+      if (isNewFileShortcut(e)) {
         e.preventDefault();
-        void navigateWithGuard("/editor/files", "Files");
+        void handleNewFileRef.current();
       }
 
-      if ((e.ctrlKey || e.metaKey) && !e.shiftKey && !e.altKey && e.key === "2") {
-        e.preventDefault();
-        requestAnimationFrame(() =>
-          document.querySelector<HTMLElement>(".cm-content")?.focus(),
-        );
+      if (isCloseTabShortcut(e)) {
+        const activeFilePath = mobileLeaf.activeFilePath;
+        if (activeFilePath) {
+          e.preventDefault();
+          void closeTabWithAutosave(activeFilePath);
+        }
+      }
+
+      if ((e.ctrlKey || e.metaKey) && !e.shiftKey && !e.altKey && /^[1-9]$/.test(e.key)) {
+        const tabIndex = Number(e.key) - 1;
+        const targetTab = workspaceTabs[tabIndex];
+        if (targetTab) {
+          e.preventDefault();
+          activateWorkspaceTab(tabIndex);
+          requestAnimationFrame(() => focusPaneEditor(targetTab.paneId));
+        }
       }
 
       // AI Builder — on-demand, not a status bar button
@@ -355,7 +375,7 @@ export default function LiteEditor() {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [flush, isAiConfigured, setAiBuilderRequest, vimMode, isVoiceSupported, toggleVoiceListening, openCommandPalette, navigateWithGuard]);
+  }, [activateWorkspaceTab, closeTabWithAutosave, flush, isAiConfigured, setAiBuilderRequest, mobileLeaf.activeFilePath, vimMode, isVoiceSupported, toggleVoiceListening, openCommandPalette, workspaceTabs, navigateWithGuard]);
 
   const chooseFileDestination = useCallback(async (): Promise<FileSystemDirectoryHandle | null> => {
     if (!vaultHandle) return null;
@@ -388,14 +408,27 @@ export default function LiteEditor() {
     return subDirs.find((directory) => directory.name === chosenFolder) ?? null;
   }, [dialog, scanVault, vaultFiles, vaultHandle]);
 
-  const handleNewFile = async () => {
+  const resetEditor = useCallback(() => {
+    setContent("");
+    setFileName("untitled");
+    setActiveFileHandle(null);
+    setActiveFilePath("draft");
+    hasPromptedForNameRef.current = false;
+    toast.success("New draft started");
+  }, [setActiveFileHandle, setActiveFilePath, setContent, setFileName]);
+
+  const handleNewFile = useCallback(async () => {
     if (!vaultHandle) {
       resetEditor();
       return;
     }
 
     await createNewFile();
-  };
+  }, [createNewFile, resetEditor, vaultHandle]);
+
+  useEffect(() => {
+    handleNewFileRef.current = handleNewFile;
+  }, [handleNewFile]);
 
   const handleNewAIFile = async () => {
     if (!vaultHandle) return;
@@ -447,15 +480,6 @@ export default function LiteEditor() {
       toast.dismiss(toastId);
       toast.error(err.message || "Failed to generate note");
     }
-  };
-
-  const resetEditor = () => {
-    setContent("");
-    setFileName("untitled");
-    setActiveFileHandle(null);
-    setActiveFilePath("draft");
-    hasPromptedForNameRef.current = false;
-    toast.success("New draft started");
   };
 
   const handleExport = async () => {

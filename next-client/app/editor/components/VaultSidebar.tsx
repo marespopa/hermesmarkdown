@@ -20,8 +20,6 @@ import VaultSidebarFiles from "./VaultSidebarFiles";
 import VaultSidebarHeader from "./VaultSidebarHeader";
 import VaultSidebarNavigator from "./VaultSidebarNavigator";
 import { useSidebarResize } from "../hooks/useSidebarResize";
-import { useDialog } from "@/app/hooks/use-dialog";
-import { withRetry } from "@/app/hooks/file-system/shared";
 
 // The rail (SidebarRail.tsx) is always visible at a fixed width, so this
 // panel's own floor is just whatever its content needs — the search input
@@ -51,7 +49,7 @@ export default function VaultSidebar({
     duplicateFile,
     moveItem,
     createNewFile,
-    scanVault,
+    createFolder,
     isMounted,
     openVault,
     isVaultSupported,
@@ -59,7 +57,6 @@ export default function VaultSidebar({
 
   const setNewVaultFlowOpen = useSetAtom(atom_newVaultFlowOpen);
   const setGitHubVaultDialogOpen = useSetAtom(atom_githubVaultDialogOpen);
-  const dialog = useDialog();
   // Resolves a directory handle for an arbitrary nested path (e.g. "a/b/c").
   // Tree nodes only carry path strings (built from the flat indexed file list),
   // so folder actions (rename/delete/new file/move) need this to get a real handle.
@@ -126,26 +123,6 @@ export default function VaultSidebar({
     }
   }, [vaultHandle]);
 
-  const createNewFolder = useCallback(async () => {
-    if (!vaultHandle) return;
-
-    const folderName = String(await dialog.prompt("Enter folder name:", "", "New Folder") ?? "").trim();
-    if (!folderName) return;
-    if (/[\\/]/.test(folderName)) {
-      toast.error("Folder names cannot contain slashes.");
-      return;
-    }
-
-    try {
-      await withRetry(() => vaultHandle.getDirectoryHandle(folderName, { create: true }));
-      await scanVault(vaultHandle);
-      toast.success(`Created: ${folderName}`);
-    } catch (error) {
-      console.error("Failed to create folder:", error);
-      toast.error("Failed to create folder.");
-    }
-  }, [dialog, scanVault, vaultHandle]);
-
   if (!isMounted) return null;
 
   return (
@@ -208,6 +185,7 @@ export default function VaultSidebar({
                 folderPaths={folderPaths}
                 resolveFolderHandle={resolveFolderHandle}
                 createNewFile={createNewFile}
+                createFolder={createFolder}
                 moveItem={moveItem}
               />
             </div>
@@ -234,7 +212,7 @@ export default function VaultSidebar({
           {vaultHandle && (
             <Button
               variant="bare"
-              onClick={() => void createNewFolder()}
+              onClick={() => void createFolder()}
               className="h-7 w-7 shrink-0 p-0 text-fg-muted hover:text-fg"
               aria-label="New folder"
               title="New folder"

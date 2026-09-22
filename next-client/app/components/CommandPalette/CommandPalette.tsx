@@ -30,6 +30,14 @@ import { version } from "../../../package.json";
 
 const MAX_VISIBLE_ROWS = 12;
 const MAX_PINS = 5;
+const COMMAND_MODE_DEFAULT_ORDER = [
+  "new-file",
+  "save-file",
+  "open-explorer",
+  "toggle-sidebar",
+  "open-vault",
+  "open-documentation",
+];
 const THEME_CYCLE: { value: Theme; label: string; Icon: React.ComponentType<{ size?: number }> }[] = [
   { value: "system", label: "Theme: System", Icon: HiOutlineDesktopComputer },
   { value: "light", label: "Theme: Light", Icon: HiOutlineSun },
@@ -152,7 +160,21 @@ export default function CommandPalette() {
           titleIndices: match.indices, detailIndices: [] as number[], score: match.score,
         } : null;
       }).filter((row): row is Extract<Row, { kind: "command" }> => row !== null)
-        .sort((a, b) => b.score - a.score || a.label.localeCompare(b.label));
+        .sort((a, b) => {
+          if (!query) {
+            const useCountDifference = (commandUseCounts[b.id] ?? 0) - (commandUseCounts[a.id] ?? 0);
+            if (useCountDifference) return useCountDifference;
+
+            const aDefaultIndex = COMMAND_MODE_DEFAULT_ORDER.indexOf(a.id);
+            const bDefaultIndex = COMMAND_MODE_DEFAULT_ORDER.indexOf(b.id);
+            const defaultOrderDifference =
+              (aDefaultIndex === -1 ? Number.MAX_SAFE_INTEGER : aDefaultIndex)
+              - (bDefaultIndex === -1 ? Number.MAX_SAFE_INTEGER : bDefaultIndex);
+            if (defaultOrderDifference) return defaultOrderDifference;
+          }
+
+          return b.score - a.score || a.label.localeCompare(b.label);
+        });
     }
     if (scope === "tag") {
       const tagQueries = query.split(/[\s,]+/).map((term) => term.replace(/^#/, "")).filter(Boolean);
@@ -211,7 +233,7 @@ export default function CommandPalette() {
       if (match) headings.push({ kind: "heading", id: `${line.from}`, label: heading[2], detail: `H${heading[1].length}`, from: line.from, titleIndices: match.indices, detailIndices: [], score: match.score });
     }
     return headings.sort((a, b) => b.score - a.score || a.from - b.from);
-  }, [activeEditorView, filesByTag, paletteCommands, query, scope, tasks]);
+  }, [activeEditorView, commandUseCounts, filesByTag, paletteCommands, query, scope, tasks]);
 
   const fileRows = useMemo<Row[]>(() => {
     if (scope || !query) return [];

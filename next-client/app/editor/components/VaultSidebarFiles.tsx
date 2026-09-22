@@ -39,6 +39,7 @@ interface VaultSidebarFilesProps {
   // to resolve a real FileSystemDirectoryHandle.
   resolveFolderHandle?: (path: string) => Promise<any | null>;
   createNewFile?: () => void;
+  createFolder?: (parentDirectory?: FileSystemDirectoryHandle) => Promise<FileSystemDirectoryHandle | null>;
   moveItem?: (handle: any, targetDir: any) => void;
 }
 
@@ -449,6 +450,7 @@ interface FolderRowProps {
   onDropInto: (targetPath: string) => void;
   resolveFolderHandle?: (path: string) => Promise<any | null>;
   createNewFile?: () => void;
+  createFolder?: (parentDirectory?: FileSystemDirectoryHandle) => Promise<FileSystemDirectoryHandle | null>;
   renameFile: (handle: any, newName?: string) => void | Promise<void>;
   deleteFile: (handle: any, path?: string) => void;
 }
@@ -466,6 +468,7 @@ function FolderRow({
   onDropInto,
   resolveFolderHandle,
   createNewFile,
+  createFolder,
   renameFile,
   deleteFile,
 }: FolderRowProps) {
@@ -606,6 +609,20 @@ function FolderRow({
                 New File
               </Button>
             )}
+            {createFolder && (
+              <Button
+                variant="menu-item"
+                onClick={async (e) => {
+                  e.stopPropagation();
+                  setActionMenuOpen(null);
+                  const handle = await resolveFolderHandle?.(node.path);
+                  if (handle) await createFolder(handle);
+                }}
+                className="w-full flex items-center gap-3 px-4 py-2.5 text-ui-footnote font-medium hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
+              >
+                New Folder
+              </Button>
+            )}
             <Button
               variant="menu-item"
               onClick={async (e) => {
@@ -741,6 +758,7 @@ export default function VaultSidebarFiles({
   folderPaths = [],
   resolveFolderHandle,
   createNewFile,
+  createFolder,
   moveItem,
 }: VaultSidebarFilesProps) {
   const indexerState = useAtomValue(atom_indexerState);
@@ -907,6 +925,7 @@ export default function VaultSidebarFiles({
               setActionMenuOpen,
               resolveFolderHandle,
               createNewFile,
+              createFolder,
               renameFile,
               deleteFile,
             }}

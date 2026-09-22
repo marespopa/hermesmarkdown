@@ -172,12 +172,20 @@ describe("CommandPalette", () => {
     expect(screen.getByText("🪴")).toHaveAttribute("aria-hidden", "true");
   });
 
-  it("opens command mode from Ctrl/Cmd+Shift+P", async () => {
+  it("opens command mode from Ctrl/Cmd+Shift+K", async () => {
     renderPalette();
-    fireEvent.keyDown(document, { key: "p", ctrlKey: true, shiftKey: true });
+    fireEvent.keyDown(document, { key: "k", ctrlKey: true, shiftKey: true });
 
     expect(await screen.findByRole("combobox")).toHaveValue(">");
     expect(screen.getByRole("listbox")).toHaveTextContent("Test command");
+  });
+
+  it("prioritizes frequently used commands in empty command mode", async () => {
+    renderPalette([[atom_commandUseCounts, { "test-command": 3, "new-file": 1 }]]);
+    fireEvent.keyDown(document, { key: "k", ctrlKey: true, shiftKey: true });
+
+    await screen.findByRole("combobox");
+    expect(screen.getAllByRole("option")[0]).toHaveAccessibleName(/Test command/);
   });
 
   it("cycles command results with Tab and arrow keys", async () => {

@@ -16,6 +16,7 @@ import {
   atom_saveStatus,
   atom_vaultHandle,
   atom_workspaceLayout,
+  getWorkspaceTabs,
 } from "@/app/atoms/atoms";
 import { atom_newVaultFlowOpen, atom_isVoicePreviewVisible, atom_tabsBarToggleRequest, atom_tabsBarVisibleByDefault } from "@/app/atoms/ui-atoms";
 import { HiOutlineDocumentText, HiOutlineChartBar, HiOutlineX, HiOutlineClipboardCopy, HiOutlineSave, HiOutlineDotsHorizontal, HiOutlinePlus, HiOutlineFolderOpen, HiOutlineDatabase, HiOutlineCollection, HiOutlineChevronDown, HiOutlineChevronUp } from "react-icons/hi";
@@ -25,7 +26,7 @@ import { useFileSystem } from "@/app/hooks/use-file-system";
 import { useAtomValue } from "jotai";
 import Button from "../../components/Button";
 import Tooltip from "@/app/components/Tooltip";
-import { formatShortcut } from "@/app/utils/platform";
+import { formatShortcut, isMacPlatform } from "@/app/utils/platform";
 import { useCommandPalette } from "@/app/components/CommandPalette/CommandPaletteContext";
 import useIsMobileChrome from "@/app/hooks/use-mobile-chrome";
 import { usePaneFileActions } from "../hooks/use-pane-file-actions";
@@ -49,6 +50,7 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
   const [, setNewVaultFlowOpen] = useAtom(atom_newVaultFlowOpen);
   const isOnlyPane = "type" in workspaceLayout.rootContainer;
   const isMobileChrome = useIsMobileChrome();
+  const newFileShortcut = isMacPlatform() ? "⌃⌥N" : "Ctrl+Alt+N";
 
   const { openFileByName, createNewFile, importFile, openVault, isVaultSupported } = useFileSystem();
   const filePath = leaf.activeFilePath || "draft";
@@ -125,6 +127,14 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
 
   const [draggedOverIndex, setDraggedOverIndex] = React.useState<number | null>(null);
   const [tabMenu, setTabMenu] = React.useState<{ x: number; y: number; path: string; includeActions?: boolean } | null>(null);
+  const tabShortcutNumbers = React.useMemo(
+    () => new Map(
+      getWorkspaceTabs(workspaceLayout.rootContainer)
+        .slice(0, 9)
+        .map(({ paneId, filePath }, index) => [`${paneId}\0${filePath}`, index + 1]),
+    ),
+    [workspaceLayout],
+  );
 
   // Progressive collapse: as the pane narrows (e.g. after a split), fold
   // lower-priority actions into the "Tab options" menu instead of letting
@@ -248,6 +258,7 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
 
   return (
     <div
+      data-pane-id={leaf.id}
       className={`h-full flex flex-col transition-all duration-300 overflow-hidden bg-paper-pale dark:bg-paper-dark ${
         isActive ? "z-10" : ""
       } ${isDimmed ? "opacity-40 saturate-50" : ""}`}
@@ -383,6 +394,7 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
               <PaneTab
                 key={path}
                 fileName={fileName}
+                shortcutNumber={tabShortcutNumbers.get(`${leaf.id}\0${path}`)}
                 isActive={isTabActive}
                 saveState={tabSaveState}
                 saveErrorMessage={saveStatus.message}
@@ -507,52 +519,64 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
       {/* Pane Content */}
       <div className="flex-1 overscroll-none overflow-auto">
         {leaf.openFilePaths.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full space-y-6">
-            <div className="flex flex-col items-center space-y-3 opacity-30">
-              <HiOutlineDocumentText size={40} />
-              <span className="text-ui-caption font-medium">No file open</span>
-            </div>
-            <div className="flex flex-col items-stretch w-full max-w-xs px-4 space-y-1">
-              <button
-                onClick={handleEmptyNewFile}
-                className="flex items-center gap-3 px-3 py-2 rounded-xl text-ui-footnote text-ink-muted hover:text-ink-light dark:hover:text-ink-dark hover:bg-paper-softgray dark:hover:bg-paper-dark-surface/40 transition-colors"
-              >
-                <HiOutlinePlus size={16} className="shrink-0" />
-                <span className="truncate">New File</span>
-              </button>
-              <button
-                onClick={handleEmptyOpenFile}
-                className="flex items-center gap-3 px-3 py-2 rounded-xl text-ui-footnote text-ink-muted hover:text-ink-light dark:hover:text-ink-dark hover:bg-paper-softgray dark:hover:bg-paper-dark-surface/40 transition-colors"
-              >
-                <HiOutlineFolderOpen size={16} className="shrink-0" />
-                <span className="truncate">Open File</span>
-              </button>
+          <div className="flex h-full items-center justify-center p-6">
+            <div className="flex w-full max-w-md flex-col items-center text-center">
+              <div className="mb-5 flex h-14 w-14 items-center justify-center rounded-2xl border border-edge bg-paper-light text-sage dark:bg-paper-dark-surface">
+                <HiOutlineDocumentText size={26} />
+              </div>
+              <h2 className="text-ui-title-3 text-fg">Start writing</h2>
+              <p className="mt-2 max-w-sm text-ui-footnote leading-relaxed text-fg-muted">
+                {vaultHandle
+                  ? "Create a new note or open one from your vault."
+                  : "Create a new note, open a file from your device, or connect a vault."}
+              </p>
+              <div className="mt-6 flex w-full flex-col gap-2 sm:flex-row sm:justify-center">
+                <Button
+                  variant="primary"
+                  onClick={handleEmptyNewFile}
+                  className="w-full sm:w-auto"
+                >
+                  <HiOutlinePlus size={17} />
+                  New File
+                  <kbd className="rounded border border-white/30 bg-white/10 px-1.5 py-0.5 font-mono text-[10px] font-medium">
+                    {newFileShortcut}
+                  </kbd>
+                </Button>
+                <Button
+                  variant="secondary"
+                  onClick={handleEmptyOpenFile}
+                  className="w-full sm:w-auto"
+                >
+                  <HiOutlineFolderOpen size={17} />
+                  {vaultHandle ? "Open Note" : "Open File"}
+                </Button>
+              </div>
               {!vaultHandle && isVaultSupported && (
-                <button
-                  onClick={() => openVault()}
-                  className="flex items-center gap-3 px-3 py-2 rounded-xl text-ui-footnote text-ink-muted hover:text-ink-light dark:hover:text-ink-dark hover:bg-paper-softgray dark:hover:bg-paper-dark-surface/40 transition-colors"
-                >
-                  <HiOutlineDatabase size={16} className="shrink-0" />
-                  <span className="truncate">Open Vault</span>
-                </button>
+                <div className="mt-5 flex w-full flex-col items-center gap-2 border-t border-edge pt-5">
+                  <p className="text-ui-caption text-fg-muted">Keep your notes together in a local vault.</p>
+                  <div className="flex flex-wrap justify-center gap-2">
+                    <Button variant="tertiary" onClick={() => openVault()}>
+                      <HiOutlineDatabase size={16} />
+                      Open Vault
+                    </Button>
+                    <Button variant="tertiary" onClick={() => setNewVaultFlowOpen(true)}>
+                      <HiOutlineCollection size={16} />
+                      Create Vault
+                    </Button>
+                  </div>
+                </div>
               )}
-              {isVaultSupported && (
-                <button
-                  onClick={() => setNewVaultFlowOpen(true)}
-                  className="flex items-center gap-3 px-3 py-2 rounded-xl text-ui-footnote text-ink-muted hover:text-ink-light dark:hover:text-ink-dark hover:bg-paper-softgray dark:hover:bg-paper-dark-surface/40 transition-colors"
-                >
-                  <HiOutlineCollection size={16} className="shrink-0" />
-                  <span className="truncate">Create Vault</span>
-                </button>
-              )}
-              <button
-                onClick={() => openCommandPalette()}
-                className="flex items-center gap-3 px-3 py-2 rounded-xl text-ui-footnote text-ink-muted hover:text-ink-light dark:hover:text-ink-dark hover:bg-paper-softgray dark:hover:bg-paper-dark-surface/40 transition-colors"
+              <Button
+                variant="bare"
+                onClick={() => openCommandPalette(">")}
+                className="mt-5 gap-2 text-fg-muted"
               >
-                <HiOutlineDotsHorizontal size={16} className="shrink-0" />
-                <span className="truncate min-w-0 flex-1 text-left">Command Palette</span>
-                <span className="text-ui-caption opacity-50 shrink-0 whitespace-nowrap">{formatShortcut("K")}</span>
-              </button>
+                <HiOutlineDotsHorizontal size={16} />
+                Browse all commands
+                <span className="rounded border border-edge bg-paper-light px-1.5 py-0.5 font-mono text-[10px] dark:bg-paper-dark">
+                  {formatShortcut("K", { shift: true })}
+                </span>
+              </Button>
             </div>
             <input
               type="file"

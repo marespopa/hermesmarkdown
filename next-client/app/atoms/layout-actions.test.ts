@@ -6,9 +6,12 @@ import {
   atom_splitPane,
   atom_closePane,
   atom_closeTab,
-  atom_moveTab
+  atom_moveTab,
+  atom_activateWorkspaceTab,
+  atom_workspaceTabs,
+  findLeaf,
 } from "./atoms";
-import { WorkspaceContainer, PanelLeaf } from "../types/workspace";
+import { WorkspaceContainer, PanelLeaf, WorkspaceState } from "../types/workspace";
 
 describe("layout-actions", () => {
   let store: ReturnType<typeof createStore>;
@@ -179,5 +182,65 @@ describe("layout-actions", () => {
     expect(leaf2.openFilePaths).toEqual([fileA, fileB]);
     expect(leaf2.activeFilePath).toBe(fileA);
     expect(store.get(atom_activePaneId)).toBe(pane2Id);
+  });
+
+  it("enumerates workspace tabs in visual pane order and activates the selected tab", () => {
+    const pane = (id: string, openFilePaths: string[]): PanelLeaf => ({
+      id,
+      type: "editor",
+      openFilePaths,
+      activeFilePath: openFilePaths[0],
+      isPinned: false,
+    });
+    const layout: WorkspaceState = {
+      rootContainer: {
+        id: "root",
+        direction: "horizontal",
+        sizes: [50, 50],
+        children: [
+          pane("left", ["one.md", "two.md"]),
+          {
+            id: "right",
+            direction: "vertical",
+            sizes: [50, 50],
+            children: [
+              pane("top-right", ["three.md"]),
+              pane("bottom-right", ["four.md", "five.md"]),
+            ],
+          },
+        ],
+      },
+    };
+    store.set(atom_workspaceLayout, layout);
+
+    expect(store.get(atom_workspaceTabs)).toEqual([
+      { paneId: "left", filePath: "one.md" },
+      { paneId: "left", filePath: "two.md" },
+      { paneId: "top-right", filePath: "three.md" },
+      { paneId: "bottom-right", filePath: "four.md" },
+      { paneId: "bottom-right", filePath: "five.md" },
+    ]);
+
+    store.set(atom_activateWorkspaceTab, 3);
+
+    expect(store.get(atom_activePaneId)).toBe("bottom-right");
+    expect(findLeaf(store.get(atom_workspaceLayout).rootContainer, "bottom-right")?.activeFilePath).toBe("four.md");
+  });
+
+  it("does not activate tabs beyond the first nine workspace shortcuts", () => {
+    const paths = Array.from({ length: 10 }, (_, index) => `file-${index + 1}.md`);
+    const layout = store.get(atom_workspaceLayout);
+    store.set(atom_workspaceLayout, {
+      ...layout,
+      rootContainer: {
+        ...layout.rootContainer,
+        openFilePaths: paths,
+        activeFilePath: paths[0],
+      } as PanelLeaf,
+    });
+
+    store.set(atom_activateWorkspaceTab, 9);
+
+    expect((store.get(atom_workspaceLayout).rootContainer as PanelLeaf).activeFilePath).toBe(paths[0]);
   });
 });
