@@ -3,6 +3,7 @@ import { act, fireEvent, render, screen, waitFor } from "@testing-library/react"
 import { Provider } from "jotai";
 import { useHydrateAtoms } from "jotai/utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { version } from "../../../package.json";
 import CommandPalette from "./CommandPalette";
 import { CommandPaletteProvider, useRegisterCommand } from "./CommandPaletteContext";
 import { atom_fileMetadata } from "@/app/atoms/metadata";
@@ -141,7 +142,7 @@ describe("CommandPalette", () => {
     renderPalette();
     fireEvent.keyDown(document, { key: "k", ctrlKey: true });
 
-    expect(await screen.findByText("HermesMarkdown v5.7.4")).toBeInTheDocument();
+    expect(await screen.findByText(`HermesMarkdown v${version}`)).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Documentation and help" }));
 
     expect(push).toHaveBeenCalledWith("/documentation");
