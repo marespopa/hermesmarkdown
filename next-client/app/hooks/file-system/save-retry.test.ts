@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { renderHook } from "@testing-library/react";
 import { useFileEditor } from "./use-file-editor";
 import * as jotai from "jotai";
+import { contentStore } from "@/app/atoms/atoms";
 
 vi.hoisted(() => {
   if (typeof global !== 'undefined') {
@@ -33,6 +34,11 @@ vi.mock("@/app/atoms/atoms", () => ({
   atom_isCloudVault: { name: "atom_isCloudVault" },
   atom_indexerState: { name: "atom_indexerState" },
   atom_vaultSetupStatus: { name: "atom_vaultSetupStatus" },
+  atom_liveHandles: vi.fn((path: string) => ({ name: `atom_liveHandles:${path}` })),
+  contentStore: {
+    get: vi.fn(),
+    set: vi.fn(),
+  },
 }));
 
 vi.mock("@/app/atoms/metadata", () => ({
@@ -80,6 +86,7 @@ describe("useFileEditor - saveFile retry logic", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    (contentStore.get as any).mockReturnValue("test.md");
     const mockImpl = (atom: any) => {
       if (atom.name === "atom_vaultHandle") return [mockVaultHandle, vi.fn()];
       if (atom.name === "atom_activeFileHandle") return [mockFileHandle, vi.fn()];
@@ -136,6 +143,7 @@ describe("useFileEditor - saveFile retry logic", () => {
       if (atom.name === "atom_activeFilePath") return ["new.md", vi.fn()];
       return [null, vi.fn()];
     });
+    (contentStore.get as any).mockReturnValue("new.md");
 
     // Mock walking the path
     const mockSubDir = {
@@ -154,5 +162,97 @@ describe("useFileEditor - saveFile retry logic", () => {
     expect(mockSubDir.getFileHandle).toHaveBeenCalledWith("old.md", { create: true });
     expect(freshOldHandle.createWritable).toHaveBeenCalledTimes(1);
     expect(mockWritable.write).toHaveBeenCalledWith("old content");
+  });
+
+  it("keeps the existing tab path when saving with a provided path", async () => {
+    const path = "folder/test.md";
+    const setActiveFilePath = vi.fn();
+    const setLastSavedContent = vi.fn();
+    const setFileLastModified = vi.fn();
+    const setFileConflict = vi.fn();
+    let openFiles: Record<string, {
+      content: string;
+      lastSavedContent: string;
+      fileName: string;
+      activeFilePath: string;
+      lastModified?: number;
+      conflict?: { remoteContent: string };
+    }> = {
+      [path]: {
+        content: "new content",
+        lastSavedContent: "old content",
+        fileName: "test.md",
+        activeFilePath: path,
+      },
+    };
+    const setOpenFiles = vi.fn((update: typeof openFiles | ((prev: typeof openFiles) => typeof openFiles)) => {
+      openFiles = typeof update === "function" ? update(openFiles) : update;
+    });
+    const nestedHandle = {
+      name: "test.md",
+      createWritable: vi.fn().mockResolvedValue(mockWritable),
+      getFile: vi.fn().mockResolvedValue({ lastModified: 12345 }),
+    };
+
+    (jotai.useAtom as any).mockImplementation((atom: any) => {
+      if (atom.name === "atom_vaultHandle") return [mockVaultHandle, vi.fn()];
+      if (atom.name === "atom_activeFileHandle") return [nestedHandle, vi.fn()];
+      if (atom.name === "atom_activeFilePath") return [path, setActiveFilePath];
+      if (atom.name === "atom_openFiles") return [openFiles, setOpenFiles];
+      if (atom.name === "atom_lastSavedContent") return ["old content", setLastSavedContent];
+      if (atom.name === "atom_fileLastModified") return [0, setFileLastModified];
+      if (atom.name === "atom_fileConflict") return [{ remoteContent: "remote" }, setFileConflict];
+      return [null, vi.fn()];
+    });
+    (contentStore.get as any).mockReturnValue(path);
+
+    const { result } = renderHook(() => useFileEditor());
+
+    const success = await result.current.saveFile("new content", nestedHandle as any, 0, false, path);
+
+    expect(success).toBe(true);
+    expect(mockVaultHandle.resolve).not.toHaveBeenCalled();
+    expect(setActiveFilePath).toHaveBeenCalledWith(path);
+    expect(setLastSavedContent).not.toHaveBeenCalled();
+    expect(setFileLastModified).not.toHaveBeenCalled();
+    expect(setFileConflict).not.toHaveBeenCalled();
+    expect(Object.keys(openFiles)).toEqual([path]);
+    expect(openFiles[path].lastSavedContent).toBe("new content");
+    expect(openFiles[path].lastModified).toBe(12345);
+    expect(contentStore.set).toHaveBeenCalledWith(
+      expect.objectContaining({ name: `atom_liveHandles:${path}` }),
+      nestedHandle,
+    );
+  });
+
+  it("does not reactivate a file when its save completes after a tab switch", async () => {
+    const path = "folder/slow.md";
+    const setActiveFilePath = vi.fn();
+    let resolveFile!: (file: { lastModified: number }) => void;
+    const slowHandle = {
+      name: "slow.md",
+      createWritable: vi.fn().mockResolvedValue(mockWritable),
+      getFile: vi.fn().mockReturnValue(new Promise((resolve) => {
+        resolveFile = resolve;
+      })),
+    };
+
+    (jotai.useAtom as any).mockImplementation((atom: any) => {
+      if (atom.name === "atom_vaultHandle") return [mockVaultHandle, vi.fn()];
+      if (atom.name === "atom_activeFileHandle") return [slowHandle, vi.fn()];
+      if (atom.name === "atom_activeFilePath") return [path, setActiveFilePath];
+      return [null, vi.fn()];
+    });
+    (contentStore.get as any).mockReturnValue(path);
+
+    const { result } = renderHook(() => useFileEditor());
+    const savePromise = result.current.saveFile("new content", slowHandle as any, 0, false, path);
+
+    await vi.waitFor(() => expect(slowHandle.getFile).toHaveBeenCalled());
+    (contentStore.get as any).mockReturnValue("other.md");
+    resolveFile({ lastModified: 12345 });
+
+    expect(await savePromise).toBe(true);
+    expect(setActiveFilePath).not.toHaveBeenCalled();
   });
 });

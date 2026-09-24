@@ -214,28 +214,30 @@ export function useVaultManager() {
           );
         }
 
-        if (fileHandles.length > 0) {
-          if (passedHandle) {
-            // Fresh vault open: replace metadata entirely so stale entries from a previous vault never block display
-            setFileMetadata(() => {
-              const next: Record<string, any> = {};
-              fileHandles.forEach(({ handle: fh, path }) => {
-                next[path] = { path, name: fh.name, handle: fh, tags: [], links: [], frontmatter: {}, modifiedAt: 0, wordCount: 0 };
-              });
-              return next;
+        if (passedHandle) {
+          // Fresh vault open: replace metadata entirely so stale entries from a previous vault never block display.
+          setFileMetadata(() => {
+            const next: Record<string, any> = {};
+            fileHandles.forEach(({ handle: fh, path }) => {
+              next[path] = { path, name: fh.name, handle: fh, tags: [], links: [], frontmatter: {}, modifiedAt: 0, wordCount: 0 };
             });
-          } else {
-            // Re-index after save / periodic sync: merge so existing tag metadata is
-            // preserved until the worker responds, but drop entries for files that no
-            // longer exist on disk (deleted or renamed externally).
-            setFileMetadata((prev) => {
-              const next: Record<string, any> = {};
-              fileHandles.forEach(({ handle: fh, path }) => {
-                next[path] = prev[path] || { path, name: fh.name, handle: fh, tags: [], links: [], frontmatter: {}, modifiedAt: 0, wordCount: 0 };
-              });
-              return next;
+            return next;
+          });
+        } else {
+          // Re-index after save / periodic sync: preserve parsed metadata, but
+          // always replace stale handles and remove files no longer on disk.
+          setFileMetadata((prev) => {
+            const next: Record<string, any> = {};
+            fileHandles.forEach(({ handle: fh, path }) => {
+              next[path] = {
+                ...(prev[path] || { tags: [], links: [], frontmatter: {}, modifiedAt: 0, wordCount: 0 }),
+                path,
+                name: fh.name,
+                handle: fh,
+              };
             });
-          }
+            return next;
+          });
         }
 
         // Tag extraction below is secondary; it must not block the visible state.
