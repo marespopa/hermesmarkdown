@@ -20,6 +20,17 @@ function decorationsFor(doc: string): FlatDeco[] {
 }
 
 describe("computeMarkdownDecorations", () => {
+  it("dims the complete frontmatter block without dimming the body", () => {
+    const doc = "---\ntitle: Note\n---\nBody";
+    const decos = decorationsFor(doc);
+    const frontmatterStart = 0;
+    const bodyStart = doc.indexOf("Body");
+
+    expect(decos.filter((d) => d.class.includes("cm-frontmatter-line"))).toHaveLength(3);
+    expect(decos.some((d) => d.from === frontmatterStart && d.class.includes("cm-frontmatter-line"))).toBe(true);
+    expect(decos.some((d) => d.from === bodyStart && d.class.includes("cm-frontmatter-line"))).toBe(false);
+  });
+
   it("marks a heading's hashes as faded and its label as bold", () => {
     const doc = "# Hello";
     const decos = decorationsFor(doc);
@@ -57,10 +68,12 @@ describe("computeMarkdownDecorations", () => {
   });
 
   it("colors currency amounts", () => {
-    const doc = "Cost: $42,246 total";
+    const doc = "Cost: $42,246 total\n- [ ] Budget: $100 and €20";
     const decos = decorationsFor(doc);
-    const amountFrom = doc.indexOf("$42");
-    expect(decos.some((d) => d.from === amountFrom && d.class.includes("emerald"))).toBe(true);
+    for (const amount of ["$42,246", "$100", "€20"]) {
+      const amountFrom = doc.indexOf(amount);
+      expect(decos.some((d) => d.from === amountFrom && d.to === amountFrom + amount.length && d.class.includes("emerald"))).toBe(true);
+    }
   });
 
   it("colors a workflow hashtag using its tag color", () => {
@@ -68,6 +81,15 @@ describe("computeMarkdownDecorations", () => {
     const decos = decorationsFor(doc);
     const tagFrom = doc.indexOf("#draft");
     expect(decos.some((d) => d.from === tagFrom && d.class.includes("amber"))).toBe(true);
+  });
+
+  it("keeps a todo status tag distinct from an ordinary tag", () => {
+    const doc = "- [ ] Ship it #todo #project";
+    const decos = decorationsFor(doc);
+    const todoFrom = doc.indexOf("#todo");
+    const projectFrom = doc.indexOf("#project");
+    expect(decos.some((d) => d.from === todoFrom && d.class.includes("sage"))).toBe(true);
+    expect(decos.some((d) => d.from === projectFrom && d.class.includes("zinc"))).toBe(true);
   });
 
   it("applies a colored left-border line decoration to a callout block", () => {
@@ -89,9 +111,22 @@ describe("computeMarkdownDecorations", () => {
   });
 
   it("underlines a wikilink's display text and fades its brackets", () => {
-    const doc = "See [[My Note]] for more";
+    const doc = "- [ ] See [[My Note|the note]] for $100";
     const decos = decorationsFor(doc);
     const nameFrom = doc.indexOf("My Note");
-    expect(decos.some((d) => d.from === nameFrom && d.class.includes("underline"))).toBe(true);
+    expect(decos.some((d) => d.from === nameFrom && d.to === doc.indexOf("]]") && d.class.includes("underline"))).toBe(true);
+    const amountFrom = doc.indexOf("$100");
+    expect(decos.some((d) => d.from === amountFrom && d.class.includes("emerald"))).toBe(true);
+  });
+
+  it("highlights inline syntax in the pasted list content", () => {
+    const doc = `- [ ] Saving creates a new file
+- Currency is shown "highlighted" only for $100 dollars, and only at the start of the line; #todo
+there are other highlighting issues, wikilinks, #todo not showed differently than another #tag`;
+    const decos = decorationsFor(doc);
+    for (const token of ["$100", "#todo", "#tag"]) {
+      const from = doc.indexOf(token);
+      expect(decos.some((d) => d.from === from && d.to === from + token.length)).toBe(true);
+    }
   });
 });

@@ -2,6 +2,10 @@
 @tailwind components;
 @tailwind utilities;
 
+body {
+  font-family: var(--font-plus-jakarta), ui-sans-serif, sans-serif;
+}
+
 /* ─── Design Tokens ─────────────────────────────────────────────────────────
    Single source of truth for the color system. Tailwind tokens reference
    these vars so dark mode switching requires no `dark:` class duplication.
@@ -29,7 +33,7 @@
 html.dark {
   --surface:        #211E1B;  /* warm dark, not pure black */
   --surface-raised: #2A2622;
-  --chrome:         #29251F;
+  --chrome:         #181614;
   --overlay:        #2A2622;
   --input-bg:       #1C1A17;
 
@@ -336,3 +340,6 @@ ul li::marker {
   @apply text-sage;
 }
 
+.font-display {
+  font-family: var(--font-plus-jakarta), var(--font-inter), Inter, ui-sans-serif, sans-serif;
+}

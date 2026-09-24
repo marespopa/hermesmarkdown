@@ -16,12 +16,15 @@ import {
 // the editor kept centering its max-width column as if it had the full
 // window to itself, leaving an oversized, sidebar-unaware margin.
 
-// Max-width per preset at the md (>=768) and xl (>=1280) pane breakpoints.
-// Narrow is handled separately below since it doesn't grow past 600 at xl.
-const PRESET_MAX_WIDTHS: Record<"standard" | "medium" | "wide", { md: number; xl: number }> = {
-  standard: { md: 760, xl: 860 },
-  medium: { md: 960, xl: 1060 },
-  wide: { md: 1160, xl: 1260 },
+// Maximum reading widths per preset. The editor grows with its pane between
+// these caps instead of jumping between fixed desktop widths.
+const PRESET_MAX_WIDTHS: Record<
+  "standard" | "medium" | "wide",
+  { lg: number; xl: number }
+> = {
+  standard: { lg: 820, xl: 900 },
+  medium: { lg: 980, xl: 1080 },
+  wide: { lg: 1160, xl: 1240 },
 };
 
 export function useEditorAppearance(isSplit = false) {
@@ -60,14 +63,15 @@ export function useEditorAppearance(isSplit = false) {
   // Numeric max-width for the centered column, resolved against paneWidth.
   const maxContentWidth = useMemo(() => {
     if (editorWidth === "narrow") {
-      return paneWidth >= 768 ? 600 : undefined;
+      return paneWidth >= 768 ? Math.min(600, paneWidth - 48) : undefined;
     }
     if (editorContentWidth !== null && paneWidth >= 768) {
-      return editorContentWidth;
+      return Math.min(editorContentWidth, paneWidth - 48);
     }
     const preset = PRESET_MAX_WIDTHS[editorWidth];
-    if (paneWidth >= 1280) return preset.xl;
-    if (paneWidth >= 768) return preset.md;
+    if (paneWidth >= 1280) return Math.min(preset.xl, paneWidth - 64);
+    if (paneWidth >= 1024) return Math.min(preset.lg, paneWidth - 48);
+    if (paneWidth >= 768) return paneWidth - 40;
     return undefined;
   }, [editorContentWidth, editorWidth, paneWidth]);
 
@@ -78,18 +82,21 @@ export function useEditorAppearance(isSplit = false) {
   // only safe once the centered column actually has room to breathe — at
   // lower resolutions (e.g. a narrow window with the vault sidebar open)
   // maxContentWidth can clamp to paneWidth, leaving mx-auto with no space
-  // to create a margin and the text flush against the pane edge.
+  // to create a margin and the text flush against the pane edge. Keep a
+  // deliberate inner sheet gutter even when the centered column fits.
   const contentPaddingX = useMemo(() => {
     if (paneWidth < 640) return 16;
-    if (isSplit) return 24;
-    if (paneWidth >= 768 && maxContentWidth !== undefined && paneWidth > maxContentWidth) return 0;
-    return 24;
+    if (isSplit) return paneWidth < 900 ? 20 : 24;
+    if (paneWidth >= 1280 && maxContentWidth !== undefined && paneWidth > maxContentWidth) return 40;
+    if (paneWidth >= 1024 && maxContentWidth !== undefined && paneWidth > maxContentWidth) return 32;
+    return 20;
   }, [isSplit, paneWidth, maxContentWidth]);
 
   // Padding used when word wrap is off (editor scrolls horizontally instead
   // of centering a fixed-width column).
   const noWrapPaddingX = useMemo(() => {
-    if (paneWidth >= 768) return 40;
+    if (paneWidth >= 1280) return 48;
+    if (paneWidth >= 768) return 32;
     if (paneWidth >= 640) return 24;
     return 16;
   }, [paneWidth]);

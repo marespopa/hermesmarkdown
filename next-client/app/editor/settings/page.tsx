@@ -6,21 +6,18 @@ import { useRouter } from "next/navigation";
 import {
   atom_wordWrap,
   atom_editorFontFamily,
-  atom_lineHeight,
   atom_theme,
   type Theme,
   atom_isWizardOpen,
   atom_autosaveMode,
   atom_autosaveDelay,
-  atom_editorWidth,
-  atom_frontmatterDefaultMode,
   atom_aiProvider,
   atom_selectedAiModel,
   atom_claudeKey,
   atom_geminiKey,
   atom_vimMode,
 } from "@/app/atoms/atoms";
-import { atom_availableGeminiModels, atom_availableClaudeModels, atom_lineNumbers, atom_showCommandPaletteFab, atom_showHiddenFiles, atom_tabsBarVisibleByDefault, atom_renderedFontSize } from "@/app/atoms/ui-atoms";
+import { atom_availableGeminiModels, atom_availableClaudeModels, atom_lineNumbers, atom_showCommandPaletteFab, atom_showHiddenFiles } from "@/app/atoms/ui-atoms";
 import { useFileSystem } from "@/app/hooks/use-file-system";
 import { testAIConnection, fetchGeminiModels, fetchClaudeModels } from "@/app/services/ai";
 import {
@@ -43,26 +40,21 @@ import {
   SettingItem,
   SettingGroup,
 } from "./components/SettingControls";
-import { FONT_SIZES, LINE_HEIGHTS, FONTS } from "./font-options";
+import { FONTS } from "./font-options";
 import FontPicker from "./components/FontPicker";
 
 const SettingsPage = () => {
   const router = useRouter();
 
-  const [lineHeight, setLineHeight] = useAtom(atom_lineHeight);
   const [theme, setTheme] = useAtom(atom_theme);
   const [wordWrap, setWordWrap] = useAtom(atom_wordWrap);
   const [lineNumbers, setLineNumbers] = useAtom(atom_lineNumbers);
   const [vimMode, setVimMode] = useAtom(atom_vimMode);
   const [autosaveMode, setAutosaveMode] = useAtom(atom_autosaveMode);
   const [autosaveDelay, setAutosaveDelay] = useAtom(atom_autosaveDelay);
-  const [editorWidth, setEditorWidth] = useAtom(atom_editorWidth);
-  const [frontmatterDefaultMode, setFrontmatterDefaultMode] = useAtom(atom_frontmatterDefaultMode);
   const [showHiddenFiles, setShowHiddenFiles] = useAtom(atom_showHiddenFiles);
-  const [tabsBarVisibleByDefault, setTabsBarVisibleByDefault] = useAtom(atom_tabsBarVisibleByDefault);
   const [showCommandPaletteFab, setShowCommandPaletteFab] = useAtom(atom_showCommandPaletteFab);
   const [editorFontFamily, setEditorFontFamily] = useAtom(atom_editorFontFamily);
-  const [renderedFontSize, setRenderedFontSize] = useAtom(atom_renderedFontSize);
   const { scanVault, indexVaultTags, vaultHandle: fsVaultHandle } = useFileSystem();
 
   const handleShowHiddenFilesChange = (next: boolean) => {
@@ -155,13 +147,6 @@ const SettingsPage = () => {
     setFetchError(null);
   };
 
-  const widthOptions = [
-    { label: "Narrow", value: "narrow" },
-    { label: "Standard", value: "standard" },
-    { label: "Medium", value: "medium" },
-    { label: "Wide", value: "wide" },
-  ];
-
   const THEME_OPTIONS: { label: string; value: Theme; Icon: React.ComponentType<{ size?: number }> }[] = [
     { label: "Light", value: "light", Icon: HiOutlineSun },
     { label: "Dark", value: "dark", Icon: HiOutlineMoon },
@@ -208,26 +193,9 @@ const SettingsPage = () => {
               control={<Toggle variant="soft" active={vimMode} onChange={setVimMode} />}
             />
             <SettingItem
-              label="Show Tabs Bar"
-              description="Show the open-file tabs strip by default. On by default on desktop; each pane can still be toggled with the chevron above it."
-              control={<Toggle variant="soft" active={tabsBarVisibleByDefault} onChange={setTabsBarVisibleByDefault} />}
-            />
-            <SettingItem
               label="Command Palette Button"
               description="Show a floating button that opens the Command Palette. Keyboard shortcuts remain available when hidden."
               control={<Toggle variant="soft" active={showCommandPaletteFab} onChange={setShowCommandPaletteFab} />}
-            />
-            <SettingItem
-              label="Editor Width"
-              description="Maximum line width. Narrow gives a tighter reading column."
-              layout="stack"
-              control={
-                <SegmentedControl
-                  options={widthOptions}
-                  value={editorWidth}
-                  onChange={(v) => setEditorWidth(v as any)}
-                />
-              }
             />
             <SettingItem
               label="Show Hidden Files"
@@ -238,23 +206,9 @@ const SettingsPage = () => {
           <SettingGroup title="Typography">
             <SettingItem
               label="Font"
-              description="Used by the source editor. System fonts fall back to their matching generic family when unavailable."
+              description="Choose a paper-like typeface for the Markdown editor. Fonts are self-hosted and keep a system fallback."
               layout="stack"
               control={<FontPicker fonts={FONTS} value={editorFontFamily} onChange={setEditorFontFamily} />}
-            />
-            <SettingItem
-              label="Text Size"
-              layout="stack"
-              control={
-                <SegmentedControl options={FONT_SIZES} value={renderedFontSize} onChange={setRenderedFontSize} />
-              }
-            />
-            <SettingItem
-              label="Line Height"
-              layout="stack"
-              control={
-                <SegmentedControl options={LINE_HEIGHTS} value={lineHeight} onChange={setLineHeight} />
-              }
             />
           </SettingGroup>
           <SettingGroup title="Autosave">
@@ -285,22 +239,6 @@ const SettingsPage = () => {
                 }
               />
             )}
-          </SettingGroup>
-          <SettingGroup title="Frontmatter">
-            <SettingItem
-              label="Default Frontmatter Mode"
-              description="Whether the frontmatter panel opens in structured Fields mode or raw YAML by default."
-              control={
-                <SegmentedControl
-                  options={[
-                    { label: "Fields", value: "fields" },
-                    { label: "Raw YAML", value: "raw" },
-                  ]}
-                  value={frontmatterDefaultMode}
-                  onChange={setFrontmatterDefaultMode}
-                />
-              }
-            />
           </SettingGroup>
         </>
       ),
@@ -561,7 +499,7 @@ const SettingsPage = () => {
       </aside>
 
       <main className="min-h-0 flex-1 overflow-y-auto bg-paper-pale custom-scrollbar dark:bg-paper-dark">
-        <div className="mx-auto max-w-3xl px-5 py-7 sm:px-8">
+        <div className="mx-auto w-full max-w-5xl px-5 py-8 sm:px-10 lg:px-12 xl:px-16">
           <h2 className="mb-5 text-ui-title-2 font-semibold tracking-tight">{active.label}</h2>
           {active.content}
         </div>

@@ -17,7 +17,7 @@ import "@testing-library/jest-dom";
 // reliably testable here; that logic is covered by the pure command-layer
 // tests instead (commands.test.ts, table-commands.test.ts, etc. in
 // app/editor/codemirror/). This file covers the integration surface:
-// mounting, the value/onChange contract, and frontmatter separation.
+// mounting and the value/onChange contract.
 //
 // EditorView.findFromDOM recovers the live CM6 instance from its DOM node,
 // so interaction tests can dispatch real transactions instead of trying to
@@ -117,7 +117,7 @@ describe("MarkdownEditor", () => {
 
     await waitFor(() => {
       const view = getView(container);
-      expect(view.state.selection.main.head).toBe(view.state.doc.line(2).from);
+      expect(view.state.selection.main.head).toBe(view.state.doc.line(4).from);
     });
   });
 
@@ -152,12 +152,12 @@ describe("MarkdownEditor", () => {
     expect(codeTemplate?.content).toContain("\n\n```");
   });
 
-  it("strips frontmatter out of the CM6 doc and shows it via FrontmatterPanel instead", async () => {
+  it("keeps frontmatter in the editable CM6 document", async () => {
     const value = "---\ntitle: Test\n---\nBody content";
     const { container } = renderEditor(value);
     await waitForEditor(container);
     const cmText = container.querySelector(".cm-content")?.textContent ?? "";
-    expect(cmText).not.toContain("title: Test");
+    expect(cmText).toContain("title: Test");
     expect(cmText).toContain("Body content");
   });
 
@@ -173,14 +173,15 @@ describe("MarkdownEditor", () => {
     expect(mockOnChange).toHaveBeenCalledWith("hello world");
   });
 
-  it("preserves frontmatter when the body changes", async () => {
+  it("keeps frontmatter editable when the body changes", async () => {
     const value = "---\ntitle: Test\n---\nBody";
     const { container } = renderEditor(value);
     await waitForEditor(container);
     const view = getView(container);
 
     act(() => {
-      view.dispatch({ changes: { from: 4, to: 4, insert: "!" } });
+      const bodyEnd = value.length;
+      view.dispatch({ changes: { from: bodyEnd, to: bodyEnd, insert: "!" } });
     });
 
     expect(mockOnChange).toHaveBeenCalledWith("---\ntitle: Test\n---\nBody!");

@@ -16,17 +16,17 @@ export default function EnumField({ fieldKey, values, value, onChange }: EnumFie
       <span className="text-ui-footnote font-medium text-ink-muted dark:text-stone px-0.5">
         {capitalize(fieldKey)}
       </span>
-      <div className="flex flex-wrap gap-2">
+      <div className="inline-flex w-fit flex-wrap gap-0.5 rounded-lg border border-edge-subtle bg-surface/70 p-0.5 dark:bg-paper-dark-surface/60">
         {values.map((opt) => (
           <Button
             key={opt}
             variant="bare"
             type="button"
             onClick={() => onChange(opt)}
-            className={`px-3 py-1.5 rounded-full text-ui-footnote font-medium border transition-all duration-150 ${
+            className={`px-2.5 py-1 rounded-md text-ui-caption font-medium transition-all duration-150 ${
               value === opt
-                ? "bg-sage text-white border-sage dark:bg-sage dark:border-sage"
-                : "bg-transparent border-beige text-ink-muted hover:bg-paper-softgray dark:border-clay dark:text-stone dark:hover:bg-paper-dark-surface"
+              ? "bg-surface-raised text-fg shadow-sm dark:bg-paper-dark"
+              : "bg-transparent text-fg-muted hover:bg-surface-raised/70 dark:hover:bg-paper-dark"
             }`}
           >
             {opt}

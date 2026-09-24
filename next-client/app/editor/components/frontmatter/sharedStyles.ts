@@ -5,7 +5,7 @@ export const textareaClass =
   "focus:ring-2 focus:ring-sage/15 dark:focus:ring-sage/20";
 
 export const fieldLabelClass =
-  "text-ui-footnote font-medium text-ink-muted dark:text-stone px-0.5";
+  "text-ui-caption font-medium uppercase tracking-wide text-fg-muted px-0.5";
 
 export const fieldHelperClass = "text-ui-caption text-fg-faint px-0.5";
 

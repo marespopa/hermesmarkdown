@@ -28,6 +28,8 @@ interface FrontmatterPanelProps {
   fontFamily: string;
   displayFontSize: number | string;
   isMobile: boolean;
+  frontmatterCollapsed?: boolean;
+  onToggleFrontmatter?: () => void;
 }
 
 interface SummaryBarProps {
@@ -56,10 +58,12 @@ function SummaryBar({
       type="button"
       disabled={!hasFrontmatter}
       onClick={onOpen}
-      className={`flex items-center gap-2 w-full text-left select-none px-0.5 ${
+      className={`group flex items-center gap-2 w-full text-left select-none rounded-xl px-3 py-2 transition-colors ${
         hasFrontmatter ? "" : "cursor-default"
       } ${
-        sticky ? "sticky top-0 z-30 bg-chrome/95 backdrop-blur-sm py-1.5 border-b border-edge-subtle" : "mb-1"
+        sticky
+          ? "sticky top-0 z-30 bg-chrome/95 backdrop-blur-xl border border-edge-subtle shadow-sm"
+          : "mb-1 hover:bg-chrome/60 dark:hover:bg-paper-dark-surface/60"
       }`}
       style={{ fontFamily, fontSize: displayFontSize }}
     >
@@ -73,7 +77,12 @@ function SummaryBar({
         </span>
       )}
       {summaryLine && <span className="flex-1 min-w-0 truncate text-right opacity-30 text-[0.72em]">{summaryLine}</span>}
-      {hasFrontmatter && <HiChevronRight size={13} className="shrink-0 text-ink-muted dark:text-fg-faint" />}
+      {hasFrontmatter && (
+        <HiChevronRight
+          size={13}
+          className="shrink-0 text-ink-muted transition-transform group-hover:translate-x-0.5 dark:text-fg-faint"
+        />
+      )}
     </button>
   );
 }
@@ -85,6 +94,8 @@ export default function FrontmatterPanel({
   fontFamily,
   displayFontSize,
   isMobile,
+  frontmatterCollapsed = false,
+  onToggleFrontmatter,
 }: FrontmatterPanelProps) {
   const defaultMode = useAtomValue(atom_frontmatterDefaultMode);
   const [wizardPath, setWizardPath] = useAtom(atom_frontmatterWizardOpen);
@@ -232,26 +243,41 @@ export default function FrontmatterPanel({
   ];
 
   const PanelBody = (
-    <div className="flex flex-col gap-4">
-      <div className="flex items-center justify-between">
-        <span className="text-ui-caption font-medium text-stone uppercase tracking-wider">Frontmatter</span>
+    <div className="flex flex-col gap-3">
+      <div className="flex items-center justify-between gap-3">
+        <div className="min-w-0">
+          <span className="block font-display text-ui-footnote font-medium text-fg">Document metadata</span>
+          <span className="block text-ui-caption text-fg-faint">Stored at the top of this Markdown file</span>
+        </div>
         <button
           type="button"
           onClick={() => setMode((m) => (m === "fields" ? "raw" : "fields"))}
-          className="text-ui-caption font-medium text-sage dark:text-sage hover:underline"
+          className="shrink-0 rounded-lg border border-edge-subtle bg-chrome/70 px-2.5 py-1.5 text-ui-caption font-medium text-fg-muted transition-colors hover:bg-surface-raised hover:text-fg"
         >
           {mode === "fields" ? "Raw YAML" : "Fields"}
         </button>
+        {rawFrontmatter && onToggleFrontmatter && (
+          <Button
+            variant="bare"
+            onClick={onToggleFrontmatter}
+            className="shrink-0 rounded-lg px-2.5 py-1.5 text-ui-caption font-medium text-fg-muted hover:bg-surface-raised hover:text-fg"
+          >
+            {frontmatterCollapsed ? "Show in editor" : "Collapse in editor"}
+          </Button>
+        )}
       </div>
       {mode === "fields" ? (
         <>
-          <fieldset className="flex flex-col gap-4 border-0 m-0 p-0">{fieldList}</fieldset>
+          <fieldset className="grid grid-cols-1 gap-3 border-0 m-0 p-0 sm:grid-cols-2">
+            <div className="sm:col-span-2">{fieldList[0]}</div>
+            {fieldList.slice(1)}
+          </fieldset>
           <Button
-            variant="primary"
+            variant="bare"
             onClick={() => (isMobile ? setSheetOpen(false) : setExpanded(false))}
-            className="self-end"
+            className="self-end rounded-lg px-2.5 py-1.5 text-ui-caption font-medium text-fg-muted hover:bg-surface-raised hover:text-fg"
           >
-            Save & Close
+            Done
           </Button>
         </>
       ) : (
@@ -261,7 +287,8 @@ export default function FrontmatterPanel({
             value={rawDraft}
             onChange={(e) => applyRawDraft(e.target.value)}
             rows={Math.max(6, rawDraft.split("\n").length)}
-            className="w-full px-4 py-2.5 text-ui-footnote font-mono border rounded-xl outline-none resize-none bg-paper-softgray border-beige text-ink-light dark:bg-paper-dark-surface/50 dark:border-clay dark:text-ink-dark focus:ring-2 focus:ring-sage/15 dark:focus:ring-sage/20"
+            className="w-full rounded-xl border border-edge-subtle bg-surface/70 px-3.5 py-3 text-ui-footnote text-fg outline-none resize-none focus:ring-2 focus:ring-sage/15 dark:bg-paper-dark-surface/50 dark:focus:ring-sage/20"
+            style={{ fontFamily: "var(--font-ibm-mono), ui-monospace, monospace" }}
           />
           {rawError && <span className="text-ui-caption text-red-500 dark:text-red-400 px-0.5">{rawError}</span>}
         </div>
@@ -307,13 +334,13 @@ export default function FrontmatterPanel({
       {!expanded && <SummaryBar {...summaryBarProps} />}
       {expanded && !inView && <SummaryBar {...summaryBarProps} sticky />}
       {expanded && (
-        <div className="flex flex-col gap-2 mb-2 border-b border-edge-subtle pb-3">
+        <div className="mb-3 flex flex-col gap-3 rounded-2xl border border-edge-subtle bg-chrome/65 px-4 py-3 shadow-sm backdrop-blur-xl dark:bg-paper-dark-surface/55">
           <div className="flex items-center justify-end">
             <Button
               variant="pill-icon"
               onMouseDown={(e: React.MouseEvent<HTMLButtonElement>) => e.preventDefault()}
               onClick={() => setExpanded(false)}
-              className="p-1.5 -mr-1.5 shrink-0 text-ink-muted dark:text-fg-faint hover:text-sage dark:hover:text-sage"
+              className="rounded-lg p-1.5 -mr-1.5 shrink-0 text-ink-muted transition-colors hover:bg-surface-raised hover:text-fg dark:text-fg-faint"
               title="Collapse frontmatter"
               aria-label="Collapse frontmatter"
             >

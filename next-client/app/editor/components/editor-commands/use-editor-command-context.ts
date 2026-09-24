@@ -29,8 +29,6 @@ import {
   atom_railPanel,
   atom_repurposeWizardOpen,
   atom_showHiddenFiles,
-  atom_tabsBarToggleRequest,
-  atom_tabsBarVisibleByDefault,
   atom_tasksGroupBy,
   atom_theme,
   atom_workspaceBuilderRequest,
@@ -97,14 +95,12 @@ export function useEditorCommandContext(props: EditorCommandsProps) {
   const [, closePane] = useAtom(atom_closePane);
   const [wordWrap, setWordWrap] = useAtom(atom_wordWrap);
   const [lineNumbers, setLineNumbers] = useAtom(atom_lineNumbers);
-  const [tabsBarVisibleByDefault, setTabsBarVisibleByDefault] = useAtom(atom_tabsBarVisibleByDefault);
   const [, setTasksGroupBy] = useAtom(atom_tasksGroupBy);
   const [, setTaskSearchQuery] = useAtom(atom_taskSearchQuery);
   const [, setTaskTagFilter] = useAtom(atom_taskTagFilter);
   const [, setTaskDueFilter] = useAtom(atom_taskDueFilter);
   const [, setIsWizardOpen] = useAtom(atom_isWizardOpen);
   const [, setKeyboardShortcutsOpen] = useAtom(atom_keyboardShortcutsOpen);
-  const [, requestTabsBarToggle] = useAtom(atom_tabsBarToggleRequest);
   const [, requestWorkspaceBuilder] = useAtom(atom_workspaceBuilderRequest);
   const activeFileHandle = useAtomValue(atom_activeFileHandle);
   const activeEditorView = useAtomValue(atom_activeEditorView);
@@ -150,15 +146,12 @@ export function useEditorCommandContext(props: EditorCommandsProps) {
     setWordWrap,
     lineNumbers,
     setLineNumbers,
-    tabsBarVisibleByDefault,
-    setTabsBarVisibleByDefault,
     setTasksGroupBy,
     setTaskSearchQuery,
     setTaskTagFilter,
     setTaskDueFilter,
     setIsWizardOpen,
     setKeyboardShortcutsOpen,
-    requestTabsBarToggle,
     requestWorkspaceBuilder,
     activeFileHandle,
     activeEditorView,

@@ -45,7 +45,7 @@ export default function TagsChipInput({ value, onChange, autoFocus }: TagsChipIn
         Tags
       </label>
       <div
-        className="flex flex-wrap items-center gap-1.5 w-full px-3 py-2 border rounded-xl bg-paper-softgray border-beige dark:bg-paper-dark-surface/50 dark:border-clay focus-within:ring-2 focus-within:ring-sage/15 dark:focus-within:ring-sage/20"
+        className="flex flex-wrap items-center gap-1.5 w-full rounded-xl border border-edge-subtle bg-surface/70 px-3 py-2 dark:bg-paper-dark-surface/50 focus-within:ring-2 focus-within:ring-sage/15 dark:focus-within:ring-sage/20"
         onClick={(e) => {
           if (e.target === e.currentTarget) {
             (e.currentTarget.querySelector("input") as HTMLInputElement | null)?.focus();
@@ -55,7 +55,7 @@ export default function TagsChipInput({ value, onChange, autoFocus }: TagsChipIn
         {chips.map((chip) => (
           <span
             key={chip}
-            className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-sage/10 dark:bg-sage/10 text-sage dark:text-sage text-ui-caption font-medium border border-sage/20 dark:border-sage/20"
+            className="flex items-center gap-1 rounded-md border border-edge-subtle bg-surface-raised px-2 py-0.5 text-ui-caption font-medium text-fg-muted dark:bg-paper-dark"
           >
             {chip}
             <button

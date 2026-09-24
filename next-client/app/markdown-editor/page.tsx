@@ -29,7 +29,7 @@ const EDITORS = [
     href: "https://typora.io/",
   },
   {
-    name: "iA Writer",
+    name: "Mark Text",
     tagline: "Minimalist focused-writing app",
     notes: "Distraction-free writing with strong typography, available on desktop and mobile.",
     href: "https://ia.net/writer",
@@ -191,7 +191,7 @@ export default function MarkdownEditorPage() {
             <div className="space-y-2">
               <h3 className="font-bold text-lg">What are the most popular Markdown editors?</h3>
               <p className="text-neutral-500 dark:text-neutral-400 leading-relaxed">
-                Popular Markdown editors include HermesMarkdown, Obsidian, Typora, iA Writer, Zettlr, and
+                Popular Markdown editors include HermesMarkdown, Obsidian, Typora, Mark Text, Zettlr, and
                 Dillinger.
               </p>
             </div>

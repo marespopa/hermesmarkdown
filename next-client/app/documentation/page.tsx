@@ -951,45 +951,25 @@ graph TD
       {
         id: "appearance",
         title: "Appearance",
-        lead: "Theme, type size, line height, letter spacing, and typeface are independent settings — each one editable on its own.",
-        keywords: "theme dark light font typography size",
+        lead: "Theme and a small editorial typeface pair shape the editor's paper-like writing surface.",
+        keywords: "theme dark light font typography",
         body: (
           <>
             <p>
-              Dark/light theme is a single toggle in Settings → Interface. Type settings live in Settings
-              → Typography.
+              Dark/light theme is a single toggle in Settings → Editor. Typography settings live in the
+              same section and apply to the source editor, including each pane in a split workspace.
             </p>
             <KV
               rows={[
-                { label: "Dark theme", value: "Settings → Interface" },
-                { label: "Text size", value: "Compact / Standard / Large / XL" },
-                { label: "Line height", value: "Normal / Relaxed / Loose" },
-                { label: "Letter spacing", value: "Normal / Wide" },
-                { label: "Typeface", value: "IBM Plex Mono, Space Mono, IBM Plex Sans, Literata (Serif)" },
+                { label: "Theme", value: "Settings → Editor" },
+                { label: "Typeface", value: "Plus Jakarta Sans by default, with Geist Mono, Inter, and IBM Plex Mono options" },
               ]}
             />
             <Callout type="note">
-              Line height only offers the default or looser — the highlighted overlay and the underlying
-              textarea have to stay pixel-aligned, so tighter values aren't exposed.
+              Plus Jakarta Sans is the source-editor default for comfortable long-form writing. Geist
+              Mono and IBM Plex Mono remain available for technical surfaces, while Inter remains
+              available for interface-focused typography.
             </Callout>
-          </>
-        ),
-      },
-      {
-        id: "editor-width",
-        title: "Editor width",
-        lead: "Standard or Narrow sets the maximum line width of the editor column.",
-        keywords: "width standard narrow column breakpoint",
-        body: (
-          <>
-            <p>Settings → Editor → Display → Editor Width.</p>
-            <KV
-              rows={[
-                { label: "Standard", value: "Wider column, more characters per line" },
-                { label: "Narrow", value: "Prose-width column" },
-                { label: "Below the medium breakpoint", value: "Full width, setting ignored" },
-              ]}
-            />
           </>
         ),
       },

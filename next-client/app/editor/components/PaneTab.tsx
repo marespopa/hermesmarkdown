@@ -80,12 +80,12 @@ export default function PaneTab({
       onContextMenu={onContextMenu}
       title={fileName}
       className={[
-        "group relative flex items-center h-[38px] md:h-[26px] px-3 md:px-2 rounded-md mx-[2px] md:mx-[1px] cursor-pointer shrink-0",
-        "min-w-[80px] md:min-w-[64px] max-w-[240px] md:max-w-[200px] w-fit",
-        "select-none transition-all duration-150 hover:scale-[1.01] active:scale-[0.99] border",
+        "group relative flex items-center h-8 px-3 rounded-lg mx-0.5 cursor-pointer shrink-0",
+        "min-w-[108px] max-w-[240px] w-fit",
+        "select-none transition-[background-color,box-shadow,color,transform] duration-150 border border-transparent",
         isActive
-          ? "bg-paper-light/80 dark:bg-paper-dark-surface/80 border-edge-subtle text-ink-light dark:text-ink-dark"
-          : "border-transparent text-stone hover:text-ink-muted dark:hover:text-stone hover:bg-paper-light/30 dark:hover:bg-paper-dark-surface/20",
+          ? "bg-surface-raised shadow-[0_1px_3px_rgb(0_0_0/0.08)] text-ink-light dark:text-ink-dark"
+          : "text-fg-muted hover:bg-surface-raised/60 hover:text-fg dark:text-stone dark:hover:text-ink-dark",
         isDraggedOver ? "ring-2 ring-sage/40 ring-inset" : "",
       ].join(" ")}
     >
@@ -93,16 +93,16 @@ export default function PaneTab({
       <HiOutlineDocumentText
         size={14}
         className={[
-          "md:w-[11px] md:h-[11px] shrink-0 mr-2 md:mr-1 transition-colors duration-150",
-          isActive ? "text-sage/80" : "text-stone/40 group-hover:text-stone/60",
+          "shrink-0 mr-2 transition-colors duration-150",
+          isActive ? "text-fg-muted" : "text-fg-faint/70 group-hover:text-fg-muted",
         ].join(" ")}
       />
 
       {/* File name */}
       <span
         className={[
-          "flex-1 truncate text-[13px] md:text-[12px] leading-none tracking-tight",
-          isActive ? "font-medium text-ink-light dark:text-ink-dark" : "font-normal",
+          "flex-1 truncate text-[12px] leading-none tracking-tight",
+          isActive ? "font-medium" : "font-normal",
         ].join(" ")}
       >
         {fileName}
@@ -133,9 +133,9 @@ export default function PaneTab({
               onClick={onClose}
               aria-label="Close tab"
               className={[
-                "flex items-center justify-center w-3.5 h-3.5 rounded-full",
-                "text-stone hover:text-ink-light dark:hover:text-ink-dark",
-                "hover:bg-beige/80 dark:hover:bg-clay/60",
+                "flex items-center justify-center w-4 h-4 rounded-full",
+                "text-fg-faint hover:text-fg dark:text-stone dark:hover:text-ink-dark",
+                "hover:bg-surface-raised",
                 "transition-all duration-100",
                 isActive
                   ? "opacity-60 hover:opacity-100"

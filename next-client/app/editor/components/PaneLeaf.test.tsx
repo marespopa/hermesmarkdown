@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, cleanup } from "@testing-library/react";
+import { render, screen, cleanup } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import PaneLeaf from "./PaneLeaf";
 import { Provider } from "jotai";
@@ -154,31 +154,6 @@ describe("PaneLeaf Tab Indicators", () => {
     // file1.md should not have a saving dot
     const dots = screen.queryAllByTitle("Saving…");
     expect(dots.length).toBe(1); // Only for file2.md
-  });
-
-  it("hides the tab bar when its pull control is dragged upward", () => {
-    const initialValues = [
-      [atom_activePaneId, "pane-1"],
-      [atom_openFiles, {
-        "file1.md": { fileName: "file1.md", content: "clean", lastSavedContent: "clean" },
-        "file2.md": { fileName: "file2.md", content: "clean", lastSavedContent: "clean" },
-      }],
-      [atom_activeFilePath, "file1.md"],
-      [atom_saveStatus, { state: "idle", retryCount: 0 }],
-    ];
-
-    render(
-      <TestProvider initialValues={initialValues}>
-        <PaneLeaf leaf={mockLeaf} />
-      </TestProvider>
-    );
-
-    const control = screen.getByRole("button", { name: "Hide tabs" });
-    fireEvent(control, new MouseEvent("pointerdown", { bubbles: true, button: 0, clientY: 100 }));
-    fireEvent(control, new MouseEvent("pointermove", { bubbles: true, clientY: 30 }));
-    fireEvent(control, new MouseEvent("pointerup", { bubbles: true }));
-
-    expect(screen.getByRole("button", { name: "Show tabs" })).toBeInTheDocument();
   });
 
   it("guides an empty pane toward creating or opening a note", () => {

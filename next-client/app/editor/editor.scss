@@ -1,6 +1,66 @@
 /* Form fields draw their own focus ring (Tailwind `focus:ring-sage`) — the
    global clay outline stacked on top of it produced a visible double
    border. The editor's own textarea is unaffected and keeps the clay outline. */
+.editor-canvas {
+  background-color: var(--chrome);
+  padding-inline: clamp(0.75rem, 3vw, 3rem);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .editor-route-transition {
+    animation: editor-route-enter 280ms cubic-bezier(0.22, 1, 0.36, 1);
+    transform-origin: 50% 0;
+  }
+}
+
+@keyframes editor-route-enter {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.995);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+html.dark .editor-canvas {
+  background:
+    radial-gradient(circle at 50% -10%, rgb(255 255 255 / 3%), transparent 42%),
+    var(--chrome);
+}
+
+.editor-canvas-split {
+  padding-inline: 0.5rem;
+}
+
+@media (min-width: 640px) {
+  .editor-canvas-split {
+    padding-inline: 0.75rem;
+  }
+}
+
+.editor-sheet {
+  background-color: var(--surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: clamp(0.75rem, 1.5vw, 1.25rem);
+  box-shadow: 0 8px 30px -12px rgb(0 0 0 / 10%);
+}
+
+html.dark .editor-sheet {
+  background-color: var(--surface);
+  border-color: var(--border-subtle);
+  box-shadow:
+    0 18px 42px -24px rgb(0 0 0 / 80%),
+    0 1px 0 rgb(255 255 255 / 3%) inset;
+}
+
+@media (max-width: 639px) {
+  .editor-canvas {
+    padding-inline: 0.75rem;
+  }
+}
+
 .editor-container textarea:focus-visible {
   outline: 2px solid var(--clay);
   outline-offset: 2px;
@@ -23,9 +83,47 @@
   -webkit-text-fill-color: currentColor;
 }
 
-/* Premium Animated Caret */
+/* Metadata remains fully editable, but recedes visually so the document body
+   stays primary. */
+.editor-container .cm-frontmatter-line {
+  opacity: 0.58;
+  color: var(--fg-muted);
+  transition: opacity 150ms ease;
+}
+
+.editor-container .cm-frontmatter-line:focus-within,
+.editor-container .cm-frontmatter-line:hover {
+  opacity: 0.9;
+}
+
+/* Smooth blue caret */
 .editor-container textarea {
-  caret-color: theme('colors.sage.DEFAULT');
+  caret-color: #3b82f6;
+}
+
+.editor-container .cm-cursor {
+  animation: editor-caret-pulse 1.1s ease-in-out infinite;
+}
+
+html.dark .editor-container .cm-selectionBackground,
+html.dark .editor-container.cm-focused .cm-selectionBackground {
+  background-color: var(--clay) !important;
+  opacity: 0.34;
+}
+
+@keyframes editor-caret-pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.45;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .editor-container .cm-cursor {
+    animation: none;
+  }
 }
 
 /* Typography settings — driven by CSS vars on .editor-container.

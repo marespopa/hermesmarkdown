@@ -70,10 +70,11 @@ export const baseTheme = EditorView.theme({
   },
   // !important: Tailwind's preflight resets border-color to currentColor on
   // all elements, which can override this rule for equal-specificity selectors.
-  // Pinning with !important guarantees the custom cursor is always clay-colored
+  // Pinning with !important guarantees the custom cursor keeps its blue color
   // in both light and dark mode, regardless of surrounding decoration classes.
   ".cm-cursor": {
-    borderLeftColor: "var(--clay) !important",
+    borderLeftColor: "#3b82f6 !important",
+    borderLeftWidth: "2px",
   },
   ".cm-selectionBackground, &.cm-focused .cm-selectionBackground": {
     backgroundColor: "var(--clay) !important",
