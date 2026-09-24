@@ -30,8 +30,7 @@ module.exports = {
       },
       fontFamily: {
         sans: [
-          "var(--font-inter)",
-          "Inter",
+          "var(--font-plus-jakarta)",
           "SF Pro Display",
           "SF Pro Text",
           "system-ui",
@@ -110,7 +109,7 @@ module.exports = {
           pale:           '#FAF9F7',
           light:          '#F2F1EE',
           softgray:       '#E9E7E2',
-          dark:           '#211E1B',
+          dark:           '#181614',
           'dark-surface': '#2A2622',
         },
         ink: {

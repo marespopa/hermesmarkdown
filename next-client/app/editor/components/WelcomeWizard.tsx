@@ -2,12 +2,12 @@
 
 import React, { useState, useEffect } from "react";
 import { useAtom, useAtomValue } from "jotai";
+import { useRouter } from "next/navigation";
 import {
   atom_hasCompletedOnboarding,
   atom_isWizardOpen,
   atom_welcomeWizardStep,
   atom_autosaveMode,
-  atom_frontmatterDefaultMode,
   atom_theme,
   type Theme,
   atom_editorFontFamily,
@@ -42,7 +42,6 @@ import {
   HiOutlineColorSwatch,
   HiOutlineArrowLeft,
   HiOutlineViewList,
-  HiCheck,
   HiOutlineFolderAdd,
   HiOutlineLightningBolt,
   HiOutlineDesktopComputer,
@@ -51,7 +50,7 @@ import {
 import { useCreateVault } from "@/app/hooks/file-system/use-create-vault";
 import CreateVaultSubSteps from "./CreateVaultSubSteps";
 
-const TOTAL_STEPS = 8;
+const TOTAL_STEPS = 7;
 
 const THEME_OPTIONS: { label: string; value: Theme }[] = [
   { label: "Light", value: "light" },
@@ -67,11 +66,11 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
   const [, setGitHubVaultDialogOpen] = useAtom(atom_githubVaultDialogOpen);
 
   const { openVault, isVaultSupported } = useFileSystem();
+  const router = useRouter();
   const createVaultFlow = useCreateVault();
 
   const vaultHandle = useAtomValue(atom_vaultHandle);
   const [autosaveMode, setAutosaveMode] = useAtom(atom_autosaveMode);
-  const [frontmatterDefaultMode, setFrontmatterDefaultMode] = useAtom(atom_frontmatterDefaultMode);
   const [theme, setTheme] = useAtom(atom_theme);
   const [editorFontFamily, setEditorFontFamily] = useAtom(atom_editorFontFamily);
   const [lineNumbers, setLineNumbers] = useAtom(atom_lineNumbers);
@@ -135,6 +134,10 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
     setGitHubVaultDialogOpen(true);
   };
 
+  const openExistingVault = async () => {
+    if (await openVault()) router.push("/editor/files");
+  };
+
   const renderStep = () => {
     switch (step) {
       case 0:
@@ -174,7 +177,7 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
 
               <Button
                 variant="secondary"
-                onClick={openVault}
+                onClick={() => void openExistingVault()}
                 disabled={!isVaultSupported}
                 className="flex items-center justify-between px-5 h-14 rounded-2xl border border-edge bg-paper-light dark:bg-paper-dark"
               >
@@ -339,53 +342,7 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
           </div>
         );
 
-      case 6:
-        return (
-          <div className="flex flex-col items-center text-center space-y-6 py-4">
-            <div className="w-16 h-16 bg-sage/10 rounded-2xl flex items-center justify-center text-sage">
-              <HiOutlineViewList size={32} />
-            </div>
-            <div className="space-y-2">
-              <h2 className="text-ui-title-3 font-bold">Frontmatter View</h2>
-              <p className="text-ui-footnote opacity-60 px-4">
-                How should note metadata open by default — structured fields or raw YAML?
-              </p>
-            </div>
-
-            <div className="w-full rounded-2xl border border-edge p-4 space-y-4 bg-paper-softgray/40 dark:bg-paper-dark/30 text-left">
-              <div className="space-y-3">
-                {(["fields", "raw"] as const).map((opt) => (
-                  <button
-                    key={opt}
-                    type="button"
-                    onClick={() => setFrontmatterDefaultMode(opt)}
-                    className={`w-full flex items-center justify-between px-4 py-3 rounded-xl border transition-all ${
-                      frontmatterDefaultMode === opt
-                        ? "border-sage bg-sage/5 dark:bg-sage/10"
-                        : "border-edge bg-paper-light dark:bg-paper-dark hover:border-sage/40"
-                    }`}
-                  >
-                    <div className="text-left">
-                      <div className={`text-ui-footnote font-semibold ${frontmatterDefaultMode === opt ? "text-sage" : ""}`}>
-                        {opt === "fields" ? "Fields" : "Raw YAML"}
-                      </div>
-                      <div className="text-[11px] opacity-50 mt-0.5">
-                        {opt === "fields" ? "Editable form with labels and inputs" : "Direct YAML text editor"}
-                      </div>
-                    </div>
-                    {frontmatterDefaultMode === opt && <HiCheck size={15} className="shrink-0 text-sage" />}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <Button variant="primary" onClick={() => setStep(7)} className="w-full h-12 rounded-2xl text-ui-footnote font-bold">
-              Continue
-            </Button>
-          </div>
-        );
-
-      case 7: {
+      case 6: {
         const key = aiProvider === "gemini" ? geminiKey : claudeKey;
         const setKey = aiProvider === "gemini" ? setGeminiKey : setClaudeKey;
         return (
@@ -456,14 +413,14 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
               )}
             </div>
 
-            <Button variant="primary" onClick={() => setStep(8)} className="w-full h-11 rounded-2xl text-ui-footnote font-bold shrink-0">
+            <Button variant="primary" onClick={() => setStep(7)} className="w-full h-11 rounded-2xl text-ui-footnote font-bold shrink-0">
               Continue
             </Button>
           </div>
         );
       }
 
-      case 8:
+      case 7:
         return (
           <div className="flex flex-col items-center text-center space-y-6 py-4">
             <div className="w-16 h-16 bg-sage rounded-2xl flex items-center justify-center text-white">
@@ -524,7 +481,7 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
     <DialogModal
       isOpened={showWizard}
       onClose={handleFinish}
-      styles="!max-w-sm sm:!max-w-lg md:!max-w-2xl"
+      styles="!max-w-[calc(100vw-2rem)] sm:!max-w-[calc(100vw-3rem)] lg:!max-w-4xl xl:!max-w-5xl"
       mobileSheet
       hideCloseButton
     >

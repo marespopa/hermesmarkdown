@@ -962,13 +962,13 @@ graph TD
             <KV
               rows={[
                 { label: "Theme", value: "Settings → Editor" },
-                { label: "Typeface", value: "Geist Mono, Inter, IBM Plex Mono, Plus Jakarta Sans" },
+                { label: "Typeface", value: "Plus Jakarta Sans by default, with Geist Mono, Inter, and IBM Plex Mono options" },
               ]}
             />
             <Callout type="note">
-              Geist Mono is the source-editor default for crisp Markdown alignment. Inter carries the
-              interface and rendered prose, IBM Plex Mono marks YAML and code surfaces, and Plus Jakarta
-              Sans adds a polished editorial voice to headings.
+              Plus Jakarta Sans is the source-editor default for comfortable long-form writing. Geist
+              Mono and IBM Plex Mono remain available for technical surfaces, while Inter remains
+              available for interface-focused typography.
             </Callout>
           </>
         ),

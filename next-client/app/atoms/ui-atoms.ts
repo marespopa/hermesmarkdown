@@ -21,7 +21,8 @@ export const atom_wordWrap = atomWithStorage<boolean>("wordWrap", true);
 export const atom_lineNumbers = atomWithStorage<boolean>("lineNumbers", false);
 export const atom_vimMode = atomWithStorage<boolean>("vimMode", false);
 export const MONO_FONT_STACK = "var(--font-ibm-mono), ui-monospace, monospace";
-export const EDITORIAL_FONT_STACK = "var(--font-geist-mono), ui-monospace, monospace";
+export const EDITORIAL_FONT_STACK =
+  "var(--font-plus-jakarta), ui-sans-serif, sans-serif";
 export const atom_editorFontFamily = atomWithStorage<string>(
   "editorFontFamily",
   EDITORIAL_FONT_STACK,

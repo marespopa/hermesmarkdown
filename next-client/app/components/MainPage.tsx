@@ -41,7 +41,7 @@ const MainPage = ({ children }: Props) => {
           className: "hermes-markdown-toast",
           duration: 3000,
           style: {
-            fontFamily: "var(--font-inter), Inter, ui-sans-serif, sans-serif",
+            fontFamily: "var(--font-plus-jakarta), ui-sans-serif, sans-serif",
             fontSize: "13px",
             fontWeight: 500,
             border: "1px solid var(--border-subtle)",

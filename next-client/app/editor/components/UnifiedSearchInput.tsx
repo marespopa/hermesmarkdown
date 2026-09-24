@@ -149,7 +149,7 @@ export default function UnifiedSearchInput({
     <div ref={containerRef} className="relative flex flex-col gap-1.5">
 
       {/* ── Zone 1: Text input ─────────────────────────────────────────
-          Fixed height — always 44px on mobile (Apple HIG touch target),
+          Fixed height — always 44px on mobile for a comfortable touch target,
           36px on sm+. Never grows, never shifts.                       */}
       <div
         onClick={() => inputRef.current?.focus()}

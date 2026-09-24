@@ -333,10 +333,10 @@ export function useVaultManager() {
     await initVaultFromHandle(workspace, { descriptor });
   }, [initVaultFromHandle]);
 
-  const openVault = useCallback(async () => {
+  const openVault = useCallback(async (): Promise<boolean> => {
     if (!isVaultSupported) {
       toast.error("Your browser does not support local folder access. Try Chrome or Edge.");
-      return;
+      return false;
     }
 
     const handle = await withPickerLock(async () => {
@@ -348,13 +348,15 @@ export function useVaultManager() {
       }
     });
 
-    if (!handle) return;
+    if (!handle) return false;
 
     try {
       await initVaultFromHandle(handle);
+      return true;
     } catch (err: any) {
       console.error("File System Error:", err?.message || err);
       toast.error("Failed to open vault");
+      return false;
     }
   }, [initVaultFromHandle]);
 

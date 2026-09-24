@@ -499,7 +499,7 @@ const SettingsPage = () => {
       </aside>
 
       <main className="min-h-0 flex-1 overflow-y-auto bg-paper-pale custom-scrollbar dark:bg-paper-dark">
-        <div className="mx-auto max-w-3xl px-5 py-7 sm:px-8">
+        <div className="mx-auto w-full max-w-5xl px-5 py-8 sm:px-10 lg:px-12 xl:px-16">
           <h2 className="mb-5 text-ui-title-2 font-semibold tracking-tight">{active.label}</h2>
           {active.content}
         </div>

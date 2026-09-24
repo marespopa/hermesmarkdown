@@ -154,7 +154,7 @@ Add it directly to `tailwind.config.js` under the relevant group. Document wheth
 
 ## Typography Scale
 
-Defined in `tailwind.config.js` as custom `fontSize` entries. All sizes follow an Apple HIG-inspired scale:
+Defined in `tailwind.config.js` as custom `fontSize` entries. All sizes follow a compact platform-friendly scale:
 
 | Token | Size | Line height | Use |
 |---|---|---|---|

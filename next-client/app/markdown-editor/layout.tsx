@@ -40,7 +40,7 @@ const FAQ_JSON_LD = {
       name: "What are the most popular Markdown editors?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "Popular Markdown editors include HermesMarkdown (a local-first, browser-based editor with no accounts or cloud uploads), Obsidian, Typora, iA Writer, Zettlr, Mark Text, and Dillinger.",
+        text: "Popular Markdown editors include HermesMarkdown (a local-first, browser-based editor with no accounts or cloud uploads), Obsidian, Typora, Mark Text, Zettlr, and Dillinger.",
       },
     },
     {

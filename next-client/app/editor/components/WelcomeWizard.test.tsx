@@ -18,6 +18,11 @@ vi.mock("@/app/services/ai", () => ({
   testAIConnection: vi.fn(),
 }));
 
+const mockPush = vi.fn();
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ push: mockPush }),
+}));
+
 const HydrateAtoms = ({ initialValues, children }: { initialValues: any, children: React.ReactNode }) => {
   useHydrateAtoms(initialValues);
   return children;
@@ -107,10 +112,10 @@ describe("WelcomeWizard", () => {
 
     expect(screen.getByText("Theme")).toBeInTheDocument();
 
-    // Steps 1-7 (Theme, paper-like font, Line Numbers, Vim Mode,
-    // Autosave, Frontmatter View, AI Features) each advance one step at a time
-    // via their own "Continue" button before reaching the final step (8).
-    for (let i = 0; i < 7; i++) {
+    // Steps 1-6 (Theme, paper-like font, Line Numbers, Vim Mode,
+    // Autosave, AI Features) each advance one step at a time via their own
+    // "Continue" button before reaching the final step (7).
+    for (let i = 0; i < 6; i++) {
       fireEvent.click(screen.getByText("Continue"));
     }
 
@@ -122,7 +127,7 @@ describe("WelcomeWizard", () => {
   it("replaces the test button with a connection confirmation after success", async () => {
     render(
       <TestProvider initialValues={defaultInitialValues}>
-        <WelcomeWizard initialStep={7} />
+        <WelcomeWizard initialStep={6} />
       </TestProvider>
     );
 

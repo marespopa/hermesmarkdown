@@ -1,6 +1,6 @@
 import { EditorView, Decoration, DecorationSet, ViewPlugin, ViewUpdate } from "@codemirror/view";
 import { EditorState, Range } from "@codemirror/state";
-import { WORKFLOW_TAGS, TODO_TAGS, TAG_COLORS } from "../components/constants";
+import { WORKFLOW_TAGS, TODO_TAGS } from "../components/constants";
 import { CALLOUT_META, CALLOUT_ALIASES } from "../constants/callouts";
 import {
   REGEX_DATE_ISO,
@@ -32,6 +32,16 @@ import {
 
 const FADED = "opacity-40 dark:opacity-50 transition-opacity duration-500 hover:opacity-100";
 const TRANSITION = "transition-all duration-100 ease-in-out";
+const EDITOR_TAG_COLORS: Record<string, string> = {
+  draft: "!text-amber-600 dark:!text-amber-400",
+  review: "!text-sage dark:!text-sage",
+  active: "!text-emerald-600 dark:!text-emerald-400",
+  archived: "!text-ink-muted dark:!text-stone",
+  todo: "!text-sage dark:!text-sage",
+  prog: "!text-orange-500 dark:!text-orange-400",
+  hold: "!text-violet-500 dark:!text-violet-400",
+  done: "!text-teal-600 dark:!text-teal-400",
+};
 
 const REGEX_OBSIDIAN_CALLOUT = /^(>\s*)+\[!(\w+)\]([+-]?)\s*(.*)$/i;
 const REGEX_OBSIDIAN_QUOTE_DEPTH = /^(>\s*)+/;
@@ -84,7 +94,7 @@ function processInline(ranges: MarkRange[], label: string, base: number) {
     for (const m of label.matchAll(REGEX_WIKILINK)) {
       if (/^\[\[\d{4}-\d{2}-\d{2}\]\]$/.test(m[0])) continue;
       push(m.index!, m.index! + 2, FADED);
-      push(m.index! + 2, m.index! + m[0].length - 2, "text-sage dark:text-sage font-bold underline cursor-pointer");
+      push(m.index! + 2, m.index! + m[0].length - 2, "!text-sage dark:!text-sage font-bold underline cursor-pointer");
       push(m.index! + m[0].length - 2, m.index! + m[0].length, FADED);
     }
   }
@@ -104,7 +114,7 @@ function processInline(ranges: MarkRange[], label: string, base: number) {
       const fullTag = m[2];
       const tagName = fullTag.slice(1).toLowerCase();
       const isColored = WORKFLOW_TAGS.includes(tagName) || TODO_TAGS.includes(tagName);
-      const cls = isColored ? TAG_COLORS[tagName] : "text-zinc-700 dark:text-zinc-300";
+      const cls = isColored ? EDITOR_TAG_COLORS[tagName] : "!text-zinc-700 dark:!text-zinc-300";
       const tagStart = m.index! + m[1].length;
       push(tagStart, tagStart + fullTag.length, `${cls} font-bold cursor-pointer`);
     }
@@ -112,7 +122,7 @@ function processInline(ranges: MarkRange[], label: string, base: number) {
 
   if (/[$€£¥₹]|C\$|A\$|lei/.test(label)) {
     for (const m of label.matchAll(REGEX_CURRENCY)) {
-      push(m.index!, m.index! + m[0].length, "text-emerald-600 dark:text-emerald-400");
+      push(m.index!, m.index! + m[0].length, "!text-emerald-600 dark:!text-emerald-400");
     }
   }
 
@@ -121,7 +131,7 @@ function processInline(ranges: MarkRange[], label: string, base: number) {
       const [, p1, p2, p3, p4, p5] = m;
       let i = m.index!;
       push(i, i + p1.length, FADED); i += p1.length;
-      push(i, i + p2.length, "text-sage dark:text-sage underline"); i += p2.length;
+      push(i, i + p2.length, "!text-sage dark:!text-sage underline"); i += p2.length;
       push(i, i + p3.length + p4.length + p5.length, FADED);
     }
   }
@@ -258,7 +268,7 @@ export function computeMarkdownDecorations(state: EditorState): DecorationSet {
         cursor += check.length;
       }
       const isChecked = check?.toLowerCase().includes("x");
-      mark(ranges, base + cursor, line.to, isChecked ? "line-through opacity-40" : "text-ink-light dark:text-ink-dark");
+      if (isChecked) mark(ranges, base + cursor, line.to, "line-through opacity-40");
       processInline(ranges, label, base + cursor);
     } else if (isPipeLine) {
       const isSeparator = REGEX_TABLE_SEPARATOR.test(text);

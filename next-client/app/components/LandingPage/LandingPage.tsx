@@ -11,15 +11,15 @@ import Button from "@/app/components/Button/Button.component";
 import dynamic from "next/dynamic";
 import Toast from "@/app/components/Toast";
 import { FiFileText } from "react-icons/fi";
+import { HiMicrophone, HiOutlineMicrophone } from "react-icons/hi";
 import { useGlobalVoiceInput } from "@/app/editor/hooks/use-global-voice-input";
-import EditorWindowHeader from "@/app/editor/components/EditorWindowHeader";
 
 const MarkdownEditor = dynamic(
   () => import("@/app/editor/components/MarkdownEditor"),
   {
     ssr: false,
     loading: () => (
-      <div className="h-[400px] w-full flex items-center justify-center bg-paper-light dark:bg-paper-dark rounded-b-xl border border-t-0 border-black/5 dark:border-white/5">
+      <div className="h-[420px] w-full flex items-center justify-center bg-surface rounded-b-2xl border border-t-0 border-edge-subtle">
         <div className="text-xs uppercase tracking-widest opacity-30 animate-pulse">
           Initializing Workspace...
         </div>
@@ -27,8 +27,6 @@ const MarkdownEditor = dynamic(
     ),
   },
 );
-
-// EditablePreview removed — demo uses MarkdownEditor only
 
 const VoicePreviewPanel = dynamic(
   () => import("@/app/editor/components/VoicePreviewPanel"),
@@ -412,12 +410,8 @@ export default function LandingPage() {
   const [showLoading, setShowLoading] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
 
-  // Real dictation, not a copy-only demo — same hook the actual /editor route
-  // uses (use-global-voice-input.ts), writing into whichever CM6 view is
-  // registered as active (atom_activeEditorView). That atom is only ever set
-  // by MarkdownEditor (Source), never EditablePreview (Rendered) — true in
-  // the real app too (see PaneLeaf.tsx) — so the mic only appears in Source
-  // mode here.
+  // Use the same dictation flow as the real editor, including its editable
+  // review panel before text is committed to the note.
   const {
     isVoiceSupported,
     isVoiceListening,
@@ -430,11 +424,7 @@ export default function LandingPage() {
   } = useGlobalVoiceInput();
 
   // Ctrl/Cmd+Shift+V is also the browser's native "paste without formatting"
-  // shortcut — without an explicit binding here it falls through to that
-  // instead of toggling dictation, unlike the real /editor route (see its
-  // own window keydown handler in page.tsx). MarkdownEditor is kept mounted
-  // in both demo modes (see the render below), so this works the same in
-  // Source and Rendered — no demoMode check needed here.
+  // shortcut, so bind it explicitly to match the real editor.
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.target as HTMLElement)?.closest?.("[data-voice-preview-panel]")) return;
@@ -480,7 +470,7 @@ export default function LandingPage() {
   }, []);
 
   return (
-    <main className="selection:bg-sage/30 overflow-x-hidden font-sans">
+    <main className="selection:bg-sage/30 overflow-x-hidden font-display">
       <LoadingOverlay isVisible={showLoading} text="Opening editor..." />
 
       <Toast
@@ -557,18 +547,32 @@ export default function LandingPage() {
             </p>
           </div>
 
-          {/* INTERACTIVE EDITOR PREVIEW */}
+          {/* INTERACTIVE EDITOR */}
           <div
-            className={`w-full max-w-4xl relative group opacity-0 [animation-fill-mode:forwards] [animation-delay:150ms] ${tryItVisible ? "animate-hero-fade-in" : ""}`}
+            className={`w-full max-w-6xl relative group opacity-0 [animation-fill-mode:forwards] [animation-delay:150ms] ${tryItVisible ? "animate-hero-fade-in" : ""}`}
           >
-            <div className="rounded-2xl border border-black/5 dark:border-white/10 overflow-hidden ring-1 ring-black/5 dark:ring-white/5 transition-all duration-500 group-hover:ring-sage/20">
-              <EditorWindowHeader
-                title="landing_demo.md — hermes_vault"
-                isVoiceSupported={isMounted && isVoiceSupported}
-                isVoiceListening={isVoiceListening}
-                onToggleVoice={toggleVoiceListening}
-              />
-              <div className="h-[400px] md:h-[500px] text-left relative">
+            <div className="overflow-hidden rounded-[1.25rem] border border-edge-subtle bg-chrome/80 shadow-[0_16px_50px_-24px_rgb(0_0_0_/_35%)] ring-1 ring-black/[0.03] transition-shadow duration-500 group-hover:shadow-[0_20px_60px_-24px_rgb(0_0_0_/_40%)] dark:shadow-[0_16px_50px_-24px_rgb(0_0_0_/_70%)]">
+              <div className="flex h-11 items-center border-b border-edge-subtle bg-chrome/80 px-2 backdrop-blur-2xl sm:px-3">
+                <div className="flex h-8 min-w-0 max-w-[min(100%,18rem)] items-center gap-2 rounded-xl bg-surface-raised/70 px-3 text-ui-footnote shadow-sm">
+                  <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-sage" aria-hidden="true" />
+                  <span className="truncate font-medium text-fg">landing_demo.md</span>
+                  <span className="text-fg-faint" aria-hidden="true">×</span>
+                </div>
+                <span className="ml-auto px-2 text-ui-caption text-fg-faint">Local draft</span>
+                {isMounted && isVoiceSupported && (
+                  <Button
+                    variant="icon"
+                    onClick={toggleVoiceListening}
+                    aria-label={isVoiceListening ? "Stop voice input" : "Start voice input"}
+                    aria-pressed={isVoiceListening}
+                    title="Voice input"
+                    className={`ml-1 h-8 w-8 rounded-xl ${isVoiceListening ? "bg-sage/10 text-sage" : "text-fg-muted hover:text-fg"}`}
+                  >
+                    {isVoiceListening ? <HiMicrophone size={14} /> : <HiOutlineMicrophone size={14} />}
+                  </Button>
+                )}
+              </div>
+              <div className="h-[420px] text-left relative sm:h-[500px]">
                 {isMounted && (
                   <MarkdownEditor
                     value={demoContent}
@@ -576,7 +580,6 @@ export default function LandingPage() {
                     isActivePane
                   />
                 )}
-                
               </div>
             </div>
           </div>

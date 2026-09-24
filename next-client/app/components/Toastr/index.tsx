@@ -4,7 +4,7 @@ const toastConfig = {
   duration: 3000,
   position: 'bottom-right' as const,
   style: {
-    fontFamily: 'var(--font-inter), Inter, ui-sans-serif, sans-serif',
+    fontFamily: 'var(--font-plus-jakarta), ui-sans-serif, sans-serif',
     fontSize: '13px',
     fontWeight: '500',
     border: '1px solid var(--border-subtle)',

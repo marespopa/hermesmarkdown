@@ -32,6 +32,7 @@ import { useCodeMirrorMermaid } from "../hooks/use-codemirror-mermaid";
 import { useCodeMirrorCodeLanguagePicker } from "../hooks/use-codemirror-code-language-picker";
 import { useCodeMirrorImage } from "../hooks/use-codemirror-image";
 import { useCodeMirrorCalloutFold } from "../hooks/use-codemirror-callout-fold";
+import { useCodeMirrorFrontmatterFold } from "../hooks/use-codemirror-frontmatter-fold";
 import { HiOutlinePhotograph } from "react-icons/hi";
 import Typeahead from "../../components/Typeahead/Typeahead";
 import { languages } from "@codemirror/language-data";
@@ -243,6 +244,12 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
 
   const { chevrons, toggle: toggleCalloutFold, onCursorActivity: onFoldCursorActivity, onViewCreated } =
     useCodeMirrorCalloutFold({ containerRef });
+    const {
+      chevrons: frontmatterChevrons,
+      toggle: toggleFrontmatterFold,
+      onCursorActivity: onFrontmatterFoldCursorActivity,
+      onViewCreated: onFrontmatterFoldViewCreated,
+    } = useCodeMirrorFrontmatterFold({ containerRef });
 
   const setActiveEditorView = useSetAtom(atom_activeEditorView);
   const registeredActiveViewRef = useRef<EditorView | null>(null);
@@ -251,13 +258,14 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
   // click required. Skipped for inactive split panes.
   const handleViewCreated = useCallback((view: EditorView) => {
     onViewCreated(view);
+    onFrontmatterFoldViewCreated(view);
     setEditorView(view);
     if (props.isActivePane !== false) {
       registeredActiveViewRef.current = view;
       setActiveEditorView(view);
       view.focus();
     }
-  }, [onViewCreated, props.isActivePane, setActiveEditorView]);
+  }, [onFrontmatterFoldViewCreated, onViewCreated, props.isActivePane, setActiveEditorView]);
 
   const onCombinedCursorActivity = useCallback((view: EditorView) => {
     onCursorActivity(view);
@@ -266,7 +274,8 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
     onCodeLanguagePickerCursorActivity(view);
     onImageCursorActivity(view);
     onFoldCursorActivity(view);
-  }, [onCursorActivity, onTableCursorActivity, onMermaidCursorActivity, onCodeLanguagePickerCursorActivity, onImageCursorActivity, onFoldCursorActivity]);
+    onFrontmatterFoldCursorActivity(view);
+  }, [onCursorActivity, onTableCursorActivity, onMermaidCursorActivity, onCodeLanguagePickerCursorActivity, onImageCursorActivity, onFoldCursorActivity, onFrontmatterFoldCursorActivity]);
 
   useCodeMirrorEditor({
     value: editorValue,
@@ -393,19 +402,26 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
           <label htmlFor="md-editor" className="sr-only">Markdown editor</label>
           <div id="md-editor" ref={containerRef} className="h-full" tabIndex={0} />
 
-          {chevrons.map((chevron) => (
+          {[...chevrons.map((chevron) => ({ ...chevron, kind: "callout" as const })), ...frontmatterChevrons.map((chevron) => ({ ...chevron, kind: "frontmatter" as const }))].map((chevron) => (
             <button
               key={chevron.blockId}
               type="button"
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                if (viewRef.current) toggleCalloutFold(viewRef.current, chevron.blockId);
+                if (viewRef.current) {
+                  if (chevron.kind === "frontmatter") toggleFrontmatterFold(viewRef.current);
+                  else toggleCalloutFold(viewRef.current, chevron.blockId);
+                }
               }}
               className="absolute right-1 z-20 p-0.5 rounded text-ink-muted dark:text-fg-faint hover:text-sage dark:hover:text-sage"
               style={{ top: chevron.top }}
-              title={chevron.collapsed ? "Expand callout" : "Collapse callout"}
-              aria-label={chevron.collapsed ? "Expand callout" : "Collapse callout"}
+              title={chevron.collapsed
+                ? `Expand ${chevron.kind === "frontmatter" ? "frontmatter" : "callout"}`
+                : `Collapse ${chevron.kind === "frontmatter" ? "frontmatter" : "callout"}`}
+              aria-label={chevron.collapsed
+                ? `Expand ${chevron.kind === "frontmatter" ? "frontmatter" : "callout"}`
+                : `Collapse ${chevron.kind === "frontmatter" ? "frontmatter" : "callout"}`}
             >
               {chevron.collapsed ? <HiChevronRight size={13} /> : <HiChevronDown size={13} />}
             </button>
