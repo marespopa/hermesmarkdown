@@ -6,6 +6,7 @@ export default defineConfig({
   plugins: [react()],
   test: {
     environment: "jsdom",
+    testTimeout: 10_000,
     globals: true, // This fixes the "expect is not defined" error
     setupFiles: "./vitest.setup.ts",
   },

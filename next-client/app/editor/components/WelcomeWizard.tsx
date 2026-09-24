@@ -91,7 +91,7 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
   }, [initialStep, setStep]);
 
   useEffect(() => {
-    if (step === 1 && vaultHandle) {
+    if (step === 0 && vaultHandle) {
       setStep(1);
     }
   }, [step, vaultHandle, setStep]);
@@ -515,7 +515,7 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
     }
   };
 
-  // Step 2 auto-advances from step 1 once a vault is connected, so going back there
+  // Step 1 auto-advances from step 0 once a vault is connected, so going back there
   // would immediately bounce forward again — disable the back arrow on that landing.
   // Within step 1's creation sub-flow, the back arrow navigates sub-steps instead.
   const inCreationSubStep = step === 0 && !!createVaultFlow.subStep && createVaultFlow.subStep !== "installing";

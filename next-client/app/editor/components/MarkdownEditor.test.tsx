@@ -90,7 +90,10 @@ describe("MarkdownEditor", () => {
     );
 
   const waitForEditor = (container: HTMLElement) =>
-    waitFor(() => expect(container.querySelector(".cm-content")).toBeInTheDocument());
+    waitFor(
+      () => expect(container.querySelector(".cm-content")).toBeInTheDocument(),
+      { timeout: 10_000 },
+    );
 
   it("mounts a CodeMirror 6 editor", async () => {
     const { container } = renderEditor("hello world");

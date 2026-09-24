@@ -216,8 +216,11 @@ export function useCreateItem({ scanVault, indexVaultTags, openFile }: UseCreate
     const targetDir = await chooseTargetDirectory();
     if (!targetDir) return;
 
-    return createFile("Untitled", "", targetDir);
-  }, [vaultHandle, chooseTargetDirectory, createFile]);
+    const name = await dialog.prompt("Enter file name:", "Untitled", "New File");
+    if (!name?.trim()) return;
+
+    return createFile(name.trim(), "", targetDir);
+  }, [vaultHandle, chooseTargetDirectory, createFile, dialog]);
 
   const createFolder = useCallback(async (parentDirectory?: FileSystemDirectoryHandle) => {
     const targetDirectory = parentDirectory || vaultHandle;
@@ -243,6 +246,7 @@ export function useCreateItem({ scanVault, indexVaultTags, openFile }: UseCreate
   }, [dialog, scanVault, vaultHandle]);
 
   return {
+    chooseTargetDirectory,
     createFile,
     createWikiLinkFile,
     createNewFile,

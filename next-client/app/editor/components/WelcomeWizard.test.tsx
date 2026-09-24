@@ -4,7 +4,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { Provider } from "jotai";
 import { useHydrateAtoms } from "jotai/utils";
 import WelcomeWizard from "./WelcomeWizard";
-import { atom_hasCompletedOnboarding, atom_isWizardOpen, atom_userName } from "@/app/atoms/ui-atoms";
+import { atom_hasCompletedOnboarding, atom_isWizardOpen } from "@/app/atoms/ui-atoms";
 import { atom_vaultHandle } from "@/app/atoms/vault-atoms";
 import { useFileSystem } from "@/app/hooks/use-file-system";
 import { testAIConnection } from "@/app/services/ai";
@@ -35,7 +35,6 @@ describe("WelcomeWizard", () => {
   const defaultInitialValues: any = [
     [atom_hasCompletedOnboarding, false],
     [atom_isWizardOpen, true],
-    [atom_userName, ""],
     [atom_vaultHandle, null],
   ];
 
@@ -48,57 +47,10 @@ describe("WelcomeWizard", () => {
     });
   });
 
-  it("renders the welcome step first", () => {
-    render(
-      <TestProvider initialValues={defaultInitialValues}>
-        <WelcomeWizard />
-      </TestProvider>
-    );
-
-    expect(screen.getByText("Welcome to HermesMarkdown")).toBeInTheDocument();
-  });
-
-  it("requires a name before starting vault setup", () => {
-    render(
-      <TestProvider initialValues={defaultInitialValues}>
-        <WelcomeWizard />
-      </TestProvider>
-    );
-
-    expect(screen.getByText("Set up vault")).toBeDisabled();
-  });
-
-  it("advances to connection step when entering a name and clicking Set up vault", () => {
-    render(
-      <TestProvider initialValues={defaultInitialValues}>
-        <WelcomeWizard />
-      </TestProvider>
-    );
-
-    fireEvent.change(screen.getByLabelText("welcome-user-name"), { target: { value: "  Ada  " } });
-    fireEvent.click(screen.getByText("Set up vault"));
-    expect(screen.getByText("Connect Your Vault")).toBeInTheDocument();
-    expect(window.localStorage.getItem("userName")).toBe(JSON.stringify("Ada"));
-  });
-
-  it("advances when Enter is pressed after entering a name", () => {
-    render(
-      <TestProvider initialValues={defaultInitialValues}>
-        <WelcomeWizard />
-      </TestProvider>
-    );
-
-    fireEvent.change(screen.getByLabelText("welcome-user-name"), { target: { value: "Ada" } });
-    fireEvent.keyDown(window, { key: "Enter" });
-
-    expect(screen.getByText("Connect Your Vault")).toBeInTheDocument();
-    expect(window.localStorage.getItem("userName")).toBe(JSON.stringify("Ada"));
-  });
-
   it("advances preference steps when Enter is pressed", () => {
     render(
       <TestProvider initialValues={defaultInitialValues}>
-        <WelcomeWizard initialStep={2} />
+        <WelcomeWizard initialStep={1} />
       </TestProvider>
     );
 
@@ -110,7 +62,7 @@ describe("WelcomeWizard", () => {
   it("offers GitHub vault connection during vault setup", () => {
     render(
       <TestProvider initialValues={defaultInitialValues}>
-        <WelcomeWizard initialStep={1} />
+        <WelcomeWizard initialStep={0} />
       </TestProvider>
     );
 
@@ -124,7 +76,7 @@ describe("WelcomeWizard", () => {
     expect(screen.getAllByRole("button").at(-1)).toHaveAccessibleName("Connect GitHub Vault");
   });
 
-  it("advances to the theme step automatically if vault is already connected in step 1", async () => {
+  it("advances to the theme step automatically if a vault is already connected", async () => {
     const connectedValues = [
       ...defaultInitialValues.filter(([a]: any) => a !== atom_vaultHandle),
       [atom_vaultHandle, { name: "TestVault" }],
@@ -132,7 +84,7 @@ describe("WelcomeWizard", () => {
 
     render(
       <TestProvider initialValues={connectedValues}>
-        <WelcomeWizard initialStep={1} />
+        <WelcomeWizard initialStep={0} />
       </TestProvider>
     );
 
@@ -149,15 +101,15 @@ describe("WelcomeWizard", () => {
 
     render(
       <TestProvider initialValues={connectedValues}>
-        <WelcomeWizard initialStep={2} />
+        <WelcomeWizard initialStep={1} />
       </TestProvider>
     );
 
     expect(screen.getByText("Theme")).toBeInTheDocument();
 
-    // Steps 2-8 (Theme, Pick your writing font, Line Numbers, Vim Mode,
+    // Steps 1-7 (Theme, Pick your writing font, Line Numbers, Vim Mode,
     // Autosave, Frontmatter View, AI Features) each advance one step at a time
-    // via their own "Continue" button before reaching the final step (9).
+    // via their own "Continue" button before reaching the final step (8).
     for (let i = 0; i < 7; i++) {
       fireEvent.click(screen.getByText("Continue"));
     }
@@ -170,7 +122,7 @@ describe("WelcomeWizard", () => {
   it("replaces the test button with a connection confirmation after success", async () => {
     render(
       <TestProvider initialValues={defaultInitialValues}>
-        <WelcomeWizard initialStep={8} />
+        <WelcomeWizard initialStep={7} />
       </TestProvider>
     );
 
