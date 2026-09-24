@@ -3,7 +3,7 @@ import "./editor/editor.scss";
 import "katex/dist/katex.min.css";
 import MainPage from "./components/MainPage";
 import { Metadata, Viewport } from "next";
-import { inter, ibmPlexMono, literata, jetbrainsMono, workSans } from "./fonts";
+import { inter, geistMono, ibmPlexMono, plusJakartaSans } from "./fonts";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://hermesmarkdown.com"),
@@ -102,7 +102,7 @@ export default function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className={`h-full overscroll-none ${inter.variable} ${ibmPlexMono.variable} ${literata.variable} ${jetbrainsMono.variable} ${workSans.variable}`}
+      className={`h-full overscroll-none ${inter.variable} ${geistMono.variable} ${ibmPlexMono.variable} ${plusJakartaSans.variable}`}
     >
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />

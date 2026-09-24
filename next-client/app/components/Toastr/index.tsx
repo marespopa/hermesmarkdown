@@ -4,8 +4,14 @@ const toastConfig = {
   duration: 3000,
   position: 'bottom-right' as const,
   style: {
-    fontSize: '14px',
-    fontWeight: '600',
+    fontFamily: 'var(--font-inter), Inter, ui-sans-serif, sans-serif',
+    fontSize: '13px',
+    fontWeight: '500',
+    border: '1px solid var(--border-subtle)',
+    borderRadius: '12px',
+    background: 'var(--surface-raised)',
+    color: 'var(--fg)',
+    boxShadow: '0 8px 24px rgb(0 0 0 / 12%)',
   },
 };
 
@@ -13,8 +19,7 @@ const successConfig = {
   ...toastConfig,
   style: {
     ...toastConfig.style,
-    background: '#10b981',
-    color: '#fff',
+    borderColor: 'color-mix(in srgb, var(--moss) 35%, var(--border-subtle))',
   },
 };
 
@@ -23,8 +28,7 @@ const errorConfig = {
   duration: 4000,
   style: {
     ...toastConfig.style,
-    background: '#ef4444',
-    color: '#fff',
+    borderColor: 'color-mix(in srgb, #c65b4a 45%, var(--border-subtle))',
   },
 };
 
@@ -33,8 +37,7 @@ const copyConfig = {
   duration: 2000,
   style: {
     ...toastConfig.style,
-    background: '#3b82f6',
-    color: '#fff',
+    borderColor: 'color-mix(in srgb, var(--moss) 35%, var(--border-subtle))',
   },
 };
 

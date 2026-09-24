@@ -20,6 +20,17 @@ function decorationsFor(doc: string): FlatDeco[] {
 }
 
 describe("computeMarkdownDecorations", () => {
+  it("dims the complete frontmatter block without dimming the body", () => {
+    const doc = "---\ntitle: Note\n---\nBody";
+    const decos = decorationsFor(doc);
+    const frontmatterStart = 0;
+    const bodyStart = doc.indexOf("Body");
+
+    expect(decos.filter((d) => d.class.includes("cm-frontmatter-line"))).toHaveLength(3);
+    expect(decos.some((d) => d.from === frontmatterStart && d.class.includes("cm-frontmatter-line"))).toBe(true);
+    expect(decos.some((d) => d.from === bodyStart && d.class.includes("cm-frontmatter-line"))).toBe(false);
+  });
+
   it("marks a heading's hashes as faded and its label as bold", () => {
     const doc = "# Hello";
     const decos = decorationsFor(doc);

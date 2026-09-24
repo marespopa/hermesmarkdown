@@ -21,9 +21,10 @@ export const atom_wordWrap = atomWithStorage<boolean>("wordWrap", true);
 export const atom_lineNumbers = atomWithStorage<boolean>("lineNumbers", false);
 export const atom_vimMode = atomWithStorage<boolean>("vimMode", false);
 export const MONO_FONT_STACK = "var(--font-ibm-mono), ui-monospace, monospace";
+export const EDITORIAL_FONT_STACK = "var(--font-geist-mono), ui-monospace, monospace";
 export const atom_editorFontFamily = atomWithStorage<string>(
   "editorFontFamily",
-  MONO_FONT_STACK,
+  EDITORIAL_FONT_STACK,
 );
 export const atom_lineHeight = atomWithStorage<string>(
   "editorLineHeight",
@@ -31,7 +32,7 @@ export const atom_lineHeight = atomWithStorage<string>(
 );
 // Primary reading font and size. Source-editor typography has its own persisted
 // font-family preference above.
-export const RENDERED_FONT_STACK = "var(--font-literata), Georgia, ui-serif, serif";
+export const RENDERED_FONT_STACK = "var(--font-inter), Inter, ui-sans-serif, sans-serif";
 export const atom_renderedFontFamily = atomWithStorage<string>(
   "renderedFontFamily",
   RENDERED_FONT_STACK,
@@ -127,7 +128,6 @@ export const atom_keyboardShortcutsOpen = atom<boolean>(false);
 export const atom_workspaceBuilderRequest = atom<number>(0);
 export const atom_selectedWorkspaceId = atom<string | null>(null);
 export const atom_selectedFileTags = atom<string[]>([]);
-export const atom_tabsBarToggleRequest = atom<number>(0);
 export const atom_showCommandPaletteFab = atomWithStorage<boolean>(
   "showCommandPaletteFab",
   true,
@@ -279,13 +279,3 @@ export const atom_commandUseCounts = atomWithStorage<Record<string, number>>("co
 export const atom_palettePinnedItems = atomWithStorage<PalettePinnedItem[]>("palettePinnedItems", []);
 
 export const atom_indexTimestamp = atom<number | null>(null);
-
-// Whether the pane tab bar starts expanded or collapsed. Each pane still
-// tracks its own open/closed state locally (see PaneLeaf.tsx) so a user can
-// toggle it per-pane during a session; this only controls the initial value.
-// Desktop shows it by default (PaneLeaf.tsx additionally hides it on mobile
-// regardless of this setting, to save vertical space there).
-export const atom_tabsBarVisibleByDefault = atomWithStorage<boolean>(
-  "tabsBarVisibleByDefault",
-  true,
-);

@@ -78,11 +78,12 @@ export function useEditorAppearance(isSplit = false) {
   // only safe once the centered column actually has room to breathe — at
   // lower resolutions (e.g. a narrow window with the vault sidebar open)
   // maxContentWidth can clamp to paneWidth, leaving mx-auto with no space
-  // to create a margin and the text flush against the pane edge.
+  // to create a margin and the text flush against the pane edge. Keep a
+  // deliberate inner sheet gutter even when the centered column fits.
   const contentPaddingX = useMemo(() => {
     if (paneWidth < 640) return 16;
     if (isSplit) return 24;
-    if (paneWidth >= 768 && maxContentWidth !== undefined && paneWidth > maxContentWidth) return 0;
+    if (paneWidth >= 768 && maxContentWidth !== undefined && paneWidth > maxContentWidth) return 32;
     return 24;
   }, [isSplit, paneWidth, maxContentWidth]);
 

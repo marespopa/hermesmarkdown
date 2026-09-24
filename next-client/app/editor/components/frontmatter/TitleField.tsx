@@ -18,6 +18,7 @@ export default function TitleField({ value, onChange, autoFocus }: TitleFieldPro
       placeholder="e.g. Payment Integration Guide"
       autoFocus={autoFocus}
       className="my-0"
+      inputClassName="!rounded-xl !border-edge-subtle !bg-surface/70 !px-3.5 !py-2 !text-ui-subhead dark:!bg-paper-dark-surface/50"
     />
   );
 }

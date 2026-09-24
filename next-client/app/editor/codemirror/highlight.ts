@@ -162,12 +162,19 @@ export function computeMarkdownDecorations(state: EditorState): DecorationSet {
   let calloutType: string | null = null;
   let calloutDepth = 0;
   let tableRowCounter = -1;
+  let isInsideFrontmatter = false;
 
   const doc = state.doc;
   for (let i = 1; i <= doc.lines; i++) {
     const line = doc.line(i);
     const text = line.text;
     const base = line.from;
+
+    if (i === 1 && /^---\s*$/.test(text)) isInsideFrontmatter = true;
+    if (isInsideFrontmatter) {
+      lineDecos.push({ line: i, class: "cm-frontmatter-line" });
+      if (i > 1 && /^---\s*$/.test(text)) isInsideFrontmatter = false;
+    }
 
     const isPipeLine =
       REGEX_TABLE_LINE.test(text) && !isInsideCodeBlock && calloutType === null &&

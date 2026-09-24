@@ -19,7 +19,6 @@ export function buildWorkspaceTaskViewCommandGroups(context: EditorCommandContex
     isOnlyPane,
     lineNumbers,
     onOpenTasks,
-    requestTabsBarToggle,
     requestWorkspaceBuilder,
     router,
     scanVault,
@@ -30,7 +29,6 @@ export function buildWorkspaceTaskViewCommandGroups(context: EditorCommandContex
     setLineNumbers,
     setRailPanel,
     setShowHiddenFiles,
-    setTabsBarVisibleByDefault,
     setTaskDueFilter,
     setTaskSearchQuery,
     setTasksGroupBy,
@@ -39,7 +37,6 @@ export function buildWorkspaceTaskViewCommandGroups(context: EditorCommandContex
     setWordWrap,
     showHiddenFiles,
     splitPane,
-    tabsBarVisibleByDefault,
     themeCycle,
     vaultHandle,
     wordWrap,
@@ -138,12 +135,6 @@ export function buildWorkspaceTaskViewCommandGroups(context: EditorCommandContex
       action: () => setLineNumbers(!lineNumbers),
     },
     {
-      id: "toggle-tabs-bar-default",
-      label: tabsBarVisibleByDefault ? "Hide tabs bar by default" : "Show tabs bar by default",
-      keywords: "tabs bar pane visible default settings",
-      action: () => setTabsBarVisibleByDefault(!tabsBarVisibleByDefault),
-    },
-    {
       id: "start-welcome-tour",
       label: "Start welcome tour",
       keywords: "onboarding guide help tour walkthrough",
@@ -183,14 +174,6 @@ export function buildWorkspaceTaskViewCommandGroups(context: EditorCommandContex
     ? activeLeaf.openFilePaths.indexOf(activeLeaf.activeFilePath)
     : -1;
   const workspaceTasksAndViews: Command[] = [
-    {
-      id: "toggle-active-tabs-bar",
-      label: "Toggle active pane tabs",
-      category: "Workspace",
-      keywords: "show hide bar files",
-      disabledReason: activeLeaf ? undefined : "No active pane",
-      action: () => requestTabsBarToggle((value) => value + 1),
-    },
     {
       id: "create-smart-view",
       label: "Create smart view",

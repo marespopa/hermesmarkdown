@@ -20,6 +20,7 @@ interface Props extends React.InputHTMLAttributes<HTMLInputElement> {
   debounceMs?: number;
   onDebouncedChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
   className?: string; // Added to allow style overrides from forms
+  inputClassName?: string;
   autoFocus?: boolean;
   selectOnFocus?: boolean;
 }
@@ -39,6 +40,7 @@ const Input = forwardRef<HTMLInputElement, Props>(
       debounceMs,
       onDebouncedChange,
       className = "",
+      inputClassName = "",
       autoFocus,
       selectOnFocus,
       autoComplete = "off",
@@ -114,7 +116,7 @@ const Input = forwardRef<HTMLInputElement, Props>(
             max={validation?.max}
             ref={ref}
             autoComplete={autoComplete}
-            className={`${baseStyles} ${variantStyles} select-text`}
+            className={`${baseStyles} ${variantStyles} ${inputClassName} select-text`}
             aria-label={label || name}
             autoFocus={autoFocus}
             {...rest}

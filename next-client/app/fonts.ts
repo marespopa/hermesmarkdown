@@ -1,4 +1,4 @@
-import { Inter, IBM_Plex_Mono, Literata, JetBrains_Mono, Work_Sans } from "next/font/google";
+import { Geist_Mono, IBM_Plex_Mono, Inter, Plus_Jakarta_Sans } from "next/font/google";
 
 // UI chrome only (sidebar, menus, buttons, labels) — never used in the writing pane.
 export const inter = Inter({
@@ -7,8 +7,14 @@ export const inter = Inter({
   display: "swap",
 });
 
-// Editor mono default — closest equivalent to iA Writer's own typeface, which is
-// itself a modification of the upstream IBM Plex family.
+// Technical surfaces: source Markdown, raw syntax, and inline code.
+export const geistMono = Geist_Mono({
+  subsets: ["latin"],
+  variable: "--font-geist-mono",
+  display: "swap",
+});
+
+// Technical metadata surfaces: YAML, code blocks, and status chips.
 export const ibmPlexMono = IBM_Plex_Mono({
   subsets: ["latin"],
   weight: ["400", "500", "700"],
@@ -17,28 +23,10 @@ export const ibmPlexMono = IBM_Plex_Mono({
   display: "swap",
 });
 
-// Editor serif option — variable font built for on-screen long-form reading.
-export const literata = Literata({
+// Editorial headings and optional prose accents.
+export const plusJakartaSans = Plus_Jakarta_Sans({
   subsets: ["latin"],
-  style: ["normal", "italic"],
-  variable: "--font-literata",
-  display: "swap",
-});
-
-// Editor mono alt — the de facto default for code editors, offered alongside IBM Plex Mono.
-export const jetbrainsMono = JetBrains_Mono({
-  subsets: ["latin"],
-  weight: ["400", "500", "700"],
-  style: ["normal", "italic"],
-  variable: "--font-jetbrains-mono",
-  display: "swap",
-});
-
-// Editor sans-serif option — humanist and warm, fits the app's warm-neutral palette.
-export const workSans = Work_Sans({
-  subsets: ["latin"],
-  weight: ["400", "500", "700"],
-  style: ["normal", "italic"],
-  variable: "--font-work-sans",
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-plus-jakarta",
   display: "swap",
 });

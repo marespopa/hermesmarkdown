@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import { PanelLeaf } from "@/app/types/workspace";
 import MarkdownEditor from "./MarkdownEditor";
 import TabContextMenu, { TabContextMenuItem } from "./TabContextMenu";
@@ -18,8 +18,8 @@ import {
   atom_workspaceLayout,
   getWorkspaceTabs,
 } from "@/app/atoms/atoms";
-import { atom_newVaultFlowOpen, atom_isVoicePreviewVisible, atom_tabsBarToggleRequest, atom_tabsBarVisibleByDefault } from "@/app/atoms/ui-atoms";
-import { HiOutlineDocumentText, HiOutlineChartBar, HiOutlineX, HiOutlineClipboardCopy, HiOutlineSave, HiOutlineDotsHorizontal, HiOutlinePlus, HiOutlineFolderOpen, HiOutlineDatabase, HiOutlineCollection, HiOutlineChevronDown, HiOutlineChevronUp } from "react-icons/hi";
+import { atom_newVaultFlowOpen, atom_isVoicePreviewVisible } from "@/app/atoms/ui-atoms";
+import { HiOutlineDocumentText, HiOutlineChartBar, HiOutlineX, HiOutlineClipboardCopy, HiOutlineSave, HiOutlineDotsHorizontal, HiOutlinePlus, HiOutlineFolderOpen, HiOutlineDatabase, HiOutlineCollection } from "react-icons/hi";
 import { VscSplitHorizontal } from "react-icons/vsc";
 import PaneTab, { TabSaveState, statusMeta } from "./PaneTab";
 import { useFileSystem } from "@/app/hooks/use-file-system";
@@ -30,8 +30,6 @@ import { formatShortcut, isMacPlatform } from "@/app/utils/platform";
 import { useCommandPalette } from "@/app/components/CommandPalette/CommandPaletteContext";
 import useIsMobileChrome from "@/app/hooks/use-mobile-chrome";
 import { usePaneFileActions } from "../hooks/use-pane-file-actions";
-
-const TAB_PULL_DISTANCE = 96;
 
 interface PaneLeafProps {
   leaf: PanelLeaf;
@@ -156,34 +154,6 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
   const openFileInPane = (filePath = leaf.activeFilePath) => {
     splitPane({ id: leaf.id, direction: "horizontal", filePath });
   };
-  // Defaults per the Settings page's "Tabs Bar" toggle, itself defaulted to
-  // visible on desktop where the horizontal space is there to spare; mobile
-  // stays collapsed to save vertical space, discoverable via the hover
-  // chevron and the collapsed save-status dot below. Each pane still tracks
-  // its own open/closed state locally once mounted, so toggling the setting
-  // only affects panes opened after.
-  const tabsBarVisibleByDefault = useAtomValue(atom_tabsBarVisibleByDefault);
-  const [tabBarVisible, setTabBarVisible] = useState(tabsBarVisibleByDefault && !isMobileChrome);
-  const [tabPullProgress, setTabPullProgress] = useState(tabsBarVisibleByDefault && !isMobileChrome ? 1 : 0);
-  const [tabsBarToggleRequest, setTabsBarToggleRequest] = useAtom(atom_tabsBarToggleRequest);
-  const tabDragStartY = React.useRef<number | null>(null);
-  const tabDragStartProgress = React.useRef(0);
-  const tabDragProgress = React.useRef(0);
-  const tabControlDragged = React.useRef(false);
-  React.useEffect(() => {
-    if (!isActive || tabsBarToggleRequest === 0) return;
-    setTabBarVisible((visible) => {
-      const next = !visible;
-      setTabPullProgress(next ? 1 : 0);
-      return next;
-    });
-    setTabsBarToggleRequest(0);
-  }, [isActive, setTabsBarToggleRequest, tabsBarToggleRequest]);
-
-  const resetTabControlDrag = () => {
-    tabDragStartY.current = null;
-  };
-
   const handleDragStart = (e: React.DragEvent, path: string) => {
     const data = JSON.stringify({ 
       sourcePaneId: leaf.id, 
@@ -264,107 +234,16 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
       } ${isDimmed ? "opacity-40 saturate-50" : ""}`}
       onClick={() => setActivePaneId(leaf.id)}
     >
-      {/* Pane Tabs Bar — desktop only. On mobile there are no split panes
-          and no visible tab strip (MobileControlRail/MobileFileIndicator
-          handle switching and file actions instead), so this whole bar
-          would be dead weight. Shown/hidden only via the explicit toggle
-          button below. */}
+      {/* Pane tabs stay visible on desktop as the editor's single app header. */}
       {!isMobileChrome && (
       <div className="shrink-0 relative">
-        <button
-          type="button"
-          onClick={() => {
-            if (tabControlDragged.current) {
-              tabControlDragged.current = false;
-              return;
-            }
-            setTabBarVisible((visible) => {
-              const next = !visible;
-              setTabPullProgress(next ? 1 : 0);
-              return next;
-            });
-          }}
-          onPointerDown={(event) => {
-            if (event.button !== 0) return;
-            tabDragStartY.current = event.clientY;
-            tabDragStartProgress.current = tabPullProgress;
-            tabDragProgress.current = tabPullProgress;
-            tabControlDragged.current = false;
-            event.currentTarget.setPointerCapture?.(event.pointerId);
-          }}
-          onPointerMove={(event) => {
-            if (tabDragStartY.current === null) return;
-            const distance = event.clientY - tabDragStartY.current;
-            const progress = Math.min(1, Math.max(0, tabDragStartProgress.current + distance / TAB_PULL_DISTANCE));
-            tabDragProgress.current = progress;
-            if (Math.abs(distance) > 4) tabControlDragged.current = true;
-            setTabPullProgress(progress);
-          }}
-          onPointerUp={() => {
-            if (tabControlDragged.current) {
-              const next = tabDragProgress.current >= 0.5;
-              setTabBarVisible(next);
-              setTabPullProgress(next ? 1 : 0);
-            }
-            resetTabControlDrag();
-          }}
-          onPointerCancel={() => {
-            setTabPullProgress(tabBarVisible ? 1 : 0);
-            resetTabControlDrag();
-          }}
-          aria-label={tabBarVisible ? "Hide tabs" : "Show tabs"}
-          title={tabBarVisible ? "Hide tabs" : "Show tabs"}
-          className="group absolute left-1/2 z-30 h-11 w-11 -translate-x-1/2 border-0 bg-transparent p-0 shadow-none"
-          style={{ top: `${tabPullProgress * 36}px` }}
-        >
-          <span className="absolute left-1/2 top-0 flex h-3 w-10 -translate-x-1/2 items-center justify-center rounded-b-lg border border-t-0 border-edge bg-paper-light text-ink-muted transition-[height,background-color,color,transform] duration-300 ease-out group-hover:h-5 group-hover:bg-paper-softgray group-hover:text-ink-light group-hover:duration-150 group-active:scale-x-95 dark:bg-paper-dark-surface dark:text-stone dark:group-hover:bg-clay dark:group-hover:text-ink-dark">
-            <span className="transition-transform duration-150 ease-out group-hover:translate-y-0.5">
-              {tabBarVisible ? <HiOutlineChevronUp size={12} /> : <HiOutlineChevronDown size={12} />}
-            </span>
-          </span>
-        </button>
-        {/* Save status has nowhere to live once the tab bar is collapsed —
-            stand in for it with a compact dot in the same corner so save
-            state doesn't disappear entirely. */}
-        {!tabBarVisible && isActive && leaf.openFilePaths.length > 0 && (
-          <button
-            type="button"
-            onClick={handleSave}
-            disabled={activeSaveState === "saving"}
-            aria-label={`Save — ${activeSaveMeta.title}`}
-            title={activeSaveState === "error" ? (saveStatus.message || activeSaveMeta.title) : activeSaveMeta.title}
-            className={`absolute right-2 top-1.5 z-30 flex items-center justify-center w-6 h-6 rounded-full bg-chrome border border-edge-subtle shadow-sm transition-colors disabled:pointer-events-none ${
-              activeSaveState === "idle" ? "text-fg-faint hover:text-sage" : activeSaveMeta.className
-            }`}
-          >
-            {activeSaveState === "saving" ? (
-              <span className="w-2.5 h-2.5 rounded-full border-2 border-edge border-t-sage animate-spin" />
-            ) : activeSaveMeta.Icon ? (
-              <activeSaveMeta.Icon size={12} />
-            ) : (
-              <HiOutlineSave size={12} />
-            )}
-          </button>
-        )}
-        <div
-          // overflow only while collapsed/collapsing — kept permanently
-          // hidden here it clips any tooltip (Copy Markdown, Save,
-          // position="bottom" by default) trying to pop out below this
-          // 36px row, since the popped-out span still lives inside this
-          // max-height-animated wrapper. Once fully expanded there's
-          // nothing left to clip, so overflow can open back up.
-          className={`shrink-0 overflow-hidden transition-[max-height,opacity] duration-300 ease-out ${
-            tabPullProgress > 0 ? "pointer-events-auto" : "pointer-events-none"
-          }`}
-          style={{ maxHeight: `${tabPullProgress * 36}px`, opacity: tabPullProgress }}
-        >
       <div
         ref={tabBarRowRef}
-        className="flex items-center bg-chrome border-b border-edge-subtle h-9 shrink-0 relative z-20"
+        className="flex items-center bg-chrome/80 backdrop-blur-2xl border-b border-edge-subtle h-11 shrink-0 relative z-20 px-2 sm:px-3"
       >
         {/* Scrollable tabs strip */}
           <div
-            className="flex items-center flex-1 overflow-x-auto overflow-y-hidden scrollbar-none h-full px-2 min-w-0"
+            className="flex items-center flex-1 overflow-x-auto overflow-y-hidden scrollbar-none h-full px-1.5 min-w-0"
             onDragOver={(e) => handleDragOver(e)}
             onDragLeave={handleDragLeave}
             onDrop={(e) => handleDrop(e, leaf.openFilePaths.length)}
@@ -427,7 +306,7 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
           </div>{/* end scrollable tabs strip */}
 
           {/* Fixed actions — always visible, never scrolled */}
-          <div className="flex items-center gap-0.5 pl-2 pr-1 shrink-0 h-full z-20">
+          <div className="flex items-center gap-0.5 mx-1 pl-1 pr-1 shrink-0 h-8 rounded-xl bg-surface-raised/70 z-20">
             {isActive && leaf.openFilePaths.length > 0 && (
               <>
                 {!hideCopyMarkdown && (
@@ -436,7 +315,7 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
                       variant="icon"
                       onClick={handleCopy}
                       aria-label="Copy Markdown"
-                      className="w-9 h-9 flex items-center justify-center text-ink-muted hover:text-sage transition-all rounded-xl"
+                      className="w-8 h-8 flex items-center justify-center text-ink-muted hover:text-sage transition-all rounded-lg"
                     >
                       <HiOutlineClipboardCopy size={18} />
                     </Button>
@@ -451,7 +330,7 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
                     onClick={handleSave}
                     disabled={activeSaveState === "saving"}
                     aria-label={`Save — ${activeSaveMeta.title}`}
-                    className="w-9 h-9 flex items-center justify-center transition-all rounded-xl disabled:opacity-40 disabled:pointer-events-none"
+                    className="w-8 h-8 flex items-center justify-center transition-all rounded-lg disabled:opacity-40 disabled:pointer-events-none"
                   >
                     {activeSaveState === "saving" ? (
                       <span className="w-3.5 h-3.5 rounded-full border-2 border-edge border-t-sage animate-spin" />
@@ -470,7 +349,7 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
                     )}
                   </Button>
                 </Tooltip>
-                <div className="w-px h-3 bg-beige dark:bg-clay mx-1 opacity-50" />
+                <div className="w-px h-4 bg-edge-subtle mx-1 opacity-70" />
                 <Tooltip label="Tab options">
                   <Button
                     variant="icon"
@@ -479,7 +358,7 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
                       setTabMenu({ x: rect.left, y: rect.bottom + 4, path: leaf.activeFilePath || "draft", includeActions: true });
                     }}
                     aria-label="Tab options"
-                    className="w-9 h-9 flex items-center justify-center text-ink-muted hover:text-ink-light dark:hover:text-ink-dark transition-all rounded-xl"
+                    className="w-8 h-8 flex items-center justify-center text-ink-muted hover:text-ink-light dark:hover:text-ink-dark transition-all rounded-lg"
                   >
                     <HiOutlineDotsHorizontal size={16} />
                   </Button>
@@ -492,7 +371,7 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
                   variant="icon"
                   onClick={() => openFileInPane()}
                   aria-label="Open in pane"
-                  className="w-9 h-9 flex items-center justify-center text-ink-muted hover:text-ink-light dark:hover:text-ink-dark transition-all rounded-xl"
+                  className="w-8 h-8 flex items-center justify-center text-ink-muted hover:text-ink-light dark:hover:text-ink-dark transition-all rounded-lg"
                 >
                   <VscSplitHorizontal size={16} />
                 </Button>
@@ -504,7 +383,7 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
                   variant="icon"
                   onClick={() => closePane(leaf.id)}
                   aria-label="Close Pane"
-                  className="w-9 h-9 flex items-center justify-center text-zinc-400 hover:text-red-500 transition-all rounded-xl"
+                  className="w-8 h-8 flex items-center justify-center text-zinc-400 hover:text-red-500 transition-all rounded-lg"
                 >
                   <HiOutlineX size={18} />
                 </Button>
@@ -512,7 +391,6 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
             )}
           </div>
       </div>
-        </div>
       </div>
       )}
 

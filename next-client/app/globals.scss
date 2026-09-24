@@ -336,3 +336,6 @@ ul li::marker {
   @apply text-sage;
 }
 
+.font-display {
+  font-family: var(--font-plus-jakarta), var(--font-inter), Inter, ui-sans-serif, sans-serif;
+}

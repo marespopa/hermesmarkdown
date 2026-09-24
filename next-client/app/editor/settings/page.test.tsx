@@ -64,17 +64,13 @@ describe("SettingsPage", () => {
   it("renders typography controls on the default tab", () => {
     render(<SettingsPage />);
     // Typography is the default-active section — no nav click needed.
-    // Font/Text Size/Line Height are now single shared controls.
     expect(screen.getByText("Font")).toBeInTheDocument();
-    expect(screen.getByText("Text Size")).toBeInTheDocument();
-    expect(screen.getByText("Line Height")).toBeInTheDocument();
-    expect(screen.queryByText("Letter Spacing")).not.toBeInTheDocument();
-    expect(screen.queryByText("Loose")).not.toBeInTheDocument();
-    expect(screen.getByText("2.0")).toBeInTheDocument();
-    expect(screen.getByText("Monospace")).toBeInTheDocument();
-    expect(screen.getByText("Sans-serif")).toBeInTheDocument();
-    expect(screen.getByText("Serif")).toBeInTheDocument();
-    expect(screen.getAllByText("IBM Plex Mono").length).toBeGreaterThanOrEqual(1);
+    expect(screen.getByText("Geist Mono")).toBeInTheDocument();
+    expect(screen.getByText("Inter")).toBeInTheDocument();
+    expect(screen.getByText("IBM Plex Mono")).toBeInTheDocument();
+    expect(screen.getByText("Plus Jakarta Sans")).toBeInTheDocument();
+    expect(screen.queryByText("Text Size")).not.toBeInTheDocument();
+    expect(screen.queryByText("Line Height")).not.toBeInTheDocument();
   });
 
   it("calls the source font setter when a generic font is selected", () => {
@@ -85,21 +81,10 @@ describe("SettingsPage", () => {
     });
 
     render(<SettingsPage />);
-    fireEvent.click(screen.getByText("Sans-serif"));
-    expect(setEditorFontFamily).toHaveBeenCalledWith("ui-sans-serif, sans-serif");
-  });
-
-  it("calls setter when line height option is clicked", () => {
-    const setLineHeight = vi.fn();
-    (useAtom as any).mockImplementation((atom: any) => {
-      const str = atom.toString();
-      if (str === "atom_lineHeight") return ["1.8", setLineHeight];
-      return ["", vi.fn()];
-    });
-
-    render(<SettingsPage />);
-    fireEvent.click(screen.getByText("2.0"));
-    expect(setLineHeight).toHaveBeenCalledWith("2.0");
+    fireEvent.click(screen.getByText("Inter"));
+    expect(setEditorFontFamily).toHaveBeenCalledWith(
+      "var(--font-inter), Inter, ui-sans-serif, sans-serif",
+    );
   });
 
   it("renders editor settings options", () => {
@@ -113,12 +98,7 @@ describe("SettingsPage", () => {
     render(<SettingsPage />);
     openEditorSection();
 
-    expect(screen.getByText("Editor Width")).toBeInTheDocument();
     expect(screen.getByText("Vim Mode")).toBeInTheDocument();
-    expect(screen.getAllByText("Standard").length).toBeGreaterThanOrEqual(1);
-    expect(screen.getByText("Narrow")).toBeInTheDocument();
-    expect(screen.getByText("Medium")).toBeInTheDocument();
-    expect(screen.getByText("Wide")).toBeInTheDocument();
     expect(screen.getByText("Delay")).toBeInTheDocument();
   });
 
@@ -137,21 +117,6 @@ describe("SettingsPage", () => {
     const select = screen.getByDisplayValue("2s");
     fireEvent.change(select, { target: { value: "5000" } });
     expect(setAutosaveDelay).toHaveBeenCalledWith(5000);
-  });
-
-  it("calls setter when width option is clicked", () => {
-    const setEditorWidth = vi.fn();
-    (useAtom as any).mockImplementation((atom: any) => {
-      const str = atom.toString();
-      if (str === "atom_editorWidth") return ["standard", setEditorWidth];
-      return ["", vi.fn()];
-    });
-
-    render(<SettingsPage />);
-    openEditorSection();
-
-    fireEvent.click(screen.getByText("Narrow"));
-    expect(setEditorWidth).toHaveBeenCalledWith("narrow");
   });
 
   it("navigates back to the editor when back button is clicked", () => {

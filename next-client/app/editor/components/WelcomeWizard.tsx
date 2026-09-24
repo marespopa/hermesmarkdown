@@ -10,8 +10,7 @@ import {
   atom_frontmatterDefaultMode,
   atom_theme,
   type Theme,
-  atom_renderedFontFamily,
-  atom_renderedFontSize,
+  atom_editorFontFamily,
   atom_aiProvider,
   atom_claudeKey,
   atom_geminiKey,
@@ -29,7 +28,7 @@ import Toggle from "@/app/components/Toggle";
 import { testAIConnection } from "@/app/services/ai";
 import { showSuccessToast, showErrorToast } from "@/app/components/Toastr";
 import { SelectControl, SegmentedControl } from "@/app/editor/settings/components/SettingControls";
-import { FONT_SIZES, FONTS } from "@/app/editor/settings/font-options";
+import { FONTS } from "@/app/editor/settings/font-options";
 import FontPicker from "@/app/editor/settings/components/FontPicker";
 import { useFileSystem } from "@/app/hooks/use-file-system";
 import { formatShortcut } from "@/app/utils/platform";
@@ -74,8 +73,7 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
   const [autosaveMode, setAutosaveMode] = useAtom(atom_autosaveMode);
   const [frontmatterDefaultMode, setFrontmatterDefaultMode] = useAtom(atom_frontmatterDefaultMode);
   const [theme, setTheme] = useAtom(atom_theme);
-  const [renderedFontFamily, setRenderedFontFamily] = useAtom(atom_renderedFontFamily);
-  const [renderedFontSize, setRenderedFontSize] = useAtom(atom_renderedFontSize);
+  const [editorFontFamily, setEditorFontFamily] = useAtom(atom_editorFontFamily);
   const [lineNumbers, setLineNumbers] = useAtom(atom_lineNumbers);
   const [vimMode, setVimMode] = useAtom(atom_vimMode);
   const [aiProvider, setAiProvider] = useAtom(atom_aiProvider);
@@ -244,22 +242,15 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
               <HiOutlineColorSwatch size={32} />
             </div>
             <div className="space-y-2">
-              <h2 className="text-ui-title-3 font-bold">Pick your writing font</h2>
+              <h2 className="text-ui-title-3 font-bold">Make the editor feel like paper</h2>
               <p className="text-ui-footnote opacity-60 px-4">
-                This controls the reading typography for the main document. Source markdown keeps its fixed monospace styling for clean editing.
+                Choose a comfortable typeface for writing Markdown. You can change it later in Settings → Typography.
               </p>
             </div>
 
             <div className="w-full text-left">
               <div className="max-h-[40vh] overflow-y-auto">
-                <FontPicker fonts={FONTS} value={renderedFontFamily} onChange={setRenderedFontFamily} />
-              </div>
-            </div>
-
-            <div className="w-full space-y-2 text-left">
-              <label className="text-[11px] font-bold uppercase tracking-wider ml-1 opacity-70 block">Size</label>
-              <div className="rounded-2xl border border-edge p-4 bg-paper-softgray/40 dark:bg-paper-dark/30">
-                <SegmentedControl options={FONT_SIZES} value={renderedFontSize} onChange={setRenderedFontSize} />
+                <FontPicker fonts={FONTS} value={editorFontFamily} onChange={setEditorFontFamily} />
               </div>
             </div>
 

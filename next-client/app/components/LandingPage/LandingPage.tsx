@@ -11,8 +11,8 @@ import Button from "@/app/components/Button/Button.component";
 import dynamic from "next/dynamic";
 import Toast from "@/app/components/Toast";
 import { FiFileText } from "react-icons/fi";
-import { HiMicrophone, HiOutlineMicrophone } from "react-icons/hi";
 import { useGlobalVoiceInput } from "@/app/editor/hooks/use-global-voice-input";
+import EditorWindowHeader from "@/app/editor/components/EditorWindowHeader";
 
 const MarkdownEditor = dynamic(
   () => import("@/app/editor/components/MarkdownEditor"),
@@ -562,33 +562,12 @@ export default function LandingPage() {
             className={`w-full max-w-4xl relative group opacity-0 [animation-fill-mode:forwards] [animation-delay:150ms] ${tryItVisible ? "animate-hero-fade-in" : ""}`}
           >
             <div className="rounded-2xl border border-black/5 dark:border-white/10 overflow-hidden ring-1 ring-black/5 dark:ring-white/5 transition-all duration-500 group-hover:ring-sage/20">
-              <div className="h-10 bg-paper-light dark:bg-paper-dark border-b border-black/5 dark:border-white/10 flex items-center px-4 gap-2">
-                <div className="flex gap-1.5">
-                  <div className="w-3 h-3 rounded-full bg-red-400/20 border border-red-400/30" />
-                  <div className="w-3 h-3 rounded-full bg-amber-400/20 border border-amber-400/30" />
-                  <div className="w-3 h-3 rounded-full bg-green-400/20 border border-green-400/30" />
-                </div>
-                <div className="flex-1 text-ui-footnote font-mono opacity-30 text-center pr-10 overflow-hidden text-ellipsis whitespace-nowrap">
-                  landing_demo.md — hermes_vault
-                </div>
-                {isMounted && isVoiceSupported && (
-                  <button
-                    type="button"
-                    onClick={toggleVoiceListening}
-                    aria-label={isVoiceListening ? "Stop voice input" : "Start voice input"}
-                    aria-pressed={isVoiceListening}
-                    title="Voice input"
-                    className={`shrink-0 w-7 h-7 flex items-center justify-center rounded-lg transition-colors ${
-                      isVoiceListening
-                        ? "text-sage bg-sage/10"
-                        : "text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300"
-                    }`}
-                  >
-                    {isVoiceListening ? <HiMicrophone size={14} /> : <HiOutlineMicrophone size={14} />}
-                  </button>
-                )}
-                {/* Preview removed from demo — always show Source editor */}
-              </div>
+              <EditorWindowHeader
+                title="landing_demo.md — hermes_vault"
+                isVoiceSupported={isMounted && isVoiceSupported}
+                isVoiceListening={isVoiceListening}
+                onToggleVoice={toggleVoiceListening}
+              />
               <div className="h-[400px] md:h-[500px] text-left relative">
                 {isMounted && (
                   <MarkdownEditor

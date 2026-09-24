@@ -56,7 +56,7 @@ describe("WelcomeWizard", () => {
 
     fireEvent.keyDown(window, { key: "Enter" });
 
-    expect(screen.getByText("Pick your writing font")).toBeInTheDocument();
+    expect(screen.getByText("Make the editor feel like paper")).toBeInTheDocument();
   });
 
   it("offers GitHub vault connection during vault setup", () => {
@@ -107,7 +107,7 @@ describe("WelcomeWizard", () => {
 
     expect(screen.getByText("Theme")).toBeInTheDocument();
 
-    // Steps 1-7 (Theme, Pick your writing font, Line Numbers, Vim Mode,
+    // Steps 1-7 (Theme, paper-like font, Line Numbers, Vim Mode,
     // Autosave, Frontmatter View, AI Features) each advance one step at a time
     // via their own "Continue" button before reaching the final step (8).
     for (let i = 0; i < 7; i++) {

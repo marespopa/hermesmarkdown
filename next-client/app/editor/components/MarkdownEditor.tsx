@@ -9,7 +9,6 @@ import { useAtom } from "jotai";
 import { savePastedImage } from "@/app/utils/paste-image";
 import { EditorView } from "@codemirror/view";
 import { HiOutlineCalendar, HiChevronDown, HiChevronRight, HiOutlineArrowsExpand } from "react-icons/hi";
-import FrontmatterPanel from "./FrontmatterPanel";
 import Button from "../../components/Button";
 import Input from "../../components/Input";
 import DialogModal from "../../components/DialogModal/DialogModal";
@@ -21,7 +20,6 @@ import { WorkflowPill } from "./WorkflowPill";
 import { TableCallout } from "./TableCallout";
 import { PILL_CONTAINER_CLASSES, TEMPLATES } from "./constants";
 import { applyTemplate } from "../codemirror/slash-menu";
-import { FM_REGEX } from "@/app/utils/frontmatter-utils";
 import useKeyboardInset from "@/app/hooks/use-keyboard-inset";
 import { useDialog } from "@/app/hooks/use-dialog";
 import { useFileSystem } from "@/app/hooks/use-file-system";
@@ -70,18 +68,9 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
   const filePath = props.filePath || "draft";
   const [editorView, setEditorView] = useState<EditorView | null>(null);
 
-  // Frontmatter is entirely owned by <FrontmatterPanel/> — it never appears
-  // in the CM6 doc, so the editable value always excludes it.
-  const fmResult = FM_REGEX.exec(props.value);
-  const rawFrontmatter = fmResult ? fmResult[0] : null;
-  const editorValue = rawFrontmatter ? props.value.slice(rawFrontmatter.length) : props.value;
-
-  const rawFmRef = useRef<string | null>(null);
-  rawFmRef.current = rawFrontmatter;
-
+  const editorValue = props.value;
   const editorOnChange = useCallback((newVal: string) => {
-    props.onChange((rawFmRef.current ?? "") + newVal);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    props.onChange(newVal);
   }, [props.onChange]);
 
   const { fontFamily, displayFontSize, lineHeight, windowWidth, paneRef, maxContentWidth, contentPaddingX, noWrapPaddingX } =
@@ -302,9 +291,8 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
   useEffect(() => {
     if (!editorView || !pendingScrollTarget || pendingScrollTarget.path !== filePath) return;
 
-    const frontmatterLines = rawFrontmatter ? rawFrontmatter.split(/\r?\n/).length - 1 : 0;
     const lineNumber = Math.min(
-      Math.max(1, pendingScrollTarget.line - frontmatterLines + 1),
+      Math.max(1, pendingScrollTarget.line),
       editorView.state.doc.lines,
     );
     const line = editorView.state.doc.line(lineNumber);
@@ -326,7 +314,7 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
       );
     });
     setPendingScrollTarget(null);
-  }, [editorView, filePath, pendingScrollTarget, rawFrontmatter, setPendingScrollTarget]);
+  }, [editorView, filePath, pendingScrollTarget, setPendingScrollTarget]);
 
   // The global voice-input hook (use-global-voice-input.ts) is a single
   // instance shared by the whole app, not one per pane. It inserts a
@@ -364,27 +352,17 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
   return (
     <div
       ref={paneRef}
-      className="relative w-full h-full overflow-auto bg-white dark:bg-paper-dark cursor-text"
+      className={`editor-canvas relative w-full h-full overflow-auto cursor-text ${
+        props.isSplit ? "editor-canvas-split" : ""
+      }`}
       translate="no"
     >
       <div
-        className="mx-auto w-full pt-1"
-        style={{ fontFamily, maxWidth: maxContentWidth, paddingLeft: contentPaddingX, paddingRight: contentPaddingX }}
-      >
-        <FrontmatterPanel
-          filePath={filePath}
-          content={props.value}
-          onChange={props.onChange}
-          fontFamily={fontFamily}
-          displayFontSize={displayFontSize}
-          isMobile={isMobile}
-        />
-      </div>
-
-      <div
-        className={`editor-container relative min-h-full antialiased normal-nums [font-variant-ligatures:none] [font-feature-settings:'liga'_0,'calt'_0]
+        className={`editor-sheet editor-container relative min-h-full antialiased normal-nums [font-variant-ligatures:none] [font-feature-settings:'liga'_0,'calt'_0]
           transition-[padding,max-width] duration-700 [transition-timing-function:cubic-bezier(0.4,0,0.2,1)]
-          pt-3 pb-12
+          ${props.isSplit
+            ? "mt-3 mb-5 pt-4 pb-8 sm:mt-4 sm:mb-7 sm:pt-5"
+            : "mt-6 mb-10 pt-6 pb-12 sm:mt-8 sm:mb-14 sm:pt-8"}
           ${wordWrap ? "mx-auto w-full" : "w-max min-w-full"}
           text-ui-body
         `}
