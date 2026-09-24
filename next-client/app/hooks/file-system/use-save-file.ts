@@ -14,6 +14,8 @@ import {
   atom_openFiles,
   atom_saveStatus,
   atom_isCloudVault,
+  atom_liveHandles,
+  contentStore,
 } from "@/app/atoms/atoms";
 import { atom_autosaveMode, atom_snapshotOnConflict } from "@/app/atoms/ui-atoms";
 import { atom_fileMetadata } from "@/app/atoms/metadata";
@@ -21,7 +23,7 @@ import { extractTasks } from "@/app/utils/taskExtractor";
 
 export function useSaveFile() {
   const [vaultHandle] = useAtom(atom_vaultHandle);
-  const [activeFileHandle, setActiveFileHandle] = useAtom(atom_activeFileHandle);
+  const [activeFileHandle] = useAtom(atom_activeFileHandle);
   const [activeFilePath, setActiveFilePath] = useAtom(atom_activeFilePath);
   const [, setFileName] = useAtom(atom_fileName);
   const [, setOpenFiles] = useAtom(atom_openFiles);
@@ -44,6 +46,7 @@ export function useSaveFile() {
     ): Promise<boolean> => {
       const fileToSave = handle || activeFileHandle;
       if (!fileToSave) return false;
+      const sourcePath = providedPath || activeFilePath || "draft";
 
       // Resolve the path early to provide feedback on the correct tab
       let targetPath = providedPath;
@@ -133,15 +136,8 @@ export function useSaveFile() {
 
         // Secondary task: Update metadata.
         const updateMetadata = async (retries = 3) => {
-          const wasActive = !providedPath || providedPath === (activeFilePath || "draft");
           try {
             const updatedFile = await fileToSave.getFile();
-            if (wasActive) {
-              setLastSavedContent(toWrite);
-              setFileLastModified(updatedFile.lastModified);
-              setFileConflict(null);
-            }
-            
             if (targetPath) {
               setOpenFiles((prev) => {
                 if (!prev[targetPath!]) return prev;
@@ -150,9 +146,15 @@ export function useSaveFile() {
                   [targetPath!]: {
                     ...prev[targetPath!],
                     lastSavedContent: toWrite,
+                    lastModified: updatedFile.lastModified,
+                    conflict: undefined,
                   }
                 };
               });
+            } else if ((contentStore.get(atom_activeFilePath) || "draft") === sourcePath) {
+              setLastSavedContent(toWrite);
+              setFileLastModified(updatedFile.lastModified);
+              setFileConflict(null);
             }
             return true;
           } catch {
@@ -160,7 +162,7 @@ export function useSaveFile() {
               await new Promise(r => setTimeout(r, 100 * (4 - retries)));
               return updateMetadata(retries - 1);
             }
-            if (wasActive) {
+            if (!targetPath && (contentStore.get(atom_activeFilePath) || "draft") === sourcePath) {
               setLastSavedContent(toWrite);
             }
             if (targetPath) {
@@ -173,19 +175,12 @@ export function useSaveFile() {
           }
         };
 
-        updateMetadata();
+        await updateMetadata();
 
         // Handle update
         if (handle) {
-          const wasActive = !providedPath || providedPath === (activeFilePath || "draft");
-
-          if (wasActive) {
-            setActiveFileHandle(handle);
-            setFileName(handle.name.replace(".md", ""));
-          }
-
-          let finalPath = handle.name;
-          if (vaultHandle) {
+          let finalPath = providedPath || handle.name;
+          if (!providedPath && vaultHandle) {
             try {
               const pathParts = await (vaultHandle as any).resolve(handle);
               if (pathParts) {
@@ -220,8 +215,11 @@ export function useSaveFile() {
             return next;
           });
 
-          if (wasActive) {
+          contentStore.set(atom_liveHandles(finalPath), handle);
+
+          if ((contentStore.get(atom_activeFilePath) || "draft") === sourcePath) {
             setActiveFilePath(finalPath);
+            setFileName(handle.name.replace(".md", ""));
           }
         }
 
@@ -268,9 +266,8 @@ export function useSaveFile() {
               const freshHandle = await current.getFileHandle(parts[parts.length - 1], { create: true });
               handleToRetry = freshHandle;
               
-              // Only update active handle if we successfully got a fresh one
-              if (!handle || handle === activeFileHandle) {
-                setActiveFileHandle(freshHandle);
+              if (targetPath) {
+                contentStore.set(atom_liveHandles(targetPath), freshHandle);
               }
             } catch (retryErr: any) {
               // If NotFoundError, the sync client might have temporarily deleted it. We'll retry next loop.
@@ -369,7 +366,6 @@ export function useSaveFile() {
       setLastSavedContent,
       setFileLastModified,
       setFileConflict,
-      setActiveFileHandle,
       setFileName,
       vaultHandle,
       setActiveFilePath,

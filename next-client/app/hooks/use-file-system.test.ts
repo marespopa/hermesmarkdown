@@ -5,6 +5,7 @@ import { useDialog } from "./use-dialog";
 import { useAtom, useSetAtom, useAtomValue } from "jotai";
 import {
   atom_currentDirectoryHandle,
+  atom_fileMetadata,
   atom_fileSystemVersion,
   atom_openFiles,
   atom_vaultFiles,
@@ -54,14 +55,19 @@ vi.mock("react-hot-toast", () => ({
 
 describe("useFileSystem - createFile conflict resolution", () => {
   const setVaultFiles = vi.fn();
-  const mockVaultHandle = {
+  let fileMetadata: Record<string, any>;
+  const setFileMetadata = vi.fn((update: Record<string, any> | ((prev: Record<string, any>) => Record<string, any>)) => {
+    fileMetadata = typeof update === "function" ? update(fileMetadata) : update;
+  });
+  const mockVaultHandle: any = {
     name: "Vault",
     getDirectoryHandle: vi.fn(),
     getFileHandle: vi.fn(),
-    values: vi.fn(async function* () {
+    values: vi.fn(async function* (): AsyncGenerator<any> {
       yield* [];
     }),
     isSameEntry: vi.fn().mockResolvedValue(true),
+    resolve: vi.fn(),
   };
 
   const mockWritable = {
@@ -71,6 +77,7 @@ describe("useFileSystem - createFile conflict resolution", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    fileMetadata = {};
     (useAtom as any).mockImplementation((atom: any) => {
       if (atom === atom_vaultHandle) return [mockVaultHandle, vi.fn()];
       if (atom === atom_currentDirectoryHandle) return [mockVaultHandle, vi.fn()];
@@ -78,6 +85,7 @@ describe("useFileSystem - createFile conflict resolution", () => {
       if (atom === atom_openFiles) return [{}, vi.fn()];
       if (atom === atom_workspaceLayout) return [{ rootContainer: { id: "p1", activeFilePath: "draft" } }, vi.fn()];
       if (atom === atom_fileSystemVersion) return [0, vi.fn()];
+      if (atom === atom_fileMetadata) return [fileMetadata, setFileMetadata];
       return [null, vi.fn()];
     });
     (useSetAtom as any).mockReturnValue(vi.fn());
@@ -205,5 +213,79 @@ describe("useFileSystem - createFile conflict resolution", () => {
     expect(mockVaultHandle.getFileHandle).toHaveBeenNthCalledWith(1, "Meeting notes.md", { create: false });
     expect(mockVaultHandle.getFileHandle).toHaveBeenNthCalledWith(2, "Meeting notes.md", { create: true });
     expect(mockWritable.write).toHaveBeenCalledWith("\n");
+  });
+
+  it("refreshes the visible directory and full vault after creating in another folder", async () => {
+    const newFileHandle = {
+      kind: "file",
+      name: "nested.md",
+      createWritable: vi.fn().mockResolvedValue(mockWritable),
+      getFile: vi.fn().mockResolvedValue({
+        lastModified: Date.now(),
+        text: vi.fn().mockResolvedValue("content"),
+      }),
+    };
+    const targetDirectory = {
+      kind: "directory",
+      name: "nested",
+      getFileHandle: vi.fn()
+        .mockRejectedValueOnce({ name: "NotFoundError" })
+        .mockResolvedValueOnce(newFileHandle),
+      values: vi.fn(async function* () {
+        yield* [];
+      }),
+    };
+
+    mockVaultHandle.resolve = vi.fn().mockResolvedValue(["nested"]);
+
+    const { result } = renderHook(() => useFileSystem());
+
+    await result.current.createFile("nested", "content", targetDirectory as any);
+
+    expect(mockVaultHandle.values).toHaveBeenCalledTimes(2);
+    expect(targetDirectory.values).not.toHaveBeenCalled();
+  });
+
+  it("replaces stale metadata handles and clears removed files during a full sync", async () => {
+    const staleHandle = { name: "note.md" };
+    const freshHandle = {
+      kind: "file",
+      name: "note.md",
+      getFile: vi.fn().mockResolvedValue({
+        lastModified: 2,
+        text: vi.fn().mockResolvedValue("fresh"),
+      }),
+    };
+    fileMetadata = {
+      "note.md": {
+        path: "note.md",
+        name: "note.md",
+        handle: staleHandle,
+        tags: ["kept"],
+      },
+      "removed.md": {
+        path: "removed.md",
+        name: "removed.md",
+        handle: { name: "removed.md" },
+      },
+    };
+    mockVaultHandle.values.mockImplementationOnce(async function* () {
+      yield freshHandle;
+    });
+
+    const { result } = renderHook(() => useFileSystem());
+
+    await result.current.indexVaultTags();
+
+    expect(fileMetadata["note.md"].handle).toBe(freshHandle);
+    expect(fileMetadata["note.md"].tags).toEqual(["kept"]);
+    expect(fileMetadata).not.toHaveProperty("removed.md");
+
+    mockVaultHandle.values.mockImplementationOnce(async function* () {
+      yield* [];
+    });
+    await result.current.indexVaultTags();
+
+    expect(fileMetadata).toEqual({});
   });
 });

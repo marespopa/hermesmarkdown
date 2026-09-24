@@ -111,8 +111,8 @@ export function useCreateItem({ scanVault, indexVaultTags, openFile }: UseCreate
           }
         });
 
-        await scanVault(targetDir);
-        await indexVaultTags(targetDir);
+        await scanVault(vaultHandle || currentDirectoryHandle || targetDir);
+        await indexVaultTags();
 
         // Calculate path for opening
         let path = fileName;
@@ -180,12 +180,19 @@ export function useCreateItem({ scanVault, indexVaultTags, openFile }: UseCreate
 
       if (!newFileHandle) throw new Error("Failed to resolve file handle");
       await withRetry(async () => {
-        const writable = await (newFileHandle as any).createWritable();
-        await writable.write("\n");
-        await writable.close();
+        let writable: FileSystemWritableFileStream | null = null;
+        try {
+          const stream = await (newFileHandle as any).createWritable() as FileSystemWritableFileStream;
+          writable = stream;
+          await stream.write("\n");
+          await stream.close();
+          writable = null;
+        } finally {
+          if (writable) await writable.close();
+        }
       });
-      await scanVault(targetDir);
-      await indexVaultTags(targetDir);
+      await scanVault(vaultHandle || currentDirectoryHandle || targetDir);
+      await indexVaultTags();
 
       let path = fileName;
       if (vaultHandle) {
@@ -208,7 +215,7 @@ export function useCreateItem({ scanVault, indexVaultTags, openFile }: UseCreate
       toast.error("Failed to create file");
       return null;
     }
-  }, [chooseTargetDirectory, scanVault, indexVaultTags, vaultHandle]);
+  }, [chooseTargetDirectory, scanVault, indexVaultTags, vaultHandle, currentDirectoryHandle]);
 
   const createNewFile = useCallback(async () => {
     if (!vaultHandle) return;
