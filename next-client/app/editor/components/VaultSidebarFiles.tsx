@@ -279,6 +279,11 @@ function FileRow({
           e.dataTransfer.effectAllowed = "move";
         }}
         onDragEnd={() => onDragEndEntry?.()}
+        onDoubleClick={(e) => {
+          e.stopPropagation();
+          openFile(entry.handle as FileSystemFileHandle, entryPath);
+          if (onClose && window.innerWidth < 1024) onClose();
+        }}
         tabIndex={renaming ? undefined : -1}
         ref={rowRef}
         className={`mx-1 flex items-stretch transition-all duration-200 text-ui-subhead pr-8 ${

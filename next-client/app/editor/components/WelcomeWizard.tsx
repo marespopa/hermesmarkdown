@@ -6,7 +6,6 @@ import {
   atom_hasCompletedOnboarding,
   atom_isWizardOpen,
   atom_welcomeWizardStep,
-    atom_userName,
   atom_autosaveMode,
   atom_frontmatterDefaultMode,
   atom_theme,
@@ -53,7 +52,7 @@ import {
 import { useCreateVault } from "@/app/hooks/file-system/use-create-vault";
 import CreateVaultSubSteps from "./CreateVaultSubSteps";
 
-const TOTAL_STEPS = 9;
+const TOTAL_STEPS = 8;
 
 const THEME_OPTIONS: { label: string; value: Theme }[] = [
   { label: "Light", value: "light" },
@@ -65,7 +64,6 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
   const [hasCompleted, setHasCompleted] = useAtom(atom_hasCompletedOnboarding);
   const [isWizardOpen, setIsWizardOpen] = useAtom(atom_isWizardOpen);
   const [step, setStep] = useAtom(atom_welcomeWizardStep);
-  const [userName, setUserName] = useAtom(atom_userName);
   const [isMounted, setIsMounted] = useState(false);
   const [, setGitHubVaultDialogOpen] = useAtom(atom_githubVaultDialogOpen);
 
@@ -93,8 +91,8 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
   }, [initialStep, setStep]);
 
   useEffect(() => {
-    if (step === 1 && vaultHandle) {
-      setStep(2);
+    if (step === 0 && vaultHandle) {
+      setStep(1);
     }
   }, [step, vaultHandle, setStep]);
 
@@ -112,12 +110,7 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
         return;
       }
 
-      if (step === 0) {
-        if (!userName.trim()) return;
-        event.preventDefault();
-        setUserName(userName.trim());
-        setStep(1);
-      } else if (step >= 2 && step < TOTAL_STEPS) {
+      if (step >= 1 && step < TOTAL_STEPS) {
         event.preventDefault();
         setStep(step + 1);
       } else if (step === TOTAL_STEPS) {
@@ -130,7 +123,7 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [setHasCompleted, setIsWizardOpen, setStep, setUserName, step, userName]);
+  }, [setHasCompleted, setIsWizardOpen, setStep, step]);
 
   if (!showWizard) return null;
 
@@ -147,54 +140,6 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
   const renderStep = () => {
     switch (step) {
       case 0:
-        return (
-          <div className="flex flex-col items-center text-center space-y-7 py-4">
-            <div className="w-20 h-20 bg-sage/10 rounded-3xl flex items-center justify-center text-sage relative">
-              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                <polyline points="14 2 14 8 20 8" />
-                <line x1="16" y1="13" x2="8" y2="13" />
-                <line x1="16" y1="17" x2="8" y2="17" />
-                <polyline points="10 9 9 9 8 9" />
-              </svg>
-              <span className="absolute -top-1 -right-1 w-5 h-5 bg-sage rounded-full flex items-center justify-center">
-                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                  <polyline points="20 6 9 17 4 12" />
-                </svg>
-              </span>
-            </div>
-            <div className="space-y-2.5">
-              <h2 className="text-ui-title-2 font-bold tracking-tight">Welcome to HermesMarkdown</h2>
-              <p className="text-ui-subhead opacity-60 px-2 leading-relaxed">
-                Plain <code className="text-[0.85em] bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded">.md</code> files, structured so your AI agents know exactly what to read.
-              </p>
-            </div>
-              <div className="w-full space-y-2 text-left">
-                <label htmlFor="welcome-user-name" className="text-[11px] font-bold uppercase tracking-wider ml-1 opacity-70 block">
-                  What should we call you?
-                </label>
-                <Input
-                  name="welcome-user-name"
-                  value={userName}
-                  handleChange={(event) => setUserName(event.target.value)}
-                  placeholder="Your name"
-                />
-              </div>
-              <Button
-                variant="primary"
-                onClick={() => {
-                  setUserName(userName.trim());
-                  setStep(1);
-                }}
-                disabled={!userName.trim()}
-                className="w-full h-12 rounded-2xl text-ui-footnote font-bold"
-              >
-              Set up vault
-            </Button>
-          </div>
-        );
-
-      case 1:
         if (createVaultFlow.subStep) {
           return <CreateVaultSubSteps {...createVaultFlow} />;
         }
@@ -269,7 +214,7 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
           </div>
         );
 
-      case 2:
+      case 1:
         return (
           <div className="flex flex-col items-center text-center space-y-6 py-4">
             <div className="w-16 h-16 bg-sage/10 rounded-2xl flex items-center justify-center text-sage">
@@ -286,13 +231,13 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
               <SegmentedControl options={THEME_OPTIONS} value={theme} onChange={setTheme} />
             </div>
 
-            <Button variant="primary" onClick={() => setStep(3)} className="w-full h-12 rounded-2xl text-ui-footnote font-bold">
+            <Button variant="primary" onClick={() => setStep(2)} className="w-full h-12 rounded-2xl text-ui-footnote font-bold">
               Continue
             </Button>
           </div>
         );
 
-      case 3:
+      case 2:
         return (
           <div className="flex flex-col items-center text-center space-y-6 py-4">
             <div className="w-16 h-16 bg-sage/10 rounded-2xl flex items-center justify-center text-sage">
@@ -318,13 +263,13 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
               </div>
             </div>
 
-            <Button variant="primary" onClick={() => setStep(4)} className="w-full h-12 rounded-2xl text-ui-footnote font-bold">
+            <Button variant="primary" onClick={() => setStep(3)} className="w-full h-12 rounded-2xl text-ui-footnote font-bold">
               Continue
             </Button>
           </div>
         );
 
-      case 4:
+      case 3:
         return (
           <div className="flex flex-col items-center text-center space-y-6 py-4">
             <div className="w-16 h-16 bg-sage/10 rounded-2xl flex items-center justify-center text-sage">
@@ -343,13 +288,13 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
               <Toggle variant="soft" active={lineNumbers} onChange={setLineNumbers} />
             </div>
 
-            <Button variant="primary" onClick={() => setStep(5)} className="w-full h-12 rounded-2xl text-ui-footnote font-bold">
+            <Button variant="primary" onClick={() => setStep(4)} className="w-full h-12 rounded-2xl text-ui-footnote font-bold">
               Continue
             </Button>
           </div>
         );
 
-      case 5:
+      case 4:
         return (
           <div className="flex flex-col items-center text-center space-y-6 py-4">
             <div className="w-16 h-16 bg-sage/10 rounded-2xl flex items-center justify-center text-sage">
@@ -367,13 +312,13 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
               <Toggle variant="soft" active={vimMode} onChange={setVimMode} />
             </div>
 
-            <Button variant="primary" onClick={() => setStep(6)} className="w-full h-12 rounded-2xl text-ui-footnote font-bold">
+            <Button variant="primary" onClick={() => setStep(5)} className="w-full h-12 rounded-2xl text-ui-footnote font-bold">
               Continue
             </Button>
           </div>
         );
 
-      case 6:
+      case 5:
         return (
           <div className="flex flex-col items-center text-center space-y-6 py-4">
             <div className="w-16 h-16 bg-sage/10 rounded-2xl flex items-center justify-center text-sage">
@@ -397,13 +342,13 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
               </div>
             </div>
 
-            <Button variant="primary" onClick={() => setStep(7)} className="w-full h-12 rounded-2xl text-ui-footnote font-bold">
+            <Button variant="primary" onClick={() => setStep(6)} className="w-full h-12 rounded-2xl text-ui-footnote font-bold">
               Continue
             </Button>
           </div>
         );
 
-      case 7:
+      case 6:
         return (
           <div className="flex flex-col items-center text-center space-y-6 py-4">
             <div className="w-16 h-16 bg-sage/10 rounded-2xl flex items-center justify-center text-sage">
@@ -443,13 +388,13 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
               </div>
             </div>
 
-            <Button variant="primary" onClick={() => setStep(8)} className="w-full h-12 rounded-2xl text-ui-footnote font-bold">
+            <Button variant="primary" onClick={() => setStep(7)} className="w-full h-12 rounded-2xl text-ui-footnote font-bold">
               Continue
             </Button>
           </div>
         );
 
-      case 8: {
+      case 7: {
         const key = aiProvider === "gemini" ? geminiKey : claudeKey;
         const setKey = aiProvider === "gemini" ? setGeminiKey : setClaudeKey;
         return (
@@ -520,14 +465,14 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
               )}
             </div>
 
-            <Button variant="primary" onClick={() => setStep(9)} className="w-full h-11 rounded-2xl text-ui-footnote font-bold shrink-0">
+            <Button variant="primary" onClick={() => setStep(8)} className="w-full h-11 rounded-2xl text-ui-footnote font-bold shrink-0">
               Continue
             </Button>
           </div>
         );
       }
 
-      case 9:
+      case 8:
         return (
           <div className="flex flex-col items-center text-center space-y-6 py-4">
             <div className="w-16 h-16 bg-sage rounded-2xl flex items-center justify-center text-white">
@@ -570,11 +515,11 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
     }
   };
 
-  // Step 2 auto-advances from step 1 once a vault is connected, so going back there
+  // Step 1 auto-advances from step 0 once a vault is connected, so going back there
   // would immediately bounce forward again — disable the back arrow on that landing.
   // Within step 1's creation sub-flow, the back arrow navigates sub-steps instead.
-  const inCreationSubStep = step === 1 && !!createVaultFlow.subStep && createVaultFlow.subStep !== "installing";
-  const canGoBack = inCreationSubStep || (step > 0 && step !== 2);
+  const inCreationSubStep = step === 0 && !!createVaultFlow.subStep && createVaultFlow.subStep !== "installing";
+  const canGoBack = inCreationSubStep || (step > 0 && step !== 1);
 
   const handleBack = () => {
     if (inCreationSubStep) {

@@ -25,7 +25,7 @@ export function usePaneFileActions(leaf: PanelLeaf | null) {
   const [, closeTab] = useAtom(atom_closeTab);
   const vaultHandle = useAtomValue(atom_vaultHandle);
   const liveHandle = useAtomValue(atom_liveHandles(filePath));
-  const { saveFile, exportFile, createFile } = useFileSystem();
+  const { saveFile, exportFile, createFile, chooseTargetDirectory } = useFileSystem();
   const dialog = useDialog();
 
   const handleExport = useCallback(async () => {
@@ -67,18 +67,21 @@ export function usePaneFileActions(leaf: PanelLeaf | null) {
 
     // Draft saved to the vault for the first time → prompt for a name and create.
     if (vaultHandle) {
+      const targetDir = await chooseTargetDirectory();
+      if (!targetDir) return;
+
       const fileState = openFiles[filePath];
       const fileName = fileState?.fileName || "untitled";
       const name = await dialog.prompt("Enter file name:", fileName.replace(".md", ""), "Save to Vault");
       if (name) {
-        await createFile(name, content);
+        await createFile(name, content, targetDir);
       }
       return;
     }
 
     // No vault → download.
     await handleExport();
-  }, [content, liveHandle, filePath, vaultHandle, saveFile, openFiles, dialog, createFile, handleExport]);
+  }, [content, liveHandle, filePath, vaultHandle, saveFile, openFiles, dialog, createFile, chooseTargetDirectory, handleExport]);
 
   const handleCopy = useCallback(async () => {
     try {

@@ -191,6 +191,37 @@ export default function LiteEditor() {
     return () => clearTimeout(timer);
   }, []);
 
+  const chooseFileDestination = useCallback(async (): Promise<FileSystemDirectoryHandle | null> => {
+    if (!vaultHandle) return null;
+
+    const subDirs = vaultFiles.filter(
+      (file): file is FileSystemDirectoryHandle => (file as any).kind === "directory"
+    );
+    const folderOptions = [
+      { label: `/ ${vaultHandle.name} (root)`, value: "__root__" },
+      ...subDirs.map((directory) => ({ label: directory.name, value: directory.name })),
+      { label: "+ New Folder", value: "__new_folder__" },
+    ];
+    const chosenFolder = await dialog.select("Choose a folder for the new file:", folderOptions, "New File");
+    if (!chosenFolder) return null;
+
+    if (chosenFolder === "__new_folder__") {
+      const folderName = await dialog.prompt("Enter folder name:", "", "New Folder");
+      if (!folderName?.trim()) return null;
+      try {
+        const targetDir = await withRetry(() => vaultHandle.getDirectoryHandle(folderName.trim(), { create: true }));
+        await scanVault(vaultHandle);
+        return targetDir;
+      } catch {
+        toast.error("Failed to create folder");
+        return null;
+      }
+    }
+
+    if (chosenFolder === "__root__") return vaultHandle;
+    return subDirs.find((directory) => directory.name === chosenFolder) ?? null;
+  }, [dialog, scanVault, vaultFiles, vaultHandle]);
+
   const handleSave = useCallback(async () => {
     if (!content.trim()) return;
     
@@ -198,14 +229,17 @@ export default function LiteEditor() {
       await saveFile(content);
     } else if (vaultHandle) {
       // Prompt for name if in a vault but no handle yet
+      const targetDir = await chooseFileDestination();
+      if (!targetDir) return;
+
       const name = await dialog.prompt("Enter file name:", fileName.replace(".md", ""), "Save to Vault");
       if (name) {
-        await createFile(name, content);
+        await createFile(name, content, targetDir);
       }
     } else {
       await exportFile(content, fileName);
     }
-  }, [content, activeFileHandle, vaultHandle, saveFile, exportFile, fileName, dialog, createFile]);
+  }, [content, activeFileHandle, vaultHandle, saveFile, exportFile, fileName, dialog, createFile, chooseFileDestination]);
 
   const handleSyncGitHub = useCallback(async (message: string) => {
     if (!vaultHandle || vaultDescriptor?.kind !== "github") {
@@ -376,37 +410,6 @@ export default function LiteEditor() {
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [activateWorkspaceTab, closeTabWithAutosave, flush, isAiConfigured, setAiBuilderRequest, mobileLeaf.activeFilePath, vimMode, isVoiceSupported, toggleVoiceListening, openCommandPalette, workspaceTabs, navigateWithGuard]);
-
-  const chooseFileDestination = useCallback(async (): Promise<FileSystemDirectoryHandle | null> => {
-    if (!vaultHandle) return null;
-
-    const subDirs = vaultFiles.filter(
-      (file): file is FileSystemDirectoryHandle => (file as any).kind === "directory"
-    );
-    const folderOptions = [
-      { label: `/ ${vaultHandle.name} (root)`, value: "__root__" },
-      ...subDirs.map((directory) => ({ label: directory.name, value: directory.name })),
-      { label: "+ New Folder", value: "__new_folder__" },
-    ];
-    const chosenFolder = await dialog.select("Choose a folder for the new file:", folderOptions, "New File");
-    if (!chosenFolder) return null;
-
-    if (chosenFolder === "__new_folder__") {
-      const folderName = await dialog.prompt("Enter folder name:", "", "New Folder");
-      if (!folderName?.trim()) return null;
-      try {
-        const targetDir = await withRetry(() => vaultHandle.getDirectoryHandle(folderName.trim(), { create: true }));
-        await scanVault(vaultHandle);
-        return targetDir;
-      } catch {
-        toast.error("Failed to create folder");
-        return null;
-      }
-    }
-
-    if (chosenFolder === "__root__") return vaultHandle;
-    return subDirs.find((directory) => directory.name === chosenFolder) ?? null;
-  }, [dialog, scanVault, vaultFiles, vaultHandle]);
 
   const resetEditor = useCallback(() => {
     setContent("");

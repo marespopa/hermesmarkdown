@@ -167,9 +167,9 @@ describe("useFileSystem - createFile conflict resolution", () => {
     expect(handle).toBe(mockFileHandle);
   });
 
-  it("selects a destination and creates an empty untitled file", async () => {
+  it("prompts for a name after selecting a destination", async () => {
     const mockFileHandle = {
-      name: "Untitled.md",
+      name: "Meeting notes.md",
       createWritable: vi.fn().mockResolvedValue(mockWritable),
       getFile: vi.fn().mockResolvedValue({
         lastModified: Date.now(),
@@ -177,7 +177,7 @@ describe("useFileSystem - createFile conflict resolution", () => {
         text: vi.fn().mockResolvedValue(""),
       }),
     };
-    const prompt = vi.fn();
+    const prompt = vi.fn().mockResolvedValue("  Meeting notes  ");
     const select = vi.fn().mockResolvedValue("__root__");
     (useDialog as any).mockReturnValue({
       prompt,
@@ -201,9 +201,9 @@ describe("useFileSystem - createFile conflict resolution", () => {
       ],
       "New File",
     );
-    expect(mockVaultHandle.getFileHandle).toHaveBeenNthCalledWith(1, "Untitled.md", { create: false });
-    expect(mockVaultHandle.getFileHandle).toHaveBeenNthCalledWith(2, "Untitled.md", { create: true });
+    expect(prompt).toHaveBeenCalledWith("Enter file name:", "Untitled", "New File");
+    expect(mockVaultHandle.getFileHandle).toHaveBeenNthCalledWith(1, "Meeting notes.md", { create: false });
+    expect(mockVaultHandle.getFileHandle).toHaveBeenNthCalledWith(2, "Meeting notes.md", { create: true });
     expect(mockWritable.write).toHaveBeenCalledWith("\n");
-    expect(prompt).not.toHaveBeenCalled();
   });
 });
