@@ -191,6 +191,15 @@ export function computeMarkdownDecorations(state: EditorState): DecorationSet {
           isClosingLine ? "cm-frontmatter-end" : "",
         ].filter(Boolean).join(" "),
       });
+      if (i > 1 && !isClosingLine) {
+        const field = /^(\s*)([A-Za-z_][\w-]*)(\s*:)/.exec(text);
+        if (field) {
+          const keyFrom = base + field[1].length;
+          const keyTo = keyFrom + field[2].length;
+          mark(ranges, keyFrom, keyTo, "cm-frontmatter-key");
+          mark(ranges, keyTo, base + field[0].length, "cm-frontmatter-separator");
+        }
+      }
       if (isClosingLine) isInsideFrontmatter = false;
     }
 

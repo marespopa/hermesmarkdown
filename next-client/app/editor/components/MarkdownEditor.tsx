@@ -183,7 +183,7 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
       return;
     }
 
-    const frontmatter = '---\ntitle: \nstatus: draft\ntags: []\n---\n\n';
+    const frontmatter = '---\ntitle: \ntags: []\n---\n\n';
     const titleLineEnd = frontmatter.indexOf("title: ") + "title: ".length;
     view.dispatch({
       changes: { from: 0, insert: frontmatter },

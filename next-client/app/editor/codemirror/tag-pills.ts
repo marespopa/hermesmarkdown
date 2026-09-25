@@ -11,6 +11,12 @@ export interface TagMatch {
   kind: "workflow" | "todo" | "custom";
 }
 
+export interface FrontmatterTagList {
+  from: number;
+  to: number;
+  tags: TagMatch[];
+}
+
 function parseTagName(value: string): string | null {
   const cleaned = value.trim().replace(/^['"]|['"]$/g, "").replace(/^#/, "");
   if (!cleaned || !/^[A-Za-z0-9_-]+(?:\/[A-Za-z0-9_-]+)*$/.test(cleaned)) return null;
@@ -55,6 +61,47 @@ function collectFrontmatterTagMatchesForLine(line: string, lineStart: number): T
   }
 
   return matches;
+}
+
+function frontmatterTagListForLine(line: string, lineStart: number): FrontmatterTagList | null {
+  const tagsLine = line.match(/^\s*tags\s*:\s*(.*)$/);
+  if (!tagsLine) return null;
+
+  const value = tagsLine[1];
+  const valueStart = lineStart + tagsLine[0].indexOf(value);
+  const listText = value.trim();
+  if (!listText) return null;
+  const tags = collectFrontmatterTagMatchesForLine(line, lineStart);
+  if (listText !== "[]" && !tags.length) return null;
+
+  const from = valueStart + value.indexOf(listText);
+  return {
+    from,
+    to: from + listText.length,
+    tags,
+  };
+}
+
+export function collectFrontmatterTagLists(doc: string): FrontmatterTagList[] {
+  const lists: FrontmatterTagList[] = [];
+  const lines = doc.split("\n");
+  let lineStart = 0;
+  let inFrontmatter = false;
+
+  for (let i = 0; i < lines.length; i += 1) {
+    const line = lines[i];
+    if (i === 0 && /^---\s*$/.test(line)) {
+      inFrontmatter = true;
+    } else if (inFrontmatter && /^---\s*$/.test(line)) {
+      inFrontmatter = false;
+    } else if (inFrontmatter) {
+      const list = frontmatterTagListForLine(line, lineStart);
+      if (list) lists.push(list);
+    }
+    lineStart += line.length + 1;
+  }
+
+  return lists;
 }
 
 export function collectTagMatches(doc: string): TagMatch[] {
@@ -141,12 +188,66 @@ class TagPillWidget extends WidgetType {
   }
 }
 
+class FrontmatterTagListWidget extends WidgetType {
+  constructor(private readonly list: FrontmatterTagList) {
+    super();
+  }
+
+  eq(other: FrontmatterTagListWidget) {
+    return other.list.from === this.list.from
+      && other.list.to === this.list.to
+      && other.list.tags.map((tag) => tag.text).join("\0") === this.list.tags.map((tag) => tag.text).join("\0");
+  }
+
+  toDOM() {
+    const node = document.createElement("span");
+    node.className = "cm-frontmatter-tag-list";
+
+    if (!this.list.tags.length) {
+      const empty = document.createElement("span");
+      empty.className = "cm-frontmatter-tag-list-empty";
+      empty.textContent = "No tags";
+      node.appendChild(empty);
+      node.setAttribute("aria-label", "No tags");
+      return node;
+    }
+
+    for (const tag of this.list.tags) {
+      const pill = document.createElement("span");
+      pill.textContent = tag.text;
+      pill.className = "cm-tag-pill" + (tag.kind === "workflow"
+        ? " cm-tag-pill-workflow"
+        : tag.kind === "todo"
+          ? " cm-tag-pill-todo"
+          : " cm-tag-pill-custom");
+      node.appendChild(pill);
+    }
+    node.setAttribute("aria-label", `Tags: ${this.list.tags.map((tag) => tag.text).join(", ")}`);
+    return node;
+  }
+
+  ignoreEvent() {
+    return false;
+  }
+}
+
 export function buildTagPillDecorations(view: EditorView): DecorationSet {
   const ranges: Range<Decoration>[] = [];
   const selection = view.state.selection;
   const doc = view.state.doc.toString();
+  const frontmatterLists = collectFrontmatterTagLists(doc);
+
+  for (const list of frontmatterLists) {
+    const visible = view.visibleRanges.some((range) => range.from <= list.from && list.to <= range.to);
+    if (!visible || selectionTouchesTag(selection, list.from, list.to)) continue;
+    ranges.push(Decoration.replace({
+      widget: new FrontmatterTagListWidget(list),
+      side: 1,
+    }).range(list.from, list.to));
+  }
 
   for (const match of collectTagMatches(doc)) {
+    if (frontmatterLists.some((list) => list.from <= match.from && match.to <= list.to)) continue;
     const visible = view.visibleRanges.some((range) => range.from <= match.from && match.to <= range.to);
     if (!visible) continue;
     if (selectionTouchesTag(selection, match.from, match.to)) continue;

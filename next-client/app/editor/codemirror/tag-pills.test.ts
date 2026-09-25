@@ -1,7 +1,13 @@
 import { EditorSelection, EditorState } from "@codemirror/state";
 import { EditorView } from "@codemirror/view";
 import { describe, expect, it } from "vitest";
-import { buildTagPillDecorations, collectTagMatches, selectionTouchesTag, tagPillPlugin } from "./tag-pills";
+import {
+  buildTagPillDecorations,
+  collectFrontmatterTagLists,
+  collectTagMatches,
+  selectionTouchesTag,
+  tagPillPlugin,
+} from "./tag-pills";
 
 describe("collectTagMatches", () => {
   it("matches plain, nested, and hyphenated tags", () => {
@@ -12,6 +18,47 @@ describe("collectTagMatches", () => {
   it("matches frontmatter tag arrays as pills too", () => {
     const tags = collectTagMatches("---\ntitle: Note\ntags: [tag1, project/subtag, draft]\n---\n#tag1");
     expect(tags.map((tag) => tag.text)).toEqual(["#tag1", "#project/subtag", "#draft", "#tag1"]);
+  });
+
+  it("groups an inline frontmatter list without its YAML punctuation", () => {
+    const doc = "---\ntags: [tag1, project/subtag, draft]\n---\nBody";
+    const view = new EditorView({
+      state: EditorState.create({
+        doc,
+        selection: EditorSelection.cursor(doc.indexOf("Body")),
+        extensions: [tagPillPlugin],
+      }),
+      parent: document.body,
+    });
+
+    const group = view.dom.querySelector(".cm-frontmatter-tag-list");
+    expect(group).toHaveTextContent("#tag1#project/subtag#draft");
+    expect(group?.textContent).not.toContain("[");
+    expect(group?.textContent).not.toContain("]");
+    expect(group?.textContent).not.toContain(",");
+    expect(group?.querySelectorAll(".cm-tag-pill")).toHaveLength(3);
+
+    view.dispatch({ selection: EditorSelection.cursor(doc.indexOf("tag1")) });
+    expect(view.dom.querySelector(".cm-frontmatter-tag-list")).toBeNull();
+    expect(view.contentDOM).toHaveTextContent("[tag1, project/subtag, draft]");
+    view.destroy();
+  });
+
+  it("renders an empty frontmatter array as a quiet empty state", () => {
+    const doc = "---\ntags: []\n---\nBody";
+    const lists = collectFrontmatterTagLists(doc);
+    expect(lists).toEqual([expect.objectContaining({ tags: [] })]);
+
+    const view = new EditorView({
+      state: EditorState.create({
+        doc,
+        selection: EditorSelection.cursor(doc.indexOf("Body")),
+        extensions: [tagPillPlugin],
+      }),
+      parent: document.body,
+    });
+    expect(view.dom.querySelector(".cm-frontmatter-tag-list-empty")).toHaveTextContent("No tags");
+    view.destroy();
   });
 
   it("rejects headings and malformed boundaries", () => {
