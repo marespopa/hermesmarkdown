@@ -2,23 +2,22 @@
 
 import React from "react";
 import { FaSun, FaMoon } from "react-icons/fa";
+import { HiOutlineDesktopComputer } from "react-icons/hi";
 import { IoClose } from "react-icons/io5";
-import { useSetAtom } from "jotai";
+import { useAtom } from "jotai";
 import { atom_theme } from "@/app/atoms/atoms";
-import { useResolvedTheme } from "@/app/hooks/use-resolved-theme";
 import { useRouter } from "next/navigation";
 import Button from "@/app/components/Button/Button.component";
 import Portal from "@/app/components/Portal";
+import { getNextTheme, getThemeLabel } from "@/app/utils/theme";
 
 type Props = {
   handleClose: () => void;
 };
 
 export default function MobileNavigationLinks({ handleClose }: Props) {
-  const setTheme = useSetAtom(atom_theme);
-  // Quick toggle always sets an explicit light/dark choice (not "system") —
-  // the three-way picker for that lives in Settings.
-  const theme = useResolvedTheme();
+  const [theme, setTheme] = useAtom(atom_theme);
+  const themeLabel = getThemeLabel(theme);
   const router = useRouter();
 
   const navBtnStyles =
@@ -77,18 +76,18 @@ export default function MobileNavigationLinks({ handleClose }: Props) {
             </Button>
             <Button
               variant="bare"
-              onClick={() => setTheme(theme === "light" ? "dark" : "light")}
+              onClick={() => setTheme(getNextTheme(theme))}
               className={`${navBtnStyles} flex items-center justify-center gap-2`}
-              // "system" resolves from the OS preference, unknown to SSR —
-              // see use-resolved-theme.ts.
               suppressHydrationWarning
             >
-              {theme === "light" ? (
-                <FaMoon className="w-5 h-5" />
-              ) : (
+              {theme === "system" ? (
+                <HiOutlineDesktopComputer className="w-5 h-5" />
+              ) : theme === "light" ? (
                 <FaSun className="w-5 h-5" />
+              ) : (
+                <FaMoon className="w-5 h-5" />
               )}
-              {theme === "light" ? "Switch to Dark Mode" : "Switch to Light Mode"}
+              {themeLabel}
             </Button>
           </div>
         </div>

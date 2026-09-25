@@ -131,50 +131,90 @@ html.dark .editor-container.cm-focused .cm-selectionBackground {
   }
 }
 
-/* Table rendering in Rendered mode (EditablePreview's Milkdown/ProseMirror
-   surface — the only place .ProseMirror is used in this app). prosemirror-tables
-   wraps every table in a .tableWrapper for column-resize support, so overflow
-   scrolling lives there instead of `display: block` on the table itself. */
-.ProseMirror .tableWrapper {
-  overflow-x: auto;
+/* Inactive Markdown tables render as a quiet reading surface. The wrapper,
+   rather than the editor pane, owns overflow when many readable-width columns
+   cannot fit. */
+.cm-table-preview {
+  box-sizing: border-box;
+  contain: inline-size;
+  display: block;
+  max-width: 100%;
+  min-width: 0;
+  width: 100%;
+  margin-block: 0.85em;
+  overflow: hidden;
 }
 
-.ProseMirror table {
+.cm-table-preview-scroll {
+  box-sizing: border-box;
+  max-width: 100%;
+  min-width: 0;
+  width: 100%;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  padding-bottom: 0.15rem;
+}
+
+.cm-table-preview table {
   width: 100%;
   border-collapse: collapse;
+  border-block: 1px solid var(--border);
+  color: var(--fg);
+  font: inherit;
+  table-layout: auto;
 }
 
-.ProseMirror table th,
-.ProseMirror table td {
-  border: 1px solid theme('colors.beige.DEFAULT');
-  padding: 0.4rem 0.75rem;
+.cm-table-preview th,
+.cm-table-preview td {
+  min-width: min(8rem, 42vw);
+  border-bottom: 1px solid var(--border-subtle);
+  padding: 0.55em 0.8em;
   text-align: left;
+  vertical-align: top;
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 
-.ProseMirror table th {
-  background-color: theme('colors.beige.light');
+.cm-table-preview th {
+  background-color: color-mix(in srgb, var(--fg) 2.5%, transparent);
+  color: var(--fg-muted);
   font-weight: 600;
 }
 
-/* Zebra striping on data rows only — tr[data-is-header] marks the header
-   row, so :nth-child still lines up (header is always child 1). A
-   translucent overlay (rather than a solid paper.* swatch) so the stripe
-   stays visible regardless of which surface the pane itself sits on — a
-   solid color here previously matched dark:bg-paper-dark on the pane
-   (PaneLeaf.tsx) exactly, so the "stripe" was rendering but invisible. */
-.ProseMirror table tr:not([data-is-header]):nth-child(even) td {
-  background-color: rgb(0 0 0 / 4%);
+.cm-table-preview tbody tr:last-child td {
+  border-bottom: 0;
 }
 
-html.dark .ProseMirror table th {
-  background-color: theme('colors.paper.dark-surface');
+.cm-table-preview th:hover,
+.cm-table-preview td:hover {
+  background-color: color-mix(in srgb, var(--fg) 4%, transparent);
+  cursor: text;
 }
 
-html.dark .ProseMirror table tr:not([data-is-header]):nth-child(even) td {
-  background-color: rgb(255 255 255 / 5%);
+.cm-table-preview a {
+  color: var(--link);
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, var(--link) 38%, transparent);
+  text-underline-offset: 0.14em;
 }
 
-html.dark .ProseMirror table th,
-html.dark .ProseMirror table td {
-  border-color: #3A3530;
+.cm-table-preview code {
+  border-radius: 0.3em;
+  background-color: color-mix(in srgb, var(--fg) 6%, transparent);
+  font-family: var(--font-ibm-mono), ui-monospace, monospace;
+  font-size: 0.9em;
+  padding: 0.08em 0.28em;
+}
+
+.cm-table-preview img {
+  max-width: min(16rem, 100%);
+  height: auto;
+}
+
+@media (max-width: 639px) {
+  .cm-table-preview th,
+  .cm-table-preview td {
+    min-width: min(7rem, 48vw);
+    padding-inline: 0.65em;
+  }
 }

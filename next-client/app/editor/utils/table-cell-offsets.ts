@@ -20,7 +20,12 @@ export interface CellOffset {
 }
 
 function isSeparatorRow(line: string): boolean {
-  return /^\s*\|[\s:|-]+\|\s*$/.test(line);
+  const cells = line
+    .trim()
+    .replace(/^\|/, "")
+    .replace(/\|$/, "")
+    .split("|");
+  return cells.length > 0 && cells.every((cell) => /^\s*:?-+:?\s*$/.test(cell));
 }
 
 // Splits a single table row line into cells with [start, end) offsets
@@ -92,4 +97,14 @@ export function getTableCellOffsets(
   }
 
   return result;
+}
+
+export function getTableCellOffsetsFromSource(source: string, tableStartOffset: number): CellOffset[] {
+  const lines = source.split("\n");
+  return getTableCellOffsets({
+    tableStart: 0,
+    tableEnd: lines.length - 1,
+    tableStartOffset,
+    lines,
+  });
 }

@@ -961,8 +961,9 @@ graph TD
         body: (
           <>
             <p>
-              Dark/light theme is a single toggle in Settings → Editor. Typography settings live in the
-              same section and apply to the source editor, including each pane in a split workspace.
+              System/light/dark theme controls are available from the site header and Settings → Editor.
+              System follows your operating system automatically. Typography settings live in the same
+              section and apply to the source editor, including each pane in a split workspace.
             </p>
             <KV
               rows={[
