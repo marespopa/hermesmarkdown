@@ -226,7 +226,7 @@ describe("MarkdownEditor", () => {
 
     const view = getView(container);
     expect(view.state.doc.toString()).toBe(
-      "---\ntitle: \nstatus: draft\ntags: []\n---\n\nBody",
+      "---\ntitle: \ntags: []\n---\n\nBody",
     );
     expect(view.state.selection.main.head).toBe("title: ".length + 4);
   });

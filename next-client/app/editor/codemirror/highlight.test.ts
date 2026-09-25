@@ -31,6 +31,11 @@ describe("computeMarkdownDecorations", () => {
     expect(decos.some((d) => d.from === frontmatterStart && d.class.includes("cm-frontmatter-start"))).toBe(true);
     expect(decos.some((d) => d.class.includes("cm-frontmatter-end"))).toBe(true);
     expect(decos.some((d) => d.from === bodyStart && d.class.includes("cm-frontmatter-line"))).toBe(false);
+    const titleFrom = doc.indexOf("title");
+    expect(decos.some((d) => d.from === titleFrom && d.to === titleFrom + "title".length
+      && d.class.includes("cm-frontmatter-key"))).toBe(true);
+    expect(decos.some((d) => d.from === titleFrom + "title".length
+      && d.class.includes("cm-frontmatter-separator"))).toBe(true);
   });
 
   it("marks a heading's hashes as faded and its label as bold", () => {
