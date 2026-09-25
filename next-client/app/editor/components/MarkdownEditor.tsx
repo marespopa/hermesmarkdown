@@ -60,6 +60,7 @@ interface MarkdownEditorProps {
 // click to open/navigate), date picker (click the calendar icon),
 // workflow/todo tag cycling pills.
 export default function MarkdownEditor(props: MarkdownEditorProps) {
+  const { onChange } = props;
   const wordWrap = useAtomValue(atom_wordWrap);
   const lineNumbers = useAtomValue(atom_lineNumbers);
   const vimMode = useAtomValue(atom_vimMode);
@@ -74,8 +75,8 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
 
   const editorValue = props.value;
   const editorOnChange = useCallback((newVal: string) => {
-    props.onChange(newVal);
-  }, [props.onChange]);
+    onChange(newVal);
+  }, [onChange]);
 
   const { fontFamily, displayFontSize, lineHeight, windowWidth, paneRef, maxContentWidth, contentPaddingX, noWrapPaddingX } =
     useEditorAppearance(props.isSplit);

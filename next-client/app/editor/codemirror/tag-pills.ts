@@ -43,7 +43,7 @@ function collectFrontmatterTagMatchesForLine(line: string, lineStart: number): T
   const listText = value.trim();
   if (!listText) return matches;
 
-  const tokenPattern = /(?:^|[\[,\s])(?:['"])?([A-Za-z0-9_-]+(?:\/[A-Za-z0-9_-]+)*)(?:['"])?(?=$|[\],\s])/g;
+  const tokenPattern = /(?:^|[[,\s])(?:['"])?([A-Za-z0-9_-]+(?:\/[A-Za-z0-9_-]+)*)(?:['"])?(?=$|[\],\s])/g;
   let tokenMatch: RegExpExecArray | null;
   while ((tokenMatch = tokenPattern.exec(value)) !== null) {
     const token = tokenMatch[1];
