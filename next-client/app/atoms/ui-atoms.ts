@@ -96,6 +96,10 @@ export const atom_frontmatterDefaultMode = atomWithStorage<"fields" | "raw">(
   "frontmatterDefaultMode",
   "fields",
 );
+export const atom_frontmatterCollapsedByDefault = atomWithStorage<boolean>(
+  "frontmatterCollapsedByDefault",
+  false,
+);
 
 // Fresh workspaces open directly in the source editor and never switch into a preview pane.
 export const atom_frontmatterHasPrompted = atomWithStorage<boolean>(

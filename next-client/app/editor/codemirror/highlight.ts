@@ -182,8 +182,16 @@ export function computeMarkdownDecorations(state: EditorState): DecorationSet {
 
     if (i === 1 && /^---\s*$/.test(text)) isInsideFrontmatter = true;
     if (isInsideFrontmatter) {
-      lineDecos.push({ line: i, class: "cm-frontmatter-line" });
-      if (i > 1 && /^---\s*$/.test(text)) isInsideFrontmatter = false;
+      const isClosingLine = i > 1 && /^---\s*$/.test(text);
+      lineDecos.push({
+        line: i,
+        class: [
+          "cm-frontmatter-line",
+          i === 1 ? "cm-frontmatter-start" : "",
+          isClosingLine ? "cm-frontmatter-end" : "",
+        ].filter(Boolean).join(" "),
+      });
+      if (isClosingLine) isInsideFrontmatter = false;
     }
 
     const isPipeLine =

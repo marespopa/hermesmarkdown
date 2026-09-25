@@ -17,8 +17,10 @@ interface FrontmatterChevron {
 
 export function useCodeMirrorFrontmatterFold({
   containerRef,
+  collapseByDefault,
 }: {
   containerRef: React.RefObject<HTMLDivElement | null>;
+  collapseByDefault: boolean;
 }) {
   const [chevrons, setChevrons] = useState<FrontmatterChevron[]>([]);
 
@@ -45,8 +47,12 @@ export function useCodeMirrorFrontmatterFold({
   }, [containerRef]);
 
   const onViewCreated = useCallback((view: EditorView) => {
+    const range = findFrontmatterFoldRange(view.state.doc.toString());
+    if (collapseByDefault && range) {
+      toggleFrontmatterFold(view, range, true);
+    }
     recompute(view);
-  }, [recompute]);
+  }, [collapseByDefault, recompute]);
 
   const toggle = useCallback((view: EditorView) => {
     const chevron = chevrons[0];

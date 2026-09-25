@@ -10,6 +10,7 @@ import {
   TABLE_DIALOG_SENTINEL,
   FRONTMATTER_WIZARD_SENTINEL,
   TASK_EDITOR_SENTINEL,
+  AI_CHAT_SENTINEL,
   CURSOR_SENTINEL,
   CODE_BLOCK_TEMPLATE_CONTENT,
 } from "../components/constants";
@@ -24,6 +25,7 @@ export interface SlashMenuCallbacks {
   onOpenWikiLinkDialog: (range: { from: number; to: number }) => void;
   onOpenDatePicker: (range: { from: number; to: number }) => void;
   onOpenTaskDialog: (range: { from: number; to: number }) => void;
+  onOpenAIChat?: () => void;
   onFrontmatterWizard: () => void;
   onCodeBlockInserted: (pos: number) => void;
 }
@@ -94,6 +96,11 @@ export function applyTemplate(
     callbacks.onOpenTaskDialog({ from, to });
     return;
   }
+  if (content === AI_CHAT_SENTINEL) {
+    view.dispatch({ changes: { from, to, insert: "" }, userEvent: "input.replace.template" });
+    callbacks.onOpenAIChat?.();
+    return;
+  }
   if (content === TABLE_DIALOG_SENTINEL) {
     insertPlainContent(view, from, to, DEFAULT_TABLE);
     return;
@@ -128,7 +135,10 @@ export function createSlashMenuSource(callbacksRef: { current: SlashMenuCallback
     if (query.includes(" ")) return null;
     if (looksLikePath(textUpToCursor.slice(slashIndex))) return null;
 
-    const matches = AVAILABLE_TEMPLATES.filter((t) => fuzzyMatch(t.label, query));
+    const templates = callbacksRef.current.onOpenAIChat
+      ? [...AVAILABLE_TEMPLATES, ...TEMPLATES.filter((template) => template.content === AI_CHAT_SENTINEL)]
+      : AVAILABLE_TEMPLATES;
+    const matches = templates.filter((t) => fuzzyMatch(t.label, query));
     if (matches.length === 0) return null;
 
     const from = line.from + slashIndex;

@@ -28,6 +28,9 @@ body {
   --clay:           #AA5B41;  /* primary accent — active states, focus, links, unsaved dot */
   --moss:           #6E7D5E;  /* secondary accent — icons, muted interactive */
   --moss-hover:     #5C6A4E;  /* moss, darkened — hover/active state for sage buttons */
+  --frontmatter-bg: rgba(60, 56, 50, 0.035);
+  --frontmatter-bg-hover: rgba(60, 56, 50, 0.055);
+  --frontmatter-label-opacity: 0.4;
 }
 
 html.dark {
@@ -46,6 +49,9 @@ html.dark {
 
   --clay:           #D88B68;  /* brightened for contrast on dark surfaces */
   --moss:           #8FA178;
+  --frontmatter-bg: rgba(214, 207, 198, 0.04);
+  --frontmatter-bg-hover: rgba(214, 207, 198, 0.065);
+  --frontmatter-label-opacity: 0.5;
   --moss-hover:     #A3B58C;  /* moss, brightened — hover/active state for sage buttons */
 }
 

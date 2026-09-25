@@ -7,6 +7,7 @@ import {
   atom_currentDirectoryHandle,
   atom_fileMetadata,
   atom_fileSystemVersion,
+  atom_isVaultPending,
   atom_openFiles,
   atom_vaultFiles,
   atom_vaultHandle,
@@ -55,6 +56,7 @@ vi.mock("react-hot-toast", () => ({
 
 describe("useFileSystem - createFile conflict resolution", () => {
   const setVaultFiles = vi.fn();
+  const setIsVaultPending = vi.fn();
   let fileMetadata: Record<string, any>;
   const setFileMetadata = vi.fn((update: Record<string, any> | ((prev: Record<string, any>) => Record<string, any>)) => {
     fileMetadata = typeof update === "function" ? update(fileMetadata) : update;
@@ -85,6 +87,7 @@ describe("useFileSystem - createFile conflict resolution", () => {
       if (atom === atom_openFiles) return [{}, vi.fn()];
       if (atom === atom_workspaceLayout) return [{ rootContainer: { id: "p1", activeFilePath: "draft" } }, vi.fn()];
       if (atom === atom_fileSystemVersion) return [0, vi.fn()];
+      if (atom === atom_isVaultPending) return [false, setIsVaultPending];
       if (atom === atom_fileMetadata) return [fileMetadata, setFileMetadata];
       return [null, vi.fn()];
     });
@@ -142,12 +145,52 @@ describe("useFileSystem - createFile conflict resolution", () => {
 
     const { result } = renderHook(() => useFileSystem());
 
-    await result.current.syncSidebarToPath("nested/note.md");
+    const synced = await result.current.syncSidebarToPath("nested/note.md");
 
+    expect(synced).toBe(true);
     expect(mockVaultHandle.getDirectoryHandle).toHaveBeenCalledWith("nested");
     expect(mockVaultHandle.values).toHaveBeenCalledOnce();
     expect(nestedDirectory.values).not.toHaveBeenCalled();
     expect(setVaultFiles).toHaveBeenCalledOnce();
+  });
+
+  it("accepts a path prefixed with the vault folder name", async () => {
+    const nestedDirectory = {
+      name: "nested",
+      values: vi.fn(async function* () {
+        yield* [];
+      }),
+    };
+    mockVaultHandle.getDirectoryHandle = vi.fn().mockResolvedValue(nestedDirectory);
+
+    const { result } = renderHook(() => useFileSystem());
+
+    const synced = await result.current.syncSidebarToPath("Vault/nested/note.md");
+
+    expect(synced).toBe(true);
+    expect(mockVaultHandle.getDirectoryHandle).toHaveBeenCalledTimes(1);
+    expect(mockVaultHandle.getDirectoryHandle).toHaveBeenCalledWith("nested");
+  });
+
+  it("defers sidebar synchronization when vault permission is unavailable", async () => {
+    const permissionError = Object.assign(new Error("Permission denied"), {
+      name: "NotAllowedError",
+    });
+    mockVaultHandle.getDirectoryHandle = vi.fn().mockRejectedValue(permissionError);
+    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+
+    const { result } = renderHook(() => useFileSystem());
+
+    const synced = await result.current.syncSidebarToPath("nested/note.md");
+
+    expect(synced).toBe(false);
+    expect(setIsVaultPending).toHaveBeenCalledWith(true);
+    expect(warnSpy).not.toHaveBeenCalledWith(
+      "Failed to find parent directory for path:",
+      "nested/note.md",
+      permissionError,
+    );
+    warnSpy.mockRestore();
   });
 
   it("handles creating a file that doesn't conflict initially", async () => {

@@ -383,9 +383,10 @@ export function useVaultManager() {
 
   const syncSidebarToPath = useCallback(
     async (path: string) => {
-      if (!vaultHandle || !path || path === "draft") return;
+      if (!vaultHandle || !path || path === "draft") return false;
 
-      const parts = path.split("/");
+      const parts = path.split("/").filter(Boolean);
+      if (parts[0] === vaultHandle.name) parts.shift();
       let targetHandle: FileSystemDirectoryHandle = vaultHandle;
 
       if (parts.length > 1) {
@@ -394,9 +395,13 @@ export function useVaultManager() {
           for (const part of folderParts) {
             targetHandle = await targetHandle.getDirectoryHandle(part);
           }
-        } catch (err) {
+        } catch (err: any) {
+          if (err?.name === "NotAllowedError" || err?.name === "SecurityError") {
+            setIsVaultPending(true);
+            return false;
+          }
           console.warn("Failed to find parent directory for path:", path, err);
-          return;
+          return false;
         }
       }
 
@@ -414,8 +419,9 @@ export function useVaultManager() {
         setCurrentDirectoryHandle(targetHandle);
         await scanVault(vaultHandle);
       }
+      return true;
     },
-    [vaultHandle, currentDirectoryHandle, setCurrentDirectoryHandle, scanVault],
+    [vaultHandle, currentDirectoryHandle, setCurrentDirectoryHandle, setIsVaultPending, scanVault],
   );
 
   const navigateTo = useCallback(

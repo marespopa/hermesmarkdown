@@ -19,7 +19,7 @@ describe("findFrontmatterFoldRange", () => {
     const doc = "---\ntitle: Note\ntags: [work]\n---\nBody";
     const range = findFrontmatterFoldRange(doc);
     expect(range).not.toBeNull();
-    expect(doc.slice(range!.bodyFrom, range!.bodyTo)).toBe("\ntitle: Note\ntags: [work]\n---");
+    expect(doc.slice(range!.bodyFrom, range!.bodyTo)).toBe("---\ntitle: Note\ntags: [work]\n---");
   });
 
   it("does not fold a later or unterminated delimiter", () => {

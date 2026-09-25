@@ -115,6 +115,7 @@ export const DATE_EDITOR_SENTINEL = "__OPEN_DATE_EDITOR__";
 export const TABLE_DIALOG_SENTINEL = "__OPEN_TABLE_DIALOG__";
 export const FRONTMATTER_WIZARD_SENTINEL = "__OPEN_FRONTMATTER_WIZARD__";
 export const TASK_EDITOR_SENTINEL = "__OPEN_TASK_EDITOR__";
+export const AI_CHAT_SENTINEL = "__OPEN_AI_CHAT__";
 export const AI_ACTION_SENTINEL_PREFIX = "__AI_ACTION__:";
 export const aiActionSentinel = (id: string) => `${AI_ACTION_SENTINEL_PREFIX}${id}`;
 export const CURSOR_SENTINEL = "\0";
@@ -165,6 +166,13 @@ export const TEMPLATES: Template[] = [
     content: `> [!note]-${CURSOR_SENTINEL}\n> `,
   },
   // --- AI ---
+  {
+    label: "AI Chat",
+    icon: "✨",
+    description: "Open AI Chat with the current note and selection",
+    content: AI_CHAT_SENTINEL,
+    aiOnly: true,
+  },
   {
     label: "Improve writing",
     icon: "✨",
@@ -267,7 +275,7 @@ export const TEMPLATES: Template[] = [
   {
     label: "Frontmatter",
     icon: "📄",
-    description: "Open the frontmatter wizard",
+    description: "Insert or reveal document metadata",
     content: FRONTMATTER_WIZARD_SENTINEL,
   },
 ];

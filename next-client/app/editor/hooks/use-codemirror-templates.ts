@@ -15,6 +15,7 @@ interface UseCodeMirrorTemplatesOptions {
   viewRef: React.RefObject<EditorView | null>;
   onFrontmatterWizard: () => void;
   onCodeBlockInserted: (pos: number) => void;
+  onOpenAIChat?: () => void;
 }
 
 // Step 5: slash/template menu insertion targets. The actual menu UI is
@@ -23,7 +24,7 @@ interface UseCodeMirrorTemplatesOptions {
 // Date) and performs the final text replacement once one is confirmed —
 // mirrors insertLink/insertWikiLink/insertDate in the old
 // use-editor-templates.ts.
-export function useCodeMirrorTemplates({ viewRef, onFrontmatterWizard, onCodeBlockInserted }: UseCodeMirrorTemplatesOptions) {
+export function useCodeMirrorTemplates({ viewRef, onFrontmatterWizard, onCodeBlockInserted, onOpenAIChat }: UseCodeMirrorTemplatesOptions) {
   const [linkDialogOpen, setLinkDialogOpen] = useState(false);
   const linkRangeRef = useRef<Range | null>(null);
 
@@ -99,12 +100,14 @@ export function useCodeMirrorTemplates({ viewRef, onFrontmatterWizard, onCodeBlo
       taskRangeRef.current = range;
       setTaskDialogOpen(true);
     },
+    onOpenAIChat,
     onFrontmatterWizard: () => onFrontmatterWizard(),
     onCodeBlockInserted: () => {},
   });
   // Keep the frontmatter callback current across renders (filePath can change).
   slashMenuCallbacksRef.current.onFrontmatterWizard = onFrontmatterWizard;
   slashMenuCallbacksRef.current.onCodeBlockInserted = onCodeBlockInserted;
+  slashMenuCallbacksRef.current.onOpenAIChat = onOpenAIChat;
 
   const wikiLinkTriggerRef = useRef<WikiLinkTriggerCallback | null>((_view, from, to) => {
     wikiLinkRangeRef.current = { from, to };

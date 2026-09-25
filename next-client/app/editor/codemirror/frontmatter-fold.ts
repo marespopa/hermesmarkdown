@@ -15,8 +15,7 @@ export function findFrontmatterFoldRange(doc: string): FrontmatterFoldRange | nu
   const closingLine = lines.findIndex((line, index) => index > 0 && /^---\s*$/.test(line));
   if (closingLine < 0) return null;
 
-  const openingLength = lines[0].length;
-  const bodyFrom = openingLength;
+  const bodyFrom = 0;
   const bodyTo = lines
     .slice(0, closingLine + 1)
     .join("\n")

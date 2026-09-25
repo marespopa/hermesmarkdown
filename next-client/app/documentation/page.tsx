@@ -437,7 +437,7 @@ graph TD
       {
         id: "slash-menu",
         title: "Slash menu",
-        lead: "Type / anywhere in Rendered view for a searchable, categorized menu of everything insertable — headings, lists, tables, code, callouts, and math.",
+        lead: "Type / anywhere in Rendered view for a searchable menu of insertable content, plus AI Chat when AI is configured.",
         keywords: "slash menu insert",
         body: (
           <>
@@ -522,6 +522,11 @@ graph TD
               Every change in the panel writes straight back to the YAML block at the top of the file —
               there's no separate save step for frontmatter and no risk of the panel and the raw block
               drifting apart.
+            </p>
+            <p>
+              The source editor gives frontmatter a subtle background and lets you fold it with the
+              chevron. Enable <strong>Settings → Editor → Collapse Frontmatter</strong> to start with
+              that block folded whenever you open a file.
             </p>
             <Callout type="note">
               On a mobile screen, the panel uses a bottom-sheet layout to stay clear of the soft keyboard.
