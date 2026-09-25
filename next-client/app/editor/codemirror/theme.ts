@@ -136,6 +136,32 @@ export const baseTheme = EditorView.theme({
     borderRadius: 0,
     padding: 0,
   },
+  ".cm-tag-pill": {
+    display: "inline-flex",
+    alignItems: "center",
+    verticalAlign: "middle",
+    borderRadius: "9999px",
+    border: "1px solid var(--border)",
+    backgroundColor: "color-mix(in srgb, var(--chrome) 72%, transparent)",
+    color: "var(--fg)",
+    fontSize: "0.72em",
+    lineHeight: "1.2",
+    padding: "0.1em 0.45em",
+    margin: "0 0.1em",
+    whiteSpace: "nowrap",
+    cursor: "pointer",
+    userSelect: "none",
+    transform: "translateY(-0.05em)",
+  },
+  ".cm-tag-pill.cm-tag-pill-workflow": {
+    color: "var(--sage)",
+  },
+  ".cm-tag-pill.cm-tag-pill-todo": {
+    color: "var(--clay)",
+  },
+  ".cm-tag-pill.cm-tag-pill-custom": {
+    color: "var(--fg-muted)",
+  },
 });
 
 // The slash-command menu is CodeMirror's built-in autocomplete tooltip

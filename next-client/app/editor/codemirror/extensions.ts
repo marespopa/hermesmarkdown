@@ -12,6 +12,7 @@ import { formatKeymap, toggleCheckboxOnLine, handlePasteTransform, insertPastedI
 import { getImageFile, getImageFromClipboardItems } from "@/app/utils/paste-image";
 import { REGEX_CHECKBOX } from "../components/regex";
 import { markdownHighlightPlugin } from "./highlight";
+import { tagPillPlugin } from "./tag-pills";
 import { shortcodeExpandPlugin } from "./shortcode-expand";
 import { createSlashMenuSource, SlashMenuCallbacks } from "./slash-menu";
 import { createWikiLinkTriggerPlugin, WikiLinkTriggerCallback } from "./wikilink-trigger";
@@ -88,6 +89,7 @@ export function buildExtensions(opts: BuildExtensionsOptions): Extension[] {
       },
     }),
     markdownHighlightPlugin,
+    tagPillPlugin,
     shortcodeExpandPlugin,
     createWikiLinkTriggerPlugin(opts.wikiLinkTriggerRef),
     opts.vimModeCompartment.of(opts.vimMode ? vim({ status: true }) : []),
