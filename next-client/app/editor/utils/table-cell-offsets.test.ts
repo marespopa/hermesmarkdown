@@ -44,4 +44,18 @@ describe("getTableCellOffsets", () => {
     const cell = offsets.find((c) => c.row === 2 && c.col === 0)!;
     expect(text.slice(cell.start, cell.end)).toBe("x\\|y");
   });
+
+  it("does not count a separator row when outer pipes are omitted", () => {
+    const source = ["A | B", "--- | ---", "One | Two"].join("\n");
+    const offsets = getTableCellOffsets({
+      tableStart: 0,
+      tableEnd: 2,
+      tableStartOffset: 0,
+      lines: source.split("\n"),
+    });
+
+    const firstDataCell = offsets.find((cell) => cell.row === 2 && cell.col === 0);
+    expect(firstDataCell).toBeDefined();
+    expect(source.slice(firstDataCell!.start, firstDataCell!.end)).toBe("One");
+  });
 });

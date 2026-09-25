@@ -15,6 +15,7 @@ import { markdownHighlightPlugin } from "./highlight";
 import { tagPillPlugin } from "./tag-pills";
 import { linkDisplayPlugin } from "./link-display";
 import { annotationDisplayPlugin } from "./annotation-display";
+import { tableDisplayExtension } from "./table-display";
 import { shortcodeExpandPlugin } from "./shortcode-expand";
 import { createSlashMenuSource, SlashMenuCallbacks } from "./slash-menu";
 import { createWikiLinkTriggerPlugin, WikiLinkTriggerCallback } from "./wikilink-trigger";
@@ -94,6 +95,7 @@ export function buildExtensions(opts: BuildExtensionsOptions): Extension[] {
     tagPillPlugin,
     linkDisplayPlugin,
     annotationDisplayPlugin,
+    tableDisplayExtension,
     shortcodeExpandPlugin,
     createWikiLinkTriggerPlugin(opts.wikiLinkTriggerRef),
     opts.vimModeCompartment.of(opts.vimMode ? vim({ status: true }) : []),

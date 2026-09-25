@@ -20,6 +20,7 @@ import Tooltip from "@/app/components/Tooltip";
 import { useCommandPalette } from "@/app/components/CommandPalette/CommandPaletteContext";
 import { useFileSystem } from "@/app/hooks/use-file-system";
 import { formatShortcut } from "@/app/utils/platform";
+import { getNextTheme } from "@/app/utils/theme";
 import { atom_theme, RailPanel, type Theme } from "@/app/atoms/ui-atoms";
 
 // Click cycles system -> light -> dark -> system. Each entry's Icon/label
@@ -158,7 +159,7 @@ export default function SidebarRail({ panel, onSelectPanel, reopenPanel = "files
           <Tooltip label={themeCycleLabel} position="right">
             <Button
               variant="icon"
-              onClick={() => setTheme(THEME_CYCLE[(themeCycleIndex + 1) % THEME_CYCLE.length].value)}
+              onClick={() => setTheme(getNextTheme(rawTheme))}
               className="w-10 h-10 opacity-80 hover:opacity-100 !rounded-none"
               aria-label={themeCycleLabel}
               // "system" resolves from the OS preference, which SSR has no
