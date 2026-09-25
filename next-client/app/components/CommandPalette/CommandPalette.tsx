@@ -83,6 +83,10 @@ function pinnedKey(item: PalettePinnedItem) {
   return `${item.kind}:${item.id}`;
 }
 
+function parentFolder(path: string) {
+  return path.split("/").slice(0, -1).join("/");
+}
+
 export default function CommandPalette() {
   const { isOpen, initialQuery, close, commands, markUsed } = useCommandPalette();
   const fileMetadata = useAtomValue(atom_fileMetadata);
@@ -342,14 +346,12 @@ export default function CommandPalette() {
   const isPinned = (row: Row) => (row.kind === "file" || row.kind === "command") && pinnedItems.some((item) => pinnedKey(item) === `${row.kind}:${row.id}`);
   const rowHeight = isMobileChrome ? "min-h-11" : "min-h-10";
   const displayQuery = scope ? `${scopePrefix(scope)}${query}` : query;
-  const resultContext = (row: Row, duplicateNames: Set<string>) => {
+  const resultContext = (row: Row) => {
     if (row.kind === "command") return row.command.disabledReason;
     if (row.kind === "task") return row.detail;
-    if (row.kind === "file" && (scope === "tag" || duplicateNames.has(row.label))) return row.detail;
+    if (row.kind === "file" && scope === "tag") return row.detail;
     return null;
   };
-  const duplicateNames = new Set(rows.filter((row) => row.kind === "file").map((row) => row.label)
-    .filter((label, index, labels) => labels.indexOf(label) !== index));
 
   return <OverlayPanel isOpen={isOpen} onClose={close} variant={isMobileChrome ? "sheet" : "modal"} backdrop="dim"
     backdropClassName={isOpen
@@ -419,16 +421,19 @@ export default function CommandPalette() {
       )}
       <div className="py-2">{rows.map((row, index) => {
         const selected = index === selectedIndex;
-        const context = resultContext(row, duplicateNames);
-        return <Button key={`${row.kind}:${row.id}`} variant="menu-item" id={`command-palette-option-${index}`} role="option" aria-label={context ? `${row.label} ${context}` : row.label} aria-selected={selected} aria-disabled={row.kind === "command" && !!row.command.disabledReason}
+        const context = resultContext(row);
+        const folder = row.kind === "file" ? parentFolder(row.file.path) : "";
+        const accessibleLabel = [row.label, context, folder].filter(Boolean).join(" ");
+        return <Button key={`${row.kind}:${row.id}`} variant="menu-item" id={`command-palette-option-${index}`} role="option" aria-label={accessibleLabel} aria-selected={selected} aria-disabled={row.kind === "command" && !!row.command.disabledReason}
           isDisabled={runningId !== null || (row.kind === "command" && !!row.command.disabledReason)} onClick={() => void execute(row)} onMouseEnter={() => setSelectedIndex(index)} onContextMenu={(event: React.MouseEvent) => { if (row.kind === "file" || row.kind === "command") { event.preventDefault(); setContextRow(row); } }}
           className={`mx-2 w-[calc(100%_-_1rem)] !rounded-md ${rowHeight} justify-between gap-3 border px-3 text-left font-normal ${selected ? "border-edge bg-chrome text-fg shadow-sm hover:bg-chrome dark:bg-surface dark:hover:bg-surface" : "border-transparent hover:bg-surface-raised"}`}>
           <span className="min-w-0 flex-1 truncate"><HighlightedText text={row.label} indices={row.titleIndices} />{context && <span className="ml-2 text-ui-footnote text-fg-muted"><HighlightedText text={context} indices={row.detailIndices} /></span>}</span>
+          {folder && <span title={folder} className="max-w-[45%] shrink-0 truncate text-right text-ui-footnote text-fg-muted"><HighlightedText text={folder} indices={scope === "tag" ? [] : row.detailIndices} /></span>}
           {row.kind === "command" && row.command.shortcut && <span className="shrink-0 font-mono text-ui-micro text-fg-muted">{row.command.shortcut}</span>}
         </Button>;
       })}</div>
     </div>
-    <footer className="flex items-center justify-end border-t border-edge-subtle bg-chrome px-6 py-1.5 text-right text-[10px] text-fg-muted">
+    <footer className="flex items-center justify-end border-t border-edge-subtle bg-chrome px-6 py-1.5 text-right text-[10px] text-fg-muted dark:bg-overlay">
       <span className="font-medium">HermesMarkdown v{version}</span>
     </footer>
     {contextRow && <div role="menu" aria-label="Palette item actions" className="absolute right-3 top-28 z-10 animate-in fade-in zoom-in-95 slide-in-from-top-1 rounded-lg border border-edge bg-chrome p-1 shadow-lg duration-150 motion-reduce:animate-none"><Button variant="menu-item" role="menuitem" onClick={() => togglePin(contextRow)}>{isPinned(contextRow) ? "Unpin item" : "Pin item"} <span className="ml-auto text-fg-faint">Ctrl+D</span></Button></div>}

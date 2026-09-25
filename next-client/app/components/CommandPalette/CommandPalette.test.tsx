@@ -251,18 +251,18 @@ describe("CommandPalette", () => {
   it("combines pinned, recent, and frequent items without section labels", async () => {
     renderPalette([
       [atom_fileMetadata, {
-        "Roadmap.md": {
-          path: "Roadmap.md", name: "Roadmap.md", handle: { kind: "file", name: "Roadmap.md" },
+        "Projects/Roadmap.md": {
+          path: "Projects/Roadmap.md", name: "Roadmap.md", handle: { kind: "file", name: "Roadmap.md" },
           tags: [], links: [], frontmatter: {}, modifiedAt: 1, wordCount: 1, tasks: [],
         },
       }],
-      [atom_palettePinnedItems, [{ kind: "file", id: "Roadmap.md" }]],
-      [atom_recentFilePaths, ["Roadmap.md"]],
+      [atom_palettePinnedItems, [{ kind: "file", id: "Projects/Roadmap.md" }]],
+      [atom_recentFilePaths, ["Projects/Roadmap.md"]],
       [atom_commandUseCounts, { "test-command": 3 }],
     ]);
     fireEvent.keyDown(document, { key: "k", ctrlKey: true });
 
-    expect(await screen.findByRole("listbox")).toHaveTextContent("Roadmap.md");
+    expect(await screen.findByRole("option", { name: "Roadmap.md Projects" })).toBeInTheDocument();
     expect(screen.getByRole("listbox")).toHaveTextContent("Test command");
     expect(screen.getByRole("listbox")).toHaveTextContent("Open Explorer");
     expect(screen.queryByText("Pinned")).not.toBeInTheDocument();
@@ -363,6 +363,32 @@ describe("CommandPalette", () => {
     expect(screen.getByRole("listbox")).toHaveTextContent("#planning");
     expect(screen.getByRole("listbox")).not.toHaveTextContent("Archive.md");
 
+  });
+
+  it("shows the parent folder for file and tag search results", async () => {
+    renderPalette([
+      [atom_fileMetadata, {
+        "Projects/2026/Roadmap.md": {
+          path: "Projects/2026/Roadmap.md",
+          name: "Roadmap.md",
+          handle: { kind: "file", name: "Roadmap.md" },
+          tags: ["planning"],
+          links: [],
+          frontmatter: {},
+          modifiedAt: 1,
+          wordCount: 1,
+          tasks: [],
+        },
+      }],
+    ]);
+    fireEvent.keyDown(document, { key: "k", ctrlKey: true });
+    const input = await screen.findByRole("combobox");
+
+    fireEvent.change(input, { target: { value: "road" } });
+    expect(screen.getByRole("option", { name: "Roadmap.md Projects/2026" })).toBeInTheDocument();
+
+    fireEvent.change(input, { target: { value: "#plan" } });
+    expect(screen.getByRole("option", { name: "Roadmap.md #planning Projects/2026" })).toBeInTheDocument();
   });
 
   it("does not route to Explorer when choosing a fuzzy tag match", async () => {

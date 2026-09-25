@@ -3,8 +3,8 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
 import { useAtomValue, useSetAtom } from "jotai";
-import { atom_frontmatterWizardOpen, atom_wordWrap, atom_isEditorFocused, atom_vaultHandle, atom_currentDirectoryHandle, atom_pendingScrollTarget } from "@/app/atoms/atoms";
-import { atom_activeEditorView, atom_editorContentWidth, atom_lineNumbers, atom_vimMode } from "@/app/atoms/ui-atoms";
+import { atom_frontmatterCollapsedByDefault, atom_wordWrap, atom_isEditorFocused, atom_vaultHandle, atom_currentDirectoryHandle, atom_pendingScrollTarget } from "@/app/atoms/atoms";
+import { atom_activeEditorView, atom_aiBuilderRequest, atom_editorContentWidth, atom_isAiConfigured, atom_lineNumbers, atom_vimMode } from "@/app/atoms/ui-atoms";
 import { useAtom } from "jotai";
 import { savePastedImage } from "@/app/utils/paste-image";
 import { EditorView } from "@codemirror/view";
@@ -33,6 +33,7 @@ import { useCodeMirrorCodeLanguagePicker } from "../hooks/use-codemirror-code-la
 import { useCodeMirrorImage } from "../hooks/use-codemirror-image";
 import { useCodeMirrorCalloutFold } from "../hooks/use-codemirror-callout-fold";
 import { useCodeMirrorFrontmatterFold } from "../hooks/use-codemirror-frontmatter-fold";
+import { findFrontmatterFoldRange, toggleFrontmatterFold as setFrontmatterFold } from "../codemirror/frontmatter-fold";
 import { HiOutlinePhotograph } from "react-icons/hi";
 import Typeahead from "../../components/Typeahead/Typeahead";
 import { languages } from "@codemirror/language-data";
@@ -59,10 +60,12 @@ interface MarkdownEditorProps {
 // click to open/navigate), date picker (click the calendar icon),
 // workflow/todo tag cycling pills.
 export default function MarkdownEditor(props: MarkdownEditorProps) {
-  const setFrontmatterWizardOpen = useSetAtom(atom_frontmatterWizardOpen);
   const wordWrap = useAtomValue(atom_wordWrap);
   const lineNumbers = useAtomValue(atom_lineNumbers);
   const vimMode = useAtomValue(atom_vimMode);
+  const isAiConfigured = useAtomValue(atom_isAiConfigured);
+  const setAiBuilderRequest = useSetAtom(atom_aiBuilderRequest);
+  const frontmatterCollapsedByDefault = useAtomValue(atom_frontmatterCollapsedByDefault);
   const [, setEditorContentWidth] = useAtom(atom_editorContentWidth);
   const [, setIsEditorFocused] = useAtom(atom_isEditorFocused);
   const [pendingScrollTarget, setPendingScrollTarget] = useAtom(atom_pendingScrollTarget);
@@ -163,6 +166,32 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
     if (view) activateCodeLanguagePicker(view, pos);
   }, [activateCodeLanguagePicker, viewRef]);
 
+  const handleFrontmatterCommand = useCallback(() => {
+    const view = viewRef.current;
+    if (!view) return;
+
+    const existing = findFrontmatterFoldRange(view.state.doc.toString());
+    if (existing) {
+      setFrontmatterFold(view, existing, false);
+      const titleLineEnd = view.state.doc.line(2).to;
+      view.dispatch({
+        selection: { anchor: titleLineEnd },
+        effects: EditorView.scrollIntoView(titleLineEnd, { y: "center" }),
+      });
+      view.focus();
+      return;
+    }
+
+    const frontmatter = '---\ntitle: \nstatus: draft\ntags: []\n---\n\n';
+    const titleLineEnd = frontmatter.indexOf("title: ") + "title: ".length;
+    view.dispatch({
+      changes: { from: 0, insert: frontmatter },
+      selection: { anchor: titleLineEnd },
+      userEvent: "input.replace.template",
+    });
+    view.focus();
+  }, [viewRef]);
+
   const {
     linkDialogOpen, setLinkDialogOpen, insertLink,
     wikiLinkDialogOpen, setWikiLinkDialogOpen, insertWikiLink,
@@ -172,7 +201,8 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
   } = useCodeMirrorTemplates({
     viewRef,
     onCodeBlockInserted: handleCodeBlockInserted,
-    onFrontmatterWizard: useCallback(() => setFrontmatterWizardOpen(filePath), [setFrontmatterWizardOpen, filePath]),
+    onFrontmatterWizard: handleFrontmatterCommand,
+    onOpenAIChat: isAiConfigured ? () => setAiBuilderRequest((value) => value + 1) : undefined,
   });
 
   useEffect(() => {
@@ -249,7 +279,10 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
       toggle: toggleFrontmatterFold,
       onCursorActivity: onFrontmatterFoldCursorActivity,
       onViewCreated: onFrontmatterFoldViewCreated,
-    } = useCodeMirrorFrontmatterFold({ containerRef });
+    } = useCodeMirrorFrontmatterFold({
+      containerRef,
+      collapseByDefault: frontmatterCollapsedByDefault,
+    });
 
   const setActiveEditorView = useSetAtom(atom_activeEditorView);
   const registeredActiveViewRef = useRef<EditorView | null>(null);
@@ -402,7 +435,7 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
           <label htmlFor="md-editor" className="sr-only">Markdown editor</label>
           <div id="md-editor" ref={containerRef} className="h-full" tabIndex={0} />
 
-          {[...chevrons.map((chevron) => ({ ...chevron, kind: "callout" as const })), ...frontmatterChevrons.map((chevron) => ({ ...chevron, kind: "frontmatter" as const }))].map((chevron) => (
+          {[...chevrons.map((chevron) => ({ ...chevron, kind: "callout" as const })), ...frontmatterChevrons.filter((chevron) => !chevron.collapsed).map((chevron) => ({ ...chevron, kind: "frontmatter" as const }))].map((chevron) => (
             <button
               key={chevron.blockId}
               type="button"

@@ -5,7 +5,7 @@ import { markdown, markdownLanguage } from "@codemirror/lang-markdown";
 import { languages } from "@codemirror/language-data";
 import { ViewUpdate } from "@codemirror/view";
 import { autocompletion } from "@codemirror/autocomplete";
-import { codeFolding } from "@codemirror/language";
+import { codeFolding, unfoldEffect } from "@codemirror/language";
 import { getCM, Vim, vim } from "@replit/codemirror-vim";
 import { editorTheme } from "./theme";
 import { formatKeymap, toggleCheckboxOnLine, handlePasteTransform, insertPastedImage } from "./commands";
@@ -22,6 +22,7 @@ import {
   tableEnterCommand,
   tableArrowVerticalCommand,
 } from "./table-commands";
+import { findFrontmatterFoldRange } from "./frontmatter-fold";
 
 interface BuildExtensionsOptions {
   wordWrap: boolean;
@@ -52,7 +53,40 @@ export function buildExtensions(opts: BuildExtensionsOptions): Extension[] {
     // logic explicitly instead (matches the old app, which never
     // auto-continued plain "- " list items either).
     markdown({ base: markdownLanguage, codeLanguages: languages, addKeymap: false }),
-    codeFolding(),
+    codeFolding({
+      preparePlaceholder: (state, range) => {
+        const frontmatter = findFrontmatterFoldRange(state.doc.toString());
+        return frontmatter?.bodyFrom === range.from && frontmatter.bodyTo === range.to
+          ? `frontmatter:${range.from}:${range.to}`
+          : null;
+      },
+      placeholderDOM: (view, onclick, prepared) => {
+        const frontmatterMatch = typeof prepared === "string"
+          ? /^frontmatter:(\d+):(\d+)$/.exec(prepared)
+          : null;
+        const isFrontmatter = Boolean(frontmatterMatch);
+        const element = document.createElement("span");
+        element.className = isFrontmatter
+          ? "cm-foldPlaceholder cm-frontmatterPlaceholder"
+          : "cm-foldPlaceholder";
+        element.textContent = isFrontmatter ? "Metadata" : "…";
+        element.setAttribute("aria-label", isFrontmatter ? "Expand metadata" : "Folded code");
+        element.title = isFrontmatter ? "Expand metadata" : "Unfold";
+        element.onclick = isFrontmatter
+          ? (event) => {
+              view.dispatch({
+                effects: unfoldEffect.of({
+                  from: Number(frontmatterMatch![1]),
+                  to: Number(frontmatterMatch![2]),
+                }),
+              });
+              event.preventDefault();
+              event.stopPropagation();
+            }
+          : onclick;
+        return element;
+      },
+    }),
     markdownHighlightPlugin,
     shortcodeExpandPlugin,
     createWikiLinkTriggerPlugin(opts.wikiLinkTriggerRef),
@@ -135,7 +169,8 @@ export function buildExtensions(opts: BuildExtensionsOptions): Extension[] {
       },
     }),
     EditorView.updateListener.of((update: ViewUpdate) => {
-      if (update.selectionSet || update.docChanged) {
+      const hasEffects = update.transactions.some((transaction) => transaction.effects.length > 0);
+      if (update.selectionSet || update.docChanged || hasEffects) {
         opts.onCursorActivity?.(update.view);
       }
     }),

@@ -83,19 +83,6 @@ html.dark .editor-sheet {
   -webkit-text-fill-color: currentColor;
 }
 
-/* Metadata remains fully editable, but recedes visually so the document body
-   stays primary. */
-.editor-container .cm-frontmatter-line {
-  opacity: 0.58;
-  color: var(--fg-muted);
-  transition: opacity 150ms ease;
-}
-
-.editor-container .cm-frontmatter-line:focus-within,
-.editor-container .cm-frontmatter-line:hover {
-  opacity: 0.9;
-}
-
 /* Smooth blue caret */
 .editor-container textarea {
   caret-color: #3b82f6;

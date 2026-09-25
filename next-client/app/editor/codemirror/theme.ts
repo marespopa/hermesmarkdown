@@ -31,6 +31,25 @@ export const baseTheme = EditorView.theme({
   ".cm-line": {
     padding: 0,
   },
+  ".cm-frontmatter-line": {
+    backgroundColor: "var(--frontmatter-bg)",
+    color: "var(--fg-faint)",
+    paddingLeft: "0.55rem",
+    paddingRight: "0.55rem",
+    transition: "background-color 150ms ease, color 150ms ease",
+  },
+  ".cm-frontmatter-line.cm-frontmatter-start": {
+    borderRadius: "0.55rem 0.55rem 0 0",
+    paddingTop: "0.15rem",
+  },
+  ".cm-frontmatter-line.cm-frontmatter-end": {
+    borderRadius: "0 0 0.55rem 0.55rem",
+    paddingBottom: "0.15rem",
+  },
+  ".cm-frontmatter-line:hover, .cm-frontmatter-line:focus-within": {
+    backgroundColor: "var(--frontmatter-bg-hover)",
+    color: "var(--fg-muted)",
+  },
   "&.cm-editor": {
     height: "100%",
   },
@@ -80,11 +99,8 @@ export const baseTheme = EditorView.theme({
     backgroundColor: "var(--clay) !important",
     opacity: "0.25",
   },
-  // CM6's default fold-placeholder widget ("…") ships a hardcoded light-gray
-  // box (@codemirror/language baseTheme) with no dark-mode variant, so it
-  // reads as a stray white pill in dark mode. Callout fold state is already
-  // shown by our own chevron UI (use-codemirror-callout-fold.ts), so the
-  // placeholder itself is redundant — made transparent rather than reskinned.
+  // Generic fold state is already shown by our own chevron UI, so its
+  // placeholder stays visually hidden while retaining its layout box.
   // Do NOT zero its width/use `display: none`/`overflow: hidden`: CM6's
   // posAtCoords hit-testing walks this widget's DOM box and needs it to keep
   // its normal (glyph-sized) layout dimensions, or clicks near it crash.
@@ -92,6 +108,33 @@ export const baseTheme = EditorView.theme({
     backgroundColor: "transparent",
     border: "none",
     color: "transparent",
+  },
+  ".cm-foldPlaceholder.cm-frontmatterPlaceholder": {
+    backgroundColor: "transparent",
+    border: "none",
+    color: "inherit",
+    cursor: "pointer",
+    fontFamily: "inherit",
+    fontSize: "0.9em",
+    fontWeight: "400",
+    margin: "0 0.35rem",
+    opacity: "var(--frontmatter-label-opacity)",
+    padding: 0,
+    transition: "opacity 500ms ease",
+  },
+  ".cm-foldPlaceholder.cm-frontmatterPlaceholder::after": {
+    content: '"›"',
+    marginLeft: "0.35rem",
+  },
+  ".cm-foldPlaceholder.cm-frontmatterPlaceholder:hover": {
+    backgroundColor: "transparent",
+    color: "inherit",
+    opacity: "1",
+  },
+  ".cm-line:has(.cm-frontmatterPlaceholder)": {
+    backgroundColor: "transparent",
+    borderRadius: 0,
+    padding: 0,
   },
 });
 

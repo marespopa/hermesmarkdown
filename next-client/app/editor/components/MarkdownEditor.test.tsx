@@ -1,4 +1,4 @@
-import { render, screen, cleanup, act, waitFor } from "@testing-library/react";
+import { render, screen, cleanup, act, fireEvent, waitFor } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { EditorView } from "@codemirror/view";
 import { undo } from "@codemirror/commands";
@@ -6,8 +6,13 @@ import MarkdownEditor from "./MarkdownEditor";
 import { CODE_BLOCK_TEMPLATE_CONTENT, CURSOR_SENTINEL, TEMPLATES } from "./constants";
 import { Provider, useAtomValue } from "jotai";
 import { useHydrateAtoms } from "jotai/utils";
-import { atom_activeEditorView, atom_lineNumbers } from "@/app/atoms/ui-atoms";
+import {
+  atom_activeEditorView,
+  atom_frontmatterCollapsedByDefault,
+  atom_lineNumbers,
+} from "@/app/atoms/ui-atoms";
 import { atom_pendingScrollTarget } from "@/app/atoms/atoms";
+import { findFrontmatterFoldRange, isFrontmatterFolded } from "../codemirror/frontmatter-fold";
 import "@testing-library/jest-dom";
 
 // MarkdownEditor now runs on CodeMirror 6, which renders a contenteditable
@@ -54,14 +59,21 @@ function ActiveEditorObserver() {
   return <output data-testid="active-editor-state">{activeEditorView ? "registered" : "none"}</output>;
 }
 
-function Hydrate({ children, pendingScrollTarget, lineNumbers = false }: {
+function Hydrate({
+  children,
+  pendingScrollTarget,
+  lineNumbers = false,
+  frontmatterCollapsedByDefault = false,
+}: {
   children: React.ReactNode;
   pendingScrollTarget: { path: string; line: number } | null;
   lineNumbers?: boolean;
+  frontmatterCollapsedByDefault?: boolean;
 }) {
   useHydrateAtoms([
     [atom_pendingScrollTarget, pendingScrollTarget],
     [atom_lineNumbers, lineNumbers],
+    [atom_frontmatterCollapsedByDefault, frontmatterCollapsedByDefault],
   ]);
   return children;
 }
@@ -79,10 +91,15 @@ describe("MarkdownEditor", () => {
     props = {},
     pendingScrollTarget: { path: string; line: number } | null = null,
     lineNumbers = false,
+    frontmatterCollapsedByDefault = false,
   ) =>
     render(
       <Provider>
-        <Hydrate pendingScrollTarget={pendingScrollTarget} lineNumbers={lineNumbers}>
+        <Hydrate
+          pendingScrollTarget={pendingScrollTarget}
+          lineNumbers={lineNumbers}
+          frontmatterCollapsedByDefault={frontmatterCollapsedByDefault}
+        >
           <MarkdownEditor value={value} onChange={mockOnChange} {...props} />
           <ActiveEditorObserver />
         </Hydrate>
@@ -156,9 +173,86 @@ describe("MarkdownEditor", () => {
     const value = "---\ntitle: Test\n---\nBody content";
     const { container } = renderEditor(value);
     await waitForEditor(container);
+    const view = getView(container);
+    const range = findFrontmatterFoldRange(view.state.doc.toString());
     const cmText = container.querySelector(".cm-content")?.textContent ?? "";
+
     expect(cmText).toContain("title: Test");
     expect(cmText).toContain("Body content");
+    expect(range).not.toBeNull();
+    expect(isFrontmatterFolded(view.state, range!)).toBe(false);
+  });
+
+  it("folds frontmatter when a file opens and the preference is enabled", async () => {
+    const coordsSpy = vi.spyOn(EditorView.prototype, "coordsAtPos").mockReturnValue({
+      left: 0,
+      right: 0,
+      top: 0,
+      bottom: 16,
+    });
+    const value = "---\ntitle: Test\n---\nBody content";
+    const { container } = renderEditor(value, { filePath: "note.md" }, null, false, true);
+    await waitForEditor(container);
+
+    await waitFor(() => {
+      const view = getView(container);
+      const range = findFrontmatterFoldRange(view.state.doc.toString());
+      expect(range).not.toBeNull();
+      expect(isFrontmatterFolded(view.state, range!)).toBe(true);
+      expect(screen.getByLabelText("Expand metadata")).toHaveTextContent("Metadata");
+    });
+
+    fireEvent.click(screen.getByLabelText("Expand metadata"));
+
+    await waitFor(() => {
+      const view = getView(container);
+      const range = findFrontmatterFoldRange(view.state.doc.toString());
+      expect(range).not.toBeNull();
+      expect(isFrontmatterFolded(view.state, range!)).toBe(false);
+    });
+    expect(await screen.findByLabelText("Collapse frontmatter")).toBeInTheDocument();
+    coordsSpy.mockRestore();
+  });
+
+  it("inserts frontmatter from the quick command when metadata is absent", async () => {
+    const { container } = renderEditor("Body", { filePath: "note.md", isActivePane: true });
+    await waitForEditor(container);
+
+    act(() => {
+      document.dispatchEvent(new CustomEvent("hermes:insert-template", {
+        detail: { label: "Frontmatter" },
+      }));
+    });
+
+    const view = getView(container);
+    expect(view.state.doc.toString()).toBe(
+      "---\ntitle: \nstatus: draft\ntags: []\n---\n\nBody",
+    );
+    expect(view.state.selection.main.head).toBe("title: ".length + 4);
+  });
+
+  it("reveals existing frontmatter from the quick command", async () => {
+    const value = "---\ntitle: Test\n---\nBody";
+    const { container } = renderEditor(
+      value,
+      { filePath: "note.md", isActivePane: true },
+      null,
+      false,
+      true,
+    );
+    await waitForEditor(container);
+    const view = getView(container);
+    const range = findFrontmatterFoldRange(value)!;
+    await waitFor(() => expect(isFrontmatterFolded(view.state, range)).toBe(true));
+
+    act(() => {
+      document.dispatchEvent(new CustomEvent("hermes:insert-template", {
+        detail: { label: "Frontmatter" },
+      }));
+    });
+
+    expect(isFrontmatterFolded(view.state, range)).toBe(false);
+    expect(view.state.selection.main.head).toBe(view.state.doc.line(2).to);
   });
 
   it("calls onChange with the full value (frontmatter + body) when the doc changes", async () => {

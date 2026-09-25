@@ -28,6 +28,8 @@ describe("computeMarkdownDecorations", () => {
 
     expect(decos.filter((d) => d.class.includes("cm-frontmatter-line"))).toHaveLength(3);
     expect(decos.some((d) => d.from === frontmatterStart && d.class.includes("cm-frontmatter-line"))).toBe(true);
+    expect(decos.some((d) => d.from === frontmatterStart && d.class.includes("cm-frontmatter-start"))).toBe(true);
+    expect(decos.some((d) => d.class.includes("cm-frontmatter-end"))).toBe(true);
     expect(decos.some((d) => d.from === bodyStart && d.class.includes("cm-frontmatter-line"))).toBe(false);
   });
 

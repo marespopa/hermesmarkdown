@@ -16,6 +16,7 @@ import {
   atom_claudeKey,
   atom_geminiKey,
   atom_vimMode,
+  atom_frontmatterCollapsedByDefault,
 } from "@/app/atoms/atoms";
 import { atom_availableGeminiModels, atom_availableClaudeModels, atom_lineNumbers, atom_showCommandPaletteFab, atom_showHiddenFiles } from "@/app/atoms/ui-atoms";
 import { useFileSystem } from "@/app/hooks/use-file-system";
@@ -50,6 +51,9 @@ const SettingsPage = () => {
   const [wordWrap, setWordWrap] = useAtom(atom_wordWrap);
   const [lineNumbers, setLineNumbers] = useAtom(atom_lineNumbers);
   const [vimMode, setVimMode] = useAtom(atom_vimMode);
+  const [frontmatterCollapsedByDefault, setFrontmatterCollapsedByDefault] = useAtom(
+    atom_frontmatterCollapsedByDefault,
+  );
   const [autosaveMode, setAutosaveMode] = useAtom(atom_autosaveMode);
   const [autosaveDelay, setAutosaveDelay] = useAtom(atom_autosaveDelay);
   const [showHiddenFiles, setShowHiddenFiles] = useAtom(atom_showHiddenFiles);
@@ -191,6 +195,18 @@ const SettingsPage = () => {
               label="Vim Mode"
               description="Use Vim motions and editing modes in the source editor."
               control={<Toggle variant="soft" active={vimMode} onChange={setVimMode} />}
+            />
+            <SettingItem
+              label="Collapse Frontmatter"
+              description="Start with the YAML frontmatter folded when opening files."
+              control={
+                <Toggle
+                  variant="soft"
+                  active={frontmatterCollapsedByDefault}
+                  onChange={setFrontmatterCollapsedByDefault}
+                  label="Collapse frontmatter by default"
+                />
+              }
             />
             <SettingItem
               label="Command Palette Button"

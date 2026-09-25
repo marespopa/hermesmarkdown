@@ -162,11 +162,21 @@ export default function LiteEditor() {
   // Sync sidebar with active file folder
   const lastSyncedPathRef = useRef<string | null>(null);
   useEffect(() => {
-    if (activeFilePath && activeFilePath !== "draft" && activeFilePath !== lastSyncedPathRef.current) {
-      lastSyncedPathRef.current = activeFilePath;
-      syncSidebarToPath(activeFilePath);
-    }
-  }, [activeFilePath, syncSidebarToPath]);
+    if (
+      !activeFilePath ||
+      activeFilePath === "draft" ||
+      activeFilePath === lastSyncedPathRef.current ||
+      isVaultPending
+    ) return;
+
+    let cancelled = false;
+    void syncSidebarToPath(activeFilePath).then((synced) => {
+      if (synced && !cancelled) lastSyncedPathRef.current = activeFilePath;
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [activeFilePath, isVaultPending, syncSidebarToPath]);
 
   const [pendingFile, setPendingFile] = useState<{
     text: string;

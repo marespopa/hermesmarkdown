@@ -18,6 +18,7 @@ function makeCallbacks(): SlashMenuCallbacks {
     onOpenWikiLinkDialog: vi.fn(),
     onOpenDatePicker: vi.fn(),
     onOpenTaskDialog: vi.fn(),
+    onOpenAIChat: vi.fn(),
     onFrontmatterWizard: vi.fn(),
     onCodeBlockInserted: vi.fn(),
   };
@@ -91,5 +92,19 @@ describe("createSlashMenuSource", () => {
     expect(code.view.state.doc.toString()).toBe(CODE_BLOCK_TEMPLATE_CONTENT.replace(CURSOR_SENTINEL, ""));
     expect(code.view.state.selection.main.head).toBe(4);
     expect(code.callbacks.onCodeBlockInserted).toHaveBeenCalledWith(4);
+  });
+
+  it("opens configured AI Chat and removes the quick command", () => {
+    const { callbacks, view } = applyOption("/AI", "AI Chat");
+
+    expect(view.state.doc.toString()).toBe("");
+    expect(callbacks.onOpenAIChat).toHaveBeenCalledOnce();
+  });
+
+  it("hides AI Chat when AI is not configured", () => {
+    const callbacks = makeCallbacks();
+    callbacks.onOpenAIChat = undefined;
+
+    expect(getResult("/AI", callbacks).result?.options.map(({ label }) => label)).not.toContain("AI Chat");
   });
 });
