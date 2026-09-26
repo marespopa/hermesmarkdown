@@ -74,12 +74,12 @@ describe("computeMarkdownDecorations", () => {
     expect(decos.some((d) => d.from === labelFrom && d.class.includes("line-through"))).toBe(true);
   });
 
-  it("colors currency amounts", () => {
+  it("leaves currency amounts undecorated", () => {
     const doc = "Cost: $42,246 total\n- [ ] Budget: $100 and €20";
     const decos = decorationsFor(doc);
     for (const amount of ["$42,246", "$100", "€20"]) {
       const amountFrom = doc.indexOf(amount);
-      expect(decos.some((d) => d.from === amountFrom && d.to === amountFrom + amount.length && d.class.includes("emerald"))).toBe(true);
+      expect(decos.some((d) => d.from === amountFrom && d.to === amountFrom + amount.length)).toBe(false);
     }
   });
 
@@ -122,8 +122,6 @@ describe("computeMarkdownDecorations", () => {
     const decos = decorationsFor(doc);
     const nameFrom = doc.indexOf("My Note");
     expect(decos.some((d) => d.from === nameFrom && d.to === doc.indexOf("]]") && d.class.includes("underline"))).toBe(true);
-    const amountFrom = doc.indexOf("$100");
-    expect(decos.some((d) => d.from === amountFrom && d.class.includes("emerald"))).toBe(true);
   });
 
   it("highlights inline syntax in the pasted list content", () => {
@@ -131,7 +129,7 @@ describe("computeMarkdownDecorations", () => {
 - Currency is shown "highlighted" only for $100 dollars, and only at the start of the line; #todo
 there are other highlighting issues, wikilinks, #todo not showed differently than another #tag`;
     const decos = decorationsFor(doc);
-    for (const token of ["$100", "#todo", "#tag"]) {
+    for (const token of ["#todo", "#tag"]) {
       const from = doc.indexOf(token);
       expect(decos.some((d) => d.from === from && d.to === from + token.length)).toBe(true);
     }

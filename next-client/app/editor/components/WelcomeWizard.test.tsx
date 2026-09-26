@@ -1,9 +1,10 @@
 import React from "react";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { Provider } from "jotai";
+import { Provider, useAtomValue } from "jotai";
 import { useHydrateAtoms } from "jotai/utils";
 import WelcomeWizard from "./WelcomeWizard";
+import { atom_renderedFontSize } from "@/app/atoms/atoms";
 import { atom_hasCompletedOnboarding, atom_isWizardOpen } from "@/app/atoms/ui-atoms";
 import { atom_vaultHandle } from "@/app/atoms/vault-atoms";
 import { useFileSystem } from "@/app/hooks/use-file-system";
@@ -32,6 +33,10 @@ const TestProvider = ({ initialValues, children }: { initialValues: any, childre
   <Provider>
     <HydrateAtoms initialValues={initialValues}>{children}</HydrateAtoms>
   </Provider>
+);
+
+const FontSizeValue = () => (
+  <output data-testid="font-size-value">{useAtomValue(atom_renderedFontSize)}</output>
 );
 
 describe("WelcomeWizard", () => {
@@ -112,10 +117,9 @@ describe("WelcomeWizard", () => {
 
     expect(screen.getByText("Theme")).toBeInTheDocument();
 
-    // Steps 1-6 (Theme, paper-like font, Line Numbers, Vim Mode,
-    // Autosave, AI Features) each advance one step at a time via their own
-    // "Continue" button before reaching the final step (7).
-    for (let i = 0; i < 6; i++) {
+    // Steps 1-7 (Theme, typeface, text size, line numbers, Vim Mode,
+    // Autosave, AI Features) advance one step at a time before the final step.
+    for (let i = 0; i < 7; i++) {
       fireEvent.click(screen.getByText("Continue"));
     }
 
@@ -124,10 +128,26 @@ describe("WelcomeWizard", () => {
     });
   });
 
+  it("lets the user choose and saves the rendered text size", () => {
+    render(
+      <TestProvider initialValues={defaultInitialValues}>
+        <WelcomeWizard initialStep={3} />
+        <FontSizeValue />
+      </TestProvider>
+    );
+
+    const fontSize = screen.getByRole("combobox", { name: "Text size" });
+    expect(fontSize).toHaveValue("18px");
+
+    fireEvent.change(fontSize, { target: { value: "20px" } });
+
+    expect(screen.getByTestId("font-size-value")).toHaveTextContent("20px");
+  });
+
   it("replaces the test button with a connection confirmation after success", async () => {
     render(
       <TestProvider initialValues={defaultInitialValues}>
-        <WelcomeWizard initialStep={6} />
+        <WelcomeWizard initialStep={7} />
       </TestProvider>
     );
 

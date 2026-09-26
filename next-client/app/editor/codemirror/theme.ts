@@ -148,7 +148,7 @@ export const baseTheme = EditorView.theme({
   ".cm-line:has(.cm-frontmatterPlaceholder)": {
     backgroundColor: "transparent",
     borderRadius: 0,
-    padding: 0,
+    padding: "0 0 0.75em",
   },
   ".cm-tag-pill": {
     display: "inline-flex",

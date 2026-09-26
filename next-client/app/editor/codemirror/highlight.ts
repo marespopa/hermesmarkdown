@@ -10,7 +10,6 @@ import {
   REGEX_CODE_INLINE,
   REGEX_WIKILINK,
   REGEX_HASHTAG,
-  REGEX_CURRENCY,
   REGEX_LINK,
   REGEX_BOLD,
   REGEX_ITALIC,
@@ -73,8 +72,8 @@ function mark(ranges: MarkRange[], from: number, to: number, className: string) 
   if (to > from) ranges.push({ from, to, class: className });
 }
 
-// Runs the inline regex passes (dates, wikilinks, code, hashtags, currency,
-// links, bold/italic, strikethrough) over one line's label text, emitting
+// Runs the inline regex passes (dates, wikilinks, code, hashtags, links,
+// bold/italic, strikethrough) over one line's label text, emitting
 // absolute-position mark decorations. `base` is the doc offset of label[0].
 function processInline(ranges: MarkRange[], label: string, base: number) {
   const push = (from: number, to: number, cls: string) => mark(ranges, base + from, base + to, cls);
@@ -117,12 +116,6 @@ function processInline(ranges: MarkRange[], label: string, base: number) {
       const cls = isColored ? EDITOR_TAG_COLORS[tagName] : "!text-zinc-700 dark:!text-zinc-300";
       const tagStart = m.index! + m[1].length;
       push(tagStart, tagStart + fullTag.length, `${cls} font-bold cursor-pointer`);
-    }
-  }
-
-  if (/[$€£¥₹]|C\$|A\$|lei/.test(label)) {
-    for (const m of label.matchAll(REGEX_CURRENCY)) {
-      push(m.index!, m.index! + m[0].length, "!text-emerald-600 dark:!text-emerald-400");
     }
   }
 

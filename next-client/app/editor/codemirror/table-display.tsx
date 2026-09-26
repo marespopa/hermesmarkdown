@@ -152,8 +152,12 @@ class TableDisplayWidget extends WidgetType {
   }
 
   destroy(dom: HTMLElement) {
-    this.roots.get(dom)?.unmount();
+    const root = this.roots.get(dom);
     this.roots.delete(dom);
+    if (!root) return;
+
+    // CodeMirror can destroy widgets during a React render or effect cleanup.
+    queueMicrotask(() => root.unmount());
   }
 
   ignoreEvent() {

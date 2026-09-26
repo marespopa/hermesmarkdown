@@ -47,6 +47,14 @@ html.dark .editor-canvas {
   box-shadow: 0 8px 30px -12px rgb(0 0 0 / 10%);
 }
 
+.editor-no-wrap-viewport {
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: auto;
+  overflow-y: clip;
+  overscroll-behavior-x: contain;
+}
+
 html.dark .editor-sheet {
   background-color: var(--surface);
   border-color: var(--border-subtle);
