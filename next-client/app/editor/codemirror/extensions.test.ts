@@ -14,6 +14,7 @@ function createEditor(vimMode: boolean, onOpenActiveHelper = vi.fn(() => false))
       doc: "A note",
       extensions: buildExtensions({
         wordWrap: true,
+        wordWrapCompartment: new Compartment(),
         lineNumbers: true,
         lineNumbersCompartment: new Compartment(),
         vimMode,

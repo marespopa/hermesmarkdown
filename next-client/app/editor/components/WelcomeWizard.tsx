@@ -11,6 +11,7 @@ import {
   atom_theme,
   type Theme,
   atom_editorFontFamily,
+  atom_renderedFontSize,
   atom_aiProvider,
   atom_claudeKey,
   atom_geminiKey,
@@ -50,7 +51,7 @@ import {
 import { useCreateVault } from "@/app/hooks/file-system/use-create-vault";
 import CreateVaultSubSteps from "./CreateVaultSubSteps";
 
-const TOTAL_STEPS = 7;
+const TOTAL_STEPS = 8;
 
 const THEME_OPTIONS: { label: string; value: Theme }[] = [
   { label: "Light", value: "light" },
@@ -73,6 +74,7 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
   const [autosaveMode, setAutosaveMode] = useAtom(atom_autosaveMode);
   const [theme, setTheme] = useAtom(atom_theme);
   const [editorFontFamily, setEditorFontFamily] = useAtom(atom_editorFontFamily);
+  const [renderedFontSize, setRenderedFontSize] = useAtom(atom_renderedFontSize);
   const [lineNumbers, setLineNumbers] = useAtom(atom_lineNumbers);
   const [vimMode, setVimMode] = useAtom(atom_vimMode);
   const [aiProvider, setAiProvider] = useAtom(atom_aiProvider);
@@ -152,9 +154,10 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
             <div className="space-y-2">
               <h2 className="text-ui-title-3 font-bold">Connect Your Vault</h2>
               <p className="text-ui-footnote opacity-60 px-4">
-                Pick where your notes live. A <code className="not-italic">.hermes</code> folder
-                goes alongside them — an index for agents to read later, nothing you need to
-                touch.
+                Choose a folder for your notes. HermesMarkdown indexes your
+                Markdown files locally so you can search and navigate your
+                vault. Your notes stay on your device unless you choose GitHub
+                sync.
               </p>
             </div>
 
@@ -267,6 +270,43 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
         return (
           <div className="flex flex-col items-center text-center space-y-6 py-4">
             <div className="w-16 h-16 bg-sage/10 rounded-2xl flex items-center justify-center text-sage">
+              <HiOutlineColorSwatch size={32} />
+            </div>
+            <div className="space-y-2">
+              <h2 className="text-ui-title-3 font-bold">Choose your text size</h2>
+              <p className="text-ui-footnote opacity-60 px-4">
+                Set a comfortable reading size for your notes. You can adjust it
+                later in Settings.
+              </p>
+            </div>
+
+            <div className="w-full rounded-2xl border border-edge p-4 bg-paper-softgray/40 dark:bg-paper-dark/30 text-left">
+              <label className="mb-2 block text-[11px] font-bold uppercase tracking-wider opacity-70">
+                Text size
+              </label>
+              <SelectControl
+                value={renderedFontSize}
+                onChange={setRenderedFontSize}
+                ariaLabel="Text size"
+              >
+                <option value="14px">Small</option>
+                <option value="16px">Medium</option>
+                <option value="18px">Large</option>
+                <option value="20px">Extra large</option>
+                <option value="22px">Largest</option>
+              </SelectControl>
+            </div>
+
+            <Button variant="primary" onClick={() => setStep(4)} className="w-full h-12 rounded-2xl text-ui-footnote font-bold">
+              Continue
+            </Button>
+          </div>
+        );
+
+      case 4:
+        return (
+          <div className="flex flex-col items-center text-center space-y-6 py-4">
+            <div className="w-16 h-16 bg-sage/10 rounded-2xl flex items-center justify-center text-sage">
               <HiOutlineViewList size={32} />
             </div>
             <div className="space-y-2">
@@ -282,13 +322,13 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
               <Toggle variant="soft" active={lineNumbers} onChange={setLineNumbers} />
             </div>
 
-            <Button variant="primary" onClick={() => setStep(4)} className="w-full h-12 rounded-2xl text-ui-footnote font-bold">
+            <Button variant="primary" onClick={() => setStep(5)} className="w-full h-12 rounded-2xl text-ui-footnote font-bold">
               Continue
             </Button>
           </div>
         );
 
-      case 4:
+      case 5:
         return (
           <div className="flex flex-col items-center text-center space-y-6 py-4">
             <div className="w-16 h-16 bg-sage/10 rounded-2xl flex items-center justify-center text-sage">
@@ -306,13 +346,13 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
               <Toggle variant="soft" active={vimMode} onChange={setVimMode} />
             </div>
 
-            <Button variant="primary" onClick={() => setStep(5)} className="w-full h-12 rounded-2xl text-ui-footnote font-bold">
+            <Button variant="primary" onClick={() => setStep(6)} className="w-full h-12 rounded-2xl text-ui-footnote font-bold">
               Continue
             </Button>
           </div>
         );
 
-      case 5:
+      case 6:
         return (
           <div className="flex flex-col items-center text-center space-y-6 py-4">
             <div className="w-16 h-16 bg-sage/10 rounded-2xl flex items-center justify-center text-sage">
@@ -336,13 +376,13 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
               </div>
             </div>
 
-            <Button variant="primary" onClick={() => setStep(6)} className="w-full h-12 rounded-2xl text-ui-footnote font-bold">
+            <Button variant="primary" onClick={() => setStep(7)} className="w-full h-12 rounded-2xl text-ui-footnote font-bold">
               Continue
             </Button>
           </div>
         );
 
-      case 6: {
+      case 7: {
         const key = aiProvider === "gemini" ? geminiKey : claudeKey;
         const setKey = aiProvider === "gemini" ? setGeminiKey : setClaudeKey;
         return (
@@ -413,17 +453,17 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
               )}
             </div>
 
-            <Button variant="primary" onClick={() => setStep(7)} className="w-full h-11 rounded-2xl text-ui-footnote font-bold shrink-0">
+            <Button variant="primary" onClick={() => setStep(8)} className="w-full h-11 rounded-2xl text-ui-footnote font-bold shrink-0">
               Continue
             </Button>
           </div>
         );
       }
 
-      case 7:
+      case 8:
         return (
           <div className="flex flex-col items-center text-center space-y-6 py-4">
-            <div className="w-16 h-16 bg-sage rounded-2xl flex items-center justify-center text-white">
+            <div className="w-16 h-16 bg-sage/10 rounded-2xl flex items-center justify-center text-sage">
               <HiOutlineCheckCircle size={32} />
             </div>
             <div className="space-y-2">

@@ -30,6 +30,7 @@ import { findFrontmatterFoldRange } from "./frontmatter-fold";
 
 interface BuildExtensionsOptions {
   wordWrap: boolean;
+  wordWrapCompartment: Compartment;
   lineNumbers: boolean;
   lineNumbersCompartment: Compartment;
   vimMode: boolean;
@@ -48,6 +49,7 @@ interface BuildExtensionsOptions {
 export function buildExtensions(opts: BuildExtensionsOptions): Extension[] {
   const extensions: Extension[] = [
     editorTheme(),
+    opts.wordWrapCompartment.of(opts.wordWrap ? EditorView.lineWrapping : []),
     opts.lineNumbersCompartment.of(opts.lineNumbers ? lineNumbers() : []),
     history(),
     drawSelection(),
@@ -184,7 +186,6 @@ export function buildExtensions(opts: BuildExtensionsOptions): Extension[] {
     }),
   ];
 
-  if (opts.wordWrap) extensions.push(EditorView.lineWrapping);
   if (opts.placeholder) extensions.push(placeholderExt(opts.placeholder));
 
   return extensions;

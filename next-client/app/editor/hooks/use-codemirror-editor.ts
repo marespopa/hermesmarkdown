@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import type { EditorView } from "@codemirror/view";
+import { EditorView as CodeMirrorView, lineNumbers as codeMirrorLineNumbers } from "@codemirror/view";
 import type { Compartment } from "@codemirror/state";
 import { getCM, Vim, vim } from "@replit/codemirror-vim";
 import type { SlashMenuCallbacks } from "../codemirror/slash-menu";
@@ -58,6 +59,7 @@ export function useCodeMirrorEditor({
   onChangeRef.current = onChange;
   const onCursorActivityRef = useRef(onCursorActivity);
   onCursorActivityRef.current = onCursorActivity;
+  const wordWrapCompartmentRef = useRef<Compartment | null>(null);
   const lineNumbersCompartmentRef = useRef<Compartment | null>(null);
   const vimModeCompartmentRef = useRef<Compartment | null>(null);
 
@@ -79,8 +81,10 @@ export function useCodeMirrorEditor({
       const buildExtensions = extensionsModule.buildExtensions as (
         opts: any,
       ) => import("@codemirror/state").Extension[];
+      const wordWrapCompartment = new Compartment();
       const lineNumbersCompartment = new Compartment();
       const vimModeCompartment = new Compartment();
+      wordWrapCompartmentRef.current = wordWrapCompartment;
       lineNumbersCompartmentRef.current = lineNumbersCompartment;
       vimModeCompartmentRef.current = vimModeCompartment;
 
@@ -88,6 +92,7 @@ export function useCodeMirrorEditor({
         doc: value,
         extensions: buildExtensions({
           wordWrap,
+          wordWrapCompartment,
           lineNumbers,
           lineNumbersCompartment,
           vimMode,
@@ -144,10 +149,19 @@ export function useCodeMirrorEditor({
 
   useEffect(() => {
     const view = viewRef.current;
+    const compartment = wordWrapCompartmentRef.current;
+    if (!view || !compartment) return;
+    view.dispatch({
+      effects: compartment.reconfigure(wordWrap ? CodeMirrorView.lineWrapping : []),
+    });
+  }, [wordWrap, viewRef]);
+
+  useEffect(() => {
+    const view = viewRef.current;
     const compartment = lineNumbersCompartmentRef.current;
     if (!view || !compartment) return;
-    import("@codemirror/view").then(({ lineNumbers: cmLineNumbers }) => {
-      view.dispatch({ effects: compartment.reconfigure(lineNumbers ? cmLineNumbers() : []) });
+    view.dispatch({
+      effects: compartment.reconfigure(lineNumbers ? codeMirrorLineNumbers() : []),
     });
   }, [lineNumbers, viewRef]);
 

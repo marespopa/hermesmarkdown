@@ -31,12 +31,19 @@ function makeView(doc: string, cursor = 0) {
   return view;
 }
 
-afterEach(() => {
-  act(() => {
+afterEach(async () => {
+  await act(async () => {
     for (const view of views.splice(0)) view.destroy();
+    await Promise.resolve();
   });
   document.body.replaceChildren();
 });
+
+async function flushReactCleanup() {
+  await act(async () => {
+    await Promise.resolve();
+  });
+}
 
 describe("tableDisplayExtension", () => {
   it("renders valid inactive tables with inline Markdown", async () => {
@@ -67,12 +74,31 @@ describe("tableDisplayExtension", () => {
       expect(view.dom.querySelector(".cm-table-preview")).not.toBeNull();
     });
 
-    act(() => {
+    await act(async () => {
       view.dispatch({ selection: EditorSelection.cursor(doc.indexOf("A")) });
+      await Promise.resolve();
     });
 
     expect(view.dom.querySelector(".cm-table-preview")).toBeNull();
     expect(view.contentDOM).toHaveTextContent("| A | B |");
+  });
+
+  it("defers React root cleanup when removing a table widget", async () => {
+    const doc = "Intro\n\n| A | B |\n| --- | --- |\n| 1 | 2 |";
+    const view = makeView(doc);
+
+    await waitFor(() => {
+      expect(view.dom.querySelector(".cm-table-preview")).not.toBeNull();
+    });
+    const scroll = view.dom.querySelector(".cm-table-preview-scroll");
+
+    act(() => {
+      view.dispatch({ selection: EditorSelection.cursor(doc.indexOf("A")) });
+    });
+
+    expect(scroll).not.toBeEmptyDOMElement();
+    await flushReactCleanup();
+    expect(scroll).toBeEmptyDOMElement();
   });
 
   it("places the caret in the clicked source cell", async () => {
@@ -87,6 +113,7 @@ describe("tableDisplayExtension", () => {
 
     fireEvent.mouseDown(readyCell);
     fireEvent.click(readyCell);
+    await flushReactCleanup();
 
     expect(view.dom.querySelector(".cm-table-preview")).toBeNull();
     expect(view.state.selection.main.head).toBe(doc.indexOf("Ready"));
@@ -134,6 +161,7 @@ describe("tableDisplayExtension", () => {
     });
 
     fireEvent.click(secondCell);
+    await flushReactCleanup();
     expect(view.state.selection.main.head).toBe(doc.indexOf("Edit me"));
   });
 
@@ -148,6 +176,7 @@ describe("tableDisplayExtension", () => {
     });
 
     fireEvent.click(firstCell);
+    await flushReactCleanup();
     expect(view.state.selection.main.head).toBe(doc.indexOf("One"));
   });
 });

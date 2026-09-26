@@ -4,14 +4,14 @@ import { EditorView } from "@codemirror/view";
 import { undo } from "@codemirror/commands";
 import MarkdownEditor from "./MarkdownEditor";
 import { CODE_BLOCK_TEMPLATE_CONTENT, CURSOR_SENTINEL, TEMPLATES } from "./constants";
-import { Provider, useAtomValue } from "jotai";
+import { Provider, useAtomValue, useSetAtom } from "jotai";
 import { useHydrateAtoms } from "jotai/utils";
 import {
   atom_activeEditorView,
   atom_frontmatterCollapsedByDefault,
   atom_lineNumbers,
 } from "@/app/atoms/ui-atoms";
-import { atom_pendingScrollTarget } from "@/app/atoms/atoms";
+import { atom_pendingScrollTarget, atom_wordWrap } from "@/app/atoms/atoms";
 import { findFrontmatterFoldRange, isFrontmatterFolded } from "../codemirror/frontmatter-fold";
 import "@testing-library/jest-dom";
 
@@ -59,21 +59,33 @@ function ActiveEditorObserver() {
   return <output data-testid="active-editor-state">{activeEditorView ? "registered" : "none"}</output>;
 }
 
+function WordWrapToggle() {
+  const setWordWrap = useSetAtom(atom_wordWrap);
+  return (
+    <button type="button" onClick={() => setWordWrap((current) => !current)}>
+      Toggle word wrap
+    </button>
+  );
+}
+
 function Hydrate({
   children,
   pendingScrollTarget,
   lineNumbers = false,
   frontmatterCollapsedByDefault = false,
+  wordWrap = true,
 }: {
   children: React.ReactNode;
   pendingScrollTarget: { path: string; line: number } | null;
   lineNumbers?: boolean;
   frontmatterCollapsedByDefault?: boolean;
+  wordWrap?: boolean;
 }) {
   useHydrateAtoms([
     [atom_pendingScrollTarget, pendingScrollTarget],
     [atom_lineNumbers, lineNumbers],
     [atom_frontmatterCollapsedByDefault, frontmatterCollapsedByDefault],
+    [atom_wordWrap, wordWrap],
   ]);
   return children;
 }
@@ -92,6 +104,7 @@ describe("MarkdownEditor", () => {
     pendingScrollTarget: { path: string; line: number } | null = null,
     lineNumbers = false,
     frontmatterCollapsedByDefault = false,
+    wordWrap = true,
   ) =>
     render(
       <Provider>
@@ -99,6 +112,7 @@ describe("MarkdownEditor", () => {
           pendingScrollTarget={pendingScrollTarget}
           lineNumbers={lineNumbers}
           frontmatterCollapsedByDefault={frontmatterCollapsedByDefault}
+          wordWrap={wordWrap}
         >
           <MarkdownEditor value={value} onChange={mockOnChange} {...props} />
           <ActiveEditorObserver />
@@ -115,6 +129,37 @@ describe("MarkdownEditor", () => {
   it("mounts a CodeMirror 6 editor", async () => {
     const { container } = renderEditor("hello world");
     await waitForEditor(container);
+  });
+
+  it("updates line wrapping and viewport containment when toggled", async () => {
+    const { container } = render(
+      <Provider>
+        <Hydrate pendingScrollTarget={null} wordWrap>
+          <MarkdownEditor value="" onChange={mockOnChange} />
+          <WordWrapToggle />
+        </Hydrate>
+      </Provider>,
+    );
+    await waitForEditor(container);
+    const sheet = container.querySelector<HTMLElement>(".editor-sheet");
+    expect(sheet).toHaveClass("w-full");
+    expect(sheet?.style.maxWidth).toBe("");
+    expect(getView(container).contentDOM).toHaveClass("cm-lineWrapping");
+    expect(container.querySelector("#md-editor")).not.toHaveClass("editor-no-wrap-viewport");
+
+    fireEvent.click(screen.getByRole("button", { name: "Toggle word wrap" }));
+    await waitFor(() =>
+      expect(getView(container).contentDOM).not.toHaveClass("cm-lineWrapping"),
+    );
+    expect(sheet).toHaveClass("w-full");
+    expect(container.querySelector("#md-editor")).toHaveClass("editor-no-wrap-viewport");
+
+    fireEvent.click(screen.getByRole("button", { name: "Toggle word wrap" }));
+    await waitFor(() =>
+      expect(getView(container).contentDOM).toHaveClass("cm-lineWrapping"),
+    );
+    expect(sheet).toHaveClass("w-full");
+    expect(container.querySelector("#md-editor")).not.toHaveClass("editor-no-wrap-viewport");
   });
 
   it("registers the asynchronously created active editor view", async () => {

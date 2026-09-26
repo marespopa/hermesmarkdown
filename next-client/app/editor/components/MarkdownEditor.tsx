@@ -4,7 +4,7 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
 import { useAtomValue, useSetAtom } from "jotai";
 import { atom_frontmatterCollapsedByDefault, atom_wordWrap, atom_isEditorFocused, atom_vaultHandle, atom_currentDirectoryHandle, atom_pendingScrollTarget } from "@/app/atoms/atoms";
-import { atom_activeEditorView, atom_aiBuilderRequest, atom_editorContentWidth, atom_isAiConfigured, atom_lineNumbers, atom_vimMode } from "@/app/atoms/ui-atoms";
+import { atom_activeEditorView, atom_aiBuilderRequest, atom_isAiConfigured, atom_lineNumbers, atom_vimMode } from "@/app/atoms/ui-atoms";
 import { useAtom } from "jotai";
 import { savePastedImage } from "@/app/utils/paste-image";
 import { EditorView } from "@codemirror/view";
@@ -67,7 +67,6 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
   const isAiConfigured = useAtomValue(atom_isAiConfigured);
   const setAiBuilderRequest = useSetAtom(atom_aiBuilderRequest);
   const frontmatterCollapsedByDefault = useAtomValue(atom_frontmatterCollapsedByDefault);
-  const [, setEditorContentWidth] = useAtom(atom_editorContentWidth);
   const [, setIsEditorFocused] = useAtom(atom_isEditorFocused);
   const [pendingScrollTarget, setPendingScrollTarget] = useAtom(atom_pendingScrollTarget);
   const filePath = props.filePath || "draft";
@@ -78,32 +77,11 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
     onChange(newVal);
   }, [onChange]);
 
-  const { fontFamily, displayFontSize, lineHeight, windowWidth, paneRef, maxContentWidth, contentPaddingX, noWrapPaddingX } =
+  const { fontFamily, displayFontSize, lineHeight, windowWidth, paneRef, contentPaddingX } =
     useEditorAppearance(props.isSplit);
 
   const keyboardInset = useKeyboardInset();
   const isMobile = windowWidth < 768;
-  const resizeRef = useRef<{ center: number } | null>(null);
-
-  const handleEditorResizeStart = useCallback((event: React.PointerEvent<HTMLButtonElement>) => {
-    if (!maxContentWidth || isMobile) return;
-    const parent = event.currentTarget.parentElement;
-    if (!parent) return;
-    event.preventDefault();
-    const rect = parent.getBoundingClientRect();
-    resizeRef.current = { center: rect.left + rect.width / 2 };
-    event.currentTarget.setPointerCapture?.(event.pointerId);
-  }, [isMobile, maxContentWidth]);
-
-  const handleEditorResize = useCallback((event: React.PointerEvent<HTMLButtonElement>) => {
-    if (!resizeRef.current) return;
-    const width = Math.max(600, Math.min(1200, Math.abs(event.clientX - resizeRef.current.center) * 2));
-    setEditorContentWidth(width);
-  }, [setEditorContentWidth]);
-
-  const handleEditorResizeEnd = useCallback(() => {
-    resizeRef.current = null;
-  }, []);
 
   const containerRef = useRef<HTMLDivElement | null>(null);
   const viewRef = useRef<EditorView | null>(null);
@@ -406,35 +384,26 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
           ${props.isSplit
             ? "mt-3 mb-5 pt-4 pb-8 sm:mt-4 sm:mb-7 sm:pt-5"
             : "mt-6 mb-10 pt-6 pb-12 sm:mt-8 sm:mb-14 sm:pt-8"}
-          ${wordWrap ? "mx-auto w-full" : "w-max min-w-full"}
+          mx-auto w-full
           text-ui-body
         `}
         style={{
           fontFamily,
           "--editor-font-size": displayFontSize,
           "--editor-line-height": lineHeight,
-          maxWidth: wordWrap ? maxContentWidth : undefined,
-          paddingLeft: wordWrap ? contentPaddingX : noWrapPaddingX,
-          paddingRight: wordWrap ? contentPaddingX : noWrapPaddingX,
+          paddingLeft: contentPaddingX,
+          paddingRight: contentPaddingX,
           paddingBottom: keyboardInset > 0 ? `calc(3rem + ${keyboardInset}px)` : undefined,
         } as React.CSSProperties}
       >
-        {wordWrap && maxContentWidth && !isMobile && (
-          <button
-            type="button"
-            aria-label="Resize editor width"
-            title="Resize editor width"
-            className="absolute top-0 bottom-0 z-10 w-2 -translate-x-1/2 cursor-col-resize opacity-0 hover:opacity-100 focus:opacity-100 bg-sage/20 transition-opacity"
-            style={{ left: `calc(50% + ${maxContentWidth / 2}px)` }}
-            onPointerDown={handleEditorResizeStart}
-            onPointerMove={handleEditorResize}
-            onPointerUp={handleEditorResizeEnd}
-            onPointerCancel={handleEditorResizeEnd}
-          />
-        )}
         <div className="relative h-full">
           <label htmlFor="md-editor" className="sr-only">Markdown editor</label>
-          <div id="md-editor" ref={containerRef} className="h-full" tabIndex={0} />
+          <div
+            id="md-editor"
+            ref={containerRef}
+            className={`h-full ${wordWrap ? "" : "editor-no-wrap-viewport"}`}
+            tabIndex={0}
+          />
 
           {[...chevrons.map((chevron) => ({ ...chevron, kind: "callout" as const })), ...frontmatterChevrons.filter((chevron) => !chevron.collapsed).map((chevron) => ({ ...chevron, kind: "frontmatter" as const }))].map((chevron) => (
             <button
