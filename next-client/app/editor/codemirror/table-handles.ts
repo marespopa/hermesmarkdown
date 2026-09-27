@@ -2,9 +2,11 @@
 // never sit on top of text being typed:
 //   - right-click (or long-press) a cell opens one menu with row, column
 //     and table actions, anchored at the pointer;
-//   - a single small tab in the strip *above* the table, over the active
-//     column, opens the same menu (the visible affordance for touch). It
-//     fades out while typing and returns on pointer movement.
+//   - while a table is being edited, spreadsheet-style column letters and
+//     row numbers appear in gutters around it; clicking one opens the same
+//     menu for that column/row (the visible affordance for touch).
+
+import { colIndexToLetter } from "../utils/formula-engine";
 
 export type TableMenuEntry =
   | {
@@ -125,60 +127,108 @@ export function showTableMenu(anchor: MenuAnchor, entries: TableMenuEntry[], lab
   openMenu = { el: menu, close };
 }
 
-export interface TableColumnTab {
-  // Moves the tab over `cell`'s column (or hides it when null).
+export interface TableRulers {
+  // Shows the rulers around the table containing `cell` (highlighting its
+  // row and column), or hides them when null.
   update(cell: HTMLElement | null): void;
-  // Fades the tab while the user types; pointer movement brings it back.
-  setTyping(typing: boolean): void;
 }
 
-export function createColumnTab(
+// Spreadsheet-style row numbers and column letters, shown while a table is
+// being edited. They match formula addressing (A1 = first header cell, the
+// first data row is 2) and double as menu buttons: clicking a letter or a
+// number focuses that column/row and opens the table menu for it. They live
+// in gutters reserved around the table, never on top of a cell.
+export function createTableRulers(
   scroll: HTMLElement,
-  menuFor: (cell: HTMLElement) => TableMenuEntry[],
-): TableColumnTab {
+  options: {
+    menuFor: (cell: HTMLElement) => TableMenuEntry[];
+    // The cell to act on for a clicked column letter / row number.
+    cellFor: (row: number | null, col: number | null) => HTMLElement | null;
+    focusCell: (cell: HTMLElement) => void;
+  },
+): TableRulers {
   const doc = scroll.ownerDocument;
-  const tab = doc.createElement("button");
-  tab.type = "button";
-  tab.className = "cm-table-column-tab";
-  tab.hidden = true;
-  tab.title = "Table options";
-  tab.setAttribute("aria-label", "Table options");
-  tab.setAttribute("aria-haspopup", "menu");
-  tab.setAttribute("contenteditable", "false");
-  scroll.appendChild(tab);
+  const layer = doc.createElement("div");
+  layer.className = "cm-table-rulers";
+  layer.hidden = true;
+  layer.setAttribute("contenteditable", "false");
+  scroll.appendChild(layer);
 
-  let current: HTMLElement | null = null;
+  const letters: HTMLButtonElement[] = [];
+  const numbers: HTMLButtonElement[] = [];
 
-  tab.addEventListener("mousedown", (event) => event.preventDefault());
-  tab.addEventListener("click", (event) => {
-    event.stopPropagation();
-    if (!current) return;
-    if (tab.getAttribute("aria-expanded") === "true") {
-      closeTableMenu();
-      return;
-    }
-    showTableMenu({ element: tab }, menuFor(current), "Table options");
-  });
+  const makeLabel = (kind: "col" | "row") => {
+    const button = doc.createElement("button");
+    button.type = "button";
+    button.className = `cm-table-ruler cm-table-ruler-${kind}`;
+    button.setAttribute("aria-haspopup", "menu");
+    button.addEventListener("mousedown", (event) => event.preventDefault());
+    button.addEventListener("click", (event) => {
+      event.stopPropagation();
+      if (button.getAttribute("aria-expanded") === "true") {
+        closeTableMenu();
+        return;
+      }
+      const index = Number(button.dataset.index);
+      const cell = kind === "col" ? options.cellFor(null, index) : options.cellFor(index, null);
+      if (!cell) return;
+      options.focusCell(cell);
+      showTableMenu({ element: button }, options.menuFor(cell), button.title);
+    });
+    layer.appendChild(button);
+    return button;
+  };
+
+  const sync = (pool: HTMLButtonElement[], count: number, kind: "col" | "row") => {
+    while (pool.length < count) pool.push(makeLabel(kind));
+    pool.forEach((button, i) => {
+      button.hidden = i >= count;
+    });
+  };
 
   return {
     update(cell) {
-      current = cell && cell.isConnected ? cell : null;
-      const headerCell = current?.closest("table")?.tHead?.rows[0]?.cells[(current as HTMLTableCellElement).cellIndex];
-      if (!current || !headerCell) {
-        tab.hidden = true;
+      const table = cell?.isConnected ? cell.closest("table") : null;
+      if (!cell || !table) {
+        layer.hidden = true;
         return;
       }
+      layer.hidden = false;
       const base = scroll.getBoundingClientRect();
-      const header = headerCell.getBoundingClientRect();
-      tab.hidden = false;
-      // Centred over the column, in the strip above the header row.
-      const left = header.left - base.left + scroll.scrollLeft + header.width / 2 - tab.offsetWidth / 2;
-      const top = header.top - base.top + scroll.scrollTop - tab.offsetHeight - 3;
-      tab.style.left = `${Math.round(left)}px`;
-      tab.style.top = `${Math.round(Math.max(0, top))}px`;
-    },
-    setTyping(typing) {
-      tab.classList.toggle("is-typing", typing);
+      const x = (rect: DOMRect) => rect.left - base.left + scroll.scrollLeft;
+      const y = (rect: DOMRect) => rect.top - base.top + scroll.scrollTop;
+      const activeCol = (cell as HTMLTableCellElement).cellIndex;
+      const activeRow = (cell.parentElement as HTMLTableRowElement).rowIndex; // 0 = header
+
+      const headerCells = [...(table.tHead?.rows[0]?.cells ?? [])];
+      sync(letters, headerCells.length, "col");
+      headerCells.forEach((headerCell, i) => {
+        const rect = headerCell.getBoundingClientRect();
+        const button = letters[i];
+        const letter = colIndexToLetter(i);
+        button.textContent = letter;
+        button.dataset.index = String(i);
+        button.title = `Column ${letter} options`;
+        button.setAttribute("aria-label", `Column ${letter} options`);
+        button.classList.toggle("is-active", i === activeCol);
+        button.style.left = `${Math.round(x(rect))}px`;
+        button.style.width = `${Math.round(rect.width)}px`;
+      });
+
+      const rows = [...table.rows];
+      sync(numbers, rows.length, "row");
+      rows.forEach((row, i) => {
+        const rect = row.getBoundingClientRect();
+        const button = numbers[i];
+        const number = String(i + 1);
+        button.textContent = number;
+        button.dataset.index = String(i);
+        button.title = `Row ${number} options`;
+        button.setAttribute("aria-label", `Row ${number} options`);
+        button.classList.toggle("is-active", i === activeRow);
+        button.style.top = `${Math.round(y(rect))}px`;
+        button.style.height = `${Math.round(rect.height)}px`;
+      });
     },
   };
 }

@@ -1,4 +1,5 @@
 import { beginAiAction, finishAiActionSuccess, finishAiActionError } from "./ai-status";
+import { FORMULA_PRESERVATION_RULE, TABLE_FORMULA_GUIDE } from "@/app/editor/utils/formula-ai-guide";
 
 export type AIProvider = 'claude' | 'gemini';
 
@@ -216,6 +217,7 @@ export async function generateContentFix(content: string, issues: string[]) {
 Rules:
 - Preserve existing frontmatter values that are already correct; only fill in or fix what's missing or wrong.
 - Keep the body content's meaning intact — only restructure headings, fences, bullets, tables, bold, etc. as needed to resolve the listed issues.
+- ${FORMULA_PRESERVATION_RULE}
 - Return ONLY the complete corrected markdown document (including frontmatter) — no commentary, no explanation, no wrapping code fences.`;
 
   const prompt = `Issues to fix:\n${issues.map((i) => `- ${i}`).join("\n")}\n\n--- DOCUMENT ---\n${content}`;
@@ -230,7 +232,10 @@ Rules:
  */
 export async function generateFileFromPrompt(userPrompt: string) {
   const system =
-    "You are a markdown note writer. Write a well-structured, informative markdown note based on the user's prompt. Use headers, lists, and code blocks where appropriate. Do not include YAML frontmatter. Return only the markdown content.";
+    `You are a markdown note writer. Write a well-structured, informative markdown note based on the user's prompt. Use headers, lists, and code blocks where appropriate. Do not include YAML frontmatter. Return only the markdown content.
+
+When the note needs a table with totals or other calculations, use formulas instead of precomputed numbers:
+${TABLE_FORMULA_GUIDE}`;
   const body = await callAI(system, userPrompt);
   const meta = await generateFrontmatterData(body);
   return { body, ...meta };

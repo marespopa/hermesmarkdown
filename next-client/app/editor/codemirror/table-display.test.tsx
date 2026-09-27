@@ -1,6 +1,6 @@
 import { act, fireEvent, waitFor } from "@testing-library/react";
 import { markdown, markdownLanguage } from "@codemirror/lang-markdown";
-import { history } from "@codemirror/commands";
+import { history, undo } from "@codemirror/commands";
 import { EditorSelection, EditorState } from "@codemirror/state";
 import { EditorView } from "@codemirror/view";
 import { afterEach, describe, expect, it } from "vitest";
@@ -204,26 +204,94 @@ describe("tableDisplayExtension", () => {
     expect(document.querySelector(".cm-table-menu")).toBeNull();
   });
 
-  it("fades the column tab while typing and brings it back on pointer movement", async () => {
+  it("shows row numbers and column letters while editing, and they open the menu", async () => {
     const doc = "| A | B |\n| --- | --- |\n| 1 | 2 |";
     const view = makeView(doc);
-    const cell = await cellAt(view, "2:0");
+    const cell = await cellAt(view, "2:1");
 
     act(() => cell.focus());
-    const tab = await waitFor(() => {
-      const el = view.dom.querySelector<HTMLElement>(".cm-table-column-tab");
-      expect(el?.hidden).toBe(false);
-      return el!;
+    await waitFor(() => {
+      expect(view.dom.querySelector<HTMLElement>(".cm-table-rulers")?.hidden).toBe(false);
     });
+    const letters = [...view.dom.querySelectorAll<HTMLElement>(".cm-table-ruler-col")].filter((el) => !el.hidden);
+    const numbers = [...view.dom.querySelectorAll<HTMLElement>(".cm-table-ruler-row")].filter((el) => !el.hidden);
+    expect(letters.map((el) => el.textContent)).toEqual(["A", "B"]);
+    expect(numbers.map((el) => el.textContent)).toEqual(["1", "2"]);
+    expect(letters[1]).toHaveClass("is-active");
+    expect(numbers[1]).toHaveClass("is-active");
 
     act(() => {
-      fireEvent.keyDown(cell, { key: "x" });
+      fireEvent.click(letters[0]);
     });
-    expect(tab).toHaveClass("is-typing");
+    expect(document.activeElement?.getAttribute("data-source-cell")).toBe("2:0");
+    expect(document.querySelector(".cm-table-menu")).toHaveTextContent("Insert column left");
+  });
+
+  it("undoes Sum column from inside a cell in one step", async () => {
+    const doc = "| Item | Cost |\n| --- | --- |\n| A | 2 |\n| B | 3 |";
+    const view = makeView(doc);
+    const cell = await cellAt(view, "3:1");
+
+    act(() => cell.focus());
+    await flush();
     act(() => {
-      fireEvent.pointerMove(cell);
+      fireEvent.contextMenu(cell, { clientX: 5, clientY: 5 });
     });
-    expect(tab).not.toHaveClass("is-typing");
+    const sum = [...document.querySelectorAll(".cm-table-menu button")].find((b) => b.textContent === "Sum column")!;
+    act(() => {
+      fireEvent.click(sum);
+    });
+    expect(view.state.doc.toString()).toContain("=SUM(B2:B3)");
+
+    const focused = document.activeElement as HTMLElement;
+    act(() => {
+      fireEvent.keyDown(focused, { key: "z", ctrlKey: true });
+    });
+    expect(view.state.doc.toString()).toBe(doc);
+  });
+
+  it("shows formula results, and the raw formula while the cell is focused", async () => {
+    const doc = "| Item | Cost |\n| --- | --- |\n| A | 2 |\n| B | 3 |\n| Total | =SUM(B2:B3) |";
+    const view = makeView(doc);
+    const total = await cellAt(view, "4:1");
+
+    expect(total).toHaveTextContent("5");
+    expect(total).toHaveClass("cm-table-formula");
+    expect(total).toHaveAttribute("title", "=SUM(B2:B3)");
+
+    act(() => total.focus());
+    expect(total).toHaveTextContent("=SUM(B2:B3)");
+
+    // Editing an input re-computes the (unfocused) formula cell.
+    const input = await cellAt(view, "2:1");
+    act(() => input.focus());
+    await flush();
+    act(() => {
+      input.textContent = "10";
+      fireEvent.input(input);
+    });
+    expect(view.dom.querySelector('[data-source-cell="4:1"]')).toHaveTextContent("13");
+  });
+
+  it("resolves references to another table by its heading", async () => {
+    const doc = [
+      "## Income",
+      "",
+      "| Source | Amount |",
+      "| --- | --- |",
+      "| Job | 100 |",
+      "",
+      "## Summary",
+      "",
+      "| Label | Value |",
+      "| --- | --- |",
+      "| Income | =SUM(Income!B) |",
+    ].join("\n");
+    const view = makeView(doc);
+    await waitFor(() => {
+      expect(view.dom.querySelectorAll(".cm-table-formula")).toHaveLength(1);
+    });
+    expect(view.dom.querySelector(".cm-table-formula")).toHaveTextContent("100");
   });
 
   it("renders multiple tables but leaves malformed and fenced pipe blocks raw", async () => {

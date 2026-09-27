@@ -22,6 +22,8 @@ import {
   moveColumnAction,
   pasteGridAction,
   tableMoveRowCommand,
+  sumColumnAction,
+  realignExitedTable,
 } from "./table-commands";
 import { markdown, markdownLanguage } from "@codemirror/lang-markdown";
 import { undo, history } from "@codemirror/commands";
@@ -250,5 +252,48 @@ describe("table enhancements", () => {
     const data = parseCurrentTable(view)!;
     expect(data.headers).toHaveLength(3);
     expect(data.rows).toEqual([["1", "2", ""], ["3", "x", "y"], ["", "z", "w\\|v"]]);
+  });
+
+  it("Sum column appends a totals row, then reuses it for other columns", () => {
+    const view = makeView(TABLE, TABLE.indexOf("| 1 ") + 2);
+    sumColumnAction(view, infoAt(view));
+    expect(parseCurrentTable(view)?.rows[2]).toEqual(["=SUM(A2:A3)", ""]);
+
+    const cursorInB = view.state.doc.toString().indexOf("| 2 ") + 2;
+    view.dispatch({ selection: EditorSelection.cursor(cursorInB) });
+    sumColumnAction(view, infoAt(view));
+    const rows = parseCurrentTable(view)!.rows;
+    expect(rows).toHaveLength(3);
+    expect(rows[2]).toEqual(["=SUM(A2:A3)", "=SUM(B2:B3)"]);
+  });
+
+  it("Sum column never treats a data row with a per-row formula as the totals row", () => {
+    const doc = ["| Qty | Price | Line |", "| --- | --- | --- |", "| 2 | 3 | =A2*B2 |", "| 1 | 5 | =A3*B3 |"].join("\n");
+    const view = makeView(doc, doc.indexOf("=A3*B3") + 1);
+    sumColumnAction(view, infoAt(view));
+    const rows = parseCurrentTable(view)!.rows;
+    expect(rows).toHaveLength(3);
+    expect(rows[1][2]).toBe("=A3*B3");
+    expect(rows[2][2]).toBe("=SUM(C2:C3)");
+  });
+
+  it("adding a row at the end goes above the totals row and grows its ranges", () => {
+    const doc = ["| A |", "| --- |", "| 1 |", "| 2 |", "| =SUM(A2:A3) |"].join("\n");
+    const view = makeView(doc, doc.indexOf("=SUM") + 1); // Tab out of the last cell
+    expect(tableTabCommand(view)).toBe(true);
+    const rows = parseCurrentTable(view)!.rows;
+    expect(rows).toEqual([["1"], ["2"], [""], ["=SUM(A2:A4)"]]);
+  });
+
+  it("realigning an exited table only touches padding, so earlier edits stay undoable", () => {
+    const doc = "| A | B |\n| --- | --- |\n| 1 | 2 |";
+    const state = EditorState.create({ doc, extensions: [history()] });
+    const view = new EditorView({ state });
+    const pos = doc.indexOf("1");
+    view.dispatch({ changes: { from: pos, to: pos + 1, insert: "a much longer value" } });
+    realignExitedTable(view, findTableAtPos(view.state.doc.toString(), 0)!);
+    expect(view.state.doc.line(1).text).not.toBe("| A | B |"); // padded
+    undo(view);
+    expect(parseCurrentTable(view)?.rows[0]).toEqual(["1", "2"]);
   });
 });

@@ -1,5 +1,5 @@
 import { EditorView } from "@codemirror/view";
-import { EditorSelection, EditorState, Transaction } from "@codemirror/state";
+import { ChangeSpec, EditorSelection, EditorState, Transaction } from "@codemirror/state";
 import { isolateHistory } from "@codemirror/commands";
 import { syntaxTree } from "@codemirror/language";
 import { focusTableCellOrEditor } from "./table-focus";
@@ -20,6 +20,7 @@ import {
 import { parseTable, extractTableSource, type Alignment, type TableData } from "../utils/tableParser";
 import { serializeTable } from "../utils/tableSerializer";
 import { sortRows, type SortDirection } from "../utils/tableSorter";
+import { colIndexToLetter, isFormulaCell } from "../utils/formula-engine";
 
 // Direct port of use-table-callout.ts's pure line-math helpers — these
 // never touched the textarea, so they're unchanged. What changes is how
@@ -137,6 +138,23 @@ function hasSeparator(tableInfo: TableInfo): boolean {
 // Appends an empty row after the table's last line and puts the caret in its
 // first cell (Enter at the end of a row, Tab in the very last cell).
 function appendRowAndFocus(view: EditorView, tableInfo: TableInfo) {
+  // With a totals row at the bottom, new rows go above it and its ranges
+  // grow to include them, like adding a row inside a spreadsheet range.
+  const data = currentTableData(tableInfo);
+  if (data && data.rows.length > 0 && isTotalsRow(data.rows[data.rows.length - 1])) {
+    const totals = data.rows[data.rows.length - 1];
+    const lastDataRow = data.rows.length; // A1 row of the last data row (header = 1)
+    const grown = totals.map((cell) =>
+      isFormulaCell(cell)
+        ? cell.replace(/\b([A-Z]+)(\d+):([A-Z]+)(\d+)\b/g, (whole, c1: string, r1: string, c2: string, r2: string) =>
+            Number(r2) === lastDataRow ? `${c1}${r1}:${c2}${lastDataRow + 1}` : whole)
+        : cell,
+    );
+    const rows = [...data.rows.slice(0, -1), Array(data.headers.length).fill(""), grown];
+    const newRowLineIdx = tableInfo.tableStart + 2 + (rows.length - 2);
+    applyTableData(view, tableInfo, { ...data, rows }, newRowLineIdx, 0);
+    return;
+  }
   const linesWithNewRow = addRow(tableInfo.lines, tableInfo.tableEnd);
   const newRowIdx = tableInfo.tableEnd + 1;
   const realigned = realignTableLines(linesWithNewRow, tableInfo.tableStart, tableInfo.tableEnd + 1);
@@ -460,6 +478,39 @@ export function setAlignmentAction(view: EditorView, tableInfo: TableInfo, align
   applyTableData(view, tableInfo, { ...data, alignments }, tableInfo.lineIdx, tableInfo.cursorCol);
 }
 
+// A totals row holds at least one aggregate formula (=SUM(B2:B5), =AVERAGE(C)…).
+// Per-row formulas such as =B2*C2 don't count, so a data row that computes
+// something is never mistaken for the totals row.
+const AGGREGATE_FORMULA = /^=\s*(SUM|AVERAGE|COUNTA?|MIN|MAX)\s*\(/i;
+
+export function isTotalsRow(row: string[]): boolean {
+  return row.some((cell) => AGGREGATE_FORMULA.test(cell.trim()));
+}
+
+// "Sum column": puts `=SUM(<col>2:<col>N)` over the data rows into a totals
+// row at the bottom — reusing the last row when it's already a totals row
+// (holds a formula), otherwise appending one.
+export function sumColumnAction(view: EditorView, tableInfo: TableInfo) {
+  const data = currentTableData(tableInfo);
+  if (!data) return;
+  const col = tableInfo.cursorCol;
+  const letter = colIndexToLetter(col);
+  const rows = data.rows.map((row) => [...row]);
+  const last = rows[rows.length - 1];
+  const hasTotalsRow = !!last && isTotalsRow(last);
+  const lastDataRow = hasTotalsRow ? rows.length : rows.length + 1; // A1 rows: header = 1
+  const formula = `=SUM(${letter}2:${letter}${Math.max(2, lastDataRow)})`;
+  if (hasTotalsRow) {
+    last[col] = formula;
+  } else {
+    const totals = Array(data.headers.length).fill("");
+    totals[col] = formula;
+    rows.push(totals);
+  }
+  const totalsLineIdx = tableInfo.tableStart + 1 + rows.length;
+  applyTableData(view, tableInfo, { ...data, rows }, totalsLineIdx, col);
+}
+
 export function appendRowAction(view: EditorView, tableInfo: TableInfo) {
   appendRowAndFocus(view, tableInfo);
 }
@@ -475,7 +526,7 @@ export function normalizeTableSource(view: EditorView, from: number, to: number)
   const insert = serializeTable(data, true);
   if (insert === source) return;
   view.dispatch({
-    changes: { from, to, insert },
+    changes: paddingChanges(from, source, insert) ?? { from, to, insert },
     userEvent: "input.replace.table",
     annotations: Transaction.addToHistory.of(false),
   });
@@ -517,25 +568,61 @@ export function getCurrentAlignment(tableInfo: TableInfo) {
   return getColumnAlignment(tableInfo.lines, tableInfo.cursorCol, tableInfo.tableStart);
 }
 
-// Realigns a table's column widths after the caret leaves it, shifting
-// caretPos by whatever length delta the realign introduces so the caret
-// stays put relative to surrounding text (not inside the table).
-export function realignExitedTable(view: EditorView, exited: TableInfo, caretPos: number) {
-  const newLines = realignTableLines(exited.lines, exited.tableStart, exited.tableEnd);
-  const oldContent = exited.lines.slice(exited.tableStart, exited.tableEnd + 1).join("\n");
-  const newContent = newLines.slice(exited.tableStart, exited.tableEnd + 1).join("\n");
-  if (newContent === oldContent) return;
+// Diffs two versions of a table that differ only in padding (spaces,
+// dashes, colons, added outer pipes) into small changes. Keeping edits that
+// small matters for history: changes kept out of undo history are *mapped*
+// through by earlier undo events, and a whole-table replacement would wipe
+// out every earlier cell edit's position — undo would silently skip them.
+// Returns null when the texts differ in anything but padding.
+function paddingChanges(from: number, before: string, after: string): ChangeSpec[] | null {
+  const changes: { from: number; to: number; insert: string }[] = [];
+  const deletable = /[ \t:-]/;
+  const insertable = /[ \t:|-]/;
+  let i = 0;
+  let j = 0;
+  while (i < before.length || j < after.length) {
+    if (i < before.length && j < after.length && before[i] === after[j]) {
+      i++;
+      j++;
+    } else if (i < before.length && deletable.test(before[i])) {
+      const last = changes[changes.length - 1];
+      if (last && last.to === from + i) last.to++;
+      else changes.push({ from: from + i, to: from + i + 1, insert: "" });
+      i++;
+    } else if (j < after.length && insertable.test(after[j])) {
+      const last = changes[changes.length - 1];
+      if (last && last.to === from + i) last.insert += after[j];
+      else changes.push({ from: from + i, to: from + i, insert: after[j] });
+      j++;
+    } else {
+      return null;
+    }
+  }
+  return changes;
+}
 
-  const delta = newContent.length - oldContent.length;
-  const tableEndOffset = exited.tableStartOffset + oldContent.length;
-  const adjustedCaretPos = caretPos >= tableEndOffset ? caretPos + delta : caretPos;
-
-  view.dispatch(view.state.update({
-    changes: { from: exited.tableStartOffset, to: tableEndOffset, insert: newContent },
-    selection: EditorSelection.cursor(Math.max(0, Math.min(adjustedCaretPos, view.state.doc.length))),
+// Rewrites the table starting at `startOffset` with realigned padding (and
+// outer pipes), kept out of undo history since nothing visible changes.
+function realignTableAt(view: EditorView, startOffset: number) {
+  const current = findTableAtPos(view.state.doc.toString(), startOffset);
+  if (!current || current.tableStartOffset !== startOffset) return;
+  const before = current.lines.slice(current.tableStart, current.tableEnd + 1).join("\n");
+  const data = parseTable(before);
+  if (!data) return;
+  const after = serializeTable(data, true);
+  if (after === before) return;
+  const changes = paddingChanges(startOffset, before, after)
+    ?? [{ from: startOffset, to: startOffset + before.length, insert: after }];
+  view.dispatch({
+    changes,
     userEvent: "input.replace.table",
-    // Padding-only change with no visible effect in the rendered grid —
-    // keep it out of history so Ctrl/Cmd+Z never "does nothing".
     annotations: Transaction.addToHistory.of(false),
-  }));
+  });
+}
+
+// Realigns a table's column widths after the caret leaves it. Re-reads the
+// table from the current document (the snapshot in `exited` can be stale —
+// e.g. a row was added since) and skips it if it's no longer there.
+export function realignExitedTable(view: EditorView, exited: TableInfo) {
+  realignTableAt(view, exited.tableStartOffset);
 }

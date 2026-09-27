@@ -16,12 +16,12 @@ export function useCodeMirrorTable() {
 
   const detectTableExit = useCallback((view: EditorView) => {
     const sel = view.state.selection.main;
-    const pos = sel.head;
-    const result = sel.empty ? findTableInState(view.state, pos) : null;
+    const result = sel.empty ? findTableInState(view.state, sel.head) : null;
 
     const prev = lastTableRef.current;
-    const sameTable =
-      !!prev && !!result && prev.tableStart === result.tableStart && prev.tableEnd === result.tableEnd;
+    // Same table = same start. Row count changes (adding a row, a totals
+    // row) must not look like leaving the table.
+    const sameTable = !!prev && !!result && prev.tableStartOffset === result.tableStartOffset;
 
     if (prev && !sameTable) {
       lastTableRef.current = null;
@@ -30,7 +30,7 @@ export function useCodeMirrorTable() {
       // EditorView.update() call — dispatching synchronously from there
       // throws "Calls to EditorView.update are not allowed while an
       // update is in progress".
-      queueMicrotask(() => realignExitedTable(view, prev, pos));
+      queueMicrotask(() => realignExitedTable(view, prev));
       return;
     }
 

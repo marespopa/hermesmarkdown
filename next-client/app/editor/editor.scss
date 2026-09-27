@@ -249,45 +249,64 @@ html.dark .editor-container.cm-focused .cm-selectionBackground {
   }
 }
 
-/* The table-options tab sits in a strip reserved above the header row
-   (taken from the table's own top margin, so nothing shifts), centred over
-   the active column — never on top of a cell. It fades out while typing. */
+/* Spreadsheet-style rulers: column letters in a strip above the header and
+   row numbers in a gutter on the left, shown while a table is being edited.
+   The space is always reserved (so nothing shifts when they appear) and the
+   labels never overlap a cell. They double as row/column menu buttons. */
 .cm-table-preview {
-  margin-top: 0.25em;
+  margin-top: 0.1em;
 }
 
 .cm-table-preview-scroll {
   position: relative;
-  padding-top: 0.6em;
+  padding-top: 1.2rem;
+  padding-left: 1.6rem;
 }
 
-.cm-table-column-tab {
+.cm-table-rulers {
   position: absolute;
-  width: 1.5rem;
-  height: 0.3rem;
-  padding: 0;
-  border: 0;
-  border-radius: 999px;
-  background-color: color-mix(in srgb, var(--fg) 20%, transparent);
-  cursor: pointer;
-  transition: opacity 150ms ease, background-color 120ms ease;
-}
-
-.cm-table-column-tab:hover,
-.cm-table-column-tab[aria-expanded="true"] {
-  background-color: var(--clay);
-}
-
-.cm-table-column-tab.is-typing {
-  opacity: 0;
+  inset: 0;
   pointer-events: none;
 }
 
-/* Generous invisible hit area around the thin tab (touch friendly). */
-.cm-table-column-tab::after {
-  content: "";
+.cm-table-ruler {
   position: absolute;
-  inset: -0.45rem -0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 0;
+  border-radius: 0.25rem;
+  background: none;
+  color: var(--fg-faint);
+  font-family: var(--font-ibm-mono), ui-monospace, monospace;
+  font-size: 0.6875rem;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  pointer-events: auto;
+  cursor: pointer;
+  transition: background-color 120ms ease, color 120ms ease;
+}
+
+.cm-table-ruler-col {
+  top: 0;
+  height: 1rem;
+}
+
+.cm-table-ruler-row {
+  left: 0;
+  width: 1.3rem;
+}
+
+.cm-table-ruler:hover,
+.cm-table-ruler[aria-expanded="true"] {
+  background-color: color-mix(in srgb, var(--fg) 7%, transparent);
+  color: var(--fg);
+}
+
+.cm-table-ruler.is-active {
+  color: var(--clay);
+  font-weight: 600;
 }
 
 .cm-table-menu-heading {
@@ -356,4 +375,15 @@ html.dark .editor-container.cm-focused .cm-selectionBackground {
   height: 1px;
   margin: 0.25rem 0.35rem;
   background-color: var(--border-subtle);
+}
+
+/* Formula cells (`=SUM(B2:B4)`) show their computed result; the formula
+   itself appears on focus and as a tooltip. */
+.cm-table-preview .cm-table-formula {
+  font-variant-numeric: tabular-nums;
+  background-color: color-mix(in srgb, var(--moss) 7%, transparent);
+}
+
+.cm-table-preview .cm-table-formula.is-error {
+  color: #dc2626;
 }

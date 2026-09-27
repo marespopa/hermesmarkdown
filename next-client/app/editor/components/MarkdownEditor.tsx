@@ -27,6 +27,9 @@ import { useCodeMirrorEditor } from "../hooks/use-codemirror-editor";
 import { useCodeMirrorFeatures } from "../hooks/use-codemirror-features";
 import { useCodeMirrorTemplates } from "../hooks/use-codemirror-templates";
 import { useCodeMirrorTable } from "../hooks/use-codemirror-table";
+import { useCrossFileTables } from "../hooks/use-cross-file-tables";
+import { formulaFileTablesField, setFormulaFileTables } from "../codemirror/table-formulas";
+import { atom_fileMetadata } from "@/app/atoms/metadata";
 import { useCodeMirrorMermaid } from "../hooks/use-codemirror-mermaid";
 import { useCodeMirrorCodeLanguagePicker } from "../hooks/use-codemirror-code-language-picker";
 import { useCodeMirrorImage } from "../hooks/use-codemirror-image";
@@ -194,6 +197,11 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
 
   const { onCursorActivity: onTableCursorActivity } = useCodeMirrorTable();
 
+  // `[[Note]]!B5` formula references read other notes' tables; hand the
+  // (async-loaded) snapshot to the table grid so results can resolve.
+  const fileMetadata = useAtomValue(atom_fileMetadata);
+  const formulaFileTables = useCrossFileTables(props.value, fileMetadata, props.isActivePane !== false);
+
   const {
     mermaidInfo,
     buttonPos: mermaidButtonPos,
@@ -296,6 +304,12 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
     pasteImageRef,
     onViewCreated: handleViewCreated,
   });
+
+  useEffect(() => {
+    if (!editorView) return;
+    if (formulaFileTables.size === 0 && editorView.state.field(formulaFileTablesField, false)?.size === 0) return;
+    editorView.dispatch({ effects: setFormulaFileTables.of(formulaFileTables) });
+  }, [editorView, formulaFileTables]);
 
   useEffect(() => {
     if (!editorView || !pendingScrollTarget || pendingScrollTarget.path !== filePath) return;

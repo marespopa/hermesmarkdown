@@ -19,7 +19,7 @@ import { useAtom, useAtomValue } from "jotai";
 import DialogModal from "../../components/DialogModal/DialogModal";
 import { callAIChat, fetchClaudeModels, fetchGeminiModels, type ApiMessage, type ApiPart } from "@/app/services/ai";
 import { showErrorToast } from "@/app/components/Toastr";
-import { FORMULA_PRESERVATION_RULE } from "../hooks/useAIEditorActions";
+import { FORMULA_PRESERVATION_RULE, TABLE_FORMULA_GUIDE } from "../utils/formula-ai-guide";
 import { atom_fileMetadata, type FileMetadata } from "@/app/atoms/metadata";
 import { atom_vaultHandle } from "@/app/atoms/vault-atoms";
 import {
@@ -148,7 +148,10 @@ When the user asks you to create or modify content:
 - Output only the content itself — no preamble, meta-commentary, or surrounding quotes.
 - Preserve all existing Markdown formatting unless explicitly asked to change it.
 - Use proper Markdown syntax (headings, lists, bold, etc.) as appropriate.
-- When revising a section, return the complete revised section ready to apply.`;
+- When revising a section, return the complete revised section ready to apply.
+- When the user asks for totals, averages, counts or other calculations in a table, write them as formulas (see below), not as precomputed numbers. When they ask what a formula does or why it shows an error, explain it using the rules below.
+
+${TABLE_FORMULA_GUIDE}`;
 
 function readAsDataURL(file: File): Promise<string> {
   return new Promise((resolve, reject) => {

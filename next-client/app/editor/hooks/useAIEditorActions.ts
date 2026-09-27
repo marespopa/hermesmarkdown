@@ -8,9 +8,8 @@ import { atom_activeEditorView } from "@/app/atoms/ui-atoms";
 import { showSuccessToast, showErrorToast } from "@/app/components/Toastr";
 import { useDialog } from "@/app/hooks/use-dialog";
 import { typewriterInsertCM6, typewriterReplaceCM6 } from "../codemirror/typewriter-insert";
+import { FORMULA_PRESERVATION_RULE, TABLE_FORMULA_GUIDE } from "../utils/formula-ai-guide";
 
-export const FORMULA_PRESERVATION_RULE =
-  "IMPORTANT: HermesMarkdown formula expressions (e.g. =SUM(A:A), =AVG(B2:B5), =COUNT(C:C)) must NEVER be evaluated or replaced with numeric values. Preserve all formula expressions exactly as written.";
 
 export interface AIReviewState {
   label: string;
@@ -197,7 +196,7 @@ export function useAIEditorActions() {
         "Prompt",
         "AI Prompt",
         "What would you like the AI to do?",
-        `You are a helpful assistant. Fulfill the user's request. If existing text is provided for context, use it as the basis for your response. Return ONLY the result with no preamble, explanation, or surrounding quotes. Preserve Markdown formatting where appropriate. ${FORMULA_PRESERVATION_RULE}`,
+        `You are a helpful assistant. Fulfill the user's request. If existing text is provided for context, use it as the basis for your response. Return ONLY the result with no preamble, explanation, or surrounding quotes. Preserve Markdown formatting where appropriate. ${FORMULA_PRESERVATION_RULE}\n\n${TABLE_FORMULA_GUIDE}`,
         (instruction, selectedText) =>
           selectedText.trim()
             ? `INSTRUCTION:\n${instruction}\n\nEXISTING TEXT:\n${selectedText}`
@@ -213,7 +212,7 @@ export function useAIEditorActions() {
         "AI Builder",
         "AI Builder",
         "Describe the section you want to create or revise:",
-        `You are a document builder. Create or revise a Markdown section of the note per the user's instruction. If an existing section is provided, revise it in place; otherwise write a new, well-structured section using headings and bullet points where appropriate. Preserve any unrelated Markdown formatting in the existing text. ${FORMULA_PRESERVATION_RULE} Return ONLY the resulting section with no preamble, explanation, or surrounding quotes.`,
+        `You are a document builder. Create or revise a Markdown section of the note per the user's instruction. If an existing section is provided, revise it in place; otherwise write a new, well-structured section using headings and bullet points where appropriate. Preserve any unrelated Markdown formatting in the existing text. ${FORMULA_PRESERVATION_RULE} Return ONLY the resulting section with no preamble, explanation, or surrounding quotes.\n\n${TABLE_FORMULA_GUIDE}`,
         (instruction, selectedText) =>
           selectedText.trim()
             ? `INSTRUCTION:\n${instruction}\n\nEXISTING SECTION TO REVISE:\n${selectedText}`
@@ -226,7 +225,7 @@ export function useAIEditorActions() {
     () =>
       runSelectionAction(
         "Fix spelling and grammar",
-        "You are a meticulous proofreader. Apply only a light correction pass for spelling and grammar errors. Do not change wording, tone, or meaning beyond fixing mistakes. Preserve Markdown formatting exactly. Return ONLY the corrected text with no preamble, explanation, or surrounding quotes.",
+        `You are a meticulous proofreader. Apply only a light correction pass for spelling and grammar errors. Do not change wording, tone, or meaning beyond fixing mistakes. Preserve Markdown formatting exactly. ${FORMULA_PRESERVATION_RULE} Return ONLY the corrected text with no preamble, explanation, or surrounding quotes.`,
         (text) => `FIX SPELLING AND GRAMMAR IN THIS TEXT:\n${text}`,
         "Select some text to fix.",
       ),
@@ -237,7 +236,7 @@ export function useAIEditorActions() {
     () =>
       runSelectionAction(
         "Shorten",
-        "You are an editor who compresses verbose text while preserving its core meaning and Markdown formatting. Return ONLY the shortened text with no preamble, explanation, or surrounding quotes.",
+        `You are an editor who compresses verbose text while preserving its core meaning and Markdown formatting. ${FORMULA_PRESERVATION_RULE} Return ONLY the shortened text with no preamble, explanation, or surrounding quotes.`,
         (text) => `SHORTEN THIS TEXT:\n${text}`,
         "Select some text to shorten.",
       ),
@@ -248,7 +247,7 @@ export function useAIEditorActions() {
     (tone: "formal" | "casual" | "direct" | "polished") =>
       runSelectionAction(
         `Change tone: ${tone}`,
-        `You are a writing editor. Rewrite the selected text to sound more ${tone}, while preserving its meaning, intent, and Markdown formatting. Return ONLY the rewritten text with no preamble, explanation, or surrounding quotes.`,
+        `You are a writing editor. Rewrite the selected text to sound more ${tone}, while preserving its meaning, intent, and Markdown formatting. ${FORMULA_PRESERVATION_RULE} Return ONLY the rewritten text with no preamble, explanation, or surrounding quotes.`,
         (text) => `REWRITE THIS TEXT IN A MORE ${tone.toUpperCase()} TONE:\n${text}`,
         "Select some text to change its tone.",
       ),
@@ -313,7 +312,7 @@ export function useAIEditorActions() {
     () =>
       runContextAction(
         "Continue writing",
-        "You are a writing partner who continues a piece of writing seamlessly from where it left off, matching its existing tone, style, and Markdown formatting. Do not repeat or summarize what came before. Return ONLY the continuation text with no preamble, explanation, or surrounding quotes.",
+        `You are a writing partner who continues a piece of writing seamlessly from where it left off, matching its existing tone, style, and Markdown formatting. Do not repeat or summarize what came before. ${FORMULA_PRESERVATION_RULE} Return ONLY the continuation text with no preamble, explanation, or surrounding quotes.\n\n${TABLE_FORMULA_GUIDE}`,
         (preceding) => `CONTINUE WRITING FROM HERE:\n${preceding}`,
       ),
     [runContextAction],

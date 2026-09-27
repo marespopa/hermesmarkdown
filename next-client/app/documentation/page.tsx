@@ -247,9 +247,15 @@ const GROUPS: Group[] = [
               {
                 context: "Table",
                 rows: [
-                  { label: "Move between cells", shortcut: "TAB / SHIFT+TAB / ARROWS" },
-                  { label: "Edit focused cell", shortcut: "ENTER" },
-                  { label: "New row at end", shortcut: "ENTER on last row" },
+                  { label: "Next / previous cell", shortcut: "TAB / SHIFT+TAB" },
+                  { label: "Cell below (adds a row at the end)", shortcut: "ENTER" },
+                  { label: "Move across cells, leave the table", shortcut: "ARROWS" },
+                  { label: "Leave the table", shortcut: "ESCAPE" },
+                  { label: "Insert row below", shortcut: "CTRL/CMD+ENTER" },
+                  { label: "Delete row", shortcut: "CTRL/CMD+SHIFT+BACKSPACE" },
+                  { label: "Move row up / down", shortcut: "ALT+↑ / ALT+↓" },
+                  { label: "Move column left / right", shortcut: "CTRL/CMD+ALT+← / →" },
+                  { label: "Row, column & table actions", shortcut: "RIGHT-CLICK a cell" },
                 ],
               },
               {
@@ -331,45 +337,76 @@ const GROUPS: Group[] = [
       {
         id: "tables",
         title: "Tables",
-        lead: "Click inside a pipe table for a floating toolbar, and edit cells directly in the text — no separate view to switch to.",
-        keywords: "table csv sort alignment",
+        lead: "Tables always render as a clean grid you edit like a spreadsheet: click a cell and type. The pipe syntax stays out of sight.",
+        keywords: "table csv json sort alignment formula sum spreadsheet paste",
         body: (
           <>
             <p>
               Type <code>/table</code> in the slash menu, or the <code>{"{table}"}</code> shortcode. Both
-              drop a 3×2 starter table with the cursor in the first cell.
+              drop a 3×2 starter table and put you in its first cell.
             </p>
             <p>
-              Click inside any table to get a floating toolbar over it. Drag it out of the way by its
-              grip handle if it's covering something you need to see.
+              Click any cell to edit it in place. Tab moves to the next cell, and tabbing out of the last
+              one adds a row. Enter moves down a column. The arrow keys cross cell edges and step out of
+              the table at its borders. The file is updated as you type, so undo, autosave and split
+              panes always match what you see. The file on disk is still a plain Markdown pipe table.
+            </p>
+            <p>
+              A focused cell shows its raw Markdown, such as <code>**bold**</code> or links. Every other
+              cell shows the rendered result. <code>Ctrl/Cmd+B</code>, <code>I</code> and{" "}
+              <code>E</code> wrap the selection in bold, italic or code, and <code>Ctrl/Cmd</code>-click
+              opens a link. A pipe you type is stored escaped, so it can&apos;t split the cell.
+            </p>
+            <p>
+              While you edit a table, column letters (A, B, C…) and row numbers (1, 2, 3…) appear
+              around it, like in a spreadsheet, with the current cell&apos;s row and column
+              highlighted. Click a letter or number for that column&apos;s or row&apos;s menu, or
+              right-click any cell (long-press on touch). Nothing is drawn on top of the cells.
             </p>
             <KV
               rows={[
-                { label: "Move the toolbar", value: "Drag the grip handle" },
-                { label: "Add / remove row", value: "+Row / −Row" },
-                { label: "Add / remove column", value: "+Col / −Col" },
-                { label: "Cycle column alignment", value: "Left / Center / Right" },
-                { label: "Sort a column", value: "↑ / ↓, header cell only" },
-                { label: "Copy as CSV", value: "CSV in toolbar" },
-                { label: "Delete table", value: "× in toolbar" },
-              ]}
-            />
-            <KV
-              rows={[
-                { label: "Cell navigation", value: "Tab / Shift+Tab / Arrows" },
-                { label: "Edit a cell", value: "Enter" },
-                { label: "New row at end", value: "Enter on last row" },
+                { label: "Row", value: "Insert above / below, move up / down, delete" },
+                { label: "Column", value: "Insert left / right, move, sum, sort, align, delete" },
+                { label: "Table", value: "Copy as CSV or JSON, delete (confirm with a second click)" },
               ]}
             />
             <p>
-              Smart sorting recognizes dates, currency, and plain numbers regardless of column
-              alignment. Output stays clean, auto-padded Markdown that respects left, center, or right
-              alignment markers.
+              Paste a range copied from a spreadsheet (or multi-line CSV) into a cell. It fills the
+              cells from there, adding rows and columns as needed. Smart sorting recognizes dates,
+              currency and plain numbers. Each structural change is a single undo step.
+            </p>
+            <h4 className="text-lg font-bold tracking-tight !mb-2 !mt-6">Formulas</h4>
+            <p>
+              Start a cell with <code>=</code> to compute it, like a spreadsheet. The cell shows the
+              result, and clicking it shows the formula for editing. Columns are lettered{" "}
+              <code>A</code>, <code>B</code>, <code>C</code>… and the header is row 1, so the first data
+              row is row 2, matching the letters and numbers shown around the table while you edit.{" "}
+              <strong>Sum column</strong> in the table menu adds a totals row for you. Rows you add at
+              the end (Tab or Enter) go above the totals row, and its ranges grow to include them.
+            </p>
+            <KV
+              rows={[
+                { label: "Cell & range", value: "=B2 · =SUM(B2:B5) · =AVERAGE(B2:D2)" },
+                { label: "Functions", value: "SUM, AVERAGE, COUNT, COUNTA, MIN, MAX, ROUND, ABS, IF, AND, OR, NOT, CONCAT" },
+                { label: "Another table", value: "=SUM(Income!B) — named by the heading above it" },
+                { label: "Another note", value: "=[[Budget]]!B5 · =[[Budget#Income]]!B5" },
+              ]}
+            />
+            <p>
+              Amounts like <code>$2,000</code> or <code>1000 RON</code> count as numbers, and totals keep
+              their currency. Errors show spreadsheet-style (<code>#REF!</code>, <code>#DIV/0!</code>,{" "}
+              <code>#CIRCULAR!</code>). Rows containing a formula are treated as summary rows and are
+              never moved by sorting.
             </p>
             <Callout type="note">
-              Table cells hold plain text — there&apos;s no formula engine or spreadsheet-style
-              calculation. What you type is what gets written back to the file.
+              Formulas are stored as plain text in the Markdown file (<code>| =SUM(B2:B5) |</code>),
+              so other Markdown apps show the formula, not the result. References to other notes read
+              those notes when you open this one and refresh when you return to its pane.
             </Callout>
+            <p>
+              AI features know this syntax too. See{" "}
+              <a href="#ai-table-formulas" className="text-sage font-semibold hover:underline">AI &amp; table formulas</a>.
+            </p>
           </>
         ),
       },
@@ -808,25 +845,18 @@ graph TD
       {
         id: "frontmatter-conventions",
         title: "Frontmatter conventions",
-        lead: "Three fields, fixed — all optional except title.",
-        keywords: "title status tags",
+        lead: "Two fields, fixed — all optional except title.",
+        keywords: "title tags",
         body: (
           <>
             <KV
               rows={[
                 { label: "title", value: "string · required" },
-                { label: "status", value: "enum · default draft" },
                 { label: "tags", value: "list · optional" },
               ]}
             />
             <h4 className="text-lg font-bold tracking-tight !mb-2 !mt-6">title</h4>
             <p>The note's primary identifier. The only field a note can't be saved without.</p>
-            <h4 className="text-lg font-bold tracking-tight !mb-2 !mt-6">status</h4>
-            <p>
-              One of <code>draft</code>, <code>review</code>, <code>active</code>, or{" "}
-              <code>archived</code>. Stays in sync with the document's lifecycle tag — change one and the
-              other follows.
-            </p>
             <h4 className="text-lg font-bold tracking-tight !mb-2 !mt-6">tags</h4>
             <p>Free-form domain tags, distinct from the lifecycle tag that mirrors <code>status</code>.</p>
           </>
@@ -890,6 +920,33 @@ graph TD
               Ask AI opens a diff review before anything touches your note — red for removed, green
               for added — then Replace, Insert Below, or Cancel. Nothing is applied without a confirmed
               review.
+            </Callout>
+          </>
+        ),
+      },
+      {
+        id: "ai-table-formulas",
+        title: "AI & table formulas",
+        lead: "The AI knows how table formulas work. It writes totals as live formulas and never replaces your formulas with numbers.",
+        keywords: "ai formula sum average table total spreadsheet calculate",
+        body: (
+          <>
+            <p>
+              Ask AI Chat, Ask AI or the AI Builder for a table with totals, averages or counts, and
+              you get formulas like <code>=SUM(B2:B5)</code> in a totals row, not numbers the AI
+              worked out itself. The table keeps computing correctly as you edit it. You can also ask
+              it to add or fix a formula, or explain why a cell shows <code>#REF!</code> or{" "}
+              <code>#CIRCULAR!</code>.
+            </p>
+            <p>
+              Every AI action that rewrites text (improve, fix grammar, shorten, change tone, expand,
+              continue, fix document) is told to keep formulas exactly as written. It never swaps a{" "}
+              <code>=SUM(...)</code> for its current result.
+            </p>
+            <Callout type="tip">
+              When asking for changes that add or remove rows, check the totals row afterwards. The AI is
+              asked to keep ranges in step, but the table&apos;s own <strong>Sum column</strong> action
+              is the most reliable way to get a range that covers exactly the rows above.
             </Callout>
           </>
         ),
@@ -1021,19 +1078,19 @@ graph TD
       {
         id: "table-editor-mobile",
         title: "Table editor on mobile",
-        lead: "Tables edit in place, same as desktop — only the frontmatter panel switches to a bottom sheet.",
+        lead: "Tables edit in place, same as desktop. Only the frontmatter panel switches to a bottom sheet.",
         keywords: "table bottom sheet mobile drag frontmatter",
         body: (
           <>
             <p>
-              Tables use the same floating toolbar and in-place cell editing as desktop — there's no
-              separate view to switch to. Tapping the frontmatter ✎ icon instead slides a sheet up from
+              Tables use the same in-place cell editing as desktop. Tap a cell to type in it, and tap a
+              column letter or row number (or long-press a cell on Android) for the table menu.
+              Tapping the frontmatter ✎ icon instead slides a sheet up from
               the bottom edge, capped to a portion of the screen height so the soft keyboard never covers
               it. Drag the handle down to dismiss.
             </p>
             <p>
-              Cell navigation and range selection work the same as desktop — only the surrounding chrome
-              changes.
+              Cell navigation works the same as desktop. Only the surrounding chrome changes.
             </p>
           </>
         ),
@@ -1121,10 +1178,9 @@ export default function Documentation() {
   );
 
   const navLinkClasses = (id: string) =>
-    `block text-ui-subhead font-medium py-1.5 px-3 rounded-lg transition-all duration-200 ${
-      activeId === id
-        ? "text-sage dark:text-sage bg-blue-50 dark:bg-sage/10"
-        : "text-neutral-500 dark:text-neutral-400 hover:text-neutral-800 dark:hover:text-neutral-200"
+    `block text-ui-subhead font-medium py-1.5 px-3 rounded-lg transition-all duration-200 ${activeId === id
+      ? "text-sage dark:text-sage bg-blue-50 dark:bg-sage/10"
+      : "text-neutral-500 dark:text-neutral-400 hover:text-neutral-800 dark:hover:text-neutral-200"
     }`;
 
   const navContent = (
@@ -1260,9 +1316,8 @@ export default function Documentation() {
                     <article
                       key={item.id}
                       id={item.id}
-                      className={`scroll-mt-24 space-y-4 max-w-3xl rounded-2xl transition-all ${
-                        highlight ? "ring-2 ring-sage/30 bg-sage/[0.03] -mx-2 px-2 sm:-mx-4 sm:px-4 py-4" : ""
-                      }`}
+                      className={`scroll-mt-24 space-y-4 max-w-3xl rounded-2xl transition-all ${highlight ? "ring-2 ring-sage/30 bg-sage/[0.03] -mx-2 px-2 sm:-mx-4 sm:px-4 py-4" : ""
+                        }`}
                     >
                       <h3 className="text-lg md:text-xl font-medium tracking-tight">{item.title}</h3>
                       <p className="text-neutral-500 dark:text-neutral-400 leading-relaxed text-lg">{item.lead}</p>

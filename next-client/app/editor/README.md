@@ -47,16 +47,20 @@ Markdown source stays the single source of truth.
 2. **Editing**: each cell is its own `contenteditable`. Unfocused cells show rendered inline Markdown (`utils/inline-markdown.ts`); the focused cell shows its raw text (`**bold**`, links…). Every keystroke is written back as a minimal change to that cell's source range. Undo/redo, autosave and split panes always see the table as displayed. Typed pipes are stored escaped (`\|`).
 3. **Keyboard**: Tab / Shift+Tab move between cells, and Tab in the last cell adds a row. Enter moves down, adding a row at the bottom. The arrow keys cross cell edges and leave the table at its borders. Escape leaves the table. Alt+↑/↓ move the row, Ctrl/Cmd+Alt+←/→ move the column, Ctrl/Cmd+Enter inserts a row below, Ctrl/Cmd+Shift+Backspace deletes the row, and Ctrl/Cmd+B / I / E wrap the selection in bold / italic / code.
 4. **Paste**: plain text pastes into the cell. TSV (from a spreadsheet) or multi-line CSV fills cells starting at the focused cell, growing the table as needed.
-5. **Source hygiene**: when the caret leaves a table, its column padding is realigned (`hooks/use-codemirror-table.ts`). This change is kept out of undo history because it's invisible in the grid. Tables written without outer pipes get them on first edit.
+5. **Source hygiene**: when the caret leaves a table, its column padding is realigned (`hooks/use-codemirror-table.ts`). Tables written without outer pipes get them on first edit. Both are kept out of undo history because nothing visible changes. They're applied as minimal padding-only changes (`paddingChanges`), never as one whole-table replacement: earlier undo events are mapped through such changes, and a whole-table rewrite would silently invalidate every earlier cell edit.
 
 ### Table menu (`codemirror/table-handles.ts`)
 
 Nothing is drawn on top of the cells. Table actions live in one menu with **Row** (insert above/below, move, delete), **Column** (insert left/right, move, sort, align, delete) and **Table** (copy as CSV / JSON, delete with a confirming second click) sections. Open it either way:
 
 - **Right-click / long-press** a cell. The menu opens at the pointer.
-- **The column tab**: a thin bar in the strip reserved above the header row, centred over the active column. It fades out as soon as you type and returns on pointer movement.
+- **Row numbers and column letters**: while a table is being edited, spreadsheet-style rulers appear in gutters reserved above and left of it (A, B, C… / 1, 2, 3…, matching formula addressing). Clicking one opens the menu for that column or row.
 
 All structural edits go through `codemirror/table-commands.ts` as one isolated undo step each.
+
+### Formulas (`utils/formula-engine.ts`, `codemirror/table-formulas.ts`)
+
+A cell starting with `=` is a formula (`=SUM(B2:B5)`, `=AVERAGE(B2:D2)`, `=IF(...)`, …; A1 refs with the header as row 1). While the table display field builds the grid, it evaluates every table in one pass. Tables are named by the heading above them, so cross-table refs (`=SUM(Income!B)`) resolve. Unfocused formula cells show the computed value (raw formula as tooltip); the focused cell shows the formula. Cross-note refs (`=[[Budget]]!B5`) come from `hooks/use-cross-file-tables.ts`, which reads the referenced notes asynchronously and pushes a snapshot into the editor via the `setFormulaFileTables` effect. **Sum column** in the table menu writes `=SUM(...)` into a totals row: the last row, if it holds an aggregate (SUM/AVERAGE/COUNT/MIN/MAX), else a new one. Rows added at the end go above the totals row and extend its ranges. A range that covers the formula's own cell skips that cell rather than reporting `#CIRCULAR!`.
 
 ### Utilities
 

@@ -1,13 +1,20 @@
-import { EditorSelection, EditorState, Extension, Range, StateField } from "@codemirror/state";
+import { EditorSelection, EditorState, Extension, Prec, Range, StateField } from "@codemirror/state";
 import { syntaxTree } from "@codemirror/language";
 import { undo, redo } from "@codemirror/commands";
-import { Decoration, DecorationSet, EditorView, ViewPlugin, ViewUpdate, WidgetType } from "@codemirror/view";
-import { parseTable, type Alignment } from "../utils/tableParser";
+import { Decoration, DecorationSet, EditorView, ViewPlugin, ViewUpdate, WidgetType, keymap } from "@codemirror/view";
+import { parseTable, type Alignment, type TableData } from "../utils/tableParser";
 import {
   getTableCellOffsetsFromSource,
   type CellOffset,
 } from "../utils/table-cell-offsets";
 import { renderInlineMarkdown } from "../utils/inline-markdown";
+import { isFormulaCell } from "../utils/formula-engine";
+import {
+  computeTableFormulas,
+  formulaFileTablesField,
+  setFormulaFileTables,
+  type ComputedCell,
+} from "./table-formulas";
 import { detectDelimitedTable, parseDelimitedText } from "../utils/table-manipulation";
 import {
   CELL_ATTR,
@@ -39,8 +46,9 @@ import {
   removeTableAction,
   setAlignmentAction,
   sortColumnAction,
+  sumColumnAction,
 } from "./table-commands";
-import { closeTableMenu, createColumnTab, showTableMenu, type TableColumnTab, type TableMenuEntry } from "./table-handles";
+import { closeTableMenu, createTableRulers, showTableMenu, type TableRulers, type TableMenuEntry } from "./table-handles";
 import { formatShortcut, isMacPlatform } from "@/app/utils/platform";
 
 // Tables are always shown as a rendered grid whose cells are edited in
@@ -55,10 +63,15 @@ export interface TableDisplayMatch {
   source: string;
   cells: CellOffset[];
   alignments: Alignment[];
+  // Computed results of formula cells (`=SUM(B2:B4)`), keyed "row:col".
+  computed: Map<string, ComputedCell>;
+  // Changes whenever any computed result changes, so a table re-renders
+  // when a formula's inputs live in a different table or note.
+  computedSignature: string;
 }
 
 export function collectTableDisplayMatches(state: EditorState): TableDisplayMatch[] {
-  const matches: TableDisplayMatch[] = [];
+  const found: { from: number; to: number; source: string; data: TableData }[] = [];
 
   syntaxTree(state).iterate({
     enter(node) {
@@ -66,37 +79,56 @@ export function collectTableDisplayMatches(state: EditorState): TableDisplayMatc
       const source = state.doc.sliceString(node.from, node.to);
       const data = parseTable(source);
       if (!data) return;
-      matches.push({
-        from: node.from,
-        to: node.to,
-        source,
-        cells: getTableCellOffsetsFromSource(source, node.from),
-        alignments: data.alignments,
-      });
+      found.push({ from: node.from, to: node.to, source, data });
     },
   });
 
-  return matches;
+  const computed = computeTableFormulas(state, found);
+  return found.map((table, i) => ({
+    from: table.from,
+    to: table.to,
+    source: table.source,
+    cells: getTableCellOffsetsFromSource(table.source, table.from),
+    alignments: table.data.alignments,
+    computed: computed[i],
+    computedSignature: [...computed[i]].map(([key, cell]) => `${key}=${cell.display}`).join("\u0001"),
+  }));
 }
 
 // Escaped pipes are a storage detail: cells show and edit a plain "|".
 const toDisplay = (raw: string) => raw.replace(/\\\|/g, "|");
 const toRaw = (display: string) =>
-  display.replace(/ /g, " ").replace(/\s*\n\s*/g, " ").trim().replace(/\\?\|/g, "\\|");
+  display.replace(/\u00a0/g, " ").replace(/\s*\n\s*/g, " ").trim().replace(/\\?\|/g, "\\|");
 
-function renderCell(el: HTMLElement, raw: string) {
+// Unfocused cells show rendered Markdown — or, for a formula, its computed
+// result (the raw formula stays available as a tooltip and on focus).
+function renderCell(el: HTMLElement, raw: string, computed?: ComputedCell) {
   el.dataset.raw = raw;
-  el.innerHTML = renderInlineMarkdown(raw);
+  const formula = computed && isFormulaCell(raw) ? computed : null;
+  el.classList.toggle("cm-table-formula", !!formula);
+  el.classList.toggle("is-error", !!formula?.isError);
+  if (formula) {
+    el.dataset.display = formula.display;
+    el.title = raw;
+    el.textContent = formula.display;
+  } else {
+    delete el.dataset.display;
+    el.removeAttribute("title");
+    el.innerHTML = renderInlineMarkdown(raw);
+  }
 }
+
+// The latest match each rendered grid reflects (for computed results).
+const matchByWrapper = new WeakMap<HTMLElement, TableDisplayMatch>();
 
 const shapeOf = (cells: CellOffset[]) => cells.map(cellKey).join(",");
 
-const tabsByWrapper = new WeakMap<HTMLElement, TableColumnTab>();
+const rulersByWrapper = new WeakMap<HTMLElement, TableRulers>();
 
-// Re-positions a table's column tab on the next frame (after layout has
+// Re-positions a table's row/column rulers on the next frame (after layout has
 // caught up with typing, which can change column widths).
 function refreshHandles(wrapper: HTMLElement) {
-  const handles = tabsByWrapper.get(wrapper);
+  const handles = rulersByWrapper.get(wrapper);
   if (!handles) return;
   const nextFrame = globalThis.requestAnimationFrame ?? ((fn: () => void) => setTimeout(fn, 16));
   nextFrame(() => {
@@ -130,7 +162,7 @@ function buildTable(match: TableDisplayMatch): HTMLTableElement {
         el.setAttribute("contenteditable", "true");
         el.tabIndex = -1;
         el.spellcheck = true;
-        renderCell(el, cell.text);
+        renderCell(el, cell.text, match.computed.get(cellKey(cell)));
       } else {
         // Ragged row: nothing to edit until the table is next realigned
         // (leaving the table pads every row to the header's width).
@@ -158,8 +190,11 @@ function syncTable(dom: HTMLElement, match: TableDisplayMatch) {
         placeCaret(el, "end");
       }
       el.dataset.raw = cell.text;
-    } else if (el.dataset.raw !== cell.text) {
-      renderCell(el, cell.text);
+    } else {
+      const computed = match.computed.get(cellKey(cell));
+      if (el.dataset.raw !== cell.text || el.dataset.display !== computed?.display) {
+        renderCell(el, cell.text, computed);
+      }
     }
   }
 }
@@ -209,7 +244,9 @@ class TableEditorWidget extends WidgetType {
   }
 
   eq(other: TableEditorWidget) {
-    return other.match.from === this.match.from && other.match.source === this.match.source;
+    return other.match.from === this.match.from
+      && other.match.source === this.match.source
+      && other.match.computedSignature === this.match.computedSignature;
   }
 
   get estimatedHeight() {
@@ -227,6 +264,7 @@ class TableEditorWidget extends WidgetType {
     scroll.appendChild(buildTable(this.match));
     wrapper.appendChild(scroll);
     setTableHandle(wrapper, handleFor(this.match));
+    matchByWrapper.set(wrapper, this.match);
     attachCellHandlers(wrapper, view);
     return wrapper;
   }
@@ -245,6 +283,7 @@ class TableEditorWidget extends WidgetType {
     }
     syncTable(dom, this.match);
     setTableHandle(dom, handleFor(this.match));
+    matchByWrapper.set(dom, this.match);
     refreshHandles(dom);
     return true;
   }
@@ -303,7 +342,7 @@ function attachCellHandlers(wrapper: HTMLElement, view: EditorView) {
   };
 
   // One menu for everything, Google Docs-style: rows, then columns, then
-  // the whole table — opened by right-click on a cell or the column tab.
+  // the whole table — opened by right-click on a cell or a row/column ruler label.
   const menuFor = (el: HTMLElement): TableMenuEntry[] => {
     const cell = offsetOf(el);
     const handle = getTableHandle(wrapper);
@@ -336,6 +375,7 @@ function attachCellHandlers(wrapper: HTMLElement, view: EditorView) {
       { label: "Insert column right", run: run((info) => addColumnAction(view, info)) },
       { label: "Move column left", hint: formatShortcut("←", { alt: true }), disabled: col === 0, run: run((info) => moveColumnAction(view, info, -1)) },
       { label: "Move column right", hint: formatShortcut("→", { alt: true }), disabled: col >= colCount - 1, run: run((info) => moveColumnAction(view, info, 1)) },
+      { label: "Sum column", run: run((info) => sumColumnAction(view, info)) },
       { label: "Sort A → Z", run: run((info) => sortColumnAction(view, info, "asc")) },
       { label: "Sort Z → A", run: run((info) => sortColumnAction(view, info, "desc")) },
       { label: alignLabel("left", "Align left"), run: run((info) => setAlignmentAction(view, info, "left")) },
@@ -351,8 +391,27 @@ function attachCellHandlers(wrapper: HTMLElement, view: EditorView) {
   };
 
   const scroll = wrapper.querySelector<HTMLElement>(".cm-table-preview-scroll");
-  const tab = scroll ? createColumnTab(scroll, menuFor) : null;
-  if (tab) tabsByWrapper.set(wrapper, tab);
+  const activeCell = () => {
+    const active = wrapper.ownerDocument.activeElement;
+    return active instanceof HTMLElement && wrapper.contains(active) && active.hasAttribute(CELL_ATTR) ? active : null;
+  };
+  const rulers = scroll
+    ? createTableRulers(scroll, {
+        menuFor,
+        focusCell: (el) => {
+          if (el.ownerDocument.activeElement !== el) focusCellElement(el);
+        },
+        // Clicking a letter keeps the current row; clicking a number keeps
+        // the current column (A1 rows: index 0 = header = row 1).
+        cellFor: (row, col) => {
+          const current = activeCell();
+          const [curRow, curCol] = (current?.getAttribute(CELL_ATTR) ?? "1:0").split(":").map(Number);
+          return cellAt(row === null ? curRow : row + 1, col === null ? curCol : col)
+            ?? cellAt(1, col === null ? curCol : col);
+        },
+      })
+    : null;
+  if (rulers) rulersByWrapper.set(wrapper, rulers);
 
   wrapper.addEventListener("contextmenu", (event) => {
     const el = cellOf(event.target);
@@ -362,13 +421,13 @@ function attachCellHandlers(wrapper: HTMLElement, view: EditorView) {
     showTableMenu({ x: event.clientX, y: event.clientY, doc: el.ownerDocument }, menuFor(el), "Table options");
   });
 
-  // Typing hides the tab entirely; moving the pointer brings it back.
-  wrapper.addEventListener("pointermove", () => tab?.setTyping(false));
 
   wrapper.addEventListener("focusin", (event) => {
     const el = cellOf(event.target);
     if (!el) return;
     el.classList.add("cm-table-cell-editing");
+    el.classList.remove("cm-table-formula", "is-error");
+    delete el.dataset.display;
     refreshHandles(wrapper);
     const cell = offsetOf(el);
     if (cell && el.textContent !== toDisplay(cell.text)) {
@@ -400,11 +459,12 @@ function attachCellHandlers(wrapper: HTMLElement, view: EditorView) {
     const el = cellOf(event.target);
     if (!el) return;
     el.classList.remove("cm-table-cell-editing");
-    renderCell(el, offsetOf(el)?.text ?? el.dataset.raw ?? "");
+    const cell = offsetOf(el);
+    renderCell(el, cell?.text ?? el.dataset.raw ?? "", cell && matchByWrapper.get(wrapper)?.computed.get(cellKey(cell)));
     const next = (event as FocusEvent).relatedTarget;
     if (!(next instanceof Node && wrapper.contains(next))) {
       closeTableMenu();
-      tab?.update(null);
+      rulers?.update(null);
     }
   });
 
@@ -416,6 +476,15 @@ function attachCellHandlers(wrapper: HTMLElement, view: EditorView) {
 
   wrapper.addEventListener("beforeinput", (event) => {
     const type = (event as InputEvent).inputType;
+    if (type === "historyUndo" || type === "historyRedo") {
+      // Native undo (Edit menu, shake-to-undo) would only rewind this cell's
+      // DOM text; route it to the editor's history like Ctrl/Cmd+Z.
+      event.preventDefault();
+      if (type === "historyUndo") undo(view);
+      else redo(view);
+      if (!focusTableCellAt(view, view.state.selection.main.head)) view.focus();
+      return;
+    }
     if (type.startsWith("format") || type === "insertParagraph" || type === "insertLineBreak" || type === "insertFromDrop") {
       event.preventDefault();
     }
@@ -466,7 +535,6 @@ function attachCellHandlers(wrapper: HTMLElement, view: EditorView) {
     if (!el || event.isComposing) return;
     const cell = offsetOf(el);
     if (!cell) return;
-    if (event.key.length === 1 || event.key === "Backspace" || event.key === "Delete") tab?.setTyping(true);
     const mod = event.metaKey || event.ctrlKey;
     const plain = !mod && !event.altKey && !event.shiftKey;
     const handled = () => {
@@ -603,7 +671,11 @@ export const tableDisplayField = StateField.define<TableDisplayState>({
     // Selection-only changes no longer matter (tables never switch back to
     // raw text), but the syntax tree can grow without a doc change as the
     // background parser catches up.
-    if (!transaction.docChanged && syntaxTree(transaction.startState) === syntaxTree(transaction.state)) {
+    if (
+      !transaction.docChanged
+      && syntaxTree(transaction.startState) === syntaxTree(transaction.state)
+      && !transaction.effects.some((effect) => effect.is(setFormulaFileTables))
+    ) {
       return value;
     }
     return buildTableDisplayState(transaction.state);
@@ -614,9 +686,10 @@ export const tableDisplayField = StateField.define<TableDisplayState>({
   ],
 });
 
-// When the editor's own caret lands on a table (arrow keys from the line
-// above/below, undo restoring a selection inside one), hand keyboard focus
-// to the nearest cell so typing continues inside the grid.
+// When the editor's own caret lands on a table by any other route (undo
+// restoring a selection inside one, a template inserting one, Page Up/Down),
+// hand keyboard focus to the nearest cell so typing continues inside the
+// grid. Arrow keys are handled up front by tableVerticalEntry below.
 const tableCaretEntry = ViewPlugin.fromClass(class {
   update(update: ViewUpdate) {
     if (!update.selectionSet || !update.view.hasFocus) return;
@@ -638,4 +711,60 @@ const tableCaretEntry = ViewPlugin.fromClass(class {
   }
 });
 
-export const tableDisplayExtension: Extension = [tableDisplayField, tableCaretEntry];
+// Focuses the cell in `match`'s top or bottom row that sits under screen
+// x-coordinate `x` (nearest column when x is outside the table).
+function focusEdgeCell(view: EditorView, match: TableDisplayMatch, edge: "top" | "bottom", x: number | null): boolean {
+  for (const dom of view.dom.querySelectorAll<HTMLElement>(`.${TABLE_WIDGET_CLASS}`)) {
+    if (getTableHandle(dom)?.from !== match.from) continue;
+    const table = dom.querySelector("table");
+    const row = edge === "top" ? table?.rows[0] : table?.rows[table.rows.length - 1];
+    const cells = [...(row?.cells ?? [])].filter((cell) => cell.hasAttribute(CELL_ATTR));
+    if (cells.length === 0) return false;
+    let target = cells[0];
+    if (x !== null) {
+      let best = Infinity;
+      for (const cell of cells) {
+        const rect = cell.getBoundingClientRect();
+        const distance = x < rect.left ? rect.left - x : x > rect.right ? x - rect.right : 0;
+        if (distance < best) {
+          best = distance;
+          target = cell;
+        }
+      }
+    }
+    focusCellElement(target, edge === "top" ? "start" : "end");
+    return true;
+  }
+  return false;
+}
+
+// ↑/↓ from the text around a table. CodeMirror's own vertical motion
+// treats the grid as one atomic block and can land on either edge of it —
+// or skip over it entirely — leaving the caret "before the table" when
+// arrowing up from below. Instead, whenever a vertical move would reach or
+// cross a table, go into its nearest row, in the column under the caret.
+function enterTableVertically(view: EditorView, forward: boolean): boolean {
+  const selection = view.state.selection.main;
+  if (!selection.empty) return false;
+  const next = view.moveVertically(selection, forward);
+  const match = view.state.field(tableDisplayField).matches.find((m) =>
+    forward
+      ? selection.head < m.from && next.head >= m.from
+      : selection.head > m.to && next.head <= m.to,
+  );
+  if (!match) return false;
+  const x = view.coordsAtPos(selection.head)?.left ?? null;
+  return focusEdgeCell(view, match, forward ? "top" : "bottom", x);
+}
+
+const tableVerticalEntry = Prec.high(keymap.of([
+  { key: "ArrowUp", run: (view) => enterTableVertically(view, false) },
+  { key: "ArrowDown", run: (view) => enterTableVertically(view, true) },
+]));
+
+export const tableDisplayExtension: Extension = [
+  formulaFileTablesField,
+  tableDisplayField,
+  tableCaretEntry,
+  tableVerticalEntry,
+];
