@@ -1,6 +1,6 @@
 import { Geist_Mono, IBM_Plex_Mono, Inter, Plus_Jakarta_Sans } from "next/font/google";
 
-// UI chrome surfaces such as the sidebar, menus, buttons, and labels.
+// UI chrome surfaces such as the tab bar, menus, buttons, and labels.
 export const inter = Inter({
   subsets: ["latin"],
   variable: "--font-inter",

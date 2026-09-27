@@ -2,6 +2,7 @@
 
 import React from "react";
 import { HiChevronDown } from "react-icons/hi";
+import Button from "@/app/components/Button";
 
 export function SegmentedControl<T extends string>({
   options,
@@ -15,9 +16,8 @@ export function SegmentedControl<T extends string>({
   return (
     <div className="inline-flex flex-wrap gap-0.5 rounded-lg bg-paper-softgray/75 p-0.5 dark:bg-paper-dark-surface/80">
       {options.map((opt) => (
-        <button
+        <Button variant="unstyled"
           key={opt.value}
-          type="button"
           onClick={() => onChange(opt.value)}
           className={`rounded-md px-3 py-1.5 text-ui-footnote font-medium transition-colors duration-150 select-none focus:outline-none ${
             value === opt.value
@@ -27,7 +27,7 @@ export function SegmentedControl<T extends string>({
         >
           {opt.Icon && <opt.Icon size={14} />}
           {opt.label}
-        </button>
+        </Button>
       ))}
     </div>
   );

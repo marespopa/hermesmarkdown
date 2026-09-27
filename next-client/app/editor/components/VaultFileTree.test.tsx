@@ -1,6 +1,6 @@
 import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import VaultSidebarFiles from "./VaultSidebarFiles";
+import VaultFileTree from "./VaultFileTree";
 
 vi.mock("jotai", async (importOriginal) => ({
   ...await importOriginal<typeof import("jotai")>(),
@@ -9,8 +9,8 @@ vi.mock("jotai", async (importOriginal) => ({
 
 const fileHandle = { kind: "file", name: "note.md" } as FileSystemFileHandle;
 
-function renderFiles(overrides: Partial<React.ComponentProps<typeof VaultSidebarFiles>> = {}) {
-  const props: React.ComponentProps<typeof VaultSidebarFiles> = {
+function renderFiles(overrides: Partial<React.ComponentProps<typeof VaultFileTree>> = {}) {
+  const props: React.ComponentProps<typeof VaultFileTree> = {
     processedFiles: [{ name: "note.md", path: "note.md", handle: fileHandle }],
     activeFilePath: null,
     openFile: vi.fn(),
@@ -18,7 +18,7 @@ function renderFiles(overrides: Partial<React.ComponentProps<typeof VaultSidebar
     deleteFile: vi.fn(),
     ...overrides,
   };
-  return { props, ...render(<VaultSidebarFiles {...props} />) };
+  return { props, ...render(<VaultFileTree {...props} />) };
 }
 
 afterEach(() => {
@@ -26,7 +26,7 @@ afterEach(() => {
   vi.useRealTimers();
 });
 
-describe("VaultSidebarFiles tree interactions", () => {
+describe("VaultFileTree tree interactions", () => {
   it("opens files via double-click or the file options menu, but not single-click", () => {
     const { props } = renderFiles();
 

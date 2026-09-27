@@ -21,4 +21,4 @@ import LoadingOverlay from "@/app/components/LoadingOverlay/LoadingOverlay";
 | Prop | Type | Default | Description |
 |---|---|---|---|
 | isVisible | `boolean` |  | Shows the overlay |
-| text? | `string` |  | Caption |
+| text? | `string` | `"Loading..."` | Caption |

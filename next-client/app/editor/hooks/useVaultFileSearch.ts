@@ -4,16 +4,20 @@ import { useState, useMemo, useEffect, useCallback } from "react";
 import { useAtomValue } from "jotai";
 import { atom_fileMetadata } from "@/app/atoms/metadata";
 import { atom_vaultFiles } from "@/app/atoms/vault-atoms";
-import { RailPanel, atom_showHiddenFiles } from "@/app/atoms/ui-atoms";
+import { atom_showHiddenFiles } from "@/app/atoms/ui-atoms";
 
-interface UseSidebarSearchProps {
+// Which view is searching: the Explorer page shows the full tree, the mobile
+// overlay's search tab shows a short result list.
+export type FileSearchView = "files" | "search";
+
+interface UseVaultFileSearchProps {
   selectedTags: string[];
-  panel: RailPanel;
+  panel: FileSearchView;
 }
 
 const MAX_SEARCH_RESULTS = 6;
 
-export function useSidebarSearch({ selectedTags, panel }: UseSidebarSearchProps) {
+export function useVaultFileSearch({ selectedTags, panel }: UseVaultFileSearchProps) {
   const fileMetadata = useAtomValue(atom_fileMetadata);
   const vaultFiles = useAtomValue(atom_vaultFiles);
   const showHiddenFiles = useAtomValue(atom_showHiddenFiles);

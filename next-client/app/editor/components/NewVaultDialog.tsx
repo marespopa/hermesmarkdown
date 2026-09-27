@@ -7,6 +7,7 @@ import { useCreateVault } from "@/app/hooks/file-system/use-create-vault";
 import DialogModal from "@/app/components/DialogModal/DialogModal";
 import CreateVaultSubSteps from "./CreateVaultSubSteps";
 import { HiOutlineChevronLeft } from "react-icons/hi";
+import Button from "@/app/components/Button";
 
 export default function NewVaultDialog() {
   const [isOpen, setIsOpen] = useAtom(atom_newVaultFlowOpen);
@@ -38,14 +39,13 @@ export default function NewVaultDialog() {
     >
       <div className="relative">
         {canGoBack && (
-          <button
-            type="button"
+          <Button variant="unstyled"
             onClick={vault.goBack}
             className="absolute -top-1 left-0 flex items-center gap-1 text-[11px] opacity-50 hover:opacity-100 transition-opacity"
           >
             <HiOutlineChevronLeft size={14} />
             Back
-          </button>
+          </Button>
         )}
         <CreateVaultSubSteps {...vault} />
       </div>

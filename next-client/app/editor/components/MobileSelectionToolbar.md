@@ -1,13 +1,13 @@
 # MobileSelectionToolbar
 
-Description: Mobile-only floating Bold/Italic/Link toolbar above a text selection. It dismisses itself when the selection collapses.
+Description: Mobile-only floating Bold/Italic/Link toolbar shown below a text selection in the active CodeMirror editor (below, so it doesn't collide with the native selection menu or the Ask AI pill). It dismisses itself when the selection collapses or the editor loses focus.
 
 ## Local State & Storage
-- State: Toolbar position (useState), driven by `selectionchange` on `.editor-container textarea`.
+- State: `atom_activeEditorView`; toolbar position (useState), driven by `selectionchange` and `EditorView.coordsAtPos`.
 - Persistence: None - transient UI state.
 
 ## Dependencies
-- Core: `react-icons`.
+- Core: `react-icons`, `codemirror/commands` (`toggleBold`, `toggleItalic`).
 - Zero-Cloud: No network or telemetry side effects.
 
 ## Quick Usage

@@ -1,26 +1,17 @@
 "use client";
 
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import toast from "react-hot-toast";
 import { useAtomValue, useSetAtom } from "jotai";
-import { atom_frontmatterCollapsedByDefault, atom_wordWrap, atom_isEditorFocused, atom_vaultHandle, atom_currentDirectoryHandle, atom_pendingScrollTarget } from "@/app/atoms/atoms";
+import { atom_frontmatterCollapsedByDefault, atom_wordWrap, atom_isEditorFocused } from "@/app/atoms/atoms";
 import { atom_activeEditorView, atom_aiBuilderRequest, atom_isAiConfigured, atom_lineNumbers, atom_vimMode } from "@/app/atoms/ui-atoms";
 import { useAtom } from "jotai";
-import { savePastedImage } from "@/app/utils/paste-image";
 import { EditorView } from "@codemirror/view";
-import { HiOutlineCalendar, HiChevronDown, HiChevronRight, HiOutlineArrowsExpand } from "react-icons/hi";
-import Button from "../../components/Button";
-import Input from "../../components/Input";
-import DialogModal from "../../components/DialogModal/DialogModal";
 import DatePickerCallout from "./DatePickerCallout";
 import WikiLinkDialog from "./WikiLinkDialog";
 import TaskDialog from "./TaskDialog";
-import { LinkPill } from "./LinkPill";
-import { WorkflowPill } from "./WorkflowPill";
-import { PILL_CONTAINER_CLASSES, TEMPLATES } from "./constants";
+import { TEMPLATES } from "./constants";
 import { applyTemplate } from "../codemirror/slash-menu";
 import useKeyboardInset from "@/app/hooks/use-keyboard-inset";
-import { useDialog } from "@/app/hooks/use-dialog";
 import { useFileSystem } from "@/app/hooks/use-file-system";
 import { useEditorAppearance } from "../hooks/use-editor-appearance";
 import { useCodeMirrorEditor } from "../hooks/use-codemirror-editor";
@@ -35,18 +26,19 @@ import { useCodeMirrorCodeLanguagePicker } from "../hooks/use-codemirror-code-la
 import { useCodeMirrorImage } from "../hooks/use-codemirror-image";
 import { useCodeMirrorCalloutFold } from "../hooks/use-codemirror-callout-fold";
 import { useCodeMirrorFrontmatterFold } from "../hooks/use-codemirror-frontmatter-fold";
-import { findFrontmatterFoldRange, toggleFrontmatterFold as setFrontmatterFold } from "../codemirror/frontmatter-fold";
-import { HiOutlinePhotograph } from "react-icons/hi";
-import Typeahead from "../../components/Typeahead/Typeahead";
-import { languages } from "@codemirror/language-data";
+import { insertOrRevealFrontmatter } from "../codemirror/frontmatter-fold";
+import { useEditorPasteHandlers } from "../hooks/use-editor-paste-handlers";
+import { useScrollToPendingTarget } from "../hooks/use-scroll-to-pending-target";
+import { openImageDialog, openMermaidDialog } from "../utils/open-helper-dialogs";
+import EditorPills from "./markdown-editor/EditorPills";
+import FoldChevrons from "./markdown-editor/FoldChevrons";
+import LinkInsertDialog from "./markdown-editor/LinkInsertDialog";
 
 interface MarkdownEditorProps {
   value: string;
   onChange: (value: string) => void;
   filePath?: string;
   placeholder?: string;
-  onTextareaReady?: (element: HTMLTextAreaElement | null) => void;
-  setMatchCount?: (count: number) => void;
   onWikiLinkClick?: (name: string) => void;
   isActivePane?: boolean;
   isSplit?: boolean;
@@ -55,7 +47,7 @@ interface MarkdownEditorProps {
 // The CM6 editor pane. Editing behavior lives in CodeMirror extensions
 // (app/editor/codemirror/) — including tables, which render as an inline
 // editable grid — while this component owns the floating React helpers
-// (link/date/workflow pills, table toolbar, language picker, dialogs).
+// (link/date/workflow/Mermaid pills, language picker, dialogs).
 export default function MarkdownEditor(props: MarkdownEditorProps) {
   const { onChange } = props;
   const wordWrap = useAtomValue(atom_wordWrap);
@@ -65,7 +57,6 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
   const setAiBuilderRequest = useSetAtom(atom_aiBuilderRequest);
   const frontmatterCollapsedByDefault = useAtomValue(atom_frontmatterCollapsedByDefault);
   const [, setIsEditorFocused] = useAtom(atom_isEditorFocused);
-  const [pendingScrollTarget, setPendingScrollTarget] = useAtom(atom_pendingScrollTarget);
   const filePath = props.filePath || "draft";
   const [editorView, setEditorView] = useState<EditorView | null>(null);
 
@@ -82,59 +73,14 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const viewRef = useRef<EditorView | null>(null);
 
-  const dialog = useDialog();
   const { createWikiLinkFile } = useFileSystem();
-  const csvConfirmRef = useRef<((preview: string) => Promise<boolean>) | null>(null);
-  csvConfirmRef.current = useCallback(
-    (preview: string) =>
-      dialog.confirm(
-        `Pasted content looks like tabular data (${preview.split("\n").length} rows). Convert it into a Markdown table?`,
-        "Convert to table?",
-        "Convert to table",
-        "Paste as text",
-      ),
-    [dialog],
-  );
+  const { csvConfirmRef, pasteImageRef } = useEditorPasteHandlers();
 
-  const vaultHandle = useAtomValue(atom_vaultHandle);
-  const currentDirectoryHandle = useAtomValue(atom_currentDirectoryHandle);
-  const pasteImageRef = useRef<((file: File) => Promise<string | null>) | null>(null);
-  pasteImageRef.current = useCallback(
-    async (file: File) => {
-      if (!vaultHandle) {
-        toast.error("Open a vault folder before pasting images");
-        return null;
-      }
-      try {
-        return await savePastedImage(vaultHandle, currentDirectoryHandle, file);
-      } catch (err: any) {
-        console.warn("Failed to save pasted image:", err?.message || err);
-        toast.error("Failed to save pasted image");
-        return null;
-      }
-    },
-    [vaultHandle, currentDirectoryHandle],
-  );
+  const features = useCodeMirrorFeatures({ viewRef, containerRef, onWikiLinkClick: props.onWikiLinkClick });
+  const { pillUrl, pillType, dismissPill, dateMatch, setIsDateExpanded, onCursorActivity } = features;
 
-  const {
-    pillUrl, pillLabel, pillPos, pillType, dismissPill, handleSaveLink,
-    dateMatch, isDateExpanded, setIsDateExpanded, dateMenuPos, handleDateSelect,
-    workflowMatch, workflowMenuPos, handleWorkflowCycle,
-    todoMatch, todoMenuPos, handleTodoCycle,
-    onCursorActivity,
-  } = useCodeMirrorFeatures({ viewRef, containerRef, onWikiLinkClick: props.onWikiLinkClick });
-
-  const {
-    languagePickerInfo,
-    pickerPos,
-    query,
-    pickerRef,
-    activate: activateCodeLanguagePicker,
-    onCursorActivity: onCodeLanguagePickerCursorActivity,
-    changeQuery,
-    selectLanguage,
-    deactivate: deactivateCodeLanguagePicker,
-  } = useCodeMirrorCodeLanguagePicker({ viewRef, containerRef });
+  const languagePicker = useCodeMirrorCodeLanguagePicker({ viewRef, containerRef });
+  const { activate: activateCodeLanguagePicker, onCursorActivity: onCodeLanguagePickerCursorActivity } = languagePicker;
 
   const handleCodeBlockInserted = useCallback((pos: number) => {
     const view = viewRef.current;
@@ -142,29 +88,7 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
   }, [activateCodeLanguagePicker, viewRef]);
 
   const handleFrontmatterCommand = useCallback(() => {
-    const view = viewRef.current;
-    if (!view) return;
-
-    const existing = findFrontmatterFoldRange(view.state.doc.toString());
-    if (existing) {
-      setFrontmatterFold(view, existing, false);
-      const titleLineEnd = view.state.doc.line(2).to;
-      view.dispatch({
-        selection: { anchor: titleLineEnd },
-        effects: EditorView.scrollIntoView(titleLineEnd, { y: "center" }),
-      });
-      view.focus();
-      return;
-    }
-
-    const frontmatter = '---\ntitle: \ntags: []\n---\n\n';
-    const titleLineEnd = frontmatter.indexOf("title: ") + "title: ".length;
-    view.dispatch({
-      changes: { from: 0, insert: frontmatter },
-      selection: { anchor: titleLineEnd },
-      userEvent: "input.replace.template",
-    });
-    view.focus();
+    if (viewRef.current) insertOrRevealFrontmatter(viewRef.current);
   }, [viewRef]);
 
   const {
@@ -202,17 +126,11 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
   const fileMetadata = useAtomValue(atom_fileMetadata);
   const formulaFileTables = useCrossFileTables(props.value, fileMetadata, props.isActivePane !== false);
 
-  const {
-    mermaidInfo,
-    buttonPos: mermaidButtonPos,
-    onCursorActivity: onMermaidCursorActivity,
-  } = useCodeMirrorMermaid({ viewRef, containerRef });
+  const mermaid = useCodeMirrorMermaid({ viewRef, containerRef });
+  const { mermaidInfo, onCursorActivity: onMermaidCursorActivity } = mermaid;
 
-  const {
-    imageInfo,
-    buttonPos: imageButtonPos,
-    onCursorActivity: onImageCursorActivity,
-  } = useCodeMirrorImage({ viewRef, containerRef });
+  const image = useCodeMirrorImage({ viewRef, containerRef });
+  const { imageInfo, onCursorActivity: onImageCursorActivity } = image;
 
   const openActiveHelperRef = useRef<() => boolean>(() => false);
   openActiveHelperRef.current = () => {
@@ -230,18 +148,11 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
       return true;
     }
     if (mermaidInfo) {
-      const theme = document.documentElement.classList.contains("dark") ? "dark" : "default";
-      document.dispatchEvent(new CustomEvent("hermes:open-mermaid-dialog", {
-        detail: { source: mermaidInfo.source, theme },
-        bubbles: true,
-      }));
+      openMermaidDialog(mermaidInfo.source);
       return true;
     }
     if (imageInfo) {
-      document.dispatchEvent(new CustomEvent("hermes:open-image-dialog", {
-        detail: { src: imageInfo.src, alt: imageInfo.alt },
-        bubbles: true,
-      }));
+      openImageDialog(imageInfo.src, imageInfo.alt);
       return true;
     }
     return false;
@@ -311,33 +222,7 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
     editorView.dispatch({ effects: setFormulaFileTables.of(formulaFileTables) });
   }, [editorView, formulaFileTables]);
 
-  useEffect(() => {
-    if (!editorView || !pendingScrollTarget || pendingScrollTarget.path !== filePath) return;
-
-    const lineNumber = Math.min(
-      Math.max(1, pendingScrollTarget.line),
-      editorView.state.doc.lines,
-    );
-    const line = editorView.state.doc.line(lineNumber);
-    editorView.dispatch({
-      selection: { anchor: line.from },
-      effects: EditorView.scrollIntoView(line.from, { y: "center" }),
-    });
-    editorView.focus();
-    requestAnimationFrame(() => {
-      if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return;
-      const node = editorView.domAtPos(line.from).node;
-      const lineElement = (node instanceof HTMLElement ? node : node.parentElement)?.closest(".cm-line");
-      lineElement?.animate?.(
-        [
-          { backgroundColor: "rgba(107, 142, 35, 0.24)" },
-          { backgroundColor: "rgba(107, 142, 35, 0)" },
-        ],
-        { duration: 1400, easing: "ease-out" },
-      );
-    });
-    setPendingScrollTarget(null);
-  }, [editorView, filePath, pendingScrollTarget, setPendingScrollTarget]);
+  useScrollToPendingTarget(editorView, filePath);
 
   // The global voice-input hook (use-global-voice-input.ts) is a single
   // instance shared by the whole app, not one per pane. It inserts a
@@ -361,16 +246,6 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
     };
   }, [props.isActivePane, setActiveEditorView, viewRef]);
 
-  const [linkLabel, setLinkLabel] = useState("");
-  const [linkUrl, setLinkUrl] = useState("");
-  const linkUrlInputRef = useRef<HTMLInputElement>(null);
-
-  React.useEffect(() => {
-    if (linkDialogOpen) {
-      setLinkLabel("");
-      setLinkUrl("");
-    }
-  }, [linkDialogOpen]);
 
   return (
     <div
@@ -407,164 +282,27 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
             tabIndex={0}
           />
 
-          {[...chevrons.map((chevron) => ({ ...chevron, kind: "callout" as const })), ...frontmatterChevrons.filter((chevron) => !chevron.collapsed).map((chevron) => ({ ...chevron, kind: "frontmatter" as const }))].map((chevron) => (
-            <button
-              key={chevron.blockId}
-              type="button"
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                if (viewRef.current) {
-                  if (chevron.kind === "frontmatter") toggleFrontmatterFold(viewRef.current);
-                  else toggleCalloutFold(viewRef.current, chevron.blockId);
-                }
-              }}
-              className="absolute right-1 z-20 p-0.5 rounded text-ink-muted dark:text-fg-faint hover:text-sage dark:hover:text-sage"
-              style={{ top: chevron.top }}
-              title={chevron.collapsed
-                ? `Expand ${chevron.kind === "frontmatter" ? "frontmatter" : "callout"}`
-                : `Collapse ${chevron.kind === "frontmatter" ? "frontmatter" : "callout"}`}
-              aria-label={chevron.collapsed
-                ? `Expand ${chevron.kind === "frontmatter" ? "frontmatter" : "callout"}`
-                : `Collapse ${chevron.kind === "frontmatter" ? "frontmatter" : "callout"}`}
-            >
-              {chevron.collapsed ? <HiChevronRight size={13} /> : <HiChevronDown size={13} />}
-            </button>
-          ))}
+          <FoldChevrons
+            chevrons={[
+              ...chevrons.map((chevron) => ({ ...chevron, kind: "callout" as const })),
+              ...frontmatterChevrons.filter((chevron) => !chevron.collapsed).map((chevron) => ({ ...chevron, kind: "frontmatter" as const })),
+            ]}
+            onToggle={(chevron) => {
+              const view = viewRef.current;
+              if (!view) return;
+              if (chevron.kind === "frontmatter") toggleFrontmatterFold(view);
+              else toggleCalloutFold(view, chevron.blockId);
+            }}
+          />
 
-          {dateMatch && (
-            <Button
-              variant="pill-icon"
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                setIsDateExpanded(!isDateExpanded);
-              }}
-              className={PILL_CONTAINER_CLASSES}
-              style={{
-                top: dateMenuPos.top - 2,
-                left: Math.min(dateMenuPos.endLeft + 8, (containerRef.current?.clientWidth || 500) - 30),
-              }}
-              title="Toggle calendar (Ctrl/Cmd+Shift+Enter)"
-              aria-label="Toggle calendar (Ctrl/Cmd+Shift+Enter)"
-            >
-              <HiOutlineCalendar size={16} />
-            </Button>
-          )}
-
-          {dateMatch && (
-            <DatePickerCallout
-              isOpen={isDateExpanded}
-              initialDate={dateMatch.date}
-              onSelectDate={handleDateSelect}
-              onClose={() => setIsDateExpanded(false)}
-            />
-          )}
-
-          {pillUrl && (
-            <LinkPill
-              url={pillUrl}
-              label={pillLabel}
-              pos={pillPos}
-              type={pillType || "url"}
-              onOpen={() => {
-                if (pillType === "wiki") {
-                  props.onWikiLinkClick?.(pillUrl);
-                } else {
-                  window.open(pillUrl, "_blank", "noopener,noreferrer");
-                }
-                dismissPill();
-              }}
-              onSave={handleSaveLink}
-              onDismiss={dismissPill}
-            />
-          )}
-
-          {workflowMatch && (
-            <WorkflowPill
-              tag={workflowMatch.tag}
-              pos={workflowMenuPos}
-              onPrev={() => handleWorkflowCycle("prev")}
-              onNext={() => handleWorkflowCycle("next")}
-              noHash={workflowMatch.isFmStatus}
-            />
-          )}
-
-          {todoMatch && (
-            <WorkflowPill
-              tag={todoMatch.tag}
-              pos={todoMenuPos}
-              onPrev={() => handleTodoCycle("prev")}
-              onNext={() => handleTodoCycle("next")}
-            />
-          )}
-
-          {mermaidInfo && (
-            <div
-              style={{ top: mermaidButtonPos.top, left: mermaidButtonPos.left }}
-              className={PILL_CONTAINER_CLASSES}
-              onMouseDown={(e) => e.preventDefault()}
-            >
-              <Button
-                variant="pill-icon"
-                onClick={() => {
-                  const theme = typeof document !== "undefined" && document.documentElement.classList.contains("dark") ? "dark" : "default";
-                  document.dispatchEvent(new CustomEvent("hermes:open-mermaid-dialog", {
-                    detail: { source: mermaidInfo.source, theme },
-                    bubbles: true,
-                  }));
-                }}
-                title="View Mermaid diagram (Ctrl/Cmd+Shift+Enter)"
-              >
-                <HiOutlineArrowsExpand size={14} aria-hidden="true" />
-              </Button>
-            </div>
-          )}
-
-          {languagePickerInfo && (
-            <div
-              ref={pickerRef}
-              style={{ top: pickerPos.top, left: pickerPos.left }}
-              className={`${PILL_CONTAINER_CLASSES} w-48`}
-              onMouseDown={(e) => e.preventDefault()}
-              onKeyDown={(e) => {
-                if (e.key === "Escape") deactivateCodeLanguagePicker();
-              }}
-            >
-              <Typeahead
-                name="code-block-language"
-                value={query}
-                onChange={changeQuery}
-                onOptionSelect={selectLanguage}
-                onDismiss={deactivateCodeLanguagePicker}
-                options={languages.map((language) => language.name.toLowerCase())}
-                autoFocus
-                placeholder="Language..."
-              />
-            </div>
-          )}
-
-          {imageInfo && (
-            <div
-              style={{ top: imageButtonPos.top, left: imageButtonPos.left }}
-              className={PILL_CONTAINER_CLASSES}
-              onMouseDown={(e) => e.preventDefault()}
-            >
-              <Button
-                variant="pill-icon"
-                onClick={() => {
-                  document.dispatchEvent(new CustomEvent("hermes:open-image-dialog", {
-                    detail: { src: imageInfo.src, alt: imageInfo.alt },
-                    bubbles: true,
-                  }));
-                }}
-                title="View actual image (Ctrl/Cmd+Shift+Enter)"
-                aria-label="View actual image (Ctrl/Cmd+Shift+Enter)"
-              >
-                <HiOutlinePhotograph size={14} />
-              </Button>
-            </div>
-          )}
+          <EditorPills
+            features={features}
+            languagePicker={languagePicker}
+            mermaid={mermaid}
+            image={image}
+            containerRef={containerRef}
+            onWikiLinkClick={props.onWikiLinkClick}
+          />
 
 
           <WikiLinkDialog
@@ -588,58 +326,11 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
             onConfirm={insertTask}
           />
 
-          {linkDialogOpen && (
-            <DialogModal
-              isOpened={linkDialogOpen}
-              onClose={() => setLinkDialogOpen(false)}
-              styles="!max-w-sm"
-              ariaLabelledBy="link-insert-heading"
-            >
-              <div className="flex flex-col gap-5">
-                <h2 id="link-insert-heading" className="text-ui-body font-semibold text-ink-light dark:text-ink-dark">
-                  Add Link
-                </h2>
-
-                <Input
-                  name="link-label"
-                  label="Text"
-                  value={linkLabel}
-                  handleChange={(e) => setLinkLabel(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") { e.preventDefault(); linkUrlInputRef.current?.focus(); }
-                    if (e.key === "Escape") setLinkDialogOpen(false);
-                  }}
-                  autoFocus
-                  placeholder="Link text"
-                  className="my-0"
-                />
-
-                <Input
-                  ref={linkUrlInputRef}
-                  name="link-url"
-                  label="URL"
-                  type="text"
-                  value={linkUrl}
-                  handleChange={(e) => setLinkUrl(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") { e.preventDefault(); insertLink(linkLabel || "link", linkUrl); }
-                    if (e.key === "Escape") setLinkDialogOpen(false);
-                  }}
-                  placeholder="https://"
-                  className="my-0"
-                />
-
-                <div className="flex justify-end gap-2 pt-1">
-                  <Button variant="outlined" onClick={() => setLinkDialogOpen(false)}>
-                    Cancel
-                  </Button>
-                  <Button variant="primary" onClick={() => insertLink(linkLabel || "link", linkUrl)}>
-                    Insert
-                  </Button>
-                </div>
-              </div>
-            </DialogModal>
-          )}
+          <LinkInsertDialog
+            isOpen={linkDialogOpen}
+            onClose={() => setLinkDialogOpen(false)}
+            onInsert={insertLink}
+          />
         </div>
       </div>
     </div>

@@ -156,8 +156,7 @@ export default function WikiLinkDialog({
             role="tablist"
             aria-label="WikiLink target type"
           >
-            <button
-              type="button"
+            <Button variant="unstyled"
               role="tab"
               aria-selected={mode === "existing"}
               onClick={() => setMode("existing")}
@@ -168,9 +167,8 @@ export default function WikiLinkDialog({
               }`}
             >
               Existing note
-            </button>
-            <button
-              type="button"
+            </Button>
+            <Button variant="unstyled"
               role="tab"
               aria-selected={mode === "new"}
               onClick={() => setMode("new")}
@@ -181,7 +179,7 @@ export default function WikiLinkDialog({
               }`}
             >
               New note
-            </button>
+            </Button>
           </div>
         )}
 

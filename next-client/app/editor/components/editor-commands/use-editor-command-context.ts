@@ -26,7 +26,6 @@ import {
   atom_keyboardShortcutsOpen,
   atom_lineNumbers,
   atom_newVaultFlowOpen,
-  atom_railPanel,
   atom_repurposeWizardOpen,
   atom_showHiddenFiles,
   atom_tasksGroupBy,
@@ -81,7 +80,6 @@ export function useEditorCommandContext(props: EditorCommandsProps) {
   const themeCycle: "system" | "light" | "dark" =
     rawTheme === "system" ? "light" : rawTheme === "light" ? "dark" : "system";
   const [showHiddenFiles, setShowHiddenFiles] = useAtom(atom_showHiddenFiles);
-  const [railPanel, setRailPanel] = useAtom(atom_railPanel);
   const [, setAiBuilderRequest] = useAtom(atom_aiBuilderRequest);
   const [, setRepurposeWizardOpen] = useAtom(atom_repurposeWizardOpen);
   const isAiConfigured = useAtomValue(atom_isAiConfigured);
@@ -128,8 +126,6 @@ export function useEditorCommandContext(props: EditorCommandsProps) {
     setTheme,
     showHiddenFiles,
     setShowHiddenFiles,
-    railPanel,
-    setRailPanel,
     setAiBuilderRequest,
     setRepurposeWizardOpen,
     isAiConfigured,

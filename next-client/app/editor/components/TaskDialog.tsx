@@ -160,9 +160,8 @@ export default function TaskDialog({ isOpen, onClose, onConfirm }: TaskDialogPro
               { label: "Tomorrow", value: addDays(1) },
               { label: "+1 Week", value: addDays(7) },
             ].map((preset) => (
-              <button
+              <Button variant="unstyled"
                 key={preset.label}
-                type="button"
                 onClick={() => setDueDate(preset.value)}
                 className={`text-ui-footnote px-2.5 py-1 rounded-lg border transition-all font-medium ${
                   dueDate === preset.value
@@ -171,16 +170,15 @@ export default function TaskDialog({ isOpen, onClose, onConfirm }: TaskDialogPro
                 }`}
               >
                 {preset.label}
-              </button>
+              </Button>
             ))}
             {dueDate && (
-              <button
-                type="button"
+              <Button variant="unstyled"
                 onClick={() => setDueDate("")}
                 className="text-ui-footnote px-2 py-1 text-stone hover:text-ink-light dark:hover:text-ink-dark transition-colors"
               >
                 Clear
-              </button>
+              </Button>
             )}
           </div>
         </div>

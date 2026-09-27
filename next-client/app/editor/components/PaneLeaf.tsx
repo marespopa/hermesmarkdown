@@ -5,31 +5,20 @@ import { PanelLeaf } from "@/app/types/workspace";
 import MarkdownEditor from "./MarkdownEditor";
 import TabContextMenu, { TabContextMenuItem } from "./TabContextMenu";
 import { useAtom } from "jotai";
-import {
-  atom_activePaneId,
-  atom_fileContent,
-  atom_openFiles,
-  atom_splitPane,
-  atom_closePane,
-  atom_activeFilePath,
-  atom_moveTab,
-  atom_saveStatus,
-  atom_vaultHandle,
-  atom_workspaceLayout,
-  getWorkspaceTabs,
-} from "@/app/atoms/atoms";
-import { atom_newVaultFlowOpen, atom_isVoicePreviewVisible } from "@/app/atoms/ui-atoms";
-import { HiOutlineDocumentText, HiOutlineChartBar, HiOutlineX, HiOutlineClipboardCopy, HiOutlineSave, HiOutlineDotsHorizontal, HiOutlinePlus, HiOutlineFolderOpen, HiOutlineDatabase, HiOutlineCollection } from "react-icons/hi";
+import { atom_activePaneId, atom_fileContent, atom_openFiles, atom_splitPane, atom_closePane, atom_activeFilePath, atom_saveStatus, atom_workspaceLayout, getWorkspaceTabs } from "@/app/atoms/atoms";
+import { atom_isVoicePreviewVisible } from "@/app/atoms/ui-atoms";
+import { HiOutlineDocumentText, HiOutlineChartBar, HiOutlineX, HiOutlineClipboardCopy, HiOutlineSave, HiOutlineDotsHorizontal } from "react-icons/hi";
 import { VscSplitHorizontal } from "react-icons/vsc";
 import PaneTab, { TabSaveState, statusMeta } from "./PaneTab";
 import { useFileSystem } from "@/app/hooks/use-file-system";
 import { useAtomValue } from "jotai";
 import Button from "../../components/Button";
 import Tooltip from "@/app/components/Tooltip";
-import { formatShortcut, isMacPlatform } from "@/app/utils/platform";
-import { useCommandPalette } from "@/app/components/CommandPalette/CommandPaletteContext";
+import { formatShortcut } from "@/app/utils/platform";
 import useIsMobileChrome from "@/app/hooks/use-mobile-chrome";
 import { usePaneFileActions } from "../hooks/use-pane-file-actions";
+import { useTabDragDrop } from "../hooks/use-tab-drag-drop";
+import PaneEmptyState from "./PaneEmptyState";
 
 interface PaneLeafProps {
   leaf: PanelLeaf;
@@ -41,59 +30,19 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
   const [, splitPane] = useAtom(atom_splitPane);
   const [, closePane] = useAtom(atom_closePane);
   const [, setActiveFilePath] = useAtom(atom_activeFilePath);
-  const [, moveTab] = useAtom(atom_moveTab);
   const saveStatus = useAtomValue(atom_saveStatus);
-  const vaultHandle = useAtomValue(atom_vaultHandle);
   const workspaceLayout = useAtomValue(atom_workspaceLayout);
-  const [, setNewVaultFlowOpen] = useAtom(atom_newVaultFlowOpen);
   const isOnlyPane = "type" in workspaceLayout.rootContainer;
   const isMobileChrome = useIsMobileChrome();
-  const newFileShortcut = isMacPlatform() ? "⌃⌥N" : "Ctrl+Alt+N";
 
-  const { openFileByName, createNewFile, importFile, openVault, isVaultSupported } = useFileSystem();
+  const { openFileByName } = useFileSystem();
   const filePath = leaf.activeFilePath || "draft";
   const [content, setContent] = useAtom(atom_fileContent(filePath));
 
   const isActive = activePaneId === leaf.id;
   const isVoicePreviewVisible = useAtomValue(atom_isVoicePreviewVisible);
   const isDimmed = isVoicePreviewVisible && !isActive;
-  const fileInputRef = React.useRef<HTMLInputElement>(null);
-  const { open: openCommandPalette } = useCommandPalette();
 
-  const handleEmptyNewFile = () => {
-    if (vaultHandle) {
-      void createNewFile();
-    } else {
-      setActiveFilePath("draft");
-    }
-  };
-
-  const handleEmptyOpenFile = async () => {
-    // With a vault open, "Open File" should pick from the vault, not the
-    // local disk — the command palette already does fuzzy vault file search.
-    if (vaultHandle) {
-      openCommandPalette();
-      return;
-    }
-    const result = await importFile();
-    if (result === null) {
-      fileInputRef.current?.click();
-    }
-  };
-
-  const handleEmptyFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    e.target.value = "";
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const text = event.target?.result as string;
-      setContent(text);
-      setActiveFilePath("draft");
-    };
-    reader.readAsText(file);
-  };
 
   const { handleSave, handleCopy, closeTabWithAutosave, buildTabMenuItems } = usePaneFileActions(leaf);
 
@@ -123,7 +72,6 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
     }
   };
 
-  const [draggedOverIndex, setDraggedOverIndex] = React.useState<number | null>(null);
   const [tabMenu, setTabMenu] = React.useState<{ x: number; y: number; path: string; includeActions?: boolean } | null>(null);
   const tabShortcutNumbers = React.useMemo(
     () => new Map(
@@ -154,77 +102,7 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
   const openFileInPane = (filePath = leaf.activeFilePath) => {
     splitPane({ id: leaf.id, direction: "horizontal", filePath });
   };
-  const handleDragStart = (e: React.DragEvent, path: string) => {
-    const data = JSON.stringify({ 
-      sourcePaneId: leaf.id, 
-      filePath: path 
-    });
-    // Set custom type and fallback text/plain for better compatibility
-    e.dataTransfer.setData("application/hermes-tab", data);
-    e.dataTransfer.setData("text/plain", data);
-    e.dataTransfer.effectAllowed = "move";
-    
-    // Explicitly set the drag image to the current tab element
-    const target = e.currentTarget as HTMLElement;
-    if (e.dataTransfer.setDragImage) {
-      // Offset by roughly half the tab height and a small X offset
-      e.dataTransfer.setDragImage(target, 20, 18);
-    }
-    
-    // Set a class on the dragged element
-    target.classList.add("opacity-20");
-  };
-
-  const handleDragEnd = (e: React.DragEvent) => {
-    const target = e.currentTarget as HTMLElement;
-    target.classList.remove("opacity-20");
-    setDraggedOverIndex(null);
-  };
-
-  const handleDragOver = (e: React.DragEvent, index?: number) => {
-    // Check for our custom type or check if it looks like our JSON in text/plain
-    const types = e.dataTransfer.types;
-    const isHermesTab = types.includes("application/hermes-tab") || types.includes("text/plain");
-    
-    if (isHermesTab) {
-      e.preventDefault();
-      e.dataTransfer.dropEffect = "move";
-      if (index !== undefined) {
-        setDraggedOverIndex(index);
-      }
-    }
-  };
-
-  const handleDragLeave = () => {
-    setDraggedOverIndex(null);
-  };
-
-  const handleDrop = (e: React.DragEvent, targetIndex: number) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setDraggedOverIndex(null);
-
-    let data = e.dataTransfer.getData("application/hermes-tab");
-    if (!data) {
-      data = e.dataTransfer.getData("text/plain");
-    }
-    
-    if (!data) return;
-
-    try {
-      const parsed = JSON.parse(data);
-      if (!parsed.sourcePaneId || !parsed.filePath) return;
-      
-      moveTab({ 
-        sourcePaneId: parsed.sourcePaneId, 
-        targetPaneId: leaf.id, 
-        filePath: parsed.filePath, 
-        targetIndex 
-      });
-    } catch {
-      // Not our data
-    }
-  };
+  const { draggedOverIndex, handleDragStart, handleDragEnd, handleDragOver, handleDragLeave, handleDrop } = useTabDragDrop(leaf.id);
 
   return (
     <div
@@ -315,7 +193,7 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
                       variant="icon"
                       onClick={handleCopy}
                       aria-label="Copy Markdown"
-                      className="w-8 h-8 flex items-center justify-center text-ink-muted hover:text-sage transition-all rounded-lg"
+                      className="w-8 h-8 flex items-center justify-center text-fg-muted hover:text-sage transition-all rounded-lg"
                     >
                       <HiOutlineClipboardCopy size={18} />
                     </Button>
@@ -397,73 +275,7 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
       {/* Pane Content */}
       <div className="flex-1 overscroll-none overflow-auto">
         {leaf.openFilePaths.length === 0 ? (
-          <div className="flex h-full items-center justify-center p-6">
-            <div className="flex w-full max-w-md flex-col items-center text-center">
-              <div className="mb-5 flex h-14 w-14 items-center justify-center rounded-2xl border border-edge bg-paper-light text-sage dark:bg-paper-dark-surface">
-                <HiOutlineDocumentText size={26} />
-              </div>
-              <h2 className="text-ui-title-3 text-fg">Start writing</h2>
-              <p className="mt-2 max-w-sm text-ui-footnote leading-relaxed text-fg-muted">
-                {vaultHandle
-                  ? "Create a new note or open one from your vault."
-                  : "Create a new note, open a file from your device, or connect a vault."}
-              </p>
-              <div className="mt-6 flex w-full flex-col gap-2 sm:flex-row sm:justify-center">
-                <Button
-                  variant="primary"
-                  onClick={handleEmptyNewFile}
-                  className="w-full sm:w-auto"
-                >
-                  <HiOutlinePlus size={17} />
-                  New File
-                  <kbd className="rounded border border-white/30 bg-white/10 px-1.5 py-0.5 font-mono text-[10px] font-medium">
-                    {newFileShortcut}
-                  </kbd>
-                </Button>
-                <Button
-                  variant="secondary"
-                  onClick={handleEmptyOpenFile}
-                  className="w-full sm:w-auto"
-                >
-                  <HiOutlineFolderOpen size={17} />
-                  {vaultHandle ? "Open Note" : "Open File"}
-                </Button>
-              </div>
-              {!vaultHandle && isVaultSupported && (
-                <div className="mt-5 flex w-full flex-col items-center gap-2 border-t border-edge pt-5">
-                  <p className="text-ui-caption text-fg-muted">Keep your notes together in a local vault.</p>
-                  <div className="flex flex-wrap justify-center gap-2">
-                    <Button variant="tertiary" onClick={() => openVault()}>
-                      <HiOutlineDatabase size={16} />
-                      Open Vault
-                    </Button>
-                    <Button variant="tertiary" onClick={() => setNewVaultFlowOpen(true)}>
-                      <HiOutlineCollection size={16} />
-                      Create Vault
-                    </Button>
-                  </div>
-                </div>
-              )}
-              <Button
-                variant="bare"
-                onClick={() => openCommandPalette(">")}
-                className="mt-5 gap-2 text-fg-muted"
-              >
-                <HiOutlineDotsHorizontal size={16} />
-                Browse all commands
-                <span className="rounded border border-edge bg-paper-light px-1.5 py-0.5 font-mono text-[10px] dark:bg-paper-dark">
-                  {formatShortcut("K", { shift: true })}
-                </span>
-              </Button>
-            </div>
-            <input
-              type="file"
-              ref={fileInputRef}
-              onChange={handleEmptyFileChange}
-              accept=".md,.txt,.markdown"
-              className="hidden"
-            />
-          </div>
+          <PaneEmptyState onLoadDraft={setContent} />
         ) : leaf.type === "editor" ? (
           <MarkdownEditor
             key={leaf.activeFilePath || "draft"}

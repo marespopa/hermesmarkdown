@@ -1,4 +1,4 @@
-# SidebarHeader
+# SectionHeader
 
 Description: Collapsible section header with a title, a chevron toggle, and an optional trailing action.
 
@@ -12,9 +12,9 @@ Description: Collapsible section header with a title, a chevron toggle, and an o
 
 ## Quick Usage
 ```tsx
-import SidebarHeader from "./SidebarHeader";
+import SectionHeader from "./SectionHeader";
 
-<SidebarHeader title="Files" isExpanded={open} onToggle={() => setOpen(!open)} />
+<SectionHeader title="Files" isExpanded={open} onToggle={() => setOpen(!open)} />
 ```
 
 ## Props Overview

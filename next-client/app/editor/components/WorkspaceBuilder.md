@@ -3,7 +3,7 @@
 Description: Dialog for creating or editing a custom workspace (a saved, rule-based file query over vault metadata).
 
 ## Local State & Storage
-- State: `atom_customWorkspaces`, `atom_fileMetadata` (for tag and field suggestions). The name, icon, and rule drafts are local useState.
+- State: `atom_customWorkspaces`, `atom_fileMetadata` (for tag and field suggestions). The name, the AND/OR `operator`, and rule drafts are local useState; the saved icon is always `"Collection"`.
 - Persistence: `localStorage["customWorkspaces"]`.
 
 ## Dependencies

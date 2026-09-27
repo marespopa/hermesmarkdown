@@ -1,91 +1,25 @@
 "use client";
 
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useAtom, useAtomValue } from "jotai";
-import { usePathname, useRouter } from "next/navigation";
-import { EditorView } from "@codemirror/view";
-import { HiOutlineCog, HiOutlineDesktopComputer, HiOutlineMoon, HiOutlineQuestionMarkCircle, HiOutlineSearch, HiOutlineSun, HiOutlineX } from "react-icons/hi";
 import { atom_fileMetadata } from "@/app/atoms/metadata";
 import { atom_allTasks } from "@/app/atoms/task-atoms";
-import {
-  atom_activeEditorView,
-  atom_commandUseCounts,
-  atom_editorFontFamily,
-  atom_palettePinnedItems,
-  atom_railPanel,
-  atom_recentFilePaths,
-  atom_showHiddenFiles,
-  atom_theme,
-  type PalettePinnedItem,
-  type Theme,
-} from "@/app/atoms/ui-atoms";
+import { atom_activeEditorView, atom_commandUseCounts, atom_editorFontFamily, atom_palettePinnedItems, atom_recentFilePaths, atom_showHiddenFiles, atom_theme, type PalettePinnedItem } from "@/app/atoms/ui-atoms";
 import Button from "@/app/components/Button";
 import OverlayPanel from "@/app/components/OverlayLayer/OverlayPanel";
 import { showErrorToast } from "@/app/components/Toastr";
 import { useFileSystem } from "@/app/hooks/use-file-system";
 import useIsMobileChrome from "@/app/hooks/use-mobile-chrome";
-import { matchCommand, matchFile, fuzzyMatch } from "./command-search";
-import { useCommandPalette, type Command } from "./CommandPaletteContext";
+import { nextPaint } from "@/app/utils/next-paint";
+import { formatShortcut } from "@/app/utils/platform";
+import { EditorView } from "@codemirror/view";
+import { useAtom, useAtomValue } from "jotai";
+import { usePathname, useRouter } from "next/navigation";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { HiOutlineCog, HiOutlineQuestionMarkCircle, HiOutlineRefresh, HiOutlineSearch, HiOutlineX } from "react-icons/hi";
 import { version } from "../../../package.json";
-
-const MAX_VISIBLE_ROWS = 12;
-const MAX_PINS = 5;
-const COMMAND_MODE_DEFAULT_ORDER = [
-  "new-file",
-  "save-file",
-  "open-explorer",
-  "toggle-sidebar",
-  "open-vault",
-  "open-documentation",
-];
-const THEME_CYCLE: { value: Theme; label: string; Icon: React.ComponentType<{ size?: number }> }[] = [
-  { value: "system", label: "Theme: System", Icon: HiOutlineDesktopComputer },
-  { value: "light", label: "Theme: Light", Icon: HiOutlineSun },
-  { value: "dark", label: "Theme: Dark", Icon: HiOutlineMoon },
-];
-
-const scopes = [
-  { id: "tag", prefix: "#", label: "Tags" },
-  { id: "command", prefix: ">", label: "Commands" },
-  { id: "task", prefix: "!", label: "Tasks" },
-  { id: "heading", prefix: "@", label: "Headings" },
-] as const;
-
-type Scope = (typeof scopes)[number]["id"];
-type FileResult = { path: string; name: string; handle: FileSystemFileHandle; tags: string[] };
-type TagMatch = { tag: string; score: number; indices: number[] };
-type TaggedFileMatch = { file: FileResult; matches: TagMatch[]; score: number };
-type Row =
-  | { kind: "command"; id: string; label: string; detail: string; command: Command; titleIndices: number[]; detailIndices: number[]; score: number }
-  | { kind: "file"; id: string; label: string; detail: string; file: FileResult; titleIndices: number[]; detailIndices: number[]; score: number }
-  | { kind: "task"; id: string; label: string; detail: string; titleIndices: number[]; detailIndices: number[]; score: number }
-  | { kind: "heading"; id: string; label: string; detail: string; from: number; titleIndices: number[]; detailIndices: number[]; score: number };
-
-function HighlightedText({ text, indices }: { text: string; indices: number[] }) {
-  const matches = new Set(indices);
-  return <>{text.split("").map((character, index) => (
-    <strong key={`${character}-${index}`} className={matches.has(index) ? "font-bold text-accent" : "font-normal"}>
-      {character}
-    </strong>
-  ))}</>;
-}
-
-function scopeFromPrefix(value: string) {
-  const scope = scopes.find((candidate) => "prefix" in candidate && candidate.prefix === value[0]);
-  return scope ? { scope: scope.id, query: value.slice(1).trimStart() } : null;
-}
-
-function scopePrefix(scope: Scope) {
-  return scopes.find((candidate) => candidate.id === scope)?.prefix ?? "";
-}
-
-function pinnedKey(item: PalettePinnedItem) {
-  return `${item.kind}:${item.id}`;
-}
-
-function parentFolder(path: string) {
-  return path.split("/").slice(0, -1).join("/");
-}
+import { fuzzyMatch, matchCommand, matchFile } from "./command-search";
+import { type Command, useCommandPalette } from "./CommandPaletteContext";
+import { COMMAND_MODE_DEFAULT_ORDER, type FileResult, HighlightedText, MAX_PINS, MAX_VISIBLE_ROWS, parentFolder, pinnedKey, type Row, type Scope, scopeFromPrefix, scopePrefix, type TaggedFileMatch, THEME_CYCLE } from "./palette-model";
+import { BareInput } from "@/app/components/Input";
 
 export default function CommandPalette() {
   const { isOpen, initialQuery, close, commands, markUsed } = useCommandPalette();
@@ -97,7 +31,6 @@ export default function CommandPalette() {
   const commandUseCounts = useAtomValue(atom_commandUseCounts);
   const [recentFilePaths, setRecentFilePaths] = useAtom(atom_recentFilePaths);
   const [pinnedItems, setPinnedItems] = useAtom(atom_palettePinnedItems);
-  const [, setRailPanel] = useAtom(atom_railPanel);
   const [theme, setTheme] = useAtom(atom_theme);
   const { openFile } = useFileSystem();
   const router = useRouter();
@@ -115,12 +48,10 @@ export default function CommandPalette() {
     id: "open-explorer",
     label: "Open Explorer",
     category: "Navigation",
-    keywords: "files navigator sidebar browse",
-    action: () => {
-      setRailPanel("files");
-      router.push("/editor/files");
-    },
-  }), [router, setRailPanel]);
+    shortcut: formatShortcut("E", { shift: true }),
+    keywords: "files navigator tree browse",
+    action: () => router.push("/editor/files"),
+  }), [router]);
   const paletteCommands = useMemo(
     () => [explorerCommand, ...commands.filter((command) => command.id !== explorerCommand.id)],
     [commands, explorerCommand],
@@ -279,16 +210,17 @@ export default function CommandPalette() {
   const execute = async (row: Row | undefined) => {
     if (!row || runningId) return;
     if (row.kind === "file") {
-      setRunningId(`file:${row.id}`);
+      // Close first and let that paint: reading the file and re-rendering the
+      // editor can block the main thread, and a palette frozen on screen feels
+      // like the app hung. The editor shows its own loading bar meanwhile.
+      close();
+      await nextPaint();
       try {
         await openFile(row.file.handle, row.file.path);
         setRecentFilePaths((previous) => [row.file.path, ...previous.filter((path) => path !== row.file.path)].slice(0, 5));
         if (!pathname.startsWith("/editor")) router.push("/editor");
-        close();
       } catch (error) {
         showErrorToast(error instanceof Error ? error.message : "Failed to open file");
-      } finally {
-        setRunningId(null);
       }
       return;
     }
@@ -367,7 +299,7 @@ export default function CommandPalette() {
       <div className="flex h-10 items-center gap-2">
         <div className="flex flex-1 items-center gap-3">
           <HiOutlineSearch size={14} className="shrink-0 text-fg-muted" />
-          <input ref={inputRef} type="search" value={displayQuery} onChange={(event) => { const value = event.target.value; const parsed = scopeFromPrefix(value); setScope(parsed?.scope ?? null); setQuery(parsed?.query ?? value); }}
+          <BareInput ref={inputRef} type="search" value={displayQuery} onChange={(event) => { const value = event.target.value; const parsed = scopeFromPrefix(value); setScope(parsed?.scope ?? null); setQuery(parsed?.query ?? value); }}
             placeholder="Search files or type a command..." className="min-w-0 flex-1 bg-transparent text-ui-callout font-normal text-fg outline-none caret-accent placeholder:text-fg-faint [&::-webkit-search-cancel-button]:hidden"
             autoComplete="off" autoCorrect="off" spellCheck={false} role="combobox" aria-label="Search files and command palette modes" aria-expanded={isOpen} aria-controls="command-palette-results" aria-activedescendant={rows[selectedIndex] ? `command-palette-option-${selectedIndex}` : undefined} />
           {query && <Button variant="icon" onClick={() => { setQuery(""); inputRef.current?.focus(); }} aria-label="Clear search" className="!w-8 !h-8"><HiOutlineX size={16} /></Button>}
@@ -424,12 +356,14 @@ export default function CommandPalette() {
         const context = resultContext(row);
         const folder = row.kind === "file" ? parentFolder(row.file.path) : "";
         const accessibleLabel = [row.label, context, folder].filter(Boolean).join(" ");
-        return <Button key={`${row.kind}:${row.id}`} variant="menu-item" id={`command-palette-option-${index}`} role="option" aria-label={accessibleLabel} aria-selected={selected} aria-disabled={row.kind === "command" && !!row.command.disabledReason}
+        return <Button key={`${row.kind}:${row.id}`} variant="menu-item" id={`command-palette-option-${index}`} role="option" aria-label={accessibleLabel} aria-selected={selected} aria-disabled={row.kind === "command" && !!row.command.disabledReason} aria-busy={runningId === row.id}
           isDisabled={runningId !== null || (row.kind === "command" && !!row.command.disabledReason)} onClick={() => void execute(row)} onMouseEnter={() => setSelectedIndex(index)} onContextMenu={(event: React.MouseEvent) => { if (row.kind === "file" || row.kind === "command") { event.preventDefault(); setContextRow(row); } }}
           className={`mx-2 w-[calc(100%_-_1rem)] !rounded-md ${rowHeight} justify-between gap-3 border px-3 text-left font-normal ${selected ? "border-edge bg-chrome text-fg shadow-sm hover:bg-chrome dark:bg-surface dark:hover:bg-surface" : "border-transparent hover:bg-surface-raised"}`}>
           <span className="min-w-0 flex-1 truncate"><HighlightedText text={row.label} indices={row.titleIndices} />{context && <span className="ml-2 text-ui-footnote text-fg-muted"><HighlightedText text={context} indices={row.detailIndices} /></span>}</span>
           {folder && <span title={folder} className="max-w-[45%] shrink-0 truncate text-right text-ui-footnote text-fg-muted"><HighlightedText text={folder} indices={scope === "tag" ? [] : row.detailIndices} /></span>}
-          {row.kind === "command" && row.command.shortcut && <span className="shrink-0 font-mono text-ui-micro text-fg-muted">{row.command.shortcut}</span>}
+          {runningId === row.id
+            ? <HiOutlineRefresh aria-label="Running" size={14} className="shrink-0 animate-spin text-fg-muted motion-reduce:animate-none" />
+            : row.kind === "command" && row.command.shortcut && <span className="shrink-0 font-mono text-ui-micro text-fg-muted">{row.command.shortcut}</span>}
         </Button>;
       })}</div>
     </div>

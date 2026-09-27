@@ -9,9 +9,9 @@ import {
   HiOutlineCloudUpload,
   HiOutlineFolderAdd,
 } from "react-icons/hi";
-import SidebarHeader from "./SidebarHeader";
+import SectionHeader from "./SectionHeader";
 
-interface VaultSidebarEmptyProps {
+interface VaultEmptyStateProps {
   isVaultSupported: boolean;
   openVault: () => void;
   onCreateVault?: () => void;
@@ -23,7 +23,7 @@ interface VaultSidebarEmptyProps {
   onClose?: () => void;
 }
 
-export default function VaultSidebarEmpty({
+export default function VaultEmptyState({
   isVaultSupported,
   openVault,
   onCreateVault,
@@ -33,11 +33,11 @@ export default function VaultSidebarEmpty({
   setActiveFilePath,
   activeFilePath,
   onClose,
-}: VaultSidebarEmptyProps) {
+}: VaultEmptyStateProps) {
   return (
     <div className="space-y-6">
       <div className="space-y-1">
-        <SidebarHeader title="Locations" isExpanded={true} onToggle={() => {}} />
+        <SectionHeader title="Locations" isExpanded={true} onToggle={() => {}} />
 
         <Button
           variant="menu-item"
@@ -87,7 +87,7 @@ export default function VaultSidebarEmpty({
       </div>
 
       <div className="space-y-1">
-        <SidebarHeader title="Actions" isExpanded={true} onToggle={() => {}} />
+        <SectionHeader title="Actions" isExpanded={true} onToggle={() => {}} />
         <div
           onClick={onImport}
           className="flex items-center gap-3 px-4 py-3 rounded-xl cursor-pointer hover:bg-paper-softgray dark:hover:bg-paper-dark-surface/40 transition-colors text-ui-footnote text-ink-muted dark:text-stone font-medium"

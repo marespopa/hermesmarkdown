@@ -1,6 +1,5 @@
 import "./globals.scss";
 import "./editor/editor.scss";
-import "katex/dist/katex.min.css";
 import MainPage from "./components/MainPage";
 import { Metadata, Viewport } from "next";
 import { inter, geistMono, ibmPlexMono, plusJakartaSans } from "./fonts";
@@ -9,19 +8,15 @@ export const metadata: Metadata = {
   metadataBase: new URL("https://hermesmarkdown.com"),
   title: "HermesMarkdown — Runs in Browser, Files Stay on Disk",
   description:
-    "Edit local Markdown folders in your browser — reads and writes files directly on disk. Nothing touches a server. No accounts, no cloud uploads.",
+    "Edit local Markdown folders in your browser — reads and writes files directly on disk. No accounts, no cloud uploads.",
   applicationName: "HermesMarkdown",
   authors: [{ name: "Mares Popa", url: "https://www.marespopa.com/" }],
   keywords: [
     "context engineering",
     "context engineering for notes",
     "local-first markdown editor",
-    "agent-readable workspace",
     "markdown editor for engineers",
-    "AGENTS.md",
     "AI-readable notes",
-    "frontmatter schema",
-    "agent context protocol",
     "smart workspaces",
     "wikilinks",
     "offline markdown editor",
@@ -36,7 +31,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "HermesMarkdown — Runs in Browser, Files Stay on Disk",
     description:
-      "Edit local Markdown folders in your browser — reads and writes files directly on disk. Nothing touches a server. No accounts, no cloud uploads.",
+      "Edit local Markdown folders in your browser — reads and writes files directly on disk. No accounts, no cloud uploads.",
     url: "https://hermesmarkdown.com",
     siteName: "HermesMarkdown",
     type: "website",
@@ -46,7 +41,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "HermesMarkdown — Runs in Browser, Files Stay on Disk",
     description:
-      "Edit local Markdown folders in your browser — reads and writes files directly on disk. Nothing touches a server. No accounts, no cloud uploads.",
+      "Edit local Markdown folders in your browser — reads and writes files directly on disk. No accounts, no cloud uploads.",
     images: ["/assets/og-image.jpg"],
   },
 };

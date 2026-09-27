@@ -27,7 +27,7 @@ To open `GlobalDialog`, set `atom_globalDialog` to a `DialogConfig` (`type`, `me
 | onClose | `() => void` |  | Dismiss handler |
 | onConfirm? | `() => void` |  | Enter-to-confirm handler |
 | children | `ReactNode` |  | Dialog body |
-| styles? | `string` |  | Panel classes |
-| hideCloseButton? | `boolean` |  | Hides the X button |
-| mobileSheet? | `boolean` |  | Bottom-sheet layout on mobile (keeps it clear of the keyboard) |
+| styles? | `string` | `""` | Panel classes |
+| hideCloseButton? | `boolean` | `false` | Hides the X button |
+| mobileSheet? | `boolean` | `false` | Bottom-sheet layout on mobile (keeps it clear of the keyboard) |
 | ariaLabelledBy? / ariaDescribedBy? | `string` |  | ARIA ids |

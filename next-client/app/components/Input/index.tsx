@@ -19,6 +19,7 @@ interface SelectProps {
 }
 
 export { Textarea };
+export { default as BareInput } from "./BareInput";
 export const Select = ({
   name,
   label,

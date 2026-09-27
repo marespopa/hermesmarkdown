@@ -1,4 +1,4 @@
-# VaultSidebarFiles
+# VaultFileTree
 
 Description: Virtualized file list or folder tree for the vault, with search highlighting, inline rename, a row action menu, and drag-and-drop moves.
 
@@ -7,14 +7,14 @@ Description: Virtualized file list or folder tree for the vault, with search hig
 - Persistence: None itself. File operations run against local handles through the passed callbacks.
 
 ## Dependencies
-- Core: `@tanstack/react-virtual`, `Button`, `react-icons`.
+- Core: `@tanstack/react-virtual`, and the row components and tree model in [`vault-tree/`](vault-tree/README.md) (`FileRow`, `FolderRow`, `TreeNodes`, `buildFileTree`).
 - Zero-Cloud: No network or telemetry side effects.
 
 ## Quick Usage
 ```tsx
-import VaultSidebarFiles from "./VaultSidebarFiles";
+import VaultFileTree from "./VaultFileTree";
 
-<VaultSidebarFiles processedFiles={files} activeFilePath={path} openFile={open}
+<VaultFileTree processedFiles={files} activeFilePath={path} openFile={open}
   renameFile={rename} deleteFile={remove} treeView folderPaths={folders} />
 ```
 

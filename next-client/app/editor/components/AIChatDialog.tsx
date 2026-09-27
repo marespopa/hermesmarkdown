@@ -1,134 +1,22 @@
 "use client";
 
-import React, { useState, useRef, useEffect, useCallback, useMemo } from "react";
-import {
-  HiOutlineSparkles,
-  HiOutlinePaperAirplane,
-  HiOutlinePaperClip,
-  HiOutlineX,
-  HiOutlinePhotograph,
-  HiOutlinePencil,
-  HiOutlineCheck,
-  HiOutlineClipboardCheck,
-  HiOutlineCamera,
-  HiOutlineDocument,
-  HiOutlineFolder,
-  HiOutlineCollection,
-} from "react-icons/hi";
-import { useAtom, useAtomValue } from "jotai";
-import DialogModal from "../../components/DialogModal/DialogModal";
-import { callAIChat, fetchClaudeModels, fetchGeminiModels, type ApiMessage, type ApiPart } from "@/app/services/ai";
-import { showErrorToast } from "@/app/components/Toastr";
-import { FORMULA_PRESERVATION_RULE, TABLE_FORMULA_GUIDE } from "../utils/formula-ai-guide";
-import { atom_fileMetadata, type FileMetadata } from "@/app/atoms/metadata";
+import { atom_fileMetadata } from "@/app/atoms/metadata";
 import { atom_vaultHandle } from "@/app/atoms/vault-atoms";
-import {
-  atom_aiProvider,
-  atom_selectedAiModel,
-  atom_claudeKey,
-  atom_geminiKey,
-  atom_availableClaudeModels,
-  atom_availableGeminiModels,
-} from "@/app/atoms/ui-atoms";
+import Button from "@/app/components/Button";
+import { showErrorToast } from "@/app/components/Toastr";
+import { type ApiMessage, callAIChat } from "@/app/services/ai";
+import { useAtomValue } from "jotai";
+import React, { useCallback, useEffect, useRef, useState } from "react";
+import { HiOutlineCamera, HiOutlinePaperAirplane, HiOutlinePaperClip, HiOutlineSparkles } from "react-icons/hi";
+import DialogModal from "../../components/DialogModal/DialogModal";
+import { ACCEPT_FILES, ACCEPT_IMAGES, type Attachment, buildApiContent, type ChatMessage, readAttachments, resolveMentionRefs, SYSTEM_PROMPT, type VaultRef } from "./ai-chat/chat-helpers";
+import ChatContextChips from "./ai-chat/ChatContextChips";
+import ChatMessageItem, { type ApplyMode } from "./ai-chat/ChatMessageItem";
+import MentionMenu from "./ai-chat/MentionMenu";
+import { useChatMentions } from "./ai-chat/use-chat-mentions";
+import { useChatModels } from "./ai-chat/use-chat-models";
 
-const FALLBACK_CLAUDE_MODELS = [
-  { id: "sonnet-5", name: "Claude Sonnet 5" },
-  { id: "haiku-4-5", name: "Claude 4.5 Haiku" },
-  { id: "opus-4-8", name: "Claude 4.8 Opus" },
-];
-const FALLBACK_GEMINI_MODELS = [
-  { id: "gemini-3.5-flash", name: "Gemini 3.5 Flash" },
-  { id: "gemini-3.1-pro", name: "Gemini 3.1 Pro (Preview)" },
-  { id: "gemini-3.1-flash-lite", name: "Gemini 3.1 Flash-Lite" },
-];
-
-const IMAGE_TYPES = new Set(["image/png", "image/jpeg", "image/gif", "image/webp"]);
-const MAX_SIZE = 5_000_000;
-const ACCEPT_IMAGES = "image/png,image/jpeg,image/gif,image/webp";
-const ACCEPT_FILES = "*/*";
-
-interface ChatMessage {
-  role: "user" | "assistant";
-  displayContent: string;
-  apiContent: string | ApiPart[];
-}
-
-interface Attachment {
-  name: string;
-  isImage: boolean;
-  mimeType: string;
-  data: string;
-}
-
-// Vault file references loaded via @mention — kept separate from file attachments.
-// Content is injected into the API payload; the @name stays inline in the display text.
-interface VaultRef {
-  label: string;   // "@filename" exactly as it appears in the text
-  content: string;
-}
-
-// @mention dropdown entries: a single file, a whole-vault index, or a folder-scoped index.
-// @vault/@folder inject a lightweight index (path + title + tags) rather than full file
-// contents — dumping every note's body would blow past the model's context on any real vault.
-type MentionOption =
-  | { kind: "file"; file: FileMetadata }
-  | { kind: "vault" }
-  | { kind: "folder"; path: string };
-
-function describeFile(m: FileMetadata): string {
-  const title = m.frontmatter?.title || m.name.replace(/\.md$/, "");
-  const tags = m.tags?.length ? ` [${m.tags.join(", ")}]` : "";
-  return `- ${m.path}: ${title}${tags}`;
-}
-
-function buildIndex(fileMetadata: Record<string, FileMetadata>, pathPrefix?: string): string {
-  const files = Object.values(fileMetadata)
-    .filter((m) => !m.path.split("/").some((seg) => seg.startsWith("_")))
-    .filter((m) => !pathPrefix || m.path.startsWith(pathPrefix))
-    .sort((a, b) => a.path.localeCompare(b.path));
-  return files.map(describeFile).join("\n");
-}
-
-// Picking a mention from the dropdown is what actually loads its content into `vaultRefs`.
-// If the user types straight through (e.g. "@vault Update all files…") the dropdown closes
-// on the next space before it's ever "selected", so the token would otherwise reach the model
-// as inert text with no data attached. This re-scans the final message for any @vault,
-// @folder:<path>, or @<file> token not already resolved and loads it just before sending.
-async function resolveMentionRefs(
-  text: string,
-  existing: VaultRef[],
-  fileMetadata: Record<string, FileMetadata>,
-  vaultHandle: any,
-): Promise<VaultRef[]> {
-  const existingLabels = new Set(existing.map((r) => r.label));
-  const tokens = Array.from(new Set(text.match(/@[^\s@]+/g) || []))
-    .map((t) => t.replace(/[.,!?;:)\]]+$/, ""))
-    .filter((t) => t.length > 1 && !existingLabels.has(t));
-
-  const resolved: VaultRef[] = [];
-  for (const token of tokens) {
-    try {
-      if (token === "@vault") {
-        resolved.push({ label: token, content: buildIndex(fileMetadata) });
-      } else if (token.startsWith("@folder:")) {
-        const path = token.slice("@folder:".length);
-        resolved.push({ label: token, content: buildIndex(fileMetadata, `${path}/`) });
-      } else {
-        const name = token.slice(1).toLowerCase();
-        const file = Object.values(fileMetadata).find((m) => m.name.replace(/\.md$/, "").toLowerCase() === name);
-        if (file) {
-          const content = await readVaultFile(file.path, vaultHandle);
-          resolved.push({ label: token, content });
-        }
-      }
-    } catch {
-      // Unresolvable token — leave as plain text rather than failing the whole send
-    }
-  }
-  return resolved;
-}
-
-export type ApplyMode = "insert" | "replace-all";
+export type { ApplyMode };
 
 interface AIChatDialogProps {
   isOpen: boolean;
@@ -137,68 +25,6 @@ interface AIChatDialogProps {
   selectedText: string;
   currentFilePath?: string;
   onApply: (suggestion: string, mode: ApplyMode) => void;
-}
-
-const SYSTEM_PROMPT = `You are an AI writing assistant for HermesMarkdown, a markdown note-taking app.
-You help users write, edit, and improve their markdown documents through conversation.
-
-${FORMULA_PRESERVATION_RULE}
-
-When the user asks you to create or modify content:
-- Output only the content itself — no preamble, meta-commentary, or surrounding quotes.
-- Preserve all existing Markdown formatting unless explicitly asked to change it.
-- Use proper Markdown syntax (headings, lists, bold, etc.) as appropriate.
-- When revising a section, return the complete revised section ready to apply.
-- When the user asks for totals, averages, counts or other calculations in a table, write them as formulas (see below), not as precomputed numbers. When they ask what a formula does or why it shows an error, explain it using the rules below.
-
-${TABLE_FORMULA_GUIDE}`;
-
-function readAsDataURL(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(reader.result as string);
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
-  });
-}
-
-function buildApiContent(text: string, atts: Attachment[]): string | ApiPart[] {
-  const hasImages = atts.some((a) => a.isImage);
-  if (!atts.length) return text;
-  if (!hasImages) {
-    const blocks = atts
-      .map((a) => `--- File: ${a.name} ---\n${a.data}\n--- End: ${a.name} ---`)
-      .join("\n\n");
-    return text ? `${text}\n\n${blocks}` : blocks;
-  }
-  const parts: ApiPart[] = [];
-  if (text) parts.push({ type: "text", text });
-  for (const att of atts) {
-    if (att.isImage) {
-      const base64 = att.data.split(",")[1] ?? att.data;
-      parts.push({ type: "image", image: base64, mimeType: att.mimeType });
-    } else {
-      parts.push({ type: "text", text: `--- File: ${att.name} ---\n${att.data}\n--- End: ${att.name} ---` });
-    }
-  }
-  return parts;
-}
-
-async function readVaultFile(
-  path: string,
-  vaultHandle: any,
-): Promise<string> {
-  if (vaultHandle) {
-    const parts = path.split("/");
-    let current: any = vaultHandle;
-    for (let i = 0; i < parts.length - 1; i++) {
-      current = await current.getDirectoryHandle(parts[i]);
-    }
-    const fileHandle = await current.getFileHandle(parts[parts.length - 1]);
-    const file = await fileHandle.getFile();
-    return await file.text();
-  }
-  throw new Error("No vault available");
 }
 
 export default function AIChatDialog({
@@ -212,36 +38,7 @@ export default function AIChatDialog({
   const fileMetadata = useAtomValue(atom_fileMetadata);
   const vaultHandle = useAtomValue(atom_vaultHandle);
 
-  const aiProvider = useAtomValue(atom_aiProvider);
-  const [selectedAiModel, setSelectedAiModel] = useAtom(atom_selectedAiModel);
-  const claudeKey = useAtomValue(atom_claudeKey);
-  const geminiKey = useAtomValue(atom_geminiKey);
-  const [availableClaudeModels, setAvailableClaudeModels] = useAtom(atom_availableClaudeModels);
-  const [availableGeminiModels, setAvailableGeminiModels] = useAtom(atom_availableGeminiModels);
-  const [isFetchingModels, setIsFetchingModels] = useState(false);
-
-  const modelOptions = aiProvider === "claude"
-    ? (availableClaudeModels.length > 0 ? availableClaudeModels : FALLBACK_CLAUDE_MODELS)
-    : (availableGeminiModels.length > 0 ? availableGeminiModels : FALLBACK_GEMINI_MODELS);
-
-  // Load the real model list for the picker on first open, same lookup Settings uses —
-  // reused here via the shared atoms so it only happens once per session either way.
-  useEffect(() => {
-    if (!isOpen) return;
-    if (aiProvider === "claude" && claudeKey && availableClaudeModels.length === 0) {
-      setIsFetchingModels(true);
-      fetchClaudeModels(claudeKey)
-        .then(setAvailableClaudeModels)
-        .catch(() => {})
-        .finally(() => setIsFetchingModels(false));
-    } else if (aiProvider === "gemini" && geminiKey && availableGeminiModels.length === 0) {
-      setIsFetchingModels(true);
-      fetchGeminiModels(geminiKey)
-        .then(setAvailableGeminiModels)
-        .catch(() => {})
-        .finally(() => setIsFetchingModels(false));
-    }
-  }, [isOpen, aiProvider, claudeKey, geminiKey, availableClaudeModels.length, availableGeminiModels.length, setAvailableClaudeModels, setAvailableGeminiModels]);
+  const { modelOptions, selectedAiModel, setSelectedAiModel, isFetchingModels } = useChatModels(isOpen);
 
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
@@ -252,52 +49,13 @@ export default function AIChatDialog({
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [editDraft, setEditDraft] = useState("");
 
-  // @ mention dropdown state
-  const [mention, setMention] = useState<{ start: number; query: string } | null>(null);
-  const [mentionIndex, setMentionIndex] = useState(0);
-
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // All folder paths present in the vault (nested included), excluding _-prefixed segments
-  const mentionFolders = useMemo<string[]>(() => {
-    const set = new Set<string>();
-    for (const m of Object.values(fileMetadata)) {
-      const segs = m.path.split("/");
-      if (segs.some((seg) => seg.startsWith("_"))) continue;
-      for (let i = 1; i < segs.length; i++) set.add(segs.slice(0, i).join("/"));
-    }
-    return Array.from(set).sort();
-  }, [fileMetadata]);
-
-  // Combined @ mention options: whole-vault index, folder-scoped index, or a single file
-  // (exclude _-prefixed paths). Vault/folder options come first, capped at 8 total.
-  const mentionOptions = useMemo<MentionOption[]>(() => {
-    if (!mention) return [];
-    const q = mention.query.toLowerCase();
-    const options: MentionOption[] = [];
-    if ("vault".includes(q)) options.push({ kind: "vault" });
-    for (const folder of mentionFolders) {
-      if (options.length >= 8) break;
-      if (folder.toLowerCase().includes(q)) options.push({ kind: "folder", path: folder });
-    }
-    if (options.length < 8) {
-      for (const file of Object.values(fileMetadata)
-        .filter((m) => !m.path.split("/").some((seg) => seg.startsWith("_")))
-        .filter((m) => m.path !== currentFilePath)
-        .filter((m) => !q || m.name.toLowerCase().includes(q) || m.path.toLowerCase().includes(q))
-        .sort((a, b) => a.name.localeCompare(b.name))) {
-        if (options.length >= 8) break;
-        options.push({ kind: "file", file });
-      }
-    }
-    return options;
-  }, [fileMetadata, mention, currentFilePath, mentionFolders]);
-
-  // Reset mention index when filtered list changes
-  useEffect(() => { setMentionIndex(0); }, [mentionOptions]);
+  const { mention, setMention, mentionIndex, setMentionIndex, mentionOptions, detectMention, selectMention } =
+    useChatMentions({ input, setInput, inputRef, setVaultRefs, currentFilePath });
 
   useEffect(() => {
     if (isOpen) {
@@ -309,7 +67,7 @@ export default function AIChatDialog({
       setMention(null);
       setTimeout(() => inputRef.current?.focus(), 50);
     }
-  }, [isOpen]);
+  }, [isOpen, setMention]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -330,51 +88,8 @@ export default function AIChatDialog({
     // Auto-resize
     e.target.style.height = "auto";
     e.target.style.height = `${Math.min(e.target.scrollHeight, 160)}px`;
-    // Detect @mention: scan backwards from cursor for @<query>
-    const cursor = e.target.selectionStart ?? val.length;
-    const before = val.slice(0, cursor);
-    const match = before.match(/@([^@\s]*)$/);
-    if (match) {
-      setMention({ start: cursor - match[0].length, query: match[1] });
-    } else {
-      setMention(null);
-    }
+    detectMention(val, e.target.selectionStart ?? val.length);
   };
-
-  const selectMention = useCallback(async (option: MentionOption) => {
-    if (!mention) return;
-    // Replace @<query> with @<resolved-name> inline, keeping the mention in the text
-    const label =
-      option.kind === "vault" ? "@vault" :
-      option.kind === "folder" ? `@folder:${option.path}` :
-      `@${option.file.name.replace(/\.md$/, "")}`;
-    const before = input.slice(0, mention.start);
-    const after = input.slice(mention.start + 1 + mention.query.length);
-    const newInput = before + label + after;
-    setInput(newInput);
-    setMention(null);
-    setTimeout(() => {
-      if (inputRef.current) {
-        inputRef.current.style.height = "auto";
-        inputRef.current.style.height = `${Math.min(inputRef.current.scrollHeight, 160)}px`;
-        // Place cursor after the inserted mention
-        const pos = before.length + label.length;
-        inputRef.current.setSelectionRange(pos, pos);
-        inputRef.current.focus();
-      }
-    }, 0);
-    // Load content; deduplicate by label. @vault/@folder build a lightweight index from
-    // in-memory metadata (no extra file reads); a single file is read from disk.
-    try {
-      const content =
-        option.kind === "vault" ? buildIndex(fileMetadata) :
-        option.kind === "folder" ? buildIndex(fileMetadata, `${option.path}/`) :
-        await readVaultFile(option.file.path, vaultHandle);
-      setVaultRefs((prev) => [...prev.filter((r) => r.label !== label), { label, content }]);
-    } catch {
-      showErrorToast(`Could not load ${label}`);
-    }
-  }, [mention, input, vaultHandle, fileMetadata]);
 
   const buildSystemPrompt = useCallback(() => {
     const parts = [SYSTEM_PROMPT];
@@ -392,19 +107,7 @@ export default function AIChatDialog({
 
   const handleAttachFiles = async (files: FileList | null) => {
     if (!files) return;
-    const next: Attachment[] = [];
-    for (const file of Array.from(files)) {
-      if (file.size > MAX_SIZE) { showErrorToast(`${file.name} is too large (max 5 MB).`); continue; }
-      try {
-        if (IMAGE_TYPES.has(file.type)) {
-          const dataUrl = await readAsDataURL(file);
-          next.push({ name: file.name, isImage: true, mimeType: file.type, data: dataUrl });
-        } else {
-          const text = await file.text();
-          next.push({ name: file.name, isImage: false, mimeType: file.type, data: text });
-        }
-      } catch { showErrorToast(`Could not read ${file.name}.`); }
-    }
+    const next = await readAttachments(files);
     setAttachments((prev) => [...prev, ...next]);
   };
 
@@ -450,7 +153,7 @@ export default function AIChatDialog({
       setIsLoading(false);
       setTimeout(() => inputRef.current?.focus(), 50);
     }
-  }, [input, attachments, messages, isLoading, buildSystemPrompt, vaultRefs, fileMetadata, vaultHandle]);
+  }, [input, attachments, messages, isLoading, buildSystemPrompt, vaultRefs, fileMetadata, vaultHandle, setMention]);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (mention && mentionOptions.length > 0) {
@@ -475,16 +178,6 @@ export default function AIChatDialog({
   };
 
   const canSend = !isLoading && (input.trim().length > 0 || attachments.length > 0);
-
-  // Render text with @mentions highlighted inline
-  const renderWithMentions = (text: string) => {
-    const parts = text.split(/(@\S+)/g);
-    return parts.map((part, i) =>
-      part.startsWith("@")
-        ? <span key={i} className="text-sage/90 font-medium">{part}</span>
-        : part
-    );
-  };
 
   return (
     <DialogModal isOpened={isOpen} onClose={onClose} styles="!max-w-2xl" ariaLabelledBy="ai-chat-title">
@@ -535,58 +228,17 @@ export default function AIChatDialog({
           )}
 
           {messages.map((msg, i) => (
-            <div key={i} className={`flex gap-2.5 ${msg.role === "user" ? "flex-row-reverse" : "flex-row"}`}>
-              {msg.role === "assistant" && (
-                <div className="w-6 h-6 rounded-full bg-sage/15 flex items-center justify-center shrink-0 mt-0.5">
-                  <HiOutlineSparkles size={13} className="text-sage" />
-                </div>
-              )}
-              <div className={`flex flex-col gap-1.5 ${msg.role === "user" ? "items-end max-w-[82%]" : "items-start flex-1 min-w-0"}`}>
-                {msg.role === "user" ? (
-                  <div className="px-3.5 py-2.5 rounded-2xl rounded-tr-sm bg-sage text-white text-ui-footnote whitespace-pre-wrap leading-relaxed">
-                    {renderWithMentions(msg.displayContent)}
-                  </div>
-                ) : editingIndex === i ? (
-                  <textarea
-                    value={editDraft}
-                    onChange={(e) => setEditDraft(e.target.value)}
-                    className="w-full rounded-xl border border-sage/30 bg-neutral-50 dark:bg-neutral-800/60 text-ink-light dark:text-ink-dark px-3 py-2.5 text-ui-footnote font-mono leading-relaxed resize-none outline-none focus:ring-2 focus:ring-sage/25 custom-scrollbar"
-                    rows={Math.min(18, Math.max(4, editDraft.split("\n").length + 1))}
-                    autoFocus
-                  />
-                ) : (
-                  <p className="text-ui-footnote text-ink-light dark:text-ink-dark whitespace-pre-wrap leading-relaxed">
-                    {msg.displayContent}
-                  </p>
-                )}
-                {msg.role === "assistant" && (
-                  <div className="flex items-center gap-1">
-                    {editingIndex === i ? (
-                      <button type="button" onClick={() => commitEdit(i)}
-                        className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-ui-caption font-medium text-sage hover:bg-sage/10 transition-colors">
-                        <HiOutlineCheck size={13} /> Done
-                      </button>
-                    ) : (
-                      <button type="button" onClick={() => startEdit(i)} title="Edit response"
-                        className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-ui-caption text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors">
-                        <HiOutlinePencil size={13} /> Edit
-                      </button>
-                    )}
-                    <span className="text-neutral-200 dark:text-neutral-700 select-none">·</span>
-                    <button type="button" onClick={() => handleApply(i, "insert")}
-                      title={selectedText.trim() ? "Replace the selected text" : "Insert at cursor position"}
-                      className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-ui-caption font-medium text-sage hover:bg-sage/10 transition-colors">
-                      <HiOutlineClipboardCheck size={13} />
-                      {selectedText.trim() ? "Replace selection" : "Insert at cursor"}
-                    </button>
-                    <button type="button" onClick={() => handleApply(i, "replace-all")} title="Replace entire document"
-                      className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-ui-caption font-medium text-neutral-500 dark:text-neutral-400 hover:text-sage hover:bg-sage/10 transition-colors">
-                      Replace all
-                    </button>
-                  </div>
-                )}
-              </div>
-            </div>
+            <ChatMessageItem
+              key={i}
+              message={msg}
+              isEditing={editingIndex === i}
+              editDraft={editDraft}
+              onEditDraftChange={setEditDraft}
+              onStartEdit={() => startEdit(i)}
+              onCommitEdit={() => commitEdit(i)}
+              onApply={(mode) => handleApply(i, mode)}
+              hasSelection={!!selectedText.trim()}
+            />
           ))}
 
           {isLoading && (
@@ -608,50 +260,7 @@ export default function AIChatDialog({
         <div className="shrink-0 pt-2 relative">
           {/* @ mention dropdown — floats above the input */}
           {mention && mentionOptions.length > 0 && (
-            <div className="absolute bottom-full left-0 right-0 mb-1 bg-paper-light dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 rounded-xl shadow-lg overflow-hidden z-50">
-              {mentionOptions.map((option, i) => {
-                const key = option.kind === "vault" ? "@vault" : option.kind === "folder" ? `folder:${option.path}` : option.file.path;
-                const isActive = i === mentionIndex;
-                const rowClass = `w-full flex items-center gap-2.5 px-3 py-2 text-left transition-colors ${
-                  isActive
-                    ? "bg-sage/10 text-sage"
-                    : "text-ink-light dark:text-ink-dark hover:bg-neutral-50 dark:hover:bg-neutral-800"
-                }`;
-                if (option.kind === "vault") {
-                  return (
-                    <button key={key} type="button" onMouseDown={(e) => { e.preventDefault(); selectMention(option); }} className={rowClass}>
-                      <HiOutlineCollection size={14} className="shrink-0 text-neutral-400" />
-                      <span className="text-ui-footnote font-medium truncate">vault</span>
-                      <span className="text-ui-caption text-neutral-400 dark:text-neutral-500 truncate ml-auto">whole-vault index</span>
-                    </button>
-                  );
-                }
-                if (option.kind === "folder") {
-                  return (
-                    <button key={key} type="button" onMouseDown={(e) => { e.preventDefault(); selectMention(option); }} className={rowClass}>
-                      <HiOutlineFolder size={14} className="shrink-0 text-neutral-400" />
-                      <span className="text-ui-footnote font-medium truncate">folder:{option.path}</span>
-                      <span className="text-ui-caption text-neutral-400 dark:text-neutral-500 truncate ml-auto">folder index</span>
-                    </button>
-                  );
-                }
-                const file = option.file;
-                return (
-                  <button key={key} type="button" onMouseDown={(e) => { e.preventDefault(); selectMention(option); }} className={rowClass}>
-                    <HiOutlineDocument size={14} className="shrink-0 text-neutral-400" />
-                    <span className="text-ui-footnote font-medium truncate">{file.name.replace(/\.md$/, "")}</span>
-                    {file.path.includes("/") && (
-                      <span className="text-ui-caption text-neutral-400 dark:text-neutral-500 truncate ml-auto">
-                        {file.path.split("/").slice(0, -1).join("/")}
-                      </span>
-                    )}
-                  </button>
-                );
-              })}
-              {mention.query && mentionOptions.length === 0 && (
-                <p className="px-3 py-2 text-ui-caption text-neutral-400">No files found</p>
-              )}
-            </div>
+            <MentionMenu options={mentionOptions} activeIndex={mentionIndex} query={mention.query} onSelect={selectMention} />
           )}
 
           <div className={`rounded-2xl border transition-colors ${
@@ -659,45 +268,12 @@ export default function AIChatDialog({
               ? "border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-900/50"
               : "border-neutral-300 dark:border-neutral-600 bg-paper-light dark:bg-neutral-900 focus-within:border-sage/50 focus-within:ring-2 focus-within:ring-sage/15"
           }`}>
-            {/* Pending file attachments (uploaded files, not vault refs) */}
-            {attachments.length > 0 && (
-              <div className="flex flex-wrap gap-1.5 px-3 pt-2.5">
-                {attachments.map((a, i) => (
-                  <div key={i} className="flex items-center gap-1 px-2 py-0.5 rounded-full text-ui-caption bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300">
-                    {a.isImage ? <HiOutlinePhotograph size={11} /> : <HiOutlinePaperClip size={11} />}
-                    <span className="max-w-[120px] truncate">{a.name}</span>
-                    <button
-                      type="button"
-                      onClick={() => setAttachments((prev) => prev.filter((_, j) => j !== i))}
-                      className="ml-0.5 hover:text-red-500 transition-colors"
-                      aria-label={`Remove ${a.name}`}
-                    >
-                      <HiOutlineX size={11} />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {/* Loaded vault refs — shown as subtle inline badges so user knows content is ready */}
-            {vaultRefs.length > 0 && (
-              <div className="flex flex-wrap gap-1.5 px-3 pt-2">
-                {vaultRefs.map((r) => (
-                  <div key={r.label} className="flex items-center gap-1 px-2 py-0.5 rounded-full text-ui-caption bg-sage/10 text-sage dark:text-sage/80">
-                    <HiOutlineDocument size={11} />
-                    <span className="max-w-[140px] truncate">{r.label}</span>
-                    <button
-                      type="button"
-                      onClick={() => setVaultRefs((prev) => prev.filter((x) => x.label !== r.label))}
-                      className="ml-0.5 hover:text-red-500 transition-colors"
-                      aria-label={`Remove ${r.label}`}
-                    >
-                      <HiOutlineX size={11} />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
+            <ChatContextChips
+              attachments={attachments}
+              vaultRefs={vaultRefs}
+              onRemoveAttachment={(i) => setAttachments((prev) => prev.filter((_, j) => j !== i))}
+              onRemoveVaultRef={(label) => setVaultRefs((prev) => prev.filter((x) => x.label !== label))}
+            />
 
             {/* Textarea */}
             <textarea
@@ -714,16 +290,16 @@ export default function AIChatDialog({
             {/* Bottom toolbar */}
             <div className="flex items-center justify-between px-2 pb-2 pt-1">
               <div className="flex items-center gap-0.5">
-                <button type="button" onClick={() => imageInputRef.current?.click()}
+                <Button variant="unstyled" onClick={() => imageInputRef.current?.click()}
                   title="Attach image" aria-label="Attach image"
                   className="w-8 h-8 flex items-center justify-center rounded-lg text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors">
                   <HiOutlineCamera size={17} />
-                </button>
-                <button type="button" onClick={() => fileInputRef.current?.click()}
+                </Button>
+                <Button variant="unstyled" onClick={() => fileInputRef.current?.click()}
                   title="Attach file" aria-label="Attach file"
                   className="w-8 h-8 flex items-center justify-center rounded-lg text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors">
                   <HiOutlinePaperClip size={17} />
-                </button>
+                </Button>
               </div>
 
               <input ref={imageInputRef} type="file" className="hidden" multiple accept={ACCEPT_IMAGES}
@@ -733,14 +309,14 @@ export default function AIChatDialog({
                 onChange={(e) => handleAttachFiles(e.target.files)}
                 onClick={(e) => { (e.target as HTMLInputElement).value = ""; }} />
 
-              <button type="button" onClick={send} disabled={!canSend} aria-label="Send"
+              <Button variant="unstyled" onClick={send} disabled={!canSend} aria-label="Send"
                 className={`w-8 h-8 flex items-center justify-center rounded-lg transition-colors ${
                   canSend
                     ? "bg-sage text-white hover:bg-sage/80"
                     : "bg-neutral-100 dark:bg-neutral-800 text-neutral-300 dark:text-neutral-600 cursor-not-allowed"
                 }`}>
                 <HiOutlinePaperAirplane size={16} className="rotate-90" />
-              </button>
+              </Button>
             </div>
           </div>
           <p className="text-center text-[10px] text-neutral-300 dark:text-neutral-600 mt-1.5">

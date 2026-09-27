@@ -10,9 +10,9 @@ import {
 
 // Breakpoints below are keyed off the *pane's* own width (measured via
 // ResizeObserver), not window.innerWidth — a Tailwind md:/xl: prefix reacts
-// to the whole viewport, so with the vault sidebar open (or in a split pane)
+// to the whole viewport, so in a split pane
 // the editor kept centering its max-width column as if it had the full
-// window to itself, leaving an oversized, sidebar-unaware margin.
+// window to itself, leaving an oversized, pane-unaware margin.
 
 export function useEditorAppearance(isSplit = false) {
   const fontFamily = useAtomValue(atom_editorFontFamily);

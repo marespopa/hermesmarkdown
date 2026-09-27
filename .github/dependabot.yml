@@ -1,12 +1,29 @@
-# To get started with Dependabot version updates, you'll need to specify which
-# package ecosystems to update and where the package manifests are located.
-# Please see the documentation for more information:
-# https://docs.github.com/github/administering-a-repository/configuration-options-for-dependency-updates
-# https://containers.dev/guide/dependabot
+# Dependabot version updates. Security alerts are enabled separately in the
+# repository settings. See:
+# https://docs.github.com/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file
 
 version: 2
 updates:
- - package-ecosystem: "devcontainers"
-   directory: "/"
-   schedule:
-     interval: weekly
+  # App dependencies (Yarn 4 workspace in next-client/).
+  - package-ecosystem: "npm"
+    directory: "/next-client"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      # Batch minor/patch bumps into one PR to keep the queue short;
+      # major versions still get their own PR.
+      minor-and-patch:
+        update-types:
+          - "minor"
+          - "patch"
+
+  # Actions used by the CI/CD workflows.
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: weekly
+    groups:
+      actions:
+        patterns:
+          - "*"

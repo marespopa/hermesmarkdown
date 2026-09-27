@@ -62,8 +62,6 @@ function createContext(overrides: Partial<EditorCommandContext> = {}): EditorCom
     setTheme: vi.fn(),
     showHiddenFiles: false,
     setShowHiddenFiles: vi.fn(),
-    railPanel: null,
-    setRailPanel: vi.fn(),
     setAiBuilderRequest: vi.fn(),
     setRepurposeWizardOpen: vi.fn(),
     isAiConfigured: true,

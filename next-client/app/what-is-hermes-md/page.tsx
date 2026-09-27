@@ -59,9 +59,10 @@ export default function WhatIsHermesMd() {
               <strong className="text-ink-light dark:text-ink-dark font-semibold">HermesMarkdown is a
               Markdown editor that runs entirely in your browser and reads/writes files directly on your
               local disk.</strong>{" "}
-              There&apos;s no account, no cloud sync, and no server in the middle — you open a folder of{" "}
+              There&apos;s no account and no upload step — you open a folder of{" "}
               <InlineCode>.md</InlineCode> files (including an existing Obsidian vault, if you have one) and
-              edit it in place. It has no relationship to any AI agent&apos;s memory system.
+              edit it in place. Optional GitHub-backed vaults and bring-your-own-key AI features are the
+              only parts that talk to a server. It has no relationship to any AI agent&apos;s memory system.
             </p>
           </div>
         </section>
@@ -95,47 +96,39 @@ export default function WhatIsHermesMd() {
           </div>
         </section>
 
-        {/* Bridge to HermesMarkdown's actual agent-context feature */}
+        {/* Bridge to what HermesMarkdown actually offers for agent-readable notes */}
         <section className="space-y-6 border-t border-black/5 dark:border-white/10 pt-16">
           <h2 className="text-2xl md:text-3xl font-bold tracking-tight">
             If you&apos;re looking for agent-readable notes
           </h2>
           <div className="space-y-5 text-neutral-500 dark:text-neutral-400 leading-relaxed text-base md:text-lg">
             <p>
-              If what you actually want is a way to keep a human-edited knowledge base in sync with what
-              an AI agent reads, HermesMarkdown does have a feature for that — though it works differently
-              from Hermes Agent&apos;s single-file memory convention.
-            </p>
-            <p>
-              Instead of one memory file, HermesMarkdown generates a <InlineCode>.hermes/</InlineCode> folder
-              inside any vault you open. The folder holds:
+              HermesMarkdown doesn&apos;t generate agent memory or context files. Your vault is plain
+              Markdown, so any AI tool that reads files can read it as-is — and you can keep your own{" "}
+              <InlineCode>AGENTS.md</InlineCode> or <InlineCode>CLAUDE.md</InlineCode> in the vault and
+              edit it like any other note.
             </p>
             <ul className="space-y-3 list-disc list-outside pl-5 marker:text-sage">
               <li>
-                <InlineCode>AGENTS.md</InlineCode> — a generated, agent-facing document that describes the
-                vault&apos;s frontmatter schema and file tree. An agent reads this first rather than scanning
-                all your notes individually.
+                Frontmatter such as <InlineCode>title</InlineCode> and <InlineCode>tags</InlineCode> stays
+                in each file, where agents can skim it without opening every note body.
               </li>
               <li>
-                <InlineCode>index.yaml</InlineCode> — a flat index of every note&apos;s frontmatter (
-                <InlineCode>scope</InlineCode>, <InlineCode>read_when</InlineCode>, title, status) with no
-                file body content — so an agent can skim hundreds of notes without opening them.
+                Notes created with <em>Generate new note with AI</em> get <InlineCode>scope</InlineCode>{" "}
+                and <InlineCode>read_when</InlineCode> fields describing what the note covers and when
+                it&apos;s worth reading.
               </li>
               <li>
-                <InlineCode>schema.yaml</InlineCode> — the vault&apos;s frontmatter schema, editable from
-                the editor&apos;s settings panel.
+                Dotfiles and <InlineCode>_</InlineCode>-prefixed files (for example agent skill files)
+                can be shown in the file tree with the <em>Show Hidden Files</em> setting.
               </li>
             </ul>
             <p>
               See{" "}
-              <Link href="/documentation#hermes-architecture" className="text-sage font-semibold hover:underline">
-                .hermes/ architecture
+              <Link href="/documentation#frontmatter-conventions" className="text-sage font-semibold hover:underline">
+                Frontmatter conventions
               </Link>{" "}
-              and{" "}
-              <Link href="/documentation#agent-context-protocol" className="text-sage font-semibold hover:underline">
-                Agent context protocol
-              </Link>{" "}
-              in the documentation for the full mechanics.
+              in the documentation for details.
             </p>
           </div>
         </section>
@@ -150,10 +143,10 @@ export default function WhatIsHermesMd() {
               Try the editor
             </Link>
             <Link
-              href="/documentation#hermes-architecture"
+              href="/documentation"
               className="inline-flex items-center justify-center gap-2 px-6 py-3 border border-black/10 dark:border-white/10 font-semibold rounded-full hover:bg-neutral-50 dark:hover:bg-neutral-900 transition-colors text-sm text-ink-light dark:text-ink-dark"
             >
-              Read the agent-context docs
+              Read the documentation
             </Link>
           </div>
         </section>

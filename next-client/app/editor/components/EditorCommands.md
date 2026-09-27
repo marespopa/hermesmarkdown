@@ -14,17 +14,22 @@ Description: Renders nothing visible. It builds the editor's command-palette ent
 ```tsx
 import EditorCommands from "./EditorCommands";
 
-<EditorCommands onNewFile={newFile} onSave={save} onExport={exportDoc} onOpenTasks={openTasks}
-  onHome={goHome} onOpenDocumentation={openDocs} />
+<EditorCommands onNewFile={newFile} onSave={save} onExport={exportDoc} onImport={importFile}
+  onOpenTasks={openTasks} onHome={goHome} onOpenDocumentation={openDocs}
+  onNewAIFile={newAIFile} onRunAIAction={runAIAction} />
 ```
 
 ## Props Overview
 | Prop | Type | Default | Description |
 |---|---|---|---|
-| onNewFile / onSave / onExport | `() => void` |  | Document actions |
+| onNewFile / onSave / onExport / onImport | `() => void` |  | Document actions |
+| onNewAIFile | `() => void` |  | "Generate new note with AI" |
+| onRunAIAction | `(id: string) => void` |  | Runs a palette AI action (`improve`, `summarize`, …) |
 | onOpenTasks / onHome / onOpenDocumentation | `() => void` |  | Navigation |
 | githubVault? | `boolean` |  | Enables the GitHub commands |
 | onGitHubCommit? / onGitHubPush? / onGitHubPull? / onGitHubSync? | `() => void` |  | GitHub actions |
 | isMobileChrome? / onOpenMobileFiles? / onRefreshVault? |  |  | Mobile and vault helpers |
+| isVoiceSupported? / isVoiceListening? / hasVoicePreview? | `boolean` |  | Voice input state |
+| onToggleVoice? / onCommitVoice? / onDiscardVoice? | `() => void` |  | Voice input actions |
 
 `RegisteredCommands` takes `commands: Command[]`. See `editor-commands/README.md`.

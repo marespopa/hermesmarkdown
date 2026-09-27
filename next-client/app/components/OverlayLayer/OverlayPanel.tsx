@@ -31,7 +31,7 @@ interface OverlayPanelProps {
 // Positioning skeleton per variant — alignment/animation is supplied by
 // consumers via containerClassName/panelClassName so each migrated overlay
 // can keep its exact existing look. `edge-panel` and `popover` are defined
-// for the sidebar and WikiLink-hover fast-follows; nothing uses them yet.
+// for edge-anchored panels and WikiLink-hover previews; nothing uses them yet.
 const CONTAINER_BASE: Record<OverlayVariant, string> = {
   modal: "fixed inset-0 flex",
   sheet: "fixed inset-0 flex flex-col",

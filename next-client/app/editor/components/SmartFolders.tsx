@@ -275,8 +275,7 @@ export default function SmartFolders({
           );
         })}
 
-        <button
-          type="button"
+        <Button variant="unstyled"
           onClick={() => {
             setEditingWorkspace(null);
             setIsBuilderOpen(true);
@@ -285,7 +284,7 @@ export default function SmartFolders({
         >
           <HiOutlinePlus size={14} className="opacity-80" />
           New View
-        </button>
+        </Button>
       </div>
 
       <WorkspaceBuilder

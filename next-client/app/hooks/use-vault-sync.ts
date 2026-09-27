@@ -27,7 +27,7 @@ export function useVaultSync() {
     if (manual) toast.loading("Syncing vault…", { id: "vault-sync" });
 
     try {
-      // Rescan whichever folder is currently shown in the sidebar, not just
+      // Rescan whichever folder is the current directory, not just
       // the vault root — otherwise external changes inside a subfolder
       // never appear until the user navigates away and back.
       await scanVault(currentDirectoryHandle || vaultHandle);

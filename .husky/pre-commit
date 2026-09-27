@@ -2,10 +2,18 @@ echo "🔍 Running pre-commit checks..."
 
 cd next-client || exit 1
 
-# Run linting first
-echo "📝 Running linting..."
-npm run lint
+# Staged TS/JS files inside next-client, relative to it.
+files=$(git diff --cached --name-only --relative --diff-filter=ACMR -- '*.ts' '*.tsx' '*.js' '*.mjs' '*.mts')
 
-# Run related tests based on changed files
+if [ -z "$files" ]; then
+  echo "No staged source files in next-client; skipping."
+  exit 0
+fi
+
+echo "📝 Linting staged files..."
+# shellcheck disable=SC2086
+corepack yarn eslint $files || exit 1
+
 echo "🧪 Running related tests..."
-npm run test:related
+# shellcheck disable=SC2086
+corepack yarn test:related $files

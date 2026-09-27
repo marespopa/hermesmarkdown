@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 
-// Dedicated 768px breakpoint for the minimal-chrome system (hover
-// sidebar, bottom nav, full-screen overlays). Distinct from `useIsMobile`
+// Dedicated 768px breakpoint for the mobile chrome (file indicator bar,
+// full-screen overlays). Distinct from `useIsMobile`
 // (1052px), which existing layout code already keys off of.
 const useIsMobileChrome = (breakpoint = 768) => {
   const [isMobile, setIsMobile] = useState(false);

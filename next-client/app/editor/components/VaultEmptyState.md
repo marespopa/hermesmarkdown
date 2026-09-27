@@ -1,20 +1,20 @@
-# VaultSidebarEmpty
+# VaultEmptyState
 
-Description: Sidebar empty state shown when no vault is open. It offers open, create, import/export, and connect GitHub, and warns when the File System Access API is unsupported.
+Description: Empty state of the file views (Explorer page and mobile file overlay) shown when no vault is open. It offers open, create, import/export, and connect GitHub, and warns when the File System Access API is unsupported.
 
 ## Local State & Storage
 - State: None (controlled).
 - Persistence: None - transient UI state.
 
 ## Dependencies
-- Core: `SidebarHeader`, `Button`, `react-icons`.
+- Core: `SectionHeader`, `Button`, `react-icons`.
 - Zero-Cloud: No network or telemetry side effects.
 
 ## Quick Usage
 ```tsx
-import VaultSidebarEmpty from "./VaultSidebarEmpty";
+import VaultEmptyState from "./VaultEmptyState";
 
-<VaultSidebarEmpty isVaultSupported openVault={openVault} setActiveFilePath={setPath} activeFilePath={null} />
+<VaultEmptyState isVaultSupported openVault={openVault} setActiveFilePath={setPath} activeFilePath={null} />
 ```
 
 ## Props Overview

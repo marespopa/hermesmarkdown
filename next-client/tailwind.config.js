@@ -81,7 +81,10 @@ module.exports = {
         },
 
         // ── Static neutral grays (same value in both modes) ──
-        stone: '#9A968F',   // muted placeholder / faint static gray
+        // Faint gray for placeholders, hints and icons. Backed by --fg-faint so it
+        // meets 4.5:1 in both themes (a single static gray can't). Opacity
+        // modifiers don't work on var colors — use an arbitrary hex for those.
+        stone: 'var(--fg-faint)',
         clay:  '#3A3631',   // dark-mode border / interactive surface (neutral — unrelated to the "clay" accent role, kept for naming-history reasons; see `accent` below for the design doc's clay accent)
 
         // ── Accent / brand (static — same in both modes; CSS-var backed so

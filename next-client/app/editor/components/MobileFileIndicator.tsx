@@ -12,6 +12,7 @@ import {
 import { HiOutlineChevronDown, HiOutlineChatAlt2 } from "react-icons/hi";
 import { useCommandPalette } from "@/app/components/CommandPalette/CommandPaletteContext";
 import { TabSaveState, statusMeta } from "./PaneTab";
+import Button from "@/app/components/Button";
 
 interface MobileFileIndicatorProps {
   onSave: () => void;
@@ -60,19 +61,17 @@ export default function MobileFileIndicator({ onSave, onOpenAIChat }: MobileFile
   return (
     <div className="relative shrink-0 flex items-center h-11 bg-chrome border-b border-edge-subtle">
       {onOpenAIChat && (
-        <button
-          type="button"
+        <Button variant="unstyled"
           onClick={onOpenAIChat}
           aria-label="AI Chat"
           title="AI Chat"
           className="flex items-center justify-center h-11 min-w-11 shrink-0 text-fg-faint hover:text-sage transition-colors"
         >
           <HiOutlineChatAlt2 size={18} />
-        </button>
+        </Button>
       )}
       {hasOpenFiles && meta && (
-        <button
-          type="button"
+        <Button variant="unstyled"
           onClick={onSave}
           disabled={saveState === "saving"}
           aria-label={`Save — ${meta.title}`}
@@ -86,17 +85,16 @@ export default function MobileFileIndicator({ onSave, onOpenAIChat }: MobileFile
           ) : (
             meta.Icon && <meta.Icon size={18} />
           )}
-        </button>
+        </Button>
       )}
-      <button
-        type="button"
+      <Button variant="unstyled"
         onClick={() => openCommandPalette()}
         aria-label="Search files"
         className="flex-1 min-w-0 flex items-center justify-end gap-1.5 h-11 text-ui-footnote text-fg-muted px-3"
       >
         <span className="truncate">{label}</span>
         <HiOutlineChevronDown size={12} className="shrink-0" />
-      </button>
+      </Button>
     </div>
   );
 }

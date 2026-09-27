@@ -14,7 +14,7 @@ Description: Renders children only after mount, avoiding SSR hydration mismatche
 ```tsx
 import ClientOnly from "@/app/components/ClientOnly";
 
-<ClientOnly className="flex"><VersionBadge /></ClientOnly>
+<ClientOnly className="flex"><SomeBrowserOnlyWidget /></ClientOnly>
 ```
 
 ## Props Overview

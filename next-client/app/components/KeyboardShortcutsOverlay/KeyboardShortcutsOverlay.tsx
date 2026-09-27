@@ -8,6 +8,7 @@ import { atom_keyboardShortcutsOpen } from "@/app/atoms/ui-atoms";
 import { formatShortcut, isMacPlatform } from "@/app/utils/platform";
 import useIsMobileChrome from "@/app/hooks/use-mobile-chrome";
 import { useCommandPalette, type Command } from "@/app/components/CommandPalette/CommandPaletteContext";
+import Button from "@/app/components/Button";
 
 type ShortcutGroup = {
   title: string;
@@ -23,24 +24,30 @@ function commandShortcuts(commands: Command[], ids: string[]) {
 
 function getShortcutGroups(commands: Command[]): ShortcutGroup[] {
   const mac = isMacPlatform();
+  const mod = mac ? "⌘" : "Ctrl+";
+  const shift = mac ? "⇧" : "Shift+";
   return [
     {
       title: "General",
       shortcuts: [
         { label: "Quick switcher", keys: `${formatShortcut("K")} / ${formatShortcut("P")}` },
         { label: "Command palette", keys: `${formatShortcut("K", { shift: true })} / ${formatShortcut("P", { shift: true })}` },
-        { label: "Global search", keys: formatShortcut("F", { shift: true }) },
+        { label: "Search files", keys: formatShortcut("F", { shift: true }) },
         { label: "Select workspace tab", keys: `${formatShortcut("1")}–9` },
         { label: "New file", keys: mac ? "⌃⌥N" : "Ctrl+Alt+N" },
         { label: "Close current tab", keys: formatShortcut("W", { alt: true }) },
-        ...commandShortcuts(commands, ["save-file", "toggle-sidebar", "ai-builder", "toggle-voice-input"]),
-        { label: "Close dialog / collapse sidebar", keys: "Esc" },
+        ...commandShortcuts(commands, ["save-file", "open-explorer", "ai-builder", "toggle-voice-input"]),
+        { label: "Open Explorer (outside the editor)", keys: formatShortcut("B") },
+        { label: "Close dialog", keys: "Esc" },
       ],
     },
     {
       title: "Formatting",
       shortcuts: [
         ...commandShortcuts(commands, ["format-bold", "format-italic", "format-strikethrough", "format-inline-code"]),
+        { label: "Cycle task status", keys: `${mod}Enter` },
+        { label: "Indent / outdent list item", keys: "Tab / Shift+Tab" },
+        { label: "Open helper at cursor (link, date, diagram…)", keys: `${mod}${shift}Enter` },
         { label: "Undo", keys: formatShortcut("Z") },
         { label: "Redo", keys: mac ? "⌘⇧Z" : "Ctrl+Y" },
       ],
@@ -49,8 +56,14 @@ function getShortcutGroups(commands: Command[]): ShortcutGroup[] {
       title: "Tables",
       shortcuts: [
         { label: "Next / previous cell", keys: "Tab / Shift+Tab" },
-        { label: "New row", keys: "Enter" },
-        { label: "Move up / down a row", keys: "↑ / ↓" },
+        { label: "Cell below (adds a row at the end)", keys: "Enter" },
+        { label: "Move across cells, leave the table", keys: "Arrows" },
+        { label: "Leave the table", keys: "Esc" },
+        { label: "Insert row below", keys: `${mod}Enter` },
+        { label: "Delete row", keys: `${mod}${shift}Backspace` },
+        { label: "Move row up / down", keys: mac ? "⌥↑ / ⌥↓" : "Alt+↑ / Alt+↓" },
+        { label: "Move column left / right", keys: mac ? "⌘⌥← / →" : "Ctrl+Alt+← / →" },
+        { label: "Row, column & table actions", keys: "Right-click" },
       ],
     },
   ];
@@ -93,8 +106,7 @@ export default function KeyboardShortcutsOverlay() {
         <h2 id="keyboard-shortcuts-title" className="text-ui-title-3 text-fg">
           Keyboard shortcuts
         </h2>
-        <button
-          type="button"
+        <Button variant="unstyled"
           onClick={close}
           aria-label="Close"
           className={`shrink-0 flex items-center justify-center rounded-lg text-fg-faint hover:text-fg-muted ${
@@ -102,13 +114,12 @@ export default function KeyboardShortcutsOverlay() {
           }`}
         >
           <HiOutlineX size={isMobileChrome ? 20 : 18} />
-        </button>
+        </Button>
       </div>
       <div role="tablist" aria-label="Shortcut categories" className="shrink-0 flex items-center gap-1 px-2 pt-2 border-b border-b-edge overflow-x-auto overflow-y-hidden">
         {groups.map((group) => (
-          <button
+          <Button variant="unstyled"
             key={group.title}
-            type="button"
             role="tab"
             aria-selected={activeTab === group.title}
             onClick={() => setActiveTab(group.title)}
@@ -119,7 +130,7 @@ export default function KeyboardShortcutsOverlay() {
             }`}
           >
             {group.title}
-          </button>
+          </Button>
         ))}
       </div>
       <div className="flex-1 min-h-0 overflow-y-auto p-4">

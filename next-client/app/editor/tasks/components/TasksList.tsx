@@ -26,6 +26,8 @@ import { TaskItem } from "@/app/utils/taskExtractor";
 import { useTaskWriteback } from "@/app/hooks/use-task-writeback";
 import { SelectControl } from "@/app/editor/settings/components/SettingControls";
 import { sortTasks, type TaskSortDirection, type TaskSortField } from "../task-sort";
+import Button from "@/app/components/Button";
+import { BareInput } from "@/app/components/Input";
 
 interface TasksListProps {
   onFileSelect: (handle: FileSystemFileHandle, path: string, line: number) => void;
@@ -182,8 +184,7 @@ export default function TasksList({ onFileSelect }: TasksListProps) {
           </div>
           <div className="flex items-center gap-1.5 shrink-0">
           <div className="flex items-center rounded-lg border border-beige/70 bg-paper-softgray/70 p-0.5 dark:border-clay/50 dark:bg-paper-dark-surface/60">
-            <button
-              type="button"
+            <Button variant="unstyled"
               title="Group by status"
               aria-label="Group by status"
               aria-pressed={groupBy === "status"}
@@ -192,9 +193,8 @@ export default function TasksList({ onFileSelect }: TasksListProps) {
                 }`}
             >
               <HiOutlineViewList size={14} />
-            </button>
-            <button
-              type="button"
+            </Button>
+            <Button variant="unstyled"
               title="Group by file"
               aria-label="Group by file"
               aria-pressed={groupBy === "file"}
@@ -203,18 +203,18 @@ export default function TasksList({ onFileSelect }: TasksListProps) {
                 }`}
             >
               <HiOutlineDocumentText size={14} />
-            </button>
+            </Button>
           </div>
           </div>
         </div>
         <div className="relative">
           <HiOutlineSearch size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-stone pointer-events-none" />
-          <input
+          <BareInput
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Filter tasks..."
-            className="h-8 w-full rounded-lg border border-beige/70 bg-paper-light pl-8 pr-2 text-ui-caption text-ink-light outline-none placeholder:text-stone focus:border-sage/60 focus:ring-2 focus:ring-sage/15 dark:border-clay/50 dark:bg-paper-dark-surface dark:text-ink-dark"
+            className="h-8 w-full rounded-lg border border-beige/70 bg-paper-light pl-8 pr-2 text-ui-caption text-ink-light outline-none placeholder:text-fg-faint focus:border-sage/60 focus:ring-2 focus:ring-sage/15 dark:border-clay/50 dark:bg-paper-dark-surface dark:text-ink-dark"
           />
         </div>
       </div>
@@ -234,22 +234,20 @@ export default function TasksList({ onFileSelect }: TasksListProps) {
             ))}
           </SelectControl>
           {hasActiveFilters && (
-          <button
-            type="button"
+          <Button variant="unstyled"
             onClick={clearFilters}
             className="flex items-center gap-1 rounded-md px-1.5 py-1 text-ui-footnote text-ink-muted transition-colors hover:bg-paper-softgray hover:text-ink-light dark:text-stone dark:hover:bg-paper-dark-surface dark:hover:text-ink-dark"
           >
             <HiX size={11} />
             Clear
-          </button>
+          </Button>
           )}
         </div>
         {allTags.length > 0 && (
           <div className="mt-2 flex max-h-16 flex-wrap gap-1 overflow-y-auto custom-scrollbar">
             {allTags.map((tag) => (
-              <button
+              <Button variant="unstyled"
                 key={tag}
-                type="button"
                 aria-pressed={tagFilter.includes(tag)}
                 onClick={() => toggleTagFilter(tag)}
                 className={`rounded-md border px-1.5 py-0.5 text-ui-footnote transition-colors ${
@@ -259,7 +257,7 @@ export default function TasksList({ onFileSelect }: TasksListProps) {
                 }`}
               >
                 #{tag}
-              </button>
+              </Button>
             ))}
           </div>
         )}
@@ -279,8 +277,7 @@ export default function TasksList({ onFileSelect }: TasksListProps) {
           visibleGroups.map((g) =>
             statusGroups[g].length === 0 ? null : (
               <div key={g}>
-                <button
-                  type="button"
+                <Button variant="unstyled"
                   onClick={() => toggleCollapsed(g)}
                   className="flex w-full items-center gap-1.5 px-2 pb-1.5 text-left text-ui-footnote font-semibold uppercase tracking-wide text-ink-muted transition-opacity hover:text-ink-light dark:text-stone dark:hover:text-ink-dark"
                 >
@@ -288,7 +285,7 @@ export default function TasksList({ onFileSelect }: TasksListProps) {
                   <span className={`h-1.5 w-1.5 rounded-full shadow-[0_0_0_2px_rgba(255,255,255,0.45)] dark:shadow-[0_0_0_2px_rgba(42,38,34,0.6)] ${GROUP_ACCENT[g].dot}`} />
                   {GROUP_LABEL[g]}
                   <span className="font-normal normal-case opacity-70">({statusGroups[g].length})</span>
-                </button>
+                </Button>
                 {!collapsed[g] && (
                   <div className="space-y-0.5">
                     {statusGroups[g].map((task) => (
@@ -308,15 +305,14 @@ export default function TasksList({ onFileSelect }: TasksListProps) {
         {!isEmpty && !noMatches && groupBy === "file" &&
           fileGroups.map(([path, fileTasks]) => (
             <div key={path}>
-              <button
-                type="button"
+              <Button variant="unstyled"
                 onClick={() => toggleCollapsedFile(path)}
                 className="flex w-full items-center gap-1.5 px-2 pb-1.5 text-left text-ui-footnote font-semibold text-ink-muted hover:text-ink-light dark:text-stone dark:hover:text-ink-dark"
               >
                 {collapsedFiles[path] ? <HiChevronRight size={12} /> : <HiChevronDown size={12} />}
                 <span className="truncate">{noteTitle(path)}</span>
                 <span className="font-normal opacity-70 shrink-0">({fileTasks.length})</span>
-              </button>
+              </Button>
               {!collapsedFiles[path] && (
                 <div className="space-y-0.5">
                   {fileTasks.map((task) => (
@@ -359,7 +355,7 @@ function TaskRow({
   return (
     <div className="group flex items-start gap-2 rounded-lg border border-transparent px-2.5 py-2 transition-colors hover:border-beige/70 hover:bg-paper-light dark:hover:border-clay/50 dark:hover:bg-paper-dark-surface/70">
       <TaskCheckbox checked={task.checked} onChange={onToggle} />
-      <button type="button" className="min-w-0 flex-1 cursor-pointer text-left" onClick={onNavigate}>
+      <Button variant="unstyled" className="min-w-0 flex-1 cursor-pointer text-left" onClick={onNavigate}>
         <div
           className={`text-ui-caption truncate ${task.checked ? "line-through opacity-50" : "text-ink-light dark:text-ink-dark"
             }`}
@@ -377,7 +373,7 @@ function TaskRow({
             ))}
           </div>
         )}
-      </button>
+      </Button>
     </div>
   );
 }

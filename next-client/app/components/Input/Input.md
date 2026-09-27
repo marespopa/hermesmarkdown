@@ -28,6 +28,12 @@ import Input, { Textarea, Select } from "@/app/components/Input";
 | onClear? | `() => void` |  | Shows the clear button |
 | debounceMs? / onDebouncedChange? | `number` / handler |  | Debounced change callback |
 | selectOnFocus? | `boolean` |  | Selects the text on focus |
+| validation? | `{ min: number; max: number }` |  | Numeric bounds |
+| autoFocus? | `boolean` |  | Focuses on mount |
+| autoComplete? | `string` | `"off"` | Browser autocomplete |
+| ...rest | `input` attributes |  | Forwarded to `<input>` |
 | inputClassName? / className? | `string` | `""` | Style overrides |
 
-`Textarea` takes `name, value, handleChange, label?, helperText?`. `Select` takes `name, label, value, options: {value,label}[], handleChange, compact?, fullWidth?`.
+`BareInput` is an unlabelled `<input>` (forwarded ref, `autoComplete="off"`, any input attributes) for search boxes and inline fields styled via `className`.
+
+`Textarea` takes `name, value, handleChange, label?, helperText?`. `Select` takes `name, label, value, options: {value,label}[], handleChange, helperText?, compact?, fullWidth?`.

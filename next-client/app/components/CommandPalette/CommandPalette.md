@@ -1,11 +1,12 @@
 # CommandPalette
 
-Description: Unified quick-open and command surface (`Ctrl/Cmd+K` for files, `Ctrl/Cmd+Shift+P` for commands). `CommandPaletteProvider` owns registration and `AppCommands` registers global commands.
+Description: Unified quick-open and command surface (`Ctrl/Cmd+K` or `Ctrl/Cmd+P` for files, `Ctrl/Cmd+Shift+K` or `Ctrl/Cmd+Shift+P` for commands). `Ctrl/Cmd+D` pins the selected row; `Tab` / `Shift+Tab` move the selection. It also contributes its own `Open Explorer` command (`Ctrl/Cmd+Shift+E`). `CommandPaletteProvider` owns registration and `AppCommands` registers global commands.
 
 ## Local State & Storage
-- State: `useCommandPalette()` context (isOpen, commands, register). Atoms: `atom_palettePinnedItems`, `atom_recentFilePaths`, `atom_commandUseCounts`, `atom_recentCommandIds`, `atom_fileMetadata`, `atom_allTasks`, `atom_theme`.
+- State: `useCommandPalette()` context (isOpen, commands, register). Atoms: `atom_palettePinnedItems`, `atom_recentFilePaths`, `atom_commandUseCounts`, `atom_recentCommandIds`, `atom_fileMetadata`, `atom_allTasks`, `atom_theme`, `atom_activeEditorView` (heading jumps), `atom_showHiddenFiles`, `atom_editorFontFamily`.
 - Persistence: `localStorage` keys `palettePinnedItems` (max 5), `recentFilePaths`, `commandUseCounts`, `recentCommandIds`.
 - Query prefixes: none = files, `#` tags, `>` commands, `!` tasks, `@` headings. Ranking happens client-side in `command-search.ts`.
+- Choosing a file closes the palette first (after `nextPaint()`), then calls `openFile`; the editor's `LoadingBar` covers the read and re-render. Long-running commands keep the palette open and show a spinner on their row (`aria-busy`).
 
 ## Dependencies
 - Core: `OverlayPanel`, `Button`, `useFileSystem`, `@codemirror/view` (for heading jumps), `react-icons`.

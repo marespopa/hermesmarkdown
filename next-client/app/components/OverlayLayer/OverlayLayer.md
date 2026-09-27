@@ -3,7 +3,7 @@
 Description: Shared overlay primitives. `OverlayPanel` provides a portal, positioning, dismissal, focus trap, and scroll lock. `OverlayBackdrop` renders the dim or transparent backdrop.
 
 ## Local State & Storage
-- State: Mounted/exit-animation state (useState). Dismissal and focus logic live in `useOverlay.ts`.
+- State: Mount/exit-animation state, dismissal, scroll lock and focus logic live in `useOverlay.ts` (`useOverlayDismissal`); the panel element ref is the only local state.
 - Persistence: None - transient UI state.
 
 ## Dependencies
@@ -26,9 +26,11 @@ import OverlayPanel from "@/app/components/OverlayLayer/OverlayPanel";
 | onClose | `() => void` |  | Dismiss handler |
 | variant | `"modal" \| "sheet" \| "edge-panel" \| "popover"` |  | Layout |
 | backdrop? | `"dim" \| "transparent" \| "none"` | `"dim"` | Backdrop style |
-| dismissOn? | `("escape" \| "click-outside" \| "mouse-leave")[]` |  | Dismiss triggers |
+| dismissOn? | `("escape" \| "click-outside" \| "mouse-leave")[]` | `["escape", "click-outside"]` | Dismiss triggers |
 | exitDurationMs? | `number` | `0` | Keeps it mounted for the exit animation |
-| lockScroll? / disableFocusTrap? | `boolean` | `disableFocusTrap=false` | Behavior toggles |
+| lockScroll? | `boolean` | `true` for `modal` / `sheet` | Locks body scroll while open |
+| disableFocusTrap? | `boolean` | `false` | Disables the focus trap |
+| ariaLabelledBy? / ariaDescribedBy? | `string` |  | ARIA ids |
 | onConfirm? | `() => void` |  | Enter handler |
 | containerClassName? / panelClassName? / backdropClassName? | `string` | `""` | Styling hooks |
 | role? | `string` | `"dialog"` | ARIA role |

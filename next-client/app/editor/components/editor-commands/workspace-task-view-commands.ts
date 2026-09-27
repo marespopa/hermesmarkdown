@@ -52,7 +52,7 @@ export function buildWorkspaceTaskViewCommandGroups(context: EditorCommandContex
     {
       id: "open-tasks-panel",
       label: "Open Tasks",
-      keywords: "tasks todos sidebar",
+      keywords: "tasks todos checklist",
       action: onOpenTasks,
     },
   ];
@@ -99,7 +99,7 @@ export function buildWorkspaceTaskViewCommandGroups(context: EditorCommandContex
     {
       id: "toggle-hidden-files",
       label: showHiddenFiles ? "Hide hidden files" : "Show hidden files",
-      keywords: "hidden dotfiles skills files sidebar reveal",
+      keywords: "hidden dotfiles skills files tree reveal",
       action: () => {
         const next = !showHiddenFiles;
         setShowHiddenFiles(next);

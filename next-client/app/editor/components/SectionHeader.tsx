@@ -3,14 +3,14 @@
 import React from "react";
 import { HiOutlineChevronDown } from "react-icons/hi";
 
-interface SidebarHeaderProps {
+interface SectionHeaderProps {
   title: string;
   isExpanded: boolean;
   onToggle: () => void;
   action?: React.ReactNode;
 }
 
-export default function SidebarHeader({ title, isExpanded, onToggle, action }: SidebarHeaderProps) {
+export default function SectionHeader({ title, isExpanded, onToggle, action }: SectionHeaderProps) {
   return (
     <div 
       className="flex justify-between items-center px-4 py-2 cursor-pointer transition-colors group"

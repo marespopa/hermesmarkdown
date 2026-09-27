@@ -6,10 +6,10 @@ import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { atom_activeFilePath } from "@/app/atoms/atoms";
 import { useFileSystem } from "@/app/hooks/use-file-system";
 import { useDialog } from "@/app/hooks/use-dialog";
-import { useSidebarSearch } from "../hooks/useSidebarSearch";
+import { useVaultFileSearch } from "../hooks/useVaultFileSearch";
 import SmartFolders from "./SmartFolders";
-import VaultSidebarFiles from "./VaultSidebarFiles";
-import VaultSidebarEmpty from "./VaultSidebarEmpty";
+import VaultFileTree from "./VaultFileTree";
+import VaultEmptyState from "./VaultEmptyState";
 import UnifiedSearchInput from "./UnifiedSearchInput";
 import { HiOutlineX, HiOutlineEye, HiOutlineEyeOff, HiOutlineLogout, HiOutlineFolderAdd } from "react-icons/hi";
 import { atom_newVaultFlowOpen, atom_selectedFileTags, atom_showHiddenFiles, atom_userName } from "@/app/atoms/ui-atoms";
@@ -49,7 +49,7 @@ export default function MobileFileOverlay({
   const [selectedTags, setSelectedTags] = useAtom(atom_selectedFileTags);
   const [activeTab, setActiveTab] = useState<"files" | "views">("files");
   const { searchQuery, setSearchQuery, processedFiles, totalResultsCount, hasMoreResults, setShowAllResults, allFiles, folderPaths, tags } =
-    useSidebarSearch({ selectedTags, panel: "search" });
+    useVaultFileSearch({ selectedTags, panel: "search" });
   const isSearching = searchQuery.trim().length > 0 || selectedTags.length > 0;
 
   const resolveFolderHandle = useCallback(async (path: string): Promise<any | null> => {
@@ -110,8 +110,7 @@ export default function MobileFileOverlay({
               </Button>
             )}
             {vaultHandle && (
-              <button
-                type="button"
+              <Button variant="unstyled"
                 onClick={handleToggleHiddenFiles}
                 title="Show hidden files"
                 aria-label="Show hidden files"
@@ -119,27 +118,26 @@ export default function MobileFileOverlay({
                 className="p-2 text-fg-muted"
               >
                 {showHiddenFiles ? <HiOutlineEye size={20} /> : <HiOutlineEyeOff size={20} />}
-              </button>
+              </Button>
             )}
             {vaultHandle && (
-              <button
-                type="button"
+              <Button variant="unstyled"
                 onClick={handleCloseVault}
                 title="Close Vault"
                 aria-label="Close Vault"
                 className="p-2 text-red-500/80"
               >
                 <HiOutlineLogout size={20} />
-              </button>
+              </Button>
             )}
-            <button type="button" onClick={onClose} aria-label="Close" className="p-2 text-fg-muted">
+            <Button variant="unstyled" onClick={onClose} aria-label="Close" className="p-2 text-fg-muted">
               <HiOutlineX size={20} />
-            </button>
+            </Button>
           </div>
         </div>
         {!vaultHandle ? (
           <div className="flex-1 overflow-y-auto p-3">
-            <VaultSidebarEmpty
+            <VaultEmptyState
               isVaultSupported={isVaultSupported}
               openVault={openVault}
               onCreateVault={() => setNewVaultFlowOpen(true)}
@@ -165,9 +163,8 @@ export default function MobileFileOverlay({
         {!isSearching && (
           <div className="flex border-b border-edge-subtle shrink-0">
             {(["files", "views"] as const).map((tab) => (
-              <button
+              <Button variant="unstyled"
                 key={tab}
-                type="button"
                 onClick={() => setActiveTab(tab)}
                 className={`flex-1 py-2 text-ui-footnote text-center capitalize border-b-2 transition-colors ${
                   activeTab === tab
@@ -176,14 +173,14 @@ export default function MobileFileOverlay({
                 }`}
               >
                 {tab}
-              </button>
+              </Button>
             ))}
           </div>
         )}
         <div className="flex-1 overflow-y-auto">
           {isSearching ? (
             <div className="flex flex-col h-full">
-              <VaultSidebarFiles
+              <VaultFileTree
                 processedFiles={processedFiles}
                 activeFilePath={activeFilePath}
                 openFile={openFile}
@@ -195,13 +192,12 @@ export default function MobileFileOverlay({
                 highlightQuery={searchQuery}
               />
               {hasMoreResults && (
-                <button
-                  type="button"
+                <Button variant="unstyled"
                   onClick={() => setShowAllResults(true)}
                   className="shrink-0 w-full py-2 text-ui-footnote text-center text-fg-faint hover:text-fg-muted transition-colors"
                 >
                   Show all {totalResultsCount} results
-                </button>
+                </Button>
               )}
             </div>
           ) : activeTab === "views" ? (
@@ -216,7 +212,7 @@ export default function MobileFileOverlay({
               onMatchCountChange={() => {}}
             />
           ) : (
-            <VaultSidebarFiles
+            <VaultFileTree
               processedFiles={allFiles}
               activeFilePath={activeFilePath}
               openFile={openFile}

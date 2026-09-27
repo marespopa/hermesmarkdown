@@ -156,7 +156,7 @@ describe("useFileSystem - createFile conflict resolution", () => {
 
     const { result } = renderHook(() => useFileSystem());
 
-    const synced = await result.current.syncSidebarToPath("nested/note.md");
+    const synced = await result.current.syncCurrentDirectoryToPath("nested/note.md");
 
     expect(synced).toBe(true);
     expect(mockVaultHandle.getDirectoryHandle).toHaveBeenCalledWith("nested");
@@ -176,14 +176,14 @@ describe("useFileSystem - createFile conflict resolution", () => {
 
     const { result } = renderHook(() => useFileSystem());
 
-    const synced = await result.current.syncSidebarToPath("Vault/nested/note.md");
+    const synced = await result.current.syncCurrentDirectoryToPath("Vault/nested/note.md");
 
     expect(synced).toBe(true);
     expect(mockVaultHandle.getDirectoryHandle).toHaveBeenCalledTimes(1);
     expect(mockVaultHandle.getDirectoryHandle).toHaveBeenCalledWith("nested");
   });
 
-  it("defers sidebar synchronization when vault permission is unavailable", async () => {
+  it("defers current-directory sync when vault permission is unavailable", async () => {
     const permissionError = Object.assign(new Error("Permission denied"), {
       name: "NotAllowedError",
     });
@@ -192,7 +192,7 @@ describe("useFileSystem - createFile conflict resolution", () => {
 
     const { result } = renderHook(() => useFileSystem());
 
-    const synced = await result.current.syncSidebarToPath("nested/note.md");
+    const synced = await result.current.syncCurrentDirectoryToPath("nested/note.md");
 
     expect(synced).toBe(false);
     expect(setIsVaultPending).toHaveBeenCalledWith(true);

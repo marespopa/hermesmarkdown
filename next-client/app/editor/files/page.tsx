@@ -8,8 +8,8 @@ import Button from "@/app/components/Button";
 import { atom_activeFilePath } from "@/app/atoms/atoms";
 import { atom_selectedFileTags } from "@/app/atoms/ui-atoms";
 import { useFileSystem } from "@/app/hooks/use-file-system";
-import { useSidebarSearch } from "../hooks/useSidebarSearch";
-import VaultSidebarFiles from "../components/VaultSidebarFiles";
+import { useVaultFileSearch } from "../hooks/useVaultFileSearch";
+import VaultFileTree from "../components/VaultFileTree";
 import UnifiedSearchInput from "../components/UnifiedSearchInput";
 
 export default function FilesPage() {
@@ -37,7 +37,7 @@ export default function FilesPage() {
     setSearchQuery,
     setShowAllResults,
     tags,
-  } = useSidebarSearch({ selectedTags, panel: "files" });
+  } = useVaultFileSearch({ selectedTags, panel: "files" });
   const isFiltered = selectedTags.length > 0 || searchQuery.trim().length > 0;
 
   const resolveFolderHandle = useCallback(async (path: string): Promise<FileSystemDirectoryHandle | null> => {
@@ -118,7 +118,7 @@ export default function FilesPage() {
               </p>
             </div>
             <div className="min-h-0 flex-1 overflow-y-auto rounded-xl border border-edge-subtle bg-chrome">
-              <VaultSidebarFiles
+              <VaultFileTree
                 processedFiles={isFiltered ? processedFiles : allFiles}
                 activeFilePath={activeFilePath}
                 openFile={openSelectedFile}

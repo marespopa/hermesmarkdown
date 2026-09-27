@@ -1,7 +1,7 @@
 {
   "name": "HermesMarkdown",
   "short_name": "HermesMD",
-  "description": "The agent-readable workspace for engineers. Local-first Markdown with a .hermes/ schema and AGENTS.md so coding agents can index your vault without reading every file. Your data never leaves your device.",
+  "description": "Local-first Markdown editor that runs in your browser and reads and writes files directly on disk. WikiLinks, spreadsheet-style tables, tasks, and optional bring-your-own-key AI.",
   "start_url": "/",
   "icons": [
     {

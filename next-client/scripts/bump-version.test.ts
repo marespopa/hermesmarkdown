@@ -39,6 +39,19 @@ describe("bump-version", () => {
     expect(packageLock.packages[""].version).toBe("5.3.0");
   });
 
+  it("bumps package.json alone when there is no package-lock.json", async () => {
+    const directory = await mkdtemp(join(tmpdir(), "hermesmarkdown-version-"));
+    temporaryDirectories.push(directory);
+    await writeFile(join(directory, "package.json"), `${JSON.stringify({ name: "hermesmarkdown", version: "6.0.5" }, null, 2)}\n`);
+
+    await execFileAsync(process.execPath, [scriptPath, "--patch"], {
+      env: { ...process.env, VERSION_BUMP_DIRECTORY: directory },
+    });
+
+    const packageJson = JSON.parse(await readFile(join(directory, "package.json"), "utf8"));
+    expect(packageJson.version).toBe("6.0.6");
+  });
+
   it("rejects mismatched manifest versions without modifying either file", async () => {
     const directory = await createVersionFixtures();
     await writeFile(

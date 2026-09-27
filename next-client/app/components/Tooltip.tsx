@@ -17,7 +17,7 @@ const POSITION_CLASSES: Record<Position, string> = {
 
 /**
  * Shared hover tooltip — the delayed fade-in affordance used across all
- * icon-only controls (sidebar rail, pane tab actions, etc).
+ * icon-only controls (pane tab actions, toolbar buttons, etc).
  */
 export default function Tooltip({
   children,

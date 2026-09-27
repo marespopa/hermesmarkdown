@@ -85,10 +85,9 @@ export const atom_frontmatterHasPrompted = atomWithStorage<boolean>(
   false,
 );
 // Shows dotfiles/dotfolders (e.g. .hermes/) and underscore-prefixed skill/meta
-// files in the sidebar tree and search. Off by default, so the file tree
-// stays focused on the user's own notes; the sidebar toggle, settings page,
-// and command palette all offer a quick opt-in for when someone needs to see
-// skills, AGENTS.md, and other files the app writes on their behalf.
+// files in the file tree and search. Off by default, so the file tree
+// stays focused on the user's own notes; the settings page and command
+// palette offer a quick opt-in for when someone needs to see those files.
 // node_modules and vendor stay excluded regardless, since they're never
 // vault content.
 export const atom_showHiddenFiles = atomWithStorage<boolean>(
@@ -122,9 +121,6 @@ export const atom_tasksGroupBy = atomWithStorage<"status" | "file">(
   "status",
 );
 
-// Transient — never persisted, so each editor session starts fresh.
-export type RailPanel = "files" | "search" | "tags" | "views" | "recent";
-export const atom_railPanel = atom<RailPanel | null>(null);
 
 // Set when navigating to a task from the Tasks view; consumed once by the
 // editor pane whose filePath matches, to move the caret to that line, then

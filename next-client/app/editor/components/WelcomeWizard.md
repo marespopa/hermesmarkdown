@@ -7,7 +7,7 @@ Description: Eight-step onboarding that covers opening, creating, or connecting 
 - Persistence: All preferences go to `localStorage` (for example `hasCompletedOnboarding`, `welcomeWizardStep`, `theme`, `hermes_claude_key`). The vault handle goes to IndexedDB.
 
 ## Dependencies
-- Core: `DialogModal`, `Button`, `Input`, `Toggle`, `FontPicker`, `SettingControls`, `CreateVaultSubSteps`, `Toastr`.
+- Core: `DialogModal`, `Button`, and the step components in [`welcome-wizard/`](welcome-wizard/README.md), which own their settings atoms (the wizard itself only reads `atom_isWizardOpen`, `atom_welcomeWizardStep`, `atom_hasCompletedOnboarding`, `atom_vaultHandle`).
 - Network: The optional AI step's "Test connection" button calls `testAIConnection` → `/api/ai`, using the user's key. Everything else is local. No telemetry.
 
 ## Quick Usage

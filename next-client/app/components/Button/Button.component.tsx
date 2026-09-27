@@ -13,29 +13,27 @@ type ButtonVariant =
   | "fab-action"
   | "fab-toggle"
   | "pill-icon"
-  | "menu-item";
+  | "menu-item"
+  // No visual styling beyond the shared focus ring: for bespoke controls that
+  // style themselves entirely through `className`.
+  | "unstyled";
 
-type Props = {
+type Props = React.ButtonHTMLAttributes<HTMLButtonElement> & {
   children?: ReactNode;
   variant: ButtonVariant;
   label?: string | ReactNode;
-  onClick?: (e: React.MouseEvent<HTMLButtonElement>) => void;
   className?: string;
   isDisabled?: boolean;
-  [key: string]: any;
 };
 
-export default function Button({
-  variant,
-  label,
-  children,
-  className = "",
-  isDisabled = false,
-  onClick,
-  ...rest
-}: Props) {
+const Button = React.forwardRef<HTMLButtonElement, Props>(function Button(
+  { variant, label, children, className = "", isDisabled = false, onClick, type = "button", ...rest },
+  ref,
+) {
   return (
     <button
+      ref={ref}
+      type={type}
       onClick={(e) => {
         if (onClick) {
           onClick(e);
@@ -48,7 +46,9 @@ export default function Button({
       {children || label}
     </button>
   );
-}
+});
+
+export default Button;
 
 // Minimalistic Base: Standardized for a premium "Pro" feel
 const baseStyles =
@@ -101,6 +101,9 @@ const variantStyles = (variant: ButtonVariant): string => {
 
     case "pill-icon":
       return "flex items-center justify-center p-1 text-ink-muted hover:text-sage hover:scale-110 dark:text-stone dark:hover:text-sage transition-all duration-200 ease-out rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-sage focus-visible:ring-offset-2 focus-visible:ring-offset-surface disabled:opacity-30 disabled:pointer-events-none select-none active:scale-95";
+
+    case "unstyled":
+      return "focus:outline-none focus-visible:ring-2 focus-visible:ring-sage focus-visible:ring-offset-2 focus-visible:ring-offset-surface";
 
     default:
       return baseStyles;

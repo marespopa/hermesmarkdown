@@ -39,6 +39,17 @@ import {
   type GitHubVaultRemoteFile,
 } from "@/app/services/github-vault-workspace";
 import { metadataWorker, withPickerLock, isVaultSupported, isIdbSupported } from "./shared";
+import {
+  collectVaultFiles,
+  isCloudFolderName,
+  isSameDirectory,
+  listDirectoryEntries,
+  metadataForFiles,
+  readFilesForIndexing,
+  resolveParentDirectory,
+  singlePaneLayout,
+} from "./vault-scan";
+import { useMetadataWorkerResults } from "./use-metadata-worker-results";
 import { atom_showHiddenFiles } from "@/app/atoms/ui-atoms";
 
 export function useVaultManager() {
@@ -59,27 +70,10 @@ export function useVaultManager() {
   const rebindHandles = useSetAtom(atom_rebindHandles);
   const setIndexerState = useSetAtom(atom_indexerState);
   const pendingHandlesRef = useRef<Map<string, FileSystemFileHandle>>(new Map());
-  const vaultHandleRef = useRef(vaultHandle);
-  useEffect(() => { vaultHandleRef.current = vaultHandle; }, [vaultHandle]);
 
   const detectCloudVault = useCallback(
     (handle: FileSystemDirectoryHandle) => {
-      const cloudFolderNames = [
-        "icloud",
-        "onedrive",
-        "dropbox",
-        "box",
-        "pcloud",
-        "nextcloud",
-        "mega",
-        "synology",
-        "nas",
-        "owncloud",
-        "kdrive",
-        "terabox",
-      ];
-      const name = handle.name.toLowerCase();
-      const isCloud = cloudFolderNames.some((cloudName) => name.includes(cloudName));
+      const isCloud = isCloudFolderName(handle.name);
       
       if (isCloud) {
         setIsCloudVault(true);
@@ -104,33 +98,7 @@ export function useVaultManager() {
       const includeHidden = showHiddenOverride ?? showHiddenFiles;
       try {
         setFileSystemVersion((v) => v + 1);
-        const entries: any[] = [];
-
-        // Construct the base path for entries in this directory
-        let dirPath = "";
-        if (vaultHandle && handle !== vaultHandle) {
-          try {
-            const pathParts = await (vaultHandle as any).resolve(handle);
-            if (pathParts) {
-              dirPath = pathParts.join("/");
-            }
-          } catch (err) {
-            console.warn("Failed to resolve directory path:", err);
-          }
-        }
-
-        for await (const entry of (handle as any).values()) {
-          const entryPath = dirPath ? `${dirPath}/${entry.name}` : entry.name;
-          // Attach path to the handle object for easier access in UI components
-          (entry as any).path = entryPath;
-
-          if (entry.kind === "file" && entry.name.endsWith(".md")) {
-            entries.push(entry);
-          } else if (entry.kind === "directory" && (includeHidden || !entry.name.startsWith("."))) {
-            entries.push(entry);
-          }
-        }
-        setVaultFiles(entries.sort((a, b) => a.name < b.name ? -1 : a.name > b.name ? 1 : 0));
+        setVaultFiles(await listDirectoryEntries(vaultHandle, handle, includeHidden));
       } catch (err: any) {
         console.warn("Failed to scan vault:", err);
       }
@@ -146,58 +114,7 @@ export function useVaultManager() {
         if (!handle) return;
 
         setIndexerState({ status: "compiling", count: 0 });
-        const fileHandles: { handle: FileSystemFileHandle; path: string }[] = [];
-
-        let subdirFailCount = 0;
-
-        // Directories that are never markdown vaults but can hold huge file trees.
-        // Descending into these (e.g. node_modules) can take minutes and pins the
-        // indexer, so we skip them entirely. Hidden/system dotfolders are skipped too.
-        const isIgnoredDir = (name: string) =>
-          name === "node_modules" ||
-          name === "vendor" ||
-          (!includeHidden && name.startsWith("."));
-
-        // When hidden files are shown, non-.md files inside a dotfolder (e.g.
-        // .hermes/index.yaml, .hermes/schema.yaml) should be visible too —
-        // otherwise "show hidden files" would still leave some of what's
-        // actually in the vault permanently unseeable.
-        const isInHiddenDir = (path: string) => path.split("/").some((seg) => seg.startsWith("."));
-
-        async function collectFiles(
-          dirHandle: FileSystemDirectoryHandle,
-          path: string = "",
-        ) {
-          try {
-            for await (const entry of (dirHandle as any).values()) {
-              const currentPath = path ? `${path}/${entry.name}` : entry.name;
-              if (entry.kind === "file" && (entry.name.endsWith(".md") || (includeHidden && isInHiddenDir(currentPath)))) {
-                fileHandles.push({
-                  handle: entry as FileSystemFileHandle,
-                  path: currentPath,
-                });
-              } else if (entry.kind === "directory" && !isIgnoredDir(entry.name)) {
-                await collectFiles(entry as FileSystemDirectoryHandle, currentPath);
-              }
-            }
-          } catch (err: any) {
-            console.warn(`Failed to collect files from ${path || "root"}:`, err);
-            if (path) subdirFailCount++;
-          }
-        }
-
-        // Fail-safe: never let a slow/huge tree pin the indexer. If the walk runs long,
-        // commit whatever was collected so far and stop showing the scanning state.
-        let timedOut = false;
-        await Promise.race([
-          collectFiles(handle),
-          new Promise<void>((resolve) =>
-            setTimeout(() => {
-              timedOut = true;
-              resolve();
-            }, 60000), // 60s timeout for local vaults
-          ),
-        ]);
+        const { files: fileHandles, failedSubdirs: subdirFailCount, timedOut } = await collectVaultFiles(handle, includeHidden);
 
         if (timedOut) {
           toast.error(
@@ -206,7 +123,6 @@ export function useVaultManager() {
           );
         }
 
-
         if (subdirFailCount > 0) {
           toast.error(
             `Could not read ${subdirFailCount} subfolder(s). Grant full folder access and re-open the vault.`,
@@ -214,48 +130,13 @@ export function useVaultManager() {
           );
         }
 
-        if (passedHandle) {
-          // Fresh vault open: replace metadata entirely so stale entries from a previous vault never block display.
-          setFileMetadata(() => {
-            const next: Record<string, any> = {};
-            fileHandles.forEach(({ handle: fh, path }) => {
-              next[path] = { path, name: fh.name, handle: fh, tags: [], links: [], frontmatter: {}, modifiedAt: 0, wordCount: 0 };
-            });
-            return next;
-          });
-        } else {
-          // Re-index after save / periodic sync: preserve parsed metadata, but
-          // always replace stale handles and remove files no longer on disk.
-          setFileMetadata((prev) => {
-            const next: Record<string, any> = {};
-            fileHandles.forEach(({ handle: fh, path }) => {
-              next[path] = {
-                ...(prev[path] || { tags: [], links: [], frontmatter: {}, modifiedAt: 0, wordCount: 0 }),
-                path,
-                name: fh.name,
-                handle: fh,
-              };
-            });
-            return next;
-          });
-        }
+        // Fresh vault open: replace metadata entirely so stale entries from a
+        // previous vault never block display. Re-index after save / periodic
+        // sync: keep parsed metadata, refresh handles, drop files gone from disk.
+        setFileMetadata((prev) => metadataForFiles(fileHandles, passedHandle ? undefined : prev));
 
-        // Tag extraction below is secondary; it must not block the visible state.
-        // setIndexerState("idle"); // REMOVED - it's too early
-
-        // Read file contents in the main thread (permissions are scoped here, not in the worker)
-        const filesWithContent = await Promise.all(
-          fileHandles.map(async (f) => {
-            try {
-              const file = await f.handle.getFile();
-              const content = await file.text();
-              return { path: f.path, name: f.handle.name, content, modifiedAt: file.lastModified };
-            } catch {
-              return null;
-            }
-          })
-        );
-        const readable = filesWithContent.filter((f): f is NonNullable<typeof f> => f !== null);
+        // Tag extraction is secondary; the visible state above never waits for it.
+        const readable = await readFilesForIndexing(fileHandles);
 
         // Store handles locally so we can re-attach them after the worker responds
         pendingHandlesRef.current = new Map(fileHandles.map((f) => [f.path, f.handle]));
@@ -272,8 +153,6 @@ export function useVaultManager() {
     },
     [vaultHandle, setIndexerState, setFileMetadata, showHiddenFiles],
   );
-
-
 
   const initVaultFromHandle = useCallback(async (
     handle: FileSystemDirectoryHandle,
@@ -293,15 +172,7 @@ export function useVaultManager() {
 
     setFileMetadata({});
     setOpenFiles({});
-    setWorkspaceLayout({
-      rootContainer: {
-        id: "default-pane",
-        type: "editor",
-        openFilePaths: [],
-        activeFilePath: null as any,
-        isPinned: false,
-      },
-    });
+    setWorkspaceLayout(singlePaneLayout([], null));
     setVaultHandle(handle);
     setVaultDescriptor(descriptor);
     setCurrentDirectoryHandle(handle);
@@ -381,39 +252,23 @@ export function useVaultManager() {
     }
   }, [vaultHandle, setIsVaultPending, setCurrentDirectoryHandle, setIsCloudVault, scanVault, indexVaultTags, rebindHandles, detectCloudVault]);
 
-  const syncSidebarToPath = useCallback(
+  const syncCurrentDirectoryToPath = useCallback(
     async (path: string) => {
       if (!vaultHandle || !path || path === "draft") return false;
 
-      const parts = path.split("/").filter(Boolean);
-      if (parts[0] === vaultHandle.name) parts.shift();
-      let targetHandle: FileSystemDirectoryHandle = vaultHandle;
-
-      if (parts.length > 1) {
-        const folderParts = parts.slice(0, -1);
-        try {
-          for (const part of folderParts) {
-            targetHandle = await targetHandle.getDirectoryHandle(part);
-          }
-        } catch (err: any) {
-          if (err?.name === "NotAllowedError" || err?.name === "SecurityError") {
-            setIsVaultPending(true);
-            return false;
-          }
-          console.warn("Failed to find parent directory for path:", path, err);
+      let targetHandle: FileSystemDirectoryHandle;
+      try {
+        targetHandle = await resolveParentDirectory(vaultHandle, path);
+      } catch (err: any) {
+        if (err?.name === "NotAllowedError" || err?.name === "SecurityError") {
+          setIsVaultPending(true);
           return false;
         }
+        console.warn("Failed to find parent directory for path:", path, err);
+        return false;
       }
 
-      // Check if we are already in the target directory
-      let isSame = false;
-      if (currentDirectoryHandle) {
-        try {
-          isSame = await (targetHandle as any).isSameEntry(currentDirectoryHandle);
-        } catch {
-          isSame = targetHandle.name === currentDirectoryHandle.name;
-        }
-      }
+      const isSame = !!currentDirectoryHandle && await isSameDirectory(targetHandle, currentDirectoryHandle);
 
       if (!isSame) {
         setCurrentDirectoryHandle(targetHandle);
@@ -464,43 +319,13 @@ export function useVaultManager() {
       }
     });
 
-    setWorkspaceLayout({
-      rootContainer: {
-        id: "default-pane",
-        type: "editor",
-        openFilePaths: ["draft"],
-        activeFilePath: "draft",
-        isPinned: false
-      }
-    });
+    setWorkspaceLayout(singlePaneLayout(["draft"], "draft"));
 
     clearVaultHandle();
     toast.success("Vault closed");
   }, [setVaultHandle, setCurrentDirectoryHandle, setVaultFiles, setFileMetadata, setActiveFileHandle, setActiveFilePath, setIsVaultPending, setOpenFiles, setWorkspaceLayout, setIsCloudVault, setVaultDescriptor]);
 
-  // Worker Message Listener
-  useEffect(() => {
-    if (!metadataWorker) return;
-
-    const handleMessage = (event: MessageEvent) => {
-      const { results } = event.data;
-      if (!results) return;
-      if (pendingHandlesRef.current.size === 0) return;
-
-      setFileMetadata((prev) => {
-        const next = { ...prev };
-        results.forEach((res: any) => {
-          const handle = pendingHandlesRef.current.get(res.path);
-          if (handle) next[res.path] = { ...res, handle };
-        });
-        return next;
-      });
-      setIndexerState("idle");
-    };
-
-    metadataWorker.addEventListener("message", handleMessage);
-    return () => metadataWorker?.removeEventListener("message", handleMessage);
-  }, [setFileMetadata, setIndexerState]);
+  useMetadataWorkerResults(pendingHandlesRef);
 
   // Load vault on mount
   useEffect(() => {
@@ -558,6 +383,6 @@ export function useVaultManager() {
     closeVault,
     navigateTo,
     navigateBack,
-    syncSidebarToPath,
+    syncCurrentDirectoryToPath,
   };
 }

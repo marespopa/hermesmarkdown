@@ -20,8 +20,11 @@ import Button from "@/app/components/Button";
 ## Props Overview
 | Prop | Type | Default | Description |
 |---|---|---|---|
-| variant | `"primary" \| "secondary" \| "outlined" \| "icon" \| "icon-bg" \| "tertiary" \| "hero" \| "warning" \| "bare" \| "fab-action" \| "fab-toggle" \| "pill-icon" \| "menu-item"` |  | Visual style |
+| variant | `"primary" \| "secondary" \| "outlined" \| "icon" \| "icon-bg" \| "tertiary" \| "hero" \| "warning" \| "bare" \| "fab-action" \| "fab-toggle" \| "pill-icon" \| "menu-item" \| "unstyled"` |  | Visual style. `unstyled` adds only the focus ring, for controls styled entirely via `className` |
+| type? | `"button" \| "submit" \| "reset"` | `"button"` | Button type |
+| ref | `Ref<HTMLButtonElement>` |  | Forwarded to `<button>` |
 | label? | `string \| ReactNode` |  | Content (alternative to `children`) |
+| children? | `ReactNode` |  | Content |
 | onClick? | `(e: MouseEvent) => void` |  | Click handler |
 | isDisabled? | `boolean` | `false` | Disables the button |
 | className? | `string` | `""` | Extra classes |

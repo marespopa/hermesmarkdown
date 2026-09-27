@@ -23,4 +23,4 @@ import Toggle from "@/app/components/Toggle/Toggle.component";
 | active | `boolean` |  | Current value |
 | onChange | `(v: boolean) => void` |  | Change handler |
 | label? | `string` |  | Accessible label |
-| variant? | `"default" \| "soft"` |  | Style |
+| variant? | `"default" \| "soft"` | `"default"` | Style |

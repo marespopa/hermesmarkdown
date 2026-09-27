@@ -11,11 +11,11 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 ## TypeScript and Testing
 
 Run JavaScript tooling from `next-client`, not the repository root. This
-project pins Yarn 4.3.1 in `package.json`; use Corepack so a globally
+project pins Yarn 4.18.0 in `package.json` (`packageManager`); use Corepack so a globally
 installed Yarn 1.x or `npm exec` does not bypass the repository dependencies.
 
-```powershell
-Set-Location next-client
+```bash
+cd next-client
 corepack enable
 corepack yarn install
 corepack yarn tsc --noEmit
@@ -24,15 +24,15 @@ corepack yarn vitest run
 
 For a focused test, pass the test file to Vitest:
 
-```powershell
-corepack yarn vitest run app/editor/components/VaultSidebarFiles.test.tsx
+```bash
+corepack yarn vitest run app/editor/components/VaultFileTree.test.tsx
 ```
 
 The package scripts are also available after dependencies are installed:
 
-```powershell
+```bash
 corepack yarn check
-corepack yarn test --run app/editor/components/VaultSidebarFiles.test.tsx
+corepack yarn test --run app/editor/components/VaultFileTree.test.tsx
 ```
 
 Do not use `npm exec tsc` or a globally installed `yarn` command for

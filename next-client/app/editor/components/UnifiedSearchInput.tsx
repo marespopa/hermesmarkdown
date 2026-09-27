@@ -3,6 +3,8 @@
 import React, { useState, useRef, useEffect } from "react";
 import { HiOutlineSearch, HiX } from "react-icons/hi";
 import { TAG_COLORS, WORKFLOW_TAGS } from "./constants";
+import Button from "@/app/components/Button";
+import { BareInput } from "@/app/components/Input";
 
 interface UnifiedSearchInputProps {
   tokens: string[];
@@ -168,7 +170,7 @@ export default function UnifiedSearchInput({
           aria-hidden
         />
 
-        <input
+        <BareInput
           ref={inputRef}
           type="text"
           value={inputValue}
@@ -184,14 +186,13 @@ export default function UnifiedSearchInput({
             "flex-1 min-w-0 bg-transparent outline-none focus-visible:outline-none border-none",
             "text-[13px] sm:text-xs leading-none",
             "text-ink-light dark:text-ink-dark",
-            "placeholder:text-stone dark:placeholder:text-stone",
+            "placeholder:text-fg-faint",
             "caret-sage",
           ].join(" ")}
         />
 
         {/* Clear — always in DOM so width is reserved, no layout shift */}
-        <button
-          type="button"
+        <Button variant="unstyled"
           tabIndex={-1}
           onMouseDown={(e) => { e.preventDefault(); handleClearAll(); }}
           aria-label="Clear search"
@@ -205,7 +206,7 @@ export default function UnifiedSearchInput({
           ].join(" ")}
         >
           <HiX size={8} />
-        </button>
+        </Button>
       </div>
 
       {/* ── Zone 2: Active tag filters ─────────────────────────────────
@@ -226,25 +227,23 @@ export default function UnifiedSearchInput({
             >
               <TagDot tag={token} />
               <span>{token}</span>
-              <button
-                type="button"
+              <Button variant="unstyled"
                 tabIndex={-1}
                 onMouseDown={(e) => { e.preventDefault(); onTokenRemove(token); }}
                 className="ml-0.5 w-3.5 h-3.5 flex items-center justify-center rounded-full opacity-50 hover:opacity-100 hover:bg-beige-light dark:hover:bg-clay transition-all"
                 aria-label={`Remove ${token}`}
               >
                 <HiX size={8} />
-              </button>
+              </Button>
             </span>
           ))}
 
-          <button
-            type="button"
+          <Button variant="unstyled"
             onMouseDown={(e) => { e.preventDefault(); tokens.forEach(t => onTokenRemove(t)); }}
             className="ml-auto text-[11px] text-stone hover:text-ink-muted dark:hover:text-ink-dark transition-colors"
           >
             clear filters
-          </button>
+          </Button>
         </div>
       )}
 
@@ -252,9 +251,8 @@ export default function UnifiedSearchInput({
       {showPopover && (
         <div className="absolute top-[calc(theme(spacing.11)+theme(spacing.1))] sm:top-[calc(theme(spacing.9)+theme(spacing.1))] left-0 right-0 z-50 bg-paper-light/95 dark:bg-paper-dark/95 backdrop-blur-xl border border-beige/60 dark:border-clay/60 rounded-2xl py-1 overflow-hidden">
           {filteredSuggestions.map((tag, idx) => (
-            <button
+            <Button variant="unstyled"
               key={tag}
-              type="button"
               onMouseDown={(e) => { e.preventDefault(); commitSuggestion(tag); }}
               className={[
                 "w-full flex items-center gap-2.5 px-3.5 py-2.5 sm:py-2",
@@ -270,7 +268,7 @@ export default function UnifiedSearchInput({
               {WORKFLOW_TAGS.includes(tag) && (
                 <span className="ml-auto text-[11px] opacity-50">workflow</span>
               )}
-            </button>
+            </Button>
           ))}
         </div>
       )}

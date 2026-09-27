@@ -1,4 +1,4 @@
-import { readFile, writeFile } from "node:fs/promises";
+import { access, readFile, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -16,18 +16,21 @@ const requestedBumps = bumpTypes.filter(
 );
 
 if (requestedBumps.length !== 1) {
-  console.error("Usage: npm run version -- --major|--minor|--patch");
+  console.error("Usage: yarn run version --major|--minor|--patch");
   process.exitCode = 1;
 } else {
-  const [packageContents, packageLockContents] = await Promise.all([
-    readFile(packagePath, "utf8"),
-    readFile(packageLockPath, "utf8"),
-  ]);
-  const packageJson = JSON.parse(packageContents);
-  const packageLock = JSON.parse(packageLockContents);
+  // The project uses Yarn, whose lockfile doesn't record the workspace
+  // version, so package.json is the only required manifest. A legacy
+  // package-lock.json is kept in sync when present.
+  const hasPackageLock = await access(packageLockPath).then(() => true, () => false);
+  const packageJson = JSON.parse(await readFile(packagePath, "utf8"));
+  const packageLock = hasPackageLock ? JSON.parse(await readFile(packageLockPath, "utf8")) : null;
   const currentVersion = packageJson.version;
 
-  if (typeof currentVersion !== "string" || packageLock.version !== currentVersion || packageLock.packages?.[""]?.version !== currentVersion) {
+  if (typeof currentVersion !== "string") {
+    throw new Error("package.json must contain a version before bumping.");
+  }
+  if (packageLock && (packageLock.version !== currentVersion || packageLock.packages?.[""]?.version !== currentVersion)) {
     throw new Error("package.json and package-lock.json must contain the same version before bumping.");
   }
 
@@ -54,13 +57,13 @@ if (requestedBumps.length !== 1) {
 
   const nextVersion = `${major}.${minor}.${patch}`;
   packageJson.version = nextVersion;
-  packageLock.version = nextVersion;
-  packageLock.packages[""].version = nextVersion;
-
-  await Promise.all([
-    writeFile(packagePath, `${JSON.stringify(packageJson, null, 2)}\n`),
-    writeFile(packageLockPath, `${JSON.stringify(packageLock, null, 2)}\n`),
-  ]);
+  const writes = [writeFile(packagePath, `${JSON.stringify(packageJson, null, 2)}\n`)];
+  if (packageLock) {
+    packageLock.version = nextVersion;
+    packageLock.packages[""].version = nextVersion;
+    writes.push(writeFile(packageLockPath, `${JSON.stringify(packageLock, null, 2)}\n`));
+  }
+  await Promise.all(writes);
 
   console.log(`Version bumped: ${currentVersion} -> ${nextVersion}`);
 }
