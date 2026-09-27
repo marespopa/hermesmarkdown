@@ -21,9 +21,6 @@ export type VaultDescriptor =
 
 export const atom_vaultDescriptor = atom<VaultDescriptor | null>(null);
 
-export type VaultSetupStatus = 'idle' | 'checking' | 'needs_setup' | 'configured' | 'skipped';
-export const atom_vaultSetupStatus = atom<VaultSetupStatus>('idle');
-
 // Action atoms
 export const atom_rebindHandles = atom(
   null,

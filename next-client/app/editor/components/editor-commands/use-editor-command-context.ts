@@ -75,6 +75,7 @@ export function useEditorCommandContext(props: EditorCommandsProps) {
     deleteFile,
     duplicateFile,
     moveItem,
+    createFolder,
   } = useFileSystem();
   const dialog = useDialog();
   const [rawTheme, setTheme] = useAtom(atom_theme);
@@ -123,6 +124,7 @@ export function useEditorCommandContext(props: EditorCommandsProps) {
     deleteFile,
     duplicateFile,
     moveItem,
+    createFolder,
     dialog,
     themeCycle,
     setTheme,

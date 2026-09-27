@@ -111,14 +111,11 @@ describe("VaultSidebarFiles tree interactions", () => {
     });
   });
 
-  it("creates a subfolder from a folder options menu", async () => {
-    const folderHandle = { kind: "directory", name: "Folder" } as FileSystemDirectoryHandle;
-    const resolveFolderHandle = vi.fn().mockResolvedValue(folderHandle);
+  it("opens the shared folder creation flow from a folder options menu", async () => {
     const createFolder = vi.fn().mockResolvedValue(null);
     renderFiles({
       treeView: true,
       folderPaths: ["Folder"],
-      resolveFolderHandle,
       createFolder,
     });
 
@@ -126,32 +123,20 @@ describe("VaultSidebarFiles tree interactions", () => {
     fireEvent.click(screen.getByText("New Folder"));
 
     await waitFor(() => {
-      expect(resolveFolderHandle).toHaveBeenCalledWith("Folder");
-      expect(createFolder).toHaveBeenCalledWith(folderHandle);
+      expect(createFolder).toHaveBeenCalledWith();
     });
   });
 
-  it("renames files inline while selecting only the Markdown basename", async () => {
+  it("opens the shared rename dialog for files", () => {
     const { props } = renderFiles();
 
     fireEvent.click(screen.getByLabelText("File options"));
     fireEvent.click(screen.getByText("Rename"));
 
-    const input = screen.getByLabelText("Rename note.md") as HTMLInputElement;
-    expect(input.selectionStart).toBe(0);
-    expect(input.selectionEnd).toBe(4);
-
-    fireEvent.change(input, { target: { value: "renamed.md" } });
-    fireEvent.keyDown(input, { key: "Enter" });
-
-    expect(props.renameFile).toHaveBeenCalledWith(fileHandle, "renamed.md");
-    expect(screen.queryByLabelText("Rename note.md")).not.toBeInTheDocument();
-    await waitFor(() => {
-      expect(document.activeElement).toBe(screen.getByText("note").closest("[tabindex]"));
-    });
+    expect(props.renameFile).toHaveBeenCalledWith(fileHandle);
   });
 
-  it("renames folders inline with a freshly resolved handle", async () => {
+  it("opens the shared rename dialog with a freshly resolved folder handle", async () => {
     const folderHandle = { kind: "directory", name: "Folder" };
     const resolveFolderHandle = vi.fn().mockResolvedValue(folderHandle);
     const { props } = renderFiles({
@@ -162,13 +147,10 @@ describe("VaultSidebarFiles tree interactions", () => {
 
     fireEvent.click(screen.getByLabelText("Folder options"));
     fireEvent.click(screen.getByText("Rename"));
-    const input = screen.getByLabelText("Rename Folder");
-    fireEvent.change(input, { target: { value: "Renamed folder" } });
-    fireEvent.keyDown(input, { key: "Enter" });
 
     await waitFor(() => {
       expect(resolveFolderHandle).toHaveBeenCalledWith("Folder");
-      expect(props.renameFile).toHaveBeenCalledWith(folderHandle, "Renamed folder");
+      expect(props.renameFile).toHaveBeenCalledWith(folderHandle);
     });
   });
 });

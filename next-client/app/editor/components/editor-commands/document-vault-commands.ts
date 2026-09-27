@@ -1,4 +1,3 @@
-import toast from "react-hot-toast";
 import type { Command } from "@/app/components/CommandPalette/CommandPaletteContext";
 import { formatShortcut } from "@/app/utils/platform";
 import type { EditorCommandContext } from "./use-editor-command-context";
@@ -9,6 +8,7 @@ export function buildDocumentVaultCommandGroups(context: EditorCommandContext) {
     activeFilePath,
     activeLeaf,
     closeVault,
+    createFolder,
     deleteFile,
     dialog,
     duplicateFile,
@@ -23,7 +23,6 @@ export function buildDocumentVaultCommandGroups(context: EditorCommandContext) {
     onSave,
     openVault,
     renameFile,
-    scanVault,
     setNewVaultFlowOpen,
     vaultHandle,
   } = context;
@@ -175,24 +174,7 @@ export function buildDocumentVaultCommandGroups(context: EditorCommandContext) {
           id: "new-folder",
           label: "New folder",
           keywords: "create directory",
-          action: async () => {
-            const folderPath = String(await dialog.prompt("Enter folder path:", "", "New Folder") ?? "");
-            if (!folderPath) return;
-            try {
-              const segments = folderPath.split(/[\\/]/).map((segment) => segment.trim()).filter(Boolean);
-              if (segments.length === 0 || segments.some((segment) => segment === "." || segment === "..")) {
-                toast.error("Enter a valid folder path");
-                return;
-              }
-              let directory = vaultHandle;
-              for (const segment of segments) {
-                directory = await directory.getDirectoryHandle(segment, { create: true });
-              }
-              await scanVault(vaultHandle);
-            } catch {
-              toast.error("Failed to create folder");
-            }
-          },
+          action: createFolder,
         }]
       : []),
   ];

@@ -43,17 +43,6 @@ export const atom_renderedFontSize = atomWithStorage<string>(
   "18px",
 );
 export const atom_isEditorFocused = atom<boolean>(false);
-export const atom_cursorPosition = atom<{ line: number; col: number }>({
-  line: 1,
-  col: 1,
-});
-export const atom_statusMetricMode = atomWithStorage<
-  "words" | "chars" | "readingTime"
->("statusMetricMode", "words");
-export const atom_isAutoSaveEnabled = atomWithStorage<boolean>(
-  "isAutoSaveEnabled",
-  true,
-);
 
 export type AutosaveMode = "afterDelay" | "onFocusChange" | "manual";
 
@@ -72,13 +61,6 @@ export const atom_autosaveDelay = atomWithStorage<number>(
   "autosaveDelay",
   2000,
 );
-export const atom_editorWidth = atomWithStorage<
-  "narrow" | "standard" | "medium" | "wide"
->("editorWidth", "standard");
-export const atom_editorContentWidth = atomWithStorage<number | null>(
-  "editorContentWidth",
-  null,
-);
 export const atom_hasCompletedOnboarding = atomWithStorage<boolean>(
   "hasCompletedOnboarding",
   false,
@@ -92,10 +74,6 @@ export const atom_welcomeWizardStep = atomWithStorage<number>(
   0,
 );
 
-export const atom_frontmatterDefaultMode = atomWithStorage<"fields" | "raw">(
-  "frontmatterDefaultMode",
-  "fields",
-);
 export const atom_frontmatterCollapsedByDefault = atomWithStorage<boolean>(
   "frontmatterCollapsedByDefault",
   false,
@@ -144,26 +122,9 @@ export const atom_tasksGroupBy = atomWithStorage<"status" | "file">(
   "status",
 );
 
-// No getOnInit: the server has no localStorage and always renders the 260
-// default, so reading it eagerly on the client would mismatch the SSR HTML
-// and trigger a hydration error. The default-then-localStorage-on-mount
-// jump is expected; see atom_isSidebarResizing below for why that jump
-// used to leave a visible gap during resize.
-export const atom_sidebarWidth = atomWithStorage<number>("sidebarWidth", 260);
-
-// True only while the sidebar's drag-resize handle is active. The width
-// transitions on the toggle button/clip container in page.tsx are meant
-// for the open/close animation only — during a live drag they'd otherwise
-// keep easing toward each mousemove target instead of tracking the mouse,
-// leaving a lagging gap for ~300ms after the drag ends.
-export const atom_isSidebarResizing = atom<boolean>(false);
-
-// The expanded navigator is visible by default; null means it has been
-// explicitly collapsed from the sidebar header. Transient — never persisted,
-// so each editor session starts with the navigator open.
+// Transient — never persisted, so each editor session starts fresh.
 export type RailPanel = "files" | "search" | "tags" | "views" | "recent";
 export const atom_railPanel = atom<RailPanel | null>(null);
-export const atom_lastSidebarPanel = atomWithStorage<RailPanel>("lastSidebarPanel", "files");
 
 // Set when navigating to a task from the Tasks view; consumed once by the
 // editor pane whose filePath matches, to move the caret to that line, then
@@ -193,7 +154,6 @@ export interface DialogConfig {
 
 export const atom_globalDialog = atom<DialogConfig | null>(null);
 
-export const atom_selectionCount = atom<number>(0);
 export type IndexerState = "idle" | "compiling" | { status: "compiling"; count: number };
 export const atom_indexerState = atom<IndexerState>("idle");
 
@@ -216,11 +176,6 @@ export interface ClaudeModelInfo {
 }
 export const atom_availableClaudeModels = atom<ClaudeModelInfo[]>([]);
 
-// Holds the file path being edited, or null when closed
-export const atom_frontmatterWizardOpen = atom<string | null>(null);
-// Field key to jump the wizard to on open
-export const atom_frontmatterWizardTargetField = atom<string | null>(null);
-
 // Ambient AI action status, surfaced as the status bar's center pill.
 // `seq` lets a delayed "auto-clear to idle" timeout (see app/services/ai-status.ts)
 // confirm it's not clobbering a newer action that started during its delay.
@@ -230,11 +185,6 @@ export type AiActionStatus =
   | { seq: number; status: "done"; label: string }
   | { seq: number; status: "error"; message: string };
 export const atom_aiActionStatus = atom<AiActionStatus>({ seq: 0, status: "idle" });
-
-// Derived: true while any AI request (auto-fix, frontmatter wizard, selection
-// actions) is in flight, so the editor can block typing and show an overlay
-// regardless of which feature triggered the call.
-export const atom_isAiBusy = atom((get) => get(atom_aiActionStatus).status === "thinking");
 
 // AI Features
 export type AIProvider = "claude" | "gemini";
@@ -282,5 +232,3 @@ export const atom_recentCommandIds = atomWithStorage<string[]>("recentCommandIds
 export const atom_recentFilePaths = atomWithStorage<string[]>("recentFilePaths", []);
 export const atom_commandUseCounts = atomWithStorage<Record<string, number>>("commandUseCounts", {});
 export const atom_palettePinnedItems = atomWithStorage<PalettePinnedItem[]>("palettePinnedItems", []);
-
-export const atom_indexTimestamp = atom<number | null>(null);

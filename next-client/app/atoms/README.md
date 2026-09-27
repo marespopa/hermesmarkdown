@@ -6,7 +6,7 @@ Jotai state model. Each file owns a domain; `atoms.ts` is the barrel.
 
 | File | Domain | Persistence |
 |------|--------|-------------|
-| `file-atoms.ts` | Open files, live FS handles, content, save status, conflict state | `atom_openFiles` persisted via `atomStorage`; `atom_liveHandles` ephemeral (handles can't be serialized) |
+| `file-atoms.ts` | Open files, live FS handles, content, save status, conflict state | `atom_openFiles` persisted via `atomWithStorage` (`localStorage["openFiles"]`); `atom_liveHandles` ephemeral (handles can't be serialized) |
 | `vault-atoms.ts` | Vault handle, current directory, vault tree, cloud-vault flag, pending state | Vault handle persisted via `services/idb` |
 | `workspace-atoms.ts` | Pane tree layout, active pane id | `atom_workspaceLayout` → localStorage |
 | `ui-atoms.ts` | Theme, font size, word wrap, zen mode, sidebar width, onboarding, autosave mode, focus, cursor, global dialog | Preferences persisted; editor focus / cursor / dialog ephemeral |

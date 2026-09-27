@@ -16,60 +16,111 @@ interface UseCreateItemProps {
   openFile: (fileHandle: FileSystemFileHandle, providedPath?: string, force?: boolean) => Promise<void>;
 }
 
+interface VaultDirectory {
+  handle: FileSystemDirectoryHandle;
+  path: string;
+}
+
+const NEW_FOLDER_VALUE = "__new_folder__";
+const ROOT_VALUE = "__root__";
+
 export function useCreateItem({ scanVault, indexVaultTags, openFile }: UseCreateItemProps) {
   const [vaultHandle] = useAtom(atom_vaultHandle);
   const [currentDirectoryHandle] = useAtom(atom_currentDirectoryHandle);
   const dialog = useDialog();
 
-  const chooseTargetDirectory = useCallback(async () => {
+  const listVaultDirectories = useCallback(async () => {
     if (!vaultHandle) return null;
 
-    const subDirs: FileSystemDirectoryHandle[] = [];
+    const directories: VaultDirectory[] = [];
     try {
-      for await (const entry of (vaultHandle as any).values()) {
-        if (entry.kind === "directory" && !entry.name.startsWith(".")) {
-          subDirs.push(entry);
+      const visit = async (parent: FileSystemDirectoryHandle, parentPath: string): Promise<void> => {
+        for await (const entry of (parent as any).values()) {
+          if (entry.kind !== "directory" || entry.name.startsWith(".")) continue;
+          const path = parentPath ? `${parentPath}/${entry.name}` : entry.name;
+          directories.push({ handle: entry, path });
+          await visit(entry, path);
         }
-      }
+      };
+      await visit(vaultHandle, "");
     } catch (err: any) {
-      console.warn("Failed to list vault subdirectories:", err?.message || err);
+      console.error("Failed to list vault folders:", err?.message || err);
+      toast.error("Failed to load folders.");
+      return null;
     }
-    subDirs.sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0));
+    return directories.sort((a, b) => a.path.localeCompare(b.path));
+  }, [vaultHandle]);
 
+  const selectTargetDirectory = useCallback(async (
+    message: string,
+    title: string,
+    includeNewFolder = false,
+  ): Promise<FileSystemDirectoryHandle | typeof NEW_FOLDER_VALUE | null> => {
+    if (!vaultHandle) return null;
+    const directories = await listVaultDirectories();
+    if (!directories) return null;
     const options = [
-      { label: `/ ${vaultHandle.name} (root)`, value: "__root__" },
-      ...subDirs.map((d) => ({ label: d.name, value: d.name })),
-      { label: "+ New Folder", value: "__new_folder__" },
+      { label: `/ ${vaultHandle.name} (root)`, value: ROOT_VALUE },
+      ...directories.map(({ path }) => ({ label: path, value: `path:${path}` })),
+      ...(includeNewFolder ? [{ label: "+ New Folder", value: NEW_FOLDER_VALUE }] : []),
     ];
-    const chosen = await dialog.select("Choose a folder for the new file:", options, "New File");
+    const chosen = await dialog.select(message, options, title);
     if (!chosen) return null;
+    if (chosen === ROOT_VALUE) return vaultHandle;
+    if (chosen === NEW_FOLDER_VALUE) return NEW_FOLDER_VALUE;
+    return directories.find(({ path }) => `path:${path}` === chosen)?.handle ?? null;
+  }, [dialog, listVaultDirectories, vaultHandle]);
 
-    if (chosen === "__new_folder__") {
-      const folderName = await dialog.prompt("Enter folder name:", "", "New Folder");
-      if (!folderName) return null;
-      try {
-        const newDir = await withRetry(() =>
-          vaultHandle.getDirectoryHandle(folderName, { create: true })
-        );
-        await scanVault(vaultHandle);
-        return newDir;
-      } catch (err: any) {
-        console.error("File System Error:", err?.message || err);
-        toast.error("Failed to create folder");
-        return null;
-      }
+  const promptAndCreateFolder = useCallback(async (targetDirectory: FileSystemDirectoryHandle) => {
+    if (!vaultHandle) return null;
+    const folderName = String(await dialog.prompt("Enter folder name:", "", "New Folder") ?? "").trim();
+    if (!folderName) return null;
+    if (/[\\/]/.test(folderName)) {
+      toast.error("Folder names cannot contain slashes.");
+      return null;
     }
 
-    if (chosen === "__root__") return vaultHandle;
-    return subDirs.find((d) => d.name === chosen) || null;
+    try {
+      const folder = await withRetry(() => targetDirectory.getDirectoryHandle(folderName, { create: true }));
+      await scanVault(vaultHandle);
+      toast.success(`Created: ${folderName}`);
+      return folder;
+    } catch (error) {
+      console.error("Failed to create folder:", error);
+      toast.error("Failed to create folder.");
+      return null;
+    }
   }, [dialog, scanVault, vaultHandle]);
+
+  const chooseTargetDirectory = useCallback(async () => {
+    const target = await selectTargetDirectory(
+      "Choose a folder for the new file:",
+      "New File",
+      true,
+    );
+    if (target !== NEW_FOLDER_VALUE) return target;
+
+    const parent = await selectTargetDirectory(
+      "Choose a destination for the new folder:",
+      "New Folder",
+    );
+    if (!parent || parent === NEW_FOLDER_VALUE) return null;
+    return promptAndCreateFolder(parent);
+  }, [promptAndCreateFolder, selectTargetDirectory]);
 
   const createFile = useCallback(
     async (name: string, content: string = "", dirOverride?: FileSystemDirectoryHandle) => {
       const targetDir = dirOverride || currentDirectoryHandle || vaultHandle;
       if (!targetDir) return null;
 
-      const baseName = name.endsWith(".md") ? name.slice(0, -3) : name;
+      const trimmedName = name.trim();
+      if (!trimmedName) return null;
+      if (/[\\/]/.test(trimmedName)) {
+        toast.error("File names cannot contain slashes.");
+        return null;
+      }
+
+      const baseName = trimmedName.endsWith(".md") ? trimmedName.slice(0, -3) : trimmedName;
       let fileName = `${baseName}.md`;
       let counter = 1;
       let newFileHandle: FileSystemFileHandle | null = null;
@@ -229,28 +280,14 @@ export function useCreateItem({ scanVault, indexVaultTags, openFile }: UseCreate
     return createFile(name.trim(), "", targetDir);
   }, [vaultHandle, chooseTargetDirectory, createFile, dialog]);
 
-  const createFolder = useCallback(async (parentDirectory?: FileSystemDirectoryHandle) => {
-    const targetDirectory = parentDirectory || vaultHandle;
-    if (!targetDirectory || !vaultHandle) return null;
-
-    const folderName = String(await dialog.prompt("Enter folder name:", "", "New Folder") ?? "").trim();
-    if (!folderName) return null;
-    if (/[\\/]/.test(folderName)) {
-      toast.error("Folder names cannot contain slashes.");
-      return null;
-    }
-
-    try {
-      const folder = await withRetry(() => targetDirectory.getDirectoryHandle(folderName, { create: true }));
-      await scanVault(vaultHandle);
-      toast.success(`Created: ${folderName}`);
-      return folder;
-    } catch (error) {
-      console.error("Failed to create folder:", error);
-      toast.error("Failed to create folder.");
-      return null;
-    }
-  }, [dialog, scanVault, vaultHandle]);
+  const createFolder = useCallback(async () => {
+    const targetDirectory = await selectTargetDirectory(
+      "Choose a destination for the new folder:",
+      "New Folder",
+    );
+    if (!targetDirectory || targetDirectory === NEW_FOLDER_VALUE) return null;
+    return promptAndCreateFolder(targetDirectory);
+  }, [promptAndCreateFolder, selectTargetDirectory]);
 
   return {
     chooseTargetDirectory,

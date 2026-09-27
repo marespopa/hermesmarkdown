@@ -1,16 +1,27 @@
 # DatePickerCallout
 
-A custom calendar and date picker component designed for surgical date replacement within the editor.
+Description: Calendar dialog for picking or replacing a date in the editor, with keyboard navigation and quick relative actions.
 
-## Features
+## Local State & Storage
+- State: Viewed month and focused day (useState/useMemo).
+- Persistence: None - transient UI state.
+- Handles ISO (`YYYY-MM-DD`), wiki (`[[YYYY-MM-DD]]`), slashed (`MM/DD/YYYY`) and dotted (`DD.MM.YYYY`) formats, and offers Today, Tomorrow, +1 week and +1 month shortcuts.
 
-- **Format Awareness**: Handles ISO (`YYYY-MM-DD`), Wiki (`[[YYYY-MM-DD]]`), Slashed (`MM/DD/YYYY`), and Dotted (`DD.MM.YYYY`) formats.
-- **Keyboard Navigation**: Supports arrow keys for navigating days, and Enter for selection.
-- **Relative Actions**: Quick shortcuts for "Today", "Tomorrow", "+1 Week", and "+1 Month".
-- **Responsive**: Adapts layout for mobile (full-width modal style) vs desktop (floating callout).
+## Dependencies
+- Core: `DialogModal`, `Button`, `react-icons`.
+- Zero-Cloud: No network or telemetry side effects.
 
-## Key Props
+## Quick Usage
+```tsx
+import DatePickerCallout from "./DatePickerCallout";
 
-- `initialDate`: The date to focus when opened.
-- `onSelectDate`: Callback receiving the new `Date` object.
-- `onClose`: Callback to dismiss the callout.
+<DatePickerCallout isOpen={open} initialDate={new Date()} onSelectDate={insertDate} onClose={close} />
+```
+
+## Props Overview
+| Prop | Type | Default | Description |
+|---|---|---|---|
+| isOpen | `boolean` |  | Visibility |
+| initialDate | `Date` |  | Focused date on open |
+| onSelectDate | `(date: Date) => void` |  | Selection handler |
+| onClose | `() => void` |  | Dismiss handler |

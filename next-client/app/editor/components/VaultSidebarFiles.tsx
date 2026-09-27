@@ -27,7 +27,7 @@ interface VaultSidebarFilesProps {
   activeFilePath: string | null;
   openFile: (handle: FileSystemFileHandle, path?: string) => void;
   openFileInPane?: (handle: FileSystemFileHandle, path?: string) => void;
-  renameFile: (handle: FileSystemHandle, newName?: string) => void | Promise<void>;
+  renameFile: (handle: FileSystemHandle) => void | Promise<void>;
   deleteFile: (handle: FileSystemHandle, path?: string) => void;
   duplicateFile?: (handle: FileSystemHandle) => void;
   onClose?: () => void;
@@ -39,7 +39,7 @@ interface VaultSidebarFilesProps {
   // to resolve a real FileSystemDirectoryHandle.
   resolveFolderHandle?: (path: string) => Promise<any | null>;
   createNewFile?: () => void;
-  createFolder?: (parentDirectory?: FileSystemDirectoryHandle) => Promise<FileSystemDirectoryHandle | null>;
+  createFolder?: () => Promise<FileSystemDirectoryHandle | null>;
   moveItem?: (handle: any, targetDir: any) => void;
 }
 
@@ -65,68 +65,6 @@ interface TreeFileNode {
 }
 
 type TreeNode = TreeFolderNode | TreeFileNode;
-
-function isValidRename(name: string) {
-  return name.trim().length > 0 && !/[\\/]/.test(name);
-}
-
-function InlineRenameInput({
-  name,
-  onRename,
-  onCancel,
-  restoreFocus,
-}: {
-  name: string;
-  onRename: (name: string) => void | Promise<void>;
-  onCancel: () => void;
-  restoreFocus: () => void;
-}) {
-  const [value, setValue] = useState(name);
-  const inputRef = useRef<HTMLInputElement>(null);
-  const finishedRef = useRef(false);
-
-  useEffect(() => {
-    const input = inputRef.current;
-    if (!input) return;
-    input.focus();
-    const basenameEnd = name.toLowerCase().endsWith(".md") ? name.length - 3 : name.length;
-    input.setSelectionRange(0, basenameEnd);
-  }, [name]);
-
-  const finish = (commit: boolean) => {
-    if (finishedRef.current) return;
-    finishedRef.current = true;
-
-    const nextName = value.trim();
-    if (commit && nextName !== name && isValidRename(nextName)) {
-      void Promise.resolve(onRename(nextName));
-    }
-    onCancel();
-    requestAnimationFrame(restoreFocus);
-  };
-
-  return (
-    <input
-      ref={inputRef}
-      aria-label={`Rename ${name}`}
-      value={value}
-      onClick={(event) => event.stopPropagation()}
-      onChange={(event) => setValue(event.target.value)}
-      onKeyDown={(event) => {
-        event.stopPropagation();
-        if (event.key === "Enter") {
-          event.preventDefault();
-          finish(true);
-        } else if (event.key === "Escape") {
-          event.preventDefault();
-          finish(false);
-        }
-      }}
-      onBlur={() => finish(true)}
-      className="min-w-0 flex-1 bg-transparent border-0 p-0 text-inherit outline-none focus:ring-0"
-    />
-  );
-}
 
 function buildFileTree(files: any[], folderPaths: string[]): TreeNode[] {
   const root: TreeFolderNode = { type: "folder", name: "", path: "", children: [] };
@@ -262,8 +200,6 @@ function FileRow({
   onDragStartEntry,
   onDragEndEntry,
 }: FileRowProps) {
-  const [renaming, setRenaming] = useState(false);
-  const rowRef = useRef<HTMLDivElement>(null);
   const folderPath =
     !hideFolderPath && entryPath && entryPath !== entry.name
       ? entryPath.split("/").slice(0, -1).join("/")
@@ -284,8 +220,7 @@ function FileRow({
           openFile(entry.handle as FileSystemFileHandle, entryPath);
           if (onClose && window.innerWidth < 1024) onClose();
         }}
-        tabIndex={renaming ? undefined : -1}
-        ref={rowRef}
+        tabIndex={-1}
         className={`mx-1 flex items-stretch transition-all duration-200 text-ui-subhead pr-8 ${
           isActive ? "text-accent" : "text-ink-muted dark:text-stone font-medium"
         }`}
@@ -296,23 +231,14 @@ function FileRow({
             isActive ? "" : "hover:bg-paper-softgray/60 dark:hover:bg-paper-dark-surface/50"
           }`}
         >
-          {renaming ? (
-            <InlineRenameInput
-              name={entry.name}
-              onRename={(name) => renameFile(entry.handle, name)}
-              onCancel={() => setRenaming(false)}
-              restoreFocus={() => rowRef.current?.focus()}
-            />
-          ) : (
-            <span
-              title={entry.name.replace(/\.md$/, "")}
-              className={`truncate w-fit max-w-full ${
-                isActive ? "font-semibold bg-accent/15 rounded px-1 -mx-1" : ""
-              }`}
-            >
-              <HighlightedName name={entry.name.replace(/\.md$/, "")} query={highlightQuery} />
-            </span>
-          )}
+          <span
+            title={entry.name.replace(/\.md$/, "")}
+            className={`truncate w-fit max-w-full ${
+              isActive ? "font-semibold bg-accent/15 rounded px-1 -mx-1" : ""
+            }`}
+          >
+            <HighlightedName name={entry.name.replace(/\.md$/, "")} query={highlightQuery} />
+          </span>
           {folderPath && (
             <span title={folderPath} className="text-ui-caption opacity-40 truncate mt-0.5">
               {folderPath}
@@ -387,7 +313,7 @@ function FileRow({
               onClick={(e) => {
                 e.stopPropagation();
                 setActionMenuOpen(null);
-                setRenaming(true);
+                void renameFile(entry.handle);
               }}
               className="w-full flex items-center gap-3 px-4 py-2.5 text-ui-footnote font-medium hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
             >
@@ -455,8 +381,8 @@ interface FolderRowProps {
   onDropInto: (targetPath: string) => void;
   resolveFolderHandle?: (path: string) => Promise<any | null>;
   createNewFile?: () => void;
-  createFolder?: (parentDirectory?: FileSystemDirectoryHandle) => Promise<FileSystemDirectoryHandle | null>;
-  renameFile: (handle: any, newName?: string) => void | Promise<void>;
+  createFolder?: () => Promise<FileSystemDirectoryHandle | null>;
+  renameFile: (handle: any) => void | Promise<void>;
   deleteFile: (handle: any, path?: string) => void;
 }
 
@@ -478,9 +404,7 @@ function FolderRow({
   deleteFile,
 }: FolderRowProps) {
   const [dragOver, setDragOver] = useState(false);
-  const [renaming, setRenaming] = useState(false);
   const autoExpandTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const rowRef = useRef<HTMLDivElement>(null);
   const entryId = `folder:${node.path}`;
   const menuOpen = actionMenuOpen?.path === entryId;
 
@@ -502,7 +426,7 @@ function FolderRow({
     <div className={`group relative ${menuOpen ? "z-20" : ""}`}>
       <div
         onClick={() => onToggle(node.path)}
-        draggable={!renaming}
+        draggable
         onDragStart={(e) => {
           setDraggedEntry({ kind: "folder", path: node.path, name: node.name });
           e.dataTransfer.effectAllowed = "move";
@@ -535,8 +459,7 @@ function FolderRow({
           if (canAcceptDrop) onDropInto(node.path);
           setDraggedEntry(null);
         }}
-        tabIndex={renaming ? undefined : -1}
-        ref={rowRef}
+        tabIndex={-1}
         className={`flex items-stretch mx-1 pr-8 cursor-pointer text-ui-subhead transition-colors relative ${
           dragOver
             ? "ring-2 ring-sage/50 bg-sage/10 text-sage dark:text-sage font-medium"
@@ -551,19 +474,7 @@ function FolderRow({
             {isCollapsed ? <HiOutlineChevronRight size={13} /> : <HiOutlineChevronDown size={13} />}
           </span>
           <HiOutlineFolder size={16} className="shrink-0 opacity-70" />
-          {renaming ? (
-            <InlineRenameInput
-              name={node.name}
-              onRename={async (name) => {
-                const handle = await resolveFolderHandle?.(node.path);
-                if (handle) await renameFile(handle, name);
-              }}
-              onCancel={() => setRenaming(false)}
-              restoreFocus={() => rowRef.current?.focus()}
-            />
-          ) : (
-            <span title={node.name} className="truncate">{node.name}</span>
-          )}
+          <span title={node.name} className="truncate">{node.name}</span>
         </div>
       </div>
 
@@ -620,8 +531,7 @@ function FolderRow({
                 onClick={async (e) => {
                   e.stopPropagation();
                   setActionMenuOpen(null);
-                  const handle = await resolveFolderHandle?.(node.path);
-                  if (handle) await createFolder(handle);
+                  await createFolder();
                 }}
                 className="w-full flex items-center gap-3 px-4 py-2.5 text-ui-footnote font-medium hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
               >
@@ -633,7 +543,8 @@ function FolderRow({
               onClick={async (e) => {
                 e.stopPropagation();
                 setActionMenuOpen(null);
-                setRenaming(true);
+                const handle = await resolveFolderHandle?.(node.path);
+                if (handle) await renameFile(handle);
               }}
               className="w-full flex items-center gap-3 px-4 py-2.5 text-ui-footnote font-medium hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
             >

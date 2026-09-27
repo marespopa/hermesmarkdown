@@ -52,12 +52,16 @@ export function useRenameItem({ scanVault, indexVaultTags }: UseRenameItemProps)
         // fall back to currentDirectoryHandle/vaultHandle above
       }
 
-      const newName = requestedName ?? await dialog.prompt(
+      const newName = String(requestedName ?? await dialog.prompt(
         "Enter new name:",
         handle.name,
         "Rename Item",
-      );
+      ) ?? "").trim();
       if (!newName || newName === handle.name) return;
+      if (/[\\/]/.test(newName)) {
+        toast.error(`${handle.kind === "file" ? "File" : "Folder"} names cannot contain slashes.`);
+        return;
+      }
 
       const attemptRename = async (retryCount = 0): Promise<void> => {
         try {

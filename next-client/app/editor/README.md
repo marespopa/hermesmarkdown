@@ -10,11 +10,10 @@ The app's current editor is built on CodeMirror 6, with the source-mode implemen
 - Supports slash commands, wiki links, date pickers, tables, and workflow/todo pills.
 - Renders Mermaid fenced blocks via a small dialog trigger attached to the Mermaid code block so the full diagram can open in the dedicated Mermaid viewer.
 
-### `VaultSidebar`
-The sidebar manages navigation within the opened "Vault" (local directory).
-- **Navigation**: Uses `navigateTo` and `navigateBack` from `useFileSystem` to traverse folder structures.
-- **Actions**: Provides UI for creating new files and folders, renaming, and deleting entries.
-- **Smart Filters**: Automatically extracts and displays tags (hashtags) found within markdown files in the vault.
+### File navigation
+Vault files are browsed through the command palette (`Ctrl/Cmd+K`), the Files page (`/editor/files`, "Open Explorer"), and the mobile `MobileFileOverlay`. The latter two use the `VaultSidebarFiles` tree and tag search.
+- **Actions**: Create, rename, move, duplicate, and delete files and folders through `useFileSystem`.
+- **Tags**: Tags extracted from notes are searchable with the `#` palette prefix.
 
 ### Tasks page
 The Tasks page (`app/editor/tasks`) is a vault-wide view over the derived task index.
@@ -24,13 +23,13 @@ The Tasks page (`app/editor/tasks`) is a vault-wide view over the derived task i
 
 ## Interactions
 
-1. **Opening a File**: When a user clicks a file in the `VaultSidebar`, it calls `openFile` from `useFileSystem`. This reads the file content, sets the document content, and updates the active file handle.
+1. **Opening a File**: When a user opens a file from the command palette or the file overlay, it calls `openFile` from `useFileSystem`. This reads the file content, sets the document content, and updates the active file handle.
 2. **Editing**: As the user types in the editor, the document state is updated in real time.
 3. **Saving**: Saving can be manual or automatic. It uses the active file handle to write the current content back to the local disk.
-4. **File Synchronization**: When the window regains focus, HermesMarkdown checks if the active file has been modified externally.
+4. **File Synchronization** (`use-file-watcher`): When the window regains focus, HermesMarkdown checks if the active file has been modified externally.
     - **Auto-Sync**: If no local changes exist, it automatically reloads the new content from disk.
     - **Conflict Resolution**: If local changes exist and the file was modified externally, a **Conflict Dialog** appears, allowing the user to either "Reload External Changes" or "Keep Local Edits".
-5. **Folder Management**: Creating a folder in the sidebar uses `targetDir.getDirectoryHandle(name, { create: true })` and refreshes the directory listing.
+5. **Folder Management**: Creating a folder uses `targetDir.getDirectoryHandle(name, { create: true })` and refreshes the directory listing.
 
 ## Mermaid flow
 

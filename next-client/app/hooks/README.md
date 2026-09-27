@@ -13,13 +13,11 @@ React hooks organized by concern: UI primitives, sync orchestration, and the fil
 | `use-is-mobile.tsx` | Breakpoint detection (default 1052px) |
 | `use-interval.tsx` | setInterval with null-delay pause support |
 | `use-window-size.tsx` | Viewport dimensions, initialized on mount |
-| `use-isomorphic-layout-effect.tsx` | `useLayoutEffect` on client, `useEffect` on server |
 
 ## Sync & Persistence
 
 | Hook | Purpose |
 |------|---------|
-| `use-file-sync.ts` | Polls the active file every 60s; auto-syncs when clean; flags conflicts; refreshes on window focus |
 | `use-vault-sync.ts` | Polls vault tree every 5min (1min for cloud); detects iCloud / OneDrive / Dropbox vaults |
 | `use-auto-save.ts` | Debounced / on-blur / manual save modes; flushes pending writes on tab switch |
 | `use-save.tsx` | Intercepts Ctrl+S to call the editor save handler |

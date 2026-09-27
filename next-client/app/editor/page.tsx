@@ -58,7 +58,6 @@ import { useGlobalVoiceInput } from "./hooks/use-global-voice-input";
 import { useRouter } from "next/navigation";
 import { atom_isAiConfigured, atom_aiBuilderRequest, atom_showCommandPaletteFab, atom_showHiddenFiles, atom_vimMode } from "@/app/atoms/ui-atoms";
 import { generateFileFromPrompt } from "@/app/services/ai";
-import { withRetry } from "@/app/hooks/file-system/shared";
 import { pullGitHubVault, syncGitHubVault } from "@/app/services/github-vault-sync";
 import { focusPaneEditor } from "./utils/focus-pane-editor";
 import { usePaneFileActions } from "./hooks/use-pane-file-actions";
@@ -122,6 +121,7 @@ export default function LiteEditor() {
     importFile,
     createFile,
     createNewFile,
+    chooseTargetDirectory,
     scanVault,
     indexVaultTags,
     syncSidebarToPath,
@@ -201,37 +201,6 @@ export default function LiteEditor() {
     return () => clearTimeout(timer);
   }, []);
 
-  const chooseFileDestination = useCallback(async (): Promise<FileSystemDirectoryHandle | null> => {
-    if (!vaultHandle) return null;
-
-    const subDirs = vaultFiles.filter(
-      (file): file is FileSystemDirectoryHandle => (file as any).kind === "directory"
-    );
-    const folderOptions = [
-      { label: `/ ${vaultHandle.name} (root)`, value: "__root__" },
-      ...subDirs.map((directory) => ({ label: directory.name, value: directory.name })),
-      { label: "+ New Folder", value: "__new_folder__" },
-    ];
-    const chosenFolder = await dialog.select("Choose a folder for the new file:", folderOptions, "New File");
-    if (!chosenFolder) return null;
-
-    if (chosenFolder === "__new_folder__") {
-      const folderName = await dialog.prompt("Enter folder name:", "", "New Folder");
-      if (!folderName?.trim()) return null;
-      try {
-        const targetDir = await withRetry(() => vaultHandle.getDirectoryHandle(folderName.trim(), { create: true }));
-        await scanVault(vaultHandle);
-        return targetDir;
-      } catch {
-        toast.error("Failed to create folder");
-        return null;
-      }
-    }
-
-    if (chosenFolder === "__root__") return vaultHandle;
-    return subDirs.find((directory) => directory.name === chosenFolder) ?? null;
-  }, [dialog, scanVault, vaultFiles, vaultHandle]);
-
   const handleSave = useCallback(async () => {
     if (!content.trim()) return;
     
@@ -239,7 +208,7 @@ export default function LiteEditor() {
       await saveFile(content);
     } else if (vaultHandle) {
       // Prompt for name if in a vault but no handle yet
-      const targetDir = await chooseFileDestination();
+      const targetDir = await chooseTargetDirectory();
       if (!targetDir) return;
 
       const name = await dialog.prompt("Enter file name:", fileName.replace(".md", ""), "Save to Vault");
@@ -249,7 +218,7 @@ export default function LiteEditor() {
     } else {
       await exportFile(content, fileName);
     }
-  }, [content, activeFileHandle, vaultHandle, saveFile, exportFile, fileName, dialog, createFile, chooseFileDestination]);
+  }, [content, activeFileHandle, vaultHandle, saveFile, exportFile, fileName, dialog, createFile, chooseTargetDirectory]);
 
   const handleSyncGitHub = useCallback(async (message: string) => {
     if (!vaultHandle || vaultDescriptor?.kind !== "github") {
@@ -446,7 +415,7 @@ export default function LiteEditor() {
   const handleNewAIFile = async () => {
     if (!vaultHandle) return;
 
-    const targetDir = await chooseFileDestination();
+    const targetDir = await chooseTargetDirectory();
     if (!targetDir) return;
 
     const result = await dialog.textarea("Describe what you want to write:", "", "Generate Note with AI");

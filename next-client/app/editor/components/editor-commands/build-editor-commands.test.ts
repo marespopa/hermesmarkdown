@@ -52,6 +52,7 @@ function createContext(overrides: Partial<EditorCommandContext> = {}): EditorCom
     deleteFile: vi.fn(),
     duplicateFile: vi.fn(),
     moveItem: vi.fn(),
+    createFolder: vi.fn(),
     dialog: {
       confirm: vi.fn(),
       prompt: vi.fn(),
@@ -214,11 +215,17 @@ describe("buildEditorCommands", () => {
     command("open-tasks-panel")?.action();
     command("toggle-theme")?.action();
     command("ai-improve")?.action();
+    command("new-folder")?.action();
+    command("rename-current-file")?.action();
+    command("delete-current-file")?.action();
 
     expect(context.onSave).toHaveBeenCalledOnce();
     expect(context.router.push).toHaveBeenCalledWith("/editor/files");
     expect(context.onOpenTasks).toHaveBeenCalledOnce();
     expect(context.setTheme).toHaveBeenCalledWith("light");
     expect(context.onRunAIAction).toHaveBeenCalledWith("improve");
+    expect(context.createFolder).toHaveBeenCalledOnce();
+    expect(context.renameFile).toHaveBeenCalledWith(context.activeFileHandle);
+    expect(context.deleteFile).toHaveBeenCalledWith(context.activeFileHandle, context.activeFilePath);
   });
 });

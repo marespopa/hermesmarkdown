@@ -25,14 +25,14 @@ corepack yarn vitest run
 For a focused test, pass the test file to Vitest:
 
 ```powershell
-corepack yarn vitest run app/editor/components/VaultSidebar.test.tsx
+corepack yarn vitest run app/editor/components/VaultSidebarFiles.test.tsx
 ```
 
 The package scripts are also available after dependencies are installed:
 
 ```powershell
 corepack yarn check
-corepack yarn test --run app/editor/components/VaultSidebar.test.tsx
+corepack yarn test --run app/editor/components/VaultSidebarFiles.test.tsx
 ```
 
 Do not use `npm exec tsc` or a globally installed `yarn` command for

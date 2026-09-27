@@ -56,8 +56,10 @@ export function useDeleteItem({ scanVault, indexVaultTags }: UseDeleteItemProps)
     async (handle: FileSystemHandle, path?: string) => {
       const type = handle.kind === "file" ? "file" : "folder";
       const confirmed = await dialog.confirm(
-        `Are you sure you want to delete this ${type}: ${handle.name}?`,
-        "Delete Item",
+        `Delete ${type} "${handle.name}"? This cannot be undone.`,
+        `Delete ${type}`,
+        "Delete",
+        "Cancel",
       );
       if (!confirmed) return;
 

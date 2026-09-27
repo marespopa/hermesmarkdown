@@ -695,7 +695,8 @@ graph TD
               rows={[
                 { label: "Open Vault / Close Vault / Refresh Vault", value: "—" },
                 { label: "Create new vault", value: "—" },
-                { label: "New folder", value: "Supports nested paths when a vault is open" },
+                { label: "New file / New folder", value: "Choose any vault folder, then enter a name" },
+                { label: "Rename / Delete", value: "Uses the same prompts for files and folders" },
                 { label: "Start / Stop voice input", value: "CTRL+SHIFT+V" },
                 { label: "Insert / discard voice preview", value: "When a preview exists" },
                 { label: "Open AI Chat", value: "CTRL+SHIFT+B · when AI is configured" },

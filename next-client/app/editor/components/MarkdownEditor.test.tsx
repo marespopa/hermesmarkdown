@@ -37,12 +37,7 @@ vi.mock("@/app/atoms/atoms", async (importOriginal) => {
     atom_renderedFontSize: atom("16px"),
     atom_lineHeight: atom("1.8"),
     atom_isEditorFocused: atom(false),
-    atom_cursorPosition: atom({ line: 1, col: 1 }),
-    atom_editorWidth: atom("standard"),
-    atom_selectionCount: atom(0),
     atom_isAiConfigured: atom(true),
-    atom_isAiBusy: atom(false),
-    atom_frontmatterWizardOpen: atom(null),
   };
 });
 
