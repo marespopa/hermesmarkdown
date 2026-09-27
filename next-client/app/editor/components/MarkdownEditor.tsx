@@ -17,7 +17,6 @@ import WikiLinkDialog from "./WikiLinkDialog";
 import TaskDialog from "./TaskDialog";
 import { LinkPill } from "./LinkPill";
 import { WorkflowPill } from "./WorkflowPill";
-import { TableCallout } from "./TableCallout";
 import { PILL_CONTAINER_CLASSES, TEMPLATES } from "./constants";
 import { applyTemplate } from "../codemirror/slash-menu";
 import useKeyboardInset from "@/app/hooks/use-keyboard-inset";
@@ -50,15 +49,10 @@ interface MarkdownEditorProps {
   isSplit?: boolean;
 }
 
-// NOTE: this is the CM6 migration (through Step 4 of the migration plan).
-// It intentionally does not yet include the template/slash menu, table
-// editor, formula badges, or callout folding — those are ported in later
-// steps (see task list). Behavior covered so far: typing, undo/redo (CM6
-// history), bold/italic/strikethrough/inline-code wrap, checkbox toggle
-// (click), quote-continue on Enter, quote-aware paste, URL-paste-as-link,
-// full markdown syntax highlighting, link pill (cursor-driven, Ctrl/Cmd+
-// click to open/navigate), date picker (click the calendar icon),
-// workflow/todo tag cycling pills.
+// The CM6 editor pane. Editing behavior lives in CodeMirror extensions
+// (app/editor/codemirror/) — including tables, which render as an inline
+// editable grid — while this component owns the floating React helpers
+// (link/date/workflow pills, table toolbar, language picker, dialogs).
 export default function MarkdownEditor(props: MarkdownEditorProps) {
   const { onChange } = props;
   const wordWrap = useAtomValue(atom_wordWrap);
@@ -77,11 +71,10 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
     onChange(newVal);
   }, [onChange]);
 
-  const { fontFamily, displayFontSize, lineHeight, windowWidth, paneRef, contentPaddingX } =
+  const { fontFamily, displayFontSize, lineHeight, paneRef, contentPaddingX } =
     useEditorAppearance(props.isSplit);
 
   const keyboardInset = useKeyboardInset();
-  const isMobile = windowWidth < 768;
 
   const containerRef = useRef<HTMLDivElement | null>(null);
   const viewRef = useRef<EditorView | null>(null);
@@ -199,12 +192,7 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
     return () => document.removeEventListener("hermes:insert-template", handleTemplateCommand);
   }, [props.isActivePane, slashMenuCallbacksRef]);
 
-  const {
-    tableInfo, calloutPos, currentAlignment, isOnHeader, canRemoveRow, canRemoveCol, cursorDataRowNumber,
-    handleRemoveTable, handleCycleAlign, handleCopyCSV, handleAddRow, handleRemoveRow,
-    handleAddColumn, handleRemoveColumn, handleSortColumn,
-    onCursorActivity: onTableCursorActivity,
-  } = useCodeMirrorTable({ viewRef, containerRef });
+  const { onCursorActivity: onTableCursorActivity } = useCodeMirrorTable();
 
   const {
     mermaidInfo,
@@ -564,27 +552,6 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
             </div>
           )}
 
-          {tableInfo && (
-            <TableCallout
-              pos={calloutPos}
-              isMobile={isMobile}
-              currentAlignment={currentAlignment}
-              isOnHeader={isOnHeader}
-              canRemoveRow={canRemoveRow}
-              canRemoveCol={canRemoveCol}
-              cursorDataRowNumber={cursorDataRowNumber}
-              onAddRow={handleAddRow}
-              onRemoveRow={handleRemoveRow}
-              onAddColumn={handleAddColumn}
-              onRemoveColumn={handleRemoveColumn}
-              onSortAsc={() => handleSortColumn("asc")}
-              onSortDesc={() => handleSortColumn("desc")}
-              onCycleAlign={handleCycleAlign}
-              onRemoveTable={handleRemoveTable}
-              onCopyCSV={handleCopyCSV}
-              onEditDialog={() => {}}
-            />
-          )}
 
           <WikiLinkDialog
             isOpen={wikiLinkDialogOpen}

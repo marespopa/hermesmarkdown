@@ -37,38 +37,34 @@ When the cursor is in a fenced Mermaid block, a small trigger button appears bes
 
 ## Table Flow
 
-### Detection & Callout
+Tables never show their pipe syntax. Every valid GFM table renders as an
+inline, spreadsheet-style grid whose cells are edited in place, while the
+Markdown source stays the single source of truth.
 
-When the cursor enters a pipe-table line the editor triggers a `TableCallout`:
+### Inline grid (`codemirror/table-display.tsx`)
 
-1. **Detection** (`use-table-callout.ts` + `table-detection.ts`): On every `selectionchange` event, `findTableAtPos(value, selectionStart)` scans up/down from the cursor line to find contiguous pipe-table lines. Returns row/column indices plus character offset of the table start.
-2. **Positioning**: `getCaretCoordinates(textarea, tableStartOffset)` converts that offset to pixel coordinates; the callout is placed 36 px above the table's first line, clamped to the textarea width.
-3. **Quick mutations** (`table-manipulation.ts`): Callout buttons call pure functions (`addRow`, `addColumn`, `removeRow`, `removeColumn`, `cycleAlignment`, `tableToCSV`) that return a modified document line array. Changes are applied via `execCommand('insertText')` to preserve the browser undo stack.
-4. **Keyboard shortcuts** (source mode): Tab/Shift+Tab jump between cells; `|` auto-escapes to `\|`; Enter at a row's end appends a new row.
-5. **Dismissal**: Callout clears when cursor moves off the table or on editor blur (150 ms timeout).
+1. **Detection**: a `StateField` walks the Lezer syntax tree for `Table` nodes (so pipes in code blocks are never tables) and replaces each with a block widget. Tables are atomic ranges; when the editor caret arrives at one (arrow keys, undo), focus hands off to the nearest cell (first cell from above, last from below).
+2. **Editing**: each cell is its own `contenteditable`. Unfocused cells show rendered inline Markdown (`utils/inline-markdown.ts`); the focused cell shows its raw text (`**bold**`, links…). Every keystroke is written back as a minimal change to that cell's source range. Undo/redo, autosave and split panes always see the table as displayed. Typed pipes are stored escaped (`\|`).
+3. **Keyboard**: Tab / Shift+Tab move between cells, and Tab in the last cell adds a row. Enter moves down, adding a row at the bottom. The arrow keys cross cell edges and leave the table at its borders. Escape leaves the table. Alt+↑/↓ move the row, Ctrl/Cmd+Alt+←/→ move the column, Ctrl/Cmd+Enter inserts a row below, Ctrl/Cmd+Shift+Backspace deletes the row, and Ctrl/Cmd+B / I / E wrap the selection in bold / italic / code.
+4. **Paste**: plain text pastes into the cell. TSV (from a spreadsheet) or multi-line CSV fills cells starting at the focused cell, growing the table as needed.
+5. **Source hygiene**: when the caret leaves a table, its column padding is realigned (`hooks/use-codemirror-table.ts`). This change is kept out of undo history because it's invisible in the grid. Tables written without outer pipes get them on first edit.
 
-### Table Dialog (Create / Edit)
+### Table menu (`codemirror/table-handles.ts`)
 
-A full visual editor for tables is available via:
+Nothing is drawn on top of the cells. Table actions live in one menu with **Row** (insert above/below, move, delete), **Column** (insert left/right, move, sort, align, delete) and **Table** (copy as CSV / JSON, delete with a confirming second click) sections. Open it either way:
 
-- **`/table`** slash command — opens the dialog in **create mode** (blank 3×3 grid).
-- **`{table}` shortcode** — inserts a raw 3×3 scaffold directly (no dialog).
-- **Edit button** in the `TableCallout` — opens the dialog in **edit mode**, pre-filled from the parsed source.
+- **Right-click / long-press** a cell. The menu opens at the pointer.
+- **The column tab**: a thin bar in the strip reserved above the header row, centred over the active column. It fades out as soon as you type and returns on pointer movement.
 
-Dialog features:
-- Scrollable cell grid with Tab/Shift+Tab navigation between cells, styled with refined `tabular-nums`
-- Per-column alignment (L / C / R) toggled inline in the header row
-- Smart data sorting by clicking any column header: asc ↑ → desc ↓ → none. Dynamically detects dates, currency, percentages, numbers, and strings.
-- Add / remove columns and rows; removing non-empty ones requires inline confirmation
-- Live markdown preview (collapsible)
-- **Insert Table** (create mode) replaces the slash command text; **Update Table** (edit mode) replaces only the table block in the source and automatically pads output to match the L/C/R alignment settings.
+All structural edits go through `codemirror/table-commands.ts` as one isolated undo step each.
 
 ### Utilities
 
 | File | Purpose |
 |------|---------|
-| `utils/tableParser.ts` | `parseTable(source)` — strict GFM parse (requires separator row). `parseTableLenient(source)` — best-effort parse when separator is absent (used by the edit dialog). |
+| `utils/tableParser.ts` | `parseTable(source)` — strict GFM parse (requires separator row). `parseTableLenient(source)` — best-effort parse when separator is absent. |
 | `utils/tableSerializer.ts` | `serializeTable(data, pretty)` — produces GFM markdown. Pretty mode pads columns (max 40 chars); compact mode is minimal. |
 | `utils/tableSorter.ts` | `sortRows(rows, colIdx, direction)` — numeric detection, empty cells always sort to bottom. |
-| `utils/table-manipulation.ts` | Low-level line-array mutations used by the `TableCallout` quick-action buttons. |
+| `utils/table-manipulation.ts` | Line-array and `TableData` mutations (add/remove/move rows and columns, CSV/JSON export, delimited-text parsing) used by the table commands. |
+| `utils/inline-markdown.ts` | Escaped inline-Markdown → HTML renderer for unfocused grid cells. |
 | `utils/table-detection.ts` | `findTableAtPos(text, pos)` — locates the table block at cursor position and returns cursor row/col indices. |

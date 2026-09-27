@@ -281,7 +281,7 @@ export const baseTheme = EditorView.theme({
 // Left undstyled it falls back to @codemirror/autocomplete's own baseTheme —
 // monospace font, 250px-wide list, flat blue selection — which reads as a
 // bare browser widget next to the app's chrome/border/rounded-corner menus
-// (CommandPalette, TableCallout). This reskins it to match those.
+// (CommandPalette). This reskins it to match those.
 export const slashMenuTheme = EditorView.theme({
   ".cm-tooltip.cm-tooltip-autocomplete": {
     backgroundColor: "var(--chrome)",

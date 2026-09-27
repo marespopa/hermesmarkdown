@@ -8,9 +8,13 @@ import {
   getColumnAlignment,
   insertColumnAt,
   insertRowAt,
+  moveTableColumn,
+  moveTableRow,
+  parseDelimitedText,
   removeColumn,
   removeRow,
   tableToCSV,
+  tableToJSON,
 } from "./table-manipulation";
 
 const table = ["| Name | Age |", "| ---- | --- |", "| Ada | 36 |", "| Lin | 28 |"];
@@ -79,5 +83,44 @@ describe("table export and delimited input", () => {
     expect(delimitedTextToMarkdownTable("Name,Age\nAda,36", ",")).toBe(
       "| Name   | Age    |\n| -------- | -------- |\n| Ada    | 36     |",
     );
+  });
+});
+describe("TableData moves and export", () => {
+  const data = {
+    headers: ["Name", "Age"],
+    alignments: ["left", "right"] as ("left" | "right")[],
+    rows: [["Ada", "36"], ["Lin", "28"]],
+  };
+
+  it("swaps a data row with its neighbour and refuses to move past the edges", () => {
+    expect(moveTableRow(data, 0, 1)?.rows).toEqual([["Lin", "28"], ["Ada", "36"]]);
+    expect(moveTableRow(data, 0, -1)).toBeNull();
+    expect(moveTableRow(data, 1, 1)).toBeNull();
+  });
+
+  it("swaps a column together with its header and alignment", () => {
+    const moved = moveTableColumn(data, 0, 1)!;
+    expect(moved.headers).toEqual(["Age", "Name"]);
+    expect(moved.alignments).toEqual(["right", "left"]);
+    expect(moved.rows[0]).toEqual(["36", "Ada"]);
+    expect(moveTableColumn(data, 1, 1)).toBeNull();
+  });
+
+  it("exports rows keyed by header, naming blank and duplicate headers", () => {
+    expect(JSON.parse(tableToJSON(data))).toEqual([
+      { Name: "Ada", Age: "36" },
+      { Name: "Lin", Age: "28" },
+    ]);
+    const odd = { headers: ["", "X", "X"], alignments: [], rows: [["a\\|b", "1", "2"]] };
+    expect(JSON.parse(tableToJSON(odd as never))).toEqual([{ "Column 1": "a|b", X: "1", "X 2": "2" }]);
+  });
+
+  it("splits spreadsheet clipboard text into a grid", () => {
+    expect(parseDelimitedText("a\tb\n1\t2\n", "\t")).toEqual([["a", "b"], ["1", "2"]]);
+  });
+
+  it("keeps escaped pipes inside their cell when removing a column", () => {
+    const withPipe = ["| A | B |", "| --- | --- |", "| x\\|y | 2 |"];
+    expect(removeColumn(withPipe, 1, 0, 2)[2]).toContain("x\\|y");
   });
 });

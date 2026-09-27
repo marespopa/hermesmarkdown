@@ -1,5 +1,8 @@
+import type { TableData } from "./tableParser";
+
 function parseRow(line: string): string[] {
-  const parts = line.split("|");
+  // Split on unescaped pipes only; `\|` stays inside its cell.
+  const parts = line.split(/(?<!\\)\|/);
   // Drop first and last (empty strings from leading/trailing |)
   return parts.slice(1, parts.length - 1).map((c) => c.trim());
 }
@@ -226,4 +229,58 @@ export function delimitedTextToMarkdownTable(text: string, delimiter: "\t" | ","
     out.push(serializeRow(cells));
   }
   return out.join("\n");
+}
+
+// Swaps data row `rowIdx` with its neighbour in `direction`; null when the
+// neighbour doesn't exist.
+export function moveTableRow(data: TableData, rowIdx: number, direction: 1 | -1): TableData | null {
+  const target = rowIdx + direction;
+  if (rowIdx < 0 || rowIdx >= data.rows.length || target < 0 || target >= data.rows.length) return null;
+  const rows = [...data.rows];
+  [rows[rowIdx], rows[target]] = [rows[target], rows[rowIdx]];
+  return { ...data, rows };
+}
+
+// Swaps column `colIdx` (header, alignment and every row's cell) with its
+// neighbour in `direction`; null when the neighbour doesn't exist.
+export function moveTableColumn(data: TableData, colIdx: number, direction: 1 | -1): TableData | null {
+  const target = colIdx + direction;
+  const colCount = data.headers.length;
+  if (colIdx < 0 || colIdx >= colCount || target < 0 || target >= colCount) return null;
+  const swap = <T>(items: T[]) => {
+    const next = [...items];
+    [next[colIdx], next[target]] = [next[target], next[colIdx]];
+    return next;
+  };
+  return {
+    headers: swap(data.headers),
+    alignments: swap(data.alignments),
+    rows: data.rows.map(swap),
+  };
+}
+
+// One object per data row keyed by header. Blank headers become
+// "Column N" and duplicates get a numeric suffix so no value is lost.
+export function tableToJSON(data: TableData): string {
+  const seen = new Map<string, number>();
+  const keys = data.headers.map((header, i) => {
+    const base = header.replace(/\\\|/g, "|").trim() || `Column ${i + 1}`;
+    const count = seen.get(base) ?? 0;
+    seen.set(base, count + 1);
+    return count === 0 ? base : `${base} ${count + 1}`;
+  });
+  const records = data.rows.map((row) =>
+    Object.fromEntries(keys.map((key, i) => [key, (row[i] ?? "").replace(/\\\|/g, "|")])),
+  );
+  return JSON.stringify(records, null, 2);
+}
+
+// Splits clipboard text copied from a spreadsheet (TSV) or CSV into a grid
+// of cell values, honoring quoted fields.
+export function parseDelimitedText(text: string, delimiter: "\t" | ","): string[][] {
+  return text
+    .replace(/\r\n/g, "\n")
+    .split("\n")
+    .filter((line) => line.length > 0)
+    .map((line) => splitDelimitedLine(line, delimiter));
 }

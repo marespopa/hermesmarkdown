@@ -31,7 +31,6 @@ Index of the editor UI. Each component has a sibling `<Name>.md` (a token-lean d
 | [SidebarHeader](SidebarHeader.md) | Collapsible section header with a title, a chevron toggle, and an optional trailing action. |
 | [SmartFolders](SmartFolders.md) | Lists custom workspaces (saved metadata queries) and the files each one matches, with create, edit, and delete through `WorkspaceBuilder`. |
 | [TabContextMenu](TabContextMenu.md) | Right-click menu positioned at the cursor and clamped to the viewport, used for tab and file actions. |
-| [TableCallout](TableCallout.md) | Floating toolbar shown when the cursor is inside a pipe table. |
 | [TaskDialog](TaskDialog.md) | Form for building a task line (title, status, priority, due date, tags). |
 | [UnifiedSearchInput](UnifiedSearchInput.md) | Search field that turns `#tag` entries into removable tag chips alongside free text, with tag autocomplete. |
 | [VaultPendingOverlay](VaultPendingOverlay.md) | Prompt shown after reload when the stored vault handle needs the user to grant permission again. |

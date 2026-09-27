@@ -16,7 +16,15 @@ import {
   sortColumnAction,
   cycleAlignAction,
   removeTableAction,
+  findTableInState,
+  insertRowAboveAction,
+  moveRowAction,
+  moveColumnAction,
+  pasteGridAction,
+  tableMoveRowCommand,
 } from "./table-commands";
+import { markdown, markdownLanguage } from "@codemirror/lang-markdown";
+import { undo, history } from "@codemirror/commands";
 
 const TABLE = ["| A | B |", "| --- | --- |", "| 1 | 2 |", "| 3 | 4 |"].join("\n");
 
@@ -173,5 +181,74 @@ describe("table toolbar actions", () => {
     const info = findTableAtPos(view.state.doc.toString(), view.state.selection.main.head)!;
     removeTableAction(view, info);
     expect(view.state.doc.toString()).toBe("before\nafter");
+  });
+});
+
+describe("table enhancements", () => {
+  function infoAt(view: EditorView) {
+    return findTableAtPos(view.state.doc.toString(), view.state.selection.main.head)!;
+  }
+
+  it("Tab in the last cell appends a row and lands in its first cell", () => {
+    const view = makeView(TABLE, TABLE.length - 2); // inside "4"
+    expect(tableTabCommand(view)).toBe(true);
+    expect(parseCurrentTable(view)?.rows.length).toBe(3);
+    expect(infoAt(view).lineIdx).toBe(4);
+    expect(infoAt(view).cursorCol).toBe(0);
+  });
+
+  it("Tab in the last cell of a table still being drafted falls through", () => {
+    const view = makeView("| A | B |", 6);
+    expect(tableTabCommand(view)).toBe(false);
+  });
+
+  it("leaves typed pipes plain while drafting or when appending at a row's end", () => {
+    const drafting = makeView("| A |", 2);
+    expect(tablePipeEscapeCommand(drafting)).toBe(false);
+    const rowEnd = makeView(TABLE, "| A | B |".length);
+    expect(tablePipeEscapeCommand(rowEnd)).toBe(false);
+  });
+
+  it("ignores pipe lines inside fenced code blocks", () => {
+    const doc = "```\n| A | B |\n| - | - |\n```";
+    const state = EditorState.create({ doc, extensions: [markdown({ base: markdownLanguage })] });
+    expect(findTableInState(state, doc.indexOf("A"))).toBeNull();
+  });
+
+  it("moves rows and columns, and each move is one undo step", () => {
+    const state = EditorState.create({
+      doc: TABLE,
+      selection: EditorSelection.cursor(TABLE.indexOf("| 1 ") + 2),
+      extensions: [history()],
+    });
+    const view = new EditorView({ state });
+    expect(moveRowAction(view, infoAt(view), 1)).toBe(true);
+    expect(parseCurrentTable(view)?.rows).toEqual([["3", "4"], ["1", "2"]]);
+    expect(moveColumnAction(view, infoAt(view), 1)).toBe(true);
+    expect(parseCurrentTable(view)?.headers).toEqual(["B", "A"]);
+    undo(view);
+    expect(parseCurrentTable(view)?.headers).toEqual(["A", "B"]);
+    undo(view);
+    expect(parseCurrentTable(view)?.rows).toEqual([["1", "2"], ["3", "4"]]);
+  });
+
+  it("Alt+Arrow row moves are consumed inside a table even at the edge", () => {
+    const view = makeView(TABLE, 2); // header row can't move
+    expect(tableMoveRowCommand(view, -1)).toBe(true);
+    expect(view.state.doc.toString()).toBe(TABLE);
+  });
+
+  it("inserts a row above the caret's row", () => {
+    const view = makeView(TABLE, TABLE.indexOf("| 3 ") + 2);
+    insertRowAboveAction(view, infoAt(view));
+    expect(parseCurrentTable(view)?.rows).toEqual([["1", "2"], ["", ""], ["3", "4"]]);
+  });
+
+  it("pastes a grid from the caret's cell, growing the table", () => {
+    const view = makeView(TABLE, TABLE.indexOf("| 4 ") + 2);
+    pasteGridAction(view, infoAt(view), [["x", "y"], ["z", "w|v"]]);
+    const data = parseCurrentTable(view)!;
+    expect(data.headers).toHaveLength(3);
+    expect(data.rows).toEqual([["1", "2", ""], ["3", "x", "y"], ["", "z", "w\\|v"]]);
   });
 });

@@ -19,7 +19,6 @@ export function buildWorkspaceTaskViewCommandGroups(context: EditorCommandContex
     isOnlyPane,
     lineNumbers,
     onOpenTasks,
-    requestWorkspaceBuilder,
     router,
     scanVault,
     setActiveFilePath,
@@ -27,7 +26,6 @@ export function buildWorkspaceTaskViewCommandGroups(context: EditorCommandContex
     setIsWizardOpen,
     setKeyboardShortcutsOpen,
     setLineNumbers,
-    setRailPanel,
     setShowHiddenFiles,
     setTaskDueFilter,
     setTaskSearchQuery,
@@ -174,17 +172,6 @@ export function buildWorkspaceTaskViewCommandGroups(context: EditorCommandContex
     ? activeLeaf.openFilePaths.indexOf(activeLeaf.activeFilePath)
     : -1;
   const workspaceTasksAndViews: Command[] = [
-    {
-      id: "create-smart-view",
-      label: "Create smart view",
-      category: "Views",
-      keywords: "workspace saved query filter",
-      disabledReason: vaultHandle ? undefined : "Open a vault first",
-      action: () => {
-        setRailPanel("views");
-        requestWorkspaceBuilder((value) => value + 1);
-      },
-    },
     {
       id: "split-pane-down",
       label: "Split pane down",

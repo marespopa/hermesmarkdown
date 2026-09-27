@@ -25,6 +25,10 @@ import {
   tablePipeEscapeCommand,
   tableEnterCommand,
   tableArrowVerticalCommand,
+  tableMoveRowCommand,
+  tableMoveColumnCommand,
+  tableInsertRowCommand,
+  tableDeleteRowCommand,
 } from "./table-commands";
 import { findFrontmatterFoldRange } from "./frontmatter-fold";
 
@@ -117,6 +121,12 @@ export function buildExtensions(opts: BuildExtensionsOptions): Extension[] {
       { key: "Enter", run: tableEnterCommand },
       { key: "ArrowDown", run: (view) => tableArrowVerticalCommand(view, 1) },
       { key: "ArrowUp", run: (view) => tableArrowVerticalCommand(view, -1) },
+      { key: "Alt-ArrowUp", run: (view) => tableMoveRowCommand(view, -1) },
+      { key: "Alt-ArrowDown", run: (view) => tableMoveRowCommand(view, 1) },
+      { key: "Mod-Alt-ArrowLeft", run: (view) => tableMoveColumnCommand(view, -1) },
+      { key: "Mod-Alt-ArrowRight", run: (view) => tableMoveColumnCommand(view, 1) },
+      { key: "Mod-Enter", run: tableInsertRowCommand },
+      { key: "Mod-Shift-Backspace", run: tableDeleteRowCommand },
     ]),
     keymap.of([...formatKeymap, ...historyKeymap, ...defaultKeymap]),
     EditorView.editable.of(!opts.readOnly),

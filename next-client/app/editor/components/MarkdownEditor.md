@@ -1,6 +1,6 @@
 # MarkdownEditor
 
-Description: CodeMirror 6 Markdown editor for one pane. It adds inline pills and callouts (links, dates, tags, tables), slash templates, image paste, and frontmatter/callout folding.
+Description: CodeMirror 6 Markdown editor for one pane. It adds inline pills and callouts (links, dates, tags), an inline editable table grid, slash templates, image paste, and frontmatter/callout folding.
 
 ## Local State & Storage
 - State: `atom_activeEditorView`, `atom_isEditorFocused`, `atom_wordWrap`, `atom_lineNumbers`, `atom_vimMode`, `atom_frontmatterCollapsedByDefault`, `atom_vaultHandle`, `atom_currentDirectoryHandle`, `atom_pendingScrollTarget`, `atom_isAiConfigured`, `atom_aiBuilderRequest`. Pill and dialog state is local useState.
@@ -8,7 +8,7 @@ Description: CodeMirror 6 Markdown editor for one pane. It adds inline pills and
 - Features come from composable hooks in `../hooks`: `use-codemirror-{editor,features,templates,table,mermaid,image,code-language-picker,callout-fold,frontmatter-fold}`.
 
 ## Dependencies
-- Core: `@codemirror/view`, `@codemirror/language-data`, `DialogModal`, `Typeahead`, `DatePickerCallout`, `WikiLinkDialog`, `TaskDialog`, `LinkPill`, `WorkflowPill`, `TableCallout`.
+- Core: `@codemirror/view`, `@codemirror/language-data`, `DialogModal`, `Typeahead`, `DatePickerCallout`, `WikiLinkDialog`, `TaskDialog`, `LinkPill`, `WorkflowPill`.
 - Zero-Cloud: No network or telemetry side effects. Opening a link pill calls `window.open` after a user click. AI actions only set `atom_aiBuilderRequest`; the request itself is made by the AI dialogs.
 
 ## Quick Usage

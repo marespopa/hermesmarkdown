@@ -31,7 +31,6 @@ import {
   atom_showHiddenFiles,
   atom_tasksGroupBy,
   atom_theme,
-  atom_workspaceBuilderRequest,
 } from "@/app/atoms/ui-atoms";
 import { useDialog } from "@/app/hooks/use-dialog";
 import { useFileSystem } from "@/app/hooks/use-file-system";
@@ -102,7 +101,6 @@ export function useEditorCommandContext(props: EditorCommandsProps) {
   const [, setTaskDueFilter] = useAtom(atom_taskDueFilter);
   const [, setIsWizardOpen] = useAtom(atom_isWizardOpen);
   const [, setKeyboardShortcutsOpen] = useAtom(atom_keyboardShortcutsOpen);
-  const [, requestWorkspaceBuilder] = useAtom(atom_workspaceBuilderRequest);
   const activeFileHandle = useAtomValue(atom_activeFileHandle);
   const activeEditorView = useAtomValue(atom_activeEditorView);
   const activeLeaf = activePaneId ? findLeaf(workspaceLayout.rootContainer, activePaneId) : null;
@@ -154,7 +152,6 @@ export function useEditorCommandContext(props: EditorCommandsProps) {
     setTaskDueFilter,
     setIsWizardOpen,
     setKeyboardShortcutsOpen,
-    requestWorkspaceBuilder,
     activeFileHandle,
     activeEditorView,
     activeLeaf,

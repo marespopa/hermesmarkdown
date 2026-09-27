@@ -149,7 +149,7 @@ html.dark .editor-container.cm-focused .cm-selectionBackground {
   max-width: 100%;
   min-width: 0;
   width: 100%;
-  margin-block: 0.85em;
+  margin-bottom: 0.85em;
   overflow: hidden;
 }
 
@@ -219,10 +219,141 @@ html.dark .editor-container.cm-focused .cm-selectionBackground {
   height: auto;
 }
 
+/* Cells are edited in place; the focused cell shows its raw inline
+   Markdown (e.g. **bold**) and a quiet focus ring instead of the browser's. */
+.cm-table-editor [data-source-cell] {
+  outline: none;
+  caret-color: var(--clay);
+  white-space: pre-wrap;
+}
+
+.cm-table-editor .cm-table-cell-editing,
+.cm-table-editor .cm-table-cell-editing:hover {
+  background-color: color-mix(in srgb, var(--clay) 6%, transparent);
+  box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--clay) 55%, transparent);
+}
+
+.cm-table-editor .cm-table-cell-missing {
+  background-color: color-mix(in srgb, var(--fg) 1.5%, transparent);
+}
+
+.cm-table-preview .cm-table-wikilink {
+  color: var(--link);
+}
+
 @media (max-width: 639px) {
   .cm-table-preview th,
   .cm-table-preview td {
     min-width: min(7rem, 48vw);
     padding-inline: 0.65em;
   }
+}
+
+/* The table-options tab sits in a strip reserved above the header row
+   (taken from the table's own top margin, so nothing shifts), centred over
+   the active column — never on top of a cell. It fades out while typing. */
+.cm-table-preview {
+  margin-top: 0.25em;
+}
+
+.cm-table-preview-scroll {
+  position: relative;
+  padding-top: 0.6em;
+}
+
+.cm-table-column-tab {
+  position: absolute;
+  width: 1.5rem;
+  height: 0.3rem;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background-color: color-mix(in srgb, var(--fg) 20%, transparent);
+  cursor: pointer;
+  transition: opacity 150ms ease, background-color 120ms ease;
+}
+
+.cm-table-column-tab:hover,
+.cm-table-column-tab[aria-expanded="true"] {
+  background-color: var(--clay);
+}
+
+.cm-table-column-tab.is-typing {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Generous invisible hit area around the thin tab (touch friendly). */
+.cm-table-column-tab::after {
+  content: "";
+  position: absolute;
+  inset: -0.45rem -0.5rem;
+}
+
+.cm-table-menu-heading {
+  padding: 0.35rem 0.6rem 0.15rem;
+  color: var(--fg-faint);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.cm-table-menu {
+  position: fixed;
+  max-height: calc(100vh - 1rem);
+  overflow-y: auto;
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  min-width: 12rem;
+  padding: 0.25rem;
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  background-color: var(--overlay);
+  color: var(--fg);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  font-size: 0.8125rem;
+}
+
+.cm-table-menu-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.35rem 0.6rem;
+  border: 0;
+  border-radius: 0.3rem;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.cm-table-menu-item:hover:not(:disabled),
+.cm-table-menu-item:focus-visible {
+  background-color: color-mix(in srgb, var(--fg) 7%, transparent);
+  outline: none;
+}
+
+.cm-table-menu-item:disabled {
+  color: var(--fg-faint);
+  cursor: default;
+}
+
+.cm-table-menu-item.is-danger:not(:disabled) {
+  color: #dc2626;
+}
+
+.cm-table-menu-item kbd {
+  color: var(--fg-faint);
+  font: inherit;
+  font-size: 0.75rem;
+}
+
+.cm-table-menu-sep {
+  height: 1px;
+  margin: 0.25rem 0.35rem;
+  background-color: var(--border-subtle);
 }
