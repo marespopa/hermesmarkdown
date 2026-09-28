@@ -96,11 +96,12 @@ export class MemoryDirectoryHandle {
 
   // Test helpers (not part of the File System API).
   async writeText(path: string, text: string): Promise<MemoryFileHandle> {
-    const segments = path.split("/");
-    const name = segments.pop()!;
-    let directory: MemoryDirectoryHandle = this;
-    for (const segment of segments) directory = await directory.getDirectoryHandle(segment, { create: true });
-    const file = await directory.getFileHandle(name, { create: true });
+    const slash = path.indexOf("/");
+    if (slash !== -1) {
+      const directory = await this.getDirectoryHandle(path.slice(0, slash), { create: true });
+      return directory.writeText(path.slice(slash + 1), text);
+    }
+    const file = await this.getFileHandle(path, { create: true });
     file.bytes = new TextEncoder().encode(text);
     return file;
   }
@@ -116,12 +117,12 @@ export class MemoryDirectoryHandle {
   }
 
   fileAt(path: string): MemoryFileHandle | undefined {
-    const segments = path.split("/");
-    let entry: MemoryDirectoryHandle | MemoryFileHandle | undefined = this;
-    for (const segment of segments) {
-      if (!entry || entry.kind !== "directory") return undefined;
-      entry = entry.children.get(segment);
+    const slash = path.indexOf("/");
+    if (slash !== -1) {
+      const child = this.children.get(path.slice(0, slash));
+      return child?.kind === "directory" ? child.fileAt(path.slice(slash + 1)) : undefined;
     }
+    const entry = this.children.get(path);
     return entry?.kind === "file" ? entry : undefined;
   }
 

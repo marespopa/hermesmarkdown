@@ -177,7 +177,7 @@ describe("evaluateTable — functions", () => {
     alignments: ["left", "left", "left"],
   };
 
-  function withFormula(formula: string): TableData {
+  function cloneBase(): TableData {
     return {
       headers: [...base.headers],
       rows: base.rows.map((r) => [...r]),
@@ -186,13 +186,13 @@ describe("evaluateTable — functions", () => {
   }
 
   it("AVERAGE", () => {
-    const data = withFormula("");
+    const data = cloneBase();
     data.rows[1][0] = "=AVERAGE(A2:C2)";
     expect(result(data, 3, 0)).toBe("20");
   });
 
   it("MIN / MAX", () => {
-    const data = withFormula("");
+    const data = cloneBase();
     data.rows[1][0] = "=MIN(A2:C2)";
     data.rows[1][1] = "=MAX(A2:C2)";
     expect(result(data, 3, 0)).toBe("10");

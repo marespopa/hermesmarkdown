@@ -5,18 +5,6 @@ import { FormulaError, formatScalar, isFormulaError, toBoolean, toNumber, type F
 // Extending the engine later (VLOOKUP, COUNTIF, ...) is just adding an
 // entry here — no parser/evaluator changes needed.
 
-// Strict coercion — used by single-value functions (ABS, ROUND) where a
-// non-numeric argument is genuinely a usage error.
-function numArgs(args: FormulaValue[]): number[] | FormulaError {
-  const out: number[] = [];
-  for (const a of args) {
-    const n = toNumber(a);
-    if (isFormulaError(n)) return n;
-    out.push(n);
-  }
-  return out;
-}
-
 // Lenient coercion — used by aggregate functions (SUM, AVERAGE, MIN, MAX)
 // over a range. Matches spreadsheet behavior: text cells (e.g. a header row
 // accidentally included in the range, or a label column) are silently
