@@ -2,9 +2,9 @@
 
 import React, { useRef } from "react";
 import { useAtomValue, useSetAtom } from "jotai";
-import { HiOutlineCollection, HiOutlineDatabase, HiOutlineDocumentText, HiOutlineDotsHorizontal, HiOutlineFolderOpen, HiOutlinePlus } from "react-icons/hi";
+import { HiOutlineCollection, HiOutlineDatabase, HiOutlineDocumentText, HiOutlineDotsHorizontal, HiOutlineFolderOpen, HiOutlineGlobeAlt, HiOutlinePlus } from "react-icons/hi";
 import { atom_activeFilePath, atom_vaultHandle } from "@/app/atoms/atoms";
-import { atom_newVaultFlowOpen } from "@/app/atoms/ui-atoms";
+import { atom_browserVaultDialogOpen, atom_newVaultFlowOpen } from "@/app/atoms/ui-atoms";
 import Button from "@/app/components/Button";
 import { useCommandPalette } from "@/app/components/CommandPalette/CommandPaletteContext";
 import { useFileSystem } from "@/app/hooks/use-file-system";
@@ -21,7 +21,8 @@ export default function PaneEmptyState({ onLoadDraft }: PaneEmptyStateProps) {
   const vaultHandle = useAtomValue(atom_vaultHandle);
   const setActiveFilePath = useSetAtom(atom_activeFilePath);
   const setNewVaultFlowOpen = useSetAtom(atom_newVaultFlowOpen);
-  const { createNewFile, importFile, openVault, isVaultSupported } = useFileSystem();
+  const { createNewFile, importFile, openVault, isVaultSupported, isBrowserVaultSupported } = useFileSystem();
+  const setBrowserVaultDialogOpen = useSetAtom(atom_browserVaultDialogOpen);
   const { open: openCommandPalette } = useCommandPalette();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const newFileShortcut = isMacPlatform() ? "⌃⌥N" : "Ctrl+Alt+N";
@@ -82,18 +83,32 @@ export default function PaneEmptyState({ onLoadDraft }: PaneEmptyStateProps) {
             {vaultHandle ? "Open Note" : "Open File"}
           </Button>
         </div>
-        {!vaultHandle && isVaultSupported && (
+        {!vaultHandle && (isVaultSupported || isBrowserVaultSupported) && (
           <div className="mt-5 flex w-full flex-col items-center gap-2 border-t border-edge pt-5">
-            <p className="text-ui-caption text-fg-muted">Keep your notes together in a local vault.</p>
+            <p className="text-ui-caption text-fg-muted">
+              {isVaultSupported
+                ? "Keep your notes together in a local vault."
+                : "Keep your notes together in a vault stored in this browser."}
+            </p>
             <div className="flex flex-wrap justify-center gap-2">
-              <Button variant="tertiary" onClick={() => openVault()}>
-                <HiOutlineDatabase size={16} />
-                Open Vault
-              </Button>
-              <Button variant="tertiary" onClick={() => setNewVaultFlowOpen(true)}>
-                <HiOutlineCollection size={16} />
-                Create Vault
-              </Button>
+              {isVaultSupported && (
+                <>
+                  <Button variant="tertiary" onClick={() => openVault()}>
+                    <HiOutlineDatabase size={16} />
+                    Open Vault
+                  </Button>
+                  <Button variant="tertiary" onClick={() => setNewVaultFlowOpen(true)}>
+                    <HiOutlineCollection size={16} />
+                    Create Vault
+                  </Button>
+                </>
+              )}
+              {isBrowserVaultSupported && (
+                <Button variant="tertiary" onClick={() => setBrowserVaultDialogOpen(true)}>
+                  <HiOutlineGlobeAlt size={16} />
+                  Browser Vault
+                </Button>
+              )}
             </div>
           </div>
         )}

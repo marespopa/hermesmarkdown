@@ -9,6 +9,7 @@ import {
 } from "@/app/atoms/atoms";
 import { useDialog } from "../use-dialog";
 import { withRetry } from "./shared";
+import { writeFileContent } from "@/app/services/file-writer";
 
 interface UseCreateItemProps {
   scanVault: (handle: FileSystemDirectoryHandle) => Promise<void>;
@@ -149,18 +150,7 @@ export function useCreateItem({ scanVault, indexVaultTags, openFile }: UseCreate
         // which causes Google Drive to hang in an infinite sync loop.
         let contentToWrite = content;
         if (!contentToWrite) contentToWrite = "\n";
-        await withRetry(async () => {
-          let writable: FileSystemWritableFileStream | null = null;
-          try {
-            const stream = await (newFileHandle as any).createWritable() as FileSystemWritableFileStream;
-            writable = stream;
-            await stream.write(contentToWrite);
-            await stream.close();
-            writable = null;
-          } finally {
-            if (writable) await writable.close();
-          }
-        });
+        await withRetry(() => writeFileContent(newFileHandle!, contentToWrite));
 
         await scanVault(vaultHandle || currentDirectoryHandle || targetDir);
         await indexVaultTags();
@@ -230,18 +220,7 @@ export function useCreateItem({ scanVault, indexVaultTags, openFile }: UseCreate
       }
 
       if (!newFileHandle) throw new Error("Failed to resolve file handle");
-      await withRetry(async () => {
-        let writable: FileSystemWritableFileStream | null = null;
-        try {
-          const stream = await (newFileHandle as any).createWritable() as FileSystemWritableFileStream;
-          writable = stream;
-          await stream.write("\n");
-          await stream.close();
-          writable = null;
-        } finally {
-          if (writable) await writable.close();
-        }
-      });
+      await withRetry(() => writeFileContent(newFileHandle!, "\n"));
       await scanVault(vaultHandle || currentDirectoryHandle || targetDir);
       await indexVaultTags();
 

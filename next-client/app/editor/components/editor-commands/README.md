@@ -19,6 +19,10 @@ without changing the public props contract or command behavior.
   tasks, views, and workspace navigation.
 - `github-vault-commands.ts` defines the `GitHub: Commit / Push / Sync / Pull`
   commands, registered only while a GitHub vault is open.
+- `vault-storage-commands.ts` defines `Browser vaults…` (where browser storage
+  is available), whole-vault export/import (zip for every vault, folder copy on
+  Chromium, folder import where the browser supports it), and `Delete browser
+  vault` while a browser vault is open.
 - `RegisteredCommands.tsx` applies the existing `useRegisterCommand` pattern to
   the ordered command list.
 

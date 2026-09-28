@@ -6,6 +6,7 @@ import toast from "react-hot-toast";
 import { atom_vaultHandle } from "@/app/atoms/atoms";
 import { useDialog } from "../use-dialog";
 import { withRetry } from "./shared";
+import { writeFileContent } from "@/app/services/file-writer";
 
 interface UseDuplicateItemProps {
   scanVault: (handle: FileSystemDirectoryHandle) => Promise<void>;
@@ -94,11 +95,7 @@ export function useDuplicateItem({ scanVault, indexVaultTags, openFile }: UseDup
 
         if (!newFileHandle) throw new Error("Failed to resolve file handle");
 
-        await withRetry(async () => {
-          const writable = await (newFileHandle as any).createWritable();
-          await writable.write(content);
-          await writable.close();
-        });
+        await withRetry(() => writeFileContent(newFileHandle!, content));
 
         await scanVault(parentDir);
         indexVaultTags();

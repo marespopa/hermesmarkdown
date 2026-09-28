@@ -13,6 +13,7 @@ import {
 import { atom_fileMetadata } from "@/app/atoms/metadata";
 import { useDialog } from "../use-dialog";
 import { withRetry } from "./shared";
+import { writeFileContent } from "@/app/services/file-writer";
 
 interface UseRenameItemProps {
   scanVault: (handle: FileSystemDirectoryHandle) => Promise<void>;
@@ -118,41 +119,25 @@ export function useRenameItem({ scanVault, indexVaultTags }: UseRenameItemProps)
           } else {
             // Fallback for files: manual copy and delete
             if (freshHandle.kind === "file") {
+              // Copy the File itself so binary attachments keep their bytes.
               const file = await (freshHandle as FileSystemFileHandle).getFile();
-              const content = await file.text();
               const newFileHandle = await withRetry(() => parentDir.getFileHandle(newName, {
                 create: true,
               }));
-              let writable: FileSystemWritableFileStream | null = null;
-              try {
-                writable = await withRetry(() => (newFileHandle as any).createWritable());
-                if (writable) {
-                  await withRetry(() => writable!.write(content));
-                  await withRetry(() => writable!.close());
-                  writable = null;
-                }
-                await withRetry(() => (parentDir as any).removeEntry(freshHandle.name));
+              await withRetry(() => writeFileContent(newFileHandle, file));
+              await withRetry(() => (parentDir as any).removeEntry(freshHandle.name));
 
-                if (isActive) {
-                  setActiveFileHandle(newFileHandle);
-                  setFileName(newName.replace(".md", ""));
+              if (isActive) {
+                setActiveFileHandle(newFileHandle);
+                setFileName(newName.replace(".md", ""));
 
-                  // Recalculate path for metadata/tracking
-                  if (vaultHandle) {
-                    const pathParts = await (vaultHandle as any).resolve(newFileHandle);
-                    if (pathParts) {
-                      setActiveFilePath(pathParts.join("/"));
-                    } else {
-                      setActiveFilePath(newName);
-                    }
-                  }
-                }
-              } finally {
-                if (writable) {
-                  try {
-                    await (writable as any).close();
-                  } catch {
-                    // Ignore cleanup error
+                // Recalculate path for metadata/tracking
+                if (vaultHandle) {
+                  const pathParts = await (vaultHandle as any).resolve(newFileHandle);
+                  if (pathParts) {
+                    setActiveFilePath(pathParts.join("/"));
+                  } else {
+                    setActiveFilePath(newName);
                   }
                 }
               }

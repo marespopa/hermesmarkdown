@@ -10,6 +10,7 @@ import useIsMobileChrome from "@/app/hooks/use-mobile-chrome";
 import WelcomeWizard from "./components/WelcomeWizard";
 import NewVaultDialog from "./components/NewVaultDialog";
 import GitHubVaultDialog from "./components/GitHubVaultDialog";
+import BrowserVaultDialog from "./components/BrowserVaultDialog";
 import WorkspaceSplitter from "./components/WorkspaceSplitter";
 import PaneLeaf from "./components/PaneLeaf";
 import VaultPendingOverlay from "./components/VaultPendingOverlay";
@@ -273,6 +274,7 @@ export default function LiteEditor() {
         <WelcomeWizard />
         <NewVaultDialog />
         <GitHubVaultDialog />
+        <BrowserVaultDialog />
         <ConflictDialog />
         <RepurposeNoteWizard />
         {isVaultPending && <VaultPendingOverlay restoreVault={restoreVault} />}

@@ -24,6 +24,7 @@ Shared, app-agnostic UI primitives. Each component has a sibling `<Name>.md` (st
 | [MainPage](MainPage.md) | Root layout shell that mounts providers, the palette, toasts, `GlobalDialog`, and the header/footer. |
 | [OverlayLayer](OverlayLayer/OverlayLayer.md) | `OverlayPanel`/`OverlayBackdrop`: portal, dismissal, focus trap, and scroll lock. |
 | [Portal](Portal/Portal.md) | Renders children into `document.body` via `createPortal` once the component has mounted on the client. |
+| [ServiceWorkerRegister](ServiceWorkerRegister.md) | Registers the offline service worker and offers a reload when a new version is ready. |
 | [ThemeProvider](ThemeProvider.md) | Applies the resolved light/dark theme class to `<html>` in a layout effect, so the theme switches without a flash. |
 | [Toast](Toast/Toast.md) | Persistent call-to-action card with icon, title, action button, and an optional inline name field. |
 | [Toastr](Toastr/Toastr.md) | Styled `react-hot-toast` helpers for transient success, error, copy, and save-state notifications. |

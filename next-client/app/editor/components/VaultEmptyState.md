@@ -1,6 +1,6 @@
 # VaultEmptyState
 
-Description: Empty state of the file views (Explorer page and mobile file overlay) shown when no vault is open. It offers open, create, import/export, and connect GitHub, and warns when the File System Access API is unsupported.
+Description: Empty state of the file views (Explorer page and mobile file overlay) shown when no vault is open. It offers open, create, browser vault, import/export, and connect GitHub. The "Local vaults require Desktop" warning only shows when neither disk folder access nor browser vaults are available.
 
 ## Local State & Storage
 - State: None (controlled).
@@ -22,6 +22,7 @@ import VaultEmptyState from "./VaultEmptyState";
 |---|---|---|---|
 | isVaultSupported | `boolean` |  | File System Access API is available |
 | openVault | `() => void` |  | Picks a local folder |
+| onOpenBrowserVault? | `() => void` |  | Opens the browser vault dialog; omit where browser storage is unavailable |
 | onCreateVault? / onImport? / onExport? / onConnectGitHub? / onClose? | `() => void` |  | Optional actions |
 | setActiveFilePath | `(path: string) => void` |  | Opens a file |
 | activeFilePath | `string \| null` |  | Current file |

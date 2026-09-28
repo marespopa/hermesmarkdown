@@ -12,7 +12,7 @@ import VaultFileTree from "./VaultFileTree";
 import VaultEmptyState from "./VaultEmptyState";
 import UnifiedSearchInput from "./UnifiedSearchInput";
 import { HiOutlineX, HiOutlineEye, HiOutlineEyeOff, HiOutlineLogout, HiOutlineFolderAdd } from "react-icons/hi";
-import { atom_newVaultFlowOpen, atom_selectedFileTags, atom_showHiddenFiles, atom_userName } from "@/app/atoms/ui-atoms";
+import { atom_browserVaultDialogOpen, atom_githubVaultDialogOpen, atom_newVaultFlowOpen, atom_selectedFileTags, atom_showHiddenFiles, atom_userName } from "@/app/atoms/ui-atoms";
 import Button from "@/app/components/Button";
 
 export default function MobileFileOverlay({
@@ -38,12 +38,15 @@ export default function MobileFileOverlay({
     openVault,
     closeVault,
     isVaultSupported,
+    isBrowserVaultSupported,
     scanVault,
     indexVaultTags,
   } = useFileSystem();
   const dialog = useDialog();
   const [activeFilePath, setActiveFilePath] = useAtom(atom_activeFilePath);
   const setNewVaultFlowOpen = useSetAtom(atom_newVaultFlowOpen);
+  const setBrowserVaultDialogOpen = useSetAtom(atom_browserVaultDialogOpen);
+  const setGitHubVaultDialogOpen = useSetAtom(atom_githubVaultDialogOpen);
   const [showHiddenFiles, setShowHiddenFiles] = useAtom(atom_showHiddenFiles);
   const userName = useAtomValue(atom_userName);
   const [selectedTags, setSelectedTags] = useAtom(atom_selectedFileTags);
@@ -141,6 +144,8 @@ export default function MobileFileOverlay({
               isVaultSupported={isVaultSupported}
               openVault={openVault}
               onCreateVault={() => setNewVaultFlowOpen(true)}
+              onOpenBrowserVault={isBrowserVaultSupported ? () => { setBrowserVaultDialogOpen(true); onClose(); } : undefined}
+              onConnectGitHub={() => { setGitHubVaultDialogOpen(true); onClose(); }}
               onImport={onImport}
               onExport={onExport}
               setActiveFilePath={setActiveFilePath}

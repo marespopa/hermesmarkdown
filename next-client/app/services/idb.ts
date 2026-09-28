@@ -1,10 +1,13 @@
 import type { GitHubVaultDescriptor, GitHubVaultManifest } from "./github-vault-workspace";
+import { isBrowserVaultDescriptor, type BrowserVaultDescriptor } from "./opfs";
 
 const DB_NAME = "HermesMDVaultDB";
 const STORE_NAME = "handles";
 const KEY_VAULT = "lastVaultHandle";
 const KEY_GITHUB_VAULT = "lastGithubVault";
 const KEY_GITHUB_MANIFEST_PREFIX = "githubManifest:";
+const KEY_BROWSER_VAULT = "lastBrowserVault";
+const KEY_BROWSER_VAULT_REGISTRY = "browserVaults";
 
 function getGitHubManifestKey(descriptor: Pick<GitHubVaultDescriptor, "repositoryId" | "branch">) {
   return `${KEY_GITHUB_MANIFEST_PREFIX}${descriptor.repositoryId}:${descriptor.branch}`;
@@ -44,6 +47,7 @@ export async function saveVaultHandle(handle: FileSystemDirectoryHandle) {
       const store = tx.objectStore(STORE_NAME);
       const request = store.put(handle, KEY_VAULT);
       store.delete(KEY_GITHUB_VAULT);
+      store.delete(KEY_BROWSER_VAULT);
       request.onsuccess = () => resolve();
       request.onerror = () => reject(request.error);
     });
@@ -62,6 +66,7 @@ export async function saveGitHubVaultDescriptor(descriptor: GitHubVaultDescripto
       const store = tx.objectStore(STORE_NAME);
       const request = store.put(descriptor, KEY_GITHUB_VAULT);
       store.delete(KEY_VAULT);
+      store.delete(KEY_BROWSER_VAULT);
       request.onsuccess = () => resolve();
       request.onerror = () => reject(request.error);
     });
@@ -163,6 +168,7 @@ export async function clearVaultHandle() {
       const store = tx.objectStore(STORE_NAME);
       const request = store.delete(KEY_VAULT);
       store.delete(KEY_GITHUB_VAULT);
+      store.delete(KEY_BROWSER_VAULT);
       request.onsuccess = () => resolve();
       request.onerror = () => reject(request.error);
     });
@@ -171,7 +177,14 @@ export async function clearVaultHandle() {
   }
 }
 
+// Browser-storage handles (and every handle in Safari/Firefox) have no
+// permission methods: they are always writable, so a missing method counts as
+// granted rather than throwing.
+const hasPermissionApi = (handle: FileSystemHandle) =>
+  typeof (handle as any).queryPermission === "function";
+
 export async function verifyPermission(handle: FileSystemHandle, readWrite = true) {
+  if (!hasPermissionApi(handle)) return true;
   const options: any = {};
   if (readWrite) {
     options.mode = "readwrite";
@@ -180,13 +193,120 @@ export async function verifyPermission(handle: FileSystemHandle, readWrite = tru
     return true;
   }
   // requestPermission requires a user gesture — only call it when inside one.
-  if ((await (handle as any).requestPermission(options)) === "granted") {
+  if (typeof (handle as any).requestPermission === "function" &&
+    (await (handle as any).requestPermission(options)) === "granted") {
     return true;
   }
   return false;
 }
 
 export async function queryPermission(handle: FileSystemHandle, readWrite = true): Promise<boolean> {
+  if (!hasPermissionApi(handle)) return true;
   const options: any = readWrite ? { mode: "readwrite" } : {};
   return (await (handle as any).queryPermission(options)) === "granted";
+}
+
+function readKey<T>(key: string): Promise<T | undefined> {
+  return getDB().then((db) => new Promise<T | undefined>((resolve, reject) => {
+    const request = db.transaction(STORE_NAME, "readonly").objectStore(STORE_NAME).get(key);
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  }));
+}
+
+export async function saveBrowserVaultDescriptor(descriptor: BrowserVaultDescriptor) {
+  if (!isSupported()) return;
+
+  try {
+    const db = await getDB();
+    const registry = await loadBrowserVaultRegistry();
+    return new Promise<void>((resolve, reject) => {
+      const tx = db.transaction(STORE_NAME, "readwrite");
+      const store = tx.objectStore(STORE_NAME);
+      store.put(descriptor, KEY_BROWSER_VAULT);
+      store.put(
+        [descriptor, ...registry.filter((entry) => entry.id !== descriptor.id)],
+        KEY_BROWSER_VAULT_REGISTRY,
+      );
+      store.delete(KEY_VAULT);
+      store.delete(KEY_GITHUB_VAULT);
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => reject(tx.error);
+    });
+  } catch (err) {
+    console.warn("Failed to save browser vault descriptor to IDB:", err);
+  }
+}
+
+export async function loadBrowserVaultDescriptor(): Promise<BrowserVaultDescriptor | null> {
+  if (!isSupported()) return null;
+
+  try {
+    const descriptor = await readKey<unknown>(KEY_BROWSER_VAULT);
+    return isBrowserVaultDescriptor(descriptor) ? descriptor : null;
+  } catch (err) {
+    console.warn("Failed to load browser vault descriptor from IDB:", err);
+    return null;
+  }
+}
+
+// Every browser vault created on this device, most recently opened first.
+export async function loadBrowserVaultRegistry(): Promise<BrowserVaultDescriptor[]> {
+  if (!isSupported()) return [];
+
+  try {
+    const registry = await readKey<unknown>(KEY_BROWSER_VAULT_REGISTRY);
+    return Array.isArray(registry) ? registry.filter(isBrowserVaultDescriptor) : [];
+  } catch (err) {
+    console.warn("Failed to load browser vault registry from IDB:", err);
+    return [];
+  }
+}
+
+// Drops a deleted browser vault from the registry, and forgets it as the last
+// vault when it was the one open.
+export async function removeBrowserVaultDescriptor(id: string) {
+  if (!isSupported()) return;
+
+  try {
+    const db = await getDB();
+    const registry = await loadBrowserVaultRegistry();
+    const last = await loadBrowserVaultDescriptor();
+    return new Promise<void>((resolve, reject) => {
+      const tx = db.transaction(STORE_NAME, "readwrite");
+      const store = tx.objectStore(STORE_NAME);
+      store.put(registry.filter((entry) => entry.id !== id), KEY_BROWSER_VAULT_REGISTRY);
+      if (last?.id === id) store.delete(KEY_BROWSER_VAULT);
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => reject(tx.error);
+    });
+  } catch (err) {
+    console.warn("Failed to remove browser vault descriptor from IDB:", err);
+  }
+}
+
+// Stamps the vault's last export time in the registry and, when it is the
+// open vault, in the saved descriptor. Returns the updated descriptor.
+export async function markBrowserVaultExported(id: string, at = Date.now()): Promise<BrowserVaultDescriptor | null> {
+  if (!isSupported()) return null;
+
+  try {
+    const db = await getDB();
+    const registry = await loadBrowserVaultRegistry();
+    const last = await loadBrowserVaultDescriptor();
+    const entry = registry.find((item) => item.id === id) ?? (last?.id === id ? last : null);
+    if (!entry) return null;
+    const updated = { ...entry, lastExportedAt: at };
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(STORE_NAME, "readwrite");
+      const store = tx.objectStore(STORE_NAME);
+      store.put(registry.map((item) => item.id === id ? updated : item), KEY_BROWSER_VAULT_REGISTRY);
+      if (last?.id === id) store.put(updated, KEY_BROWSER_VAULT);
+      tx.oncomplete = () => resolve(updated);
+      tx.onerror = () => reject(tx.error);
+    });
+  } catch (err) {
+    console.warn("Failed to record browser vault export in IDB:", err);
+    return null;
+  }
 }

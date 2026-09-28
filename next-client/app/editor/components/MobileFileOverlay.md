@@ -3,7 +3,7 @@
 Description: Full-screen mobile file browser combining tag and text search, smart folders, and the vault file list, with an empty state when no vault is open.
 
 ## Local State & Storage
-- State: `atom_activeFilePath`, `atom_selectedFileTags`, `atom_showHiddenFiles`, `atom_newVaultFlowOpen`, `atom_userName`, `useFileSystem`, `useVaultFileSearch`, `useDialog`.
+- State: `atom_activeFilePath`, `atom_selectedFileTags`, `atom_showHiddenFiles`, `atom_newVaultFlowOpen`, `atom_browserVaultDialogOpen`, `atom_githubVaultDialogOpen`, `atom_userName`, `useFileSystem`, `useVaultFileSearch`, `useDialog`.
 - Persistence: `localStorage` keys `hermes_show_hidden_files` and `userName`.
 
 ## Dependencies

@@ -28,11 +28,10 @@ import {
   verifyPermission,
   queryPermission,
   saveGitHubVaultDescriptor,
-  loadGitHubVaultDescriptor,
+  saveBrowserVaultDescriptor,
   saveGitHubVaultManifest,
 } from "@/app/services/idb";
 import {
-  getGitHubVaultWorkspace,
   materializeGitHubVault,
   createGitHubVaultManifestFromFiles,
   type GitHubVaultDescriptor,
@@ -50,7 +49,8 @@ import {
   singlePaneLayout,
 } from "./vault-scan";
 import { useMetadataWorkerResults } from "./use-metadata-worker-results";
-import { atom_showHiddenFiles } from "@/app/atoms/ui-atoms";
+import { atom_showHiddenFiles, atom_browserVaultDialogOpen } from "@/app/atoms/ui-atoms";
+import { loadStoredWorkspace } from "./stored-workspace";
 
 export function useVaultManager() {
   const [vaultHandle, setVaultHandle] = useAtom(atom_vaultHandle);
@@ -69,6 +69,7 @@ export function useVaultManager() {
   const [showHiddenFiles] = useAtom(atom_showHiddenFiles);
   const rebindHandles = useSetAtom(atom_rebindHandles);
   const setIndexerState = useSetAtom(atom_indexerState);
+  const setBrowserVaultDialogOpen = useSetAtom(atom_browserVaultDialogOpen);
   const pendingHandlesRef = useRef<Map<string, FileSystemFileHandle>>(new Map());
 
   const detectCloudVault = useCallback(
@@ -181,6 +182,8 @@ export function useVaultManager() {
     if (descriptor.kind === "local") {
       detectCloudVault(handle);
       if (persist) await saveVaultHandle(handle);
+    } else if (persist && descriptor.kind === "browser") {
+      await saveBrowserVaultDescriptor(descriptor);
     } else if (persist) {
       await saveGitHubVaultDescriptor(descriptor);
     }
@@ -189,7 +192,7 @@ export function useVaultManager() {
     await rebindHandles(handle);
 
     if (announce) {
-      const vaultName = descriptor.kind === "github" ? descriptor.displayName : handle.name;
+      const vaultName = descriptor.kind === "local" ? handle.name : descriptor.displayName;
       toast.success(isNewVault ? `Vault created: ${vaultName}` : `Vault opened: ${vaultName}`);
     }
   }, [setVaultHandle, setVaultDescriptor, setCurrentDirectoryHandle, setIsVaultPending, setFileMetadata, setOpenFiles, setWorkspaceLayout, setIsCloudVault, scanVault, indexVaultTags, rebindHandles, detectCloudVault]);
@@ -206,7 +209,9 @@ export function useVaultManager() {
 
   const openVault = useCallback(async (): Promise<boolean> => {
     if (!isVaultSupported) {
-      toast.error("Your browser does not support local folder access. Try Chrome or Edge.");
+      // No disk folder access here (Safari, Firefox, mobile): offer vaults
+      // kept in browser storage instead.
+      setBrowserVaultDialogOpen(true);
       return false;
     }
 
@@ -229,7 +234,7 @@ export function useVaultManager() {
       toast.error("Failed to open vault");
       return false;
     }
-  }, [initVaultFromHandle]);
+  }, [initVaultFromHandle, setBrowserVaultDialogOpen]);
 
   const restoreVault = useCallback(async () => {
     if (!vaultHandle) return;
@@ -352,19 +357,19 @@ export function useVaultManager() {
         return;
       }
 
-      const githubDescriptor = await loadGitHubVaultDescriptor();
-      if (githubDescriptor) {
-        try {
-          const workspace = await getGitHubVaultWorkspace(githubDescriptor);
-          await initVaultFromHandle(workspace, {
-            descriptor: githubDescriptor,
+      // Browser-storage vaults need no permission prompt.
+      try {
+        const stored = await loadStoredWorkspace();
+        if (stored) {
+          await initVaultFromHandle(stored.handle, {
+            descriptor: stored.descriptor,
             persist: false,
             announce: false,
           });
-        } catch (err) {
-          console.error("Failed to restore GitHub vault workspace:", err);
-          toast.error("Failed to restore the GitHub vault workspace.");
         }
+      } catch (err) {
+        console.error("Failed to restore vault from browser storage:", err);
+        toast.error("Failed to restore the vault from browser storage.");
       }
     }
     init();

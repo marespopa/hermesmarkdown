@@ -1,6 +1,7 @@
 import "./globals.scss";
 import "./editor/editor.scss";
 import MainPage from "./components/MainPage";
+import ServiceWorkerRegister from "./components/ServiceWorkerRegister";
 import { Metadata, Viewport } from "next";
 import { inter, geistMono, ibmPlexMono, plusJakartaSans } from "./fonts";
 
@@ -26,6 +27,12 @@ export const metadata: Metadata = {
     "RAG knowledge base",
   ],
   manifest: "/manifest.json",
+  // Home-screen install on iOS: full-screen, with its own name.
+  appleWebApp: {
+    capable: true,
+    title: "HermesMD",
+    statusBarStyle: "default",
+  },
   robots: { index: true, follow: true },
   alternates: { canonical: "/" },
   openGraph: {
@@ -111,6 +118,7 @@ export default function RootLayout({
         suppressHydrationWarning
       >
         <MainPage>{children}</MainPage>
+        <ServiceWorkerRegister />
       </body>
     </html>
   );

@@ -9,6 +9,7 @@ import {
   atom_activeFileHandle,
   atom_activeFilePath,
 } from "@/app/atoms/atoms";
+import { writeFileContent } from "@/app/services/file-writer";
 
 interface UseMoveItemProps {
   scanVault: (handle: FileSystemDirectoryHandle) => Promise<void>;
@@ -124,39 +125,22 @@ export function useMoveItem({ scanVault, indexVaultTags }: UseMoveItemProps) {
             // Fallback for files: manual copy and delete
             if (freshHandle.kind === "file") {
               console.warn("Native move failed or unsupported, using fallback:", moveErr);
+              // Copy the File itself so binary attachments keep their bytes.
               const file = await (freshHandle as FileSystemFileHandle).getFile();
-              const content = await file.text();
               const newFileHandle = await targetDir.getFileHandle(freshHandle.name, {
                 create: true,
               });
-              
-              let writable: FileSystemWritableFileStream | null = null;
-              try {
-                writable = await newFileHandle.createWritable();
-                if (writable) {
-                  await writable.write(content);
-                  await writable.close();
-                  writable = null;
-                }
-                await (sourceParent as any).removeEntry(freshHandle.name);
+              await writeFileContent(newFileHandle, file);
+              await (sourceParent as any).removeEntry(freshHandle.name);
 
-                if (isActive) {
-                  setActiveFileHandle(newFileHandle);
-                  
-                  // Recalculate path for metadata/tracking
-                  if (vaultHandle) {
-                    const pathParts = await (vaultHandle as any).resolve(newFileHandle);
-                    if (pathParts) {
-                      setActiveFilePath(pathParts.join("/"));
-                    }
-                  }
-                }
-              } finally {
-                if (writable) {
-                  try {
-                    await (writable as any).close();
-                  } catch {
-                    // Ignore cleanup error
+              if (isActive) {
+                setActiveFileHandle(newFileHandle);
+
+                // Recalculate path for metadata/tracking
+                if (vaultHandle) {
+                  const pathParts = await (vaultHandle as any).resolve(newFileHandle);
+                  if (pathParts) {
+                    setActiveFilePath(pathParts.join("/"));
                   }
                 }
               }

@@ -13,6 +13,7 @@ export function buildDocumentVaultCommandGroups(context: EditorCommandContext) {
     dialog,
     duplicateFile,
     handleCopy,
+    isVaultSupported,
     moveItem,
     onExport,
     onHome,
@@ -23,6 +24,7 @@ export function buildDocumentVaultCommandGroups(context: EditorCommandContext) {
     onSave,
     openVault,
     renameFile,
+    setBrowserVaultDialogOpen,
     setNewVaultFlowOpen,
     vaultHandle,
   } = context;
@@ -161,7 +163,8 @@ export function buildDocumentVaultCommandGroups(context: EditorCommandContext) {
       id: "create-new-vault",
       label: "Create new vault",
       keywords: "vault new folder",
-      action: () => setNewVaultFlowOpen(true),
+      // Without disk folder access, new vaults live in browser storage.
+      action: () => (isVaultSupported ? setNewVaultFlowOpen(true) : setBrowserVaultDialogOpen(true)),
     },
     {
       id: "open-vault",

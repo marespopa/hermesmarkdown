@@ -1,10 +1,11 @@
 "use client";
 
-import { useAtom, useAtomValue } from "jotai";
+import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { useRouter } from "next/navigation";
 import {
   atom_activeFilePath,
   atom_activePaneId,
+  atom_vaultDescriptor,
   atom_closePane,
   atom_closeTab,
   atom_isWizardOpen,
@@ -22,6 +23,7 @@ import {
 import {
   atom_activeEditorView,
   atom_aiBuilderRequest,
+  atom_browserVaultDialogOpen,
   atom_isAiConfigured,
   atom_keyboardShortcutsOpen,
   atom_lineNumbers,
@@ -33,6 +35,7 @@ import {
 } from "@/app/atoms/ui-atoms";
 import { useDialog } from "@/app/hooks/use-dialog";
 import { useFileSystem } from "@/app/hooks/use-file-system";
+import { supportsDirectoryInput } from "@/app/services/vault-archive";
 import { usePaneFileActions } from "../../hooks/use-pane-file-actions";
 
 export type EditorCommandsProps = {
@@ -74,7 +77,16 @@ export function useEditorCommandContext(props: EditorCommandsProps) {
     duplicateFile,
     moveItem,
     createFolder,
+    isVaultSupported,
+    isBrowserVaultSupported,
+    exportVaultZip,
+    exportVaultToFolder,
+    importIntoVault,
+    deleteBrowserVault,
   } = useFileSystem();
+  const vaultDescriptor = useAtomValue(atom_vaultDescriptor);
+  const setBrowserVaultDialogOpen = useSetAtom(atom_browserVaultDialogOpen);
+  const supportsFolderImport = supportsDirectoryInput();
   const dialog = useDialog();
   const [rawTheme, setTheme] = useAtom(atom_theme);
   const themeCycle: "system" | "light" | "dark" =
@@ -121,6 +133,15 @@ export function useEditorCommandContext(props: EditorCommandsProps) {
     duplicateFile,
     moveItem,
     createFolder,
+    isVaultSupported,
+    isBrowserVaultSupported,
+    exportVaultZip,
+    exportVaultToFolder,
+    importIntoVault,
+    deleteBrowserVault,
+    vaultDescriptor,
+    setBrowserVaultDialogOpen,
+    supportsFolderImport,
     dialog,
     themeCycle,
     setTheme,

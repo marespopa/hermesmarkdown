@@ -15,7 +15,8 @@ This is the documentation index for the major components of HermesMarkdown.
 ## Key Architectures
 
 - **State Management**: Uses [Jotai](https://jotai.org/) for atomic, distributed state. See `app/atoms/atoms.ts`.
-- **File System**: Utilizes the native [File System Access API](https://developer.mozilla.org/en-US/docs/Web/API/File_System_Access_API) for local file management.
+- **File System**: Utilizes the native [File System Access API](https://developer.mozilla.org/en-US/docs/Web/API/File_System_Access_API) for local folders (Chromium), and the [Origin Private File System](https://developer.mozilla.org/en-US/docs/Web/API/File_System_API/Origin_private_file_system) for browser vaults in every other browser. Both expose the same directory handles to the file layer.
+- **Offline**: A hand-written service worker (`public/sw.js`) lets the installed app start offline.
 - **Styling**: Tailwind utility classes backed by CSS-variable design tokens (`app/globals.scss`, `tailwind.config.js`); editor-specific styles live in `app/editor/editor.scss`.
 - **Editor Engine**: Current source-mode editor runs on CodeMirror 6; slash commands, wiki links, tables, and Mermaid helpers all live under `app/editor/codemirror` and `app/editor/hooks`.
 - **Mermaid Support**: Fenced Mermaid blocks show a trigger button (or `Ctrl/Cmd+Shift+Enter`) that opens the dedicated Mermaid dialog viewer; diagrams are not rendered inline.

@@ -8,6 +8,7 @@ import {
   HiOutlineCloudDownload,
   HiOutlineCloudUpload,
   HiOutlineFolderAdd,
+  HiOutlineGlobeAlt,
 } from "react-icons/hi";
 import SectionHeader from "./SectionHeader";
 
@@ -15,6 +16,8 @@ interface VaultEmptyStateProps {
   isVaultSupported: boolean;
   openVault: () => void;
   onCreateVault?: () => void;
+  /** Opens the browser vault picker; omit where browser storage is unavailable. */
+  onOpenBrowserVault?: () => void;
   onImport?: () => void;
   onExport?: () => void;
   onConnectGitHub?: () => void;
@@ -27,6 +30,7 @@ export default function VaultEmptyState({
   isVaultSupported,
   openVault,
   onCreateVault,
+  onOpenBrowserVault,
   onImport,
   onExport,
   onConnectGitHub,
@@ -66,12 +70,24 @@ export default function VaultEmptyState({
               <span>Open Vault</span>
             </div>
           </>
-        ) : (
+        ) : !onOpenBrowserVault && (
           <div className="px-4 py-3 rounded-xl bg-amber-500/5 border border-amber-500/10 mb-2">
             <p className="text-ui-footnote text-amber-600 dark:text-amber-400 leading-relaxed font-medium">
               Local vaults require Desktop.
             </p>
           </div>
+        )}
+
+        {onOpenBrowserVault && (
+          <Button
+            variant="menu-item"
+            onClick={onOpenBrowserVault}
+            aria-label="Browser Vault"
+            className="px-4 py-3"
+          >
+            <HiOutlineGlobeAlt size={18} />
+            <span>Browser Vault</span>
+          </Button>
         )}
 
         <div

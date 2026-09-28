@@ -139,6 +139,8 @@ describe("buildEditorCommands", () => {
       "create-new-vault",
       "open-vault",
       "new-folder",
+      "export-vault-zip",
+      "import-into-vault",
       "ai-builder",
       "new-ai-file",
       "repurpose-note",

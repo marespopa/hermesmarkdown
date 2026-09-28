@@ -27,7 +27,7 @@ React hooks organized by concern: UI primitives, sync orchestration, and the fil
 
 ## File System Facade
 
-- `use-file-system.ts` — composes the vault, editor, and CRUD hooks below into the editor's single entry point. Capability-gated via mount tracking.
+- `use-file-system.ts` — composes the vault, browser vault, vault archive, editor, and CRUD hooks below into the editor's single entry point. Capability-gated via mount tracking (`isVaultSupported`, `isBrowserVaultSupported`, `isIdbSupported`).
 
 ## file-system/
 
@@ -38,13 +38,18 @@ Cross-cutting primitives used by every file-system hook:
 - `withRetry()` — retries "state changed" and `InvalidStateError` up to 2× with a flat 100ms delay.
 - `withPickerLock()` — global singleton preventing overlapping `showOpenFilePicker` / `showSaveFilePicker` calls (500ms buffer).
 - `metadataWorker` — Web Worker (`app/workers/metadata.worker.ts`) that indexes frontmatter, tags, links and tasks in the background.
-- `isVaultSupported`, `isIdbSupported` — browser capability flags.
+- `isVaultSupported` (disk folder picker, Chromium), `isBrowserVaultSupported` (Origin Private File System, every modern browser), `isIdbSupported` — browser capability flags.
+
+All file writes go through `writeFileContent()` in `app/services/file-writer.ts`, which works in every browser (see Services).
 
 ### Vault
 
 - `vault-scan.ts` — pure helpers: directory listing, the recursive markdown walk for indexing (skips node_modules/vendor, 60s cap), file reading for the worker, metadata merging, cloud-folder detection, parent-directory resolution.
 - `use-metadata-worker-results.ts` — merges the metadata worker's results back into `atom_fileMetadata`, re-attaching file handles.
-- `use-vault-manager.ts` — open / restore / close the vault (local or GitHub), scan the directory tree, kick off metadata indexing. Persists the directory handle / GitHub descriptor to IndexedDB; auto-loads on mount; detects iCloud / OneDrive / Dropbox folders.
+- `use-vault-manager.ts` — open / restore / close the vault (local, browser, or GitHub), scan the directory tree, kick off metadata indexing. Persists the directory handle or descriptor to IndexedDB; auto-loads on mount; detects iCloud / OneDrive / Dropbox folders. Without disk folder access, `openVault()` opens the browser vault dialog.
+- `stored-workspace.ts` — on mount, finds the browser or GitHub vault to reopen (these need no permission prompt).
+- `use-browser-vault.ts` — create / open / list / delete browser vaults (OPFS). Opening asks for persistent storage and reminds about backups after two weeks without an export.
+- `use-vault-archive.ts` — whole-vault export (zip download for any vault; folder copy on Chromium) and import (zip, folder, or loose files; never overwrites). Records the export time for browser vaults.
 - `use-create-vault.ts` — the New Vault flow: pick a parent folder, create the vault folder (refusing to overwrite), then open it.
 
 ### File editor

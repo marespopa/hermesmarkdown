@@ -106,6 +106,8 @@ export const atom_vaultCreationError = atom<string | null>(null);
 export const atom_newVaultFlowOpen = atom<boolean>(false);
 // GitHub selection is intentionally transient: repository credentials stay server-side.
 export const atom_githubVaultDialogOpen = atom<boolean>(false);
+// Browser vault picker: create, reopen, or delete vaults kept in browser storage.
+export const atom_browserVaultDialogOpen = atom<boolean>(false);
 export const atom_keyboardShortcutsOpen = atom<boolean>(false);
 export const atom_workspaceBuilderRequest = atom<number>(0);
 export const atom_selectedWorkspaceId = atom<string | null>(null);

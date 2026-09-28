@@ -9,30 +9,71 @@ export const getStartedGroup: Group = {
       id: "installation",
       title: "Installation",
       lead: "HermesMarkdown is a web app — there's nothing to download or install in the traditional sense.",
-      keywords: "browser chrome edge firefox safari pwa install",
+      keywords: "browser chrome edge firefox safari ios iphone ipad android pwa install offline",
       body: (
         <>
           <p>
-            Vaults are read and written through the browser's File System Access API, which only
-            Chromium-based browsers implement. Use one of the browsers below.
+            Every modern browser can run HermesMarkdown. What differs is where a vault can live:
+            opening a folder on disk needs the File System Access API, which only Chromium-based
+            browsers implement. Everywhere else, you use a{" "}
+            <a href="#browser-vaults" className="text-sage font-semibold hover:underline">browser vault</a>.
           </p>
           <KV
             rows={[
-              { label: "Google Chrome", value: "Supported" },
-              { label: "Microsoft Edge", value: "Supported" },
-              { label: "Brave / Arc / Opera", value: "Supported" },
-              { label: "Firefox", value: "Not supported" },
-              { label: "Safari", value: "Not supported" },
+              { label: "Chrome / Edge / Brave / Arc / Opera", value: "Disk folders, browser vaults, GitHub" },
+              { label: "Firefox", value: "Browser vaults, GitHub" },
+              { label: "Safari (macOS, iOS, iPadOS)", value: "Browser vaults, GitHub" },
             ]}
           />
+          <p>
+            Install it as an app: use <em>Install</em> in the address bar (Chromium), <em>Add to
+            Dock</em> (Safari on macOS), or <em>Share → Add to Home Screen</em> (iOS). The installed
+            app opens in its own window and starts without a network connection once it has been
+            loaded online.
+          </p>
           <Callout type="note">
-            On an unsupported browser, the editor still loads, but the vault picker is disabled —
-            there's no folder to open or save to.
+            Offline, everything except AI features and GitHub sync keeps working. Notes are never
+            sent anywhere unless you use those features.
+          </Callout>
+        </>
+      ),
+    },
+    {
+      id: "browser-vaults",
+      title: "Browser vaults",
+      lead: "A vault stored in the browser's private storage — for Safari, Firefox, phones, and tablets.",
+      keywords: "browser vault opfs safari firefox ios mobile offline storage backup export import zip",
+      body: (
+        <>
+          <p>
+            Choose <strong>Browser vaults…</strong> from the command palette (or <em>Browser Vault</em>{" "}
+            on the start screen), name the vault, and click <em>Create</em>. It works like any other
+            vault — folders, WikiLinks, tasks, attachments — but the files live inside this
+            browser's storage instead of a folder you can see on disk.
+          </p>
+          <KV
+            rows={[
+              { label: "Browser vaults…", value: "Create, reopen, or delete browser vaults" },
+              { label: "Export vault as zip", value: "Download every file as a backup (any vault)" },
+              { label: "Export vault to folder…", value: "Copy the vault into a folder on disk (Chromium)" },
+              { label: "Import files into vault…", value: "Add a zip, notes, or attachments" },
+              { label: "Import folder into vault…", value: "Add a whole folder (desktop browsers)" },
+            ]}
+          />
+          <p>
+            Imports never overwrite: a file whose name is taken is saved as <code>name (1).md</code>.
+            To move a vault to another browser or device, export it as a zip there and import the
+            zip into a new browser vault.
+          </p>
+          <Callout type="warning">
+            A browser vault exists only in this browser. Clearing site data deletes it, and Safari
+            may remove site data after about seven days without use unless the app is installed or
+            storage is marked as kept (the dialog shows this and offers <em>Keep data</em>). Export
+            regularly — HermesMarkdown reminds you when a vault hasn't been backed up for two weeks.
           </Callout>
           <p>
-            HermesMarkdown ships a web app manifest, so supported browsers offer an Install option
-            in the address bar. Installing gives it its own window and app icon, but doesn't change
-            how it works — it's the same browser-based app, not a native build.
+            Need the same notes on several devices? Use a GitHub vault instead: it syncs through a
+            repository you choose.
           </p>
         </>
       ),
@@ -53,6 +94,11 @@ export const getStartedGroup: Group = {
             Everything in the folder — your notes, your subfolders — is yours; HermesMarkdown never
             restructures it. The only thing it adds on its own is an <code>assets/</code> folder at
             the vault root, created the first time you paste or drop an image into a note.
+          </p>
+          <p>
+            Opening folders on disk needs a Chromium-based browser. In Safari and Firefox, choose{" "}
+            <a href="#browser-vaults" className="text-sage font-semibold hover:underline">a browser vault</a>{" "}
+            instead.
           </p>
           <Callout type="warning">
             Dropbox and iCloud can lock files mid-sync. If saves start failing inside a synced folder,

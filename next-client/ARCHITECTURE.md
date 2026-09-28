@@ -6,9 +6,10 @@ This document describes the runtime data flow of the editor.
 
 ```text
 ┌──────────────────────────────┐        ┌──────────────────────────────────┐
-│      LOCAL FILE SYSTEM       │        │   GITHUB VAULT (optional)        │
-│  Plain .md files on disk     │        │  Repo files mirrored into the    │
-│  (File System Access API)    │        │  browser's Origin Private FS     │
+│      LOCAL FILE SYSTEM       │        │   BROWSER / GITHUB VAULT         │
+│  Plain .md files on disk     │        │  Files in the browser's Origin   │
+│  (File System Access API,    │        │  Private FS; GitHub vaults also  │
+│   Chromium)                  │        │  sync with a repository          │
 └──────────────┬───────────────┘        └───────────────┬──────────────────┘
                │ directory handle                       │ /api/github/* (OAuth,
                │                                        │ import, commit, pull)
@@ -60,7 +61,9 @@ This document describes the runtime data flow of the editor.
 
 ## Runtime Components
 
-- **Local file system:** User-selected Markdown vault accessed through the File System Access API. Handles are persisted in IndexedDB (`app/services/idb.ts`).
+- **Local file system:** User-selected Markdown vault accessed through the File System Access API (Chromium). Handles are persisted in IndexedDB (`app/services/idb.ts`).
+- **Browser vaults:** Vaults kept in the Origin Private File System (`app/services/opfs.ts`, `app/hooks/file-system/use-browser-vault.ts`) for browsers without disk folder access (Safari, iOS, Firefox). They use the same handle-based file layer. Writes go through `app/services/file-writer.ts`, which falls back to `app/workers/opfs-writer.worker.ts` where `createWritable()` is missing. Whole-vault zip export / import lives in `app/services/vault-archive.ts`.
+- **Offline app:** `public/sw.js` (registered by `app/components/ServiceWorkerRegister.tsx` in production) serves navigations network-first with a cached shell, and hashed `/_next/static` assets cache-first. It never touches `/api/*`.
 - **GitHub vaults:** Optional. Repository files are imported into the Origin Private File System (`app/services/github-vault-workspace.ts`); commits and pulls go through `app/api/github/` (`app/services/github-vault-sync.ts`, `github-api.ts`, `github-auth.ts`).
 - **File-system hooks:** `app/hooks/file-system/` implements open, save (with retries), create, rename, move, duplicate, and delete, plus the vault manager.
 - **File watcher:** `app/hooks/use-file-watcher.ts` polls open files with backoff and checks immediately on window focus, feeding `ConflictDialog`.
