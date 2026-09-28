@@ -123,7 +123,7 @@ describe("SmartFolders Component", () => {
     const renameButton = screen.getByText("Rename");
     fireEvent.click(renameButton);
 
-    expect(mockRenameFile).toHaveBeenCalledWith(mockMetadata["file1.md"].handle);
+    expect(mockRenameFile).toHaveBeenCalledWith(mockMetadata["file1.md"].handle, undefined, "file1.md");
   });
 
   it("renders a New View affordance at the bottom of the list", () => {
