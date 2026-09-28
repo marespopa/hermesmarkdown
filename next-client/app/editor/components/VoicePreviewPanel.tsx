@@ -280,15 +280,14 @@ export default function VoicePreviewPanel({
             <span className={`h-1.5 w-1.5 rounded-full bg-sage ${isListening ? "animate-pulse" : "opacity-40"}`} />
             {isListening ? "Listening…" : "Voice input paused"}
           </span>
-          <button
-            type="button"
+          <Button variant="unstyled"
             aria-label="Close voice input"
             onMouseDown={(e) => e.stopPropagation()}
             onClick={onDiscard}
-            className="flex items-center justify-center w-7 h-7 rounded-full text-ink-muted hover:bg-sage/10 hover:text-sage"
+            className="flex items-center justify-center w-7 h-7 rounded-full text-fg-muted hover:bg-sage/10 hover:text-sage"
           >
             <HiX size={16} />
-          </button>
+          </Button>
         </div>
 
         <textarea
@@ -299,10 +298,10 @@ export default function VoicePreviewPanel({
           placeholder="Dictated text will appear here for review…"
           rows={3}
           className="w-full resize-none rounded-lg border border-edge bg-transparent p-3 text-ui-body
-            text-fg placeholder:text-ink-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-sage"
+            text-fg placeholder:text-fg-faint focus:outline-none focus-visible:ring-2 focus-visible:ring-sage"
         />
 
-        {interimText && <div className="text-ui-footnote italic text-ink-muted px-1">{interimText}</div>}
+        {interimText && <div className="text-ui-footnote italic text-fg-muted px-1">{interimText}</div>}
 
         {showCommands && (
           <div className="rounded-lg border border-edge bg-paper-pale dark:bg-paper-dark max-h-40 overflow-y-auto">
@@ -312,26 +311,25 @@ export default function VoicePreviewPanel({
                 className="flex items-baseline justify-between gap-3 px-3 py-1.5 text-ui-caption border-b border-edge-subtle last:border-b-0"
               >
                 <span className="font-mono text-ink-light dark:text-ink-dark truncate">{cmd.phrase}</span>
-                <span className="text-ink-muted shrink-0">{cmd.result}</span>
+                <span className="text-fg-muted shrink-0">{cmd.result}</span>
               </div>
             ))}
           </div>
         )}
 
         <div className="flex items-center justify-between gap-2">
-          <button
-            type="button"
+          <Button variant="unstyled"
             onClick={() => setShowCommands((v) => !v)}
             aria-expanded={showCommands}
             aria-label="Show voice commands"
             className={`flex items-center gap-1 text-ui-caption transition-colors ${
-              showCommands ? "text-sage" : "text-ink-muted hover:text-sage"
+              showCommands ? "text-sage" : "text-fg-muted hover:text-sage"
             }`}
           >
             <HiOutlineQuestionMarkCircle size={16} />
             Commands
             {showCommands ? <HiChevronUp size={12} /> : <HiChevronDown size={12} />}
-          </button>
+          </Button>
           <div className="flex items-center gap-2">
             {isListening && (
               <Button variant="outlined" onClick={onDiscard}>

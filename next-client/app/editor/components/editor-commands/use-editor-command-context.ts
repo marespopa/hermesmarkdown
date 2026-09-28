@@ -1,10 +1,11 @@
 "use client";
 
-import { useAtom, useAtomValue } from "jotai";
+import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { useRouter } from "next/navigation";
 import {
   atom_activeFilePath,
   atom_activePaneId,
+  atom_vaultDescriptor,
   atom_closePane,
   atom_closeTab,
   atom_isWizardOpen,
@@ -22,19 +23,19 @@ import {
 import {
   atom_activeEditorView,
   atom_aiBuilderRequest,
+  atom_browserVaultDialogOpen,
   atom_isAiConfigured,
   atom_keyboardShortcutsOpen,
   atom_lineNumbers,
   atom_newVaultFlowOpen,
-  atom_railPanel,
   atom_repurposeWizardOpen,
   atom_showHiddenFiles,
   atom_tasksGroupBy,
   atom_theme,
-  atom_workspaceBuilderRequest,
 } from "@/app/atoms/ui-atoms";
 import { useDialog } from "@/app/hooks/use-dialog";
 import { useFileSystem } from "@/app/hooks/use-file-system";
+import { supportsDirectoryInput } from "@/app/services/vault-archive";
 import { usePaneFileActions } from "../../hooks/use-pane-file-actions";
 
 export type EditorCommandsProps = {
@@ -75,13 +76,22 @@ export function useEditorCommandContext(props: EditorCommandsProps) {
     deleteFile,
     duplicateFile,
     moveItem,
+    createFolder,
+    isVaultSupported,
+    isBrowserVaultSupported,
+    exportVaultZip,
+    exportVaultToFolder,
+    importIntoVault,
+    deleteBrowserVault,
   } = useFileSystem();
+  const vaultDescriptor = useAtomValue(atom_vaultDescriptor);
+  const setBrowserVaultDialogOpen = useSetAtom(atom_browserVaultDialogOpen);
+  const supportsFolderImport = supportsDirectoryInput();
   const dialog = useDialog();
   const [rawTheme, setTheme] = useAtom(atom_theme);
   const themeCycle: "system" | "light" | "dark" =
     rawTheme === "system" ? "light" : rawTheme === "light" ? "dark" : "system";
   const [showHiddenFiles, setShowHiddenFiles] = useAtom(atom_showHiddenFiles);
-  const [railPanel, setRailPanel] = useAtom(atom_railPanel);
   const [, setAiBuilderRequest] = useAtom(atom_aiBuilderRequest);
   const [, setRepurposeWizardOpen] = useAtom(atom_repurposeWizardOpen);
   const isAiConfigured = useAtomValue(atom_isAiConfigured);
@@ -101,7 +111,6 @@ export function useEditorCommandContext(props: EditorCommandsProps) {
   const [, setTaskDueFilter] = useAtom(atom_taskDueFilter);
   const [, setIsWizardOpen] = useAtom(atom_isWizardOpen);
   const [, setKeyboardShortcutsOpen] = useAtom(atom_keyboardShortcutsOpen);
-  const [, requestWorkspaceBuilder] = useAtom(atom_workspaceBuilderRequest);
   const activeFileHandle = useAtomValue(atom_activeFileHandle);
   const activeEditorView = useAtomValue(atom_activeEditorView);
   const activeLeaf = activePaneId ? findLeaf(workspaceLayout.rootContainer, activePaneId) : null;
@@ -123,13 +132,21 @@ export function useEditorCommandContext(props: EditorCommandsProps) {
     deleteFile,
     duplicateFile,
     moveItem,
+    createFolder,
+    isVaultSupported,
+    isBrowserVaultSupported,
+    exportVaultZip,
+    exportVaultToFolder,
+    importIntoVault,
+    deleteBrowserVault,
+    vaultDescriptor,
+    setBrowserVaultDialogOpen,
+    supportsFolderImport,
     dialog,
     themeCycle,
     setTheme,
     showHiddenFiles,
     setShowHiddenFiles,
-    railPanel,
-    setRailPanel,
     setAiBuilderRequest,
     setRepurposeWizardOpen,
     isAiConfigured,
@@ -152,7 +169,6 @@ export function useEditorCommandContext(props: EditorCommandsProps) {
     setTaskDueFilter,
     setIsWizardOpen,
     setKeyboardShortcutsOpen,
-    requestWorkspaceBuilder,
     activeFileHandle,
     activeEditorView,
     activeLeaf,

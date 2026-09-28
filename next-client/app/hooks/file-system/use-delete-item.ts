@@ -56,8 +56,10 @@ export function useDeleteItem({ scanVault, indexVaultTags }: UseDeleteItemProps)
     async (handle: FileSystemHandle, path?: string) => {
       const type = handle.kind === "file" ? "file" : "folder";
       const confirmed = await dialog.confirm(
-        `Are you sure you want to delete this ${type}: ${handle.name}?`,
-        "Delete Item",
+        `Delete ${type} "${handle.name}"? This cannot be undone.`,
+        `Delete ${type}`,
+        "Delete",
+        "Cancel",
       );
       if (!confirmed) return;
 
@@ -148,7 +150,7 @@ export function useDeleteItem({ scanVault, indexVaultTags }: UseDeleteItemProps)
         
         if (!parentDir && removeErr) throw removeErr;
 
-        // Eagerly remove the deleted entry from sidebar caches so it disappears
+        // Eagerly remove the deleted entry from file-tree caches so it disappears
         // immediately without waiting for the async re-index to complete.
         // (indexVaultTags merge-mode never removes entries, so this is the only
         // mechanism that clears a deleted file from fileMetadata.)

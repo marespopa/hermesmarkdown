@@ -3,6 +3,7 @@ import { atom_openFiles, atom_liveHandles } from "./file-atoms";
 import { atom_workspaceLayout } from "./workspace-atoms";
 import { removePathsFromLayout } from "./utils";
 import type { GitHubVaultDescriptor } from "@/app/services/github-vault-workspace";
+import type { BrowserVaultDescriptor } from "@/app/services/opfs";
 
 // Vault / Local File System
 export const atom_vaultHandle = atom<FileSystemDirectoryHandle | null>(null);
@@ -17,12 +18,10 @@ export const atom_fileSystemVersion = atom<number>(0);
 
 export type VaultDescriptor =
   | { kind: "local" }
+  | BrowserVaultDescriptor
   | GitHubVaultDescriptor;
 
 export const atom_vaultDescriptor = atom<VaultDescriptor | null>(null);
-
-export type VaultSetupStatus = 'idle' | 'checking' | 'needs_setup' | 'configured' | 'skipped';
-export const atom_vaultSetupStatus = atom<VaultSetupStatus>('idle');
 
 // Action atoms
 export const atom_rebindHandles = atom(

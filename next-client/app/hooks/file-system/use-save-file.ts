@@ -20,6 +20,7 @@ import {
 import { atom_autosaveMode, atom_snapshotOnConflict } from "@/app/atoms/ui-atoms";
 import { atom_fileMetadata } from "@/app/atoms/metadata";
 import { extractTasks } from "@/app/utils/taskExtractor";
+import { writeFileContent } from "@/app/services/file-writer";
 
 export function useSaveFile() {
   const [vaultHandle] = useAtom(atom_vaultHandle);
@@ -75,11 +76,11 @@ export function useSaveFile() {
       let toWrite = content;
       if (!toWrite) toWrite = "\n";
 
-      let writable: FileSystemWritableFileStream | null = null;
       try {
         // On Android Chrome, write permission can expire between sessions. Check before
-        // attempting createWritable() so we can give actionable feedback instead of a
+        // attempting the write so we can give actionable feedback instead of a
         // silent failure (auto-save has no user gesture to re-trigger the permission dialog).
+        // Browser-storage handles (Safari, Firefox) have no queryPermission and need none.
         if (typeof (fileToSave as any).queryPermission === "function") {
           const permState = await (fileToSave as any).queryPermission({ mode: "readwrite" });
           if (permState !== "granted") {
@@ -100,17 +101,12 @@ export function useSaveFile() {
                 return false;
               }
             } catch {
-              // Fall through; createWritable will surface the error
+              // Fall through; the write will surface the error
             }
           }
         }
 
-        writable = await fileToSave.createWritable();
-        if (writable) {
-          await writable.write(toWrite);
-          await writable.close();
-          writable = null;
-        }
+        await writeFileContent(fileToSave, toWrite);
 
         // Re-derive this file's tasks/tokens/score synchronously from the
         // content just written to disk, so the Tasks view and token cost
@@ -351,14 +347,6 @@ export function useSaveFile() {
           toast.error(`Failed to save: ${errorMsg}`, { id: "save-error" });
         }
         return false;
-      } finally {
-        if (writable) {
-          try {
-            await (writable as any).close();
-          } catch {
-            // Ignore cleanup error
-          }
-        }
       }
     },
     [

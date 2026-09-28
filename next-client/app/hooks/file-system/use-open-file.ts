@@ -16,6 +16,7 @@ import {
 } from "@/app/atoms/atoms";
 import { atom_fileMetadata } from "@/app/atoms/metadata";
 import { atom_isFileLoading } from "@/app/atoms/ui-atoms";
+import { nextPaint } from "@/app/utils/next-paint";
 import { useDialog } from "../use-dialog";
 import { resolveFileMetaByName } from "./resolve-file-by-name";
 
@@ -124,6 +125,11 @@ export function useOpenFile() {
         // 4. Update non-file-specific state
         setFileLastModified(file.lastModified);
         setFileConflict(null);
+
+        // 5. Keep the loading indicator up until the editor has rendered the
+        // new file — for large notes that render, not the disk read, is the
+        // slow part, and clearing the flag earlier hides the bar too soon.
+        await nextPaint();
       } catch (err: any) {
         const isRetryable = 
           err.name === "InvalidStateError" || 

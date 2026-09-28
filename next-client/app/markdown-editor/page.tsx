@@ -12,7 +12,7 @@ const EDITORS = [
   {
     name: "HermesMarkdown",
     tagline: "Local-first, runs entirely in your browser",
-    notes: "No accounts, no cloud uploads — reads and writes files straight to disk. Smart Workspaces, WikiLinks, and agent-readable context for AI tools.",
+    notes: "No accounts, no cloud uploads — reads and writes files straight to disk. WikiLinks, spreadsheet-style tables with formulas, split panes, and optional bring-your-own-key AI.",
     href: "/editor",
     internal: true,
   },
@@ -23,16 +23,10 @@ const EDITORS = [
     href: "https://obsidian.md/",
   },
   {
-    name: "Typora",
-    tagline: "Seamless live-preview editor",
-    notes: "Blends editing and preview into a single view instead of a split pane.",
-    href: "https://typora.io/",
-  },
-  {
     name: "Mark Text",
-    tagline: "Minimalist focused-writing app",
-    notes: "Distraction-free writing with strong typography, available on desktop and mobile.",
-    href: "https://ia.net/writer",
+    tagline: "Open-source desktop editor",
+    notes: "Free, open-source editor with real-time preview for Windows, macOS, and Linux.",
+    href: "https://www.marktext.cc/",
   },
   {
     name: "Zettlr",
@@ -168,12 +162,13 @@ export default function MarkdownEditorPage() {
               <strong className="text-ink-light dark:text-ink-dark font-semibold">HermesMarkdown</strong>{" "}
               is a local-first Markdown editor that runs entirely in your browser. It reads and writes
               files directly to your device&apos;s disk through the File System Access API, so there&apos;s
-              no account, no cloud upload, and nothing leaves your machine.
+              no account and no cloud upload. Optional GitHub-backed vaults and bring-your-own-key AI
+              are the only features that talk to a server.
             </p>
             <p>
-              It supports Smart Workspaces for splitting panes, WikiLinks for connecting notes, and
-              generates agent-readable context (an <code className="text-[0.85em] bg-neutral-100 dark:bg-neutral-800 px-1.5 py-0.5 rounded font-mono not-italic">AGENTS.md</code>{" "}
-              index) so AI coding tools can navigate a vault without opening every file.
+              It supports split panes for working on several notes at once, WikiLinks for connecting
+              notes, tables you edit like a spreadsheet (with formulas), and a vault-wide tasks view.
+              Because notes stay plain Markdown, AI coding tools can read the vault directly.
             </p>
           </div>
         </section>
@@ -191,7 +186,7 @@ export default function MarkdownEditorPage() {
             <div className="space-y-2">
               <h3 className="font-bold text-lg">What are the most popular Markdown editors?</h3>
               <p className="text-neutral-500 dark:text-neutral-400 leading-relaxed">
-                Popular Markdown editors include HermesMarkdown, Obsidian, Typora, Mark Text, Zettlr, and
+                Popular Markdown editors include HermesMarkdown, Obsidian, Mark Text, Zettlr, and
                 Dillinger.
               </p>
             </div>

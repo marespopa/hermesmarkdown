@@ -3,10 +3,12 @@ import { useAtomValue } from "jotai";
 import { HiOutlineChatAlt2 } from "react-icons/hi";
 import Portal from "../../components/Portal/Portal";
 import { atom_activeEditorView } from "@/app/atoms/ui-atoms";
+import Button from "@/app/components/Button";
 
 interface AISelectionToolbarProps {
   isAiLoading: boolean;
-  onPrompt: () => void;
+  /** Opens AI Chat with the current selection as context. */
+  onAsk: () => void;
 }
 
 // Estimated pill size for clamping/centering before the DOM node exists —
@@ -18,7 +20,7 @@ type Pos = { top: number; left: number };
 
 export const AISelectionToolbar: React.FC<AISelectionToolbarProps> = ({
   isAiLoading,
-  onPrompt,
+  onAsk,
 }) => {
   const activeEditorView = useAtomValue(atom_activeEditorView);
   const viewRef = useRef(activeEditorView);
@@ -90,14 +92,14 @@ export const AISelectionToolbar: React.FC<AISelectionToolbarProps> = ({
         <div
           className="ai-selection-toolbar pointer-events-auto flex items-center gap-0.5 p-1 bg-paper-light/80 dark:bg-neutral-900/80 backdrop-blur-2xl border border-paper-light/20 dark:border-neutral-800/50 rounded-full animate-in fade-in zoom-in-95 duration-200 select-none"
         >
-          <button
+          <Button variant="unstyled"
             onMouseDown={(e) => e.preventDefault()}
-            onClick={(e) => { e.preventDefault(); e.stopPropagation(); onPrompt(); }}
+            onClick={(e) => { e.preventDefault(); e.stopPropagation(); onAsk(); }}
             className="flex items-center gap-1.5 px-3 py-1.5 text-ui-footnote font-medium text-sage dark:text-sage hover:bg-sage/10 dark:hover:bg-sage/10 rounded-full transition-colors"
           >
             <HiOutlineChatAlt2 size={13} />
             Ask AI
-          </button>
+          </Button>
         </div>
       </div>
     </Portal>

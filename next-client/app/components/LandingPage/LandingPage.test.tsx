@@ -55,7 +55,7 @@ describe("LandingPage", () => {
       }),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole("button", { name: "Open a Local Folder & Write" }),
+      screen.getByRole("button", { name: "Start Writing" }),
     ).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /Read the docs/ })).toHaveAttribute(
       "href",
@@ -69,7 +69,7 @@ describe("LandingPage", () => {
     renderLandingPage();
 
     fireEvent.click(
-      screen.getByRole("button", { name: "Open a Local Folder & Write" }),
+      screen.getByRole("button", { name: "Start Writing" }),
     );
 
     expect(router.push).toHaveBeenCalledWith("/editor");

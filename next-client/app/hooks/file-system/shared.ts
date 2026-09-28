@@ -10,6 +10,10 @@ if (typeof window !== "undefined") {
 }
 
 export const isVaultSupported = typeof window !== "undefined" && "showDirectoryPicker" in window;
+// Vaults kept in the browser's private storage (every modern browser,
+// including Safari/iOS and Firefox, which lack disk folder access).
+export const isBrowserVaultSupported =
+  typeof navigator !== "undefined" && typeof navigator.storage?.getDirectory === "function";
 export const isIdbSupported = typeof window !== "undefined" && !!window.indexedDB;
 
 // Global lock to prevent "File picker already active" errors

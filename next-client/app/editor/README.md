@@ -10,11 +10,10 @@ The app's current editor is built on CodeMirror 6, with the source-mode implemen
 - Supports slash commands, wiki links, date pickers, tables, and workflow/todo pills.
 - Renders Mermaid fenced blocks via a small dialog trigger attached to the Mermaid code block so the full diagram can open in the dedicated Mermaid viewer.
 
-### `VaultSidebar`
-The sidebar manages navigation within the opened "Vault" (local directory).
-- **Navigation**: Uses `navigateTo` and `navigateBack` from `useFileSystem` to traverse folder structures.
-- **Actions**: Provides UI for creating new files and folders, renaming, and deleting entries.
-- **Smart Filters**: Automatically extracts and displays tags (hashtags) found within markdown files in the vault.
+### File navigation
+Vault files are browsed through the command palette (`Ctrl/Cmd+K`), the Files page (`/editor/files`, "Open Explorer"), and the mobile `MobileFileOverlay`. The latter two use the `VaultFileTree` tree and tag search.
+- **Actions**: Create, rename, move, duplicate, and delete files and folders through `useFileSystem`.
+- **Tags**: Tags extracted from notes are searchable with the `#` palette prefix.
 
 ### Tasks page
 The Tasks page (`app/editor/tasks`) is a vault-wide view over the derived task index.
@@ -22,54 +21,74 @@ The Tasks page (`app/editor/tasks`) is a vault-wide view over the derived task i
 - **Filtering and grouping**: Task text, custom tags, due-date buckets, status/file grouping, and configurable sorting are client-side derived state.
 - **Write-back**: Toggling a checkbox patches the original Markdown source line and saves it through the normal file-save path, which refreshes the task index.
 
+## Editor page hooks (`app/editor/hooks`)
+
+The editor route (`page.tsx`) composes these:
+
+| Hook | Purpose |
+|------|---------|
+| `use-editor-shortcuts.ts` | Window-level shortcuts: Explorer, search, new file, close/select tab, AI chat, voice, save, undo flush. |
+| `use-navigate-with-guard.ts` | Leaves the editor with a Save / Discard prompt when the note is dirty. |
+| `use-github-vault-actions.ts` | `GitHub: Commit / Pull` command handlers. |
+| `use-generate-ai-note.ts` | "Generate new note with AI". |
+| `use-draft-import.ts` | Import a file into the draft (with `DraftImportDialog` for overwrite confirmation). |
+| `use-sync-current-directory.ts` | Points the vault's current directory at the active file's folder. |
+| `use-editor-paste-handlers.ts`, `use-scroll-to-pending-target.ts` | `MarkdownEditor` helpers: CSV-to-table confirm and image saving on paste; jump-to-line requests. |
+| `use-tab-drag-drop.ts` | Tab drag-and-drop between panes (`PaneLeaf`). |
+| `useAIEditorActions.ts` + `ai-action-prompts.ts` | AI Chat state and the one-click AI actions (prompt table keyed by action id). |
+
 ## Interactions
 
-1. **Opening a File**: When a user clicks a file in the `VaultSidebar`, it calls `openFile` from `useFileSystem`. This reads the file content, sets the document content, and updates the active file handle.
+1. **Opening a File**: When a user opens a file from the command palette or the file overlay, it calls `openFile` from `useFileSystem`. This reads the file content, sets the document content, and updates the active file handle.
 2. **Editing**: As the user types in the editor, the document state is updated in real time.
 3. **Saving**: Saving can be manual or automatic. It uses the active file handle to write the current content back to the local disk.
-4. **File Synchronization**: When the window regains focus, HermesMarkdown checks if the active file has been modified externally.
+4. **File Synchronization** (`app/hooks/use-file-watcher.ts`): HermesMarkdown polls open files for external modifications (with backoff up to 5 minutes, and immediately when the window regains focus).
     - **Auto-Sync**: If no local changes exist, it automatically reloads the new content from disk.
-    - **Conflict Resolution**: If local changes exist and the file was modified externally, a **Conflict Dialog** appears, allowing the user to either "Reload External Changes" or "Keep Local Edits".
-5. **Folder Management**: Creating a folder in the sidebar uses `targetDir.getDirectoryHandle(name, { create: true })` and refreshes the directory listing.
+    - **Conflict Resolution**: If local changes exist and the file was modified externally, a **Conflict Dialog** appears with **Accept Incoming** (reload from disk), **Keep Current** (overwrite on next save), or **Resolve in Merge Editor** (current, incoming and merged result side by side).
+5. **Folder Management**: Creating a folder uses `targetDir.getDirectoryHandle(name, { create: true })` and refreshes the directory listing.
 
 ## Mermaid flow
 
-When the cursor is in a fenced Mermaid block, a small trigger button appears beside the active line. Clicking it opens the dedicated Mermaid dialog for the rendered diagram.
+When the cursor is in a fenced Mermaid block, a small trigger button appears beside the active line. Clicking it (or pressing Ctrl/Cmd+Shift+Enter) opens the dedicated Mermaid dialog, which renders the diagram. Diagrams are not rendered inline.
 
 ## Table Flow
 
-### Detection & Callout
+Tables never show their pipe syntax. Every valid GFM table renders as an
+inline, spreadsheet-style grid whose cells are edited in place, while the
+Markdown source stays the single source of truth.
 
-When the cursor enters a pipe-table line the editor triggers a `TableCallout`:
+### Inline grid (`codemirror/table-display.tsx`)
 
-1. **Detection** (`use-table-callout.ts` + `table-detection.ts`): On every `selectionchange` event, `findTableAtPos(value, selectionStart)` scans up/down from the cursor line to find contiguous pipe-table lines. Returns row/column indices plus character offset of the table start.
-2. **Positioning**: `getCaretCoordinates(textarea, tableStartOffset)` converts that offset to pixel coordinates; the callout is placed 36 px above the table's first line, clamped to the textarea width.
-3. **Quick mutations** (`table-manipulation.ts`): Callout buttons call pure functions (`addRow`, `addColumn`, `removeRow`, `removeColumn`, `cycleAlignment`, `tableToCSV`) that return a modified document line array. Changes are applied via `execCommand('insertText')` to preserve the browser undo stack.
-4. **Keyboard shortcuts** (source mode): Tab/Shift+Tab jump between cells; `|` auto-escapes to `\|`; Enter at a row's end appends a new row.
-5. **Dismissal**: Callout clears when cursor moves off the table or on editor blur (150 ms timeout).
+1. **Detection**: a `StateField` walks the Lezer syntax tree for `Table` nodes (so pipes in code blocks are never tables) and replaces each with a block widget. Tables are atomic ranges; when the editor caret arrives at one (arrow keys, undo), focus hands off to the nearest cell (first cell from above, last from below).
+2. **Editing**: each cell is its own `contenteditable`. Unfocused cells show rendered inline Markdown (`utils/inline-markdown.ts`); the focused cell shows its raw text (`**bold**`, links…). Every keystroke is written back as a minimal change to that cell's source range. Undo/redo, autosave and split panes always see the table as displayed. Typed pipes are stored escaped (`\|`).
+3. **Keyboard**: Tab / Shift+Tab move between cells, and Tab in the last cell adds a row. Enter moves down, adding a row at the bottom. The arrow keys cross cell edges and leave the table at its borders. Escape leaves the table. Alt+↑/↓ move the row, Ctrl/Cmd+Alt+←/→ move the column, Ctrl/Cmd+Enter inserts a row below, Ctrl/Cmd+Shift+Backspace deletes the row, and Ctrl/Cmd+B / I / E wrap the selection in bold / italic / code.
+4. **Paste**: plain text pastes into the cell. TSV (from a spreadsheet) or multi-line CSV fills cells starting at the focused cell, growing the table as needed.
+5. **Source hygiene**: when the caret leaves a table, its column padding is realigned (`hooks/use-codemirror-table.ts`). Tables written without outer pipes get them on first edit. Both are kept out of undo history because nothing visible changes. They're applied as minimal padding-only changes (`paddingChanges`), never as one whole-table replacement: earlier undo events are mapped through such changes, and a whole-table rewrite would silently invalidate every earlier cell edit.
 
-### Table Dialog (Create / Edit)
+### Table menu (`codemirror/table-handles.ts`)
 
-A full visual editor for tables is available via:
+Nothing is drawn on top of the cells. Table actions live in one menu with **Row** (insert above/below, move, delete), **Column** (insert left/right, move, sort, align, delete) and **Table** (copy as CSV / JSON, delete with a confirming second click) sections. Open it either way:
 
-- **`/table`** slash command — opens the dialog in **create mode** (blank 3×3 grid).
-- **`{table}` shortcode** — inserts a raw 3×3 scaffold directly (no dialog).
-- **Edit button** in the `TableCallout` — opens the dialog in **edit mode**, pre-filled from the parsed source.
+- **Right-click / long-press** a cell. The menu opens at the pointer.
+- **Row numbers and column letters**: while a table is being edited, spreadsheet-style rulers appear in gutters reserved above and left of it (A, B, C… / 1, 2, 3…, matching formula addressing). Clicking one opens the menu for that column or row.
 
-Dialog features:
-- Scrollable cell grid with Tab/Shift+Tab navigation between cells, styled with refined `tabular-nums`
-- Per-column alignment (L / C / R) toggled inline in the header row
-- Smart data sorting by clicking any column header: asc ↑ → desc ↓ → none. Dynamically detects dates, currency, percentages, numbers, and strings.
-- Add / remove columns and rows; removing non-empty ones requires inline confirmation
-- Live markdown preview (collapsible)
-- **Insert Table** (create mode) replaces the slash command text; **Update Table** (edit mode) replaces only the table block in the source and automatically pads output to match the L/C/R alignment settings.
+All structural edits go through `codemirror/table-commands.ts` as one isolated undo step each. That module holds the keyboard commands and re-exports the shared primitives in `table-edit.ts` and the menu actions in `table-menu-actions.ts`. The widget itself is split into `table-display.tsx` (state field, widget, caret entry), `table-cell-dom.ts` (rendering, caret offsets) and `table-cell-handlers.ts` (cell events, menus, rulers).
+
+### Formulas (`utils/formula-engine.ts`, `codemirror/table-formulas.ts`)
+
+A cell starting with `=` is a formula (`=SUM(B2:B5)`, `=AVERAGE(B2:D2)`, `=IF(...)`, …; A1 refs with the header as row 1). While the table display field builds the grid, it evaluates every table in one pass. Tables are named by the heading above them, so cross-table refs (`=SUM(Income!B)`) resolve. Unfocused formula cells show the computed value (raw formula as tooltip); the focused cell shows the formula. Cross-note refs (`=[[Budget]]!B5`) come from `hooks/use-cross-file-tables.ts`, which reads the referenced notes asynchronously and pushes a snapshot into the editor via the `setFormulaFileTables` effect. **Sum column** in the table menu writes `=SUM(...)` into a totals row: the last row, if it holds an aggregate (SUM/AVERAGE/COUNT/MIN/MAX), else a new one. Rows added at the end go above the totals row and extend its ranges. A range that covers the formula's own cell skips that cell rather than reporting `#CIRCULAR!`.
 
 ### Utilities
 
 | File | Purpose |
 |------|---------|
-| `utils/tableParser.ts` | `parseTable(source)` — strict GFM parse (requires separator row). `parseTableLenient(source)` — best-effort parse when separator is absent (used by the edit dialog). |
+| `utils/tableParser.ts` | `parseTable(source)` — strict GFM parse (requires separator row). `parseTableLenient(source)` — best-effort parse when separator is absent. |
 | `utils/tableSerializer.ts` | `serializeTable(data, pretty)` — produces GFM markdown. Pretty mode pads columns (max 40 chars); compact mode is minimal. |
-| `utils/tableSorter.ts` | `sortRows(rows, colIdx, direction)` — numeric detection, empty cells always sort to bottom. |
-| `utils/table-manipulation.ts` | Low-level line-array mutations used by the `TableCallout` quick-action buttons. |
-| `utils/table-detection.ts` | `findTableAtPos(text, pos)` — locates the table block at cursor position and returns cursor row/col indices. |
+| `utils/tableSorter.ts` | `sortRows(rows, colIdx, direction)` — detects number (currency stripped), date, or string columns; empty cells always sort to bottom; formula/summary rows stay in place. |
+| `utils/table-manipulation.ts` | Line-array and `TableData` mutations (add/remove/move rows and columns, CSV/JSON export, delimited-text parsing) used by the table commands. |
+| `utils/inline-markdown.ts` | Escaped inline-Markdown → HTML renderer for unfocused grid cells. |
+| `utils/table-detection.ts` | `findTableAtPos(text, pos)` — locates the table block at cursor position and returns cursor row/col indices; `findAllTables(text)` and `isTableLine(line)`. |
+| `utils/table-cell-offsets.ts` | Maps each cell to its absolute character range in the document (trimmed content and full pipe-to-pipe segment). |
+| `utils/formula-engine.ts` | Table evaluation entry point (`evaluateTable`, cross-table and cross-note refs); re-exports the stages in `utils/formula/`: `values` (errors, coercion), `addressing` (A1 refs), `currency`, `parser` (tokenizer + AST), `functions` (SUM, IF, …), `results` (formatting). |
+| `utils/formula-ai-guide.ts` | `TABLE_FORMULA_GUIDE` and `FORMULA_PRESERVATION_RULE` prompt text for AI features, generated from the engine's function list. |
+| `codemirror/table-focus.ts` | Shared cell-focus helpers used by both the table widget and the table commands (avoids a circular import). |

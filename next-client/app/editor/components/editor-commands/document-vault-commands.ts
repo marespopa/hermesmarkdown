@@ -1,4 +1,3 @@
-import toast from "react-hot-toast";
 import type { Command } from "@/app/components/CommandPalette/CommandPaletteContext";
 import { formatShortcut } from "@/app/utils/platform";
 import type { EditorCommandContext } from "./use-editor-command-context";
@@ -9,10 +8,12 @@ export function buildDocumentVaultCommandGroups(context: EditorCommandContext) {
     activeFilePath,
     activeLeaf,
     closeVault,
+    createFolder,
     deleteFile,
     dialog,
     duplicateFile,
     handleCopy,
+    isVaultSupported,
     moveItem,
     onExport,
     onHome,
@@ -23,7 +24,7 @@ export function buildDocumentVaultCommandGroups(context: EditorCommandContext) {
     onSave,
     openVault,
     renameFile,
-    scanVault,
+    setBrowserVaultDialogOpen,
     setNewVaultFlowOpen,
     vaultHandle,
   } = context;
@@ -162,7 +163,8 @@ export function buildDocumentVaultCommandGroups(context: EditorCommandContext) {
       id: "create-new-vault",
       label: "Create new vault",
       keywords: "vault new folder",
-      action: () => setNewVaultFlowOpen(true),
+      // Without disk folder access, new vaults live in browser storage.
+      action: () => (isVaultSupported ? setNewVaultFlowOpen(true) : setBrowserVaultDialogOpen(true)),
     },
     {
       id: "open-vault",
@@ -175,24 +177,7 @@ export function buildDocumentVaultCommandGroups(context: EditorCommandContext) {
           id: "new-folder",
           label: "New folder",
           keywords: "create directory",
-          action: async () => {
-            const folderPath = String(await dialog.prompt("Enter folder path:", "", "New Folder") ?? "");
-            if (!folderPath) return;
-            try {
-              const segments = folderPath.split(/[\\/]/).map((segment) => segment.trim()).filter(Boolean);
-              if (segments.length === 0 || segments.some((segment) => segment === "." || segment === "..")) {
-                toast.error("Enter a valid folder path");
-                return;
-              }
-              let directory = vaultHandle;
-              for (const segment of segments) {
-                directory = await directory.getDirectoryHandle(segment, { create: true });
-              }
-              await scanVault(vaultHandle);
-            } catch {
-              toast.error("Failed to create folder");
-            }
-          },
+          action: createFolder,
         }]
       : []),
   ];

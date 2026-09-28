@@ -1,36 +1,21 @@
 "use client";
 
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { HiOutlineViewGrid } from "react-icons/hi";
 import Button from "@/app/components/Button";
-import DialogModal from "@/app/components/DialogModal/DialogModal";
 import ConflictDialog from "./components/ConflictDialog";
-import { useAtom, useAtomValue, useSetAtom } from "jotai";
-import {
-  atom_fileName,
-  atom_content,
-  atom_lastSavedContent,
-  atom_activeFileHandle,
-  atom_activeFilePath,
-  atom_workspaceLayout,
-  atom_activePaneId,
-  atom_isFileLoading,
-  atom_vaultDescriptor,
-  atom_openFiles,
-  atom_rebindHandles,
-  atom_activateWorkspaceTab,
-  atom_workspaceTabs,
-  findLeaf,
-  getFirstLeaf,
-} from "@/app/atoms/atoms";
+import { useAtom, useAtomValue } from "jotai";
+import { atom_fileName, atom_content, atom_activeFileHandle, atom_activeFilePath, atom_workspaceLayout, atom_activePaneId, atom_isFileLoading, findLeaf, getFirstLeaf } from "@/app/atoms/atoms";
 import useIsMobileChrome from "@/app/hooks/use-mobile-chrome";
 import WelcomeWizard from "./components/WelcomeWizard";
 import NewVaultDialog from "./components/NewVaultDialog";
 import GitHubVaultDialog from "./components/GitHubVaultDialog";
+import BrowserVaultDialog from "./components/BrowserVaultDialog";
 import WorkspaceSplitter from "./components/WorkspaceSplitter";
 import PaneLeaf from "./components/PaneLeaf";
 import VaultPendingOverlay from "./components/VaultPendingOverlay";
 import LoadingOverlay from "@/app/components/LoadingOverlay";
+import LoadingBar from "@/app/components/LoadingBar";
 import EditorCommands from "./components/EditorCommands";
 import { useCommandPalette } from "@/app/components/CommandPalette/CommandPaletteContext";
 import MobileFileOverlay from "./components/MobileFileOverlay";
@@ -53,44 +38,34 @@ import { AISelectionToolbar } from "./components/AISelectionToolbar";
 import { AIThinkingOverlay } from "./components/AIThinkingOverlay";
 import VoicePreviewPanel from "./components/VoicePreviewPanel";
 import { useGlobalVoiceInput } from "./hooks/use-global-voice-input";
-
-
 import { useRouter } from "next/navigation";
-import { atom_isAiConfigured, atom_aiBuilderRequest, atom_showCommandPaletteFab, atom_showHiddenFiles, atom_vimMode } from "@/app/atoms/ui-atoms";
-import { generateFileFromPrompt } from "@/app/services/ai";
-import { withRetry } from "@/app/hooks/file-system/shared";
-import { pullGitHubVault, syncGitHubVault } from "@/app/services/github-vault-sync";
-import { focusPaneEditor } from "./utils/focus-pane-editor";
+import { atom_isAiConfigured, atom_aiBuilderRequest, atom_showCommandPaletteFab, atom_showHiddenFiles } from "@/app/atoms/ui-atoms";
 import { usePaneFileActions } from "./hooks/use-pane-file-actions";
-import { isCloseTabShortcut, isNewFileShortcut } from "./utils/tab-shortcuts";
+import { useDraftImport } from "./hooks/use-draft-import";
+import { useEditorShortcuts } from "./hooks/use-editor-shortcuts";
+import { useGenerateAiNote } from "./hooks/use-generate-ai-note";
+import { useGitHubVaultActions } from "./hooks/use-github-vault-actions";
+import { useNavigateWithGuard } from "./hooks/use-navigate-with-guard";
+import { useSyncCurrentDirectory } from "./hooks/use-sync-current-directory";
+import DraftImportDialog from "./components/DraftImportDialog";
 
 export default function LiteEditor() {
   const router = useRouter();
   const { open: openCommandPalette } = useCommandPalette();
   const [isMounting, setIsMounting] = useState(true);
-  const [navigatingLabel, setNavigatingLabel] = useState<string | null>(null);
   const [content, setContent] = useAtom(atom_content);
-  const openFiles = useAtomValue(atom_openFiles);
-  const setOpenFiles = useSetAtom(atom_openFiles);
-  const rebindHandles = useSetAtom(atom_rebindHandles);
-  const lastSavedContent = useAtomValue(atom_lastSavedContent);
   const [fileName, setFileName] = useAtom(atom_fileName);
   const [activeFilePath, setActiveFilePath] = useAtom(atom_activeFilePath);
-  const vaultDescriptor = useAtomValue(atom_vaultDescriptor);
-  const setVaultDescriptor = useSetAtom(atom_vaultDescriptor);
   const [, setActiveFileHandle] = useAtom(atom_activeFileHandle);
   const workspaceLayout = useAtomValue(atom_workspaceLayout);
-  const workspaceTabs = useAtomValue(atom_workspaceTabs);
   const activePaneId = useAtomValue(atom_activePaneId);
-  const activateWorkspaceTab = useSetAtom(atom_activateWorkspaceTab);
   // No split panes on mobile — always resolve to a single leaf, ignoring
   // any split tree a desktop session may have saved.
   const mobileLeaf = findLeaf(workspaceLayout.rootContainer, activePaneId) ?? getFirstLeaf(workspaceLayout.rootContainer);
   const { closeTabWithAutosave } = usePaneFileActions(mobileLeaf);
   const isFileLoading = useAtomValue(atom_isFileLoading);
   const isAiConfigured = useAtomValue(atom_isAiConfigured);
-  const vimMode = useAtomValue(atom_vimMode);
-  const [aiBuilderRequest, setAiBuilderRequest] = useAtom(atom_aiBuilderRequest);
+  const aiBuilderRequest = useAtomValue(atom_aiBuilderRequest);
   // Single dictation session shared by the whole app (not one per pane), so
   // switching the active pane mid-dictation never drops the in-progress
   // preview — "Insert" lands wherever the active pane currently is.
@@ -122,9 +97,10 @@ export default function LiteEditor() {
     importFile,
     createFile,
     createNewFile,
+    chooseTargetDirectory,
     scanVault,
     indexVaultTags,
-    syncSidebarToPath,
+    syncCurrentDirectoryToPath,
   } = useFileSystem();
   const showHiddenFiles = useAtomValue(atom_showHiddenFiles);
   const handleRefreshVault = useCallback(() => {
@@ -159,31 +135,10 @@ export default function LiteEditor() {
     }
   }, [aiBuilderRequest, openAiChat]);
 
-  // Sync sidebar with active file folder
-  const lastSyncedPathRef = useRef<string | null>(null);
-  useEffect(() => {
-    if (
-      !activeFilePath ||
-      activeFilePath === "draft" ||
-      activeFilePath === lastSyncedPathRef.current ||
-      isVaultPending
-    ) return;
+  useSyncCurrentDirectory(activeFilePath, isVaultPending, syncCurrentDirectoryToPath);
 
-    let cancelled = false;
-    void syncSidebarToPath(activeFilePath).then((synced) => {
-      if (synced && !cancelled) lastSyncedPathRef.current = activeFilePath;
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [activeFilePath, isVaultPending, syncSidebarToPath]);
-
-  const [pendingFile, setPendingFile] = useState<{
-    text: string;
-    name: string;
-  } | null>(null);
-
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const { handleImport, fileInputRef, handleFileChange, pendingDraft, confirmPendingDraft, cancelPendingDraft } =
+    useDraftImport(importFile);
 
   useEffect(() => {
     const handleFocus = () => {
@@ -201,37 +156,6 @@ export default function LiteEditor() {
     return () => clearTimeout(timer);
   }, []);
 
-  const chooseFileDestination = useCallback(async (): Promise<FileSystemDirectoryHandle | null> => {
-    if (!vaultHandle) return null;
-
-    const subDirs = vaultFiles.filter(
-      (file): file is FileSystemDirectoryHandle => (file as any).kind === "directory"
-    );
-    const folderOptions = [
-      { label: `/ ${vaultHandle.name} (root)`, value: "__root__" },
-      ...subDirs.map((directory) => ({ label: directory.name, value: directory.name })),
-      { label: "+ New Folder", value: "__new_folder__" },
-    ];
-    const chosenFolder = await dialog.select("Choose a folder for the new file:", folderOptions, "New File");
-    if (!chosenFolder) return null;
-
-    if (chosenFolder === "__new_folder__") {
-      const folderName = await dialog.prompt("Enter folder name:", "", "New Folder");
-      if (!folderName?.trim()) return null;
-      try {
-        const targetDir = await withRetry(() => vaultHandle.getDirectoryHandle(folderName.trim(), { create: true }));
-        await scanVault(vaultHandle);
-        return targetDir;
-      } catch {
-        toast.error("Failed to create folder");
-        return null;
-      }
-    }
-
-    if (chosenFolder === "__root__") return vaultHandle;
-    return subDirs.find((directory) => directory.name === chosenFolder) ?? null;
-  }, [dialog, scanVault, vaultFiles, vaultHandle]);
-
   const handleSave = useCallback(async () => {
     if (!content.trim()) return;
     
@@ -239,7 +163,7 @@ export default function LiteEditor() {
       await saveFile(content);
     } else if (vaultHandle) {
       // Prompt for name if in a vault but no handle yet
-      const targetDir = await chooseFileDestination();
+      const targetDir = await chooseTargetDirectory();
       if (!targetDir) return;
 
       const name = await dialog.prompt("Enter file name:", fileName.replace(".md", ""), "Save to Vault");
@@ -249,73 +173,14 @@ export default function LiteEditor() {
     } else {
       await exportFile(content, fileName);
     }
-  }, [content, activeFileHandle, vaultHandle, saveFile, exportFile, fileName, dialog, createFile, chooseFileDestination]);
+  }, [content, activeFileHandle, vaultHandle, saveFile, exportFile, fileName, dialog, createFile, chooseTargetDirectory]);
 
-  const handleSyncGitHub = useCallback(async (message: string) => {
-    if (!vaultHandle || vaultDescriptor?.kind !== "github") {
-      throw new Error("Open a GitHub vault before committing.");
-    }
-    if (activeFileHandle && content !== lastSavedContent) {
-      const saved = await saveFile(content);
-      if (!saved) throw new Error("Save the active note before committing.");
-    }
-    const result = await syncGitHubVault(vaultHandle, vaultDescriptor, message.trim());
-    setVaultDescriptor(result.descriptor);
-    return result;
-  }, [activeFileHandle, content, lastSavedContent, saveFile, setVaultDescriptor, vaultDescriptor, vaultHandle]);
-
-  const runGitHubPullCommand = useCallback(async () => {
-    if (!vaultHandle || vaultDescriptor?.kind !== "github") return;
-    try {
-      const inactiveUnsavedFile = Object.entries(openFiles).find(([path, file]) =>
-        path !== activeFilePath && path !== "draft" && file.content !== file.lastSavedContent,
-      );
-      if (inactiveUnsavedFile) {
-        throw new Error(`Save ${inactiveUnsavedFile[0]} before pulling remote changes.`);
-      }
-      if (activeFileHandle && content !== lastSavedContent && !await saveFile(content)) {
-        throw new Error("Save the active note before pulling.");
-      }
-      const result = await pullGitHubVault(vaultHandle, vaultDescriptor);
-      setVaultDescriptor(result.descriptor);
-      await rebindHandles(vaultHandle);
-      if (result.files.length) {
-        const updates = new Map(result.files.map((file) => [file.path, file.content]));
-        setOpenFiles((previous) => Object.fromEntries(Object.entries(previous).map(([path, file]) => {
-          const nextContent = updates.get(path);
-          return nextContent === undefined || nextContent === null
-            ? [path, file]
-            : [path, { ...file, content: nextContent, lastSavedContent: nextContent }];
-        })));
-      }
-      handleRefreshVault();
-      toast.success(result.conflicts
-        ? `Merged remote changes with ${result.conflicts} conflict${result.conflicts === 1 ? "" : "s"} to resolve.`
-        : result.changes ? `Merged ${result.changes} remote file${result.changes === 1 ? "" : "s"}.` : "GitHub vault is already up to date.");
-    } catch (caught) {
-      toast.error(caught instanceof Error ? caught.message : "GitHub pull failed.");
-    }
-  }, [activeFileHandle, activeFilePath, content, handleRefreshVault, lastSavedContent, openFiles, rebindHandles, saveFile, setOpenFiles, setVaultDescriptor, vaultDescriptor, vaultHandle]);
-
-  const runGitHubCommitCommand = useCallback(async () => {
-    if (vaultDescriptor?.kind !== "github") return;
-    const response = await dialog.textarea(
-      "Describe this set of note changes.",
-      "",
-      "Commit & Sync",
-      `Commits directly to ${vaultDescriptor.branch}.`,
-    );
-    const message = typeof response === "string"
-      ? response
-      : typeof response?.text === "string" ? response.text : "";
-    if (!message.trim()) return;
-    try {
-      const result = await handleSyncGitHub(message);
-      toast.success(result?.changes ? `Committed ${result.changes} change${result.changes === 1 ? "" : "s"}.` : "GitHub vault is already up to date.");
-    } catch (caught) {
-      toast.error(caught instanceof Error ? caught.message : "GitHub vault sync failed.");
-    }
-  }, [dialog, handleSyncGitHub, vaultDescriptor]);
+  const { isGitHubVault, runGitHubCommitCommand, runGitHubPullCommand } = useGitHubVaultActions({
+    vaultHandle,
+    activeFileHandle,
+    saveFile,
+    refreshVault: handleRefreshVault,
+  });
 
   // Shortcut Listener with Ref Pattern for stability
   const handleSaveRef = useRef(handleSave);
@@ -324,102 +189,18 @@ export default function LiteEditor() {
     handleSaveRef.current = handleSave;
   }, [handleSave]);
 
-  const navigateWithGuard = useCallback(async (path: string, label: string) => {
-    const isDirty = content !== lastSavedContent && content.trim() !== "";
-    if (!isDirty) {
-      setNavigatingLabel(label);
-      router.push(path);
-      return;
-    }
-    const choice = await dialog.select(
-      "You have unsaved changes.",
-      [
-        { label: "Save & Leave", value: "save" },
-        { label: "Discard Changes", value: "discard" },
-      ],
-      "Unsaved Changes"
-    );
-    if (choice === "save") {
-      await handleSaveRef.current();
-      setNavigatingLabel(label);
-      router.push(path);
-    } else if (choice === "discard") {
-      setNavigatingLabel(label);
-      router.push(path);
-    }
-  }, [content, lastSavedContent, router, dialog]);
+  const { navigateWithGuard, navigatingLabel } = useNavigateWithGuard(handleSaveRef);
 
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      const isVimEditorEvent = vimMode && (e.target as HTMLElement | null)?.closest?.(".cm-editor");
-      if (e.key === "Escape" && isVimEditorEvent) return;
-
-      // Prevent tablet/mobile browsers from navigating back on ESC.
-      if (e.key === "Escape") e.preventDefault();
-
-      if ((e.ctrlKey || e.metaKey) && !e.shiftKey && e.key.toLowerCase() === "b") {
-        e.preventDefault();
-        void navigateWithGuard("/editor/files", "Files");
-      }
-
-      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === "f") {
-        e.preventDefault();
-        openCommandPalette();
-      }
-
-      if (isNewFileShortcut(e)) {
-        e.preventDefault();
-        void handleNewFileRef.current();
-      }
-
-      if (isCloseTabShortcut(e)) {
-        const activeFilePath = mobileLeaf.activeFilePath;
-        if (activeFilePath) {
-          e.preventDefault();
-          void closeTabWithAutosave(activeFilePath);
-        }
-      }
-
-      if ((e.ctrlKey || e.metaKey) && !e.shiftKey && !e.altKey && /^[1-9]$/.test(e.key)) {
-        const tabIndex = Number(e.key) - 1;
-        const targetTab = workspaceTabs[tabIndex];
-        if (targetTab) {
-          e.preventDefault();
-          activateWorkspaceTab(tabIndex);
-          requestAnimationFrame(() => focusPaneEditor(targetTab.paneId));
-        }
-      }
-
-      // AI Builder — on-demand, not a status bar button
-      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === "b") {
-        if (isAiConfigured) {
-          e.preventDefault();
-          setAiBuilderRequest((v) => v + 1);
-        }
-      }
-
-      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === "v") {
-        if (isVoiceSupported) {
-          e.preventDefault();
-          toggleVoiceListening();
-        }
-      }
-
-      // Manual Save Shortcut (Ctrl+S)
-      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s") {
-        e.preventDefault();
-        handleSaveRef.current();
-      }
-
-      // Flush on Undo (Ctrl+Z)
-      if ((e.ctrlKey || e.metaKey) && !e.shiftKey && e.key.toLowerCase() === "z") {
-        flush();
-      }
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [activateWorkspaceTab, closeTabWithAutosave, flush, isAiConfigured, setAiBuilderRequest, mobileLeaf.activeFilePath, vimMode, isVoiceSupported, toggleVoiceListening, openCommandPalette, workspaceTabs, navigateWithGuard]);
+  useEditorShortcuts({
+    navigateWithGuard,
+    saveRef: handleSaveRef,
+    newFileRef: handleNewFileRef,
+    activeTabPath: mobileLeaf.activeFilePath,
+    closeTabWithAutosave,
+    isVoiceSupported,
+    toggleVoiceListening,
+    flush,
+  });
 
   const resetEditor = useCallback(() => {
     setContent("");
@@ -443,57 +224,7 @@ export default function LiteEditor() {
     handleNewFileRef.current = handleNewFile;
   }, [handleNewFile]);
 
-  const handleNewAIFile = async () => {
-    if (!vaultHandle) return;
-
-    const targetDir = await chooseFileDestination();
-    if (!targetDir) return;
-
-    const result = await dialog.textarea("Describe what you want to write:", "", "Generate Note with AI");
-    if (!result?.text?.trim()) return;
-
-    const { text: promptText, referencePaths } = result as { text: string; referencePaths: string[] };
-
-    let fullPrompt = promptText;
-    if (referencePaths?.length) {
-      const refContents = await Promise.all(
-        referencePaths.map(async (refPath) => {
-          const handle = vaultFiles.find(
-            (f) => (f as any).path === refPath || f.name === refPath
-          );
-          if (!handle || handle.kind !== "file") return null;
-          try {
-            const file = await (handle as FileSystemFileHandle).getFile();
-            const content = await file.text();
-            const name = handle.name.replace(/\.md$/, "");
-            return `--- Reference: ${name} ---\n${content}\n--- End Reference ---`;
-          } catch {
-            return null;
-          }
-        })
-      );
-      const joined = refContents.filter(Boolean).join("\n\n");
-      if (joined) fullPrompt = `${promptText}\n\n${joined}`;
-    }
-
-    const toastId = toast.loading("Generating note...");
-    try {
-      const { body, title, scope, tags, read_when } = await generateFileFromPrompt(fullPrompt);
-      toast.dismiss(toastId);
-
-      const fileName = await dialog.prompt("File name:", title, "Save Note");
-      if (!fileName?.trim()) return;
-
-      const tagsStr = (tags ?? []).map((t: string) => t.toLowerCase()).join(", ");
-      const readWhenLines = (read_when ?? []).map((r: string) => `  - "${r}"`).join("\n");
-      const fm = `---\ntitle: "${title}"\nstatus: draft\nscope: "${scope}"\ntags: [${tagsStr}]\nread_when:\n${readWhenLines}\n---\n\n`;
-      await createFile(fileName, fm + body, targetDir);
-
-    } catch (err: any) {
-      toast.dismiss(toastId);
-      toast.error(err.message || "Failed to generate note");
-    }
-  };
+  const handleNewAIFile = useGenerateAiNote({ vaultHandle, vaultFiles, chooseTargetDirectory, createFile });
 
   const handleExport = async () => {
     if (!content.trim()) return;
@@ -505,39 +236,13 @@ export default function LiteEditor() {
     await exportFile(content, fileName);
   };
 
-  const handleImport = async () => {
-    const result = await importFile();
-    if (result === null) {
-      fileInputRef.current?.click();
-    }
-  };
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const text = event.target?.result as string;
-      const nameOnly = file.name.replace(/\.[^/.]+$/, "");
-
-      if (!content.trim()) {
-        setContent(text);
-        setFileName(nameOnly);
-      } else {
-        setPendingFile({ text, name: nameOnly });
-      }
-    };
-    reader.readAsText(file);
-    e.target.value = "";
-  };
 
   return (
     <ErrorBoundary onGoHome={() => router.push("/")}>
       <EditorCommands
         onNewFile={handleNewFile}
         onExport={handleExport}
-        githubVault={vaultDescriptor?.kind === "github"}
+        githubVault={isGitHubVault}
         onGitHubCommit={() => void runGitHubCommitCommand()}
         onGitHubPush={() => void runGitHubCommitCommand()}
         onGitHubSync={() => void runGitHubCommitCommand()}
@@ -559,30 +264,24 @@ export default function LiteEditor() {
         onDiscardVoice={discardVoicePreview}
         hasVoicePreview={voicePreviewText.length > 0 || voiceInterimText !== null}
       />
-      <LoadingOverlay isVisible={isMounting || isFileLoading || !!navigatingLabel} text={isFileLoading ? "Loading file..." : navigatingLabel ? `${navigatingLabel}...` : "Loading..."} />
+      <LoadingOverlay isVisible={isMounting || !!navigatingLabel} text={navigatingLabel ? `${navigatingLabel}...` : "Loading..."} />
+      {/* Switching files keeps the editor on screen; a slim bar (shown only if
+          it takes >150ms) signals the read + re-render instead of a full veil. */}
+      <LoadingBar isVisible={isFileLoading && !isMounting} label="Opening file" />
       <div className={`fixed inset-0 flex flex-col bg-surface text-fg selection:bg-sage-light/30 font-sans overflow-hidden overscroll-none transition-all duration-500 ${isVaultPending ? "blur-md pointer-events-none select-none" : ""}`}>
         <h1 className="sr-only">HermesMarkdown Editor</h1>
         {/* Modals */}
         <WelcomeWizard />
         <NewVaultDialog />
         <GitHubVaultDialog />
+        <BrowserVaultDialog />
         <ConflictDialog />
         <RepurposeNoteWizard />
         {isVaultPending && <VaultPendingOverlay restoreVault={restoreVault} />}
         <MermaidDialog />
         <ImageDialog />
         
-        <DialogModal isOpened={pendingFile !== null} onClose={() => setPendingFile(null)} styles="!rounded-[32px] !backdrop-blur-2xl !bg-paper-light/80 dark:!bg-paper-dark/80">
-          <div className="flex flex-col gap-6 text-center py-4 px-2">
-            <p className="text-lg font-bold tracking-tight">
-              Overwrite draft with <br/><span className="text-sage italic">"{pendingFile?.name}"</span>?
-            </p>
-            <div className="flex gap-3 justify-center">
-              <Button variant="primary" className="h-11 px-6 rounded-xl" onClick={() => { if (pendingFile) { setContent(pendingFile.text); setFileName(pendingFile.name); } setPendingFile(null); }}>Overwrite</Button>
-              <Button variant="secondary" className="h-11 px-6 rounded-xl" onClick={() => setPendingFile(null)}>Cancel</Button>
-            </div>
-          </div>
-        </DialogModal>
+        <DraftImportDialog pendingDraft={pendingDraft} onConfirm={confirmPendingDraft} onCancel={cancelPendingDraft} />
 
         <input type="file" ref={fileInputRef} onChange={handleFileChange} accept=".md,.txt,.markdown" className="hidden" />
 
@@ -622,9 +321,9 @@ export default function LiteEditor() {
         </div>{/* end MAIN LAYOUT */}
         {showCommandPaletteFab && !isMobileChrome && (
           <Button
-            variant="icon"
+            variant="unstyled"
             onClick={() => openCommandPalette()}
-            className="fixed bottom-5 right-5 z-30 h-11 w-11 rounded-full border border-edge bg-chrome text-ink-muted shadow-lg transition-transform hover:scale-105 hover:text-ink-light dark:text-stone dark:hover:text-ink-dark"
+            className="fixed bottom-5 right-5 z-30 flex h-12 w-12 items-center justify-center rounded-full bg-sage text-white shadow-lg ring-1 ring-black/10 transition-all duration-200 hover:scale-105 hover:bg-sage-hover hover:shadow-xl active:scale-95 dark:text-surface dark:ring-white/10"
             aria-label="Open command palette"
             title="Command palette (Ctrl/Cmd+K)"
           >
@@ -635,7 +334,7 @@ export default function LiteEditor() {
         {isAiConfigured && !isMobileChrome && (
           <AISelectionToolbar
             isAiLoading={aiActions.isAiLoading}
-            onPrompt={aiActions.runPrompt}
+            onAsk={aiActions.openChat}
           />
         )}
         <AIChatDialog

@@ -4,6 +4,7 @@ import React from "react";
 import Button from "@/app/components/Button";
 import { HiOutlineFolder } from "react-icons/hi";
 import type { useCreateVault } from "@/app/hooks/file-system/use-create-vault";
+import { BareInput } from "@/app/components/Input";
 
 type CreateVaultProps = ReturnType<typeof useCreateVault>;
 
@@ -43,7 +44,7 @@ export default function CreateVaultSubSteps(props: CreateVaultProps) {
 
       <div className="space-y-3 w-full">
         <div>
-          <input
+          <BareInput
             type="text"
             value={vaultName}
             onChange={(e) => {
@@ -59,8 +60,7 @@ export default function CreateVaultSubSteps(props: CreateVaultProps) {
           )}
         </div>
 
-        <button
-          type="button"
+        <Button variant="unstyled"
           onClick={pickParentFolder}
           className="w-full flex items-center gap-3 px-4 h-12 rounded-2xl border border-edge bg-paper-light dark:bg-paper-dark hover:bg-paper-softgray dark:hover:bg-paper-dark/60 transition-colors text-left"
         >
@@ -68,7 +68,7 @@ export default function CreateVaultSubSteps(props: CreateVaultProps) {
           <span className={`text-ui-footnote truncate ${parentFolderName ? "font-medium" : "opacity-50"}`}>
             {parentFolderName ? `Inside: ${parentFolderName}` : "Choose parent folder…"}
           </span>
-        </button>
+        </Button>
 
         <p className="text-[10px] opacity-40 px-1 leading-relaxed">
           iCloud and Dropbox sync via their own sync client on your computer. If your vault lives in a

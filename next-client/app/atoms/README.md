@@ -6,24 +6,26 @@ Jotai state model. Each file owns a domain; `atoms.ts` is the barrel.
 
 | File | Domain | Persistence |
 |------|--------|-------------|
-| `file-atoms.ts` | Open files, live FS handles, content, save status, conflict state | `atom_openFiles` persisted via `atomStorage`; `atom_liveHandles` ephemeral (handles can't be serialized) |
-| `vault-atoms.ts` | Vault handle, current directory, vault tree, cloud-vault flag, pending state | Vault handle persisted via `services/idb` |
+| `file-atoms.ts` | Open files, live FS handles, content, save status, conflict state | `atom_openFiles` persisted via `atomWithStorage` (`localStorage["openFiles"]`); `atom_liveHandles` ephemeral (handles can't be serialized) |
+| `vault-atoms.ts` | Vault handle, current directory, vault tree, cloud-vault flag, pending/loaded state, `atom_fileSystemVersion` (bumped on FS changes), `atom_vaultDescriptor` (GitHub vault), `atom_rebindHandles` action | Ephemeral; the handle and GitHub descriptor are persisted to IndexedDB by `hooks/file-system/use-vault-manager.ts` (via `services/idb`) |
 | `workspace-atoms.ts` | Pane tree layout, active pane id | `atom_workspaceLayout` → localStorage |
-| `ui-atoms.ts` | Theme, font size, word wrap, zen mode, sidebar width, onboarding, autosave mode, focus, cursor, global dialog | Preferences persisted; editor focus / cursor / dialog ephemeral |
-| `metadata.ts` | Per-file metadata (tags etc.), custom workspaces | `atom_customWorkspaces` → localStorage |
-| `layout-actions.ts` | Write-only action atoms: `atom_splitPane`, `atom_closePane`, `atom_closeTab`, `atom_moveTab` | n/a |
+| `ui-atoms.ts` | Theme, editor font / size / line height, word wrap, line numbers, Vim mode, autosave, onboarding & wizards, hidden files, frontmatter collapse, AI provider / keys / models, voice input, command-palette recents / pins / use counts, active `EditorView`, global dialog | Preferences persisted via `atomWithStorage`; focus, editor view, dialog and request counters ephemeral |
+| `metadata.ts` | Per-file metadata index (`atom_fileMetadata`: frontmatter, tags, links, tasks), custom workspaces | `atom_customWorkspaces` → localStorage |
+| `task-atoms.ts` | Vault-wide tasks derived from the metadata index, task tags, search / tag / due-date filters, `atom_filteredTasks` | Ephemeral (derived) |
+| `layout-actions.ts` | `atom_workspaceTabs` (derived tab list) and write-only actions: `atom_activateWorkspaceTab`, `atom_splitPane`, `atom_closePane`, `atom_closeTab`, `atom_moveTab` | n/a |
 
 ## Support
 
-- `atoms.ts` — builds `contentStore` and re-exports every atom from the domain files. Treat as the public surface.
-- `utils.ts` — pure helpers for the pane tree: `findLeaf()`, `updateLeaf()`, `generateId()`.
+- `atoms.ts` — builds `contentStore` and re-exports every domain file except `task-atoms.ts`, which is imported directly (`@/app/atoms/task-atoms`). Treat as the public surface.
+- `utils.ts` — pure helpers for the pane tree: `findLeaf()`, `getFirstLeaf()`, `updateLeaf()`, `removePathsFromLayout()`, `getWorkspaceTabs()`, `generateId()`.
 
 ## Cross-domain reads
 
 These edges matter when refactoring — break them carefully:
 
 - `file-atoms` → `workspace-atoms` (the active pane decides the active file)
-- `vault-atoms` → `file-atoms` (vault rebinding writes into `atom_liveHandles` / `atom_openFiles`)
+- `vault-atoms` → `file-atoms` + `workspace-atoms` + `utils` (vault rebinding writes into `atom_liveHandles` / `atom_openFiles` and prunes closed paths from the layout)
+- `task-atoms` → `metadata` (tasks are derived from `atom_fileMetadata`)
 - `layout-actions` → `workspace-atoms` + `utils`
 
 ## Conventions

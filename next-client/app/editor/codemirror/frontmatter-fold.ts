@@ -44,3 +44,29 @@ export function isFrontmatterFolded(state: EditorState, range: FrontmatterFoldRa
   });
   return found;
 }
+
+// The "Frontmatter" slash/palette command: unfolds and jumps to an existing
+// frontmatter block, or inserts a starter `title` / `tags` block at the top
+// with the cursor on the title.
+export function insertOrRevealFrontmatter(view: EditorView) {
+  const existing = findFrontmatterFoldRange(view.state.doc.toString());
+  if (existing) {
+    toggleFrontmatterFold(view, existing, false);
+    const titleLineEnd = view.state.doc.line(2).to;
+    view.dispatch({
+      selection: { anchor: titleLineEnd },
+      effects: EditorView.scrollIntoView(titleLineEnd, { y: "center" }),
+    });
+    view.focus();
+    return;
+  }
+
+  const frontmatter = "---\ntitle: \ntags: []\n---\n\n";
+  const titleLineEnd = frontmatter.indexOf("title: ") + "title: ".length;
+  view.dispatch({
+    changes: { from: 0, insert: frontmatter },
+    selection: { anchor: titleLineEnd },
+    userEvent: "input.replace.template",
+  });
+  view.focus();
+}

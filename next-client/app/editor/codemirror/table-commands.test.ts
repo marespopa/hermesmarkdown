@@ -16,7 +16,17 @@ import {
   sortColumnAction,
   cycleAlignAction,
   removeTableAction,
+  findTableInState,
+  insertRowAboveAction,
+  moveRowAction,
+  moveColumnAction,
+  pasteGridAction,
+  tableMoveRowCommand,
+  sumColumnAction,
+  realignExitedTable,
 } from "./table-commands";
+import { markdown, markdownLanguage } from "@codemirror/lang-markdown";
+import { undo, history } from "@codemirror/commands";
 
 const TABLE = ["| A | B |", "| --- | --- |", "| 1 | 2 |", "| 3 | 4 |"].join("\n");
 
@@ -173,5 +183,117 @@ describe("table toolbar actions", () => {
     const info = findTableAtPos(view.state.doc.toString(), view.state.selection.main.head)!;
     removeTableAction(view, info);
     expect(view.state.doc.toString()).toBe("before\nafter");
+  });
+});
+
+describe("table enhancements", () => {
+  function infoAt(view: EditorView) {
+    return findTableAtPos(view.state.doc.toString(), view.state.selection.main.head)!;
+  }
+
+  it("Tab in the last cell appends a row and lands in its first cell", () => {
+    const view = makeView(TABLE, TABLE.length - 2); // inside "4"
+    expect(tableTabCommand(view)).toBe(true);
+    expect(parseCurrentTable(view)?.rows.length).toBe(3);
+    expect(infoAt(view).lineIdx).toBe(4);
+    expect(infoAt(view).cursorCol).toBe(0);
+  });
+
+  it("Tab in the last cell of a table still being drafted falls through", () => {
+    const view = makeView("| A | B |", 6);
+    expect(tableTabCommand(view)).toBe(false);
+  });
+
+  it("leaves typed pipes plain while drafting or when appending at a row's end", () => {
+    const drafting = makeView("| A |", 2);
+    expect(tablePipeEscapeCommand(drafting)).toBe(false);
+    const rowEnd = makeView(TABLE, "| A | B |".length);
+    expect(tablePipeEscapeCommand(rowEnd)).toBe(false);
+  });
+
+  it("ignores pipe lines inside fenced code blocks", () => {
+    const doc = "```\n| A | B |\n| - | - |\n```";
+    const state = EditorState.create({ doc, extensions: [markdown({ base: markdownLanguage })] });
+    expect(findTableInState(state, doc.indexOf("A"))).toBeNull();
+  });
+
+  it("moves rows and columns, and each move is one undo step", () => {
+    const state = EditorState.create({
+      doc: TABLE,
+      selection: EditorSelection.cursor(TABLE.indexOf("| 1 ") + 2),
+      extensions: [history()],
+    });
+    const view = new EditorView({ state });
+    expect(moveRowAction(view, infoAt(view), 1)).toBe(true);
+    expect(parseCurrentTable(view)?.rows).toEqual([["3", "4"], ["1", "2"]]);
+    expect(moveColumnAction(view, infoAt(view), 1)).toBe(true);
+    expect(parseCurrentTable(view)?.headers).toEqual(["B", "A"]);
+    undo(view);
+    expect(parseCurrentTable(view)?.headers).toEqual(["A", "B"]);
+    undo(view);
+    expect(parseCurrentTable(view)?.rows).toEqual([["1", "2"], ["3", "4"]]);
+  });
+
+  it("Alt+Arrow row moves are consumed inside a table even at the edge", () => {
+    const view = makeView(TABLE, 2); // header row can't move
+    expect(tableMoveRowCommand(view, -1)).toBe(true);
+    expect(view.state.doc.toString()).toBe(TABLE);
+  });
+
+  it("inserts a row above the caret's row", () => {
+    const view = makeView(TABLE, TABLE.indexOf("| 3 ") + 2);
+    insertRowAboveAction(view, infoAt(view));
+    expect(parseCurrentTable(view)?.rows).toEqual([["1", "2"], ["", ""], ["3", "4"]]);
+  });
+
+  it("pastes a grid from the caret's cell, growing the table", () => {
+    const view = makeView(TABLE, TABLE.indexOf("| 4 ") + 2);
+    pasteGridAction(view, infoAt(view), [["x", "y"], ["z", "w|v"]]);
+    const data = parseCurrentTable(view)!;
+    expect(data.headers).toHaveLength(3);
+    expect(data.rows).toEqual([["1", "2", ""], ["3", "x", "y"], ["", "z", "w\\|v"]]);
+  });
+
+  it("Sum column appends a totals row, then reuses it for other columns", () => {
+    const view = makeView(TABLE, TABLE.indexOf("| 1 ") + 2);
+    sumColumnAction(view, infoAt(view));
+    expect(parseCurrentTable(view)?.rows[2]).toEqual(["=SUM(A2:A3)", ""]);
+
+    const cursorInB = view.state.doc.toString().indexOf("| 2 ") + 2;
+    view.dispatch({ selection: EditorSelection.cursor(cursorInB) });
+    sumColumnAction(view, infoAt(view));
+    const rows = parseCurrentTable(view)!.rows;
+    expect(rows).toHaveLength(3);
+    expect(rows[2]).toEqual(["=SUM(A2:A3)", "=SUM(B2:B3)"]);
+  });
+
+  it("Sum column never treats a data row with a per-row formula as the totals row", () => {
+    const doc = ["| Qty | Price | Line |", "| --- | --- | --- |", "| 2 | 3 | =A2*B2 |", "| 1 | 5 | =A3*B3 |"].join("\n");
+    const view = makeView(doc, doc.indexOf("=A3*B3") + 1);
+    sumColumnAction(view, infoAt(view));
+    const rows = parseCurrentTable(view)!.rows;
+    expect(rows).toHaveLength(3);
+    expect(rows[1][2]).toBe("=A3*B3");
+    expect(rows[2][2]).toBe("=SUM(C2:C3)");
+  });
+
+  it("adding a row at the end goes above the totals row and grows its ranges", () => {
+    const doc = ["| A |", "| --- |", "| 1 |", "| 2 |", "| =SUM(A2:A3) |"].join("\n");
+    const view = makeView(doc, doc.indexOf("=SUM") + 1); // Tab out of the last cell
+    expect(tableTabCommand(view)).toBe(true);
+    const rows = parseCurrentTable(view)!.rows;
+    expect(rows).toEqual([["1"], ["2"], [""], ["=SUM(A2:A4)"]]);
+  });
+
+  it("realigning an exited table only touches padding, so earlier edits stay undoable", () => {
+    const doc = "| A | B |\n| --- | --- |\n| 1 | 2 |";
+    const state = EditorState.create({ doc, extensions: [history()] });
+    const view = new EditorView({ state });
+    const pos = doc.indexOf("1");
+    view.dispatch({ changes: { from: pos, to: pos + 1, insert: "a much longer value" } });
+    realignExitedTable(view, findTableAtPos(view.state.doc.toString(), 0)!);
+    expect(view.state.doc.line(1).text).not.toBe("| A | B |"); // padded
+    undo(view);
+    expect(parseCurrentTable(view)?.rows[0]).toEqual(["1", "2"]);
   });
 });

@@ -14,7 +14,7 @@ body {
 :root {
   --surface:        #FAF9F7;  /* editor surface — soft off-white, no color cast */
   --surface-raised: #F2F1EE;  /* elevated cards / panels */
-  --chrome:         #F0EFEC;  /* sidebar, tab bar, status bar — visibly distinct from editor */
+  --chrome:         #F0EFEC;  /* tab bar, file indicator, palette footer — visibly distinct from editor */
   --overlay:        #FAF9F7;  /* modals / popovers / command palette */
   --input-bg:       #FFFFFF;  /* form inputs */
 
@@ -22,13 +22,13 @@ body {
   --border-subtle:  rgba(60, 56, 50, 0.10);
 
   --fg:             #2A2825;  /* primary text — near-black, slight warmth */
-  --fg-muted:       #6B6862;  /* secondary text */
-  --fg-faint:       #8A8782;  /* placeholder / tertiary */
+  --fg-muted:       #5E5B56;  /* secondary text */
+  --fg-faint:       #6D6B67;  /* placeholder / tertiary — ≥4.5:1 on surface, raised and chrome */
 
-  --clay:           #AA5B41;  /* primary accent — active states, focus, links, unsaved dot */
-  --moss:           #6E7D5E;  /* secondary accent — icons, muted interactive */
+  --clay:           #A2563E;  /* primary accent — active states, focus, links, unsaved dot */
+  --moss:           #626F54;  /* secondary accent — icons, muted interactive */
   --moss-hover:     #5C6A4E;  /* moss, darkened — hover/active state for sage buttons */
-  --link:           #3478F6;  /* Apple-style editor links */
+  --link:           #2C66D1;  /* Apple-style editor links */
   --link-hover:     #1764D8;
   --frontmatter-bg: rgba(60, 56, 50, 0.035);
   --frontmatter-bg-hover: rgba(60, 56, 50, 0.055);
@@ -47,7 +47,7 @@ html.dark {
 
   --fg:             #ECE7E0;  /* warm off-white */
   --fg-muted:       #A8A199;
-  --fg-faint:       #847E75;
+  --fg-faint:       #948F87;
 
   --clay:           #D88B68;  /* brightened for contrast on dark surfaces */
   --moss:           #8FA178;
@@ -188,6 +188,35 @@ html.dark {
 
 .animate-fade-in {
   animation: fade-in 0.4s ease;
+}
+
+/* LoadingBar: fade in after a short delay (fast loads show nothing), then
+   slide an indeterminate segment across. Transform/opacity only, so the
+   compositor keeps it moving while the main thread is busy. */
+@keyframes loading-bar-appear {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes loading-bar-slide {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(300%); }
+}
+
+.loading-bar-appear {
+  opacity: 0;
+  animation: loading-bar-appear 0.2s ease-out 0.15s forwards;
+}
+
+.loading-bar-slide {
+  animation: loading-bar-slide 1.1s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .loading-bar-slide {
+    width: 100%;
+    animation: none;
+  }
 }
 
 .hermes-markdown-toast {

@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { renderHook } from "@testing-library/react";
 import { useFileSystem } from "./use-file-system";
 import { useDialog } from "./use-dialog";
+import toast from "react-hot-toast";
 import { useAtom, useSetAtom, useAtomValue } from "jotai";
 import {
   atom_currentDirectoryHandle,
@@ -44,6 +45,7 @@ vi.mock("./use-dialog", () => ({
     prompt: vi.fn(),
     confirm: vi.fn(),
     alert: vi.fn(),
+    select: vi.fn(),
   })),
 }));
 
@@ -79,6 +81,15 @@ describe("useFileSystem - createFile conflict resolution", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    mockVaultHandle.getDirectoryHandle.mockReset();
+    mockVaultHandle.getFileHandle.mockReset();
+    mockVaultHandle.values.mockReset();
+    mockVaultHandle.values.mockImplementation(async function* () {
+      yield* [];
+    });
+    mockVaultHandle.isSameEntry.mockReset();
+    mockVaultHandle.isSameEntry.mockResolvedValue(true);
+    mockVaultHandle.resolve.mockReset();
     fileMetadata = {};
     (useAtom as any).mockImplementation((atom: any) => {
       if (atom === atom_vaultHandle) return [mockVaultHandle, vi.fn()];
@@ -145,7 +156,7 @@ describe("useFileSystem - createFile conflict resolution", () => {
 
     const { result } = renderHook(() => useFileSystem());
 
-    const synced = await result.current.syncSidebarToPath("nested/note.md");
+    const synced = await result.current.syncCurrentDirectoryToPath("nested/note.md");
 
     expect(synced).toBe(true);
     expect(mockVaultHandle.getDirectoryHandle).toHaveBeenCalledWith("nested");
@@ -165,14 +176,14 @@ describe("useFileSystem - createFile conflict resolution", () => {
 
     const { result } = renderHook(() => useFileSystem());
 
-    const synced = await result.current.syncSidebarToPath("Vault/nested/note.md");
+    const synced = await result.current.syncCurrentDirectoryToPath("Vault/nested/note.md");
 
     expect(synced).toBe(true);
     expect(mockVaultHandle.getDirectoryHandle).toHaveBeenCalledTimes(1);
     expect(mockVaultHandle.getDirectoryHandle).toHaveBeenCalledWith("nested");
   });
 
-  it("defers sidebar synchronization when vault permission is unavailable", async () => {
+  it("defers current-directory sync when vault permission is unavailable", async () => {
     const permissionError = Object.assign(new Error("Permission denied"), {
       name: "NotAllowedError",
     });
@@ -181,7 +192,7 @@ describe("useFileSystem - createFile conflict resolution", () => {
 
     const { result } = renderHook(() => useFileSystem());
 
-    const synced = await result.current.syncSidebarToPath("nested/note.md");
+    const synced = await result.current.syncCurrentDirectoryToPath("nested/note.md");
 
     expect(synced).toBe(false);
     expect(setIsVaultPending).toHaveBeenCalledWith(true);
@@ -256,6 +267,106 @@ describe("useFileSystem - createFile conflict resolution", () => {
     expect(mockVaultHandle.getFileHandle).toHaveBeenNthCalledWith(1, "Meeting notes.md", { create: false });
     expect(mockVaultHandle.getFileHandle).toHaveBeenNthCalledWith(2, "Meeting notes.md", { create: true });
     expect(mockWritable.write).toHaveBeenCalledWith("\n");
+  });
+
+  it("creates a folder in a recursively selected vault destination", async () => {
+    const createdFolder = { kind: "directory", name: "Plans" };
+    const yearDirectory = {
+      kind: "directory",
+      name: "2026",
+      values: vi.fn(async function* () {
+        yield* [];
+      }),
+      getDirectoryHandle: vi.fn().mockResolvedValue(createdFolder),
+    };
+    const archiveDirectory = {
+      kind: "directory",
+      name: "Archive",
+      values: vi.fn(async function* () {
+        yield yearDirectory;
+      }),
+    };
+    const hiddenDirectory = {
+      kind: "directory",
+      name: ".private",
+      values: vi.fn(async function* () {
+        yield* [];
+      }),
+    };
+    mockVaultHandle.values.mockImplementation(async function* () {
+      yield archiveDirectory;
+      yield hiddenDirectory;
+    });
+    const select = vi.fn().mockResolvedValue("path:Archive/2026");
+    const prompt = vi.fn().mockResolvedValue("  Plans  ");
+    (useDialog as any).mockReturnValue({
+      prompt,
+      select,
+      confirm: vi.fn(),
+      alert: vi.fn(),
+    });
+
+    const { result } = renderHook(() => useFileSystem());
+
+    const folder = await result.current.createFolder();
+
+    expect(select).toHaveBeenCalledWith(
+      "Choose a destination for the new folder:",
+      [
+        { label: "/ Vault (root)", value: "__root__" },
+        { label: "Archive", value: "path:Archive" },
+        { label: "Archive/2026", value: "path:Archive/2026" },
+      ],
+      "New Folder",
+    );
+    expect(prompt).toHaveBeenCalledWith("Enter folder name:", "", "New Folder");
+    expect(yearDirectory.getDirectoryHandle).toHaveBeenCalledWith("Plans", { create: true });
+    expect(folder).toBe(createdFolder);
+    expect(toast.success).toHaveBeenCalledWith("Created: Plans");
+  });
+
+  it("uses the shared rename prompt and rejects path separators", async () => {
+    const prompt = vi.fn().mockResolvedValue(" invalid/name ");
+    (useDialog as any).mockReturnValue({
+      prompt,
+      select: vi.fn(),
+      confirm: vi.fn(),
+      alert: vi.fn(),
+    });
+    const handle = { kind: "file", name: "note.md" } as FileSystemFileHandle;
+    const { result } = renderHook(() => useFileSystem());
+
+    await result.current.renameFile(handle);
+
+    expect(prompt).toHaveBeenCalledWith("Enter new name:", "note.md", "Rename Item");
+    expect(mockVaultHandle.getFileHandle).not.toHaveBeenCalled();
+    expect(toast.error).toHaveBeenCalledWith("File names cannot contain slashes.");
+  });
+
+  it("uses the shared type-aware delete confirmation", async () => {
+    const confirm = vi.fn().mockResolvedValue(false);
+    (useDialog as any).mockReturnValue({
+      prompt: vi.fn(),
+      select: vi.fn(),
+      confirm,
+      alert: vi.fn(),
+    });
+    const handle = {
+      kind: "directory",
+      name: "Archive",
+      remove: vi.fn(),
+    };
+    const { result } = renderHook(() => useFileSystem());
+
+    await result.current.deleteFile(handle as unknown as FileSystemDirectoryHandle, "Archive");
+
+    expect(confirm).toHaveBeenCalledWith(
+      'Delete folder "Archive"? This cannot be undone.',
+      "Delete folder",
+      "Delete",
+      "Cancel",
+    );
+    expect(handle.remove).not.toHaveBeenCalled();
   });
 
   it("refreshes the visible directory and full vault after creating in another folder", async () => {

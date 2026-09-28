@@ -1,109 +1,19 @@
-import { EditorView } from "@codemirror/view";
 import { EditorSelection } from "@codemirror/state";
-import { findTableAtPos, TableInfo } from "../utils/table-detection";
-import {
-  addRow,
-  insertRowAt,
-  insertColumnAt,
-  removeRow,
-  removeColumn,
-  cycleAlignment,
-  getColumnAlignment,
-  tableToCSV,
-} from "../utils/table-manipulation";
-import { parseTable, extractTableSource } from "../utils/tableParser";
-import { serializeTable } from "../utils/tableSerializer";
-import { sortRows, type SortDirection } from "../utils/tableSorter";
-
-// Direct port of use-table-callout.ts's pure line-math helpers — these
-// never touched the textarea, so they're unchanged. What changes is how
-// edits get applied: CM6 transactions (one atomic undo step) instead of
-// execCommand("insertText") on a real textarea.
-
-export function isSeparatorRow(line: string): boolean {
-  return /^\s*\|[\s:|-]+\|\s*$/.test(line);
-}
-
-export function computeLineOffset(lines: string[], lineIdx: number): number {
-  let offset = 0;
-  for (let i = 0; i < lineIdx; i++) offset += lines[i].length + 1;
-  return offset;
-}
-
-function nthPipeIndex(line: string, n: number): number {
-  let idx = -1;
-  for (let i = 0; i <= n; i++) {
-    idx = line.indexOf("|", idx + 1);
-    if (idx === -1) return -1;
-  }
-  return idx;
-}
-
-function blockLength(lines: string[], start: number, end: number): number {
-  let len = 0;
-  for (let i = start; i <= end; i++) {
-    len += lines[i].length;
-    if (i < end) len += 1;
-  }
-  return len;
-}
-
-export function realignTableLines(lines: string[], tableStart: number, tableEnd: number): string[] {
-  const source = extractTableSource(lines, tableStart, tableEnd);
-  const data = parseTable(source);
-  if (!data) return lines;
-  const serialized = serializeTable(data, true).split("\n");
-  return [...lines.slice(0, tableStart), ...serialized, ...lines.slice(tableEnd + 1)];
-}
-
-// Replaces `target`'s table range in the doc with `newLines`, as one CM6
-// transaction (a single, atomic undo step — an improvement over the old
-// execCommand hack, which needed the caret-restore workaround below it).
-export function applyTableChangeFor(view: EditorView, target: TableInfo, newLines: string[], cursorPos?: number) {
-  const oldTableLineCount = target.tableEnd - target.tableStart + 1;
-  const tableEndOffset = target.tableStartOffset + blockLength(target.lines, target.tableStart, target.tableEnd);
-  const lineDelta = newLines.length - target.lines.length;
-  const newTableLineCount = oldTableLineCount + lineDelta;
-  const newTableContent = newLines
-    .slice(target.tableStart, target.tableStart + newTableLineCount)
-    .join("\n");
-
-  view.dispatch(view.state.update({
-    changes: { from: target.tableStartOffset, to: tableEndOffset, insert: newTableContent },
-    selection: cursorPos !== undefined ? EditorSelection.cursor(cursorPos) : undefined,
-    userEvent: "input.replace.table",
-    scrollIntoView: true,
-  }));
-  view.focus();
-}
-
-export function moveToCell(view: EditorView, tableInfo: TableInfo, targetRow: number, targetCol: number) {
-  const newLines = realignTableLines(tableInfo.lines, tableInfo.tableStart, tableInfo.tableEnd);
-  const targetLine = newLines[targetRow];
-  const pipeIdx = nthPipeIndex(targetLine, targetCol);
-  const cursorPos =
-    computeLineOffset(newLines, targetRow) + (pipeIdx === -1 ? Math.max(0, targetLine.length - 1) : pipeIdx + 2);
-
-  if (newLines === tableInfo.lines) {
-    view.dispatch({ selection: EditorSelection.cursor(cursorPos) });
-    view.focus();
-  } else {
-    applyTableChangeFor(view, tableInfo, newLines, cursorPos);
-  }
-}
+import { EditorView } from "@codemirror/view";
+import { appendRowAndFocus, computeLineOffset, hasSeparator, isSeparatorRow, moveToCell, nthPipeIndex, tableAtCursor } from "./table-edit";
+import { addRowAction, moveColumnAction, moveRowAction, removeRowAction } from "./table-menu-actions";
 
 // Tab / Shift+Tab: jump between table cells, realigning as it goes. CM6's
 // keymap treats "Tab" and "Shift-Tab" as distinct bindings, so these are
 // two commands rather than one branching on event.shiftKey.
 export function tableTabCommand(view: EditorView): boolean {
-  const pos = view.state.selection.main.head;
-  const tableInfo = findTableAtPos(view.state.doc.toString(), pos);
+  const tableInfo = tableAtCursor(view);
   if (!tableInfo) return false;
 
   let targetRow = -1;
   let targetCol = -1;
 
-  const pipeCount = (tableInfo.lines[tableInfo.lineIdx].match(/\|/g) || []).length;
+  const pipeCount = (tableInfo.lines[tableInfo.lineIdx].replace(/\\\|/g, "").match(/\|/g) || []).length;
   const lastCol = Math.max(0, pipeCount - 2);
   if (tableInfo.cursorCol < lastCol) {
     targetRow = tableInfo.lineIdx;
@@ -117,14 +27,19 @@ export function tableTabCommand(view: EditorView): boolean {
     }
   }
 
-  if (targetRow === -1) return false;
+  if (targetRow === -1) {
+    // Tab in the very last cell grows the table, spreadsheet-style. A table
+    // still being drafted (no separator row yet) falls through instead.
+    if (!hasSeparator(tableInfo)) return false;
+    appendRowAndFocus(view, tableInfo);
+    return true;
+  }
   moveToCell(view, tableInfo, targetRow, targetCol);
   return true;
 }
 
 export function tableShiftTabCommand(view: EditorView): boolean {
-  const pos = view.state.selection.main.head;
-  const tableInfo = findTableAtPos(view.state.doc.toString(), pos);
+  const tableInfo = tableAtCursor(view);
   if (!tableInfo) return false;
 
   let targetRow = -1;
@@ -138,7 +53,7 @@ export function tableShiftTabCommand(view: EditorView): boolean {
     while (prevRow >= tableInfo.tableStart && isSeparatorRow(tableInfo.lines[prevRow])) prevRow--;
     if (prevRow >= tableInfo.tableStart) {
       targetRow = prevRow;
-      const pipeCount = (tableInfo.lines[prevRow].match(/\|/g) || []).length;
+      const pipeCount = (tableInfo.lines[prevRow].replace(/\\\|/g, "").match(/\|/g) || []).length;
       targetCol = Math.max(0, pipeCount - 2);
     }
   }
@@ -148,12 +63,22 @@ export function tableShiftTabCommand(view: EditorView): boolean {
   return true;
 }
 
+// Typing "|" inside a cell's text escapes it so it can't split the cell.
+// It stays a plain pipe while the table is still being drafted (no
+// separator row yet), on the separator row, and when appending at the end
+// of a row — so a new column can still be typed by hand.
 export function tablePipeEscapeCommand(view: EditorView): boolean {
   const pos = view.state.selection.main.head;
-  const tableInfo = findTableAtPos(view.state.doc.toString(), pos);
-  if (!tableInfo) return false;
+  const tableInfo = tableAtCursor(view);
+  if (!tableInfo || !hasSeparator(tableInfo)) return false;
+
+  const line = view.state.doc.lineAt(pos);
+  if (isSeparatorRow(line.text)) return false;
+  if (pos - line.from >= line.text.trimEnd().length) return false;
+
   view.dispatch(view.state.update({
     changes: { from: pos, to: pos, insert: "\\|" },
+    selection: EditorSelection.cursor(pos + 2),
     userEvent: "input.type",
   }));
   return true;
@@ -161,7 +86,7 @@ export function tablePipeEscapeCommand(view: EditorView): boolean {
 
 export function tableEnterCommand(view: EditorView): boolean {
   const pos = view.state.selection.main.head;
-  const tableInfo = findTableAtPos(view.state.doc.toString(), pos);
+  const tableInfo = tableAtCursor(view);
   if (!tableInfo) return false;
 
   const line = tableInfo.lines[tableInfo.lineIdx];
@@ -171,21 +96,14 @@ export function tableEnterCommand(view: EditorView): boolean {
   if (posInLine < line.trimEnd().length - 1) return false;
   if (isSeparatorRow(line)) return false;
 
-  const linesWithNewRow = addRow(tableInfo.lines, tableInfo.tableEnd);
-  const newRowIdx = tableInfo.tableEnd + 1;
-  const realigned = realignTableLines(linesWithNewRow, tableInfo.tableStart, tableInfo.tableEnd + 1);
-  const targetLine = realigned[newRowIdx];
-  const pipeIdx = nthPipeIndex(targetLine, 0);
-  const cursorPos = computeLineOffset(realigned, newRowIdx) + (pipeIdx === -1 ? 0 : pipeIdx + 2);
-  applyTableChangeFor(view, tableInfo, realigned, cursorPos);
+  appendRowAndFocus(view, tableInfo);
   return true;
 }
 
 export function tableArrowVerticalCommand(view: EditorView, direction: 1 | -1): boolean {
   const sel = view.state.selection.main;
   if (!sel.empty) return false;
-  const pos = sel.head;
-  const tableInfo = findTableAtPos(view.state.doc.toString(), pos);
+  const tableInfo = tableAtCursor(view);
   if (!tableInfo) return false;
 
   let targetRow = tableInfo.lineIdx + direction;
@@ -208,116 +126,43 @@ export function tableArrowVerticalCommand(view: EditorView, direction: 1 | -1): 
   return true;
 }
 
-// --- Toolbar actions (TableCallout) ---
-
-export function removeTableAction(view: EditorView, tableInfo: TableInfo) {
-  const oldTableLineCount = tableInfo.tableEnd - tableInfo.tableStart + 1;
-  let tableEndOffset = tableInfo.tableStartOffset;
-  for (let i = 0; i < oldTableLineCount; i++) {
-    tableEndOffset += tableInfo.lines[tableInfo.tableStart + i].length;
-    if (i < oldTableLineCount - 1) tableEndOffset += 1;
-  }
-  const fullText = view.state.doc.toString();
-  const selectEnd =
-    tableEndOffset < fullText.length && fullText[tableEndOffset] === "\n" ? tableEndOffset + 1 : tableEndOffset;
-
-  view.dispatch(view.state.update({
-    changes: { from: tableInfo.tableStartOffset, to: selectEnd, insert: "" },
-    userEvent: "delete.table",
-  }));
-  view.focus();
+// Alt+↑/↓ (rows) and Mod+Alt+←/→ (columns). Inside a table these always
+// consume the key, even when the move isn't possible (header row, edge
+// column) — otherwise Alt+↑/↓ would fall through to moveLineUp/Down and
+// tear a row out of the table.
+export function tableMoveRowCommand(view: EditorView, direction: 1 | -1): boolean {
+  const tableInfo = tableAtCursor(view);
+  if (!tableInfo) return false;
+  moveRowAction(view, tableInfo, direction);
+  return true;
 }
 
-export function cycleAlignAction(view: EditorView, tableInfo: TableInfo) {
-  const { lines: newLines } = cycleAlignment(tableInfo.lines, tableInfo.cursorCol, tableInfo.tableStart);
-  applyTableChangeFor(view, tableInfo, newLines);
+export function tableMoveColumnCommand(view: EditorView, direction: 1 | -1): boolean {
+  const tableInfo = tableAtCursor(view);
+  if (!tableInfo) return false;
+  moveColumnAction(view, tableInfo, direction);
+  return true;
 }
 
-export function copyCSVAction(tableInfo: TableInfo) {
-  const csv = tableToCSV(tableInfo.lines, tableInfo.tableStart, tableInfo.tableEnd);
-  navigator.clipboard.writeText(csv).catch(() => {});
+// Mod+Enter: insert a row below the caret's row (overrides task-status
+// cycling only inside a finished table).
+export function tableInsertRowCommand(view: EditorView): boolean {
+  const tableInfo = tableAtCursor(view);
+  if (!tableInfo || !hasSeparator(tableInfo)) return false;
+  addRowAction(view, tableInfo);
+  return true;
 }
 
-export function addRowAction(view: EditorView, tableInfo: TableInfo) {
-  const insertAfter = tableInfo.lineIdx <= tableInfo.tableStart + 1 ? tableInfo.tableStart + 1 : tableInfo.lineIdx;
-  const newLines = insertRowAt(tableInfo.lines, insertAfter);
-  const newTableEnd = tableInfo.tableEnd + 1;
-  const realigned = realignTableLines(newLines, tableInfo.tableStart, newTableEnd);
-  const newRowIdx = insertAfter + 1;
-  const targetLine = realigned[newRowIdx];
-  const pipeIdx = nthPipeIndex(targetLine, 0);
-  const cursorPos = computeLineOffset(realigned, newRowIdx) + (pipeIdx === -1 ? 0 : pipeIdx + 2);
-  applyTableChangeFor(view, tableInfo, realigned, cursorPos);
+// Mod+Shift+Backspace: delete the caret's data row (never the header or
+// separator).
+export function tableDeleteRowCommand(view: EditorView): boolean {
+  const tableInfo = tableAtCursor(view);
+  if (!tableInfo || tableInfo.lineIdx <= tableInfo.tableStart + 1) return false;
+  removeRowAction(view, tableInfo);
+  return true;
 }
 
-export function removeRowAction(view: EditorView, tableInfo: TableInfo) {
-  const newLines = removeRow(tableInfo.lines, tableInfo.lineIdx, tableInfo.tableStart);
-  const newTableEnd = tableInfo.tableEnd - 1;
-  const targetLineIdx = Math.min(tableInfo.lineIdx, newTableEnd);
-  const realigned = realignTableLines(newLines, tableInfo.tableStart, newTableEnd);
-  const targetLine = realigned[targetLineIdx] ?? realigned[tableInfo.tableStart];
-  const pipeIdx = nthPipeIndex(targetLine, tableInfo.cursorCol);
-  const cursorPos = computeLineOffset(realigned, targetLineIdx) + (pipeIdx === -1 ? 0 : pipeIdx + 2);
-  applyTableChangeFor(view, tableInfo, realigned, cursorPos);
-}
-
-export function addColumnAction(view: EditorView, tableInfo: TableInfo) {
-  const newLines = insertColumnAt(tableInfo.lines, tableInfo.cursorCol, tableInfo.tableStart, tableInfo.tableEnd);
-  const realigned = realignTableLines(newLines, tableInfo.tableStart, tableInfo.tableEnd);
-  const newCol = tableInfo.cursorCol + 1;
-  const targetLine = realigned[tableInfo.lineIdx];
-  const pipeIdx = nthPipeIndex(targetLine, newCol);
-  const cursorPos = computeLineOffset(realigned, tableInfo.lineIdx) + (pipeIdx === -1 ? 0 : pipeIdx + 2);
-  applyTableChangeFor(view, tableInfo, realigned, cursorPos);
-}
-
-export function removeColumnAction(view: EditorView, tableInfo: TableInfo) {
-  const newLines = removeColumn(tableInfo.lines, tableInfo.cursorCol, tableInfo.tableStart, tableInfo.tableEnd);
-  const realigned = realignTableLines(newLines, tableInfo.tableStart, tableInfo.tableEnd);
-  const newCol = Math.max(0, tableInfo.cursorCol - 1);
-  const targetLine = realigned[tableInfo.lineIdx];
-  const pipeIdx = nthPipeIndex(targetLine, newCol);
-  const cursorPos = computeLineOffset(realigned, tableInfo.lineIdx) + (pipeIdx === -1 ? 0 : pipeIdx + 2);
-  applyTableChangeFor(view, tableInfo, realigned, cursorPos);
-}
-
-export function sortColumnAction(view: EditorView, tableInfo: TableInfo, direction: Exclude<SortDirection, "none">) {
-  const source = extractTableSource(tableInfo.lines, tableInfo.tableStart, tableInfo.tableEnd);
-  const data = parseTable(source);
-  if (!data) return;
-  const sortedRows = sortRows(data.rows, tableInfo.cursorCol, direction);
-  const serialized = serializeTable({ ...data, rows: sortedRows }, true).split("\n");
-  const newLines = [
-    ...tableInfo.lines.slice(0, tableInfo.tableStart),
-    ...serialized,
-    ...tableInfo.lines.slice(tableInfo.tableEnd + 1),
-  ];
-  const targetLine = newLines[tableInfo.lineIdx];
-  const pipeIdx = nthPipeIndex(targetLine, tableInfo.cursorCol);
-  const cursorPos = computeLineOffset(newLines, tableInfo.lineIdx) + (pipeIdx === -1 ? 0 : pipeIdx + 2);
-  applyTableChangeFor(view, tableInfo, newLines, cursorPos);
-}
-
-export function getCurrentAlignment(tableInfo: TableInfo) {
-  return getColumnAlignment(tableInfo.lines, tableInfo.cursorCol, tableInfo.tableStart);
-}
-
-// Realigns a table's column widths after the caret leaves it, shifting
-// caretPos by whatever length delta the realign introduces so the caret
-// stays put relative to surrounding text (not inside the table).
-export function realignExitedTable(view: EditorView, exited: TableInfo, caretPos: number) {
-  const newLines = realignTableLines(exited.lines, exited.tableStart, exited.tableEnd);
-  const oldContent = exited.lines.slice(exited.tableStart, exited.tableEnd + 1).join("\n");
-  const newContent = newLines.slice(exited.tableStart, exited.tableEnd + 1).join("\n");
-  if (newContent === oldContent) return;
-
-  const delta = newContent.length - oldContent.length;
-  const tableEndOffset = exited.tableStartOffset + oldContent.length;
-  const adjustedCaretPos = caretPos >= tableEndOffset ? caretPos + delta : caretPos;
-
-  view.dispatch(view.state.update({
-    changes: { from: exited.tableStartOffset, to: tableEndOffset, insert: newContent },
-    selection: EditorSelection.cursor(Math.max(0, Math.min(adjustedCaretPos, view.state.doc.length))),
-    userEvent: "input.replace.table",
-  }));
-}
+// Public surface: the keyboard commands above plus the shared primitives
+// and menu actions, so callers keep importing from "./table-commands".
+export * from "./table-edit";
+export * from "./table-menu-actions";

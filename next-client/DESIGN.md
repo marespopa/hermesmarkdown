@@ -9,6 +9,8 @@ The color system has two layers:
 
 Dark mode is controlled by the `html.dark` class (set by the theme toggle). Because Tailwind tokens reference CSS vars, there is no need for `dark:` class variants on semantic colors — they switch automatically.
 
+Surfaces are neutral; the two accents (clay and moss) are used for interactive and status elements, never as backgrounds.
+
 ---
 
 ## Color Tokens
@@ -17,45 +19,54 @@ Dark mode is controlled by the `html.dark` class (set by the theme toggle). Beca
 
 These change between light and dark mode. Always prefer these over static colors for any surface, text, or border that appears in both modes.
 
-| Token | Light | Dark | Usage |
+| Token | CSS var | Light | Dark | Usage |
+|---|---|---|---|---|
+| `bg-surface` | `--surface` | `#FAF9F7` | `#211E1B` | Editor / page background |
+| `bg-surface-raised` | `--surface-raised` | `#F2F1EE` | `#2A2622` | Elevated cards, panels |
+| `bg-chrome` | `--chrome` | `#F0EFEC` | `#181614` | Tab bar, file indicator, palette footer |
+| `bg-overlay` | `--overlay` | `#FAF9F7` | `#2A2622` | Modals, popovers, command palette |
+| `bg-input-bg` | `--input-bg` | `#FFFFFF` | `#1C1A17` | Form inputs |
+| `border-edge` | `--border` | `#DEDCD7` | `#3D3833` | Visible borders |
+| `border-edge-subtle` | `--border-subtle` | `rgba(60,56,50,0.10)` | `rgba(214,207,198,0.10)` | Hairline / ghost borders |
+| `text-fg` | `--fg` | `#2A2825` | `#ECE7E0` | Primary text |
+| `text-fg-muted` | `--fg-muted` | `#5E5B56` | `#A8A199` | Secondary / supporting text |
+| `text-fg-faint` | `--fg-faint` | `#6D6B67` | `#948F87` | Placeholders, hints, tertiary labels |
+| `accent` | `--clay` | `#A2563E` | `#D88B68` | Primary accent — active states, focus, unsaved dot |
+| `accent-hover` | `--clay` | same as `accent` | same as `accent` | Alias; no distinct hover value today |
+| `sage` | `--moss` | `#626F54` | `#8FA178` | Secondary accent — icons, muted interactive |
+| `sage-hover` | `--moss-hover` | `#5C6A4E` | `#A3B58C` | Hover / active state for sage buttons |
+
+`sage-subtle`, `sage-light` and `sage-dark` still exist for backwards compatibility but all resolve to `var(--moss)` — they are **not** distinct shades. Use `sage` with an opacity modifier (`bg-sage/10`, `ring-sage/20`) instead.
+
+CSS-only variables (no Tailwind token):
+
+| CSS var | Light | Dark | Usage |
 |---|---|---|---|
-| `bg-surface` | `#F5F1E8` | `#2C2C2C` | Page background |
-| `bg-surface-raised` | `#EDE5D4` | `#363230` | Elevated cards, panels |
-| `bg-chrome` | `#E8E6E1` | `#242220` | Sidebar, tab bar, status bar |
-| `bg-overlay` | `#F5F1E8` | `#363230` | Modals, popovers |
-| `bg-input-bg` | `#FAF8F3` | `#2C2C2C` | Form inputs |
-| `border-edge` | `#D4C4A8` | `#4A4440` | Visible borders |
-| `border-edge-subtle` | `rgba(212,196,168,0.35)` | `rgba(74,68,64,0.35)` | Hairline / ghost borders |
-| `text-fg` | `#3A3226` | `#E8E4DC` | Primary text |
-| `text-fg-muted` | `#6B6B6B` | `#A8A098` | Secondary / supporting text |
-| `text-fg-faint` | `#716E66` | `#979290` | Placeholder, tertiary labels |
+| `--link` / `--link-hover` | `#2C66D1` / `#1764D8` | `#64A8FF` / `#8DBEFF` | Links in the editor |
+| `--frontmatter-bg` / `--frontmatter-bg-hover` | `rgba(60,56,50,0.035)` / `0.055` | `rgba(214,207,198,0.04)` / `0.065` | Frontmatter block background |
+| `--frontmatter-label-opacity` | `0.4` | `0.5` | Frontmatter key labels |
 
 **Source:** `app/globals.scss` `:root` and `html.dark` blocks.
 
 ### Static (same in both modes)
 
-These do not respond to theme changes. Use them when you explicitly need a fixed color regardless of mode, or for brand/accent elements.
+These do not respond to theme changes. Use them when you explicitly need a fixed color regardless of mode.
 
 | Token | Hex | Usage |
 |---|---|---|
-| `stone` | `#A8A098` | Static warm gray; non-text decorative elements |
-| `clay` | `#4A4440` | Dark surfaces, interactive borders |
-| `sage` | `#647558` | Brand green — **text-safe** (4.5:1 on light) |
-| `sage-subtle` | `#8B9B7E` | Sage for non-text use only (rings, bg dots, borders) |
-| `sage-light` | `#B5C4AC` | Pale sage; backgrounds, selection highlight |
-| `sage-dark` | `#6B7A62` | Deeper sage; hover states |
-| `accent` | `#C89B6F` | Warm amber accent |
-| `accent-hover` | `#B88A5E` | Amber hover state |
-| `beige` | `#D4C4A8` | Warm neutral border / decorative |
-| `beige-light` | `#EDE5D4` | Table headers, subtle fills |
-| `paper-light` | `#F5F1E8` | Explicit light-mode bg alias |
-| `paper-softgray` | `#E8E6E1` | Alternate light surface |
-| `paper-dark` | `#2C2C2C` | Explicit dark-mode bg alias |
-| `paper-dark-surface` | `#363230` | Explicit dark raised surface alias |
-| `ink-light` | `#3A3226` | Explicit light-mode text alias |
-| `ink-dark` | `#E8E4DC` | Explicit dark-mode text alias |
-| `ink-muted` | `#6B6B6B` | Static muted text |
-| `ink-hover` | `#4A3E32` | Primary button hover text |
+| `stone` | `var(--fg-faint)` | Alias of `fg-faint` (mode-aware despite living here). Opacity modifiers such as `text-stone/45` do not work on var-backed colors — use an arbitrary hex like `text-[#9A968F]/45` |
+| `clay` | `#3A3631` | Dark-mode border / interactive surface. **Not** the clay accent — that is `accent` (`--clay`) |
+| `beige` | `#D8D5CE` | Warm neutral border / decorative |
+| `beige-light` | `#E9E7E2` | Subtle fills |
+| `paper-pale` | `#FAF9F7` | Light surface alias |
+| `paper-light` | `#F2F1EE` | Light raised surface alias |
+| `paper-softgray` | `#E9E7E2` | Alternate light surface |
+| `paper-dark` | `#181614` | Dark chrome alias |
+| `paper-dark-surface` | `#2A2622` | Dark raised surface alias |
+| `ink-light` | `#2A2825` | Explicit light-mode text alias |
+| `ink-hover` | `#3A3733` | Primary button hover text |
+| `ink-dark` | `#ECE7E0` | Explicit dark-mode text alias |
+| `ink-muted` | `#6B6862` | Static muted text |
 
 **Source:** `tailwind.config.js` `theme.extend.colors`.
 
@@ -67,39 +78,24 @@ Minimum contrast ratios per WCAG 2.1:
 - **4.5:1** — normal text, placeholder text, icon labels
 - **3:1** — large text (18px+ regular, 14px+ bold), UI component boundaries (focus rings, button borders)
 
-### Verified ratios
+### Measured ratios
 
-| Pair | Light ratio | Dark ratio | Level |
+Computed from the values above. Every text token meets AA (4.5:1) on `bg-surface`, `bg-surface-raised` and `bg-chrome` in both modes; keep it that way when changing colors.
+
+| Pair | Light | Dark | Level |
 |---|---|---|---|
-| `text-fg` on `bg-surface` | 11.2:1 | 11.0:1 | AAA |
-| `text-fg-muted` on `bg-surface` | 4.7:1 | 5.4:1 | AA |
-| `text-fg-faint` on `bg-surface` | 4.7:1 | 4.6:1 | AA |
-| `text-sage` on `bg-surface` | 4.5:1 | — | AA |
-| `text-sage` on `bg-chrome` | ~4.3:1 | — | AA (large text) |
+| `text-fg` on `bg-surface` / `bg-chrome` | 14.0 / 12.8 | 13.5 / 14.7 | AAA |
+| `text-fg-muted` on `bg-surface` / `bg-chrome` | 6.4 / 5.9 | 6.5 / 7.1 | AA |
+| `text-fg-faint` (and `stone`) on `bg-surface` / `bg-chrome` | 5.1 / 4.6 | 5.2 / 5.6 | AA |
+| `text-accent` on `bg-surface` / `bg-chrome` | 5.1 / 4.6 | 6.2 / 6.7 | AA |
+| `text-sage` on `bg-surface` / `bg-chrome` | 5.1 / 4.7 | 6.0 / 6.5 | AA |
+| `--link` on `bg-surface` / `bg-chrome` | 5.1 / 4.6 | 6.8 / 7.4 | AA |
 
-### Rules for `fg-faint`
+### Rules
 
-`text-fg-faint` is intentionally the lightest accessible foreground. Use it for:
-- Input placeholder text
-- Disabled state labels
-- Timestamps, word counts, and other tertiary metadata
-
-Do not use it for anything considered decorative-only (icon fills, rule lines) — use `border-edge-subtle` or opacity variants instead.
-
-### Rules for `sage`
-
-`text-sage` (`sage.DEFAULT`, `#647558`) is text-safe on both `bg-surface` and `bg-chrome` in light mode and on all dark surfaces.
-
-`sage-subtle` (`#8B9B7E`) **fails AA for text** (2.6:1 on light surface). Restrict it to:
-- Focus rings: `focus-visible:ring-sage-subtle/20`
-- Background dots / status indicators: `bg-sage-subtle`
-- Borders: `border-sage-subtle/40`
-
-Never use `text-sage-subtle` on a light background.
-
-### Rules for `stone`
-
-`stone` (`#A8A098`) has a 2.3:1 ratio on light surface — **not text-safe**. It is intended for decorative borders and dividers only, never for readable text.
+- `fg-faint` is the lightest text token. Don't introduce a lighter gray for readable text; for purely decorative lines use `border-edge-subtle` or opacity.
+- Opacity-reduced text (`text-fg/50`, arbitrary hex with `/NN`) is decorative only — it drops below AA.
+- A single static gray cannot reach 4.5:1 on both the light and dark surfaces, so readable text must use a mode-aware token.
 
 ---
 
@@ -111,11 +107,11 @@ Edit `app/globals.scss`:
 
 ```scss
 :root {
-  --fg-faint: #716E66; /* ← change light-mode value here */
+  --fg-faint: #6D6B67; /* ← change light-mode value here */
 }
 
 html.dark {
-  --fg-faint: #979290; /* ← change dark-mode value here */
+  --fg-faint: #948F87; /* ← change dark-mode value here */
 }
 ```
 
@@ -125,17 +121,7 @@ The Tailwind token (`text-fg-faint`) picks up the new value automatically — no
 
 ### Changing a static color
 
-Edit `tailwind.config.js`:
-
-```js
-sage: {
-  DEFAULT: '#647558', // ← text-safe value
-  subtle:  '#8B9B7E', // ← decorative only
-  ...
-}
-```
-
-After editing `tailwind.config.js`, restart the dev server so Tailwind rebuilds the utility classes.
+Edit `tailwind.config.js` under `theme.extend.colors`. After editing, restart the dev server so Tailwind rebuilds the utility classes.
 
 ### Adding a new semantic color
 
@@ -174,11 +160,13 @@ Defined in `tailwind.config.js` as custom `fontSize` entries. All sizes follow a
 
 | Token | Stack | Use |
 |---|---|---|
-| `font-sans` | SF Pro → Inter → system-ui | UI chrome, labels, buttons |
+| `font-sans` | Plus Jakarta Sans → SF Pro → system-ui | UI chrome, labels, buttons (also the `body` default) |
 | `font-serif` | New York → Georgia → serif | Marketing pages |
 | `font-mono` | SF Mono → Menlo → monospace | Code spans, inline code |
 | `font-sourcecode` | Source Code Pro | Editor code blocks |
 | `font-journal` | Georgia | Document body (journal mode) |
+
+The editor font is user-selectable (Settings → Typography) from `app/editor/settings/font-options.ts`: Plus Jakarta Sans (default), Inter, Geist Mono, and IBM Plex Mono. Fonts are loaded in `app/fonts.ts`.
 
 ---
 

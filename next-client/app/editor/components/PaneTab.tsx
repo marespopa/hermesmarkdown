@@ -5,6 +5,7 @@ import { HiOutlineDocumentText, HiCheck, HiPencilAlt, HiExclamationCircle } from
 import { VscClose } from "react-icons/vsc";
 import Tooltip from "@/app/components/Tooltip";
 import { formatShortcut } from "@/app/utils/platform";
+import Button from "@/app/components/Button";
 
 export type TabSaveState = "idle" | "dirty" | "saving" | "saved" | "error";
 
@@ -27,7 +28,7 @@ interface PaneTabProps {
 }
 
 export const statusDot: Record<TabSaveState, { className: string; title: string }> = {
-  idle: { className: "bg-stone/40 dark:bg-fg-faint/40", title: "Saved" },
+  idle: { className: "bg-[#9A968F]/40 dark:bg-fg-faint/40", title: "Saved" },
   dirty: { className: "bg-amber-500", title: "Unsaved changes" },
   saving: { className: "bg-sage animate-pulse", title: "Saving…" },
   saved: { className: "bg-emerald-500", title: "Saved" },
@@ -111,7 +112,7 @@ export default function PaneTab({
       {shortcutNumber && (
         <sup
           aria-hidden="true"
-          className="ml-2 mr-0.5 shrink-0 font-mono text-[7px] leading-none text-stone/45 dark:text-fg-faint/50"
+          className="ml-2 mr-0.5 shrink-0 font-mono text-[7px] leading-none text-[#9A968F]/45 dark:text-fg-faint/50"
         >
           {formatShortcut(String(shortcutNumber))}
         </sup>
@@ -128,8 +129,7 @@ export default function PaneTab({
         ) : (
           /* Close button — contained within the slot, never overflows the tab */
           <Tooltip label="Close tab" position="bottom">
-            <button
-              type="button"
+            <Button variant="unstyled"
               onClick={onClose}
               aria-label="Close tab"
               className={[
@@ -143,7 +143,7 @@ export default function PaneTab({
               ].join(" ")}
             >
               <VscClose size={10} />
-            </button>
+            </Button>
           </Tooltip>
         )}
       </span>

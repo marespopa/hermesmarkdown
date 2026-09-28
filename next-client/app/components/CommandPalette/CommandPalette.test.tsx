@@ -228,6 +228,30 @@ describe("CommandPalette", () => {
     await waitFor(() => expect(push).toHaveBeenCalledWith("/editor/files"));
   });
 
+  it("closes before a slow file open finishes, so the palette never looks frozen", async () => {
+    const handle = { kind: "file", name: "Roadmap.md" };
+    let finishOpen: () => void = () => undefined;
+    openFile.mockImplementationOnce(() => new Promise<void>((resolve) => { finishOpen = resolve; }));
+    renderPalette([
+      [atom_fileMetadata, {
+        "Roadmap.md": {
+          path: "Roadmap.md", name: "Roadmap.md", handle,
+          tags: [], links: [], frontmatter: {}, modifiedAt: 1, wordCount: 1, tasks: [],
+        },
+      }],
+    ]);
+    fireEvent.keyDown(document, { key: "k", ctrlKey: true });
+    const input = await screen.findByRole("combobox");
+    fireEvent.change(input, { target: { value: "road" } });
+
+    fireEvent.click(screen.getByRole("option", { name: /Roadmap.md/ }));
+
+    // The open is still pending here, yet the palette is already gone.
+    await waitFor(() => expect(screen.queryByRole("listbox")).not.toBeInTheDocument());
+    expect(openFile).toHaveBeenCalledWith(handle, "Roadmap.md");
+    await act(async () => finishOpen());
+  });
+
   it("opens a file directly from an exact tag search", async () => {
     const handle = { kind: "file", name: "Roadmap.md" };
     renderPalette([

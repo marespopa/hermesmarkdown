@@ -1,11 +1,11 @@
 ---
 name: build-and-test
-description: Runs npm run build and npm run test, reports any failures with relevant output. Use after making code changes to verify correctness before committing.
+description: Runs the production build and the Vitest suite from next-client, reports any failures with relevant output. Use only when the user asks to build or test.
 tools: Bash
 ---
 
-Run `npm run build` in the project root. If it fails, report the full error output and stop.
+From the `next-client` directory, run `corepack yarn build`. If it fails, report the full error output and stop.
 
-If build passes, run `npm run test`. Report whether all tests passed or list any failing tests with their error messages.
+If the build passes, run `corepack yarn test --run` (plain `yarn test` starts Vitest in watch mode). Report whether all tests passed or list any failing tests with their error messages.
 
 Keep the report concise: one line for success, or the relevant failure excerpt (not the full raw output) for failures.

@@ -1,57 +1,75 @@
 # HermesMarkdown System Architecture
 
-This document describes the runtime data flow for the Capture and Planning System.
+This document describes the runtime data flow of the editor.
 
 ## System Architecture & Data Flow
 
 ```text
+┌──────────────────────────────┐        ┌──────────────────────────────────┐
+│      LOCAL FILE SYSTEM       │        │   BROWSER / GITHUB VAULT         │
+│  Plain .md files on disk     │        │  Files in the browser's Origin   │
+│  (File System Access API,    │        │  Private FS; GitHub vaults also  │
+│   Chromium)                  │        │  sync with a repository          │
+└──────────────┬───────────────┘        └───────────────┬──────────────────┘
+               │ directory handle                       │ /api/github/* (OAuth,
+               │                                        │ import, commit, pull)
+               ▼                                        ▼
 ┌─────────────────────────────────────────────────────────────────────────┐
-│                          LOCAL FILE SYSTEM                              │
-│                    (Plain text .md files on disk)                       │
-└────────────────────────────────────┬────────────────────────────────────┘
-                                     │ File Access Handle (FS API)
-                                     ▼
+│                  FILE-SYSTEM HOOKS  (app/hooks/file-system)             │
+│   open / save / create / rename / move / delete, retries, vault manager │
+└───────────────┬───────────────────────────────────────┬─────────────────┘
+                │                                       │
+                ▼                                       ▼
+┌───────────────────────────────┐       ┌─────────────────────────────────┐
+│  FILE WATCHER                 │       │  METADATA WORKER                │
+│  hooks/use-file-watcher.ts    │       │  workers/metadata.worker.ts     │
+│  polls with backoff + on      │       │  frontmatter, tags, wikilinks,  │
+│  focus; conflict dialog       │       │  word count, tasks              │
+└───────────────┬───────────────┘       └────────────────┬────────────────┘
+                │                                        │
+                ▼                                        ▼
 ┌─────────────────────────────────────────────────────────────────────────┐
-│                          WORKSPACE FILE WATCHER                         │
-│                    (Detects mtime changes & saves)                      │
-└────────────────────────────────────┬────────────────────────────────────┘
-                                     │
-                                     ▼
+│                          JOTAI ATOMS  (app/atoms)                        │
+│   vault + open files, workspace panes/tabs, file metadata index,        │
+│   tasks (task-atoms), UI and settings                                   │
+└───────────────────┬─────────────────────────────────┬───────────────────┘
+                    │                                 │
+                    ▼                                 ▼
+┌─────────────────────────────────┐   ┌───────────────────────────────────┐
+│     CODEMIRROR 6 EDITOR         │   │     VIEWS & UI                     │
+│  - Markdown highlighting, pills │   │  - Explorer (/editor/files)        │
+│  - Tables grid + formula engine │   │  - Tasks page (/editor/tasks)      │
+│  - Slash menu, shortcodes       │   │  - Command palette / quick switcher│
+│  - Keyboard commands, Vim       │   │  - Settings, dialogs, AI chat      │
+└─────────────────┬───────────────┘   └───────────────────────────────────┘
+                  │ AI actions (only with a user key)
+                  ▼
 ┌─────────────────────────────────────────────────────────────────────────┐
-│                         PARSER & AST GENERATOR                          │
-│        (Tolerant AST generation, inline directive extraction)           │
-└────────────────────────────────────┬────────────────────────────────────┘
-                                     │
-                                     ▼
-┌─────────────────────────────────────────────────────────────────────────┐
-│                         JOTAI WORKSPACE INDEX                           │
-│     (Task Nodes, Date Map, Overdue Queue, Structural Tree Cache)        │
-└─────────────────────┬──────────────────────────────┬────────────────────┘
-                      │                              │
-                      ▼                              ▼
-┌───────────────────────────┐          ┌──────────────────────────────────┐
-│    CODEMIRROR 6 EDITOR    │          │     PANELS & UI COMPONENTS       │
-│  - Outline Nav & Zoom     │          │  - Today Sliding Panel           │
-│  - Keyboard Shortcuts     │          │  - Inbox Fast Capture Drawer     │
-│  - Inline Block Formatting│          │  - Global Search (Cmd+K)         │
-└───────────────────────────┘          └──────────────────────────────────┘
+│    /api/ai  →  Anthropic / Google Gemini   (key sent per request,       │
+│                                              never stored server-side)  │
+└─────────────────────────────────────────────────────────────────────────┘
 ```
 
 ## Architectural Principles
 
 1. Markdown files remain the canonical source of truth.
-2. Parsed outline data and workspace indices are rebuildable derived state.
-3. CodeMirror structural mutations are dispatched as atomic transactions.
-4. File-system changes are observed and re-indexed without replacing local files silently.
-5. Jotai atoms expose indexed state to the editor and workspace panels.
+2. The metadata index and task lists are rebuildable derived state.
+3. CodeMirror structural mutations (tables, list indent, task cycling) are dispatched as atomic transactions, so each is one undo step.
+4. External file changes are detected and surfaced through the conflict dialog — local edits are never replaced silently.
+5. Jotai atoms expose indexed state to the editor and views.
+6. Network access is opt-in: only AI actions (with a user-supplied key) and GitHub vaults talk to the server routes.
 
 ## Runtime Components
 
-- **Local file system:** User-selected Markdown vault accessed through the File System Access API.
-- **Workspace file watcher:** Detects external changes and coordinates reload or conflict handling.
-- **Parser and AST generator:** Extracts headings, list hierarchy, tasks, dates, and inline directives.
-- **Jotai workspace index:** Provides derived task, date, overdue, and structural queries.
-- **CodeMirror 6 editor:** Owns editing, keyboard commands, syntax highlighting, and transactional mutations.
-- **Panels and UI components:** Consume the index for Today, Inbox, search, and other workspace views.
+- **Local file system:** User-selected Markdown vault accessed through the File System Access API (Chromium). Handles are persisted in IndexedDB (`app/services/idb.ts`).
+- **Browser vaults:** Vaults kept in the Origin Private File System (`app/services/opfs.ts`, `app/hooks/file-system/use-browser-vault.ts`) for browsers without disk folder access (Safari, iOS, Firefox). They use the same handle-based file layer. Writes go through `app/services/file-writer.ts`, which falls back to `app/workers/opfs-writer.worker.ts` where `createWritable()` is missing. Whole-vault zip export / import lives in `app/services/vault-archive.ts`.
+- **Offline app:** `public/sw.js` (registered by `app/components/ServiceWorkerRegister.tsx` in production) serves navigations network-first with a cached shell, and hashed `/_next/static` assets cache-first. It never touches `/api/*`.
+- **GitHub vaults:** Optional. Repository files are imported into the Origin Private File System (`app/services/github-vault-workspace.ts`); commits and pulls go through `app/api/github/` (`app/services/github-vault-sync.ts`, `github-api.ts`, `github-auth.ts`).
+- **File-system hooks:** `app/hooks/file-system/` implements open, save (with retries), create, rename, move, duplicate, and delete, plus the vault manager.
+- **File watcher:** `app/hooks/use-file-watcher.ts` polls open files with backoff and checks immediately on window focus, feeding `ConflictDialog`.
+- **Metadata worker:** `app/workers/metadata.worker.ts` extracts frontmatter, tags, wikilinks and word counts off the main thread; tasks are parsed by `app/utils/taskExtractor.ts`.
+- **Jotai atoms:** See `app/atoms/README.md`.
+- **CodeMirror 6 editor:** `app/editor/codemirror/` owns editing, keyboard commands, syntax highlighting, the table grid (`table-display.tsx`) and formulas (`table-formulas.ts`, `utils/formula-engine.ts`).
+- **AI route:** `app/api/ai/route.ts` relays requests to Anthropic or Gemini; client helpers live in `app/services/ai.ts`.
 
-The index is an implementation cache, not a second source of truth. It must be safe to discard and rebuild from the Markdown vault.
+The metadata index is an implementation cache, not a second source of truth. It must be safe to discard and rebuild from the Markdown vault.

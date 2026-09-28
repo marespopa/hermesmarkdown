@@ -23,7 +23,6 @@ vi.mock("@/app/atoms/atoms", async (importOriginal) => {
   const actual: any = await importOriginal();
   return {
     ...actual,
-    atom_editorWidth: { toString: () => "atom_editorWidth" },
     atom_editorFontFamily: { toString: () => "atom_editorFontFamily" },
     atom_lineHeight: { toString: () => "atom_lineHeight" },
     atom_theme: { toString: () => "atom_theme" },
@@ -52,7 +51,6 @@ describe("SettingsPage", () => {
 
     (useAtom as any).mockImplementation((atom: any) => {
       const atomStr = atom.toString();
-      if (atomStr === "atom_editorWidth") return ["standard", vi.fn()];
       if (atomStr === "atom_autosaveMode") return ["afterDelay", vi.fn()];
       if (atomStr === "atom_autosaveDelay") return [2000, vi.fn()];
       if (atomStr === "atom_lineHeight") return ["1.8", vi.fn()];
@@ -94,7 +92,6 @@ describe("SettingsPage", () => {
       const str = atom.toString();
       if (str === "atom_autosaveMode") return ["afterDelay", vi.fn()];
       if (str === "atom_autosaveDelay") return [2000, vi.fn()];
-      if (str === "atom_editorWidth") return ["standard", vi.fn()];
       return ["", vi.fn()];
     });
     render(<SettingsPage />);

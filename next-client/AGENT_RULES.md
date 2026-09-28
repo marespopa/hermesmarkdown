@@ -6,8 +6,8 @@ You are a senior software engineer agent working on HermesMarkdown. You must adh
 
 ### Component Usage
 - **Prioritize Project Components**: Always use established components from `app/components/` (e.g., `Button`, `Input`, `DialogModal`).
-- **No Raw HTML for UI**: Avoid using `<button>`, `<input>`, or custom-styled `div`s for elements that have a project-specific component.
-- **Visual Consistency**: Use established variants (`primary`, `secondary`, `danger`) and maintain the design system's spacing and typography.
+- **No Raw HTML for UI**: Use `Button` (with `variant="unstyled"` for fully custom-styled controls) instead of `<button>`, and `Input` / `BareInput` instead of text `<input>`s. Raw HTML is only for elements with no project component — hidden `type="file"` pickers and checkboxes.
+- **Visual Consistency**: Use established `Button` variants (`primary`, `secondary`, `warning` for destructive actions, `tertiary`, `outlined`, `icon`, `menu-item`, …; see `app/components/Button/Button.component.tsx`) and maintain the design system's spacing and typography (see `DESIGN.md`).
 
 ### File System Access API
 - **Safe Closure**: Always close `FileSystemWritableFileStream` in a `finally` block to prevent file locks.
@@ -23,7 +23,7 @@ You are a senior software engineer agent working on HermesMarkdown. You must adh
 
 - **100% Mocking**: Mock ALL external APIs, hooks (especially `useFileSystem`), and network requests. No real side effects.
 - **Behavioral Focus**: Test user interactions and state changes, not CSS classes or internal implementation details.
-- **Zero Regression**: Every code change MUST include a passing test. Never push changes that break the test suite.
+- **Tests With Changes**: Add or update tests alongside every behavior change. Don't run the build or test suite automatically after each edit — run them when the user asks; CI runs the full suite on every pull request. Never push changes that break the test suite.
 - **Router Mocking**: Always mock `useRouter` from `next/navigation` to avoid "app router not mounted" errors.
 
 ---
@@ -31,15 +31,6 @@ You are a senior software engineer agent working on HermesMarkdown. You must adh
 ## 📚 Documentation & Maintenance
 
 - **Plan Location**: Save all implementation plans in `next-client/.plans/`.
-- **Mandatory READMEs**: Every major component or complex module must have a `README.md` explaining its purpose, props, and logic.
-- **Small Files**: Keep files under **400 lines**. If a file grows larger, refactor by extracting subcomponents, hooks, or utility functions.
+- **Mandatory Docs**: Every component has a sibling `<ComponentName>.md` (e.g. `MarkdownEditor.tsx` → `MarkdownEditor.md`) explaining its purpose, state, props, and logic; directories keep a `README.md` index. Update the doc in the same change as the component.
+- **Small Files**: Keep source files under **400 lines** (tests excluded). If a file grows larger, refactor by extracting subcomponents, hooks, data modules, or utility functions.
 - **Small Edits**: Prefer minimal, precise changes over large-scale rewrites unless explicitly instructed.
-
----
-
-## 🤖 Persona: Amelia (Dev Agent)
-
-When acting as the Dev Agent (Amelia):
-- **Precision**: Be ultra-succinct and citation-heavy.
-- **Sequence**: Read the entire story file before implementation and follow the task order exactly.
-- **Validation**: Never mark a task as complete until both the code and its tests are passing.

@@ -1,3 +1,6 @@
+import { getVaultsDirectory } from "./opfs";
+import { writeFileContent } from "./file-writer";
+
 export const GITHUB_VAULT_DESCRIPTOR_VERSION = 1;
 export const GITHUB_VAULT_MANIFEST_VERSION = 1;
 
@@ -96,18 +99,10 @@ export function createGitHubVaultManifestFromFiles(
   return manifest;
 }
 
-async function getStorageRoot(): Promise<FileSystemDirectoryHandle> {
-  if (typeof navigator === "undefined" || !navigator.storage?.getDirectory) {
-    throw new Error("Origin Private File System is not supported by this browser.");
-  }
-  return navigator.storage.getDirectory();
-}
-
 export async function getGitHubVaultWorkspace(
   descriptor: Pick<GitHubVaultDescriptor, "repositoryId" | "branch">,
 ): Promise<FileSystemDirectoryHandle> {
-  const root = await getStorageRoot();
-  const vaults = await root.getDirectoryHandle("hermes-vaults", { create: true });
+  const vaults = await getVaultsDirectory();
   return vaults.getDirectoryHandle(getGitHubVaultWorkspaceName(descriptor), { create: true });
 }
 
@@ -126,16 +121,6 @@ async function getDirectoryForPath(
   return { directory, filename };
 }
 
-async function writeTextFile(file: FileSystemFileHandle, content: string): Promise<void> {
-  let writable: FileSystemWritableFileStream | null = null;
-  try {
-    writable = await file.createWritable();
-    await writable.write(content);
-  } finally {
-    if (writable) await writable.close();
-  }
-}
-
 export async function writeGitHubVaultFile(
   workspace: FileSystemDirectoryHandle,
   path: string,
@@ -145,7 +130,7 @@ export async function writeGitHubVaultFile(
     throw new Error(`Unsupported GitHub vault path: ${path}`);
   }
   const { directory, filename } = await getDirectoryForPath(workspace, path);
-  await writeTextFile(await directory.getFileHandle(filename, { create: true }), content);
+  await writeFileContent(await directory.getFileHandle(filename, { create: true }), content);
 }
 
 export async function deleteGitHubVaultFile(

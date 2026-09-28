@@ -1,0 +1,245 @@
+import { Callout, Code, KV, type Subsection } from "../doc-primitives";
+
+// Documentation content: Editor group, writing features (writing through slash menu).
+export const editorWritingItems: Subsection[] = [
+  {
+    id: "writing",
+    title: "Writing",
+    lead: "Write Markdown with inline highlighting and click actions.",
+    keywords: "rendering source inline wysiwyg word wrap line numbers pills dates priority shortcode images paste",
+    body: (
+      <>
+        <p>
+          You always edit the Markdown source, styled as you type: headings, emphasis, links,
+          tags and dates are highlighted in place, and tables render as an editable grid.
+          Word wrap, line numbers, font and theme live under Settings.
+        </p>
+        <p>
+          Dates (<code>2026-09-27</code>, <code>27/09/2026</code>, <code>[[2026-09-27]]</code>,{" "}
+          <code>@due(…)</code>) and <code>@priority</code> annotations show as small pills.
+          CTRL+Click a date to open the date picker.
+        </p>
+        <p>
+          Paste or drop an image and it&apos;s saved to the vault&apos;s <code>assets/</code>{" "}
+          folder and linked with <code>![](assets/…)</code>. Paste comma- or tab-separated
+          data outside a table and HermesMarkdown offers to convert it into a Markdown table.
+        </p>
+        <h4 className="text-lg font-bold tracking-tight !mb-2 !mt-6">Shortcodes</h4>
+        <p>Type a shortcode and it expands in place.</p>
+        <KV
+          rows={[
+            { label: "{date} · ..d · {time} · {datetime}", value: "Current date / time" },
+            { label: "..tomorrow · ..yesterday", value: "Relative dates" },
+            { label: "{iso} · {unix} · {day} · {week} · ..log", value: "Timestamps & log prefix" },
+            { label: "{todo} · {done} · {table}", value: "Task line / starter table" },
+            { label: "{check} {error} {idea} {warn} {fix} {bug} {star}", value: "Emoji" },
+            { label: "calc(2*21)=", value: "Inline calculation" },
+          ]}
+        />
+        <Callout type="tip">
+          Click actions work without touching raw syntax — checkboxes toggle, lifecycle tags cycle on
+          click, and wikilinks open with CTRL+Click.
+        </Callout>
+      </>
+    ),
+  },
+  {
+    id: "vim-mode",
+    title: "Vim mode",
+    lead: "Use familiar Vim motions and editing modes in the source editor.",
+    keywords: "vim vi keybindings normal insert escape settings setup",
+    body: (
+      <>
+        <p>
+          Turn on Vim mode during the welcome setup, or enable it later under Settings → Appearance
+          (or the <strong>Enable Vim mode</strong> command). It shows the current mode in a status
+          line below the editor.
+        </p>
+        <Callout type="tip">
+          Press <code>Escape</code> to leave Insert mode and return to Normal mode.
+        </Callout>
+      </>
+    ),
+  },
+  {
+    id: "tables",
+    title: "Tables",
+    lead: "Tables always render as a clean grid you edit like a spreadsheet: click a cell and type. The pipe syntax stays out of sight.",
+    keywords: "table csv json sort alignment formula sum spreadsheet paste",
+    body: (
+      <>
+        <p>
+          Type <code>/table</code> in the slash menu, or the <code>{"{table}"}</code> shortcode. Both
+          drop a 3×2 starter table and put you in its first cell.
+        </p>
+        <p>
+          Click any cell to edit it in place. Tab moves to the next cell, and tabbing out of the last
+          one adds a row. Enter moves down a column. The arrow keys cross cell edges and step out of
+          the table at its borders. The file is updated as you type, so undo, autosave and split
+          panes always match what you see. The file on disk is still a plain Markdown pipe table.
+        </p>
+        <p>
+          A focused cell shows its raw Markdown, such as <code>**bold**</code> or links. Every other
+          cell shows the rendered result. <code>Ctrl/Cmd+B</code>, <code>I</code> and{" "}
+          <code>E</code> wrap the selection in bold, italic or code, and <code>Ctrl/Cmd</code>-click
+          opens a link. A pipe you type is stored escaped, so it can&apos;t split the cell.
+        </p>
+        <p>
+          While you edit a table, column letters (A, B, C…) and row numbers (1, 2, 3…) appear
+          around it, like in a spreadsheet, with the current cell&apos;s row and column
+          highlighted. Click a letter or number for that column&apos;s or row&apos;s menu, or
+          right-click any cell (long-press on touch). Nothing is drawn on top of the cells.
+        </p>
+        <KV
+          rows={[
+            { label: "Row", value: "Insert above / below, move up / down, delete" },
+            { label: "Column", value: "Insert left / right, move, sum, sort, align, delete" },
+            { label: "Table", value: "Copy as CSV or JSON, delete (confirm with a second click)" },
+          ]}
+        />
+        <p>
+          Paste a range copied from a spreadsheet (or multi-line CSV) into a cell. It fills the
+          cells from there, adding rows and columns as needed. Smart sorting recognizes dates,
+          currency and plain numbers. Each structural change is a single undo step.
+        </p>
+        <h4 className="text-lg font-bold tracking-tight !mb-2 !mt-6">Formulas</h4>
+        <p>
+          Start a cell with <code>=</code> to compute it, like a spreadsheet. The cell shows the
+          result, and clicking it shows the formula for editing. Columns are lettered{" "}
+          <code>A</code>, <code>B</code>, <code>C</code>… and the header is row 1, so the first data
+          row is row 2, matching the letters and numbers shown around the table while you edit.{" "}
+          <strong>Sum column</strong> in the table menu adds a totals row for you. Rows you add at
+          the end (Tab or Enter) go above the totals row, and its ranges grow to include them.
+        </p>
+        <KV
+          rows={[
+            { label: "Cell & range", value: "=B2 · =SUM(B2:B5) · =AVERAGE(B2:D2)" },
+            { label: "Functions", value: "SUM, AVERAGE, COUNT, COUNTA, MIN, MAX, ROUND, ABS, IF, AND, OR, NOT, CONCAT" },
+            { label: "Another table", value: "=SUM(Income!B) — named by the heading above it" },
+            { label: "Another note", value: "=[[Budget]]!B5 · =[[Budget#Income]]!B5" },
+          ]}
+        />
+        <p>
+          Amounts like <code>$2,000</code> or <code>1000 RON</code> count as numbers, and totals keep
+          their currency. Errors show spreadsheet-style (<code>#REF!</code>, <code>#DIV/0!</code>,{" "}
+          <code>#CIRCULAR!</code>, <code>#NAME?</code> for an unknown function,{" "}
+          <code>#VALUE!</code> for text where a number is needed). Rows containing a formula are treated as summary rows and are
+          never moved by sorting.
+        </p>
+        <Callout type="note">
+          Formulas are stored as plain text in the Markdown file (<code>| =SUM(B2:B5) |</code>),
+          so other Markdown apps show the formula, not the result. References to other notes read
+          those notes when you open this one and refresh when you return to its pane.
+        </Callout>
+        <p>
+          AI features know this syntax too. See{" "}
+          <a href="#ai-table-formulas" className="text-sage font-semibold hover:underline">AI &amp; table formulas</a>.
+        </p>
+      </>
+    ),
+  },
+  {
+    id: "code-diagrams",
+    title: "Code & diagrams",
+    lead: "Fenced code blocks get real syntax highlighting, and ```mermaid fences open in a diagram viewer for zoom and download.",
+    keywords: "code block syntax highlighting language mermaid diagram",
+    body: (
+      <>
+        <p>
+          Any fenced code block (<code>/code</code> in the slash menu, or typing ```` ```lang ````
+          yourself) is syntax-highlighted as you type, for any language CodeMirror recognizes from
+          the fence's language tag. Inserting one from the slash menu offers a language picker.
+        </p>
+        <p>
+          Insert a diagram with <code>/mermaid</code> or type a <code>```mermaid</code> fence. With
+          the cursor inside it, a small expand button appears (or press{" "}
+          <code>CTRL/CMD+SHIFT+ENTER</code>) to open the Mermaid dialog, which renders the diagram
+          and lets you zoom, fit-to-width, and download the SVG. Syntax errors are shown in the
+          dialog.
+        </p>
+        <Code>{`\`\`\`mermaid
+graph TD
+  A[Start] --> B{Decision}
+  B -->|Yes| C[Do it]
+  B -->|No| D[Skip it]
+\`\`\``}</Code>
+        <Callout type="note">
+          Both round-trip as plain Markdown — a highlighted code block is still a fenced code block
+          on disk and a diagram is still a ```mermaid fence. Nothing HermesMarkdown-specific gets
+          written to the file.
+        </Callout>
+      </>
+    ),
+  },
+  {
+    id: "links",
+    title: "Links",
+    lead: "Insert a link from the slash menu, or just paste a URL — both give you a title to type over immediately.",
+    keywords: "link url hyperlink paste title pill edit",
+    body: (
+      <>
+        <p>
+          Type <code>/link</code> in the slash menu to open the Add Link dialog — fill in the link
+          text and the URL, then Insert.
+        </p>
+        <p>
+          Pasting a bare URL on its own does the same thing automatically: it lands as a link with a
+          placeholder label already selected, so typing immediately replaces it with a real title
+          instead of leaving the raw URL as the visible text.
+        </p>
+        <p>
+          Rest the cursor on any link and a small floating pill appears with two actions: the pencil
+          reopens the same dialog to edit its text or URL, and the external-link icon opens it.
+          <code>CTRL+Click</code> the link directly to open it without the pill.
+        </p>
+      </>
+    ),
+  },
+  {
+    id: "wikilinks",
+    title: "Wikilinks",
+    lead: "Link notes to each other with [[Note name]] — type [[ and pick a note.",
+    keywords: "wikilink wiki link backlink note [[ connect",
+    body: (
+      <>
+        <p>
+          Type <code>[[</code> (or <code>/wikilink</code> in the slash menu) to open the WikiLink
+          dialog, then search your vault and pick a note — or switch to creating a new note, which
+          is created and linked in one step. The link is written as plain{" "}
+          <code>[[Note name]]</code> text, compatible with other Markdown apps that support
+          wikilinks.
+        </p>
+        <p>
+          <code>CTRL+Click</code> a wikilink to open the note. A link to a note that doesn&apos;t
+          exist shows a &ldquo;File not found&rdquo; message.
+        </p>
+      </>
+    ),
+  },
+  {
+    id: "slash-menu",
+    title: "Slash menu",
+    lead: "Type / at the start of a line or after a space for a searchable menu of insertable content, plus AI actions when AI is configured.",
+    keywords: "slash menu insert template",
+    body: (
+      <>
+        <p>
+          Keep typing after <code>/</code> to fuzzy-filter by name; <code>↑</code>/<code>↓</code>{" "}
+          to move the selection, <code>Enter</code> to insert, <code>Escape</code> to dismiss.
+        </p>
+        <KV
+          rows={[
+            { label: "Link · WikiLink", value: "Open the link dialogs" },
+            { label: "Date", value: "Pick a date from a calendar" },
+            { label: "Task", value: "Checklist task with status, due date & tags" },
+            { label: "Table", value: "Starter table" },
+            { label: "Code · Mermaid", value: "Fenced code / diagram block" },
+            { label: "Callout · Collapse", value: "Callout / collapsed callout" },
+            { label: "Frontmatter", value: "Insert or reveal the YAML block" },
+            { label: "AI Chat & AI actions", value: "Only when AI is configured" },
+          ]}
+        />
+      </>
+    ),
+  },
+];

@@ -128,14 +128,13 @@ export interface Template {
   label: string;
   icon: string;
   description: string;
-  keybind?: string;
   content: string;
   /** Only shown in the command menu when an AI provider/key is configured. */
   aiOnly?: boolean;
 }
 
 export const TEMPLATES: Template[] = [
-  { label: "Link", icon: "🔗", description: "Insert a hyperlink", keybind: "⌘K", content: LINK_EDITOR_SENTINEL },
+  { label: "Link", icon: "🔗", description: "Insert a hyperlink", content: LINK_EDITOR_SENTINEL },
   { label: "WikiLink", icon: "[[", description: "Link to another note", content: WIKILINK_EDITOR_SENTINEL },
   { label: "Date", icon: "📅", description: "Pick a date from the calendar", content: DATE_EDITOR_SENTINEL },
   { label: "Task", icon: "☑️", description: "Create a checklist task with status, due date, and tags", content: TASK_EDITOR_SENTINEL },

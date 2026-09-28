@@ -33,7 +33,6 @@ vi.mock("@/app/atoms/atoms", () => ({
   atom_saveStatus: { name: "atom_saveStatus" },
   atom_isCloudVault: { name: "atom_isCloudVault" },
   atom_indexerState: { name: "atom_indexerState" },
-  atom_vaultSetupStatus: { name: "atom_vaultSetupStatus" },
   atom_liveHandles: vi.fn((path: string) => ({ name: `atom_liveHandles:${path}` })),
   contentStore: {
     get: vi.fn(),

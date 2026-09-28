@@ -1,0 +1,139 @@
+"use client";
+
+import React from "react";
+import { useAtom } from "jotai";
+import { HiOutlineDesktopComputer, HiOutlineMoon, HiOutlineSun } from "react-icons/hi";
+import {
+  atom_autosaveDelay,
+  atom_autosaveMode,
+  atom_editorFontFamily,
+  atom_frontmatterCollapsedByDefault,
+  atom_lineNumbers,
+  atom_showCommandPaletteFab,
+  atom_showHiddenFiles,
+  atom_theme,
+  atom_vimMode,
+  atom_wordWrap,
+  type Theme,
+} from "@/app/atoms/atoms";
+import Toggle from "@/app/components/Toggle";
+import { useFileSystem } from "@/app/hooks/use-file-system";
+import FontPicker from "../components/FontPicker";
+import { SegmentedControl, SelectControl, SettingGroup, SettingItem } from "../components/SettingControls";
+import { FONTS } from "../font-options";
+
+const THEME_OPTIONS: { label: string; value: Theme; Icon: React.ComponentType<{ size?: number }> }[] = [
+  { label: "Light", value: "light", Icon: HiOutlineSun },
+  { label: "Dark", value: "dark", Icon: HiOutlineMoon },
+  { label: "System", value: "system", Icon: HiOutlineDesktopComputer },
+];
+
+// Settings → Editor: Appearance, Typography, and Autosave groups.
+export default function EditorSettings() {
+  const [theme, setTheme] = useAtom(atom_theme);
+  const [wordWrap, setWordWrap] = useAtom(atom_wordWrap);
+  const [lineNumbers, setLineNumbers] = useAtom(atom_lineNumbers);
+  const [vimMode, setVimMode] = useAtom(atom_vimMode);
+  const [frontmatterCollapsedByDefault, setFrontmatterCollapsedByDefault] = useAtom(atom_frontmatterCollapsedByDefault);
+  const [autosaveMode, setAutosaveMode] = useAtom(atom_autosaveMode);
+  const [autosaveDelay, setAutosaveDelay] = useAtom(atom_autosaveDelay);
+  const [showHiddenFiles, setShowHiddenFiles] = useAtom(atom_showHiddenFiles);
+  const [showCommandPaletteFab, setShowCommandPaletteFab] = useAtom(atom_showCommandPaletteFab);
+  const [editorFontFamily, setEditorFontFamily] = useAtom(atom_editorFontFamily);
+  const { scanVault, indexVaultTags, vaultHandle } = useFileSystem();
+
+  const handleShowHiddenFilesChange = (next: boolean) => {
+    setShowHiddenFiles(next);
+    // Rescan immediately — this page is a separate route from the editor, so
+    // the tree-owning hook isn't mounted here to react to the atom change itself.
+    if (!vaultHandle) return;
+    scanVault(vaultHandle as any, next);
+    indexVaultTags(vaultHandle as any, next);
+  };
+
+  return (
+    <>
+      <SettingGroup title="Appearance">
+        <SettingItem
+          label="Theme"
+          description="System follows your OS's light/dark setting and switches automatically when it changes."
+          control={<SegmentedControl options={THEME_OPTIONS} value={theme} onChange={setTheme} />}
+        />
+        <SettingItem
+          label="Word Wrap"
+          description="Wrap long lines to fit the viewport width."
+          control={<Toggle variant="soft" active={wordWrap} onChange={setWordWrap} />}
+        />
+        <SettingItem
+          label="Line Numbers"
+          description="Show line numbers beside the source editor."
+          control={<Toggle variant="soft" active={lineNumbers} onChange={setLineNumbers} />}
+        />
+        <SettingItem
+          label="Vim Mode"
+          description="Use Vim motions and editing modes in the source editor."
+          control={<Toggle variant="soft" active={vimMode} onChange={setVimMode} />}
+        />
+        <SettingItem
+          label="Collapse Frontmatter"
+          description="Start with the YAML frontmatter folded when opening files."
+          control={
+            <Toggle
+              variant="soft"
+              active={frontmatterCollapsedByDefault}
+              onChange={setFrontmatterCollapsedByDefault}
+              label="Collapse frontmatter by default"
+            />
+          }
+        />
+        <SettingItem
+          label="Command Palette Button"
+          description="Show a floating button that opens the Command Palette. Keyboard shortcuts remain available when hidden."
+          control={<Toggle variant="soft" active={showCommandPaletteFab} onChange={setShowCommandPaletteFab} />}
+        />
+        <SettingItem
+          label="Show Hidden Files"
+          description="Reveal dotfiles and folders (such as .hermes/) and _-prefixed files in the file tree and search. Off by default to keep browsing focused on your notes."
+          control={<Toggle variant="soft" active={showHiddenFiles} onChange={handleShowHiddenFilesChange} />}
+        />
+      </SettingGroup>
+      <SettingGroup title="Typography">
+        <SettingItem
+          label="Font"
+          description="Choose a paper-like typeface for the Markdown editor. Fonts are self-hosted and keep a system fallback."
+          layout="stack"
+          control={<FontPicker fonts={FONTS} value={editorFontFamily} onChange={setEditorFontFamily} />}
+        />
+      </SettingGroup>
+      <SettingGroup title="Autosave">
+        <SettingItem
+          label="Autosave Mode"
+          description="When unsaved changes are written to disk."
+          control={
+            <SelectControl value={autosaveMode} onChange={(v) => setAutosaveMode(v as any)}>
+              <option value="afterDelay">After Delay</option>
+              <option value="onFocusChange">On Focus Change</option>
+              <option value="manual">Manual Only (⌘S)</option>
+            </SelectControl>
+          }
+        />
+        {autosaveMode === "afterDelay" && (
+          <SettingItem
+            label="Delay"
+            description="Idle time after the last keystroke before saving."
+            control={
+              <SelectControl value={autosaveDelay} onChange={(v) => setAutosaveDelay(Number(v))}>
+                <option value={500}>0.5s</option>
+                <option value={1000}>1s</option>
+                <option value={2000}>2s</option>
+                <option value={3000}>3s</option>
+                <option value={5000}>5s</option>
+                <option value={10000}>10s</option>
+              </SelectControl>
+            }
+          />
+        )}
+      </SettingGroup>
+    </>
+  );
+}

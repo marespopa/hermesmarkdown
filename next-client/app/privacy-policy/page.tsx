@@ -63,7 +63,7 @@ export default function PrivacyPolicy() {
             
             <h3 className="text-ui-title-3 font-semibold">Local Storage</h3>
             <p>
-              We use <code>localStorage</code> and <code>IndexedDB</code> within your browser to store application settings (like theme, font size, and sidebar width) and to maintain the list of Vault handles you have authorized. This data is local to your browser and is not synchronized with any external database.
+              We use <code>localStorage</code> and <code>IndexedDB</code> within your browser to store application settings (like theme, font, and editor preferences) and to maintain the list of Vault handles you have authorized. This data is local to your browser and is not synchronized with any external database.
             </p>
           </div>
 

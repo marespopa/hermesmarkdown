@@ -19,7 +19,6 @@ export function buildWorkspaceTaskViewCommandGroups(context: EditorCommandContex
     isOnlyPane,
     lineNumbers,
     onOpenTasks,
-    requestWorkspaceBuilder,
     router,
     scanVault,
     setActiveFilePath,
@@ -27,7 +26,6 @@ export function buildWorkspaceTaskViewCommandGroups(context: EditorCommandContex
     setIsWizardOpen,
     setKeyboardShortcutsOpen,
     setLineNumbers,
-    setRailPanel,
     setShowHiddenFiles,
     setTaskDueFilter,
     setTaskSearchQuery,
@@ -54,7 +52,7 @@ export function buildWorkspaceTaskViewCommandGroups(context: EditorCommandContex
     {
       id: "open-tasks-panel",
       label: "Open Tasks",
-      keywords: "tasks todos sidebar",
+      keywords: "tasks todos checklist",
       action: onOpenTasks,
     },
   ];
@@ -101,7 +99,7 @@ export function buildWorkspaceTaskViewCommandGroups(context: EditorCommandContex
     {
       id: "toggle-hidden-files",
       label: showHiddenFiles ? "Hide hidden files" : "Show hidden files",
-      keywords: "hidden dotfiles skills files sidebar reveal",
+      keywords: "hidden dotfiles skills files tree reveal",
       action: () => {
         const next = !showHiddenFiles;
         setShowHiddenFiles(next);
@@ -174,17 +172,6 @@ export function buildWorkspaceTaskViewCommandGroups(context: EditorCommandContex
     ? activeLeaf.openFilePaths.indexOf(activeLeaf.activeFilePath)
     : -1;
   const workspaceTasksAndViews: Command[] = [
-    {
-      id: "create-smart-view",
-      label: "Create smart view",
-      category: "Views",
-      keywords: "workspace saved query filter",
-      disabledReason: vaultHandle ? undefined : "Open a vault first",
-      action: () => {
-        setRailPanel("views");
-        requestWorkspaceBuilder((value) => value + 1);
-      },
-    },
     {
       id: "split-pane-down",
       label: "Split pane down",

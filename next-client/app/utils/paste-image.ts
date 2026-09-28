@@ -1,4 +1,5 @@
 import { withRetry } from "@/app/hooks/file-system/shared";
+import { writeFileContent } from "@/app/services/file-writer";
 
 const MIME_TO_EXT: Record<string, string> = {
   "image/png": "png",
@@ -40,11 +41,7 @@ export async function savePastedImage(
   const fileHandle = await withRetry(() =>
     assetsHandle.getFileHandle(fileName, { create: true }),
   );
-  await withRetry(async () => {
-    const writable = await (fileHandle as any).createWritable();
-    await writable.write(blob);
-    await writable.close();
-  });
+  await withRetry(() => writeFileContent(fileHandle, blob));
 
   let isRoot = !currentDirectoryHandle;
   if (currentDirectoryHandle) {

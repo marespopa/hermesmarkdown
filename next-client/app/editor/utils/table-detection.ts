@@ -8,14 +8,15 @@ export interface TableInfo {
   lines: string[];
 }
 
-function isTableLine(line: string): boolean {
+export function isTableLine(line: string): boolean {
   const trimmed = line.trim();
   return trimmed.startsWith("|") && trimmed.indexOf("|", 1) !== -1;
 }
 
 function cursorColInLine(line: string, posInLine: number): number {
   // Count the number of | characters before the cursor position (excluding the leading |)
-  const segment = line.substring(0, posInLine);
+  // (escaped \| pipes are cell content, not delimiters)
+  const segment = line.substring(0, posInLine).replace(/\\\|/g, "");
   const pipes = segment.split("|").length - 1;
   // The first | is the row-opening delimiter, so column index = pipes - 1, min 0
   return Math.max(0, pipes - 1);

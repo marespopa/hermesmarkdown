@@ -2,6 +2,7 @@
 
 import React from "react";
 import { HiCheck } from "react-icons/hi";
+import Button from "@/app/components/Button";
 
 export interface FontOption {
   label: string;
@@ -29,9 +30,8 @@ export default function FontPicker({
       {fonts.map((f) => {
         const isActive = value === f.value;
         return (
-          <button
+          <Button variant="unstyled"
             key={f.label}
-            type="button"
             onClick={() => onChange(f.value)}
             aria-pressed={isActive}
             className={`mb-2 w-full break-inside-avoid flex flex-col items-start gap-1.5 rounded-xl border px-3 py-3 text-left transition-colors focus:outline-none ${
@@ -65,7 +65,7 @@ export default function FontPicker({
             >
               {previewText}
             </span>
-          </button>
+          </Button>
         );
       })}
     </div>

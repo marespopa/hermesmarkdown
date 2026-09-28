@@ -6,11 +6,8 @@ import { EditorSelection } from "@codemirror/state";
 import { callAI } from "@/app/services/ai";
 import { atom_activeEditorView } from "@/app/atoms/ui-atoms";
 import { showSuccessToast, showErrorToast } from "@/app/components/Toastr";
-import { useDialog } from "@/app/hooks/use-dialog";
 import { typewriterInsertCM6, typewriterReplaceCM6 } from "../codemirror/typewriter-insert";
-
-export const FORMULA_PRESERVATION_RULE =
-  "IMPORTANT: HermesMarkdown formula expressions (e.g. =SUM(A:A), =AVG(B2:B5), =COUNT(C:C)) must NEVER be evaluated or replaced with numeric values. Preserve all formula expressions exactly as written.";
+import { AI_ACTIONS } from "./ai-action-prompts";
 
 export interface AIReviewState {
   label: string;
@@ -31,7 +28,6 @@ export function useAIEditorActions() {
     end: 0,
     selected: "",
   });
-  const dialog = useDialog();
   const activeTarget = useAtomValue(atom_activeEditorView);
 
   const getContext = useCallback(() => {
@@ -110,40 +106,6 @@ export function useAIEditorActions() {
     [activeTarget],
   );
 
-  const runPromptAction = useCallback(
-    async (
-      label: string,
-      dialogTitle: string,
-      dialogMessage: string,
-      systemPrompt: string,
-      buildPrompt: (instruction: string, selectedText: string, surroundingText: string) => string,
-      showSelectionAsContext = false,
-    ) => {
-      const { selectedText, surroundingText, start, end } = getContext();
-      const trimmedSelection = selectedText.trim();
-      const subtext =
-        showSelectionAsContext && trimmedSelection
-          ? `Selected text will be used as context: "${
-              trimmedSelection.length > 200 ? `${trimmedSelection.slice(0, 200)}…` : trimmedSelection
-            }"`
-          : undefined;
-      const result = await dialog.textarea(dialogMessage, "", dialogTitle, subtext);
-      const instruction = (result as { text?: string } | null)?.text?.trim();
-      if (!instruction) return;
-
-      setIsAiLoading(true);
-      try {
-        const output = await callAI(systemPrompt, buildPrompt(instruction, selectedText, surroundingText));
-        setAiReview({ label, original: selectedText, suggestion: output.trim(), start, end });
-      } catch (error: any) {
-        showErrorToast(error.message || `Failed to run "${label}".`);
-      } finally {
-        setIsAiLoading(false);
-      }
-    },
-    [getContext, dialog],
-  );
-
   const openChat = useCallback(() => {
     const { selectedText, start, end } = getContext();
     setChatContext({ start, end, selected: selectedText });
@@ -166,157 +128,6 @@ export function useAIEditorActions() {
       setIsChatOpen(false);
     },
     [activeTarget, chatContext],
-  );
-
-  const improveWriting = useCallback(
-    () =>
-      runSelectionAction(
-        "Improve writing",
-        `You are a writing editor. Improve clarity, flow, and conciseness. Preserve the author's voice, meaning, and any Markdown formatting (bold, italics, lists) exactly. Do NOT add blockquote markers (>) to any line that did not already have them. ${FORMULA_PRESERVATION_RULE} Return ONLY the rewritten text with no preamble, explanation, or surrounding quotes.`,
-        (text) => `REWRITE THIS TEXT:\n${text}`,
-        "Select some text to improve.",
-      ),
-    [runSelectionAction],
-  );
-
-  const expandIdea = useCallback(
-    () =>
-      runSelectionAction(
-        "Expand idea",
-        `You are a thinking partner. Expand the selected idea with depth and clarity. Match the writer's existing tone and preserve any existing Markdown syntax. Do NOT add blockquote markers (>) to any line that did not already have them. Do NOT repeat the original text as a header or preamble. ${FORMULA_PRESERVATION_RULE} Return ONLY the final expanded text with no explanation or surrounding quotes.`,
-        (text, surrounding) =>
-          `EXPAND THIS IDEA:\n${text}${surrounding ? `\n\nSURROUNDING CONTEXT (for tone reference only):\n${surrounding}` : ""}`,
-        "Select an idea to expand.",
-      ),
-    [runSelectionAction],
-  );
-
-  const runPrompt = useCallback(
-    () =>
-      runPromptAction(
-        "Prompt",
-        "AI Prompt",
-        "What would you like the AI to do?",
-        `You are a helpful assistant. Fulfill the user's request. If existing text is provided for context, use it as the basis for your response. Return ONLY the result with no preamble, explanation, or surrounding quotes. Preserve Markdown formatting where appropriate. ${FORMULA_PRESERVATION_RULE}`,
-        (instruction, selectedText) =>
-          selectedText.trim()
-            ? `INSTRUCTION:\n${instruction}\n\nEXISTING TEXT:\n${selectedText}`
-            : instruction,
-        true,
-      ),
-    [runPromptAction],
-  );
-
-  const runBuilder = useCallback(
-    () =>
-      runPromptAction(
-        "AI Builder",
-        "AI Builder",
-        "Describe the section you want to create or revise:",
-        `You are a document builder. Create or revise a Markdown section of the note per the user's instruction. If an existing section is provided, revise it in place; otherwise write a new, well-structured section using headings and bullet points where appropriate. Preserve any unrelated Markdown formatting in the existing text. ${FORMULA_PRESERVATION_RULE} Return ONLY the resulting section with no preamble, explanation, or surrounding quotes.`,
-        (instruction, selectedText) =>
-          selectedText.trim()
-            ? `INSTRUCTION:\n${instruction}\n\nEXISTING SECTION TO REVISE:\n${selectedText}`
-            : `INSTRUCTION:\n${instruction}`,
-      ),
-    [runPromptAction],
-  );
-
-  const fixGrammar = useCallback(
-    () =>
-      runSelectionAction(
-        "Fix spelling and grammar",
-        "You are a meticulous proofreader. Apply only a light correction pass for spelling and grammar errors. Do not change wording, tone, or meaning beyond fixing mistakes. Preserve Markdown formatting exactly. Return ONLY the corrected text with no preamble, explanation, or surrounding quotes.",
-        (text) => `FIX SPELLING AND GRAMMAR IN THIS TEXT:\n${text}`,
-        "Select some text to fix.",
-      ),
-    [runSelectionAction],
-  );
-
-  const shortenText = useCallback(
-    () =>
-      runSelectionAction(
-        "Shorten",
-        "You are an editor who compresses verbose text while preserving its core meaning and Markdown formatting. Return ONLY the shortened text with no preamble, explanation, or surrounding quotes.",
-        (text) => `SHORTEN THIS TEXT:\n${text}`,
-        "Select some text to shorten.",
-      ),
-    [runSelectionAction],
-  );
-
-  const changeTone = useCallback(
-    (tone: "formal" | "casual" | "direct" | "polished") =>
-      runSelectionAction(
-        `Change tone: ${tone}`,
-        `You are a writing editor. Rewrite the selected text to sound more ${tone}, while preserving its meaning, intent, and Markdown formatting. Return ONLY the rewritten text with no preamble, explanation, or surrounding quotes.`,
-        (text) => `REWRITE THIS TEXT IN A MORE ${tone.toUpperCase()} TONE:\n${text}`,
-        "Select some text to change its tone.",
-      ),
-    [runSelectionAction],
-  );
-
-  const summarizeText = useCallback(
-    () =>
-      runSelectionAction(
-        "Summarize",
-        "You are an expert summarizer. Condense the selected text into a concise summary that captures the key points. Use Markdown formatting where helpful. Return ONLY the summary with no preamble, explanation, or surrounding quotes.",
-        (text) => `SUMMARIZE THIS TEXT:\n${text}`,
-        "Select some text to summarize.",
-      ),
-    [runSelectionAction],
-  );
-
-  const extractTasks = useCallback(
-    () =>
-      runSelectionAction(
-        "Extract tasks",
-        "You convert notes into actionable task items. Read the selected text and output a Markdown checklist (`- [ ] ...`) of concrete action items implied or stated in the text. Return ONLY the checklist with no preamble, explanation, or surrounding quotes.",
-        (text) => `EXTRACT TASKS FROM THIS TEXT:\n${text}`,
-        "Select some text to extract tasks from.",
-      ),
-    [runSelectionAction],
-  );
-
-  const createOutline = useCallback(
-    () =>
-      runSelectionAction(
-        "Create outline",
-        "You restructure notes into a clear outline using Markdown headings and bullet points. Preserve all key information from the source. Return ONLY the outline with no preamble, explanation, or surrounding quotes.",
-        (text) => `CREATE AN OUTLINE FROM THIS TEXT:\n${text}`,
-        "Select some text to outline.",
-      ),
-    [runSelectionAction],
-  );
-
-  const explainSelection = useCallback(
-    () =>
-      runSelectionAction(
-        "Explain selection",
-        "You explain concepts in simple, clear terms for someone unfamiliar with the topic. Return ONLY the explanation with no preamble, explanation, or surrounding quotes.",
-        (text) => `EXPLAIN THIS:\n${text}`,
-        "Select some text to explain.",
-      ),
-    [runSelectionAction],
-  );
-
-  const generateTitle = useCallback(
-    () =>
-      runContextAction(
-        "Generate title",
-        "You generate short, descriptive page titles. Read the provided note excerpt and suggest a single concise title. Do not include quotes, a Markdown heading marker, or any preamble. Return ONLY the title text.",
-        (_preceding, excerpt) => `SUGGEST A TITLE FOR THIS NOTE:\n${excerpt}`,
-      ),
-    [runContextAction],
-  );
-
-  const continueWriting = useCallback(
-    () =>
-      runContextAction(
-        "Continue writing",
-        "You are a writing partner who continues a piece of writing seamlessly from where it left off, matching its existing tone, style, and Markdown formatting. Do not repeat or summarize what came before. Return ONLY the continuation text with no preamble, explanation, or surrounding quotes.",
-        (preceding) => `CONTINUE WRITING FROM HERE:\n${preceding}`,
-      ),
-    [runContextAction],
   );
 
   const applyReplace = useCallback((customSuggestion?: string) => {
@@ -350,52 +161,13 @@ export function useAIEditorActions() {
 
   const runAIActionById = useCallback(
     (id: string) => {
-      switch (id) {
-        case "improve":
-          return improveWriting();
-        case "expand":
-          return expandIdea();
-        case "fix-grammar":
-          return fixGrammar();
-        case "shorten":
-          return shortenText();
-        case "tone-formal":
-          return changeTone("formal");
-        case "tone-casual":
-          return changeTone("casual");
-        case "tone-direct":
-          return changeTone("direct");
-        case "tone-polished":
-          return changeTone("polished");
-        case "summarize":
-          return summarizeText();
-        case "extract-tasks":
-          return extractTasks();
-        case "outline":
-          return createOutline();
-        case "title":
-          return generateTitle();
-        case "continue":
-          return continueWriting();
-        case "explain":
-          return explainSelection();
-        default:
-          return;
-      }
+      const action = AI_ACTIONS[id];
+      if (!action) return;
+      return action.kind === "selection"
+        ? runSelectionAction(action.label, action.system, action.build, action.emptyMessage)
+        : runContextAction(action.label, action.system, action.build);
     },
-    [
-      improveWriting,
-      expandIdea,
-      fixGrammar,
-      shortenText,
-      changeTone,
-      summarizeText,
-      extractTasks,
-      createOutline,
-      generateTitle,
-      continueWriting,
-      explainSelection,
-    ],
+    [runSelectionAction, runContextAction],
   );
 
   return {
@@ -403,10 +175,6 @@ export function useAIEditorActions() {
     aiReview,
     isChatOpen,
     chatSelectedText: chatContext.selected,
-    improveWriting,
-    expandIdea,
-    runPrompt,
-    runBuilder,
     openChat,
     closeChat,
     applyFromChat,

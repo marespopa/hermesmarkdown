@@ -20,4 +20,4 @@ Hermes Markdown is actively developed on the `trunk` branch. Only the latest ver
 
 ## Dependencies
 
-Dependency vulnerabilities are monitored via GitHub Dependabot alerts and `npm audit`, and addressed promptly when fixes are available.
+Dependency vulnerabilities are monitored via GitHub Dependabot security alerts and `yarn npm audit` (run from `next-client/`), and addressed promptly when fixes are available. Dependabot also opens weekly version-update pull requests for the app's dependencies and the GitHub Actions used in CI (`.github/dependabot.yml`).

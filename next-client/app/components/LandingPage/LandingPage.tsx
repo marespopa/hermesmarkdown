@@ -58,7 +58,7 @@ export default function LandingPage() {
           </h1>
           <p className="max-w-2xl text-lg leading-relaxed text-neutral-600 dark:text-neutral-400 md:text-xl">
             A Markdown editor that runs in your browser and saves straight to
-            disk. No accounts, no cloud, nothing between you and the page.
+            your device. No accounts, no cloud, nothing between you and the page.
           </p>
           <div className="flex flex-col items-start gap-5 pt-2 sm:flex-row sm:items-center">
             <Button
@@ -66,7 +66,7 @@ export default function LandingPage() {
               onClick={handleStart}
               className="w-full px-10 sm:w-auto"
             >
-              Open a Local Folder &amp; Write
+              Start Writing
             </Button>
             <Link
               href="/documentation"
