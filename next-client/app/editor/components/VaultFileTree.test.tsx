@@ -224,7 +224,7 @@ describe("VaultFileTree tree interactions", () => {
     fireEvent.click(screen.getByLabelText("File options"));
     fireEvent.click(screen.getByText("Rename"));
 
-    expect(props.renameFile).toHaveBeenCalledWith(fileHandle);
+    expect(props.renameFile).toHaveBeenCalledWith(fileHandle, undefined, "note.md");
   });
 
   it("opens the shared rename dialog with a freshly resolved folder handle", async () => {
@@ -241,7 +241,7 @@ describe("VaultFileTree tree interactions", () => {
 
     await waitFor(() => {
       expect(resolveFolderHandle).toHaveBeenCalledWith("Folder");
-      expect(props.renameFile).toHaveBeenCalledWith(folderHandle);
+      expect(props.renameFile).toHaveBeenCalledWith(folderHandle, undefined, "Folder");
     });
   });
 });
