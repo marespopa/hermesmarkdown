@@ -29,15 +29,19 @@ export function useCodeMirrorCalloutFold({ containerRef }: UseCodeMirrorCalloutF
     const wrapperRect = containerRef.current?.getBoundingClientRect();
     if (!wrapperRect) return;
 
-    setChevrons(ranges.map((r) => {
+    // Callouts outside CodeMirror's rendered viewport have no coordinates
+    // yet; they get a chevron once scrolled near (see onViewportChange).
+    // Placing them at top 0 instead stacked them all on the note's first line.
+    setChevrons(ranges.flatMap((r) => {
       const coords = view.coordsAtPos(r.titleOffset);
-      return {
+      if (!coords) return [];
+      return [{
         blockId: r.blockId,
-        top: coords ? coords.top - wrapperRect.top : 0,
+        top: coords.top - wrapperRect.top,
         collapsed: isRangeFolded(view.state, r.bodyFrom, r.bodyTo),
         bodyFrom: r.bodyFrom,
         bodyTo: r.bodyTo,
-      };
+      }];
     }));
   }, [containerRef]);
 

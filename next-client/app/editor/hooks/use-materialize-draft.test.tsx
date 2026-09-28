@@ -4,6 +4,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createStore, Provider } from "jotai";
 import {
   atom_activePaneId,
+  atom_isVaultPending,
+  atom_isVaultRestoring,
   atom_liveHandles,
   atom_materializedDraftPath,
   atom_openFiles,
@@ -65,6 +67,7 @@ function setup(
   const store = createStore();
   const vault = fakeDir("vault", existing);
   store.set(atom_vaultHandle, vault);
+  store.set(atom_isVaultRestoring, false);
   store.set(atom_activePaneId, "pane");
   store.set(atom_workspaceLayout, {
     rootContainer: { id: "pane", type: "editor", openFilePaths: ["other.md", "draft"], activeFilePath: activePath, isPinned: false },
@@ -79,7 +82,10 @@ function setup(
 }
 
 describe("useMaterializeDraft", () => {
-  beforeEach(() => vi.clearAllMocks());
+  beforeEach(() => {
+    vi.clearAllMocks();
+    localStorage.clear();
+  });
 
   it("saves the draft named after its first line and turns the tab into that file", async () => {
     const { store, vault, result, scanVault } = setup("# Trip ideas\nLisbon\n");
@@ -151,6 +157,17 @@ describe("useMaterializeDraft", () => {
     let path: string | null = "x";
     await act(async () => { path = await result.current(); });
     expect(path).toBeNull();
+    expect(writeFileContent).not.toHaveBeenCalled();
+  });
+
+  it("doesn't ask for a folder until the vault is restored", async () => {
+    const { store, result, requests } = setup("Trip ideas\nbody");
+    store.set(atom_isVaultRestoring, true);
+    await act(async () => expect(await result.current()).toBeNull());
+    store.set(atom_isVaultRestoring, false);
+    store.set(atom_isVaultPending, true);
+    await act(async () => expect(await result.current()).toBeNull());
+    expect(requests).toHaveLength(0);
     expect(writeFileContent).not.toHaveBeenCalled();
   });
 

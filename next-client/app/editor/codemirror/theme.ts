@@ -68,6 +68,29 @@ export const baseTheme = EditorView.theme({
     backgroundColor: "var(--frontmatter-bg-hover)",
     color: "var(--fg-muted)",
   },
+  // Horizontal rule (---, ***, ___): a thin line across the text column;
+  // the dashes themselves are hidden unless the caret is on the line.
+  ".cm-hr": {
+    position: "relative",
+  },
+  ".cm-hr::after": {
+    content: '""',
+    position: "absolute",
+    left: 0,
+    right: 0,
+    top: "50%",
+    borderTop: "1px solid var(--border)",
+    pointerEvents: "none",
+  },
+  ".cm-hr-marks": {
+    color: "transparent",
+  },
+  ".cm-hr.cm-hr-editing::after": {
+    opacity: "0.35",
+  },
+  ".cm-hr.cm-hr-editing .cm-hr-marks": {
+    color: "var(--fg-faint)",
+  },
   "&.cm-editor": {
     height: "100%",
   },

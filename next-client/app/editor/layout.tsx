@@ -1,4 +1,5 @@
 import { Metadata } from "next";
+import VaultAccessGate from "./components/VaultAccessGate";
 
 export const metadata: Metadata = {
   title: "Editor — HermesMarkdown",
@@ -14,5 +15,5 @@ export default function EditorLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return <>{children}</>;
+  return <VaultAccessGate>{children}</VaultAccessGate>;
 }

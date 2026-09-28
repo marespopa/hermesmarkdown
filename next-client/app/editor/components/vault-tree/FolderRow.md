@@ -7,7 +7,7 @@ Description: A single folder row in the vault tree — collapse chevron, a subtl
 - Persistence: None - transient UI state.
 
 ## Dependencies
-- Core: `Button`, `react-icons`, `TreeGutter` (`FileRow.tsx`), `tree-model.ts`.
+- Core: `Button`, `react-icons`, `LIST_INDENT_PX` (`FileRow.tsx`), `list-columns.tsx`, `tree-model.ts`.
 - Zero-Cloud: No network or telemetry side effects.
 
 ## Quick Usage
@@ -25,8 +25,10 @@ import { FolderRow } from "./vault-tree/FolderRow";
 | node | `TreeFolderNode` | | Folder to render |
 | isCollapsed / onToggle | `boolean` / `(path) => void` | | Collapse state |
 | isActiveChain? | `boolean` | | Tint when the active file is inside |
-| treeGutter? | `TreeGutterInfo` | | Gutter lines |
+| depth | `number` | | Tree depth (indent) |
+| showColumns? | `boolean` | `false` | Date Modified ("--") / Kind ("Folder") columns |
 | draggedEntry / setDraggedEntry / onDropInto | | | Drag-and-drop moves |
+| onTouchDragStart? / isTouchPressing? / isTouchDropTarget? | | | Touch drag (`useTouchTreeDrag`): long-press start, native-drag suppression, hover highlight |
 | actionMenuOpen / setActionMenuOpen | menu state | | Shared action menu |
 | resolveFolderHandle? / createNewFile? / createFolder? | | | Folder actions; create callbacks receive this folder's handle |
 | expandFolder? | `(path) => void` | | Opens the folder after creating inside it |

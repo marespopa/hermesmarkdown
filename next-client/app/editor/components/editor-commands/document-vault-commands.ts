@@ -151,7 +151,7 @@ export function buildDocumentVaultCommandGroups(context: EditorCommandContext) {
           id: "rename-current-file",
           label: "Rename current file",
           keywords: "rename move file",
-          action: () => renameFile(activeFileHandle),
+          action: () => renameFile(activeFileHandle, undefined, activeFilePath ?? undefined),
         }]
       : []),
     ...(activeFileHandle

@@ -4,7 +4,7 @@ Description: "Save note to…" picker shown on an untitled draft's first save in
 
 ## Local State & Storage
 - State: Reads `atom_draftFolderRequest` (set by `useMaterializeDraft`, `hooks/use-materialize-draft.ts`); filter text and highlighted row are local.
-- Persistence: None. Dismissing sets `atom_draftFolderDeclined`, so autosave and window blur stop asking about that draft; Cmd+S still asks. A new draft clears it.
+- Persistence: Dismissing sets `atom_draftFolderDeclined` (localStorage), so autosave, opening a note and New file stop asking about that draft, across reloads; Cmd+S still asks. Saving or a new draft clears it.
 
 ## Dependencies
 - Core: `DialogModal`, `Button`, `normalizeFolderPath`.

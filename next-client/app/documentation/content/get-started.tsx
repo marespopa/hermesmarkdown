@@ -146,8 +146,8 @@ export const getStartedGroup: Group = {
             with no name prompt.
           </p>
           <p>
-            The note is saved to your vault once you finish the first line, when you press{" "}
-            <code>CTRL/CMD+S</code>, or when you switch to another window. The file is named after
+            The note is saved to your vault once you finish the first line, or when you press{" "}
+            <code>CTRL/CMD+S</code>. The file is named after
             the first line, for example <code>Trip ideas.md</code>. If the first line has no usable
             text, the date and time are used instead, like <code>2026-09-28 1432.md</code>. An
             existing file is never overwritten: a taken name becomes <code>Trip ideas (1).md</code>.
@@ -155,8 +155,8 @@ export const getStartedGroup: Group = {
           <p>
             The first save asks which folder the note goes in, with your default folder already
             selected: press <code>Enter</code> to accept it, or type to filter the list or name a new
-            folder. If you dismiss the picker, the note stays an unsaved draft and autosave stops
-            asking; press <code>CTRL/CMD+S</code> when you're ready to choose.
+            folder. If you dismiss the picker, the note stays an unsaved draft and nothing asks again,
+            even after a reload; press <code>CTRL/CMD+S</code> when you're ready to choose.
           </p>
           <p>
             A note you leave empty is never saved, so no empty files pile up in your vault. Renaming
@@ -257,7 +257,7 @@ export const getStartedGroup: Group = {
               { label: "Search files", value: "CTRL/CMD+SHIFT+F" },
               { label: "Palette modes", value: "# vault tags · > commands · ! tasks · @ current-note headings" },
               { label: "Commands on or off", value: "The > button in the search field" },
-              { label: "Explorer controls", value: "New note, new folder, and file actions" },
+              { label: "Explorer controls", value: "Refresh, new note, new folder, and file actions" },
               { label: "AI Chat", value: "CTRL+SHIFT+B" },
               { label: "Voice input", value: "CTRL+SHIFT+V" },
               { label: "Keyboard shortcuts", value: "Show keyboard shortcuts command" },

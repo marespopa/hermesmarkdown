@@ -42,6 +42,7 @@ Index of the editor UI. Each component has a sibling `<Name>.md` (a token-lean d
 | [TabContextMenu](TabContextMenu.md) | Right-click menu positioned at the cursor and clamped to the viewport, used for tab and file actions. |
 | [TaskDialog](TaskDialog.md) | Form for building a task line (title, status, priority, due date, tags). |
 | [UnifiedSearchInput](UnifiedSearchInput.md) | Search field that turns `#tag` entries into removable tag chips alongside free text, with tag autocomplete. |
+| [VaultAccessGate](VaultAccessGate.md) | Wraps every /editor route: restores the saved vault on load and keeps the route hidden until it is readable, with the Restore Access prompt when needed. |
 | [VaultPendingOverlay](VaultPendingOverlay.md) | Prompt shown after reload when the stored vault handle needs the user to grant permission again. |
 | [VaultEmptyState](VaultEmptyState.md) | Empty state of the file views shown when no vault is open. |
 | [VaultFileTree](VaultFileTree.md) | Virtualized file list or folder tree for the vault, with search highlighting, inline rename, a row action menu, and drag-and-drop moves. |

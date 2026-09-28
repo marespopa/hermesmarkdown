@@ -25,16 +25,22 @@ export function useRenameItem({ scanVault, indexVaultTags }: UseRenameItemProps)
   const dialog = useDialog();
 
   const renameFile = useCallback(
-    async (handle: FileSystemHandle, requestedName?: string) => {
+    async (handle: FileSystemHandle, requestedName?: string, itemPath?: string) => {
       if (!vaultHandle) return;
 
-      // Resolve the real parent directory by walking the handle's actual path,
-      // rather than assuming it's whatever directory the user last navigated to
-      // (atom_currentDirectoryHandle) — that assumption breaks for items nested
-      // deeper than the last-visited folder.
+      // Resolve the real parent directory by walking the item's vault path —
+      // given by the caller (Explorer, current file), else looked up with
+      // resolve() — rather than assuming it's whatever directory the user last
+      // navigated to (atom_currentDirectoryHandle): that breaks for items
+      // outside the last-visited folder, and resolve() returns null for a
+      // handle that's no longer current (e.g. after a rescan).
       let parentDir: FileSystemDirectoryHandle = currentDirectoryHandle || vaultHandle;
+      let dirParts: string[] | null = null;
       try {
-        const pathParts = await (vaultHandle as any).resolve(handle);
+        const pathParts: string[] | null = itemPath
+          ? itemPath.split("/").filter(Boolean)
+          : await (vaultHandle as any).resolve(handle);
+        if (pathParts) dirParts = pathParts.slice(0, -1);
         if (pathParts && pathParts.length > 1) {
           let dir: FileSystemDirectoryHandle = vaultHandle;
           for (let i = 0; i < pathParts.length - 1; i++) {
@@ -75,11 +81,11 @@ export function useRenameItem({ scanVault, indexVaultTags }: UseRenameItemProps)
           }
 
           // 2. Vault-relative paths before and after, for tabs/metadata/tree
-          const dirParts: string[] = parentDir === vaultHandle
+          const parentParts: string[] = dirParts ?? (parentDir === vaultHandle
             ? []
-            : (await (vaultHandle as any).resolve(parentDir)) || [];
-          const oldPath = [...dirParts, handle.name].join("/");
-          const newPath = [...dirParts, newName].join("/");
+            : (await (vaultHandle as any).resolve(parentDir)) || []);
+          const oldPath = [...parentParts, handle.name].join("/");
+          const newPath = [...parentParts, newName].join("/");
 
           // 3. Attempt Native Move with Fallback
           let moveSuccessful = false;

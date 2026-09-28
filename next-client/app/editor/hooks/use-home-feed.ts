@@ -12,12 +12,13 @@ import {
 import { atom_fileMetadata } from "@/app/atoms/metadata";
 import { atom_homeFeedOpen } from "@/app/atoms/ui-atoms";
 import { useCommandPalette, useRegisterCommand } from "@/app/components/CommandPalette/CommandPaletteContext";
+import type { MaterializeDraftOptions } from "./use-materialize-draft";
 
 interface UseHomeFeedOptions {
   hasVault: boolean;
   openFile: (handle: FileSystemFileHandle, path?: string) => Promise<void>;
   newNote: () => Promise<void>;
-  materializeDraft: () => Promise<string | null>;
+  materializeDraft: (paneId?: string, options?: MaterializeDraftOptions) => Promise<string | null>;
 }
 
 // Wires the home feed into the editor page: open/close state, row opening,
@@ -30,10 +31,11 @@ export function useHomeFeed({ hasVault, openFile, newNote, materializeDraft }: U
   const setPendingScrollTarget = useSetAtom(atom_pendingScrollTarget);
   const { open: openPalette, isOpen: isPaletteOpen, setCreateNote } = useCommandPalette();
 
-  // A draft with text is saved first, so opening a note never asks to discard it.
+  // A draft with text is saved first, so opening a note never asks to discard
+  // it. A draft whose picker was dismissed stays in the draft slot unasked.
   const openNote = useCallback(async (path: string) => {
     setIsOpen(false);
-    await materializeDraft();
+    await materializeDraft(undefined, { background: true });
     const handle = store.get(atom_fileMetadata)[path]?.handle as FileSystemFileHandle | undefined;
     if (handle) await openFile(handle, path);
   }, [materializeDraft, openFile, setIsOpen, store]);

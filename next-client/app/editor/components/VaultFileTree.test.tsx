@@ -125,6 +125,42 @@ describe("VaultFileTree tree interactions", () => {
     });
   });
 
+  it("moves a file into a folder with a long-press touch drag", async () => {
+    vi.useFakeTimers();
+    const folderHandle = { kind: "directory", name: "Folder" } as FileSystemDirectoryHandle;
+    const resolveFolderHandle = vi.fn().mockResolvedValue(folderHandle);
+    const moveItem = vi.fn();
+    renderFiles({ treeView: true, folderPaths: ["Folder"], resolveFolderHandle, moveItem });
+
+    const source = screen.getByText("note").closest("[draggable]")!;
+    const target = screen.getByText("Folder").closest("[draggable]")!;
+    document.elementFromPoint = vi.fn(() => target);
+
+    fireEvent.touchStart(source, { touches: [{ clientX: 10, clientY: 10 }] });
+    act(() => vi.advanceTimersByTime(350));
+    fireEvent.touchMove(document, { touches: [{ clientX: 10, clientY: 60 }] });
+    fireEvent.touchEnd(document, { touches: [] });
+    vi.useRealTimers();
+
+    await waitFor(() => expect(moveItem).toHaveBeenCalledWith(fileHandle, folderHandle));
+  });
+
+  it("treats a quick swipe as a scroll, not a touch drag", () => {
+    vi.useFakeTimers();
+    const moveItem = vi.fn();
+    renderFiles({ treeView: true, folderPaths: ["Folder"], resolveFolderHandle: vi.fn(), moveItem });
+
+    const source = screen.getByText("note").closest("[draggable]")!;
+    document.elementFromPoint = vi.fn(() => screen.getByText("Folder"));
+
+    fireEvent.touchStart(source, { touches: [{ clientX: 10, clientY: 10 }] });
+    fireEvent.touchMove(document, { touches: [{ clientX: 10, clientY: 60 }] });
+    act(() => vi.advanceTimersByTime(350));
+    fireEvent.touchEnd(document, { touches: [] });
+
+    expect(moveItem).not.toHaveBeenCalled();
+  });
+
   it("creates a subfolder inside the folder whose options menu was used", async () => {
     const folderHandle = { kind: "directory", name: "Folder" };
     const resolveFolderHandle = vi.fn().mockResolvedValue(folderHandle);

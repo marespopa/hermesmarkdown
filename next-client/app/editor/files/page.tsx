@@ -2,11 +2,11 @@
 
 import { useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { useAtom } from "jotai";
-import { HiOutlineArrowLeft, HiOutlineDocumentAdd, HiOutlineFolderAdd } from "react-icons/hi";
+import { useAtom, useAtomValue } from "jotai";
+import { HiOutlineArrowLeft, HiOutlineDocumentAdd, HiOutlineFolderAdd, HiOutlineRefresh } from "react-icons/hi";
 import Button from "@/app/components/Button";
 import { atom_activeFilePath } from "@/app/atoms/atoms";
-import { atom_selectedFileTags } from "@/app/atoms/ui-atoms";
+import { atom_indexerState, atom_selectedFileTags, atom_showHiddenFiles } from "@/app/atoms/ui-atoms";
 import { useFileSystem } from "@/app/hooks/use-file-system";
 import { useVaultFileSearch } from "../hooks/useVaultFileSearch";
 import VaultFileTree from "../components/VaultFileTree";
@@ -25,8 +25,13 @@ export default function FilesPage() {
     moveItem,
     openFile,
     renameFile,
+    scanVault,
+    indexVaultTags,
     vaultHandle,
   } = useFileSystem();
+  const showHiddenFiles = useAtomValue(atom_showHiddenFiles);
+  const indexerState = useAtomValue(atom_indexerState);
+  const isRefreshing = indexerState !== "idle";
   const {
     allFiles,
     folderPaths,
@@ -52,6 +57,13 @@ export default function FilesPage() {
     }
     return directory;
   }, [vaultHandle]);
+
+  // Re-reads the vault from disk (picks up changes made outside the app).
+  const refresh = useCallback(() => {
+    if (!vaultHandle) return;
+    void scanVault(vaultHandle as any, showHiddenFiles);
+    void indexVaultTags?.(vaultHandle as any, showHiddenFiles);
+  }, [vaultHandle, showHiddenFiles, scanVault, indexVaultTags]);
 
   const createNote = useCallback(async () => {
     await createNewFile();
@@ -86,6 +98,17 @@ export default function FilesPage() {
           </div>
         {vaultHandle && (
           <div className="flex shrink-0 items-center gap-1">
+            <Button
+              variant="secondary"
+              onClick={refresh}
+              isDisabled={isRefreshing}
+              className="h-8 px-2.5 text-ui-footnote"
+              aria-label="Refresh"
+              title="Refresh"
+            >
+              <HiOutlineRefresh size={15} className={isRefreshing ? "animate-spin" : undefined} />
+              <span className="hidden sm:inline">Refresh</span>
+            </Button>
             <Button variant="secondary" onClick={() => void createNote()} className="h-8 px-2.5 text-ui-footnote" aria-label="New note">
               <HiOutlineDocumentAdd size={15} />
               <span className="hidden sm:inline">New Note</span>
@@ -117,7 +140,7 @@ export default function FilesPage() {
                   : `${allFiles.length} ${allFiles.length === 1 ? "note" : "notes"}, ${folderPaths.length} ${folderPaths.length === 1 ? "folder" : "folders"}`}
               </p>
             </div>
-            <div className="min-h-0 flex-1 overflow-y-auto rounded-xl border border-edge-subtle bg-chrome">
+            <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-xl border border-edge-subtle bg-surface">
               <VaultFileTree
                 processedFiles={isFiltered ? processedFiles : allFiles}
                 activeFilePath={activeFilePath}
@@ -126,6 +149,7 @@ export default function FilesPage() {
                 deleteFile={deleteFile}
                 duplicateFile={duplicateFile}
                 treeView
+                columns
                 folderPaths={isFiltered ? [] : folderPaths}
                 resolveFolderHandle={resolveFolderHandle}
                 createNewFile={createNewFile}

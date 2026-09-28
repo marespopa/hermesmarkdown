@@ -14,7 +14,7 @@ Description: Recursively renders a `TreeNode[]` (from `buildFileTree`) as `Folde
 ```tsx
 import { TreeNodes } from "./vault-tree/TreeNodes";
 
-<TreeNodes nodes={tree} level={0} ancestorLines={[]} isFolderCollapsed={isCollapsed}
+<TreeNodes nodes={tree} level={0} isFolderCollapsed={isCollapsed}
   isActiveAncestor={isActiveAncestor} onToggleFolder={toggle} rowProps={rowProps}
   draggedEntry={dragged} setDraggedEntry={setDragged} onDropInto={moveInto} folderRowExtras={extras} />
 ```
@@ -23,8 +23,8 @@ import { TreeNodes } from "./vault-tree/TreeNodes";
 | Prop | Type | Default | Description |
 |---|---|---|---|
 | nodes / level | `TreeNode[]` / `number` | | Nodes and depth |
-| ancestorLines | `boolean[]` | | Gutter continuation flags (`[]` at the root) |
 | isFolderCollapsed / isActiveAncestor / onToggleFolder | functions | | Folder state |
 | rowProps | `(entry) => FileRow props` | | Builds each file row's props |
 | draggedEntry / setDraggedEntry / onDropInto | | | Drag-and-drop |
+| touchDrag | `{ start, isPressing, dropTarget }` | | Touch drag from `useTouchTreeDrag` |
 | folderRowExtras | partial `FolderRowProps` | | Shared folder actions |

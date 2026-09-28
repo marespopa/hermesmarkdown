@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { EditorState } from "@codemirror/state";
-import { computeMarkdownDecorations } from "./highlight";
+import { computeMarkdownDecorations, isHorizontalRule } from "./highlight";
 
 interface FlatDeco {
   from: number;
@@ -133,5 +133,28 @@ there are other highlighting issues, wikilinks, #todo not showed differently tha
       const from = doc.indexOf(token);
       expect(decos.some((d) => d.from === from && d.to === from + token.length)).toBe(true);
     }
+  });
+
+  it("draws a --- between blocks as a horizontal rule", () => {
+    const doc = "Intro\n\n---\n\nNext";
+    const decos = decorationsFor(doc);
+    const hrFrom = doc.indexOf("---");
+    expect(decos.some((d) => d.from === hrFrom && d.class.includes("cm-hr") && !d.class.includes("cm-hr-marks"))).toBe(true);
+    expect(decos.some((d) => d.from === hrFrom && d.to === hrFrom + 3 && d.class.includes("cm-hr-marks"))).toBe(true);
+  });
+
+  it("doesn't draw frontmatter fences as horizontal rules", () => {
+    const decos = decorationsFor("---\ntitle: Note\n---\nBody");
+    expect(decos.some((d) => d.class.split(" ").includes("cm-hr"))).toBe(false);
+  });
+});
+
+describe("isHorizontalRule", () => {
+  it("treats --- under a paragraph line as a setext heading, not a rule", () => {
+    expect(isHorizontalRule("---", "")).toBe(true);
+    expect(isHorizontalRule("---", "Heading text")).toBe(false);
+    expect(isHorizontalRule("***", "Paragraph")).toBe(true);
+    expect(isHorizontalRule("- - -", "")).toBe(true);
+    expect(isHorizontalRule("---", "", true)).toBe(false);
   });
 });

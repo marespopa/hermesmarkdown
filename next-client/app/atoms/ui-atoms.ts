@@ -65,9 +65,11 @@ export interface DraftFolderRequest {
   resolve: (folder: string | null) => void;
 }
 export const atom_draftFolderRequest = atom<DraftFolderRequest | null>(null);
-// Set when the picker is dismissed, so autosave and blur stop asking about
-// the same draft; Cmd+S still asks. Cleared when a new draft starts.
-export const atom_draftFolderDeclined = atom<boolean>(false);
+// Set when the picker is dismissed, so only Cmd+S asks again about the same
+// draft. Stored so a reload doesn't ask about a restored draft again (read
+// on init: it's only read from the store, never subscribed). Cleared when the
+// draft is saved or a new draft starts.
+export const atom_draftFolderDeclined = atomWithStorage<boolean>("draftFolderDeclined", false, undefined, { getOnInit: true });
 // Vault key the vault-open behavior last ran for, so returning to the editor
 // from another route doesn't replace the file just opened there.
 export const atom_vaultOpenBehaviorAppliedFor = atom<string | null>(null);

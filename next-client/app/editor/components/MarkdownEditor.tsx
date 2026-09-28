@@ -191,6 +191,12 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
     onFrontmatterFoldCursorActivity(view);
   }, [onCursorActivity, onTableCursorActivity,onCodeLanguagePickerCursorActivity, onImageCursorActivity, onFoldCursorActivity, onFrontmatterFoldCursorActivity]);
 
+  // Fold chevrons follow scrolling: callouts get one as they're rendered.
+  const onViewportChange = useCallback((view: EditorView) => {
+    onFoldCursorActivity(view);
+    onFrontmatterFoldCursorActivity(view);
+  }, [onFoldCursorActivity, onFrontmatterFoldCursorActivity]);
+
   useCodeMirrorEditor({
     value: editorValue,
     onChange: editorOnChange,
@@ -203,6 +209,7 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
     readOnly: false,
     onFocusChange: setIsEditorFocused,
     onCursorActivity: onCombinedCursorActivity,
+    onViewportChange,
     containerRef,
     viewRef,
     slashMenuCallbacksRef,

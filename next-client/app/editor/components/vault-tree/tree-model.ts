@@ -9,13 +9,16 @@ export interface VaultFileTreeProps {
   activeFilePath: string | null;
   openFile: (handle: FileSystemFileHandle, path?: string) => void;
   openFileInPane?: (handle: FileSystemFileHandle, path?: string) => void;
-  renameFile: (handle: FileSystemHandle) => void | Promise<void>;
+  renameFile: (handle: FileSystemHandle, newName?: string, path?: string) => void | Promise<void>;
   deleteFile: (handle: FileSystemHandle, path?: string) => void;
   duplicateFile?: (handle: FileSystemHandle) => void;
   onClose?: () => void;
   isSearchActive?: boolean;
   highlightQuery?: string;
   treeView?: boolean;
+  // Tree only: list-view column header plus Date Modified / Kind columns
+  // (the Explorer page).
+  columns?: boolean;
   folderPaths?: string[];
   // Tree-only: folders are inferred from paths, so folder actions need a way
   // to resolve a real FileSystemDirectoryHandle.
@@ -107,4 +110,18 @@ export function getEntryId(entry: any): string {
 
 export function isDescendantOrSelf(ancestorPath: string, path: string): boolean {
   return path === ancestorPath || path.startsWith(`${ancestorPath}/`);
+}
+
+export function parentFolderPath(path: string): string {
+  return path.split("/").slice(0, -1).join("/");
+}
+
+// Whether `entry` may be moved into the folder at `targetPath` ("" = vault
+// root): not into itself or its own subtree, and not where it already is.
+export function canDropInto(entry: DraggedEntry | null, targetPath: string): entry is DraggedEntry {
+  return (
+    !!entry &&
+    !(entry.kind === "folder" && isDescendantOrSelf(entry.path, targetPath)) &&
+    parentFolderPath(entry.path) !== targetPath
+  );
 }

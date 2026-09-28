@@ -5,6 +5,8 @@ import { useStore } from "jotai";
 import toast from "react-hot-toast";
 import {
   atom_activePaneId,
+  atom_isVaultPending,
+  atom_isVaultRestoring,
   atom_liveHandles,
   atom_materializeDraft,
   atom_openFiles,
@@ -31,7 +33,8 @@ interface UseMaterializeDraftOptions {
 let inFlight: Promise<string | null> | null = null;
 
 export interface MaterializeDraftOptions {
-  /** Autosave / window blur: don't ask again once the picker was dismissed. */
+  /** Not an explicit save (autosave, opening a note, New file): don't ask
+   *  again once the picker was dismissed. */
   background?: boolean;
 }
 
@@ -46,8 +49,10 @@ export function useMaterializeDraft({ scanVault, indexVaultTags }: UseMaterializ
   return useCallback(async (paneId?: string, { background = false }: MaterializeDraftOptions = {}): Promise<string | null> => {
     if (inFlight) return inFlight;
 
+    // A restored draft must not ask for a folder before the vault is
+    // readable (startup, or waiting on "Restore Access").
     const vaultHandle = store.get(atom_vaultHandle);
-    if (!vaultHandle) return null;
+    if (!vaultHandle || store.get(atom_isVaultRestoring) || store.get(atom_isVaultPending)) return null;
 
     const root = store.get(atom_workspaceLayout).rootContainer;
     const leaf = findLeaf(root, paneId ?? store.get(atom_activePaneId)) ?? getFirstLeaf(root);
