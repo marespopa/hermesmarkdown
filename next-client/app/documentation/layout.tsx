@@ -3,7 +3,7 @@ import { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Documentation — HermesMarkdown",
   description:
-    "Learn HermesMarkdown's local-first workflow with guides to vaults, WikiLinks, tables and formulas, tasks, and AI features.",
+    "Learn HermesMarkdown's local-first workflow with guides to vaults (on disk, in the browser, or on GitHub), offline use, WikiLinks, tables and formulas, tasks, and AI features.",
   alternates: { canonical: "/documentation" },
   openGraph: {
     title: "Documentation — HermesMarkdown",

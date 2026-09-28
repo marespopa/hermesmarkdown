@@ -28,6 +28,21 @@ export const vaultGroup: Group = {
             HermesMarkdown creates on its own is <code>assets/</code>, for images you paste or drop
             into a note.
           </p>
+          <KV
+            rows={[
+              { label: "Folder on disk", value: "Chrome, Edge, Brave, Arc, Opera" },
+              { label: "Browser vault", value: "Every modern browser, including Safari, Firefox, iPhone, iPad" },
+              { label: "GitHub vault", value: "Every modern browser; syncs with a repository" },
+            ]}
+          />
+          <p>
+            A{" "}
+            <a href="#browser-vaults" className="text-sage font-semibold hover:underline">browser vault</a>{" "}
+            holds the same plain files, just inside the browser&apos;s private storage instead of a
+            folder you can see. Nothing is locked in: <strong>Export vault as zip</strong> hands you
+            every file, and <strong>Import files into vault…</strong> brings a zip or folder into any
+            vault.
+          </p>
         </>
       ),
     },

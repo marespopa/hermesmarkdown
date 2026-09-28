@@ -5,11 +5,13 @@ import ServiceWorkerRegister from "./components/ServiceWorkerRegister";
 import { Metadata, Viewport } from "next";
 import { inter, geistMono, ibmPlexMono, plusJakartaSans } from "./fonts";
 
+const SITE_DESCRIPTION =
+  "Edit local Markdown folders in your browser — reads and writes files directly on disk, or keeps a vault in the browser on Safari, Firefox, and mobile. Works offline. No accounts, no cloud uploads.";
+
 export const metadata: Metadata = {
   metadataBase: new URL("https://hermesmarkdown.com"),
   title: "HermesMarkdown — Runs in Browser, Files Stay on Disk",
-  description:
-    "Edit local Markdown folders in your browser — reads and writes files directly on disk. No accounts, no cloud uploads.",
+  description: SITE_DESCRIPTION,
   applicationName: "HermesMarkdown",
   authors: [{ name: "Mares Popa", url: "https://www.marespopa.com/" }],
   keywords: [
@@ -21,6 +23,8 @@ export const metadata: Metadata = {
     "smart workspaces",
     "wikilinks",
     "offline markdown editor",
+    "markdown editor pwa",
+    "markdown editor for safari and iPad",
     "privacy-focused editor",
     "no-cloud notes",
     "distraction-free editor",
@@ -37,8 +41,7 @@ export const metadata: Metadata = {
   alternates: { canonical: "/" },
   openGraph: {
     title: "HermesMarkdown — Runs in Browser, Files Stay on Disk",
-    description:
-      "Edit local Markdown folders in your browser — reads and writes files directly on disk. No accounts, no cloud uploads.",
+    description: SITE_DESCRIPTION,
     url: "https://hermesmarkdown.com",
     siteName: "HermesMarkdown",
     type: "website",
@@ -47,8 +50,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "HermesMarkdown — Runs in Browser, Files Stay on Disk",
-    description:
-      "Edit local Markdown folders in your browser — reads and writes files directly on disk. No accounts, no cloud uploads.",
+    description: SITE_DESCRIPTION,
     images: ["/assets/og-image.jpg"],
   },
 };
@@ -74,7 +76,7 @@ const SOFTWARE_APPLICATION_JSON_LD = {
   operatingSystem: "Web browser",
   url: "https://hermesmarkdown.com",
   description:
-    "HermesMarkdown is a local-first Markdown editor that runs entirely in your browser and reads/writes files directly on disk. No accounts, no cloud sync. It is unrelated to Hermes Agent's SOUL.md, memory.md, or plan-mode files.",
+    "HermesMarkdown is a local-first Markdown editor that runs entirely in your browser and works offline. It reads/writes files directly on disk, or keeps notes in a browser vault where folder access isn't available (Safari, Firefox, iOS). No accounts, no cloud sync. It is unrelated to Hermes Agent's SOUL.md, memory.md, or plan-mode files.",
   offers: {
     "@type": "Offer",
     price: "0",

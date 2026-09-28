@@ -72,6 +72,35 @@ export const mobileGroup: Group = {
       ),
     },
     {
+      id: "vaults-on-mobile",
+      title: "Vaults on phones and tablets",
+      lead: "iPhone and iPad use browser vaults; install the app to your home screen to write offline.",
+      keywords: "mobile iphone ipad ios android vault offline install home screen pwa backup",
+      body: (
+        <>
+          <KV
+            rows={[
+              { label: "iPhone / iPad (Safari)", value: "Browser vault or GitHub vault" },
+              { label: "Android (Chrome)", value: "Folder on the device, browser vault, or GitHub vault" },
+              { label: "Other mobile browsers", value: "Browser vault or GitHub vault" },
+            ]}
+          />
+          <p>
+            Open the file overlay (or the command palette) and choose <strong>Browser Vault</strong>{" "}
+            to create or reopen one. On iOS, use <em>Share → Add to Home Screen</em>: the installed
+            app opens full-screen and starts without a connection.
+          </p>
+          <Callout type="warning">
+            iOS may clear a website&apos;s data when it hasn&apos;t been used for a while. Installing
+            to the home screen protects it, and <strong>Export vault as zip</strong> keeps a backup
+            in Files. To import on iOS, pick a <code>.zip</code> or individual notes — folder picking
+            isn&apos;t available there. See{" "}
+            <a href="#browser-vaults" className="text-sage font-semibold hover:underline">Browser vaults</a>.
+          </Callout>
+        </>
+      ),
+    },
+    {
       id: "table-editor-mobile",
       title: "Table editor on mobile",
       lead: "Tables edit in place, same as desktop.",
@@ -100,6 +129,7 @@ export const mobileGroup: Group = {
               { label: "Explorer", value: "Full-screen file-management view" },
               { label: "Smart Workspaces", value: "Views tab in the file overlay" },
               { label: "Selection toolbar", value: "Bold, Italic, Link only" },
+              { label: "Vaults", value: "Browser vaults on iPhone/iPad; see Vaults on phones and tablets" },
             ]}
           />
           <p>

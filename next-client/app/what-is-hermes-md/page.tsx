@@ -61,7 +61,9 @@ export default function WhatIsHermesMd() {
               local disk.</strong>{" "}
               There&apos;s no account and no upload step — you open a folder of{" "}
               <InlineCode>.md</InlineCode> files (including an existing Obsidian vault, if you have one) and
-              edit it in place. Optional GitHub-backed vaults and bring-your-own-key AI features are the
+              edit it in place. In browsers that can&apos;t open folders (Safari, Firefox, iPhone, iPad),
+              notes live in a browser vault instead, and the app works offline once installed. Optional
+              GitHub-backed vaults and bring-your-own-key AI features are the
               only parts that talk to a server. It has no relationship to any AI agent&apos;s memory system.
             </p>
           </div>

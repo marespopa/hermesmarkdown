@@ -182,10 +182,9 @@ export function useVaultManager() {
     if (descriptor.kind === "local") {
       detectCloudVault(handle);
       if (persist) await saveVaultHandle(handle);
-    } else if (persist && descriptor.kind === "browser") {
-      await saveBrowserVaultDescriptor(descriptor);
     } else if (persist) {
-      await saveGitHubVaultDescriptor(descriptor);
+      if (descriptor.kind === "browser") await saveBrowserVaultDescriptor(descriptor);
+      else await saveGitHubVaultDescriptor(descriptor);
     }
     await scanVault(handle);
     await indexVaultTags(handle);

@@ -40,7 +40,8 @@ See [next-client/ARCHITECTURE.md](next-client/ARCHITECTURE.md) for the detailed 
 - Use the command-first quick switcher (`Ctrl/Cmd+K` or `Ctrl/Cmd+P`) to find files by name, and its prefixes to search tags (`#`), commands (`>`), tasks (`!`), and headings in the current note (`@`). Pin up to five items with `Ctrl/Cmd+D`.
 - External file changes are detected by polling (and immediately when the window regains focus). If both local and external edits exist, a conflict dialog lets you accept the incoming version, keep yours, or resolve them in a merge editor.
 - Optionally connect a GitHub repository as a vault: Markdown files are imported into the browser, and the command palette's `GitHub: Commit / Push / Sync / Pull` commands write commits straight to the default branch.
-- Install the app from a supported Chromium-based browser as a PWA. Firefox and Safari can load the app, but do not provide the folder picker required for vault access.
+- Works in every modern browser. Chromium-based browsers open folders on disk; Safari (including iPhone and iPad), Firefox, and other browsers use **browser vaults** stored privately in the browser. Export any vault as a zip, or import a zip, folder, or notes into it, so notes never get stuck in one place.
+- Install it as an app (PWA) from any browser that supports installation. The installed app starts offline.
 
 ### Markdown writing
 
