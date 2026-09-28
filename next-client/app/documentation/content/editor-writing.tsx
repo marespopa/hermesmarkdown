@@ -62,6 +62,35 @@ export const editorWritingItems: Subsection[] = [
     ),
   },
   {
+    id: "flow-mode",
+    title: "Flow mode",
+    lead: "Fade everything but the paragraph you're writing and keep the current line centered.",
+    keywords: "flow focus typewriter scrolling dim fade paragraph distraction free writing settings setup",
+    body: (
+      <>
+        <p>
+          Turn on flow mode during the welcome setup, or enable it later under Settings → Appearance
+          (or the <strong>Enable flow mode</strong> command). It&apos;s off by default.
+        </p>
+        <KV
+          rows={[
+            { label: "Paragraph focus", value: "Other paragraphs fade while you write" },
+            { label: "Typewriter scrolling", value: "The caret line stays centered" },
+          ]}
+        />
+        <p>
+          The current paragraph is the run of non-blank lines around the caret. Everything else
+          dims while the editor has focus and returns to full strength when you click away.
+          Typing, deleting, undo/redo and moving with the keyboard keep the line centered; clicking
+          or selecting with the mouse never scrolls the view.
+        </p>
+        <Callout type="note">
+          Flow mode only changes how the note looks. The Markdown in your file stays the same.
+        </Callout>
+      </>
+    ),
+  },
+  {
     id: "tables",
     title: "Tables",
     lead: "Tables always render as a clean grid you edit like a spreadsheet: click a cell and type. The pipe syntax stays out of sight.",

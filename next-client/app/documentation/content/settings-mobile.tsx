@@ -16,7 +16,7 @@ export const settingsGroup: Group = {
             System/light/dark theme controls are available in Settings → Appearance and from the
             command palette. System follows your operating system automatically. The editor font is
             set under Settings → Typography and applies to every pane in a split workspace. Word
-            wrap, line numbers and Vim mode also live under Appearance.
+            wrap, line numbers, Vim mode and flow mode also live under Appearance.
           </p>
           <KV
             rows={[
