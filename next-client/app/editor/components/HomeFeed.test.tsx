@@ -1,11 +1,12 @@
 import React from "react";
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { Provider } from "jotai";
 import { useHydrateAtoms } from "jotai/utils";
 import { atom_fileMetadata, type FileMetadata } from "@/app/atoms/metadata";
-import { atom_userName } from "@/app/atoms/ui-atoms";
+import { atom_indexerState, atom_userName, type IndexerState } from "@/app/atoms/ui-atoms";
 import HomeFeed from "./HomeFeed";
+import { INDEXING_VERBS, ROTATE_MS } from "./home-feed/FeedStatus";
 
 function meta(path: string, minutesAgo: number, preview = ""): FileMetadata {
   return {
@@ -22,16 +23,16 @@ function meta(path: string, minutesAgo: number, preview = ""): FileMetadata {
   };
 }
 
-const Hydrate = ({ metadata, userName = "", children }: { metadata: Record<string, FileMetadata>; userName?: string; children: React.ReactNode }) => {
-  useHydrateAtoms([[atom_fileMetadata, metadata], [atom_userName, userName]] as any);
+const Hydrate = ({ metadata, userName = "", indexerState = "idle", children }: { metadata: Record<string, FileMetadata>; userName?: string; indexerState?: IndexerState; children: React.ReactNode }) => {
+  useHydrateAtoms([[atom_fileMetadata, metadata], [atom_userName, userName], [atom_indexerState, indexerState]] as any);
   return children;
 };
 
-function renderFeed(metadata: Record<string, FileMetadata>, userName = "") {
+function renderFeed(metadata: Record<string, FileMetadata>, userName = "", indexerState: IndexerState = "idle") {
   const handlers = { onOpenNote: vi.fn(), onNewNote: vi.fn(), onSearch: vi.fn(), onClose: vi.fn() };
   render(
     <Provider>
-      <Hydrate metadata={metadata} userName={userName}>
+      <Hydrate metadata={metadata} userName={userName} indexerState={indexerState}>
         <HomeFeed {...handlers} />
       </Hydrate>
     </Provider>,
@@ -135,5 +136,44 @@ describe("HomeFeed", () => {
     expect(screen.queryByRole("option")).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Start writing" }));
     expect(onNewNote).toHaveBeenCalled();
+  });
+
+  it("shows three skeleton rows instead of the start prompt while the vault loads", () => {
+    renderFeed({}, "", { status: "compiling", count: 0 });
+    expect(screen.getByTestId("feed-skeleton").children).toHaveLength(3);
+    expect(screen.queryByRole("button", { name: "Start writing" })).not.toBeInTheDocument();
+  });
+
+  it("drops the skeleton once notes are listed", () => {
+    renderFeed(NOTES, "", { status: "compiling", count: 0 });
+    expect(screen.queryByTestId("feed-skeleton")).not.toBeInTheDocument();
+    expect(screen.getAllByRole("option")).toHaveLength(2);
+  });
+
+  it("rotates the indexing verb while the indexer runs", () => {
+    vi.useFakeTimers();
+    try {
+      renderFeed(NOTES, "", "compiling");
+      const status = screen.getByRole("status", { name: "Indexing notes" });
+      const first = status.textContent;
+      act(() => { vi.advanceTimersByTime(ROTATE_MS); });
+      expect(status.textContent).not.toBe(first);
+      expect(INDEXING_VERBS.some((verb) => status.textContent === `${verb} notes…`)).toBe(true);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("starts the next indexing run on a new verb", () => {
+    renderFeed(NOTES, "", "compiling");
+    const first = screen.getByRole("status").textContent;
+    cleanup();
+    renderFeed(NOTES, "", "compiling");
+    expect(screen.getByRole("status").textContent).not.toBe(first);
+  });
+
+  it("hides the indexing status when idle", () => {
+    renderFeed(NOTES);
+    expect(screen.queryByRole("status")).not.toBeInTheDocument();
   });
 });

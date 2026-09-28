@@ -21,7 +21,7 @@ Index of the editor UI. Each component has a sibling `<Name>.md` (a token-lean d
 | [BrowserVaultDialog](BrowserVaultDialog.md) | Create, reopen, or delete vaults stored in browser storage (Safari, Firefox, mobile). |
 | [GitHubVaultDialog](GitHubVaultDialog.md) | Sign in to GitHub, pick or create a repository, and open it as a vault. |
 | [HomeFeed](HomeFeed.md) | The vault's home screen: recent notes newest first with day labels and previews, a search/create pill and a new-note button; keyboard navigable. |
-| [home-feed/](home-feed/README.md) | `HomeFeed` building blocks: feed model, header, row, bottom bar. |
+| [home-feed/](home-feed/README.md) | `HomeFeed` building blocks: feed model, header, row, skeleton, indexing status, bottom bar. |
 | [ImageDialog](ImageDialog.md) | Lightbox for note images; resolves vault-relative paths locally. |
 | [LinkPill](LinkPill.md) | Floating pill over a Markdown or wiki link in the editor, offering open and edit (label and URL). |
 | [MarkdownEditor](MarkdownEditor.md) | CodeMirror 6 Markdown editor with inline pills, callouts, slash templates, and folding. |

@@ -9,6 +9,8 @@ import Button from "@/app/components/Button";
 import FeedBar from "./home-feed/FeedBar";
 import FeedHeader from "./home-feed/FeedHeader";
 import FeedRow from "./home-feed/FeedRow";
+import FeedSkeleton from "./home-feed/FeedSkeleton";
+import FeedStatus from "./home-feed/FeedStatus";
 import { buildFeed } from "./home-feed/feed-model";
 
 // Above this many notes only the rows in view (plus overscan) are rendered,
@@ -121,10 +123,10 @@ export default function HomeFeed({ onOpenNote, onNewNote, onSearch, onClose, isS
     <div ref={scrollRef} className="relative h-full overflow-y-auto bg-surface" data-testid="home-feed">
       <div className="mx-auto w-full max-w-2xl px-4 pb-40 sm:px-8">
         <FeedHeader now={now} userName={userName} />
-        {isIndexing && (
-          <p role="status" className="-mt-4 pb-4 text-ui-caption text-fg-muted">Indexing notes…</p>
-        )}
-        {feed.length === 0 ? (
+        {isIndexing && <FeedStatus />}
+        {feed.length === 0 && isIndexing ? (
+          <FeedSkeleton />
+        ) : feed.length === 0 ? (
           <Button variant="bare" onClick={onNewNote} className="text-ui-body text-fg-muted">
             Start writing
           </Button>
