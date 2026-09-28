@@ -1,13 +1,13 @@
 # EditorSettings
 
-Description: The Settings → Editor section: Appearance (theme, word wrap, line numbers, Vim mode, collapse frontmatter, command palette button, hidden files), Typography (editor font), and Autosave (mode and delay).
+Description: The Settings → Editor section: Layout (word wrap, line numbers, collapse frontmatter) and Writing (Vim mode, flow mode).
 
 ## Local State & Storage
-- State: `atom_theme`, `atom_wordWrap`, `atom_lineNumbers`, `atom_vimMode`, `atom_frontmatterCollapsedByDefault`, `atom_showCommandPaletteFab`, `atom_showHiddenFiles`, `atom_editorFontFamily`, `atom_autosaveMode`, `atom_autosaveDelay`.
-- Persistence: All via `atomWithStorage` (`localStorage`). Toggling hidden files rescans and re-indexes the open vault straight away.
+- State: `atom_wordWrap`, `atom_lineNumbers`, `atom_frontmatterCollapsedByDefault`, `atom_vimMode`, `atom_flowMode`.
+- Persistence: All via `atomWithStorage` (`localStorage`).
 
 ## Dependencies
-- Core: `SettingControls`, `FontPicker`, `Toggle`, `useFileSystem`.
+- Core: `SettingControls`, `Toggle`.
 - Zero-Cloud: No network or telemetry side effects.
 
 ## Quick Usage

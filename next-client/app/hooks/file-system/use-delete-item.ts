@@ -11,35 +11,14 @@ import {
   atom_workspaceLayout,
 } from "@/app/atoms/atoms";
 import { atom_fileMetadata } from "@/app/atoms/metadata";
-import { atom_vaultFiles } from "@/app/atoms/vault-atoms";
+import { atom_forgetFileTreePaths, atom_vaultFiles } from "@/app/atoms/vault-atoms";
 import { removePathsFromLayout } from "@/app/atoms/utils";
 import { useDialog } from "../use-dialog";
+import { emptyDirectory } from "./directory-ops";
 
 interface UseDeleteItemProps {
   scanVault: (handle: FileSystemDirectoryHandle) => Promise<void>;
   indexVaultTags: (passedHandle?: FileSystemDirectoryHandle) => Promise<void>;
-}
-
-// Empties a directory bottom-up, one entry at a time, so every removeEntry
-// call targets either a plain file or an already-empty directory — never a
-// non-empty subtree. Both `parent.removeEntry(name, {recursive:true})` and
-// `handle.remove({recursive:true})` were observed throwing "The path
-// supplied exists, but was not an entry of requested type" when deleting a
-// non-empty folder, which points at some type-consistency check the browser
-// runs across the whole subtree in one recursive call. Doing the recursion
-// ourselves with freshly-obtained, definitely-correctly-typed child handles
-// avoids that path entirely.
-async function emptyDirectory(dirHandle: FileSystemDirectoryHandle): Promise<void> {
-  const children: FileSystemHandle[] = [];
-  for await (const entry of (dirHandle as any).values()) {
-    children.push(entry as FileSystemHandle);
-  }
-  for (const child of children) {
-    if (child.kind === "directory") {
-      await emptyDirectory(child as FileSystemDirectoryHandle);
-    }
-    await (dirHandle as any).removeEntry(child.name);
-  }
 }
 
 export function useDeleteItem({ scanVault, indexVaultTags }: UseDeleteItemProps) {
@@ -50,6 +29,7 @@ export function useDeleteItem({ scanVault, indexVaultTags }: UseDeleteItemProps)
   const [, setWorkspaceLayout] = useAtom(atom_workspaceLayout);
   const setFileMetadata = useSetAtom(atom_fileMetadata);
   const setVaultFiles = useSetAtom(atom_vaultFiles);
+  const forgetFileTreePaths = useSetAtom(atom_forgetFileTreePaths);
   const dialog = useDialog();
 
   const deleteFile = useCallback(
@@ -118,7 +98,7 @@ export function useDeleteItem({ scanVault, indexVaultTags }: UseDeleteItemProps)
           }
 
           if (handle.kind === "directory") {
-            // Empty it ourselves first (see emptyDirectory above), then remove
+            // Empty it ourselves first (see emptyDirectory), then remove
             // the now-empty shell — no `{recursive: true}` call anywhere.
             await emptyDirectory(handle as FileSystemDirectoryHandle);
           }
@@ -190,6 +170,8 @@ export function useDeleteItem({ scanVault, indexVaultTags }: UseDeleteItemProps)
           return next;
         });
 
+        if (handle.kind === "directory" && path) forgetFileTreePaths(path);
+
         if (
           activeFileHandle?.name === handle.name ||
           (handle.kind === "directory" && activeFileHandle)
@@ -222,6 +204,7 @@ export function useDeleteItem({ scanVault, indexVaultTags }: UseDeleteItemProps)
       setActiveFileHandle,
       setFileMetadata,
       setVaultFiles,
+      forgetFileTreePaths,
       dialog,
     ],
   );

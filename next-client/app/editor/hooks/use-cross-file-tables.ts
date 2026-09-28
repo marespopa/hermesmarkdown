@@ -43,10 +43,13 @@ async function readFileTables(meta: FileMetadata): Promise<Map<string, TableData
 // it does not react to edits made to those files elsewhere. The cache is
 // invalidated wholesale whenever the pane regains focus (isActivePane
 // false -> true), which is the only refresh trigger for cross-file data.
+// `fromPath` (the note being edited) breaks ties between same-named notes in
+// different folders; the cache is reset when it changes.
 export function useCrossFileTables(
   value: string,
   fileMetadata: Record<string, FileMetadata>,
   isActivePane: boolean,
+  fromPath?: string,
 ): Map<string, Map<string, TableData>> {
   const cacheRef = useRef<Map<string, Map<string, TableData>>>(new Map());
   const [version, setVersion] = useState(0);
@@ -64,6 +67,12 @@ export function useCrossFileTables(
     wasActiveRef.current = isActivePane;
   }, [isActivePane]);
 
+  const lastFromPathRef = useRef(fromPath);
+  if (lastFromPathRef.current !== fromPath) {
+    lastFromPathRef.current = fromPath;
+    cacheRef.current = new Map();
+  }
+
   useEffect(() => {
     const missing = noteKeys.filter((k) => !cacheRef.current.has(k));
     if (missing.length === 0) return;
@@ -71,7 +80,7 @@ export function useCrossFileTables(
     let cancelled = false;
     (async () => {
       for (const noteKey of missing) {
-        const resolved = resolveFileMetaByName(noteKey, fileMetadata);
+        const resolved = resolveFileMetaByName(noteKey, fileMetadata, fromPath);
         const tables = resolved ? await readFileTables(resolved) : new Map<string, TableData>();
         if (cancelled) return;
         cacheRef.current.set(noteKey, tables);
@@ -83,7 +92,7 @@ export function useCrossFileTables(
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [noteKeysSignature, fileMetadata, generation]);
+  }, [noteKeysSignature, fileMetadata, generation, fromPath]);
 
   // New outer Map reference whenever the cache mutates, so callers using it
   // as an effect/useCallback dependency see the update (cacheRef.current is

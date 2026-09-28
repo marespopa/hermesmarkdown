@@ -1,4 +1,4 @@
-import { render, screen, cleanup } from "@testing-library/react";
+import { render, screen, cleanup, fireEvent } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import PaneLeaf from "./PaneLeaf";
 import { Provider } from "jotai";
@@ -12,6 +12,12 @@ import {
 import { CommandPaletteProvider } from "@/app/components/CommandPalette/CommandPaletteContext";
 import { formatShortcut } from "@/app/utils/platform";
 import React from "react";
+
+const push = vi.fn();
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ push }),
+  usePathname: () => "/editor",
+}));
 
 // Mock hooks
 vi.mock("@/app/hooks/use-file-system", () => ({
@@ -154,6 +160,38 @@ describe("PaneLeaf Tab Indicators", () => {
     // file1.md should not have a saving dot
     const dots = screen.queryAllByTitle("Saving…");
     expect(dots.length).toBe(1); // Only for file2.md
+  });
+
+  it("shows the tab strip for a single note", () => {
+    render(
+      <TestProvider initialValues={[
+        [atom_activePaneId, "pane-1"],
+        [atom_openFiles, { "file1.md": { fileName: "file1.md", content: "clean", lastSavedContent: "clean" } }],
+      ]}>
+        <PaneLeaf leaf={{ ...mockLeaf, openFilePaths: ["file1.md"] }} />
+      </TestProvider>
+    );
+
+    expect(screen.getByLabelText("Close tab")).toBeInTheDocument();
+    expect(screen.queryByRole("banner", { name: "Note" })).not.toBeInTheDocument();
+    // Home needs a vault (the feed lists vault notes).
+    expect(screen.queryByRole("button", { name: "Home feed" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /^Save/ })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Tab options" })).toBeInTheDocument();
+  });
+
+  it("opens settings from the pane actions", () => {
+    render(
+      <TestProvider initialValues={[
+        [atom_activePaneId, "pane-1"],
+        [atom_openFiles, { "file1.md": { fileName: "file1.md", content: "clean", lastSavedContent: "clean" } }],
+      ]}>
+        <PaneLeaf leaf={{ ...mockLeaf, openFilePaths: ["file1.md"] }} />
+      </TestProvider>
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Settings" }));
+    expect(push).toHaveBeenCalledWith("/editor/settings");
   });
 
   it("guides an empty pane toward creating or opening a note", () => {

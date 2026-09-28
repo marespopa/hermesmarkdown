@@ -1,7 +1,7 @@
 "use client";
 
-import React from "react";
-import { HiOutlineCheck, HiOutlineClipboardCheck, HiOutlinePencil, HiOutlineSparkles } from "react-icons/hi";
+import React, { useEffect, useState } from "react";
+import { HiOutlineCheck, HiOutlineClipboardCheck, HiOutlineDocumentDuplicate, HiOutlinePencil, HiOutlineSparkles } from "react-icons/hi";
 import Button from "@/app/components/Button";
 import type { ChatMessage } from "./chat-helpers";
 
@@ -42,6 +42,19 @@ export default function ChatMessageItem({
   hasSelection,
 }: ChatMessageItemProps) {
   const isUser = message.role === "user";
+  const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    if (!copied) return;
+    const timer = setTimeout(() => setCopied(false), 1500);
+    return () => clearTimeout(timer);
+  }, [copied]);
+
+  const copyMarkdown = () => {
+    navigator.clipboard.writeText(isEditing ? editDraft : message.displayContent)
+      .then(() => setCopied(true))
+      .catch(() => {});
+  };
   return (
     <div className={`flex gap-2.5 ${isUser ? "flex-row-reverse" : "flex-row"}`}>
       {!isUser && (
@@ -79,6 +92,11 @@ export default function ChatMessageItem({
                 <HiOutlinePencil size={13} /> Edit
               </Button>
             )}
+            <Button variant="unstyled" onClick={copyMarkdown} title="Copy response as Markdown"
+              className={`${actionClass} text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800`}>
+              {copied ? <HiOutlineCheck size={13} /> : <HiOutlineDocumentDuplicate size={13} />}
+              {copied ? "Copied" : "Copy"}
+            </Button>
             <span className="text-neutral-200 dark:text-neutral-700 select-none">·</span>
             <Button variant="unstyled" onClick={() => onApply("insert")}
               title={hasSelection ? "Replace the selected text" : "Insert at cursor position"}

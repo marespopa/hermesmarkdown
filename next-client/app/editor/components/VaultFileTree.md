@@ -3,8 +3,8 @@
 Description: Virtualized file list or folder tree for the vault, with search highlighting, inline rename, a row action menu, and drag-and-drop moves.
 
 ## Local State & Storage
-- State: `atom_indexerState`. Expanded and collapsed folder sets, the dragged entry, drop highlights, and the action menu are local useState. Rows are virtualized with `useVirtualizer`.
-- Persistence: None itself. File operations run against local handles through the passed callbacks.
+- State: `atom_indexerState`. Folder expansion comes from `useFolderExpansion` (collapsed by default, ancestors of the active file open automatically, manual toggles override). The dragged entry, drop highlights, and the action menu are local useState. Rows are virtualized with `useVirtualizer`.
+- Persistence: Manual folder expand/collapse overrides are kept per vault in `atom_fileTreeExpansion` (`localStorage["hermes_file_tree_expansion"]`), so they survive reloads and are shared by the Explorer page and the mobile overlay. File operations run against local handles through the passed callbacks.
 
 ## Dependencies
 - Core: `@tanstack/react-virtual`, and the row components and tree model in [`vault-tree/`](vault-tree/README.md) (`FileRow`, `FolderRow`, `TreeNodes`, `buildFileTree`).

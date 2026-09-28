@@ -7,7 +7,6 @@ import OverlayPanel from "@/app/components/OverlayLayer/OverlayPanel";
 import { atom_keyboardShortcutsOpen } from "@/app/atoms/ui-atoms";
 import { formatShortcut, isMacPlatform } from "@/app/utils/platform";
 import useIsMobileChrome from "@/app/hooks/use-mobile-chrome";
-import { useCommandPalette, type Command } from "@/app/components/CommandPalette/CommandPaletteContext";
 import Button from "@/app/components/Button";
 
 type ShortcutGroup = {
@@ -15,14 +14,9 @@ type ShortcutGroup = {
   shortcuts: { label: string; keys: string }[];
 };
 
-function commandShortcuts(commands: Command[], ids: string[]) {
-  return ids.flatMap((id) => {
-    const command = commands.find((candidate) => candidate.id === id);
-    return command?.shortcut ? [{ label: command.label.replace(/^Format: /, ""), keys: command.shortcut }] : [];
-  });
-}
-
-function getShortcutGroups(commands: Command[]): ShortcutGroup[] {
+// Listed statically rather than read from registered commands: editor
+// commands only register on /editor, and the overlay also opens from Settings.
+function getShortcutGroups(): ShortcutGroup[] {
   const mac = isMacPlatform();
   const mod = mac ? "⌘" : "Ctrl+";
   const shift = mac ? "⇧" : "Shift+";
@@ -36,15 +30,23 @@ function getShortcutGroups(commands: Command[]): ShortcutGroup[] {
         { label: "Select workspace tab", keys: `${formatShortcut("1")}–9` },
         { label: "New file", keys: mac ? "⌃⌥N" : "Ctrl+Alt+N" },
         { label: "Close current tab", keys: formatShortcut("W", { alt: true }) },
-        ...commandShortcuts(commands, ["save-file", "open-explorer", "ai-builder", "toggle-voice-input"]),
+        { label: "Save", keys: formatShortcut("S") },
+        { label: "Open Explorer", keys: formatShortcut("E", { shift: true }) },
         { label: "Open Explorer (outside the editor)", keys: formatShortcut("B") },
+        { label: "AI Chat (with an AI key)", keys: formatShortcut("B", { shift: true }) },
+        { label: "Voice input (supported browsers)", keys: formatShortcut("V", { shift: true }) },
+        { label: "Pin / unpin in the command palette", keys: formatShortcut("D") },
+        { label: "Home feed: move / open note", keys: "↑↓ or J/K / Enter" },
         { label: "Close dialog", keys: "Esc" },
       ],
     },
     {
       title: "Formatting",
       shortcuts: [
-        ...commandShortcuts(commands, ["format-bold", "format-italic", "format-strikethrough", "format-inline-code"]),
+        { label: "Bold", keys: formatShortcut("B") },
+        { label: "Italic", keys: formatShortcut("I") },
+        { label: "Strikethrough", keys: formatShortcut("X", { shift: true }) },
+        { label: "Inline code", keys: formatShortcut("E") },
         { label: "Cycle task status", keys: `${mod}Enter` },
         { label: "Indent / outdent list item", keys: "Tab / Shift+Tab" },
         { label: "Open helper at cursor (link, date, diagram…)", keys: `${mod}${shift}Enter` },
@@ -71,15 +73,13 @@ function getShortcutGroups(commands: Command[]): ShortcutGroup[] {
 
 export default function KeyboardShortcutsOverlay() {
   const [isOpen, setIsOpen] = useAtom(atom_keyboardShortcutsOpen);
-  const { commands } = useCommandPalette();
   const isMobileChrome = useIsMobileChrome();
-  const groups = useMemo(() => getShortcutGroups(commands), [commands]);
+  const groups = useMemo(() => getShortcutGroups(), []);
   const [activeTab, setActiveTab] = useState(groups[0].title);
 
   useEffect(() => {
     if (isOpen) setActiveTab(groups[0].title);
-    // Only reset when the overlay opens — not on every render, since
-    // `groups` is a fresh array each time (getShortcutGroups() isn't memoized).
+    // Only reset when the overlay opens.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen]);
 

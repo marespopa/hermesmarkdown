@@ -47,8 +47,9 @@ export function useIndexActiveFile() {
     if (!metadataWorker || !activeFilePath || !activeFileHandle) return;
 
     const handleMessage = (event: MessageEvent) => {
-      const { results } = event.data;
-      if (!results) return;
+      const { results, requestId } = event.data;
+      // Vault indexing runs (requestId set) merge their own results.
+      if (!results || requestId !== undefined) return;
 
       const activeResult = results.find((r: any) => r.path === activeFilePath);
       if (activeResult) {

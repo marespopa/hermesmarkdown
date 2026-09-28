@@ -1,6 +1,7 @@
 // app/workers/metadata.worker.ts
 import { parseFmFields } from "@/app/utils/frontmatter-utils";
 import { extractTasks } from "@/app/utils/taskExtractor";
+import { notePreview } from "@/app/utils/markdown-preview";
 
 const REGEX_TAG = /(?<=^|\s)#(?=[a-zA-Z0-9_\-/]*[a-zA-Z])([a-zA-Z0-9_\-/]+)/g;
 const REGEX_LINK = /\[\[(.*?)\]\]/g;
@@ -74,11 +75,16 @@ self.onmessage = (event: MessageEvent) => {
       // optional inline #prog tag (see app/utils/taskExtractor.ts)
       const tasks = extractTasks(path, content);
 
-      results.push({ path, name, tags, links, frontmatter, modifiedAt, wordCount, tasks });
+      // Plain-text excerpt for the home feed
+      const preview = notePreview(content);
+
+      results.push({ path, name, tags, links, frontmatter, modifiedAt, wordCount, tasks, preview });
     } catch (err: any) {
       console.error(`Worker error processing file (${fileInfo.path}):`, err?.message || err);
     }
   }
 
-  self.postMessage({ results });
+  // `requestId` lets the vault indexer match results to its request
+  // (parseWithWorker); the active-file re-indexer posts without one.
+  self.postMessage({ results, requestId: event.data.requestId });
 };

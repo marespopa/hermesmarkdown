@@ -1,31 +1,37 @@
 "use client";
 
 import { useState } from "react";
-import { useAtom } from "jotai";
 import { useRouter } from "next/navigation";
-import { atom_isWizardOpen } from "@/app/atoms/atoms";
-import { HiOutlineArrowLeft, HiOutlinePencilAlt, HiOutlineAcademicCap, HiOutlineLightningBolt } from "react-icons/hi";
+import { HiOutlineArrowLeft, HiOutlineColorSwatch, HiOutlineFolder, HiOutlinePencilAlt, HiOutlineAcademicCap, HiOutlineLightningBolt, HiOutlineUser } from "react-icons/hi";
 import Button from "@/app/components/Button";
-import { SettingItem, SettingGroup } from "./components/SettingControls";
 import AiSettings from "./sections/AiSettings";
+import AppearanceSettings from "./sections/AppearanceSettings";
 import EditorSettings from "./sections/EditorSettings";
+import FilesSettings from "./sections/FilesSettings";
+import GuideSettings from "./sections/GuideSettings";
+import ProfileSettings from "./sections/ProfileSettings";
 
 const SettingsPage = () => {
   const router = useRouter();
 
-  const [, setIsWizardOpen] = useAtom(atom_isWizardOpen);
-
-  const startTour = () => {
-    setIsWizardOpen(true);
-    router.push("/editor");
-  };
-
   const sections = [
+    {
+      id: "appearance",
+      label: "Appearance",
+      icon: HiOutlineColorSwatch,
+      content: <AppearanceSettings />,
+    },
     {
       id: "editor",
       label: "Editor",
       icon: HiOutlinePencilAlt,
       content: <EditorSettings />,
+    },
+    {
+      id: "files",
+      label: "Files",
+      icon: HiOutlineFolder,
+      content: <FilesSettings />,
     },
     {
       id: "ai",
@@ -34,28 +40,16 @@ const SettingsPage = () => {
       content: <AiSettings />,
     },
     {
+      id: "profile",
+      label: "Profile",
+      icon: HiOutlineUser,
+      content: <ProfileSettings />,
+    },
+    {
       id: "guide",
       label: "Guide",
       icon: HiOutlineAcademicCap,
-      content: (
-        <>
-          <SettingGroup title="Onboarding">
-            <SettingItem
-              label="Welcome Tour"
-              description="Walk through the intro screens again to rediscover features."
-              control={
-                <Button
-                  variant="secondary"
-                  onClick={startTour}
-                  className="h-8 px-4 text-ui-footnote font-medium"
-                >
-                  Start Tour
-                </Button>
-              }
-            />
-          </SettingGroup>
-        </>
-      ),
+      content: <GuideSettings />,
     },
   ];
 

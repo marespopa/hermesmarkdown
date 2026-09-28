@@ -1,9 +1,9 @@
 # ChatMessageItem
 
-Description: One turn of the AI Chat thread. User messages render as a bubble with @mentions highlighted; assistant replies can be edited in place and applied to the note (replace selection / insert at cursor, or replace all).
+Description: One turn of the AI Chat thread. User messages render as a bubble with @mentions highlighted; assistant replies can be edited in place, copied to the clipboard as raw Markdown, and applied to the note (replace selection / insert at cursor, or replace all).
 
 ## Local State & Storage
-- State: None; edit state is owned by `AIChatDialog`.
+- State: `copied` flag (reverts after 1.5s) for the Copy action's confirmation; edit state is owned by `AIChatDialog`.
 - Persistence: None - transient UI state.
 
 ## Dependencies

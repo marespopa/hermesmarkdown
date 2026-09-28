@@ -342,6 +342,19 @@ export function attachCellHandlers(wrapper: HTMLElement, view: EditorView) {
     }
 
     const key = event.key.toLowerCase();
+    // Select all stays inside the cell; otherwise CodeMirror's keymap
+    // grabs it and selects the whole document.
+    if (mod && !event.altKey && !event.shiftKey && key === "a") {
+      handled();
+      const selection = el.ownerDocument.getSelection();
+      if (!selection) return;
+      const range = el.ownerDocument.createRange();
+      range.selectNodeContents(el);
+      selection.removeAllRanges();
+      selection.addRange(range);
+      return;
+    }
+
     if (mod && !event.altKey && (key === "z" || key === "y")) {
       handled();
       if (key === "y" || event.shiftKey) redo(view);

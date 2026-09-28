@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useAtom, useAtomValue } from "jotai";
-import { atom_hasCompletedOnboarding, atom_isWizardOpen, atom_welcomeWizardStep } from "@/app/atoms/atoms";
+import { useAtom, useAtomValue, useSetAtom } from "jotai";
+import { atom_hasCompletedOnboarding, atom_homeFeedOpen, atom_isWizardOpen, atom_renderedFontSize, atom_welcomeWizardStep } from "@/app/atoms/atoms";
 import {
   atom_vaultHandle
 } from "@/app/atoms/vault-atoms";
@@ -12,10 +12,17 @@ import { HiOutlineArrowLeft } from "react-icons/hi";
 import { useCreateVault } from "@/app/hooks/file-system/use-create-vault";
 import AiKeyStep from "./welcome-wizard/AiKeyStep";
 import { AutosaveStep, FlowModeStep, FontStep, LineNumbersStep, TextSizeStep, ThemeStep, VimStep } from "./welcome-wizard/PreferenceSteps";
+import NameStep from "./welcome-wizard/NameStep";
 import ReadyStep from "./welcome-wizard/ReadyStep";
 import VaultStep from "./welcome-wizard/VaultStep";
 
-const TOTAL_STEPS = 9;
+// Step order: 0 name, 1 vault, 2–8 preferences, 9 AI key, 10 ready.
+const NAME_STEP = 0;
+const VAULT_STEP = 1;
+const FIRST_PREFERENCE_STEP = 2;
+const TOTAL_STEPS = 10;
+// "Medium" in the text size step.
+const ONBOARDING_TEXT_SIZE = "16px";
 
 const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
   const [hasCompleted, setHasCompleted] = useAtom(atom_hasCompletedOnboarding);
@@ -26,19 +33,44 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
   const createVaultFlow = useCreateVault();
 
   const vaultHandle = useAtomValue(atom_vaultHandle);
+  const setHomeFeedOpen = useSetAtom(atom_homeFeedOpen);
+  const setRenderedFontSize = useSetAtom(atom_renderedFontSize);
 
   useEffect(() => {
     setIsMounted(true);
     if (initialStep !== 0) setStep(initialStep);
   }, [initialStep, setStep]);
 
+  // First-run onboarding starts at Medium text size, unless a size was
+  // already chosen (re-running the tour never changes it).
   useEffect(() => {
-    if (step === 0 && vaultHandle) {
-      setStep(1);
+    if (hasCompleted) return;
+    let hasStoredSize = true;
+    try {
+      hasStoredSize = window.localStorage.getItem("renderedFontSize") !== null;
+    } catch {
+      // Storage unavailable: leave the size alone.
+    }
+    if (!hasStoredSize) setRenderedFontSize(ONBOARDING_TEXT_SIZE);
+  }, [hasCompleted, setRenderedFontSize]);
+
+  // The vault step moves on by itself once a vault is connected.
+  useEffect(() => {
+    if (step === VAULT_STEP && vaultHandle) {
+      setStep(FIRST_PREFERENCE_STEP);
     }
   }, [step, vaultHandle, setStep]);
 
   const showWizard = isMounted && (!hasCompleted || isWizardOpen);
+
+  // Finishing (or skipping) lands on the home feed when a vault is open,
+  // whatever the "On vault open" setting says.
+  const finish = () => {
+    setHasCompleted(true);
+    setIsWizardOpen(false);
+    setStep(NAME_STEP);
+    if (vaultHandle) setHomeFeedOpen(true);
+  };
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -52,51 +84,48 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
         return;
       }
 
-      if (step >= 1 && step < TOTAL_STEPS) {
+      // The name step handles Enter in its own field; the vault step has no default action.
+      if (step >= FIRST_PREFERENCE_STEP && step < TOTAL_STEPS) {
         event.preventDefault();
         setStep(step + 1);
       } else if (step === TOTAL_STEPS) {
         event.preventDefault();
-        setHasCompleted(true);
-        setIsWizardOpen(false);
-        setStep(0);
+        finish();
       }
     };
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [setHasCompleted, setIsWizardOpen, setStep, step]);
+  });
 
   if (!showWizard) return null;
 
-  const handleFinish = () => {
-    setHasCompleted(true);
-    setIsWizardOpen(false);
-    setStep(0);
-  };
+  const handleFinish = () => finish();
 
   const next = (to: number) => () => setStep(to);
   const renderStep = () => {
     switch (step) {
-      case 0: return <VaultStep createVaultFlow={createVaultFlow} />;
-      case 1: return <ThemeStep onContinue={next(2)} />;
-      case 2: return <FontStep onContinue={next(3)} />;
-      case 3: return <TextSizeStep onContinue={next(4)} />;
-      case 4: return <LineNumbersStep onContinue={next(5)} />;
-      case 5: return <VimStep onContinue={next(6)} />;
-      case 6: return <FlowModeStep onContinue={next(7)} />;
-      case 7: return <AutosaveStep onContinue={next(8)} />;
-      case 8: return <AiKeyStep onContinue={next(9)} />;
-      case 9: return <ReadyStep onFinish={handleFinish} />;
+      case 0: return <NameStep onContinue={next(1)} />;
+      case 1: return <VaultStep createVaultFlow={createVaultFlow} />;
+      case 2: return <ThemeStep onContinue={next(3)} />;
+      case 3: return <FontStep onContinue={next(4)} />;
+      case 4: return <TextSizeStep onContinue={next(5)} />;
+      case 5: return <LineNumbersStep onContinue={next(6)} />;
+      case 6: return <VimStep onContinue={next(7)} />;
+      case 7: return <FlowModeStep onContinue={next(8)} />;
+      case 8: return <AutosaveStep onContinue={next(9)} />;
+      case 9: return <AiKeyStep onContinue={next(10)} />;
+      case 10: return <ReadyStep onFinish={handleFinish} />;
       default: return null;
     }
   };
 
-  // Step 1 auto-advances from step 0 once a vault is connected, so going back there
-  // would immediately bounce forward again — disable the back arrow on that landing.
-  // Within step 1's creation sub-flow, the back arrow navigates sub-steps instead.
-  const inCreationSubStep = step === 0 && !!createVaultFlow.subStep && createVaultFlow.subStep !== "installing";
-  const canGoBack = inCreationSubStep || (step > 0 && step !== 1);
+  // The first preference step is reached by auto-advancing from the vault step
+  // once a vault is connected, so going back there would bounce forward again —
+  // disable the back arrow on that landing. Within the vault step's creation
+  // sub-flow, the back arrow navigates sub-steps instead.
+  const inCreationSubStep = step === VAULT_STEP && !!createVaultFlow.subStep && createVaultFlow.subStep !== "installing";
+  const canGoBack = inCreationSubStep || (step > NAME_STEP && step !== FIRST_PREFERENCE_STEP);
 
   const handleBack = () => {
     if (inCreationSubStep) {
@@ -140,7 +169,7 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
               ))}
             </div>
 
-            {step < TOTAL_STEPS ? (
+            {step > VAULT_STEP && step < TOTAL_STEPS ? (
               <Button
                 variant="unstyled"
                 onClick={handleFinish}

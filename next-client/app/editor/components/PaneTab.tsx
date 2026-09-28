@@ -1,7 +1,8 @@
 "use client";
 
 import React from "react";
-import { HiOutlineDocumentText, HiCheck, HiPencilAlt, HiExclamationCircle } from "react-icons/hi";
+import { HiOutlineDocumentText, HiPencilAlt, HiExclamationCircle } from "react-icons/hi";
+import { FiSave } from "react-icons/fi";
 import { VscClose } from "react-icons/vsc";
 import Tooltip from "@/app/components/Tooltip";
 import { formatShortcut } from "@/app/utils/platform";
@@ -42,10 +43,10 @@ export const statusMeta: Record<
   TabSaveState,
   { Icon: React.ComponentType<{ size?: number; className?: string }> | null; className: string; title: string; label: string }
 > = {
-  idle: { Icon: HiCheck, className: "text-fg-faint", title: "Saved", label: "Saved" },
+  idle: { Icon: FiSave, className: "text-fg-faint", title: "Saved", label: "Saved" },
   dirty: { Icon: HiPencilAlt, className: "text-amber-500", title: "Unsaved changes", label: "Unsaved" },
   saving: { Icon: null, className: "text-sage", title: "Saving…", label: "Saving…" },
-  saved: { Icon: HiCheck, className: "text-emerald-500", title: "Saved", label: "Saved" },
+  saved: { Icon: FiSave, className: "text-emerald-500", title: "Saved", label: "Saved" },
   error: { Icon: HiExclamationCircle, className: "text-red-500", title: "Save error", label: "Error" },
 };
 

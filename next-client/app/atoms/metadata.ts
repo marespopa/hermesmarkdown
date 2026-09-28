@@ -12,6 +12,8 @@ export interface FileMetadata {
   modifiedAt: number;
   wordCount: number;
   tasks: TaskItem[];
+  /** Plain-text excerpt for note lists; absent until the worker has read the file. */
+  preview?: string;
   handle: any; // FileSystemFileHandle
 }
 

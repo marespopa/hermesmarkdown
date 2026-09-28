@@ -4,10 +4,14 @@ import React from "react";
 import { PanelLeaf } from "@/app/types/workspace";
 import MarkdownEditor from "./MarkdownEditor";
 import TabContextMenu, { TabContextMenuItem } from "./TabContextMenu";
-import { useAtom } from "jotai";
+import { useAtom, useSetAtom } from "jotai";
 import { atom_activePaneId, atom_fileContent, atom_openFiles, atom_splitPane, atom_closePane, atom_activeFilePath, atom_saveStatus, atom_workspaceLayout, getWorkspaceTabs } from "@/app/atoms/atoms";
-import { atom_isVoicePreviewVisible } from "@/app/atoms/ui-atoms";
-import { HiOutlineDocumentText, HiOutlineChartBar, HiOutlineX, HiOutlineClipboardCopy, HiOutlineSave, HiOutlineDotsHorizontal } from "react-icons/hi";
+import { atom_aiBuilderRequest, atom_homeFeedOpen, atom_isAiConfigured, atom_isVoicePreviewVisible } from "@/app/atoms/ui-atoms";
+import { atom_materializedDraftPath } from "@/app/atoms/file-atoms";
+import { atom_vaultHandle } from "@/app/atoms/vault-atoms";
+import { HiOutlineDocumentText, HiOutlineChartBar, HiOutlineX, HiOutlineClipboardCopy, HiOutlineDotsHorizontal, HiOutlineHome, HiOutlineSearch, HiOutlineChatAlt2, HiOutlineCog } from "react-icons/hi";
+import { FiSave } from "react-icons/fi";
+import { useRouter } from "next/navigation";
 import { VscSplitHorizontal } from "react-icons/vsc";
 import PaneTab, { TabSaveState, statusMeta } from "./PaneTab";
 import { useFileSystem } from "@/app/hooks/use-file-system";
@@ -19,6 +23,8 @@ import useIsMobileChrome from "@/app/hooks/use-mobile-chrome";
 import { usePaneFileActions } from "../hooks/use-pane-file-actions";
 import { useTabDragDrop } from "../hooks/use-tab-drag-drop";
 import PaneEmptyState from "./PaneEmptyState";
+import { PANE_ACTION_BUTTON_CLASS, PANE_ACTIONS_CLASS, PANE_HEADER_CLASS } from "./pane-header-classes";
+import { useCommandPalette } from "@/app/components/CommandPalette/CommandPaletteContext";
 
 interface PaneLeafProps {
   leaf: PanelLeaf;
@@ -38,12 +44,31 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
   const { openFileByName } = useFileSystem();
   const filePath = leaf.activeFilePath || "draft";
   const [content, setContent] = useAtom(atom_fileContent(filePath));
+  const hasVault = !!useAtomValue(atom_vaultHandle);
+  const setHomeFeedOpen = useSetAtom(atom_homeFeedOpen);
+  const { open: openCommandPalette } = useCommandPalette();
+  const isAiConfigured = useAtomValue(atom_isAiConfigured);
+  const setAiBuilderRequest = useSetAtom(atom_aiBuilderRequest);
+  // Same trigger as the Ctrl/Cmd+Shift+B shortcut; the editor page opens the chat.
+  const openAIChat = () => setAiBuilderRequest((value) => value + 1);
+
+  // The editor remounts on every tab switch, except when the draft was just
+  // saved as a file: that keeps the caret, scroll and undo history.
+  const materializedDraftPath = useAtomValue(atom_materializedDraftPath);
+  const editorKeyRef = React.useRef({ path: filePath, key: filePath, generation: 0 });
+  if (editorKeyRef.current.path !== filePath) {
+    const previous = editorKeyRef.current;
+    const keepEditor = previous.path === "draft" && filePath === materializedDraftPath;
+    const generation = previous.generation + 1;
+    editorKeyRef.current = { path: filePath, key: keepEditor ? previous.key : `${filePath}#${generation}`, generation };
+  }
 
   const isActive = activePaneId === leaf.id;
   const isVoicePreviewVisible = useAtomValue(atom_isVoicePreviewVisible);
   const isDimmed = isVoicePreviewVisible && !isActive;
 
 
+  const router = useRouter();
   const { handleSave, handleCopy, closeTabWithAutosave, buildTabMenuItems } = usePaneFileActions(leaf);
 
   // Drives the tab bar's Save button — replaces the old floating,
@@ -96,7 +121,7 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
     });
     observer.observe(el);
     return () => observer.disconnect();
-  }, []);
+  }, [isMobileChrome]);
   const hideCopyMarkdown = tabBarRowWidth < 440;
   const hideSplitRight = tabBarRowWidth < 360;
   const openFileInPane = (filePath = leaf.activeFilePath) => {
@@ -107,18 +132,33 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
   return (
     <div
       data-pane-id={leaf.id}
-      className={`h-full flex flex-col transition-all duration-300 overflow-hidden bg-paper-pale dark:bg-paper-dark ${
+      className={`relative h-full flex flex-col transition-all duration-300 overflow-hidden bg-paper-pale dark:bg-paper-dark ${
         isActive ? "z-10" : ""
       } ${isDimmed ? "opacity-40 saturate-50" : ""}`}
       onClick={() => setActivePaneId(leaf.id)}
     >
-      {/* Pane tabs stay visible on desktop as the editor's single app header. */}
+      {/* Pane tabs are the editor's desktop header, even for a single note. */}
       {!isMobileChrome && (
       <div className="shrink-0 relative">
       <div
         ref={tabBarRowRef}
-        className="flex items-center bg-chrome/80 backdrop-blur-2xl border-b border-edge-subtle h-11 shrink-0 relative z-20 px-2 sm:px-3"
+        className={PANE_HEADER_CLASS}
       >
+        {/* Home stays at the far left. */}
+        {hasVault && (
+          <div className={`${PANE_ACTIONS_CLASS} !ml-0`}>
+            <Tooltip label="Home feed" position="bottom">
+              <Button
+                variant="icon"
+                onClick={() => setHomeFeedOpen(true)}
+                aria-label="Home feed"
+                className={PANE_ACTION_BUTTON_CLASS}
+              >
+                <HiOutlineHome size={17} />
+              </Button>
+            </Tooltip>
+          </div>
+        )}
         {/* Scrollable tabs strip */}
           <div
             className="flex items-center flex-1 overflow-x-auto overflow-y-hidden scrollbar-none h-full px-1.5 min-w-0"
@@ -180,13 +220,51 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
               />
             );
           })}
-          
+
           </div>{/* end scrollable tabs strip */}
 
           {/* Fixed actions — always visible, never scrolled */}
-          <div className="flex items-center gap-0.5 mx-1 pl-1 pr-1 shrink-0 h-8 rounded-xl bg-surface-raised/70 z-20">
+          <div className={PANE_ACTIONS_CLASS}>
+            {isActive && (
+              <Tooltip label="Command palette" shortcut={formatShortcut("K")}>
+                <Button
+                  variant="icon"
+                  onClick={() => openCommandPalette()}
+                  aria-label="Command palette"
+                  className={PANE_ACTION_BUTTON_CLASS}
+                >
+                  <HiOutlineSearch size={17} />
+                </Button>
+              </Tooltip>
+            )}
+            {isActive && isAiConfigured && (
+              <Tooltip label="AI Chat" shortcut={formatShortcut("B", { shift: true })}>
+                <Button
+                  variant="icon"
+                  onClick={openAIChat}
+                  aria-label="AI Chat"
+                  className={PANE_ACTION_BUTTON_CLASS}
+                >
+                  <HiOutlineChatAlt2 size={17} />
+                </Button>
+              </Tooltip>
+            )}
+            {isActive && (
+              <Tooltip label="Settings">
+                <Button
+                  variant="icon"
+                  onClick={() => router.push("/editor/settings")}
+                  aria-label="Settings"
+                  className={PANE_ACTION_BUTTON_CLASS}
+                >
+                  <HiOutlineCog size={17} />
+                </Button>
+              </Tooltip>
+            )}
             {isActive && leaf.openFilePaths.length > 0 && (
               <>
+                {/* App-wide | this file | this pane */}
+                <div className="w-px h-4 bg-edge-subtle mx-1 opacity-70" />
                 {!hideCopyMarkdown && (
                   <Tooltip label="Copy Markdown">
                     <Button
@@ -213,21 +291,15 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
                     {activeSaveState === "saving" ? (
                       <span className="w-3.5 h-3.5 rounded-full border-2 border-edge border-t-sage animate-spin" />
                     ) : activeSaveMeta.Icon ? (
-                      // Colored directly on the icon rather than the Button
-                      // wrapper — Button's own base classes (variant="icon")
-                      // set a text color too, and since both are plain
-                      // utility classes at equal specificity, whichever
-                      // lands later in Tailwind's generated stylesheet wins
-                      // regardless of the order they're listed in here. A
-                      // class on the icon itself always beats an inherited
-                      // value from its parent, so it can't be shadowed that way.
+                      // Colored on the icon, not the Button: variant="icon" sets
+                      // its own text color at equal specificity, so a wrapper
+                      // class could lose depending on Tailwind's output order.
                       <activeSaveMeta.Icon size={18} className={activeSaveState === "idle" ? undefined : activeSaveMeta.className} />
                     ) : (
-                      <HiOutlineSave size={18} />
+                      <FiSave size={18} />
                     )}
                   </Button>
                 </Tooltip>
-                <div className="w-px h-4 bg-edge-subtle mx-1 opacity-70" />
                 <Tooltip label="Tab options">
                   <Button
                     variant="icon"
@@ -241,6 +313,9 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
                     <HiOutlineDotsHorizontal size={16} />
                   </Button>
                 </Tooltip>
+                {(!hideSplitRight || !isOnlyPane) && (
+                  <div className="w-px h-4 bg-edge-subtle mx-1 opacity-70" />
+                )}
               </>
             )}
             {!hideSplitRight && (
@@ -278,7 +353,7 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
           <PaneEmptyState onLoadDraft={setContent} />
         ) : leaf.type === "editor" ? (
           <MarkdownEditor
-            key={leaf.activeFilePath || "draft"}
+            key={editorKeyRef.current.key}
             value={content}
             onChange={setContent}
             filePath={leaf.activeFilePath || "draft"}

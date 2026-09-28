@@ -5,7 +5,7 @@ import { Provider, useAtomValue } from "jotai";
 import { useHydrateAtoms } from "jotai/utils";
 import WelcomeWizard from "./WelcomeWizard";
 import { atom_renderedFontSize } from "@/app/atoms/atoms";
-import { atom_flowMode, atom_hasCompletedOnboarding, atom_isWizardOpen } from "@/app/atoms/ui-atoms";
+import { atom_flowMode, atom_hasCompletedOnboarding, atom_homeFeedOpen, atom_isWizardOpen, atom_userName } from "@/app/atoms/ui-atoms";
 import { atom_vaultHandle } from "@/app/atoms/vault-atoms";
 import { useFileSystem } from "@/app/hooks/use-file-system";
 import { testAIConnection } from "@/app/services/ai";
@@ -43,6 +43,14 @@ const FlowModeValue = () => (
   <output data-testid="flow-mode-value">{String(useAtomValue(atom_flowMode))}</output>
 );
 
+const UserNameValue = () => (
+  <output data-testid="user-name-value">{useAtomValue(atom_userName)}</output>
+);
+
+const HomeFeedValue = () => (
+  <output data-testid="home-feed-value">{String(useAtomValue(atom_homeFeedOpen))}</output>
+);
+
 describe("WelcomeWizard", () => {
   const mockOpenVault = vi.fn();
 
@@ -61,10 +69,37 @@ describe("WelcomeWizard", () => {
     });
   });
 
+  it("starts by asking for a name and stores it trimmed", () => {
+    render(
+      <TestProvider initialValues={defaultInitialValues}>
+        <WelcomeWizard />
+        <UserNameValue />
+      </TestProvider>
+    );
+
+    const input = screen.getByRole("textbox", { name: "Your name" });
+    fireEvent.change(input, { target: { value: "  Ada  " } });
+    fireEvent.keyDown(input, { key: "Enter" });
+
+    expect(screen.getByTestId("user-name-value")).toHaveTextContent(/^Ada$/);
+    expect(screen.getByText("Connect Your Vault")).toBeInTheDocument();
+  });
+
+  it("lets the name be skipped", () => {
+    render(
+      <TestProvider initialValues={defaultInitialValues}>
+        <WelcomeWizard />
+      </TestProvider>
+    );
+
+    fireEvent.click(screen.getByText("Continue"));
+    expect(screen.getByText("Connect Your Vault")).toBeInTheDocument();
+  });
+
   it("advances preference steps when Enter is pressed", () => {
     render(
       <TestProvider initialValues={defaultInitialValues}>
-        <WelcomeWizard initialStep={1} />
+        <WelcomeWizard initialStep={2} />
       </TestProvider>
     );
 
@@ -76,7 +111,7 @@ describe("WelcomeWizard", () => {
   it("offers GitHub vault connection during vault setup", () => {
     render(
       <TestProvider initialValues={defaultInitialValues}>
-        <WelcomeWizard initialStep={0} />
+        <WelcomeWizard initialStep={1} />
       </TestProvider>
     );
 
@@ -98,7 +133,7 @@ describe("WelcomeWizard", () => {
 
     render(
       <TestProvider initialValues={connectedValues}>
-        <WelcomeWizard initialStep={0} />
+        <WelcomeWizard initialStep={1} />
       </TestProvider>
     );
 
@@ -115,7 +150,7 @@ describe("WelcomeWizard", () => {
 
     render(
       <TestProvider initialValues={connectedValues}>
-        <WelcomeWizard initialStep={1} />
+        <WelcomeWizard initialStep={2} />
       </TestProvider>
     );
 
@@ -132,18 +167,66 @@ describe("WelcomeWizard", () => {
     });
   });
 
+  it("lands on the home feed when the wizard finishes with a vault open", () => {
+    const connectedValues = [
+      ...defaultInitialValues.filter(([a]: any) => a !== atom_vaultHandle),
+      [atom_vaultHandle, { name: "TestVault" }],
+    ];
+
+    render(
+      <TestProvider initialValues={connectedValues}>
+        <WelcomeWizard initialStep={10} />
+        <HomeFeedValue />
+      </TestProvider>
+    );
+
+    expect(screen.getByTestId("home-feed-value")).toHaveTextContent("false");
+    fireEvent.click(screen.getByText("Open Editor"));
+
+    expect(screen.getByTestId("home-feed-value")).toHaveTextContent("true");
+    expect(screen.queryByText("You're ready to write.")).not.toBeInTheDocument();
+    expect(mockPush).not.toHaveBeenCalled();
+  });
+
+  it("stays in the editor after opening an existing vault", async () => {
+    mockOpenVault.mockResolvedValue(true);
+    render(
+      <TestProvider initialValues={defaultInitialValues}>
+        <WelcomeWizard initialStep={1} />
+      </TestProvider>
+    );
+
+    fireEvent.click(screen.getByText("Open Existing Vault"));
+
+    await waitFor(() => expect(mockOpenVault).toHaveBeenCalled());
+    expect(mockPush).not.toHaveBeenCalled();
+  });
+
   it("lets the user choose and saves the rendered text size", () => {
     render(
       <TestProvider initialValues={defaultInitialValues}>
-        <WelcomeWizard initialStep={3} />
+        <WelcomeWizard initialStep={4} />
         <FontSizeValue />
       </TestProvider>
     );
 
     const fontSize = screen.getByRole("combobox", { name: "Text size" });
-    expect(fontSize).toHaveValue("18px");
+    // First-run onboarding starts at Medium.
+    expect(fontSize).toHaveValue("16px");
 
     fireEvent.change(fontSize, { target: { value: "20px" } });
+
+    expect(screen.getByTestId("font-size-value")).toHaveTextContent("20px");
+  });
+
+  it("keeps a text size the user already chose", () => {
+    window.localStorage.setItem("renderedFontSize", JSON.stringify("20px"));
+    render(
+      <TestProvider initialValues={[...defaultInitialValues, [atom_renderedFontSize, "20px"]]}>
+        <WelcomeWizard initialStep={4} />
+        <FontSizeValue />
+      </TestProvider>
+    );
 
     expect(screen.getByTestId("font-size-value")).toHaveTextContent("20px");
   });
@@ -151,7 +234,7 @@ describe("WelcomeWizard", () => {
   it("lets the user turn on flow mode", () => {
     render(
       <TestProvider initialValues={defaultInitialValues}>
-        <WelcomeWizard initialStep={6} />
+        <WelcomeWizard initialStep={7} />
         <FlowModeValue />
       </TestProvider>
     );
@@ -167,7 +250,7 @@ describe("WelcomeWizard", () => {
   it("replaces the test button with a connection confirmation after success", async () => {
     render(
       <TestProvider initialValues={defaultInitialValues}>
-        <WelcomeWizard initialStep={8} />
+        <WelcomeWizard initialStep={9} />
       </TestProvider>
     );
 

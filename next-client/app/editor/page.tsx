@@ -1,11 +1,9 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { HiOutlineViewGrid } from "react-icons/hi";
-import Button from "@/app/components/Button";
 import ConflictDialog from "./components/ConflictDialog";
-import { useAtom, useAtomValue } from "jotai";
-import { atom_fileName, atom_content, atom_activeFileHandle, atom_activeFilePath, atom_workspaceLayout, atom_activePaneId, atom_isFileLoading, findLeaf, getFirstLeaf } from "@/app/atoms/atoms";
+import { useAtomValue } from "jotai";
+import { atom_fileName, atom_content, atom_activeFilePath, atom_workspaceLayout, atom_activePaneId, atom_isFileLoading, findLeaf, getFirstLeaf } from "@/app/atoms/atoms";
 import useIsMobileChrome from "@/app/hooks/use-mobile-chrome";
 import WelcomeWizard from "./components/WelcomeWizard";
 import NewVaultDialog from "./components/NewVaultDialog";
@@ -17,7 +15,6 @@ import VaultPendingOverlay from "./components/VaultPendingOverlay";
 import LoadingOverlay from "@/app/components/LoadingOverlay";
 import LoadingBar from "@/app/components/LoadingBar";
 import EditorCommands from "./components/EditorCommands";
-import { useCommandPalette } from "@/app/components/CommandPalette/CommandPaletteContext";
 import MobileFileOverlay from "./components/MobileFileOverlay";
 import MobileFileIndicator from "./components/MobileFileIndicator";
 import MobileSelectionToolbar from "./components/MobileSelectionToolbar";
@@ -26,8 +23,6 @@ import { useFileSystem } from "@/app/hooks/use-file-system";
 import { useFileWatcher } from "@/app/hooks/use-file-watcher";
 import { useVaultSync } from "@/app/hooks/use-vault-sync";
 import { useAutoSave } from "@/app/hooks/use-auto-save";
-import { useDialog } from "@/app/hooks/use-dialog";
-import toast from "react-hot-toast";
 import RepurposeNoteWizard from "./components/RepurposeNoteWizard";
 import MermaidDialog from "./components/MermaidDialog";
 import RenderedBlockSourceDialog from "./components/RenderedBlockSourceDialog";
@@ -40,7 +35,7 @@ import { AIThinkingOverlay } from "./components/AIThinkingOverlay";
 import VoicePreviewPanel from "./components/VoicePreviewPanel";
 import { useGlobalVoiceInput } from "./hooks/use-global-voice-input";
 import { useRouter } from "next/navigation";
-import { atom_isAiConfigured, atom_aiBuilderRequest, atom_showCommandPaletteFab, atom_showHiddenFiles } from "@/app/atoms/ui-atoms";
+import { atom_isAiConfigured, atom_aiBuilderRequest, atom_showHiddenFiles } from "@/app/atoms/ui-atoms";
 import { usePaneFileActions } from "./hooks/use-pane-file-actions";
 import { useDraftImport } from "./hooks/use-draft-import";
 import { useEditorShortcuts } from "./hooks/use-editor-shortcuts";
@@ -49,15 +44,17 @@ import { useGitHubVaultActions } from "./hooks/use-github-vault-actions";
 import { useNavigateWithGuard } from "./hooks/use-navigate-with-guard";
 import { useSyncCurrentDirectory } from "./hooks/use-sync-current-directory";
 import DraftImportDialog from "./components/DraftImportDialog";
+import { useDraftFlow } from "./hooks/use-draft-flow";
+import { useHomeFeed } from "./hooks/use-home-feed";
+import HomeFeed from "./components/HomeFeed";
+import { useVaultOpenBehavior } from "./hooks/use-vault-open-behavior";
 
 export default function LiteEditor() {
   const router = useRouter();
-  const { open: openCommandPalette } = useCommandPalette();
   const [isMounting, setIsMounting] = useState(true);
-  const [content, setContent] = useAtom(atom_content);
-  const [fileName, setFileName] = useAtom(atom_fileName);
-  const [activeFilePath, setActiveFilePath] = useAtom(atom_activeFilePath);
-  const [, setActiveFileHandle] = useAtom(atom_activeFileHandle);
+  const content = useAtomValue(atom_content);
+  const fileName = useAtomValue(atom_fileName);
+  const activeFilePath = useAtomValue(atom_activeFilePath);
   const workspaceLayout = useAtomValue(atom_workspaceLayout);
   const activePaneId = useAtomValue(atom_activePaneId);
   // No split panes on mobile — always resolve to a single leaf, ignoring
@@ -85,7 +82,6 @@ export default function LiteEditor() {
     discardVoicePreview,
   } = useGlobalVoiceInput();
   const isMobileChrome = useIsMobileChrome();
-  const showCommandPaletteFab = useAtomValue(atom_showCommandPaletteFab);
   const [isMobileFileOverlayOpen, setIsMobileFileOverlayOpen] = useState(false);
   const {
     vaultHandle,
@@ -97,7 +93,7 @@ export default function LiteEditor() {
     exportFile,
     importFile,
     createFile,
-    createNewFile,
+    openFile,
     chooseTargetDirectory,
     scanVault,
     indexVaultTags,
@@ -110,18 +106,13 @@ export default function LiteEditor() {
     indexVaultTags?.(vaultHandle as any, showHiddenFiles);
   }, [vaultHandle, showHiddenFiles, scanVault, indexVaultTags]);
 
-  const dialog = useDialog();
-  const hasPromptedForNameRef = useRef(false);
+  const { materializeDraft, handleDraftAutosave, handleNewFile } = useDraftFlow({ vaultHandle, scanVault, indexVaultTags });
 
   // Run sync hooks
-  const { flush } = useAutoSave(() => {
-    if (!activeFileHandle && vaultHandle && !hasPromptedForNameRef.current) {
-      hasPromptedForNameRef.current = true;
-      handleSave();
-    }
-  });
+  const { flush } = useAutoSave(handleDraftAutosave);
   useFileWatcher();
   useVaultSync();
+  useVaultOpenBehavior();
 
   // "Open AI Chat" (keyboard shortcut / command palette) bumps this counter
   // from outside the editor; the actual open() call has to happen here since
@@ -163,18 +154,11 @@ export default function LiteEditor() {
     if (activeFileHandle) {
       await saveFile(content);
     } else if (vaultHandle) {
-      // Prompt for name if in a vault but no handle yet
-      const targetDir = await chooseTargetDirectory();
-      if (!targetDir) return;
-
-      const name = await dialog.prompt("Enter file name:", fileName.replace(".md", ""), "Save to Vault");
-      if (name) {
-        await createFile(name, content, targetDir);
-      }
+      await materializeDraft();
     } else {
       await exportFile(content, fileName);
     }
-  }, [content, activeFileHandle, vaultHandle, saveFile, exportFile, fileName, dialog, createFile, chooseTargetDirectory]);
+  }, [content, activeFileHandle, vaultHandle, saveFile, exportFile, fileName, materializeDraft]);
 
   const { isGitHubVault, runGitHubCommitCommand, runGitHubPullCommand } = useGitHubVaultActions({
     vaultHandle,
@@ -203,27 +187,16 @@ export default function LiteEditor() {
     flush,
   });
 
-  const resetEditor = useCallback(() => {
-    setContent("");
-    setFileName("untitled");
-    setActiveFileHandle(null);
-    setActiveFilePath("draft");
-    hasPromptedForNameRef.current = false;
-    toast.success("New draft started");
-  }, [setActiveFileHandle, setActiveFilePath, setContent, setFileName]);
-
-  const handleNewFile = useCallback(async () => {
-    if (!vaultHandle) {
-      resetEditor();
-      return;
-    }
-
-    await createNewFile();
-  }, [createNewFile, resetEditor, vaultHandle]);
-
   useEffect(() => {
     handleNewFileRef.current = handleNewFile;
   }, [handleNewFile]);
+
+  const { isHomeFeedOpen, feedProps } = useHomeFeed({
+    hasVault: !!vaultHandle,
+    openFile,
+    newNote: handleNewFile,
+    materializeDraft,
+  });
 
   const handleNewAIFile = useGenerateAiNote({ vaultHandle, vaultFiles, chooseTargetDirectory, createFile });
 
@@ -295,7 +268,7 @@ export default function LiteEditor() {
         <div className="flex-1 flex min-w-0 bg-surface overflow-hidden relative">
           {/* Main Editor Area */}
           <div className="flex-1 flex flex-col min-w-0 relative">
-            {isMobileChrome && (
+            {isMobileChrome && !isHomeFeedOpen && (
               <MobileFileIndicator
                 onSave={() => handleSaveRef.current()}
                 onOpenAIChat={isAiConfigured ? openAiChat : undefined}
@@ -312,6 +285,8 @@ export default function LiteEditor() {
                     <div className="h-4 bg-current w-11/12 rounded-md" />
                     <div className="h-4 bg-current w-5/6 rounded-md" />
                   </div>
+                ) : isHomeFeedOpen ? (
+                  <HomeFeed {...feedProps} />
                 ) : isMobileChrome ? (
                   <PaneLeaf leaf={mobileLeaf} />
                 ) : (
@@ -322,17 +297,6 @@ export default function LiteEditor() {
           </div>
         </div>
         </div>{/* end MAIN LAYOUT */}
-        {showCommandPaletteFab && !isMobileChrome && (
-          <Button
-            variant="unstyled"
-            onClick={() => openCommandPalette()}
-            className="fixed bottom-5 right-5 z-30 flex h-12 w-12 items-center justify-center rounded-full bg-sage text-white shadow-lg ring-1 ring-black/10 transition-all duration-200 hover:scale-105 hover:bg-sage-hover hover:shadow-xl active:scale-95 dark:text-surface dark:ring-white/10"
-            aria-label="Open command palette"
-            title="Command palette (Ctrl/Cmd+K)"
-          >
-            <HiOutlineViewGrid size={19} />
-          </Button>
-        )}
 
         {isAiConfigured && !isMobileChrome && (
           <AISelectionToolbar

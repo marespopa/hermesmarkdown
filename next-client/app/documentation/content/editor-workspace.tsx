@@ -228,6 +228,7 @@ tags: []
         />
         <KV
           rows={[
+            { label: "Home feed", value: "Your recent notes" },
             { label: "Open Explorer", value: "CTRL/CMD+SHIFT+E" },
             { label: "Open Tasks", value: "—" },
             { label: "Panes", value: "Open in pane, split down, next/previous, close" },
@@ -243,7 +244,8 @@ tags: []
           rows={[
             { label: "Open Vault / Close Vault / Refresh Vault", value: "—" },
             { label: "Create new vault", value: "—" },
-            { label: "New file / New folder", value: "Choose any vault folder, then enter a name" },
+            { label: "New file", value: "Blank note, named from its first line" },
+            { label: "New file in folder… / New folder", value: "Choose a vault folder, then enter a name" },
             { label: "Rename / Delete", value: "Uses the same prompts for files and folders" },
             { label: "Start / Stop voice input", value: "CTRL+SHIFT+V" },
             { label: "Insert / discard voice preview", value: "When a preview exists" },
@@ -251,6 +253,12 @@ tags: []
             { label: "Navigate", value: "Home, editor, settings, documentation, and welcome tour" },
           ]}
         />
+        <p>
+          Searching for a note that doesn&apos;t exist? The last result,{" "}
+          <strong>Create &quot;…&quot;</strong>, starts a new note with that title. The{" "}
+          <strong>&gt;</strong> button in the search field switches between searching files and
+          searching commands.
+        </p>
         <p>
           Use <code>↑</code>/<code>↓</code> (or <code>Tab</code>/<code>Shift+Tab</code>) to move
           through results, <code>Enter</code> to run the selected item, and <code>Escape</code> to close. The controlled

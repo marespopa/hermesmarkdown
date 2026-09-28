@@ -20,6 +20,8 @@ Index of the editor UI. Each component has a sibling `<Name>.md` (a token-lean d
 | [EditorCommands](EditorCommands.md) | Registers the editor command-palette entries (renders nothing). |
 | [BrowserVaultDialog](BrowserVaultDialog.md) | Create, reopen, or delete vaults stored in browser storage (Safari, Firefox, mobile). |
 | [GitHubVaultDialog](GitHubVaultDialog.md) | Sign in to GitHub, pick or create a repository, and open it as a vault. |
+| [HomeFeed](HomeFeed.md) | The vault's home screen: recent notes newest first with day labels and previews, a search/create pill and a new-note button; keyboard navigable. |
+| [home-feed/](home-feed/README.md) | `HomeFeed` building blocks: feed model, header, row, skeleton, indexing status, bottom bar. |
 | [ImageDialog](ImageDialog.md) | Lightbox for note images; resolves vault-relative paths locally. |
 | [LinkPill](LinkPill.md) | Floating pill over a Markdown or wiki link in the editor, offering open and edit (label and URL). |
 | [MarkdownEditor](MarkdownEditor.md) | CodeMirror 6 Markdown editor with inline pills, callouts, slash templates, and folding. |
@@ -30,7 +32,7 @@ Index of the editor UI. Each component has a sibling `<Name>.md` (a token-lean d
 | [MobileSelectionToolbar](MobileSelectionToolbar.md) | Mobile-only floating Bold/Italic/Link toolbar above a text selection. |
 | [NewVaultDialog](NewVaultDialog.md) | Dialog that creates a new local vault folder, using `CreateVaultSubSteps` to name it and pick a parent folder. |
 | [PaneLeaf](PaneLeaf.md) | One workspace pane: tab strip, pane actions, and the active file's editor. |
-| [PaneEmptyState](PaneEmptyState.md) | Empty-pane actions: new file, open note or file, vault actions. |
+| [PaneEmptyState](PaneEmptyState.md) | Empty-pane actions: new file (blank draft), open note or file, vault actions. |
 | [PaneTab](PaneTab.md) | Draggable file tab with a save-state indicator, shortcut hint, and close button. |
 | [RenderedBlockSourceDialog](RenderedBlockSourceDialog.md) | Source editor with live preview for an inline-rendered Mermaid diagram or math block; Save writes the body back as one undo step. |
 | [RepurposeNoteWizard](RepurposeNoteWizard.md) | Three-step wizard (select, drafting, review) that turns the current note into a blog post, social post, or newsletter draft saved as a new vault file. |

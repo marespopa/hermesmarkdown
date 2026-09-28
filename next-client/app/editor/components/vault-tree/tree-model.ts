@@ -20,8 +20,8 @@ export interface VaultFileTreeProps {
   // Tree-only: folders are inferred from paths, so folder actions need a way
   // to resolve a real FileSystemDirectoryHandle.
   resolveFolderHandle?: (path: string) => Promise<any | null>;
-  createNewFile?: () => void;
-  createFolder?: () => Promise<FileSystemDirectoryHandle | null>;
+  createNewFile?: (targetDirectory?: FileSystemDirectoryHandle) => void | Promise<unknown>;
+  createFolder?: (parentDirectory?: FileSystemDirectoryHandle) => Promise<FileSystemDirectoryHandle | null>;
   moveItem?: (handle: any, targetDir: any) => void;
 }
 

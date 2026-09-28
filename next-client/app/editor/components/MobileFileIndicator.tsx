@@ -1,15 +1,17 @@
 "use client";
 
 import React from "react";
-import { useAtomValue } from "jotai";
+import { useAtomValue, useSetAtom } from "jotai";
 import {
   atom_workspaceLayout,
   atom_activePaneId,
+  atom_homeFeedOpen,
   atom_openFiles,
   atom_saveStatus,
+  atom_vaultHandle,
   findLeaf,
 } from "@/app/atoms/atoms";
-import { HiOutlineChevronDown, HiOutlineChatAlt2 } from "react-icons/hi";
+import { HiOutlineChevronDown, HiOutlineChatAlt2, HiOutlineHome } from "react-icons/hi";
 import { useCommandPalette } from "@/app/components/CommandPalette/CommandPaletteContext";
 import { TabSaveState, statusMeta } from "./PaneTab";
 import Button from "@/app/components/Button";
@@ -30,6 +32,8 @@ export default function MobileFileIndicator({ onSave, onOpenAIChat }: MobileFile
   const openFiles = useAtomValue(atom_openFiles);
   const saveStatus = useAtomValue(atom_saveStatus);
   const { open: openCommandPalette } = useCommandPalette();
+  const hasVault = !!useAtomValue(atom_vaultHandle);
+  const setHomeFeedOpen = useSetAtom(atom_homeFeedOpen);
 
   const leaf = activePaneId ? findLeaf(workspaceLayout.rootContainer, activePaneId) : null;
   const hasOpenFiles = !!leaf && leaf.openFilePaths.length > 0;
@@ -60,6 +64,16 @@ export default function MobileFileIndicator({ onSave, onOpenAIChat }: MobileFile
 
   return (
     <div className="relative shrink-0 flex items-center h-11 bg-chrome border-b border-edge-subtle">
+      {hasVault && (
+        <Button variant="unstyled"
+          onClick={() => setHomeFeedOpen(true)}
+          aria-label="Home feed"
+          title="Home feed"
+          className="flex items-center justify-center h-11 min-w-11 shrink-0 text-fg-faint hover:text-sage transition-colors"
+        >
+          <HiOutlineHome size={18} />
+        </Button>
+      )}
       {onOpenAIChat && (
         <Button variant="unstyled"
           onClick={onOpenAIChat}

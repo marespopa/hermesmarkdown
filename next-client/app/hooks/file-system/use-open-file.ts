@@ -1,6 +1,6 @@
 "use client";
 
-import { useAtom } from "jotai";
+import { useAtom, useSetAtom } from "jotai";
 import { useCallback } from "react";
 import toast from "react-hot-toast";
 import {
@@ -15,7 +15,7 @@ import {
   contentStore,
 } from "@/app/atoms/atoms";
 import { atom_fileMetadata } from "@/app/atoms/metadata";
-import { atom_isFileLoading } from "@/app/atoms/ui-atoms";
+import { atom_homeFeedOpen, atom_isFileLoading } from "@/app/atoms/ui-atoms";
 import { nextPaint } from "@/app/utils/next-paint";
 import { useDialog } from "../use-dialog";
 import { resolveFileMetaByName } from "./resolve-file-by-name";
@@ -23,7 +23,7 @@ import { resolveFileMetaByName } from "./resolve-file-by-name";
 export function useOpenFile() {
   const [vaultHandle] = useAtom(atom_vaultHandle);
   const [, setActiveFileHandle] = useAtom(atom_activeFileHandle);
-  const [, setActiveFilePath] = useAtom(atom_activeFilePath);
+  const [activeFilePath, setActiveFilePath] = useAtom(atom_activeFilePath);
   const [content] = useAtom(atom_content);
   const [fileMetadata] = useAtom(atom_fileMetadata);
   const [, setOpenFiles] = useAtom(atom_openFiles);
@@ -31,6 +31,7 @@ export function useOpenFile() {
   const [, setFileLastModified] = useAtom(atom_fileLastModified);
   const [, setFileConflict] = useAtom(atom_fileConflict);
   const [, setIsFileLoading] = useAtom(atom_isFileLoading);
+  const setHomeFeedOpen = useSetAtom(atom_homeFeedOpen);
   const dialog = useDialog();
 
   const openFile = useCallback(
@@ -71,33 +72,26 @@ export function useOpenFile() {
 
       const finalPath = path || fileHandle.name;
 
-      // 0. Check for unsaved changes (Dirty State protection)
-      if (!force) {
-        const openFiles = contentStore.get(atom_openFiles);
-        const existing = openFiles[finalPath];
-        
-        // Scenario A: The file we are opening is already dirty in browser memory
-        if (existing && existing.content !== existing.lastSavedContent) {
-           const confirmed = await dialog.confirm(
-            `"${fileHandle.name}" has unsaved changes in your browser. Opening it will overwrite those changes with the version from your computer.`,
-            "Overwrite unsaved changes?",
-            "Overwrite",
-            "Cancel"
-          );
-          if (!confirmed) return;
-        } 
-        
-        // Scenario B: The CURRENT active file is dirty (standard focus-loss warning)
-        else if (content !== lastSavedContent) {
-          const confirmed = await dialog.confirm(
-            "You have unsaved changes in your current file/draft. Open this file and discard changes?",
-            "Unsaved Changes",
-            "Open File",
-            "Cancel",
-            "You can save your current changes first to avoid losing work."
-          );
-          if (!confirmed) return;
-        }
+      // 0. Saved content on disk always wins when (re)opening a file. If the
+      // browser holds different, unsaved text for it, that text is kept as a
+      // "local" snapshot on the tab (recoverable) instead of prompting.
+      const existing = contentStore.get(atom_openFiles)[finalPath];
+      const browserOnlyEdit =
+        existing && existing.content !== existing.lastSavedContent && existing.content.trim()
+          ? existing.content
+          : null;
+
+      // The CURRENT active file being dirty is only a concern when it's the
+      // draft, which has no file on disk to fall back to.
+      if (!force && !browserOnlyEdit && (!activeFilePath || activeFilePath === "draft") && content !== lastSavedContent) {
+        const confirmed = await dialog.confirm(
+          "You have unsaved changes in your draft. Open this file and discard them?",
+          "Unsaved Changes",
+          "Open File",
+          "Cancel",
+          "You can save your draft first to avoid losing work.",
+        );
+        if (!confirmed) return;
       }
 
       try {
@@ -106,18 +100,27 @@ export function useOpenFile() {
         const fileContent = await file.text();
 
         // 1. Update openFiles registry first so the pane has data to read (persisted fields only)
-        setOpenFiles((prev) => ({
-          ...prev,
-          [finalPath]: {
-            content: fileContent,
-            lastSavedContent: fileContent,
-            fileName: fileHandle.name,
-            activeFilePath: finalPath,
-          },
-        }));
+        setOpenFiles((prev) => {
+          const previous = prev[finalPath];
+          const keepLocal = browserOnlyEdit !== null && browserOnlyEdit !== fileContent;
+          const snapshots = keepLocal
+            ? [...(previous?.snapshots ?? []), { timestamp: Date.now(), type: "local" as const, content: browserOnlyEdit }]
+            : previous?.snapshots;
+          return {
+            ...prev,
+            [finalPath]: {
+              content: fileContent,
+              lastSavedContent: fileContent,
+              fileName: fileHandle.name,
+              activeFilePath: finalPath,
+              ...(snapshots ? { snapshots } : {}),
+            },
+          };
+        });
 
-        // 2. Switch active path
+        // 2. Switch active path (leaving the home feed, if it's showing)
         setActiveFilePath(finalPath);
+        setHomeFeedOpen(false);
 
         // 3. Store the "live" handle separately (non-persisted)
         setActiveFileHandle(fileHandle);
@@ -175,6 +178,7 @@ export function useOpenFile() {
     },
     [
       setActiveFileHandle,
+      activeFilePath,
       setActiveFilePath,
       vaultHandle,
       fileMetadata,
@@ -184,20 +188,21 @@ export function useOpenFile() {
       lastSavedContent,
       setOpenFiles,
       setIsFileLoading,
+      setHomeFeedOpen,
       dialog,
     ],
   );
 
   const openFileByName = useCallback(
     async (name: string) => {
-      const match = resolveFileMetaByName(name, fileMetadata);
+      const match = resolveFileMetaByName(name, fileMetadata, activeFilePath);
       if (match) {
         await openFile(match.handle, match.path);
       } else {
         toast.error(`File not found: ${name.split("|")[0].trim()}`);
       }
     },
-    [fileMetadata, openFile],
+    [fileMetadata, openFile, activeFilePath],
   );
 
   return { openFile, openFileByName };

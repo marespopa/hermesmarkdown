@@ -115,6 +115,7 @@ describe("buildEditorCommands", () => {
     expect(commands.map((command) => command.id)).toEqual([
       "save-file",
       "new-file",
+      "new-file-in-folder",
       "export-file",
       "import-file",
       "open-explorer",

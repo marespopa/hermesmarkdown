@@ -62,6 +62,35 @@ export function removePathsFromLayout(
   } as WorkspaceContainer;
 }
 
+// Rewrites `path` when it is `oldPrefix` itself or lives under it (a folder
+// rename/move), returning null for unrelated paths. `a/b` never matches
+// `a/bc`: only exact matches or a `/` boundary count.
+export function remapPath(path: string, oldPrefix: string, newPrefix: string): string | null {
+  if (path === oldPrefix) return newPrefix;
+  if (path.startsWith(`${oldPrefix}/`)) return newPrefix + path.slice(oldPrefix.length);
+  return null;
+}
+
+// Renames tab paths in every pane after a file or folder moved on disk,
+// keeping tab order and each pane's active tab.
+export function remapPathsInLayout(
+  node: WorkspaceContainer | PanelLeaf,
+  mapPath: (path: string) => string,
+): WorkspaceContainer | PanelLeaf {
+  if ("type" in node) {
+    return {
+      ...node,
+      // A pane could already hold a tab at the destination path; keep one.
+      openFilePaths: [...new Set(node.openFilePaths.map(mapPath))],
+      activeFilePath: node.activeFilePath ? mapPath(node.activeFilePath) : node.activeFilePath,
+    };
+  }
+  return {
+    ...node,
+    children: node.children.map((child) => remapPathsInLayout(child, mapPath)),
+  } as WorkspaceContainer;
+}
+
 export function updateLeaf(
   node: WorkspaceContainer | PanelLeaf,
   id: string,

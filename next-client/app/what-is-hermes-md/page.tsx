@@ -57,14 +57,15 @@ export default function WhatIsHermesMd() {
           <div className="space-y-5 text-neutral-500 dark:text-neutral-400 leading-relaxed text-base md:text-lg">
             <p>
               <strong className="text-ink-light dark:text-ink-dark font-semibold">HermesMarkdown is a
-              Markdown editor that runs entirely in your browser and reads/writes files directly on your
-              local disk.</strong>{" "}
-              There&apos;s no account and no upload step — you open a folder of{" "}
-              <InlineCode>.md</InlineCode> files (including an existing Obsidian vault, if you have one) and
-              edit it in place. In browsers that can&apos;t open folders (Safari, Firefox, iPhone, iPad),
-              notes live in a browser vault instead, and the app works offline once installed. Optional
-              GitHub-backed vaults and bring-your-own-key AI features are the
-              only parts that talk to a server. It has no relationship to any AI agent&apos;s memory system.
+              Markdown editor that runs entirely in your browser.</strong>{" "}
+              There&apos;s no account and no upload step. Your notes live in a vault, and you choose
+              where: a folder of <InlineCode>.md</InlineCode> files on your disk, edited in place
+              (Chrome, Edge, and other Chromium browsers; an existing Obsidian vault works too), a
+              browser vault kept in the browser&apos;s own storage (any browser, including Safari,
+              Firefox, phones, and tablets), or a GitHub repository when you want the same notes on
+              several devices. Installed as an app, it works offline. Only GitHub sync and the
+              optional bring-your-own-key AI features talk to a server. It has no relationship to any
+              AI agent&apos;s memory system.
             </p>
           </div>
         </section>

@@ -10,7 +10,8 @@ import {
   atom_fileMetadata, 
   atom_openFiles, 
   atom_lastSavedContent,
-  atom_isFileLoading
+  atom_isFileLoading,
+  contentStore,
 } from "@/app/atoms/atoms";
 
 vi.mock("jotai", async (importOriginal) => {
@@ -21,9 +22,10 @@ vi.mock("jotai", async (importOriginal) => {
   };
 });
 
+const { mockConfirm } = vi.hoisted(() => ({ mockConfirm: vi.fn().mockResolvedValue(true) }));
 vi.mock("../use-dialog", () => ({
   useDialog: vi.fn(() => ({
-    confirm: vi.fn().mockResolvedValue(true),
+    confirm: mockConfirm,
   })),
 }));
 
@@ -86,5 +88,57 @@ describe("useOpenFile loading state", () => {
 
     expect(mockSetIsFileLoading).toHaveBeenCalledWith(true);
     expect(mockSetIsFileLoading).toHaveBeenLastCalledWith(false);
+  });
+});
+
+describe("useOpenFile prefers saved content on disk", () => {
+  const setOpenFiles = vi.fn();
+  const diskHandle = {
+    name: "board.md",
+    getFile: vi.fn().mockResolvedValue({ text: async () => "on disk", lastModified: 1 }),
+  };
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    (useAtom as any).mockImplementation((atom: any) => {
+      if (atom === atom_openFiles) return [{}, setOpenFiles];
+      if (atom === atom_activeFilePath) return ["other.md", vi.fn()];
+      if (atom === atom_content) return ["", vi.fn()];
+      if (atom === atom_lastSavedContent) return ["", vi.fn()];
+      if (atom === atom_fileMetadata) return [{}, vi.fn()];
+      return [null, vi.fn()];
+    });
+  });
+
+  function applyOpenFilesUpdate(prev: Record<string, any>) {
+    const update = setOpenFiles.mock.calls[0][0];
+    return update(prev)["board.md"];
+  }
+
+  it("loads disk content without prompting when the tab was blanked", async () => {
+    const prev = { "board.md": { content: "", lastSavedContent: "on disk", fileName: "board.md", activeFilePath: "board.md" } };
+    contentStore.set(atom_openFiles, prev);
+    const { result } = renderHook(() => useOpenFile());
+
+    await result.current.openFile(diskHandle as any, "board.md");
+
+    expect(mockConfirm).not.toHaveBeenCalled();
+    const next = applyOpenFilesUpdate(prev);
+    expect(next.content).toBe("on disk");
+    expect(next.snapshots).toBeUndefined();
+  });
+
+  it("keeps browser-only edits as a local snapshot instead of prompting", async () => {
+    const prev = { "board.md": { content: "browser edit", lastSavedContent: "old", fileName: "board.md", activeFilePath: "board.md" } };
+    contentStore.set(atom_openFiles, prev);
+    const { result } = renderHook(() => useOpenFile());
+
+    await result.current.openFile(diskHandle as any, "board.md");
+
+    expect(mockConfirm).not.toHaveBeenCalled();
+    const next = applyOpenFilesUpdate(prev);
+    expect(next.content).toBe("on disk");
+    expect(next.lastSavedContent).toBe("on disk");
+    expect(next.snapshots).toEqual([expect.objectContaining({ type: "local", content: "browser edit" })]);
   });
 });

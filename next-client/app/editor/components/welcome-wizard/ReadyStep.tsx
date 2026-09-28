@@ -13,7 +13,7 @@ export default function ReadyStep({ onFinish }: { onFinish: () => void }) {
     <WizardStep
       icon={<HiOutlineCheckCircle size={32} />}
       title="You're ready to write."
-      description="Your vault is set up. Search, tags, tasks and syntax helpers work as you go."
+      description="Your vault is set up. Search, tags, tasks and syntax helpers work as you go. Every choice you made here can be changed in Settings."
       continueLabel="Open Editor"
       onContinue={onFinish}
     >

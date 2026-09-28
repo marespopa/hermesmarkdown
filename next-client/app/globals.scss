@@ -382,3 +382,23 @@ ul li::marker {
 .font-display {
   font-family: var(--font-plus-jakarta), var(--font-inter), Inter, ui-sans-serif, sans-serif;
 }
+
+// Home feed search pill ⇄ command palette search field (shared element,
+// see CommandPaletteContext `morphWithAnchor`). The rest of the page just
+// cross-fades quickly; the field glides and resizes between its two places.
+::view-transition-group(palette-search) {
+  animation-duration: 260ms;
+  animation-timing-function: cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+::view-transition-old(palette-search),
+::view-transition-new(palette-search) {
+  animation-duration: 180ms;
+  // Keep the text at its natural size while the box resizes.
+  height: 100%;
+  object-fit: none;
+  object-position: left center;
+}
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 180ms;
+}

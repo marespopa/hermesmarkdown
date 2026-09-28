@@ -6,6 +6,7 @@ Non-React modules: IndexedDB persistence, browser storage, file writing, vault a
 
 Atom persistence uses Jotai `atomWithStorage` (`localStorage`) directly in `app/atoms/*`.
 
+- `metadata-cache.ts` — IndexedDB cache of each vault's parsed metadata (tags, links, frontmatter, tasks, word count, preview), keyed by `atom_vaultKey`. On reopen, notes whose modified time matches are reused instead of re-read. It's a separate database from `idb.ts` and is versioned (`METADATA_CACHE_VERSION`), so parser changes invalidate it. It stays on the device and falls back to "nothing cached" when IndexedDB is missing or fails.
 - `idb.ts` — IndexedDB wrapper for the vault `FileSystemDirectoryHandle` (save / load / clear, `verifyPermission`, `queryPermission`), the browser vault descriptor and registry, and the GitHub vault descriptor and manifest. Saving one vault kind clears the others. Permission helpers treat handles without a permission API (Safari, Firefox, browser storage) as granted. Separate from atom persistence. No-op if IndexedDB is missing.
 - `opfs.ts` — Origin Private File System helpers shared by browser and GitHub vaults (`hermes-vaults/…`): browser vault descriptors, workspace lookup / listing / deletion, persistent-storage request, usage estimate, backup-reminder check.
 

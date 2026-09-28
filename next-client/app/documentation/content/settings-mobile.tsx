@@ -16,7 +16,7 @@ export const settingsGroup: Group = {
             System/light/dark theme controls are available in Settings → Appearance and from the
             command palette. System follows your operating system automatically. The editor font is
             set under Settings → Typography and applies to every pane in a split workspace. Word
-            wrap, line numbers and Vim mode also live under Appearance.
+            wrap, line numbers, Vim mode and flow mode also live under Appearance.
           </p>
           <KV
             rows={[
@@ -29,6 +29,27 @@ export const settingsGroup: Group = {
             Mono and IBM Plex Mono remain available for technical surfaces, while Inter remains
             available for interface-focused typography.
           </Callout>
+        </>
+      ),
+    },
+    {
+      id: "vault-home-settings",
+      title: "Vault home & new notes",
+      lead: "Choose what a vault opens to and where new notes go.",
+      keywords: "on vault open home feed resume tabs new notes folder settings",
+      body: (
+        <>
+          <KV
+            rows={[
+              { label: "On Vault Open", value: "Home feed (default) or Resume last tabs" },
+              { label: "New Notes Folder", value: "Empty = vault root, or a folder like inbox" },
+            ]}
+          />
+          <p>
+            These live under <strong>Settings → Files</strong>. A folder that doesn&apos;t exist
+            yet is created the first time a note is saved there. Your open notes are restored either
+            way; On Vault Open only decides what you see first.
+          </p>
         </>
       ),
     },
@@ -66,6 +87,12 @@ export const mobileGroup: Group = {
             status — there's no keyboard shortcut for the command palette on mobile, so tapping this
             bar is the one always-present way to open it. From there, Open Explorer, Search, Open Tasks,
             New file, and every other command work exactly as they do on desktop.
+          </p>
+          <p>
+            The <strong>Home</strong> button at the left of that bar takes you back to the{" "}
+            <a href="#home-feed" className="text-sage font-semibold hover:underline">home feed</a>.
+            On the feed, the search bar and the <strong>+</strong> button sit at the bottom, within
+            reach of your thumb.
           </p>
           <p>Explorer and Search open as full-screen overlays rather than docked panels.</p>
         </>

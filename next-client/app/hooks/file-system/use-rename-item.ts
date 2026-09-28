@@ -6,12 +6,10 @@ import toast from "react-hot-toast";
 import {
   atom_vaultHandle,
   atom_currentDirectoryHandle,
-  atom_activeFileHandle,
-  atom_fileName,
-  atom_activeFilePath,
 } from "@/app/atoms/atoms";
-import { atom_fileMetadata } from "@/app/atoms/metadata";
+import { atom_remapVaultPaths } from "@/app/atoms/vault-atoms";
 import { useDialog } from "../use-dialog";
+import { moveDirectoryByCopy } from "./directory-ops";
 import { withRetry } from "./shared";
 import { writeFileContent } from "@/app/services/file-writer";
 
@@ -23,10 +21,7 @@ interface UseRenameItemProps {
 export function useRenameItem({ scanVault, indexVaultTags }: UseRenameItemProps) {
   const [vaultHandle] = useAtom(atom_vaultHandle);
   const [currentDirectoryHandle] = useAtom(atom_currentDirectoryHandle);
-  const [activeFileHandle, setActiveFileHandle] = useAtom(atom_activeFileHandle);
-  const [, setFileName] = useAtom(atom_fileName);
-  const [, setActiveFilePath] = useAtom(atom_activeFilePath);
-  const setFileMetadata = useSetAtom(atom_fileMetadata);
+  const remapVaultPaths = useSetAtom(atom_remapVaultPaths);
   const dialog = useDialog();
 
   const renameFile = useCallback(
@@ -79,15 +74,12 @@ export function useRenameItem({ scanVault, indexVaultTags }: UseRenameItemProps)
             throw e; // Throw the original error so the outer catch can see if it's NotFoundError
           }
 
-          // 2. Check if this is the active file
-          let isActive = false;
-          if (activeFileHandle) {
-            try {
-              isActive = await (freshHandle as any).isSameEntry(activeFileHandle);
-            } catch {
-              // Comparison failed
-            }
-          }
+          // 2. Vault-relative paths before and after, for tabs/metadata/tree
+          const dirParts: string[] = parentDir === vaultHandle
+            ? []
+            : (await (vaultHandle as any).resolve(parentDir)) || [];
+          const oldPath = [...dirParts, handle.name].join("/");
+          const newPath = [...dirParts, newName].join("/");
 
           // 3. Attempt Native Move with Fallback
           let moveSuccessful = false;
@@ -101,23 +93,7 @@ export function useRenameItem({ scanVault, indexVaultTags }: UseRenameItemProps)
             }
           }
 
-          if (moveSuccessful) {
-            if (isActive) {
-              setActiveFileHandle(freshHandle as FileSystemFileHandle);
-              setFileName(newName.replace(".md", ""));
-
-              // Recalculate path for metadata/tracking
-              if (vaultHandle) {
-                const pathParts = await (vaultHandle as any).resolve(freshHandle);
-                if (pathParts) {
-                  setActiveFilePath(pathParts.join("/"));
-                } else {
-                  setActiveFilePath(newName);
-                }
-              }
-            }
-          } else {
-            // Fallback for files: manual copy and delete
+          if (!moveSuccessful) {
             if (freshHandle.kind === "file") {
               // Copy the File itself so binary attachments keep their bytes.
               const file = await (freshHandle as FileSystemFileHandle).getFile();
@@ -126,44 +102,20 @@ export function useRenameItem({ scanVault, indexVaultTags }: UseRenameItemProps)
               }));
               await withRetry(() => writeFileContent(newFileHandle, file));
               await withRetry(() => (parentDir as any).removeEntry(freshHandle.name));
-
-              if (isActive) {
-                setActiveFileHandle(newFileHandle);
-                setFileName(newName.replace(".md", ""));
-
-                // Recalculate path for metadata/tracking
-                if (vaultHandle) {
-                  const pathParts = await (vaultHandle as any).resolve(newFileHandle);
-                  if (pathParts) {
-                    setActiveFilePath(pathParts.join("/"));
-                  } else {
-                    setActiveFilePath(newName);
-                  }
-                }
-              }
             } else {
-              throw new Error("Folder renaming not supported in this browser");
+              await moveDirectoryByCopy(
+                freshHandle as FileSystemDirectoryHandle,
+                parentDir,
+                parentDir,
+                newName,
+              );
             }
           }
-          // Patch fileMetadata's key/path for the renamed entry immediately, and
-          // write the index off that snapshot, rather than waiting on the full
-          // worker rescan round-trip triggered by scanVault below.
-          if (vaultHandle) {
-            try {
-              const dirParts = parentDir === vaultHandle ? [] : (await (vaultHandle as any).resolve(parentDir)) || [];
-              const oldPath = [...dirParts, handle.name].join("/");
-              const newPath = [...dirParts, newName].join("/");
-              setFileMetadata((prev) => {
-                if (!(oldPath in prev)) return prev;
-                const next = { ...prev };
-                next[newPath] = { ...next[oldPath], path: newPath, name: newName };
-                delete next[oldPath];
-                return next;
-              });
-            } catch (err) {
-              console.warn("Failed to patch metadata path for rename:", err);
-            }
-          }
+
+          // 4. Follow the rename in open tabs (keeping unsaved edits, with
+          // fresh handles), pane layouts, metadata and the file tree — for a
+          // folder, that includes everything inside it.
+          await remapVaultPaths({ oldPath, newPath });
 
           await scanVault(parentDir);
           indexVaultTags();
@@ -197,13 +149,9 @@ export function useRenameItem({ scanVault, indexVaultTags }: UseRenameItemProps)
     [
       vaultHandle,
       currentDirectoryHandle,
-      activeFileHandle,
       scanVault,
       indexVaultTags,
-      setFileName,
-      setActiveFileHandle,
-      setActiveFilePath,
-      setFileMetadata,
+      remapVaultPaths,
       dialog,
     ],
   );

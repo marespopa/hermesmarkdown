@@ -1,6 +1,6 @@
 "use client";
 
-import { useAtom, useSetAtom } from "jotai";
+import { useAtom, useSetAtom, useStore } from "jotai";
 import { useCallback, useEffect, useRef } from "react";
 import toast from "react-hot-toast";
 import {
@@ -18,6 +18,7 @@ import {
   atom_fileSystemVersion,
   atom_indexerState,
   atom_vaultDescriptor,
+  atom_vaultKey,
   type VaultDescriptor,
 } from "@/app/atoms/atoms";
 import { atom_fileMetadata } from "@/app/atoms/metadata";
@@ -48,7 +49,8 @@ import {
   resolveParentDirectory,
   singlePaneLayout,
 } from "./vault-scan";
-import { useMetadataWorkerResults } from "./use-metadata-worker-results";
+import { indexVaultFiles, parseWithWorker, reportCollectProblems } from "./vault-index";
+import { loadMetadataCache, saveMetadataCache } from "@/app/services/metadata-cache";
 import { atom_showHiddenFiles, atom_browserVaultDialogOpen } from "@/app/atoms/ui-atoms";
 import { loadStoredWorkspace } from "./stored-workspace";
 
@@ -70,7 +72,9 @@ export function useVaultManager() {
   const rebindHandles = useSetAtom(atom_rebindHandles);
   const setIndexerState = useSetAtom(atom_indexerState);
   const setBrowserVaultDialogOpen = useSetAtom(atom_browserVaultDialogOpen);
-  const pendingHandlesRef = useRef<Map<string, FileSystemFileHandle>>(new Map());
+  const store = useStore();
+  // Each indexing run takes a number; an older run stops once a newer one starts.
+  const indexRunRef = useRef(0);
 
   const detectCloudVault = useCallback(
     (handle: FileSystemDirectoryHandle) => {
@@ -114,45 +118,47 @@ export function useVaultManager() {
         const handle = passedHandle || vaultHandle;
         if (!handle) return;
 
+        const run = ++indexRunRef.current;
         setIndexerState({ status: "compiling", count: 0 });
         const { files: fileHandles, failedSubdirs: subdirFailCount, timedOut } = await collectVaultFiles(handle, includeHidden);
 
-        if (timedOut) {
-          toast.error(
-            "Indexing is taking a while — some folders may be very large. Showing what we found so far.",
-            { id: "index-timeout", duration: 6000 },
-          );
-        }
+        reportCollectProblems(timedOut, subdirFailCount);
 
-        if (subdirFailCount > 0) {
-          toast.error(
-            `Could not read ${subdirFailCount} subfolder(s). Grant full folder access and re-open the vault.`,
-            { id: "subdir-access-error", duration: 6000 },
-          );
-        }
+        if (indexRunRef.current !== run) return;
 
-        // Fresh vault open: replace metadata entirely so stale entries from a
-        // previous vault never block display. Re-index after save / periodic
-        // sync: keep parsed metadata, refresh handles, drop files gone from disk.
-        setFileMetadata((prev) => metadataForFiles(fileHandles, passedHandle ? undefined : prev));
-
-        // Tag extraction is secondary; the visible state above never waits for it.
-        const readable = await readFilesForIndexing(fileHandles);
-
-        // Store handles locally so we can re-attach them after the worker responds
-        pendingHandlesRef.current = new Map(fileHandles.map((f) => [f.path, f.handle]));
-
-        if (metadataWorker && readable.length > 0) {
-          metadataWorker.postMessage({ files: readable });
-        } else {
+        // Without a worker, list the notes with no parsed metadata. Fresh
+        // vault open replaces metadata entirely; re-index keeps earlier
+        // parses, refreshes handles and drops files gone from disk.
+        if (!metadataWorker) {
+          setFileMetadata((prev) => metadataForFiles(fileHandles, passedHandle ? undefined : prev));
           setIndexerState("idle");
+          return;
         }
+
+        // Dates first, cached parses reused, the rest parsed newest first in
+        // the background (see vault-index.ts). Read the vault key from the
+        // store: right after a vault opens, this callback's closure is stale.
+        const vaultKey = store.get(atom_vaultKey);
+        const worker = metadataWorker;
+        const { done } = await indexVaultFiles(fileHandles, !!passedHandle, {
+          loadCache: () => (vaultKey ? loadMetadataCache(vaultKey) : Promise.resolve(null)),
+          saveCache: (entries) => (vaultKey ? saveMetadataCache(vaultKey, entries) : Promise.resolve()),
+          read: readFilesForIndexing,
+          parse: (files) => parseWithWorker(worker, files),
+          setMetadata: setFileMetadata,
+          isCurrent: () => indexRunRef.current === run,
+        });
+        void done
+          .catch((err) => console.error("Failed to parse vault metadata:", err))
+          .finally(() => {
+            if (indexRunRef.current === run) setIndexerState("idle");
+          });
       } catch (err: any) {
         console.error("Failed to index vault tags:", err);
         setIndexerState("idle");
       }
     },
-    [vaultHandle, setIndexerState, setFileMetadata, showHiddenFiles],
+    [vaultHandle, setIndexerState, setFileMetadata, showHiddenFiles, store],
   );
 
   const initVaultFromHandle = useCallback(async (
@@ -329,7 +335,6 @@ export function useVaultManager() {
     toast.success("Vault closed");
   }, [setVaultHandle, setCurrentDirectoryHandle, setVaultFiles, setFileMetadata, setActiveFileHandle, setActiveFilePath, setIsVaultPending, setOpenFiles, setWorkspaceLayout, setIsCloudVault, setVaultDescriptor]);
 
-  useMetadataWorkerResults(pendingHandlesRef);
 
   // Load vault on mount
   useEffect(() => {
