@@ -57,9 +57,6 @@ export const atom_homeFeedOpen = atom<boolean>(false);
 // Vault-relative folder that drafts are saved into on their first save
 // ("" = vault root). Created on demand.
 export const atom_newNoteFolder = atomWithStorage<string>("newNoteFolder", "");
-// Hide a desktop pane's tab strip while it holds a single tab and the
-// workspace isn't split; its actions float in the pane's corner instead.
-export const atom_autoHideTabs = atomWithStorage<boolean>("autoHideTabs", true);
 // Vault key the vault-open behavior last ran for, so returning to the editor
 // from another route doesn't replace the file just opened there.
 export const atom_vaultOpenBehaviorAppliedFor = atom<string | null>(null);

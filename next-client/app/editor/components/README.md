@@ -33,7 +33,6 @@ Index of the editor UI. Each component has a sibling `<Name>.md` (a token-lean d
 | [NewVaultDialog](NewVaultDialog.md) | Dialog that creates a new local vault folder, using `CreateVaultSubSteps` to name it and pick a parent folder. |
 | [PaneLeaf](PaneLeaf.md) | One workspace pane: tab strip, pane actions, and the active file's editor. |
 | [PaneEmptyState](PaneEmptyState.md) | Empty-pane actions: new file (blank draft), open note or file, vault actions. |
-| [PaneTitleBar](PaneTitleBar.md) | Single-note pane header in the tab strip's style: Home left, centered title with save dot, palette/Save/More right. |
 | [PaneTab](PaneTab.md) | Draggable file tab with a save-state indicator, shortcut hint, and close button. |
 | [RenderedBlockSourceDialog](RenderedBlockSourceDialog.md) | Source editor with live preview for an inline-rendered Mermaid diagram or math block; Save writes the body back as one undo step. |
 | [RepurposeNoteWizard](RepurposeNoteWizard.md) | Three-step wizard (select, drafting, review) that turns the current note into a blog post, social post, or newsletter draft saved as a new vault file. |

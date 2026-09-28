@@ -44,6 +44,8 @@ const openEditorSection = () => {
   fireEvent.click(matches[matches.length - 1]);
 };
 
+const openFilesSection = () => fireEvent.click(screen.getByText("Files"));
+
 describe("SettingsPage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -99,6 +101,15 @@ describe("SettingsPage", () => {
 
     expect(screen.getByText("Vim Mode")).toBeInTheDocument();
     expect(screen.getByText("Collapse Frontmatter")).toBeInTheDocument();
+    expect(screen.queryByText("Delay")).not.toBeInTheDocument();
+  });
+
+  it("renders file and autosave options in the Files section", () => {
+    render(<SettingsPage />);
+    openFilesSection();
+
+    expect(screen.getByText("On Vault Open")).toBeInTheDocument();
+    expect(screen.getByText("Show Hidden Files")).toBeInTheDocument();
     expect(screen.getByText("Delay")).toBeInTheDocument();
   });
 
@@ -129,7 +140,7 @@ describe("SettingsPage", () => {
     });
 
     render(<SettingsPage />);
-    openEditorSection();
+    openFilesSection();
 
     const select = screen.getByDisplayValue("2s");
     fireEvent.change(select, { target: { value: "5000" } });

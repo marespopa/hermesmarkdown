@@ -33,13 +33,13 @@ function harness(overrides: Partial<VaultIndexDeps> = {}, initial: Record<string
   const deps: VaultIndexDeps = {
     loadCache: vi.fn(async () => null),
     saveCache: vi.fn(async () => {}),
-    read: vi.fn(async (files) =>
+    read: vi.fn<VaultIndexDeps["read"]>(async (files) =>
       Promise.all(files.map(async (f) => {
         const blob = await f.handle.getFile();
         return { path: f.path, name: f.handle.name, content: await blob.text(), modifiedAt: blob.lastModified };
       })),
     ),
-    parse: vi.fn(async (files) => files.map((f) => parsed(f.path, f.modifiedAt))),
+    parse: vi.fn<VaultIndexDeps["parse"]>(async (files) => files.map((f) => parsed(f.path, f.modifiedAt))),
     setMetadata: vi.fn((update) => { metadata = update(metadata); }),
     isCurrent: () => true,
     chunkSize: 2,

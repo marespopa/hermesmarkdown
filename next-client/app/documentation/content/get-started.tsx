@@ -232,9 +232,7 @@ export const getStartedGroup: Group = {
             keyboard shortcuts, and the slash command menu.
           </p>
           <p>
-            The header shows your tabs when several notes are open. With one note open, it shows
-            just the note&apos;s title instead (turn this off with{" "}
-            <strong>Settings → Auto-hide Tabs</strong>). Either way, Home is on the left, and the
+            The header shows your open notes as tabs, even when only one is open. Home is on the left, and the
             command palette, AI Chat (when an AI key is set), Save, and more options are on the
             right.
           </p>

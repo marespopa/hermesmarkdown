@@ -6,7 +6,7 @@ import MarkdownEditor from "./MarkdownEditor";
 import TabContextMenu, { TabContextMenuItem } from "./TabContextMenu";
 import { useAtom, useSetAtom } from "jotai";
 import { atom_activePaneId, atom_fileContent, atom_openFiles, atom_splitPane, atom_closePane, atom_activeFilePath, atom_saveStatus, atom_workspaceLayout, getWorkspaceTabs } from "@/app/atoms/atoms";
-import { atom_aiBuilderRequest, atom_autoHideTabs, atom_homeFeedOpen, atom_isAiConfigured, atom_isVoicePreviewVisible } from "@/app/atoms/ui-atoms";
+import { atom_aiBuilderRequest, atom_homeFeedOpen, atom_isAiConfigured, atom_isVoicePreviewVisible } from "@/app/atoms/ui-atoms";
 import { atom_materializedDraftPath } from "@/app/atoms/file-atoms";
 import { atom_vaultHandle } from "@/app/atoms/vault-atoms";
 import { HiOutlineDocumentText, HiOutlineChartBar, HiOutlineX, HiOutlineClipboardCopy, HiOutlineSave, HiOutlineDotsHorizontal, HiOutlineHome, HiOutlineSearch, HiOutlineChatAlt2 } from "react-icons/hi";
@@ -21,7 +21,7 @@ import useIsMobileChrome from "@/app/hooks/use-mobile-chrome";
 import { usePaneFileActions } from "../hooks/use-pane-file-actions";
 import { useTabDragDrop } from "../hooks/use-tab-drag-drop";
 import PaneEmptyState from "./PaneEmptyState";
-import PaneTitleBar, { PANE_ACTION_BUTTON_CLASS, PANE_ACTIONS_CLASS, PANE_HEADER_CLASS } from "./PaneTitleBar";
+import { PANE_ACTION_BUTTON_CLASS, PANE_ACTIONS_CLASS, PANE_HEADER_CLASS } from "./pane-header-classes";
 import { useCommandPalette } from "@/app/components/CommandPalette/CommandPaletteContext";
 
 interface PaneLeafProps {
@@ -42,7 +42,6 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
   const { openFileByName } = useFileSystem();
   const filePath = leaf.activeFilePath || "draft";
   const [content, setContent] = useAtom(atom_fileContent(filePath));
-  const autoHideTabs = useAtomValue(atom_autoHideTabs);
   const hasVault = !!useAtomValue(atom_vaultHandle);
   const setHomeFeedOpen = useSetAtom(atom_homeFeedOpen);
   const { open: openCommandPalette } = useCommandPalette();
@@ -50,7 +49,6 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
   const setAiBuilderRequest = useSetAtom(atom_aiBuilderRequest);
   // Same trigger as the Ctrl/Cmd+Shift+B shortcut; the editor page opens the chat.
   const openAIChat = () => setAiBuilderRequest((value) => value + 1);
-  const showTabStrip = !autoHideTabs || !isOnlyPane || leaf.openFilePaths.length > 1;
 
   // The editor remounts on every tab switch, except when the draft was just
   // saved as a file: that keeps the caret, scroll and undo history.
@@ -87,9 +85,6 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
       ? "dirty"
       : "idle";
   const activeSaveMeta = statusMeta[activeSaveState];
-  const activeTitle = filePath === "draft"
-    ? "New note"
-    : (activeFileState?.fileName || filePath.split("/").pop() || "Untitled").replace(/\.md$/i, "");
 
   const getIcon = (type: string) => {
     switch (type) {
@@ -123,7 +118,7 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
     });
     observer.observe(el);
     return () => observer.disconnect();
-  }, [showTabStrip]);
+  }, [isMobileChrome]);
   const hideCopyMarkdown = tabBarRowWidth < 440;
   const hideSplitRight = tabBarRowWidth < 360;
   const openFileInPane = (filePath = leaf.activeFilePath) => {
@@ -139,28 +134,14 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
       } ${isDimmed ? "opacity-40 saturate-50" : ""}`}
       onClick={() => setActivePaneId(leaf.id)}
     >
-      {/* Pane tabs are the editor's desktop header. With a single note (and
-          auto-hide on) the same bar shows the note's title instead of tabs;
-          Copy and Open in pane fold into its More menu. */}
-      {!isMobileChrome && !showTabStrip && leaf.openFilePaths.length === 1 && (
-        <PaneTitleBar
-          title={activeTitle}
-          saveState={activeSaveState}
-          saveErrorMessage={saveStatus.message}
-          onHome={hasVault ? () => setHomeFeedOpen(true) : undefined}
-          onOpenPalette={() => openCommandPalette()}
-          onOpenAIChat={isAiConfigured ? openAIChat : undefined}
-          onSave={handleSave}
-          onOptions={(rect) => setTabMenu({ x: rect.right - 180, y: rect.bottom + 4, path: filePath, includeActions: true })}
-        />
-      )}
-      {!isMobileChrome && showTabStrip && (
+      {/* Pane tabs are the editor's desktop header, even for a single note. */}
+      {!isMobileChrome && (
       <div className="shrink-0 relative">
       <div
         ref={tabBarRowRef}
         className={PANE_HEADER_CLASS}
       >
-        {/* Home stays at the far left, as in the single-note title bar. */}
+        {/* Home stays at the far left. */}
         {hasVault && (
           <div className={`${PANE_ACTIONS_CLASS} !ml-0`}>
             <Tooltip label="Home feed" position="bottom">
@@ -382,7 +363,7 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
           y={tabMenu.y}
           items={(() => {
             const menuActions: TabContextMenuItem[] = [];
-            if (tabMenu.includeActions && (hideCopyMarkdown || !showTabStrip)) {
+            if (tabMenu.includeActions && hideCopyMarkdown) {
               menuActions.push({ label: "Copy Markdown", onClick: handleCopy, icon: <HiOutlineClipboardCopy size={15} /> });
             }
             menuActions.push({

@@ -1,13 +1,13 @@
 # PaneLeaf
 
-Description: One workspace pane. It renders the tab strip (`PaneTab`), tab context menu, pane actions (home feed on the far left; command palette, AI chat when a key is set, copy, save, options, split and close on the right), and a `MarkdownEditor` for the active file. With `atom_autoHideTabs` on, a pane holding a single note in an unsplit workspace shows `PaneTitleBar` instead of the tab strip. It uses the same bar styling (shared class constants), and Copy and Open in pane move into its More menu. The command palette button replaces the old floating button. The editor remounts on tab switches, except when the draft is saved as a file (`atom_materializedDraftPath`), so the caret and undo history survive that switch.
+Description: One workspace pane. It renders the tab strip (`PaneTab`), tab context menu, pane actions (home feed on the far left; command palette, AI chat when a key is set, copy, save, options, split and close on the right), and a `MarkdownEditor` for the active file. The tab strip shows even for a single note, so one tab and many tabs look the same; header styling comes from `pane-header-classes.ts`. The command palette button replaces the old floating button. The editor remounts on tab switches, except when the draft is saved as a file (`atom_materializedDraftPath`), so the caret and undo history survive that switch.
 
 ## Local State & Storage
-- State: `atom_workspaceLayout`, `atom_openFiles`, `atom_activePaneId`, `atom_activeFilePath`, `atom_fileContent`, `atom_saveStatus`, the action atoms `atom_splitPane`/`atom_closePane`, `atom_isVoicePreviewVisible`, `atom_autoHideTabs`, `atom_materializedDraftPath`, `atom_vaultHandle`, and `atom_homeFeedOpen` (Home button). Tab drag-and-drop comes from `useTabDragDrop` (`hooks/use-tab-drag-drop.ts`); menu state is local.
+- State: `atom_workspaceLayout`, `atom_openFiles`, `atom_activePaneId`, `atom_activeFilePath`, `atom_fileContent`, `atom_saveStatus`, the action atoms `atom_splitPane`/`atom_closePane`, `atom_isVoicePreviewVisible`, `atom_materializedDraftPath`, `atom_vaultHandle`, and `atom_homeFeedOpen` (Home button). Tab drag-and-drop comes from `useTabDragDrop` (`hooks/use-tab-drag-drop.ts`); menu state is local.
 - Persistence: `localStorage["workspaceLayout"]`, `localStorage["openFiles"]`. File saves go to the local vault through `usePaneFileActions`/`useFileSystem`.
 
 ## Dependencies
-- Core: `MarkdownEditor`, `PaneTab`, `PaneTitleBar`, `PaneEmptyState` (shown when no tabs are open), `TabContextMenu`, `Tooltip`, `Button`, `react-icons`.
+- Core: `MarkdownEditor`, `PaneTab`, `PaneEmptyState` (shown when no tabs are open), `TabContextMenu`, `Tooltip`, `Button`, `react-icons`.
 - Zero-Cloud: No network or telemetry side effects.
 
 ## Quick Usage

@@ -37,8 +37,12 @@ export const baseTheme = EditorView.theme({
     fontSize: "0.94em",
     fontWeight: "400",
     letterSpacing: "0.005em",
-    paddingLeft: "0.55rem",
-    paddingRight: "0.55rem",
+    // Inset via a transparent border, not padding: drawSelection() reads the
+    // paddingLeft of the *first* .cm-line to place the left edge of every
+    // full-line selection rect. With frontmatter at the top of the doc, a
+    // padded line here shifted select-all right by ~0.55rem on every line.
+    // The background still paints under the border (background-clip default).
+    borderInline: "0.55rem solid transparent",
     transition: "background-color 150ms ease, color 150ms ease",
   },
   ".cm-frontmatter-line *": {

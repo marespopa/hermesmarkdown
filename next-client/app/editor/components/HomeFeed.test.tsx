@@ -107,7 +107,13 @@ describe("HomeFeed", () => {
   it("renders only a window of rows for a large vault", () => {
     const many: Record<string, FileMetadata> = {};
     for (let i = 0; i < 500; i++) many[`note-${i}.md`] = meta(`note-${i}.md`, i, `Body ${i}`);
+    // jsdom has no layout: the virtualizer reads the scroll element's
+    // offsetHeight (0) and would render no rows. Give it a viewport.
+    const height = vi.spyOn(HTMLElement.prototype, "offsetHeight", "get").mockReturnValue(800);
+    const width = vi.spyOn(HTMLElement.prototype, "offsetWidth", "get").mockReturnValue(600);
     renderFeed(many);
+    height.mockRestore();
+    width.mockRestore();
 
     const rows = screen.getAllByRole("option");
     expect(rows.length).toBeGreaterThan(0);

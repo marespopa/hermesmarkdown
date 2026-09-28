@@ -36,6 +36,8 @@ function renderFiles(
 afterEach(() => {
   cleanup();
   vi.useRealTimers();
+  // Folder expansion persists via atomWithStorage; don't leak it between tests.
+  localStorage.clear();
 });
 
 describe("VaultFileTree tree interactions", () => {

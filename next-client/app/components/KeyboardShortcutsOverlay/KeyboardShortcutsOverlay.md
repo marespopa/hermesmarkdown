@@ -1,9 +1,9 @@
 # KeyboardShortcutsOverlay
 
-Description: Overlay listing keyboard shortcuts in General, Formatting and Tables tabs, formatted for the user's platform. Command shortcuts (save, Explorer, AI chat, voice, formatting) are read from the registered commands; editor and table keys are listed statically and must be kept in sync with `editor/codemirror/commands.ts`, `table-display.tsx` and the `/documentation` shortcut reference.
+Description: Overlay listing keyboard shortcuts in General, Formatting and Tables tabs, formatted for the user's platform. Every shortcut is listed statically, since editor commands only register on `/editor` and the overlay also opens from Settings → Guide. Keep it in sync with `editor/hooks/use-editor-shortcuts.ts`, `editor/codemirror/commands.ts`, `editor/codemirror/extensions.ts`, `CommandPaletteContext.tsx`, `HomeFeed.tsx`, and the `/documentation` shortcut reference.
 
 ## Local State & Storage
-- State: `atom_keyboardShortcutsOpen`, `useCommandPalette().commands`, and the active category tab (useState).
+- State: `atom_keyboardShortcutsOpen` and the active category tab (useState).
 - Persistence: None - transient UI state.
 
 ## Dependencies
