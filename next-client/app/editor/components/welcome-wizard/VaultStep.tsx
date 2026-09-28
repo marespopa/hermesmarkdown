@@ -2,7 +2,6 @@
 
 import React from "react";
 import { useSetAtom } from "jotai";
-import { useRouter } from "next/navigation";
 import { HiOutlineChevronRight, HiOutlineCloudUpload, HiOutlineFolder, HiOutlineFolderAdd, HiOutlineGlobeAlt } from "react-icons/hi";
 import { atom_browserVaultDialogOpen, atom_githubVaultDialogOpen } from "@/app/atoms/ui-atoms";
 import Button from "@/app/components/Button";
@@ -33,7 +32,6 @@ function VaultOption({ icon, title, hint }: { icon: React.ReactNode; title: stri
 // While the create flow runs, its sub-steps replace the options.
 export default function VaultStep({ createVaultFlow }: { createVaultFlow: ReturnType<typeof useCreateVault> }) {
   const { openVault, isVaultSupported, isBrowserVaultSupported } = useFileSystem();
-  const router = useRouter();
   const setGitHubVaultDialogOpen = useSetAtom(atom_githubVaultDialogOpen);
   const setBrowserVaultDialogOpen = useSetAtom(atom_browserVaultDialogOpen);
 
@@ -41,8 +39,10 @@ export default function VaultStep({ createVaultFlow }: { createVaultFlow: Return
     return <CreateVaultSubSteps {...createVaultFlow} />;
   }
 
+  // Stay in the editor: once the vault opens the wizard moves on to the
+  // preference steps, and finishing it lands on the home feed.
   const openExistingVault = async () => {
-    if (await openVault()) router.push("/editor/files");
+    await openVault();
   };
 
   return (

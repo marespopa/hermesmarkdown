@@ -36,7 +36,7 @@ export function ThemeStep({ onContinue }: StepProps) {
     <WizardStep
       icon={<HiOutlineDesktopComputer size={32} />}
       title="Theme"
-      description="System follows your OS's light/dark setting and switches automatically when it changes. You can change this later in Settings."
+      description="System follows your OS's light/dark setting and switches automatically when it changes."
       onContinue={onContinue}
     >
       <WizardPanel>
@@ -52,7 +52,7 @@ export function FontStep({ onContinue }: StepProps) {
     <WizardStep
       icon={<HiOutlineColorSwatch size={32} />}
       title="Make the editor feel like paper"
-      description="Choose a comfortable typeface for writing Markdown. You can change it later in Settings → Typography."
+      description="Choose a comfortable typeface for writing Markdown."
       onContinue={onContinue}
     >
       <div className="w-full text-left">
@@ -70,7 +70,7 @@ export function TextSizeStep({ onContinue }: StepProps) {
     <WizardStep
       icon={<HiOutlineColorSwatch size={32} />}
       title="Choose your text size"
-      description="Set a comfortable reading size for your notes. You can adjust it later in Settings."
+      description="Set a comfortable reading size for your notes."
       onContinue={onContinue}
     >
       <WizardPanel className="text-left">
@@ -104,7 +104,7 @@ export function LineNumbersStep({ onContinue }: StepProps) {
     <WizardStep
       icon={<HiOutlineViewList size={32} />}
       title="Show line numbers?"
-      description="Line numbers make it easier to navigate and discuss specific parts of a note. You can change this later in Settings."
+      description="Line numbers make it easier to navigate and discuss specific parts of a note."
       onContinue={onContinue}
     >
       <ToggleRow label="Line numbers" active={lineNumbers} onChange={setLineNumbers} />
@@ -118,7 +118,7 @@ export function VimStep({ onContinue }: StepProps) {
     <WizardStep
       icon={<HiOutlineLightningBolt size={32} />}
       title="Use Vim keybindings?"
-      description="Enable Vim motions and editing modes in the source editor. You can change this later in Settings."
+      description="Enable Vim motions and editing modes in the source editor."
       onContinue={onContinue}
     >
       <ToggleRow label="Vim mode" active={vimMode} onChange={setVimMode} />
@@ -132,7 +132,7 @@ export function FlowModeStep({ onContinue }: StepProps) {
     <WizardStep
       icon={<HiOutlineEye size={32} />}
       title="Write in flow mode?"
-      description="While you write, everything except the current paragraph fades and the line you're typing on stays centered on screen. You can change this later in Settings."
+      description="While you write, everything except the current paragraph fades and the line you're typing on stays centered on screen."
       onContinue={onContinue}
     >
       <ToggleRow label="Flow mode" active={flowMode} onChange={setFlowMode} />
@@ -146,7 +146,7 @@ export function AutosaveStep({ onContinue }: StepProps) {
     <WizardStep
       icon={<HiOutlineRefresh size={32} />}
       title="Autosave"
-      description="Choose when changes get written to disk. You can change this later."
+      description="Choose when changes get written to disk."
       onContinue={onContinue}
     >
       <div className="w-full text-left">

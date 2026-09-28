@@ -47,6 +47,23 @@ export const atom_renderedFontSize = atomWithStorage<string>(
 );
 export const atom_isEditorFocused = atom<boolean>(false);
 
+// What the editor shows once a vault opens: the home feed of recent notes
+// (restored tabs stay open behind it), or the tabs from last time.
+export type VaultOpenBehavior = "home" | "resume";
+export const atom_onVaultOpen = atomWithStorage<VaultOpenBehavior>("onVaultOpen", "home");
+// Whether the editor page shows the home feed in place of the workspace.
+// Ephemeral: opening a note closes it.
+export const atom_homeFeedOpen = atom<boolean>(false);
+// Vault-relative folder that drafts are saved into on their first save
+// ("" = vault root). Created on demand.
+export const atom_newNoteFolder = atomWithStorage<string>("newNoteFolder", "");
+// Hide a desktop pane's tab strip while it holds a single tab and the
+// workspace isn't split; its actions float in the pane's corner instead.
+export const atom_autoHideTabs = atomWithStorage<boolean>("autoHideTabs", true);
+// Vault key the vault-open behavior last ran for, so returning to the editor
+// from another route doesn't replace the file just opened there.
+export const atom_vaultOpenBehaviorAppliedFor = atom<string | null>(null);
+
 export type AutosaveMode = "afterDelay" | "onFocusChange" | "manual";
 
 export const atom_autosaveMode = atomWithStorage<AutosaveMode>(
@@ -96,6 +113,17 @@ export const atom_frontmatterHasPrompted = atomWithStorage<boolean>(
 export const atom_showHiddenFiles = atomWithStorage<boolean>(
   "hermes_show_hidden_files",
   false,
+);
+// File tree folder expansion, keyed by vault (see atom_vaultKey). Stores the
+// user's manual overrides only; folders on the active file's path open
+// automatically on top of this.
+export interface FileTreeExpansion {
+  expanded: string[];
+  collapsed: string[];
+}
+export const atom_fileTreeExpansion = atomWithStorage<Record<string, FileTreeExpansion>>(
+  "hermes_file_tree_expansion",
+  {},
 );
 export const atom_repurposeWizardOpen = atom<boolean>(false);
 

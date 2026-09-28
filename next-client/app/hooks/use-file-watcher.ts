@@ -2,7 +2,6 @@
 
 import { useAtom, useStore } from "jotai";
 import { atom_openFiles, atom_liveHandles, atom_isVaultPending } from "@/app/atoms/atoms";
-import { atom_snapshotOnConflict } from "@/app/atoms/ui-atoms";
 import { reconcileWithDisk } from "@/app/hooks/file-system/reconcile-disk";
 import { useCallback, useEffect, useRef, useState } from "react";
 
@@ -49,12 +48,11 @@ export function useFileWatcher() {
         // checked; reconcileWithDisk no-ops when the content is unchanged.
         if (file.lastModified !== (stored.lastModified ?? 0)) {
           const remoteContent = await file.text();
-          const snapshotOnConflict = store.get(atom_snapshotOnConflict);
 
           setOpenFiles((prev) => {
             const fileState = prev[path];
             if (!fileState) return prev;
-            const reconciled = reconcileWithDisk(fileState, remoteContent, file.lastModified, snapshotOnConflict);
+            const reconciled = reconcileWithDisk(fileState, remoteContent, file.lastModified);
             return reconciled === fileState ? prev : { ...prev, [path]: reconciled };
           });
 

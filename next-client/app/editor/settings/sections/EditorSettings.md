@@ -1,9 +1,9 @@
 # EditorSettings
 
-Description: The Settings → Editor section: Appearance (theme, word wrap, line numbers, Vim mode, collapse frontmatter, command palette button, hidden files), Typography (editor font), and Autosave (mode and delay).
+Description: The Settings → Editor section: Appearance (theme, word wrap, line numbers, Vim mode, flow mode, auto-hide tabs, collapse frontmatter, hidden files), Vault Home & New Notes (on vault open: home feed or resume last tabs; the new notes folder, normalized on blur), Typography (editor font), and Autosave (mode and delay).
 
 ## Local State & Storage
-- State: `atom_theme`, `atom_wordWrap`, `atom_lineNumbers`, `atom_vimMode`, `atom_frontmatterCollapsedByDefault`, `atom_showCommandPaletteFab`, `atom_showHiddenFiles`, `atom_editorFontFamily`, `atom_autosaveMode`, `atom_autosaveDelay`.
+- State: `atom_theme`, `atom_wordWrap`, `atom_lineNumbers`, `atom_vimMode`, `atom_flowMode`, `atom_autoHideTabs`, `atom_onVaultOpen`, `atom_newNoteFolder`, `atom_frontmatterCollapsedByDefault`, `atom_showHiddenFiles`, `atom_editorFontFamily`, `atom_autosaveMode`, `atom_autosaveDelay`.
 - Persistence: All via `atomWithStorage` (`localStorage`). Toggling hidden files rescans and re-indexes the open vault straight away.
 
 ## Dependencies

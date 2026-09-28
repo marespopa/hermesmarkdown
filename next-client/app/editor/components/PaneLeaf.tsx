@@ -4,10 +4,12 @@ import React from "react";
 import { PanelLeaf } from "@/app/types/workspace";
 import MarkdownEditor from "./MarkdownEditor";
 import TabContextMenu, { TabContextMenuItem } from "./TabContextMenu";
-import { useAtom } from "jotai";
+import { useAtom, useSetAtom } from "jotai";
 import { atom_activePaneId, atom_fileContent, atom_openFiles, atom_splitPane, atom_closePane, atom_activeFilePath, atom_saveStatus, atom_workspaceLayout, getWorkspaceTabs } from "@/app/atoms/atoms";
-import { atom_isVoicePreviewVisible } from "@/app/atoms/ui-atoms";
-import { HiOutlineDocumentText, HiOutlineChartBar, HiOutlineX, HiOutlineClipboardCopy, HiOutlineSave, HiOutlineDotsHorizontal } from "react-icons/hi";
+import { atom_aiBuilderRequest, atom_autoHideTabs, atom_homeFeedOpen, atom_isAiConfigured, atom_isVoicePreviewVisible } from "@/app/atoms/ui-atoms";
+import { atom_materializedDraftPath } from "@/app/atoms/file-atoms";
+import { atom_vaultHandle } from "@/app/atoms/vault-atoms";
+import { HiOutlineDocumentText, HiOutlineChartBar, HiOutlineX, HiOutlineClipboardCopy, HiOutlineSave, HiOutlineDotsHorizontal, HiOutlineHome, HiOutlineSearch, HiOutlineChatAlt2 } from "react-icons/hi";
 import { VscSplitHorizontal } from "react-icons/vsc";
 import PaneTab, { TabSaveState, statusMeta } from "./PaneTab";
 import { useFileSystem } from "@/app/hooks/use-file-system";
@@ -19,6 +21,8 @@ import useIsMobileChrome from "@/app/hooks/use-mobile-chrome";
 import { usePaneFileActions } from "../hooks/use-pane-file-actions";
 import { useTabDragDrop } from "../hooks/use-tab-drag-drop";
 import PaneEmptyState from "./PaneEmptyState";
+import PaneTitleBar, { PANE_ACTION_BUTTON_CLASS, PANE_ACTIONS_CLASS, PANE_HEADER_CLASS } from "./PaneTitleBar";
+import { useCommandPalette } from "@/app/components/CommandPalette/CommandPaletteContext";
 
 interface PaneLeafProps {
   leaf: PanelLeaf;
@@ -38,6 +42,26 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
   const { openFileByName } = useFileSystem();
   const filePath = leaf.activeFilePath || "draft";
   const [content, setContent] = useAtom(atom_fileContent(filePath));
+  const autoHideTabs = useAtomValue(atom_autoHideTabs);
+  const hasVault = !!useAtomValue(atom_vaultHandle);
+  const setHomeFeedOpen = useSetAtom(atom_homeFeedOpen);
+  const { open: openCommandPalette } = useCommandPalette();
+  const isAiConfigured = useAtomValue(atom_isAiConfigured);
+  const setAiBuilderRequest = useSetAtom(atom_aiBuilderRequest);
+  // Same trigger as the Ctrl/Cmd+Shift+B shortcut; the editor page opens the chat.
+  const openAIChat = () => setAiBuilderRequest((value) => value + 1);
+  const showTabStrip = !autoHideTabs || !isOnlyPane || leaf.openFilePaths.length > 1;
+
+  // The editor remounts on every tab switch, except when the draft was just
+  // saved as a file: that keeps the caret, scroll and undo history.
+  const materializedDraftPath = useAtomValue(atom_materializedDraftPath);
+  const editorKeyRef = React.useRef({ path: filePath, key: filePath, generation: 0 });
+  if (editorKeyRef.current.path !== filePath) {
+    const previous = editorKeyRef.current;
+    const keepEditor = previous.path === "draft" && filePath === materializedDraftPath;
+    const generation = previous.generation + 1;
+    editorKeyRef.current = { path: filePath, key: keepEditor ? previous.key : `${filePath}#${generation}`, generation };
+  }
 
   const isActive = activePaneId === leaf.id;
   const isVoicePreviewVisible = useAtomValue(atom_isVoicePreviewVisible);
@@ -63,6 +87,9 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
       ? "dirty"
       : "idle";
   const activeSaveMeta = statusMeta[activeSaveState];
+  const activeTitle = filePath === "draft"
+    ? "New note"
+    : (activeFileState?.fileName || filePath.split("/").pop() || "Untitled").replace(/\.md$/i, "");
 
   const getIcon = (type: string) => {
     switch (type) {
@@ -96,7 +123,7 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
     });
     observer.observe(el);
     return () => observer.disconnect();
-  }, []);
+  }, [showTabStrip]);
   const hideCopyMarkdown = tabBarRowWidth < 440;
   const hideSplitRight = tabBarRowWidth < 360;
   const openFileInPane = (filePath = leaf.activeFilePath) => {
@@ -107,18 +134,47 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
   return (
     <div
       data-pane-id={leaf.id}
-      className={`h-full flex flex-col transition-all duration-300 overflow-hidden bg-paper-pale dark:bg-paper-dark ${
+      className={`relative h-full flex flex-col transition-all duration-300 overflow-hidden bg-paper-pale dark:bg-paper-dark ${
         isActive ? "z-10" : ""
       } ${isDimmed ? "opacity-40 saturate-50" : ""}`}
       onClick={() => setActivePaneId(leaf.id)}
     >
-      {/* Pane tabs stay visible on desktop as the editor's single app header. */}
-      {!isMobileChrome && (
+      {/* Pane tabs are the editor's desktop header. With a single note (and
+          auto-hide on) the same bar shows the note's title instead of tabs;
+          Copy and Open in pane fold into its More menu. */}
+      {!isMobileChrome && !showTabStrip && leaf.openFilePaths.length === 1 && (
+        <PaneTitleBar
+          title={activeTitle}
+          saveState={activeSaveState}
+          saveErrorMessage={saveStatus.message}
+          onHome={hasVault ? () => setHomeFeedOpen(true) : undefined}
+          onOpenPalette={() => openCommandPalette()}
+          onOpenAIChat={isAiConfigured ? openAIChat : undefined}
+          onSave={handleSave}
+          onOptions={(rect) => setTabMenu({ x: rect.right - 180, y: rect.bottom + 4, path: filePath, includeActions: true })}
+        />
+      )}
+      {!isMobileChrome && showTabStrip && (
       <div className="shrink-0 relative">
       <div
         ref={tabBarRowRef}
-        className="flex items-center bg-chrome/80 backdrop-blur-2xl border-b border-edge-subtle h-11 shrink-0 relative z-20 px-2 sm:px-3"
+        className={PANE_HEADER_CLASS}
       >
+        {/* Home stays at the far left, as in the single-note title bar. */}
+        {hasVault && (
+          <div className={`${PANE_ACTIONS_CLASS} !ml-0`}>
+            <Tooltip label="Home feed" position="bottom">
+              <Button
+                variant="icon"
+                onClick={() => setHomeFeedOpen(true)}
+                aria-label="Home feed"
+                className={PANE_ACTION_BUTTON_CLASS}
+              >
+                <HiOutlineHome size={17} />
+              </Button>
+            </Tooltip>
+          </div>
+        )}
         {/* Scrollable tabs strip */}
           <div
             className="flex items-center flex-1 overflow-x-auto overflow-y-hidden scrollbar-none h-full px-1.5 min-w-0"
@@ -180,11 +236,35 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
               />
             );
           })}
-          
+
           </div>{/* end scrollable tabs strip */}
 
           {/* Fixed actions — always visible, never scrolled */}
-          <div className="flex items-center gap-0.5 mx-1 pl-1 pr-1 shrink-0 h-8 rounded-xl bg-surface-raised/70 z-20">
+          <div className={PANE_ACTIONS_CLASS}>
+            {isActive && (
+              <Tooltip label="Command palette" shortcut={formatShortcut("K")}>
+                <Button
+                  variant="icon"
+                  onClick={() => openCommandPalette()}
+                  aria-label="Command palette"
+                  className={PANE_ACTION_BUTTON_CLASS}
+                >
+                  <HiOutlineSearch size={17} />
+                </Button>
+              </Tooltip>
+            )}
+            {isActive && isAiConfigured && (
+              <Tooltip label="AI Chat" shortcut={formatShortcut("B", { shift: true })}>
+                <Button
+                  variant="icon"
+                  onClick={openAIChat}
+                  aria-label="AI Chat"
+                  className={PANE_ACTION_BUTTON_CLASS}
+                >
+                  <HiOutlineChatAlt2 size={17} />
+                </Button>
+              </Tooltip>
+            )}
             {isActive && leaf.openFilePaths.length > 0 && (
               <>
                 {!hideCopyMarkdown && (
@@ -278,7 +358,7 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
           <PaneEmptyState onLoadDraft={setContent} />
         ) : leaf.type === "editor" ? (
           <MarkdownEditor
-            key={leaf.activeFilePath || "draft"}
+            key={editorKeyRef.current.key}
             value={content}
             onChange={setContent}
             filePath={leaf.activeFilePath || "draft"}
@@ -302,7 +382,7 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
           y={tabMenu.y}
           items={(() => {
             const menuActions: TabContextMenuItem[] = [];
-            if (tabMenu.includeActions && hideCopyMarkdown) {
+            if (tabMenu.includeActions && (hideCopyMarkdown || !showTabStrip)) {
               menuActions.push({ label: "Copy Markdown", onClick: handleCopy, icon: <HiOutlineClipboardCopy size={15} /> });
             }
             menuActions.push({

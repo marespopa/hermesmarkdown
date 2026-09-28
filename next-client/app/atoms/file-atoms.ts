@@ -1,8 +1,8 @@
-import { atom } from "jotai";
+import { atom, type Getter } from "jotai";
 import { atomWithStorage } from "jotai/utils";
 import { atomFamily } from "jotai-family";
 import { atom_workspaceLayout, atom_activePaneId } from "./workspace-atoms";
-import { findLeaf, updateLeaf } from "./utils";
+import { findLeaf, getFirstLeaf, updateLeaf } from "./utils";
 import { PanelLeaf } from "../types/workspace";
 
 // File contents & metadata
@@ -216,6 +216,79 @@ export const atom_fileConflict = atom(
     }
   },
 );
+
+export const EMPTY_DRAFT: FileState = {
+  content: "",
+  lastSavedContent: "",
+  fileName: "untitled",
+  activeFilePath: null,
+};
+
+// Pane that receives draft actions: the active pane, or the first one when the
+// active id is stale (e.g. after a layout loaded from storage).
+function targetLeaf(get: Getter, paneId?: string | null) {
+  const root = get(atom_workspaceLayout).rootContainer;
+  return findLeaf(root, paneId ?? get(atom_activePaneId)) ?? getFirstLeaf(root);
+}
+
+// Focuses the draft tab in the given (default: active) pane, adding it when
+// absent. An unsaved draft keeps its text; otherwise it starts blank.
+export const atom_openDraft = atom(null, (get, set, paneId?: string) => {
+  const leaf = targetLeaf(get, paneId);
+  if (!get(atom_openFiles).draft) {
+    set(atom_openFiles, (prev) => ({ ...prev, draft: { ...EMPTY_DRAFT } }));
+  }
+  set(atom_liveHandles("draft"), null);
+  set(atom_activePaneId, leaf.id);
+  set(atom_workspaceLayout, (prev) => ({
+    ...prev,
+    rootContainer: updateLeaf(prev.rootContainer, leaf.id, {
+      openFilePaths: leaf.openFilePaths.includes("draft") ? leaf.openFilePaths : [...leaf.openFilePaths, "draft"],
+      activeFilePath: "draft",
+    }),
+  }));
+});
+
+// Vault path the draft was last saved to. The pane keeps its editor mounted
+// across that draft → file switch, so the caret and undo history survive.
+export const atom_materializedDraftPath = atom<string | null>(null);
+
+export interface MaterializedDraft {
+  paneId: string;
+  path: string;
+  fileName: string;
+  /** What was written to disk; text typed during the write stays unsaved. */
+  savedContent: string;
+  lastModified?: number;
+}
+
+// Turns the draft tab into the file just written for it: the tab changes
+// path in place, keeps the latest text, and the draft slot is emptied.
+export const atom_materializeDraft = atom(null, (get, set, draft: MaterializedDraft) => {
+  const current = get(atom_openFiles).draft ?? EMPTY_DRAFT;
+  set(atom_openFiles, (prev) => ({
+    ...prev,
+    draft: { ...EMPTY_DRAFT },
+    [draft.path]: {
+      content: current.content,
+      lastSavedContent: draft.savedContent,
+      fileName: draft.fileName,
+      activeFilePath: draft.path,
+      ...(draft.lastModified !== undefined ? { lastModified: draft.lastModified } : {}),
+    },
+  }));
+  set(atom_materializedDraftPath, draft.path);
+  const leaf = targetLeaf(get, draft.paneId);
+  set(atom_workspaceLayout, (prev) => ({
+    ...prev,
+    rootContainer: updateLeaf(prev.rootContainer, leaf.id, {
+      openFilePaths: leaf.openFilePaths.includes("draft")
+        ? [...new Set(leaf.openFilePaths.map((p) => (p === "draft" ? draft.path : p)))]
+        : [...new Set([...leaf.openFilePaths, draft.path])],
+      activeFilePath: leaf.activeFilePath === "draft" || !leaf.activeFilePath ? draft.path : leaf.activeFilePath,
+    }),
+  }));
+});
 
 export type SaveStatus = {
   state: "idle" | "saving" | "saved" | "error";

@@ -1,15 +1,15 @@
 "use client";
 
-import { useAtom } from "jotai";
+import { useAtom, useSetAtom } from "jotai";
 import { useCallback } from "react";
 import toast from "react-hot-toast";
 import {
   atom_vaultHandle,
   atom_currentDirectoryHandle,
-  atom_activeFileHandle,
-  atom_activeFilePath,
+  atom_remapVaultPaths,
 } from "@/app/atoms/atoms";
 import { writeFileContent } from "@/app/services/file-writer";
+import { moveDirectoryByCopy } from "./directory-ops";
 
 interface UseMoveItemProps {
   scanVault: (handle: FileSystemDirectoryHandle) => Promise<void>;
@@ -19,8 +19,7 @@ interface UseMoveItemProps {
 export function useMoveItem({ scanVault, indexVaultTags }: UseMoveItemProps) {
   const [vaultHandle] = useAtom(atom_vaultHandle);
   const [currentDirectoryHandle] = useAtom(atom_currentDirectoryHandle);
-  const [activeFileHandle, setActiveFileHandle] = useAtom(atom_activeFileHandle);
-  const [, setActiveFilePath] = useAtom(atom_activeFilePath);
+  const remapVaultPaths = useSetAtom(atom_remapVaultPaths);
 
   const moveItem = useCallback(
     async (handle: FileSystemHandle, targetDir: FileSystemDirectoryHandle) => {
@@ -56,6 +55,7 @@ export function useMoveItem({ scanVault, indexVaultTags }: UseMoveItemProps) {
             ? [vaultHandle]
             : [sourceParent, vaultHandle];
           let found = false;
+          let foundParent: FileSystemDirectoryHandle = sourceParent;
           for (const parent of parents) {
             try {
               if (handle.kind === "file") {
@@ -64,6 +64,7 @@ export function useMoveItem({ scanVault, indexVaultTags }: UseMoveItemProps) {
                 freshHandle = await (parent as any).getDirectoryHandle(handle.name);
               }
               found = true;
+              foundParent = parent;
               break;
             } catch (e: any) {
               if (e.name !== "NotFoundError") throw e;
@@ -88,66 +89,56 @@ export function useMoveItem({ scanVault, indexVaultTags }: UseMoveItemProps) {
 
           let isSameDir = false;
           try {
-            isSameDir = await (sourceParent as any).isSameEntry(targetDir);
+            isSameDir = await (foundParent as any).isSameEntry(targetDir);
           } catch {
             // Comparison failed
           }
           if (isSameDir) return;
 
-          let isActive = false;
-          if (activeFileHandle) {
-            try {
-              isActive = await (freshHandle as any).isSameEntry(activeFileHandle);
-            } catch {
-            // Comparison failed
-          }
+          // Vault-relative paths before and after, for tabs/metadata/tree
+          let oldPath: string | null = null;
+          let newPath: string | null = null;
+          try {
+            const sourceParts: string[] | null = await (vaultHandle as any).resolve(freshHandle);
+            const targetParts: string[] | null = await (vaultHandle as any).resolve(targetDir);
+            if (sourceParts && targetParts) {
+              oldPath = sourceParts.join("/");
+              newPath = [...targetParts, freshHandle.name].join("/");
+            }
+          } catch {
+            // resolve unsupported; tabs are reconciled on the next rebind
           }
 
           // 3. Attempt Native Move, with Fallback
           try {
             if ((freshHandle as any).move) {
               await (freshHandle as any).move(targetDir, freshHandle.name);
-              if (isActive) {
-                setActiveFileHandle(freshHandle as FileSystemFileHandle);
-                
-                // Recalculate path for metadata/tracking
-                if (vaultHandle) {
-                  const pathParts = await (vaultHandle as any).resolve(freshHandle);
-                  if (pathParts) {
-                    setActiveFilePath(pathParts.join("/"));
-                  }
-                }
-              }
             } else {
               throw new Error("Native move not supported");
             }
           } catch (moveErr: any) {
-            // Fallback for files: manual copy and delete
+            console.warn("Native move failed or unsupported, using fallback:", moveErr);
             if (freshHandle.kind === "file") {
-              console.warn("Native move failed or unsupported, using fallback:", moveErr);
               // Copy the File itself so binary attachments keep their bytes.
               const file = await (freshHandle as FileSystemFileHandle).getFile();
               const newFileHandle = await targetDir.getFileHandle(freshHandle.name, {
                 create: true,
               });
               await writeFileContent(newFileHandle, file);
-              await (sourceParent as any).removeEntry(freshHandle.name);
-
-              if (isActive) {
-                setActiveFileHandle(newFileHandle);
-
-                // Recalculate path for metadata/tracking
-                if (vaultHandle) {
-                  const pathParts = await (vaultHandle as any).resolve(newFileHandle);
-                  if (pathParts) {
-                    setActiveFilePath(pathParts.join("/"));
-                  }
-                }
-              }
+              await (foundParent as any).removeEntry(freshHandle.name);
             } else {
-              throw moveErr;
+              await moveDirectoryByCopy(
+                freshHandle as FileSystemDirectoryHandle,
+                foundParent,
+                targetDir,
+                freshHandle.name,
+              );
             }
           }
+
+          // 4. Follow the move in open tabs (keeping unsaved edits, with fresh
+          // handles), pane layouts, metadata and the file tree.
+          if (oldPath && newPath) await remapVaultPaths({ oldPath, newPath });
 
           await scanVault(vaultHandle);
           indexVaultTags();
@@ -179,11 +170,9 @@ export function useMoveItem({ scanVault, indexVaultTags }: UseMoveItemProps) {
     [
       vaultHandle,
       currentDirectoryHandle,
-      activeFileHandle,
       scanVault,
       indexVaultTags,
-      setActiveFileHandle,
-      setActiveFilePath,
+      remapVaultPaths,
     ],
   );
 

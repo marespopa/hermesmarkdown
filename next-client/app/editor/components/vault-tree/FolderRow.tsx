@@ -21,8 +21,10 @@ export interface FolderRowProps {
   setDraggedEntry: (v: DraggedEntry | null) => void;
   onDropInto: (targetPath: string) => void;
   resolveFolderHandle?: (path: string) => Promise<any | null>;
-  createNewFile?: () => void;
-  createFolder?: () => Promise<FileSystemDirectoryHandle | null>;
+  createNewFile?: (targetDirectory?: FileSystemDirectoryHandle) => void | Promise<unknown>;
+  createFolder?: (parentDirectory?: FileSystemDirectoryHandle) => Promise<FileSystemDirectoryHandle | null>;
+  // Opens this folder so an item created from its menu is visible.
+  expandFolder?: (path: string) => void;
   renameFile: (handle: any) => void | Promise<void>;
   deleteFile: (handle: any, path?: string) => void;
 }
@@ -41,6 +43,7 @@ export function FolderRow({
   resolveFolderHandle,
   createNewFile,
   createFolder,
+  expandFolder,
   renameFile,
   deleteFile,
 }: FolderRowProps) {
@@ -159,7 +162,9 @@ export function FolderRow({
                 onClick={async (e) => {
                   e.stopPropagation();
                   setActionMenuOpen(null);
-                  createNewFile();
+                  const dir = await resolveFolderHandle?.(node.path);
+                  expandFolder?.(node.path);
+                  await createNewFile(dir ?? undefined);
                 }}
                 className="w-full flex items-center gap-3 px-4 py-2.5 text-ui-footnote font-medium hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
               >
@@ -172,7 +177,9 @@ export function FolderRow({
                 onClick={async (e) => {
                   e.stopPropagation();
                   setActionMenuOpen(null);
-                  await createFolder();
+                  const dir = await resolveFolderHandle?.(node.path);
+                  expandFolder?.(node.path);
+                  await createFolder(dir ?? undefined);
                 }}
                 className="w-full flex items-center gap-3 px-4 py-2.5 text-ui-footnote font-medium hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
               >

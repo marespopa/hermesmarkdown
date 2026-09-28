@@ -1,9 +1,10 @@
 "use client";
 
 import React, { useRef } from "react";
-import { useAtomValue, useSetAtom } from "jotai";
+import { useAtomValue, useSetAtom, useStore } from "jotai";
 import { HiOutlineCollection, HiOutlineDatabase, HiOutlineDocumentText, HiOutlineDotsHorizontal, HiOutlineFolderOpen, HiOutlineGlobeAlt, HiOutlinePlus } from "react-icons/hi";
-import { atom_activeFilePath, atom_vaultHandle } from "@/app/atoms/atoms";
+import { atom_activeFilePath, atom_activePaneId, atom_openDraft, atom_vaultHandle } from "@/app/atoms/atoms";
+import { focusPaneEditorWhenReady } from "../utils/focus-pane-editor";
 import { atom_browserVaultDialogOpen, atom_newVaultFlowOpen } from "@/app/atoms/ui-atoms";
 import Button from "@/app/components/Button";
 import { useCommandPalette } from "@/app/components/CommandPalette/CommandPaletteContext";
@@ -21,18 +22,21 @@ export default function PaneEmptyState({ onLoadDraft }: PaneEmptyStateProps) {
   const vaultHandle = useAtomValue(atom_vaultHandle);
   const setActiveFilePath = useSetAtom(atom_activeFilePath);
   const setNewVaultFlowOpen = useSetAtom(atom_newVaultFlowOpen);
-  const { createNewFile, importFile, openVault, isVaultSupported, isBrowserVaultSupported } = useFileSystem();
+  const openDraft = useSetAtom(atom_openDraft);
+  const store = useStore();
+  const { importFile, openVault, isVaultSupported, isBrowserVaultSupported } = useFileSystem();
   const setBrowserVaultDialogOpen = useSetAtom(atom_browserVaultDialogOpen);
   const { open: openCommandPalette } = useCommandPalette();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const newFileShortcut = isMacPlatform() ? "⌃⌥N" : "Ctrl+Alt+N";
 
-  const handleNewFile = () => {
-    if (vaultHandle) {
-      void createNewFile();
-    } else {
-      setActiveFilePath("draft");
-    }
+  // A blank draft, no dialogs: in a vault it's saved on its first save.
+  const handleNewFile = (e: React.MouseEvent<HTMLElement>) => {
+    // This click runs before the pane's own click makes it active.
+    const paneId = e.currentTarget.closest<HTMLElement>("[data-pane-id]")?.dataset.paneId;
+    openDraft(paneId);
+    const activePaneId = store.get(atom_activePaneId);
+    if (activePaneId) focusPaneEditorWhenReady(activePaneId);
   };
 
   const handleOpenFile = async () => {

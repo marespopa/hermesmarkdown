@@ -33,6 +33,28 @@ export const settingsGroup: Group = {
       ),
     },
     {
+      id: "vault-home-settings",
+      title: "Vault home & new notes",
+      lead: "Choose what a vault opens to, where new notes go, and when tabs show.",
+      keywords: "on vault open home feed resume tabs new notes folder auto-hide tabs settings",
+      body: (
+        <>
+          <KV
+            rows={[
+              { label: "On Vault Open", value: "Home feed (default) or Resume last tabs" },
+              { label: "New Notes Folder", value: "Empty = vault root, or a folder like inbox" },
+              { label: "Auto-hide Tabs", value: "On: one note shows its title instead of tabs" },
+            ]}
+          />
+          <p>
+            These live under <strong>Settings → Editor</strong>. A folder that doesn&apos;t exist
+            yet is created the first time a note is saved there. Your open notes are restored either
+            way; On Vault Open only decides what you see first.
+          </p>
+        </>
+      ),
+    },
+    {
       id: "keybindings",
       title: "Keybindings",
       lead: "Shortcuts are fixed — there's no remapping screen yet.",
@@ -66,6 +88,12 @@ export const mobileGroup: Group = {
             status — there's no keyboard shortcut for the command palette on mobile, so tapping this
             bar is the one always-present way to open it. From there, Open Explorer, Search, Open Tasks,
             New file, and every other command work exactly as they do on desktop.
+          </p>
+          <p>
+            The <strong>Home</strong> button at the left of that bar takes you back to the{" "}
+            <a href="#home-feed" className="text-sage font-semibold hover:underline">home feed</a>.
+            On the feed, the search bar and the <strong>+</strong> button sit at the bottom, within
+            reach of your thumb.
           </p>
           <p>Explorer and Search open as full-screen overlays rather than docked panels.</p>
         </>

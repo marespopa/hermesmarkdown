@@ -2,10 +2,10 @@ import React from "react";
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { Provider } from "jotai";
 import { useHydrateAtoms } from "jotai/utils";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { version } from "../../../package.json";
 import CommandPalette from "./CommandPalette";
-import { CommandPaletteProvider, useRegisterCommand } from "./CommandPaletteContext";
+import { CommandPaletteProvider, useCommandPalette, useRegisterCommand } from "./CommandPaletteContext";
 import { atom_fileMetadata } from "@/app/atoms/metadata";
 import {
   atom_activeEditorView,
@@ -45,6 +45,15 @@ function TestCommand() {
     category: "Vault",
     action: vi.fn(),
   });
+  return null;
+}
+
+function CreateNoteHandler({ onCreate }: { onCreate: (title: string) => Promise<unknown> }) {
+  const { setCreateNote } = useCommandPalette();
+  React.useEffect(() => {
+    setCreateNote(onCreate);
+    return () => setCreateNote(null);
+  }, [onCreate, setCreateNote]);
   return null;
 }
 
@@ -542,5 +551,105 @@ describe("CommandPalette", () => {
       effects: expect.anything(),
     }));
     expect(focus).toHaveBeenCalled();
+  });
+
+  it("toggles command mode with the > button and keeps actions in the footer", async () => {
+    renderPalette();
+    fireEvent.keyDown(document, { key: "k", ctrlKey: true });
+    const input = await screen.findByRole("combobox");
+
+    fireEvent.click(screen.getByRole("button", { name: "Search commands" }));
+    expect(input).toHaveValue(">");
+    expect(screen.getByRole("button", { name: "Search files" })).toHaveAttribute("aria-pressed", "true");
+
+    fireEvent.click(screen.getByRole("button", { name: "Search files" }));
+    expect(input).toHaveValue("");
+
+    const footer = screen.getByText(`HermesMarkdown v${version}`).closest("footer")!;
+    expect(footer).toContainElement(screen.getByRole("button", { name: "Settings" }));
+    expect(footer).toContainElement(screen.getByRole("button", { name: "Documentation and help" }));
+  });
+
+  describe("Create row", () => {
+    function renderWithCreate(onCreate: (title: string) => Promise<unknown>, values: any[] = []) {
+      return render(
+        <Provider>
+          <Hydrate values={values}>
+            <CommandPaletteProvider>
+              <CreateNoteHandler onCreate={onCreate} />
+              <CommandPalette />
+            </CommandPaletteProvider>
+          </Hydrate>
+        </Provider>,
+      );
+    }
+
+    it("offers to create a note named after the query and runs it", async () => {
+      const onCreate = vi.fn().mockResolvedValue(undefined);
+      renderWithCreate(onCreate);
+      fireEvent.keyDown(document, { key: "k", ctrlKey: true });
+
+      const input = await screen.findByRole("combobox");
+      fireEvent.change(input, { target: { value: "Trip ideas" } });
+      fireEvent.click(await screen.findByRole("option", { name: /Create "Trip ideas"/ }));
+
+      await waitFor(() => expect(onCreate).toHaveBeenCalledWith("Trip ideas"));
+    });
+
+    it("isn't offered when a note already has that title", async () => {
+      renderWithCreate(vi.fn(), [[atom_fileMetadata, {
+        "Trip ideas.md": { path: "Trip ideas.md", name: "Trip ideas.md", tags: [], links: [], frontmatter: {}, modifiedAt: 0, wordCount: 0, tasks: [], handle: {} },
+      }]]);
+      fireEvent.keyDown(document, { key: "k", ctrlKey: true });
+
+      fireEvent.change(await screen.findByRole("combobox"), { target: { value: "trip ideas" } });
+      expect(screen.queryByRole("option", { name: /Create/ })).not.toBeInTheDocument();
+    });
+
+    it("isn't offered in command mode or without a handler", async () => {
+      renderWithCreate(vi.fn());
+      fireEvent.keyDown(document, { key: "k", ctrlKey: true });
+      fireEvent.change(await screen.findByRole("combobox"), { target: { value: ">new" } });
+      expect(screen.queryByRole("option", { name: /Create/ })).not.toBeInTheDocument();
+    });
+  });
+
+  describe("search anchor morph", () => {
+    afterEach(() => {
+      delete (document as any).startViewTransition;
+      document.querySelectorAll("[data-palette-anchor]").forEach((element) => element.remove());
+    });
+
+    it("opens through a view transition when a search anchor is on screen", async () => {
+      const startViewTransition = vi.fn((callback: () => unknown) => { void callback(); return { finished: Promise.resolve() }; });
+      (document as any).startViewTransition = startViewTransition;
+      const anchor = document.createElement("button");
+      anchor.setAttribute("data-palette-anchor", "");
+      document.body.appendChild(anchor);
+
+      renderPalette();
+      fireEvent.keyDown(document, { key: "k", ctrlKey: true });
+
+      expect(await screen.findByRole("combobox")).toBeInTheDocument();
+      expect(startViewTransition).toHaveBeenCalledTimes(1);
+
+      // Once the transition has settled the panel must not replay its own
+      // enter animation (that re-fade was a visible flicker).
+      await act(async () => { await new Promise((resolve) => setTimeout(resolve, 50)); });
+      expect(document.querySelector(".slide-in-from-top-1")).toBeNull();
+    });
+
+    it("opens directly without an anchor", async () => {
+      const startViewTransition = vi.fn((callback: () => unknown) => { void callback(); return { finished: Promise.resolve() }; });
+      (document as any).startViewTransition = startViewTransition;
+
+      renderPalette();
+      fireEvent.keyDown(document, { key: "k", ctrlKey: true });
+
+      expect(await screen.findByRole("combobox")).toBeInTheDocument();
+      expect(startViewTransition).not.toHaveBeenCalled();
+      // A normal open keeps the panel's own enter animation.
+      expect(document.querySelector(".slide-in-from-top-1")).not.toBeNull();
+    });
   });
 });

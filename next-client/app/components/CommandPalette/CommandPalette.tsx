@@ -14,15 +14,15 @@ import { EditorView } from "@codemirror/view";
 import { useAtom, useAtomValue } from "jotai";
 import { usePathname, useRouter } from "next/navigation";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { HiOutlineCog, HiOutlineQuestionMarkCircle, HiOutlineRefresh, HiOutlineSearch, HiOutlineX } from "react-icons/hi";
+import { HiOutlineCog, HiOutlineQuestionMarkCircle, HiOutlineRefresh, HiOutlineX } from "react-icons/hi";
 import { version } from "../../../package.json";
 import { fuzzyMatch, matchCommand, matchFile } from "./command-search";
 import { type Command, useCommandPalette } from "./CommandPaletteContext";
-import { COMMAND_MODE_DEFAULT_ORDER, type FileResult, HighlightedText, MAX_PINS, MAX_VISIBLE_ROWS, parentFolder, pinnedKey, type Row, type Scope, scopeFromPrefix, scopePrefix, type TaggedFileMatch, THEME_CYCLE } from "./palette-model";
-import { BareInput } from "@/app/components/Input";
+import PaletteSearchBar from "./PaletteSearchBar";
+import { buildCreateRow, SEARCH_OR_CREATE_PLACEHOLDER, COMMAND_MODE_DEFAULT_ORDER, type FileResult, HighlightedText, MAX_PINS, MAX_VISIBLE_ROWS, parentFolder, pinnedKey, type Row, type Scope, scopeFromPrefix, scopePrefix, type TaggedFileMatch, THEME_CYCLE } from "./palette-model";
 
 export default function CommandPalette() {
-  const { isOpen, initialQuery, close, commands, markUsed } = useCommandPalette();
+  const { isOpen, initialQuery, close, commands, markUsed, createNote, isMorphing } = useCommandPalette();
   const fileMetadata = useAtomValue(atom_fileMetadata);
   const tasks = useAtomValue(atom_allTasks);
   const activeEditorView = useAtomValue(atom_activeEditorView);
@@ -189,9 +189,14 @@ export default function CommandPalette() {
     return command ? { kind: "command", id: command.id, label: command.label, detail: command.category ?? "Command", command, titleIndices: [], detailIndices: [], score: 0 } : null;
   }, [files, paletteCommands]);
 
+  const createRow = useMemo(
+    () => (scope || !createNote ? null : buildCreateRow(query, files)),
+    [createNote, files, query, scope],
+  );
+
   const rows = useMemo(() => {
     if (scope) return scopedRows.slice(0, MAX_VISIBLE_ROWS);
-    if (query) return fileRows;
+    if (query) return createRow ? [...fileRows.slice(0, MAX_VISIBLE_ROWS - 1), createRow] : fileRows;
     const pinned = pinnedItems.map(resolvePinned).filter((row): row is Row => row !== null);
     const pinnedKeys = new Set(pinnedItems.map(pinnedKey));
     const recent = recentFilePaths.slice(0, 5).filter((path) => !pinnedKeys.has(`file:${path}`))
@@ -202,7 +207,7 @@ export default function CommandPalette() {
     const explorer = resolvePinned({ kind: "command", id: explorerCommand.id });
     const topActions = [explorer, ...frequent].filter((row): row is Row => row !== null && !pinnedKeys.has(pinnedKey({ kind: "command", id: row.id })));
     return [...pinned, ...recent, ...topActions].slice(0, MAX_VISIBLE_ROWS);
-  }, [commandUseCounts, explorerCommand.id, fileRows, paletteCommands, pinnedItems, query, recentFilePaths, resolvePinned, scope, scopedRows]);
+  }, [commandUseCounts, createRow, explorerCommand.id, fileRows, paletteCommands, pinnedItems, query, recentFilePaths, resolvePinned, scope, scopedRows]);
 
   useEffect(() => setSelectedIndex(0), [query, scope]);
   useEffect(() => setSelectedIndex((index) => Math.min(index, Math.max(0, rows.length - 1))), [rows.length]);
@@ -221,6 +226,16 @@ export default function CommandPalette() {
         if (!pathname.startsWith("/editor")) router.push("/editor");
       } catch (error) {
         showErrorToast(error instanceof Error ? error.message : "Failed to open file");
+      }
+      return;
+    }
+    if (row.kind === "create") {
+      close();
+      await nextPaint();
+      try {
+        await createNote?.(row.title);
+      } catch (error) {
+        showErrorToast(error instanceof Error ? error.message : "Failed to create note");
       }
       return;
     }
@@ -286,57 +301,29 @@ export default function CommandPalette() {
   };
 
   return <OverlayPanel isOpen={isOpen} onClose={close} variant={isMobileChrome ? "sheet" : "modal"} backdrop="dim"
-    backdropClassName={isOpen
-      ? "bg-surface/85 dark:bg-black/60 animate-in fade-in duration-overlay-backdrop motion-reduce:animate-none"
-      : "bg-surface/85 dark:bg-black/60 animate-out fade-out duration-overlay-backdrop motion-reduce:animate-none"}
-    exitDurationMs={200}
+    // During a search-pill morph the view transition animates; the panel's own
+    // enter/exit animations and exit delay would hide it, so they're skipped.
+    backdropClassName={`bg-surface/85 dark:bg-black/60 duration-overlay-backdrop motion-reduce:animate-none ${isMorphing ? "" : isOpen ? "animate-in fade-in" : "animate-out fade-out"}`}
+    exitDurationMs={isMorphing ? 0 : 200}
     containerClassName={isMobileChrome ? "" : "items-start justify-center pt-[18vh] px-4"}
     panelClassName={isMobileChrome
-      ? `flex-1 flex flex-col bg-overlay duration-overlay-panel motion-reduce:animate-none ${isOpen ? "animate-in fade-in slide-in-from-bottom-2 ease-out" : "animate-out fade-out slide-out-to-bottom-2 ease-in"}`
-      : `w-[560px] max-w-[calc(100vw-2rem)] max-h-[calc(100vh-18vh-2rem)] flex flex-col bg-gradient-to-b from-overlay via-overlay to-surface-raised border border-edge rounded-lg overflow-hidden duration-overlay-panel motion-reduce:animate-none ${isOpen ? "animate-in fade-in slide-in-from-top-1 ease-out" : "animate-out fade-out slide-out-to-top-1 ease-in"}`}>
+      ? `flex-1 flex flex-col bg-overlay duration-overlay-panel motion-reduce:animate-none ${isMorphing ? "" : isOpen ? "animate-in fade-in slide-in-from-bottom-2 ease-out" : "animate-out fade-out slide-out-to-bottom-2 ease-in"}`
+      : `w-[560px] max-w-[calc(100vw-2rem)] max-h-[calc(100vh-18vh-2rem)] flex flex-col bg-gradient-to-b from-overlay via-overlay to-surface-raised border border-edge rounded-2xl overflow-hidden duration-overlay-panel motion-reduce:animate-none ${isMorphing ? "" : isOpen ? "animate-in fade-in slide-in-from-top-1 ease-out" : "animate-out fade-out slide-out-to-top-1 ease-in"}`}>
     <div className="flex min-h-0 flex-1 flex-col" onKeyDown={handleKeyDown}>
-    <div className="border-b border-edge bg-gradient-to-b from-surface/60 to-transparent px-6 py-2 font-sans">
-      <div className="flex h-10 items-center gap-2">
-        <div className="flex flex-1 items-center gap-3">
-          <HiOutlineSearch size={14} className="shrink-0 text-fg-muted" />
-          <BareInput ref={inputRef} type="search" value={displayQuery} onChange={(event) => { const value = event.target.value; const parsed = scopeFromPrefix(value); setScope(parsed?.scope ?? null); setQuery(parsed?.query ?? value); }}
-            placeholder="Search files or type a command..." className="min-w-0 flex-1 bg-transparent text-ui-callout font-normal text-fg outline-none caret-accent placeholder:text-fg-faint [&::-webkit-search-cancel-button]:hidden"
-            autoComplete="off" autoCorrect="off" spellCheck={false} role="combobox" aria-label="Search files and command palette modes" aria-expanded={isOpen} aria-controls="command-palette-results" aria-activedescendant={rows[selectedIndex] ? `command-palette-option-${selectedIndex}` : undefined} />
-          {query && <Button variant="icon" onClick={() => { setQuery(""); inputRef.current?.focus(); }} aria-label="Clear search" className="!w-8 !h-8"><HiOutlineX size={16} /></Button>}
-        </div>
-        <div className="ml-1 flex items-center gap-1 border-l border-edge-subtle pl-2">
-          <Button
-            variant="icon"
-            onClick={() => setTheme(THEME_CYCLE[(themeCycleIndex + 1) % THEME_CYCLE.length].value)}
-            aria-label={themeCycleLabel}
-            title={themeCycleLabel}
-            className="!w-8 !h-8"
-            suppressHydrationWarning
-          >
-            <ThemeCycleIcon size={16} />
-          </Button>
-          <Button
-            variant="icon"
-            onClick={() => { router.push("/editor/settings"); close(); }}
-            aria-label="Settings"
-            title="Settings"
-            className="!w-8 !h-8"
-          >
-            <HiOutlineCog size={16} />
-          </Button>
-          <Button
-            variant="icon"
-            onClick={() => { router.push("/documentation"); close(); }}
-            aria-label="Documentation and help"
-            title="Documentation and help"
-            className="!w-8 !h-8"
-          >
-            <HiOutlineQuestionMarkCircle size={16} />
-          </Button>
-        </div>
-        {isMobileChrome && <Button variant="icon" onClick={close} aria-label="Close" className="shrink-0"><HiOutlineX size={20} /></Button>}
-      </div>
-    </div>
+    <PaletteSearchBar
+      inputRef={inputRef}
+      isOpen={isOpen}
+      value={displayQuery}
+      placeholder={createNote ? SEARCH_OR_CREATE_PLACEHOLDER : "Search files or type a command..."}
+      hasQuery={!!query}
+      isCommandMode={scope === "command"}
+      activeDescendant={rows[selectedIndex] ? `command-palette-option-${selectedIndex}` : undefined}
+      onChange={(value) => { const parsed = scopeFromPrefix(value); setScope(parsed?.scope ?? null); setQuery(parsed?.query ?? value); }}
+      onClear={() => { setQuery(""); inputRef.current?.focus(); }}
+      onToggleCommands={() => { setScope((current) => (current === "command" ? null : "command")); inputRef.current?.focus(); }}
+    >
+      {isMobileChrome && <Button variant="icon" onClick={close} aria-label="Close" className="shrink-0"><HiOutlineX size={20} /></Button>}
+    </PaletteSearchBar>
     <div id="command-palette-results" role="listbox" aria-label="Command palette results" className="flex-1 min-h-0 overflow-x-hidden overflow-y-auto" style={{ fontFamily }}>
       {rows.length === 0 && !query && !scope && (
         <div className="animate-in fade-in slide-in-from-top-1 px-6 py-8 text-center text-ui-footnote text-fg-muted duration-200 motion-reduce:animate-none">
@@ -367,7 +354,18 @@ export default function CommandPalette() {
         </Button>;
       })}</div>
     </div>
-    <footer className="flex items-center justify-end border-t border-edge-subtle bg-chrome px-6 py-1.5 text-right text-[10px] text-fg-muted dark:bg-overlay">
+    <footer className="flex items-center justify-between border-t border-edge-subtle bg-chrome px-3 py-1 text-[10px] text-fg-muted dark:bg-overlay">
+      <div className="flex items-center gap-0.5">
+        <Button variant="icon" onClick={() => setTheme(THEME_CYCLE[(themeCycleIndex + 1) % THEME_CYCLE.length].value)} aria-label={themeCycleLabel} title={themeCycleLabel} className="!w-7 !h-7" suppressHydrationWarning>
+          <ThemeCycleIcon size={14} />
+        </Button>
+        <Button variant="icon" onClick={() => { router.push("/editor/settings"); close(); }} aria-label="Settings" title="Settings" className="!w-7 !h-7">
+          <HiOutlineCog size={14} />
+        </Button>
+        <Button variant="icon" onClick={() => { router.push("/documentation"); close(); }} aria-label="Documentation and help" title="Documentation and help" className="!w-7 !h-7">
+          <HiOutlineQuestionMarkCircle size={14} />
+        </Button>
+      </div>
       <span className="font-medium">HermesMarkdown v{version}</span>
     </footer>
     {contextRow && <div role="menu" aria-label="Palette item actions" className="absolute right-3 top-28 z-10 animate-in fade-in zoom-in-95 slide-in-from-top-1 rounded-lg border border-edge bg-chrome p-1 shadow-lg duration-150 motion-reduce:animate-none"><Button variant="menu-item" role="menuitem" onClick={() => togglePin(contextRow)}>{isPinned(contextRow) ? "Unpin item" : "Pin item"} <span className="ml-auto text-fg-faint">Ctrl+D</span></Button></div>}

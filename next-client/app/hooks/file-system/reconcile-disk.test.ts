@@ -14,24 +14,24 @@ const base = (overrides: Partial<FileState> = {}): FileState => ({
 describe("reconcileWithDisk", () => {
   it("returns the same state when disk matches and nothing changed", () => {
     const state = base();
-    expect(reconcileWithDisk(state, "cached", 100, false)).toBe(state);
+    expect(reconcileWithDisk(state, "cached", 100)).toBe(state);
   });
 
   it("records the new mtime when content already matches disk", () => {
     const state = base({ lastModified: undefined });
-    const next = reconcileWithDisk(state, "cached", 200, false);
+    const next = reconcileWithDisk(state, "cached", 200);
     expect(next).toMatchObject({ content: "cached", lastSavedContent: "cached", lastModified: 200 });
   });
 
   it("marks a dirty tab saved when its edits already match disk", () => {
     const state = base({ content: "edited", lastSavedContent: "cached" });
-    const next = reconcileWithDisk(state, "edited", 200, false);
+    const next = reconcileWithDisk(state, "edited", 200);
     expect(next).toMatchObject({ content: "edited", lastSavedContent: "edited", lastModified: 200 });
   });
 
   it("takes the disk version when the tab has no local edits", () => {
     const state = base();
-    const next = reconcileWithDisk(state, "changed on disk", 200, false);
+    const next = reconcileWithDisk(state, "changed on disk", 200);
     expect(next).toMatchObject({
       content: "changed on disk",
       lastSavedContent: "changed on disk",
@@ -42,30 +42,27 @@ describe("reconcileWithDisk", () => {
 
   it("keeps local edits when the disk file is unchanged", () => {
     const state = base({ content: "edited" });
-    const next = reconcileWithDisk(state, "cached", 200, false);
+    const next = reconcileWithDisk(state, "cached", 200);
     expect(next).toMatchObject({ content: "edited", lastSavedContent: "cached", lastModified: 200 });
     expect(next.conflict).toBeUndefined();
   });
 
-  it("raises a conflict when both sides changed", () => {
+  it("takes the disk version when both sides changed, keeping local text as a snapshot", () => {
     const state = base({ content: "edited" });
-    const next = reconcileWithDisk(state, "changed on disk", 200, false);
-    expect(next.content).toBe("edited");
-    expect(next.conflict).toEqual({ remoteContent: "changed on disk" });
-    expect(next.snapshots).toBeUndefined();
+    const next = reconcileWithDisk(state, "changed on disk", 200);
+    expect(next).toMatchObject({
+      content: "changed on disk",
+      lastSavedContent: "changed on disk",
+      lastModified: 200,
+    });
+    expect(next.conflict).toBeUndefined();
+    expect(next.snapshots?.map((s) => [s.type, s.content])).toEqual([["local", "edited"]]);
   });
 
-  it("snapshots both sides on conflict when enabled", () => {
-    const state = base({ content: "edited" });
-    const next = reconcileWithDisk(state, "changed on disk", 200, true);
-    expect(next.snapshots?.map((s) => [s.type, s.content])).toEqual([
-      ["remote", "changed on disk"],
-      ["local", "edited"],
-    ]);
-  });
-
-  it("does not re-raise an identical pending conflict", () => {
+  it("clears a previously pending conflict in favour of disk", () => {
     const state = base({ content: "edited", conflict: { remoteContent: "changed on disk" } });
-    expect(reconcileWithDisk(state, "changed on disk", 200, true)).toBe(state);
+    const next = reconcileWithDisk(state, "changed on disk", 200);
+    expect(next.content).toBe("changed on disk");
+    expect(next.conflict).toBeUndefined();
   });
 });

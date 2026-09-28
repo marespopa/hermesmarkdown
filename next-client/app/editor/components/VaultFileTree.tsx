@@ -7,6 +7,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { FileRow } from "./vault-tree/FileRow";
 import { buildFileTree, type DraggedEntry, getEntryId, getEntryPath, type VaultFileTreeProps, VIRTUALIZE_THRESHOLD } from "./vault-tree/tree-model";
 import { TreeNodes } from "./vault-tree/TreeNodes";
+import { useFolderExpansion } from "./vault-tree/use-folder-expansion";
 
 export default function VaultFileTree({
   processedFiles,
@@ -32,11 +33,6 @@ export default function VaultFileTree({
     (typeof indexerState === "object" && indexerState.status === "compiling");
   const [actionMenuOpen, setActionMenuOpen] = useState<{ x: number, y: number, path: string } | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
-  // Folders are collapsed by default; the only automatic exception is the
-  // chain of ancestor folders leading to the active file. Manual toggles
-  // (in either direction) override that default until the user toggles again.
-  const [manuallyExpanded, setManuallyExpanded] = useState<Set<string>>(() => new Set());
-  const [manuallyCollapsed, setManuallyCollapsed] = useState<Set<string>>(() => new Set());
   const [draggedEntry, setDraggedEntry] = useState<DraggedEntry | null>(null);
   const [rootDragOver, setRootDragOver] = useState(false);
 
@@ -58,21 +54,7 @@ export default function VaultFileTree({
     return ancestors;
   }, [activeFilePath]);
 
-  const isFolderCollapsed = (path: string) => {
-    if (manuallyExpanded.has(path)) return false;
-    if (manuallyCollapsed.has(path)) return true;
-    return !activeAncestorPaths.has(path);
-  };
-
-  const toggleFolder = (path: string) => {
-    if (isFolderCollapsed(path)) {
-      setManuallyExpanded((prev) => new Set(prev).add(path));
-      setManuallyCollapsed((prev) => { const next = new Set(prev); next.delete(path); return next; });
-    } else {
-      setManuallyCollapsed((prev) => new Set(prev).add(path));
-      setManuallyExpanded((prev) => { const next = new Set(prev); next.delete(path); return next; });
-    }
-  };
+  const { isFolderCollapsed, toggleFolder, expandFolder } = useFolderExpansion(activeAncestorPaths);
 
   const handleDropInto = async (targetPath: string) => {
     if (!draggedEntry || !moveItem || !resolveFolderHandle) return;
@@ -191,6 +173,7 @@ export default function VaultFileTree({
               resolveFolderHandle,
               createNewFile,
               createFolder,
+              expandFolder,
               renameFile,
               deleteFile,
             }}

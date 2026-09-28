@@ -9,6 +9,7 @@ export function buildDocumentVaultCommandGroups(context: EditorCommandContext) {
     activeLeaf,
     closeVault,
     createFolder,
+    createNewFile,
     deleteFile,
     dialog,
     duplicateFile,
@@ -40,9 +41,19 @@ export function buildDocumentVaultCommandGroups(context: EditorCommandContext) {
     {
       id: "new-file",
       label: "New file",
-      keywords: "create note",
+      keywords: "create note draft",
       action: onNewFile,
     },
+    ...(vaultHandle
+      ? [{
+          id: "new-file-in-folder",
+          label: "New file in folder…",
+          keywords: "create note name folder",
+          // Folder picker + name prompt: the explicit alternative to the
+          // draft flow, which names the note from its first line.
+          action: () => { void createNewFile(); },
+        }]
+      : []),
     {
       id: "export-file",
       label: "Export current file",

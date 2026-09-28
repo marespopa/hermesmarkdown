@@ -9,6 +9,7 @@ import {
 } from "@/app/atoms/atoms";
 import { useDialog } from "../use-dialog";
 import { withRetry } from "./shared";
+import { createUniqueFile } from "./unique-file";
 import { writeFileContent } from "@/app/services/file-writer";
 
 interface UseCreateItemProps {
@@ -122,28 +123,9 @@ export function useCreateItem({ scanVault, indexVaultTags, openFile }: UseCreate
       }
 
       const baseName = trimmedName.endsWith(".md") ? trimmedName.slice(0, -3) : trimmedName;
-      let fileName = `${baseName}.md`;
-      let counter = 1;
-      let newFileHandle: FileSystemFileHandle | null = null;
 
       try {
-        // Conflict Resolution Loop: find a unique filename
-        while (true) {
-          try {
-            await withRetry(() => targetDir.getFileHandle(fileName, { create: false }));
-            // If the above doesn't throw, the file already exists
-            fileName = `${baseName} (${counter++}).md`;
-          } catch (err: any) {
-            if (err.name === "NotFoundError") {
-              // Found a unique name!
-              newFileHandle = await withRetry(() => targetDir.getFileHandle(fileName, { create: true }));
-              break;
-            }
-            throw err;
-          }
-        }
-
-        if (!newFileHandle) throw new Error("Failed to resolve file handle");
+        const { handle: newFileHandle, fileName } = await createUniqueFile(targetDir, baseName);
 
         // Write content immediately if provided.
         // If empty, pad with a newline to prevent creating a 0-byte file,
@@ -201,26 +183,10 @@ export function useCreateItem({ scanVault, indexVaultTags, openFile }: UseCreate
     if (!targetDir) return null;
 
     const baseName = name.endsWith(".md") ? name.slice(0, -3) : name;
-    let fileName = `${baseName}.md`;
-    let counter = 1;
-    let newFileHandle: FileSystemFileHandle | null = null;
 
     try {
-      while (true) {
-        try {
-          await withRetry(() => targetDir.getFileHandle(fileName, { create: false }));
-          fileName = `${baseName} (${counter++}).md`;
-        } catch (err: any) {
-          if (err.name === "NotFoundError") {
-            newFileHandle = await withRetry(() => targetDir.getFileHandle(fileName, { create: true }));
-            break;
-          }
-          throw err;
-        }
-      }
-
-      if (!newFileHandle) throw new Error("Failed to resolve file handle");
-      await withRetry(() => writeFileContent(newFileHandle!, "\n"));
+      const { handle: newFileHandle, fileName } = await createUniqueFile(targetDir, baseName);
+      await withRetry(() => writeFileContent(newFileHandle, "\n"));
       await scanVault(vaultHandle || currentDirectoryHandle || targetDir);
       await indexVaultTags();
 
@@ -247,10 +213,15 @@ export function useCreateItem({ scanVault, indexVaultTags, openFile }: UseCreate
     }
   }, [chooseTargetDirectory, scanVault, indexVaultTags, vaultHandle, currentDirectoryHandle]);
 
-  const createNewFile = useCallback(async () => {
+  // A target directory (e.g. from a folder's menu in the file tree) skips the
+  // folder picker. The kind check guards against callers that forward an
+  // event object as the first argument.
+  const createNewFile = useCallback(async (targetDirectory?: FileSystemDirectoryHandle) => {
     if (!vaultHandle) return;
 
-    const targetDir = await chooseTargetDirectory();
+    const targetDir = targetDirectory?.kind === "directory"
+      ? targetDirectory
+      : await chooseTargetDirectory();
     if (!targetDir) return;
 
     const name = await dialog.prompt("Enter file name:", "Untitled", "New File");
@@ -259,7 +230,8 @@ export function useCreateItem({ scanVault, indexVaultTags, openFile }: UseCreate
     return createFile(name.trim(), "", targetDir);
   }, [vaultHandle, chooseTargetDirectory, createFile, dialog]);
 
-  const createFolder = useCallback(async () => {
+  const createFolder = useCallback(async (parentDirectory?: FileSystemDirectoryHandle) => {
+    if (parentDirectory?.kind === "directory") return promptAndCreateFolder(parentDirectory);
     const targetDirectory = await selectTargetDirectory(
       "Choose a destination for the new folder:",
       "New Folder",

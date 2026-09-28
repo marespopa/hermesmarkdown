@@ -8,6 +8,7 @@ import {
   atom_openFiles,
   atom_activeFilePath,
   atom_saveStatus,
+  atom_autoHideTabs,
 } from "@/app/atoms/atoms";
 import { CommandPaletteProvider } from "@/app/components/CommandPalette/CommandPaletteContext";
 import { formatShortcut } from "@/app/utils/platform";
@@ -154,6 +155,38 @@ describe("PaneLeaf Tab Indicators", () => {
     // file1.md should not have a saving dot
     const dots = screen.queryAllByTitle("Saving…");
     expect(dots.length).toBe(1); // Only for file2.md
+  });
+
+  it("replaces the tab strip with a title bar for a single note", () => {
+    render(
+      <TestProvider initialValues={[
+        [atom_activePaneId, "pane-1"],
+        [atom_openFiles, { "file1.md": { fileName: "file1.md", content: "clean", lastSavedContent: "clean" } }],
+      ]}>
+        <PaneLeaf leaf={{ ...mockLeaf, openFilePaths: ["file1.md"] }} />
+      </TestProvider>
+    );
+
+    expect(screen.queryByLabelText("Close tab")).not.toBeInTheDocument();
+    expect(screen.getByRole("banner", { name: "Note" })).toHaveTextContent("file1");
+    // Home needs a vault (the feed lists vault notes).
+    expect(screen.queryByRole("button", { name: "Home feed" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /^Save/ })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Tab options" })).toBeInTheDocument();
+  });
+
+  it("shows the tab strip for a single tab when auto-hide is off", () => {
+    render(
+      <TestProvider initialValues={[
+        [atom_activePaneId, "pane-1"],
+        [atom_autoHideTabs, false],
+        [atom_openFiles, { "file1.md": { fileName: "file1.md", content: "clean", lastSavedContent: "clean" } }],
+      ]}>
+        <PaneLeaf leaf={{ ...mockLeaf, openFilePaths: ["file1.md"] }} />
+      </TestProvider>
+    );
+
+    expect(screen.getByLabelText("Close tab")).toBeInTheDocument();
   });
 
   it("guides an empty pane toward creating or opening a note", () => {

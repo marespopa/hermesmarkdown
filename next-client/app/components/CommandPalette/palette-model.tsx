@@ -7,8 +7,19 @@ import type { Command } from "./CommandPaletteContext";
 
 // Command palette constants, row/scope types, and small pure helpers.
 export const MAX_VISIBLE_ROWS = 12;
+// Shared by the palette input (when notes can be created) and the home
+// feed's search pill that morphs into it.
+export const SEARCH_OR_CREATE_PLACEHOLDER = "Search or create a note…";
+// One search-pill look for the palette field and the home feed's pill (the
+// same element as far as the user is concerned; they morph into each other).
+export const SEARCH_PILL_CLASS = "flex items-center gap-1 rounded-full border border-edge bg-chrome p-1.5";
+export const SEARCH_FIELD_CLASS = "flex h-10 min-w-0 flex-1 items-center gap-3 rounded-full pl-4 pr-1";
+export const SEARCH_KBD_CLASS = "hidden shrink-0 rounded border border-edge px-1.5 py-0.5 font-mono text-[10px] text-fg-muted sm:inline";
+export const COMMAND_TOGGLE_CLASS =
+  "flex h-7 w-7 shrink-0 items-center justify-center rounded-full font-mono text-[13px] font-semibold transition-colors";
 export const MAX_PINS = 5;
 export const COMMAND_MODE_DEFAULT_ORDER = [
+  "open-home-feed",
   "new-file",
   "save-file",
   "open-explorer",
@@ -36,7 +47,18 @@ export type Row =
   | { kind: "command"; id: string; label: string; detail: string; command: Command; titleIndices: number[]; detailIndices: number[]; score: number }
   | { kind: "file"; id: string; label: string; detail: string; file: FileResult; titleIndices: number[]; detailIndices: number[]; score: number }
   | { kind: "task"; id: string; label: string; detail: string; titleIndices: number[]; detailIndices: number[]; score: number }
-  | { kind: "heading"; id: string; label: string; detail: string; from: number; titleIndices: number[]; detailIndices: number[]; score: number };
+  | { kind: "heading"; id: string; label: string; detail: string; from: number; titleIndices: number[]; detailIndices: number[]; score: number }
+  | { kind: "create"; id: string; label: string; detail: string; title: string; titleIndices: number[]; detailIndices: number[]; score: number };
+
+// The "Create '…'" row for a file query: offered when a create handler is
+// registered and no note already has exactly that title.
+export function buildCreateRow(query: string, files: FileResult[]): Extract<Row, { kind: "create" }> | null {
+  const title = query.trim();
+  if (!title) return null;
+  const wanted = title.toLowerCase();
+  if (files.some((file) => file.name.replace(/\.md$/i, "").toLowerCase() === wanted)) return null;
+  return { kind: "create", id: `create:${title}`, label: `Create "${title}"`, detail: "New note", title, titleIndices: [], detailIndices: [], score: 0 };
+}
 
 export function HighlightedText({ text, indices }: { text: string; indices: number[] }) {
   const matches = new Set(indices);

@@ -42,8 +42,7 @@ export default function AiKeyStep({ onContinue }: { onContinue: () => void }) {
         <h2 className="text-ui-title-3 font-bold">AI Features (optional)</h2>
         <p className="text-ui-footnote opacity-60 px-4">
           Bring your own API key to unlock rewriting, summarizing, and chat.
-          Stored locally in your browser only — never sent to us. Skip this
-          anytime and add it later in Settings.
+          Stored locally in your browser only — never sent to us.
         </p>
       </div>
 

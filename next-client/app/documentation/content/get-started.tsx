@@ -122,8 +122,9 @@ export const getStartedGroup: Group = {
             where the folder will be created, then click <em>Create Vault</em>.
           </p>
           <p>
-            HermesMarkdown creates the folder and opens the vault on a blank note. No example content
-            is added.
+            HermesMarkdown creates the folder and opens the vault on its{" "}
+            <a href="#home-feed" className="text-sage font-semibold hover:underline">home feed</a>.
+            No example content is added.
           </p>
           <Callout type="note">
             The dialog checks for an existing folder with the same name at the chosen location and stops if one is
@@ -135,38 +136,107 @@ export const getStartedGroup: Group = {
     {
       id: "first-note",
       title: "Your first note",
-      lead: "Start a blank note immediately; organize it after you have begun writing.",
-      keywords: "new file save autosave frontmatter",
+      lead: "Start typing. The note saves itself and is named after its first line.",
+      keywords: "new file new note draft save autosave name title folder frontmatter",
       body: (
         <>
           <p>
-            Choose <strong>New File</strong> from the command palette (or press{" "}
-            <code>CTRL+ALT+N</code>), then select a destination folder and enter a file name.
+            Press <code>CTRL+ALT+N</code>, click <strong>+</strong> on the home feed, or choose{" "}
+            <strong>New file</strong> from the command palette. A blank note opens, ready to type.
+            There is no folder picker and no name prompt.
           </p>
           <p>
-            HermesMarkdown creates an empty file in the folder you select with the name you provide —
-            no template or metadata is added. Want frontmatter? Type <code>/frontmatter</code> to
+            The note is saved to your vault once you finish the first line, when you press{" "}
+            <code>CTRL/CMD+S</code>, or when you switch to another window. The file is named after
+            the first line, for example <code>Trip ideas.md</code>. If the first line has no usable
+            text, the date and time are used instead, like <code>2026-09-28 1432.md</code>. An
+            existing file is never overwritten: a taken name becomes <code>Trip ideas (1).md</code>.
+          </p>
+          <p>
+            A note you leave empty is never saved, so no empty files pile up in your vault. Renaming
+            the first line later does not rename the file; use <strong>Rename current file</strong>{" "}
+            for that.
+          </p>
+          <KV
+            rows={[
+              { label: "Where new notes go", value: "Vault root · Settings → New Notes Folder" },
+              { label: "Pick a folder and name first", value: "New file in folder… command" },
+              { label: "Create from a search", value: 'Type a title in the palette, then Create "…"' },
+            ]}
+          />
+          <p>
+            No template or metadata is added. Want frontmatter? Type <code>/frontmatter</code> to
             insert a starter block. See{" "}
             <a href="#frontmatter" className="text-sage font-semibold hover:underline">Frontmatter</a>.
+            Autosave can be changed under{" "}
+            <a href="#appearance" className="text-sage font-semibold hover:underline">Settings → Autosave</a>.
+            With autosave set to manual, a new note is saved only when you press <code>CTRL/CMD+S</code>.
+          </p>
+        </>
+      ),
+    },
+    {
+      id: "home-feed",
+      title: "Home feed",
+      lead: "Your recent notes, newest first. It's where a vault opens.",
+      keywords: "home feed recent notes start screen today yesterday preview search create new note welcome",
+      body: (
+        <>
+          <p>
+            Each row shows a note's title and the first few lines of its text. The column on the
+            left groups notes by the day they were last changed: <em>Today</em>,{" "}
+            <em>Yesterday</em>, the weekday for the rest of the week, then the date. If you entered
+            your name during setup, the feed greets you with it.
           </p>
           <p>
-            Save manually with <code>CTRL+S</code>, or rely on autosave — configurable under{" "}
-            <a href="#appearance" className="text-sage font-semibold hover:underline">Settings → Autosave</a>.
-            The save indicator shows whether the file has unsaved changes.
+            At the bottom, <strong>Search or create a note…</strong> opens the command palette.
+            Type to find a note, or type a new title and pick <strong>Create &quot;…&quot;</strong>{" "}
+            to start that note. The <strong>&gt;</strong> button opens the palette&apos;s command
+            list, and <strong>+</strong> starts a blank note.
           </p>
+          <KV
+            rows={[
+              { label: "Move between notes", value: "↑ / ↓ or J / K" },
+              { label: "Open the selected note", value: "ENTER" },
+              { label: "Search", value: "Start typing" },
+              { label: "Back to your open notes", value: "ESCAPE" },
+              { label: "Come back to the feed", value: "Home button or Home feed command" },
+            ]}
+          />
+          <p>
+            The Home button is at the far left of the editor&apos;s header on desktop, and at the
+            top left on phones.
+          </p>
+          <p>
+            In a large vault, notes appear right away in the correct order. Their previews fill in
+            from the top down while <em>Indexing notes…</em> is shown. Notes that haven&apos;t
+            changed since last time load instantly from a cache kept in your browser.
+          </p>
+          <Callout type="tip">
+            Prefer to reopen the notes you had open last time? Set{" "}
+            <strong>Settings → On Vault Open</strong> to <em>Resume last tabs</em>. The feed is still
+            one click away.
+          </Callout>
         </>
       ),
     },
     {
       id: "editor-layout",
       title: "Editor layout",
-      lead: "The app opens straight into a full-screen editor; navigation lives in dedicated views and the command palette.",
+      lead: "A full-screen editor with a slim header. Everything else is in the command palette and a few dedicated views.",
       keywords: "explorer files search views tags tasks settings theme pane split toolbar command palette",
       body: (
         <>
           <p>
             There's no formatting toolbar above the text. Formatting happens through Markdown syntax,
             keyboard shortcuts, and the slash command menu.
+          </p>
+          <p>
+            The header shows your tabs when several notes are open. With one note open, it shows
+            just the note&apos;s title instead (turn this off with{" "}
+            <strong>Settings → Auto-hide Tabs</strong>). Either way, Home is on the left, and the
+            command palette, AI Chat (when an AI key is set), Save, and more options are on the
+            right.
           </p>
           <p>
             Open the dedicated Explorer with <code>CTRL/CMD+SHIFT+E</code> (or <code>CTRL/CMD+B</code>{" "}
@@ -176,11 +246,13 @@ export const getStartedGroup: Group = {
           </p>
           <KV
             rows={[
+              { label: "Home feed", value: "Home button in the header" },
               { label: "Explorer", value: "Dedicated files view / CTRL/CMD+SHIFT+E" },
               { label: "Quick switcher", value: "CTRL/CMD+K or CTRL/CMD+P" },
               { label: "Command palette", value: "CTRL/CMD+SHIFT+K or CTRL/CMD+SHIFT+P" },
               { label: "Search files", value: "CTRL/CMD+SHIFT+F" },
               { label: "Palette modes", value: "# vault tags · > commands · ! tasks · @ current-note headings" },
+              { label: "Commands on or off", value: "The > button in the search field" },
               { label: "Explorer controls", value: "New note, new folder, and file actions" },
               { label: "AI Chat", value: "CTRL+SHIFT+B" },
               { label: "Voice input", value: "CTRL+SHIFT+V" },
@@ -192,8 +264,8 @@ export const getStartedGroup: Group = {
             saved, rule-based filters over your notes&apos; tags and frontmatter.
           </p>
           <p>
-            Open several files side by side: split right from the tab bar, drag tabs between panes,
-            and resize with the divider.
+            Open several files side by side: choose <strong>Open in pane</strong> from the header,
+            drag tabs between panes, and resize with the divider.
           </p>
         </>
       ),
@@ -255,12 +327,22 @@ export const getStartedGroup: Group = {
               ],
             },
             {
+              context: "Home feed",
+              rows: [
+                { label: "Move between notes", shortcut: "↑ / ↓ or J / K" },
+                { label: "Open the selected note", shortcut: "ENTER" },
+                { label: "Search", shortcut: "Start typing" },
+                { label: "Back to your open notes", shortcut: "ESCAPE" },
+              ],
+            },
+            {
               context: "Command Palette",
               rows: [
                 { label: "Open Quick Switcher", shortcut: "CTRL/CMD+K or CTRL/CMD+P" },
                 { label: "Open Command Palette", shortcut: "CTRL/CMD+SHIFT+K or CTRL/CMD+SHIFT+P" },
                 { label: "Search files", shortcut: "CTRL/CMD+SHIFT+F" },
                 { label: "Filter", shortcut: "Keep typing" },
+                { label: "Switch between files and commands", shortcut: "CLICK >" },
                 { label: "Navigate results", shortcut: "↑ / ↓ or TAB" },
                 { label: "Pin / unpin the selected item", shortcut: "CTRL/CMD+D" },
                 { label: "Run command", shortcut: "ENTER" },

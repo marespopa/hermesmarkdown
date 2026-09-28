@@ -1,4 +1,5 @@
 import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { createStore, Provider } from "jotai";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import VaultFileTree from "./VaultFileTree";
 
@@ -9,7 +10,10 @@ vi.mock("jotai", async (importOriginal) => ({
 
 const fileHandle = { kind: "file", name: "note.md" } as FileSystemFileHandle;
 
-function renderFiles(overrides: Partial<React.ComponentProps<typeof VaultFileTree>> = {}) {
+function renderFiles(
+  overrides: Partial<React.ComponentProps<typeof VaultFileTree>> = {},
+  store = createStore(),
+) {
   const props: React.ComponentProps<typeof VaultFileTree> = {
     processedFiles: [{ name: "note.md", path: "note.md", handle: fileHandle }],
     activeFilePath: null,
@@ -18,7 +22,15 @@ function renderFiles(overrides: Partial<React.ComponentProps<typeof VaultFileTre
     deleteFile: vi.fn(),
     ...overrides,
   };
-  return { props, ...render(<VaultFileTree {...props} />) };
+  return {
+    props,
+    store,
+    ...render(
+      <Provider store={store}>
+        <VaultFileTree {...props} />
+      </Provider>,
+    ),
+  };
 }
 
 afterEach(() => {
@@ -111,11 +123,14 @@ describe("VaultFileTree tree interactions", () => {
     });
   });
 
-  it("opens the shared folder creation flow from a folder options menu", async () => {
+  it("creates a subfolder inside the folder whose options menu was used", async () => {
+    const folderHandle = { kind: "directory", name: "Folder" };
+    const resolveFolderHandle = vi.fn().mockResolvedValue(folderHandle);
     const createFolder = vi.fn().mockResolvedValue(null);
     renderFiles({
       treeView: true,
       folderPaths: ["Folder"],
+      resolveFolderHandle,
       createFolder,
     });
 
@@ -123,8 +138,46 @@ describe("VaultFileTree tree interactions", () => {
     fireEvent.click(screen.getByText("New Folder"));
 
     await waitFor(() => {
-      expect(createFolder).toHaveBeenCalledWith();
+      expect(resolveFolderHandle).toHaveBeenCalledWith("Folder");
+      expect(createFolder).toHaveBeenCalledWith(folderHandle);
     });
+  });
+
+  it("creates a note inside the folder and expands it", async () => {
+    const folderHandle = { kind: "directory", name: "Folder" };
+    const resolveFolderHandle = vi.fn().mockResolvedValue(folderHandle);
+    const createNewFile = vi.fn();
+    renderFiles({
+      treeView: true,
+      folderPaths: ["Folder"],
+      processedFiles: [{ name: "nested.md", path: "Folder/nested.md", handle: { kind: "file", name: "nested.md" } }],
+      resolveFolderHandle,
+      createNewFile,
+    });
+    expect(screen.queryByText("nested")).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByLabelText("Folder options"));
+    fireEvent.click(screen.getByText("New File"));
+
+    await waitFor(() => {
+      expect(createNewFile).toHaveBeenCalledWith(folderHandle);
+      expect(screen.getByText("nested")).toBeInTheDocument();
+    });
+  });
+
+  it("remembers expanded folders across remounts", () => {
+    const tree = {
+      treeView: true,
+      folderPaths: ["Folder"],
+      processedFiles: [{ name: "nested.md", path: "Folder/nested.md", handle: { kind: "file", name: "nested.md" } }],
+    };
+    const { store, unmount } = renderFiles(tree);
+    fireEvent.click(screen.getByText("Folder"));
+    expect(screen.getByText("nested")).toBeInTheDocument();
+
+    unmount();
+    renderFiles(tree, store);
+    expect(screen.getByText("nested")).toBeInTheDocument();
   });
 
   it("opens the shared rename dialog for files", () => {

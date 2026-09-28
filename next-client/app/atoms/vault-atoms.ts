@@ -1,9 +1,10 @@
 import { atom } from "jotai";
 import { atom_openFiles, atom_liveHandles } from "./file-atoms";
 import { atom_workspaceLayout } from "./workspace-atoms";
-import { atom_snapshotOnConflict } from "./ui-atoms";
+import { atom_fileTreeExpansion } from "./ui-atoms";
+import { atom_fileMetadata } from "./metadata";
 import { reconcileWithDisk } from "@/app/hooks/file-system/reconcile-disk";
-import { removePathsFromLayout } from "./utils";
+import { remapPath, remapPathsInLayout, removePathsFromLayout } from "./utils";
 import type { GitHubVaultDescriptor } from "@/app/services/github-vault-workspace";
 import type { BrowserVaultDescriptor } from "@/app/services/opfs";
 
@@ -25,6 +26,31 @@ export type VaultDescriptor =
 
 export const atom_vaultDescriptor = atom<VaultDescriptor | null>(null);
 
+// Stable per-vault key for UI state persisted across reloads.
+export const atom_vaultKey = atom<string | null>((get) => {
+  const descriptor = get(atom_vaultDescriptor);
+  if (descriptor?.kind === "browser") return `browser:${descriptor.id}`;
+  if (descriptor?.kind === "github") {
+    return `github:${descriptor.owner}/${descriptor.repository}@${descriptor.branch}`;
+  }
+  const vaultHandle = get(atom_vaultHandle);
+  return vaultHandle ? `local:${vaultHandle.name}` : null;
+});
+
+// Walks a vault-relative path to a fresh file handle. Throws the underlying
+// DOMException (e.g. NotFoundError) when any segment is missing.
+export async function resolveFileHandleAtPath(
+  vaultHandle: FileSystemDirectoryHandle,
+  path: string,
+): Promise<FileSystemFileHandle> {
+  const parts = path.split("/");
+  let current = vaultHandle;
+  for (let i = 0; i < parts.length - 1; i++) {
+    current = await current.getDirectoryHandle(parts[i]);
+  }
+  return current.getFileHandle(parts[parts.length - 1]);
+}
+
 // Action atoms
 export const atom_rebindHandles = atom(
   null,
@@ -38,16 +64,7 @@ export const atom_rebindHandles = atom(
       if (path === "draft") continue;
 
       try {
-        const parts = path.split("/");
-        let current: any = vaultHandle;
-
-        // Walk the directory structure
-        for (let i = 0; i < parts.length - 1; i++) {
-          current = await current.getDirectoryHandle(parts[i]);
-        }
-
-        // Get the file handle
-        const handle = await current.getFileHandle(parts[parts.length - 1]);
+        const handle = await resolveFileHandleAtPath(vaultHandle, path);
         if (handle) {
           set(atom_liveHandles(path), handle);
           // Tabs are restored from localStorage — read the file so they
@@ -71,13 +88,12 @@ export const atom_rebindHandles = atom(
     }
 
     if (diskFiles.size > 0) {
-      const snapshotOnConflict = get(atom_snapshotOnConflict);
       set(atom_openFiles, (prev) => {
         let next = prev;
         for (const [path, disk] of diskFiles) {
           const state = prev[path];
           if (!state) continue;
-          const reconciled = reconcileWithDisk(state, disk.content, disk.lastModified, snapshotOnConflict);
+          const reconciled = reconcileWithDisk(state, disk.content, disk.lastModified);
           if (reconciled === state) continue;
           if (next === prev) next = { ...prev };
           next[path] = reconciled;
@@ -100,3 +116,103 @@ export const atom_rebindHandles = atom(
     }
   },
 );
+
+// Follows a file or folder that was renamed or moved on disk: re-keys open
+// tabs (keeping unsaved edits), pane layouts, indexed metadata and the file
+// tree's remembered expansion from `oldPath` to `newPath`, for the item and
+// everything under it. Handles are path-based, so moving a folder leaves its
+// children's handles stale — each moved tab gets a fresh handle resolved at
+// its new path, so the next save lands in the moved file.
+export const atom_remapVaultPaths = atom(
+  null,
+  async (get, set, { oldPath, newPath }: { oldPath: string; newPath: string }) => {
+    if (!oldPath || !newPath || oldPath === newPath) return;
+    const mapPath = (p: string) => remapPath(p, oldPath, newPath) ?? p;
+
+    const vaultHandle = get(atom_vaultHandle);
+    const movedTabs = Object.keys(get(atom_openFiles)).filter(
+      (p) => p !== "draft" && remapPath(p, oldPath, newPath) !== null,
+    );
+    const freshHandles = new Map<string, FileSystemFileHandle | null>();
+    for (const p of movedTabs) {
+      const target = mapPath(p);
+      let handle: FileSystemFileHandle | null = null;
+      if (vaultHandle) {
+        try {
+          handle = await resolveFileHandleAtPath(vaultHandle, target);
+        } catch (err) {
+          console.warn(`Failed to resolve moved file ${target}:`, err);
+        }
+      }
+      freshHandles.set(p, handle);
+    }
+
+    // All state updates happen after the awaits, back to back, so no render
+    // sees tabs and layout pointing at different paths for long.
+    set(atom_openFiles, (prev) => {
+      const next: typeof prev = {};
+      for (const [p, state] of Object.entries(prev)) {
+        const target = p === "draft" ? p : mapPath(p);
+        if (target === p) {
+          next[p] = state;
+          continue;
+        }
+        next[target] = {
+          ...state,
+          activeFilePath: target,
+          ...(p === oldPath
+            ? { fileName: (target.split("/").pop() || state.fileName).replace(".md", "") }
+            : {}),
+        };
+      }
+      return next;
+    });
+    set(atom_workspaceLayout, (prev) => ({
+      ...prev,
+      rootContainer: remapPathsInLayout(prev.rootContainer, (p) => (p === "draft" ? p : mapPath(p))) as typeof prev.rootContainer,
+    }));
+    for (const [p, handle] of freshHandles) {
+      set(atom_liveHandles(mapPath(p)), handle ?? get(atom_liveHandles(p)));
+      set(atom_liveHandles(p), null);
+    }
+
+    set(atom_fileMetadata, (prev) => {
+      let next = prev;
+      for (const [p, meta] of Object.entries(prev)) {
+        const target = remapPath(p, oldPath, newPath);
+        if (target === null) continue;
+        if (next === prev) next = { ...prev };
+        delete next[p];
+        next[target] = { ...meta, path: target, name: target.split("/").pop() || meta.name };
+      }
+      return next;
+    });
+
+    const vaultKey = get(atom_vaultKey);
+    if (vaultKey) {
+      set(atom_fileTreeExpansion, (prev) => {
+        const entry = prev[vaultKey];
+        if (!entry) return prev;
+        return {
+          ...prev,
+          [vaultKey]: { expanded: entry.expanded.map(mapPath), collapsed: entry.collapsed.map(mapPath) },
+        };
+      });
+    }
+  },
+);
+
+// Forgets remembered expansion for a deleted folder and everything under it.
+export const atom_forgetFileTreePaths = atom(null, (get, set, deletedPath: string) => {
+  const vaultKey = get(atom_vaultKey);
+  if (!vaultKey || !deletedPath) return;
+  const keep = (p: string) => remapPath(p, deletedPath, deletedPath) === null;
+  set(atom_fileTreeExpansion, (prev) => {
+    const entry = prev[vaultKey];
+    if (!entry) return prev;
+    return {
+      ...prev,
+      [vaultKey]: { expanded: entry.expanded.filter(keep), collapsed: entry.collapsed.filter(keep) },
+    };
+  });
+});

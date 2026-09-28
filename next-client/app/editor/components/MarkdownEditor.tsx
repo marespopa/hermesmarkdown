@@ -126,7 +126,7 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
   // `[[Note]]!B5` formula references read other notes' tables; hand the
   // (async-loaded) snapshot to the table grid so results can resolve.
   const fileMetadata = useAtomValue(atom_fileMetadata);
-  const formulaFileTables = useCrossFileTables(props.value, fileMetadata, props.isActivePane !== false);
+  const formulaFileTables = useCrossFileTables(props.value, fileMetadata, props.isActivePane !== false, props.filePath);
 
   const image = useCodeMirrorImage({ viewRef, containerRef });
   const { imageInfo, onCursorActivity: onImageCursorActivity } = image;

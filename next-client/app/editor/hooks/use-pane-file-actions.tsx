@@ -11,9 +11,9 @@ import {
   contentStore,
 } from "@/app/atoms/atoms";
 import { useFileSystem } from "@/app/hooks/use-file-system";
-import { useDialog } from "@/app/hooks/use-dialog";
 import { showCopyToast, showErrorToast } from "@/app/components/Toastr";
 import { TabContextMenuItem } from "../components/TabContextMenu";
+import { useMaterializeDraft } from "./use-materialize-draft";
 
 // Shared between the desktop pane tab bar and the mobile control rail so
 // Save/Copy/Close behavior stays a single source of truth even though the
@@ -25,8 +25,8 @@ export function usePaneFileActions(leaf: PanelLeaf | null) {
   const [, closeTab] = useAtom(atom_closeTab);
   const vaultHandle = useAtomValue(atom_vaultHandle);
   const liveHandle = useAtomValue(atom_liveHandles(filePath));
-  const { saveFile, exportFile, createFile, chooseTargetDirectory } = useFileSystem();
-  const dialog = useDialog();
+  const { saveFile, exportFile, scanVault, indexVaultTags } = useFileSystem();
+  const materializeDraft = useMaterializeDraft({ scanVault, indexVaultTags });
 
   const handleExport = useCallback(async () => {
     if (!content.trim()) return;
@@ -65,23 +65,15 @@ export function usePaneFileActions(leaf: PanelLeaf | null) {
       }
     }
 
-    // Draft saved to the vault for the first time → prompt for a name and create.
+    // Draft saved to the vault for the first time → named from its first line, no prompt.
     if (vaultHandle) {
-      const targetDir = await chooseTargetDirectory();
-      if (!targetDir) return;
-
-      const fileState = openFiles[filePath];
-      const fileName = fileState?.fileName || "untitled";
-      const name = await dialog.prompt("Enter file name:", fileName.replace(".md", ""), "Save to Vault");
-      if (name) {
-        await createFile(name, content, targetDir);
-      }
+      await materializeDraft(leaf?.id);
       return;
     }
 
     // No vault → download.
     await handleExport();
-  }, [content, liveHandle, filePath, vaultHandle, saveFile, openFiles, dialog, createFile, chooseTargetDirectory, handleExport]);
+  }, [content, liveHandle, filePath, vaultHandle, saveFile, materializeDraft, leaf?.id, handleExport]);
 
   const handleCopy = useCallback(async () => {
     try {
