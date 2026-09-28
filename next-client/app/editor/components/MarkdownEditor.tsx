@@ -21,7 +21,7 @@ import { useCodeMirrorTable } from "../hooks/use-codemirror-table";
 import { useCrossFileTables } from "../hooks/use-cross-file-tables";
 import { formulaFileTablesField, setFormulaFileTables } from "../codemirror/table-formulas";
 import { atom_fileMetadata } from "@/app/atoms/metadata";
-import { useCodeMirrorMermaid } from "../hooks/use-codemirror-mermaid";
+import { openRenderedBlockAtCaret } from "../codemirror/rendered-block";
 import { useCodeMirrorCodeLanguagePicker } from "../hooks/use-codemirror-code-language-picker";
 import { useCodeMirrorImage } from "../hooks/use-codemirror-image";
 import { useCodeMirrorCalloutFold } from "../hooks/use-codemirror-callout-fold";
@@ -29,7 +29,7 @@ import { useCodeMirrorFrontmatterFold } from "../hooks/use-codemirror-frontmatte
 import { insertOrRevealFrontmatter } from "../codemirror/frontmatter-fold";
 import { useEditorPasteHandlers } from "../hooks/use-editor-paste-handlers";
 import { useScrollToPendingTarget } from "../hooks/use-scroll-to-pending-target";
-import { openImageDialog, openMermaidDialog } from "../utils/open-helper-dialogs";
+import { openImageDialog } from "../utils/open-helper-dialogs";
 import EditorPills from "./markdown-editor/EditorPills";
 import FoldChevrons from "./markdown-editor/FoldChevrons";
 import LinkInsertDialog from "./markdown-editor/LinkInsertDialog";
@@ -47,7 +47,8 @@ interface MarkdownEditorProps {
 // The CM6 editor pane. Editing behavior lives in CodeMirror extensions
 // (app/editor/codemirror/) — including tables, which render as an inline
 // editable grid — while this component owns the floating React helpers
-// (link/date/workflow/Mermaid pills, language picker, dialogs).
+// (link/date/workflow pills, language picker, dialogs). Mermaid and math
+// blocks render inline via codemirror/rendered-block.ts.
 export default function MarkdownEditor(props: MarkdownEditorProps) {
   const { onChange } = props;
   const wordWrap = useAtomValue(atom_wordWrap);
@@ -126,9 +127,6 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
   const fileMetadata = useAtomValue(atom_fileMetadata);
   const formulaFileTables = useCrossFileTables(props.value, fileMetadata, props.isActivePane !== false);
 
-  const mermaid = useCodeMirrorMermaid({ viewRef, containerRef });
-  const { mermaidInfo, onCursorActivity: onMermaidCursorActivity } = mermaid;
-
   const image = useCodeMirrorImage({ viewRef, containerRef });
   const { imageInfo, onCursorActivity: onImageCursorActivity } = image;
 
@@ -147,10 +145,7 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
       setIsDateExpanded(true);
       return true;
     }
-    if (mermaidInfo) {
-      openMermaidDialog(mermaidInfo.source);
-      return true;
-    }
+    if (viewRef.current && openRenderedBlockAtCaret(viewRef.current)) return true;
     if (imageInfo) {
       openImageDialog(imageInfo.src, imageInfo.alt);
       return true;
@@ -189,12 +184,11 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
   const onCombinedCursorActivity = useCallback((view: EditorView) => {
     onCursorActivity(view);
     onTableCursorActivity(view);
-    onMermaidCursorActivity(view);
     onCodeLanguagePickerCursorActivity(view);
     onImageCursorActivity(view);
     onFoldCursorActivity(view);
     onFrontmatterFoldCursorActivity(view);
-  }, [onCursorActivity, onTableCursorActivity, onMermaidCursorActivity, onCodeLanguagePickerCursorActivity, onImageCursorActivity, onFoldCursorActivity, onFrontmatterFoldCursorActivity]);
+  }, [onCursorActivity, onTableCursorActivity,onCodeLanguagePickerCursorActivity, onImageCursorActivity, onFoldCursorActivity, onFrontmatterFoldCursorActivity]);
 
   useCodeMirrorEditor({
     value: editorValue,
@@ -298,7 +292,6 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
           <EditorPills
             features={features}
             languagePicker={languagePicker}
-            mermaid={mermaid}
             image={image}
             containerRef={containerRef}
             onWikiLinkClick={props.onWikiLinkClick}

@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { HiOutlineArrowsExpand, HiOutlineCalendar, HiOutlinePhotograph } from "react-icons/hi";
+import { HiOutlineCalendar, HiOutlinePhotograph } from "react-icons/hi";
 import { languages } from "@codemirror/language-data";
 import Button from "@/app/components/Button";
 import Typeahead from "@/app/components/Typeahead/Typeahead";
@@ -11,24 +11,22 @@ import { WorkflowPill } from "../WorkflowPill";
 import { PILL_CONTAINER_CLASSES } from "../constants";
 import type { useCodeMirrorFeatures } from "../../hooks/use-codemirror-features";
 import type { useCodeMirrorCodeLanguagePicker } from "../../hooks/use-codemirror-code-language-picker";
-import type { useCodeMirrorMermaid } from "../../hooks/use-codemirror-mermaid";
 import type { useCodeMirrorImage } from "../../hooks/use-codemirror-image";
-import { openImageDialog, openMermaidDialog } from "../../utils/open-helper-dialogs";
+import { openImageDialog } from "../../utils/open-helper-dialogs";
 
 interface EditorPillsProps {
   features: ReturnType<typeof useCodeMirrorFeatures>;
   languagePicker: ReturnType<typeof useCodeMirrorCodeLanguagePicker>;
-  mermaid: ReturnType<typeof useCodeMirrorMermaid>;
   image: ReturnType<typeof useCodeMirrorImage>;
   containerRef: React.RefObject<HTMLDivElement | null>;
   onWikiLinkClick?: (name: string) => void;
 }
 
 // The floating helpers drawn over the editor next to the caret: date picker,
-// link pill, workflow/task status pills, Mermaid and image viewer buttons,
-// and the code-block language picker. Positions come from the CodeMirror
-// feature hooks; this component only renders them.
-export default function EditorPills({ features, languagePicker, mermaid, image, containerRef, onWikiLinkClick }: EditorPillsProps) {
+// link pill, workflow/task status pills, the image viewer button, and the
+// code-block language picker. Positions come from the CodeMirror feature
+// hooks; this component only renders them.
+export default function EditorPills({ features, languagePicker, image, containerRef, onWikiLinkClick }: EditorPillsProps) {
   const {
     pillUrl, pillLabel, pillPos, pillType, dismissPill, handleSaveLink,
     dateMatch, isDateExpanded, setIsDateExpanded, dateMenuPos, handleDateSelect,
@@ -104,22 +102,6 @@ export default function EditorPills({ features, languagePicker, mermaid, image, 
           onPrev={() => handleTodoCycle("prev")}
           onNext={() => handleTodoCycle("next")}
         />
-      )}
-
-      {mermaid.mermaidInfo && (
-        <div
-          style={{ top: mermaid.buttonPos.top, left: mermaid.buttonPos.left }}
-          className={PILL_CONTAINER_CLASSES}
-          onMouseDown={(e) => e.preventDefault()}
-        >
-          <Button
-            variant="pill-icon"
-            onClick={() => openMermaidDialog(mermaid.mermaidInfo!.source)}
-            title="View Mermaid diagram (Ctrl/Cmd+Shift+Enter)"
-          >
-            <HiOutlineArrowsExpand size={14} aria-hidden="true" />
-          </Button>
-        </div>
       )}
 
       {languagePickerInfo && (

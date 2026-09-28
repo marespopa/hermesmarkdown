@@ -8,7 +8,7 @@ The editor is the primary workspace of HermesMarkdown, located in `app/editor`.
 The app's current editor is built on CodeMirror 6, with the source-mode implementation in `app/editor/codemirror` and the feature overlays in `app/editor/hooks`.
 - Synchronizes content with the active file and frontmatter handling for document metadata.
 - Supports slash commands, wiki links, date pickers, tables, and workflow/todo pills.
-- Renders Mermaid fenced blocks via a small dialog trigger attached to the Mermaid code block so the full diagram can open in the dedicated Mermaid viewer.
+- Renders Mermaid fences and display math (`$$ … $$`, ```` ```math ````) in place of their source; double-click one to edit it.
 
 ### File navigation
 Vault files are browsed through the command palette (`Ctrl/Cmd+K`), the Files page (`/editor/files`, "Open Explorer"), and the mobile `MobileFileOverlay`. The latter two use the `VaultFileTree` tree and tag search.
@@ -47,9 +47,13 @@ The editor route (`page.tsx`) composes these:
     - **Conflict Resolution**: If local changes exist and the file was modified externally, a **Conflict Dialog** appears with **Accept Incoming** (reload from disk), **Keep Current** (overwrite on next save), or **Resolve in Merge Editor** (current, incoming and merged result side by side).
 5. **Folder Management**: Creating a folder uses `targetDir.getDirectoryHandle(name, { create: true })` and refreshes the directory listing.
 
-## Mermaid flow
+## Rendered blocks (Mermaid and math)
 
-When the cursor is in a fenced Mermaid block, a small trigger button appears beside the active line. Clicking it (or pressing Ctrl/Cmd+Shift+Enter) opens the dedicated Mermaid dialog, which renders the diagram. Diagrams are not rendered inline.
+`codemirror/rendered-block.ts` works like the table grid. A `StateField` finds closed top-level ```` ```mermaid ```` fences, ```` ```math ```` / `latex` / `tex` fences, and `$$` blocks outside code (either `$$` on its own lines or `$$ … $$` on one line). It replaces each one with a block widget showing the rendered diagram or formula. The ranges are atomic, so the caret moves past a preview in one step.
+
+1. **Rendering**: `utils/rendered-block-cache.ts` loads `mermaid` (`utils/render-mermaid.ts`, `securityLevel: "strict"`) or KaTeX (`utils/render-math.ts`) on first use and caches results and measured heights by kind + theme + source. Widgets only re-render when their source or the app theme changes, so edits elsewhere in the note leave them alone. Invalid source shows the error and the raw source instead.
+2. **Editing**: double-clicking a preview, its **Edit** button (always visible on touch screens), or Ctrl/Cmd+Shift+Enter with the caret beside it opens `RenderedBlockSourceDialog`. The dialog has a live preview. **Save** (or Ctrl/Cmd+Enter) writes the new body with `applyRenderedBlockEdit` as a single undoable change. Inserting an empty block from the slash menu opens the dialog straight away, since the caret would otherwise land inside a hidden range.
+3. **Viewer**: for Mermaid, **Open viewer** in the dialog opens `MermaidDialog` (zoom, pan, SVG download).
 
 ## Table Flow
 

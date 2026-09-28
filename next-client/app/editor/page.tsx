@@ -30,6 +30,7 @@ import { useDialog } from "@/app/hooks/use-dialog";
 import toast from "react-hot-toast";
 import RepurposeNoteWizard from "./components/RepurposeNoteWizard";
 import MermaidDialog from "./components/MermaidDialog";
+import RenderedBlockSourceDialog from "./components/RenderedBlockSourceDialog";
 import ImageDialog from "./components/ImageDialog";
 import { useAIEditorActions } from "./hooks/useAIEditorActions";
 import AIChatDialog from "./components/AIChatDialog";
@@ -278,6 +279,8 @@ export default function LiteEditor() {
         <ConflictDialog />
         <RepurposeNoteWizard />
         {isVaultPending && <VaultPendingOverlay restoreVault={restoreVault} />}
+        {/* Before MermaidDialog, so its "Open viewer" stacks on top. */}
+        <RenderedBlockSourceDialog />
         <MermaidDialog />
         <ImageDialog />
         

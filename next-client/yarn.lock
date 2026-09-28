@@ -3405,6 +3405,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"commander@npm:^15.0.0":
+  version: 15.0.0
+  resolution: "commander@npm:15.0.0"
+  checksum: 10c0/539229c171914ea1ccd45ee5f10d924289a12a684ea3a7a44147abe54003c35ed6de9ae4ad198d88c29fdf403dca0428451a388234e6dc01b6faa978fb207206
+  languageName: node
+  linkType: hard
+
 "commander@npm:^4.0.0":
   version: 4.1.1
   resolution: "commander@npm:4.1.1"
@@ -5143,6 +5150,7 @@ __metadata:
     jotai: "npm:^2.10.1"
     jotai-family: "npm:^1.0.2"
     jsdom: "npm:^30.1.1"
+    katex: "npm:^0.18.9"
     mermaid: "npm:^11.16.0"
     next: "npm:^16.3.3"
     postcss: "npm:^8.5.15"
@@ -5734,6 +5742,17 @@ __metadata:
   bin:
     katex: cli.js
   checksum: 10c0/b10f4d0651c60771a48444879e4227255e26e2b2ec061b1ee4b08934863ad2324ba8dbb772455f7768aeb14dfcc13bcd309174a0ddd5ef954a607f644a197710
+  languageName: node
+  linkType: hard
+
+"katex@npm:^0.18.9":
+  version: 0.18.9
+  resolution: "katex@npm:0.18.9"
+  dependencies:
+    commander: "npm:^15.0.0"
+  bin:
+    katex: cli.js
+  checksum: 10c0/0ba4f02d1a6217a31020b5a5fe2e4b867fb3cc27469901c631718a2dc4ed0e34455540aff3d87e444d5b6228d4d825e3cd0b524be8b8b2883d4193be99d76011
   languageName: node
   linkType: hard
 

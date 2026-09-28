@@ -8,7 +8,8 @@ Description: Full-size viewer for a Mermaid diagram with zoom and drag-to-pan, r
 - Opened by `CustomEvent("hermes:open-mermaid-dialog", { detail: { source, theme? } })` on `document`. Supports zoom, fit-to-width, drag to pan, and downloading the rendered SVG.
 
 ## Dependencies
-- Core: `mermaid`, `DialogModal`, `Button`.
+- Core: `utils/render-mermaid.ts` (lazy-loads `mermaid`), `DialogModal`, `Button`.
+- Opened from `RenderedBlockSourceDialog`'s **Open viewer** button.
 - Zero-Cloud: No network or telemetry side effects. Rendering happens in the browser.
 
 ## Quick Usage

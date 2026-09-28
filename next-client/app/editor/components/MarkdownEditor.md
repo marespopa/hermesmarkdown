@@ -1,11 +1,11 @@
 # MarkdownEditor
 
-Description: CodeMirror 6 Markdown editor for one pane. It adds inline pills and callouts (links, dates, tags), an inline editable table grid with spreadsheet formulas (including cross-note references), slash templates, a Mermaid dialog trigger, a code-language picker, image paste, CSV-paste-to-table conversion, and frontmatter/callout folding.
+Description: CodeMirror 6 Markdown editor for one pane. It adds inline pills and callouts (links, dates, tags), an inline editable table grid with spreadsheet formulas (including cross-note references), slash templates, inline-rendered Mermaid diagrams and display math (double-click to edit the source), a code-language picker, image paste, CSV-paste-to-table conversion, and frontmatter/callout folding.
 
 ## Local State & Storage
 - State: `atom_activeEditorView`, `atom_isEditorFocused`, `atom_fileMetadata` (to resolve cross-note formula refs), `atom_wordWrap`, `atom_lineNumbers`, `atom_vimMode`, `atom_frontmatterCollapsedByDefault`, `atom_vaultHandle`, `atom_currentDirectoryHandle`, `atom_pendingScrollTarget`, `atom_isAiConfigured`, `atom_aiBuilderRequest`. Pill and dialog state is local useState.
 - Persistence: Editor preferences live in `localStorage` (`wordWrap`, `lineNumbers`, `vimMode`, `frontmatterCollapsedByDefault`). Pasted images are written into the local vault through the File System Access API (`savePastedImage`).
-- Features come from composable hooks in `../hooks`: `use-editor-appearance`, `use-codemirror-{editor,features,templates,table,mermaid,image,code-language-picker,callout-fold,frontmatter-fold}`, and `use-cross-file-tables` (reads notes referenced by `=[[Note]]!B5` formulas and pushes them into the editor via `setFormulaFileTables` from `codemirror/table-formulas.ts`).
+- Features come from composable hooks in `../hooks`: `use-editor-appearance`, `use-codemirror-{editor,features,templates,table,image,code-language-picker,callout-fold,frontmatter-fold}`, and `use-cross-file-tables` (reads notes referenced by `=[[Note]]!B5` formulas and pushes them into the editor via `setFormulaFileTables` from `codemirror/table-formulas.ts`).
 
 ## Dependencies
 - Core: `@codemirror/view`, `DatePickerCallout`, `WikiLinkDialog`, `TaskDialog`, the render pieces in [`markdown-editor/`](markdown-editor/README.md) (`EditorPills`, `LinkInsertDialog`, `FoldChevrons`), `useEditorPasteHandlers` ("Convert to table?" confirm on CSV paste, image saving), `useScrollToPendingTarget`, `useFileSystem`, `useKeyboardInset`.
