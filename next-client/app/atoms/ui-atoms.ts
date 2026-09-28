@@ -57,6 +57,17 @@ export const atom_homeFeedOpen = atom<boolean>(false);
 // Vault-relative folder that drafts are saved into on their first save
 // ("" = vault root). Created on demand.
 export const atom_newNoteFolder = atomWithStorage<string>("newNoteFolder", "");
+// Open while the "save note to…" folder picker asks where a draft's first
+// save goes; resolve(null) keeps the draft unsaved.
+export interface DraftFolderRequest {
+  folders: string[];
+  defaultFolder: string;
+  resolve: (folder: string | null) => void;
+}
+export const atom_draftFolderRequest = atom<DraftFolderRequest | null>(null);
+// Set when the picker is dismissed, so autosave and blur stop asking about
+// the same draft; Cmd+S still asks. Cleared when a new draft starts.
+export const atom_draftFolderDeclined = atom<boolean>(false);
 // Vault key the vault-open behavior last ran for, so returning to the editor
 // from another route doesn't replace the file just opened there.
 export const atom_vaultOpenBehaviorAppliedFor = atom<string | null>(null);

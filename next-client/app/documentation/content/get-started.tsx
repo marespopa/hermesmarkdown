@@ -136,14 +136,14 @@ export const getStartedGroup: Group = {
     {
       id: "first-note",
       title: "Your first note",
-      lead: "Start typing. The note saves itself and is named after its first line.",
+      lead: "Start typing. On its first save the note asks which folder to go in, and it is named after its first line.",
       keywords: "new file new note draft save autosave name title folder frontmatter",
       body: (
         <>
           <p>
             Press <code>CTRL+ALT+N</code>, click <strong>+</strong> on the home feed, or choose{" "}
-            <strong>New file</strong> from the command palette. A blank note opens, ready to type.
-            There is no folder picker and no name prompt.
+            <strong>New file</strong> from the command palette. A blank note opens, ready to type,
+            with no name prompt.
           </p>
           <p>
             The note is saved to your vault once you finish the first line, when you press{" "}
@@ -153,13 +153,19 @@ export const getStartedGroup: Group = {
             existing file is never overwritten: a taken name becomes <code>Trip ideas (1).md</code>.
           </p>
           <p>
+            The first save asks which folder the note goes in, with your default folder already
+            selected: press <code>Enter</code> to accept it, or type to filter the list or name a new
+            folder. If you dismiss the picker, the note stays an unsaved draft and autosave stops
+            asking; press <code>CTRL/CMD+S</code> when you're ready to choose.
+          </p>
+          <p>
             A note you leave empty is never saved, so no empty files pile up in your vault. Renaming
             the first line later does not rename the file; use <strong>Rename current file</strong>{" "}
             for that.
           </p>
           <KV
             rows={[
-              { label: "Where new notes go", value: "Vault root · Settings → New Notes Folder" },
+              { label: "Default folder for new notes", value: "Vault root · Settings → New Notes Folder" },
               { label: "Pick a folder and name first", value: "New file in folder… command" },
               { label: "Create from a search", value: 'Type a title in the palette, then Create "…"' },
             ]}

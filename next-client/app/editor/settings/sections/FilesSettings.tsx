@@ -47,7 +47,7 @@ export default function FilesSettings() {
         />
         <SettingItem
           label="New Notes Folder"
-          description="Where new notes are saved in the vault. They're named after their first line. Leave empty for the vault root."
+          description="The folder preselected when a new note asks where to save. Notes are named after their first line. Leave empty for the vault root."
           control={
             <BareInput
               value={newNoteFolder}

@@ -14,6 +14,7 @@ Index of the editor UI. Each component has a sibling `<Name>.md` (a token-lean d
 | [AISelectionToolbar](AISelectionToolbar.md) | Floating "Ask AI" button on a selection; opens AI Chat with it. |
 | [AIThinkingOverlay](AIThinkingOverlay.md) | Portaled busy indicator with rotating status messages, shown while an AI request is in flight. |
 | [ConflictDialog](ConflictDialog.md) | Resolves an on-disk change to the open file by reloading from disk, keeping the current text, or merging manually (conflict markers, with per-side resolution). |
+| [DraftFolderDialog](DraftFolderDialog.md) | Asks which vault folder an untitled draft's first save goes to (filterable, can create a new folder). |
 | [DraftImportDialog](DraftImportDialog.md) | Confirms before an imported file replaces a non-empty draft. |
 | [CreateVaultSubSteps](CreateVaultSubSteps.md) | Presentational steps for vault creation: a name input with validation, a parent-folder picker, and an "installing" spinner. |
 | [DatePickerCallout](DatePickerCallout.md) | Calendar dialog for picking or replacing a date in the editor, with keyboard navigation and quick relative actions. |

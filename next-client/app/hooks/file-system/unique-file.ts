@@ -43,3 +43,19 @@ export function normalizeFolderPath(folderPath: string): string {
     .filter((part) => part && part !== "." && part !== "..")
     .join("/");
 }
+
+// Every folder in the vault as a vault-relative path, sorted, skipping
+// hidden ones (and everything under them). "" (the root) is not included.
+export async function listVaultFolders(vaultHandle: FileSystemDirectoryHandle): Promise<string[]> {
+  const folders: string[] = [];
+  const walk = async (dir: FileSystemDirectoryHandle, prefix: string) => {
+    for await (const entry of (dir as any).values() as AsyncIterable<FileSystemHandle>) {
+      if (entry.kind !== "directory" || entry.name.startsWith(".")) continue;
+      const path = prefix ? `${prefix}/${entry.name}` : entry.name;
+      folders.push(path);
+      await walk(entry as FileSystemDirectoryHandle, path);
+    }
+  };
+  await walk(vaultHandle, "");
+  return folders.sort((a, b) => a.localeCompare(b));
+}

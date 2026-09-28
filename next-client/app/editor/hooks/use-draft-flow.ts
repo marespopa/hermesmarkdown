@@ -11,7 +11,7 @@ import {
   atom_openDraft,
   atom_openFiles,
 } from "@/app/atoms/atoms";
-import { atom_homeFeedOpen } from "@/app/atoms/ui-atoms";
+import { atom_draftFolderDeclined, atom_homeFeedOpen } from "@/app/atoms/ui-atoms";
 import { useMaterializeDraft } from "./use-materialize-draft";
 import { isDraftTitleSettled } from "../utils/draft-title";
 import { focusPaneEditorWhenReady } from "../utils/focus-pane-editor";
@@ -25,7 +25,8 @@ interface UseDraftFlowOptions {
 // The editor page's new-note flow: New file opens a blank draft (no
 // dialogs), and a draft in a vault saves itself — named from its first
 // line — on autosave once that line is finished, on Cmd+S, or when the
-// window loses focus.
+// window loses focus. Its first save asks which folder; once that's
+// dismissed only Cmd+S asks again, until the next new draft.
 export function useDraftFlow({ vaultHandle, scanVault, indexVaultTags }: UseDraftFlowOptions) {
   const store = useStore();
   const activeFileHandle = useAtomValue(atom_activeFileHandle);
@@ -41,7 +42,7 @@ export function useDraftFlow({ vaultHandle, scanVault, indexVaultTags }: UseDraf
   // after a half-typed title.
   const handleDraftAutosave = useCallback(() => {
     if (!activeFileHandle && vaultHandle && isDraftTitleSettled(content)) {
-      void materializeDraft();
+      void materializeDraft(undefined, { background: true });
     }
   }, [activeFileHandle, vaultHandle, content, materializeDraft]);
 
@@ -49,7 +50,7 @@ export function useDraftFlow({ vaultHandle, scanVault, indexVaultTags }: UseDraf
   // right away, even mid-title; manual mode waits for Cmd+S.
   useEffect(() => {
     if (autosaveMode === "manual") return;
-    const saveDraft = () => void materializeDraft();
+    const saveDraft = () => void materializeDraft(undefined, { background: true });
     const onVisibilityChange = () => {
       if (document.visibilityState === "hidden") saveDraft();
     };
@@ -69,7 +70,8 @@ export function useDraftFlow({ vaultHandle, scanVault, indexVaultTags }: UseDraf
     setContent("");
     setFileName("untitled");
     setActiveFileHandle(null);
-  }, [openDraft, setActiveFileHandle, setContent, setFileName]);
+    store.set(atom_draftFolderDeclined, false);
+  }, [openDraft, setActiveFileHandle, setContent, setFileName, store]);
 
   // In a vault, a draft already holding text is saved first; if it still
   // holds text (save failed, or it sits in a background tab), it's brought
