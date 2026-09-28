@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import ConflictDialog from "./components/ConflictDialog";
 import { useAtomValue } from "jotai";
-import { atom_fileName, atom_content, atom_activeFilePath, atom_workspaceLayout, atom_activePaneId, atom_isFileLoading, findLeaf, getFirstLeaf } from "@/app/atoms/atoms";
+import { atom_fileName, atom_content, atom_activeFilePath, atom_workspaceLayout, atom_activePaneId, atom_isFileLoading, atom_isVaultRestoring, findLeaf, getFirstLeaf } from "@/app/atoms/atoms";
 import useIsMobileChrome from "@/app/hooks/use-mobile-chrome";
 import WelcomeWizard from "./components/WelcomeWizard";
 import NewVaultDialog from "./components/NewVaultDialog";
@@ -11,7 +11,6 @@ import GitHubVaultDialog from "./components/GitHubVaultDialog";
 import BrowserVaultDialog from "./components/BrowserVaultDialog";
 import WorkspaceSplitter from "./components/WorkspaceSplitter";
 import PaneLeaf from "./components/PaneLeaf";
-import VaultPendingOverlay from "./components/VaultPendingOverlay";
 import LoadingOverlay from "@/app/components/LoadingOverlay";
 import LoadingBar from "@/app/components/LoadingBar";
 import EditorCommands from "./components/EditorCommands";
@@ -44,6 +43,7 @@ import { useGitHubVaultActions } from "./hooks/use-github-vault-actions";
 import { useNavigateWithGuard } from "./hooks/use-navigate-with-guard";
 import { useSyncCurrentDirectory } from "./hooks/use-sync-current-directory";
 import DraftImportDialog from "./components/DraftImportDialog";
+import DraftFolderDialog from "./components/DraftFolderDialog";
 import { useDraftFlow } from "./hooks/use-draft-flow";
 import { useHomeFeed } from "./hooks/use-home-feed";
 import HomeFeed from "./components/HomeFeed";
@@ -88,7 +88,6 @@ export default function LiteEditor() {
     vaultFiles,
     activeFileHandle,
     isVaultPending,
-    restoreVault,
     saveFile,
     exportFile,
     importFile,
@@ -128,6 +127,11 @@ export default function LiteEditor() {
   }, [aiBuilderRequest, openAiChat]);
 
   useSyncCurrentDirectory(activeFilePath, isVaultPending, syncCurrentDirectoryToPath);
+  // Until the saved vault is readable, neither the editor nor the home feed
+  // is shown — only the skeleton. VaultAccessGate (editor layout) shows the
+  // Restore Access prompt over every /editor route.
+  const isVaultRestoring = useAtomValue(atom_isVaultRestoring);
+  const isVaultLocked = isVaultRestoring || isVaultPending;
 
   const { handleImport, fileInputRef, handleFileChange, pendingDraft, confirmPendingDraft, cancelPendingDraft } =
     useDraftImport(importFile);
@@ -242,7 +246,7 @@ export default function LiteEditor() {
       {/* Switching files keeps the editor on screen; a slim bar (shown only if
           it takes >150ms) signals the read + re-render instead of a full veil. */}
       <LoadingBar isVisible={isFileLoading && !isMounting} label="Opening file" />
-      <div className={`fixed inset-0 flex flex-col bg-surface text-fg selection:bg-sage-light/30 font-sans overflow-hidden overscroll-none transition-all duration-500 ${isVaultPending ? "blur-md pointer-events-none select-none" : ""}`}>
+      <div className={`fixed inset-0 flex flex-col bg-surface text-fg selection:bg-sage-light/30 font-sans overflow-hidden overscroll-none transition-all duration-500`}>
         <h1 className="sr-only">HermesMarkdown Editor</h1>
         {/* Modals */}
         <WelcomeWizard />
@@ -251,13 +255,13 @@ export default function LiteEditor() {
         <BrowserVaultDialog />
         <ConflictDialog />
         <RepurposeNoteWizard />
-        {isVaultPending && <VaultPendingOverlay restoreVault={restoreVault} />}
         {/* Before MermaidDialog, so its "Open viewer" stacks on top. */}
         <RenderedBlockSourceDialog />
         <MermaidDialog />
         <ImageDialog />
         
         <DraftImportDialog pendingDraft={pendingDraft} onConfirm={confirmPendingDraft} onCancel={cancelPendingDraft} />
+        {!isVaultLocked && <DraftFolderDialog />}
 
         <input type="file" ref={fileInputRef} onChange={handleFileChange} accept=".md,.txt,.markdown" className="hidden" />
 
@@ -268,7 +272,7 @@ export default function LiteEditor() {
         <div className="flex-1 flex min-w-0 bg-surface overflow-hidden relative">
           {/* Main Editor Area */}
           <div className="flex-1 flex flex-col min-w-0 relative">
-            {isMobileChrome && !isHomeFeedOpen && (
+            {isMobileChrome && !isHomeFeedOpen && !isVaultLocked && (
               <MobileFileIndicator
                 onSave={() => handleSaveRef.current()}
                 onOpenAIChat={isAiConfigured ? openAiChat : undefined}
@@ -278,7 +282,7 @@ export default function LiteEditor() {
               <main
                 className="h-full"
               >
-                {isMounting ? (
+                {isMounting || isVaultLocked ? (
                   <div className="animate-pulse opacity-10 space-y-6 pt-20 px-12 max-w-2xl mx-auto">
                     <div className="h-8 bg-current w-1/3 rounded-lg mb-16" />
                     <div className="h-4 bg-current w-full rounded-md" />
@@ -286,7 +290,7 @@ export default function LiteEditor() {
                     <div className="h-4 bg-current w-5/6 rounded-md" />
                   </div>
                 ) : isHomeFeedOpen ? (
-                  <HomeFeed {...feedProps} />
+                  <HomeFeed {...feedProps} onOpenExplorer={() => void navigateWithGuard("/editor/files", "Files")} />
                 ) : isMobileChrome ? (
                   <PaneLeaf leaf={mobileLeaf} />
                 ) : (

@@ -157,6 +157,14 @@ function processInline(ranges: MarkRange[], label: string, base: number) {
   }
 }
 
+// A thematic-break line that renders as a horizontal rule: not a
+// frontmatter fence, and not a `---` directly under a paragraph line (that
+// makes the line above a setext heading instead). `***` / `___` always are.
+export function isHorizontalRule(text: string, previousLine: string, isFrontmatterLine = false): boolean {
+  if (isFrontmatterLine || !REGEX_THEMATIC_BREAK.test(text)) return false;
+  return !text.trim().startsWith("-") || !previousLine.trim();
+}
+
 export function computeMarkdownDecorations(state: EditorState): DecorationSet {
   const ranges: MarkRange[] = [];
   const lineDecos: { line: number; class: string }[] = [];
@@ -174,6 +182,7 @@ export function computeMarkdownDecorations(state: EditorState): DecorationSet {
     const base = line.from;
 
     if (i === 1 && /^---\s*$/.test(text)) isInsideFrontmatter = true;
+    const isFrontmatterLine = isInsideFrontmatter;
     if (isInsideFrontmatter) {
       const isClosingLine = i > 1 && /^---\s*$/.test(text);
       lineDecos.push({
@@ -251,7 +260,14 @@ export function computeMarkdownDecorations(state: EditorState): DecorationSet {
     } else if (!text.trim()) {
       // blank line, nothing to decorate
     } else if (REGEX_THEMATIC_BREAK.test(text)) {
-      mark(ranges, base, line.to, FADED);
+      if (isHorizontalRule(text, i > 1 ? doc.line(i - 1).text : "", isFrontmatterLine)) {
+        // Drawn as a rule (theme.ts); the dashes show only while the caret
+        // is on the line (horizontalRuleCursorPlugin).
+        mark(ranges, base, line.to, "cm-hr-marks");
+        lineDecos.push({ line: i, class: "cm-hr" });
+      } else {
+        mark(ranges, base, line.to, FADED);
+      }
     } else if (text.startsWith("#") && REGEX_HEADING.test(text)) {
       const m = text.match(REGEX_HEADING_PARTS)!;
       const hashes = m[1];
@@ -331,6 +347,36 @@ export const markdownHighlightPlugin = ViewPlugin.fromClass(
       if (update.docChanged || update.viewportChanged) {
         this.decorations = computeMarkdownDecorations(update.state);
       }
+    }
+  },
+  { decorations: (v) => v.decorations },
+);
+
+// Reveals a horizontal rule's dashes while a caret or selection touches its
+// line, so it can be edited; elsewhere only the drawn rule shows.
+export const horizontalRuleCursorPlugin = ViewPlugin.fromClass(
+  class {
+    decorations: DecorationSet;
+    constructor(view: EditorView) {
+      this.decorations = this.compute(view.state);
+    }
+    update(update: ViewUpdate) {
+      if (update.docChanged || update.selectionSet) this.decorations = this.compute(update.state);
+    }
+    compute(state: EditorState): DecorationSet {
+      const lines = new Set<number>();
+      for (const range of state.selection.ranges) {
+        const first = state.doc.lineAt(range.from).number;
+        const last = state.doc.lineAt(range.to).number;
+        for (let n = first; n <= last; n++) {
+          if (REGEX_THEMATIC_BREAK.test(state.doc.line(n).text)) lines.add(n);
+        }
+      }
+      return Decoration.set(
+        [...lines].sort((a, b) => a - b).map((n) =>
+          Decoration.line({ attributes: { class: "cm-hr-editing" } }).range(state.doc.line(n).from),
+        ),
+      );
     }
   },
   { decorations: (v) => v.decorations },

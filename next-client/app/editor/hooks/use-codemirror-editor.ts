@@ -21,6 +21,7 @@ interface UseCodeMirrorEditorOptions {
   readOnly: boolean;
   onFocusChange: (focused: boolean) => void;
   onCursorActivity?: (view: EditorView) => void;
+  onViewportChange?: (view: EditorView) => void;
   containerRef: React.RefObject<HTMLDivElement | null>;
   viewRef: React.RefObject<EditorView | null>;
   slashMenuCallbacksRef: { current: SlashMenuCallbacks };
@@ -50,6 +51,7 @@ export function useCodeMirrorEditor({
   readOnly,
   onFocusChange,
   onCursorActivity,
+  onViewportChange,
   containerRef,
   viewRef,
   slashMenuCallbacksRef,
@@ -62,6 +64,8 @@ export function useCodeMirrorEditor({
   onChangeRef.current = onChange;
   const onCursorActivityRef = useRef(onCursorActivity);
   onCursorActivityRef.current = onCursorActivity;
+  const onViewportChangeRef = useRef(onViewportChange);
+  onViewportChangeRef.current = onViewportChange;
   const wordWrapCompartmentRef = useRef<Compartment | null>(null);
   const lineNumbersCompartmentRef = useRef<Compartment | null>(null);
   const vimModeCompartmentRef = useRef<Compartment | null>(null);
@@ -110,6 +114,7 @@ export function useCodeMirrorEditor({
           readOnly,
           onFocusChange,
           onCursorActivity: (view: any) => onCursorActivityRef.current?.(view),
+          onViewportChange: (view: any) => onViewportChangeRef.current?.(view),
           slashMenuCallbacksRef,
           wikiLinkTriggerRef,
           csvConfirmRef,

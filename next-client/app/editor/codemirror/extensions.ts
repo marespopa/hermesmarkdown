@@ -11,7 +11,7 @@ import { editorTheme } from "./theme";
 import { formatKeymap, toggleCheckboxOnLine, handlePasteTransform, insertPastedImage } from "./commands";
 import { getImageFile, getImageFromClipboardItems } from "@/app/utils/paste-image";
 import { REGEX_CHECKBOX } from "../components/regex";
-import { markdownHighlightPlugin } from "./highlight";
+import { horizontalRuleCursorPlugin, markdownHighlightPlugin } from "./highlight";
 import { tagPillPlugin } from "./tag-pills";
 import { linkDisplayPlugin } from "./link-display";
 import { annotationDisplayPlugin } from "./annotation-display";
@@ -48,6 +48,9 @@ interface BuildExtensionsOptions {
   readOnly: boolean;
   onFocusChange: (focused: boolean) => void;
   onCursorActivity?: (view: EditorView) => void;
+  // Scrolling or layout changes (rendered viewport, line heights, size):
+  // overlays positioned from coordsAtPos need recomputing.
+  onViewportChange?: (view: EditorView) => void;
   slashMenuCallbacksRef: { current: SlashMenuCallbacks };
   wikiLinkTriggerRef: { current: WikiLinkTriggerCallback | null };
   csvConfirmRef?: { current: ((preview: string) => Promise<boolean>) | null };
@@ -103,6 +106,7 @@ export function buildExtensions(opts: BuildExtensionsOptions): Extension[] {
       },
     }),
     markdownHighlightPlugin,
+    horizontalRuleCursorPlugin,
     tagPillPlugin,
     linkDisplayPlugin,
     annotationDisplayPlugin,
@@ -198,6 +202,8 @@ export function buildExtensions(opts: BuildExtensionsOptions): Extension[] {
       const hasEffects = update.transactions.some((transaction) => transaction.effects.length > 0);
       if (update.selectionSet || update.docChanged || hasEffects) {
         opts.onCursorActivity?.(update.view);
+      } else if (update.viewportChanged || update.geometryChanged) {
+        opts.onViewportChange?.(update.view);
       }
     }),
   ];

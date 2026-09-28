@@ -33,6 +33,7 @@ body {
   --frontmatter-bg: rgba(60, 56, 50, 0.035);
   --frontmatter-bg-hover: rgba(60, 56, 50, 0.055);
   --frontmatter-label-opacity: 0.4;
+  --row-stripe:     rgba(60, 56, 50, 0.035);  /* alternate rows in list views (Explorer) */
 }
 
 html.dark {
@@ -57,6 +58,7 @@ html.dark {
   --frontmatter-bg-hover: rgba(214, 207, 198, 0.065);
   --frontmatter-label-opacity: 0.5;
   --moss-hover:     #A3B58C;  /* moss, brightened — hover/active state for sage buttons */
+  --row-stripe:     rgba(214, 207, 198, 0.035);
 }
 
 /* Custom Scrollbars — macOS style: thin, overlay, neutral gray thumb with padding */
@@ -224,6 +226,22 @@ html.dark {
 }
 
 /* Hide scrollbar for Chrome, Safari and Opera */
+/* List-view rows (Explorer tree): fixed height, alternating stripes that
+   continue below the last row. Rows set their height from --list-row. */
+.list-rows {
+  --list-row: 28px;
+  background-image: repeating-linear-gradient(
+    to bottom,
+    transparent 0,
+    transparent var(--list-row),
+    var(--row-stripe) var(--list-row),
+    var(--row-stripe) calc(var(--list-row) * 2)
+  );
+}
+@media (pointer: coarse) {
+  .list-rows { --list-row: 40px; }
+}
+
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }

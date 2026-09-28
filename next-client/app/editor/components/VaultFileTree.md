@@ -1,6 +1,6 @@
 # VaultFileTree
 
-Description: Virtualized file list or folder tree for the vault, with search highlighting, inline rename, a row action menu, and drag-and-drop moves.
+Description: Virtualized file list or folder tree for the vault, with search highlighting, inline rename, a row action menu, and drag-and-drop moves (mouse, or long-press on touch screens via `useTouchTreeDrag`, which shows a floating label under the finger).
 
 ## Local State & Storage
 - State: `atom_indexerState`. Folder expansion comes from `useFolderExpansion` (collapsed by default, ancestors of the active file open automatically, manual toggles override). The dragged entry, drop highlights, and the action menu are local useState. Rows are virtualized with `useVirtualizer`.
@@ -26,6 +26,7 @@ import VaultFileTree from "./VaultFileTree";
 | openFile / openFileInPane? | `(handle, path?) => void` |  | Open actions |
 | renameFile / deleteFile / duplicateFile? | handle callbacks |  | Row actions |
 | treeView? | `boolean` | `false` | Tree layout instead of a flat list |
+| columns? | `boolean` | `false` | Tree only: Finder-like list view with a sticky Name / Date Modified / Kind header (Explorer page) |
 | folderPaths? | `string[]` | `[]` | Folders to include in the tree |
 | isSearchActive? / highlightQuery? | `boolean` / `string` | `false` / `""` | Search mode |
 | resolveFolderHandle? / createNewFile? / createFolder? / moveItem? | callbacks |  | Folder operations |

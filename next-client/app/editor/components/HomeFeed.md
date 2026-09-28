@@ -24,6 +24,7 @@ Shown by the editor page in place of the workspace while `atom_homeFeedOpen` is 
 |---|---|---|---|
 | onOpenNote | `(path: string) => void` |  | Opens a note by vault path |
 | onNewNote | `() => void` |  | Starts a blank draft |
+| onOpenExplorer? | `() => void` |  | Opens the Explorer (folder button beside `+`); hidden when omitted |
 | onSearch | `(initialQuery?: string) => void` |  | Opens the command palette, optionally prefilled |
 | onClose | `() => void` |  | Leaves the feed |
 | isSearchOpen? | `boolean` | `false` | Palette open: the pill hides and hands its transition name to the palette field |

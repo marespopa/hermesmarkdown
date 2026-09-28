@@ -21,6 +21,8 @@ interface HomeFeedProps {
   /** Opens a note by vault path (and should close the feed). */
   onOpenNote: (path: string) => void;
   onNewNote: () => void;
+  /** Opens the Explorer (the FeedBar's folder button). */
+  onOpenExplorer?: () => void;
   /** Opens the command palette, optionally prefilled. */
   onSearch: (initialQuery?: string) => void;
   /** Leaves the feed for the workspace (Escape). */
@@ -37,7 +39,7 @@ function isTypingTarget(target: EventTarget | null) {
 // The vault's home screen: recent notes, newest first, in the editor's
 // column. Keyboard: j/k or arrows move, Enter opens, Escape leaves; any
 // other printable key opens the command palette with that key typed.
-export default function HomeFeed({ onOpenNote, onNewNote, onSearch, onClose, isSearchOpen = false }: HomeFeedProps) {
+export default function HomeFeed({ onOpenNote, onNewNote, onOpenExplorer, onSearch, onClose, isSearchOpen = false }: HomeFeedProps) {
   const fileMetadata = useAtomValue(atom_fileMetadata);
   const indexerState = useAtomValue(atom_indexerState);
   const userName = useAtomValue(atom_userName);
@@ -160,7 +162,7 @@ export default function HomeFeed({ onOpenNote, onNewNote, onSearch, onClose, isS
           </div>
         )}
       </div>
-      <FeedBar onSearch={() => onSearch()} onSearchCommands={() => onSearch(">")} onNewNote={onNewNote} isSearchOpen={isSearchOpen} />
+      <FeedBar onSearch={() => onSearch()} onSearchCommands={() => onSearch(">")} onNewNote={onNewNote} onOpenExplorer={onOpenExplorer} isSearchOpen={isSearchOpen} />
     </div>
   );
 }

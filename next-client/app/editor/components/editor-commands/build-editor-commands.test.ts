@@ -227,7 +227,7 @@ describe("buildEditorCommands", () => {
     expect(context.setTheme).toHaveBeenCalledWith("light");
     expect(context.onRunAIAction).toHaveBeenCalledWith("improve");
     expect(context.createFolder).toHaveBeenCalledOnce();
-    expect(context.renameFile).toHaveBeenCalledWith(context.activeFileHandle);
+    expect(context.renameFile).toHaveBeenCalledWith(context.activeFileHandle, undefined, context.activeFilePath);
     expect(context.deleteFile).toHaveBeenCalledWith(context.activeFileHandle, context.activeFilePath);
   });
 });

@@ -30,7 +30,7 @@ You are a senior software engineer agent working on HermesMarkdown. You must adh
 
 ## 📚 Documentation & Maintenance
 
-- **Plan Location**: Save all implementation plans in `next-client/.plans/`.
+- **Plan Location**: Save all implementation plans in `next-client/plans/`.
 - **Mandatory Docs**: Every component has a sibling `<ComponentName>.md` (e.g. `MarkdownEditor.tsx` → `MarkdownEditor.md`) explaining its purpose, state, props, and logic; directories keep a `README.md` index. Update the doc in the same change as the component.
 - **Small Files**: Keep source files under **400 lines** (tests excluded). If a file grows larger, refactor by extracting subcomponents, hooks, data modules, or utility functions.
 - **Small Edits**: Prefer minimal, precise changes over large-scale rewrites unless explicitly instructed.

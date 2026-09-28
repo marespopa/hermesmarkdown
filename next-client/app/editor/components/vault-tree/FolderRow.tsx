@@ -2,13 +2,17 @@
 
 import Button from "@/app/components/Button";
 import { useEffect, useRef, useState } from "react";
-import { HiOutlineChevronDown, HiOutlineChevronRight, HiOutlineDotsVertical, HiOutlineFolder, HiOutlinePencil, HiOutlineTrash } from "react-icons/hi";
-import { TreeGutter, type TreeGutterInfo } from "./FileRow";
-import { type DraggedEntry, isDescendantOrSelf, type TreeFolderNode } from "./tree-model";
+import { HiFolder, HiOutlineDotsVertical, HiOutlinePencil, HiOutlineTrash } from "react-icons/hi";
+import { IoCaretForward } from "react-icons/io5";
+import { LIST_INDENT_PX } from "./FileRow";
+import { ListColumns } from "./list-columns";
+import { canDropInto, type DraggedEntry, type TreeFolderNode } from "./tree-model";
 
 export interface FolderRowProps {
   node: TreeFolderNode;
-  treeGutter?: TreeGutterInfo;
+  depth: number;
+  // List view's Date Modified / Kind columns (folders show "--" / "Folder").
+  showColumns?: boolean;
   isCollapsed: boolean;
   // True when this folder is an ancestor of the currently active file —
   // gives the whole chain leading to the open file a subtle tint so it
@@ -20,18 +24,24 @@ export interface FolderRowProps {
   draggedEntry: DraggedEntry | null;
   setDraggedEntry: (v: DraggedEntry | null) => void;
   onDropInto: (targetPath: string) => void;
+  // Touch drag (see useTouchTreeDrag): picks the row up on long press, and
+  // highlights it while a touch-dragged entry hovers it.
+  onTouchDragStart?: (e: React.TouchEvent) => void;
+  isTouchPressing?: () => boolean;
+  isTouchDropTarget?: boolean;
   resolveFolderHandle?: (path: string) => Promise<any | null>;
   createNewFile?: (targetDirectory?: FileSystemDirectoryHandle) => void | Promise<unknown>;
   createFolder?: (parentDirectory?: FileSystemDirectoryHandle) => Promise<FileSystemDirectoryHandle | null>;
   // Opens this folder so an item created from its menu is visible.
   expandFolder?: (path: string) => void;
-  renameFile: (handle: any) => void | Promise<void>;
+  renameFile: (handle: any, newName?: string, path?: string) => void | Promise<void>;
   deleteFile: (handle: any, path?: string) => void;
 }
 
 export function FolderRow({
   node,
-  treeGutter,
+  depth,
+  showColumns = false,
   isCollapsed,
   isActiveChain = false,
   onToggle,
@@ -40,6 +50,9 @@ export function FolderRow({
   draggedEntry,
   setDraggedEntry,
   onDropInto,
+  onTouchDragStart,
+  isTouchPressing,
+  isTouchDropTarget = false,
   resolveFolderHandle,
   createNewFile,
   createFolder,
@@ -52,10 +65,8 @@ export function FolderRow({
   const entryId = `folder:${node.path}`;
   const menuOpen = actionMenuOpen?.path === entryId;
 
-  const canAcceptDrop =
-    !!draggedEntry &&
-    !(draggedEntry.kind === "folder" && isDescendantOrSelf(draggedEntry.path, node.path)) &&
-    draggedEntry.path.split("/").slice(0, -1).join("/") !== node.path;
+  const canAcceptDrop = canDropInto(draggedEntry, node.path);
+  const isHighlighted = dragOver || isTouchDropTarget;
 
   const cancelAutoExpand = () => {
     if (autoExpandTimer.current) {
@@ -71,7 +82,13 @@ export function FolderRow({
       <div
         onClick={() => onToggle(node.path)}
         draggable
+        data-drop-folder={node.path}
+        onTouchStart={onTouchDragStart}
         onDragStart={(e) => {
+          if (isTouchPressing?.()) {
+            e.preventDefault();
+            return;
+          }
           setDraggedEntry({ kind: "folder", path: node.path, name: node.name });
           e.dataTransfer.effectAllowed = "move";
         }}
@@ -104,22 +121,22 @@ export function FolderRow({
           setDraggedEntry(null);
         }}
         tabIndex={-1}
-        className={`flex items-stretch mx-1 pr-8 cursor-pointer text-ui-subhead transition-colors relative ${
-          dragOver
-            ? "ring-2 ring-sage/50 bg-sage/10 text-sage dark:text-sage font-medium"
-            : isActiveChain
-              ? "text-ink-light dark:text-ink-dark font-medium hover:bg-paper-softgray/60 dark:hover:bg-paper-dark-surface/50"
-              : "text-ink-muted dark:text-stone font-medium hover:bg-paper-softgray/60 dark:hover:bg-paper-dark-surface/50"
+        aria-expanded={!isCollapsed}
+        style={{ paddingLeft: 12 + depth * LIST_INDENT_PX }}
+        className={`mx-1 flex h-[var(--list-row,28px)] items-center gap-1.5 rounded-md pr-8 cursor-pointer text-ui-subhead relative select-none [-webkit-touch-callout:none] ${
+          isHighlighted
+            ? "ring-2 ring-inset ring-sage/50 bg-sage/10 text-sage dark:text-sage"
+            : `text-fg hover:bg-paper-softgray/60 dark:hover:bg-paper-dark-surface/50 ${isActiveChain ? "font-medium" : ""}`
         }`}
       >
-        {treeGutter && <TreeGutter {...treeGutter} />}
-        <div className="flex items-center gap-1 pl-2 pr-4 py-2 min-w-0 flex-1">
-          <span className="w-3 flex items-center justify-center opacity-40 shrink-0">
-            {isCollapsed ? <HiOutlineChevronRight size={13} /> : <HiOutlineChevronDown size={13} />}
-          </span>
-          <HiOutlineFolder size={16} className="shrink-0 opacity-70" />
-          <span title={node.name} className="truncate">{node.name}</span>
-        </div>
+        <IoCaretForward
+          size={10}
+          aria-hidden
+          className={`w-3 shrink-0 text-fg-faint transition-transform duration-150 ${isCollapsed ? "" : "rotate-90"}`}
+        />
+        <HiFolder size={16} className="shrink-0 text-sage" />
+        <span title={node.name} className="min-w-0 flex-1 truncate">{node.name}</span>
+        {showColumns && <ListColumns modified="--" kind="Folder" />}
       </div>
 
       <div className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 [@media(hover:none)]:opacity-100 transition-opacity z-10">
@@ -192,7 +209,7 @@ export function FolderRow({
                 e.stopPropagation();
                 setActionMenuOpen(null);
                 const handle = await resolveFolderHandle?.(node.path);
-                if (handle) await renameFile(handle);
+                if (handle) await renameFile(handle, undefined, node.path);
               }}
               className="w-full flex items-center gap-3 px-4 py-2.5 text-ui-footnote font-medium hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
             >

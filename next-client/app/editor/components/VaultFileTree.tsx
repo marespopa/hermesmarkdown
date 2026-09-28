@@ -1,13 +1,16 @@
 "use client";
 
 import { atom_indexerState } from "@/app/atoms/ui-atoms";
+import { atom_fileMetadata } from "@/app/atoms/metadata";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { useAtomValue } from "jotai";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { FileRow } from "./vault-tree/FileRow";
-import { buildFileTree, type DraggedEntry, getEntryId, getEntryPath, type VaultFileTreeProps, VIRTUALIZE_THRESHOLD } from "./vault-tree/tree-model";
+import { ListHeader } from "./vault-tree/list-columns";
+import { buildFileTree, canDropInto, type DraggedEntry, getEntryId, getEntryPath, type VaultFileTreeProps, VIRTUALIZE_THRESHOLD } from "./vault-tree/tree-model";
 import { TreeNodes } from "./vault-tree/TreeNodes";
 import { useFolderExpansion } from "./vault-tree/use-folder-expansion";
+import { useTouchTreeDrag } from "./vault-tree/use-touch-tree-drag";
 
 export default function VaultFileTree({
   processedFiles,
@@ -21,6 +24,7 @@ export default function VaultFileTree({
   isSearchActive = false,
   highlightQuery = "",
   treeView = false,
+  columns = false,
   folderPaths = [],
   resolveFolderHandle,
   createNewFile,
@@ -28,6 +32,8 @@ export default function VaultFileTree({
   moveItem,
 }: VaultFileTreeProps) {
   const indexerState = useAtomValue(atom_indexerState);
+  const fileMetadata = useAtomValue(atom_fileMetadata);
+  const showColumns = treeView && columns;
   const isIndexing =
     indexerState === "compiling" ||
     (typeof indexerState === "object" && indexerState.status === "compiling");
@@ -56,17 +62,25 @@ export default function VaultFileTree({
 
   const { isFolderCollapsed, toggleFolder, expandFolder } = useFolderExpansion(activeAncestorPaths);
 
-  const handleDropInto = async (targetPath: string) => {
-    if (!draggedEntry || !moveItem || !resolveFolderHandle) return;
+  // `entry` is passed by touch drag, whose handler outlives this render's
+  // `draggedEntry`.
+  const handleDropInto = async (targetPath: string, entry: DraggedEntry | null = draggedEntry) => {
+    if (!entry || !moveItem || !resolveFolderHandle) return;
     const targetHandle = await resolveFolderHandle(targetPath);
-    const sourceHandle = draggedEntry.kind === "file"
-      ? draggedEntry.handle
-      : await resolveFolderHandle(draggedEntry.path);
+    const sourceHandle = entry.kind === "file"
+      ? entry.handle
+      : await resolveFolderHandle(entry.path);
     if (targetHandle && sourceHandle) moveItem(sourceHandle, targetHandle);
   };
 
-  const canDropAtRoot =
-    !!draggedEntry && draggedEntry.path.split("/").slice(0, -1).join("/") !== "";
+  const canDropAtRoot = canDropInto(draggedEntry, "");
+
+  const { startTouchDrag, touchDropTarget, touchGhost, isTouchPressing } = useTouchTreeDrag({
+    scrollRef,
+    setDraggedEntry,
+    onDropInto: (targetPath, entry) => void handleDropInto(targetPath, entry),
+    expandFolder,
+  });
 
   const shouldVirtualize = !treeView && processedFiles.length > VIRTUALIZE_THRESHOLD;
 
@@ -118,6 +132,8 @@ export default function VaultFileTree({
       entryPath,
       isActive,
       entryId: getEntryId(entry),
+      showColumns,
+      modifiedAt: entryPath ? fileMetadata?.[entryPath]?.modifiedAt : undefined,
       highlightQuery,
       actionMenuOpen,
       setActionMenuOpen,
@@ -138,7 +154,7 @@ export default function VaultFileTree({
         data-file-tree={treeView || undefined}
         tabIndex={treeView ? -1 : undefined}
         onDragOver={(e) => {
-          if (!treeView || !canDropAtRoot) return;
+          if (!treeView || !canDropAtRoot || touchGhost) return;
           e.preventDefault();
           setRootDragOver(true);
           e.dataTransfer.dropEffect = "move";
@@ -151,23 +167,27 @@ export default function VaultFileTree({
           if (canDropAtRoot) handleDropInto("");
           setDraggedEntry(null);
         }}
-        className={`flex-1 overflow-y-auto custom-scrollbar min-h-0 pb-1 px-2 ${
-          rootDragOver ? "bg-sage/5" : ""
+        className={`flex-1 overflow-y-auto custom-scrollbar min-h-0 ${showColumns ? "" : "pb-1 px-2"} ${
+          rootDragOver || touchDropTarget === "" ? "bg-sage/5" : ""
         }`}
       >
+        {showColumns && <ListHeader />}
         {treeView ? (
+          // Stripes fill the view below the last row too (under the header).
+          <div className={`list-rows ${showColumns ? "min-h-[calc(100%-1.75rem)]" : ""}`}>
           <TreeNodes
             nodes={tree}
             level={0}
-            ancestorLines={[]}
             isFolderCollapsed={isFolderCollapsed}
             isActiveAncestor={(path) => activeAncestorPaths.has(path)}
             onToggleFolder={toggleFolder}
             rowProps={rowProps}
             draggedEntry={draggedEntry}
             setDraggedEntry={setDraggedEntry}
-            onDropInto={handleDropInto}
+            onDropInto={(targetPath) => void handleDropInto(targetPath)}
+            touchDrag={{ start: startTouchDrag, isPressing: isTouchPressing, dropTarget: touchDropTarget }}
             folderRowExtras={{
+              showColumns,
               actionMenuOpen,
               setActionMenuOpen,
               resolveFolderHandle,
@@ -178,6 +198,7 @@ export default function VaultFileTree({
               deleteFile,
             }}
           />
+          </div>
         ) : shouldVirtualize ? (
           <div style={{ height: rowVirtualizer.getTotalSize(), position: "relative", width: "100%" }}>
             {rowVirtualizer.getVirtualItems().map((virtualRow) => {
@@ -244,6 +265,15 @@ export default function VaultFileTree({
           </div>
         )}
       </div>
+      {touchGhost && (
+        <div
+          aria-hidden
+          className="pointer-events-none fixed z-50 max-w-[60vw] truncate rounded-lg border border-edge-subtle bg-paper-light dark:bg-paper-dark px-3 py-1.5 text-ui-footnote font-medium text-fg shadow-lg"
+          style={{ left: touchGhost.x + 12, top: touchGhost.y - 36 }}
+        >
+          {touchGhost.name.replace(/\.md$/, "")}
+        </div>
+      )}
     </div>
   );
 }

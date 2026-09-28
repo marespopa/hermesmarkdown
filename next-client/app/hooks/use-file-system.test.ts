@@ -325,6 +325,35 @@ describe("useFileSystem - createFile conflict resolution", () => {
     expect(toast.success).toHaveBeenCalledWith("Created: Plans");
   });
 
+  it("renames a nested item in the folder its vault path names, even when resolve() can't find it", async () => {
+    (useDialog as any).mockReturnValue({
+      prompt: vi.fn().mockResolvedValue("renamed.md"),
+      select: vi.fn(),
+      confirm: vi.fn(),
+      alert: vi.fn(),
+    });
+    const move = vi.fn().mockResolvedValue(undefined);
+    const projects: any = {
+      kind: "directory",
+      name: "Projects",
+      getFileHandle: vi.fn().mockResolvedValue({ kind: "file", name: "note.md", move }),
+      values: vi.fn(async function* () {
+        yield* [];
+      }),
+    };
+    mockVaultHandle.getDirectoryHandle.mockResolvedValue(projects);
+    mockVaultHandle.resolve.mockResolvedValue(null);
+    const handle = { kind: "file", name: "note.md" } as FileSystemFileHandle;
+    const { result } = renderHook(() => useFileSystem());
+
+    await result.current.renameFile(handle, undefined, "Projects/note.md");
+
+    expect(mockVaultHandle.getDirectoryHandle).toHaveBeenCalledWith("Projects");
+    expect(projects.getFileHandle).toHaveBeenCalledWith("note.md");
+    expect(move).toHaveBeenCalledWith(projects, "renamed.md");
+    expect(toast.success).toHaveBeenCalledWith("Renamed successfully");
+  });
+
   it("uses the shared rename prompt and rejects path separators", async () => {
     const prompt = vi.fn().mockResolvedValue(" invalid/name ");
     (useDialog as any).mockReturnValue({

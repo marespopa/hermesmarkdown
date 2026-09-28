@@ -1,6 +1,6 @@
 # FileRow
 
-Description: A single file row in the vault tree — file name with search highlighting, optional parent-folder line, tree gutter lines, a row action menu (open in pane, rename, duplicate, delete), and drag-to-move support. Also exports `TreeGutter`, the connector lines drawn left of nested rows.
+Description: A single file row in the vault tree — file name with search highlighting, optional parent-folder line, list-view layout in the tree (fixed row height from `--list-row`, indented by `depth`, document icon, optional Date Modified / Kind columns), a row action menu (open in pane, rename, duplicate, delete), and drag-to-move support. Also exports `LIST_INDENT_PX`, the per-level indent.
 
 ## Local State & Storage
 - State: Inline-rename draft and menu positioning are local; the open action menu is owned by the parent (`actionMenuOpen`).
@@ -29,5 +29,7 @@ import { FileRow } from "./vault-tree/FileRow";
 | renameFile / deleteFile / duplicateFile? | handlers | | File actions |
 | onClose? | `() => void` | | Called after opening (closes overlays) |
 | hideFolderPath? | `boolean` | | Hides the parent-folder line (tree mode) |
-| treeGutter? | `TreeGutterInfo` | | Gutter lines for nested rows |
+| depth? | `number` | | Tree depth; set for list-view rows, omitted for the flat search list |
+| showColumns? / modifiedAt? | `boolean` / `number` | `false` | Date Modified / Kind columns |
 | draggable? / onDragStartEntry? / onDragEndEntry? | | | Drag-to-move |
+| onTouchDragStart? / isTouchPressing? / dropFolder? | | | Touch drag (`useTouchTreeDrag`); `dropFolder` is the folder a touch drop on this row goes into (its parent) |

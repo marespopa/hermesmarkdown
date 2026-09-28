@@ -69,7 +69,7 @@ All file writes go through `writeFileContent()` in `app/services/file-writer.ts`
 |------|---------|
 | `use-file-crud.ts` | Composes create / delete / rename / move / import with shared callbacks |
 | `use-create-item.ts` | Creates files / folders (one level at a time) and wikilink targets; auto-increments duplicate names (`filename (1).md`, `(2).md`…) and opens the new file. `createNewFile(dir?)` / `createFolder(dir?)` skip the folder picker when given a target directory (file tree folder menu) |
-| `unique-file.ts` | `createUniqueFile()` (never overwrites: `name (1).md`, `(2)`…), `ensureVaultFolder()` (walks/creates a vault-relative folder), `normalizeFolderPath()` (trims slashes, drops `.`/`..`). Shared by file creation and the draft save flow (`app/editor/hooks/use-materialize-draft.ts`) |
+| `unique-file.ts` | `createUniqueFile()` (never overwrites: `name (1).md`, `(2)`…), `ensureVaultFolder()` (walks/creates a vault-relative folder), `normalizeFolderPath()` (trims slashes, drops `.`/`..`), `listVaultFolders()` (every non-hidden folder as a vault-relative path). Shared by file creation and the draft save flow (`app/editor/hooks/use-materialize-draft.ts`) |
 | `use-duplicate-item.ts` | Duplicates a file into a chosen folder |
 | `resolve-file-by-name.ts` | Resolves a `[[WikiLink]]` name (alias stripped) to a file: exact vault path, then path relative to the linking note's folder, then basename match — nearest folder to the linking note wins, then shortest path, then alphabetical |
 | `directory-ops.ts` | `emptyDirectory()` (bottom-up delete) and `moveDirectoryByCopy()` (folder rename/move fallback when native `move()` is missing; refuses merges and self-moves, cleans up partial copies) |

@@ -9,6 +9,7 @@ import {
   atom_vaultFiles,
   atom_isVaultPending,
   atom_hasLoadedVault,
+  atom_isVaultRestoring,
   atom_activeFileHandle,
   atom_activeFilePath,
   atom_openFiles,
@@ -60,6 +61,7 @@ export function useVaultManager() {
   const [, setVaultFiles] = useAtom(atom_vaultFiles);
   const [isVaultPending, setIsVaultPending] = useAtom(atom_isVaultPending);
   const [hasLoadedVault, setHasLoadedVault] = useAtom(atom_hasLoadedVault);
+  const setIsVaultRestoring = useSetAtom(atom_isVaultRestoring);
   const [, setFileMetadata] = useAtom(atom_fileMetadata);
   const [, setActiveFileHandle] = useAtom(atom_activeFileHandle);
   const [, setActiveFilePath] = useAtom(atom_activeFilePath);
@@ -338,10 +340,13 @@ export function useVaultManager() {
 
   // Load vault on mount
   useEffect(() => {
-    if (hasLoadedVault || !isIdbSupported) return;
+    if (hasLoadedVault) return;
+    if (!isIdbSupported) {
+      setIsVaultRestoring(false);
+      return;
+    }
 
-    async function init() {
-      setHasLoadedVault(true);
+    async function restoreSavedVault() {
       const savedHandle = await loadVaultHandle();
       if (savedHandle) {
         setVaultHandle(savedHandle);
@@ -350,6 +355,8 @@ export function useVaultManager() {
         // gesture and will throw a SecurityError if called automatically.
         const granted = await queryPermission(savedHandle);
         if (granted) {
+          // The home feed shows its own indexing state, so reveal it now.
+          setIsVaultRestoring(false);
           setCurrentDirectoryHandle(savedHandle);
           detectCloudVault(savedHandle);
           await scanVault(savedHandle);
@@ -376,8 +383,17 @@ export function useVaultManager() {
         toast.error("Failed to restore the vault from browser storage.");
       }
     }
+
+    async function init() {
+      setHasLoadedVault(true);
+      try {
+        await restoreSavedVault();
+      } finally {
+        setIsVaultRestoring(false);
+      }
+    }
     init();
-  }, [setVaultHandle, setVaultDescriptor, setIsVaultPending, hasLoadedVault, setHasLoadedVault, setCurrentDirectoryHandle, scanVault, indexVaultTags, rebindHandles, detectCloudVault, initVaultFromHandle]);
+  }, [setIsVaultRestoring, setVaultHandle, setVaultDescriptor, setIsVaultPending, hasLoadedVault, setHasLoadedVault, setCurrentDirectoryHandle, scanVault, indexVaultTags, rebindHandles, detectCloudVault, initVaultFromHandle]);
 
   return {
     vaultHandle,

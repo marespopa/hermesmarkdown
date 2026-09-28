@@ -2,6 +2,7 @@
 
 import Button from "@/app/components/Button";
 import { HiOutlineDocumentText, HiOutlineDotsVertical, HiOutlineDuplicate, HiOutlineFolder, HiOutlinePencil, HiOutlineTrash } from "react-icons/hi";
+import { ListColumns, formatModified, kindLabel } from "./list-columns";
 import { getEntryPath } from "./tree-model";
 
 function HighlightedName({ name, query }: { name: string; query: string }) {
@@ -18,35 +19,8 @@ function HighlightedName({ name, query }: { name: string; query: string }) {
   );
 }
 
-export interface TreeGutterInfo {
-  ancestorLines: boolean[];
-  isLast: boolean;
-}
-
-// Renders VSCode/`tree`-style indent guides: a vertical line per ancestor
-// folder that still has siblings below it, plus this row's own branch
-// connector (either a mid-height elbow for the last child, or a full-height
-// tee for any other child).
-export function TreeGutter({ ancestorLines, isLast }: TreeGutterInfo) {
-  return (
-    <div className="flex items-stretch shrink-0">
-      {ancestorLines.map((hasLine, i) => (
-        <span key={i} className="relative w-5 shrink-0">
-          {hasLine && (
-            <span className="absolute inset-y-0 left-1/2 -translate-x-1/2 w-px bg-edge-subtle" />
-          )}
-        </span>
-      ))}
-      <span className="relative w-5 shrink-0">
-        <span
-          className="absolute left-1/2 -translate-x-1/2 w-px bg-edge-subtle"
-          style={{ top: 0, bottom: isLast ? "50%" : 0 }}
-        />
-        <span className="absolute top-1/2 left-1/2 right-1.5 h-px -translate-y-1/2 bg-edge-subtle" />
-      </span>
-    </div>
-  );
-}
+// Indent per tree level in list view (the disclosure triangle's width).
+export const LIST_INDENT_PX = 16;
 
 interface FileRowProps {
   entry: any;
@@ -58,15 +32,25 @@ interface FileRowProps {
   setActionMenuOpen: (v: { x: number; y: number; path: string } | null) => void;
   openFile: (handle: FileSystemFileHandle, path?: string) => void;
   openFileInPane?: (handle: FileSystemFileHandle, path?: string) => void;
-  renameFile: (handle: FileSystemHandle, newName?: string) => void | Promise<void>;
+  renameFile: (handle: FileSystemHandle, newName?: string, path?: string) => void | Promise<void>;
   deleteFile: (handle: FileSystemHandle, path?: string) => void;
   duplicateFile?: (handle: FileSystemHandle) => void;
   onClose?: () => void;
   hideFolderPath?: boolean;
-  treeGutter?: TreeGutterInfo;
+  // Tree (list-view) row at this depth: fixed height, indented, with an
+  // icon; omitted for the flat search list (two-line rows with the folder).
+  depth?: number;
+  // List view's Date Modified / Kind columns.
+  showColumns?: boolean;
+  modifiedAt?: number;
   draggable?: boolean;
   onDragStartEntry?: () => void;
   onDragEndEntry?: () => void;
+  // Touch drag (see useTouchTreeDrag).
+  onTouchDragStart?: (e: React.TouchEvent) => void;
+  isTouchPressing?: () => boolean;
+  // Folder a touch-dragged entry dropped on this row goes into.
+  dropFolder?: string;
 }
 
 export function FileRow({
@@ -84,11 +68,18 @@ export function FileRow({
   duplicateFile,
   onClose,
   hideFolderPath = false,
-  treeGutter,
+  depth,
+  showColumns = false,
+  modifiedAt,
   draggable = false,
   onDragStartEntry,
   onDragEndEntry,
+  onTouchDragStart,
+  isTouchPressing,
+  dropFolder,
 }: FileRowProps) {
+  const isListRow = depth !== undefined;
+  const displayName = entry.name.replace(/\.md$/, "");
   const folderPath =
     !hideFolderPath && entryPath && entryPath !== entry.name
       ? entryPath.split("/").slice(0, -1).join("/")
@@ -98,8 +89,14 @@ export function FileRow({
     <div className="group relative">
       <div
         draggable={draggable}
+        data-drop-folder={dropFolder}
+        onTouchStart={onTouchDragStart}
         onDragStart={(e) => {
           if (!draggable) return;
+          if (isTouchPressing?.()) {
+            e.preventDefault();
+            return;
+          }
           onDragStartEntry?.();
           e.dataTransfer.effectAllowed = "move";
         }}
@@ -110,11 +107,30 @@ export function FileRow({
           if (onClose && window.innerWidth < 1024) onClose();
         }}
         tabIndex={-1}
-        className={`mx-1 flex items-stretch transition-all duration-200 text-ui-subhead pr-8 ${
-          isActive ? "text-accent" : "text-ink-muted dark:text-stone font-medium"
-        }`}
+        style={isListRow ? { paddingLeft: 12 + depth * LIST_INDENT_PX } : undefined}
+        className={
+          isListRow
+            ? `mx-1 flex h-[var(--list-row,28px)] items-center gap-1.5 rounded-md pr-8 text-ui-subhead select-none [-webkit-touch-callout:none] ${
+                isActive
+                  ? "bg-accent/15 text-fg font-medium"
+                  : "text-fg hover:bg-paper-softgray/60 dark:hover:bg-paper-dark-surface/50"
+              }`
+            : `mx-1 flex items-stretch transition-all duration-200 text-ui-subhead pr-8 ${
+                onTouchDragStart ? "select-none [-webkit-touch-callout:none] " : ""
+              }${isActive ? "text-accent" : "text-ink-muted dark:text-stone font-medium"}`
+        }
       >
-        {treeGutter && <TreeGutter {...treeGutter} />}
+        {isListRow ? (
+          <>
+            {/* Triangle slot, so file names line up with folder names. */}
+            <span className="w-3 shrink-0" />
+            <HiOutlineDocumentText size={16} className="shrink-0 text-fg-faint" />
+            <span title={displayName} className="min-w-0 flex-1 truncate">
+              <HighlightedName name={displayName} query={highlightQuery} />
+            </span>
+            {showColumns && <ListColumns modified={formatModified(modifiedAt)} kind={kindLabel(entry.name)} />}
+          </>
+        ) : (
         <div
           className={`flex flex-col truncate leading-tight pl-2 pr-4 py-2 min-w-0 flex-1 ${
             isActive ? "" : "hover:bg-paper-softgray/60 dark:hover:bg-paper-dark-surface/50"
@@ -134,6 +150,7 @@ export function FileRow({
             </span>
           )}
         </div>
+        )}
       </div>
 
       <div className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 [@media(hover:none)]:opacity-100 transition-opacity z-10">
@@ -202,7 +219,7 @@ export function FileRow({
               onClick={(e) => {
                 e.stopPropagation();
                 setActionMenuOpen(null);
-                void renameFile(entry.handle);
+                void renameFile(entry.handle, undefined, entryPath);
               }}
               className="w-full flex items-center gap-3 px-4 py-2.5 text-ui-footnote font-medium hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
             >

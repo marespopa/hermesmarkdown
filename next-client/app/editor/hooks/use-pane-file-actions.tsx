@@ -65,7 +65,7 @@ export function usePaneFileActions(leaf: PanelLeaf | null) {
       }
     }
 
-    // Draft saved to the vault for the first time → named from its first line, no prompt.
+    // Draft saved to the vault for the first time → asks which folder, named from its first line.
     if (vaultHandle) {
       await materializeDraft(leaf?.id);
       return;

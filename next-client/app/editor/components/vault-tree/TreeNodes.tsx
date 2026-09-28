@@ -2,12 +2,11 @@
 
 import { FileRow } from "./FileRow";
 import { FolderRow, type FolderRowProps } from "./FolderRow";
-import type { DraggedEntry, TreeNode } from "./tree-model";
+import { type DraggedEntry, parentFolderPath, type TreeNode } from "./tree-model";
 
 export function TreeNodes({
   nodes,
   level,
-  ancestorLines,
   isFolderCollapsed,
   isActiveAncestor,
   onToggleFolder,
@@ -15,14 +14,12 @@ export function TreeNodes({
   draggedEntry,
   setDraggedEntry,
   onDropInto,
+  touchDrag,
   folderRowExtras,
 }: {
   nodes: TreeNode[];
+  // Tree depth of `nodes` (0 = vault root); rows indent by it.
   level: number;
-  // Continuation flags for each ancestor column above this row's own branch
-  // (true = that ancestor still has siblings below it, so its line continues).
-  // The root call passes [] — level 0 renders flush, with no gutter at all.
-  ancestorLines: boolean[];
   isFolderCollapsed: (path: string) => boolean;
   isActiveAncestor: (path: string) => boolean;
   onToggleFolder: (path: string) => void;
@@ -30,35 +27,41 @@ export function TreeNodes({
   draggedEntry: DraggedEntry | null;
   setDraggedEntry: (v: DraggedEntry | null) => void;
   onDropInto: (targetPath: string) => void;
-  folderRowExtras: Omit<FolderRowProps, "node" | "treeGutter" | "isCollapsed" | "isActiveChain" | "onToggle" | "draggedEntry" | "setDraggedEntry" | "onDropInto">;
+  touchDrag: {
+    start: (e: React.TouchEvent, entry: DraggedEntry) => void;
+    isPressing: () => boolean;
+    dropTarget: string | null;
+  };
+  folderRowExtras: Omit<
+    FolderRowProps,
+    "node" | "depth" | "isCollapsed" | "isActiveChain" | "onToggle" | "draggedEntry" | "setDraggedEntry" | "onDropInto" | "onTouchDragStart" | "isTouchPressing" | "isTouchDropTarget"
+  >;
 }) {
   return (
     <>
-      {nodes.map((node, index) => {
-        const isLast = index === nodes.length - 1;
-        const treeGutter = level > 0 ? { ancestorLines, isLast } : undefined;
-
+      {nodes.map((node) => {
         if (node.type === "folder") {
           const isCollapsed = isFolderCollapsed(node.path);
-          const childAncestorLines = level === 0 ? [] : [...ancestorLines, !isLast];
           return (
             <div key={`folder-${node.path}`} data-path={node.path}>
               <FolderRow
                 node={node}
-                treeGutter={treeGutter}
+                depth={level}
                 isCollapsed={isCollapsed}
                 isActiveChain={isActiveAncestor(node.path)}
                 onToggle={onToggleFolder}
                 draggedEntry={draggedEntry}
                 setDraggedEntry={setDraggedEntry}
                 onDropInto={onDropInto}
+                onTouchDragStart={(e) => touchDrag.start(e, { kind: "folder", path: node.path, name: node.name })}
+                isTouchPressing={touchDrag.isPressing}
+                isTouchDropTarget={touchDrag.dropTarget === node.path}
                 {...folderRowExtras}
               />
               {!isCollapsed && (
                 <TreeNodes
                   nodes={node.children}
                   level={level + 1}
-                  ancestorLines={childAncestorLines}
                   isFolderCollapsed={isFolderCollapsed}
                   isActiveAncestor={isActiveAncestor}
                   onToggleFolder={onToggleFolder}
@@ -66,6 +69,7 @@ export function TreeNodes({
                   draggedEntry={draggedEntry}
                   setDraggedEntry={setDraggedEntry}
                   onDropInto={onDropInto}
+                  touchDrag={touchDrag}
                   folderRowExtras={folderRowExtras}
                 />
               )}
@@ -78,12 +82,17 @@ export function TreeNodes({
             <FileRow
               {...rowProps(node.entry)}
               hideFolderPath
-              treeGutter={treeGutter}
+              depth={level}
               draggable
               onDragStartEntry={() =>
                 setDraggedEntry({ kind: "file", path: node.path, name: node.name, handle: node.entry.handle })
               }
               onDragEndEntry={() => setDraggedEntry(null)}
+              onTouchDragStart={(e) =>
+                touchDrag.start(e, { kind: "file", path: node.path, name: node.name, handle: node.entry.handle })
+              }
+              isTouchPressing={touchDrag.isPressing}
+              dropFolder={parentFolderPath(node.path)}
             />
           </div>
         );
