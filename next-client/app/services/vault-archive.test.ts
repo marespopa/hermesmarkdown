@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { zipSync } from "fflate";
+import { unzipSync, zipSync } from "fflate";
 import {
   availableFileName,
   collectArchiveFiles,
@@ -116,7 +116,13 @@ describe("zip export and import", () => {
     expect(files.map((file) => file.path)).toEqual(["a.md", "deep/b.md"]);
   });
 
-  it("keeps binary attachments byte-for-byte", async () => {
+  it("wraps exported entries in a folder named after the vault", async () => {
+    const source = new MemoryDirectoryHandle("My Vault");
+    await source.writeText("a.md", "A");
+    expect(Object.keys(unzipSync(await zipBytes(source)))).toEqual(["My Vault/a.md"]);
+  });
+
+  it("keeps binary attachments byte-for-byte, even when they are the vault's only folder", async () => {
     const source = new MemoryDirectoryHandle("source");
     const image = new Uint8Array([137, 80, 78, 71, 0, 255]);
     const assets = await source.getDirectoryHandle("assets", { create: true });

@@ -62,11 +62,19 @@ async function toBytes(data: Uint8Array | Blob): Promise<Uint8Array> {
   return data instanceof Uint8Array ? data : new Uint8Array(await data.arrayBuffer());
 }
 
+function safeFolderName(name: string): string {
+  return name.replace(/[\\/:*?"<>|]/g, "-").trim() || "vault";
+}
+
+// Entries sit under a folder named after the vault, like a zipped folder, so
+// import can always strip it without eating a vault's own single top folder.
 export async function createVaultZipBytes(root: FileSystemDirectoryHandle): Promise<Uint8Array> {
   const zippable: Zippable = {};
+  const folder = safeFolderName(root.name);
   for (const file of await collectArchiveFiles(root)) {
     const bytes = await toBytes(file.data);
-    zippable[file.path] = STORED_EXTENSIONS.test(file.path) ? [bytes, { level: 0 as const }] : bytes;
+    const path = `${folder}/${file.path}`;
+    zippable[path] = STORED_EXTENSIONS.test(file.path) ? [bytes, { level: 0 as const }] : bytes;
   }
   return zipSync(zippable, { level: 6 });
 }
@@ -149,7 +157,7 @@ export async function copyVaultToDirectory(
   parent: FileSystemDirectoryHandle,
   folderName: string,
 ): Promise<{ folder: string; files: number }> {
-  const base = folderName.replace(/[\\/:*?"<>|]/g, "-").trim() || "vault";
+  const base = safeFolderName(folderName);
   let folder = base;
   for (let counter = 1; ; counter++) {
     try {
