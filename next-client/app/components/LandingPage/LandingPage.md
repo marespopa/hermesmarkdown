@@ -1,6 +1,6 @@
 # LandingPage
 
-Description: Home route hero with a "Start Writing" entry point into the editor and a note on where vaults can live (disk folders on Chromium, browser vaults elsewhere, offline everywhere), plus a "welcome back" toast when a local file is already open.
+Description: Home route hero with a "Start Writing" entry point into the editor, plus a "welcome back" toast when a local file is already open.
 
 ## Local State & Storage
 - State: `atom_hasOpenFileContent`, `atom_userName`, and a name draft (useState).
