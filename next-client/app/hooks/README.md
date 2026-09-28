@@ -61,6 +61,7 @@ All file writes go through `writeFileContent()` in `app/services/file-writer.ts`
 | `use-save-file.ts` | Writes with exponential backoff (up to 8 retries for autosave, 2 for manual saves; capped at 1.5s); auto-enables cloud mode after repeated lock errors; updates metadata async |
 | `use-export-file.ts` | Desktop picker → Web Share API → blob download fallback chain |
 | `use-index-active-file.ts` | 1s-debounced re-index on content change |
+| `reconcile-disk.ts` | Pure `reconcileWithDisk()` — merges on-disk content into a tab's cached state (take disk if clean, keep local edits if disk unchanged, else raise a conflict). Shared by the file watcher and `atom_rebindHandles` |
 
 ### CRUD
 

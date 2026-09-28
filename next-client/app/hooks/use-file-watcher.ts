@@ -3,7 +3,7 @@
 import { useAtom, useStore } from "jotai";
 import { atom_openFiles, atom_liveHandles, atom_isVaultPending } from "@/app/atoms/atoms";
 import { atom_snapshotOnConflict } from "@/app/atoms/ui-atoms";
-import type { FileState } from "@/app/atoms/file-atoms";
+import { reconcileWithDisk } from "@/app/hooks/file-system/reconcile-disk";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 const MIN_INTERVAL = 30_000;
@@ -45,61 +45,17 @@ export function useFileWatcher() {
         const stored = openFiles[path];
         if (!stored) continue;
 
-        const storedModified = stored.lastModified ?? 0;
-        if (storedModified > 0 && file.lastModified > storedModified) {
+        // `!==` rather than `>` so tabs with no recorded mtime still get
+        // checked; reconcileWithDisk no-ops when the content is unchanged.
+        if (file.lastModified !== (stored.lastModified ?? 0)) {
           const remoteContent = await file.text();
-          const isDirty = stored.content !== stored.lastSavedContent;
+          const snapshotOnConflict = store.get(atom_snapshotOnConflict);
 
           setOpenFiles((prev) => {
             const fileState = prev[path];
             if (!fileState) return prev;
-
-            const nextState: Record<string, FileState> = Object.assign({}, prev);
-
-            if (!isDirty) {
-              nextState[path] = {
-                ...fileState,
-                content: remoteContent,
-                lastSavedContent: remoteContent,
-                lastModified: file.lastModified,
-              };
-              return nextState;
-            }
-
-            if (remoteContent !== fileState.content) {
-              const ts = Date.now();
-              const existingSnapshots = fileState.snapshots ?? [];
-
-              if (store.get(atom_snapshotOnConflict)) {
-                const nextSnapshots: FileState["snapshots"] = [
-                  ...existingSnapshots,
-                  { timestamp: ts, type: "remote", content: remoteContent },
-                  { timestamp: ts, type: "local", content: fileState.content },
-                ];
-
-                nextState[path] = {
-                  ...fileState,
-                  conflict: { remoteContent },
-                  lastModified: file.lastModified,
-                  snapshots: nextSnapshots,
-                };
-                return nextState;
-              }
-
-              nextState[path] = {
-                ...fileState,
-                conflict: { remoteContent },
-                lastModified: file.lastModified,
-              };
-              return nextState;
-            }
-
-            nextState[path] = {
-              ...fileState,
-              lastModified: file.lastModified,
-              lastSavedContent: remoteContent,
-            };
-            return nextState;
+            const reconciled = reconcileWithDisk(fileState, remoteContent, file.lastModified, snapshotOnConflict);
+            return reconciled === fileState ? prev : { ...prev, [path]: reconciled };
           });
 
           anyChanged = true;

@@ -1,6 +1,8 @@
 import { atom } from "jotai";
 import { atom_openFiles, atom_liveHandles } from "./file-atoms";
 import { atom_workspaceLayout } from "./workspace-atoms";
+import { atom_snapshotOnConflict } from "./ui-atoms";
+import { reconcileWithDisk } from "@/app/hooks/file-system/reconcile-disk";
 import { removePathsFromLayout } from "./utils";
 import type { GitHubVaultDescriptor } from "@/app/services/github-vault-workspace";
 import type { BrowserVaultDescriptor } from "@/app/services/opfs";
@@ -30,6 +32,7 @@ export const atom_rebindHandles = atom(
     const openFiles = get(atom_openFiles);
     const paths = Object.keys(openFiles);
     const missingPaths: string[] = [];
+    const diskFiles = new Map<string, { content: string; lastModified: number }>();
 
     for (const path of paths) {
       if (path === "draft") continue;
@@ -47,6 +50,14 @@ export const atom_rebindHandles = atom(
         const handle = await current.getFileHandle(parts[parts.length - 1]);
         if (handle) {
           set(atom_liveHandles(path), handle);
+          // Tabs are restored from localStorage — read the file so they
+          // reflect edits made on disk while the app was closed.
+          try {
+            const file = await handle.getFile();
+            diskFiles.set(path, { content: await file.text(), lastModified: file.lastModified });
+          } catch {
+            // Locked or temporarily unavailable — keep the cached content
+          }
         }
       } catch (err: any) {
         console.warn(`Failed to rebind handle for ${path}:`, err);
@@ -57,6 +68,22 @@ export const atom_rebindHandles = atom(
           missingPaths.push(path);
         }
       }
+    }
+
+    if (diskFiles.size > 0) {
+      const snapshotOnConflict = get(atom_snapshotOnConflict);
+      set(atom_openFiles, (prev) => {
+        let next = prev;
+        for (const [path, disk] of diskFiles) {
+          const state = prev[path];
+          if (!state) continue;
+          const reconciled = reconcileWithDisk(state, disk.content, disk.lastModified, snapshotOnConflict);
+          if (reconciled === state) continue;
+          if (next === prev) next = { ...prev };
+          next[path] = reconciled;
+        }
+        return next;
+      });
     }
 
     if (missingPaths.length > 0) {
