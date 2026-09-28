@@ -10,7 +10,7 @@ import {
   atom_vimMode,
   atom_wordWrap,
 } from "@/app/atoms/atoms";
-import { atom_lineNumbers } from "@/app/atoms/ui-atoms";
+import { atom_flowMode, atom_lineNumbers } from "@/app/atoms/ui-atoms";
 import { useRegisterCommand, type Command } from "@/app/components/CommandPalette/CommandPaletteContext";
 import { FONTS } from "../font-options";
 
@@ -23,6 +23,7 @@ export default function SettingsCommands() {
   const [wordWrap, setWordWrap] = useAtom(atom_wordWrap);
   const [lineNumbers, setLineNumbers] = useAtom(atom_lineNumbers);
   const [vimMode, setVimMode] = useAtom(atom_vimMode);
+  const [flowMode, setFlowMode] = useAtom(atom_flowMode);
   const [, setEditorFontFamily] = useAtom(atom_editorFontFamily);
   const [, setAutosaveMode] = useAtom(atom_autosaveMode);
   const [, setAutosaveDelay] = useAtom(atom_autosaveDelay);
@@ -33,6 +34,7 @@ export default function SettingsCommands() {
     { id: "toggle-word-wrap", label: wordWrap ? "Disable word wrap" : "Enable word wrap", category: "Settings", keywords: "editor lines", action: () => setWordWrap(!wordWrap) },
     { id: "toggle-line-numbers", label: lineNumbers ? "Hide line numbers" : "Show line numbers", category: "Settings", keywords: "editor gutter", action: () => setLineNumbers(!lineNumbers) },
     { id: "toggle-vim-mode", label: vimMode ? "Disable Vim mode" : "Enable Vim mode", category: "Settings", keywords: "editor keybindings modal", action: () => setVimMode(!vimMode) },
+    { id: "toggle-flow-mode", label: flowMode ? "Disable flow mode" : "Enable flow mode", category: "Settings", keywords: "focus typewriter dim paragraph writing", action: () => setFlowMode(!flowMode) },
     ...FONTS.map(({ label, value }) => ({
       id: `set-editor-font-${label.toLowerCase().replace(/\s+/g, "-")}`,
       label: `Editor font: ${label}`,

@@ -219,6 +219,94 @@ html.dark .editor-container.cm-focused .cm-selectionBackground {
   height: auto;
 }
 
+/* Mermaid diagrams and display math render in place of their source
+   (codemirror/rendered-block.ts). Double-click or "Edit" opens the source. */
+.cm-rendered-block {
+  position: relative;
+  box-sizing: border-box;
+  max-width: 100%;
+  margin: 0.35em 0 0.85em;
+  padding: 0.75em 1em;
+  border: 1px solid transparent;
+  border-radius: 0.6em;
+  color: var(--fg);
+  cursor: default;
+  user-select: none;
+  transition: border-color 150ms ease, background-color 150ms ease;
+}
+
+.cm-rendered-block:hover {
+  border-color: var(--border-subtle);
+  background-color: color-mix(in srgb, var(--fg) 2%, transparent);
+}
+
+.cm-rendered-block-body {
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  text-align: center;
+}
+
+.cm-rendered-block-mermaid .cm-rendered-block-body svg {
+  display: inline-block;
+  height: auto;
+  max-width: 100%;
+}
+
+.cm-rendered-block-math .katex-display {
+  margin: 0;
+}
+
+.cm-rendered-block-pending {
+  color: var(--fg-faint);
+  font-size: 0.85em;
+}
+
+.cm-rendered-block-error {
+  color: #dc2626;
+  font-size: 0.85em;
+  text-align: left;
+}
+
+.cm-rendered-block-source {
+  margin: 0.4em 0 0;
+  color: var(--fg-muted);
+  font-family: var(--font-ibm-mono), ui-monospace, monospace;
+  font-size: 0.85em;
+  text-align: left;
+  white-space: pre-wrap;
+}
+
+.cm-rendered-block-edit {
+  position: absolute;
+  top: 0.4em;
+  right: 0.4em;
+  padding: 0.15em 0.6em;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background-color: var(--surface-raised);
+  color: var(--fg-muted);
+  font-size: 0.75rem;
+  opacity: 0;
+  transition: opacity 150ms ease;
+}
+
+.cm-rendered-block:hover .cm-rendered-block-edit,
+.cm-rendered-block-edit:focus-visible {
+  opacity: 1;
+}
+
+/* Touch screens have no hover, so the edit button stays visible there. */
+@media (hover: none) {
+  .cm-rendered-block-edit {
+    opacity: 1;
+  }
+}
+
+.rendered-block-dialog-preview svg {
+  height: auto;
+  max-width: 100%;
+}
+
 /* Cells are edited in place; the focused cell shows its raw inline
    Markdown (e.g. **bold**) and a quiet focus ring instead of the browser's. */
 .cm-table-editor [data-source-cell] {

@@ -16,6 +16,7 @@ import { tagPillPlugin } from "./tag-pills";
 import { linkDisplayPlugin } from "./link-display";
 import { annotationDisplayPlugin } from "./annotation-display";
 import { tableDisplayExtension } from "./table-display";
+import { renderedBlockExtension } from "./rendered-block";
 import { shortcodeExpandPlugin } from "./shortcode-expand";
 import { createSlashMenuSource, SlashMenuCallbacks } from "./slash-menu";
 import { createWikiLinkTriggerPlugin, WikiLinkTriggerCallback } from "./wikilink-trigger";
@@ -31,6 +32,7 @@ import {
   tableDeleteRowCommand,
 } from "./table-commands";
 import { findFrontmatterFoldRange } from "./frontmatter-fold";
+import { flowMode } from "./flow-mode";
 
 interface BuildExtensionsOptions {
   wordWrap: boolean;
@@ -39,6 +41,8 @@ interface BuildExtensionsOptions {
   lineNumbersCompartment: Compartment;
   vimMode: boolean;
   vimModeCompartment: Compartment;
+  flowMode: boolean;
+  flowModeCompartment: Compartment;
   onOpenActiveHelperRef: { current: () => boolean };
   placeholder?: string;
   readOnly: boolean;
@@ -55,6 +59,7 @@ export function buildExtensions(opts: BuildExtensionsOptions): Extension[] {
     editorTheme(),
     opts.wordWrapCompartment.of(opts.wordWrap ? EditorView.lineWrapping : []),
     opts.lineNumbersCompartment.of(opts.lineNumbers ? lineNumbers() : []),
+    opts.flowModeCompartment.of(opts.flowMode ? flowMode() : []),
     history(),
     drawSelection(),
     // addKeymap: false — lang-markdown's built-in Enter continuation for
@@ -102,6 +107,7 @@ export function buildExtensions(opts: BuildExtensionsOptions): Extension[] {
     linkDisplayPlugin,
     annotationDisplayPlugin,
     tableDisplayExtension,
+    renderedBlockExtension,
     shortcodeExpandPlugin,
     createWikiLinkTriggerPlugin(opts.wikiLinkTriggerRef),
     opts.vimModeCompartment.of(opts.vimMode ? vim({ status: true }) : []),

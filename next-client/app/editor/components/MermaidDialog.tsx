@@ -1,24 +1,10 @@
 "use client";
 
 import React, { useCallback, useEffect, useState, useRef } from "react";
-import mermaid from "mermaid";
 import { HiMinus, HiOutlineArrowsExpand, HiOutlineDownload, HiPlus } from "react-icons/hi";
 import DialogModal from "@/app/components/DialogModal/DialogModal";
 import Button from "@/app/components/Button";
-
-type MermaidTheme =
-  | "default"
-  | "base"
-  | "dark"
-  | "forest"
-  | "neutral"
-  | "neo"
-  | "neo-dark"
-  | "redux"
-  | "redux-dark"
-  | "redux-color"
-  | "redux-dark-color"
-  | "null";
+import { normalizeMermaidTheme as normalizeTheme, renderMermaid, type MermaidTheme } from "../utils/render-mermaid";
 
 type DiagramSize = {
   width: number;
@@ -38,24 +24,6 @@ function getDiagramSize(svg: string): DiagramSize | null {
     ? { width, height }
     : null;
 }
-
-const normalizeTheme = (theme?: string): MermaidTheme => {
-  const validThemes: MermaidTheme[] = [
-    "default",
-    "base",
-    "dark",
-    "forest",
-    "neutral",
-    "neo",
-    "neo-dark",
-    "redux",
-    "redux-dark",
-    "redux-color",
-    "redux-dark-color",
-    "null",
-  ];
-  return validThemes.includes(theme as MermaidTheme) ? (theme as MermaidTheme) : "default";
-};
 
 export default function MermaidDialog() {
   const [open, setOpen] = useState(false);
@@ -97,8 +65,7 @@ export default function MermaidDialog() {
     setScale(1);
     setDiagramSize(null);
     try {
-      mermaid.initialize({ startOnLoad: false, theme, securityLevel: "strict" });
-      const { svg: rendered } = await mermaid.render(`mermaid-dialog-${Date.now()}`, source);
+      const rendered = await renderMermaid(source, theme);
       setSvg(rendered);
       setDiagramSize(getDiagramSize(rendered));
     } catch (err: any) {

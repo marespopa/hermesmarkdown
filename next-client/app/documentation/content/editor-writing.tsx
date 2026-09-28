@@ -140,9 +140,9 @@ export const editorWritingItems: Subsection[] = [
   },
   {
     id: "code-diagrams",
-    title: "Code & diagrams",
-    lead: "Fenced code blocks get real syntax highlighting, and ```mermaid fences open in a diagram viewer for zoom and download.",
-    keywords: "code block syntax highlighting language mermaid diagram",
+    title: "Code, diagrams & math",
+    lead: "Fenced code blocks get real syntax highlighting, and Mermaid diagrams and LaTeX math render right in the note.",
+    keywords: "code block syntax highlighting language mermaid diagram latex math katex formula equation",
     body: (
       <>
         <p>
@@ -151,11 +151,17 @@ export const editorWritingItems: Subsection[] = [
           the fence's language tag. Inserting one from the slash menu offers a language picker.
         </p>
         <p>
-          Insert a diagram with <code>/mermaid</code> or type a <code>```mermaid</code> fence. With
-          the cursor inside it, a small expand button appears (or press{" "}
-          <code>CTRL/CMD+SHIFT+ENTER</code>) to open the Mermaid dialog, which renders the diagram
-          and lets you zoom, fit-to-width, and download the SVG. Syntax errors are shown in the
-          dialog.
+          Insert a diagram with <code>/mermaid</code> or type a <code>```mermaid</code> fence. Once
+          the fence is closed, the editor shows the rendered diagram in its place. Double-click it
+          (or use its <strong>Edit</strong> button, or press <code>CTRL/CMD+SHIFT+ENTER</code> with
+          the cursor next to it) to edit the source with a live preview. From there,{" "}
+          <strong>Open viewer</strong> lets you zoom, fit-to-width, and download the SVG. Syntax
+          errors show in place of the diagram.
+        </p>
+        <p>
+          Display math works the same way: put LaTeX between <code>$$</code> lines (or on one line,
+          as <code>$$ E = mc^2 $$</code>), or in a <code>```math</code> fence, and it renders with
+          KaTeX.
         </p>
         <Code>{`\`\`\`mermaid
 graph TD
@@ -165,7 +171,7 @@ graph TD
 \`\`\``}</Code>
         <Callout type="note">
           Both round-trip as plain Markdown — a highlighted code block is still a fenced code block
-          on disk and a diagram is still a ```mermaid fence. Nothing HermesMarkdown-specific gets
+          on disk, a diagram is still a ```mermaid fence, and math is still <code>$$</code>. Nothing HermesMarkdown-specific gets
           written to the file.
         </Callout>
       </>

@@ -11,11 +11,11 @@ import Button from "@/app/components/Button";
 import { HiOutlineArrowLeft } from "react-icons/hi";
 import { useCreateVault } from "@/app/hooks/file-system/use-create-vault";
 import AiKeyStep from "./welcome-wizard/AiKeyStep";
-import { AutosaveStep, FontStep, LineNumbersStep, TextSizeStep, ThemeStep, VimStep } from "./welcome-wizard/PreferenceSteps";
+import { AutosaveStep, FlowModeStep, FontStep, LineNumbersStep, TextSizeStep, ThemeStep, VimStep } from "./welcome-wizard/PreferenceSteps";
 import ReadyStep from "./welcome-wizard/ReadyStep";
 import VaultStep from "./welcome-wizard/VaultStep";
 
-const TOTAL_STEPS = 8;
+const TOTAL_STEPS = 9;
 
 const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
   const [hasCompleted, setHasCompleted] = useAtom(atom_hasCompletedOnboarding);
@@ -84,9 +84,10 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
       case 3: return <TextSizeStep onContinue={next(4)} />;
       case 4: return <LineNumbersStep onContinue={next(5)} />;
       case 5: return <VimStep onContinue={next(6)} />;
-      case 6: return <AutosaveStep onContinue={next(7)} />;
-      case 7: return <AiKeyStep onContinue={next(8)} />;
-      case 8: return <ReadyStep onFinish={handleFinish} />;
+      case 6: return <FlowModeStep onContinue={next(7)} />;
+      case 7: return <AutosaveStep onContinue={next(8)} />;
+      case 8: return <AiKeyStep onContinue={next(9)} />;
+      case 9: return <ReadyStep onFinish={handleFinish} />;
       default: return null;
     }
   };

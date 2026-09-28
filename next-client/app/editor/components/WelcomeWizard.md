@@ -1,9 +1,9 @@
 # WelcomeWizard
 
-Description: Eight-step onboarding that covers opening, creating, or connecting a vault, then theme, fonts, editor options, autosave, optional AI key, and shortcuts.
+Description: Nine-step onboarding that covers opening, creating, or connecting a vault, then theme, fonts, editor options, autosave, optional AI key, and shortcuts.
 
 ## Local State & Storage
-- State: `atom_isWizardOpen`, `atom_welcomeWizardStep`, `atom_hasCompletedOnboarding`, `atom_theme`, `atom_editorFontFamily`, `atom_renderedFontSize`, `atom_lineNumbers`, `atom_vimMode`, `atom_autosaveMode`, `atom_aiProvider`, `atom_claudeKey`, `atom_geminiKey`, `atom_vaultHandle`, `atom_githubVaultDialogOpen`, `useCreateVault`.
+- State: `atom_isWizardOpen`, `atom_welcomeWizardStep`, `atom_hasCompletedOnboarding`, `atom_theme`, `atom_editorFontFamily`, `atom_renderedFontSize`, `atom_lineNumbers`, `atom_vimMode`, `atom_flowMode`, `atom_autosaveMode`, `atom_aiProvider`, `atom_claudeKey`, `atom_geminiKey`, `atom_vaultHandle`, `atom_githubVaultDialogOpen`, `useCreateVault`.
 - Persistence: All preferences go to `localStorage` (for example `hasCompletedOnboarding`, `welcomeWizardStep`, `theme`, `hermes_claude_key`). The vault handle goes to IndexedDB.
 
 ## Dependencies

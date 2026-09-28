@@ -16,6 +16,7 @@ import {
   atom_wordWrap,
   type Theme,
 } from "@/app/atoms/atoms";
+import { atom_flowMode } from "@/app/atoms/ui-atoms";
 import Toggle from "@/app/components/Toggle";
 import { useFileSystem } from "@/app/hooks/use-file-system";
 import FontPicker from "../components/FontPicker";
@@ -34,6 +35,7 @@ export default function EditorSettings() {
   const [wordWrap, setWordWrap] = useAtom(atom_wordWrap);
   const [lineNumbers, setLineNumbers] = useAtom(atom_lineNumbers);
   const [vimMode, setVimMode] = useAtom(atom_vimMode);
+  const [flowMode, setFlowMode] = useAtom(atom_flowMode);
   const [frontmatterCollapsedByDefault, setFrontmatterCollapsedByDefault] = useAtom(atom_frontmatterCollapsedByDefault);
   const [autosaveMode, setAutosaveMode] = useAtom(atom_autosaveMode);
   const [autosaveDelay, setAutosaveDelay] = useAtom(atom_autosaveDelay);
@@ -73,6 +75,11 @@ export default function EditorSettings() {
           label="Vim Mode"
           description="Use Vim motions and editing modes in the source editor."
           control={<Toggle variant="soft" active={vimMode} onChange={setVimMode} />}
+        />
+        <SettingItem
+          label="Flow Mode"
+          description="While you write, fade everything except the current paragraph and keep the line you're typing on centered on screen."
+          control={<Toggle variant="soft" active={flowMode} onChange={setFlowMode} />}
         />
         <SettingItem
           label="Collapse Frontmatter"

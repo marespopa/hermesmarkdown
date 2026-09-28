@@ -2,10 +2,11 @@
 
 import React from "react";
 import { useAtom } from "jotai";
-import { HiOutlineColorSwatch, HiOutlineDesktopComputer, HiOutlineLightningBolt, HiOutlineRefresh, HiOutlineViewList } from "react-icons/hi";
+import { HiOutlineColorSwatch, HiOutlineDesktopComputer, HiOutlineEye, HiOutlineLightningBolt, HiOutlineRefresh, HiOutlineViewList } from "react-icons/hi";
 import {
   atom_autosaveMode,
   atom_editorFontFamily,
+  atom_flowMode,
   atom_lineNumbers,
   atom_renderedFontSize,
   atom_theme,
@@ -18,8 +19,8 @@ import { SegmentedControl, SelectControl } from "@/app/editor/settings/component
 import { FONTS } from "@/app/editor/settings/font-options";
 import WizardStep, { WizardPanel } from "./WizardStep";
 
-// Steps 1–6 of the welcome wizard: theme, font, text size, line numbers,
-// Vim mode, and autosave. Each writes its setting immediately.
+// Steps 1–7 of the welcome wizard: theme, font, text size, line numbers,
+// Vim mode, flow mode, and autosave. Each writes its setting immediately.
 
 const THEME_OPTIONS: { label: string; value: Theme }[] = [
   { label: "Light", value: "light" },
@@ -92,7 +93,7 @@ function ToggleRow({ label, active, onChange }: { label: string; active: boolean
   return (
     <WizardPanel className="flex items-center justify-between text-left">
       <span className="text-ui-footnote font-semibold">{label}</span>
-      <Toggle variant="soft" active={active} onChange={onChange} />
+      <Toggle variant="soft" active={active} onChange={onChange} label={label} />
     </WizardPanel>
   );
 }
@@ -121,6 +122,20 @@ export function VimStep({ onContinue }: StepProps) {
       onContinue={onContinue}
     >
       <ToggleRow label="Vim mode" active={vimMode} onChange={setVimMode} />
+    </WizardStep>
+  );
+}
+
+export function FlowModeStep({ onContinue }: StepProps) {
+  const [flowMode, setFlowMode] = useAtom(atom_flowMode);
+  return (
+    <WizardStep
+      icon={<HiOutlineEye size={32} />}
+      title="Write in flow mode?"
+      description="While you write, everything except the current paragraph fades and the line you're typing on stays centered on screen. You can change this later in Settings."
+      onContinue={onContinue}
+    >
+      <ToggleRow label="Flow mode" active={flowMode} onChange={setFlowMode} />
     </WizardStep>
   );
 }

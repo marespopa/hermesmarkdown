@@ -32,6 +32,7 @@ Index of the editor UI. Each component has a sibling `<Name>.md` (a token-lean d
 | [PaneLeaf](PaneLeaf.md) | One workspace pane: tab strip, pane actions, and the active file's editor. |
 | [PaneEmptyState](PaneEmptyState.md) | Empty-pane actions: new file, open note or file, vault actions. |
 | [PaneTab](PaneTab.md) | Draggable file tab with a save-state indicator, shortcut hint, and close button. |
+| [RenderedBlockSourceDialog](RenderedBlockSourceDialog.md) | Source editor with live preview for an inline-rendered Mermaid diagram or math block; Save writes the body back as one undo step. |
 | [RepurposeNoteWizard](RepurposeNoteWizard.md) | Three-step wizard (select, drafting, review) that turns the current note into a blog post, social post, or newsletter draft saved as a new vault file. |
 | [SectionHeader](SectionHeader.md) | Collapsible section header with a title, a chevron toggle, and an optional trailing action. |
 | [SmartFolders](SmartFolders.md) | Lists custom workspaces (saved metadata queries) and the files each one matches, with create, edit, and delete through `WorkspaceBuilder`. |
