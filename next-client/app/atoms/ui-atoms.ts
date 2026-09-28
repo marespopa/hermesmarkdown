@@ -20,6 +20,9 @@ export const atom_theme = atomWithStorage<Theme>("theme", "system");
 export const atom_wordWrap = atomWithStorage<boolean>("wordWrap", true);
 export const atom_lineNumbers = atomWithStorage<boolean>("lineNumbers", false);
 export const atom_vimMode = atomWithStorage<boolean>("vimMode", false);
+// Flow mode: fades everything but the caret's paragraph and keeps the caret
+// line centred while typing. Opt-in, off by default.
+export const atom_flowMode = atomWithStorage<boolean>("flowMode", false);
 export const MONO_FONT_STACK = "var(--font-ibm-mono), ui-monospace, monospace";
 export const EDITORIAL_FONT_STACK =
   "var(--font-plus-jakarta), ui-sans-serif, sans-serif";

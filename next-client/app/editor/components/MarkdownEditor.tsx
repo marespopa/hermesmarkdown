@@ -3,7 +3,7 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useAtomValue, useSetAtom } from "jotai";
 import { atom_frontmatterCollapsedByDefault, atom_wordWrap, atom_isEditorFocused } from "@/app/atoms/atoms";
-import { atom_activeEditorView, atom_aiBuilderRequest, atom_isAiConfigured, atom_lineNumbers, atom_vimMode } from "@/app/atoms/ui-atoms";
+import { atom_activeEditorView, atom_aiBuilderRequest, atom_flowMode, atom_isAiConfigured, atom_lineNumbers, atom_vimMode } from "@/app/atoms/ui-atoms";
 import { useAtom } from "jotai";
 import { EditorView } from "@codemirror/view";
 import DatePickerCallout from "./DatePickerCallout";
@@ -54,6 +54,7 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
   const wordWrap = useAtomValue(atom_wordWrap);
   const lineNumbers = useAtomValue(atom_lineNumbers);
   const vimMode = useAtomValue(atom_vimMode);
+  const flowMode = useAtomValue(atom_flowMode);
   const isAiConfigured = useAtomValue(atom_isAiConfigured);
   const setAiBuilderRequest = useSetAtom(atom_aiBuilderRequest);
   const frontmatterCollapsedByDefault = useAtomValue(atom_frontmatterCollapsedByDefault);
@@ -196,6 +197,7 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
     wordWrap,
     lineNumbers,
     vimMode,
+    flowMode,
     onOpenActiveHelperRef: openActiveHelperRef,
     placeholder: props.placeholder || "Type / for templates",
     readOnly: false,

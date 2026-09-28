@@ -5,7 +5,7 @@ import { Provider, useAtomValue } from "jotai";
 import { useHydrateAtoms } from "jotai/utils";
 import WelcomeWizard from "./WelcomeWizard";
 import { atom_renderedFontSize } from "@/app/atoms/atoms";
-import { atom_hasCompletedOnboarding, atom_isWizardOpen } from "@/app/atoms/ui-atoms";
+import { atom_flowMode, atom_hasCompletedOnboarding, atom_isWizardOpen } from "@/app/atoms/ui-atoms";
 import { atom_vaultHandle } from "@/app/atoms/vault-atoms";
 import { useFileSystem } from "@/app/hooks/use-file-system";
 import { testAIConnection } from "@/app/services/ai";
@@ -37,6 +37,10 @@ const TestProvider = ({ initialValues, children }: { initialValues: any, childre
 
 const FontSizeValue = () => (
   <output data-testid="font-size-value">{useAtomValue(atom_renderedFontSize)}</output>
+);
+
+const FlowModeValue = () => (
+  <output data-testid="flow-mode-value">{String(useAtomValue(atom_flowMode))}</output>
 );
 
 describe("WelcomeWizard", () => {
@@ -117,9 +121,9 @@ describe("WelcomeWizard", () => {
 
     expect(screen.getByText("Theme")).toBeInTheDocument();
 
-    // Steps 1-7 (Theme, typeface, text size, line numbers, Vim Mode,
-    // Autosave, AI Features) advance one step at a time before the final step.
-    for (let i = 0; i < 7; i++) {
+    // Steps 1-8 (Theme, typeface, text size, line numbers, Vim Mode,
+    // Flow mode, Autosave, AI Features) advance one step at a time before the final step.
+    for (let i = 0; i < 8; i++) {
       fireEvent.click(screen.getByText("Continue"));
     }
 
@@ -144,10 +148,26 @@ describe("WelcomeWizard", () => {
     expect(screen.getByTestId("font-size-value")).toHaveTextContent("20px");
   });
 
+  it("lets the user turn on flow mode", () => {
+    render(
+      <TestProvider initialValues={defaultInitialValues}>
+        <WelcomeWizard initialStep={6} />
+        <FlowModeValue />
+      </TestProvider>
+    );
+
+    expect(screen.getByText("Write in flow mode?")).toBeInTheDocument();
+    expect(screen.getByTestId("flow-mode-value")).toHaveTextContent("false");
+
+    fireEvent.click(screen.getByRole("switch", { name: "Flow mode" }));
+
+    expect(screen.getByTestId("flow-mode-value")).toHaveTextContent("true");
+  });
+
   it("replaces the test button with a connection confirmation after success", async () => {
     render(
       <TestProvider initialValues={defaultInitialValues}>
-        <WelcomeWizard initialStep={7} />
+        <WelcomeWizard initialStep={8} />
       </TestProvider>
     );
 

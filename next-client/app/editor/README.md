@@ -47,6 +47,15 @@ The editor route (`page.tsx`) composes these:
     - **Conflict Resolution**: If local changes exist and the file was modified externally, a **Conflict Dialog** appears with **Accept Incoming** (reload from disk), **Keep Current** (overwrite on next save), or **Resolve in Merge Editor** (current, incoming and merged result side by side).
 5. **Folder Management**: Creating a folder uses `targetDir.getDirectoryHandle(name, { create: true })` and refreshes the directory listing.
 
+## Flow mode
+
+`codemirror/flow-mode.ts` is an opt-in writing mode (Settings → Editor, or **Enable flow mode** in the command palette), stored in `atom_flowMode` and toggled through a CodeMirror compartment.
+
+1. **Paragraph focus**: a view plugin marks the lines of the caret's paragraph (the run of non-blank lines around it) with `cm-flowActive`. While the editor has focus, every other line and block widget fades to 25% opacity. On blur the whole note returns to full strength.
+2. **Typewriter scrolling**: a transaction extender adds a centered `scrollIntoView` effect to typing, deletion, undo/redo and keyboard caret movement. Pointer selections and external reloads never scroll. The content gets extra bottom padding so the last line can still reach the center.
+
+Neither part touches the document. The Markdown on disk is unchanged.
+
 ## Rendered blocks (Mermaid and math)
 
 `codemirror/rendered-block.ts` works like the table grid. A `StateField` finds closed top-level ```` ```mermaid ```` fences, ```` ```math ```` / `latex` / `tex` fences, and `$$` blocks outside code (either `$$` on its own lines or `$$ … $$` on one line). It replaces each one with a block widget showing the rendered diagram or formula. The ranges are atomic, so the caret moves past a preview in one step.

@@ -7,6 +7,7 @@ import type { Compartment } from "@codemirror/state";
 import { getCM, Vim, vim } from "@replit/codemirror-vim";
 import type { SlashMenuCallbacks } from "../codemirror/slash-menu";
 import type { WikiLinkTriggerCallback } from "../codemirror/wikilink-trigger";
+import { flowMode as flowModeExtension } from "../codemirror/flow-mode";
 
 interface UseCodeMirrorEditorOptions {
   value: string;
@@ -14,6 +15,7 @@ interface UseCodeMirrorEditorOptions {
   wordWrap: boolean;
   lineNumbers: boolean;
   vimMode: boolean;
+  flowMode: boolean;
   onOpenActiveHelperRef: { current: () => boolean };
   placeholder?: string;
   readOnly: boolean;
@@ -42,6 +44,7 @@ export function useCodeMirrorEditor({
   wordWrap,
   lineNumbers,
   vimMode,
+  flowMode,
   onOpenActiveHelperRef,
   placeholder,
   readOnly,
@@ -62,6 +65,7 @@ export function useCodeMirrorEditor({
   const wordWrapCompartmentRef = useRef<Compartment | null>(null);
   const lineNumbersCompartmentRef = useRef<Compartment | null>(null);
   const vimModeCompartmentRef = useRef<Compartment | null>(null);
+  const flowModeCompartmentRef = useRef<Compartment | null>(null);
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -84,9 +88,11 @@ export function useCodeMirrorEditor({
       const wordWrapCompartment = new Compartment();
       const lineNumbersCompartment = new Compartment();
       const vimModeCompartment = new Compartment();
+      const flowModeCompartment = new Compartment();
       wordWrapCompartmentRef.current = wordWrapCompartment;
       lineNumbersCompartmentRef.current = lineNumbersCompartment;
       vimModeCompartmentRef.current = vimModeCompartment;
+      flowModeCompartmentRef.current = flowModeCompartment;
 
       const state = EditorState.create({
         doc: value,
@@ -97,6 +103,8 @@ export function useCodeMirrorEditor({
           lineNumbersCompartment,
           vimMode,
           vimModeCompartment,
+          flowMode,
+          flowModeCompartment,
           onOpenActiveHelperRef,
           placeholder,
           readOnly,
@@ -171,6 +179,13 @@ export function useCodeMirrorEditor({
     if (!view || !compartment) return;
     view.dispatch({ effects: compartment.reconfigure(vimMode ? vim({ status: true }) : []) });
   }, [vimMode, viewRef]);
+
+  useEffect(() => {
+    const view = viewRef.current;
+    const compartment = flowModeCompartmentRef.current;
+    if (!view || !compartment) return;
+    view.dispatch({ effects: compartment.reconfigure(flowMode ? flowModeExtension() : []) });
+  }, [flowMode, viewRef]);
 
   // Keep the view in sync when `value` changes for a reason other than
   // the user typing in it (e.g. external file reload, undo outside CM6).

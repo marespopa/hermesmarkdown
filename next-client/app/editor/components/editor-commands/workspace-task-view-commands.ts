@@ -15,6 +15,7 @@ export function buildWorkspaceTaskViewCommandGroups(context: EditorCommandContex
     closePane,
     closeTab,
     closeTabWithAutosave,
+    flowMode,
     indexVaultTags,
     isOnlyPane,
     lineNumbers,
@@ -23,6 +24,7 @@ export function buildWorkspaceTaskViewCommandGroups(context: EditorCommandContex
     scanVault,
     setActiveFilePath,
     setActivePaneId,
+    setFlowMode,
     setIsWizardOpen,
     setKeyboardShortcutsOpen,
     setLineNumbers,
@@ -131,6 +133,12 @@ export function buildWorkspaceTaskViewCommandGroups(context: EditorCommandContex
       label: lineNumbers ? "Hide line numbers" : "Show line numbers",
       keywords: "line numbers gutter editor",
       action: () => setLineNumbers(!lineNumbers),
+    },
+    {
+      id: "toggle-flow-mode",
+      label: flowMode ? "Disable flow mode" : "Enable flow mode",
+      keywords: "focus typewriter dim paragraph writing distraction free",
+      action: () => setFlowMode(!flowMode),
     },
     {
       id: "start-welcome-tour",

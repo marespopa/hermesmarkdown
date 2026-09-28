@@ -49,6 +49,7 @@ See [next-client/ARCHITECTURE.md](next-client/ARCHITECTURE.md) for the detailed 
 - Wikilinks such as `[[Note]]` and `[[Note|Alias]]`; type `[[` to pick a note and `Ctrl/Cmd+Click` to navigate.
 - Click checkboxes to toggle tasks and click lifecycle tags to cycle their status. Dates and `@priority` annotations render as pills.
 - Fenced code blocks receive syntax highlighting. Mermaid diagrams and display math (`$$ … $$` or a ```` ```math ```` fence, rendered with KaTeX) are shown rendered in the editor. Double-click one, or press `Ctrl/Cmd+Shift+Enter` beside it, to edit its source with a live preview. Mermaid diagrams can also open in a viewer with zoom and SVG download.
+- Optional flow mode (Settings → Editor or the command palette): fades everything but the paragraph you are writing and keeps the current line centered on screen.
 - Paste or drop images; they are saved to the vault's `assets/` folder and linked.
 - Optional AI (bring your own Anthropic or Gemini key): AI Chat (`Ctrl/Cmd+Shift+B`, or the Ask AI pill on a selection) with `@note` / `@vault` references, attachments and follow-ups; one-click rewrite actions with a diff review; note generation; and repurposing a note into blog/social/newsletter drafts.
 - Voice input with an editable preview before insertion (Chromium browsers).
