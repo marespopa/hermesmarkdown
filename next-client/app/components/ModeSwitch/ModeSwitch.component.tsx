@@ -27,8 +27,9 @@ const SIZES = {
   md: { track: "h-8", segment: "h-7 px-3 gap-1.5", iconOnly: "h-7 w-8", icon: 14 },
 } as const;
 
-// iOS-style spring-like ease-out for the sliding thumb.
-const THUMB_EASE = "ease-[cubic-bezier(0.32,0.72,0,1)]";
+// iOS-style spring-like ease-out for the sliding thumb. Arbitrary property, not
+// `ease-[…]`: tailwindcss-animate also defines `ease-*`, making that ambiguous.
+const THUMB_EASE = "[transition-timing-function:cubic-bezier(0.32,0.72,0,1)]";
 
 // Segmented control with a sliding thumb: a pill track whose highlighted
 // "thumb" glides under the selected option. The thumb is measured from the

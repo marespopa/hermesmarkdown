@@ -13,9 +13,10 @@ import {
 } from "@/app/atoms/atoms";
 import { HiOutlineChevronDown, HiOutlineChatAlt2, HiOutlineHome } from "react-icons/hi";
 import { useCommandPalette } from "@/app/components/CommandPalette/CommandPaletteContext";
-import { TabSaveState, statusMeta } from "./PaneTab";
+import { SaveStateIcon, TabSaveState, statusMeta } from "./PaneTab";
 import Button from "@/app/components/Button";
 import PaneModeSwitch from "./PaneModeSwitch";
+import FrontmatterToggle from "./FrontmatterToggle";
 
 interface MobileFileIndicatorProps {
   onSave: () => void;
@@ -95,12 +96,15 @@ export default function MobileFileIndicator({ onSave, onOpenAIChat }: MobileFile
             saveState === "idle" ? "text-fg-faint hover:text-sage" : meta.className
           }`}
         >
-          {saveState === "saving" ? (
-            <span className="w-3 h-3 rounded-full border-2 border-edge border-t-sage animate-spin" />
-          ) : (
-            meta.Icon && <meta.Icon size={18} />
-          )}
+          <SaveStateIcon state={saveState} size={18} />
         </Button>
+      )}
+      {hasOpenFiles && (
+        <FrontmatterToggle
+          withTooltip={false}
+          size={18}
+          className="flex items-center justify-center h-11 min-w-11 shrink-0 text-fg-faint hover:text-sage transition-colors"
+        />
       )}
       {hasOpenFiles && (
         <div className="shrink-0 pl-2">

@@ -13,7 +13,7 @@ export default function Footer() {
         data-testid="GlobalFooter"
         className="pt-16 md:pt-24 pb-10 md:pb-12 bg-neutral-900 dark:bg-neutral-950 text-ink-dark border-t border-white/5 font-sans selection:bg-sage/40 selection:text-white"
       >
-        <div className="container max-w-6xl">
+        <div className="container max-w-screen-xl">
           <div className="flex flex-col md:flex-row justify-between w-full items-start gap-12 md:gap-8">
             <div className="flex flex-col gap-6 max-w-sm">
               <div className="space-y-2">

@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { HiChevronDown, HiChevronRight } from "react-icons/hi";
+import { HiChevronDown, HiChevronRight, HiX } from "react-icons/hi";
 import Button from "@/app/components/Button";
 
 export interface FoldChevron {
@@ -16,14 +16,17 @@ interface FoldChevronsProps {
   onToggle: (chevron: FoldChevron) => void;
 }
 
-// Collapse/expand chevrons drawn at the right edge of foldable callouts and
-// the frontmatter block.
+// Collapse/expand chevrons drawn at the right edge of foldable callouts, and a
+// close (×) on expanded frontmatter: collapsed frontmatter is hidden outright
+// and comes back from the header's metadata toggle, so it only ever closes.
 export default function FoldChevrons({ chevrons, onToggle }: FoldChevronsProps) {
   return (
     <>
       {chevrons.map((chevron) => {
-        const what = chevron.kind === "frontmatter" ? "frontmatter" : "callout";
-        const label = `${chevron.collapsed ? "Expand" : "Collapse"} ${what}`;
+        const isFrontmatter = chevron.kind === "frontmatter";
+        const label = isFrontmatter
+          ? "Hide metadata"
+          : `${chevron.collapsed ? "Expand" : "Collapse"} callout`;
         return (
           <Button
             variant="unstyled"
@@ -38,7 +41,9 @@ export default function FoldChevrons({ chevrons, onToggle }: FoldChevronsProps) 
             title={label}
             aria-label={label}
           >
-            {chevron.collapsed ? <HiChevronRight size={13} /> : <HiChevronDown size={13} />}
+            {isFrontmatter
+              ? <HiX size={13} />
+              : chevron.collapsed ? <HiChevronRight size={13} /> : <HiChevronDown size={13} />}
           </Button>
         );
       })}

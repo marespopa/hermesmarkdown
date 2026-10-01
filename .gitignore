@@ -1,6 +1,8 @@
 .DS_Store
 
-plans
+# Factory run state (plans themselves are committed)
+next-client/plans/**/.run.json
+next-client/plans/**/.run.log
 node_modules/
 logs
 *.log

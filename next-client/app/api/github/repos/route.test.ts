@@ -1,3 +1,4 @@
+// @vitest-environment node
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { NextRequest } from "next/server";
 import { GITHUB_SESSION_COOKIE, sealGitHubSession } from "@/app/services/github-auth";

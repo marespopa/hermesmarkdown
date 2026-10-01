@@ -52,3 +52,13 @@ Write the report to `next-client/plans/reports/<feature-slug>-engineer.md` (same
 - **Decisions:** gaps you filled and why.
 - **Not done / open:** deferred items, unmet criteria, questions for the PRD author.
 - **To verify:** the exact commands to run (tests/typecheck) and what to check manually in the app.
+
+## Factory mode
+
+When the prompt says "Factory mode" and names a plan folder `next-client/plans/NNN-<slug>/` (see `next-client/plans/README.md`):
+- The PRD is `<folder>/prd.md`. Do not write a separate plan file.
+- Read `<folder>/mailbox.md` first. `RESUME:` notes mean a previous run was interrupted, so continue from the working tree rather than starting over. A reviewer fix list means you address those findings.
+- Write the report to `<folder>/reports/engineer.md` and add a one-line handoff to `mailbox.md`.
+- A missing decision that changes the design goes to `<folder>/blocked.md` (`## Q<n>`, context, `Recommended:`, empty `Answer:`), and you set `state: blocked`.
+- Never commit, stash, reset or switch branches. A guard hook blocks it, and the orchestrator blocks the plan if HEAD moves.
+- As your last action, set `state: review` (or `blocked`) in the `<folder>/brief.md` frontmatter.

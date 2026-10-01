@@ -7,7 +7,6 @@ import { atom_fileMetadata, type FileMetadata } from "@/app/atoms/metadata";
 import { atom_indexerState, atom_userName, type IndexerState } from "@/app/atoms/ui-atoms";
 import HomeFeed from "./HomeFeed";
 import { INDEXING_VERBS, ROTATE_MS } from "./home-feed/FeedStatus";
-
 function meta(path: string, minutesAgo: number, preview = ""): FileMetadata {
   return {
     path,
@@ -123,12 +122,18 @@ describe("HomeFeed", () => {
     expect(rows[0]).toHaveTextContent("note-0");
   });
 
-  it("greets the user by name, and leaves the greeting out without one", () => {
-    renderFeed(NOTES, "Ada");
-    expect(screen.getByText("Welcome, Ada!")).toBeInTheDocument();
-    cleanup();
-    renderFeed(NOTES);
-    expect(screen.queryByText(/Welcome,/)).not.toBeInTheDocument();
+  it("greets the user for the time of day, by name when one is set", () => {
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(new Date(2026, 8, 28, 9, 0));
+    try {
+      renderFeed(NOTES, "Ada");
+      expect(screen.getByText("Good morning, Ada!")).toBeInTheDocument();
+      cleanup();
+      renderFeed(NOTES);
+      expect(screen.getByText("Good morning!")).toBeInTheDocument();
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it("shows a quiet start prompt for an empty vault", () => {

@@ -1,9 +1,10 @@
 import { markdown, markdownLanguage } from "@codemirror/lang-markdown";
-import { ensureSyntaxTree } from "@codemirror/language";
+import { codeFolding, ensureSyntaxTree, foldEffect, foldedRanges } from "@codemirror/language";
 import { Compartment, EditorState } from "@codemirror/state";
 import { Decoration, EditorView } from "@codemirror/view";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { buildPreviewDecorations, isPreviewMode, previewExtension } from "./preview-mode";
+import { buildPreviewDecorations, caretOutsideFolds, isPreviewMode, previewExtension } from "./preview-mode";
+import { findFrontmatterFoldRange, frontmatterCollapse, toggleFrontmatterFold } from "./frontmatter-fold";
 
 vi.mock("../utils/open-helper-dialogs", () => ({ openRenderedBlockSource: vi.fn() }));
 
@@ -126,5 +127,38 @@ describe("preview mode", () => {
     const { view } = createEditor(doc);
 
     expect(hiddenTexts(view.state)).not.toContain("---");
+  });
+});
+
+describe("caretOutsideFolds", () => {
+  const doc = ["---", "title: Note", "---", "", "Body"].join("\n");
+  const foldTo = doc.indexOf("\n\n");
+
+  function foldedState() {
+    const state = EditorState.create({ doc, extensions: codeFolding() });
+    return state.update({ effects: foldEffect.of({ from: 0, to: foldTo }) }).state;
+  }
+
+  it("moves a caret inside collapsed frontmatter to the fold's start, keeping it folded", () => {
+    const state = foldedState();
+    const closingLine = doc.indexOf("\n---") + 1;
+    const anchor = caretOutsideFolds(state, closingLine);
+
+    expect(anchor).toBe(0);
+    const next = state.update({ selection: { anchor } }).state;
+    expect(foldedRanges(next).size).toBe(1);
+  });
+
+  it("leaves a caret outside any fold where it is", () => {
+    const state = foldedState();
+    expect(caretOutsideFolds(state, doc.length)).toBe(doc.length);
+  });
+
+  it("moves a caret inside collapsed frontmatter to the first line after it", () => {
+    const view = new EditorView({ state: EditorState.create({ doc, extensions: frontmatterCollapse }) });
+    toggleFrontmatterFold(view, findFrontmatterFoldRange(doc)!, true);
+
+    expect(caretOutsideFolds(view.state, 0)).toBe(doc.indexOf("Body"));
+    view.destroy();
   });
 });

@@ -26,14 +26,17 @@ export function useCodeMirrorCalloutFold({ containerRef }: UseCodeMirrorCalloutF
 
   const recompute = useCallback((view: EditorView) => {
     const ranges = findCalloutFoldRanges(view.state.doc.toString());
+    // Coordinates before the wrapper rect: coordsAtPos can flush a pending
+    // CodeMirror measure (e.g. an Edit/Preview switch's scrollIntoView) that
+    // scrolls the canvas, which would leave an earlier wrapper rect stale.
+    const positioned = ranges.map((r) => ({ r, coords: view.coordsAtPos(r.titleOffset) }));
     const wrapperRect = containerRef.current?.getBoundingClientRect();
     if (!wrapperRect) return;
 
     // Callouts outside CodeMirror's rendered viewport have no coordinates
     // yet; they get a chevron once scrolled near (see onViewportChange).
     // Placing them at top 0 instead stacked them all on the note's first line.
-    setChevrons(ranges.flatMap((r) => {
-      const coords = view.coordsAtPos(r.titleOffset);
+    setChevrons(positioned.flatMap(({ r, coords }) => {
       if (!coords) return [];
       return [{
         blockId: r.blockId,

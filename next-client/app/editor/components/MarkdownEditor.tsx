@@ -3,7 +3,7 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useAtomValue, useSetAtom } from "jotai";
 import { atom_frontmatterCollapsedByDefault, atom_wordWrap, atom_isEditorFocused } from "@/app/atoms/atoms";
-import { atom_activeEditorView, atom_aiBuilderRequest, atom_flowMode, atom_isAiConfigured, atom_lineNumbers, atom_viewMode, atom_vimMode } from "@/app/atoms/ui-atoms";
+import { atom_activeEditorView, atom_activeFileHasFrontmatter, atom_aiBuilderRequest, atom_flowMode, atom_isAiConfigured, atom_lineNumbers, atom_viewMode, atom_vimMode } from "@/app/atoms/ui-atoms";
 import { useAtom } from "jotai";
 import { EditorView } from "@codemirror/view";
 import DatePickerCallout from "./DatePickerCallout";
@@ -57,7 +57,7 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
   const flowMode = useAtomValue(atom_flowMode);
   const isAiConfigured = useAtomValue(atom_isAiConfigured);
   const setAiBuilderRequest = useSetAtom(atom_aiBuilderRequest);
-  const frontmatterCollapsedByDefault = useAtomValue(atom_frontmatterCollapsedByDefault);
+  const [frontmatterCollapsedByDefault, setFrontmatterCollapsedByDefault] = useAtom(atom_frontmatterCollapsedByDefault);
   const [, setIsEditorFocused] = useAtom(atom_isEditorFocused);
   const filePath = props.filePath || "draft";
   const [editorView, setEditorView] = useState<EditorView | null>(null);
@@ -162,16 +162,27 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
     useCodeMirrorCalloutFold({ containerRef });
     const {
       chevrons: frontmatterChevrons,
+      collapsed: frontmatterCollapsed,
       toggle: toggleFrontmatterFold,
       onCursorActivity: onFrontmatterFoldCursorActivity,
       onViewCreated: onFrontmatterFoldViewCreated,
     } = useCodeMirrorFrontmatterFold({
+      viewRef,
       containerRef,
       collapseByDefault: frontmatterCollapsedByDefault,
     });
 
   const setActiveEditorView = useSetAtom(atom_activeEditorView);
   const registeredActiveViewRef = useRef<EditorView | null>(null);
+
+  // Feeds the pane header's metadata toggle while this pane is active.
+  const hasFrontmatter = frontmatterCollapsed !== null;
+  const setActiveFileHasFrontmatter = useSetAtom(atom_activeFileHasFrontmatter);
+  useEffect(() => {
+    if (props.isActivePane === false) return;
+    setActiveFileHasFrontmatter(hasFrontmatter);
+    return () => setActiveFileHasFrontmatter(false);
+  }, [hasFrontmatter, props.isActivePane, setActiveFileHasFrontmatter]);
 
   // Auto-focus so typing works immediately after opening the editor, no
   // click required. Skipped for inactive split panes.
@@ -307,8 +318,13 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
             onToggle={(chevron) => {
               const view = viewRef.current;
               if (!view) return;
-              if (chevron.kind === "frontmatter") toggleFrontmatterFold(view);
-              else toggleCalloutFold(view, chevron.blockId);
+              if (chevron.kind === "frontmatter") {
+                // × hides metadata app-wide, like the header ⓘ. Collapse this
+                // view directly too: it may be expanded with the preference
+                // already on (caret moved in), where setting it is a no-op.
+                toggleFrontmatterFold(view);
+                setFrontmatterCollapsedByDefault(true);
+              } else toggleCalloutFold(view, chevron.blockId);
             }}
           />
 

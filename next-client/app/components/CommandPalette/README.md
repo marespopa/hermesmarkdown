@@ -5,7 +5,7 @@ Shared command and quick-open surface. See [CommandPalette.md](./CommandPalette.
 | File | Role |
 |---|---|
 | `CommandPaletteContext.tsx` | `CommandPaletteProvider`, `useCommandPalette`, `useRegisterCommand`, `Command` type |
-| `CommandPalette.tsx` | Palette UI: search, ranking, execution; theme / settings / help actions in the footer |
+| `CommandPalette.tsx` | Palette UI: search, ranking, execution; theme / settings actions in the footer |
 | `PaletteSearchBar.tsx` | The search field, drawn as the same pill as the home feed's search bar: icon, input, clear, ⌘K hint, and a `>` button that toggles command mode |
 | `AppCommands.tsx` | Global app commands: home, editor, docs, settings, theme, shortcuts |
 | `command-search.ts` | Client-side matching and ranking |

@@ -7,7 +7,7 @@ import { atom_userName } from "@/app/atoms/ui-atoms";
 import { BareInput } from "@/app/components/Input";
 import WizardStep, { WizardPanel } from "./WizardStep";
 
-// Step 0: the name the home feed greets you with ("Welcome, <name>!").
+// Step 0: the name the home feed greets you with ("Good morning, <name>!").
 // Optional; Enter in the field continues.
 export default function NameStep({ onContinue }: { onContinue: () => void }) {
   const [userName, setUserName] = useAtom(atom_userName);

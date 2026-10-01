@@ -1,3 +1,4 @@
+// @vitest-environment node
 import { describe, expect, it } from "vitest";
 import { sortTasks } from "./task-sort";
 import type { TaskItem } from "@/app/utils/taskExtractor";

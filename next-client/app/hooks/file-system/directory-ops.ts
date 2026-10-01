@@ -40,12 +40,43 @@ async function copyInto(src: FileSystemDirectoryHandle, dest: FileSystemDirector
       const child = await withRetry(() => dest.getDirectoryHandle(entry.name, { create: true }));
       await copyInto(entry as FileSystemDirectoryHandle, child);
     } else {
-      // Copy the File itself so binary attachments keep their bytes.
-      const file = await (entry as FileSystemFileHandle).getFile();
+      // Read the bytes before touching `dest`: a File snapshot can become
+      // unreadable once its directory changes (Android-backed storage), which
+      // left empty copies behind.
+      const bytes = await (await (entry as FileSystemFileHandle).getFile()).arrayBuffer();
       const target = await withRetry(() => dest.getFileHandle(entry.name, { create: true }));
-      await withRetry(() => writeFileContent(target, file));
+      await withRetry(() => writeFileContent(target, bytes));
     }
   }
+}
+
+// Fallback for file rename/move where `FileSystemHandle.move()` is missing or
+// fails: copies `src` to `destParent/name`, then removes `src` from
+// `destParent`. Refuses to overwrite an existing entry. When the write fails,
+// the new file is removed and the source is left intact.
+export async function moveFileByCopy(
+  src: FileSystemFileHandle,
+  destParent: FileSystemDirectoryHandle,
+  name: string,
+): Promise<FileSystemFileHandle> {
+  if (await entryExists(destParent, name)) {
+    throw new Error(`"${name}" already exists in this folder`);
+  }
+  // Read the bytes before creating the target (see copyInto).
+  const bytes = await (await src.getFile()).arrayBuffer();
+  const target = await withRetry(() => destParent.getFileHandle(name, { create: true }));
+  try {
+    await withRetry(() => writeFileContent(target, bytes));
+  } catch (err) {
+    try {
+      await (destParent as any).removeEntry(target.name);
+    } catch (cleanupErr) {
+      console.warn("Failed to remove partial file copy:", cleanupErr);
+    }
+    throw err;
+  }
+  await (destParent as any).removeEntry(src.name);
+  return target;
 }
 
 // Fallback for folder rename/move where `FileSystemHandle.move()` is missing

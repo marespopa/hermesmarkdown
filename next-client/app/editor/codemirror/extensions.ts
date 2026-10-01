@@ -5,7 +5,7 @@ import { markdown, markdownLanguage } from "@codemirror/lang-markdown";
 import { languages } from "@codemirror/language-data";
 import { ViewUpdate } from "@codemirror/view";
 import { autocompletion } from "@codemirror/autocomplete";
-import { codeFolding, unfoldEffect } from "@codemirror/language";
+import { codeFolding } from "@codemirror/language";
 import { getCM, Vim, vim } from "@replit/codemirror-vim";
 import { editorTheme } from "./theme";
 import { formatKeymap, toggleCheckboxOnLine, handlePasteTransform, insertPastedImage } from "./commands";
@@ -18,6 +18,7 @@ import { annotationDisplayPlugin } from "./annotation-display";
 import { tableDisplayExtension } from "./table-display";
 import { renderedBlockExtension } from "./rendered-block";
 import { shortcodeExpandPlugin } from "./shortcode-expand";
+import { noteCalcExtension } from "./note-calc";
 import { createSlashMenuSource, SlashMenuCallbacks } from "./slash-menu";
 import { createWikiLinkTriggerPlugin, WikiLinkTriggerCallback } from "./wikilink-trigger";
 import {
@@ -31,7 +32,7 @@ import {
   tableInsertRowCommand,
   tableDeleteRowCommand,
 } from "./table-commands";
-import { findFrontmatterFoldRange } from "./frontmatter-fold";
+import { frontmatterCollapse } from "./frontmatter-fold";
 import { flowMode } from "./flow-mode";
 import { previewExtension } from "./preview-mode";
 
@@ -75,40 +76,8 @@ export function buildExtensions(opts: BuildExtensionsOptions): Extension[] {
     // logic explicitly instead (matches the old app, which never
     // auto-continued plain "- " list items either).
     markdown({ base: markdownLanguage, codeLanguages: languages, addKeymap: false }),
-    codeFolding({
-      preparePlaceholder: (state, range) => {
-        const frontmatter = findFrontmatterFoldRange(state.doc.toString());
-        return frontmatter?.bodyFrom === range.from && frontmatter.bodyTo === range.to
-          ? `frontmatter:${range.from}:${range.to}`
-          : null;
-      },
-      placeholderDOM: (view, onclick, prepared) => {
-        const frontmatterMatch = typeof prepared === "string"
-          ? /^frontmatter:(\d+):(\d+)$/.exec(prepared)
-          : null;
-        const isFrontmatter = Boolean(frontmatterMatch);
-        const element = document.createElement("span");
-        element.className = isFrontmatter
-          ? "cm-foldPlaceholder cm-frontmatterPlaceholder"
-          : "cm-foldPlaceholder";
-        element.textContent = isFrontmatter ? "Metadata" : "…";
-        element.setAttribute("aria-label", isFrontmatter ? "Expand metadata" : "Folded code");
-        element.title = isFrontmatter ? "Expand metadata" : "Unfold";
-        element.onclick = isFrontmatter
-          ? (event) => {
-              view.dispatch({
-                effects: unfoldEffect.of({
-                  from: Number(frontmatterMatch![1]),
-                  to: Number(frontmatterMatch![2]),
-                }),
-              });
-              event.preventDefault();
-              event.stopPropagation();
-            }
-          : onclick;
-        return element;
-      },
-    }),
+    codeFolding(),
+    frontmatterCollapse,
     markdownHighlightPlugin,
     horizontalRuleCursorPlugin,
     tagPillPlugin,
@@ -116,6 +85,7 @@ export function buildExtensions(opts: BuildExtensionsOptions): Extension[] {
     annotationDisplayPlugin,
     tableDisplayExtension,
     renderedBlockExtension,
+    noteCalcExtension,
     shortcodeExpandPlugin,
     createWikiLinkTriggerPlugin(opts.wikiLinkTriggerRef),
     opts.vimModeCompartment.of(opts.vimMode ? vim({ status: true }) : []),

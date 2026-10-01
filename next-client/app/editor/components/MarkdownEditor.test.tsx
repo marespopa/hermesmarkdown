@@ -3,6 +3,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { EditorView } from "@codemirror/view";
 import { undo } from "@codemirror/commands";
 import MarkdownEditor from "./MarkdownEditor";
+import FrontmatterToggle from "./FrontmatterToggle";
 import { CODE_BLOCK_TEMPLATE_CONTENT, CURSOR_SENTINEL, TEMPLATES } from "./constants";
 import { Provider, useAtomValue, useSetAtom } from "jotai";
 import { useHydrateAtoms } from "jotai/utils";
@@ -13,7 +14,7 @@ import {
   atom_viewMode,
 } from "@/app/atoms/ui-atoms";
 import { atom_pendingScrollTarget, atom_wordWrap } from "@/app/atoms/atoms";
-import { findFrontmatterFoldRange, isFrontmatterFolded } from "../codemirror/frontmatter-fold";
+import { findFrontmatterFoldRange, isFrontmatterFolded, toggleFrontmatterFold } from "../codemirror/frontmatter-fold";
 import "@testing-library/jest-dom";
 
 // MarkdownEditor now runs on CodeMirror 6, which renders a contenteditable
@@ -247,7 +248,7 @@ describe("MarkdownEditor", () => {
     expect(cmText).toContain("title: Test");
     expect(cmText).toContain("Body content");
     expect(range).not.toBeNull();
-    expect(isFrontmatterFolded(view.state, range!)).toBe(false);
+    expect(isFrontmatterFolded(view.state)).toBe(false);
   });
 
   it("folds frontmatter when a file opens and the preference is enabled", async () => {
@@ -265,20 +266,42 @@ describe("MarkdownEditor", () => {
       const view = getView(container);
       const range = findFrontmatterFoldRange(view.state.doc.toString());
       expect(range).not.toBeNull();
-      expect(isFrontmatterFolded(view.state, range!)).toBe(true);
-      expect(screen.getByLabelText("Expand metadata")).toHaveTextContent("Metadata");
+      expect(isFrontmatterFolded(view.state)).toBe(true);
+      expect(container.querySelector(".cm-content")?.textContent).toBe("Body content");
     });
 
-    fireEvent.click(screen.getByLabelText("Expand metadata"));
+    act(() => {
+      const view = getView(container);
+      toggleFrontmatterFold(view, findFrontmatterFoldRange(view.state.doc.toString())!, false);
+    });
 
     await waitFor(() => {
       const view = getView(container);
       const range = findFrontmatterFoldRange(view.state.doc.toString());
       expect(range).not.toBeNull();
-      expect(isFrontmatterFolded(view.state, range!)).toBe(false);
+      expect(isFrontmatterFolded(view.state)).toBe(false);
     });
-    expect(await screen.findByLabelText("Collapse frontmatter")).toBeInTheDocument();
+    expect(await screen.findByLabelText("Hide metadata")).toBeInTheDocument();
     coordsSpy.mockRestore();
+  });
+
+  it("follows the app-wide metadata toggle in an open file", async () => {
+    const { container } = render(
+      <Provider>
+        <Hydrate pendingScrollTarget={null} frontmatterCollapsedByDefault>
+          <MarkdownEditor value={"---\ntitle: Test\n---\nBody"} onChange={mockOnChange} filePath="note.md" />
+          <FrontmatterToggle />
+        </Hydrate>
+      </Provider>,
+    );
+    await waitForEditor(container);
+    await waitFor(() => expect(isFrontmatterFolded(getView(container).state)).toBe(true));
+
+    fireEvent.click(await screen.findByRole("button", { name: "Show metadata" }));
+    await waitFor(() => expect(isFrontmatterFolded(getView(container).state)).toBe(false));
+
+    fireEvent.click(screen.getByRole("button", { name: "Hide metadata", pressed: true }));
+    await waitFor(() => expect(isFrontmatterFolded(getView(container).state)).toBe(true));
   });
 
   it("inserts frontmatter from the quick command when metadata is absent", async () => {
@@ -309,8 +332,7 @@ describe("MarkdownEditor", () => {
     );
     await waitForEditor(container);
     const view = getView(container);
-    const range = findFrontmatterFoldRange(value)!;
-    await waitFor(() => expect(isFrontmatterFolded(view.state, range)).toBe(true));
+    await waitFor(() => expect(isFrontmatterFolded(view.state)).toBe(true));
 
     act(() => {
       document.dispatchEvent(new CustomEvent("hermes:insert-template", {
@@ -318,7 +340,7 @@ describe("MarkdownEditor", () => {
       }));
     });
 
-    expect(isFrontmatterFolded(view.state, range)).toBe(false);
+    expect(isFrontmatterFolded(view.state)).toBe(false);
     expect(view.state.selection.main.head).toBe(view.state.doc.line(2).to);
   });
 

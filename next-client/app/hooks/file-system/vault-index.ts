@@ -75,14 +75,14 @@ export function reusableEntry(
   if (cached && cached.modifiedAt === stat.modifiedAt) return cached;
   const prior = previous?.[stat.path];
   if (prior && prior.preview !== undefined && prior.modifiedAt === stat.modifiedAt) {
-    const { handle: _handle, ...rest } = prior;
-    return rest as CachedMetadata;
+    return withoutHandle(prior);
   }
   return null;
 }
 
 function withoutHandle(entry: Metadata): CachedMetadata {
-  const { handle: _handle, ...rest } = entry;
+  const rest = { ...entry };
+  delete rest.handle;
   return rest as CachedMetadata;
 }
 

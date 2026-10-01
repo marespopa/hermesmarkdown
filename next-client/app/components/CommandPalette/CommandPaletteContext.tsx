@@ -138,7 +138,8 @@ export function CommandPaletteProvider({ children }: { children: React.ReactNode
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       const key = e.key.toLowerCase();
-      const hasPrimaryModifier = e.ctrlKey || e.metaKey;
+      // Alt combos belong to other shortcuts (Ctrl/Cmd+Alt+P toggles preview).
+      const hasPrimaryModifier = (e.ctrlKey || e.metaKey) && !e.altKey;
       if (hasPrimaryModifier && e.shiftKey && (key === "k" || key === "p")) {
         e.preventDefault();
         open(">");

@@ -34,7 +34,7 @@ const Navbar = () => {
 
   return (
     <>
-      <div className="flex items-center justify-between container max-w-screen-xl mx-auto px-4 sm:px-2">
+      <div className="container max-w-screen-xl flex items-center justify-between">
         {/*Logo*/}
         <Link
           className="hover:scale-110 focus:scale-110 transition-transform ease-in"
