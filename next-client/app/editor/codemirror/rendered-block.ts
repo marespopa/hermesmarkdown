@@ -13,6 +13,7 @@ import {
   type RenderResult,
 } from "../utils/rendered-block-cache";
 import { openRenderedBlockSource } from "../utils/open-helper-dialogs";
+import { isPreviewMode } from "./preview-facet";
 
 // Mermaid fences and display math (`$$ … $$`, ```math fences) are shown as
 // their rendered output, like tables are shown as a grid. The source stays
@@ -233,7 +234,9 @@ export function findRenderedBlockAt(state: EditorState, pos: number): RenderedBl
   return state.field(renderedBlockField, false)?.matches.find((m) => pos >= m.from && pos <= m.to) ?? null;
 }
 
+// Preview is read-only, so neither route opens the source dialog there.
 function openBlockForDOM(view: EditorView, dom: HTMLElement) {
+  if (isPreviewMode(view.state)) return;
   const pos = view.posAtDOM(dom);
   const match = findRenderedBlockAt(view.state, pos);
   if (match) openRenderedBlockSource(view, match);
@@ -241,7 +244,7 @@ function openBlockForDOM(view: EditorView, dom: HTMLElement) {
 
 export function openRenderedBlockAtCaret(view: EditorView): boolean {
   const selection = view.state.selection.main;
-  if (!selection.empty) return false;
+  if (!selection.empty || isPreviewMode(view.state)) return false;
   const match = findRenderedBlockAt(view.state, selection.head);
   if (!match) return false;
   openRenderedBlockSource(view, match);

@@ -1,5 +1,6 @@
 import { EditorSelection, Range } from "@codemirror/state";
 import { Decoration, DecorationSet, EditorView, ViewPlugin, ViewUpdate, WidgetType } from "@codemirror/view";
+import { isPreviewMode, previewModeChanged } from "./preview-facet";
 
 export interface LinkDisplayMatch {
   from: number;
@@ -82,10 +83,12 @@ class LinkDisplayWidget extends WidgetType {
 export function buildLinkDisplayDecorations(view: EditorView): DecorationSet {
   const ranges: Range<Decoration>[] = [];
   const selection = view.state.selection;
+  // Preview never reveals the source: clicks there follow the link instead.
+  const revealUnderSelection = !isPreviewMode(view.state);
 
   for (const match of collectLinkDisplayMatches(view.state.doc.toString())) {
     const visible = view.visibleRanges.some((range) => range.from <= match.from && match.to <= range.to);
-    if (!visible || selectionTouchesLink(selection, match.from, match.to)) continue;
+    if (!visible || (revealUnderSelection && selectionTouchesLink(selection, match.from, match.to))) continue;
     ranges.push(Decoration.replace({ widget: new LinkDisplayWidget(match), side: 1 }).range(match.from, match.to));
   }
 
@@ -101,7 +104,7 @@ export const linkDisplayPlugin = ViewPlugin.fromClass(
     }
 
     update(update: ViewUpdate) {
-      if (update.docChanged || update.selectionSet || update.viewportChanged) {
+      if (update.docChanged || update.selectionSet || update.viewportChanged || previewModeChanged(update)) {
         this.decorations = buildLinkDisplayDecorations(update.view);
       }
     }

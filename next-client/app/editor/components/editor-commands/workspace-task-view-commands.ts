@@ -38,6 +38,8 @@ export function buildWorkspaceTaskViewCommandGroups(context: EditorCommandContex
     showHiddenFiles,
     splitPane,
     themeCycle,
+    viewMode,
+    setViewMode,
     vaultHandle,
     wordWrap,
     workspaceLayout,
@@ -139,6 +141,13 @@ export function buildWorkspaceTaskViewCommandGroups(context: EditorCommandContex
       label: flowMode ? "Disable flow mode" : "Enable flow mode",
       keywords: "focus typewriter dim paragraph writing distraction free",
       action: () => setFlowMode(!flowMode),
+    },
+    {
+      id: "toggle-preview-mode",
+      label: viewMode === "preview" ? "Back to editing" : "Open in preview",
+      keywords: "preview read reading view edit mode rendered",
+      shortcut: formatShortcut("P", { alt: true }),
+      action: () => setViewMode(viewMode === "preview" ? "edit" : "preview"),
     },
     {
       id: "start-welcome-tour",

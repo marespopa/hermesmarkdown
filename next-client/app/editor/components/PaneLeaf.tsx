@@ -23,6 +23,7 @@ import useIsMobileChrome from "@/app/hooks/use-mobile-chrome";
 import { usePaneFileActions } from "../hooks/use-pane-file-actions";
 import { useTabDragDrop } from "../hooks/use-tab-drag-drop";
 import PaneEmptyState from "./PaneEmptyState";
+import PaneModeSwitch from "./PaneModeSwitch";
 import { PANE_ACTION_BUTTON_CLASS, PANE_ACTIONS_CLASS, PANE_HEADER_CLASS } from "./pane-header-classes";
 import { useCommandPalette } from "@/app/components/CommandPalette/CommandPaletteContext";
 
@@ -66,7 +67,6 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
   const isActive = activePaneId === leaf.id;
   const isVoicePreviewVisible = useAtomValue(atom_isVoicePreviewVisible);
   const isDimmed = isVoicePreviewVisible && !isActive;
-
 
   const router = useRouter();
   const { handleSave, handleCopy, closeTabWithAutosave, buildTabMenuItems } = usePaneFileActions(leaf);
@@ -265,6 +265,7 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
               <>
                 {/* App-wide | this file | this pane */}
                 <div className="w-px h-4 bg-edge-subtle mx-1 opacity-70" />
+                {leaf.type === "editor" && <PaneModeSwitch iconOnly={hideCopyMarkdown} />}
                 {!hideCopyMarkdown && (
                   <Tooltip label="Copy Markdown">
                     <Button
@@ -369,7 +370,6 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
           </div>
         )}
       </div>
-
 
       {tabMenu && (
         <TabContextMenu

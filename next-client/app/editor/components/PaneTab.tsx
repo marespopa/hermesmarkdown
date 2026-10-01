@@ -129,7 +129,7 @@ export default function PaneTab({
           />
         ) : (
           /* Close button — contained within the slot, never overflows the tab */
-          <Tooltip label="Close tab" position="bottom">
+          <Tooltip label="Close tab" position="bottom" portal>
             <Button variant="unstyled"
               onClick={onClose}
               aria-label="Close tab"

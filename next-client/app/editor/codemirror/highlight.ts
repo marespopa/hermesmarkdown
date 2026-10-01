@@ -1,5 +1,6 @@
 import { EditorView, Decoration, DecorationSet, ViewPlugin, ViewUpdate } from "@codemirror/view";
 import { EditorState, Range } from "@codemirror/state";
+import { isPreviewMode, previewModeChanged } from "./preview-facet";
 import { WORKFLOW_TAGS, TODO_TAGS } from "../components/constants";
 import { CALLOUT_META, CALLOUT_ALIASES } from "../constants/callouts";
 import {
@@ -361,9 +362,10 @@ export const horizontalRuleCursorPlugin = ViewPlugin.fromClass(
       this.decorations = this.compute(view.state);
     }
     update(update: ViewUpdate) {
-      if (update.docChanged || update.selectionSet) this.decorations = this.compute(update.state);
+      if (update.docChanged || update.selectionSet || previewModeChanged(update)) this.decorations = this.compute(update.state);
     }
     compute(state: EditorState): DecorationSet {
+      if (isPreviewMode(state)) return Decoration.none;
       const lines = new Set<number>();
       for (const range of state.selection.ranges) {
         const first = state.doc.lineAt(range.from).number;
