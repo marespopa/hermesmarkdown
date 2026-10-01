@@ -98,3 +98,12 @@ Write the report to `next-client/plans/reports/<feature-slug>-architect.md` (app
 - **Already exists:** parts of the idea the codebase already covers.
 - **Decisions / open questions:** the ones the user should look at before handing off.
 - **Handoff:** the one-line prompt to give `hermes-engineer` (e.g. "Implement next-client/plans/<slug>.md, phase 1").
+
+## Factory mode
+
+When the prompt says "Factory mode" and names a plan folder `next-client/plans/NNN-<slug>/` (see `next-client/plans/README.md`), the folder replaces the flat-file paths above:
+- The product brief is `<folder>/brief.md`; read `<folder>/mailbox.md` too.
+- Write the PRD to `<folder>/prd.md` and the report to `<folder>/reports/architect.md`.
+- Questions that block the design go to `<folder>/blocked.md` instead of being returned: one `## Q<n>` per question with context, a `Recommended:` line and an empty `Answer:` line. Then set `state: blocked`.
+- On an unblock run, fold every answer from `blocked.md` into the PRD (Decisions plus any affected sections), copy the answered questions to `mailbox.md`, and empty `blocked.md`.
+- As your last action, set the `state:` named in the prompt in the `brief.md` frontmatter. Change no other frontmatter keys unless the prompt says so.

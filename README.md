@@ -143,6 +143,19 @@ yarn check   # TypeScript check and lint
 yarn test    # Vitest (watch mode; add --run for a single pass)
 ```
 
+### Factory
+
+Feature work can run through an agent pipeline. Each stage is a headless Claude Code session using the `hermes-architect`, `hermes-engineer` and `hermes-review` agents in `.claude/agents/`.
+
+```bash
+scripts/factory new tag-autocomplete "Tag autocomplete"   # then fill in brief.md
+scripts/factory run 007            # dry run: shows the next stage
+scripts/factory run 007 --commit   # runs it: new → specced → review → approved
+scripts/factory list
+```
+
+Agents never commit. A hook blocks git writes during a stage, and the script blocks the plan if HEAD moves. You review, commit and merge the approved change yourself. The folder contract, states and unblock flow are in [`next-client/plans/README.md`](next-client/plans/README.md).
+
 ## License and security
 
 See [SECURITY.md](SECURITY.md) for reporting security issues.
