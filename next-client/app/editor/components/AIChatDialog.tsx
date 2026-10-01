@@ -9,7 +9,7 @@ import { useAtomValue } from "jotai";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { HiOutlineCamera, HiOutlinePaperAirplane, HiOutlinePaperClip, HiOutlineSparkles } from "react-icons/hi";
 import DialogModal from "../../components/DialogModal/DialogModal";
-import { ACCEPT_FILES, ACCEPT_IMAGES, type Attachment, buildApiContent, type ChatMessage, readAttachments, resolveMentionRefs, SYSTEM_PROMPT, type VaultRef } from "./ai-chat/chat-helpers";
+import { ACCEPT_FILES, ACCEPT_IMAGES, type Attachment, buildApiContent, buildChatSystemPrompt, type ChatMessage, readAttachments, resolveMentionRefs, type VaultRef } from "./ai-chat/chat-helpers";
 import ChatContextChips from "./ai-chat/ChatContextChips";
 import ChatMessageItem, { type ApplyMode } from "./ai-chat/ChatMessageItem";
 import MentionMenu from "./ai-chat/MentionMenu";
@@ -91,19 +91,10 @@ export default function AIChatDialog({
     detectMention(val, e.target.selectionStart ?? val.length);
   };
 
-  const buildSystemPrompt = useCallback(() => {
-    const parts = [SYSTEM_PROMPT];
-    if (selectedText.trim()) {
-      parts.push(`\n--- SELECTED TEXT (target for edits) ---\n${selectedText}\n--- END SELECTED TEXT ---`);
-    } else if (documentContent.trim()) {
-      const preview =
-        documentContent.length > 3000
-          ? documentContent.slice(0, 3000) + "\n\n[document continues…]"
-          : documentContent;
-      parts.push(`\n--- CURRENT DOCUMENT (for context only — output only the requested content, not the full document) ---\n${preview}\n--- END DOCUMENT ---`);
-    }
-    return parts.join("\n");
-  }, [documentContent, selectedText]);
+  const buildSystemPrompt = useCallback(
+    () => buildChatSystemPrompt(documentContent, selectedText, currentFilePath),
+    [documentContent, selectedText, currentFilePath],
+  );
 
   const handleAttachFiles = async (files: FileList | null) => {
     if (!files) return;
@@ -189,6 +180,14 @@ export default function AIChatDialog({
           <h2 id="ai-chat-title" className="text-ui-body font-semibold text-ink-light dark:text-ink-dark">
             AI Chat
           </h2>
+          {currentFilePath && documentContent.trim() && (
+            <span
+              className="text-ui-caption text-neutral-400 dark:text-neutral-500 truncate min-w-0"
+              title={`The AI sees ${currentFilePath}`}
+            >
+              · {currentFilePath.split("/").pop()}
+            </span>
+          )}
           <select
             value={selectedAiModel}
             onChange={(e) => setSelectedAiModel(e.target.value)}

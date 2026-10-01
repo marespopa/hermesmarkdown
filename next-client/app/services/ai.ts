@@ -1,5 +1,5 @@
 import { beginAiAction, finishAiActionSuccess, finishAiActionError } from "./ai-status";
-import { FORMULA_PRESERVATION_RULE, TABLE_FORMULA_GUIDE } from "@/app/editor/utils/formula-ai-guide";
+import { FORMULA_PRESERVATION_RULE, NOTE_CALC_GUIDE, TABLE_FORMULA_GUIDE } from "@/app/editor/utils/formula-ai-guide";
 
 export type AIProvider = 'claude' | 'gemini';
 
@@ -235,7 +235,10 @@ export async function generateFileFromPrompt(userPrompt: string) {
     `You are a markdown note writer. Write a well-structured, informative markdown note based on the user's prompt. Use headers, lists, and code blocks where appropriate. Do not include YAML frontmatter. Return only the markdown content.
 
 When the note needs a table with totals or other calculations, use formulas instead of precomputed numbers:
-${TABLE_FORMULA_GUIDE}`;
+${TABLE_FORMULA_GUIDE}
+
+For quick sums or estimates outside tables, use inline calculator lines:
+${NOTE_CALC_GUIDE}`;
   const body = await callAI(system, userPrompt);
   const meta = await generateFrontmatterData(body);
   return { body, ...meta };

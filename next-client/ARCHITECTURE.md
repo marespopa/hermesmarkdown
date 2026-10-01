@@ -69,7 +69,7 @@ This document describes the runtime data flow of the editor.
 - **File watcher:** `app/hooks/use-file-watcher.ts` polls open files with backoff and checks immediately on window focus, feeding `ConflictDialog`.
 - **Metadata worker:** `app/workers/metadata.worker.ts` extracts frontmatter, tags, wikilinks and word counts off the main thread; tasks are parsed by `app/utils/taskExtractor.ts`.
 - **Jotai atoms:** See `app/atoms/README.md`.
-- **CodeMirror 6 editor:** `app/editor/codemirror/` owns editing, keyboard commands, syntax highlighting, the table grid (`table-display.tsx`) and formulas (`table-formulas.ts`, `utils/formula-engine.ts`), and the inline Mermaid / KaTeX previews (`rendered-block.ts`, edited through `RenderedBlockSourceDialog`). Preview mode (`preview-mode.ts`) reuses the same view: a compartment makes it read-only and hides Markdown syntax, with one app-wide mode in `atom_viewMode`.
+- **CodeMirror 6 editor:** `app/editor/codemirror/` owns editing, keyboard commands, syntax highlighting, the table grid (`table-display.tsx`) and formulas (`table-formulas.ts`, `utils/formula-engine.ts`), and the inline Mermaid / KaTeX previews (`rendered-block.ts`, edited through `RenderedBlockSourceDialog`), and inline calculator labels (`note-calc.ts`, `utils/note-calc-scan.ts`). Preview mode (`preview-mode.ts`) reuses the same view: a compartment makes it read-only and hides Markdown syntax, with one app-wide mode in `atom_viewMode`.
 - **AI route:** `app/api/ai/route.ts` relays requests to Anthropic or Gemini; client helpers live in `app/services/ai.ts`.
 
 The metadata index is an implementation cache, not a second source of truth. It must be safe to discard and rebuild from the Markdown vault.

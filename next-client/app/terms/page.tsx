@@ -20,7 +20,7 @@ export default function TermsAndConditions() {
   return (
     <main className="selection:bg-sage/30 overflow-x-hidden font-sans relative">
       <BackgroundGraphics />
-      <div className="max-w-5xl mx-auto px-6 pt-32 pb-32 space-y-32">
+      <div className="container max-w-screen-xl pt-32 pb-32 space-y-32">
         {/* --- HEADER SECTION --- */}
         <section className="space-y-8 animate-hero-fade-in">
           <Button
@@ -46,7 +46,7 @@ export default function TermsAndConditions() {
         </section>
 
         {/* --- CONTENT SECTION --- */}
-        <section className="prose prose-sm md:prose-base dark:prose-invert max-w-none border-t border-black/5 dark:border-white/10 pt-24 space-y-12">
+        <section className="prose prose-sm md:prose-base dark:prose-invert max-w-3xl border-t border-black/5 dark:border-white/10 pt-24 space-y-12">
           <div className="space-y-4">
             <h2 className="text-xl font-bold tracking-tight uppercase tracking-widest text-sage dark:text-sage text-xs">Acceptance of Terms</h2>
             <p className="text-lg">

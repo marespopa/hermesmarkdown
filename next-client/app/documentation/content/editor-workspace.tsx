@@ -72,10 +72,11 @@ title:
 tags: []
 ---`}</Code>
         <p>
-          The editor gives frontmatter a subtle background. Enable{" "}
-          <strong>Settings → Appearance → Collapse Frontmatter</strong> to start with the block
-          folded into a small <em>Metadata</em> placeholder whenever you open a file; click it to
-          expand.
+          The editor gives frontmatter a subtle background. The{" "}
+          <strong>ⓘ</strong> button in the pane header (next to Edit / Preview) hides it in every
+          file, open or opened later, so each note starts with its first line of content; click it
+          again to show it everywhere. It is the same switch as{" "}
+          <strong>Settings → Appearance → Collapse Frontmatter</strong>.
         </p>
       </>
     ),

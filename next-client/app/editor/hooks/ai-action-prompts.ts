@@ -1,4 +1,4 @@
-import { FORMULA_PRESERVATION_RULE, TABLE_FORMULA_GUIDE } from "../utils/formula-ai-guide";
+import { FORMULA_PRESERVATION_RULE, NOTE_CALC_GUIDE, TABLE_FORMULA_GUIDE } from "../utils/formula-ai-guide";
 
 // Prompt definitions for the one-click AI actions (palette "AI: …" commands
 // and slash-menu AI items), keyed by the action id used in
@@ -107,7 +107,7 @@ export const AI_ACTIONS: Record<string, AIAction> = {
   continue: {
     kind: "context",
     label: "Continue writing",
-    system: `You are a writing partner who continues a piece of writing seamlessly from where it left off, matching its existing tone, style, and Markdown formatting. Do not repeat or summarize what came before. ${FORMULA_PRESERVATION_RULE} Return ONLY the continuation text ${NO_PREAMBLE}\n\n${TABLE_FORMULA_GUIDE}`,
+    system: `You are a writing partner who continues a piece of writing seamlessly from where it left off, matching its existing tone, style, and Markdown formatting. Do not repeat or summarize what came before. ${FORMULA_PRESERVATION_RULE} Return ONLY the continuation text ${NO_PREAMBLE}\n\n${TABLE_FORMULA_GUIDE}\n\n${NOTE_CALC_GUIDE}`,
     build: (preceding) => `CONTINUE WRITING FROM HERE:\n${preceding}`,
   },
 };

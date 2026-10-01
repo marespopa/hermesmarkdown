@@ -1,0 +1,266 @@
+#!/usr/bin/env bash
+# HermesMarkdown factory: moves plan folders in next-client/plans/NNN-<slug>/
+# through new → specced → building → review → approved, one stage per run,
+# using the hermes-architect / hermes-engineer / hermes-review agents.
+#
+# Everything is a dry run unless --commit is passed. Agents never commit:
+# the guard hook (.claude/hooks/factory-guard.sh) blocks git writes and this
+# script blocks the plan if HEAD or the branch moved during a stage.
+#
+# See next-client/plans/README.md for the folder contract and states.
+set -euo pipefail
+
+ROOT=$(git rev-parse --show-toplevel)
+PLANS="$ROOT/next-client/plans"
+CLAUDE_BIN=${FACTORY_CLAUDE:-claude}
+PERMISSION_MODE=${FACTORY_PERMISSION_MODE:-acceptEdits}
+MAX_REJECTIONS=2
+MAX_ATTEMPTS=3
+COMMIT=0
+
+die() { echo "factory: $*" >&2; exit 1; }
+now() { date -u +%Y-%m-%dT%H:%M:%SZ; }
+
+usage() {
+  cat <<'EOF'
+Usage: scripts/factory <command> [args] [--commit]
+
+  new <slug> [title...]   Scaffold next-client/plans/NNN-<slug>/brief.md (state: new)
+  list                    Show every factory plan with its state
+  run [NNN] [--commit]    Advance one plan (or every runnable plan) by one stage
+  unblock NNN [--commit]  Fold answers in blocked.md back into the PRD and resume
+  set NNN <state>         Set a state by hand (e.g. merged after you merge the PR)
+
+Without --commit, run and unblock only print what they would do.
+EOF
+}
+
+# --- frontmatter helpers (brief.md starts with a --- block) -----------------
+
+fm_get() { # file key
+  awk -v k="$2" 'NR==1&&/^---$/{f=1;next} f&&/^---$/{exit}
+    f{i=index($0,":"); if(substr($0,1,i-1)==k){v=substr($0,i+1); sub(/^[ \t]+/,"",v); print v; exit}}' "$1"
+}
+
+fm_set() { # file key value
+  local tmp; tmp=$(mktemp)
+  awk -v k="$2" -v v="$3" 'NR==1&&/^---$/{f=1;print;next}
+    f&&/^---$/{if(!done)print k": "v; f=0; print; next}
+    f{i=index($0,":"); if(substr($0,1,i-1)==k){print k": "v; done=1; next}}
+    {print}' "$1" >"$tmp"
+  cat "$tmp" >"$1"; rm -f "$tmp"
+}
+
+# --- plan lookup ------------------------------------------------------------
+
+plan_dirs() { find "$PLANS" -mindepth 1 -maxdepth 1 -type d -name '[0-9][0-9][0-9]-*' 2>/dev/null | sort; }
+
+plan_dir() { # NNN or NNN-slug
+  local d; d=$(plan_dirs | grep -E "/$(printf '%03d' "$((10#${1%%-*}))")-" | head -n1 || true)
+  [ -n "$d" ] && [ -f "$d/brief.md" ] || die "no plan $1 in next-client/plans/"
+  echo "$d"
+}
+
+rel() { echo "${1#"$ROOT"/}"; }
+
+# --- run bookkeeping (.run.json is gitignored) ------------------------------
+
+run_attempts() { [ -f "$1/.run.json" ] && sed -n 's/.*"attempts": *\([0-9]*\).*/\1/p' "$1/.run.json" || echo 0; }
+
+write_run() { # dir stage agent attempts exit
+  printf '{\n  "stage": "%s",\n  "agent": "%s",\n  "attempts": %s,\n  "lastExit": %s,\n  "finishedAt": "%s",\n  "log": ".run.log"\n}\n' \
+    "$2" "$3" "$4" "$5" "$(now)" >"$1/.run.json"
+}
+
+mailbox() { # dir message
+  printf -- '- %s — factory: %s\n' "$(now)" "$2" >>"$1/mailbox.md"
+}
+
+block() { # dir from reason (from=blocked keeps the original blocked_from)
+  fm_set "$1/brief.md" state blocked
+  [ "$2" = blocked ] || fm_set "$1/brief.md" blocked_from "$2"
+  printf '\n## Technical block — %s\n\n%s\n\nAnswer:\n' "$(now)" "$3" >>"$1/blocked.md"
+  echo "  → blocked: $3"
+}
+
+# --- rails ------------------------------------------------------------------
+
+code_dirty() { [ -n "$(git -C "$ROOT" status --porcelain -- . ':(exclude)next-client/plans')" ]; }
+
+check_branch() {
+  local b; b=$(git -C "$ROOT" rev-parse --abbrev-ref HEAD)
+  case "$b" in trunk|main|master) die "refusing to run on $b; switch to a release branch first" ;; esac
+}
+
+# --- stages -----------------------------------------------------------------
+
+# Prints "agent|expected next states|prompt" for a plan state, or nothing if idle.
+stage_for() { # state dir
+  local r; r=$(rel "$2")
+  case "$1" in
+    new) echo "hermes-architect|specced blocked|Factory mode. Plan folder: $r. Read $r/brief.md (the product brief) and $r/mailbox.md, then write the engineering PRD to $r/prd.md and your report to $r/reports/architect.md. If a design-changing decision is missing, write the questions to $r/blocked.md instead and set state: blocked. Otherwise set state: specced in $r/brief.md frontmatter as your last action." ;;
+    specced|building|changes-requested) echo "hermes-engineer|review blocked|Factory mode. Plan folder: $r. Implement $r/prd.md (all phases unless the brief limits them). Read $r/mailbox.md first: it holds RESUME notes from interrupted runs and the reviewer's fix list after a rejection — address those. Write your report to $r/reports/engineer.md and a one-line handoff to $r/mailbox.md. If the PRD is missing a design-changing decision, write it to $r/blocked.md and set state: blocked. Otherwise set state: review in $r/brief.md frontmatter as your last action." ;;
+    review) echo "hermes-review|approved changes-requested blocked|Factory mode. Plan folder: $r. Review the uncommitted working-tree change against $r/prd.md. Write the review to $r/reports/review.md. On Approve or Approve with nits set state: approved; on Changes requested append the fix list to $r/mailbox.md and set state: changes-requested — both in $r/brief.md frontmatter as your last action." ;;
+    *) ;;
+  esac
+}
+
+run_stage() { # dir agent expected prompt from_state
+  local dir=$1 agent=$2 expected=$3 prompt=$4 from=$5
+  local head0 branch0 attempts code=0 state
+  attempts=$(( $(run_attempts "$dir") + 1 ))
+  head0=$(git -C "$ROOT" rev-parse HEAD); branch0=$(git -C "$ROOT" rev-parse --abbrev-ref HEAD)
+  if [ "$from" = specced ] || [ "$from" = changes-requested ]; then fm_set "$dir/brief.md" state building; fi
+  mkdir -p "$dir/reports"
+
+  echo "  running $agent (attempt $attempts, log $(rel "$dir")/.run.log)"
+  (cd "$ROOT" && HERMES_FACTORY=1 "$CLAUDE_BIN" -p "$prompt" --agent "$agent" \
+      --permission-mode "$PERMISSION_MODE" \
+      --allowedTools "Bash(corepack yarn *)" "Bash(git status*)" "Bash(git diff*)" "Bash(git log*)" "Bash(git ls-files*)" "Bash(git show*)" "Bash(wc *)" "Bash(ls *)" \
+      --disallowedTools "Bash(git commit *)" "Bash(git push *)" "Bash(git reset *)" "Bash(git checkout *)" "Bash(git rebase *)" "Bash(git stash *)" \
+      --output-format json) >"$dir/.run.log" 2>&1 || code=$?
+  write_run "$dir" "$from" "$agent" "$attempts" "$code"
+
+  if [ "$(git -C "$ROOT" rev-parse HEAD)" != "$head0" ] || [ "$(git -C "$ROOT" rev-parse --abbrev-ref HEAD)" != "$branch0" ]; then
+    block "$dir" "$from" "HEAD or branch moved during the $agent stage ($head0 on $branch0). Agents must not commit; inspect git log/reflog before resuming."
+    return
+  fi
+
+  state=$(fm_get "$dir/brief.md" state)
+  if [ "$code" -ne 0 ] || [ -z "$state" ] || ! grep -qw -- "$state" <<<"$expected"; then
+    mailbox "$dir" "RESUME: $agent stage from '$from' did not finish (exit $code, state '$state'). Check the working tree and $(rel "$dir")/.run.log, then continue rather than restart."
+    fm_set "$dir/brief.md" state "$from"
+    if [ "$attempts" -ge "$MAX_ATTEMPTS" ]; then
+      block "$dir" "$from" "$agent failed $attempts times in a row (last exit $code). See .run.log."
+    else
+      echo "  → stage incomplete (exit $code); state stays '$from'"
+    fi
+    return
+  fi
+
+  write_run "$dir" "$state" "$agent" 0 "$code"
+  if [ "$state" = changes-requested ]; then
+    local rej; rej=$(fm_get "$dir/brief.md" rejections); rej=$(( ${rej:-0} + 1 ))
+    fm_set "$dir/brief.md" rejections "$rej"
+    if [ "$rej" -ge "$MAX_REJECTIONS" ]; then
+      block "$dir" changes-requested "Review rejected the change $rej times. Read reports/review.md and decide: adjust the PRD, fix by hand, or answer below and unblock."
+      return
+    fi
+  fi
+  echo "  → $state"
+}
+
+advance() { # dir
+  local dir=$1 state stage agent expected prompt
+  state=$(fm_get "$dir/brief.md" state)
+  stage=$(stage_for "$state" "$dir")
+  echo "$(basename "$dir") [$state]"
+  if [ -z "$stage" ]; then echo "  idle (needs a human: ${state})"; return; fi
+  IFS='|' read -r agent expected prompt <<<"$stage"
+  if [ "$state" = specced ] && code_dirty; then
+    echo "  skipped: uncommitted code changes outside plans/ (another plan's work?) — commit or stash them first"
+    return
+  fi
+  if [ "$COMMIT" -eq 0 ]; then
+    echo "  would run $agent → expects: ${expected// / | }   (dry run; add --commit)"
+    return
+  fi
+  run_stage "$dir" "$agent" "$expected" "$prompt" "$state"
+}
+
+# --- commands ---------------------------------------------------------------
+
+cmd_new() {
+  [ $# -ge 1 ] || die "usage: factory new <slug> [title...]"
+  local slug=$1; shift
+  [[ $slug =~ ^[a-z0-9][a-z0-9-]*$ ]] || die "slug must be kebab-case"
+  local last n dir title=${*:-$slug}
+  last=$(plan_dirs | sed -E 's|.*/([0-9]{3})-.*|\1|' | tail -n1)
+  n=$(printf '%03d' $(( 10#${last:-0} + 1 )))
+  dir="$PLANS/$n-$slug"
+  mkdir -p "$dir/reports"
+  cat >"$dir/brief.md" <<EOF
+---
+state: new
+blocked_from:
+rejections: 0
+created: $(now)
+---
+
+# $title
+
+## Problem
+<!-- Who is affected and what hurts today. -->
+
+## Desired behavior
+<!-- What the user should be able to do. Edge cases you already know. -->
+
+## Out of scope
+<!-- What not to build now. -->
+EOF
+  : >"$dir/mailbox.md"
+  echo "created $(rel "$dir")/brief.md — fill it in, then: scripts/factory run $n"
+}
+
+cmd_list() {
+  printf '%-4s %-34s %-18s %s\n' NNN SLUG STATE NOTE
+  local d s note
+  for d in $(plan_dirs); do
+    s=$(fm_get "$d/brief.md" state)
+    note=""
+    [ "$s" = blocked ] && note="from $(fm_get "$d/brief.md" blocked_from); see blocked.md"
+    [ "$(fm_get "$d/brief.md" rejections)" -gt 0 ] 2>/dev/null && note="${note:+$note; }rejections $(fm_get "$d/brief.md" rejections)"
+    local b; b=$(basename "$d")
+    printf '%-4s %-34s %-18s %s\n' "${b%%-*}" "${b#*-}" "$s" "$note"
+  done
+}
+
+cmd_run() {
+  check_branch
+  if [ $# -ge 1 ]; then advance "$(plan_dir "$1")"; return; fi
+  local d; for d in $(plan_dirs); do advance "$d"; done
+}
+
+cmd_unblock() {
+  [ $# -ge 1 ] || die "usage: factory unblock NNN [--commit]"
+  check_branch
+  local dir from r; dir=$(plan_dir "$1"); r=$(rel "$dir")
+  [ "$(fm_get "$dir/brief.md" state)" = blocked ] || die "$(basename "$dir") is not blocked"
+  from=$(fm_get "$dir/brief.md" blocked_from); from=${from:-new}
+  if grep -Eq '^Answer:[[:space:]]*$' "$dir/blocked.md" 2>/dev/null; then
+    die "$r/blocked.md still has empty 'Answer:' lines — answer every question first"
+  fi
+  echo "$(basename "$dir") [blocked from $from]"
+  if [ "$COMMIT" -eq 0 ]; then echo "  would run hermes-architect to fold answers, then resume at '$from' (dry run; add --commit)"; return; fi
+  run_stage "$dir" hermes-architect "$from" \
+    "Factory mode, unblock. Plan folder: $r. The human answered the questions in $r/blocked.md. Fold each answer into $r/prd.md (Decisions, and any affected Behavior/Design/Phase sections), append the answered questions to $r/mailbox.md, then empty $r/blocked.md. As your last action set state: $from and clear blocked_from in $r/brief.md frontmatter." \
+    blocked
+  if [ "$(fm_get "$dir/brief.md" state)" != blocked ]; then
+    fm_set "$dir/brief.md" blocked_from ""
+    fm_set "$dir/brief.md" rejections 0
+  fi
+}
+
+cmd_set() {
+  [ $# -eq 2 ] || die "usage: factory set NNN <state>"
+  case "$2" in new|specced|building|review|changes-requested|approved|merged|blocked) ;; *) die "unknown state $2" ;; esac
+  local dir; dir=$(plan_dir "$1")
+  fm_set "$dir/brief.md" state "$2"
+  [ "$2" = blocked ] || fm_set "$dir/brief.md" blocked_from ""
+  echo "$(basename "$dir") → $2"
+}
+
+args=()
+for a in "$@"; do [ "$a" = --commit ] && COMMIT=1 || args+=("$a"); done
+set -- "${args[@]+"${args[@]}"}"
+
+cmd=${1:-help}; shift || true
+case "$cmd" in
+  new) cmd_new "$@" ;;
+  list|ls) cmd_list ;;
+  run) cmd_run "$@" ;;
+  unblock) cmd_unblock "$@" ;;
+  set) cmd_set "$@" ;;
+  help|-h|--help) usage ;;
+  *) usage; exit 1 ;;
+esac

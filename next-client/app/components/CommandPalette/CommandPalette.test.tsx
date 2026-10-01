@@ -147,14 +147,12 @@ describe("CommandPalette", () => {
     expect(push).toHaveBeenCalledWith("/editor/settings");
   });
 
-  it("shows the app version and opens Documentation and help from the palette header", async () => {
+  it("shows the app version without a help button in the footer", async () => {
     renderPalette();
     fireEvent.keyDown(document, { key: "k", ctrlKey: true });
 
     expect(await screen.findByText(`HermesMarkdown v${version}`)).toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: "Documentation and help" }));
-
-    expect(push).toHaveBeenCalledWith("/documentation");
+    expect(screen.queryByRole("button", { name: "Documentation and help" })).not.toBeInTheDocument();
   });
 
   it("keeps commands out of the default file search and shows them after >", async () => {
@@ -188,6 +186,13 @@ describe("CommandPalette", () => {
 
     expect(await screen.findByRole("combobox")).toHaveValue(">");
     expect(screen.getByRole("listbox")).toHaveTextContent("Test command");
+  });
+
+  it("stays closed on Ctrl/Cmd+Alt+P, the Edit / Preview shortcut", () => {
+    renderPalette();
+    fireEvent.keyDown(document, { key: "p", code: "KeyP", ctrlKey: true, altKey: true });
+
+    expect(screen.queryByRole("combobox")).not.toBeInTheDocument();
   });
 
   it("prioritizes frequently used commands in empty command mode", async () => {
@@ -567,7 +572,6 @@ describe("CommandPalette", () => {
 
     const footer = screen.getByText(`HermesMarkdown v${version}`).closest("footer")!;
     expect(footer).toContainElement(screen.getByRole("button", { name: "Settings" }));
-    expect(footer).toContainElement(screen.getByRole("button", { name: "Documentation and help" }));
   });
 
   describe("Create row", () => {

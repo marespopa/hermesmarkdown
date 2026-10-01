@@ -1,3 +1,4 @@
+// @vitest-environment node
 import { describe, it, expect } from "vitest";
 import { parseVoiceSegment, initialVoiceListState, type VoiceListState } from "./voice-command-parser";
 

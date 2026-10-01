@@ -9,9 +9,7 @@ import {
 } from "@/app/atoms/atoms";
 import { atom_remapVaultPaths } from "@/app/atoms/vault-atoms";
 import { useDialog } from "../use-dialog";
-import { moveDirectoryByCopy } from "./directory-ops";
-import { withRetry } from "./shared";
-import { writeFileContent } from "@/app/services/file-writer";
+import { moveDirectoryByCopy, moveFileByCopy } from "./directory-ops";
 
 interface UseRenameItemProps {
   scanVault: (handle: FileSystemDirectoryHandle) => Promise<void>;
@@ -65,67 +63,55 @@ export function useRenameItem({ scanVault, indexVaultTags }: UseRenameItemProps)
         return;
       }
 
+      // Vault-relative paths before and after, for tabs/metadata/tree
+      let oldPath: string;
+      let newPath: string;
+      try {
+        const parentParts: string[] = dirParts ?? (parentDir === vaultHandle
+          ? []
+          : (await (vaultHandle as any).resolve(parentDir)) || []);
+        oldPath = [...parentParts, handle.name].join("/");
+        newPath = [...parentParts, newName].join("/");
+      } catch (err: any) {
+        console.error("File System Error:", err?.message || err);
+        toast.error(err?.message || "Failed to rename");
+        return;
+      }
+
+      // Only the move itself is retried, and only while nothing has been
+      // written yet: retrying after the fallback created the target left a
+      // trail of empty copies (browsers backed by Android storage name each
+      // new one "name (1)", "name (2)", …).
       const attemptRename = async (retryCount = 0): Promise<void> => {
+        let sideEffects = false;
         try {
           // 1. Get a FRESH handle from the parent to avoid "state changed" errors
-          let freshHandle: FileSystemHandle;
-          try {
-            if (handle.kind === "file") {
-              freshHandle = await (parentDir as any).getFileHandle(handle.name);
-            } else {
-              freshHandle = await (parentDir as any).getDirectoryHandle(handle.name);
-            }
-          } catch (e: any) {
-            console.warn("Failed to get fresh handle for rename, might be locked/swapped:", e);
-            throw e; // Throw the original error so the outer catch can see if it's NotFoundError
-          }
+          const freshHandle: FileSystemHandle = handle.kind === "file"
+            ? await (parentDir as any).getFileHandle(handle.name)
+            : await (parentDir as any).getDirectoryHandle(handle.name);
 
-          // 2. Vault-relative paths before and after, for tabs/metadata/tree
-          const parentParts: string[] = dirParts ?? (parentDir === vaultHandle
-            ? []
-            : (await (vaultHandle as any).resolve(parentDir)) || []);
-          const oldPath = [...parentParts, handle.name].join("/");
-          const newPath = [...parentParts, newName].join("/");
-
-          // 3. Attempt Native Move with Fallback
-          let moveSuccessful = false;
+          // 2. Attempt Native Move with Fallback
           if ((freshHandle as any).move) {
             try {
               // Use explicit parentDir for maximum compatibility on some browsers/OSs
               await (freshHandle as any).move(parentDir, newName);
-              moveSuccessful = true;
+              return;
             } catch (moveErr) {
               console.warn("Native move failed, falling back to copy/delete:", moveErr);
             }
           }
 
-          if (!moveSuccessful) {
-            if (freshHandle.kind === "file") {
-              // Copy the File itself so binary attachments keep their bytes.
-              const file = await (freshHandle as FileSystemFileHandle).getFile();
-              const newFileHandle = await withRetry(() => parentDir.getFileHandle(newName, {
-                create: true,
-              }));
-              await withRetry(() => writeFileContent(newFileHandle, file));
-              await withRetry(() => (parentDir as any).removeEntry(freshHandle.name));
-            } else {
-              await moveDirectoryByCopy(
-                freshHandle as FileSystemDirectoryHandle,
-                parentDir,
-                parentDir,
-                newName,
-              );
-            }
+          sideEffects = true;
+          if (freshHandle.kind === "file") {
+            await moveFileByCopy(freshHandle as FileSystemFileHandle, parentDir, newName);
+          } else {
+            await moveDirectoryByCopy(
+              freshHandle as FileSystemDirectoryHandle,
+              parentDir,
+              parentDir,
+              newName,
+            );
           }
-
-          // 4. Follow the rename in open tabs (keeping unsaved edits, with
-          // fresh handles), pane layouts, metadata and the file tree — for a
-          // folder, that includes everything inside it.
-          await remapVaultPaths({ oldPath, newPath });
-
-          await scanVault(parentDir);
-          indexVaultTags();
-          toast.success("Renamed successfully");
         } catch (err: any) {
           const isRetryable =
             err.name === "InvalidStateError" ||
@@ -134,7 +120,7 @@ export function useRenameItem({ scanVault, indexVaultTags }: UseRenameItemProps)
             err.message?.includes("state had changed") ||
             err.message?.includes("locked");
 
-          if (isRetryable && retryCount < 6) {
+          if (!sideEffects && isRetryable && retryCount < 6) {
             console.warn(`Rename operation issues, retrying (${retryCount + 1})...`);
             await new Promise((resolve) =>
               setTimeout(resolve, 400 * Math.pow(1.5, retryCount)),
@@ -150,6 +136,20 @@ export function useRenameItem({ scanVault, indexVaultTags }: UseRenameItemProps)
       } catch (err: any) {
         console.error("File System Error:", err?.message || err);
         toast.error(err.message || "Failed to rename");
+        return;
+      }
+
+      // 3. Follow the rename in open tabs (keeping unsaved edits, with fresh
+      // handles), pane layouts, metadata and the file tree — for a folder,
+      // that includes everything inside it.
+      try {
+        await remapVaultPaths({ oldPath, newPath });
+        await scanVault(parentDir);
+        indexVaultTags();
+        toast.success("Renamed successfully");
+      } catch (err: any) {
+        console.error("Rename follow-up failed:", err?.message || err);
+        toast.error("Renamed, but the workspace could not be refreshed");
       }
     },
     [

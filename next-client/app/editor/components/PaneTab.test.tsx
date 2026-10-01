@@ -20,9 +20,8 @@ describe("PaneTab", () => {
 
     const shortcut = screen.getByText(formatShortcut("3"));
     expect(shortcut.tagName).toBe("SUP");
-    expect(shortcut).toHaveClass("text-[7px]");
+    expect(shortcut).toHaveClass("text-[10px]");
     expect(shortcut.previousElementSibling).toHaveTextContent("notes.md");
-    expect(shortcut.nextElementSibling).toHaveClass("ml-1.5");
   });
 
   it("omits the shortcut number when the tab is outside the first nine", () => {
@@ -39,5 +38,24 @@ describe("PaneTab", () => {
     );
 
     expect(screen.queryByText(formatShortcut("3"))).not.toBeInTheDocument();
+  });
+
+  it("puts the close button before the file name, even with unsaved changes", () => {
+    render(
+      <PaneTab
+        fileName="notes.md"
+        isActive={false}
+        saveState="dirty"
+        isDraggedOver={false}
+        onClose={vi.fn()}
+        onClick={vi.fn()}
+        onContextMenu={vi.fn()}
+      />,
+    );
+
+    const close = screen.getByRole("button", { name: "Close tab" });
+    const name = screen.getByText("notes.md");
+    expect(close.compareDocumentPosition(name) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(screen.getByTitle("Unsaved changes")).toBeInTheDocument();
   });
 });

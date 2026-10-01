@@ -1,7 +1,7 @@
 import type { FileMetadata } from "@/app/atoms/metadata";
 import { showErrorToast } from "@/app/components/Toastr";
 import type { ApiPart } from "@/app/services/ai";
-import { FORMULA_PRESERVATION_RULE, TABLE_FORMULA_GUIDE } from "../../utils/formula-ai-guide";
+import { FORMULA_PRESERVATION_RULE, NOTE_CALC_GUIDE, TABLE_FORMULA_GUIDE } from "../../utils/formula-ai-guide";
 
 // AI Chat building blocks: model fallbacks, attachment limits, @mention
 // resolution (single note, folder index, vault index), the system prompt,
@@ -113,9 +113,39 @@ When the user asks you to create or modify content:
 - Preserve all existing Markdown formatting unless explicitly asked to change it.
 - Use proper Markdown syntax (headings, lists, bold, etc.) as appropriate.
 - When revising a section, return the complete revised section ready to apply.
-- When the user asks for totals, averages, counts or other calculations in a table, write them as formulas (see below), not as precomputed numbers. When they ask what a formula does or why it shows an error, explain it using the rules below.
+- When the user asks for totals, averages, counts or other calculations in a table, write them as formulas (see below), not as precomputed numbers. Outside tables, use inline calculator lines (see below). When they ask what a formula does or why it shows an error, explain it using the rules below.
 
-${TABLE_FORMULA_GUIDE}`;
+${TABLE_FORMULA_GUIDE}
+
+${NOTE_CALC_GUIDE}`;
+
+// Cap on how much of the active file goes into every request — enough for
+// typical notes while keeping very long documents from eating the context.
+export const ACTIVE_FILE_CHAR_LIMIT = 20_000;
+
+/**
+ * System prompt for a chat turn: the base instructions, the active file
+ * (name + content, always included so the model knows what the user is
+ * working on) and, when present, the selection as the edit target.
+ */
+export function buildChatSystemPrompt(documentContent: string, selectedText: string, currentFilePath?: string): string {
+  const parts = [SYSTEM_PROMPT];
+  const fileName = currentFilePath?.split("/").pop() || "Untitled";
+  if (documentContent.trim()) {
+    const body =
+      documentContent.length > ACTIVE_FILE_CHAR_LIMIT
+        ? documentContent.slice(0, ACTIVE_FILE_CHAR_LIMIT) + "\n\n[document continues…]"
+        : documentContent;
+    const location = currentFilePath ? ` (${currentFilePath})` : "";
+    parts.push(
+      `\n--- ACTIVE FILE: ${fileName}${location} — the note the user is working on; for context only, output only the requested content, not the full document ---\n${body}\n--- END ACTIVE FILE ---`,
+    );
+  }
+  if (selectedText.trim()) {
+    parts.push(`\n--- SELECTED TEXT (target for edits) ---\n${selectedText}\n--- END SELECTED TEXT ---`);
+  }
+  return parts.join("\n");
+}
 
 export function readAsDataURL(file: File): Promise<string> {
   return new Promise((resolve, reject) => {

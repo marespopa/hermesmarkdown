@@ -141,7 +141,10 @@ html.dark .editor-container.cm-focused .cm-selectionBackground {
 
 /* Inactive Markdown tables render as a quiet reading surface. The wrapper,
    rather than the editor pane, owns overflow when many readable-width columns
-   cannot fit. */
+   cannot fit. It is a CodeMirror block widget, so vertical spacing must be
+   padding, never margin: CodeMirror measures widget heights without margins,
+   and a margin skews its height map so clicks before/after the table land on
+   the wrong line. */
 .cm-table-preview {
   box-sizing: border-box;
   contain: inline-size;
@@ -149,7 +152,7 @@ html.dark .editor-container.cm-focused .cm-selectionBackground {
   max-width: 100%;
   min-width: 0;
   width: 100%;
-  margin-bottom: 0.85em;
+  padding-bottom: 0.85em;
   overflow: hidden;
 }
 
@@ -220,22 +223,29 @@ html.dark .editor-container.cm-focused .cm-selectionBackground {
 }
 
 /* Mermaid diagrams and display math render in place of their source
-   (codemirror/rendered-block.ts). Double-click or "Edit" opens the source. */
+   (codemirror/rendered-block.ts). Double-click or "Edit" opens the source.
+   The spacing is padding, not margin: CodeMirror measures block widgets
+   without their margins, so a margin skews its height map and puts the
+   caret and clicks below the diagram on the wrong line. */
 .cm-rendered-block {
-  position: relative;
   box-sizing: border-box;
   max-width: 100%;
-  margin: 0.35em 0 0.85em;
-  padding: 0.75em 1em;
-  border: 1px solid transparent;
-  border-radius: 0.6em;
+  padding: 0.35em 0 0.85em;
   color: var(--fg);
   cursor: default;
   user-select: none;
+}
+
+.cm-rendered-block-frame {
+  position: relative;
+  box-sizing: border-box;
+  padding: 0.75em 1em;
+  border: 1px solid transparent;
+  border-radius: 0.6em;
   transition: border-color 150ms ease, background-color 150ms ease;
 }
 
-.cm-rendered-block:hover {
+.cm-rendered-block-frame:hover {
   border-color: var(--border-subtle);
   background-color: color-mix(in srgb, var(--fg) 2%, transparent);
 }
@@ -290,7 +300,7 @@ html.dark .editor-container.cm-focused .cm-selectionBackground {
   transition: opacity 150ms ease;
 }
 
-.cm-rendered-block:hover .cm-rendered-block-edit,
+.cm-rendered-block-frame:hover .cm-rendered-block-edit,
 .cm-rendered-block-edit:focus-visible {
   opacity: 1;
 }
@@ -342,7 +352,7 @@ html.dark .editor-container.cm-focused .cm-selectionBackground {
    The space is always reserved (so nothing shifts when they appear) and the
    labels never overlap a cell. They double as row/column menu buttons. */
 .cm-table-preview {
-  margin-top: 0.1em;
+  padding-top: 0.1em;
 }
 
 .cm-table-preview-scroll {

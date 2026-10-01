@@ -1,3 +1,4 @@
+// @vitest-environment node
 import { createStore } from "jotai";
 import { describe, it, expect, beforeEach } from "vitest";
 import {
