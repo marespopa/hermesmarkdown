@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import type React from "react";
 import { useAtomValue, useSetAtom } from "jotai";
 import { atom_activateWorkspaceTab, atom_workspaceTabs } from "@/app/atoms/atoms";
-import { atom_aiBuilderRequest, atom_isAiConfigured, atom_vimMode } from "@/app/atoms/ui-atoms";
+import { atom_aiBuilderRequest, atom_isAiConfigured, atom_viewMode, atom_vimMode } from "@/app/atoms/ui-atoms";
 import { useCommandPalette } from "@/app/components/CommandPalette/CommandPaletteContext";
 import { focusPaneEditor } from "../utils/focus-pane-editor";
 import { isCloseTabShortcut, isNewFileShortcut } from "../utils/tab-shortcuts";
@@ -20,7 +20,7 @@ interface EditorShortcutOptions {
 }
 
 // Window-level editor shortcuts (Explorer, search, new file, close/select tab,
-// AI chat, voice, save, undo flush). Editor-local keys live in CodeMirror's
+// Edit/Preview, AI chat, voice, save, undo flush). Editor-local keys live in CodeMirror's
 // keymaps, which run first — so a key CodeMirror handled arrives here with
 // defaultPrevented set.
 export function useEditorShortcuts({
@@ -39,6 +39,7 @@ export function useEditorShortcuts({
   const setAiBuilderRequest = useSetAtom(atom_aiBuilderRequest);
   const workspaceTabs = useAtomValue(atom_workspaceTabs);
   const activateWorkspaceTab = useSetAtom(atom_activateWorkspaceTab);
+  const setViewMode = useSetAtom(atom_viewMode);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -85,6 +86,13 @@ export function useEditorShortcuts({
         }
       }
 
+      // Edit / Preview: Ctrl/Cmd+Alt+P. Matched on `code` because Option+P
+      // types "π" on macOS.
+      if ((e.ctrlKey || e.metaKey) && e.altKey && !e.shiftKey && e.code === "KeyP") {
+        e.preventDefault();
+        setViewMode((mode) => (mode === "preview" ? "edit" : "preview"));
+      }
+
       // AI Chat — on-demand, not a status bar button
       if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === "b" && isAiConfigured) {
         e.preventDefault();
@@ -110,5 +118,5 @@ export function useEditorShortcuts({
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [activateWorkspaceTab, closeTabWithAutosave, flush, isAiConfigured, setAiBuilderRequest, activeTabPath, vimMode, isVoiceSupported, toggleVoiceListening, openCommandPalette, workspaceTabs, navigateWithGuard, saveRef, newFileRef]);
+  }, [activateWorkspaceTab, setViewMode, closeTabWithAutosave, flush, isAiConfigured, setAiBuilderRequest, activeTabPath, vimMode, isVoiceSupported, toggleVoiceListening, openCommandPalette, workspaceTabs, navigateWithGuard, saveRef, newFileRef]);
 }

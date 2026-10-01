@@ -91,6 +91,34 @@ export const editorWritingItems: Subsection[] = [
     ),
   },
   {
+    id: "preview-mode",
+    title: "Edit and Preview",
+    lead: "Switch a note to Preview to read it without Markdown syntax, then switch back to keep writing.",
+    keywords: "preview read reading view edit mode switch rendered read-only",
+    body: (
+      <>
+        <p>
+          Use the <strong>Edit | Preview</strong> switch in the tab bar (or the top bar on mobile),
+          press <code>Ctrl/Cmd+Alt+P</code>, or run <strong>Open in preview</strong> from the command
+          palette. The mode applies to every note and pane, and is remembered after a reload.
+        </p>
+        <KV
+          rows={[
+            { label: "Syntax", value: "Heading marks, emphasis markers, quote markers and code fences are hidden" },
+            { label: "Checklists", value: "Checkboxes still toggle" },
+            { label: "Links", value: "A plain click opens links and wikilinks" },
+            { label: "Typing", value: "Disabled until you switch back to Edit" },
+            { label: "Double-click", value: "Switches back to Edit, with the caret where you clicked" },
+          ]}
+        />
+        <Callout type="note">
+          Preview only changes how the note looks. Leaving it keeps your place and puts the caret
+          at the top of what you were reading.
+        </Callout>
+      </>
+    ),
+  },
+  {
     id: "tables",
     title: "Tables",
     lead: "Tables always render as a clean grid you edit like a spreadsheet: click a cell and type. The pipe syntax stays out of sight.",

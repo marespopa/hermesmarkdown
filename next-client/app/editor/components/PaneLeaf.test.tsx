@@ -54,6 +54,7 @@ describe("PaneLeaf Tab Indicators", () => {
   beforeEach(() => {
     cleanup();
     vi.clearAllMocks();
+    localStorage.removeItem("viewMode");
   });
 
   it("renders a regular dirty dot when file has unsaved changes", () => {
@@ -214,5 +215,30 @@ describe("PaneLeaf Tab Indicators", () => {
     expect(screen.getByRole("button", { name: "Open File" })).toBeInTheDocument();
     const commandButton = screen.getByRole("button", { name: /Browse all commands/ });
     expect(commandButton).toHaveTextContent(formatShortcut("K", { shift: true }));
+  });
+  it("switches the editor between Edit and Preview", () => {
+    const initialValues = [
+      [atom_activePaneId, "pane-1"],
+      [atom_openFiles, {
+        "file1.md": { fileName: "file1.md", content: "# One", lastSavedContent: "# One" },
+        "file2.md": { fileName: "file2.md", content: "Two", lastSavedContent: "Two" },
+      }],
+      [atom_saveStatus, { state: "idle", retryCount: 0 }],
+    ];
+
+    render(
+      <TestProvider initialValues={initialValues}>
+        <PaneLeaf leaf={mockLeaf} />
+      </TestProvider>
+    );
+
+    const edit = screen.getByRole("radio", { name: "Edit" });
+    const preview = screen.getByRole("radio", { name: "Preview" });
+    expect(edit).toHaveAttribute("aria-checked", "true");
+
+    fireEvent.click(preview);
+
+    expect(preview).toHaveAttribute("aria-checked", "true");
+    expect(edit).toHaveAttribute("aria-checked", "false");
   });
 });

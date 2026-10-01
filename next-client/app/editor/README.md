@@ -56,6 +56,17 @@ The editor route (`page.tsx`) composes these:
 
 Neither part touches the document. The Markdown on disk is unchanged.
 
+## Preview mode
+
+The editor is either in **Edit** or **Preview**. Preview is a read-only reading view. The mode is app-wide: one `atom_viewMode` (`localStorage["viewMode"]`) applies to every pane and tab and survives a reload. You switch it with `PaneModeSwitch` in the pane header or the mobile bar, Ctrl/Cmd+Alt+P (`hooks/use-editor-shortcuts.ts`), or **Open in preview / Back to editing** in the command palette. Double-clicking the text in Preview also switches back to Edit, with the caret where you clicked (`use-codemirror-editor.ts` listens in the capture phase, so tables and rendered blocks count too; checkboxes and links don't).
+
+Preview isn't a second renderer. It's the same `EditorView`, reconfigured through a compartment (`codemirror/preview-mode.ts`, toggled in `hooks/use-codemirror-editor.ts`):
+
+1. **Read-only**: `EditorState.readOnly`, `editable: false`, and a transaction filter that only lets external reloads (`input.external`) and checkbox toggles (`input.format.checkbox`) change the document. That also stops commands that dispatch changes directly, like table shortcuts.
+2. **Hidden syntax**: a `StateField` hides heading, emphasis, inline-code, strikethrough and quote markers, collapses code fences (code lines get a card style), draws bullets for unordered list markers, and replaces task markers with checkboxes that still toggle. Tables, Mermaid/math, links and tags already render inline. Frontmatter is left as is.
+3. **Other layers**: they read `previewModeFacet` (`codemirror/preview-facet.ts`). Link and annotation widgets never reveal their source under the selection, and a plain click follows a link. Horizontal rules stay drawn. Tables render without editable cells or menus. Rendered blocks don't open the source dialog. Edit pills, the AI and mobile selection toolbars are hidden. Vim and flow mode are turned off while previewing.
+4. **Switching**: the line at the top of the viewport stays in place, the scroller dips in opacity for 180 ms (skipped under reduced motion), and leaving preview puts the caret on that line.
+
 ## Rendered blocks (Mermaid and math)
 
 `codemirror/rendered-block.ts` works like the table grid. A `StateField` finds closed top-level ```` ```mermaid ```` fences, ```` ```math ```` / `latex` / `tex` fences, and `$$` blocks outside code (either `$$` on its own lines or `$$ … $$` on one line). It replaces each one with a block widget showing the rendered diagram or formula. The ranges are atomic, so the caret moves past a preview in one step.

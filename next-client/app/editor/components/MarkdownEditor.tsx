@@ -3,7 +3,7 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useAtomValue, useSetAtom } from "jotai";
 import { atom_frontmatterCollapsedByDefault, atom_wordWrap, atom_isEditorFocused } from "@/app/atoms/atoms";
-import { atom_activeEditorView, atom_aiBuilderRequest, atom_flowMode, atom_isAiConfigured, atom_lineNumbers, atom_vimMode } from "@/app/atoms/ui-atoms";
+import { atom_activeEditorView, atom_aiBuilderRequest, atom_flowMode, atom_isAiConfigured, atom_lineNumbers, atom_viewMode, atom_vimMode } from "@/app/atoms/ui-atoms";
 import { useAtom } from "jotai";
 import { EditorView } from "@codemirror/view";
 import DatePickerCallout from "./DatePickerCallout";
@@ -61,13 +61,17 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
   const [, setIsEditorFocused] = useAtom(atom_isEditorFocused);
   const filePath = props.filePath || "draft";
   const [editorView, setEditorView] = useState<EditorView | null>(null);
+  // Edit / Preview is one app-wide mode.
+  const [viewMode, setViewMode] = useAtom(atom_viewMode);
+  const previewMode = viewMode === "preview";
+  const exitPreview = useCallback(() => setViewMode("edit"), [setViewMode]);
 
   const editorValue = props.value;
   const editorOnChange = useCallback((newVal: string) => {
     onChange(newVal);
   }, [onChange]);
 
-  const { fontFamily, displayFontSize, lineHeight, paneRef, contentPaddingX } =
+  const { fontFamily, readingFontFamily, displayFontSize, lineHeight, paneRef, contentPaddingX } =
     useEditorAppearance(props.isSplit);
 
   const keyboardInset = useKeyboardInset();
@@ -204,6 +208,8 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
     lineNumbers,
     vimMode,
     flowMode,
+    previewMode,
+    onExitPreview: exitPreview,
     onOpenActiveHelperRef: openActiveHelperRef,
     placeholder: props.placeholder || "Type / for templates",
     readOnly: false,
@@ -226,6 +232,13 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
   }, [editorView, formulaFileTables]);
 
   useScrollToPendingTarget(editorView, filePath);
+
+  // Back from Preview: only the active pane takes focus, so typing resumes there.
+  const wasPreviewRef = useRef(previewMode);
+  useEffect(() => {
+    if (wasPreviewRef.current && !previewMode && props.isActivePane !== false) viewRef.current?.focus();
+    wasPreviewRef.current = previewMode;
+  }, [previewMode, props.isActivePane]);
 
   // The global voice-input hook (use-global-voice-input.ts) is a single
   // instance shared by the whole app, not one per pane. It inserts a
@@ -253,7 +266,7 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
   return (
     <div
       ref={paneRef}
-      className={`editor-canvas relative w-full h-full overflow-auto cursor-text ${
+      className={`editor-canvas relative w-full h-full overflow-auto ${previewMode ? "cursor-default" : "cursor-text"} ${
         props.isSplit ? "editor-canvas-split" : ""
       }`}
       translate="no"
@@ -269,6 +282,7 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
         `}
         style={{
           fontFamily,
+          "--preview-font-family": readingFontFamily,
           "--editor-font-size": displayFontSize,
           "--editor-line-height": lineHeight,
           paddingLeft: contentPaddingX,
@@ -298,13 +312,15 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
             }}
           />
 
-          <EditorPills
-            features={features}
-            languagePicker={languagePicker}
-            image={image}
-            containerRef={containerRef}
-            onWikiLinkClick={props.onWikiLinkClick}
-          />
+          {!previewMode && (
+            <EditorPills
+              features={features}
+              languagePicker={languagePicker}
+              image={image}
+              containerRef={containerRef}
+              onWikiLinkClick={props.onWikiLinkClick}
+            />
+          )}
 
 
           <WikiLinkDialog

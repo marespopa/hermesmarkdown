@@ -5,6 +5,7 @@ import { useAtomValue } from "jotai";
 import {
   atom_editorFontFamily,
   atom_lineHeight,
+  atom_renderedFontFamily,
   atom_renderedFontSize,
 } from "@/app/atoms/atoms";
 
@@ -16,6 +17,8 @@ import {
 
 export function useEditorAppearance(isSplit = false) {
   const fontFamily = useAtomValue(atom_editorFontFamily);
+  // Preview mode reads in the primary reading font.
+  const readingFontFamily = useAtomValue(atom_renderedFontFamily);
   const fontSize = useAtomValue(atom_renderedFontSize);
   const lineHeight = useAtomValue(atom_lineHeight);
 
@@ -56,6 +59,7 @@ export function useEditorAppearance(isSplit = false) {
 
   return {
     fontFamily,
+    readingFontFamily,
     displayFontSize,
     lineHeight,
     windowWidth,

@@ -23,6 +23,9 @@ export const atom_vimMode = atomWithStorage<boolean>("vimMode", false);
 // Flow mode: fades everything but the caret's paragraph and keeps the caret
 // line centred while typing. Opt-in, off by default.
 export const atom_flowMode = atomWithStorage<boolean>("flowMode", false);
+// Edit (source) or Preview (read-only reading view), for every pane and tab.
+export type ViewMode = "edit" | "preview";
+export const atom_viewMode = atomWithStorage<ViewMode>("viewMode", "edit");
 export const MONO_FONT_STACK = "var(--font-ibm-mono), ui-monospace, monospace";
 export const EDITORIAL_FONT_STACK =
   "var(--font-plus-jakarta), ui-sans-serif, sans-serif";

@@ -21,6 +21,8 @@ function createEditor(vimMode: boolean, onOpenActiveHelper = vi.fn(() => false))
         vimModeCompartment,
         flowMode: false,
         flowModeCompartment: new Compartment(),
+        previewMode: false,
+        previewModeCompartment: new Compartment(),
         onOpenActiveHelperRef: { current: onOpenActiveHelper },
         readOnly: false,
         onFocusChange: vi.fn(),

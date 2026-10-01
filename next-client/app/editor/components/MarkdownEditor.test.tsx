@@ -10,6 +10,7 @@ import {
   atom_activeEditorView,
   atom_frontmatterCollapsedByDefault,
   atom_lineNumbers,
+  atom_viewMode,
 } from "@/app/atoms/ui-atoms";
 import { atom_pendingScrollTarget, atom_wordWrap } from "@/app/atoms/atoms";
 import { findFrontmatterFoldRange, isFrontmatterFolded } from "../codemirror/frontmatter-fold";
@@ -63,6 +64,15 @@ function WordWrapToggle() {
   );
 }
 
+function PreviewButton() {
+  const setViewMode = useSetAtom(atom_viewMode);
+  return (
+    <button type="button" onClick={() => setViewMode("preview")}>
+      Preview
+    </button>
+  );
+}
+
 function Hydrate({
   children,
   pendingScrollTarget,
@@ -91,6 +101,7 @@ describe("MarkdownEditor", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     cleanup();
+    localStorage.removeItem("viewMode");
   });
 
   const renderEditor = (
@@ -111,6 +122,7 @@ describe("MarkdownEditor", () => {
         >
           <MarkdownEditor value={value} onChange={mockOnChange} {...props} />
           <ActiveEditorObserver />
+          <PreviewButton />
         </Hydrate>
       </Provider>,
     );
@@ -124,6 +136,21 @@ describe("MarkdownEditor", () => {
   it("mounts a CodeMirror 6 editor", async () => {
     const { container } = renderEditor("hello world");
     await waitForEditor(container);
+  });
+
+  it("switches from Preview back to Edit on double-click", async () => {
+    const { container } = renderEditor("# Title\n\nSome text");
+    await waitForEditor(container);
+    await waitFor(() => expect(screen.getByTestId("active-editor-state")).toHaveTextContent("registered"));
+
+    fireEvent.click(screen.getByRole("button", { name: "Preview" }));
+    const content = container.querySelector(".cm-content")!;
+    await waitFor(() => expect(content).toHaveAttribute("data-mode", "preview"));
+
+    fireEvent.doubleClick(content.querySelector(".cm-line")!);
+
+    await waitFor(() => expect(content).not.toHaveAttribute("data-mode"));
+    expect(content).toHaveAttribute("contenteditable", "true");
   });
 
   it("updates line wrapping and viewport containment when toggled", async () => {

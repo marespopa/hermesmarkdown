@@ -33,6 +33,7 @@ import {
   atom_showHiddenFiles,
   atom_tasksGroupBy,
   atom_theme,
+  atom_viewMode,
 } from "@/app/atoms/ui-atoms";
 import { useDialog } from "@/app/hooks/use-dialog";
 import { useFileSystem } from "@/app/hooks/use-file-system";
@@ -108,6 +109,7 @@ export function useEditorCommandContext(props: EditorCommandsProps) {
   const [wordWrap, setWordWrap] = useAtom(atom_wordWrap);
   const [lineNumbers, setLineNumbers] = useAtom(atom_lineNumbers);
   const [flowMode, setFlowMode] = useAtom(atom_flowMode);
+  const [viewMode, setViewMode] = useAtom(atom_viewMode);
   const [, setTasksGroupBy] = useAtom(atom_tasksGroupBy);
   const [, setTaskSearchQuery] = useAtom(atom_taskSearchQuery);
   const [, setTaskTagFilter] = useAtom(atom_taskTagFilter);
@@ -169,6 +171,8 @@ export function useEditorCommandContext(props: EditorCommandsProps) {
     setLineNumbers,
     flowMode,
     setFlowMode,
+    viewMode,
+    setViewMode,
     setTasksGroupBy,
     setTaskSearchQuery,
     setTaskTagFilter,
