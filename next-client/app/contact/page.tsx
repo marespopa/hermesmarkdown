@@ -21,7 +21,7 @@ export default function ContactPage() {
   return (
     <main className="selection:bg-sage/30 overflow-x-hidden font-sans relative">
       <BackgroundGraphics />
-      <div className="max-w-5xl mx-auto px-6 pt-32 pb-32 space-y-32">
+      <div className="container max-w-screen-xl pt-32 pb-32 space-y-32">
         {/* --- HEADER SECTION --- */}
         <section className="space-y-8 animate-hero-fade-in">
           <Button

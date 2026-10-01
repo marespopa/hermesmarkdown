@@ -9,6 +9,7 @@ The app's current editor is built on CodeMirror 6, with the source-mode implemen
 - Synchronizes content with the active file and frontmatter handling for document metadata.
 - Supports slash commands, wiki links, date pickers, tables, and workflow/todo pills.
 - Renders Mermaid fences and display math (`$$ … $$`, ```` ```math ````) in place of their source; double-click one to edit it.
+- Inline calculator: math lines show their result at the end of the line (see [Inline calculator](#inline-calculator)).
 
 ### File navigation
 Vault files are browsed through the command palette (`Ctrl/Cmd+K`), the Files page (`/editor/files`, "Open Explorer"), and the mobile `MobileFileOverlay`. The latter two use the `VaultFileTree` tree and tag search.
@@ -56,9 +57,21 @@ The editor route (`page.tsx`) composes these:
 
 Neither part touches the document. The Markdown on disk is unchanged.
 
+## Inline calculator
+
+Math typed on its own line gets a faint `= result` label at the end of the line: `rent = 1200`, `utilities = 180`, then `rent + utilities` shows `= 1380`. Labels are display-only widgets. The plugin never dispatches, so the file, undo history and dirty state are untouched. They show in Edit and Preview.
+
+- **Files**: `utils/math-eval.ts` (shared safe evaluator: `evaluateMathExpression` with names, `%`, `of` and `1,234` options; `evaluateMath` for `calc(…)=` is unchanged), `utils/note-calc-scan.ts` (line scanner and cache, pure), `codemirror/note-calc.ts` (widget, view plugin and `baseTheme`, registered in `extensions.ts`).
+- **Skipped lines**: frontmatter (line 1 `---` to the next `---`), fenced code (backtick or tilde; closed by the same character with at least the opener's length; unterminated fences run to the end), `$$` blocks and single-line `$$ … $$`, blank lines and headings. Skipped lines never get a label or define a variable. An unclosed bare `$$` hides labels for the rest of the note. The scanner can't look ahead, so this differs from `rendered-block.ts`, which doesn't render an unclosed `$$`.
+- **Assignment**: `name = expression`, where `name` is one or more words (case-insensitive, `of` reserved). Only a standalone `=` counts, so `==`, `>=`, `<=` and `!=` are never assignments. An invalid right-hand side makes the name undefined from that line on. Reassignment can read the old value (`rent = rent + 100`).
+- **Expressions**: `+ - * /`, parentheses, names, `450 + 15%` (relative to the left side), `15% of 200`, and other `%` as a plain fraction. Tabs count as spaces between tokens (`calc(…)=` still accepts spaces only). One leading list marker is stripped. A line that fails to evaluate gets no label.
+- **No label** for bare literals (`1200`, `rent = 1200`, `tax = 15%`) or date/phone-like runs (`2026-10-01`, `555-1234`). Results are rounded to 4 decimals with no grouping.
+- **AI**: `NOTE_CALC_GUIDE` (`utils/formula-ai-guide.ts`) teaches the chat, Continue writing and new-note generation to write calculator lines instead of computed numbers; `FORMULA_PRESERVATION_RULE` tells every rewrite action to keep them as written. Update the guide when the line rules change.
+- **Incremental cache**: `NoteCalcCache` keeps the state after each line (open block, scope as an immutable linked chain). An edit drops entries from its first changed line down. Scanning only goes as far as the last line of `view.visibleRanges`, and labels are built only for visible lines, so variables defined above the viewport still resolve. Each `EditorView` has its own cache.
+
 ## Preview mode
 
-The editor is either in **Edit** or **Preview**. Preview is a read-only reading view. The mode is app-wide: one `atom_viewMode` (`localStorage["viewMode"]`) applies to every pane and tab and survives a reload. You switch it with `PaneModeSwitch` in the pane header or the mobile bar, Ctrl/Cmd+Alt+P (`hooks/use-editor-shortcuts.ts`), or **Open in preview / Back to editing** in the command palette. Double-clicking the text in Preview also switches back to Edit, with the caret where you clicked (`use-codemirror-editor.ts` listens in the capture phase, so tables and rendered blocks count too; checkboxes and links don't).
+The editor is either in **Edit** or **Preview**. Preview is a read-only reading view. The mode is app-wide: one `atom_viewMode` (`localStorage["viewMode"]`) applies to every pane and tab and survives a reload. You switch it with `PaneModeSwitch` in the top-right pane's header or the mobile bar, Ctrl/Cmd+Alt+P (`hooks/use-editor-shortcuts.ts`), or **Open in preview / Back to editing** in the command palette. Double-clicking the text in Preview also switches back to Edit, with the caret where you clicked (`use-codemirror-editor.ts` listens in the capture phase, so tables and rendered blocks count too; checkboxes and links don't).
 
 Preview isn't a second renderer. It's the same `EditorView`, reconfigured through a compartment (`codemirror/preview-mode.ts`, toggled in `hooks/use-codemirror-editor.ts`):
 
@@ -114,5 +127,5 @@ A cell starting with `=` is a formula (`=SUM(B2:B5)`, `=AVERAGE(B2:D2)`, `=IF(..
 | `utils/table-detection.ts` | `findTableAtPos(text, pos)` — locates the table block at cursor position and returns cursor row/col indices; `findAllTables(text)` and `isTableLine(line)`. |
 | `utils/table-cell-offsets.ts` | Maps each cell to its absolute character range in the document (trimmed content and full pipe-to-pipe segment). |
 | `utils/formula-engine.ts` | Table evaluation entry point (`evaluateTable`, cross-table and cross-note refs); re-exports the stages in `utils/formula/`: `values` (errors, coercion), `addressing` (A1 refs), `currency`, `parser` (tokenizer + AST), `functions` (SUM, IF, …), `results` (formatting). |
-| `utils/formula-ai-guide.ts` | `TABLE_FORMULA_GUIDE` and `FORMULA_PRESERVATION_RULE` prompt text for AI features, generated from the engine's function list. |
+| `utils/formula-ai-guide.ts` | `TABLE_FORMULA_GUIDE` and `FORMULA_PRESERVATION_RULE` prompt text for AI features, generated from the engine's function list, plus `NOTE_CALC_GUIDE` (inline calculator; its worked example `NOTE_CALC_EXAMPLE` is checked against the scanner in tests). |
 | `codemirror/table-focus.ts` | Shared cell-focus helpers used by both the table widget and the table commands (avoids a circular import). |

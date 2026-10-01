@@ -25,6 +25,7 @@ import {
   atom_aiBuilderRequest,
   atom_browserVaultDialogOpen,
   atom_flowMode,
+  atom_toolbarHidden,
   atom_isAiConfigured,
   atom_keyboardShortcutsOpen,
   atom_lineNumbers,
@@ -109,6 +110,7 @@ export function useEditorCommandContext(props: EditorCommandsProps) {
   const [wordWrap, setWordWrap] = useAtom(atom_wordWrap);
   const [lineNumbers, setLineNumbers] = useAtom(atom_lineNumbers);
   const [flowMode, setFlowMode] = useAtom(atom_flowMode);
+  const [toolbarHidden, setToolbarHidden] = useAtom(atom_toolbarHidden);
   const [viewMode, setViewMode] = useAtom(atom_viewMode);
   const [, setTasksGroupBy] = useAtom(atom_tasksGroupBy);
   const [, setTaskSearchQuery] = useAtom(atom_taskSearchQuery);
@@ -171,6 +173,8 @@ export function useEditorCommandContext(props: EditorCommandsProps) {
     setLineNumbers,
     flowMode,
     setFlowMode,
+    toolbarHidden,
+    setToolbarHidden,
     viewMode,
     setViewMode,
     setTasksGroupBy,

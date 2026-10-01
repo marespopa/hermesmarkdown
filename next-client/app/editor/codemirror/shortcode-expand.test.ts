@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import { EditorView } from "@codemirror/view";
 import { EditorState, EditorSelection } from "@codemirror/state";
 import { shortcodeExpandPlugin } from "./shortcode-expand";
+import { noteCalcExtension } from "./note-calc";
 
 function makeView() {
   const state = EditorState.create({ doc: "", extensions: [shortcodeExpandPlugin] });
@@ -52,6 +53,13 @@ describe("shortcodeExpandPlugin", () => {
     const view = makeView();
     await type(view, "calc(10/3)=");
     expect(view.state.doc.toString()).toBe("3.33");
+  });
+
+  it("still expands calc() alongside the inline note calculator", async () => {
+    const state = EditorState.create({ doc: "", extensions: [shortcodeExpandPlugin, noteCalcExtension] });
+    const view = new EditorView({ state });
+    await type(view, "calc(100+50)=");
+    expect(view.state.doc.toString()).toBe("150");
   });
 
   it("leaves ordinary typed text untouched", async () => {

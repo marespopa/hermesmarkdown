@@ -48,7 +48,7 @@ export default function LandingPage() {
         })}
       />
 
-      <section className="mx-auto flex min-h-screen max-w-5xl flex-col justify-center px-6 py-24">
+      <section className="container max-w-screen-xl flex min-h-screen flex-col justify-center py-24">
         <div className="max-w-3xl space-y-7">
           <p className="text-ui-footnote font-bold uppercase tracking-[0.3em] text-sage dark:text-sage">
             Hermes&middot;Markdown

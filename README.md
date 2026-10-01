@@ -49,6 +49,7 @@ See [next-client/ARCHITECTURE.md](next-client/ARCHITECTURE.md) for the detailed 
 - Wikilinks such as `[[Note]]` and `[[Note|Alias]]`; type `[[` to pick a note and `Ctrl/Cmd+Click` to navigate.
 - Click checkboxes to toggle tasks and click lifecycle tags to cycle their status. Dates and `@priority` annotations render as pills.
 - Fenced code blocks receive syntax highlighting. Mermaid diagrams and display math (`$$ … $$` or a ```` ```math ```` fence, rendered with KaTeX) are shown rendered in the editor. Double-click one, or press `Ctrl/Cmd+Shift+Enter` beside it, to edit its source with a live preview. Mermaid diagrams can also open in a viewer with zoom and SVG download.
+- Inline calculator: write `rent = 1200`, `utilities = 180`, then `rent + utilities`, and a faint `= 1380` appears at the end of the line. It supports named values, `450 + 15%` and `15% of 200`. Results are only displayed, and the file keeps just what you typed.
 - Optional flow mode (Settings → Editor or the command palette): fades everything but the paragraph you are writing and keeps the current line centered on screen.
 - Paste or drop images; they are saved to the vault's `assets/` folder and linked.
 - Optional AI (bring your own Anthropic or Gemini key): AI Chat (`Ctrl/Cmd+Shift+B`, or the Ask AI pill on a selection) with `@note` / `@vault` references, attachments and follow-ups; one-click rewrite actions with a diff review; note generation; and repurposing a note into blog/social/newsletter drafts.
@@ -94,7 +95,9 @@ Type these shortcodes in the editor:
 | `{iso}` / `{unix}` / `{day}` / `{week}` | Timestamp formats |
 | `..log` | Time-stamped log prefix |
 | `{check}` / `{idea}` / `{warn}` / `{bug}` … | Common symbol |
-| `calc(100+50)=` | Inline arithmetic result |
+| `calc(100+50)=` | Replaced with the arithmetic result |
+
+For results that stay beside your working, write the math on its own line instead (see the inline calculator under Markdown writing).
 
 At the start of a line or after a space, type `/` to insert a link, wikilink, date, task, table, code block, Mermaid diagram, callout, collapsible callout, or frontmatter — plus AI actions when AI is configured.
 

@@ -35,6 +35,15 @@ export function getFirstLeaf(node: WorkspaceContainer | PanelLeaf): PanelLeaf {
   return getFirstLeaf(node.children[0]);
 }
 
+// The pane at the window's top-right corner: the last child of a side-by-side
+// split, the first child of a stacked one. Window-wide toolbar actions live in
+// its header so they stay put while focus moves between panes.
+export function getTopTrailingLeaf(node: WorkspaceContainer | PanelLeaf): PanelLeaf {
+  if ("type" in node) return node;
+  const child = node.direction === "horizontal" ? node.children[node.children.length - 1] : node.children[0];
+  return getTopTrailingLeaf(child);
+}
+
 // Drops any open tabs matching `shouldRemove` from every pane in the tree,
 // falling back to a draft tab if a pane would otherwise end up empty.
 // Shared by file deletion and by vault-reopen handle rebinding, since both

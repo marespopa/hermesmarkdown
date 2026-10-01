@@ -23,6 +23,9 @@ export const atom_vimMode = atomWithStorage<boolean>("vimMode", false);
 // Flow mode: fades everything but the caret's paragraph and keeps the caret
 // line centred while typing. Opt-in, off by default.
 export const atom_flowMode = atomWithStorage<boolean>("flowMode", false);
+// Hides the desktop pane header (tabs and toolbar) for an immersive view.
+// Window-wide, like the toolbar's own controls.
+export const atom_toolbarHidden = atomWithStorage<boolean>("toolbarHidden", false);
 // Edit (source) or Preview (read-only reading view), for every pane and tab.
 export type ViewMode = "edit" | "preview";
 export const atom_viewMode = atomWithStorage<ViewMode>("viewMode", "edit");
@@ -264,6 +267,10 @@ export const atom_isVoicePreviewVisible = atom<boolean>(false);
 // always lands in the pane the user is looking at regardless of which pane
 // was active when dictation started.
 export const atom_activeEditorView = atom<EditorView | null>(null);
+// Whether the active pane's file has frontmatter: the header's metadata
+// toggle (which flips the app-wide atom_frontmatterCollapsedByDefault) only
+// shows then.
+export const atom_activeFileHasFrontmatter = atom<boolean>(false);
 
 export type PalettePinnedItem =
   | { kind: "file"; id: string }

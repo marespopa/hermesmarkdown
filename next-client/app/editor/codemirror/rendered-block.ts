@@ -146,16 +146,22 @@ class RenderedBlockWidget extends WidgetType {
     wrapper.title = "Double-click to edit the source";
     wrapper.setAttribute("aria-label", kind === "mermaid" ? "Mermaid diagram" : "Math formula");
 
+    // The outer element only spaces the block (padding, never margin, which
+    // CodeMirror leaves out of its height map); the frame draws the border.
+    const frame = document.createElement("div");
+    frame.className = "cm-rendered-block-frame";
+    wrapper.appendChild(frame);
+
     const body = document.createElement("div");
     body.className = "cm-rendered-block-body";
-    wrapper.appendChild(body);
+    frame.appendChild(body);
 
     const edit = document.createElement("button");
     edit.type = "button";
     edit.className = "cm-rendered-block-edit";
     edit.textContent = "Edit";
     edit.setAttribute("aria-label", kind === "mermaid" ? "Edit Mermaid source" : "Edit LaTeX source");
-    wrapper.appendChild(edit);
+    frame.appendChild(edit);
 
     const open = (event: Event) => {
       event.preventDefault();

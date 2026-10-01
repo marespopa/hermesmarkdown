@@ -163,9 +163,12 @@ export default function Documentation() {
         </div>
       )}
 
-      <div className="container pt-20 lg:pt-32 pb-20 lg:pb-32 flex flex-col lg:flex-row gap-12 lg:gap-16 items-start">
+      {/* Same shell as the navbar and footer so the TOC lines up with the logo;
+          articles cap their own reading measure. Top padding only clears the
+          fixed nav pill. */}
+      <div className="container max-w-screen-xl pt-20 pb-20 lg:pb-32 flex flex-col lg:flex-row gap-12 lg:gap-16 items-start">
 
-        <aside className="hidden lg:flex w-52 xl:w-56 shrink-0 sticky top-24 self-start max-h-[calc(100vh-7rem)] overflow-y-auto p-1.5">
+        <aside className="hidden lg:flex w-52 xl:w-56 shrink-0 sticky top-20 self-start max-h-[calc(100vh-6rem)] overflow-y-auto p-1.5">
           {navContent}
         </aside>
 

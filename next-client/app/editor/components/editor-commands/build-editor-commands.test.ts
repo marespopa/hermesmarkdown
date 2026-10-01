@@ -87,6 +87,8 @@ function createContext(overrides: Partial<EditorCommandContext> = {}): EditorCom
     setLineNumbers: vi.fn(),
     flowMode: false,
     setFlowMode: vi.fn(),
+    toolbarHidden: false,
+    setToolbarHidden: vi.fn(),
     viewMode: "edit",
     setViewMode: vi.fn(),
     setTasksGroupBy: vi.fn(),

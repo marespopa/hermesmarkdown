@@ -4,7 +4,7 @@ import type { ReactNode } from "react";
 
 export function Code({ children }: { children: ReactNode }) {
   return (
-    <pre className="p-5 bg-neutral-900 dark:bg-black/40 text-neutral-100 rounded-2xl overflow-x-auto font-mono text-sm leading-relaxed w-full min-w-0">
+    <pre className="p-5 bg-neutral-900 dark:bg-black/40 text-neutral-100 selection:bg-white/25 selection:text-white rounded-2xl overflow-x-auto font-mono text-sm leading-relaxed w-full min-w-0">
       <code>{children}</code>
     </pre>
   );

@@ -14,7 +14,7 @@ import { EditorView } from "@codemirror/view";
 import { useAtom, useAtomValue } from "jotai";
 import { usePathname, useRouter } from "next/navigation";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { HiOutlineCog, HiOutlineQuestionMarkCircle, HiOutlineRefresh, HiOutlineX } from "react-icons/hi";
+import { HiOutlineCog, HiOutlineRefresh, HiOutlineX } from "react-icons/hi";
 import { version } from "../../../package.json";
 import { fuzzyMatch, matchCommand, matchFile } from "./command-search";
 import { type Command, useCommandPalette } from "./CommandPaletteContext";
@@ -361,9 +361,6 @@ export default function CommandPalette() {
         </Button>
         <Button variant="icon" onClick={() => { router.push("/editor/settings"); close(); }} aria-label="Settings" title="Settings" className="!w-7 !h-7">
           <HiOutlineCog size={14} />
-        </Button>
-        <Button variant="icon" onClick={() => { router.push("/documentation"); close(); }} aria-label="Documentation and help" title="Documentation and help" className="!w-7 !h-7">
-          <HiOutlineQuestionMarkCircle size={14} />
         </Button>
       </div>
       <span className="font-medium">HermesMarkdown v{version}</span>

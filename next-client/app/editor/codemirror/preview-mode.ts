@@ -3,7 +3,7 @@ import { EditorState, type Extension, Prec, type Range, StateField } from "@code
 import { Decoration, type DecorationSet, EditorView, WidgetType } from "@codemirror/view";
 import type { SyntaxNode } from "@lezer/common";
 import { toggleCheckboxOnLine } from "./commands";
-import { findFrontmatterFoldRange } from "./frontmatter-fold";
+import { caretOutsideFrontmatter, findFrontmatterFoldRange } from "./frontmatter-fold";
 import { findRenderedBlockAt } from "./rendered-block";
 import { previewModeFacet } from "./preview-facet";
 
@@ -106,7 +106,7 @@ export function buildPreviewDecorations(state: EditorState): DecorationSet {
   const ranges: Range<Decoration>[] = [];
   const { doc } = state;
   // Frontmatter's closing `---` parses as a setext underline; leave it alone.
-  const frontmatterEnd = findFrontmatterFoldRange(doc.toString())?.bodyTo ?? -1;
+  const frontmatterEnd = findFrontmatterFoldRange(doc.toString())?.closeTo ?? -1;
   const quotedLines = new Set<number>();
 
   syntaxTree(state).iterate({
@@ -235,11 +235,12 @@ const previewTheme = EditorView.theme({
 });
 
 // Where the caret goes on leaving Preview. CodeMirror drops a fold whose
-// interior holds the selection head, so a caret inside a folded range (e.g.
-// the closing `---` of collapsed frontmatter, the first "visible" line) would
-// expand it; move such a caret to the fold's start instead.
+// interior holds the selection head, so a caret inside a folded range would
+// expand it; move such a caret to the fold's start instead. Collapsed
+// frontmatter (a hidden block, not a fold) likewise expands on a caret inside
+// it, so such a caret moves to the first line after it.
 export function caretOutsideFolds(state: EditorState, pos: number): number {
-  let caret = Math.min(Math.max(pos, 0), state.doc.length);
+  let caret = caretOutsideFrontmatter(state, Math.min(Math.max(pos, 0), state.doc.length));
   foldedRanges(state).between(caret, caret, (from, to) => {
     if (from < caret && caret < to) caret = from;
   });

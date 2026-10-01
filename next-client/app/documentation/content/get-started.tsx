@@ -268,8 +268,13 @@ export const getStartedGroup: Group = {
             saved, rule-based filters over your notes&apos; tags and frontmatter.
           </p>
           <p>
-            Open several files side by side: choose <strong>Open in pane</strong> from the header,
+            Open several files side by side: choose <strong>Split Right</strong> from the header (or <strong>Open in pane</strong> on a tab),
             drag tabs between panes, and resize with the divider.
+          </p>
+          <p>
+            To be alone with the text, click the up-chevron button at the right end of the
+            header (or press <code>Ctrl/Cmd+Alt+T</code>, or run <strong>Hide toolbar</strong>) and
+            the tabs and toolbar slide away. A small chevron in the top-right corner brings them back.
           </p>
         </>
       ),
@@ -306,6 +311,7 @@ export const getStartedGroup: Group = {
                 { label: "New file", shortcut: "CTRL+ALT+N" },
                 { label: "Close current tab", shortcut: "CTRL/CMD+ALT+W" },
                 { label: "Select workspace tab", shortcut: "CTRL/CMD+1–9" },
+                { label: "Hide / show toolbar", shortcut: "CTRL/CMD+ALT+T" },
               ],
             },
             {

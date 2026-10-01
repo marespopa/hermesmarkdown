@@ -1,4 +1,4 @@
-import { render, screen, cleanup, fireEvent } from "@testing-library/react";
+import { render, screen, cleanup, fireEvent, within } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import PaneLeaf from "./PaneLeaf";
 import { Provider } from "jotai";
@@ -8,7 +8,9 @@ import {
   atom_openFiles,
   atom_activeFilePath,
   atom_saveStatus,
+  atom_workspaceLayout,
 } from "@/app/atoms/atoms";
+import { atom_vaultHandle } from "@/app/atoms/vault-atoms";
 import { CommandPaletteProvider } from "@/app/components/CommandPalette/CommandPaletteContext";
 import { formatShortcut } from "@/app/utils/platform";
 import React from "react";
@@ -186,6 +188,7 @@ describe("PaneLeaf Tab Indicators", () => {
       <TestProvider initialValues={[
         [atom_activePaneId, "pane-1"],
         [atom_openFiles, { "file1.md": { fileName: "file1.md", content: "clean", lastSavedContent: "clean" } }],
+        [atom_workspaceLayout, { rootContainer: { ...mockLeaf, openFilePaths: ["file1.md"] } }],
       ]}>
         <PaneLeaf leaf={{ ...mockLeaf, openFilePaths: ["file1.md"] }} />
       </TestProvider>
@@ -193,6 +196,8 @@ describe("PaneLeaf Tab Indicators", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "Settings" }));
     expect(push).toHaveBeenCalledWith("/editor/settings");
+    fireEvent.click(screen.getByRole("button", { name: "Documentation and help" }));
+    expect(push).toHaveBeenCalledWith("/documentation");
   });
 
   it("guides an empty pane toward creating or opening a note", () => {
@@ -224,6 +229,7 @@ describe("PaneLeaf Tab Indicators", () => {
         "file2.md": { fileName: "file2.md", content: "Two", lastSavedContent: "Two" },
       }],
       [atom_saveStatus, { state: "idle", retryCount: 0 }],
+      [atom_workspaceLayout, { rootContainer: mockLeaf }],
     ];
 
     render(
@@ -240,5 +246,100 @@ describe("PaneLeaf Tab Indicators", () => {
 
     expect(preview).toHaveAttribute("aria-checked", "true");
     expect(edit).toHaveAttribute("aria-checked", "false");
+  });
+
+  it("lets a tab with unsaved changes be closed by click", () => {
+    render(
+      <TestProvider initialValues={[
+        [atom_activePaneId, "pane-1"],
+        [atom_openFiles, { "file1.md": { fileName: "file1.md", content: "dirty", lastSavedContent: "clean" } }],
+      ]}>
+        <PaneLeaf leaf={{ ...mockLeaf, openFilePaths: ["file1.md"] }} />
+      </TestProvider>
+    );
+
+    expect(screen.getByTitle("Unsaved changes")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Close tab" })).toBeInTheDocument();
+  });
+});
+
+describe("PaneLeaf in a split", () => {
+  const left = { id: "left", type: "editor" as const, openFilePaths: ["a.md"], activeFilePath: "a.md", isPinned: false };
+  const right = { id: "right", type: "editor" as const, openFilePaths: ["b.md"], activeFilePath: "b.md", isPinned: false };
+  const split = { rootContainer: { id: "root", direction: "horizontal", sizes: [50, 50], children: [left, right] } };
+  const openFiles = {
+    "a.md": { fileName: "a.md", content: "A", lastSavedContent: "A" },
+    "b.md": { fileName: "b.md", content: "B", lastSavedContent: "B" },
+  };
+
+  beforeEach(() => {
+    cleanup();
+    vi.clearAllMocks();
+  });
+
+  const renderSplit = (activePaneId: string) =>
+    render(
+      <TestProvider initialValues={[
+        [atom_activePaneId, activePaneId],
+        [atom_openFiles, openFiles],
+        [atom_workspaceLayout, split],
+        [atom_vaultHandle, { name: "vault" }],
+      ]}>
+        <PaneLeaf leaf={left} />
+        <PaneLeaf leaf={right} />
+      </TestProvider>
+    );
+
+  it("shows window-wide actions once, in the top-right pane, whichever pane has focus", () => {
+    for (const activePaneId of ["left", "right"]) {
+      renderSplit(activePaneId);
+      const [leftPane, rightPane] = Array.from(document.querySelectorAll("[data-pane-id]")) as HTMLElement[];
+
+      expect(within(leftPane).getByRole("button", { name: "Home feed" })).toBeInTheDocument();
+      expect(within(rightPane).queryByRole("button", { name: "Home feed" })).not.toBeInTheDocument();
+      expect(within(rightPane).getByRole("button", { name: "Settings" })).toBeInTheDocument();
+      expect(within(rightPane).getByRole("radiogroup", { name: "Editor mode" })).toBeInTheDocument();
+      expect(within(leftPane).queryByRole("button", { name: "Settings" })).not.toBeInTheDocument();
+      expect(within(leftPane).queryByRole("radiogroup", { name: "Editor mode" })).not.toBeInTheDocument();
+      cleanup();
+    }
+  });
+
+  it("keeps each pane's own actions in an unfocused pane", () => {
+    renderSplit("right");
+    const leftPane = document.querySelector('[data-pane-id="left"]') as HTMLElement;
+
+    expect(within(leftPane).getByRole("button", { name: /^Save/ })).toBeInTheDocument();
+    expect(within(leftPane).getByRole("button", { name: "Close Pane" })).toBeInTheDocument();
+  });
+});
+
+describe("PaneLeaf toolbar hiding", () => {
+  const leaf = { id: "solo", type: "editor" as const, openFilePaths: ["a.md"], activeFilePath: "a.md", isPinned: false };
+
+  beforeEach(() => {
+    cleanup();
+    localStorage.removeItem("toolbarHidden");
+  });
+
+  it("hides the toolbar and brings it back from the handle", () => {
+    render(
+      <TestProvider initialValues={[
+        [atom_activePaneId, "solo"],
+        [atom_openFiles, { "a.md": { fileName: "a.md", content: "A", lastSavedContent: "A" } }],
+        [atom_workspaceLayout, { rootContainer: leaf }],
+      ]}>
+        <PaneLeaf leaf={leaf} />
+      </TestProvider>
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Hide toolbar" }));
+    // inert takes the header's controls out of the accessibility tree.
+    expect(screen.getByRole("button", { name: "Show toolbar" })).toBeInTheDocument();
+    expect(screen.getByLabelText("Close tab").closest("[inert]")).not.toBeNull();
+
+    fireEvent.click(screen.getByRole("button", { name: "Show toolbar" }));
+    expect(screen.queryByRole("button", { name: "Show toolbar" })).not.toBeInTheDocument();
+    expect(screen.getByLabelText("Close tab").closest("[inert]")).toBeNull();
   });
 });

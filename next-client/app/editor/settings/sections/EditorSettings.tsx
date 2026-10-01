@@ -35,7 +35,7 @@ export default function EditorSettings() {
         />
         <SettingItem
           label="Collapse Frontmatter"
-          description="Start with the YAML frontmatter folded when opening files."
+          description="Hide YAML frontmatter in every file. Also toggled by the ⓘ button in the pane header."
           control={
             <Toggle
               variant="soft"

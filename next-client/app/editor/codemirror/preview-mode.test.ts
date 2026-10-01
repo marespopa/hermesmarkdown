@@ -4,6 +4,7 @@ import { Compartment, EditorState } from "@codemirror/state";
 import { Decoration, EditorView } from "@codemirror/view";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { buildPreviewDecorations, caretOutsideFolds, isPreviewMode, previewExtension } from "./preview-mode";
+import { findFrontmatterFoldRange, frontmatterCollapse, toggleFrontmatterFold } from "./frontmatter-fold";
 
 vi.mock("../utils/open-helper-dialogs", () => ({ openRenderedBlockSource: vi.fn() }));
 
@@ -151,5 +152,13 @@ describe("caretOutsideFolds", () => {
   it("leaves a caret outside any fold where it is", () => {
     const state = foldedState();
     expect(caretOutsideFolds(state, doc.length)).toBe(doc.length);
+  });
+
+  it("moves a caret inside collapsed frontmatter to the first line after it", () => {
+    const view = new EditorView({ state: EditorState.create({ doc, extensions: frontmatterCollapse }) });
+    toggleFrontmatterFold(view, findFrontmatterFoldRange(doc)!, true);
+
+    expect(caretOutsideFolds(view.state, 0)).toBe(doc.indexOf("Body"));
+    view.destroy();
   });
 });

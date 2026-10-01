@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import type { EditorView } from "@codemirror/view";
 import {
   findFrontmatterFoldRange,
@@ -16,16 +16,22 @@ interface FrontmatterChevron {
 }
 
 export function useCodeMirrorFrontmatterFold({
+  viewRef,
   containerRef,
   collapseByDefault,
 }: {
+  viewRef: React.RefObject<EditorView | null>;
   containerRef: React.RefObject<HTMLDivElement | null>;
   collapseByDefault: boolean;
 }) {
   const [chevrons, setChevrons] = useState<FrontmatterChevron[]>([]);
+  // `null` when the file has no frontmatter. Independent of the chevron,
+  // which needs on-screen coordinates.
+  const [collapsed, setCollapsed] = useState<boolean | null>(null);
 
   const recompute = useCallback((view: EditorView) => {
     const range = findFrontmatterFoldRange(view.state.doc.toString());
+    setCollapsed(range ? isFrontmatterFolded(view.state) : null);
     // coordsAtPos first: it can flush a pending CodeMirror measure — e.g. the
     // scrollIntoView of an Edit/Preview switch — which scrolls the canvas. A
     // wrapper rect read before that is stale and put the chevron above the sheet.
@@ -39,7 +45,7 @@ export function useCodeMirrorFrontmatterFold({
     setChevrons([{
       blockId: "frontmatter",
       top: coords.top - wrapperRect.top,
-      collapsed: isFrontmatterFolded(view.state, range),
+      collapsed: isFrontmatterFolded(view.state),
       range,
     }]);
   }, [containerRef]);
@@ -52,6 +58,19 @@ export function useCodeMirrorFrontmatterFold({
     recompute(view);
   }, [collapseByDefault, recompute]);
 
+  // The preference is app-wide and live: flipping it (header ⓘ, the × on
+  // expanded frontmatter, Settings) collapses or expands every open editor,
+  // and files opened later follow it via onViewCreated.
+  useEffect(() => {
+    const view = viewRef.current;
+    if (!view) return;
+    const range = findFrontmatterFoldRange(view.state.doc.toString());
+    if (range && isFrontmatterFolded(view.state) !== collapseByDefault) {
+      toggleFrontmatterFold(view, range, collapseByDefault);
+    }
+    recompute(view);
+  }, [collapseByDefault, recompute, viewRef]);
+
   const toggle = useCallback((view: EditorView) => {
     const chevron = chevrons[0];
     if (!chevron?.range) return;
@@ -59,5 +78,5 @@ export function useCodeMirrorFrontmatterFold({
     recompute(view);
   }, [chevrons, recompute]);
 
-  return { chevrons, toggle, onCursorActivity: recompute, onViewCreated };
+  return { chevrons, collapsed, toggle, onCursorActivity: recompute, onViewCreated };
 }

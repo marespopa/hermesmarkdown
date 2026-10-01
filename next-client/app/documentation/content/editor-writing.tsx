@@ -6,7 +6,7 @@ export const editorWritingItems: Subsection[] = [
     id: "writing",
     title: "Writing",
     lead: "Write Markdown with inline highlighting and click actions.",
-    keywords: "rendering source inline wysiwyg word wrap line numbers pills dates priority shortcode images paste",
+    keywords: "rendering source inline wysiwyg word wrap line numbers pills dates priority shortcode images paste calc",
     body: (
       <>
         <p>
@@ -36,6 +36,10 @@ export const editorWritingItems: Subsection[] = [
             { label: "calc(2*21)=", value: "Inline calculation" },
           ]}
         />
+        <p>
+          For running totals that keep their working, use the{" "}
+          <a href="#inline-calculator" className="text-sage font-semibold hover:underline">inline calculator</a> instead.
+        </p>
         <Callout type="tip">
           Click actions work without touching raw syntax — checkboxes toggle, lifecycle tags cycle on
           click, and wikilinks open with CTRL+Click.
@@ -192,6 +196,53 @@ export const editorWritingItems: Subsection[] = [
           AI features know this syntax too. See{" "}
           <a href="#ai-table-formulas" className="text-sage font-semibold hover:underline">AI &amp; table formulas</a>.
         </p>
+      </>
+    ),
+  },
+  {
+    id: "inline-calculator",
+    title: "Inline calculator",
+    lead: "Type math into any note and see the answer at the end of the line, with named values you can reuse further down.",
+    keywords: "calculator math calc sum total budget estimate variables named values percent of arithmetic numbers",
+    body: (
+      <>
+        <p>
+          Write an expression on its own line and its result appears in faint text at the end of
+          that line. Give a value a name with <code>name = …</code> and use it on any later line of
+          the same note. Names can be several words and ignore case, so <code>Monthly rent</code>{" "}
+          and <code>monthly rent</code> are the same value. In this example you type the left side;
+          the editor adds the <code>= …</code> results:
+        </p>
+        <Code>{`rent = 1200
+utilities = 180
+rent + utilities          = 1380
+rent + utilities + 15%    = 1587`}</Code>
+        <KV
+          rows={[
+            { label: "+ − * / ( )", value: "Arithmetic" },
+            { label: "450 + 15%", value: "= 517.5 · percent of the left side" },
+            { label: "15% of 200", value: "= 30" },
+            { label: "1,200 * 3", value: "= 3600 · thousands separators" },
+            { label: "rent = rent + 100", value: "Redefines a value from its old one" },
+          ]}
+        />
+        <p>
+          Only lines that are math get a result. Prose, headings, plain numbers (<code>1200</code>),
+          simple definitions (<code>rent = 1200</code>), dates and phone numbers are left alone, and
+          so is everything in frontmatter, code blocks and <code>$$</code> math blocks. List items
+          work: <code>- rent + utilities</code> still shows its total. Comparisons such as{" "}
+          <code>a == b</code> or <code>a &gt;= b</code> never define a value.
+        </p>
+        <p>
+          Results show in Edit and Preview, are rounded to four decimals, and have no thousands
+          separator. If a line can&apos;t be worked out, for example because it uses a name that
+          isn&apos;t defined above it, it simply shows no result.
+        </p>
+        <Callout type="note">
+          Results are only displayed. Your file holds exactly what you typed, so the note stays plain
+          Markdown. To write a result into the note instead, use the <code>calc(2*21)=</code>{" "}
+          shortcode.
+        </Callout>
       </>
     ),
   },

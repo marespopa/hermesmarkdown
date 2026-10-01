@@ -150,32 +150,10 @@ export const baseTheme = EditorView.theme({
     border: "none",
     color: "transparent",
   },
-  ".cm-foldPlaceholder.cm-frontmatterPlaceholder": {
-    backgroundColor: "transparent",
-    border: "none",
-    color: "inherit",
-    cursor: "pointer",
-    fontFamily: "inherit",
-    fontSize: "0.9em",
-    fontWeight: "400",
-    margin: "0 0.35rem",
-    opacity: "var(--frontmatter-label-opacity)",
-    padding: 0,
-    transition: "opacity 500ms ease",
-  },
-  ".cm-foldPlaceholder.cm-frontmatterPlaceholder::after": {
-    content: '"›"',
-    marginLeft: "0.35rem",
-  },
-  ".cm-foldPlaceholder.cm-frontmatterPlaceholder:hover": {
-    backgroundColor: "transparent",
-    color: "inherit",
-    opacity: "1",
-  },
-  ".cm-line:has(.cm-frontmatterPlaceholder)": {
-    backgroundColor: "transparent",
-    borderRadius: 0,
-    padding: "0 0 0.75em",
+  // Collapsed frontmatter: a zero-height block, so the first content line
+  // stays the first visible row.
+  ".cm-frontmatterCollapsed": {
+    height: 0,
   },
   ".cm-tag-pill": {
     display: "inline-flex",

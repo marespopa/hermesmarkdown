@@ -6,27 +6,24 @@ import MarkdownEditor from "./MarkdownEditor";
 import TabContextMenu, { TabContextMenuItem } from "./TabContextMenu";
 import { useAtom, useSetAtom } from "jotai";
 import { atom_activePaneId, atom_fileContent, atom_openFiles, atom_splitPane, atom_closePane, atom_activeFilePath, atom_saveStatus, atom_workspaceLayout, getWorkspaceTabs } from "@/app/atoms/atoms";
-import { atom_aiBuilderRequest, atom_homeFeedOpen, atom_isAiConfigured, atom_isVoicePreviewVisible } from "@/app/atoms/ui-atoms";
+import { atom_homeFeedOpen, atom_isVoicePreviewVisible, atom_toolbarHidden } from "@/app/atoms/ui-atoms";
 import { atom_materializedDraftPath } from "@/app/atoms/file-atoms";
 import { atom_vaultHandle } from "@/app/atoms/vault-atoms";
-import { HiOutlineDocumentText, HiOutlineChartBar, HiOutlineX, HiOutlineClipboardCopy, HiOutlineHome, HiOutlineSearch, HiOutlineChatAlt2, HiOutlineCog } from "react-icons/hi";
-import { FiSave } from "react-icons/fi";
-import { useRouter } from "next/navigation";
-import { VscSplitHorizontal } from "react-icons/vsc";
-import PaneTab, { TabSaveState, statusMeta } from "./PaneTab";
+import { HiOutlineDocumentText, HiOutlineChartBar, HiOutlineXCircle, HiOutlineClipboardCopy, HiOutlineHome, HiOutlineViewBoards, HiOutlineChevronDown } from "react-icons/hi";
+import PaneTab, { SaveStateIcon, TabSaveState, statusMeta } from "./PaneTab";
 import { useFileSystem } from "@/app/hooks/use-file-system";
 import { useAtomValue } from "jotai";
 import Button from "../../components/Button";
 import Tooltip from "@/app/components/Tooltip";
 import { formatShortcut } from "@/app/utils/platform";
+import { getFirstLeaf, getTopTrailingLeaf } from "@/app/atoms/utils";
 import useIsMobileChrome from "@/app/hooks/use-mobile-chrome";
 import { usePaneFileActions } from "../hooks/use-pane-file-actions";
 import { useTabDragDrop } from "../hooks/use-tab-drag-drop";
 import PaneEmptyState from "./PaneEmptyState";
-import PaneModeSwitch from "./PaneModeSwitch";
+import PaneWindowActions from "./PaneWindowActions";
 import TabStripScroller from "./TabStripScroller";
-import { PANE_ACTION_BUTTON_CLASS, PANE_ACTIONS_CLASS, PANE_HEADER_CLASS } from "./pane-header-classes";
-import { useCommandPalette } from "@/app/components/CommandPalette/CommandPaletteContext";
+import { PANE_ACTION_BUTTON_CLASS, PANE_ACTIONS_CLASS, PANE_DIVIDER_CLASS, PANE_HEADER_CLASS, PANE_ICON_SIZE } from "./pane-header-classes";
 
 interface PaneLeafProps {
   leaf: PanelLeaf;
@@ -41,6 +38,10 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
   const saveStatus = useAtomValue(atom_saveStatus);
   const workspaceLayout = useAtomValue(atom_workspaceLayout);
   const isOnlyPane = "type" in workspaceLayout.rootContainer;
+  // Window-wide controls sit at fixed window corners — Home in the top-left
+  // pane, the rest in the top-right one — not in whichever pane has focus.
+  const hostsHome = getFirstLeaf(workspaceLayout.rootContainer).id === leaf.id;
+  const hostsWindowActions = getTopTrailingLeaf(workspaceLayout.rootContainer).id === leaf.id;
   const isMobileChrome = useIsMobileChrome();
 
   const { openFileByName } = useFileSystem();
@@ -48,11 +49,7 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
   const [content, setContent] = useAtom(atom_fileContent(filePath));
   const hasVault = !!useAtomValue(atom_vaultHandle);
   const setHomeFeedOpen = useSetAtom(atom_homeFeedOpen);
-  const { open: openCommandPalette } = useCommandPalette();
-  const isAiConfigured = useAtomValue(atom_isAiConfigured);
-  const setAiBuilderRequest = useSetAtom(atom_aiBuilderRequest);
-  // Same trigger as the Ctrl/Cmd+Shift+B shortcut; the editor page opens the chat.
-  const openAIChat = () => setAiBuilderRequest((value) => value + 1);
+  const [toolbarHidden, setToolbarHidden] = useAtom(atom_toolbarHidden);
 
   // The editor remounts on every tab switch, except when the draft was just
   // saved as a file: that keeps the caret, scroll and undo history.
@@ -69,7 +66,6 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
   const isVoicePreviewVisible = useAtomValue(atom_isVoicePreviewVisible);
   const isDimmed = isVoicePreviewVisible && !isActive;
 
-  const router = useRouter();
   const { handleSave, handleCopy, closeTabWithAutosave, buildTabMenuItems } = usePaneFileActions(leaf);
 
   // Drives the tab bar's Save button — replaces the old floating,
@@ -123,8 +119,11 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
     observer.observe(el);
     return () => observer.disconnect();
   }, [isMobileChrome]);
-  const hideCopyMarkdown = tabBarRowWidth < 440;
-  const hideSplitRight = tabBarRowWidth < 360;
+  // The top-right pane also carries the window actions, so it collapses sooner.
+  const reservedWidth = hostsWindowActions ? 264 : 0;
+  const hideCopyMarkdown = tabBarRowWidth < 240 + reservedWidth;
+  const hideSplitRight = tabBarRowWidth < 160 + reservedWidth;
+  const hasFiles = leaf.openFilePaths.length > 0;
   const openFileInPane = (filePath = leaf.activeFilePath) => {
     splitPane({ id: leaf.id, direction: "horizontal", filePath });
   };
@@ -139,14 +138,19 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
       onClick={() => setActivePaneId(leaf.id)}
     >
       {/* Pane tabs are the editor's desktop header, even for a single note. */}
+      {/* Hidden toolbar slides up under the pane's top edge (the pane clips
+          it); `inert` keeps its controls out of the tab order meanwhile. */}
       {!isMobileChrome && (
-      <div className="shrink-0 relative">
+      <div
+        className={`shrink-0 relative transition-[margin-top] duration-200 ease-out motion-reduce:transition-none ${toolbarHidden ? "-mt-11" : "mt-0"}`}
+        inert={toolbarHidden}
+      >
       <div
         ref={tabBarRowRef}
         className={PANE_HEADER_CLASS}
       >
         {/* Home stays at the far left. */}
-        {hasVault && (
+        {hasVault && hostsHome && (
           <div className={`${PANE_ACTIONS_CLASS} !ml-0`}>
             <Tooltip label="Home feed" position="bottom">
               <Button
@@ -155,7 +159,7 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
                 aria-label="Home feed"
                 className={PANE_ACTION_BUTTON_CLASS}
               >
-                <HiOutlineHome size={17} />
+                <HiOutlineHome size={PANE_ICON_SIZE} />
               </Button>
             </Tooltip>
           </div>
@@ -224,103 +228,54 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
 
           </TabStripScroller>{/* end scrollable tabs strip */}
 
-          {/* Fixed actions — always visible, never scrolled */}
-          <div className={PANE_ACTIONS_CLASS}>
-            {isActive && (
-              <Tooltip label="Command palette" shortcut={formatShortcut("K")}>
+          {/* This pane's actions — the same in every pane, focused or not,
+              so the header never reflows when focus moves. */}
+          <div className={PANE_ACTIONS_CLASS} role="toolbar" aria-label="Pane">
+            {!hideCopyMarkdown && (
+              <Tooltip label="Copy Markdown">
                 <Button
                   variant="icon"
-                  onClick={() => openCommandPalette()}
-                  aria-label="Command palette"
+                  onClick={handleCopy}
+                  disabled={!hasFiles}
+                  aria-label="Copy Markdown"
                   className={PANE_ACTION_BUTTON_CLASS}
                 >
-                  <HiOutlineSearch size={17} />
+                  <HiOutlineClipboardCopy size={PANE_ICON_SIZE} />
                 </Button>
               </Tooltip>
             )}
-            {isActive && isAiConfigured && (
-              <Tooltip label="AI Chat" shortcut={formatShortcut("B", { shift: true })}>
-                <Button
-                  variant="icon"
-                  onClick={openAIChat}
-                  aria-label="AI Chat"
-                  className={PANE_ACTION_BUTTON_CLASS}
-                >
-                  <HiOutlineChatAlt2 size={17} />
-                </Button>
-              </Tooltip>
-            )}
-            {isActive && (
-              <Tooltip label="Settings">
-                <Button
-                  variant="icon"
-                  onClick={() => router.push("/editor/settings")}
-                  aria-label="Settings"
-                  className={PANE_ACTION_BUTTON_CLASS}
-                >
-                  <HiOutlineCog size={17} />
-                </Button>
-              </Tooltip>
-            )}
-            {isActive && leaf.openFilePaths.length > 0 && (
-              <>
-                {/* App-wide | this file | this pane */}
-                <div className="w-px h-4 bg-edge-subtle mx-1 opacity-70" />
-                {leaf.type === "editor" && (
-                  <>
-                    <PaneModeSwitch iconOnly />
-                    <div className="w-px h-4 bg-edge-subtle mx-1 opacity-70" />
-                  </>
-                )}
-                {!hideCopyMarkdown && (
-                  <Tooltip label="Copy Markdown">
-                    <Button
-                      variant="icon"
-                      onClick={handleCopy}
-                      aria-label="Copy Markdown"
-                      className="w-8 h-8 flex items-center justify-center text-fg-muted hover:text-sage transition-all rounded-lg"
-                    >
-                      <HiOutlineClipboardCopy size={18} />
-                    </Button>
-                  </Tooltip>
-                )}
-                <Tooltip
-                  label={activeSaveState === "error" ? (saveStatus.message || activeSaveMeta.title) : activeSaveMeta.title}
-                  shortcut={formatShortcut("S")}
-                >
-                  <Button
-                    variant="icon"
-                    onClick={handleSave}
-                    disabled={activeSaveState === "saving"}
-                    aria-label={`Save — ${activeSaveMeta.title}`}
-                    className="w-8 h-8 flex items-center justify-center transition-all rounded-lg disabled:opacity-40 disabled:pointer-events-none"
-                  >
-                    {activeSaveState === "saving" ? (
-                      <span className="w-3.5 h-3.5 rounded-full border-2 border-edge border-t-sage animate-spin" />
-                    ) : activeSaveMeta.Icon ? (
-                      // Colored on the icon, not the Button: variant="icon" sets
-                      // its own text color at equal specificity, so a wrapper
-                      // class could lose depending on Tailwind's output order.
-                      <activeSaveMeta.Icon size={18} className={activeSaveState === "idle" ? undefined : activeSaveMeta.className} />
-                    ) : (
-                      <FiSave size={18} />
-                    )}
-                  </Button>
-                </Tooltip>
-                {(!hideSplitRight || !isOnlyPane) && (
-                  <div className="w-px h-4 bg-edge-subtle mx-1 opacity-70" />
-                )}
-              </>
-            )}
+            <Tooltip
+              label={activeSaveState === "error" ? (saveStatus.message || activeSaveMeta.title) : activeSaveMeta.title}
+              shortcut={formatShortcut("S")}
+            >
+              <Button
+                variant="icon"
+                onClick={handleSave}
+                disabled={!hasFiles || activeSaveState === "saving"}
+                aria-label={`Save — ${activeSaveMeta.title}`}
+                className={PANE_ACTION_BUTTON_CLASS}
+              >
+                {/* Colored on the icon, not the Button: variant="icon" sets
+                    its own text color at equal specificity, so a wrapper
+                    class could lose depending on Tailwind's output order. */}
+                <SaveStateIcon
+                  state={activeSaveState}
+                  size={PANE_ICON_SIZE}
+                  className={activeSaveState === "idle" ? undefined : activeSaveMeta.className}
+                />
+              </Button>
+            </Tooltip>
+            {(!hideSplitRight || !isOnlyPane) && <div className={PANE_DIVIDER_CLASS} />}
             {!hideSplitRight && (
-              <Tooltip label="Open in pane" position="bottom-end">
+              <Tooltip label="Split Right" position="bottom-end">
                 <Button
                   variant="icon"
                   onClick={() => openFileInPane()}
-                  aria-label="Open in pane"
-                  className="w-8 h-8 flex items-center justify-center text-ink-muted hover:text-ink-light dark:hover:text-ink-dark transition-all rounded-lg"
+                  disabled={!hasFiles}
+                  aria-label="Split Right"
+                  className={PANE_ACTION_BUTTON_CLASS}
                 >
-                  <VscSplitHorizontal size={16} />
+                  <HiOutlineViewBoards size={PANE_ICON_SIZE} />
                 </Button>
               </Tooltip>
             )}
@@ -330,15 +285,33 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
                   variant="icon"
                   onClick={() => closePane(leaf.id)}
                   aria-label="Close Pane"
-                  className="w-8 h-8 flex items-center justify-center text-zinc-400 hover:text-red-500 transition-all rounded-lg"
+                  className={PANE_ACTION_BUTTON_CLASS}
                 >
-                  <HiOutlineX size={18} />
+                  <HiOutlineXCircle size={PANE_ICON_SIZE} />
                 </Button>
               </Tooltip>
             )}
           </div>
+          {hostsWindowActions && <PaneWindowActions />}
       </div>
       </div>
+      )}
+
+      {/* While hidden, the top-right pane (home of the window actions) keeps a
+          small handle to bring the toolbar back. */}
+      {!isMobileChrome && toolbarHidden && hostsWindowActions && (
+        <div className="absolute top-1.5 right-3 z-30">
+          <Tooltip label="Show toolbar" shortcut={formatShortcut("T", { alt: true })} position="bottom-end">
+            <Button
+              variant="icon"
+              onClick={() => setToolbarHidden(false)}
+              aria-label="Show toolbar"
+              className="w-8 h-6 flex items-center justify-center rounded-full bg-surface-raised/70 backdrop-blur text-fg-faint opacity-60 hover:opacity-100 hover:text-fg focus-visible:opacity-100 transition-opacity"
+            >
+              <HiOutlineChevronDown size={14} />
+            </Button>
+          </Tooltip>
+        </div>
       )}
 
       {/* Pane Content */}
@@ -377,7 +350,7 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
             menuActions.push({
               label: "Open in pane",
               onClick: () => openFileInPane(tabMenu.path),
-              icon: <VscSplitHorizontal size={15} />,
+              icon: <HiOutlineViewBoards size={15} />,
             });
             const closeItems = buildTabMenuItems(tabMenu.path);
             if (menuActions.length > 0) closeItems[0] = { ...closeItems[0], divider: true };
