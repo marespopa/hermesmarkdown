@@ -28,7 +28,7 @@ describe("buildChatSystemPrompt", () => {
   });
 
   it("labels an unsaved document as Untitled", () => {
-    expect(buildChatSystemPrompt("draft", "")).toContain("ACTIVE FILE: Untitled ---");
+    expect(buildChatSystemPrompt("draft", "")).toContain("ACTIVE FILE: Untitled —");
   });
 
   it("truncates very long documents", () => {

@@ -10,9 +10,11 @@ function domError(name: string): DOMException {
 
 async function toBytes(content: Content): Promise<Uint8Array> {
   if (typeof content === "string") return new TextEncoder().encode(content);
-  if (content instanceof Uint8Array) return content.slice();
-  if (content instanceof ArrayBuffer) return new Uint8Array(content.slice(0));
-  return new Uint8Array(await content.arrayBuffer());
+  // Tag checks, not instanceof: jsdom and Node have separate realms, so an
+  // ArrayBuffer from TextEncoder fails `instanceof ArrayBuffer` under jsdom.
+  if (ArrayBuffer.isView(content)) return new Uint8Array(content.buffer.slice(content.byteOffset, content.byteOffset + content.byteLength));
+  if (Object.prototype.toString.call(content) === "[object ArrayBuffer]") return new Uint8Array((content as ArrayBuffer).slice(0));
+  return new Uint8Array(await (content as { arrayBuffer(): Promise<ArrayBuffer> }).arrayBuffer());
 }
 
 export function fakeFile(name: string, content: string | Uint8Array, webkitRelativePath = ""): File {
