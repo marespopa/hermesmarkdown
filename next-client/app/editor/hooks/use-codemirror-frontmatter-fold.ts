@@ -26,14 +26,12 @@ export function useCodeMirrorFrontmatterFold({
 
   const recompute = useCallback((view: EditorView) => {
     const range = findFrontmatterFoldRange(view.state.doc.toString());
+    // coordsAtPos first: it can flush a pending CodeMirror measure — e.g. the
+    // scrollIntoView of an Edit/Preview switch — which scrolls the canvas. A
+    // wrapper rect read before that is stale and put the chevron above the sheet.
+    const coords = range ? view.coordsAtPos(range.titleOffset) : null;
     const wrapperRect = containerRef.current?.getBoundingClientRect();
-    if (!range || !wrapperRect) {
-      setChevrons([]);
-      return;
-    }
-
-    const coords = view.coordsAtPos(range.titleOffset);
-    if (!coords) {
+    if (!range || !coords || !wrapperRect) {
       setChevrons([]);
       return;
     }

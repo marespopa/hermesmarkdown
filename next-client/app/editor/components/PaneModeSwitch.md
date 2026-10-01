@@ -1,6 +1,6 @@
 # PaneModeSwitch
 
-Description: The app-wide Edit | Preview switch, built on `ModeSwitch`. Preview is the read-only reading view (`codemirror/preview-mode.ts`). `PaneLeaf` shows it in the active pane's header (icon-only when the header is narrow), and `MobileFileIndicator` shows it icon-only in the mobile bar. On desktop it has a tooltip with the Ctrl/Cmd+Alt+P shortcut.
+Description: The app-wide Edit | Preview switch, built on `ModeSwitch`. Preview is the read-only reading view (`codemirror/preview-mode.ts`). `PaneLeaf` shows it icon-only in the active pane's header, between dividers, and `MobileFileIndicator` shows it icon-only in the mobile bar. On desktop it has a tooltip with the Ctrl/Cmd+Alt+P shortcut.
 
 ## Local State & Storage
 - State: `atom_viewMode` (read/write).

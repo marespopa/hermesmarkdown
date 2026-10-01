@@ -41,6 +41,7 @@ Index of the editor UI. Each component has a sibling `<Name>.md` (a token-lean d
 | [SectionHeader](SectionHeader.md) | Collapsible section header with a title, a chevron toggle, and an optional trailing action. |
 | [SmartFolders](SmartFolders.md) | Lists custom workspaces (saved metadata queries) and the files each one matches, with create, edit, and delete through `WorkspaceBuilder`. |
 | [TabContextMenu](TabContextMenu.md) | Right-click menu positioned at the cursor and clamped to the viewport, used for tab and file actions. |
+| [TabStripScroller](TabStripScroller.md) | Horizontally scrolling tab strip that shows left/right scroll arrows at its end when the tabs overflow. |
 | [TaskDialog](TaskDialog.md) | Form for building a task line (title, status, priority, due date, tags). |
 | [UnifiedSearchInput](UnifiedSearchInput.md) | Search field that turns `#tag` entries into removable tag chips alongside free text, with tag autocomplete. |
 | [VaultAccessGate](VaultAccessGate.md) | Wraps every /editor route: restores the saved vault on load and keeps the route hidden until it is readable, with the Restore Access prompt when needed. |

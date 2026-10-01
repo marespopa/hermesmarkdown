@@ -178,7 +178,7 @@ describe("PaneLeaf Tab Indicators", () => {
     // Home needs a vault (the feed lists vault notes).
     expect(screen.queryByRole("button", { name: "Home feed" })).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: /^Save/ })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Tab options" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Tab options" })).not.toBeInTheDocument();
   });
 
   it("opens settings from the pane actions", () => {

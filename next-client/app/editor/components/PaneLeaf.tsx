@@ -9,7 +9,7 @@ import { atom_activePaneId, atom_fileContent, atom_openFiles, atom_splitPane, at
 import { atom_aiBuilderRequest, atom_homeFeedOpen, atom_isAiConfigured, atom_isVoicePreviewVisible } from "@/app/atoms/ui-atoms";
 import { atom_materializedDraftPath } from "@/app/atoms/file-atoms";
 import { atom_vaultHandle } from "@/app/atoms/vault-atoms";
-import { HiOutlineDocumentText, HiOutlineChartBar, HiOutlineX, HiOutlineClipboardCopy, HiOutlineDotsHorizontal, HiOutlineHome, HiOutlineSearch, HiOutlineChatAlt2, HiOutlineCog } from "react-icons/hi";
+import { HiOutlineDocumentText, HiOutlineChartBar, HiOutlineX, HiOutlineClipboardCopy, HiOutlineHome, HiOutlineSearch, HiOutlineChatAlt2, HiOutlineCog } from "react-icons/hi";
 import { FiSave } from "react-icons/fi";
 import { useRouter } from "next/navigation";
 import { VscSplitHorizontal } from "react-icons/vsc";
@@ -24,6 +24,7 @@ import { usePaneFileActions } from "../hooks/use-pane-file-actions";
 import { useTabDragDrop } from "../hooks/use-tab-drag-drop";
 import PaneEmptyState from "./PaneEmptyState";
 import PaneModeSwitch from "./PaneModeSwitch";
+import TabStripScroller from "./TabStripScroller";
 import { PANE_ACTION_BUTTON_CLASS, PANE_ACTIONS_CLASS, PANE_HEADER_CLASS } from "./pane-header-classes";
 import { useCommandPalette } from "@/app/components/CommandPalette/CommandPaletteContext";
 
@@ -97,7 +98,7 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
     }
   };
 
-  const [tabMenu, setTabMenu] = React.useState<{ x: number; y: number; path: string; includeActions?: boolean } | null>(null);
+  const [tabMenu, setTabMenu] = React.useState<{ x: number; y: number; path: string } | null>(null);
   const tabShortcutNumbers = React.useMemo(
     () => new Map(
       getWorkspaceTabs(workspaceLayout.rootContainer)
@@ -108,7 +109,7 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
   );
 
   // Progressive collapse: as the pane narrows (e.g. after a split), fold
-  // lower-priority actions into the "Tab options" menu instead of letting
+  // lower-priority actions into the active tab's context menu instead of letting
   // them get clipped by the row's overflow-hidden. Save and Close Pane stay
   // put — they're the ones people reach for even in a squeezed pane.
   const tabBarRowRef = React.useRef<HTMLDivElement>(null);
@@ -160,7 +161,7 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
           </div>
         )}
         {/* Scrollable tabs strip */}
-          <div
+          <TabStripScroller
             className="flex items-center flex-1 overflow-x-auto overflow-y-hidden scrollbar-none h-full px-1.5 min-w-0"
             onDragOver={(e) => handleDragOver(e)}
             onDragLeave={handleDragLeave}
@@ -221,7 +222,7 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
             );
           })}
 
-          </div>{/* end scrollable tabs strip */}
+          </TabStripScroller>{/* end scrollable tabs strip */}
 
           {/* Fixed actions — always visible, never scrolled */}
           <div className={PANE_ACTIONS_CLASS}>
@@ -265,7 +266,12 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
               <>
                 {/* App-wide | this file | this pane */}
                 <div className="w-px h-4 bg-edge-subtle mx-1 opacity-70" />
-                {leaf.type === "editor" && <PaneModeSwitch iconOnly={hideCopyMarkdown} />}
+                {leaf.type === "editor" && (
+                  <>
+                    <PaneModeSwitch iconOnly />
+                    <div className="w-px h-4 bg-edge-subtle mx-1 opacity-70" />
+                  </>
+                )}
                 {!hideCopyMarkdown && (
                   <Tooltip label="Copy Markdown">
                     <Button
@@ -299,19 +305,6 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
                     ) : (
                       <FiSave size={18} />
                     )}
-                  </Button>
-                </Tooltip>
-                <Tooltip label="Tab options">
-                  <Button
-                    variant="icon"
-                    onClick={(e) => {
-                      const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
-                      setTabMenu({ x: rect.left, y: rect.bottom + 4, path: leaf.activeFilePath || "draft", includeActions: true });
-                    }}
-                    aria-label="Tab options"
-                    className="w-8 h-8 flex items-center justify-center text-ink-muted hover:text-ink-light dark:hover:text-ink-dark transition-all rounded-lg"
-                  >
-                    <HiOutlineDotsHorizontal size={16} />
                   </Button>
                 </Tooltip>
                 {(!hideSplitRight || !isOnlyPane) && (
@@ -377,7 +370,8 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
           y={tabMenu.y}
           items={(() => {
             const menuActions: TabContextMenuItem[] = [];
-            if (tabMenu.includeActions && hideCopyMarkdown) {
+            // A narrow header drops Copy Markdown; the active tab's menu offers it.
+            if (hideCopyMarkdown && tabMenu.path === (leaf.activeFilePath || "draft")) {
               menuActions.push({ label: "Copy Markdown", onClick: handleCopy, icon: <HiOutlineClipboardCopy size={15} /> });
             }
             menuActions.push({

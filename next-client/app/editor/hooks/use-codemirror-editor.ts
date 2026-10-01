@@ -8,7 +8,7 @@ import { getCM, Vim, vim } from "@replit/codemirror-vim";
 import type { SlashMenuCallbacks } from "../codemirror/slash-menu";
 import type { WikiLinkTriggerCallback } from "../codemirror/wikilink-trigger";
 import { flowMode as flowModeExtension } from "../codemirror/flow-mode";
-import { isPreviewMode, previewExtension } from "../codemirror/preview-mode";
+import { caretOutsideFolds, isPreviewMode, previewExtension } from "../codemirror/preview-mode";
 
 interface UseCodeMirrorEditorOptions {
   value: string;
@@ -253,7 +253,7 @@ export function useCodeMirrorEditor({
         compartment.reconfigure(previewExtension(previewMode)),
         CodeMirrorView.scrollIntoView(anchor, { y: "start" }),
       ],
-      ...(previewMode ? {} : { selection: { anchor: Math.min(caret, view.state.doc.length) } }),
+      ...(previewMode ? {} : { selection: { anchor: caretOutsideFolds(view.state, caret) } }),
     });
     softCrossfade(view.scrollDOM);
   }, [previewMode, viewRef]);

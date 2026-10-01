@@ -190,6 +190,13 @@ describe("CommandPalette", () => {
     expect(screen.getByRole("listbox")).toHaveTextContent("Test command");
   });
 
+  it("stays closed on Ctrl/Cmd+Alt+P, the Edit / Preview shortcut", () => {
+    renderPalette();
+    fireEvent.keyDown(document, { key: "p", code: "KeyP", ctrlKey: true, altKey: true });
+
+    expect(screen.queryByRole("combobox")).not.toBeInTheDocument();
+  });
+
   it("prioritizes frequently used commands in empty command mode", async () => {
     renderPalette([[atom_commandUseCounts, { "test-command": 3, "new-file": 1 }]]);
     fireEvent.keyDown(document, { key: "k", ctrlKey: true, shiftKey: true });

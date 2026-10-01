@@ -1,4 +1,4 @@
-import { syntaxTree } from "@codemirror/language";
+import { foldedRanges, syntaxTree } from "@codemirror/language";
 import { EditorState, type Extension, Prec, type Range, StateField } from "@codemirror/state";
 import { Decoration, type DecorationSet, EditorView, WidgetType } from "@codemirror/view";
 import type { SyntaxNode } from "@lezer/common";
@@ -233,6 +233,18 @@ const previewTheme = EditorView.theme({
     display: "none",
   },
 });
+
+// Where the caret goes on leaving Preview. CodeMirror drops a fold whose
+// interior holds the selection head, so a caret inside a folded range (e.g.
+// the closing `---` of collapsed frontmatter, the first "visible" line) would
+// expand it; move such a caret to the fold's start instead.
+export function caretOutsideFolds(state: EditorState, pos: number): number {
+  let caret = Math.min(Math.max(pos, 0), state.doc.length);
+  foldedRanges(state).between(caret, caret, (from, to) => {
+    if (from < caret && caret < to) caret = from;
+  });
+  return caret;
+}
 
 // Everything Preview adds, or nothing in Edit mode.
 export function previewExtension(on: boolean): Extension {
