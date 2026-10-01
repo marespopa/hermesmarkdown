@@ -1,3 +1,4 @@
+// @vitest-environment node
 import { describe, it, expect } from "vitest";
 import { parseFmFields, updateFmFields, FM_REGEX } from "./frontmatter-utils";
 

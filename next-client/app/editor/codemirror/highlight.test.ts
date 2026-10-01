@@ -1,3 +1,4 @@
+// @vitest-environment node
 import { describe, it, expect } from "vitest";
 import { EditorState } from "@codemirror/state";
 import { computeMarkdownDecorations, isHorizontalRule } from "./highlight";

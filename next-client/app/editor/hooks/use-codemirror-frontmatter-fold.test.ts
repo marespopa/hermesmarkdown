@@ -21,8 +21,12 @@ describe("useCodeMirrorFrontmatterFold", () => {
       },
     } as unknown as EditorView;
 
+    // Stable refs, like useRef — fresh objects per render would re-fire the
+    // hook's effect on every render and loop forever.
+    const viewRef = { current: view };
+    const containerRef = { current: container };
     const { result } = renderHook(() =>
-      useCodeMirrorFrontmatterFold({ containerRef: { current: container }, collapseByDefault: false }),
+      useCodeMirrorFrontmatterFold({ viewRef, containerRef, collapseByDefault: false }),
     );
     act(() => result.current.onCursorActivity(view));
 

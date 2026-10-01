@@ -1,3 +1,4 @@
+// @vitest-environment node
 import { describe, expect, it } from "vitest";
 import type { FileMetadata } from "@/app/atoms/metadata";
 import { buildFeed, dayLabel, feedTitle, isFeedPath } from "./feed-model";

@@ -136,6 +136,7 @@ describe("buildEditorCommands", () => {
       "toggle-word-wrap",
       "toggle-line-numbers",
       "toggle-flow-mode",
+      "toggle-toolbar",
       "toggle-preview-mode",
       "start-welcome-tour",
       "go-home",

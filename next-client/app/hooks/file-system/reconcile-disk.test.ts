@@ -1,3 +1,4 @@
+// @vitest-environment node
 import { describe, it, expect } from "vitest";
 import { reconcileWithDisk } from "./reconcile-disk";
 import type { FileState } from "@/app/atoms/file-atoms";

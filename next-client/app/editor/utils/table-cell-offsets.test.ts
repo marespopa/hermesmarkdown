@@ -1,3 +1,4 @@
+// @vitest-environment node
 import { describe, it, expect } from "vitest";
 import { findTableAtPos } from "./table-detection";
 import { getTableCellOffsets } from "./table-cell-offsets";

@@ -14,60 +14,63 @@ Object.defineProperty(globalThis, "Worker", {
   configurable: true,
 });
 
-// Mock localStorage
-const localStorageMock = (() => {
-  let store: Record<string, string> = {};
-  return {
-    getItem: vi.fn((key: string) => store[key] || null),
-    setItem: vi.fn((key: string, value: string) => {
-      store[key] = value.toString();
-    }),
-    clear: vi.fn(() => {
-      store = {};
-    }),
-    removeItem: vi.fn((key: string) => {
-      delete store[key];
-    }),
-    length: 0,
-    key: vi.fn((index: number) => Object.keys(store)[index] || null),
-  };
-})();
+// DOM shims — skipped for test files that opt into `@vitest-environment node`.
+if (typeof window !== "undefined") {
+  // Mock localStorage
+  const localStorageMock = (() => {
+    let store: Record<string, string> = {};
+    return {
+      getItem: vi.fn((key: string) => store[key] || null),
+      setItem: vi.fn((key: string, value: string) => {
+        store[key] = value.toString();
+      }),
+      clear: vi.fn(() => {
+        store = {};
+      }),
+      removeItem: vi.fn((key: string) => {
+        delete store[key];
+      }),
+      length: 0,
+      key: vi.fn((index: number) => Object.keys(store)[index] || null),
+    };
+  })();
 
-Object.defineProperty(window, "localStorage", {
-  value: localStorageMock,
-});
+  Object.defineProperty(window, "localStorage", {
+    value: localStorageMock,
+  });
 
-// Mock scrollIntoView
-window.HTMLElement.prototype.scrollIntoView = vi.fn();
+  // Mock scrollIntoView
+  window.HTMLElement.prototype.scrollIntoView = vi.fn();
 
-// jsdom doesn't implement Range.getClientRects, which CodeMirror 6's
-// internal layout-measure loop calls (via requestAnimationFrame) even for
-// headless EditorViews with no `parent` DOM node — without this, every CM6
-// test throws an uncaught "getClientRects is not a function" between tests.
-if (!Range.prototype.getClientRects) {
-  Range.prototype.getClientRects = function () {
-    return [] as unknown as DOMRectList;
-  };
+  // jsdom doesn't implement Range.getClientRects, which CodeMirror 6's
+  // internal layout-measure loop calls (via requestAnimationFrame) even for
+  // headless EditorViews with no `parent` DOM node — without this, every CM6
+  // test throws an uncaught "getClientRects is not a function" between tests.
+  if (!Range.prototype.getClientRects) {
+    Range.prototype.getClientRects = function () {
+      return [] as unknown as DOMRectList;
+    };
+  }
+
+  // jsdom doesn't implement matchMedia — used by responsive hooks like
+  // use-is-mobile/use-mobile-chrome.
+  window.matchMedia = window.matchMedia || vi.fn().mockImplementation((query: string) => ({
+    matches: false,
+    media: query,
+    onchange: null,
+    addListener: vi.fn(),
+    removeListener: vi.fn(),
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+    dispatchEvent: vi.fn(),
+  }));
+
+  // jsdom doesn't implement ResizeObserver — used by layout-measuring hooks
+  // like use-editor-appearance and PaneLeaf's tab-bar width tracking.
+  class ResizeObserverMock {
+    observe = vi.fn();
+    unobserve = vi.fn();
+    disconnect = vi.fn();
+  }
+  window.ResizeObserver = window.ResizeObserver || (ResizeObserverMock as unknown as typeof ResizeObserver);
 }
-
-// jsdom doesn't implement matchMedia — used by responsive hooks like
-// use-is-mobile/use-mobile-chrome.
-window.matchMedia = window.matchMedia || vi.fn().mockImplementation((query: string) => ({
-  matches: false,
-  media: query,
-  onchange: null,
-  addListener: vi.fn(),
-  removeListener: vi.fn(),
-  addEventListener: vi.fn(),
-  removeEventListener: vi.fn(),
-  dispatchEvent: vi.fn(),
-}));
-
-// jsdom doesn't implement ResizeObserver — used by layout-measuring hooks
-// like use-editor-appearance and PaneLeaf's tab-bar width tracking.
-class ResizeObserverMock {
-  observe = vi.fn();
-  unobserve = vi.fn();
-  disconnect = vi.fn();
-}
-window.ResizeObserver = window.ResizeObserver || (ResizeObserverMock as unknown as typeof ResizeObserver);
