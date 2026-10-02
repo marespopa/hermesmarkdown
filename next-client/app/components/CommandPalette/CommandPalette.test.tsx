@@ -1,5 +1,5 @@
 import React from "react";
-import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { Provider } from "jotai";
 import { useHydrateAtoms } from "jotai/utils";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -7,6 +7,8 @@ import { version } from "../../../package.json";
 import CommandPalette from "./CommandPalette";
 import { CommandPaletteProvider, useCommandPalette, useRegisterCommand } from "./CommandPaletteContext";
 import { atom_fileMetadata } from "@/app/atoms/metadata";
+import { atom_privacyLevel } from "@/app/atoms/privacy-atoms";
+import { MASKED_TEXT } from "@/app/utils/note-display";
 import {
   atom_activeEditorView,
   atom_commandUseCounts,
@@ -654,6 +656,74 @@ describe("CommandPalette", () => {
       expect(startViewTransition).not.toHaveBeenCalled();
       // A normal open keeps the panel's own enter animation.
       expect(document.querySelector(".slide-in-from-top-1")).not.toBeNull();
+    });
+  });
+
+  describe("sensitive notes", () => {
+    const SECRET_TASK = "Wire the secret payment";
+    const privateNotes = {
+      "Payroll.md": {
+        path: "Payroll.md", name: "Payroll.md", handle: { kind: "file", name: "Payroll.md" },
+        tags: ["finance"], links: [], frontmatter: { sensitive: "true" }, modifiedAt: 2, wordCount: 3,
+        tasks: [{
+          id: "Payroll.md#4", path: "Payroll.md", line: 4, checked: false, inProgress: false, onHold: false,
+          dueDate: null, priority: null, tags: ["money"], text: SECRET_TASK, raw: `- [ ] ${SECRET_TASK}`, lineHash: "hash",
+        }],
+      },
+      "Planning.md": {
+        path: "Planning.md", name: "Planning.md", handle: { kind: "file", name: "Planning.md" },
+        tags: ["finance"], links: [], frontmatter: {}, modifiedAt: 1, wordCount: 1, tasks: [],
+      },
+    };
+
+    async function search(value: string) {
+      fireEvent.keyDown(document, { key: "k", ctrlKey: true });
+      fireEvent.change(await screen.findByRole("combobox"), { target: { value } });
+    }
+
+    it("marks a sensitive file row with a lock", async () => {
+      renderPalette([[atom_fileMetadata, privateNotes]]);
+      await search("md");
+      const row = screen.getByRole("option", { name: /Payroll\.md/ });
+      expect(row).toHaveAccessibleName(/\(sensitive\)/);
+      expect(within(row).getByLabelText("Sensitive note")).toBeInTheDocument();
+      expect(within(screen.getByRole("option", { name: /Planning\.md/ })).queryByLabelText("Sensitive note")).toBeNull();
+    });
+
+    it("leaves sensitive files out of search, #tag, recent and pinned rows in hidden mode", async () => {
+      renderPalette([
+        [atom_fileMetadata, privateNotes],
+        [atom_privacyLevel, "hidden"],
+        [atom_palettePinnedItems, [{ kind: "file", id: "Payroll.md" }]],
+        [atom_recentFilePaths, ["Payroll.md", "Planning.md"]],
+      ]);
+      fireEvent.keyDown(document, { key: "k", ctrlKey: true });
+      const input = await screen.findByRole("combobox");
+      expect(screen.getByRole("listbox")).toHaveTextContent("Planning.md");
+      expect(screen.getByRole("listbox")).not.toHaveTextContent("Payroll");
+
+      fireEvent.change(input, { target: { value: "payroll" } });
+      expect(screen.queryByRole("option", { name: /Payroll\.md/ })).not.toBeInTheDocument();
+
+      fireEvent.change(input, { target: { value: "#finance" } });
+      expect(screen.getByRole("option", { name: /Planning\.md/ })).toBeInTheDocument();
+      expect(screen.queryByRole("option", { name: /Payroll\.md/ })).not.toBeInTheDocument();
+    });
+
+    it("lists a masked task for an empty ! query, never its text", async () => {
+      renderPalette([[atom_fileMetadata, privateNotes]]);
+      await search("!");
+      const row = screen.getByRole("option", { name: /Sensitive task/ });
+      expect(row).toHaveTextContent(MASKED_TEXT);
+      expect(row).toHaveTextContent("Payroll.md:5");
+      expect(document.body.textContent).not.toContain(SECRET_TASK);
+    });
+
+    it("never matches a masked task by its text", async () => {
+      renderPalette([[atom_fileMetadata, privateNotes]]);
+      await search("!secret");
+      expect(screen.queryByRole("option", { name: /Sensitive task/ })).not.toBeInTheDocument();
+      expect(screen.getByText("No matches found")).toBeInTheDocument();
     });
   });
 });

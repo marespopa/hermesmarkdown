@@ -25,6 +25,7 @@ Shared, app-agnostic UI primitives. Each component has a sibling `<Name>.md` (st
 | [ModeSwitch](ModeSwitch/ModeSwitch.md) | Segmented control with a sliding thumb (radio group), used for the Edit / Preview switch. |
 | [OverlayLayer](OverlayLayer/OverlayLayer.md) | `OverlayPanel`/`OverlayBackdrop`: portal, dismissal, focus trap, and scroll lock. |
 | [Portal](Portal/Portal.md) | Renders children into `document.body` via `createPortal` once the component has mounted on the client. |
+| [SensitiveBadge](SensitiveBadge/SensitiveBadge.md) | Small lock icon (`aria-label="Sensitive note"`) marking sensitive notes and their tasks in listings. |
 | [ServiceWorkerRegister](ServiceWorkerRegister.md) | Registers the offline service worker and offers a reload when a new version is ready. |
 | [ThemeProvider](ThemeProvider.md) | Applies the resolved light/dark theme class to `<html>` in a layout effect, so the theme switches without a flash. |
 | [Toast](Toast/Toast.md) | Persistent call-to-action card with icon, title, action button, and an optional inline name field. |

@@ -1,7 +1,13 @@
 // @vitest-environment node
 import { describe, expect, it } from "vitest";
 import type { FileMetadata } from "@/app/atoms/metadata";
-import { buildFeed, dayLabel, feedTitle, isFeedPath } from "./feed-model";
+import { buildNoteDisplayItems, MASKED_PREVIEW, type PrivacyLevel } from "@/app/utils/note-display";
+import { buildFeed as buildFeedWith, dayLabel, feedTitle, isFeedPath } from "./feed-model";
+
+// Builds the feed through the display factory, as HomeFeed does.
+function buildFeed(metadata: Record<string, FileMetadata>, now: Date, level: PrivacyLevel = "show_title") {
+  return buildFeedWith(metadata, buildNoteDisplayItems(metadata, level), now);
+}
 
 const NOW = new Date(2026, 8, 28, 15, 0); // Mon Sep 28 2026
 
@@ -93,5 +99,24 @@ describe("buildFeed", () => {
   it("passes the indexed preview through", () => {
     const [entry] = buildFeed({ a: meta("a.md", NOW, { preview: "Body text" }) }, NOW);
     expect(entry.preview).toBe("Body text");
+    expect(entry).toMatchObject({ isSensitive: false, previewStyle: "plain" });
+  });
+
+  it("carries sensitivity and the preview style of sensitive notes", () => {
+    const notes = { s: meta("s.md", NOW, { preview: "Secret", frontmatter: { tags: "private" } }) };
+    expect(buildFeed(notes, NOW)[0]).toMatchObject({ isSensitive: true, previewStyle: "masked", preview: MASKED_PREVIEW });
+    expect(buildFeed(notes, NOW, "blurred")[0]).toMatchObject({ isSensitive: true, previewStyle: "blurred", preview: "Secret" });
+  });
+
+  it("leaves hidden notes out and recomputes day labels after exclusion", () => {
+    const feed = buildFeed({
+      s: meta("secret.md", new Date(2026, 8, 28, 12), { preview: "Secret", frontmatter: { sensitive: "true" } }),
+      a: meta("a.md", new Date(2026, 8, 28, 9), { preview: "A" }),
+      b: meta("b.md", new Date(2026, 8, 27, 9), { preview: "B" }),
+    }, NOW, "hidden");
+
+    expect(feed.map((entry) => entry.path)).toEqual(["a.md", "b.md"]);
+    expect(feed[0].dayLabel).toBe("Today");
+    expect(feed[1].dayLabel).toBe("Yesterday");
   });
 });

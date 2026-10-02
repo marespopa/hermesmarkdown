@@ -1,9 +1,11 @@
 import React from "react";
 import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { Provider } from "jotai";
+import { Provider, createStore } from "jotai";
 import { useHydrateAtoms } from "jotai/utils";
 import { atom_fileMetadata, type FileMetadata } from "@/app/atoms/metadata";
+import { atom_privacyLevel } from "@/app/atoms/privacy-atoms";
+import { MASKED_PREVIEW, type PrivacyLevel } from "@/app/utils/note-display";
 import { atom_indexerState, atom_userName, type IndexerState } from "@/app/atoms/ui-atoms";
 import HomeFeed from "./HomeFeed";
 import { INDEXING_VERBS, ROTATE_MS } from "./home-feed/FeedStatus";
@@ -180,5 +182,58 @@ describe("HomeFeed", () => {
   it("hides the indexing status when idle", () => {
     renderFeed(NOTES);
     expect(screen.queryByRole("status")).not.toBeInTheDocument();
+  });
+});
+
+describe("HomeFeed privacy", () => {
+  beforeEach(() => cleanup());
+
+  const SECRET = "Revenue was 42,246RON";
+  const PRIVATE_NOTES = {
+    "plain.md": meta("plain.md", 10, "Plain body"),
+    "secret.md": { ...meta("secret.md", 5, SECRET), frontmatter: { sensitive: "true" } },
+  };
+
+  function renderWithLevel(level: PrivacyLevel) {
+    const store = createStore();
+    store.set(atom_fileMetadata, PRIVATE_NOTES);
+    store.set(atom_indexerState, "idle");
+    store.set(atom_privacyLevel, level);
+    render(
+      <Provider store={store}>
+        <HomeFeed onOpenNote={vi.fn()} onNewNote={vi.fn()} onSearch={vi.fn()} onClose={vi.fn()} />
+      </Provider>,
+    );
+  }
+
+  it("shows the title, a lock and masked bullets by default, never the real preview", () => {
+    renderWithLevel("show_title");
+    const rows = screen.getAllByRole("option");
+    expect(rows).toHaveLength(2);
+    expect(rows[0]).toHaveTextContent("secret");
+    expect(screen.getByLabelText("Sensitive note")).toBeInTheDocument();
+    expect(rows[0]).toHaveTextContent(MASKED_PREVIEW);
+    expect(rows[0]).toHaveTextContent("Preview hidden");
+    expect(document.body.textContent).not.toContain(SECRET);
+    expect(rows[1]).toHaveTextContent("Plain body");
+    expect(screen.getByRole("button", { name: "secret (sensitive)" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "plain" })).toBeInTheDocument();
+  });
+
+  it("leaves sensitive notes out in hidden mode", () => {
+    renderWithLevel("hidden");
+    const rows = screen.getAllByRole("option");
+    expect(rows).toHaveLength(1);
+    expect(rows[0]).toHaveTextContent("plain");
+    expect(screen.queryByLabelText("Sensitive note")).not.toBeInTheDocument();
+    expect(document.body.textContent).not.toContain("secret");
+  });
+
+  it("renders the preview blurred, announced as blurred, in blurred mode", () => {
+    renderWithLevel("blurred");
+    const rows = screen.getAllByRole("option");
+    expect(rows[0]).toHaveTextContent(SECRET);
+    expect(rows[0]).toHaveTextContent("Preview blurred");
+    expect(screen.getByText(SECRET)).toHaveAttribute("aria-hidden", "true");
   });
 });

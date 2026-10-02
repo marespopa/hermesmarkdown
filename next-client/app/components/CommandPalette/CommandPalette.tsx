@@ -1,9 +1,9 @@
 "use client";
 
-import { atom_fileMetadata } from "@/app/atoms/metadata";
-import { atom_allTasks } from "@/app/atoms/task-atoms";
+import { atom_visibleTasks } from "@/app/atoms/task-atoms";
 import { atom_activeEditorView, atom_commandUseCounts, atom_editorFontFamily, atom_palettePinnedItems, atom_recentFilePaths, atom_showHiddenFiles, atom_theme, type PalettePinnedItem } from "@/app/atoms/ui-atoms";
 import Button from "@/app/components/Button";
+import SensitiveBadge from "@/app/components/SensitiveBadge";
 import OverlayPanel from "@/app/components/OverlayLayer/OverlayPanel";
 import { showErrorToast } from "@/app/components/Toastr";
 import { useFileSystem } from "@/app/hooks/use-file-system";
@@ -19,12 +19,12 @@ import { version } from "../../../package.json";
 import { fuzzyMatch, matchCommand, matchFile } from "./command-search";
 import { type Command, useCommandPalette } from "./CommandPaletteContext";
 import PaletteSearchBar from "./PaletteSearchBar";
-import { buildCreateRow, SEARCH_OR_CREATE_PLACEHOLDER, COMMAND_MODE_DEFAULT_ORDER, type FileResult, HighlightedText, MAX_PINS, MAX_VISIBLE_ROWS, parentFolder, pinnedKey, type Row, type Scope, scopeFromPrefix, scopePrefix, type TaggedFileMatch, THEME_CYCLE } from "./palette-model";
+import { usePaletteFiles } from "./use-palette-files";
+import { buildCreateRow, buildTaskRows, SEARCH_OR_CREATE_PLACEHOLDER, COMMAND_MODE_DEFAULT_ORDER, HighlightedText, MAX_PINS, MAX_VISIBLE_ROWS, parentFolder, pinnedKey, type Row, type Scope, scopeFromPrefix, scopePrefix, type TaggedFileMatch, THEME_CYCLE } from "./palette-model";
 
 export default function CommandPalette() {
   const { isOpen, initialQuery, close, commands, markUsed, createNote, isMorphing } = useCommandPalette();
-  const fileMetadata = useAtomValue(atom_fileMetadata);
-  const tasks = useAtomValue(atom_allTasks);
+  const tasks = useAtomValue(atom_visibleTasks);
   const activeEditorView = useAtomValue(atom_activeEditorView);
   const showHiddenFiles = useAtomValue(atom_showHiddenFiles);
   const fontFamily = useAtomValue(atom_editorFontFamily);
@@ -66,23 +66,7 @@ export default function CommandPalette() {
     requestAnimationFrame(() => inputRef.current?.focus());
   }, [initialQuery, isOpen]);
 
-  const files = useMemo<FileResult[]>(
-    () => Object.values(fileMetadata)
-      .filter((metadata) => showHiddenFiles || !metadata.path.split("/").some((segment) => segment.startsWith("_")))
-      .map((metadata) => ({ path: metadata.path, name: metadata.name, handle: metadata.handle as FileSystemFileHandle, tags: metadata.tags })),
-    [fileMetadata, showHiddenFiles],
-  );
-  const filesByTag = useMemo(() => {
-    const indexedFiles = new Map<string, FileResult[]>();
-    files.forEach((file) => file.tags.forEach((rawTag) => {
-      const tag = rawTag.replace(/^#/, "").trim().toLowerCase();
-      if (!tag) return;
-      const taggedFiles = indexedFiles.get(tag);
-      if (taggedFiles) taggedFiles.push(file);
-      else indexedFiles.set(tag, [file]);
-    }));
-    return indexedFiles;
-  }, [files]);
+  const { files, filesByTag, existingFiles } = usePaletteFiles(showHiddenFiles);
 
   const scopedRows = useMemo<Row[]>(() => {
     if (!scope) return [];
@@ -152,11 +136,7 @@ export default function CommandPalette() {
         .sort((a, b) => b.score - a.score || a.label.localeCompare(b.label));
     }
     if (scope === "task") {
-      return tasks.map((task) => {
-        const match = fuzzyMatch(query, task.text);
-        return match ? { kind: "task" as const, id: task.id, label: task.text || "(empty task)", detail: `${task.path}:${task.line + 1}`, titleIndices: match.indices, detailIndices: [] as number[], score: match.score } : null;
-      }).filter((row): row is Extract<Row, { kind: "task" }> => row !== null)
-        .sort((a, b) => b.score - a.score || a.label.localeCompare(b.label));
+      return buildTaskRows(query, tasks);
     }
     if (!activeEditorView) return [];
     const headings: Extract<Row, { kind: "heading" }>[] = [];
@@ -190,8 +170,8 @@ export default function CommandPalette() {
   }, [files, paletteCommands]);
 
   const createRow = useMemo(
-    () => (scope || !createNote ? null : buildCreateRow(query, files)),
-    [createNote, files, query, scope],
+    () => (scope || !createNote ? null : buildCreateRow(query, existingFiles)),
+    [createNote, existingFiles, query, scope],
   );
 
   const rows = useMemo(() => {
@@ -342,11 +322,13 @@ export default function CommandPalette() {
         const selected = index === selectedIndex;
         const context = resultContext(row);
         const folder = row.kind === "file" ? parentFolder(row.file.path) : "";
-        const accessibleLabel = [row.label, context, folder].filter(Boolean).join(" ");
+        const isMaskedTask = row.kind === "task" && row.isMasked;
+        const isSensitive = isMaskedTask || (row.kind === "file" && row.file.isSensitive);
+        const accessibleLabel = [isMaskedTask ? "Sensitive task" : row.label, isSensitive && !isMaskedTask ? "(sensitive)" : null, context, folder].filter(Boolean).join(" ");
         return <Button key={`${row.kind}:${row.id}`} variant="menu-item" id={`command-palette-option-${index}`} role="option" aria-label={accessibleLabel} aria-selected={selected} aria-disabled={row.kind === "command" && !!row.command.disabledReason} aria-busy={runningId === row.id}
           isDisabled={runningId !== null || (row.kind === "command" && !!row.command.disabledReason)} onClick={() => void execute(row)} onMouseEnter={() => setSelectedIndex(index)} onContextMenu={(event: React.MouseEvent) => { if (row.kind === "file" || row.kind === "command") { event.preventDefault(); setContextRow(row); } }}
           className={`mx-2 w-[calc(100%_-_1rem)] !rounded-md ${rowHeight} justify-between gap-3 border px-3 text-left font-normal ${selected ? "border-edge bg-chrome text-fg shadow-sm hover:bg-chrome dark:bg-surface dark:hover:bg-surface" : "border-transparent hover:bg-surface-raised"}`}>
-          <span className="min-w-0 flex-1 truncate"><HighlightedText text={row.label} indices={row.titleIndices} />{context && <span className="ml-2 text-ui-footnote text-fg-muted"><HighlightedText text={context} indices={row.detailIndices} /></span>}</span>
+          <span className="min-w-0 flex-1 truncate"><HighlightedText text={row.label} indices={row.titleIndices} />{isSensitive && <SensitiveBadge className="ml-1.5 align-[-2px]" />}{context && <span className="ml-2 text-ui-footnote text-fg-muted"><HighlightedText text={context} indices={row.detailIndices} /></span>}</span>
           {folder && <span title={folder} className="max-w-[45%] shrink-0 truncate text-right text-ui-footnote text-fg-muted"><HighlightedText text={folder} indices={scope === "tag" ? [] : row.detailIndices} /></span>}
           {runningId === row.id
             ? <HiOutlineRefresh aria-label="Running" size={14} className="shrink-0 animate-spin text-fg-muted motion-reduce:animate-none" />

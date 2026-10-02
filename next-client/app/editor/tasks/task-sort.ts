@@ -27,12 +27,12 @@ function compareDueDate(a: TaskItem, b: TaskItem): number {
   return 0;
 }
 
-export function sortTasks(
-  tasks: TaskItem[],
+export function sortTasks<T extends TaskItem>(
+  tasks: T[],
   field: TaskSortField,
   direction: TaskSortDirection,
   noteTitle: (path: string) => string,
-): TaskItem[] {
+): T[] {
   const multiplier = direction === "asc" ? 1 : -1;
   return [...tasks].sort((a, b) => {
     const primary = field === "dueDate"

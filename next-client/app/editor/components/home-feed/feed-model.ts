@@ -1,4 +1,5 @@
 import type { FileMetadata } from "@/app/atoms/metadata";
+import { noteDisplayTitle, type NoteDisplayItem, type PreviewStyle } from "@/app/utils/note-display";
 
 // Pure model behind the home feed: which notes appear, their order, titles,
 // and the day labels in the left gutter.
@@ -12,6 +13,10 @@ export interface FeedEntry {
   dayLabel: string | null;
   /** False until the indexer has parsed the note (no preview yet; it may already have a date). */
   isIndexed: boolean;
+  /** Marked sensitive in frontmatter (shows a lock). */
+  isSensitive: boolean;
+  /** How the preview renders: as is, masked bullets, or blurred until hover / focus. */
+  previewStyle: PreviewStyle;
 }
 
 // Vault notes only: no dotfolders (.hermes/, .obsidian/), no _-prefixed
@@ -21,10 +26,9 @@ export function isFeedPath(path: string): boolean {
   return !path.split("/").some((segment) => segment.startsWith(".") || segment.startsWith("_"));
 }
 
+// A non-sensitive note's title; the display factory owns the logic.
 export function feedTitle(metadata: Pick<FileMetadata, "name" | "frontmatter">): string {
-  const title = metadata.frontmatter?.title;
-  if (typeof title === "string" && title.trim()) return title.trim();
-  return metadata.name.replace(/\.md$/i, "");
+  return noteDisplayTitle(metadata, false);
 }
 
 function startOfDay(date: Date): number {
@@ -52,14 +56,21 @@ export function dayLabel(modifiedAt: number, now: Date): string {
 // newest first. A note with a date but no preview yet sorts into place and
 // gets its day label, with a placeholder preview. A note with no date at all
 // (modifiedAt 0: not stat'ed yet, or unreadable) sorts after the dated ones,
-// alphabetically, with no label.
-export function buildFeed(metadata: Record<string, FileMetadata>, now: Date): FeedEntry[] {
+// alphabetically, with no label. Title and preview come from the display
+// items (the privacy level's view); notes missing from them are left out
+// before day labels are assigned, so no label is orphaned.
+export function buildFeed(
+  metadata: Record<string, FileMetadata>,
+  displayItems: Map<string, NoteDisplayItem>,
+  now: Date,
+): FeedEntry[] {
   const sorted = Object.values(metadata)
-    .filter((entry) => isFeedPath(entry.path))
+    .filter((entry) => isFeedPath(entry.path) && displayItems.has(entry.path))
     .sort((a, b) => (b.modifiedAt || 0) - (a.modifiedAt || 0) || a.path.localeCompare(b.path));
 
   let previousDay: number | null = null;
   return sorted.map((entry) => {
+    const item = displayItems.get(entry.path)!;
     const modifiedAt = entry.modifiedAt || 0;
     let label: string | null = null;
     if (modifiedAt > 0) {
@@ -69,11 +80,13 @@ export function buildFeed(metadata: Record<string, FileMetadata>, now: Date): Fe
     }
     return {
       path: entry.path,
-      title: feedTitle(entry),
-      preview: entry.preview ?? "",
+      title: item.title,
+      preview: item.preview,
       modifiedAt,
       dayLabel: label,
-      isIndexed: entry.preview !== undefined,
+      isIndexed: item.isIndexed,
+      isSensitive: item.isSensitive,
+      previewStyle: item.previewStyle,
     };
   });
 }

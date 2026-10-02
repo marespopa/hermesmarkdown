@@ -13,6 +13,7 @@ import { atom_fileMetadata } from "@/app/atoms/metadata";
 import { atom_homeFeedOpen } from "@/app/atoms/ui-atoms";
 import { useCommandPalette, useRegisterCommand } from "@/app/components/CommandPalette/CommandPaletteContext";
 import type { MaterializeDraftOptions } from "./use-materialize-draft";
+import { useHomeFeedUrlSync } from "./use-home-feed-url";
 
 interface UseHomeFeedOptions {
   hasVault: boolean;
@@ -23,13 +24,15 @@ interface UseHomeFeedOptions {
 
 // Wires the home feed into the editor page: open/close state, row opening,
 // the new-note button, the palette's "Create '…'" row and the "Home feed"
-// command. Opening any file (openFile, from anywhere) closes the feed.
+// command. Opening any file (openFile, from anywhere) closes the feed. The
+// open state is mirrored in the URL as `?view=home` (useHomeFeedUrlSync).
 export function useHomeFeed({ hasVault, openFile, newNote, materializeDraft }: UseHomeFeedOptions) {
   const store = useStore();
   const [isOpen, setIsOpen] = useAtom(atom_homeFeedOpen);
   const openDraft = useSetAtom(atom_openDraft);
   const setPendingScrollTarget = useSetAtom(atom_pendingScrollTarget);
   const { open: openPalette, isOpen: isPaletteOpen, setCreateNote } = useCommandPalette();
+  useHomeFeedUrlSync(isOpen, hasVault, setIsOpen);
 
   // A draft with text is saved first, so opening a note never asks to discard
   // it. A draft whose picker was dismissed stays in the draft slot unasked.

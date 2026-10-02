@@ -23,6 +23,12 @@ without changing the public props contract or command behavior.
   is available), whole-vault export/import (zip for every vault, folder copy on
   Chromium, folder import where the browser supports it), and `Delete browser
   vault` while a browser vault is open.
+- `privacy-commands.ts` defines the `Privacy mode: …` commands (Show titles only /
+  Blur previews / Hide sensitive notes; the current level is disabled with
+  "Current mode") and `reveal-sensitive-session`, which toggles the session-only
+  editor reveal ("Show all sensitive notes this session" / "Hide sensitive notes
+  again"; turning it off also clears per-note reveals). Registered right after
+  the preferences and navigation group.
 - `RegisteredCommands.tsx` applies the existing `useRegisterCommand` pattern to
   the ordered command list.
 
