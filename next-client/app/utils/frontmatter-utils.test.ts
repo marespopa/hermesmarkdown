@@ -16,3 +16,15 @@ describe("parseFmFields / updateFmFields round trip", () => {
     expect(updated).toContain("Body text");
   });
 });
+
+describe("updateFmFields removal", () => {
+  it("removes a field and its continuation lines when the value is null", () => {
+    const content = '---\ntitle: "Hello"\ntags:\n  - a\n  - b\nstatus: draft\n---\nBody';
+    expect(updateFmFields(content, { tags: null })).toBe('---\ntitle: "Hello"\nstatus: draft\n---\nBody');
+  });
+
+  it("never adds a null field that isn't there", () => {
+    expect(updateFmFields('---\ntitle: "Hello"\n---\nBody', { missing: null })).toBe('---\ntitle: "Hello"\n---\nBody');
+    expect(updateFmFields("Body", { missing: null })).toBe("Body");
+  });
+});

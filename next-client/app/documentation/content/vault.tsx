@@ -114,6 +114,7 @@ export const vaultGroup: Group = {
             rows={[
               { label: "title", value: "string · optional" },
               { label: "tags", value: "list · optional" },
+              { label: "sensitive", value: "true · optional" },
               { label: "Anything else", value: "Kept as-is" },
             ]}
           />
@@ -129,6 +130,72 @@ export const vaultGroup: Group = {
             <code>status: draft</code>, plus <code>scope</code> and <code>read_when</code> fields
             describing what the note covers and when it&apos;s worth reading.
           </p>
+          <h4 className="text-lg font-bold tracking-tight !mb-2 !mt-6">sensitive</h4>
+          <p>
+            <code>sensitive: true</code>, <code>private: true</code>, or a{" "}
+            <code>sensitive</code> / <code>private</code> tag, marks a note as{" "}
+            <a href="#sensitive-notes" className="text-sage font-semibold hover:underline">sensitive</a>.
+          </p>
+        </>
+      ),
+    },
+    {
+      id: "sensitive-notes",
+      title: "Sensitive notes",
+      lead: "Keep notes with revenue figures, keys or personal details off the screen while you share or record it.",
+      keywords: "sensitive private mark-as-sensitive mark-as-private mark-as-public public privacy mode screen share recording hide blur mask lock reveal",
+      body: (
+        <>
+          <p>
+            Mark a note in its frontmatter, so the marker travels with the plain Markdown file:
+          </p>
+          <Code>{`---
+sensitive: true
+---
+
+or
+
+---
+tags: [finance, private]
+---`}</Code>
+          <p>
+            Or type <code>/mark-as-sensitive</code> or <code>/mark-as-private</code> in a note: the
+            slash menu adds <code>sensitive: true</code> or <code>private: true</code> to its
+            frontmatter, creating the frontmatter block if the note has none. On a sensitive note,{" "}
+            <code>/mark-as-public</code> removes every marker: both keys and any{" "}
+            <code>sensitive</code> / <code>private</code> tag.
+          </p>
+          <p>
+            Only frontmatter counts: an inline <code>#private</code> hashtag in the body doesn&apos;t
+            mark the note. Any marker wins, so <code>sensitive: false</code> with a{" "}
+            <code>private</code> tag is still sensitive.
+          </p>
+          <h4 className="text-lg font-bold tracking-tight !mb-2 !mt-6">Privacy Mode</h4>
+          <p>
+            Choose how sensitive notes appear in the home feed, the command palette and the Tasks
+            page under <strong>Settings → Privacy → Privacy Mode</strong>, or with the{" "}
+            <code>Privacy mode: …</code> commands in the palette. The choice is remembered.
+          </p>
+          <KV
+            rows={[
+              { label: "Show titles (default)", value: "Title with a lock; preview and task text replaced by bullets" },
+              { label: "Blur previews", value: "Preview blurred until you hover or focus the row; task text masked" },
+              { label: "Hide notes", value: "Left out of the home feed, search results and the Tasks page" },
+            ]}
+          />
+          <h4 className="text-lg font-bold tracking-tight !mb-2 !mt-6">Opening a sensitive note</h4>
+          <p>
+            A sensitive note opens behind a veil showing only its title. <strong>Show note</strong>{" "}
+            reveals that note; <strong>Show all sensitive notes this session</strong> (also a palette
+            command) reveals every one. Both last until you reload the app. Marking a note you have
+            open as sensitive doesn&apos;t hide it: it stays revealed for the rest of the
+            session and is veiled the next time you open it after a reload.
+          </p>
+          <Callout type="note">
+            This is screen privacy, not encryption. Files stay readable on disk, file names still
+            show in the file tree and the Explorer, and tab titles still show. A new note is named
+            after its first line, so start a sensitive note with a harmless title.
+          </Callout>
         </>
       ),
     },

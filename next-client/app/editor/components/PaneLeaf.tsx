@@ -3,6 +3,7 @@
 import React from "react";
 import { PanelLeaf } from "@/app/types/workspace";
 import MarkdownEditor from "./MarkdownEditor";
+import SensitiveNoteGate from "./SensitiveNoteGate";
 import TabContextMenu, { TabContextMenuItem } from "./TabContextMenu";
 import { useAtom, useSetAtom } from "jotai";
 import { atom_activePaneId, atom_fileContent, atom_openFiles, atom_splitPane, atom_closePane, atom_activeFilePath, atom_saveStatus, atom_workspaceLayout, getWorkspaceTabs } from "@/app/atoms/atoms";
@@ -319,16 +320,19 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
         {leaf.openFilePaths.length === 0 ? (
           <PaneEmptyState onLoadDraft={setContent} />
         ) : leaf.type === "editor" ? (
-          <MarkdownEditor
-            key={editorKeyRef.current.key}
-            value={content}
-            onChange={setContent}
-            filePath={leaf.activeFilePath || "draft"}
-            onWikiLinkClick={openFileByName}
-            placeholder={`Editing ${leaf.activeFilePath || "Draft"}...`}
-            isActivePane={isActive}
-            isSplit={!isOnlyPane}
-          />
+          // The gate carries the editor's key, so its "already shown" latch
+          // follows the editor instance (a draft saved as a file keeps both).
+          <SensitiveNoteGate key={editorKeyRef.current.key} filePath={filePath} content={content} isActivePane={isActive}>
+            <MarkdownEditor
+              value={content}
+              onChange={setContent}
+              filePath={leaf.activeFilePath || "draft"}
+              onWikiLinkClick={openFileByName}
+              placeholder={`Editing ${leaf.activeFilePath || "Draft"}...`}
+              isActivePane={isActive}
+              isSplit={!isOnlyPane}
+            />
+          </SensitiveNoteGate>
         ) : (
           <div className="flex flex-col items-center justify-center h-full opacity-20 space-y-2">
             {getIcon(leaf.type)}

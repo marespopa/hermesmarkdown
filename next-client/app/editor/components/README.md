@@ -32,7 +32,9 @@ Index of the editor UI. Each component has a sibling `<Name>.md` (a token-lean d
 | [MobileFileOverlay](MobileFileOverlay.md) | Full-screen mobile file browser combining tag and text search, smart folders, and the vault file list, with an empty state when no vault is open. |
 | [MobileSelectionToolbar](MobileSelectionToolbar.md) | Mobile-only floating Bold/Italic/Link toolbar above a text selection. |
 | [NewVaultDialog](NewVaultDialog.md) | Dialog that creates a new local vault folder, using `CreateVaultSubSteps` to name it and pick a parent folder. |
-| [PaneLeaf](PaneLeaf.md) | One workspace pane: tab strip, pane actions, and the active file's editor. |
+| [PaneLeaf](PaneLeaf.md) | One workspace pane: tab strip, pane actions, and the active file's editor (behind `SensitiveNoteGate`). |
+| [SensitiveNoteGate](SensitiveNoteGate.md) | Wraps a pane's editor: shows `SensitiveNoteVeil` instead of mounting it until a sensitive note is revealed (per note or for the session). |
+| [SensitiveNoteVeil](SensitiveNoteVeil.md) | The veil over a sensitive note: lock, title, **Show note** and **Show all sensitive notes this session**. |
 | [PaneEmptyState](PaneEmptyState.md) | Empty-pane actions: new file (blank draft), open note or file, vault actions. |
 | [PaneModeSwitch](PaneModeSwitch.md) | App-wide Edit / Preview switch. |
 | [PaneWindowActions](PaneWindowActions.md) | Window-wide header actions (view options, command palette, AI chat, settings, help), shown once in the top-right pane. |

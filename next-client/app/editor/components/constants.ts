@@ -116,6 +116,9 @@ export const TABLE_DIALOG_SENTINEL = "__OPEN_TABLE_DIALOG__";
 export const FRONTMATTER_WIZARD_SENTINEL = "__OPEN_FRONTMATTER_WIZARD__";
 export const TASK_EDITOR_SENTINEL = "__OPEN_TASK_EDITOR__";
 export const AI_CHAT_SENTINEL = "__OPEN_AI_CHAT__";
+export const MARK_SENSITIVE_SENTINEL = "__MARK_SENSITIVE__";
+export const MARK_PRIVATE_SENTINEL = "__MARK_PRIVATE__";
+export const MARK_PUBLIC_SENTINEL = "__MARK_PUBLIC__";
 export const AI_ACTION_SENTINEL_PREFIX = "__AI_ACTION__:";
 export const aiActionSentinel = (id: string) => `${AI_ACTION_SENTINEL_PREFIX}${id}`;
 export const CURSOR_SENTINEL = "\0";
@@ -276,5 +279,24 @@ export const TEMPLATES: Template[] = [
     icon: "📄",
     description: "Insert or reveal document metadata",
     content: FRONTMATTER_WIZARD_SENTINEL,
+  },
+  // --- Privacy ---
+  {
+    label: "Mark as sensitive",
+    icon: "🔒",
+    description: "Add sensitive: true to the frontmatter",
+    content: MARK_SENSITIVE_SENTINEL,
+  },
+  {
+    label: "Mark as private",
+    icon: "🔒",
+    description: "Add private: true to the frontmatter",
+    content: MARK_PRIVATE_SENTINEL,
+  },
+  {
+    label: "Mark as public",
+    icon: "🔓",
+    description: "Remove the sensitive / private markers from the frontmatter",
+    content: MARK_PUBLIC_SENTINEL,
   },
 ];

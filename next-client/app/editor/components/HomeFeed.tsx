@@ -4,6 +4,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useAtomValue } from "jotai";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { atom_fileMetadata } from "@/app/atoms/metadata";
+import { atom_noteDisplayItems } from "@/app/atoms/privacy-atoms";
 import { atom_indexerState, atom_userName } from "@/app/atoms/ui-atoms";
 import Button from "@/app/components/Button";
 import FeedBar from "./home-feed/FeedBar";
@@ -44,8 +45,9 @@ export default function HomeFeed({ onOpenNote, onNewNote, onOpenExplorer, onSear
   const indexerState = useAtomValue(atom_indexerState);
   const userName = useAtomValue(atom_userName);
   const isIndexing = indexerState !== "idle";
-  const now = useMemo(() => new Date(), [fileMetadata]); // eslint-disable-line react-hooks/exhaustive-deps
-  const feed = useMemo(() => buildFeed(fileMetadata, now), [fileMetadata, now]);
+  const displayItems = useAtomValue(atom_noteDisplayItems);
+  const now = useMemo(() => new Date(), [fileMetadata, displayItems]); // eslint-disable-line react-hooks/exhaustive-deps
+  const feed = useMemo(() => buildFeed(fileMetadata, displayItems, now), [fileMetadata, displayItems, now]);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const scrollRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<HTMLDivElement>(null);

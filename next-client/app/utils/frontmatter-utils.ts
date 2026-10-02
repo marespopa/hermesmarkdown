@@ -51,7 +51,7 @@ export function normalizeListString(val: string): string {
 
 export function serializeField(key: string, val: string): string {
   const isListField = ["tags"].includes(key);
-  const isBareField = key === "status";
+  const isBareField = ["status", "sensitive", "private"].includes(key);
 
   if (isListField) {
     return `${key}: [${normalizeListString(val)}]`;
@@ -66,15 +66,17 @@ export function serializeField(key: string, val: string): string {
   return `${key}: "${val}"`;
 }
 
+/** Sets each field to its value; a `null` value removes the field (and any
+ *  continuation lines) instead. */
 export function updateFmFields(
   content: string,
-  edits: Record<string, string>,
+  edits: Record<string, string | null>,
 ): string {
   const m = FM_REGEX.exec(content);
 
   if (!m) {
     const newLines = Object.entries(edits)
-      .filter(([, val]) => val.trim() !== "")
+      .filter((entry): entry is [string, string] => entry[1] !== null && entry[1].trim() !== "")
       .map(([key, val]) => serializeField(key, val));
     if (newLines.length === 0) return content;
     return `---\n${newLines.join("\n")}\n---\n\n${content.trim()}`;
@@ -90,8 +92,9 @@ export function updateFmFields(
     const lm = line.match(/^([a-zA-Z_][a-zA-Z0-9_]*):\s*(.*)/);
     if (lm && lm[1] in edits) {
       const key = lm[1];
+      const val = edits[key];
       seen.add(key);
-      updatedLines.push(serializeField(key, edits[key]));
+      if (val !== null) updatedLines.push(serializeField(key, val));
       i++;
       while (i < lines.length && /^\s/.test(lines[i])) i++;
     } else {
@@ -101,7 +104,7 @@ export function updateFmFields(
   }
 
   for (const [key, val] of Object.entries(edits)) {
-    if (!seen.has(key) && val.trim() !== "") {
+    if (!seen.has(key) && val !== null && val.trim() !== "") {
       updatedLines.push(serializeField(key, val));
     }
   }

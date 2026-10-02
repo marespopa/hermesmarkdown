@@ -68,7 +68,7 @@ This document describes the runtime data flow of the editor.
 - **File-system hooks:** `app/hooks/file-system/` implements open, save (with retries), create, rename, move, duplicate, and delete, plus the vault manager.
 - **File watcher:** `app/hooks/use-file-watcher.ts` polls open files with backoff and checks immediately on window focus, feeding `ConflictDialog`.
 - **Metadata worker:** `app/workers/metadata.worker.ts` extracts frontmatter, tags, wikilinks and word counts off the main thread; tasks are parsed by `app/utils/taskExtractor.ts`.
-- **Jotai atoms:** See `app/atoms/README.md`.
+- **Jotai atoms:** See `app/atoms/README.md`. Privacy (`privacy-atoms.ts`): notes marked sensitive in frontmatter go through the display factory (`app/utils/note-display.ts`, `atom_noteDisplayItems`), which feeds every note listing (home feed, command palette, Tasks page) according to the persisted Privacy Mode; the editor veils sensitive notes (`SensitiveNoteGate`) until revealed for the session. Screen privacy only, not encryption.
 - **CodeMirror 6 editor:** `app/editor/codemirror/` owns editing, keyboard commands, syntax highlighting, the table grid (`table-display.tsx`) and formulas (`table-formulas.ts`, `utils/formula-engine.ts`), and the inline Mermaid / KaTeX previews (`rendered-block.ts`, edited through `RenderedBlockSourceDialog`), and inline calculator labels (`note-calc.ts`, `utils/note-calc-scan.ts`). Preview mode (`preview-mode.ts`) reuses the same view: a compartment makes it read-only and hides Markdown syntax, with one app-wide mode in `atom_viewMode`.
 - **AI route:** `app/api/ai/route.ts` relays requests to Anthropic or Gemini; client helpers live in `app/services/ai.ts`.
 

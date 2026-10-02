@@ -10,6 +10,7 @@ import {
   atom_liveHandles,
   atom_openFiles,
   atom_remapVaultPaths,
+  atom_revealedSensitivePaths,
   atom_vaultHandle,
   atom_workspaceLayout,
   remapPath,
@@ -136,6 +137,17 @@ describe("atom_remapVaultPaths", () => {
     await store.set(atom_remapVaultPaths, { oldPath: "notes/deep/idea.md", newPath: "notes/deep/plan.md" });
 
     expect(store.get(atom_openFiles)["notes/deep/plan.md"].fileName).toBe("plan");
+  });
+
+  it("keeps sensitive-note session reveals across a folder move and a file rename", async () => {
+    store.set(atom_revealedSensitivePaths, new Set(["notes/deep/idea.md", "notes-old.md"]));
+
+    await store.set(atom_remapVaultPaths, { oldPath: "notes", newPath: "archive" });
+    expect([...store.get(atom_revealedSensitivePaths)].sort()).toEqual(["archive/deep/idea.md", "notes-old.md"]);
+
+    await vault.writeText("archive/deep/plan.md", "saved");
+    await store.set(atom_remapVaultPaths, { oldPath: "archive/deep/idea.md", newPath: "archive/deep/plan.md" });
+    expect([...store.get(atom_revealedSensitivePaths)].sort()).toEqual(["archive/deep/plan.md", "notes-old.md"]);
   });
 
   it("forgets expansion for a deleted folder and its descendants only", () => {

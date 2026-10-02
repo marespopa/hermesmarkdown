@@ -10,7 +10,7 @@ export type Command = {
   label: string;
   shortcut?: string;
   description?: string;
-  category?: "Navigation" | "Document" | "Editor" | "Workspace" | "Vault" | "Tasks" | "Views" | "AI" | "Voice" | "Settings" | "Help";
+  category?: "Navigation" | "Document" | "Editor" | "Workspace" | "Vault" | "Tasks" | "Views" | "AI" | "Voice" | "Settings" | "Privacy" | "Help";
   keywords?: string | string[];
   disabledReason?: string;
   danger?: boolean;

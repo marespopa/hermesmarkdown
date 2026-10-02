@@ -97,6 +97,11 @@ function createContext(overrides: Partial<EditorCommandContext> = {}): EditorCom
     setTaskDueFilter: vi.fn(),
     setIsWizardOpen: vi.fn(),
     setKeyboardShortcutsOpen: vi.fn(),
+    privacyLevel: "show_title",
+    setPrivacyLevel: vi.fn(),
+    revealAllSensitive: false,
+    setRevealAllSensitive: vi.fn(),
+    setRevealedSensitivePaths: vi.fn(),
     activeFileHandle: { name: "Note.md" },
     activeEditorView: {},
     activeLeaf,
@@ -139,6 +144,10 @@ describe("buildEditorCommands", () => {
       "toggle-toolbar",
       "toggle-preview-mode",
       "start-welcome-tour",
+      "privacy-mode-show-title",
+      "privacy-mode-blurred",
+      "privacy-mode-hidden",
+      "reveal-sensitive-session",
       "go-home",
       "open-documentation",
       "close-vault",
@@ -235,5 +244,34 @@ describe("buildEditorCommands", () => {
     expect(context.createFolder).toHaveBeenCalledOnce();
     expect(context.renameFile).toHaveBeenCalledWith(context.activeFileHandle, undefined, context.activeFilePath);
     expect(context.deleteFile).toHaveBeenCalledWith(context.activeFileHandle, context.activeFilePath);
+  });
+
+  it("switches the privacy level and disables the current one", () => {
+    const context = createContext({ privacyLevel: "blurred" });
+    const commands = buildEditorCommands(context);
+    const command = (id: string) => commands.find((candidate) => candidate.id === id);
+
+    expect(command("privacy-mode-blurred")?.disabledReason).toBe("Current mode");
+    expect(command("privacy-mode-show-title")?.disabledReason).toBeUndefined();
+    expect(command("privacy-mode-hidden")?.disabledReason).toBeUndefined();
+
+    command("privacy-mode-hidden")?.action();
+    expect(context.setPrivacyLevel).toHaveBeenCalledWith("hidden");
+  });
+
+  it("toggles the session reveal and clears per-note reveals when turned off", () => {
+    const off = createContext({ revealAllSensitive: false });
+    const showAll = buildEditorCommands(off).find((command) => command.id === "reveal-sensitive-session");
+    expect(showAll?.label).toBe("Show all sensitive notes this session");
+    showAll?.action();
+    expect(off.setRevealAllSensitive).toHaveBeenCalledWith(true);
+    expect(off.setRevealedSensitivePaths).not.toHaveBeenCalled();
+
+    const on = createContext({ revealAllSensitive: true });
+    const hideAgain = buildEditorCommands(on).find((command) => command.id === "reveal-sensitive-session");
+    expect(hideAgain?.label).toBe("Hide sensitive notes again");
+    hideAgain?.action();
+    expect(on.setRevealAllSensitive).toHaveBeenCalledWith(false);
+    expect(on.setRevealedSensitivePaths).toHaveBeenCalledWith(new Set());
   });
 });

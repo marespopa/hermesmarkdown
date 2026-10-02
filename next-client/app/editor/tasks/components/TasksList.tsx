@@ -13,12 +13,13 @@ import {
 } from "react-icons/hi";
 import {
   atom_filteredTasks,
-  atom_allTasks,
+  atom_visibleTasks,
   atom_allTaskTags,
   atom_taskSearchQuery,
   atom_taskTagFilter,
   atom_taskDueFilter,
   TaskDueFilter,
+  type DisplayTask,
 } from "@/app/atoms/task-atoms";
 import { atom_fileMetadata } from "@/app/atoms/metadata";
 import { atom_tasksGroupBy } from "@/app/atoms/ui-atoms";
@@ -28,6 +29,7 @@ import { SelectControl } from "@/app/editor/settings/components/SettingControls"
 import { sortTasks, type TaskSortDirection, type TaskSortField } from "../task-sort";
 import Button from "@/app/components/Button";
 import { BareInput } from "@/app/components/Input";
+import TaskRow from "./TaskRow";
 
 interface TasksListProps {
   onFileSelect: (handle: FileSystemFileHandle, path: string, line: number) => void;
@@ -76,33 +78,10 @@ function groupOf(task: TaskItem): Group {
   return "todo";
 }
 
-function TaskCheckbox({ checked, onChange }: { checked: boolean; onChange: () => void }) {
-  return (
-    <label className="relative flex h-7 w-7 -m-1.5 items-center justify-center shrink-0 cursor-pointer">
-      <input
-        type="checkbox"
-        checked={checked}
-        onChange={onChange}
-        className="peer sr-only"
-      />
-      <div
-        className={`w-4 h-4 rounded-[4px] border-2 transition-colors duration-150 flex items-center justify-center ${checked
-            ? "bg-sage border-sage"
-            : "bg-paper-light border-beige dark:bg-paper-dark-surface dark:border-clay hover:border-stone dark:hover:border-fg-faint"
-          } peer-focus-visible:ring-2 peer-focus-visible:ring-sage/30`}
-      >
-        {checked && (
-          <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" className="w-2.5 h-2.5">
-            <polyline points="20 6 9 17 4 12" />
-          </svg>
-        )}
-      </div>
-    </label>
-  );
-}
-
 export default function TasksList({ onFileSelect }: TasksListProps) {
-  const allTasks = useAtomValue(atom_allTasks);
+  // Tasks from sensitive notes arrive masked, or are left out (and not
+  // counted) in "hidden" Privacy Mode.
+  const allTasks = useAtomValue(atom_visibleTasks);
   const tasks = useAtomValue(atom_filteredTasks);
   const allTags = useAtomValue(atom_allTaskTags);
   const fileMetadata = useAtomValue(atom_fileMetadata);
@@ -142,17 +121,17 @@ export default function TasksList({ onFileSelect }: TasksListProps) {
   );
 
   const statusGroups = React.useMemo(() => {
-    const out: Record<Group, TaskItem[]> = { todo: [], prog: [], hold: [], done: [] };
+    const out: Record<Group, DisplayTask[]> = { todo: [], prog: [], hold: [], done: [] };
     for (const t of tasks) out[groupOf(t)].push(t);
     const [field, direction] = sort.split(":") as [TaskSortField, TaskSortDirection];
-    for (const [group, groupTasks] of Object.entries(out) as [Group, TaskItem[]][]) {
+    for (const [group, groupTasks] of Object.entries(out) as [Group, DisplayTask[]][]) {
       out[group] = sortTasks(groupTasks, field, direction, noteTitle);
     }
     return out;
   }, [tasks, noteTitle, sort]);
 
   const fileGroups = React.useMemo(() => {
-    const byPath = new Map<string, TaskItem[]>();
+    const byPath = new Map<string, DisplayTask[]>();
     for (const t of tasks) {
       const list = byPath.get(t.path);
       if (list) list.push(t);
@@ -328,52 +307,6 @@ export default function TasksList({ onFileSelect }: TasksListProps) {
             </div>
           ))}
       </div>
-    </div>
-  );
-}
-
-function formatDueDate(dueDate: string, checked: boolean): { label: string; className: string } {
-  const today = new Date().toISOString().slice(0, 10);
-  if (checked) return { label: `Due: ${dueDate}`, className: "text-ink-muted dark:text-stone" };
-  if (dueDate < today) return { label: `Overdue · ${dueDate}`, className: "text-red-600 dark:text-red-400" };
-  if (dueDate === today) return { label: "Due: Today", className: "text-amber-600 dark:text-amber-400" };
-  return { label: `Due: ${dueDate}`, className: "text-ink-muted dark:text-stone" };
-}
-
-function TaskRow({
-  task,
-  subtitle,
-  onToggle,
-  onNavigate,
-}: {
-  task: TaskItem;
-  subtitle?: string;
-  onToggle: () => void;
-  onNavigate: () => void;
-}) {
-  const due = task.dueDate ? formatDueDate(task.dueDate, task.checked) : null;
-  return (
-    <div className="group flex items-start gap-2 rounded-lg border border-transparent px-2.5 py-2 transition-colors hover:border-beige/70 hover:bg-paper-light dark:hover:border-clay/50 dark:hover:bg-paper-dark-surface/70">
-      <TaskCheckbox checked={task.checked} onChange={onToggle} />
-      <Button variant="unstyled" className="min-w-0 flex-1 cursor-pointer text-left" onClick={onNavigate}>
-        <div
-          className={`text-ui-caption truncate ${task.checked ? "line-through opacity-50" : "text-ink-light dark:text-ink-dark"
-            }`}
-        >
-          {task.text || "(empty task)"}
-        </div>
-        {(subtitle || due || task.tags.length > 0) && (
-          <div className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 mt-0.5">
-            {subtitle && <span className="text-ui-footnote text-ink-muted dark:text-stone truncate">{subtitle}</span>}
-            {due && <span className={`text-ui-footnote shrink-0 ${due.className}`}>{due.label}</span>}
-            {task.tags.map((tag) => (
-              <span key={tag} className="text-ui-footnote text-sage shrink-0">
-                #{tag}
-              </span>
-            ))}
-          </div>
-        )}
-      </Button>
     </div>
   );
 }

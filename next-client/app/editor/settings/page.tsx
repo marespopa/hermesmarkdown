@@ -2,13 +2,14 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { HiOutlineArrowLeft, HiOutlineColorSwatch, HiOutlineFolder, HiOutlinePencilAlt, HiOutlineAcademicCap, HiOutlineLightningBolt, HiOutlineUser } from "react-icons/hi";
+import { HiOutlineArrowLeft, HiOutlineColorSwatch, HiOutlineFolder, HiOutlinePencilAlt, HiOutlineAcademicCap, HiOutlineLightningBolt, HiOutlineLockClosed, HiOutlineUser } from "react-icons/hi";
 import Button from "@/app/components/Button";
 import AiSettings from "./sections/AiSettings";
 import AppearanceSettings from "./sections/AppearanceSettings";
 import EditorSettings from "./sections/EditorSettings";
 import FilesSettings from "./sections/FilesSettings";
 import GuideSettings from "./sections/GuideSettings";
+import PrivacySettings from "./sections/PrivacySettings";
 import ProfileSettings from "./sections/ProfileSettings";
 
 const SettingsPage = () => {
@@ -32,6 +33,12 @@ const SettingsPage = () => {
       label: "Files",
       icon: HiOutlineFolder,
       content: <FilesSettings />,
+    },
+    {
+      id: "privacy",
+      label: "Privacy",
+      icon: HiOutlineLockClosed,
+      content: <PrivacySettings />,
     },
     {
       id: "ai",

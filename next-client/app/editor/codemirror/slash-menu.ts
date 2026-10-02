@@ -13,7 +13,12 @@ import {
   AI_CHAT_SENTINEL,
   CURSOR_SENTINEL,
   CODE_BLOCK_TEMPLATE_CONTENT,
+  MARK_SENSITIVE_SENTINEL,
+  MARK_PRIVATE_SENTINEL,
+  MARK_PUBLIC_SENTINEL,
 } from "../components/constants";
+import { FM_REGEX, updateFmFields } from "@/app/utils/frontmatter-utils";
+import { clearSensitiveMarkers, isSensitiveContent } from "@/app/utils/note-privacy";
 
 // Non-AI templates only — AI action entries (aiOnly: true) aren't ported in
 // this pass (that's a separate AI-subsystem port, not part of the CM6
@@ -33,7 +38,8 @@ export interface SlashMenuCallbacks {
 function fuzzyMatch(label: string, query: string): boolean {
   if (!query) return true;
   const hay = label.toLowerCase();
-  const q = query.toLowerCase();
+  // Hyphens stand in for spaces, since a space closes the menu: "/mark-as-private".
+  const q = query.toLowerCase().replace(/-/g, "");
   let qi = 0;
   for (let hi = 0; hi < hay.length && qi < q.length; hi++) {
     if (hay[hi] === q[qi]) qi++;
@@ -61,6 +67,33 @@ function insertPlainContent(view: EditorView, from: number, to: number, content:
   });
   return sentinelIdx !== -1 ? from + sentinelIdx : from + clean.length;
 }
+
+// Sets a `key: true` frontmatter flag (creating the block if missing), touching
+// only the frontmatter range so the cursor and the body stay put.
+export function setFrontmatterFlag(view: EditorView, key: string) {
+  const match = FM_REGEX.exec(view.state.doc.toString());
+  if (!match) {
+    view.dispatch({ changes: { from: 0, insert: `---\n${key}: true\n---\n\n` }, userEvent: "input.frontmatter" });
+    return;
+  }
+  replaceFrontmatter(view, match[0], updateFmFields(match[0], { [key]: "true" }));
+}
+
+// Removes every sensitive marker (flags and tags), the inverse of setFrontmatterFlag.
+export function clearFrontmatterSensitive(view: EditorView) {
+  const match = FM_REGEX.exec(view.state.doc.toString());
+  if (match) replaceFrontmatter(view, match[0], clearSensitiveMarkers(match[0]));
+}
+
+function replaceFrontmatter(view: EditorView, block: string, insert: string) {
+  if (insert === block) return;
+  view.dispatch({ changes: { from: 0, to: block.length, insert }, userEvent: "input.frontmatter" });
+}
+
+const FRONTMATTER_FLAG_SENTINELS: Record<string, string> = {
+  [MARK_SENSITIVE_SENTINEL]: "sensitive",
+  [MARK_PRIVATE_SENTINEL]: "private",
+};
 
 const DEFAULT_TABLE =
   `| ${CURSOR_SENTINEL}Header 1 | Header 2 | Header 3 |\n` +
@@ -101,6 +134,17 @@ export function applyTemplate(
     callbacks.onOpenAIChat?.();
     return;
   }
+  const flagKey = FRONTMATTER_FLAG_SENTINELS[content];
+  if (flagKey) {
+    view.dispatch({ changes: { from, to, insert: "" }, userEvent: "input.replace.template" });
+    setFrontmatterFlag(view, flagKey);
+    return;
+  }
+  if (content === MARK_PUBLIC_SENTINEL) {
+    view.dispatch({ changes: { from, to, insert: "" }, userEvent: "input.replace.template" });
+    clearFrontmatterSensitive(view);
+    return;
+  }
   if (content === TABLE_DIALOG_SENTINEL) {
     insertPlainContent(view, from, to, DEFAULT_TABLE);
     return;
@@ -138,7 +182,10 @@ export function createSlashMenuSource(callbacksRef: { current: SlashMenuCallback
     const templates = callbacksRef.current.onOpenAIChat
       ? [...AVAILABLE_TEMPLATES, ...TEMPLATES.filter((template) => template.content === AI_CHAT_SENTINEL)]
       : AVAILABLE_TEMPLATES;
-    const matches = templates.filter((t) => fuzzyMatch(t.label, query));
+    // Offer only the privacy commands that would change this note.
+    const sensitive = isSensitiveContent(context.state.doc.toString());
+    const hidden = sensitive ? [MARK_SENSITIVE_SENTINEL, MARK_PRIVATE_SENTINEL] : [MARK_PUBLIC_SENTINEL];
+    const matches = templates.filter((t) => !hidden.includes(t.content) && fuzzyMatch(t.label, query));
     if (matches.length === 0) return null;
 
     const from = line.from + slashIndex;

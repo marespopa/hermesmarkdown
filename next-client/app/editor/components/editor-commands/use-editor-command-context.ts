@@ -16,6 +16,11 @@ import {
 } from "@/app/atoms/atoms";
 import { atom_content, atom_activeFileHandle } from "@/app/atoms/file-atoms";
 import {
+  atom_privacyLevel,
+  atom_revealAllSensitive,
+  atom_revealedSensitivePaths,
+} from "@/app/atoms/privacy-atoms";
+import {
   atom_taskDueFilter,
   atom_taskSearchQuery,
   atom_taskTagFilter,
@@ -118,6 +123,9 @@ export function useEditorCommandContext(props: EditorCommandsProps) {
   const [, setTaskDueFilter] = useAtom(atom_taskDueFilter);
   const [, setIsWizardOpen] = useAtom(atom_isWizardOpen);
   const [, setKeyboardShortcutsOpen] = useAtom(atom_keyboardShortcutsOpen);
+  const [privacyLevel, setPrivacyLevel] = useAtom(atom_privacyLevel);
+  const [revealAllSensitive, setRevealAllSensitive] = useAtom(atom_revealAllSensitive);
+  const setRevealedSensitivePaths = useSetAtom(atom_revealedSensitivePaths);
   const activeFileHandle = useAtomValue(atom_activeFileHandle);
   const activeEditorView = useAtomValue(atom_activeEditorView);
   const activeLeaf = activePaneId ? findLeaf(workspaceLayout.rootContainer, activePaneId) : null;
@@ -183,6 +191,11 @@ export function useEditorCommandContext(props: EditorCommandsProps) {
     setTaskDueFilter,
     setIsWizardOpen,
     setKeyboardShortcutsOpen,
+    privacyLevel,
+    setPrivacyLevel,
+    revealAllSensitive,
+    setRevealAllSensitive,
+    setRevealedSensitivePaths,
     activeFileHandle,
     activeEditorView,
     activeLeaf,

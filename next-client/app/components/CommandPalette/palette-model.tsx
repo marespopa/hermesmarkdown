@@ -1,8 +1,11 @@
 "use client";
 
+import type { DisplayTask } from "@/app/atoms/task-atoms";
 import type { PalettePinnedItem, Theme } from "@/app/atoms/ui-atoms";
+import { MASKED_TEXT } from "@/app/utils/note-display";
 import React from "react";
 import { HiOutlineDesktopComputer, HiOutlineMoon, HiOutlineSun } from "react-icons/hi";
+import { fuzzyMatch } from "./command-search";
 import type { Command } from "./CommandPaletteContext";
 
 // Command palette constants, row/scope types, and small pure helpers.
@@ -40,13 +43,13 @@ const scopes = [
 ] as const;
 
 export type Scope = (typeof scopes)[number]["id"];
-export type FileResult = { path: string; name: string; handle: FileSystemFileHandle; tags: string[] };
+export type FileResult = { path: string; name: string; handle: FileSystemFileHandle; tags: string[]; isSensitive: boolean };
 type TagMatch = { tag: string; score: number; indices: number[] };
 export type TaggedFileMatch = { file: FileResult; matches: TagMatch[]; score: number };
 export type Row =
   | { kind: "command"; id: string; label: string; detail: string; command: Command; titleIndices: number[]; detailIndices: number[]; score: number }
   | { kind: "file"; id: string; label: string; detail: string; file: FileResult; titleIndices: number[]; detailIndices: number[]; score: number }
-  | { kind: "task"; id: string; label: string; detail: string; titleIndices: number[]; detailIndices: number[]; score: number }
+  | { kind: "task"; id: string; label: string; detail: string; isMasked: boolean; titleIndices: number[]; detailIndices: number[]; score: number }
   | { kind: "heading"; id: string; label: string; detail: string; from: number; titleIndices: number[]; detailIndices: number[]; score: number }
   | { kind: "create"; id: string; label: string; detail: string; title: string; titleIndices: number[]; detailIndices: number[]; score: number };
 
@@ -58,6 +61,20 @@ export function buildCreateRow(query: string, files: FileResult[]): Extract<Row,
   const wanted = title.toLowerCase();
   if (files.some((file) => file.name.replace(/\.md$/i, "").toLowerCase() === wanted)) return null;
   return { kind: "create", id: `create:${title}`, label: `Create "${title}"`, detail: "New note", title, titleIndices: [], detailIndices: [], score: 0 };
+}
+
+// The `!` scope's rows. A masked task (from a sensitive note) is listed only
+// for the empty query, as bullets, and never matched by its text.
+export function buildTaskRows(query: string, tasks: DisplayTask[]): Extract<Row, { kind: "task" }>[] {
+  return tasks.map((task) => {
+    const detail = `${task.path}:${task.line + 1}`;
+    if (task.isMasked) {
+      return query ? null : { kind: "task" as const, id: task.id, label: MASKED_TEXT, detail, isMasked: true, titleIndices: [] as number[], detailIndices: [] as number[], score: 0 };
+    }
+    const match = fuzzyMatch(query, task.text);
+    return match ? { kind: "task" as const, id: task.id, label: task.text || "(empty task)", detail, isMasked: false, titleIndices: match.indices, detailIndices: [] as number[], score: match.score } : null;
+  }).filter((row): row is Extract<Row, { kind: "task" }> => row !== null)
+    .sort((a, b) => b.score - a.score || a.label.localeCompare(b.label));
 }
 
 export function HighlightedText({ text, indices }: { text: string; indices: number[] }) {
