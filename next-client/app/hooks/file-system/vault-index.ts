@@ -8,10 +8,14 @@
 // 3. Parse the rest newest first, in chunks, merging each chunk as it lands,
 //    so the notes you see first get their previews first.
 // 4. Save the complete index back to the cache.
+// 5. Note-text backfill: notes reused in step 2 were never read, so the
+//    worker's note-text index doesn't have them. After `done`, read just
+//    those (newest first) and hand them to `indexContent`. Each note is read
+//    at most once per session for indexing; cold starts add no reads.
 //
 // Dependencies are injected so the pipeline runs without a worker or
 // IndexedDB in tests. `indexVaultFiles` resolves once step 2 has been merged;
-// parsing continues in `done`.
+// parsing continues in `done`, the backfill in `contentDone`.
 
 import toast from "react-hot-toast";
 import type { CachedMetadata } from "@/app/services/metadata-cache";
@@ -40,6 +44,10 @@ export interface VaultIndexDeps {
   /** False once a newer indexing run has started; this one then stops quietly. */
   isCurrent: () => boolean;
   chunkSize?: number;
+  /** True when the note-text index lacks this note at this modified time. */
+  needsContent?: (path: string, modifiedAt: number) => boolean;
+  /** Sends read notes to the note-text index (backfill only). */
+  indexContent?: (files: ReadableFile[]) => void;
 }
 
 const STAT_CHUNK_SIZE = 200;
@@ -90,8 +98,8 @@ export async function indexVaultFiles(
   files: CollectedFile[],
   fresh: boolean,
   deps: VaultIndexDeps,
-): Promise<{ done: Promise<void> }> {
-  const idle = { done: Promise.resolve() };
+): Promise<{ done: Promise<void>; contentDone: Promise<void> }> {
+  const idle = { done: Promise.resolve(), contentDone: Promise.resolve() };
   const stats = await statFiles(files);
   if (!deps.isCurrent()) return idle;
   const cache = await deps.loadCache();
@@ -150,7 +158,22 @@ export async function indexVaultFiles(
     if (deps.isCurrent()) await deps.saveCache(complete);
   })();
 
-  return { done };
+  // Runs after the metadata pass even if it failed (its error is reported
+  // through `done`), so it never competes with parsing for reads.
+  const contentDone = done.catch(() => undefined).then(async () => {
+    const { needsContent, indexContent } = deps;
+    if (!needsContent || !indexContent || !deps.isCurrent()) return;
+    const backfill = stats
+      .filter((stat) => reusable.has(stat.path) && needsContent(stat.path, stat.modifiedAt))
+      .sort((a, b) => b.modifiedAt - a.modifiedAt || a.path.localeCompare(b.path));
+    for (let start = 0; start < backfill.length && deps.isCurrent(); start += chunkSize) {
+      const readable = await deps.read(backfill.slice(start, start + chunkSize));
+      if (!deps.isCurrent()) return;
+      indexContent(readable);
+    }
+  });
+
+  return { done, contentDone };
 }
 
 let nextRequestId = 0;

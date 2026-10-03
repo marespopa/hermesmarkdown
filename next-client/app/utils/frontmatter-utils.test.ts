@@ -28,3 +28,15 @@ describe("updateFmFields removal", () => {
     expect(updateFmFields("Body", { missing: null })).toBe("Body");
   });
 });
+
+describe("hyphenated keys", () => {
+  it("parses keys with hyphens, including their list values", () => {
+    const content = "---\ndue-date: 2026-10-03\nrelated-notes:\n  - a\n  - b\n---\nBody";
+    expect(parseFmFields(content)).toEqual({ "due-date": "2026-10-03", "related-notes": "a, b" });
+  });
+
+  it("updates a hyphenated key in place instead of appending a duplicate", () => {
+    const content = "---\ndue-date: 2026-10-03\n---\nBody";
+    expect(updateFmFields(content, { "due-date": "2026-11-01" })).toBe('---\ndue-date: "2026-11-01"\n---\nBody');
+  });
+});

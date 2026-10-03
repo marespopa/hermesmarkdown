@@ -1,26 +1,28 @@
 "use client";
 
 import { atom_visibleTasks } from "@/app/atoms/task-atoms";
-import { atom_activeEditorView, atom_commandUseCounts, atom_editorFontFamily, atom_palettePinnedItems, atom_recentFilePaths, atom_showHiddenFiles, atom_theme, type PalettePinnedItem } from "@/app/atoms/ui-atoms";
+import { atom_activeEditorView, atom_commandUseCounts, atom_editorFontFamily, atom_palettePinnedItems, atom_pendingScrollTarget, atom_recentFilePaths, atom_showHiddenFiles, atom_theme, type PalettePinnedItem } from "@/app/atoms/ui-atoms";
 import Button from "@/app/components/Button";
-import SensitiveBadge from "@/app/components/SensitiveBadge";
 import OverlayPanel from "@/app/components/OverlayLayer/OverlayPanel";
 import { showErrorToast } from "@/app/components/Toastr";
 import { useFileSystem } from "@/app/hooks/use-file-system";
+import { useContentIndexSync } from "@/app/hooks/file-system/use-content-index-sync";
 import useIsMobileChrome from "@/app/hooks/use-mobile-chrome";
 import { nextPaint } from "@/app/utils/next-paint";
 import { formatShortcut } from "@/app/utils/platform";
 import { EditorView } from "@codemirror/view";
-import { useAtom, useAtomValue } from "jotai";
+import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { usePathname, useRouter } from "next/navigation";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { HiOutlineCog, HiOutlineRefresh, HiOutlineX } from "react-icons/hi";
+import { HiOutlineCog, HiOutlineX } from "react-icons/hi";
 import { version } from "../../../package.json";
 import { fuzzyMatch, matchCommand, matchFile } from "./command-search";
 import { type Command, useCommandPalette } from "./CommandPaletteContext";
 import PaletteSearchBar from "./PaletteSearchBar";
+import PaletteRow from "./PaletteRow";
+import { usePaletteContentSearch } from "./use-palette-content-search";
 import { usePaletteFiles } from "./use-palette-files";
-import { buildCreateRow, buildTaskRows, SEARCH_OR_CREATE_PLACEHOLDER, COMMAND_MODE_DEFAULT_ORDER, HighlightedText, MAX_PINS, MAX_VISIBLE_ROWS, parentFolder, pinnedKey, type Row, type Scope, scopeFromPrefix, scopePrefix, type TaggedFileMatch, THEME_CYCLE } from "./palette-model";
+import { buildCreateRow, buildTaskRows, SEARCH_OR_CREATE_PLACEHOLDER, COMMAND_MODE_DEFAULT_ORDER, MAX_PINS, MAX_VISIBLE_ROWS, pinnedKey, type Row, type Scope, scopeFromPrefix, scopePrefix, type TaggedFileMatch, THEME_CYCLE } from "./palette-model";
 
 export default function CommandPalette() {
   const { isOpen, initialQuery, close, commands, markUsed, createNote, isMorphing } = useCommandPalette();
@@ -32,6 +34,7 @@ export default function CommandPalette() {
   const [recentFilePaths, setRecentFilePaths] = useAtom(atom_recentFilePaths);
   const [pinnedItems, setPinnedItems] = useAtom(atom_palettePinnedItems);
   const [theme, setTheme] = useAtom(atom_theme);
+  const setPendingScrollTarget = useSetAtom(atom_pendingScrollTarget);
   const { openFile } = useFileSystem();
   const router = useRouter();
   const pathname = usePathname();
@@ -67,9 +70,12 @@ export default function CommandPalette() {
   }, [initialQuery, isOpen]);
 
   const { files, filesByTag, existingFiles } = usePaletteFiles(showHiddenFiles);
+  useContentIndexSync();
+  const contentSearch = usePaletteContentSearch(isOpen && scope === "content", query, files);
 
   const scopedRows = useMemo<Row[]>(() => {
-    if (!scope) return [];
+    // The `/` scope's rows come from the worker (usePaletteContentSearch).
+    if (!scope || scope === "content") return [];
     if (scope === "command") {
       return paletteCommands.map((command) => {
         const match = matchCommand(query, command);
@@ -175,6 +181,7 @@ export default function CommandPalette() {
   );
 
   const rows = useMemo(() => {
+    if (scope === "content") return contentSearch.rows.slice(0, MAX_VISIBLE_ROWS);
     if (scope) return scopedRows.slice(0, MAX_VISIBLE_ROWS);
     if (query) return createRow ? [...fileRows.slice(0, MAX_VISIBLE_ROWS - 1), createRow] : fileRows;
     const pinned = pinnedItems.map(resolvePinned).filter((row): row is Row => row !== null);
@@ -187,14 +194,14 @@ export default function CommandPalette() {
     const explorer = resolvePinned({ kind: "command", id: explorerCommand.id });
     const topActions = [explorer, ...frequent].filter((row): row is Row => row !== null && !pinnedKeys.has(pinnedKey({ kind: "command", id: row.id })));
     return [...pinned, ...recent, ...topActions].slice(0, MAX_VISIBLE_ROWS);
-  }, [commandUseCounts, createRow, explorerCommand.id, fileRows, paletteCommands, pinnedItems, query, recentFilePaths, resolvePinned, scope, scopedRows]);
+  }, [commandUseCounts, contentSearch.rows, createRow, explorerCommand.id, fileRows, paletteCommands, pinnedItems, query, recentFilePaths, resolvePinned, scope, scopedRows]);
 
   useEffect(() => setSelectedIndex(0), [query, scope]);
   useEffect(() => setSelectedIndex((index) => Math.min(index, Math.max(0, rows.length - 1))), [rows.length]);
 
   const execute = async (row: Row | undefined) => {
     if (!row || runningId) return;
-    if (row.kind === "file") {
+    if (row.kind === "file" || row.kind === "content") {
       // Close first and let that paint: reading the file and re-rendering the
       // editor can block the main thread, and a palette frozen on screen feels
       // like the app hung. The editor shows its own loading bar meanwhile.
@@ -203,6 +210,8 @@ export default function CommandPalette() {
       try {
         await openFile(row.file.handle, row.file.path);
         setRecentFilePaths((previous) => [row.file.path, ...previous.filter((path) => path !== row.file.path)].slice(0, 5));
+        // Note-text results put the caret on the first match in their line.
+        if (row.kind === "content") setPendingScrollTarget({ path: row.file.path, line: row.line, column: row.column });
         if (!pathname.startsWith("/editor")) router.push("/editor");
       } catch (error) {
         showErrorToast(error instanceof Error ? error.message : "Failed to open file");
@@ -271,14 +280,14 @@ export default function CommandPalette() {
   };
 
   const isPinned = (row: Row) => (row.kind === "file" || row.kind === "command") && pinnedItems.some((item) => pinnedKey(item) === `${row.kind}:${row.id}`);
-  const rowHeight = isMobileChrome ? "min-h-11" : "min-h-10";
   const displayQuery = scope ? `${scopePrefix(scope)}${query}` : query;
-  const resultContext = (row: Row) => {
-    if (row.kind === "command") return row.command.disabledReason;
-    if (row.kind === "task") return row.detail;
-    if (row.kind === "file" && scope === "tag") return row.detail;
-    return null;
-  };
+  const contentMessage = scope !== "content" ? null
+    : contentSearch.status === "unavailable" ? "Note text search isn't available in this browser."
+      : contentSearch.status === "short" ? "Type at least 2 characters to search note text." : null;
+  const contentFootnote = scope !== "content" || contentSearch.status === "unavailable" ? null
+    : contentSearch.capped ? "Note text search covers part of this vault (size limit reached)."
+      : contentSearch.pending > 0 ? `Indexing note text… ${contentSearch.pending} note${contentSearch.pending === 1 ? "" : "s"} left` : null;
+  const showsEmptyState = rows.length === 0 && !!(query || scope) && !contentMessage && !(scope === "content" && contentSearch.status === "searching");
 
   return <OverlayPanel isOpen={isOpen} onClose={close} variant={isMobileChrome ? "sheet" : "modal"} backdrop="dim"
     // During a search-pill morph the view transition animates; the panel's own
@@ -308,33 +317,22 @@ export default function CommandPalette() {
       {rows.length === 0 && !query && !scope && (
         <div className="animate-in fade-in slide-in-from-top-1 px-6 py-8 text-center text-ui-footnote text-fg-muted duration-200 motion-reduce:animate-none">
           <p className="font-medium text-fg">Start typing to find a note or action.</p>
-          <p className="mt-1">Use # for tags, &gt; for commands, ! for tasks, or @ for headings.</p>
+          <p className="mt-1">Use # for tags, &gt; for commands, ! for tasks, @ for headings, or / for note text.</p>
         </div>
       )}
-      {rows.length === 0 && (query || scope) && (
+      {contentMessage && <p className="px-6 py-8 text-center text-ui-footnote text-fg-muted">{contentMessage}</p>}
+      {showsEmptyState && (
         <div className="animate-in fade-in slide-in-from-top-1 px-6 py-8 text-center duration-200 motion-reduce:animate-none">
           <span aria-hidden="true" className="text-lg">🪴</span>
           <p className="mt-2 text-ui-footnote text-fg">No matches found</p>
-          <p className="mt-1 text-ui-footnote text-fg-muted">Try a file name, #tag, &gt;command, !task, or @heading.</p>
+          <p className="mt-1 text-ui-footnote text-fg-muted">Try a file name, #tag, &gt;command, !task, @heading, or /note text.</p>
         </div>
       )}
-      <div className="py-2">{rows.map((row, index) => {
-        const selected = index === selectedIndex;
-        const context = resultContext(row);
-        const folder = row.kind === "file" ? parentFolder(row.file.path) : "";
-        const isMaskedTask = row.kind === "task" && row.isMasked;
-        const isSensitive = isMaskedTask || (row.kind === "file" && row.file.isSensitive);
-        const accessibleLabel = [isMaskedTask ? "Sensitive task" : row.label, isSensitive && !isMaskedTask ? "(sensitive)" : null, context, folder].filter(Boolean).join(" ");
-        return <Button key={`${row.kind}:${row.id}`} variant="menu-item" id={`command-palette-option-${index}`} role="option" aria-label={accessibleLabel} aria-selected={selected} aria-disabled={row.kind === "command" && !!row.command.disabledReason} aria-busy={runningId === row.id}
-          isDisabled={runningId !== null || (row.kind === "command" && !!row.command.disabledReason)} onClick={() => void execute(row)} onMouseEnter={() => setSelectedIndex(index)} onContextMenu={(event: React.MouseEvent) => { if (row.kind === "file" || row.kind === "command") { event.preventDefault(); setContextRow(row); } }}
-          className={`mx-2 w-[calc(100%_-_1rem)] !rounded-md ${rowHeight} justify-between gap-3 border px-3 text-left font-normal ${selected ? "border-edge bg-chrome text-fg shadow-sm hover:bg-chrome dark:bg-surface dark:hover:bg-surface" : "border-transparent hover:bg-surface-raised"}`}>
-          <span className="min-w-0 flex-1 truncate"><HighlightedText text={row.label} indices={row.titleIndices} />{isSensitive && <SensitiveBadge className="ml-1.5 align-[-2px]" />}{context && <span className="ml-2 text-ui-footnote text-fg-muted"><HighlightedText text={context} indices={row.detailIndices} /></span>}</span>
-          {folder && <span title={folder} className="max-w-[45%] shrink-0 truncate text-right text-ui-footnote text-fg-muted"><HighlightedText text={folder} indices={scope === "tag" ? [] : row.detailIndices} /></span>}
-          {runningId === row.id
-            ? <HiOutlineRefresh aria-label="Running" size={14} className="shrink-0 animate-spin text-fg-muted motion-reduce:animate-none" />
-            : row.kind === "command" && row.command.shortcut && <span className="shrink-0 font-mono text-ui-micro text-fg-muted">{row.command.shortcut}</span>}
-        </Button>;
-      })}</div>
+      <div className="py-2">{rows.map((row, index) => (
+        <PaletteRow key={`${row.kind}:${row.id}`} row={row} index={index} selected={index === selectedIndex} scope={scope} runningId={runningId} isMobileChrome={isMobileChrome}
+          onExecute={(target) => void execute(target)} onHover={setSelectedIndex} onContextMenu={setContextRow} />
+      ))}</div>
+      {contentFootnote && <p className="px-5 pb-2 text-ui-footnote text-fg-muted">{contentFootnote}</p>}
     </div>
     <footer className="flex items-center justify-between border-t border-edge-subtle bg-chrome px-3 py-1 text-[10px] text-fg-muted dark:bg-overlay">
       <div className="flex items-center gap-0.5">

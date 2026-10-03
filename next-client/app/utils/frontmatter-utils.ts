@@ -1,4 +1,6 @@
 export const FM_REGEX = /^---\r?\n([\s\S]*?)\r?\n---(?:\r?\n)?/;
+// A top-level `key: value` line. Keys may contain hyphens (`due-date`).
+const FIELD_LINE = /^([a-zA-Z_][a-zA-Z0-9_-]*):\s*(.*)/;
 
 export function parseFmFields(content: string): Record<string, string> {
   const m = FM_REGEX.exec(content);
@@ -9,7 +11,7 @@ export function parseFmFields(content: string): Record<string, string> {
   let i = 0;
   while (i < lines.length) {
     const line = lines[i];
-    const lm = line.match(/^([a-zA-Z_][a-zA-Z0-9_]*):\s*(.*)/);
+    const lm = line.match(FIELD_LINE);
     if (!lm) { i++; continue; }
 
     const key = lm[1];
@@ -89,7 +91,7 @@ export function updateFmFields(
   let i = 0;
   while (i < lines.length) {
     const line = lines[i];
-    const lm = line.match(/^([a-zA-Z_][a-zA-Z0-9_]*):\s*(.*)/);
+    const lm = line.match(FIELD_LINE);
     if (lm && lm[1] in edits) {
       const key = lm[1];
       const val = edits[key];

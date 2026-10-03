@@ -26,7 +26,7 @@ function getShortcutGroups(): ShortcutGroup[] {
       shortcuts: [
         { label: "Quick switcher", keys: `${formatShortcut("K")} / ${formatShortcut("P")}` },
         { label: "Command palette", keys: `${formatShortcut("K", { shift: true })} / ${formatShortcut("P", { shift: true })}` },
-        { label: "Search files", keys: formatShortcut("F", { shift: true }) },
+        { label: "Search note text", keys: formatShortcut("F", { shift: true }) },
         { label: "Select workspace tab", keys: `${formatShortcut("1")}–9` },
         { label: "New file", keys: mac ? "⌃⌥N" : "Ctrl+Alt+N" },
         { label: "Close current tab", keys: formatShortcut("W", { alt: true }) },

@@ -16,7 +16,6 @@ import { useCommandPalette } from "@/app/components/CommandPalette/CommandPalett
 import { SaveStateIcon, TabSaveState, statusMeta } from "./PaneTab";
 import Button from "@/app/components/Button";
 import PaneModeSwitch from "./PaneModeSwitch";
-import FrontmatterToggle from "./FrontmatterToggle";
 
 interface MobileFileIndicatorProps {
   onSave: () => void;
@@ -98,13 +97,6 @@ export default function MobileFileIndicator({ onSave, onOpenAIChat }: MobileFile
         >
           <SaveStateIcon state={saveState} size={18} />
         </Button>
-      )}
-      {hasOpenFiles && (
-        <FrontmatterToggle
-          withTooltip={false}
-          size={18}
-          className="flex items-center justify-center h-11 min-w-11 shrink-0 text-fg-faint hover:text-sage transition-colors"
-        />
       )}
       {hasOpenFiles && (
         <div className="shrink-0 pl-2">

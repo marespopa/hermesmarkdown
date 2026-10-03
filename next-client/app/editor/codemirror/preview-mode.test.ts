@@ -128,6 +128,39 @@ describe("preview mode", () => {
 
     expect(hiddenTexts(view.state)).not.toContain("---");
   });
+
+  it("shows expanded frontmatter as a properties grid, with tags as pills", () => {
+    const doc = ["---", "title: Trip notes", "tags: [travel, todo]", "status:", "---", "", "Body"].join("\n");
+    const { view } = createEditor(doc);
+
+    const grid = view.contentDOM.querySelector(".cm-previewProperties")!;
+    expect(grid).not.toBeNull();
+    expect(Array.from(grid.querySelectorAll("dt"), (dt) => dt.textContent)).toEqual(["title", "tags", "status"]);
+    expect(Array.from(grid.querySelectorAll(".cm-tag-pill"), (pill) => pill.textContent)).toEqual(["#travel", "#todo"]);
+    expect(grid.querySelectorAll("dd")[2].textContent).toBe("—");
+    expect(view.contentDOM.textContent).not.toContain("---");
+  });
+
+  it("keeps collapsed frontmatter as its summary row, and swaps in the grid when expanded", () => {
+    const doc = ["---", "title: x", "---", "", "Body"].join("\n");
+    const parent = document.createElement("div");
+    document.body.appendChild(parent);
+    const state = EditorState.create({
+      doc,
+      extensions: [markdown({ base: markdownLanguage }), frontmatterCollapse, previewExtension(true)],
+    });
+    const view = new EditorView({ parent, state });
+    views.push(view);
+    const range = findFrontmatterFoldRange(doc)!;
+
+    toggleFrontmatterFold(view, range, true);
+    expect(view.contentDOM.querySelector(".cm-frontmatter-summary")).not.toBeNull();
+    expect(view.contentDOM.querySelector(".cm-previewProperties")).toBeNull();
+
+    toggleFrontmatterFold(view, range, false);
+    expect(view.contentDOM.querySelector(".cm-frontmatter-summary")).toBeNull();
+    expect(view.contentDOM.querySelector(".cm-previewProperties")).not.toBeNull();
+  });
 });
 
 describe("caretOutsideFolds", () => {

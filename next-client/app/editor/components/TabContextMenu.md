@@ -1,6 +1,6 @@
 # TabContextMenu
 
-Description: Pop-up menu positioned at a point and clamped to the viewport (`role="menu"`): tab and file context menus, the toolbar's **More** menu, and the toolbar's own context menu (Icon Only / Icon and Text). Items can show a trailing shortcut and a check (`menuitemcheckbox`). Closes on outside click or Escape. Rendered into `document.body` through `createPortal` (`fixed z-50`), so it paints above editor overlays such as the frontmatter × even though it opens from inside the pane header's `z-20` stacking context.
+Description: Pop-up menu positioned at a point and clamped to the viewport (`role="menu"`): tab and file context menus, the toolbar's **More** menu, and the toolbar's own context menu (Hide Toolbar). Items can show a trailing shortcut and a check (`menuitemcheckbox`). Closes on outside click or Escape. Rendered into `document.body` through `createPortal` (`fixed z-50`), so it paints above editor overlays such as the frontmatter × even though it opens from inside the pane header's `z-20` stacking context.
 
 ## Local State & Storage
 - State: Clamped position (useState/useLayoutEffect) and a ref for outside clicks.

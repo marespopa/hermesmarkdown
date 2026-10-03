@@ -1,5 +1,6 @@
 import { EditorState, StateEffect, StateField, Transaction } from "@codemirror/state";
 import { Decoration, DecorationSet, EditorView, WidgetType } from "@codemirror/view";
+import { parseFmFields } from "@/app/utils/frontmatter-utils";
 
 export interface FrontmatterFoldRange {
   titleOffset: number;
@@ -41,23 +42,94 @@ export function findFrontmatterFoldRange(doc: string): FrontmatterFoldRange | nu
   return { titleOffset: 0, bodyFrom, bodyTo, closeTo };
 }
 
-// Collapsed frontmatter is an empty zero-height block widget, not a fold: a
-// fold's placeholder lives inside a text line, which either costs a row or
-// merges the next content line into the frontmatter's first line (and its
-// styling). It is expanded from the pane header's metadata toggle.
+// Top-level keys of a frontmatter block, in order (`title`, `tags`, …). Read
+// with the shared frontmatter parser, so the summary row and Preview's grid
+// always list the same keys.
+export function frontmatterKeys(doc: string): string[] {
+  return Object.keys(parseFmFields(doc));
+}
+
+const SUMMARY_KEY_LIMIT = 3;
+
+// "title, tags, created, +2": the first few keys, then a count of the rest.
+export function frontmatterSummary(keys: string[]): string {
+  const shown = keys.slice(0, SUMMARY_KEY_LIMIT).join(", ");
+  const rest = keys.length - SUMMARY_KEY_LIMIT;
+  return rest > 0 ? `${shown}, +${rest}` : shown;
+}
+
+// Collapsed frontmatter is a block widget, not a fold: a fold's placeholder
+// lives inside a text line, which either costs a row or merges the next
+// content line into the frontmatter's first line (and its styling). The
+// widget is one quiet summary row ("▸ Properties · title, tags"); clicking it
+// expands the block, as does moving the caret into it (arrowing up from the
+// first line).
 class CollapsedFrontmatterWidget extends WidgetType {
+  constructor(readonly summary: string) {
+    super();
+  }
+
+  eq(other: CollapsedFrontmatterWidget) {
+    return other.summary === this.summary;
+  }
+
+  toDOM(view: EditorView) {
+    const element = document.createElement("div");
+    element.className = "cm-frontmatterCollapsed";
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "cm-frontmatter-summary";
+    button.setAttribute("aria-expanded", "false");
+    button.setAttribute("aria-label", this.summary ? `Show properties: ${this.summary}` : "Show properties");
+    button.innerHTML =
+      '<svg aria-hidden="true" viewBox="0 0 20 20" fill="currentColor" class="cm-frontmatter-summary-chevron">' +
+      '<path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clip-rule="evenodd"/></svg>';
+    const label = document.createElement("span");
+    label.textContent = "Properties";
+    button.append(label);
+    if (this.summary) {
+      const keys = document.createElement("span");
+      keys.className = "cm-frontmatter-summary-keys";
+      keys.textContent = `· ${this.summary}`;
+      button.append(keys);
+    }
+    // mousedown, not click: CodeMirror would otherwise move the caret first.
+    button.addEventListener("mousedown", (event) => event.preventDefault());
+    button.addEventListener("click", (event) => {
+      event.preventDefault();
+      view.dispatch({ effects: setFrontmatterCollapsed.of(false) });
+      view.focus();
+    });
+    element.append(button);
+    return element;
+  }
+
+  // The button handles its own pointer and keyboard events.
+  ignoreEvent() {
+    return true;
+  }
+
+  get estimatedHeight() {
+    return 28;
+  }
+}
+
+// Room between expanded frontmatter and text that follows its closing `---`
+// directly (see `.cm-frontmatter-spacer` in theme.ts).
+class FrontmatterSpacerWidget extends WidgetType {
   eq() {
     return true;
   }
 
   toDOM() {
     const element = document.createElement("div");
-    element.className = "cm-frontmatterCollapsed";
+    element.className = "cm-frontmatter-spacer";
+    element.setAttribute("aria-hidden", "true");
     return element;
   }
 
   get estimatedHeight() {
-    return 0;
+    return 24;
   }
 }
 
@@ -73,10 +145,19 @@ function hiddenRange(state: EditorState) {
 }
 
 function buildDecorations(state: EditorState, collapsed: boolean): DecorationSet {
-  const range = collapsed ? hiddenRange(state) : null;
+  const doc = state.doc.toString();
+  const range = findFrontmatterFoldRange(doc);
   if (!range) return Decoration.none;
+  if (!collapsed) {
+    const next = state.doc.lineAt(range.closeTo).number + 1;
+    if (next > state.doc.lines || state.doc.line(next).text.trim() === "") return Decoration.none;
+    return Decoration.set([
+      Decoration.widget({ block: true, side: 1, widget: new FrontmatterSpacerWidget() }).range(range.closeTo),
+    ]);
+  }
+  const summary = frontmatterSummary(frontmatterKeys(doc));
   return Decoration.set([
-    Decoration.replace({ block: true, widget: new CollapsedFrontmatterWidget() })
+    Decoration.replace({ block: true, widget: new CollapsedFrontmatterWidget(summary) })
       .range(range.bodyFrom, range.bodyTo),
   ]);
 }
@@ -92,7 +173,7 @@ function revealsHidden(tr: Transaction, range: FrontmatterFoldRange) {
 }
 
 const frontmatterCollapseField = StateField.define<CollapseState>({
-  create: () => ({ collapsed: false, decorations: Decoration.none }),
+  create: (state) => ({ collapsed: false, decorations: buildDecorations(state, false) }),
   update(value, tr) {
     let collapsed = value.collapsed;
     let explicit = false;

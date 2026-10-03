@@ -4,11 +4,14 @@ import React, { useCallback, useRef, useState } from "react";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { HiChevronRight, HiOutlineDocumentText, HiOutlineHome } from "react-icons/hi";
 import { atom_activeFilePath, atom_activePaneId, atom_openFiles, atom_workspaceLayout, findLeaf, getWorkspaceTabs } from "@/app/atoms/atoms";
-import { atom_homeFeedOpen, atom_sidebarOpen, atom_sidebarWidth, atom_toolbarDisplayMode, SIDEBAR_MAX_WIDTH, SIDEBAR_MIN_WIDTH } from "@/app/atoms/ui-atoms";
+import { VscLayoutSidebarLeft } from "react-icons/vsc";
+import { atom_homeFeedOpen, atom_sidebarOpen, atom_sidebarWidth, SIDEBAR_MAX_WIDTH, SIDEBAR_MIN_WIDTH } from "@/app/atoms/ui-atoms";
 import Button from "@/app/components/Button";
 import { useFileSystem } from "@/app/hooks/use-file-system";
 import { useVaultFileSearch } from "../hooks/useVaultFileSearch";
-import { PANE_HEADER_HEIGHT } from "./pane-header-classes";
+import { formatShortcut } from "@/app/utils/platform";
+import { PANE_HEADER_HEIGHT, PANE_ICON_SIZE, PANE_SECTION_CLASS } from "./pane-header-classes";
+import PaneToolbarButton from "./PaneToolbarButton";
 import { statusDot } from "./PaneTab";
 import VaultFileTree from "./VaultFileTree";
 
@@ -43,11 +46,10 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 // The window's sidebar (desktop): navigation only — Home (with a vault), the
 // open notes across every pane, then the vault's file tree. Commands stay in the toolbar.
 // Sits on the window's leading edge; slides out when hidden
-// (`atom_sidebarOpen`, toggled by the toolbar's Sidebar button) and resizes by dragging its trailing edge
+// (`atom_sidebarOpen`: hidden from its header's button, shown again from the toolbar's) and resizes by dragging its trailing edge
 // (`atom_sidebarWidth`, double-click to reset).
 export default function WorkspaceSidebar() {
-  const open = useAtomValue(atom_sidebarOpen);
-  const toolbarMode = useAtomValue(atom_toolbarDisplayMode);
+  const [open, setOpen] = useAtom(atom_sidebarOpen);
   const [width, setWidth] = useAtom(atom_sidebarWidth);
   const workspaceLayout = useAtomValue(atom_workspaceLayout);
   const [activePaneId, setActivePaneId] = useAtom(atom_activePaneId);
@@ -97,12 +99,21 @@ export default function WorkspaceSidebar() {
       className="relative shrink-0 h-full flex flex-col bg-chrome border-r border-edge-subtle transition-[margin-left] duration-200 ease-out motion-reduce:transition-none"
     >
       {/* Header, level with the pane toolbar: the vault's name as the title,
-          as in a code editor's side bar. The toolbar's Sidebar button shows
-          and hides the sidebar. */}
-      <div className={`flex items-center shrink-0 px-4 border-b border-edge-subtle ${PANE_HEADER_HEIGHT[toolbarMode]}`}>
-        <h2 className="min-w-0 truncate text-[11px] font-semibold uppercase tracking-wider text-fg-faint select-none">
+          as in a code editor's side bar, and the button that hides the
+          sidebar (the toolbar shows it again). */}
+      <div className={`flex items-center gap-2 shrink-0 pl-4 pr-2 sm:pr-3 border-b border-edge-subtle ${PANE_HEADER_HEIGHT}`}>
+        <h2 className="flex-1 min-w-0 truncate text-[11px] font-semibold uppercase tracking-wider text-fg-faint select-none">
           {vaultHandle?.name ?? "Workspace"}
         </h2>
+        <div className={`${PANE_SECTION_CLASS} !ml-0`}>
+          <PaneToolbarButton
+            icon={<VscLayoutSidebarLeft size={PANE_ICON_SIZE} />}
+            label="Hide sidebar"
+            shortcut={formatShortcut("S", { alt: true })}
+            tooltipPosition="bottom-end"
+            onClick={() => setOpen(false)}
+          />
+        </div>
       </div>
 
       <div className="flex-1 min-h-0 overflow-y-auto scrollbar-none px-2 pt-2">

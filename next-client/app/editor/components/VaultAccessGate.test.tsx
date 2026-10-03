@@ -27,9 +27,10 @@ afterEach(() => {
 });
 
 describe("VaultAccessGate", () => {
-  it("renders nothing of the route while the saved vault is looked up", () => {
+  it("shows only the editor skeleton while the saved vault is looked up", () => {
     renderGate({ restoring: true });
     expect(screen.queryByText("Route content")).not.toBeInTheDocument();
+    expect(screen.getByRole("status", { name: "Loading vault" })).toBeInTheDocument();
   });
 
   it("keeps the route out of reach behind Restore Access while access is paused", () => {
@@ -48,7 +49,7 @@ describe("VaultAccessGate", () => {
   it("keeps the route out of reach while the vault loads after access is granted", () => {
     renderGate({ pending: true, unlocking: true });
     expect(screen.getByText("Route content").closest("[inert]")).not.toBeNull();
-    expect(screen.getByText("Restoring vault…")).toBeInTheDocument();
+    expect(screen.getByRole("status", { name: "Loading vault" })).toBeInTheDocument();
     expect(screen.queryByText("Restore Access")).not.toBeInTheDocument();
     fireEvent.keyDown(window, { key: "a" });
     expect(vaultManager.restoreVault).not.toHaveBeenCalled();
@@ -65,5 +66,6 @@ describe("VaultAccessGate", () => {
     renderGate();
     expect(screen.getByText("Route content").closest("[inert]")).toBeNull();
     expect(screen.queryByText("Restore Access")).not.toBeInTheDocument();
+    expect(screen.queryByRole("status", { name: "Loading vault" })).not.toBeInTheDocument();
   });
 });

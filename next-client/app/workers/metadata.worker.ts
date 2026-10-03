@@ -2,10 +2,15 @@
 import { parseFmFields } from "@/app/utils/frontmatter-utils";
 import { extractTasks } from "@/app/utils/taskExtractor";
 import { notePreview } from "@/app/utils/markdown-preview";
+import { ContentIndex, REGEX_FRONTMATTER } from "./content-index";
+import { handleContentMessage } from "./content-search";
+
+// The note-text index (worker heap only): filled from every parse below and
+// from `content:index` messages; queried with `content:search`.
+const contentIndex = new ContentIndex();
 
 const REGEX_TAG = /(?<=^|\s)#(?=[a-zA-Z0-9_\-/]*[a-zA-Z])([a-zA-Z0-9_\-/]+)/g;
 const REGEX_LINK = /\[\[(.*?)\]\]/g;
-const REGEX_FRONTMATTER = /^---\r?\n([\s\S]*?)\r?\n---/;
 
 function normalizeTag(tag: string): string {
   return tag.trim().replace(/^["']|["']$/g, "").replace(/^#/, "").toLowerCase();
@@ -34,6 +39,10 @@ function parseFrontmatterTags(fmContent: string): string[] {
 }
 
 self.onmessage = (event: MessageEvent) => {
+  // Typed messages belong to the note-text index; replies carry no
+  // `results` / `requestId`, so the parse listeners ignore them.
+  if (handleContentMessage(contentIndex, event.data, (message) => self.postMessage(message))) return;
+
   // Expects array of { path, name, content, modifiedAt } — content pre-read in main thread
   const { files } = event.data;
 
@@ -79,6 +88,7 @@ self.onmessage = (event: MessageEvent) => {
       const preview = notePreview(content);
 
       results.push({ path, name, tags, links, frontmatter, modifiedAt, wordCount, tasks, preview });
+      contentIndex.upsert(path, name, content, modifiedAt);
     } catch (err: any) {
       console.error(`Worker error processing file (${fileInfo.path}):`, err?.message || err);
     }

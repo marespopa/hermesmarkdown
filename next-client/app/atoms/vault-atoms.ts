@@ -5,6 +5,7 @@ import { atom_fileTreeExpansion } from "./ui-atoms";
 import { atom_fileMetadata } from "./metadata";
 import { atom_revealedSensitivePaths } from "./privacy-atoms";
 import { reconcileWithDisk } from "@/app/hooks/file-system/reconcile-disk";
+import { remapNoteContent } from "@/app/services/content-search-client";
 import { remapPath, remapPathsInLayout, removePathsFromLayout } from "./utils";
 import type { GitHubVaultDescriptor } from "@/app/services/github-vault-workspace";
 import type { BrowserVaultDescriptor } from "@/app/services/opfs";
@@ -125,12 +126,12 @@ export const atom_rebindHandles = atom(
 );
 
 // Follows a file or folder that was renamed or moved on disk: re-keys open
-// tabs (keeping unsaved edits), pane layouts, indexed metadata and the file
-// tree's remembered expansion (and sensitive-note session reveals) from
-// `oldPath` to `newPath`, for the item and everything under it. Handles are
-// path-based, so moving a folder leaves its children's handles stale — each
-// moved tab gets a fresh handle resolved at its new path, so the next save
-// lands in the moved file.
+// tabs (keeping unsaved edits), pane layouts, indexed metadata, the worker's
+// note-text index and the file tree's remembered expansion (and
+// sensitive-note session reveals) from `oldPath` to `newPath`, for the item
+// and everything under it. Handles are path-based, so moving a folder leaves
+// its children's handles stale — each moved tab gets a fresh handle resolved
+// at its new path, so the next save lands in the moved file.
 export const atom_remapVaultPaths = atom(
   null,
   async (get, set, { oldPath, newPath }: { oldPath: string; newPath: string }) => {
@@ -184,6 +185,9 @@ export const atom_remapVaultPaths = atom(
       set(atom_liveHandles(p), null);
     }
 
+    // Before the metadata update: the content-index sync then sees the old
+    // keys disappear, and its remove reaches the worker after the remap.
+    remapNoteContent(oldPath, newPath);
     set(atom_fileMetadata, (prev) => {
       let next = prev;
       for (const [p, meta] of Object.entries(prev)) {

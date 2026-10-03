@@ -178,7 +178,7 @@ describe("CommandPalette", () => {
     fireEvent.change(input, { target: { value: "no-match" } });
 
     expect(screen.getByText("No matches found")).toBeInTheDocument();
-    expect(screen.getByText("Try a file name, #tag, >command, !task, or @heading.")).toBeInTheDocument();
+    expect(screen.getByText("Try a file name, #tag, >command, !task, @heading, or /note text.")).toBeInTheDocument();
     expect(screen.getByText("🪴")).toHaveAttribute("aria-hidden", "true");
   });
 

@@ -58,9 +58,10 @@ export function useCodeMirrorFrontmatterFold({
     recompute(view);
   }, [collapseByDefault, recompute]);
 
-  // The preference is app-wide and live: flipping it (header ⓘ, the × on
-  // expanded frontmatter, Settings) collapses or expands every open editor,
-  // and files opened later follow it via onViewCreated.
+  // The preference is app-wide and live: flipping it (Settings, the palette's
+  // "… properties in every note") collapses or expands every open editor, and
+  // files opened later follow it via onViewCreated. The summary row and the
+  // chevron only change the one note.
   useEffect(() => {
     const view = viewRef.current;
     if (!view) return;

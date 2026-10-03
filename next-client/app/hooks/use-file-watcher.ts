@@ -4,6 +4,7 @@ import { useAtom, useStore } from "jotai";
 import { atom_openFiles, atom_liveHandles, atom_isVaultPending } from "@/app/atoms/atoms";
 import { reconcileWithDisk } from "@/app/hooks/file-system/reconcile-disk";
 import { createFileObserver } from "@/app/hooks/file-system/file-observer";
+import { indexNoteContent } from "@/app/services/content-search-client";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 const MIN_INTERVAL = 30_000;
@@ -53,6 +54,8 @@ export function useFileWatcher() {
         // checked; reconcileWithDisk no-ops when the content is unchanged.
         if (file.lastModified !== (stored.lastModified ?? 0)) {
           const remoteContent = await file.text();
+          // Disk wins for the note-text index too (as for the tab below).
+          indexNoteContent([{ path, name: handle.name, content: remoteContent, modifiedAt: file.lastModified }]);
 
           setOpenFiles((prev) => {
             const fileState = prev[path];

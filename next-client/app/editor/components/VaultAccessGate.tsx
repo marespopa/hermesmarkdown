@@ -4,16 +4,17 @@ import { useEffect, type ReactNode } from "react";
 import { useAtomValue } from "jotai";
 import { atom_isVaultRestoring, atom_isVaultUnlocking } from "@/app/atoms/atoms";
 import { useVaultManager } from "@/app/hooks/file-system/use-vault-manager";
+import EditorSkeleton from "./EditorSkeleton";
 import VaultPendingOverlay from "./VaultPendingOverlay";
 
 // Wraps every /editor route (editor, Tasks, Explorer, Settings): restores
 // the saved vault on load, and keeps the route out of reach until it's
-// readable. While the saved vault is being looked up nothing renders; while
-// it waits for the user to grant access again, the route stays mounted but
-// hidden and inert behind "Vault Access Paused". Any click or key press then
-// asks the browser for access, so no separate button press is needed. Once
-// access is granted the overlay shows "Restoring vault…" and the route stays
-// out of reach until the vault is loaded and "Vault restored" shows.
+// readable. While the saved vault is being looked up, only the editor
+// skeleton shows; while it waits for the user to grant access again, the
+// route stays mounted but hidden and inert behind "Vault Access Paused" over
+// the skeleton. Any click or key press then asks the browser for access, so
+// no separate button press is needed. Once access is granted the prompt goes
+// and the skeleton stays until the vault is loaded and "Vault restored" shows.
 export default function VaultAccessGate({ children }: { children: ReactNode }) {
   const { isVaultPending, restoreVault } = useVaultManager();
   const isVaultRestoring = useAtomValue(atom_isVaultRestoring);
@@ -33,7 +34,7 @@ export default function VaultAccessGate({ children }: { children: ReactNode }) {
     };
   }, [isVaultPending, isVaultUnlocking, restoreVault]);
 
-  if (isVaultRestoring) return <div className="fixed inset-0 bg-surface" />;
+  if (isVaultRestoring) return <EditorSkeleton />;
 
   return (
     <>
@@ -42,8 +43,8 @@ export default function VaultAccessGate({ children }: { children: ReactNode }) {
       </div>
       {isVaultPending && (
         <>
-          <div className="fixed inset-0 bg-surface" />
-          <VaultPendingOverlay restoreVault={restoreVault} isUnlocking={isVaultUnlocking} />
+          <EditorSkeleton />
+          {!isVaultUnlocking && <VaultPendingOverlay restoreVault={restoreVault} />}
         </>
       )}
     </>

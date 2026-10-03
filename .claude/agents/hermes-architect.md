@@ -20,7 +20,7 @@ You do **not** implement. The only files you write are the engineering PRD in `n
 Read the binding project context first:
 - `next-client/AGENT_RULES.md`, `next-client/AGENTS.md`
 - `next-client/ARCHITECTURE.md` and `next-client/DESIGN.md`
-- Existing plans in `next-client/plans/` — they show the expected PRD style and may already cover part of the idea.
+- Existing plans in `next-client/plans/` — they show the expected PRD style and may already cover part of the idea. Plans in `next-client/plans/archive/` are shipped history: useful for style and past decisions, but check the code before treating them as current.
 
 Then map the idea onto the code:
 - Find the atoms (`app/atoms/`), hooks (`app/hooks/`, feature `use-*.ts`), components (`app/components/`, `app/editor/`) and CodeMirror extensions involved. Read their sibling `<Component>.md` docs and directory `README.md` indexes.

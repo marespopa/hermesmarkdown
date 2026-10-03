@@ -6,7 +6,7 @@ import Button from "@/app/components/Button";
 import { BareInput } from "@/app/components/Input";
 import { formatShortcut } from "@/app/utils/platform";
 import { PALETTE_SEARCH_TRANSITION } from "./CommandPaletteContext";
-import { COMMAND_TOGGLE_CLASS, SEARCH_FIELD_CLASS, SEARCH_KBD_CLASS, SEARCH_PILL_CLASS } from "./palette-model";
+import { COMMAND_TOGGLE_CLASS, SEARCH_FIELD_CLASS, SEARCH_PILL_CLASS } from "./palette-model";
 
 interface PaletteSearchBarProps {
   inputRef: React.RefObject<HTMLInputElement | null>;
@@ -25,7 +25,7 @@ interface PaletteSearchBarProps {
 
 // The palette's search field, drawn as the same pill as the home feed's
 // search bar (they morph into each other; see CommandPaletteContext). After
-// the shortcut hint, `>` toggles command mode.
+// the field, `>` toggles command mode.
 export default function PaletteSearchBar({
   inputRef,
   isOpen,
@@ -69,7 +69,6 @@ export default function PaletteSearchBar({
               <HiOutlineX size={14} />
             </Button>
           )}
-          <kbd className={SEARCH_KBD_CLASS}>{formatShortcut("K")}</kbd>
         </div>
         <Button
           variant="unstyled"

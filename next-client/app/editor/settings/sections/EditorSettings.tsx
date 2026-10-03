@@ -35,7 +35,7 @@ export default function EditorSettings() {
         />
         <SettingItem
           label="Collapse Frontmatter"
-          description="Hide YAML frontmatter in every file. Also toggled by the ⓘ button in the pane header."
+          description="Show YAML frontmatter as a one-line Properties row in every file; click the row to expand it."
           control={
             <Toggle
               variant="soft"

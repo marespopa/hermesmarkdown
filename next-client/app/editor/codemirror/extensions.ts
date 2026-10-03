@@ -1,5 +1,5 @@
 import { Compartment, Extension } from "@codemirror/state";
-import { EditorView, keymap, drawSelection, lineNumbers, placeholder as placeholderExt } from "@codemirror/view";
+import { EditorView, keymap, drawSelection, highlightActiveLine, lineNumbers, placeholder as placeholderExt } from "@codemirror/view";
 import { history, historyKeymap, defaultKeymap } from "@codemirror/commands";
 import { markdown, markdownLanguage } from "@codemirror/lang-markdown";
 import { languages } from "@codemirror/language-data";
@@ -70,6 +70,7 @@ export function buildExtensions(opts: BuildExtensionsOptions): Extension[] {
     opts.previewModeCompartment.of(previewExtension(opts.previewMode)),
     history(),
     drawSelection(),
+    highlightActiveLine(),
     // addKeymap: false — lang-markdown's built-in Enter continuation for
     // lists/blockquotes stacks with our own continueQuoteOnEnter command
     // (formatKeymap), producing doubled "> " prefixes. We own continuation

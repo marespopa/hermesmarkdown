@@ -86,6 +86,17 @@ describe("buildExtensions", () => {
     parent.remove();
   });
 
+  it("marks the caret's line as the active line", () => {
+    const { parent, view } = createEditor(false);
+    view.dispatch({ changes: { from: view.state.doc.length, insert: "\nSecond line" } });
+    view.dispatch({ selection: { anchor: view.state.doc.length } });
+
+    expect(Array.from(view.contentDOM.querySelectorAll(".cm-activeLine"), (line) => line.textContent)).toEqual(["Second line"]);
+
+    view.destroy();
+    parent.remove();
+  });
+
   it("does not render a Vim status panel when disabled", () => {
     const { parent, view } = createEditor(false);
 

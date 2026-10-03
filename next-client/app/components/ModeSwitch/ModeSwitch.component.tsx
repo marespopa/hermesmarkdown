@@ -28,7 +28,9 @@ const SIZES = {
 } as const;
 
 // iOS-style spring-like ease-out for the sliding thumb. Arbitrary property, not
-// `ease-[…]`: tailwindcss-animate also defines `ease-*`, making that ambiguous.
+// an arbitrary-value ease utility: tailwindcss-animate also defines the ease
+// utilities, so that class would be ambiguous. (Tailwind scans comments too,
+// so don't spell the class out here.)
 const THUMB_EASE = "[transition-timing-function:cubic-bezier(0.32,0.72,0,1)]";
 
 // Segmented control with a sliding thumb: a pill track whose highlighted

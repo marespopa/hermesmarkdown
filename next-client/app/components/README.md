@@ -16,6 +16,7 @@ Shared, app-agnostic UI primitives. Each component has a sibling `<Name>.md` (st
 | [ErrorBoundary](ErrorBoundary.md) | Class error boundary that catches render errors and shows a retry/home fallback instead of a blank page. |
 | [Footer](Footer/Footer.md) | Site footer for marketing pages (hidden on `/editor`) with links, app version, and the `ProductHuntBadge`/`ToolsCafeBadge` sub-components. |
 | [Header](Header/Header.md) | Marketing-page header with `Navbar`, navigation links, and a theme toggle. |
+| [InlineScript](InlineScript.md) | Inline `<script>` that runs once during HTML parsing (theme init) without React's client-side script warning. |
 | [Input](Input/Input.md) | Labelled text/number/password/date input with clear button, debounce, and password reveal; also exports `BareInput` (unlabelled) and `Select`. |
 | [KeyboardShortcutsOverlay](KeyboardShortcutsOverlay/KeyboardShortcutsOverlay.md) | Overlay listing every registered command that has a shortcut, grouped by category and formatted for the user's platform. |
 | [LandingPage](LandingPage/LandingPage.md) | Home route hero with an entry point into the editor, plus a "welcome back" toast when a local file is already open. |

@@ -28,13 +28,13 @@ The editor route (`page.tsx`) composes these:
 
 | Hook | Purpose |
 |------|---------|
-| `use-editor-shortcuts.ts` | Window-level shortcuts: Explorer, search, new file, close/select tab, AI chat, voice, save, undo flush. |
+| `use-editor-shortcuts.ts` | Window-level shortcuts: Explorer, search (`Ctrl/Cmd+Shift+F` opens the palette in the `/` note-text scope), new file, close/select tab, AI chat, voice, save, undo flush. |
 | `use-navigate-with-guard.ts` | Leaves the editor with a Save / Discard prompt when the note is dirty. |
 | `use-github-vault-actions.ts` | `GitHub: Commit / Pull` command handlers. |
 | `use-generate-ai-note.ts` | "Generate new note with AI". |
 | `use-draft-import.ts` | Import a file into the draft (with `DraftImportDialog` for overwrite confirmation). |
 | `use-sync-current-directory.ts` | Points the vault's current directory at the active file's folder. |
-| `use-editor-paste-handlers.ts`, `use-scroll-to-pending-target.ts` | `MarkdownEditor` helpers: CSV-to-table confirm and image saving on paste; jump-to-line requests. |
+| `use-editor-paste-handlers.ts`, `use-scroll-to-pending-target.ts` | `MarkdownEditor` helpers: CSV-to-table confirm and image saving on paste; jump-to-line requests (`atom_pendingScrollTarget`; the caret goes to the optional `column`). |
 | `use-tab-drag-drop.ts` | Tab drag-and-drop between panes (`PaneLeaf`). |
 | `useAIEditorActions.ts` + `ai-action-prompts.ts` | AI Chat state and the one-click AI actions (prompt table keyed by action id). |
 

@@ -23,7 +23,11 @@ function parseTagName(value: string): string | null {
   return cleaned.toLowerCase();
 }
 
-function buildTagMatch(rawText: string, from: number, to: number): TagMatch | null {
+export function tagPillClassName(kind: TagMatch["kind"]): string {
+  return `cm-tag-pill cm-tag-pill-${kind}`;
+}
+
+export function buildTagMatch(rawText: string, from: number, to: number): TagMatch | null {
   const tagName = parseTagName(rawText);
   if (!tagName) return null;
   const kind: TagMatch["kind"] = WORKFLOW_TAGS.includes(tagName) || TODO_TAGS.includes(tagName)
@@ -163,11 +167,7 @@ class TagPillWidget extends WidgetType {
   toDOM(view: EditorView) {
     const node = document.createElement("span");
     node.textContent = this.match.text;
-    node.className = "cm-tag-pill" + (this.match.kind === "workflow"
-      ? " cm-tag-pill-workflow"
-      : this.match.kind === "todo"
-        ? " cm-tag-pill-todo"
-        : " cm-tag-pill-custom");
+    node.className = tagPillClassName(this.match.kind);
     node.setAttribute("aria-label", `Tag ${this.match.text}`);
     node.title = this.match.text;
 
@@ -215,11 +215,7 @@ class FrontmatterTagListWidget extends WidgetType {
     for (const tag of this.list.tags) {
       const pill = document.createElement("span");
       pill.textContent = tag.text;
-      pill.className = "cm-tag-pill" + (tag.kind === "workflow"
-        ? " cm-tag-pill-workflow"
-        : tag.kind === "todo"
-          ? " cm-tag-pill-todo"
-          : " cm-tag-pill-custom");
+      pill.className = tagPillClassName(tag.kind);
       node.appendChild(pill);
     }
     node.setAttribute("aria-label", `Tags: ${this.list.tags.map((tag) => tag.text).join(", ")}`);

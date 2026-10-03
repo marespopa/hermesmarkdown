@@ -4,6 +4,8 @@ import { EditorView } from "@codemirror/view";
 import {
   findFrontmatterFoldRange,
   frontmatterCollapse,
+  frontmatterKeys,
+  frontmatterSummary,
   isFrontmatterFolded,
   toggleFrontmatterFold,
 } from "./frontmatter-fold";
@@ -65,12 +67,31 @@ describe("frontmatter collapsing", () => {
     expect(view.state.selection.main.head).toBe(doc.indexOf("# Heading"));
   });
 
-  it("hides the frontmatter and following blank lines as one block", () => {
+  it("replaces the frontmatter and following blank lines with one summary row", () => {
     const doc = "---\ntitle: Note\n---\n\n# Heading";
     const view = makeView(doc);
 
     toggleFrontmatterFold(view, findFrontmatterFoldRange(doc)!, true);
-    expect(view.contentDOM.textContent).toBe("# Heading");
+    expect(view.contentDOM.textContent).toBe("Properties· title# Heading");
+  });
+
+  it("adds a spacer block before text that directly follows expanded frontmatter", () => {
+    const tight = makeView("---\ntitle: Note\n---\nBody");
+    expect(tight.contentDOM.querySelectorAll(".cm-frontmatter-spacer")).toHaveLength(1);
+
+    // A blank line already gives the room; collapsed frontmatter has its row.
+    expect(makeView("---\ntitle: Note\n---\n\nBody").contentDOM.querySelector(".cm-frontmatter-spacer")).toBeNull();
+    toggleFrontmatterFold(tight, findFrontmatterFoldRange(tight.state.doc.toString())!, true);
+    expect(tight.contentDOM.querySelector(".cm-frontmatter-spacer")).toBeNull();
+  });
+
+  it("expands from a click on the summary row", () => {
+    const doc = "---\ntitle: Note\n---\n# Heading";
+    const view = makeView(doc);
+    toggleFrontmatterFold(view, findFrontmatterFoldRange(doc)!, true);
+
+    view.contentDOM.querySelector<HTMLButtonElement>(".cm-frontmatter-summary")!.click();
+    expect(isFrontmatterFolded(view.state)).toBe(false);
   });
 
   it("expands when the caret moves into the hidden block", () => {
@@ -106,5 +127,18 @@ describe("frontmatter collapsing", () => {
       userEvent: "input.type",
     });
     expect(isFrontmatterFolded(view.state)).toBe(true);
+  });
+});
+
+describe("frontmatter summary", () => {
+  it("lists top-level keys, including hyphenated ones, skipping nested entries and comments", () => {
+    const doc = "---\ntitle: A\ntags:\n  - x\n# note\ndue-date: 2026-10-03\n---\nBody";
+    expect(frontmatterKeys(doc)).toEqual(["title", "tags", "due-date"]);
+  });
+
+  it("shows the first three keys, then a count of the rest", () => {
+    expect(frontmatterSummary(["title", "tags", "created", "status", "type"])).toBe("title, tags, created, +2");
+    expect(frontmatterSummary(["title"])).toBe("title");
+    expect(frontmatterSummary([])).toBe("");
   });
 });

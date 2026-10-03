@@ -2,14 +2,12 @@
 
 import React from "react";
 
-const ROWS = 3;
-
 // Placeholder rows, laid out like FeedRow, until the vault's notes are
 // listed.
-export default function FeedSkeleton() {
+export default function FeedSkeleton({ rows = 3 }: { rows?: number }) {
   return (
     <div aria-hidden="true" data-testid="feed-skeleton" className="flex flex-col gap-1 motion-safe:animate-pulse">
-      {Array.from({ length: ROWS }, (_, index) => (
+      {Array.from({ length: rows }, (_, index) => (
         <div key={index} className="grid grid-cols-[4.5rem_1fr] gap-3 sm:grid-cols-[5rem_1fr]">
           <span className="mt-5 ml-auto block h-2.5 w-10 rounded bg-surface-raised" />
           <span className="block px-3 py-3">

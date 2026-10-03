@@ -120,15 +120,16 @@ export default function PaneTab({
         .filter(Boolean)
         .join(" · ")}
       className={[
-        // Square, edge-to-edge tabs split by hairlines, as in a code editor.
-        // The active tab takes the editor's fill and paints over the header's
-        // bottom line (z-10), so it joins the editor; an accent bar marks it.
-        "group relative flex items-center self-stretch pl-3 pr-1.5 cursor-pointer shrink-0",
-        "min-w-[96px] max-w-[240px] w-fit border-r border-edge-subtle first:border-l",
-        "select-none transition-colors duration-100",
+        // Pills on the header's chrome: every tab sits on a subtle translucent
+        // fill (static black / white — the var-backed surface tokens drop
+        // opacity modifiers); the active one is a raised paper pill with a
+        // hairline ring.
+        "group relative flex items-center h-8 pl-3 pr-1.5 rounded-lg mx-0.5 cursor-pointer shrink-0",
+        "min-w-[96px] max-w-[240px] w-fit",
+        "select-none transition-[background-color,box-shadow,color] duration-150",
         isActive
-          ? "z-10 bg-paper-pale dark:bg-paper-dark text-ink-light dark:text-ink-dark before:absolute before:inset-x-0 before:top-0 before:h-0.5 before:bg-accent"
-          : "text-fg-muted hover:bg-black/[0.04] dark:hover:bg-white/[0.05] hover:text-fg dark:text-stone dark:hover:text-ink-dark",
+          ? "bg-surface shadow-sm ring-1 ring-black/5 dark:ring-white/10 text-ink-light dark:text-ink-dark"
+          : "bg-black/[0.04] dark:bg-white/[0.05] text-fg-muted hover:bg-black/[0.08] dark:hover:bg-white/[0.09] hover:text-fg dark:text-stone dark:hover:text-ink-dark",
         isDraggedOver ? "ring-2 ring-sage/40 ring-inset" : "",
       ].join(" ")}
     >

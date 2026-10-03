@@ -2,7 +2,7 @@
 
 import React from "react";
 import { useAtom } from "jotai";
-import { HiOutlineColorSwatch, HiOutlineDesktopComputer, HiOutlineEye, HiOutlineLightningBolt, HiOutlineMenuAlt2, HiOutlineRefresh, HiOutlineTemplate, HiOutlineViewList } from "react-icons/hi";
+import { HiOutlineColorSwatch, HiOutlineDesktopComputer, HiOutlineEye, HiOutlineLightningBolt, HiOutlineMenuAlt2, HiOutlineRefresh, HiOutlineViewList } from "react-icons/hi";
 import {
   atom_autosaveMode,
   atom_editorFontFamily,
@@ -11,7 +11,6 @@ import {
   atom_renderedFontSize,
   atom_sidebarOpen,
   atom_theme,
-  atom_toolbarDisplayMode,
   atom_vimMode,
   type Theme,
 } from "@/app/atoms/ui-atoms";
@@ -19,11 +18,10 @@ import Toggle from "@/app/components/Toggle";
 import FontPicker from "@/app/editor/settings/components/FontPicker";
 import { SegmentedControl, SelectControl } from "@/app/editor/settings/components/SettingControls";
 import { FONTS } from "@/app/editor/settings/font-options";
-import { TOOLBAR_STYLE_OPTIONS } from "@/app/editor/settings/sections/AppearanceSettings";
 import WizardStep, { WizardPanel } from "./WizardStep";
 
-// Steps 2–10 of the welcome wizard: theme, font, text size, line numbers,
-// Vim mode, flow mode, autosave, toolbar style, and sidebar. Each writes its
+// Steps 2–9 of the welcome wizard: theme, font, text size, line numbers,
+// Vim mode, flow mode, autosave, and sidebar. Each writes its
 // setting immediately.
 
 const THEME_OPTIONS: { label: string; value: Theme }[] = [
@@ -55,7 +53,7 @@ export function FontStep({ onContinue }: StepProps) {
   return (
     <WizardStep
       icon={<HiOutlineColorSwatch size={32} />}
-      title="Make the editor feel like paper"
+      title="Choose your font"
       description="Choose a comfortable typeface for writing Markdown."
       onContinue={onContinue}
     >
@@ -167,29 +165,13 @@ export function AutosaveStep({ onContinue }: StepProps) {
   );
 }
 
-export function ToolbarStep({ onContinue }: StepProps) {
-  const [toolbarDisplayMode, setToolbarDisplayMode] = useAtom(atom_toolbarDisplayMode);
-  return (
-    <WizardStep
-      icon={<HiOutlineTemplate size={32} />}
-      title="Toolbar style"
-      description="Icons only keeps the toolbar quiet; icon and text adds a label under each button. You can change this later in Settings → Appearance, or by right-clicking the toolbar."
-      onContinue={onContinue}
-    >
-      <WizardPanel>
-        <SegmentedControl options={TOOLBAR_STYLE_OPTIONS} value={toolbarDisplayMode} onChange={setToolbarDisplayMode} />
-      </WizardPanel>
-    </WizardStep>
-  );
-}
-
 export function SidebarStep({ onContinue }: StepProps) {
   const [sidebarOpen, setSidebarOpen] = useAtom(atom_sidebarOpen);
   return (
     <WizardStep
       icon={<HiOutlineMenuAlt2 size={32} />}
       title="Show the sidebar?"
-      description="Your open notes and the vault's files on the left edge of the window. Show it with the Sidebar button in the toolbar, hide it with the chevron in its header, or press Ctrl/Cmd+Alt+S."
+      description="Your open notes and the vault's files on the left edge of the window. Show it with the Sidebar button in the toolbar, hide it with the button in its header, or press Ctrl/Cmd+Alt+S."
       onContinue={onContinue}
     >
       <ToggleRow label="Sidebar" active={sidebarOpen} onChange={setSidebarOpen} />

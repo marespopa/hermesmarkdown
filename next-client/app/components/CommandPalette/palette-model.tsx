@@ -3,6 +3,7 @@
 import type { DisplayTask } from "@/app/atoms/task-atoms";
 import type { PalettePinnedItem, Theme } from "@/app/atoms/ui-atoms";
 import { MASKED_TEXT } from "@/app/utils/note-display";
+import type { ContentHit } from "@/app/workers/content-search-protocol";
 import React from "react";
 import { HiOutlineDesktopComputer, HiOutlineMoon, HiOutlineSun } from "react-icons/hi";
 import { fuzzyMatch } from "./command-search";
@@ -40,6 +41,7 @@ const scopes = [
   { id: "command", prefix: ">", label: "Commands" },
   { id: "task", prefix: "!", label: "Tasks" },
   { id: "heading", prefix: "@", label: "Headings" },
+  { id: "content", prefix: "/", label: "Note text" },
 ] as const;
 
 export type Scope = (typeof scopes)[number]["id"];
@@ -51,7 +53,10 @@ export type Row =
   | { kind: "file"; id: string; label: string; detail: string; file: FileResult; titleIndices: number[]; detailIndices: number[]; score: number }
   | { kind: "task"; id: string; label: string; detail: string; isMasked: boolean; titleIndices: number[]; detailIndices: number[]; score: number }
   | { kind: "heading"; id: string; label: string; detail: string; from: number; titleIndices: number[]; detailIndices: number[]; score: number }
-  | { kind: "create"; id: string; label: string; detail: string; title: string; titleIndices: number[]; detailIndices: number[]; score: number };
+  | { kind: "create"; id: string; label: string; detail: string; title: string; titleIndices: number[]; detailIndices: number[]; score: number }
+  // A matching line from the `/` scope: label = snippet, detail = `name:line`.
+  | { kind: "content"; id: string; label: string; detail: string; file: FileResult; line: number; column: number; titleIndices: number[]; detailIndices: number[]; score: number };
+export type ContentRow = Extract<Row, { kind: "content" }>;
 
 // The "Create '…'" row for a file query: offered when a create handler is
 // registered and no note already has exactly that title.
@@ -75,6 +80,19 @@ export function buildTaskRows(query: string, tasks: DisplayTask[]): Extract<Row,
     return match ? { kind: "task" as const, id: task.id, label: task.text || "(empty task)", detail, isMasked: false, titleIndices: match.indices, detailIndices: [] as number[], score: match.score } : null;
   }).filter((row): row is Extract<Row, { kind: "task" }> => row !== null)
     .sort((a, b) => b.score - a.score || a.label.localeCompare(b.label));
+}
+
+// The `/` scope's rows, in the worker's rank order. Hits for notes the
+// palette doesn't list (removed, hidden or sensitive) are dropped.
+export function buildContentRows(hits: ContentHit[], filesByPath: Map<string, FileResult>): ContentRow[] {
+  return hits.flatMap((hit) => {
+    const file = filesByPath.get(hit.path);
+    if (!file) return [];
+    return [{
+      kind: "content" as const, id: `${hit.path}:${hit.line}`, label: hit.snippet, detail: `${file.name}:${hit.line}`,
+      file, line: hit.line, column: hit.column, titleIndices: hit.highlights, detailIndices: [] as number[], score: hit.score,
+    }];
+  });
 }
 
 export function HighlightedText({ text, indices }: { text: string; indices: number[] }) {

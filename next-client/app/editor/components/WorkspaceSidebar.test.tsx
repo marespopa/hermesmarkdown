@@ -130,11 +130,13 @@ describe("WorkspaceSidebar", () => {
     expect(screen.queryByRole("button", { name: "a.md" })).not.toBeInTheDocument();
   });
 
-  it("titles its header with the vault's name, with no hide button of its own", () => {
+  it("titles its header with the vault's name, beside a button that hides it", () => {
     fileSystem.vaultHandle = { name: "Notes" };
     renderSidebar();
     expect(screen.getByRole("heading", { name: "Notes" })).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Hide sidebar" })).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Hide sidebar" }));
+    expect(screen.getByRole("navigation", { hidden: true }).closest("[inert]")).not.toBeNull();
   });
 
   it("is inert while hidden", () => {
