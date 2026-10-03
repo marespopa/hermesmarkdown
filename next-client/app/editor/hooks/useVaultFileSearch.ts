@@ -52,11 +52,10 @@ export function useVaultFileSearch({ selectedTags, panel }: UseVaultFileSearchPr
   [showHiddenFiles]);
 
   // Non-.md files (index.yaml, schema.yaml, etc.) only ever reach fileMetadata
-  // when they're inside a dotfolder and hidden files are shown (see the
-  // indexers) — so gating on extension here just needs to let those through
-  // too, rather than assuming every visible entry is markdown.
+  // from .hermes/ while hidden files are shown (see collectVaultFiles), so
+  // let those through too rather than assuming every entry is markdown.
   const isVisibleFile = useCallback((path: string) =>
-    path.endsWith(".md") || (showHiddenFiles && path.split("/").some((segment) => segment.startsWith("."))),
+    path.endsWith(".md") || (showHiddenFiles && path.startsWith(".hermes/")),
   [showHiddenFiles]);
 
   // Unfiltered — every visible file in the vault, ignoring search/tag filters.

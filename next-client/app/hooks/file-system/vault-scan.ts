@@ -56,11 +56,25 @@ export interface CollectResult {
   timedOut: boolean;
 }
 
-// Recursively collects the vault's markdown files for indexing. Skips
-// node_modules/vendor (never vaults, can be huge) and dotfolders unless
-// `includeHidden`, in which case non-.md files inside dotfolders (e.g.
-// .hermes/index.yaml) are included too. Gives up after `timeoutMs` so a
-// huge tree can never pin the indexer.
+// Never walked, even with hidden files shown: version control, dependency
+// and cache folders hold no notes and can be huge.
+const SKIPPED_DIRS = new Set(["node_modules", "vendor", ".git", ".svn", ".hg", "__pycache__", ".venv", ".cache", ".Trash"]);
+// The one hidden folder whose non-Markdown files are vault data (index.yaml,
+// schema.yaml, …). Other dotfolders (.obsidian, .vscode, …) only add notes.
+const VAULT_DATA_DIR = ".hermes";
+// Folders listed at once; the walk is bound by per-folder listing latency.
+const WALK_CONCURRENCY = 8;
+
+// Secrets-style files (.env, .env.local, …) are never read or indexed.
+export function isSecretFile(name: string): boolean {
+  return /^\.env(\..*)?$/i.test(name);
+}
+
+// Recursively collects the vault's markdown files for indexing, listing up
+// to WALK_CONCURRENCY folders at once. Skips SKIPPED_DIRS and dotfolders
+// unless `includeHidden`, in which case non-.md files in .hermes/ (e.g.
+// .hermes/index.yaml) are included too. Secret files never are. Gives up
+// after `timeoutMs` so a huge tree can never pin the indexer.
 export async function collectVaultFiles(
   root: FileSystemDirectoryHandle,
   includeHidden: boolean,
@@ -68,19 +82,23 @@ export async function collectVaultFiles(
 ): Promise<CollectResult> {
   const files: CollectedFile[] = [];
   let failedSubdirs = 0;
+  let timedOut = false;
+  let finished = false;
 
-  const isIgnoredDir = (name: string) =>
-    name === "node_modules" || name === "vendor" || (!includeHidden && name.startsWith("."));
-  const isInHiddenDir = (path: string) => path.split("/").some((seg) => seg.startsWith("."));
+  const isIgnoredDir = (name: string) => SKIPPED_DIRS.has(name) || (!includeHidden && name.startsWith("."));
+  const isWanted = (name: string, path: string) =>
+    !isSecretFile(name) &&
+    (name.endsWith(".md") || (includeHidden && path.split("/")[0] === VAULT_DATA_DIR));
 
-  async function walk(dirHandle: FileSystemDirectoryHandle, path = "") {
+  async function listDir(dirHandle: FileSystemDirectoryHandle, path: string, queue: Array<[FileSystemDirectoryHandle, string]>) {
     try {
       for await (const entry of (dirHandle as any).values()) {
+        if (finished) return;
         const currentPath = path ? `${path}/${entry.name}` : entry.name;
-        if (entry.kind === "file" && (entry.name.endsWith(".md") || (includeHidden && isInHiddenDir(currentPath)))) {
+        if (entry.kind === "file" && isWanted(entry.name, currentPath)) {
           files.push({ handle: entry as FileSystemFileHandle, path: currentPath });
         } else if (entry.kind === "directory" && !isIgnoredDir(entry.name)) {
-          await walk(entry as FileSystemDirectoryHandle, currentPath);
+          queue.push([entry as FileSystemDirectoryHandle, currentPath]);
         }
       }
     } catch (err: any) {
@@ -89,12 +107,35 @@ export async function collectVaultFiles(
     }
   }
 
-  let timedOut = false;
-  await Promise.race([
-    walk(root),
-    new Promise<void>((resolve) => setTimeout(() => { timedOut = true; resolve(); }, timeoutMs)),
-  ]);
-  return { files, failedSubdirs, timedOut };
+  await new Promise<void>((resolve) => {
+    const queue: Array<[FileSystemDirectoryHandle, string]> = [[root, ""]];
+    let head = 0;
+    let active = 0;
+    const finish = () => {
+      if (finished) return;
+      finished = true;
+      clearTimeout(timer);
+      resolve();
+    };
+    const timer = setTimeout(() => {
+      timedOut = true;
+      finish();
+    }, timeoutMs);
+    const pump = () => {
+      while (!finished && active < WALK_CONCURRENCY && head < queue.length) {
+        const [dirHandle, path] = queue[head++];
+        active++;
+        listDir(dirHandle, path, queue).then(() => {
+          active--;
+          if (active === 0 && head >= queue.length) finish();
+          else pump();
+        });
+      }
+    };
+    pump();
+  });
+  // A copy: listings still in flight after a timeout must not change it.
+  return { files: files.slice(), failedSubdirs, timedOut };
 }
 
 // Reads collected files for the metadata worker (file permissions are scoped
