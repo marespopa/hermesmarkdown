@@ -40,7 +40,10 @@ const planHit = { path: "projects/Plan.md", name: "Plan.md", line: 3, column: 6,
 
 let scrollTarget: unknown = undefined;
 function ScrollTargetProbe() {
-  scrollTarget = useAtomValue(atom_pendingScrollTarget);
+  const value = useAtomValue(atom_pendingScrollTarget);
+  React.useEffect(() => {
+    scrollTarget = value;
+  }, [value]);
   return null;
 }
 
