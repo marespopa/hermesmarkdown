@@ -2,8 +2,11 @@ import type { ToolbarDisplayMode } from "@/app/atoms/ui-atoms";
 
 // Shared look of the pane header (tab strip row and its toolbar sections).
 // The header takes a solid token fill — opacity modifiers don't work on the
-// var-backed colors (Tailwind drops the class).
-export const PANE_HEADER_CLASS = "flex items-center bg-chrome border-b border-edge-subtle shrink-0 relative z-20 px-2 sm:px-3";
+// var-backed colors (Tailwind drops the class). The bottom line is drawn by
+// `::after` rather than a border, so the active tab (z-10) can paint over it
+// and join the editor below.
+export const PANE_HEADER_CLASS =
+  "flex items-center bg-chrome shrink-0 relative z-20 px-2 sm:px-3 after:absolute after:inset-x-0 after:bottom-0 after:h-px after:bg-edge-subtle after:pointer-events-none";
 // Taller header for "Icon and Text", and the matching negative margin that
 // slides it under the pane's top edge when the toolbar is hidden.
 export const PANE_HEADER_HEIGHT: Record<ToolbarDisplayMode, string> = { icon: "h-11", iconAndText: "h-14" };

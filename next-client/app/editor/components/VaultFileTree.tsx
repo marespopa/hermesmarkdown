@@ -21,6 +21,7 @@ export default function VaultFileTree({
   deleteFile,
   duplicateFile,
   onClose,
+  singleClickOpen = false,
   isSearchActive = false,
   highlightQuery = "",
   treeView = false,
@@ -143,6 +144,7 @@ export default function VaultFileTree({
       deleteFile,
       duplicateFile,
       onClose,
+      singleClickOpen,
     };
   };
 

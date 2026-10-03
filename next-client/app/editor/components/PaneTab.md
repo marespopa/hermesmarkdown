@@ -1,6 +1,6 @@
 # PaneTab
 
-Description: Draggable file tab. Every tab sits on a subtle translucent fill that deepens on hover; the active tab is highlighted as a raised surface pill with a soft shadow and a hairline ring. The close button sits on the tab's leading edge (20px target): always visible on the active tab, shown on hover or keyboard focus on the others. While the file is unsaved, saving, or failed to save, a colored dot covers the close button and turns into it on hover or focus, so a tab with changes can still be closed by click; the tab's tooltip names the state too. A `Ctrl/Cmd+N` shortcut hint follows the name. It also exports `TabSaveState`, `statusDot`, `statusMeta` (icon + label per save state) and `SaveStateIcon` — the save glyph used by the pane Save button and the mobile header: save icon, with a badge while unsaved, a check when saved, an exclamation mark on error, a spinner while saving, so states differ by shape, not only color.
+Description: Draggable file tab, styled like a code editor's: square, edge-to-edge tabs split by hairlines that fill the header's height. Inactive tabs sit on the header's chrome and tint on hover; the active tab takes the editor's fill, carries an accent bar along its top, and paints over the header's bottom line (`z-10`) so it joins the editor. The close button sits on the tab's trailing edge (20px target), after the name: always visible on the active tab, shown on hover or keyboard focus on the others. While the file is unsaved, saving, or failed to save, a colored dot covers the close button and turns into it on hover or focus, so a tab with changes can still be closed by click; the tab's tooltip names the state too, and the tab's `Ctrl/Cmd+N` shortcut (kept off the tab itself so tabs stay narrow). Middle-click closes the tab (calls `onClose`). It also exports `TabSaveState`, `statusDot`, `statusMeta` (icon + label per save state) and `SaveStateIcon` — the save glyph used by the pane Save button and the mobile header: save icon, with a badge while unsaved, a check when saved, an exclamation mark on error, a spinner while saving, so states differ by shape, not only color.
 
 ## Local State & Storage
 - State: None (controlled).
@@ -27,7 +27,7 @@ import PaneTab, { SaveStateIcon } from "./PaneTab";
 | isActive | `boolean` |  | Active styling; keeps the close button visible |
 | saveState | `"idle" \| "dirty" \| "saving" \| "saved" \| "error"` |  | Dot over the close button for dirty / saving / error |
 | saveErrorMessage? | `string` |  | Error tooltip |
-| shortcutNumber? | `number` |  | `Ctrl/Cmd+N` hint |
+| shortcutNumber? | `number` |  | `Ctrl/Cmd+N` shortcut, shown in the tooltip |
 | isDraggedOver | `boolean` |  | Drop-target styling |
-| onClick / onClose / onContextMenu | `(e: MouseEvent) => void` |  | Handlers |
+| onClick / onClose / onContextMenu | `(e: MouseEvent) => void` |  | Handlers; `onClose` also fires on middle-click |
 | draggable? / onDrag* / onDrop? | DnD handlers |  | Tab reordering |

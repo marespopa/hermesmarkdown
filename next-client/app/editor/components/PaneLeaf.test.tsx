@@ -401,10 +401,16 @@ describe("PaneLeaf toolbar style and sidebar toggle", () => {
     expect(screen.getByRole("button", { name: "Command palette" })).toHaveTextContent("Search");
   });
 
-  it("shows the sidebar from the toolbar, then leaves hiding it to the sidebar", () => {
+  it("toggles the sidebar from one toolbar button that stays put", () => {
     renderSolo();
+    const toggle = screen.getByRole("button", { name: "Sidebar" });
+    expect(toggle).toHaveAttribute("aria-pressed", "false");
+
+    fireEvent.click(toggle);
+    expect(screen.getByRole("button", { name: "Sidebar" })).toHaveAttribute("aria-pressed", "true");
+
     fireEvent.click(screen.getByRole("button", { name: "Sidebar" }));
-    expect(screen.queryByRole("button", { name: "Sidebar" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Sidebar" })).toHaveAttribute("aria-pressed", "false");
   });
 });
 

@@ -106,26 +106,48 @@ export default function PaneTab({
       onDragLeave={onDragLeave}
       onDrop={onDrop}
       onClick={onClick}
+      // Middle-click closes the tab; swallowing the press keeps the browser
+      // from starting autoscroll.
+      onMouseDown={(e) => { if (e.button === 1) e.preventDefault(); }}
+      onAuxClick={(e) => {
+        if (e.button !== 1) return;
+        e.preventDefault();
+        onClose(e);
+      }}
       onContextMenu={onContextMenu}
-      title={showDot ? `${fileName} — ${dotTitle}` : fileName}
+      // The Ctrl/Cmd+N shortcut lives in the tooltip, not on the tab, to keep tabs narrow.
+      title={[showDot ? `${fileName} — ${dotTitle}` : fileName, shortcutNumber && formatShortcut(String(shortcutNumber))]
+        .filter(Boolean)
+        .join(" · ")}
       className={[
-        "group relative flex items-center h-8 pl-1 pr-3 rounded-lg mx-0.5 cursor-pointer shrink-0",
-        "min-w-[96px] max-w-[240px] w-fit",
-        "select-none transition-[background-color,box-shadow,color,transform] duration-150",
-        // Every tab sits on a subtle translucent fill (static black / white —
-        // the var-backed surface tokens drop opacity modifiers); the active
-        // one is a raised surface pill with a hairline ring.
+        // Square, edge-to-edge tabs split by hairlines, as in a code editor.
+        // The active tab takes the editor's fill and paints over the header's
+        // bottom line (z-10), so it joins the editor; an accent bar marks it.
+        "group relative flex items-center self-stretch pl-3 pr-1.5 cursor-pointer shrink-0",
+        "min-w-[96px] max-w-[240px] w-fit border-r border-edge-subtle first:border-l",
+        "select-none transition-colors duration-100",
         isActive
-          ? "bg-surface shadow-sm ring-1 ring-black/5 dark:ring-white/10 text-ink-light dark:text-ink-dark"
-          : "bg-black/[0.04] dark:bg-white/[0.05] text-fg-muted hover:bg-black/[0.08] dark:hover:bg-white/[0.09] hover:text-fg dark:text-stone dark:hover:text-ink-dark",
+          ? "z-10 bg-paper-pale dark:bg-paper-dark text-ink-light dark:text-ink-dark before:absolute before:inset-x-0 before:top-0 before:h-0.5 before:bg-accent"
+          : "text-fg-muted hover:bg-black/[0.04] dark:hover:bg-white/[0.05] hover:text-fg dark:text-stone dark:hover:text-ink-dark",
         isDraggedOver ? "ring-2 ring-sage/40 ring-inset" : "",
       ].join(" ")}
     >
-      {/* Leading slot: close button, with the unsaved/saving/error dot on top
-          of it until the tab is hovered or focused — the dot turns into the
-          close button, so a tab with changes can still be closed by click.
+      {/* File name */}
+      <span
+        className={[
+          "flex-1 truncate text-[12px] leading-none tracking-tight",
+          isActive ? "font-medium" : "font-normal",
+        ].join(" ")}
+      >
+        {fileName}
+      </span>
+
+
+      {/* Trailing slot: close button, with the unsaved/saving/error dot on
+          top of it until the tab is hovered or focused — the dot turns into
+          the close button, so a tab with changes can still be closed by click.
           The slot keeps its width when empty so the name never shifts. */}
-      <span className="relative shrink-0 flex items-center justify-center w-5 h-5 mr-1">
+      <span className="relative shrink-0 flex items-center justify-center w-5 h-5 ml-1.5">
         <Tooltip label="Close tab" position="bottom" portal>
           <Button variant="unstyled"
             onClick={onClose}
@@ -154,25 +176,6 @@ export default function PaneTab({
           />
         )}
       </span>
-
-      {/* File name */}
-      <span
-        className={[
-          "flex-1 truncate text-[12px] leading-none tracking-tight",
-          isActive ? "font-medium" : "font-normal",
-        ].join(" ")}
-      >
-        {fileName}
-      </span>
-
-      {shortcutNumber && (
-        <sup
-          aria-hidden="true"
-          className="ml-2 shrink-0 font-mono text-[10px] leading-none text-fg-faint/70"
-        >
-          {formatShortcut(String(shortcutNumber))}
-        </sup>
-      )}
     </div>
   );
 }

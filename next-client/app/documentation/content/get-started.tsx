@@ -249,7 +249,7 @@ export const getStartedGroup: Group = {
           </p>
           <p>
             The <strong>sidebar</strong> lists your open notes across every pane. With a vault it also starts with Home and ends with the file tree. Show
-            it with the Sidebar button in the toolbar, hide it with the chevron in its own header, or toggle it with{" "}
+            or hide it with the Sidebar button at the toolbar's far left, or toggle it with{" "}
             <code>CTRL/CMD+ALT+S</code> or the <strong>Show sidebar</strong>{" "}
             command (the welcome tour offers it too), and drag its edge to resize it (double-click the edge to
             reset). The Explorer below remains the place for bigger file work.
@@ -263,7 +263,7 @@ export const getStartedGroup: Group = {
           <KV
             rows={[
               { label: "Home feed", value: "Home button in the toolbar" },
-              { label: "Sidebar", value: "Sidebar button in the toolbar to show, chevron in the sidebar to hide / CTRL/CMD+ALT+S" },
+              { label: "Sidebar", value: "Sidebar button at the toolbar's far left / CTRL/CMD+ALT+S" },
               { label: "Explorer", value: "Dedicated files view / CTRL/CMD+SHIFT+E" },
               { label: "Quick switcher", value: "CTRL/CMD+K or CTRL/CMD+P" },
               { label: "Command palette", value: "CTRL/CMD+SHIFT+K or CTRL/CMD+SHIFT+P" },

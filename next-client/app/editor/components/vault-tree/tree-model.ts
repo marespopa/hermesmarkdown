@@ -13,6 +13,8 @@ export interface VaultFileTreeProps {
   deleteFile: (handle: FileSystemHandle, path?: string) => void;
   duplicateFile?: (handle: FileSystemHandle) => void;
   onClose?: () => void;
+  // Open files on a single click (sidebar); otherwise double-click opens.
+  singleClickOpen?: boolean;
   isSearchActive?: boolean;
   highlightQuery?: string;
   treeView?: boolean;

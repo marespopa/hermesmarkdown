@@ -9,7 +9,8 @@ import { useAtom } from "jotai";
 import { atom_activePaneId, atom_fileContent, atom_openFiles, atom_splitPane, atom_closePane, atom_activeFilePath, atom_saveStatus, atom_workspaceLayout, getWorkspaceTabs } from "@/app/atoms/atoms";
 import { atom_isVoicePreviewVisible, atom_sidebarOpen, atom_toolbarDisplayMode, atom_toolbarHidden, type ToolbarDisplayMode } from "@/app/atoms/ui-atoms";
 import { atom_materializedDraftPath } from "@/app/atoms/file-atoms";
-import { HiOutlineDocumentText, HiOutlineChartBar, HiOutlineClipboardCopy, HiOutlineMenuAlt2, HiOutlineViewBoards, HiOutlineChevronDown } from "react-icons/hi";
+import { HiOutlineDocumentText, HiOutlineChartBar, HiOutlineClipboardCopy, HiOutlineViewBoards, HiOutlineChevronDown } from "react-icons/hi";
+import { VscLayoutSidebarLeft, VscLayoutSidebarLeftOff } from "react-icons/vsc";
 import PaneTab, { TabSaveState } from "./PaneTab";
 import PaneActions from "./PaneActions";
 import PaneToolbarButton, { ToolbarModeContext } from "./PaneToolbarButton";
@@ -158,24 +159,29 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
           setToolbarMenu({ x: e.clientX, y: e.clientY });
         }}
       >
-        {/* The sidebar toggle sits at the far left while the sidebar is hidden;
-            once shown, the sidebar's own header chevron hides it. Home lives
-            in the sidebar. */}
-        {hostsSidebarToggle && !sidebarOpen && (
-          <div className={`${PANE_SECTION_CLASS[toolbarMode]} !ml-0`}>
+        {/* The sidebar toggle stays at the far left, as in a code editor's
+            title bar: one button that shows and hides it, its glyph filled
+            while the sidebar is open. Its right margin matches the header's left
+            padding (px-2 sm:px-3), so it sits evenly between edge and tabs.
+            Home lives in the sidebar. */}
+        {hostsSidebarToggle && (
+          <div className={`${PANE_SECTION_CLASS[toolbarMode]} !ml-0 mr-2 sm:mr-3`}>
             <PaneToolbarButton
-              icon={<HiOutlineMenuAlt2 size={PANE_ICON_SIZE} />}
+              icon={sidebarOpen
+                ? <VscLayoutSidebarLeft size={PANE_ICON_SIZE} />
+                : <VscLayoutSidebarLeftOff size={PANE_ICON_SIZE} />}
               label="Sidebar"
-              tooltip="Show sidebar"
+              aria-pressed={sidebarOpen}
+              tooltip={sidebarOpen ? "Hide sidebar" : "Show sidebar"}
               shortcut={formatShortcut("S", { alt: true })}
               tooltipPosition="bottom-start"
-              onClick={() => setSidebarOpen(true)}
+              onClick={() => setSidebarOpen(!sidebarOpen)}
             />
           </div>
         )}
         {/* Scrollable tabs strip */}
           <TabStripScroller
-            className="flex items-center flex-1 overflow-x-auto overflow-y-hidden scrollbar-none h-full px-1.5 min-w-0"
+            className="flex items-stretch flex-1 overflow-x-auto overflow-y-hidden scrollbar-none h-full min-w-0"
             onDragOver={(e) => handleDragOver(e)}
             onDragLeave={handleDragLeave}
             onDrop={(e) => handleDrop(e, leaf.openFilePaths.length)}
