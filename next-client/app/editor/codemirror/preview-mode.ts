@@ -3,7 +3,8 @@ import { EditorState, type Extension, Prec, type Range, StateField } from "@code
 import { Decoration, type DecorationSet, EditorView, WidgetType } from "@codemirror/view";
 import type { SyntaxNode } from "@lezer/common";
 import { toggleCheckboxOnLine } from "./commands";
-import { caretOutsideFrontmatter, findFrontmatterFoldRange } from "./frontmatter-fold";
+import { caretOutsideFrontmatter, findFrontmatterFoldRange, isFrontmatterFolded } from "./frontmatter-fold";
+import { frontmatterPreviewDecorations } from "./frontmatter-preview";
 import { findRenderedBlockAt } from "./rendered-block";
 import { previewModeFacet } from "./preview-facet";
 
@@ -163,13 +164,17 @@ export function buildPreviewDecorations(state: EditorState): DecorationSet {
   });
 
   for (const n of quotedLines) ranges.push(quoteLine.range(doc.line(n).from));
+  frontmatterPreviewDecorations(state, ranges);
   return Decoration.set(ranges, true);
 }
 
 const previewDecorationsField = StateField.define<DecorationSet>({
   create: buildPreviewDecorations,
   update(value, transaction) {
-    if (!transaction.docChanged && syntaxTree(transaction.startState) === syntaxTree(transaction.state)) {
+    // Collapsing or expanding frontmatter swaps its grid for the summary row.
+    const frontmatterToggled = transaction.effects.length > 0
+      && isFrontmatterFolded(transaction.startState) !== isFrontmatterFolded(transaction.state);
+    if (!transaction.docChanged && !frontmatterToggled && syntaxTree(transaction.startState) === syntaxTree(transaction.state)) {
       return value;
     }
     return buildPreviewDecorations(transaction.state);
@@ -227,6 +232,46 @@ const previewTheme = EditorView.theme({
     paddingBottom: "0.5em !important",
   },
   ".cm-rendered-block": {
+    cursor: "default",
+  },
+  // Expanded frontmatter: a two-column key / value grid on the frontmatter's
+  // tint, keys small and muted, in the reading font.
+  ".cm-previewProperties": {
+    display: "grid",
+    gridTemplateColumns: "minmax(5.5em, max-content) 1fr",
+    columnGap: "1.25em",
+    rowGap: "0.35em",
+    margin: "0 0 var(--sheet-pad-top, 1.5rem)",
+    padding: "0.75em 2.25em 0.75em 1em",
+    borderRadius: "8px",
+    backgroundColor: "var(--frontmatter-bg)",
+    fontSize: "0.88em",
+    lineHeight: "1.5",
+  },
+  ".cm-previewProperties dt": {
+    color: "var(--fg-faint)",
+    fontSize: "0.92em",
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+    whiteSpace: "nowrap",
+  },
+  ".cm-previewProperties dd": {
+    margin: 0,
+    color: "var(--fg)",
+    whiteSpace: "pre-line",
+    overflowWrap: "anywhere",
+  },
+  ".cm-previewProperties dd.cm-previewProperties-empty": {
+    color: "var(--fg-faint)",
+  },
+  ".cm-previewProperties dd.cm-previewProperties-tags": {
+    display: "flex",
+    flexWrap: "wrap",
+    gap: "0.3em",
+    whiteSpace: "normal",
+  },
+  ".cm-previewProperties .cm-tag-pill": {
+    margin: 0,
     cursor: "default",
   },
   ".cm-rendered-block-edit, .cm-table-rulers": {

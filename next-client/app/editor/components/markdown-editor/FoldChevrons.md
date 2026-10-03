@@ -1,6 +1,6 @@
 # FoldChevrons
 
-Description: Collapse/expand chevrons drawn at the right edge of foldable callouts (`> [!note]-`), and a close (×, "Hide metadata") at the right edge of expanded frontmatter, which hides metadata app-wide like the header's ⓘ. Collapsed frontmatter is hidden outright and is shown again from the header's `FrontmatterToggle`, so it gets no expand control here.
+Description: Collapse/expand chevrons drawn at the right edge of foldable callouts (`> [!note]-`), and a collapse chevron ("Collapse properties") at the right edge of expanded frontmatter, which collapses it in that note only. Collapsed frontmatter is its own summary row in the text (`CollapsedFrontmatterWidget` in `codemirror/frontmatter-fold.ts`), which expands it, so it gets no expand control here.
 
 ## Local State & Storage
 - State: None; chevron positions come from `useCodeMirrorCalloutFold` / `useCodeMirrorFrontmatterFold`.

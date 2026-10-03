@@ -44,14 +44,14 @@ import { metadataWorker, withPickerLock, isVaultSupported, isIdbSupported } from
 import {
   collectVaultFiles,
   isCloudFolderName,
-  isSameDirectory,
   listDirectoryEntries,
   metadataForFiles,
   readFilesForIndexing,
-  resolveParentDirectory,
   singlePaneLayout,
 } from "./vault-scan";
 import { indexVaultFiles, parseWithWorker, reportCollectProblems } from "./vault-index";
+import { useVaultNavigation } from "./use-vault-navigation";
+import { indexNoteContent, markContentIndexed, needsContentIndex } from "@/app/services/content-search-client";
 import { loadMetadataCache, saveMetadataCache } from "@/app/services/metadata-cache";
 import { atom_showHiddenFiles, atom_browserVaultDialogOpen } from "@/app/atoms/ui-atoms";
 import { loadStoredWorkspace } from "./stored-workspace";
@@ -140,18 +140,26 @@ export function useVaultManager() {
         }
 
         // Dates first, cached parses reused, the rest parsed newest first in
-        // the background (see vault-index.ts). Read the vault key from the
-        // store: right after a vault opens, this callback's closure is stale.
+        // the background, then the note-text backfill (see vault-index.ts).
+        // Read the vault key from the store: right after a vault opens, this
+        // callback's closure is stale.
         const vaultKey = store.get(atom_vaultKey);
         const worker = metadataWorker;
-        const { done } = await indexVaultFiles(fileHandles, !!passedHandle, {
+        const { done, contentDone } = await indexVaultFiles(fileHandles, !!passedHandle, {
           loadCache: () => (vaultKey ? loadMetadataCache(vaultKey) : Promise.resolve(null)),
           saveCache: (entries) => (vaultKey ? saveMetadataCache(vaultKey, entries) : Promise.resolve()),
           read: readFilesForIndexing,
-          parse: (files) => parseWithWorker(worker, files),
+          // The worker also indexes the text of every note it parses.
+          parse: (files) => {
+            markContentIndexed(files);
+            return parseWithWorker(worker, files);
+          },
           setMetadata: setFileMetadata,
           isCurrent: () => indexRunRef.current === run,
+          needsContent: needsContentIndex,
+          indexContent: indexNoteContent,
         });
+        void contentDone.catch((err) => console.error("Failed to index note text:", err));
         void done
           .catch((err) => console.error("Failed to parse vault metadata:", err))
           .finally(() => {
@@ -277,52 +285,7 @@ export function useVaultManager() {
     }
   }, [vaultHandle, setIsVaultPending, setIsVaultUnlocking, setCurrentDirectoryHandle, setIsCloudVault, scanVault, indexVaultTags, rebindHandles, detectCloudVault]);
 
-  const syncCurrentDirectoryToPath = useCallback(
-    async (path: string) => {
-      if (!vaultHandle || !path || path === "draft") return false;
-
-      let targetHandle: FileSystemDirectoryHandle;
-      try {
-        targetHandle = await resolveParentDirectory(vaultHandle, path);
-      } catch (err: any) {
-        if (err?.name === "NotAllowedError" || err?.name === "SecurityError") {
-          setIsVaultPending(true);
-          return false;
-        }
-        console.warn("Failed to find parent directory for path:", path, err);
-        return false;
-      }
-
-      const isSame = !!currentDirectoryHandle && await isSameDirectory(targetHandle, currentDirectoryHandle);
-
-      if (!isSame) {
-        setCurrentDirectoryHandle(targetHandle);
-        await scanVault(vaultHandle);
-      }
-      return true;
-    },
-    [vaultHandle, currentDirectoryHandle, setCurrentDirectoryHandle, setIsVaultPending, scanVault],
-  );
-
-  const navigateTo = useCallback(
-    async (handle: FileSystemDirectoryHandle) => {
-      setCurrentDirectoryHandle(handle);
-      await scanVault(handle);
-    },
-    [setCurrentDirectoryHandle, scanVault],
-  );
-
-  const navigateBack = useCallback(async () => {
-    if (
-      !vaultHandle ||
-      !currentDirectoryHandle ||
-      vaultHandle.name === currentDirectoryHandle.name
-    )
-      return;
-
-    setCurrentDirectoryHandle(vaultHandle);
-    await scanVault(vaultHandle);
-  }, [vaultHandle, currentDirectoryHandle, setCurrentDirectoryHandle, scanVault]);
+  const { syncCurrentDirectoryToPath, navigateTo, navigateBack } = useVaultNavigation({ vaultHandle, currentDirectoryHandle, scanVault });
 
   const closeVault = useCallback(() => {
     setVaultHandle(null);
@@ -334,7 +297,7 @@ export function useVaultManager() {
     setIsVaultPending(false);
     setIsCloudVault(false);
     setVaultDescriptor(null);
-    
+
     setOpenFiles({
       draft: {
         content: "",
@@ -349,7 +312,6 @@ export function useVaultManager() {
     clearVaultHandle();
     toast.success("Vault closed");
   }, [setVaultHandle, setCurrentDirectoryHandle, setVaultFiles, setFileMetadata, setActiveFileHandle, setActiveFilePath, setIsVaultPending, setOpenFiles, setWorkspaceLayout, setIsCloudVault, setVaultDescriptor]);
-
 
   // Load vault on mount
   useEffect(() => {

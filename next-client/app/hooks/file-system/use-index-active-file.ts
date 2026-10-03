@@ -11,6 +11,7 @@ import {
 } from "@/app/atoms/atoms";
 import { atom_fileMetadata } from "@/app/atoms/metadata";
 import { metadataWorker } from "./shared";
+import { markContentIndexed } from "@/app/services/content-search-client";
 
 export function useIndexActiveFile() {
   const vaultHandle = useAtomValue(atom_vaultHandle);
@@ -29,8 +30,10 @@ export function useIndexActiveFile() {
         // Optimization: Use the last known modification time or current time for in-memory indexing.
         // This avoids triggering a network request (client.getFile) on every change for Drive files.
         const modifiedAt = Date.now();
-        
+
         setIndexerState("compiling");
+        // The worker also updates its note-text index from this (unsaved) text.
+        markContentIndexed([{ path: activeFilePath, modifiedAt }]);
         metadataWorker?.postMessage({
           files: [{ path: activeFilePath, name: activeFileHandle.name, content, modifiedAt }],
         });

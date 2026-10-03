@@ -33,7 +33,11 @@ body {
   --frontmatter-bg: rgba(60, 56, 50, 0.035);
   --frontmatter-bg-hover: rgba(60, 56, 50, 0.055);
   --frontmatter-label-opacity: 0.4;
+  --active-line-bg: rgba(60, 56, 50, 0.03);  /* the caret's line in the focused editor */
   --row-stripe:     rgba(60, 56, 50, 0.035);  /* alternate rows in list views (Explorer) */
+  /* Fine paper grain over the editor surface: tiled SVG fractal noise, the
+     red channel thresholded into sparse specks (see .editor-sheet). */
+  --paper-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.24 0 0 0 0 0.22 0 0 0 0 0.2 0.9 0 0 0 -0.3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)' opacity='0.16'/%3E%3C/svg%3E");
 }
 
 html.dark {
@@ -57,8 +61,10 @@ html.dark {
   --frontmatter-bg: rgba(214, 207, 198, 0.04);
   --frontmatter-bg-hover: rgba(214, 207, 198, 0.065);
   --frontmatter-label-opacity: 0.5;
+  --active-line-bg: rgba(214, 207, 198, 0.035);
   --moss-hover:     #A3B58C;  /* moss, brightened — hover/active state for sage buttons */
   --row-stripe:     rgba(214, 207, 198, 0.035);
+  --paper-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 0.97 0 0 0 0 0.92 0.9 0 0 0 -0.3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)' opacity='0.07'/%3E%3C/svg%3E");
 }
 
 /* Custom Scrollbars — macOS style: thin, overlay, neutral gray thumb with padding */

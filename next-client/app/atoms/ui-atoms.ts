@@ -1,5 +1,5 @@
 import { atom } from "jotai";
-import { atomWithStorage } from "jotai/utils";
+import { atomWithStorage, createJSONStorage } from "jotai/utils";
 import type { EditorView } from "@codemirror/view";
 
 // Theme & appearance
@@ -26,10 +26,6 @@ export const atom_flowMode = atomWithStorage<boolean>("flowMode", false);
 // Hides the desktop pane header (tabs and toolbar) for an immersive view.
 // Window-wide, like the toolbar's own controls.
 export const atom_toolbarHidden = atomWithStorage<boolean>("toolbarHidden", false);
-// Toolbar style, as in a native toolbar's "Icon Only" / "Icon and Text":
-// icon buttons, or icons with a label under each. Narrow panes fall back to icons.
-export type ToolbarDisplayMode = "icon" | "iconAndText";
-export const atom_toolbarDisplayMode = atomWithStorage<ToolbarDisplayMode>("toolbarDisplayMode", "icon");
 // The window's sidebar (desktop): open notes and the vault's file tree, on the
 // leading edge. Hidden by default; toggled from the toolbar or Ctrl/Cmd+Alt+S.
 export const atom_sidebarOpen = atomWithStorage<boolean>("sidebarOpen", false);
@@ -86,9 +82,27 @@ export const atom_draftFolderRequest = atom<DraftFolderRequest | null>(null);
 // on init: it's only read from the store, never subscribed). Cleared when the
 // draft is saved or a new draft starts.
 export const atom_draftFolderDeclined = atomWithStorage<boolean>("draftFolderDeclined", false, undefined, { getOnInit: true });
+// The tab's sessionStorage, or nothing on the server (and where storage is
+// blocked), in which case Jotai falls back to the initial value. Unlike its
+// default localStorage getter, Jotai doesn't guard a custom one, so this must.
+function tabSessionStorage(): Storage {
+  try {
+    return window.sessionStorage;
+  } catch {
+    return undefined as unknown as Storage;
+  }
+}
+
 // Vault key the vault-open behavior last ran for, so returning to the editor
-// from another route doesn't replace the file just opened there.
-export const atom_vaultOpenBehaviorAppliedFor = atom<string | null>(null);
+// from another route doesn't replace the file just opened there. Kept in
+// sessionStorage: a refresh of the same tab reopens where you were (the note,
+// or the feed via `?view=home`); a new tab or window runs it again.
+export const atom_vaultOpenBehaviorAppliedFor = atomWithStorage<string | null>(
+  "vaultOpenBehaviorAppliedFor",
+  null,
+  createJSONStorage<string | null>(tabSessionStorage),
+  { getOnInit: true },
+);
 
 export type AutosaveMode = "afterDelay" | "onFocusChange" | "manual";
 
@@ -181,10 +195,12 @@ export const atom_tasksGroupBy = atomWithStorage<"status" | "file">(
 );
 
 
-// Set when navigating to a task from the Tasks view; consumed once by the
-// editor pane whose filePath matches, to move the caret to that line, then
-// cleared. Never persisted — purely a one-shot navigation signal.
-export const atom_pendingScrollTarget = atom<{ path: string; line: number } | null>(null);
+// Set when navigating to a line in a note (a task from the Tasks view, a
+// palette note-text result); consumed once by the editor pane whose filePath
+// matches, to move the caret there, then cleared. `line` is 1-based;
+// `column` (0-based, optional) places the caret within the line. Never
+// persisted — purely a one-shot navigation signal.
+export const atom_pendingScrollTarget = atom<{ path: string; line: number; column?: number } | null>(null);
 
 export type DialogType = "alert" | "confirm" | "prompt" | "select" | "new-file";
 
@@ -277,10 +293,6 @@ export const atom_isVoicePreviewVisible = atom<boolean>(false);
 // always lands in the pane the user is looking at regardless of which pane
 // was active when dictation started.
 export const atom_activeEditorView = atom<EditorView | null>(null);
-// Whether the active pane's file has frontmatter: the header's metadata
-// toggle (which flips the app-wide atom_frontmatterCollapsedByDefault) only
-// shows then.
-export const atom_activeFileHasFrontmatter = atom<boolean>(false);
 
 export type PalettePinnedItem =
   | { kind: "file"; id: string }

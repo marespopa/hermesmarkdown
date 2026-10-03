@@ -2,6 +2,7 @@ import "./globals.scss";
 import "./editor/editor.scss";
 import MainPage from "./components/MainPage";
 import ServiceWorkerRegister from "./components/ServiceWorkerRegister";
+import InlineScript from "./components/InlineScript";
 import { Metadata, Viewport } from "next";
 import { inter, geistMono, ibmPlexMono, plusJakartaSans } from "./fonts";
 
@@ -109,7 +110,7 @@ export default function RootLayout({
       className={`h-full overscroll-none ${inter.variable} ${geistMono.variable} ${ibmPlexMono.variable} ${plusJakartaSans.variable}`}
     >
       <head>
-        <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
+        <InlineScript html={THEME_INIT_SCRIPT} />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(SOFTWARE_APPLICATION_JSON_LD) }}

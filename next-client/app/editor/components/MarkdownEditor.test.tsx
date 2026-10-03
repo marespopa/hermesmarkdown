@@ -3,7 +3,6 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { EditorView } from "@codemirror/view";
 import { undo } from "@codemirror/commands";
 import MarkdownEditor from "./MarkdownEditor";
-import FrontmatterToggle from "./FrontmatterToggle";
 import { CODE_BLOCK_TEMPLATE_CONTENT, CURSOR_SENTINEL, TEMPLATES } from "./constants";
 import { Provider, useAtomValue, useSetAtom } from "jotai";
 import { useHydrateAtoms } from "jotai/utils";
@@ -267,7 +266,8 @@ describe("MarkdownEditor", () => {
       const range = findFrontmatterFoldRange(view.state.doc.toString());
       expect(range).not.toBeNull();
       expect(isFrontmatterFolded(view.state)).toBe(true);
-      expect(container.querySelector(".cm-content")?.textContent).toBe("Body content");
+      // The block becomes its one-line summary row.
+      expect(container.querySelector(".cm-content")?.textContent).toBe("Properties· titleBody content");
     });
 
     act(() => {
@@ -281,27 +281,25 @@ describe("MarkdownEditor", () => {
       expect(range).not.toBeNull();
       expect(isFrontmatterFolded(view.state)).toBe(false);
     });
-    expect(await screen.findByLabelText("Hide metadata")).toBeInTheDocument();
+    expect(await screen.findByLabelText("Collapse properties")).toBeInTheDocument();
     coordsSpy.mockRestore();
   });
 
-  it("follows the app-wide metadata toggle in an open file", async () => {
+  it("expands collapsed frontmatter from its summary row, in that note only", async () => {
     const { container } = render(
       <Provider>
         <Hydrate pendingScrollTarget={null} frontmatterCollapsedByDefault>
-          <MarkdownEditor value={"---\ntitle: Test\n---\nBody"} onChange={mockOnChange} filePath="note.md" />
-          <FrontmatterToggle />
+          <MarkdownEditor value={"---\ntitle: Test\ntags: [a]\n---\nBody"} onChange={mockOnChange} filePath="note.md" />
         </Hydrate>
       </Provider>,
     );
     await waitForEditor(container);
     await waitFor(() => expect(isFrontmatterFolded(getView(container).state)).toBe(true));
 
-    fireEvent.click(await screen.findByRole("button", { name: "Show metadata" }));
+    const summary = await screen.findByRole("button", { name: "Show properties: title, tags" });
+    expect(summary).toHaveAttribute("aria-expanded", "false");
+    fireEvent.click(summary);
     await waitFor(() => expect(isFrontmatterFolded(getView(container).state)).toBe(false));
-
-    fireEvent.click(screen.getByRole("button", { name: "Hide metadata", pressed: true }));
-    await waitFor(() => expect(isFrontmatterFolded(getView(container).state)).toBe(true));
   });
 
   it("inserts frontmatter from the quick command when metadata is absent", async () => {

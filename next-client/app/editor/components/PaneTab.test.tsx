@@ -1,10 +1,10 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { formatShortcut } from "@/app/utils/platform";
 import PaneTab from "./PaneTab";
 
 describe("PaneTab", () => {
-  it("renders its subtle workspace shortcut number", () => {
+  it("names its workspace shortcut in the tooltip, not on the tab", () => {
     render(
       <PaneTab
         fileName="notes.md"
@@ -18,13 +18,11 @@ describe("PaneTab", () => {
       />,
     );
 
-    const shortcut = screen.getByText(formatShortcut("3"));
-    expect(shortcut.tagName).toBe("SUP");
-    expect(shortcut).toHaveClass("text-[10px]");
-    expect(shortcut.previousElementSibling).toHaveTextContent("notes.md");
+    expect(screen.getByTitle(`notes.md · ${formatShortcut("3")}`)).toBeInTheDocument();
+    expect(screen.queryByText(formatShortcut("3"))).not.toBeInTheDocument();
   });
 
-  it("omits the shortcut number when the tab is outside the first nine", () => {
+  it("leaves the shortcut out of the tooltip when the tab is outside the first nine", () => {
     render(
       <PaneTab
         fileName="notes.md"
@@ -37,10 +35,10 @@ describe("PaneTab", () => {
       />,
     );
 
-    expect(screen.queryByText(formatShortcut("3"))).not.toBeInTheDocument();
+    expect(screen.getByTitle("notes.md")).toBeInTheDocument();
   });
 
-  it("puts the close button before the file name, even with unsaved changes", () => {
+  it("puts the close button after the file name, even with unsaved changes", () => {
     render(
       <PaneTab
         fileName="notes.md"
@@ -55,7 +53,28 @@ describe("PaneTab", () => {
 
     const close = screen.getByRole("button", { name: "Close tab" });
     const name = screen.getByText("notes.md");
-    expect(close.compareDocumentPosition(name) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(close.compareDocumentPosition(name) & Node.DOCUMENT_POSITION_PRECEDING).toBeTruthy();
     expect(screen.getByTitle("Unsaved changes")).toBeInTheDocument();
+  });
+
+  it("closes on middle-click but not on other auxiliary clicks", () => {
+    const onClose = vi.fn();
+    render(
+      <PaneTab
+        fileName="notes.md"
+        isActive={false}
+        saveState="idle"
+        isDraggedOver={false}
+        onClose={onClose}
+        onClick={vi.fn()}
+        onContextMenu={vi.fn()}
+      />,
+    );
+
+    const tab = screen.getByTitle("notes.md");
+    fireEvent(tab, new MouseEvent("auxclick", { bubbles: true, button: 2 }));
+    expect(onClose).not.toHaveBeenCalled();
+    fireEvent(tab, new MouseEvent("auxclick", { bubbles: true, button: 1 }));
+    expect(onClose).toHaveBeenCalledTimes(1);
   });
 });

@@ -57,6 +57,17 @@ describe("VaultFileTree tree interactions", () => {
     expect(props.openFile).toHaveBeenCalledTimes(2);
   });
 
+  it("opens files on a single click with singleClickOpen", () => {
+    const { props } = renderFiles({ singleClickOpen: true });
+
+    fireEvent.click(screen.getByText("note"));
+    expect(props.openFile).toHaveBeenCalledWith(fileHandle, "note.md");
+    expect(props.openFile).toHaveBeenCalledTimes(1);
+
+    fireEvent.doubleClick(screen.getByText("note"));
+    expect(props.openFile).toHaveBeenCalledTimes(1);
+  });
+
   it("auto-expands a valid closed drop target after 400ms", () => {
     vi.useFakeTimers();
     renderFiles({

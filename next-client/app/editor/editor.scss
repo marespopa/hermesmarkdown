@@ -1,9 +1,17 @@
 /* Form fields draw their own focus ring (Tailwind `focus:ring-sage`) — the
    global clay outline stacked on top of it produced a visible double
    border. The editor's own textarea is unaffected and keeps the clay outline. */
+/* The sheet's edges line up with the first tab: the pane header's padding
+   (px-2 sm:px-3) + the tab strip's (px-1.5) + the tab's margin (mx-0.5). */
 .editor-canvas {
   background-color: var(--chrome);
-  padding-inline: clamp(0.75rem, 3vw, 3rem);
+  padding-inline: 1rem;
+}
+
+@media (min-width: 640px) {
+  .editor-canvas {
+    padding-inline: 1.25rem;
+  }
 }
 
 @media (prefers-reduced-motion: no-preference) {
@@ -30,21 +38,18 @@ html.dark .editor-canvas {
     var(--chrome);
 }
 
-.editor-canvas-split {
-  padding-inline: 0.5rem;
-}
-
-@media (min-width: 640px) {
-  .editor-canvas-split {
-    padding-inline: 0.75rem;
-  }
-}
-
 .editor-sheet {
   background-color: var(--surface);
   border: 1px solid var(--border-subtle);
   border-radius: clamp(0.75rem, 1.5vw, 1.25rem);
   box-shadow: 0 8px 30px -12px rgb(0 0 0 / 10%);
+}
+
+/* Paper grain on the editor panel. It moves with the panel rather than
+   being fixed to the viewport: a fixed grain stays still while the panel
+   resizes as the sidebar slides, so it shimmers and repaints every frame. */
+.editor-sheet {
+  background-image: var(--paper-grain);
 }
 
 .editor-no-wrap-viewport {
@@ -61,12 +66,6 @@ html.dark .editor-sheet {
   box-shadow:
     0 18px 42px -24px rgb(0 0 0 / 80%),
     0 1px 0 rgb(255 255 255 / 3%) inset;
-}
-
-@media (max-width: 639px) {
-  .editor-canvas {
-    padding-inline: 0.75rem;
-  }
 }
 
 .editor-container textarea:focus-visible {

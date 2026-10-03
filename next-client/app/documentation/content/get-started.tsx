@@ -238,18 +238,17 @@ export const getStartedGroup: Group = {
           </p>
           <p>
             The toolbar at the top shows your open notes as tabs, even when only one is open. On the left:
-            the <strong> Sidebar</strong> button. On the right: Save, Edit / Preview, the metadata toggle, Search (the
+            the <strong> Sidebar</strong> button, while the sidebar is hidden. On the right: Save, Edit / Preview, Search (the
             command palette) and AI Chat (when an AI key is set). The <strong>&hellip; More</strong> menu holds Copy
             Markdown, Split Right, Settings, Help and Hide Toolbar — every one of them is also in the command palette.
           </p>
           <p>
-            Right-click the toolbar to choose its style: <strong>Icon Only</strong> or <strong>Icon and Text</strong>{" "}
-            (a label under each button; also in Settings → Appearance and the welcome tour). Narrow panes always show
-            icons only.
+            Toolbar buttons are icons; hover one to see its name and shortcut. Right-click the
+            toolbar to hide it.
           </p>
           <p>
             The <strong>sidebar</strong> lists your open notes across every pane. With a vault it also starts with Home and ends with the file tree. Show
-            it with the Sidebar button in the toolbar, hide it with the chevron in its own header, or toggle it with{" "}
+            it with the Sidebar button at the toolbar's far left and hide it with the button in its own header, or toggle it with{" "}
             <code>CTRL/CMD+ALT+S</code> or the <strong>Show sidebar</strong>{" "}
             command (the welcome tour offers it too), and drag its edge to resize it (double-click the edge to
             reset). The Explorer below remains the place for bigger file work.
@@ -263,12 +262,12 @@ export const getStartedGroup: Group = {
           <KV
             rows={[
               { label: "Home feed", value: "Home button in the toolbar" },
-              { label: "Sidebar", value: "Sidebar button in the toolbar to show, chevron in the sidebar to hide / CTRL/CMD+ALT+S" },
+              { label: "Sidebar", value: "Show: Sidebar button at the toolbar's far left / Hide: button in the sidebar's header / CTRL/CMD+ALT+S" },
               { label: "Explorer", value: "Dedicated files view / CTRL/CMD+SHIFT+E" },
               { label: "Quick switcher", value: "CTRL/CMD+K or CTRL/CMD+P" },
               { label: "Command palette", value: "CTRL/CMD+SHIFT+K or CTRL/CMD+SHIFT+P" },
-              { label: "Search files", value: "CTRL/CMD+SHIFT+F" },
-              { label: "Palette modes", value: "# vault tags · > commands · ! tasks · @ current-note headings" },
+              { label: "Search note text", value: "CTRL/CMD+SHIFT+F" },
+              { label: "Palette modes", value: "# vault tags · > commands · ! tasks · @ current-note headings · / note text" },
               { label: "Commands on or off", value: "The > button in the search field" },
               { label: "Explorer controls", value: "Refresh, new note, new folder, and file actions" },
               { label: "AI Chat", value: "CTRL+SHIFT+B" },
@@ -364,7 +363,7 @@ export const getStartedGroup: Group = {
               rows: [
                 { label: "Open Quick Switcher", shortcut: "CTRL/CMD+K or CTRL/CMD+P" },
                 { label: "Open Command Palette", shortcut: "CTRL/CMD+SHIFT+K or CTRL/CMD+SHIFT+P" },
-                { label: "Search files", shortcut: "CTRL/CMD+SHIFT+F" },
+                { label: "Search note text", shortcut: "CTRL/CMD+SHIFT+F" },
                 { label: "Filter", shortcut: "Keep typing" },
                 { label: "Switch between files and commands", shortcut: "CLICK >" },
                 { label: "Navigate results", shortcut: "↑ / ↓ or TAB" },

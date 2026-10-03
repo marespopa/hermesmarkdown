@@ -63,9 +63,10 @@ export function useEditorShortcuts({
         void navigateWithGuard("/editor/files", "Files");
       }
 
+      // Search note text: the palette's `/` scope.
       if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === "f") {
         e.preventDefault();
-        openCommandPalette();
+        openCommandPalette("/");
       }
 
       if (isNewFileShortcut(e)) {

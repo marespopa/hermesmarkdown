@@ -37,7 +37,7 @@ export default function FilesSettings() {
       <SettingGroup title="Vault">
         <SettingItem
           label="On Vault Open"
-          description="Show recent notes first, or reopen the tabs from last time. Either way, your tabs are restored."
+          description="Show recent notes first, or reopen the tabs from last time. Either way, your tabs are restored. Refreshing the page keeps you where you were."
           control={
             <SelectControl value={onVaultOpen} onChange={(v) => setOnVaultOpen(v as VaultOpenBehavior)}>
               <option value="home">Home feed</option>

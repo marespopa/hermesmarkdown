@@ -31,3 +31,4 @@ import VaultFileTree from "./VaultFileTree";
 | isSearchActive? / highlightQuery? | `boolean` / `string` | `false` / `""` | Search mode |
 | resolveFolderHandle? / createNewFile? / createFolder? / moveItem? | callbacks |  | Folder operations |
 | onClose? | `() => void` |  | Closes the drawer after opening a file |
+| singleClickOpen? | `boolean` | `false` | Open files on a single click (sidebar); otherwise double-click opens |

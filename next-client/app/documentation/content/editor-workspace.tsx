@@ -72,11 +72,14 @@ title:
 tags: []
 ---`}</Code>
         <p>
-          The editor gives frontmatter a subtle background. The{" "}
-          <strong>ⓘ Metadata</strong> button in the toolbar (next to Edit / Preview) hides it in every
-          file, open or opened later, so each note starts with its first line of content; click it
-          again to show it everywhere. It is the same switch as{" "}
-          <strong>Settings → Editor → Collapse Frontmatter</strong>.
+          The editor gives frontmatter a subtle background. Collapsed, it shrinks to one quiet{" "}
+          <strong>Properties</strong> row at the top of the note listing its first few keys (for
+          example <em>Properties · title, tags, +2</em>). Click the row, or press the up arrow from the
+          first line, to expand it; the chevron at its right edge collapses it again. That only
+          affects the note in front of you. In Preview, expanded frontmatter reads as a small grid of
+          keys and values, with tags as pills. To choose whether every note opens collapsed, use{" "}
+          <strong>Settings → Editor → Collapse Frontmatter</strong> or the{" "}
+          <strong>Collapse properties in every note</strong> command.
         </p>
       </>
     ),
@@ -189,13 +192,14 @@ tags: []
     id: "command-palette",
     title: "Command palette",
     lead: "A fuzzy-searchable list of every app-level action — open it instead of hunting for a menu.",
-    keywords: "palette commands fuzzy filter",
+    keywords: "palette commands fuzzy filter full-text search note text",
     body: (
       <>
         <p>
           Open it anywhere with <code>CTRL/CMD+K</code> (files) or <code>CTRL/CMD+SHIFT+P</code>{" "}
           (commands). On mobile, tap the active-file bar. The palette opens in Quick Open mode,
-          where plain text searches note names and paths only — there is no full-text search.
+          where plain text searches note names and paths. To search inside notes, start with{" "}
+          <code>/</code> or press <code>CTRL/CMD+SHIFT+F</code>.
         </p>
         <KV
           rows={[
@@ -204,8 +208,16 @@ tags: []
             { label: ">", value: "Commands by name, description, category, or keyword" },
             { label: "!", value: "Tasks; choose one to open its note at the source line" },
             { label: "@", value: "Headings in the active note; choose one to place it at the top" },
+            { label: "/", value: "Note text across the vault; choose a line to open the note at that match" },
           ]}
         />
+        <p>
+          Note text search ignores case and finds notes that contain every word you type, in any
+          order (at least 2 characters; no fuzzy matching). Frontmatter isn&apos;t searched; code
+          blocks are. Exact phrases rank first, and each note shows up to three matching lines.
+          Sensitive notes never appear in note text results, whatever the Privacy Mode. Right after
+          a vault opens, a footnote shows how many notes are still being indexed.
+        </p>
         <Callout type="tip">
           Prefixes select a result type; they are not combined. For example, <code>#project</code>{" "}
           searches tags only, while <code>&gt;project</code> searches commands only.

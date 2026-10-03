@@ -3,10 +3,10 @@ import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { atom_vaultKey } from "@/app/atoms/atoms";
 import { atom_homeFeedOpen, atom_onVaultOpen, atom_vaultOpenBehaviorAppliedFor } from "@/app/atoms/ui-atoms";
 
-// Applies Settings → "On vault open" once per vault per session: with
+// Applies Settings → "On vault open" once per vault per tab session: with
 // "home", the home feed opens while the restored tabs stay open behind it.
-// Returning to the editor from another route (Explorer, Settings) doesn't
-// re-run it.
+// Returning to the editor from another route (Explorer, Settings) or
+// refreshing the page doesn't re-run it, so a refresh stays on the note.
 export function useVaultOpenBehavior() {
   const vaultKey = useAtomValue(atom_vaultKey);
   const behavior = useAtomValue(atom_onVaultOpen);

@@ -4,7 +4,7 @@ import React from "react";
 import { HiOutlineXCircle } from "react-icons/hi";
 import { formatShortcut } from "@/app/utils/platform";
 import { SaveStateIcon, TabSaveState, statusMeta } from "./PaneTab";
-import PaneToolbarButton, { useToolbarMode } from "./PaneToolbarButton";
+import PaneToolbarButton from "./PaneToolbarButton";
 import { PANE_ICON_SIZE, PANE_SECTION_CLASS } from "./pane-header-classes";
 
 interface PaneActionsProps {
@@ -22,11 +22,10 @@ interface PaneActionsProps {
 // when focus moves. Copy Markdown and Split Right live in the toolbar's More
 // menu and act on the focused pane.
 export default function PaneActions({ hasFiles, saveState, saveErrorMessage, showClose, onSave, onClosePane }: PaneActionsProps) {
-  const mode = useToolbarMode();
   const saveMeta = statusMeta[saveState];
 
   return (
-    <div className={PANE_SECTION_CLASS[mode]} role="toolbar" aria-label="Pane">
+    <div className={PANE_SECTION_CLASS} role="toolbar" aria-label="Pane">
       <PaneToolbarButton
         // Colored on the icon, not the Button, so the save state's color
         // wins over the button's own text color in every state.

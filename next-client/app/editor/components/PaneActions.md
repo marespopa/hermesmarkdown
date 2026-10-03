@@ -1,9 +1,9 @@
 # PaneActions
 
-Description: One pane's own toolbar section, a borderless capsule on a subtle translucent fill (`PANE_SECTION_CLASS`): **Save** (`SaveStateIcon` — save glyph, with a badge while unsaved, a check when just saved, an exclamation mark on error; the tooltip shows the save error when there is one) and, while the window is split, **Close Pane**. Both are `PaneToolbarButton`s, so they follow the header's toolbar style. `PaneLeaf` renders it in every pane, focused or not, so the toolbar never reflows when focus moves. Copy Markdown and Split Right live in the toolbar's More menu (`PaneWindowActions`) and act on the focused pane.
+Description: One pane's own toolbar section, a borderless capsule on a subtle translucent fill (`PANE_SECTION_CLASS`): **Save** (`SaveStateIcon` — save glyph, with a badge while unsaved, a check when just saved, an exclamation mark on error; the tooltip shows the save error when there is one) and, while the window is split, **Close Pane**. Both are `PaneToolbarButton`s. `PaneLeaf` renders it in every pane, focused or not, so the toolbar never reflows when focus moves. Copy Markdown and Split Right live in the toolbar's More menu (`PaneWindowActions`) and act on the focused pane.
 
 ## Local State & Storage
-- State: None; everything comes in through props (the style from `ToolbarModeContext`).
+- State: None; everything comes in through props.
 - Persistence: None.
 
 ## Dependencies

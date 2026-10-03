@@ -13,6 +13,7 @@ Atom persistence uses Jotai `atomWithStorage` (`localStorage`) directly in `app/
 ## Files
 
 - `file-writer.ts` — `writeFileContent()`, the single write path for vault files. Uses `createWritable()` when the handle has it; otherwise (Safari before 26) sends the bytes to `app/workers/opfs-writer.worker.ts`, which writes through `createSyncAccessHandle()`.
+- `content-search-client.ts` — Main-thread side of the note-text index in the metadata worker: `indexNoteContent`, `removeNoteContent`, `remapNoteContent`, `markContentIndexed` / `needsContentIndex` (which notes the worker already has this session, by modified time), and `searchNoteContent` (resolves `null` when superseded or after 5 s). Holds no note text. No-ops without a worker.
 - `vault-archive.ts` — Whole-vault zip export / import (`fflate`; exports wrap entries in a vault-named folder, which import strips), folder copy, path sanitizing (no traversal, skips `.git` / `node_modules`), and conflict-free naming (`name (1).md`).
 
 ## AI (client)

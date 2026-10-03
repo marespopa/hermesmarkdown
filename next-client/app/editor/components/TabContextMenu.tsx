@@ -14,7 +14,7 @@ export interface TabContextMenuItem {
   divider?: boolean;
   /** Keyboard shortcut, shown faint at the trailing edge. */
   shortcut?: string;
-  /** Checkable item (e.g. a toolbar style); shows a check while true. */
+  /** Checkable item; shows a check while true. */
   checked?: boolean;
 }
 

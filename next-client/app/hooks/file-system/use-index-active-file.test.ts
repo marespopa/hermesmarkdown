@@ -32,6 +32,9 @@ vi.mock("./shared", () => ({
   },
 }));
 
+const markContentIndexed = vi.hoisted(() => vi.fn());
+vi.mock("@/app/services/content-search-client", () => ({ markContentIndexed }));
+
 describe("useIndexActiveFile", () => {
   const mockSetIndexerState = vi.fn();
   const mockSetFileMetadata = vi.fn();
@@ -72,6 +75,10 @@ describe("useIndexActiveFile", () => {
         }],
       });
     }, { timeout: 2000 });
+
+    // The worker indexes the posted text for note-text search too.
+    const posted = (metadataWorker?.postMessage as any).mock.calls[0][0].files[0];
+    expect(markContentIndexed).toHaveBeenCalledWith([{ path: "test.md", modifiedAt: posted.modifiedAt }]);
 
     // Verify getFile was NOT called (optimization)
     expect(mockFileHandle.getFile).not.toHaveBeenCalled();

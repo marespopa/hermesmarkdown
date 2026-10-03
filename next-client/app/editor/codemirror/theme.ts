@@ -31,6 +31,20 @@ export const baseTheme = EditorView.theme({
   ".cm-line": {
     padding: 0,
   },
+  // The caret's line, faintly tinted — only in the focused editor, so an
+  // unfocused split pane stays clean, and never in Preview (no caret) or on
+  // frontmatter (it has its own tint). Lines carry no padding, so the tint is
+  // widened past the text by side shadows rather than layout-changing padding.
+  // CodeMirror's own active-line color (a light blue) is turned off
+  // everywhere else — it showed in an unfocused editor, e.g. right after
+  // clicking a fold chevron.
+  ".cm-activeLine": {
+    backgroundColor: "transparent !important",
+  },
+  "&.cm-focused .cm-content:not([data-mode=preview]) .cm-activeLine:not(.cm-frontmatter-line)": {
+    backgroundColor: "var(--active-line-bg) !important",
+    boxShadow: "-0.5em 0 0 var(--active-line-bg), 0.5em 0 0 var(--active-line-bg)",
+  },
   ".cm-frontmatter-line": {
     backgroundColor: "var(--frontmatter-bg)",
     color: "var(--fg-faint)",
@@ -63,6 +77,18 @@ export const baseTheme = EditorView.theme({
   ".cm-frontmatter-line.cm-frontmatter-end": {
     borderRadius: "0 0 0.55rem 0.55rem",
     paddingBottom: "0.15rem",
+  },
+  // The room below the frontmatter matches the sheet's padding above it
+  // (`--sheet-pad-top`, set on the sheet). A blank line after the closing
+  // `---` already gives about that; text right after it gets this spacer
+  // block instead — a block of its own, not padding on the text's line, so
+  // the active-line tint doesn't stretch over the gap. Preview's grid has
+  // its own margin.
+  ".cm-frontmatter-spacer": {
+    height: "var(--sheet-pad-top, 1.5rem)",
+  },
+  ".cm-content[data-mode=preview] .cm-frontmatter-spacer": {
+    display: "none",
   },
   ".cm-frontmatter-line:hover, .cm-frontmatter-line:focus-within": {
     backgroundColor: "var(--frontmatter-bg-hover)",
@@ -150,10 +176,47 @@ export const baseTheme = EditorView.theme({
     border: "none",
     color: "transparent",
   },
-  // Collapsed frontmatter: a zero-height block, so the first content line
-  // stays the first visible row.
+  // Collapsed frontmatter: one quiet summary row above the first content
+  // line ("▸ Properties · title, tags"), low contrast until hovered. It's a
+  // small label, not a block, so it sits close to the text below.
   ".cm-frontmatterCollapsed": {
-    height: 0,
+    paddingBottom: "0.5em",
+  },
+  ".cm-frontmatter-summary": {
+    display: "inline-flex",
+    alignItems: "center",
+    gap: "0.35em",
+    maxWidth: "100%",
+    height: "28px",
+    padding: "0 0.5em 0 0.25em",
+    marginLeft: "-0.25em",
+    border: "none",
+    borderRadius: "6px",
+    background: "transparent",
+    color: "var(--fg-faint)",
+    font: "inherit",
+    fontSize: "0.78em",
+    lineHeight: "1",
+    whiteSpace: "nowrap",
+    cursor: "pointer",
+    transition: "color 150ms, background-color 150ms",
+  },
+  ".cm-frontmatter-summary:hover, .cm-frontmatter-summary:focus-visible": {
+    color: "var(--fg-muted)",
+    backgroundColor: "var(--frontmatter-bg-hover)",
+  },
+  ".cm-frontmatter-summary:focus-visible": {
+    outline: "1px solid var(--sage)",
+  },
+  ".cm-frontmatter-summary-chevron": {
+    width: "14px",
+    height: "14px",
+    flexShrink: "0",
+  },
+  ".cm-frontmatter-summary-keys": {
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+    opacity: "0.8",
   },
   ".cm-tag-pill": {
     display: "inline-flex",

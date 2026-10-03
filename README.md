@@ -37,7 +37,7 @@ See [next-client/ARCHITECTURE.md](next-client/ARCHITECTURE.md) for the detailed 
 
 - Open an existing folder or create a new vault; create, rename, move, duplicate, and delete Markdown files and folders.
 - Browse files in multiple editor panes with tabs, a dedicated Explorer view (`Ctrl/Cmd+Shift+E`), and a vault-wide Tasks page. On phones, the file overlay also offers Smart Workspaces (saved rule-based filters).
-- Use the command-first quick switcher (`Ctrl/Cmd+K` or `Ctrl/Cmd+P`) to find files by name, and its prefixes to search tags (`#`), commands (`>`), tasks (`!`), and headings in the current note (`@`). Pin up to five items with `Ctrl/Cmd+D`.
+- Use the command-first quick switcher (`Ctrl/Cmd+K` or `Ctrl/Cmd+P`) to find files by name, and its prefixes to search tags (`#`), commands (`>`), tasks (`!`), headings in the current note (`@`), and note text across the vault (`/`, case-insensitive, all words must match; sensitive notes are never listed). Pin up to five items with `Ctrl/Cmd+D`.
 - External file changes are detected by polling (and immediately when the window regains focus). If both local and external edits exist, a conflict dialog lets you accept the incoming version, keep yours, or resolve them in a merge editor.
 - Optionally connect a GitHub repository as a vault: Markdown files are imported into the browser, and the command palette's `GitHub: Commit / Push / Sync / Pull` commands write commits straight to the default branch.
 - Works in every modern browser. Chromium-based browsers open folders on disk; Safari (including iPhone and iPad), Firefox, and other browsers use **browser vaults** stored privately in the browser. Export any vault as a zip, or import a zip, folder, or notes into it, so notes never get stuck in one place.
@@ -119,7 +119,7 @@ Autosave can be configured under Settings → Autosave to save after a delay fro
 | Select workspace tab | `Ctrl/Cmd+1`–`9` |
 | Open quick switcher | `Ctrl/Cmd+K` or `Ctrl/Cmd+P` |
 | Open command palette | `Ctrl/Cmd+Shift+K` or `Ctrl/Cmd+Shift+P` |
-| Search files | `Ctrl/Cmd+Shift+F` |
+| Search note text | `Ctrl/Cmd+Shift+F` |
 | Open AI chat | `Ctrl/Cmd+Shift+B` |
 | Start/stop voice input | `Ctrl/Cmd+Shift+V` |
 | Open a link or date | `Ctrl/Cmd+Click` |

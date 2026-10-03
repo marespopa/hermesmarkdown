@@ -134,6 +134,61 @@ describe("indexVaultFiles", () => {
   });
 });
 
+describe("indexVaultFiles note-text backfill", () => {
+  const readPaths = (deps: VaultIndexDeps) =>
+    (deps.read as any).mock.calls.map(([chunk]: any) => chunk.map((f: any) => f.path));
+
+  it("reads only cache-reused notes the index lacks, newest first, after the metadata pass", async () => {
+    const cached = {
+      "old.md": parsed("old.md", 1),
+      "new.md": parsed("new.md", 3),
+      "known.md": parsed("known.md", 2),
+    };
+    const log: string[] = [];
+    const indexContent = vi.fn((files: { path: string }[]) => { log.push(`index:${files.map((f) => f.path).join(",")}`); });
+    const h = harness({
+      loadCache: vi.fn(async () => cached),
+      saveCache: vi.fn(async () => { log.push("save"); }),
+      needsContent: (path) => path !== "known.md",
+      indexContent,
+    });
+    const files = [file("old.md", 1), file("new.md", 3), file("known.md", 2), file("changed.md", 9)];
+
+    const { done, contentDone } = await indexVaultFiles(files, true, h.deps);
+    await done;
+    await contentDone;
+
+    // The metadata pass read the changed note; the backfill never re-reads it.
+    expect(readPaths(h.deps)).toEqual([["changed.md"], ["new.md", "old.md"]]);
+    expect(log).toEqual(["save", "index:new.md,old.md"]);
+    expect(indexContent.mock.calls[0][0][0]).toMatchObject({ path: "new.md", content: "# new.md", modifiedAt: 3 });
+  });
+
+  it("stops once a newer run has started", async () => {
+    let current = true;
+    const cached = { "a.md": parsed("a.md", 1), "b.md": parsed("b.md", 2), "c.md": parsed("c.md", 3) };
+    const indexContent = vi.fn();
+    const h = harness({
+      loadCache: vi.fn(async () => cached),
+      isCurrent: () => current,
+      needsContent: () => true,
+      indexContent: vi.fn((files: unknown[]) => { indexContent(files); current = false; }),
+    });
+
+    const { contentDone } = await indexVaultFiles([file("a.md", 1), file("b.md", 2), file("c.md", 3)], true, h.deps);
+    await contentDone;
+    expect(indexContent).toHaveBeenCalledTimes(1);
+    expect(readPaths(h.deps)).toEqual([["c.md", "b.md"]]);
+  });
+
+  it("does nothing without the content deps", async () => {
+    const h = harness({ loadCache: vi.fn(async () => ({ "a.md": parsed("a.md", 1) })) });
+    const { contentDone } = await indexVaultFiles([file("a.md", 1)], true, h.deps);
+    await contentDone;
+    expect(h.deps.read).not.toHaveBeenCalled();
+  });
+});
+
 describe("parseWithWorker", () => {
   it("resolves with the results for its own request id", async () => {
     const listeners = new Set<(event: MessageEvent) => void>();

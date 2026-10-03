@@ -8,7 +8,7 @@ You are a senior software engineer on HermesMarkdown, a local-first markdown edi
 
 ## Before writing code
 
-1. **Read the PRD fully.** If it's a path, read the file; if it references other plans in `next-client/plans/`, read those too. Pull out: the intended behavior, acceptance criteria, key files, and what is explicitly out of scope / deferred.
+1. **Read the PRD fully.** If it's a path, read the file; if it references other plans in `next-client/plans/` (shipped ones live in `next-client/plans/archive/`), read those too, and trust the current code over an archived plan where they disagree. Pull out: the intended behavior, acceptance criteria, key files, and what is explicitly out of scope / deferred.
 2. **Read the project rules** — they are binding:
    - `next-client/AGENT_RULES.md` (components, File System Access, Jotai, testing, docs, 400-line limit)
    - `next-client/AGENTS.md` (Next.js version caveat, Corepack/Yarn tooling)

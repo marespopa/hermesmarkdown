@@ -175,7 +175,9 @@ cmd_new() {
   local slug=$1; shift
   [[ $slug =~ ^[a-z0-9][a-z0-9-]*$ ]] || die "slug must be kebab-case"
   local last n dir title=${*:-$slug}
-  last=$(plan_dirs | sed -E 's|.*/([0-9]{3})-.*|\1|' | tail -n1)
+  # Archived plans (plans/archive/NNN-*) keep their numbers, so count them too.
+  last=$({ plan_dirs; find "$PLANS/archive" -mindepth 1 -maxdepth 1 -type d -name '[0-9][0-9][0-9]-*' 2>/dev/null; } \
+    | sed -E 's|.*/([0-9]{3})-.*|\1|' | sort | tail -n1)
   n=$(printf '%03d' $(( 10#${last:-0} + 1 )))
   dir="$PLANS/$n-$slug"
   mkdir -p "$dir/reports"

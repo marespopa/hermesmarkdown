@@ -28,6 +28,7 @@ import { FileRow } from "./vault-tree/FileRow";
 | openFile / openFileInPane? | `(handle, path?) => void` | | Open actions |
 | renameFile / deleteFile / duplicateFile? | handlers | | File actions |
 | onClose? | `() => void` | | Called after opening (closes overlays) |
+| singleClickOpen? | `boolean` | `false` | Open on click instead of double-click |
 | hideFolderPath? | `boolean` | | Hides the parent-folder line (tree mode) |
 | depth? | `number` | | Tree depth; set for list-view rows, omitted for the flat search list |
 | showColumns? / modifiedAt? | `boolean` / `number` | `false` | Date Modified / Kind columns |

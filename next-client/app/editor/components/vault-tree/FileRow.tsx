@@ -36,6 +36,8 @@ interface FileRowProps {
   deleteFile: (handle: FileSystemHandle, path?: string) => void;
   duplicateFile?: (handle: FileSystemHandle) => void;
   onClose?: () => void;
+  // Open on click instead of double-click.
+  singleClickOpen?: boolean;
   hideFolderPath?: boolean;
   // Tree (list-view) row at this depth: fixed height, indented, with an
   // icon; omitted for the flat search list (two-line rows with the folder).
@@ -67,6 +69,7 @@ export function FileRow({
   deleteFile,
   duplicateFile,
   onClose,
+  singleClickOpen = false,
   hideFolderPath = false,
   depth,
   showColumns = false,
@@ -85,6 +88,11 @@ export function FileRow({
       ? entryPath.split("/").slice(0, -1).join("/")
       : null;
 
+  const open = () => {
+    openFile(entry.handle as FileSystemFileHandle, entryPath);
+    if (onClose && window.innerWidth < 1024) onClose();
+  };
+
   return (
     <div className="group relative">
       <div
@@ -101,10 +109,14 @@ export function FileRow({
           e.dataTransfer.effectAllowed = "move";
         }}
         onDragEnd={() => onDragEndEntry?.()}
+        onClick={(e) => {
+          if (!singleClickOpen) return;
+          e.stopPropagation();
+          open();
+        }}
         onDoubleClick={(e) => {
           e.stopPropagation();
-          openFile(entry.handle as FileSystemFileHandle, entryPath);
-          if (onClose && window.innerWidth < 1024) onClose();
+          if (!singleClickOpen) open();
         }}
         tabIndex={-1}
         style={isListRow ? { paddingLeft: 12 + depth * LIST_INDENT_PX } : undefined}

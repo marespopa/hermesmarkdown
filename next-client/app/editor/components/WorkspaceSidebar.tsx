@@ -2,15 +2,16 @@
 
 import React, { useCallback, useRef, useState } from "react";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
-import { HiChevronRight, HiOutlineChevronLeft, HiOutlineDocumentText, HiOutlineHome } from "react-icons/hi";
+import { HiChevronRight, HiOutlineDocumentText, HiOutlineHome } from "react-icons/hi";
 import { atom_activeFilePath, atom_activePaneId, atom_openFiles, atom_workspaceLayout, findLeaf, getWorkspaceTabs } from "@/app/atoms/atoms";
-import { atom_homeFeedOpen, atom_sidebarOpen, atom_sidebarWidth, atom_toolbarDisplayMode, SIDEBAR_MAX_WIDTH, SIDEBAR_MIN_WIDTH } from "@/app/atoms/ui-atoms";
+import { VscLayoutSidebarLeft } from "react-icons/vsc";
+import { atom_homeFeedOpen, atom_sidebarOpen, atom_sidebarWidth, SIDEBAR_MAX_WIDTH, SIDEBAR_MIN_WIDTH } from "@/app/atoms/ui-atoms";
 import Button from "@/app/components/Button";
-import Tooltip from "@/app/components/Tooltip";
-import { formatShortcut } from "@/app/utils/platform";
 import { useFileSystem } from "@/app/hooks/use-file-system";
 import { useVaultFileSearch } from "../hooks/useVaultFileSearch";
-import { PANE_ACTION_BUTTON_CLASS, PANE_HEADER_HEIGHT, PANE_ICON_SIZE } from "./pane-header-classes";
+import { formatShortcut } from "@/app/utils/platform";
+import { PANE_HEADER_HEIGHT, PANE_ICON_SIZE, PANE_SECTION_CLASS } from "./pane-header-classes";
+import PaneToolbarButton from "./PaneToolbarButton";
 import { statusDot } from "./PaneTab";
 import VaultFileTree from "./VaultFileTree";
 
@@ -45,12 +46,10 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 // The window's sidebar (desktop): navigation only — Home (with a vault), the
 // open notes across every pane, then the vault's file tree. Commands stay in the toolbar.
 // Sits on the window's leading edge; slides out when hidden
-// (`atom_sidebarOpen`; the chevron in its header hides it, the toolbar's
-// Sidebar button brings it back) and resizes by dragging its trailing edge
+// (`atom_sidebarOpen`: hidden from its header's button, shown again from the toolbar's) and resizes by dragging its trailing edge
 // (`atom_sidebarWidth`, double-click to reset).
 export default function WorkspaceSidebar() {
   const [open, setOpen] = useAtom(atom_sidebarOpen);
-  const toolbarMode = useAtomValue(atom_toolbarDisplayMode);
   const [width, setWidth] = useAtom(atom_sidebarWidth);
   const workspaceLayout = useAtomValue(atom_workspaceLayout);
   const [activePaneId, setActivePaneId] = useAtom(atom_activePaneId);
@@ -99,18 +98,22 @@ export default function WorkspaceSidebar() {
       style={{ width, marginLeft: open ? 0 : -width }}
       className="relative shrink-0 h-full flex flex-col bg-chrome border-r border-edge-subtle transition-[margin-left] duration-200 ease-out motion-reduce:transition-none"
     >
-      {/* Header, level with the pane toolbar: the hide chevron on the right. */}
-      <div className={`flex items-center justify-end shrink-0 px-2 border-b border-edge-subtle ${PANE_HEADER_HEIGHT[toolbarMode]}`}>
-        <Tooltip label="Hide sidebar" shortcut={formatShortcut("S", { alt: true })} position="bottom-end" portal>
-          <Button
-            variant="unstyled"
+      {/* Header, level with the pane toolbar: the vault's name as the title,
+          as in a code editor's side bar, and the button that hides the
+          sidebar (the toolbar shows it again). */}
+      <div className={`flex items-center gap-2 shrink-0 pl-4 pr-2 sm:pr-3 border-b border-edge-subtle ${PANE_HEADER_HEIGHT}`}>
+        <h2 className="flex-1 min-w-0 truncate text-[11px] font-semibold uppercase tracking-wider text-fg-faint select-none">
+          {vaultHandle?.name ?? "Workspace"}
+        </h2>
+        <div className={`${PANE_SECTION_CLASS} !ml-0`}>
+          <PaneToolbarButton
+            icon={<VscLayoutSidebarLeft size={PANE_ICON_SIZE} />}
+            label="Hide sidebar"
+            shortcut={formatShortcut("S", { alt: true })}
+            tooltipPosition="bottom-end"
             onClick={() => setOpen(false)}
-            aria-label="Hide sidebar"
-            className={PANE_ACTION_BUTTON_CLASS.icon}
-          >
-            <HiOutlineChevronLeft size={PANE_ICON_SIZE} aria-hidden="true" />
-          </Button>
-        </Tooltip>
+          />
+        </div>
       </div>
 
       <div className="flex-1 min-h-0 overflow-y-auto scrollbar-none px-2 pt-2">
@@ -174,6 +177,7 @@ export default function WorkspaceSidebar() {
               isSearchActive={false}
               highlightQuery=""
               treeView
+              singleClickOpen
               folderPaths={folderPaths}
               resolveFolderHandle={resolveFolderHandle}
               createNewFile={createNewFile}

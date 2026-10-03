@@ -7,12 +7,13 @@ import SensitiveNoteGate from "./SensitiveNoteGate";
 import TabContextMenu, { TabContextMenuItem } from "./TabContextMenu";
 import { useAtom } from "jotai";
 import { atom_activePaneId, atom_fileContent, atom_openFiles, atom_splitPane, atom_closePane, atom_activeFilePath, atom_saveStatus, atom_workspaceLayout, getWorkspaceTabs } from "@/app/atoms/atoms";
-import { atom_isVoicePreviewVisible, atom_sidebarOpen, atom_toolbarDisplayMode, atom_toolbarHidden, type ToolbarDisplayMode } from "@/app/atoms/ui-atoms";
+import { atom_isVoicePreviewVisible, atom_sidebarOpen, atom_toolbarHidden } from "@/app/atoms/ui-atoms";
 import { atom_materializedDraftPath } from "@/app/atoms/file-atoms";
-import { HiOutlineDocumentText, HiOutlineChartBar, HiOutlineClipboardCopy, HiOutlineMenuAlt2, HiOutlineViewBoards, HiOutlineChevronDown } from "react-icons/hi";
+import { HiOutlineDocumentText, HiOutlineChartBar, HiOutlineClipboardCopy, HiOutlineViewBoards, HiOutlineChevronDown } from "react-icons/hi";
+import { VscLayoutSidebarLeftOff } from "react-icons/vsc";
 import PaneTab, { TabSaveState } from "./PaneTab";
 import PaneActions from "./PaneActions";
-import PaneToolbarButton, { ToolbarModeContext } from "./PaneToolbarButton";
+import PaneToolbarButton from "./PaneToolbarButton";
 import { useFileSystem } from "@/app/hooks/use-file-system";
 import { useAtomValue } from "jotai";
 import Button from "../../components/Button";
@@ -31,11 +32,6 @@ interface PaneLeafProps {
   leaf: PanelLeaf;
 }
 
-// Below these header widths "Icon and Text" falls back to icons, so labels
-// never crowd out the tabs. The top-right pane also holds the window sections.
-const LABELS_MIN_WIDTH = 420;
-const LABELS_MIN_WIDTH_WITH_WINDOW_ACTIONS = 760;
-
 export default function PaneLeaf({ leaf }: PaneLeafProps) {
   const [activePaneId, setActivePaneId] = useAtom(atom_activePaneId);
   const [openFiles] = useAtom(atom_openFiles);
@@ -45,8 +41,8 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
   const saveStatus = useAtomValue(atom_saveStatus);
   const workspaceLayout = useAtomValue(atom_workspaceLayout);
   const isOnlyPane = "type" in workspaceLayout.rootContainer;
-  // Window-wide controls sit at fixed window corners — the sidebar toggle in
-  // the top-left pane, the rest in the top-right one — not in whichever pane
+  // Window-wide controls sit at fixed window corners — Show sidebar in the
+  // top-left pane, the rest in the top-right one — not in whichever pane
   // has focus.
   const hostsSidebarToggle = getFirstLeaf(workspaceLayout.rootContainer).id === leaf.id;
   const hostsWindowActions = getTopTrailingLeaf(workspaceLayout.rootContainer).id === leaf.id;
@@ -56,7 +52,6 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
   const filePath = leaf.activeFilePath || "draft";
   const [content, setContent] = useAtom(atom_fileContent(filePath));
   const [toolbarHidden, setToolbarHidden] = useAtom(atom_toolbarHidden);
-  const [toolbarDisplayMode, setToolbarDisplayMode] = useAtom(atom_toolbarDisplayMode);
   const [sidebarOpen, setSidebarOpen] = useAtom(atom_sidebarOpen);
 
   // The editor remounts on every tab switch, except when the draft was just
@@ -99,7 +94,7 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
   };
 
   const [tabMenu, setTabMenu] = React.useState<{ x: number; y: number; path: string } | null>(null);
-  // Right-clicking the toolbar offers its style, as a native toolbar does.
+  // Right-clicking the toolbar offers Hide Toolbar, as a native toolbar does.
   const [toolbarMenu, setToolbarMenu] = React.useState<{ x: number; y: number } | null>(null);
   const tabShortcutNumbers = React.useMemo(
     () => new Map(
@@ -109,23 +104,6 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
     ),
     [workspaceLayout],
   );
-
-  // A narrow header (e.g. after a split) renders icons only, whatever the
-  // toolbar style says.
-  const tabBarRowRef = React.useRef<HTMLDivElement>(null);
-  const [tabBarRowWidth, setTabBarRowWidth] = React.useState(Infinity);
-  React.useEffect(() => {
-    const el = tabBarRowRef.current;
-    if (!el) return;
-    const observer = new ResizeObserver((entries) => {
-      setTabBarRowWidth(entries[0].contentRect.width);
-    });
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, [isMobileChrome]);
-  const labelsMinWidth = hostsWindowActions ? LABELS_MIN_WIDTH_WITH_WINDOW_ACTIONS : LABELS_MIN_WIDTH;
-  const toolbarMode: ToolbarDisplayMode =
-    toolbarDisplayMode === "iconAndText" && tabBarRowWidth >= labelsMinWidth ? "iconAndText" : "icon";
 
   const hasFiles = leaf.openFilePaths.length > 0;
   const openFileInPane = (filePath = leaf.activeFilePath) => {
@@ -145,26 +123,25 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
       {/* Hidden toolbar slides up under the pane's top edge (the pane clips
           it); `inert` keeps its controls out of the tab order meanwhile. */}
       {!isMobileChrome && (
-      <ToolbarModeContext.Provider value={toolbarMode}>
       <div
-        className={`shrink-0 relative transition-[margin-top] duration-200 ease-out motion-reduce:transition-none ${toolbarHidden ? PANE_HEADER_HIDDEN[toolbarMode] : "mt-0"}`}
+        className={`shrink-0 relative transition-[margin-top] duration-200 ease-out motion-reduce:transition-none ${toolbarHidden ? PANE_HEADER_HIDDEN : "mt-0"}`}
         inert={toolbarHidden}
       >
       <div
-        ref={tabBarRowRef}
-        className={`${PANE_HEADER_CLASS} ${PANE_HEADER_HEIGHT[toolbarMode]}`}
+        className={`${PANE_HEADER_CLASS} ${PANE_HEADER_HEIGHT}`}
         onContextMenu={(e) => {
           e.preventDefault();
           setToolbarMenu({ x: e.clientX, y: e.clientY });
         }}
       >
-        {/* The sidebar toggle sits at the far left while the sidebar is hidden;
-            once shown, the sidebar's own header chevron hides it. Home lives
-            in the sidebar. */}
+        {/* Show sidebar sits at the far left while the sidebar is hidden; once
+            it's open, the sidebar's own header carries the hide button. Its
+            right margin matches the header's left padding (px-2 sm:px-3), so it
+            sits evenly between edge and tabs. Home lives in the sidebar. */}
         {hostsSidebarToggle && !sidebarOpen && (
-          <div className={`${PANE_SECTION_CLASS[toolbarMode]} !ml-0`}>
+          <div className={`${PANE_SECTION_CLASS} !ml-0 mr-2 sm:mr-3`}>
             <PaneToolbarButton
-              icon={<HiOutlineMenuAlt2 size={PANE_ICON_SIZE} />}
+              icon={<VscLayoutSidebarLeftOff size={PANE_ICON_SIZE} />}
               label="Sidebar"
               tooltip="Show sidebar"
               shortcut={formatShortcut("S", { alt: true })}
@@ -243,7 +220,6 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
           {hostsWindowActions && <PaneWindowActions />}
       </div>
       </div>
-      </ToolbarModeContext.Provider>
       )}
 
       {/* While hidden, the top-right pane (home of the window actions) keeps a
@@ -317,9 +293,7 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
           y={toolbarMenu.y}
           label="Toolbar"
           items={[
-            { label: "Icon Only", checked: toolbarDisplayMode === "icon", onClick: () => setToolbarDisplayMode("icon") },
-            { label: "Icon and Text", checked: toolbarDisplayMode === "iconAndText", onClick: () => setToolbarDisplayMode("iconAndText") },
-            { label: "Hide Toolbar", divider: true, shortcut: formatShortcut("T", { alt: true }), onClick: () => setToolbarHidden(true) },
+            { label: "Hide Toolbar", shortcut: formatShortcut("T", { alt: true }), onClick: () => setToolbarHidden(true) },
           ]}
           onClose={() => setToolbarMenu(null)}
         />

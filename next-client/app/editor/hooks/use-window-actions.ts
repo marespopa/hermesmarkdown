@@ -1,7 +1,7 @@
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { useRouter } from "next/navigation";
 import { atom_activePaneId, atom_splitPane, atom_workspaceLayout } from "@/app/atoms/atoms";
-import { atom_aiBuilderRequest, atom_isAiConfigured, atom_sidebarOpen, atom_toolbarDisplayMode, atom_toolbarHidden } from "@/app/atoms/ui-atoms";
+import { atom_aiBuilderRequest, atom_isAiConfigured, atom_sidebarOpen, atom_toolbarHidden } from "@/app/atoms/ui-atoms";
 import { findLeaf } from "@/app/atoms/utils";
 import { useCommandPalette } from "@/app/components/CommandPalette/CommandPaletteContext";
 import { usePaneFileActions } from "./use-pane-file-actions";
@@ -15,7 +15,6 @@ export function useWindowActions() {
   const setAiBuilderRequest = useSetAtom(atom_aiBuilderRequest);
   const setToolbarHidden = useSetAtom(atom_toolbarHidden);
   const [sidebarOpen, setSidebarOpen] = useAtom(atom_sidebarOpen);
-  const [toolbarDisplayMode, setToolbarDisplayMode] = useAtom(atom_toolbarDisplayMode);
   const workspaceLayout = useAtomValue(atom_workspaceLayout);
   const activePaneId = useAtomValue(atom_activePaneId);
   const [, splitPane] = useAtom(atom_splitPane);
@@ -26,7 +25,6 @@ export function useWindowActions() {
   return {
     isAiConfigured,
     sidebarOpen,
-    toolbarDisplayMode,
     activePaneHasFiles,
     openCommandPalette: () => openCommandPalette(),
     // Same trigger as the Ctrl/Cmd+Shift+B shortcut; the editor page opens the chat.
@@ -34,7 +32,6 @@ export function useWindowActions() {
     openSettings: () => router.push("/editor/settings"),
     openHelp: () => router.push("/documentation"),
     toggleSidebar: () => setSidebarOpen(!sidebarOpen),
-    setToolbarDisplayMode,
     hideToolbar: () => setToolbarHidden(true),
     copyActiveMarkdown: () => void handleCopy(),
     splitActivePaneRight: () => {

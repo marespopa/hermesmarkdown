@@ -1,5 +1,5 @@
 import { createStore } from "jotai";
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { MemoryDirectoryHandle } from "@/app/services/memory-file-system.test-utils";
 import {
   atom_activeFileHandle,
@@ -18,6 +18,9 @@ import {
 } from "./atoms";
 import type { FileMetadata } from "./metadata";
 import type { PanelLeaf } from "@/app/types/workspace";
+
+const remapNoteContent = vi.hoisted(() => vi.fn());
+vi.mock("@/app/services/content-search-client", () => ({ remapNoteContent }));
 
 describe("remapPath", () => {
   it("maps the path itself and descendants", () => {
@@ -130,6 +133,16 @@ describe("atom_remapVaultPaths", () => {
     expect(Object.keys(store.get(atom_fileMetadata)).sort()).toEqual(["archive/deep/idea.md", "notes-old.md"]);
     expect(store.get(atom_fileMetadata)["archive/deep/idea.md"].path).toBe("archive/deep/idea.md");
     expect(store.get(atom_fileTreeExpansion)["local:vault"].expanded).toEqual(["archive", "archive/deep", "notes-old"]);
+  });
+
+  it("remaps the note-text index before the metadata update", async () => {
+    let keysAtRemap: string[] = [];
+    remapNoteContent.mockImplementationOnce(() => { keysAtRemap = Object.keys(store.get(atom_fileMetadata)).sort(); });
+
+    await store.set(atom_remapVaultPaths, { oldPath: "notes", newPath: "archive" });
+
+    expect(remapNoteContent).toHaveBeenCalledWith("notes", "archive");
+    expect(keysAtRemap).toEqual(["notes-old.md", "notes/deep/idea.md"]);
   });
 
   it("updates the tab name when the file itself is renamed", async () => {

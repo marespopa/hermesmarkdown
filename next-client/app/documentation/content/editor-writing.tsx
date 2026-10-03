@@ -109,6 +109,7 @@ export const editorWritingItems: Subsection[] = [
         <KV
           rows={[
             { label: "Syntax", value: "Heading marks, emphasis markers, quote markers and code fences are hidden" },
+            { label: "Frontmatter", value: "Shown as a properties grid, with tags as pills (collapsed, it stays one Properties row)" },
             { label: "Checklists", value: "Checkboxes still toggle" },
             { label: "Links", value: "A plain click opens links and wikilinks" },
             { label: "Typing", value: "Disabled until you switch back to Edit" },

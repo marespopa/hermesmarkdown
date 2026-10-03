@@ -1,6 +1,6 @@
 ---
-state: review
-blocked_from:
+state: merged
+blocked_from: 
 rejections: 1
 created: 2026-10-01T16:58:06Z
 ---

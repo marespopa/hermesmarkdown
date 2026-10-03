@@ -57,7 +57,6 @@ describe("PaneLeaf Tab Indicators", () => {
     cleanup();
     vi.clearAllMocks();
     localStorage.removeItem("viewMode");
-    localStorage.removeItem("toolbarDisplayMode");
   });
 
   it("renders a regular dirty dot when file has unsaved changes", () => {
@@ -367,12 +366,11 @@ describe("PaneLeaf in a split", () => {
   });
 });
 
-describe("PaneLeaf toolbar style and sidebar toggle", () => {
+describe("PaneLeaf toolbar menu and sidebar toggle", () => {
   const leaf = { id: "solo", type: "editor" as const, openFilePaths: ["a.md"], activeFilePath: "a.md", isPinned: false };
 
   beforeEach(() => {
     cleanup();
-    localStorage.removeItem("toolbarDisplayMode");
     localStorage.removeItem("sidebarOpen");
   });
 
@@ -387,25 +385,24 @@ describe("PaneLeaf toolbar style and sidebar toggle", () => {
       </TestProvider>
     );
 
-  it("switches between Icon Only and Icon and Text from the toolbar's context menu", () => {
+  it("shows icon-only buttons, and offers just Hide Toolbar on right-click", () => {
     renderSolo();
-    const save = screen.getByRole("button", { name: /^Save/ });
-    expect(save).not.toHaveTextContent("Save");
+    expect(screen.getByRole("button", { name: /^Save/ })).not.toHaveTextContent("Save");
 
     fireEvent.contextMenu(screen.getByRole("toolbar", { name: "Pane" }));
     const menu = screen.getByRole("menu", { name: "Toolbar" });
-    expect(within(menu).getByRole("menuitemcheckbox", { name: "Icon Only" })).toHaveAttribute("aria-checked", "true");
-    fireEvent.click(within(menu).getByRole("menuitemcheckbox", { name: "Icon and Text" }));
-
-    expect(screen.getByRole("button", { name: /^Save/ })).toHaveTextContent("Save");
-    expect(screen.getByRole("button", { name: "Command palette" })).toHaveTextContent("Search");
+    expect(within(menu).queryAllByRole("menuitemcheckbox")).toHaveLength(0);
+    expect(within(menu).getAllByRole("menuitem")).toHaveLength(1);
+    expect(within(menu).getByRole("menuitem", { name: /Hide Toolbar/ })).toBeInTheDocument();
   });
 
-  it("shows the sidebar from the toolbar, then leaves hiding it to the sidebar", () => {
+  it("shows the sidebar from a toolbar button that only appears while it's hidden", () => {
     renderSolo();
     fireEvent.click(screen.getByRole("button", { name: "Sidebar" }));
+    // Open, the sidebar's own header carries the hide button.
     expect(screen.queryByRole("button", { name: "Sidebar" })).not.toBeInTheDocument();
   });
+
 });
 
 describe("PaneLeaf toolbar hiding", () => {

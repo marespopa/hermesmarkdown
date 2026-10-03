@@ -3,7 +3,7 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useAtomValue, useSetAtom } from "jotai";
 import { atom_frontmatterCollapsedByDefault, atom_wordWrap, atom_isEditorFocused } from "@/app/atoms/atoms";
-import { atom_activeEditorView, atom_activeFileHasFrontmatter, atom_aiBuilderRequest, atom_flowMode, atom_isAiConfigured, atom_lineNumbers, atom_viewMode, atom_vimMode } from "@/app/atoms/ui-atoms";
+import { atom_activeEditorView, atom_aiBuilderRequest, atom_flowMode, atom_isAiConfigured, atom_lineNumbers, atom_viewMode, atom_vimMode } from "@/app/atoms/ui-atoms";
 import { useAtom } from "jotai";
 import { EditorView } from "@codemirror/view";
 import DatePickerCallout from "./DatePickerCallout";
@@ -57,7 +57,7 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
   const flowMode = useAtomValue(atom_flowMode);
   const isAiConfigured = useAtomValue(atom_isAiConfigured);
   const setAiBuilderRequest = useSetAtom(atom_aiBuilderRequest);
-  const [frontmatterCollapsedByDefault, setFrontmatterCollapsedByDefault] = useAtom(atom_frontmatterCollapsedByDefault);
+  const frontmatterCollapsedByDefault = useAtomValue(atom_frontmatterCollapsedByDefault);
   const [, setIsEditorFocused] = useAtom(atom_isEditorFocused);
   const filePath = props.filePath || "draft";
   const [editorView, setEditorView] = useState<EditorView | null>(null);
@@ -162,7 +162,6 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
     useCodeMirrorCalloutFold({ containerRef });
     const {
       chevrons: frontmatterChevrons,
-      collapsed: frontmatterCollapsed,
       toggle: toggleFrontmatterFold,
       onCursorActivity: onFrontmatterFoldCursorActivity,
       onViewCreated: onFrontmatterFoldViewCreated,
@@ -174,15 +173,6 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
 
   const setActiveEditorView = useSetAtom(atom_activeEditorView);
   const registeredActiveViewRef = useRef<EditorView | null>(null);
-
-  // Feeds the pane header's metadata toggle while this pane is active.
-  const hasFrontmatter = frontmatterCollapsed !== null;
-  const setActiveFileHasFrontmatter = useSetAtom(atom_activeFileHasFrontmatter);
-  useEffect(() => {
-    if (props.isActivePane === false) return;
-    setActiveFileHasFrontmatter(hasFrontmatter);
-    return () => setActiveFileHasFrontmatter(false);
-  }, [hasFrontmatter, props.isActivePane, setActiveFileHasFrontmatter]);
 
   // Auto-focus so typing works immediately after opening the editor, no
   // click required. Skipped for inactive split panes.
@@ -277,17 +267,16 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
   return (
     <div
       ref={paneRef}
-      className={`editor-canvas relative w-full h-full overflow-auto ${previewMode ? "cursor-default" : "cursor-text"} ${
-        props.isSplit ? "editor-canvas-split" : ""
-      }`}
+      className={`editor-canvas relative w-full h-full overflow-auto ${previewMode ? "cursor-default" : "cursor-text"}`}
       translate="no"
     >
       <div
         className={`editor-sheet editor-container relative min-h-full antialiased normal-nums [font-variant-ligatures:none] [font-feature-settings:'liga'_0,'calt'_0]
           transition-[padding,max-width] duration-700 [transition-timing-function:cubic-bezier(0.4,0,0.2,1)]
           ${props.isSplit
-            ? "mt-3 mb-5 pt-4 pb-8 sm:mt-4 sm:mb-7 sm:pt-5"
-            : "mt-6 mb-10 pt-6 pb-12 sm:mt-8 sm:mb-14 sm:pt-8"}
+            ? "mt-3 mb-5 [--sheet-pad-top:1rem] pb-8 sm:mt-4 sm:mb-7 sm:[--sheet-pad-top:1.25rem]"
+            : "mt-6 mb-10 [--sheet-pad-top:1.5rem] pb-12 sm:mt-8 sm:mb-14 sm:[--sheet-pad-top:2rem]"}
+          pt-[var(--sheet-pad-top)]
           mx-auto w-full
           text-ui-body
         `}
@@ -318,13 +307,12 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
             onToggle={(chevron) => {
               const view = viewRef.current;
               if (!view) return;
-              if (chevron.kind === "frontmatter") {
-                // × hides metadata app-wide, like the header ⓘ. Collapse this
-                // view directly too: it may be expanded with the preference
-                // already on (caret moved in), where setting it is a no-op.
-                toggleFrontmatterFold(view);
-                setFrontmatterCollapsedByDefault(true);
-              } else toggleCalloutFold(view, chevron.blockId);
+              // Frontmatter collapses in this note only, back to its summary
+              // row; the app-wide default lives in Settings and the palette.
+              if (chevron.kind === "frontmatter") toggleFrontmatterFold(view);
+              else toggleCalloutFold(view, chevron.blockId);
+              // Back to the text: the chevron took focus on press.
+              view.focus();
             }}
           />
 

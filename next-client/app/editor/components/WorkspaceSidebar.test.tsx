@@ -130,8 +130,11 @@ describe("WorkspaceSidebar", () => {
     expect(screen.queryByRole("button", { name: "a.md" })).not.toBeInTheDocument();
   });
 
-  it("hides itself from the header chevron", () => {
+  it("titles its header with the vault's name, beside a button that hides it", () => {
+    fileSystem.vaultHandle = { name: "Notes" };
     renderSidebar();
+    expect(screen.getByRole("heading", { name: "Notes" })).toBeInTheDocument();
+
     fireEvent.click(screen.getByRole("button", { name: "Hide sidebar" }));
     expect(screen.getByRole("navigation", { hidden: true }).closest("[inert]")).not.toBeNull();
   });

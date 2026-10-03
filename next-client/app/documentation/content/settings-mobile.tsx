@@ -9,7 +9,7 @@ export const settingsGroup: Group = {
       id: "appearance",
       title: "Appearance",
       lead: "Theme and a small editorial typeface pair shape the editor's paper-like writing surface.",
-      keywords: "theme dark light font typography toolbar style icon text sidebar",
+      keywords: "theme dark light font typography sidebar",
       body: (
         <>
           <p>
@@ -21,7 +21,6 @@ export const settingsGroup: Group = {
           <KV
             rows={[
               { label: "Theme", value: "Settings → Appearance" },
-              { label: "Toolbar style", value: "Icon Only or Icon and Text — also by right-clicking the toolbar (desktop)" },
               { label: "Sidebar", value: "Show Sidebar: open notes and the vault's files on the window's left edge (desktop)" },
               { label: "Typeface", value: "Plus Jakarta Sans by default, with Geist Mono, Inter, and IBM Plex Mono options" },
             ]}
