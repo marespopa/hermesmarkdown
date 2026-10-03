@@ -3,7 +3,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import Portal from "@/app/components/Portal/Portal";
 
-type Position = "right" | "top" | "bottom" | "bottom-end";
+type Position = "right" | "top" | "bottom" | "bottom-start" | "bottom-end";
 
 const POSITION_CLASSES: Record<Position, string> = {
   right: "left-full top-1/2 -translate-y-1/2 ml-2",
@@ -14,6 +14,9 @@ const POSITION_CLASSES: Record<Position, string> = {
   // container (e.g. a split pane's action row), where a centered tooltip's
   // right half would overflow past the pane and get clipped/invisible.
   "bottom-end": "right-0 top-full mt-2",
+  // Mirror of "bottom-end" for triggers at a left edge (e.g. the toolbar's
+  // Sidebar button): grows rightward from the trigger's left edge.
+  "bottom-start": "left-0 top-full mt-2",
 };
 
 const BUBBLE_CLASSES =
@@ -31,6 +34,8 @@ function portalStyle(rect: DOMRect, position: Position): React.CSSProperties {
       return { left: rect.left + rect.width / 2, top: rect.top - GAP_PX, transform: "translate(-50%, -100%)" };
     case "bottom-end":
       return { right: window.innerWidth - rect.right, top: rect.bottom + GAP_PX };
+    case "bottom-start":
+      return { left: rect.left, top: rect.bottom + GAP_PX };
     case "bottom":
     default:
       return { left: rect.left + rect.width / 2, top: rect.bottom + GAP_PX, transform: "translateX(-50%)" };

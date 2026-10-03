@@ -20,6 +20,9 @@ export const atom_hasLoadedVault = atom<boolean>(false);
 // True until the saved vault's permission is known on startup: the editor
 // and home feed stay hidden, and drafts aren't saved, until then.
 export const atom_isVaultRestoring = atom<boolean>(true);
+// True from the moment access is granted again until the vault is scanned and
+// "Vault restored" shows; the route stays behind the overlay until then.
+export const atom_isVaultUnlocking = atom<boolean>(false);
 export const atom_isCloudVault = atom<boolean>(false);
 export const atom_fileSystemVersion = atom<number>(0);
 

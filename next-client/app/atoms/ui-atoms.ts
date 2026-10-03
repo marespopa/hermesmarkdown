@@ -26,6 +26,16 @@ export const atom_flowMode = atomWithStorage<boolean>("flowMode", false);
 // Hides the desktop pane header (tabs and toolbar) for an immersive view.
 // Window-wide, like the toolbar's own controls.
 export const atom_toolbarHidden = atomWithStorage<boolean>("toolbarHidden", false);
+// Toolbar style, as in a native toolbar's "Icon Only" / "Icon and Text":
+// icon buttons, or icons with a label under each. Narrow panes fall back to icons.
+export type ToolbarDisplayMode = "icon" | "iconAndText";
+export const atom_toolbarDisplayMode = atomWithStorage<ToolbarDisplayMode>("toolbarDisplayMode", "icon");
+// The window's sidebar (desktop): open notes and the vault's file tree, on the
+// leading edge. Hidden by default; toggled from the toolbar or Ctrl/Cmd+Alt+S.
+export const atom_sidebarOpen = atomWithStorage<boolean>("sidebarOpen", false);
+export const SIDEBAR_MIN_WIDTH = 200;
+export const SIDEBAR_MAX_WIDTH = 420;
+export const atom_sidebarWidth = atomWithStorage<number>("sidebarWidth", 256);
 // Edit (source) or Preview (read-only reading view), for every pane and tab.
 export type ViewMode = "edit" | "preview";
 export const atom_viewMode = atomWithStorage<ViewMode>("viewMode", "edit");

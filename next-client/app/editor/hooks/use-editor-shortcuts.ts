@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import type React from "react";
 import { useAtomValue, useSetAtom } from "jotai";
 import { atom_activateWorkspaceTab, atom_workspaceTabs } from "@/app/atoms/atoms";
-import { atom_aiBuilderRequest, atom_isAiConfigured, atom_toolbarHidden, atom_viewMode, atom_vimMode } from "@/app/atoms/ui-atoms";
+import { atom_aiBuilderRequest, atom_isAiConfigured, atom_sidebarOpen, atom_toolbarHidden, atom_viewMode, atom_vimMode } from "@/app/atoms/ui-atoms";
 import { useCommandPalette } from "@/app/components/CommandPalette/CommandPaletteContext";
 import { focusPaneEditor } from "../utils/focus-pane-editor";
 import { isCloseTabShortcut, isNewFileShortcut } from "../utils/tab-shortcuts";
@@ -41,6 +41,7 @@ export function useEditorShortcuts({
   const activateWorkspaceTab = useSetAtom(atom_activateWorkspaceTab);
   const setViewMode = useSetAtom(atom_viewMode);
   const setToolbarHidden = useSetAtom(atom_toolbarHidden);
+  const setSidebarOpen = useSetAtom(atom_sidebarOpen);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -100,6 +101,12 @@ export function useEditorShortcuts({
         setToolbarHidden((hidden) => !hidden);
       }
 
+      // Show / hide the sidebar (Ctrl/Cmd+Alt+S); `code`, since Alt changes `key` on macOS.
+      if ((e.ctrlKey || e.metaKey) && e.altKey && !e.shiftKey && e.code === "KeyS") {
+        e.preventDefault();
+        setSidebarOpen((open) => !open);
+      }
+
       // AI Chat — on-demand, not a status bar button
       if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === "b" && isAiConfigured) {
         e.preventDefault();
@@ -112,7 +119,7 @@ export function useEditorShortcuts({
       }
 
       // Manual save (Ctrl/Cmd+S)
-      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s") {
+      if ((e.ctrlKey || e.metaKey) && !e.altKey && e.key.toLowerCase() === "s") {
         e.preventDefault();
         void saveRef.current();
       }
@@ -125,5 +132,5 @@ export function useEditorShortcuts({
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [activateWorkspaceTab, setViewMode, setToolbarHidden, closeTabWithAutosave, flush, isAiConfigured, setAiBuilderRequest, activeTabPath, vimMode, isVoiceSupported, toggleVoiceListening, openCommandPalette, workspaceTabs, navigateWithGuard, saveRef, newFileRef]);
+  }, [activateWorkspaceTab, setViewMode, setToolbarHidden, setSidebarOpen, closeTabWithAutosave, flush, isAiConfigured, setAiBuilderRequest, activeTabPath, vimMode, isVoiceSupported, toggleVoiceListening, openCommandPalette, workspaceTabs, navigateWithGuard, saveRef, newFileRef]);
 }

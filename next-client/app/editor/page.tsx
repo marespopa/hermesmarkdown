@@ -16,6 +16,7 @@ import LoadingBar from "@/app/components/LoadingBar";
 import EditorCommands from "./components/EditorCommands";
 import MobileFileOverlay from "./components/MobileFileOverlay";
 import MobileFileIndicator from "./components/MobileFileIndicator";
+import WorkspaceSidebar from "./components/WorkspaceSidebar";
 import MobileSelectionToolbar from "./components/MobileSelectionToolbar";
 import ErrorBoundary from "@/app/components/ErrorBoundary";
 import { useFileSystem } from "@/app/hooks/use-file-system";
@@ -269,6 +270,9 @@ export default function LiteEditor() {
 
         {/* --- MAIN LAYOUT --- */}
         <div className="flex flex-1 min-h-0 overflow-hidden relative">
+
+        {/* Sidebar: navigation on the window's leading edge (desktop). */}
+        {!isMobileChrome && !isVaultLocked && <WorkspaceSidebar />}
 
         {/* Workspace Content */}
         <div className="flex-1 flex min-w-0 bg-surface overflow-hidden relative">

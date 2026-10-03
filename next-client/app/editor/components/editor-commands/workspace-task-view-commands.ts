@@ -25,6 +25,8 @@ export function buildWorkspaceTaskViewCommandGroups(context: EditorCommandContex
     setActiveFilePath,
     setActivePaneId,
     setFlowMode,
+    setSidebarOpen,
+    setToolbarDisplayMode,
     setToolbarHidden,
     setIsWizardOpen,
     setKeyboardShortcutsOpen,
@@ -39,6 +41,8 @@ export function buildWorkspaceTaskViewCommandGroups(context: EditorCommandContex
     showHiddenFiles,
     splitPane,
     themeCycle,
+    sidebarOpen,
+    toolbarDisplayMode,
     toolbarHidden,
     viewMode,
     setViewMode,
@@ -66,8 +70,8 @@ export function buildWorkspaceTaskViewCommandGroups(context: EditorCommandContex
   const splitPaneRight: Command[] = activeLeaf
     ? [{
         id: "split-pane-right",
-        label: "Open in pane",
-        keywords: "open split pane layout workspace",
+        label: "Split pane right",
+        keywords: "open in pane split right side by side horizontal layout workspace",
         action: () => splitPane({ id: activeLeaf.id, direction: "horizontal", filePath: activeFilePath }),
       }]
     : [];
@@ -150,6 +154,19 @@ export function buildWorkspaceTaskViewCommandGroups(context: EditorCommandContex
       keywords: "header tabs bar immersive focus distraction free collapse chrome",
       shortcut: formatShortcut("T", { alt: true }),
       action: () => setToolbarHidden(!toolbarHidden),
+    },
+    {
+      id: "toggle-toolbar-style",
+      label: toolbarDisplayMode === "iconAndText" ? "Toolbar: Icon Only" : "Toolbar: Icon and Text",
+      keywords: "toolbar style labels text icons header",
+      action: () => setToolbarDisplayMode(toolbarDisplayMode === "iconAndText" ? "icon" : "iconAndText"),
+    },
+    {
+      id: "toggle-sidebar",
+      label: sidebarOpen ? "Hide sidebar" : "Show sidebar",
+      keywords: "sidebar open notes files tree navigation panel",
+      shortcut: formatShortcut("S", { alt: true }),
+      action: () => setSidebarOpen(!sidebarOpen),
     },
     {
       id: "toggle-preview-mode",

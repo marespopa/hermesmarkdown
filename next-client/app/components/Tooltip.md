@@ -23,5 +23,5 @@ import Tooltip from "@/app/components/Tooltip";
 | children | `ReactNode` |  | Trigger |
 | label | `string` |  | Tooltip text |
 | shortcut? | `string` |  | Key hint |
-| position? | `"right" \| "top" \| "bottom" \| "bottom-end"` | `"bottom"` | Placement (`bottom-end` for triggers near a right edge) |
+| position? | `"right" \| "top" \| "bottom" \| "bottom-start" \| "bottom-end"` | `"bottom"` | Placement (`bottom-end` / `bottom-start` for triggers near a right / left edge) |
 | portal? | `boolean` | `false` | Render via portal with fixed positioning — use inside `overflow` containers that would clip the bubble (e.g. the pane tab strip) |

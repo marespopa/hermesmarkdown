@@ -22,3 +22,4 @@ import PaneModeSwitch from "./PaneModeSwitch";
 |---|---|---|---|
 | iconOnly? | `boolean` | `false` | Icons only |
 | withTooltip? | `boolean` | `true` | Hover tooltip with the shortcut (off on touch) |
+| className? | `string` | — | Extra classes for the switch track (e.g. drop it inside a toolbar section) |

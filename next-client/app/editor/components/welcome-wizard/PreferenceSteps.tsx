@@ -2,14 +2,16 @@
 
 import React from "react";
 import { useAtom } from "jotai";
-import { HiOutlineColorSwatch, HiOutlineDesktopComputer, HiOutlineEye, HiOutlineLightningBolt, HiOutlineRefresh, HiOutlineViewList } from "react-icons/hi";
+import { HiOutlineColorSwatch, HiOutlineDesktopComputer, HiOutlineEye, HiOutlineLightningBolt, HiOutlineMenuAlt2, HiOutlineRefresh, HiOutlineTemplate, HiOutlineViewList } from "react-icons/hi";
 import {
   atom_autosaveMode,
   atom_editorFontFamily,
   atom_flowMode,
   atom_lineNumbers,
   atom_renderedFontSize,
+  atom_sidebarOpen,
   atom_theme,
+  atom_toolbarDisplayMode,
   atom_vimMode,
   type Theme,
 } from "@/app/atoms/ui-atoms";
@@ -17,10 +19,12 @@ import Toggle from "@/app/components/Toggle";
 import FontPicker from "@/app/editor/settings/components/FontPicker";
 import { SegmentedControl, SelectControl } from "@/app/editor/settings/components/SettingControls";
 import { FONTS } from "@/app/editor/settings/font-options";
+import { TOOLBAR_STYLE_OPTIONS } from "@/app/editor/settings/sections/AppearanceSettings";
 import WizardStep, { WizardPanel } from "./WizardStep";
 
-// Steps 1–7 of the welcome wizard: theme, font, text size, line numbers,
-// Vim mode, flow mode, and autosave. Each writes its setting immediately.
+// Steps 2–10 of the welcome wizard: theme, font, text size, line numbers,
+// Vim mode, flow mode, autosave, toolbar style, and sidebar. Each writes its
+// setting immediately.
 
 const THEME_OPTIONS: { label: string; value: Theme }[] = [
   { label: "Light", value: "light" },
@@ -159,6 +163,36 @@ export function AutosaveStep({ onContinue }: StepProps) {
           </SelectControl>
         </WizardPanel>
       </div>
+    </WizardStep>
+  );
+}
+
+export function ToolbarStep({ onContinue }: StepProps) {
+  const [toolbarDisplayMode, setToolbarDisplayMode] = useAtom(atom_toolbarDisplayMode);
+  return (
+    <WizardStep
+      icon={<HiOutlineTemplate size={32} />}
+      title="Toolbar style"
+      description="Icons only keeps the toolbar quiet; icon and text adds a label under each button. You can change this later in Settings → Appearance, or by right-clicking the toolbar."
+      onContinue={onContinue}
+    >
+      <WizardPanel>
+        <SegmentedControl options={TOOLBAR_STYLE_OPTIONS} value={toolbarDisplayMode} onChange={setToolbarDisplayMode} />
+      </WizardPanel>
+    </WizardStep>
+  );
+}
+
+export function SidebarStep({ onContinue }: StepProps) {
+  const [sidebarOpen, setSidebarOpen] = useAtom(atom_sidebarOpen);
+  return (
+    <WizardStep
+      icon={<HiOutlineMenuAlt2 size={32} />}
+      title="Show the sidebar?"
+      description="Your open notes and the vault's files on the left edge of the window. Show it with the Sidebar button in the toolbar, hide it with the chevron in its header, or press Ctrl/Cmd+Alt+S."
+      onContinue={onContinue}
+    >
+      <ToggleRow label="Sidebar" active={sidebarOpen} onChange={setSidebarOpen} />
     </WizardStep>
   );
 }

@@ -1,6 +1,8 @@
 "use client";
 
 import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
+import { HiCheck } from "react-icons/hi";
 import Button from "../../components/Button";
 
 export interface TabContextMenuItem {
@@ -10,6 +12,10 @@ export interface TabContextMenuItem {
   icon?: React.ReactNode;
   /** Renders a separator above this item, marking the start of a new group. */
   divider?: boolean;
+  /** Keyboard shortcut, shown faint at the trailing edge. */
+  shortcut?: string;
+  /** Checkable item (e.g. a toolbar style); shows a check while true. */
+  checked?: boolean;
 }
 
 interface TabContextMenuProps {
@@ -17,15 +23,27 @@ interface TabContextMenuProps {
   y: number;
   items: TabContextMenuItem[];
   onClose: () => void;
+  /** Accessible name for the menu. */
+  label?: string;
+  /** The button that opened the menu: presses on it don't count as outside
+   *  clicks, so it can toggle the menu shut itself. */
+  anchorRef?: React.RefObject<HTMLElement | null>;
 }
 
-export default function TabContextMenu({ x, y, items, onClose }: TabContextMenuProps) {
+// Pop-up menu at a point: tab context menus, the toolbar's More menu, and the
+// toolbar's own context menu (its style). Closes on outside click or Escape.
+// Rendered into `document.body`, so the pane header's stacking context
+// (`z-20`) can't let editor overlays — e.g. the frontmatter × — paint over it.
+export default function TabContextMenu({ x, y, items, onClose, label, anchorRef }: TabContextMenuProps) {
+  const hasCheckable = items.some((item) => item.checked !== undefined);
   const menuRef = useRef<HTMLDivElement>(null);
   const [pos, setPos] = useState({ x, y, ready: false });
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+      const target = event.target as Node;
+      if (anchorRef?.current?.contains(target)) return;
+      if (menuRef.current && !menuRef.current.contains(target)) {
         onClose();
       }
     };
@@ -38,7 +56,7 @@ export default function TabContextMenu({ x, y, items, onClose }: TabContextMenuP
       document.removeEventListener("mousedown", handleClickOutside);
       document.removeEventListener("keydown", handleEscape);
     };
-  }, [onClose]);
+  }, [onClose, anchorRef]);
 
   useLayoutEffect(() => {
     if (!menuRef.current) return;
@@ -50,9 +68,11 @@ export default function TabContextMenu({ x, y, items, onClose }: TabContextMenuP
     setPos({ x: clampedX, y: clampedY, ready: true });
   }, [x, y]);
 
-  return (
+  return createPortal(
     <div
       ref={menuRef}
+      role="menu"
+      aria-label={label}
       style={{ left: pos.x, top: pos.y }}
       className={`fixed z-50 min-w-[180px] bg-paper-light/90 dark:bg-paper-dark/90 backdrop-blur-xl border border-edge-subtle rounded-2xl font-sans p-1.5 flex flex-col gap-0.5 origin-top-left transition-[opacity,transform] duration-150 ease-out ${pos.ready ? "opacity-100 scale-100" : "opacity-0 scale-95"}`}
     >
@@ -63,6 +83,8 @@ export default function TabContextMenu({ x, y, items, onClose }: TabContextMenuP
           )}
           <Button
             variant="menu-item"
+            role={item.checked === undefined ? "menuitem" : "menuitemcheckbox"}
+            aria-checked={item.checked}
             isDisabled={item.disabled}
             onClick={() => {
               if (item.disabled) return;
@@ -71,11 +93,18 @@ export default function TabContextMenu({ x, y, items, onClose }: TabContextMenuP
             }}
             className="w-full flex items-center gap-2.5 text-left text-ui-footnote text-ink-light dark:text-ink-dark hover:bg-paper-softgray/80 dark:hover:bg-paper-dark-surface/80 hover:text-ink-light dark:hover:text-ink-dark rounded-xl px-3.5 py-2 transition-colors disabled:opacity-40 disabled:hover:bg-transparent disabled:cursor-not-allowed"
           >
+            {hasCheckable && (
+              <span className="shrink-0 w-[15px]">{item.checked && <HiCheck size={15} aria-hidden="true" />}</span>
+            )}
             {item.icon && <span className="shrink-0 opacity-70">{item.icon}</span>}
-            <span className="truncate">{item.label}</span>
+            <span className="flex-1 truncate">{item.label}</span>
+            {item.shortcut && (
+              <span aria-hidden="true" className="shrink-0 ml-4 text-[11px] text-fg-faint">{item.shortcut}</span>
+            )}
           </Button>
         </React.Fragment>
       ))}
-    </div>
+    </div>,
+    document.body,
   );
 }

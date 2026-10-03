@@ -1,19 +1,17 @@
 # PaneWindowActions
 
-Description: The window-wide group of the desktop pane header: the Edit | Preview switch (`PaneModeSwitch`), the metadata toggle (`FrontmatterToggle`), then the command palette, AI chat (only when an AI key is set; same trigger as Ctrl/Cmd+Shift+B) settings (opens `/editor/settings`), documentation and help (opens `/documentation`), and — after a divider — **Hide toolbar** (chevron up; sets `atom_toolbarHidden`, also Ctrl/Cmd+Alt+T or the command palette). These change the whole app rather than one pane, so `PaneLeaf` renders this group once, in the top-right pane (`getTopTrailingLeaf` in `app/atoms/utils.ts`), where it stays put while focus moves between panes.
+Description: The window-wide sections of the toolbar, each its own borderless capsule on a subtle translucent fill (`PANE_SECTION_CLASS`), set apart by space rather than dividers. **Mode**: the Edit | Preview switch (`PaneModeSwitch`, its own track dropped so the capsule's fill serves as the track; labelled "Mode" in Icon and Text). **Metadata**: the show / hide frontmatter toggle, in its own capsule and only when the note has frontmatter. **Tools**: Search (the command palette, Ctrl/Cmd+K) and AI Chat (only when an AI key is set; Ctrl/Cmd+Shift+B). **More**: a pull-down menu (`aria-haspopup="menu"`, `TabContextMenu` anchored under the button) with Copy Markdown and Split Right for the focused pane, Settings, Documentation and Help, and Hide Toolbar (Ctrl/Cmd+Alt+T). The commands come from `useWindowActions` (`hooks/use-window-actions.ts`). These change the whole app rather than one pane, so `PaneLeaf` renders them once, in the top-right pane (`getTopTrailingLeaf` in `app/atoms/utils.ts`), where they stay put while focus moves between panes. Every command here is also in the command palette.
 
 ## Local State & Storage
-- State: `atom_isAiConfigured`, `atom_aiBuilderRequest` (opens AI chat), `atom_toolbarHidden`; the switch and toggle read their own atoms.
+- State: via `useWindowActions` — `atom_isAiConfigured`, `atom_aiBuilderRequest`, `atom_toolbarHidden`, `atom_activePaneId`, `atom_workspaceLayout`, `atom_splitPane`; plus `atom_activeFileHasFrontmatter` and `atom_frontmatterCollapsedByDefault` for the metadata toggle. The menu's open state is local.
 - Persistence: None here.
 
 ## Dependencies
-- Core: `PaneModeSwitch`, `FrontmatterToggle`, `CommandPaletteContext`, `Tooltip`, `Button`, `pane-header-classes.ts`, `react-icons/hi`, `next/navigation`.
+- Core: `PaneModeSwitch`, `PaneToolbarButton`, `TabContextMenu`, `useWindowActions`, `pane-header-classes.ts`, `react-icons/hi`.
 - Zero-Cloud: No network or telemetry side effects.
 
 ## Quick Usage
 ```tsx
-import PaneWindowActions from "./PaneWindowActions";
-
 {hostsWindowActions && <PaneWindowActions />}
 ```
 

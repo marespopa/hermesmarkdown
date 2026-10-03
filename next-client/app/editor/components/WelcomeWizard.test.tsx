@@ -5,7 +5,7 @@ import { Provider, useAtomValue } from "jotai";
 import { useHydrateAtoms } from "jotai/utils";
 import WelcomeWizard from "./WelcomeWizard";
 import { atom_renderedFontSize } from "@/app/atoms/atoms";
-import { atom_flowMode, atom_hasCompletedOnboarding, atom_homeFeedOpen, atom_isWizardOpen, atom_userName } from "@/app/atoms/ui-atoms";
+import { atom_flowMode, atom_hasCompletedOnboarding, atom_homeFeedOpen, atom_isWizardOpen, atom_sidebarOpen, atom_toolbarDisplayMode, atom_userName } from "@/app/atoms/ui-atoms";
 import { atom_vaultHandle } from "@/app/atoms/vault-atoms";
 import { useFileSystem } from "@/app/hooks/use-file-system";
 import { testAIConnection } from "@/app/services/ai";
@@ -37,6 +37,14 @@ const TestProvider = ({ initialValues, children }: { initialValues: any, childre
 
 const FontSizeValue = () => (
   <output data-testid="font-size-value">{useAtomValue(atom_renderedFontSize)}</output>
+);
+
+const SidebarValue = () => (
+  <output data-testid="sidebar-value">{String(useAtomValue(atom_sidebarOpen))}</output>
+);
+
+const ToolbarStyleValue = () => (
+  <output data-testid="toolbar-style-value">{useAtomValue(atom_toolbarDisplayMode)}</output>
 );
 
 const FlowModeValue = () => (
@@ -156,9 +164,9 @@ describe("WelcomeWizard", () => {
 
     expect(screen.getByText("Theme")).toBeInTheDocument();
 
-    // Steps 1-8 (Theme, typeface, text size, line numbers, Vim Mode,
-    // Flow mode, Autosave, AI Features) advance one step at a time before the final step.
-    for (let i = 0; i < 8; i++) {
+    // Steps 2-10 (Theme, typeface, text size, line numbers, Vim Mode,
+    // Flow mode, Autosave, Toolbar style, Sidebar, AI Features) advance one step at a time before the final step.
+    for (let i = 0; i < 10; i++) {
       fireEvent.click(screen.getByText("Continue"));
     }
 
@@ -175,7 +183,7 @@ describe("WelcomeWizard", () => {
 
     render(
       <TestProvider initialValues={connectedValues}>
-        <WelcomeWizard initialStep={10} />
+        <WelcomeWizard initialStep={12} />
         <HomeFeedValue />
       </TestProvider>
     );
@@ -247,10 +255,44 @@ describe("WelcomeWizard", () => {
     expect(screen.getByTestId("flow-mode-value")).toHaveTextContent("true");
   });
 
-  it("replaces the test button with a connection confirmation after success", async () => {
+  it("lets the user choose the toolbar style", () => {
+    localStorage.removeItem("toolbarDisplayMode");
     render(
       <TestProvider initialValues={defaultInitialValues}>
         <WelcomeWizard initialStep={9} />
+        <ToolbarStyleValue />
+      </TestProvider>
+    );
+
+    expect(screen.getByText("Toolbar style")).toBeInTheDocument();
+    expect(screen.getByTestId("toolbar-style-value")).toHaveTextContent("icon");
+
+    fireEvent.click(screen.getByRole("button", { name: "Icon and Text" }));
+
+    expect(screen.getByTestId("toolbar-style-value")).toHaveTextContent("iconAndText");
+  });
+
+  it("lets the user turn on the sidebar", () => {
+    localStorage.removeItem("sidebarOpen");
+    render(
+      <TestProvider initialValues={defaultInitialValues}>
+        <WelcomeWizard initialStep={10} />
+        <SidebarValue />
+      </TestProvider>
+    );
+
+    expect(screen.getByText("Show the sidebar?")).toBeInTheDocument();
+    expect(screen.getByTestId("sidebar-value")).toHaveTextContent("false");
+
+    fireEvent.click(screen.getByRole("switch", { name: "Sidebar" }));
+
+    expect(screen.getByTestId("sidebar-value")).toHaveTextContent("true");
+  });
+
+  it("replaces the test button with a connection confirmation after success", async () => {
+    render(
+      <TestProvider initialValues={defaultInitialValues}>
+        <WelcomeWizard initialStep={11} />
       </TestProvider>
     );
 

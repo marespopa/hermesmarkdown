@@ -73,10 +73,10 @@ tags: []
 ---`}</Code>
         <p>
           The editor gives frontmatter a subtle background. The{" "}
-          <strong>ⓘ</strong> button in the pane header (next to Edit / Preview) hides it in every
+          <strong>ⓘ Metadata</strong> button in the toolbar (next to Edit / Preview) hides it in every
           file, open or opened later, so each note starts with its first line of content; click it
           again to show it everywhere. It is the same switch as{" "}
-          <strong>Settings → Appearance → Collapse Frontmatter</strong>.
+          <strong>Settings → Editor → Collapse Frontmatter</strong>.
         </p>
       </>
     ),

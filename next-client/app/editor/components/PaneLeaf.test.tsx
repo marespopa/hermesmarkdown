@@ -57,6 +57,7 @@ describe("PaneLeaf Tab Indicators", () => {
     cleanup();
     vi.clearAllMocks();
     localStorage.removeItem("viewMode");
+    localStorage.removeItem("toolbarDisplayMode");
   });
 
   it("renders a regular dirty dot when file has unsaved changes", () => {
@@ -177,13 +178,11 @@ describe("PaneLeaf Tab Indicators", () => {
 
     expect(screen.getByLabelText("Close tab")).toBeInTheDocument();
     expect(screen.queryByRole("banner", { name: "Note" })).not.toBeInTheDocument();
-    // Home needs a vault (the feed lists vault notes).
-    expect(screen.queryByRole("button", { name: "Home feed" })).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: /^Save/ })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Tab options" })).not.toBeInTheDocument();
   });
 
-  it("opens settings from the pane actions", () => {
+  it("keeps the essentials in the toolbar and the rest in the More menu", () => {
     render(
       <TestProvider initialValues={[
         [atom_activePaneId, "pane-1"],
@@ -194,9 +193,60 @@ describe("PaneLeaf Tab Indicators", () => {
       </TestProvider>
     );
 
-    fireEvent.click(screen.getByRole("button", { name: "Settings" }));
+    expect(screen.getByRole("button", { name: /^Save/ })).toBeInTheDocument();
+    expect(screen.getByRole("radiogroup", { name: "Editor mode" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Command palette" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Sidebar" })).toBeInTheDocument();
+    for (const name of ["Copy Markdown", "Split Right", "Settings", "Hide toolbar"]) {
+      expect(screen.queryByRole("button", { name })).not.toBeInTheDocument();
+    }
+
+    const more = screen.getByRole("button", { name: "More" });
+    expect(more).toHaveAttribute("aria-haspopup", "menu");
+    fireEvent.click(more);
+    expect(more).toHaveAttribute("aria-expanded", "true");
+    const menu = screen.getByRole("menu", { name: "More" });
+    for (const name of ["Copy Markdown", "Split Right", "Settings", "Documentation and Help", "Hide Toolbar"]) {
+      expect(within(menu).getByRole("menuitem", { name: new RegExp(`^${name}`) })).toBeInTheDocument();
+    }
+
+    // Clicking the button again closes the menu instead of reopening it.
+    fireEvent.mouseDown(more);
+    fireEvent.click(more);
+    expect(screen.queryByRole("menu", { name: "More" })).not.toBeInTheDocument();
+  });
+
+  it("offers Copy Markdown in the active tab's menu", () => {
+    render(
+      <TestProvider initialValues={[
+        [atom_activePaneId, "pane-1"],
+        [atom_openFiles, { "file1.md": { fileName: "file1.md", content: "clean", lastSavedContent: "clean" } }],
+        [atom_workspaceLayout, { rootContainer: { ...mockLeaf, openFilePaths: ["file1.md"] } }],
+      ]}>
+        <PaneLeaf leaf={{ ...mockLeaf, openFilePaths: ["file1.md"] }} />
+      </TestProvider>
+    );
+
+    fireEvent.contextMenu(screen.getByText("file1.md"));
+    expect(screen.getByText("Copy Markdown")).toBeInTheDocument();
+  });
+
+  it("opens settings and help from the More menu", () => {
+    render(
+      <TestProvider initialValues={[
+        [atom_activePaneId, "pane-1"],
+        [atom_openFiles, { "file1.md": { fileName: "file1.md", content: "clean", lastSavedContent: "clean" } }],
+        [atom_workspaceLayout, { rootContainer: { ...mockLeaf, openFilePaths: ["file1.md"] } }],
+      ]}>
+        <PaneLeaf leaf={{ ...mockLeaf, openFilePaths: ["file1.md"] }} />
+      </TestProvider>
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "More" }));
+    fireEvent.click(screen.getByRole("menuitem", { name: "Settings" }));
     expect(push).toHaveBeenCalledWith("/editor/settings");
-    fireEvent.click(screen.getByRole("button", { name: "Documentation and help" }));
+    fireEvent.click(screen.getByRole("button", { name: "More" }));
+    fireEvent.click(screen.getByRole("menuitem", { name: "Documentation and Help" }));
     expect(push).toHaveBeenCalledWith("/documentation");
   });
 
@@ -295,11 +345,14 @@ describe("PaneLeaf in a split", () => {
       renderSplit(activePaneId);
       const [leftPane, rightPane] = Array.from(document.querySelectorAll("[data-pane-id]")) as HTMLElement[];
 
-      expect(within(leftPane).getByRole("button", { name: "Home feed" })).toBeInTheDocument();
-      expect(within(rightPane).queryByRole("button", { name: "Home feed" })).not.toBeInTheDocument();
-      expect(within(rightPane).getByRole("button", { name: "Settings" })).toBeInTheDocument();
+      // Home lives in the sidebar, not the toolbar.
+      expect(within(leftPane).queryByRole("button", { name: "Home feed" })).not.toBeInTheDocument();
+      expect(within(rightPane).getByRole("button", { name: "More" })).toBeInTheDocument();
       expect(within(rightPane).getByRole("radiogroup", { name: "Editor mode" })).toBeInTheDocument();
-      expect(within(leftPane).queryByRole("button", { name: "Settings" })).not.toBeInTheDocument();
+      expect(within(leftPane).queryByRole("button", { name: "More" })).not.toBeInTheDocument();
+      // The sidebar toggle stays in the top-left pane.
+      expect(within(leftPane).getByRole("button", { name: "Sidebar" })).toBeInTheDocument();
+      expect(within(rightPane).queryByRole("button", { name: "Sidebar" })).not.toBeInTheDocument();
       expect(within(leftPane).queryByRole("radiogroup", { name: "Editor mode" })).not.toBeInTheDocument();
       cleanup();
     }
@@ -311,6 +364,47 @@ describe("PaneLeaf in a split", () => {
 
     expect(within(leftPane).getByRole("button", { name: /^Save/ })).toBeInTheDocument();
     expect(within(leftPane).getByRole("button", { name: "Close Pane" })).toBeInTheDocument();
+  });
+});
+
+describe("PaneLeaf toolbar style and sidebar toggle", () => {
+  const leaf = { id: "solo", type: "editor" as const, openFilePaths: ["a.md"], activeFilePath: "a.md", isPinned: false };
+
+  beforeEach(() => {
+    cleanup();
+    localStorage.removeItem("toolbarDisplayMode");
+    localStorage.removeItem("sidebarOpen");
+  });
+
+  const renderSolo = () =>
+    render(
+      <TestProvider initialValues={[
+        [atom_activePaneId, "solo"],
+        [atom_openFiles, { "a.md": { fileName: "a.md", content: "A", lastSavedContent: "A" } }],
+        [atom_workspaceLayout, { rootContainer: leaf }],
+      ]}>
+        <PaneLeaf leaf={leaf} />
+      </TestProvider>
+    );
+
+  it("switches between Icon Only and Icon and Text from the toolbar's context menu", () => {
+    renderSolo();
+    const save = screen.getByRole("button", { name: /^Save/ });
+    expect(save).not.toHaveTextContent("Save");
+
+    fireEvent.contextMenu(screen.getByRole("toolbar", { name: "Pane" }));
+    const menu = screen.getByRole("menu", { name: "Toolbar" });
+    expect(within(menu).getByRole("menuitemcheckbox", { name: "Icon Only" })).toHaveAttribute("aria-checked", "true");
+    fireEvent.click(within(menu).getByRole("menuitemcheckbox", { name: "Icon and Text" }));
+
+    expect(screen.getByRole("button", { name: /^Save/ })).toHaveTextContent("Save");
+    expect(screen.getByRole("button", { name: "Command palette" })).toHaveTextContent("Search");
+  });
+
+  it("shows the sidebar from the toolbar, then leaves hiding it to the sidebar", () => {
+    renderSolo();
+    fireEvent.click(screen.getByRole("button", { name: "Sidebar" }));
+    expect(screen.queryByRole("button", { name: "Sidebar" })).not.toBeInTheDocument();
   });
 });
 
@@ -333,7 +427,8 @@ describe("PaneLeaf toolbar hiding", () => {
       </TestProvider>
     );
 
-    fireEvent.click(screen.getByRole("button", { name: "Hide toolbar" }));
+    fireEvent.click(screen.getByRole("button", { name: "More" }));
+    fireEvent.click(screen.getByRole("menuitem", { name: /^Hide Toolbar/ }));
     // inert takes the header's controls out of the accessibility tree.
     expect(screen.getByRole("button", { name: "Show toolbar" })).toBeInTheDocument();
     expect(screen.getByLabelText("Close tab").closest("[inert]")).not.toBeNull();
