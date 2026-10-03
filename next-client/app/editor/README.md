@@ -43,7 +43,7 @@ The editor route (`page.tsx`) composes these:
 1. **Opening a File**: When a user opens a file from the command palette or the file overlay, it calls `openFile` from `useFileSystem`. This reads the file content, sets the document content, and updates the active file handle.
 2. **Editing**: As the user types in the editor, the document state is updated in real time.
 3. **Saving**: Saving can be manual or automatic. It uses the active file handle to write the current content back to the local disk.
-4. **File Synchronization** (`app/hooks/use-file-watcher.ts`): HermesMarkdown polls open files for external modifications (with backoff up to 5 minutes, and immediately when the window regains focus).
+4. **File Synchronization** (`app/hooks/use-file-watcher.ts`): HermesMarkdown picks up external modifications to open files almost immediately in browsers with `FileSystemObserver` (Chromium), and otherwise polls for them (with backoff up to 5 minutes, and immediately when the window regains focus).
     - **Auto-Sync**: If no local changes exist, it automatically reloads the new content from disk.
     - **Conflict Resolution**: If local changes exist and the file was modified externally, a **Conflict Dialog** appears with **Accept Incoming** (reload from disk), **Keep Current** (overwrite on next save), or **Resolve in Merge Editor** (current, incoming and merged result side by side).
 5. **Folder Management**: Creating a folder uses `targetDir.getDirectoryHandle(name, { create: true })` and refreshes the directory listing.

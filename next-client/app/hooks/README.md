@@ -19,7 +19,7 @@ React hooks organized by concern: UI primitives, sync orchestration, and the fil
 | Hook | Purpose |
 |------|---------|
 | `use-vault-sync.ts` | Re-scans the vault tree every 5min (1min for cloud-synced vaults) and on manual refresh |
-| `use-file-watcher.ts` | Polls open files for external changes (backoff up to 5min, immediate on window focus) and raises conflicts |
+| `use-file-watcher.ts` | Reloads open files changed outside the app: near-instant via `FileSystemObserver` where supported (Chromium), plus polling as fallback (backoff up to 5min, immediate on window focus) |
 | `use-auto-save.ts` | Debounced / on-blur / manual save modes; flushes pending writes on tab switch |
 | `use-task-writeback.ts` | Writes checkbox toggles from the Tasks page back to the source line |
 
@@ -62,6 +62,7 @@ All file writes go through `writeFileContent()` in `app/services/file-writer.ts`
 | `use-export-file.ts` | Desktop picker → Web Share API → blob download fallback chain |
 | `use-index-active-file.ts` | 1s-debounced re-index on content change |
 | `reconcile-disk.ts` | Pure `reconcileWithDisk()` — merges on-disk content into a tab's cached state (take disk if clean, keep local edits if disk unchanged; if both changed, disk wins and the local text is kept as a `local` snapshot — no conflict prompt). Shared by the file watcher and `atom_rebindHandles` |
+| `file-observer.ts` | `createFileObserver()` — wraps Chromium's `FileSystemObserver`: `sync()` observes exactly the given path→handle map and fires a callback on change records. Returns `null` where unsupported; `isFileObserverSupported()` reports it. Used by the file watcher |
 
 ### CRUD
 
