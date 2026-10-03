@@ -1,9 +1,9 @@
 # AppearanceSettings
 
-Description: The Settings → Appearance section: Theme (light, dark, or follow the system) and Typography (editor font).
+Description: The Settings → Appearance section: Theme (light, dark, or follow the system), Toolbar (Toolbar Style — Icon Only or Icon and Text, `TOOLBAR_STYLE_OPTIONS` exported for the welcome wizard — and Show Sidebar) and Typography (editor font).
 
 ## Local State & Storage
-- State: `atom_theme`, `atom_editorFontFamily`.
+- State: `atom_theme`, `atom_editorFontFamily`, `atom_toolbarDisplayMode`, `atom_sidebarOpen`.
 - Persistence: All via `atomWithStorage` (`localStorage`).
 
 ## Dependencies

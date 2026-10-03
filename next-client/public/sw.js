@@ -7,8 +7,9 @@
 // - /api/* (AI, GitHub) and cross-origin requests are never touched.
 //
 // The app registers this file as /sw.js?v=<app version>. A new version
-// installs alongside the old one and waits until the page asks it to take
-// over (the "new version" toast), then old caches are deleted.
+// takes over as soon as it installs, without reloading open pages, and old
+// caches are deleted. Navigations are network first, so the next load already
+// runs the new version.
 
 const VERSION = new URL(self.location.href).searchParams.get("v") || "dev";
 const CACHE_PREFIX = "hermes-";
@@ -44,6 +45,7 @@ self.addEventListener("install", (event) => {
     await Promise.all(PRECACHE_URLS.map((url) => cache.add(url).catch(() => undefined)));
     const assets = await shellAssetUrls(cache).catch(() => []);
     await Promise.all(assets.map((url) => cache.add(url).catch(() => undefined)));
+    await self.skipWaiting();
   })());
 });
 
@@ -57,10 +59,6 @@ self.addEventListener("activate", (event) => {
     );
     await self.clients.claim();
   })());
-});
-
-self.addEventListener("message", (event) => {
-  if (event.data && event.data.type === "SKIP_WAITING") self.skipWaiting();
 });
 
 async function cacheFirst(request) {

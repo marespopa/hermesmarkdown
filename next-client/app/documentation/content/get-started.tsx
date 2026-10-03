@@ -206,12 +206,11 @@ export const getStartedGroup: Group = {
               { label: "Open the selected note", value: "ENTER" },
               { label: "Search", value: "Start typing" },
               { label: "Back to your open notes", value: "ESCAPE" },
-              { label: "Come back to the feed", value: "Home button or Home feed command" },
+              { label: "Come back to the feed", value: "Home at the top of the sidebar" },
             ]}
           />
           <p>
-            The Home button is at the far left of the editor&apos;s header on desktop, and at the
-            top left on phones.
+            On desktop, Home is at the top of the sidebar. On phones it&apos;s at the top left.
           </p>
           <p>
             In a large vault, notes appear right away in the correct order. Their previews fill in
@@ -230,7 +229,7 @@ export const getStartedGroup: Group = {
       id: "editor-layout",
       title: "Editor layout",
       lead: "A full-screen editor with a slim header. Everything else is in the command palette and a few dedicated views.",
-      keywords: "explorer files search views tags tasks settings theme pane split toolbar command palette",
+      keywords: "explorer files search views tags tasks settings theme pane split toolbar sidebar command palette",
       body: (
         <>
           <p>
@@ -238,9 +237,22 @@ export const getStartedGroup: Group = {
             keyboard shortcuts, and the slash command menu.
           </p>
           <p>
-            The header shows your open notes as tabs, even when only one is open. Home is on the left, and the
-            command palette, AI Chat (when an AI key is set), Save, and more options are on the
-            right.
+            The toolbar at the top shows your open notes as tabs, even when only one is open. On the left:
+            the <strong> Sidebar</strong> button. On the right: Save, Edit / Preview, the metadata toggle, Search (the
+            command palette) and AI Chat (when an AI key is set). The <strong>&hellip; More</strong> menu holds Copy
+            Markdown, Split Right, Settings, Help and Hide Toolbar — every one of them is also in the command palette.
+          </p>
+          <p>
+            Right-click the toolbar to choose its style: <strong>Icon Only</strong> or <strong>Icon and Text</strong>{" "}
+            (a label under each button; also in Settings → Appearance and the welcome tour). Narrow panes always show
+            icons only.
+          </p>
+          <p>
+            The <strong>sidebar</strong> lists your open notes across every pane. With a vault it also starts with Home and ends with the file tree. Show
+            it with the Sidebar button in the toolbar, hide it with the chevron in its own header, or toggle it with{" "}
+            <code>CTRL/CMD+ALT+S</code> or the <strong>Show sidebar</strong>{" "}
+            command (the welcome tour offers it too), and drag its edge to resize it (double-click the edge to
+            reset). The Explorer below remains the place for bigger file work.
           </p>
           <p>
             Open the dedicated Explorer with <code>CTRL/CMD+SHIFT+E</code> (or <code>CTRL/CMD+B</code>{" "}
@@ -250,7 +262,8 @@ export const getStartedGroup: Group = {
           </p>
           <KV
             rows={[
-              { label: "Home feed", value: "Home button in the header" },
+              { label: "Home feed", value: "Home button in the toolbar" },
+              { label: "Sidebar", value: "Sidebar button in the toolbar to show, chevron in the sidebar to hide / CTRL/CMD+ALT+S" },
               { label: "Explorer", value: "Dedicated files view / CTRL/CMD+SHIFT+E" },
               { label: "Quick switcher", value: "CTRL/CMD+K or CTRL/CMD+P" },
               { label: "Command palette", value: "CTRL/CMD+SHIFT+K or CTRL/CMD+SHIFT+P" },
@@ -268,12 +281,12 @@ export const getStartedGroup: Group = {
             saved, rule-based filters over your notes&apos; tags and frontmatter.
           </p>
           <p>
-            Open several files side by side: choose <strong>Split Right</strong> from the header (or <strong>Open in pane</strong> on a tab),
+            Open several files side by side: choose <strong>Split Right</strong> from the toolbar&apos;s More menu or run <strong>Split pane right</strong> from the command palette (or <strong>Open in pane</strong> on a tab),
             drag tabs between panes, and resize with the divider.
           </p>
           <p>
-            To be alone with the text, click the up-chevron button at the right end of the
-            header (or press <code>Ctrl/Cmd+Alt+T</code>, or run <strong>Hide toolbar</strong>) and
+            To be alone with the text, choose <strong>Hide Toolbar</strong> from the More menu (or press{" "}
+            <code>Ctrl/Cmd+Alt+T</code>, or run <strong>Hide toolbar</strong>) and
             the tabs and toolbar slide away. A small chevron in the top-right corner brings them back.
           </p>
         </>
@@ -312,6 +325,7 @@ export const getStartedGroup: Group = {
                 { label: "Close current tab", shortcut: "CTRL/CMD+ALT+W" },
                 { label: "Select workspace tab", shortcut: "CTRL/CMD+1–9" },
                 { label: "Hide / show toolbar", shortcut: "CTRL/CMD+ALT+T" },
+                { label: "Show / hide sidebar", shortcut: "CTRL/CMD+ALT+S" },
               ],
             },
             {

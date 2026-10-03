@@ -11,16 +11,16 @@ import Button from "@/app/components/Button";
 import { HiOutlineArrowLeft } from "react-icons/hi";
 import { useCreateVault } from "@/app/hooks/file-system/use-create-vault";
 import AiKeyStep from "./welcome-wizard/AiKeyStep";
-import { AutosaveStep, FlowModeStep, FontStep, LineNumbersStep, TextSizeStep, ThemeStep, VimStep } from "./welcome-wizard/PreferenceSteps";
+import { AutosaveStep, FlowModeStep, FontStep, LineNumbersStep, TextSizeStep, SidebarStep, ThemeStep, ToolbarStep, VimStep } from "./welcome-wizard/PreferenceSteps";
 import NameStep from "./welcome-wizard/NameStep";
 import ReadyStep from "./welcome-wizard/ReadyStep";
 import VaultStep from "./welcome-wizard/VaultStep";
 
-// Step order: 0 name, 1 vault, 2–8 preferences, 9 AI key, 10 ready.
+// Step order: 0 name, 1 vault, 2–10 preferences, 11 AI key, 12 ready.
 const NAME_STEP = 0;
 const VAULT_STEP = 1;
 const FIRST_PREFERENCE_STEP = 2;
-const TOTAL_STEPS = 10;
+const TOTAL_STEPS = 12;
 // "Medium" in the text size step.
 const ONBOARDING_TEXT_SIZE = "16px";
 
@@ -114,8 +114,10 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
       case 6: return <VimStep onContinue={next(7)} />;
       case 7: return <FlowModeStep onContinue={next(8)} />;
       case 8: return <AutosaveStep onContinue={next(9)} />;
-      case 9: return <AiKeyStep onContinue={next(10)} />;
-      case 10: return <ReadyStep onFinish={handleFinish} />;
+      case 9: return <ToolbarStep onContinue={next(10)} />;
+      case 10: return <SidebarStep onContinue={next(11)} />;
+      case 11: return <AiKeyStep onContinue={next(12)} />;
+      case 12: return <ReadyStep onFinish={handleFinish} />;
       default: return null;
     }
   };

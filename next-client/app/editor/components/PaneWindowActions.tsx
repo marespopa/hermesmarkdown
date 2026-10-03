@@ -1,89 +1,127 @@
 "use client";
 
-import React from "react";
-import { useAtomValue, useSetAtom } from "jotai";
-import { useRouter } from "next/navigation";
-import { HiOutlineChatAlt2, HiOutlineChevronUp, HiOutlineCog, HiOutlineQuestionMarkCircle, HiOutlineSearch } from "react-icons/hi";
-import { atom_aiBuilderRequest, atom_isAiConfigured, atom_toolbarHidden } from "@/app/atoms/ui-atoms";
-import Button from "@/app/components/Button";
-import Tooltip from "@/app/components/Tooltip";
-import { useCommandPalette } from "@/app/components/CommandPalette/CommandPaletteContext";
+import React, { useRef, useState } from "react";
+import { useAtom, useAtomValue } from "jotai";
+import {
+  HiInformationCircle,
+  HiOutlineChatAlt2,
+  HiOutlineChevronUp,
+  HiOutlineClipboardCopy,
+  HiOutlineCog,
+  HiOutlineDotsHorizontal,
+  HiOutlineInformationCircle,
+  HiOutlineQuestionMarkCircle,
+  HiOutlineSearch,
+  HiOutlineViewBoards,
+} from "react-icons/hi";
+import { atom_activeFileHasFrontmatter, atom_frontmatterCollapsedByDefault } from "@/app/atoms/ui-atoms";
 import { formatShortcut } from "@/app/utils/platform";
+import { useWindowActions } from "../hooks/use-window-actions";
 import PaneModeSwitch from "./PaneModeSwitch";
-import FrontmatterToggle from "./FrontmatterToggle";
-import { PANE_ACTION_BUTTON_CLASS, PANE_ACTIONS_CLASS, PANE_DIVIDER_CLASS, PANE_ICON_SIZE } from "./pane-header-classes";
+import PaneToolbarButton, { useToolbarMode } from "./PaneToolbarButton";
+import TabContextMenu from "./TabContextMenu";
+import { PANE_ACTION_LABEL_CLASS, PANE_ICON_SIZE, PANE_SECTION_CLASS } from "./pane-header-classes";
 
-// Window-wide toolbar actions: view options (Edit / Preview, metadata) and
-// app commands (command palette, AI chat, settings, documentation). They change the whole
-// app, not one pane, so `PaneLeaf` renders them once — in the top-right
-// pane's header — where they stay put while focus moves between panes.
+// Window-wide toolbar sections. They change the whole app, not one pane, so
+// `PaneLeaf` renders them once — in the top-right pane's header — where they
+// stay put while focus moves between panes. Each section is its own capsule:
+// - Mode: the Edit / Preview switch.
+// - Metadata: show / hide frontmatter (only when the note has some).
+// - Tools: command palette and AI chat.
+// - More: a pull-down menu with the secondary commands (Copy Markdown and
+//   Split Right for the focused pane, Settings, Help, Hide Toolbar).
 export default function PaneWindowActions() {
-  const router = useRouter();
-  const { open: openCommandPalette } = useCommandPalette();
-  const isAiConfigured = useAtomValue(atom_isAiConfigured);
-  const setAiBuilderRequest = useSetAtom(atom_aiBuilderRequest);
-  // Same trigger as the Ctrl/Cmd+Shift+B shortcut; the editor page opens the chat.
-  const openAIChat = () => setAiBuilderRequest((value) => value + 1);
-  const setToolbarHidden = useSetAtom(atom_toolbarHidden);
+  const actions = useWindowActions();
+  const mode = useToolbarMode();
+  const hasFrontmatter = useAtomValue(atom_activeFileHasFrontmatter);
+  const [metadataCollapsed, setMetadataCollapsed] = useAtom(atom_frontmatterCollapsedByDefault);
+  const moreRef = useRef<HTMLButtonElement>(null);
+  const [moreMenu, setMoreMenu] = useState<{ x: number; y: number } | null>(null);
+
+  const openMoreMenu = () => {
+    const rect = moreRef.current?.getBoundingClientRect();
+    // Right-aligned under the button; the menu clamps itself to the viewport.
+    setMoreMenu({ x: rect ? rect.right - 220 : 0, y: rect ? rect.bottom + 6 : 0 });
+  };
 
   return (
-    <div className={PANE_ACTIONS_CLASS} role="toolbar" aria-label="Window">
-      <PaneModeSwitch iconOnly />
-      <FrontmatterToggle className={PANE_ACTION_BUTTON_CLASS} size={PANE_ICON_SIZE} />
-      <div className={PANE_DIVIDER_CLASS} />
-      <Tooltip label="Command palette" shortcut={formatShortcut("K")}>
-        <Button
-          variant="icon"
-          onClick={() => openCommandPalette()}
-          aria-label="Command palette"
-          className={PANE_ACTION_BUTTON_CLASS}
-        >
-          <HiOutlineSearch size={PANE_ICON_SIZE} />
-        </Button>
-      </Tooltip>
-      {isAiConfigured && (
-        <Tooltip label="AI Chat" shortcut={formatShortcut("B", { shift: true })}>
-          <Button
-            variant="icon"
-            onClick={openAIChat}
-            aria-label="AI Chat"
-            className={PANE_ACTION_BUTTON_CLASS}
-          >
-            <HiOutlineChatAlt2 size={PANE_ICON_SIZE} />
-          </Button>
-        </Tooltip>
+    <div className="flex items-center shrink-0" role="toolbar" aria-label="Window">
+      <div className={PANE_SECTION_CLASS[mode]} role="group" aria-label="Mode">
+        {/* Inside the section the switch drops its own track: the section's
+            fill is the track, and the selected segment rides on it. */}
+        <div className="flex flex-col items-center gap-0.5 px-0.5">
+          <PaneModeSwitch iconOnly className="!bg-transparent !border-0 !p-0" />
+          {mode === "iconAndText" && <span aria-hidden="true" className={`${PANE_ACTION_LABEL_CLASS} text-fg-muted`}>Mode</span>}
+        </div>
+      </div>
+
+      {/* Metadata is its own group: it isn't part of the Edit / Preview choice. */}
+      {hasFrontmatter && (
+        <div className={PANE_SECTION_CLASS[mode]} role="group" aria-label="Metadata">
+          <PaneToolbarButton
+            icon={metadataCollapsed ? <HiOutlineInformationCircle size={PANE_ICON_SIZE} /> : <HiInformationCircle size={PANE_ICON_SIZE} />}
+            label="Metadata"
+            tooltip={metadataCollapsed ? "Show metadata" : "Hide metadata"}
+            aria-pressed={!metadataCollapsed}
+            active={!metadataCollapsed}
+            onClick={() => setMetadataCollapsed(!metadataCollapsed)}
+          />
+        </div>
       )}
-      <Tooltip label="Settings">
-        <Button
-          variant="icon"
-          onClick={() => router.push("/editor/settings")}
-          aria-label="Settings"
-          className={PANE_ACTION_BUTTON_CLASS}
-        >
-          <HiOutlineCog size={PANE_ICON_SIZE} />
-        </Button>
-      </Tooltip>
-      <Tooltip label="Documentation and help" position="bottom-end">
-        <Button
-          variant="icon"
-          onClick={() => router.push("/documentation")}
-          aria-label="Documentation and help"
-          className={PANE_ACTION_BUTTON_CLASS}
-        >
-          <HiOutlineQuestionMarkCircle size={PANE_ICON_SIZE} />
-        </Button>
-      </Tooltip>
-      <div className={PANE_DIVIDER_CLASS} />
-      <Tooltip label="Hide toolbar" shortcut={formatShortcut("T", { alt: true })} position="bottom-end">
-        <Button
-          variant="icon"
-          onClick={() => setToolbarHidden(true)}
-          aria-label="Hide toolbar"
-          className={PANE_ACTION_BUTTON_CLASS}
-        >
-          <HiOutlineChevronUp size={PANE_ICON_SIZE} />
-        </Button>
-      </Tooltip>
+
+      <div className={PANE_SECTION_CLASS[mode]} role="group" aria-label="Tools">
+        <PaneToolbarButton
+          icon={<HiOutlineSearch size={PANE_ICON_SIZE} />}
+          label="Search"
+          tooltip="Command palette"
+          aria-label="Command palette"
+          shortcut={formatShortcut("K")}
+          onClick={actions.openCommandPalette}
+        />
+        {actions.isAiConfigured && (
+          <PaneToolbarButton
+            icon={<HiOutlineChatAlt2 size={PANE_ICON_SIZE} />}
+            label="AI Chat"
+            shortcut={formatShortcut("B", { shift: true })}
+            onClick={actions.openAIChat}
+          />
+        )}
+      </div>
+
+      <div className={PANE_SECTION_CLASS[mode]} role="group" aria-label="More">
+        <PaneToolbarButton
+          ref={moreRef}
+          icon={<HiOutlineDotsHorizontal size={PANE_ICON_SIZE} />}
+          label="More"
+          tooltipPosition="bottom-end"
+          aria-haspopup="menu"
+          aria-expanded={!!moreMenu}
+          active={!!moreMenu}
+          onClick={(event) => {
+            event.stopPropagation();
+            if (moreMenu) setMoreMenu(null);
+            else openMoreMenu();
+          }}
+        />
+      </div>
+
+      {moreMenu && (
+        <TabContextMenu
+          x={moreMenu.x}
+          y={moreMenu.y}
+          label="More"
+          // The More button toggles the menu itself; its presses aren't outside clicks.
+          anchorRef={moreRef}
+          onClose={() => setMoreMenu(null)}
+          items={[
+            { label: "Copy Markdown", icon: <HiOutlineClipboardCopy size={15} />, disabled: !actions.activePaneHasFiles, onClick: actions.copyActiveMarkdown },
+            { label: "Split Right", icon: <HiOutlineViewBoards size={15} />, disabled: !actions.activePaneHasFiles, onClick: actions.splitActivePaneRight },
+            { label: "Settings", icon: <HiOutlineCog size={15} />, divider: true, onClick: actions.openSettings },
+            { label: "Documentation and Help", icon: <HiOutlineQuestionMarkCircle size={15} />, onClick: actions.openHelp },
+            { label: "Hide Toolbar", icon: <HiOutlineChevronUp size={15} />, divider: true, shortcut: formatShortcut("T", { alt: true }), onClick: actions.hideToolbar },
+          ]}
+        />
+      )}
     </div>
   );
 }

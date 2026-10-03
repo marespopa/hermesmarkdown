@@ -10,6 +10,7 @@ import {
   atom_isVaultPending,
   atom_hasLoadedVault,
   atom_isVaultRestoring,
+  atom_isVaultUnlocking,
   atom_activeFileHandle,
   atom_activeFilePath,
   atom_openFiles,
@@ -62,6 +63,7 @@ export function useVaultManager() {
   const [isVaultPending, setIsVaultPending] = useAtom(atom_isVaultPending);
   const [hasLoadedVault, setHasLoadedVault] = useAtom(atom_hasLoadedVault);
   const setIsVaultRestoring = useSetAtom(atom_isVaultRestoring);
+  const setIsVaultUnlocking = useSetAtom(atom_isVaultUnlocking);
   const [, setFileMetadata] = useAtom(atom_fileMetadata);
   const [, setActiveFileHandle] = useAtom(atom_activeFileHandle);
   const [, setActiveFilePath] = useAtom(atom_activeFilePath);
@@ -243,26 +245,37 @@ export function useVaultManager() {
     }
   }, [initVaultFromHandle, setBrowserVaultDialogOpen]);
 
+  // A single gesture can reach restoreVault twice (the gate's window listener
+  // and the Restore Access button); only the first opens the browser prompt.
+  const isRestoringRef = useRef(false);
+
   const restoreVault = useCallback(async () => {
-    if (!vaultHandle) return;
+    if (!vaultHandle || isRestoringRef.current) return;
+    isRestoringRef.current = true;
 
     try {
       const granted = await verifyPermission(vaultHandle);
       if (granted) {
-        setIsVaultPending(false);
+        // Stay pending (route hidden and inert) until the vault is loaded, so
+        // nothing is reachable before "Vault restored".
+        setIsVaultUnlocking(true);
         setCurrentDirectoryHandle(vaultHandle);
         setIsCloudVault(false);
         detectCloudVault(vaultHandle);
         await scanVault(vaultHandle);
         await indexVaultTags(vaultHandle);
         await rebindHandles(vaultHandle);
+        setIsVaultPending(false);
         toast.success("Vault restored");
       }
     } catch (err: any) {
       console.error("File System Error:", err?.message || err);
       toast.error("Failed to restore vault");
+    } finally {
+      setIsVaultUnlocking(false);
+      isRestoringRef.current = false;
     }
-  }, [vaultHandle, setIsVaultPending, setCurrentDirectoryHandle, setIsCloudVault, scanVault, indexVaultTags, rebindHandles, detectCloudVault]);
+  }, [vaultHandle, setIsVaultPending, setIsVaultUnlocking, setCurrentDirectoryHandle, setIsCloudVault, scanVault, indexVaultTags, rebindHandles, detectCloudVault]);
 
   const syncCurrentDirectoryToPath = useCallback(
     async (path: string) => {

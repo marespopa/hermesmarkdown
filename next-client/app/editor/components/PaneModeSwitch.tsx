@@ -17,11 +17,12 @@ interface PaneModeSwitchProps {
   iconOnly?: boolean;
   /** Show the hover tooltip (desktop only — touch has no hover). */
   withTooltip?: boolean;
+  className?: string;
 }
 
 // Edit | Preview switch. The mode is app-wide (atom_viewMode), so every pane
 // and tab shows the same one.
-export default function PaneModeSwitch({ iconOnly = false, withTooltip = true }: PaneModeSwitchProps) {
+export default function PaneModeSwitch({ iconOnly = false, withTooltip = true, className }: PaneModeSwitchProps) {
   const [mode, setMode] = useAtom(atom_viewMode);
   const control = (
     <ModeSwitch
@@ -30,6 +31,7 @@ export default function PaneModeSwitch({ iconOnly = false, withTooltip = true }:
       onChange={setMode}
       label="Editor mode"
       iconOnly={iconOnly}
+      className={className}
     />
   );
   if (!withTooltip) return control;

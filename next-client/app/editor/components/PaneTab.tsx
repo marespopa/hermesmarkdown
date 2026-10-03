@@ -111,10 +111,13 @@ export default function PaneTab({
       className={[
         "group relative flex items-center h-8 pl-1 pr-3 rounded-lg mx-0.5 cursor-pointer shrink-0",
         "min-w-[96px] max-w-[240px] w-fit",
-        "select-none transition-[background-color,box-shadow,color,transform] duration-150 border border-transparent",
+        "select-none transition-[background-color,box-shadow,color,transform] duration-150",
+        // Every tab sits on a subtle translucent fill (static black / white —
+        // the var-backed surface tokens drop opacity modifiers); the active
+        // one is a raised surface pill with a hairline ring.
         isActive
-          ? "bg-surface-raised shadow-[0_1px_3px_rgb(0_0_0/0.08)] text-ink-light dark:text-ink-dark"
-          : "text-fg-muted hover:bg-surface-raised/60 hover:text-fg dark:text-stone dark:hover:text-ink-dark",
+          ? "bg-surface shadow-sm ring-1 ring-black/5 dark:ring-white/10 text-ink-light dark:text-ink-dark"
+          : "bg-black/[0.04] dark:bg-white/[0.05] text-fg-muted hover:bg-black/[0.08] dark:hover:bg-white/[0.09] hover:text-fg dark:text-stone dark:hover:text-ink-dark",
         isDraggedOver ? "ring-2 ring-sage/40 ring-inset" : "",
       ].join(" ")}
     >

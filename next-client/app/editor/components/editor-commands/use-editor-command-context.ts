@@ -30,6 +30,8 @@ import {
   atom_aiBuilderRequest,
   atom_browserVaultDialogOpen,
   atom_flowMode,
+  atom_sidebarOpen,
+  atom_toolbarDisplayMode,
   atom_toolbarHidden,
   atom_isAiConfigured,
   atom_keyboardShortcutsOpen,
@@ -116,6 +118,8 @@ export function useEditorCommandContext(props: EditorCommandsProps) {
   const [lineNumbers, setLineNumbers] = useAtom(atom_lineNumbers);
   const [flowMode, setFlowMode] = useAtom(atom_flowMode);
   const [toolbarHidden, setToolbarHidden] = useAtom(atom_toolbarHidden);
+  const [toolbarDisplayMode, setToolbarDisplayMode] = useAtom(atom_toolbarDisplayMode);
+  const [sidebarOpen, setSidebarOpen] = useAtom(atom_sidebarOpen);
   const [viewMode, setViewMode] = useAtom(atom_viewMode);
   const [, setTasksGroupBy] = useAtom(atom_tasksGroupBy);
   const [, setTaskSearchQuery] = useAtom(atom_taskSearchQuery);
@@ -183,6 +187,10 @@ export function useEditorCommandContext(props: EditorCommandsProps) {
     setFlowMode,
     toolbarHidden,
     setToolbarHidden,
+    toolbarDisplayMode,
+    setToolbarDisplayMode,
+    sidebarOpen,
+    setSidebarOpen,
     viewMode,
     setViewMode,
     setTasksGroupBy,

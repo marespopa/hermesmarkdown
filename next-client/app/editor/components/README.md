@@ -32,12 +32,14 @@ Index of the editor UI. Each component has a sibling `<Name>.md` (a token-lean d
 | [MobileFileOverlay](MobileFileOverlay.md) | Full-screen mobile file browser combining tag and text search, smart folders, and the vault file list, with an empty state when no vault is open. |
 | [MobileSelectionToolbar](MobileSelectionToolbar.md) | Mobile-only floating Bold/Italic/Link toolbar above a text selection. |
 | [NewVaultDialog](NewVaultDialog.md) | Dialog that creates a new local vault folder, using `CreateVaultSubSteps` to name it and pick a parent folder. |
-| [PaneLeaf](PaneLeaf.md) | One workspace pane: tab strip, pane actions, and the active file's editor (behind `SensitiveNoteGate`). |
+| [PaneActions](PaneActions.md) | One pane's toolbar section: Save, and Close Pane in a split. |
+| [PaneLeaf](PaneLeaf.md) | One workspace pane: its header (tabs and toolbar) and the active file's editor (behind `SensitiveNoteGate`). |
 | [SensitiveNoteGate](SensitiveNoteGate.md) | Wraps a pane's editor: shows `SensitiveNoteVeil` instead of mounting it until a sensitive note is revealed (per note or for the session). |
 | [SensitiveNoteVeil](SensitiveNoteVeil.md) | The veil over a sensitive note: lock, title, **Show note** and **Show all sensitive notes this session**. |
 | [PaneEmptyState](PaneEmptyState.md) | Empty-pane actions: new file (blank draft), open note or file, vault actions. |
 | [PaneModeSwitch](PaneModeSwitch.md) | App-wide Edit / Preview switch. |
-| [PaneWindowActions](PaneWindowActions.md) | Window-wide header actions (view options, command palette, AI chat, settings, help), shown once in the top-right pane. |
+| [PaneToolbarButton](PaneToolbarButton.md) | Toolbar button: icon, with its label under it in "Icon and Text"; `ToolbarModeContext`. |
+| [PaneWindowActions](PaneWindowActions.md) | Window-wide toolbar sections (Mode, Metadata, Tools, More menu), shown once in the top-right pane. |
 | [FrontmatterToggle](FrontmatterToggle.md) | ⓘ button that shows / hides the active file's frontmatter. |
 | [PaneTab](PaneTab.md) | Draggable file tab with a leading close button, unsaved-changes dot, and shortcut hint; exports `SaveStateIcon`. |
 | [RenderedBlockSourceDialog](RenderedBlockSourceDialog.md) | Source editor with live preview for an inline-rendered Mermaid diagram or math block; Save writes the body back as one undo step. |
@@ -59,6 +61,7 @@ Index of the editor UI. Each component has a sibling `<Name>.md` (a token-lean d
 | [WikiLinkDialog](WikiLinkDialog.md) | Picks or creates a `[[WikiLink]]` target, with substring-matched suggestions from vault file metadata. |
 | [WorkflowPill](WorkflowPill.md) | Floating pill on a workflow tag (for example `#todo`) with prev/next arrows to cycle its state. |
 | [WorkspaceBuilder](WorkspaceBuilder.md) | Dialog for creating or editing a custom workspace (a saved, rule-based file query over vault metadata). |
+| [WorkspaceSidebar](WorkspaceSidebar.md) | The window's sidebar (desktop): open notes and the vault's file tree, on the leading edge; hideable and resizable. |
 | [WorkspaceSplitter](WorkspaceSplitter.md) | Recursively renders the workspace layout tree as resizable panel groups, with a `PaneLeaf` at each leaf. |
 
 ## Outside this directory
