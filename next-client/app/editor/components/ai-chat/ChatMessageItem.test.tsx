@@ -72,3 +72,72 @@ describe("ChatMessageItem copy", () => {
     expect(screen.queryByTitle("Copy response as Markdown")).toBeNull();
   });
 });
+
+describe("ChatMessageItem template save card", () => {
+  const block = { fileName: "rfc.md", content: "# {{title}}\n{{author}}\n" };
+
+  afterEach(() => cleanup());
+
+  it("shows a card per template block with its path and lint warnings", () => {
+    renderItem({ templateBlocks: [block], templatesFolder: "templates", onSaveTemplate: vi.fn() });
+    expect(screen.getByText("templates/rfc.md")).toBeTruthy();
+    expect(screen.getByText(/Unknown token \{\{author\}\}/)).toBeTruthy();
+    expect(screen.getByText("Save template")).toBeTruthy();
+  });
+
+  it("offers Replace template when the file exists", () => {
+    renderItem({ templateBlocks: [block], templateExists: () => true, onSaveTemplate: vi.fn() });
+    expect(screen.getByText("Replace template")).toBeTruthy();
+  });
+
+  it("saves only on click, then shows Saved", async () => {
+    const onSaveTemplate = vi.fn().mockResolvedValue(true);
+    renderItem({ templateBlocks: [block], onSaveTemplate });
+    expect(onSaveTemplate).not.toHaveBeenCalled();
+    await act(async () => {
+      fireEvent.click(screen.getByText("Save template"));
+    });
+    expect(onSaveTemplate).toHaveBeenCalledWith(block);
+    expect(screen.getByText("Saved")).toBeTruthy();
+  });
+
+  it("offers saving again after the reply is edited in place", async () => {
+    const onSaveTemplate = vi.fn().mockResolvedValue(true);
+    const props = { templateBlocks: [block], onSaveTemplate, templateExists: () => false };
+    const { rerender } = renderItem(props);
+    await act(async () => {
+      fireEvent.click(screen.getByText("Save template"));
+    });
+    expect(screen.getByText("Saved")).toBeTruthy();
+
+    // The file now exists and the block's body was edited.
+    const edited = { fileName: "rfc.md", content: "# {{title}}\nOwner: {{prompt:Owner}}\n" };
+    rerender(
+      <ChatMessageItem
+        message={reply}
+        isEditing={false}
+        editDraft=""
+        onEditDraftChange={vi.fn()}
+        onStartEdit={vi.fn()}
+        onCommitEdit={vi.fn()}
+        onApply={vi.fn()}
+        hasSelection={false}
+        templateBlocks={[edited]}
+        onSaveTemplate={onSaveTemplate}
+        templateExists={() => true}
+      />
+    );
+    const button = screen.getByText("Replace template").closest("button");
+    expect(button?.disabled).toBe(false);
+    await act(async () => {
+      fireEvent.click(screen.getByText("Replace template"));
+    });
+    expect(onSaveTemplate).toHaveBeenLastCalledWith(edited);
+  });
+
+  it("disables saving without a vault", () => {
+    renderItem({ templateBlocks: [block] });
+    const button = screen.getByText("Open a vault to save").closest("button");
+    expect(button?.disabled).toBe(true);
+  });
+});

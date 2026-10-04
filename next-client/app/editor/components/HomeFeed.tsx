@@ -6,6 +6,7 @@ import { useVirtualizer } from "@tanstack/react-virtual";
 import { atom_fileMetadata } from "@/app/atoms/metadata";
 import { atom_noteDisplayItems } from "@/app/atoms/privacy-atoms";
 import { atom_indexerState, atom_userName } from "@/app/atoms/ui-atoms";
+import { atom_templatesFolder } from "@/app/atoms/template-atoms";
 import Button from "@/app/components/Button";
 import FeedBar from "./home-feed/FeedBar";
 import FeedHeader from "./home-feed/FeedHeader";
@@ -46,8 +47,12 @@ export default function HomeFeed({ onOpenNote, onNewNote, onOpenExplorer, onSear
   const userName = useAtomValue(atom_userName);
   const isIndexing = indexerState !== "idle";
   const displayItems = useAtomValue(atom_noteDisplayItems);
+  const templatesFolder = useAtomValue(atom_templatesFolder).folder;
   const now = useMemo(() => new Date(), [fileMetadata, displayItems]); // eslint-disable-line react-hooks/exhaustive-deps
-  const feed = useMemo(() => buildFeed(fileMetadata, displayItems, now), [fileMetadata, displayItems, now]);
+  const feed = useMemo(
+    () => buildFeed(fileMetadata, displayItems, now, templatesFolder),
+    [fileMetadata, displayItems, now, templatesFolder],
+  );
   const [selectedIndex, setSelectedIndex] = useState(0);
   const scrollRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<HTMLDivElement>(null);

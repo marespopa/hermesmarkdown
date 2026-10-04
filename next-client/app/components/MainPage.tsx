@@ -14,6 +14,7 @@ import KeyboardShortcutsOverlay from "./KeyboardShortcutsOverlay/KeyboardShortcu
 import SettingsCommands from "../editor/settings/components/SettingsCommands";
 
 const GlobalDialog = dynamic(() => import("./DialogModal/GlobalDialog"));
+const TemplateDialogHost = dynamic(() => import("./TemplateDialog/TemplateDialogHost"));
 
 type Props = {
   children: React.ReactNode;
@@ -73,6 +74,7 @@ const MainPage = ({ children }: Props) => {
         
         {showFooter && <Footer />}
         <GlobalDialog />
+        <TemplateDialogHost />
       </div>
       {process.env.NODE_ENV === "production" && (
         <Script

@@ -1,0 +1,6 @@
+- 2026-10-04T08:17:51Z — factory: RESUME: hermes-engineer stage from 'specced' did not finish (exit 1, state 'building'). Check the working tree and next-client/plans/005-new-template-command/.run.log, then continue rather than restart.
+- 2026-10-04 — hermes-engineer: continued from RESUME; Phase 1 complete (wiring, createTemplate tests, command test, docs). Report: reports/engineer.md. tsc/vitest not run. Ready for review.
+- 2026-10-04 — hermes-reviewer: Review 1, Changes requested (reports/review.md). Fix list:
+  1. `app/editor/components/editor-commands/build-editor-commands.test.ts:133`: add `"new-template",` after `"new-note-from-template",` in the "preserves every command ID and its registration order" list. The full suite currently fails here (expected 99 IDs, got 100). Rerun that test file.
+  2. (Optional nit) `app/utils/templates/template-registry.ts:71-73`: trim the base segment before the leading-dot strip, so `a/ .x` gives `x.md` instead of the dot-file `.x.md`. Add that case to `template-registry.test.ts`.
+- 2026-10-04 — hermes-engineer: Review 1 fixes done (command ID order test + trim before the leading-dot strip, with a test). The 2 test files pass. Report: reports/engineer.md (Run 2). Ready for review.

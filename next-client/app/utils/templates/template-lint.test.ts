@@ -1,0 +1,39 @@
+import { describe, expect, it } from "vitest";
+import { lintTemplate, TEMPLATE_SYNTAX_GUIDE } from "./template-lint";
+import { TEMPLATE_TOKENS } from "./template-tokens";
+
+describe("lintTemplate", () => {
+  it("returns no warnings for a clean template", () => {
+    const raw = "---\ntarget_folder: rfcs\nfile_name: rfc-{{date}}\n---\n# {{title}}\nOwner: {{prompt:Owner}}\n{{cursor}}\n";
+    expect(lintTemplate(raw)).toEqual([]);
+  });
+
+  it("warns about unknown tokens", () => {
+    expect(lintTemplate("{{author}} {{date}}")).toEqual([expect.stringContaining("{{author}}")]);
+  });
+
+  it("warns about an empty prompt label", () => {
+    expect(lintTemplate("{{prompt: }}")).toEqual([expect.stringContaining("no label")]);
+  });
+
+  it("warns about more than one cursor", () => {
+    expect(lintTemplate("{{cursor}} {{cursor}}")).toEqual([expect.stringContaining("first {{cursor}}")]);
+  });
+
+  it("warns about misspelled routing keys", () => {
+    const warnings = lintTemplate("---\ntarget-folder: rfcs\nfilename: x\n---\nBody");
+    expect(warnings).toEqual([
+      expect.stringContaining('"target-folder" looks like "target_folder"'),
+      expect.stringContaining('"filename" looks like "file_name"'),
+    ]);
+  });
+});
+
+describe("TEMPLATE_SYNTAX_GUIDE", () => {
+  it("documents every token and both routing keys", () => {
+    for (const token of TEMPLATE_TOKENS) expect(TEMPLATE_SYNTAX_GUIDE).toContain(`{{${token}}}`);
+    expect(TEMPLATE_SYNTAX_GUIDE).toContain("{{prompt:Label}}");
+    expect(TEMPLATE_SYNTAX_GUIDE).toContain("target_folder");
+    expect(TEMPLATE_SYNTAX_GUIDE).toContain("file_name");
+  });
+});

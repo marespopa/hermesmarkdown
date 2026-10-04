@@ -53,6 +53,7 @@ function createContext(overrides: Partial<EditorCommandContext> = {}): EditorCom
     duplicateFile: vi.fn(),
     moveItem: vi.fn(),
     createFolder: vi.fn(),
+    createTemplate: vi.fn(),
     dialog: {
       confirm: vi.fn(),
       prompt: vi.fn(),
@@ -122,13 +123,15 @@ describe("buildEditorCommands", () => {
   it("preserves every command ID and its registration order", () => {
     const commands = buildEditorCommands(createContext());
     const templateIds = TEMPLATES
-      .filter((template) => !template.aiOnly)
+      .filter((template) => !template.aiOnly && !template.vaultOnly)
       .map((template) => `insert-${template.label.toLowerCase().replace(/\s+/g, "-")}`);
 
     expect(commands.map((command) => command.id)).toEqual([
       "save-file",
       "new-file",
       "new-file-in-folder",
+      "new-note-from-template",
+      "new-template",
       "export-file",
       "import-file",
       "open-explorer",
@@ -250,6 +253,31 @@ describe("buildEditorCommands", () => {
     expect(context.createFolder).toHaveBeenCalledOnce();
     expect(context.renameFile).toHaveBeenCalledWith(context.activeFileHandle, undefined, context.activeFilePath);
     expect(context.deleteFile).toHaveBeenCalledWith(context.activeFileHandle, context.activeFilePath);
+  });
+
+  it("lists New note from template… only with a vault and runs the flow", () => {
+    const createNoteFromTemplate = vi.fn();
+    const withVault = buildEditorCommands(createContext({ createNoteFromTemplate } as Partial<EditorCommandContext>));
+    withVault.find((command) => command.id === "new-note-from-template")?.action();
+    expect(createNoteFromTemplate).toHaveBeenCalledOnce();
+
+    const withoutVault = buildEditorCommands(createContext({ vaultHandle: null }));
+    expect(withoutVault.some((command) => command.id === "new-note-from-template")).toBe(false);
+  });
+
+  it("lists New template… only with a vault and runs the flow", () => {
+    const createTemplate = vi.fn();
+    const withVault = buildEditorCommands(createContext({ createTemplate }));
+    const command = withVault.find((candidate) => candidate.id === "new-template");
+    expect(command).toMatchObject({ label: "New template…", category: "Vault" });
+    for (const query of ["create template", "add template", "new template"]) {
+      expect(command?.keywords).toContain(query);
+    }
+    command?.action();
+    expect(createTemplate).toHaveBeenCalledOnce();
+
+    const withoutVault = buildEditorCommands(createContext({ vaultHandle: null }));
+    expect(withoutVault.some((candidate) => candidate.id === "new-template")).toBe(false);
   });
 
   it("switches the privacy level and disables the current one", () => {

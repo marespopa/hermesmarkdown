@@ -78,6 +78,16 @@ describe("buildFeed", () => {
     expect(feed[2].dayLabel).toBeNull();
   });
 
+  it("leaves template files out, but not notes in its subfolders", () => {
+    const metadata = {
+      a: meta("a.md", new Date(2026, 8, 28, 9)),
+      t: meta("templates/rfc.md", new Date(2026, 8, 28, 10)),
+      s: meta("templates/archive/old.md", new Date(2026, 8, 28, 8)),
+    };
+    const feed = buildFeedWith(metadata, buildNoteDisplayItems(metadata, "show_title"), NOW, "templates");
+    expect(feed.map((entry) => entry.path)).toEqual(["a.md", "templates/archive/old.md"]);
+  });
+
   it("orders stat-dated notes by date and undated ones last, without a label", () => {
     const feed = buildFeed({
       z: meta("zeta.md", new Date(0)),

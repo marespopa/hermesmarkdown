@@ -102,8 +102,10 @@ export function buildEditorAiVoiceCommandGroups(context: EditorCommandContext) {
     disabledReason: activeEditorView ? undefined : "Open and focus a note first",
   }));
 
+  // The vault Template entry is slash-menu only (it needs the editor's
+  // template picker); "New note from template…" covers the palette.
   const templates: Command[] = TEMPLATES
-    .filter((template) => !template.aiOnly)
+    .filter((template) => !template.aiOnly && !template.vaultOnly)
     .map((template) => ({
       id: `insert-${template.label.toLowerCase().replace(/\s+/g, "-")}`,
       label: `Insert: ${template.label}`,

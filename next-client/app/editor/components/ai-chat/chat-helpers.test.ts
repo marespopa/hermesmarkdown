@@ -40,4 +40,11 @@ describe("buildChatSystemPrompt", () => {
   it("omits the file block for an empty document", () => {
     expect(buildChatSystemPrompt("   ", "", "empty.md")).toBe(SYSTEM_PROMPT);
   });
+
+  it("appends skill instructions only when given", () => {
+    expect(buildChatSystemPrompt("", "", "a.md")).not.toContain("--- SKILL ---");
+    expect(buildChatSystemPrompt("", "", "a.md", [])).toBe(SYSTEM_PROMPT);
+    const prompt = buildChatSystemPrompt("", "", "a.md", ["Write templates."]);
+    expect(prompt).toBe(`${SYSTEM_PROMPT}\n\n--- SKILL ---\nWrite templates.\n--- END SKILL ---`);
+  });
 });

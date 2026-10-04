@@ -6,6 +6,9 @@ import { useRenameItem } from "./use-rename-item";
 import { useDuplicateItem } from "./use-duplicate-item";
 import { useMoveItem } from "./use-move-item";
 import { useImportItem } from "./use-import-item";
+import { useTemplateNotes } from "./use-template-notes";
+import { useTemplateCreate } from "./use-template-create";
+import { useOpenOrCreateLink } from "./use-open-or-create-link";
 
 interface UseFileCrudProps {
   scanVault: (handle: FileSystemDirectoryHandle) => Promise<void>;
@@ -15,7 +18,8 @@ interface UseFileCrudProps {
 
 /**
  * Main hook for File System CRUD operations.
- * Composes specialized hooks for creation, deletion, renaming, moving, and importing.
+ * Composes specialized hooks for creation, deletion, renaming, moving,
+ * importing, and notes created from vault templates.
  */
 export function useFileCrud({ scanVault, indexVaultTags, openFile }: UseFileCrudProps) {
   const { chooseTargetDirectory, createFile, createWikiLinkFile, createNewFile, createFolder } = useCreateItem({
@@ -49,6 +53,14 @@ export function useFileCrud({ scanVault, indexVaultTags, openFile }: UseFileCrud
     openFile,
   });
 
+  const { readTemplate, instantiate } = useTemplateNotes();
+  const { createNoteFromMissingLink, createNoteFromTemplate, createTemplate } = useTemplateCreate({
+    scanVault,
+    indexVaultTags,
+    openFile,
+  });
+  const { openOrCreateLink } = useOpenOrCreateLink({ openFile, createNoteFromMissingLink });
+
   return {
     chooseTargetDirectory,
     createFile,
@@ -60,5 +72,11 @@ export function useFileCrud({ scanVault, indexVaultTags, openFile }: UseFileCrud
     duplicateFile,
     moveItem,
     importFile,
+    readTemplate,
+    instantiate,
+    createNoteFromMissingLink,
+    createNoteFromTemplate,
+    createTemplate,
+    openOrCreateLink,
   };
 }

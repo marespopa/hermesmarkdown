@@ -4,12 +4,16 @@ import { atom_privacyLevel } from "./privacy-atoms";
 import { TaskItem } from "../utils/taskExtractor";
 import { isSensitiveFrontmatter } from "../utils/note-privacy";
 import { maskTask, normalizePrivacyLevel } from "../utils/note-display";
+import { isTemplatePath } from "../utils/templates/template-registry";
+import { atom_templatesFolder } from "./template-atoms";
 
 export const atom_allTasks = atom<TaskItem[]>((get) => {
   const meta = get(atom_fileMetadata);
+  const templatesFolder = get(atom_templatesFolder).folder;
   const out: TaskItem[] = [];
   for (const file of Object.values(meta)) {
-    if (file.path.startsWith(".hermes/")) continue;
+    // Template files hold placeholder tasks (`- [ ] {{prompt:Task}}`), not real ones.
+    if (file.path.startsWith(".hermes/") || isTemplatePath(file.path, templatesFolder)) continue;
     for (const t of file.tasks || []) out.push(t);
   }
   return out;
@@ -24,9 +28,10 @@ export type DisplayTask = TaskItem & { isMasked: boolean };
 export const atom_visibleTasks = atom<DisplayTask[]>((get) => {
   const meta = get(atom_fileMetadata);
   const level = normalizePrivacyLevel(get(atom_privacyLevel));
+  const templatesFolder = get(atom_templatesFolder).folder;
   const out: DisplayTask[] = [];
   for (const file of Object.values(meta)) {
-    if (file.path.startsWith(".hermes/")) continue;
+    if (file.path.startsWith(".hermes/") || isTemplatePath(file.path, templatesFolder)) continue;
     const sensitive = isSensitiveFrontmatter(file.frontmatter);
     if (sensitive && level === "hidden") continue;
     for (const t of file.tasks || []) {

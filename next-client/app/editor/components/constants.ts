@@ -116,6 +116,7 @@ export const TABLE_DIALOG_SENTINEL = "__OPEN_TABLE_DIALOG__";
 export const FRONTMATTER_WIZARD_SENTINEL = "__OPEN_FRONTMATTER_WIZARD__";
 export const TASK_EDITOR_SENTINEL = "__OPEN_TASK_EDITOR__";
 export const AI_CHAT_SENTINEL = "__OPEN_AI_CHAT__";
+export const VAULT_TEMPLATE_SENTINEL = "__OPEN_VAULT_TEMPLATE__";
 export const MARK_SENSITIVE_SENTINEL = "__MARK_SENSITIVE__";
 export const MARK_PRIVATE_SENTINEL = "__MARK_PRIVATE__";
 export const MARK_PUBLIC_SENTINEL = "__MARK_PUBLIC__";
@@ -134,6 +135,8 @@ export interface Template {
   content: string;
   /** Only shown in the command menu when an AI provider/key is configured. */
   aiOnly?: boolean;
+  /** Only shown when the editor can insert vault templates (onInsertVaultTemplate). */
+  vaultOnly?: boolean;
 }
 
 export const TEMPLATES: Template[] = [
@@ -166,6 +169,13 @@ export const TEMPLATES: Template[] = [
     icon: "🔽",
     description: "Collapsible section for long content",
     content: `> [!note]-${CURSOR_SENTINEL}\n> `,
+  },
+  {
+    label: "Template",
+    icon: "📄",
+    description: "Insert a template from your vault",
+    content: VAULT_TEMPLATE_SENTINEL,
+    vaultOnly: true,
   },
   // --- AI ---
   {

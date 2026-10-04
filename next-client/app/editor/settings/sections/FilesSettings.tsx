@@ -13,8 +13,10 @@ import Toggle from "@/app/components/Toggle";
 import { normalizeFolderPath } from "@/app/hooks/file-system/unique-file";
 import { useFileSystem } from "@/app/hooks/use-file-system";
 import { SelectControl, SettingGroup, SettingItem } from "../components/SettingControls";
+import TemplatesFolderSetting from "./TemplatesFolderSetting";
 
-// Settings → Files: Vault (on open, new notes folder, hidden files) and Autosave groups.
+// Settings → Files: Vault (on open, new notes folder, templates folder, hidden
+// files) and Autosave groups.
 export default function FilesSettings() {
   const [autosaveMode, setAutosaveMode] = useAtom(atom_autosaveMode);
   const [autosaveDelay, setAutosaveDelay] = useAtom(atom_autosaveDelay);
@@ -59,6 +61,7 @@ export default function FilesSettings() {
             />
           }
         />
+        <TemplatesFolderSetting />
         <SettingItem
           label="Show Hidden Files"
           description="Show files and folders starting with . or _ in the file tree and search."

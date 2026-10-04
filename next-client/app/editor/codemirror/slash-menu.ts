@@ -11,6 +11,7 @@ import {
   FRONTMATTER_WIZARD_SENTINEL,
   TASK_EDITOR_SENTINEL,
   AI_CHAT_SENTINEL,
+  VAULT_TEMPLATE_SENTINEL,
   CURSOR_SENTINEL,
   CODE_BLOCK_TEMPLATE_CONTENT,
   MARK_SENSITIVE_SENTINEL,
@@ -23,7 +24,9 @@ import { clearSensitiveMarkers, isSensitiveContent } from "@/app/utils/note-priv
 // Non-AI templates only — AI action entries (aiOnly: true) aren't ported in
 // this pass (that's a separate AI-subsystem port, not part of the CM6
 // migration). Frontmatter wizard, Link/WikiLink/Date/Table sentinels are.
-const AVAILABLE_TEMPLATES = TEMPLATES.filter((t) => !t.aiOnly);
+// The vault Template entry is added only when the editor can insert one.
+const AVAILABLE_TEMPLATES = TEMPLATES.filter((t) => !t.aiOnly && !t.vaultOnly);
+const VAULT_TEMPLATE_ENTRIES = TEMPLATES.filter((t) => t.content === VAULT_TEMPLATE_SENTINEL);
 
 export interface SlashMenuCallbacks {
   onOpenLinkDialog: (range: { from: number; to: number }) => void;
@@ -31,6 +34,8 @@ export interface SlashMenuCallbacks {
   onOpenDatePicker: (range: { from: number; to: number }) => void;
   onOpenTaskDialog: (range: { from: number; to: number }) => void;
   onOpenAIChat?: () => void;
+  /** Opens the vault template picker; the trigger text is already removed. */
+  onInsertVaultTemplate?: () => void;
   onFrontmatterWizard: () => void;
   onCodeBlockInserted: (pos: number) => void;
 }
@@ -66,6 +71,20 @@ function insertPlainContent(view: EditorView, from: number, to: number, content:
     userEvent: "input.replace.template",
   });
   return sentinelIdx !== -1 ? from + sentinelIdx : from + clean.length;
+}
+
+// Inserts an already-expanded vault template over the main selection as one
+// undo step. No SHORTCODES pass: `{date}` in a template stays literal. The
+// caret goes to `cursor` (an offset in `text`) or the end of the insert.
+export function insertExpandedTemplate(view: EditorView, text: string, cursor: number | null) {
+  const { from, to } = view.state.selection.main;
+  view.dispatch({
+    changes: { from, to, insert: text },
+    selection: EditorSelection.cursor(from + (cursor ?? text.length)),
+    userEvent: "input.replace.template",
+    scrollIntoView: true,
+  });
+  view.focus();
 }
 
 // Sets a `key: true` frontmatter flag (creating the block if missing), touching
@@ -134,6 +153,11 @@ export function applyTemplate(
     callbacks.onOpenAIChat?.();
     return;
   }
+  if (content === VAULT_TEMPLATE_SENTINEL) {
+    view.dispatch({ changes: { from, to, insert: "" }, userEvent: "input.replace.template" });
+    callbacks.onInsertVaultTemplate?.();
+    return;
+  }
   const flagKey = FRONTMATTER_FLAG_SENTINELS[content];
   if (flagKey) {
     view.dispatch({ changes: { from, to, insert: "" }, userEvent: "input.replace.template" });
@@ -179,9 +203,11 @@ export function createSlashMenuSource(callbacksRef: { current: SlashMenuCallback
     if (query.includes(" ")) return null;
     if (looksLikePath(textUpToCursor.slice(slashIndex))) return null;
 
-    const templates = callbacksRef.current.onOpenAIChat
-      ? [...AVAILABLE_TEMPLATES, ...TEMPLATES.filter((template) => template.content === AI_CHAT_SENTINEL)]
-      : AVAILABLE_TEMPLATES;
+    const templates = [
+      ...AVAILABLE_TEMPLATES,
+      ...(callbacksRef.current.onInsertVaultTemplate ? VAULT_TEMPLATE_ENTRIES : []),
+      ...(callbacksRef.current.onOpenAIChat ? TEMPLATES.filter((template) => template.content === AI_CHAT_SENTINEL) : []),
+    ];
     // Offer only the privacy commands that would change this note.
     const sensitive = isSensitiveContent(context.state.doc.toString());
     const hidden = sensitive ? [MARK_SENSITIVE_SENTINEL, MARK_PRIVATE_SENTINEL] : [MARK_PUBLIC_SENTINEL];
