@@ -6,7 +6,7 @@ export const templatesItems: Subsection[] = [
     id: "templates",
     title: "Templates",
     lead: "Templates are ordinary Markdown files in a templates folder. Tokens like {{date}} fill in when you use one.",
-    keywords: "template templates tpl snippet token placeholder prompt cursor clipboard date slug new note missing link target_folder file_name",
+    keywords: "template templates tpl snippet token placeholder prompt cursor clipboard date slug new note missing link target_folder file_name new template create template",
     body: (
       <>
         <p>
@@ -16,7 +16,11 @@ export const templatesItems: Subsection[] = [
           Settings → Files → Templates Folder (saved per vault). Add, edit or delete a template like
           any note: changes apply the next time you use it, with no setup and no reload. Templates
           stay plain text, so other Markdown editors read them as normal notes. Their tasks stay
-          off the Tasks page, and they don&apos;t appear in the home feed.
+          off the Tasks page, and they don&apos;t appear in the home feed. Run{" "}
+          <strong>New template…</strong> from the command palette to create one: name it, and it
+          opens with a short example showing the frontmatter keys, <code>{"{{title}}"}</code>,{" "}
+          <code>{"{{date}}"}</code>, a prompt and <code>{"{{cursor}}"}</code>. If a template with
+          that name already exists, it opens unchanged.
         </p>
         <h4 className="text-lg font-bold tracking-tight !mb-2 !mt-0">Tokens</h4>
         <KV
@@ -71,6 +75,10 @@ export const templatesItems: Subsection[] = [
         <Code>
           {"---\ntarget_folder: rfcs\nfile_name: rfc-{{date}}-{{slug}}\n---\n# {{title}}\nOwner: {{prompt:Owner}}\n{{cursor}}"}
         </Code>
+        <p>
+          Lines starting with <code>#</code> inside a template&apos;s frontmatter are comments for
+          you. They don&apos;t reach created notes, and a block that holds only comments is dropped.
+        </p>
         <Callout type="note">
           A clicked link always decides where its note goes, and the link text is never changed.
           Existing files are never overwritten: if the note is already on disk, it opens as is.

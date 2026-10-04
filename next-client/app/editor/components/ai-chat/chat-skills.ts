@@ -1,6 +1,7 @@
 import { resolveFileHandleAtPath } from "@/app/atoms/vault-atoms";
 import { templateBody } from "@/app/utils/templates/template-frontmatter";
 import { TEMPLATE_SYNTAX_GUIDE } from "@/app/utils/templates/template-lint";
+import { sanitizeTemplateFileName } from "@/app/utils/templates/template-registry";
 
 // Chat skills: extra instructions added to the AI Chat system prompt while a
 // keyword in the thread turns them on. Only the template skill exists. Its
@@ -72,16 +73,6 @@ export interface TemplateBlock {
   /** Sanitized base file name, always ending in `.md`. */
   fileName: string;
   content: string;
-}
-
-// Base name only: folders and `..` stripped, `.md` added, empty → template.md.
-export function sanitizeTemplateFileName(info: string): string {
-  const base = (info.trim().split(/[\\/]/).pop() ?? "")
-    .replace(/\.\./g, "")
-    .replace(/[:*?"<>|]/g, "-")
-    .replace(/\.md$/i, "")
-    .trim();
-  return `${base || "template"}.md`;
 }
 
 // Every `~~~~hermes-template <name>` … `~~~~` block in a reply. The 4-tilde

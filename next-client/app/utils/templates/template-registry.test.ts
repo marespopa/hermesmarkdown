@@ -6,6 +6,7 @@ import {
   parseMissingLink,
   resolveTemplatesFolder,
   sanitizeNoteName,
+  sanitizeTemplateFileName,
   type TemplateEntry,
 } from "./template-registry";
 
@@ -98,5 +99,27 @@ describe("sanitizeNoteName", () => {
   it("falls back to untitled", () => {
     expect(sanitizeNoteName("  ")).toBe("untitled");
     expect(sanitizeNoteName(".md")).toBe("untitled");
+  });
+});
+
+describe("sanitizeTemplateFileName", () => {
+  it("keeps the base name only and adds .md", () => {
+    expect(sanitizeTemplateFileName("../x")).toBe("x.md");
+    expect(sanitizeTemplateFileName("a/b.md")).toBe("b.md");
+    expect(sanitizeTemplateFileName("  ")).toBe("template.md");
+    expect(sanitizeTemplateFileName("..")).toBe("template.md");
+  });
+
+  it("never yields a dot-file", () => {
+    expect(sanitizeTemplateFileName(".hidden")).toBe("hidden.md");
+    expect(sanitizeTemplateFileName("...")).toBe("template.md");
+    expect(sanitizeTemplateFileName("../evil/.Rfc.md")).toBe("Rfc.md");
+    expect(sanitizeTemplateFileName("a/ .x")).toBe("x.md");
+  });
+
+  it("keeps spaces and case, replaces forbidden characters, normalises .md", () => {
+    expect(sanitizeTemplateFileName("Meeting Notes")).toBe("Meeting Notes.md");
+    expect(sanitizeTemplateFileName("a:b?")).toBe("a-b-.md");
+    expect(sanitizeTemplateFileName("x.MD")).toBe("x.md");
   });
 });

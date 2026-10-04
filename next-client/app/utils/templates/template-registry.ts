@@ -64,6 +64,21 @@ export function sanitizeNoteName(name: string): string {
   return clean || "untitled";
 }
 
+// A template file name (AI chat save card and "New template…"): base name
+// only, `..` and leading dots stripped (dot-files aren't indexed), forbidden
+// characters become `-`, `.md` added; empty becomes `template.md`.
+export function sanitizeTemplateFileName(info: string): string {
+  const base = (info.trim().split(/[\\/]/).pop() ?? "")
+    .replace(/\.\./g, "")
+    .trim()
+    .replace(/^\.+/, "")
+    .trim()
+    .replace(/[:*?"<>|]/g, "-")
+    .replace(/\.md$/i, "")
+    .trim();
+  return `${base || "template"}.md`;
+}
+
 const INVALID_BASE_CHARS = /[\\:*?"<>|]/;
 
 // Splits a missing `[[folder/name|alias#heading]]` target into a vault-root

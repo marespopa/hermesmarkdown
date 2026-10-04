@@ -6,7 +6,9 @@ import toast from "react-hot-toast";
 import { atom_vaultHandle } from "@/app/atoms/vault-atoms";
 import { atom_newNoteFolder, atom_pendingScrollTarget } from "@/app/atoms/ui-atoms";
 import { atom_fileMetadata, type FileMetadata } from "@/app/atoms/metadata";
+import { atom_templateFolderSettings } from "@/app/atoms/template-atoms";
 import { writeFileContent } from "@/app/services/file-writer";
+import { TEMPLATE_STARTER } from "@/app/utils/templates/template-starter";
 import { useTemplateCreate } from "./use-template-create";
 
 vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn() }) }));
@@ -216,6 +218,100 @@ describe("createNoteFromTemplate", () => {
     await act(() => flows.createNoteFromTemplate());
     expect(askPrompts).not.toHaveBeenCalled();
     expect(writeFileContent).not.toHaveBeenCalled();
+  });
+});
+
+describe("createTemplate", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    localStorage.clear();
+    dialog.prompt.mockResolvedValue("Meeting");
+  });
+
+  it("creates <templates folder>/<name>.md with the raw starter and opens it", async () => {
+    const { root, props, flows } = await setup({ templates: {} });
+    await act(() => flows.createTemplate());
+    expect(dialog.prompt).toHaveBeenCalledWith("Template name:", "", "New template");
+    const created = root.at("templates/Meeting.md");
+    expect(created?.content).toBe(TEMPLATE_STARTER);
+    expect(props.scanVault).toHaveBeenCalled();
+    expect(props.openFile).toHaveBeenCalledWith(created, "templates/Meeting.md", true);
+    expect(toast.success).toHaveBeenCalledWith("Created: templates/Meeting.md");
+  });
+
+  it("uses the first existing default folder", async () => {
+    const { root, flows } = await setup({ templates: { "_templates/x.md": "x\n" } });
+    await act(() => flows.createTemplate());
+    expect(root.at("_templates/Meeting.md")?.content).toBe(TEMPLATE_STARTER);
+    expect(root.dirs.has("templates")).toBe(false);
+  });
+
+  it("uses the Templates Folder setting", async () => {
+    const { root, store, flows } = await setup({ templates: {} });
+    store.set(atom_templateFolderSettings, { "local:vault": "meta/tpl" });
+    await act(() => flows.createTemplate());
+    expect(root.at("meta/tpl/Meeting.md")?.content).toBe(TEMPLATE_STARTER);
+  });
+
+  it("keeps the base name only and never writes a dot-file", async () => {
+    dialog.prompt.mockResolvedValue("../evil/.Rfc.md");
+    const { root, flows } = await setup({ templates: {} });
+    await act(() => flows.createTemplate());
+    expect(root.at("templates/Rfc.md")?.content).toBe(TEMPLATE_STARTER);
+    expect(root.dirs.has("evil")).toBe(false);
+  });
+
+  it("opens an existing file on disk unchanged", async () => {
+    dialog.prompt.mockResolvedValue("rfc");
+    const { root, props, flows } = await setup();
+    await act(() => flows.createTemplate());
+    expect(writeFileContent).not.toHaveBeenCalled();
+    expect(root.at("templates/rfc.md")?.content).toBe(RFC_TEMPLATE);
+    expect(props.openFile).toHaveBeenCalledWith(root.at("templates/rfc.md"), "templates/rfc.md", true);
+    expect(toast.success).toHaveBeenCalledWith("Opened existing template: templates/rfc.md");
+  });
+
+  it("opens a not-yet-indexed file on disk unchanged", async () => {
+    dialog.prompt.mockResolvedValue("draft");
+    const { root, props, flows } = await setup();
+    await root.put("templates/draft.md", "keep me");
+    await act(() => flows.createTemplate());
+    expect(writeFileContent).not.toHaveBeenCalled();
+    expect(props.openFile).toHaveBeenCalledWith(root.at("templates/draft.md"), "templates/draft.md", true);
+    expect(toast.success).toHaveBeenCalledWith("Opened existing template: templates/draft.md");
+  });
+
+  it("matches an indexed template case-insensitively", async () => {
+    dialog.prompt.mockResolvedValue("RFC");
+    const { root, props, flows } = await setup();
+    await act(() => flows.createTemplate());
+    expect(writeFileContent).not.toHaveBeenCalled();
+    expect(root.at("templates/RFC.md")).toBeUndefined();
+    expect(props.openFile).toHaveBeenCalledWith(root.at("templates/rfc.md"), "templates/rfc.md", true);
+  });
+
+  it.each([null, "   "])("writes and opens nothing for a %j name", async (answer) => {
+    dialog.prompt.mockResolvedValue(answer);
+    const { root, props, flows } = await setup({ templates: {} });
+    await act(() => flows.createTemplate());
+    expect(writeFileContent).not.toHaveBeenCalled();
+    expect(props.openFile).not.toHaveBeenCalled();
+    expect(root.dirs.has("templates")).toBe(false);
+  });
+
+  it("doesn't prompt without a vault", async () => {
+    const { store, flows } = await setup({ templates: {} });
+    store.set(atom_vaultHandle, null);
+    await act(() => flows.createTemplate());
+    expect(dialog.prompt).not.toHaveBeenCalled();
+  });
+
+  it("reports a failed write", async () => {
+    vi.mocked(writeFileContent).mockRejectedValueOnce(new Error("disk full"));
+    const { props, flows } = await setup({ templates: {} });
+    await act(() => flows.createTemplate());
+    expect(toast.error).toHaveBeenCalledWith("Failed to create file");
+    expect(props.openFile).not.toHaveBeenCalled();
   });
 });
 

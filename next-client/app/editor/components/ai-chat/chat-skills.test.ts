@@ -3,7 +3,6 @@ import {
   isSkillActive,
   loadSkillInstructions,
   parseTemplateBlocks,
-  sanitizeTemplateFileName,
   TEMPLATE_SKILL,
 } from "./chat-skills";
 
@@ -59,15 +58,6 @@ describe("parseTemplateBlocks", () => {
   it("ignores ordinary code fences and unclosed blocks", () => {
     expect(parseTemplateBlocks("```md\n# x\n```")).toEqual([]);
     expect(parseTemplateBlocks("~~~~hermes-template a.md\nno end")).toEqual([]);
-  });
-});
-
-describe("sanitizeTemplateFileName", () => {
-  it("keeps the base name only and adds .md", () => {
-    expect(sanitizeTemplateFileName("../x")).toBe("x.md");
-    expect(sanitizeTemplateFileName("a/b.md")).toBe("b.md");
-    expect(sanitizeTemplateFileName("  ")).toBe("template.md");
-    expect(sanitizeTemplateFileName("..")).toBe("template.md");
   });
 });
 

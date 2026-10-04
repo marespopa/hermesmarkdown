@@ -5,7 +5,7 @@ import { useStore } from "jotai";
 import toast from "react-hot-toast";
 import { atom_vaultHandle, resolveFileHandleAtPath } from "@/app/atoms/vault-atoms";
 import { atom_newNoteFolder, atom_pendingScrollTarget } from "@/app/atoms/ui-atoms";
-import { atom_templates } from "@/app/atoms/template-atoms";
+import { atom_templates, atom_templatesFolder } from "@/app/atoms/template-atoms";
 import { writeFileContent } from "@/app/services/file-writer";
 import { useDialog } from "../use-dialog";
 import { useTemplateDialog } from "../use-template-dialog";
@@ -16,7 +16,9 @@ import {
   matchTemplateForFolder,
   parseMissingLink,
   sanitizeNoteName,
+  sanitizeTemplateFileName,
 } from "@/app/utils/templates/template-registry";
+import { TEMPLATE_STARTER } from "@/app/utils/templates/template-starter";
 import { offsetToLineColumn, type ExpandedTemplate } from "@/app/utils/templates/template-tokens";
 
 interface UseTemplateCreateProps {
@@ -46,7 +48,8 @@ function reportCreateError(err: any) {
 
 // Note creation from templates: clicking a missing [[link]] (the link decides
 // the path) and the palette's "New note from template…" (the template's
-// target_folder / file_name decide).
+// target_folder / file_name decide). Also "New template…", which creates a
+// template file with a starter body.
 export function useTemplateCreate({ scanVault, indexVaultTags, openFile }: UseTemplateCreateProps) {
   const store = useStore();
   const dialog = useDialog();
@@ -55,12 +58,13 @@ export function useTemplateCreate({ scanVault, indexVaultTags, openFile }: UseTe
 
   // Writes `<folder>/<baseName>.md`, rescans, opens it and puts the caret at
   // `{{cursor}}`. `unique` adds ` (1)`… on a name clash; otherwise an existing
-  // file on disk is opened unchanged (what's on disk wins).
+  // file on disk is opened unchanged (what's on disk wins) and `onExisting`
+  // is told its path.
   const writeNewNote = useCallback(async (
     folder: string,
     baseName: string,
     expanded: ExpandedTemplate,
-    { unique }: { unique: boolean },
+    { unique, onExisting }: { unique: boolean; onExisting?: (path: string) => void },
   ) => {
     const vaultHandle = store.get(atom_vaultHandle);
     if (!vaultHandle) return;
@@ -70,6 +74,7 @@ export function useTemplateCreate({ scanVault, indexVaultTags, openFile }: UseTe
         const existing = await findExisting(vaultHandle, existingPath);
         if (existing) {
           await openFile(existing, existingPath, true);
+          onExisting?.(existingPath);
           return;
         }
       }
@@ -168,5 +173,37 @@ export function useTemplateCreate({ scanVault, indexVaultTags, openFile }: UseTe
     await writeNewNote(folder, baseName, result.expanded, { unique: true });
   }, [store, dialog, pickTemplate, readOrReport, instantiate, writeNewNote]);
 
-  return { writeNewNote, createNoteFromMissingLink, createNoteFromTemplate };
+  // "New template…": `<templates folder>/<name>.md` with the raw starter body.
+  // A template with the same name (any case) is opened unchanged instead.
+  const createTemplate = useCallback(async () => {
+    const vaultHandle = store.get(atom_vaultHandle);
+    if (!vaultHandle) return;
+    const name = String((await dialog.prompt("Template name:", "", "New template")) ?? "").trim();
+    if (!name) return;
+    const baseName = sanitizeTemplateFileName(name).slice(0, -".md".length);
+    const folder = store.get(atom_templatesFolder).folder;
+    const openedExisting = (path: string) => toast.success(`Opened existing template: ${path}`);
+    // The registry check catches `RFC` vs `rfc.md` on case-sensitive backends (OPFS).
+    const indexed = store.get(atom_templates).find((t) => t.name.toLowerCase() === baseName.toLowerCase());
+    if (indexed) {
+      try {
+        const handle = await findExisting(vaultHandle, indexed.path);
+        if (handle) {
+          await openFile(handle, indexed.path, true);
+          openedExisting(indexed.path);
+          return;
+        }
+      } catch (err) {
+        reportCreateError(err);
+        return;
+      }
+      // A stale index entry falls through to the create.
+    }
+    await writeNewNote(folder, baseName, { text: TEMPLATE_STARTER, cursor: null }, {
+      unique: false,
+      onExisting: openedExisting,
+    });
+  }, [store, dialog, openFile, writeNewNote]);
+
+  return { writeNewNote, createNoteFromMissingLink, createNoteFromTemplate, createTemplate };
 }

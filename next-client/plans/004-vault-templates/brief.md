@@ -1,5 +1,5 @@
 ---
-state: approved
+state: merged
 blocked_from: 
 rejections: 1
 created: 2026-10-04T06:43:54Z

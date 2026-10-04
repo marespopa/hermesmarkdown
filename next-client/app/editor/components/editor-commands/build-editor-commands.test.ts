@@ -53,6 +53,7 @@ function createContext(overrides: Partial<EditorCommandContext> = {}): EditorCom
     duplicateFile: vi.fn(),
     moveItem: vi.fn(),
     createFolder: vi.fn(),
+    createTemplate: vi.fn(),
     dialog: {
       confirm: vi.fn(),
       prompt: vi.fn(),
@@ -130,6 +131,7 @@ describe("buildEditorCommands", () => {
       "new-file",
       "new-file-in-folder",
       "new-note-from-template",
+      "new-template",
       "export-file",
       "import-file",
       "open-explorer",
@@ -261,6 +263,21 @@ describe("buildEditorCommands", () => {
 
     const withoutVault = buildEditorCommands(createContext({ vaultHandle: null }));
     expect(withoutVault.some((command) => command.id === "new-note-from-template")).toBe(false);
+  });
+
+  it("lists New template… only with a vault and runs the flow", () => {
+    const createTemplate = vi.fn();
+    const withVault = buildEditorCommands(createContext({ createTemplate }));
+    const command = withVault.find((candidate) => candidate.id === "new-template");
+    expect(command).toMatchObject({ label: "New template…", category: "Vault" });
+    for (const query of ["create template", "add template", "new template"]) {
+      expect(command?.keywords).toContain(query);
+    }
+    command?.action();
+    expect(createTemplate).toHaveBeenCalledOnce();
+
+    const withoutVault = buildEditorCommands(createContext({ vaultHandle: null }));
+    expect(withoutVault.some((candidate) => candidate.id === "new-template")).toBe(false);
   });
 
   it("switches the privacy level and disables the current one", () => {
