@@ -1,5 +1,6 @@
 import type { FileMetadata } from "@/app/atoms/metadata";
 import { noteDisplayTitle, type NoteDisplayItem, type PreviewStyle } from "@/app/utils/note-display";
+import { isTemplatePath } from "@/app/utils/templates/template-registry";
 
 // Pure model behind the home feed: which notes appear, their order, titles,
 // and the day labels in the left gutter.
@@ -58,14 +59,19 @@ export function dayLabel(modifiedAt: number, now: Date): string {
 // (modifiedAt 0: not stat'ed yet, or unreadable) sorts after the dated ones,
 // alphabetically, with no label. Title and preview come from the display
 // items (the privacy level's view); notes missing from them are left out
-// before day labels are assigned, so no label is orphaned.
+// before day labels are assigned, so no label is orphaned. Template files
+// (direct children of `templatesFolder`) are left out too.
 export function buildFeed(
   metadata: Record<string, FileMetadata>,
   displayItems: Map<string, NoteDisplayItem>,
   now: Date,
+  templatesFolder?: string,
 ): FeedEntry[] {
   const sorted = Object.values(metadata)
-    .filter((entry) => isFeedPath(entry.path) && displayItems.has(entry.path))
+    .filter((entry) =>
+      isFeedPath(entry.path) &&
+      displayItems.has(entry.path) &&
+      !(templatesFolder && isTemplatePath(entry.path, templatesFolder)))
     .sort((a, b) => (b.modifiedAt || 0) - (a.modifiedAt || 0) || a.path.localeCompare(b.path));
 
   let previousDay: number | null = null;

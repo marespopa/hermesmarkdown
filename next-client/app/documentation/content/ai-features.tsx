@@ -81,6 +81,39 @@ export const aiFeaturesGroup: Group = {
       ),
     },
     {
+      id: "ai-templates",
+      title: "AI templates",
+      lead: "Ask AI Chat for a template and it writes one you can save into your templates folder with one click.",
+      keywords: "ai template skill create rfc prompt save replace hermes skills create-template",
+      body: (
+        <>
+          <p>
+            Mention a template in AI Chat, for example &ldquo;make me an RFC template that asks for
+            an owner&rdquo;, or start a message with <code>/template</code>. From then on, the chat
+            knows the{" "}
+            <a href="#templates" className="text-sage font-semibold hover:underline">template tokens</a>{" "}
+            and the <code>target_folder</code> / <code>file_name</code> keys. Each template in a reply
+            shows a card with its path (for example <code>templates/rfc.md</code>) and any problems
+            it spotted, like an unknown token.
+          </p>
+          <p>
+            Nothing is saved until you click <strong>Save template</strong>. If a template with that
+            name exists, the button reads <strong>Replace template</strong>. Saved templates show up
+            in <code>/template</code> straight away. You need an open vault to save.
+          </p>
+          <Callout type="tip">
+            To change how the chat writes templates, put your own instructions in{" "}
+            <code>.hermes/skills/create-template.md</code> in your vault. When that file exists, its
+            text (below any frontmatter) replaces the built-in instructions. The app never writes it.
+          </Callout>
+          <p>
+            The template instructions are only added to chats that mention templates, as part of the
+            same AI request. Nothing else is sent.
+          </p>
+        </>
+      ),
+    },
+    {
       id: "ai-table-formulas",
       title: "AI & table formulas",
       lead: "The AI knows how table formulas work. It writes totals as live formulas and never replaces your formulas with numbers.",

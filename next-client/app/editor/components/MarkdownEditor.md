@@ -5,7 +5,7 @@ Description: CodeMirror 6 Markdown editor for one pane. It adds inline pills and
 ## Local State & Storage
 - State: `atom_activeEditorView`, `atom_isEditorFocused`, `atom_fileMetadata` (to resolve cross-note formula refs), `atom_wordWrap`, `atom_lineNumbers`, `atom_vimMode`, `atom_flowMode`, `atom_viewMode` (Edit / Preview), `atom_renderedFontFamily` (preview reading font, via `useEditorAppearance`), `atom_frontmatterCollapsedByDefault`, `atom_vaultHandle`, `atom_currentDirectoryHandle`, `atom_pendingScrollTarget`, `atom_isAiConfigured`, `atom_aiBuilderRequest`. Pill and dialog state is local useState.
 - Persistence: Editor preferences live in `localStorage` (`wordWrap`, `lineNumbers`, `vimMode`, `flowMode`, `viewMode`, `frontmatterCollapsedByDefault`). Pasted images are written into the local vault through the File System Access API (`savePastedImage`).
-- Features come from composable hooks in `../hooks`: `use-editor-appearance`, `use-codemirror-{editor,features,templates,table,image,code-language-picker,callout-fold,frontmatter-fold}`, and `use-cross-file-tables` (reads notes referenced by `=[[Note]]!B5` formulas and pushes them into the editor via `setFormulaFileTables` from `codemirror/table-formulas.ts`).
+- Features come from composable hooks in `../hooks`: `use-editor-appearance`, `use-codemirror-{editor,features,templates,table,image,code-language-picker,callout-fold,frontmatter-fold}`, `use-vault-template-insert` (the slash menu's **Template** entry, `/template` or `/tpl`, offered while a vault is open: pick a vault template, answer its prompts, then insert it at the caret as one undo step with the caret at `{{cursor}}`; an empty note gets the whole template including non-routing frontmatter, otherwise only the body; nothing is inserted if the editor went away meanwhile), and `use-cross-file-tables` (reads notes referenced by `=[[Note]]!B5` formulas and pushes them into the editor via `setFormulaFileTables` from `codemirror/table-formulas.ts`).
 
 ## Dependencies
 - Core: `@codemirror/view`, `DatePickerCallout`, `WikiLinkDialog`, `TaskDialog`, the render pieces in [`markdown-editor/`](markdown-editor/README.md) (`EditorPills`, `LinkInsertDialog`, `FoldChevrons`), `useEditorPasteHandlers` ("Convert to table?" confirm on CSV paste, image saving), `useScrollToPendingTarget`, `useFileSystem`, `useKeyboardInset`.
@@ -25,5 +25,5 @@ import MarkdownEditor from "./MarkdownEditor";
 | onChange | `(value: string) => void` |  | Change handler |
 | filePath? | `string` | `"draft"` | Vault path (for image paste, scroll targets and formula refs) |
 | placeholder? | `string` | `"Type / for templates"` | Empty-state text |
-| onWikiLinkClick? | `(name: string) => void` |  | `[[link]]` navigation |
+| onWikiLinkClick? | `(name: string) => void` |  | `[[link]]` navigation (`PaneLeaf` passes `openOrCreateLink`, which also creates missing notes) |
 | isActivePane? / isSplit? | `boolean` |  | Pane context |

@@ -17,6 +17,7 @@ import { useEditorAppearance } from "../hooks/use-editor-appearance";
 import { useCodeMirrorEditor } from "../hooks/use-codemirror-editor";
 import { useCodeMirrorFeatures } from "../hooks/use-codemirror-features";
 import { useCodeMirrorTemplates } from "../hooks/use-codemirror-templates";
+import { useVaultTemplateInsert } from "../hooks/use-vault-template-insert";
 import { useCodeMirrorTable } from "../hooks/use-codemirror-table";
 import { useCrossFileTables } from "../hooks/use-cross-file-tables";
 import { formulaFileTablesField, setFormulaFileTables } from "../codemirror/table-formulas";
@@ -79,7 +80,8 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const viewRef = useRef<EditorView | null>(null);
 
-  const { createWikiLinkFile } = useFileSystem();
+  const { createWikiLinkFile, vaultHandle } = useFileSystem();
+  const insertVaultTemplate = useVaultTemplateInsert({ viewRef, filePath });
   const { csvConfirmRef, pasteImageRef } = useEditorPasteHandlers();
 
   const features = useCodeMirrorFeatures({ viewRef, containerRef, onWikiLinkClick: props.onWikiLinkClick });
@@ -108,6 +110,7 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
     onCodeBlockInserted: handleCodeBlockInserted,
     onFrontmatterWizard: handleFrontmatterCommand,
     onOpenAIChat: isAiConfigured ? () => setAiBuilderRequest((value) => value + 1) : undefined,
+    onInsertVaultTemplate: vaultHandle ? () => { void insertVaultTemplate(); } : undefined,
   });
 
   useEffect(() => {

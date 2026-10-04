@@ -10,6 +10,7 @@ export function buildDocumentVaultCommandGroups(context: EditorCommandContext) {
     closeVault,
     createFolder,
     createNewFile,
+    createNoteFromTemplate,
     deleteFile,
     dialog,
     duplicateFile,
@@ -52,6 +53,15 @@ export function buildDocumentVaultCommandGroups(context: EditorCommandContext) {
           // Folder picker + name prompt: the explicit alternative to the
           // draft flow, which names the note from its first line.
           action: () => { void createNewFile(); },
+        },
+        {
+          id: "new-note-from-template",
+          label: "New note from template…",
+          category: "Vault" as const,
+          keywords: "create template note",
+          // Template picker + title prompt; the template's target_folder /
+          // file_name place and name the note.
+          action: () => { void createNoteFromTemplate(); },
         }]
       : []),
     {

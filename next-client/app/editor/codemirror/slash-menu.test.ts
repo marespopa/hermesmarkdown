@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { CompletionContext } from "@codemirror/autocomplete";
-import { EditorState } from "@codemirror/state";
+import { EditorSelection, EditorState } from "@codemirror/state";
+import { undo, history } from "@codemirror/commands";
 import { EditorView } from "@codemirror/view";
 import {
   CODE_BLOCK_TEMPLATE_CONTENT,
@@ -10,7 +11,7 @@ import {
   TASK_EDITOR_SENTINEL,
   WIKILINK_EDITOR_SENTINEL,
 } from "../components/constants";
-import { createSlashMenuSource, type SlashMenuCallbacks } from "./slash-menu";
+import { createSlashMenuSource, insertExpandedTemplate, type SlashMenuCallbacks } from "./slash-menu";
 
 function makeCallbacks(): SlashMenuCallbacks {
   return {
@@ -137,5 +138,49 @@ describe("createSlashMenuSource", () => {
     const { view } = applyOption(doc, "Mark as public");
 
     expect(view.state.doc.toString()).toBe('---\ntitle: "Note"\ntags: [work]\n---\nBody ');
+  });
+
+  it("offers Template for /tpl and /template only when vault templates can be inserted", () => {
+    const labels = (doc: string, callbacks: SlashMenuCallbacks) =>
+      getResult(doc, callbacks).result?.options.map(({ label }) => label) ?? [];
+    const withVault = { ...makeCallbacks(), onInsertVaultTemplate: vi.fn() };
+
+    expect(labels("/tpl", withVault)).toContain("Template");
+    expect(labels("/template", withVault)).toContain("Template");
+    expect(labels("/tpl", makeCallbacks())).not.toContain("Template");
+    expect(labels("/template", makeCallbacks())).not.toContain("Template");
+  });
+
+  it("removes the trigger and opens the vault template picker", () => {
+    const callbacks = { ...makeCallbacks(), onInsertVaultTemplate: vi.fn() };
+    const { view } = applyOption("Intro /tpl", "Template", callbacks);
+
+    expect(view.state.doc.toString()).toBe("Intro ");
+    expect(callbacks.onInsertVaultTemplate).toHaveBeenCalledOnce();
+  });
+});
+
+describe("insertExpandedTemplate", () => {
+  function viewWithHistory(doc: string, caret: number) {
+    return new EditorView({
+      state: EditorState.create({ doc, extensions: [history()], selection: EditorSelection.cursor(caret) }),
+    });
+  }
+
+  it("inserts the text as is (no shortcodes), with the caret at the cursor offset", () => {
+    const view = viewWithHistory("AB", 1);
+    insertExpandedTemplate(view, "2026-10-04 {date}\nnext", 11);
+
+    expect(view.state.doc.toString()).toBe("A2026-10-04 {date}\nnextB");
+    expect(view.state.selection.main.head).toBe(12);
+  });
+
+  it("puts the caret at the end without a cursor and undoes in one step", () => {
+    const view = viewWithHistory("", 0);
+    insertExpandedTemplate(view, "# Title\nBody", null);
+
+    expect(view.state.selection.main.head).toBe("# Title\nBody".length);
+    undo(view);
+    expect(view.state.doc.toString()).toBe("");
   });
 });

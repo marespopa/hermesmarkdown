@@ -1,6 +1,6 @@
 # MainPage
 
-Description: Root layout shell. It mounts providers, the command palette, global commands, toasts, `GlobalDialog`, and the header/footer (both hidden on `/editor`).
+Description: Root layout shell. It mounts providers, the command palette, global commands, toasts, `GlobalDialog`, `TemplateDialogHost` (template picker / prompts form), and the header/footer (both hidden on `/editor`).
 
 ## Local State & Storage
 - State: `usePathname()` for chrome visibility. Children use the Jotai store from `CustomProviders`.

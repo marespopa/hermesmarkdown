@@ -4,6 +4,8 @@ import React, { useEffect, useState } from "react";
 import { HiOutlineCheck, HiOutlineClipboardCheck, HiOutlineDocumentDuplicate, HiOutlinePencil, HiOutlineSparkles } from "react-icons/hi";
 import Button from "@/app/components/Button";
 import type { ChatMessage } from "./chat-helpers";
+import type { TemplateBlock } from "./chat-skills";
+import TemplateSaveCard from "./TemplateSaveCard";
 
 export type ApplyMode = "insert" | "replace-all";
 
@@ -16,6 +18,12 @@ interface ChatMessageItemProps {
   onCommitEdit: () => void;
   onApply: (mode: ApplyMode) => void;
   hasSelection: boolean;
+  /** `~~~~hermes-template` blocks in this (assistant) reply; one save card each. */
+  templateBlocks?: TemplateBlock[];
+  templatesFolder?: string;
+  templateExists?: (fileName: string) => boolean;
+  /** Absent without an open vault (the card's button is disabled). */
+  onSaveTemplate?: (block: TemplateBlock) => Promise<boolean>;
 }
 
 // Render text with @mentions highlighted inline
@@ -30,7 +38,8 @@ function renderWithMentions(text: string) {
 const actionClass = "inline-flex items-center gap-1 px-2 py-1 rounded-lg text-ui-caption transition-colors";
 
 // One turn of the AI Chat thread. Assistant replies can be edited in place
-// and applied to the note (insert / replace selection, or replace all).
+// and applied to the note (insert / replace selection, or replace all), and
+// show a save card per template block (template skill).
 export default function ChatMessageItem({
   message,
   isEditing,
@@ -40,6 +49,10 @@ export default function ChatMessageItem({
   onCommitEdit,
   onApply,
   hasSelection,
+  templateBlocks = [],
+  templatesFolder = "templates",
+  templateExists,
+  onSaveTemplate,
 }: ChatMessageItemProps) {
   const isUser = message.role === "user";
   const [copied, setCopied] = useState(false);
@@ -110,6 +123,16 @@ export default function ChatMessageItem({
             </Button>
           </div>
         )}
+        {!isUser && templateBlocks.map((block, i) => (
+          <TemplateSaveCard
+            key={`${i}-${block.fileName}`}
+            block={block}
+            path={`${templatesFolder}/${block.fileName}`}
+            exists={templateExists?.(block.fileName) ?? false}
+            canSave={!!onSaveTemplate}
+            onSave={onSaveTemplate ?? (async () => false)}
+          />
+        ))}
       </div>
     </div>
   );

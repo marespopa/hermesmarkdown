@@ -70,3 +70,16 @@ describe("atom_visibleTasks", () => {
     expect(store.get(atom_filteredTasks)).toHaveLength(0);
   });
 });
+
+describe("template files", () => {
+  it("keeps tasks from the templates folder out of the task lists", () => {
+    const store = createStore();
+    store.set(atom_fileMetadata, {
+      "plain.md": file("plain.md", [task("plain.md", "Buy milk", [])]),
+      "templates/rfc.md": file("templates/rfc.md", [task("templates/rfc.md", "{{prompt:Task}}", [])]),
+      "templates/old/x.md": file("templates/old/x.md", [task("templates/old/x.md", "Nested", [])]),
+    });
+    expect(store.get(atom_allTasks).map((t) => t.text)).toEqual(["Buy milk", "Nested"]);
+    expect(store.get(atom_visibleTasks).map((t) => t.text)).toEqual(["Buy milk", "Nested"]);
+  });
+});

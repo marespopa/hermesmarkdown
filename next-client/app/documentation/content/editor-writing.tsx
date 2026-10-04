@@ -325,8 +325,9 @@ graph TD
           wikilinks.
         </p>
         <p>
-          <code>CTRL+Click</code> a wikilink to open the note. A link to a note that doesn&apos;t
-          exist shows a &ldquo;File not found&rdquo; message.
+          <code>CTRL+Click</code> a wikilink to open the note (a plain click in Preview). A link to
+          a note that doesn&apos;t exist yet creates it, after you confirm or pick a template; see{" "}
+          <a href="#templates" className="text-sage font-semibold hover:underline">Templates</a>.
         </p>
       </>
     ),
@@ -351,6 +352,7 @@ graph TD
             { label: "Code · Mermaid", value: "Fenced code / diagram block" },
             { label: "Callout · Collapse", value: "Callout / collapsed callout" },
             { label: "Frontmatter", value: "Insert or reveal the YAML block" },
+            { label: "Template (/template, /tpl)", value: "Insert a template from your vault" },
             { label: "AI Chat & AI actions", value: "Only when AI is configured" },
           ]}
         />

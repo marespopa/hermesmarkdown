@@ -15,6 +15,8 @@ import ChatMessageItem, { type ApplyMode } from "./ai-chat/ChatMessageItem";
 import MentionMenu from "./ai-chat/MentionMenu";
 import { useChatMentions } from "./ai-chat/use-chat-mentions";
 import { useChatModels } from "./ai-chat/use-chat-models";
+import { useChatSkills } from "./ai-chat/use-chat-skills";
+import { parseTemplateBlocks } from "./ai-chat/chat-skills";
 
 export type { ApplyMode };
 
@@ -39,6 +41,7 @@ export default function AIChatDialog({
   const vaultHandle = useAtomValue(atom_vaultHandle);
 
   const { modelOptions, selectedAiModel, setSelectedAiModel, isFetchingModels } = useChatModels(isOpen);
+  const skills = useChatSkills();
 
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
@@ -92,7 +95,8 @@ export default function AIChatDialog({
   };
 
   const buildSystemPrompt = useCallback(
-    () => buildChatSystemPrompt(documentContent, selectedText, currentFilePath),
+    (skillInstructions: string[] = []) =>
+      buildChatSystemPrompt(documentContent, selectedText, currentFilePath, skillInstructions),
     [documentContent, selectedText, currentFilePath],
   );
 
@@ -136,7 +140,8 @@ export default function AIChatDialog({
 
     try {
       const apiMessages: ApiMessage[] = newMessages.map((m) => ({ role: m.role, content: m.apiContent }));
-      const reply = await callAIChat(buildSystemPrompt(), apiMessages);
+      const skillInstructions = await skills.skillInstructionsFor(newMessages);
+      const reply = await callAIChat(buildSystemPrompt(skillInstructions), apiMessages);
       setMessages((prev) => [...prev, { role: "assistant", displayContent: reply, apiContent: reply }]);
     } catch (err: any) {
       showErrorToast(err.message || "AI request failed.");
@@ -144,7 +149,7 @@ export default function AIChatDialog({
       setIsLoading(false);
       setTimeout(() => inputRef.current?.focus(), 50);
     }
-  }, [input, attachments, messages, isLoading, buildSystemPrompt, vaultRefs, fileMetadata, vaultHandle, setMention]);
+  }, [input, attachments, messages, isLoading, buildSystemPrompt, vaultRefs, fileMetadata, vaultHandle, setMention, skills]);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (mention && mentionOptions.length > 0) {
@@ -237,6 +242,10 @@ export default function AIChatDialog({
               onCommitEdit={() => commitEdit(i)}
               onApply={(mode) => handleApply(i, mode)}
               hasSelection={!!selectedText.trim()}
+              templateBlocks={msg.role === "assistant" ? parseTemplateBlocks(msg.displayContent) : undefined}
+              templatesFolder={skills.templatesFolder}
+              templateExists={skills.templateExists}
+              onSaveTemplate={skills.hasVault ? skills.saveTemplate : undefined}
             />
           ))}
 

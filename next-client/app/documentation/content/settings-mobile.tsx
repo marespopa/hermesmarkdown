@@ -37,15 +37,22 @@ export const settingsGroup: Group = {
       id: "vault-home-settings",
       title: "Vault home & new notes",
       lead: "Choose what a vault opens to and where new notes go.",
-      keywords: "on vault open home feed resume tabs new notes folder settings",
+      keywords: "on vault open home feed resume tabs new notes folder templates folder settings",
       body: (
         <>
           <KV
             rows={[
               { label: "On Vault Open", value: "Home feed (default) or Resume last tabs" },
               { label: "New Notes Folder", value: "Empty = vault root, or a folder like inbox" },
+              { label: "Templates Folder", value: "Per vault. Empty = templates, _templates or Templates" },
             ]}
           />
+          <p>
+            Every <code>.md</code> file directly in the Templates Folder is a{" "}
+            <a href="#templates" className="text-sage font-semibold hover:underline">template</a>.
+            Folders starting with <code>.</code> can&apos;t be used, because they aren&apos;t
+            indexed.
+          </p>
           <p>
             These live under <strong>Settings → Files</strong>. A folder that doesn&apos;t exist
             yet is created the first time a note is saved there. Your open notes are restored either

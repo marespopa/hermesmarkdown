@@ -8,5 +8,6 @@ export * from "./file-atoms";
 export * from "./vault-atoms";
 export * from "./metadata";
 export * from "./privacy-atoms";
+export * from "./template-atoms";
 export * from "./layout-actions";
 export * from "./utils";

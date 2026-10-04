@@ -12,9 +12,12 @@ without changing the public props contract or command behavior.
 - `build-editor-commands.ts` combines contributor groups in their original
   registration order.
 - `document-vault-commands.ts` defines document lifecycle, file operations, and
-  vault commands.
+  vault commands, including `New note from template…` (with a vault open:
+  template picker, title prompt, then the template's `target_folder` /
+  `file_name` place and name the note).
 - `editor-ai-voice-commands.ts` defines editor formatting, templates, AI, and
-  voice commands.
+  voice commands. The `Insert: …` commands skip the slash menu's vault
+  **Template** entry (`vaultOnly`).
 - `workspace-task-view-commands.ts` defines panels, panes, tabs, preferences,
   tasks, views, and workspace navigation.
 - `github-vault-commands.ts` defines the `GitHub: Commit / Push / Sync / Pull`

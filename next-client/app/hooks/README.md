@@ -7,6 +7,7 @@ React hooks organized by concern: UI primitives, sync orchestration, and the fil
 | Hook | Purpose |
 |------|---------|
 | `use-dialog.ts` | Promise-based alert/confirm/prompt/select over the Jotai global dialog |
+| `use-template-dialog.ts` | Promise-based `pickTemplate({ includeBlank, title })` / `askPrompts(labels, confirmLabel)` over `atom_templateDialog` (rendered by `components/TemplateDialog`); null = cancelled |
 | `use-is-mobile.tsx` | Breakpoint detection (default 1052px) |
 | `use-mobile-chrome.tsx` | 768px breakpoint for the mobile chrome (file indicator bar, full-screen overlays) |
 | `use-keyboard-inset.tsx` | On-screen keyboard height via `visualViewport`, so fixed elements can stay clear of it |
@@ -70,7 +71,10 @@ All file writes go through `writeFileContent()` in `app/services/file-writer.ts`
 
 | Hook | Purpose |
 |------|---------|
-| `use-file-crud.ts` | Composes create / delete / rename / move / import with shared callbacks |
+| `use-file-crud.ts` | Composes create / delete / rename / move / import and the template note hooks with shared callbacks |
+| `use-template-notes.ts` | `readTemplate(entry)` (the saved file on disk, fresh handle, so edits apply on next use) and `instantiate(raw, title, confirmLabel)` (strips routing keys, asks `{{prompt:…}}` values, reads the clipboard only when `{{clipboard}}` is used, expands content and routing values with one context; null = cancelled) |
+| `use-template-create.ts` | `createNoteFromMissingLink(link)`: the link decides the path (its folder from the vault root, or the New Notes Folder); a file already on disk is opened unchanged; a folder-name match (`rfcs/` ↔ `rfc.md`) confirms, otherwise the picker offers Blank note first; template `target_folder` / `file_name` are ignored. `createNoteFromTemplate()`: picker, title prompt, prompts, then `target_folder` / `file_name` (tokens expanded) place and name the note, never overwriting. `writeNewNote()` creates folders, writes, rescans, opens, and puts the caret at `{{cursor}}` via `atom_pendingScrollTarget` |
+| `use-open-or-create-link.ts` | `openOrCreateLink(name)`: wikilink clicks open the resolved note, or start `createNoteFromMissingLink` (passed to the editor by `PaneLeaf`) |
 | `use-create-item.ts` | Creates files / folders (one level at a time) and wikilink targets; auto-increments duplicate names (`filename (1).md`, `(2).md`…) and opens the new file. `createNewFile(dir?)` / `createFolder(dir?)` skip the folder picker when given a target directory (file tree folder menu) |
 | `unique-file.ts` | `createUniqueFile()` (never overwrites: `name (1).md`, `(2)`…), `ensureVaultFolder()` (walks/creates a vault-relative folder), `normalizeFolderPath()` (trims slashes, drops `.`/`..`), `listVaultFolders()` (every non-hidden folder as a vault-relative path). Shared by file creation and the draft save flow (`app/editor/hooks/use-materialize-draft.ts`) |
 | `use-duplicate-item.ts` | Duplicates a file into a chosen folder |

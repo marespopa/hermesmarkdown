@@ -126,9 +126,15 @@ export const ACTIVE_FILE_CHAR_LIMIT = 20_000;
 /**
  * System prompt for a chat turn: the base instructions, the active file
  * (name + content, always included so the model knows what the user is
- * working on) and, when present, the selection as the edit target.
+ * working on), when present the selection as the edit target, and the
+ * instructions of any active chat skill (see chat-skills.ts).
  */
-export function buildChatSystemPrompt(documentContent: string, selectedText: string, currentFilePath?: string): string {
+export function buildChatSystemPrompt(
+  documentContent: string,
+  selectedText: string,
+  currentFilePath?: string,
+  skillInstructions: string[] = [],
+): string {
   const parts = [SYSTEM_PROMPT];
   const fileName = currentFilePath?.split("/").pop() || "Untitled";
   if (documentContent.trim()) {
@@ -143,6 +149,9 @@ export function buildChatSystemPrompt(documentContent: string, selectedText: str
   }
   if (selectedText.trim()) {
     parts.push(`\n--- SELECTED TEXT (target for edits) ---\n${selectedText}\n--- END SELECTED TEXT ---`);
+  }
+  for (const instructions of skillInstructions) {
+    if (instructions.trim()) parts.push(`\n--- SKILL ---\n${instructions}\n--- END SKILL ---`);
   }
   return parts.join("\n");
 }

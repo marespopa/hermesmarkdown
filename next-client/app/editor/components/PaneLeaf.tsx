@@ -48,7 +48,7 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
   const hostsWindowActions = getTopTrailingLeaf(workspaceLayout.rootContainer).id === leaf.id;
   const isMobileChrome = useIsMobileChrome();
 
-  const { openFileByName } = useFileSystem();
+  const { openOrCreateLink } = useFileSystem();
   const filePath = leaf.activeFilePath || "draft";
   const [content, setContent] = useAtom(atom_fileContent(filePath));
   const [toolbarHidden, setToolbarHidden] = useAtom(atom_toolbarHidden);
@@ -251,7 +251,7 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
               value={content}
               onChange={setContent}
               filePath={leaf.activeFilePath || "draft"}
-              onWikiLinkClick={openFileByName}
+              onWikiLinkClick={openOrCreateLink}
               placeholder={`Editing ${leaf.activeFilePath || "Draft"}...`}
               isActivePane={isActive}
               isSplit={!isOnlyPane}

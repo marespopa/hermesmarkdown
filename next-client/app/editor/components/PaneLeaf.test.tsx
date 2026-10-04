@@ -24,7 +24,7 @@ vi.mock("next/navigation", () => ({
 // Mock hooks
 vi.mock("@/app/hooks/use-file-system", () => ({
   useFileSystem: () => ({
-    openFileByName: vi.fn(),
+    openOrCreateLink: vi.fn(),
     saveFile: vi.fn(),
     exportFile: vi.fn(),
   }),
