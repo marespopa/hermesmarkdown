@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import { EditorView } from "@codemirror/view";
 import { EditorState, EditorSelection } from "@codemirror/state";
 import {
+  breakLineInListItem,
   continueListOnEnter,
   indentListOrLines,
   outdentListOrLines,
@@ -51,15 +52,52 @@ describe("continueListOnEnter", () => {
     expect(view.state.doc.toString()).toBe("1. a\n2. b\n3. ");
   });
 
-  it("ends the list on an empty top-level item", () => {
+  it("ends the list on an empty top-level item, leaving a blank line after it", () => {
     const view = makeView("- a\n- [ ] ");
     continueListOnEnter(view);
-    expect(view.state.doc.toString()).toBe("- a\n");
+    expect(view.state.doc.toString()).toBe("- a\n\n");
+    expect(view.state.selection.main.head).toBe(view.state.doc.length);
+  });
+
+  it("just clears a lone empty item", () => {
+    const view = makeView("- ");
+    continueListOnEnter(view);
+    expect(view.state.doc.toString()).toBe("");
+  });
+
+  it("starts the next item from a line typed after Shift+Enter", () => {
+    const view = makeView("1. a\n   more");
+    expect(continueListOnEnter(view)).toBe(true);
+    expect(view.state.doc.toString()).toBe("1. a\n   more\n2. ");
+  });
+
+  it("leaves indented text that isn't part of an item alone", () => {
+    expect(continueListOnEnter(makeView("    code"))).toBe(false);
+    expect(continueListOnEnter(makeView("- a\n\n  later"))).toBe(false);
   });
 
   it("falls through on plain lines and when the cursor is inside the marker", () => {
     expect(continueListOnEnter(makeView("plain"))).toBe(false);
     expect(continueListOnEnter(makeView("- item", 0))).toBe(false);
+  });
+});
+
+describe("breakLineInListItem", () => {
+  it("starts a line inside the item, lined up with its text", () => {
+    const view = makeView("1. one");
+    expect(breakLineInListItem(view)).toBe(true);
+    expect(view.state.doc.toString()).toBe("1. one\n   ");
+    expect(view.state.selection.main.head).toBe(view.state.doc.length);
+  });
+
+  it("lines up after a task box", () => {
+    const view = makeView("  - [ ] task");
+    breakLineInListItem(view);
+    expect(view.state.doc.toString()).toBe("  - [ ] task\n        ");
+  });
+
+  it("falls through on plain lines", () => {
+    expect(breakLineInListItem(makeView("plain"))).toBe(false);
   });
 });
 

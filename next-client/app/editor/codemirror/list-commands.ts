@@ -151,20 +151,25 @@ function currentItem(view: EditorView): ListItem | null {
 
 // Enter on a list item starts the next item: same bullet, next number, and a
 // fresh "[ ] " for task items. Enter on an empty item outdents it one level,
-// or ends the list when it's already at the top level.
+// or ends the list when it's already at the top level, leaving a blank line
+// so the text typed next isn't read as part of the last item.
 export function continueListOnEnter(view: EditorView): boolean {
   const { state } = view;
   const item = currentItem(view);
-  if (!item) return false;
+  if (!item) return continueFromItemText(view);
   const { from, to } = state.selection.main;
   const prefixEnd = item.line.from + item.prefixLength;
   if (from < prefixEnd) return false; // cursor sits in the marker: plain newline
 
   if (item.line.text.slice(item.prefixLength).trim() === "") {
     if (item.indent > 0) return outdentListItem(view, item);
+    const previous = item.line.number > 1 ? state.doc.line(item.line.number - 1).text : "";
+    const insert = previous.trim() === "" ? "" : "\n";
     view.dispatch({
-      changes: { from: item.line.from, to: item.line.to },
+      changes: { from: item.line.from, to: item.line.to, insert },
+      selection: EditorSelection.cursor(item.line.from + insert.length),
       userEvent: "delete.format.list",
+      scrollIntoView: true,
     });
     return true;
   }
@@ -177,6 +182,57 @@ export function continueListOnEnter(view: EditorView): boolean {
   const insert = `\n${indent}${marker}${item.spacing}${item.task ? "[ ] " : ""}`;
   view.dispatch({
     changes: { from, to: end, insert },
+    selection: EditorSelection.cursor(from + insert.length),
+    userEvent: "input.format.list",
+    scrollIntoView: true,
+  });
+  return true;
+}
+
+// The item a marker-less line belongs to: a line typed after Shift+Enter,
+// lined up with the text of the item above it.
+function owningItem(state: EditorState, line: Line): ListItem | null {
+  const indent = lineIndent(line.text);
+  if (line.text.trim() === "" || indent === 0) return null;
+  for (let n = line.number - 1; n >= 1; n--) {
+    const above = state.doc.line(n);
+    if (above.text.trim() === "") return null;
+    const item = parseItem(above);
+    if (item) return indent >= item.contentColumn ? item : null;
+  }
+  return null;
+}
+
+// Enter at the end of such a line starts the item's next sibling.
+function continueFromItemText(view: EditorView): boolean {
+  const { state } = view;
+  const { from, to } = state.selection.main;
+  const line = state.doc.lineAt(from);
+  if (to !== line.to || state.doc.lineAt(to).number !== line.number) return false;
+  const item = owningItem(state, line);
+  if (!item) return false;
+  const indent = /^\s*/.exec(item.line.text)![0];
+  const marker = item.number !== undefined ? `${item.number + 1}${item.delimiter}` : item.bullet;
+  const insert = `\n${indent}${marker}${item.spacing}${item.task ? "[ ] " : ""}`;
+  view.dispatch({
+    changes: { from, to, insert },
+    selection: EditorSelection.cursor(from + insert.length),
+    userEvent: "input.format.list",
+    scrollIntoView: true,
+  });
+  return true;
+}
+
+// Shift+Enter on a list item breaks the line inside the item: no new marker,
+// and the new line lines up with the item's text so it stays in the item.
+export function breakLineInListItem(view: EditorView): boolean {
+  const item = currentItem(view);
+  if (!item) return false;
+  const { from, to } = view.state.selection.main;
+  if (from < item.line.from + item.prefixLength) return false;
+  const insert = `\n${" ".repeat(width(item.line.text.slice(0, item.prefixLength)))}`;
+  view.dispatch({
+    changes: { from, to, insert },
     selection: EditorSelection.cursor(from + insert.length),
     userEvent: "input.format.list",
     scrollIntoView: true,
