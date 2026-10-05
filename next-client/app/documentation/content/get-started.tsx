@@ -185,7 +185,7 @@ export const getStartedGroup: Group = {
       id: "home-feed",
       title: "Home feed",
       lead: "Your recent notes, newest first. It's where a vault opens.",
-      keywords: "home feed recent notes start screen today yesterday preview search create new note welcome",
+      keywords: "home feed recent notes start screen today yesterday preview search create new note welcome week strip calendar days jump no vault open vault create vault browser vault open file",
       body: (
         <>
           <p>
@@ -193,6 +193,16 @@ export const getStartedGroup: Group = {
             left groups notes by the day they were last changed: <em>Today</em>,{" "}
             <em>Yesterday</em>, the weekday for the rest of the week, then the date. If you entered
             your name during setup, the feed greets you with it.
+          </p>
+          <p>
+            Under the date, a strip shows the last seven days. A dot marks each day you changed a
+            note. Tap a day to jump to its notes. Days without notes are dimmed.
+          </p>
+          <p>
+            With no vault open, the feed is where you start. It offers <strong>Open Vault</strong>,{" "}
+            <strong>Create Vault</strong> and <strong>Browser Vault</strong>, or you can skip the
+            vault: <strong>New Note</strong> opens a blank draft and <strong>Open File…</strong>{" "}
+            opens a file from your device. Once a vault is open, your notes appear here.
           </p>
           <p>
             At the bottom, <strong>Search or create a note…</strong> opens the command palette.
@@ -207,6 +217,7 @@ export const getStartedGroup: Group = {
               { label: "Search", value: "Start typing" },
               { label: "Back to your open notes", value: "ESCAPE" },
               { label: "Come back to the feed", value: "Home at the top of the sidebar" },
+              { label: "Back to the top of the feed", value: "Home again while the feed is open" },
             ]}
           />
           <p>

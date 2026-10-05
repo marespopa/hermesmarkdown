@@ -66,6 +66,15 @@ export const atom_onVaultOpen = atomWithStorage<VaultOpenBehavior>("onVaultOpen"
 // Whether the editor page shows the home feed in place of the workspace.
 // Ephemeral: opening a note closes it.
 export const atom_homeFeedOpen = atom<boolean>(false);
+// Bumped when Home is pressed while the feed is already open; HomeFeed
+// scrolls back to the top on each change.
+export const atom_homeFeedTopRequest = atom(0);
+// The Home button and command: opens the feed, or, when it's already open,
+// asks it to scroll back to the top.
+export const atom_goHome = atom(null, (get, set) => {
+  if (get(atom_homeFeedOpen)) set(atom_homeFeedTopRequest, (count) => count + 1);
+  else set(atom_homeFeedOpen, true);
+});
 // Vault-relative folder that drafts are saved into on their first save
 // ("" = vault root). Created on demand.
 export const atom_newNoteFolder = atomWithStorage<string>("newNoteFolder", "");

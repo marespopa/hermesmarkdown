@@ -96,3 +96,33 @@ export function buildFeed(
     };
   });
 }
+
+export interface WeekDay {
+  /** Local midnight of the day. */
+  day: number;
+  /** How many feed notes were modified that day. */
+  count: number;
+  /** Index of the day's first (newest) row in the feed, or -1 when it has none. */
+  firstIndex: number;
+}
+
+// The week strip: the seven days ending today, oldest first, each with its
+// note count and the feed row to jump to. Takes the built feed, so notes the
+// privacy level hides are never counted.
+export function buildWeek(feed: FeedEntry[], now: Date): WeekDay[] {
+  const days: WeekDay[] = [];
+  for (let offset = 6; offset >= 0; offset--) {
+    // Calendar arithmetic, not 24h steps, so DST changes don't skip a day.
+    const day = new Date(now.getFullYear(), now.getMonth(), now.getDate() - offset).getTime();
+    days.push({ day, count: 0, firstIndex: -1 });
+  }
+  const byDay = new Map(days.map((entry) => [entry.day, entry]));
+  feed.forEach((entry, index) => {
+    if (entry.modifiedAt <= 0) return;
+    const day = byDay.get(startOfDay(new Date(entry.modifiedAt)));
+    if (!day) return;
+    day.count++;
+    if (day.firstIndex === -1) day.firstIndex = index;
+  });
+  return days;
+}

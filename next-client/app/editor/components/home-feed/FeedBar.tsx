@@ -24,6 +24,8 @@ interface FeedBarProps {
   onOpenExplorer?: () => void;
   /** While the palette is open its search field holds the shared transition name. */
   isSearchOpen?: boolean;
+  /** The pill's wording; "Search or create a note…" (shortened on small phones) when omitted. */
+  placeholder?: string;
 }
 
 // Floating bar centered under the feed column (thumb reach on mobile, kept
@@ -34,7 +36,7 @@ interface FeedBarProps {
 // The pill is the palette's search field at rest — same classes as
 // PaletteSearchBar and a shared view-transition name, so opening the palette
 // morphs the pill into the field and closing morphs it back.
-export default function FeedBar({ onSearch, onSearchCommands, onNewNote, onOpenExplorer, isSearchOpen = false }: FeedBarProps) {
+export default function FeedBar({ onSearch, onSearchCommands, onNewNote, onOpenExplorer, isSearchOpen = false, placeholder }: FeedBarProps) {
   const keyboardInset = useKeyboardInset();
   return (
     <div
@@ -54,8 +56,12 @@ export default function FeedBar({ onSearch, onSearchCommands, onNewNote, onOpenE
           >
             <HiOutlineSearch size={14} className="shrink-0 text-fg-muted" />
             <span className="flex-1 truncate">
-              <span className="min-[400px]:hidden">{SMALL_PHONE_PLACEHOLDER}</span>
-              <span className="hidden min-[400px]:inline">{SEARCH_OR_CREATE_PLACEHOLDER}</span>
+              {placeholder ?? (
+                <>
+                  <span className="min-[400px]:hidden">{SMALL_PHONE_PLACEHOLDER}</span>
+                  <span className="hidden min-[400px]:inline">{SEARCH_OR_CREATE_PLACEHOLDER}</span>
+                </>
+              )}
             </span>
             <kbd className={SEARCH_KBD_CLASS}>{formatShortcut("K")}</kbd>
           </Button>

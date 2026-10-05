@@ -10,7 +10,7 @@ import {
   EMPTY_DRAFT,
 } from "@/app/atoms/atoms";
 import { atom_fileMetadata } from "@/app/atoms/metadata";
-import { atom_homeFeedOpen } from "@/app/atoms/ui-atoms";
+import { atom_goHome, atom_homeFeedOpen } from "@/app/atoms/ui-atoms";
 import { useCommandPalette, useRegisterCommand } from "@/app/components/CommandPalette/CommandPaletteContext";
 import type { MaterializeDraftOptions } from "./use-materialize-draft";
 import { useHomeFeedUrlSync } from "./use-home-feed-url";
@@ -20,15 +20,20 @@ interface UseHomeFeedOptions {
   openFile: (handle: FileSystemFileHandle, path?: string) => Promise<void>;
   newNote: () => Promise<void>;
   materializeDraft: (paneId?: string, options?: MaterializeDraftOptions) => Promise<string | null>;
+  /** Opens a file from the device into the draft (the no-vault feed's "Open File…"). */
+  importFile: () => Promise<void>;
 }
 
 // Wires the home feed into the editor page: open/close state, row opening,
 // the new-note button, the palette's "Create '…'" row and the "Home feed"
 // command. Opening any file (openFile, from anywhere) closes the feed. The
 // open state is mirrored in the URL as `?view=home` (useHomeFeedUrlSync).
-export function useHomeFeed({ hasVault, openFile, newNote, materializeDraft }: UseHomeFeedOptions) {
+// With no vault open the feed is still reachable; it offers the vault
+// actions and ways to start writing instead of notes.
+export function useHomeFeed({ hasVault, openFile, newNote, materializeDraft, importFile }: UseHomeFeedOptions) {
   const store = useStore();
   const [isOpen, setIsOpen] = useAtom(atom_homeFeedOpen);
+  const goHome = useSetAtom(atom_goHome);
   const openDraft = useSetAtom(atom_openDraft);
   const setPendingScrollTarget = useSetAtom(atom_pendingScrollTarget);
   const { open: openPalette, isOpen: isPaletteOpen, setCreateNote } = useCommandPalette();
@@ -72,22 +77,29 @@ export function useHomeFeed({ hasVault, openFile, newNote, materializeDraft }: U
     return () => setCreateNote(null);
   }, [createNote, hasVault, setCreateNote]);
 
-  useRegisterCommand(hasVault ? {
+  const openDeviceFile = useCallback(async () => {
+    setIsOpen(false);
+    await importFile();
+  }, [importFile, setIsOpen]);
+
+  useRegisterCommand({
     id: "open-home-feed",
     label: "Home feed",
     category: "Navigation",
     keywords: "recent notes feed start home",
-    action: () => setIsOpen(true),
-  } : null);
+    action: () => goHome(),
+  });
 
   return {
-    isHomeFeedOpen: isOpen && hasVault,
+    isHomeFeedOpen: isOpen,
     feedProps: {
       onOpenNote: (path: string) => void openNote(path),
       onNewNote: () => void startNewNote(),
       onSearch: (initialQuery?: string) => openPalette(initialQuery),
       onClose: () => setIsOpen(false),
       isSearchOpen: isPaletteOpen,
+      hasVault,
+      onOpenFile: () => void openDeviceFile(),
     },
   };
 }

@@ -5,7 +5,7 @@ import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { HiChevronRight, HiOutlineDocumentText, HiOutlineHome } from "react-icons/hi";
 import { atom_activeFilePath, atom_activePaneId, atom_openFiles, atom_workspaceLayout, findLeaf, getWorkspaceTabs } from "@/app/atoms/atoms";
 import { VscLayoutSidebarLeft } from "react-icons/vsc";
-import { atom_homeFeedOpen, atom_sidebarOpen, atom_sidebarWidth, SIDEBAR_MAX_WIDTH, SIDEBAR_MIN_WIDTH } from "@/app/atoms/ui-atoms";
+import { atom_goHome, atom_homeFeedOpen, atom_sidebarOpen, atom_sidebarWidth, SIDEBAR_MAX_WIDTH, SIDEBAR_MIN_WIDTH } from "@/app/atoms/ui-atoms";
 import Button from "@/app/components/Button";
 import { useFileSystem } from "@/app/hooks/use-file-system";
 import { useVaultFileSearch } from "../hooks/useVaultFileSearch";
@@ -55,6 +55,7 @@ export default function WorkspaceSidebar() {
   const [activePaneId, setActivePaneId] = useAtom(atom_activePaneId);
   const setActiveFilePath = useSetAtom(atom_activeFilePath);
   const [homeFeedOpen, setHomeFeedOpen] = useAtom(atom_homeFeedOpen);
+  const goHome = useSetAtom(atom_goHome);
   const openFiles = useAtomValue(atom_openFiles);
   const { vaultHandle, openFile, renameFile, deleteFile, duplicateFile, moveItem, createNewFile, createFolder } = useFileSystem();
   const { allFiles, folderPaths } = useVaultFileSearch({ selectedTags: NO_TAGS, panel: "files" });
@@ -117,19 +118,17 @@ export default function WorkspaceSidebar() {
       </div>
 
       <div className="flex-1 min-h-0 overflow-y-auto scrollbar-none px-2 pt-2">
-        {vaultHandle && (
-          <div className="flex flex-col pb-3">
-            <Button
-              variant="unstyled"
-              onClick={() => setHomeFeedOpen(true)}
-              aria-current={homeFeedOpen ? "page" : undefined}
-              className={`${ITEM_CLASS} ${homeFeedOpen ? ITEM_CURRENT_CLASS : ITEM_IDLE_CLASS}`}
-            >
-              <HiOutlineHome size={15} aria-hidden="true" className="shrink-0 opacity-70" />
-              <span className="flex-1 min-w-0 truncate">Home</span>
-            </Button>
-          </div>
-        )}
+        <div className="flex flex-col pb-3">
+          <Button
+            variant="unstyled"
+            onClick={() => goHome()}
+            aria-current={homeFeedOpen ? "page" : undefined}
+            className={`${ITEM_CLASS} ${homeFeedOpen ? ITEM_CURRENT_CLASS : ITEM_IDLE_CLASS}`}
+          >
+            <HiOutlineHome size={15} aria-hidden="true" className="shrink-0 opacity-70" />
+            <span className="flex-1 min-w-0 truncate">Home</span>
+          </Button>
+        </div>
 
         <Section title="Open Notes">
           {tabs.length === 0 ? (

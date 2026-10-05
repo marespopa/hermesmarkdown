@@ -1,14 +1,18 @@
 import React from "react";
-import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { Provider, createStore } from "jotai";
 import { useHydrateAtoms } from "jotai/utils";
 import { atom_fileMetadata, type FileMetadata } from "@/app/atoms/metadata";
 import { atom_privacyLevel } from "@/app/atoms/privacy-atoms";
 import { MASKED_PREVIEW, type PrivacyLevel } from "@/app/utils/note-display";
-import { atom_indexerState, atom_userName, type IndexerState } from "@/app/atoms/ui-atoms";
+import { atom_homeFeedTopRequest, atom_indexerState, atom_userName, type IndexerState } from "@/app/atoms/ui-atoms";
 import HomeFeed from "./HomeFeed";
 import { INDEXING_VERBS, ROTATE_MS } from "./home-feed/FeedStatus";
+
+vi.mock("@/app/hooks/use-file-system", () => ({
+  useFileSystem: () => ({ openVault: vi.fn(), isVaultSupported: true, isBrowserVaultSupported: true }),
+}));
 function meta(path: string, minutesAgo: number, preview = ""): FileMetadata {
   return {
     path,
@@ -122,6 +126,85 @@ describe("HomeFeed", () => {
     expect(rows.length).toBeLessThan(50);
     // Newest first, even when virtualized.
     expect(rows[0]).toHaveTextContent("note-0");
+  });
+
+  it("jumps to a day's first note from the week strip", () => {
+    // Midday, so minute offsets never cross midnight.
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(new Date(2026, 8, 28, 12, 0));
+    // vitest.setup stubs scrollIntoView on HTMLElement.prototype.
+    const scrollIntoView = vi.spyOn(HTMLElement.prototype, "scrollIntoView");
+    try {
+      const twoDaysAgo = 2 * 24 * 60;
+      const { onOpenNote } = renderFeed({
+        "today.md": meta("today.md", 1),
+        "earlier.md": meta("earlier.md", twoDaysAgo, "Earlier body"),
+        "earliest.md": meta("earliest.md", twoDaysAgo + 1),
+      });
+      const strip = screen.getByRole("navigation", { name: "Last 7 days" });
+      const days = within(strip).getAllByRole("button");
+      expect(days).toHaveLength(7);
+      expect(days[6]).toHaveAttribute("aria-current", "date");
+      expect(days[5]).toBeDisabled();
+
+      fireEvent.click(days[4]);
+      expect(days[4]).toHaveAccessibleName(/2 notes$/);
+      expect(scrollIntoView).toHaveBeenCalledWith({ block: "start" });
+      expect(screen.getAllByRole("option")[1]).toHaveAttribute("aria-selected", "true");
+      fireEvent.keyDown(document.body, { key: "Enter" });
+      expect(onOpenNote).toHaveBeenCalledWith("earlier.md");
+    } finally {
+      scrollIntoView.mockRestore();
+      vi.useRealTimers();
+    }
+  });
+
+  it("scrolls back to the top and the newest note when Home is pressed again", () => {
+    const store = createStore();
+    store.set(atom_fileMetadata, NOTES);
+    store.set(atom_homeFeedTopRequest, 3);
+    render(
+      <Provider store={store}>
+        <HomeFeed onOpenNote={vi.fn()} onNewNote={vi.fn()} onSearch={vi.fn()} onClose={vi.fn()} />
+      </Provider>,
+    );
+    const feed = screen.getByTestId("home-feed");
+    // Opening with an earlier request count doesn't scroll.
+    feed.scrollTop = 400;
+    fireEvent.keyDown(window, { key: "j" });
+    expect(feed.scrollTop).toBe(400);
+
+    act(() => store.set(atom_homeFeedTopRequest, 4));
+    expect(feed.scrollTop).toBe(0);
+    expect(screen.getAllByRole("option")[0]).toHaveAttribute("aria-selected", "true");
+  });
+
+  it("offers vault actions and ways to start writing with no vault open", () => {
+    const handlers = { onOpenNote: vi.fn(), onNewNote: vi.fn(), onSearch: vi.fn(), onClose: vi.fn(), onOpenFile: vi.fn(), onOpenExplorer: vi.fn() };
+    render(
+      <Provider>
+        <HomeFeed {...handlers} hasVault={false} />
+      </Provider>,
+    );
+    const start = screen.getByRole("region", { name: "Get started" });
+    expect(within(start).getByText("Open a vault to see your notes here.")).toBeInTheDocument();
+    expect(within(start).getByRole("button", { name: "Open Vault" })).toBeInTheDocument();
+    expect(screen.queryByRole("listbox")).not.toBeInTheDocument();
+    expect(screen.queryByRole("navigation", { name: "Last 7 days" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Open Explorer" })).not.toBeInTheDocument();
+
+    fireEvent.click(within(start).getByRole("button", { name: "New Note" }));
+    expect(handlers.onNewNote).toHaveBeenCalled();
+    fireEvent.click(within(start).getByRole("button", { name: "Open File…" }));
+    expect(handlers.onOpenFile).toHaveBeenCalled();
+    // No notes to search: the pill opens the command list.
+    fireEvent.click(screen.getByRole("button", { name: /Search commands…/ }));
+    expect(handlers.onSearch).toHaveBeenCalledWith(">");
+  });
+
+  it("hides the week strip for an empty vault", () => {
+    renderFeed({});
+    expect(screen.queryByRole("navigation", { name: "Last 7 days" })).not.toBeInTheDocument();
   });
 
   it("greets the user for the time of day, by name when one is set", () => {

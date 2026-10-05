@@ -203,6 +203,7 @@ export default function LiteEditor() {
     openFile,
     newNote: handleNewFile,
     materializeDraft,
+    importFile: handleImport,
   });
 
   const handleNewAIFile = useGenerateAiNote({ vaultHandle, vaultFiles, chooseTargetDirectory, createFile });

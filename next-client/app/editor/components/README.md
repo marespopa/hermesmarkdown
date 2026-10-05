@@ -54,6 +54,7 @@ Index of the editor UI. Each component has a sibling `<Name>.md` (a token-lean d
 | [EditorSkeleton](EditorSkeleton.md) | Shown while the saved vault loads: the home feed with placeholder rows (On vault open → Home), or the workspace outline (sidebar, tab pills, paper panel). |
 | [VaultAccessGate](VaultAccessGate.md) | Wraps every /editor route: restores the saved vault on load and keeps the route hidden until it is readable, with the Restore Access prompt when needed. |
 | [VaultPendingOverlay](VaultPendingOverlay.md) | Prompt shown after reload when the stored vault handle needs the user to grant permission again. |
+| [VaultActionButtons](VaultActionButtons.md) | Open / Create / Browser Vault buttons, shown where no vault is open. |
 | [VaultEmptyState](VaultEmptyState.md) | Empty state of the file views shown when no vault is open. |
 | [VaultFileTree](VaultFileTree.md) | Virtualized file list or folder tree for the vault, with search highlighting, inline rename, a row action menu, and drag-and-drop moves. |
 | [vault-tree/](vault-tree/README.md) | `VaultFileTree` building blocks: tree model, `FileRow`, `FolderRow`, `TreeNodes`. |

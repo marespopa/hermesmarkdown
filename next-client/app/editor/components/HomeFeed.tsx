@@ -1,19 +1,21 @@
 "use client";
 
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useAtomValue } from "jotai";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { atom_fileMetadata } from "@/app/atoms/metadata";
 import { atom_noteDisplayItems } from "@/app/atoms/privacy-atoms";
-import { atom_indexerState, atom_userName } from "@/app/atoms/ui-atoms";
+import { atom_homeFeedTopRequest, atom_indexerState, atom_userName } from "@/app/atoms/ui-atoms";
 import { atom_templatesFolder } from "@/app/atoms/template-atoms";
 import Button from "@/app/components/Button";
 import FeedBar from "./home-feed/FeedBar";
 import FeedHeader from "./home-feed/FeedHeader";
 import FeedRow from "./home-feed/FeedRow";
 import FeedSkeleton from "./home-feed/FeedSkeleton";
+import FeedStart from "./home-feed/FeedStart";
 import FeedStatus from "./home-feed/FeedStatus";
-import { buildFeed } from "./home-feed/feed-model";
+import WeekStrip from "./home-feed/WeekStrip";
+import { buildFeed, buildWeek } from "./home-feed/feed-model";
 
 // Above this many notes only the rows in view (plus overscan) are rendered,
 // however far you scroll. Smaller vaults render every row.
@@ -31,6 +33,10 @@ interface HomeFeedProps {
   onClose: () => void;
   /** Whether the command palette is open (the search pill hands its place to the palette field). */
   isSearchOpen?: boolean;
+  /** False with no vault open: the feed shows vault actions and ways to start writing instead of notes. */
+  hasVault?: boolean;
+  /** Opens a file from the device into the draft (the no-vault "Open File…"). */
+  onOpenFile?: () => void;
 }
 
 function isTypingTarget(target: EventTarget | null) {
@@ -38,10 +44,17 @@ function isTypingTarget(target: EventTarget | null) {
   return !!element?.closest?.("input, textarea, select, [contenteditable='true'], .cm-editor, [role='dialog']");
 }
 
+// Local midnight of a row's day, for the week strip's highlight.
+function activeDay(modifiedAt: number | undefined) {
+  if (!modifiedAt) return null;
+  const date = new Date(modifiedAt);
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime();
+}
+
 // The vault's home screen: recent notes, newest first, in the editor's
 // column. Keyboard: j/k or arrows move, Enter opens, Escape leaves; any
 // other printable key opens the command palette with that key typed.
-export default function HomeFeed({ onOpenNote, onNewNote, onOpenExplorer, onSearch, onClose, isSearchOpen = false }: HomeFeedProps) {
+export default function HomeFeed({ onOpenNote, onNewNote, onOpenExplorer, onSearch, onClose, isSearchOpen = false, hasVault = true, onOpenFile }: HomeFeedProps) {
   const fileMetadata = useAtomValue(atom_fileMetadata);
   const indexerState = useAtomValue(atom_indexerState);
   const userName = useAtomValue(atom_userName);
@@ -53,6 +66,7 @@ export default function HomeFeed({ onOpenNote, onNewNote, onOpenExplorer, onSear
     () => buildFeed(fileMetadata, displayItems, now, templatesFolder),
     [fileMetadata, displayItems, now, templatesFolder],
   );
+  const week = useMemo(() => buildWeek(feed, now), [feed, now]);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const scrollRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
@@ -79,17 +93,39 @@ export default function HomeFeed({ onOpenNote, onNewNote, onOpenExplorer, onSear
     setSelectedIndex((index) => Math.min(index, Math.max(0, feed.length - 1)));
   }, [feed.length]);
 
+  // Home pressed while the feed is open: back to the top (and the newest
+  // note). The first value is the one the feed mounted with, so opening the
+  // feed doesn't scroll.
+  const topRequest = useAtomValue(atom_homeFeedTopRequest);
+  const mountedTopRequest = useRef(topRequest);
+  useEffect(() => {
+    if (topRequest === mountedTopRequest.current) return;
+    mountedTopRequest.current = topRequest;
+    setSelectedIndex(0);
+    const element = scrollRef.current;
+    if (!element) return;
+    const reduceMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    if (element.scrollTo) element.scrollTo({ top: 0, behavior: reduceMotion ? "auto" : "smooth" });
+    else element.scrollTop = 0;
+  }, [topRequest]);
+
   const latest = useRef({ feed, selectedIndex, shouldVirtualize, rowVirtualizer, onOpenNote, onSearch, onClose });
   latest.current = { feed, selectedIndex, shouldVirtualize, rowVirtualizer, onOpenNote, onSearch, onClose };
 
+  // Selects a row and scrolls it into view: "nearest" for j/k steps,
+  // "start" for a week-strip jump (the day's first note at the top).
+  const select = useCallback((index: number, block: "nearest" | "start") => {
+    const { shouldVirtualize: virtual, rowVirtualizer: virtualizer } = latest.current;
+    setSelectedIndex(index);
+    if (virtual) virtualizer.scrollToIndex(index, { align: block === "start" ? "start" : "auto" });
+    else rowRefs.current[index]?.scrollIntoView?.({ block });
+  }, []);
+
   useEffect(() => {
     const move = (delta: number) => {
-      const { feed: rows, selectedIndex: index, shouldVirtualize: virtual, rowVirtualizer: virtualizer } = latest.current;
+      const { feed: rows, selectedIndex: index } = latest.current;
       if (!rows.length) return;
-      const next = Math.min(rows.length - 1, Math.max(0, index + delta));
-      setSelectedIndex(next);
-      if (virtual) virtualizer.scrollToIndex(next, { align: "auto" });
-      else rowRefs.current[next]?.scrollIntoView?.({ block: "nearest" });
+      select(Math.min(rows.length - 1, Math.max(0, index + delta)), "nearest");
     };
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.ctrlKey || event.metaKey || event.altKey || isTypingTarget(event.target)) return;
@@ -113,7 +149,7 @@ export default function HomeFeed({ onOpenNote, onNewNote, onOpenExplorer, onSear
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, []);
+  }, [select]);
 
   const renderRow = (index: number, ref?: (element: HTMLDivElement | null) => void) => {
     const entry = feed[index];
@@ -131,9 +167,20 @@ export default function HomeFeed({ onOpenNote, onNewNote, onOpenExplorer, onSear
   return (
     <div ref={scrollRef} className="relative h-full overflow-y-auto bg-surface" data-testid="home-feed">
       <div className="mx-auto w-full max-w-2xl px-4 pb-40 sm:px-8">
-        <FeedHeader now={now} userName={userName} />
-        {isIndexing && <FeedStatus />}
-        {feed.length === 0 && isIndexing ? (
+        <FeedHeader now={now} userName={userName}>
+          {feed.length > 0 && (
+            <WeekStrip
+              days={week}
+              now={now}
+              activeDay={activeDay(feed[selectedIndex]?.modifiedAt)}
+              onJump={(index) => select(index, "start")}
+            />
+          )}
+        </FeedHeader>
+        {isIndexing && hasVault && <FeedStatus />}
+        {!hasVault ? (
+          <FeedStart onNewNote={onNewNote} onOpenFile={() => onOpenFile?.()} />
+        ) : feed.length === 0 && isIndexing ? (
           <FeedSkeleton />
         ) : feed.length === 0 ? (
           <Button variant="bare" onClick={onNewNote} className="text-ui-body text-fg-muted">
@@ -169,7 +216,15 @@ export default function HomeFeed({ onOpenNote, onNewNote, onOpenExplorer, onSear
           </div>
         )}
       </div>
-      <FeedBar onSearch={() => onSearch()} onSearchCommands={() => onSearch(">")} onNewNote={onNewNote} onOpenExplorer={onOpenExplorer} isSearchOpen={isSearchOpen} />
+      {/* No notes to search without a vault: the pill opens the command list. */}
+      <FeedBar
+        onSearch={() => onSearch(hasVault ? undefined : ">")}
+        onSearchCommands={() => onSearch(">")}
+        onNewNote={onNewNote}
+        onOpenExplorer={hasVault ? onOpenExplorer : undefined}
+        isSearchOpen={isSearchOpen}
+        placeholder={hasVault ? undefined : "Search commands…"}
+      />
     </div>
   );
 }
