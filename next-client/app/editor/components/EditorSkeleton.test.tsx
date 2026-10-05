@@ -27,11 +27,17 @@ describe("EditorSkeleton", () => {
     expect(screen.getByText("Loading your vault…")).toBeInTheDocument();
   });
 
-
   it("outlines the home feed, with today's date, when a vault opens", () => {
     renderSkeleton();
     const weekday = new Date().toLocaleDateString(undefined, { weekday: "long" });
     expect(screen.getByText(weekday)).toBeInTheDocument();
+  });
+
+  it("outlines the vault bar, week strip and note rows on the home feed", () => {
+    renderSkeleton();
+    expect(screen.getByTestId("feed-vault-skeleton")).toBeInTheDocument();
+    expect(screen.getByTestId("week-strip-skeleton")).toBeInTheDocument();
+    expect(screen.getByTestId("feed-skeleton").querySelectorAll("[data-skeleton-row]")).toHaveLength(5);
   });
 
   it("outlines the workspace on a refresh of a tab that was on a note", () => {

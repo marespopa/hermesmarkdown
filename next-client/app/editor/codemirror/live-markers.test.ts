@@ -12,13 +12,15 @@ function stateFor(doc: string, caret?: number) {
 }
 
 // What each decoration does: "hide:<text>" for a hidden range, "bullet:<text>"
-// for a marker drawn as a bullet, "line" for a line decoration.
+// for a marker drawn as a bullet, "indent:<width>" for a list item's widened
+// indent, "line" for a line decoration.
 function markers(doc: string, caret?: number, focused = true): string[] {
   const state = stateFor(doc, caret);
   const set = buildLiveMarkerDecorations(state, [{ from: 0, to: state.doc.length }], focused);
   const out: string[] = [];
   set.between(0, state.doc.length, (from, to, deco) => {
     if (from === to) out.push("line");
+    else if (deco.spec.class === "cm-listIndent") out.push(`indent:${deco.spec.attributes.style}`);
     else out.push(`${deco.spec.widget ? "bullet" : "hide"}:${state.doc.sliceString(from, to)}`);
   });
   return out;
@@ -52,6 +54,18 @@ describe("buildLiveMarkerDecorations", () => {
     expect(markers(doc, 1)).toEqual(["bullet:-"]);
     // Caret in the item's text, past the marker: still a bullet.
     expect(markers(doc, doc.indexOf("two") + 2)).toEqual(["bullet:-", "bullet:-"]);
+  });
+
+  it("widens a nested item's indent whether or not the caret is on it", () => {
+    const doc = "- one\n  - two\n1. first\n   1. second\n\t- tabbed\n\nEnd";
+    const expected = ["indent:width: 1.5em", "indent:width: 2.25em", "indent:width: 3em"];
+    expect(markers(doc, doc.length).filter((m) => m.startsWith("indent"))).toEqual(expected);
+    expect(markers(doc, doc.indexOf("two")).filter((m) => m.startsWith("indent"))).toEqual(expected);
+  });
+
+  it("leaves a quoted list item's prefix alone", () => {
+    const doc = "> - one\n>   - two\n\nEnd";
+    expect(markers(doc, doc.length).some((m) => m.startsWith("indent"))).toBe(false);
   });
 
   it("leaves task items, ordered lists, callouts and code alone", () => {
