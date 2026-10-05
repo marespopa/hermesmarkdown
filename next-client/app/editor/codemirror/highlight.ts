@@ -269,6 +269,9 @@ export function computeMarkdownDecorations(state: EditorState): DecorationSet {
       } else {
         mark(ranges, base, line.to, FADED);
       }
+    } else if (isFrontmatterLine && text.startsWith("#")) {
+      // A YAML comment (templates use them for hints), not a heading.
+      mark(ranges, base, line.to, "cm-frontmatter-comment");
     } else if (text.startsWith("#") && REGEX_HEADING.test(text)) {
       const m = text.match(REGEX_HEADING_PARTS)!;
       const hashes = m[1];

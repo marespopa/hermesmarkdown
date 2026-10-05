@@ -39,6 +39,17 @@ describe("computeMarkdownDecorations", () => {
       && d.class.includes("cm-frontmatter-separator"))).toBe(true);
   });
 
+  it("styles # lines inside frontmatter as YAML comments, not headings", () => {
+    const doc = "---\n# target_folder: notes\n---\n# Title";
+    const decos = decorationsFor(doc);
+    const commentFrom = doc.indexOf("# target");
+    const titleFrom = doc.indexOf("# Title");
+
+    expect(decos.some((d) => d.from === commentFrom && d.class.includes("cm-frontmatter-comment"))).toBe(true);
+    expect(decos.some((d) => d.from === commentFrom && d.class.includes("text-["))).toBe(false);
+    expect(decos.some((d) => d.from === titleFrom && d.class.includes("text-[1.5em]"))).toBe(true);
+  });
+
   it("marks a heading's hashes as faded and its label as bold", () => {
     const doc = "# Hello";
     const decos = decorationsFor(doc);

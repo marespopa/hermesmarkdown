@@ -66,6 +66,10 @@ export const baseTheme = EditorView.theme({
     color: "var(--fg-muted)",
     fontWeight: "400 !important",
   },
+  ".cm-frontmatter-comment": {
+    color: "var(--fg-faint)",
+    fontStyle: "italic",
+  },
   ".cm-frontmatter-separator": {
     color: "var(--fg-faint)",
     opacity: "0.55",
