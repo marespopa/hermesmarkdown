@@ -250,7 +250,7 @@ export const getStartedGroup: Group = {
           </p>
           <p>
             The toolbar at the top shows your open notes as tabs, even when only one is open. On the left:
-            the <strong> Sidebar</strong> button, while the sidebar is hidden. On the right: Save, Edit / Preview, Search (the
+            the <strong> Sidebar</strong> button, while the sidebar is hidden. On the right: Save, Search (the
             command palette) and AI Chat (when an AI key is set). The <strong>&hellip; More</strong> menu holds Copy
             Markdown, Split Right, Settings, Help and Hide Toolbar — every one of them is also in the command palette.
           </p>

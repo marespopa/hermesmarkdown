@@ -14,7 +14,6 @@ import { HiOutlineChevronDown, HiOutlineChatAlt2, HiOutlineHome } from "react-ic
 import { useCommandPalette } from "@/app/components/CommandPalette/CommandPaletteContext";
 import { SaveStateIcon, TabSaveState, statusMeta } from "./PaneTab";
 import Button from "@/app/components/Button";
-import PaneModeSwitch from "./PaneModeSwitch";
 
 interface MobileFileIndicatorProps {
   onSave: () => void;
@@ -93,11 +92,6 @@ export default function MobileFileIndicator({ onSave, onOpenAIChat }: MobileFile
         >
           <SaveStateIcon state={saveState} size={18} />
         </Button>
-      )}
-      {hasOpenFiles && (
-        <div className="shrink-0 pl-2">
-          <PaneModeSwitch iconOnly withTooltip={false} />
-        </div>
       )}
       <Button variant="unstyled"
         onClick={() => openCommandPalette()}

@@ -42,8 +42,6 @@ export function buildWorkspaceTaskViewCommandGroups(context: EditorCommandContex
     themeCycle,
     sidebarOpen,
     toolbarHidden,
-    viewMode,
-    setViewMode,
     vaultHandle,
     wordWrap,
     workspaceLayout,
@@ -159,13 +157,6 @@ export function buildWorkspaceTaskViewCommandGroups(context: EditorCommandContex
       keywords: "sidebar open notes files tree navigation panel",
       shortcut: formatShortcut("S", { alt: true }),
       action: () => setSidebarOpen(!sidebarOpen),
-    },
-    {
-      id: "toggle-preview-mode",
-      label: viewMode === "preview" ? "Back to editing" : "Open in preview",
-      keywords: "preview read reading view edit mode rendered",
-      shortcut: formatShortcut("P", { alt: true }),
-      action: () => setViewMode(viewMode === "preview" ? "edit" : "preview"),
     },
     {
       id: "start-welcome-tour",

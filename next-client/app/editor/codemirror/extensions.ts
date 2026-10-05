@@ -37,7 +37,7 @@ import {
 } from "./table-commands";
 import { frontmatterCollapse } from "./frontmatter-fold";
 import { flowMode } from "./flow-mode";
-import { previewExtension } from "./preview-mode";
+import { liveMarkers } from "./live-markers";
 
 interface BuildExtensionsOptions {
   wordWrap: boolean;
@@ -48,8 +48,6 @@ interface BuildExtensionsOptions {
   vimModeCompartment: Compartment;
   flowMode: boolean;
   flowModeCompartment: Compartment;
-  previewMode: boolean;
-  previewModeCompartment: Compartment;
   onOpenActiveHelperRef: { current: () => boolean };
   placeholder?: string;
   readOnly: boolean;
@@ -70,7 +68,6 @@ export function buildExtensions(opts: BuildExtensionsOptions): Extension[] {
     opts.wordWrapCompartment.of(opts.wordWrap ? EditorView.lineWrapping : []),
     opts.lineNumbersCompartment.of(opts.lineNumbers ? lineNumbers() : []),
     opts.flowModeCompartment.of(opts.flowMode ? flowMode() : []),
-    opts.previewModeCompartment.of(previewExtension(opts.previewMode)),
     history(),
     drawSelection(),
     highlightActiveLine(),
@@ -86,6 +83,7 @@ export function buildExtensions(opts: BuildExtensionsOptions): Extension[] {
     horizontalRuleCursorPlugin,
     tagPillPlugin,
     linkDisplayPlugin,
+    liveMarkers,
     templateFieldPills,
     annotationDisplayPlugin,
     tableDisplayExtension,

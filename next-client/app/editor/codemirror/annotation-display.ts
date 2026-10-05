@@ -1,6 +1,5 @@
 import { EditorSelection, Range } from "@codemirror/state";
 import { Decoration, DecorationSet, EditorView, ViewPlugin, ViewUpdate, WidgetType } from "@codemirror/view";
-import { isPreviewMode, previewModeChanged } from "./preview-facet";
 import {
   REGEX_DATE_DOTTED,
   REGEX_DATE_DUE,
@@ -128,11 +127,10 @@ class AnnotationDisplayWidget extends WidgetType {
 export function buildAnnotationDisplayDecorations(view: EditorView): DecorationSet {
   const ranges: Range<Decoration>[] = [];
   const selection = view.state.selection;
-  const revealUnderSelection = !isPreviewMode(view.state);
 
   for (const match of collectAnnotationDisplayMatches(view.state.doc.toString())) {
     const visible = view.visibleRanges.some((range) => range.from <= match.from && match.to <= range.to);
-    if (!visible || (revealUnderSelection && selectionTouchesAnnotation(selection, match.from, match.to))) continue;
+    if (!visible || selectionTouchesAnnotation(selection, match.from, match.to)) continue;
     ranges.push(Decoration.replace({
       widget: new AnnotationDisplayWidget(match),
       side: 1,
@@ -151,7 +149,7 @@ export const annotationDisplayPlugin = ViewPlugin.fromClass(
     }
 
     update(update: ViewUpdate) {
-      if (update.docChanged || update.selectionSet || update.viewportChanged || previewModeChanged(update)) {
+      if (update.docChanged || update.selectionSet || update.viewportChanged) {
         this.decorations = buildAnnotationDisplayDecorations(update.view);
       }
     }

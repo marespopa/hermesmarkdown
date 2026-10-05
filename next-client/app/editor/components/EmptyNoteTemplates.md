@@ -1,6 +1,6 @@
 # EmptyNoteTemplates
 
-Description: Quick-start pills for an empty note. Rendered by [MarkdownEditor](MarkdownEditor.md) inside the sheet, resting just under the first line, while the note is empty (and isn't a template or in Preview). Each pill has a template icon (`TemplateIcon`) and name; one click fills the note through `useVaultTemplateInsert` (questions are asked as usual) and the text slides in. The pills fade out (150ms) as soon as the note has text, then unmount.
+Description: Quick-start pills for an empty note. Rendered by [MarkdownEditor](MarkdownEditor.md) inside the sheet, resting just under the first line, while the note is empty (and isn't a template). Each pill has a template icon (`TemplateIcon`) and name; one click fills the note through `useVaultTemplateInsert` (questions are asked as usual) and the text slides in. The pills fade out (150ms) as soon as the note has text, then unmount.
 
 ## Logic
 

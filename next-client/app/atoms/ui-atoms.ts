@@ -8,7 +8,10 @@ export type Theme = "light" | "dark" | "system";
 export function clearLegacyPaneModePreference() {
   if (typeof window === "undefined") return;
   try {
+    // Pane modes from older versions: "defaultPaneMode", then the app-wide
+    // Edit / Preview "viewMode". The editor has one mode now.
     window.localStorage.removeItem("defaultPaneMode");
+    window.localStorage.removeItem("viewMode");
   } catch {
     // Ignore storage access failures; the app should still boot in the source editor.
   }
@@ -32,9 +35,6 @@ export const atom_sidebarOpen = atomWithStorage<boolean>("sidebarOpen", false);
 export const SIDEBAR_MIN_WIDTH = 200;
 export const SIDEBAR_MAX_WIDTH = 420;
 export const atom_sidebarWidth = atomWithStorage<number>("sidebarWidth", 256);
-// Edit (source) or Preview (read-only reading view), for every pane and tab.
-export type ViewMode = "edit" | "preview";
-export const atom_viewMode = atomWithStorage<ViewMode>("viewMode", "edit");
 export const MONO_FONT_STACK = "var(--font-ibm-mono), ui-monospace, monospace";
 export const EDITORIAL_FONT_STACK =
   "var(--font-plus-jakarta), ui-sans-serif, sans-serif";

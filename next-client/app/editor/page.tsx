@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import ConflictDialog from "./components/ConflictDialog";
 import { useAtomValue } from "jotai";
-import { atom_fileName, atom_content, atom_activeFilePath, atom_viewMode, atom_workspaceLayout, atom_activePaneId, atom_isFileLoading, atom_isVaultRestoring, findLeaf, getFirstLeaf } from "@/app/atoms/atoms";
+import { atom_fileName, atom_content, atom_activeFilePath, atom_workspaceLayout, atom_activePaneId, atom_isFileLoading, atom_isVaultRestoring, findLeaf, getFirstLeaf } from "@/app/atoms/atoms";
 import useIsMobileChrome from "@/app/hooks/use-mobile-chrome";
 import WelcomeWizard from "./components/WelcomeWizard";
 import NewVaultDialog from "./components/NewVaultDialog";
@@ -56,8 +56,6 @@ export default function LiteEditor() {
   const content = useAtomValue(atom_content);
   const fileName = useAtomValue(atom_fileName);
   const activeFilePath = useAtomValue(atom_activeFilePath);
-  // Preview is read-only: no selection toolbars that edit the text.
-  const isActivePreview = useAtomValue(atom_viewMode) === "preview";
   const workspaceLayout = useAtomValue(atom_workspaceLayout);
   const activePaneId = useAtomValue(atom_activePaneId);
   // No split panes on mobile — always resolve to a single leaf, ignoring
@@ -310,7 +308,7 @@ export default function LiteEditor() {
         </div>
         </div>{/* end MAIN LAYOUT */}
 
-        {isAiConfigured && !isMobileChrome && !isActivePreview && (
+        {isAiConfigured && !isMobileChrome && (
           <AISelectionToolbar
             isAiLoading={aiActions.isAiLoading}
             onAsk={aiActions.openChat}
@@ -345,7 +343,7 @@ export default function LiteEditor() {
 
         {isMobileChrome && (
           <>
-            {!isActivePreview && <MobileSelectionToolbar />}
+            <MobileSelectionToolbar />
             <MobileFileOverlay
               isOpen={isMobileFileOverlayOpen}
               onClose={() => setIsMobileFileOverlayOpen(false)}

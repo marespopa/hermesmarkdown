@@ -3,7 +3,6 @@ import { Decoration, type DecorationSet, EditorView, ViewPlugin, type ViewUpdate
 import { syntaxTree } from "@codemirror/language";
 import { fieldLabel, humanizeBlank } from "@/app/utils/templates/template-fields";
 import { isBlankToken, parseTemplateToken, templateTokenRegex } from "@/app/utils/templates/template-tokens";
-import { isPreviewMode, previewModeChanged } from "./preview-facet";
 import { selectionTouchesLink } from "./link-display";
 
 // Fields read as pills instead of `{{…}}` syntax. In a template note every
@@ -76,13 +75,12 @@ class TemplateFieldWidget extends WidgetType {
 
 function buildDecorations(view: EditorView): DecorationSet {
   const isTemplate = view.state.field(templateNoteField, false) ?? false;
-  const reveal = !isPreviewMode(view.state);
   const ranges: Range<Decoration>[] = [];
   for (const { from, to } of view.visibleRanges) {
     for (const match of collectTemplateFields(view.state.sliceDoc(from, to), { blanksOnly: !isTemplate })) {
       const start = from + match.from;
       const end = from + match.to;
-      if (reveal && selectionTouchesLink(view.state.selection, start, end)) continue;
+      if (selectionTouchesLink(view.state.selection, start, end)) continue;
       if (isInCode(view.state, start)) continue;
       ranges.push(Decoration.replace({ widget: new TemplateFieldWidget(match.label, match.kind) }).range(start, end));
     }
@@ -101,7 +99,7 @@ const templateFieldPillPlugin = ViewPlugin.fromClass(
     update(update: ViewUpdate) {
       const toggled = update.startState.field(templateNoteField, false) !== update.state.field(templateNoteField, false);
       const treeChanged = syntaxTree(update.startState) !== syntaxTree(update.state);
-      if (toggled || treeChanged || update.docChanged || update.selectionSet || update.viewportChanged || previewModeChanged(update)) {
+      if (toggled || treeChanged || update.docChanged || update.selectionSet || update.viewportChanged) {
         this.decorations = buildDecorations(update.view);
       }
     }

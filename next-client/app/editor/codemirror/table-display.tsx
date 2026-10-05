@@ -7,7 +7,6 @@ import { buildTable, handleFor, matchByWrapper, refreshHandles, shapeOf, syncTab
 import { attachCellHandlers, refocusLater } from "./table-cell-handlers";
 import { CELL_ATTR, focusCellElement, focusTableCellAt, getTableHandle, setTableHandle, TABLE_WIDGET_CLASS } from "./table-focus";
 import { type ComputedCell, computeTableFormulas, formulaFileTablesField, setFormulaFileTables } from "./table-formulas";
-import { isPreviewMode } from "./preview-facet";
 
 // Tables are always shown as a rendered grid whose cells are edited in
 // place — the pipe syntax is never visible. The document stays the single
@@ -56,15 +55,12 @@ export function collectTableDisplayMatches(state: EditorState): TableDisplayMatc
 // Escaped pipes are a storage detail: cells show and edit a plain "|".
 
 class TableEditorWidget extends WidgetType {
-  // `readOnly` (Preview mode) draws the same grid without editable cells,
-  // cell handlers, menus or rulers.
-  constructor(private readonly match: TableDisplayMatch, private readonly readOnly = false) {
+  constructor(private readonly match: TableDisplayMatch) {
     super();
   }
 
   eq(other: TableEditorWidget) {
-    return other.readOnly === this.readOnly
-      && other.match.from === this.match.from
+    return other.match.from === this.match.from
       && other.match.source === this.match.source
       && other.match.computedSignature === this.match.computedSignature;
   }
@@ -83,14 +79,6 @@ class TableEditorWidget extends WidgetType {
     scroll.className = "cm-table-preview-scroll";
     scroll.appendChild(buildTable(this.match));
     wrapper.appendChild(scroll);
-    if (this.readOnly) {
-      wrapper.dataset.readOnly = "true";
-      wrapper.setAttribute("aria-label", "Table");
-      for (const cell of wrapper.querySelectorAll<HTMLElement>(`[${CELL_ATTR}]`)) {
-        cell.setAttribute("contenteditable", "false");
-      }
-      return wrapper;
-    }
     setTableHandle(wrapper, handleFor(this.match));
     matchByWrapper.set(wrapper, this.match);
     attachCellHandlers(wrapper, view);
@@ -99,7 +87,7 @@ class TableEditorWidget extends WidgetType {
 
   updateDOM(dom: HTMLElement, view: EditorView) {
     const previous = getTableHandle(dom);
-    if (!previous || this.readOnly || dom.dataset.readOnly === "true") return false;
+    if (!previous) return false;
     if (shapeOf(previous.cells) !== shapeOf(this.match.cells)) {
       // Rows/columns changed: the grid is rebuilt. If that happened under
       // a focused cell without a command re-focusing one (undo/redo of a
@@ -130,7 +118,7 @@ function buildTableDisplayState(state: EditorState): TableDisplayState {
   const matches = collectTableDisplayMatches(state);
   const ranges: Range<Decoration>[] = matches.map((match) =>
     Decoration.replace({
-      widget: new TableEditorWidget(match, isPreviewMode(state)),
+      widget: new TableEditorWidget(match),
       block: true,
       inclusive: true,
     }).range(match.from, match.to),
@@ -148,7 +136,6 @@ export const tableDisplayField = StateField.define<TableDisplayState>({
       !transaction.docChanged
       && syntaxTree(transaction.startState) === syntaxTree(transaction.state)
       && !transaction.effects.some((effect) => effect.is(setFormulaFileTables))
-      && isPreviewMode(transaction.startState) === isPreviewMode(transaction.state)
     ) {
       return value;
     }

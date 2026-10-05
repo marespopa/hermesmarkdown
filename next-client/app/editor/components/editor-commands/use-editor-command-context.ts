@@ -40,7 +40,6 @@ import {
   atom_showHiddenFiles,
   atom_tasksGroupBy,
   atom_theme,
-  atom_viewMode,
 } from "@/app/atoms/ui-atoms";
 import { useDialog } from "@/app/hooks/use-dialog";
 import { useFileSystem } from "@/app/hooks/use-file-system";
@@ -120,7 +119,6 @@ export function useEditorCommandContext(props: EditorCommandsProps) {
   const [flowMode, setFlowMode] = useAtom(atom_flowMode);
   const [toolbarHidden, setToolbarHidden] = useAtom(atom_toolbarHidden);
   const [sidebarOpen, setSidebarOpen] = useAtom(atom_sidebarOpen);
-  const [viewMode, setViewMode] = useAtom(atom_viewMode);
   const [, setTasksGroupBy] = useAtom(atom_tasksGroupBy);
   const [, setTaskSearchQuery] = useAtom(atom_taskSearchQuery);
   const [, setTaskTagFilter] = useAtom(atom_taskTagFilter);
@@ -191,8 +189,6 @@ export function useEditorCommandContext(props: EditorCommandsProps) {
     setToolbarHidden,
     sidebarOpen,
     setSidebarOpen,
-    viewMode,
-    setViewMode,
     setTasksGroupBy,
     setTaskSearchQuery,
     setTaskTagFilter,

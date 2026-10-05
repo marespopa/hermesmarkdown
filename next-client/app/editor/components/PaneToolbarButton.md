@@ -1,6 +1,6 @@
 # PaneToolbarButton
 
-Description: One toolbar button in the pane header: an icon only. The tooltip names it (with its shortcut), portaled to `document.body` so the pane's clipping can't cut it off. Hover, keyboard focus and the pressed / open state (`active`) share the look of the Edit / Preview switch's selected segment — a raised surface pill with a soft shadow and hairline ring (`PANE_ACTION_ACTIVE_CLASS`); keyboard focus adds a hairline accent ring. It uses Button's `unstyled` variant so these classes own every state. Forwards its ref (the More menu anchors to it) and any button attributes (`aria-pressed`, `aria-haspopup`, …); `aria-label` defaults to the label.
+Description: One toolbar button in the pane header: an icon only. The tooltip names it (with its shortcut), portaled to `document.body` so the pane's clipping can't cut it off. Hover, keyboard focus and the pressed / open state (`active`) share one look — a raised surface pill with a soft shadow and hairline ring (`PANE_ACTION_ACTIVE_CLASS`); keyboard focus adds a hairline accent ring. It uses Button's `unstyled` variant so these classes own every state. Forwards its ref (the More menu anchors to it) and any button attributes (`aria-pressed`, `aria-haspopup`, …); `aria-label` defaults to the label.
 
 ## Local State & Storage
 - State: None.

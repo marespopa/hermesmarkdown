@@ -1,6 +1,6 @@
 # TemplateStrip
 
-Description: One quiet line at the top of a template note (a direct `.md` child of the templates folder), rendered by [MarkdownEditor](MarkdownEditor.md) above the text and hidden in Preview. It lets someone author a template without knowing its file format: **Editing template: Name · New notes go in [folder ▾] · + Add field**, plus plain-language warnings from `lintTemplate()` (the same ones AI Chat's save card shows). Nothing is shown below the line when there are no warnings.
+Description: One quiet line at the top of a template note (a direct `.md` child of the templates folder), rendered by [MarkdownEditor](MarkdownEditor.md) above the text. It lets someone author a template without knowing its file format: **Editing template: Name · New notes go in [folder ▾] · + Add field**, plus plain-language warnings from `lintTemplate()` (the same ones AI Chat's save card shows). Nothing is shown below the line when there are no warnings.
 
 ## Props
 

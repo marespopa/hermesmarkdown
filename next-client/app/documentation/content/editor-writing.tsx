@@ -95,31 +95,25 @@ export const editorWritingItems: Subsection[] = [
     ),
   },
   {
-    id: "preview-mode",
-    title: "Edit and Preview",
-    lead: "Switch a note to Preview to read it without Markdown syntax, then switch back to keep writing.",
-    keywords: "preview read reading view edit mode switch rendered read-only",
+    id: "markdown-marks",
+    title: "Markdown marks",
+    lead: "Notes read like a page: Markdown marks appear only where you're editing.",
+    keywords: "markdown syntax hidden marks bold italic strikethrough heading quote bullet list live preview",
     body: (
       <>
         <p>
-          Use the <strong>Edit | Preview</strong> switch in the tab bar (or the top bar on mobile),
-          press <code>Ctrl/Cmd+Alt+P</code>, or run <strong>Open in preview</strong> from the command
-          palette. The mode applies to every note and pane, and is remembered after a reload.
+          Bold, italic, strikethrough and inline-code marks are hidden until the caret touches the
+          text they wrap. A heading&apos;s <code>#</code> and a quote&apos;s <code>&gt;</code> show
+          while the caret is on their line, and list dashes read as bullets until you click on them.
         </p>
         <KV
           rows={[
-            { label: "Syntax", value: "Heading marks, emphasis markers, quote markers and code fences are hidden" },
-            { label: "Frontmatter", value: "Shown as a properties grid, with tags as pills (collapsed, it stays one Properties row)" },
-            { label: "Checklists", value: "Checkboxes still toggle" },
-            { label: "Links", value: "A plain click opens links and wikilinks" },
-            { label: "Typing", value: "Disabled until you switch back to Edit" },
-            { label: "Double-click", value: "Switches back to Edit, with the caret where you clicked" },
+            { label: "**bold**, *italic*, ~~strike~~, `code`", value: "Marks show while the caret is inside" },
+            { label: "# Heading, > Quote", value: "Marks show while the caret is on the line" },
+            { label: "- List item", value: "Shown as • until the caret touches the dash" },
+            { label: "Other editor", value: "A split pane you're not typing in shows no marks" },
           ]}
         />
-        <Callout type="note">
-          Preview only changes how the note looks. Leaving it keeps your place and puts the caret
-          at the top of what you were reading.
-        </Callout>
       </>
     ),
   },
@@ -235,7 +229,7 @@ rent + utilities + 15%    = 1587`}</Code>
           <code>a == b</code> or <code>a &gt;= b</code> never define a value.
         </p>
         <p>
-          Results show in Edit and Preview, are rounded to four decimals, and have no thousands
+          Results are rounded to four decimals and have no thousands
           separator. If a line can&apos;t be worked out, for example because it uses a name that
           isn&apos;t defined above it, it simply shows no result.
         </p>
@@ -325,7 +319,7 @@ graph TD
           wikilinks.
         </p>
         <p>
-          <code>CTRL+Click</code> a wikilink to open the note (a plain click in Preview). A link to
+          <code>CTRL+Click</code> a wikilink to open the note. A link to
           a note that doesn&apos;t exist yet creates it, after you confirm or pick a template; see{" "}
           <a href="#templates" className="text-sage font-semibold hover:underline">Templates</a>.
         </p>

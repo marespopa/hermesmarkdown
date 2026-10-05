@@ -10,7 +10,7 @@ import { TEMPLATE_STARTERS } from "@/app/utils/templates/template-starter";
 import type { TemplateSource } from "../hooks/use-vault-template-insert";
 
 interface EmptyNoteTemplatesProps {
-  /** True while the note is empty (and not a template or in Preview). */
+  /** True while the note is empty (and not a template). */
   isEmpty: boolean;
   /** Fills the note from a template or a starter. */
   onPick: (source: TemplateEntry | TemplateSource) => void;

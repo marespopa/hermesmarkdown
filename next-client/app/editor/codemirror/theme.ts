@@ -32,7 +32,7 @@ export const baseTheme = EditorView.theme({
     padding: 0,
   },
   // The caret's line, faintly tinted — only in the focused editor, so an
-  // unfocused split pane stays clean, and never in Preview (no caret) or on
+  // unfocused split pane stays clean, and never on
   // frontmatter (it has its own tint). Lines carry no padding, so the tint is
   // widened past the text by side shadows rather than layout-changing padding.
   // CodeMirror's own active-line color (a light blue) is turned off
@@ -41,7 +41,7 @@ export const baseTheme = EditorView.theme({
   ".cm-activeLine": {
     backgroundColor: "transparent !important",
   },
-  "&.cm-focused .cm-content:not([data-mode=preview]) .cm-activeLine:not(.cm-frontmatter-line)": {
+  "&.cm-focused .cm-activeLine:not(.cm-frontmatter-line)": {
     backgroundColor: "var(--active-line-bg) !important",
     boxShadow: "-0.5em 0 0 var(--active-line-bg), 0.5em 0 0 var(--active-line-bg)",
   },
@@ -86,13 +86,9 @@ export const baseTheme = EditorView.theme({
   // (`--sheet-pad-top`, set on the sheet). A blank line after the closing
   // `---` already gives about that; text right after it gets this spacer
   // block instead — a block of its own, not padding on the text's line, so
-  // the active-line tint doesn't stretch over the gap. Preview's grid has
-  // its own margin.
+  // the active-line tint doesn't stretch over the gap.
   ".cm-frontmatter-spacer": {
     height: "var(--sheet-pad-top, 1.5rem)",
-  },
-  ".cm-content[data-mode=preview] .cm-frontmatter-spacer": {
-    display: "none",
   },
   ".cm-frontmatter-line:hover, .cm-frontmatter-line:focus-within": {
     backgroundColor: "var(--frontmatter-bg-hover)",
@@ -183,12 +179,19 @@ export const baseTheme = EditorView.theme({
   // The frontmatter's header row, low contrast until hovered. Collapsed it is
   // the whole block ("▸ Properties · title, tags") above the first content
   // line: a small label, not a block, so it sits close to the text below.
-  // Expanded ("▾ Properties") it sits right above the YAML.
+  // Expanded ("▾ Properties") it is the top row of the YAML's panel: same
+  // tint and inset, the panel's top corners, and the first YAML line's
+  // corners squared off to join it.
   ".cm-frontmatterCollapsed": {
     paddingBottom: "0.5em",
   },
   ".cm-frontmatterHeader": {
-    paddingBottom: "0.25em",
+    backgroundColor: "var(--frontmatter-bg)",
+    borderRadius: "0.55rem 0.55rem 0 0",
+    padding: "0.3rem 0.55rem 0",
+  },
+  ".cm-frontmatterHeader + .cm-frontmatter-line.cm-frontmatter-start": {
+    borderRadius: "0",
   },
   ".cm-frontmatterHeader .cm-frontmatter-summary-chevron": {
     transform: "rotate(90deg)",

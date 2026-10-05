@@ -4,7 +4,6 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import type { EditorView } from "@codemirror/view";
 import { EditorSelection } from "@codemirror/state";
 import { findLinkAtPos } from "../utils/link-detection";
-import { isPreviewMode } from "../codemirror/preview-facet";
 import { findDateAtPos } from "../utils/date-detection";
 import { REGEX_TODO_TAGS, REGEX_TODO_STATUS_TAGS, REGEX_CHECKBOX } from "../components/regex";
 import { TAG_CYCLE, TAG_CYCLE_PREV, TODO_CYCLE, TODO_CYCLE_PREV } from "../components/constants";
@@ -91,14 +90,6 @@ export function useCodeMirrorFeatures({ viewRef, containerRef, onWikiLinkClick }
   }, []);
 
   const runDetection = useCallback((view: EditorView) => {
-    // Preview is read-only: no edit pills or pickers.
-    if (isPreviewMode(view.state)) {
-      setLinkPill(null);
-      setDateMatch(null);
-      setWorkflowMatch(null);
-      setTodoMatch(null);
-      return;
-    }
     const sel = view.state.selection.main;
     const value = view.state.doc.toString();
     const pos = sel.head;
@@ -178,14 +169,13 @@ export function useCodeMirrorFeatures({ viewRef, containerRef, onWikiLinkClick }
     if (debounceRef.current) clearTimeout(debounceRef.current);
   }, []);
 
-  // Ctrl/Cmd+click opens a URL link or navigates a wikilink; in Preview a
-  // plain click does.
+  // Ctrl/Cmd+click opens a URL link or navigates a wikilink.
   useEffect(() => {
     const view = viewRef.current;
     if (!view) return;
     const dom = view.dom;
     const handleMouseDown = (e: MouseEvent) => {
-      if (!e.ctrlKey && !e.metaKey && !(e.button === 0 && isPreviewMode(view.state))) return;
+      if (!e.ctrlKey && !e.metaKey) return;
       const pos = view.posAtCoords({ x: e.clientX, y: e.clientY });
       if (pos == null) return;
       const link = findLinkAtPos(view.state.doc.toString(), pos);

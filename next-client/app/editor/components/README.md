@@ -37,7 +37,6 @@ Index of the editor UI. Each component has a sibling `<Name>.md` (a token-lean d
 | [SensitiveNoteGate](SensitiveNoteGate.md) | Wraps a pane's editor: shows `SensitiveNoteVeil` instead of mounting it until a sensitive note is revealed (per note or for the session). |
 | [SensitiveNoteVeil](SensitiveNoteVeil.md) | The veil over a sensitive note: lock, title, **Show note** and **Show all sensitive notes this session**. |
 | [PaneEmptyState](PaneEmptyState.md) | Empty-pane actions: new file (blank draft), open note or file, vault actions. |
-| [PaneModeSwitch](PaneModeSwitch.md) | App-wide Edit / Preview switch. |
 | [PaneToolbarButton](PaneToolbarButton.md) | Icon-only toolbar button with a tooltip. |
 | [PaneWindowActions](PaneWindowActions.md) | Window-wide toolbar sections (Mode, Tools, More menu), shown once in the top-right pane. |
 | [PaneTab](PaneTab.md) | Draggable file tab with a leading close button, unsaved-changes dot, and shortcut hint; exports `SaveStateIcon`. |

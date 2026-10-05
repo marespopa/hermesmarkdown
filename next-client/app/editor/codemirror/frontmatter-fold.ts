@@ -43,8 +43,8 @@ export function findFrontmatterFoldRange(doc: string): FrontmatterFoldRange | nu
 }
 
 // Top-level keys of a frontmatter block, in order (`title`, `tags`, …). Read
-// with the shared frontmatter parser, so the summary row and Preview's grid
-// always list the same keys.
+// with the shared frontmatter parser, so the summary row always lists
+// the same keys as other readers.
 export function frontmatterKeys(doc: string): string[] {
   return Object.keys(parseFmFields(doc));
 }
@@ -215,10 +215,9 @@ const frontmatterCollapseField = StateField.define<CollapseState>({
 // default applied as a file opens.
 const instantToggle = Annotation.define<boolean>();
 
-// What appears under the header row: the keys on collapse, the YAML (or
-// Preview's grid) on expand. The row itself stays put, so it doesn't fade.
+// What appears under the header row: the keys on collapse, the YAML on expand. The row itself stays put, so it doesn't fade.
 const FADE_SELECTOR =
-  ".cm-frontmatter-summary-keys, .cm-frontmatter-line, .cm-frontmatter-spacer, .cm-previewProperties";
+  ".cm-frontmatter-summary-keys, .cm-frontmatter-line, .cm-frontmatter-spacer";
 
 // Collapsing swaps the YAML lines for the summary row (and back) in one
 // frame, so there are no two heights to transition between; instead what
