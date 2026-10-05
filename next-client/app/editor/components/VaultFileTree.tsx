@@ -95,8 +95,18 @@ export default function VaultFileTree({
     overscan: 12,
   });
 
+  // Reveal the active file once per change of active file. The list itself
+  // changes constantly in a large vault (scanning, indexing, the file
+  // watcher); re-revealing on each of those yanked the user's scroll back
+  // to the active file. A file not listed yet (still scanning) is revealed
+  // when it first appears.
+  const revealedPathRef = useRef<string | null>(null);
   useEffect(() => {
-    if (!activeFilePath) return;
+    if (!activeFilePath) {
+      revealedPathRef.current = null;
+      return;
+    }
+    if (revealedPathRef.current === activeFilePath) return;
     const index = processedFiles.findIndex((entry) => {
       const entryPath = getEntryPath(entry);
       return entryPath ? entryPath === activeFilePath : activeFilePath.split("/").pop() === entry.name;
@@ -105,19 +115,23 @@ export default function VaultFileTree({
 
     if (shouldVirtualize) {
       rowVirtualizer.scrollToIndex(index, { align: "auto" });
-    } else {
-      scrollToPath(activeFilePath);
+      revealedPathRef.current = activeFilePath;
+    } else if (scrollToPath(activeFilePath)) {
+      revealedPathRef.current = activeFilePath;
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeFilePath, shouldVirtualize, processedFiles]);
 
-  function scrollToPath(path: string) {
+  // Whether the row was found (a row inside a collapsed folder isn't rendered).
+  function scrollToPath(path: string): boolean {
     const container = scrollRef.current;
-    if (!container) return;
+    if (!container) return false;
     const el = container.querySelector<HTMLElement>(
       `[data-path="${CSS.escape(path)}"]`,
     );
-    if (el) el.scrollIntoView({ block: "nearest", behavior: "smooth" });
+    if (!el) return false;
+    el.scrollIntoView({ block: "nearest", behavior: "smooth" });
+    return true;
   }
 
   const emptyStateMessage = isSearchActive ? "No file found" : "No files yet";

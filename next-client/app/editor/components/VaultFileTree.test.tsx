@@ -255,4 +255,25 @@ describe("VaultFileTree tree interactions", () => {
       expect(props.renameFile).toHaveBeenCalledWith(folderHandle, undefined, "Folder");
     });
   });
+
+  it("reveals the active file once, not again each time the file list refreshes", () => {
+    const scrollIntoView = vi.fn();
+    Element.prototype.scrollIntoView = scrollIntoView;
+    const other = { kind: "file", name: "other.md" } as FileSystemFileHandle;
+    const files = [{ name: "note.md", path: "note.md", handle: fileHandle }];
+    const { props, store, rerender } = renderFiles({ activeFilePath: "note.md", processedFiles: files });
+    expect(scrollIntoView).toHaveBeenCalledTimes(1);
+
+    // A large vault's scan and file watcher hand over a new list again and again.
+    const refreshed = [...files, { name: "other.md", path: "other.md", handle: other }];
+    const renderWith = (overrides: Partial<React.ComponentProps<typeof VaultFileTree>>) =>
+      rerender(<Provider store={store}><VaultFileTree {...props} {...overrides} /></Provider>);
+    renderWith({ activeFilePath: "note.md", processedFiles: refreshed });
+    renderWith({ activeFilePath: "note.md", processedFiles: [...refreshed] });
+    expect(scrollIntoView).toHaveBeenCalledTimes(1);
+
+    // Opening another note still reveals it.
+    renderWith({ activeFilePath: "other.md", processedFiles: [...refreshed] });
+    expect(scrollIntoView).toHaveBeenCalledTimes(2);
+  });
 });
