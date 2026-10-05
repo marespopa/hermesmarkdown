@@ -45,8 +45,9 @@ describe("TEMPLATE_STARTERS", () => {
     expect(lintTemplate(body)).toEqual([]);
     const { routing, content } = splitTemplate(body);
     expect(routing).toEqual({});
-    expect(body).not.toMatch(/^# (?!\{\{title\}\})/m);
-    expect(content).toContain("# {{title}}");
+    // Its one `# ` line is the heading (a field), never a comment.
+    expect(body).not.toMatch(/^# (?!\{\{)/m);
+    expect(content).toMatch(/^# \{\{/m);
   });
 
   it("asks the Spec author once and copies its metadata into notes", () => {
@@ -54,5 +55,15 @@ describe("TEMPLATE_STARTERS", () => {
     const { content } = splitTemplate(spec.body);
     expect(extractPromptLabels(content)).toEqual(["Author"]);
     expect(content).toMatch(/^---\nauthor: \{\{prompt:Author\}\}\nstatus: Draft\n/);
+  });
+});
+
+describe("Journal starter", () => {
+  it("heads the page with today's date and puts the caret below it", () => {
+    const journal = TEMPLATE_STARTERS.find((s) => s.name === "Journal")!;
+    const expanded = expandTemplate(journal.body, { now: new Date(2026, 9, 5), title: "x", clipboard: "", prompts: {} });
+    expect(expanded.text.startsWith("# Monday, 5 October\n\n")).toBe(true);
+    expect(expanded.cursor).toBe("# Monday, 5 October\n\n".length);
+    expect(extractPromptLabels(journal.body)).toEqual([]);
   });
 });

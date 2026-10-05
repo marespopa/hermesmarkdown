@@ -68,6 +68,18 @@ const SPEC = [
   "",
 ].join("\n");
 
+// A dated page: today as the heading, the caret ready to write, and one
+// gentle closing prompt.
+const JOURNAL = [
+  "# {{date:dddd, D MMMM}}",
+  "",
+  "{{cursor}}",
+  "",
+  "## Grateful for",
+  "- ",
+  "",
+].join("\n");
+
 const REPORT = [
   ...frontmatter(["author: {{prompt:Author}}", "date: {{date}}"]),
   "# {{title}}",
@@ -86,6 +98,7 @@ const REPORT = [
 
 export const TEMPLATE_STARTERS: TemplateStarter[] = [
   { name: "Basic", suggestedName: "", description: "Title, date, one prompt", body: TEMPLATE_STARTER },
+  { name: "Journal", suggestedName: "Journal", description: "Today's date, free writing, grateful for", body: JOURNAL },
   { name: "Meeting notes", suggestedName: "Meeting notes", description: "Agenda, decisions, action items", body: MEETING_NOTES },
   { name: "Spec", suggestedName: "Spec", description: "Author, status, summary, design", body: SPEC },
   { name: "Report", suggestedName: "Report", description: "Summary, findings, next steps", body: REPORT },

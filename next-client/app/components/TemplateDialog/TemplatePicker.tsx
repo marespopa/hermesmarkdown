@@ -47,9 +47,11 @@ const SHORTCUT_COUNT = 9;
 // Searchable list of vault templates or starters (plus "Blank note" first
 // when asked). Each row has an icon, the name and a muted summary (the
 // entry's description, else its structure, else its path). With `bodies`,
-// a read-only preview of the highlighted template sits beside the list (from
-// 640px). ↑/↓ move, Enter picks, ⌘/Ctrl+1…9 pick a row directly, Esc cancels.
-// With `onEdit`, each template row has an Edit button (and ⌘/Ctrl+E).
+// a read-only preview of the selected template sits beside the list (under
+// it below 640px): a click selects a row to preview it, and **Use template**,
+// a double-click, Enter or ⌘/Ctrl+1…9 use it. Without `bodies`, a click uses
+// the row directly. ↑/↓ move, Esc cancels. With `onEdit`, each template row
+// has an Edit button (and ⌘/Ctrl+E).
 export default function TemplatePicker<T extends TemplatePickerEntry>({
   isOpen,
   title,
@@ -166,8 +168,8 @@ export default function TemplatePicker<T extends TemplatePickerEntry>({
                     aria-selected={index === highlight}
                     tabIndex={-1}
                     title={row.kind === "template" ? row.entry.path : undefined}
-                    onClick={() => pick(row)}
-                    onMouseEnter={() => setHighlight(index)}
+                    onClick={() => (showPreview ? setHighlight(index) : pick(row))}
+                    onDoubleClick={() => showPreview && pick(row)}
                     className={`min-h-11 text-left ${onEdit && row.kind === "template" ? "pr-12" : ""} ${
                       index === highlight ? "bg-paper-softgray dark:bg-paper-dark-surface" : ""
                     }`}
@@ -210,7 +212,7 @@ export default function TemplatePicker<T extends TemplatePickerEntry>({
                 ))}
               </div>
               {showPreview && (
-                <div className="hidden max-h-80 sm:block">
+                <div className="max-h-48 sm:max-h-80">
                   {highlighted?.kind === "template" ? (
                     <TemplatePreview raw={bodies?.[pickerEntryKey(highlighted.entry)] ?? null} name={highlighted.entry.name} />
                   ) : (
@@ -223,9 +225,21 @@ export default function TemplatePicker<T extends TemplatePickerEntry>({
             </div>
           </>
         )}
-        <Button variant="secondary" onClick={onCancel} className="w-full">
-          Cancel
-        </Button>
+        <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+          <Button variant="secondary" onClick={onCancel} className={showPreview ? "w-full sm:w-auto" : "w-full"}>
+            Cancel
+          </Button>
+          {showPreview && (
+            <Button
+              variant="primary"
+              onClick={() => pick(highlighted)}
+              isDisabled={!highlighted}
+              className="w-full sm:w-auto"
+            >
+              {highlighted?.kind === "blank" ? `Use ${BLANK_NOTE_LABEL.toLowerCase()}` : "Use template"}
+            </Button>
+          )}
+        </div>
       </div>
     </DialogModal>
   );

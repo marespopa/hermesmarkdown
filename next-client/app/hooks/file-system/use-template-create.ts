@@ -17,6 +17,7 @@ import {
   parseMissingLink,
   sanitizeNoteName,
   sanitizeTemplateFileName,
+  type TemplateEntry,
 } from "@/app/utils/templates/template-registry";
 import { offsetToLineColumn, type ExpandedTemplate } from "@/app/utils/templates/template-tokens";
 
@@ -207,5 +208,40 @@ export function useTemplateCreate({ scanVault, indexVaultTags, openFile }: UseTe
     });
   }, [store, dialog, pickStarter, openFile, writeNewNote]);
 
-  return { writeNewNote, createNoteFromMissingLink, createNoteFromTemplate, createTemplate };
+  // The WikiLink dialog's "From template": creates the linked note from
+  // `entry` and returns its link path (no `.md`), or null. The name decides the
+  // note's name and, with a folder in it, the folder; otherwise the template's
+  // target_folder, else the New Notes folder. A clash gets ` (1)`, and the
+  // link follows. The note isn't opened, like "Create and link".
+  const createLinkedNoteFromTemplate = useCallback(async (name: string, entry: TemplateEntry): Promise<string | null> => {
+    const vaultHandle = store.get(atom_vaultHandle);
+    if (!vaultHandle) return null;
+    const parsed = parseMissingLink(name);
+    if (!parsed) {
+      toast.error(`Can't create a note named "${name.trim()}"`);
+      return null;
+    }
+    const raw = await readOrReport(entry);
+    if (raw === null) return null;
+    const result = await instantiate(raw, parsed.baseName, "Create");
+    if (!result) return null;
+    const folder = parsed.folder
+      ?? (normalizeFolderPath(result.routing.targetFolder ?? "") || normalizeFolderPath(store.get(atom_newNoteFolder)));
+    try {
+      const dir = await ensureVaultFolder(vaultHandle, folder);
+      const { handle, fileName } = await createUniqueFile(dir, parsed.baseName);
+      // Never a 0-byte file: Google Drive hangs syncing those.
+      await withRetry(() => writeFileContent(handle, result.expanded.text || "\n"));
+      await scanVault(vaultHandle);
+      await indexVaultTags();
+      const path = joinPath(folder, fileName);
+      toast.success(`Created: ${path}`);
+      return path.replace(/\.md$/, "");
+    } catch (err) {
+      reportCreateError(err);
+      return null;
+    }
+  }, [store, readOrReport, instantiate, scanVault, indexVaultTags]);
+
+  return { writeNewNote, createNoteFromMissingLink, createNoteFromTemplate, createTemplate, createLinkedNoteFromTemplate };
 }

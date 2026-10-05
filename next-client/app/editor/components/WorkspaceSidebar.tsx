@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useCallback, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
-import { HiChevronRight, HiOutlineDocumentText, HiOutlineHome } from "react-icons/hi";
+import { HiChevronRight, HiOutlineDocumentAdd, HiOutlineDocumentText, HiOutlineDotsVertical, HiOutlineFolderAdd, HiOutlineHome } from "react-icons/hi";
 import { atom_activeFilePath, atom_activePaneId, atom_openFiles, atom_workspaceLayout, findLeaf, getWorkspaceTabs } from "@/app/atoms/atoms";
 import { VscLayoutSidebarLeft } from "react-icons/vsc";
 import { atom_goHome, atom_homeFeedOpen, atom_sidebarOpen, atom_sidebarWidth, SIDEBAR_MAX_WIDTH, SIDEBAR_MIN_WIDTH } from "@/app/atoms/ui-atoms";
@@ -21,23 +21,90 @@ const ITEM_CLASS = "flex items-center gap-2 h-7 px-2 rounded-md text-ui-footnote
 const ITEM_CURRENT_CLASS = "bg-surface-raised text-ink-light dark:text-ink-dark font-medium";
 const ITEM_IDLE_CLASS = "text-fg-muted hover:bg-black/5 dark:hover:bg-white/10 hover:text-fg";
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
+interface SectionMenuItem {
+  label: string;
+  icon: React.ReactNode;
+  onSelect: () => void;
+}
+
+// A section header's ⋯ menu (same look as a folder row's menu in the tree).
+function SectionMenu({ label, items }: { label: string; items: SectionMenuItem[] }) {
+  const [position, setPosition] = useState<{ top: number; left: number } | null>(null);
+  useEffect(() => {
+    if (!position) return;
+    const onKey = (event: KeyboardEvent) => { if (event.key === "Escape") setPosition(null); };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [position]);
+
+  return (
+    <>
+      <Button
+        variant="unstyled"
+        aria-label={label}
+        aria-haspopup="menu"
+        aria-expanded={!!position}
+        title={label}
+        onClick={(event) => {
+          const rect = event.currentTarget.getBoundingClientRect();
+          setPosition(position ? null : { top: rect.bottom + 4, left: rect.left });
+        }}
+        className="shrink-0 inline-flex items-center justify-center w-6 h-6 mr-1 rounded-md text-fg-faint hover:text-fg hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
+      >
+        <HiOutlineDotsVertical size={14} aria-hidden="true" />
+      </Button>
+      {position && (
+        <>
+          <div className="fixed inset-0 z-40" onClick={() => setPosition(null)} />
+          <div
+            role="menu"
+            aria-label={label}
+            className="fixed z-50 bg-paper-light dark:bg-paper-dark backdrop-blur-xl border border-edge-subtle rounded-xl py-1 min-w-[160px] animate-in fade-in zoom-in-95 slide-in-from-top-2 duration-200 ease-out"
+            style={position}
+          >
+            {items.map((item) => (
+              <Button
+                key={item.label}
+                variant="menu-item"
+                role="menuitem"
+                onClick={() => {
+                  setPosition(null);
+                  item.onSelect();
+                }}
+                className="w-full flex items-center gap-3 px-4 py-2.5 text-ui-footnote font-medium hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
+              >
+                {item.icon}
+                {item.label}
+              </Button>
+            ))}
+          </div>
+        </>
+      )}
+    </>
+  );
+}
+
+function Section({ title, menu, children }: { title: string; menu?: SectionMenuItem[]; children: React.ReactNode }) {
   const [expanded, setExpanded] = useState(true);
   return (
     <section aria-label={title} className="flex flex-col">
-      <Button
-        variant="unstyled"
-        onClick={() => setExpanded(!expanded)}
-        aria-expanded={expanded}
-        className="group flex items-center gap-1 h-7 px-2 rounded-md text-[11px] font-semibold text-fg-faint hover:text-fg-muted select-none"
-      >
-        <span className="flex-1 text-left">{title}</span>
-        <HiChevronRight
-          size={12}
-          aria-hidden="true"
-          className={`opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100 transition-[opacity,transform] ${expanded ? "rotate-90" : ""}`}
-        />
-      </Button>
+      <div className="flex items-center">
+        <Button
+          variant="unstyled"
+          onClick={() => setExpanded(!expanded)}
+          aria-expanded={expanded}
+          className="flex flex-1 min-w-0 items-center gap-1 h-7 px-2 rounded-md text-[11px] font-semibold text-fg-faint hover:text-fg-muted select-none"
+        >
+          {/* Disclosure chevron, always shown, as in a file explorer. */}
+          <HiChevronRight
+            size={12}
+            aria-hidden="true"
+            className={`shrink-0 transition-transform duration-150 ${expanded ? "rotate-90" : ""}`}
+          />
+          <span className="flex-1 text-left">{title}</span>
+        </Button>
+        {menu && <SectionMenu label={`${title} options`} items={menu} />}
+      </div>
       {expanded && <div className="flex flex-col gap-px pb-3">{children}</div>}
     </section>
   );
@@ -77,6 +144,12 @@ export default function WorkspaceSidebar() {
     }
     return dir;
   }, [vaultHandle]);
+
+  // The tree shows no root row, so the Files ⋯ menu creates at the vault's
+  // root; a folder's own menu creates inside it.
+  const createAtRoot = (create: (dir: FileSystemDirectoryHandle) => unknown) => {
+    if (vaultHandle) void create(vaultHandle);
+  };
 
   const dragRef = useRef<{ startX: number; startWidth: number } | null>(null);
   const handlePointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
@@ -162,7 +235,13 @@ export default function WorkspaceSidebar() {
         </Section>
 
         {vaultHandle && (
-          <Section title="Files">
+          <Section
+            title="Files"
+            menu={[
+              { label: "New File", icon: <HiOutlineDocumentAdd size={14} className="opacity-80" />, onSelect: () => createAtRoot(createNewFile) },
+              { label: "New Folder", icon: <HiOutlineFolderAdd size={14} className="opacity-80" />, onSelect: () => createAtRoot(createFolder) },
+            ]}
+          >
             <VaultFileTree
               processedFiles={allFiles}
               activeFilePath={activeTabPath}

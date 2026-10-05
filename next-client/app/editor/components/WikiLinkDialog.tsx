@@ -7,12 +7,17 @@ import DialogModal from "../../components/DialogModal/DialogModal";
 import Button from "../../components/Button";
 import Input from "../../components/Input";
 import { HiOutlineDocumentText } from "react-icons/hi";
+import { atom_templates } from "@/app/atoms/template-atoms";
+import TemplateIcon from "@/app/components/TemplateDialog/TemplateIcon";
+import { matchTemplateForName, type TemplateEntry } from "@/app/utils/templates/template-registry";
 
 interface WikiLinkDialogProps {
   isOpen: boolean;
   onClose: () => void;
   onConfirm: (fileName: string) => void;
   onCreateAndConfirm?: (fileName: string) => Promise<string | null>;
+  /** "From template": creates the note from a template; resolves its link path or null. */
+  onCreateFromTemplate?: (name: string, template: TemplateEntry) => Promise<string | null>;
   initialValue?: string;
   title?: string;
 }
@@ -29,11 +34,24 @@ export default function WikiLinkDialog({
   onClose,
   onConfirm,
   onCreateAndConfirm,
+  onCreateFromTemplate,
   initialValue = "",
   title = "Edit WikiLink",
 }: WikiLinkDialogProps) {
   const fileMetadata = useAtomValue(atom_fileMetadata);
-  const [mode, setMode] = useState<"existing" | "new">("existing");
+  const templates = useAtomValue(atom_templates);
+  const [mode, setMode] = useState<"existing" | "new" | "template">("existing");
+  const [templateNoteName, setTemplateNoteName] = useState("");
+  // A template picked by hand; until then the name's match is preselected.
+  const [pickedTemplatePath, setPickedTemplatePath] = useState<string | null>(null);
+  const showTemplateTab = !!onCreateFromTemplate && templates.length > 0;
+  const suggestedTemplate = useMemo(
+    () => matchTemplateForName(templateNoteName, templates),
+    [templateNoteName, templates],
+  );
+  const selectedTemplate = pickedTemplatePath
+    ? templates.find((t) => t.path === pickedTemplatePath) ?? null
+    : suggestedTemplate;
   const [search, setSearch] = useState("");
   const [newFileName, setNewFileName] = useState("");
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -86,6 +104,8 @@ export default function WikiLinkDialog({
     if (isOpen) {
       setSearch(initialValue);
       setNewFileName("");
+      setTemplateNoteName("");
+      setPickedTemplatePath(null);
       setMode("existing");
       setIsCreating(false);
     }
@@ -101,6 +121,24 @@ export default function WikiLinkDialog({
     } finally {
       setIsCreating(false);
     }
+  };
+
+  const handleCreateFromTemplate = async () => {
+    const name = templateNoteName.trim();
+    if (!name || !selectedTemplate || !onCreateFromTemplate || isCreating) return;
+    setIsCreating(true);
+    try {
+      const path = await onCreateFromTemplate(name, selectedTemplate);
+      if (path) onConfirm(path);
+    } finally {
+      setIsCreating(false);
+    }
+  };
+
+  // Switching to "From template" carries over the name typed so far.
+  const openTemplateMode = () => {
+    if (!templateNoteName) setTemplateNoteName(newFileName.trim() || search.trim());
+    setMode("template");
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -152,7 +190,7 @@ export default function WikiLinkDialog({
 
         {onCreateAndConfirm && (
           <div
-            className="grid grid-cols-2 rounded-xl bg-paper-softgray p-1 dark:bg-paper-dark-surface"
+            className={`grid ${showTemplateTab ? "grid-cols-3" : "grid-cols-2"} rounded-xl bg-paper-softgray p-1 dark:bg-paper-dark-surface`}
             role="tablist"
             aria-label="WikiLink target type"
           >
@@ -180,6 +218,20 @@ export default function WikiLinkDialog({
             >
               New note
             </Button>
+            {showTemplateTab && (
+              <Button variant="unstyled"
+                role="tab"
+                aria-selected={mode === "template"}
+                onClick={openTemplateMode}
+                className={`rounded-lg px-3 py-2 text-ui-footnote font-medium transition-colors ${
+                  mode === "template"
+                    ? "bg-white text-ink-light shadow-sm dark:bg-paper-dark dark:text-ink-dark"
+                    : "text-ink-muted dark:text-stone"
+                }`}
+              >
+                From template
+              </Button>
+            )}
           </div>
         )}
 
@@ -231,6 +283,60 @@ export default function WikiLinkDialog({
               )}
             </div>
           </>
+        ) : mode === "template" ? (
+          <div className="flex flex-col gap-2">
+            <Input
+              name="wiki-template-note-name"
+              label="New note name"
+              value={templateNoteName}
+              handleChange={(e) => setTemplateNoteName(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  void handleCreateFromTemplate();
+                }
+              }}
+              placeholder="e.g. Meeting notes 2026-10-05"
+              className="my-0"
+              autoFocus
+            />
+            <div role="radiogroup" aria-label="Template" className="flex max-h-48 flex-col gap-0.5 overflow-y-auto">
+              {templates.map((template) => {
+                const isSelected = selectedTemplate?.path === template.path;
+                return (
+                  <Button
+                    key={template.path}
+                    variant="unstyled"
+                    role="radio"
+                    aria-checked={isSelected}
+                    onClick={() => setPickedTemplatePath(template.path)}
+                    className={`flex min-h-10 items-center gap-3 rounded-xl px-3 text-left text-ui-footnote transition-colors ${
+                      isSelected
+                        ? "bg-paper-softgray text-ink-light dark:bg-paper-dark-surface dark:text-ink-dark"
+                        : "text-ink-muted hover:bg-paper-softgray dark:text-stone dark:hover:bg-paper-dark-surface/50"
+                    }`}
+                  >
+                    <TemplateIcon name={template.name} />
+                    <span className="flex-1 truncate font-medium">{template.name}</span>
+                    {suggestedTemplate?.path === template.path && (
+                      <span className="shrink-0 text-[10px] font-medium uppercase tracking-wide text-fg-faint">Suggested</span>
+                    )}
+                  </Button>
+                );
+              })}
+            </div>
+            <p className="text-[11px] text-ink-muted dark:text-stone">
+              The note goes in the folder from its name or the template, else your New Notes folder.
+            </p>
+            <Button
+              variant="primary"
+              onClick={() => { void handleCreateFromTemplate(); }}
+              isDisabled={!templateNoteName.trim() || !selectedTemplate || isCreating}
+              className="w-full"
+            >
+              {isCreating ? "Creating..." : "Create from template and link"}
+            </Button>
+          </div>
         ) : (
           <div className="flex flex-col gap-2">
             <Input

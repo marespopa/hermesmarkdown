@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   suggestTemplateName,
+  matchTemplateForName,
   isTemplatePath,
   listTemplates,
   matchTemplateForFolder,
@@ -133,5 +134,32 @@ describe("suggestTemplateName", () => {
   it("falls back to the note title", () => {
     expect(suggestTemplateName("No heading", " Standup ")).toBe("Standup");
     expect(suggestTemplateName("# {{title}}", "Standup")).toBe("Standup");
+  });
+});
+
+describe("matchTemplateForName", () => {
+  const t = (name: string) => ({ name, path: `templates/${name}.md` });
+  const templates = [t("Meeting notes"), t("Meeting"), t("rfc"), t("Journal"), t("Spec")];
+  const match = (name: string) => matchTemplateForName(name, templates)?.name ?? null;
+
+  it("matches by folder, as for missing links", () => {
+    expect(match("rfcs/auth")).toBe("rfc");
+  });
+
+  it("matches a template that starts the name, longest first", () => {
+    expect(match("Meeting notes 2026-10-05")).toBe("Meeting notes");
+    expect(match("meeting-standup")).toBe("Meeting");
+    expect(match("rfc-auth")).toBe("rfc");
+    expect(match("Specs for login")).toBe("Spec");
+  });
+
+  it("matches a journal-like template for a date name", () => {
+    expect(match("2026-10-05")).toBe("Journal");
+  });
+
+  it("returns null when nothing fits", () => {
+    expect(match("Groceries")).toBeNull();
+    expect(match("my meeting")).toBeNull();
+    expect(matchTemplateForName("x", [])).toBeNull();
   });
 });

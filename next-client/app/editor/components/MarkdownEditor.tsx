@@ -83,7 +83,7 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const viewRef = useRef<EditorView | null>(null);
 
-  const { createWikiLinkFile, vaultHandle, saveAsTemplate } = useFileSystem();
+  const { createWikiLinkFile, vaultHandle, saveAsTemplate, createLinkedNoteFromTemplate } = useFileSystem();
   const insertVaultTemplate = useVaultTemplateInsert({ viewRef, filePath });
   const insertTemplate = useCallback(() => { void insertVaultTemplate(); }, [insertVaultTemplate]);
   const { isTemplateNote, insertTemplateField, askTemplateQuestion, saveNoteAsTemplate } = useTemplateNote({
@@ -357,6 +357,7 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
             onClose={() => setWikiLinkDialogOpen(false)}
             onConfirm={insertWikiLink}
             onCreateAndConfirm={createWikiLinkFile}
+            onCreateFromTemplate={vaultHandle ? createLinkedNoteFromTemplate : undefined}
             title="Insert WikiLink"
           />
 

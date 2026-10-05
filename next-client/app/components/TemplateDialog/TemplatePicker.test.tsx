@@ -97,6 +97,26 @@ describe("TemplatePicker", () => {
     expect(onPick).not.toHaveBeenCalled();
   });
 
+  it("with a preview, a click selects and previews; Use template or a double-click uses it", () => {
+    const bodies = { "templates/meeting.md": "# Meeting", "templates/rfc.md": "# RFC body" };
+    const { onPick } = renderPicker({ bodies });
+    fireEvent.click(screen.getByText("rfc"));
+    expect(onPick).not.toHaveBeenCalled();
+    expect(screen.getByLabelText("Preview of rfc")).toHaveTextContent("RFC body");
+    expect(screen.getAllByRole("option")[1]).toHaveAttribute("aria-selected", "true");
+
+    fireEvent.click(screen.getByRole("button", { name: "Use template" }));
+    expect(onPick).toHaveBeenCalledWith(templates[1]);
+
+    fireEvent.doubleClick(screen.getByText("meeting"));
+    expect(onPick).toHaveBeenLastCalledWith(templates[0]);
+  });
+
+  it("has no Use button without a preview, where a click uses the row", () => {
+    renderPicker();
+    expect(screen.queryByRole("button", { name: "Use template" })).not.toBeInTheDocument();
+  });
+
   it("has no preview pane without bodies", () => {
     renderPicker();
     expect(screen.queryByLabelText(/^Preview of/)).not.toBeInTheDocument();

@@ -367,3 +367,39 @@ describe("{{clipboard}}", () => {
     expect(readText).not.toHaveBeenCalled();
   });
 });
+
+describe("createLinkedNoteFromTemplate", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    localStorage.clear();
+    askPrompts.mockResolvedValue({ Owner: "Ana" });
+  });
+  const rfc = { name: "rfc", path: "templates/rfc.md" };
+
+  it("creates the note in the template's target folder and returns its link path, without opening it", async () => {
+    const { root, props, flows } = await setup();
+    let path: string | null = null;
+    await act(async () => { path = await flows.createLinkedNoteFromTemplate("Auth", rfc); });
+    expect(path).toBe("docs/rfcs/Auth");
+    expect(root.at("docs/rfcs/Auth.md")?.content).toBe("# Auth\nOwner: Ana\n\n");
+    expect(props.openFile).not.toHaveBeenCalled();
+    expect(props.scanVault).toHaveBeenCalled();
+  });
+
+  it("uses the folder in the name over the template's", async () => {
+    const { root, flows } = await setup();
+    let path: string | null = null;
+    await act(async () => { path = await flows.createLinkedNoteFromTemplate("specs/Auth", rfc); });
+    expect(path).toBe("specs/Auth");
+    expect(root.at("specs/Auth.md")).toBeDefined();
+  });
+
+  it("creates nothing when the questions are cancelled", async () => {
+    askPrompts.mockResolvedValue(null);
+    const { flows } = await setup();
+    let path: string | null = "x";
+    await act(async () => { path = await flows.createLinkedNoteFromTemplate("Auth", rfc); });
+    expect(path).toBeNull();
+    expect(writeFileContent).not.toHaveBeenCalled();
+  });
+});

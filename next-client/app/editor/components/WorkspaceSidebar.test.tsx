@@ -7,7 +7,11 @@ import { atom_activePaneId, atom_openFiles, atom_workspaceLayout } from "@/app/a
 import { atom_homeFeedOpen, atom_homeFeedTopRequest, atom_sidebarOpen } from "@/app/atoms/ui-atoms";
 import WorkspaceSidebar from "./WorkspaceSidebar";
 
-const fileSystem = vi.hoisted(() => ({ vaultHandle: null as unknown }));
+const fileSystem = vi.hoisted(() => ({
+  vaultHandle: null as unknown,
+  createNewFile: vi.fn(),
+  createFolder: vi.fn(),
+}));
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: vi.fn() }),
@@ -22,8 +26,8 @@ vi.mock("@/app/hooks/use-file-system", () => ({
     deleteFile: vi.fn(),
     duplicateFile: vi.fn(),
     moveItem: vi.fn(),
-    createNewFile: vi.fn(),
-    createFolder: vi.fn(),
+    createNewFile: fileSystem.createNewFile,
+    createFolder: fileSystem.createFolder,
   }),
 }));
 
@@ -131,6 +135,33 @@ describe("WorkspaceSidebar", () => {
     fileSystem.vaultHandle = { name: "vault" };
     renderSidebar();
     expect(screen.getByTestId("file-tree")).toBeInTheDocument();
+  });
+
+  it("creates a file or folder at the vault's root from the Files ⋯ menu", () => {
+    const vault = { name: "Notes" };
+    fileSystem.vaultHandle = vault;
+    renderSidebar(true, false);
+    fireEvent.click(screen.getByRole("button", { name: "Files options" }));
+    fireEvent.click(screen.getByRole("menuitem", { name: "New File" }));
+    expect(fileSystem.createNewFile).toHaveBeenCalledWith(vault);
+    expect(screen.queryByRole("menu")).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Files options" }));
+    fireEvent.click(screen.getByRole("menuitem", { name: "New Folder" }));
+    expect(fileSystem.createFolder).toHaveBeenCalledWith(vault);
+  });
+
+  it("closes the Files menu on Escape", () => {
+    fileSystem.vaultHandle = { name: "Notes" };
+    renderSidebar(true, false);
+    fireEvent.click(screen.getByRole("button", { name: "Files options" }));
+    fireEvent.keyDown(window, { key: "Escape" });
+    expect(screen.queryByRole("menu")).not.toBeInTheDocument();
+  });
+
+  it("has no Files menu without a vault, and none on Open Notes", () => {
+    renderSidebar();
+    expect(screen.queryByRole("button", { name: /options$/ })).not.toBeInTheDocument();
   });
 
   it("collapses a section from its header", () => {

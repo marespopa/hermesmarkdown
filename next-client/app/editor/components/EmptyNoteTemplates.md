@@ -4,7 +4,7 @@ Description: Quick-start pills for an empty note. Rendered by [MarkdownEditor](M
 
 ## Logic
 
-- Sources: the vault's templates (`atom_templates`), at most four, plus **More…** (the full template picker) when there are more and a vault is open. Without vault templates, the starters that make sense as notes (`TEMPLATE_STARTERS` minus Basic), so a fresh vault still gets Meeting notes, Spec and Report.
+- Sources: the vault's templates (`atom_templates`), at most four, plus **More…** (the full template picker) when there are more and a vault is open. Without vault templates, the starters that make sense as notes (`TEMPLATE_STARTERS` minus Basic), so a fresh vault still gets Journal, Meeting notes, Spec and Report.
 - Motion: `.template-quick-pills` in `globals.scss` (rise-in on `data-state="open"`, fade on `"closed"`, `--ease-spring`; none with reduced motion).
 - Touch targets are 44px high on mobile, 36px from 640px.
 

@@ -33,7 +33,7 @@ const pillNames = () => screen.getAllByRole("button").map((b) => b.textContent);
 describe("EmptyNoteTemplates", () => {
   it("offers the starters when the vault has no templates", () => {
     renderPills();
-    expect(pillNames()).toEqual(["Meeting notes", "Spec", "Report"]);
+    expect(pillNames()).toEqual(["Journal", "Meeting notes", "Spec", "Report"]);
   });
 
   it("offers vault templates, at most four, with More… for the rest", () => {

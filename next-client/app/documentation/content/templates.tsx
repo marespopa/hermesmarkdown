@@ -18,6 +18,7 @@ export const templatesItems: Subsection[] = [
         </p>
         <ul>
           <li><strong>Basic</strong>: a title, today&apos;s date and one question.</li>
+          <li><strong>Journal</strong>: today&apos;s date as the heading, room to write, and what you&apos;re grateful for.</li>
           <li><strong>Meeting notes</strong>: agenda, decisions, action items, open questions, next steps.</li>
           <li><strong>Spec</strong>: author, status and version, then summary, objective, prerequisites, design, open questions and references.</li>
           <li><strong>Report</strong>: summary, findings, next steps and notes.</li>
@@ -88,8 +89,14 @@ export const templatesItems: Subsection[] = [
           <li>
             <strong><code>/template</code></strong> in a note: inserts a template where you&apos;re
             typing. The list shows what each template contains (like &quot;3 sections • Action
-            items&quot;) and a preview of the highlighted one. Press ⌘1–⌘9 (Ctrl+1–9) to pick one
-            straight away.
+            items&quot;) and a preview: click a template to see it, then press <strong>Use template</strong>{" "}
+            (or double-click it). Press ⌘1–⌘9 (Ctrl+1–9) to use one straight away.
+          </li>
+          <li>
+            <strong>Adding a link</strong> (<code>[[</code> or the WikiLink dialog): the{" "}
+            <strong>From template</strong> tab creates the linked note from a template. The
+            template its name points to is picked for you, so &quot;Meeting notes 2026-10-05&quot;
+            suggests Meeting notes and a date suggests your journal.
           </li>
           <li>
             <strong>Clicking a link to a note that doesn&apos;t exist yet</strong>, like{" "}

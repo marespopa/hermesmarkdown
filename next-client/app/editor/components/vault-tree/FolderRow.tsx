@@ -2,7 +2,7 @@
 
 import Button from "@/app/components/Button";
 import { useEffect, useRef, useState } from "react";
-import { HiFolder, HiOutlineDotsVertical, HiOutlinePencil, HiOutlineTrash } from "react-icons/hi";
+import { HiFolder, HiOutlineDocumentAdd, HiOutlineDotsVertical, HiOutlineFolderAdd, HiOutlinePencil, HiOutlineTrash } from "react-icons/hi";
 import { IoCaretForward } from "react-icons/io5";
 import { LIST_INDENT_PX } from "./FileRow";
 import { ListColumns } from "./list-columns";
@@ -185,6 +185,7 @@ export function FolderRow({
                 }}
                 className="w-full flex items-center gap-3 px-4 py-2.5 text-ui-footnote font-medium hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
               >
+                <HiOutlineDocumentAdd size={14} className="opacity-80" />
                 New File
               </Button>
             )}
@@ -200,6 +201,7 @@ export function FolderRow({
                 }}
                 className="w-full flex items-center gap-3 px-4 py-2.5 text-ui-footnote font-medium hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
               >
+                <HiOutlineFolderAdd size={14} className="opacity-80" />
                 New Folder
               </Button>
             )}
