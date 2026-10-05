@@ -10,6 +10,13 @@ import { useTemplateNotes } from "@/app/hooks/file-system/use-template-notes";
 import { noteDisplayTitle } from "@/app/utils/note-display";
 import { templateBody } from "@/app/utils/templates/template-frontmatter";
 import type { ExpandedTemplate } from "@/app/utils/templates/template-tokens";
+import type { TemplateEntry } from "@/app/utils/templates/template-registry";
+
+/** A template's text in hand (a starter), instead of a vault file. */
+export interface TemplateSource {
+  name: string;
+  body: string;
+}
 import { insertExpandedTemplate } from "../codemirror/slash-menu";
 
 interface UseVaultTemplateInsertOptions {
@@ -28,18 +35,23 @@ function bodyOnly({ text, cursor }: ExpandedTemplate): ExpandedTemplate {
 
 // `/template` in the slash menu: pick a vault template, answer its prompts,
 // then insert it at the caret. An empty note gets the whole template
-// (non-routing frontmatter included); otherwise only the body.
+// (non-routing frontmatter included); otherwise only the body. Called with a
+// template (the empty-note quick pills), it skips the picker. Selected text
+// fills `{{selection}}` and the template replaces it.
 export function useVaultTemplateInsert({ viewRef, filePath }: UseVaultTemplateInsertOptions) {
   const store = useStore();
   const { pickTemplate } = useTemplateDialog();
   const { readTemplate, instantiate } = useTemplateNotes();
 
-  return useCallback(async () => {
-    const chosen = await pickTemplate({ includeBlank: false, title: "Insert template" });
+  return useCallback(async (source?: TemplateEntry | TemplateSource) => {
+    // Selected text fills `{{selection}}` and is replaced by the template.
+    const before = viewRef.current;
+    const selection = before ? before.state.sliceDoc(before.state.selection.main.from, before.state.selection.main.to) : "";
+    const chosen = source ?? await pickTemplate({ includeBlank: false, title: "Insert template" });
     if (!chosen || chosen === "blank") return;
     let raw: string;
     try {
-      raw = await readTemplate(chosen);
+      raw = "body" in chosen ? chosen.body : await readTemplate(chosen);
     } catch (err: any) {
       console.warn("Failed to read template:", err?.message || err);
       toast.error(`Couldn't read template ${chosen.name}`);
@@ -47,7 +59,7 @@ export function useVaultTemplateInsert({ viewRef, filePath }: UseVaultTemplateIn
     }
     const meta = filePath === "draft" ? undefined : store.get(atom_fileMetadata)[filePath];
     const title = meta ? noteDisplayTitle(meta, false) : "";
-    const result = await instantiate(raw, title, "Insert");
+    const result = await instantiate(raw, title, "Insert", selection);
     if (!result) return;
     // The tab may have been switched or closed while the dialogs were open.
     const view = viewRef.current;

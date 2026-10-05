@@ -7,6 +7,7 @@ import {
   resolveTemplatesFolder,
   type TemplateEntry,
 } from "@/app/utils/templates/template-registry";
+import type { TemplateStarter } from "@/app/utils/templates/template-starter";
 
 // Settings → Files → Templates Folder, keyed by vault (see atom_vaultKey).
 // A missing key means "use the default folders".
@@ -28,7 +29,7 @@ export const atom_templates = atom<TemplateEntry[]>((get) =>
   listTemplates(get(atom_templatesFolder).folder, Object.keys(get(atom_fileMetadata))),
 );
 
-// The open template picker or prompts form (ephemeral). Resolving with null
+// The open template picker, starter picker ("New template…") or prompts form (ephemeral). Resolving with null
 // cancels the whole action.
 export type TemplateDialogRequest =
   | {
@@ -36,6 +37,10 @@ export type TemplateDialogRequest =
       includeBlank: boolean;
       title: string;
       resolve: (value: TemplateEntry | "blank" | null) => void;
+    }
+  | {
+      kind: "starter";
+      resolve: (value: TemplateStarter | null) => void;
     }
   | {
       kind: "prompts";

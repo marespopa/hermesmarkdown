@@ -3,6 +3,7 @@ import { atomWithStorage } from "jotai/utils";
 import { atomFamily } from "jotai-family";
 import { atom_workspaceLayout, atom_activePaneId } from "./workspace-atoms";
 import { findLeaf, getFirstLeaf, updateLeaf } from "./utils";
+import { forgetClosedFiles, tabsToEvict, touchRecent } from "./tab-limit";
 import { PanelLeaf } from "../types/workspace";
 
 // File contents & metadata
@@ -125,6 +126,7 @@ export const atom_activeFilePath = atom(
       const updates: Partial<PanelLeaf> = {
         activeFilePath: newValue || undefined,
       };
+      let evicted: string[] = [];
 
       if (newValue && !leaf.openFilePaths.includes(newValue)) {
         // If we are opening a file while currently in a "draft", replace the draft tab
@@ -133,14 +135,20 @@ export const atom_activeFilePath = atom(
             p === "draft" ? newValue : p,
           );
         } else {
-          updates.openFilePaths = [...leaf.openFilePaths, newValue];
+          // At the pane's tab limit, the least recently viewed notes close (tab-limit.ts).
+          evicted = tabsToEvict(leaf.openFilePaths, leaf.recentFilePaths, newValue, get(atom_openFiles));
+          updates.openFilePaths = [...leaf.openFilePaths.filter((p) => !evicted.includes(p)), newValue];
         }
       }
+      if (newValue) {
+        updates.recentFilePaths = touchRecent(leaf.recentFilePaths, newValue, updates.openFilePaths ?? leaf.openFilePaths);
+      }
 
-      set(atom_workspaceLayout, {
-        ...layout,
-        rootContainer: updateLeaf(layout.rootContainer, activePaneId, updates),
-      });
+      const rootContainer = updateLeaf(layout.rootContainer, activePaneId, updates);
+      set(atom_workspaceLayout, { ...layout, rootContainer });
+      if (evicted.length > 0) {
+        set(atom_openFiles, (prev) => forgetClosedFiles(prev, rootContainer, evicted));
+      }
     }
   },
 );

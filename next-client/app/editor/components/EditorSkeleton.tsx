@@ -2,10 +2,11 @@
 
 import React, { useEffect, useState } from "react";
 import { useAtomValue } from "jotai";
-import { atom_onVaultOpen, atom_sidebarOpen, atom_sidebarWidth, atom_userName, atom_vaultOpenBehaviorAppliedFor } from "@/app/atoms/ui-atoms";
+import { atom_sidebarOpen, atom_sidebarWidth, atom_userName, atom_vaultOpenBehaviorAppliedFor } from "@/app/atoms/ui-atoms";
 import { PANE_HEADER_CLASS, PANE_HEADER_HEIGHT } from "./pane-header-classes";
 import FeedHeader from "./home-feed/FeedHeader";
 import FeedSkeleton from "./home-feed/FeedSkeleton";
+import { NO_VAULT_KEY } from "../hooks/use-vault-open-behavior";
 
 // One placeholder shape. Static black / white so the opacity modifier works
 // (the var-backed tokens drop it); pulses only when motion is allowed.
@@ -51,21 +52,20 @@ function HomeFeedSkeleton() {
   );
 }
 
-// What the editor will show, outlined while the saved vault loads. With
-// "On vault open" set to Home, the home feed (no sidebar, as on the real
-// feed) — unless this is a refresh of a tab that already opened the vault
-// and wasn't on the feed, which lands back in the workspace. Otherwise the workspace: sidebar (desktop, when it's open), pane
+// What the editor will show, outlined while the saved vault loads: the home
+// feed (no sidebar, as on the real feed) — unless this is a refresh of a tab
+// that already opened the vault and wasn't on the feed, which lands back in
+// the workspace: sidebar (desktop, when it's open), pane
 // header with tab pills, and the paper panel with a title and a few
 // paragraphs of placeholder lines. Both mirror the real layout's classes
 // (`PANE_HEADER_CLASS`, `.editor-canvas`, `.editor-sheet`) so the page
 // appears in place with no jump.
 export default function EditorSkeleton() {
-  const onVaultOpen = useAtomValue(atom_onVaultOpen);
   const appliedFor = useAtomValue(atom_vaultOpenBehaviorAppliedFor);
   // Read after mount: sessionStorage and the URL don't exist on the server.
   const [isRefreshInWorkspace, setIsRefreshInWorkspace] = useState(false);
   useEffect(() => {
-    setIsRefreshInWorkspace(appliedFor !== null && new URLSearchParams(window.location.search).get("view") !== "home");
+    setIsRefreshInWorkspace(appliedFor !== null && appliedFor !== NO_VAULT_KEY && new URLSearchParams(window.location.search).get("view") !== "home");
   }, [appliedFor]);
   const sidebarOpen = useAtomValue(atom_sidebarOpen);
   const sidebarWidth = useAtomValue(atom_sidebarWidth);
@@ -73,7 +73,7 @@ export default function EditorSkeleton() {
   return (
     <div role="status" aria-label="Loading vault" className="fixed inset-0 z-40 flex bg-chrome select-none">
       <span className="sr-only">Loading your vault…</span>
-      {onVaultOpen === "home" && !isRefreshInWorkspace ? <HomeFeedSkeleton /> : <WorkspaceSkeleton sidebarOpen={sidebarOpen} sidebarWidth={sidebarWidth} />}
+      {!isRefreshInWorkspace ? <HomeFeedSkeleton /> : <WorkspaceSkeleton sidebarOpen={sidebarOpen} sidebarWidth={sidebarWidth} />}
     </div>
   );
 }

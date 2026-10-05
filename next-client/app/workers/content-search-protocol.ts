@@ -28,6 +28,7 @@ export interface ContentFile {
 export type ContentRequest =
   | { type: "content:index"; files: ContentFile[] }
   | { type: "content:remove"; paths: string[] }
+  | { type: "content:clear" }
   | { type: "content:remap"; oldPath: string; newPath: string }
   | { type: "content:search"; searchId: number; query: string; paths: string[]; limit: number };
 

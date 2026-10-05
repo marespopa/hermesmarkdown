@@ -185,14 +185,32 @@ export const getStartedGroup: Group = {
       id: "home-feed",
       title: "Home feed",
       lead: "Your recent notes, newest first. It's where a vault opens.",
-      keywords: "home feed recent notes start screen today yesterday preview search create new note welcome",
+      keywords: "home feed recent notes pin pinned unpin start screen today yesterday preview search create new note welcome week strip calendar days jump no vault open vault create vault browser vault open file",
       body: (
         <>
           <p>
-            Each row shows a note's title and the first few lines of its text. The column on the
+            Each row shows a note's title, the first few lines of its text and its file name. The column on the
             left groups notes by the day they were last changed: <em>Today</em>,{" "}
             <em>Yesterday</em>, the weekday for the rest of the week, then the date. If you entered
             your name during setup, the feed greets you with it.
+          </p>
+          <p>
+            To keep a note at the top, hover its row and click the pin. On a phone or tablet,
+            touch and hold the row, then choose <strong>Pin to Home</strong>; right-clicking a row
+            opens the same menu. You can also open the note and run <strong>Pin to Home</strong>{" "}
+            from the command palette. Pinned notes sit under{" "}
+            <em>Pinned</em> above the days, newest pin first. Click the pin again, or run{" "}
+            <strong>Unpin from Home</strong>, to put the note back. Each vault keeps its own pins.
+          </p>
+          <p>
+            Under the date, a strip shows the last seven days. A dot marks each day you changed a
+            note. Tap a day to jump to its notes. Days without notes are dimmed.
+          </p>
+          <p>
+            With no vault open, the feed is where you start. It offers <strong>Open Vault</strong>,{" "}
+            <strong>Create Vault</strong> and <strong>Browser Vault</strong>, or you can skip the
+            vault: <strong>New Note</strong> opens a blank draft and <strong>Open File…</strong>{" "}
+            opens a file from your device. Once a vault is open, your notes appear here.
           </p>
           <p>
             At the bottom, <strong>Search or create a note…</strong> opens the command palette.
@@ -207,6 +225,7 @@ export const getStartedGroup: Group = {
               { label: "Search", value: "Start typing" },
               { label: "Back to your open notes", value: "ESCAPE" },
               { label: "Come back to the feed", value: "Home at the top of the sidebar" },
+              { label: "Back to the top of the feed", value: "Home again while the feed is open" },
             ]}
           />
           <p>
@@ -217,11 +236,21 @@ export const getStartedGroup: Group = {
             from the top down while <em>Indexing notes…</em> is shown. Notes that haven&apos;t
             changed since last time load instantly from a cache kept in your browser.
           </p>
-          <Callout type="tip">
-            Prefer to reopen the notes you had open last time? Set{" "}
-            <strong>Settings → On Vault Open</strong> to <em>Resume last tabs</em>. The feed is still
-            one click away.
-          </Callout>
+          <p>
+            A vault always opens on the feed, with the notes you had open last time waiting behind
+            it. The bar at the top names the open vault and where it lives (a folder on this
+            device, this browser or GitHub; on a phone, just the name). Click the name for the
+            vault menu: your five most recent other vaults, then <strong>Open vault…</strong>,{" "}
+            <strong>Create vault…</strong> and <strong>Browser vaults…</strong>, then{" "}
+            <strong>Refresh vault</strong> and <strong>Close vault</strong>. A folder on your device
+            may ask for access again when you switch back to it.
+          </p>
+          <p>
+            <strong>Close vault</strong> disconnects the vault after you confirm, and the feed becomes the
+            start screen, with your recent vaults listed so you can reopen one with a click. The{" "}
+            <strong>×</strong> next to a recent vault removes it from the list; its notes stay
+            where they are.
+          </p>
         </>
       ),
     },
@@ -237,8 +266,10 @@ export const getStartedGroup: Group = {
             keyboard shortcuts, and the slash command menu.
           </p>
           <p>
-            The toolbar at the top shows your open notes as tabs, even when only one is open. On the left:
-            the <strong> Sidebar</strong> button, while the sidebar is hidden. On the right: Save, Edit / Preview, Search (the
+            The toolbar at the top shows your open notes as tabs, even when only one is open. Each pane keeps
+            up to 20 open: opening another closes the one you looked at least recently, never one with unsaved
+            changes. On the left:
+            the <strong> Sidebar</strong> button, while the sidebar is hidden. On the right: Save, Search (the
             command palette) and AI Chat (when an AI key is set). The <strong>&hellip; More</strong> menu holds Copy
             Markdown, Split Right, Settings, Help and Hide Toolbar — every one of them is also in the command palette.
           </p>

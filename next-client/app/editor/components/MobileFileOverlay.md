@@ -1,6 +1,6 @@
 # MobileFileOverlay
 
-Description: Full-screen mobile file browser combining tag and text search, smart folders, and the vault file list, with an empty state when no vault is open.
+Description: Full-screen mobile file browser combining tag and text search, smart folders, and the vault file list, with an empty state when no vault is open. With a vault, the header has 40px **New file** and **New folder** buttons (each asks where, then for a name), beside Show hidden files and Close Vault.
 
 ## Local State & Storage
 - State: `atom_activeFilePath`, `atom_selectedFileTags`, `atom_showHiddenFiles`, `atom_newVaultFlowOpen`, `atom_browserVaultDialogOpen`, `atom_githubVaultDialogOpen`, `atom_userName`, `useFileSystem`, `useVaultFileSearch`, `useDialog`.

@@ -8,7 +8,7 @@ import { atom_newNoteFolder, atom_pendingScrollTarget } from "@/app/atoms/ui-ato
 import { atom_fileMetadata, type FileMetadata } from "@/app/atoms/metadata";
 import { atom_templateFolderSettings } from "@/app/atoms/template-atoms";
 import { writeFileContent } from "@/app/services/file-writer";
-import { TEMPLATE_STARTER } from "@/app/utils/templates/template-starter";
+import { TEMPLATE_STARTER, TEMPLATE_STARTERS } from "@/app/utils/templates/template-starter";
 import { useTemplateCreate } from "./use-template-create";
 
 vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn() }) }));
@@ -20,7 +20,8 @@ const dialog = { confirm: vi.fn(), prompt: vi.fn() };
 vi.mock("@/app/hooks/use-dialog", () => ({ useDialog: () => dialog }));
 const pickTemplate = vi.fn();
 const askPrompts = vi.fn();
-vi.mock("@/app/hooks/use-template-dialog", () => ({ useTemplateDialog: () => ({ pickTemplate, askPrompts }) }));
+const pickStarter = vi.fn();
+vi.mock("@/app/hooks/use-template-dialog", () => ({ useTemplateDialog: () => ({ pickTemplate, pickStarter, askPrompts }) }));
 
 const notFound = () => Object.assign(new Error("missing"), { name: "NotFoundError" });
 
@@ -226,6 +227,26 @@ describe("createTemplate", () => {
     vi.clearAllMocks();
     localStorage.clear();
     dialog.prompt.mockResolvedValue("Meeting");
+    pickStarter.mockResolvedValue(TEMPLATE_STARTERS[0]);
+  });
+
+  it("writes the picked starter, with its name suggested", async () => {
+    const meeting = TEMPLATE_STARTERS.find((s) => s.name === "Meeting notes")!;
+    pickStarter.mockResolvedValue(meeting);
+    dialog.prompt.mockResolvedValue("Standup");
+    const { root, flows } = await setup({ templates: {} });
+    await act(() => flows.createTemplate());
+    expect(dialog.prompt).toHaveBeenCalledWith("Template name:", "Meeting notes", "New template");
+    expect(root.at("templates/Standup.md")?.content).toBe(meeting.body);
+  });
+
+  it("asks nothing more when the starter picker is cancelled", async () => {
+    pickStarter.mockResolvedValue(null);
+    const { props, flows } = await setup({ templates: {} });
+    await act(() => flows.createTemplate());
+    expect(dialog.prompt).not.toHaveBeenCalled();
+    expect(writeFileContent).not.toHaveBeenCalled();
+    expect(props.openFile).not.toHaveBeenCalled();
   });
 
   it("creates <templates folder>/<name>.md with the raw starter and opens it", async () => {
@@ -303,6 +324,7 @@ describe("createTemplate", () => {
     const { store, flows } = await setup({ templates: {} });
     store.set(atom_vaultHandle, null);
     await act(() => flows.createTemplate());
+    expect(pickStarter).not.toHaveBeenCalled();
     expect(dialog.prompt).not.toHaveBeenCalled();
   });
 
@@ -343,5 +365,41 @@ describe("{{clipboard}}", () => {
     const { flows } = await setup({ templates: { "templates/clip.md": "plain\n" } });
     await act(() => flows.createNoteFromTemplate());
     expect(readText).not.toHaveBeenCalled();
+  });
+});
+
+describe("createLinkedNoteFromTemplate", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    localStorage.clear();
+    askPrompts.mockResolvedValue({ Owner: "Ana" });
+  });
+  const rfc = { name: "rfc", path: "templates/rfc.md" };
+
+  it("creates the note in the template's target folder and returns its link path, without opening it", async () => {
+    const { root, props, flows } = await setup();
+    let path: string | null = null;
+    await act(async () => { path = await flows.createLinkedNoteFromTemplate("Auth", rfc); });
+    expect(path).toBe("docs/rfcs/Auth");
+    expect(root.at("docs/rfcs/Auth.md")?.content).toBe("# Auth\nOwner: Ana\n\n");
+    expect(props.openFile).not.toHaveBeenCalled();
+    expect(props.scanVault).toHaveBeenCalled();
+  });
+
+  it("uses the folder in the name over the template's", async () => {
+    const { root, flows } = await setup();
+    let path: string | null = null;
+    await act(async () => { path = await flows.createLinkedNoteFromTemplate("specs/Auth", rfc); });
+    expect(path).toBe("specs/Auth");
+    expect(root.at("specs/Auth.md")).toBeDefined();
+  });
+
+  it("creates nothing when the questions are cancelled", async () => {
+    askPrompts.mockResolvedValue(null);
+    const { flows } = await setup();
+    let path: string | null = "x";
+    await act(async () => { path = await flows.createLinkedNoteFromTemplate("Auth", rfc); });
+    expect(path).toBeNull();
+    expect(writeFileContent).not.toHaveBeenCalled();
   });
 });

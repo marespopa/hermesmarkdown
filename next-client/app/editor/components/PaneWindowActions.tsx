@@ -13,7 +13,6 @@ import {
 } from "react-icons/hi";
 import { formatShortcut } from "@/app/utils/platform";
 import { useWindowActions } from "../hooks/use-window-actions";
-import PaneModeSwitch from "./PaneModeSwitch";
 import PaneToolbarButton from "./PaneToolbarButton";
 import TabContextMenu from "./TabContextMenu";
 import { PANE_ICON_SIZE, PANE_SECTION_CLASS } from "./pane-header-classes";
@@ -21,7 +20,6 @@ import { PANE_ICON_SIZE, PANE_SECTION_CLASS } from "./pane-header-classes";
 // Window-wide toolbar sections. They change the whole app, not one pane, so
 // `PaneLeaf` renders them once — in the top-right pane's header — where they
 // stay put while focus moves between panes. Each section is its own capsule:
-// - Mode: the Edit / Preview switch.
 // - Tools: command palette and AI chat.
 // - More: a pull-down menu with the secondary commands (Copy Markdown and
 //   Split Right for the focused pane, Settings, Help, Hide Toolbar).
@@ -38,14 +36,6 @@ export default function PaneWindowActions() {
 
   return (
     <div className="flex items-center shrink-0" role="toolbar" aria-label="Window">
-      <div className={PANE_SECTION_CLASS} role="group" aria-label="Mode">
-        {/* Inside the section the switch drops its own track: the section's
-            fill is the track, and the selected segment rides on it. */}
-        <div className="flex items-center px-0.5">
-          <PaneModeSwitch iconOnly className="!bg-transparent !border-0 !p-0" />
-        </div>
-      </div>
-
       <div className={PANE_SECTION_CLASS} role="group" aria-label="Tools">
         <PaneToolbarButton
           icon={<HiOutlineSearch size={PANE_ICON_SIZE} />}

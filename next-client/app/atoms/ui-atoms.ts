@@ -8,7 +8,10 @@ export type Theme = "light" | "dark" | "system";
 export function clearLegacyPaneModePreference() {
   if (typeof window === "undefined") return;
   try {
+    // Pane modes from older versions: "defaultPaneMode", then the app-wide
+    // Edit / Preview "viewMode". The editor has one mode now.
     window.localStorage.removeItem("defaultPaneMode");
+    window.localStorage.removeItem("viewMode");
   } catch {
     // Ignore storage access failures; the app should still boot in the source editor.
   }
@@ -19,6 +22,8 @@ clearLegacyPaneModePreference();
 export const atom_theme = atomWithStorage<Theme>("theme", "system");
 export const atom_wordWrap = atomWithStorage<boolean>("wordWrap", true);
 export const atom_lineNumbers = atomWithStorage<boolean>("lineNumbers", false);
+// Marks empty lines with ¶ and shows spaces and tabs (codemirror/invisibles.ts).
+export const atom_showInvisibles = atomWithStorage<boolean>("showInvisibles", false);
 export const atom_vimMode = atomWithStorage<boolean>("vimMode", false);
 // Flow mode: fades everything but the caret's paragraph and keeps the caret
 // line centred while typing. Opt-in, off by default.
@@ -32,40 +37,91 @@ export const atom_sidebarOpen = atomWithStorage<boolean>("sidebarOpen", false);
 export const SIDEBAR_MIN_WIDTH = 200;
 export const SIDEBAR_MAX_WIDTH = 420;
 export const atom_sidebarWidth = atomWithStorage<number>("sidebarWidth", 256);
-// Edit (source) or Preview (read-only reading view), for every pane and tab.
-export type ViewMode = "edit" | "preview";
-export const atom_viewMode = atomWithStorage<ViewMode>("viewMode", "edit");
-export const MONO_FONT_STACK = "var(--font-ibm-mono), ui-monospace, monospace";
+// Each stack falls back to the Apple system face with the same role.
+export const MONO_FONT_STACK =
+  'var(--font-geist-mono), "SF Mono", ui-monospace, SFMono-Regular, Menlo, monospace';
 export const EDITORIAL_FONT_STACK =
-  "var(--font-plus-jakarta), ui-sans-serif, sans-serif";
+  "var(--font-plus-jakarta), system-ui, -apple-system, ui-sans-serif, sans-serif";
+export const SERIF_FONT_STACK =
+  'var(--font-source-serif), "New York", ui-serif, Georgia, serif';
+export const UI_FONT_STACK =
+  "var(--font-inter), system-ui, -apple-system, ui-sans-serif, sans-serif";
 export const atom_editorFontFamily = atomWithStorage<string>(
   "editorFontFamily",
   EDITORIAL_FONT_STACK,
 );
+// Saved choices from older versions move to their closest current equivalent:
+// IBM Plex Mono to Geist Mono, older stack strings to the current ones (so the
+// picker still shows them as selected), and the 14–22px sizes up one pixel
+// onto the Dynamic Type steps. Every target is a current value, so this is
+// safe to run on each load.
+const LEGACY_TEXT_SIZES: Record<string, string> = {
+  "14px": "15px",
+  "16px": "17px",
+  "18px": "19px",
+  "20px": "21px",
+  "22px": "23px",
+};
+
+const FONT_STACKS_BY_VARIABLE: [string, string][] = [
+  ["--font-ibm-mono", MONO_FONT_STACK],
+  ["--font-geist-mono", MONO_FONT_STACK],
+  ["--font-plus-jakarta", EDITORIAL_FONT_STACK],
+  ["--font-source-serif", SERIF_FONT_STACK],
+  ["--font-inter", UI_FONT_STACK],
+];
+
+export function migrateLegacyTypographyPreferences() {
+  if (typeof window === "undefined") return;
+  try {
+    for (const key of ["editorFontFamily", "renderedFontFamily"]) {
+      const saved = window.localStorage.getItem(key);
+      if (!saved) continue;
+      const stack = FONT_STACKS_BY_VARIABLE.find(([variable]) => saved.includes(variable))?.[1];
+      if (stack && JSON.parse(saved) !== stack) {
+        window.localStorage.setItem(key, JSON.stringify(stack));
+      }
+    }
+    const size = window.localStorage.getItem("renderedFontSize");
+    const next = size ? LEGACY_TEXT_SIZES[JSON.parse(size)] : undefined;
+    if (next) window.localStorage.setItem("renderedFontSize", JSON.stringify(next));
+  } catch {
+    // Unreadable storage keeps the defaults.
+  }
+}
+
+migrateLegacyTypographyPreferences();
+
+// 1.65: open enough for a ~70-character column without the lines drifting apart.
 export const atom_lineHeight = atomWithStorage<string>(
   "editorLineHeight",
-  "1.8",
+  "1.65",
 );
 // Primary reading font and size. Source-editor typography has its own persisted
 // font-family preference above.
-export const RENDERED_FONT_STACK = "var(--font-inter), Inter, ui-sans-serif, sans-serif";
+export const RENDERED_FONT_STACK = UI_FONT_STACK;
 export const atom_renderedFontFamily = atomWithStorage<string>(
   "renderedFontFamily",
   RENDERED_FONT_STACK,
 );
 export const atom_renderedFontSize = atomWithStorage<string>(
   "renderedFontSize",
-  "18px",
+  "17px",
 );
 export const atom_isEditorFocused = atom<boolean>(false);
 
-// What the editor shows once a vault opens: the home feed of recent notes
-// (restored tabs stay open behind it), or the tabs from last time.
-export type VaultOpenBehavior = "home" | "resume";
-export const atom_onVaultOpen = atomWithStorage<VaultOpenBehavior>("onVaultOpen", "home");
 // Whether the editor page shows the home feed in place of the workspace.
 // Ephemeral: opening a note closes it.
 export const atom_homeFeedOpen = atom<boolean>(false);
+// Bumped when Home is pressed while the feed is already open; HomeFeed
+// scrolls back to the top on each change.
+export const atom_homeFeedTopRequest = atom(0);
+// The Home button and command: opens the feed, or, when it's already open,
+// asks it to scroll back to the top.
+export const atom_goHome = atom(null, (get, set) => {
+  if (get(atom_homeFeedOpen)) set(atom_homeFeedTopRequest, (count) => count + 1);
+  else set(atom_homeFeedOpen, true);
+});
 // Vault-relative folder that drafts are saved into on their first save
 // ("" = vault root). Created on demand.
 export const atom_newNoteFolder = atomWithStorage<string>("newNoteFolder", "");
@@ -134,10 +190,16 @@ export const atom_welcomeWizardStep = atomWithStorage<number>(
   0,
 );
 
+// How notes open: the last collapse or expand clicked on any note's
+// Properties row (no setting of its own). Same storage key as the old
+// "Collapse Frontmatter" setting, so that choice carries over.
 export const atom_frontmatterCollapsedByDefault = atomWithStorage<boolean>(
   "frontmatterCollapsedByDefault",
   false,
 );
+// Frontmatter collapsed / expanded per open file, so split panes showing the
+// same note agree. In memory only; a missing entry follows the default above.
+export const atom_frontmatterCollapsedByFile = atom<Record<string, boolean>>({});
 
 // Fresh workspaces open directly in the source editor and never switch into a preview pane.
 export const atom_frontmatterHasPrompted = atomWithStorage<boolean>(
@@ -165,6 +227,10 @@ export const atom_fileTreeExpansion = atomWithStorage<Record<string, FileTreeExp
   "hermes_file_tree_expansion",
   {},
 );
+// Notes pinned to the top of the Home feed, keyed by vault (see
+// atom_vaultKey), newest pin first. Read and toggled through
+// home-pin-atoms.ts.
+export const atom_homePins = atomWithStorage<Record<string, string[]>>("hermes_home_pins", {});
 export const atom_repurposeWizardOpen = atom<boolean>(false);
 
 // Vault creation flow — transient, never persisted

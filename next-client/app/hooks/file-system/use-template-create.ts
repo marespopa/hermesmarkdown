@@ -17,8 +17,8 @@ import {
   parseMissingLink,
   sanitizeNoteName,
   sanitizeTemplateFileName,
+  type TemplateEntry,
 } from "@/app/utils/templates/template-registry";
-import { TEMPLATE_STARTER } from "@/app/utils/templates/template-starter";
 import { offsetToLineColumn, type ExpandedTemplate } from "@/app/utils/templates/template-tokens";
 
 interface UseTemplateCreateProps {
@@ -31,7 +31,7 @@ const BLANK_NOTE: ExpandedTemplate = { text: "\n", cursor: null };
 const joinPath = (folder: string, name: string) => (folder ? `${folder}/${name}` : name);
 
 // Fresh handle for a vault path, or null when it doesn't exist.
-async function findExisting(vaultHandle: FileSystemDirectoryHandle, path: string) {
+export async function findExisting(vaultHandle: FileSystemDirectoryHandle, path: string) {
   try {
     return await resolveFileHandleAtPath(vaultHandle, path);
   } catch (err: any) {
@@ -53,7 +53,7 @@ function reportCreateError(err: any) {
 export function useTemplateCreate({ scanVault, indexVaultTags, openFile }: UseTemplateCreateProps) {
   const store = useStore();
   const dialog = useDialog();
-  const { pickTemplate } = useTemplateDialog();
+  const { pickTemplate, pickStarter } = useTemplateDialog();
   const { readTemplate, instantiate } = useTemplateNotes();
 
   // Writes `<folder>/<baseName>.md`, rescans, opens it and puts the caret at
@@ -173,12 +173,15 @@ export function useTemplateCreate({ scanVault, indexVaultTags, openFile }: UseTe
     await writeNewNote(folder, baseName, result.expanded, { unique: true });
   }, [store, dialog, pickTemplate, readOrReport, instantiate, writeNewNote]);
 
-  // "New template…": `<templates folder>/<name>.md` with the raw starter body.
-  // A template with the same name (any case) is opened unchanged instead.
+  // "New template…": pick a starter, then `<templates folder>/<name>.md` with
+  // its raw body. The name prompt is prefilled from the starter. A
+  // template with the same name (any case) is opened unchanged instead.
   const createTemplate = useCallback(async () => {
     const vaultHandle = store.get(atom_vaultHandle);
     if (!vaultHandle) return;
-    const name = String((await dialog.prompt("Template name:", "", "New template")) ?? "").trim();
+    const starter = await pickStarter();
+    if (!starter) return;
+    const name = String((await dialog.prompt("Template name:", starter.suggestedName, "New template")) ?? "").trim();
     if (!name) return;
     const baseName = sanitizeTemplateFileName(name).slice(0, -".md".length);
     const folder = store.get(atom_templatesFolder).folder;
@@ -199,11 +202,46 @@ export function useTemplateCreate({ scanVault, indexVaultTags, openFile }: UseTe
       }
       // A stale index entry falls through to the create.
     }
-    await writeNewNote(folder, baseName, { text: TEMPLATE_STARTER, cursor: null }, {
+    await writeNewNote(folder, baseName, { text: starter.body, cursor: null }, {
       unique: false,
       onExisting: openedExisting,
     });
-  }, [store, dialog, openFile, writeNewNote]);
+  }, [store, dialog, pickStarter, openFile, writeNewNote]);
 
-  return { writeNewNote, createNoteFromMissingLink, createNoteFromTemplate, createTemplate };
+  // The WikiLink dialog's "From template": creates the linked note from
+  // `entry` and returns its link path (no `.md`), or null. The name decides the
+  // note's name and, with a folder in it, the folder; otherwise the template's
+  // target_folder, else the New Notes folder. A clash gets ` (1)`, and the
+  // link follows. The note isn't opened, like "Create and link".
+  const createLinkedNoteFromTemplate = useCallback(async (name: string, entry: TemplateEntry): Promise<string | null> => {
+    const vaultHandle = store.get(atom_vaultHandle);
+    if (!vaultHandle) return null;
+    const parsed = parseMissingLink(name);
+    if (!parsed) {
+      toast.error(`Can't create a note named "${name.trim()}"`);
+      return null;
+    }
+    const raw = await readOrReport(entry);
+    if (raw === null) return null;
+    const result = await instantiate(raw, parsed.baseName, "Create");
+    if (!result) return null;
+    const folder = parsed.folder
+      ?? (normalizeFolderPath(result.routing.targetFolder ?? "") || normalizeFolderPath(store.get(atom_newNoteFolder)));
+    try {
+      const dir = await ensureVaultFolder(vaultHandle, folder);
+      const { handle, fileName } = await createUniqueFile(dir, parsed.baseName);
+      // Never a 0-byte file: Google Drive hangs syncing those.
+      await withRetry(() => writeFileContent(handle, result.expanded.text || "\n"));
+      await scanVault(vaultHandle);
+      await indexVaultTags();
+      const path = joinPath(folder, fileName);
+      toast.success(`Created: ${path}`);
+      return path.replace(/\.md$/, "");
+    } catch (err) {
+      reportCreateError(err);
+      return null;
+    }
+  }, [store, readOrReport, instantiate, scanVault, indexVaultTags]);
+
+  return { writeNewNote, createNoteFromMissingLink, createNoteFromTemplate, createTemplate, createLinkedNoteFromTemplate };
 }

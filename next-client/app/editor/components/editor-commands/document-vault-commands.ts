@@ -16,6 +16,7 @@ export function buildDocumentVaultCommandGroups(context: EditorCommandContext) {
     dialog,
     duplicateFile,
     handleCopy,
+    homePinnedPaths,
     isVaultSupported,
     moveItem,
     onExport,
@@ -29,6 +30,7 @@ export function buildDocumentVaultCommandGroups(context: EditorCommandContext) {
     renameFile,
     setBrowserVaultDialogOpen,
     setNewVaultFlowOpen,
+    toggleHomePin,
     vaultHandle,
   } = context;
 
@@ -63,6 +65,22 @@ export function buildDocumentVaultCommandGroups(context: EditorCommandContext) {
           // Template picker + title prompt; the template's target_folder /
           // file_name place and name the note.
           action: () => { void createNoteFromTemplate(); },
+        },
+        {
+          id: "insert-template",
+          label: "Insert template…",
+          category: "Vault" as const,
+          keywords: "template insert apply selection wrap",
+          // The active editor's template picker; selected text fills {{selection}}.
+          action: () => { document.dispatchEvent(new CustomEvent("hermes:insert-vault-template")); },
+        },
+        {
+          id: "save-as-template",
+          label: "Save as template…",
+          category: "Vault" as const,
+          keywords: "template save create from note preset",
+          // The active note's text becomes <templates folder>/<name>.md.
+          action: () => { document.dispatchEvent(new CustomEvent("hermes:save-as-template")); },
         },
         {
           id: "new-template",
@@ -136,6 +154,14 @@ export function buildDocumentVaultCommandGroups(context: EditorCommandContext) {
       keywords: "home vault switcher",
       action: onHome,
     },
+    ...(vaultHandle && activeFileHandle && activeFilePath
+      ? [{
+          id: "toggle-home-pin",
+          label: homePinnedPaths.includes(activeFilePath) ? "Unpin from Home" : "Pin to Home",
+          keywords: "pin unpin home feed top favorite",
+          action: () => toggleHomePin(activeFilePath),
+        }]
+      : []),
     {
       id: "open-documentation",
       label: "Documentation",

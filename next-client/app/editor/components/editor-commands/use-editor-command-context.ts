@@ -1,6 +1,7 @@
 "use client";
 
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
+import { atom_homePinnedPaths, atom_toggleHomePin } from "@/app/atoms/home-pin-atoms";
 import { useRouter } from "next/navigation";
 import {
   atom_activeFilePath,
@@ -11,7 +12,6 @@ import {
   atom_isWizardOpen,
   atom_splitPane,
   atom_wordWrap,
-  atom_frontmatterCollapsedByDefault,
   atom_workspaceLayout,
   findLeaf,
 } from "@/app/atoms/atoms";
@@ -41,7 +41,6 @@ import {
   atom_showHiddenFiles,
   atom_tasksGroupBy,
   atom_theme,
-  atom_viewMode,
 } from "@/app/atoms/ui-atoms";
 import { useDialog } from "@/app/hooks/use-dialog";
 import { useFileSystem } from "@/app/hooks/use-file-system";
@@ -121,8 +120,6 @@ export function useEditorCommandContext(props: EditorCommandsProps) {
   const [flowMode, setFlowMode] = useAtom(atom_flowMode);
   const [toolbarHidden, setToolbarHidden] = useAtom(atom_toolbarHidden);
   const [sidebarOpen, setSidebarOpen] = useAtom(atom_sidebarOpen);
-  const [frontmatterCollapsed, setFrontmatterCollapsed] = useAtom(atom_frontmatterCollapsedByDefault);
-  const [viewMode, setViewMode] = useAtom(atom_viewMode);
   const [, setTasksGroupBy] = useAtom(atom_tasksGroupBy);
   const [, setTaskSearchQuery] = useAtom(atom_taskSearchQuery);
   const [, setTaskTagFilter] = useAtom(atom_taskTagFilter);
@@ -133,6 +130,8 @@ export function useEditorCommandContext(props: EditorCommandsProps) {
   const [revealAllSensitive, setRevealAllSensitive] = useAtom(atom_revealAllSensitive);
   const setRevealedSensitivePaths = useSetAtom(atom_revealedSensitivePaths);
   const activeFileHandle = useAtomValue(atom_activeFileHandle);
+  const homePinnedPaths = useAtomValue(atom_homePinnedPaths);
+  const toggleHomePin = useSetAtom(atom_toggleHomePin);
   const activeEditorView = useAtomValue(atom_activeEditorView);
   const activeLeaf = activePaneId ? findLeaf(workspaceLayout.rootContainer, activePaneId) : null;
   const isOnlyPane = "type" in workspaceLayout.rootContainer;
@@ -149,6 +148,8 @@ export function useEditorCommandContext(props: EditorCommandsProps) {
     scanVault,
     indexVaultTags,
     closeVault,
+    homePinnedPaths,
+    toggleHomePin,
     renameFile,
     deleteFile,
     duplicateFile,
@@ -193,10 +194,6 @@ export function useEditorCommandContext(props: EditorCommandsProps) {
     setToolbarHidden,
     sidebarOpen,
     setSidebarOpen,
-    frontmatterCollapsed,
-    setFrontmatterCollapsed,
-    viewMode,
-    setViewMode,
     setTasksGroupBy,
     setTaskSearchQuery,
     setTaskTagFilter,

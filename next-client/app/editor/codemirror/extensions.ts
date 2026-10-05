@@ -1,5 +1,5 @@
 import { Compartment, Extension } from "@codemirror/state";
-import { EditorView, keymap, drawSelection, highlightActiveLine, lineNumbers, placeholder as placeholderExt } from "@codemirror/view";
+import { EditorView, keymap, drawSelection, placeholder as placeholderExt } from "@codemirror/view";
 import { history, historyKeymap, defaultKeymap } from "@codemirror/commands";
 import { markdown, markdownLanguage } from "@codemirror/lang-markdown";
 import { languages } from "@codemirror/language-data";
@@ -20,6 +20,9 @@ import { renderedBlockExtension } from "./rendered-block";
 import { shortcodeExpandPlugin } from "./shortcode-expand";
 import { noteCalcExtension } from "./note-calc";
 import { createSlashMenuSource, SlashMenuCallbacks } from "./slash-menu";
+import { createTemplateFieldSource } from "./template-field-completion";
+import { templateFieldPills } from "./template-field-pills";
+import { templateBlanks } from "./template-blanks";
 import { createWikiLinkTriggerPlugin, WikiLinkTriggerCallback } from "./wikilink-trigger";
 import {
   tableTabCommand,
@@ -34,19 +37,21 @@ import {
 } from "./table-commands";
 import { frontmatterCollapse } from "./frontmatter-fold";
 import { flowMode } from "./flow-mode";
-import { previewExtension } from "./preview-mode";
+import { liveMarkers } from "./live-markers";
+import { invisibles } from "./invisibles";
+import { editorLineNumbers } from "./line-numbers";
 
 interface BuildExtensionsOptions {
   wordWrap: boolean;
   wordWrapCompartment: Compartment;
   lineNumbers: boolean;
   lineNumbersCompartment: Compartment;
+  showInvisibles: boolean;
+  invisiblesCompartment: Compartment;
   vimMode: boolean;
   vimModeCompartment: Compartment;
   flowMode: boolean;
   flowModeCompartment: Compartment;
-  previewMode: boolean;
-  previewModeCompartment: Compartment;
   onOpenActiveHelperRef: { current: () => boolean };
   placeholder?: string;
   readOnly: boolean;
@@ -65,12 +70,11 @@ export function buildExtensions(opts: BuildExtensionsOptions): Extension[] {
   const extensions: Extension[] = [
     editorTheme(),
     opts.wordWrapCompartment.of(opts.wordWrap ? EditorView.lineWrapping : []),
-    opts.lineNumbersCompartment.of(opts.lineNumbers ? lineNumbers() : []),
+    opts.lineNumbersCompartment.of(opts.lineNumbers ? editorLineNumbers() : []),
+    opts.invisiblesCompartment.of(opts.showInvisibles ? invisibles() : []),
     opts.flowModeCompartment.of(opts.flowMode ? flowMode() : []),
-    opts.previewModeCompartment.of(previewExtension(opts.previewMode)),
     history(),
     drawSelection(),
-    highlightActiveLine(),
     // addKeymap: false — lang-markdown's built-in Enter continuation for
     // lists/blockquotes stacks with our own continueQuoteOnEnter command
     // (formatKeymap), producing doubled "> " prefixes. We own continuation
@@ -83,6 +87,8 @@ export function buildExtensions(opts: BuildExtensionsOptions): Extension[] {
     horizontalRuleCursorPlugin,
     tagPillPlugin,
     linkDisplayPlugin,
+    liveMarkers,
+    templateFieldPills,
     annotationDisplayPlugin,
     tableDisplayExtension,
     renderedBlockExtension,
@@ -91,7 +97,7 @@ export function buildExtensions(opts: BuildExtensionsOptions): Extension[] {
     createWikiLinkTriggerPlugin(opts.wikiLinkTriggerRef),
     opts.vimModeCompartment.of(opts.vimMode ? vim({ status: true }) : []),
     autocompletion({
-      override: [createSlashMenuSource(opts.slashMenuCallbacksRef)],
+      override: [createSlashMenuSource(opts.slashMenuCallbacksRef), createTemplateFieldSource(opts.slashMenuCallbacksRef)],
       activateOnTyping: true,
       icons: false,
     }),
@@ -113,6 +119,9 @@ export function buildExtensions(opts: BuildExtensionsOptions): Extension[] {
       { key: "Mod-Enter", run: tableInsertRowCommand },
       { key: "Mod-Shift-Backspace", run: tableDeleteRowCommand },
     ]),
+    // Tab / Shift-Tab between template blanks, after the table bindings so a
+    // table cell keeps its own Tab.
+    templateBlanks,
     keymap.of([...formatKeymap, ...historyKeymap, ...defaultKeymap]),
     EditorView.editable.of(!opts.readOnly),
     EditorView.domEventHandlers({

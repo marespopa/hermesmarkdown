@@ -5,6 +5,9 @@ export interface PanelLeaf {
   type: "editor" | "metrics";
   activeFilePath?: string;
   openFilePaths: string[]; // List of files open in this pane (tabs)
+  // Open paths by when they were last viewed, most recent last; decides which
+  // tab closes first at the tab limit (atoms/tab-limit.ts).
+  recentFilePaths?: string[];
   isPinned: boolean;
 }
 

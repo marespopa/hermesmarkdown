@@ -27,7 +27,7 @@ export function useCodeMirrorCalloutFold({ containerRef }: UseCodeMirrorCalloutF
   const recompute = useCallback((view: EditorView) => {
     const ranges = findCalloutFoldRanges(view.state.doc.toString());
     // Coordinates before the wrapper rect: coordsAtPos can flush a pending
-    // CodeMirror measure (e.g. an Edit/Preview switch's scrollIntoView) that
+    // CodeMirror measure (e.g. a pending scrollIntoView) that
     // scrolls the canvas, which would leave an earlier wrapper rect stale.
     const positioned = ranges.map((r) => ({ r, coords: view.coordsAtPos(r.titleOffset) }));
     const wrapperRect = containerRef.current?.getBoundingClientRect();

@@ -2,7 +2,6 @@ import { EditorState, type Extension } from "@codemirror/state";
 import { EditorView } from "@codemirror/view";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { noteCalcExtension } from "./note-calc";
-import { previewExtension } from "./preview-mode";
 
 vi.mock("../utils/open-helper-dialogs", () => ({ openRenderedBlockSource: vi.fn() }));
 
@@ -51,10 +50,5 @@ describe("noteCalcExtension", () => {
     const view = createEditor();
     view.dispatch({ changes: [{ from: 0, insert: "```\n" }, { from: DOC.length, insert: "\n```" }] });
     expect(shownLabels(view)).toEqual([]);
-  });
-
-  it("still renders labels in Preview", () => {
-    const view = createEditor(DOC, previewExtension(true));
-    expect(shownLabels(view)).toEqual(["= 1380"]);
   });
 });

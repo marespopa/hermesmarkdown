@@ -11,7 +11,7 @@ import SmartFolders from "./SmartFolders";
 import VaultFileTree from "./VaultFileTree";
 import VaultEmptyState from "./VaultEmptyState";
 import UnifiedSearchInput from "./UnifiedSearchInput";
-import { HiOutlineX, HiOutlineEye, HiOutlineEyeOff, HiOutlineLogout, HiOutlineFolderAdd } from "react-icons/hi";
+import { HiOutlineX, HiOutlineEye, HiOutlineEyeOff, HiOutlineLogout, HiOutlineFolderAdd, HiOutlineDocumentAdd } from "react-icons/hi";
 import { atom_browserVaultDialogOpen, atom_githubVaultDialogOpen, atom_newVaultFlowOpen, atom_selectedFileTags, atom_showHiddenFiles, atom_userName } from "@/app/atoms/ui-atoms";
 import Button from "@/app/components/Button";
 
@@ -101,6 +101,17 @@ export default function MobileFileOverlay({
             {userName && <p className="text-ui-footnote text-fg-muted truncate">Welcome back, {userName}</p>}
           </div>
           <div className="flex items-center gap-1">
+            {vaultHandle && (
+              <Button
+                variant="icon"
+                onClick={() => void createNewFile()}
+                aria-label="New file"
+                title="New file"
+                className="!h-10 !w-10"
+              >
+                <HiOutlineDocumentAdd size={20} />
+              </Button>
+            )}
             {vaultHandle && (
               <Button
                 variant="icon"

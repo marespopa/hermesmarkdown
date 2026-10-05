@@ -1,14 +1,21 @@
 import React from "react";
-import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { Provider, createStore } from "jotai";
 import { useHydrateAtoms } from "jotai/utils";
 import { atom_fileMetadata, type FileMetadata } from "@/app/atoms/metadata";
+import { atom_recentVaults, atom_vaultDescriptor, atom_vaultHandle } from "@/app/atoms/vault-atoms";
 import { atom_privacyLevel } from "@/app/atoms/privacy-atoms";
 import { MASKED_PREVIEW, type PrivacyLevel } from "@/app/utils/note-display";
-import { atom_indexerState, atom_userName, type IndexerState } from "@/app/atoms/ui-atoms";
+import { atom_homeFeedTopRequest, atom_indexerState, atom_userName, type IndexerState } from "@/app/atoms/ui-atoms";
 import HomeFeed from "./HomeFeed";
 import { INDEXING_VERBS, ROTATE_MS } from "./home-feed/FeedStatus";
+
+const vault = vi.hoisted(() => ({ closeVault: vi.fn(), openVault: vi.fn(), confirm: vi.fn() }));
+vi.mock("@/app/hooks/use-file-system", () => ({
+  useFileSystem: () => ({ openVault: vault.openVault, closeVault: vault.closeVault, isVaultSupported: true, isBrowserVaultSupported: true }),
+}));
+vi.mock("@/app/hooks/use-dialog", () => ({ useDialog: () => ({ confirm: vault.confirm }) }));
 function meta(path: string, minutesAgo: number, preview = ""): FileMetadata {
   return {
     path,
@@ -124,6 +131,217 @@ describe("HomeFeed", () => {
     expect(rows[0]).toHaveTextContent("note-0");
   });
 
+  it("jumps to a day's first note from the week strip", () => {
+    // Midday, so minute offsets never cross midnight.
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(new Date(2026, 8, 28, 12, 0));
+    // vitest.setup stubs scrollIntoView on HTMLElement.prototype.
+    const scrollIntoView = vi.spyOn(HTMLElement.prototype, "scrollIntoView");
+    try {
+      const twoDaysAgo = 2 * 24 * 60;
+      const { onOpenNote } = renderFeed({
+        "today.md": meta("today.md", 1),
+        "earlier.md": meta("earlier.md", twoDaysAgo, "Earlier body"),
+        "earliest.md": meta("earliest.md", twoDaysAgo + 1),
+      });
+      const strip = screen.getByRole("navigation", { name: "Last 7 days" });
+      const days = within(strip).getAllByRole("button");
+      expect(days).toHaveLength(7);
+      expect(days[6]).toHaveAttribute("aria-current", "date");
+      expect(days[5]).toBeDisabled();
+
+      fireEvent.click(days[4]);
+      expect(days[4]).toHaveAccessibleName(/2 notes$/);
+      expect(scrollIntoView).toHaveBeenCalledWith({ block: "start" });
+      expect(screen.getAllByRole("option")[1]).toHaveAttribute("aria-selected", "true");
+      fireEvent.keyDown(document.body, { key: "Enter" });
+      expect(onOpenNote).toHaveBeenCalledWith("earlier.md");
+    } finally {
+      scrollIntoView.mockRestore();
+      vi.useRealTimers();
+    }
+  });
+
+  it("scrolls back to the top and the newest note when Home is pressed again", () => {
+    const store = createStore();
+    store.set(atom_fileMetadata, NOTES);
+    store.set(atom_homeFeedTopRequest, 3);
+    render(
+      <Provider store={store}>
+        <HomeFeed onOpenNote={vi.fn()} onNewNote={vi.fn()} onSearch={vi.fn()} onClose={vi.fn()} />
+      </Provider>,
+    );
+    const feed = screen.getByTestId("home-feed");
+    // Opening with an earlier request count doesn't scroll.
+    feed.scrollTop = 400;
+    fireEvent.keyDown(window, { key: "j" });
+    expect(feed.scrollTop).toBe(400);
+
+    act(() => store.set(atom_homeFeedTopRequest, 4));
+    expect(feed.scrollTop).toBe(0);
+    expect(screen.getAllByRole("option")[0]).toHaveAttribute("aria-selected", "true");
+  });
+
+  it("offers vault actions and ways to start writing with no vault open", () => {
+    const handlers = { onOpenNote: vi.fn(), onNewNote: vi.fn(), onSearch: vi.fn(), onClose: vi.fn(), onOpenFile: vi.fn() };
+    render(
+      <Provider>
+        <HomeFeed {...handlers} hasVault={false} />
+      </Provider>,
+    );
+    const start = screen.getByRole("region", { name: "Get started" });
+    expect(within(start).getByText("Open a vault to see your notes here.")).toBeInTheDocument();
+    expect(within(start).getByRole("button", { name: "Open Vault" })).toBeInTheDocument();
+    expect(screen.queryByRole("listbox")).not.toBeInTheDocument();
+    expect(screen.queryByRole("navigation", { name: "Last 7 days" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Close vault" })).not.toBeInTheDocument();
+
+    fireEvent.click(within(start).getByRole("button", { name: "New Note" }));
+    expect(handlers.onNewNote).toHaveBeenCalled();
+    fireEvent.click(within(start).getByRole("button", { name: "Open File…" }));
+    expect(handlers.onOpenFile).toHaveBeenCalled();
+    // No notes to search: the pill opens the command list.
+    fireEvent.click(screen.getByRole("button", { name: /Search commands…/ }));
+    expect(handlers.onSearch).toHaveBeenCalledWith(">");
+  });
+
+  it("names the open vault and closes it after a confirm", async () => {
+    const store = createStore();
+    store.set(atom_fileMetadata, NOTES);
+    store.set(atom_vaultHandle, { name: "github-42-main" } as FileSystemDirectoryHandle);
+    store.set(atom_vaultDescriptor, { kind: "github", displayName: "acme/notes" } as any);
+    render(
+      <Provider store={store}>
+        <HomeFeed onOpenNote={vi.fn()} onNewNote={vi.fn()} onSearch={vi.fn()} onClose={vi.fn()} />
+      </Provider>,
+    );
+    expect(screen.getByText("acme/notes")).toBeInTheDocument();
+    expect(screen.getByText(/GitHub/)).toBeInTheDocument();
+
+    // Close lives in the vault menu, not on the bar.
+    expect(screen.queryByRole("button", { name: "Close vault" })).not.toBeInTheDocument();
+
+    vault.confirm.mockResolvedValueOnce(false);
+    fireEvent.click(screen.getByRole("button", { name: "acme/notes, vault menu" }));
+    fireEvent.click(screen.getByRole("menuitem", { name: "Close vault" }));
+    await act(async () => {});
+    expect(vault.closeVault).not.toHaveBeenCalled();
+
+    vault.confirm.mockResolvedValueOnce(true);
+    fireEvent.click(screen.getByRole("button", { name: "acme/notes, vault menu" }));
+    fireEvent.click(screen.getByRole("menuitem", { name: "Close vault" }));
+    await act(async () => {});
+    expect(vault.closeVault).toHaveBeenCalledTimes(1);
+  });
+
+  it("opens one vault menu from the name: up to 5 other recent vaults, vault actions, refresh and close", () => {
+    const store = createStore();
+    store.set(atom_fileMetadata, NOTES);
+    store.set(atom_vaultHandle, { name: "work" } as FileSystemDirectoryHandle);
+    const recent = (name: string) => ({ key: `local:${name}`, kind: "local" as const, name, handle: {} as FileSystemDirectoryHandle, openedAt: 0 });
+    store.set(atom_recentVaults, ["work", "a", "b", "c", "d", "e", "f"].map(recent));
+    render(
+      <Provider store={store}>
+        <HomeFeed onOpenNote={vi.fn()} onNewNote={vi.fn()} onSearch={vi.fn()} onClose={vi.fn()} />
+      </Provider>,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "work, vault menu" }));
+    const menu = screen.getByRole("menu", { name: "Vault" });
+    expect(within(menu).getAllByRole("menuitem").map((item) => item.textContent)).toEqual([
+      "a", "b", "c", "d", "e",
+      "Open vault…",
+      "Create vault…",
+      "Browser vaults…",
+      "Refresh vault",
+      "Close vault",
+    ]);
+
+    fireEvent.click(within(menu).getByRole("menuitem", { name: "Open vault…" }));
+    expect(vault.openVault).toHaveBeenCalledTimes(1);
+  });
+
+  it("lists recent vaults on the no-vault start screen", () => {
+    const store = createStore();
+    store.set(atom_recentVaults, [
+      { key: "browser:abc", kind: "browser", name: "Ideas", descriptor: {} as any, openedAt: 1 },
+    ]);
+    render(
+      <Provider store={store}>
+        <HomeFeed hasVault={false} onOpenNote={vi.fn()} onNewNote={vi.fn()} onSearch={vi.fn()} onClose={vi.fn()} />
+      </Provider>,
+    );
+    const list = screen.getByRole("region", { name: "Recent vaults" });
+    expect(within(list).getByRole("button", { name: /^Ideas/ })).toHaveTextContent("Stored in this browser");
+
+    fireEvent.click(within(list).getByRole("button", { name: "Remove Ideas from recent vaults" }));
+    expect(screen.queryByRole("region", { name: "Recent vaults" })).not.toBeInTheDocument();
+    expect(store.get(atom_recentVaults)).toEqual([]);
+  });
+
+  it("pins a note to the top of the feed and unpins it", () => {
+    localStorage.clear();
+    const store = createStore();
+    store.set(atom_fileMetadata, NOTES);
+    store.set(atom_vaultHandle, { name: "Vault" } as FileSystemDirectoryHandle);
+    const onOpenNote = vi.fn();
+    render(
+      <Provider store={store}>
+        <HomeFeed onOpenNote={onOpenNote} onNewNote={vi.fn()} onSearch={vi.fn()} onClose={vi.fn()} />
+      </Provider>,
+    );
+
+    fireEvent.click(within(screen.getAllByRole("option")[1]).getByRole("button", { name: "Pin to Home" }));
+    let rows = screen.getAllByRole("option");
+    expect(rows[0]).toHaveTextContent("Pinned");
+    expect(rows[0]).toHaveTextContent("old");
+    expect(rows[1]).toHaveTextContent("new");
+    expect(onOpenNote).not.toHaveBeenCalled();
+
+    fireEvent.click(within(rows[0]).getByRole("button", { name: "Unpin from Home" }));
+    rows = screen.getAllByRole("option");
+    expect(rows[0]).toHaveTextContent("new");
+    expect(screen.queryByText("Pinned")).not.toBeInTheDocument();
+  });
+
+  it("opens a row's menu on right-click, to open or pin the note", () => {
+    localStorage.clear();
+    const store = createStore();
+    store.set(atom_fileMetadata, NOTES);
+    store.set(atom_vaultHandle, { name: "Vault" } as FileSystemDirectoryHandle);
+    const onOpenNote = vi.fn();
+    const onClose = vi.fn();
+    render(
+      <Provider store={store}>
+        <HomeFeed onOpenNote={onOpenNote} onNewNote={vi.fn()} onSearch={vi.fn()} onClose={onClose} />
+      </Provider>,
+    );
+
+    fireEvent.contextMenu(screen.getByRole("button", { name: "old" }), { clientX: 40, clientY: 80 });
+    fireEvent.click(screen.getByRole("menuitem", { name: "Pin to Home" }));
+    expect(screen.getAllByRole("option")[0]).toHaveTextContent("Pinned");
+
+    // The feed's keys wait while a menu is open: Escape closes only the menu.
+    fireEvent.contextMenu(screen.getByRole("button", { name: "old" }), { clientX: 40, clientY: 80 });
+    fireEvent.keyDown(document, { key: "Escape" });
+    expect(screen.queryByRole("menu")).not.toBeInTheDocument();
+    expect(onClose).not.toHaveBeenCalled();
+
+    fireEvent.contextMenu(screen.getByRole("button", { name: "old" }), { clientX: 40, clientY: 80 });
+    fireEvent.click(screen.getByRole("menuitem", { name: "Open" }));
+    expect(onOpenNote).toHaveBeenCalledWith("old.md");
+  });
+
+  it("has no Explorer button in the search bar", () => {
+    renderFeed(NOTES);
+    expect(screen.queryByRole("button", { name: "Open Explorer" })).not.toBeInTheDocument();
+  });
+
+  it("hides the week strip for an empty vault", () => {
+    renderFeed({});
+    expect(screen.queryByRole("navigation", { name: "Last 7 days" })).not.toBeInTheDocument();
+  });
+
   it("greets the user for the time of day, by name when one is set", () => {
     vi.useFakeTimers({ toFake: ["Date"] });
     vi.setSystemTime(new Date(2026, 8, 28, 9, 0));
@@ -147,7 +365,7 @@ describe("HomeFeed", () => {
 
   it("shows three skeleton rows instead of the start prompt while the vault loads", () => {
     renderFeed({}, "", { status: "compiling", count: 0 });
-    expect(screen.getByTestId("feed-skeleton").children).toHaveLength(3);
+    expect(screen.getByTestId("feed-skeleton").querySelectorAll("[data-skeleton-row]")).toHaveLength(3);
     expect(screen.queryByRole("button", { name: "Start writing" })).not.toBeInTheDocument();
   });
 

@@ -17,6 +17,10 @@ interface UseCodeMirrorTemplatesOptions {
   onCodeBlockInserted: (pos: number) => void;
   onOpenAIChat?: () => void;
   onInsertVaultTemplate?: () => void;
+  /** Set only while the note is a template: `/field` and the `{{` menu. */
+  onInsertTemplateField?: () => void;
+  onAskTemplateQuestion?: (kind: "question" | "blank") => Promise<string | null>;
+  onSaveAsTemplate?: () => void;
 }
 
 // Step 5: slash/template menu insertion targets. The actual menu UI is
@@ -31,6 +35,9 @@ export function useCodeMirrorTemplates({
   onCodeBlockInserted,
   onOpenAIChat,
   onInsertVaultTemplate,
+  onInsertTemplateField,
+  onAskTemplateQuestion,
+  onSaveAsTemplate,
 }: UseCodeMirrorTemplatesOptions) {
   const [linkDialogOpen, setLinkDialogOpen] = useState(false);
   const linkRangeRef = useRef<Range | null>(null);
@@ -109,6 +116,9 @@ export function useCodeMirrorTemplates({
     },
     onOpenAIChat,
     onInsertVaultTemplate,
+    onInsertTemplateField,
+    onAskTemplateQuestion,
+    onSaveAsTemplate,
     onFrontmatterWizard: () => onFrontmatterWizard(),
     onCodeBlockInserted: () => {},
   });
@@ -117,6 +127,9 @@ export function useCodeMirrorTemplates({
   slashMenuCallbacksRef.current.onCodeBlockInserted = onCodeBlockInserted;
   slashMenuCallbacksRef.current.onOpenAIChat = onOpenAIChat;
   slashMenuCallbacksRef.current.onInsertVaultTemplate = onInsertVaultTemplate;
+  slashMenuCallbacksRef.current.onInsertTemplateField = onInsertTemplateField;
+  slashMenuCallbacksRef.current.onAskTemplateQuestion = onAskTemplateQuestion;
+  slashMenuCallbacksRef.current.onSaveAsTemplate = onSaveAsTemplate;
 
   const wikiLinkTriggerRef = useRef<WikiLinkTriggerCallback | null>((_view, from, to) => {
     wikiLinkRangeRef.current = { from, to };

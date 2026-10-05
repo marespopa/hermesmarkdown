@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { splitTemplate, templateBody } from "./template-frontmatter";
+import { setTemplateTargetFolder, splitTemplate, templateBody } from "./template-frontmatter";
 
 describe("splitTemplate", () => {
   it("takes the routing keys out and keeps other keys", () => {
@@ -49,5 +49,25 @@ describe("templateBody", () => {
   it("returns the content after the frontmatter block", () => {
     expect(templateBody("---\nstatus: draft\n---\n\n# Title\nText")).toBe("# Title\nText");
     expect(templateBody("# No frontmatter")).toBe("# No frontmatter");
+  });
+});
+
+describe("setTemplateTargetFolder", () => {
+  it("adds a frontmatter block when there is none", () => {
+    expect(setTemplateTargetFolder("# {{title}}\n", "meetings")).toBe("---\ntarget_folder: meetings\n---\n# {{title}}\n");
+  });
+
+  it("sets the key next to other frontmatter keys", () => {
+    const next = setTemplateTargetFolder("---\nauthor: X\n---\nBody\n", "specs");
+    expect(splitTemplate(next).routing.targetFolder).toBe("specs");
+    expect(next).toContain("author: X");
+  });
+
+  it("drops the block when removing its only key", () => {
+    expect(setTemplateTargetFolder("---\ntarget_folder: specs\n---\nBody\n", null)).toBe("Body\n");
+  });
+
+  it("leaves text without a block alone when clearing", () => {
+    expect(setTemplateTargetFolder("Body\n", null)).toBe("Body\n");
   });
 });

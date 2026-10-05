@@ -56,6 +56,8 @@ function tryExpand(view: EditorView) {
   for (const [code, getValue] of Object.entries(SHORTCODES)) {
     const sliceStart = Math.max(line.from, pos - code.length);
     if (view.state.sliceDoc(sliceStart, pos) === code) {
+      // `{{date}}` is a template token, not a shortcode: leave `{{date}` alone.
+      if (code.startsWith("{") && view.state.sliceDoc(sliceStart - 1, sliceStart) === "{") continue;
       const replacement = getValue();
       view.dispatch({
         changes: { from: sliceStart, to: pos, insert: replacement },

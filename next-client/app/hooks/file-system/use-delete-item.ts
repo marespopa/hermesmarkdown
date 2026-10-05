@@ -12,6 +12,7 @@ import {
 } from "@/app/atoms/atoms";
 import { atom_fileMetadata } from "@/app/atoms/metadata";
 import { atom_forgetFileTreePaths, atom_vaultFiles } from "@/app/atoms/vault-atoms";
+import { atom_forgetHomePins } from "@/app/atoms/home-pin-atoms";
 import { removePathsFromLayout } from "@/app/atoms/utils";
 import { useDialog } from "../use-dialog";
 import { emptyDirectory } from "./directory-ops";
@@ -30,6 +31,7 @@ export function useDeleteItem({ scanVault, indexVaultTags }: UseDeleteItemProps)
   const setFileMetadata = useSetAtom(atom_fileMetadata);
   const setVaultFiles = useSetAtom(atom_vaultFiles);
   const forgetFileTreePaths = useSetAtom(atom_forgetFileTreePaths);
+  const forgetHomePins = useSetAtom(atom_forgetHomePins);
   const dialog = useDialog();
 
   const deleteFile = useCallback(
@@ -171,6 +173,7 @@ export function useDeleteItem({ scanVault, indexVaultTags }: UseDeleteItemProps)
         });
 
         if (handle.kind === "directory" && path) forgetFileTreePaths(path);
+        if (path) forgetHomePins(path);
 
         if (
           activeFileHandle?.name === handle.name ||
@@ -205,6 +208,7 @@ export function useDeleteItem({ scanVault, indexVaultTags }: UseDeleteItemProps)
       setFileMetadata,
       setVaultFiles,
       forgetFileTreePaths,
+      forgetHomePins,
       dialog,
     ],
   );

@@ -7,7 +7,7 @@ Description: What a pane shows with no tabs open — New File (with its shortcut
 - Persistence: None itself; a picked file loads into the draft through `onLoadDraft`.
 
 ## Dependencies
-- Core: `Button`, `useFileSystem`, `useCommandPalette`, `react-icons`.
+- Core: `Button`, `VaultActionButtons` (the vault actions), `useFileSystem`, `useCommandPalette`, `react-icons`.
 - Zero-Cloud: No network or telemetry side effects.
 
 ## Quick Usage

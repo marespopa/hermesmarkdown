@@ -15,7 +15,7 @@ interface TemplatePromptFormProps {
   onCancel: () => void;
 }
 
-// "Template fields": one input per prompt label. The first field is focused
+// "Fill in the template": one input per question (prompt label). The first field is focused
 // (the overlay focuses the first control), Tab moves between fields, Enter in
 // any field submits, Esc or Cancel cancels. Empty answers are allowed.
 export default function TemplatePromptForm({
@@ -40,7 +40,7 @@ export default function TemplatePromptForm({
     >
       <div className="space-y-3">
         <h3 id="template-fields-title" className="text-ui-title-3 font-bold font-mono tracking-tight">
-          Template fields
+          Fill in the template
         </h3>
         <div>
           {labels.map((label, index) => (

@@ -140,33 +140,36 @@ Add it directly to `tailwind.config.js` under the relevant group. Document wheth
 
 ## Typography Scale
 
-Defined in `tailwind.config.js` as custom `fontSize` entries. All sizes follow a compact platform-friendly scale:
+Defined in `tailwind.config.js` as custom `fontSize` entries. Sizes and line heights follow Apple's HIG text styles (iOS Dynamic Type "Large" defaults); tracking follows Inter's dynamic metrics, tightening as the size grows.
 
-| Token | Size | Line height | Use |
-|---|---|---|---|
-| `text-ui-title-1` | 28px | 36px | Page / modal headings |
-| `text-ui-title-2` | 22px | 28px | Section headings |
-| `text-ui-title-3` | 20px | 26px | Card / panel headings |
-| `text-ui-body` | 17px | 24px | Body copy |
-| `text-ui-callout` | 16px | 22px | Callouts, descriptions |
-| `text-ui-subhead` | 15px | 20px | Labels, nav items |
-| `text-ui-footnote` | 13px | 18px | Buttons, badges, captions |
-| `text-ui-caption` | 12px | 16px | Timestamps, metadata |
-| `text-ui-micro` | 11px | 14px | Tiny labels, tooltips |
+| Token | Size | Line height | HIG style | Use |
+|---|---|---|---|---|
+| `text-ui-title-1` | 28px | 34px | Title 1 | Page / modal headings |
+| `text-ui-title-2` | 22px | 28px | Title 2 | Section headings |
+| `text-ui-title-3` | 20px | 25px | Title 3 | Card / panel headings |
+| `text-ui-body` | 17px | 22px | Body | Body copy |
+| `text-ui-callout` | 16px | 21px | Callout | Callouts, descriptions |
+| `text-ui-subhead` | 15px | 20px | Subheadline | Labels, nav items |
+| `text-ui-footnote` | 13px | 18px | Footnote | Buttons, badges, captions |
+| `text-ui-caption` | 12px | 16px | Caption 1 | Timestamps, metadata |
+| `text-ui-micro` | 11px | 13px | Caption 2 | Tiny labels, tooltips |
 
 ---
 
 ## Font Families
 
+Four self-hosted faces (`app/fonts.ts`), one role each. Every stack falls back to the Apple system face with the same role.
+
 | Token | Stack | Use |
 |---|---|---|
-| `font-sans` | Plus Jakarta Sans → SF Pro → system-ui | UI chrome, labels, buttons (also the `body` default) |
-| `font-serif` | New York → Georgia → serif | Marketing pages |
-| `font-mono` | SF Mono → Menlo → monospace | Code spans, inline code |
-| `font-sourcecode` | Source Code Pro | Editor code blocks |
+| `font-sans` | Inter → system-ui (SF Pro) | UI chrome, labels, buttons (also the `body` default) |
+| `font-display` | Plus Jakarta Sans → Inter | Landing and display headings |
+| `font-serif` | Source Serif 4 → New York → Georgia | Italic accents on marketing pages |
+| `font-mono` | Geist Mono → SF Mono → Menlo | Code, keyboard chips, technical metadata |
+| `font-sourcecode` | Source Code Pro | Legacy code surfaces |
 | `font-journal` | Georgia | Document body (journal mode) |
 
-The editor font is user-selectable (Settings → Typography) from `app/editor/settings/font-options.ts`: Plus Jakarta Sans (default), Inter, Geist Mono, and IBM Plex Mono. Fonts are loaded in `app/fonts.ts`.
+The editor font is user-selectable (Settings → Typography) from `app/editor/settings/font-options.ts`: Plus Jakarta Sans (default), Source Serif 4, Inter, and Geist Mono. Text size offers the Dynamic Type body steps 15 / 17 (default) / 19 / 21 / 23px. Those two are the only typography settings. Line height (1.65), the reading measure (≤ 70ch), heading rhythm and code styling are fixed in `app/editor/editor-typography.scss`.
 
 ---
 

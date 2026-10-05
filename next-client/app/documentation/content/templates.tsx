@@ -1,90 +1,136 @@
 import { Callout, Code, KV, type Subsection } from "../doc-primitives";
 
+const h4 = "text-lg font-bold tracking-tight !mb-2 !mt-0";
+
 // Documentation content: Editor group, vault templates.
 export const templatesItems: Subsection[] = [
   {
     id: "templates",
     title: "Templates",
-    lead: "Templates are ordinary Markdown files in a templates folder. Tokens like {{date}} fill in when you use one.",
-    keywords: "template templates tpl snippet token placeholder prompt cursor clipboard date slug new note missing link target_folder file_name new template create template",
+    lead: "A template is a note you start other notes from. Fields like Today's date or Ask: Owner fill in each time you use it.",
+    keywords: "template templates save as template edit template blank tab fill in date format date math tomorrow selection quick start empty note preview tpl snippet starter meeting notes spec report token field add field placeholder prompt question ask cursor clipboard date slug new note missing link folder new notes go in target_folder file_name new template create template",
     body: (
       <>
+        <h4 className={h4}>Make a template</h4>
         <p>
-          Every <code>.md</code> file directly in your templates folder is a template, named after
-          its file. By default that&apos;s the first of <code>templates/</code>,{" "}
-          <code>_templates/</code> or <code>Templates/</code> that exists. Pick another folder in
-          Settings → Files → Templates Folder (saved per vault). Add, edit or delete a template like
-          any note: changes apply the next time you use it, with no setup and no reload. Templates
-          stay plain text, so other Markdown editors read them as normal notes. Their tasks stay
-          off the Tasks page, and they don&apos;t appear in the home feed. Run{" "}
-          <strong>New template…</strong> from the command palette to create one: name it, and it
-          opens with a short example showing the frontmatter keys, <code>{"{{title}}"}</code>,{" "}
-          <code>{"{{date}}"}</code>, a prompt and <code>{"{{cursor}}"}</code>. If a template with
-          that name already exists, it opens unchanged.
+          Run <strong>New template…</strong> from the command palette, pick a starter and give it a
+          name:
         </p>
-        <h4 className="text-lg font-bold tracking-tight !mb-2 !mt-0">Tokens</h4>
+        <ul>
+          <li><strong>Basic</strong>: a title, today&apos;s date and one question.</li>
+          <li><strong>Journal</strong>: today&apos;s date as the heading, room to write, and what you&apos;re grateful for.</li>
+          <li><strong>Meeting notes</strong>: agenda, decisions, action items, open questions, next steps.</li>
+          <li><strong>Spec</strong>: author, status and version, then summary, objective, prerequisites, design, open questions and references.</li>
+          <li><strong>Report</strong>: summary, findings, next steps and notes.</li>
+        </ul>
+        <p>
+          Or turn a note you already like into one: run <strong>Save as template…</strong> from the
+          command palette, or type <code>/save-template</code> in the note. Only a name is asked,
+          prefilled from the note&apos;s first heading. The note is copied into your templates
+          folder as a plain <code>.md</code> file.
+        </p>
+        <p>
+          Edit a template like any note: open it from the file tree, or hover it in the template
+          list and press the pencil (⌘E / Ctrl+E). The line at the top says{" "}
+          <strong>Editing template</strong>. Changes save as you type and apply the next time you
+          use it.
+        </p>
+        <h4 className={h4}>Add fields</h4>
+        <p>
+          A field is a spot that fills itself in when the template is used. Press{" "}
+          <strong>+ Add field</strong> in the line at the top of the template, or type{" "}
+          <code>/field</code>, and pick one:
+        </p>
         <KV
           rows={[
-            { label: <code>{"{{date}}"}</code>, value: "2026-10-04" },
-            { label: <code>{"{{time}}"}</code>, value: "14:30 (24 h)" },
-            { label: <code>{"{{weekday}} {{monthName}}"}</code>, value: "Sunday October" },
-            { label: <code>{"{{year}} {{month}} {{day}}"}</code>, value: "2026 10 04" },
-            { label: <code>{"{{title}}"}</code>, value: "The note's title" },
-            { label: <code>{"{{slug}}"}</code>, value: "auth-spec" },
-            { label: <code>{"{{clipboard}}"}</code>, value: "Clipboard text" },
-            { label: <code>{"{{cursor}}"}</code>, value: "Caret position" },
-            { label: <code>{"{{prompt:Owner}}"}</code>, value: "Asks for a value" },
+            { label: "Ask a question…", value: "Asks you each time, e.g. Owner. Questions you already ask are listed first, so reusing one fills in the same answer" },
+            { label: "Today's date", value: "2026-10-05" },
+            { label: "Current time", value: "14:30" },
+            { label: "Weekday, Month name", value: "Monday, October" },
+            { label: "Year, Month number, Day of the month", value: "2026, 10, 05" },
+            { label: "Note title", value: "The new note's title" },
+            { label: "Title as file name", value: "auth-spec" },
+            { label: "Clipboard", value: "What you last copied" },
+            { label: "Start typing here", value: "Where the caret lands" },
+            { label: "Selected text", value: "What you had selected when inserting the template" },
+            { label: "Tomorrow's date", value: "2026-10-06; also any other day, week, month or year away" },
+            { label: "Blank to fill in…", value: "Stays in the new note as a highlighted blank, e.g. Task 1" },
           ]}
         />
         <p>
-          <code>{"{{title}}"}</code> is the new note&apos;s title, or the current note&apos;s title
-          when you insert a template. <code>{"{{slug}}"}</code> is that title in URL-safe
-          kebab-case. <code>{"{{clipboard}}"}</code> is empty if the browser doesn&apos;t allow
-          reading it, and the clipboard is only read when a template uses it.{" "}
-          <code>{"{{cursor}}"}</code> is removed from the text, and the caret lands there.
+          In a template, fields show as small labelled boxes. Click one to see what&apos;s really
+          written in the file. If something won&apos;t fill in, such as a misspelled field, the
+          line at the top tells you.
         </p>
+        <h4 className={h4}>Fill in the blanks</h4>
         <p>
-          Every <code>{"{{prompt:Label}}"}</code> with the same label gets one field in the{" "}
-          <strong>Template fields</strong> dialog, and all of them get the answer. Press Enter to
-          continue, or Esc to cancel without writing anything. Unknown tokens are left as typed.
+          Blanks left by a template show as grey boxes in the new note. Press <strong>Tab</strong>{" "}
+          to select the next one and type to replace it, or <strong>Shift+Tab</strong> to go back.
+          Clicking a blank selects it too. When none are left, you&apos;ll see{" "}
+          <strong>Template ready ✦</strong>. Press Esc to use Tab normally again in that note.
         </p>
-        <h4 className="text-lg font-bold tracking-tight !mb-2 !mt-0">Three ways to use one</h4>
+        <h4 className={h4}>Where new notes go</h4>
+        <p>
+          The line at the top of a template also says <strong>New notes go in</strong>. Click the
+          folder to pick another one, or to create one. By default, notes go to your New Notes
+          folder.
+        </p>
+        <h4 className={h4}>Use a template</h4>
         <ul>
           <li>
-            <strong>
-              <code>/template</code> or <code>/tpl</code>
-            </strong>{" "}
-            in the slash menu: pick a template and it&apos;s inserted at the caret, as one undo step.
-            An empty note gets the whole template; otherwise only the part below its frontmatter.
-          </li>
-          <li>
-            <strong>A missing link:</strong> clicking <code>[[rfcs/auth-spec]]</code> creates{" "}
-            <code>rfcs/auth-spec.md</code>. When a template is named after the folder (
-            <code>rfc</code> or <code>rfcs</code>), you confirm with Enter; otherwise pick a template
-            or <strong>Blank note</strong>. <code>[[idea]]</code> goes to your New Notes Folder.
+            <strong>Start from an empty note:</strong> a new, empty note shows your templates as
+            small buttons under the first line. Click one to fill the note. They disappear as soon
+            as you type.
           </li>
           <li>
             <strong>New note from template…</strong> in the command palette: pick a template, type a
-            title, and the note is created and opened.
+            title, answer its questions, and the note opens.
+          </li>
+          <li>
+            <strong><code>/template</code></strong> in a note: inserts a template where you&apos;re
+            typing. The list shows what each template contains (like &quot;3 sections • Action
+            items&quot;) and a preview: click a template to see it, then press <strong>Use template</strong>{" "}
+            (or double-click it). Press ⌘1–⌘9 (Ctrl+1–9) to use one straight away.
+          </li>
+          <li>
+            <strong>Adding a link</strong> (<code>[[</code> or the WikiLink dialog): the{" "}
+            <strong>From template</strong> tab creates the linked note from a template. The
+            template its name points to is picked for you, so &quot;Meeting notes 2026-10-05&quot;
+            suggests Meeting notes and a date suggests your journal.
+          </li>
+          <li>
+            <strong>Clicking a link to a note that doesn&apos;t exist yet</strong>, like{" "}
+            <code>[[rfcs/auth-spec]]</code>: pick a template (or a blank note) for it. A template
+            named after the folder, like <code>rfc</code>, is suggested first.
           </li>
         </ul>
+        <Callout type="note">
+          Existing notes are never overwritten: if the note is already there, it opens as is.
+        </Callout>
+        <h4 className={h4}>Under the hood</h4>
         <p>
-          For the palette command, a template can say where its notes go with two frontmatter keys.
-          Tokens work in both, and neither key is copied into the note:
+          Templates are the <code>.md</code> files in your templates folder (the first of{" "}
+          <code>templates/</code>, <code>_templates/</code> or <code>Templates/</code>, or the one
+          set in Settings → Files → Templates Folder). They stay plain text: a field is written{" "}
+          <code>{"{{date}}"}</code>, a question <code>{"{{prompt:Owner}}"}</code>, and the folder
+          is a <code>target_folder</code> line in the frontmatter. You can also type these by hand.
+          Typing <code>{"{{"}</code> opens the same field list. An optional{" "}
+          <code>file_name</code> line names new notes, and fields work in it too:
+        </p>
+        <p>
+          Dates take a format after a colon, such as <code>{"{{date:dddd, D MMMM}}"}</code> (Monday, 5
+          October) or <code>{"{{time:H.mm}}"}</code>, using <code>YYYY YY MMMM MMM MM M dddd ddd DD D HH H mm ss</code>{" "}
+          and <code>[literal text]</code>. Date math works too: <code>{"{{date+1d}}"}</code>,{" "}
+          <code>{"{{date-2w}}"}</code>, <code>{"{{date+1m}}"}</code>, <code>{"{{date+1y}}"}</code>, and with a
+          format, <code>{"{{date+1d:dddd}}"}</code>. <code>{"{{selection}}"}</code> is the selected text.
+          Any other name, like <code>{"{{task_1}}"}</code>, is a blank.
         </p>
         <Code>
           {"---\ntarget_folder: rfcs\nfile_name: rfc-{{date}}-{{slug}}\n---\n# {{title}}\nOwner: {{prompt:Owner}}\n{{cursor}}"}
         </Code>
         <p>
-          Lines starting with <code>#</code> inside a template&apos;s frontmatter are comments for
-          you. They don&apos;t reach created notes, and a block that holds only comments is dropped.
-        </p>
-        <Callout type="note">
-          A clicked link always decides where its note goes, and the link text is never changed.
-          Existing files are never overwritten: if the note is already on disk, it opens as is.
-        </Callout>
-        <p>
-          AI Chat can write templates for you; see{" "}
+          Other frontmatter lines (author, status, …) are copied into each new note. Templates
+          stay out of the Tasks page and the home feed. AI Chat can write templates for you; see{" "}
           <a href="#ai-templates" className="text-sage font-semibold hover:underline">AI templates</a>.
         </p>
       </>

@@ -2,11 +2,16 @@
 import { describe, expect, it } from "vitest";
 import type { FileMetadata } from "@/app/atoms/metadata";
 import { buildNoteDisplayItems, MASKED_PREVIEW, type PrivacyLevel } from "@/app/utils/note-display";
-import { buildFeed as buildFeedWith, dayLabel, feedTitle, isFeedPath } from "./feed-model";
+import { buildFeed as buildFeedWith, buildWeek, dayLabel, feedTitle, isFeedPath } from "./feed-model";
 
 // Builds the feed through the display factory, as HomeFeed does.
-function buildFeed(metadata: Record<string, FileMetadata>, now: Date, level: PrivacyLevel = "show_title") {
-  return buildFeedWith(metadata, buildNoteDisplayItems(metadata, level), now);
+function buildFeed(
+  metadata: Record<string, FileMetadata>,
+  now: Date,
+  level: PrivacyLevel = "show_title",
+  pinnedPaths: string[] = [],
+) {
+  return buildFeedWith(metadata, buildNoteDisplayItems(metadata, level), now, undefined, pinnedPaths);
 }
 
 const NOW = new Date(2026, 8, 28, 15, 0); // Mon Sep 28 2026
@@ -48,7 +53,7 @@ describe("dayLabel", () => {
     expect(dayLabel(new Date(2026, 8, 28, 1).getTime(), NOW)).toBe("Today");
     expect(dayLabel(new Date(2026, 8, 27, 23, 59).getTime(), NOW)).toBe("Yesterday");
     expect(dayLabel(new Date(2026, 8, 26).getTime(), NOW)).toBe(
-      new Date(2026, 8, 26).toLocaleDateString(undefined, { weekday: "short" }),
+      new Date(2026, 8, 26).toLocaleDateString(undefined, { weekday: "long" }),
     );
     expect(dayLabel(new Date(2026, 8, 1).getTime(), NOW)).toBe(
       new Date(2026, 8, 1).toLocaleDateString(undefined, { month: "short", day: "numeric" }),
@@ -74,7 +79,7 @@ describe("buildFeed", () => {
 
     expect(feed.map((entry) => entry.path)).toEqual(["a.md", "c.md", "b.md"]);
     expect(feed[0].dayLabel).toBe("Today");
-    expect(feed[1].dayLabel).toBe(new Date(2026, 8, 26).toLocaleDateString(undefined, { weekday: "short" }));
+    expect(feed[1].dayLabel).toBe(new Date(2026, 8, 26).toLocaleDateString(undefined, { weekday: "long" }));
     expect(feed[2].dayLabel).toBeNull();
   });
 
@@ -112,6 +117,37 @@ describe("buildFeed", () => {
     expect(entry).toMatchObject({ isSensitive: false, previewStyle: "plain" });
   });
 
+  it("puts pinned notes first, newest pin first, under one Pinned label", () => {
+    const feed = buildFeed({
+      a: meta("a.md", new Date(2026, 8, 28, 9)),
+      b: meta("b.md", new Date(2026, 8, 27, 9)),
+      c: meta("c.md", new Date(2026, 8, 20, 9)),
+    }, NOW, "show_title", ["c.md", "b.md", "gone.md"]);
+
+    expect(feed.map((entry) => [entry.path, entry.dayLabel, entry.isPinned])).toEqual([
+      ["c.md", "Pinned", true],
+      ["b.md", null, true],
+      ["a.md", "Today", false],
+    ]);
+  });
+
+  it("leaves pins out when the privacy level hides the note", () => {
+    const feed = buildFeed({
+      s: meta("secret.md", NOW, { frontmatter: { sensitive: "true" } }),
+      a: meta("a.md", NOW),
+    }, NOW, "hidden", ["secret.md"]);
+    expect(feed.map((entry) => [entry.path, entry.dayLabel])).toEqual([["a.md", "Today"]]);
+  });
+
+  it("gives every note its file name, except sensitive notes", () => {
+    const feed = buildFeed({
+      titled: meta("notes/2026-09-28.md", NOW, { frontmatter: { title: "Weekly review" } }),
+      plain: meta("notes/Plan.md", new Date(NOW.getTime() - 1000)),
+      secret: meta("notes/diagnosis.md", new Date(NOW.getTime() - 2000), { frontmatter: { title: "Note", sensitive: true } }),
+    }, NOW);
+    expect(feed.map((entry) => entry.fileName)).toEqual(["2026-09-28.md", "Plan.md", null]);
+  });
+
   it("carries sensitivity and the preview style of sensitive notes", () => {
     const notes = { s: meta("s.md", NOW, { preview: "Secret", frontmatter: { tags: "private" } }) };
     expect(buildFeed(notes, NOW)[0]).toMatchObject({ isSensitive: true, previewStyle: "masked", preview: MASKED_PREVIEW });
@@ -128,5 +164,50 @@ describe("buildFeed", () => {
     expect(feed.map((entry) => entry.path)).toEqual(["a.md", "b.md"]);
     expect(feed[0].dayLabel).toBe("Today");
     expect(feed[1].dayLabel).toBe("Yesterday");
+  });
+});
+
+describe("buildWeek", () => {
+  it("covers the seven days ending today, with counts and each day's first row", () => {
+    const feed = buildFeed({
+      a: meta("a.md", new Date(2026, 8, 28, 9)),
+      b: meta("b.md", new Date(2026, 8, 26, 18)),
+      c: meta("c.md", new Date(2026, 8, 26, 10)),
+      old: meta("old.md", new Date(2026, 8, 1)),
+      undated: meta("undated.md", new Date(0)),
+    }, NOW);
+    const week = buildWeek(feed, NOW);
+
+    expect(week.map((entry) => new Date(entry.day).getDate())).toEqual([22, 23, 24, 25, 26, 27, 28]);
+    expect(week[6]).toMatchObject({ count: 1, firstIndex: 0 });
+    expect(week[4]).toMatchObject({ count: 2, firstIndex: 1 });
+    expect(week[5]).toMatchObject({ count: 0, firstIndex: -1 });
+    expect(week.reduce((sum, entry) => sum + entry.count, 0)).toBe(3);
+  });
+
+  it("jumps to a day's first unpinned note, or its pinned one when that's all it has", () => {
+    const feed = buildFeed({
+      pinnedToday: meta("p.md", new Date(2026, 8, 28, 12)),
+      today: meta("a.md", new Date(2026, 8, 28, 9)),
+      pinnedOnly: meta("q.md", new Date(2026, 8, 27, 9)),
+    }, NOW, "show_title", ["p.md", "q.md"]);
+    const week = buildWeek(feed, NOW);
+
+    expect(feed.map((entry) => entry.path)).toEqual(["p.md", "q.md", "a.md"]);
+    expect(week[6]).toMatchObject({ count: 2, firstIndex: 2 });
+    expect(week[5]).toMatchObject({ count: 1, firstIndex: 1 });
+  });
+
+  it("doesn't count notes the privacy level hides", () => {
+    const feed = buildFeed({
+      s: meta("secret.md", new Date(2026, 8, 28, 12), { frontmatter: { sensitive: "true" } }),
+    }, NOW, "hidden");
+    expect(buildWeek(feed, NOW)[6].count).toBe(0);
+  });
+
+  it("steps by calendar day across a DST change", () => {
+    const week = buildWeek([], new Date(2026, 2, 31, 12)); // spans late-March DST in many zones
+    expect(week.map((entry) => new Date(entry.day).getDate())).toEqual([25, 26, 27, 28, 29, 30, 31]);
+    expect(week.every((entry) => new Date(entry.day).getHours() === 0)).toBe(true);
   });
 });

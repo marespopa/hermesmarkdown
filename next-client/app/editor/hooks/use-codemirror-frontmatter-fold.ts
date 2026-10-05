@@ -1,83 +1,94 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef } from "react";
+import { useAtom } from "jotai";
 import type { EditorView } from "@codemirror/view";
+import { atom_frontmatterCollapsedByDefault, atom_frontmatterCollapsedByFile } from "@/app/atoms/atoms";
 import {
+  FRONTMATTER_TOGGLE_EVENT,
   findFrontmatterFoldRange,
   isFrontmatterFolded,
   toggleFrontmatterFold,
 } from "../codemirror/frontmatter-fold";
 
-interface FrontmatterChevron {
-  blockId: string;
-  top: number;
-  collapsed: boolean;
-  range: ReturnType<typeof findFrontmatterFoldRange>;
-}
+// Editors open per file, so the shared entry is dropped once the last one
+// showing that file closes and a reopened note follows the default again.
+const openEditorCounts = new Map<string, number>();
 
 export function useCodeMirrorFrontmatterFold({
   viewRef,
-  containerRef,
-  collapseByDefault,
+  filePath,
 }: {
   viewRef: React.RefObject<EditorView | null>;
-  containerRef: React.RefObject<HTMLDivElement | null>;
-  collapseByDefault: boolean;
+  filePath: string;
 }) {
-  const [chevrons, setChevrons] = useState<FrontmatterChevron[]>([]);
-  // `null` when the file has no frontmatter. Independent of the chevron,
-  // which needs on-screen coordinates.
-  const [collapsed, setCollapsed] = useState<boolean | null>(null);
+  // A click on the Properties row is remembered: notes opened later start
+  // that way. Already-open notes keep their own state.
+  const [collapseByDefault, setCollapseByDefault] = useAtom(atom_frontmatterCollapsedByDefault);
+  const collapseByDefaultRef = useRef(collapseByDefault);
+  collapseByDefaultRef.current = collapseByDefault;
+
+  // Split panes showing the same file share its collapsed state; drafts are
+  // all "draft", so each keeps its own.
+  const shareKey = filePath === "draft" ? null : filePath;
+  const [collapsedByFile, setCollapsedByFile] = useAtom(atom_frontmatterCollapsedByFile);
+  const sharedCollapsed = shareKey ? collapsedByFile[shareKey] : undefined;
+  const sharedCollapsedRef = useRef(sharedCollapsed);
+  sharedCollapsedRef.current = sharedCollapsed;
 
   const recompute = useCallback((view: EditorView) => {
     const range = findFrontmatterFoldRange(view.state.doc.toString());
-    setCollapsed(range ? isFrontmatterFolded(view.state) : null);
-    // coordsAtPos first: it can flush a pending CodeMirror measure — e.g. the
-    // scrollIntoView of an Edit/Preview switch — which scrolls the canvas. A
-    // wrapper rect read before that is stale and put the chevron above the sheet.
-    const coords = range ? view.coordsAtPos(range.titleOffset) : null;
-    const wrapperRect = containerRef.current?.getBoundingClientRect();
-    if (!range || !coords || !wrapperRect) {
-      setChevrons([]);
-      return;
+    const folded = range ? isFrontmatterFolded(view.state) : null;
+    // Whatever changed it here (the header row, caret moving in, how notes
+    // open) becomes the file's state for the other panes.
+    if (shareKey && folded !== null) {
+      setCollapsedByFile((prev) => (prev[shareKey] === folded ? prev : { ...prev, [shareKey]: folded }));
     }
+  }, [setCollapsedByFile, shareKey]);
 
-    setChevrons([{
-      blockId: "frontmatter",
-      top: coords.top - wrapperRect.top,
-      collapsed: isFrontmatterFolded(view.state),
-      range,
-    }]);
-  }, [containerRef]);
-
+  // A note already open in another pane opens the way it shows there;
+  // otherwise as the last Properties row click left it.
   const onViewCreated = useCallback((view: EditorView) => {
     const range = findFrontmatterFoldRange(view.state.doc.toString());
-    if (collapseByDefault && range) {
-      toggleFrontmatterFold(view, range, true);
+    if ((sharedCollapsedRef.current ?? collapseByDefaultRef.current) && range) {
+      toggleFrontmatterFold(view, range, true, { animate: false });
     }
+    // Only the row click counts, not the caret moving in or a split pane following.
+    view.dom.addEventListener(FRONTMATTER_TOGGLE_EVENT, (event) => {
+      setCollapseByDefault((event as CustomEvent<{ collapsed: boolean }>).detail.collapsed);
+    });
     recompute(view);
-  }, [collapseByDefault, recompute]);
+  }, [recompute, setCollapseByDefault]);
 
-  // The preference is app-wide and live: flipping it (Settings, the palette's
-  // "… properties in every note") collapses or expands every open editor, and
-  // files opened later follow it via onViewCreated. The summary row and the
-  // chevron only change the one note.
+  useEffect(() => {
+    if (!shareKey) return;
+    openEditorCounts.set(shareKey, (openEditorCounts.get(shareKey) ?? 0) + 1);
+    return () => {
+      const remaining = (openEditorCounts.get(shareKey) ?? 1) - 1;
+      if (remaining > 0) {
+        openEditorCounts.set(shareKey, remaining);
+        return;
+      }
+      openEditorCounts.delete(shareKey);
+      setCollapsedByFile((prev) => {
+        if (!(shareKey in prev)) return prev;
+        const next = { ...prev };
+        delete next[shareKey];
+        return next;
+      });
+    };
+  }, [setCollapsedByFile, shareKey]);
+
+  // Another pane on the same file collapsed or expanded it: follow.
   useEffect(() => {
     const view = viewRef.current;
-    if (!view) return;
+    if (!view || sharedCollapsed === undefined) return;
     const range = findFrontmatterFoldRange(view.state.doc.toString());
-    if (range && isFrontmatterFolded(view.state) !== collapseByDefault) {
-      toggleFrontmatterFold(view, range, collapseByDefault);
+    if (range && isFrontmatterFolded(view.state) !== sharedCollapsed) {
+      toggleFrontmatterFold(view, range, sharedCollapsed);
+      recompute(view);
     }
-    recompute(view);
-  }, [collapseByDefault, recompute, viewRef]);
+  }, [recompute, sharedCollapsed, viewRef]);
 
-  const toggle = useCallback((view: EditorView) => {
-    const chevron = chevrons[0];
-    if (!chevron?.range) return;
-    toggleFrontmatterFold(view, chevron.range, !chevron.collapsed);
-    recompute(view);
-  }, [chevrons, recompute]);
-
-  return { chevrons, collapsed, toggle, onCursorActivity: recompute, onViewCreated };
+  return { onCursorActivity: recompute, onViewCreated };
 }

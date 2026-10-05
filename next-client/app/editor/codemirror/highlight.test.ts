@@ -39,23 +39,34 @@ describe("computeMarkdownDecorations", () => {
       && d.class.includes("cm-frontmatter-separator"))).toBe(true);
   });
 
-  it("marks a heading's hashes as faded and its label as bold", () => {
+  it("styles # lines inside frontmatter as YAML comments, not headings", () => {
+    const doc = "---\n# target_folder: notes\n---\n# Title";
+    const decos = decorationsFor(doc);
+    const commentFrom = doc.indexOf("# target");
+    const titleFrom = doc.indexOf("# Title");
+
+    expect(decos.some((d) => d.from === commentFrom && d.class.includes("cm-frontmatter-comment"))).toBe(true);
+    expect(decos.some((d) => d.from === commentFrom && d.class.includes("cm-heading"))).toBe(false);
+    expect(decos.some((d) => d.from === titleFrom && d.class.includes("cm-heading-1"))).toBe(true);
+  });
+
+  it("marks a heading's hashes as faded and its label as semibold", () => {
     const doc = "# Hello";
     const decos = decorationsFor(doc);
     const hashFrom = doc.indexOf("#");
     const labelFrom = doc.indexOf("Hello");
     expect(decos.some((d) => d.from === hashFrom && d.class.includes("opacity-40"))).toBe(true);
-    expect(decos.some((d) => d.from === labelFrom && d.class.includes("font-bold"))).toBe(true);
+    expect(decos.some((d) => d.from === labelFrom && d.class.includes("font-semibold"))).toBe(true);
   });
 
-  it("scales each ATX heading level relative to the editor font", () => {
+  // Sizes live in editor-typography.scss, keyed by the line class.
+  it("tags each ATX heading line with its level for the heading scale", () => {
     const doc = "# One\n## Two\n### Three\n#### Four\n##### Five\n###### Six";
     const decos = decorationsFor(doc);
-    const expectedSizes = ["1.5em", "1.35em", "1.2em", "1.1em", "1em", "0.95em"];
 
-    for (const [index, size] of expectedSizes.entries()) {
-      const lineStart = doc.split("\n").slice(0, index).join("\n").length + (index > 0 ? 1 : 0);
-      expect(decos.some((d) => d.from === lineStart && d.class.includes(`!text-[${size}]`))).toBe(true);
+    for (let level = 1; level <= 6; level++) {
+      const lineStart = doc.split("\n").slice(0, level - 1).join("\n").length + (level > 1 ? 1 : 0);
+      expect(decos.some((d) => d.from === lineStart && d.class.split(" ").includes(`cm-heading-${level}`))).toBe(true);
     }
   });
 

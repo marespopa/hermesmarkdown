@@ -17,6 +17,7 @@ import {
 import Toggle from "@/app/components/Toggle";
 import FontPicker from "@/app/editor/settings/components/FontPicker";
 import { SegmentedControl, SelectControl } from "@/app/editor/settings/components/SettingControls";
+import { TEXT_SIZES } from "@/app/editor/settings/font-options";
 import { FONTS } from "@/app/editor/settings/font-options";
 import WizardStep, { WizardPanel } from "./WizardStep";
 
@@ -80,11 +81,7 @@ export function TextSizeStep({ onContinue }: StepProps) {
           Text size
         </label>
         <SelectControl value={renderedFontSize} onChange={setRenderedFontSize} ariaLabel="Text size">
-          <option value="14px">Small</option>
-          <option value="16px">Medium</option>
-          <option value="18px">Large</option>
-          <option value="20px">Extra large</option>
-          <option value="22px">Largest</option>
+          {TEXT_SIZES.map((size) => <option key={size.value} value={size.value}>{size.label}</option>)}
         </SelectControl>
       </WizardPanel>
     </WizardStep>

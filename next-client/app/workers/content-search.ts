@@ -166,6 +166,9 @@ export function handleContentMessage(
     case "content:remove":
       index.remove(data.paths);
       return true;
+    case "content:clear":
+      index.clear();
+      return true;
     case "content:remap":
       index.remap(data.oldPath, data.newPath);
       return true;

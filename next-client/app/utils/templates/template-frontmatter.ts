@@ -61,3 +61,16 @@ export function templateBody(content: string): string {
   const match = FM_REGEX.exec(content);
   return match ? dropLeadingBlankLines(content.slice(match[0].length)) : content;
 }
+
+// Sets (or, with null, removes) the template's `target_folder`, keeping the
+// rest of the text. Creates the frontmatter block when needed and drops it
+// when nothing is left in it.
+export function setTemplateTargetFolder(raw: string, folder: string | null): string {
+  const value = folder?.trim() || null;
+  const match = FM_REGEX.exec(raw);
+  if (!match) return value ? `---\ntarget_folder: ${value}\n---\n${raw}` : raw;
+  const updated = updateFmFields(raw, { target_folder: value });
+  const block = FM_REGEX.exec(updated);
+  if (block && !block[1].trim()) return dropLeadingBlankLines(updated.slice(block[0].length));
+  return updated;
+}

@@ -8,10 +8,8 @@ export interface CalloutMeta {
   Icon: IconType;
 }
 
-// Superset of Obsidian's built-in callout types. Shared by the codemirror
-// syntax highlighter (app/editor/codemirror/highlight.ts) and the read-only
-// preview renderer (app/editor/components/Preview.tsx) so both surfaces
-// recognize the same set of types instead of drifting independently.
+// Superset of Obsidian's built-in callout types, used by the codemirror
+// syntax highlighter (app/editor/codemirror/highlight.ts).
 export const CALLOUT_META: Record<string, CalloutMeta> = {
   note: { border: "border-indigo-500", bg: "bg-indigo-500/5", text: "text-indigo-600 dark:text-indigo-400", Icon: HiOutlineInformationCircle },
   abstract: { border: "border-cyan-500", bg: "bg-cyan-500/5", text: "text-cyan-600 dark:text-cyan-400", Icon: HiOutlineBookOpen },

@@ -29,12 +29,12 @@ vi.mock("@/app/atoms/atoms", async (importOriginal) => {
     atom_autosaveMode: { toString: () => "atom_autosaveMode" },
     atom_autosaveDelay: { toString: () => "atom_autosaveDelay" },
     atom_vimMode: { toString: () => "atom_vimMode" },
-    atom_frontmatterCollapsedByDefault: { toString: () => "atom_frontmatterCollapsedByDefault" },
     atom_showStats: { toString: () => "atom_showStats" },
   };
 });
 
 import { useAtom } from "jotai";
+import { UI_FONT_STACK } from "@/app/atoms/ui-atoms";
 
 // Helper: switch to the "Editor" category so its controls render.
 // The page has two "Editor" texts: the back-button breadcrumb and the nav item.
@@ -58,7 +58,6 @@ describe("SettingsPage", () => {
       if (atomStr === "atom_lineHeight") return ["1.8", vi.fn()];
       if (atomStr === "atom_showStats") return [true, vi.fn()];
       if (atomStr === "atom_theme") return ["light", vi.fn()];
-      if (atomStr === "atom_frontmatterCollapsedByDefault") return [false, vi.fn()];
       return ["", vi.fn()];
     });
   });
@@ -69,7 +68,7 @@ describe("SettingsPage", () => {
     expect(screen.getByText("Font")).toBeInTheDocument();
     expect(screen.getByText("Geist Mono")).toBeInTheDocument();
     expect(screen.getByText("Inter")).toBeInTheDocument();
-    expect(screen.getByText("IBM Plex Mono")).toBeInTheDocument();
+    expect(screen.getByText("Source Serif 4")).toBeInTheDocument();
     expect(screen.getByText("Plus Jakarta Sans")).toBeInTheDocument();
     expect(screen.queryByText("Text Size")).not.toBeInTheDocument();
     expect(screen.queryByText("Line Height")).not.toBeInTheDocument();
@@ -84,9 +83,7 @@ describe("SettingsPage", () => {
 
     render(<SettingsPage />);
     fireEvent.click(screen.getByText("Inter"));
-    expect(setEditorFontFamily).toHaveBeenCalledWith(
-      "var(--font-inter), Inter, ui-sans-serif, sans-serif",
-    );
+    expect(setEditorFontFamily).toHaveBeenCalledWith(UI_FONT_STACK);
   });
 
   it("renders editor settings options", () => {
@@ -100,7 +97,7 @@ describe("SettingsPage", () => {
     openEditorSection();
 
     expect(screen.getByText("Vim Mode")).toBeInTheDocument();
-    expect(screen.getByText("Collapse Frontmatter")).toBeInTheDocument();
+    expect(screen.queryByText("Collapse Frontmatter")).not.toBeInTheDocument();
     expect(screen.queryByText("Delay")).not.toBeInTheDocument();
   });
 
@@ -108,26 +105,10 @@ describe("SettingsPage", () => {
     render(<SettingsPage />);
     openFilesSection();
 
-    expect(screen.getByText("On Vault Open")).toBeInTheDocument();
+    expect(screen.queryByText("On Vault Open")).not.toBeInTheDocument();
+    expect(screen.getByText("New Notes Folder")).toBeInTheDocument();
     expect(screen.getByText("Show Hidden Files")).toBeInTheDocument();
     expect(screen.getByText("Delay")).toBeInTheDocument();
-  });
-
-  it("updates the default frontmatter collapse preference", () => {
-    const setFrontmatterCollapsedByDefault = vi.fn();
-    (useAtom as any).mockImplementation((atom: any) => {
-      if (atom.toString() === "atom_frontmatterCollapsedByDefault") {
-        return [false, setFrontmatterCollapsedByDefault];
-      }
-      if (atom.toString() === "atom_autosaveMode") return ["afterDelay", vi.fn()];
-      return ["", vi.fn()];
-    });
-
-    render(<SettingsPage />);
-    openEditorSection();
-    fireEvent.click(screen.getByRole("switch", { name: "Collapse frontmatter by default" }));
-
-    expect(setFrontmatterCollapsedByDefault).toHaveBeenCalledWith(true);
   });
 
   it("calls setter when autosave delay is changed", () => {

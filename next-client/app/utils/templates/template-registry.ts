@@ -92,3 +92,42 @@ export function parseMissingLink(link: string): { folder: string | null; baseNam
   const folder = normalizeFolderPath(parts.join("/"));
   return { folder: folder || null, baseName };
 }
+
+// Name suggested when saving a note as a template: its first `# Heading`
+// (fields removed), else `fallback` (the note's title).
+export function suggestTemplateName(text: string, fallback: string): string {
+  const body = text.replace(/^---\r?\n[\s\S]*?\r?\n---(?:\r?\n|$)/, "");
+  const heading = /^#\s+(.+)$/m.exec(body)?.[1].replace(/\{\{[^}]*\}\}/g, "").replace(/\s+/g, " ").trim();
+  return heading || fallback.trim();
+}
+
+const words = (text: string) => text.toLowerCase().split(/[^a-z0-9]+/).filter(Boolean);
+const JOURNAL_NAMES = /^(journal|daily|diary|day|today|daily note|daily notes)$/i;
+
+// The template a new note's name points to, for preselecting one: its folder
+// (`rfcs/auth` → `rfc`, as for missing links), else a template whose name
+// starts the note's name, word for word and ignoring one trailing `s`
+// (`Meeting notes 2026-10-05` → `Meeting notes`, `rfc-auth` → `rfc`; the
+// longest wins), else a journal-like template for a date name (`2026-10-05`).
+export function matchTemplateForName(name: string, templates: TemplateEntry[]): TemplateEntry | null {
+  const parsed = parseMissingLink(name);
+  if (!parsed || templates.length === 0) return null;
+  if (parsed.folder) {
+    const byFolder = matchTemplateForFolder(parsed.folder.split("/").pop()!, templates);
+    if (byFolder) return byFolder;
+  }
+  const nameWords = words(parsed.baseName);
+  const sameWord = (a: string, b: string) => a === b || singular(a) === singular(b);
+  const byPrefix = templates
+    .map((template) => ({ template, templateWords: words(template.name) }))
+    .filter(({ templateWords }) =>
+      templateWords.length > 0 &&
+      templateWords.length <= nameWords.length &&
+      templateWords.every((word, i) => sameWord(word, nameWords[i])))
+    .sort((a, b) => b.templateWords.length - a.templateWords.length || a.template.name.localeCompare(b.template.name));
+  if (byPrefix[0]) return byPrefix[0].template;
+  if (/^\d{4}-\d{2}-\d{2}$/.test(parsed.baseName)) {
+    return templates.find((template) => JOURNAL_NAMES.test(template.name.trim())) ?? null;
+  }
+  return null;
+}

@@ -112,14 +112,14 @@ describe("file-atoms", () => {
     expect(contentStore).toBe(getDefaultStore());
   });
 
-  it("should clear the legacy preview/edit mode storage key", () => {
+  it("should clear the legacy preview/edit mode storage keys", () => {
     localStorage.setItem("defaultPaneMode", "preview");
-
-    expect(localStorage.getItem("defaultPaneMode")).toBe("preview");
+    localStorage.setItem("viewMode", JSON.stringify("preview"));
 
     clearLegacyPaneModePreference();
 
     expect(localStorage.getItem("defaultPaneMode")).toBeNull();
+    expect(localStorage.getItem("viewMode")).toBeNull();
   });
 
   it("migrates legacy preview panes to the source editor", () => {

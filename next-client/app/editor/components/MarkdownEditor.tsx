@@ -2,8 +2,8 @@
 
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useAtomValue, useSetAtom } from "jotai";
-import { atom_frontmatterCollapsedByDefault, atom_wordWrap, atom_isEditorFocused } from "@/app/atoms/atoms";
-import { atom_activeEditorView, atom_aiBuilderRequest, atom_flowMode, atom_isAiConfigured, atom_lineNumbers, atom_viewMode, atom_vimMode } from "@/app/atoms/ui-atoms";
+import { atom_wordWrap, atom_isEditorFocused } from "@/app/atoms/atoms";
+import { atom_activeEditorView, atom_aiBuilderRequest, atom_flowMode, atom_isAiConfigured, atom_lineNumbers, atom_showInvisibles, atom_vimMode } from "@/app/atoms/ui-atoms";
 import { useAtom } from "jotai";
 import { EditorView } from "@codemirror/view";
 import DatePickerCallout from "./DatePickerCallout";
@@ -34,6 +34,9 @@ import { openImageDialog } from "../utils/open-helper-dialogs";
 import EditorPills from "./markdown-editor/EditorPills";
 import FoldChevrons from "./markdown-editor/FoldChevrons";
 import LinkInsertDialog from "./markdown-editor/LinkInsertDialog";
+import TemplateStrip from "./TemplateStrip";
+import EmptyNoteTemplates from "./EmptyNoteTemplates";
+import { useTemplateNote } from "../hooks/use-template-note";
 
 interface MarkdownEditorProps {
   value: string;
@@ -54,25 +57,21 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
   const { onChange } = props;
   const wordWrap = useAtomValue(atom_wordWrap);
   const lineNumbers = useAtomValue(atom_lineNumbers);
+  const showInvisibles = useAtomValue(atom_showInvisibles);
   const vimMode = useAtomValue(atom_vimMode);
   const flowMode = useAtomValue(atom_flowMode);
   const isAiConfigured = useAtomValue(atom_isAiConfigured);
   const setAiBuilderRequest = useSetAtom(atom_aiBuilderRequest);
-  const frontmatterCollapsedByDefault = useAtomValue(atom_frontmatterCollapsedByDefault);
   const [, setIsEditorFocused] = useAtom(atom_isEditorFocused);
   const filePath = props.filePath || "draft";
   const [editorView, setEditorView] = useState<EditorView | null>(null);
-  // Edit / Preview is one app-wide mode.
-  const [viewMode, setViewMode] = useAtom(atom_viewMode);
-  const previewMode = viewMode === "preview";
-  const exitPreview = useCallback(() => setViewMode("edit"), [setViewMode]);
 
   const editorValue = props.value;
   const editorOnChange = useCallback((newVal: string) => {
     onChange(newVal);
   }, [onChange]);
 
-  const { fontFamily, readingFontFamily, displayFontSize, lineHeight, paneRef, contentPaddingX } =
+  const { fontFamily, displayFontSize, lineHeight, paneRef, contentPaddingX } =
     useEditorAppearance(props.isSplit);
 
   const keyboardInset = useKeyboardInset();
@@ -80,8 +79,17 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const viewRef = useRef<EditorView | null>(null);
 
-  const { createWikiLinkFile, vaultHandle } = useFileSystem();
+  const { createWikiLinkFile, vaultHandle, saveAsTemplate, createLinkedNoteFromTemplate } = useFileSystem();
   const insertVaultTemplate = useVaultTemplateInsert({ viewRef, filePath });
+  const insertTemplate = useCallback(() => { void insertVaultTemplate(); }, [insertVaultTemplate]);
+  const { isTemplateNote, insertTemplateField, askTemplateQuestion, saveNoteAsTemplate } = useTemplateNote({
+    viewRef,
+    editorView,
+    filePath,
+    isActivePane: props.isActivePane !== false,
+    insertTemplate,
+    saveAsTemplate: vaultHandle ? saveAsTemplate : undefined,
+  });
   const { csvConfirmRef, pasteImageRef } = useEditorPasteHandlers();
 
   const features = useCodeMirrorFeatures({ viewRef, containerRef, onWikiLinkClick: props.onWikiLinkClick });
@@ -111,6 +119,9 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
     onFrontmatterWizard: handleFrontmatterCommand,
     onOpenAIChat: isAiConfigured ? () => setAiBuilderRequest((value) => value + 1) : undefined,
     onInsertVaultTemplate: vaultHandle ? () => { void insertVaultTemplate(); } : undefined,
+    onInsertTemplateField: isTemplateNote ? insertTemplateField : undefined,
+    onAskTemplateQuestion: askTemplateQuestion,
+    onSaveAsTemplate: saveNoteAsTemplate,
   });
 
   useEffect(() => {
@@ -164,14 +175,11 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
   const { chevrons, toggle: toggleCalloutFold, onCursorActivity: onFoldCursorActivity, onViewCreated } =
     useCodeMirrorCalloutFold({ containerRef });
     const {
-      chevrons: frontmatterChevrons,
-      toggle: toggleFrontmatterFold,
       onCursorActivity: onFrontmatterFoldCursorActivity,
       onViewCreated: onFrontmatterFoldViewCreated,
     } = useCodeMirrorFrontmatterFold({
       viewRef,
-      containerRef,
-      collapseByDefault: frontmatterCollapsedByDefault,
+      filePath,
     });
 
   const setActiveEditorView = useSetAtom(atom_activeEditorView);
@@ -202,18 +210,16 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
   // Fold chevrons follow scrolling: callouts get one as they're rendered.
   const onViewportChange = useCallback((view: EditorView) => {
     onFoldCursorActivity(view);
-    onFrontmatterFoldCursorActivity(view);
-  }, [onFoldCursorActivity, onFrontmatterFoldCursorActivity]);
+  }, [onFoldCursorActivity]);
 
   useCodeMirrorEditor({
     value: editorValue,
     onChange: editorOnChange,
     wordWrap,
     lineNumbers,
+    showInvisibles,
     vimMode,
     flowMode,
-    previewMode,
-    onExitPreview: exitPreview,
     onOpenActiveHelperRef: openActiveHelperRef,
     placeholder: props.placeholder || "Type / for templates",
     readOnly: false,
@@ -236,13 +242,6 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
   }, [editorView, formulaFileTables]);
 
   useScrollToPendingTarget(editorView, filePath);
-
-  // Back from Preview: only the active pane takes focus, so typing resumes there.
-  const wasPreviewRef = useRef(previewMode);
-  useEffect(() => {
-    if (wasPreviewRef.current && !previewMode && props.isActivePane !== false) viewRef.current?.focus();
-    wasPreviewRef.current = previewMode;
-  }, [previewMode, props.isActivePane]);
 
   // The global voice-input hook (use-global-voice-input.ts) is a single
   // instance shared by the whole app, not one per pane. It inserts a
@@ -270,7 +269,7 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
   return (
     <div
       ref={paneRef}
-      className={`editor-canvas relative w-full h-full overflow-auto ${previewMode ? "cursor-default" : "cursor-text"}`}
+      className={`editor-canvas relative w-full h-full overflow-auto cursor-text`}
       translate="no"
     >
       <div
@@ -283,9 +282,9 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
           mx-auto w-full
           text-ui-body
         `}
+        data-font={fontFamily.includes("--font-geist-mono") ? "mono" : undefined}
         style={{
           fontFamily,
-          "--preview-font-family": readingFontFamily,
           "--editor-font-size": displayFontSize,
           "--editor-line-height": lineHeight,
           paddingLeft: contentPaddingX,
@@ -293,7 +292,8 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
           paddingBottom: keyboardInset > 0 ? `calc(3rem + ${keyboardInset}px)` : undefined,
         } as React.CSSProperties}
       >
-        <div className="relative h-full">
+        {isTemplateNote && <TemplateStrip name={filePath.split("/").pop()!.replace(/\.md$/i, "")} doc={editorValue} view={editorView} onAddField={insertTemplateField} />}
+        <div className="editor-measure relative h-full">
           <label htmlFor="md-editor" className="sr-only">Markdown editor</label>
           <div
             id="md-editor"
@@ -303,38 +303,36 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
           />
 
           <FoldChevrons
-            chevrons={[
-              ...chevrons.map((chevron) => ({ ...chevron, kind: "callout" as const })),
-              ...frontmatterChevrons.filter((chevron) => !chevron.collapsed).map((chevron) => ({ ...chevron, kind: "frontmatter" as const })),
-            ]}
+            chevrons={chevrons}
             onToggle={(chevron) => {
               const view = viewRef.current;
               if (!view) return;
-              // Frontmatter collapses in this note only, back to its summary
-              // row; the app-wide default lives in Settings and the palette.
-              if (chevron.kind === "frontmatter") toggleFrontmatterFold(view);
-              else toggleCalloutFold(view, chevron.blockId);
+              toggleCalloutFold(view, chevron.blockId);
               // Back to the text: the chevron took focus on press.
               view.focus();
             }}
           />
 
-          {!previewMode && (
-            <EditorPills
-              features={features}
-              languagePicker={languagePicker}
-              image={image}
-              containerRef={containerRef}
-              onWikiLinkClick={props.onWikiLinkClick}
-            />
-          )}
+          <EmptyNoteTemplates
+            isEmpty={!isTemplateNote && editorValue.trim() === ""}
+            onPick={(source) => { void insertVaultTemplate(source); }}
+            onMore={vaultHandle ? () => { void insertVaultTemplate(); } : undefined}
+          />
 
+          <EditorPills
+            features={features}
+            languagePicker={languagePicker}
+            image={image}
+            containerRef={containerRef}
+            onWikiLinkClick={props.onWikiLinkClick}
+          />
 
           <WikiLinkDialog
             isOpen={wikiLinkDialogOpen}
             onClose={() => setWikiLinkDialogOpen(false)}
             onConfirm={insertWikiLink}
             onCreateAndConfirm={createWikiLinkFile}
+            onCreateFromTemplate={vaultHandle ? createLinkedNoteFromTemplate : undefined}
             title="Insert WikiLink"
           />
 

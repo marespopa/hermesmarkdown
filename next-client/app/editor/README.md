@@ -59,7 +59,7 @@ Neither part touches the document. The Markdown on disk is unchanged.
 
 ## Inline calculator
 
-Math typed on its own line gets a faint `= result` label at the end of the line: `rent = 1200`, `utilities = 180`, then `rent + utilities` shows `= 1380`. Labels are display-only widgets. The plugin never dispatches, so the file, undo history and dirty state are untouched. They show in Edit and Preview.
+Math typed on its own line gets a faint `= result` label at the end of the line: `rent = 1200`, `utilities = 180`, then `rent + utilities` shows `= 1380`. Labels are display-only widgets. The plugin never dispatches, so the file, undo history and dirty state are untouched.
 
 - **Files**: `utils/math-eval.ts` (shared safe evaluator: `evaluateMathExpression` with names, `%`, `of` and `1,234` options; `evaluateMath` for `calc(…)=` is unchanged), `utils/note-calc-scan.ts` (line scanner and cache, pure), `codemirror/note-calc.ts` (widget, view plugin and `baseTheme`, registered in `extensions.ts`).
 - **Skipped lines**: frontmatter (line 1 `---` to the next `---`), fenced code (backtick or tilde; closed by the same character with at least the opener's length; unterminated fences run to the end), `$$` blocks and single-line `$$ … $$`, blank lines and headings. Skipped lines never get a label or define a variable. An unclosed bare `$$` hides labels for the rest of the note. The scanner can't look ahead, so this differs from `rendered-block.ts`, which doesn't render an unclosed `$$`.
@@ -69,16 +69,15 @@ Math typed on its own line gets a faint `= result` label at the end of the line:
 - **AI**: `NOTE_CALC_GUIDE` (`utils/formula-ai-guide.ts`) teaches the chat, Continue writing and new-note generation to write calculator lines instead of computed numbers; `FORMULA_PRESERVATION_RULE` tells every rewrite action to keep them as written. Update the guide when the line rules change.
 - **Incremental cache**: `NoteCalcCache` keeps the state after each line (open block, scope as an immutable linked chain). An edit drops entries from its first changed line down. Scanning only goes as far as the last line of `view.visibleRanges`, and labels are built only for visible lines, so variables defined above the viewport still resolve. Each `EditorView` has its own cache.
 
-## Preview mode
+## Live markers
 
-The editor is either in **Edit** or **Preview**. Preview is a read-only reading view. The mode is app-wide: one `atom_viewMode` (`localStorage["viewMode"]`) applies to every pane and tab and survives a reload. You switch it with `PaneModeSwitch` in the top-right pane's header or the mobile bar, Ctrl/Cmd+Alt+P (`hooks/use-editor-shortcuts.ts`), or **Open in preview / Back to editing** in the command palette. Double-clicking the text in Preview also switches back to Edit, with the caret where you clicked (`use-codemirror-editor.ts` listens in the capture phase, so tables and rendered blocks count too; checkboxes and links don't).
+There's one mode: the note is always editable, and Markdown syntax stays out of sight until the caret reaches it (`codemirror/live-markers.ts`, a `ViewPlugin` over the visible ranges that reads the Lezer tree):
 
-Preview isn't a second renderer. It's the same `EditorView`, reconfigured through a compartment (`codemirror/preview-mode.ts`, toggled in `hooks/use-codemirror-editor.ts`):
-
-1. **Read-only**: `EditorState.readOnly`, `editable: false`, and a transaction filter that only lets external reloads (`input.external`) and checkbox toggles (`input.format.checkbox`) change the document. That also stops commands that dispatch changes directly, like table shortcuts.
-2. **Hidden syntax**: a `StateField` hides heading, emphasis, inline-code, strikethrough and quote markers, collapses code fences (code lines get a card style), draws bullets for unordered list markers, and replaces task markers with checkboxes that still toggle. Tables, Mermaid/math, links and tags already render inline. Frontmatter is left as is.
-3. **Other layers**: they read `previewModeFacet` (`codemirror/preview-facet.ts`). Link and annotation widgets never reveal their source under the selection, and a plain click follows a link. Horizontal rules stay drawn. Tables render without editable cells or menus. Rendered blocks don't open the source dialog. Edit pills, the AI and mobile selection toolbars are hidden. Vim and flow mode are turned off while previewing.
-4. **Switching**: the line at the top of the viewport stays in place, the scroller dips in opacity for 180 ms (skipped under reduced motion), and leaving preview puts the caret on that line.
+- **Inline marks** (`**`, `*`/`_`, `~~`, inline-code backticks) are hidden unless a caret or selection touches their span.
+- **Heading `#`s and quote `>`s** are hidden unless the caret is on their line. Quoted lines get a left border (`cm-liveQuote`).
+- **Bullets** (`-`, `*`, `+`) read as • (◦ when nested) unless the caret touches the marker.
+- **Left alone**: callouts (they keep their own styling), task items, ordered lists, fenced code, tables, setext headings and frontmatter.
+- **Unfocused editors** reveal nothing, so an unfocused split pane reads clean.
 
 ## Rendered blocks (Mermaid and math)
 
@@ -98,18 +97,19 @@ Markdown source stays the single source of truth.
 
 1. **Detection**: a `StateField` walks the Lezer syntax tree for `Table` nodes (so pipes in code blocks are never tables) and replaces each with a block widget. Tables are atomic ranges; when the editor caret arrives at one (arrow keys, undo), focus hands off to the nearest cell (first cell from above, last from below).
 2. **Editing**: each cell is its own `contenteditable`. Unfocused cells show rendered inline Markdown (`utils/inline-markdown.ts`); the focused cell shows its raw text (`**bold**`, links…). Every keystroke is written back as a minimal change to that cell's source range. Undo/redo, autosave and split panes always see the table as displayed. Typed pipes are stored escaped (`\|`).
-3. **Keyboard**: Tab / Shift+Tab move between cells, and Tab in the last cell adds a row. Enter moves down, adding a row at the bottom. The arrow keys cross cell edges and leave the table at its borders. Escape leaves the table. Alt+↑/↓ move the row, Ctrl/Cmd+Alt+←/→ move the column, Ctrl/Cmd+Enter inserts a row below, Ctrl/Cmd+Shift+Backspace deletes the row, and Ctrl/Cmd+B / I / E wrap the selection in bold / italic / code.
+3. **Keyboard**: Tab / Shift+Tab move between cells, and Tab in the last cell adds a row. Enter moves down, adding a row at the bottom. The arrow keys cross cell edges and leave the table at its borders. Escape leaves the table. Alt+↑/↓ move the row, Ctrl/Cmd+Alt+←/→ move the column, Ctrl/Cmd+Enter inserts a row below, Ctrl/Cmd+Shift+Enter shows the table's pipe source, Ctrl/Cmd+Shift+Backspace deletes the row, and Ctrl/Cmd+B / I / E wrap the selection in bold / italic / code.
 4. **Paste**: plain text pastes into the cell. TSV (from a spreadsheet) or multi-line CSV fills cells starting at the focused cell, growing the table as needed.
-5. **Source hygiene**: when the caret leaves a table, its column padding is realigned (`hooks/use-codemirror-table.ts`). Tables written without outer pipes get them on first edit. Both are kept out of undo history because nothing visible changes. They're applied as minimal padding-only changes (`paddingChanges`), never as one whole-table replacement: earlier undo events are mapped through such changes, and a whole-table rewrite would silently invalidate every earlier cell edit.
+5. **Edit as Markdown** (`codemirror/table-source.ts`): the menu item (or Ctrl/Cmd+Shift+Enter) swaps the grid for its pipe source as plain text, so a table that parsed wrong (a line typed under it without a blank line becomes a row, a missing pipe) can be fixed by hand. It stays text while the caret is in that block of non-blank lines, even when an edit briefly stops it parsing as a table, and renders as a grid again once the caret leaves.
+6. **Source hygiene**: when the caret leaves a table, its column padding is realigned (`hooks/use-codemirror-table.ts`). Tables written without outer pipes get them on first edit. Both are kept out of undo history because nothing visible changes. They're applied as minimal padding-only changes (`paddingChanges`), never as one whole-table replacement: earlier undo events are mapped through such changes, and a whole-table rewrite would silently invalidate every earlier cell edit.
 
 ### Table menu (`codemirror/table-handles.ts`)
 
-Nothing is drawn on top of the cells. Table actions live in one menu with **Row** (insert above/below, move, delete), **Column** (insert left/right, move, sort, align, delete) and **Table** (copy as CSV / JSON, delete with a confirming second click) sections. Open it either way:
+Nothing is drawn on top of the cells. Table actions live in one menu with **Row** (insert above/below, move, delete), **Column** (insert left/right, move, sort, align, delete) and **Table** (edit as Markdown, copy as CSV / JSON, delete with a confirming second click) sections. Open it either way:
 
 - **Right-click / long-press** a cell. The menu opens at the pointer.
 - **Row numbers and column letters**: while a table is being edited, spreadsheet-style rulers appear in gutters reserved above and left of it (A, B, C… / 1, 2, 3…, matching formula addressing). Clicking one opens the menu for that column or row.
 
-All structural edits go through `codemirror/table-commands.ts` as one isolated undo step each. That module holds the keyboard commands and re-exports the shared primitives in `table-edit.ts` and the menu actions in `table-menu-actions.ts`. The widget itself is split into `table-display.tsx` (state field, widget, caret entry), `table-cell-dom.ts` (rendering, caret offsets) and `table-cell-handlers.ts` (cell events, menus, rulers).
+All structural edits go through `codemirror/table-commands.ts` as one isolated undo step each. That module holds the keyboard commands and re-exports the shared primitives in `table-edit.ts` and the menu actions in `table-menu-actions.ts`. The widget itself is split into `table-display.tsx` (state field, widget, caret entry), `table-source.ts` (the Edit as Markdown state), `table-cell-dom.ts` (rendering, caret offsets) and `table-cell-handlers.ts` (cell events, menus, rulers).
 
 ### Formulas (`utils/formula-engine.ts`, `codemirror/table-formulas.ts`)
 

@@ -23,13 +23,12 @@ Shared, app-agnostic UI primitives. Each component has a sibling `<Name>.md` (st
 | [LoadingBar](LoadingBar/LoadingBar.md) | Slim top-of-viewport progress bar for short waits (file switching); appears after 150ms. |
 | [LoadingOverlay](LoadingOverlay/LoadingOverlay.md) | Full-screen loading veil with optional text, set in the user's rendered font. |
 | [MainPage](MainPage.md) | Root layout shell that mounts providers, the palette, toasts, `GlobalDialog`, and the header/footer. |
-| [ModeSwitch](ModeSwitch/ModeSwitch.md) | Segmented control with a sliding thumb (radio group), used for the Edit / Preview switch. |
 | [OverlayLayer](OverlayLayer/OverlayLayer.md) | `OverlayPanel`/`OverlayBackdrop`: portal, dismissal, focus trap, and scroll lock. |
 | [Portal](Portal/Portal.md) | Renders children into `document.body` via `createPortal` once the component has mounted on the client. |
 | [SensitiveBadge](SensitiveBadge/SensitiveBadge.md) | Small lock icon (`aria-label="Sensitive note"`) marking sensitive notes and their tasks in listings. |
 | [ServiceWorkerRegister](ServiceWorkerRegister.md) | Registers the offline service worker; new versions activate silently. |
 | [ThemeProvider](ThemeProvider.md) | Applies the resolved light/dark theme class to `<html>` in a layout effect, so the theme switches without a flash. |
-| [TemplateDialog](TemplateDialog/README.md) | Vault template picker and "Template fields" prompts form, driven by `atom_templateDialog` via `useTemplateDialog()`; `TemplateDialogHost` is mounted once in `MainPage`. |
+| [TemplateDialog](TemplateDialog/README.md) | Vault template picker and "Fill in the template" questions form, driven by `atom_templateDialog` via `useTemplateDialog()`; `TemplateDialogHost` is mounted once in `MainPage`. |
 | [Toast](Toast/Toast.md) | Persistent call-to-action card with icon, title, action button, and an optional inline name field. |
 | [Toastr](Toastr/Toastr.md) | Styled `react-hot-toast` helpers for transient success, error, copy, and save-state notifications. |
 | [Toggle](Toggle/Toggle.md) | Accessible on/off switch for boolean settings. |

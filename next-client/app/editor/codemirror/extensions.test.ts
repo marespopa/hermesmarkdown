@@ -17,12 +17,12 @@ function createEditor(vimMode: boolean, onOpenActiveHelper = vi.fn(() => false))
         wordWrapCompartment: new Compartment(),
         lineNumbers: true,
         lineNumbersCompartment: new Compartment(),
+        showInvisibles: false,
+        invisiblesCompartment: new Compartment(),
         vimMode,
         vimModeCompartment,
         flowMode: false,
         flowModeCompartment: new Compartment(),
-        previewMode: false,
-        previewModeCompartment: new Compartment(),
         onOpenActiveHelperRef: { current: onOpenActiveHelper },
         readOnly: false,
         onFocusChange: vi.fn(),
@@ -86,12 +86,12 @@ describe("buildExtensions", () => {
     parent.remove();
   });
 
-  it("marks the caret's line as the active line", () => {
+  it("leaves the caret's line unhighlighted", () => {
     const { parent, view } = createEditor(false);
     view.dispatch({ changes: { from: view.state.doc.length, insert: "\nSecond line" } });
     view.dispatch({ selection: { anchor: view.state.doc.length } });
 
-    expect(Array.from(view.contentDOM.querySelectorAll(".cm-activeLine"), (line) => line.textContent)).toEqual(["Second line"]);
+    expect(view.contentDOM.querySelector(".cm-activeLine")).toBeNull();
 
     view.destroy();
     parent.remove();

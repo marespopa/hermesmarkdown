@@ -1,6 +1,6 @@
 # FolderRow
 
-Description: A single folder row in the vault tree — collapse chevron, a subtle tint when it contains the active file, a drop target that auto-expands on hover while dragging, and a folder action menu (new file, new folder, rename, delete). "New File" and "New Folder" resolve this folder's handle and create inside it (no folder picker), then expand the folder so the new item is visible.
+Description: A single folder row in the vault tree — collapse chevron, a subtle tint when it contains the active file, a drop target that auto-expands on hover while dragging, and a folder action menu (new file, new folder, rename, delete; each with an outline icon: document-add, folder-add, pencil, trash). "New File" and "New Folder" resolve this folder's handle and create inside it (no folder picker), then expand the folder so the new item is visible.
 
 ## Local State & Storage
 - State: Drop-hover and auto-expand timer are local (`useState`/`useRef`); collapse state and drag state are owned by the parent.

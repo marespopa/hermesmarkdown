@@ -37,6 +37,16 @@ describe("shortcodeExpandPlugin", () => {
     expect(view.state.doc.toString()).toMatch(/^\d{2}:\d{2}$/);
   });
 
+  it("leaves {{date}} and {{time}} template tokens as typed", async () => {
+    const view = makeView();
+    await type(view, "{{date");
+    await type(view, "}");
+    await type(view, "} {{time");
+    await type(view, "}");
+    await type(view, "}");
+    expect(view.state.doc.toString()).toBe("{{date}} {{time}}");
+  });
+
   it("expands ..d to today's date", async () => {
     const view = makeView();
     await type(view, "..d");

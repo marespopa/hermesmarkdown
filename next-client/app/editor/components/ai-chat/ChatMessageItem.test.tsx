@@ -74,14 +74,14 @@ describe("ChatMessageItem copy", () => {
 });
 
 describe("ChatMessageItem template save card", () => {
-  const block = { fileName: "rfc.md", content: "# {{title}}\n{{author}}\n" };
+  const block = { fileName: "rfc.md", content: "# {{title}}\n{{dat}}\n" };
 
   afterEach(() => cleanup());
 
   it("shows a card per template block with its path and lint warnings", () => {
     renderItem({ templateBlocks: [block], templatesFolder: "templates", onSaveTemplate: vi.fn() });
     expect(screen.getByText("templates/rfc.md")).toBeTruthy();
-    expect(screen.getByText(/Unknown token \{\{author\}\}/)).toBeTruthy();
+    expect(screen.getByText(/\{\{dat\}\} looks like \{\{date\}\}/)).toBeTruthy();
     expect(screen.getByText("Save template")).toBeTruthy();
   });
 

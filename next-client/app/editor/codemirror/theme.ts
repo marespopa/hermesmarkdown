@@ -1,6 +1,7 @@
 import { EditorView } from "@codemirror/view";
 import { HighlightStyle, syntaxHighlighting } from "@codemirror/language";
 import { tags as t } from "@lezer/highlight";
+import { MONO_FONT_STACK } from "@/app/atoms/ui-atoms";
 
 // Structural theme only — no color literals. Colors come from the
 // HighlightStyle below, which references the same CSS custom properties
@@ -31,20 +32,6 @@ export const baseTheme = EditorView.theme({
   ".cm-line": {
     padding: 0,
   },
-  // The caret's line, faintly tinted — only in the focused editor, so an
-  // unfocused split pane stays clean, and never in Preview (no caret) or on
-  // frontmatter (it has its own tint). Lines carry no padding, so the tint is
-  // widened past the text by side shadows rather than layout-changing padding.
-  // CodeMirror's own active-line color (a light blue) is turned off
-  // everywhere else — it showed in an unfocused editor, e.g. right after
-  // clicking a fold chevron.
-  ".cm-activeLine": {
-    backgroundColor: "transparent !important",
-  },
-  "&.cm-focused .cm-content:not([data-mode=preview]) .cm-activeLine:not(.cm-frontmatter-line)": {
-    backgroundColor: "var(--active-line-bg) !important",
-    boxShadow: "-0.5em 0 0 var(--active-line-bg), 0.5em 0 0 var(--active-line-bg)",
-  },
   ".cm-frontmatter-line": {
     backgroundColor: "var(--frontmatter-bg)",
     color: "var(--fg-faint)",
@@ -66,6 +53,10 @@ export const baseTheme = EditorView.theme({
     color: "var(--fg-muted)",
     fontWeight: "400 !important",
   },
+  ".cm-frontmatter-comment": {
+    color: "var(--fg-faint)",
+    fontStyle: "italic",
+  },
   ".cm-frontmatter-separator": {
     color: "var(--fg-faint)",
     opacity: "0.55",
@@ -81,14 +72,9 @@ export const baseTheme = EditorView.theme({
   // The room below the frontmatter matches the sheet's padding above it
   // (`--sheet-pad-top`, set on the sheet). A blank line after the closing
   // `---` already gives about that; text right after it gets this spacer
-  // block instead — a block of its own, not padding on the text's line, so
-  // the active-line tint doesn't stretch over the gap. Preview's grid has
-  // its own margin.
+  // block instead — a block of its own, not padding on the text's line.
   ".cm-frontmatter-spacer": {
     height: "var(--sheet-pad-top, 1.5rem)",
-  },
-  ".cm-content[data-mode=preview] .cm-frontmatter-spacer": {
-    display: "none",
   },
   ".cm-frontmatter-line:hover, .cm-frontmatter-line:focus-within": {
     backgroundColor: "var(--frontmatter-bg-hover)",
@@ -145,7 +131,7 @@ export const baseTheme = EditorView.theme({
   ".cm-vim-panel": {
     alignItems: "center",
     color: "var(--fg-muted)",
-    fontFamily: "var(--font-ibm-mono), ui-monospace, monospace",
+    fontFamily: MONO_FONT_STACK,
     fontSize: "0.75rem",
     lineHeight: "1.75rem",
     minHeight: "1.75rem",
@@ -176,11 +162,25 @@ export const baseTheme = EditorView.theme({
     border: "none",
     color: "transparent",
   },
-  // Collapsed frontmatter: one quiet summary row above the first content
-  // line ("▸ Properties · title, tags"), low contrast until hovered. It's a
-  // small label, not a block, so it sits close to the text below.
+  // The frontmatter's header row, low contrast until hovered. Collapsed it is
+  // the whole block ("▸ Properties · title, tags") above the first content
+  // line: a small label, not a block, so it sits close to the text below.
+  // Expanded ("▾ Properties") it is the top row of the YAML's panel: same
+  // tint and inset, the panel's top corners, and the first YAML line's
+  // corners squared off to join it.
   ".cm-frontmatterCollapsed": {
     paddingBottom: "0.5em",
+  },
+  ".cm-frontmatterHeader": {
+    backgroundColor: "var(--frontmatter-bg)",
+    borderRadius: "0.55rem 0.55rem 0 0",
+    padding: "0.3rem 0.55rem 0",
+  },
+  ".cm-frontmatterHeader + .cm-frontmatter-line.cm-frontmatter-start": {
+    borderRadius: "0",
+  },
+  ".cm-frontmatterHeader .cm-frontmatter-summary-chevron": {
+    transform: "rotate(90deg)",
   },
   ".cm-frontmatter-summary": {
     display: "inline-flex",
@@ -243,6 +243,37 @@ export const baseTheme = EditorView.theme({
   },
   ".cm-tag-pill.cm-tag-pill-custom": {
     color: "var(--fg-muted)",
+  },
+  // Template fields in a template note (template-field-pills.ts): a dashed
+  // pill reads "filled in later", unlike tags.
+  ".cm-template-field": {
+    display: "inline-flex",
+    alignItems: "center",
+    verticalAlign: "baseline",
+    borderRadius: "0.4em",
+    border: "1px dashed color-mix(in srgb, var(--moss) 55%, transparent)",
+    backgroundColor: "color-mix(in srgb, var(--moss) 9%, transparent)",
+    color: "var(--moss)",
+    fontSize: "0.85em",
+    fontWeight: "500",
+    lineHeight: "1.3",
+    padding: "0 0.4em",
+    margin: "0 0.05em",
+    whiteSpace: "nowrap",
+    cursor: "text",
+  },
+  // A blank to fill in (template-blanks.ts): dotted and neutral, like a gap.
+  ".cm-template-field-blank": {
+    borderStyle: "dotted",
+    borderColor: "var(--fg-faint)",
+    backgroundColor: "color-mix(in srgb, var(--fg-faint) 10%, transparent)",
+    color: "var(--fg-muted)",
+    cursor: "pointer",
+  },
+  ".cm-template-field-ask": {
+    borderColor: "color-mix(in srgb, var(--clay) 55%, transparent)",
+    backgroundColor: "color-mix(in srgb, var(--clay) 9%, transparent)",
+    color: "var(--clay)",
   },
   ".cm-frontmatter-tag-list": {
     display: "inline-flex",
@@ -395,13 +426,13 @@ export const slashMenuTheme = EditorView.theme({
 });
 
 export const markdownHighlightStyle = HighlightStyle.define([
-  { tag: t.heading, fontWeight: "700", color: "var(--fg)" },
+  { tag: t.heading, fontWeight: "600", color: "var(--fg)" },
   { tag: t.strong, fontWeight: "700", color: "var(--fg)" },
   { tag: t.emphasis, fontStyle: "italic", color: "var(--fg)" },
   { tag: t.strikethrough, textDecoration: "line-through", color: "var(--fg-muted)" },
   { tag: t.link, color: "var(--clay)", textDecoration: "underline" },
   { tag: t.url, color: "var(--clay)" },
-  { tag: t.monospace, fontFamily: "var(--font-mono, monospace)" },
+  { tag: t.monospace, fontFamily: MONO_FONT_STACK },
   { tag: t.quote, color: "var(--fg-muted)", fontStyle: "italic" },
   { tag: t.list, color: "var(--fg)" },
   { tag: t.meta, color: "var(--fg-faint)" },

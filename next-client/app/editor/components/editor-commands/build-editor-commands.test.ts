@@ -48,6 +48,8 @@ function createContext(overrides: Partial<EditorCommandContext> = {}): EditorCom
     scanVault: vi.fn(),
     indexVaultTags: vi.fn(),
     closeVault: vi.fn(),
+    homePinnedPaths: [],
+    toggleHomePin: vi.fn(),
     renameFile: vi.fn(),
     deleteFile: vi.fn(),
     duplicateFile: vi.fn(),
@@ -88,14 +90,10 @@ function createContext(overrides: Partial<EditorCommandContext> = {}): EditorCom
     setLineNumbers: vi.fn(),
     flowMode: false,
     setFlowMode: vi.fn(),
-    frontmatterCollapsed: false,
-    setFrontmatterCollapsed: vi.fn(),
     toolbarHidden: false,
     setToolbarHidden: vi.fn(),
     sidebarOpen: false,
     setSidebarOpen: vi.fn(),
-    viewMode: "edit",
-    setViewMode: vi.fn(),
     setTasksGroupBy: vi.fn(),
     setTaskSearchQuery: vi.fn(),
     setTaskTagFilter: vi.fn(),
@@ -120,10 +118,21 @@ function createContext(overrides: Partial<EditorCommandContext> = {}): EditorCom
 }
 
 describe("buildEditorCommands", () => {
+  it("pins the open note to Home, or unpins it when it's pinned", () => {
+    const unpinned = createContext();
+    const pin = buildEditorCommands(unpinned).find((command) => command.id === "toggle-home-pin")!;
+    expect(pin.label).toBe("Pin to Home");
+    pin.action();
+    expect(unpinned.toggleHomePin).toHaveBeenCalledWith("Note.md");
+
+    const pinned = buildEditorCommands(createContext({ homePinnedPaths: ["Note.md"] }));
+    expect(pinned.find((command) => command.id === "toggle-home-pin")?.label).toBe("Unpin from Home");
+  });
+
   it("preserves every command ID and its registration order", () => {
     const commands = buildEditorCommands(createContext());
     const templateIds = TEMPLATES
-      .filter((template) => !template.aiOnly && !template.vaultOnly)
+      .filter((template) => !template.aiOnly && !template.vaultOnly && !template.templateOnly && !template.saveTemplateOnly)
       .map((template) => `insert-${template.label.toLowerCase().replace(/\s+/g, "-")}`);
 
     expect(commands.map((command) => command.id)).toEqual([
@@ -131,6 +140,8 @@ describe("buildEditorCommands", () => {
       "new-file",
       "new-file-in-folder",
       "new-note-from-template",
+      "insert-template",
+      "save-as-template",
       "new-template",
       "export-file",
       "import-file",
@@ -148,16 +159,15 @@ describe("buildEditorCommands", () => {
       "toggle-word-wrap",
       "toggle-line-numbers",
       "toggle-flow-mode",
-      "toggle-frontmatter-collapsed",
       "toggle-toolbar",
       "toggle-sidebar",
-      "toggle-preview-mode",
       "start-welcome-tour",
       "privacy-mode-show-title",
       "privacy-mode-blurred",
       "privacy-mode-hidden",
       "reveal-sensitive-session",
       "go-home",
+      "toggle-home-pin",
       "open-documentation",
       "close-vault",
       "copy-markdown",

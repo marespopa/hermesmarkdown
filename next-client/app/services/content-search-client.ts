@@ -58,6 +58,12 @@ export function removeNoteContent(paths: string[]): void {
   post({ type: "content:remove", paths });
 }
 
+/** Empties the note-text index: a different vault was opened, or it closed. */
+export function clearNoteContent(): void {
+  indexed.clear();
+  if (metadataWorker) post({ type: "content:clear" });
+}
+
 export function remapNoteContent(oldPath: string, newPath: string): void {
   if (!metadataWorker || !oldPath || !newPath || oldPath === newPath) return;
   const moved = [...indexed].filter(([path]) => remapPath(path, oldPath, newPath) !== null);

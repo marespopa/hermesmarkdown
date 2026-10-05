@@ -14,8 +14,7 @@ export const PANE_HEADER_HIDDEN = "-mt-11";
 // set apart by space, not dividers.
 export const PANE_SECTION_CLASS = "flex items-center gap-0.5 p-0.5 ml-2 shrink-0 h-8 rounded-full bg-black/[0.05] dark:bg-white/[0.07] z-20";
 
-// Hover, keyboard focus and the pressed / open state all use the look of the
-// Edit / Preview switch's selected segment: a raised surface pill with a soft
+// Hover, keyboard focus and the pressed / open state all use one look: a raised surface pill with a soft
 // shadow and hairline ring, riding on the section's fill.
 const RAISED = "bg-surface shadow-sm ring-1 ring-black/5 text-fg";
 const BUTTON_BASE = [

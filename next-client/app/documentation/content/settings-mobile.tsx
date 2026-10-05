@@ -16,33 +16,33 @@ export const settingsGroup: Group = {
             System/light/dark theme controls are available in Settings → Appearance and from the
             command palette. System follows your operating system automatically. The editor font is
             set under Settings → Typography and applies to every pane in a split workspace. Word
-            wrap, line numbers, Vim mode and flow mode also live under Appearance.
+            wrap, line numbers, Show Invisibles (¶ on empty lines, dots for spaces), Vim mode and
+            flow mode live under Settings → Editor.
           </p>
           <KV
             rows={[
               { label: "Theme", value: "Settings → Appearance" },
               { label: "Sidebar", value: "Show Sidebar: open notes and the vault's files on the window's left edge (desktop)" },
-              { label: "Typeface", value: "Plus Jakarta Sans by default, with Geist Mono, Inter, and IBM Plex Mono options" },
+              { label: "Typeface", value: "Plus Jakarta Sans by default, with Source Serif 4, Inter, and Geist Mono options" },
             ]}
           />
           <Callout type="note">
-            Plus Jakarta Sans is the source-editor default for comfortable long-form writing. Geist
-            Mono and IBM Plex Mono remain available for technical surfaces, while Inter remains
-            available for interface-focused typography.
+            Plus Jakarta Sans is the default for comfortable long-form writing. Source Serif 4 gives
+            essays a printed-page feel, Inter is a neutral screen sans, and Geist Mono suits
+            technical notes. Text sizes follow Apple&apos;s Dynamic Type steps, 15 to 23px.
           </Callout>
         </>
       ),
     },
     {
       id: "vault-home-settings",
-      title: "Vault home & new notes",
-      lead: "Choose what a vault opens to and where new notes go.",
-      keywords: "on vault open home feed resume tabs new notes folder templates folder settings",
+      title: "New notes & templates",
+      lead: "Choose where new notes go and where templates live.",
+      keywords: "new notes folder templates folder settings vault",
       body: (
         <>
           <KV
             rows={[
-              { label: "On Vault Open", value: "Home feed (default) or Resume last tabs" },
               { label: "New Notes Folder", value: "Empty = vault root, or a folder like inbox" },
               { label: "Templates Folder", value: "Per vault. Empty = templates, _templates or Templates" },
             ]}
@@ -55,8 +55,7 @@ export const settingsGroup: Group = {
           </p>
           <p>
             These live under <strong>Settings → Files</strong>. A folder that doesn&apos;t exist
-            yet is created the first time a note is saved there. Your open notes are restored either
-            way; On Vault Open only decides what you see first.
+            yet is created the first time a note is saved there.
           </p>
         </>
       ),

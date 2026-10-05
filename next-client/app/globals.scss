@@ -2,8 +2,12 @@
 @tailwind components;
 @tailwind utilities;
 
+/* App chrome reads in Inter (Tailwind `font-sans`), the closest open face to
+   SF Pro; kerning and optical sizing on everywhere. */
 body {
-  font-family: var(--font-plus-jakarta), ui-sans-serif, sans-serif;
+  font-family: theme('fontFamily.sans');
+  font-kerning: normal;
+  font-optical-sizing: auto;
 }
 
 /* ─── Design Tokens ─────────────────────────────────────────────────────────
@@ -33,8 +37,12 @@ body {
   --frontmatter-bg: rgba(60, 56, 50, 0.035);
   --frontmatter-bg-hover: rgba(60, 56, 50, 0.055);
   --frontmatter-label-opacity: 0.4;
-  --active-line-bg: rgba(60, 56, 50, 0.03);  /* the caret's line in the focused editor */
   --row-stripe:     rgba(60, 56, 50, 0.035);  /* alternate rows in list views (Explorer) */
+  /* Template picker glass surface + spring motion (templates UX) */
+  --glass-surface:  rgba(255, 255, 255, 0.75);
+  --glass-border:   rgba(0, 0, 0, 0.08);
+  --glass-shadow:   0 20px 40px -15px rgba(0, 0, 0, 0.07);
+  --ease-spring:    cubic-bezier(0.16, 1, 0.3, 1);
   /* Fine paper grain over the editor surface: tiled SVG fractal noise, the
      red channel thresholded into sparse specks (see .editor-sheet). */
   --paper-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.24 0 0 0 0 0.22 0 0 0 0 0.2 0.9 0 0 0 -0.3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)' opacity='0.16'/%3E%3C/svg%3E");
@@ -61,9 +69,11 @@ html.dark {
   --frontmatter-bg: rgba(214, 207, 198, 0.04);
   --frontmatter-bg-hover: rgba(214, 207, 198, 0.065);
   --frontmatter-label-opacity: 0.5;
-  --active-line-bg: rgba(214, 207, 198, 0.035);
   --moss-hover:     #A3B58C;  /* moss, brightened — hover/active state for sage buttons */
   --row-stripe:     rgba(214, 207, 198, 0.035);
+  --glass-surface:  rgba(28, 28, 30, 0.75);
+  --glass-border:   rgba(255, 255, 255, 0.12);
+  --glass-shadow:   0 20px 40px -15px rgba(0, 0, 0, 0.5);
   --paper-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 0.97 0 0 0 0 0.92 0.9 0 0 0 -0.3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)' opacity='0.07'/%3E%3C/svg%3E");
 }
 
@@ -403,10 +413,6 @@ ul li::marker {
   @apply text-sage;
 }
 
-.font-display {
-  font-family: var(--font-plus-jakarta), var(--font-inter), Inter, ui-sans-serif, sans-serif;
-}
-
 // Home feed search pill ⇄ command palette search field (shared element,
 // see CommandPaletteContext `morphWithAnchor`). The rest of the page just
 // cross-fades quickly; the field glides and resizes between its two places.
@@ -425,4 +431,50 @@ ul li::marker {
 ::view-transition-old(root),
 ::view-transition-new(root) {
   animation-duration: 180ms;
+}
+
+/* ── Templates: glass picker surface and spring motion ───────────────────
+   Durations stay within 150–250ms on --ease-spring. */
+.template-picker-surface {
+  background-color: var(--glass-surface) !important;
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid var(--glass-border) !important;
+  box-shadow: var(--glass-shadow);
+  border-radius: 16px !important;
+}
+
+@keyframes template-slide-in {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* A freshly inserted template, and each preview as it changes. */
+.cm-content.cm-template-in,
+.template-preview-in {
+  animation: template-slide-in 220ms var(--ease-spring) both;
+}
+
+/* Empty-note quick pills: rise in, fade out as soon as typing starts. */
+.template-quick-pills {
+  transition: opacity 150ms var(--ease-spring), transform 150ms var(--ease-spring);
+}
+.template-quick-pills[data-state="open"] {
+  animation: template-slide-in 220ms var(--ease-spring) both;
+}
+.template-quick-pills[data-state="closed"] {
+  opacity: 0;
+  transform: translateY(-4px);
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cm-content.cm-template-in,
+  .template-preview-in,
+  .template-quick-pills[data-state="open"] {
+    animation: none;
+  }
+  .template-quick-pills {
+    transition: none;
+  }
 }

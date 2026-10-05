@@ -3,11 +3,11 @@
 import React from "react";
 import { useAtom } from "jotai";
 import { HiOutlineDesktopComputer, HiOutlineMoon, HiOutlineSun } from "react-icons/hi";
-import { atom_editorFontFamily, atom_sidebarOpen, atom_theme, type Theme } from "@/app/atoms/atoms";
+import { atom_editorFontFamily, atom_renderedFontSize, atom_sidebarOpen, atom_theme, type Theme } from "@/app/atoms/atoms";
 import Toggle from "@/app/components/Toggle";
 import FontPicker from "../components/FontPicker";
 import { SegmentedControl, SettingGroup, SettingItem } from "../components/SettingControls";
-import { FONTS } from "../font-options";
+import { FONTS, TEXT_SIZES } from "../font-options";
 
 const THEME_OPTIONS: { label: string; value: Theme; Icon: React.ComponentType<{ size?: number }> }[] = [
   { label: "Light", value: "light", Icon: HiOutlineSun },
@@ -20,6 +20,7 @@ export default function AppearanceSettings() {
   const [theme, setTheme] = useAtom(atom_theme);
   const [editorFontFamily, setEditorFontFamily] = useAtom(atom_editorFontFamily);
   const [sidebarOpen, setSidebarOpen] = useAtom(atom_sidebarOpen);
+  const [textSize, setTextSize] = useAtom(atom_renderedFontSize);
 
   return (
     <>
@@ -43,6 +44,12 @@ export default function AppearanceSettings() {
           description="Choose a paper-like typeface for the Markdown editor. Fonts are self-hosted and keep a system fallback."
           layout="stack"
           control={<FontPicker fonts={FONTS} value={editorFontFamily} onChange={setEditorFontFamily} />}
+        />
+        <SettingItem
+          label="Text size"
+          description="The size of your notes' text."
+          layout="stack"
+          control={<SegmentedControl options={TEXT_SIZES} value={textSize} onChange={setTextSize} />}
         />
       </SettingGroup>
     </>

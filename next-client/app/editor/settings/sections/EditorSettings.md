@@ -1,9 +1,9 @@
 # EditorSettings
 
-Description: The Settings → Editor section: Layout (word wrap, line numbers, collapse frontmatter) and Writing (Vim mode, flow mode).
+Description: The Settings → Editor section: Layout (word wrap, line numbers) and Writing (Vim mode, flow mode).
 
 ## Local State & Storage
-- State: `atom_wordWrap`, `atom_lineNumbers`, `atom_frontmatterCollapsedByDefault`, `atom_vimMode`, `atom_flowMode`.
+- State: `atom_wordWrap`, `atom_lineNumbers`, `atom_vimMode`, `atom_flowMode`.
 - Persistence: All via `atomWithStorage` (`localStorage`).
 
 ## Dependencies

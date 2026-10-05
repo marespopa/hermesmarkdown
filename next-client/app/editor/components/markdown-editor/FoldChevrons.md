@@ -1,9 +1,9 @@
 # FoldChevrons
 
-Description: Collapse/expand chevrons drawn at the right edge of foldable callouts (`> [!note]-`), and a collapse chevron ("Collapse properties") at the right edge of expanded frontmatter, which collapses it in that note only. Collapsed frontmatter is its own summary row in the text (`CollapsedFrontmatterWidget` in `codemirror/frontmatter-fold.ts`), which expands it, so it gets no expand control here.
+Description: Collapse/expand chevrons drawn at the right edge of foldable callouts (`> [!note]-`). Frontmatter has no chevron here: it toggles from its own header row in the text (`FrontmatterHeaderWidget` in `codemirror/frontmatter-fold.ts`), in the same top-left spot whether collapsed or expanded.
 
 ## Local State & Storage
-- State: None; chevron positions come from `useCodeMirrorCalloutFold` / `useCodeMirrorFrontmatterFold`.
+- State: None; chevron positions come from `useCodeMirrorCalloutFold`.
 - Persistence: None.
 
 ## Dependencies
@@ -18,5 +18,5 @@ Description: Collapse/expand chevrons drawn at the right edge of foldable callou
 ## Props Overview
 | Prop | Type | Default | Description |
 |---|---|---|---|
-| chevrons | `FoldChevron[]` (`blockId`, `top`, `collapsed`, `kind`) | | Chevrons to draw |
+| chevrons | `FoldChevron[]` (`blockId`, `top`, `collapsed`) | | Chevrons to draw |
 | onToggle | `(chevron) => void` | | Folds or unfolds that block |

@@ -12,6 +12,8 @@ import {
   TASK_EDITOR_SENTINEL,
   AI_CHAT_SENTINEL,
   VAULT_TEMPLATE_SENTINEL,
+  TEMPLATE_FIELD_SENTINEL,
+  SAVE_AS_TEMPLATE_SENTINEL,
   CURSOR_SENTINEL,
   CODE_BLOCK_TEMPLATE_CONTENT,
   MARK_SENSITIVE_SENTINEL,
@@ -24,9 +26,12 @@ import { clearSensitiveMarkers, isSensitiveContent } from "@/app/utils/note-priv
 // Non-AI templates only — AI action entries (aiOnly: true) aren't ported in
 // this pass (that's a separate AI-subsystem port, not part of the CM6
 // migration). Frontmatter wizard, Link/WikiLink/Date/Table sentinels are.
-// The vault Template entry is added only when the editor can insert one.
-const AVAILABLE_TEMPLATES = TEMPLATES.filter((t) => !t.aiOnly && !t.vaultOnly);
+// The vault Template entry is added only when the editor can insert one, and
+// Template field only while editing a template.
+const AVAILABLE_TEMPLATES = TEMPLATES.filter((t) => !t.aiOnly && !t.vaultOnly && !t.templateOnly && !t.saveTemplateOnly);
 const VAULT_TEMPLATE_ENTRIES = TEMPLATES.filter((t) => t.content === VAULT_TEMPLATE_SENTINEL);
+const TEMPLATE_FIELD_ENTRIES = TEMPLATES.filter((t) => t.templateOnly);
+const SAVE_TEMPLATE_ENTRIES = TEMPLATES.filter((t) => t.saveTemplateOnly);
 
 export interface SlashMenuCallbacks {
   onOpenLinkDialog: (range: { from: number; to: number }) => void;
@@ -36,6 +41,12 @@ export interface SlashMenuCallbacks {
   onOpenAIChat?: () => void;
   /** Opens the vault template picker; the trigger text is already removed. */
   onInsertVaultTemplate?: () => void;
+  /** Opens the template field menu; set only while the note is a template. */
+  onInsertTemplateField?: () => void;
+  /** "Ask a question…" / "Blank to fill in…" in the field menu: the name, or null. */
+  onAskTemplateQuestion?: (kind: "question" | "blank") => Promise<string | null>;
+  /** Saves the note as a template; set with a vault, outside template notes. */
+  onSaveAsTemplate?: () => void;
   onFrontmatterWizard: () => void;
   onCodeBlockInserted: (pos: number) => void;
 }
@@ -85,6 +96,16 @@ export function insertExpandedTemplate(view: EditorView, text: string, cursor: n
     scrollIntoView: true,
   });
   view.focus();
+  playTemplateIn(view);
+}
+
+// A quick slide-and-fade on the text after a template lands (globals.scss).
+function playTemplateIn(view: EditorView) {
+  const content = view.contentDOM;
+  content.classList.remove("cm-template-in");
+  void content.offsetWidth; // restart the animation on back-to-back inserts
+  content.classList.add("cm-template-in");
+  setTimeout(() => content.classList.remove("cm-template-in"), 260);
 }
 
 // Sets a `key: true` frontmatter flag (creating the block if missing), touching
@@ -158,6 +179,16 @@ export function applyTemplate(
     callbacks.onInsertVaultTemplate?.();
     return;
   }
+  if (content === SAVE_AS_TEMPLATE_SENTINEL) {
+    view.dispatch({ changes: { from, to, insert: "" }, userEvent: "input.replace.template" });
+    callbacks.onSaveAsTemplate?.();
+    return;
+  }
+  if (content === TEMPLATE_FIELD_SENTINEL) {
+    view.dispatch({ changes: { from, to, insert: "" }, userEvent: "input.replace.template" });
+    callbacks.onInsertTemplateField?.();
+    return;
+  }
   const flagKey = FRONTMATTER_FLAG_SENTINELS[content];
   if (flagKey) {
     view.dispatch({ changes: { from, to, insert: "" }, userEvent: "input.replace.template" });
@@ -206,6 +237,8 @@ export function createSlashMenuSource(callbacksRef: { current: SlashMenuCallback
     const templates = [
       ...AVAILABLE_TEMPLATES,
       ...(callbacksRef.current.onInsertVaultTemplate ? VAULT_TEMPLATE_ENTRIES : []),
+      ...(callbacksRef.current.onInsertTemplateField ? TEMPLATE_FIELD_ENTRIES : []),
+      ...(callbacksRef.current.onSaveAsTemplate ? SAVE_TEMPLATE_ENTRIES : []),
       ...(callbacksRef.current.onOpenAIChat ? TEMPLATES.filter((template) => template.content === AI_CHAT_SENTINEL) : []),
     ];
     // Offer only the privacy commands that would change this note.

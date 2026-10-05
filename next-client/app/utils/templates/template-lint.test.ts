@@ -8,23 +8,33 @@ describe("lintTemplate", () => {
     expect(lintTemplate(raw)).toEqual([]);
   });
 
-  it("warns about unknown tokens", () => {
-    expect(lintTemplate("{{author}} {{date}}")).toEqual([expect.stringContaining("{{author}}")]);
+  it("treats other {{names}} as blanks, warning only about likely typos", () => {
+    expect(lintTemplate("{{author}} {{task_1}} {{date}}")).toEqual([]);
+    expect(lintTemplate("{{dat}} {{Title}}")).toEqual([
+      expect.stringContaining("{{dat}} looks like {{date}}"),
+      expect.stringContaining("{{Title}} looks like {{title}}"),
+    ]);
+  });
+
+  it("warns about math or formats on the wrong token and about non-fields", () => {
+    expect(lintTemplate("{{date+1d:dddd}} {{time:HH}}")).toEqual([]);
+    expect(lintTemplate("{{weekday+1d}}")).toEqual([expect.stringContaining("only {{date}} takes math")]);
+    expect(lintTemplate("{{two words}}")).toEqual([expect.stringContaining("{{two words}} isn't a field")]);
   });
 
   it("warns about an empty prompt label", () => {
-    expect(lintTemplate("{{prompt: }}")).toEqual([expect.stringContaining("no label")]);
+    expect(lintTemplate("{{prompt: }}")).toEqual([expect.stringContaining("has no question")]);
   });
 
   it("warns about more than one cursor", () => {
-    expect(lintTemplate("{{cursor}} {{cursor}}")).toEqual([expect.stringContaining("first {{cursor}}")]);
+    expect(lintTemplate("{{cursor}} {{cursor}}")).toEqual([expect.stringContaining("only the first counts")]);
   });
 
   it("warns about misspelled routing keys", () => {
     const warnings = lintTemplate("---\ntarget-folder: rfcs\nfilename: x\n---\nBody");
     expect(warnings).toEqual([
-      expect.stringContaining('"target-folder" looks like "target_folder"'),
-      expect.stringContaining('"filename" looks like "file_name"'),
+      expect.stringContaining('"target-folder" should be spelled "target_folder"'),
+      expect.stringContaining('"filename" should be spelled "file_name"'),
     ]);
   });
 });

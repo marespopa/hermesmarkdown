@@ -1,6 +1,6 @@
 # CommandPalette
 
-Description: Unified quick-open and command surface (`Ctrl/Cmd+K` or `Ctrl/Cmd+P` for files, `Ctrl/Cmd+Shift+K` or `Ctrl/Cmd+Shift+P` for commands; combos with Alt are left to other shortcuts, so `Ctrl/Cmd+Alt+P` only toggles Edit / Preview). `Ctrl/Cmd+D` pins the selected row; `Tab` / `Shift+Tab` move the selection. It also contributes its own `Open Explorer` command (`Ctrl/Cmd+Shift+E`). `CommandPaletteProvider` owns registration and `AppCommands` registers global commands.
+Description: Unified quick-open and command surface (`Ctrl/Cmd+K` or `Ctrl/Cmd+P` for files, `Ctrl/Cmd+Shift+K` or `Ctrl/Cmd+Shift+P` for commands; combos with Alt are left to other shortcuts). `Ctrl/Cmd+D` pins the selected row; `Tab` / `Shift+Tab` move the selection. It also contributes its own `Open Explorer` command (`Ctrl/Cmd+Shift+E`). `CommandPaletteProvider` owns registration and `AppCommands` registers global commands.
 
 ## Local State & Storage
 - State: `useCommandPalette()` context (isOpen, commands, register, createNote/setCreateNote). Atoms: `atom_palettePinnedItems`, `atom_recentFilePaths`, `atom_commandUseCounts`, `atom_recentCommandIds`, `atom_fileMetadata` and `atom_noteDisplayItems` (via `usePaletteFiles`), `atom_visibleTasks`, `atom_theme`, `atom_activeEditorView` (heading jumps), `atom_showHiddenFiles`, `atom_editorFontFamily`.

@@ -3,11 +3,7 @@
 import React from "react";
 import { useAtom } from "jotai";
 import { atom_autosaveDelay, atom_autosaveMode, atom_showHiddenFiles } from "@/app/atoms/atoms";
-import {
-  atom_newNoteFolder,
-  atom_onVaultOpen,
-  type VaultOpenBehavior,
-} from "@/app/atoms/ui-atoms";
+import { atom_newNoteFolder } from "@/app/atoms/ui-atoms";
 import { BareInput } from "@/app/components/Input";
 import Toggle from "@/app/components/Toggle";
 import { normalizeFolderPath } from "@/app/hooks/file-system/unique-file";
@@ -15,13 +11,12 @@ import { useFileSystem } from "@/app/hooks/use-file-system";
 import { SelectControl, SettingGroup, SettingItem } from "../components/SettingControls";
 import TemplatesFolderSetting from "./TemplatesFolderSetting";
 
-// Settings → Files: Vault (on open, new notes folder, templates folder, hidden
-// files) and Autosave groups.
+// Settings → Files: Vault (new notes folder, templates folder, hidden files)
+// and Autosave groups.
 export default function FilesSettings() {
   const [autosaveMode, setAutosaveMode] = useAtom(atom_autosaveMode);
   const [autosaveDelay, setAutosaveDelay] = useAtom(atom_autosaveDelay);
   const [showHiddenFiles, setShowHiddenFiles] = useAtom(atom_showHiddenFiles);
-  const [onVaultOpen, setOnVaultOpen] = useAtom(atom_onVaultOpen);
   const [newNoteFolder, setNewNoteFolder] = useAtom(atom_newNoteFolder);
   const { scanVault, indexVaultTags, vaultHandle } = useFileSystem();
 
@@ -37,16 +32,6 @@ export default function FilesSettings() {
   return (
     <>
       <SettingGroup title="Vault">
-        <SettingItem
-          label="On Vault Open"
-          description="Show recent notes first, or reopen the tabs from last time. Either way, your tabs are restored. Refreshing the page keeps you where you were."
-          control={
-            <SelectControl value={onVaultOpen} onChange={(v) => setOnVaultOpen(v as VaultOpenBehavior)}>
-              <option value="home">Home feed</option>
-              <option value="resume">Resume last tabs</option>
-            </SelectControl>
-          }
-        />
         <SettingItem
           label="New Notes Folder"
           description="The folder preselected when a new note asks where to save. Notes are named after their first line. Leave empty for the vault root."

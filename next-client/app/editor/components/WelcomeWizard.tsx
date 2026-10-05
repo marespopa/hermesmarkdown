@@ -22,7 +22,7 @@ const VAULT_STEP = 1;
 const FIRST_PREFERENCE_STEP = 2;
 const TOTAL_STEPS = 11;
 // "Medium" in the text size step.
-const ONBOARDING_TEXT_SIZE = "16px";
+const ONBOARDING_TEXT_SIZE = "17px";
 
 const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
   const [hasCompleted, setHasCompleted] = useAtom(atom_hasCompletedOnboarding);

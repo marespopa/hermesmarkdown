@@ -37,7 +37,6 @@ Index of the editor UI. Each component has a sibling `<Name>.md` (a token-lean d
 | [SensitiveNoteGate](SensitiveNoteGate.md) | Wraps a pane's editor: shows `SensitiveNoteVeil` instead of mounting it until a sensitive note is revealed (per note or for the session). |
 | [SensitiveNoteVeil](SensitiveNoteVeil.md) | The veil over a sensitive note: lock, title, **Show note** and **Show all sensitive notes this session**. |
 | [PaneEmptyState](PaneEmptyState.md) | Empty-pane actions: new file (blank draft), open note or file, vault actions. |
-| [PaneModeSwitch](PaneModeSwitch.md) | App-wide Edit / Preview switch. |
 | [PaneToolbarButton](PaneToolbarButton.md) | Icon-only toolbar button with a tooltip. |
 | [PaneWindowActions](PaneWindowActions.md) | Window-wide toolbar sections (Mode, Tools, More menu), shown once in the top-right pane. |
 | [PaneTab](PaneTab.md) | Draggable file tab with a leading close button, unsaved-changes dot, and shortcut hint; exports `SaveStateIcon`. |
@@ -47,11 +46,14 @@ Index of the editor UI. Each component has a sibling `<Name>.md` (a token-lean d
 | [SmartFolders](SmartFolders.md) | Lists custom workspaces (saved metadata queries) and the files each one matches, with create, edit, and delete through `WorkspaceBuilder`. |
 | [TabContextMenu](TabContextMenu.md) | Right-click menu positioned at the cursor and clamped to the viewport, used for tab and file actions. |
 | [TabStripScroller](TabStripScroller.md) | Horizontally scrolling tab strip that shows left/right scroll arrows at its end when the tabs overflow. |
+| [EmptyNoteTemplates](EmptyNoteTemplates.md) | Quick-start template pills under the first line of an empty note. |
+| [TemplateStrip](TemplateStrip.md) | Line at the top of a template note: field count, Add field, lint warnings. |
 | [TaskDialog](TaskDialog.md) | Form for building a task line (title, status, priority, due date, tags). |
 | [UnifiedSearchInput](UnifiedSearchInput.md) | Search field that turns `#tag` entries into removable tag chips alongside free text, with tag autocomplete. |
 | [EditorSkeleton](EditorSkeleton.md) | Shown while the saved vault loads: the home feed with placeholder rows (On vault open → Home), or the workspace outline (sidebar, tab pills, paper panel). |
 | [VaultAccessGate](VaultAccessGate.md) | Wraps every /editor route: restores the saved vault on load and keeps the route hidden until it is readable, with the Restore Access prompt when needed. |
 | [VaultPendingOverlay](VaultPendingOverlay.md) | Prompt shown after reload when the stored vault handle needs the user to grant permission again. |
+| [VaultActionButtons](VaultActionButtons.md) | Open / Create / Browser Vault buttons, shown where no vault is open. |
 | [VaultEmptyState](VaultEmptyState.md) | Empty state of the file views shown when no vault is open. |
 | [VaultFileTree](VaultFileTree.md) | Virtualized file list or folder tree for the vault, with search highlighting, inline rename, a row action menu, and drag-and-drop moves. |
 | [vault-tree/](vault-tree/README.md) | `VaultFileTree` building blocks: tree model, `FileRow`, `FolderRow`, `TreeNodes`. |

@@ -1,6 +1,6 @@
 # TemplatePromptForm
 
-Description: The "Template fields" modal shown before a template with `{{prompt:Label}}` tokens is written or inserted. One `Input` per distinct label, in first-appearance order; the first field is focused, Tab / Shift+Tab move between fields, Enter in any field submits, Esc or Cancel cancels the whole action. Empty answers are allowed and become `""`. Bottom sheet on mobile, so the keyboard doesn't cover it.
+Description: The "Fill in the template" modal shown before a template with `{{prompt:Label}}` tokens is written or inserted. One `Input` per distinct label, in first-appearance order; the first field is focused, Tab / Shift+Tab move between fields, Enter in any field submits, Esc or Cancel cancels the whole action. Empty answers are allowed and become `""`. Bottom sheet on mobile, so the keyboard doesn't cover it.
 
 ## Local State & Storage
 - State: the typed value per label.

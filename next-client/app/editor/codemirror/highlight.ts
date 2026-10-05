@@ -1,6 +1,5 @@
 import { EditorView, Decoration, DecorationSet, ViewPlugin, ViewUpdate } from "@codemirror/view";
 import { EditorState, Range } from "@codemirror/state";
-import { isPreviewMode, previewModeChanged } from "./preview-facet";
 import { WORKFLOW_TAGS, TODO_TAGS } from "../components/constants";
 import { CALLOUT_META, CALLOUT_ALIASES } from "../constants/callouts";
 import {
@@ -54,14 +53,9 @@ const REGEX_LIST_PARTS = /^(\s*[-*+]\s+)(\[[ xX]\]\s+)?(.*)$/;
 const REGEX_TABLE_LINE = /^\s*\|/;
 const REGEX_TABLE_SEPARATOR = /^\s*\|[\s:|-]+\|/;
 
-const HEADING_SIZE_CLASSES: Record<number, string> = {
-  1: "!text-[1.5em]",
-  2: "!text-[1.35em]",
-  3: "!text-[1.2em]",
-  4: "!text-[1.1em]",
-  5: "!text-[1em]",
-  6: "!text-[0.95em]",
-};
+// Heading lines carry `cm-heading cm-heading-N`; their size, tracking and
+// the room above them live in theme.ts.
+const headingLineClass = (level: number) => `cm-heading cm-heading-${level}`;
 
 interface MarkRange {
   from: number;
@@ -104,7 +98,7 @@ function processInline(ranges: MarkRange[], label: string, base: number) {
       const [full, open, inner] = m;
       const i = m.index!;
       push(i, i + open.length, FADED);
-      push(i + open.length, i + open.length + inner.length, "bg-paper-softgray/80 dark:bg-paper-dark-surface/50 rounded-sm");
+      push(i + open.length, i + open.length + inner.length, "cm-inline-code");
       push(i + open.length + inner.length, i + full.length, FADED);
     }
   }
@@ -254,10 +248,14 @@ export function computeMarkdownDecorations(state: EditorState): DecorationSet {
       calloutDepth = 0;
       processInline(ranges, text, base);
     } else if (text.startsWith("```") || text.startsWith("~~~")) {
+      // Fences and body share one tinted, monospaced block (editor-typography.scss);
+      // the fences cap it top and bottom.
+      const edge = isInsideCodeBlock ? "cm-codeblock-end" : "cm-codeblock-start";
       isInsideCodeBlock = !isInsideCodeBlock;
       mark(ranges, base, line.to, FADED);
+      lineDecos.push({ line: i, class: `cm-codeblock ${edge}` });
     } else if (isInsideCodeBlock) {
-      lineDecos.push({ line: i, class: "bg-paper-softgray/50 dark:bg-paper-dark-surface/40" });
+      lineDecos.push({ line: i, class: "cm-codeblock" });
     } else if (!text.trim()) {
       // blank line, nothing to decorate
     } else if (REGEX_THEMATIC_BREAK.test(text)) {
@@ -269,13 +267,16 @@ export function computeMarkdownDecorations(state: EditorState): DecorationSet {
       } else {
         mark(ranges, base, line.to, FADED);
       }
+    } else if (isFrontmatterLine && text.startsWith("#")) {
+      // A YAML comment (templates use them for hints), not a heading.
+      mark(ranges, base, line.to, "cm-frontmatter-comment");
     } else if (text.startsWith("#") && REGEX_HEADING.test(text)) {
       const m = text.match(REGEX_HEADING_PARTS)!;
       const hashes = m[1];
       const level = hashes.match(/^#+/)![0].length;
       mark(ranges, base, base + hashes.length, FADED);
-      mark(ranges, base + hashes.length, line.to, "font-bold text-ink-light dark:text-ink-dark");
-      lineDecos.push({ line: i, class: HEADING_SIZE_CLASSES[level] });
+      mark(ranges, base + hashes.length, line.to, "font-semibold text-ink-light dark:text-ink-dark");
+      lineDecos.push({ line: i, class: headingLineClass(level) });
       processInline(ranges, m[2], base + hashes.length);
     } else if (text.startsWith(">")) {
       const m = text.match(REGEX_BLOCKQUOTE_PARTS)!;
@@ -362,10 +363,9 @@ export const horizontalRuleCursorPlugin = ViewPlugin.fromClass(
       this.decorations = this.compute(view.state);
     }
     update(update: ViewUpdate) {
-      if (update.docChanged || update.selectionSet || previewModeChanged(update)) this.decorations = this.compute(update.state);
+      if (update.docChanged || update.selectionSet) this.decorations = this.compute(update.state);
     }
     compute(state: EditorState): DecorationSet {
-      if (isPreviewMode(state)) return Decoration.none;
       const lines = new Set<number>();
       for (const range of state.selection.ranges) {
         const first = state.doc.lineAt(range.from).number;

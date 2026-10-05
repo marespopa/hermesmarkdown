@@ -94,6 +94,17 @@ describe("frontmatter collapsing", () => {
     expect(isFrontmatterFolded(view.state)).toBe(false);
   });
 
+  it("collapses from the same header row once expanded", () => {
+    const view = makeView("---\ntitle: Note\n---\n# Heading");
+    const header = view.contentDOM.querySelector<HTMLButtonElement>(".cm-frontmatter-summary")!;
+    expect(header.getAttribute("aria-expanded")).toBe("true");
+    expect(header.getAttribute("aria-label")).toBe("Hide properties");
+
+    header.click();
+    expect(isFrontmatterFolded(view.state)).toBe(true);
+    expect(view.contentDOM.querySelector(".cm-frontmatter-summary")!.getAttribute("aria-expanded")).toBe("false");
+  });
+
   it("expands when the caret moves into the hidden block", () => {
     const doc = "---\ntitle: Note\n---\nBody";
     const view = makeView(doc);
