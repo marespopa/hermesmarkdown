@@ -80,7 +80,9 @@ describe("useCodeMirrorFrontmatterFold", () => {
 
 function freshStore() {
   const store = createStore();
-  return ({ children }: { children: ReactNode }) => createElement(Provider, { store }, children);
+  return function StoreWrapper({ children }: { children: ReactNode }) {
+    return createElement(Provider, { store }, children);
+  };
 }
 
 function openPane(filePath: string, wrapper: ReturnType<typeof freshStore>) {
