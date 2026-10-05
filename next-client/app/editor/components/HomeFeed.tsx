@@ -12,7 +12,7 @@ import Button from "@/app/components/Button";
 import FeedBar from "./home-feed/FeedBar";
 import FeedHeader from "./home-feed/FeedHeader";
 import FeedRow from "./home-feed/FeedRow";
-import FeedSkeleton from "./home-feed/FeedSkeleton";
+import FeedSkeleton, { WeekStripSkeleton } from "./home-feed/FeedSkeleton";
 import FeedStart from "./home-feed/FeedStart";
 import FeedVault from "./home-feed/FeedVault";
 import FeedStatus from "./home-feed/FeedStatus";
@@ -175,13 +175,16 @@ export default function HomeFeed({ onOpenNote, onNewNote, onSearch, onClose, isS
         {/* The open vault, in a bar at the very top, well clear of the greeting. */}
         {hasVault && <FeedVault />}
         <FeedHeader now={now} userName={userName}>
-          {feed.length > 0 && (
+          {feed.length > 0 ? (
             <WeekStrip
               days={week}
               now={now}
               activeDay={activeDay(feed[selectedIndex]?.modifiedAt)}
               onJump={(index) => select(index, "start")}
             />
+          ) : (
+            // Holds the strip's place until the first notes are listed.
+            isIndexing && hasVault && <WeekStripSkeleton />
           )}
         </FeedHeader>
         {isIndexing && hasVault && <FeedStatus />}

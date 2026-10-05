@@ -366,12 +366,15 @@ describe("HomeFeed", () => {
   it("shows three skeleton rows instead of the start prompt while the vault loads", () => {
     renderFeed({}, "", { status: "compiling", count: 0 });
     expect(screen.getByTestId("feed-skeleton").querySelectorAll("[data-skeleton-row]")).toHaveLength(3);
+    expect(screen.getByTestId("week-strip-skeleton")).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Start writing" })).not.toBeInTheDocument();
   });
 
   it("drops the skeleton once notes are listed", () => {
     renderFeed(NOTES, "", { status: "compiling", count: 0 });
     expect(screen.queryByTestId("feed-skeleton")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("week-strip-skeleton")).not.toBeInTheDocument();
+    expect(screen.getByRole("navigation", { name: "Last 7 days" })).toBeInTheDocument();
     expect(screen.getAllByRole("option")).toHaveLength(2);
   });
 
