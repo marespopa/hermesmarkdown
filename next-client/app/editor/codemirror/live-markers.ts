@@ -11,10 +11,23 @@ import { findFrontmatterFoldRange } from "./frontmatter-fold";
 // is on their line; a bullet's `-` reads as • (◦ when nested) until the caret
 // touches it. An unfocused editor reveals nothing. Callouts, task items,
 // ordered lists, fenced code and frontmatter keep their own display.
+// A list item's leading indent is drawn wider than its spaces, caret or not:
+// two or three spaces in a proportional font read as one, so a nested item
+// would barely move.
 
 const hidden = Decoration.replace({});
 const quoteLine = Decoration.line({ class: "cm-liveQuote" });
 const REGEX_CALLOUT_START = /^(>\s*)+\[!\w+\]/;
+// Width of one column of a list item's indent: "- " (two columns) nests
+// 1.5em in, "1. " (three) 2.25em.
+const LIST_INDENT_EM_PER_COLUMN = 0.75;
+
+function listIndent(columns: number) {
+  return Decoration.mark({
+    class: "cm-listIndent",
+    attributes: { style: `width: ${columns * LIST_INDENT_EM_PER_COLUMN}em` },
+  });
+}
 
 class BulletWidget extends WidgetType {
   constructor(readonly depth: number) {
@@ -114,6 +127,15 @@ export function buildLiveMarkerDecorations(
             ranges.push(hidden.range(ref.from, ref.to));
             return;
           }
+          case "ListItem": {
+            // Only plain indentation before the marker (not a quote's `>`).
+            const line = doc.lineAt(ref.from);
+            const leading = doc.sliceString(line.from, ref.from);
+            if (!/^[ \t]+$/.test(leading)) return;
+            const columns = leading.replace(/\t/g, "    ").length;
+            ranges.push(listIndent(columns).range(line.from, ref.from));
+            return;
+          }
           case "ListMark": {
             if (node.parent?.parent?.name !== "BulletList" || node.parent.getChild("Task")) return;
             const to = withTrailingSpace(state, ref.to);
@@ -154,6 +176,11 @@ export const liveMarkersTheme = EditorView.theme({
   ".cm-liveQuote": {
     borderLeft: "3px solid var(--border)",
     paddingLeft: "0.9em !important",
+  },
+  ".cm-listIndent": {
+    display: "inline-block",
+    overflow: "hidden",
+    verticalAlign: "top",
   },
   ".cm-liveBullet": {
     display: "inline-block",
