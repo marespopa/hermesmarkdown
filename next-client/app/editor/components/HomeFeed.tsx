@@ -13,6 +13,7 @@ import FeedHeader from "./home-feed/FeedHeader";
 import FeedRow from "./home-feed/FeedRow";
 import FeedSkeleton from "./home-feed/FeedSkeleton";
 import FeedStart from "./home-feed/FeedStart";
+import FeedVault from "./home-feed/FeedVault";
 import FeedStatus from "./home-feed/FeedStatus";
 import WeekStrip from "./home-feed/WeekStrip";
 import { buildFeed, buildWeek } from "./home-feed/feed-model";
@@ -25,8 +26,6 @@ interface HomeFeedProps {
   /** Opens a note by vault path (and should close the feed). */
   onOpenNote: (path: string) => void;
   onNewNote: () => void;
-  /** Opens the Explorer (the FeedBar's folder button). */
-  onOpenExplorer?: () => void;
   /** Opens the command palette, optionally prefilled. */
   onSearch: (initialQuery?: string) => void;
   /** Leaves the feed for the workspace (Escape). */
@@ -54,7 +53,7 @@ function activeDay(modifiedAt: number | undefined) {
 // The vault's home screen: recent notes, newest first, in the editor's
 // column. Keyboard: j/k or arrows move, Enter opens, Escape leaves; any
 // other printable key opens the command palette with that key typed.
-export default function HomeFeed({ onOpenNote, onNewNote, onOpenExplorer, onSearch, onClose, isSearchOpen = false, hasVault = true, onOpenFile }: HomeFeedProps) {
+export default function HomeFeed({ onOpenNote, onNewNote, onSearch, onClose, isSearchOpen = false, hasVault = true, onOpenFile }: HomeFeedProps) {
   const fileMetadata = useAtomValue(atom_fileMetadata);
   const indexerState = useAtomValue(atom_indexerState);
   const userName = useAtomValue(atom_userName);
@@ -167,6 +166,8 @@ export default function HomeFeed({ onOpenNote, onNewNote, onOpenExplorer, onSear
   return (
     <div ref={scrollRef} className="relative h-full overflow-y-auto bg-surface" data-testid="home-feed">
       <div className="mx-auto w-full max-w-2xl px-4 pb-40 sm:px-8">
+        {/* The open vault, in a bar at the very top, well clear of the greeting. */}
+        {hasVault && <FeedVault />}
         <FeedHeader now={now} userName={userName}>
           {feed.length > 0 && (
             <WeekStrip
@@ -221,7 +222,6 @@ export default function HomeFeed({ onOpenNote, onNewNote, onOpenExplorer, onSear
         onSearch={() => onSearch(hasVault ? undefined : ">")}
         onSearchCommands={() => onSearch(">")}
         onNewNote={onNewNote}
-        onOpenExplorer={hasVault ? onOpenExplorer : undefined}
         isSearchOpen={isSearchOpen}
         placeholder={hasVault ? undefined : "Search commands…"}
       />

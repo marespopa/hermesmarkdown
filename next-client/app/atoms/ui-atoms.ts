@@ -59,10 +59,6 @@ export const atom_renderedFontSize = atomWithStorage<string>(
 );
 export const atom_isEditorFocused = atom<boolean>(false);
 
-// What the editor shows once a vault opens: the home feed of recent notes
-// (restored tabs stay open behind it), or the tabs from last time.
-export type VaultOpenBehavior = "home" | "resume";
-export const atom_onVaultOpen = atomWithStorage<VaultOpenBehavior>("onVaultOpen", "home");
 // Whether the editor page shows the home feed in place of the workspace.
 // Ephemeral: opening a note closes it.
 export const atom_homeFeedOpen = atom<boolean>(false);

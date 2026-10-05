@@ -1,12 +1,13 @@
 import { cleanup, render, screen } from "@testing-library/react";
 import { createStore, Provider } from "jotai";
 import { afterEach, describe, expect, it } from "vitest";
-import { atom_onVaultOpen, type VaultOpenBehavior } from "@/app/atoms/ui-atoms";
+import { atom_vaultOpenBehaviorAppliedFor } from "@/app/atoms/ui-atoms";
 import EditorSkeleton from "./EditorSkeleton";
 
-function renderSkeleton(onVaultOpen: VaultOpenBehavior = "home") {
+// `appliedFor`: the vault this tab already opened (set on a refresh).
+function renderSkeleton(appliedFor: string | null = null) {
   const store = createStore();
-  store.set(atom_onVaultOpen, onVaultOpen);
+  store.set(atom_vaultOpenBehaviorAppliedFor, appliedFor);
   return render(
     <Provider store={store}>
       <EditorSkeleton />
@@ -16,6 +17,7 @@ function renderSkeleton(onVaultOpen: VaultOpenBehavior = "home") {
 
 afterEach(() => {
   cleanup();
+  sessionStorage.clear();
 });
 
 describe("EditorSkeleton", () => {
@@ -26,15 +28,21 @@ describe("EditorSkeleton", () => {
   });
 
 
-  it("outlines the home feed, with today's date, when vaults open on Home", () => {
-    renderSkeleton("home");
+  it("outlines the home feed, with today's date, when a vault opens", () => {
+    renderSkeleton();
     const weekday = new Date().toLocaleDateString(undefined, { weekday: "long" });
     expect(screen.getByText(weekday)).toBeInTheDocument();
   });
 
-  it("outlines the workspace when vaults resume their tabs", () => {
-    renderSkeleton("resume");
+  it("outlines the workspace on a refresh of a tab that was on a note", () => {
+    renderSkeleton("local:Notes");
     const weekday = new Date().toLocaleDateString(undefined, { weekday: "long" });
     expect(screen.queryByText(weekday)).not.toBeInTheDocument();
+  });
+
+  it("outlines the home feed when the tab was on the no-vault feed", () => {
+    renderSkeleton("no-vault");
+    const weekday = new Date().toLocaleDateString(undefined, { weekday: "long" });
+    expect(screen.getByText(weekday)).toBeInTheDocument();
   });
 });

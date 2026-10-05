@@ -35,14 +35,13 @@ export const settingsGroup: Group = {
     },
     {
       id: "vault-home-settings",
-      title: "Vault home & new notes",
-      lead: "Choose what a vault opens to and where new notes go.",
-      keywords: "on vault open home feed resume tabs new notes folder templates folder settings",
+      title: "New notes & templates",
+      lead: "Choose where new notes go and where templates live.",
+      keywords: "new notes folder templates folder settings vault",
       body: (
         <>
           <KV
             rows={[
-              { label: "On Vault Open", value: "Home feed (default) or Resume last tabs" },
               { label: "New Notes Folder", value: "Empty = vault root, or a folder like inbox" },
               { label: "Templates Folder", value: "Per vault. Empty = templates, _templates or Templates" },
             ]}
@@ -55,8 +54,7 @@ export const settingsGroup: Group = {
           </p>
           <p>
             These live under <strong>Settings → Files</strong>. A folder that doesn&apos;t exist
-            yet is created the first time a note is saved there. Your open notes are restored either
-            way; On Vault Open only decides what you see first.
+            yet is created the first time a note is saved there.
           </p>
         </>
       ),

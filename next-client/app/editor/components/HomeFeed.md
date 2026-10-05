@@ -6,16 +6,18 @@ Sensitive notes (frontmatter `sensitive: true`, `private: true`, or a `sensitive
 
 Keyboard: `j`/`k` or arrows move, Enter opens, Escape returns to the workspace, and any other printable key opens the palette with that key typed. Keys with Ctrl/Cmd/Alt, and keys typed in inputs or dialogs, are ignored.
 
-With no vault open (`hasVault` false) the feed still shows, with the same header but no week strip or note list. In their place, `FeedStart` offers the vault actions ("Open a vault to see your notes here.", via `VaultActionButtons`) and "Or just write": **New Note** (blank draft) and **Open File…** (`onOpenFile`, a file from the device into the draft). The search pill reads "Search commands…" and opens the palette in command mode, and the Explorer button is hidden.
+With no vault open (`hasVault` false) the feed still shows, with the same header but no week strip or note list. In their place, `FeedStart` offers the vault actions ("Open a vault to see your notes here.", via `VaultActionButtons`) and "Or just write": **New Note** (blank draft) and **Open File…** (`onOpenFile`, a file from the device into the draft). The search pill reads "Search commands…" and opens the palette in command mode.
 
-Shown by the editor page in place of the workspace while `atom_homeFeedOpen` is true: with no vault, once per tab after the saved vault has had its chance to restore (`useVaultOpenBehavior`, keyed `no-vault`); on vault open (Settings → "On Vault Open", default Home feed; once per vault per tab — `useVaultOpenBehavior` records it in sessionStorage, so refreshing a tab that was on a note stays on the note), from the Home button in the pane header / mobile header, or the "Home feed" command. Those go through `atom_goHome`: when the feed is already open it bumps `atom_homeFeedTopRequest` instead, and the feed scrolls back to the top (smoothly, unless reduced motion is on) and selects the newest note. Opening any file closes it (`useOpenFile`). The open state is mirrored in the URL as `/editor?view=home` (`useHomeFeedUrlSync`, rewritten in place with `history.replaceState`, so no remount and no history entries): a link or refresh with that param opens the feed once the vault is restored.
+With a vault open, a bar at the very top of the column (`FeedVault`, above the greeting with the header's padding between them) names the vault — the display name of a browser or GitHub vault, else the folder name — and where it lives ("Folder on this device", "Stored in this browser", "GitHub"), with a **Close vault** button. Closing asks first (the same confirm as the "Close vault" command) and leaves the feed open as the no-vault start.
+
+Shown by the editor page in place of the workspace while `atom_homeFeedOpen` is true: with no vault, once per tab after the saved vault has had its chance to restore (`useVaultOpenBehavior`, keyed `no-vault`); whenever a vault opens (there is no setting to skip it; once per vault per tab — `useVaultOpenBehavior` records it in sessionStorage, so refreshing a tab that was on a note stays on the note), from the Home button in the pane header / mobile header, or the "Home feed" command. Those go through `atom_goHome`: when the feed is already open it bumps `atom_homeFeedTopRequest` instead, and the feed scrolls back to the top (smoothly, unless reduced motion is on) and selects the newest note. Opening any file closes it (`useOpenFile`). The open state is mirrored in the URL as `/editor?view=home` (`useHomeFeedUrlSync`, rewritten in place with `history.replaceState`, so no remount and no history entries): a link or refresh with that param opens the feed once the vault is restored.
 
 ## Local State & Storage
 - State: `atom_fileMetadata`, `atom_noteDisplayItems` (privacy view of each note), `atom_indexerState`, `atom_userName` and `atom_homeFeedTopRequest` (read); selection is local. Above 100 notes the list is virtualized (`@tanstack/react-virtual`, rows measured, header as scroll margin), so only the rows in view plus overscan are in the page, however far you scroll. Keyboard selection scrolls with `scrollToIndex`.
 - Persistence: None. Titles, dates and previews come from the metadata index (`preview` is computed by the metadata worker).
 
 ## Dependencies
-- Core: [`home-feed/`](home-feed/README.md) (`FeedHeader`, `WeekStrip`, `FeedRow`, `FeedStart`, `FeedBar`, `feed-model`), `Button`.
+- Core: [`home-feed/`](home-feed/README.md) (`FeedVault`, `FeedHeader`, `WeekStrip`, `FeedRow`, `FeedStart`, `FeedBar`, `feed-model`), `Button`.
 - Zero-Cloud: No network or telemetry side effects.
 
 ## Quick Usage
@@ -28,7 +30,6 @@ Shown by the editor page in place of the workspace while `atom_homeFeedOpen` is 
 |---|---|---|---|
 | onOpenNote | `(path: string) => void` |  | Opens a note by vault path |
 | onNewNote | `() => void` |  | Starts a blank draft |
-| onOpenExplorer? | `() => void` |  | Opens the Explorer (folder button beside `+`); hidden when omitted |
 | onSearch | `(initialQuery?: string) => void` |  | Opens the command palette, optionally prefilled |
 | onClose | `() => void` |  | Leaves the feed |
 | isSearchOpen? | `boolean` | `false` | Palette open: the pill hides and hands its transition name to the palette field |

@@ -9,10 +9,9 @@ import { createStore, Provider } from "jotai";
 async function openVault() {
   vi.resetModules();
   const { atom_vaultHandle } = await import("@/app/atoms/vault-atoms");
-  const { atom_homeFeedOpen, atom_onVaultOpen } = await import("@/app/atoms/ui-atoms");
+  const { atom_homeFeedOpen } = await import("@/app/atoms/ui-atoms");
   const { useVaultOpenBehavior } = await import("./use-vault-open-behavior");
   const store = createStore();
-  store.set(atom_onVaultOpen, "home");
   store.set(atom_vaultHandle, { name: "Notes" } as FileSystemDirectoryHandle);
   const wrapper = ({ children }: { children: React.ReactNode }) => React.createElement(Provider, { store }, children);
   renderHook(() => useVaultOpenBehavior(), { wrapper });
@@ -57,7 +56,7 @@ describe("useVaultOpenBehavior", () => {
     expect(await loadWithoutVault()).toBe(false);
   });
 
-  it("still applies the setting when a vault opens after the no-vault feed", async () => {
+  it("opens the feed again when a vault opens after the no-vault feed", async () => {
     await loadWithoutVault();
     expect(await openVault()).toBe(true);
   });

@@ -228,11 +228,12 @@ export const getStartedGroup: Group = {
             from the top down while <em>Indexing notes…</em> is shown. Notes that haven&apos;t
             changed since last time load instantly from a cache kept in your browser.
           </p>
-          <Callout type="tip">
-            Prefer to reopen the notes you had open last time? Set{" "}
-            <strong>Settings → On Vault Open</strong> to <em>Resume last tabs</em>. The feed is still
-            one click away.
-          </Callout>
+          <p>
+            A vault always opens on the feed, with the notes you had open last time waiting behind
+            it. The bar at the top names the open vault and where it lives (a folder on this
+            device, this browser or GitHub); <strong>Close vault</strong> disconnects it after you
+            confirm, and the feed becomes the start screen again.
+          </p>
         </>
       ),
     },

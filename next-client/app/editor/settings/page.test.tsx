@@ -108,7 +108,8 @@ describe("SettingsPage", () => {
     render(<SettingsPage />);
     openFilesSection();
 
-    expect(screen.getByText("On Vault Open")).toBeInTheDocument();
+    expect(screen.queryByText("On Vault Open")).not.toBeInTheDocument();
+    expect(screen.getByText("New Notes Folder")).toBeInTheDocument();
     expect(screen.getByText("Show Hidden Files")).toBeInTheDocument();
     expect(screen.getByText("Delay")).toBeInTheDocument();
   });

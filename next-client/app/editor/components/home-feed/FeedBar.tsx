@@ -1,6 +1,6 @@
 "use client";
 
-import { HiOutlineFolderOpen, HiOutlinePlus, HiOutlineSearch } from "react-icons/hi";
+import { HiOutlinePlus, HiOutlineSearch } from "react-icons/hi";
 import Button from "@/app/components/Button";
 import { PALETTE_SEARCH_TRANSITION } from "@/app/components/CommandPalette/CommandPaletteContext";
 import {
@@ -20,8 +20,6 @@ interface FeedBarProps {
   /** Opens the palette in command mode (`>`). */
   onSearchCommands: () => void;
   onNewNote: () => void;
-  /** Opens the Explorer; the button is hidden when omitted. */
-  onOpenExplorer?: () => void;
   /** While the palette is open its search field holds the shared transition name. */
   isSearchOpen?: boolean;
   /** The pill's wording; "Search or create a note…" (shortened on small phones) when omitted. */
@@ -29,14 +27,12 @@ interface FeedBarProps {
 }
 
 // Floating bar centered under the feed column (thumb reach on mobile, kept
-// above the on-screen keyboard): the search pill, a one-tap new note and
-// the Explorer. Below 400px (small phones) the Explorer folds into the pill
-// as an icon and the placeholder shortens, so + stays the only round button
-// and the placeholder isn't cut off.
+// above the on-screen keyboard): the search pill and a one-tap new note.
+// Below 400px (small phones) the placeholder shortens so it isn't cut off.
 // The pill is the palette's search field at rest — same classes as
 // PaletteSearchBar and a shared view-transition name, so opening the palette
 // morphs the pill into the field and closing morphs it back.
-export default function FeedBar({ onSearch, onSearchCommands, onNewNote, onOpenExplorer, isSearchOpen = false, placeholder }: FeedBarProps) {
+export default function FeedBar({ onSearch, onSearchCommands, onNewNote, isSearchOpen = false, placeholder }: FeedBarProps) {
   const keyboardInset = useKeyboardInset();
   return (
     <div
@@ -74,16 +70,6 @@ export default function FeedBar({ onSearch, onSearchCommands, onNewNote, onOpenE
           >
             &gt;
           </Button>
-          {onOpenExplorer && (
-            <Button
-              variant="unstyled"
-              onClick={onOpenExplorer}
-              aria-label="Open Explorer"
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-fg-muted transition-colors hover:bg-surface-raised hover:text-fg min-[400px]:hidden"
-            >
-              <HiOutlineFolderOpen size={18} />
-            </Button>
-          )}
         </div>
         <Button
           variant="unstyled"
@@ -94,17 +80,6 @@ export default function FeedBar({ onSearch, onSearchCommands, onNewNote, onOpenE
         >
           <HiOutlinePlus size={20} />
         </Button>
-        {onOpenExplorer && (
-          <Button
-            variant="unstyled"
-            onClick={onOpenExplorer}
-            aria-label="Open Explorer"
-            title={`Explorer (${formatShortcut("E", { shift: true })})`}
-            className="hidden h-12 w-12 sm:h-[3.25rem] sm:w-[3.25rem] shrink-0 items-center justify-center rounded-full border border-edge-subtle min-[400px]:flex bg-surface-raised text-fg-muted shadow-lg transition-transform hover:scale-105 hover:text-fg active:scale-95"
-          >
-            <HiOutlineFolderOpen size={20} />
-          </Button>
-        )}
       </div>
     </div>
   );

@@ -298,7 +298,7 @@ export default function LiteEditor() {
                     <div className="h-4 bg-current w-5/6 rounded-md" />
                   </div>
                 ) : isHomeFeedOpen ? (
-                  <HomeFeed {...feedProps} onOpenExplorer={() => void navigateWithGuard("/editor/files", "Files")} />
+                  <HomeFeed {...feedProps} />
                 ) : isMobileChrome ? (
                   <PaneLeaf leaf={mobileLeaf} />
                 ) : (

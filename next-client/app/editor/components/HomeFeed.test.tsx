@@ -4,15 +4,18 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { Provider, createStore } from "jotai";
 import { useHydrateAtoms } from "jotai/utils";
 import { atom_fileMetadata, type FileMetadata } from "@/app/atoms/metadata";
+import { atom_vaultDescriptor, atom_vaultHandle } from "@/app/atoms/vault-atoms";
 import { atom_privacyLevel } from "@/app/atoms/privacy-atoms";
 import { MASKED_PREVIEW, type PrivacyLevel } from "@/app/utils/note-display";
 import { atom_homeFeedTopRequest, atom_indexerState, atom_userName, type IndexerState } from "@/app/atoms/ui-atoms";
 import HomeFeed from "./HomeFeed";
 import { INDEXING_VERBS, ROTATE_MS } from "./home-feed/FeedStatus";
 
+const vault = vi.hoisted(() => ({ closeVault: vi.fn(), confirm: vi.fn() }));
 vi.mock("@/app/hooks/use-file-system", () => ({
-  useFileSystem: () => ({ openVault: vi.fn(), isVaultSupported: true, isBrowserVaultSupported: true }),
+  useFileSystem: () => ({ openVault: vi.fn(), closeVault: vault.closeVault, isVaultSupported: true, isBrowserVaultSupported: true }),
 }));
+vi.mock("@/app/hooks/use-dialog", () => ({ useDialog: () => ({ confirm: vault.confirm }) }));
 function meta(path: string, minutesAgo: number, preview = ""): FileMetadata {
   return {
     path,
@@ -180,7 +183,7 @@ describe("HomeFeed", () => {
   });
 
   it("offers vault actions and ways to start writing with no vault open", () => {
-    const handlers = { onOpenNote: vi.fn(), onNewNote: vi.fn(), onSearch: vi.fn(), onClose: vi.fn(), onOpenFile: vi.fn(), onOpenExplorer: vi.fn() };
+    const handlers = { onOpenNote: vi.fn(), onNewNote: vi.fn(), onSearch: vi.fn(), onClose: vi.fn(), onOpenFile: vi.fn() };
     render(
       <Provider>
         <HomeFeed {...handlers} hasVault={false} />
@@ -191,7 +194,7 @@ describe("HomeFeed", () => {
     expect(within(start).getByRole("button", { name: "Open Vault" })).toBeInTheDocument();
     expect(screen.queryByRole("listbox")).not.toBeInTheDocument();
     expect(screen.queryByRole("navigation", { name: "Last 7 days" })).not.toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Open Explorer" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Close vault" })).not.toBeInTheDocument();
 
     fireEvent.click(within(start).getByRole("button", { name: "New Note" }));
     expect(handlers.onNewNote).toHaveBeenCalled();
@@ -200,6 +203,35 @@ describe("HomeFeed", () => {
     // No notes to search: the pill opens the command list.
     fireEvent.click(screen.getByRole("button", { name: /Search commands…/ }));
     expect(handlers.onSearch).toHaveBeenCalledWith(">");
+  });
+
+  it("names the open vault and closes it after a confirm", async () => {
+    const store = createStore();
+    store.set(atom_fileMetadata, NOTES);
+    store.set(atom_vaultHandle, { name: "github-42-main" } as FileSystemDirectoryHandle);
+    store.set(atom_vaultDescriptor, { kind: "github", displayName: "acme/notes" } as any);
+    render(
+      <Provider store={store}>
+        <HomeFeed onOpenNote={vi.fn()} onNewNote={vi.fn()} onSearch={vi.fn()} onClose={vi.fn()} />
+      </Provider>,
+    );
+    expect(screen.getByText("acme/notes")).toBeInTheDocument();
+    expect(screen.getByText(/GitHub/)).toBeInTheDocument();
+
+    vault.confirm.mockResolvedValueOnce(false);
+    fireEvent.click(screen.getByRole("button", { name: "Close vault" }));
+    await act(async () => {});
+    expect(vault.closeVault).not.toHaveBeenCalled();
+
+    vault.confirm.mockResolvedValueOnce(true);
+    fireEvent.click(screen.getByRole("button", { name: "Close vault" }));
+    await act(async () => {});
+    expect(vault.closeVault).toHaveBeenCalledTimes(1);
+  });
+
+  it("has no Explorer button in the search bar", () => {
+    renderFeed(NOTES);
+    expect(screen.queryByRole("button", { name: "Open Explorer" })).not.toBeInTheDocument();
   });
 
   it("hides the week strip for an empty vault", () => {
