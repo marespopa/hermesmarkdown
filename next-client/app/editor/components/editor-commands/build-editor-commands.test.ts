@@ -123,7 +123,7 @@ describe("buildEditorCommands", () => {
   it("preserves every command ID and its registration order", () => {
     const commands = buildEditorCommands(createContext());
     const templateIds = TEMPLATES
-      .filter((template) => !template.aiOnly && !template.vaultOnly)
+      .filter((template) => !template.aiOnly && !template.vaultOnly && !template.templateOnly)
       .map((template) => `insert-${template.label.toLowerCase().replace(/\s+/g, "-")}`);
 
     expect(commands.map((command) => command.id)).toEqual([

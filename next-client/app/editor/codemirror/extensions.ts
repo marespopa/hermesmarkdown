@@ -20,6 +20,7 @@ import { renderedBlockExtension } from "./rendered-block";
 import { shortcodeExpandPlugin } from "./shortcode-expand";
 import { noteCalcExtension } from "./note-calc";
 import { createSlashMenuSource, SlashMenuCallbacks } from "./slash-menu";
+import { createTemplateFieldSource } from "./template-field-completion";
 import { createWikiLinkTriggerPlugin, WikiLinkTriggerCallback } from "./wikilink-trigger";
 import {
   tableTabCommand,
@@ -91,7 +92,7 @@ export function buildExtensions(opts: BuildExtensionsOptions): Extension[] {
     createWikiLinkTriggerPlugin(opts.wikiLinkTriggerRef),
     opts.vimModeCompartment.of(opts.vimMode ? vim({ status: true }) : []),
     autocompletion({
-      override: [createSlashMenuSource(opts.slashMenuCallbacksRef)],
+      override: [createSlashMenuSource(opts.slashMenuCallbacksRef), createTemplateFieldSource(opts.slashMenuCallbacksRef)],
       activateOnTyping: true,
       icons: false,
     }),

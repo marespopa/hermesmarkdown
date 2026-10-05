@@ -117,6 +117,7 @@ export const FRONTMATTER_WIZARD_SENTINEL = "__OPEN_FRONTMATTER_WIZARD__";
 export const TASK_EDITOR_SENTINEL = "__OPEN_TASK_EDITOR__";
 export const AI_CHAT_SENTINEL = "__OPEN_AI_CHAT__";
 export const VAULT_TEMPLATE_SENTINEL = "__OPEN_VAULT_TEMPLATE__";
+export const TEMPLATE_FIELD_SENTINEL = "__OPEN_TEMPLATE_FIELD__";
 export const MARK_SENSITIVE_SENTINEL = "__MARK_SENSITIVE__";
 export const MARK_PRIVATE_SENTINEL = "__MARK_PRIVATE__";
 export const MARK_PUBLIC_SENTINEL = "__MARK_PUBLIC__";
@@ -137,6 +138,8 @@ export interface Template {
   aiOnly?: boolean;
   /** Only shown when the editor can insert vault templates (onInsertVaultTemplate). */
   vaultOnly?: boolean;
+  /** Only shown while editing a template (onInsertTemplateField). */
+  templateOnly?: boolean;
 }
 
 export const TEMPLATES: Template[] = [
@@ -176,6 +179,13 @@ export const TEMPLATES: Template[] = [
     description: "Insert a template from your vault",
     content: VAULT_TEMPLATE_SENTINEL,
     vaultOnly: true,
+  },
+  {
+    label: "Template field",
+    icon: "{{",
+    description: "Add a field like {{date}} or {{prompt:Owner}} to this template",
+    content: TEMPLATE_FIELD_SENTINEL,
+    templateOnly: true,
   },
   // --- AI ---
   {

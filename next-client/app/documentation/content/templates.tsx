@@ -6,7 +6,7 @@ export const templatesItems: Subsection[] = [
     id: "templates",
     title: "Templates",
     lead: "Templates are ordinary Markdown files in a templates folder. Tokens like {{date}} fill in when you use one.",
-    keywords: "template templates tpl snippet token placeholder prompt cursor clipboard date slug new note missing link target_folder file_name new template create template",
+    keywords: "template templates tpl snippet token field add field placeholder prompt cursor clipboard date slug new note missing link target_folder file_name new template create template",
     body: (
       <>
         <p>
@@ -21,6 +21,14 @@ export const templatesItems: Subsection[] = [
           opens with a short example showing the frontmatter keys, <code>{"{{title}}"}</code>,{" "}
           <code>{"{{date}}"}</code>, a prompt and <code>{"{{cursor}}"}</code>. If a template with
           that name already exists, it opens unchanged.
+        </p>
+        <p>
+          While you edit a template, you don&apos;t have to remember any token. Type{" "}
+          <code>{"{{"}</code> or <code>/field</code>, or press <strong>+ Add field</strong> at the
+          top of the note, to pick from every field with today&apos;s value or a short description.
+          Prompts the template already asks for are listed first, so reusing one is a single pick.
+          The line at the top also counts the fields the template asks for and warns about anything
+          that won&apos;t expand, like a misspelled token.
         </p>
         <h4 className="text-lg font-bold tracking-tight !mb-2 !mt-0">Tokens</h4>
         <KV

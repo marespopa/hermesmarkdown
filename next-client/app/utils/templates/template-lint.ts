@@ -41,7 +41,7 @@ export function lintTemplate(raw: string): string[] {
   return warnings;
 }
 
-const TOKEN_DESCRIPTIONS: Record<(typeof TEMPLATE_TOKENS)[number], string> = {
+export const TOKEN_DESCRIPTIONS: Record<(typeof TEMPLATE_TOKENS)[number], string> = {
   date: "today, YYYY-MM-DD",
   time: "now, HH:mm (24 h)",
   weekday: "weekday name, e.g. Sunday",

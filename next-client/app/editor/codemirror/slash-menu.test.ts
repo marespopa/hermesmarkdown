@@ -158,6 +158,22 @@ describe("createSlashMenuSource", () => {
     expect(view.state.doc.toString()).toBe("Intro ");
     expect(callbacks.onInsertVaultTemplate).toHaveBeenCalledOnce();
   });
+
+  it("offers Template field for /field only in a template note", () => {
+    const labels = (callbacks: SlashMenuCallbacks) =>
+      getResult("/field", callbacks).result?.options.map(({ label }) => label) ?? [];
+
+    expect(labels({ ...makeCallbacks(), onInsertTemplateField: vi.fn() })).toContain("Template field");
+    expect(labels(makeCallbacks())).not.toContain("Template field");
+  });
+
+  it("removes the trigger and opens the template field menu", () => {
+    const callbacks = { ...makeCallbacks(), onInsertTemplateField: vi.fn() };
+    const { view } = applyOption("Owner: /field", "Template field", callbacks);
+
+    expect(view.state.doc.toString()).toBe("Owner: ");
+    expect(callbacks.onInsertTemplateField).toHaveBeenCalledOnce();
+  });
 });
 
 describe("insertExpandedTemplate", () => {

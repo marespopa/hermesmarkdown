@@ -11,6 +11,11 @@ describe("TEMPLATE_STARTER", () => {
     expect(content.startsWith("# {{title}}\n")).toBe(true);
   });
 
+  it("points to the field menu in a comment that never reaches the note", () => {
+    expect(TEMPLATE_STARTER).toContain("# Add a field: type /field");
+    expect(splitTemplate(TEMPLATE_STARTER).content).not.toContain("/field");
+  });
+
   it("lints clean", () => {
     expect(lintTemplate(TEMPLATE_STARTER)).toEqual([]);
   });
