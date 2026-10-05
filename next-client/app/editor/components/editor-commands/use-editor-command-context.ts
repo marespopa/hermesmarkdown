@@ -1,6 +1,7 @@
 "use client";
 
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
+import { atom_homePinnedPaths, atom_toggleHomePin } from "@/app/atoms/home-pin-atoms";
 import { useRouter } from "next/navigation";
 import {
   atom_activeFilePath,
@@ -129,6 +130,8 @@ export function useEditorCommandContext(props: EditorCommandsProps) {
   const [revealAllSensitive, setRevealAllSensitive] = useAtom(atom_revealAllSensitive);
   const setRevealedSensitivePaths = useSetAtom(atom_revealedSensitivePaths);
   const activeFileHandle = useAtomValue(atom_activeFileHandle);
+  const homePinnedPaths = useAtomValue(atom_homePinnedPaths);
+  const toggleHomePin = useSetAtom(atom_toggleHomePin);
   const activeEditorView = useAtomValue(atom_activeEditorView);
   const activeLeaf = activePaneId ? findLeaf(workspaceLayout.rootContainer, activePaneId) : null;
   const isOnlyPane = "type" in workspaceLayout.rootContainer;
@@ -145,6 +148,8 @@ export function useEditorCommandContext(props: EditorCommandsProps) {
     scanVault,
     indexVaultTags,
     closeVault,
+    homePinnedPaths,
+    toggleHomePin,
     renameFile,
     deleteFile,
     duplicateFile,

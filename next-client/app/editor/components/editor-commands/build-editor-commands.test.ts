@@ -48,6 +48,8 @@ function createContext(overrides: Partial<EditorCommandContext> = {}): EditorCom
     scanVault: vi.fn(),
     indexVaultTags: vi.fn(),
     closeVault: vi.fn(),
+    homePinnedPaths: [],
+    toggleHomePin: vi.fn(),
     renameFile: vi.fn(),
     deleteFile: vi.fn(),
     duplicateFile: vi.fn(),
@@ -116,6 +118,17 @@ function createContext(overrides: Partial<EditorCommandContext> = {}): EditorCom
 }
 
 describe("buildEditorCommands", () => {
+  it("pins the open note to Home, or unpins it when it's pinned", () => {
+    const unpinned = createContext();
+    const pin = buildEditorCommands(unpinned).find((command) => command.id === "toggle-home-pin")!;
+    expect(pin.label).toBe("Pin to Home");
+    pin.action();
+    expect(unpinned.toggleHomePin).toHaveBeenCalledWith("Note.md");
+
+    const pinned = buildEditorCommands(createContext({ homePinnedPaths: ["Note.md"] }));
+    expect(pinned.find((command) => command.id === "toggle-home-pin")?.label).toBe("Unpin from Home");
+  });
+
   it("preserves every command ID and its registration order", () => {
     const commands = buildEditorCommands(createContext());
     const templateIds = TEMPLATES
@@ -154,6 +167,7 @@ describe("buildEditorCommands", () => {
       "privacy-mode-hidden",
       "reveal-sensitive-session",
       "go-home",
+      "toggle-home-pin",
       "open-documentation",
       "close-vault",
       "copy-markdown",

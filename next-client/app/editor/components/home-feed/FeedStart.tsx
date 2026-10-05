@@ -4,6 +4,7 @@ import { HiOutlineFolderOpen, HiOutlinePlus } from "react-icons/hi";
 import Button from "@/app/components/Button";
 import { useFileSystem } from "@/app/hooks/use-file-system";
 import VaultActionButtons from "../VaultActionButtons";
+import RecentVaultList from "./RecentVaultList";
 
 interface FeedStartProps {
   onNewNote: () => void;
@@ -11,13 +12,15 @@ interface FeedStartProps {
   onOpenFile: () => void;
 }
 
-// The feed's body with no vault open, in place of the note list: the vault
-// actions, then a way to just write (a blank note, or a file from the device).
+// The feed's body with no vault open, in place of the note list: recently
+// opened vaults, the vault actions, then a way to just write (a blank note,
+// or a file from the device).
 export default function FeedStart({ onNewNote, onOpenFile }: FeedStartProps) {
   const { isVaultSupported, isBrowserVaultSupported } = useFileSystem();
   const canOpenVault = isVaultSupported || isBrowserVaultSupported;
   return (
     <section aria-label="Get started" className="flex flex-col items-start gap-8 pt-4">
+      <RecentVaultList />
       {canOpenVault && (
         <div className="flex flex-col items-start gap-3">
           <p className="text-ui-body text-fg">Open a vault to see your notes here.</p>

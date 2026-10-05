@@ -49,6 +49,7 @@ import { useDraftFlow } from "./hooks/use-draft-flow";
 import { useHomeFeed } from "./hooks/use-home-feed";
 import HomeFeed from "./components/HomeFeed";
 import { useVaultOpenBehavior } from "./hooks/use-vault-open-behavior";
+import { useRecentVaultTracker } from "./hooks/use-recent-vaults";
 
 export default function LiteEditor() {
   const router = useRouter();
@@ -113,6 +114,7 @@ export default function LiteEditor() {
   useFileWatcher();
   useVaultSync();
   useVaultOpenBehavior();
+  useRecentVaultTracker();
 
   // "Open AI Chat" (keyboard shortcut / command palette) bumps this counter
   // from outside the editor; the actual open() call has to happen here since

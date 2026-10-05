@@ -185,14 +185,22 @@ export const getStartedGroup: Group = {
       id: "home-feed",
       title: "Home feed",
       lead: "Your recent notes, newest first. It's where a vault opens.",
-      keywords: "home feed recent notes start screen today yesterday preview search create new note welcome week strip calendar days jump no vault open vault create vault browser vault open file",
+      keywords: "home feed recent notes pin pinned unpin start screen today yesterday preview search create new note welcome week strip calendar days jump no vault open vault create vault browser vault open file",
       body: (
         <>
           <p>
-            Each row shows a note's title and the first few lines of its text. The column on the
+            Each row shows a note's title, the first few lines of its text and its file name. The column on the
             left groups notes by the day they were last changed: <em>Today</em>,{" "}
             <em>Yesterday</em>, the weekday for the rest of the week, then the date. If you entered
             your name during setup, the feed greets you with it.
+          </p>
+          <p>
+            To keep a note at the top, hover its row and click the pin. On a phone or tablet,
+            touch and hold the row, then choose <strong>Pin to Home</strong>; right-clicking a row
+            opens the same menu. You can also open the note and run <strong>Pin to Home</strong>{" "}
+            from the command palette. Pinned notes sit under{" "}
+            <em>Pinned</em> above the days, newest pin first. Click the pin again, or run{" "}
+            <strong>Unpin from Home</strong>, to put the note back. Each vault keeps its own pins.
           </p>
           <p>
             Under the date, a strip shows the last seven days. A dot marks each day you changed a
@@ -231,8 +239,17 @@ export const getStartedGroup: Group = {
           <p>
             A vault always opens on the feed, with the notes you had open last time waiting behind
             it. The bar at the top names the open vault and where it lives (a folder on this
-            device, this browser or GitHub); <strong>Close vault</strong> disconnects it after you
-            confirm, and the feed becomes the start screen again.
+            device, this browser or GitHub; on a phone, just the name). Click the name for the
+            vault menu: your five most recent other vaults, then <strong>Open vault…</strong>,{" "}
+            <strong>Create vault…</strong> and <strong>Browser vaults…</strong>, then{" "}
+            <strong>Refresh vault</strong> and <strong>Close vault</strong>. A folder on your device
+            may ask for access again when you switch back to it.
+          </p>
+          <p>
+            <strong>Close vault</strong> disconnects the vault after you confirm, and the feed becomes the
+            start screen, with your recent vaults listed so you can reopen one with a click. The{" "}
+            <strong>×</strong> next to a recent vault removes it from the list; its notes stay
+            where they are.
           </p>
         </>
       ),

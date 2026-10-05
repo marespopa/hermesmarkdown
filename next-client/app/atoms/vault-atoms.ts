@@ -1,7 +1,7 @@
 import { atom } from "jotai";
 import { atom_openFiles, atom_liveHandles } from "./file-atoms";
 import { atom_workspaceLayout } from "./workspace-atoms";
-import { atom_fileTreeExpansion } from "./ui-atoms";
+import { atom_fileTreeExpansion, atom_homePins } from "./ui-atoms";
 import { atom_fileMetadata } from "./metadata";
 import { atom_revealedSensitivePaths } from "./privacy-atoms";
 import { reconcileWithDisk } from "@/app/hooks/file-system/reconcile-disk";
@@ -9,6 +9,7 @@ import { remapNoteContent } from "@/app/services/content-search-client";
 import { remapPath, remapPathsInLayout, removePathsFromLayout } from "./utils";
 import type { GitHubVaultDescriptor } from "@/app/services/github-vault-workspace";
 import type { BrowserVaultDescriptor } from "@/app/services/opfs";
+import type { RecentVault } from "@/app/services/recent-vaults";
 
 // Vault / Local File System
 export const atom_vaultHandle = atom<FileSystemDirectoryHandle | null>(null);
@@ -33,6 +34,10 @@ export type VaultDescriptor =
   | GitHubVaultDescriptor;
 
 export const atom_vaultDescriptor = atom<VaultDescriptor | null>(null);
+
+// Vaults opened on this device, most recent first (the open one included).
+// Loaded from and saved to IndexedDB by useRecentVaultTracker.
+export const atom_recentVaults = atom<RecentVault[]>([]);
 
 // Stable per-vault key for UI state persisted across reloads.
 export const atom_vaultKey = atom<string | null>((get) => {
@@ -127,7 +132,7 @@ export const atom_rebindHandles = atom(
 
 // Follows a file or folder that was renamed or moved on disk: re-keys open
 // tabs (keeping unsaved edits), pane layouts, indexed metadata, the worker's
-// note-text index and the file tree's remembered expansion (and
+// note-text index, the file tree's remembered expansion and Home pins (and
 // sensitive-note session reveals) from `oldPath` to `newPath`, for the item
 // and everything under it. Handles are path-based, so moving a folder leaves
 // its children's handles stale — each moved tab gets a fresh handle resolved
@@ -215,6 +220,11 @@ export const atom_remapVaultPaths = atom(
           ...prev,
           [vaultKey]: { expanded: entry.expanded.map(mapPath), collapsed: entry.collapsed.map(mapPath) },
         };
+      });
+      set(atom_homePins, (prev) => {
+        const pins = prev[vaultKey];
+        if (!pins?.some((p) => remapPath(p, oldPath, newPath) !== null)) return prev;
+        return { ...prev, [vaultKey]: pins.map(mapPath) };
       });
     }
   },

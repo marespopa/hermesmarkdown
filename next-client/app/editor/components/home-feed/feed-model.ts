@@ -3,7 +3,7 @@ import { noteDisplayTitle, type NoteDisplayItem, type PreviewStyle } from "@/app
 import { isTemplatePath } from "@/app/utils/templates/template-registry";
 
 // Pure model behind the home feed: which notes appear, their order, titles,
-// and the day section headers.
+// and the labels in the left gutter (days, and "Pinned").
 
 export interface FeedEntry {
   path: string;
@@ -15,10 +15,13 @@ export interface FeedEntry {
   fileName: string | null;
   preview: string;
   modifiedAt: number;
-  /** Section header, set only on the first note of each day; null otherwise and while undated. */
+  /**
+   * Gutter label, set only on the first note of each day ("Pinned" on the
+   * first pinned note); null otherwise and while undated.
+   */
   dayLabel: string | null;
-  /** Time of the last edit ("9:41 AM", in the user's locale) shown before the preview; null while undated. */
-  timeLabel: string | null;
+  /** Pinned to the top of the feed. */
+  isPinned: boolean;
   /** False until the indexer has parsed the note (no preview yet; it may already have a date). */
   isIndexed: boolean;
   /** Marked sensitive in frontmatter (shows a lock). */
@@ -67,43 +70,60 @@ export function dayLabel(modifiedAt: number, now: Date): string {
 // alphabetically, with no label. Title and preview come from the display
 // items (the privacy level's view); notes missing from them are left out
 // before day labels are assigned, so no label is orphaned. Template files
-// (direct children of `templatesFolder`) are left out too.
+// (direct children of `templatesFolder`) are left out too. Pinned notes
+// (`pinnedPaths`, newest pin first) come first, under one "Pinned" label,
+// and leave their day; pins to notes not in the feed are skipped.
 export function buildFeed(
   metadata: Record<string, FileMetadata>,
   displayItems: Map<string, NoteDisplayItem>,
   now: Date,
   templatesFolder?: string,
+  pinnedPaths: readonly string[] = [],
 ): FeedEntry[] {
-  const sorted = Object.values(metadata)
-    .filter((entry) =>
-      isFeedPath(entry.path) &&
-      displayItems.has(entry.path) &&
-      !(templatesFolder && isTemplatePath(entry.path, templatesFolder)))
+  const notes = new Map(
+    Object.values(metadata)
+      .filter((entry) =>
+        isFeedPath(entry.path) &&
+        displayItems.has(entry.path) &&
+        !(templatesFolder && isTemplatePath(entry.path, templatesFolder)))
+      .map((entry) => [entry.path, entry]),
+  );
+  const pinnedSet = new Set(pinnedPaths);
+  const pinned = [...pinnedSet].flatMap((path) => notes.get(path) ?? []);
+  const sorted = [...notes.values()]
+    .filter((entry) => !pinnedSet.has(entry.path))
     .sort((a, b) => (b.modifiedAt || 0) - (a.modifiedAt || 0) || a.path.localeCompare(b.path));
 
-  let previousDay: number | null = null;
-  return sorted.map((entry) => {
+  const toEntry = (entry: FileMetadata, label: string | null, isPinned: boolean): FeedEntry => {
     const item = displayItems.get(entry.path)!;
-    const modifiedAt = entry.modifiedAt || 0;
-    let label: string | null = null;
-    if (modifiedAt > 0) {
-      const day = startOfDay(new Date(modifiedAt));
-      if (day !== previousDay) label = dayLabel(modifiedAt, now);
-      previousDay = day;
-    }
     return {
       path: entry.path,
       title: item.title,
       fileName: item.isSensitive ? null : entry.path.split("/").pop()!,
       preview: item.preview,
-      modifiedAt,
+      modifiedAt: entry.modifiedAt || 0,
       dayLabel: label,
-      timeLabel: modifiedAt > 0 ? new Date(modifiedAt).toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" }) : null,
+      isPinned,
       isIndexed: item.isIndexed,
       isSensitive: item.isSensitive,
       previewStyle: item.previewStyle,
     };
-  });
+  };
+
+  let previousDay: number | null = null;
+  return [
+    ...pinned.map((entry, index) => toEntry(entry, index === 0 ? "Pinned" : null, true)),
+    ...sorted.map((entry) => {
+      const modifiedAt = entry.modifiedAt || 0;
+      let label: string | null = null;
+      if (modifiedAt > 0) {
+        const day = startOfDay(new Date(modifiedAt));
+        if (day !== previousDay) label = dayLabel(modifiedAt, now);
+        previousDay = day;
+      }
+      return toEntry(entry, label, false);
+    }),
+  ];
 }
 
 export interface WeekDay {
@@ -116,7 +136,8 @@ export interface WeekDay {
 }
 
 // The week strip: the seven days ending today, oldest first, each with its
-// note count and the feed row to jump to. Takes the built feed, so notes the
+// note count and the feed row to jump to (its first unpinned note, or a
+// pinned one when that's all the day has). Takes the built feed, so notes the
 // privacy level hides are never counted.
 export function buildWeek(feed: FeedEntry[], now: Date): WeekDay[] {
   const days: WeekDay[] = [];
@@ -131,7 +152,7 @@ export function buildWeek(feed: FeedEntry[], now: Date): WeekDay[] {
     const day = byDay.get(startOfDay(new Date(entry.modifiedAt)));
     if (!day) return;
     day.count++;
-    if (day.firstIndex === -1) day.firstIndex = index;
+    if (day.firstIndex === -1 || (feed[day.firstIndex].isPinned && !entry.isPinned)) day.firstIndex = index;
   });
   return days;
 }

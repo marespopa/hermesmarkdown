@@ -77,7 +77,8 @@ export default function TabContextMenu({ x, y, items, onClose, label, anchorRef 
       className={`fixed z-50 min-w-[180px] bg-paper-light/90 dark:bg-paper-dark/90 backdrop-blur-xl border border-edge-subtle rounded-2xl font-sans p-1.5 flex flex-col gap-0.5 origin-top-left transition-[opacity,transform] duration-150 ease-out ${pos.ready ? "opacity-100 scale-100" : "opacity-0 scale-95"}`}
     >
       {items.map((item, i) => (
-        <React.Fragment key={item.label}>
+        // Index too: two recent vaults can share a name.
+        <React.Fragment key={`${i}:${item.label}`}>
           {item.divider && i > 0 && (
             <div className="my-1 mx-1.5 border-t border-edge-subtle" />
           )}
@@ -91,7 +92,7 @@ export default function TabContextMenu({ x, y, items, onClose, label, anchorRef 
               item.onClick();
               onClose();
             }}
-            className="w-full flex items-center gap-2.5 text-left text-ui-footnote text-ink-light dark:text-ink-dark hover:bg-paper-softgray/80 dark:hover:bg-paper-dark-surface/80 hover:text-ink-light dark:hover:text-ink-dark rounded-xl px-3.5 py-2 transition-colors disabled:opacity-40 disabled:hover:bg-transparent disabled:cursor-not-allowed"
+            className="w-full flex items-center gap-2.5 text-left text-ui-footnote text-ink-light dark:text-ink-dark hover:bg-paper-softgray/80 dark:hover:bg-paper-dark-surface/80 hover:text-ink-light dark:hover:text-ink-dark rounded-xl px-3.5 py-2 [@media(pointer:coarse)]:py-2.5 transition-colors disabled:opacity-40 disabled:hover:bg-transparent disabled:cursor-not-allowed"
           >
             {hasCheckable && (
               <span className="shrink-0 w-[15px]">{item.checked && <HiCheck size={15} aria-hidden="true" />}</span>

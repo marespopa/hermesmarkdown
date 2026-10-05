@@ -1,8 +1,9 @@
 "use client";
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useAtomValue } from "jotai";
+import { useAtomValue, useSetAtom } from "jotai";
 import { useVirtualizer } from "@tanstack/react-virtual";
+import { atom_homePinnedPaths, atom_toggleHomePin } from "@/app/atoms/home-pin-atoms";
 import { atom_fileMetadata } from "@/app/atoms/metadata";
 import { atom_noteDisplayItems } from "@/app/atoms/privacy-atoms";
 import { atom_homeFeedTopRequest, atom_indexerState, atom_userName } from "@/app/atoms/ui-atoms";
@@ -21,11 +22,6 @@ import { buildFeed, buildWeek } from "./home-feed/feed-model";
 // Above this many notes only the rows in view (plus overscan) are rendered,
 // however far you scroll. Smaller vaults render every row.
 const VIRTUALIZE_THRESHOLD = 100;
-
-// Rows bleed into the column's padding so their text lines up with the
-// header's while the selection fill reaches past it; the first day header's
-// top padding overlaps the header's bottom padding.
-const LIST_CLASS = "-mx-3 -mt-6";
 
 interface HomeFeedProps {
   /** Opens a note by vault path (and should close the feed). */
@@ -65,10 +61,12 @@ export default function HomeFeed({ onOpenNote, onNewNote, onSearch, onClose, isS
   const isIndexing = indexerState !== "idle";
   const displayItems = useAtomValue(atom_noteDisplayItems);
   const templatesFolder = useAtomValue(atom_templatesFolder).folder;
+  const pinnedPaths = useAtomValue(atom_homePinnedPaths);
+  const togglePin = useSetAtom(atom_toggleHomePin);
   const now = useMemo(() => new Date(), [fileMetadata, displayItems]); // eslint-disable-line react-hooks/exhaustive-deps
   const feed = useMemo(
-    () => buildFeed(fileMetadata, displayItems, now, templatesFolder),
-    [fileMetadata, displayItems, now, templatesFolder],
+    () => buildFeed(fileMetadata, displayItems, now, templatesFolder, pinnedPaths),
+    [fileMetadata, displayItems, now, templatesFolder, pinnedPaths],
   );
   const week = useMemo(() => buildWeek(feed, now), [feed, now]);
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -77,8 +75,7 @@ export default function HomeFeed({ onOpenNote, onNewNote, onSearch, onClose, isS
   const rowRefs = useRef<(HTMLDivElement | null)[]>([]);
   const shouldVirtualize = feed.length > VIRTUALIZE_THRESHOLD;
 
-  // Rows vary in height (day headers, previews of 1–2 lines, the file name
-  // line), so each reports its
+  // Rows vary in height (previews wrap to 1–3 lines), so each reports its
   // real height via `measureElement`. The header scrolls with the list,
   // hence the scroll margin (the scroll container is `relative`, so the
   // list's offsetTop is measured from it).
@@ -134,6 +131,8 @@ export default function HomeFeed({ onOpenNote, onNewNote, onSearch, onClose, isS
     };
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.ctrlKey || event.metaKey || event.altKey || isTypingTarget(event.target)) return;
+      // An open menu (vault, or a row's) owns the keys; its Escape closes only it.
+      if (document.querySelector('[role="menu"]')) return;
       // The editor's global handler already prevents default on Escape.
       if (event.key === "Escape") { latest.current.onClose(); return; }
       if (event.defaultPrevented) return;
@@ -163,9 +162,9 @@ export default function HomeFeed({ onOpenNote, onNewNote, onSearch, onClose, isS
         ref={ref}
         entry={entry}
         isSelected={index === selectedIndex}
-        isLastOfDay={!feed[index + 1] || feed[index + 1].dayLabel !== null}
         onOpen={() => onOpenNote(entry.path)}
         onHover={() => setSelectedIndex(index)}
+        onTogglePin={() => togglePin(entry.path)}
       />
     );
   };
@@ -199,7 +198,7 @@ export default function HomeFeed({ onOpenNote, onNewNote, onSearch, onClose, isS
             ref={listRef}
             role="listbox"
             aria-label="Recent notes"
-            className={`relative ${LIST_CLASS}`}
+            className="relative w-full"
             style={{ height: rowVirtualizer.getTotalSize() }}
           >
             {rowVirtualizer.getVirtualItems().map((virtualRow) => (
@@ -207,7 +206,7 @@ export default function HomeFeed({ onOpenNote, onNewNote, onSearch, onClose, isS
                 key={virtualRow.key}
                 data-index={virtualRow.index}
                 ref={rowVirtualizer.measureElement}
-                className="absolute left-0 top-0 w-full"
+                className="absolute left-0 top-0 w-full pb-1"
                 style={{ transform: `translateY(${virtualRow.start - rowVirtualizer.options.scrollMargin}px)` }}
               >
                 {renderRow(virtualRow.index)}
@@ -215,7 +214,7 @@ export default function HomeFeed({ onOpenNote, onNewNote, onSearch, onClose, isS
             ))}
           </div>
         ) : (
-          <div ref={listRef} role="listbox" aria-label="Recent notes" className={`flex flex-col ${LIST_CLASS}`}>
+          <div ref={listRef} role="listbox" aria-label="Recent notes" className="flex flex-col gap-1">
             {feed.map((entry, index) => (
               <React.Fragment key={entry.path}>
                 {renderRow(index, (element) => { rowRefs.current[index] = element; })}

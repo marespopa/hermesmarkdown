@@ -206,11 +206,20 @@ export async function queryPermission(handle: FileSystemHandle, readWrite = true
   return (await (handle as any).queryPermission(options)) === "granted";
 }
 
-function readKey<T>(key: string): Promise<T | undefined> {
+export function readKey<T>(key: string): Promise<T | undefined> {
   return getDB().then((db) => new Promise<T | undefined>((resolve, reject) => {
     const request = db.transaction(STORE_NAME, "readonly").objectStore(STORE_NAME).get(key);
     request.onsuccess = () => resolve(request.result);
     request.onerror = () => reject(request.error);
+  }));
+}
+
+export function writeKey(key: string, value: unknown): Promise<void> {
+  return getDB().then((db) => new Promise<void>((resolve, reject) => {
+    const tx = db.transaction(STORE_NAME, "readwrite");
+    tx.objectStore(STORE_NAME).put(value, key);
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
   }));
 }
 

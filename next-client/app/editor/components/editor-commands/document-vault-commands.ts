@@ -16,6 +16,7 @@ export function buildDocumentVaultCommandGroups(context: EditorCommandContext) {
     dialog,
     duplicateFile,
     handleCopy,
+    homePinnedPaths,
     isVaultSupported,
     moveItem,
     onExport,
@@ -29,6 +30,7 @@ export function buildDocumentVaultCommandGroups(context: EditorCommandContext) {
     renameFile,
     setBrowserVaultDialogOpen,
     setNewVaultFlowOpen,
+    toggleHomePin,
     vaultHandle,
   } = context;
 
@@ -152,6 +154,14 @@ export function buildDocumentVaultCommandGroups(context: EditorCommandContext) {
       keywords: "home vault switcher",
       action: onHome,
     },
+    ...(vaultHandle && activeFileHandle && activeFilePath
+      ? [{
+          id: "toggle-home-pin",
+          label: homePinnedPaths.includes(activeFilePath) ? "Unpin from Home" : "Pin to Home",
+          keywords: "pin unpin home feed top favorite",
+          action: () => toggleHomePin(activeFilePath),
+        }]
+      : []),
     {
       id: "open-documentation",
       label: "Documentation",

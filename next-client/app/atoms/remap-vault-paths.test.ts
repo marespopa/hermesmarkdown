@@ -7,6 +7,7 @@ import {
   atom_fileMetadata,
   atom_fileTreeExpansion,
   atom_forgetFileTreePaths,
+  atom_homePins,
   atom_liveHandles,
   atom_openFiles,
   atom_remapVaultPaths,
@@ -161,6 +162,12 @@ describe("atom_remapVaultPaths", () => {
     await vault.writeText("archive/deep/plan.md", "saved");
     await store.set(atom_remapVaultPaths, { oldPath: "archive/deep/idea.md", newPath: "archive/deep/plan.md" });
     expect([...store.get(atom_revealedSensitivePaths)].sort()).toEqual(["archive/deep/plan.md", "notes-old.md"]);
+  });
+
+  it("moves Home pins with a folder move", async () => {
+    store.set(atom_homePins, { "local:vault": ["notes/deep/idea.md", "notes-old.md"] });
+    await store.set(atom_remapVaultPaths, { oldPath: "notes", newPath: "archive" });
+    expect(store.get(atom_homePins)["local:vault"]).toEqual(["archive/deep/idea.md", "notes-old.md"]);
   });
 
   it("forgets expansion for a deleted folder and its descendants only", () => {

@@ -5,8 +5,13 @@ import { buildNoteDisplayItems, MASKED_PREVIEW, type PrivacyLevel } from "@/app/
 import { buildFeed as buildFeedWith, buildWeek, dayLabel, feedTitle, isFeedPath } from "./feed-model";
 
 // Builds the feed through the display factory, as HomeFeed does.
-function buildFeed(metadata: Record<string, FileMetadata>, now: Date, level: PrivacyLevel = "show_title") {
-  return buildFeedWith(metadata, buildNoteDisplayItems(metadata, level), now);
+function buildFeed(
+  metadata: Record<string, FileMetadata>,
+  now: Date,
+  level: PrivacyLevel = "show_title",
+  pinnedPaths: string[] = [],
+) {
+  return buildFeedWith(metadata, buildNoteDisplayItems(metadata, level), now, undefined, pinnedPaths);
 }
 
 const NOW = new Date(2026, 8, 28, 15, 0); // Mon Sep 28 2026
@@ -112,13 +117,26 @@ describe("buildFeed", () => {
     expect(entry).toMatchObject({ isSensitive: false, previewStyle: "plain" });
   });
 
-  it("labels each note with its edit time, and none while undated", () => {
-    const edited = new Date(2026, 8, 28, 9, 41);
-    const feed = buildFeed({ a: meta("a.md", edited), b: meta("b.md", new Date(0)) }, NOW);
-    expect(feed.map((entry) => entry.timeLabel)).toEqual([
-      edited.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" }),
-      null,
+  it("puts pinned notes first, newest pin first, under one Pinned label", () => {
+    const feed = buildFeed({
+      a: meta("a.md", new Date(2026, 8, 28, 9)),
+      b: meta("b.md", new Date(2026, 8, 27, 9)),
+      c: meta("c.md", new Date(2026, 8, 20, 9)),
+    }, NOW, "show_title", ["c.md", "b.md", "gone.md"]);
+
+    expect(feed.map((entry) => [entry.path, entry.dayLabel, entry.isPinned])).toEqual([
+      ["c.md", "Pinned", true],
+      ["b.md", null, true],
+      ["a.md", "Today", false],
     ]);
+  });
+
+  it("leaves pins out when the privacy level hides the note", () => {
+    const feed = buildFeed({
+      s: meta("secret.md", NOW, { frontmatter: { sensitive: "true" } }),
+      a: meta("a.md", NOW),
+    }, NOW, "hidden", ["secret.md"]);
+    expect(feed.map((entry) => [entry.path, entry.dayLabel])).toEqual([["a.md", "Today"]]);
   });
 
   it("gives every note its file name, except sensitive notes", () => {
@@ -165,6 +183,19 @@ describe("buildWeek", () => {
     expect(week[4]).toMatchObject({ count: 2, firstIndex: 1 });
     expect(week[5]).toMatchObject({ count: 0, firstIndex: -1 });
     expect(week.reduce((sum, entry) => sum + entry.count, 0)).toBe(3);
+  });
+
+  it("jumps to a day's first unpinned note, or its pinned one when that's all it has", () => {
+    const feed = buildFeed({
+      pinnedToday: meta("p.md", new Date(2026, 8, 28, 12)),
+      today: meta("a.md", new Date(2026, 8, 28, 9)),
+      pinnedOnly: meta("q.md", new Date(2026, 8, 27, 9)),
+    }, NOW, "show_title", ["p.md", "q.md"]);
+    const week = buildWeek(feed, NOW);
+
+    expect(feed.map((entry) => entry.path)).toEqual(["p.md", "q.md", "a.md"]);
+    expect(week[6]).toMatchObject({ count: 2, firstIndex: 2 });
+    expect(week[5]).toMatchObject({ count: 1, firstIndex: 1 });
   });
 
   it("doesn't count notes the privacy level hides", () => {

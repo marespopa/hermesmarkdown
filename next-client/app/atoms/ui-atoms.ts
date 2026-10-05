@@ -227,6 +227,10 @@ export const atom_fileTreeExpansion = atomWithStorage<Record<string, FileTreeExp
   "hermes_file_tree_expansion",
   {},
 );
+// Notes pinned to the top of the Home feed, keyed by vault (see
+// atom_vaultKey), newest pin first. Read and toggled through
+// home-pin-atoms.ts.
+export const atom_homePins = atomWithStorage<Record<string, string[]>>("hermes_home_pins", {});
 export const atom_repurposeWizardOpen = atom<boolean>(false);
 
 // Vault creation flow — transient, never persisted
