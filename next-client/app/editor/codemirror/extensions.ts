@@ -78,8 +78,7 @@ export function buildExtensions(opts: BuildExtensionsOptions): Extension[] {
     // addKeymap: false — lang-markdown's built-in Enter continuation for
     // lists/blockquotes stacks with our own continueQuoteOnEnter command
     // (formatKeymap), producing doubled "> " prefixes. We own continuation
-    // logic explicitly instead (matches the old app, which never
-    // auto-continued plain "- " list items either).
+    // logic explicitly instead: formatKeymap continues quotes and list items.
     markdown({ base: markdownLanguage, codeLanguages: languages, addKeymap: false }),
     codeFolding(),
     frontmatterCollapse,

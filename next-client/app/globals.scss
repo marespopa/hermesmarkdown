@@ -36,6 +36,7 @@ body {
   --link-hover:     #1764D8;
   --frontmatter-bg: rgba(60, 56, 50, 0.035);
   --frontmatter-bg-hover: rgba(60, 56, 50, 0.055);
+  --frontmatter-bg-active: rgba(60, 56, 50, 0.085);  /* Properties on hover/focus (rest is -hover) */
   --frontmatter-label-opacity: 0.4;
   --row-stripe:     rgba(60, 56, 50, 0.035);  /* alternate rows in list views (Explorer) */
   /* Template picker glass surface + spring motion (templates UX) */
@@ -68,6 +69,7 @@ html.dark {
   --link-hover:     #8DBEFF;
   --frontmatter-bg: rgba(214, 207, 198, 0.04);
   --frontmatter-bg-hover: rgba(214, 207, 198, 0.065);
+  --frontmatter-bg-active: rgba(214, 207, 198, 0.1);
   --frontmatter-label-opacity: 0.5;
   --moss-hover:     #A3B58C;  /* moss, brightened — hover/active state for sage buttons */
   --row-stripe:     rgba(214, 207, 198, 0.035);
