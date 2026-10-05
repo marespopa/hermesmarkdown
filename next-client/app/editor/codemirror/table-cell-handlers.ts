@@ -8,6 +8,7 @@ import { addColumnAction, addRowAction, appendRowAction, copyCSVAction, copyJSON
 import type { TableDisplayMatch } from "./table-display";
 import { CELL_ATTR, cellKey, exitTable, focusCellElement, focusTableCellAt, getTableHandle, placeCaret, TABLE_WIDGET_CLASS } from "./table-focus";
 import { closeTableMenu, createTableRulers, showTableMenu, type TableMenuEntry } from "./table-handles";
+import { editTableSource } from "./table-source";
 
 // Event wiring for the inline table widget: cell editing, keyboard
 // navigation, paste, the row/column/table menu, and the rulers.
@@ -43,6 +44,11 @@ export function attachCellHandlers(wrapper: HTMLElement, view: EditorView) {
   const exit = (side: "before" | "after") => {
     const handle = getTableHandle(wrapper);
     if (handle) exitTable(view, handle, side);
+  };
+  // Swaps the grid for its pipe source, caret at the start of `el`'s text.
+  const editSource = (el: HTMLElement) => {
+    const handle = getTableHandle(wrapper);
+    if (handle) editTableSource(view, handle.from, offsetOf(el)?.start ?? handle.from);
   };
 
   // Writes the cell's current text back into the document.
@@ -102,6 +108,7 @@ export function attachCellHandlers(wrapper: HTMLElement, view: EditorView) {
       { label: "Delete column", danger: true, disabled: colCount <= 1, run: run((info) => removeColumnAction(view, info)) },
       { separator: true },
       { heading: "Table" },
+      { label: "Edit as Markdown", hint: formatShortcut("↵", { shift: true }), run: () => editSource(el) },
       { label: "Copy as CSV", run: run((info) => copyCSVAction(info)) },
       { label: "Copy as JSON", run: run((info) => copyJSONAction(info)) },
       { label: "Delete table", confirmLabel: "Click again to delete", danger: true, run: run((info) => removeTableAction(view, info)) },
@@ -280,7 +287,9 @@ export function attachCellHandlers(wrapper: HTMLElement, view: EditorView) {
 
     if (event.key === "Enter") {
       handled();
-      if (mod && !event.shiftKey) {
+      if (mod && event.shiftKey) {
+        editSource(el);
+      } else if (mod) {
         const info = tableInfoFor(el);
         if (info) addRowAction(view, info);
       } else if (!mod && !focus(cellAt(cell.row + 1, cell.col))) {

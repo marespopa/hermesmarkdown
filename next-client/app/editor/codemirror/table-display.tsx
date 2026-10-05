@@ -7,6 +7,7 @@ import { buildTable, handleFor, matchByWrapper, refreshHandles, shapeOf, syncTab
 import { attachCellHandlers, refocusLater } from "./table-cell-handlers";
 import { CELL_ATTR, focusCellElement, focusTableCellAt, getTableHandle, setTableHandle, TABLE_WIDGET_CLASS } from "./table-focus";
 import { type ComputedCell, computeTableFormulas, formulaFileTablesField, setFormulaFileTables } from "./table-formulas";
+import { tableSourceBlock, tableSourceField } from "./table-source";
 
 // Tables are always shown as a rendered grid whose cells are edited in
 // place — the pipe syntax is never visible. The document stays the single
@@ -115,7 +116,10 @@ interface TableDisplayState {
 }
 
 function buildTableDisplayState(state: EditorState): TableDisplayState {
-  const matches = collectTableDisplayMatches(state);
+  // A table opened with "Edit as Markdown" stays plain text (table-source.ts).
+  const source = tableSourceBlock(state);
+  const matches = collectTableDisplayMatches(state).filter((match) =>
+    !source || match.to < source.from || match.from > source.to);
   const ranges: Range<Decoration>[] = matches.map((match) =>
     Decoration.replace({
       widget: new TableEditorWidget(match),
@@ -136,6 +140,7 @@ export const tableDisplayField = StateField.define<TableDisplayState>({
       !transaction.docChanged
       && syntaxTree(transaction.startState) === syntaxTree(transaction.state)
       && !transaction.effects.some((effect) => effect.is(setFormulaFileTables))
+      && transaction.startState.field(tableSourceField, false) === transaction.state.field(tableSourceField, false)
     ) {
       return value;
     }
@@ -225,6 +230,7 @@ const tableVerticalEntry = Prec.high(keymap.of([
 
 export const tableDisplayExtension: Extension = [
   formulaFileTablesField,
+  tableSourceField,
   tableDisplayField,
   tableCaretEntry,
   tableVerticalEntry,

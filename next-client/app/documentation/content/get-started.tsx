@@ -249,7 +249,9 @@ export const getStartedGroup: Group = {
             keyboard shortcuts, and the slash command menu.
           </p>
           <p>
-            The toolbar at the top shows your open notes as tabs, even when only one is open. On the left:
+            The toolbar at the top shows your open notes as tabs, even when only one is open. Each pane keeps
+            up to 20 open: opening another closes the one you looked at least recently, never one with unsaved
+            changes. On the left:
             the <strong> Sidebar</strong> button, while the sidebar is hidden. On the right: Save, Search (the
             command palette) and AI Chat (when an AI key is set). The <strong>&hellip; More</strong> menu holds Copy
             Markdown, Split Right, Settings, Help and Hide Toolbar — every one of them is also in the command palette.

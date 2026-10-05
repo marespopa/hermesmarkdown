@@ -7,14 +7,15 @@ import {
   atom_vimMode,
   atom_wordWrap,
 } from "@/app/atoms/atoms";
-import { atom_flowMode } from "@/app/atoms/ui-atoms";
+import { atom_flowMode, atom_showInvisibles } from "@/app/atoms/ui-atoms";
 import Toggle from "@/app/components/Toggle";
 import { SettingGroup, SettingItem } from "../components/SettingControls";
 
-// Settings → Editor: Layout (word wrap, line numbers) and Writing (Vim, flow mode) groups.
+// Settings → Editor: Layout (word wrap, line numbers, invisibles) and Writing (Vim, flow mode) groups.
 export default function EditorSettings() {
   const [wordWrap, setWordWrap] = useAtom(atom_wordWrap);
   const [lineNumbers, setLineNumbers] = useAtom(atom_lineNumbers);
+  const [showInvisibles, setShowInvisibles] = useAtom(atom_showInvisibles);
   const [vimMode, setVimMode] = useAtom(atom_vimMode);
   const [flowMode, setFlowMode] = useAtom(atom_flowMode);
 
@@ -30,6 +31,11 @@ export default function EditorSettings() {
           label="Line Numbers"
           description="Show line numbers beside the source editor."
           control={<Toggle variant="soft" active={lineNumbers} onChange={setLineNumbers} />}
+        />
+        <SettingItem
+          label="Show Invisibles"
+          description="Mark empty lines with ¶ and show spaces as dots and tabs as arrows, so a blank line is easy to tell from the space above a heading."
+          control={<Toggle variant="soft" active={showInvisibles} onChange={setShowInvisibles} />}
         />
       </SettingGroup>
       <SettingGroup title="Writing">

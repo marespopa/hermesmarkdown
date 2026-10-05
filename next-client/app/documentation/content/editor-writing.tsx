@@ -6,13 +6,13 @@ export const editorWritingItems: Subsection[] = [
     id: "writing",
     title: "Writing",
     lead: "Write Markdown with inline highlighting and click actions.",
-    keywords: "rendering source inline wysiwyg word wrap line numbers pills dates priority shortcode images paste calc",
+    keywords: "rendering source inline wysiwyg word wrap line numbers invisibles whitespace empty lines pills dates priority shortcode images paste calc",
     body: (
       <>
         <p>
           You always edit the Markdown source, styled as you type: headings, emphasis, links,
           tags and dates are highlighted in place, and tables render as an editable grid.
-          Word wrap, line numbers, font and theme live under Settings.
+          Word wrap, line numbers, Show Invisibles (¶ on empty lines, dots for spaces), font and theme live under Settings.
         </p>
         <p>
           Dates (<code>2026-09-27</code>, <code>27/09/2026</code>, <code>[[2026-09-27]]</code>,{" "}
@@ -150,13 +150,19 @@ export const editorWritingItems: Subsection[] = [
           rows={[
             { label: "Row", value: "Insert above / below, move up / down, delete" },
             { label: "Column", value: "Insert left / right, move, sum, sort, align, delete" },
-            { label: "Table", value: "Copy as CSV or JSON, delete (confirm with a second click)" },
+            { label: "Table", value: "Edit as Markdown, copy as CSV or JSON, delete (confirm with a second click)" },
           ]}
         />
         <p>
           Paste a range copied from a spreadsheet (or multi-line CSV) into a cell. It fills the
           cells from there, adding rows and columns as needed. Smart sorting recognizes dates,
           currency and plain numbers. Each structural change is a single undo step.
+        </p>
+        <p>
+          If a table looks wrong (say, a line you typed just below it turned into a row), choose
+          <strong> Edit as Markdown</strong> from the menu or press <code>Ctrl/Cmd</code>+
+          <code>Shift</code>+<code>Enter</code> in a cell. The table shows as plain pipe text so
+          you can fix it by hand, and turns back into a grid when you move the caret out of it.
         </p>
         <h4 className="text-lg font-bold tracking-tight !mb-2 !mt-6">Formulas</h4>
         <p>

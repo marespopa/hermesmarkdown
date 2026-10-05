@@ -5,7 +5,7 @@ import MainPage from "./components/MainPage";
 import ServiceWorkerRegister from "./components/ServiceWorkerRegister";
 import InlineScript from "./components/InlineScript";
 import { Metadata, Viewport } from "next";
-import { inter, geistMono, ibmPlexMono, plusJakartaSans } from "./fonts";
+import { inter, geistMono, plusJakartaSans, sourceSerif } from "./fonts";
 
 const SITE_DESCRIPTION =
   "Edit local Markdown folders in your browser — reads and writes files directly on disk, or keeps a vault in the browser on Safari, Firefox, and mobile. Works offline. No accounts, no cloud uploads.";
@@ -108,7 +108,7 @@ export default function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className={`h-full overscroll-none ${inter.variable} ${geistMono.variable} ${ibmPlexMono.variable} ${plusJakartaSans.variable}`}
+      className={`h-full overscroll-none ${inter.variable} ${geistMono.variable} ${plusJakartaSans.variable} ${sourceSerif.variable}`}
     >
       <head>
         <InlineScript html={THEME_INIT_SCRIPT} />

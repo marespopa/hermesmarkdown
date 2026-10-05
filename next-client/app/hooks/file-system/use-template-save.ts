@@ -46,8 +46,12 @@ export function useTemplateSave({ scanVault }: UseTemplateSaveProps) {
         );
         if (!replace) return false;
       }
-      const handle = existing ?? await withRetry(async () =>
-        (await ensureVaultFolder(vaultHandle, folder)).getFileHandle(`${baseName}.md`, { create: true }));
+      // ensureVaultFolder retries each folder step itself; only the file
+      // lookup gets its own retry, so the folder isn't walked again per attempt.
+      const handle = existing ?? await (async () => {
+        const dir = await ensureVaultFolder(vaultHandle, folder);
+        return withRetry(() => dir.getFileHandle(`${baseName}.md`, { create: true }));
+      })();
       // Never a 0-byte file: Google Drive hangs syncing those.
       await withRetry(() => writeFileContent(handle, text || "\n"));
       await scanVault(vaultHandle);

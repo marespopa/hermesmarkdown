@@ -1,6 +1,8 @@
 import { atom } from "jotai";
 import { atom_workspaceLayout, atom_activePaneId } from "./workspace-atoms";
 import { findLeaf, updateLeaf, generateId, getWorkspaceTabs } from "./utils";
+import { atom_openFiles } from "./file-atoms";
+import { forgetClosedFiles } from "./tab-limit";
 import { WorkspaceContainer, PanelLeaf } from "@/app/types/workspace";
 
 export const atom_workspaceTabs = atom((get) =>
@@ -145,13 +147,14 @@ export const atom_closeTab = atom(
         newOpenFilePaths[newOpenFilePaths.length - 1] || undefined;
     }
 
-    set(atom_workspaceLayout, {
-      ...layout,
-      rootContainer: updateLeaf(layout.rootContainer, paneId, {
-        openFilePaths: newOpenFilePaths,
-        activeFilePath: newActiveFilePath,
-      }),
+    const rootContainer = updateLeaf(layout.rootContainer, paneId, {
+      openFilePaths: newOpenFilePaths,
+      activeFilePath: newActiveFilePath,
     });
+    set(atom_workspaceLayout, { ...layout, rootContainer });
+    // A note no pane shows any more drops its cached text, unless it has
+    // unsaved changes (closing with autosave on saves those first).
+    set(atom_openFiles, (prev) => forgetClosedFiles(prev, rootContainer, [filePath]));
   },
 );
 

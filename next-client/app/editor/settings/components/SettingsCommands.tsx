@@ -11,7 +11,7 @@ import {
   atom_vimMode,
   atom_wordWrap,
 } from "@/app/atoms/atoms";
-import { atom_flowMode, atom_lineNumbers } from "@/app/atoms/ui-atoms";
+import { atom_flowMode, atom_lineNumbers, atom_showInvisibles } from "@/app/atoms/ui-atoms";
 import { useRegisterCommand, type Command } from "@/app/components/CommandPalette/CommandPaletteContext";
 import { FONTS, TEXT_SIZES } from "../font-options";
 
@@ -23,6 +23,7 @@ function RegisteredCommand({ command }: { command: Command }) {
 export default function SettingsCommands() {
   const [wordWrap, setWordWrap] = useAtom(atom_wordWrap);
   const [lineNumbers, setLineNumbers] = useAtom(atom_lineNumbers);
+  const [showInvisibles, setShowInvisibles] = useAtom(atom_showInvisibles);
   const [vimMode, setVimMode] = useAtom(atom_vimMode);
   const [flowMode, setFlowMode] = useAtom(atom_flowMode);
   const [, setEditorFontFamily] = useAtom(atom_editorFontFamily);
@@ -35,6 +36,7 @@ export default function SettingsCommands() {
   const commands: Command[] = [
     { id: "toggle-word-wrap", label: wordWrap ? "Disable word wrap" : "Enable word wrap", category: "Settings", keywords: "editor lines", action: () => setWordWrap(!wordWrap) },
     { id: "toggle-line-numbers", label: lineNumbers ? "Hide line numbers" : "Show line numbers", category: "Settings", keywords: "editor gutter", action: () => setLineNumbers(!lineNumbers) },
+    { id: "toggle-invisibles", label: showInvisibles ? "Hide invisibles" : "Show invisibles", category: "Settings", keywords: "whitespace empty lines blank spaces tabs pilcrow", action: () => setShowInvisibles(!showInvisibles) },
     { id: "toggle-vim-mode", label: vimMode ? "Disable Vim mode" : "Enable Vim mode", category: "Settings", keywords: "editor keybindings modal", action: () => setVimMode(!vimMode) },
     { id: "toggle-flow-mode", label: flowMode ? "Disable flow mode" : "Enable flow mode", category: "Settings", keywords: "focus typewriter dim paragraph writing", action: () => setFlowMode(!flowMode) },
     ...FONTS.map(({ label, value }) => ({

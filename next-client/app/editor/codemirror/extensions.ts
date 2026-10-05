@@ -1,5 +1,5 @@
 import { Compartment, Extension } from "@codemirror/state";
-import { EditorView, keymap, drawSelection, highlightActiveLine, lineNumbers, placeholder as placeholderExt } from "@codemirror/view";
+import { EditorView, keymap, drawSelection, placeholder as placeholderExt } from "@codemirror/view";
 import { history, historyKeymap, defaultKeymap } from "@codemirror/commands";
 import { markdown, markdownLanguage } from "@codemirror/lang-markdown";
 import { languages } from "@codemirror/language-data";
@@ -38,12 +38,16 @@ import {
 import { frontmatterCollapse } from "./frontmatter-fold";
 import { flowMode } from "./flow-mode";
 import { liveMarkers } from "./live-markers";
+import { invisibles } from "./invisibles";
+import { editorLineNumbers } from "./line-numbers";
 
 interface BuildExtensionsOptions {
   wordWrap: boolean;
   wordWrapCompartment: Compartment;
   lineNumbers: boolean;
   lineNumbersCompartment: Compartment;
+  showInvisibles: boolean;
+  invisiblesCompartment: Compartment;
   vimMode: boolean;
   vimModeCompartment: Compartment;
   flowMode: boolean;
@@ -66,11 +70,11 @@ export function buildExtensions(opts: BuildExtensionsOptions): Extension[] {
   const extensions: Extension[] = [
     editorTheme(),
     opts.wordWrapCompartment.of(opts.wordWrap ? EditorView.lineWrapping : []),
-    opts.lineNumbersCompartment.of(opts.lineNumbers ? lineNumbers() : []),
+    opts.lineNumbersCompartment.of(opts.lineNumbers ? editorLineNumbers() : []),
+    opts.invisiblesCompartment.of(opts.showInvisibles ? invisibles() : []),
     opts.flowModeCompartment.of(opts.flowMode ? flowMode() : []),
     history(),
     drawSelection(),
-    highlightActiveLine(),
     // addKeymap: false — lang-markdown's built-in Enter continuation for
     // lists/blockquotes stacks with our own continueQuoteOnEnter command
     // (formatKeymap), producing doubled "> " prefixes. We own continuation

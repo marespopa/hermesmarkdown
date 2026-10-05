@@ -92,6 +92,7 @@ export function remapPathsInLayout(
       // A pane could already hold a tab at the destination path; keep one.
       openFilePaths: [...new Set(node.openFilePaths.map(mapPath))],
       activeFilePath: node.activeFilePath ? mapPath(node.activeFilePath) : node.activeFilePath,
+      ...(node.recentFilePaths ? { recentFilePaths: [...new Set(node.recentFilePaths.map(mapPath))] } : {}),
     };
   }
   return {

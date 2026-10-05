@@ -2,18 +2,21 @@
 
 import { useEffect, useRef } from "react";
 import type { EditorView } from "@codemirror/view";
-import { EditorView as CodeMirrorView, lineNumbers as codeMirrorLineNumbers } from "@codemirror/view";
+import { EditorView as CodeMirrorView } from "@codemirror/view";
 import type { Compartment } from "@codemirror/state";
 import { getCM, Vim, vim } from "@replit/codemirror-vim";
 import type { SlashMenuCallbacks } from "../codemirror/slash-menu";
 import type { WikiLinkTriggerCallback } from "../codemirror/wikilink-trigger";
 import { flowMode as flowModeExtension } from "../codemirror/flow-mode";
+import { invisibles } from "../codemirror/invisibles";
+import { editorLineNumbers } from "../codemirror/line-numbers";
 
 interface UseCodeMirrorEditorOptions {
   value: string;
   onChange: (value: string) => void;
   wordWrap: boolean;
   lineNumbers: boolean;
+  showInvisibles: boolean;
   vimMode: boolean;
   flowMode: boolean;
   onOpenActiveHelperRef: { current: () => boolean };
@@ -44,6 +47,7 @@ export function useCodeMirrorEditor({
   onChange,
   wordWrap,
   lineNumbers,
+  showInvisibles,
   vimMode,
   flowMode,
   onOpenActiveHelperRef,
@@ -68,6 +72,7 @@ export function useCodeMirrorEditor({
   onViewportChangeRef.current = onViewportChange;
   const wordWrapCompartmentRef = useRef<Compartment | null>(null);
   const lineNumbersCompartmentRef = useRef<Compartment | null>(null);
+  const invisiblesCompartmentRef = useRef<Compartment | null>(null);
   const vimModeCompartmentRef = useRef<Compartment | null>(null);
   const flowModeCompartmentRef = useRef<Compartment | null>(null);
 
@@ -91,10 +96,12 @@ export function useCodeMirrorEditor({
       ) => import("@codemirror/state").Extension[];
       const wordWrapCompartment = new Compartment();
       const lineNumbersCompartment = new Compartment();
+      const invisiblesCompartment = new Compartment();
       const vimModeCompartment = new Compartment();
       const flowModeCompartment = new Compartment();
       wordWrapCompartmentRef.current = wordWrapCompartment;
       lineNumbersCompartmentRef.current = lineNumbersCompartment;
+      invisiblesCompartmentRef.current = invisiblesCompartment;
       vimModeCompartmentRef.current = vimModeCompartment;
       flowModeCompartmentRef.current = flowModeCompartment;
 
@@ -105,6 +112,8 @@ export function useCodeMirrorEditor({
           wordWrapCompartment,
           lineNumbers,
           lineNumbersCompartment,
+          showInvisibles,
+          invisiblesCompartment,
           vimMode,
           vimModeCompartment,
           flowMode,
@@ -174,9 +183,16 @@ export function useCodeMirrorEditor({
     const compartment = lineNumbersCompartmentRef.current;
     if (!view || !compartment) return;
     view.dispatch({
-      effects: compartment.reconfigure(lineNumbers ? codeMirrorLineNumbers() : []),
+      effects: compartment.reconfigure(lineNumbers ? editorLineNumbers() : []),
     });
   }, [lineNumbers, viewRef]);
+
+  useEffect(() => {
+    const view = viewRef.current;
+    const compartment = invisiblesCompartmentRef.current;
+    if (!view || !compartment) return;
+    view.dispatch({ effects: compartment.reconfigure(showInvisibles ? invisibles() : []) });
+  }, [showInvisibles, viewRef]);
 
   useEffect(() => {
     const view = viewRef.current;

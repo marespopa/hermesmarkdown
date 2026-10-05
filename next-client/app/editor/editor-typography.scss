@@ -9,10 +9,11 @@
    caret and clicks land on the wrong line. */
 
 .editor-sheet {
-  /* The column grows with the sheet: at least ~70 characters, most of the
-     sheet's width on large screens, capped where lines get too long to
-     follow. `ch` follows --editor-font-size, so the column scales with it. */
-  --editor-measure: clamp(68ch, 85%, 104ch);
+  /* The column grows with the sheet up to the classic reading measure: about
+     65–80 characters a line (`ch` is a digit's width, a little wider than an
+     average letter). `ch` follows --editor-font-size, so the column scales
+     with the text. */
+  --editor-measure: clamp(60ch, 85%, 70ch);
 }
 
 /* The text column, centered on the sheet. Narrow panes are capped by the
@@ -34,13 +35,15 @@
   text-wrap: pretty;
 }
 
-/* Headings: the prose scale, tighter tracking as they grow, a shorter line
-   height, and room above so a section reads as starting fresh. */
+/* Headings: the prose scale, a tight 1.2–1.3 line height, tracking that
+   tightens as they grow, and generous room above (about 1.8× the body size)
+   so each section visibly anchors to the text below it. Semibold, as in
+   Apple's headline styles. */
 .editor-sheet.editor-container .cm-line.cm-heading {
   color: var(--fg);
   line-height: 1.3;
-  padding-top: 0.5em;
-  padding-bottom: 0.1em;
+  padding-top: 1.4em;
+  padding-bottom: 0.2em;
   text-wrap: balance;
 }
 
@@ -48,13 +51,14 @@
   font-size: 2em;
   line-height: 1.2;
   letter-spacing: -0.022em;
-  padding-top: 0.4em;
+  padding-top: 0.9em;
 }
 
 .editor-sheet.editor-container .cm-line.cm-heading-2 {
   font-size: 1.5em;
   line-height: 1.25;
   letter-spacing: -0.017em;
+  padding-top: 1.2em;
 }
 
 .editor-sheet.editor-container .cm-line.cm-heading-3 {
@@ -76,7 +80,117 @@
   color: var(--fg-muted);
 }
 
+/* Monospaced letters have fixed advances; tightening them makes headings
+   collide instead of looking set. */
+.editor-sheet.editor-container[data-font="mono"] .cm-line.cm-heading {
+  letter-spacing: 0;
+}
+
+/* Line numbers (codemirror/line-numbers.ts): each gutter cell takes its
+   line's padding above and the height of its first row of text, so the
+   number centres on that row. B is the body size; the numbers below are the
+   heading rules above restated in body units (padding-top × heading size,
+   line-height × heading size). Keep the two in step. */
+.editor-sheet.editor-container .cm-lineNumbers .cm-gutterElement {
+  --B: var(--editor-font-size, 17px);
+  box-sizing: border-box;
+  line-height: calc(var(--B) * var(--editor-line-height, 1.65));
+}
+
+.editor-sheet.editor-container .cm-lineNumbers .cm-gutter-heading-1 {
+  padding-top: calc(var(--B) * 1.8);    /* 0.9em × 2 */
+  line-height: calc(var(--B) * 2.4);    /* 1.2 × 2 */
+}
+
+.editor-sheet.editor-container .cm-lineNumbers .cm-gutter-heading-2 {
+  padding-top: calc(var(--B) * 1.8);    /* 1.2em × 1.5 */
+  line-height: calc(var(--B) * 1.875);  /* 1.25 × 1.5 */
+}
+
+.editor-sheet.editor-container .cm-lineNumbers .cm-gutter-heading-3 {
+  padding-top: calc(var(--B) * 1.75);   /* 1.4em × 1.25 */
+  line-height: calc(var(--B) * 1.625);  /* 1.3 × 1.25 */
+}
+
+.editor-sheet.editor-container .cm-lineNumbers .cm-gutter-heading-4 {
+  padding-top: calc(var(--B) * 1.575);  /* 1.4em × 1.125 */
+  line-height: calc(var(--B) * 1.4625); /* 1.3 × 1.125 */
+}
+
+.editor-sheet.editor-container .cm-lineNumbers .cm-gutter-heading-5 {
+  padding-top: calc(var(--B) * 1.4);    /* 1.4em × 1 */
+  line-height: calc(var(--B) * 1.3);    /* 1.3 × 1 */
+}
+
+.editor-sheet.editor-container .cm-lineNumbers .cm-gutter-heading-6 {
+  padding-top: calc(var(--B) * 1.225);  /* 1.4em × 0.875 */
+  line-height: calc(var(--B) * 1.1375); /* 1.3 × 0.875 */
+}
+
+.editor-sheet.editor-container .cm-lineNumbers .cm-gutter-first {
+  padding-top: 0;
+}
+
+.editor-sheet.editor-container .cm-lineNumbers .cm-gutter-codeblock,
+.editor-sheet.editor-container .cm-lineNumbers .cm-gutter-codeblock-start {
+  line-height: calc(var(--B) * 1.4);    /* 1.6 × 0.875 */
+}
+
+.editor-sheet.editor-container .cm-lineNumbers .cm-gutter-codeblock-start {
+  padding-top: calc(var(--B) * 0.65625); /* 0.75em × 0.875 */
+}
+
 /* A title on the note's first line sits at the top of the sheet. */
 .editor-sheet.editor-container .cm-content > .cm-line.cm-heading:first-child {
   padding-top: 0;
+}
+
+/* Inline code: Geist Mono a step smaller, on a faint tint with slightly
+   muted ink. Horizontal padding only, so the line box keeps the rhythm. */
+.editor-sheet.editor-container .cm-inline-code {
+  border-radius: 0.3em;
+  background-color: color-mix(in srgb, var(--fg) 6%, transparent);
+  color: color-mix(in srgb, var(--fg) 82%, var(--surface));
+  font-family: var(--font-geist-mono), "SF Mono", ui-monospace, monospace;
+  font-size: 0.875em;
+  padding: 0.1em 0.3em;
+}
+
+/* Fenced code: one block whose tint sits ~4% off the sheet, with a hairline
+   edge. The inline inset is a transparent border, not padding: drawSelection()
+   reads the first line's padding-left for every selection rect, so padding
+   here would skew selections in a note that opens with a code block. The
+   hairline edge is box-shadow (no layout), offset outward on one axis only so
+   a line's shadow never paints over the line above or below it. */
+.editor-sheet.editor-container .cm-line.cm-codeblock {
+  --codeblock-edge: color-mix(in srgb, var(--fg) 9%, transparent);
+  /* Translucent, not mixed into --surface: CodeMirror draws the selection on
+     a layer beneath the text, and an opaque line background hides it. */
+  background-color: color-mix(in srgb, var(--fg) 4%, transparent);
+  border-inline: 1.125rem solid transparent;
+  box-shadow: -1px 0 var(--codeblock-edge), 1px 0 var(--codeblock-edge);
+  font-family: var(--font-geist-mono), "SF Mono", ui-monospace, monospace;
+  font-size: 0.875em;
+  line-height: 1.6;
+  text-wrap: wrap;
+}
+
+.editor-sheet.editor-container .cm-line.cm-codeblock-start {
+  border-start-start-radius: 0.5rem;
+  border-start-end-radius: 0.5rem;
+  box-shadow:
+    -1px 0 var(--codeblock-edge),
+    1px 0 var(--codeblock-edge),
+    0 -1px var(--codeblock-edge);
+  padding-top: 0.75em;
+}
+
+.editor-sheet.editor-container .cm-line.cm-codeblock-end {
+  border-end-start-radius: 0.5rem;
+  border-end-end-radius: 0.5rem;
+  box-shadow:
+    -1px 0 var(--codeblock-edge),
+    1px 0 var(--codeblock-edge),
+    0 1px var(--codeblock-edge);
+  padding-bottom: 0.75em;
 }

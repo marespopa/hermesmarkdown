@@ -127,15 +127,7 @@ html.dark .editor-container.cm-focused .cm-selectionBackground {
 .editor-container textarea,
 .editor-container pre {
   font-size: var(--editor-font-size, 16px) !important;
-  line-height: var(--editor-line-height, 1.8) !important;
-}
-
-@media (min-width: 1280px) {
-  .editor-container,
-  .editor-container textarea,
-  .editor-container pre {
-    font-size: calc(var(--editor-font-size, 16px) + 1px) !important;
-  }
+  line-height: var(--editor-line-height, 1.65) !important;
 }
 
 /* Inactive Markdown tables render as a quiet reading surface. The wrapper,
@@ -211,7 +203,7 @@ html.dark .editor-container.cm-focused .cm-selectionBackground {
 .cm-table-preview code {
   border-radius: 0.3em;
   background-color: color-mix(in srgb, var(--fg) 6%, transparent);
-  font-family: var(--font-ibm-mono), ui-monospace, monospace;
+  font-family: var(--font-geist-mono), "SF Mono", ui-monospace, monospace;
   font-size: 0.9em;
   padding: 0.08em 0.28em;
 }
@@ -279,7 +271,7 @@ html.dark .editor-container.cm-focused .cm-selectionBackground {
 .cm-rendered-block-source {
   margin: 0.4em 0 0;
   color: var(--fg-muted);
-  font-family: var(--font-ibm-mono), ui-monospace, monospace;
+  font-family: var(--font-geist-mono), "SF Mono", ui-monospace, monospace;
   font-size: 0.85em;
   text-align: left;
   white-space: pre-wrap;
@@ -376,7 +368,7 @@ html.dark .editor-container.cm-focused .cm-selectionBackground {
   border-radius: 0.25rem;
   background: none;
   color: var(--fg-faint);
-  font-family: var(--font-ibm-mono), ui-monospace, monospace;
+  font-family: var(--font-geist-mono), "SF Mono", ui-monospace, monospace;
   font-size: 0.6875rem;
   font-variant-numeric: tabular-nums;
   line-height: 1;

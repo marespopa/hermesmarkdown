@@ -22,6 +22,8 @@ clearLegacyPaneModePreference();
 export const atom_theme = atomWithStorage<Theme>("theme", "system");
 export const atom_wordWrap = atomWithStorage<boolean>("wordWrap", true);
 export const atom_lineNumbers = atomWithStorage<boolean>("lineNumbers", false);
+// Marks empty lines with ¶ and shows spaces and tabs (codemirror/invisibles.ts).
+export const atom_showInvisibles = atomWithStorage<boolean>("showInvisibles", false);
 export const atom_vimMode = atomWithStorage<boolean>("vimMode", false);
 // Flow mode: fades everything but the caret's paragraph and keeps the caret
 // line centred while typing. Opt-in, off by default.
@@ -35,27 +37,76 @@ export const atom_sidebarOpen = atomWithStorage<boolean>("sidebarOpen", false);
 export const SIDEBAR_MIN_WIDTH = 200;
 export const SIDEBAR_MAX_WIDTH = 420;
 export const atom_sidebarWidth = atomWithStorage<number>("sidebarWidth", 256);
-export const MONO_FONT_STACK = "var(--font-ibm-mono), ui-monospace, monospace";
+// Each stack falls back to the Apple system face with the same role.
+export const MONO_FONT_STACK =
+  'var(--font-geist-mono), "SF Mono", ui-monospace, SFMono-Regular, Menlo, monospace';
 export const EDITORIAL_FONT_STACK =
-  "var(--font-plus-jakarta), ui-sans-serif, sans-serif";
+  "var(--font-plus-jakarta), system-ui, -apple-system, ui-sans-serif, sans-serif";
+export const SERIF_FONT_STACK =
+  'var(--font-source-serif), "New York", ui-serif, Georgia, serif';
+export const UI_FONT_STACK =
+  "var(--font-inter), system-ui, -apple-system, ui-sans-serif, sans-serif";
 export const atom_editorFontFamily = atomWithStorage<string>(
   "editorFontFamily",
   EDITORIAL_FONT_STACK,
 );
+// Saved choices from older versions move to their closest current equivalent:
+// IBM Plex Mono to Geist Mono, older stack strings to the current ones (so the
+// picker still shows them as selected), and the 14–22px sizes up one pixel
+// onto the Dynamic Type steps. Every target is a current value, so this is
+// safe to run on each load.
+const LEGACY_TEXT_SIZES: Record<string, string> = {
+  "14px": "15px",
+  "16px": "17px",
+  "18px": "19px",
+  "20px": "21px",
+  "22px": "23px",
+};
+
+const FONT_STACKS_BY_VARIABLE: [string, string][] = [
+  ["--font-ibm-mono", MONO_FONT_STACK],
+  ["--font-geist-mono", MONO_FONT_STACK],
+  ["--font-plus-jakarta", EDITORIAL_FONT_STACK],
+  ["--font-source-serif", SERIF_FONT_STACK],
+  ["--font-inter", UI_FONT_STACK],
+];
+
+export function migrateLegacyTypographyPreferences() {
+  if (typeof window === "undefined") return;
+  try {
+    for (const key of ["editorFontFamily", "renderedFontFamily"]) {
+      const saved = window.localStorage.getItem(key);
+      if (!saved) continue;
+      const stack = FONT_STACKS_BY_VARIABLE.find(([variable]) => saved.includes(variable))?.[1];
+      if (stack && JSON.parse(saved) !== stack) {
+        window.localStorage.setItem(key, JSON.stringify(stack));
+      }
+    }
+    const size = window.localStorage.getItem("renderedFontSize");
+    const next = size ? LEGACY_TEXT_SIZES[JSON.parse(size)] : undefined;
+    if (next) window.localStorage.setItem("renderedFontSize", JSON.stringify(next));
+  } catch {
+    // Unreadable storage keeps the defaults.
+  }
+}
+
+migrateLegacyTypographyPreferences();
+
+// 1.65: open enough for a ~70-character column without the lines drifting apart.
 export const atom_lineHeight = atomWithStorage<string>(
   "editorLineHeight",
-  "1.8",
+  "1.65",
 );
 // Primary reading font and size. Source-editor typography has its own persisted
 // font-family preference above.
-export const RENDERED_FONT_STACK = "var(--font-inter), Inter, ui-sans-serif, sans-serif";
+export const RENDERED_FONT_STACK = UI_FONT_STACK;
 export const atom_renderedFontFamily = atomWithStorage<string>(
   "renderedFontFamily",
   RENDERED_FONT_STACK,
 );
 export const atom_renderedFontSize = atomWithStorage<string>(
   "renderedFontSize",
-  "18px",
+  "17px",
 );
 export const atom_isEditorFocused = atom<boolean>(false);
 

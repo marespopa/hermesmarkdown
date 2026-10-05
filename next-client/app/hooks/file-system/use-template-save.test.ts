@@ -59,7 +59,7 @@ function setup(existing: Record<string, string> = {}) {
   const scanVault = vi.fn(async () => {});
   const wrapper = ({ children }: { children: React.ReactNode }) => React.createElement(Provider, { store }, children);
   const { result } = renderHook(() => useTemplateSave({ scanVault }), { wrapper });
-  return { templates, scanVault, save: result.current };
+  return { root, templates, scanVault, save: result.current };
 }
 
 describe("useTemplateSave", () => {
@@ -73,6 +73,23 @@ describe("useTemplateSave", () => {
     expect(templates.files.get("Weekly sync.md")?.content).toBe("# Sync\n{{date}}\n");
     expect(scanVault).toHaveBeenCalled();
     expect(toast.success).toHaveBeenCalledWith("Saved template: templates/Weekly sync.md");
+  });
+
+  it("looks the templates folder up once, retrying only the file when Drive's state changes", async () => {
+    dialog.prompt.mockResolvedValue("Retry");
+    const { root, templates, save } = setup();
+    const folderLookup = vi.spyOn(root, "getDirectoryHandle");
+    const createFile = templates.getFileHandle.bind(templates);
+    let calls = 0;
+    vi.spyOn(templates, "getFileHandle").mockImplementation(async (name, options) => {
+      // findExisting's lookup comes first and finds nothing; the first create
+      // then hits a stale-state error, the retry succeeds.
+      if (options?.create && calls++ === 0) throw Object.assign(new Error("state had changed"), { name: "InvalidStateError" });
+      return createFile(name, options);
+    });
+    await act(async () => { expect(await save("body", "Retry")).toBe(true); });
+    expect(templates.files.get("Retry.md")?.content).toBe("body");
+    expect(folderLookup.mock.calls.filter(([, options]) => options?.create)).toHaveLength(1);
   });
 
   it("asks before replacing a template of the same name (any case)", async () => {

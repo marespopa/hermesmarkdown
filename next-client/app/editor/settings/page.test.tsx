@@ -67,7 +67,7 @@ describe("SettingsPage", () => {
     expect(screen.getByText("Font")).toBeInTheDocument();
     expect(screen.getByText("Geist Mono")).toBeInTheDocument();
     expect(screen.getByText("Inter")).toBeInTheDocument();
-    expect(screen.getByText("IBM Plex Mono")).toBeInTheDocument();
+    expect(screen.getByText("Source Serif 4")).toBeInTheDocument();
     expect(screen.getByText("Plus Jakarta Sans")).toBeInTheDocument();
     expect(screen.queryByText("Text Size")).not.toBeInTheDocument();
     expect(screen.queryByText("Line Height")).not.toBeInTheDocument();

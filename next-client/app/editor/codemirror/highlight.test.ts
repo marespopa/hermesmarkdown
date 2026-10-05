@@ -50,13 +50,13 @@ describe("computeMarkdownDecorations", () => {
     expect(decos.some((d) => d.from === titleFrom && d.class.includes("cm-heading-1"))).toBe(true);
   });
 
-  it("marks a heading's hashes as faded and its label as bold", () => {
+  it("marks a heading's hashes as faded and its label as semibold", () => {
     const doc = "# Hello";
     const decos = decorationsFor(doc);
     const hashFrom = doc.indexOf("#");
     const labelFrom = doc.indexOf("Hello");
     expect(decos.some((d) => d.from === hashFrom && d.class.includes("opacity-40"))).toBe(true);
-    expect(decos.some((d) => d.from === labelFrom && d.class.includes("font-bold"))).toBe(true);
+    expect(decos.some((d) => d.from === labelFrom && d.class.includes("font-semibold"))).toBe(true);
   });
 
   it("scales each ATX heading level relative to the editor font", () => {

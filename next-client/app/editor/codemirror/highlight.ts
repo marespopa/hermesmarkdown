@@ -98,7 +98,7 @@ function processInline(ranges: MarkRange[], label: string, base: number) {
       const [full, open, inner] = m;
       const i = m.index!;
       push(i, i + open.length, FADED);
-      push(i + open.length, i + open.length + inner.length, "bg-paper-softgray/80 dark:bg-paper-dark-surface/50 rounded-sm");
+      push(i + open.length, i + open.length + inner.length, "cm-inline-code");
       push(i + open.length + inner.length, i + full.length, FADED);
     }
   }
@@ -248,10 +248,14 @@ export function computeMarkdownDecorations(state: EditorState): DecorationSet {
       calloutDepth = 0;
       processInline(ranges, text, base);
     } else if (text.startsWith("```") || text.startsWith("~~~")) {
+      // Fences and body share one tinted, monospaced block (editor-typography.scss);
+      // the fences cap it top and bottom.
+      const edge = isInsideCodeBlock ? "cm-codeblock-end" : "cm-codeblock-start";
       isInsideCodeBlock = !isInsideCodeBlock;
       mark(ranges, base, line.to, FADED);
+      lineDecos.push({ line: i, class: `cm-codeblock ${edge}` });
     } else if (isInsideCodeBlock) {
-      lineDecos.push({ line: i, class: "bg-paper-softgray/50 dark:bg-paper-dark-surface/40" });
+      lineDecos.push({ line: i, class: "cm-codeblock" });
     } else if (!text.trim()) {
       // blank line, nothing to decorate
     } else if (REGEX_THEMATIC_BREAK.test(text)) {
@@ -271,7 +275,7 @@ export function computeMarkdownDecorations(state: EditorState): DecorationSet {
       const hashes = m[1];
       const level = hashes.match(/^#+/)![0].length;
       mark(ranges, base, base + hashes.length, FADED);
-      mark(ranges, base + hashes.length, line.to, "font-bold text-ink-light dark:text-ink-dark");
+      mark(ranges, base + hashes.length, line.to, "font-semibold text-ink-light dark:text-ink-dark");
       lineDecos.push({ line: i, class: headingLineClass(level) });
       processInline(ranges, m[2], base + hashes.length);
     } else if (text.startsWith(">")) {

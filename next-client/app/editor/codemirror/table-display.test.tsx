@@ -336,4 +336,52 @@ describe("tableDisplayExtension", () => {
     // First edit normalises the source to outer-pipe form.
     expect(view.state.doc.toString()).toContain("| One");
   });
+
+  it("shows a broken table's pipe source to fix by hand, and the grid again once the caret leaves", async () => {
+    // A line typed under a table without a blank line becomes a row.
+    const doc = "| A | B |\n| --- | --- |\n| 1 | 2 |\nstray line\n\nAfter";
+    const view = makeView(doc, doc.length);
+    const cell = await cellAt(view, "2:0");
+
+    act(() => {
+      fireEvent.contextMenu(cell, { clientX: 10, clientY: 10 });
+    });
+    const editSource = [...document.querySelectorAll(".cm-table-menu button")]
+      .find((b) => b.textContent?.startsWith("Edit as Markdown"))!;
+    act(() => {
+      fireEvent.click(editSource);
+    });
+    await flush();
+
+    expect(view.dom.querySelector(".cm-table-preview")).toBeNull();
+    expect(view.contentDOM).toHaveTextContent("stray line");
+    expect(view.state.selection.main.head).toBe(doc.indexOf("1 |"));
+
+    // Fixing it: a blank line separates the stray line from the table.
+    const strayFrom = view.state.doc.toString().indexOf("stray line");
+    act(() => {
+      view.dispatch({ changes: { from: strayFrom, insert: "\n" } });
+    });
+    expect(view.dom.querySelector(".cm-table-preview")).toBeNull();
+
+    act(() => {
+      view.dispatch({ selection: EditorSelection.cursor(view.state.doc.length) });
+    });
+    await waitFor(() => expect(view.dom.querySelector(".cm-table-preview")).not.toBeNull());
+    expect(tableSource(view)?.rows).toEqual([["1", "2"]]);
+  });
+
+  it("opens the pipe source with Ctrl/Cmd+Shift+Enter from a cell", async () => {
+    const doc = "| A | B |\n| --- | --- |\n| 1 | 2 |";
+    const view = makeView(doc);
+    const cell = await cellAt(view, "2:1");
+
+    act(() => {
+      fireEvent.keyDown(cell, { key: "Enter", ctrlKey: true, shiftKey: true });
+    });
+    await flush();
+
+    expect(view.dom.querySelector(".cm-table-preview")).toBeNull();
+    expect(view.state.doc.toString()).toBe(doc);
+  });
 });

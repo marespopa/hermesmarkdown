@@ -2,8 +2,12 @@
 @tailwind components;
 @tailwind utilities;
 
+/* App chrome reads in Inter (Tailwind `font-sans`), the closest open face to
+   SF Pro; kerning and optical sizing on everywhere. */
 body {
-  font-family: var(--font-plus-jakarta), ui-sans-serif, sans-serif;
+  font-family: theme('fontFamily.sans');
+  font-kerning: normal;
+  font-optical-sizing: auto;
 }
 
 /* ─── Design Tokens ─────────────────────────────────────────────────────────
@@ -33,7 +37,6 @@ body {
   --frontmatter-bg: rgba(60, 56, 50, 0.035);
   --frontmatter-bg-hover: rgba(60, 56, 50, 0.055);
   --frontmatter-label-opacity: 0.4;
-  --active-line-bg: rgba(60, 56, 50, 0.03);  /* the caret's line in the focused editor */
   --row-stripe:     rgba(60, 56, 50, 0.035);  /* alternate rows in list views (Explorer) */
   /* Template picker glass surface + spring motion (templates UX) */
   --glass-surface:  rgba(255, 255, 255, 0.75);
@@ -66,7 +69,6 @@ html.dark {
   --frontmatter-bg: rgba(214, 207, 198, 0.04);
   --frontmatter-bg-hover: rgba(214, 207, 198, 0.065);
   --frontmatter-label-opacity: 0.5;
-  --active-line-bg: rgba(214, 207, 198, 0.035);
   --moss-hover:     #A3B58C;  /* moss, brightened — hover/active state for sage buttons */
   --row-stripe:     rgba(214, 207, 198, 0.035);
   --glass-surface:  rgba(28, 28, 30, 0.75);
@@ -409,10 +411,6 @@ ul li::marker {
   margin-left: 2px;
   animation: blink 1s step-end infinite;
   @apply text-sage;
-}
-
-.font-display {
-  font-family: var(--font-plus-jakarta), var(--font-inter), Inter, ui-sans-serif, sans-serif;
 }
 
 // Home feed search pill ⇄ command palette search field (shared element,

@@ -8,8 +8,10 @@ import {
   atom_liveHandles,
   atom_autosaveMode,
   atom_vaultHandle,
+  atom_workspaceLayout,
   contentStore,
 } from "@/app/atoms/atoms";
+import { forgetClosedFiles } from "@/app/atoms/tab-limit";
 import { useFileSystem } from "@/app/hooks/use-file-system";
 import { showCopyToast, showErrorToast } from "@/app/components/Toastr";
 import { TabContextMenuItem } from "../components/TabContextMenu";
@@ -92,8 +94,12 @@ export function usePaneFileActions(leaf: PanelLeaf | null) {
       const fileState = contentStore.get(atom_openFiles)[path];
       const tabHandle = contentStore.get(atom_liveHandles(path));
       if (fileState && fileState.content !== fileState.lastSavedContent && tabHandle) {
-        // Fire and forget so we don't block tab closing if the file system is locked (e.g. cloud sync retries)
-        void saveFile(fileState.content, tabHandle, 0, true, path);
+        // Fire and forget so we don't block tab closing if the file system is locked (e.g. cloud sync retries).
+        // Once saved, the closed note's cached text is dropped like any clean close.
+        void Promise.resolve(saveFile(fileState.content, tabHandle, 0, true, path)).then(() => {
+          contentStore.set(atom_openFiles, (prev) =>
+            forgetClosedFiles(prev, contentStore.get(atom_workspaceLayout).rootContainer, [path]));
+        });
       }
     }
     closeTab({ paneId: leaf.id, filePath: path });

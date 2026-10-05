@@ -216,7 +216,7 @@ describe("WelcomeWizard", () => {
 
     const fontSize = screen.getByRole("combobox", { name: "Text size" });
     // First-run onboarding starts at Medium.
-    expect(fontSize).toHaveValue("16px");
+    expect(fontSize).toHaveValue("17px");
 
     fireEvent.change(fontSize, { target: { value: "20px" } });
 

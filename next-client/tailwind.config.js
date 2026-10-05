@@ -17,45 +17,52 @@ module.exports = {
       },
     },
     extend: {
+      // Apple's HIG text styles: sizes and line heights from the iOS Dynamic
+      // Type "Large" defaults, tracking from Inter's dynamic metrics (tighter
+      // as text grows, slightly open at 11–12px so small labels stay legible).
       fontSize: {
-        'ui-title-1': ['1.75rem', { lineHeight: '2.25rem', letterSpacing: '-0.022em' }], // 28px
-        'ui-title-2': ['1.375rem', { lineHeight: '1.75rem', letterSpacing: '-0.019em' }], // 22px
-        'ui-title-3': ['1.25rem', { lineHeight: '1.625rem', letterSpacing: '-0.016em' }], // 20px
-        'ui-body': ['1.0625rem', { lineHeight: '1.5rem', letterSpacing: '-0.011em' }],     // 17px
-        'ui-callout': ['1rem', { lineHeight: '1.375rem', letterSpacing: '-0.009em' }],     // 16px
-        'ui-subhead': ['0.9375rem', { lineHeight: '1.25rem', letterSpacing: '-0.006em' }],   // 15px
-        'ui-footnote': ['0.8125rem', { lineHeight: '1.125rem', letterSpacing: '-0.003em' }], // 13px
-        'ui-caption': ['0.75rem', { lineHeight: '1rem', letterSpacing: '0.000em' }],        // 12px
-        'ui-micro': ['0.6875rem', { lineHeight: '0.875rem', letterSpacing: '0.000em' }],    // 11px
+        'ui-title-1': ['1.75rem', { lineHeight: '2.125rem', letterSpacing: '-0.021em' }],   // 28/34
+        'ui-title-2': ['1.375rem', { lineHeight: '1.75rem', letterSpacing: '-0.018em' }],   // 22/28
+        'ui-title-3': ['1.25rem', { lineHeight: '1.5625rem', letterSpacing: '-0.017em' }],  // 20/25
+        'ui-body': ['1.0625rem', { lineHeight: '1.375rem', letterSpacing: '-0.013em' }],    // 17/22
+        'ui-callout': ['1rem', { lineHeight: '1.3125rem', letterSpacing: '-0.011em' }],     // 16/21
+        'ui-subhead': ['0.9375rem', { lineHeight: '1.25rem', letterSpacing: '-0.009em' }],  // 15/20
+        'ui-footnote': ['0.8125rem', { lineHeight: '1.125rem', letterSpacing: '-0.003em' }], // 13/18
+        'ui-caption': ['0.75rem', { lineHeight: '1rem', letterSpacing: '0em' }],            // 12/16
+        'ui-micro': ['0.6875rem', { lineHeight: '0.8125rem', letterSpacing: '0.005em' }],   // 11/13
       },
+      // Each family leads with its self-hosted face (app/fonts.ts) and falls
+      // back to the Apple system face with the same role.
       fontFamily: {
         sans: [
-          "var(--font-plus-jakarta)",
-          "SF Pro Display",
-          "SF Pro Text",
+          "var(--font-inter)",
           "system-ui",
+          "-apple-system",
           "BlinkMacSystemFont",
           "ui-sans-serif",
           "sans-serif",
         ],
+        display: [
+          "var(--font-plus-jakarta)",
+          "var(--font-inter)",
+          "system-ui",
+          "-apple-system",
+          "ui-sans-serif",
+          "sans-serif",
+        ],
         serif: [
+          "var(--font-source-serif)",
           "New York",
           "ui-serif",
           "Georgia",
-          "Cambria",
-          "Times New Roman",
-          "Times",
           "serif",
         ],
         mono: [
+          "var(--font-geist-mono)",
           "SF Mono",
           "ui-monospace",
           "SFMono-Regular",
           "Menlo",
-          "Monaco",
-          "Consolas",
-          "Liberation Mono",
-          "Courier New",
           "monospace",
         ],
         sourcecode: ["Source Code Pro", "ui-monospace", "monospace"],

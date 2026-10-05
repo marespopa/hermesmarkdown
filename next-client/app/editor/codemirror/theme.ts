@@ -1,6 +1,7 @@
 import { EditorView } from "@codemirror/view";
 import { HighlightStyle, syntaxHighlighting } from "@codemirror/language";
 import { tags as t } from "@lezer/highlight";
+import { MONO_FONT_STACK } from "@/app/atoms/ui-atoms";
 
 // Structural theme only — no color literals. Colors come from the
 // HighlightStyle below, which references the same CSS custom properties
@@ -30,20 +31,6 @@ export const baseTheme = EditorView.theme({
   },
   ".cm-line": {
     padding: 0,
-  },
-  // The caret's line, faintly tinted — only in the focused editor, so an
-  // unfocused split pane stays clean, and never on
-  // frontmatter (it has its own tint). Lines carry no padding, so the tint is
-  // widened past the text by side shadows rather than layout-changing padding.
-  // CodeMirror's own active-line color (a light blue) is turned off
-  // everywhere else — it showed in an unfocused editor, e.g. right after
-  // clicking a fold chevron.
-  ".cm-activeLine": {
-    backgroundColor: "transparent !important",
-  },
-  "&.cm-focused .cm-activeLine:not(.cm-frontmatter-line)": {
-    backgroundColor: "var(--active-line-bg) !important",
-    boxShadow: "-0.5em 0 0 var(--active-line-bg), 0.5em 0 0 var(--active-line-bg)",
   },
   ".cm-frontmatter-line": {
     backgroundColor: "var(--frontmatter-bg)",
@@ -85,8 +72,7 @@ export const baseTheme = EditorView.theme({
   // The room below the frontmatter matches the sheet's padding above it
   // (`--sheet-pad-top`, set on the sheet). A blank line after the closing
   // `---` already gives about that; text right after it gets this spacer
-  // block instead — a block of its own, not padding on the text's line, so
-  // the active-line tint doesn't stretch over the gap.
+  // block instead — a block of its own, not padding on the text's line.
   ".cm-frontmatter-spacer": {
     height: "var(--sheet-pad-top, 1.5rem)",
   },
@@ -145,7 +131,7 @@ export const baseTheme = EditorView.theme({
   ".cm-vim-panel": {
     alignItems: "center",
     color: "var(--fg-muted)",
-    fontFamily: "var(--font-ibm-mono), ui-monospace, monospace",
+    fontFamily: MONO_FONT_STACK,
     fontSize: "0.75rem",
     lineHeight: "1.75rem",
     minHeight: "1.75rem",
@@ -440,13 +426,13 @@ export const slashMenuTheme = EditorView.theme({
 });
 
 export const markdownHighlightStyle = HighlightStyle.define([
-  { tag: t.heading, fontWeight: "700", color: "var(--fg)" },
+  { tag: t.heading, fontWeight: "600", color: "var(--fg)" },
   { tag: t.strong, fontWeight: "700", color: "var(--fg)" },
   { tag: t.emphasis, fontStyle: "italic", color: "var(--fg)" },
   { tag: t.strikethrough, textDecoration: "line-through", color: "var(--fg-muted)" },
   { tag: t.link, color: "var(--clay)", textDecoration: "underline" },
   { tag: t.url, color: "var(--clay)" },
-  { tag: t.monospace, fontFamily: "var(--font-mono, monospace)" },
+  { tag: t.monospace, fontFamily: MONO_FONT_STACK },
   { tag: t.quote, color: "var(--fg-muted)", fontStyle: "italic" },
   { tag: t.list, color: "var(--fg)" },
   { tag: t.meta, color: "var(--fg-faint)" },
