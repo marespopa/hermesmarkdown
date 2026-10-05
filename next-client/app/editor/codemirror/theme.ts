@@ -32,8 +32,10 @@ export const baseTheme = EditorView.theme({
   ".cm-line": {
     padding: 0,
   },
+  // Properties keep their hover/focus tint at rest, so the block always
+  // reads as a panel; hover only lifts the text colour.
   ".cm-frontmatter-line": {
-    backgroundColor: "var(--frontmatter-bg)",
+    backgroundColor: "var(--frontmatter-bg-hover)",
     color: "var(--fg-faint)",
     fontSize: "0.94em",
     fontWeight: "400",
@@ -77,7 +79,6 @@ export const baseTheme = EditorView.theme({
     height: "var(--sheet-pad-top, 1.5rem)",
   },
   ".cm-frontmatter-line:hover, .cm-frontmatter-line:focus-within": {
-    backgroundColor: "var(--frontmatter-bg-hover)",
     color: "var(--fg-muted)",
   },
   // Horizontal rule (---, ***, ___): a thin line across the text column;
@@ -162,9 +163,10 @@ export const baseTheme = EditorView.theme({
     border: "none",
     color: "transparent",
   },
-  // The frontmatter's header row, low contrast until hovered. Collapsed it is
-  // the whole block ("▸ Properties · title, tags") above the first content
-  // line: a small label, not a block, so it sits close to the text below.
+  // The frontmatter's header row: always tinted, its text low contrast until
+  // hovered. Collapsed it is the whole block ("▸ Properties · title, tags")
+  // above the first content line: a small label, not a block, so it sits
+  // close to the text below.
   // Expanded ("▾ Properties") it is the top row of the YAML's panel: same
   // tint and inset, the panel's top corners, and the first YAML line's
   // corners squared off to join it.
@@ -172,7 +174,7 @@ export const baseTheme = EditorView.theme({
     paddingBottom: "0.5em",
   },
   ".cm-frontmatterHeader": {
-    backgroundColor: "var(--frontmatter-bg)",
+    backgroundColor: "var(--frontmatter-bg-hover)",
     borderRadius: "0.55rem 0.55rem 0 0",
     padding: "0.3rem 0.55rem 0",
   },
@@ -192,7 +194,7 @@ export const baseTheme = EditorView.theme({
     marginLeft: "-0.25em",
     border: "none",
     borderRadius: "6px",
-    background: "transparent",
+    backgroundColor: "var(--frontmatter-bg-hover)",
     color: "var(--fg-faint)",
     font: "inherit",
     fontSize: "0.78em",
@@ -203,7 +205,6 @@ export const baseTheme = EditorView.theme({
   },
   ".cm-frontmatter-summary:hover, .cm-frontmatter-summary:focus-visible": {
     color: "var(--fg-muted)",
-    backgroundColor: "var(--frontmatter-bg-hover)",
   },
   ".cm-frontmatter-summary:focus-visible": {
     outline: "1px solid var(--sage)",
