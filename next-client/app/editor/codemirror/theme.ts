@@ -32,8 +32,8 @@ export const baseTheme = EditorView.theme({
   ".cm-line": {
     padding: 0,
   },
-  // Properties keep their hover/focus tint at rest, so the block always
-  // reads as a panel; hover only lifts the text colour.
+  // Properties keep a visible tint at rest, so the block always reads as a
+  // panel; hover/focus deepens it and lifts the text colour.
   ".cm-frontmatter-line": {
     backgroundColor: "var(--frontmatter-bg-hover)",
     color: "var(--fg-faint)",
@@ -79,6 +79,7 @@ export const baseTheme = EditorView.theme({
     height: "var(--sheet-pad-top, 1.5rem)",
   },
   ".cm-frontmatter-line:hover, .cm-frontmatter-line:focus-within": {
+    backgroundColor: "var(--frontmatter-bg-active)",
     color: "var(--fg-muted)",
   },
   // Horizontal rule (---, ***, ___): a thin line across the text column;
@@ -163,8 +164,8 @@ export const baseTheme = EditorView.theme({
     border: "none",
     color: "transparent",
   },
-  // The frontmatter's header row: always tinted, its text low contrast until
-  // hovered. Collapsed it is the whole block ("▸ Properties · title, tags")
+  // The frontmatter's header row: always tinted, deeper and with stronger
+  // text on hover. Collapsed it is the whole block ("▸ Properties · title, tags")
   // above the first content line: a small label, not a block, so it sits
   // close to the text below.
   // Expanded ("▾ Properties") it is the top row of the YAML's panel: same
@@ -205,6 +206,7 @@ export const baseTheme = EditorView.theme({
   },
   ".cm-frontmatter-summary:hover, .cm-frontmatter-summary:focus-visible": {
     color: "var(--fg-muted)",
+    backgroundColor: "var(--frontmatter-bg-active)",
   },
   ".cm-frontmatter-summary:focus-visible": {
     outline: "1px solid var(--sage)",
