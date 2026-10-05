@@ -9,6 +9,7 @@ import {
 } from "../components/regex";
 import { detectDelimitedTable, delimitedTextToMarkdownTable } from "../utils/table-manipulation";
 import { indentSubtree, outdentSubtree, toggleTaskStatus } from "./lineMutations";
+import { continueListOnEnter, indentListOrLines, outdentListOrLines } from "./list-commands";
 
 function wrapSelection(marker: string, userEvent: string) {
   return (view: EditorView): boolean => {
@@ -220,12 +221,13 @@ export function insertPastedImage(
 }
 
 export const formatKeymap: readonly KeyBinding[] = [
-  { key: "Tab", run: indentCurrentSubtree, preventDefault: true },
-  { key: "Shift-Tab", run: outdentCurrentSubtree, preventDefault: true },
+  { key: "Tab", run: indentListOrLines, preventDefault: true },
+  { key: "Shift-Tab", run: outdentListOrLines, preventDefault: true },
   { key: "Mod-Enter", run: cycleTaskStatusOnCurrentLine, preventDefault: true },
   { key: "Mod-b", run: toggleBold, preventDefault: true },
   { key: "Mod-i", run: toggleItalic, preventDefault: true },
   { key: "Mod-Shift-x", run: toggleStrikethrough, preventDefault: true },
   { key: "Mod-e", run: toggleInlineCode, preventDefault: true },
   { key: "Enter", run: continueQuoteOnEnter },
+  { key: "Enter", run: continueListOnEnter },
 ];
