@@ -340,6 +340,7 @@ export const getStartedGroup: Group = {
                 { label: "Inline code", shortcut: "CTRL/CMD+E" },
                 { label: "Undo / redo", shortcut: "CTRL/CMD+Z / CTRL+Y" },
                 { label: "Indent / outdent list item", shortcut: "TAB / SHIFT+TAB" },
+                { label: "New list item (on an empty item: outdent, then end the list)", shortcut: "ENTER" },
                 { label: "Cycle task status", shortcut: "CTRL/CMD+ENTER" },
                 { label: "Open helper at cursor (link, date, diagram, image)", shortcut: "CTRL/CMD+SHIFT+ENTER" },
                 { label: "AI Chat", shortcut: "CTRL+SHIFT+B" },

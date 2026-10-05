@@ -9,7 +9,7 @@ import {
 } from "../components/regex";
 import { detectDelimitedTable, delimitedTextToMarkdownTable } from "../utils/table-manipulation";
 import { indentSubtree, outdentSubtree, toggleTaskStatus } from "./lineMutations";
-import { continueListOnEnter, indentListOrLines, outdentListOrLines } from "./list-commands";
+import { continueListOnEnter, indentListOrLines, outdentListOrLines, removeListMarkerOnBackspace } from "./list-commands";
 
 function wrapSelection(marker: string, userEvent: string) {
   return (view: EditorView): boolean => {
@@ -230,4 +230,5 @@ export const formatKeymap: readonly KeyBinding[] = [
   { key: "Mod-e", run: toggleInlineCode, preventDefault: true },
   { key: "Enter", run: continueQuoteOnEnter },
   { key: "Enter", run: continueListOnEnter },
+  { key: "Backspace", run: removeListMarkerOnBackspace },
 ];
