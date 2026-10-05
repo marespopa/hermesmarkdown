@@ -32,7 +32,9 @@ function renderPicker(props: Partial<React.ComponentProps<typeof TemplatePicker>
   return { onPick, onCancel };
 }
 
-const rowNames = () => screen.getAllByRole("option").map((row) => row.textContent);
+// Row text without the ⌘1 / Ctrl+1 shortcut hint.
+const rowNames = () =>
+  screen.getAllByRole("option").map((row) => row.textContent?.replace(/(⌘|Ctrl\+)\d$/, ""));
 
 describe("TemplatePicker", () => {
   it("filters by a case-insensitive substring of the name", () => {
@@ -62,6 +64,32 @@ describe("TemplatePicker", () => {
     const { onPick } = renderPicker();
     fireEvent.click(screen.getByText("meeting"));
     expect(onPick).toHaveBeenCalledWith(templates[0]);
+  });
+
+  it("picks a row with Cmd/Ctrl + its number", () => {
+    const { onPick } = renderPicker();
+    fireEvent.keyDown(screen.getByLabelText("Search templates"), { key: "2", ctrlKey: true });
+    expect(onPick).toHaveBeenCalledWith(templates[1]);
+  });
+
+  it("summarizes each template from its text and previews the highlighted one", () => {
+    renderPicker({
+      bodies: {
+        "templates/meeting.md": "# {{title}}\n## Agenda\n- [ ] \n## Notes\nOwner: {{prompt:Owner}}\n",
+        "templates/rfc.md": null,
+      },
+    });
+    expect(rowNames()[0]).toBe("meeting2 sections • Action items • Asks Owner");
+    const preview = screen.getByLabelText("Preview of meeting");
+    expect(preview).toHaveTextContent("Agenda");
+    expect(preview).toHaveTextContent("Owner");
+    fireEvent.keyDown(screen.getByLabelText("Search templates"), { key: "ArrowDown" });
+    expect(screen.getByLabelText("Preview of rfc")).toHaveTextContent("Loading…");
+  });
+
+  it("has no preview pane without bodies", () => {
+    renderPicker();
+    expect(screen.queryByLabelText(/^Preview of/)).not.toBeInTheDocument();
   });
 
   it("cancels on Escape", () => {

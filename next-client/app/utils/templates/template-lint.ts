@@ -1,8 +1,8 @@
 import { parseFmFields } from "@/app/utils/frontmatter-utils";
 import { TEMPLATE_TOKENS } from "./template-tokens";
 
-// Non-blocking checks for a template's text (the AI chat's save card shows
-// them). Each warning is one short sentence.
+// Non-blocking checks for a template's text (the template strip and AI
+// chat's save card show them). Each warning is one short, plain sentence.
 
 const MISSPELLED_ROUTING_KEYS: Record<string, string> = {
   "target-folder": "target_folder",
@@ -30,13 +30,16 @@ export function lintTemplate(raw: string): string[] {
     }
   }
   if (unknown.size > 0) {
-    warnings.push(`Unknown token${unknown.size > 1 ? "s" : ""} ${[...unknown].map((t) => `{{${t}}}`).join(", ")} will stay as typed.`);
+    const list = [...unknown].map((t) => `{{${t}}}`).join(", ");
+    warnings.push(unknown.size > 1
+      ? `${list} aren't fields, so they'll be copied as typed.`
+      : `${list} isn't a field, so it'll be copied as typed.`);
   }
-  if (emptyPrompt) warnings.push("A {{prompt:}} has no label.");
-  if (cursors > 1) warnings.push("Only the first {{cursor}} sets the caret; the others are removed.");
+  if (emptyPrompt) warnings.push("A question field ({{prompt:}}) has no question.");
+  if (cursors > 1) warnings.push("\"Start typing here\" ({{cursor}}) appears more than once; only the first counts.");
   for (const key of Object.keys(parseFmFields(raw))) {
     const intended = MISSPELLED_ROUTING_KEYS[key];
-    if (intended) warnings.push(`Frontmatter key "${key}" looks like "${intended}".`);
+    if (intended) warnings.push(`"${key}" should be spelled "${intended}" to take effect.`);
   }
   return warnings;
 }

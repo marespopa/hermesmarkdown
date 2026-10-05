@@ -35,9 +35,8 @@ import EditorPills from "./markdown-editor/EditorPills";
 import FoldChevrons from "./markdown-editor/FoldChevrons";
 import LinkInsertDialog from "./markdown-editor/LinkInsertDialog";
 import TemplateStrip from "./TemplateStrip";
-import { openTemplateFieldMenu } from "../codemirror/template-field-completion";
-import { atom_templatesFolder } from "@/app/atoms/template-atoms";
-import { isTemplatePath } from "@/app/utils/templates/template-registry";
+import EmptyNoteTemplates from "./EmptyNoteTemplates";
+import { useTemplateNote } from "../hooks/use-template-note";
 
 interface MarkdownEditorProps {
   value: string;
@@ -86,12 +85,7 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
 
   const { createWikiLinkFile, vaultHandle } = useFileSystem();
   const insertVaultTemplate = useVaultTemplateInsert({ viewRef, filePath });
-  // A note in the templates folder gets the field helpers (`{{`, `/field`, strip).
-  const templatesFolder = useAtomValue(atom_templatesFolder).folder;
-  const isTemplateNote = filePath !== "draft" && isTemplatePath(filePath, templatesFolder);
-  const insertTemplateField = useCallback(() => {
-    if (viewRef.current) openTemplateFieldMenu(viewRef.current);
-  }, []);
+  const { isTemplateNote, insertTemplateField, askTemplateQuestion } = useTemplateNote({ viewRef, editorView, filePath });
   const { csvConfirmRef, pasteImageRef } = useEditorPasteHandlers();
 
   const features = useCodeMirrorFeatures({ viewRef, containerRef, onWikiLinkClick: props.onWikiLinkClick });
@@ -122,6 +116,7 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
     onOpenAIChat: isAiConfigured ? () => setAiBuilderRequest((value) => value + 1) : undefined,
     onInsertVaultTemplate: vaultHandle ? () => { void insertVaultTemplate(); } : undefined,
     onInsertTemplateField: isTemplateNote ? insertTemplateField : undefined,
+    onAskTemplateQuestion: askTemplateQuestion,
   });
 
   useEffect(() => {
@@ -304,7 +299,7 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
           paddingBottom: keyboardInset > 0 ? `calc(3rem + ${keyboardInset}px)` : undefined,
         } as React.CSSProperties}
       >
-        {isTemplateNote && !previewMode && <TemplateStrip doc={editorValue} onAddField={insertTemplateField} />}
+        {isTemplateNote && !previewMode && <TemplateStrip doc={editorValue} view={editorView} onAddField={insertTemplateField} />}
         <div className="relative h-full">
           <label htmlFor="md-editor" className="sr-only">Markdown editor</label>
           <div
@@ -329,6 +324,12 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
               // Back to the text: the chevron took focus on press.
               view.focus();
             }}
+          />
+
+          <EmptyNoteTemplates
+            isEmpty={!previewMode && !isTemplateNote && editorValue.trim() === ""}
+            onPick={(source) => { void insertVaultTemplate(source); }}
+            onMore={vaultHandle ? () => { void insertVaultTemplate(); } : undefined}
           />
 
           {!previewMode && (

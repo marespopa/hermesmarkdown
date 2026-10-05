@@ -75,6 +75,23 @@ describe("useVaultTemplateInsert", () => {
     expect(view.state.selection.main.head).toBe("Intro\n# Auth\n".length);
   });
 
+  it("inserts a given template without opening the picker", async () => {
+    const { view, insert } = setup("");
+    await act(() => insert(RFC));
+
+    expect(pickTemplate).not.toHaveBeenCalled();
+    expect(readTemplate).toHaveBeenCalledWith(RFC);
+    expect(view.state.doc.toString()).toBe(EXPANDED.text);
+  });
+
+  it("uses a starter's text as is", async () => {
+    const { insert } = setup("");
+    await act(() => insert({ name: "Spec", body: "# {{title}}" }));
+
+    expect(readTemplate).not.toHaveBeenCalled();
+    expect(instantiate).toHaveBeenCalledWith("# {{title}}", "Auth", "Insert");
+  });
+
   it("uses an empty title in the draft", async () => {
     const { insert } = setup("", "draft");
     await act(() => insert());

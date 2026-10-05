@@ -81,7 +81,7 @@ describe("ChatMessageItem template save card", () => {
   it("shows a card per template block with its path and lint warnings", () => {
     renderItem({ templateBlocks: [block], templatesFolder: "templates", onSaveTemplate: vi.fn() });
     expect(screen.getByText("templates/rfc.md")).toBeTruthy();
-    expect(screen.getByText(/Unknown token \{\{author\}\}/)).toBeTruthy();
+    expect(screen.getByText(/\{\{author\}\} isn.t a field/)).toBeTruthy();
     expect(screen.getByText("Save template")).toBeTruthy();
   });
 

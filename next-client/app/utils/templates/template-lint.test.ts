@@ -13,18 +13,18 @@ describe("lintTemplate", () => {
   });
 
   it("warns about an empty prompt label", () => {
-    expect(lintTemplate("{{prompt: }}")).toEqual([expect.stringContaining("no label")]);
+    expect(lintTemplate("{{prompt: }}")).toEqual([expect.stringContaining("has no question")]);
   });
 
   it("warns about more than one cursor", () => {
-    expect(lintTemplate("{{cursor}} {{cursor}}")).toEqual([expect.stringContaining("first {{cursor}}")]);
+    expect(lintTemplate("{{cursor}} {{cursor}}")).toEqual([expect.stringContaining("only the first counts")]);
   });
 
   it("warns about misspelled routing keys", () => {
     const warnings = lintTemplate("---\ntarget-folder: rfcs\nfilename: x\n---\nBody");
     expect(warnings).toEqual([
-      expect.stringContaining('"target-folder" looks like "target_folder"'),
-      expect.stringContaining('"filename" looks like "file_name"'),
+      expect.stringContaining('"target-folder" should be spelled "target_folder"'),
+      expect.stringContaining('"filename" should be spelled "file_name"'),
     ]);
   });
 });

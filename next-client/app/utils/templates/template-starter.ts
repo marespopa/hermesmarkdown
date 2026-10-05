@@ -1,7 +1,7 @@
 // Raw bodies "New template…" offers to start from. Plain Markdown; never
-// expanded on write. Frontmatter `#` lines are YAML comments: hints for the
-// author that splitTemplate drops when the template is used. Other keys
-// (author, status, …) are copied into created notes with tokens expanded.
+// expanded on write. No hints or commented-out settings: the template strip
+// explains fields and picks the folder. Frontmatter keys (author, status, …)
+// are copied into created notes with fields filled in.
 
 export interface TemplateStarter {
   /** Shown in the picker. */
@@ -12,21 +12,11 @@ export interface TemplateStarter {
   body: string;
 }
 
-const HINT = "# Add a field: type /field, or start typing {{date}} to see the list.";
-
-const frontmatter = (targetFolder: string, fileName: string, fields: string[]) => [
-  "---",
-  HINT,
-  '# Optional, used by "New note from template…":',
-  `# target_folder: ${targetFolder}`,
-  `# file_name: ${fileName}`,
-  ...fields,
-  "---",
-];
+const frontmatter = (fields: string[]) => (fields.length ? ["---", ...fields, "---"] : []);
 
 // The default starter: one example of each kind of field, nothing else.
 export const TEMPLATE_STARTER = [
-  ...frontmatter("notes", "{{date}}-{{slug}}", []),
+  ...frontmatter([]),
   "# {{title}}",
   "",
   "Date: {{date}}",
@@ -37,7 +27,7 @@ export const TEMPLATE_STARTER = [
 ].join("\n");
 
 const MEETING_NOTES = [
-  ...frontmatter("meetings", "{{date}}-{{slug}}", ["date: {{date}}", "attendees: {{prompt:Attendees}}"]),
+  ...frontmatter(["date: {{date}}", "attendees: {{prompt:Attendees}}"]),
   "# {{title}}",
   "",
   "## Agenda",
@@ -58,7 +48,7 @@ const MEETING_NOTES = [
 ].join("\n");
 
 const SPEC = [
-  ...frontmatter("specs", "{{slug}}", ["author: {{prompt:Author}}", "status: Draft", "version: 0.1", "date: {{date}}"]),
+  ...frontmatter(["author: {{prompt:Author}}", "status: Draft", "version: 0.1", "date: {{date}}"]),
   "# {{title}}",
   "",
   "## Summary",
@@ -79,7 +69,7 @@ const SPEC = [
 ].join("\n");
 
 const REPORT = [
-  ...frontmatter("reports", "{{date}}-{{slug}}", ["author: {{prompt:Author}}", "date: {{date}}"]),
+  ...frontmatter(["author: {{prompt:Author}}", "date: {{date}}"]),
   "# {{title}}",
   "",
   "## Summary",

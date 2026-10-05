@@ -10,6 +10,13 @@ import { useTemplateNotes } from "@/app/hooks/file-system/use-template-notes";
 import { noteDisplayTitle } from "@/app/utils/note-display";
 import { templateBody } from "@/app/utils/templates/template-frontmatter";
 import type { ExpandedTemplate } from "@/app/utils/templates/template-tokens";
+import type { TemplateEntry } from "@/app/utils/templates/template-registry";
+
+/** A template's text in hand (a starter), instead of a vault file. */
+export interface TemplateSource {
+  name: string;
+  body: string;
+}
 import { insertExpandedTemplate } from "../codemirror/slash-menu";
 
 interface UseVaultTemplateInsertOptions {
@@ -28,18 +35,19 @@ function bodyOnly({ text, cursor }: ExpandedTemplate): ExpandedTemplate {
 
 // `/template` in the slash menu: pick a vault template, answer its prompts,
 // then insert it at the caret. An empty note gets the whole template
-// (non-routing frontmatter included); otherwise only the body.
+// (non-routing frontmatter included); otherwise only the body. Called with a
+// template (the empty-note quick pills), it skips the picker.
 export function useVaultTemplateInsert({ viewRef, filePath }: UseVaultTemplateInsertOptions) {
   const store = useStore();
   const { pickTemplate } = useTemplateDialog();
   const { readTemplate, instantiate } = useTemplateNotes();
 
-  return useCallback(async () => {
-    const chosen = await pickTemplate({ includeBlank: false, title: "Insert template" });
+  return useCallback(async (source?: TemplateEntry | TemplateSource) => {
+    const chosen = source ?? await pickTemplate({ includeBlank: false, title: "Insert template" });
     if (!chosen || chosen === "blank") return;
     let raw: string;
     try {
-      raw = await readTemplate(chosen);
+      raw = "body" in chosen ? chosen.body : await readTemplate(chosen);
     } catch (err: any) {
       console.warn("Failed to read template:", err?.message || err);
       toast.error(`Couldn't read template ${chosen.name}`);

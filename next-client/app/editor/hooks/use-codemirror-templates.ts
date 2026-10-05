@@ -19,6 +19,7 @@ interface UseCodeMirrorTemplatesOptions {
   onInsertVaultTemplate?: () => void;
   /** Set only while the note is a template: `/field` and the `{{` menu. */
   onInsertTemplateField?: () => void;
+  onAskTemplateQuestion?: () => Promise<string | null>;
 }
 
 // Step 5: slash/template menu insertion targets. The actual menu UI is
@@ -34,6 +35,7 @@ export function useCodeMirrorTemplates({
   onOpenAIChat,
   onInsertVaultTemplate,
   onInsertTemplateField,
+  onAskTemplateQuestion,
 }: UseCodeMirrorTemplatesOptions) {
   const [linkDialogOpen, setLinkDialogOpen] = useState(false);
   const linkRangeRef = useRef<Range | null>(null);
@@ -113,6 +115,7 @@ export function useCodeMirrorTemplates({
     onOpenAIChat,
     onInsertVaultTemplate,
     onInsertTemplateField,
+    onAskTemplateQuestion,
     onFrontmatterWizard: () => onFrontmatterWizard(),
     onCodeBlockInserted: () => {},
   });
@@ -122,6 +125,7 @@ export function useCodeMirrorTemplates({
   slashMenuCallbacksRef.current.onOpenAIChat = onOpenAIChat;
   slashMenuCallbacksRef.current.onInsertVaultTemplate = onInsertVaultTemplate;
   slashMenuCallbacksRef.current.onInsertTemplateField = onInsertTemplateField;
+  slashMenuCallbacksRef.current.onAskTemplateQuestion = onAskTemplateQuestion;
 
   const wikiLinkTriggerRef = useRef<WikiLinkTriggerCallback | null>((_view, from, to) => {
     wikiLinkRangeRef.current = { from, to };

@@ -11,9 +11,8 @@ describe("TEMPLATE_STARTER", () => {
     expect(content.startsWith("# {{title}}\n")).toBe(true);
   });
 
-  it("points to the field menu in a comment that never reaches the note", () => {
-    expect(TEMPLATE_STARTER).toContain("# Add a field: type /field");
-    expect(splitTemplate(TEMPLATE_STARTER).content).not.toContain("/field");
+  it("is plain Markdown: no frontmatter, no commented-out settings", () => {
+    expect(TEMPLATE_STARTER.startsWith("# {{title}}\n")).toBe(true);
   });
 
   it("lints clean", () => {
@@ -42,11 +41,11 @@ describe("TEMPLATE_STARTERS", () => {
     expect(TEMPLATE_STARTERS[0]).toMatchObject({ name: "Basic", suggestedName: "", body: TEMPLATE_STARTER });
   });
 
-  it.each(TEMPLATE_STARTERS.map((s) => [s.name, s.body]))("%s lints clean and keeps hints out of notes", (_name, body) => {
+  it.each(TEMPLATE_STARTERS.map((s) => [s.name, s.body]))("%s lints clean and has no comments or routing", (_name, body) => {
     expect(lintTemplate(body)).toEqual([]);
     const { routing, content } = splitTemplate(body);
     expect(routing).toEqual({});
-    expect(content).not.toContain("/field");
+    expect(body).not.toMatch(/^# (?!\{\{title\}\})/m);
     expect(content).toContain("# {{title}}");
   });
 

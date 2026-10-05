@@ -1,11 +1,14 @@
 "use client";
 
-import React, { useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useAtomValue } from "jotai";
 import { atom_templateDialog, atom_templates, atom_templatesFolder } from "@/app/atoms/template-atoms";
 import TemplatePicker from "./TemplatePicker";
 import TemplatePromptForm from "./TemplatePromptForm";
 import { TEMPLATE_STARTERS } from "@/app/utils/templates/template-starter";
+import { useTemplateNotes } from "@/app/hooks/file-system/use-template-notes";
+
+const STARTER_BODIES = Object.fromEntries(TEMPLATE_STARTERS.map((starter) => [starter.name, starter.body]));
 
 // Renders the open template request (useTemplateDialog): the template
 // picker, the starter picker or the prompts form. Mounted once, next to GlobalDialog.
@@ -16,6 +19,21 @@ export default function TemplateDialogHost() {
   // A fresh dialog (empty search / fields) for every request, even back to back.
   const ids = useRef(new WeakMap<object, number>());
   const nextId = useRef(0);
+  const { readTemplate } = useTemplateNotes();
+  // Template texts for the picker's summaries and preview, read when it opens.
+  const [bodies, setBodies] = useState<Record<string, string | null>>({});
+  const isPicking = request?.kind === "pick";
+  useEffect(() => {
+    if (!isPicking) return;
+    let cancelled = false;
+    setBodies(Object.fromEntries(templates.map((t) => [t.path, null])));
+    void Promise.all(
+      templates.map(async (t) => [t.path, await readTemplate(t).catch(() => "")] as const),
+    ).then((entries) => {
+      if (!cancelled) setBodies(Object.fromEntries(entries));
+    });
+    return () => { cancelled = true; };
+  }, [isPicking, request, templates, readTemplate]);
 
   if (!request) return null;
   if (!ids.current.has(request)) ids.current.set(request, ++nextId.current);
@@ -30,6 +48,7 @@ export default function TemplateDialogHost() {
         templates={templates}
         folder={folder}
         includeBlank={request.includeBlank}
+        bodies={bodies}
         onPick={(value) => request.resolve(value)}
         onCancel={() => request.resolve(null)}
       />
@@ -43,6 +62,7 @@ export default function TemplateDialogHost() {
         isOpen
         title="New template"
         templates={TEMPLATE_STARTERS}
+        bodies={STARTER_BODIES}
         folder={folder}
         includeBlank={false}
         onPick={(value) => request.resolve(value === "blank" ? null : value)}

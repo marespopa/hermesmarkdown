@@ -21,6 +21,7 @@ import { shortcodeExpandPlugin } from "./shortcode-expand";
 import { noteCalcExtension } from "./note-calc";
 import { createSlashMenuSource, SlashMenuCallbacks } from "./slash-menu";
 import { createTemplateFieldSource } from "./template-field-completion";
+import { templateFieldPills } from "./template-field-pills";
 import { createWikiLinkTriggerPlugin, WikiLinkTriggerCallback } from "./wikilink-trigger";
 import {
   tableTabCommand,
@@ -84,6 +85,7 @@ export function buildExtensions(opts: BuildExtensionsOptions): Extension[] {
     horizontalRuleCursorPlugin,
     tagPillPlugin,
     linkDisplayPlugin,
+    templateFieldPills,
     annotationDisplayPlugin,
     tableDisplayExtension,
     renderedBlockExtension,

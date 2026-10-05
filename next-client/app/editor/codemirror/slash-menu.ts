@@ -41,6 +41,8 @@ export interface SlashMenuCallbacks {
   onInsertVaultTemplate?: () => void;
   /** Opens the template field menu; set only while the note is a template. */
   onInsertTemplateField?: () => void;
+  /** "Ask a question…" in the field menu: the question to ask, or null. */
+  onAskTemplateQuestion?: () => Promise<string | null>;
   onFrontmatterWizard: () => void;
   onCodeBlockInserted: (pos: number) => void;
 }
@@ -90,6 +92,16 @@ export function insertExpandedTemplate(view: EditorView, text: string, cursor: n
     scrollIntoView: true,
   });
   view.focus();
+  playTemplateIn(view);
+}
+
+// A quick slide-and-fade on the text after a template lands (globals.scss).
+function playTemplateIn(view: EditorView) {
+  const content = view.contentDOM;
+  content.classList.remove("cm-template-in");
+  void content.offsetWidth; // restart the animation on back-to-back inserts
+  content.classList.add("cm-template-in");
+  setTimeout(() => content.classList.remove("cm-template-in"), 260);
 }
 
 // Sets a `key: true` frontmatter flag (creating the block if missing), touching

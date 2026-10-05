@@ -248,6 +248,29 @@ export const baseTheme = EditorView.theme({
   ".cm-tag-pill.cm-tag-pill-custom": {
     color: "var(--fg-muted)",
   },
+  // Template fields in a template note (template-field-pills.ts): a dashed
+  // pill reads "filled in later", unlike tags.
+  ".cm-template-field": {
+    display: "inline-flex",
+    alignItems: "center",
+    verticalAlign: "baseline",
+    borderRadius: "0.4em",
+    border: "1px dashed color-mix(in srgb, var(--moss) 55%, transparent)",
+    backgroundColor: "color-mix(in srgb, var(--moss) 9%, transparent)",
+    color: "var(--moss)",
+    fontSize: "0.85em",
+    fontWeight: "500",
+    lineHeight: "1.3",
+    padding: "0 0.4em",
+    margin: "0 0.05em",
+    whiteSpace: "nowrap",
+    cursor: "text",
+  },
+  ".cm-template-field-ask": {
+    borderColor: "color-mix(in srgb, var(--clay) 55%, transparent)",
+    backgroundColor: "color-mix(in srgb, var(--clay) 9%, transparent)",
+    color: "var(--clay)",
+  },
   ".cm-frontmatter-tag-list": {
     display: "inline-flex",
     alignItems: "center",
