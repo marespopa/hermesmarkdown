@@ -11,7 +11,6 @@ import {
   atom_isWizardOpen,
   atom_splitPane,
   atom_wordWrap,
-  atom_frontmatterCollapsedByDefault,
   atom_workspaceLayout,
   findLeaf,
 } from "@/app/atoms/atoms";
@@ -121,7 +120,6 @@ export function useEditorCommandContext(props: EditorCommandsProps) {
   const [flowMode, setFlowMode] = useAtom(atom_flowMode);
   const [toolbarHidden, setToolbarHidden] = useAtom(atom_toolbarHidden);
   const [sidebarOpen, setSidebarOpen] = useAtom(atom_sidebarOpen);
-  const [frontmatterCollapsed, setFrontmatterCollapsed] = useAtom(atom_frontmatterCollapsedByDefault);
   const [viewMode, setViewMode] = useAtom(atom_viewMode);
   const [, setTasksGroupBy] = useAtom(atom_tasksGroupBy);
   const [, setTaskSearchQuery] = useAtom(atom_taskSearchQuery);
@@ -193,8 +191,6 @@ export function useEditorCommandContext(props: EditorCommandsProps) {
     setToolbarHidden,
     sidebarOpen,
     setSidebarOpen,
-    frontmatterCollapsed,
-    setFrontmatterCollapsed,
     viewMode,
     setViewMode,
     setTasksGroupBy,

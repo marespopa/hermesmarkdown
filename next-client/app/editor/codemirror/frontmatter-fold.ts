@@ -1,5 +1,5 @@
-import { EditorState, StateEffect, StateField, Transaction } from "@codemirror/state";
-import { Decoration, DecorationSet, EditorView, WidgetType } from "@codemirror/view";
+import { Annotation, EditorState, StateEffect, StateField, Transaction } from "@codemirror/state";
+import { Decoration, DecorationSet, EditorView, ViewPlugin, ViewUpdate, WidgetType } from "@codemirror/view";
 import { parseFmFields } from "@/app/utils/frontmatter-utils";
 
 export interface FrontmatterFoldRange {
@@ -58,36 +58,45 @@ export function frontmatterSummary(keys: string[]): string {
   return rest > 0 ? `${shown}, +${rest}` : shown;
 }
 
-// Collapsed frontmatter is a block widget, not a fold: a fold's placeholder
-// lives inside a text line, which either costs a row or merges the next
-// content line into the frontmatter's first line (and its styling). The
-// widget is one quiet summary row ("▸ Properties · title, tags"); clicking it
-// expands the block, as does moving the caret into it (arrowing up from the
-// first line).
-class CollapsedFrontmatterWidget extends WidgetType {
-  constructor(readonly summary: string) {
+// The frontmatter's header row, in the same place either way, so it
+// expands and collapses from one spot. Collapsed, the block is a block
+// widget, not a fold: a fold's placeholder lives inside a text line, which
+// either costs a row or merges the next content line into the frontmatter's
+// first line (and its styling). It's this one quiet row ("▸ Properties ·
+// title, tags"); clicking it expands the block, as does moving the caret
+// into it (arrowing up from the first line). Expanded, the row ("▾
+// Properties") sits above the YAML and collapses it.
+// Fired on the editor's DOM when the Properties row is clicked (not when
+// the caret or an edit expands it), so the app can remember the choice.
+export const FRONTMATTER_TOGGLE_EVENT = "hermes:frontmatter-toggle";
+
+class FrontmatterHeaderWidget extends WidgetType {
+  constructor(readonly summary: string, readonly collapsed: boolean) {
     super();
   }
 
-  eq(other: CollapsedFrontmatterWidget) {
-    return other.summary === this.summary;
+  eq(other: FrontmatterHeaderWidget) {
+    return other.summary === this.summary && other.collapsed === this.collapsed;
   }
 
   toDOM(view: EditorView) {
     const element = document.createElement("div");
-    element.className = "cm-frontmatterCollapsed";
+    element.className = this.collapsed ? "cm-frontmatterCollapsed" : "cm-frontmatterHeader";
     const button = document.createElement("button");
     button.type = "button";
     button.className = "cm-frontmatter-summary";
-    button.setAttribute("aria-expanded", "false");
-    button.setAttribute("aria-label", this.summary ? `Show properties: ${this.summary}` : "Show properties");
+    button.setAttribute("aria-expanded", String(!this.collapsed));
+    button.setAttribute(
+      "aria-label",
+      !this.collapsed ? "Hide properties" : this.summary ? `Show properties: ${this.summary}` : "Show properties",
+    );
     button.innerHTML =
       '<svg aria-hidden="true" viewBox="0 0 20 20" fill="currentColor" class="cm-frontmatter-summary-chevron">' +
       '<path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clip-rule="evenodd"/></svg>';
     const label = document.createElement("span");
     label.textContent = "Properties";
     button.append(label);
-    if (this.summary) {
+    if (this.collapsed && this.summary) {
       const keys = document.createElement("span");
       keys.className = "cm-frontmatter-summary-keys";
       keys.textContent = `· ${this.summary}`;
@@ -97,7 +106,11 @@ class CollapsedFrontmatterWidget extends WidgetType {
     button.addEventListener("mousedown", (event) => event.preventDefault());
     button.addEventListener("click", (event) => {
       event.preventDefault();
-      view.dispatch({ effects: setFrontmatterCollapsed.of(false) });
+      const range = findFrontmatterFoldRange(view.state.doc.toString());
+      if (range) {
+        toggleFrontmatterFold(view, range, !this.collapsed);
+        view.dom.dispatchEvent(new CustomEvent(FRONTMATTER_TOGGLE_EVENT, { detail: { collapsed: !this.collapsed } }));
+      }
       view.focus();
     });
     element.append(button);
@@ -148,16 +161,21 @@ function buildDecorations(state: EditorState, collapsed: boolean): DecorationSet
   const doc = state.doc.toString();
   const range = findFrontmatterFoldRange(doc);
   if (!range) return Decoration.none;
-  if (!collapsed) {
-    const next = state.doc.lineAt(range.closeTo).number + 1;
-    if (next > state.doc.lines || state.doc.line(next).text.trim() === "") return Decoration.none;
-    return Decoration.set([
-      Decoration.widget({ block: true, side: 1, widget: new FrontmatterSpacerWidget() }).range(range.closeTo),
-    ]);
-  }
   const summary = frontmatterSummary(frontmatterKeys(doc));
+  if (!collapsed) {
+    const decorations = [
+      Decoration.widget({ block: true, side: -1, widget: new FrontmatterHeaderWidget(summary, false) }).range(range.bodyFrom),
+    ];
+    const next = state.doc.lineAt(range.closeTo).number + 1;
+    if (next <= state.doc.lines && state.doc.line(next).text.trim() !== "") {
+      decorations.push(
+        Decoration.widget({ block: true, side: 1, widget: new FrontmatterSpacerWidget() }).range(range.closeTo),
+      );
+    }
+    return Decoration.set(decorations);
+  }
   return Decoration.set([
-    Decoration.replace({ block: true, widget: new CollapsedFrontmatterWidget(summary) })
+    Decoration.replace({ block: true, widget: new FrontmatterHeaderWidget(summary, true) })
       .range(range.bodyFrom, range.bodyTo),
   ]);
 }
@@ -193,12 +211,43 @@ const frontmatterCollapseField = StateField.define<CollapseState>({
   provide: (field) => EditorView.decorations.from(field, (value) => value.decorations),
 });
 
-export const frontmatterCollapse = [frontmatterCollapseField];
+// Marks a collapse or expand that should land without the fade: the
+// default applied as a file opens.
+const instantToggle = Annotation.define<boolean>();
+
+// What appears under the header row: the keys on collapse, the YAML (or
+// Preview's grid) on expand. The row itself stays put, so it doesn't fade.
+const FADE_SELECTOR =
+  ".cm-frontmatter-summary-keys, .cm-frontmatter-line, .cm-frontmatter-spacer, .cm-previewProperties";
+
+// Collapsing swaps the YAML lines for the summary row (and back) in one
+// frame, so there are no two heights to transition between; instead what
+// appears fades in. Only on a toggle: lines CodeMirror redraws for
+// scrolling or edits stay put.
+const fadeOnToggle = ViewPlugin.fromClass(class {
+  update(update: ViewUpdate) {
+    if (isFrontmatterFolded(update.startState) === isFrontmatterFolded(update.state)) return;
+    if (update.transactions.some((tr) => tr.annotation(instantToggle))) return;
+    if (typeof window === "undefined" || window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return;
+    // The DOM is redrawn after update(); the write phase runs after that.
+    update.view.requestMeasure({
+      read: () => null,
+      write: (_, view) => {
+        view.contentDOM.querySelectorAll<HTMLElement>(FADE_SELECTOR).forEach((element) => {
+          element.animate?.([{ opacity: 0 }, { opacity: 1 }], { duration: 180, easing: "ease-out" });
+        });
+      },
+    });
+  }
+});
+
+export const frontmatterCollapse = [frontmatterCollapseField, fadeOnToggle];
 
 export function toggleFrontmatterFold(
   view: EditorView,
   range: FrontmatterFoldRange,
   collapse: boolean,
+  { animate = true }: { animate?: boolean } = {},
 ) {
   // Collapsing with the caret inside the hidden block would leave typing
   // invisible, so park it at the start of the first visible line.
@@ -206,6 +255,7 @@ export function toggleFrontmatterFold(
   const parkCaret = collapse && head <= range.bodyTo && range.bodyTo < view.state.doc.length;
   view.dispatch({
     effects: setFrontmatterCollapsed.of(collapse),
+    ...(animate ? {} : { annotations: instantToggle.of(true) }),
     ...(parkCaret ? { selection: { anchor: range.bodyTo + 1 } } : {}),
   });
 }

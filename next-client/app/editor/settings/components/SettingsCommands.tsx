@@ -5,6 +5,7 @@ import {
   atom_autosaveDelay,
   atom_autosaveMode,
   atom_editorFontFamily,
+  atom_renderedFontSize,
   atom_aiProvider,
   atom_selectedAiModel,
   atom_vimMode,
@@ -12,7 +13,7 @@ import {
 } from "@/app/atoms/atoms";
 import { atom_flowMode, atom_lineNumbers } from "@/app/atoms/ui-atoms";
 import { useRegisterCommand, type Command } from "@/app/components/CommandPalette/CommandPaletteContext";
-import { FONTS } from "../font-options";
+import { FONTS, TEXT_SIZES } from "../font-options";
 
 function RegisteredCommand({ command }: { command: Command }) {
   useRegisterCommand(command);
@@ -25,6 +26,7 @@ export default function SettingsCommands() {
   const [vimMode, setVimMode] = useAtom(atom_vimMode);
   const [flowMode, setFlowMode] = useAtom(atom_flowMode);
   const [, setEditorFontFamily] = useAtom(atom_editorFontFamily);
+  const [, setTextSize] = useAtom(atom_renderedFontSize);
   const [, setAutosaveMode] = useAtom(atom_autosaveMode);
   const [, setAutosaveDelay] = useAtom(atom_autosaveDelay);
   const [, setAiProvider] = useAtom(atom_aiProvider);
@@ -41,6 +43,13 @@ export default function SettingsCommands() {
       category: "Settings" as const,
       keywords: "typography appearance",
       action: () => setEditorFontFamily(value),
+    })),
+    ...TEXT_SIZES.map(({ label, value }) => ({
+      id: `set-text-size-${value}`,
+      label: `Text size: ${label}`,
+      category: "Settings" as const,
+      keywords: "font typography appearance zoom bigger smaller",
+      action: () => setTextSize(value),
     })),
     ...(["afterDelay", "onFocusChange", "manual"] as const).map((value) => ({
       id: `set-autosave-${value}`,

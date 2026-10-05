@@ -29,7 +29,6 @@ vi.mock("@/app/atoms/atoms", async (importOriginal) => {
     atom_autosaveMode: { toString: () => "atom_autosaveMode" },
     atom_autosaveDelay: { toString: () => "atom_autosaveDelay" },
     atom_vimMode: { toString: () => "atom_vimMode" },
-    atom_frontmatterCollapsedByDefault: { toString: () => "atom_frontmatterCollapsedByDefault" },
     atom_showStats: { toString: () => "atom_showStats" },
   };
 });
@@ -58,7 +57,6 @@ describe("SettingsPage", () => {
       if (atomStr === "atom_lineHeight") return ["1.8", vi.fn()];
       if (atomStr === "atom_showStats") return [true, vi.fn()];
       if (atomStr === "atom_theme") return ["light", vi.fn()];
-      if (atomStr === "atom_frontmatterCollapsedByDefault") return [false, vi.fn()];
       return ["", vi.fn()];
     });
   });
@@ -100,7 +98,7 @@ describe("SettingsPage", () => {
     openEditorSection();
 
     expect(screen.getByText("Vim Mode")).toBeInTheDocument();
-    expect(screen.getByText("Collapse Frontmatter")).toBeInTheDocument();
+    expect(screen.queryByText("Collapse Frontmatter")).not.toBeInTheDocument();
     expect(screen.queryByText("Delay")).not.toBeInTheDocument();
   });
 
@@ -112,23 +110,6 @@ describe("SettingsPage", () => {
     expect(screen.getByText("New Notes Folder")).toBeInTheDocument();
     expect(screen.getByText("Show Hidden Files")).toBeInTheDocument();
     expect(screen.getByText("Delay")).toBeInTheDocument();
-  });
-
-  it("updates the default frontmatter collapse preference", () => {
-    const setFrontmatterCollapsedByDefault = vi.fn();
-    (useAtom as any).mockImplementation((atom: any) => {
-      if (atom.toString() === "atom_frontmatterCollapsedByDefault") {
-        return [false, setFrontmatterCollapsedByDefault];
-      }
-      if (atom.toString() === "atom_autosaveMode") return ["afterDelay", vi.fn()];
-      return ["", vi.fn()];
-    });
-
-    render(<SettingsPage />);
-    openEditorSection();
-    fireEvent.click(screen.getByRole("switch", { name: "Collapse frontmatter by default" }));
-
-    expect(setFrontmatterCollapsedByDefault).toHaveBeenCalledWith(true);
   });
 
   it("calls setter when autosave delay is changed", () => {

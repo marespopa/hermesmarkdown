@@ -158,7 +158,7 @@ describe("preview mode", () => {
     expect(view.contentDOM.querySelector(".cm-previewProperties")).toBeNull();
 
     toggleFrontmatterFold(view, range, false);
-    expect(view.contentDOM.querySelector(".cm-frontmatter-summary")).toBeNull();
+    expect(view.contentDOM.querySelector(".cm-frontmatter-summary")).toHaveAttribute("aria-expanded", "true");
     expect(view.contentDOM.querySelector(".cm-previewProperties")).not.toBeNull();
   });
 });

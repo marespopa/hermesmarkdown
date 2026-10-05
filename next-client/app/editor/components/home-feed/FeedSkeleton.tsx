@@ -6,18 +6,16 @@ import React from "react";
 // listed.
 export default function FeedSkeleton({ rows = 3 }: { rows?: number }) {
   return (
-    <div aria-hidden="true" data-testid="feed-skeleton" className="flex flex-col gap-1 motion-safe:animate-pulse">
+    <div aria-hidden="true" data-testid="feed-skeleton" className="-mx-3 flex flex-col motion-safe:animate-pulse">
+      <span className="mx-3 mb-2.5 mt-1 block h-3 w-16 rounded bg-surface-raised" />
       {Array.from({ length: rows }, (_, index) => (
-        <div key={index} className="grid grid-cols-[4.5rem_1fr] gap-3 sm:grid-cols-[5rem_1fr]">
-          <span className="mt-5 ml-auto block h-2.5 w-10 rounded bg-surface-raised" />
-          <span className="block px-3 py-3">
-            <span className="block h-3.5 w-1/2 rounded bg-surface-raised" />
-            <span className="mt-3 block space-y-2">
-              <span className="block h-2.5 w-11/12 rounded bg-surface-raised" />
-              <span className="block h-2.5 w-2/3 rounded bg-surface-raised" />
-            </span>
+        <span key={index} className="block px-3 py-2.5">
+          <span className="block h-3.5 w-1/2 rounded bg-surface-raised" />
+          <span className="mt-2.5 block space-y-2">
+            <span className="block h-2.5 w-11/12 rounded bg-surface-raised" />
+            <span className="block h-2.5 w-2/3 rounded bg-surface-raised" />
           </span>
-        </div>
+        </span>
       ))}
     </div>
   );

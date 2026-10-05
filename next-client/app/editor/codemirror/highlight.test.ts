@@ -46,8 +46,8 @@ describe("computeMarkdownDecorations", () => {
     const titleFrom = doc.indexOf("# Title");
 
     expect(decos.some((d) => d.from === commentFrom && d.class.includes("cm-frontmatter-comment"))).toBe(true);
-    expect(decos.some((d) => d.from === commentFrom && d.class.includes("text-["))).toBe(false);
-    expect(decos.some((d) => d.from === titleFrom && d.class.includes("text-[1.5em]"))).toBe(true);
+    expect(decos.some((d) => d.from === commentFrom && d.class.includes("cm-heading"))).toBe(false);
+    expect(decos.some((d) => d.from === titleFrom && d.class.includes("cm-heading-1"))).toBe(true);
   });
 
   it("marks a heading's hashes as faded and its label as bold", () => {

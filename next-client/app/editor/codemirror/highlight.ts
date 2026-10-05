@@ -54,14 +54,9 @@ const REGEX_LIST_PARTS = /^(\s*[-*+]\s+)(\[[ xX]\]\s+)?(.*)$/;
 const REGEX_TABLE_LINE = /^\s*\|/;
 const REGEX_TABLE_SEPARATOR = /^\s*\|[\s:|-]+\|/;
 
-const HEADING_SIZE_CLASSES: Record<number, string> = {
-  1: "!text-[1.5em]",
-  2: "!text-[1.35em]",
-  3: "!text-[1.2em]",
-  4: "!text-[1.1em]",
-  5: "!text-[1em]",
-  6: "!text-[0.95em]",
-};
+// Heading lines carry `cm-heading cm-heading-N`; their size, tracking and
+// the room above them live in theme.ts.
+const headingLineClass = (level: number) => `cm-heading cm-heading-${level}`;
 
 interface MarkRange {
   from: number;
@@ -278,7 +273,7 @@ export function computeMarkdownDecorations(state: EditorState): DecorationSet {
       const level = hashes.match(/^#+/)![0].length;
       mark(ranges, base, base + hashes.length, FADED);
       mark(ranges, base + hashes.length, line.to, "font-bold text-ink-light dark:text-ink-dark");
-      lineDecos.push({ line: i, class: HEADING_SIZE_CLASSES[level] });
+      lineDecos.push({ line: i, class: headingLineClass(level) });
       processInline(ranges, m[2], base + hashes.length);
     } else if (text.startsWith(">")) {
       const m = text.match(REGEX_BLOCKQUOTE_PARTS)!;

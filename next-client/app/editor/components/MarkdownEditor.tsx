@@ -2,7 +2,7 @@
 
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useAtomValue, useSetAtom } from "jotai";
-import { atom_frontmatterCollapsedByDefault, atom_wordWrap, atom_isEditorFocused } from "@/app/atoms/atoms";
+import { atom_wordWrap, atom_isEditorFocused } from "@/app/atoms/atoms";
 import { atom_activeEditorView, atom_aiBuilderRequest, atom_flowMode, atom_isAiConfigured, atom_lineNumbers, atom_viewMode, atom_vimMode } from "@/app/atoms/ui-atoms";
 import { useAtom } from "jotai";
 import { EditorView } from "@codemirror/view";
@@ -61,7 +61,6 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
   const flowMode = useAtomValue(atom_flowMode);
   const isAiConfigured = useAtomValue(atom_isAiConfigured);
   const setAiBuilderRequest = useSetAtom(atom_aiBuilderRequest);
-  const frontmatterCollapsedByDefault = useAtomValue(atom_frontmatterCollapsedByDefault);
   const [, setIsEditorFocused] = useAtom(atom_isEditorFocused);
   const filePath = props.filePath || "draft";
   const [editorView, setEditorView] = useState<EditorView | null>(null);
@@ -179,14 +178,11 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
   const { chevrons, toggle: toggleCalloutFold, onCursorActivity: onFoldCursorActivity, onViewCreated } =
     useCodeMirrorCalloutFold({ containerRef });
     const {
-      chevrons: frontmatterChevrons,
-      toggle: toggleFrontmatterFold,
       onCursorActivity: onFrontmatterFoldCursorActivity,
       onViewCreated: onFrontmatterFoldViewCreated,
     } = useCodeMirrorFrontmatterFold({
       viewRef,
-      containerRef,
-      collapseByDefault: frontmatterCollapsedByDefault,
+      filePath,
     });
 
   const setActiveEditorView = useSetAtom(atom_activeEditorView);
@@ -217,8 +213,7 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
   // Fold chevrons follow scrolling: callouts get one as they're rendered.
   const onViewportChange = useCallback((view: EditorView) => {
     onFoldCursorActivity(view);
-    onFrontmatterFoldCursorActivity(view);
-  }, [onFoldCursorActivity, onFrontmatterFoldCursorActivity]);
+  }, [onFoldCursorActivity]);
 
   useCodeMirrorEditor({
     value: editorValue,
@@ -309,7 +304,7 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
         } as React.CSSProperties}
       >
         {isTemplateNote && !previewMode && <TemplateStrip name={filePath.split("/").pop()!.replace(/\.md$/i, "")} doc={editorValue} view={editorView} onAddField={insertTemplateField} />}
-        <div className="relative h-full">
+        <div className="editor-measure relative h-full">
           <label htmlFor="md-editor" className="sr-only">Markdown editor</label>
           <div
             id="md-editor"
@@ -319,17 +314,11 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
           />
 
           <FoldChevrons
-            chevrons={[
-              ...chevrons.map((chevron) => ({ ...chevron, kind: "callout" as const })),
-              ...frontmatterChevrons.filter((chevron) => !chevron.collapsed).map((chevron) => ({ ...chevron, kind: "frontmatter" as const })),
-            ]}
+            chevrons={chevrons}
             onToggle={(chevron) => {
               const view = viewRef.current;
               if (!view) return;
-              // Frontmatter collapses in this note only, back to its summary
-              // row; the app-wide default lives in Settings and the palette.
-              if (chevron.kind === "frontmatter") toggleFrontmatterFold(view);
-              else toggleCalloutFold(view, chevron.blockId);
+              toggleCalloutFold(view, chevron.blockId);
               // Back to the text: the chevron took focus on press.
               view.focus();
             }}

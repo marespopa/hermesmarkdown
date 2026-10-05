@@ -48,7 +48,7 @@ describe("dayLabel", () => {
     expect(dayLabel(new Date(2026, 8, 28, 1).getTime(), NOW)).toBe("Today");
     expect(dayLabel(new Date(2026, 8, 27, 23, 59).getTime(), NOW)).toBe("Yesterday");
     expect(dayLabel(new Date(2026, 8, 26).getTime(), NOW)).toBe(
-      new Date(2026, 8, 26).toLocaleDateString(undefined, { weekday: "short" }),
+      new Date(2026, 8, 26).toLocaleDateString(undefined, { weekday: "long" }),
     );
     expect(dayLabel(new Date(2026, 8, 1).getTime(), NOW)).toBe(
       new Date(2026, 8, 1).toLocaleDateString(undefined, { month: "short", day: "numeric" }),
@@ -74,7 +74,7 @@ describe("buildFeed", () => {
 
     expect(feed.map((entry) => entry.path)).toEqual(["a.md", "c.md", "b.md"]);
     expect(feed[0].dayLabel).toBe("Today");
-    expect(feed[1].dayLabel).toBe(new Date(2026, 8, 26).toLocaleDateString(undefined, { weekday: "short" }));
+    expect(feed[1].dayLabel).toBe(new Date(2026, 8, 26).toLocaleDateString(undefined, { weekday: "long" }));
     expect(feed[2].dayLabel).toBeNull();
   });
 
@@ -110,6 +110,24 @@ describe("buildFeed", () => {
     const [entry] = buildFeed({ a: meta("a.md", NOW, { preview: "Body text" }) }, NOW);
     expect(entry.preview).toBe("Body text");
     expect(entry).toMatchObject({ isSensitive: false, previewStyle: "plain" });
+  });
+
+  it("labels each note with its edit time, and none while undated", () => {
+    const edited = new Date(2026, 8, 28, 9, 41);
+    const feed = buildFeed({ a: meta("a.md", edited), b: meta("b.md", new Date(0)) }, NOW);
+    expect(feed.map((entry) => entry.timeLabel)).toEqual([
+      edited.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" }),
+      null,
+    ]);
+  });
+
+  it("gives every note its file name, except sensitive notes", () => {
+    const feed = buildFeed({
+      titled: meta("notes/2026-09-28.md", NOW, { frontmatter: { title: "Weekly review" } }),
+      plain: meta("notes/Plan.md", new Date(NOW.getTime() - 1000)),
+      secret: meta("notes/diagnosis.md", new Date(NOW.getTime() - 2000), { frontmatter: { title: "Note", sensitive: true } }),
+    }, NOW);
+    expect(feed.map((entry) => entry.fileName)).toEqual(["2026-09-28.md", "Plan.md", null]);
   });
 
   it("carries sensitivity and the preview style of sensitive notes", () => {

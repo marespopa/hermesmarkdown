@@ -16,7 +16,6 @@ export function buildWorkspaceTaskViewCommandGroups(context: EditorCommandContex
     closeTab,
     closeTabWithAutosave,
     flowMode,
-    frontmatterCollapsed,
     indexVaultTags,
     isOnlyPane,
     lineNumbers,
@@ -26,7 +25,6 @@ export function buildWorkspaceTaskViewCommandGroups(context: EditorCommandContex
     setActiveFilePath,
     setActivePaneId,
     setFlowMode,
-    setFrontmatterCollapsed,
     setSidebarOpen,
     setToolbarHidden,
     setIsWizardOpen,
@@ -147,12 +145,6 @@ export function buildWorkspaceTaskViewCommandGroups(context: EditorCommandContex
       label: flowMode ? "Disable flow mode" : "Enable flow mode",
       keywords: "focus typewriter dim paragraph writing distraction free",
       action: () => setFlowMode(!flowMode),
-    },
-    {
-      id: "toggle-frontmatter-collapsed",
-      label: frontmatterCollapsed ? "Expand properties in every note" : "Collapse properties in every note",
-      keywords: "frontmatter metadata yaml properties fold hide show",
-      action: () => setFrontmatterCollapsed(!frontmatterCollapsed),
     },
     {
       id: "toggle-toolbar",

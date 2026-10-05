@@ -281,7 +281,8 @@ describe("MarkdownEditor", () => {
       expect(range).not.toBeNull();
       expect(isFrontmatterFolded(view.state)).toBe(false);
     });
-    expect(await screen.findByLabelText("Collapse properties")).toBeInTheDocument();
+    // Collapsing again is the same row, now above the YAML.
+    expect(await screen.findByRole("button", { name: "Hide properties" })).toHaveAttribute("aria-expanded", "true");
     coordsSpy.mockRestore();
   });
 

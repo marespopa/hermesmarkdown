@@ -3,7 +3,6 @@
 import React from "react";
 import { useAtom } from "jotai";
 import {
-  atom_frontmatterCollapsedByDefault,
   atom_lineNumbers,
   atom_vimMode,
   atom_wordWrap,
@@ -12,13 +11,12 @@ import { atom_flowMode } from "@/app/atoms/ui-atoms";
 import Toggle from "@/app/components/Toggle";
 import { SettingGroup, SettingItem } from "../components/SettingControls";
 
-// Settings → Editor: Layout (word wrap, line numbers, frontmatter) and Writing (Vim, flow mode) groups.
+// Settings → Editor: Layout (word wrap, line numbers) and Writing (Vim, flow mode) groups.
 export default function EditorSettings() {
   const [wordWrap, setWordWrap] = useAtom(atom_wordWrap);
   const [lineNumbers, setLineNumbers] = useAtom(atom_lineNumbers);
   const [vimMode, setVimMode] = useAtom(atom_vimMode);
   const [flowMode, setFlowMode] = useAtom(atom_flowMode);
-  const [frontmatterCollapsedByDefault, setFrontmatterCollapsedByDefault] = useAtom(atom_frontmatterCollapsedByDefault);
 
   return (
     <>
@@ -32,18 +30,6 @@ export default function EditorSettings() {
           label="Line Numbers"
           description="Show line numbers beside the source editor."
           control={<Toggle variant="soft" active={lineNumbers} onChange={setLineNumbers} />}
-        />
-        <SettingItem
-          label="Collapse Frontmatter"
-          description="Show YAML frontmatter as a one-line Properties row in every file; click the row to expand it."
-          control={
-            <Toggle
-              variant="soft"
-              active={frontmatterCollapsedByDefault}
-              onChange={setFrontmatterCollapsedByDefault}
-              label="Collapse frontmatter by default"
-            />
-          }
         />
       </SettingGroup>
       <SettingGroup title="Writing">

@@ -180,11 +180,18 @@ export const baseTheme = EditorView.theme({
     border: "none",
     color: "transparent",
   },
-  // Collapsed frontmatter: one quiet summary row above the first content
-  // line ("▸ Properties · title, tags"), low contrast until hovered. It's a
-  // small label, not a block, so it sits close to the text below.
+  // The frontmatter's header row, low contrast until hovered. Collapsed it is
+  // the whole block ("▸ Properties · title, tags") above the first content
+  // line: a small label, not a block, so it sits close to the text below.
+  // Expanded ("▾ Properties") it sits right above the YAML.
   ".cm-frontmatterCollapsed": {
     paddingBottom: "0.5em",
+  },
+  ".cm-frontmatterHeader": {
+    paddingBottom: "0.25em",
+  },
+  ".cm-frontmatterHeader .cm-frontmatter-summary-chevron": {
+    transform: "rotate(90deg)",
   },
   ".cm-frontmatter-summary": {
     display: "inline-flex",

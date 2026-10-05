@@ -3,15 +3,22 @@ import { noteDisplayTitle, type NoteDisplayItem, type PreviewStyle } from "@/app
 import { isTemplatePath } from "@/app/utils/templates/template-registry";
 
 // Pure model behind the home feed: which notes appear, their order, titles,
-// and the day labels in the left gutter.
+// and the day section headers.
 
 export interface FeedEntry {
   path: string;
   title: string;
+  /**
+   * The file's name, extension included ("2026-09-28.md"); null for
+   * sensitive notes, whose file name may say more than their title.
+   */
+  fileName: string | null;
   preview: string;
   modifiedAt: number;
-  /** Gutter label, set only on the first note of each day; null otherwise and while undated. */
+  /** Section header, set only on the first note of each day; null otherwise and while undated. */
   dayLabel: string | null;
+  /** Time of the last edit ("9:41 AM", in the user's locale) shown before the preview; null while undated. */
+  timeLabel: string | null;
   /** False until the indexer has parsed the note (no preview yet; it may already have a date). */
   isIndexed: boolean;
   /** Marked sensitive in frontmatter (shows a lock). */
@@ -38,14 +45,14 @@ function startOfDay(date: Date): number {
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
-// "Today", "Yesterday", the weekday for the five days before that, then a
+// "Today", "Yesterday", the full weekday for the five days before that, then a
 // short date (with the year once it's a different year).
 export function dayLabel(modifiedAt: number, now: Date): string {
   const date = new Date(modifiedAt);
   const daysAgo = Math.round((startOfDay(now) - startOfDay(date)) / DAY_MS);
   if (daysAgo <= 0) return "Today";
   if (daysAgo === 1) return "Yesterday";
-  if (daysAgo < 7) return date.toLocaleDateString(undefined, { weekday: "short" });
+  if (daysAgo < 7) return date.toLocaleDateString(undefined, { weekday: "long" });
   return date.toLocaleDateString(undefined, {
     month: "short",
     day: "numeric",
@@ -87,9 +94,11 @@ export function buildFeed(
     return {
       path: entry.path,
       title: item.title,
+      fileName: item.isSensitive ? null : entry.path.split("/").pop()!,
       preview: item.preview,
       modifiedAt,
       dayLabel: label,
+      timeLabel: modifiedAt > 0 ? new Date(modifiedAt).toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" }) : null,
       isIndexed: item.isIndexed,
       isSensitive: item.isSensitive,
       previewStyle: item.previewStyle,

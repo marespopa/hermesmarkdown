@@ -139,10 +139,16 @@ export const atom_welcomeWizardStep = atomWithStorage<number>(
   0,
 );
 
+// How notes open: the last collapse or expand clicked on any note's
+// Properties row (no setting of its own). Same storage key as the old
+// "Collapse Frontmatter" setting, so that choice carries over.
 export const atom_frontmatterCollapsedByDefault = atomWithStorage<boolean>(
   "frontmatterCollapsedByDefault",
   false,
 );
+// Frontmatter collapsed / expanded per open file, so split panes showing the
+// same note agree. In memory only; a missing entry follows the default above.
+export const atom_frontmatterCollapsedByFile = atom<Record<string, boolean>>({});
 
 // Fresh workspaces open directly in the source editor and never switch into a preview pane.
 export const atom_frontmatterHasPrompted = atomWithStorage<boolean>(

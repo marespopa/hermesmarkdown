@@ -1,5 +1,6 @@
 import "./globals.scss";
 import "./editor/editor.scss";
+import "./editor/editor-typography.scss";
 import MainPage from "./components/MainPage";
 import ServiceWorkerRegister from "./components/ServiceWorkerRegister";
 import InlineScript from "./components/InlineScript";

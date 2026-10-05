@@ -49,12 +49,14 @@ export function useEditorAppearance(isSplit = false) {
   }, [fontSize]);
 
   // Base horizontal inset on the pane itself so split panes use their own width.
+  // Generous page margins: the text column (--editor-measure, editor-typography.scss)
+  // caps line length on wide panes; these keep mid-width panes from running
+  // text into the sheet's edges.
   const contentPaddingX = useMemo(() => {
-    if (paneWidth < 640) return 16;
-    if (isSplit) return paneWidth < 900 ? 16 : 24;
-    if (paneWidth >= 1280) return 32;
-    if (paneWidth >= 1024) return 24;
-    return 20;
+    if (paneWidth < 640) return 20;
+    if (isSplit) return paneWidth < 900 ? 24 : 40;
+    if (paneWidth >= 1280) return 56;
+    return 48;
   }, [isSplit, paneWidth]);
 
   return {
