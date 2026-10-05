@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  suggestTemplateName,
   isTemplatePath,
   listTemplates,
   matchTemplateForFolder,
@@ -121,5 +122,16 @@ describe("sanitizeTemplateFileName", () => {
     expect(sanitizeTemplateFileName("Meeting Notes")).toBe("Meeting Notes.md");
     expect(sanitizeTemplateFileName("a:b?")).toBe("a-b-.md");
     expect(sanitizeTemplateFileName("x.MD")).toBe("x.md");
+  });
+});
+
+describe("suggestTemplateName", () => {
+  it("uses the first heading below the frontmatter, without fields", () => {
+    expect(suggestTemplateName("---\ntitle: x\n---\n# Weekly {{date}} sync\n## Agenda", "note")).toBe("Weekly sync");
+  });
+
+  it("falls back to the note title", () => {
+    expect(suggestTemplateName("No heading", " Standup ")).toBe("Standup");
+    expect(suggestTemplateName("# {{title}}", "Standup")).toBe("Standup");
   });
 });

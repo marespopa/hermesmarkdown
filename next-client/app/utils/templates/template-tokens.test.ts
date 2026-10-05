@@ -5,6 +5,8 @@ import {
   offsetToLineColumn,
   slugify,
   usesToken,
+  isBlankToken,
+  isValidToken,
   type TemplateContext,
 } from "./template-tokens";
 
@@ -94,5 +96,44 @@ describe("offsetToLineColumn", () => {
     expect(offsetToLineColumn("ab\ncd\nef", 0)).toEqual({ line: 1, column: 0 });
     expect(offsetToLineColumn("ab\ncd\nef", 4)).toEqual({ line: 2, column: 1 });
     expect(offsetToLineColumn("ab\ncd\n", 6)).toEqual({ line: 3, column: 0 });
+  });
+});
+
+describe("date formats, date math, selection and blanks", () => {
+  it("formats dates and times", () => {
+    expect(expandTemplate("{{date:dddd, D MMMM YYYY}} {{date:ddd DD/MM/YY}} {{time:H.mm}}", ctx()).text)
+      .toBe("Sunday, 4 October 2026 Sun 04/10/26 9.05");
+    expect(expandTemplate("{{date:[Week of] MMM D}}", ctx()).text).toBe("Week of Oct 4");
+  });
+
+  it("does date math in days, weeks, months and years, with a format", () => {
+    expect(expandTemplate("{{date+1d}} {{date-1w}} {{date+1m}} {{date-1y}}", ctx()).text)
+      .toBe("2026-10-05 2026-09-27 2026-11-04 2025-10-04");
+    expect(expandTemplate("{{date+1d:dddd}}", ctx()).text).toBe("Monday");
+  });
+
+  it("keeps the day within the target month", () => {
+    expect(expandTemplate("{{date+1m}}", ctx({ now: new Date(2026, 0, 31) })).text).toBe("2026-02-28");
+  });
+
+  it("fills {{selection}}, empty by default", () => {
+    expect(expandTemplate("> {{selection}}", ctx({ selection: "quoted" })).text).toBe("> quoted");
+    expect(expandTemplate("[{{selection}}]", ctx()).text).toBe("[]");
+  });
+
+  it("leaves blanks and misused tokens as typed", () => {
+    expect(expandTemplate("{{task_1}} {{weekday+1d}} {{title:x}}", ctx()).text).toBe("{{task_1}} {{weekday+1d}} {{title:x}}");
+  });
+
+  it("tells blanks from fields", () => {
+    expect(isBlankToken("task_1")).toBe(true);
+    expect(isBlankToken("date")).toBe(false);
+    expect(isBlankToken("date+1d")).toBe(false);
+    expect(isValidToken("date-2w:dddd")).toBe(true);
+    expect(isValidToken("time+1d")).toBe(false);
+  });
+
+  it("counts a formatted date as using {{date}}", () => {
+    expect(usesToken("{{date:YYYY}}", "date")).toBe(true);
   });
 });

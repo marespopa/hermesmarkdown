@@ -266,6 +266,14 @@ export const baseTheme = EditorView.theme({
     whiteSpace: "nowrap",
     cursor: "text",
   },
+  // A blank to fill in (template-blanks.ts): dotted and neutral, like a gap.
+  ".cm-template-field-blank": {
+    borderStyle: "dotted",
+    borderColor: "var(--fg-faint)",
+    backgroundColor: "color-mix(in srgb, var(--fg-faint) 10%, transparent)",
+    color: "var(--fg-muted)",
+    cursor: "pointer",
+  },
   ".cm-template-field-ask": {
     borderColor: "color-mix(in srgb, var(--clay) 55%, transparent)",
     backgroundColor: "color-mix(in srgb, var(--clay) 9%, transparent)",

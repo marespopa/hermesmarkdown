@@ -123,7 +123,7 @@ describe("buildEditorCommands", () => {
   it("preserves every command ID and its registration order", () => {
     const commands = buildEditorCommands(createContext());
     const templateIds = TEMPLATES
-      .filter((template) => !template.aiOnly && !template.vaultOnly && !template.templateOnly)
+      .filter((template) => !template.aiOnly && !template.vaultOnly && !template.templateOnly && !template.saveTemplateOnly)
       .map((template) => `insert-${template.label.toLowerCase().replace(/\s+/g, "-")}`);
 
     expect(commands.map((command) => command.id)).toEqual([
@@ -131,6 +131,8 @@ describe("buildEditorCommands", () => {
       "new-file",
       "new-file-in-folder",
       "new-note-from-template",
+      "insert-template",
+      "save-as-template",
       "new-template",
       "export-file",
       "import-file",

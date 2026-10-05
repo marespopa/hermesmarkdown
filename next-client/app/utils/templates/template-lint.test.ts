@@ -8,8 +8,18 @@ describe("lintTemplate", () => {
     expect(lintTemplate(raw)).toEqual([]);
   });
 
-  it("warns about unknown tokens", () => {
-    expect(lintTemplate("{{author}} {{date}}")).toEqual([expect.stringContaining("{{author}}")]);
+  it("treats other {{names}} as blanks, warning only about likely typos", () => {
+    expect(lintTemplate("{{author}} {{task_1}} {{date}}")).toEqual([]);
+    expect(lintTemplate("{{dat}} {{Title}}")).toEqual([
+      expect.stringContaining("{{dat}} looks like {{date}}"),
+      expect.stringContaining("{{Title}} looks like {{title}}"),
+    ]);
+  });
+
+  it("warns about math or formats on the wrong token and about non-fields", () => {
+    expect(lintTemplate("{{date+1d:dddd}} {{time:HH}}")).toEqual([]);
+    expect(lintTemplate("{{weekday+1d}}")).toEqual([expect.stringContaining("only {{date}} takes math")]);
+    expect(lintTemplate("{{two words}}")).toEqual([expect.stringContaining("{{two words}} isn't a field")]);
   });
 
   it("warns about an empty prompt label", () => {

@@ -87,6 +87,16 @@ describe("TemplatePicker", () => {
     expect(screen.getByLabelText("Preview of rfc")).toHaveTextContent("Loading…");
   });
 
+  it("edits a template from its pencil or with Cmd/Ctrl+E", () => {
+    const onEdit = vi.fn();
+    const { onPick } = renderPicker({ onEdit });
+    fireEvent.click(screen.getByLabelText("Edit template rfc"));
+    expect(onEdit).toHaveBeenCalledWith(templates[1]);
+    fireEvent.keyDown(screen.getByLabelText("Search templates"), { key: "e", metaKey: true });
+    expect(onEdit).toHaveBeenLastCalledWith(templates[0]);
+    expect(onPick).not.toHaveBeenCalled();
+  });
+
   it("has no preview pane without bodies", () => {
     renderPicker();
     expect(screen.queryByLabelText(/^Preview of/)).not.toBeInTheDocument();

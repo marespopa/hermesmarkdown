@@ -83,9 +83,17 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const viewRef = useRef<EditorView | null>(null);
 
-  const { createWikiLinkFile, vaultHandle } = useFileSystem();
+  const { createWikiLinkFile, vaultHandle, saveAsTemplate } = useFileSystem();
   const insertVaultTemplate = useVaultTemplateInsert({ viewRef, filePath });
-  const { isTemplateNote, insertTemplateField, askTemplateQuestion } = useTemplateNote({ viewRef, editorView, filePath });
+  const insertTemplate = useCallback(() => { void insertVaultTemplate(); }, [insertVaultTemplate]);
+  const { isTemplateNote, insertTemplateField, askTemplateQuestion, saveNoteAsTemplate } = useTemplateNote({
+    viewRef,
+    editorView,
+    filePath,
+    isActivePane: props.isActivePane !== false,
+    insertTemplate,
+    saveAsTemplate: vaultHandle ? saveAsTemplate : undefined,
+  });
   const { csvConfirmRef, pasteImageRef } = useEditorPasteHandlers();
 
   const features = useCodeMirrorFeatures({ viewRef, containerRef, onWikiLinkClick: props.onWikiLinkClick });
@@ -117,6 +125,7 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
     onInsertVaultTemplate: vaultHandle ? () => { void insertVaultTemplate(); } : undefined,
     onInsertTemplateField: isTemplateNote ? insertTemplateField : undefined,
     onAskTemplateQuestion: askTemplateQuestion,
+    onSaveAsTemplate: saveNoteAsTemplate,
   });
 
   useEffect(() => {
@@ -299,7 +308,7 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
           paddingBottom: keyboardInset > 0 ? `calc(3rem + ${keyboardInset}px)` : undefined,
         } as React.CSSProperties}
       >
-        {isTemplateNote && !previewMode && <TemplateStrip doc={editorValue} view={editorView} onAddField={insertTemplateField} />}
+        {isTemplateNote && !previewMode && <TemplateStrip name={filePath.split("/").pop()!.replace(/\.md$/i, "")} doc={editorValue} view={editorView} onAddField={insertTemplateField} />}
         <div className="relative h-full">
           <label htmlFor="md-editor" className="sr-only">Markdown editor</label>
           <div

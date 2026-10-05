@@ -11,6 +11,8 @@ import { lintTemplate } from "@/app/utils/templates/template-lint";
 import { setTemplateTargetFolder, splitTemplate } from "@/app/utils/templates/template-frontmatter";
 
 interface TemplateStripProps {
+  /** Template name (file name without .md). */
+  name: string;
   /** The template's raw text. */
   doc: string;
   /** The editor showing it; edits go through it so undo works. */
@@ -50,10 +52,11 @@ function applyText(view: EditorView, next: string) {
   view.dispatch({ changes: { from: start, to: endCur, insert: next.slice(start, endNext) }, userEvent: "input.template" });
 }
 
-// One quiet line at the top of a template note: where notes made from it go
+// One quiet line at the top of a template note ("Editing template: Name"):
+// where notes made from it go
 // (its target_folder, chosen from a list instead of typed as YAML), an Add
 // field button, and plain-language warnings.
-export default function TemplateStrip({ doc, view, onAddField }: TemplateStripProps) {
+export default function TemplateStrip({ name, doc, view, onAddField }: TemplateStripProps) {
   const dialog = useDialog();
   const metadata = useAtomValue(atom_fileMetadata);
   const templatesFolder = useAtomValue(atom_templatesFolder).folder;
@@ -82,7 +85,9 @@ export default function TemplateStrip({ doc, view, onAddField }: TemplateStripPr
   return (
     <div className="mb-3 border-b border-edge-subtle pb-1 font-sans text-ui-caption text-fg-muted" aria-label="Template">
       <div className="flex flex-wrap items-center gap-x-2">
-        <span className="font-medium text-fg">Template</span>
+        <span className="min-w-0 truncate">
+          Editing template: <span className="font-medium text-fg">{name}</span>
+        </span>
         <span aria-hidden>·</span>
         <span className="flex min-w-0 items-center gap-1">
           New notes go in

@@ -7,6 +7,11 @@ import TemplatePicker from "./TemplatePicker";
 import TemplatePromptForm from "./TemplatePromptForm";
 import { TEMPLATE_STARTERS } from "@/app/utils/templates/template-starter";
 import { useTemplateNotes } from "@/app/hooks/file-system/use-template-notes";
+import { useOpenFile } from "@/app/hooks/file-system/use-open-file";
+import { atom_vaultHandle, resolveFileHandleAtPath } from "@/app/atoms/vault-atoms";
+import type { TemplateEntry } from "@/app/utils/templates/template-registry";
+import toast from "react-hot-toast";
+import { useStore } from "jotai";
 
 const STARTER_BODIES = Object.fromEntries(TEMPLATE_STARTERS.map((starter) => [starter.name, starter.body]));
 
@@ -20,6 +25,20 @@ export default function TemplateDialogHost() {
   const ids = useRef(new WeakMap<object, number>());
   const nextId = useRef(0);
   const { readTemplate } = useTemplateNotes();
+  const { openFile } = useOpenFile();
+  const store = useStore();
+  // Edit from the picker: cancel what asked for it, then open the file.
+  const editTemplate = async (entry: TemplateEntry, cancel: () => void) => {
+    cancel();
+    const vaultHandle = store.get(atom_vaultHandle);
+    if (!vaultHandle) return;
+    try {
+      await openFile(await resolveFileHandleAtPath(vaultHandle, entry.path), entry.path, true);
+    } catch (err: any) {
+      console.warn("Failed to open template:", err?.message || err);
+      toast.error(`Couldn't open template ${entry.name}`);
+    }
+  };
   // Template texts for the picker's summaries and preview, read when it opens.
   const [bodies, setBodies] = useState<Record<string, string | null>>({});
   const isPicking = request?.kind === "pick";
@@ -49,6 +68,7 @@ export default function TemplateDialogHost() {
         folder={folder}
         includeBlank={request.includeBlank}
         bodies={bodies}
+        onEdit={(entry) => { void editTemplate(entry, () => request.resolve(null)); }}
         onPick={(value) => request.resolve(value)}
         onCancel={() => request.resolve(null)}
       />

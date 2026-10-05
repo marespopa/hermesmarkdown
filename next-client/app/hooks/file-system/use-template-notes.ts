@@ -45,11 +45,13 @@ export function useTemplateNotes() {
     return (await handle.getFile()).text();
   }, [store]);
 
-  // null = the prompts form was cancelled.
+  // null = the prompts form was cancelled. `selection` fills `{{selection}}`
+  // (inserting over selected text); new notes have none.
   const instantiate = useCallback(async (
     raw: string,
     title: string,
     confirmLabel: string,
+    selection = "",
   ): Promise<InstantiatedTemplate | null> => {
     const { routing, content } = splitTemplate(raw);
     const routingText = [routing.targetFolder ?? "", routing.fileName ?? ""].join("\n");
@@ -63,7 +65,7 @@ export function useTemplateNotes() {
     const clipboard = usesToken(content, "clipboard") || usesToken(routingText, "clipboard")
       ? await readClipboard()
       : "";
-    const context: TemplateContext = { now: new Date(), title, clipboard, prompts };
+    const context: TemplateContext = { now: new Date(), title, clipboard, prompts, selection };
     const expandValue = (value: string | undefined) =>
       value === undefined ? undefined : expandTemplate(value, context).text;
     return {

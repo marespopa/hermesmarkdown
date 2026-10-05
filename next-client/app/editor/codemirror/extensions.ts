@@ -22,6 +22,7 @@ import { noteCalcExtension } from "./note-calc";
 import { createSlashMenuSource, SlashMenuCallbacks } from "./slash-menu";
 import { createTemplateFieldSource } from "./template-field-completion";
 import { templateFieldPills } from "./template-field-pills";
+import { templateBlanks } from "./template-blanks";
 import { createWikiLinkTriggerPlugin, WikiLinkTriggerCallback } from "./wikilink-trigger";
 import {
   tableTabCommand,
@@ -116,6 +117,9 @@ export function buildExtensions(opts: BuildExtensionsOptions): Extension[] {
       { key: "Mod-Enter", run: tableInsertRowCommand },
       { key: "Mod-Shift-Backspace", run: tableDeleteRowCommand },
     ]),
+    // Tab / Shift-Tab between template blanks, after the table bindings so a
+    // table cell keeps its own Tab.
+    templateBlanks,
     keymap.of([...formatKeymap, ...historyKeymap, ...defaultKeymap]),
     EditorView.editable.of(!opts.readOnly),
     EditorView.domEventHandlers({

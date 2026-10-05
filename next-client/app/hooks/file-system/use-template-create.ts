@@ -30,7 +30,7 @@ const BLANK_NOTE: ExpandedTemplate = { text: "\n", cursor: null };
 const joinPath = (folder: string, name: string) => (folder ? `${folder}/${name}` : name);
 
 // Fresh handle for a vault path, or null when it doesn't exist.
-async function findExisting(vaultHandle: FileSystemDirectoryHandle, path: string) {
+export async function findExisting(vaultHandle: FileSystemDirectoryHandle, path: string) {
   try {
     return await resolveFileHandleAtPath(vaultHandle, path);
   } catch (err: any) {

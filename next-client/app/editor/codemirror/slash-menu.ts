@@ -13,6 +13,7 @@ import {
   AI_CHAT_SENTINEL,
   VAULT_TEMPLATE_SENTINEL,
   TEMPLATE_FIELD_SENTINEL,
+  SAVE_AS_TEMPLATE_SENTINEL,
   CURSOR_SENTINEL,
   CODE_BLOCK_TEMPLATE_CONTENT,
   MARK_SENSITIVE_SENTINEL,
@@ -27,9 +28,10 @@ import { clearSensitiveMarkers, isSensitiveContent } from "@/app/utils/note-priv
 // migration). Frontmatter wizard, Link/WikiLink/Date/Table sentinels are.
 // The vault Template entry is added only when the editor can insert one, and
 // Template field only while editing a template.
-const AVAILABLE_TEMPLATES = TEMPLATES.filter((t) => !t.aiOnly && !t.vaultOnly && !t.templateOnly);
+const AVAILABLE_TEMPLATES = TEMPLATES.filter((t) => !t.aiOnly && !t.vaultOnly && !t.templateOnly && !t.saveTemplateOnly);
 const VAULT_TEMPLATE_ENTRIES = TEMPLATES.filter((t) => t.content === VAULT_TEMPLATE_SENTINEL);
 const TEMPLATE_FIELD_ENTRIES = TEMPLATES.filter((t) => t.templateOnly);
+const SAVE_TEMPLATE_ENTRIES = TEMPLATES.filter((t) => t.saveTemplateOnly);
 
 export interface SlashMenuCallbacks {
   onOpenLinkDialog: (range: { from: number; to: number }) => void;
@@ -41,8 +43,10 @@ export interface SlashMenuCallbacks {
   onInsertVaultTemplate?: () => void;
   /** Opens the template field menu; set only while the note is a template. */
   onInsertTemplateField?: () => void;
-  /** "Ask a question…" in the field menu: the question to ask, or null. */
-  onAskTemplateQuestion?: () => Promise<string | null>;
+  /** "Ask a question…" / "Blank to fill in…" in the field menu: the name, or null. */
+  onAskTemplateQuestion?: (kind: "question" | "blank") => Promise<string | null>;
+  /** Saves the note as a template; set with a vault, outside template notes. */
+  onSaveAsTemplate?: () => void;
   onFrontmatterWizard: () => void;
   onCodeBlockInserted: (pos: number) => void;
 }
@@ -175,6 +179,11 @@ export function applyTemplate(
     callbacks.onInsertVaultTemplate?.();
     return;
   }
+  if (content === SAVE_AS_TEMPLATE_SENTINEL) {
+    view.dispatch({ changes: { from, to, insert: "" }, userEvent: "input.replace.template" });
+    callbacks.onSaveAsTemplate?.();
+    return;
+  }
   if (content === TEMPLATE_FIELD_SENTINEL) {
     view.dispatch({ changes: { from, to, insert: "" }, userEvent: "input.replace.template" });
     callbacks.onInsertTemplateField?.();
@@ -229,6 +238,7 @@ export function createSlashMenuSource(callbacksRef: { current: SlashMenuCallback
       ...AVAILABLE_TEMPLATES,
       ...(callbacksRef.current.onInsertVaultTemplate ? VAULT_TEMPLATE_ENTRIES : []),
       ...(callbacksRef.current.onInsertTemplateField ? TEMPLATE_FIELD_ENTRIES : []),
+      ...(callbacksRef.current.onSaveAsTemplate ? SAVE_TEMPLATE_ENTRIES : []),
       ...(callbacksRef.current.onOpenAIChat ? TEMPLATES.filter((template) => template.content === AI_CHAT_SENTINEL) : []),
     ];
     // Offer only the privacy commands that would change this note.

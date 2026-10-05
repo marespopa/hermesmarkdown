@@ -70,6 +70,16 @@ describe("createTemplateFieldSource", () => {
     expect(view.state.doc.toString()).toBe("Owner: ");
   });
 
+  it("names a blank from the dialog", async () => {
+    const callbacks = { onInsertTemplateField: vi.fn(), onAskTemplateQuestion: vi.fn().mockResolvedValue("Task 1") };
+    const view = pick("- {{", "Blank to fill in…", { callbacks });
+    document.body.appendChild(view.dom);
+    await flush();
+    expect(callbacks.onAskTemplateQuestion).toHaveBeenCalledWith("blank");
+    expect(view.state.doc.toString()).toBe("- {{Task_1}}");
+    view.dom.remove();
+  });
+
   it("leaves {{prompt:}} to fill in without a dialog", () => {
     const view = pick("Owner: {{", "Ask a question…");
     expect(view.state.doc.toString()).toBe("Owner: {{prompt:}}");

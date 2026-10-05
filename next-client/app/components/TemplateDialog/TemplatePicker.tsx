@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { HiOutlineDocument } from "react-icons/hi";
+import { HiOutlineDocument, HiOutlinePencil } from "react-icons/hi";
 import DialogModal from "@/app/components/DialogModal";
 import Button from "@/app/components/Button";
 import { BareInput } from "@/app/components/Input";
@@ -34,6 +34,8 @@ interface TemplatePickerProps<T extends TemplatePickerEntry> {
    * get a structure summary and the picker shows a preview pane.
    */
   bodies?: Record<string, string | null>;
+  /** Opens a template to edit it (pencil on hover, ⌘/Ctrl+E on the highlighted row). */
+  onEdit?: (entry: T) => void;
   onPick: (value: T | "blank") => void;
   onCancel: () => void;
 }
@@ -47,6 +49,7 @@ const SHORTCUT_COUNT = 9;
 // entry's description, else its structure, else its path). With `bodies`,
 // a read-only preview of the highlighted template sits beside the list (from
 // 640px). ↑/↓ move, Enter picks, ⌘/Ctrl+1…9 pick a row directly, Esc cancels.
+// With `onEdit`, each template row has an Edit button (and ⌘/Ctrl+E).
 export default function TemplatePicker<T extends TemplatePickerEntry>({
   isOpen,
   title,
@@ -54,6 +57,7 @@ export default function TemplatePicker<T extends TemplatePickerEntry>({
   folder,
   includeBlank,
   bodies,
+  onEdit,
   onPick,
   onCancel,
 }: TemplatePickerProps<T>) {
@@ -91,6 +95,10 @@ export default function TemplatePicker<T extends TemplatePickerEntry>({
     if (digit && (e.metaKey || e.ctrlKey)) {
       e.preventDefault();
       pick(rows[digit - 1]);
+    } else if (onEdit && e.key.toLowerCase() === "e" && (e.metaKey || e.ctrlKey)) {
+      const row = rows[highlight];
+      e.preventDefault();
+      if (row?.kind === "template") onEdit(row.entry);
     } else if (e.key === "ArrowDown" || e.key === "ArrowUp") {
       e.preventDefault();
       if (rows.length === 0) return;
@@ -150,8 +158,8 @@ export default function TemplatePicker<T extends TemplatePickerEntry>({
                   <p className="px-3 py-2 text-ui-footnote text-fg-muted">No matching templates</p>
                 )}
                 {rows.map((row, index) => (
+                  <div key={row.kind === "blank" ? "__blank__" : pickerEntryKey(row.entry)} className="group relative">
                   <Button
-                    key={row.kind === "blank" ? "__blank__" : pickerEntryKey(row.entry)}
                     id={`template-row-${index}`}
                     variant="menu-item"
                     role="option"
@@ -160,7 +168,7 @@ export default function TemplatePicker<T extends TemplatePickerEntry>({
                     title={row.kind === "template" ? row.entry.path : undefined}
                     onClick={() => pick(row)}
                     onMouseEnter={() => setHighlight(index)}
-                    className={`min-h-11 text-left ${
+                    className={`min-h-11 text-left ${onEdit && row.kind === "template" ? "pr-12" : ""} ${
                       index === highlight ? "bg-paper-softgray dark:bg-paper-dark-surface" : ""
                     }`}
                   >
@@ -178,11 +186,27 @@ export default function TemplatePicker<T extends TemplatePickerEntry>({
                       )}
                     </span>
                     {index < SHORTCUT_COUNT && (
-                      <kbd aria-hidden className="ml-auto hidden shrink-0 font-sans text-[11px] text-fg-faint sm:inline">
+                      <kbd
+                        aria-hidden
+                        className={`ml-auto hidden shrink-0 font-sans text-[11px] text-fg-faint sm:inline ${onEdit && row.kind === "template" ? "sm:group-hover:invisible" : ""}`}
+                      >
                         {mod}{index + 1}
                       </kbd>
                     )}
                   </Button>
+                  {onEdit && row.kind === "template" && (
+                    <Button
+                      variant="unstyled"
+                      onClick={() => onEdit(row.entry)}
+                      aria-label={`Edit template ${row.entry.name}`}
+                      title={`Edit template (${mod}E)`}
+                      tabIndex={-1}
+                      className="absolute right-1 top-1/2 inline-flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-lg text-fg-faint transition-opacity duration-150 hover:bg-paper-softgray hover:text-fg sm:opacity-0 sm:group-hover:opacity-100 dark:hover:bg-paper-dark-surface"
+                    >
+                      <HiOutlinePencil size={15} aria-hidden />
+                    </Button>
+                  )}
+                  </div>
                 ))}
               </div>
               {showPreview && (

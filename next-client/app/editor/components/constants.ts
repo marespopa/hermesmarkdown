@@ -118,6 +118,7 @@ export const TASK_EDITOR_SENTINEL = "__OPEN_TASK_EDITOR__";
 export const AI_CHAT_SENTINEL = "__OPEN_AI_CHAT__";
 export const VAULT_TEMPLATE_SENTINEL = "__OPEN_VAULT_TEMPLATE__";
 export const TEMPLATE_FIELD_SENTINEL = "__OPEN_TEMPLATE_FIELD__";
+export const SAVE_AS_TEMPLATE_SENTINEL = "__SAVE_AS_TEMPLATE__";
 export const MARK_SENSITIVE_SENTINEL = "__MARK_SENSITIVE__";
 export const MARK_PRIVATE_SENTINEL = "__MARK_PRIVATE__";
 export const MARK_PUBLIC_SENTINEL = "__MARK_PUBLIC__";
@@ -140,6 +141,8 @@ export interface Template {
   vaultOnly?: boolean;
   /** Only shown while editing a template (onInsertTemplateField). */
   templateOnly?: boolean;
+  /** Only shown when the note can be saved as a template (onSaveAsTemplate). */
+  saveTemplateOnly?: boolean;
 }
 
 export const TEMPLATES: Template[] = [
@@ -186,6 +189,13 @@ export const TEMPLATES: Template[] = [
     description: "Add a field like {{date}} or {{prompt:Owner}} to this template",
     content: TEMPLATE_FIELD_SENTINEL,
     templateOnly: true,
+  },
+  {
+    label: "Save as template",
+    icon: "⇪",
+    description: "Save this note as a template you can start other notes from",
+    content: SAVE_AS_TEMPLATE_SENTINEL,
+    saveTemplateOnly: true,
   },
   // --- AI ---
   {

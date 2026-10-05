@@ -16,10 +16,17 @@ function makeView(doc: string, caret = 0) {
 }
 
 describe("collectTemplateFields", () => {
-  it("finds known fields with plain names and skips unknown ones", () => {
-    expect(collectTemplateFields("{{date}} {{author}} {{ prompt:Owner }}")).toEqual([
-      { from: 0, to: 8, label: "Today's date" },
-      { from: 20, to: 38, label: "Ask: Owner" },
+  it("names fields, questions and blanks in plain words, skipping non-fields", () => {
+    expect(collectTemplateFields("{{date}} {{author}} {{ prompt:Owner }} {{two words}}")).toEqual([
+      { from: 0, to: 8, label: "Today's date", kind: "field" },
+      { from: 9, to: 19, label: "Fill in: Author", kind: "blank" },
+      { from: 20, to: 38, label: "Ask: Owner", kind: "ask" },
+    ]);
+  });
+
+  it("keeps only blanks outside template notes", () => {
+    expect(collectTemplateFields("{{date}} {{task_1}}", { blanksOnly: true })).toEqual([
+      { from: 9, to: 19, label: "Task 1", kind: "blank" },
     ]);
   });
 });

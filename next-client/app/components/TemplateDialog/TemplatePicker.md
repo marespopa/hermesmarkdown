@@ -27,5 +27,6 @@ With `bodies`, the dialog widens and a read-only [preview](TemplatePreview.md) o
 | folder | `string` | | Templates folder in use, for the empty state |
 | includeBlank | `boolean` | | Show "Blank note" first |
 | bodies? | `Record<string, string \| null>` | | Raw text per entry (`pickerEntryKey`: path, else name; null while loading). Turns on summaries and the preview pane |
+| onEdit? | `(entry: T) => void` | | Edit a template: a pencil on each template row (on hover from 640px, always on touch) and ⌘/Ctrl+E on the highlighted row |
 | onPick | `(value: T \| "blank") => void` | | Picked row |
 | onCancel | `() => void` | | Esc / Cancel |

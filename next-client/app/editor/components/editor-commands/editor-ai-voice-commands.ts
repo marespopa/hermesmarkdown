@@ -106,7 +106,7 @@ export function buildEditorAiVoiceCommandGroups(context: EditorCommandContext) {
   // need the editor's template picker / a template note); "New note from
   // template…" covers the palette.
   const templates: Command[] = TEMPLATES
-    .filter((template) => !template.aiOnly && !template.vaultOnly && !template.templateOnly)
+    .filter((template) => !template.aiOnly && !template.vaultOnly && !template.templateOnly && !template.saveTemplateOnly)
     .map((template) => ({
       id: `insert-${template.label.toLowerCase().replace(/\s+/g, "-")}`,
       label: `Insert: ${template.label}`,

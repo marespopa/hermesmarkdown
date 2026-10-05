@@ -62,7 +62,7 @@ describe("useVaultTemplateInsert", () => {
     const { view, insert } = setup("  \n");
     await act(() => insert());
 
-    expect(instantiate).toHaveBeenCalledWith("raw", "Auth", "Insert");
+    expect(instantiate).toHaveBeenCalledWith("raw", "Auth", "Insert", "");
     expect(view.state.doc.toString()).toBe(`  \n${EXPANDED.text}`);
     expect(view.state.selection.main.head).toBe(3 + EXPANDED.cursor);
   });
@@ -89,13 +89,13 @@ describe("useVaultTemplateInsert", () => {
     await act(() => insert({ name: "Spec", body: "# {{title}}" }));
 
     expect(readTemplate).not.toHaveBeenCalled();
-    expect(instantiate).toHaveBeenCalledWith("# {{title}}", "Auth", "Insert");
+    expect(instantiate).toHaveBeenCalledWith("# {{title}}", "Auth", "Insert", "");
   });
 
   it("uses an empty title in the draft", async () => {
     const { insert } = setup("", "draft");
     await act(() => insert());
-    expect(instantiate).toHaveBeenCalledWith("raw", "", "Insert");
+    expect(instantiate).toHaveBeenCalledWith("raw", "", "Insert", "");
   });
 
   it("inserts nothing when the picker is cancelled", async () => {

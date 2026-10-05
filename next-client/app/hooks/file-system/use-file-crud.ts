@@ -8,6 +8,7 @@ import { useMoveItem } from "./use-move-item";
 import { useImportItem } from "./use-import-item";
 import { useTemplateNotes } from "./use-template-notes";
 import { useTemplateCreate } from "./use-template-create";
+import { useTemplateSave } from "./use-template-save";
 import { useOpenOrCreateLink } from "./use-open-or-create-link";
 
 interface UseFileCrudProps {
@@ -60,6 +61,7 @@ export function useFileCrud({ scanVault, indexVaultTags, openFile }: UseFileCrud
     openFile,
   });
   const { openOrCreateLink } = useOpenOrCreateLink({ openFile, createNoteFromMissingLink });
+  const saveAsTemplate = useTemplateSave({ scanVault });
 
   return {
     chooseTargetDirectory,
@@ -77,6 +79,7 @@ export function useFileCrud({ scanVault, indexVaultTags, openFile }: UseFileCrud
     createNoteFromMissingLink,
     createNoteFromTemplate,
     createTemplate,
+    saveAsTemplate,
     openOrCreateLink,
   };
 }

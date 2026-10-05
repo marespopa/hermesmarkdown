@@ -159,6 +159,18 @@ describe("createSlashMenuSource", () => {
     expect(callbacks.onInsertVaultTemplate).toHaveBeenCalledOnce();
   });
 
+  it("offers Save as template only when the note can be saved as one", () => {
+    const labels = (callbacks: SlashMenuCallbacks) =>
+      getResult("/save", callbacks).result?.options.map(({ label }) => label) ?? [];
+    const callbacks = { ...makeCallbacks(), onSaveAsTemplate: vi.fn() };
+
+    expect(labels(callbacks)).toContain("Save as template");
+    expect(labels(makeCallbacks())).not.toContain("Save as template");
+    const { view } = applyOption("Body /save", "Save as template", callbacks);
+    expect(view.state.doc.toString()).toBe("Body ");
+    expect(callbacks.onSaveAsTemplate).toHaveBeenCalledOnce();
+  });
+
   it("offers Template field for /field only in a template note", () => {
     const labels = (callbacks: SlashMenuCallbacks) =>
       getResult("/field", callbacks).result?.options.map(({ label }) => label) ?? [];

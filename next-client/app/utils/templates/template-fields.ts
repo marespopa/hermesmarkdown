@@ -1,5 +1,13 @@
 import { TOKEN_DESCRIPTIONS } from "./template-lint";
-import { TEMPLATE_TOKENS, expandTemplate, extractPromptLabels, type TemplateToken } from "./template-tokens";
+import {
+  TEMPLATE_TOKENS,
+  expandTemplate,
+  extractPromptLabels,
+  isBlankToken,
+  isValidToken,
+  parseTemplateToken,
+  type TemplateToken,
+} from "./template-tokens";
 
 // What a template author sees instead of `{{…}}` syntax: plain names for the
 // pills in template notes and for the Add field menu. Built from
@@ -18,17 +26,42 @@ const TOKEN_LABELS: Record<TemplateToken, string> = {
   title: "Note title",
   slug: "Title as file name",
   clipboard: "Clipboard",
+  selection: "Selected text",
   cursor: "Start typing here",
 };
 
-// The plain name of what's inside `{{…}}`, or null for an unknown token.
+const UNIT_NAMES = { d: "day", w: "week", m: "month", y: "year" } as const;
+
+// `task_1` → "Task 1".
+export function humanizeBlank(name: string): string {
+  const words = name.replace(/_+/g, " ").trim();
+  return words.charAt(0).toUpperCase() + words.slice(1);
+}
+
+// A blank's name from what someone typed: "Task 1" → "Task_1".
+export function blankName(text: string): string {
+  const name = text.trim().replace(/[^\w]+/g, "_").replace(/^_+|_+$/g, "");
+  return /^\d/.test(name) ? `_${name}` : name;
+}
+
+// The plain name of what's inside `{{…}}`, or null when it's no field.
 export function fieldLabel(token: string): string | null {
   const trimmed = token.trim();
   if (trimmed.startsWith(PROMPT_PREFIX)) {
     const question = trimmed.slice(PROMPT_PREFIX.length).trim();
     return question ? `Ask: ${question}` : null;
   }
-  return (TOKEN_LABELS as Record<string, string>)[trimmed] ?? null;
+  if (isBlankToken(trimmed)) return `Fill in: ${humanizeBlank(parseTemplateToken(trimmed)!.name)}`;
+  if (!isValidToken(trimmed)) return null;
+  const { name, offset, format } = parseTemplateToken(trimmed)!;
+  let label = TOKEN_LABELS[name as TemplateToken];
+  if (offset) {
+    const { amount, unit } = offset;
+    label = amount === 1 && unit === "d" ? "Tomorrow's date"
+      : amount === -1 && unit === "d" ? "Yesterday's date"
+      : `Date ${amount > 0 ? "+" : "−"}${Math.abs(amount)} ${UNIT_NAMES[unit]}${Math.abs(amount) === 1 ? "" : "s"}`;
+  }
+  return format ? `${label} (${format})` : label;
 }
 
 export interface TemplateFieldOption {
@@ -42,8 +75,8 @@ export interface TemplateFieldOption {
   detail: string;
   /** What the field does. */
   info: string;
-  /** "Ask a question…": the label comes from a dialog. */
-  ask?: true;
+  /** The name comes from a dialog: a question, or a blank's name. */
+  ask?: "question" | "blank";
 }
 
 // Questions the doc already asks first (so reusing one is a pick away), then
@@ -77,9 +110,24 @@ export function templateFieldOptions(doc: string, now: Date): TemplateFieldOptio
       insert: "",
       detail: "asked when used",
       info: "Asks for a value each time the template is used, e.g. Owner.",
-      ask: true,
+      ask: "question" as const,
+    },
+    {
+      label: "Blank to fill in…",
+      token: "blank",
+      insert: "",
+      detail: "Tab jumps to it",
+      info: "Stays in the new note as a highlighted blank; Tab jumps between blanks.",
+      ask: "blank" as const,
     },
     ...tokens,
+    {
+      label: "Tomorrow's date",
+      token: "date+1d",
+      insert: "{{date+1d}}",
+      detail: expandTemplate("{{date+1d}}", ctx).text,
+      info: "Date math: {{date+1d}}, {{date-1w}}, {{date+1m}}. Add a format with :, e.g. {{date:dddd D MMMM}}.",
+    },
   ];
 }
 

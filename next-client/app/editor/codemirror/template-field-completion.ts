@@ -1,7 +1,7 @@
 import { startCompletion, type Completion, type CompletionContext, type CompletionResult } from "@codemirror/autocomplete";
 import { EditorSelection } from "@codemirror/state";
 import type { EditorView } from "@codemirror/view";
-import { matchFieldOptions, templateFieldOptions } from "@/app/utils/templates/template-fields";
+import { blankName, matchFieldOptions, templateFieldOptions } from "@/app/utils/templates/template-fields";
 import type { SlashMenuCallbacks } from "./slash-menu";
 
 type FieldCallbacks = Pick<SlashMenuCallbacks, "onInsertTemplateField" | "onAskTemplateQuestion">;
@@ -23,22 +23,37 @@ function insertField(view: EditorView, from: number, to: number, insert: string)
   view.focus();
 }
 
-// "Ask a question…": remove what was typed, ask for the question, then insert
-// `{{prompt:Question}}`. Without a dialog, leaves `{{prompt:}}` to fill in.
-async function insertQuestion(view: EditorView, from: number, to: number, ask?: () => Promise<string | null>) {
+type AskKind = "question" | "blank";
+
+const ASK_FORMS: Record<AskKind, { open: string; token: (answer: string) => string }> = {
+  question: { open: "{{prompt:", token: (answer) => `{{prompt:${answer}}}` },
+  blank: { open: "{{", token: (answer) => `{{${blankName(answer)}}}` },
+};
+
+// "Ask a question…" / "Blank to fill in…": remove what was typed, ask for the
+// name, then insert `{{prompt:Question}}` / `{{name}}`. Without a dialog,
+// leaves the braces with the caret inside to type it.
+async function insertAsked(
+  view: EditorView,
+  from: number,
+  to: number,
+  kind: AskKind,
+  ask?: (kind: AskKind) => Promise<string | null>,
+) {
+  const form = ASK_FORMS[kind];
   if (!ask) {
     view.dispatch({
-      changes: { from, to, insert: "{{prompt:}}" },
-      selection: EditorSelection.cursor(from + "{{prompt:".length),
+      changes: { from, to, insert: `${form.open}}}` },
+      selection: EditorSelection.cursor(from + form.open.length),
       userEvent: "input.complete",
     });
     return;
   }
   view.dispatch({ changes: { from, to, insert: "" }, userEvent: "input.complete" });
-  const question = (await ask())?.replace(/[{}]/g, "").trim();
-  if (!question || !view.dom.isConnected) return;
+  const answer = (await ask(kind))?.replace(/[{}]/g, "").trim();
+  if (!answer || (kind === "blank" && !blankName(answer)) || !view.dom.isConnected) return;
   const at = Math.min(from, view.state.doc.length);
-  insertField(view, at, at, `{{prompt:${question}}}`);
+  insertField(view, at, at, form.token(answer));
 }
 
 // `{{` menu in template notes: every field by its plain name, with today's
@@ -59,7 +74,7 @@ export function createTemplateFieldSource(callbacksRef: { current: FieldCallback
       info: option.info,
       apply: (view, _completion, from, to) => {
         const end = fieldEnd(view, to);
-        if (option.ask) void insertQuestion(view, from, end, callbacksRef.current.onAskTemplateQuestion);
+        if (option.ask) void insertAsked(view, from, end, option.ask, callbacksRef.current.onAskTemplateQuestion);
         else insertField(view, from, end, option.insert);
       },
     }));

@@ -11,17 +11,28 @@ describe("fieldLabel", () => {
     expect(fieldLabel("prompt: Owner ")).toBe("Ask: Owner");
   });
 
-  it("returns null for unknown tokens and empty questions", () => {
-    expect(fieldLabel("author")).toBeNull();
+  it("names blanks, date math and formats", () => {
+    expect(fieldLabel("task_1")).toBe("Fill in: Task 1");
+    expect(fieldLabel("date+1d")).toBe("Tomorrow's date");
+    expect(fieldLabel("date-2w")).toBe("Date −2 weeks");
+    expect(fieldLabel("date:dddd")).toBe("Today's date (dddd)");
+    expect(fieldLabel("selection")).toBe("Selected text");
+  });
+
+  it("returns null for non-fields and empty questions", () => {
+    expect(fieldLabel("two words")).toBeNull();
+    expect(fieldLabel("weekday+1d")).toBeNull();
     expect(fieldLabel("prompt: ")).toBeNull();
   });
 });
 
 describe("templateFieldOptions", () => {
-  it("offers a new question, then every built-in token", () => {
+  it("offers a new question, a blank, every built-in token, then tomorrow", () => {
     const options = templateFieldOptions("", NOW);
-    expect(options[0]).toMatchObject({ label: "Ask a question…", ask: true });
-    expect(options.slice(1).map((o) => o.token)).toEqual([...TEMPLATE_TOKENS]);
+    expect(options[0]).toMatchObject({ label: "Ask a question…", ask: "question" });
+    expect(options[1]).toMatchObject({ label: "Blank to fill in…", ask: "blank" });
+    expect(options.slice(2, -1).map((o) => o.token)).toEqual([...TEMPLATE_TOKENS]);
+    expect(options.at(-1)).toMatchObject({ insert: "{{date+1d}}", detail: "2026-10-06" });
   });
 
   it("puts the doc's questions first, once each", () => {

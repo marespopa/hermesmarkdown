@@ -92,3 +92,11 @@ export function parseMissingLink(link: string): { folder: string | null; baseNam
   const folder = normalizeFolderPath(parts.join("/"));
   return { folder: folder || null, baseName };
 }
+
+// Name suggested when saving a note as a template: its first `# Heading`
+// (fields removed), else `fallback` (the note's title).
+export function suggestTemplateName(text: string, fallback: string): string {
+  const body = text.replace(/^---\r?\n[\s\S]*?\r?\n---(?:\r?\n|$)/, "");
+  const heading = /^#\s+(.+)$/m.exec(body)?.[1].replace(/\{\{[^}]*\}\}/g, "").replace(/\s+/g, " ").trim();
+  return heading || fallback.trim();
+}
