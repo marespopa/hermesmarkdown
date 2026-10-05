@@ -257,8 +257,8 @@ describe("VaultFileTree tree interactions", () => {
   });
 
   it("reveals the active file once, not again each time the file list refreshes", () => {
-    const scrollIntoView = vi.fn();
-    Element.prototype.scrollIntoView = scrollIntoView;
+    // vitest.setup.ts stubs it on HTMLElement.prototype; spy on that.
+    const scrollIntoView = vi.spyOn(HTMLElement.prototype, "scrollIntoView").mockImplementation(() => {});
     const other = { kind: "file", name: "other.md" } as FileSystemFileHandle;
     const files = [{ name: "note.md", path: "note.md", handle: fileHandle }];
     const { props, store, rerender } = renderFiles({ activeFilePath: "note.md", processedFiles: files });
@@ -275,5 +275,6 @@ describe("VaultFileTree tree interactions", () => {
     // Opening another note still reveals it.
     renderWith({ activeFilePath: "other.md", processedFiles: [...refreshed] });
     expect(scrollIntoView).toHaveBeenCalledTimes(2);
+    scrollIntoView.mockRestore();
   });
 });

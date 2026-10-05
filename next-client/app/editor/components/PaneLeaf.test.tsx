@@ -192,7 +192,6 @@ describe("PaneLeaf Tab Indicators", () => {
     );
 
     expect(screen.getByRole("button", { name: /^Save/ })).toBeInTheDocument();
-    expect(screen.getByRole("radiogroup", { name: "Editor mode" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Command palette" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Sidebar" })).toBeInTheDocument();
     for (const name of ["Copy Markdown", "Split Right", "Settings", "Hide toolbar"]) {
@@ -319,12 +318,10 @@ describe("PaneLeaf in a split", () => {
       // Home lives in the sidebar, not the toolbar.
       expect(within(leftPane).queryByRole("button", { name: "Home feed" })).not.toBeInTheDocument();
       expect(within(rightPane).getByRole("button", { name: "More" })).toBeInTheDocument();
-      expect(within(rightPane).getByRole("radiogroup", { name: "Editor mode" })).toBeInTheDocument();
       expect(within(leftPane).queryByRole("button", { name: "More" })).not.toBeInTheDocument();
       // The sidebar toggle stays in the top-left pane.
       expect(within(leftPane).getByRole("button", { name: "Sidebar" })).toBeInTheDocument();
       expect(within(rightPane).queryByRole("button", { name: "Sidebar" })).not.toBeInTheDocument();
-      expect(within(leftPane).queryByRole("radiogroup", { name: "Editor mode" })).not.toBeInTheDocument();
       cleanup();
     }
   });

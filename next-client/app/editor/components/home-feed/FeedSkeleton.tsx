@@ -9,7 +9,7 @@ export default function FeedSkeleton({ rows = 3 }: { rows?: number }) {
     <div aria-hidden="true" data-testid="feed-skeleton" className="-mx-3 flex flex-col motion-safe:animate-pulse">
       <span className="mx-3 mb-2.5 mt-1 block h-3 w-16 rounded bg-surface-raised" />
       {Array.from({ length: rows }, (_, index) => (
-        <span key={index} className="block px-3 py-2.5">
+        <span key={index} data-skeleton-row className="block px-3 py-2.5">
           <span className="block h-3.5 w-1/2 rounded bg-surface-raised" />
           <span className="mt-2.5 block space-y-2">
             <span className="block h-2.5 w-11/12 rounded bg-surface-raised" />

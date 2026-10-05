@@ -3,13 +3,16 @@ import { act, renderHook } from "@testing-library/react";
 import { EditorState } from "@codemirror/state";
 import { EditorView } from "@codemirror/view";
 import { createStore, Provider } from "jotai";
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import { frontmatterCollapse, isFrontmatterFolded } from "../codemirror/frontmatter-fold";
 import { useCodeMirrorFrontmatterFold } from "./use-codemirror-frontmatter-fold";
 
 const doc = ["---", "title: Note", "---", "", "Body"].join("\n");
 
 describe("useCodeMirrorFrontmatterFold", () => {
+  // The new-note default persists in localStorage; each test starts from "expanded".
+  beforeEach(() => localStorage.clear());
+
   it("collapses and expands a note in every pane showing it", () => {
     const wrapper = freshStore();
     const a = openPane("note.md", wrapper);

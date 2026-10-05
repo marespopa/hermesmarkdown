@@ -218,21 +218,21 @@ describe("WelcomeWizard", () => {
     // First-run onboarding starts at Medium.
     expect(fontSize).toHaveValue("17px");
 
-    fireEvent.change(fontSize, { target: { value: "20px" } });
+    fireEvent.change(fontSize, { target: { value: "21px" } });
 
-    expect(screen.getByTestId("font-size-value")).toHaveTextContent("20px");
+    expect(screen.getByTestId("font-size-value")).toHaveTextContent("21px");
   });
 
   it("keeps a text size the user already chose", () => {
-    window.localStorage.setItem("renderedFontSize", JSON.stringify("20px"));
+    window.localStorage.setItem("renderedFontSize", JSON.stringify("21px"));
     render(
-      <TestProvider initialValues={[...defaultInitialValues, [atom_renderedFontSize, "20px"]]}>
+      <TestProvider initialValues={[...defaultInitialValues, [atom_renderedFontSize, "21px"]]}>
         <WelcomeWizard initialStep={4} />
         <FontSizeValue />
       </TestProvider>
     );
 
-    expect(screen.getByTestId("font-size-value")).toHaveTextContent("20px");
+    expect(screen.getByTestId("font-size-value")).toHaveTextContent("21px");
   });
 
   it("lets the user turn on flow mode", () => {

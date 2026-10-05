@@ -34,6 +34,7 @@ vi.mock("@/app/atoms/atoms", async (importOriginal) => {
 });
 
 import { useAtom } from "jotai";
+import { UI_FONT_STACK } from "@/app/atoms/ui-atoms";
 
 // Helper: switch to the "Editor" category so its controls render.
 // The page has two "Editor" texts: the back-button breadcrumb and the nav item.
@@ -82,9 +83,7 @@ describe("SettingsPage", () => {
 
     render(<SettingsPage />);
     fireEvent.click(screen.getByText("Inter"));
-    expect(setEditorFontFamily).toHaveBeenCalledWith(
-      "var(--font-inter), Inter, ui-sans-serif, sans-serif",
-    );
+    expect(setEditorFontFamily).toHaveBeenCalledWith(UI_FONT_STACK);
   });
 
   it("renders editor settings options", () => {

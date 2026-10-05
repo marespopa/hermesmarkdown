@@ -262,7 +262,7 @@ describe("HomeFeed", () => {
 
   it("shows three skeleton rows instead of the start prompt while the vault loads", () => {
     renderFeed({}, "", { status: "compiling", count: 0 });
-    expect(screen.getByTestId("feed-skeleton").children).toHaveLength(3);
+    expect(screen.getByTestId("feed-skeleton").querySelectorAll("[data-skeleton-row]")).toHaveLength(3);
     expect(screen.queryByRole("button", { name: "Start writing" })).not.toBeInTheDocument();
   });
 
