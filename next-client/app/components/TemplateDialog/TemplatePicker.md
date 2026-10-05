@@ -1,6 +1,6 @@
 # TemplatePicker
 
-Description: Modal list of vault templates. A search field (focused on open) filters by a case-insensitive substring of the name. ↑/↓ move the highlight, Enter picks, clicking a row picks, Esc or Cancel cancels. Rows show the name with the template's path as faint detail and are at least 44 px high, so the same modal works on mobile. With `includeBlank`, a "Blank note" row comes first (missing-link creation). With no templates and no Blank row, it shows "No templates in `<folder>/`" and a hint.
+Description: Modal list of vault templates, or of starters for "New template…" (any `{ name, path?, description? }`; generic over the entry type, so `onPick` returns the entry it was given). A search field (focused on open) filters by a case-insensitive substring of the name. ↑/↓ move the highlight, Enter picks, clicking a row picks, Esc or Cancel cancels. Rows show the name with the entry's description (starters) or path (templates) as faint detail and are at least 44 px high, so the same modal works on mobile. With `includeBlank`, a "Blank note" row comes first (missing-link creation). With no templates and no Blank row, it shows "No templates in `<folder>/`" and a hint.
 
 ## Local State & Storage
 - State: search query and highlighted row index.
@@ -21,8 +21,8 @@ Description: Modal list of vault templates. A search field (focused on open) fil
 |---|---|---|---|
 | isOpen | `boolean` | | Visibility |
 | title | `string` | | Dialog heading |
-| templates | `TemplateEntry[]` | | Sorted templates (`atom_templates`) |
+| templates | `T[]` (`TemplatePickerEntry`) | | Sorted templates (`atom_templates`) or `TEMPLATE_STARTERS` |
 | folder | `string` | | Templates folder in use, for the empty state |
 | includeBlank | `boolean` | | Show "Blank note" first |
-| onPick | `(value: TemplateEntry \| "blank") => void` | | Picked row |
+| onPick | `(value: T \| "blank") => void` | | Picked row |
 | onCancel | `() => void` | | Esc / Cancel |

@@ -5,9 +5,10 @@ import { useAtomValue } from "jotai";
 import { atom_templateDialog, atom_templates, atom_templatesFolder } from "@/app/atoms/template-atoms";
 import TemplatePicker from "./TemplatePicker";
 import TemplatePromptForm from "./TemplatePromptForm";
+import { TEMPLATE_STARTERS } from "@/app/utils/templates/template-starter";
 
-// Renders the open template request (useTemplateDialog): the picker or the
-// prompts form. Mounted once, next to GlobalDialog.
+// Renders the open template request (useTemplateDialog): the template
+// picker, the starter picker or the prompts form. Mounted once, next to GlobalDialog.
 export default function TemplateDialogHost() {
   const request = useAtomValue(atom_templateDialog);
   const templates = useAtomValue(atom_templates);
@@ -30,6 +31,21 @@ export default function TemplateDialogHost() {
         folder={folder}
         includeBlank={request.includeBlank}
         onPick={(value) => request.resolve(value)}
+        onCancel={() => request.resolve(null)}
+      />
+    );
+  }
+
+  if (request.kind === "starter") {
+    return (
+      <TemplatePicker
+        key={key}
+        isOpen
+        title="New template"
+        templates={TEMPLATE_STARTERS}
+        folder={folder}
+        includeBlank={false}
+        onPick={(value) => request.resolve(value === "blank" ? null : value)}
         onCancel={() => request.resolve(null)}
       />
     );

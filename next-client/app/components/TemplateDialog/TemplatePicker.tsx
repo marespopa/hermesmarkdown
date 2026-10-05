@@ -4,26 +4,32 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import DialogModal from "@/app/components/DialogModal";
 import Button from "@/app/components/Button";
 import { BareInput } from "@/app/components/Input";
-import type { TemplateEntry } from "@/app/utils/templates/template-registry";
-
 export const BLANK_NOTE_LABEL = "Blank note";
 
-interface TemplatePickerProps {
+/** A vault template ({ name, path }) or a starter ({ name, description }). */
+export interface TemplatePickerEntry {
+  name: string;
+  path?: string;
+  description?: string;
+}
+
+interface TemplatePickerProps<T extends TemplatePickerEntry> {
   isOpen: boolean;
   title: string;
-  templates: TemplateEntry[];
+  templates: T[];
   /** Templates folder in use, for the empty state. */
   folder: string;
   includeBlank: boolean;
-  onPick: (value: TemplateEntry | "blank") => void;
+  onPick: (value: T | "blank") => void;
   onCancel: () => void;
 }
 
-type Row = { kind: "blank" } | { kind: "template"; entry: TemplateEntry };
+type Row<T> = { kind: "blank" } | { kind: "template"; entry: T };
 
-// Searchable list of vault templates (plus "Blank note" first when asked).
+// Searchable list of vault templates or starters (plus "Blank note" first
+// when asked); each row shows the entry's description, else its path.
 // Case-insensitive substring filter; ↑/↓ move, Enter picks, Esc cancels.
-export default function TemplatePicker({
+export default function TemplatePicker<T extends TemplatePickerEntry>({
   isOpen,
   title,
   templates,
@@ -31,17 +37,17 @@ export default function TemplatePicker({
   includeBlank,
   onPick,
   onCancel,
-}: TemplatePickerProps) {
+}: TemplatePickerProps<T>) {
   const [query, setQuery] = useState("");
   const [highlight, setHighlight] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const rows = useMemo<Row[]>(() => {
+  const rows = useMemo<Row<T>[]>(() => {
     const q = query.trim().toLowerCase();
     const matches = (label: string) => !q || label.toLowerCase().includes(q);
     return [
-      ...(includeBlank && matches(BLANK_NOTE_LABEL) ? [{ kind: "blank" } as Row] : []),
-      ...templates.filter((t) => matches(t.name)).map((entry) => ({ kind: "template", entry }) as Row),
+      ...(includeBlank && matches(BLANK_NOTE_LABEL) ? [{ kind: "blank" } as Row<T>] : []),
+      ...templates.filter((t) => matches(t.name)).map((entry) => ({ kind: "template", entry }) as Row<T>),
     ];
   }, [includeBlank, query, templates]);
 
@@ -55,7 +61,7 @@ export default function TemplatePicker({
     return () => cancelAnimationFrame(raf);
   }, [isOpen]);
 
-  const pick = (row: Row | undefined) => {
+  const pick = (row: Row<T> | undefined) => {
     if (!row) return;
     onPick(row.kind === "blank" ? "blank" : row.entry);
   };
@@ -106,7 +112,7 @@ export default function TemplatePicker({
               )}
               {rows.map((row, index) => (
                 <Button
-                  key={row.kind === "blank" ? "__blank__" : row.entry.path}
+                  key={row.kind === "blank" ? "__blank__" : row.entry.path ?? row.entry.name}
                   id={`template-row-${index}`}
                   variant="menu-item"
                   role="option"
@@ -122,7 +128,9 @@ export default function TemplatePicker({
                     {row.kind === "blank" ? BLANK_NOTE_LABEL : row.entry.name}
                   </span>
                   {row.kind === "template" && (
-                    <span className="ml-auto truncate text-ui-caption text-fg-faint">{row.entry.path}</span>
+                    <span className="ml-auto truncate text-ui-caption text-fg-faint">
+                      {row.entry.description ?? row.entry.path}
+                    </span>
                   )}
                 </Button>
               ))}

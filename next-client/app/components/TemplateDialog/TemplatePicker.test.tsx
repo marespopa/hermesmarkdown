@@ -50,6 +50,14 @@ describe("TemplatePicker", () => {
     expect(onPick).toHaveBeenCalledWith(templates[1]);
   });
 
+  it("shows a starter's description instead of a path and picks the starter", () => {
+    const starters = [{ name: "Spec", description: "Author, status, summary" }];
+    const { onPick } = renderPicker({ templates: starters, title: "New template" });
+    expect(rowNames()).toEqual(["SpecAuthor, status, summary"]);
+    fireEvent.click(screen.getByText("Spec"));
+    expect(onPick).toHaveBeenCalledWith(starters[0]);
+  });
+
   it("picks a clicked row", () => {
     const { onPick } = renderPicker();
     fireEvent.click(screen.getByText("meeting"));

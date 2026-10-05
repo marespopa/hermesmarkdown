@@ -6,7 +6,7 @@ export const templatesItems: Subsection[] = [
     id: "templates",
     title: "Templates",
     lead: "Templates are ordinary Markdown files in a templates folder. Tokens like {{date}} fill in when you use one.",
-    keywords: "template templates tpl snippet token field add field placeholder prompt cursor clipboard date slug new note missing link target_folder file_name new template create template",
+    keywords: "template templates tpl snippet starter meeting notes spec report token field add field placeholder prompt cursor clipboard date slug new note missing link target_folder file_name new template create template",
     body: (
       <>
         <p>
@@ -17,10 +17,14 @@ export const templatesItems: Subsection[] = [
           any note: changes apply the next time you use it, with no setup and no reload. Templates
           stay plain text, so other Markdown editors read them as normal notes. Their tasks stay
           off the Tasks page, and they don&apos;t appear in the home feed. Run{" "}
-          <strong>New template…</strong> from the command palette to create one: name it, and it
-          opens with a short example showing the frontmatter keys, <code>{"{{title}}"}</code>,{" "}
-          <code>{"{{date}}"}</code>, a prompt and <code>{"{{cursor}}"}</code>. If a template with
-          that name already exists, it opens unchanged.
+          <strong>New template…</strong> from the command palette to create one. Pick a starter:{" "}
+          <strong>Basic</strong> (a short example with <code>{"{{title}}"}</code>,{" "}
+          <code>{"{{date}}"}</code>, a prompt and <code>{"{{cursor}}"}</code>),{" "}
+          <strong>Meeting notes</strong> (agenda, decisions, action items, open questions, next
+          steps), <strong>Spec</strong> (author, status and version in the frontmatter, then summary,
+          objective, prerequisites, design, open questions, references) or <strong>Report</strong>{" "}
+          (summary, findings, next steps, notes). Name it, and it opens ready to edit. If a
+          template with that name already exists, it opens unchanged.
         </p>
         <p>
           While you edit a template, you don&apos;t have to remember any token. Type{" "}
