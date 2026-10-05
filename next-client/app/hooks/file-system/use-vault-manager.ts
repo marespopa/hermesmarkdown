@@ -51,10 +51,17 @@ import {
 } from "./vault-scan";
 import { indexVaultFiles, parseWithWorker, reportCollectProblems } from "./vault-index";
 import { useVaultNavigation } from "./use-vault-navigation";
-import { indexNoteContent, markContentIndexed, needsContentIndex } from "@/app/services/content-search-client";
+import { clearNoteContent, indexNoteContent, markContentIndexed, needsContentIndex } from "@/app/services/content-search-client";
 import { loadMetadataCache, saveMetadataCache } from "@/app/services/metadata-cache";
 import { atom_showHiddenFiles, atom_browserVaultDialogOpen } from "@/app/atoms/ui-atoms";
 import { loadStoredWorkspace } from "./stored-workspace";
+
+// Each scan and each indexing run takes a number; an older one drops its
+// results once a newer one starts, or once another vault is open. Module
+// level, not per hook: useFileSystem (and so this hook) runs in many
+// components, and a run started in one must stop when another opens a vault.
+let scanRun = 0;
+let indexRun = 0;
 
 export function useVaultManager() {
   const [vaultHandle, setVaultHandle] = useAtom(atom_vaultHandle);
@@ -77,8 +84,6 @@ export function useVaultManager() {
   const setIndexerState = useSetAtom(atom_indexerState);
   const setBrowserVaultDialogOpen = useSetAtom(atom_browserVaultDialogOpen);
   const store = useStore();
-  // Each indexing run takes a number; an older run stops once a newer one starts.
-  const indexRunRef = useRef(0);
 
   const detectCloudVault = useCallback(
     (handle: FileSystemDirectoryHandle) => {
@@ -105,14 +110,19 @@ export function useVaultManager() {
     // yet by the time the caller invokes scanVault.
     async (handle: FileSystemDirectoryHandle, showHiddenOverride?: boolean) => {
       const includeHidden = showHiddenOverride ?? showHiddenFiles;
+      const run = ++scanRun;
+      // The store, not this closure: right after a vault opens, it's stale.
+      const vault = store.get(atom_vaultHandle);
       try {
         setFileSystemVersion((v) => v + 1);
-        setVaultFiles(await listDirectoryEntries(vaultHandle, handle, includeHidden));
+        const entries = await listDirectoryEntries(vault, handle, includeHidden);
+        if (run !== scanRun || store.get(atom_vaultHandle) !== vault) return;
+        setVaultFiles(entries);
       } catch (err: any) {
         console.warn("Failed to scan vault:", err);
       }
     },
-    [setVaultFiles, vaultHandle, setFileSystemVersion, showHiddenFiles],
+    [setVaultFiles, store, setFileSystemVersion, showHiddenFiles],
   );
 
   const indexVaultTags = useCallback(
@@ -122,13 +132,15 @@ export function useVaultManager() {
         const handle = passedHandle || vaultHandle;
         if (!handle) return;
 
-        const run = ++indexRunRef.current;
+        const run = ++indexRun;
+        const vault = store.get(atom_vaultHandle);
+        const isCurrent = () => indexRun === run && store.get(atom_vaultHandle) === vault;
         setIndexerState({ status: "compiling", count: 0 });
         const { files: fileHandles, failedSubdirs: subdirFailCount, timedOut } = await collectVaultFiles(handle, includeHidden);
 
         reportCollectProblems(timedOut, subdirFailCount);
 
-        if (indexRunRef.current !== run) return;
+        if (!isCurrent()) return;
 
         // Without a worker, list the notes with no parsed metadata. Fresh
         // vault open replaces metadata entirely; re-index keeps earlier
@@ -155,7 +167,7 @@ export function useVaultManager() {
             return parseWithWorker(worker, files);
           },
           setMetadata: setFileMetadata,
-          isCurrent: () => indexRunRef.current === run,
+          isCurrent,
           needsContent: needsContentIndex,
           indexContent: indexNoteContent,
         });
@@ -163,7 +175,7 @@ export function useVaultManager() {
         void done
           .catch((err) => console.error("Failed to parse vault metadata:", err))
           .finally(() => {
-            if (indexRunRef.current === run) setIndexerState("idle");
+            if (isCurrent()) setIndexerState("idle");
           });
       } catch (err: any) {
         console.error("Failed to index vault tags:", err);
@@ -190,6 +202,8 @@ export function useVaultManager() {
     } = options ?? {};
 
     setFileMetadata({});
+    setVaultFiles([]);
+    clearNoteContent();
     setOpenFiles({});
     setWorkspaceLayout(singlePaneLayout([], null));
     setVaultHandle(handle);
@@ -212,7 +226,7 @@ export function useVaultManager() {
       const vaultName = descriptor.kind === "local" ? handle.name : descriptor.displayName;
       toast.success(isNewVault ? `Vault created: ${vaultName}` : `Vault opened: ${vaultName}`);
     }
-  }, [setVaultHandle, setVaultDescriptor, setCurrentDirectoryHandle, setIsVaultPending, setFileMetadata, setOpenFiles, setWorkspaceLayout, setIsCloudVault, scanVault, indexVaultTags, rebindHandles, detectCloudVault]);
+  }, [setVaultHandle, setVaultDescriptor, setCurrentDirectoryHandle, setIsVaultPending, setFileMetadata, setVaultFiles, setOpenFiles, setWorkspaceLayout, setIsCloudVault, scanVault, indexVaultTags, rebindHandles, detectCloudVault]);
 
   const initGitHubVault = useCallback(async (
     descriptor: GitHubVaultDescriptor,
@@ -292,6 +306,7 @@ export function useVaultManager() {
     setCurrentDirectoryHandle(null);
     setVaultFiles([]);
     setFileMetadata({});
+    clearNoteContent();
     setActiveFileHandle(null);
     setActiveFilePath("draft");
     setIsVaultPending(false);

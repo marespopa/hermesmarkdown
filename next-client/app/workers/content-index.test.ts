@@ -91,3 +91,14 @@ describe("ContentIndex", () => {
     expect(index.capped).toBe(false);
   });
 });
+
+describe("ContentIndex.clear", () => {
+  it("forgets every note, e.g. when another vault opens", () => {
+    const index = new ContentIndex();
+    index.upsert("a.md", "a.md", "alpha", 1);
+    index.upsert("b.md", "b.md", "beta", 2);
+    index.clear();
+    expect(index.size).toBe(0);
+    expect(index.has("a.md")).toBe(false);
+  });
+});

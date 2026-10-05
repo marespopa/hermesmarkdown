@@ -108,6 +108,13 @@ export class ContentIndex {
   }
 
   // Follows a renamed or moved file, or a folder and everything under it.
+  /** Forgets every note (another vault was opened or the vault closed). */
+  clear(): void {
+    this.entries.clear();
+    this.totalChars = 0;
+    this.isCapped = false;
+  }
+
   remap(oldPath: string, newPath: string): void {
     if (!oldPath || !newPath || oldPath === newPath) return;
     const moved: [string, ContentEntry][] = [];
