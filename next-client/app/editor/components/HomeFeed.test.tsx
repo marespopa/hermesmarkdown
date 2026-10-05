@@ -272,7 +272,7 @@ describe("HomeFeed", () => {
       </Provider>,
     );
     const list = screen.getByRole("region", { name: "Recent vaults" });
-    expect(within(list).getByRole("button", { name: /Ideas/ })).toHaveTextContent("Stored in this browser");
+    expect(within(list).getByRole("button", { name: /^Ideas/ })).toHaveTextContent("Stored in this browser");
 
     fireEvent.click(within(list).getByRole("button", { name: "Remove Ideas from recent vaults" }));
     expect(screen.queryByRole("region", { name: "Recent vaults" })).not.toBeInTheDocument();
