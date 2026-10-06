@@ -11,6 +11,7 @@ import {
 import { useDialog } from "../use-dialog";
 import { withRetry } from "./shared";
 import { createUniqueFile } from "./unique-file";
+import { uniqueFolderName } from "./directory-ops";
 import { writeFileContent } from "@/app/services/file-writer";
 
 interface UseCreateItemProps {
@@ -75,9 +76,11 @@ export function useCreateItem({ scanVault, indexVaultTags, openFile }: UseCreate
     return directories.find(({ path }) => `path:${path}` === chosen)?.handle ?? null;
   }, [dialog, listVaultDirectories, vaultHandle]);
 
-  const promptAndCreateFolder = useCallback(async (targetDirectory: FileSystemDirectoryHandle) => {
+  // With `name` (typed in the file tree's inline field) there is no prompt
+  // and no toast; a taken name gets " 2", " 3"… as in Finder.
+  const promptAndCreateFolder = useCallback(async (targetDirectory: FileSystemDirectoryHandle, name?: string) => {
     if (!vaultHandle) return null;
-    const folderName = String(await dialog.prompt("Enter folder name:", "", "New Folder") ?? "").trim();
+    const folderName = String(name ?? await dialog.prompt("Enter folder name:", "", "New Folder") ?? "").trim();
     if (!folderName) return null;
     if (/[\\/]/.test(folderName)) {
       toast.error("Folder names cannot contain slashes.");
@@ -85,7 +88,8 @@ export function useCreateItem({ scanVault, indexVaultTags, openFile }: UseCreate
     }
 
     try {
-      const folder = await withRetry(() => targetDirectory.getDirectoryHandle(folderName, { create: true }));
+      const freeName = name === undefined ? folderName : await uniqueFolderName(targetDirectory, folderName);
+      const folder = await withRetry(() => targetDirectory.getDirectoryHandle(freeName, { create: true }));
       // The root listing alone misses a new folder inside a subfolder, so
       // add it to the walked folders until the next index replaces them.
       let folderPath: string | undefined;
@@ -98,7 +102,7 @@ export function useCreateItem({ scanVault, indexVaultTags, openFile }: UseCreate
         setVaultFolderPaths((prev) => (prev.includes(folderPath) ? prev : [...prev, folderPath]));
       }
       await scanVault(vaultHandle);
-      toast.success(`Created: ${folderName}`);
+      if (name === undefined) toast.success(`Created: ${folderName}`);
       return folder;
     } catch (error) {
       console.error("Failed to create folder:", error);
@@ -229,7 +233,8 @@ export function useCreateItem({ scanVault, indexVaultTags, openFile }: UseCreate
   // A target directory (e.g. from a folder's menu in the file tree) skips the
   // folder picker. The kind check guards against callers that forward an
   // event object as the first argument.
-  const createNewFile = useCallback(async (targetDirectory?: FileSystemDirectoryHandle) => {
+  // `fileName` (from the file tree's inline field) skips the name prompt.
+  const createNewFile = useCallback(async (targetDirectory?: FileSystemDirectoryHandle, fileName?: string) => {
     if (!vaultHandle) return;
 
     const targetDir = targetDirectory?.kind === "directory"
@@ -237,14 +242,16 @@ export function useCreateItem({ scanVault, indexVaultTags, openFile }: UseCreate
       : await chooseTargetDirectory();
     if (!targetDir) return;
 
-    const name = await dialog.prompt("Enter file name:", "Untitled", "New File");
+    const name = typeof fileName === "string"
+      ? fileName
+      : await dialog.prompt("Enter file name:", "Untitled", "New File");
     if (!name?.trim()) return;
 
     return createFile(name.trim(), "", targetDir);
   }, [vaultHandle, chooseTargetDirectory, createFile, dialog]);
 
-  const createFolder = useCallback(async (parentDirectory?: FileSystemDirectoryHandle) => {
-    if (parentDirectory?.kind === "directory") return promptAndCreateFolder(parentDirectory);
+  const createFolder = useCallback(async (parentDirectory?: FileSystemDirectoryHandle, folderName?: string) => {
+    if (parentDirectory?.kind === "directory") return promptAndCreateFolder(parentDirectory, folderName);
     const targetDirectory = await selectTargetDirectory(
       "Choose a destination for the new folder:",
       "New Folder",

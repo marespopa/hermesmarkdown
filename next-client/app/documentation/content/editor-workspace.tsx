@@ -231,7 +231,7 @@ tags: []
         <KV
           rows={[
             { label: "Save", value: "CTRL+S" },
-            { label: "Files", value: "New, import, export, copy, rename, duplicate, move, delete" },
+            { label: "Files", value: "New, import, export, copy, rename, duplicate, move, move to Trash" },
             { label: "Folders", value: "New folder (one level at a time)" },
             { label: "Editing", value: "Undo, redo, focus, formatting, tasks, and templates" },
             { label: "AI", value: "Chat, generate note, repurpose, and selection/document actions" },

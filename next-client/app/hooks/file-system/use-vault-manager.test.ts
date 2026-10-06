@@ -50,7 +50,7 @@ describe("useVaultManager, opening another vault", () => {
     const oldListing = deferred<any[]>();
     vi.mocked(listDirectoryEntries).mockImplementation((_vault, handle) =>
       handle === oldVault ? oldListing.promise : Promise.resolve([{ name: "new.md" }]));
-    vi.mocked(collectVaultFiles).mockResolvedValue({ files: [file("new.md")], failedSubdirs: 0, timedOut: false });
+    vi.mocked(collectVaultFiles).mockResolvedValue({ files: [file("new.md")], folders: [], failedSubdirs: 0, timedOut: false });
 
     let oldScan!: Promise<void>;
     act(() => { oldScan = first.current.scanVault(oldVault); });
@@ -91,7 +91,7 @@ describe("useVaultManager, opening another vault", () => {
     const [, second] = renderTwo(store);
     const listing = deferred<any[]>();
     vi.mocked(listDirectoryEntries).mockReturnValue(listing.promise);
-    vi.mocked(collectVaultFiles).mockResolvedValue({ files: [], failedSubdirs: 0, timedOut: false });
+    vi.mocked(collectVaultFiles).mockResolvedValue({ files: [], folders: [], failedSubdirs: 0, timedOut: false });
 
     let opening!: Promise<void>;
     act(() => { opening = second.current.initVaultFromHandle(dir("new"), { announce: false }); });

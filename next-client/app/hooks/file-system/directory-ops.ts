@@ -23,7 +23,7 @@ export async function emptyDirectory(dirHandle: FileSystemDirectoryHandle): Prom
   }
 }
 
-async function entryExists(dir: FileSystemDirectoryHandle, name: string): Promise<boolean> {
+export async function entryExists(dir: FileSystemDirectoryHandle, name: string): Promise<boolean> {
   try {
     await dir.getDirectoryHandle(name);
     return true;
@@ -116,4 +116,86 @@ export async function moveDirectoryByCopy(
   await emptyDirectory(src);
   await (srcParent as any).removeEntry(src.name);
   return dest;
+}
+
+// Walks a vault-relative folder path ("" = the vault root), creating missing
+// folders when `create` is set.
+export async function directoryAtPath(
+  vault: FileSystemDirectoryHandle,
+  path: string,
+  create = false,
+): Promise<FileSystemDirectoryHandle> {
+  let dir = vault;
+  for (const segment of path.split("/").filter(Boolean)) {
+    dir = await withRetry(() => dir.getDirectoryHandle(segment, { create }));
+  }
+  return dir;
+}
+
+// The file or folder at a vault-relative path, with its parent folder.
+export async function entryAtPath(
+  vault: FileSystemDirectoryHandle,
+  path: string,
+): Promise<{ handle: FileSystemHandle; parent: FileSystemDirectoryHandle }> {
+  const segments = path.split("/").filter(Boolean);
+  const name = segments.pop();
+  if (!name) throw new Error("No item path given");
+  const parent = await directoryAtPath(vault, segments.join("/"));
+  try {
+    return { handle: await parent.getFileHandle(name), parent };
+  } catch (err: any) {
+    if (err?.name !== "TypeMismatchError" && err?.name !== "NotFoundError") throw err;
+    return { handle: await parent.getDirectoryHandle(name), parent };
+  }
+}
+
+// Moves and/or renames the item at `fromPath` to `toPath` (both vault-relative),
+// creating the destination's folders as needed. Never overwrites: throws when
+// `toPath` is taken. Native move first, copy-and-remove as the fallback.
+export async function relocateEntry(
+  vault: FileSystemDirectoryHandle,
+  fromPath: string,
+  toPath: string,
+): Promise<void> {
+  if (fromPath === toPath) return;
+  if (toPath.startsWith(`${fromPath}/`)) throw new Error("Cannot move a folder into itself");
+  const { handle, parent } = await entryAtPath(vault, fromPath);
+  const destSegments = toPath.split("/").filter(Boolean);
+  const name = destSegments.pop()!;
+  const destParent = await directoryAtPath(vault, destSegments.join("/"), true);
+  if (await entryExists(destParent, name)) throw new Error(`"${name}" already exists in this folder`);
+
+  if (typeof (handle as any).move === "function") {
+    try {
+      await (handle as any).move(destParent, name);
+      return;
+    } catch (err) {
+      console.warn("Native move failed, falling back to copy/delete:", err);
+    }
+  }
+  if (handle.kind === "directory") {
+    await moveDirectoryByCopy(handle as FileSystemDirectoryHandle, parent, destParent, name);
+    return;
+  }
+  // Read the bytes before creating the target (see copyInto).
+  const bytes = await (await (handle as FileSystemFileHandle).getFile()).arrayBuffer();
+  const target = await withRetry(() => destParent.getFileHandle(name, { create: true }));
+  try {
+    await withRetry(() => writeFileContent(target, bytes));
+  } catch (err) {
+    try {
+      await (destParent as any).removeEntry(name);
+    } catch (cleanupErr) {
+      console.warn("Failed to remove partial file copy:", cleanupErr);
+    }
+    throw err;
+  }
+  await (parent as any).removeEntry(handle.name);
+}
+
+// A folder name free in `dir`: `name`, else "name 2", "name 3"… (Finder style).
+export async function uniqueFolderName(dir: FileSystemDirectoryHandle, name: string): Promise<string> {
+  let candidate = name;
+  for (let n = 2; await entryExists(dir, candidate); n++) candidate = `${name} ${n}`;
+  return candidate;
 }

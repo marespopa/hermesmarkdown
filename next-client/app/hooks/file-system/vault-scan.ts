@@ -1,3 +1,5 @@
+import { isTrashPath } from "@/app/services/vault-trash";
+
 // Pure vault-walking helpers used by use-vault-manager.ts: directory listing,
 // the recursive markdown walk for indexing, and cloud-folder detection. No
 // React or atom access here, so they can be reasoned about (and tested) alone.
@@ -109,7 +111,9 @@ export async function collectVaultFiles(
   let timedOut = false;
   let finished = false;
 
-  const isIgnoredDir = (name: string) => SKIPPED_DIRS.has(name) || (!includeHidden && name.startsWith("."));
+  // The Trash (.hermes/trash) holds deleted notes: never indexed or listed.
+  const isIgnoredDir = (name: string, path: string) =>
+    SKIPPED_DIRS.has(name) || (!includeHidden && name.startsWith(".")) || isTrashPath(path);
   const isWanted = (name: string, path: string) =>
     !isSecretFile(name) &&
     (name.endsWith(".md") || (includeHidden && path.split("/")[0] === VAULT_DATA_DIR));
@@ -123,7 +127,7 @@ export async function collectVaultFiles(
           files.push({ handle: entry as FileSystemFileHandle, path: currentPath });
         } else if (
           entry.kind === "directory" &&
-          !isIgnoredDir(entry.name) &&
+          !isIgnoredDir(entry.name, currentPath) &&
           !(await isStrayDocumentFolder(entry, path))
         ) {
           if (finished) return;

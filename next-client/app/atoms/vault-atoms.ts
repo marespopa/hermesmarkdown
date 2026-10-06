@@ -20,6 +20,19 @@ export const atom_vaultFiles = atom<FileSystemHandle[]>([]);
 // Every folder the indexing walk found (vault-relative paths), so the file
 // tree can show folders at any depth even when they hold no notes.
 export const atom_vaultFolderPaths = atom<string[]>([]);
+
+// File operations that can be undone (⌘Z in the file tree, or a toast's
+// Undo), newest last. Each group is one user action — a rename, a move or a
+// move to Trash — of one or more items, recorded as vault-relative
+// `from` → `to` paths; undoing moves each item back. Tied to the vault it
+// was recorded in.
+export interface FileUndoGroup {
+  vault: FileSystemDirectoryHandle;
+  label: string;
+  moves: { from: string; to: string }[];
+}
+export const FILE_UNDO_LIMIT = 20;
+export const atom_fileUndoStack = atom<FileUndoGroup[]>([]);
 export const atom_isVaultPending = atom<boolean>(false);
 export const atom_hasLoadedVault = atom<boolean>(false);
 // True until the saved vault's permission is known on startup: the editor

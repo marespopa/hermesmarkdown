@@ -7,23 +7,27 @@ import {
   atom_vaultHandle,
   atom_currentDirectoryHandle,
 } from "@/app/atoms/atoms";
-import { atom_remapVaultPaths } from "@/app/atoms/vault-atoms";
+import { atom_remapVaultPaths, type FileUndoGroup } from "@/app/atoms/vault-atoms";
 import { useDialog } from "../use-dialog";
 import { moveDirectoryByCopy, moveFileByCopy } from "./directory-ops";
 
 interface UseRenameItemProps {
   scanVault: (handle: FileSystemDirectoryHandle) => Promise<void>;
   indexVaultTags: (passedHandle?: FileSystemDirectoryHandle) => Promise<void>;
+  recordUndo: (label: string, moves: FileUndoGroup["moves"]) => FileUndoGroup | null;
 }
 
-export function useRenameItem({ scanVault, indexVaultTags }: UseRenameItemProps) {
+// Renames quietly (the new name shows where the item is); ⌘Z in the file
+// tree takes it back.
+export function useRenameItem({ scanVault, indexVaultTags, recordUndo }: UseRenameItemProps) {
   const [vaultHandle] = useAtom(atom_vaultHandle);
   const [currentDirectoryHandle] = useAtom(atom_currentDirectoryHandle);
   const remapVaultPaths = useSetAtom(atom_remapVaultPaths);
   const dialog = useDialog();
 
   const renameFile = useCallback(
-    async (handle: FileSystemHandle, requestedName?: string, itemPath?: string) => {
+    // Resolves to the item's new vault path once renamed.
+    async (handle: FileSystemHandle, requestedName?: string, itemPath?: string): Promise<string | undefined> => {
       if (!vaultHandle) return;
 
       // Resolve the real parent directory by walking the item's vault path —
@@ -144,13 +148,16 @@ export function useRenameItem({ scanVault, indexVaultTags }: UseRenameItemProps)
       // that includes everything inside it.
       try {
         await remapVaultPaths({ oldPath, newPath });
-        await scanVault(parentDir);
+        recordUndo("Rename", [{ from: oldPath, to: newPath }]);
+        // The whole vault: listing just the parent would replace the root
+        // listing the file tree reads its top-level folders from.
+        await scanVault(vaultHandle);
         indexVaultTags();
-        toast.success("Renamed successfully");
       } catch (err: any) {
         console.error("Rename follow-up failed:", err?.message || err);
         toast.error("Renamed, but the workspace could not be refreshed");
       }
+      return newPath;
     },
     [
       vaultHandle,
@@ -158,6 +165,7 @@ export function useRenameItem({ scanVault, indexVaultTags }: UseRenameItemProps)
       scanVault,
       indexVaultTags,
       remapVaultPaths,
+      recordUndo,
       dialog,
     ],
   );

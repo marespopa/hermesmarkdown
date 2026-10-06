@@ -8,22 +8,30 @@ import {
   atom_currentDirectoryHandle,
   atom_remapVaultPaths,
 } from "@/app/atoms/atoms";
+import type { FileUndoGroup } from "@/app/atoms/vault-atoms";
 import { writeFileContent } from "@/app/services/file-writer";
 import { moveDirectoryByCopy } from "./directory-ops";
+import { showUndoToast } from "./undo-toast";
 
 interface UseMoveItemProps {
   scanVault: (handle: FileSystemDirectoryHandle) => Promise<void>;
   indexVaultTags: (passedHandle?: FileSystemDirectoryHandle) => Promise<void>;
+  recordUndo: (label: string, moves: FileUndoGroup["moves"]) => FileUndoGroup | null;
+  undoFileOperation: (expected?: FileUndoGroup) => Promise<boolean>;
 }
 
-export function useMoveItem({ scanVault, indexVaultTags }: UseMoveItemProps) {
+type MoveOutcome = { oldPath: string | null; newPath: string | null } | null;
+
+export function useMoveItem({ scanVault, indexVaultTags, recordUndo, undoFileOperation }: UseMoveItemProps) {
   const [vaultHandle] = useAtom(atom_vaultHandle);
   const [currentDirectoryHandle] = useAtom(atom_currentDirectoryHandle);
   const remapVaultPaths = useSetAtom(atom_remapVaultPaths);
 
-  const moveItem = useCallback(
-    async (handle: FileSystemHandle, targetDir: FileSystemDirectoryHandle) => {
-      if (!vaultHandle || !targetDir) return;
+  // Moves one item and follows it in tabs and metadata; null when nothing
+  // moved (not found, already there, or into itself). Throws on failure.
+  const moveOne = useCallback(
+    async (handle: FileSystemHandle, targetDir: FileSystemDirectoryHandle): Promise<MoveOutcome> => {
+      if (!vaultHandle) return null;
 
       // Resolve the real parent directory by walking the handle's actual path,
       // rather than assuming it's whatever directory the user last navigated to
@@ -45,7 +53,7 @@ export function useMoveItem({ scanVault, indexVaultTags }: UseMoveItemProps) {
         // fall back to currentDirectoryHandle/vaultHandle above
       }
 
-      const attemptMove = async (retryCount = 0): Promise<void> => {
+      const attemptMove = async (retryCount = 0): Promise<MoveOutcome> => {
         try {
           // 1. Get a FRESH handle from the parent to avoid "state changed" errors.
           //    Fall back to vaultHandle if the item isn't in sourceParent (e.g. user
@@ -72,7 +80,7 @@ export function useMoveItem({ scanVault, indexVaultTags }: UseMoveItemProps) {
           }
           if (!found) {
             toast.error(`Could not find "${handle.name}" — it may have been moved externally.`);
-            return;
+            return null;
           }
 
           // 2. Prevent moving into itself or same directory
@@ -84,7 +92,7 @@ export function useMoveItem({ scanVault, indexVaultTags }: UseMoveItemProps) {
           }
           if (isSameEntry) {
             toast.error("Cannot move item into itself");
-            return;
+            return null;
           }
 
           let isSameDir = false;
@@ -93,7 +101,7 @@ export function useMoveItem({ scanVault, indexVaultTags }: UseMoveItemProps) {
           } catch {
             // Comparison failed
           }
-          if (isSameDir) return;
+          if (isSameDir) return null;
 
           // Vault-relative paths before and after, for tabs/metadata/tree
           let oldPath: string | null = null;
@@ -139,10 +147,7 @@ export function useMoveItem({ scanVault, indexVaultTags }: UseMoveItemProps) {
           // 4. Follow the move in open tabs (keeping unsaved edits, with fresh
           // handles), pane layouts, metadata and the file tree.
           if (oldPath && newPath) await remapVaultPaths({ oldPath, newPath });
-
-          await scanVault(vaultHandle);
-          indexVaultTags();
-          toast.success(`Moved ${handle.name} to ${targetDir.name}`);
+          return { oldPath, newPath };
         } catch (err: any) {
           // If locked or stale, retry a few times
           const isRetryable = 
@@ -160,21 +165,47 @@ export function useMoveItem({ scanVault, indexVaultTags }: UseMoveItemProps) {
         }
       };
 
-      try {
-        await attemptMove();
-      } catch (err: any) {
-        console.error("File System Error:", err?.message || err);
-        toast.error(err.message || "Failed to move item");
-      }
+      return attemptMove();
     },
-    [
-      vaultHandle,
-      currentDirectoryHandle,
-      scanVault,
-      indexVaultTags,
-      remapVaultPaths,
-    ],
+    [vaultHandle, currentDirectoryHandle, remapVaultPaths],
   );
 
-  return { moveItem };
+  // Moves items into `targetDir` as one action: one rescan, one toast and
+  // one Undo for all of them.
+  const moveItems = useCallback(
+    async (handles: FileSystemHandle[], targetDir: FileSystemDirectoryHandle) => {
+      if (!vaultHandle || !targetDir || handles.length === 0) return;
+      const moves: FileUndoGroup["moves"] = [];
+      let movedCount = 0;
+      for (const handle of handles) {
+        try {
+          const outcome = await moveOne(handle, targetDir);
+          if (!outcome) continue;
+          movedCount++;
+          if (outcome.oldPath && outcome.newPath) moves.push({ from: outcome.oldPath, to: outcome.newPath });
+        } catch (err: any) {
+          console.error("File System Error:", err?.message || err);
+          toast.error(err.message || `Failed to move ${handle.name}`);
+        }
+      }
+      if (movedCount === 0) return;
+
+      await scanVault(vaultHandle);
+      indexVaultTags();
+      const group = recordUndo("Move", moves);
+      const message = movedCount === 1
+        ? `Moved ${handles.length === 1 ? handles[0].name : "1 item"} to ${targetDir.name}`
+        : `Moved ${movedCount} items to ${targetDir.name}`;
+      if (group) showUndoToast(message, () => void undoFileOperation(group));
+      else toast.success(message);
+    },
+    [vaultHandle, moveOne, scanVault, indexVaultTags, recordUndo, undoFileOperation],
+  );
+
+  const moveItem = useCallback(
+    (handle: FileSystemHandle, targetDir: FileSystemDirectoryHandle) => moveItems([handle], targetDir),
+    [moveItems],
+  );
+
+  return { moveItem, moveItems };
 }

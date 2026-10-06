@@ -1,6 +1,6 @@
 # DialogModal
 
-Description: Modal dialog shell (built on `OverlayPanel`), plus `GlobalDialog`, the app-wide alert/confirm/prompt/select/new-file dialog driven by an atom.
+Description: Modal dialog shell (built on `OverlayPanel`), plus `GlobalDialog`, the app-wide alert/confirm/prompt/select/new-file dialog driven by an atom. A select dialog's choices render through `SelectOptionList`: past six options it adds a filter field (typing narrows the list, ↑/↓ pick, Return chooses) and the list scrolls within the dialog.
 
 ## Local State & Storage
 - State: `DialogModal` is controlled. `GlobalDialog` reads `atom_globalDialog` (ui-atoms) and `atom_fileMetadata` (for tag suggestions), and holds its input in local useState.

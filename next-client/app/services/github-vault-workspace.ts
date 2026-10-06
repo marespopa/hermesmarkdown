@@ -1,3 +1,4 @@
+import { isTrashPath } from "./vault-trash";
 import { getVaultsDirectory } from "./opfs";
 import { writeFileContent } from "./file-writer";
 
@@ -69,6 +70,7 @@ export function normalizeGitHubVaultPath(path: string): string {
 
 export function isGitHubVaultPathAllowed(path: string): boolean {
   const normalized = normalizeGitHubVaultPath(path);
+  if (isTrashPath(normalized)) return false;
   return normalized.endsWith(".md") || normalized.startsWith(".hermes/");
 }
 

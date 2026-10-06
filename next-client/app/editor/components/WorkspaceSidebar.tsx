@@ -14,6 +14,7 @@ import { PANE_HEADER_HEIGHT, PANE_ICON_SIZE, PANE_SECTION_CLASS } from "./pane-h
 import PaneToolbarButton from "./PaneToolbarButton";
 import { statusDot } from "./PaneTab";
 import VaultFileTree from "./VaultFileTree";
+import type { VaultFileTreeController } from "./vault-tree/tree-model";
 
 const NO_TAGS: string[] = [];
 
@@ -124,7 +125,11 @@ export default function WorkspaceSidebar() {
   const [homeFeedOpen, setHomeFeedOpen] = useAtom(atom_homeFeedOpen);
   const goHome = useSetAtom(atom_goHome);
   const openFiles = useAtomValue(atom_openFiles);
-  const { vaultHandle, openFile, renameFile, deleteFile, duplicateFile, moveItem, createNewFile, createFolder } = useFileSystem();
+  const {
+    vaultHandle, openFile, renameFile, deleteFile, trashItems, duplicateFile, moveItem, moveItems,
+    createNewFile, createFolder, undoFileOperation,
+  } = useFileSystem();
+  const treeController = useRef<VaultFileTreeController | null>(null);
   const { allFiles, folderPaths } = useVaultFileSearch({ selectedTags: NO_TAGS, panel: "files" });
 
   const tabs = getWorkspaceTabs(workspaceLayout.rootContainer);
@@ -146,8 +151,13 @@ export default function WorkspaceSidebar() {
   }, [vaultHandle]);
 
   // The tree shows no root row, so the Files ⋯ menu creates at the vault's
-  // root; a folder's own menu creates inside it.
-  const createAtRoot = (create: (dir: FileSystemDirectoryHandle) => unknown) => {
+  // root, named in place in the tree; a folder's own menu creates inside it.
+  const createAtRoot = (kind: "file" | "folder") => {
+    if (treeController.current) {
+      treeController.current.startCreate(kind, "");
+      return;
+    }
+    const create = kind === "file" ? createNewFile : createFolder;
     if (vaultHandle) void create(vaultHandle);
   };
 
@@ -238,8 +248,8 @@ export default function WorkspaceSidebar() {
           <Section
             title="Files"
             menu={[
-              { label: "New File", icon: <HiOutlineDocumentAdd size={14} className="opacity-80" />, onSelect: () => createAtRoot(createNewFile) },
-              { label: "New Folder", icon: <HiOutlineFolderAdd size={14} className="opacity-80" />, onSelect: () => createAtRoot(createFolder) },
+              { label: "New Note", icon: <HiOutlineDocumentAdd size={14} className="opacity-80" />, onSelect: () => createAtRoot("file") },
+              { label: "New Folder", icon: <HiOutlineFolderAdd size={14} className="opacity-80" />, onSelect: () => createAtRoot("folder") },
             ]}
           >
             <VaultFileTree
@@ -251,7 +261,10 @@ export default function WorkspaceSidebar() {
               }}
               renameFile={renameFile}
               deleteFile={deleteFile}
+              trashItems={trashItems}
               duplicateFile={duplicateFile}
+              undoFileOperation={undoFileOperation}
+              controllerRef={treeController}
               isSearchActive={false}
               highlightQuery=""
               treeView
@@ -261,6 +274,7 @@ export default function WorkspaceSidebar() {
               createNewFile={createNewFile}
               createFolder={createFolder}
               moveItem={moveItem}
+              moveItems={moveItems}
             />
           </Section>
         )}

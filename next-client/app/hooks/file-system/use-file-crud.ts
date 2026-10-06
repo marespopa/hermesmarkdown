@@ -10,6 +10,7 @@ import { useTemplateNotes } from "./use-template-notes";
 import { useTemplateCreate } from "./use-template-create";
 import { useTemplateSave } from "./use-template-save";
 import { useOpenOrCreateLink } from "./use-open-or-create-link";
+import { useFileUndo } from "./use-file-undo";
 
 interface UseFileCrudProps {
   scanVault: (handle: FileSystemDirectoryHandle) => Promise<void>;
@@ -19,24 +20,30 @@ interface UseFileCrudProps {
 
 /**
  * Main hook for File System CRUD operations.
- * Composes specialized hooks for creation, deletion, renaming, moving,
- * importing, and notes created from vault templates.
+ * Composes specialized hooks for creation, deletion (to the vault's Trash),
+ * renaming, moving, importing, notes created from vault templates, and the
+ * undo of renames, moves and moves to Trash.
  */
 export function useFileCrud({ scanVault, indexVaultTags, openFile }: UseFileCrudProps) {
+  const { recordUndo, undoFileOperation } = useFileUndo({ scanVault, indexVaultTags });
+
   const { chooseTargetDirectory, createFile, createWikiLinkFile, createNewFile, createFolder } = useCreateItem({
     scanVault,
     indexVaultTags,
     openFile,
   });
 
-  const { deleteFile } = useDeleteItem({
+  const { deleteFile, trashItems } = useDeleteItem({
     scanVault,
     indexVaultTags,
+    recordUndo,
+    undoFileOperation,
   });
 
   const { renameFile } = useRenameItem({
     scanVault,
     indexVaultTags,
+    recordUndo,
   });
 
   const { duplicateFile } = useDuplicateItem({
@@ -45,9 +52,11 @@ export function useFileCrud({ scanVault, indexVaultTags, openFile }: UseFileCrud
     openFile,
   });
 
-  const { moveItem } = useMoveItem({
+  const { moveItem, moveItems } = useMoveItem({
     scanVault,
     indexVaultTags,
+    recordUndo,
+    undoFileOperation,
   });
 
   const { importFile } = useImportItem({
@@ -70,9 +79,12 @@ export function useFileCrud({ scanVault, indexVaultTags, openFile }: UseFileCrud
     createNewFile,
     createFolder,
     deleteFile,
+    trashItems,
     renameFile,
     duplicateFile,
     moveItem,
+    moveItems,
+    undoFileOperation,
     importFile,
     readTemplate,
     instantiate,

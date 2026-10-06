@@ -1,36 +1,37 @@
 # FileRow
 
-Description: A single file row in the vault tree — file name with search highlighting, optional parent-folder line, list-view layout in the tree (fixed row height from `--list-row`, indented by `depth`, document icon, optional Date Modified / Kind columns), a row action menu (open in pane, rename, duplicate, delete), and drag-to-move support. Also exports `LIST_INDENT_PX`, the per-level indent.
+Description: A single file row — file name with search highlighting, and either a list-view tree row (fixed height from `--list-row`, indented by `depth`, document icon, optional Date Modified / Kind columns, `role="treeitem"`) or a two-line flat search row with the parent folder. Shows selection (accent while the tree is focused, gray otherwise), the keyboard cursor outline, and an `InlineNameField` while being renamed. Its ⋯ button and right-click open the tree's shared menu. Drag source. Also exports `LIST_INDENT_PX`, `selectionClass()` and the `RowEditing` type.
 
 ## Local State & Storage
-- State: Inline-rename draft and menu positioning are local; the open action menu is owned by the parent (`actionMenuOpen`).
-- Persistence: None - transient UI state.
+- State: None; selection, editing and the menu are owned by `VaultFileTree`.
+- Persistence: None.
 
 ## Dependencies
-- Core: `Button`, `react-icons`, `tree-model.ts` (`getEntryPath`).
-- Zero-Cloud: No network or telemetry side effects. File operations run through the passed callbacks.
+- Core: `Button`, `react-icons`, `InlineNameField`, `list-columns.tsx`.
+- Zero-Cloud: No network or telemetry side effects.
 
 ## Quick Usage
 ```tsx
 import { FileRow } from "./vault-tree/FileRow";
 
-<FileRow entry={entry} entryId={id} isActive={false} highlightQuery="" actionMenuOpen={null}
-  setActionMenuOpen={setMenu} openFile={openFile} renameFile={rename} deleteFile={remove} />
+<FileRow entry={entry} entryPath="notes/a.md" isActive={false} highlightQuery=""
+  openFile={openFile} onOpenMenu={(x, y) => openMenu(x, y)} />
 ```
 
 ## Props Overview
 | Prop | Type | Default | Description |
 |---|---|---|---|
-| entry / entryPath? / entryId | `any` / `string` / `string` | | File entry and its identity |
+| entry / entryPath? | `any` / `string` | | File entry and its vault path |
 | isActive | `boolean` | | Highlights the open file |
 | highlightQuery | `string` | | Search text to highlight |
-| actionMenuOpen / setActionMenuOpen | menu state | | Shared row action menu |
-| openFile / openFileInPane? | `(handle, path?) => void` | | Open actions |
-| renameFile / deleteFile / duplicateFile? | handlers | | File actions |
+| openFile | `(handle, path?) => void` | | Opens the note (click with `singleClickOpen`, else double-click) |
+| onOpenMenu | `(x, y) => void` | | ⋯ button and right-click |
 | onClose? | `() => void` | | Called after opening (closes overlays) |
-| singleClickOpen? | `boolean` | `false` | Open on click instead of double-click |
-| hideFolderPath? | `boolean` | | Hides the parent-folder line (tree mode) |
-| depth? | `number` | | Tree depth; set for list-view rows, omitted for the flat search list |
+| singleClickOpen? | `boolean` | `false` | Open on a plain click instead of double-click |
+| hideFolderPath? / depth? | `boolean` / `number` | | Tree rows: no folder line, indented by depth |
 | showColumns? / modifiedAt? | `boolean` / `number` | `false` | Date Modified / Kind columns |
+| isSelected? / isFocused? / treeFocused? | `boolean` | `false` | Selection, keyboard cursor, whether the tree has focus |
+| onSelectClick? | `(mods) => boolean` | | Selection click; returns whether it was a plain click (only then does it open) |
+| editing? | `RowEditing` | | Shows the inline name field |
 | draggable? / onDragStartEntry? / onDragEndEntry? | | | Drag-to-move |
 | onTouchDragStart? / isTouchPressing? / dropFolder? | | | Touch drag (`useTouchTreeDrag`); `dropFolder` is the folder a touch drop on this row goes into (its parent) |

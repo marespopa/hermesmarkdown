@@ -1,13 +1,13 @@
 # TreeNodes
 
-Description: Recursively renders a `TreeNode[]` (from `buildFileTree`) as `FolderRow`s and `FileRow`s, passing each row the continuation flags for its tree gutter. Collapsed folders don't render their children.
+Description: Recursively renders a `TreeNode[]` (from `buildFileTree`) as `FolderRow`s and `FileRow`s. Collapsed folders don't render their children. While a new note or folder is being named, its pending row (icon + `InlineNameField`) shows first in the target folder.
 
 ## Local State & Storage
-- State: None; collapse, active-chain, and drag state come from `VaultFileTree`.
+- State: None; collapse, selection, editing and drag state come from `VaultFileTree`.
 - Persistence: None.
 
 ## Dependencies
-- Core: `FileRow`, `FolderRow`, `tree-model.ts`.
+- Core: `FileRow`, `FolderRow`, `InlineNameField`, `tree-model.ts`.
 - Zero-Cloud: No network or telemetry side effects.
 
 ## Quick Usage
@@ -16,15 +16,16 @@ import { TreeNodes } from "./vault-tree/TreeNodes";
 
 <TreeNodes nodes={tree} level={0} isFolderCollapsed={isCollapsed}
   isActiveAncestor={isActiveAncestor} onToggleFolder={toggle} rowProps={rowProps}
-  draggedEntry={dragged} setDraggedEntry={setDragged} onDropInto={moveInto} folderRowExtras={extras} />
+  folderProps={folderProps} pendingCreate={pending} setDraggedEntry={setDragged}
+  onDragStartFile={startDrag} touchDrag={touchDrag} />
 ```
 
 ## Props Overview
 | Prop | Type | Default | Description |
 |---|---|---|---|
-| nodes / level | `TreeNode[]` / `number` | | Nodes and depth |
+| nodes / level / parentPath? | `TreeNode[]` / `number` / `string` | `""` | Nodes, depth and their folder |
 | isFolderCollapsed / isActiveAncestor / onToggleFolder | functions | | Folder state |
-| rowProps | `(entry) => FileRow props` | | Builds each file row's props |
-| draggedEntry / setDraggedEntry / onDropInto | | | Drag-and-drop |
+| rowProps / folderProps | `(entry) => …` / `(node) => …` | | Per-row props from the tree (selection, editing, menu, drag/drop) |
+| pendingCreate | `PendingCreate \| null` | | The new item being named, and where |
+| setDraggedEntry / onDragStartFile | | | Drag-and-drop |
 | touchDrag | `{ start, isPressing, dropTarget }` | | Touch drag from `useTouchTreeDrag` |
-| folderRowExtras | partial `FolderRowProps` | | Shared folder actions |

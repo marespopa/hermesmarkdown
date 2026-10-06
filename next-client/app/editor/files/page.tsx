@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback } from "react";
+import { useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useAtom, useAtomValue } from "jotai";
 import { HiOutlineArrowLeft, HiOutlineDocumentAdd, HiOutlineFolderAdd, HiOutlineRefresh } from "react-icons/hi";
@@ -11,6 +11,7 @@ import { useFileSystem } from "@/app/hooks/use-file-system";
 import { useVaultFileSearch } from "../hooks/useVaultFileSearch";
 import VaultFileTree from "../components/VaultFileTree";
 import UnifiedSearchInput from "../components/UnifiedSearchInput";
+import type { VaultFileTreeController } from "../components/vault-tree/tree-model";
 
 export default function FilesPage() {
   const router = useRouter();
@@ -20,9 +21,12 @@ export default function FilesPage() {
     createNewFile,
     createFolder,
     deleteFile,
+    trashItems,
     duplicateFile,
     isMounted,
     moveItem,
+    moveItems,
+    undoFileOperation,
     openFile,
     renameFile,
     scanVault,
@@ -45,8 +49,11 @@ export default function FilesPage() {
   } = useVaultFileSearch({ selectedTags, panel: "files" });
   const isFiltered = selectedTags.length > 0 || searchQuery.trim().length > 0;
 
+  const treeController = useRef<VaultFileTreeController | null>(null);
+
   const resolveFolderHandle = useCallback(async (path: string): Promise<FileSystemDirectoryHandle | null> => {
     if (!vaultHandle) return null;
+    if (!path) return vaultHandle;
     let directory = vaultHandle;
     for (const segment of path.split("/")) {
       try {
@@ -65,9 +72,16 @@ export default function FilesPage() {
     void indexVaultTags?.(vaultHandle as any, showHiddenFiles);
   }, [vaultHandle, showHiddenFiles, scanVault, indexVaultTags]);
 
-  const createNote = useCallback(async () => {
-    await createNewFile();
-  }, [createNewFile]);
+  // Named in place in the tree, in the selected folder (or the selected
+  // note's folder, else the root). While a search filters the list, the
+  // folder picker and name prompt are used instead.
+  const startCreate = useCallback((kind: "file" | "folder") => {
+    if (treeController.current && !isFiltered) {
+      treeController.current.startCreate(kind);
+      return;
+    }
+    void (kind === "file" ? createNewFile() : createFolder());
+  }, [isFiltered, createNewFile, createFolder]);
 
   const openSelectedFile = useCallback((handle: FileSystemFileHandle, path?: string) => {
     void openFile(handle, path);
@@ -109,11 +123,11 @@ export default function FilesPage() {
               <HiOutlineRefresh size={15} className={isRefreshing ? "animate-spin" : undefined} />
               <span className="hidden sm:inline">Refresh</span>
             </Button>
-            <Button variant="secondary" onClick={() => void createNote()} className="h-8 px-2.5 text-ui-footnote" aria-label="New note">
+            <Button variant="secondary" onClick={() => startCreate("file")} className="h-8 px-2.5 text-ui-footnote" aria-label="New note">
               <HiOutlineDocumentAdd size={15} />
               <span className="hidden sm:inline">New Note</span>
             </Button>
-            <Button variant="secondary" onClick={() => void createFolder()} className="h-8 px-2.5 text-ui-footnote" aria-label="New folder">
+            <Button variant="secondary" onClick={() => startCreate("folder")} className="h-8 px-2.5 text-ui-footnote" aria-label="New folder">
               <HiOutlineFolderAdd size={15} />
               <span className="hidden sm:inline">New Folder</span>
             </Button>
@@ -147,7 +161,10 @@ export default function FilesPage() {
                 openFile={openSelectedFile}
                 renameFile={renameFile}
                 deleteFile={deleteFile}
+                trashItems={trashItems}
                 duplicateFile={duplicateFile}
+                undoFileOperation={undoFileOperation}
+                controllerRef={treeController}
                 treeView
                 columns
                 folderPaths={isFiltered ? [] : folderPaths}
@@ -155,6 +172,7 @@ export default function FilesPage() {
                 createNewFile={createNewFile}
                 createFolder={createFolder}
                 moveItem={moveItem}
+                moveItems={moveItems}
               />
               {isFiltered && hasMoreResults && (
                 <Button variant="bare" onClick={() => setShowAllResults(true)} className="w-full py-2 text-ui-footnote text-fg-muted hover:text-fg">

@@ -24,9 +24,10 @@ export const vaultGroup: Group = {
           <p>
             Every note is a plain <code>.md</code> file, optionally with a YAML frontmatter block. Open
             the folder in any other editor, sync it with Dropbox or Google Drive, or move it to another
-            machine — nothing about it depends on HermesMarkdown being installed. The only folder
-            HermesMarkdown creates on its own is <code>assets/</code>, for images you paste or drop
-            into a note.
+            machine — nothing about it depends on HermesMarkdown being installed. The only folders
+            HermesMarkdown creates on its own are <code>assets/</code>, for images you paste or drop
+            into a note, and the hidden <code>.hermes/trash/</code>, which holds what you delete
+            for 30 days.
           </p>
           <KV
             rows={[
@@ -43,6 +44,46 @@ export const vaultGroup: Group = {
             every file, and <strong>Import files into vault…</strong> brings a zip or folder into any
             vault.
           </p>
+        </>
+      ),
+    },
+    {
+      id: "organizing-files",
+      title: "Organizing files",
+      lead: "The file tree in the sidebar, the Explorer and the mobile Files panel works like a Finder list: select, drag, rename in place, and undo.",
+      keywords: "folders rename move delete trash undo select drag keyboard shortcuts empty folder",
+      body: (
+        <>
+          <p>
+            Click a row to select it, <strong>CMD/CTRL</strong>-click to add or remove rows, and{" "}
+            <strong>Shift</strong>-click to select a range. Drag a selected row onto a folder to move
+            the whole selection; hovering a closed folder while dragging opens it. Right-click a row
+            (or use its ⋯ button) for its actions, or empty space for <strong>New Note</strong> and{" "}
+            <strong>New Folder</strong>. Empty folders always show, so you can set up a structure
+            before filling it.
+          </p>
+          <p>
+            New notes and folders, and renames, are named right in the list: type, then press{" "}
+            <strong>Return</strong> or click away to keep the name, or <strong>Esc</strong> to back out.
+          </p>
+          <KV
+            rows={[
+              { label: "↑ / ↓", value: "Move the selection (Shift extends it)" },
+              { label: "→ / ←", value: "Open or close a folder; step in or out" },
+              { label: "Return (Mac) / F2", value: "Rename" },
+              { label: "CMD+O or CMD+↓ (Mac) / Enter", value: "Open" },
+              { label: "CMD+Backspace (Mac) / Delete", value: "Move to Trash" },
+              { label: "CMD/CTRL+Z", value: "Undo the last rename, move or move to Trash" },
+              { label: "CMD/CTRL+A", value: "Select all" },
+            ]}
+          />
+          <Callout type="note">
+            Deleting moves notes and folders to the vault&apos;s Trash (<code>.hermes/trash/</code>)
+            instead of erasing them. The toast&apos;s <strong>Undo</strong> or CMD/CTRL+Z in the file
+            tree puts them back; anything in the Trash is removed for good after 30 days. The Trash is
+            never indexed, searched, exported or synced to GitHub. If an item can&apos;t be moved to the
+            Trash, you&apos;re asked before it is deleted permanently.
+          </Callout>
         </>
       ),
     },

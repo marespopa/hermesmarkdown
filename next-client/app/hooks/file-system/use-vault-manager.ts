@@ -56,6 +56,7 @@ import { clearNoteContent, indexNoteContent, markContentIndexed, needsContentInd
 import { loadMetadataCache, saveMetadataCache } from "@/app/services/metadata-cache";
 import { atom_showHiddenFiles, atom_browserVaultDialogOpen } from "@/app/atoms/ui-atoms";
 import { loadStoredWorkspace } from "./stored-workspace";
+import { purgeExpiredTrash } from "./trash-ops";
 
 // Each scan and each indexing run takes a number; an older one drops its
 // results once a newer one starts, or once another vault is open. Module
@@ -225,6 +226,7 @@ export function useVaultManager() {
     await scanVault(handle);
     await indexVaultTags(handle);
     await rebindHandles(handle);
+    void purgeExpiredTrash(handle);
 
     if (announce) {
       const vaultName = descriptor.kind === "local" ? handle.name : descriptor.displayName;
