@@ -1,4 +1,5 @@
 import { withRetry } from "./shared";
+import { isStrayDocumentFolder } from "./vault-scan";
 
 // Creates `<baseName>.md` in `dir`, or `<baseName> (1).md`, `(2)`… when the
 // name is taken. Never overwrites. Returns the new (empty) file's handle.
@@ -51,6 +52,7 @@ export async function listVaultFolders(vaultHandle: FileSystemDirectoryHandle): 
   const walk = async (dir: FileSystemDirectoryHandle, prefix: string) => {
     for await (const entry of (dir as any).values() as AsyncIterable<FileSystemHandle>) {
       if (entry.kind !== "directory" || entry.name.startsWith(".")) continue;
+      if (await isStrayDocumentFolder(entry, prefix)) continue;
       const path = prefix ? `${prefix}/${entry.name}` : entry.name;
       folders.push(path);
       await walk(entry as FileSystemDirectoryHandle, path);
