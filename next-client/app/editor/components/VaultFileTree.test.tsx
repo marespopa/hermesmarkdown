@@ -265,7 +265,7 @@ describe("VaultFileTree tree interactions", () => {
     });
 
     fireEvent.click(screen.getByLabelText("Folder options"));
-    fireEvent.click(screen.getByRole("menuitem", { name: "Rename" }));
+    fireEvent.click(screen.getByRole("menuitem", { name: /^Rename/ }));
     const field = screen.getByLabelText("Folder name") as HTMLInputElement;
     expect(field.value).toBe("Folder");
     fireEvent.change(field, { target: { value: "Archive" } });
@@ -281,12 +281,12 @@ describe("VaultFileTree tree interactions", () => {
     const { props } = renderFiles({ treeView: true });
 
     fireEvent.click(screen.getByLabelText("File options"));
-    fireEvent.click(screen.getByRole("menuitem", { name: "Rename" }));
+    fireEvent.click(screen.getByRole("menuitem", { name: /^Rename/ }));
     fireEvent.keyDown(screen.getByLabelText("Note name"), { key: "Enter" });
     expect(props.renameFile).not.toHaveBeenCalled();
 
     fireEvent.click(screen.getByLabelText("File options"));
-    fireEvent.click(screen.getByRole("menuitem", { name: "Rename" }));
+    fireEvent.click(screen.getByRole("menuitem", { name: /^Rename/ }));
     const field = screen.getByLabelText("Note name");
     fireEvent.change(field, { target: { value: "plan" } });
     fireEvent.blur(field);
