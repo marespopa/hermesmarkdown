@@ -135,6 +135,7 @@ describe("listDirectoryEntries", () => {
 
     const notes = await other.getDirectoryHandle("notes", { create: true });
     await notes.getDirectoryHandle("document", { create: true });
-    expect(names(await listDirectoryEntries(null, notes.asHandle(), false))).toEqual(["document"]);
+    (other as any).resolve = async (handle: unknown) => (handle === notes ? ["notes"] : null);
+    expect(names(await listDirectoryEntries(other.asHandle(), notes.asHandle(), false))).toEqual(["document"]);
   });
 });
