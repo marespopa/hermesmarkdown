@@ -13,6 +13,22 @@ export function isCloudFolderName(name: string): boolean {
   return CLOUD_FOLDER_NAMES.some((cloudName) => lower.includes(cloudName));
 }
 
+// Saving through a picked folder on Chrome for Android can leave an empty
+// `document` folder at the vault root (from the storage URI path it writes
+// through). It is hidden while it holds nothing visible; a `document` folder
+// with notes or subfolders in it is the user's own and always shows.
+export async function isStrayDocumentFolder(entry: FileSystemHandle, parentPath: string): Promise<boolean> {
+  if (parentPath || entry.kind !== "directory" || entry.name !== "document") return false;
+  try {
+    for await (const child of (entry as any).values() as AsyncIterable<FileSystemHandle>) {
+      if (!child.name.startsWith(".")) return false;
+    }
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 // One directory level for the file views: .md files and (non-hidden unless
 // `includeHidden`) folders, sorted by name, each tagged with its vault path.
 export async function listDirectoryEntries(
@@ -36,7 +52,11 @@ export async function listDirectoryEntries(
     (entry as any).path = dirPath ? `${dirPath}/${entry.name}` : entry.name;
     if (entry.kind === "file" && entry.name.endsWith(".md")) {
       entries.push(entry);
-    } else if (entry.kind === "directory" && (includeHidden || !entry.name.startsWith("."))) {
+    } else if (
+      entry.kind === "directory" &&
+      (includeHidden || !entry.name.startsWith(".")) &&
+      !(await isStrayDocumentFolder(entry, dirPath))
+    ) {
       entries.push(entry);
     }
   }

@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
-import { createUniqueFile, ensureVaultFolder, normalizeFolderPath } from "./unique-file";
+import { createUniqueFile, ensureVaultFolder, listVaultFolders, normalizeFolderPath } from "./unique-file";
+import { MemoryDirectoryHandle } from "@/app/services/memory-file-system.test-utils";
 
 function notFound() {
   return Object.assign(new Error("missing"), { name: "NotFoundError" });
@@ -70,5 +71,17 @@ describe("normalizeFolderPath", () => {
     expect(normalizeFolderPath("../../etc")).toBe("etc");
     expect(normalizeFolderPath("a\\b")).toBe("a/b");
     expect(normalizeFolderPath("")).toBe("");
+  });
+});
+
+describe("listVaultFolders", () => {
+  it("leaves out an empty document folder at the vault root but keeps a used one", async () => {
+    const vault = new MemoryDirectoryHandle("vault");
+    await vault.getDirectoryHandle("document", { create: true });
+    await vault.writeText("notes/document/a.md", "x");
+    expect(await listVaultFolders(vault.asHandle())).toEqual(["notes", "notes/document"]);
+
+    await vault.writeText("document/plan.md", "x");
+    expect(await listVaultFolders(vault.asHandle())).toEqual(["document", "notes", "notes/document"]);
   });
 });

@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { MemoryDirectoryHandle } from "@/app/services/memory-file-system.test-utils";
-import { collectVaultFiles, isSecretFile } from "./vault-scan";
+import { collectVaultFiles, isSecretFile, listDirectoryEntries } from "./vault-scan";
 
 async function makeVault() {
   const vault = new MemoryDirectoryHandle("vault");
@@ -108,5 +108,34 @@ describe("isSecretFile", () => {
     expect(isSecretFile(".ENV")).toBe(true);
     expect(isSecretFile("env.md")).toBe(false);
     expect(isSecretFile(".environment.md")).toBe(false);
+  });
+});
+
+describe("listDirectoryEntries", () => {
+  const names = (entries: any[]) => entries.map((entry) => entry.name);
+
+  it("hides an empty or dotfile-only document folder at the vault root", async () => {
+    const vault = new MemoryDirectoryHandle("vault");
+    await vault.writeText("a.md", "x");
+    await vault.getDirectoryHandle("document", { create: true });
+    expect(names(await listDirectoryEntries(vault.asHandle(), vault.asHandle(), false))).toEqual(["a.md"]);
+
+    await vault.writeText("document/.a.md.crswap", "x");
+    expect(names(await listDirectoryEntries(vault.asHandle(), vault.asHandle(), true))).toEqual(["a.md"]);
+  });
+
+  it("shows a document folder that holds notes or subfolders, or isn't at the root", async () => {
+    const vault = new MemoryDirectoryHandle("vault");
+    await vault.writeText("document/plan.md", "x");
+    expect(names(await listDirectoryEntries(vault.asHandle(), vault.asHandle(), false))).toEqual(["document"]);
+
+    const other = new MemoryDirectoryHandle("vault");
+    await (await other.getDirectoryHandle("document", { create: true })).getDirectoryHandle("drafts", { create: true });
+    expect(names(await listDirectoryEntries(other.asHandle(), other.asHandle(), false))).toEqual(["document"]);
+
+    const notes = await other.getDirectoryHandle("notes", { create: true });
+    await notes.getDirectoryHandle("document", { create: true });
+    (other as any).resolve = async (handle: unknown) => (handle === notes ? ["notes"] : null);
+    expect(names(await listDirectoryEntries(other.asHandle(), notes.asHandle(), false))).toEqual(["document"]);
   });
 });
