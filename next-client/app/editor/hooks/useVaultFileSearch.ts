@@ -3,7 +3,7 @@
 import { useState, useMemo, useEffect, useCallback } from "react";
 import { useAtomValue } from "jotai";
 import { atom_fileMetadata } from "@/app/atoms/metadata";
-import { atom_vaultFiles } from "@/app/atoms/vault-atoms";
+import { atom_vaultFiles, atom_vaultFolderPaths } from "@/app/atoms/vault-atoms";
 import { atom_showHiddenFiles } from "@/app/atoms/ui-atoms";
 
 // Which view is searching: the Explorer page shows the full tree, the mobile
@@ -20,6 +20,7 @@ const MAX_SEARCH_RESULTS = 6;
 export function useVaultFileSearch({ selectedTags, panel }: UseVaultFileSearchProps) {
   const fileMetadata = useAtomValue(atom_fileMetadata);
   const vaultFiles = useAtomValue(atom_vaultFiles);
+  const walkedFolderPaths = useAtomValue(atom_vaultFolderPaths);
   const showHiddenFiles = useAtomValue(atom_showHiddenFiles);
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -77,16 +78,18 @@ export function useVaultFileSearch({ selectedTags, panel }: UseVaultFileSearchPr
       .map((f: any) => ({ name: f.name, kind: "file" as const, handle: f as FileSystemFileHandle, path: (f as any).path || f.name }));
   }, [fileMetadata, vaultFiles, isHiddenPath, isVisibleFile]);
 
-  // Metadata only indexes files, so retain scanned directory paths separately
-  // for the Files tree. This lets empty folders remain visible.
-  const folderPaths = useMemo(() =>
-    (Array.isArray(vaultFiles) ? vaultFiles : [])
-      .filter((entry: any) =>
-        entry.kind === "directory" &&
-        (showHiddenFiles || !entry.name.startsWith(".")),
-      )
-      .map((entry: any) => entry.path || entry.name),
-  [vaultFiles, showHiddenFiles]);
+  // Metadata only indexes files, so folders come from the indexing walk
+  // (every depth) plus the latest directory listing (a folder created since),
+  // which lets empty folders remain visible in the Files tree.
+  const folderPaths = useMemo(() => {
+    const listed = (Array.isArray(vaultFiles) ? vaultFiles : [])
+      .filter((entry: any) => entry.kind === "directory")
+      .map((entry: any) => (entry.path || entry.name) as string);
+    return [...new Set([...walkedFolderPaths, ...listed])].filter((path) =>
+      (showHiddenFiles || !path.split("/").some((segment) => segment.startsWith("."))) &&
+      !isHiddenPath(path),
+    );
+  }, [vaultFiles, walkedFolderPaths, showHiddenFiles, isHiddenPath]);
 
   const [showAllResults, setShowAllResults] = useState(false);
 

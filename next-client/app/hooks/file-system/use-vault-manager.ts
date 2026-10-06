@@ -7,6 +7,7 @@ import {
   atom_vaultHandle,
   atom_currentDirectoryHandle,
   atom_vaultFiles,
+  atom_vaultFolderPaths,
   atom_isVaultPending,
   atom_hasLoadedVault,
   atom_isVaultRestoring,
@@ -67,6 +68,7 @@ export function useVaultManager() {
   const [vaultHandle, setVaultHandle] = useAtom(atom_vaultHandle);
   const [currentDirectoryHandle, setCurrentDirectoryHandle] = useAtom(atom_currentDirectoryHandle);
   const [, setVaultFiles] = useAtom(atom_vaultFiles);
+  const setVaultFolderPaths = useSetAtom(atom_vaultFolderPaths);
   const [isVaultPending, setIsVaultPending] = useAtom(atom_isVaultPending);
   const [hasLoadedVault, setHasLoadedVault] = useAtom(atom_hasLoadedVault);
   const setIsVaultRestoring = useSetAtom(atom_isVaultRestoring);
@@ -136,11 +138,12 @@ export function useVaultManager() {
         const vault = store.get(atom_vaultHandle);
         const isCurrent = () => indexRun === run && store.get(atom_vaultHandle) === vault;
         setIndexerState({ status: "compiling", count: 0 });
-        const { files: fileHandles, failedSubdirs: subdirFailCount, timedOut } = await collectVaultFiles(handle, includeHidden);
+        const { files: fileHandles, folders, failedSubdirs: subdirFailCount, timedOut } = await collectVaultFiles(handle, includeHidden);
 
         reportCollectProblems(timedOut, subdirFailCount);
 
         if (!isCurrent()) return;
+        setVaultFolderPaths(folders);
 
         // Without a worker, list the notes with no parsed metadata. Fresh
         // vault open replaces metadata entirely; re-index keeps earlier
@@ -182,7 +185,7 @@ export function useVaultManager() {
         setIndexerState("idle");
       }
     },
-    [vaultHandle, setIndexerState, setFileMetadata, showHiddenFiles, store],
+    [vaultHandle, setIndexerState, setFileMetadata, setVaultFolderPaths, showHiddenFiles, store],
   );
 
   const initVaultFromHandle = useCallback(async (
@@ -203,6 +206,7 @@ export function useVaultManager() {
 
     setFileMetadata({});
     setVaultFiles([]);
+    setVaultFolderPaths([]);
     clearNoteContent();
     setOpenFiles({});
     setWorkspaceLayout(singlePaneLayout([], null));
@@ -226,7 +230,7 @@ export function useVaultManager() {
       const vaultName = descriptor.kind === "local" ? handle.name : descriptor.displayName;
       toast.success(isNewVault ? `Vault created: ${vaultName}` : `Vault opened: ${vaultName}`);
     }
-  }, [setVaultHandle, setVaultDescriptor, setCurrentDirectoryHandle, setIsVaultPending, setFileMetadata, setVaultFiles, setOpenFiles, setWorkspaceLayout, setIsCloudVault, scanVault, indexVaultTags, rebindHandles, detectCloudVault]);
+  }, [setVaultHandle, setVaultDescriptor, setCurrentDirectoryHandle, setIsVaultPending, setFileMetadata, setVaultFiles, setVaultFolderPaths, setOpenFiles, setWorkspaceLayout, setIsCloudVault, scanVault, indexVaultTags, rebindHandles, detectCloudVault]);
 
   const initGitHubVault = useCallback(async (
     descriptor: GitHubVaultDescriptor,
@@ -305,6 +309,7 @@ export function useVaultManager() {
     setVaultHandle(null);
     setCurrentDirectoryHandle(null);
     setVaultFiles([]);
+    setVaultFolderPaths([]);
     setFileMetadata({});
     clearNoteContent();
     setActiveFileHandle(null);
@@ -326,7 +331,7 @@ export function useVaultManager() {
 
     clearVaultHandle();
     toast.success("Vault closed");
-  }, [setVaultHandle, setCurrentDirectoryHandle, setVaultFiles, setFileMetadata, setActiveFileHandle, setActiveFilePath, setIsVaultPending, setOpenFiles, setWorkspaceLayout, setIsCloudVault, setVaultDescriptor]);
+  }, [setVaultHandle, setCurrentDirectoryHandle, setVaultFiles, setVaultFolderPaths, setFileMetadata, setActiveFileHandle, setActiveFilePath, setIsVaultPending, setOpenFiles, setWorkspaceLayout, setIsCloudVault, setVaultDescriptor]);
 
   // Load vault on mount
   useEffect(() => {

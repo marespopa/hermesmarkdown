@@ -11,7 +11,7 @@ import {
   atom_workspaceLayout,
 } from "@/app/atoms/atoms";
 import { atom_fileMetadata } from "@/app/atoms/metadata";
-import { atom_forgetFileTreePaths, atom_vaultFiles } from "@/app/atoms/vault-atoms";
+import { atom_forgetFileTreePaths, atom_vaultFiles, atom_vaultFolderPaths } from "@/app/atoms/vault-atoms";
 import { atom_forgetHomePins } from "@/app/atoms/home-pin-atoms";
 import { removePathsFromLayout } from "@/app/atoms/utils";
 import { useDialog } from "../use-dialog";
@@ -30,6 +30,7 @@ export function useDeleteItem({ scanVault, indexVaultTags }: UseDeleteItemProps)
   const [, setWorkspaceLayout] = useAtom(atom_workspaceLayout);
   const setFileMetadata = useSetAtom(atom_fileMetadata);
   const setVaultFiles = useSetAtom(atom_vaultFiles);
+  const setVaultFolderPaths = useSetAtom(atom_vaultFolderPaths);
   const forgetFileTreePaths = useSetAtom(atom_forgetFileTreePaths);
   const forgetHomePins = useSetAtom(atom_forgetHomePins);
   const dialog = useDialog();
@@ -158,6 +159,7 @@ export function useDeleteItem({ scanVault, indexVaultTags }: UseDeleteItemProps)
           return next;
         });
         setVaultFiles((prev) => prev.filter((f) => !isDeletedPath((f as any).path || f.name)));
+        setVaultFolderPaths((prev) => prev.filter((p) => !isDeletedPath(p)));
 
         // Update workspace layout to remove all tabs matching the deleted item
         setWorkspaceLayout((prev) => ({
@@ -207,6 +209,7 @@ export function useDeleteItem({ scanVault, indexVaultTags }: UseDeleteItemProps)
       setActiveFileHandle,
       setFileMetadata,
       setVaultFiles,
+      setVaultFolderPaths,
       forgetFileTreePaths,
       forgetHomePins,
       dialog,

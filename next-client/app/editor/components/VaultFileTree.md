@@ -27,7 +27,7 @@ import VaultFileTree from "./VaultFileTree";
 | renameFile / deleteFile / duplicateFile? | handle callbacks |  | Row actions |
 | treeView? | `boolean` | `false` | Tree layout instead of a flat list |
 | columns? | `boolean` | `false` | Tree only: Finder-like list view with a sticky Name / Date Modified / Kind header (Explorer page) |
-| folderPaths? | `string[]` | `[]` | Folders to include in the tree |
+| folderPaths? | `string[]` | `[]` | Folders to include in the tree, so empty ones show (from `useVaultFileSearch`: the indexing walk's folders at every depth plus the latest listing) |
 | isSearchActive? / highlightQuery? | `boolean` / `string` | `false` / `""` | Search mode |
 | resolveFolderHandle? / createNewFile? / createFolder? / moveItem? | callbacks |  | Folder operations |
 | onClose? | `() => void` |  | Closes the drawer after opening a file |

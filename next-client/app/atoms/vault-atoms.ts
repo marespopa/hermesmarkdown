@@ -17,6 +17,9 @@ export const atom_currentDirectoryHandle =
   atom<FileSystemDirectoryHandle | null>(null);
 
 export const atom_vaultFiles = atom<FileSystemHandle[]>([]);
+// Every folder the indexing walk found (vault-relative paths), so the file
+// tree can show folders at any depth even when they hold no notes.
+export const atom_vaultFolderPaths = atom<string[]>([]);
 export const atom_isVaultPending = atom<boolean>(false);
 export const atom_hasLoadedVault = atom<boolean>(false);
 // True until the saved vault's permission is known on startup: the editor
@@ -204,6 +207,9 @@ export const atom_remapVaultPaths = atom(
       }
       return next;
     });
+    set(atom_vaultFolderPaths, (prev) =>
+      prev.some((p) => remapPath(p, oldPath, newPath) !== null) ? prev.map(mapPath) : prev,
+    );
 
     // Keep session reveals of sensitive notes across rename / move.
     set(atom_revealedSensitivePaths, (prev) => {

@@ -1,11 +1,12 @@
 "use client";
 
-import { useAtom } from "jotai";
+import { useAtom, useSetAtom } from "jotai";
 import { useCallback } from "react";
 import toast from "react-hot-toast";
 import {
   atom_vaultHandle,
   atom_currentDirectoryHandle,
+  atom_vaultFolderPaths,
 } from "@/app/atoms/atoms";
 import { useDialog } from "../use-dialog";
 import { withRetry } from "./shared";
@@ -29,6 +30,7 @@ const ROOT_VALUE = "__root__";
 export function useCreateItem({ scanVault, indexVaultTags, openFile }: UseCreateItemProps) {
   const [vaultHandle] = useAtom(atom_vaultHandle);
   const [currentDirectoryHandle] = useAtom(atom_currentDirectoryHandle);
+  const setVaultFolderPaths = useSetAtom(atom_vaultFolderPaths);
   const dialog = useDialog();
 
   const listVaultDirectories = useCallback(async () => {
@@ -84,6 +86,17 @@ export function useCreateItem({ scanVault, indexVaultTags, openFile }: UseCreate
 
     try {
       const folder = await withRetry(() => targetDirectory.getDirectoryHandle(folderName, { create: true }));
+      // The root listing alone misses a new folder inside a subfolder, so
+      // add it to the walked folders until the next index replaces them.
+      let folderPath: string | undefined;
+      try {
+        folderPath = ((await (vaultHandle as any).resolve(folder)) as string[] | null)?.join("/");
+      } catch {
+        // Picked up by the next index instead.
+      }
+      if (folderPath) {
+        setVaultFolderPaths((prev) => (prev.includes(folderPath) ? prev : [...prev, folderPath]));
+      }
       await scanVault(vaultHandle);
       toast.success(`Created: ${folderName}`);
       return folder;
@@ -92,7 +105,7 @@ export function useCreateItem({ scanVault, indexVaultTags, openFile }: UseCreate
       toast.error("Failed to create folder.");
       return null;
     }
-  }, [dialog, scanVault, vaultHandle]);
+  }, [dialog, scanVault, setVaultFolderPaths, vaultHandle]);
 
   const chooseTargetDirectory = useCallback(async () => {
     const target = await selectTargetDirectory(
