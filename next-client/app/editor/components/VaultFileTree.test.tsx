@@ -52,7 +52,7 @@ describe("VaultFileTree tree interactions", () => {
     expect(props.openFile).toHaveBeenCalledTimes(1);
 
     fireEvent.click(screen.getByLabelText("File options"));
-    fireEvent.click(screen.getByText("Open file"));
+    fireEvent.click(screen.getByRole("menuitem", { name: "Open" }));
     expect(props.openFile).toHaveBeenCalledWith(fileHandle, "note.md");
     expect(props.openFile).toHaveBeenCalledTimes(2);
   });
@@ -172,7 +172,7 @@ describe("VaultFileTree tree interactions", () => {
     expect(moveItem).not.toHaveBeenCalled();
   });
 
-  it("creates a subfolder inside the folder whose options menu was used", async () => {
+  it("names a new subfolder in place inside the folder whose options menu was used", async () => {
     const folderHandle = { kind: "directory", name: "Folder" };
     const resolveFolderHandle = vi.fn().mockResolvedValue(folderHandle);
     const createFolder = vi.fn().mockResolvedValue(null);
@@ -184,15 +184,21 @@ describe("VaultFileTree tree interactions", () => {
     });
 
     fireEvent.click(screen.getByLabelText("Folder options"));
-    fireEvent.click(screen.getByText("New Folder"));
+    fireEvent.click(screen.getByRole("menuitem", { name: "New Folder" }));
+
+    const field = screen.getByLabelText("New folder name") as HTMLInputElement;
+    expect(field.value).toBe("untitled folder");
+    fireEvent.change(field, { target: { value: "Plans" } });
+    fireEvent.keyDown(field, { key: "Enter" });
 
     await waitFor(() => {
       expect(resolveFolderHandle).toHaveBeenCalledWith("Folder");
-      expect(createFolder).toHaveBeenCalledWith(folderHandle);
+      expect(createFolder).toHaveBeenCalledWith(folderHandle, "Plans");
     });
+    expect(screen.queryByLabelText("New folder name")).not.toBeInTheDocument();
   });
 
-  it("creates a note inside the folder and expands it", async () => {
+  it("names a new note in place inside the folder and expands it", async () => {
     const folderHandle = { kind: "directory", name: "Folder" };
     const resolveFolderHandle = vi.fn().mockResolvedValue(folderHandle);
     const createNewFile = vi.fn();
@@ -206,12 +212,23 @@ describe("VaultFileTree tree interactions", () => {
     expect(screen.queryByText("nested")).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByLabelText("Folder options"));
-    fireEvent.click(screen.getByText("New File"));
+    fireEvent.click(screen.getByRole("menuitem", { name: "New Note" }));
+    expect(screen.getByText("nested")).toBeInTheDocument();
+    fireEvent.keyDown(screen.getByLabelText("New note name"), { key: "Enter" });
 
-    await waitFor(() => {
-      expect(createNewFile).toHaveBeenCalledWith(folderHandle);
-      expect(screen.getByText("nested")).toBeInTheDocument();
-    });
+    await waitFor(() => expect(createNewFile).toHaveBeenCalledWith(folderHandle, "Untitled"));
+  });
+
+  it("creates nothing when naming a new item is cancelled with Escape", () => {
+    const createFolder = vi.fn();
+    renderFiles({ treeView: true, folderPaths: ["Folder"], resolveFolderHandle: vi.fn(), createFolder });
+
+    fireEvent.click(screen.getByLabelText("Folder options"));
+    fireEvent.click(screen.getByRole("menuitem", { name: "New Folder" }));
+    fireEvent.keyDown(screen.getByLabelText("New folder name"), { key: "Escape" });
+
+    expect(screen.queryByLabelText("New folder name")).not.toBeInTheDocument();
+    expect(createFolder).not.toHaveBeenCalled();
   });
 
   it("remembers expanded folders across remounts", () => {
@@ -238,7 +255,7 @@ describe("VaultFileTree tree interactions", () => {
     expect(props.renameFile).toHaveBeenCalledWith(fileHandle, undefined, "note.md");
   });
 
-  it("opens the shared rename dialog with a freshly resolved folder handle", async () => {
+  it("renames a folder in place with a freshly resolved handle", async () => {
     const folderHandle = { kind: "directory", name: "Folder" };
     const resolveFolderHandle = vi.fn().mockResolvedValue(folderHandle);
     const { props } = renderFiles({
@@ -248,12 +265,33 @@ describe("VaultFileTree tree interactions", () => {
     });
 
     fireEvent.click(screen.getByLabelText("Folder options"));
-    fireEvent.click(screen.getByText("Rename"));
+    fireEvent.click(screen.getByRole("menuitem", { name: /^Rename/ }));
+    const field = screen.getByLabelText("Folder name") as HTMLInputElement;
+    expect(field.value).toBe("Folder");
+    fireEvent.change(field, { target: { value: "Archive" } });
+    fireEvent.keyDown(field, { key: "Enter" });
 
     await waitFor(() => {
       expect(resolveFolderHandle).toHaveBeenCalledWith("Folder");
-      expect(props.renameFile).toHaveBeenCalledWith(folderHandle, undefined, "Folder");
+      expect(props.renameFile).toHaveBeenCalledWith(folderHandle, "Archive", "Folder");
     });
+  });
+
+  it("renames a note in place, keeping its .md extension, and leaves it be when unchanged", async () => {
+    const { props } = renderFiles({ treeView: true });
+
+    fireEvent.click(screen.getByLabelText("File options"));
+    fireEvent.click(screen.getByRole("menuitem", { name: /^Rename/ }));
+    fireEvent.keyDown(screen.getByLabelText("Note name"), { key: "Enter" });
+    expect(props.renameFile).not.toHaveBeenCalled();
+
+    fireEvent.click(screen.getByLabelText("File options"));
+    fireEvent.click(screen.getByRole("menuitem", { name: /^Rename/ }));
+    const field = screen.getByLabelText("Note name");
+    fireEvent.change(field, { target: { value: "plan" } });
+    fireEvent.blur(field);
+
+    await waitFor(() => expect(props.renameFile).toHaveBeenCalledWith(fileHandle, "plan.md", "note.md"));
   });
 
   it("reveals the active file once, not again each time the file list refreshes", () => {
@@ -276,5 +314,162 @@ describe("VaultFileTree tree interactions", () => {
     renderWith({ activeFilePath: "other.md", processedFiles: [...refreshed] });
     expect(scrollIntoView).toHaveBeenCalledTimes(2);
     scrollIntoView.mockRestore();
+  });
+});
+
+describe("VaultFileTree selection, keyboard and menus", () => {
+  const files = [
+    { name: "a.md", path: "a.md", handle: { kind: "file", name: "a.md" } },
+    { name: "b.md", path: "b.md", handle: { kind: "file", name: "b.md" } },
+    { name: "c.md", path: "c.md", handle: { kind: "file", name: "c.md" } },
+  ];
+  const selectedNames = () =>
+    screen.queryAllByRole("treeitem", { selected: true }).map((row) => row.textContent);
+
+  it("selects with a click, adds with Ctrl/⌘-click and extends with Shift-click", () => {
+    renderFiles({ treeView: true, processedFiles: files });
+
+    fireEvent.click(screen.getByText("a"));
+    expect(selectedNames()).toEqual(["a"]);
+    fireEvent.click(screen.getByText("c"), { ctrlKey: true });
+    expect(selectedNames()).toEqual(["a", "c"]);
+    fireEvent.click(screen.getByText("a"));
+    fireEvent.click(screen.getByText("c"), { shiftKey: true });
+    expect(selectedNames()).toEqual(["a", "b", "c"]);
+  });
+
+  it("doesn't open a note on a modified click, even with singleClickOpen", () => {
+    const { props } = renderFiles({ treeView: true, processedFiles: files, singleClickOpen: true });
+    fireEvent.click(screen.getByText("b"), { metaKey: true });
+    expect(props.openFile).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByText("b"));
+    expect(props.openFile).toHaveBeenCalledWith(files[1].handle, "b.md");
+  });
+
+  it("moves the selection with the arrow keys and opens with Enter", () => {
+    const { props } = renderFiles({ treeView: true, processedFiles: files });
+    const tree = screen.getByRole("tree");
+
+    fireEvent.keyDown(tree, { key: "ArrowDown" });
+    expect(selectedNames()).toEqual(["a"]);
+    fireEvent.keyDown(tree, { key: "ArrowDown" });
+    fireEvent.keyDown(tree, { key: "ArrowDown", shiftKey: true });
+    expect(selectedNames()).toEqual(["b", "c"]);
+    fireEvent.keyDown(tree, { key: "ArrowUp" });
+    expect(selectedNames()).toEqual(["b"]);
+
+    fireEvent.keyDown(tree, { key: "Enter" });
+    expect(props.openFile).toHaveBeenCalledWith(files[1].handle, "b.md");
+  });
+
+  it("opens and closes folders with the right and left arrow keys", () => {
+    renderFiles({
+      treeView: true,
+      folderPaths: ["Folder"],
+      processedFiles: [{ name: "nested.md", path: "Folder/nested.md", handle: { kind: "file", name: "nested.md" } }],
+    });
+    const tree = screen.getByRole("tree");
+
+    fireEvent.keyDown(tree, { key: "ArrowDown" });
+    fireEvent.keyDown(tree, { key: "ArrowRight" });
+    expect(screen.getByText("nested")).toBeInTheDocument();
+    fireEvent.keyDown(tree, { key: "ArrowRight" });
+    expect(selectedNames()).toEqual(["nested"]);
+    fireEvent.keyDown(tree, { key: "ArrowLeft" });
+    expect(selectedNames()).toEqual(["Folder"]);
+    fireEvent.keyDown(tree, { key: "ArrowLeft" });
+    expect(screen.queryByText("nested")).not.toBeInTheDocument();
+  });
+
+  it("renames the focused row in place with F2", () => {
+    renderFiles({ treeView: true, processedFiles: files });
+    const tree = screen.getByRole("tree");
+    fireEvent.keyDown(tree, { key: "ArrowDown" });
+    fireEvent.keyDown(tree, { key: "F2" });
+    expect((screen.getByLabelText("Note name") as HTMLInputElement).value).toBe("a");
+  });
+
+  it("moves the selection to the Trash with Delete, as one action", async () => {
+    const trashItems = vi.fn();
+    renderFiles({ treeView: true, processedFiles: files, trashItems });
+
+    fireEvent.click(screen.getByText("a"));
+    fireEvent.click(screen.getByText("b"), { ctrlKey: true });
+    fireEvent.keyDown(screen.getByRole("tree"), { key: "Delete" });
+
+    await waitFor(() => expect(trashItems).toHaveBeenCalledWith([
+      { handle: files[0].handle, path: "a.md" },
+      { handle: files[1].handle, path: "b.md" },
+    ]));
+  });
+
+  it("undoes with Ctrl/⌘+Z and selects everything with Ctrl/⌘+A", () => {
+    const undoFileOperation = vi.fn();
+    renderFiles({ treeView: true, processedFiles: files, undoFileOperation });
+    const tree = screen.getByRole("tree");
+
+    fireEvent.keyDown(tree, { key: "z", ctrlKey: true });
+    expect(undoFileOperation).toHaveBeenCalledTimes(1);
+    fireEvent.keyDown(tree, { key: "a", ctrlKey: true });
+    expect(selectedNames()).toEqual(["a", "b", "c"]);
+    fireEvent.keyDown(tree, { key: "Escape" });
+    expect(selectedNames()).toEqual([]);
+  });
+
+  it("opens the menu on right-click, for the whole selection when the row is in it", async () => {
+    const trashItems = vi.fn();
+    renderFiles({ treeView: true, processedFiles: files, trashItems });
+
+    fireEvent.contextMenu(screen.getByText("c"));
+    expect(selectedNames()).toEqual(["c"]);
+    expect(screen.getByRole("menuitem", { name: /Move to Trash/ })).toBeInTheDocument();
+    fireEvent.keyDown(screen.getByRole("menu"), { key: "Escape" });
+
+    fireEvent.click(screen.getByText("a"));
+    fireEvent.click(screen.getByText("b"), { shiftKey: true });
+    fireEvent.contextMenu(screen.getByText("b"));
+    fireEvent.click(screen.getByRole("menuitem", { name: /Move 2 Items to Trash/ }));
+    await waitFor(() => expect(trashItems).toHaveBeenCalledTimes(1));
+    expect(trashItems.mock.calls[0][0].map((item: any) => item.path)).toEqual(["a.md", "b.md"]);
+  });
+
+  it("offers New Note and New Folder when right-clicking empty space", () => {
+    renderFiles({ treeView: true, processedFiles: files, createNewFile: vi.fn(), createFolder: vi.fn() });
+    fireEvent.contextMenu(screen.getByRole("tree"));
+    fireEvent.click(screen.getByRole("menuitem", { name: "New Folder" }));
+    expect(screen.getByLabelText("New folder name")).toBeInTheDocument();
+  });
+
+  it("lets its host start naming a new item in the selected folder", async () => {
+    const folderHandle = { kind: "directory", name: "Folder" };
+    const resolveFolderHandle = vi.fn().mockResolvedValue(folderHandle);
+    const createNewFile = vi.fn();
+    const controllerRef = { current: null } as React.MutableRefObject<any>;
+    renderFiles({ treeView: true, folderPaths: ["Folder"], processedFiles: [], resolveFolderHandle, createNewFile, controllerRef });
+
+    fireEvent.click(screen.getByText("Folder"));
+    act(() => controllerRef.current.startCreate("file"));
+    const field = screen.getByLabelText("New note name");
+    fireEvent.change(field, { target: { value: "Ideas" } });
+    fireEvent.keyDown(field, { key: "Enter" });
+
+    await waitFor(() => expect(createNewFile).toHaveBeenCalledWith(folderHandle, "Ideas"));
+  });
+
+  it("drags the whole selection into a folder as one move", async () => {
+    const folderHandle = { kind: "directory", name: "Folder" };
+    const resolveFolderHandle = vi.fn().mockResolvedValue(folderHandle);
+    const moveItems = vi.fn();
+    renderFiles({ treeView: true, folderPaths: ["Folder"], processedFiles: files, resolveFolderHandle, moveItems });
+
+    fireEvent.click(screen.getByText("a"));
+    fireEvent.click(screen.getByText("b"), { ctrlKey: true });
+    const source = screen.getByText("b").closest("[draggable]")!;
+    const target = screen.getByText("Folder").closest("[draggable]")!;
+    fireEvent.dragStart(source, { dataTransfer: { effectAllowed: "", dropEffect: "" } });
+    fireEvent.dragOver(target, { dataTransfer: { effectAllowed: "", dropEffect: "" } });
+    fireEvent.drop(target, { dataTransfer: { effectAllowed: "", dropEffect: "" } });
+
+    await waitFor(() => expect(moveItems).toHaveBeenCalledWith([files[0].handle, files[1].handle], folderHandle));
   });
 });

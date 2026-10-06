@@ -1,9 +1,10 @@
 "use client";
 
 import Button from "@/app/components/Button";
-import { HiOutlineDocumentText, HiOutlineDotsVertical, HiOutlineDuplicate, HiOutlineFolder, HiOutlinePencil, HiOutlineTrash } from "react-icons/hi";
+import { HiOutlineDocumentText, HiOutlineDotsVertical } from "react-icons/hi";
+import { InlineNameField } from "./InlineNameField";
 import { ListColumns, formatModified, kindLabel } from "./list-columns";
-import { getEntryPath } from "./tree-model";
+import type { ClickModifiers } from "./use-tree-selection";
 
 function HighlightedName({ name, query }: { name: string; query: string }) {
   const q = query.trim();
@@ -22,20 +23,28 @@ function HighlightedName({ name, query }: { name: string; query: string }) {
 // Indent per tree level in list view (the disclosure triangle's width).
 export const LIST_INDENT_PX = 16;
 
+// Selected rows: accent while the tree has focus, gray otherwise (Finder).
+export function selectionClass(isSelected: boolean, treeFocused: boolean): string {
+  if (!isSelected) return "";
+  return treeFocused ? "bg-accent/25 text-fg" : "bg-fg/10 text-fg";
+}
+
+export interface RowEditing {
+  initialValue: string;
+  onCommit: (value: string) => void;
+  onCancel: () => void;
+}
+
 interface FileRowProps {
   entry: any;
   entryPath?: string;
   isActive: boolean;
-  entryId: string;
   highlightQuery: string;
-  actionMenuOpen: { x: number; y: number; path: string } | null;
-  setActionMenuOpen: (v: { x: number; y: number; path: string } | null) => void;
   openFile: (handle: FileSystemFileHandle, path?: string) => void;
-  openFileInPane?: (handle: FileSystemFileHandle, path?: string) => void;
-  renameFile: (handle: FileSystemHandle, newName?: string, path?: string) => void | Promise<void>;
-  deleteFile: (handle: FileSystemHandle, path?: string) => void;
-  duplicateFile?: (handle: FileSystemHandle) => void;
   onClose?: () => void;
+  // The row's ⋯ button and right-click both open the tree's menu here (the
+  // tree selects the row first unless it is already part of the selection).
+  onOpenMenu: (x: number, y: number) => void;
   // Open on click instead of double-click.
   singleClickOpen?: boolean;
   hideFolderPath?: boolean;
@@ -45,6 +54,14 @@ interface FileRowProps {
   // List view's Date Modified / Kind columns.
   showColumns?: boolean;
   modifiedAt?: number;
+  // Tree selection: the click handler returns whether it was a plain click
+  // (which then opens, with singleClickOpen).
+  isSelected?: boolean;
+  isFocused?: boolean;
+  treeFocused?: boolean;
+  onSelectClick?: (mods: ClickModifiers) => boolean;
+  // Renaming in place.
+  editing?: RowEditing;
   draggable?: boolean;
   onDragStartEntry?: () => void;
   onDragEndEntry?: () => void;
@@ -59,21 +76,20 @@ export function FileRow({
   entry,
   entryPath,
   isActive,
-  entryId,
   highlightQuery,
-  actionMenuOpen,
-  setActionMenuOpen,
   openFile,
-  openFileInPane,
-  renameFile,
-  deleteFile,
-  duplicateFile,
   onClose,
+  onOpenMenu,
   singleClickOpen = false,
   hideFolderPath = false,
   depth,
   showColumns = false,
   modifiedAt,
+  isSelected = false,
+  isFocused = false,
+  treeFocused = false,
+  onSelectClick,
+  editing,
   draggable = false,
   onDragStartEntry,
   onDragEndEntry,
@@ -96,7 +112,11 @@ export function FileRow({
   return (
     <div className="group relative">
       <div
-        draggable={draggable}
+        role={isListRow ? "treeitem" : undefined}
+        aria-selected={isListRow ? isSelected : undefined}
+        aria-level={isListRow ? depth + 1 : undefined}
+        aria-current={isActive ? "page" : undefined}
+        draggable={draggable && !editing}
         data-drop-folder={dropFolder}
         onTouchStart={onTouchDragStart}
         onDragStart={(e) => {
@@ -110,22 +130,32 @@ export function FileRow({
         }}
         onDragEnd={() => onDragEndEntry?.()}
         onClick={(e) => {
-          if (!singleClickOpen) return;
           e.stopPropagation();
-          open();
+          const plain = onSelectClick ? onSelectClick(e) : true;
+          if (plain && singleClickOpen) open();
         }}
         onDoubleClick={(e) => {
           e.stopPropagation();
           if (!singleClickOpen) open();
+        }}
+        onContextMenu={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          // A touch long-press picks the row up to drag (touch uses ⋯).
+          if (!isTouchPressing?.()) onOpenMenu(e.clientX, e.clientY);
         }}
         tabIndex={-1}
         style={isListRow ? { paddingLeft: 12 + depth * LIST_INDENT_PX } : undefined}
         className={
           isListRow
             ? `mx-1 flex h-[var(--list-row,28px)] items-center gap-1.5 rounded-md pr-8 text-ui-subhead select-none [-webkit-touch-callout:none] ${
-                isActive
-                  ? "bg-accent/15 text-fg font-medium"
-                  : "text-fg hover:bg-paper-softgray/60 dark:hover:bg-paper-dark-surface/50"
+                isFocused && treeFocused ? "outline outline-1 -outline-offset-1 outline-accent/50 " : ""
+              }${
+                isSelected
+                  ? `${selectionClass(true, treeFocused)} ${isActive ? "font-medium" : ""}`
+                  : isActive
+                    ? "bg-accent/15 text-fg font-medium"
+                    : "text-fg hover:bg-paper-softgray/60 dark:hover:bg-paper-dark-surface/50"
               }`
             : `mx-1 flex items-stretch transition-all duration-200 text-ui-subhead pr-8 ${
                 onTouchDragStart ? "select-none [-webkit-touch-callout:none] " : ""
@@ -137,9 +167,13 @@ export function FileRow({
             {/* Triangle slot, so file names line up with folder names. */}
             <span className="w-3 shrink-0" />
             <HiOutlineDocumentText size={16} className="shrink-0 text-fg-faint" />
-            <span title={displayName} className="min-w-0 flex-1 truncate">
-              <HighlightedName name={displayName} query={highlightQuery} />
-            </span>
+            {editing ? (
+              <InlineNameField label="Note name" {...editing} />
+            ) : (
+              <span title={displayName} className="min-w-0 flex-1 truncate">
+                <HighlightedName name={displayName} query={highlightQuery} />
+              </span>
+            )}
             {showColumns && <ListColumns modified={formatModified(modifiedAt)} kind={kindLabel(entry.name)} />}
           </>
         ) : (
@@ -149,12 +183,12 @@ export function FileRow({
           }`}
         >
           <span
-            title={entry.name.replace(/\.md$/, "")}
+            title={displayName}
             className={`truncate w-fit max-w-full ${
               isActive ? "font-semibold bg-accent/15 rounded px-1 -mx-1" : ""
             }`}
           >
-            <HighlightedName name={entry.name.replace(/\.md$/, "")} query={highlightQuery} />
+            <HighlightedName name={displayName} query={highlightQuery} />
           </span>
           {folderPath && (
             <span title={folderPath} className="text-ui-caption opacity-40 truncate mt-0.5">
@@ -165,107 +199,22 @@ export function FileRow({
         )}
       </div>
 
-      <div className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 [@media(hover:none)]:opacity-100 transition-opacity z-10">
-        <Button
-          variant="icon"
-          className="w-7 h-7"
-          aria-label="File options"
-          onClick={(e) => {
-            e.stopPropagation();
-            if (actionMenuOpen?.path === entryId) {
-              setActionMenuOpen(null);
-            } else {
+      {!editing && (
+        <div className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 focus-within:opacity-100 [@media(hover:none)]:opacity-100 transition-opacity z-10">
+          <Button
+            variant="icon"
+            className="w-7 h-7"
+            aria-label="File options"
+            aria-haspopup="menu"
+            onClick={(e) => {
+              e.stopPropagation();
               const rect = e.currentTarget.getBoundingClientRect();
-              setActionMenuOpen({
-                x: rect.right,
-                y: rect.bottom > window.innerHeight - 120 ? rect.top - 100 : rect.bottom + 4,
-                path: entryId,
-              });
-            }
-          }}
-        >
-          <HiOutlineDotsVertical size={14} className="opacity-80" />
-        </Button>
-      </div>
-
-      {actionMenuOpen && actionMenuOpen.path === entryId && (
-        <>
-          <div
-            className="fixed inset-0 z-40"
-            onClick={(e) => { e.stopPropagation(); setActionMenuOpen(null); }}
-          />
-          <div
-            onClick={(e) => e.stopPropagation()}
-            className="fixed z-50 bg-paper-light dark:bg-paper-dark backdrop-blur-xl border border-edge-subtle rounded-xl py-1 min-w-[120px] animate-in fade-in zoom-in-95 slide-in-from-top-2 duration-200 ease-out"
-            style={{ top: actionMenuOpen.y, left: actionMenuOpen.x - 120 }}
+              onOpenMenu(rect.right - 200, rect.bottom + 4);
+            }}
           >
-            <Button
-              variant="menu-item"
-              onClick={(e) => {
-                e.stopPropagation();
-                openFile(entry.handle as FileSystemFileHandle, entryPath);
-                if (onClose && window.innerWidth < 1024) onClose();
-                setActionMenuOpen(null);
-              }}
-              className="w-full flex items-center gap-3 px-4 py-2.5 text-ui-footnote font-medium hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
-            >
-              <HiOutlineDocumentText size={14} className="opacity-80" />
-              Open file
-            </Button>
-            {openFileInPane && (
-              <Button
-                variant="menu-item"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  openFileInPane(entry.handle as FileSystemFileHandle, getEntryPath(entry));
-                  setActionMenuOpen(null);
-                }}
-                className="w-full flex items-center gap-3 px-4 py-2.5 text-ui-footnote font-medium hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
-              >
-                <HiOutlineFolder size={14} className="opacity-80" />
-                Open in pane
-              </Button>
-            )}
-            <Button
-              variant="menu-item"
-              onClick={(e) => {
-                e.stopPropagation();
-                setActionMenuOpen(null);
-                void renameFile(entry.handle, undefined, entryPath);
-              }}
-              className="w-full flex items-center gap-3 px-4 py-2.5 text-ui-footnote font-medium hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
-            >
-              <HiOutlinePencil size={14} className="opacity-80" />
-              Rename
-            </Button>
-            {duplicateFile && (
-              <Button
-                variant="menu-item"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  duplicateFile(entry.handle);
-                  setActionMenuOpen(null);
-                }}
-                className="w-full flex items-center gap-3 px-4 py-2.5 text-ui-footnote font-medium hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
-              >
-                <HiOutlineDuplicate size={14} className="opacity-80" />
-                Duplicate
-              </Button>
-            )}
-            <Button
-              variant="menu-item"
-              onClick={(e) => {
-                e.stopPropagation();
-                deleteFile(entry.handle, getEntryPath(entry));
-                setActionMenuOpen(null);
-              }}
-              className="w-full flex items-center gap-3 px-4 py-2.5 text-ui-footnote font-medium hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors text-red-500"
-            >
-              <HiOutlineTrash size={14} className="opacity-80" />
-              Delete
-            </Button>
-          </div>
-        </>
+            <HiOutlineDotsVertical size={14} className="opacity-80" />
+          </Button>
+        </div>
       )}
     </div>
   );

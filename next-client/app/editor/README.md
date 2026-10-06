@@ -12,7 +12,7 @@ The app's current editor is built on CodeMirror 6, with the source-mode implemen
 - Inline calculator: math lines show their result at the end of the line (see [Inline calculator](#inline-calculator)).
 
 ### File navigation
-Vault files are browsed through the command palette (`Ctrl/Cmd+K`), the Files page (`/editor/files`, "Open Explorer"), and the mobile `MobileFileOverlay`. The latter two use the `VaultFileTree` tree and tag search.
+Vault files are browsed through the command palette (`Ctrl/Cmd+K`), the Files page (`/editor/files`, "Open Explorer"), the desktop `WorkspaceSidebar`, and the mobile `MobileFileOverlay`, which all use the `VaultFileTree` tree (selection, keyboard, right-click menus, rename/create in place, Trash with Undo). The Explorer's New Note / New Folder buttons name the item in place in the selected folder (while a search filters the list, they use the folder picker and name prompt).
 - **Actions**: Create, rename, move, duplicate, and delete files and folders through `useFileSystem`.
 - **Tags**: Tags extracted from notes are searchable with the `#` palette prefix.
 

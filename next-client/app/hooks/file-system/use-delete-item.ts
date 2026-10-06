@@ -11,18 +11,39 @@ import {
   atom_workspaceLayout,
 } from "@/app/atoms/atoms";
 import { atom_fileMetadata } from "@/app/atoms/metadata";
-import { atom_forgetFileTreePaths, atom_vaultFiles } from "@/app/atoms/vault-atoms";
+import { atom_forgetFileTreePaths, atom_vaultFiles, atom_vaultFolderPaths } from "@/app/atoms/vault-atoms";
 import { atom_forgetHomePins } from "@/app/atoms/home-pin-atoms";
 import { removePathsFromLayout } from "@/app/atoms/utils";
+import type { FileUndoGroup } from "@/app/atoms/vault-atoms";
 import { useDialog } from "../use-dialog";
 import { emptyDirectory } from "./directory-ops";
+import { moveToTrash } from "./trash-ops";
+import { showUndoToast } from "./undo-toast";
 
 interface UseDeleteItemProps {
   scanVault: (handle: FileSystemDirectoryHandle) => Promise<void>;
   indexVaultTags: (passedHandle?: FileSystemDirectoryHandle) => Promise<void>;
+  recordUndo: (label: string, moves: FileUndoGroup["moves"]) => FileUndoGroup | null;
+  undoFileOperation: (expected?: FileUndoGroup) => Promise<boolean>;
 }
 
-export function useDeleteItem({ scanVault, indexVaultTags }: UseDeleteItemProps) {
+export interface TrashItem {
+  handle: FileSystemHandle;
+  // Vault-relative path; without it the item can't be found again, so it is
+  // deleted permanently (after asking).
+  path?: string;
+}
+
+// Items inside a folder that is trashed too go along with it.
+export function outermostItems<T extends { path: string }>(items: T[]): T[] {
+  const unique = items.filter((item, i) => items.findIndex((other) => other.path === item.path) === i);
+  return unique.filter((item) => !unique.some((other) => other !== item && item.path.startsWith(`${other.path}/`)));
+}
+
+// Delete moves items to the vault's Trash (`.hermes/trash`, emptied after 30
+// days) and offers Undo; only when that fails, or the item's path is
+// unknown, is it deleted permanently, after a confirmation.
+export function useDeleteItem({ scanVault, indexVaultTags, recordUndo, undoFileOperation }: UseDeleteItemProps) {
   const [vaultHandle] = useAtom(atom_vaultHandle);
   const [currentDirectoryHandle] = useAtom(atom_currentDirectoryHandle);
   const [activeFileHandle, setActiveFileHandle] = useAtom(atom_activeFileHandle);
@@ -30,15 +51,42 @@ export function useDeleteItem({ scanVault, indexVaultTags }: UseDeleteItemProps)
   const [, setWorkspaceLayout] = useAtom(atom_workspaceLayout);
   const setFileMetadata = useSetAtom(atom_fileMetadata);
   const setVaultFiles = useSetAtom(atom_vaultFiles);
+  const setVaultFolderPaths = useSetAtom(atom_vaultFolderPaths);
   const forgetFileTreePaths = useSetAtom(atom_forgetFileTreePaths);
   const forgetHomePins = useSetAtom(atom_forgetHomePins);
   const dialog = useDialog();
 
-  const deleteFile = useCallback(
-    async (handle: FileSystemHandle, path?: string) => {
+  // Clears a removed item (and, for a folder, everything in it) from the
+  // tabs, metadata and file tree right away, without waiting for a re-index.
+  const forgetItem = useCallback((handle: FileSystemHandle, isRemovedPath: (p: string) => boolean, path?: string) => {
+    setFileMetadata((prev) => {
+      const next = { ...prev };
+      Object.keys(next).forEach((p) => { if (isRemovedPath(p)) delete next[p]; });
+      return next;
+    });
+    setVaultFiles((prev) => prev.filter((f) => !isRemovedPath((f as any).path || f.name)));
+    setVaultFolderPaths((prev) => prev.filter((p) => !isRemovedPath(p)));
+    setWorkspaceLayout((prev) => ({
+      ...prev,
+      rootContainer: removePathsFromLayout(prev.rootContainer, isRemovedPath) as typeof prev.rootContainer,
+    }));
+    setOpenFiles((prev) => {
+      const next = { ...prev };
+      Object.keys(next).forEach((p) => { if (isRemovedPath(p)) delete next[p]; });
+      return next;
+    });
+    if (handle.kind === "directory" && path) forgetFileTreePaths(path);
+    if (path) forgetHomePins(path);
+    if (activeFileHandle?.name === handle.name || (handle.kind === "directory" && activeFileHandle)) {
+      setActiveFileHandle(null);
+    }
+  }, [setFileMetadata, setVaultFiles, setVaultFolderPaths, setWorkspaceLayout, setOpenFiles, forgetFileTreePaths, forgetHomePins, activeFileHandle, setActiveFileHandle]);
+
+  const deleteForever = useCallback(
+    async (handle: FileSystemHandle, path?: string, question?: string) => {
       const type = handle.kind === "file" ? "file" : "folder";
       const confirmed = await dialog.confirm(
-        `Delete ${type} "${handle.name}"? This cannot be undone.`,
+        question ?? `Delete ${type} "${handle.name}"? This cannot be undone.`,
         `Delete ${type}`,
         "Delete",
         "Cancel",
@@ -152,39 +200,11 @@ export function useDeleteItem({ scanVault, indexVaultTags }: UseDeleteItemProps)
             : p.startsWith(handle.name + "/") || p === handle.name;
         };
 
-        setFileMetadata((prev) => {
-          const next = { ...prev };
-          Object.keys(next).forEach((p) => { if (isDeletedPath(p)) delete next[p]; });
-          return next;
-        });
-        setVaultFiles((prev) => prev.filter((f) => !isDeletedPath((f as any).path || f.name)));
+        forgetItem(handle, isDeletedPath, path);
 
-        // Update workspace layout to remove all tabs matching the deleted item
-        setWorkspaceLayout((prev) => ({
-          ...prev,
-          rootContainer: removePathsFromLayout(prev.rootContainer, isDeletedPath) as typeof prev.rootContainer,
-        }));
-
-        // Clean up openFiles registry
-        setOpenFiles((prev) => {
-          const next = { ...prev };
-          Object.keys(next).forEach((p) => { if (isDeletedPath(p)) delete next[p]; });
-          return next;
-        });
-
-        if (handle.kind === "directory" && path) forgetFileTreePaths(path);
-        if (path) forgetHomePins(path);
-
-        if (
-          activeFileHandle?.name === handle.name ||
-          (handle.kind === "directory" && activeFileHandle)
-        ) {
-          setActiveFileHandle(null);
-        }
-
-        if (parentDir) {
-          await scanVault(parentDir);
-        }
+        // The whole vault: listing just the parent would replace the root
+        // listing the file tree reads its top-level folders from.
+        if (parentDir) await scanVault(vaultHandle);
         indexVaultTags();
         toast.success(`${handle.name} deleted`);
       };
@@ -196,22 +216,65 @@ export function useDeleteItem({ scanVault, indexVaultTags }: UseDeleteItemProps)
         toast.error("Failed to delete");
       }
     },
-    [
-      vaultHandle,
-      currentDirectoryHandle,
-      activeFileHandle,
-      scanVault,
-      indexVaultTags,
-      setWorkspaceLayout,
-      setOpenFiles,
-      setActiveFileHandle,
-      setFileMetadata,
-      setVaultFiles,
-      forgetFileTreePaths,
-      forgetHomePins,
-      dialog,
-    ],
+    [vaultHandle, currentDirectoryHandle, scanVault, indexVaultTags, forgetItem, dialog],
   );
 
-  return { deleteFile };
+  const trashItems = useCallback(
+    async (items: TrashItem[]) => {
+      if (!vaultHandle || items.length === 0) return;
+      const located: { handle: FileSystemHandle; path: string }[] = [];
+      for (const item of items) {
+        let path = item.path;
+        if (!path) {
+          try {
+            path = ((await (vaultHandle as any).resolve(item.handle)) as string[] | null)?.join("/") || undefined;
+          } catch {
+            // unknown path: permanent delete below
+          }
+        }
+        if (path) located.push({ handle: item.handle, path });
+        else await deleteForever(item.handle);
+      }
+
+      const now = new Date();
+      const moves: FileUndoGroup["moves"] = [];
+      const failed: typeof located = [];
+      for (const [index, item] of outermostItems(located).entries()) {
+        try {
+          moves.push({ from: item.path, to: await moveToTrash(vaultHandle, item.path, now, index) });
+          const isTrashed = (p: string) => p === item.path || (item.handle.kind === "directory" && p.startsWith(`${item.path}/`));
+          forgetItem(item.handle, isTrashed, item.path);
+        } catch (err) {
+          console.error(`Failed to move ${item.path} to the Trash:`, err);
+          failed.push(item);
+        }
+      }
+
+      if (moves.length > 0) {
+        await scanVault(vaultHandle);
+        void indexVaultTags();
+        const group = recordUndo("Move to Trash", moves);
+        const name = moves[0].from.split("/").pop();
+        showUndoToast(
+          moves.length === 1 ? `Moved “${name}” to Trash` : `Moved ${moves.length} items to Trash`,
+          () => void undoFileOperation(group ?? undefined),
+        );
+      }
+      for (const item of failed) {
+        await deleteForever(
+          item.handle,
+          item.path,
+          `“${item.handle.name}” couldn't be moved to the Trash. Delete it permanently? This cannot be undone.`,
+        );
+      }
+    },
+    [vaultHandle, scanVault, indexVaultTags, forgetItem, deleteForever, recordUndo, undoFileOperation],
+  );
+
+  const deleteFile = useCallback(
+    (handle: FileSystemHandle, path?: string) => trashItems([{ handle, path }]),
+    [trashItems],
+  );
+
+  return { deleteFile, trashItems };
 }

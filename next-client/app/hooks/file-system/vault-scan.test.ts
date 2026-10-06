@@ -49,6 +49,32 @@ describe("collectVaultFiles", () => {
     ]);
   });
 
+  it("collects every folder walked, empty ones included", async () => {
+    const vault = await makeVault();
+    await vault.getDirectoryHandle("empty", { create: true });
+    const notes = await vault.getDirectoryHandle("notes");
+    await notes.getDirectoryHandle("empty-nested", { create: true });
+    const result = await collectVaultFiles(vault.asHandle(), false);
+    expect(result.folders.slice().sort()).toEqual(["empty", "notes", "notes/deep", "notes/empty-nested"]);
+  });
+
+  it("leaves out the stray empty document folder at the root but not elsewhere", async () => {
+    const vault = new MemoryDirectoryHandle("vault");
+    await vault.getDirectoryHandle("document", { create: true });
+    await vault.writeText("notes/document/.keep", "x");
+    const result = await collectVaultFiles(vault.asHandle(), false);
+    expect(result.folders.slice().sort()).toEqual(["notes", "notes/document"]);
+  });
+
+  it("never indexes or lists the Trash, even with hidden files shown", async () => {
+    const vault = await makeVault();
+    await vault.writeText(".hermes/trash/2026-10-06T09-43-55-123Z-0/old.md", "x");
+    const result = await collectVaultFiles(vault.asHandle(), true);
+    expect(paths(result).some((path) => path.includes("trash"))).toBe(false);
+    expect(result.folders.some((path) => path.includes("trash"))).toBe(false);
+    expect(result.folders).toContain(".hermes");
+  });
+
   it("walks wide trees completely", async () => {
     const vault = new MemoryDirectoryHandle("vault");
     for (let i = 0; i < 40; i++) await vault.writeText(`f${i}/sub/n${i}.md`, "x");

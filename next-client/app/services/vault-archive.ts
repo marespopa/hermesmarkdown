@@ -4,6 +4,7 @@
 // never overwrites: a name clash gets a " (n)" suffix.
 import { unzipSync, zipSync, type Zippable } from "fflate";
 import { writeFileContent } from "./file-writer";
+import { isTrashPath } from "./vault-trash";
 
 export interface ArchiveFile {
   path: string;
@@ -47,7 +48,7 @@ export async function collectArchiveFiles(root: FileSystemDirectoryHandle): Prom
     for await (const entry of (directory as any).values()) {
       const path = parent ? `${parent}/${entry.name}` : entry.name;
       if (entry.kind === "directory") {
-        if (!IGNORED_DIRECTORIES.has(entry.name)) await walk(entry, path);
+        if (!IGNORED_DIRECTORIES.has(entry.name) && !isTrashPath(path)) await walk(entry, path);
       } else if (!IGNORED_FILES.has(entry.name)) {
         files.push({ path, data: await (entry as FileSystemFileHandle).getFile() });
       }

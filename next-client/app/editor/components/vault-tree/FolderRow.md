@@ -1,35 +1,33 @@
 # FolderRow
 
-Description: A single folder row in the vault tree — collapse chevron, a subtle tint when it contains the active file, a drop target that auto-expands on hover while dragging, and a folder action menu (new file, new folder, rename, delete; each with an outline icon: document-add, folder-add, pencil, trash). "New File" and "New Folder" resolve this folder's handle and create inside it (no folder picker), then expand the folder so the new item is visible.
+Description: A single folder row in the vault tree (`role="treeitem"`, `aria-expanded`) — disclosure triangle (always only opens/closes), folder icon, name or `InlineNameField` while renaming, optional columns, medium weight when it contains the active file, selection and keyboard-cursor styling, and a drop target that auto-expands after 400 ms of hovering. A plain click selects and toggles it; ⌘/Ctrl/Shift clicks only change the selection. Its ⋯ button and right-click open the tree's shared menu (New Note, New Folder, Rename, Move to Trash).
 
 ## Local State & Storage
-- State: Drop-hover and auto-expand timer are local (`useState`/`useRef`); collapse state and drag state are owned by the parent.
-- Persistence: None - transient UI state.
+- State: Drop-hover and the auto-expand timer are local; collapse, selection, editing and drag state are owned by `VaultFileTree`.
+- Persistence: None.
 
 ## Dependencies
-- Core: `Button`, `react-icons`, `LIST_INDENT_PX` (`FileRow.tsx`), `list-columns.tsx`, `tree-model.ts`.
+- Core: `Button`, `react-icons`, `InlineNameField`, `LIST_INDENT_PX` / `selectionClass` (`FileRow.tsx`), `list-columns.tsx`, `tree-model.ts`.
 - Zero-Cloud: No network or telemetry side effects.
 
 ## Quick Usage
 ```tsx
 import { FolderRow } from "./vault-tree/FolderRow";
 
-<FolderRow node={folder} isCollapsed={collapsed} onToggle={toggle} actionMenuOpen={null}
-  setActionMenuOpen={setMenu} draggedEntry={null} setDraggedEntry={setDragged}
-  onDropInto={moveInto} renameFile={rename} deleteFile={remove} />
+<FolderRow node={folder} depth={0} isCollapsed={collapsed} onToggle={toggle}
+  draggedEntry={null} setDraggedEntry={setDragged} onDragStartFolder={startDrag}
+  onDropInto={moveInto} onOpenMenu={(x, y) => openMenu(x, y)} />
 ```
 
 ## Props Overview
 | Prop | Type | Default | Description |
 |---|---|---|---|
-| node | `TreeFolderNode` | | Folder to render |
-| isCollapsed / onToggle | `boolean` / `(path) => void` | | Collapse state |
-| isActiveChain? | `boolean` | | Tint when the active file is inside |
-| depth | `number` | | Tree depth (indent) |
-| showColumns? | `boolean` | `false` | Date Modified ("--") / Kind ("Folder") columns |
-| draggedEntry / setDraggedEntry / onDropInto | | | Drag-and-drop moves |
-| onTouchDragStart? / isTouchPressing? / isTouchDropTarget? | | | Touch drag (`useTouchTreeDrag`): long-press start, native-drag suppression, hover highlight |
-| actionMenuOpen / setActionMenuOpen | menu state | | Shared action menu |
-| resolveFolderHandle? / createNewFile? / createFolder? | | | Folder actions; create callbacks receive this folder's handle |
-| expandFolder? | `(path) => void` | | Opens the folder after creating inside it |
-| renameFile / deleteFile | handlers | | Folder rename / delete |
+| node / depth | `TreeFolderNode` / `number` | | The folder and its tree depth |
+| isCollapsed / onToggle | `boolean` / `(path) => void` | | Expansion |
+| isActiveChain? | `boolean` | `false` | Contains the active file |
+| showColumns? | `boolean` | `false` | "--" / "Folder" columns |
+| draggedEntry / setDraggedEntry / onDragStartFolder / onDropInto | | | Drag-and-drop (a selected folder drags the whole selection) |
+| onTouchDragStart? / isTouchPressing? / isTouchDropTarget? | | | Touch drag |
+| onOpenMenu | `(x, y) => void` | | ⋯ button and right-click |
+| isSelected? / isFocused? / treeFocused? / onSelectClick? | | | Selection (see `FileRow`) |
+| editing? | `RowEditing` | | Shows the inline name field |

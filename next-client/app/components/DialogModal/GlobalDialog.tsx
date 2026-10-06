@@ -8,6 +8,7 @@ import DialogModal from "./DialogModal";
 import Button from "@/app/components/Button";
 import Input from "@/app/components/Input";
 import Typeahead from "@/app/components/Typeahead";
+import SelectOptionList from "./SelectOptionList";
 
 export default function GlobalDialog() {
   const [config] = useAtom(atom_globalDialog);
@@ -168,21 +169,7 @@ export default function GlobalDialog() {
         )}
 
         {isSelect && config.options && (
-          <div className="flex flex-col gap-1.5 py-2">
-            {config.options.map((opt) => (
-              <Button
-                key={opt.value}
-                variant="menu-item"
-                onClick={() => config.resolve(opt.value)}
-                className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-ui-subhead font-medium text-left text-ink-muted dark:text-stone hover:text-ink-light dark:hover:text-ink-dark hover:bg-paper-softgray dark:hover:bg-paper-dark-surface transition-colors border border-transparent hover:border-zinc-200/60 dark:hover:border-zinc-700/60"
-              >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 opacity-40">
-                  <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
-                </svg>
-                {opt.label}
-              </Button>
-            ))}
-          </div>
+          <SelectOptionList options={config.options} onSelect={(value) => config.resolve(value)} />
         )}
 
         {!isSelect && (

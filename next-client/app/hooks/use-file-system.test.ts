@@ -351,7 +351,7 @@ describe("useFileSystem - createFile conflict resolution", () => {
     expect(mockVaultHandle.getDirectoryHandle).toHaveBeenCalledWith("Projects");
     expect(projects.getFileHandle).toHaveBeenCalledWith("note.md");
     expect(move).toHaveBeenCalledWith(projects, "renamed.md");
-    expect(toast.success).toHaveBeenCalledWith("Renamed successfully");
+    expect(toast.error).not.toHaveBeenCalled();
   });
 
   it("uses the shared rename prompt and rejects path separators", async () => {
@@ -372,7 +372,7 @@ describe("useFileSystem - createFile conflict resolution", () => {
     expect(toast.error).toHaveBeenCalledWith("File names cannot contain slashes.");
   });
 
-  it("uses the shared type-aware delete confirmation", async () => {
+  it("asks before deleting permanently when an item can't be moved to the Trash", async () => {
     const confirm = vi.fn().mockResolvedValue(false);
     (useDialog as any).mockReturnValue({
       prompt: vi.fn(),
@@ -380,6 +380,8 @@ describe("useFileSystem - createFile conflict resolution", () => {
       confirm,
       alert: vi.fn(),
     });
+    // The Trash folder can't be created (e.g. a read-only vault).
+    mockVaultHandle.getDirectoryHandle.mockRejectedValue(new Error("read-only"));
     const handle = {
       kind: "directory",
       name: "Archive",
@@ -390,7 +392,7 @@ describe("useFileSystem - createFile conflict resolution", () => {
     await result.current.deleteFile(handle as unknown as FileSystemDirectoryHandle, "Archive");
 
     expect(confirm).toHaveBeenCalledWith(
-      'Delete folder "Archive"? This cannot be undone.',
+      "“Archive” couldn't be moved to the Trash. Delete it permanently? This cannot be undone.",
       "Delete folder",
       "Delete",
       "Cancel",

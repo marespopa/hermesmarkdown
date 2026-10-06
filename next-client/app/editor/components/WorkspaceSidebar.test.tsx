@@ -142,7 +142,7 @@ describe("WorkspaceSidebar", () => {
     fileSystem.vaultHandle = vault;
     renderSidebar(true, false);
     fireEvent.click(screen.getByRole("button", { name: "Files options" }));
-    fireEvent.click(screen.getByRole("menuitem", { name: "New File" }));
+    fireEvent.click(screen.getByRole("menuitem", { name: "New Note" }));
     expect(fileSystem.createNewFile).toHaveBeenCalledWith(vault);
     expect(screen.queryByRole("menu")).not.toBeInTheDocument();
 

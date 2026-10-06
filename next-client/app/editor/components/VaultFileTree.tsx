@@ -4,41 +4,40 @@ import { atom_indexerState } from "@/app/atoms/ui-atoms";
 import { atom_fileMetadata } from "@/app/atoms/metadata";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { useAtomValue } from "jotai";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { FileRow } from "./vault-tree/FileRow";
 import { ListHeader } from "./vault-tree/list-columns";
-import { buildFileTree, canDropInto, type DraggedEntry, getEntryId, getEntryPath, type VaultFileTreeProps, VIRTUALIZE_THRESHOLD } from "./vault-tree/tree-model";
+import { buildFileTree, canDropInto, type DraggedEntry, flattenVisible, getEntryPath, type TreeFolderNode, type VaultFileTreeProps, VIRTUALIZE_THRESHOLD } from "./vault-tree/tree-model";
+import { TreeContextMenu } from "./vault-tree/TreeContextMenu";
+import { handleTreeKey } from "./vault-tree/tree-keyboard";
+import { treeMenuItems } from "./vault-tree/tree-menu-items";
 import { TreeNodes } from "./vault-tree/TreeNodes";
 import { useFolderExpansion } from "./vault-tree/use-folder-expansion";
 import { useTouchTreeDrag } from "./vault-tree/use-touch-tree-drag";
+import { useTreeActions } from "./vault-tree/use-tree-actions";
+import { useTreeSelection } from "./vault-tree/use-tree-selection";
 
-export default function VaultFileTree({
-  processedFiles,
-  activeFilePath,
-  openFile,
-  openFileInPane,
-  renameFile,
-  deleteFile,
-  duplicateFile,
-  onClose,
-  singleClickOpen = false,
-  isSearchActive = false,
-  highlightQuery = "",
-  treeView = false,
-  columns = false,
-  folderPaths = [],
-  resolveFolderHandle,
-  createNewFile,
-  createFolder,
-  moveItem,
-}: VaultFileTreeProps) {
+export default function VaultFileTree(props: VaultFileTreeProps) {
+  const {
+    processedFiles,
+    activeFilePath,
+    openFile,
+    onClose,
+    singleClickOpen = false,
+    isSearchActive = false,
+    highlightQuery = "",
+    treeView = false,
+    columns = false,
+    folderPaths = [],
+    undoFileOperation,
+    controllerRef,
+  } = props;
   const indexerState = useAtomValue(atom_indexerState);
   const fileMetadata = useAtomValue(atom_fileMetadata);
   const showColumns = treeView && columns;
   const isIndexing =
     indexerState === "compiling" ||
     (typeof indexerState === "object" && indexerState.status === "compiling");
-  const [actionMenuOpen, setActionMenuOpen] = useState<{ x: number, y: number, path: string } | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const [draggedEntry, setDraggedEntry] = useState<DraggedEntry | null>(null);
   const [rootDragOver, setRootDragOver] = useState(false);
@@ -63,23 +62,47 @@ export default function VaultFileTree({
 
   const { isFolderCollapsed, toggleFolder, expandFolder } = useFolderExpansion(activeAncestorPaths);
 
-  // `entry` is passed by touch drag, whose handler outlives this render's
-  // `draggedEntry`.
-  const handleDropInto = async (targetPath: string, entry: DraggedEntry | null = draggedEntry) => {
-    if (!entry || !moveItem || !resolveFolderHandle) return;
-    const targetHandle = await resolveFolderHandle(targetPath);
-    const sourceHandle = entry.kind === "file"
-      ? entry.handle
-      : await resolveFolderHandle(entry.path);
-    if (targetHandle && sourceHandle) moveItem(sourceHandle, targetHandle);
-  };
+  const rows = useMemo(() => flattenVisible(tree, isFolderCollapsed), [tree, isFolderCollapsed]);
+  const selection = useTreeSelection(rows);
+  const [treeFocused, setTreeFocused] = useState(false);
+
+  // Whether the row was found (a row inside a collapsed folder isn't rendered).
+  const scrollToPath = useCallback((path: string): boolean => {
+    const container = scrollRef.current;
+    if (!container) return false;
+    const el = container.querySelector<HTMLElement>(
+      `[data-path="${CSS.escape(path)}"]`,
+    );
+    if (!el) return false;
+    el.scrollIntoView({ block: "nearest", behavior: "smooth" });
+    return true;
+  }, []);
+
+  const actions = useTreeActions({
+    props,
+    rows,
+    selection,
+    isFolderCollapsed,
+    toggleFolder,
+    expandFolder,
+    draggedEntry,
+    setDraggedEntry,
+    focusTree: () => scrollRef.current?.focus({ preventScroll: true }),
+    scrollToPath,
+  });
+
+  useEffect(() => {
+    if (!controllerRef) return;
+    controllerRef.current = { startCreate: actions.startCreate };
+    return () => { controllerRef.current = null; };
+  }, [controllerRef, actions.startCreate]);
 
   const canDropAtRoot = canDropInto(draggedEntry, "");
 
   const { startTouchDrag, touchDropTarget, touchGhost, isTouchPressing } = useTouchTreeDrag({
     scrollRef,
     setDraggedEntry,
-    onDropInto: (targetPath, entry) => void handleDropInto(targetPath, entry),
+    onDropInto: (targetPath, entry) => void actions.dropInto(targetPath, entry),
     expandFolder,
   });
 
@@ -122,23 +145,12 @@ export default function VaultFileTree({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeFilePath, shouldVirtualize, processedFiles]);
 
-  // Whether the row was found (a row inside a collapsed folder isn't rendered).
-  function scrollToPath(path: string): boolean {
-    const container = scrollRef.current;
-    if (!container) return false;
-    const el = container.querySelector<HTMLElement>(
-      `[data-path="${CSS.escape(path)}"]`,
-    );
-    if (!el) return false;
-    el.scrollIntoView({ block: "nearest", behavior: "smooth" });
-    return true;
-  }
-
   const emptyStateMessage = isSearchActive ? "No file found" : "No files yet";
   const emptyStateHint = undefined;
 
   const rowProps = (entry: any) => {
     const entryPath = getEntryPath(entry);
+    const path = entryPath || entry.name;
     const isActive = entryPath
       ? entryPath === activeFilePath
       : activeFilePath?.split("/").pop() === entry.name;
@@ -146,20 +158,59 @@ export default function VaultFileTree({
       entry,
       entryPath,
       isActive,
-      entryId: getEntryId(entry),
       showColumns,
       modifiedAt: entryPath ? fileMetadata?.[entryPath]?.modifiedAt : undefined,
       highlightQuery,
-      actionMenuOpen,
-      setActionMenuOpen,
       openFile,
-      openFileInPane,
-      renameFile,
-      deleteFile,
-      duplicateFile,
       onClose,
       singleClickOpen,
+      onOpenMenu: (x: number, y: number) => actions.openMenu({ type: "row", kind: "file", path }, x, y),
+      ...(treeView
+        ? {
+            isSelected: selection.selected.has(path),
+            isFocused: selection.focusPath === path,
+            treeFocused,
+            onSelectClick: (mods: Parameters<typeof selection.click>[1]) => selection.click(path, mods),
+            editing: actions.renameEditing(path),
+          }
+        : {}),
     };
+  };
+
+  const folderProps = (node: TreeFolderNode) => ({
+    showColumns,
+    draggedEntry,
+    setDraggedEntry,
+    onDragStartFolder: () => actions.startDrag({ kind: "folder", path: node.path, name: node.name }),
+    onDropInto: (targetPath: string) => void actions.dropInto(targetPath),
+    onOpenMenu: (x: number, y: number) => actions.openMenu({ type: "row", kind: "folder", path: node.path }, x, y),
+    isSelected: selection.selected.has(node.path),
+    isFocused: selection.focusPath === node.path,
+    treeFocused,
+    onSelectClick: (mods: Parameters<typeof selection.click>[1]) => selection.click(node.path, mods),
+    editing: actions.renameEditing(node.path),
+  });
+
+  const onTreeKeyDown = (e: React.KeyboardEvent) => {
+    if (!treeView || actions.renamingPath || actions.pendingCreate || actions.menu) return;
+    // Keys on a row's ⋯ button stay the button's.
+    const target = e.target as HTMLElement;
+    if (target !== e.currentTarget && target.getAttribute("role") !== "treeitem") return;
+    const result = handleTreeKey(e, {
+      rows,
+      selection,
+      isFolderCollapsed,
+      toggleFolder,
+      openRow: actions.openRow,
+      startRename: actions.startRename,
+      trashSelection: actions.trashSelection,
+      undo: undoFileOperation ? () => void undoFileOperation() : undefined,
+    });
+    if (result === undefined) return;
+    e.preventDefault();
+    // Not also the app's own shortcuts (⌘O, ⌘Z…) on the window.
+    e.stopPropagation();
+    if (result) scrollToPath(result);
   };
 
   return (
@@ -168,7 +219,22 @@ export default function VaultFileTree({
       <div
         ref={scrollRef}
         data-file-tree={treeView || undefined}
-        tabIndex={treeView ? -1 : undefined}
+        role={treeView ? "tree" : undefined}
+        aria-label={treeView ? "Files" : undefined}
+        aria-multiselectable={treeView || undefined}
+        tabIndex={treeView ? 0 : undefined}
+        onKeyDown={onTreeKeyDown}
+        onFocus={() => setTreeFocused(true)}
+        onBlur={(e) => {
+          if (!e.currentTarget.contains(e.relatedTarget as Node)) setTreeFocused(false);
+        }}
+        onClick={() => treeView && selection.clear()}
+        onContextMenu={(e) => {
+          if (!treeView || (!props.createNewFile && !props.createFolder)) return;
+          e.preventDefault();
+          selection.clear();
+          actions.openMenu({ type: "background" }, e.clientX, e.clientY);
+        }}
         onDragOver={(e) => {
           if (!treeView || !canDropAtRoot || touchGhost) return;
           e.preventDefault();
@@ -180,10 +246,10 @@ export default function VaultFileTree({
           if (!treeView) return;
           e.preventDefault();
           setRootDragOver(false);
-          if (canDropAtRoot) handleDropInto("");
+          if (canDropAtRoot) void actions.dropInto("");
           setDraggedEntry(null);
         }}
-        className={`flex-1 overflow-y-auto custom-scrollbar min-h-0 ${showColumns ? "" : "pb-1 px-2"} ${
+        className={`flex-1 overflow-y-auto custom-scrollbar min-h-0 outline-none ${showColumns ? "" : "pb-1 px-2"} ${
           rootDragOver || touchDropTarget === "" ? "bg-sage/5" : ""
         }`}
       >
@@ -198,21 +264,11 @@ export default function VaultFileTree({
             isActiveAncestor={(path) => activeAncestorPaths.has(path)}
             onToggleFolder={toggleFolder}
             rowProps={rowProps}
-            draggedEntry={draggedEntry}
+            folderProps={folderProps}
+            pendingCreate={actions.pendingCreate}
             setDraggedEntry={setDraggedEntry}
-            onDropInto={(targetPath) => void handleDropInto(targetPath)}
+            onDragStartFile={actions.startDrag}
             touchDrag={{ start: startTouchDrag, isPressing: isTouchPressing, dropTarget: touchDropTarget }}
-            folderRowExtras={{
-              showColumns,
-              actionMenuOpen,
-              setActionMenuOpen,
-              resolveFolderHandle,
-              createNewFile,
-              createFolder,
-              expandFolder,
-              renameFile,
-              deleteFile,
-            }}
           />
           </div>
         ) : shouldVirtualize ? (
@@ -250,7 +306,7 @@ export default function VaultFileTree({
           })
         )}
 
-        {processedFiles.length === 0 && (
+        {processedFiles.length === 0 && (!treeView || (tree.length === 0 && !actions.pendingCreate)) && (
           <div className="px-4 py-8 flex flex-col items-center gap-2 text-center">
             {isIndexing ? (
               <>
@@ -281,6 +337,15 @@ export default function VaultFileTree({
           </div>
         )}
       </div>
+      {actions.menu && (
+        <TreeContextMenu
+          x={actions.menu.x}
+          y={actions.menu.y}
+          label={actions.menu.target.type === "background" ? "Files" : actions.menu.target.kind === "folder" ? "Folder actions" : "File actions"}
+          items={treeMenuItems(actions.menu.target, props, actions)}
+          onClose={actions.closeMenu}
+        />
+      )}
       {touchGhost && (
         <div
           aria-hidden

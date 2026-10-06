@@ -15,7 +15,8 @@ Atom persistence uses Jotai `atomWithStorage` (`localStorage`) directly in `app/
 
 - `file-writer.ts` — `writeFileContent()`, the single write path for vault files. Uses `createWritable()` when the handle has it; otherwise (Safari before 26) sends the bytes to `app/workers/opfs-writer.worker.ts`, which writes through `createSyncAccessHandle()`.
 - `content-search-client.ts` — Main-thread side of the note-text index in the metadata worker: `indexNoteContent`, `removeNoteContent`, `remapNoteContent`, `markContentIndexed` / `needsContentIndex` (which notes the worker already has this session, by modified time), and `searchNoteContent` (resolves `null` when superseded or after 5 s). Holds no note text. No-ops without a worker.
-- `vault-archive.ts` — Whole-vault zip export / import (`fflate`; exports wrap entries in a vault-named folder, which import strips), folder copy, path sanitizing (no traversal, skips `.git` / `node_modules`; Android storage-URI paths from a folder pick are rebuilt into folder-relative ones), and conflict-free naming (`name (1).md`).
+- `vault-trash.ts` — The vault Trash's layout: `TRASH_DIR` (`.hermes/trash`), `isTrashPath()`, slot names by deletion time (`trashSlotName` / `trashSlotDate`) and the 30-day expiry (`isTrashSlotExpired`). The Trash is skipped by indexing, export and GitHub sync.
+- `vault-archive.ts` — Whole-vault zip export / import (`fflate`; exports wrap entries in a vault-named folder, which import strips), folder copy, path sanitizing (no traversal, skips `.git` / `node_modules` and the Trash; Android storage-URI paths from a folder pick are rebuilt into folder-relative ones), and conflict-free naming (`name (1).md`).
 
 ## AI (client)
 
@@ -24,7 +25,7 @@ Atom persistence uses Jotai `atomWithStorage` (`localStorage`) directly in `app/
 
 ## GitHub vaults
 
-- `github-vault-workspace.ts` (client) — Mirrors repository files into the Origin Private File System: path validation (Markdown and `.hermes/` only), descriptor / manifest types, read / write / delete, blob SHAs.
+- `github-vault-workspace.ts` (client) — Mirrors repository files into the Origin Private File System: path validation (Markdown and `.hermes/` only, never the Trash), descriptor / manifest types, read / write / delete, blob SHAs.
 - `github-vault-sync.ts` (client) — Computes local changes, commits them through `/api/github/repos/[owner]/[repository]/sync`, and pulls with a three-way merge (conflicts left as markers).
 - `github-api.ts` (server) — Authenticated `fetch` to the GitHub API, request schemas, and error mapping (uses `NextRequest`).
 - `github-auth.ts` (server) — OAuth state and the encrypted HttpOnly session cookie that holds the access token.

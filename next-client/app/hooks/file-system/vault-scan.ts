@@ -1,3 +1,5 @@
+import { isTrashPath } from "@/app/services/vault-trash";
+
 // Pure vault-walking helpers used by use-vault-manager.ts: directory listing,
 // the recursive markdown walk for indexing, and cloud-folder detection. No
 // React or atom access here, so they can be reasoned about (and tested) alone.
@@ -70,6 +72,8 @@ export interface CollectedFile {
 
 export interface CollectResult {
   files: CollectedFile[];
+  /** Every folder walked (vault-relative paths), empty ones included. */
+  folders: string[];
   /** Subfolders that couldn't be read (usually missing permission). */
   failedSubdirs: number;
   /** The walk hit the time limit; `files` holds what was found so far. */
@@ -90,8 +94,9 @@ export function isSecretFile(name: string): boolean {
   return /^\.env(\..*)?$/i.test(name);
 }
 
-// Recursively collects the vault's markdown files for indexing, listing up
-// to WALK_CONCURRENCY folders at once. Skips SKIPPED_DIRS and dotfolders
+// Recursively collects the vault's markdown files for indexing, and the
+// folders walked for the file tree, listing up to WALK_CONCURRENCY folders
+// at once. Skips SKIPPED_DIRS and dotfolders
 // unless `includeHidden`, in which case non-.md files in .hermes/ (e.g.
 // .hermes/index.yaml) are included too. Secret files never are. Gives up
 // after `timeoutMs` so a huge tree can never pin the indexer.
@@ -101,11 +106,14 @@ export async function collectVaultFiles(
   timeoutMs = 60000,
 ): Promise<CollectResult> {
   const files: CollectedFile[] = [];
+  const folders: string[] = [];
   let failedSubdirs = 0;
   let timedOut = false;
   let finished = false;
 
-  const isIgnoredDir = (name: string) => SKIPPED_DIRS.has(name) || (!includeHidden && name.startsWith("."));
+  // The Trash (.hermes/trash) holds deleted notes: never indexed or listed.
+  const isIgnoredDir = (name: string, path: string) =>
+    SKIPPED_DIRS.has(name) || (!includeHidden && name.startsWith(".")) || isTrashPath(path);
   const isWanted = (name: string, path: string) =>
     !isSecretFile(name) &&
     (name.endsWith(".md") || (includeHidden && path.split("/")[0] === VAULT_DATA_DIR));
@@ -117,7 +125,13 @@ export async function collectVaultFiles(
         const currentPath = path ? `${path}/${entry.name}` : entry.name;
         if (entry.kind === "file" && isWanted(entry.name, currentPath)) {
           files.push({ handle: entry as FileSystemFileHandle, path: currentPath });
-        } else if (entry.kind === "directory" && !isIgnoredDir(entry.name)) {
+        } else if (
+          entry.kind === "directory" &&
+          !isIgnoredDir(entry.name, currentPath) &&
+          !(await isStrayDocumentFolder(entry, path))
+        ) {
+          if (finished) return;
+          folders.push(currentPath);
           queue.push([entry as FileSystemDirectoryHandle, currentPath]);
         }
       }
@@ -155,7 +169,7 @@ export async function collectVaultFiles(
     pump();
   });
   // A copy: listings still in flight after a timeout must not change it.
-  return { files: files.slice(), failedSubdirs, timedOut };
+  return { files: files.slice(), folders: folders.slice(), failedSubdirs, timedOut };
 }
 
 // Reads collected files for the metadata worker (file permissions are scoped

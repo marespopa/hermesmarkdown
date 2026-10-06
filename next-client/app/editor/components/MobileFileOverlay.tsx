@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useRef } from "react";
 import OverlayPanel from "@/app/components/OverlayLayer/OverlayPanel";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { atom_activeFilePath } from "@/app/atoms/atoms";
@@ -9,6 +9,7 @@ import { useDialog } from "@/app/hooks/use-dialog";
 import { useVaultFileSearch } from "../hooks/useVaultFileSearch";
 import SmartFolders from "./SmartFolders";
 import VaultFileTree from "./VaultFileTree";
+import type { VaultFileTreeController } from "./vault-tree/tree-model";
 import VaultEmptyState from "./VaultEmptyState";
 import UnifiedSearchInput from "./UnifiedSearchInput";
 import { HiOutlineX, HiOutlineEye, HiOutlineEyeOff, HiOutlineLogout, HiOutlineFolderAdd, HiOutlineDocumentAdd } from "react-icons/hi";
@@ -30,8 +31,11 @@ export default function MobileFileOverlay({
     openFile,
     renameFile,
     deleteFile,
+    trashItems,
     duplicateFile,
     moveItem,
+    moveItems,
+    undoFileOperation,
     createNewFile,
     createFolder,
     vaultHandle,
@@ -54,6 +58,17 @@ export default function MobileFileOverlay({
   const { searchQuery, setSearchQuery, processedFiles, totalResultsCount, hasMoreResults, setShowAllResults, allFiles, folderPaths, tags } =
     useVaultFileSearch({ selectedTags, panel: "search" });
   const isSearching = searchQuery.trim().length > 0 || selectedTags.length > 0;
+
+  const treeController = useRef<VaultFileTreeController | null>(null);
+  // In the Files tab's tree the new item is named in place (at the root);
+  // elsewhere, the folder picker and name prompt.
+  const startCreate = (kind: "file" | "folder") => {
+    if (treeController.current) {
+      treeController.current.startCreate(kind, "");
+      return;
+    }
+    void (kind === "file" ? createNewFile() : createFolder());
+  };
 
   const resolveFolderHandle = useCallback(async (path: string): Promise<any | null> => {
     if (!path) return vaultHandle;
@@ -104,7 +119,7 @@ export default function MobileFileOverlay({
             {vaultHandle && (
               <Button
                 variant="icon"
-                onClick={() => void createNewFile()}
+                onClick={() => startCreate("file")}
                 aria-label="New file"
                 title="New file"
                 className="!h-10 !w-10"
@@ -115,7 +130,7 @@ export default function MobileFileOverlay({
             {vaultHandle && (
               <Button
                 variant="icon"
-                onClick={() => void createFolder()}
+                onClick={() => startCreate("folder")}
                 aria-label="New folder"
                 title="New folder"
                 className="!h-10 !w-10"
@@ -244,6 +259,10 @@ export default function MobileFileOverlay({
               createNewFile={createNewFile}
               createFolder={createFolder}
               moveItem={moveItem}
+              moveItems={moveItems}
+              trashItems={trashItems}
+              undoFileOperation={undoFileOperation}
+              controllerRef={treeController}
             />
           )}
         </div>
