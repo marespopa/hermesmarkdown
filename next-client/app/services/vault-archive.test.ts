@@ -5,6 +5,7 @@ import {
   collectArchiveFiles,
   copyVaultToDirectory,
   createVaultZipBytes,
+  folderRelativePath,
   readImportSelection,
   sanitizeArchivePath,
   stripSharedRoot,
@@ -32,6 +33,27 @@ describe("sanitizeArchivePath", () => {
 
   it("keeps hidden vault folders such as .hermes", () => {
     expect(sanitizeArchivePath(".hermes/index.yaml")).toBe(".hermes/index.yaml");
+  });
+});
+
+describe("folderRelativePath", () => {
+  it("leaves ordinary folder-relative paths alone", () => {
+    expect(folderRelativePath("Notes/document/a.md", "a.md")).toBe("Notes/document/a.md");
+  });
+
+  it("keeps the picked folder's name and drops the folders above it", () => {
+    expect(folderRelativePath(
+      "tree/primary%3ADocuments%2FNotes/document/primary%3ADocuments%2FNotes%2Fsub%2Fa.md",
+      "a.md",
+    )).toBe("Notes/sub/a.md");
+  });
+
+  it("handles a document id with literal slashes and no tree segment", () => {
+    expect(folderRelativePath("document/primary%3ANotes/sub/a.md", "a.md")).toBe("Notes/sub/a.md");
+  });
+
+  it("ends in the file's real name when the id does not carry it", () => {
+    expect(folderRelativePath("tree/primary%3ANotes/document/msf%3A42", "a.md")).toBe("a.md");
   });
 });
 
@@ -112,6 +134,14 @@ describe("zip export and import", () => {
     const files = await readImportSelection([
       fakeFile("a.md", "A", "Notes/a.md"),
       fakeFile("b.md", "B", "Notes/deep/b.md"),
+    ]);
+    expect(files.map((file) => file.path)).toEqual(["a.md", "deep/b.md"]);
+  });
+
+  it("rebuilds folder-relative paths from Android storage document URIs", async () => {
+    const files = await readImportSelection([
+      fakeFile("a.md", "A", "tree/primary%3ANotes/document/primary%3ANotes%2Fa.md"),
+      fakeFile("b.md", "B", "tree/primary%3ANotes/document/primary%3ANotes%2Fdeep%2Fb.md"),
     ]);
     expect(files.map((file) => file.path)).toEqual(["a.md", "deep/b.md"]);
   });

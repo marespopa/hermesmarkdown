@@ -83,6 +83,46 @@ export async function createVaultZip(root: FileSystemDirectoryHandle): Promise<B
   return new Blob([(await createVaultZipBytes(root)) as BlobPart], { type: "application/zip" });
 }
 
+function decodeSegment(segment: string): string {
+  try {
+    return decodeURIComponent(segment);
+  } catch {
+    return segment;
+  }
+}
+
+// The part of an Android storage document id ("primary:Notes/a.md") after
+// the volume, or null when `encoded` is not one.
+function documentIdPath(encoded: string): string | null {
+  if (!/%3A/i.test(encoded)) return null;
+  const id = decodeSegment(encoded);
+  const colon = id.indexOf(":");
+  return colon < 0 ? null : id.slice(colon + 1).replace(/^\/+|\/+$/g, "");
+}
+
+// Chrome on Android can report a picked folder's files by their storage URI
+// path ("tree/primary%3ANotes/document/primary%3ANotes%2Fsub%2Fa.md") rather
+// than a folder-relative one. Rebuilds "Notes/sub/a.md" from the document
+// ids, ending in the file's real name; other paths pass through unchanged.
+export function folderRelativePath(path: string, fileName: string): string {
+  const segments = path.split("/");
+  const marker = segments.lastIndexOf("document");
+  if (marker < 0 || marker === segments.length - 1) return path;
+  const documentPath = documentIdPath(segments.slice(marker + 1).join("/"));
+  if (documentPath === null) return path;
+
+  const folders = documentPath.split("/").filter(Boolean).slice(0, -1);
+  const treeStart = segments.lastIndexOf("tree", marker) + 1;
+  const treePath = documentIdPath(segments.slice(treeStart, marker).join("/"));
+  if (treePath) {
+    const treeFolders = treePath.split("/").filter(Boolean);
+    const insideTree = treeFolders.every((folder, index) => folders[index] === folder);
+    // Keep the picked folder's own name first, like a desktop folder pick.
+    if (insideTree) folders.splice(0, treeFolders.length, ...treeFolders.slice(-1));
+  }
+  return [...folders, fileName].join("/");
+}
+
 // Reads what the user picked for import: .zip files are expanded, anything
 // else is taken as-is using its folder-relative path when there is one.
 export async function readImportSelection(selection: File[]): Promise<ArchiveFile[]> {
@@ -94,7 +134,8 @@ export async function readImportSelection(selection: File[]): Promise<ArchiveFil
       });
       for (const [path, data] of Object.entries(entries)) raw.push({ path, data });
     } else {
-      raw.push({ path: (file as any).webkitRelativePath || file.name, data: file });
+      const relativePath: string = (file as any).webkitRelativePath;
+      raw.push({ path: relativePath ? folderRelativePath(relativePath, file.name) : file.name, data: file });
     }
   }
 
