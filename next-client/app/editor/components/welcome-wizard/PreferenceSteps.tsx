@@ -2,11 +2,12 @@
 
 import React from "react";
 import { useAtom } from "jotai";
-import { HiOutlineColorSwatch, HiOutlineDesktopComputer, HiOutlineEye, HiOutlineLightningBolt, HiOutlineMenuAlt2, HiOutlineRefresh, HiOutlineViewList } from "react-icons/hi";
+import { HiOutlineColorSwatch, HiOutlinePencil, HiOutlineTemplate } from "react-icons/hi";
 import {
   atom_autosaveMode,
   atom_editorFontFamily,
   atom_flowMode,
+  atom_fullWidth,
   atom_lineNumbers,
   atom_renderedFontSize,
   atom_sidebarOpen,
@@ -17,13 +18,13 @@ import {
 import Toggle from "@/app/components/Toggle";
 import FontPicker from "@/app/editor/settings/components/FontPicker";
 import { SegmentedControl, SelectControl } from "@/app/editor/settings/components/SettingControls";
-import { TEXT_SIZES } from "@/app/editor/settings/font-options";
-import { FONTS } from "@/app/editor/settings/font-options";
+import { FONTS, TEXT_SIZES } from "@/app/editor/settings/font-options";
 import WizardStep, { WizardPanel } from "./WizardStep";
 
-// Steps 2–9 of the welcome wizard: theme, font, text size, line numbers,
-// Vim mode, flow mode, autosave, and sidebar. Each writes its
-// setting immediately.
+// Steps 2–4 of the welcome wizard, each a group of related settings:
+// Look (theme, font, text size), Layout (width, sidebar, line numbers) and
+// Writing (Vim, flow mode, autosave). Every control writes its setting
+// immediately.
 
 const THEME_OPTIONS: { label: string; value: Theme }[] = [
   { label: "Light", value: "light" },
@@ -31,147 +32,134 @@ const THEME_OPTIONS: { label: string; value: Theme }[] = [
   { label: "System", value: "system" },
 ];
 
+type Width = "standard" | "full";
+const WIDTH_OPTIONS: { label: string; value: Width }[] = [
+  { label: "Standard", value: "standard" },
+  { label: "Full", value: "full" },
+];
+
 type StepProps = { onContinue: () => void };
 
-export function ThemeStep({ onContinue }: StepProps) {
-  const [theme, setTheme] = useAtom(atom_theme);
-  return (
-    <WizardStep
-      icon={<HiOutlineDesktopComputer size={32} />}
-      title="Theme"
-      description="System follows your OS's light/dark setting and switches automatically when it changes."
-      onContinue={onContinue}
-    >
-      <WizardPanel>
-        <SegmentedControl options={THEME_OPTIONS} value={theme} onChange={setTheme} />
-      </WizardPanel>
-    </WizardStep>
-  );
-}
+const LABEL_CLASS = "block text-[11px] font-bold uppercase tracking-wider opacity-70";
 
-export function FontStep({ onContinue }: StepProps) {
-  const [editorFontFamily, setEditorFontFamily] = useAtom(atom_editorFontFamily);
+// One setting in a grouped panel: label and hint on the left, control on
+// the right. Rows are separated by the panel's dividers.
+function SettingRow({ label, hint, children }: { label: string; hint: string; children: React.ReactNode }) {
   return (
-    <WizardStep
-      icon={<HiOutlineColorSwatch size={32} />}
-      title="Choose your font"
-      description="Choose a comfortable typeface for writing Markdown."
-      onContinue={onContinue}
-    >
-      <div className="w-full text-left">
-        <div className="max-h-[40vh] overflow-y-auto">
-          <FontPicker fonts={FONTS} value={editorFontFamily} onChange={setEditorFontFamily} />
-        </div>
+    <div className="flex items-center justify-between gap-4 py-3 first:pt-0 last:pb-0">
+      <div className="min-w-0">
+        <div className="text-ui-footnote font-semibold">{label}</div>
+        <div className="text-ui-caption opacity-60">{hint}</div>
       </div>
-    </WizardStep>
+      <div className="shrink-0">{children}</div>
+    </div>
   );
 }
 
-export function TextSizeStep({ onContinue }: StepProps) {
+function ToggleRow({ label, hint, active, onChange }: { label: string; hint: string; active: boolean; onChange: (value: boolean) => void }) {
+  return (
+    <SettingRow label={label} hint={hint}>
+      <Toggle variant="soft" active={active} onChange={onChange} label={label} />
+    </SettingRow>
+  );
+}
+
+export function LookStep({ onContinue }: StepProps) {
+  const [theme, setTheme] = useAtom(atom_theme);
+  const [editorFontFamily, setEditorFontFamily] = useAtom(atom_editorFontFamily);
   const [renderedFontSize, setRenderedFontSize] = useAtom(atom_renderedFontSize);
   return (
     <WizardStep
       icon={<HiOutlineColorSwatch size={32} />}
-      title="Choose your text size"
-      description="Set a comfortable reading size for your notes."
+      title="Make it yours"
+      description="Theme, typeface and text size. System follows your OS's light/dark setting."
       onContinue={onContinue}
     >
-      <WizardPanel className="text-left">
-        <label className="mb-2 block text-[11px] font-bold uppercase tracking-wider opacity-70">
-          Text size
-        </label>
-        <SelectControl value={renderedFontSize} onChange={setRenderedFontSize} ariaLabel="Text size">
-          {TEXT_SIZES.map((size) => <option key={size.value} value={size.value}>{size.label}</option>)}
-        </SelectControl>
+      <WizardPanel className="space-y-4 text-left">
+        <div className="space-y-2">
+          <span className={LABEL_CLASS}>Theme</span>
+          <SegmentedControl options={THEME_OPTIONS} value={theme} onChange={setTheme} />
+        </div>
+        <div className="space-y-2">
+          <span className={LABEL_CLASS}>Font</span>
+          <div className="max-h-[28vh] overflow-y-auto">
+            <FontPicker fonts={FONTS} value={editorFontFamily} onChange={setEditorFontFamily} />
+          </div>
+        </div>
+        <div className="space-y-2">
+          <label className={LABEL_CLASS}>Text size</label>
+          <SelectControl value={renderedFontSize} onChange={setRenderedFontSize} ariaLabel="Text size">
+            {TEXT_SIZES.map((size) => <option key={size.value} value={size.value}>{size.label}</option>)}
+          </SelectControl>
+        </div>
       </WizardPanel>
     </WizardStep>
   );
 }
 
-function ToggleRow({ label, active, onChange }: { label: string; active: boolean; onChange: (value: boolean) => void }) {
-  return (
-    <WizardPanel className="flex items-center justify-between text-left">
-      <span className="text-ui-footnote font-semibold">{label}</span>
-      <Toggle variant="soft" active={active} onChange={onChange} label={label} />
-    </WizardPanel>
-  );
-}
-
-export function LineNumbersStep({ onContinue }: StepProps) {
+export function LayoutStep({ onContinue }: StepProps) {
+  const [fullWidth, setFullWidth] = useAtom(atom_fullWidth);
+  const [sidebarOpen, setSidebarOpen] = useAtom(atom_sidebarOpen);
   const [lineNumbers, setLineNumbers] = useAtom(atom_lineNumbers);
   return (
     <WizardStep
-      icon={<HiOutlineViewList size={32} />}
-      title="Show line numbers?"
-      description="Line numbers make it easier to navigate and discuss specific parts of a note."
+      icon={<HiOutlineTemplate size={32} />}
+      title="Lay out the page"
+      description="How wide the text runs and what sits around it."
       onContinue={onContinue}
     >
-      <ToggleRow label="Line numbers" active={lineNumbers} onChange={setLineNumbers} />
+      <WizardPanel className="divide-y divide-edge text-left">
+        <SettingRow label="Editor width" hint="Standard stops at a comfortable reading width; Full fills the window.">
+          <SegmentedControl
+            options={WIDTH_OPTIONS}
+            value={fullWidth ? "full" : "standard"}
+            onChange={(value) => setFullWidth(value === "full")}
+          />
+        </SettingRow>
+        <ToggleRow
+          label="Sidebar"
+          hint="Open notes and vault files on the left. Toggle it any time with Ctrl/Cmd+Alt+S."
+          active={sidebarOpen}
+          onChange={setSidebarOpen}
+        />
+        <ToggleRow
+          label="Line numbers"
+          hint="Easier to navigate and point at a specific line."
+          active={lineNumbers}
+          onChange={setLineNumbers}
+        />
+      </WizardPanel>
     </WizardStep>
   );
 }
 
-export function VimStep({ onContinue }: StepProps) {
+export function WritingStep({ onContinue }: StepProps) {
   const [vimMode, setVimMode] = useAtom(atom_vimMode);
-  return (
-    <WizardStep
-      icon={<HiOutlineLightningBolt size={32} />}
-      title="Use Vim keybindings?"
-      description="Enable Vim motions and editing modes in the source editor."
-      onContinue={onContinue}
-    >
-      <ToggleRow label="Vim mode" active={vimMode} onChange={setVimMode} />
-    </WizardStep>
-  );
-}
-
-export function FlowModeStep({ onContinue }: StepProps) {
   const [flowMode, setFlowMode] = useAtom(atom_flowMode);
-  return (
-    <WizardStep
-      icon={<HiOutlineEye size={32} />}
-      title="Write in flow mode?"
-      description="While you write, everything except the current paragraph fades and the line you're typing on stays centered on screen."
-      onContinue={onContinue}
-    >
-      <ToggleRow label="Flow mode" active={flowMode} onChange={setFlowMode} />
-    </WizardStep>
-  );
-}
-
-export function AutosaveStep({ onContinue }: StepProps) {
   const [autosaveMode, setAutosaveMode] = useAtom(atom_autosaveMode);
   return (
     <WizardStep
-      icon={<HiOutlineRefresh size={32} />}
-      title="Autosave"
-      description="Choose when changes get written to disk."
+      icon={<HiOutlinePencil size={32} />}
+      title="How you write"
+      description="Keybindings, focus and when changes reach the disk."
       onContinue={onContinue}
     >
-      <div className="w-full text-left">
-        <WizardPanel className="space-y-2">
-          <label className="text-[11px] font-bold uppercase tracking-wider ml-1 opacity-70">Autosave</label>
-          <SelectControl value={autosaveMode} onChange={(v) => setAutosaveMode(v as any)}>
-            <option value="afterDelay">After 2s Delay</option>
-            <option value="onFocusChange">On Focus Change</option>
-            <option value="manual">Manual Only</option>
+      <WizardPanel className="divide-y divide-edge text-left">
+        <ToggleRow label="Vim mode" hint="Vim motions and editing modes." active={vimMode} onChange={setVimMode} />
+        <ToggleRow
+          label="Flow mode"
+          hint="Fade everything but the current paragraph and keep your line centred."
+          active={flowMode}
+          onChange={setFlowMode}
+        />
+        <SettingRow label="Autosave" hint="When changes get written to disk.">
+          <SelectControl value={autosaveMode} onChange={(v) => setAutosaveMode(v as typeof autosaveMode)} ariaLabel="Autosave" size="sm" fullWidth={false}>
+            <option value="afterDelay">After 2s delay</option>
+            <option value="onFocusChange">On focus change</option>
+            <option value="manual">Manual only</option>
           </SelectControl>
-        </WizardPanel>
-      </div>
-    </WizardStep>
-  );
-}
-
-export function SidebarStep({ onContinue }: StepProps) {
-  const [sidebarOpen, setSidebarOpen] = useAtom(atom_sidebarOpen);
-  return (
-    <WizardStep
-      icon={<HiOutlineMenuAlt2 size={32} />}
-      title="Show the sidebar?"
-      description="Your open notes and the vault's files on the left edge of the window. Show it with the Sidebar button in the toolbar, hide it with the button in its header, or press Ctrl/Cmd+Alt+S."
-      onContinue={onContinue}
-    >
-      <ToggleRow label="Sidebar" active={sidebarOpen} onChange={setSidebarOpen} />
+        </SettingRow>
+      </WizardPanel>
     </WizardStep>
   );
 }
