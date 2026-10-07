@@ -5,6 +5,7 @@ import { Provider, useAtomValue } from "jotai";
 import { useHydrateAtoms } from "jotai/utils";
 import { atom_activePaneId, atom_openFiles, atom_workspaceLayout } from "@/app/atoms/atoms";
 import { atom_homeFeedOpen, atom_homeFeedTopRequest, atom_sidebarOpen } from "@/app/atoms/ui-atoms";
+import { atom_vaultDescriptor, atom_vaultHandle } from "@/app/atoms/vault-atoms";
 import WorkspaceSidebar from "./WorkspaceSidebar";
 
 const fileSystem = vi.hoisted(() => ({
@@ -51,13 +52,15 @@ const TopRequest = () => <output data-testid="top-request">{useAtomValue(atom_ho
 const left = { id: "left", type: "editor" as const, openFilePaths: ["a.md"], activeFilePath: "a.md", isPinned: false };
 const right = { id: "right", type: "editor" as const, openFilePaths: ["b.md"], activeFilePath: "b.md", isPinned: false };
 
-const renderSidebar = (open = true, homeFeedOpen = true) =>
+const renderSidebar = (open = true, homeFeedOpen = true, descriptor: unknown = null) =>
   render(
     <Provider>
       <HydrateAtoms initialValues={[
         [atom_sidebarOpen, open],
         [atom_activePaneId, "left"],
         [atom_homeFeedOpen, homeFeedOpen],
+        [atom_vaultHandle, fileSystem.vaultHandle],
+        [atom_vaultDescriptor, descriptor],
         [atom_openFiles, {
           "a.md": { fileName: "a.md", content: "A", lastSavedContent: "A" },
           "b.md": { fileName: "b.md", content: "B changed", lastSavedContent: "B" },
@@ -181,6 +184,12 @@ describe("WorkspaceSidebar", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "Hide sidebar" }));
     expect(screen.getByRole("navigation", { hidden: true }).closest("[inert]")).not.toBeNull();
+  });
+
+  it("titles a browser vault by its name, not its storage folder", () => {
+    fileSystem.vaultHandle = { name: "browser-3f2a" };
+    renderSidebar(true, true, { version: 1, kind: "browser", id: "3f2a", displayName: "Journal", createdAt: 1 });
+    expect(screen.getByRole("heading", { name: "Journal" })).toBeInTheDocument();
   });
 
   it("is inert while hidden", () => {
