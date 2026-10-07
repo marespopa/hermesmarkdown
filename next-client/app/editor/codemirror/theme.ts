@@ -126,33 +126,35 @@ export const baseTheme = EditorView.theme({
     border: "none",
     paddingRight: "0.75rem",
   },
-  ".cm-panels": {
-    backgroundColor: "var(--chrome)",
-    borderTop: "1px solid var(--border)",
-  },
-  ".cm-vim-panel": {
-    alignItems: "center",
-    color: "var(--fg-muted)",
-    fontFamily: MONO_FONT_STACK,
-    fontSize: "0.75rem",
-    lineHeight: "1.75rem",
-    minHeight: "1.75rem",
-  },
-  ".cm-vim-panel > span:first-child": {
-    color: "var(--sage)",
-    fontWeight: "700",
-  },
   // !important: Tailwind's preflight resets border-color to currentColor on
   // all elements, which can override this rule for equal-specificity selectors.
   // Pinning with !important guarantees the custom cursor keeps its blue color
   // in both light and dark mode, regardless of surrounding decoration classes.
   ".cm-cursor": {
-    borderLeftColor: "#3b82f6 !important",
+    borderLeftColor: "var(--caret) !important",
     borderLeftWidth: "2px",
   },
+  // Vim's block cursor (Normal / Visual). The library's own theme sits at
+  // Prec.highest with a pink fill, hence !important. A tint, not a solid
+  // block, so the character under it — drawn by the library in the text
+  // colour — stays readable.
+  ".cm-fat-cursor": {
+    background: "color-mix(in srgb, var(--caret) 30%, transparent) !important",
+    borderRadius: "2px",
+  },
+  "&:not(.cm-focused) .cm-fat-cursor": {
+    background: "none !important",
+    outline: "solid 1px color-mix(in srgb, var(--caret) 60%, transparent) !important",
+  },
+  // Vim `/` search hits; replaces the library's yellow / cyan.
+  ".cm-searchMatch": {
+    backgroundColor: "color-mix(in srgb, var(--moss) 22%, transparent) !important",
+    borderRadius: "2px",
+  },
+  // --selection is already translucent (lighter in light mode, stronger in
+  // dark), so no layer opacity here.
   ".cm-selectionBackground, &.cm-focused .cm-selectionBackground": {
-    backgroundColor: "var(--clay) !important",
-    opacity: "0.25",
+    backgroundColor: "var(--selection) !important",
   },
   // Generic fold state is already shown by our own chevron UI, so its
   // placeholder stays visually hidden while retaining its layout box.

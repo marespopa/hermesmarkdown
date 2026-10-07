@@ -198,7 +198,7 @@ export function useCodeMirrorEditor({
     const view = viewRef.current;
     const compartment = vimModeCompartmentRef.current;
     if (!view || !compartment) return;
-    view.dispatch({ effects: compartment.reconfigure(vimMode ? vim({ status: true }) : []) });
+    view.dispatch({ effects: compartment.reconfigure(vimMode ? vim() : []) });
   }, [vimMode, viewRef]);
 
   useEffect(() => {

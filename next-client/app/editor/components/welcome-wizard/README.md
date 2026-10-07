@@ -7,6 +7,6 @@ Steps of [`WelcomeWizard`](../WelcomeWizard.md). Each step reads and writes its 
 | `WizardStep.tsx` | Shared layout (`WizardStep`: icon, title, description, control, Continue) and the bordered `WizardPanel`. |
 | `NameStep.tsx` | 0 — your name (`atom_userName`, optional, trimmed), used by the home feed's greeting ("Good morning, <name>!"). Enter continues. |
 | `VaultStep.tsx` | 1 — create a vault, open an existing folder, use a browser vault, or connect GitHub (shows `CreateVaultSubSteps` during creation). Without disk folder access only the browser vault and GitHub options show. |
-| `PreferenceSteps.tsx` | 2–9 — theme, font, text size, line numbers, Vim mode, flow mode, autosave, sidebar (show / hide). |
-| `AiKeyStep.tsx` | 11 — optional AI provider and key, with a connection test. |
-| `ReadyStep.tsx` | 12 — command palette hint and "Open Editor". |
+| `PreferenceSteps.tsx` | 2 Look (theme, font, text size), 3 Layout (editor width Standard / Full, sidebar, line numbers), 4 Writing (Vim mode, flow mode, autosave). Each groups its settings in one panel. |
+| `AiKeyStep.tsx` | 5 — optional AI provider and key, with a connection test. |
+| `ReadyStep.tsx` | 6 — command palette hint and "Open Editor". |

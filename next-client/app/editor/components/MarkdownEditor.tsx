@@ -34,6 +34,8 @@ import { openImageDialog } from "../utils/open-helper-dialogs";
 import EditorPills from "./markdown-editor/EditorPills";
 import FoldChevrons from "./markdown-editor/FoldChevrons";
 import LinkInsertDialog from "./markdown-editor/LinkInsertDialog";
+import VimStatusPill from "./markdown-editor/VimStatusPill";
+import { useVimStatus } from "../hooks/use-vim-status";
 import TemplateStrip from "./TemplateStrip";
 import EmptyNoteTemplates from "./EmptyNoteTemplates";
 import { useTemplateNote } from "../hooks/use-template-note";
@@ -235,6 +237,8 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
     pasteImageRef,
     onViewCreated: handleViewCreated,
   });
+  // After useCodeMirrorEditor, so the Vim compartment is live (see the hook).
+  const { hostRef: vimStatusHostRef, status: vimStatus } = useVimStatus(editorView, vimMode);
 
   useEffect(() => {
     if (!editorView) return;
@@ -358,6 +362,7 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
           />
         </div>
       </div>
+      {vimMode && <VimStatusPill status={vimStatus} hostRef={vimStatusHostRef} />}
     </div>
   );
 }

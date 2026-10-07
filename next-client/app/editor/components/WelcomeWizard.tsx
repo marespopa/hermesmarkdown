@@ -11,16 +11,16 @@ import Button from "@/app/components/Button";
 import { HiOutlineArrowLeft } from "react-icons/hi";
 import { useCreateVault } from "@/app/hooks/file-system/use-create-vault";
 import AiKeyStep from "./welcome-wizard/AiKeyStep";
-import { AutosaveStep, FlowModeStep, FontStep, LineNumbersStep, TextSizeStep, SidebarStep, ThemeStep, VimStep } from "./welcome-wizard/PreferenceSteps";
+import { LayoutStep, LookStep, WritingStep } from "./welcome-wizard/PreferenceSteps";
 import NameStep from "./welcome-wizard/NameStep";
 import ReadyStep from "./welcome-wizard/ReadyStep";
 import VaultStep from "./welcome-wizard/VaultStep";
 
-// Step order: 0 name, 1 vault, 2–9 preferences, 10 AI key, 11 ready.
+// Step order: 0 name, 1 vault, 2 look, 3 layout, 4 writing, 5 AI key, 6 ready.
 const NAME_STEP = 0;
 const VAULT_STEP = 1;
 const FIRST_PREFERENCE_STEP = 2;
-const TOTAL_STEPS = 11;
+const TOTAL_STEPS = 6;
 // "Medium" in the text size step.
 const ONBOARDING_TEXT_SIZE = "17px";
 
@@ -113,16 +113,11 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
     switch (step) {
       case 0: return <NameStep onContinue={next(1)} />;
       case 1: return <VaultStep createVaultFlow={createVaultFlow} />;
-      case 2: return <ThemeStep onContinue={next(3)} />;
-      case 3: return <FontStep onContinue={next(4)} />;
-      case 4: return <TextSizeStep onContinue={next(5)} />;
-      case 5: return <LineNumbersStep onContinue={next(6)} />;
-      case 6: return <VimStep onContinue={next(7)} />;
-      case 7: return <FlowModeStep onContinue={next(8)} />;
-      case 8: return <AutosaveStep onContinue={next(9)} />;
-      case 9: return <SidebarStep onContinue={next(10)} />;
-      case 10: return <AiKeyStep onContinue={next(11)} />;
-      case 11: return <ReadyStep onFinish={handleFinish} />;
+      case 2: return <LookStep onContinue={next(3)} />;
+      case 3: return <LayoutStep onContinue={next(4)} />;
+      case 4: return <WritingStep onContinue={next(5)} />;
+      case 5: return <AiKeyStep onContinue={next(6)} />;
+      case 6: return <ReadyStep onFinish={handleFinish} />;
       default: return null;
     }
   };
