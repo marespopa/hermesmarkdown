@@ -62,9 +62,12 @@ export default function Toast({
             <p className="text-xs opacity-60">{description}</p>
           </div>
           {!hasNameField && (
+            // Focused on show, so Enter takes the action (the name field
+            // takes focus instead when there is one).
             <Button
               variant="primary"
               onClick={onAction}
+              autoFocus
               tabIndex={0}
               className="h-9 px-4 !text-ui-footnote shrink-0"
             >
