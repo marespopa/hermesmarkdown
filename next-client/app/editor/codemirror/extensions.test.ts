@@ -35,11 +35,19 @@ function createEditor(vimMode: boolean, onOpenActiveHelper = vi.fn(() => false))
   return { parent, view, vimModeCompartment };
 }
 
+function vimModeOf(view: EditorView) {
+  const vimState = getCM(view)?.state.vim;
+  if (!vimState) return null;
+  return vimState.mode ?? "normal";
+}
+
 describe("buildExtensions", () => {
-  it("shows Vim mode and pending commands in a bottom status panel when enabled", () => {
+  it("starts Vim in normal mode without a CodeMirror status panel", () => {
     const { parent, view } = createEditor(true);
 
-    expect(parent.querySelector(".cm-vim-panel")).toHaveTextContent("--NORMAL--");
+    expect(vimModeOf(view)).toBe("normal");
+    // The mode is shown by VimStatusPill, outside the editor.
+    expect(parent.querySelector(".cm-vim-panel")).toBeNull();
 
     view.destroy();
     parent.remove();
@@ -49,10 +57,10 @@ describe("buildExtensions", () => {
     const { parent, view } = createEditor(true);
 
     view.contentDOM.dispatchEvent(new KeyboardEvent("keydown", { key: "i", bubbles: true, cancelable: true }));
-    expect(parent.querySelector(".cm-vim-panel")).toHaveTextContent("--INSERT--");
+    expect(vimModeOf(view)).toBe("insert");
 
     view.contentDOM.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true, cancelable: true }));
-    expect(parent.querySelector(".cm-vim-panel")).toHaveTextContent("--NORMAL--");
+    expect(vimModeOf(view)).toBe("normal");
 
     view.destroy();
     parent.remove();
@@ -66,7 +74,7 @@ describe("buildExtensions", () => {
     if (!cm) throw new Error("Vim instance was not mounted");
     Vim.handleKey(cm, "<Esc>", "user");
 
-    expect(parent.querySelector(".cm-vim-panel")).toHaveTextContent("--NORMAL--");
+    expect(vimModeOf(view)).toBe("normal");
 
     view.destroy();
     parent.remove();
@@ -75,12 +83,12 @@ describe("buildExtensions", () => {
   it("handles Escape after Vim mode is enabled on an existing editor", () => {
     const { parent, view, vimModeCompartment } = createEditor(false);
 
-    view.dispatch({ effects: vimModeCompartment.reconfigure(vim({ status: true })) });
+    view.dispatch({ effects: vimModeCompartment.reconfigure(vim()) });
     view.contentDOM.dispatchEvent(new KeyboardEvent("keydown", { key: "i", bubbles: true, cancelable: true }));
-    expect(parent.querySelector(".cm-vim-panel")).toHaveTextContent("--INSERT--");
+    expect(vimModeOf(view)).toBe("insert");
 
     view.contentDOM.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true, cancelable: true }));
-    expect(parent.querySelector(".cm-vim-panel")).toHaveTextContent("--NORMAL--");
+    expect(vimModeOf(view)).toBe("normal");
 
     view.destroy();
     parent.remove();
@@ -97,10 +105,10 @@ describe("buildExtensions", () => {
     parent.remove();
   });
 
-  it("does not render a Vim status panel when disabled", () => {
+  it("does not mount Vim when disabled", () => {
     const { parent, view } = createEditor(false);
 
-    expect(parent.querySelector(".cm-vim-panel")).toBeNull();
+    expect(getCM(view)).toBeNull();
 
     view.destroy();
     parent.remove();

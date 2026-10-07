@@ -476,3 +476,54 @@ html.dark .editor-container.cm-focused .cm-selectionBackground {
 .cm-table-preview .cm-table-formula.is-error {
   color: #dc2626;
 }
+
+/* Vim status pill (markdown-editor/VimStatusPill.tsx). The Vim library owns
+   this host's contents: its own "--NORMAL--" label and a spacer, then the
+   pending keys; or, while prompting, the `:` / `/` prompt or a message, then
+   the pending keys. `display: contents` makes them the pill's flex items. */
+.vim-status-host {
+  display: contents;
+}
+
+/* The pill draws the mode itself. */
+.vim-status-host > span:not(:last-child) {
+  display: none;
+}
+
+/* Pending keys (`d2`), as a keycap like the feed's key hints. */
+.vim-status-host > span:last-child {
+  border: 1px solid var(--border);
+  border-radius: 0.25rem;
+  padding: 0 0.25rem;
+  font-family: var(--font-geist-mono), "SF Mono", ui-monospace, monospace;
+  font-size: 10px;
+  line-height: 1rem;
+}
+
+.vim-status-host > span:last-child:empty {
+  display: none;
+}
+
+/* The prompt: library inline styles (monospace, #888) need !important. */
+.vim-status-host > div > div > span:first-child {
+  color: var(--fg);
+  font-family: var(--font-geist-mono), "SF Mono", ui-monospace, monospace !important;
+}
+
+.vim-status-host > div > div > span + span {
+  color: var(--fg-faint) !important;
+}
+
+.vim-status-host input {
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--fg);
+  font: inherit;
+}
+
+.vim-status-host .cm-vim-message {
+  color: var(--clay) !important;
+  white-space: pre-wrap !important;
+}

@@ -43,6 +43,7 @@ CSS-only variables (no Tailwind token):
 | CSS var | Light | Dark | Usage |
 |---|---|---|---|
 | `--link` / `--link-hover` | `#2C66D1` / `#1764D8` | `#64A8FF` / `#8DBEFF` | Links in the editor |
+| `--caret` | `#3B82F6` | `#3B82F6` | Editor caret, and Vim's block cursor (tinted) |
 | `--frontmatter-bg` / `--frontmatter-bg-hover` | `rgba(60,56,50,0.035)` / `0.055` | `rgba(214,207,198,0.04)` / `0.065` | Frontmatter block background |
 | `--frontmatter-label-opacity` | `0.4` | `0.5` | Frontmatter key labels |
 

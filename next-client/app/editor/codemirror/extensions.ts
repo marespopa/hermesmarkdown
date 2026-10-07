@@ -94,7 +94,7 @@ export function buildExtensions(opts: BuildExtensionsOptions): Extension[] {
     noteCalcExtension,
     shortcodeExpandPlugin,
     createWikiLinkTriggerPlugin(opts.wikiLinkTriggerRef),
-    opts.vimModeCompartment.of(opts.vimMode ? vim({ status: true }) : []),
+    opts.vimModeCompartment.of(opts.vimMode ? vim() : []),
     autocompletion({
       override: [createSlashMenuSource(opts.slashMenuCallbacksRef), createTemplateFieldSource(opts.slashMenuCallbacksRef)],
       activateOnTyping: true,

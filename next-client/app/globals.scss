@@ -34,6 +34,7 @@ body {
   --moss-hover:     #5C6A4E;  /* moss, darkened — hover/active state for sage buttons */
   --link:           #2C66D1;  /* Apple-style editor links */
   --link-hover:     #1764D8;
+  --caret:          #3B82F6;  /* editor caret — the one blue outside links */
   --frontmatter-bg: rgba(60, 56, 50, 0.035);
   --frontmatter-bg-hover: rgba(60, 56, 50, 0.055);
   --frontmatter-bg-active: rgba(60, 56, 50, 0.085);  /* Properties on hover/focus (rest is -hover) */
@@ -67,6 +68,7 @@ html.dark {
   --moss:           #8FA178;
   --link:           #64A8FF;
   --link-hover:     #8DBEFF;
+  --caret:          #3B82F6;
   --frontmatter-bg: rgba(214, 207, 198, 0.04);
   --frontmatter-bg-hover: rgba(214, 207, 198, 0.065);
   --frontmatter-bg-active: rgba(214, 207, 198, 0.1);
