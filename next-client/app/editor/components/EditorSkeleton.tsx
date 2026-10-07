@@ -5,7 +5,7 @@ import { useAtomValue } from "jotai";
 import { atom_sidebarOpen, atom_sidebarWidth, atom_userName, atom_vaultOpenBehaviorAppliedFor } from "@/app/atoms/ui-atoms";
 import { PANE_HEADER_CLASS, PANE_HEADER_HEIGHT } from "./pane-header-classes";
 import FeedHeader from "./home-feed/FeedHeader";
-import FeedSkeleton, { FeedVaultSkeleton, WeekStripSkeleton } from "./home-feed/FeedSkeleton";
+import FeedSkeleton, { FeedVaultSkeleton } from "./home-feed/FeedSkeleton";
 import { NO_VAULT_KEY } from "../hooks/use-vault-open-behavior";
 
 // One placeholder shape. Static black / white so the opacity modifier works
@@ -21,8 +21,8 @@ const PARAGRAPHS = [
 
 // The home feed as it will open (Settings → "On vault open" set to Home, the
 // default): the vault bar, the real greeting and date — they don't need the
-// vault — with the week strip, over placeholder note rows, and the outline
-// of the floating search bar.
+// vault — over placeholder note rows, and the outline of the floating search
+// bar.
 function HomeFeedSkeleton() {
   const userName = useAtomValue(atom_userName);
   // The skeleton is server-rendered (the gate starts out restoring), and the
@@ -35,14 +35,11 @@ function HomeFeedSkeleton() {
       <div className="mx-auto w-full max-w-2xl px-4 sm:px-8">
         <FeedVaultSkeleton />
         {now ? (
-          <FeedHeader now={now} userName={userName}>
-            <WeekStripSkeleton />
-          </FeedHeader>
+          <FeedHeader now={now} userName={userName} />
         ) : (
           <div className="pb-8 pt-16 sm:pt-24">
             <div className={`h-4 w-48 mb-3 rounded-full ${BAR}`} />
             <div className={`h-9 sm:h-11 w-56 rounded-lg ${BAR}`} />
-            <WeekStripSkeleton />
           </div>
         )}
         <FeedSkeleton rows={5} />

@@ -28,6 +28,8 @@ export interface FeedEntry {
   isSensitive: boolean;
   /** How the preview renders: as is, masked bullets, or blurred until hover / focus. */
   previewStyle: PreviewStyle;
+  /** Frontmatter tags and inline #hashtags; empty for sensitive notes, whose tags may say more than their title. */
+  tags: string[];
 }
 
 // Vault notes only: no dotfolders (.hermes/, .obsidian/), no _-prefixed
@@ -73,12 +75,15 @@ export function dayLabel(modifiedAt: number, now: Date): string {
 // (direct children of `templatesFolder`) are left out too. Pinned notes
 // (`pinnedPaths`, newest pin first) come first, under one "Pinned" label,
 // and leave their day; pins to notes not in the feed are skipped.
+// With `tagFilter`, only notes carrying every one of those tags are kept,
+// before day labels are assigned.
 export function buildFeed(
   metadata: Record<string, FileMetadata>,
   displayItems: Map<string, NoteDisplayItem>,
   now: Date,
   templatesFolder?: string,
   pinnedPaths: readonly string[] = [],
+  tagFilter: readonly string[] = [],
 ): FeedEntry[] {
   const notes = new Map(
     Object.values(metadata)
@@ -94,7 +99,7 @@ export function buildFeed(
     .filter((entry) => !pinnedSet.has(entry.path))
     .sort((a, b) => (b.modifiedAt || 0) - (a.modifiedAt || 0) || a.path.localeCompare(b.path));
 
-  const toEntry = (entry: FileMetadata, label: string | null, isPinned: boolean): FeedEntry => {
+  const toEntry = (entry: FileMetadata, isPinned: boolean): FeedEntry => {
     const item = displayItems.get(entry.path)!;
     return {
       path: entry.path,
@@ -102,57 +107,64 @@ export function buildFeed(
       fileName: item.isSensitive ? null : entry.path.split("/").pop()!,
       preview: item.preview,
       modifiedAt: entry.modifiedAt || 0,
-      dayLabel: label,
+      dayLabel: null,
       isPinned,
       isIndexed: item.isIndexed,
       isSensitive: item.isSensitive,
       previewStyle: item.previewStyle,
+      tags: item.isSensitive ? [] : entry.tags ?? [],
     };
   };
 
-  let previousDay: number | null = null;
-  return [
-    ...pinned.map((entry, index) => toEntry(entry, index === 0 ? "Pinned" : null, true)),
-    ...sorted.map((entry) => {
-      const modifiedAt = entry.modifiedAt || 0;
-      let label: string | null = null;
-      if (modifiedAt > 0) {
-        const day = startOfDay(new Date(modifiedAt));
-        if (day !== previousDay) label = dayLabel(modifiedAt, now);
-        previousDay = day;
-      }
-      return toEntry(entry, label, false);
-    }),
+  const entries = [
+    ...pinned.map((entry) => toEntry(entry, true)),
+    ...sorted.map((entry) => toEntry(entry, false)),
   ];
+  const kept = tagFilter.length
+    ? entries.filter((entry) => tagFilter.every((tag) => entry.tags.includes(tag)))
+    : entries;
+  return labelDays(kept, now);
 }
 
-export interface WeekDay {
-  /** Local midnight of the day. */
-  day: number;
-  /** How many feed notes were modified that day. */
-  count: number;
-  /** Index of the day's first (newest) row in the feed, or -1 when it has none. */
-  firstIndex: number;
-}
-
-// The week strip: the seven days ending today, oldest first, each with its
-// note count and the feed row to jump to (its first unpinned note, or a
-// pinned one when that's all the day has). Takes the built feed, so notes the
-// privacy level hides are never counted.
-export function buildWeek(feed: FeedEntry[], now: Date): WeekDay[] {
-  const days: WeekDay[] = [];
-  for (let offset = 6; offset >= 0; offset--) {
-    // Calendar arithmetic, not 24h steps, so DST changes don't skip a day.
-    const day = new Date(now.getFullYear(), now.getMonth(), now.getDate() - offset).getTime();
-    days.push({ day, count: 0, firstIndex: -1 });
-  }
-  const byDay = new Map(days.map((entry) => [entry.day, entry]));
-  feed.forEach((entry, index) => {
-    if (entry.modifiedAt <= 0) return;
-    const day = byDay.get(startOfDay(new Date(entry.modifiedAt)));
-    if (!day) return;
-    day.count++;
-    if (day.firstIndex === -1 || (feed[day.firstIndex].isPinned && !entry.isPinned)) day.firstIndex = index;
+// "Pinned" on the first pinned note, then a day label on the first note of
+// each day; undated notes get none.
+function labelDays(entries: FeedEntry[], now: Date): FeedEntry[] {
+  let previousDay: number | null = null;
+  let pinnedLabeled = false;
+  return entries.map((entry) => {
+    let label: string | null = null;
+    if (entry.isPinned) {
+      if (!pinnedLabeled) label = "Pinned";
+      pinnedLabeled = true;
+    } else if (entry.modifiedAt > 0) {
+      const day = startOfDay(new Date(entry.modifiedAt));
+      if (day !== previousDay) label = dayLabel(entry.modifiedAt, now);
+      previousDay = day;
+    }
+    return { ...entry, dayLabel: label };
   });
-  return days;
+}
+
+export interface FeedTag {
+  tag: string;
+  /** How many feed notes carry it. */
+  count: number;
+}
+
+// Every tag in the feed, most used first; ties go to the tag used most
+// recently, then alphabetically. Takes the built feed, so notes the privacy
+// level hides or marks sensitive never contribute.
+export function feedTags(feed: FeedEntry[]): FeedTag[] {
+  const stats = new Map<string, { count: number; latest: number }>();
+  for (const entry of feed) {
+    for (const tag of entry.tags) {
+      const stat = stats.get(tag) ?? { count: 0, latest: 0 };
+      stat.count++;
+      stat.latest = Math.max(stat.latest, entry.modifiedAt);
+      stats.set(tag, stat);
+    }
+  }
+  return [...stats]
+    .sort(([a, x], [b, y]) => y.count - x.count || y.latest - x.latest || a.localeCompare(b))
+    .map(([tag, { count }]) => ({ tag, count }));
 }

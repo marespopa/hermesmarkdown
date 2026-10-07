@@ -62,6 +62,7 @@ describe("matchFieldOptions", () => {
     expect(tokens("today")).toEqual(["date"]);
     expect(tokens("typing")).toEqual(["cursor"]);
     expect(tokens("ask")).toEqual(["prompt:"]);
+    expect(tokens("day name")).toEqual(["weekday"]);
   });
 
   it("returns everything for an empty query", () => {

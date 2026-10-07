@@ -192,36 +192,6 @@ describe("HomeFeed", () => {
     expect(rows[0]).toHaveTextContent("note-0");
   });
 
-  it("jumps to a day's first note from the week strip", () => {
-    // Midday, so minute offsets never cross midnight.
-    vi.useFakeTimers({ toFake: ["Date"] });
-    vi.setSystemTime(new Date(2026, 8, 28, 12, 0));
-    // vitest.setup stubs scrollIntoView on HTMLElement.prototype.
-    const scrollIntoView = vi.spyOn(HTMLElement.prototype, "scrollIntoView");
-    try {
-      const twoDaysAgo = 2 * 24 * 60;
-      const { onOpenNote } = renderFeed({
-        "today.md": meta("today.md", 1),
-        "earlier.md": meta("earlier.md", twoDaysAgo, "Earlier body"),
-        "earliest.md": meta("earliest.md", twoDaysAgo + 1),
-      });
-      const strip = screen.getByRole("navigation", { name: "Last 7 days" });
-      const days = within(strip).getAllByRole("button");
-      expect(days).toHaveLength(7);
-      expect(days[6]).toHaveAttribute("aria-current", "date");
-      expect(days[5]).toBeDisabled();
-
-      fireEvent.click(days[4]);
-      expect(days[4]).toHaveAccessibleName(/2 notes$/);
-      expect(scrollIntoView).toHaveBeenCalledWith({ block: "start" });
-      expect(screen.getAllByRole("option")[1]).toHaveAttribute("aria-selected", "true");
-      fireEvent.keyDown(document.body, { key: "Enter" });
-      expect(onOpenNote).toHaveBeenCalledWith("earlier.md");
-    } finally {
-      scrollIntoView.mockRestore();
-      vi.useRealTimers();
-    }
-  });
 
   it("scrolls back to the top and the newest note when Home is pressed again", () => {
     const store = createStore();
@@ -254,7 +224,6 @@ describe("HomeFeed", () => {
     expect(within(start).getByText("Open a vault to see your notes here.")).toBeInTheDocument();
     expect(within(start).getByRole("button", { name: "Open Vault" })).toBeInTheDocument();
     expect(screen.queryByRole("listbox")).not.toBeInTheDocument();
-    expect(screen.queryByRole("navigation", { name: "Last 7 days" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Close vault" })).not.toBeInTheDocument();
 
     fireEvent.click(within(start).getByRole("button", { name: "New Note" }));
@@ -340,6 +309,53 @@ describe("HomeFeed", () => {
     expect(store.get(atom_recentVaults)).toEqual([]);
   });
 
+  it("filters the feed by tag chips, narrowing with each tag", () => {
+    const store = createStore();
+    store.set(atom_fileMetadata, {
+      "a.md": { ...meta("a.md", 1), tags: ["work", "plan"] },
+      "b.md": { ...meta("b.md", 2), tags: ["work"] },
+      "c.md": { ...meta("c.md", 3), tags: [] },
+    });
+    store.set(atom_vaultHandle, { name: "Vault" } as FileSystemDirectoryHandle);
+    render(
+      <Provider store={store}>
+        <HomeFeed onOpenNote={vi.fn()} onNewNote={vi.fn()} onSearch={vi.fn()} onClose={vi.fn()} />
+      </Provider>,
+    );
+    const chips = screen.getByRole("group", { name: "Filter by tag" });
+    // Most used first.
+    expect(within(chips).getAllByRole("button").map((b) => b.textContent)).toEqual(["#work", "#plan"]);
+
+    fireEvent.click(within(chips).getByRole("button", { name: "#work, 2 notes" }));
+    const rows = screen.getAllByRole("option");
+    expect(rows).toHaveLength(2);
+    expect(rows[0]).toHaveTextContent("a.md");
+    expect(rows[1]).toHaveTextContent("b.md");
+    expect(within(chips).getByRole("button", { name: "#work, 2 notes" })).toHaveAttribute("aria-pressed", "true");
+
+    fireEvent.click(within(chips).getByRole("button", { name: "#plan, 1 note" }));
+    expect(screen.getAllByRole("option")).toHaveLength(1);
+
+    fireEvent.click(within(chips).getByRole("button", { name: "× Clear" }));
+    expect(screen.getAllByRole("option")).toHaveLength(3);
+  });
+
+  it("shows the most used tags and hides the rest behind +N", () => {
+    const metadata: Record<string, FileMetadata> = {};
+    for (let i = 0; i < 10; i++) metadata[`n${i}.md`] = { ...meta(`n${i}.md`, i + 1), tags: [`t${i}`] };
+    renderFeed(metadata);
+    const chips = screen.getByRole("group", { name: "Filter by tag" });
+    expect(within(chips).getAllByRole("button", { name: /^#/ })).toHaveLength(8);
+    fireEvent.click(within(chips).getByRole("button", { name: "+2" }));
+    expect(within(chips).getAllByRole("button", { name: /^#/ })).toHaveLength(10);
+    expect(within(chips).getByRole("button", { name: "Fewer" })).toHaveAttribute("aria-expanded", "true");
+  });
+
+  it("has no tag row when no note is tagged", () => {
+    renderFeed(NOTES);
+    expect(screen.queryByRole("group", { name: "Filter by tag" })).not.toBeInTheDocument();
+  });
+
   it("pins a note to the top of the feed and unpins it", () => {
     localStorage.clear();
     const store = createStore();
@@ -398,10 +414,6 @@ describe("HomeFeed", () => {
     expect(screen.queryByRole("button", { name: "Open Explorer" })).not.toBeInTheDocument();
   });
 
-  it("hides the week strip for an empty vault", () => {
-    renderFeed({});
-    expect(screen.queryByRole("navigation", { name: "Last 7 days" })).not.toBeInTheDocument();
-  });
 
   it("greets the user for the time of day, by name when one is set", () => {
     vi.useFakeTimers({ toFake: ["Date"] });
@@ -427,15 +439,12 @@ describe("HomeFeed", () => {
   it("shows three skeleton rows instead of the start prompt while the vault loads", () => {
     renderFeed({}, "", { status: "compiling", count: 0 });
     expect(screen.getByTestId("feed-skeleton").querySelectorAll("[data-skeleton-row]")).toHaveLength(3);
-    expect(screen.getByTestId("week-strip-skeleton")).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Start writing" })).not.toBeInTheDocument();
   });
 
   it("drops the skeleton once notes are listed", () => {
     renderFeed(NOTES, "", { status: "compiling", count: 0 });
     expect(screen.queryByTestId("feed-skeleton")).not.toBeInTheDocument();
-    expect(screen.queryByTestId("week-strip-skeleton")).not.toBeInTheDocument();
-    expect(screen.getByRole("navigation", { name: "Last 7 days" })).toBeInTheDocument();
     expect(screen.getAllByRole("option")).toHaveLength(2);
   });
 

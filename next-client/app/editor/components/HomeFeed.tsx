@@ -1,9 +1,9 @@
 "use client";
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useAtomValue, useSetAtom } from "jotai";
+import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { useVirtualizer } from "@tanstack/react-virtual";
-import { atom_homePinnedPaths, atom_toggleHomePin } from "@/app/atoms/home-pin-atoms";
+import { atom_homePinnedPaths, atom_homeTagFilter, atom_toggleHomePin } from "@/app/atoms/home-pin-atoms";
 import { atom_fileMetadata } from "@/app/atoms/metadata";
 import { atom_noteDisplayItems } from "@/app/atoms/privacy-atoms";
 import { atom_homeFeedTopRequest, atom_indexerState, atom_userName } from "@/app/atoms/ui-atoms";
@@ -12,12 +12,12 @@ import Button from "@/app/components/Button";
 import FeedBar from "./home-feed/FeedBar";
 import FeedHeader from "./home-feed/FeedHeader";
 import FeedRow from "./home-feed/FeedRow";
-import FeedSkeleton, { WeekStripSkeleton } from "./home-feed/FeedSkeleton";
+import FeedSkeleton from "./home-feed/FeedSkeleton";
 import FeedStart from "./home-feed/FeedStart";
 import FeedVault from "./home-feed/FeedVault";
 import FeedStatus from "./home-feed/FeedStatus";
-import WeekStrip from "./home-feed/WeekStrip";
-import { buildFeed, buildWeek } from "./home-feed/feed-model";
+import FeedTags from "./home-feed/FeedTags";
+import { buildFeed, feedTags } from "./home-feed/feed-model";
 
 // Above this many notes only the rows in view (plus overscan) are rendered,
 // however far you scroll. Smaller vaults render every row.
@@ -44,13 +44,6 @@ function isTypingTarget(target: EventTarget | null) {
   return !!element?.closest?.("input, textarea, select, [contenteditable='true'], .cm-editor, [role='dialog']");
 }
 
-// Local midnight of a row's day, for the week strip's highlight.
-function activeDay(modifiedAt: number | undefined) {
-  if (!modifiedAt) return null;
-  const date = new Date(modifiedAt);
-  return new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime();
-}
-
 // A second `g` within this window makes `gg` (to the top), as in vim.
 const GG_WINDOW_MS = 600;
 
@@ -68,11 +61,19 @@ export default function HomeFeed({ onOpenNote, onNewNote, onSearch, onClose, isS
   const pinnedPaths = useAtomValue(atom_homePinnedPaths);
   const togglePin = useSetAtom(atom_toggleHomePin);
   const now = useMemo(() => new Date(), [fileMetadata, displayItems]); // eslint-disable-line react-hooks/exhaustive-deps
-  const feed = useMemo(
+  const [tagFilter, setTagFilter] = useAtom(atom_homeTagFilter);
+  const allNotes = useMemo(
     () => buildFeed(fileMetadata, displayItems, now, templatesFolder, pinnedPaths),
     [fileMetadata, displayItems, now, templatesFolder, pinnedPaths],
   );
-  const week = useMemo(() => buildWeek(feed, now), [feed, now]);
+  // Chips count the whole feed, so picking one never hides the others.
+  const tags = useMemo(() => feedTags(allNotes), [allNotes]);
+  const feed = useMemo(
+    () => (tagFilter.length
+      ? buildFeed(fileMetadata, displayItems, now, templatesFolder, pinnedPaths, tagFilter)
+      : allNotes),
+    [allNotes, fileMetadata, displayItems, now, templatesFolder, pinnedPaths, tagFilter],
+  );
   const [selectedIndex, setSelectedIndex] = useState(0);
   const scrollRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
@@ -117,16 +118,23 @@ export default function HomeFeed({ onOpenNote, onNewNote, onSearch, onClose, isS
     else element.scrollTop = 0;
   }, [topRequest]);
 
+  // A new tag filter starts from the newest matching note.
+  const appliedFilter = useRef(tagFilter);
+  useEffect(() => {
+    if (appliedFilter.current === tagFilter) return;
+    appliedFilter.current = tagFilter;
+    setSelectedIndex(0);
+  }, [tagFilter]);
+
   const latest = useRef({ feed, selectedIndex, shouldVirtualize, rowVirtualizer, onOpenNote, onSearch, onClose, togglePin });
   latest.current = { feed, selectedIndex, shouldVirtualize, rowVirtualizer, onOpenNote, onSearch, onClose, togglePin };
 
-  // Selects a row and scrolls it into view: "nearest" for j/k steps,
-  // "start" for a week-strip jump (the day's first note at the top).
-  const select = useCallback((index: number, block: "nearest" | "start") => {
+  // Selects a row and scrolls it into view.
+  const select = useCallback((index: number) => {
     const { shouldVirtualize: virtual, rowVirtualizer: virtualizer } = latest.current;
     setSelectedIndex(index);
-    if (virtual) virtualizer.scrollToIndex(index, { align: block === "start" ? "start" : "auto" });
-    else rowRefs.current[index]?.scrollIntoView?.({ block });
+    if (virtual) virtualizer.scrollToIndex(index, { align: "auto" });
+    else rowRefs.current[index]?.scrollIntoView?.({ block: "nearest" });
   }, []);
 
   // The note list takes focus when the feed opens (and on Home), so j/k and
@@ -149,14 +157,14 @@ export default function HomeFeed({ onOpenNote, onNewNote, onSearch, onClose, isS
     if (!path) return;
     pinnedByKey.current = null;
     const index = feed.findIndex((entry) => entry.path === path);
-    if (index >= 0) select(index, "nearest");
+    if (index >= 0) select(index);
   }, [feed, select]);
 
   useEffect(() => {
     const move = (delta: number) => {
       const { feed: rows, selectedIndex: index } = latest.current;
       if (!rows.length) return;
-      select(Math.min(rows.length - 1, Math.max(0, index + delta)), "nearest");
+      select(Math.min(rows.length - 1, Math.max(0, index + delta)));
     };
     let lastG = 0;
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -175,14 +183,14 @@ export default function HomeFeed({ onOpenNote, onNewNote, onSearch, onClose, isS
         // gg: the newest note, with the feed back at its very top (header in view).
         if (event.timeStamp - lastG <= GG_WINDOW_MS && rows.length) {
           lastG = 0;
-          select(0, "nearest");
+          select(0);
           if (scrollRef.current) scrollRef.current.scrollTop = 0;
         }
         else lastG = event.timeStamp;
         return;
       }
       lastG = 0;
-      if (event.key === "G") { event.preventDefault(); if (rows.length) select(rows.length - 1, "nearest"); return; }
+      if (event.key === "G") { event.preventDefault(); if (rows.length) select(rows.length - 1); return; }
       if (event.key === "/") { event.preventDefault(); latest.current.onSearch(); return; }
       if (event.key === "Enter" || event.key === "o") {
         // A focused button handles its own Enter (click).
@@ -227,22 +235,15 @@ export default function HomeFeed({ onOpenNote, onNewNote, onSearch, onClose, isS
       <div className="mx-auto w-full max-w-2xl px-4 pb-40 sm:px-8">
         {/* The open vault, in a bar at the very top, well clear of the greeting. */}
         {hasVault && <FeedVault />}
-        <FeedHeader now={now} userName={userName}>
-          {feed.length > 0 ? (
-            <WeekStrip
-              days={week}
-              now={now}
-              activeDay={activeDay(feed[selectedIndex]?.modifiedAt)}
-              onJump={(index) => select(index, "start")}
-            />
-          ) : (
-            // Holds the strip's place until the first notes are listed.
-            isIndexing && hasVault && <WeekStripSkeleton />
-          )}
-        </FeedHeader>
+        <FeedHeader now={now} userName={userName} />
+        {hasVault && <FeedTags tags={tags} selected={tagFilter} onChange={setTagFilter} />}
         {isIndexing && hasVault && <FeedStatus />}
         {!hasVault ? (
           <FeedStart onNewNote={onNewNote} onOpenFile={() => onOpenFile?.()} />
+        ) : feed.length === 0 && tagFilter.length > 0 ? (
+          <p className="text-ui-body text-fg-muted">
+            No notes tagged {tagFilter.map((tag) => `#${tag}`).join(" and ")}.
+          </p>
         ) : feed.length === 0 && isIndexing ? (
           <FeedSkeleton />
         ) : feed.length === 0 ? (
