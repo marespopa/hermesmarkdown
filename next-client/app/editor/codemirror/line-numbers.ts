@@ -2,8 +2,8 @@ import { type EditorState, type Extension, RangeSet, StateField } from "@codemir
 import { GutterMarker, gutterLineClass, lineNumbers } from "@codemirror/view";
 
 // Line numbers that line up with their text. A gutter cell spans its whole
-// line block but sets its number at the top; headings and fenced code have
-// their own padding above and a different line height (editor-typography.scss),
+// line block but sets its number at the top; headings have a different line
+// height, and H1 and fenced code padding above too (editor-typography.scss),
 // so their numbers floated above the text. Each such cell gets a class naming
 // the line's shape, and the stylesheet gives it the same padding and line
 // height, which centres the number on the line's first row of text.

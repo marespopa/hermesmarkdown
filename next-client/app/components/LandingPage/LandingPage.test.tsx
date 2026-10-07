@@ -76,6 +76,13 @@ describe("LandingPage", () => {
     expect(screen.getByRole("alert")).toHaveTextContent("Opening editor...");
   });
 
+  it("focuses Resume for a returning user with a name", async () => {
+    renderLandingPage({ draftContent: "# Draft", userName: "Ada" });
+
+    expect(await screen.findByRole("status")).toHaveTextContent("Welcome back, Ada");
+    expect(screen.getByRole("button", { name: "Resume" })).toHaveFocus();
+  });
+
   it("lets a returning user name themselves before resuming a draft", async () => {
     const store = renderLandingPage({ draftContent: "# Draft" });
 

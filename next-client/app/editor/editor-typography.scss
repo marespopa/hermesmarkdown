@@ -9,11 +9,18 @@
    caret and clicks land on the wrong line. */
 
 .editor-sheet {
-  /* The column grows with the sheet up to the classic reading measure: about
-     65–80 characters a line (`ch` is a digit's width, a little wider than an
-     average letter). `ch` follows --editor-font-size, so the column scales
-     with the text. */
-  --editor-measure: clamp(60ch, 85%, 70ch);
+  /* The column grows with the sheet up to a fixed width, 704px: what note
+     editors commonly use, about 75 characters a line at the default 17px
+     text (the top of the comfortable 45–75 range). In `rem`, not `ch`, so
+     changing the text size changes how much fits on a line, never where the
+     column's edges sit. */
+  --editor-measure: clamp(36rem, 85%, 44rem);
+}
+
+/* Full Width (Settings → Editor): the column fills the sheet, inside its
+   page margins. */
+.editor-sheet[data-full-width] {
+  --editor-measure: none;
 }
 
 /* The text column, centered on the sheet. Narrow panes are capped by the
@@ -35,15 +42,15 @@
   text-wrap: pretty;
 }
 
-/* Headings: the prose scale, a tight 1.2–1.3 line height, tracking that
-   tightens as they grow, and generous room above (about 1.8× the body size)
-   so each section visibly anchors to the text below it. Semibold, as in
-   Apple's headline styles. */
+/* Headings: the prose scale, a tight 1.2–1.3 line height and tracking that
+   tightens as they grow. Semibold, as in Apple's headline styles. No room
+   above or below: only real blank lines space a heading from its
+   neighbours, so a missing blank line shows here rather than only after
+   the Markdown is pasted elsewhere. The one exception is H1's room above,
+   which sets the title apart from the Properties block over it. */
 .editor-sheet.editor-container .cm-line.cm-heading {
   color: var(--fg);
   line-height: 1.3;
-  padding-top: 1.4em;
-  padding-bottom: 0.2em;
   text-wrap: balance;
 }
 
@@ -58,7 +65,6 @@
   font-size: 1.5em;
   line-height: 1.25;
   letter-spacing: -0.017em;
-  padding-top: 1.2em;
 }
 
 .editor-sheet.editor-container .cm-line.cm-heading-3 {
@@ -103,27 +109,22 @@
 }
 
 .editor-sheet.editor-container .cm-lineNumbers .cm-gutter-heading-2 {
-  padding-top: calc(var(--B) * 1.8);    /* 1.2em × 1.5 */
   line-height: calc(var(--B) * 1.875);  /* 1.25 × 1.5 */
 }
 
 .editor-sheet.editor-container .cm-lineNumbers .cm-gutter-heading-3 {
-  padding-top: calc(var(--B) * 1.75);   /* 1.4em × 1.25 */
   line-height: calc(var(--B) * 1.625);  /* 1.3 × 1.25 */
 }
 
 .editor-sheet.editor-container .cm-lineNumbers .cm-gutter-heading-4 {
-  padding-top: calc(var(--B) * 1.575);  /* 1.4em × 1.125 */
   line-height: calc(var(--B) * 1.4625); /* 1.3 × 1.125 */
 }
 
 .editor-sheet.editor-container .cm-lineNumbers .cm-gutter-heading-5 {
-  padding-top: calc(var(--B) * 1.4);    /* 1.4em × 1 */
   line-height: calc(var(--B) * 1.3);    /* 1.3 × 1 */
 }
 
 .editor-sheet.editor-container .cm-lineNumbers .cm-gutter-heading-6 {
-  padding-top: calc(var(--B) * 1.225);  /* 1.4em × 0.875 */
   line-height: calc(var(--B) * 1.1375); /* 1.3 × 0.875 */
 }
 

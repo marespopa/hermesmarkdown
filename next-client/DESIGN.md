@@ -169,7 +169,7 @@ Four self-hosted faces (`app/fonts.ts`), one role each. Every stack falls back t
 | `font-sourcecode` | Source Code Pro | Legacy code surfaces |
 | `font-journal` | Georgia | Document body (journal mode) |
 
-The editor font is user-selectable (Settings → Typography) from `app/editor/settings/font-options.ts`: Plus Jakarta Sans (default), Source Serif 4, Inter, and Geist Mono. Text size offers the Dynamic Type body steps 15 / 17 (default) / 19 / 21 / 23px. Those two are the only typography settings. Line height (1.65), the reading measure (≤ 70ch), heading rhythm and code styling are fixed in `app/editor/editor-typography.scss`.
+The editor font is user-selectable (Settings → Typography) from `app/editor/settings/font-options.ts`: Plus Jakarta Sans (default), Source Serif 4, Inter, and Geist Mono. Text size offers the Dynamic Type body steps 15 / 17 (default) / 19 / 21 / 23px. Those two are the only typography settings. Line height (1.65), the reading measure (≤ 44rem / 704px, the same at every text size), heading rhythm and code styling are fixed in `app/editor/editor-typography.scss`.
 
 ---
 

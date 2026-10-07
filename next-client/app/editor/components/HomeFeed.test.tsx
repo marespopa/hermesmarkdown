@@ -82,10 +82,71 @@ describe("HomeFeed", () => {
     expect(onOpenNote).toHaveBeenLastCalledWith("new.md");
   });
 
+  it("focuses the note list on open, so the keys work without a click", () => {
+    const { onOpenNote } = renderFeed(NOTES);
+    const list = screen.getByRole("listbox", { name: "Recent notes" });
+    expect(document.activeElement).toBe(list);
+    fireEvent.keyDown(list, { key: "j" });
+    fireEvent.keyDown(list, { key: "Enter" });
+    expect(onOpenNote).toHaveBeenLastCalledWith("old.md");
+  });
+
+  it("jumps with gg and G and opens the selection with o", () => {
+    const { onOpenNote, onSearch } = renderFeed(NOTES);
+    fireEvent.keyDown(window, { key: "G" });
+    fireEvent.keyDown(window, { key: "o" });
+    expect(onOpenNote).toHaveBeenLastCalledWith("old.md");
+    fireEvent.keyDown(window, { key: "g" });
+    fireEvent.keyDown(window, { key: "g" });
+    fireEvent.keyDown(window, { key: "o" });
+    expect(onOpenNote).toHaveBeenLastCalledWith("new.md");
+    expect(onSearch).not.toHaveBeenCalled();
+  });
+
+  it("opens an empty search with /", () => {
+    const { onSearch } = renderFeed(NOTES);
+    fireEvent.keyDown(window, { key: "/" });
+    expect(onSearch).toHaveBeenCalledWith();
+  });
+
+  it("pins the selected note with p and keeps it selected", () => {
+    localStorage.clear();
+    const store = createStore();
+    store.set(atom_fileMetadata, NOTES);
+    store.set(atom_vaultHandle, { name: "Vault" } as FileSystemDirectoryHandle);
+    const onOpenNote = vi.fn();
+    render(
+      <Provider store={store}>
+        <HomeFeed onOpenNote={onOpenNote} onNewNote={vi.fn()} onSearch={vi.fn()} onClose={vi.fn()} />
+      </Provider>,
+    );
+    fireEvent.keyDown(window, { key: "j" });
+    fireEvent.keyDown(window, { key: "p" });
+    const rows = screen.getAllByRole("option");
+    expect(rows[0]).toHaveTextContent("old");
+    expect(rows[0]).toHaveTextContent("Pinned");
+    fireEvent.keyDown(window, { key: "o" });
+    expect(onOpenNote).toHaveBeenLastCalledWith("old.md");
+  });
+
+  it("shows the vim-style key hints above the search bar", () => {
+    renderFeed(NOTES);
+    expect(screen.getByLabelText(/^Keyboard: j and k move/)).toBeInTheDocument();
+  });
+
+  it("doesn't take focus from a text field", () => {
+    const field = document.createElement("input");
+    document.body.appendChild(field);
+    field.focus();
+    renderFeed(NOTES);
+    expect(document.activeElement).toBe(field);
+    field.remove();
+  });
+
   it("opens the palette with a typed character and leaves on Escape", () => {
     const { onSearch, onClose } = renderFeed(NOTES);
-    fireEvent.keyDown(window, { key: "p" });
-    expect(onSearch).toHaveBeenCalledWith("p");
+    fireEvent.keyDown(window, { key: "t" });
+    expect(onSearch).toHaveBeenCalledWith("t");
     fireEvent.keyDown(window, { key: "Escape" });
     expect(onClose).toHaveBeenCalled();
   });

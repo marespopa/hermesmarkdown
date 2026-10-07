@@ -185,7 +185,7 @@ export const getStartedGroup: Group = {
       id: "home-feed",
       title: "Home feed",
       lead: "Your recent notes, newest first. It's where a vault opens.",
-      keywords: "home feed recent notes pin pinned unpin start screen today yesterday preview search create new note welcome week strip calendar days jump no vault open vault create vault browser vault open file",
+      keywords: "home feed vim keys keyboard j k gg recent notes pin pinned unpin start screen today yesterday preview search create new note welcome week strip calendar days jump no vault open vault create vault browser vault open file",
       body: (
         <>
           <p>
@@ -205,6 +205,13 @@ export const getStartedGroup: Group = {
           <p>
             Under the date, a strip shows the last seven days. A dot marks each day you changed a
             note. Tap a day to jump to its notes. Days without notes are dimmed.
+          </p>
+          <p>
+            The feed works from the keyboard, Vim-style, as soon as it opens: <code>j</code> and{" "}
+            <code>k</code> move, <code>gg</code> and <code>G</code> jump to the newest and last
+            note, <code>o</code> or Enter opens, <code>p</code> pins, <code>/</code> searches and
+            Escape goes back to your open notes. A small line above the search bar lists these
+            keys on larger screens.
           </p>
           <p>
             With no vault open, the feed is where you start. It offers <strong>Open Vault</strong>,{" "}
@@ -386,8 +393,10 @@ export const getStartedGroup: Group = {
               context: "Home feed",
               rows: [
                 { label: "Move between notes", shortcut: "↑ / ↓ or J / K" },
-                { label: "Open the selected note", shortcut: "ENTER" },
-                { label: "Search", shortcut: "Start typing" },
+                { label: "Newest / last note", shortcut: "G G / SHIFT+G" },
+                { label: "Open the selected note", shortcut: "ENTER or O" },
+                { label: "Pin or unpin the selected note", shortcut: "P" },
+                { label: "Search", shortcut: "/ or start typing" },
                 { label: "Back to your open notes", shortcut: "ESCAPE" },
               ],
             },

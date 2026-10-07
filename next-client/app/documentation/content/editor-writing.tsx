@@ -6,13 +6,20 @@ export const editorWritingItems: Subsection[] = [
     id: "writing",
     title: "Writing",
     lead: "Write Markdown with inline highlighting and click actions.",
-    keywords: "rendering source inline wysiwyg word wrap line numbers invisibles whitespace empty lines pills dates priority shortcode images paste calc",
+    keywords: "rendering source inline wysiwyg full width wide column reading width word wrap line numbers invisibles whitespace empty lines pills dates priority shortcode images paste calc",
     body: (
       <>
         <p>
           You always edit the Markdown source, styled as you type: headings, emphasis, links,
           tags and dates are highlighted in place, and tables render as an editable grid.
           Word wrap, line numbers, Show Invisibles (¶ on empty lines, dots for spaces), font and theme live under Settings.
+        </p>
+        <p>
+          The text sits in a column about as wide as a page, so lines stay easy to read on a wide
+          screen. Changing the text size never moves the column&apos;s edges; it only changes how
+          much fits on a line. To use the whole editor instead, turn on{" "}
+          <strong>Full Width</strong> under Settings → Editor, or run{" "}
+          <strong>Enable full width</strong> from the command palette.
         </p>
         <p>
           Dates (<code>2026-09-27</code>, <code>27/09/2026</code>, <code>[[2026-09-27]]</code>,{" "}

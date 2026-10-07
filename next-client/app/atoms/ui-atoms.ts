@@ -25,6 +25,9 @@ export const atom_lineNumbers = atomWithStorage<boolean>("lineNumbers", false);
 // Marks empty lines with ¶ and shows spaces and tabs (codemirror/invisibles.ts).
 export const atom_showInvisibles = atomWithStorage<boolean>("showInvisibles", false);
 export const atom_vimMode = atomWithStorage<boolean>("vimMode", false);
+// Lets the editor's text column fill the sheet instead of stopping at the
+// reading width (--editor-measure, editor-typography.scss). Off by default.
+export const atom_fullWidth = atomWithStorage<boolean>("fullWidth", false);
 // Flow mode: fades everything but the caret's paragraph and keeps the caret
 // line centred while typing. Opt-in, off by default.
 export const atom_flowMode = atomWithStorage<boolean>("flowMode", false);
