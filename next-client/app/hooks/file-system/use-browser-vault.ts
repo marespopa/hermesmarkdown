@@ -1,13 +1,16 @@
 "use client";
 
-import { useAtom } from "jotai";
+import { useAtom, useStore } from "jotai";
 import { useCallback } from "react";
 import toast from "react-hot-toast";
 import { atom_vaultDescriptor, type VaultDescriptor } from "@/app/atoms/atoms";
+import { atom_recentVaults } from "@/app/atoms/vault-atoms";
 import {
   loadBrowserVaultRegistry,
   removeBrowserVaultDescriptor,
+  renameBrowserVaultDescriptor,
 } from "@/app/services/idb";
+import { renameRecentBrowserVault, saveRecentVaults } from "@/app/services/recent-vaults";
 import {
   BROWSER_VAULT_DESCRIPTOR_VERSION,
   createBrowserVaultDescriptor,
@@ -15,6 +18,7 @@ import {
   getBrowserVaultWorkspace,
   isBrowserVaultBackupDue,
   listBrowserVaultIds,
+  normalizeBrowserVaultName,
   requestPersistentStorage,
   type BrowserVaultDescriptor,
 } from "@/app/services/opfs";
@@ -31,7 +35,8 @@ interface UseBrowserVaultProps {
 // browser, including those without disk folder access, and use the same
 // handle-based file layer as disk vaults.
 export function useBrowserVault({ initVaultFromHandle, closeVault }: UseBrowserVaultProps) {
-  const [vaultDescriptor] = useAtom(atom_vaultDescriptor);
+  const [vaultDescriptor, setVaultDescriptor] = useAtom(atom_vaultDescriptor);
+  const store = useStore();
 
   // Known vaults, plus any folder in storage whose registry entry was lost
   // (so its notes can still be reopened and exported).
@@ -105,5 +110,31 @@ export function useBrowserVault({ initVaultFromHandle, closeVault }: UseBrowserV
     }
   }, [vaultDescriptor, closeVault]);
 
-  return { listBrowserVaults, openBrowserVault, createBrowserVault, deleteBrowserVault };
+  // Changes only the display name: the notes stay in the same storage folder
+  // (by id), so pins, filters and recents keyed by the id carry over.
+  const renameBrowserVault = useCallback(async (descriptor: BrowserVaultDescriptor, displayName: string): Promise<boolean> => {
+    let name: string;
+    try {
+      name = normalizeBrowserVaultName(displayName);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Invalid vault name.");
+      return false;
+    }
+    if (name === descriptor.displayName) return true;
+    try {
+      const updated = (await renameBrowserVaultDescriptor(descriptor.id, name)) ?? { ...descriptor, displayName: name };
+      if (vaultDescriptor?.kind === "browser" && vaultDescriptor.id === descriptor.id) setVaultDescriptor(updated);
+      const recents = renameRecentBrowserVault(store.get(atom_recentVaults), updated);
+      store.set(atom_recentVaults, recents);
+      await saveRecentVaults(recents);
+      toast.success(`Renamed vault to ${name}`);
+      return true;
+    } catch (err) {
+      console.error("Failed to rename browser vault:", err);
+      toast.error("Failed to rename the browser vault.");
+      return false;
+    }
+  }, [vaultDescriptor, setVaultDescriptor, store]);
+
+  return { listBrowserVaults, openBrowserVault, createBrowserVault, renameBrowserVault, deleteBrowserVault };
 }

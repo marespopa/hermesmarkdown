@@ -1,9 +1,9 @@
 # BrowserVaultDialog
 
-Description: Create, reopen, or delete browser vaults — vaults stored in the browser's Origin Private File System instead of a folder on disk. This is how Safari, Firefox, and mobile browsers (which lack disk folder access) get a vault. It also shows storage usage and whether the browser has agreed to keep the data, with a "Keep data" button to ask.
+Description: Create, reopen, rename or delete browser vaults — vaults stored in the browser's Origin Private File System instead of a folder on disk. This is how Safari, Firefox, and mobile browsers (which lack disk folder access) get a vault. It also shows storage usage and whether the browser has agreed to keep the data, with a "Keep data" button to ask.
 
 ## Local State & Storage
-- State: `atom_browserVaultDialogOpen`. Vault list, new-vault name, storage status, pending delete confirmation, and busy/error flags are local useState.
+- State: `atom_browserVaultDialogOpen`. Vault list, new-vault name ("New vault name" field), the row being renamed (`renaming`: id and draft name; the pencil button swaps the row for a "Vault name" field with Save / Cancel, Enter saves, Escape cancels, and `renameBrowserVault` runs without opening the vault), storage status, pending delete confirmation, and busy/error flags are local useState.
 - Persistence: Vault files live in OPFS under `hermes-vaults/browser-<id>`. Descriptors go to IndexedDB (`HermesMDVaultDB`, keys `lastBrowserVault` and `browserVaults`) through `useFileSystem`.
 
 ## Dependencies

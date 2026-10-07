@@ -275,6 +275,19 @@ describe("buildEditorCommands", () => {
     expect(withoutVault.some((command) => command.id === "new-note-from-template")).toBe(false);
   });
 
+  it("renames the open browser vault from the palette", async () => {
+    const renameBrowserVault = vi.fn();
+    const descriptor = { version: 1, kind: "browser", id: "abc", displayName: "Notes", createdAt: 1 };
+    const context = createContext({ vaultDescriptor: descriptor, renameBrowserVault } as Partial<EditorCommandContext>);
+    (context.dialog.prompt as ReturnType<typeof vi.fn>).mockResolvedValue("Journal");
+    await buildEditorCommands(context).find((command) => command.id === "rename-browser-vault")?.action();
+    expect(context.dialog.prompt).toHaveBeenCalledWith("Vault name", "Notes", "Rename vault");
+    expect(renameBrowserVault).toHaveBeenCalledWith(descriptor, "Journal");
+
+    const local = buildEditorCommands(createContext({ vaultDescriptor: { kind: "local" } } as Partial<EditorCommandContext>));
+    expect(local.some((command) => command.id === "rename-browser-vault")).toBe(false);
+  });
+
   it("lists New template… only with a vault and runs the flow", () => {
     const createTemplate = vi.fn();
     const withVault = buildEditorCommands(createContext({ createTemplate }));

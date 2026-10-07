@@ -1,4 +1,5 @@
 import type { Command } from "@/app/components/CommandPalette/CommandPaletteContext";
+import { vaultDisplayName } from "@/app/atoms/vault-atoms";
 import { formatShortcut } from "@/app/utils/platform";
 import type { EditorCommandContext } from "./use-editor-command-context";
 
@@ -31,6 +32,7 @@ export function buildDocumentVaultCommandGroups(context: EditorCommandContext) {
     setBrowserVaultDialogOpen,
     setNewVaultFlowOpen,
     toggleHomePin,
+    vaultDescriptor,
     vaultHandle,
   } = context;
 
@@ -132,7 +134,7 @@ export function buildDocumentVaultCommandGroups(context: EditorCommandContext) {
             const destination = await dialog.select(
               "Choose a destination folder:",
               [
-                { label: `/ ${vaultHandle.name} (root)`, value: "__root__" },
+                { label: `/ ${vaultDisplayName(vaultDescriptor, vaultHandle.name)} (root)`, value: "__root__" },
                 ...directories.map((directory) => ({ label: directory.name, value: directory.name })),
               ],
               "Move File",

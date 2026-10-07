@@ -42,7 +42,7 @@ export const getStartedGroup: Group = {
       id: "browser-vaults",
       title: "Browser vaults",
       lead: "A vault stored in the browser's private storage — for Safari, Firefox, phones, and tablets.",
-      keywords: "browser vault opfs safari firefox ios mobile offline storage backup export import zip",
+      keywords: "browser vault opfs safari firefox ios mobile offline storage backup export import zip rename name",
       body: (
         <>
           <p>
@@ -53,7 +53,8 @@ export const getStartedGroup: Group = {
           </p>
           <KV
             rows={[
-              { label: "Browser vaults…", value: "Create, reopen, or delete browser vaults" },
+              { label: "Browser vaults…", value: "Create, reopen, rename (pencil), or delete browser vaults" },
+              { label: "Rename vault…", value: "Rename the open browser vault; its notes stay as they are" },
               { label: "Export vault as zip", value: "Download every file as a backup (any vault)" },
               { label: "Export vault to folder…", value: "Copy the vault into a folder on disk (Chromium)" },
               { label: "Import files into vault…", value: "Add a zip, notes, or attachments" },

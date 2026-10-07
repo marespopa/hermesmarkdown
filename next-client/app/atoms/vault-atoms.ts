@@ -55,6 +55,20 @@ export const atom_vaultDescriptor = atom<VaultDescriptor | null>(null);
 // Loaded from and saved to IndexedDB by useRecentVaultTracker.
 export const atom_recentVaults = atom<RecentVault[]>([]);
 
+// The vault's own name: browser and GitHub vaults carry a display name
+// (their handle is an internal workspace folder such as "browser-3f2a…");
+// a local vault is its folder.
+export function vaultDisplayName(descriptor: VaultDescriptor | null, handleName: string): string {
+  if (descriptor && descriptor.kind !== "local" && descriptor.displayName) return descriptor.displayName;
+  return handleName;
+}
+
+// The open vault's name for headers and pickers; null with no vault open.
+export const atom_vaultName = atom<string | null>((get) => {
+  const vaultHandle = get(atom_vaultHandle);
+  return vaultHandle ? vaultDisplayName(get(atom_vaultDescriptor), vaultHandle.name) : null;
+});
+
 // Stable per-vault key for UI state persisted across reloads.
 export const atom_vaultKey = atom<string | null>((get) => {
   const descriptor = get(atom_vaultDescriptor);

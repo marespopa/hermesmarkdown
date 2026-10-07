@@ -294,6 +294,29 @@ export async function removeBrowserVaultDescriptor(id: string) {
   }
 }
 
+// Renames a browser vault in the registry and, when it is the open vault, in
+// the saved descriptor. Its storage folder (by id) is untouched. Returns the
+// updated descriptor, or null when the vault isn't registered.
+export async function renameBrowserVaultDescriptor(id: string, displayName: string): Promise<BrowserVaultDescriptor | null> {
+  if (!isSupported()) return null;
+
+  const db = await getDB();
+  const registry = await loadBrowserVaultRegistry();
+  const last = await loadBrowserVaultDescriptor();
+  const entry = registry.find((item) => item.id === id) ?? (last?.id === id ? last : null);
+  if (!entry) return null;
+  const updated = { ...entry, displayName };
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE_NAME, "readwrite");
+    const store = tx.objectStore(STORE_NAME);
+    const known = registry.some((item) => item.id === id);
+    store.put(known ? registry.map((item) => item.id === id ? updated : item) : [updated, ...registry], KEY_BROWSER_VAULT_REGISTRY);
+    if (last?.id === id) store.put(updated, KEY_BROWSER_VAULT);
+    tx.oncomplete = () => resolve(updated);
+    tx.onerror = () => reject(tx.error);
+  });
+}
+
 // Stamps the vault's last export time in the registry and, when it is the
 // open vault, in the saved descriptor. Returns the updated descriptor.
 export async function markBrowserVaultExported(id: string, at = Date.now()): Promise<BrowserVaultDescriptor | null> {

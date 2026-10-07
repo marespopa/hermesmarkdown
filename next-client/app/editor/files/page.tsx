@@ -6,6 +6,7 @@ import { useAtom, useAtomValue } from "jotai";
 import { HiOutlineArrowLeft, HiOutlineDocumentAdd, HiOutlineFolderAdd, HiOutlineRefresh } from "react-icons/hi";
 import Button from "@/app/components/Button";
 import { atom_activeFilePath } from "@/app/atoms/atoms";
+import { atom_vaultName } from "@/app/atoms/vault-atoms";
 import { atom_indexerState, atom_selectedFileTags, atom_showHiddenFiles } from "@/app/atoms/ui-atoms";
 import { useFileSystem } from "@/app/hooks/use-file-system";
 import { useVaultFileSearch } from "../hooks/useVaultFileSearch";
@@ -34,6 +35,7 @@ export default function FilesPage() {
     vaultHandle,
   } = useFileSystem();
   const showHiddenFiles = useAtomValue(atom_showHiddenFiles);
+  const vaultName = useAtomValue(atom_vaultName);
   const indexerState = useAtomValue(atom_indexerState);
   const isRefreshing = indexerState !== "idle";
   const {
@@ -108,7 +110,7 @@ export default function FilesPage() {
         <div className="mb-5 flex shrink-0 items-center justify-between gap-4">
           <div className="min-w-0">
             <h1 className="truncate text-ui-title-3 font-semibold">Explorer</h1>
-            <p className="truncate text-ui-caption text-stone">{vaultHandle?.name ?? "No vault open"}</p>
+            <p className="truncate text-ui-caption text-stone">{vaultName ?? "No vault open"}</p>
           </div>
         {vaultHandle && (
           <div className="flex shrink-0 items-center gap-1">

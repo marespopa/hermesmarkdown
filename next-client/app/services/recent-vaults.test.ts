@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { describe, expect, it } from "vitest";
-import { addRecentVault, MAX_RECENT_VAULTS, removeRecentVault, type RecentVault } from "./recent-vaults";
+import { addRecentVault, MAX_RECENT_VAULTS, removeRecentVault, renameRecentBrowserVault, type RecentVault } from "./recent-vaults";
 
 const local = (name: string, openedAt = 0): RecentVault => ({
   key: `local:${name}`,
@@ -21,6 +21,14 @@ describe("recent vaults", () => {
     for (let i = 0; i < MAX_RECENT_VAULTS + 3; i++) list = addRecentVault(list, local(`v${i}`));
     expect(list).toHaveLength(MAX_RECENT_VAULTS);
     expect(list[0].name).toBe(`v${MAX_RECENT_VAULTS + 2}`);
+  });
+
+  it("renames a browser vault's entry in place", () => {
+    const descriptor = { version: 1 as const, kind: "browser" as const, id: "abc", displayName: "Notes", createdAt: 1 };
+    const browser: RecentVault = { key: "browser:abc", kind: "browser", name: "Notes", descriptor, openedAt: 0 };
+    const renamed = renameRecentBrowserVault([local("a"), browser], { ...descriptor, displayName: "Journal" });
+    expect(renamed.map((entry) => entry.name)).toEqual(["a", "Journal"]);
+    expect(renamed[1]).toMatchObject({ key: "browser:abc", descriptor: { displayName: "Journal" } });
   });
 
   it("removes an entry by key", () => {

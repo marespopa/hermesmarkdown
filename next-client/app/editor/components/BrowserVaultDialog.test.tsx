@@ -18,6 +18,7 @@ const listBrowserVaults = vi.fn();
 const createBrowserVault = vi.fn();
 const openBrowserVault = vi.fn();
 const deleteBrowserVault = vi.fn();
+const renameBrowserVault = vi.fn();
 
 const notes = { version: 1, kind: "browser", id: "abc", displayName: "Notes", createdAt: Date.UTC(2026, 0, 5) };
 
@@ -49,6 +50,7 @@ describe("BrowserVaultDialog", () => {
       listBrowserVaults,
       createBrowserVault,
       openBrowserVault,
+      renameBrowserVault,
       deleteBrowserVault,
     });
   });
@@ -81,6 +83,29 @@ describe("BrowserVaultDialog", () => {
     fireEvent.click(await screen.findByText("Notes"));
 
     await waitFor(() => expect(openBrowserVault).toHaveBeenCalledWith(notes));
+  });
+
+  it("asks for the new vault's name", async () => {
+    renderDialog();
+    await screen.findByText("Notes");
+    expect(screen.getByLabelText("New vault name")).toBeInTheDocument();
+  });
+
+  it("renames a vault in place without opening it", async () => {
+    renameBrowserVault.mockResolvedValue(true);
+    renderDialog();
+    await screen.findByText("Notes");
+
+    fireEvent.click(screen.getByRole("button", { name: "Rename Notes" }));
+    const field = screen.getByLabelText("Vault name");
+    expect(field).toHaveValue("Notes");
+    fireEvent.change(field, { target: { value: "Journal" } });
+    fireEvent.click(screen.getByRole("button", { name: "Save" }));
+
+    await waitFor(() => expect(renameBrowserVault).toHaveBeenCalledWith(notes, "Journal"));
+    expect(openBrowserVault).not.toHaveBeenCalled();
+    await waitFor(() => expect(screen.queryByLabelText("Vault name")).not.toBeInTheDocument());
+    expect(screen.getByTestId("open")).toHaveTextContent("true");
   });
 
   it("asks for confirmation before deleting", async () => {
