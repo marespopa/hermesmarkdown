@@ -1,9 +1,9 @@
 # EditorSettings
 
-Description: The Settings → Editor section: Layout (word wrap, line numbers) and Writing (Vim mode, flow mode).
+Description: The Settings → Editor section: Layout (full width, word wrap, line numbers, invisibles) and Writing (Vim mode, flow mode).
 
 ## Local State & Storage
-- State: `atom_wordWrap`, `atom_lineNumbers`, `atom_vimMode`, `atom_flowMode`.
+- State: `atom_fullWidth` (the editor's text column fills the sheet instead of stopping at `--editor-measure`), `atom_wordWrap`, `atom_lineNumbers`, `atom_showInvisibles`, `atom_vimMode`, `atom_flowMode`.
 - Persistence: All via `atomWithStorage` (`localStorage`).
 
 ## Dependencies

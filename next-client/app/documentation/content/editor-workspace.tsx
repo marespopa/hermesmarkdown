@@ -246,7 +246,7 @@ tags: []
             { label: "Tabs", value: "Next/previous, close current/other/all" },
             { label: "Tasks", value: "Grouping, due-date filters, and clear filters" },
             { label: "Show / hide hidden files", value: "—" },
-            { label: "Appearance", value: "Theme, word wrap, and line numbers" },
+            { label: "Appearance", value: "Theme, full width, word wrap, and line numbers" },
             { label: "Settings", value: "Editor font, autosave, Vim, and AI provider" },
             { label: "GitHub", value: "Commit, push, sync, pull — GitHub vaults only" },
           ]}

@@ -3,7 +3,7 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useAtomValue, useSetAtom } from "jotai";
 import { atom_wordWrap, atom_isEditorFocused } from "@/app/atoms/atoms";
-import { atom_activeEditorView, atom_aiBuilderRequest, atom_flowMode, atom_isAiConfigured, atom_lineNumbers, atom_showInvisibles, atom_vimMode } from "@/app/atoms/ui-atoms";
+import { atom_activeEditorView, atom_aiBuilderRequest, atom_flowMode, atom_fullWidth, atom_isAiConfigured, atom_lineNumbers, atom_showInvisibles, atom_vimMode } from "@/app/atoms/ui-atoms";
 import { useAtom } from "jotai";
 import { EditorView } from "@codemirror/view";
 import DatePickerCallout from "./DatePickerCallout";
@@ -60,6 +60,7 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
   const showInvisibles = useAtomValue(atom_showInvisibles);
   const vimMode = useAtomValue(atom_vimMode);
   const flowMode = useAtomValue(atom_flowMode);
+  const fullWidth = useAtomValue(atom_fullWidth);
   const isAiConfigured = useAtomValue(atom_isAiConfigured);
   const setAiBuilderRequest = useSetAtom(atom_aiBuilderRequest);
   const [, setIsEditorFocused] = useAtom(atom_isEditorFocused);
@@ -283,6 +284,7 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
           text-ui-body
         `}
         data-font={fontFamily.includes("--font-geist-mono") ? "mono" : undefined}
+        data-full-width={fullWidth ? "" : undefined}
         style={{
           fontFamily,
           "--editor-font-size": displayFontSize,

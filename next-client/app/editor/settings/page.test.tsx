@@ -97,6 +97,7 @@ describe("SettingsPage", () => {
     openEditorSection();
 
     expect(screen.getByText("Vim Mode")).toBeInTheDocument();
+    expect(screen.getByText("Full Width")).toBeInTheDocument();
     expect(screen.queryByText("Collapse Frontmatter")).not.toBeInTheDocument();
     expect(screen.queryByText("Delay")).not.toBeInTheDocument();
   });

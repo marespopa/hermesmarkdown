@@ -53,8 +53,8 @@ const REGEX_LIST_PARTS = /^(\s*[-*+]\s+)(\[[ xX]\]\s+)?(.*)$/;
 const REGEX_TABLE_LINE = /^\s*\|/;
 const REGEX_TABLE_SEPARATOR = /^\s*\|[\s:|-]+\|/;
 
-// Heading lines carry `cm-heading cm-heading-N`; their size, tracking and
-// the room above them live in theme.ts.
+// Heading lines carry `cm-heading cm-heading-N`; their size and tracking
+// live in editor-typography.scss.
 const headingLineClass = (level: number) => `cm-heading cm-heading-${level}`;
 
 interface MarkRange {

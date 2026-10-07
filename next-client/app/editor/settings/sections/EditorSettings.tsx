@@ -7,12 +7,13 @@ import {
   atom_vimMode,
   atom_wordWrap,
 } from "@/app/atoms/atoms";
-import { atom_flowMode, atom_showInvisibles } from "@/app/atoms/ui-atoms";
+import { atom_flowMode, atom_fullWidth, atom_showInvisibles } from "@/app/atoms/ui-atoms";
 import Toggle from "@/app/components/Toggle";
 import { SettingGroup, SettingItem } from "../components/SettingControls";
 
-// Settings → Editor: Layout (word wrap, line numbers, invisibles) and Writing (Vim, flow mode) groups.
+// Settings → Editor: Layout (full width, word wrap, line numbers, invisibles) and Writing (Vim, flow mode) groups.
 export default function EditorSettings() {
+  const [fullWidth, setFullWidth] = useAtom(atom_fullWidth);
   const [wordWrap, setWordWrap] = useAtom(atom_wordWrap);
   const [lineNumbers, setLineNumbers] = useAtom(atom_lineNumbers);
   const [showInvisibles, setShowInvisibles] = useAtom(atom_showInvisibles);
@@ -22,6 +23,11 @@ export default function EditorSettings() {
   return (
     <>
       <SettingGroup title="Layout">
+        <SettingItem
+          label="Full Width"
+          description="Let the text fill the whole editor instead of stopping at a comfortable reading width."
+          control={<Toggle variant="soft" active={fullWidth} onChange={setFullWidth} />}
+        />
         <SettingItem
           label="Word Wrap"
           description="Wrap long lines to fit the viewport width."
@@ -34,7 +40,7 @@ export default function EditorSettings() {
         />
         <SettingItem
           label="Show Invisibles"
-          description="Mark empty lines with ¶ and show spaces as dots and tabs as arrows, so a blank line is easy to tell from the space above a heading."
+          description="Mark empty lines with ¶ and show spaces as dots and tabs as arrows, so a blank line is easy to see."
           control={<Toggle variant="soft" active={showInvisibles} onChange={setShowInvisibles} />}
         />
       </SettingGroup>

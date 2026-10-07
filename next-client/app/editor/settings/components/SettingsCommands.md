@@ -1,10 +1,10 @@
 # SettingsCommands
 
-Description: Renders nothing visible. It registers command-palette entries for editor settings (word wrap, line numbers, vim, fonts, text size, autosave, AI provider and model). It is mounted globally in `MainPage`.
+Description: Renders nothing visible. It registers command-palette entries for editor settings (full width, word wrap, line numbers, vim, fonts, text size, autosave, AI provider and model). It is mounted globally in `MainPage`.
 
 ## Local State & Storage
-- State: `atom_wordWrap`, `atom_lineNumbers`, `atom_vimMode`, `atom_editorFontFamily`, `atom_autosaveMode`, `atom_autosaveDelay`, `atom_aiProvider`, `atom_selectedAiModel`, `useRegisterCommand`.
-- Persistence: The matching `localStorage` keys (`wordWrap`, `lineNumbers`, `vimMode`, `editorFontFamily`, `autosaveMode`, `autosaveDelay`, `hermes_ai_provider`, `selectedAiModel`).
+- State: `atom_fullWidth`, `atom_wordWrap`, `atom_lineNumbers`, `atom_vimMode`, `atom_editorFontFamily`, `atom_autosaveMode`, `atom_autosaveDelay`, `atom_aiProvider`, `atom_selectedAiModel`, `useRegisterCommand`.
+- Persistence: The matching `localStorage` keys (`fullWidth`, `wordWrap`, `lineNumbers`, `vimMode`, `editorFontFamily`, `autosaveMode`, `autosaveDelay`, `hermes_ai_provider`, `selectedAiModel`).
 
 ## Dependencies
 - Core: `CommandPaletteContext`, `settings/font-options`.
