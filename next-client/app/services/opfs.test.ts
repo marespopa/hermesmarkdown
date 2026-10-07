@@ -6,6 +6,7 @@ import {
   isBrowserVaultBackupDue,
   isBrowserVaultDescriptor,
   isBrowserVaultId,
+  normalizeBrowserVaultName,
 } from "./opfs";
 
 const DAY = 24 * 60 * 60 * 1000;
@@ -20,6 +21,12 @@ describe("browser vault descriptors", () => {
 
   it("rejects an empty name", () => {
     expect(() => createBrowserVaultDescriptor("   ")).toThrow("A vault name is required.");
+  });
+
+  it("normalizes names the same way for create and rename", () => {
+    expect(normalizeBrowserVaultName("  Journal ")).toBe("Journal");
+    expect(normalizeBrowserVaultName("x".repeat(120))).toHaveLength(100);
+    expect(() => normalizeBrowserVaultName("")).toThrow("A vault name is required.");
   });
 
   it("validates stored descriptors", () => {

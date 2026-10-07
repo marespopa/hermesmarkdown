@@ -38,3 +38,21 @@ export const atom_forgetHomePins = atom(null, (get, set, deletedPath: string) =>
     return next;
   });
 });
+
+// The Home feed's tag filter, per vault: notes must carry every tag. Kept for
+// the session only, so it survives opening a note and coming back, but never
+// greets you as a forgotten filter on the next launch.
+const atom_homeTagFilters = atom<Record<string, string[]>>({});
+const NO_TAGS: string[] = [];
+
+export const atom_homeTagFilter = atom(
+  (get) => {
+    const vaultKey = get(atom_vaultKey);
+    return (vaultKey && get(atom_homeTagFilters)[vaultKey]) || NO_TAGS;
+  },
+  (get, set, tags: string[]) => {
+    const vaultKey = get(atom_vaultKey);
+    if (!vaultKey) return;
+    set(atom_homeTagFilters, (prev) => ({ ...prev, [vaultKey]: tags }));
+  },
+);

@@ -61,15 +61,21 @@ export function isBrowserVaultBackupDue(descriptor: BrowserVaultDescriptor, now 
   return now - (descriptor.lastExportedAt ?? descriptor.createdAt) > BACKUP_REMINDER_MS;
 }
 
-export function createBrowserVaultDescriptor(displayName: string): BrowserVaultDescriptor {
+// A browser vault's display name: trimmed, required, at most 100 characters.
+export function normalizeBrowserVaultName(displayName: string): string {
   const name = displayName.trim();
   if (!name) throw new Error("A vault name is required.");
+  return name.slice(0, 100);
+}
+
+export function createBrowserVaultDescriptor(displayName: string): BrowserVaultDescriptor {
+  const name = normalizeBrowserVaultName(displayName);
   const random = globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`;
   return {
     version: BROWSER_VAULT_DESCRIPTOR_VERSION,
     kind: "browser",
     id: random.toLowerCase().replace(/[^a-z0-9-]/g, "").slice(0, 36),
-    displayName: name.slice(0, 100),
+    displayName: name,
     createdAt: Date.now(),
   };
 }

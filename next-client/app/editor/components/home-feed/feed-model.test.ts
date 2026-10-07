@@ -2,7 +2,7 @@
 import { describe, expect, it } from "vitest";
 import type { FileMetadata } from "@/app/atoms/metadata";
 import { buildNoteDisplayItems, MASKED_PREVIEW, type PrivacyLevel } from "@/app/utils/note-display";
-import { buildFeed as buildFeedWith, buildWeek, dayLabel, feedTitle, isFeedPath } from "./feed-model";
+import { buildFeed as buildFeedWith, dayLabel, feedTags, feedTitle, isFeedPath } from "./feed-model";
 
 // Builds the feed through the display factory, as HomeFeed does.
 function buildFeed(
@@ -10,8 +10,9 @@ function buildFeed(
   now: Date,
   level: PrivacyLevel = "show_title",
   pinnedPaths: string[] = [],
+  tagFilter: string[] = [],
 ) {
-  return buildFeedWith(metadata, buildNoteDisplayItems(metadata, level), now, undefined, pinnedPaths);
+  return buildFeedWith(metadata, buildNoteDisplayItems(metadata, level), now, undefined, pinnedPaths, tagFilter);
 }
 
 const NOW = new Date(2026, 8, 28, 15, 0); // Mon Sep 28 2026
@@ -167,47 +168,36 @@ describe("buildFeed", () => {
   });
 });
 
-describe("buildWeek", () => {
-  it("covers the seven days ending today, with counts and each day's first row", () => {
+describe("tag filter", () => {
+  const notes = () => ({
+    a: meta("a.md", new Date(2026, 8, 28, 9), { tags: ["work", "plan"] }),
+    b: meta("b.md", new Date(2026, 8, 27, 9), { tags: ["work"] }),
+    c: meta("c.md", new Date(2026, 8, 26, 9), { tags: ["home"] }),
+  });
+
+  it("keeps notes carrying every filter tag and relabels their days", () => {
+    expect(buildFeed(notes(), NOW, "show_title", [], ["work"]).map((entry) => entry.path)).toEqual(["a.md", "b.md"]);
+    const feed = buildFeed(notes(), NOW, "show_title", [], ["work", "plan"]);
+    expect(feed.map((entry) => entry.path)).toEqual(["a.md"]);
+    const home = buildFeed(notes(), NOW, "show_title", [], ["home"]);
+    expect(home[0].dayLabel).toBe(new Date(2026, 8, 26).toLocaleDateString(undefined, { weekday: "long" }));
+  });
+
+  it("labels the first matching pinned note Pinned", () => {
+    const feed = buildFeed(notes(), NOW, "show_title", ["c.md", "b.md"], ["work"]);
+    expect(feed.map((entry) => [entry.path, entry.dayLabel])).toEqual([["b.md", "Pinned"], ["a.md", "Today"]]);
+  });
+
+  it("counts tags most used first, then most recent, never from sensitive notes", () => {
     const feed = buildFeed({
-      a: meta("a.md", new Date(2026, 8, 28, 9)),
-      b: meta("b.md", new Date(2026, 8, 26, 18)),
-      c: meta("c.md", new Date(2026, 8, 26, 10)),
-      old: meta("old.md", new Date(2026, 8, 1)),
-      undated: meta("undated.md", new Date(0)),
+      ...notes(),
+      s: meta("s.md", new Date(2026, 8, 28, 12), { tags: ["secret", "home"], frontmatter: { sensitive: "true" } }),
     }, NOW);
-    const week = buildWeek(feed, NOW);
-
-    expect(week.map((entry) => new Date(entry.day).getDate())).toEqual([22, 23, 24, 25, 26, 27, 28]);
-    expect(week[6]).toMatchObject({ count: 1, firstIndex: 0 });
-    expect(week[4]).toMatchObject({ count: 2, firstIndex: 1 });
-    expect(week[5]).toMatchObject({ count: 0, firstIndex: -1 });
-    expect(week.reduce((sum, entry) => sum + entry.count, 0)).toBe(3);
-  });
-
-  it("jumps to a day's first unpinned note, or its pinned one when that's all it has", () => {
-    const feed = buildFeed({
-      pinnedToday: meta("p.md", new Date(2026, 8, 28, 12)),
-      today: meta("a.md", new Date(2026, 8, 28, 9)),
-      pinnedOnly: meta("q.md", new Date(2026, 8, 27, 9)),
-    }, NOW, "show_title", ["p.md", "q.md"]);
-    const week = buildWeek(feed, NOW);
-
-    expect(feed.map((entry) => entry.path)).toEqual(["p.md", "q.md", "a.md"]);
-    expect(week[6]).toMatchObject({ count: 2, firstIndex: 2 });
-    expect(week[5]).toMatchObject({ count: 1, firstIndex: 1 });
-  });
-
-  it("doesn't count notes the privacy level hides", () => {
-    const feed = buildFeed({
-      s: meta("secret.md", new Date(2026, 8, 28, 12), { frontmatter: { sensitive: "true" } }),
-    }, NOW, "hidden");
-    expect(buildWeek(feed, NOW)[6].count).toBe(0);
-  });
-
-  it("steps by calendar day across a DST change", () => {
-    const week = buildWeek([], new Date(2026, 2, 31, 12)); // spans late-March DST in many zones
-    expect(week.map((entry) => new Date(entry.day).getDate())).toEqual([25, 26, 27, 28, 29, 30, 31]);
-    expect(week.every((entry) => new Date(entry.day).getHours() === 0)).toBe(true);
+    expect(feed.find((entry) => entry.path === "s.md")?.tags).toEqual([]);
+    expect(feedTags(feed)).toEqual([
+      { tag: "work", count: 2 },
+      { tag: "plan", count: 1 },
+      { tag: "home", count: 1 },
+    ]);
   });
 });

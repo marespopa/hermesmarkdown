@@ -18,11 +18,15 @@ const PROMPT_PREFIX = "prompt:";
 const TOKEN_LABELS: Record<TemplateToken, string> = {
   date: "Today's date",
   time: "Current time",
-  weekday: "Weekday",
+  weekday: "Day name",
+  weekdayShort: "Short day name",
   year: "Year",
   month: "Month number",
   day: "Day of the month",
   monthName: "Month name",
+  monthNameShort: "Short month name",
+  week: "Week number",
+  quarter: "Quarter",
   title: "Note title",
   slug: "Title as file name",
   clipboard: "Clipboard",
@@ -131,13 +135,14 @@ export function templateFieldOptions(doc: string, now: Date): TemplateFieldOptio
   ];
 }
 
-// Options matching what's typed after `{{`: a token-name prefix or a word
-// in the plain name.
+// Options matching what's typed after `{{`: a token-name prefix, a word in
+// the plain name, or the start of the plain name ("day name").
 export function matchFieldOptions(options: TemplateFieldOption[], query: string): TemplateFieldOption[] {
   const q = query.trim().toLowerCase();
   if (!q) return options;
   return options.filter((option) =>
     option.token.toLowerCase().startsWith(q) ||
+    option.label.toLowerCase().startsWith(q) ||
     option.label.toLowerCase().split(/[^a-z0-9']+/).some((word) => word.startsWith(q)),
   );
 }

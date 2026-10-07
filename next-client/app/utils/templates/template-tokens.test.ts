@@ -26,6 +26,17 @@ describe("expandTemplate", () => {
     expect(text).toBe("2026-10-04 09:05 Sunday 2026/10/04 October");
   });
 
+  it("expands short names, the ISO week and the quarter", () => {
+    const { text } = expandTemplate("{{weekdayShort}} {{monthNameShort}} W{{week}} {{quarter}}", ctx());
+    expect(text).toBe("Sun Oct W40 Q4");
+  });
+
+  it("numbers ISO weeks across the year boundary", () => {
+    expect(expandTemplate("{{week}}", ctx({ now: new Date(2027, 0, 1) })).text).toBe("53");
+    expect(expandTemplate("{{week}}", ctx({ now: new Date(2026, 0, 1) })).text).toBe("01");
+    expect(expandTemplate("{{week}}", ctx({ now: new Date(2024, 11, 30) })).text).toBe("01");
+  });
+
   it("allows whitespace inside the braces", () => {
     expect(expandTemplate("{{ date }}|{{  title }}", ctx()).text).toBe("2026-10-04|Auth Spec");
   });

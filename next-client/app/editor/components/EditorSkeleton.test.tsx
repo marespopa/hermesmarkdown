@@ -33,10 +33,9 @@ describe("EditorSkeleton", () => {
     expect(screen.getByText(weekday)).toBeInTheDocument();
   });
 
-  it("outlines the vault bar, week strip and note rows on the home feed", () => {
+  it("outlines the vault bar and note rows on the home feed", () => {
     renderSkeleton();
     expect(screen.getByTestId("feed-vault-skeleton")).toBeInTheDocument();
-    expect(screen.getByTestId("week-strip-skeleton")).toBeInTheDocument();
     expect(screen.getByTestId("feed-skeleton").querySelectorAll("[data-skeleton-row]")).toHaveLength(5);
   });
 

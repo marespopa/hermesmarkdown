@@ -1,6 +1,6 @@
 "use client";
 
-import { useAtom, useSetAtom } from "jotai";
+import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { useCallback } from "react";
 import toast from "react-hot-toast";
 import {
@@ -8,6 +8,7 @@ import {
   atom_currentDirectoryHandle,
   atom_vaultFolderPaths,
 } from "@/app/atoms/atoms";
+import { atom_vaultName } from "@/app/atoms/vault-atoms";
 import { useDialog } from "../use-dialog";
 import { withRetry } from "./shared";
 import { createUniqueFile } from "./unique-file";
@@ -30,6 +31,7 @@ const ROOT_VALUE = "__root__";
 
 export function useCreateItem({ scanVault, indexVaultTags, openFile }: UseCreateItemProps) {
   const [vaultHandle] = useAtom(atom_vaultHandle);
+  const vaultName = useAtomValue(atom_vaultName);
   const [currentDirectoryHandle] = useAtom(atom_currentDirectoryHandle);
   const setVaultFolderPaths = useSetAtom(atom_vaultFolderPaths);
   const dialog = useDialog();
@@ -65,7 +67,7 @@ export function useCreateItem({ scanVault, indexVaultTags, openFile }: UseCreate
     const directories = await listVaultDirectories();
     if (!directories) return null;
     const options = [
-      { label: `/ ${vaultHandle.name} (root)`, value: ROOT_VALUE },
+      { label: `/ ${vaultName ?? vaultHandle.name} (root)`, value: ROOT_VALUE },
       ...directories.map(({ path }) => ({ label: path, value: `path:${path}` })),
       ...(includeNewFolder ? [{ label: "+ New Folder", value: NEW_FOLDER_VALUE }] : []),
     ];
@@ -74,7 +76,7 @@ export function useCreateItem({ scanVault, indexVaultTags, openFile }: UseCreate
     if (chosen === ROOT_VALUE) return vaultHandle;
     if (chosen === NEW_FOLDER_VALUE) return NEW_FOLDER_VALUE;
     return directories.find(({ path }) => `path:${path}` === chosen)?.handle ?? null;
-  }, [dialog, listVaultDirectories, vaultHandle]);
+  }, [dialog, listVaultDirectories, vaultHandle, vaultName]);
 
   // With `name` (typed in the file tree's inline field) there is no prompt
   // and no toast; a taken name gets " 2", " 3"… as in Finder.

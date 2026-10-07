@@ -10,10 +10,14 @@ export const TEMPLATE_TOKENS = [
   "date",
   "time",
   "weekday",
+  "weekdayShort",
   "year",
   "month",
   "day",
   "monthName",
+  "monthNameShort",
+  "week",
+  "quarter",
   "title",
   "slug",
   "clipboard",
@@ -132,6 +136,17 @@ export function shiftDate(now: Date, offset: NonNullable<ParsedToken["offset"]>)
 
 const pad = (n: number) => String(n).padStart(2, "0");
 
+// ISO 8601 week number: weeks start on Monday, and week 1 is the one with
+// the year's first Thursday (so Jan 1 can fall in week 52/53).
+export function isoWeek(date: Date): number {
+  const thursday = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  thursday.setDate(thursday.getDate() + 3 - ((thursday.getDay() + 6) % 7));
+  const jan1 = new Date(thursday.getFullYear(), 0, 1);
+  // Rounded to whole days first: across a DST change the gap is an hour off.
+  const days = Math.round((thursday.getTime() - jan1.getTime()) / 86_400_000);
+  return Math.floor(days / 7) + 1;
+}
+
 // URL-safe kebab-case: accents removed, every run of other characters
 // becomes `-`, no leading/trailing `-`.
 export function slugify(title: string): string {
@@ -148,10 +163,14 @@ function temporalValue(token: string, now: Date): string | null {
     case "date": return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
     case "time": return `${pad(now.getHours())}:${pad(now.getMinutes())}`;
     case "weekday": return WEEKDAYS[now.getDay()];
+    case "weekdayShort": return SHORT_WEEKDAYS[now.getDay()];
     case "year": return String(now.getFullYear());
     case "month": return pad(now.getMonth() + 1);
     case "day": return pad(now.getDate());
     case "monthName": return MONTHS[now.getMonth()];
+    case "monthNameShort": return MONTHS[now.getMonth()].slice(0, 3);
+    case "week": return pad(isoWeek(now));
+    case "quarter": return `Q${Math.floor(now.getMonth() / 3) + 1}`;
     default: return null;
   }
 }

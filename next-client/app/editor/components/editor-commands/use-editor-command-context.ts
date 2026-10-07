@@ -94,6 +94,7 @@ export function useEditorCommandContext(props: EditorCommandsProps) {
     exportVaultZip,
     exportVaultToFolder,
     importIntoVault,
+    renameBrowserVault,
     deleteBrowserVault,
   } = useFileSystem();
   const vaultDescriptor = useAtomValue(atom_vaultDescriptor);
@@ -163,6 +164,7 @@ export function useEditorCommandContext(props: EditorCommandsProps) {
     exportVaultZip,
     exportVaultToFolder,
     importIntoVault,
+    renameBrowserVault,
     deleteBrowserVault,
     vaultDescriptor,
     setBrowserVaultDialogOpen,

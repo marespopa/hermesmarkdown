@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useAtom } from "jotai";
-import { HiOutlineTrash } from "react-icons/hi";
+import { HiOutlinePencil, HiOutlineTrash } from "react-icons/hi";
 import Button from "@/app/components/Button";
 import DialogModal from "@/app/components/DialogModal/DialogModal";
 import Input from "@/app/components/Input";
@@ -21,15 +21,16 @@ function formatDate(timestamp: number | undefined): string | null {
   return new Date(timestamp).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
 }
 
-// Create, reopen, or delete vaults kept in the browser's private storage, and
+// Create, reopen, rename or delete vaults kept in the browser's private storage, and
 // see how much storage they use.
 export default function BrowserVaultDialog() {
   const [isOpen, setIsOpen] = useAtom(atom_browserVaultDialogOpen);
-  const { listBrowserVaults, createBrowserVault, openBrowserVault, deleteBrowserVault } = useFileSystem();
+  const { listBrowserVaults, createBrowserVault, openBrowserVault, renameBrowserVault, deleteBrowserVault } = useFileSystem();
   const [vaults, setVaults] = useState<BrowserVaultDescriptor[]>([]);
   const [vaultName, setVaultName] = useState("");
   const [storage, setStorage] = useState<StorageStatus | null>(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const [renaming, setRenaming] = useState<{ id: string; name: string } | null>(null);
   const [isBusy, setIsBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -47,6 +48,7 @@ export default function BrowserVaultDialog() {
     if (!isOpen) return;
     setError(null);
     setConfirmDeleteId(null);
+    setRenaming(null);
     void refresh();
   }, [isOpen, refresh]);
 
@@ -82,6 +84,16 @@ export default function BrowserVaultDialog() {
     }, true);
   };
 
+  const rename = (vault: BrowserVaultDescriptor) => {
+    if (!renaming) return;
+    const name = renaming.name;
+    void run(async () => {
+      const ok = await renameBrowserVault(vault, name);
+      if (ok) setRenaming(null);
+      return ok;
+    }, false);
+  };
+
   const keepData = async () => {
     const persisted = await requestPersistentStorage();
     if (!persisted) setError("The browser declined. Installing the app usually allows it.");
@@ -102,7 +114,7 @@ export default function BrowserVaultDialog() {
         <div className="flex gap-2 items-end">
           <Input
             name="browser-vault-name"
-            label="New vault"
+            label="New vault name"
             value={vaultName}
             handleChange={(event) => setVaultName(event.target.value)}
             onKeyDown={(event) => { if (event.key === "Enter") create(); }}
@@ -130,7 +142,28 @@ export default function BrowserVaultDialog() {
               const exported = formatDate(vault.lastExportedAt);
               return (
                 <div key={vault.id} className="flex items-center gap-1 pr-2 border-b border-edge last:border-b-0">
-                  {confirmDeleteId === vault.id ? (
+                  {renaming?.id === vault.id ? (
+                    <div className="flex flex-1 items-end gap-2 px-4 py-2">
+                      <Input
+                        name="browser-vault-rename"
+                        label="Vault name"
+                        value={renaming.name}
+                        handleChange={(event) => setRenaming({ id: vault.id, name: event.target.value })}
+                        onKeyDown={(event) => {
+                          if (event.key === "Enter") rename(vault);
+                          if (event.key === "Escape") { event.stopPropagation(); setRenaming(null); }
+                        }}
+                        disabled={isBusy}
+                        autoFocus
+                      />
+                      <span className="mb-2 flex shrink-0 gap-2">
+                        <Button variant="tertiary" onClick={() => setRenaming(null)} disabled={isBusy}>Cancel</Button>
+                        <Button variant="primary" onClick={() => rename(vault)} disabled={!renaming.name.trim() || isBusy}>
+                          Save
+                        </Button>
+                      </span>
+                    </div>
+                  ) : confirmDeleteId === vault.id ? (
                     <div className="flex flex-1 items-center justify-between gap-2 px-4 py-2">
                       <span className="text-ui-footnote">Delete “{vault.displayName}” and all its notes?</span>
                       <span className="flex shrink-0 gap-2">
@@ -155,6 +188,14 @@ export default function BrowserVaultDialog() {
                             {` · ${exported ? `Backed up ${exported}` : "Never backed up"}`}
                           </span>
                         </span>
+                      </Button>
+                      <Button
+                        variant="icon"
+                        aria-label={`Rename ${vault.displayName}`}
+                        onClick={() => { setConfirmDeleteId(null); setRenaming({ id: vault.id, name: vault.displayName }); }}
+                        disabled={isBusy}
+                      >
+                        <HiOutlinePencil size={16} />
                       </Button>
                       <Button
                         variant="icon"

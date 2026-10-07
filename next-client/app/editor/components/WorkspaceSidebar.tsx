@@ -5,6 +5,7 @@ import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { HiChevronRight, HiOutlineDocumentAdd, HiOutlineDocumentText, HiOutlineDotsVertical, HiOutlineFolderAdd, HiOutlineHome } from "react-icons/hi";
 import { atom_activeFilePath, atom_activePaneId, atom_openFiles, atom_workspaceLayout, findLeaf, getWorkspaceTabs } from "@/app/atoms/atoms";
 import { VscLayoutSidebarLeft } from "react-icons/vsc";
+import { atom_vaultName } from "@/app/atoms/vault-atoms";
 import { atom_goHome, atom_homeFeedOpen, atom_sidebarOpen, atom_sidebarWidth, SIDEBAR_MAX_WIDTH, SIDEBAR_MIN_WIDTH } from "@/app/atoms/ui-atoms";
 import Button from "@/app/components/Button";
 import { useFileSystem } from "@/app/hooks/use-file-system";
@@ -125,6 +126,7 @@ export default function WorkspaceSidebar() {
   const [homeFeedOpen, setHomeFeedOpen] = useAtom(atom_homeFeedOpen);
   const goHome = useSetAtom(atom_goHome);
   const openFiles = useAtomValue(atom_openFiles);
+  const vaultName = useAtomValue(atom_vaultName);
   const {
     vaultHandle, openFile, renameFile, deleteFile, trashItems, duplicateFile, moveItem, moveItems,
     createNewFile, createFolder, undoFileOperation,
@@ -187,7 +189,7 @@ export default function WorkspaceSidebar() {
           sidebar (the toolbar shows it again). */}
       <div className={`flex items-center gap-2 shrink-0 pl-4 pr-2 sm:pr-3 border-b border-edge-subtle ${PANE_HEADER_HEIGHT}`}>
         <h2 className="flex-1 min-w-0 truncate text-[11px] font-semibold uppercase tracking-wider text-fg-faint select-none">
-          {vaultHandle?.name ?? "Workspace"}
+          {vaultName ?? "Workspace"}
         </h2>
         <div className={`${PANE_SECTION_CLASS} !ml-0`}>
           <PaneToolbarButton

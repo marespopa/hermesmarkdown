@@ -27,6 +27,14 @@ export function addRecentVault(list: readonly RecentVault[], entry: RecentVault,
   return [entry, ...list.filter((item) => item.key !== entry.key)].slice(0, max);
 }
 
+// Carries a renamed browser vault's new name into its entry, in place.
+export function renameRecentBrowserVault(list: readonly RecentVault[], descriptor: BrowserVaultDescriptor): RecentVault[] {
+  return list.map((item) =>
+    item.kind === "browser" && item.descriptor.id === descriptor.id
+      ? { ...item, name: descriptor.displayName, descriptor }
+      : item);
+}
+
 export function removeRecentVault(list: readonly RecentVault[], key: string): RecentVault[] {
   return list.filter((item) => item.key !== key);
 }

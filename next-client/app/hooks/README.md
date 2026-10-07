@@ -51,7 +51,7 @@ All file writes go through `writeFileContent()` in `app/services/file-writer.ts`
 - `use-vault-navigation.ts` — `useVaultNavigation({ vaultHandle, currentDirectoryHandle, scanVault })`: `syncCurrentDirectoryToPath`, `navigateTo`, `navigateBack` for the file views' current folder. Spread into `useVaultManager`'s return value.
 - `use-content-index-sync.ts` — `useContentIndexSync()`: subscribes to `atom_fileMetadata` and removes paths that leave it (delete, files gone on a vault pass, vault close / switch) from the worker's note-text index. Mounted once, by `CommandPalette`.
 - `stored-workspace.ts` — on mount, finds the browser or GitHub vault to reopen (these need no permission prompt).
-- `use-browser-vault.ts` — create / open / list / delete browser vaults (OPFS). Opening asks for persistent storage and reminds about backups after two weeks without an export.
+- `use-browser-vault.ts` — create / open / list / rename / delete browser vaults (OPFS). Rename changes only the display name (registry, saved descriptor, open vault, recents); the storage folder and `atom_vaultKey` stay, so pins and filters carry over. Opening asks for persistent storage and reminds about backups after two weeks without an export.
 - `use-vault-archive.ts` — whole-vault export (zip download for any vault; folder copy on Chromium) and import (zip, folder, or loose files; never overwrites). Records the export time for browser vaults.
 - `use-create-vault.ts` — the New Vault flow: pick a parent folder, create the vault folder (refusing to overwrite), then open it.
 

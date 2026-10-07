@@ -25,22 +25,6 @@ export function FeedVaultSkeleton() {
   );
 }
 
-// The week strip under the header (WeekStrip): seven days of weekday
-// initial, date and note dot.
-export function WeekStripSkeleton() {
-  return (
-    <div aria-hidden="true" data-testid="week-strip-skeleton" className="mt-6 grid grid-cols-7 gap-1 motion-safe:animate-pulse">
-      {Array.from({ length: 7 }, (_, index) => (
-        <span key={index} className="flex flex-col items-center gap-1 py-2">
-          <Line lineClass="h-4" barClass="h-2 w-2.5" />
-          <Line lineClass="h-[1.3125rem]" barClass="h-3 w-4" />
-          <span className="h-1 w-1" />
-        </span>
-      ))}
-    </div>
-  );
-}
-
 // Placeholder rows, laid out like FeedRow (gutter label, title, two preview
 // lines, file name), until the vault's notes are listed.
 export default function FeedSkeleton({ rows = 3 }: { rows?: number }) {

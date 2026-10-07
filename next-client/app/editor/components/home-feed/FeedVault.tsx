@@ -11,9 +11,10 @@ import {
   HiOutlineFolderOpen,
   HiOutlineGlobeAlt,
   HiOutlineLogout,
+  HiOutlinePencil,
   HiOutlineRefresh,
 } from "react-icons/hi";
-import { atom_vaultDescriptor, atom_vaultHandle, type VaultDescriptor } from "@/app/atoms/vault-atoms";
+import { atom_vaultDescriptor, atom_vaultHandle, vaultDisplayName, type VaultDescriptor } from "@/app/atoms/vault-atoms";
 import { atom_browserVaultDialogOpen, atom_newVaultFlowOpen, atom_showHiddenFiles } from "@/app/atoms/ui-atoms";
 import Button from "@/app/components/Button";
 import { useDialog } from "@/app/hooks/use-dialog";
@@ -34,12 +35,7 @@ export function VaultKindIcon({ kind, size = 15 }: { kind: RecentVault["kind"]; 
   return <HiOutlineFolder size={size} aria-hidden="true" />;
 }
 
-// The vault's own name: browser and GitHub vaults carry a display name
-// (their handle is an internal workspace folder); a local vault is its folder.
-export function vaultDisplayName(descriptor: VaultDescriptor | null, handleName: string): string {
-  if (descriptor && descriptor.kind !== "local" && descriptor.displayName) return descriptor.displayName;
-  return handleName;
-}
+export { vaultDisplayName };
 
 /** Recent vaults in the menu; the no-vault start screen lists them all. */
 export const MENU_RECENT_LIMIT = 5;
@@ -54,7 +50,7 @@ export default function FeedVault() {
   const showHiddenFiles = useAtomValue(atom_showHiddenFiles);
   const setNewVaultFlowOpen = useSetAtom(atom_newVaultFlowOpen);
   const setBrowserVaultDialogOpen = useSetAtom(atom_browserVaultDialogOpen);
-  const { closeVault, openVault, scanVault, indexVaultTags, isVaultSupported, isBrowserVaultSupported } = useFileSystem();
+  const { closeVault, openVault, scanVault, indexVaultTags, renameBrowserVault, isVaultSupported, isBrowserVaultSupported } = useFileSystem();
   const { recentVaults, openRecentVault } = useRecentVaults();
   const dialog = useDialog();
   const nameRef = useRef<HTMLButtonElement>(null);
@@ -81,6 +77,12 @@ export default function FeedVault() {
     if (confirmed) closeVault();
   };
 
+  const handleRename = async () => {
+    if (descriptor?.kind !== "browser") return;
+    const next = await dialog.prompt("Vault name", descriptor.displayName, "Rename vault");
+    if (typeof next === "string") await renameBrowserVault(descriptor, next);
+  };
+
   const items: TabContextMenuItem[] = [
     ...recentVaults.slice(0, MENU_RECENT_LIMIT).map((entry) => ({
       label: entry.name,
@@ -96,10 +98,13 @@ export default function FeedVault() {
     ...(isBrowserVaultSupported
       ? [{ label: "Browser vaults…", icon: <HiOutlineGlobeAlt size={15} />, divider: !isVaultSupported, onClick: () => setBrowserVaultDialogOpen(true) }]
       : []),
+    ...(descriptor?.kind === "browser"
+      ? [{ label: "Rename vault…", icon: <HiOutlinePencil size={15} />, divider: true, onClick: () => { void handleRename(); } }]
+      : []),
     {
       label: "Refresh vault",
       icon: <HiOutlineRefresh size={15} />,
-      divider: true,
+      divider: descriptor?.kind !== "browser",
       onClick: () => {
         void scanVault(vaultHandle, showHiddenFiles);
         void indexVaultTags(vaultHandle, showHiddenFiles);

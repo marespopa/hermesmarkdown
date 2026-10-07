@@ -42,7 +42,7 @@ export const getStartedGroup: Group = {
       id: "browser-vaults",
       title: "Browser vaults",
       lead: "A vault stored in the browser's private storage — for Safari, Firefox, phones, and tablets.",
-      keywords: "browser vault opfs safari firefox ios mobile offline storage backup export import zip",
+      keywords: "browser vault opfs safari firefox ios mobile offline storage backup export import zip rename name",
       body: (
         <>
           <p>
@@ -53,7 +53,8 @@ export const getStartedGroup: Group = {
           </p>
           <KV
             rows={[
-              { label: "Browser vaults…", value: "Create, reopen, or delete browser vaults" },
+              { label: "Browser vaults…", value: "Create, reopen, rename (pencil), or delete browser vaults" },
+              { label: "Rename vault…", value: "Rename the open browser vault; its notes stay as they are" },
               { label: "Export vault as zip", value: "Download every file as a backup (any vault)" },
               { label: "Export vault to folder…", value: "Copy the vault into a folder on disk (Chromium)" },
               { label: "Import files into vault…", value: "Add a zip, notes, or attachments" },
@@ -185,7 +186,7 @@ export const getStartedGroup: Group = {
       id: "home-feed",
       title: "Home feed",
       lead: "Your recent notes, newest first. It's where a vault opens.",
-      keywords: "home feed vim keys keyboard j k gg recent notes pin pinned unpin start screen today yesterday preview search create new note welcome week strip calendar days jump no vault open vault create vault browser vault open file",
+      keywords: "home feed vim keys keyboard j k gg recent notes pin pinned unpin start screen today yesterday preview search create new note welcome tags tag filter chips no vault open vault create vault browser vault open file",
       body: (
         <>
           <p>
@@ -203,8 +204,10 @@ export const getStartedGroup: Group = {
             <strong>Unpin from Home</strong>, to put the note back. Each vault keeps its own pins.
           </p>
           <p>
-            Under the date, a strip shows the last seven days. A dot marks each day you changed a
-            note. Tap a day to jump to its notes. Days without notes are dimmed.
+            Under the date, your most used tags show as chips. Tap one to see only the notes with
+            that tag; tap more to narrow it to notes that have all of them. <strong>+N</strong>{" "}
+            shows the rest of your tags, and <strong>Clear</strong> brings every note back. Tags
+            from sensitive notes aren&apos;t listed.
           </p>
           <p>
             The feed works from the keyboard, Vim-style, as soon as it opens: <code>j</code> and{" "}

@@ -11,6 +11,7 @@ export function buildVaultStorageCommands(context: EditorCommandContext): Comman
     exportVaultZip,
     importIntoVault,
     isBrowserVaultSupported,
+    renameBrowserVault,
     isVaultSupported,
     setBrowserVaultDialogOpen,
     supportsFolderImport,
@@ -71,6 +72,16 @@ export function buildVaultStorageCommands(context: EditorCommandContext): Comman
       : []),
     ...(vaultDescriptor?.kind === "browser"
       ? [{
+          id: "rename-browser-vault",
+          label: "Rename vault…",
+          description: "Change this browser vault's name; its notes stay as they are",
+          category: "Vault" as const,
+          keywords: "rename name title browser vault",
+          action: async () => {
+            const next = await dialog.prompt("Vault name", vaultDescriptor.displayName, "Rename vault");
+            if (typeof next === "string") await renameBrowserVault(vaultDescriptor, next);
+          },
+        }, {
           id: "delete-browser-vault",
           label: "Delete browser vault",
           description: "Permanently remove this vault from browser storage",
