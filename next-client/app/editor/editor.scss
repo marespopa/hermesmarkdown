@@ -92,17 +92,11 @@ html.dark .editor-sheet {
 
 /* Smooth blue caret */
 .editor-container textarea {
-  caret-color: #3b82f6;
+  caret-color: var(--caret);
 }
 
 .editor-container .cm-cursor {
   animation: editor-caret-pulse 1.1s ease-in-out infinite;
-}
-
-html.dark .editor-container .cm-selectionBackground,
-html.dark .editor-container.cm-focused .cm-selectionBackground {
-  background-color: var(--clay) !important;
-  opacity: 0.34;
 }
 
 @keyframes editor-caret-pulse {

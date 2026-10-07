@@ -35,6 +35,7 @@ body {
   --link:           #2C66D1;  /* Apple-style editor links */
   --link-hover:     #1764D8;
   --caret:          #3B82F6;  /* editor caret — the one blue outside links */
+  --selection:      rgba(59, 130, 246, 0.22);  /* text selection — caret blue, translucent */
   --frontmatter-bg: rgba(60, 56, 50, 0.035);
   --frontmatter-bg-hover: rgba(60, 56, 50, 0.055);
   --frontmatter-bg-active: rgba(60, 56, 50, 0.085);  /* Properties on hover/focus (rest is -hover) */
@@ -69,6 +70,7 @@ html.dark {
   --link:           #64A8FF;
   --link-hover:     #8DBEFF;
   --caret:          #3B82F6;
+  --selection:      rgba(59, 130, 246, 0.32);
   --frontmatter-bg: rgba(214, 207, 198, 0.04);
   --frontmatter-bg-hover: rgba(214, 207, 198, 0.065);
   --frontmatter-bg-active: rgba(214, 207, 198, 0.1);
@@ -133,14 +135,14 @@ html.dark {
   color-scheme: dark;
 }
 
-/* Text selection — clay at low opacity */
+/* Text selection — caret blue at low opacity (--selection) */
 ::selection {
-  background-color: rgba(181, 105, 74, 0.22);
+  background-color: var(--selection);
   color: theme('colors.ink.light');
 }
 
 html.dark ::selection {
-  background-color: rgba(216, 139, 104, 0.28);
+  background-color: var(--selection);
   color: theme('colors.ink.dark');
 }
 

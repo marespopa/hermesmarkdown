@@ -151,9 +151,10 @@ export const baseTheme = EditorView.theme({
     backgroundColor: "color-mix(in srgb, var(--moss) 22%, transparent) !important",
     borderRadius: "2px",
   },
+  // --selection is already translucent (lighter in light mode, stronger in
+  // dark), so no layer opacity here.
   ".cm-selectionBackground, &.cm-focused .cm-selectionBackground": {
-    backgroundColor: "var(--clay) !important",
-    opacity: "0.25",
+    backgroundColor: "var(--selection) !important",
   },
   // Generic fold state is already shown by our own chevron UI, so its
   // placeholder stays visually hidden while retaining its layout box.
