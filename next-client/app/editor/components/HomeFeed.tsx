@@ -51,9 +51,13 @@ function activeDay(modifiedAt: number | undefined) {
   return new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime();
 }
 
+// A second `g` within this window makes `gg` (to the top), as in vim.
+const GG_WINDOW_MS = 600;
+
 // The vault's home screen: recent notes, newest first, in the editor's
-// column. Keyboard: j/k or arrows move, Enter opens, Escape leaves; any
-// other printable key opens the command palette with that key typed.
+// column. Keyboard, vim-style: j/k or arrows move, gg/G jump to the top and
+// end, Enter or o opens, p pins, / searches, Escape leaves; any other
+// printable key opens the command palette with that key typed.
 export default function HomeFeed({ onOpenNote, onNewNote, onSearch, onClose, isSearchOpen = false, hasVault = true, onOpenFile }: HomeFeedProps) {
   const fileMetadata = useAtomValue(atom_fileMetadata);
   const indexerState = useAtomValue(atom_indexerState);
@@ -73,6 +77,7 @@ export default function HomeFeed({ onOpenNote, onNewNote, onSearch, onClose, isS
   const scrollRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
   const rowRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const focusPending = useRef(true);
   const shouldVirtualize = feed.length > VIRTUALIZE_THRESHOLD;
 
   // Rows vary in height (previews wrap to 1–3 lines), so each reports its
@@ -103,6 +108,7 @@ export default function HomeFeed({ onOpenNote, onNewNote, onSearch, onClose, isS
   useEffect(() => {
     if (topRequest === mountedTopRequest.current) return;
     mountedTopRequest.current = topRequest;
+    focusPending.current = true;
     setSelectedIndex(0);
     const element = scrollRef.current;
     if (!element) return;
@@ -111,8 +117,8 @@ export default function HomeFeed({ onOpenNote, onNewNote, onSearch, onClose, isS
     else element.scrollTop = 0;
   }, [topRequest]);
 
-  const latest = useRef({ feed, selectedIndex, shouldVirtualize, rowVirtualizer, onOpenNote, onSearch, onClose });
-  latest.current = { feed, selectedIndex, shouldVirtualize, rowVirtualizer, onOpenNote, onSearch, onClose };
+  const latest = useRef({ feed, selectedIndex, shouldVirtualize, rowVirtualizer, onOpenNote, onSearch, onClose, togglePin });
+  latest.current = { feed, selectedIndex, shouldVirtualize, rowVirtualizer, onOpenNote, onSearch, onClose, togglePin };
 
   // Selects a row and scrolls it into view: "nearest" for j/k steps,
   // "start" for a week-strip jump (the day's first note at the top).
@@ -123,12 +129,36 @@ export default function HomeFeed({ onOpenNote, onNewNote, onSearch, onClose, isS
     else rowRefs.current[index]?.scrollIntoView?.({ block });
   }, []);
 
+  // The note list takes focus when the feed opens (and on Home), so j/k and
+  // Enter work without a click first. The list, not a row: a focused row
+  // would unblur a sensitive preview, and Enter on a row button opens that
+  // row rather than the selection. Never taken from a field or a dialog
+  // (the palette): it waits for those to close. Retries each render until
+  // the first notes are listed.
+  useEffect(() => {
+    const list = listRef.current;
+    if (!focusPending.current || !list || isTypingTarget(document.activeElement)) return;
+    focusPending.current = false;
+    if (!list.contains(document.activeElement)) list.focus({ preventScroll: true });
+  });
+
+  // `p` moves the note (pinned notes lead the feed): the selection follows it.
+  const pinnedByKey = useRef<string | null>(null);
+  useEffect(() => {
+    const path = pinnedByKey.current;
+    if (!path) return;
+    pinnedByKey.current = null;
+    const index = feed.findIndex((entry) => entry.path === path);
+    if (index >= 0) select(index, "nearest");
+  }, [feed, select]);
+
   useEffect(() => {
     const move = (delta: number) => {
       const { feed: rows, selectedIndex: index } = latest.current;
       if (!rows.length) return;
       select(Math.min(rows.length - 1, Math.max(0, index + delta)), "nearest");
     };
+    let lastG = 0;
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.ctrlKey || event.metaKey || event.altKey || isTypingTarget(event.target)) return;
       // An open menu (vault, or a row's) owns the keys; its Escape closes only it.
@@ -139,11 +169,34 @@ export default function HomeFeed({ onOpenNote, onNewNote, onSearch, onClose, isS
       const { feed: rows, selectedIndex: index } = latest.current;
       if (event.key === "ArrowDown" || event.key === "j") { event.preventDefault(); move(1); return; }
       if (event.key === "ArrowUp" || event.key === "k") { event.preventDefault(); move(-1); return; }
-      if (event.key === "Enter") {
+      // A lone g waits for its pair; it never opens the palette.
+      if (event.key === "g") {
+        event.preventDefault();
+        // gg: the newest note, with the feed back at its very top (header in view).
+        if (event.timeStamp - lastG <= GG_WINDOW_MS && rows.length) {
+          lastG = 0;
+          select(0, "nearest");
+          if (scrollRef.current) scrollRef.current.scrollTop = 0;
+        }
+        else lastG = event.timeStamp;
+        return;
+      }
+      lastG = 0;
+      if (event.key === "G") { event.preventDefault(); if (rows.length) select(rows.length - 1, "nearest"); return; }
+      if (event.key === "/") { event.preventDefault(); latest.current.onSearch(); return; }
+      if (event.key === "Enter" || event.key === "o") {
         // A focused button handles its own Enter (click).
-        if ((event.target as HTMLElement | null)?.closest?.("button") || !rows[index]) return;
+        if (event.key === "Enter" && (event.target as HTMLElement | null)?.closest?.("button")) return;
+        if (!rows[index]) return;
         event.preventDefault();
         latest.current.onOpenNote(rows[index].path);
+        return;
+      }
+      if (event.key === "p") {
+        event.preventDefault();
+        if (!rows[index]) return;
+        pinnedByKey.current = rows[index].path;
+        latest.current.togglePin(rows[index].path);
         return;
       }
       if (event.key.length === 1 && event.key.trim()) {
@@ -201,7 +254,8 @@ export default function HomeFeed({ onOpenNote, onNewNote, onSearch, onClose, isS
             ref={listRef}
             role="listbox"
             aria-label="Recent notes"
-            className="relative w-full"
+            tabIndex={-1}
+            className="relative w-full focus-visible:outline-none"
             style={{ height: rowVirtualizer.getTotalSize() }}
           >
             {rowVirtualizer.getVirtualItems().map((virtualRow) => (
@@ -217,7 +271,7 @@ export default function HomeFeed({ onOpenNote, onNewNote, onSearch, onClose, isS
             ))}
           </div>
         ) : (
-          <div ref={listRef} role="listbox" aria-label="Recent notes" className="flex flex-col gap-1">
+          <div ref={listRef} role="listbox" aria-label="Recent notes" tabIndex={-1} className="flex flex-col gap-1 focus-visible:outline-none">
             {feed.map((entry, index) => (
               <React.Fragment key={entry.path}>
                 {renderRow(index, (element) => { rowRefs.current[index] = element; })}
@@ -232,6 +286,7 @@ export default function HomeFeed({ onOpenNote, onNewNote, onSearch, onClose, isS
         onSearchCommands={() => onSearch(">")}
         onNewNote={onNewNote}
         isSearchOpen={isSearchOpen}
+        showKeyHints={hasVault && feed.length > 0}
         placeholder={hasVault ? undefined : "Search commands…"}
       />
     </div>

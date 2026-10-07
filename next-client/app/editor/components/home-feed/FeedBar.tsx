@@ -12,6 +12,7 @@ import {
 } from "@/app/components/CommandPalette/palette-model";
 import useKeyboardInset from "@/app/hooks/use-keyboard-inset";
 import { formatShortcut } from "@/app/utils/platform";
+import FeedKeyHints from "./FeedKeyHints";
 
 const SMALL_PHONE_PLACEHOLDER = "Search or create…";
 
@@ -24,21 +25,31 @@ interface FeedBarProps {
   isSearchOpen?: boolean;
   /** The pill's wording; "Search or create a note…" (shortened on small phones) when omitted. */
   placeholder?: string;
+  /** Shows the line of vim-style keys above the bar (hidden below `sm`). */
+  showKeyHints?: boolean;
 }
 
 // Floating bar centered under the feed column (thumb reach on mobile, kept
 // above the on-screen keyboard): the search pill and a one-tap new note.
 // Below 400px (small phones) the placeholder shortens so it isn't cut off.
+// With `showKeyHints`, a pill of the feed's keys sits just above it, left-
+// aligned with the search pill; it takes no clicks, so rows behind stay usable.
 // The pill is the palette's search field at rest — same classes as
 // PaletteSearchBar and a shared view-transition name, so opening the palette
 // morphs the pill into the field and closing morphs it back.
-export default function FeedBar({ onSearch, onSearchCommands, onNewNote, isSearchOpen = false, placeholder }: FeedBarProps) {
+export default function FeedBar({ onSearch, onSearchCommands, onNewNote, isSearchOpen = false, placeholder, showKeyHints = false }: FeedBarProps) {
   const keyboardInset = useKeyboardInset();
   return (
     <div
-      className="pointer-events-none fixed inset-x-0 z-30 flex justify-center px-3 sm:px-4"
+      className="pointer-events-none fixed inset-x-0 z-30 flex flex-col items-center gap-2.5 px-3 sm:px-4"
       style={{ bottom: keyboardInset + 20 }}
     >
+      {/* In the bar's column, so the hints line up with the search pill's left edge. */}
+      {showKeyHints && !isSearchOpen && (
+        <div className="w-full max-w-xl">
+          <FeedKeyHints />
+        </div>
+      )}
       <div className="pointer-events-auto flex w-full max-w-xl items-center gap-1.5 sm:gap-2">
         <div
           data-palette-anchor=""
