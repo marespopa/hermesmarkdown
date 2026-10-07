@@ -38,12 +38,13 @@
 /* Headings: the prose scale, a tight 1.2–1.3 line height, tracking that
    tightens as they grow, and generous room above (about 1.8× the body size)
    so each section visibly anchors to the text below it. Semibold, as in
-   Apple's headline styles. */
+   Apple's headline styles. No room below: text typed straight under a
+   heading sits flush against it, so a missing blank line shows here rather
+   than only after the Markdown is pasted elsewhere. */
 .editor-sheet.editor-container .cm-line.cm-heading {
   color: var(--fg);
   line-height: 1.3;
   padding-top: 1.4em;
-  padding-bottom: 0.2em;
   text-wrap: balance;
 }
 
