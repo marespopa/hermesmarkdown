@@ -58,11 +58,12 @@ describe("VimStatusPill", () => {
   });
 
   it("opens the : prompt in the pill instead of a panel under the text", () => {
-    render(<Harness />);
+    const { container } = render(<Harness />);
 
     press(":");
 
-    expect(screen.getByRole("textbox")).toHaveFocus();
+    // The editor's content is a textbox too, so look inside the pill.
+    expect(container.querySelector(".vim-status-host input")).toHaveFocus();
     expect(screen.getByTestId("editor").querySelector(".cm-vim-panel")).toBeNull();
   });
 });
