@@ -167,10 +167,10 @@ export const mobileGroup: Group = {
             ]}
           />
           <p>
-            On desktop, selecting text surfaces a toolbar with Ask AI. On mobile, a toolbar below
-            the selection offers Bold, Italic, and Link instead — there's no per-selection AI toolbar
-            on mobile yet. AI Chat and Repurpose Note are still reachable from the command palette on
-            either platform.
+            Selecting text shows the same toolbar on both: Turn into (text, headings, lists, quote), Bold, Italic, Link, and Ask AI
+            when AI is set up. On desktop it sits above the selection; on mobile it sits at the bottom
+            of the screen, above the keyboard, clear of the phone&apos;s own Copy/Paste bar. AI Chat and Repurpose Note are also in the
+            command palette.
           </p>
         </>
       ),

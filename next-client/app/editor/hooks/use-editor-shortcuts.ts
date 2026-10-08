@@ -2,7 +2,8 @@ import { useEffect } from "react";
 import type React from "react";
 import { useAtomValue, useSetAtom } from "jotai";
 import { atom_activateWorkspaceTab, atom_workspaceTabs } from "@/app/atoms/atoms";
-import { atom_aiBuilderRequest, atom_isAiConfigured, atom_sidebarOpen, atom_toolbarHidden, atom_vimMode } from "@/app/atoms/ui-atoms";
+import { openSearchPanel } from "@codemirror/search";
+import { atom_activeEditorView, atom_aiBuilderRequest, atom_isAiConfigured, atom_sidebarOpen, atom_toolbarHidden, atom_vimMode } from "@/app/atoms/ui-atoms";
 import { useCommandPalette } from "@/app/components/CommandPalette/CommandPaletteContext";
 import { focusPaneEditor } from "../utils/focus-pane-editor";
 import { isCloseTabShortcut, isNewFileShortcut } from "../utils/tab-shortcuts";
@@ -35,6 +36,7 @@ export function useEditorShortcuts({
 }: EditorShortcutOptions) {
   const { open: openCommandPalette } = useCommandPalette();
   const vimMode = useAtomValue(atom_vimMode);
+  const activeEditorView = useAtomValue(atom_activeEditorView);
   const isAiConfigured = useAtomValue(atom_isAiConfigured);
   const setAiBuilderRequest = useSetAtom(atom_aiBuilderRequest);
   const workspaceTabs = useAtomValue(atom_workspaceTabs);
@@ -60,6 +62,18 @@ export function useEditorShortcuts({
       if (isExplorerShortcut) {
         e.preventDefault();
         void navigateWithGuard("/editor/files", "Files");
+      }
+
+      // Find and replace in the active note (Ctrl/Cmd+F). The editor's own
+      // keymap handles it while it has focus; this catches the key when focus
+      // is elsewhere (tab bar, sidebar, after the palette), which would
+      // otherwise open the browser's find bar.
+      if (
+        (e.ctrlKey || e.metaKey) && !e.shiftKey && !e.altKey &&
+        e.key.toLowerCase() === "f" && !e.defaultPrevented && activeEditorView
+      ) {
+        e.preventDefault();
+        openSearchPanel(activeEditorView);
       }
 
       // Search note text: the palette's `/` scope.
@@ -126,5 +140,5 @@ export function useEditorShortcuts({
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [activateWorkspaceTab, setToolbarHidden, setSidebarOpen, closeTabWithAutosave, flush, isAiConfigured, setAiBuilderRequest, activeTabPath, vimMode, isVoiceSupported, toggleVoiceListening, openCommandPalette, workspaceTabs, navigateWithGuard, saveRef, newFileRef]);
+  }, [activeEditorView, activateWorkspaceTab, setToolbarHidden, setSidebarOpen, closeTabWithAutosave, flush, isAiConfigured, setAiBuilderRequest, activeTabPath, vimMode, isVoiceSupported, toggleVoiceListening, openCommandPalette, workspaceTabs, navigateWithGuard, saveRef, newFileRef]);
 }

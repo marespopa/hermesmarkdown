@@ -1,6 +1,6 @@
 {
   "name": "hermesmarkdown",
-  "version": "6.3.6",
+  "version": "6.3.7",
   "private": true,
   "scripts": {
     "dev": "next dev --port 3000",
