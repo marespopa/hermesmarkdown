@@ -3,7 +3,7 @@ import { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Is HermesMarkdown the same as Hermes Agent? — HermesMarkdown",
   description:
-    "HermesMarkdown is a local-first Markdown editor that runs in your browser and saves to disk. It is unrelated to Hermes Agent's SOUL.md, memory.md, or plan-mode files. Here's the difference.",
+    "HermesMarkdown is a local-first Markdown editor that runs in your browser. It's unrelated to Hermes Agent's SOUL.md, memory.md or plan-mode files.",
   alternates: { canonical: "/what-is-hermes-md" },
   openGraph: {
     title: "Is HermesMarkdown the same as Hermes Agent?",

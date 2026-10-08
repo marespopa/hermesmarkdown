@@ -8,7 +8,7 @@ import { Metadata, Viewport } from "next";
 import { inter, geistMono, plusJakartaSans, sourceSerif } from "./fonts";
 
 const SITE_DESCRIPTION =
-  "Edit local Markdown folders in your browser — reads and writes files directly on disk, or keeps a vault in the browser on Safari, Firefox, and mobile. Works offline. No accounts, no cloud uploads.";
+  "Edit local Markdown folders in your browser, saved to disk or to a browser vault on Safari, Firefox and mobile. Works offline. No accounts, no cloud.";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://hermesmarkdown.com"),
