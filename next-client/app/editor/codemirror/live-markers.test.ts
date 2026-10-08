@@ -29,12 +29,15 @@ function markers(doc: string, caret?: number, focused = true): string[] {
     if (cls === "cm-listLine") out.push(`hang:${style.replace("--list-hang: ", "")}`);
     else if (cls === "cm-listGap") out.push("gap");
     else if (cls === "cm-codeFenceRow") out.push("fence-row");
+    else if (cls === "cm-marginOnly") out.push("strut");
     else if (widget === "CodeLanguageWidget") out.push(`lang:${deco.spec.widget.language}`);
     else if (widget === "CalloutLabelWidget") out.push(`callout:${text}`);
     else if (cls === "cm-fenceHidden") out.push(`fence:${text}`);
     else if (from === to) out.push("line");
     else if (cls === "cm-listIndent") out.push(`indent:${style}`);
     else if (cls === "cm-listNumber") out.push(`number:${text}`);
+    // Invisible margin marks read as hidden: the text sees no difference.
+    else if (cls === "cm-marginMarks cm-marginMarks-off") out.push(`hide:${text}`);
     else if (cls === "cm-marginMarks") out.push(`margin:${text}`);
     else if (widget) out.push(`${widget === "TaskBoxWidget" ? "task" : "bullet"}:${text}`);
     else out.push(`hide:${text}`);
@@ -64,6 +67,13 @@ describe("buildLiveMarkerDecorations", () => {
     expect(markers(doc, doc.length)).toEqual(["hide:# ", "line", "hide:> "]);
     expect(markers(doc, 3)).toEqual(["margin:# ", "line", "hide:> "]);
     expect(markers(doc, doc.indexOf("Quoted"))).toEqual(["hide:# ", "line", "margin:> "]);
+  });
+
+  it("props up a row that holds only margin marks, on or off the caret's line", () => {
+    const doc = "## \n\n> \n\nBody";
+    expect(markers(doc, 3)).toEqual(["strut", "margin:## ", "strut", "line", "hide:> "]);
+    expect(markers(doc, doc.length)).toEqual(["strut", "hide:## ", "strut", "line", "hide:> "]);
+    expect(markers("## Title", 3)).toEqual(["margin:## "]);
   });
 
   it("treats a nested quote's marks as one run", () => {

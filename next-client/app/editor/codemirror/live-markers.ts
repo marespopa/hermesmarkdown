@@ -11,8 +11,8 @@ import { BULLET_COLUMNS, BulletWidget, CalloutLabelWidget, CodeLanguageWidget, e
 // it, so a note reads like a page while it stays editable, and nothing moves
 // when the syntax appears. Inline marks (`**`, `_`, `~~`, inline-code
 // backticks) show while a caret or selection touches their span. A heading's
-// `#`s and a quote's or callout's `>` show while the caret is on their line,
-// hung in the margin left of the text. A callout's `[!type]` reads as the
+// `#`s and a quote's or callout's `>` hang in the margin left of the text,
+// visible only while the caret is on their line. A callout's `[!type]` reads as the
 // type's name until the caret moves before its title. A fenced block's
 // fences fade out (keeping their rows) while the caret is outside it, with
 // its language in the corner. List markers never change with the caret: a
@@ -52,8 +52,22 @@ function hangingLine(columns: number) {
   return Decoration.line({ class: "cm-listLine", attributes: { style: `--list-hang: ${em(columns)}` } });
 }
 
-// Structural marks (`## `, `> `) on the caret's line, drawn in the margin.
+// Structural marks (`## `, `> `) always sit in the margin, out of the text
+// flow; off the caret's line they're only made invisible. Both states lay
+// out identically, so the caret arriving never moves a word (hiding them
+// with a replace on other lines nudged the text whenever they came back).
 const marginMarks = Decoration.mark({ class: "cm-marginMarks" });
+const marginMarksOff = Decoration.mark({ class: "cm-marginMarks cm-marginMarks-off" });
+// A row holding only margin marks (`## ` before its first letter) has no text
+// in the flow and would collapse; a strut keeps it at its own height.
+const marginOnlyLine = Decoration.line({ class: "cm-marginOnly" });
+
+function marginMarkRanges(state: EditorState, shown: boolean, from: number, to: number): Range<Decoration>[] {
+  const out = [(shown ? marginMarks : marginMarksOff).range(from, to)];
+  const line = state.doc.lineAt(from);
+  if (to === line.to) out.push(marginOnlyLine.range(line.from));
+  return out;
+}
 
 function bulletDepth(node: SyntaxNode): number {
   let depth = 0;
@@ -181,8 +195,7 @@ export function buildLiveMarkerDecorations(
             // Setext underlines and closing `#`s stay as typed.
             if (ref.from !== node.parent?.from || !node.parent.name.startsWith("ATXHeading")) return;
             const to = withTrailingSpace(state, ref.to);
-            const deco = touchesLine(state, selection, ref.from) ? marginMarks : hidden;
-            ranges.push(deco.range(ref.from, to));
+            ranges.push(...marginMarkRanges(state, touchesLine(state, selection, ref.from), ref.from, to));
             return;
           }
           case "QuoteMark": {
@@ -196,8 +209,8 @@ export function buildLiveMarkerDecorations(
               return;
             }
             const prefix = REGEX_QUOTE_PREFIX.exec(doc.sliceString(ref.from, line.to))![0];
-            const deco = touches(selection, line.from, line.to) ? marginMarks : hidden;
-            ranges.push(deco.range(ref.from, ref.from + prefix.length));
+            const shown = touches(selection, line.from, line.to);
+            ranges.push(...marginMarkRanges(state, shown, ref.from, ref.from + prefix.length));
             return;
           }
           case "EmphasisMark":
