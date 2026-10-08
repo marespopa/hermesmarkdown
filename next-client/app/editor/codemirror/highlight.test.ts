@@ -112,6 +112,14 @@ describe("computeMarkdownDecorations", () => {
     expect(decos.some((d) => d.class.includes("border-l-2"))).toBe(false);
   });
 
+  it("fades a callout's fold sign with the rest of its syntax", () => {
+    const doc = "> [!warning]- Careful\n> body";
+    const decos = decorationsFor(doc);
+    const sign = doc.indexOf("-");
+    expect(decos.some((d) => d.from === 0 && d.to === sign + 1 && d.class.includes("opacity-40"))).toBe(true);
+    expect(decos.some((d) => d.from === sign && d.class.includes("text-amber"))).toBe(false);
+  });
+
   it("marks a callout's first and last lines so it draws as one rounded card", () => {
     const doc = "> [!note] Title\n> one\n> two\nAfter\n> [!tip] Solo";
     const lineClass = (text: string) => decorationsFor(doc)

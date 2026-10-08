@@ -1,8 +1,14 @@
 import { Compartment, EditorState } from "@codemirror/state";
 import { EditorView } from "@codemirror/view";
 import { getCM, Vim, vim } from "@replit/codemirror-vim";
-import { describe, expect, it, vi } from "vitest";
+import { beforeAll, describe, expect, it, vi } from "vitest";
 import { buildExtensions } from "./extensions";
+import { loadVim } from "./vim-loader";
+
+// buildExtensions expects Vim already loaded when vimMode is on.
+beforeAll(async () => {
+  await loadVim();
+});
 
 function createEditor(vimMode: boolean, onOpenActiveHelper = vi.fn(() => false)) {
   const parent = document.createElement("div");

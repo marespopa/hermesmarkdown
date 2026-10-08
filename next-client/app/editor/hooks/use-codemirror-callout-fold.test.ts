@@ -1,6 +1,8 @@
 import { act, renderHook } from "@testing-library/react";
 import { EditorState } from "@codemirror/state";
-import type { EditorView } from "@codemirror/view";
+import { EditorView } from "@codemirror/view";
+import { codeFolding } from "@codemirror/language";
+import { findCalloutFoldRanges, isRangeFolded } from "../codemirror/callout-fold";
 import { describe, expect, it } from "vitest";
 import { useCodeMirrorCalloutFold } from "./use-codemirror-callout-fold";
 
@@ -33,5 +35,32 @@ describe("useCodeMirrorCalloutFold", () => {
     act(() => result.current.onCursorActivity(fakeView(doc.length)));
     expect(result.current.chevrons).toHaveLength(2);
     expect(result.current.chevrons[1].top).toBeGreaterThan(0);
+  });
+});
+
+describe("useCodeMirrorCalloutFold: toggle", () => {
+  it("writes - when collapsing and + when expanding, so the fold is saved in the note", () => {
+    const view = new EditorView({
+      state: EditorState.create({ doc: "> [!note] Title\n> body", extensions: [codeFolding()] }),
+      parent: document.body,
+    });
+    view.coordsAtPos = () => ({ top: 100, bottom: 120, left: 0, right: 0 });
+    const container = document.createElement("div");
+    container.getBoundingClientRect = () => ({ top: 0 } as DOMRect);
+    const { result } = renderHook(() => useCodeMirrorCalloutFold({ containerRef: { current: container } }));
+    const folded = () => {
+      const [range] = findCalloutFoldRanges(view.state.doc.toString());
+      return isRangeFolded(view.state, range.bodyFrom, range.bodyTo);
+    };
+
+    act(() => result.current.onCursorActivity(view));
+    act(() => result.current.toggle(view, result.current.chevrons[0].blockId));
+    expect(view.state.doc.toString()).toBe("> [!note]- Title\n> body");
+    expect(folded()).toBe(true);
+
+    act(() => result.current.toggle(view, result.current.chevrons[0].blockId));
+    expect(view.state.doc.toString()).toBe("> [!note]+ Title\n> body");
+    expect(folded()).toBe(false);
+    view.destroy();
   });
 });

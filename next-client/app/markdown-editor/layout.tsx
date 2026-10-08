@@ -3,7 +3,7 @@ import { Metadata } from "next";
 export const metadata: Metadata = {
   title: "What Is a Markdown Editor? Popular Tools & Key Features — HermesMarkdown",
   description:
-    "A Markdown editor lets you write plain text with lightweight formatting symbols while showing a live preview. Compare popular Markdown editors, key features to look for, and where HermesMarkdown fits in.",
+    "What Markdown editors are, the features that matter, and how popular editors compare, including where HermesMarkdown fits in.",
   alternates: { canonical: "/markdown-editor" },
   openGraph: {
     title: "What Is a Markdown Editor? Popular Tools & Key Features",

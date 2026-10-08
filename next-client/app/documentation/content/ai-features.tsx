@@ -47,8 +47,8 @@ export const aiFeaturesGroup: Group = {
         <>
           <h4 className="text-lg font-bold tracking-tight !mb-2 !mt-0">AI Chat</h4>
           <p>
-            Open it with <code>CTRL+SHIFT+B</code>, the <strong>Open AI Chat</strong> command, or —
-            on desktop — the <strong>💬 Ask AI</strong> pill that appears above a text selection.
+            Open it with <code>CTRL+SHIFT+B</code>, the <strong>Open AI Chat</strong> command, or the{" "}
+            <strong>💬 Ask AI</strong> button in the toolbar that appears on a text selection.
             The chat sees the current note and your selection. Type <code>@</code> to reference
             another note by name, or use <code>@folder:path</code> / <code>@vault</code> to share an
             index (paths, titles, tags) of a folder or the whole vault. Attach images or files, ask

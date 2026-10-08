@@ -7,7 +7,7 @@ import { ViewUpdate } from "@codemirror/view";
 import { autocompletion } from "@codemirror/autocomplete";
 import { codeFolding } from "@codemirror/language";
 import { searchKeymap } from "@codemirror/search";
-import { getCM, Vim, vim } from "@replit/codemirror-vim";
+import { loadedVim } from "./vim-loader";
 import { editorTheme } from "./theme";
 import { formatKeymap, toggleCheckboxOnLine, handlePasteTransform, insertPastedImage } from "./commands";
 import { getImageFile, getImageFromClipboardItems } from "@/app/utils/paste-image";
@@ -42,6 +42,7 @@ import { liveMarkers } from "./live-markers";
 import { invisibles } from "./invisibles";
 import { editorLineNumbers } from "./line-numbers";
 import { findReplace } from "./find-replace";
+import { collapsedCalloutCorners } from "./callout-fold";
 
 interface BuildExtensionsOptions {
   wordWrap: boolean;
@@ -50,6 +51,7 @@ interface BuildExtensionsOptions {
   lineNumbersCompartment: Compartment;
   showInvisibles: boolean;
   invisiblesCompartment: Compartment;
+  /** Vim mode on; the caller has already awaited `loadVim()`. */
   vimMode: boolean;
   vimModeCompartment: Compartment;
   flowMode: boolean;
@@ -85,6 +87,7 @@ export function buildExtensions(opts: BuildExtensionsOptions): Extension[] {
     codeFolding(),
     frontmatterCollapse,
     markdownHighlightPlugin,
+    collapsedCalloutCorners,
     horizontalRuleCursorPlugin,
     tagPillPlugin,
     linkDisplayPlugin,
@@ -96,7 +99,7 @@ export function buildExtensions(opts: BuildExtensionsOptions): Extension[] {
     noteCalcExtension,
     shortcodeExpandPlugin,
     createWikiLinkTriggerPlugin(opts.wikiLinkTriggerRef),
-    opts.vimModeCompartment.of(opts.vimMode ? vim() : []),
+    opts.vimModeCompartment.of(opts.vimMode ? loadedVim()?.vim() ?? [] : []),
     autocompletion({
       override: [createSlashMenuSource(opts.slashMenuCallbacksRef), createTemplateFieldSource(opts.slashMenuCallbacksRef)],
       activateOnTyping: true,
@@ -137,9 +140,10 @@ export function buildExtensions(opts: BuildExtensionsOptions): Extension[] {
           return true;
         }
         if (event.key !== "Escape") return false;
-        const cm = getCM(view);
-        if (!cm) return false;
-        Vim.handleKey(cm, "<Esc>", "user");
+        const vimModule = loadedVim();
+        const cm = vimModule?.getCM(view);
+        if (!vimModule || !cm) return false;
+        vimModule.Vim.handleKey(cm, "<Esc>", "user");
         event.preventDefault();
         event.stopPropagation();
         return true;

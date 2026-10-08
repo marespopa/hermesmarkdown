@@ -2,7 +2,7 @@
 
 import { useCallback, useState } from "react";
 import type { EditorView } from "@codemirror/view";
-import { findCalloutFoldRanges, toggleCalloutFold, isRangeFolded } from "../codemirror/callout-fold";
+import { findCalloutFoldRanges, toggleCalloutFold, isRangeFolded, setCalloutFoldSign } from "../codemirror/callout-fold";
 
 interface Chevron {
   blockId: string;
@@ -59,10 +59,17 @@ export function useCodeMirrorCalloutFold({ containerRef }: UseCodeMirrorCalloutF
     recompute(view);
   }, [recompute]);
 
+  // Folding also writes the callout's `-`/`+` sign, so the note reopens the
+  // same way (here and in Obsidian). The sign sits before the body, so the
+  // body range is looked up again after the edit shifts it.
   const toggle = useCallback((view: EditorView, blockId: string) => {
     const chevron = chevrons.find((c) => c.blockId === blockId);
     if (!chevron) return;
-    toggleCalloutFold(view, chevron.bodyFrom, chevron.bodyTo, !chevron.collapsed);
+    const collapse = !chevron.collapsed;
+    const titleOffset = view.state.doc.lineAt(chevron.bodyFrom).from;
+    setCalloutFoldSign(view, titleOffset, collapse);
+    const range = findCalloutFoldRanges(view.state.doc.toString()).find((r) => r.titleOffset === titleOffset);
+    if (range) toggleCalloutFold(view, range.bodyFrom, range.bodyTo, collapse);
     recompute(view);
   }, [chevrons, recompute]);
 

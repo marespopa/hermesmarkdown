@@ -3,11 +3,17 @@ import { act, render, screen } from "@testing-library/react";
 import { EditorState } from "@codemirror/state";
 import { EditorView } from "@codemirror/view";
 import { getCM, Vim, vim } from "@replit/codemirror-vim";
-import { describe, expect, it } from "vitest";
+import { beforeAll, describe, expect, it } from "vitest";
 import { useVimStatus } from "@/app/editor/hooks/use-vim-status";
+import { loadVim } from "@/app/editor/codemirror/vim-loader";
 import VimStatusPill from "./VimStatusPill";
 
 let currentView: EditorView | null = null;
+
+// Vim loads on demand; load it up front so the status hook reads it synchronously.
+beforeAll(async () => {
+  await loadVim();
+});
 
 function Harness() {
   const parentRef = useRef<HTMLDivElement | null>(null);

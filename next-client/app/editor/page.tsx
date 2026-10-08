@@ -17,7 +17,7 @@ import EditorCommands from "./components/EditorCommands";
 import MobileFileOverlay from "./components/MobileFileOverlay";
 import MobileFileIndicator from "./components/MobileFileIndicator";
 import WorkspaceSidebar from "./components/WorkspaceSidebar";
-import MobileSelectionToolbar from "./components/MobileSelectionToolbar";
+import SelectionToolbar from "./components/SelectionToolbar";
 import ErrorBoundary from "@/app/components/ErrorBoundary";
 import { useFileSystem } from "@/app/hooks/use-file-system";
 import { useFileWatcher } from "@/app/hooks/use-file-watcher";
@@ -30,7 +30,6 @@ import ImageDialog from "./components/ImageDialog";
 import { useAIEditorActions } from "./hooks/useAIEditorActions";
 import AIChatDialog from "./components/AIChatDialog";
 import { AIReviewDialog } from "./components/AIReviewDialog";
-import { AISelectionToolbar } from "./components/AISelectionToolbar";
 import { AIThinkingOverlay } from "./components/AIThinkingOverlay";
 import VoicePreviewPanel from "./components/VoicePreviewPanel";
 import { useGlobalVoiceInput } from "./hooks/use-global-voice-input";
@@ -310,12 +309,11 @@ export default function LiteEditor() {
         </div>
         </div>{/* end MAIN LAYOUT */}
 
-        {isAiConfigured && !isMobileChrome && (
-          <AISelectionToolbar
-            isAiLoading={aiActions.isAiLoading}
-            onAsk={aiActions.openChat}
-          />
-        )}
+        <SelectionToolbar
+          placement={isMobileChrome ? "docked" : "above"}
+          onAsk={isAiConfigured ? aiActions.openChat : undefined}
+          isAiLoading={aiActions.isAiLoading}
+        />
         <AIChatDialog
           isOpen={aiActions.isChatOpen}
           onClose={aiActions.closeChat}
@@ -345,7 +343,6 @@ export default function LiteEditor() {
 
         {isMobileChrome && (
           <>
-            <MobileSelectionToolbar />
             <MobileFileOverlay
               isOpen={isMobileFileOverlayOpen}
               onClose={() => setIsMobileFileOverlayOpen(false)}
