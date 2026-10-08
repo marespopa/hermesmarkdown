@@ -1,6 +1,6 @@
-import { useCallback, useRef, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import type { EditorView } from "@codemirror/view";
-import { getCM } from "@replit/codemirror-vim";
+import { loadedVim, loadVim } from "../codemirror/vim-loader";
 
 export type VimStatus = {
   /** "normal", "insert", "visual", "visual line", "visual block", "replace". */
@@ -16,14 +16,27 @@ const IDLE = "normal|0";
 // the `:` / `/` prompt, Vim messages and pending keys (`d2`) there instead
 // of opening a CodeMirror panel under the text.
 //
-// Call it after `useCodeMirrorEditor`: effects run in declaration order, so
-// by the time this subscribes, the Vim compartment has been reconfigured
-// and `getCM(view)` is the live instance.
+// Vim loads on demand (vim-loader.ts). Call this after `useCodeMirrorEditor`:
+// both wait on the same load, and the editor's wait is registered first, so
+// by the time `vimModule` is set here the Vim compartment has been
+// reconfigured and `getCM(view)` is the live instance.
 export function useVimStatus(view: EditorView | null, enabled: boolean) {
   const hostRef = useRef<HTMLDivElement | null>(null);
+  const [vimModule, setVimModule] = useState(loadedVim);
+
+  useEffect(() => {
+    if (!enabled || vimModule) return;
+    let cancelled = false;
+    void loadVim().then((module) => {
+      if (!cancelled) setVimModule(module);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [enabled, vimModule]);
 
   const subscribe = useCallback((onChange: () => void) => {
-    const cm = view && enabled ? getCM(view) : null;
+    const cm = view && enabled ? vimModule?.getCM(view) : null;
     const host = hostRef.current;
     if (!cm || !host) return () => {};
     cm.state.statusbar = host;
@@ -35,12 +48,12 @@ export function useVimStatus(view: EditorView | null, enabled: boolean) {
       events.forEach((event) => cm.off(event, onChange));
       if (cm.state.statusbar === host) cm.state.statusbar = null;
     };
-  }, [view, enabled]);
+  }, [view, enabled, vimModule]);
 
   const snapshot = useSyncExternalStore(
     subscribe,
     () => {
-      const cm = view && enabled ? getCM(view) : null;
+      const cm = view && enabled ? vimModule?.getCM(view) : null;
       if (!cm) return IDLE;
       return `${cm.state.vim?.mode ?? "normal"}|${cm.state.dialog ? 1 : 0}`;
     },

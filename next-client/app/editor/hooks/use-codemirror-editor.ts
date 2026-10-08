@@ -4,7 +4,7 @@ import { useEffect, useRef } from "react";
 import type { EditorView } from "@codemirror/view";
 import { EditorView as CodeMirrorView } from "@codemirror/view";
 import type { Compartment } from "@codemirror/state";
-import { getCM, Vim, vim } from "@replit/codemirror-vim";
+import { loadedVim, loadVim } from "../codemirror/vim-loader";
 import type { SlashMenuCallbacks } from "../codemirror/slash-menu";
 import type { WikiLinkTriggerCallback } from "../codemirror/wikilink-trigger";
 import { flowMode as flowModeExtension } from "../codemirror/flow-mode";
@@ -87,6 +87,8 @@ export function useCodeMirrorEditor({
         import("@codemirror/state"),
         import("@codemirror/view"),
         import("../codemirror/extensions"),
+        // Vim is loaded only when it's on (see vim-loader.ts).
+        vimMode ? loadVim() : null,
       ]);
 
       if (destroyed) return;
@@ -145,9 +147,10 @@ export function useCodeMirrorEditor({
       viewRef.current = view as unknown as EditorView;
       handleVimEscape = (event: KeyboardEvent) => {
         if (event.key !== "Escape") return;
-        const cm = getCM(view as unknown as EditorView);
-        if (!cm) return;
-        Vim.handleKey(cm, "<Esc>", "user");
+        const vimModule = loadedVim();
+        const cm = vimModule?.getCM(view as unknown as EditorView);
+        if (!vimModule || !cm) return;
+        vimModule.Vim.handleKey(cm, "<Esc>", "user");
         event.preventDefault();
         event.stopImmediatePropagation();
       };
@@ -198,7 +201,17 @@ export function useCodeMirrorEditor({
     const view = viewRef.current;
     const compartment = vimModeCompartmentRef.current;
     if (!view || !compartment) return;
-    view.dispatch({ effects: compartment.reconfigure(vimMode ? vim() : []) });
+    if (!vimMode) {
+      view.dispatch({ effects: compartment.reconfigure([]) });
+      return;
+    }
+    let cancelled = false;
+    void loadVim().then((vimModule) => {
+      if (!cancelled) view.dispatch({ effects: compartment.reconfigure(vimModule.vim()) });
+    });
+    return () => {
+      cancelled = true;
+    };
   }, [vimMode, viewRef]);
 
   useEffect(() => {
