@@ -1,6 +1,6 @@
-import { EditorView } from "@codemirror/view";
+import { Decoration, type DecorationSet, EditorView, ViewPlugin, type ViewUpdate } from "@codemirror/view";
 import { foldEffect, unfoldEffect, foldedRanges } from "@codemirror/language";
-import { EditorState } from "@codemirror/state";
+import { EditorState, type Range } from "@codemirror/state";
 
 // Step 8 rewrite (not a port): the old utils/callout-folding.ts stripped
 // collapsed callout bodies out of the textarea's VALUE ITSELF and manually
@@ -108,3 +108,33 @@ export function isRangeFolded(state: EditorState, from: number, to: number): boo
   });
   return found;
 }
+
+// A collapsed callout shows only its title line, but the card's bottom
+// corners (`cm-callout-end`, highlight.ts) sit on its last body line, which
+// is folded away. This marks a folded callout's title line as the card's end
+// too, so the collapsed card keeps rounded bottom corners.
+const collapsedCalloutEnd = Decoration.line({ class: "cm-callout-end" });
+
+export function collapsedCalloutDecorations(state: EditorState): DecorationSet {
+  const ranges: Range<Decoration>[] = [];
+  foldedRanges(state).between(0, state.doc.length, (from) => {
+    const line = state.doc.lineAt(from);
+    if (from === line.to && REGEX_OBSIDIAN_CALLOUT.test(line.text)) ranges.push(collapsedCalloutEnd.range(line.from));
+  });
+  return Decoration.set(ranges, true);
+}
+
+export const collapsedCalloutCorners = ViewPlugin.fromClass(
+  class {
+    decorations: DecorationSet;
+    constructor(view: EditorView) {
+      this.decorations = collapsedCalloutDecorations(view.state);
+    }
+    update(update: ViewUpdate) {
+      if (update.docChanged || foldedRanges(update.startState) !== foldedRanges(update.state)) {
+        this.decorations = collapsedCalloutDecorations(update.state);
+      }
+    }
+  },
+  { decorations: (value) => value.decorations },
+);

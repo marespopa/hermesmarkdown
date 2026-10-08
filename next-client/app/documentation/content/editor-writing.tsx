@@ -130,6 +130,7 @@ export const editorWritingItems: Subsection[] = [
             { label: "- [ ] Task", value: "Always shown as a checkbox; click it to tick the task" },
             { label: "1. Numbered item", value: "The number sits in a muted column" },
             { label: "> [!note] Title", value: "Shown as a rounded card with the type's icon and label; press Home on the line to edit the type" },
+            { label: "> [!note]- Title", value: "Starts collapsed when the note opens (+ starts expanded); the chevron folds any callout" },
             { label: "```js … ```", value: "Fences fade out away from the caret; the language shows in the corner" },
             { label: "#tag, 2026-10-08", value: "Stay chips while you edit them" },
             { label: "Other editor", value: "A split pane you're not typing in shows no marks" },

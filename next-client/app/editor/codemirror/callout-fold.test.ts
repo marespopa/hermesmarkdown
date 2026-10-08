@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import { EditorView } from "@codemirror/view";
 import { EditorState } from "@codemirror/state";
 import { codeFolding } from "@codemirror/language";
-import { findCalloutFoldRanges, toggleCalloutFold, isRangeFolded } from "./callout-fold";
+import { collapsedCalloutDecorations, findCalloutFoldRanges, toggleCalloutFold, isRangeFolded } from "./callout-fold";
 
 function makeView(doc: string) {
   const state = EditorState.create({ doc, extensions: [codeFolding()] });
@@ -73,5 +73,28 @@ describe("toggleCalloutFold / isRangeFolded", () => {
     const [range] = findCalloutFoldRanges(doc);
     toggleCalloutFold(view, range.bodyFrom, range.bodyTo, true);
     expect(view.state.doc.toString()).toBe(doc);
+  });
+});
+
+describe("collapsedCalloutDecorations", () => {
+  const endLines = (view: EditorView) => {
+    const lines: number[] = [];
+    collapsedCalloutDecorations(view.state).between(0, view.state.doc.length, (from, _to, value) => {
+      if (value.spec.class === "cm-callout-end") lines.push(view.state.doc.lineAt(from).number);
+    });
+    return lines;
+  };
+
+  it("rounds a collapsed callout's title line, and stops once it's expanded", () => {
+    const doc = "Intro\n> [!tip]- Title\n> Body\n> More";
+    const view = makeView(doc);
+    const [range] = findCalloutFoldRanges(doc);
+    expect(endLines(view)).toEqual([]);
+
+    toggleCalloutFold(view, range.bodyFrom, range.bodyTo, true);
+    expect(endLines(view)).toEqual([2]);
+
+    toggleCalloutFold(view, range.bodyFrom, range.bodyTo, false);
+    expect(endLines(view)).toEqual([]);
   });
 });
