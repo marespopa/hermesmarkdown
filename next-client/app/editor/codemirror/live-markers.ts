@@ -47,9 +47,7 @@ function hangingLine(columns: number) {
 }
 
 // Structural marks (`## `, `> `) on the caret's line, drawn in the margin.
-function marginMarks(chars: number) {
-  return Decoration.mark({ class: "cm-marginMarks", attributes: { style: `--marks-width: ${chars * 0.7 + 0.4}em` } });
-}
+const marginMarks = Decoration.mark({ class: "cm-marginMarks" });
 
 class BulletWidget extends WidgetType {
   constructor(readonly depth: number) {
@@ -192,7 +190,7 @@ export function buildLiveMarkerDecorations(
             // Setext underlines and closing `#`s stay as typed.
             if (ref.from !== node.parent?.from || !node.parent.name.startsWith("ATXHeading")) return;
             const to = withTrailingSpace(state, ref.to);
-            const deco = touchesLine(state, selection, ref.from) ? marginMarks(ref.to - ref.from) : hidden;
+            const deco = touchesLine(state, selection, ref.from) ? marginMarks : hidden;
             ranges.push(deco.range(ref.from, to));
             return;
           }
@@ -202,7 +200,7 @@ export function buildLiveMarkerDecorations(
             if (quotedLines.has(line.number)) return;
             quotedLines.add(line.number);
             const prefix = REGEX_QUOTE_PREFIX.exec(doc.sliceString(ref.from, line.to))![0];
-            const deco = touches(selection, line.from, line.to) ? marginMarks(prefix.trim().length) : hidden;
+            const deco = touches(selection, line.from, line.to) ? marginMarks : hidden;
             ranges.push(deco.range(ref.from, ref.from + prefix.length));
             return;
           }
@@ -334,19 +332,19 @@ export const liveMarkersTheme = EditorView.theme({
     backgroundPosition: "center",
     backgroundRepeat: "no-repeat",
   },
-  // A zero-width box whose marks sit right-aligned against the text, so
-  // revealing them never moves a word. Smaller and faint, set on the line's
-  // baseline.
+  // Out of the text flow entirely, so revealing the marks can't move a word,
+  // grow the line or re-balance a heading's wrap. With left/top unset it
+  // sits at its static position, the start of the line's first row, at the
+  // line's own size, so it shares the text's baseline; the transform then
+  // shrinks it and moves it into the margin, which layout never sees.
   ".cm-marginMarks": {
-    display: "inline-block",
-    width: "var(--marks-width)",
-    marginLeft: "calc(-1 * var(--marks-width))",
-    textAlign: "right",
+    position: "absolute",
     whiteSpace: "pre",
-    fontSize: "max(0.6em, 11px)",
     fontWeight: "400",
     letterSpacing: "0",
     color: "var(--fg-faint)",
+    transform: "translateX(-100%) scale(0.6)",
+    transformOrigin: "right 70%",
   },
 });
 
