@@ -37,9 +37,11 @@
   overflow-wrap: break-word;
 }
 
-/* No lone last word on a wrapped paragraph line. */
+/* Plain greedy wrapping on every line, never `text-wrap: pretty` or
+   `balance`: those re-choose earlier line breaks as you type, so words hop
+   between lines under the caret. A line only changes where you're typing. */
 .editor-sheet.editor-container .cm-line {
-  text-wrap: pretty;
+  text-wrap: wrap;
 }
 
 /* Headings: the prose scale, a tight 1.2–1.3 line height and tracking that
@@ -52,7 +54,6 @@
 .editor-sheet.editor-container .cm-line.cm-heading {
   color: var(--fg);
   line-height: 1.3;
-  text-wrap: balance;
 }
 
 .editor-sheet.editor-container .cm-line.cm-heading-1 {
