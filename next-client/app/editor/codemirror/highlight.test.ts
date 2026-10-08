@@ -70,13 +70,13 @@ describe("computeMarkdownDecorations", () => {
     }
   });
 
-  it("marks bold text with font-bold, keeping markers faded", () => {
+  it("marks bold text with font-bold, keeping markers fainter than other syntax", () => {
     const doc = "a **bold** word";
     const decos = decorationsFor(doc);
     const innerFrom = doc.indexOf("bold");
     expect(decos.some((d) => d.from === innerFrom && d.to === innerFrom + 4 && d.class.includes("font-bold"))).toBe(true);
     const markerFrom = doc.indexOf("**");
-    expect(decos.some((d) => d.from === markerFrom && d.class.includes("opacity-40"))).toBe(true);
+    expect(decos.some((d) => d.from === markerFrom && d.class.includes("opacity-25"))).toBe(true);
   });
 
   it("strikes through a checked checkbox's whole label", () => {
