@@ -101,6 +101,25 @@ export function toggleCalloutFold(view: EditorView, bodyFrom: number, bodyTo: nu
   });
 }
 
+const REGEX_CALLOUT_SIGN = /^((?:>\s*)+\[!\w+\])([+-]?)/;
+
+// Writes a callout's fold sign into its title line: `-` (collapsed) or `+`
+// (expanded), as Obsidian reads them, so the fold state is saved with the
+// note. Returns false when the line isn't a callout title or already says so.
+export function setCalloutFoldSign(view: EditorView, titleOffset: number, collapsed: boolean): boolean {
+  const line = view.state.doc.lineAt(titleOffset);
+  const match = REGEX_CALLOUT_SIGN.exec(line.text);
+  if (!match) return false;
+  const sign = collapsed ? "-" : "+";
+  if (match[2] === sign) return false;
+  const from = line.from + match[1].length;
+  view.dispatch({
+    changes: { from, to: from + match[2].length, insert: sign },
+    userEvent: "input.callout.fold",
+  });
+  return true;
+}
+
 export function isRangeFolded(state: EditorState, from: number, to: number): boolean {
   let found = false;
   foldedRanges(state).between(from, to, (rFrom, rTo) => {

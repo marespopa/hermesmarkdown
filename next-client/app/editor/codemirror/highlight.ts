@@ -193,12 +193,11 @@ export function computeMarkdownDecorations(state: EditorState): DecorationSet {
       const remainder = text.slice(prefixText.length);
       const bracketEnd = remainder.indexOf("]");
       const bracketEndAbs = prefixText.length + bracketEnd + 1;
-      mark(ranges, base, base + bracketEndAbs, FADED);
-      let cursor = bracketEndAbs;
-      if (fold) {
-        mark(ranges, base + cursor, base + cursor + 1, `${style.text} font-bold`);
-        cursor += 1;
-      }
+      // The fold sign (`+`/`-`) is syntax like the rest of `> [!type]`: same
+      // faded look. The fold chevron writes it (callout-fold.ts).
+      const prefixEnd = bracketEndAbs + (fold ? 1 : 0);
+      mark(ranges, base, base + prefixEnd, FADED);
+      const cursor = prefixEnd;
       const rest = text.slice(cursor);
       if (rest.trim()) {
         mark(ranges, base + cursor, line.to, `${style.text} font-bold`);
