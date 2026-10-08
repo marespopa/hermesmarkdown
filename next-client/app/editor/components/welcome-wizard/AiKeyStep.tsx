@@ -48,7 +48,7 @@ export default function AiKeyStep({ onContinue }: { onContinue: () => void }) {
 
       <div className="w-full rounded-2xl border border-edge p-3.5 space-y-2.5 bg-paper-softgray/40 dark:bg-paper-dark/30 text-left">
         <div className="space-y-1.5">
-          <label className="text-[11px] font-bold uppercase tracking-wider ml-1 opacity-70 block">Provider</label>
+          <label className="text-ui-caption font-bold uppercase tracking-wider ml-1 opacity-70 block">Provider</label>
           <SelectControl
             value={aiProvider}
             onChange={(value) => {
@@ -61,7 +61,7 @@ export default function AiKeyStep({ onContinue }: { onContinue: () => void }) {
           </SelectControl>
         </div>
         <div className="space-y-1.5">
-          <label className="text-[11px] font-bold uppercase tracking-wider ml-1 opacity-70 block">API Key</label>
+          <label className="text-ui-caption font-bold uppercase tracking-wider ml-1 opacity-70 block">API Key</label>
           <Input
             name="welcome-ai-key"
             type="password"

@@ -212,7 +212,7 @@ export default function AIChatDialog({
           {/* Selection context card — always visible at top when a selection was captured */}
           {selectedText.trim() && (
             <div className="rounded-xl border border-sage/25 bg-sage/5 dark:bg-sage/10 px-3 py-2.5 shrink-0">
-              <p className="text-[10px] font-semibold uppercase tracking-wide text-sage/70 mb-1.5">Selected text</p>
+              <p className="text-ui-caption font-semibold uppercase tracking-wide text-sage/70 mb-1.5">Selected text</p>
               <p className="text-ui-caption text-ink-light dark:text-ink-dark font-mono whitespace-pre-wrap leading-relaxed line-clamp-4">
                 {selectedText.length > 300 ? selectedText.slice(0, 300) + "…" : selectedText}
               </p>
@@ -327,7 +327,7 @@ export default function AIChatDialog({
               </Button>
             </div>
           </div>
-          <p className="text-center text-[10px] text-neutral-300 dark:text-neutral-600 mt-1.5">
+          <p className="text-center text-ui-caption text-neutral-300 dark:text-neutral-600 mt-1.5">
             Shift+Enter for new line · @ to reference a file, @vault, or @folder:path
           </p>
         </div>

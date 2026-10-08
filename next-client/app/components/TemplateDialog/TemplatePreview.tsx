@@ -49,13 +49,13 @@ export default function TemplatePreview({ raw, name }: TemplatePreviewProps) {
       aria-label={`Preview of ${name}`}
       className="h-full min-h-0 overflow-hidden rounded-2xl border border-edge-subtle bg-surface px-4 py-3 text-[0.8rem] leading-relaxed"
     >
-      <p className="mb-2 font-sans text-[0.65rem] font-semibold uppercase tracking-wider text-fg-faint">Preview</p>
+      <p className="mb-2 font-sans text-ui-caption font-semibold uppercase tracking-wider text-fg-faint">Preview</p>
       {model === null ? (
         <p className="font-sans text-ui-caption text-fg-faint">Loading…</p>
       ) : (
         <div key={name} className="template-preview-in">
           {model.properties.length > 0 && (
-            <div className="mb-2 space-y-0.5 rounded-lg bg-[var(--frontmatter-bg)] px-2 py-1 font-sans text-[0.7rem]">
+            <div className="mb-2 space-y-0.5 rounded-lg bg-[var(--frontmatter-bg)] px-2 py-1 font-sans text-ui-caption">
               {model.properties.map(([key, value]) => (
                 <div key={key} className="flex gap-2">
                   <span className="text-fg-faint">{key}</span>

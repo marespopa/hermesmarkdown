@@ -190,7 +190,7 @@ export default function TemplatePicker<T extends TemplatePickerEntry>({
                     {index < SHORTCUT_COUNT && (
                       <kbd
                         aria-hidden
-                        className={`ml-auto hidden shrink-0 font-sans text-[11px] text-fg-faint sm:inline ${onEdit && row.kind === "template" ? "sm:group-hover:invisible" : ""}`}
+                        className={`ml-auto hidden shrink-0 font-sans text-ui-caption text-fg-faint sm:inline ${onEdit && row.kind === "template" ? "sm:group-hover:invisible" : ""}`}
                       >
                         {mod}{index + 1}
                       </kbd>

@@ -6,26 +6,13 @@ import type { EditorView } from "@codemirror/view";
 import { HiOutlineLink } from "react-icons/hi";
 import { atom_activeEditorView } from "@/app/atoms/ui-atoms";
 import { toggleBold, toggleItalic } from "../codemirror/commands";
+import { wrapAsLink } from "../codemirror/format-shortcuts";
 import Button from "@/app/components/Button";
 
 type Pos = { top: number; left: number };
 
 // Half the toolbar's width (three buttons) plus a small gutter, used to keep it on screen.
 const TOOLBAR_HALF_WIDTH = 64;
-
-// Wraps the selection as `[text]()` and parks the cursor between the parens
-// so the URL can be typed straight away.
-function wrapAsLink(view: EditorView): boolean {
-  const { from, to } = view.state.selection.main;
-  const text = view.state.sliceDoc(from, to);
-  const insert = `[${text}]()`;
-  view.dispatch({
-    changes: { from, to, insert },
-    selection: { anchor: from + insert.length - 1 },
-    userEvent: "input.format.link",
-  });
-  return true;
-}
 
 // Mobile-only: select text in the active CodeMirror editor and a small
 // floating toolbar appears below the selection with Bold/Italic/Link.

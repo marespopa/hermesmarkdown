@@ -6,7 +6,7 @@ export const editorWritingItems: Subsection[] = [
     id: "writing",
     title: "Writing",
     lead: "Write Markdown with inline highlighting and click actions.",
-    keywords: "rendering source inline wysiwyg full width wide column reading width word wrap line numbers invisibles whitespace empty lines pills dates priority shortcode images paste calc",
+    keywords: "find replace search regex heading shortcut link code block rendering source inline wysiwyg full width wide column reading width word wrap line numbers invisibles whitespace empty lines pills dates priority shortcode images paste calc",
     body: (
       <>
         <p>
@@ -23,8 +23,14 @@ export const editorWritingItems: Subsection[] = [
         </p>
         <p>
           Dates (<code>2026-09-27</code>, <code>27/09/2026</code>, <code>[[2026-09-27]]</code>,{" "}
-          <code>@due(…)</code>) and <code>@priority</code> annotations show as small pills.
-          CTRL+Click a date to open the date picker.
+          <code>@due(…)</code>) and <code>@priority</code> annotations show as pills around
+          their text. CTRL+Click a date to open the date picker.
+        </p>
+        <p>
+          Press <strong>CTRL/CMD+F</strong> to find and replace in the note, with match case,
+          whole word and regex options. CTRL/CMD+ALT+1…6 turns the line into a heading (press
+          it again to remove it), CTRL/CMD+SHIFT+L wraps the selection as a link and
+          CTRL/CMD+ALT+C wraps it in a code block, or removes the block around the caret.
         </p>
         <p>
           Paste or drop an image and it&apos;s saved to the vault&apos;s <code>assets/</code>{" "}
@@ -123,7 +129,7 @@ export const editorWritingItems: Subsection[] = [
             { label: "- List item", value: "Always shown as • (◦ when nested)" },
             { label: "- [ ] Task", value: "Always shown as a checkbox; click it to tick the task" },
             { label: "1. Numbered item", value: "The number sits in a muted column" },
-            { label: "> [!note] Title", value: "Shown as a NOTE label; press Home on the line to edit the type" },
+            { label: "> [!note] Title", value: "Shown as a rounded card with the type's icon and label; press Home on the line to edit the type" },
             { label: "```js … ```", value: "Fences fade out away from the caret; the language shows in the corner" },
             { label: "#tag, 2026-10-08", value: "Stay chips while you edit them" },
             { label: "Other editor", value: "A split pane you're not typing in shows no marks" },

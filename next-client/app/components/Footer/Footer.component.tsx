@@ -84,7 +84,7 @@ export default function Footer() {
           
           <div className="mt-16 pt-8 border-t border-white/5 flex flex-row flex-wrap justify-between items-baseline gap-x-6 gap-y-2">
              <span className="text-ui-footnote uppercase tracking-[0.2em] font-bold opacity-50">© {new Date().getFullYear()} HermesMarkdown. All rights reserved.</span>
-             <span className="text-[10px] uppercase tracking-[0.15em] font-bold opacity-25 shrink-0">v{packageJson.version}</span>
+             <span className="text-ui-caption uppercase tracking-[0.15em] font-bold opacity-25 shrink-0">v{packageJson.version}</span>
           </div>
         </div>
       </footer>

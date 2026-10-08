@@ -105,10 +105,29 @@ describe("computeMarkdownDecorations", () => {
     expect(decos.some((d) => d.from === doc.indexOf("#draft"))).toBe(false);
   });
 
-  it("applies a colored left-border line decoration to a callout block", () => {
+  it("tints a callout block in its type's colour, with no side border", () => {
     const doc = "> [!warning] Careful\n> body";
     const decos = decorationsFor(doc);
-    expect(decos.some((d) => d.class.includes("border-amber-500"))).toBe(true);
+    expect(decos.some((d) => d.class.includes("bg-amber-500/5"))).toBe(true);
+    expect(decos.some((d) => d.class.includes("border-l-2"))).toBe(false);
+  });
+
+  it("marks a callout's first and last lines so it draws as one rounded card", () => {
+    const doc = "> [!note] Title\n> one\n> two\nAfter\n> [!tip] Solo";
+    const lineClass = (text: string) => decorationsFor(doc)
+      .filter((d) => d.from === doc.indexOf(text) && d.from === d.to)
+      .map((d) => d.class)
+      .join(" ");
+
+    expect(lineClass("> [!note]")).toContain("cm-callout cm-callout-start");
+    expect(lineClass("> [!note]")).not.toContain("cm-callout-end");
+    expect(lineClass("> one")).toContain("cm-callout");
+    expect(lineClass("> one")).not.toMatch(/cm-callout-(start|end)/);
+    expect(lineClass("> two")).toContain("cm-callout-end");
+    expect(lineClass("After")).not.toContain("cm-callout");
+    // A one-line callout at the end of the note is both start and end.
+    expect(lineClass("> [!tip]")).toContain("cm-callout-start");
+    expect(lineClass("> [!tip]")).toContain("cm-callout-end");
   });
 
   it("fades a fenced code block's opening fence", () => {

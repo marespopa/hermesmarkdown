@@ -143,7 +143,7 @@ function calloutTitle(state: EditorState, selection: EditorSelection | null, fro
   if (selection?.ranges.some((range) => range.from < to && range.to >= line.from)) return null;
   const type = match[1].toLowerCase();
   const meta = CALLOUT_META[CALLOUT_ALIASES[type] ?? type] ?? CALLOUT_META.note;
-  return Decoration.replace({ widget: new CalloutLabelWidget(type, meta.text) }).range(from, to);
+  return Decoration.replace({ widget: new CalloutLabelWidget(type, meta.text, meta.Icon) }).range(from, to);
 }
 
 export function buildLiveMarkerDecorations(

@@ -56,7 +56,7 @@ export default function CreateVaultSubSteps(props: CreateVaultProps) {
             className="w-full h-12 rounded-2xl border border-edge bg-paper-light dark:bg-paper-dark px-4 text-ui-footnote font-medium focus:outline-none focus:border-sage transition-colors"
           />
           {nameError && (
-            <p className="text-red-500 text-[11px] mt-1.5 px-1">{nameError}</p>
+            <p className="text-red-500 text-ui-caption mt-1.5 px-1">{nameError}</p>
           )}
         </div>
 
@@ -70,13 +70,13 @@ export default function CreateVaultSubSteps(props: CreateVaultProps) {
           </span>
         </Button>
 
-        <p className="text-[10px] opacity-40 px-1 leading-relaxed">
+        <p className="text-ui-caption opacity-40 px-1 leading-relaxed">
           iCloud and Dropbox sync via their own sync client on your computer. If your vault lives in a
           synced folder, HermesMarkdown uses enhanced error recovery to handle files being locked mid-sync.
         </p>
 
         {error && !nameError && (
-          <p className="text-amber-500 text-[11px] px-1">{error}</p>
+          <p className="text-amber-500 text-ui-caption px-1">{error}</p>
         )}
       </div>
 

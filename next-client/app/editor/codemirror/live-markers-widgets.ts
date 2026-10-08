@@ -1,3 +1,6 @@
+import { createElement } from "react";
+import { renderToStaticMarkup } from "react-dom/server";
+import type { IconType } from "react-icons";
 import { EditorView, WidgetType } from "@codemirror/view";
 
 // Widgets live-markers.ts draws in place of Markdown syntax.
@@ -31,6 +34,11 @@ export class BulletWidget extends WidgetType {
   }
 }
 
+function applyTaskState(node: HTMLElement, state: string) {
+  node.dataset.state = state === " " ? "open" : state === "/" ? "progress" : state === "-" ? "cancelled" : "done";
+  node.setAttribute("aria-checked", state === "x" ? "true" : state === "/" ? "mixed" : "false");
+}
+
 // `state` is the character between the brackets.
 export class TaskBoxWidget extends WidgetType {
   constructor(readonly state: string) {
@@ -45,9 +53,8 @@ export class TaskBoxWidget extends WidgetType {
     const node = document.createElement("span");
     node.className = "cm-liveTask";
     node.style.width = em(BULLET_COLUMNS);
-    node.dataset.state = this.state === " " ? "open" : this.state === "/" ? "progress" : this.state === "-" ? "cancelled" : "done";
     node.setAttribute("role", "checkbox");
-    node.setAttribute("aria-checked", this.state === "x" ? "true" : this.state === "/" ? "mixed" : "false");
+    applyTaskState(node, this.state);
     const box = node.appendChild(document.createElement("span"));
     box.className = "cm-liveTask-box";
     node.addEventListener("mousedown", (event) => {
@@ -55,6 +62,19 @@ export class TaskBoxWidget extends WidgetType {
       toggleTaskBox(view, view.posAtDOM(node));
     });
     return node;
+  }
+
+  // Reuses the box when the state changes, so ticking it plays the tick
+  // animation; a freshly drawn box (opening a note, scrolling) stays still.
+  updateDOM(dom: HTMLElement): boolean {
+    const wasDone = dom.dataset.state === "done";
+    applyTaskState(dom, this.state);
+    dom.classList.remove("cm-liveTask-ticked");
+    if (!wasDone && dom.dataset.state === "done") {
+      void dom.offsetWidth; // restart the animation on quick re-ticks
+      dom.classList.add("cm-liveTask-ticked");
+    }
+    return true;
   }
 
   ignoreEvent() {
@@ -76,21 +96,36 @@ export function toggleTaskBox(view: EditorView, markerFrom: number): boolean {
   return true;
 }
 
-// A callout's `> [!type]` prefix, shown as the type's name in its colour.
-// Clicking it puts the caret at the line's start, which reveals the syntax.
+// Each callout icon's SVG, rendered once from its react-icons component.
+const iconMarkup = new Map<IconType, string>();
+
+function calloutIconMarkup(Icon: IconType): string {
+  let markup = iconMarkup.get(Icon);
+  if (markup === undefined) {
+    markup = renderToStaticMarkup(createElement(Icon, { "aria-hidden": true, focusable: "false" }));
+    iconMarkup.set(Icon, markup);
+  }
+  return markup;
+}
+
+// A callout's `> [!type]` prefix, shown as the type's icon and name in its
+// colour. Clicking it puts the caret at the line's start, which reveals the syntax.
 export class CalloutLabelWidget extends WidgetType {
-  constructor(readonly label: string, readonly colorClass: string) {
+  constructor(readonly label: string, readonly colorClass: string, readonly icon: IconType) {
     super();
   }
 
   eq(other: CalloutLabelWidget) {
-    return other.label === this.label && other.colorClass === this.colorClass;
+    return other.label === this.label && other.colorClass === this.colorClass && other.icon === this.icon;
   }
 
   toDOM(view: EditorView) {
     const node = document.createElement("span");
     node.className = `cm-calloutLabel ${this.colorClass}`;
-    node.textContent = this.label;
+    const icon = node.appendChild(document.createElement("span"));
+    icon.className = "cm-calloutIcon";
+    icon.innerHTML = calloutIconMarkup(this.icon);
+    node.appendChild(document.createTextNode(this.label));
     node.addEventListener("mousedown", (event) => {
       event.preventDefault();
       const from = view.state.doc.lineAt(view.posAtDOM(node)).from;

@@ -18,7 +18,7 @@ function VaultOption({ icon, title, hint }: { icon: React.ReactNode; title: stri
         {icon}
         <div className="text-left">
           <div className="font-bold text-ui-footnote">{title}</div>
-          <div className="text-[10px] opacity-50 uppercase tracking-wider font-bold">{hint}</div>
+          <div className="text-ui-caption opacity-50 uppercase tracking-wider font-bold">{hint}</div>
         </div>
       </div>
       <HiOutlineChevronRight opacity={0.3} />
@@ -86,7 +86,7 @@ export default function VaultStep({ createVaultFlow }: { createVaultFlow: Return
         </p>
       )}
       {!isVaultSupported && !isBrowserVaultSupported && (
-        <p className="text-[11px] text-red-500 font-medium">
+        <p className="text-ui-caption text-red-500 font-medium">
           Local folder access requires Chrome, Edge, or Brave.
         </p>
       )}

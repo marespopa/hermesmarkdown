@@ -41,7 +41,7 @@ export default function NewVaultDialog() {
         {canGoBack && (
           <Button variant="unstyled"
             onClick={vault.goBack}
-            className="absolute -top-1 left-0 flex items-center gap-1 text-[11px] opacity-50 hover:opacity-100 transition-opacity"
+            className="absolute -top-1 left-0 flex items-center gap-1 text-ui-caption opacity-50 hover:opacity-100 transition-opacity"
           >
             <HiOutlineChevronLeft size={14} />
             Back

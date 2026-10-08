@@ -177,7 +177,7 @@ export default function MermaidDialog() {
           {svg && (
             <div className="sticky bottom-0 left-1/2 z-10 flex w-fit -translate-x-1/2 items-center gap-1 rounded-md border border-edge bg-paper-light p-1 shadow-sm dark:bg-paper-dark">
               <Button variant="pill-icon" onClick={zoomOut} aria-label="Zoom out" title="Zoom out"><HiMinus size={16} /></Button>
-              <span className="min-w-11 text-center text-ui-micro text-ink-muted dark:text-stone">{Math.round(scale * 100)}%</span>
+              <span className="min-w-11 text-center text-ui-caption text-ink-muted dark:text-stone">{Math.round(scale * 100)}%</span>
               <Button variant="pill-icon" onClick={zoomIn} aria-label="Zoom in" title="Zoom in"><HiPlus size={16} /></Button>
               <Button variant="pill-icon" onClick={fitWidth} aria-label="Fit entire diagram" title="Fit diagram"><HiOutlineArrowsExpand size={16} /></Button>
               <Button variant="pill-icon" onClick={downloadSVG} aria-label="Download diagram" title="Download SVG"><HiOutlineDownload size={16} /></Button>

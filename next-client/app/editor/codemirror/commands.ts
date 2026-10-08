@@ -10,6 +10,7 @@ import {
 import { detectDelimitedTable, delimitedTextToMarkdownTable } from "../utils/table-manipulation";
 import { indentSubtree, outdentSubtree, toggleTaskStatus } from "./lineMutations";
 import { breakLineInListItem, continueListOnEnter, indentListOrLines, outdentListOrLines, removeListMarkerOnBackspace } from "./list-commands";
+import { setHeading, toggleCodeBlock, wrapAsLink } from "./format-shortcuts";
 
 function wrapSelection(marker: string, userEvent: string) {
   return (view: EditorView): boolean => {
@@ -228,6 +229,9 @@ export const formatKeymap: readonly KeyBinding[] = [
   { key: "Mod-i", run: toggleItalic, preventDefault: true },
   { key: "Mod-Shift-x", run: toggleStrikethrough, preventDefault: true },
   { key: "Mod-e", run: toggleInlineCode, preventDefault: true },
+  ...[1, 2, 3, 4, 5, 6].map((level) => ({ key: `Mod-Alt-${level}`, run: setHeading(level), preventDefault: true })),
+  { key: "Mod-Shift-l", run: wrapAsLink, preventDefault: true },
+  { key: "Mod-Alt-c", run: toggleCodeBlock, preventDefault: true },
   { key: "Enter", run: continueQuoteOnEnter },
   { key: "Enter", run: continueListOnEnter },
   { key: "Shift-Enter", run: breakLineInListItem },

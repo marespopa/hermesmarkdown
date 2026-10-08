@@ -220,7 +220,7 @@ export default function UnifiedSearchInput({
               className={[
                 "inline-flex items-center gap-1 shrink-0",
                 "pl-2 pr-1 py-1 sm:py-0.5 rounded-full",
-                "text-[11px] font-medium leading-none",
+                "text-ui-caption font-medium leading-none",
                 "bg-beige dark:bg-clay/80",
                 "text-ink-muted dark:text-ink-dark",
               ].join(" ")}
@@ -240,7 +240,7 @@ export default function UnifiedSearchInput({
 
           <Button variant="unstyled"
             onMouseDown={(e) => { e.preventDefault(); tokens.forEach(t => onTokenRemove(t)); }}
-            className="ml-auto text-[11px] text-stone hover:text-ink-muted dark:hover:text-ink-dark transition-colors"
+            className="ml-auto text-ui-caption text-stone hover:text-ink-muted dark:hover:text-ink-dark transition-colors"
           >
             clear filters
           </Button>
@@ -266,7 +266,7 @@ export default function UnifiedSearchInput({
               <TagDot tag={tag} />
               <span>#{tag}</span>
               {WORKFLOW_TAGS.includes(tag) && (
-                <span className="ml-auto text-[11px] opacity-50">workflow</span>
+                <span className="ml-auto text-ui-caption opacity-50">workflow</span>
               )}
             </Button>
           ))}

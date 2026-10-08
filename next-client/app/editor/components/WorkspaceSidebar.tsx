@@ -95,7 +95,7 @@ function Section({ title, menu, children }: { title: string; menu?: SectionMenuI
           variant="unstyled"
           onClick={() => setExpanded(!expanded)}
           aria-expanded={expanded}
-          className="flex flex-1 min-w-0 items-center gap-1 h-7 px-2 rounded-md text-[11px] font-semibold text-fg-faint hover:text-fg-muted select-none"
+          className="flex flex-1 min-w-0 items-center gap-1 h-7 px-2 rounded-md text-ui-caption font-semibold text-fg-faint hover:text-fg-muted select-none"
         >
           {/* Disclosure chevron, always shown, as in a file explorer. */}
           <HiChevronRight
@@ -188,7 +188,7 @@ export default function WorkspaceSidebar() {
           as in a code editor's side bar, and the button that hides the
           sidebar (the toolbar shows it again). */}
       <div className={`flex items-center gap-2 shrink-0 pl-4 pr-2 sm:pr-3 border-b border-edge-subtle ${PANE_HEADER_HEIGHT}`}>
-        <h2 className="flex-1 min-w-0 truncate text-[11px] font-semibold uppercase tracking-wider text-fg-faint select-none">
+        <h2 className="flex-1 min-w-0 truncate text-ui-caption font-semibold uppercase tracking-wider text-fg-faint select-none">
           {vaultName ?? "Workspace"}
         </h2>
         <div className={`${PANE_SECTION_CLASS} !ml-0`}>

@@ -76,7 +76,7 @@ export default function PaneEmptyState({ onLoadDraft }: PaneEmptyStateProps) {
           <Button variant="primary" onClick={handleNewFile} className="w-full sm:w-auto">
             <HiOutlinePlus size={17} />
             New File
-            <kbd className="rounded border border-white/30 bg-white/10 px-1.5 py-0.5 font-mono text-[10px] font-medium">
+            <kbd className="rounded border border-white/30 bg-white/10 px-1.5 py-0.5 font-mono text-ui-micro font-medium">
               {newFileShortcut}
             </kbd>
           </Button>
@@ -98,7 +98,7 @@ export default function PaneEmptyState({ onLoadDraft }: PaneEmptyStateProps) {
         <Button variant="bare" onClick={() => openCommandPalette(">")} className="mt-5 gap-2 text-fg-muted">
           <HiOutlineDotsHorizontal size={16} />
           Browse all commands
-          <span className="rounded border border-edge bg-paper-light px-1.5 py-0.5 font-mono text-[10px] dark:bg-paper-dark">
+          <span className="rounded border border-edge bg-paper-light px-1.5 py-0.5 font-mono text-ui-micro dark:bg-paper-dark">
             {formatShortcut("K", { shift: true })}
           </span>
         </Button>

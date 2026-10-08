@@ -133,6 +133,12 @@ export function computeMarkdownDecorations(state: EditorState): DecorationSet {
   let isInsideCodeBlock = false;
   let calloutType: string | null = null;
   let calloutDepth = 0;
+  // The callout's last line so far (its lineDecos entry), capped when it ends.
+  let calloutLastDeco: { line: number; class: string } | null = null;
+  const endCallout = () => {
+    if (calloutLastDeco) calloutLastDeco.class += " cm-callout-end";
+    calloutLastDeco = null;
+  };
   let tableRowCounter = -1;
   let isInsideFrontmatter = false;
 
@@ -197,7 +203,8 @@ export function computeMarkdownDecorations(state: EditorState): DecorationSet {
       if (rest.trim()) {
         mark(ranges, base + cursor, line.to, `${style.text} font-bold`);
       }
-      lineDecos.push({ line: i, class: `${style.bg} ${style.border} border-l-2` });
+      calloutLastDeco = { line: i, class: `cm-callout cm-callout-start ${style.bg}` };
+      lineDecos.push(calloutLastDeco);
     } else if (
       calloutType !== null &&
       (text.match(REGEX_OBSIDIAN_QUOTE_DEPTH)?.[0].match(/>/g) || []).length >= calloutDepth
@@ -208,8 +215,10 @@ export function computeMarkdownDecorations(state: EditorState): DecorationSet {
       const bodyPrefix = bodyDepthMatch ? bodyDepthMatch[0] : "";
       mark(ranges, base, base + bodyPrefix.length, FADED);
       processInline(ranges, text.slice(bodyPrefix.length), base + bodyPrefix.length);
-      lineDecos.push({ line: i, class: `${style.bg} ${style.border} border-l-2` });
+      calloutLastDeco = { line: i, class: `cm-callout ${style.bg}` };
+      lineDecos.push(calloutLastDeco);
     } else if (calloutType !== null) {
+      endCallout();
       calloutType = null;
       calloutDepth = 0;
       processInline(ranges, text, base);
@@ -293,6 +302,7 @@ export function computeMarkdownDecorations(state: EditorState): DecorationSet {
       processInline(ranges, text, base);
     }
   }
+  endCallout();
 
   const decoRanges: Range<Decoration>[] = ranges
     .filter((r) => r.to > r.from)
