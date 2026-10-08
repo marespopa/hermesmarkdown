@@ -1,5 +1,5 @@
-import { EditorSelection, Range } from "@codemirror/state";
-import { Decoration, DecorationSet, EditorView, ViewPlugin, ViewUpdate, WidgetType } from "@codemirror/view";
+import { Range } from "@codemirror/state";
+import { Decoration, DecorationSet, EditorView, ViewPlugin, ViewUpdate } from "@codemirror/view";
 import {
   REGEX_DATE_DOTTED,
   REGEX_DATE_DUE,
@@ -90,60 +90,21 @@ export function collectAnnotationDisplayMatches(doc: string): AnnotationDisplayM
     .sort((a, b) => a.from - b.from);
 }
 
-export function selectionTouchesAnnotation(selection: EditorSelection, from: number, to: number) {
-  return selection.ranges.some((range) => range.to >= from && range.from <= to);
-}
-
 function annotationClassName(match: AnnotationDisplayMatch): string {
   return match.type === "date"
     ? `cm-annotation-display cm-date-display cm-date-display-${match.kind}`
     : `cm-annotation-display cm-priority-display cm-priority-display-${match.kind}`;
 }
 
-class AnnotationDisplayWidget extends WidgetType {
-  constructor(private readonly match: AnnotationDisplayMatch) {
-    super();
-  }
-
-  eq(other: AnnotationDisplayWidget) {
-    return other.match.from === this.match.from
-      && other.match.to === this.match.to
-      && other.match.raw === this.match.raw
-      && other.match.label === this.match.label;
-  }
-
-  toDOM() {
-    const node = document.createElement("span");
-    node.textContent = this.match.label;
-    node.className = annotationClassName(this.match);
-    node.setAttribute("aria-label", this.match.type === "date"
-      ? `Date ${this.match.label}`
-      : `Priority ${this.match.label}`);
-    node.title = this.match.raw;
-    return node;
-  }
-
-  ignoreEvent() {
-    return false;
-  }
-}
-
 export function buildAnnotationDisplayDecorations(view: EditorView): DecorationSet {
   const ranges: Range<Decoration>[] = [];
-  const selection = view.state.selection;
 
   for (const match of collectAnnotationDisplayMatches(view.state.doc.toString())) {
     const visible = view.visibleRanges.some((range) => range.from <= match.from && match.to <= range.to);
     if (!visible) continue;
-    // Being edited: the raw text inside the same chip, so the line doesn't shift.
-    if (selectionTouchesAnnotation(selection, match.from, match.to)) {
-      ranges.push(Decoration.mark({ class: `${annotationClassName(match)} cm-chip-editing` }).range(match.from, match.to));
-      continue;
-    }
-    ranges.push(Decoration.replace({
-      widget: new AnnotationDisplayWidget(match),
-      side: 1,
-    }).range(match.from, match.to));
+    // The raw text styled as a chip, never swapped for a label widget: swapping
+    // as the caret passes would re-lay out the line each time.
+    ranges.push(Decoration.mark({ class: `${annotationClassName(match)} cm-chip-editing` }).range(match.from, match.to));
   }
 
   return Decoration.set(ranges, true);
@@ -158,7 +119,7 @@ export const annotationDisplayPlugin = ViewPlugin.fromClass(
     }
 
     update(update: ViewUpdate) {
-      if (update.docChanged || update.selectionSet || update.viewportChanged) {
+      if (update.docChanged || update.viewportChanged) {
         this.decorations = buildAnnotationDisplayDecorations(update.view);
       }
     }

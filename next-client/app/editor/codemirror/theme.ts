@@ -364,8 +364,6 @@ export const baseTheme = EditorView.theme({
   },
   ".cm-priority-display": {
     borderRadius: "9999px",
-    textTransform: "uppercase",
-    letterSpacing: "0.055em",
   },
   ".cm-priority-display-high": {
     color: "var(--clay)",
