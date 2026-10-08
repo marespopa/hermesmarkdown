@@ -75,6 +75,14 @@ export const liveMarkersTheme = EditorView.theme({
     color: "var(--fg-faint)",
     transform: "translateX(-100%) scale(0.6)",
     transformOrigin: "right 70%",
+    transition: "opacity 120ms ease",
+  },
+  ".cm-marginMarks-off": {
+    opacity: "0",
+  },
+  // A zero-width space gives a marks-only row a line box at its own size.
+  ".cm-marginOnly::after": {
+    content: '"\\200b"',
   },
 
   // A callout's type, in place of `> [!type]` away from the caret.
