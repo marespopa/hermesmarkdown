@@ -16,7 +16,7 @@ export const getStartedGroup: Group = {
             Every modern browser can run HermesMarkdown. What differs is where a vault can live:
             opening a folder on disk needs the File System Access API, which only Chromium-based
             browsers implement. Everywhere else, you use a{" "}
-            <a href="#browser-vaults" className="text-sage font-semibold hover:underline">browser vault</a>.
+            <a href="#browser-vaults" className="text-accent hover:underline">browser vault</a>.
           </p>
           <KV
             rows={[
@@ -98,7 +98,7 @@ export const getStartedGroup: Group = {
           </p>
           <p>
             Opening folders on disk needs a Chromium-based browser. In Safari and Firefox, choose{" "}
-            <a href="#browser-vaults" className="text-sage font-semibold hover:underline">a browser vault</a>{" "}
+            <a href="#browser-vaults" className="text-accent hover:underline">a browser vault</a>{" "}
             instead.
           </p>
           <Callout type="warning">
@@ -124,7 +124,7 @@ export const getStartedGroup: Group = {
           </p>
           <p>
             HermesMarkdown creates the folder and opens the vault on its{" "}
-            <a href="#home-feed" className="text-sage font-semibold hover:underline">home feed</a>.
+            <a href="#home-feed" className="text-accent hover:underline">home feed</a>.
             No example content is added.
           </p>
           <Callout type="note">
@@ -174,9 +174,9 @@ export const getStartedGroup: Group = {
           <p>
             No template or metadata is added. Want frontmatter? Type <code>/frontmatter</code> to
             insert a starter block. See{" "}
-            <a href="#frontmatter" className="text-sage font-semibold hover:underline">Frontmatter</a>.
+            <a href="#frontmatter" className="text-accent hover:underline">Frontmatter</a>.
             Autosave can be changed under{" "}
-            <a href="#appearance" className="text-sage font-semibold hover:underline">Settings → Autosave</a>.
+            <a href="#appearance" className="text-accent hover:underline">Settings → Autosave</a>.
             With autosave set to manual, a new note is saved only when you press <code>CTRL/CMD+S</code>.
           </p>
         </>

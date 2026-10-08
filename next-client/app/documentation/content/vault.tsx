@@ -38,7 +38,7 @@ export const vaultGroup: Group = {
           />
           <p>
             A{" "}
-            <a href="#browser-vaults" className="text-sage font-semibold hover:underline">browser vault</a>{" "}
+            <a href="#browser-vaults" className="text-accent hover:underline">browser vault</a>{" "}
             holds the same plain files, just inside the browser&apos;s private storage instead of a
             folder you can see. Nothing is locked in: <strong>Export vault as zip</strong> hands you
             every file, and <strong>Import files into vault…</strong> brings a zip or folder into any
@@ -108,14 +108,14 @@ export const vaultGroup: Group = {
               { label: "Credentials", value: "Encrypted HttpOnly session cookie" },
             ]}
           />
-          <h4 className="text-lg font-bold tracking-tight !mb-2 !mt-6">Branches</h4>
+          <h4 className="text-[19px] font-semibold tracking-tight !mb-2 !mt-6">Branches</h4>
           <p>
             A GitHub vault opens on the repository&apos;s default branch, commonly <code>main</code>.
             The branch remains fixed for that vault workspace.
             Branch switching and branch creation are not available in HermesMarkdown yet; create
             or select the desired default branch in GitHub before connecting it.
           </p>
-          <h4 className="text-lg font-bold tracking-tight !mb-2 !mt-6">Commit and sync</h4>
+          <h4 className="text-[19px] font-semibold tracking-tight !mb-2 !mt-6">Commit and sync</h4>
           <p>
             Save your notes, then use the command palette&apos;s{" "}
             <code>GitHub: Commit</code>, <code>GitHub: Push</code>, or <code>GitHub: Sync</code>{" "}
@@ -134,7 +134,7 @@ export const vaultGroup: Group = {
             markers, so neither version is silently replaced. Resolve those markers before your
             next commit and sync.
           </Callout>
-          <h4 className="text-lg font-bold tracking-tight !mb-2 !mt-6">Privacy and access</h4>
+          <h4 className="text-[19px] font-semibold tracking-tight !mb-2 !mt-6">Privacy and access</h4>
           <p>
             Connecting GitHub uses OAuth with the <code>repo</code> permission so the signed-in
             user can read and write repositories they own or can access. The access token stays
@@ -159,9 +159,9 @@ export const vaultGroup: Group = {
               { label: "Anything else", value: "Kept as-is" },
             ]}
           />
-          <h4 className="text-lg font-bold tracking-tight !mb-2 !mt-6">title</h4>
+          <h4 className="text-[19px] font-semibold tracking-tight !mb-2 !mt-6">title</h4>
           <p>A display title for the note. Notes save fine without it — the file name is the identifier.</p>
-          <h4 className="text-lg font-bold tracking-tight !mb-2 !mt-6">tags</h4>
+          <h4 className="text-[19px] font-semibold tracking-tight !mb-2 !mt-6">tags</h4>
           <p>
             Free-form tags. Together with inline <code>#tags</code>, they feed the palette&apos;s{" "}
             <code>#</code> mode and Smart Workspace rules.
@@ -171,11 +171,11 @@ export const vaultGroup: Group = {
             <code>status: draft</code>, plus <code>scope</code> and <code>read_when</code> fields
             describing what the note covers and when it&apos;s worth reading.
           </p>
-          <h4 className="text-lg font-bold tracking-tight !mb-2 !mt-6">sensitive</h4>
+          <h4 className="text-[19px] font-semibold tracking-tight !mb-2 !mt-6">sensitive</h4>
           <p>
             <code>sensitive: true</code>, <code>private: true</code>, or a{" "}
             <code>sensitive</code> / <code>private</code> tag, marks a note as{" "}
-            <a href="#sensitive-notes" className="text-sage font-semibold hover:underline">sensitive</a>.
+            <a href="#sensitive-notes" className="text-accent hover:underline">sensitive</a>.
           </p>
         </>
       ),
@@ -211,7 +211,7 @@ tags: [finance, private]
             mark the note. Any marker wins, so <code>sensitive: false</code> with a{" "}
             <code>private</code> tag is still sensitive.
           </p>
-          <h4 className="text-lg font-bold tracking-tight !mb-2 !mt-6">Privacy Mode</h4>
+          <h4 className="text-[19px] font-semibold tracking-tight !mb-2 !mt-6">Privacy Mode</h4>
           <p>
             Choose how sensitive notes appear in the home feed, the command palette and the Tasks
             page under <strong>Settings → Privacy → Privacy Mode</strong>, or with the{" "}
@@ -224,7 +224,7 @@ tags: [finance, private]
               { label: "Hide notes", value: "Left out of the home feed, search results and the Tasks page" },
             ]}
           />
-          <h4 className="text-lg font-bold tracking-tight !mb-2 !mt-6">Opening a sensitive note</h4>
+          <h4 className="text-[19px] font-semibold tracking-tight !mb-2 !mt-6">Opening a sensitive note</h4>
           <p>
             A sensitive note opens behind a veil showing only its title. <strong>Show note</strong>{" "}
             reveals that note; <strong>Show all sensitive notes this session</strong> (also a palette

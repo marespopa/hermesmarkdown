@@ -152,7 +152,7 @@ tags: []
         <Callout type="warning">
           Voice input uses the browser's built-in Web Speech API, which only Chromium-based browsers
           implement — see{" "}
-          <a href="#installation" className="text-sage font-semibold hover:underline">Installation</a>.
+          <a href="#installation" className="text-accent hover:underline">Installation</a>.
           On unsupported browsers the Start voice input command is disabled and explains why.
         </Callout>
         <p>
@@ -277,7 +277,7 @@ tags: []
         </p>
         <p>
           Combine this with the per-context shortcuts in{" "}
-          <a href="#keyboard-shortcuts" className="text-sage font-semibold hover:underline">Keyboard shortcuts</a>{" "}
+          <a href="#keyboard-shortcuts" className="text-accent hover:underline">Keyboard shortcuts</a>{" "}
           and the slash command menu (<code>/</code>) for inserting content, and the editor is fully
           operable without ever reaching for the mouse.
         </p>

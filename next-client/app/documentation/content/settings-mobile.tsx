@@ -49,7 +49,7 @@ export const settingsGroup: Group = {
           />
           <p>
             Every <code>.md</code> file directly in the Templates Folder is a{" "}
-            <a href="#templates" className="text-sage font-semibold hover:underline">template</a>.
+            <a href="#templates" className="text-accent hover:underline">template</a>.
             Folders starting with <code>.</code> can&apos;t be used, because they aren&apos;t
             indexed.
           </p>
@@ -69,7 +69,7 @@ export const settingsGroup: Group = {
         <>
           <p>
             Every shortcut in HermesMarkdown is built in and not user-configurable. See{" "}
-            <a href="#keyboard-shortcuts" className="text-sage font-semibold hover:underline">Keyboard shortcuts</a>{" "}
+            <a href="#keyboard-shortcuts" className="text-accent hover:underline">Keyboard shortcuts</a>{" "}
             for the full reference grouped by context.
           </p>
         </>
@@ -97,7 +97,7 @@ export const mobileGroup: Group = {
           </p>
           <p>
             The <strong>Home</strong> button at the left of that bar takes you back to the{" "}
-            <a href="#home-feed" className="text-sage font-semibold hover:underline">home feed</a>.
+            <a href="#home-feed" className="text-accent hover:underline">home feed</a>.
             On the feed, the search bar and the <strong>+</strong> button sit at the bottom, within
             reach of your thumb.
           </p>
@@ -129,7 +129,7 @@ export const mobileGroup: Group = {
             to the home screen protects it, and <strong>Export vault as zip</strong> keeps a backup
             in Files. To import on iOS, pick a <code>.zip</code> or individual notes — folder picking
             isn&apos;t available there. See{" "}
-            <a href="#browser-vaults" className="text-sage font-semibold hover:underline">Browser vaults</a>.
+            <a href="#browser-vaults" className="text-accent hover:underline">Browser vaults</a>.
           </Callout>
         </>
       ),

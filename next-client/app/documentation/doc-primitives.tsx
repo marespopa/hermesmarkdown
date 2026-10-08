@@ -1,32 +1,43 @@
 import type { ReactNode } from "react";
 
 // Building blocks shared by the documentation page and its content modules.
+// Quiet, rounded surfaces on the page's own tokens: light code panels, notes
+// as soft tinted asides, tables as hairline-ruled cards.
 
 export function Code({ children }: { children: ReactNode }) {
   return (
-    <pre className="p-5 bg-neutral-900 dark:bg-black/40 text-neutral-100 selection:bg-white/25 selection:text-white rounded-2xl overflow-x-auto font-mono text-sm leading-relaxed w-full min-w-0">
+    <pre className="p-5 bg-chrome border border-edge-subtle text-fg rounded-2xl overflow-x-auto font-mono text-[14px] leading-relaxed w-full min-w-0">
       <code>{children}</code>
     </pre>
   );
 }
 
+const CALLOUT_STYLES = {
+  note: { label: "Note", labelClass: "text-fg" },
+  tip: { label: "Tip", labelClass: "text-sage" },
+  warning: { label: "Important", labelClass: "text-accent" },
+};
+
 export function Callout({ type = "note", children }: { type?: "note" | "warning" | "tip"; children: ReactNode }) {
-  const labels = { note: "Note", warning: "Warning", tip: "Tip" };
+  const style = CALLOUT_STYLES[type];
   return (
-    <div className="pl-5 py-1 border-l-2 border-black/10 dark:border-white/15 text-sm leading-relaxed text-neutral-600 dark:text-neutral-400">
-      <span className="block text-ui-footnote uppercase tracking-[0.2em] font-bold mb-2 opacity-50">{labels[type]}</span>
+    <aside className="rounded-2xl bg-chrome px-5 py-4 text-[15px] leading-relaxed text-fg-muted">
+      <span className={`block text-[15px] font-semibold mb-1 ${style.labelClass}`}>{style.label}</span>
       {children}
-    </div>
+    </aside>
   );
 }
 
 export function KV({ rows }: { rows: { label: ReactNode; value: ReactNode }[] }) {
   return (
-    <div className="p-5 sm:p-8 bg-neutral-50/50 dark:bg-neutral-900/30 backdrop-blur-sm rounded-3xl border border-black/5 dark:border-white/5">
+    <div className="rounded-2xl border border-edge-subtle bg-surface-raised px-5">
       {rows.map((r, i) => (
-        <div key={i} className="flex flex-wrap justify-between border-b border-black/5 dark:border-white/5 py-3 sm:py-4 last:border-none items-baseline gap-x-4 gap-y-1">
-          <span className="text-sm font-medium min-w-0 shrink break-words">{r.label}</span>
-          <span className="opacity-40 italic text-right text-ui-footnote uppercase tracking-wider font-bold shrink-0 max-w-full break-words">{r.value}</span>
+        <div
+          key={i}
+          className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-x-6 gap-y-0.5 py-3.5 border-b border-edge-subtle last:border-none"
+        >
+          <span className="text-[15px] text-fg min-w-0 break-words">{r.label}</span>
+          <span className="text-[15px] text-fg-muted sm:text-right min-w-0 break-words">{r.value}</span>
         </div>
       ))}
     </div>
@@ -38,8 +49,13 @@ export function ShortcutGroups({ groups }: { groups: { context: string; rows: { 
     <div className="space-y-8">
       {groups.map((g) => (
         <div key={g.context} className="space-y-3">
-          <h3 className="text-xs font-bold opacity-30 uppercase tracking-[0.4em]">{g.context}</h3>
-          <KV rows={g.rows.map((r) => ({ label: r.label, value: r.shortcut }))} />
+          <h3 className="text-[17px] font-semibold text-fg">{g.context}</h3>
+          <KV
+            rows={g.rows.map((r) => ({
+              label: r.label,
+              value: <kbd className="font-mono text-[13px] text-fg-muted">{r.shortcut}</kbd>,
+            }))}
+          />
         </div>
       ))}
     </div>
@@ -58,5 +74,7 @@ export type Subsection = {
 export type Group = {
   id: string;
   label: string;
+  /** One line for the group's topic card on the docs home. */
+  summary?: string;
   items: Subsection[];
 };

@@ -37,7 +37,7 @@ export const editorWritingItems: Subsection[] = [
           folder and linked with <code>![](assets/…)</code>. Paste comma- or tab-separated
           data outside a table and HermesMarkdown offers to convert it into a Markdown table.
         </p>
-        <h4 className="text-lg font-bold tracking-tight !mb-2 !mt-6">Shortcodes</h4>
+        <h4 className="text-[19px] font-semibold tracking-tight !mb-2 !mt-6">Shortcodes</h4>
         <p>Type a shortcode and it expands in place.</p>
         <KV
           rows={[
@@ -51,7 +51,7 @@ export const editorWritingItems: Subsection[] = [
         />
         <p>
           For running totals that keep their working, use the{" "}
-          <a href="#inline-calculator" className="text-sage font-semibold hover:underline">inline calculator</a> instead.
+          <a href="#inline-calculator" className="text-accent hover:underline">inline calculator</a> instead.
         </p>
         <Callout type="tip">
           Click actions work without touching raw syntax — checkboxes toggle, lifecycle tags cycle on
@@ -186,7 +186,7 @@ export const editorWritingItems: Subsection[] = [
           <code>Shift</code>+<code>Enter</code> in a cell. The table shows as plain pipe text so
           you can fix it by hand, and turns back into a grid when you move the caret out of it.
         </p>
-        <h4 className="text-lg font-bold tracking-tight !mb-2 !mt-6">Formulas</h4>
+        <h4 className="text-[19px] font-semibold tracking-tight !mb-2 !mt-6">Formulas</h4>
         <p>
           Start a cell with <code>=</code> to compute it, like a spreadsheet. The cell shows the
           result, and clicking it shows the formula for editing. Columns are lettered{" "}
@@ -217,7 +217,7 @@ export const editorWritingItems: Subsection[] = [
         </Callout>
         <p>
           AI features know this syntax too. See{" "}
-          <a href="#ai-table-formulas" className="text-sage font-semibold hover:underline">AI &amp; table formulas</a>.
+          <a href="#ai-table-formulas" className="text-accent hover:underline">AI &amp; table formulas</a>.
         </p>
       </>
     ),
@@ -354,7 +354,7 @@ graph TD
         <p>
           <code>CTRL+Click</code> a wikilink to open the note. A link to
           a note that doesn&apos;t exist yet creates it, after you confirm or pick a template; see{" "}
-          <a href="#templates" className="text-sage font-semibold hover:underline">Templates</a>.
+          <a href="#templates" className="text-accent hover:underline">Templates</a>.
         </p>
       </>
     ),

@@ -28,7 +28,7 @@ export const aiFeaturesGroup: Group = {
           <p>
             The key is stored in your browser. Each AI request passes through HermesMarkdown's servers
             on its way to Anthropic or Google — the key is never logged or saved there. See{" "}
-            <a href="#privacy-model" className="text-sage font-semibold hover:underline">Privacy model</a>{" "}
+            <a href="#privacy-model" className="text-accent hover:underline">Privacy model</a>{" "}
             for the full picture.
           </p>
           <Callout type="note">
@@ -45,7 +45,7 @@ export const aiFeaturesGroup: Group = {
       keywords: "ask ai selection toolbar chat improve summarize tone attachments @file @vault",
       body: (
         <>
-          <h4 className="text-lg font-bold tracking-tight !mb-2 !mt-0">AI Chat</h4>
+          <h4 className="text-[19px] font-semibold tracking-tight !mb-2 !mt-0">AI Chat</h4>
           <p>
             Open it with <code>CTRL+SHIFT+B</code>, the <strong>Open AI Chat</strong> command, or the{" "}
             <strong>💬 Ask AI</strong> button in the toolbar that appears on a text selection.
@@ -58,7 +58,7 @@ export const aiFeaturesGroup: Group = {
             Nothing changes your note until you choose: each reply can be edited, then used to
             replace the selection (or insert at the cursor) or replace the whole note.
           </p>
-          <h4 className="text-lg font-bold tracking-tight !mb-2 !mt-6">One-click actions</h4>
+          <h4 className="text-[19px] font-semibold tracking-tight !mb-2 !mt-6">One-click actions</h4>
           <p>
             Common rewrites skip the conversation. Run them from the command palette
             (<code>AI: …</code>) or the slash menu; they work on the selection, or on the note where
@@ -91,7 +91,7 @@ export const aiFeaturesGroup: Group = {
             Mention a template in AI Chat, for example &ldquo;make me an RFC template that asks for
             an owner&rdquo;, or start a message with <code>/template</code>. From then on, the chat
             knows the{" "}
-            <a href="#templates" className="text-sage font-semibold hover:underline">template tokens</a>{" "}
+            <a href="#templates" className="text-accent hover:underline">template tokens</a>{" "}
             and the <code>target_folder</code> / <code>file_name</code> keys. Each template in a reply
             shows a card with its path (for example <code>templates/rfc.md</code>) and any problems
             it spotted, like an unknown token.

@@ -65,7 +65,10 @@ const MainPage = ({ children }: Props) => {
           },
         }}
       />
-      <div className={`flex flex-col h-full bg-paper-pale dark:bg-paper-dark text-ink-light dark:text-ink-dark ${hideNav ? "overflow-hidden" : "min-h-screen"}`}>
+      {/* Only the editor is pinned to the viewport. Elsewhere the shell grows
+          with the page: a fixed `h-full` capped it at one screen, so the
+          sticky header was pushed off the top once you scrolled past it. */}
+      <div className={`flex flex-col bg-paper-pale dark:bg-paper-dark text-ink-light dark:text-ink-dark ${hideNav ? "h-full overflow-hidden" : "min-h-screen"}`}>
         {showHeader && <Header />}
         
         <main className={`flex-1 flex flex-col ${hideNav ? "overflow-hidden" : ""}`}>

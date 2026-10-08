@@ -1,6 +1,6 @@
 import { Callout, Code, KV, type Subsection } from "../doc-primitives";
 
-const h4 = "text-lg font-bold tracking-tight !mb-2 !mt-0";
+const h4 = "text-[19px] font-semibold tracking-tight !mb-2 !mt-0";
 
 // Documentation content: Editor group, vault templates.
 export const templatesItems: Subsection[] = [
@@ -131,7 +131,7 @@ export const templatesItems: Subsection[] = [
         <p>
           Other frontmatter lines (author, status, …) are copied into each new note. Templates
           stay out of the Tasks page and the home feed. AI Chat can write templates for you; see{" "}
-          <a href="#ai-templates" className="text-sage font-semibold hover:underline">AI templates</a>.
+          <a href="#ai-templates" className="text-accent hover:underline">AI templates</a>.
         </p>
       </>
     ),
