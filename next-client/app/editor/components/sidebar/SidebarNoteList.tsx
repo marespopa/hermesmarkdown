@@ -57,7 +57,7 @@ export default function SidebarNoteList({ items, currentPath, onOpen, menuItems,
           >
             {icon ?? <HiOutlineDocumentText size={15} aria-hidden="true" className="shrink-0 opacity-70" />}
             <span className="flex-1 min-w-0 truncate">{item.title}</span>
-            {item.meta && <span className="shrink-0 text-ui-micro text-fg-faint">{item.meta}</span>}
+            {item.meta && <span className="shrink-0 text-ui-caption text-fg-faint">{item.meta}</span>}
           </Button>
         );
       })}

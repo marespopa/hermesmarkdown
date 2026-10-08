@@ -61,7 +61,7 @@ export default function FontPicker({
               // Fixed to 2 lines so this font's metrics finishing their swap-in load
               // can't change the card's height — that's what was reshuffling the
               // whole masonry grid (CSS columns rebalance on any item's height change).
-              className="text-[11px] leading-snug text-neutral-400 dark:text-neutral-500 break-words line-clamp-2 h-[2.6em]"
+              className="text-ui-caption leading-snug text-neutral-400 dark:text-neutral-500 break-words line-clamp-2 h-[2.6em]"
             >
               {previewText}
             </span>

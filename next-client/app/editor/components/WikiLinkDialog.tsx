@@ -269,7 +269,7 @@ export default function WikiLinkDialog({
                   <div className="flex flex-col overflow-hidden">
                     <span className="font-medium truncate">{item.name}</span>
                     {item.path !== item.name && (
-                      <span className="text-[10px] opacity-60 truncate">
+                      <span className="text-ui-caption opacity-60 truncate">
                         {item.path}
                       </span>
                     )}
@@ -319,13 +319,13 @@ export default function WikiLinkDialog({
                     <TemplateIcon name={template.name} />
                     <span className="flex-1 truncate font-medium">{template.name}</span>
                     {suggestedTemplate?.path === template.path && (
-                      <span className="shrink-0 text-[10px] font-medium uppercase tracking-wide text-fg-faint">Suggested</span>
+                      <span className="shrink-0 text-ui-caption font-medium uppercase tracking-wide text-fg-faint">Suggested</span>
                     )}
                   </Button>
                 );
               })}
             </div>
-            <p className="text-[11px] text-ink-muted dark:text-stone">
+            <p className="text-ui-caption text-ink-muted dark:text-stone">
               The note goes in the folder from its name or the template, else your New Notes folder.
             </p>
             <Button
@@ -348,7 +348,7 @@ export default function WikiLinkDialog({
               className="my-0"
               autoFocus
             />
-            <p className="text-[11px] text-ink-muted dark:text-stone">
+            <p className="text-ui-caption text-ink-muted dark:text-stone">
               Choose a vault folder after entering the filename.
             </p>
             <Button

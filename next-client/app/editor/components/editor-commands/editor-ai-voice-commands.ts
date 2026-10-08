@@ -9,6 +9,8 @@ import {
   toggleItalic,
   toggleStrikethrough,
 } from "../../codemirror/commands";
+import { setHeading, toggleCodeBlock, wrapAsLink } from "../../codemirror/format-shortcuts";
+import { openSearchPanel } from "@codemirror/search";
 import type { Command } from "@/app/components/CommandPalette/CommandPaletteContext";
 import { formatShortcut } from "@/app/utils/platform";
 import { TEMPLATES } from "../constants";
@@ -93,6 +95,10 @@ export function buildEditorAiVoiceCommandGroups(context: EditorCommandContext) {
     { id: "format-italic", label: "Format: Italic", category: "Editor" as const, shortcut: formatShortcut("I"), keywords: "emphasis markdown", action: () => runEditorCommand(toggleItalic) },
     { id: "format-strikethrough", label: "Format: Strikethrough", category: "Editor" as const, shortcut: formatShortcut("X", { shift: true }), keywords: "delete markdown", action: () => runEditorCommand(toggleStrikethrough) },
     { id: "format-inline-code", label: "Format: Inline code", category: "Editor" as const, shortcut: formatShortcut("E"), keywords: "code markdown", action: () => runEditorCommand(toggleInlineCode) },
+    ...[1, 2, 3, 4, 5, 6].map((level) => ({ id: `format-heading-${level}`, label: `Format: Heading ${level}`, category: "Editor" as const, shortcut: formatShortcut(String(level), { alt: true }), keywords: `h${level} title markdown`, action: () => runEditorCommand(setHeading(level)) })),
+    { id: "format-link", label: "Format: Link", category: "Editor" as const, shortcut: formatShortcut("L", { shift: true }), keywords: "url href markdown", action: () => runEditorCommand(wrapAsLink) },
+    { id: "format-code-block", label: "Format: Code block", category: "Editor" as const, shortcut: formatShortcut("C", { alt: true }), keywords: "fence snippet markdown", action: () => runEditorCommand(toggleCodeBlock) },
+    { id: "find-in-note", label: "Find and replace in note", category: "Editor" as const, shortcut: formatShortcut("F"), keywords: "search replace regex", action: () => runEditorCommand(openSearchPanel) },
     { id: "indent-subtree", label: "Indent current item", category: "Editor" as const, keywords: "nest list task", action: () => runEditorCommand(indentCurrentSubtree) },
     { id: "outdent-subtree", label: "Outdent current item", category: "Editor" as const, keywords: "unnest list task", action: () => runEditorCommand(outdentCurrentSubtree) },
     { id: "toggle-checkbox", label: "Toggle checkbox", category: "Tasks" as const, keywords: "task done todo", action: () => runEditorCommand(toggleCheckboxOnLine) },

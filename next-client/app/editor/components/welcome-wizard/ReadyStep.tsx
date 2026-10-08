@@ -17,7 +17,7 @@ export default function ReadyStep({ onFinish }: { onFinish: () => void }) {
       continueLabel="Open Editor"
       onContinue={onFinish}
     >
-      <p className="text-[11px] opacity-50 flex flex-wrap items-center justify-center text-center gap-x-1.5 gap-y-1 leading-relaxed">
+      <p className="text-ui-caption opacity-50 flex flex-wrap items-center justify-center text-center gap-x-1.5 gap-y-1 leading-relaxed">
         {isMobileChrome ? (
           <>
             <span>Tap</span>
@@ -27,7 +27,7 @@ export default function ReadyStep({ onFinish }: { onFinish: () => void }) {
         ) : (
           <>
             <span>Press</span>
-            <kbd className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-paper-softgray dark:bg-paper-dark-surface text-ink-muted dark:text-fg-faint border border-edge">
+            <kbd className="text-ui-micro font-mono px-1.5 py-0.5 rounded bg-paper-softgray dark:bg-paper-dark-surface text-ink-muted dark:text-fg-faint border border-edge">
               {formatShortcut("k")}
             </kbd>
             <span>anytime to open the command palette</span>

@@ -40,7 +40,7 @@ const WIDTH_OPTIONS: { label: string; value: Width }[] = [
 
 type StepProps = { onContinue: () => void };
 
-const LABEL_CLASS = "block text-[11px] font-bold uppercase tracking-wider opacity-70";
+const LABEL_CLASS = "block text-ui-caption font-bold uppercase tracking-wider opacity-70";
 
 // One setting in a grouped panel: label and hint on the left, control on
 // the right. Rows are separated by the panel's dividers.

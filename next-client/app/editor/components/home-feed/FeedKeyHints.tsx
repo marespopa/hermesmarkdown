@@ -13,7 +13,7 @@ export const FEED_KEY_HINTS: [string[], string][] = [
   [["esc"], "back"],
 ];
 
-const KBD_CLASS = "rounded border border-edge px-1 font-mono text-[10px] leading-4 text-fg-muted";
+const KBD_CLASS = "rounded border border-edge px-1 font-mono text-ui-micro leading-4 text-fg-muted";
 
 // One line of keycaps above the feed's search bar, hidden below `sm`. On
 // the search pill's chrome (background, edge), so the notes scrolling

@@ -100,7 +100,7 @@ export default function TabContextMenu({ x, y, items, onClose, label, anchorRef 
             {item.icon && <span className="shrink-0 opacity-70">{item.icon}</span>}
             <span className="flex-1 truncate">{item.label}</span>
             {item.shortcut && (
-              <span aria-hidden="true" className="shrink-0 ml-4 text-[11px] text-fg-faint">{item.shortcut}</span>
+              <span aria-hidden="true" className="shrink-0 ml-4 text-ui-caption text-fg-faint">{item.shortcut}</span>
             )}
           </Button>
         </React.Fragment>

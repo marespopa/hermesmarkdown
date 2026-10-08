@@ -53,6 +53,15 @@ export const liveMarkersTheme = EditorView.theme({
       "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M4 8.5l2.5 2.5L12 5.5' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E\")",
     backgroundSize: "100% 100%",
   },
+  // Ticking a box: a springy pop (keyframes in editor-typography.scss).
+  ".cm-liveTask-ticked .cm-liveTask-box": {
+    animation: "cm-task-tick 360ms cubic-bezier(0.34, 1.56, 0.64, 1)",
+  },
+  "@media (prefers-reduced-motion: reduce)": {
+    ".cm-liveTask-ticked .cm-liveTask-box": {
+      animation: "none",
+    },
+  },
   ".cm-liveTask[data-state=progress] .cm-liveTask-box": {
     backgroundImage: "linear-gradient(to right, var(--fg-faint) 50%, transparent 50%)",
   },
@@ -87,12 +96,38 @@ export const liveMarkersTheme = EditorView.theme({
 
   // A callout's type, in place of `> [!type]` away from the caret.
   ".cm-calloutLabel": {
-    fontSize: "0.72em",
+    fontSize: "0.85em",
     fontWeight: "600",
     letterSpacing: "0.06em",
     textTransform: "uppercase",
     marginRight: "0.6em",
     cursor: "text",
+  },
+  // A callout reads as one rounded, tinted card (lines tagged in highlight.ts),
+  // its text inset from the card's edge.
+  ".cm-line.cm-callout": {
+    paddingLeft: "0.9em !important",
+    paddingRight: "0.75em !important",
+  },
+  ".cm-line.cm-callout-start": {
+    borderTopLeftRadius: "12px",
+    borderTopRightRadius: "12px",
+    paddingTop: "0.4em",
+  },
+  ".cm-line.cm-callout-end": {
+    borderBottomLeftRadius: "12px",
+    borderBottomRightRadius: "12px",
+    paddingBottom: "0.4em",
+  },
+  ".cm-calloutIcon": {
+    display: "inline-flex",
+    verticalAlign: "-0.2em",
+    marginRight: "0.35em",
+    fontSize: "1.3em",
+  },
+  ".cm-calloutIcon svg": {
+    width: "1em",
+    height: "1em",
   },
   // A fenced block's opening row while its fences are hidden: the language
   // sits in the row's top-right corner.
@@ -106,9 +141,9 @@ export const liveMarkersTheme = EditorView.theme({
     position: "absolute",
     right: "0",
     top: "0",
-    fontSize: "0.75em",
+    fontSize: "0.85em",
     lineHeight: "inherit",
-    color: "var(--fg-faint)",
+    color: "var(--fg-muted)",
     letterSpacing: "0.02em",
     pointerEvents: "none",
   },
@@ -141,10 +176,9 @@ export const liveMarkersTheme = EditorView.theme({
   },
   // A link's folded URL while its label is being edited.
   ".cm-link-url-chip": {
-    color: "var(--link)",
-    fontSize: "0.72em",
+    color: "var(--fg-muted)",
+    fontSize: "0.85em",
     fontWeight: "600",
-    opacity: "0.55",
     marginLeft: "0.2em",
     cursor: "pointer",
   },

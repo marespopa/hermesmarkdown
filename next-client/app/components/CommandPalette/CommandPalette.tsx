@@ -334,7 +334,7 @@ export default function CommandPalette() {
       ))}</div>
       {contentFootnote && <p className="px-5 pb-2 text-ui-footnote text-fg-muted">{contentFootnote}</p>}
     </div>
-    <footer className="flex items-center justify-between border-t border-edge-subtle bg-chrome px-3 py-1 text-[10px] text-fg-muted dark:bg-overlay">
+    <footer className="flex items-center justify-between border-t border-edge-subtle bg-chrome px-3 py-1 text-ui-caption text-fg-muted dark:bg-overlay">
       <div className="flex items-center gap-0.5">
         <Button variant="icon" onClick={() => setTheme(THEME_CYCLE[(themeCycleIndex + 1) % THEME_CYCLE.length].value)} aria-label={themeCycleLabel} title={themeCycleLabel} className="!w-7 !h-7" suppressHydrationWarning>
           <ThemeCycleIcon size={14} />

@@ -18,7 +18,7 @@ export const SEARCH_OR_CREATE_PLACEHOLDER = "Search or create a note…";
 // same element as far as the user is concerned; they morph into each other).
 export const SEARCH_PILL_CLASS = "flex items-center gap-1 rounded-full border border-edge bg-chrome p-1.5";
 export const SEARCH_FIELD_CLASS = "flex h-10 min-w-0 flex-1 items-center gap-3 rounded-full pl-4 pr-1";
-export const SEARCH_KBD_CLASS = "hidden shrink-0 rounded border border-edge px-1.5 py-0.5 font-mono text-[10px] text-fg-muted sm:inline";
+export const SEARCH_KBD_CLASS = "hidden shrink-0 rounded border border-edge px-1.5 py-0.5 font-mono text-ui-micro text-fg-muted sm:inline";
 export const COMMAND_TOGGLE_CLASS =
   "flex h-7 w-7 shrink-0 items-center justify-center rounded-full font-mono text-[13px] font-semibold transition-colors";
 export const MAX_PINS = 5;

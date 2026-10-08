@@ -114,7 +114,7 @@ export const baseTheme = EditorView.theme({
   },
   ".cm-lineNumbers": {
     color: "var(--fg-faint) !important",
-    fontSize: "0.75em",
+    fontSize: "0.85em",
     minWidth: "2.5em",
   },
   ".cm-lineNumbers .cm-gutterElement": {
@@ -198,16 +198,16 @@ export const baseTheme = EditorView.theme({
     border: "none",
     borderRadius: "6px",
     backgroundColor: "var(--frontmatter-bg-hover)",
-    color: "var(--fg-faint)",
+    color: "var(--fg-muted)",
     font: "inherit",
-    fontSize: "0.78em",
+    fontSize: "0.85em",
     lineHeight: "1",
     whiteSpace: "nowrap",
     cursor: "pointer",
     transition: "color 150ms, background-color 150ms",
   },
   ".cm-frontmatter-summary:hover, .cm-frontmatter-summary:focus-visible": {
-    color: "var(--fg-muted)",
+    color: "var(--fg)",
     backgroundColor: "var(--frontmatter-bg-active)",
   },
   ".cm-frontmatter-summary:focus-visible": {
@@ -231,7 +231,7 @@ export const baseTheme = EditorView.theme({
     border: "1px solid var(--border)",
     backgroundColor: "color-mix(in srgb, var(--chrome) 72%, transparent)",
     color: "var(--fg)",
-    fontSize: "0.72em",
+    fontSize: "0.9em",
     lineHeight: "1.2",
     padding: "0.1em 0.45em",
     margin: "0 0.1em",
@@ -292,10 +292,9 @@ export const baseTheme = EditorView.theme({
     margin: 0,
   },
   ".cm-frontmatter-tag-list-empty": {
-    color: "var(--fg-faint)",
-    fontSize: "0.78em",
+    color: "var(--fg-muted)",
+    fontSize: "0.85em",
     fontStyle: "italic",
-    opacity: "0.75",
   },
   ".cm-link-display": {
     display: "inline-flex",
@@ -314,9 +313,9 @@ export const baseTheme = EditorView.theme({
   },
   ".cm-link-display::after": {
     color: "currentColor",
-    fontSize: "0.72em",
+    fontSize: "0.85em",
     fontWeight: "600",
-    opacity: "0.55",
+    opacity: "0.7",
     textDecoration: "none",
   },
   ".cm-link-display-url::after": {
@@ -340,7 +339,7 @@ export const baseTheme = EditorView.theme({
     border: "1px solid var(--border-subtle)",
     borderRadius: "0.4em",
     backgroundColor: "color-mix(in srgb, var(--chrome) 52%, transparent)",
-    fontSize: "0.78em",
+    fontSize: "0.9em",
     fontWeight: "500",
     lineHeight: "1.35",
     padding: "0.08em 0.42em",
@@ -422,8 +421,8 @@ export const slashMenuTheme = EditorView.theme({
   ".cm-completionDetail": {
     marginLeft: 0,
     fontStyle: "normal",
-    fontSize: "12px",
-    color: "var(--fg-faint)",
+    fontSize: "13px",
+    color: "var(--fg-muted)",
     whiteSpace: "nowrap",
   },
 });

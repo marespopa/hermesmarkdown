@@ -175,7 +175,7 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
               <Button
                 variant="unstyled"
                 onClick={handleFinish}
-                className="text-[11px] font-bold uppercase tracking-wider opacity-40 hover:opacity-100 transition-opacity"
+                className="text-ui-caption font-bold uppercase tracking-wider opacity-40 hover:opacity-100 transition-opacity"
               >
                 Skip
               </Button>

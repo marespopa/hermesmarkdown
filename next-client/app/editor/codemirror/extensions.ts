@@ -6,6 +6,7 @@ import { languages } from "@codemirror/language-data";
 import { ViewUpdate } from "@codemirror/view";
 import { autocompletion } from "@codemirror/autocomplete";
 import { codeFolding } from "@codemirror/language";
+import { searchKeymap } from "@codemirror/search";
 import { getCM, Vim, vim } from "@replit/codemirror-vim";
 import { editorTheme } from "./theme";
 import { formatKeymap, toggleCheckboxOnLine, handlePasteTransform, insertPastedImage } from "./commands";
@@ -40,6 +41,7 @@ import { flowMode } from "./flow-mode";
 import { liveMarkers } from "./live-markers";
 import { invisibles } from "./invisibles";
 import { editorLineNumbers } from "./line-numbers";
+import { findReplace } from "./find-replace";
 
 interface BuildExtensionsOptions {
   wordWrap: boolean;
@@ -121,7 +123,10 @@ export function buildExtensions(opts: BuildExtensionsOptions): Extension[] {
     // Tab / Shift-Tab between template blanks, after the table bindings so a
     // table cell keeps its own Tab.
     templateBlanks,
-    keymap.of([...formatKeymap, ...historyKeymap, ...defaultKeymap]),
+    findReplace(),
+    // formatKeymap first: its Mod-Shift-l (link) wins over searchKeymap's
+    // select-all-matches binding.
+    keymap.of([...formatKeymap, ...searchKeymap, ...historyKeymap, ...defaultKeymap]),
     EditorView.editable.of(!opts.readOnly),
     EditorView.domEventHandlers({
       keydown: (event, view) => {
