@@ -25,12 +25,18 @@ function markers(doc: string, caret?: number, focused = true): string[] {
     const text = state.doc.sliceString(from, to);
     const cls = deco.spec.class;
     const style = deco.spec.attributes?.style;
+    const widget = deco.spec.widget?.constructor.name;
     if (cls === "cm-listLine") out.push(`hang:${style.replace("--list-hang: ", "")}`);
+    else if (cls === "cm-listGap") out.push("gap");
+    else if (cls === "cm-codeFenceRow") out.push("fence-row");
+    else if (widget === "CodeLanguageWidget") out.push(`lang:${deco.spec.widget.language}`);
+    else if (widget === "CalloutLabelWidget") out.push(`callout:${text}`);
+    else if (cls === "cm-fenceHidden") out.push(`fence:${text}`);
     else if (from === to) out.push("line");
     else if (cls === "cm-listIndent") out.push(`indent:${style}`);
     else if (cls === "cm-listNumber") out.push(`number:${text}`);
     else if (cls === "cm-marginMarks") out.push(`margin:${text}`);
-    else if (deco.spec.widget) out.push(`${deco.spec.widget.constructor.name === "TaskBoxWidget" ? "task" : "bullet"}:${text}`);
+    else if (widget) out.push(`${widget === "TaskBoxWidget" ? "task" : "bullet"}:${text}`);
     else out.push(`hide:${text}`);
   });
   return out;
@@ -106,9 +112,26 @@ describe("buildLiveMarkerDecorations", () => {
     expect(out.some((m) => m.startsWith("indent") || m.startsWith("hang"))).toBe(false);
   });
 
-  it("leaves callouts and code alone", () => {
-    const doc = "> [!note] Title\n> body\n\n```\n**not bold**\n```\n\nEnd";
-    expect(markers(doc, doc.length)).toEqual([]);
+  it("shows a callout's type as a label and hides its body's marks", () => {
+    const doc = "> [!note] Title\n> body\n\nEnd";
+    expect(markers(doc, doc.length)).toEqual(["callout:> [!note] ", "hide:> "]);
+    // Caret at the title's start: still a label, the body line's marks in the margin.
+    expect(markers(doc, doc.indexOf("Title"))).toEqual(["callout:> [!note] ", "hide:> "]);
+    expect(markers(doc, doc.indexOf("body"))).toEqual(["callout:> [!note] ", "margin:> "]);
+    // Caret before the title (Home): the syntax shows.
+    expect(markers(doc, 0)).toEqual(["hide:> "]);
+  });
+
+  it("fades a fenced block's fences away from the caret, keeping their rows", () => {
+    const doc = "```js\n**not bold**\n```\n\nEnd";
+    expect(markers(doc, doc.length)).toEqual(["fence-row", "fence:```js", "lang:js", "fence:```"]);
+    expect(markers(doc, doc.indexOf("not"))).toEqual([]);
+    expect(markers("```\ncode\n```\n\nEnd", 0, false)).toEqual(["fence:```", "fence:```"]);
+  });
+
+  it("halves blank lines inside a list", () => {
+    const doc = "- one\n\n- two\n\nEnd";
+    expect(markers(doc, doc.length).filter((m) => m === "gap")).toEqual(["gap"]);
   });
 
   it("leaves frontmatter alone", () => {

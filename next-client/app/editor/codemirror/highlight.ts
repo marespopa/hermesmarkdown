@@ -1,15 +1,9 @@
 import { EditorView, Decoration, DecorationSet, ViewPlugin, ViewUpdate } from "@codemirror/view";
 import { EditorState, Range } from "@codemirror/state";
-import { WORKFLOW_TAGS, TODO_TAGS } from "../components/constants";
 import { CALLOUT_META, CALLOUT_ALIASES } from "../constants/callouts";
 import {
-  REGEX_DATE_ISO,
-  REGEX_DATE_SLASHED,
-  REGEX_DATE_DOTTED,
-  REGEX_DATE_WIKI,
   REGEX_CODE_INLINE,
   REGEX_WIKILINK,
-  REGEX_HASHTAG,
   REGEX_LINK,
   REGEX_BOLD,
   REGEX_ITALIC,
@@ -34,17 +28,6 @@ const FADED = "opacity-40 dark:opacity-50 transition-opacity duration-500 hover:
 // span (live-markers.ts): fainter than other syntax, so the word they wrap
 // stays what you read.
 const FADED_MARK = "opacity-25 dark:opacity-30";
-const TRANSITION = "transition-all duration-100 ease-in-out";
-const EDITOR_TAG_COLORS: Record<string, string> = {
-  draft: "!text-amber-600 dark:!text-amber-400",
-  review: "!text-sage dark:!text-sage",
-  active: "!text-emerald-600 dark:!text-emerald-400",
-  archived: "!text-ink-muted dark:!text-stone",
-  todo: "!text-sage dark:!text-sage",
-  prog: "!text-orange-500 dark:!text-orange-400",
-  hold: "!text-violet-500 dark:!text-violet-400",
-  done: "!text-teal-600 dark:!text-teal-400",
-};
 
 const REGEX_OBSIDIAN_CALLOUT = /^(>\s*)+\[!(\w+)\]([+-]?)\s*(.*)$/i;
 const REGEX_OBSIDIAN_QUOTE_DEPTH = /^(>\s*)+/;
@@ -53,7 +36,7 @@ const REGEX_HEADING = /^#{1,6}\s/;
 const REGEX_HEADING_PARTS = /^(#{1,6}\s+)(.*)$/;
 const REGEX_BLOCKQUOTE_PARTS = /^(>\s?)(.*)$/;
 const REGEX_LIST_ITEM = /^\s*[-*+]\s+/;
-const REGEX_LIST_PARTS = /^(\s*[-*+]\s+)(\[[ xX]\]\s+)?(.*)$/;
+const REGEX_LIST_PARTS = /^(\s*[-*+]\s+)(\[[ xX/-]\]\s+)?(.*)$/;
 const REGEX_TABLE_LINE = /^\s*\|/;
 const REGEX_TABLE_SEPARATOR = /^\s*\|[\s:|-]+\|/;
 
@@ -71,22 +54,12 @@ function mark(ranges: MarkRange[], from: number, to: number, className: string) 
   if (to > from) ranges.push({ from, to, class: className });
 }
 
-// Runs the inline regex passes (dates, wikilinks, code, hashtags, links,
-// bold/italic, strikethrough) over one line's label text, emitting
+// Runs the inline regex passes (wikilinks, code, links, bold/italic,
+// strikethrough; tags and dates are chips, tag-pills.ts and
+// annotation-display.ts) over one line's label text, emitting
 // absolute-position mark decorations. `base` is the doc offset of label[0].
 function processInline(ranges: MarkRange[], label: string, base: number) {
   const push = (from: number, to: number, cls: string) => mark(ranges, base + from, base + to, cls);
-
-  if (/\d/.test(label)) {
-    for (const m of label.matchAll(REGEX_DATE_WIKI)) {
-      push(m.index!, m.index! + 2, FADED);
-      push(m.index! + 2, m.index! + m[0].length - 2, TRANSITION);
-      push(m.index! + m[0].length - 2, m.index! + m[0].length, FADED);
-    }
-    for (const re of [REGEX_DATE_ISO, REGEX_DATE_SLASHED, REGEX_DATE_DOTTED]) {
-      for (const m of label.matchAll(re)) push(m.index!, m.index! + m[0].length, TRANSITION);
-    }
-  }
 
   if (label.includes("[[")) {
     for (const m of label.matchAll(REGEX_WIKILINK)) {
@@ -104,17 +77,6 @@ function processInline(ranges: MarkRange[], label: string, base: number) {
       push(i, i + open.length, FADED_MARK);
       push(i + open.length, i + open.length + inner.length, "cm-inline-code");
       push(i + open.length + inner.length, i + full.length, FADED_MARK);
-    }
-  }
-
-  if (label.includes("#")) {
-    for (const m of label.matchAll(REGEX_HASHTAG)) {
-      const fullTag = m[2];
-      const tagName = fullTag.slice(1).toLowerCase();
-      const isColored = WORKFLOW_TAGS.includes(tagName) || TODO_TAGS.includes(tagName);
-      const cls = isColored ? EDITOR_TAG_COLORS[tagName] : "!text-zinc-700 dark:!text-zinc-300";
-      const tagStart = m.index! + m[1].length;
-      push(tagStart, tagStart + fullTag.length, `${cls} font-bold cursor-pointer`);
     }
   }
 
@@ -299,8 +261,9 @@ export function computeMarkdownDecorations(state: EditorState): DecorationSet {
         mark(ranges, base + cursor, base + cursor + check.length, FADED);
         cursor += check.length;
       }
-      const isChecked = check?.toLowerCase().includes("x");
-      if (isChecked) mark(ranges, base + cursor, line.to, "line-through opacity-40");
+      const state = check?.[1].toLowerCase();
+      if (state === "x") mark(ranges, base + cursor, line.to, "cm-task-done");
+      else if (state === "-") mark(ranges, base + cursor, line.to, "cm-task-cancelled");
       processInline(ranges, label, base + cursor);
     } else if (isPipeLine) {
       const isSeparator = REGEX_TABLE_SEPARATOR.test(text);

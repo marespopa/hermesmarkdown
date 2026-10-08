@@ -3,7 +3,6 @@ import { EditorView } from "@codemirror/view";
 import { describe, expect, it } from "vitest";
 import {
   annotationDisplayPlugin,
-  buildAnnotationDisplayDecorations,
   collectAnnotationDisplayMatches,
 } from "./annotation-display";
 
@@ -42,7 +41,7 @@ describe("collectAnnotationDisplayMatches", () => {
 });
 
 describe("annotationDisplayPlugin", () => {
-  it("renders subtle labels and reveals raw syntax when selected", () => {
+  it("renders subtle labels and shows the raw syntax inside the same chip when selected", () => {
     const doc = "Ship @due(2026-09-25) @priority(med)";
     const view = new EditorView({
       state: EditorState.create({
@@ -57,12 +56,12 @@ describe("annotationDisplayPlugin", () => {
     expect(view.dom.querySelector(".cm-priority-display-med")).toHaveTextContent("Medium");
 
     view.dispatch({ selection: EditorSelection.cursor(doc.indexOf("@priority")) });
-    expect(buildAnnotationDisplayDecorations(view).size).toBe(1);
-    expect(view.contentDOM).toHaveTextContent("@priority(med)");
+    expect(view.dom.querySelector(".cm-priority-display-med.cm-chip-editing")).toHaveTextContent("@priority(med)");
+    expect(view.dom.querySelector(".cm-date-display")).toHaveTextContent("Due 2026-09-25");
     view.destroy();
   });
 
-  it("reveals every annotation when the whole document is selected", () => {
+  it("shows every annotation's raw text when the whole document is selected", () => {
     const doc = "2026-09-25 @priority(high)";
     const view = new EditorView({
       state: EditorState.create({
@@ -74,8 +73,8 @@ describe("annotationDisplayPlugin", () => {
     });
 
     view.dispatch({ selection: EditorSelection.range(0, doc.length) });
-    expect(buildAnnotationDisplayDecorations(view).size).toBe(0);
-    expect(view.dom.querySelector(".cm-annotation-display")).toBeNull();
+    const editing = view.dom.querySelectorAll(".cm-annotation-display.cm-chip-editing");
+    expect([...editing].map((node) => node.textContent)).toEqual(["2026-09-25", "@priority(high)"]);
     view.destroy();
   });
 });

@@ -106,7 +106,7 @@ export const editorWritingItems: Subsection[] = [
     id: "markdown-marks",
     title: "Markdown marks",
     lead: "Notes read like a page: Markdown marks appear only where you're editing.",
-    keywords: "markdown syntax hidden marks bold italic strikethrough heading quote bullet list task checkbox numbered live preview",
+    keywords: "markdown syntax hidden marks bold italic strikethrough heading quote bullet list task checkbox numbered callout code block fence language tag date chip live preview",
     body: (
       <>
         <p>
@@ -114,7 +114,7 @@ export const editorWritingItems: Subsection[] = [
           text they wrap. A heading&apos;s <code>#</code> and a quote&apos;s <code>&gt;</code> show
           faintly in the margin while the caret is on their line, so the words never move. Lists
           look the same whether you&apos;re editing them or not, and a long item wraps under its
-          own text.
+          own text. Tags and dates keep their chip while you edit the text inside it.
         </p>
         <KV
           rows={[
@@ -123,6 +123,9 @@ export const editorWritingItems: Subsection[] = [
             { label: "- List item", value: "Always shown as • (◦ when nested)" },
             { label: "- [ ] Task", value: "Always shown as a checkbox; click it to tick the task" },
             { label: "1. Numbered item", value: "The number sits in a muted column" },
+            { label: "> [!note] Title", value: "Shown as a NOTE label; press Home on the line to edit the type" },
+            { label: "```js … ```", value: "Fences fade out away from the caret; the language shows in the corner" },
+            { label: "#tag, 2026-10-08", value: "Stay chips while you edit them" },
             { label: "Other editor", value: "A split pane you're not typing in shows no marks" },
           ]}
         />
@@ -318,6 +321,11 @@ graph TD
           Rest the cursor on any link and a small floating pill appears with two actions: the pencil
           reopens the same dialog to edit its text or URL, and the external-link icon opens it.
           <code>CTRL+Click</code> the link directly to open it without the pill.
+        </p>
+        <p>
+          While you edit a link&apos;s text, its URL stays folded into a small <code>↗</code>, so
+          the paragraph doesn&apos;t rewrap around it. Click the <code>↗</code>, or move the caret
+          inside the parentheses, to edit the URL itself.
         </p>
       </>
     ),

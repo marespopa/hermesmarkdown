@@ -49,8 +49,31 @@ describe("linkDisplayPlugin", () => {
 
     view.dispatch({ selection: EditorSelection.cursor(doc.indexOf("the guide")) });
 
-    expect(buildLinkDisplayDecorations(view).size).toBe(1);
+    // Editing the label: the raw label shows, its URL folded into a ↗ chip.
     expect(view.dom.querySelectorAll(".cm-link-display")).toHaveLength(1);
+    expect(view.dom.querySelector(".cm-link-url-chip")).toHaveTextContent("↗");
+    expect(view.dom.textContent).toContain("[the guide]");
+    expect(view.dom.textContent).not.toContain("example.com");
+    view.destroy();
+  });
+
+  it("unfolds a link's URL once the caret is inside it, or its chip is clicked", () => {
+    const doc = "Open [the guide](https://example.com) now";
+    const view = new EditorView({
+      state: EditorState.create({
+        doc,
+        selection: EditorSelection.cursor(doc.indexOf(")") + 1),
+        extensions: [linkDisplayPlugin],
+      }),
+      parent: document.body,
+    });
+
+    // Right after the closing ")", as when the link was just typed: still folded.
+    expect(view.dom.querySelector(".cm-link-url-chip")).not.toBeNull();
+    view.dom.querySelector(".cm-link-url-chip")!.dispatchEvent(new MouseEvent("mousedown", { bubbles: true }));
+    expect(view.state.selection.main.head).toBe(doc.indexOf("(") + 1);
+    expect(view.dom.querySelector(".cm-link-url-chip")).toBeNull();
+    expect(view.dom.textContent).toContain("(https://example.com)");
     view.destroy();
   });
 

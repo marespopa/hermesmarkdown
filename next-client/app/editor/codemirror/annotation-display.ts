@@ -94,6 +94,12 @@ export function selectionTouchesAnnotation(selection: EditorSelection, from: num
   return selection.ranges.some((range) => range.to >= from && range.from <= to);
 }
 
+function annotationClassName(match: AnnotationDisplayMatch): string {
+  return match.type === "date"
+    ? `cm-annotation-display cm-date-display cm-date-display-${match.kind}`
+    : `cm-annotation-display cm-priority-display cm-priority-display-${match.kind}`;
+}
+
 class AnnotationDisplayWidget extends WidgetType {
   constructor(private readonly match: AnnotationDisplayMatch) {
     super();
@@ -109,9 +115,7 @@ class AnnotationDisplayWidget extends WidgetType {
   toDOM() {
     const node = document.createElement("span");
     node.textContent = this.match.label;
-    node.className = this.match.type === "date"
-      ? `cm-annotation-display cm-date-display cm-date-display-${this.match.kind}`
-      : `cm-annotation-display cm-priority-display cm-priority-display-${this.match.kind}`;
+    node.className = annotationClassName(this.match);
     node.setAttribute("aria-label", this.match.type === "date"
       ? `Date ${this.match.label}`
       : `Priority ${this.match.label}`);
@@ -130,7 +134,12 @@ export function buildAnnotationDisplayDecorations(view: EditorView): DecorationS
 
   for (const match of collectAnnotationDisplayMatches(view.state.doc.toString())) {
     const visible = view.visibleRanges.some((range) => range.from <= match.from && match.to <= range.to);
-    if (!visible || selectionTouchesAnnotation(selection, match.from, match.to)) continue;
+    if (!visible) continue;
+    // Being edited: the raw text inside the same chip, so the line doesn't shift.
+    if (selectionTouchesAnnotation(selection, match.from, match.to)) {
+      ranges.push(Decoration.mark({ class: `${annotationClassName(match)} cm-chip-editing` }).range(match.from, match.to));
+      continue;
+    }
     ranges.push(Decoration.replace({
       widget: new AnnotationDisplayWidget(match),
       side: 1,
