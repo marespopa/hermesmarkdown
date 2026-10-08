@@ -7,26 +7,48 @@ import { findFrontmatterFoldRange } from "./frontmatter-fold";
 // Live markers: Markdown syntax stays out of sight until the caret reaches
 // it, so a note reads like a page while it stays editable. Inline marks
 // (`**`, `_`, `~~`, inline-code backticks) show while a caret or selection
-// touches their span; a heading's `#`s and a quote's `>` show while the caret
-// is on their line; a bullet's `-` reads as • (◦ when nested) until the caret
-// touches it. An unfocused editor reveals nothing. Callouts, task items,
-// ordered lists, fenced code and frontmatter keep their own display.
-// A list item's leading indent is drawn wider than its spaces, caret or not:
-// two or three spaces in a proportional font read as one, so a nested item
-// would barely move.
+// touches their span. A heading's `#`s and a quote's `>` show while the caret
+// is on their line, hung in the margin left of the text so the words never
+// move. List markers never change with the caret: a bullet's `-` always reads
+// as • (◦ when nested), a task's `- [ ]` as a checkbox that ticks on a click,
+// and an ordered item's `1.` sits in a muted, fixed-width box. An unfocused
+// editor reveals nothing. Callouts, fenced code and frontmatter keep their
+// own display.
+//
+// List geometry is in columns of LIST_INDENT_EM_PER_COLUMN: a two-space
+// indent is as wide as a bullet's box ("- "), a three-space one as "1. ", so
+// a nested item starts exactly under its parent's text. An item's wrapped
+// lines hang at that same text edge.
 
 const hidden = Decoration.replace({});
 const quoteLine = Decoration.line({ class: "cm-liveQuote" });
 const REGEX_CALLOUT_START = /^(>\s*)+\[!\w+\]/;
-// Width of one column of a list item's indent: "- " (two columns) nests
-// 1.5em in, "1. " (three) 2.25em.
+// A run of `>`s from a line's first QuoteMark: "> ", "> > ", ">>".
+const REGEX_QUOTE_PREFIX = /^>(?:[ \t]*>)*[ \t]?/;
+// A task box right after a bullet: " [ ] ", " [x] ", " [/] " (in progress), " [-] " (cancelled).
+const REGEX_TASK_BOX = /^[ \t]\[([ xX/-])\](?=[ \t\n]|$)/;
 const LIST_INDENT_EM_PER_COLUMN = 0.75;
+// A bullet's or task's box is as wide as "- ", whatever the marker's spacing.
+const BULLET_COLUMNS = 2;
+
+const em = (columns: number) => `${columns * LIST_INDENT_EM_PER_COLUMN}em`;
 
 function listIndent(columns: number) {
-  return Decoration.mark({
-    class: "cm-listIndent",
-    attributes: { style: `width: ${columns * LIST_INDENT_EM_PER_COLUMN}em` },
-  });
+  return Decoration.mark({ class: "cm-listIndent", attributes: { style: `width: ${em(columns)}` } });
+}
+
+function orderedMarker(columns: number) {
+  return Decoration.mark({ class: "cm-listNumber", attributes: { style: `width: ${em(columns)}` } });
+}
+
+// The item's first line: wrapped rows start at its text, not under the marker.
+function hangingLine(columns: number) {
+  return Decoration.line({ class: "cm-listLine", attributes: { style: `--list-hang: ${em(columns)}` } });
+}
+
+// Structural marks (`## `, `> `) on the caret's line, drawn in the margin.
+function marginMarks(chars: number) {
+  return Decoration.mark({ class: "cm-marginMarks", attributes: { style: `--marks-width: ${chars * 0.7 + 0.4}em` } });
 }
 
 class BulletWidget extends WidgetType {
@@ -41,6 +63,7 @@ class BulletWidget extends WidgetType {
   toDOM() {
     const node = document.createElement("span");
     node.className = "cm-liveBullet";
+    node.style.width = em(BULLET_COLUMNS);
     node.textContent = this.depth % 2 === 0 ? "•" : "◦";
     node.setAttribute("aria-hidden", "true");
     return node;
@@ -49,6 +72,51 @@ class BulletWidget extends WidgetType {
   ignoreEvent() {
     return false;
   }
+}
+
+// `state` is the character between the brackets.
+class TaskBoxWidget extends WidgetType {
+  constructor(readonly state: string) {
+    super();
+  }
+
+  eq(other: TaskBoxWidget) {
+    return other.state === this.state;
+  }
+
+  toDOM(view: EditorView) {
+    const node = document.createElement("span");
+    node.className = "cm-liveTask";
+    node.style.width = em(BULLET_COLUMNS);
+    node.dataset.state = this.state === " " ? "open" : this.state === "/" ? "progress" : this.state === "-" ? "cancelled" : "done";
+    node.setAttribute("role", "checkbox");
+    node.setAttribute("aria-checked", this.state === "x" ? "true" : this.state === "/" ? "mixed" : "false");
+    const box = node.appendChild(document.createElement("span"));
+    box.className = "cm-liveTask-box";
+    node.addEventListener("mousedown", (event) => {
+      event.preventDefault();
+      toggleTaskBox(view, view.posAtDOM(node));
+    });
+    return node;
+  }
+
+  ignoreEvent() {
+    return true;
+  }
+}
+
+// Ticks the task whose widget starts at `markerFrom`, or clears a done one.
+export function toggleTaskBox(view: EditorView, markerFrom: number): boolean {
+  const line = view.state.doc.lineAt(markerFrom);
+  const bracket = line.text.indexOf("[", markerFrom - line.from);
+  if (bracket < 0) return false;
+  const at = line.from + bracket + 1;
+  const current = view.state.doc.sliceString(at, at + 1);
+  view.dispatch({
+    changes: { from: at, to: at + 1, insert: current.toLowerCase() === "x" ? " " : "x" },
+    userEvent: "input.outline.task",
+  });
+  return true;
 }
 
 function bulletDepth(node: SyntaxNode): number {
@@ -71,6 +139,26 @@ function touches(selection: EditorSelection | null, from: number, to: number): b
 function touchesLine(state: EditorState, selection: EditorSelection | null, pos: number): boolean {
   const line = state.doc.lineAt(pos);
   return touches(selection, line.from, line.to);
+}
+
+interface ListMarker {
+  kind: "bullet" | "task" | "ordered";
+  /** End of the marker, its following space and any task box. */
+  to: number;
+  /** Columns the marker box takes. */
+  columns: number;
+  /** Task state: the character between the brackets. */
+  task?: string;
+}
+
+function listMarker(state: EditorState, mark: SyntaxNode): ListMarker | null {
+  const list = mark.parent?.parent?.name;
+  const to = withTrailingSpace(state, mark.to);
+  if (list === "OrderedList") return { kind: "ordered", to, columns: to - mark.from };
+  if (list !== "BulletList") return null;
+  const box = REGEX_TASK_BOX.exec(state.doc.sliceString(mark.to, mark.to + 5));
+  if (!box) return { kind: "bullet", to, columns: BULLET_COLUMNS };
+  return { kind: "task", to: withTrailingSpace(state, mark.to + box[0].length), columns: BULLET_COLUMNS, task: box[1].toLowerCase() };
 }
 
 export function buildLiveMarkerDecorations(
@@ -103,15 +191,19 @@ export function buildLiveMarkerDecorations(
           case "HeaderMark": {
             // Setext underlines and closing `#`s stay as typed.
             if (ref.from !== node.parent?.from || !node.parent.name.startsWith("ATXHeading")) return;
-            if (touchesLine(state, selection, ref.from)) return;
-            ranges.push(hidden.range(ref.from, withTrailingSpace(state, ref.to)));
+            const to = withTrailingSpace(state, ref.to);
+            const deco = touchesLine(state, selection, ref.from) ? marginMarks(ref.to - ref.from) : hidden;
+            ranges.push(deco.range(ref.from, to));
             return;
           }
           case "QuoteMark": {
+            // One range per line covers every `>` of a nested quote.
             const line = doc.lineAt(ref.from);
+            if (quotedLines.has(line.number)) return;
             quotedLines.add(line.number);
-            if (touches(selection, line.from, line.to)) return;
-            ranges.push(hidden.range(ref.from, withTrailingSpace(state, ref.to)));
+            const prefix = REGEX_QUOTE_PREFIX.exec(doc.sliceString(ref.from, line.to))![0];
+            const deco = touches(selection, line.from, line.to) ? marginMarks(prefix.trim().length) : hidden;
+            ranges.push(deco.range(ref.from, ref.from + prefix.length));
             return;
           }
           case "EmphasisMark":
@@ -131,16 +223,25 @@ export function buildLiveMarkerDecorations(
             // Only plain indentation before the marker (not a quote's `>`).
             const line = doc.lineAt(ref.from);
             const leading = doc.sliceString(line.from, ref.from);
-            if (!/^[ \t]+$/.test(leading)) return;
+            if (leading && !/^[ \t]+$/.test(leading)) return;
+            const mark = node.getChild("ListMark");
+            const marker = mark && listMarker(state, mark);
+            if (!marker) return;
             const columns = leading.replace(/\t/g, "    ").length;
-            ranges.push(listIndent(columns).range(line.from, ref.from));
+            ranges.push(hangingLine(columns + marker.columns).range(line.from));
+            if (columns) ranges.push(listIndent(columns).range(line.from, ref.from));
             return;
           }
           case "ListMark": {
-            if (node.parent?.parent?.name !== "BulletList" || node.parent.getChild("Task")) return;
-            const to = withTrailingSpace(state, ref.to);
-            if (touches(selection, ref.from, to)) return;
-            ranges.push(Decoration.replace({ widget: new BulletWidget(bulletDepth(node)) }).range(ref.from, ref.to));
+            const marker = listMarker(state, node);
+            if (!marker) return;
+            if (marker.kind === "ordered") {
+              ranges.push(orderedMarker(marker.columns).range(ref.from, marker.to));
+            } else if (marker.kind === "task") {
+              ranges.push(Decoration.replace({ widget: new TaskBoxWidget(marker.task!) }).range(ref.from, marker.to));
+            } else {
+              ranges.push(Decoration.replace({ widget: new BulletWidget(bulletDepth(node)) }).range(ref.from, marker.to));
+            }
             return;
           }
         }
@@ -177,6 +278,16 @@ export const liveMarkersTheme = EditorView.theme({
     borderLeft: "3px solid var(--border)",
     paddingLeft: "0.9em !important",
   },
+  // Hanging indent: a transparent border, not padding (drawSelection() reads
+  // the first line's padding-left for every selection rect), pulled back on
+  // the first row by a negative text-indent.
+  ".cm-listLine": {
+    borderLeft: "var(--list-hang) solid transparent",
+    textIndent: "calc(-1 * var(--list-hang))",
+  },
+  ".cm-listLine *": {
+    textIndent: "0",
+  },
   ".cm-listIndent": {
     display: "inline-block",
     overflow: "hidden",
@@ -184,8 +295,58 @@ export const liveMarkersTheme = EditorView.theme({
   },
   ".cm-liveBullet": {
     display: "inline-block",
-    width: "1.1em",
     color: "var(--fg-muted)",
+  },
+  ".cm-listNumber": {
+    display: "inline-block",
+    whiteSpace: "pre",
+    color: "var(--fg-muted)",
+    fontVariantNumeric: "tabular-nums",
+  },
+  ".cm-liveTask": {
+    display: "inline-block",
+    cursor: "pointer",
+    verticalAlign: "baseline",
+  },
+  ".cm-liveTask-box": {
+    display: "inline-block",
+    boxSizing: "border-box",
+    width: "0.85em",
+    height: "0.85em",
+    verticalAlign: "-0.1em",
+    border: "1.5px solid var(--fg-faint)",
+    borderRadius: "0.25em",
+    transition: "background-color 120ms ease, border-color 120ms ease",
+  },
+  ".cm-liveTask[data-state=done] .cm-liveTask-box": {
+    borderColor: "var(--fg-muted)",
+    backgroundColor: "var(--fg-muted)",
+    backgroundImage:
+      "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M4 8.5l2.5 2.5L12 5.5' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E\")",
+    backgroundSize: "100% 100%",
+  },
+  ".cm-liveTask[data-state=progress] .cm-liveTask-box": {
+    backgroundImage: "linear-gradient(to right, var(--fg-faint) 50%, transparent 50%)",
+  },
+  ".cm-liveTask[data-state=cancelled] .cm-liveTask-box": {
+    backgroundImage: "linear-gradient(var(--fg-faint), var(--fg-faint))",
+    backgroundSize: "60% 1.5px",
+    backgroundPosition: "center",
+    backgroundRepeat: "no-repeat",
+  },
+  // A zero-width box whose marks sit right-aligned against the text, so
+  // revealing them never moves a word. Smaller and faint, set on the line's
+  // baseline.
+  ".cm-marginMarks": {
+    display: "inline-block",
+    width: "var(--marks-width)",
+    marginLeft: "calc(-1 * var(--marks-width))",
+    textAlign: "right",
+    whiteSpace: "pre",
+    fontSize: "max(0.6em, 11px)",
+    fontWeight: "400",
+    letterSpacing: "0",
+    color: "var(--fg-faint)",
   },
 });
 

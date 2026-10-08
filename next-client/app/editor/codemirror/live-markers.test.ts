@@ -11,20 +11,32 @@ function stateFor(doc: string, caret?: number) {
   });
 }
 
-// What each decoration does: "hide:<text>" for a hidden range, "bullet:<text>"
-// for a marker drawn as a bullet, "indent:<width>" for a list item's widened
-// indent, "line" for a line decoration.
+// What each decoration does: "hide:<text>" for a hidden range,
+// "bullet:<text>" / "task:<text>" for a marker drawn as a bullet or checkbox,
+// "margin:<text>" for marks hung in the margin, "number:<text>" for an
+// ordered marker's box, "indent:<width>" for a list item's widened indent,
+// "hang:<width>" for a list line's hanging indent, "line" for any other line
+// decoration.
 function markers(doc: string, caret?: number, focused = true): string[] {
   const state = stateFor(doc, caret);
   const set = buildLiveMarkerDecorations(state, [{ from: 0, to: state.doc.length }], focused);
   const out: string[] = [];
   set.between(0, state.doc.length, (from, to, deco) => {
-    if (from === to) out.push("line");
-    else if (deco.spec.class === "cm-listIndent") out.push(`indent:${deco.spec.attributes.style}`);
-    else out.push(`${deco.spec.widget ? "bullet" : "hide"}:${state.doc.sliceString(from, to)}`);
+    const text = state.doc.sliceString(from, to);
+    const cls = deco.spec.class;
+    const style = deco.spec.attributes?.style;
+    if (cls === "cm-listLine") out.push(`hang:${style.replace("--list-hang: ", "")}`);
+    else if (from === to) out.push("line");
+    else if (cls === "cm-listIndent") out.push(`indent:${style}`);
+    else if (cls === "cm-listNumber") out.push(`number:${text}`);
+    else if (cls === "cm-marginMarks") out.push(`margin:${text}`);
+    else if (deco.spec.widget) out.push(`${deco.spec.widget.constructor.name === "TaskBoxWidget" ? "task" : "bullet"}:${text}`);
+    else out.push(`hide:${text}`);
   });
   return out;
 }
+
+const withoutHangs = (list: string[]) => list.filter((m) => !m.startsWith("hang:"));
 
 describe("buildLiveMarkerDecorations", () => {
   it("hides bold, italic, strikethrough and inline-code marks away from the caret", () => {
@@ -41,19 +53,37 @@ describe("buildLiveMarkerDecorations", () => {
     expect(markers(doc, doc.length)).toEqual(["hide:**", "hide:**"]);
   });
 
-  it("reveals heading and quote marks only on the caret's line", () => {
+  it("hangs heading and quote marks in the margin on the caret's line", () => {
     const doc = "# Title\n\n> Quoted\n\nBody";
     expect(markers(doc, doc.length)).toEqual(["hide:# ", "line", "hide:> "]);
-    expect(markers(doc, 3)).toEqual(["line", "hide:> "]);
-    expect(markers(doc, doc.indexOf("Quoted"))).toEqual(["hide:# ", "line"]);
+    expect(markers(doc, 3)).toEqual(["margin:# ", "line", "hide:> "]);
+    expect(markers(doc, doc.indexOf("Quoted"))).toEqual(["hide:# ", "line", "margin:> "]);
   });
 
-  it("draws bullets for list dashes until the caret touches the marker", () => {
+  it("treats a nested quote's marks as one run", () => {
+    const doc = "> > deep\n\nEnd";
+    expect(markers(doc, doc.length)).toEqual(["line", "hide:> > "]);
+  });
+
+  it("draws bullets for list dashes wherever the caret is", () => {
     const doc = "- one\n- two\n\nEnd";
-    expect(markers(doc, doc.length)).toEqual(["bullet:-", "bullet:-"]);
-    expect(markers(doc, 1)).toEqual(["bullet:-"]);
-    // Caret in the item's text, past the marker: still a bullet.
-    expect(markers(doc, doc.indexOf("two") + 2)).toEqual(["bullet:-", "bullet:-"]);
+    const bullets = ["bullet:- ", "bullet:- "];
+    expect(withoutHangs(markers(doc, doc.length))).toEqual(bullets);
+    // Caret on the dash, or right after "- " where Enter leaves it: still a bullet.
+    expect(withoutHangs(markers(doc, 1))).toEqual(bullets);
+    expect(withoutHangs(markers(doc, doc.indexOf("two")))).toEqual(bullets);
+  });
+
+  it("draws task boxes as checkboxes wherever the caret is", () => {
+    const doc = "- [ ] open\n- [x] done\n- [/] going\n\nEnd";
+    const tasks = ["task:- [ ] ", "task:- [x] ", "task:- [/] "];
+    expect(withoutHangs(markers(doc, doc.length))).toEqual(tasks);
+    expect(withoutHangs(markers(doc, doc.indexOf("open")))).toEqual(tasks);
+  });
+
+  it("sets ordered markers in a fixed-width box", () => {
+    const doc = "1. first\n10. tenth\n\nEnd";
+    expect(withoutHangs(markers(doc, doc.length))).toEqual(["number:1. ", "number:10. "]);
   });
 
   it("widens a nested item's indent whether or not the caret is on it", () => {
@@ -63,13 +93,21 @@ describe("buildLiveMarkerDecorations", () => {
     expect(markers(doc, doc.indexOf("two")).filter((m) => m.startsWith("indent"))).toEqual(expected);
   });
 
-  it("leaves a quoted list item's prefix alone", () => {
-    const doc = "> - one\n>   - two\n\nEnd";
-    expect(markers(doc, doc.length).some((m) => m.startsWith("indent"))).toBe(false);
+  it("hangs an item's wrapped lines at its text", () => {
+    const doc = "- one\n  - two\n- [ ] task\n1. first\n   1. second\n\nEnd";
+    expect(markers(doc, doc.length).filter((m) => m.startsWith("hang"))).toEqual([
+      "hang:1.5em", "hang:3em", "hang:1.5em", "hang:2.25em", "hang:4.5em",
+    ]);
   });
 
-  it("leaves task items, ordered lists, callouts and code alone", () => {
-    const doc = "- [ ] task\n1. first\n\n> [!note] Title\n> body\n\n```\n**not bold**\n```\n\nEnd";
+  it("leaves a quoted list item's prefix alone", () => {
+    const doc = "> - one\n>   - two\n\nEnd";
+    const out = markers(doc, doc.length);
+    expect(out.some((m) => m.startsWith("indent") || m.startsWith("hang"))).toBe(false);
+  });
+
+  it("leaves callouts and code alone", () => {
+    const doc = "> [!note] Title\n> body\n\n```\n**not bold**\n```\n\nEnd";
     expect(markers(doc, doc.length)).toEqual([]);
   });
 

@@ -30,6 +30,10 @@ import {
 // covers static syntax coloring.
 
 const FADED = "opacity-40 dark:opacity-50 transition-opacity duration-500 hover:opacity-100";
+// Emphasis and inline-code marks, shown only while the caret touches their
+// span (live-markers.ts): fainter than other syntax, so the word they wrap
+// stays what you read.
+const FADED_MARK = "opacity-25 dark:opacity-30";
 const TRANSITION = "transition-all duration-100 ease-in-out";
 const EDITOR_TAG_COLORS: Record<string, string> = {
   draft: "!text-amber-600 dark:!text-amber-400",
@@ -97,9 +101,9 @@ function processInline(ranges: MarkRange[], label: string, base: number) {
     for (const m of label.matchAll(REGEX_CODE_INLINE)) {
       const [full, open, inner] = m;
       const i = m.index!;
-      push(i, i + open.length, FADED);
+      push(i, i + open.length, FADED_MARK);
       push(i + open.length, i + open.length + inner.length, "cm-inline-code");
-      push(i + open.length + inner.length, i + full.length, FADED);
+      push(i + open.length + inner.length, i + full.length, FADED_MARK);
     }
   }
 
@@ -128,16 +132,16 @@ function processInline(ranges: MarkRange[], label: string, base: number) {
     for (const m of label.matchAll(REGEX_BOLD)) {
       const [full, marker, inner] = m;
       const i = m.index!;
-      push(i, i + marker.length, FADED);
+      push(i, i + marker.length, FADED_MARK);
       push(i + marker.length, i + marker.length + inner.length, "font-bold text-ink-light dark:text-ink-dark");
-      push(i + marker.length + inner.length, i + full.length, FADED);
+      push(i + marker.length + inner.length, i + full.length, FADED_MARK);
     }
     for (const m of label.matchAll(REGEX_ITALIC)) {
       const [full, marker, inner] = m;
       const i = m.index!;
-      push(i, i + marker.length, FADED);
+      push(i, i + marker.length, FADED_MARK);
       push(i + marker.length, i + marker.length + inner.length, "italic text-ink-light dark:text-ink-dark");
-      push(i + marker.length + inner.length, i + full.length, FADED);
+      push(i + marker.length + inner.length, i + full.length, FADED_MARK);
     }
   }
 
@@ -145,9 +149,9 @@ function processInline(ranges: MarkRange[], label: string, base: number) {
     for (const m of label.matchAll(REGEX_STRIKETHROUGH)) {
       const [, p1, p2, p3] = m;
       let i = m.index!;
-      push(i, i + p1.length, FADED); i += p1.length;
+      push(i, i + p1.length, FADED_MARK); i += p1.length;
       push(i, i + p2.length, "line-through opacity-40"); i += p2.length;
-      push(i, i + p3.length, FADED);
+      push(i, i + p3.length, FADED_MARK);
     }
   }
 }

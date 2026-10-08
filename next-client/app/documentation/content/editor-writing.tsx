@@ -106,19 +106,23 @@ export const editorWritingItems: Subsection[] = [
     id: "markdown-marks",
     title: "Markdown marks",
     lead: "Notes read like a page: Markdown marks appear only where you're editing.",
-    keywords: "markdown syntax hidden marks bold italic strikethrough heading quote bullet list live preview",
+    keywords: "markdown syntax hidden marks bold italic strikethrough heading quote bullet list task checkbox numbered live preview",
     body: (
       <>
         <p>
           Bold, italic, strikethrough and inline-code marks are hidden until the caret touches the
           text they wrap. A heading&apos;s <code>#</code> and a quote&apos;s <code>&gt;</code> show
-          while the caret is on their line, and list dashes read as bullets until you click on them.
+          faintly in the margin while the caret is on their line, so the words never move. Lists
+          look the same whether you&apos;re editing them or not, and a long item wraps under its
+          own text.
         </p>
         <KV
           rows={[
             { label: "**bold**, *italic*, ~~strike~~, `code`", value: "Marks show while the caret is inside" },
-            { label: "# Heading, > Quote", value: "Marks show while the caret is on the line" },
-            { label: "- List item", value: "Shown as • until the caret touches the dash" },
+            { label: "# Heading, > Quote", value: "Marks show in the margin while the caret is on the line" },
+            { label: "- List item", value: "Always shown as • (◦ when nested)" },
+            { label: "- [ ] Task", value: "Always shown as a checkbox; click it to tick the task" },
+            { label: "1. Numbered item", value: "The number sits in a muted column" },
             { label: "Other editor", value: "A split pane you're not typing in shows no marks" },
           ]}
         />
