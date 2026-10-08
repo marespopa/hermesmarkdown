@@ -68,7 +68,7 @@ describe("collectTagMatches", () => {
 });
 
 describe("tagPillPlugin", () => {
-  it("renders pills outside the active selection and reveals the raw text when the cursor is inside a tag", () => {
+  it("renders pills outside the active selection and keeps the pill's look around the raw text being edited", () => {
     const doc = "before #project/subtag after";
     const state = EditorState.create({
       doc,
@@ -78,7 +78,12 @@ describe("tagPillPlugin", () => {
     const view = new EditorView({ state, parent: document.body });
 
     const range = buildTagPillDecorations(view);
-    expect(range.size).toBe(0);
+    const editing: string[] = [];
+    range.between(0, doc.length, (from, to, deco) => {
+      expect(deco.spec.widget).toBeUndefined();
+      editing.push(`${doc.slice(from, to)} ${deco.spec.class}`);
+    });
+    expect(editing).toEqual(["#project/subtag cm-tag-pill cm-tag-pill-custom cm-chip-editing"]);
 
     view.dispatch({
       selection: EditorSelection.cursor(doc.indexOf("after")),
@@ -111,5 +116,12 @@ describe("tagPillPlugin", () => {
       EditorSelection.range(text.indexOf("tag"), text.indexOf("tag") + 3),
     ]);
     expect(selectionTouchesTag(selection, 0, text.length)).toBe(true);
+  });
+
+  it("finds every tag in pasted list content", () => {
+    const doc = `- [ ] Saving creates a new file
+- Currency is shown "highlighted" only for $100 dollars, and only at the start of the line; #todo
+there are other highlighting issues, wikilinks, #todo not showed differently than another #tag`;
+    expect(collectTagMatches(doc).map((tag) => tag.text)).toEqual(["#todo", "#todo", "#tag"]);
   });
 });

@@ -1,6 +1,6 @@
 # LinkPill
 
-Description: Floating pill over a Markdown or wiki link in the editor, offering open and edit (label and URL).
+Description: Floating pill over a Markdown or wiki link in the editor. A URL link gets edit (label and URL, in a dialog) and open; a wikilink gets open only, since its `[[Note name]]` text is edited in place.
 
 ## Local State & Storage
 - State: `isEditing` plus label and URL drafts (useState).
@@ -24,5 +24,5 @@ import { LinkPill } from "./LinkPill";
 | pos | `{ top: number; left: number }` |  | Screen position |
 | type? | `"url" \| "wiki"` | `"url"` | Link kind |
 | onOpen | `() => void` |  | Open action |
-| onSave | `(newLabel: string, newUrl: string) => void` |  | Edit commit |
-| onEdit? / onDismiss | `() => void` |  | Custom edit / close |
+| onSave | `(newLabel: string, newUrl: string) => void` |  | Edit commit (URL links) |
+| onDismiss | `() => void` |  | Close |

@@ -246,7 +246,11 @@ export function buildTagPillDecorations(view: EditorView): DecorationSet {
     if (frontmatterLists.some((list) => list.from <= match.from && match.to <= list.to)) continue;
     const visible = view.visibleRanges.some((range) => range.from <= match.from && match.to <= range.to);
     if (!visible) continue;
-    if (selectionTouchesTag(selection, match.from, match.to)) continue;
+    // Being edited: the same pill, laid out as text, so the line doesn't shift.
+    if (selectionTouchesTag(selection, match.from, match.to)) {
+      ranges.push(Decoration.mark({ class: `${tagPillClassName(match.kind)} cm-chip-editing` }).range(match.from, match.to));
+      continue;
+    }
     ranges.push(Decoration.replace({ widget: new TagPillWidget(match), side: 1 }).range(match.from, match.to));
   }
 

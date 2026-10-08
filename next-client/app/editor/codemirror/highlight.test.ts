@@ -79,11 +79,14 @@ describe("computeMarkdownDecorations", () => {
     expect(decos.some((d) => d.from === markerFrom && d.class.includes("opacity-25"))).toBe(true);
   });
 
-  it("strikes through a checked checkbox's whole label", () => {
-    const doc = "- [x] done thing";
+  it("styles a task's label by its state", () => {
+    const doc = "- [x] done thing\n- [-] dropped\n- [/] going\n- [ ] open";
     const decos = decorationsFor(doc);
-    const labelFrom = doc.indexOf("done");
-    expect(decos.some((d) => d.from === labelFrom && d.class.includes("line-through"))).toBe(true);
+    const classAt = (word: string) => decos.filter((d) => d.from === doc.indexOf(word)).map((d) => d.class).join(" ");
+    expect(classAt("done")).toContain("cm-task-done");
+    expect(classAt("dropped")).toContain("cm-task-cancelled");
+    expect(classAt("going")).not.toMatch(/cm-task-/);
+    expect(classAt("open")).not.toMatch(/cm-task-/);
   });
 
   it("leaves currency amounts undecorated", () => {
@@ -95,20 +98,11 @@ describe("computeMarkdownDecorations", () => {
     }
   });
 
-  it("colors a workflow hashtag using its tag color", () => {
+  // Tags are drawn by tag-pills.ts, edited or not.
+  it("leaves hashtags to the tag pills", () => {
     const doc = "status #draft here";
     const decos = decorationsFor(doc);
-    const tagFrom = doc.indexOf("#draft");
-    expect(decos.some((d) => d.from === tagFrom && d.class.includes("amber"))).toBe(true);
-  });
-
-  it("keeps a todo status tag distinct from an ordinary tag", () => {
-    const doc = "- [ ] Ship it #todo #project";
-    const decos = decorationsFor(doc);
-    const todoFrom = doc.indexOf("#todo");
-    const projectFrom = doc.indexOf("#project");
-    expect(decos.some((d) => d.from === todoFrom && d.class.includes("sage"))).toBe(true);
-    expect(decos.some((d) => d.from === projectFrom && d.class.includes("zinc"))).toBe(true);
+    expect(decos.some((d) => d.from === doc.indexOf("#draft"))).toBe(false);
   });
 
   it("applies a colored left-border line decoration to a callout block", () => {
@@ -134,17 +128,6 @@ describe("computeMarkdownDecorations", () => {
     const decos = decorationsFor(doc);
     const nameFrom = doc.indexOf("My Note");
     expect(decos.some((d) => d.from === nameFrom && d.to === doc.indexOf("]]") && d.class.includes("underline"))).toBe(true);
-  });
-
-  it("highlights inline syntax in the pasted list content", () => {
-    const doc = `- [ ] Saving creates a new file
-- Currency is shown "highlighted" only for $100 dollars, and only at the start of the line; #todo
-there are other highlighting issues, wikilinks, #todo not showed differently than another #tag`;
-    const decos = decorationsFor(doc);
-    for (const token of ["#todo", "#tag"]) {
-      const from = doc.indexOf(token);
-      expect(decos.some((d) => d.from === from && d.to === from + token.length)).toBe(true);
-    }
   });
 
   it("draws a --- between blocks as a horizontal rule", () => {

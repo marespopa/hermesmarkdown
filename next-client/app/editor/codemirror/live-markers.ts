@@ -1,37 +1,43 @@
 import { syntaxTree } from "@codemirror/language";
 import { EditorSelection, EditorState, type Range } from "@codemirror/state";
-import { Decoration, type DecorationSet, EditorView, ViewPlugin, type ViewUpdate, WidgetType } from "@codemirror/view";
+import { Decoration, type DecorationSet, EditorView, ViewPlugin, type ViewUpdate } from "@codemirror/view";
 import type { SyntaxNode } from "@lezer/common";
+import { CALLOUT_ALIASES, CALLOUT_META } from "../constants/callouts";
 import { findFrontmatterFoldRange } from "./frontmatter-fold";
+import { liveMarkersTheme } from "./live-markers-theme";
+import { BULLET_COLUMNS, BulletWidget, CalloutLabelWidget, CodeLanguageWidget, em, TaskBoxWidget } from "./live-markers-widgets";
 
 // Live markers: Markdown syntax stays out of sight until the caret reaches
-// it, so a note reads like a page while it stays editable. Inline marks
-// (`**`, `_`, `~~`, inline-code backticks) show while a caret or selection
-// touches their span. A heading's `#`s and a quote's `>` show while the caret
-// is on their line, hung in the margin left of the text so the words never
-// move. List markers never change with the caret: a bullet's `-` always reads
-// as • (◦ when nested), a task's `- [ ]` as a checkbox that ticks on a click,
-// and an ordered item's `1.` sits in a muted, fixed-width box. An unfocused
-// editor reveals nothing. Callouts, fenced code and frontmatter keep their
-// own display.
+// it, so a note reads like a page while it stays editable, and nothing moves
+// when the syntax appears. Inline marks (`**`, `_`, `~~`, inline-code
+// backticks) show while a caret or selection touches their span. A heading's
+// `#`s and a quote's or callout's `>` show while the caret is on their line,
+// hung in the margin left of the text. A callout's `[!type]` reads as the
+// type's name until the caret moves before its title. A fenced block's
+// fences fade out (keeping their rows) while the caret is outside it, with
+// its language in the corner. List markers never change with the caret: a
+// bullet's `-` always reads as • (◦ when nested), a task's `- [ ]` as a
+// checkbox that ticks on a click, and an ordered item's `1.` sits in a muted,
+// fixed-width box. Blank lines inside a list are half height. An unfocused
+// editor reveals nothing. Tables and frontmatter keep their own display.
 //
-// List geometry is in columns of LIST_INDENT_EM_PER_COLUMN: a two-space
-// indent is as wide as a bullet's box ("- "), a three-space one as "1. ", so
-// a nested item starts exactly under its parent's text. An item's wrapped
-// lines hang at that same text edge.
+// List geometry is in columns of 0.75em: a two-space indent is as wide as a
+// bullet's box ("- "), a three-space one as "1. ", so a nested item starts
+// exactly under its parent's text. An item's wrapped lines hang at that same
+// text edge.
 
 const hidden = Decoration.replace({});
 const quoteLine = Decoration.line({ class: "cm-liveQuote" });
+const fenceHidden = Decoration.mark({ class: "cm-fenceHidden" });
+const fenceRow = Decoration.line({ class: "cm-codeFenceRow" });
+const listGap = Decoration.line({ class: "cm-listGap" });
 const REGEX_CALLOUT_START = /^(>\s*)+\[!\w+\]/;
+// A callout title's prefix from its first `>`: "> [!note]- ".
+const REGEX_CALLOUT_PREFIX = /^>(?:[ \t]*>)*[ \t]*\[!(\w+)\][+-]?[ \t]?/;
 // A run of `>`s from a line's first QuoteMark: "> ", "> > ", ">>".
 const REGEX_QUOTE_PREFIX = /^>(?:[ \t]*>)*[ \t]?/;
 // A task box right after a bullet: " [ ] ", " [x] ", " [/] " (in progress), " [-] " (cancelled).
 const REGEX_TASK_BOX = /^[ \t]\[([ xX/-])\](?=[ \t\n]|$)/;
-const LIST_INDENT_EM_PER_COLUMN = 0.75;
-// A bullet's or task's box is as wide as "- ", whatever the marker's spacing.
-const BULLET_COLUMNS = 2;
-
-const em = (columns: number) => `${columns * LIST_INDENT_EM_PER_COLUMN}em`;
 
 function listIndent(columns: number) {
   return Decoration.mark({ class: "cm-listIndent", attributes: { style: `width: ${em(columns)}` } });
@@ -47,77 +53,7 @@ function hangingLine(columns: number) {
 }
 
 // Structural marks (`## `, `> `) on the caret's line, drawn in the margin.
-function marginMarks(chars: number) {
-  return Decoration.mark({ class: "cm-marginMarks", attributes: { style: `--marks-width: ${chars * 0.7 + 0.4}em` } });
-}
-
-class BulletWidget extends WidgetType {
-  constructor(readonly depth: number) {
-    super();
-  }
-
-  eq(other: BulletWidget) {
-    return other.depth === this.depth;
-  }
-
-  toDOM() {
-    const node = document.createElement("span");
-    node.className = "cm-liveBullet";
-    node.style.width = em(BULLET_COLUMNS);
-    node.textContent = this.depth % 2 === 0 ? "•" : "◦";
-    node.setAttribute("aria-hidden", "true");
-    return node;
-  }
-
-  ignoreEvent() {
-    return false;
-  }
-}
-
-// `state` is the character between the brackets.
-class TaskBoxWidget extends WidgetType {
-  constructor(readonly state: string) {
-    super();
-  }
-
-  eq(other: TaskBoxWidget) {
-    return other.state === this.state;
-  }
-
-  toDOM(view: EditorView) {
-    const node = document.createElement("span");
-    node.className = "cm-liveTask";
-    node.style.width = em(BULLET_COLUMNS);
-    node.dataset.state = this.state === " " ? "open" : this.state === "/" ? "progress" : this.state === "-" ? "cancelled" : "done";
-    node.setAttribute("role", "checkbox");
-    node.setAttribute("aria-checked", this.state === "x" ? "true" : this.state === "/" ? "mixed" : "false");
-    const box = node.appendChild(document.createElement("span"));
-    box.className = "cm-liveTask-box";
-    node.addEventListener("mousedown", (event) => {
-      event.preventDefault();
-      toggleTaskBox(view, view.posAtDOM(node));
-    });
-    return node;
-  }
-
-  ignoreEvent() {
-    return true;
-  }
-}
-
-// Ticks the task whose widget starts at `markerFrom`, or clears a done one.
-export function toggleTaskBox(view: EditorView, markerFrom: number): boolean {
-  const line = view.state.doc.lineAt(markerFrom);
-  const bracket = line.text.indexOf("[", markerFrom - line.from);
-  if (bracket < 0) return false;
-  const at = line.from + bracket + 1;
-  const current = view.state.doc.sliceString(at, at + 1);
-  view.dispatch({
-    changes: { from: at, to: at + 1, insert: current.toLowerCase() === "x" ? " " : "x" },
-    userEvent: "input.outline.task",
-  });
-  return true;
-}
+const marginMarks = Decoration.mark({ class: "cm-marginMarks" });
 
 function bulletDepth(node: SyntaxNode): number {
   let depth = 0;
@@ -161,6 +97,41 @@ function listMarker(state: EditorState, mark: SyntaxNode): ListMarker | null {
   return { kind: "task", to: withTrailingSpace(state, mark.to + box[0].length), columns: BULLET_COLUMNS, task: box[1].toLowerCase() };
 }
 
+// A fenced block away from the caret: its fences turn transparent rather than
+// disappear, so their rows keep their height and nothing moves when the
+// caret comes in. The language shows in the opening row's corner.
+function fadedFences(state: EditorState, block: SyntaxNode): Range<Decoration>[] {
+  const { doc } = state;
+  const open = block.firstChild;
+  if (open?.name !== "CodeMark") return [];
+  const openLine = doc.lineAt(open.from);
+  const out = [fenceHidden.range(open.from, openLine.to)];
+  const info = block.getChild("CodeInfo");
+  if (info) {
+    out.push(fenceRow.range(openLine.from));
+    const widget = new CodeLanguageWidget(doc.sliceString(info.from, info.to));
+    out.push(Decoration.widget({ widget, side: 1 }).range(openLine.to));
+  }
+  const close = block.lastChild;
+  if (close && close !== open && close.name === "CodeMark" && doc.lineAt(close.from).number !== openLine.number) {
+    out.push(fenceHidden.range(close.from, doc.lineAt(close.from).to));
+  }
+  return out;
+}
+
+// A callout's title line: `> [!type]` reads as the type's name unless the
+// selection reaches before the title (Home, or a click on the label).
+function calloutTitle(state: EditorState, selection: EditorSelection | null, from: number): Range<Decoration> | null {
+  const line = state.doc.lineAt(from);
+  const match = REGEX_CALLOUT_PREFIX.exec(state.doc.sliceString(from, line.to));
+  if (!match) return null;
+  const to = from + match[0].length;
+  if (selection?.ranges.some((range) => range.from < to && range.to >= line.from)) return null;
+  const type = match[1].toLowerCase();
+  const meta = CALLOUT_META[CALLOUT_ALIASES[type] ?? type] ?? CALLOUT_META.note;
+  return Decoration.replace({ widget: new CalloutLabelWidget(type, meta.text) }).range(from, to);
+}
+
 export function buildLiveMarkerDecorations(
   state: EditorState,
   visibleRanges: readonly { from: number; to: number }[],
@@ -172,6 +143,9 @@ export function buildLiveMarkerDecorations(
   // Frontmatter's closing `---` parses as a setext underline; leave it alone.
   const frontmatterEnd = findFrontmatterFoldRange(doc.toString())?.closeTo ?? -1;
   const quotedLines = new Set<number>();
+  const calloutTitles = new Set<number>();
+  const calloutLines = new Set<number>();
+  const listGapLines = new Set<number>();
 
   for (const visible of visibleRanges) {
     syntaxTree(state).iterate({
@@ -182,17 +156,32 @@ export function buildLiveMarkerDecorations(
         const node = ref.node;
         switch (ref.name) {
           case "Table":
-          case "FencedCode":
           case "CodeBlock":
             return false;
-          case "Blockquote":
-            // Callouts keep their own `>` styling (highlight.ts, callout-fold.ts).
-            return !REGEX_CALLOUT_START.test(doc.lineAt(ref.from).text);
+          case "FencedCode":
+            if (!touches(selection, ref.from, ref.to)) ranges.push(...fadedFences(state, node));
+            return false;
+          case "BulletList":
+          case "OrderedList": {
+            const last = doc.lineAt(ref.to).number;
+            for (let n = doc.lineAt(ref.from).number + 1; n < last; n++) {
+              if (!doc.line(n).text.trim()) listGapLines.add(n);
+            }
+            return;
+          }
+          case "Blockquote": {
+            // Callouts keep their tint and bar (highlight.ts) instead of a quote's.
+            const first = doc.lineAt(ref.from);
+            if (!REGEX_CALLOUT_START.test(first.text)) return;
+            calloutTitles.add(first.number);
+            for (let n = first.number; n <= doc.lineAt(ref.to).number; n++) calloutLines.add(n);
+            return;
+          }
           case "HeaderMark": {
             // Setext underlines and closing `#`s stay as typed.
             if (ref.from !== node.parent?.from || !node.parent.name.startsWith("ATXHeading")) return;
             const to = withTrailingSpace(state, ref.to);
-            const deco = touchesLine(state, selection, ref.from) ? marginMarks(ref.to - ref.from) : hidden;
+            const deco = touchesLine(state, selection, ref.from) ? marginMarks : hidden;
             ranges.push(deco.range(ref.from, to));
             return;
           }
@@ -201,8 +190,13 @@ export function buildLiveMarkerDecorations(
             const line = doc.lineAt(ref.from);
             if (quotedLines.has(line.number)) return;
             quotedLines.add(line.number);
+            if (calloutTitles.has(line.number)) {
+              const title = calloutTitle(state, selection, ref.from);
+              if (title) ranges.push(title);
+              return;
+            }
             const prefix = REGEX_QUOTE_PREFIX.exec(doc.sliceString(ref.from, line.to))![0];
-            const deco = touches(selection, line.from, line.to) ? marginMarks(prefix.trim().length) : hidden;
+            const deco = touches(selection, line.from, line.to) ? marginMarks : hidden;
             ranges.push(deco.range(ref.from, ref.from + prefix.length));
             return;
           }
@@ -249,7 +243,10 @@ export function buildLiveMarkerDecorations(
     });
   }
 
-  for (const n of quotedLines) ranges.push(quoteLine.range(doc.line(n).from));
+  for (const n of quotedLines) {
+    if (!calloutLines.has(n)) ranges.push(quoteLine.range(doc.line(n).from));
+  }
+  for (const n of listGapLines) ranges.push(listGap.range(doc.line(n).from));
   return Decoration.set(ranges, true);
 }
 
@@ -272,82 +269,5 @@ export const liveMarkersPlugin = ViewPlugin.fromClass(
   },
   { decorations: (value) => value.decorations },
 );
-
-export const liveMarkersTheme = EditorView.theme({
-  ".cm-liveQuote": {
-    borderLeft: "3px solid var(--border)",
-    paddingLeft: "0.9em !important",
-  },
-  // Hanging indent: a transparent border, not padding (drawSelection() reads
-  // the first line's padding-left for every selection rect), pulled back on
-  // the first row by a negative text-indent.
-  ".cm-listLine": {
-    borderLeft: "var(--list-hang) solid transparent",
-    textIndent: "calc(-1 * var(--list-hang))",
-  },
-  ".cm-listLine *": {
-    textIndent: "0",
-  },
-  ".cm-listIndent": {
-    display: "inline-block",
-    overflow: "hidden",
-    verticalAlign: "top",
-  },
-  ".cm-liveBullet": {
-    display: "inline-block",
-    color: "var(--fg-muted)",
-  },
-  ".cm-listNumber": {
-    display: "inline-block",
-    whiteSpace: "pre",
-    color: "var(--fg-muted)",
-    fontVariantNumeric: "tabular-nums",
-  },
-  ".cm-liveTask": {
-    display: "inline-block",
-    cursor: "pointer",
-    verticalAlign: "baseline",
-  },
-  ".cm-liveTask-box": {
-    display: "inline-block",
-    boxSizing: "border-box",
-    width: "0.85em",
-    height: "0.85em",
-    verticalAlign: "-0.1em",
-    border: "1.5px solid var(--fg-faint)",
-    borderRadius: "0.25em",
-    transition: "background-color 120ms ease, border-color 120ms ease",
-  },
-  ".cm-liveTask[data-state=done] .cm-liveTask-box": {
-    borderColor: "var(--fg-muted)",
-    backgroundColor: "var(--fg-muted)",
-    backgroundImage:
-      "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M4 8.5l2.5 2.5L12 5.5' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E\")",
-    backgroundSize: "100% 100%",
-  },
-  ".cm-liveTask[data-state=progress] .cm-liveTask-box": {
-    backgroundImage: "linear-gradient(to right, var(--fg-faint) 50%, transparent 50%)",
-  },
-  ".cm-liveTask[data-state=cancelled] .cm-liveTask-box": {
-    backgroundImage: "linear-gradient(var(--fg-faint), var(--fg-faint))",
-    backgroundSize: "60% 1.5px",
-    backgroundPosition: "center",
-    backgroundRepeat: "no-repeat",
-  },
-  // A zero-width box whose marks sit right-aligned against the text, so
-  // revealing them never moves a word. Smaller and faint, set on the line's
-  // baseline.
-  ".cm-marginMarks": {
-    display: "inline-block",
-    width: "var(--marks-width)",
-    marginLeft: "calc(-1 * var(--marks-width))",
-    textAlign: "right",
-    whiteSpace: "pre",
-    fontSize: "max(0.6em, 11px)",
-    fontWeight: "400",
-    letterSpacing: "0",
-    color: "var(--fg-faint)",
-  },
-});
 
 export const liveMarkers = [liveMarkersPlugin, liveMarkersTheme];
