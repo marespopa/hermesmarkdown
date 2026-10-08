@@ -14,7 +14,6 @@ interface LinkPillProps {
   type?: "url" | "wiki";
   onOpen: () => void;
   onSave: (newLabel: string, newUrl: string) => void;
-  onEdit?: () => void;
   onDismiss: () => void;
 }
 
@@ -25,7 +24,6 @@ export function LinkPill({
   type = "url",
   onOpen,
   onSave,
-  onEdit,
   onDismiss,
 }: LinkPillProps) {
   const [isEditing, setIsEditing] = useState(false);
@@ -37,14 +35,6 @@ export function LinkPill({
     setEditLabel(label);
     setEditUrl(url);
   }, [label, url]);
-
-  const openEdit = () => {
-    if (type === "wiki" && onEdit) {
-      onEdit();
-    } else {
-      setIsEditing(true);
-    }
-  };
 
   const handleSave = () => {
     onSave(editLabel.trim() || label, editUrl.trim() || url);
@@ -64,9 +54,12 @@ export function LinkPill({
           className={PILL_CONTAINER_CLASSES}
           onMouseDown={(e) => e.preventDefault()}
         >
-          <Button variant="pill-icon" onClick={openEdit} title="Edit link">
-            <HiOutlinePencil size={16} />
-          </Button>
+          {/* A wikilink's text is just `[[Note name]]`, edited in place; only URL links get a dialog. */}
+          {type === "url" && (
+            <Button variant="pill-icon" onClick={() => setIsEditing(true)} title="Edit link">
+              <HiOutlinePencil size={16} />
+            </Button>
+          )}
           <Button
             variant="pill-icon"
             onClick={onOpen}
@@ -77,7 +70,7 @@ export function LinkPill({
         </div>
       )}
 
-      {isEditing && type === "url" && (
+      {isEditing && (
         <DialogModal
           isOpened={isEditing}
           onClose={handleClose}
