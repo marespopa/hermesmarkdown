@@ -10,6 +10,8 @@ interface Props extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
   helperText?: string;
   handleChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
   className?: string;
+  // Classes for the <textarea> itself (`className` styles the wrapper).
+  textareaClassName?: string;
   autoFocus?: boolean;
 }
 
@@ -23,6 +25,7 @@ const Textarea = forwardRef<HTMLTextAreaElement, Props>(
       helperText,
       handleChange,
       className = "",
+      textareaClassName = "",
       autoFocus,
       autoComplete = "off",
       ...rest
@@ -57,7 +60,7 @@ const Textarea = forwardRef<HTMLTextAreaElement, Props>(
             placeholder={placeholder}
             ref={ref}
             autoComplete={autoComplete}
-            className={`${baseStyles} ${variantStyles} select-text`}
+            className={`${baseStyles} ${variantStyles} select-text ${textareaClassName}`}
             aria-label={label || name}
             autoFocus={autoFocus}
             {...rest}

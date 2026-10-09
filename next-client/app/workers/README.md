@@ -8,6 +8,7 @@ Web Workers and the pure modules they run. Nothing here touches the DOM, React o
 | `content-index.ts` | `ContentIndex` (path → text, a same-length lowercased copy, body start past the frontmatter, sensitive flag, modified time), `foldCase`, `REGEX_FRONTMATTER`, size limits (`MAX_NOTE_CHARS` 1M per note, `MAX_TOTAL_CHARS` 32M in total) |
 | `content-search.ts` | `parseContentQuery`, `searchContent` (AND substring match, ranking, ≤3 hits per note, snippets with highlight offsets), `handleContentMessage` (the worker's dispatch for typed messages) |
 | `content-search-protocol.ts` | Shared message and hit types |
+| `tokenizer.worker.ts` + `tokenizer-protocol.ts` | The tokenizer tool's worker (created in `app/tools/tokenizer/use-tokenizer.ts`): loads a `gpt-tokenizer` vocabulary (`o200k_base` or `cl100k_base`) on first use, encodes `{ id, text, encoding }` with special-token markers counted as text, and replies `{ id, ok, tokenCount, segments (first 5,000 tokens, see segment-tokens.ts), truncated }` or `{ id, ok: false, error }` |
 | `opfs-writer.worker.ts` | Writes files through `createSyncAccessHandle()` where `createWritable()` is missing (see `app/services/file-writer.ts`) |
 
 ## Metadata worker protocol

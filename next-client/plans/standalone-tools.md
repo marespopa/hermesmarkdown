@@ -1,6 +1,8 @@
-# Standalone Markdown tools (table generator, Mermaid live editor) — engineering PRD
+# Standalone tools (AI tokenizer, table generator, Mermaid live editor) — engineering PRD
 
 ## Context
+**Update 2026-10-09 (after phase 1):** the user added a third tool, an **AI tokenizer** at `/tools/tokenizer` (reference: getaibook.com/tools/tokenizer), and asked for tool → editor tracking (`?from=<tool>`, open question 3). The tokenizer shipped first, together with phase 2's shell, hub and SEO wiring; see "Phase 2b: AI tokenizer". The catalog lists only tools whose page exists, so the table and Mermaid entries join it in phases 3 and 4.
+
 Product intent: offer two free, single-purpose web tools that people already search for, a **Markdown table generator** and a **Mermaid live editor**, on the main domain. Each tool page is useful by itself (copy the Markdown, download the SVG) and ends with **Open in HermesMarkdown**, which carries the result into the editor's draft. Source: the product brief in the request of 2026-10-09. Decisions already made with the user: use paths, not subdomains (single Netlify site, `netlify.toml` base `next-client`); the handoff is same-origin through `sessionStorage` into the existing draft import flow, with no server round-trip; tool pages load only the table code or `mermaid`, never the workspace bundle.
 
 What already exists:
@@ -32,6 +34,7 @@ What is missing or broken:
 | `/tools` | Hub: short intro and one card per tool. |
 | `/tools/markdown-table-generator` | Markdown table generator. |
 | `/tools/mermaid-live-editor` | Mermaid live editor. |
+| `/tools/tokenizer` | AI tokenizer and token counter (shipped with phase 2). |
 
 The slugs match the head search terms ("markdown table generator", "mermaid live editor"). All three pages render the header and footer like other marketing pages, are indexable, and are listed in the sitemap.
 
@@ -77,7 +80,7 @@ Everything except the tool itself is server-rendered.
 ### Handoff (both tools → `/editor`)
 - Clicking **Open in HermesMarkdown**:
   1. writes the payload to `sessionStorage["hermes_tool_handoff"]`;
-  2. navigates in the **same tab** with `router.push("/editor")`.
+  2. navigates in the **same tab** with `router.push(toolEditorUrl(source))`, i.e. `/editor?from=<source>`.
 - `sessionStorage` is per tab, so a new tab would not see the payload; that is why the navigation stays in the same tab.
 - Over the size limit, or if storage throws (quota, blocked storage), the app doesn't navigate. It shows the error toast "Too large to open in the workspace. Copy the Markdown instead." or "Couldn't open the workspace from here. Copy the Markdown instead." respectively.
 - On `/editor`:
@@ -93,7 +96,7 @@ Everything except the tool itself is server-rendered.
   - **Mobile:** same flow; `atom_openDraft` targets the single visible pane.
 
 ### Analytics
-No new analytics. The existing cookieless page-view script in `MainPage` covers `/tools/*` like every marketing page. No events, no query parameters (`?from=tool`) and no new requests.
+The existing cookieless page-view script in `MainPage` covers `/tools/*` like every marketing page. **Tool → editor arrivals:** "Open in HermesMarkdown" goes to `/editor?from=<source>` (`toolEditorUrl`, `app/utils/tool-handoff.ts`), so page views of `/editor?from=tokenizer` etc. count conversions per tool. No events and no new requests; the editor ignores the parameter (a refresh of that URL counts again, which is accepted noise).
 
 ## Design
 
@@ -282,6 +285,19 @@ Covers item 4.
 - `app/components/Header/Navigation/NavigationLinks.tsx`: add `<NavigationLink label="Tools" href="/tools" />` between Documentation and Contact. Make the same addition in `MobileNavigationLinks.tsx`.
 - `app/components/Footer/Footer.component.tsx:41-44`: add both tool links (names from `TOOLS`).
 
+## Phase 2b: AI tokenizer (shipped with phase 2)
+- **Page:** `/tools/tokenizer`, copy in `app/tools/content/tokenizer.ts` ("AI Tokenizer & Token Counter for GPT Models"; keywords tokenizer, token counter, gpt/openai tokenizer, o200k_base, cl100k_base; FAQ: what a token is, tokens per word, which models it matches (and that Claude, Gemini, Llama differ), why tokens matter, privacy, keep working).
+- **Tool** (`app/tools/tokenizer/TokenizerTool.tsx`, client-only via `TokenizerToolLoader`):
+  - Text box; example chips (Markdown note, structured prompt, code, mixed languages, numbers & dates, emoji); first visit shows the first example, a cleared box stays empty.
+  - Encoding: o200k (GPT-4o, GPT-4.1, GPT-5, o-series) or cl100k (GPT-4, GPT-3.5 Turbo).
+  - Stats: tokens, characters (by code point), words, characters per token.
+  - Tokens panel: each token on a cycling tint with its id in the tooltip, or token IDs; line breaks as ↵; the first 5,000 tokens are drawn, the count covers all.
+  - Open in HermesMarkdown hands the text over as-is, draft name "Tokenized text"; disabled when blank or over 200k characters. Clear.
+  - No cost estimate: prices change often and would go stale in the page.
+- **Engine:** `gpt-tokenizer` 4.0.0 (exact token ids, same BPE as OpenAI's tiktoken). Runs in `app/workers/tokenizer.worker.ts`; each vocabulary (o200k 2.4 MB, cl100k 1.2 MB of script) loads there on first use. 120 ms debounce, stale replies dropped. Special-token markers count as plain text. `segment-tokens.ts` groups tokens holding partial UTF-8 characters (emoji, CJK) into one segment. Measured: 200k characters (50k tokens) encode in ~20 ms.
+- **State:** `app/atoms/tool-atoms.ts` (`atom_tokenizerText`, `atom_tokenizerEncoding`), tab sessionStorage.
+- **Shared:** `ToolShell`, `ToolCard`, `OpenInWorkspaceButton`, `tool-json-ld.ts`, the `/tools` hub, sitemap (`/tools` + catalog), header and mobile nav "Tools", footer "Free Tools" + one link per tool, `Textarea#textareaClassName`. The handoff source union gains `"tokenizer"`.
+
 ## Phase 3: Markdown table generator
 Covers item 5. Depends on 1–2.
 - `app/editor/codemirror/table-keymap.ts`: new; `app/editor/codemirror/extensions.ts:112-125` uses it.
@@ -395,7 +411,7 @@ All tests are fully mocked: `next/navigation` `useRouter` (assert `push`), `reac
 - [ ] A first-time visitor arriving from a tool sees the draft, not the wizard. The next `/editor` visit shows the wizard.
 - [ ] Refreshing `/editor` after the import does not import again. Payloads that are expired, malformed or over 200k characters are ignored and removed.
 - [ ] Over the limit, or with storage blocked, the button shows the error toast and doesn't navigate.
-- [ ] No new network requests from `/tools/*` (DevTools Network: only the existing page-view script and same-origin chunks); no new analytics events or URL params.
+- [ ] No new network requests from `/tools/*` (DevTools Network: only the existing page-view script and same-origin chunks, including the tokenizer worker and its vocabulary); no analytics events. The only URL parameter is `/editor?from=<source>`.
 - [ ] When the user asks for a build: the `/tools/markdown-table-generator` chunks contain no `mermaid`, `/tools/mermaid-live-editor` contains no `@codemirror`, and neither contains `editor/page`, `use-file-system`, `language-data` or the atoms barrel.
 - [ ] The Mermaid dialog in the editor behaves exactly as before (zoom, fit, pan, download, auto-fit on open).
 - [ ] All new and changed source files are under 400 lines; `MermaidDialog.tsx` shrinks.
@@ -413,7 +429,7 @@ All tests are fully mocked: `next/navigation` `useRouter` (assert `push`), `reac
 - **15-minute TTL and 200k-character cap.** Both are generous for real tables and diagrams, prevent a stale import days later in a long-lived tab, and protect the localStorage budget the draft uses afterwards.
 - **Tool working state lives in tab `sessionStorage`**, not localStorage. This matches the "nothing kept" promise of a free tool while surviving refresh and Back.
 - **Welcome wizard deferred, not marked completed**, when arriving with a payload, so the visitor sees their work first.
-- **No new analytics.** The existing cookieless page-view script already counts tool-page visits; there are no click events or attribution params.
+- **Tracking by URL only.** The existing cookieless page-view script counts tool-page visits, and `/editor?from=<source>` counts tool → editor arrivals. No click events or UTM parameters.
 - **Reuse `/assets/og-image.jpg`** for tool OG and Twitter images.
 - **A shared `tableKeyBindings` module** is the only change to the editor's table code; it avoids duplicating bindings.
 
@@ -422,11 +438,11 @@ All tests are fully mocked: `next/navigation` `useRouter` (assert `push`), `reac
 - More tools (CSV↔Markdown converter page, TOC generator, Markdown preview); dedicated per-tool OG images; theme selector or PNG export for Mermaid; KaTeX tool.
 - A dialog for the in-editor `/table` slash command; new table features inside the workspace.
 - Any server route, share link, URL-encoded payloads or cross-tab handoff.
-- Click/conversion analytics or UTM parameters.
+- Click events or UTM parameters.
 - Saving a tool result directly into a vault folder from the tool page.
 
 ## Open questions
 1. **"Mermaid Live Editor" naming.** The official Mermaid project runs mermaid.live under the same name. The slug and title target that search term, but the copy must not imply this is the official tool. Recommended: keep the slug; the lead says "a free, private Mermaid live editor"; the FAQ notes it is independent of the Mermaid project.
 2. **Wizard deferral.** Confirm that first-time visitors arriving from a tool should skip onboarding on that visit. The alternative is showing the wizard over their content.
-3. **Conversion measurement.** Confirm "no attribution". If the product owner wants to see tool → editor conversions in LiteAnalytics, a `?from=<tool>` param on `/editor` would do it with no new requests, but it shows up in page-view data; this PRD leaves it out.
+3. ~~**Conversion measurement.**~~ Resolved 2026-10-09: track with `/editor?from=<source>`.
 4. **Overwrite in a vault.** In a vault, the draft could instead be saved as its own note first (as "New note" does in `use-draft-flow.ts`), which avoids the overwrite prompt. This PRD keeps the agreed prompt; confirm.

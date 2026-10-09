@@ -23,6 +23,9 @@ export default function NavigationLinks() {
           <NavigationLink label="Documentation" href="/documentation" />
         </li>
         <li>
+          <NavigationLink label="Tools" href="/tools" />
+        </li>
+        <li>
           <NavigationLink label="Contact" href="/contact" />
         </li>
         <li>

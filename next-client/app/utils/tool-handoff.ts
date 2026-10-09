@@ -13,7 +13,7 @@ const MAX_TITLE_CHARS = 60;
 // Tolerated clock skew for a payload stamped "in the future".
 const FUTURE_SKEW_MS = 60_000;
 
-const SOURCES = ["markdown-table", "mermaid"] as const;
+const SOURCES = ["markdown-table", "mermaid", "tokenizer"] as const;
 export type ToolHandoffSource = (typeof SOURCES)[number];
 
 export interface ToolHandoff {
@@ -26,6 +26,13 @@ export interface ToolHandoff {
 }
 
 export type WriteResult = "ok" | "too-large" | "storage-error";
+
+// Where "Open in HermesMarkdown" goes. `from` names the tool, so the
+// cookieless page-view counter shows tool → editor arrivals with no extra
+// request; the editor itself ignores it.
+export function toolEditorUrl(source: ToolHandoffSource): string {
+  return `/editor?from=${source}`;
+}
 
 function sessionStore(): Storage | null {
   try {

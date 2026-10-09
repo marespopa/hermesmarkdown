@@ -6,6 +6,7 @@ import {
   parseToolHandoff,
   readToolHandoff,
   TOOL_HANDOFF_KEY,
+  toolEditorUrl,
   writeToolHandoff,
 } from "./tool-handoff";
 
@@ -14,6 +15,10 @@ const valid = buildToolHandoff("markdown-table", "Markdown table", "# Markdown t
 const raw = (overrides: Record<string, unknown>) => JSON.stringify({ ...valid, ...overrides });
 
 describe("tool handoff", () => {
+  it("names the tool in the editor URL, for page-view counts", () => {
+    expect(toolEditorUrl("tokenizer")).toBe("/editor?from=tokenizer");
+  });
+
   afterEach(() => sessionStorage.clear());
 
   it("round-trips through sessionStorage", () => {

@@ -3,6 +3,7 @@
 Description: Marketing-page header. It wraps `Navbar` (logo plus desktop `NavigationLinks`/`MobileNavigationLinks` with a theme toggle) and is hidden on `/editor`.
 
 ## Local State & Storage
+- Links: Home, Documentation, Tools (`/tools`), Contact, then the theme toggle, on desktop (`NavigationLinks`) and in the mobile menu (`MobileNavigationLinks`).
 - State: `Navbar` keeps menu-open useState plus `useIsMobile`/`useResolvedTheme`. The navigation links read and write `atom_theme`.
 - Persistence: `atom_theme` → `localStorage["theme"]`.
 
