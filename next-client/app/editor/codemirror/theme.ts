@@ -223,6 +223,15 @@ export const baseTheme = EditorView.theme({
     textOverflow: "ellipsis",
     opacity: "0.8",
   },
+  // Status and tag values in the collapsed row (frontmatter-fold.ts): tag
+  // pills sized to the row; a click goes to the row, which expands.
+  ".cm-frontmatter-summary-keys .cm-frontmatter-chip": {
+    fontSize: "0.95em",
+    padding: "0.05em 0.45em",
+    margin: "0 0 0 0.35em",
+    cursor: "inherit",
+    transform: "none",
+  },
   ".cm-tag-pill": {
     display: "inline-flex",
     alignItems: "center",

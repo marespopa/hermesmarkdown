@@ -1,6 +1,7 @@
 import { Annotation, EditorState, StateEffect, StateField, Transaction } from "@codemirror/state";
 import { Decoration, DecorationSet, EditorView, ViewPlugin, ViewUpdate, WidgetType } from "@codemirror/view";
 import { parseFmFields } from "@/app/utils/frontmatter-utils";
+import { buildTagMatch, tagPillClassName } from "./tag-pills";
 
 export interface FrontmatterFoldRange {
   titleOffset: number;
@@ -58,6 +59,63 @@ export function frontmatterSummary(keys: string[]): string {
   return rest > 0 ? `${shown}, +${rest}` : shown;
 }
 
+const SUMMARY_TAG_LIMIT = 3;
+
+export interface FrontmatterRowSummary {
+  status: string | null;
+  // The first few tags, without `#`, then a count of the rest.
+  tags: string[];
+  moreTags: number;
+  // The other keys, as `frontmatterSummary` lists them.
+  keys: string;
+}
+
+function unquote(value: string) {
+  return value.trim().replace(/^['"]|['"]$/g, "").trim();
+}
+
+// What the collapsed row shows: `status` and `tags` as values (chips), the
+// remaining keys by name. A key shown as chips isn't named again; an empty
+// `status` or `tags` stays a plain key.
+export function frontmatterRowSummary(doc: string): FrontmatterRowSummary {
+  const fields = parseFmFields(doc);
+  const status = "status" in fields ? unquote(fields.status) || null : null;
+  const allTags = (fields.tags ?? "")
+    .split(",")
+    .map((tag) => unquote(tag).replace(/^#/, ""))
+    .filter(Boolean);
+  const keys = Object.keys(fields).filter(
+    (key) => !(key === "status" && status) && !(key === "tags" && allTags.length > 0),
+  );
+  return {
+    status,
+    tags: allTags.slice(0, SUMMARY_TAG_LIMIT),
+    moreTags: Math.max(0, allTags.length - SUMMARY_TAG_LIMIT),
+    keys: frontmatterSummary(keys),
+  };
+}
+
+// The row as one line of text, for its accessible label:
+// "draft, #work, #ideas, +1, title, created".
+export function frontmatterRowLabel(summary: FrontmatterRowSummary): string {
+  return [
+    summary.status,
+    ...summary.tags.map((tag) => `#${tag}`),
+    summary.moreTags > 0 ? `+${summary.moreTags}` : null,
+    summary.keys || null,
+  ].filter(Boolean).join(", ");
+}
+
+// A chip coloured like the same word as an inline tag: workflow words
+// (`draft`, `review`, …) and task states (`todo`, `done`, …) keep their
+// colours; anything else is muted.
+function summaryChip(text: string, kindOf: string) {
+  const chip = document.createElement("span");
+  chip.className = `${tagPillClassName(buildTagMatch(kindOf, 0, 0)?.kind ?? "custom")} cm-frontmatter-chip`;
+  chip.textContent = text;
+  return chip;
+}
+
 // The frontmatter's header row, in the same place either way, so it
 // expands and collapses from one spot. Collapsed, the block is a block
 // widget, not a fold: a fold's placeholder lives inside a text line, which
@@ -71,12 +129,13 @@ export function frontmatterSummary(keys: string[]): string {
 export const FRONTMATTER_TOGGLE_EVENT = "hermes:frontmatter-toggle";
 
 class FrontmatterHeaderWidget extends WidgetType {
-  constructor(readonly summary: string, readonly collapsed: boolean) {
+  constructor(readonly summary: FrontmatterRowSummary, readonly collapsed: boolean) {
     super();
   }
 
   eq(other: FrontmatterHeaderWidget) {
-    return other.summary === this.summary && other.collapsed === this.collapsed;
+    return other.collapsed === this.collapsed
+      && JSON.stringify(other.summary) === JSON.stringify(this.summary);
   }
 
   toDOM(view: EditorView) {
@@ -86,9 +145,10 @@ class FrontmatterHeaderWidget extends WidgetType {
     button.type = "button";
     button.className = "cm-frontmatter-summary";
     button.setAttribute("aria-expanded", String(!this.collapsed));
+    const rowLabel = frontmatterRowLabel(this.summary);
     button.setAttribute(
       "aria-label",
-      !this.collapsed ? "Hide properties" : this.summary ? `Show properties: ${this.summary}` : "Show properties",
+      !this.collapsed ? "Hide properties" : rowLabel ? `Show properties: ${rowLabel}` : "Show properties",
     );
     button.innerHTML =
       '<svg aria-hidden="true" viewBox="0 0 20 20" fill="currentColor" class="cm-frontmatter-summary-chevron">' +
@@ -96,11 +156,18 @@ class FrontmatterHeaderWidget extends WidgetType {
     const label = document.createElement("span");
     label.textContent = "Properties";
     button.append(label);
-    if (this.collapsed && this.summary) {
-      const keys = document.createElement("span");
-      keys.className = "cm-frontmatter-summary-keys";
-      keys.textContent = `· ${this.summary}`;
-      button.append(keys);
+    if (this.collapsed && rowLabel) {
+      // Chips, then the remaining key names: "· draft #work #ideas +1 · title".
+      const { status, tags, moreTags, keys } = this.summary;
+      const content = document.createElement("span");
+      content.className = "cm-frontmatter-summary-keys";
+      content.setAttribute("aria-hidden", "true");
+      content.append("·");
+      if (status) content.append(summaryChip(status, status));
+      for (const tag of tags) content.append(summaryChip(`#${tag}`, tag));
+      if (moreTags > 0) content.append(` +${moreTags}`);
+      if (keys) content.append(status || tags.length > 0 ? ` · ${keys}` : ` ${keys}`);
+      button.append(content);
     }
     // mousedown, not click: CodeMirror would otherwise move the caret first.
     button.addEventListener("mousedown", (event) => event.preventDefault());
@@ -161,7 +228,7 @@ function buildDecorations(state: EditorState, collapsed: boolean): DecorationSet
   const doc = state.doc.toString();
   const range = findFrontmatterFoldRange(doc);
   if (!range) return Decoration.none;
-  const summary = frontmatterSummary(frontmatterKeys(doc));
+  const summary = frontmatterRowSummary(doc);
   if (!collapsed) {
     const decorations = [
       Decoration.widget({ block: true, side: -1, widget: new FrontmatterHeaderWidget(summary, false) }).range(range.bodyFrom),
