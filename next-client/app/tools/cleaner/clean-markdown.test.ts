@@ -109,8 +109,8 @@ describe("cleanMarkdown", () => {
     });
 
     it("normalizes line endings and invisible characters", () => {
-      expect(clean("a\r\nb c​")).toBe("a\nb c\n");
-      expect(fixes("a\r\nb c​")).toEqual({ "line-endings": 1, invisible: 2 });
+      expect(clean("a\r\nb\u00A0c\u200B")).toBe("a\nb c\n");
+      expect(fixes("a\r\nb\u00A0c\u200B")).toEqual({ "line-endings": 1, invisible: 2 });
     });
   });
 

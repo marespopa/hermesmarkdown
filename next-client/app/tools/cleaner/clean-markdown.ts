@@ -27,7 +27,7 @@ export interface CleanResult {
   fixes: { id: FixId; count: number }[];
 }
 
-const INVISIBLE = /[ ​﻿⁠]/g;
+const INVISIBLE = /[\u00A0\u200B\uFEFF\u2060]/g;
 
 // The output lines, with blank lines decided as blocks arrive: a source
 // blank line becomes at most one, and some blocks ask for one around them.
@@ -145,7 +145,7 @@ export function cleanMarkdown(input: string): CleanResult {
     }
 
     const invisible = source.match(INVISIBLE)?.length ?? 0;
-    const visible = source.replace(/^﻿/, "").replace(/ /g, " ").replace(/[​﻿⁠]/g, "");
+    const visible = source.replace(/^\uFEFF/, "").replace(/\u00A0/g, " ").replace(/[\u200B\uFEFF\u2060]/g, "");
     const { indent, rest: rawRest } = splitIndent(visible);
 
     if (indentedCode && indent >= 4) {
