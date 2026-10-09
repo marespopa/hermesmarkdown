@@ -318,6 +318,7 @@ Covers item 6. Depends on 1–2. Can ship before 3.
 
 ## Phase 5: Documentation
 Covers item 7. See Docs.
+**Status 2026-10-09:** done. Component docs, READMEs and the PRD were updated alongside each phase; this phase added `app/documentation/content/free-tools.tsx` (Get started → Free tools; its tool list is generated from the catalog), the `tools/` entry in `app/README.md` and the Free tools bullet in `ARCHITECTURE.md`.
 
 ## Tests
 All tests are fully mocked: `next/navigation` `useRouter` (assert `push`), `react-hot-toast`/`Toastr`, `navigator.clipboard`, `sessionStorage` (jsdom's, or a stub whose `setItem` throws), `render-mermaid` (`vi.mock` resolving fixed SVG / rejecting), and `next/dynamic` where a loader is rendered. Jotai: wrap in `<Provider>` with a fresh `createStore()`.
@@ -445,6 +446,6 @@ All tests are fully mocked: `next/navigation` `useRouter` (assert `push`), `reac
 
 ## Open questions
 1. ~~**"Mermaid Live Editor" naming.**~~ Resolved 2026-10-09: renamed "Mermaid in Markdown", slug `mermaid-in-markdown`. The official Mermaid project runs mermaid.live under the same name. The slug and title target that search term, but the copy must not imply this is the official tool. Recommended: keep the slug; the lead says "a free, private Mermaid live editor"; the FAQ notes it is independent of the Mermaid project.
-2. **Wizard deferral.** Confirm that first-time visitors arriving from a tool should skip onboarding on that visit. The alternative is showing the wizard over their content.
+2. ~~**Wizard deferral.**~~ Resolved 2026-10-09: confirmed, first-time visitors from a tool skip the tour on that visit. Confirm that first-time visitors arriving from a tool should skip onboarding on that visit. The alternative is showing the wizard over their content.
 3. ~~**Conversion measurement.**~~ Resolved 2026-10-09: track with `/editor?from=<source>`.
-4. **Overwrite in a vault.** In a vault, the draft could instead be saved as its own note first (as "New note" does in `use-draft-flow.ts`), which avoids the overwrite prompt. This PRD keeps the agreed prompt; confirm.
+4. ~~**Overwrite in a vault.**~~ Resolved 2026-10-09: confirmed, keep the overwrite prompt. In a vault, the draft could instead be saved as its own note first (as "New note" does in `use-draft-flow.ts`), which avoids the overwrite prompt. This PRD keeps the agreed prompt; confirm.
