@@ -32,7 +32,8 @@ The editor route (`page.tsx`) composes these:
 | `use-navigate-with-guard.ts` | Leaves the editor with a Save / Discard prompt when the note is dirty. |
 | `use-github-vault-actions.ts` | `GitHub: Commit / Pull` command handlers. |
 | `use-generate-ai-note.ts` | "Generate new note with AI". |
-| `use-draft-import.ts` | Import a file into the draft (with `DraftImportDialog` for overwrite confirmation). |
+| `use-draft-import.ts` | Import into the draft, never the active tab (with `DraftImportDialog` for overwrite confirmation): `offerDraft` fills an empty draft and opens it, or asks first when the draft has text. Used by "Import file" and tool handoffs. |
+| `use-tool-handoff.ts` | Work handed over from a tool page (`app/utils/tool-handoff.ts`, `sessionStorage["hermes_tool_handoff"]`): read once on mount (deferring the welcome tour), offered to the draft once the vault has settled and the vault-open behavior has run, then cleared. |
 | `use-sync-current-directory.ts` | Points the vault's current directory at the active file's folder. |
 | `use-editor-paste-handlers.ts`, `use-scroll-to-pending-target.ts` | `MarkdownEditor` helpers: CSV-to-table confirm and image saving on paste; jump-to-line requests (`atom_pendingScrollTarget`; the caret goes to the optional `column`). |
 | `use-fade-chrome-while-typing.ts` | Hide interface while typing (`atom_hideChromeWhileTyping`): typing in an editor sets `<html data-chrome-faded>`, which fades every `.typing-chrome` element (pane header, sidebar, mobile file bar; `editor.scss`) and turns the pane, the canvas and the sheet's edge into one plain page (`.typing-page`); with the sidebar open, a single pane's text column slides left by up to half the sidebar's width (`--typing-shift`, set in `page.tsx`) so it centres on the window; 8px of mouse travel, or a tap or focus outside the editor, brings it back. |

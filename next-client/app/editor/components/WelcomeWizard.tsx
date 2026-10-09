@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
-import { atom_hasCompletedOnboarding, atom_homeFeedOpen, atom_isWizardOpen, atom_renderedFontSize, atom_welcomeWizardStep } from "@/app/atoms/atoms";
+import { atom_hasCompletedOnboarding, atom_homeFeedOpen, atom_isWizardOpen, atom_renderedFontSize, atom_welcomeDeferred, atom_welcomeWizardStep } from "@/app/atoms/atoms";
 import {
   atom_vaultHandle
 } from "@/app/atoms/vault-atoms";
@@ -27,6 +27,8 @@ const ONBOARDING_TEXT_SIZE = "17px";
 const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
   const [hasCompleted, setHasCompleted] = useAtom(atom_hasCompletedOnboarding);
   const [isWizardOpen, setIsWizardOpen] = useAtom(atom_isWizardOpen);
+  // A tool handoff (useToolHandoff) holds the first-run tour until the next visit.
+  const welcomeDeferred = useAtomValue(atom_welcomeDeferred);
   const [step, setStep] = useAtom(atom_welcomeWizardStep);
   const [isMounted, setIsMounted] = useState(false);
 
@@ -67,7 +69,7 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
     if (step > TOTAL_STEPS) setStep(TOTAL_STEPS);
   }, [step, setStep]);
 
-  const showWizard = isMounted && (!hasCompleted || isWizardOpen);
+  const showWizard = isMounted && (isWizardOpen || (!hasCompleted && !welcomeDeferred));
 
   // Finishing (or skipping) lands on the home feed when a vault is open,
   // whatever the "On vault open" setting says.

@@ -1,6 +1,7 @@
 import { atom } from "jotai";
 import { atomWithStorage, createJSONStorage } from "jotai/utils";
 import type { EditorView } from "@codemirror/view";
+import { tabSessionStorage } from "./session-storage";
 
 // Theme & appearance
 export type Theme = "light" | "dark" | "system";
@@ -145,17 +146,6 @@ export const atom_draftFolderRequest = atom<DraftFolderRequest | null>(null);
 // on init: it's only read from the store, never subscribed). Cleared when the
 // draft is saved or a new draft starts.
 export const atom_draftFolderDeclined = atomWithStorage<boolean>("draftFolderDeclined", false, undefined, { getOnInit: true });
-// The tab's sessionStorage, or nothing on the server (and where storage is
-// blocked), in which case Jotai falls back to the initial value. Unlike its
-// default localStorage getter, Jotai doesn't guard a custom one, so this must.
-function tabSessionStorage(): Storage {
-  try {
-    return window.sessionStorage;
-  } catch {
-    return undefined as unknown as Storage;
-  }
-}
-
 // Vault key the vault-open behavior last ran for, so returning to the editor
 // from another route doesn't replace the file just opened there. Kept in
 // sessionStorage: a refresh of the same tab reopens where you were (the note,
@@ -190,6 +180,10 @@ export const atom_hasCompletedOnboarding = atomWithStorage<boolean>(
 );
 export const atom_userName = atomWithStorage<string>("userName", "");
 export const atom_isWizardOpen = atom<boolean>(false);
+// Set when /editor opens with work handed over from a tool page: first-run
+// visitors see that work instead of the welcome tour, which waits for their
+// next visit. In memory, so a reload clears it.
+export const atom_welcomeDeferred = atom<boolean>(false);
 // Survives the full-page reload caused by the Google Drive OAuth round-trip, so the
 // wizard resumes where the user left off instead of restarting at the welcome step.
 export const atom_welcomeWizardStep = atomWithStorage<number>(

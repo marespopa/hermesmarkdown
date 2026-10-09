@@ -37,6 +37,7 @@ import { useRouter } from "next/navigation";
 import { atom_isAiConfigured, atom_aiBuilderRequest, atom_showHiddenFiles, atom_hideChromeWhileTyping, atom_sidebarOpen, atom_sidebarWidth } from "@/app/atoms/ui-atoms";
 import { usePaneFileActions } from "./hooks/use-pane-file-actions";
 import { useDraftImport } from "./hooks/use-draft-import";
+import { useToolHandoff } from "./hooks/use-tool-handoff";
 import { useEditorShortcuts } from "./hooks/use-editor-shortcuts";
 import { useGenerateAiNote } from "./hooks/use-generate-ai-note";
 import { useGitHubVaultActions } from "./hooks/use-github-vault-actions";
@@ -140,8 +141,9 @@ export default function LiteEditor() {
   const isVaultRestoring = useAtomValue(atom_isVaultRestoring);
   const isVaultLocked = isVaultRestoring || isVaultPending;
 
-  const { handleImport, fileInputRef, handleFileChange, pendingDraft, confirmPendingDraft, cancelPendingDraft } =
+  const { handleImport, fileInputRef, handleFileChange, pendingDraft, offerDraft, confirmPendingDraft, cancelPendingDraft } =
     useDraftImport(importFile);
+  useToolHandoff({ offerDraft, isVaultLocked });
 
   useEffect(() => {
     const handleFocus = () => {
