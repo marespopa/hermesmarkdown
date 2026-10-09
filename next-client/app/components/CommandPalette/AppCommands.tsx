@@ -49,6 +49,16 @@ export default function AppCommands() {
   );
 
   useRegisterCommand({
+    id: "open-tools",
+    label: "Open Free Tools",
+    description: "Table generator, Mermaid, tokenizer and more",
+    category: "Navigation",
+    keywords: "tools markdown table generator mermaid tokenizer cleaner converter html",
+    disabledReason: pathname === "/tools" ? "Already viewing the tools" : undefined,
+    action: () => router.push("/tools"),
+  });
+
+  useRegisterCommand({
     id: "open-settings",
     label: "Open Settings",
     category: "Settings",

@@ -7,6 +7,7 @@ import {
   HiOutlineClipboardCopy,
   HiOutlineCog,
   HiOutlineDotsHorizontal,
+  HiOutlinePuzzle,
   HiOutlineQuestionMarkCircle,
   HiOutlineSearch,
   HiOutlineViewBoards,
@@ -22,7 +23,8 @@ import { PANE_ICON_SIZE, PANE_SECTION_CLASS } from "./pane-header-classes";
 // stay put while focus moves between panes. Each section is its own capsule:
 // - Tools: command palette and AI chat.
 // - More: a pull-down menu with the secondary commands (Copy Markdown and
-//   Split Right for the focused pane, Settings, Help, Hide Toolbar).
+//   Split Right for the focused pane, Settings, Help, Free Tools, Hide
+//   Toolbar).
 export default function PaneWindowActions() {
   const actions = useWindowActions();
   const moreRef = useRef<HTMLButtonElement>(null);
@@ -85,6 +87,7 @@ export default function PaneWindowActions() {
             { label: "Split Right", icon: <HiOutlineViewBoards size={15} />, disabled: !actions.activePaneHasFiles, onClick: actions.splitActivePaneRight },
             { label: "Settings", icon: <HiOutlineCog size={15} />, divider: true, onClick: actions.openSettings },
             { label: "Documentation and Help", icon: <HiOutlineQuestionMarkCircle size={15} />, onClick: actions.openHelp },
+            { label: "Free Tools", icon: <HiOutlinePuzzle size={15} />, onClick: actions.openTools },
             { label: "Hide Toolbar", icon: <HiOutlineChevronUp size={15} />, divider: true, shortcut: formatShortcut("T", { alt: true }), onClick: actions.hideToolbar },
           ]}
         />
