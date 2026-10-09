@@ -42,7 +42,9 @@ export function useDraftImport(importFile: ReturnType<typeof useFileSystem>["imp
     // A new draft: the folder picker may ask again when it's first saved.
     store.set(atom_draftFolderDeclined, false);
     store.set(atom_homeFeedOpen, false);
-    focusPaneEditorWhenReady(store.get(atom_activePaneId));
+    // openDraft has just made the draft's pane active.
+    const paneId = store.get(atom_activePaneId);
+    if (paneId) focusPaneEditorWhenReady(paneId);
   }, [openDraft, store]);
 
   const offerDraft = useCallback((draft: PendingDraft) => {
