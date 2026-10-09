@@ -309,6 +309,7 @@ Covers item 5. Depends on 1–2.
 - `app/tools/markdown-table-generator/page.tsx`: `export const metadata = toolMetadata(toolBySlug("markdown-table-generator"))`; renders `<ToolShell tool=… openInWorkspace={<TableOpenButton/>}><TableToolLoader/></ToolShell>`. `TableOpenButton` is a tiny client wrapper reading `atom_tableToolMarkdown`; keep it in `TableTool.tsx`'s folder.
 
 ## Phase 4: Mermaid live editor
+**Status 2026-10-09:** implemented, **renamed "Mermaid in Markdown"** at `/tools/mermaid-in-markdown` (user decision; resolves open question 1, and the FAQ says it's independent of the Mermaid project). Copy in `content/mermaid-in-markdown.ts`; open button `mermaid/MermaidOpenButton.tsx`. `render-mermaid.ts` now sets `suppressErrorRendering`, so a syntax error only throws (callers show the message) instead of Mermaid also drawing its error graphic into the page, which a live editor would trigger on most keystrokes. `textareaClassName` already landed with the tokenizer.
 Covers item 6. Depends on 1–2. Can ship before 3.
 - `app/editor/components/MermaidViewer.tsx`: new (extraction). `MermaidDialog.tsx`: slimmed to use it.
 - `app/components/Input/Textarea.component.tsx`: `textareaClassName`.
@@ -443,7 +444,7 @@ All tests are fully mocked: `next/navigation` `useRouter` (assert `push`), `reac
 - Saving a tool result directly into a vault folder from the tool page.
 
 ## Open questions
-1. **"Mermaid Live Editor" naming.** The official Mermaid project runs mermaid.live under the same name. The slug and title target that search term, but the copy must not imply this is the official tool. Recommended: keep the slug; the lead says "a free, private Mermaid live editor"; the FAQ notes it is independent of the Mermaid project.
+1. ~~**"Mermaid Live Editor" naming.**~~ Resolved 2026-10-09: renamed "Mermaid in Markdown", slug `mermaid-in-markdown`. The official Mermaid project runs mermaid.live under the same name. The slug and title target that search term, but the copy must not imply this is the official tool. Recommended: keep the slug; the lead says "a free, private Mermaid live editor"; the FAQ notes it is independent of the Mermaid project.
 2. **Wizard deferral.** Confirm that first-time visitors arriving from a tool should skip onboarding on that visit. The alternative is showing the wizard over their content.
 3. ~~**Conversion measurement.**~~ Resolved 2026-10-09: track with `/editor?from=<source>`.
 4. **Overwrite in a vault.** In a vault, the draft could instead be saved as its own note first (as "New note" does in `use-draft-flow.ts`), which avoids the overwrite prompt. This PRD keeps the agreed prompt; confirm.

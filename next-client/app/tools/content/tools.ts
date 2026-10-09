@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { MARKDOWN_TABLE_GENERATOR } from "./markdown-table-generator";
+import { MERMAID_IN_MARKDOWN } from "./mermaid-in-markdown";
 import { TOKENIZER } from "./tokenizer";
 
 // The free tools (/tools/*): one entry per page. The single source for the
@@ -9,7 +10,7 @@ import { TOKENIZER } from "./tokenizer";
 export const SITE_URL = "https://hermesmarkdown.com";
 
 export interface ToolEntry {
-  slug: "markdown-table-generator" | "tokenizer";
+  slug: "markdown-table-generator" | "mermaid-in-markdown" | "tokenizer";
   // Short name for cards, links and the breadcrumb.
   name: string;
   // <title> and og:title.
@@ -25,7 +26,7 @@ export interface ToolEntry {
   features: string[];
 }
 
-export const TOOLS: ToolEntry[] = [MARKDOWN_TABLE_GENERATOR, TOKENIZER];
+export const TOOLS: ToolEntry[] = [MARKDOWN_TABLE_GENERATOR, MERMAID_IN_MARKDOWN, TOKENIZER];
 
 export function toolBySlug(slug: ToolEntry["slug"]): ToolEntry {
   const tool = TOOLS.find((entry) => entry.slug === slug);

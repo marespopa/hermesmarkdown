@@ -32,3 +32,12 @@ export const atom_tableToolMarkdown = atomWithStorage<string | null>(
   createJSONStorage<string | null>(tabSessionStorage),
   { getOnInit: true },
 );
+
+// The Mermaid tool's diagram source; null until edited, which shows the
+// first example.
+export const atom_mermaidToolSource = atomWithStorage<string | null>(
+  "hermes_tool_mermaid",
+  null,
+  createJSONStorage<string | null>(tabSessionStorage),
+  { getOnInit: true },
+);
