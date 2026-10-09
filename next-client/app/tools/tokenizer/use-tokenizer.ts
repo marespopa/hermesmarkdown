@@ -21,8 +21,12 @@ export interface TokenizerState {
 
 // Tokenizes `text` in tokenizer.worker.ts, 120 ms after the last change.
 // Replies to older requests are dropped, so a slow one never overwrites a
-// newer result.
-export function useTokenizer(text: string, encoding: TokenizerEncoding, delayMs = 120): TokenizerState {
+// newer result. With `countOnly`, results carry no segments.
+export function useTokenizer(
+  text: string,
+  encoding: TokenizerEncoding,
+  { delayMs = 120, countOnly = false }: { delayMs?: number; countOnly?: boolean } = {},
+): TokenizerState {
   const workerRef = useRef<Worker | null>(null);
   const latestRef = useRef(0);
   const [state, setState] = useState<TokenizerState>({ result: null, loading: true, error: null });
@@ -48,11 +52,11 @@ export function useTokenizer(text: string, encoding: TokenizerEncoding, delayMs 
   useEffect(() => {
     const id = ++latestRef.current;
     const timer = setTimeout(() => {
-      const request: TokenizeRequest = { id, text, encoding };
+      const request: TokenizeRequest = { id, text, encoding, countOnly };
       workerRef.current?.postMessage(request);
     }, delayMs);
     return () => clearTimeout(timer);
-  }, [text, encoding, delayMs]);
+  }, [text, encoding, delayMs, countOnly]);
 
   return state;
 }

@@ -51,9 +51,9 @@ export default function AppCommands() {
   useRegisterCommand({
     id: "open-tools",
     label: "Open Free Tools",
-    description: "Table generator, Mermaid, tokenizer and more",
+    description: "Table generator, Mermaid, tokenizer, token cost and more",
     category: "Navigation",
-    keywords: "tools markdown table generator mermaid tokenizer cleaner converter html",
+    keywords: "tools markdown table generator mermaid tokenizer token cost calculator price cleaner converter html",
     disabledReason: pathname === "/tools" ? "Already viewing the tools" : undefined,
     action: () => router.push("/tools"),
   });

@@ -6,6 +6,7 @@ import {
   HiOutlineChevronUp,
   HiOutlineClipboardCopy,
   HiOutlineCog,
+  HiOutlineCurrencyDollar,
   HiOutlineDotsHorizontal,
   HiOutlinePuzzle,
   HiOutlineQuestionMarkCircle,
@@ -23,8 +24,8 @@ import { PANE_ICON_SIZE, PANE_SECTION_CLASS } from "./pane-header-classes";
 // stay put while focus moves between panes. Each section is its own capsule:
 // - Tools: command palette and AI chat.
 // - More: a pull-down menu with the secondary commands (Copy Markdown and
-//   Split Right for the focused pane, Settings, Help, Free Tools, Hide
-//   Toolbar).
+//   Split Right for the focused pane, Token Cost of the focused note,
+//   Settings, Help, Free Tools, Hide Toolbar).
 export default function PaneWindowActions() {
   const actions = useWindowActions();
   const moreRef = useRef<HTMLButtonElement>(null);
@@ -85,6 +86,7 @@ export default function PaneWindowActions() {
           items={[
             { label: "Copy Markdown", icon: <HiOutlineClipboardCopy size={15} />, disabled: !actions.activePaneHasFiles, onClick: actions.copyActiveMarkdown },
             { label: "Split Right", icon: <HiOutlineViewBoards size={15} />, disabled: !actions.activePaneHasFiles, onClick: actions.splitActivePaneRight },
+            { label: "Token Cost", icon: <HiOutlineCurrencyDollar size={15} />, disabled: !actions.activePaneHasFiles, onClick: actions.openTokenCost },
             { label: "Settings", icon: <HiOutlineCog size={15} />, divider: true, onClick: actions.openSettings },
             { label: "Documentation and Help", icon: <HiOutlineQuestionMarkCircle size={15} />, onClick: actions.openHelp },
             { label: "Free Tools", icon: <HiOutlinePuzzle size={15} />, onClick: actions.openTools },

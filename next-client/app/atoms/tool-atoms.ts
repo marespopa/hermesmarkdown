@@ -59,3 +59,19 @@ export const atom_cleanerFormat = atomWithStorage<CleanerFormat>(
   createJSONStorage<CleanerFormat>(tabSessionStorage),
   { getOnInit: true },
 );
+
+// The token cost calculator's text (null until edited, which shows the
+// tokenizer's first example) and the expected reply length in tokens.
+export const atom_tokenCostText = atomWithStorage<string | null>(
+  "hermes_tool_token_cost",
+  null,
+  createJSONStorage<string | null>(tabSessionStorage),
+  { getOnInit: true },
+);
+
+export const atom_tokenCostOutputTokens = atomWithStorage<number>(
+  "hermes_tool_token_cost_output",
+  1000,
+  createJSONStorage<number>(tabSessionStorage),
+  { getOnInit: true },
+);

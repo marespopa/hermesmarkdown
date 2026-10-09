@@ -7,6 +7,8 @@ export interface TokenizeRequest {
   id: number;
   text: string;
   encoding: TokenizerEncoding;
+  // Only the count: no segments (the token cost views).
+  countOnly?: boolean;
 }
 
 export type TokenizeResponse =

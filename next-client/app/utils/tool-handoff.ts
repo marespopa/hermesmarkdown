@@ -13,7 +13,7 @@ const MAX_TITLE_CHARS = 60;
 // Tolerated clock skew for a payload stamped "in the future".
 const FUTURE_SKEW_MS = 60_000;
 
-const SOURCES = ["markdown-table", "mermaid", "markdown-cleaner", "tokenizer"] as const;
+const SOURCES = ["markdown-table", "mermaid", "markdown-cleaner", "tokenizer", "token-cost"] as const;
 export type ToolHandoffSource = (typeof SOURCES)[number];
 
 export interface ToolHandoff {

@@ -4,6 +4,7 @@ import { atom_activePaneId, atom_splitPane, atom_workspaceLayout } from "@/app/a
 import { atom_aiBuilderRequest, atom_isAiConfigured, atom_sidebarOpen, atom_toolbarHidden } from "@/app/atoms/ui-atoms";
 import { findLeaf } from "@/app/atoms/utils";
 import { useCommandPalette } from "@/app/components/CommandPalette/CommandPaletteContext";
+import { openTokenCostDialog } from "../utils/open-helper-dialogs";
 import { usePaneFileActions } from "./use-pane-file-actions";
 
 // The window-wide toolbar commands: the toolbar's Tools section, its More
@@ -32,6 +33,7 @@ export function useWindowActions() {
     openSettings: () => router.push("/editor/settings"),
     openHelp: () => router.push("/documentation"),
     openTools: () => router.push("/tools"),
+    openTokenCost: openTokenCostDialog,
     toggleSidebar: () => setSidebarOpen(!sidebarOpen),
     hideToolbar: () => setToolbarHidden(true),
     copyActiveMarkdown: () => void handleCopy(),

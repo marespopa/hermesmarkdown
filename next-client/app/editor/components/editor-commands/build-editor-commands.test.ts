@@ -155,6 +155,7 @@ describe("buildEditorCommands", () => {
       "toggle-theme",
       "toggle-hidden-files",
       "show-keyboard-shortcuts",
+      "token-cost",
       "open-settings",
       "toggle-word-wrap",
       "toggle-line-numbers",

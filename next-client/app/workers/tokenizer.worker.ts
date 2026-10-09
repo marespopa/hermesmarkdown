@@ -2,9 +2,10 @@ import { MAX_VISIBLE_TOKENS, segmentTokens } from "@/app/tools/tokenizer/segment
 import type { TokenizerEncoding } from "@/app/atoms/tool-atoms";
 import type { TokenizeRequest, TokenizeResponse } from "./tokenizer-protocol";
 
-// Tokenizes text for the tokenizer tool (/tools/tokenizer), off the main
-// thread: an encoding's vocabulary is 1–2.5 MB of script, loaded here only
-// when first used, and a long paste never blocks typing.
+// Tokenizes text for the tokenizer tool (/tools/tokenizer) and the token
+// cost views (calculator page, editor dialog), off the main thread: an
+// encoding's vocabulary is 1–2.5 MB of script, loaded here only when first
+// used, and a long paste never blocks typing.
 
 interface Encoder {
   encode: (text: string, options?: { disallowedSpecial?: Set<string> }) => number[];
@@ -25,7 +26,7 @@ function encoderFor(encoding: TokenizerEncoding) {
 }
 
 self.onmessage = async (event: MessageEvent<TokenizeRequest>) => {
-  const { id, text, encoding } = event.data;
+  const { id, text, encoding, countOnly } = event.data;
   let response: TokenizeResponse;
   try {
     const { encode, decode } = await encoderFor(encoding);
@@ -36,7 +37,7 @@ self.onmessage = async (event: MessageEvent<TokenizeRequest>) => {
       id,
       ok: true,
       tokenCount: ids.length,
-      segments: segmentTokens(ids, decode),
+      segments: countOnly ? [] : segmentTokens(ids, decode),
       truncated: ids.length > MAX_VISIBLE_TOKENS,
     };
   } catch (error) {

@@ -27,6 +27,7 @@ import RepurposeNoteWizard from "./components/RepurposeNoteWizard";
 import MermaidDialog from "./components/MermaidDialog";
 import RenderedBlockSourceDialog from "./components/RenderedBlockSourceDialog";
 import ImageDialog from "./components/ImageDialog";
+import TokenCostDialog from "./components/TokenCostDialog";
 import { useAIEditorActions } from "./hooks/useAIEditorActions";
 import AIChatDialog from "./components/AIChatDialog";
 import { AIReviewDialog } from "./components/AIReviewDialog";
@@ -283,6 +284,7 @@ export default function LiteEditor() {
         <RenderedBlockSourceDialog />
         <MermaidDialog />
         <ImageDialog />
+        <TokenCostDialog />
         
         <DraftImportDialog pendingDraft={pendingDraft} onConfirm={confirmPendingDraft} onCancel={cancelPendingDraft} />
         {!isVaultLocked && <DraftFolderDialog />}

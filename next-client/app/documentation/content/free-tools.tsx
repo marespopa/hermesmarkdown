@@ -7,7 +7,7 @@ export const freeToolsItems: Subsection[] = [
     id: "free-tools",
     title: "Free tools",
     lead: "Small, single-purpose tools that run in your browser without a vault or an account, and hand their result to the editor.",
-    keywords: "free tools markdown table generator mermaid in markdown diagram tokenizer token counter gpt markdown cleaner html to markdown converter google docs word lint format open in hermesmarkdown handoff draft csv spreadsheet formulas svg",
+    keywords: "free tools markdown table generator mermaid in markdown diagram tokenizer token counter token cost calculator price pricing gpt claude gemini markdown cleaner html to markdown converter google docs word lint format open in hermesmarkdown handoff draft csv spreadsheet formulas svg",
     body: (
       <>
         <p>
@@ -36,6 +36,11 @@ export const freeToolsItems: Subsection[] = [
           The work on a tool page is kept in that browser tab only, so a refresh doesn&apos;t lose
           it and a new tab starts fresh. Open in HermesMarkdown stays in the same tab for the same
           reason.
+        </p>
+        <p>
+          To price a note you already have, choose <strong>More → Token Cost</strong> in the editor,
+          or run <strong>Token cost of this note</strong> from the command palette. It counts the
+          note in the focused pane and shows what sending it costs on each model.
         </p>
         <Callout type="note">
           Nothing from the tools is uploaded. Tables, diagrams, conversions and token counts are all
