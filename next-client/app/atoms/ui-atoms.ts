@@ -31,6 +31,10 @@ export const atom_fullWidth = atomWithStorage<boolean>("fullWidth", false);
 // Flow mode: fades everything but the caret's paragraph and keeps the caret
 // line centred while typing. Opt-in, off by default.
 export const atom_flowMode = atomWithStorage<boolean>("flowMode", false);
+// Fades the pane header, sidebar and mobile file bar while you type; moving
+// the mouse brings them back (hooks/use-fade-chrome-while-typing.ts). On by
+// default.
+export const atom_hideChromeWhileTyping = atomWithStorage<boolean>("hideChromeWhileTyping", true);
 // Hides the desktop pane header (tabs and toolbar) for an immersive view.
 // Window-wide, like the toolbar's own controls.
 export const atom_toolbarHidden = atomWithStorage<boolean>("toolbarHidden", false);

@@ -109,6 +109,24 @@ export const editorWritingItems: Subsection[] = [
     ),
   },
   {
+    id: "hide-interface-while-typing",
+    title: "Hide interface while typing",
+    lead: "Once you start typing, the toolbar, tabs and sidebar fade away and only the page is left.",
+    keywords: "hide interface chrome toolbar tabs sidebar fade typing distraction free minimal focus settings",
+    body: (
+      <>
+        <p>
+          Move the mouse and everything comes back. On a phone, tap anywhere outside the text. The
+          layout never moves, so the line you&apos;re typing stays where it is.
+        </p>
+        <p>
+          It&apos;s on by default. Turn it off under Settings → Editor, or with the{" "}
+          <strong>Keep interface visible while typing</strong> command.
+        </p>
+      </>
+    ),
+  },
+  {
     id: "markdown-marks",
     title: "Markdown marks",
     lead: "Notes read like a page: Markdown marks appear only where you're editing.",

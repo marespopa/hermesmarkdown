@@ -35,6 +35,7 @@ The editor route (`page.tsx`) composes these:
 | `use-draft-import.ts` | Import a file into the draft (with `DraftImportDialog` for overwrite confirmation). |
 | `use-sync-current-directory.ts` | Points the vault's current directory at the active file's folder. |
 | `use-editor-paste-handlers.ts`, `use-scroll-to-pending-target.ts` | `MarkdownEditor` helpers: CSV-to-table confirm and image saving on paste; jump-to-line requests (`atom_pendingScrollTarget`; the caret goes to the optional `column`). |
+| `use-fade-chrome-while-typing.ts` | Hide interface while typing (`atom_hideChromeWhileTyping`): typing in an editor sets `<html data-chrome-faded>`, which fades every `.typing-chrome` element (pane header, sidebar, mobile file bar; `editor.scss`) and turns the pane, the canvas and the sheet's edge into one plain page (`.typing-page`); with the sidebar open, a single pane's text column slides left by up to half the sidebar's width (`--typing-shift`, set in `page.tsx`) so it centres on the window; 8px of mouse travel, or a tap or focus outside the editor, brings it back. |
 | `use-tab-drag-drop.ts` | Tab drag-and-drop between panes (`PaneLeaf`). |
 | `useAIEditorActions.ts` + `ai-action-prompts.ts` | AI Chat state and the one-click AI actions (prompt table keyed by action id). |
 

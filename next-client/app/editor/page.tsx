@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, type CSSProperties } from "react";
 import ConflictDialog from "./components/ConflictDialog";
 import { useAtomValue } from "jotai";
 import { atom_fileName, atom_content, atom_activeFilePath, atom_workspaceLayout, atom_activePaneId, atom_isFileLoading, atom_isVaultRestoring, findLeaf, getFirstLeaf } from "@/app/atoms/atoms";
@@ -34,7 +34,7 @@ import { AIThinkingOverlay } from "./components/AIThinkingOverlay";
 import VoicePreviewPanel from "./components/VoicePreviewPanel";
 import { useGlobalVoiceInput } from "./hooks/use-global-voice-input";
 import { useRouter } from "next/navigation";
-import { atom_isAiConfigured, atom_aiBuilderRequest, atom_showHiddenFiles } from "@/app/atoms/ui-atoms";
+import { atom_isAiConfigured, atom_aiBuilderRequest, atom_showHiddenFiles, atom_hideChromeWhileTyping, atom_sidebarOpen, atom_sidebarWidth } from "@/app/atoms/ui-atoms";
 import { usePaneFileActions } from "./hooks/use-pane-file-actions";
 import { useDraftImport } from "./hooks/use-draft-import";
 import { useEditorShortcuts } from "./hooks/use-editor-shortcuts";
@@ -49,6 +49,7 @@ import { useHomeFeed } from "./hooks/use-home-feed";
 import HomeFeed from "./components/HomeFeed";
 import { useVaultOpenBehavior } from "./hooks/use-vault-open-behavior";
 import { useRecentVaultTracker } from "./hooks/use-recent-vaults";
+import { useFadeChromeWhileTyping } from "./hooks/use-fade-chrome-while-typing";
 
 export default function LiteEditor() {
   const router = useRouter();
@@ -114,6 +115,10 @@ export default function LiteEditor() {
   useVaultSync();
   useVaultOpenBehavior();
   useRecentVaultTracker();
+  const hideChromeWhileTyping = useAtomValue(atom_hideChromeWhileTyping);
+  useFadeChromeWhileTyping(hideChromeWhileTyping);
+  const sidebarOpen = useAtomValue(atom_sidebarOpen);
+  const sidebarWidth = useAtomValue(atom_sidebarWidth);
 
   // "Open AI Chat" (keyboard shortcut / command palette) bumps this counter
   // from outside the editor; the actual open() call has to happen here since
@@ -218,6 +223,13 @@ export default function LiteEditor() {
   };
 
 
+  // Once the chrome fades, a single pane's text re-centres on the window
+  // rather than on the space beside the faded sidebar (editor.scss).
+  const centringShift =
+    !isMobileChrome && !isVaultLocked && !isHomeFeedOpen && sidebarOpen && "type" in workspaceLayout.rootContainer
+      ? `${sidebarWidth / 2}px`
+      : "0px";
+
   return (
     <ErrorBoundary onGoHome={() => router.push("/")}>
       <EditorCommands
@@ -249,7 +261,10 @@ export default function LiteEditor() {
       {/* Switching files keeps the editor on screen; a slim bar (shown only if
           it takes >150ms) signals the read + re-render instead of a full veil. */}
       <LoadingBar isVisible={isFileLoading && !isMounting} label="Opening file" />
-      <div className={`fixed inset-0 flex flex-col bg-surface text-fg selection:bg-sage-light/30 font-sans overflow-hidden overscroll-none transition-all duration-500`}>
+      <div
+        className={`typing-page fixed inset-0 flex flex-col bg-surface text-fg selection:bg-sage-light/30 font-sans overflow-hidden overscroll-none transition-all duration-500`}
+        style={{ "--typing-shift": centringShift } as CSSProperties}
+      >
         <h1 className="sr-only">HermesMarkdown Editor</h1>
         {/* Modals */}
         <WelcomeWizard />
@@ -273,7 +288,12 @@ export default function LiteEditor() {
 
         {/* Sidebar: navigation on the window's leading edge (desktop). The home
             feed is a full-width landing view, so it has none. */}
-        {!isMobileChrome && !isVaultLocked && !isHomeFeedOpen && <WorkspaceSidebar />}
+        {!isMobileChrome && !isVaultLocked && !isHomeFeedOpen && (
+          // A wrapper takes the fade: the sidebar's own transition is its slide.
+          <div className="typing-chrome shrink-0 flex">
+            <WorkspaceSidebar />
+          </div>
+        )}
 
         {/* Workspace Content */}
         <div className="flex-1 flex min-w-0 bg-surface overflow-hidden relative">

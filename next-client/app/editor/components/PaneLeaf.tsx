@@ -114,7 +114,7 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
   return (
     <div
       data-pane-id={leaf.id}
-      className={`relative h-full flex flex-col transition-all duration-300 overflow-hidden bg-paper-pale dark:bg-paper-dark ${
+      className={`typing-page relative h-full flex flex-col transition-all duration-300 overflow-hidden bg-paper-pale dark:bg-paper-dark ${
         isActive ? "z-10" : ""
       } ${isDimmed ? "opacity-40 saturate-50" : ""}`}
       onClick={() => setActivePaneId(leaf.id)}
@@ -128,7 +128,7 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
         inert={toolbarHidden}
       >
       <div
-        className={`${PANE_HEADER_CLASS} ${PANE_HEADER_HEIGHT}`}
+        className={`typing-chrome ${PANE_HEADER_CLASS} ${PANE_HEADER_HEIGHT}`}
         onContextMenu={(e) => {
           e.preventDefault();
           setToolbarMenu({ x: e.clientX, y: e.clientY });
@@ -225,7 +225,7 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
       {/* While hidden, the top-right pane (home of the window actions) keeps a
           small handle to bring the toolbar back. */}
       {!isMobileChrome && toolbarHidden && hostsWindowActions && (
-        <div className="absolute top-1.5 right-3 z-30">
+        <div className="typing-chrome absolute top-1.5 right-3 z-30">
           <Tooltip label="Show toolbar" shortcut={formatShortcut("T", { alt: true })} position="bottom-end">
             <Button
               variant="icon"
