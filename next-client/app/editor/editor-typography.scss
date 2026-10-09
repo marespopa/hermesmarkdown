@@ -9,12 +9,12 @@
    caret and clicks land on the wrong line. */
 
 .editor-sheet {
-  /* The column grows with the sheet up to a fixed width, 704px: what note
-     editors commonly use, about 75 characters a line at the default 17px
-     text (the top of the comfortable 45–75 range). In `rem`, not `ch`, so
-     changing the text size changes how much fits on a line, never where the
+  /* The column grows with the sheet up to a fixed width, 608px: about 64
+     characters a line at the default 17px text, the middle of the
+     comfortable 45–75 range, as focused writing apps set it. In `rem`, not
+     `ch`, so changing the text size changes how much fits on a line, never where the
      column's edges sit. */
-  --editor-measure: clamp(36rem, 85%, 44rem);
+  --editor-measure: clamp(32rem, 85%, 38rem);
 }
 
 /* Full Width (Settings → Editor): the column fills the sheet, inside its
@@ -35,6 +35,13 @@
   font-kerning: normal;
   text-rendering: optimizeLegibility;
   overflow-wrap: break-word;
+  /* Proportional faces tighten slightly at body size; monospace never does
+     (its letters have fixed advances). */
+  letter-spacing: -0.011em;
+}
+
+.editor-sheet.editor-container[data-font="mono"] .cm-content {
+  letter-spacing: 0;
 }
 
 /* Plain greedy wrapping on every line, never `text-wrap: pretty` or
@@ -44,9 +51,10 @@
   text-wrap: wrap;
 }
 
-/* Headings: the prose scale, a tight 1.2–1.3 line height and tracking that
-   tightens as they grow. Semibold, as in Apple's headline styles. No room
-   above or below: only real blank lines space a heading from its
+/* Headings: a Major Third scale (×1.25 a step: 1.953em / 1.563em / 1.25em /
+   1.125em, then body size), a line height that opens up as they shrink
+   (1.2 / 1.3 / 1.4) and tracking that tightens as they grow. Semibold, as
+   in Apple's headline styles. No room above or below: only real blank lines space a heading from its
    neighbours, so a missing blank line shows here rather than only after
    the Markdown is pasted elsewhere. That includes H1 under the Properties
    block: the blank line or spacer after it already matches the sheet's
@@ -57,24 +65,25 @@
 }
 
 .editor-sheet.editor-container .cm-line.cm-heading-1 {
-  font-size: 2em;
+  font-size: 1.953em;
   line-height: 1.2;
   letter-spacing: -0.022em;
 }
 
 .editor-sheet.editor-container .cm-line.cm-heading-2 {
-  font-size: 1.5em;
-  line-height: 1.25;
+  font-size: 1.563em;
   letter-spacing: -0.017em;
 }
 
 .editor-sheet.editor-container .cm-line.cm-heading-3 {
   font-size: 1.25em;
+  line-height: 1.4;
   letter-spacing: -0.011em;
 }
 
 .editor-sheet.editor-container .cm-line.cm-heading-4 {
   font-size: 1.125em;
+  line-height: 1.4;
 }
 
 .editor-sheet.editor-container .cm-line.cm-heading-5 {
@@ -105,19 +114,19 @@
 }
 
 .editor-sheet.editor-container .cm-lineNumbers .cm-gutter-heading-1 {
-  line-height: calc(var(--B) * 2.4);    /* 1.2 × 2 */
+  line-height: calc(var(--B) * 2.3436); /* 1.2 × 1.953 */
 }
 
 .editor-sheet.editor-container .cm-lineNumbers .cm-gutter-heading-2 {
-  line-height: calc(var(--B) * 1.875);  /* 1.25 × 1.5 */
+  line-height: calc(var(--B) * 2.0319); /* 1.3 × 1.563 */
 }
 
 .editor-sheet.editor-container .cm-lineNumbers .cm-gutter-heading-3 {
-  line-height: calc(var(--B) * 1.625);  /* 1.3 × 1.25 */
+  line-height: calc(var(--B) * 1.75);   /* 1.4 × 1.25 */
 }
 
 .editor-sheet.editor-container .cm-lineNumbers .cm-gutter-heading-4 {
-  line-height: calc(var(--B) * 1.4625); /* 1.3 × 1.125 */
+  line-height: calc(var(--B) * 1.575);  /* 1.4 × 1.125 */
 }
 
 .editor-sheet.editor-container .cm-lineNumbers .cm-gutter-heading-5 {
@@ -153,7 +162,9 @@
   background-color: color-mix(in srgb, var(--fg) 6%, transparent);
   color: color-mix(in srgb, var(--fg) 82%, var(--surface));
   font-family: var(--font-geist-mono), "SF Mono", ui-monospace, monospace;
+  font-feature-settings: "calt" 1, "zero" 1;
   font-size: 0.875em;
+  letter-spacing: 0;
   padding: 0.1em 0.3em;
 }
 
@@ -171,7 +182,10 @@
   border-inline: 1.125rem solid transparent;
   box-shadow: -1px 0 var(--codeblock-edge), 1px 0 var(--codeblock-edge);
   font-family: var(--font-geist-mono), "SF Mono", ui-monospace, monospace;
+  /* Contextual alternates, and a slashed zero so 0 and O never mix. */
+  font-feature-settings: "calt" 1, "zero" 1;
   font-size: 0.875em;
+  letter-spacing: 0;
   line-height: 1.6;
   text-wrap: wrap;
 }
