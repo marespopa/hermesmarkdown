@@ -575,7 +575,7 @@ describe("HomeFeed worklog", () => {
   it("lists open tasks and opens one at its line", () => {
     const { onOpenTask } = renderWorklog({ "log.md": withTasks("log.md", "# Log\n- [x] shipped\n- [ ] write the review") });
     const tasks = screen.getByRole("region", { name: "Open tasks" });
-    fireEvent.click(within(tasks).getByRole("button", { name: "write the review, in Log" }));
+    fireEvent.click(within(tasks).getByRole("button", { name: "write the review, in log" }));
     expect(onOpenTask).toHaveBeenCalledWith("log.md", 2);
     expect(within(tasks).queryByText("shipped")).not.toBeInTheDocument();
   });

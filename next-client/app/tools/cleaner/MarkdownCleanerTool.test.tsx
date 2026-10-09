@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen } from "@testing-library/react";
 import { createStore, Provider } from "jotai";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { atom_cleanerFormat, atom_cleanerInput } from "@/app/atoms/tool-atoms";
@@ -64,7 +64,7 @@ describe("MarkdownCleanerTool", () => {
 
   it("leaves rich pastes alone when Markdown is chosen", () => {
     const store = setup("");
-    store.set(atom_cleanerFormat, "markdown");
+    act(() => store.set(atom_cleanerFormat, "markdown"));
     paste({ "text/html": "<p><b>x</b></p>" });
     expect(store.get(atom_cleanerInput)).toBe("");
   });
