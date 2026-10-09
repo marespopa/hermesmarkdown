@@ -25,17 +25,7 @@ import { createTemplateFieldSource } from "./template-field-completion";
 import { templateFieldPills } from "./template-field-pills";
 import { templateBlanks } from "./template-blanks";
 import { createWikiLinkTriggerPlugin, WikiLinkTriggerCallback } from "./wikilink-trigger";
-import {
-  tableTabCommand,
-  tableShiftTabCommand,
-  tablePipeEscapeCommand,
-  tableEnterCommand,
-  tableArrowVerticalCommand,
-  tableMoveRowCommand,
-  tableMoveColumnCommand,
-  tableInsertRowCommand,
-  tableDeleteRowCommand,
-} from "./table-commands";
+import { tableKeyBindings } from "./table-keymap";
 import { frontmatterCollapse } from "./frontmatter-fold";
 import { flowMode } from "./flow-mode";
 import { liveMarkers } from "./live-markers";
@@ -109,20 +99,7 @@ export function buildExtensions(opts: BuildExtensionsOptions): Extension[] {
     // Enter binding — mirrors the old handleGlobalKeyDown, which checked
     // onTableKeyDown?.() first. Each table command returns false (falling
     // through to the next binding) when the cursor isn't inside a table.
-    keymap.of([
-      { key: "Tab", run: tableTabCommand },
-      { key: "Shift-Tab", run: tableShiftTabCommand },
-      { key: "|", run: tablePipeEscapeCommand },
-      { key: "Enter", run: tableEnterCommand },
-      { key: "ArrowDown", run: (view) => tableArrowVerticalCommand(view, 1) },
-      { key: "ArrowUp", run: (view) => tableArrowVerticalCommand(view, -1) },
-      { key: "Alt-ArrowUp", run: (view) => tableMoveRowCommand(view, -1) },
-      { key: "Alt-ArrowDown", run: (view) => tableMoveRowCommand(view, 1) },
-      { key: "Mod-Alt-ArrowLeft", run: (view) => tableMoveColumnCommand(view, -1) },
-      { key: "Mod-Alt-ArrowRight", run: (view) => tableMoveColumnCommand(view, 1) },
-      { key: "Mod-Enter", run: tableInsertRowCommand },
-      { key: "Mod-Shift-Backspace", run: tableDeleteRowCommand },
-    ]),
+    keymap.of(tableKeyBindings),
     // Tab / Shift-Tab between template blanks, after the table bindings so a
     // table cell keeps its own Tab.
     templateBlanks,

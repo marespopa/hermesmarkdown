@@ -299,6 +299,7 @@ Covers item 4.
 - **Shared:** `ToolShell`, `ToolCard`, `OpenInWorkspaceButton`, `tool-json-ld.ts`, the `/tools` hub, sitemap (`/tools` + catalog), header and mobile nav "Tools", footer "Free Tools" + one link per tool, `Textarea#textareaClassName`. The handoff source union gains `"tokenizer"`.
 
 ## Phase 3: Markdown table generator
+**Status 2026-10-09:** implemented as below. Differences: the catalog copy lives in `content/markdown-table-generator.ts`; the empty starting table is `table/default-table.ts`; the output is re-aligned with `tableOutput` (`table/table-output.ts`, table-only blocks), because the grid realigns its source only when the caret leaves a table; **formulas** (user request): the grid already evaluates `=SUM(B2:B4)` etc. through the editor's formula engine, so the output gets a Results / Formulas switch (shown only when the table has formulas; Results by default, since plain Markdown can't calculate), Open in HermesMarkdown always keeps the formulas (the editor keeps calculating), and the copy gains a "Can the table calculate?" FAQ; tool state is `null` (not `""`) until edited, so a deleted table stays deleted.
 Covers item 5. Depends on 1–2.
 - `app/editor/codemirror/table-keymap.ts`: new; `app/editor/codemirror/extensions.ts:112-125` uses it.
 - `app/editor/utils/table-manipulation.ts`: `createEmptyTable`.

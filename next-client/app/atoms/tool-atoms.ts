@@ -23,3 +23,12 @@ export const atom_tokenizerEncoding = atomWithStorage<TokenizerEncoding>(
   createJSONStorage<TokenizerEncoding>(tabSessionStorage),
   { getOnInit: true },
 );
+
+// The table generator's document (Markdown); null until edited, which shows
+// an empty 3 × 2 table.
+export const atom_tableToolMarkdown = atomWithStorage<string | null>(
+  "hermes_tool_table",
+  null,
+  createJSONStorage<string | null>(tabSessionStorage),
+  { getOnInit: true },
+);

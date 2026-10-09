@@ -6,6 +6,7 @@ describe("sitemap", () => {
     const urls = sitemap().map((entry) => entry.url);
     expect(urls).toContain("https://hermesmarkdown.com/tools");
     expect(urls).toContain("https://hermesmarkdown.com/tools/tokenizer");
+    expect(urls).toContain("https://hermesmarkdown.com/tools/markdown-table-generator");
     expect(new Set(urls).size).toBe(urls.length);
   });
 });
