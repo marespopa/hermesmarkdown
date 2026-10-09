@@ -287,7 +287,6 @@ export default function HomeFeed({ onOpenNote, onNewNote, onSearch, onClose, isS
         onSearchCommands={() => onSearch(">")}
         onNewNote={onNewNote}
         isSearchOpen={isSearchOpen}
-        showKeyHints={hasVault && feed.length > 0}
         placeholder={hasVault ? undefined : "Search commands…"}
       />
     </div>

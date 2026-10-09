@@ -129,11 +129,6 @@ describe("HomeFeed", () => {
     expect(onOpenNote).toHaveBeenLastCalledWith("old.md");
   });
 
-  it("shows the vim-style key hints above the search bar", () => {
-    renderFeed(NOTES);
-    expect(screen.getByLabelText(/^Keyboard: j and k move/)).toBeInTheDocument();
-  });
-
   it("doesn't take focus from a text field", () => {
     const field = document.createElement("input");
     document.body.appendChild(field);
