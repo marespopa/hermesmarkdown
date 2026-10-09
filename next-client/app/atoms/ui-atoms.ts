@@ -121,6 +121,10 @@ export const atom_isEditorFocused = atom<boolean>(false);
 // Whether the editor page shows the home feed in place of the workspace.
 // Ephemeral: opening a note closes it.
 export const atom_homeFeedOpen = atom<boolean>(false);
+// Set by the landing page's "Resume": the next vault-open behavior keeps the
+// restored tabs in front instead of opening the home feed, then clears it.
+// In memory: it only has to survive the client-side navigation to /editor.
+export const atom_resumeRequested = atom<boolean>(false);
 // Bumped when Home is pressed while the feed is already open; HomeFeed
 // scrolls back to the top on each change.
 export const atom_homeFeedTopRequest = atom(0);

@@ -52,9 +52,11 @@ function FeedPreview({ entry }: { entry: FeedEntry }) {
 // One note in the feed: day label (or "Pinned") in the left gutter, then the
 // title, a few lines of plain-text preview (masked or blurred for sensitive
 // notes) and the file name in small, faint type. The pin button shows on
-// hover, keyboard focus or selection, and not at all on touch screens, where
-// a long press opens the row's menu (Open, Pin / Unpin) instead; a
-// right-click or the context-menu key opens it everywhere.
+// hover, keyboard focus or selection, and not at all on touch-only screens,
+// where a long press opens the row's menu (Open, Pin / Unpin) instead; a
+// right-click or the context-menu key opens it everywhere. "Touch-only" is
+// `any-hover: none`: `hover: none` only reads the primary pointer, so it
+// also hid the pin from a mouse on a tablet or phone.
 const FeedRow = forwardRef<HTMLDivElement, FeedRowProps>(function FeedRow(
   { entry, isSelected, onOpen, onHover, onTogglePin },
   ref,
@@ -89,7 +91,7 @@ const FeedRow = forwardRef<HTMLDivElement, FeedRowProps>(function FeedRow(
         {...longPress.handlers}
         aria-label={entry.isSensitive ? `${entry.title} (sensitive)` : entry.title}
         // No text selection or callout on a long press (iOS).
-        className={`group block w-full min-w-0 select-none rounded-lg py-3 pl-3 pr-10 text-left [@media(hover:none)]:pr-3 transition-colors [-webkit-touch-callout:none] ${
+        className={`group block w-full min-w-0 select-none rounded-lg py-3 pl-3 pr-10 text-left [@media(any-hover:none)]:pr-3 transition-colors [-webkit-touch-callout:none] ${
           isSelected ? "bg-surface-raised" : "hover:bg-surface-raised"
         }`}
       >
@@ -116,7 +118,7 @@ const FeedRow = forwardRef<HTMLDivElement, FeedRowProps>(function FeedRow(
         onMouseEnter={onHover}
         aria-label={pinLabel}
         title={pinLabel}
-        className={`absolute right-1.5 top-2 flex h-8 w-8 items-center justify-center rounded-md text-fg-faint transition-opacity hover:text-fg focus-visible:opacity-100 group-hover/row:opacity-100 [@media(hover:none)]:hidden ${
+        className={`absolute right-1.5 top-2 flex h-8 w-8 items-center justify-center rounded-md text-fg-faint transition-opacity hover:text-fg focus-visible:opacity-100 group-hover/row:opacity-100 [@media(any-hover:none)]:hidden ${
           isSelected ? "opacity-100" : "opacity-0"
         }`}
       >

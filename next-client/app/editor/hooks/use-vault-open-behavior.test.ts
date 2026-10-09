@@ -6,13 +6,14 @@ import { createStore, Provider } from "jotai";
 // Fresh modules and a fresh store stand in for a page load (stored atoms read
 // sessionStorage when their module loads); sessionStorage is what survives a
 // refresh of the same tab.
-async function openVault() {
+async function openVault({ resume = false } = {}) {
   vi.resetModules();
   const { atom_vaultHandle } = await import("@/app/atoms/vault-atoms");
-  const { atom_homeFeedOpen } = await import("@/app/atoms/ui-atoms");
+  const { atom_homeFeedOpen, atom_resumeRequested } = await import("@/app/atoms/ui-atoms");
   const { useVaultOpenBehavior } = await import("./use-vault-open-behavior");
   const store = createStore();
   store.set(atom_vaultHandle, { name: "Notes" } as FileSystemDirectoryHandle);
+  store.set(atom_resumeRequested, resume);
   const wrapper = ({ children }: { children: React.ReactNode }) => React.createElement(Provider, { store }, children);
   renderHook(() => useVaultOpenBehavior(), { wrapper });
   return store.get(atom_homeFeedOpen);
@@ -39,6 +40,12 @@ describe("useVaultOpenBehavior", () => {
 
   it("opens the home feed the first time a vault opens in this tab", async () => {
     expect(await openVault()).toBe(true);
+  });
+
+  it("keeps the open tabs in front when arriving through Resume", async () => {
+    expect(await openVault({ resume: true })).toBe(false);
+    // Handled for this vault: a later load in the tab doesn't open it either.
+    expect(await openVault()).toBe(false);
   });
 
   it("stays on the note after a refresh of the same tab", async () => {

@@ -35,7 +35,7 @@ export default function FeedSkeleton({ rows = 3 }: { rows?: number }) {
           <span className="flex justify-end pt-4">
             <Line lineClass="h-[1.125rem]" barClass="h-2.5 w-10" />
           </span>
-          <span className="block py-3 pl-3 pr-10 [@media(hover:none)]:pr-3">
+          <span className="block py-3 pl-3 pr-10 [@media(any-hover:none)]:pr-3">
             <Line lineClass="h-[1.375rem]" barClass="h-3.5 w-1/2" />
             <span className="mt-1 block">
               <Line lineClass="h-[1.625rem]" barClass="h-2.5 w-11/12" />
