@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useLayoutEffect, useRef } from "react";
 
 const VIEW_PARAM = "view";
 const HOME_VIEW = "home";
@@ -11,11 +11,12 @@ const HOME_VIEW = "home";
 // with history.replaceState, which the App Router keeps in sync with
 // useSearchParams. On mount, `?view=home` opens the feed; after that the
 // atom leads. The URL isn't touched until a vault is open, so a deep link
-// survives the vault restore.
+// survives the vault restore. A layout effect, so a refresh on the feed
+// opens it before the first paint instead of flashing the workspace.
 export function useHomeFeedUrlSync(isOpen: boolean, hasVault: boolean, setIsOpen: (open: boolean) => void) {
   const hasReadUrlRef = useRef(false);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const url = new URL(window.location.href);
     if (!hasReadUrlRef.current) {
       hasReadUrlRef.current = true;

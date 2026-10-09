@@ -236,6 +236,11 @@ export const atom_fileTreeExpansion = atomWithStorage<Record<string, FileTreeExp
 // atom_vaultKey), newest pin first. Read and toggled through
 // home-pin-atoms.ts.
 export const atom_homePins = atomWithStorage<Record<string, string[]>>("hermes_home_pins", {});
+// The home feed's "Open tasks" section is folded (every vault).
+// Where today's worklog sheet goes (`{{year}}` / `{{month}}` allowed; ""
+// = vault root). null until asked, on the first "Start today's sheet".
+export const atom_todayFolder = atomWithStorage<string | null>("hermes_today_folder", null);
+export const atom_homeTasksCollapsed = atomWithStorage<boolean>("hermes_home_tasks_collapsed", false);
 export const atom_repurposeWizardOpen = atom<boolean>(false);
 
 // Vault creation flow — transient, never persisted

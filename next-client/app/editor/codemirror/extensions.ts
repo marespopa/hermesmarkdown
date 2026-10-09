@@ -19,6 +19,7 @@ import { annotationDisplayPlugin } from "./annotation-display";
 import { tableDisplayExtension } from "./table-display";
 import { renderedBlockExtension } from "./rendered-block";
 import { shortcodeExpandPlugin } from "./shortcode-expand";
+import { bulletAutospace } from "./bullet-autospace";
 import { noteCalcExtension } from "./note-calc";
 import { createSlashMenuSource, SlashMenuCallbacks } from "./slash-menu";
 import { createTemplateFieldSource } from "./template-field-completion";
@@ -88,6 +89,7 @@ export function buildExtensions(opts: BuildExtensionsOptions): Extension[] {
     renderedBlockExtension,
     noteCalcExtension,
     shortcodeExpandPlugin,
+    bulletAutospace,
     createWikiLinkTriggerPlugin(opts.wikiLinkTriggerRef),
     opts.vimModeCompartment.of(opts.vimMode ? loadedVim()?.vim() ?? [] : []),
     autocompletion({

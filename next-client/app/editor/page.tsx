@@ -48,6 +48,7 @@ import DraftFolderDialog from "./components/DraftFolderDialog";
 import { useDraftFlow } from "./hooks/use-draft-flow";
 import { useHomeFeed } from "./hooks/use-home-feed";
 import HomeFeed from "./components/HomeFeed";
+import { HomeFeedSkeleton } from "./components/EditorSkeleton";
 import { useVaultOpenBehavior } from "./hooks/use-vault-open-behavior";
 import { useRecentVaultTracker } from "./hooks/use-recent-vaults";
 import { useFadeChromeWhileTyping } from "./hooks/use-fade-chrome-while-typing";
@@ -100,6 +101,7 @@ export default function LiteEditor() {
     scanVault,
     indexVaultTags,
     syncCurrentDirectoryToPath,
+    openTodayNote,
   } = useFileSystem();
   const showHiddenFiles = useAtomValue(atom_showHiddenFiles);
   const handleRefreshVault = useCallback(() => {
@@ -210,6 +212,7 @@ export default function LiteEditor() {
     newNote: handleNewFile,
     materializeDraft,
     importFile: handleImport,
+    openTodayNote: () => openTodayNote(),
   });
 
   const handleNewAIFile = useGenerateAiNote({ vaultHandle, vaultFiles, chooseTargetDirectory, createFile });
@@ -259,7 +262,8 @@ export default function LiteEditor() {
         onDiscardVoice={discardVoicePreview}
         hasVoicePreview={voicePreviewText.length > 0 || voiceInterimText !== null}
       />
-      <LoadingOverlay isVisible={isMounting || !!navigatingLabel} text={navigatingLabel ? `${navigatingLabel}...` : "Loading..."} />
+      {/* On the feed, its skeleton (gate, then the main area) leads straight into it. */}
+      <LoadingOverlay isVisible={(isMounting && !isHomeFeedOpen) || !!navigatingLabel} text={navigatingLabel ? `${navigatingLabel}...` : "Loading..."} />
       {/* Switching files keeps the editor on screen; a slim bar (shown only if
           it takes >150ms) signals the read + re-render instead of a full veil. */}
       <LoadingBar isVisible={isFileLoading && !isMounting} label="Opening file" />
@@ -311,7 +315,9 @@ export default function LiteEditor() {
               <main
                 className="h-full"
               >
-                {isMounting || isVaultLocked ? (
+                {(isMounting || isVaultLocked) && isHomeFeedOpen ? (
+                  <HomeFeedSkeleton />
+                ) : isMounting || isVaultLocked ? (
                   <div className="animate-pulse opacity-10 space-y-6 pt-20 px-12 max-w-2xl mx-auto">
                     <div className="h-8 bg-current w-1/3 rounded-lg mb-16" />
                     <div className="h-4 bg-current w-full rounded-md" />

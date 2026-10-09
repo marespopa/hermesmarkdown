@@ -22,15 +22,17 @@ interface UseHomeFeedOptions {
   materializeDraft: (paneId?: string, options?: MaterializeDraftOptions) => Promise<string | null>;
   /** Opens a file from the device into the draft (the no-vault feed's "Open File…"). */
   importFile: () => Promise<void>;
+  /** Opens today's worklog sheet, creating it when it doesn't exist. */
+  openTodayNote: () => Promise<void>;
 }
 
 // Wires the home feed into the editor page: open/close state, row opening,
-// the new-note button, the palette's "Create '…'" row and the "Home feed"
-// command. Opening any file (openFile, from anywhere) closes the feed. The
+// the new-note button, the "Today" row, the open tasks, the palette's
+// "Create '…'" row and the "Home feed" and "Today's sheet" commands. Opening any file (openFile, from anywhere) closes the feed. The
 // open state is mirrored in the URL as `?view=home` (useHomeFeedUrlSync).
 // With no vault open the feed is still reachable; it offers the vault
 // actions and ways to start writing instead of notes.
-export function useHomeFeed({ hasVault, openFile, newNote, materializeDraft, importFile }: UseHomeFeedOptions) {
+export function useHomeFeed({ hasVault, openFile, newNote, materializeDraft, importFile, openTodayNote }: UseHomeFeedOptions) {
   const store = useStore();
   const [isOpen, setIsOpen] = useAtom(atom_homeFeedOpen);
   const goHome = useSetAtom(atom_goHome);
@@ -47,6 +49,18 @@ export function useHomeFeed({ hasVault, openFile, newNote, materializeDraft, imp
     const handle = store.get(atom_fileMetadata)[path]?.handle as FileSystemFileHandle | undefined;
     if (handle) await openFile(handle, path);
   }, [materializeDraft, openFile, setIsOpen, store]);
+
+  // A task's note, with the caret on the task (`line` is 0-indexed).
+  const openTask = useCallback(async (path: string, line: number) => {
+    await openNote(path);
+    setPendingScrollTarget({ path, line: line + 1 });
+  }, [openNote, setPendingScrollTarget]);
+
+  const openToday = useCallback(async () => {
+    setIsOpen(false);
+    await materializeDraft(undefined, { background: true });
+    await openTodayNote();
+  }, [materializeDraft, openTodayNote, setIsOpen]);
 
   const startNewNote = useCallback(async () => {
     setIsOpen(false);
@@ -90,6 +104,15 @@ export function useHomeFeed({ hasVault, openFile, newNote, materializeDraft, imp
     action: () => goHome(),
   });
 
+  useRegisterCommand({
+    id: "open-today-note",
+    label: "Today's sheet",
+    category: "Navigation",
+    keywords: "today daily worklog journal date open create",
+    disabledReason: hasVault ? undefined : "Open a vault first",
+    action: () => void openToday(),
+  });
+
   return {
     isHomeFeedOpen: isOpen,
     feedProps: {
@@ -100,6 +123,8 @@ export function useHomeFeed({ hasVault, openFile, newNote, materializeDraft, imp
       isSearchOpen: isPaletteOpen,
       hasVault,
       onOpenFile: () => void openDeviceFile(),
+      onOpenToday: () => void openToday(),
+      onOpenTask: (path: string, line: number) => void openTask(path, line),
     },
   };
 }

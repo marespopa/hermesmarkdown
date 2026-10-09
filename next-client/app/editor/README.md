@@ -36,7 +36,7 @@ The editor route (`page.tsx`) composes these:
 | `use-tool-handoff.ts` | Work handed over from a tool page (`app/utils/tool-handoff.ts`, `sessionStorage["hermes_tool_handoff"]`): read once on mount (deferring the welcome tour), offered to the draft once the vault has settled and the vault-open behavior has run, then cleared. |
 | `use-sync-current-directory.ts` | Points the vault's current directory at the active file's folder. |
 | `use-editor-paste-handlers.ts`, `use-scroll-to-pending-target.ts` | `MarkdownEditor` helpers: CSV-to-table confirm and image saving on paste; jump-to-line requests (`atom_pendingScrollTarget`; the caret goes to the optional `column`). |
-| `use-fade-chrome-while-typing.ts` | Hide interface while typing (`atom_hideChromeWhileTyping`): typing in an editor sets `<html data-chrome-faded>`, which fades every `.typing-chrome` element (pane header, sidebar, mobile file bar; `editor.scss`) and turns the pane, the canvas and the sheet's edge into one plain page (`.typing-page`); with the sidebar open, a single pane's text column slides left by up to half the sidebar's width (`--typing-shift`, set in `page.tsx`) so it centres on the window; 8px of mouse travel, or a tap or focus outside the editor, brings it back. |
+| `use-fade-chrome-while-typing.ts` | Hide interface while typing (`atom_hideChromeWhileTyping`): typing in an editor sets `<html data-chrome-faded>`, which fades every `.typing-chrome` element (pane header, sidebar, mobile file bar; `editor.scss`) and turns the pane, the canvas and the sheet's edge into one plain page (`.typing-page`); with the sidebar open, a single pane's text column slides left by up to half the sidebar's width (`--typing-shift`, set in `page.tsx`) so it centres on the window; moving the mouse over where the chrome sits (after 8px of travel; moving over the text leaves it hidden), or a tap or focus outside the editor, brings it back. |
 | `use-tab-drag-drop.ts` | Tab drag-and-drop between panes (`PaneLeaf`). |
 | `useAIEditorActions.ts` + `ai-action-prompts.ts` | AI Chat state and the one-click AI actions (prompt table keyed by action id). |
 
@@ -53,6 +53,8 @@ The editor route (`page.tsx`) composes these:
 ## Flow mode
 
 `codemirror/flow-mode.ts` is an opt-in writing mode (Settings → Editor, or **Enable flow mode** in the command palette), stored in `atom_flowMode` and toggled through a CodeMirror compartment.
+
+`codemirror/bullet-autospace.ts` (an `EditorView.inputHandler`) turns a `-` typed at the start of a line (after any indent or `> `) into `- `. A space typed right after that bare bullet is swallowed, and a second `-` turns it back into `--`, so `---` still types as a rule or frontmatter fence. Code blocks and multi-cursor edits are left alone.
 
 1. **Paragraph focus**: a view plugin marks the lines of the caret's paragraph (the run of non-blank lines around it) with `cm-flowActive`. While the editor has focus, every other line and block widget fades to 25% opacity. On blur the whole note returns to full strength.
 2. **Typewriter scrolling**: a transaction extender adds a centered `scrollIntoView` effect to typing, deletion, undo/redo and keyboard caret movement. Pointer selections and external reloads never scroll. The content gets extra bottom padding so the last line can still reach the center.

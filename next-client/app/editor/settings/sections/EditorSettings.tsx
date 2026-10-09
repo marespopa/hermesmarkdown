@@ -58,7 +58,7 @@ export default function EditorSettings() {
         />
         <SettingItem
           label="Hide Interface While Typing"
-          description="Fade the toolbar, tabs and sidebar once you start typing, leaving only the page. Move the mouse to bring them back."
+          description="Fade the toolbar, tabs and sidebar once you start typing, leaving only the page. Move the mouse over them to bring them back."
           control={<Toggle variant="soft" active={hideChrome} onChange={setHideChrome} />}
         />
       </SettingGroup>

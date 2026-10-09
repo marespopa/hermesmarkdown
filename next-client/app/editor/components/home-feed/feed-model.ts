@@ -30,6 +30,11 @@ export interface FeedEntry {
   previewStyle: PreviewStyle;
   /** Frontmatter tags and inline #hashtags; empty for sensitive notes, whose tags may say more than their title. */
   tags: string[];
+  /**
+   * Today's worklog sheet (`withTodaySheet`): "existing" leads the day,
+   * "missing" is the row that starts it (not a note yet).
+   */
+  todaySheet?: "existing" | "missing";
 }
 
 // Vault notes only: no dotfolders (.hermes/, .obsidian/), no _-prefixed
@@ -126,6 +131,40 @@ export function buildFeed(
   return labelDays(kept, now);
 }
 
+// Today's sheet leads the unpinned notes, so it heads "Today": the note
+// itself, marked, or, when there's none yet, a "missing" row in its place
+// that starts it. `today.exists` without the note in the feed (hidden by
+// Privacy Mode) adds nothing; nor does a pinned sheet, which stays pinned.
+export function withTodaySheet(
+  feed: FeedEntry[],
+  today: { path: string; exists: boolean },
+  now: Date,
+): FeedEntry[] {
+  const index = feed.findIndex((entry) => entry.path === today.path);
+  if (index >= 0 && feed[index].isPinned) return feed;
+  if (index < 0 && today.exists) return feed;
+  const sheet: FeedEntry = index >= 0
+    ? { ...feed[index], todaySheet: "existing" }
+    : {
+        path: today.path,
+        title: "Start today's sheet",
+        fileName: today.path.split("/").pop()!,
+        preview: "",
+        modifiedAt: now.getTime(),
+        dayLabel: null,
+        isPinned: false,
+        isIndexed: true,
+        isSensitive: false,
+        previewStyle: "plain",
+        tags: [],
+        todaySheet: "missing",
+      };
+  const rest = feed.filter((entry) => entry.path !== today.path);
+  const firstUnpinned = rest.findIndex((entry) => !entry.isPinned);
+  const at = firstUnpinned < 0 ? rest.length : firstUnpinned;
+  return labelDays([...rest.slice(0, at), sheet, ...rest.slice(at)], now);
+}
+
 // "Pinned" on the first pinned note, then a day label on the first note of
 // each day; undated notes get none.
 function labelDays(entries: FeedEntry[], now: Date): FeedEntry[] {
@@ -167,4 +206,50 @@ export function feedTags(feed: FeedEntry[]): FeedTag[] {
   return [...stats]
     .sort(([a, x], [b, y]) => y.count - x.count || y.latest - x.latest || a.localeCompare(b))
     .map(([tag, { count }]) => ({ tag, count }));
+}
+
+// How far back the open-tasks rollup looks, in days (today included).
+export const OPEN_TASK_DAYS = 7;
+
+export interface FeedTask {
+  /** `${path}#${line}`, from the task extractor. */
+  id: string;
+  path: string;
+  /** 0-indexed line of the task in its note. */
+  line: number;
+  text: string;
+  /** The note's title, as the feed shows it. */
+  noteTitle: string;
+}
+
+// Unchecked `- [ ]` tasks from the feed's notes edited in the last
+// `OPEN_TASK_DAYS` days, newest note first, then in note order. Takes the
+// built feed, so templates, hidden files and notes the privacy level hides
+// never contribute; sensitive notes don't either, since a task may say more
+// than the title.
+export function openFeedTasks(
+  feed: FeedEntry[],
+  metadata: Record<string, FileMetadata>,
+  now: Date,
+  days = OPEN_TASK_DAYS,
+): FeedTask[] {
+  const since = startOfDay(now) - (days - 1) * DAY_MS;
+  return feed
+    .filter((entry) => !entry.isSensitive && entry.modifiedAt >= since)
+    .sort((a, b) => b.modifiedAt - a.modifiedAt || a.path.localeCompare(b.path))
+    .flatMap((entry) => (metadata[entry.path]?.tasks ?? [])
+      .filter((task) => !task.checked)
+      .sort((a, b) => a.line - b.line)
+      .map((task) => ({ id: task.id, path: entry.path, line: task.line, text: task.text, noteTitle: entry.title })));
+}
+
+export interface FeedStats {
+  notes: number;
+  /** Notes modified since local midnight. */
+  editedToday: number;
+}
+
+export function feedStats(feed: FeedEntry[], now: Date): FeedStats {
+  const today = startOfDay(now);
+  return { notes: feed.length, editedToday: feed.filter((entry) => entry.modifiedAt >= today).length };
 }

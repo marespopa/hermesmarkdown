@@ -16,8 +16,15 @@ function mountEditor() {
 }
 
 const type = (target: Element) => target.dispatchEvent(new Event("beforeinput", { bubbles: true }));
-const moveMouse = (distance: number) => {
-  const event = new MouseEvent("mousemove", { bubbles: true });
+const mountChrome = () => {
+  const chrome = document.createElement("div");
+  chrome.className = "typing-chrome";
+  chrome.getBoundingClientRect = () => ({ left: 0, top: 0, right: 200, bottom: 40, width: 200, height: 40, x: 0, y: 0, toJSON: () => ({}) });
+  document.body.append(chrome);
+};
+
+const moveMouse = (distance: number, at = { x: 100, y: 20 }) => {
+  const event = new MouseEvent("mousemove", { bubbles: true, clientX: at.x, clientY: at.y });
   Object.defineProperty(event, "movementX", { value: distance });
   Object.defineProperty(event, "movementY", { value: 0 });
   document.dispatchEvent(event);
@@ -38,13 +45,25 @@ describe("useFadeChromeWhileTyping", () => {
     expect(isFaded()).toBe(true);
   });
 
-  it("brings it back once the mouse has moved far enough", () => {
+  it("brings it back once the mouse has moved far enough over the chrome", () => {
     const { content } = mountEditor();
+    mountChrome();
     renderHook(() => useFadeChromeWhileTyping(true));
     type(content);
     moveMouse(REVEAL_DISTANCE - 1);
     expect(isFaded()).toBe(true);
     moveMouse(1);
+    expect(isFaded()).toBe(false);
+  });
+
+  it("stays hidden while the mouse moves over the text", () => {
+    const { content } = mountEditor();
+    mountChrome();
+    renderHook(() => useFadeChromeWhileTyping(true));
+    type(content);
+    moveMouse(REVEAL_DISTANCE * 10, { x: 400, y: 300 });
+    expect(isFaded()).toBe(true);
+    moveMouse(1, { x: 50, y: 10 });
     expect(isFaded()).toBe(false);
   });
 
