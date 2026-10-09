@@ -7,7 +7,7 @@ export const freeToolsItems: Subsection[] = [
     id: "free-tools",
     title: "Free tools",
     lead: "Small, single-purpose tools that run in your browser without a vault or an account, and hand their result to the editor.",
-    keywords: "free tools markdown table generator mermaid in markdown diagram tokenizer token counter gpt open in hermesmarkdown handoff draft csv spreadsheet formulas svg",
+    keywords: "free tools markdown table generator mermaid in markdown diagram tokenizer token counter gpt markdown cleaner html to markdown converter google docs word lint format open in hermesmarkdown handoff draft csv spreadsheet formulas svg",
     body: (
       <>
         <p>
@@ -26,8 +26,8 @@ export const freeToolsItems: Subsection[] = [
         />
         <p>
           <strong>Open in HermesMarkdown</strong> carries the result into the editor as your
-          draft: a table with its formulas still calculating, a diagram rendered inline, or the text
-          you tokenized. If the draft already has text, the editor asks before replacing it; cancel
+          draft: a table with its formulas still calculating, a diagram rendered inline, the cleaned
+          Markdown, or the text you tokenized. If the draft already has text, the editor asks before replacing it; cancel
           and your draft stays as it was, with the tool&apos;s work still on its page (press Back).
           The draft then saves like any other: into your vault once it has a first line or, with no
           vault open, as a download when you save.
@@ -38,8 +38,8 @@ export const freeToolsItems: Subsection[] = [
           reason.
         </p>
         <Callout type="note">
-          Nothing from the tools is uploaded. Tables, diagrams and token counts are all computed in
-          your browser.
+          Nothing from the tools is uploaded. Tables, diagrams, conversions and token counts are all
+          computed in your browser.
         </Callout>
       </>
     ),

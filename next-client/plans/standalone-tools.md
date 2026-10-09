@@ -320,6 +320,62 @@ Covers item 6. Depends on 1–2. Can ship before 3.
 Covers item 7. See Docs.
 **Status 2026-10-09:** done. Component docs, READMEs and the PRD were updated alongside each phase; this phase added `app/documentation/content/free-tools.tsx` (Get started → Free tools; its tool list is generated from the catalog), the `tools/` entry in `app/README.md` and the Free tools bullet in `ARCHITECTURE.md`.
 
+## Phase 6: Markdown Cleaner & Converter
+**Status 2026-10-09:** implemented as below. Also added on request: a **Free Tools** item in the editor toolbar's More menu (after Documentation and Help; `useWindowActions#openTools` → `/tools`) and an "Open Free Tools" command in the palette (`AppCommands`). The More menu was chosen over the sidebar because the sidebar is desktop-only, hidden on the home feed, and limited to in-workspace navigation.
+**Added 2026-10-09** (user request: "Paste messy text, HTML, CSV, or rich text, and convert/clean it into standard CommonMark/GFM: fix broken list indents, strip HTML styling, auto-format headers"). Decisions with the user: spec then build on `release/6.4.0`; HTML conversion uses `turndown` (7.2.0, ~30 KB, only on this route). The GFM rules are our own, not `turndown-plugin-gfm`: that plugin is unmaintained since 2018 and keeps any table without a `<th>` row as raw HTML, which is every table pasted from Google Docs, Sheets and Word.
+
+### Behavior
+- **Route** `/tools/markdown-cleaner`, name "Markdown Cleaner", title "Markdown Cleaner: HTML to Markdown Converter | HermesMarkdown". Catalog entry `content/markdown-cleaner.ts`; handoff source `"markdown-cleaner"`, draft name "Clean Markdown".
+- **Layout:** example chips (Messy Markdown, Web page HTML, Google Docs paste, Spreadsheet CSV) and a format switch (**Auto**, Markdown, HTML, CSV/TSV); then input (left) and output (right), stacked below 768px; then the fix report and the actions **Open in HermesMarkdown**, **Copy Markdown**, **Clear**.
+- **Input:** a monospace `Textarea`. First visit shows the Messy Markdown example; a cleared box stays empty. Persisted in tab sessionStorage (`hermes_tool_cleaner`, `hermes_tool_cleaner_format`) like the other tools.
+- **Rich paste:** with Auto or HTML selected, pasting clipboard content that carries structured HTML (`p`, headings, lists, tables, links, emphasis, `pre`/`code`, images, quotes) inserts that HTML instead of the plain text, so formatting from web pages, Google Docs and Word survives. HTML with no structure (a code editor's coloured `div`/`span` soup) pastes as plain text. The browser's paste-as-plain-text shortcut skips it.
+- **Auto detection** (`detectFormat`): HTML when the text starts with a tag, contains at least two tags, and has no Markdown block lines (`#`, list markers, fences, `>`, `|`); CSV/TSV when `detectDelimitedTable` finds columns, no line is Markdown, and (for commas) every cell is ≤ 60 characters; otherwise Markdown. Auto shows "Detected: HTML" etc.
+- **Output:** a read-only monospace block, recomputed as you type (deferred value, no debounce needed: 200k characters clean in tens of ms). Empty input → "Paste something to clean." and the actions disabled.
+- **Fix report:** "N fixes" plus one chip per rule that fired ("3 list indents", "2 headings", …); "Already clean" when none. For HTML/CSV it leads with "Converted from HTML/CSV".
+- **Open in HermesMarkdown** hands the output over as-is (title "Clean Markdown"); disabled when blank or over `MAX_HANDOFF_CHARS`, with the "too long" note like the tokenizer.
+
+### Conversion
+- **HTML → Markdown** (`cleaner/html-to-markdown.ts`): `DOMParser`, then a tidy pass: drop `script/style/meta/link/title/head/noscript/template`, comments (Word's conditional comments) and namespaced Office tags (`o:p`); unwrap Google Docs' `<b id="docs-internal-guid-…">`; turn styled spans into `strong`/`em`/`del` (`font-weight` ≥ 600, `font-style: italic`, `line-through`), except inside headings and table headers; rebuild Word's fake list paragraphs (`mso-list: lN levelM`) into nested `ul`/`ol`. Turndown with ATX headings, `-` bullets, fenced code, `*`/`**`, `---`, plus rules: tables (first row is the header, `colspan` padded, cell line breaks as `<br>`, pipes escaped, alignment from `align`/`text-align`, serialized with `serializeTable`), `del/s/strike` → `~~`, task-list checkboxes, `pre` without `code`, and `data:` images reduced to their alt text. The escape list is turndown's, except `_` is escaped only at word edges (`snake_case` stays readable; GFM ignores intraword `_`).
+- **CSV/TSV → table:** `delimitedTextToMarkdownTable` (editor's table utils), then the clean pass.
+- **Clean pass** (`cleaner/clean-markdown.ts`, pure; front matter, fenced and indented code untouched, inline code spans protected). Each rule counts its fixes:
+  | Fix id | Rule |
+  |---|---|
+  | `line-endings` | CRLF/CR → LF |
+  | `invisible` | NBSP → space; zero-width space, BOM, word joiner removed (ZWJ kept for emoji) |
+  | `trailing-space` | trailing spaces/tabs removed; a 2+ space hard break before a text line is kept as two spaces |
+  | `blank-lines` | runs of blank lines collapsed to one; a blank line added around headings, top-level fences, tables and rules, and before a list that follows a paragraph |
+  | `heading` | `#Title` → `# Title` (single `#` only when the rest has a space, so `#tag` stays), extra spaces after `#`, closing `#`s, 1–3 space indent |
+  | `setext` | a one-line `Title` + `===`/`---` → `#`/`##` |
+  | `rule` | `***`, `___`, `* * *` → `---` |
+  | `list-marker` | `*`, `+`, `•`, `◦`, `▪`, `‣`, `●`, `○`, `■` → `-`; `1)` → `1.` |
+  | `list-indent` | nesting follows visual indentation (tabs = 4 columns, any deeper indent is a child); each child sits at its parent's content column (2 under `-`, 3 under `1.`); one space after the marker; continuation lines and fenced code in items move with their item |
+  | `inline-html` | `span`/`font` tags unwrapped, `style` attributes removed, `<b>/<strong>` → `**`, `<i>/<em>` → `*` |
+  | `table` | GFM tables re-aligned with `serializeTable` |
+  | `fence` | an unclosed fence is closed at the end |
+  Output has no leading blank lines and ends with one newline. Not done (deferred): renumbering ordered lists, emphasis style (`__` → `**`), smart quotes, lists inside blockquotes.
+
+### Files
+- `package.json`: `turndown` 7.2.0, `@types/turndown` 5.0.5 (dev).
+- `app/utils/tool-handoff.ts`: source `"markdown-cleaner"`.
+- `app/atoms/tool-atoms.ts`: `atom_cleanerInput` (`string | null`), `atom_cleanerFormat` (`"auto" | "markdown" | "html" | "csv"`).
+- `app/tools/cleaner/`: `html-to-markdown.ts`, `html-tidy.ts` (the tidy pass), `clean-markdown.ts`, `list-nesting.ts`, `markdown-lines.ts` (line patterns and small per-line fixes), `convert-input.ts` (`detectFormat`, `convertInput`), `cleaner-fixes.ts` (fix ids and labels), `cleaner-examples.ts`, `MarkdownCleanerTool.tsx`, `MarkdownCleanerToolLoader.tsx`, `CleanerOpenButton.tsx`, `CleanerFixReport.tsx`, with sibling docs.
+- `app/tools/markdown-cleaner/page.tsx`, `app/tools/content/markdown-cleaner.ts`, `content/tools.ts` (slug union, `TOOLS`).
+- Docs: `app/tools/README.md`, `free-tools.tsx` copy, this PRD.
+
+### Tests
+- `clean-markdown.test.ts`: each rule (including untouched front matter, fences, indented code, inline code, `#tag`, hard breaks, setext with a multi-line paragraph left alone, `***` after a paragraph gets a blank line), list nesting (2/4/tab/mixed indents, ordered parents, continuation and fenced code in items), idempotence (cleaning the output again changes nothing) and the fix counts.
+- `html-to-markdown.test.ts` (jsdom): headings/emphasis/links, nested lists, a header-less table, Google Docs bold spans and the guid wrapper, Word list paragraphs, task lists, strikethrough, `snake_case`, `data:` images.
+- `convert-input.test.ts`: `detectFormat` for HTML, README-style Markdown with HTML, TSV, CSV, prose with commas.
+- `MarkdownCleanerTool.test.tsx`: first visit shows the example's cleaned output; typing updates the output; a rich paste inserts the HTML and converts; a structure-less HTML paste is left to the browser; Clear empties and disables Copy/Open; Copy writes the output.
+- `tools.test.ts`/`sitemap.test.ts`/`page.test.tsx`: the new entry.
+
+### Acceptance criteria
+- [ ] `/tools/markdown-cleaner` renders in the tool shell with metadata, JSON-LD, FAQ; listed on the hub, sitemap, footer and in the in-app Free tools entry.
+- [ ] Pasting from a web page, Google Docs and Word gives headings, lists (nested), links, emphasis and tables as GFM, with no inline styles or `<span>`s.
+- [ ] Messy Markdown comes out with consistent `-` bullets, 2/3-space nesting, ATX headings with blank lines around them, aligned tables, single blank lines and no trailing spaces; code, front matter and inline code are byte-for-byte unchanged.
+- [ ] Cleaning the output again reports "Already clean".
+- [ ] `turndown` is only in this route's chunks.
+
 ## Tests
 All tests are fully mocked: `next/navigation` `useRouter` (assert `push`), `react-hot-toast`/`Toastr`, `navigator.clipboard`, `sessionStorage` (jsdom's, or a stub whose `setItem` throws), `render-mermaid` (`vi.mock` resolving fixed SVG / rejecting), and `next/dynamic` where a loader is rendered. Jotai: wrap in `<Provider>` with a fresh `createStore()`.
 

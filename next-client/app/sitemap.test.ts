@@ -8,6 +8,7 @@ describe("sitemap", () => {
     expect(urls).toContain("https://hermesmarkdown.com/tools/tokenizer");
     expect(urls).toContain("https://hermesmarkdown.com/tools/markdown-table-generator");
     expect(urls).toContain("https://hermesmarkdown.com/tools/mermaid-in-markdown");
+    expect(urls).toContain("https://hermesmarkdown.com/tools/markdown-cleaner");
     expect(new Set(urls).size).toBe(urls.length);
   });
 });

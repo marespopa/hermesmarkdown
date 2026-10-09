@@ -41,3 +41,21 @@ export const atom_mermaidToolSource = atomWithStorage<string | null>(
   createJSONStorage<string | null>(tabSessionStorage),
   { getOnInit: true },
 );
+
+// The Markdown Cleaner's input (null until edited, which shows the first
+// example) and the chosen input format.
+export const atom_cleanerInput = atomWithStorage<string | null>(
+  "hermes_tool_cleaner",
+  null,
+  createJSONStorage<string | null>(tabSessionStorage),
+  { getOnInit: true },
+);
+
+export type CleanerFormat = "auto" | "markdown" | "html" | "csv";
+
+export const atom_cleanerFormat = atomWithStorage<CleanerFormat>(
+  "hermes_tool_cleaner_format",
+  "auto",
+  createJSONStorage<CleanerFormat>(tabSessionStorage),
+  { getOnInit: true },
+);

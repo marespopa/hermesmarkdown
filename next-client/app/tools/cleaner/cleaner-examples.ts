@@ -1,0 +1,61 @@
+// Sample inputs for the Markdown Cleaner, one per kind of mess. The first
+// one is shown on a first visit.
+export const CLEANER_EXAMPLES: { id: string; label: string; text: string }[] = [
+  {
+    id: "markdown",
+    label: "Messy Markdown",
+    text: [
+      "Project notes",
+      "=============",
+      "##Goals   ",
+      "* Ship the <span style=\"color:#333\">cleaner</span>",
+      "    * Fix list indents",
+      "\t* Strip <b>styling</b>",
+      "+ Write the docs",
+      "1) Draft",
+      "2) Review",
+      "",
+      "",
+      "",
+      "## Status ##",
+      "| Task | Status |",
+      "|---|---|",
+      "| Cleaner | Done |",
+      "| Docs | In review |",
+      "***",
+      "• Pasted bullet",
+      "• Another one",
+    ].join("\n"),
+  },
+  {
+    id: "html",
+    label: "Web page HTML",
+    text: [
+      '<h1 style="font-family:Georgia">Release notes</h1>',
+      '<p class="lead">Version <strong>2.0</strong> is out. Read the <a href="https://example.com/blog">announcement</a>.</p>',
+      "<h2>What's new</h2>",
+      "<ul>",
+      "  <li>Faster sync<ul><li>Delta uploads</li><li>Retry on failure</li></ul></li>",
+      "  <li><s>Legacy export</s> removed</li>",
+      "</ul>",
+      "<pre><code class=\"language-bash\">npm install my_package</code></pre>",
+      "<table><tr><td>Plan</td><td>Price</td></tr><tr><td>Free</td><td>0</td></tr><tr><td>Pro</td><td>8</td></tr></table>",
+    ].join("\n"),
+  },
+  {
+    id: "docs",
+    label: "Google Docs paste",
+    text: [
+      '<meta charset="utf-8"><b style="font-weight:normal;" id="docs-internal-guid-1a2b3c">',
+      '<h2 dir="ltr"><span style="font-size:16pt;font-weight:400;">Meeting summary</span></h2>',
+      '<p dir="ltr"><span style="font-weight:700;">Decision:</span><span style="font-weight:400;"> launch on </span><span style="font-style:italic;">Monday</span><span>.</span></p>',
+      '<ul><li dir="ltr"><p dir="ltr"><span>Update the pricing page</span></p></li><li dir="ltr"><p dir="ltr"><span>Email the beta list</span></p></li></ul>',
+      "</b>",
+    ].join(""),
+  },
+  {
+    id: "csv",
+    label: "Spreadsheet CSV",
+    text: "Product,Plan,Price\nStarter,Monthly,9\nTeam,Yearly,90\n\"Pro, annual\",Yearly,190",
+  },
+];
