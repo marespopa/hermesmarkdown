@@ -28,6 +28,12 @@ describe("KeyboardShortcutsOverlay", () => {
     expect(screen.getByText("AI Chat (with an AI key)")).toBeTruthy();
   });
 
+  it("lists Quick jot with its shortcut", () => {
+    renderOpen();
+    expect(screen.getByText("Quick jot to today's sheet")).toBeTruthy();
+    expect(screen.getByText("Ctrl+Alt+J")).toBeTruthy();
+  });
+
   it("lists formatting shortcuts without registered commands", () => {
     renderOpen();
     fireEvent.click(screen.getByRole("tab", { name: "Formatting" }));

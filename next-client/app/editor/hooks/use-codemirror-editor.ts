@@ -10,6 +10,7 @@ import type { WikiLinkTriggerCallback } from "../codemirror/wikilink-trigger";
 import { flowMode as flowModeExtension } from "../codemirror/flow-mode";
 import { invisibles } from "../codemirror/invisibles";
 import { editorLineNumbers } from "../codemirror/line-numbers";
+import { changedRange } from "@/app/utils/text-diff";
 
 interface UseCodeMirrorEditorOptions {
   value: string;
@@ -222,14 +223,16 @@ export function useCodeMirrorEditor({
   }, [flowMode, viewRef]);
 
   // Keep the view in sync when `value` changes for a reason other than
-  // the user typing in it (e.g. external file reload, undo outside CM6).
+  // the user typing in it (e.g. external file reload, undo outside CM6,
+  // a quick jot appended to this note). Only the changed range is replaced,
+  // so the selection maps through it and the scroll doesn't jump.
   useEffect(() => {
     const view = viewRef.current;
     if (!view) return;
-    const current = view.state.doc.toString();
-    if (current === value) return;
+    const change = changedRange(view.state.doc.toString(), value);
+    if (!change) return;
     view.dispatch({
-      changes: { from: 0, to: current.length, insert: value },
+      changes: change,
       userEvent: "input.external",
     });
   }, [value, viewRef]);

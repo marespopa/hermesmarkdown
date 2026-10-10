@@ -1,4 +1,5 @@
 import { toast } from 'react-hot-toast';
+import Button from '@/app/components/Button';
 
 const toastConfig = {
   duration: 3000,
@@ -51,6 +52,29 @@ export const showErrorToast = (message: string) => {
 
 export const showCopyToast = (message: string) => {
   return toast.success(message, copyConfig);
+};
+
+// A success toast with one action button (e.g. "Added to 2026-10-10 · Open").
+// The button dismisses the toast, then runs `onAction`. Nothing takes focus.
+export const showActionToast = (message: string, actionLabel: string, onAction: () => void) => {
+  return toast.success(
+    (t) => (
+      <span className="flex items-center gap-2">
+        <span>{message}</span>
+        <Button
+          variant="tertiary"
+          className="!h-7 !px-2 text-accent"
+          onClick={() => {
+            toast.dismiss(t.id);
+            onAction();
+          }}
+        >
+          {actionLabel}
+        </Button>
+      </span>
+    ),
+    { ...successConfig, duration: 5000 },
+  );
 };
 
 export const showSaveStateToast = (status: 'saved' | 'error') => {

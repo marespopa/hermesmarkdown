@@ -6,15 +6,10 @@ import toast from "react-hot-toast";
 import { atom_fileMetadata } from "@/app/atoms/metadata";
 import { atom_openFiles, atom_fileContent } from "@/app/atoms/file-atoms";
 import { atom_workspaceLayout } from "@/app/atoms/workspace-atoms";
-import { WorkspaceContainer, PanelLeaf } from "@/app/types/workspace";
+import { isPathInLayout } from "@/app/atoms/utils";
 import { useSaveFile } from "@/app/hooks/file-system/use-save-file";
 import { TaskItem, patchLineInContent } from "@/app/utils/taskExtractor";
 import { contentStore } from "@/app/atoms/atoms";
-
-function isPathOpen(node: WorkspaceContainer | PanelLeaf, path: string): boolean {
-  if ("type" in node) return node.openFilePaths.includes(path);
-  return node.children.some((child) => isPathOpen(child, path));
-}
 
 export function useTaskWriteback() {
   const fileMetadata = useAtomValue(atom_fileMetadata);
@@ -31,7 +26,7 @@ export function useTaskWriteback() {
 
       const layout = contentStore.get(atom_workspaceLayout);
       const openFiles = contentStore.get(atom_openFiles);
-      const open = isPathOpen(layout.rootContainer, task.path) && task.path in openFiles;
+      const open = isPathInLayout(layout.rootContainer, task.path) && task.path in openFiles;
 
       const currentContent = open
         ? contentStore.get(atom_fileContent(task.path))

@@ -62,23 +62,25 @@ export function useTemplateCreate({ scanVault, indexVaultTags, openFile }: UseTe
   // Writes `<folder>/<baseName>.md`, rescans, opens it and puts the caret at
   // `{{cursor}}`. `unique` adds ` (1)`… on a name clash; otherwise an existing
   // file on disk is opened unchanged (what's on disk wins) and `onExisting`
-  // is told its path.
+  // is told its path. With `open: false` nothing is opened and no toast is
+  // shown (Quick jot). Resolves to the note's path and a fresh handle, or
+  // null on error.
   const writeNewNote = useCallback(async (
     folder: string,
     baseName: string,
     expanded: ExpandedTemplate,
-    { unique, onExisting }: { unique: boolean; onExisting?: (path: string) => void },
-  ) => {
+    { unique, onExisting, open = true }: { unique: boolean; onExisting?: (path: string) => void; open?: boolean },
+  ): Promise<{ path: string; handle: FileSystemFileHandle } | null> => {
     const vaultHandle = store.get(atom_vaultHandle);
-    if (!vaultHandle) return;
+    if (!vaultHandle) return null;
     try {
       if (!unique) {
         const existingPath = joinPath(folder, `${baseName}.md`);
         const existing = await findExisting(vaultHandle, existingPath);
         if (existing) {
-          await openFile(existing, existingPath, true);
+          if (open) await openFile(existing, existingPath, true);
           onExisting?.(existingPath);
-          return;
+          return { path: existingPath, handle: existing };
         }
       }
       const dir = await ensureVaultFolder(vaultHandle, folder);
@@ -90,13 +92,17 @@ export function useTemplateCreate({ scanVault, indexVaultTags, openFile }: UseTe
       const path = joinPath(folder, fileName);
       await scanVault(vaultHandle);
       await indexVaultTags();
-      await openFile(handle, path, true);
-      if (expanded.cursor !== null) {
-        store.set(atom_pendingScrollTarget, { path, ...offsetToLineColumn(expanded.text, expanded.cursor) });
+      if (open) {
+        await openFile(handle, path, true);
+        if (expanded.cursor !== null) {
+          store.set(atom_pendingScrollTarget, { path, ...offsetToLineColumn(expanded.text, expanded.cursor) });
+        }
+        toast.success(`Created: ${path}`);
       }
-      toast.success(`Created: ${path}`);
+      return { path, handle };
     } catch (err) {
       reportCreateError(err);
+      return null;
     }
   }, [store, scanVault, indexVaultTags, openFile]);
 
@@ -176,14 +182,15 @@ export function useTemplateCreate({ scanVault, indexVaultTags, openFile }: UseTe
     await writeNewNote(folder, baseName, result.expanded, { unique: true });
   }, [store, dialog, pickTemplate, readOrReport, instantiate, writeNewNote]);
 
-  // Today's worklog sheet (`<date>.md`): opened when the index already has
-  // it (in the Daily Sheets folder, else anywhere), otherwise created in that
-  // folder — asked for the first time, with `{{year}}` / `{{month}}` allowed
-  // — from a journal-like template when one exists, else as a dated heading
-  // with the caret below it. A sheet on disk that the index hasn't seen yet
-  // is opened unchanged.
-  const openTodayNote = useCallback(async (now: Date = new Date()) => {
-    if (!store.get(atom_vaultHandle)) return;
+  // Today's worklog sheet (`<date>.md`): found in the index (in the Daily
+  // Sheets folder, else anywhere), otherwise created in that folder — asked
+  // for the first time, with `{{year}}` / `{{month}}` allowed — from a
+  // journal-like template when one exists, else as a dated heading with the
+  // caret below it. A sheet on disk that the index hasn't seen yet is used
+  // unchanged. `open` opens it (Today's sheet); Quick jot only needs it to
+  // exist. Null when a prompt was cancelled or the write failed.
+  const resolveTodayNote = useCallback(async (now: Date, open: boolean) => {
+    if (!store.get(atom_vaultHandle)) return null;
     let pattern = store.get(atom_todayFolder);
     const folderFor = (value: string | null) =>
       normalizeFolderPath(value === null ? store.get(atom_newNoteFolder) : resolveTodayFolder(value, now));
@@ -192,10 +199,9 @@ export function useTemplateCreate({ scanVault, indexVaultTags, openFile }: UseTe
     const dated: ExpandedTemplate = { text, cursor: text.length };
     const existingPath = findTodayNote(Object.keys(store.get(atom_fileMetadata)), now, folderFor(pattern));
     if (existingPath) {
-      // Opened as is; the dated sheet is only written if the file is gone.
+      // Used as is; the dated sheet is only written if the file is gone.
       const folder = existingPath.split("/").slice(0, -1).join("/");
-      await writeNewNote(folder, baseName, dated, { unique: false });
-      return;
+      return writeNewNote(folder, baseName, dated, { unique: false, open });
     }
     if (pattern === null) {
       const answer = await dialog.prompt(
@@ -203,7 +209,7 @@ export function useTemplateCreate({ scanVault, indexVaultTags, openFile }: UseTe
         DEFAULT_TODAY_FOLDER,
         "Today's sheet",
       );
-      if (answer === null || answer === undefined) return;
+      if (answer === null || answer === undefined) return null;
       pattern = normalizeFolderPath(String(answer));
       store.set(atom_todayFolder, pattern);
     }
@@ -212,14 +218,21 @@ export function useTemplateCreate({ scanVault, indexVaultTags, openFile }: UseTe
     const template = matchTemplateForName(baseName, store.get(atom_templates));
     if (template) {
       const raw = await readOrReport(template);
-      if (raw === null) return;
+      if (raw === null) return null;
       const result = await instantiate(raw, baseName, "Create");
-      if (!result) return;
-      await writeNewNote(folder, baseName, result.expanded, { unique: false });
-      return;
+      if (!result) return null;
+      return writeNewNote(folder, baseName, result.expanded, { unique: false, open });
     }
-    await writeNewNote(folder, baseName, dated, { unique: false });
+    return writeNewNote(folder, baseName, dated, { unique: false, open });
   }, [store, dialog, readOrReport, instantiate, writeNewNote]);
+
+  const openTodayNote = useCallback(
+    (now: Date = new Date()) => resolveTodayNote(now, true).then(() => undefined),
+    [resolveTodayNote],
+  );
+  // Today's sheet, created if needed, without opening it: `{ path, handle }`
+  // or null (cancelled or failed).
+  const ensureTodayNote = useCallback((now: Date = new Date()) => resolveTodayNote(now, false), [resolveTodayNote]);
 
   // "New template…": pick a starter, then `<templates folder>/<name>.md` with
   // its raw body. The name prompt is prefilled from the starter. A
@@ -291,5 +304,5 @@ export function useTemplateCreate({ scanVault, indexVaultTags, openFile }: UseTe
     }
   }, [store, readOrReport, instantiate, scanVault, indexVaultTags]);
 
-  return { writeNewNote, createNoteFromMissingLink, createNoteFromTemplate, createTemplate, createLinkedNoteFromTemplate, openTodayNote };
+  return { writeNewNote, createNoteFromMissingLink, createNoteFromTemplate, createTemplate, createLinkedNoteFromTemplate, openTodayNote, ensureTodayNote };
 }
