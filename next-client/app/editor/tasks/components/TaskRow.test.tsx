@@ -1,6 +1,6 @@
 import React from "react";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { Provider } from "jotai";
 import type { DisplayTask } from "@/app/atoms/task-atoms";
 import { MASKED_TEXT, maskTask } from "@/app/utils/note-display";
@@ -10,7 +10,7 @@ const SECRET = "Wire the secret payment";
 
 const task: DisplayTask = {
   id: "Payroll.md#2", path: "Payroll.md", line: 2, checked: false, inProgress: false, onHold: false,
-  dueDate: "2099-12-31", priority: null, tags: ["money"], text: SECRET, raw: `- [ ] ${SECRET} #money`, lineHash: "h",
+  dueDate: "2026-10-10", priority: null, tags: ["money"], text: SECRET, raw: `- [ ] ${SECRET} #money`, lineHash: "h",
   isMasked: false,
 };
 
@@ -25,7 +25,14 @@ function renderRow(row: DisplayTask) {
 }
 
 describe("TaskRow", () => {
-  beforeEach(() => cleanup());
+  // A fixed "now" before the fixture's due date, so it always reads as a
+  // future date ("Due: 2026-10-10"), never "Today" or "Overdue".
+  beforeEach(() => {
+    cleanup();
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(new Date(2026, 9, 1, 12, 0));
+  });
+  afterEach(() => vi.useRealTimers());
 
   it("shows a regular task's text and tags", () => {
     renderRow(task);
@@ -43,7 +50,7 @@ describe("TaskRow", () => {
     expect(screen.getByText("Sensitive task")).toBeInTheDocument();
     expect(screen.getByLabelText("Sensitive note")).toBeInTheDocument();
     expect(screen.getByText("Payroll")).toBeInTheDocument();
-    expect(screen.getByText(/2099-12-31/)).toBeInTheDocument();
+    expect(screen.getByText(/2026-10-10/)).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("checkbox"));
     expect(onToggle).toHaveBeenCalledOnce();
