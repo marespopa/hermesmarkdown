@@ -269,13 +269,9 @@ export default function HomeFeed({ onOpenNote, onNewNote, onSearch, onClose, isS
         {/* The open vault, in a bar at the very top, well clear of the greeting. */}
         {hasVault && <FeedVault />}
         <FeedHeader now={now} userName={userName}>
-          {hasVault && <FeedStats stats={stats} openTasks={openTasks.length} />}
+          {hasVault && <FeedStats stats={stats} openTasks={openTasks.length} tasksToggle={!!onOpenTask} />}
+          {hasVault && onOpenTask && <FeedTasks tasks={openTasks} onOpenTask={onOpenTask} />}
         </FeedHeader>
-        {hasVault && onOpenTask && openTasks.length > 0 && (
-          <div className="-mt-4 mb-8">
-            <FeedTasks tasks={openTasks} onOpenTask={onOpenTask} />
-          </div>
-        )}
         {hasVault && <FeedTags tags={tags} selected={tagFilter} onChange={setTagFilter} />}
         {isIndexing && hasVault && <FeedStatus />}
         {!hasVault ? (

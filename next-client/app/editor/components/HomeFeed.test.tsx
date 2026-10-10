@@ -582,15 +582,16 @@ describe("HomeFeed worklog", () => {
 
   it("folds the open tasks", () => {
     renderWorklog({ "log.md": withTasks("log.md", "- [ ] one") });
-    const toggle = screen.getByRole("button", { name: "1 open" });
+    const toggle = screen.getByRole("button", { name: "1 open task" });
     expect(toggle).toHaveAttribute("aria-expanded", "true");
     fireEvent.click(toggle);
     expect(toggle).toHaveAttribute("aria-expanded", "false");
+    expect(screen.queryByRole("region", { name: "Open tasks" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "one, in log" })).not.toBeInTheDocument();
   });
 
   it("shows a quiet stats line", () => {
     renderWorklog({ "log.md": withTasks("log.md", "- [ ] a\n- [ ] b"), "old.md": meta("old.md", 60 * 24 * 30) });
-    expect(screen.getByText("2 notes · 1 edited today · 2 open tasks")).toBeInTheDocument();
+    expect(screen.getByText(/^2 notes · 1 edited today/)).toHaveTextContent("2 notes · 1 edited today · 2 open tasks");
   });
 });
