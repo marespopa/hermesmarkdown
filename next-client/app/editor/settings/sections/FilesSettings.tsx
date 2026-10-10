@@ -3,7 +3,7 @@
 import React from "react";
 import { useAtom } from "jotai";
 import { atom_autosaveDelay, atom_autosaveMode, atom_showHiddenFiles } from "@/app/atoms/atoms";
-import { atom_newNoteFolder, atom_todayFolder } from "@/app/atoms/ui-atoms";
+import { atom_jotTimePrefix, atom_newNoteFolder, atom_todayFolder } from "@/app/atoms/ui-atoms";
 import { BareInput } from "@/app/components/Input";
 import Toggle from "@/app/components/Toggle";
 import { normalizeFolderPath } from "@/app/hooks/file-system/unique-file";
@@ -11,14 +11,15 @@ import { useFileSystem } from "@/app/hooks/use-file-system";
 import { SelectControl, SettingGroup, SettingItem } from "../components/SettingControls";
 import TemplatesFolderSetting from "./TemplatesFolderSetting";
 
-// Settings → Files: Vault (new notes folder, daily sheets folder, templates
-// folder, hidden files) and Autosave groups.
+// Settings → Files: Vault (new notes folder, daily sheets folder, time on
+// quick jots, templates folder, hidden files) and Autosave groups.
 export default function FilesSettings() {
   const [autosaveMode, setAutosaveMode] = useAtom(atom_autosaveMode);
   const [autosaveDelay, setAutosaveDelay] = useAtom(atom_autosaveDelay);
   const [showHiddenFiles, setShowHiddenFiles] = useAtom(atom_showHiddenFiles);
   const [newNoteFolder, setNewNoteFolder] = useAtom(atom_newNoteFolder);
   const [todayFolder, setTodayFolder] = useAtom(atom_todayFolder);
+  const [jotTimePrefix, setJotTimePrefix] = useAtom(atom_jotTimePrefix);
   const { scanVault, indexVaultTags, vaultHandle } = useFileSystem();
 
   const handleShowHiddenFilesChange = (next: boolean) => {
@@ -49,7 +50,7 @@ export default function FilesSettings() {
         />
         <SettingItem
           label="Daily Sheets Folder"
-          description="Where Home's Today row creates today's sheet (2026-10-09.md). {{year}} and {{month}} make a folder per year or month, e.g. journal/{{year}}. Leave empty for the vault root."
+          description="Where Home's Today row and Quick jot create today's sheet (2026-10-09.md). {{year}} and {{month}} make a folder per year or month, e.g. journal/{{year}}. Leave empty for the vault root."
           control={
             <BareInput
               value={todayFolder ?? ""}
@@ -60,6 +61,11 @@ export default function FilesSettings() {
               className="h-8 w-44 rounded-lg border border-edge bg-input-bg px-2 text-ui-footnote text-fg outline-none placeholder:text-fg-faint focus:ring-4 focus:ring-sage/10"
             />
           }
+        />
+        <SettingItem
+          label="Time on Quick Jots"
+          description="Start each quick jot with the time, like - 14:20 deploy done."
+          control={<Toggle variant="soft" active={jotTimePrefix} onChange={setJotTimePrefix} />}
         />
         <TemplatesFolderSetting />
         <SettingItem

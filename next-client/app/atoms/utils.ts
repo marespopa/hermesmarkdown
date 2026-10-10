@@ -15,6 +15,12 @@ export function getWorkspaceTabs(
   return node.children.flatMap(getWorkspaceTabs);
 }
 
+// Whether any pane in the tree has `path` as a tab.
+export function isPathInLayout(node: WorkspaceContainer | PanelLeaf, path: string): boolean {
+  if ("type" in node) return node.openFilePaths.includes(path);
+  return node.children.some((child) => isPathInLayout(child, path));
+}
+
 export function findLeaf(
   node: WorkspaceContainer | PanelLeaf,
   id: string | null,

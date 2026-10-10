@@ -45,6 +45,8 @@ interface HomeFeedProps {
   onOpenToday?: () => void;
   /** Opens a note with the caret on a line (0-indexed): an open task. */
   onOpenTask?: (path: string, line: number) => void;
+  /** Opens Quick jot: the Today row menu's entry point for touch. */
+  onQuickJot?: () => void;
 }
 
 function isTypingTarget(target: EventTarget | null) {
@@ -60,7 +62,7 @@ const GG_WINDOW_MS = 600;
 // vim-style: j/k or arrows move, gg/G jump to the top and end, Enter or o
 // opens, p pins, t opens today's sheet, / searches, Escape leaves; any other
 // printable key opens the command palette with that key typed.
-export default function HomeFeed({ onOpenNote, onNewNote, onSearch, onClose, isSearchOpen = false, hasVault = true, onOpenFile, onOpenToday, onOpenTask }: HomeFeedProps) {
+export default function HomeFeed({ onOpenNote, onNewNote, onSearch, onClose, isSearchOpen = false, hasVault = true, onOpenFile, onOpenToday, onOpenTask, onQuickJot }: HomeFeedProps) {
   const fileMetadata = useAtomValue(atom_fileMetadata);
   const indexerState = useAtomValue(atom_indexerState);
   const userName = useAtomValue(atom_userName);
@@ -259,6 +261,7 @@ export default function HomeFeed({ onOpenNote, onNewNote, onSearch, onClose, isS
         onOpen={() => openEntry(entry)}
         onHover={() => setSelectedIndex(index)}
         onTogglePin={() => togglePin(entry.path)}
+        onQuickJot={entry.todaySheet ? onQuickJot : undefined}
       />
     );
   };

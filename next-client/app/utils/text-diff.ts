@@ -54,3 +54,22 @@ export function diffWords(oldText: string, newText: string): DiffToken[] {
 
   return tokens;
 }
+
+/**
+ * The single change that turns `prev` into `next`: the common prefix and
+ * suffix are trimmed off. Null when the strings are equal. Lets an external
+ * update (a reload, an appended line) dispatch only what changed, so the
+ * editor's selection maps through it instead of being reset.
+ */
+export function changedRange(prev: string, next: string): { from: number; to: number; insert: string } | null {
+  if (prev === next) return null;
+  const max = Math.min(prev.length, next.length);
+  let start = 0;
+  while (start < max && prev.charCodeAt(start) === next.charCodeAt(start)) start++;
+  let end = 0;
+  while (
+    end < max - start &&
+    prev.charCodeAt(prev.length - 1 - end) === next.charCodeAt(next.length - 1 - end)
+  ) end++;
+  return { from: start, to: prev.length - end, insert: next.slice(start, next.length - end) };
+}

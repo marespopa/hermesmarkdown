@@ -8,6 +8,7 @@ import { atom_keyboardShortcutsOpen } from "@/app/atoms/ui-atoms";
 import { formatShortcut, isMacPlatform } from "@/app/utils/platform";
 import useIsMobileChrome from "@/app/hooks/use-mobile-chrome";
 import Button from "@/app/components/Button";
+import { quickJotShortcutLabel } from "@/app/editor/utils/tab-shortcuts";
 
 type ShortcutGroup = {
   title: string;
@@ -29,6 +30,7 @@ function getShortcutGroups(): ShortcutGroup[] {
         { label: "Search note text", keys: formatShortcut("F", { shift: true }) },
         { label: "Select workspace tab", keys: `${formatShortcut("1")}–9` },
         { label: "New file", keys: mac ? "⌃⌥N" : "Ctrl+Alt+N" },
+        { label: "Quick jot to today's sheet", keys: quickJotShortcutLabel(mac) },
         { label: "Close current tab", keys: formatShortcut("W", { alt: true }) },
         { label: "Save", keys: formatShortcut("S") },
         { label: "Open Explorer", keys: formatShortcut("E", { shift: true }) },

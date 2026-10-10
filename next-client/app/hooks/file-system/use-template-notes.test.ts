@@ -448,4 +448,39 @@ describe("openTodayNote", () => {
     expect(writeFileContent).not.toHaveBeenCalled();
     expect(props.openFile).toHaveBeenCalledWith(root.at("old/2026-10-09.md"), "old/2026-10-09.md", true);
   });
+
+  describe("ensureTodayNote", () => {
+    it("creates the sheet (folder prompt, template) without opening it and returns its path and handle", async () => {
+      dialog.prompt.mockResolvedValue("journal/{{year}}");
+      const { root, store, props, flows } = await setup({ templates: { "templates/Journal.md": "# {{title}}\n{{cursor}}\n" } });
+      let sheet: Awaited<ReturnType<typeof flows.ensureTodayNote>> = null;
+      await act(async () => { sheet = await flows.ensureTodayNote(NOW); });
+      const created = root.at("journal/2026/2026-10-09.md");
+      expect(created?.content).toBe("# 2026-10-09\n\n");
+      expect(sheet).toEqual({ path: "journal/2026/2026-10-09.md", handle: created });
+      expect(props.openFile).not.toHaveBeenCalled();
+      expect(store.get(atom_pendingScrollTarget)).toBeNull();
+      expect(toast.success).not.toHaveBeenCalled();
+    });
+
+    it("returns an existing sheet's path and handle without opening or writing it", async () => {
+      const { root, store, props, flows } = await setup({ templates: {} });
+      await root.put("old/2026-10-09.md", "keep me");
+      store.set(atom_fileMetadata, { "old/2026-10-09.md": meta("old/2026-10-09.md") });
+      let sheet: Awaited<ReturnType<typeof flows.ensureTodayNote>> = null;
+      await act(async () => { sheet = await flows.ensureTodayNote(NOW); });
+      expect(sheet).toEqual({ path: "old/2026-10-09.md", handle: root.at("old/2026-10-09.md") });
+      expect(writeFileContent).not.toHaveBeenCalled();
+      expect(props.openFile).not.toHaveBeenCalled();
+    });
+
+    it("returns null and writes nothing when the folder prompt is cancelled", async () => {
+      dialog.prompt.mockResolvedValue(null);
+      const { flows } = await setup({ templates: {} });
+      let sheet: Awaited<ReturnType<typeof flows.ensureTodayNote>> | "unset" = "unset";
+      await act(async () => { sheet = await flows.ensureTodayNote(NOW); });
+      expect(sheet).toBeNull();
+      expect(writeFileContent).not.toHaveBeenCalled();
+    });
+  });
 });

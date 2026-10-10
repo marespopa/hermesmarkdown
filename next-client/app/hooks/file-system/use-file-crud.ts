@@ -64,7 +64,7 @@ export function useFileCrud({ scanVault, indexVaultTags, openFile }: UseFileCrud
   });
 
   const { readTemplate, instantiate } = useTemplateNotes();
-  const { createNoteFromMissingLink, createNoteFromTemplate, createTemplate, createLinkedNoteFromTemplate, openTodayNote } = useTemplateCreate({
+  const { createNoteFromMissingLink, createNoteFromTemplate, createTemplate, createLinkedNoteFromTemplate, openTodayNote, ensureTodayNote } = useTemplateCreate({
     scanVault,
     indexVaultTags,
     openFile,
@@ -93,6 +93,7 @@ export function useFileCrud({ scanVault, indexVaultTags, openFile }: UseFileCrud
     createTemplate,
     createLinkedNoteFromTemplate,
     openTodayNote,
+    ensureTodayNote,
     saveAsTemplate,
     openOrCreateLink,
   };
