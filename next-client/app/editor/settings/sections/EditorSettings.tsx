@@ -7,11 +7,11 @@ import {
   atom_vimMode,
   atom_wordWrap,
 } from "@/app/atoms/atoms";
-import { atom_flowMode, atom_fullWidth, atom_showInvisibles } from "@/app/atoms/ui-atoms";
+import { atom_flowMode, atom_fullWidth, atom_hideChromeWhileTyping, atom_showInvisibles } from "@/app/atoms/ui-atoms";
 import Toggle from "@/app/components/Toggle";
 import { SettingGroup, SettingItem } from "../components/SettingControls";
 
-// Settings → Editor: Layout (full width, word wrap, line numbers, invisibles) and Writing (Vim, flow mode) groups.
+// Settings → Editor: Layout (full width, word wrap, line numbers, invisibles) and Writing (Vim, flow mode, hide interface while typing) groups.
 export default function EditorSettings() {
   const [fullWidth, setFullWidth] = useAtom(atom_fullWidth);
   const [wordWrap, setWordWrap] = useAtom(atom_wordWrap);
@@ -19,6 +19,7 @@ export default function EditorSettings() {
   const [showInvisibles, setShowInvisibles] = useAtom(atom_showInvisibles);
   const [vimMode, setVimMode] = useAtom(atom_vimMode);
   const [flowMode, setFlowMode] = useAtom(atom_flowMode);
+  const [hideChrome, setHideChrome] = useAtom(atom_hideChromeWhileTyping);
 
   return (
     <>
@@ -54,6 +55,11 @@ export default function EditorSettings() {
           label="Flow Mode"
           description="While you write, fade everything except the current paragraph and keep the line you're typing on centered on screen."
           control={<Toggle variant="soft" active={flowMode} onChange={setFlowMode} />}
+        />
+        <SettingItem
+          label="Hide Interface While Typing"
+          description="Fade the toolbar, tabs and sidebar once you start typing, leaving only the page. Move the mouse over them to bring them back."
+          control={<Toggle variant="soft" active={hideChrome} onChange={setHideChrome} />}
         />
       </SettingGroup>
     </>

@@ -36,4 +36,4 @@ import Input, { Textarea, Select } from "@/app/components/Input";
 
 `BareInput` is an unlabelled `<input>` (forwarded ref, `autoComplete="off"`, any input attributes) for search boxes and inline fields styled via `className`.
 
-`Textarea` takes `name, value, handleChange, label?, helperText?`. `Select` takes `name, label, value, options: {value,label}[], handleChange, helperText?, compact?, fullWidth?`.
+`Textarea` takes `name, value, handleChange, label?, helperText?, textareaClassName?` (`className` styles the wrapper, `textareaClassName` the `<textarea>`). `Select` takes `name, label, value, options: {value,label}[], handleChange, helperText?, compact?, fullWidth?`.

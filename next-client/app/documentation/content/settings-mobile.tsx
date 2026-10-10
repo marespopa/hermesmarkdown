@@ -16,8 +16,8 @@ export const settingsGroup: Group = {
             System/light/dark theme controls are available in Settings → Appearance and from the
             command palette. System follows your operating system automatically. The editor font is
             set under Settings → Typography and applies to every pane in a split workspace. Word
-            wrap, line numbers, Show Invisibles (¶ on empty lines, dots for spaces), Vim mode and
-            flow mode live under Settings → Editor.
+            wrap, line numbers, Show Invisibles (¶ on empty lines, dots for spaces), Vim mode, flow
+            mode and Hide Interface While Typing live under Settings → Editor.
           </p>
           <KV
             rows={[
@@ -38,12 +38,13 @@ export const settingsGroup: Group = {
       id: "vault-home-settings",
       title: "New notes & templates",
       lead: "Choose where new notes go and where templates live.",
-      keywords: "new notes folder templates folder settings vault",
+      keywords: "new notes folder daily sheets folder journal today templates folder settings vault",
       body: (
         <>
           <KV
             rows={[
               { label: "New Notes Folder", value: "Empty = vault root, or a folder like inbox" },
+              { label: "Daily Sheets Folder", value: "Where Today's sheet goes, e.g. journal/{{year}}" },
               { label: "Templates Folder", value: "Per vault. Empty = templates, _templates or Templates" },
             ]}
           />

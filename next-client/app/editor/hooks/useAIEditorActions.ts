@@ -3,11 +3,24 @@
 import { useCallback, useState } from "react";
 import { useAtomValue } from "jotai";
 import { EditorSelection } from "@codemirror/state";
+import type { EditorView } from "@codemirror/view";
 import { callAI } from "@/app/services/ai";
 import { atom_activeEditorView } from "@/app/atoms/ui-atoms";
 import { showSuccessToast, showErrorToast } from "@/app/components/Toastr";
-import { typewriterInsertCM6, typewriterReplaceCM6 } from "../codemirror/typewriter-insert";
 import { AI_ACTIONS } from "./ai-action-prompts";
+
+// Applies an AI result in one transaction (one undo step) rather than
+// revealing it a few characters at a time: a timed reveal is cancelled by
+// focus/clicks and inserts at the moving caret, which corrupts rewrites.
+function replaceRangeCM6(view: EditorView, from: number, to: number, text: string) {
+  view.dispatch({
+    changes: { from, to, insert: text },
+    selection: EditorSelection.cursor(from + text.length),
+    userEvent: "input.type",
+    scrollIntoView: true,
+  });
+  view.focus();
+}
 
 export interface AIReviewState {
   label: string;
@@ -122,7 +135,7 @@ export function useAIEditorActions() {
 
       const view = activeTarget;
       const { start, end } = mode === "replace-all" ? { start: 0, end: view.state.doc.length } : chatContext;
-      typewriterReplaceCM6(view, start, end, suggestion);
+      replaceRangeCM6(view, start, end, suggestion);
 
       showSuccessToast(mode === "replace-all" ? "Document replaced." : "Inserted into document.");
       setIsChatOpen(false);
@@ -135,7 +148,7 @@ export function useAIEditorActions() {
     const suggestion = customSuggestion ?? aiReview.suggestion;
     const { start, end } = aiReview;
     if (activeTarget) {
-      typewriterReplaceCM6(activeTarget, start, end, suggestion);
+      replaceRangeCM6(activeTarget, start, end, suggestion);
     }
     showSuccessToast("AI suggestion applied.");
     setAiReview(null);
@@ -146,10 +159,7 @@ export function useAIEditorActions() {
     const suggestion = customSuggestion ?? aiReview.suggestion;
     const { end } = aiReview;
     if (activeTarget) {
-      const view = activeTarget;
-      const insertion = `\n\n${suggestion}`;
-      view.dispatch({ selection: EditorSelection.cursor(end) });
-      typewriterInsertCM6(view, insertion);
+      replaceRangeCM6(activeTarget, end, end, `\n\n${suggestion}`);
     }
     showSuccessToast("AI suggestion inserted.");
     setAiReview(null);

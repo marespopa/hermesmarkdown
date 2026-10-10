@@ -109,6 +109,25 @@ export const editorWritingItems: Subsection[] = [
     ),
   },
   {
+    id: "hide-interface-while-typing",
+    title: "Hide interface while typing",
+    lead: "Once you start typing, the toolbar, tabs and sidebar fade away and only the page is left.",
+    keywords: "hide interface chrome toolbar tabs sidebar fade typing distraction free minimal focus settings",
+    body: (
+      <>
+        <p>
+          Move the mouse over the tabs or the sidebar and everything comes back; moving it over the
+          text leaves the page alone. On a phone, tap anywhere outside the text. The
+          layout never moves, so the line you&apos;re typing stays where it is.
+        </p>
+        <p>
+          It&apos;s on by default. Turn it off under Settings → Editor, or with the{" "}
+          <strong>Keep interface visible while typing</strong> command.
+        </p>
+      </>
+    ),
+  },
+  {
     id: "markdown-marks",
     title: "Markdown marks",
     lead: "Notes read like a page: Markdown marks appear only where you're editing.",
@@ -120,7 +139,9 @@ export const editorWritingItems: Subsection[] = [
           text they wrap. A heading&apos;s <code>#</code> and a quote&apos;s <code>&gt;</code> show
           faintly in the margin while the caret is on their line, so the words never move. Lists
           look the same whether you&apos;re editing them or not, and a long item wraps under its
-          own text. Tags and dates keep their chip while you edit the text inside it.
+          own text. Typing <code>-</code> at the start of a line adds the space after it, so
+          you can go straight to the item; keep typing dashes for a <code>---</code> rule. Tags and
+          dates keep their chip while you edit the text inside it.
         </p>
         <KV
           rows={[

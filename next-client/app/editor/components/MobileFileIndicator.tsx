@@ -61,7 +61,7 @@ export default function MobileFileIndicator({ onSave, onOpenAIChat }: MobileFile
   const meta = hasOpenFiles ? statusMeta[saveState] : null;
 
   return (
-    <div className="relative shrink-0 flex items-center h-11 bg-chrome border-b border-edge-subtle">
+    <div className="typing-chrome relative shrink-0 flex items-center h-11 bg-chrome border-b border-edge-subtle">
       <Button variant="unstyled"
         onClick={() => goHome()}
         aria-label="Home feed"

@@ -7,7 +7,7 @@ Shared command and quick-open surface. See [CommandPalette.md](./CommandPalette.
 | `CommandPaletteContext.tsx` | `CommandPaletteProvider`, `useCommandPalette`, `useRegisterCommand`, `Command` type |
 | `CommandPalette.tsx` | Palette UI: search, ranking, execution; theme / settings actions in the footer |
 | `PaletteSearchBar.tsx` | The search field, drawn as the same pill as the home feed's search bar: icon, input, clear, ⌘K hint, and a `>` button that toggles command mode |
-| `AppCommands.tsx` | Global app commands: home, editor, docs, settings, theme, shortcuts |
+| `AppCommands.tsx` | Global app commands: home, editor, docs, free tools, settings, theme, shortcuts |
 | `command-search.ts` | Client-side matching and ranking |
 | `palette-model.tsx` | Constants, row / scope types, `buildCreateRow`, `buildTaskRows` (masked tasks only for the empty `!` query), `buildContentRows` (`/` hits → rows, dropping notes the palette doesn't list), and small helpers |
 | `PaletteRow.tsx` | One result row (`Button variant="menu-item"`): label with highlights, lock, context, folder, shortcut / spinner; content rows take two lines. See [PaletteRow.md](./PaletteRow.md) |

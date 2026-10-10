@@ -338,6 +338,22 @@ describe("VaultFileTree selection, keyboard and menus", () => {
     expect(selectedNames()).toEqual(["a", "b", "c"]);
   });
 
+  it("selects the file that was opened, once per change of active file", () => {
+    const { props, store, rerender } = renderFiles({ treeView: true, processedFiles: files, activeFilePath: "a.md" });
+    expect(selectedNames()).toEqual(["a"]);
+    const renderWith = (overrides: Partial<React.ComponentProps<typeof VaultFileTree>>) =>
+      rerender(<Provider store={store}><VaultFileTree {...props} {...overrides} /></Provider>);
+
+    // Opened from elsewhere (palette, link, tab): the selection follows.
+    renderWith({ activeFilePath: "c.md" });
+    expect(selectedNames()).toEqual(["c"]);
+
+    // A selection made since stands while the same file stays open.
+    fireEvent.click(screen.getByText("b"), { ctrlKey: true });
+    renderWith({ activeFilePath: "c.md", processedFiles: [...files] });
+    expect(selectedNames()).toEqual(["b", "c"]);
+  });
+
   it("doesn't open a note on a modified click, even with singleClickOpen", () => {
     const { props } = renderFiles({ treeView: true, processedFiles: files, singleClickOpen: true });
     fireEvent.click(screen.getByText("b"), { metaKey: true });

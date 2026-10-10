@@ -270,7 +270,7 @@ describe("MarkdownEditor", () => {
     await waitForEditor(container);
     await waitFor(() => expect(isFrontmatterFolded(getView(container).state)).toBe(true));
 
-    const summary = await screen.findByRole("button", { name: "Show properties: title, tags" });
+    const summary = await screen.findByRole("button", { name: "Show properties: #a, title" });
     expect(summary).toHaveAttribute("aria-expanded", "false");
     fireEvent.click(summary);
     await waitFor(() => expect(isFrontmatterFolded(getView(container).state)).toBe(false));

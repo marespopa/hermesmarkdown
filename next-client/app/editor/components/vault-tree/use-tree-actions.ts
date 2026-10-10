@@ -77,6 +77,7 @@ export function useTreeActions({
 
   // Selects `paths` as soon as they are in the tree (after the rescan),
   // opening their folders so they can be seen.
+  const { selectPaths } = selection;
   const reveal = useCallback((paths: string[]) => {
     const wanted = paths.filter(Boolean);
     if (wanted.length === 0) return;
@@ -90,9 +91,9 @@ export function useTreeActions({
     const visible = new Set(rows.map((row) => row.path));
     if (!wanted.every((path) => visible.has(path))) return;
     pendingReveal.current = null;
-    selection.selectPaths(wanted);
+    selectPaths(wanted);
     requestAnimationFrame(() => scrollToPath(wanted[0]));
-  }, [rows, selection.selectPaths, scrollToPath]);
+  }, [rows, selectPaths, scrollToPath]);
 
   const openPath = useCallback((path: string) => {
     const entry = entryByPath.get(path);

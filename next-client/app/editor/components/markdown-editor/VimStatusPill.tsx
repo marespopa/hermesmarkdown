@@ -13,8 +13,7 @@ const MODE_LABEL: Record<string, string> = {
 };
 
 // Vim's mode, pending keys and `:` / `/` prompt, floating over the bottom of
-// the pane on the chrome pill used by the feed's key hints and the palette's
-// search. Hidden while inserting: writing is the default state, so the page
+// the pane on the same chrome pill as the palette's search. Hidden while inserting: writing is the default state, so the page
 // only shows Vim when you've left it.
 //
 // The pill stays mounted (opacity only, never `invisible`): the library

@@ -66,6 +66,22 @@ export default function VaultFileTree(props: VaultFileTreeProps) {
   const selection = useTreeSelection(rows);
   const [treeFocused, setTreeFocused] = useState(false);
 
+  // Opening a file (from the palette, a link, a tab) selects its row, as in
+  // a code editor's explorer. Once per change of active file, after its
+  // folders have opened, so clicks and multi-selects made since stand.
+  const selectedActiveRef = useRef<string | null>(null);
+  const { selectOnly } = selection;
+  useEffect(() => {
+    if (!treeView || !activeFilePath) {
+      selectedActiveRef.current = null;
+      return;
+    }
+    if (selectedActiveRef.current === activeFilePath) return;
+    if (!rows.some((row) => row.path === activeFilePath)) return;
+    selectedActiveRef.current = activeFilePath;
+    selectOnly(activeFilePath);
+  }, [treeView, activeFilePath, rows, selectOnly]);
+
   // Whether the row was found (a row inside a collapsed folder isn't rendered).
   const scrollToPath = useCallback((path: string): boolean => {
     const container = scrollRef.current;

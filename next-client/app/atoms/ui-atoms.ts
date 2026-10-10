@@ -1,6 +1,7 @@
 import { atom } from "jotai";
 import { atomWithStorage, createJSONStorage } from "jotai/utils";
 import type { EditorView } from "@codemirror/view";
+import { tabSessionStorage } from "./session-storage";
 
 // Theme & appearance
 export type Theme = "light" | "dark" | "system";
@@ -31,6 +32,10 @@ export const atom_fullWidth = atomWithStorage<boolean>("fullWidth", false);
 // Flow mode: fades everything but the caret's paragraph and keeps the caret
 // line centred while typing. Opt-in, off by default.
 export const atom_flowMode = atomWithStorage<boolean>("flowMode", false);
+// Fades the pane header, sidebar and mobile file bar while you type; moving
+// the mouse brings them back (hooks/use-fade-chrome-while-typing.ts). On by
+// default.
+export const atom_hideChromeWhileTyping = atomWithStorage<boolean>("hideChromeWhileTyping", true);
 // Hides the desktop pane header (tabs and toolbar) for an immersive view.
 // Window-wide, like the toolbar's own controls.
 export const atom_toolbarHidden = atomWithStorage<boolean>("toolbarHidden", false);
@@ -116,6 +121,10 @@ export const atom_isEditorFocused = atom<boolean>(false);
 // Whether the editor page shows the home feed in place of the workspace.
 // Ephemeral: opening a note closes it.
 export const atom_homeFeedOpen = atom<boolean>(false);
+// Set by the landing page's "Resume": the next vault-open behavior keeps the
+// restored tabs in front instead of opening the home feed, then clears it.
+// In memory: it only has to survive the client-side navigation to /editor.
+export const atom_resumeRequested = atom<boolean>(false);
 // Bumped when Home is pressed while the feed is already open; HomeFeed
 // scrolls back to the top on each change.
 export const atom_homeFeedTopRequest = atom(0);
@@ -141,17 +150,6 @@ export const atom_draftFolderRequest = atom<DraftFolderRequest | null>(null);
 // on init: it's only read from the store, never subscribed). Cleared when the
 // draft is saved or a new draft starts.
 export const atom_draftFolderDeclined = atomWithStorage<boolean>("draftFolderDeclined", false, undefined, { getOnInit: true });
-// The tab's sessionStorage, or nothing on the server (and where storage is
-// blocked), in which case Jotai falls back to the initial value. Unlike its
-// default localStorage getter, Jotai doesn't guard a custom one, so this must.
-function tabSessionStorage(): Storage {
-  try {
-    return window.sessionStorage;
-  } catch {
-    return undefined as unknown as Storage;
-  }
-}
-
 // Vault key the vault-open behavior last ran for, so returning to the editor
 // from another route doesn't replace the file just opened there. Kept in
 // sessionStorage: a refresh of the same tab reopens where you were (the note,
@@ -186,6 +184,10 @@ export const atom_hasCompletedOnboarding = atomWithStorage<boolean>(
 );
 export const atom_userName = atomWithStorage<string>("userName", "");
 export const atom_isWizardOpen = atom<boolean>(false);
+// Set when /editor opens with work handed over from a tool page: first-run
+// visitors see that work instead of the welcome tour, which waits for their
+// next visit. In memory, so a reload clears it.
+export const atom_welcomeDeferred = atom<boolean>(false);
 // Survives the full-page reload caused by the Google Drive OAuth round-trip, so the
 // wizard resumes where the user left off instead of restarting at the welcome step.
 export const atom_welcomeWizardStep = atomWithStorage<number>(
@@ -234,6 +236,11 @@ export const atom_fileTreeExpansion = atomWithStorage<Record<string, FileTreeExp
 // atom_vaultKey), newest pin first. Read and toggled through
 // home-pin-atoms.ts.
 export const atom_homePins = atomWithStorage<Record<string, string[]>>("hermes_home_pins", {});
+// The home feed's "Open tasks" section is folded (every vault).
+// Where today's worklog sheet goes (`{{year}}` / `{{month}}` allowed; ""
+// = vault root). null until asked, on the first "Start today's sheet".
+export const atom_todayFolder = atomWithStorage<string | null>("hermes_today_folder", null);
+export const atom_homeTasksCollapsed = atomWithStorage<boolean>("hermes_home_tasks_collapsed", false);
 export const atom_repurposeWizardOpen = atom<boolean>(false);
 
 // Vault creation flow — transient, never persisted

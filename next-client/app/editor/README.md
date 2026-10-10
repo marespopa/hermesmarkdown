@@ -32,9 +32,11 @@ The editor route (`page.tsx`) composes these:
 | `use-navigate-with-guard.ts` | Leaves the editor with a Save / Discard prompt when the note is dirty. |
 | `use-github-vault-actions.ts` | `GitHub: Commit / Pull` command handlers. |
 | `use-generate-ai-note.ts` | "Generate new note with AI". |
-| `use-draft-import.ts` | Import a file into the draft (with `DraftImportDialog` for overwrite confirmation). |
+| `use-draft-import.ts` | Import into the draft, never the active tab (with `DraftImportDialog` for overwrite confirmation): `offerDraft` fills an empty draft and opens it, or asks first when the draft has text. Used by "Import file" and tool handoffs. |
+| `use-tool-handoff.ts` | Work handed over from a tool page (`app/utils/tool-handoff.ts`, `sessionStorage["hermes_tool_handoff"]`): read once on mount (deferring the welcome tour), offered to the draft once the vault has settled and the vault-open behavior has run, then cleared. |
 | `use-sync-current-directory.ts` | Points the vault's current directory at the active file's folder. |
 | `use-editor-paste-handlers.ts`, `use-scroll-to-pending-target.ts` | `MarkdownEditor` helpers: CSV-to-table confirm and image saving on paste; jump-to-line requests (`atom_pendingScrollTarget`; the caret goes to the optional `column`). |
+| `use-fade-chrome-while-typing.ts` | Hide interface while typing (`atom_hideChromeWhileTyping`): typing in an editor sets `<html data-chrome-faded>`, which fades every `.typing-chrome` element (pane header, sidebar, mobile file bar; `editor.scss`) and turns the pane, the canvas and the sheet's edge into one plain page (`.typing-page`); with the sidebar open, a single pane's text column slides left by up to half the sidebar's width (`--typing-shift`, set in `page.tsx`) so it centres on the window; moving the mouse over where the chrome sits (after 8px of travel; moving over the text leaves it hidden), or a tap or focus outside the editor, brings it back. |
 | `use-tab-drag-drop.ts` | Tab drag-and-drop between panes (`PaneLeaf`). |
 | `useAIEditorActions.ts` + `ai-action-prompts.ts` | AI Chat state and the one-click AI actions (prompt table keyed by action id). |
 
@@ -51,6 +53,8 @@ The editor route (`page.tsx`) composes these:
 ## Flow mode
 
 `codemirror/flow-mode.ts` is an opt-in writing mode (Settings → Editor, or **Enable flow mode** in the command palette), stored in `atom_flowMode` and toggled through a CodeMirror compartment.
+
+`codemirror/bullet-autospace.ts` (an `EditorView.inputHandler`) turns a `-` typed at the start of a line (after any indent or `> `) into `- `. A space typed right after that bare bullet is swallowed, and a second `-` turns it back into `--`, so `---` still types as a rule or frontmatter fence. Code blocks and multi-cursor edits are left alone.
 
 1. **Paragraph focus**: a view plugin marks the lines of the caret's paragraph (the run of non-blank lines around it) with `cm-flowActive`. While the editor has focus, every other line and block widget fades to 25% opacity. On blur the whole note returns to full strength.
 2. **Typewriter scrolling**: a transaction extender adds a centered `scrollIntoView` effect to typing, deletion, undo/redo and keyboard caret movement. Pointer selections and external reloads never scroll. The content gets extra bottom padding so the last line can still reach the center.
@@ -110,7 +114,7 @@ Nothing is drawn on top of the cells. Table actions live in one menu with **Row*
 - **Right-click / long-press** a cell. The menu opens at the pointer.
 - **Row numbers and column letters**: while a table is being edited, spreadsheet-style rulers appear in gutters reserved above and left of it (A, B, C… / 1, 2, 3…, matching formula addressing). Clicking one opens the menu for that column or row.
 
-All structural edits go through `codemirror/table-commands.ts` as one isolated undo step each. That module holds the keyboard commands and re-exports the shared primitives in `table-edit.ts` and the menu actions in `table-menu-actions.ts`. The widget itself is split into `table-display.tsx` (state field, widget, caret entry), `table-source.ts` (the Edit as Markdown state), `table-cell-dom.ts` (rendering, caret offsets) and `table-cell-handlers.ts` (cell events, menus, rulers).
+All structural edits go through `codemirror/table-commands.ts` as one isolated undo step each. That module holds the keyboard commands (bound in `table-keymap.ts`, `tableKeyBindings`, shared with the table generator tool in `app/tools/table/`) and re-exports the shared primitives in `table-edit.ts` and the menu actions in `table-menu-actions.ts`. The widget itself is split into `table-display.tsx` (state field, widget, caret entry), `table-source.ts` (the Edit as Markdown state), `table-cell-dom.ts` (rendering, caret offsets) and `table-cell-handlers.ts` (cell events, menus, rulers).
 
 ### Formulas (`utils/formula-engine.ts`, `codemirror/table-formulas.ts`)
 
@@ -123,7 +127,7 @@ A cell starting with `=` is a formula (`=SUM(B2:B5)`, `=AVERAGE(B2:D2)`, `=IF(..
 | `utils/tableParser.ts` | `parseTable(source)` — strict GFM parse (requires separator row). `parseTableLenient(source)` — best-effort parse when separator is absent. |
 | `utils/tableSerializer.ts` | `serializeTable(data, pretty)` — produces GFM markdown. Pretty mode pads columns (max 40 chars); compact mode is minimal. |
 | `utils/tableSorter.ts` | `sortRows(rows, colIdx, direction)` — detects number (currency stripped), date, or string columns; empty cells always sort to bottom; formula/summary rows stay in place. |
-| `utils/table-manipulation.ts` | Line-array and `TableData` mutations (add/remove/move rows and columns, CSV/JSON export, delimited-text parsing) used by the table commands. |
+| `utils/table-manipulation.ts` | Line-array and `TableData` mutations (add/remove/move rows and columns, CSV/JSON export, delimited-text parsing, `createEmptyTable(cols, rows)`) used by the table commands and the table generator tool. |
 | `utils/inline-markdown.ts` | Escaped inline-Markdown → HTML renderer for unfocused grid cells. |
 | `utils/table-detection.ts` | `findTableAtPos(text, pos)` — locates the table block at cursor position and returns cursor row/col indices; `findAllTables(text)` and `isTableLine(line)`. |
 | `utils/table-cell-offsets.ts` | Maps each cell to its absolute character range in the document (trimmed content and full pipe-to-pipe segment). |

@@ -114,6 +114,69 @@ html.dark .editor-sheet {
   }
 }
 
+/* Hide the interface while typing (hooks/use-fade-chrome-while-typing.ts):
+   the chrome fades slowly once you type and returns quickly when the mouse
+   moves. Opacity and colour only, so nothing reflows under the caret. The
+   window then reads as one page: everything behind the chrome
+   (`.typing-page`: the pane, the canvas around the sheet) takes the sheet's
+   paper, and the sheet drops its edge and shadow. */
+.typing-chrome {
+  transition: opacity 150ms ease-out;
+}
+
+.editor-canvas {
+  transition: background-color 150ms ease-out;
+}
+
+.editor-sheet.editor-container {
+  transition-property: padding, max-width, border-color, box-shadow;
+}
+
+html[data-chrome-faded] .typing-chrome {
+  opacity: 0;
+  pointer-events: none;
+  transition-duration: 600ms;
+}
+
+html[data-chrome-faded] .typing-page,
+html[data-chrome-faded] .editor-canvas {
+  background: var(--paper-grain), var(--surface);
+  transition-duration: 600ms;
+}
+
+html[data-chrome-faded] .editor-sheet.editor-container {
+  border-color: transparent;
+  box-shadow: none;
+}
+
+/* With the sidebar open, the column is centred beside it; once it fades,
+   the column slides left by half its width (--typing-shift, page.tsx) to
+   centre on the window — never past the page margin, so a narrow pane keeps
+   its text where it is. `left`, not a transform: a transform would become
+   the containing block of the editor's fixed-position menus. In Full Width
+   the measure is `none`, the calc is invalid and the column stays put. */
+.editor-measure {
+  left: 0;
+  transition: left 150ms ease-out;
+}
+
+html[data-chrome-faded] .editor-measure {
+  left: calc(-1 * clamp(0px, (100% - var(--editor-measure)) / 2, var(--typing-shift, 0px)));
+  transition-duration: 600ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .typing-chrome,
+  .editor-canvas,
+  .editor-sheet.editor-container,
+  .editor-measure,
+  html[data-chrome-faded] .editor-measure,
+  html[data-chrome-faded] .typing-chrome,
+  html[data-chrome-faded] .editor-canvas {
+    transition: none;
+  }
+}
+
 /* Typography settings — driven by CSS vars on .editor-container.
    Applied identically to both overlay layers so the caret stays aligned.
    !important overrides react-simple-code-editor's own inline styles. */

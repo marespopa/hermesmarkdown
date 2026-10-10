@@ -203,7 +203,7 @@ describe("PaneLeaf Tab Indicators", () => {
     fireEvent.click(more);
     expect(more).toHaveAttribute("aria-expanded", "true");
     const menu = screen.getByRole("menu", { name: "More" });
-    for (const name of ["Copy Markdown", "Split Right", "Settings", "Documentation and Help", "Hide Toolbar"]) {
+    for (const name of ["Copy Markdown", "Split Right", "Settings", "Documentation and Help", "Free Tools", "Hide Toolbar"]) {
       expect(within(menu).getByRole("menuitem", { name: new RegExp(`^${name}`) })).toBeInTheDocument();
     }
 
@@ -228,7 +228,7 @@ describe("PaneLeaf Tab Indicators", () => {
     expect(screen.getByText("Copy Markdown")).toBeInTheDocument();
   });
 
-  it("opens settings and help from the More menu", () => {
+  it("opens settings, help and the tools from the More menu", () => {
     render(
       <TestProvider initialValues={[
         [atom_activePaneId, "pane-1"],
@@ -245,6 +245,9 @@ describe("PaneLeaf Tab Indicators", () => {
     fireEvent.click(screen.getByRole("button", { name: "More" }));
     fireEvent.click(screen.getByRole("menuitem", { name: "Documentation and Help" }));
     expect(push).toHaveBeenCalledWith("/documentation");
+    fireEvent.click(screen.getByRole("button", { name: "More" }));
+    fireEvent.click(screen.getByRole("menuitem", { name: "Free Tools" }));
+    expect(push).toHaveBeenCalledWith("/tools");
   });
 
   it("guides an empty pane toward creating or opening a note", () => {

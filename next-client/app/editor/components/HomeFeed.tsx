@@ -6,18 +6,22 @@ import { useVirtualizer } from "@tanstack/react-virtual";
 import { atom_homePinnedPaths, atom_homeTagFilter, atom_toggleHomePin } from "@/app/atoms/home-pin-atoms";
 import { atom_fileMetadata } from "@/app/atoms/metadata";
 import { atom_noteDisplayItems } from "@/app/atoms/privacy-atoms";
-import { atom_homeFeedTopRequest, atom_indexerState, atom_userName } from "@/app/atoms/ui-atoms";
+import { atom_homeFeedTopRequest, atom_indexerState, atom_newNoteFolder, atom_todayFolder, atom_userName } from "@/app/atoms/ui-atoms";
 import { atom_templatesFolder } from "@/app/atoms/template-atoms";
 import Button from "@/app/components/Button";
+import { normalizeFolderPath } from "@/app/hooks/file-system/unique-file";
+import { findTodayNote, resolveTodayFolder, todayNoteName } from "@/app/utils/today-note";
 import FeedBar from "./home-feed/FeedBar";
 import FeedHeader from "./home-feed/FeedHeader";
 import FeedRow from "./home-feed/FeedRow";
 import FeedSkeleton from "./home-feed/FeedSkeleton";
 import FeedStart from "./home-feed/FeedStart";
 import FeedVault from "./home-feed/FeedVault";
+import FeedStats from "./home-feed/FeedStats";
 import FeedStatus from "./home-feed/FeedStatus";
 import FeedTags from "./home-feed/FeedTags";
-import { buildFeed, feedTags } from "./home-feed/feed-model";
+import FeedTasks from "./home-feed/FeedTasks";
+import { buildFeed, feedStats, feedTags, isFeedPath, openFeedTasks, withTodaySheet, type FeedEntry } from "./home-feed/feed-model";
 
 // Above this many notes only the rows in view (plus overscan) are rendered,
 // however far you scroll. Smaller vaults render every row.
@@ -37,6 +41,10 @@ interface HomeFeedProps {
   hasVault?: boolean;
   /** Opens a file from the device into the draft (the no-vault "Open File…"). */
   onOpenFile?: () => void;
+  /** Opens today's worklog sheet, creating it when it doesn't exist. */
+  onOpenToday?: () => void;
+  /** Opens a note with the caret on a line (0-indexed): an open task. */
+  onOpenTask?: (path: string, line: number) => void;
 }
 
 function isTypingTarget(target: EventTarget | null) {
@@ -48,10 +56,11 @@ function isTypingTarget(target: EventTarget | null) {
 const GG_WINDOW_MS = 600;
 
 // The vault's home screen: recent notes, newest first, in the editor's
-// column. Keyboard, vim-style: j/k or arrows move, gg/G jump to the top and
-// end, Enter or o opens, p pins, / searches, Escape leaves; any other
+// column, under a "Today" row and the open tasks of the past week. Keyboard,
+// vim-style: j/k or arrows move, gg/G jump to the top and end, Enter or o
+// opens, p pins, t opens today's sheet, / searches, Escape leaves; any other
 // printable key opens the command palette with that key typed.
-export default function HomeFeed({ onOpenNote, onNewNote, onSearch, onClose, isSearchOpen = false, hasVault = true, onOpenFile }: HomeFeedProps) {
+export default function HomeFeed({ onOpenNote, onNewNote, onSearch, onClose, isSearchOpen = false, hasVault = true, onOpenFile, onOpenToday, onOpenTask }: HomeFeedProps) {
   const fileMetadata = useAtomValue(atom_fileMetadata);
   const indexerState = useAtomValue(atom_indexerState);
   const userName = useAtomValue(atom_userName);
@@ -68,12 +77,27 @@ export default function HomeFeed({ onOpenNote, onNewNote, onSearch, onClose, isS
   );
   // Chips count the whole feed, so picking one never hides the others.
   const tags = useMemo(() => feedTags(allNotes), [allNotes]);
+  // Today's sheet: where it is, or where "Start today's sheet" will put it.
+  // The open tasks and the stats line read the whole feed, not the filtered one.
+  const todayPattern = useAtomValue(atom_todayFolder);
+  const newNoteFolder = useAtomValue(atom_newNoteFolder);
+  const todayFolder = normalizeFolderPath(todayPattern === null ? newNoteFolder : resolveTodayFolder(todayPattern, now));
+  const today = useMemo(() => {
+    const path = findTodayNote(Object.keys(fileMetadata).filter(isFeedPath), now, todayFolder);
+    const fileName = `${todayNoteName(now)}.md`;
+    return { path: path ?? (todayFolder ? `${todayFolder}/${fileName}` : fileName), exists: !!path };
+  }, [fileMetadata, now, todayFolder]);
+  const showToday = hasVault && !!onOpenToday;
+  // The tag filter leaves today's sheet in its day, unmarked.
   const feed = useMemo(
     () => (tagFilter.length
       ? buildFeed(fileMetadata, displayItems, now, templatesFolder, pinnedPaths, tagFilter)
-      : allNotes),
-    [allNotes, fileMetadata, displayItems, now, templatesFolder, pinnedPaths, tagFilter],
+      // An empty (or still loading) vault keeps its "Start writing" / skeleton.
+      : showToday && allNotes.length > 0 ? withTodaySheet(allNotes, today, now) : allNotes),
+    [allNotes, fileMetadata, displayItems, now, templatesFolder, pinnedPaths, tagFilter, showToday, today],
   );
+  const openTasks = useMemo(() => openFeedTasks(allNotes, fileMetadata, now), [allNotes, fileMetadata, now]);
+  const stats = useMemo(() => feedStats(allNotes, now), [allNotes, now]);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const scrollRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
@@ -126,8 +150,12 @@ export default function HomeFeed({ onOpenNote, onNewNote, onSearch, onClose, isS
     setSelectedIndex(0);
   }, [tagFilter]);
 
-  const latest = useRef({ feed, selectedIndex, shouldVirtualize, rowVirtualizer, onOpenNote, onSearch, onClose, togglePin });
-  latest.current = { feed, selectedIndex, shouldVirtualize, rowVirtualizer, onOpenNote, onSearch, onClose, togglePin };
+  // The "Start today's sheet" row isn't a note yet: it starts the sheet.
+  const openEntry = (entry: FeedEntry) =>
+    (entry.todaySheet === "missing" && onOpenToday ? onOpenToday() : onOpenNote(entry.path));
+
+  const latest = useRef({ feed, selectedIndex, shouldVirtualize, rowVirtualizer, openEntry, onSearch, onClose, togglePin, onOpenToday, showToday });
+  latest.current = { feed, selectedIndex, shouldVirtualize, rowVirtualizer, openEntry, onSearch, onClose, togglePin, onOpenToday, showToday };
 
   // Selects a row and scrolls it into view.
   const select = useCallback((index: number) => {
@@ -192,17 +220,22 @@ export default function HomeFeed({ onOpenNote, onNewNote, onSearch, onClose, isS
       lastG = 0;
       if (event.key === "G") { event.preventDefault(); if (rows.length) select(rows.length - 1); return; }
       if (event.key === "/") { event.preventDefault(); latest.current.onSearch(); return; }
+      if (event.key === "t" && latest.current.showToday && latest.current.onOpenToday) {
+        event.preventDefault();
+        latest.current.onOpenToday();
+        return;
+      }
       if (event.key === "Enter" || event.key === "o") {
         // A focused button handles its own Enter (click).
         if (event.key === "Enter" && (event.target as HTMLElement | null)?.closest?.("button")) return;
         if (!rows[index]) return;
         event.preventDefault();
-        latest.current.onOpenNote(rows[index].path);
+        latest.current.openEntry(rows[index]);
         return;
       }
       if (event.key === "p") {
         event.preventDefault();
-        if (!rows[index]) return;
+        if (!rows[index] || rows[index].todaySheet === "missing") return;
         pinnedByKey.current = rows[index].path;
         latest.current.togglePin(rows[index].path);
         return;
@@ -223,7 +256,7 @@ export default function HomeFeed({ onOpenNote, onNewNote, onSearch, onClose, isS
         ref={ref}
         entry={entry}
         isSelected={index === selectedIndex}
-        onOpen={() => onOpenNote(entry.path)}
+        onOpen={() => openEntry(entry)}
         onHover={() => setSelectedIndex(index)}
         onTogglePin={() => togglePin(entry.path)}
       />
@@ -235,7 +268,10 @@ export default function HomeFeed({ onOpenNote, onNewNote, onSearch, onClose, isS
       <div className="mx-auto w-full max-w-2xl px-4 pb-40 sm:px-8">
         {/* The open vault, in a bar at the very top, well clear of the greeting. */}
         {hasVault && <FeedVault />}
-        <FeedHeader now={now} userName={userName} />
+        <FeedHeader now={now} userName={userName}>
+          {hasVault && <FeedStats stats={stats} openTasks={openTasks.length} tasksToggle={!!onOpenTask} />}
+          {hasVault && onOpenTask && <FeedTasks tasks={openTasks} onOpenTask={onOpenTask} />}
+        </FeedHeader>
         {hasVault && <FeedTags tags={tags} selected={tagFilter} onChange={setTagFilter} />}
         {isIndexing && hasVault && <FeedStatus />}
         {!hasVault ? (
@@ -287,7 +323,6 @@ export default function HomeFeed({ onOpenNote, onNewNote, onSearch, onClose, isS
         onSearchCommands={() => onSearch(">")}
         onNewNote={onNewNote}
         isSearchOpen={isSearchOpen}
-        showKeyHints={hasVault && feed.length > 0}
         placeholder={hasVault ? undefined : "Search commands…"}
       />
     </div>

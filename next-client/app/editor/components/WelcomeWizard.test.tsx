@@ -5,7 +5,7 @@ import { Provider, useAtomValue } from "jotai";
 import { useHydrateAtoms } from "jotai/utils";
 import WelcomeWizard from "./WelcomeWizard";
 import { atom_renderedFontSize } from "@/app/atoms/atoms";
-import { atom_flowMode, atom_fullWidth, atom_hasCompletedOnboarding, atom_homeFeedOpen, atom_isWizardOpen, atom_sidebarOpen, atom_userName } from "@/app/atoms/ui-atoms";
+import { atom_flowMode, atom_fullWidth, atom_hasCompletedOnboarding, atom_homeFeedOpen, atom_isWizardOpen, atom_sidebarOpen, atom_userName, atom_welcomeDeferred } from "@/app/atoms/ui-atoms";
 import { atom_vaultHandle } from "@/app/atoms/vault-atoms";
 import { useFileSystem } from "@/app/hooks/use-file-system";
 import { testAIConnection } from "@/app/services/ai";
@@ -75,6 +75,23 @@ describe("WelcomeWizard", () => {
       openVault: mockOpenVault,
       isVaultSupported: true,
     });
+  });
+
+  it("waits for the next visit when a tool handoff deferred it, unless opened on purpose", () => {
+    const { unmount } = render(
+      <TestProvider initialValues={[[atom_hasCompletedOnboarding, false], [atom_welcomeDeferred, true], [atom_vaultHandle, null]]}>
+        <WelcomeWizard />
+      </TestProvider>
+    );
+    expect(screen.queryByRole("textbox", { name: "Your name" })).not.toBeInTheDocument();
+    unmount();
+
+    render(
+      <TestProvider initialValues={[...defaultInitialValues, [atom_welcomeDeferred, true]]}>
+        <WelcomeWizard />
+      </TestProvider>
+    );
+    expect(screen.getByRole("textbox", { name: "Your name" })).toBeInTheDocument();
   });
 
   it("starts by asking for a name and stores it trimmed", () => {

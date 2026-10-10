@@ -1,4 +1,5 @@
 import type { TableData } from "./tableParser";
+import { serializeTable } from "./tableSerializer";
 
 function parseRow(line: string): string[] {
   // Split on unescaped pipes only; `\|` stays inside its cell.
@@ -283,4 +284,15 @@ export function parseDelimitedText(text: string, delimiter: "\t" | ","): string[
     .split("\n")
     .filter((line) => line.length > 0)
     .map((line) => splitDelimitedLine(line, delimiter));
+}
+
+// An empty table: `Header 1…cols` over `rows` blank rows (both at least 1).
+export function createEmptyTable(cols: number, rows: number): string {
+  const colCount = Math.max(1, Math.floor(cols));
+  const rowCount = Math.max(1, Math.floor(rows));
+  return serializeTable({
+    headers: Array.from({ length: colCount }, (_, i) => `Header ${i + 1}`),
+    rows: Array.from({ length: rowCount }, () => Array<string>(colCount).fill("")),
+    alignments: Array(colCount).fill("left"),
+  });
 }

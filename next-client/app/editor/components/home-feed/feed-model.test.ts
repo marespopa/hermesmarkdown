@@ -2,7 +2,8 @@
 import { describe, expect, it } from "vitest";
 import type { FileMetadata } from "@/app/atoms/metadata";
 import { buildNoteDisplayItems, MASKED_PREVIEW, type PrivacyLevel } from "@/app/utils/note-display";
-import { buildFeed as buildFeedWith, dayLabel, feedTags, feedTitle, isFeedPath } from "./feed-model";
+import { extractTasks } from "@/app/utils/taskExtractor";
+import { buildFeed as buildFeedWith, dayLabel, feedStats, feedTags, feedTitle, isFeedPath, openFeedTasks, withTodaySheet } from "./feed-model";
 
 // Builds the feed through the display factory, as HomeFeed does.
 function buildFeed(
@@ -199,5 +200,86 @@ describe("tag filter", () => {
       { tag: "plan", count: 1 },
       { tag: "home", count: 1 },
     ]);
+  });
+});
+
+describe("openFeedTasks", () => {
+  const day = (daysAgo: number, hour = 10) => new Date(2026, 8, 28 - daysAgo, hour);
+  const withTasks = (path: string, at: Date, body: string, extra: Partial<FileMetadata> = {}) =>
+    meta(path, at, { tasks: extractTasks(path, body), ...extra });
+
+  it("lists unchecked tasks from the last week's notes, newest note first, in line order", () => {
+    const metadata = {
+      "a.md": withTasks("a.md", day(2), "- [ ] second note\n- [x] done"),
+      "b.md": withTasks("b.md", day(0), "intro\n- [ ] later line\n- [ ] \n"),
+      "old.md": withTasks("old.md", day(7), "- [ ] too old"),
+    };
+    metadata["b.md"].tasks.reverse();
+    const tasks = openFeedTasks(buildFeed(metadata, NOW), metadata, NOW);
+    expect(tasks.map((task) => [task.path, task.line, task.text])).toEqual([
+      ["b.md", 1, "later line"],
+      ["b.md", 2, ""],
+      ["a.md", 0, "second note"],
+    ]);
+    expect(tasks[0].noteTitle).toBe("b");
+  });
+
+  it("keeps a note edited six days ago, from midnight", () => {
+    const metadata = { "edge.md": withTasks("edge.md", day(6, 0), "- [ ] edge") };
+    expect(openFeedTasks(buildFeed(metadata, NOW), metadata, NOW)).toHaveLength(1);
+  });
+
+  it("leaves out sensitive notes and notes outside the feed", () => {
+    const metadata = {
+      "secret.md": withTasks("secret.md", day(0), "- [ ] hidden", { frontmatter: { sensitive: true } }),
+      ".hermes/x.md": withTasks(".hermes/x.md", day(0), "- [ ] meta"),
+    };
+    expect(openFeedTasks(buildFeed(metadata, NOW), metadata, NOW)).toEqual([]);
+  });
+});
+
+describe("feedStats", () => {
+  it("counts the notes and those edited since midnight", () => {
+    const metadata = {
+      "a.md": meta("a.md", new Date(2026, 8, 28, 0, 5)),
+      "b.md": meta("b.md", new Date(2026, 8, 27, 23, 55)),
+      "c.md": meta("c.md", new Date(0)),
+    };
+    expect(feedStats(buildFeed(metadata, NOW), NOW)).toEqual({ notes: 3, editedToday: 1 });
+  });
+});
+
+describe("withTodaySheet", () => {
+  const SHEET = "journal/2026-09-28.md";
+
+  it("adds a row that starts the sheet, heading Today after the pins", () => {
+    const metadata = { "a.md": meta("a.md", new Date(2026, 8, 28, 14)), "p.md": meta("p.md", new Date(2026, 8, 1)) };
+    const feed = withTodaySheet(buildFeed(metadata, NOW, "show_title", ["p.md"]), { path: SHEET, exists: false }, NOW);
+    expect(feed.map((entry) => [entry.path, entry.dayLabel, entry.todaySheet])).toEqual([
+      ["p.md", "Pinned", undefined],
+      [SHEET, "Today", "missing"],
+      ["a.md", null, undefined],
+    ]);
+    expect(feed[1].fileName).toBe("2026-09-28.md");
+  });
+
+  it("moves the existing sheet to the top of Today, marked", () => {
+    const metadata = {
+      [SHEET]: meta(SHEET, new Date(2026, 8, 28, 9)),
+      "b.md": meta("b.md", new Date(2026, 8, 28, 14)),
+    };
+    const feed = withTodaySheet(buildFeed(metadata, NOW), { path: SHEET, exists: true }, NOW);
+    expect(feed.map((entry) => [entry.path, entry.dayLabel, entry.todaySheet])).toEqual([
+      [SHEET, "Today", "existing"],
+      ["b.md", null, undefined],
+    ]);
+  });
+
+  it("leaves a pinned sheet pinned, and adds nothing for a sheet the feed hides", () => {
+    const metadata = { [SHEET]: meta(SHEET, new Date(2026, 8, 28, 9)) };
+    const pinned = buildFeed(metadata, NOW, "show_title", [SHEET]);
+    expect(withTodaySheet(pinned, { path: SHEET, exists: true }, NOW)).toBe(pinned);
+    const hidden = buildFeed({}, NOW);
+    expect(withTodaySheet(hidden, { path: SHEET, exists: true }, NOW)).toBe(hidden);
   });
 });

@@ -3,9 +3,9 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useAtom, useAtomValue } from "jotai";
+import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { atom_hasOpenFileContent } from "@/app/atoms/atoms";
-import { atom_userName } from "@/app/atoms/ui-atoms";
+import { atom_resumeRequested, atom_userName } from "@/app/atoms/ui-atoms";
 import LoadingOverlay from "@/app/components/LoadingOverlay/LoadingOverlay";
 import Button from "@/app/components/Button/Button.component";
 import Toast from "@/app/components/Toast";
@@ -18,6 +18,7 @@ export default function LandingPage() {
   const [nameDraft, setNameDraft] = useState("");
   const [showLoading, setShowLoading] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
+  const setResumeRequested = useSetAtom(atom_resumeRequested);
 
   useEffect(() => {
     setIsMounted(true);
@@ -30,6 +31,12 @@ export default function LandingPage() {
     router.push("/editor");
   };
 
+  // Back to the open tabs, not the home feed the editor would otherwise open.
+  const handleResume = () => {
+    setResumeRequested(true);
+    handleStart();
+  };
+
   return (
     <main className="min-h-screen overflow-x-hidden font-display selection:bg-sage/30">
       <LoadingOverlay isVisible={showLoading} text="Opening editor..." />
@@ -40,7 +47,7 @@ export default function LandingPage() {
         title={userName.trim() ? `Welcome back, ${userName.trim()}` : "Welcome Back"}
         description="You have a draft waiting in your local vault."
         actionLabel="Resume"
-        onAction={handleStart}
+        onAction={handleResume}
         {...(!userName.trim() && {
           nameValue: nameDraft,
           onNameChange: setNameDraft,

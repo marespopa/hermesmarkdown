@@ -10,6 +10,8 @@ import { MASKED_PREVIEW, type PrivacyLevel } from "@/app/utils/note-display";
 import { atom_homeFeedTopRequest, atom_indexerState, atom_userName, type IndexerState } from "@/app/atoms/ui-atoms";
 import HomeFeed from "./HomeFeed";
 import { INDEXING_VERBS, ROTATE_MS } from "./home-feed/FeedStatus";
+import { extractTasks } from "@/app/utils/taskExtractor";
+import { todayNoteName } from "@/app/utils/today-note";
 
 const vault = vi.hoisted(() => ({ closeVault: vi.fn(), openVault: vi.fn(), confirm: vi.fn() }));
 vi.mock("@/app/hooks/use-file-system", () => ({
@@ -129,11 +131,6 @@ describe("HomeFeed", () => {
     expect(onOpenNote).toHaveBeenLastCalledWith("old.md");
   });
 
-  it("shows the vim-style key hints above the search bar", () => {
-    renderFeed(NOTES);
-    expect(screen.getByLabelText(/^Keyboard: j and k move/)).toBeInTheDocument();
-  });
-
   it("doesn't take focus from a text field", () => {
     const field = document.createElement("input");
     document.body.appendChild(field);
@@ -145,8 +142,8 @@ describe("HomeFeed", () => {
 
   it("opens the palette with a typed character and leaves on Escape", () => {
     const { onSearch, onClose } = renderFeed(NOTES);
-    fireEvent.keyDown(window, { key: "t" });
-    expect(onSearch).toHaveBeenCalledWith("t");
+    fireEvent.keyDown(window, { key: "w" });
+    expect(onSearch).toHaveBeenCalledWith("w");
     fireEvent.keyDown(window, { key: "Escape" });
     expect(onClose).toHaveBeenCalled();
   });
@@ -526,5 +523,75 @@ describe("HomeFeed privacy", () => {
     expect(rows[0]).toHaveTextContent(SECRET);
     expect(rows[0]).toHaveTextContent("Preview blurred");
     expect(screen.getByText(SECRET)).toHaveAttribute("aria-hidden", "true");
+  });
+});
+
+describe("HomeFeed worklog", () => {
+  beforeEach(() => {
+    cleanup();
+    localStorage.clear();
+  });
+
+  function renderWorklog(metadata: Record<string, FileMetadata>) {
+    const handlers = { onOpenNote: vi.fn(), onNewNote: vi.fn(), onSearch: vi.fn(), onClose: vi.fn(), onOpenToday: vi.fn(), onOpenTask: vi.fn() };
+    render(
+      <Provider>
+        <Hydrate metadata={metadata}>
+          <HomeFeed {...handlers} />
+        </Hydrate>
+      </Provider>,
+    );
+    return handlers;
+  }
+
+  const withTasks = (path: string, body: string) => ({ ...meta(path, 0), tasks: extractTasks(path, body) });
+  const sheet = `${todayNoteName(new Date())}.md`;
+
+  it("heads Today with a row that starts today's sheet, also on t", () => {
+    const { onOpenToday, onOpenNote, onSearch } = renderWorklog(NOTES);
+    const rows = screen.getAllByRole("option");
+    expect(rows[0]).toHaveTextContent("Start today's sheet");
+    expect(rows[0]).toHaveTextContent(sheet);
+    expect(screen.getAllByText("Today")).toHaveLength(1);
+    expect(within(rows[0]).queryByRole("button", { name: "Pin to Home" })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Start today's sheet" }));
+    fireEvent.keyDown(window, { key: "Enter" });
+    fireEvent.keyDown(window, { key: "t" });
+    expect(onOpenToday).toHaveBeenCalledTimes(3);
+    expect(onOpenNote).not.toHaveBeenCalled();
+    expect(onSearch).not.toHaveBeenCalled();
+  });
+
+  it("puts today's sheet first under Today once it exists, shown once", () => {
+    const { onOpenNote } = renderWorklog({ ...NOTES, [sheet]: meta(sheet, 10, "Standup") });
+    const rows = screen.getAllByRole("option");
+    expect(rows).toHaveLength(3);
+    const title = sheet.replace(/\.md$/, "");
+    fireEvent.click(within(rows[0]).getByRole("button", { name: `${title}, today's sheet` }));
+    expect(onOpenNote).toHaveBeenCalledWith(sheet);
+    expect(screen.queryByText("Start today's sheet")).not.toBeInTheDocument();
+  });
+
+  it("lists open tasks and opens one at its line", () => {
+    const { onOpenTask } = renderWorklog({ "log.md": withTasks("log.md", "# Log\n- [x] shipped\n- [ ] write the review") });
+    const tasks = screen.getByRole("region", { name: "Open tasks" });
+    fireEvent.click(within(tasks).getByRole("button", { name: "write the review, in log" }));
+    expect(onOpenTask).toHaveBeenCalledWith("log.md", 2);
+    expect(within(tasks).queryByText("shipped")).not.toBeInTheDocument();
+  });
+
+  it("folds the open tasks", () => {
+    renderWorklog({ "log.md": withTasks("log.md", "- [ ] one") });
+    const toggle = screen.getByRole("button", { name: "1 open task" });
+    expect(toggle).toHaveAttribute("aria-expanded", "true");
+    fireEvent.click(toggle);
+    expect(toggle).toHaveAttribute("aria-expanded", "false");
+    expect(screen.queryByRole("region", { name: "Open tasks" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "one, in log" })).not.toBeInTheDocument();
+  });
+
+  it("shows a quiet stats line", () => {
+    renderWorklog({ "log.md": withTasks("log.md", "- [ ] a\n- [ ] b"), "old.md": meta("old.md", 60 * 24 * 30) });
+    expect(screen.getByText(/^2 notes · 1 edited today/)).toHaveTextContent("2 notes · 1 edited today · 2 open tasks");
   });
 });

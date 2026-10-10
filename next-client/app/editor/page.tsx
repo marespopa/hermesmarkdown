@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, type CSSProperties } from "react";
 import ConflictDialog from "./components/ConflictDialog";
 import { useAtomValue } from "jotai";
 import { atom_fileName, atom_content, atom_activeFilePath, atom_workspaceLayout, atom_activePaneId, atom_isFileLoading, atom_isVaultRestoring, findLeaf, getFirstLeaf } from "@/app/atoms/atoms";
@@ -27,6 +27,7 @@ import RepurposeNoteWizard from "./components/RepurposeNoteWizard";
 import MermaidDialog from "./components/MermaidDialog";
 import RenderedBlockSourceDialog from "./components/RenderedBlockSourceDialog";
 import ImageDialog from "./components/ImageDialog";
+import TokenCostDialog from "./components/TokenCostDialog";
 import { useAIEditorActions } from "./hooks/useAIEditorActions";
 import AIChatDialog from "./components/AIChatDialog";
 import { AIReviewDialog } from "./components/AIReviewDialog";
@@ -34,9 +35,10 @@ import { AIThinkingOverlay } from "./components/AIThinkingOverlay";
 import VoicePreviewPanel from "./components/VoicePreviewPanel";
 import { useGlobalVoiceInput } from "./hooks/use-global-voice-input";
 import { useRouter } from "next/navigation";
-import { atom_isAiConfigured, atom_aiBuilderRequest, atom_showHiddenFiles } from "@/app/atoms/ui-atoms";
+import { atom_isAiConfigured, atom_aiBuilderRequest, atom_showHiddenFiles, atom_hideChromeWhileTyping, atom_sidebarOpen, atom_sidebarWidth } from "@/app/atoms/ui-atoms";
 import { usePaneFileActions } from "./hooks/use-pane-file-actions";
 import { useDraftImport } from "./hooks/use-draft-import";
+import { useToolHandoff } from "./hooks/use-tool-handoff";
 import { useEditorShortcuts } from "./hooks/use-editor-shortcuts";
 import { useGenerateAiNote } from "./hooks/use-generate-ai-note";
 import { useGitHubVaultActions } from "./hooks/use-github-vault-actions";
@@ -47,8 +49,10 @@ import DraftFolderDialog from "./components/DraftFolderDialog";
 import { useDraftFlow } from "./hooks/use-draft-flow";
 import { useHomeFeed } from "./hooks/use-home-feed";
 import HomeFeed from "./components/HomeFeed";
+import { HomeFeedSkeleton } from "./components/EditorSkeleton";
 import { useVaultOpenBehavior } from "./hooks/use-vault-open-behavior";
 import { useRecentVaultTracker } from "./hooks/use-recent-vaults";
+import { useFadeChromeWhileTyping } from "./hooks/use-fade-chrome-while-typing";
 
 export default function LiteEditor() {
   const router = useRouter();
@@ -98,6 +102,7 @@ export default function LiteEditor() {
     scanVault,
     indexVaultTags,
     syncCurrentDirectoryToPath,
+    openTodayNote,
   } = useFileSystem();
   const showHiddenFiles = useAtomValue(atom_showHiddenFiles);
   const handleRefreshVault = useCallback(() => {
@@ -114,6 +119,10 @@ export default function LiteEditor() {
   useVaultSync();
   useVaultOpenBehavior();
   useRecentVaultTracker();
+  const hideChromeWhileTyping = useAtomValue(atom_hideChromeWhileTyping);
+  useFadeChromeWhileTyping(hideChromeWhileTyping);
+  const sidebarOpen = useAtomValue(atom_sidebarOpen);
+  const sidebarWidth = useAtomValue(atom_sidebarWidth);
 
   // "Open AI Chat" (keyboard shortcut / command palette) bumps this counter
   // from outside the editor; the actual open() call has to happen here since
@@ -135,8 +144,9 @@ export default function LiteEditor() {
   const isVaultRestoring = useAtomValue(atom_isVaultRestoring);
   const isVaultLocked = isVaultRestoring || isVaultPending;
 
-  const { handleImport, fileInputRef, handleFileChange, pendingDraft, confirmPendingDraft, cancelPendingDraft } =
+  const { handleImport, fileInputRef, handleFileChange, pendingDraft, offerDraft, confirmPendingDraft, cancelPendingDraft } =
     useDraftImport(importFile);
+  useToolHandoff({ offerDraft, isVaultLocked });
 
   useEffect(() => {
     const handleFocus = () => {
@@ -203,6 +213,7 @@ export default function LiteEditor() {
     newNote: handleNewFile,
     materializeDraft,
     importFile: handleImport,
+    openTodayNote: () => openTodayNote(),
   });
 
   const handleNewAIFile = useGenerateAiNote({ vaultHandle, vaultFiles, chooseTargetDirectory, createFile });
@@ -217,6 +228,13 @@ export default function LiteEditor() {
     await exportFile(content, fileName);
   };
 
+
+  // Once the chrome fades, a single pane's text re-centres on the window
+  // rather than on the space beside the faded sidebar (editor.scss).
+  const centringShift =
+    !isMobileChrome && !isVaultLocked && !isHomeFeedOpen && sidebarOpen && "type" in workspaceLayout.rootContainer
+      ? `${sidebarWidth / 2}px`
+      : "0px";
 
   return (
     <ErrorBoundary onGoHome={() => router.push("/")}>
@@ -245,11 +263,15 @@ export default function LiteEditor() {
         onDiscardVoice={discardVoicePreview}
         hasVoicePreview={voicePreviewText.length > 0 || voiceInterimText !== null}
       />
-      <LoadingOverlay isVisible={isMounting || !!navigatingLabel} text={navigatingLabel ? `${navigatingLabel}...` : "Loading..."} />
+      {/* On the feed, its skeleton (gate, then the main area) leads straight into it. */}
+      <LoadingOverlay isVisible={(isMounting && !isHomeFeedOpen) || !!navigatingLabel} text={navigatingLabel ? `${navigatingLabel}...` : "Loading..."} />
       {/* Switching files keeps the editor on screen; a slim bar (shown only if
           it takes >150ms) signals the read + re-render instead of a full veil. */}
       <LoadingBar isVisible={isFileLoading && !isMounting} label="Opening file" />
-      <div className={`fixed inset-0 flex flex-col bg-surface text-fg selection:bg-sage-light/30 font-sans overflow-hidden overscroll-none transition-all duration-500`}>
+      <div
+        className={`typing-page fixed inset-0 flex flex-col bg-surface text-fg selection:bg-sage-light/30 font-sans overflow-hidden overscroll-none transition-all duration-500`}
+        style={{ "--typing-shift": centringShift } as CSSProperties}
+      >
         <h1 className="sr-only">HermesMarkdown Editor</h1>
         {/* Modals */}
         <WelcomeWizard />
@@ -262,6 +284,7 @@ export default function LiteEditor() {
         <RenderedBlockSourceDialog />
         <MermaidDialog />
         <ImageDialog />
+        <TokenCostDialog />
         
         <DraftImportDialog pendingDraft={pendingDraft} onConfirm={confirmPendingDraft} onCancel={cancelPendingDraft} />
         {!isVaultLocked && <DraftFolderDialog />}
@@ -273,7 +296,12 @@ export default function LiteEditor() {
 
         {/* Sidebar: navigation on the window's leading edge (desktop). The home
             feed is a full-width landing view, so it has none. */}
-        {!isMobileChrome && !isVaultLocked && !isHomeFeedOpen && <WorkspaceSidebar />}
+        {!isMobileChrome && !isVaultLocked && !isHomeFeedOpen && (
+          // A wrapper takes the fade: the sidebar's own transition is its slide.
+          <div className="typing-chrome shrink-0 flex">
+            <WorkspaceSidebar />
+          </div>
+        )}
 
         {/* Workspace Content */}
         <div className="flex-1 flex min-w-0 bg-surface overflow-hidden relative">
@@ -289,7 +317,9 @@ export default function LiteEditor() {
               <main
                 className="h-full"
               >
-                {isMounting || isVaultLocked ? (
+                {(isMounting || isVaultLocked) && isHomeFeedOpen ? (
+                  <HomeFeedSkeleton />
+                ) : isMounting || isVaultLocked ? (
                   <div className="animate-pulse opacity-10 space-y-6 pt-20 px-12 max-w-2xl mx-auto">
                     <div className="h-8 bg-current w-1/3 rounded-lg mb-16" />
                     <div className="h-4 bg-current w-full rounded-md" />

@@ -1,6 +1,6 @@
 # DraftImportDialog
 
-Description: Confirmation shown when an imported file would replace a draft that already has text ("Overwrite draft with …?").
+Description: Confirmation shown when an imported file, or work handed over from a tool page, would replace a draft that already has text ("Overwrite draft with …?"). Cancelling tool work toasts "Kept your current draft.".
 
 ## Local State & Storage
 - State: None; the pending draft comes from `useDraftImport` (`hooks/use-draft-import.ts`).

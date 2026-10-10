@@ -1,6 +1,7 @@
 import type { Command } from "@/app/components/CommandPalette/CommandPaletteContext";
 import { formatShortcut } from "@/app/utils/platform";
 import type { PanelLeaf, WorkspaceContainer } from "@/app/types/workspace";
+import { openTokenCostDialog } from "../../utils/open-helper-dialogs";
 import type { EditorCommandContext } from "./use-editor-command-context";
 
 function collectLeaves(node: WorkspaceContainer | PanelLeaf): PanelLeaf[] {
@@ -119,6 +120,12 @@ export function buildWorkspaceTaskViewCommandGroups(context: EditorCommandContex
       label: "Show keyboard shortcuts",
       keywords: "shortcuts hotkeys keybindings help",
       action: () => setKeyboardShortcutsOpen(true),
+    },
+    {
+      id: "token-cost",
+      label: "Token cost of this note",
+      keywords: "tokens count price cost ai gpt claude gemini llm calculator",
+      action: openTokenCostDialog,
     },
     {
       id: "open-settings",

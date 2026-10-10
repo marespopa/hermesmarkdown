@@ -17,6 +17,7 @@ import {
   tableToCSV,
   tableToJSON,
 } from "./table-manipulation";
+import { createEmptyTable } from "./table-manipulation";
 
 const table = ["| Name | Age |", "| ---- | --- |", "| Ada | 36 |", "| Lin | 28 |"];
 
@@ -123,5 +124,15 @@ describe("TableData moves and export", () => {
   it("keeps escaped pipes inside their cell when removing a column", () => {
     const withPipe = ["| A | B |", "| --- | --- |", "| x\\|y | 2 |"];
     expect(removeColumn(withPipe, 1, 0, 2)[2]).toContain("x\\|y");
+  });
+});
+
+describe("createEmptyTable", () => {
+  it("makes numbered headers over blank rows", () => {
+    expect(createEmptyTable(2, 1)).toBe("| Header 1 | Header 2 |\n| :------- | :------- |\n|          |          |");
+  });
+
+  it("never makes a table smaller than 1 × 1", () => {
+    expect(createEmptyTable(0, -3).split("\n")).toHaveLength(3);
   });
 });

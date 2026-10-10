@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { useAtomValue } from "jotai";
-import { atom_sidebarOpen, atom_sidebarWidth, atom_userName, atom_vaultOpenBehaviorAppliedFor } from "@/app/atoms/ui-atoms";
+import { atom_homeFeedOpen, atom_sidebarOpen, atom_sidebarWidth, atom_userName, atom_vaultOpenBehaviorAppliedFor } from "@/app/atoms/ui-atoms";
 import { PANE_HEADER_CLASS, PANE_HEADER_HEIGHT } from "./pane-header-classes";
 import FeedHeader from "./home-feed/FeedHeader";
 import FeedSkeleton, { FeedVaultSkeleton } from "./home-feed/FeedSkeleton";
@@ -23,7 +23,7 @@ const PARAGRAPHS = [
 // default): the vault bar, the real greeting and date — they don't need the
 // vault — over placeholder note rows, and the outline of the floating search
 // bar.
-function HomeFeedSkeleton() {
+export function HomeFeedSkeleton() {
   const userName = useAtomValue(atom_userName);
   // The skeleton is server-rendered (the gate starts out restoring), and the
   // server's clock and locale differ from the browser's. Reading the date only
@@ -64,11 +64,18 @@ function HomeFeedSkeleton() {
 // appears in place with no jump.
 export default function EditorSkeleton() {
   const appliedFor = useAtomValue(atom_vaultOpenBehaviorAppliedFor);
+  // The feed may already be open behind a pending vault (`?view=home` read).
+  const isHomeFeedOpen = useAtomValue(atom_homeFeedOpen);
   // Read after mount: sessionStorage and the URL don't exist on the server.
   const [isRefreshInWorkspace, setIsRefreshInWorkspace] = useState(false);
   useEffect(() => {
-    setIsRefreshInWorkspace(appliedFor !== null && appliedFor !== NO_VAULT_KEY && new URLSearchParams(window.location.search).get("view") !== "home");
-  }, [appliedFor]);
+    setIsRefreshInWorkspace(
+      !isHomeFeedOpen &&
+      appliedFor !== null &&
+      appliedFor !== NO_VAULT_KEY &&
+      new URLSearchParams(window.location.search).get("view") !== "home",
+    );
+  }, [appliedFor, isHomeFeedOpen]);
   const sidebarOpen = useAtomValue(atom_sidebarOpen);
   const sidebarWidth = useAtomValue(atom_sidebarWidth);
 

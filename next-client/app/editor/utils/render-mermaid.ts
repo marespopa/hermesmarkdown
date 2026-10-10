@@ -42,7 +42,10 @@ let queue: Promise<unknown> = Promise.resolve();
 export function renderMermaid(source: string, theme: MermaidTheme): Promise<string> {
   const run = queue.then(async () => {
     const { default: mermaid } = await import("mermaid");
-    mermaid.initialize({ startOnLoad: false, theme, securityLevel: "strict" });
+    // suppressErrorRendering: a syntax error throws (callers show the
+    // message) instead of Mermaid also drawing its own error graphic into
+    // the page.
+    mermaid.initialize({ startOnLoad: false, theme, securityLevel: "strict", suppressErrorRendering: true });
     const { svg } = await mermaid.render(`hermes-mermaid-${++renderCount}`, source);
     return svg;
   });

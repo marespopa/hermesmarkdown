@@ -1,6 +1,6 @@
 import React from "react";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { Provider } from "jotai";
 import type { DisplayTask } from "@/app/atoms/task-atoms";
 import { MASKED_TEXT, maskTask } from "@/app/utils/note-display";
@@ -25,7 +25,14 @@ function renderRow(row: DisplayTask) {
 }
 
 describe("TaskRow", () => {
-  beforeEach(() => cleanup());
+  // A fixed "now" before the fixture's due date, so it always reads as a
+  // future date ("Due: 2026-10-10"), never "Today" or "Overdue".
+  beforeEach(() => {
+    cleanup();
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(new Date(2026, 9, 1, 12, 0));
+  });
+  afterEach(() => vi.useRealTimers());
 
   it("shows a regular task's text and tags", () => {
     renderRow(task);

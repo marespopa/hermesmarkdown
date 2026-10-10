@@ -186,9 +186,25 @@ export const getStartedGroup: Group = {
       id: "home-feed",
       title: "Home feed",
       lead: "Your recent notes, newest first. It's where a vault opens.",
-      keywords: "home feed vim keys keyboard j k gg recent notes pin pinned unpin start screen today yesterday preview search create new note welcome tags tag filter chips no vault open vault create vault browser vault open file",
+      keywords: "home feed vim keys keyboard j k gg recent notes pin pinned unpin start screen today yesterday preview search create new note welcome tags tag filter chips no vault open vault create vault browser vault open file daily sheet worklog journal open tasks todo stats",
       body: (
         <>
+          <p>
+            Under the date, a faint line counts your notes, the ones you changed today and your
+            open tasks. The first note under <em>Today</em> is always today&apos;s sheet, a note
+            named after the date (like <code>2026-10-09.md</code>), marked with a small dot. Until
+            you write it, that row reads <strong>Start today&apos;s sheet</strong>. The first time, you choose its folder: <code>journal/{"{{year}}"}</code> keeps one
+            folder per year, and <code>{"{{month}}"}</code> works too. Change it later in Settings
+            → Files → <strong>Daily Sheets Folder</strong>. If you have a template named Journal or
+            Daily, new sheets use it. Press <code>t</code>, or run <strong>Today&apos;s sheet</strong>{" "}
+            from the command palette, to get there from the keyboard.
+          </p>
+          <p>
+            <strong>Tasks</strong> lists the unchecked <code>- [ ]</code> tasks from notes you
+            changed in the last 7 days. Click one to open its note with the cursor on that task.
+            Click the count to fold the list; it stays folded. Tasks from sensitive notes aren&apos;t
+            listed.
+          </p>
           <p>
             Each row shows a note's title, the first few lines of its text and its file name. The column on the
             left groups notes by the day they were last changed: <em>Today</em>,{" "}
@@ -212,9 +228,8 @@ export const getStartedGroup: Group = {
           <p>
             The feed works from the keyboard, Vim-style, as soon as it opens: <code>j</code> and{" "}
             <code>k</code> move, <code>gg</code> and <code>G</code> jump to the newest and last
-            note, <code>o</code> or Enter opens, <code>p</code> pins, <code>/</code> searches and
-            Escape goes back to your open notes. A small line above the search bar lists these
-            keys on larger screens.
+            note, <code>o</code> or Enter opens, <code>p</code> pins, <code>t</code> opens
+            today&apos;s sheet, <code>/</code> searches and Escape goes back to your open notes.
           </p>
           <p>
             With no vault open, the feed is where you start. It offers <strong>Open Vault</strong>,{" "}
@@ -232,6 +247,7 @@ export const getStartedGroup: Group = {
             rows={[
               { label: "Move between notes", value: "↑ / ↓ or J / K" },
               { label: "Open the selected note", value: "ENTER" },
+              { label: "Open today's sheet", value: "T" },
               { label: "Search", value: "Start typing" },
               { label: "Back to your open notes", value: "ESCAPE" },
               { label: "Come back to the feed", value: "Home at the top of the sidebar" },
@@ -403,6 +419,7 @@ export const getStartedGroup: Group = {
                 { label: "Newest / last note", shortcut: "G G / SHIFT+G" },
                 { label: "Open the selected note", shortcut: "ENTER or O" },
                 { label: "Pin or unpin the selected note", shortcut: "P" },
+                { label: "Open or start today's sheet", shortcut: "T" },
                 { label: "Search", shortcut: "/ or start typing" },
                 { label: "Back to your open notes", shortcut: "ESCAPE" },
               ],

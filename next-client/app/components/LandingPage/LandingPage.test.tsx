@@ -2,7 +2,7 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import { Provider, createStore } from "jotai";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { atom_openFiles } from "@/app/atoms/file-atoms";
-import { atom_userName } from "@/app/atoms/ui-atoms";
+import { atom_resumeRequested, atom_userName } from "@/app/atoms/ui-atoms";
 import LandingPage from "./LandingPage";
 
 const router = vi.hoisted(() => ({
@@ -94,5 +94,15 @@ describe("LandingPage", () => {
 
     expect(store.get(atom_userName)).toBe("Ada");
     expect(router.push).toHaveBeenCalledWith("/editor");
+  });
+
+  it("resumes into the open tabs, while Start Writing doesn't ask to", async () => {
+    const store = renderLandingPage({ draftContent: "# Draft", userName: "Ada" });
+
+    fireEvent.click(screen.getByRole("button", { name: "Start Writing" }));
+    expect(store.get(atom_resumeRequested)).toBe(false);
+
+    fireEvent.click(await screen.findByRole("button", { name: "Resume" }));
+    expect(store.get(atom_resumeRequested)).toBe(true);
   });
 });

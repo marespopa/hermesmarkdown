@@ -11,7 +11,7 @@ import {
   atom_vimMode,
   atom_wordWrap,
 } from "@/app/atoms/atoms";
-import { atom_flowMode, atom_fullWidth, atom_lineNumbers, atom_showInvisibles } from "@/app/atoms/ui-atoms";
+import { atom_flowMode, atom_fullWidth, atom_hideChromeWhileTyping, atom_lineNumbers, atom_showInvisibles } from "@/app/atoms/ui-atoms";
 import { useRegisterCommand, type Command } from "@/app/components/CommandPalette/CommandPaletteContext";
 import { FONTS, TEXT_SIZES } from "../font-options";
 
@@ -27,6 +27,7 @@ export default function SettingsCommands() {
   const [showInvisibles, setShowInvisibles] = useAtom(atom_showInvisibles);
   const [vimMode, setVimMode] = useAtom(atom_vimMode);
   const [flowMode, setFlowMode] = useAtom(atom_flowMode);
+  const [hideChrome, setHideChrome] = useAtom(atom_hideChromeWhileTyping);
   const [, setEditorFontFamily] = useAtom(atom_editorFontFamily);
   const [, setTextSize] = useAtom(atom_renderedFontSize);
   const [, setAutosaveMode] = useAtom(atom_autosaveMode);
@@ -41,6 +42,7 @@ export default function SettingsCommands() {
     { id: "toggle-invisibles", label: showInvisibles ? "Hide invisibles" : "Show invisibles", category: "Settings", keywords: "whitespace empty lines blank spaces tabs pilcrow", action: () => setShowInvisibles(!showInvisibles) },
     { id: "toggle-vim-mode", label: vimMode ? "Disable Vim mode" : "Enable Vim mode", category: "Settings", keywords: "editor keybindings modal", action: () => setVimMode(!vimMode) },
     { id: "toggle-flow-mode", label: flowMode ? "Disable flow mode" : "Enable flow mode", category: "Settings", keywords: "focus typewriter dim paragraph writing", action: () => setFlowMode(!flowMode) },
+    { id: "toggle-hide-chrome-while-typing", label: hideChrome ? "Keep interface visible while typing" : "Hide interface while typing", category: "Settings", keywords: "chrome toolbar tabs sidebar fade distraction free focus minimal", action: () => setHideChrome(!hideChrome) },
     ...FONTS.map(({ label, value }) => ({
       id: `set-editor-font-${label.toLowerCase().replace(/\s+/g, "-")}`,
       label: `Editor font: ${label}`,

@@ -28,6 +28,15 @@ describe("Documentation page", () => {
     expect(screen.getByText(/articles? found/)).toBeTruthy();
   });
 
+  it("finds the free tools article from a tool's name", () => {
+    render(<Documentation />);
+
+    fireEvent.change(screen.getByRole("searchbox", { name: "Search documentation" }), { target: { value: "tokenizer" } });
+
+    expect(screen.getByRole("heading", { level: 3, name: "Free tools" })).toBeTruthy();
+    expect(screen.getByRole("link", { name: "Mermaid in Markdown" }).getAttribute("href")).toBe("/tools/mermaid-in-markdown");
+  });
+
   it("says so when nothing matches", () => {
     render(<Documentation />);
 

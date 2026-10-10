@@ -1,16 +1,19 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { greeting } from "./greetings";
 
 interface FeedHeaderProps {
   now: Date;
   /** From the welcome wizard's name step; the greeting goes without a name when empty. */
   userName?: string;
+  /** Shown under the weekday (the stats line). */
+  children?: ReactNode;
 }
 
 // "Good morning, Ada!" above today's weekday (large, with an accent dot);
-// month and day on the right.
-export default function FeedHeader({ now, userName = "" }: FeedHeaderProps) {
+// month and day on the right; `children` under them.
+export default function FeedHeader({ now, userName = "", children }: FeedHeaderProps) {
   const weekday = now.toLocaleDateString(undefined, { weekday: "long" });
   const monthDay = now.toLocaleDateString(undefined, { month: "long", day: "numeric" });
   return (
@@ -23,6 +26,7 @@ export default function FeedHeader({ now, userName = "" }: FeedHeaderProps) {
         </h1>
         <p className="text-ui-callout text-fg-muted">{monthDay}</p>
       </div>
+      {children}
     </header>
   );
 }

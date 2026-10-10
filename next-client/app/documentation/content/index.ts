@@ -2,6 +2,7 @@ import type { Group } from "../doc-primitives";
 import { aiFeaturesGroup } from "./ai-features";
 import { editorWorkspaceItems } from "./editor-workspace";
 import { editorWritingItems } from "./editor-writing";
+import { freeToolsItems } from "./free-tools";
 import { getStartedGroup } from "./get-started";
 import { mobileGroup, settingsGroup } from "./settings-mobile";
 import { templatesItems } from "./templates";
@@ -10,7 +11,11 @@ import { vaultGroup } from "./vault";
 // Section order of the /documentation page. Each summary is the one line on
 // the section's topic card.
 export const GROUPS: Group[] = [
-  { ...getStartedGroup, summary: "Open a folder or a browser vault and write your first note." },
+  {
+    ...getStartedGroup,
+    summary: "Open a folder or a browser vault and write your first note.",
+    items: [...getStartedGroup.items, ...freeToolsItems],
+  },
   {
     id: "editor",
     label: "Editor",

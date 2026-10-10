@@ -27,7 +27,8 @@ Index of the editor UI. Each component has a sibling `<Name>.md` (a token-lean d
 | [LinkPill](LinkPill.md) | Floating pill over a Markdown or wiki link in the editor, offering open and edit (label and URL). |
 | [MarkdownEditor](MarkdownEditor.md) | CodeMirror 6 Markdown editor with inline pills, callouts, slash templates, and folding. |
 | [markdown-editor/](markdown-editor/README.md) | `MarkdownEditor` render pieces: floating pills, link dialog, fold chevrons. |
-| [MermaidDialog](MermaidDialog.md) | Full-size viewer for a Mermaid diagram with zoom and drag-to-pan, rendered locally with `mermaid` (`securityLevel: "strict"`). |
+| [MermaidDialog](MermaidDialog.md) | Full-size viewer for a Mermaid diagram, rendered locally with `mermaid` (`securityLevel: "strict"`), in a `MermaidViewer`. |
+| [MermaidViewer](MermaidViewer.md) | A rendered diagram with zoom, fit, drag-to-pan and SVG download; used by `MermaidDialog` and the Mermaid tool page (`app/tools/mermaid/`). |
 | [MobileFileIndicator](MobileFileIndicator.md) | Compact mobile header chip showing the active file name and its save state, with save, command palette, and AI chat shortcuts. |
 | [MobileFileOverlay](MobileFileOverlay.md) | Full-screen mobile file browser combining tag and text search, smart folders, and the vault file list, with an empty state when no vault is open. |
 | [NewVaultDialog](NewVaultDialog.md) | Dialog that creates a new local vault folder, using `CreateVaultSubSteps` to name it and pick a parent folder. |
@@ -39,6 +40,7 @@ Index of the editor UI. Each component has a sibling `<Name>.md` (a token-lean d
 | [PaneToolbarButton](PaneToolbarButton.md) | Icon-only toolbar button with a tooltip. |
 | [PaneWindowActions](PaneWindowActions.md) | Window-wide toolbar sections (Mode, Tools, More menu), shown once in the top-right pane. |
 | [PaneTab](PaneTab.md) | Draggable file tab with a leading close button, unsaved-changes dot, and shortcut hint; exports `SaveStateIcon`. |
+| [TokenCostDialog](TokenCostDialog.md) | What sending the focused note to each AI model costs (o200k count, input prices); opened from More → Token Cost or the palette. |
 | [RenderedBlockSourceDialog](RenderedBlockSourceDialog.md) | Source editor with live preview for an inline-rendered Mermaid diagram or math block; Save writes the body back as one undo step. |
 | [RepurposeNoteWizard](RepurposeNoteWizard.md) | Three-step wizard (select, drafting, review) that turns the current note into a blog post, social post, or newsletter draft saved as a new vault file. |
 | [SectionHeader](SectionHeader.md) | Collapsible section header with a title, a chevron toggle, and an optional trailing action. |

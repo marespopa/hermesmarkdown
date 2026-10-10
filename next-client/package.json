@@ -1,6 +1,6 @@
 {
   "name": "hermesmarkdown",
-  "version": "6.3.8",
+  "version": "6.4.0",
   "private": true,
   "scripts": {
     "dev": "next dev --port 3000",
@@ -36,6 +36,7 @@
     "ai": "^6.0.198",
     "autoprefixer": "^10.4.20",
     "fflate": "^0.8.2",
+    "gpt-tokenizer": "4.0.0",
     "jotai": "^2.10.1",
     "jotai-family": "^1.0.2",
     "katex": "^0.18.9",
@@ -49,6 +50,7 @@
     "react-resizable-panels": "^4.11.2",
     "sass": "^1.80.5",
     "tailwindcss": "^3.4.14",
+    "turndown": "7.2.0",
     "typescript": "6.0.3",
     "vitest": "^5.0.0",
     "zod": "^4.4.3"
@@ -60,6 +62,7 @@
     "@testing-library/react": "^16.3.2",
     "@types/dom-speech-recognition": "^0.0.12",
     "@types/node": "^25.6.0",
+    "@types/turndown": "5.0.5",
     "@types/wicg-file-system-access": "^2023.10.5",
     "@vitejs/plugin-react": "^6.0.2",
     "eslint": "^9.18.0",

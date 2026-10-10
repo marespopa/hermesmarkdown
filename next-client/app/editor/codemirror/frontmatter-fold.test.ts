@@ -5,6 +5,8 @@ import {
   findFrontmatterFoldRange,
   frontmatterCollapse,
   frontmatterKeys,
+  frontmatterRowLabel,
+  frontmatterRowSummary,
   frontmatterSummary,
   isFrontmatterFolded,
   toggleFrontmatterFold,
@@ -151,5 +153,21 @@ describe("frontmatter summary", () => {
     expect(frontmatterSummary(["title", "tags", "created", "status", "type"])).toBe("title, tags, created, +2");
     expect(frontmatterSummary(["title"])).toBe("title");
     expect(frontmatterSummary([])).toBe("");
+  });
+
+  it("shows status and tags as values, naming only the other keys", () => {
+    const doc = "---\ntitle: A\nstatus: draft\ntags: [work, \"ideas\", #x, y]\ncreated: 2026-10-09\n---\nBody";
+    const summary = frontmatterRowSummary(doc);
+    expect(summary).toEqual({ status: "draft", tags: ["work", "ideas", "x"], moreTags: 1, keys: "title, created" });
+    expect(frontmatterRowLabel(summary)).toBe("draft, #work, #ideas, #x, +1, title, created");
+  });
+
+  it("reads block-list tags and keeps an empty status or tags as a key", () => {
+    expect(frontmatterRowSummary("---\ntags:\n  - a\n  - b\n---\n")).toEqual({
+      status: null, tags: ["a", "b"], moreTags: 0, keys: "",
+    });
+    expect(frontmatterRowSummary("---\ntitle: \ntags: []\nstatus:\n---\n")).toEqual({
+      status: null, tags: [], moreTags: 0, keys: "title, tags, status",
+    });
   });
 });
