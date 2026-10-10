@@ -10,7 +10,7 @@ const SECRET = "Wire the secret payment";
 
 const task: DisplayTask = {
   id: "Payroll.md#2", path: "Payroll.md", line: 2, checked: false, inProgress: false, onHold: false,
-  dueDate: "2026-10-10", priority: null, tags: ["money"], text: SECRET, raw: `- [ ] ${SECRET} #money`, lineHash: "h",
+  dueDate: "2099-12-31", priority: null, tags: ["money"], text: SECRET, raw: `- [ ] ${SECRET} #money`, lineHash: "h",
   isMasked: false,
 };
 
@@ -43,7 +43,7 @@ describe("TaskRow", () => {
     expect(screen.getByText("Sensitive task")).toBeInTheDocument();
     expect(screen.getByLabelText("Sensitive note")).toBeInTheDocument();
     expect(screen.getByText("Payroll")).toBeInTheDocument();
-    expect(screen.getByText(/2026-10-10/)).toBeInTheDocument();
+    expect(screen.getByText(/2099-12-31/)).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("checkbox"));
     expect(onToggle).toHaveBeenCalledOnce();
