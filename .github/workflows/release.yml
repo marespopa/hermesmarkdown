@@ -10,7 +10,9 @@ on:
 
 permissions:
   actions: write
+  checks: read
   contents: write
+  pull-requests: read
 
 concurrency:
   group: release-creation
@@ -29,27 +31,32 @@ jobs:
           ref: trunk
           fetch-depth: 0
 
+      # CI already ran typecheck, lint, tests and build on the PR (merged with
+      # trunk), so the release only checks that run passed instead of repeating it.
+      - name: Require passing CI on the release PR
+        env:
+          GH_TOKEN: ${{ github.token }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          if [ -z "$HEAD_SHA" ]; then
+            # Manual run: use the PR that produced trunk's head commit.
+            HEAD_SHA=$(gh api "repos/$GITHUB_REPOSITORY/commits/$(git rev-parse HEAD)/pulls" --jq '.[0].head.sha // empty')
+          fi
+          if [ -z "$HEAD_SHA" ]; then
+            echo "No pull request found for trunk's head commit; can't confirm CI passed." >&2
+            exit 1
+          fi
+          conclusion=$(gh api "repos/$GITHUB_REPOSITORY/commits/$HEAD_SHA/check-runs?check_name=Verify%20application&filter=latest" --jq '.check_runs[0].conclusion // "missing"')
+          echo "CI (Verify application) on $HEAD_SHA: $conclusion"
+          if [ "$conclusion" != "success" ]; then
+            echo "CI didn't pass on the release PR, so no release is created." >&2
+            exit 1
+          fi
+
       - name: Set up Node.js
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: 22
-          cache: yarn
-          cache-dependency-path: next-client/yarn.lock
-
-      - name: Enable Corepack
-        run: corepack enable
-
-      - name: Install dependencies
-        working-directory: next-client
-        run: corepack yarn install --immutable
-
-      - name: Verify release candidate
-        working-directory: next-client
-        run: |
-          corepack yarn tsc --noEmit
-          corepack yarn lint
-          corepack yarn test --run
-          corepack yarn build
 
       - name: Read release version
         id: version
