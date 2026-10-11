@@ -54,15 +54,14 @@ class FakeDir {
     return this.files.get(name)!;
   }
   put(path: string, content: string): FakeFile {
-    const parts = path.split("/");
-    let dir: FakeDir = this;
-    for (const part of parts.slice(0, -1)) {
-      if (!dir.dirs.has(part)) dir.dirs.set(part, new FakeDir(part));
-      dir = dir.dirs.get(part)!;
+    const [head, ...rest] = path.split("/");
+    if (rest.length === 0) {
+      const file = new FakeFile(head, content);
+      this.files.set(head, file);
+      return file;
     }
-    const file = new FakeFile(parts[parts.length - 1], content);
-    dir.files.set(file.name, file);
-    return file;
+    if (!this.dirs.has(head)) this.dirs.set(head, new FakeDir(head));
+    return this.dirs.get(head)!.put(rest.join("/"), content);
   }
 }
 
