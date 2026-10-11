@@ -12,6 +12,7 @@ import { atom_materializedDraftPath } from "@/app/atoms/file-atoms";
 import { HiOutlineDocumentText, HiOutlineChartBar, HiOutlineClipboardCopy, HiOutlineViewBoards, HiOutlineChevronDown } from "react-icons/hi";
 import { VscLayoutSidebarLeftOff } from "react-icons/vsc";
 import PaneTab, { TabSaveState } from "./PaneTab";
+import { parseSheetName } from "@/app/utils/sheet-nav";
 import PaneActions from "./PaneActions";
 import PaneToolbarButton from "./PaneToolbarButton";
 import { useFileSystem } from "@/app/hooks/use-file-system";
@@ -176,6 +177,7 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
               <PaneTab
                 key={path}
                 fileName={fileName}
+                sheetLevel={parseSheetName(path.split("/").pop() ?? "")?.level}
                 shortcutNumber={tabShortcutNumbers.get(`${leaf.id}\0${path}`)}
                 isActive={leaf.activeFilePath === path}
                 saveState={tabSaveState}

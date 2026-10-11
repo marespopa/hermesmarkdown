@@ -1,0 +1,66 @@
+import React from "react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { fireEvent, render, screen } from "@testing-library/react";
+import { createStore, Provider } from "jotai";
+import { atom_fileMetadata, type FileMetadata } from "@/app/atoms/metadata";
+import { todayNoteName } from "@/app/utils/today-note";
+import { parseSheetName } from "@/app/utils/sheet-nav";
+import SheetSwitcher from "./SheetSwitcher";
+
+vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn() }) }));
+const openTodayNote = vi.fn<(date?: Date) => Promise<void>>(async () => {});
+vi.mock("@/app/hooks/use-file-system", () => ({ useFileSystem: () => ({ openTodayNote }) }));
+const openRollup = vi.fn(async () => {});
+vi.mock("../hooks/use-rollups", () => ({ useRollups: () => ({ openRollup }) }));
+
+function renderSheet(name: string, dailySheets: string[] = []) {
+  const store = createStore();
+  const metadata: Record<string, FileMetadata> = {};
+  for (const date of dailySheets) {
+    const path = `journal/${date}.md`;
+    metadata[path] = { path, name: `${date}.md`, frontmatter: {}, tasks: [] } as unknown as FileMetadata;
+  }
+  store.set(atom_fileMetadata, metadata);
+  render(
+    <Provider store={store}>
+      <SheetSwitcher sheet={parseSheetName(name)!} />
+    </Provider>,
+  );
+}
+
+describe("SheetSwitcher", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    // Saturday, October 11, 2026.
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(new Date(2026, 9, 11, 15, 30));
+  });
+  afterEach(() => vi.useRealTimers());
+
+  it("marks the sheet's level and today's sheet", () => {
+    renderSheet("2026-10-11.md");
+    expect(screen.getByRole("button", { name: "Day" })).toHaveAttribute("aria-current", "page");
+    expect(screen.getByText(/today/)).toBeInTheDocument();
+  });
+
+  it("goes up from a day to its week and month", () => {
+    renderSheet("2026-10-06.md", ["2026-10-06"]);
+    fireEvent.click(screen.getByRole("button", { name: "Week" }));
+    expect(openRollup).toHaveBeenCalledWith({ kind: "week", offset: 0 }, expect.any(Date));
+    const [, date] = openRollup.mock.calls[0] as unknown as [unknown, Date];
+    expect(todayNoteName(date)).toBe("2026-10-06");
+  });
+
+  it("steps to the previous day with a sheet and disables the future", () => {
+    renderSheet("2026-10-11.md", ["2026-10-02", "2026-10-11"]);
+    expect(screen.getByRole("button", { name: "Next day" })).toBeDisabled();
+    fireEvent.click(screen.getByRole("button", { name: "Previous day" }));
+    expect(todayNoteName(openTodayNote.mock.calls[0][0]!)).toBe("2026-10-02");
+  });
+
+  it("disables Day on a past week with no daily sheets", () => {
+    renderSheet("2026-W38.md");
+    expect(screen.getByRole("button", { name: "Day" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Month" })).toBeEnabled();
+  });
+});

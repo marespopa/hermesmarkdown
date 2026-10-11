@@ -1,0 +1,107 @@
+// Moving between worklog sheets: daily (`2026-10-11.md`), weekly
+// (`2026-W41.md`) and monthly (`2026-10.md`). Pure: every function takes
+// `today` and the dates that have a daily sheet, and returns the date to open
+// at a level, or null when there is nowhere to go. Never past today, and a
+// day is only ever today or a day that already has a sheet, so moving around
+// never creates empty past sheets.
+
+import { todayNoteName } from "./today-note";
+import { monthPeriod, parseRollupName, weekPeriod, weeksOwnedByMonth, type RollupPeriod } from "./rollup/period";
+
+export type SheetLevel = "day" | "week" | "month";
+
+export const SHEET_LEVELS: SheetLevel[] = ["day", "week", "month"];
+
+export interface Sheet {
+  level: SheetLevel;
+  start: Date; // local midnight, first day
+  end: Date; // local midnight, last day (inclusive)
+  period?: RollupPeriod; // weekly and monthly sheets
+}
+
+const REGEX_DAY_NAME = /^(\d{4})-(\d{2})-(\d{2})\.md$/;
+const midnight = (date: Date) => new Date(date.getFullYear(), date.getMonth(), date.getDate());
+const fmt = (date: Date, options: Intl.DateTimeFormatOptions) => date.toLocaleDateString(undefined, options);
+
+// The sheet a file name stands for, or null when it isn't one.
+export function parseSheetName(fileName: string): Sheet | null {
+  const day = REGEX_DAY_NAME.exec(fileName);
+  if (day) {
+    const date = new Date(Number(day[1]), Number(day[2]) - 1, Number(day[3]));
+    // Rejects 2026-02-31 and the like, which Date would roll over.
+    if (todayNoteName(date) !== fileName.slice(0, -3)) return null;
+    return { level: "day", start: date, end: date };
+  }
+  const period = parseRollupName(fileName);
+  return period ? { level: period.kind, start: period.start, end: period.end, period } : null;
+}
+
+// "Sat, Oct 11", "Week 41 · Oct 5 – 11", "October 2026".
+export function sheetLabel(sheet: Sheet): string {
+  if (sheet.level === "day") return fmt(sheet.start, { weekday: "short", month: "short", day: "numeric" });
+  const heading = sheet.period!.heading;
+  // Weekly headings end in the year; the switcher keeps them short.
+  return sheet.level === "week" ? heading.replace(/,\s*\d{4}$/, "") : heading;
+}
+
+const inSheet = (sheet: Sheet, date: Date) => date >= sheet.start && date <= sheet.end;
+
+// The latest day with a sheet inside [start, end], or null.
+function latestSheetDay(start: Date, end: Date, dailyDates: Iterable<string>): Date | null {
+  const from = todayNoteName(start);
+  const to = todayNoteName(end);
+  let best: string | null = null;
+  for (const name of dailyDates) {
+    if (name >= from && name <= to && (!best || name > best)) best = name;
+  }
+  return best ? parseSheetName(`${best}.md`)!.start : null;
+}
+
+// The date to open at `level` from `sheet`: the same day, or the week or
+// month holding it. Going down from a week or month lands on today when it's
+// inside, else on the latest day with a sheet (null when there is none); a
+// month's week is the one holding today, else the month's last week.
+export function levelTarget(sheet: Sheet, level: SheetLevel, today: Date, dailyDates: Iterable<string>): Date | null {
+  const now = midnight(today);
+  if (sheet.level === level) return sheet.start;
+  if (sheet.level === "day") return sheet.start;
+  if (level === "month") return sheet.period!.anchor; // a week belongs to its Thursday's month
+  if (inSheet(sheet, now)) return now;
+  if (level === "day") return latestSheetDay(sheet.start, sheet.end < now ? sheet.end : now, dailyDates);
+  const weeks = weeksOwnedByMonth(sheet.period!).filter((week) => week.start <= now);
+  return weeks.length ? weeks[weeks.length - 1].anchor : null;
+}
+
+// The date to open one step back (-1) or forward (1) at the sheet's level.
+// Days skip to the nearest day with a sheet; forward from the latest one is
+// today. Weeks and months move by one and stop at the current one.
+export function stepTarget(sheet: Sheet, direction: -1 | 1, today: Date, dailyDates: Iterable<string>): Date | null {
+  const now = midnight(today);
+  if (sheet.level === "day") {
+    const from = todayNoteName(sheet.start);
+    const limit = todayNoteName(now);
+    let best: string | null = null;
+    for (const name of dailyDates) {
+      if (direction < 0 ? name < from && (!best || name > best) : name > from && name <= limit && (!best || name < best)) best = name;
+    }
+    if (best) return parseSheetName(`${best}.md`)!.start;
+    return direction > 0 && sheet.start < now ? now : null;
+  }
+  const next = sheet.level === "week" ? weekPeriod(sheet.start, direction) : monthPeriod(sheet.start, direction);
+  return next.start > now ? null : next.start;
+}
+
+// Every date with a daily sheet, from vault paths.
+export function dailySheetDates(paths: Iterable<string>): Set<string> {
+  const dates = new Set<string>();
+  for (const path of paths) {
+    const fileName = path.split("/").pop() ?? path;
+    if (parseSheetName(fileName)?.level === "day") dates.add(fileName.slice(0, -3));
+  }
+  return dates;
+}
+
+// Whether `date` falls in today's sheet at `level` (today, this week, this month).
+export function isCurrentSheet(sheet: Sheet, today: Date): boolean {
+  return inSheet(sheet, midnight(today));
+}

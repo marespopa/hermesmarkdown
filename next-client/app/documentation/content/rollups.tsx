@@ -6,7 +6,7 @@ export const rollupsItem: Subsection = {
   title: "Daily, weekly, monthly",
   lead: "Write each day. Each week's sheet and month's sheet is built from your days, ready to read, edit or share.",
   keywords:
-    "weekly monthly rollup week month review status report summary worklog daily sheet refresh blocked",
+    "weekly monthly rollup week month review switcher navigate previous next day status report summary worklog daily sheet refresh blocked",
   body: (
     <>
       <p>Your worklog has three levels. Each one is a plain note in your vault.</p>
@@ -32,7 +32,18 @@ export const rollupsItem: Subsection = {
         ]}
       />
       <p>
-        Run them from the command palette. <strong>Last week&apos;s sheet</strong> on a Monday
+        At the top of every daily, weekly and monthly sheet, a line moves you between them:{" "}
+        <strong>Day · Week · Month</strong> on the left, each with its own colour (days clay, weeks
+        green, months slate), and <strong>‹ date ›</strong> on the right. Day, Week and Month jump to
+        the sheet for the same date at that level: Oct 6 → week 41 → October. The arrows step back
+        and forward at the current level. Days skip to the nearest day that has a sheet, and stepping
+        forward from your latest one goes to today. Nothing goes past today, and browsing never
+        creates empty sheets for past days; a weekly or monthly sheet that doesn&apos;t exist yet is
+        built when you open it. Sheet tabs carry the same coloured dot, and the home feed has a{" "}
+        <strong>Today · This week · This month</strong> line under the stats.
+      </p>
+      <p>
+        You can also run them from the command palette. <strong>Last week&apos;s sheet</strong> on a Monday
         morning and <strong>Last month&apos;s sheet</strong> on the 1st are for the period that just
         ended. If the sheet already exists, it opens as it is. If it doesn&apos;t, it is built from
         your daily sheets and opened with the cursor under <strong>Notes</strong>. The commands need
