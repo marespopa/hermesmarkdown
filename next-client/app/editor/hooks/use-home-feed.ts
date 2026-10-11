@@ -15,6 +15,8 @@ import { useCommandPalette, useRegisterCommand } from "@/app/components/CommandP
 import type { MaterializeDraftOptions } from "./use-materialize-draft";
 import { useHomeFeedUrlSync } from "./use-home-feed-url";
 import { useRollupCommands } from "./use-rollup-commands";
+import { useRollups } from "./use-rollups";
+import type { SheetLevel } from "@/app/utils/sheet-nav";
 
 interface UseHomeFeedOptions {
   hasVault: boolean;
@@ -72,6 +74,14 @@ export function useHomeFeed({ hasVault, openFile, newNote, materializeDraft, imp
     await beforeSheetOpen();
     await openTodayNote();
   }, [beforeSheetOpen, openTodayNote]);
+
+  // The feed's "Today · This week · This month" line.
+  const { openRollup } = useRollups();
+  const openSheet = useCallback(async (level: SheetLevel) => {
+    if (level === "day") return openToday();
+    await beforeSheetOpen();
+    await openRollup({ kind: level, offset: 0 });
+  }, [beforeSheetOpen, openRollup, openToday]);
 
   const startNewNote = useCallback(async () => {
     setIsOpen(false);
@@ -137,6 +147,7 @@ export function useHomeFeed({ hasVault, openFile, newNote, materializeDraft, imp
       hasVault,
       onOpenFile: () => void openDeviceFile(),
       onOpenToday: () => void openToday(),
+      onOpenSheet: hasVault ? (level: SheetLevel) => void openSheet(level) : undefined,
       onOpenTask: (path: string, line: number) => void openTask(path, line),
       // The Today row's "Quick jot" (touch entry point); only with a vault.
       onQuickJot: hasVault ? () => store.set(atom_quickJot, (s) => ({ ...s, open: true })) : undefined,

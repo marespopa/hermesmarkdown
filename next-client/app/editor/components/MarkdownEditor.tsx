@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useAtomValue, useSetAtom } from "jotai";
 import { atom_wordWrap, atom_isEditorFocused } from "@/app/atoms/atoms";
 import { atom_activeEditorView, atom_aiBuilderRequest, atom_flowMode, atom_fullWidth, atom_isAiConfigured, atom_lineNumbers, atom_showInvisibles, atom_vimMode } from "@/app/atoms/ui-atoms";
@@ -37,6 +37,8 @@ import LinkInsertDialog from "./markdown-editor/LinkInsertDialog";
 import VimStatusPill from "./markdown-editor/VimStatusPill";
 import { useVimStatus } from "../hooks/use-vim-status";
 import TemplateStrip from "./TemplateStrip";
+import SheetSwitcher from "./SheetSwitcher";
+import { parseSheetName } from "@/app/utils/sheet-nav";
 import EmptyNoteTemplates from "./EmptyNoteTemplates";
 import { useTemplateNote } from "../hooks/use-template-note";
 
@@ -67,6 +69,8 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
   const setAiBuilderRequest = useSetAtom(atom_aiBuilderRequest);
   const [, setIsEditorFocused] = useAtom(atom_isEditorFocused);
   const filePath = props.filePath || "draft";
+  // A daily, weekly or monthly worklog sheet gets the Day · Week · Month switcher.
+  const sheet = useMemo(() => parseSheetName(filePath.split("/").pop() ?? ""), [filePath]);
   const [editorView, setEditorView] = useState<EditorView | null>(null);
 
   const editorValue = props.value;
@@ -299,6 +303,7 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
         } as React.CSSProperties}
       >
         {isTemplateNote && <TemplateStrip name={filePath.split("/").pop()!.replace(/\.md$/i, "")} doc={editorValue} view={editorView} onAddField={insertTemplateField} />}
+        {!isTemplateNote && sheet && vaultHandle && <SheetSwitcher sheet={sheet} />}
         <div className="editor-measure relative h-full">
           <label htmlFor="md-editor" className="sr-only">Markdown editor</label>
           <div

@@ -5,11 +5,15 @@ import { HiOutlineCheckCircle, HiOutlineExclamationCircle, HiOutlineSave, HiOutl
 import Tooltip from "@/app/components/Tooltip";
 import { formatShortcut } from "@/app/utils/platform";
 import Button from "@/app/components/Button";
+import type { SheetLevel } from "@/app/utils/sheet-nav";
+import { SHEET_LEVEL_CLASSES } from "./sheet-level-classes";
 
 export type TabSaveState = "idle" | "dirty" | "saving" | "saved" | "error";
 
 interface PaneTabProps {
   fileName: string;
+  /** A worklog sheet's level: a small dot in its colour before the name. */
+  sheetLevel?: SheetLevel;
   shortcutNumber?: number;
   isActive: boolean;
   saveState: TabSaveState;
@@ -78,6 +82,7 @@ export function SaveStateIcon({ state, size, className }: { state: TabSaveState;
 
 export default function PaneTab({
   fileName,
+  sheetLevel,
   shortcutNumber,
   isActive,
   saveState,
@@ -133,6 +138,9 @@ export default function PaneTab({
         isDraggedOver ? "ring-2 ring-sage/40 ring-inset" : "",
       ].join(" ")}
     >
+      {sheetLevel && (
+        <span aria-hidden className={`mr-1.5 h-1.5 w-1.5 shrink-0 rounded-full ${SHEET_LEVEL_CLASSES[sheetLevel].dot}`} />
+      )}
       {/* File name */}
       <span
         className={[

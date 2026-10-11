@@ -109,6 +109,12 @@ module.exports = {
           DEFAULT: 'var(--clay)',
           hover:   'var(--clay)',
         },
+        // Worklog sheet levels: day (clay), week (moss), month (slate).
+        sheet: {
+          day:   'var(--sheet-day)',
+          week:  'var(--sheet-week)',
+          month: 'var(--sheet-month)',
+        },
 
         // ── Static aliases (kept for explicit light/dark overrides) ──
         beige: {

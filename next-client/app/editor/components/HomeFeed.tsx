@@ -21,6 +21,8 @@ import FeedStats from "./home-feed/FeedStats";
 import FeedStatus from "./home-feed/FeedStatus";
 import FeedTags from "./home-feed/FeedTags";
 import FeedTasks from "./home-feed/FeedTasks";
+import FeedSheets from "./home-feed/FeedSheets";
+import type { SheetLevel } from "@/app/utils/sheet-nav";
 import { buildFeed, feedStats, feedTags, isFeedPath, openFeedTasks, withTodaySheet, type FeedEntry } from "./home-feed/feed-model";
 
 // Above this many notes only the rows in view (plus overscan) are rendered,
@@ -43,6 +45,8 @@ interface HomeFeedProps {
   onOpenFile?: () => void;
   /** Opens today's worklog sheet, creating it when it doesn't exist. */
   onOpenToday?: () => void;
+  /** Opens today's, this week's or this month's sheet; shows the "Today · This week · This month" line. */
+  onOpenSheet?: (level: SheetLevel) => void;
   /** Opens a note with the caret on a line (0-indexed): an open task. */
   onOpenTask?: (path: string, line: number) => void;
   /** Opens Quick jot: the Today row menu's entry point for touch. */
@@ -62,7 +66,7 @@ const GG_WINDOW_MS = 600;
 // vim-style: j/k or arrows move, gg/G jump to the top and end, Enter or o
 // opens, p pins, t opens today's sheet, / searches, Escape leaves; any other
 // printable key opens the command palette with that key typed.
-export default function HomeFeed({ onOpenNote, onNewNote, onSearch, onClose, isSearchOpen = false, hasVault = true, onOpenFile, onOpenToday, onOpenTask, onQuickJot }: HomeFeedProps) {
+export default function HomeFeed({ onOpenNote, onNewNote, onSearch, onClose, isSearchOpen = false, hasVault = true, onOpenFile, onOpenToday, onOpenSheet, onOpenTask, onQuickJot }: HomeFeedProps) {
   const fileMetadata = useAtomValue(atom_fileMetadata);
   const indexerState = useAtomValue(atom_indexerState);
   const userName = useAtomValue(atom_userName);
@@ -273,6 +277,7 @@ export default function HomeFeed({ onOpenNote, onNewNote, onSearch, onClose, isS
         {hasVault && <FeedVault />}
         <FeedHeader now={now} userName={userName}>
           {hasVault && <FeedStats stats={stats} openTasks={openTasks.length} tasksToggle={!!onOpenTask} />}
+          {hasVault && onOpenSheet && <FeedSheets onOpenSheet={onOpenSheet} />}
           {hasVault && onOpenTask && <FeedTasks tasks={openTasks} onOpenTask={onOpenTask} />}
         </FeedHeader>
         {hasVault && <FeedTags tags={tags} selected={tagFilter} onChange={setTagFilter} />}
