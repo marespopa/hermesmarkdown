@@ -9,7 +9,7 @@ import { useRollupCommands } from "./use-rollup-commands";
 
 vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn() }) }));
 
-// Every useRegisterCommand call, in order; the hook makes five per render.
+// Every useRegisterCommand call, in order; the hook makes nine per render.
 const calls: (Command | null)[] = [];
 vi.mock("@/app/components/CommandPalette/CommandPaletteContext", () => ({
   useRegisterCommand: (command: Command | null) => { calls.push(command); },
@@ -18,7 +18,7 @@ const openRollup = vi.fn(async () => {});
 const refreshRollup = vi.fn(async () => {});
 vi.mock("./use-rollups", () => ({ useRollups: () => ({ openRollup, refreshRollup }) }));
 
-const latest = () => calls.slice(-5).filter((command): command is Command => command !== null);
+const latest = () => calls.slice(-9).filter((command): command is Command => command !== null);
 const byId = (id: string) => latest().find((command) => command.id === id);
 
 function setActivePath(store: ReturnType<typeof createStore>, path: string | null) {
@@ -52,11 +52,17 @@ describe("useRollupCommands", () => {
     localStorage.clear();
   });
 
-  it("registers the four period commands, disabled with the given reason", () => {
+  it("registers the eight period commands, disabled with the given reason", () => {
     setup({ disabledReason: "Open a vault first" });
-    const ids = ["open-this-week-sheet", "open-last-week-sheet", "open-this-month-sheet", "open-last-month-sheet"];
+    const ids = [
+      "open-this-week-sheet", "open-last-week-sheet", "open-this-month-sheet", "open-last-month-sheet",
+      "open-this-quarter-sheet", "open-last-quarter-sheet", "open-this-year-sheet", "open-last-year-sheet",
+    ];
     expect(latest().map((command) => command.id)).toEqual(ids);
-    expect(latest().map((command) => command.label)).toEqual(["This week's sheet", "Last week's sheet", "This month's sheet", "Last month's sheet"]);
+    expect(latest().map((command) => command.label)).toEqual([
+      "This week's sheet", "Last week's sheet", "This month's sheet", "Last month's sheet",
+      "This quarter's sheet", "Last quarter's sheet", "This year's sheet", "Last year's sheet",
+    ]);
     for (const command of latest()) {
       expect(command.disabledReason).toBe("Open a vault first");
       expect(command.category).toBe("Navigation");
@@ -71,6 +77,10 @@ describe("useRollupCommands", () => {
       "open-last-week-sheet": { kind: "week", offset: -1 },
       "open-this-month-sheet": { kind: "month", offset: 0 },
       "open-last-month-sheet": { kind: "month", offset: -1 },
+      "open-this-quarter-sheet": { kind: "quarter", offset: 0 },
+      "open-last-quarter-sheet": { kind: "quarter", offset: -1 },
+      "open-this-year-sheet": { kind: "year", offset: 0 },
+      "open-last-year-sheet": { kind: "year", offset: -1 },
     };
     for (const [id, target] of Object.entries(targets)) {
       openRollup.mockClear();

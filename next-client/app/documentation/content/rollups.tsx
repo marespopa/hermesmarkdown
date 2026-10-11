@@ -1,46 +1,53 @@
 import { Callout, KV, type Subsection } from "../doc-primitives";
 
-// Documentation content: Daily, weekly, monthly (Get Started, after Quick jot).
+// Documentation content: Daily to yearly (Get Started, after Quick jot). The
+// id stays "daily-weekly-monthly" so existing links keep working.
 export const rollupsItem: Subsection = {
   id: "daily-weekly-monthly",
-  title: "Daily, weekly, monthly",
-  lead: "Write each day. Each week's sheet and month's sheet is built from your days, ready to read, edit or share.",
+  title: "Daily to yearly",
+  lead: "Write each day. Your weeks, months, quarters and years are built from your days, ready to read, edit or share.",
   keywords:
-    "weekly monthly rollup week month review switcher navigate previous next day status report summary worklog daily sheet refresh blocked",
+    "weekly monthly quarterly yearly annual rollup week month quarter year review retrospective switcher navigate previous next day status report summary worklog daily sheet refresh blocked",
   body: (
     <>
-      <p>Your worklog has three levels. Each one is a plain note in your vault.</p>
+      <p>Your worklog has five levels. Each one is a plain note in your vault.</p>
       <KV
         rows={[
           { label: "Daily sheet", value: "2026-10-09.md, one per day" },
           { label: "Weekly sheet", value: "2026-W41.md, an ISO week from Monday to Sunday" },
           { label: "Monthly sheet", value: "2026-10.md, a calendar month" },
+          { label: "Quarterly sheet", value: "2026-Q4.md, a calendar quarter (Q1 is January to March)" },
+          { label: "Yearly sheet", value: "2026-year.md, a calendar year" },
         ]}
       />
       <p>
         A week belongs to the year that holds its Thursday, so the week from Dec 28, 2026 to Jan 3,
-        2027 is <code>2026-W53</code>. Weekly and monthly sheets go in your Daily Sheets Folder
-        (Settings → Files). If that folder has <code>{"{{month}}"}</code> in it, a week that spans
-        two months goes in the month that holds its Thursday, and a monthly sheet goes in its own
-        month.
+        2027 is <code>2026-W53</code>. All of these sheets go in your Daily Sheets Folder (Settings →
+        Files). If that folder has <code>{"{{month}}"}</code> in it, a week that spans two months goes
+        in the month that holds its Thursday, a monthly sheet goes in its own month, and quarterly
+        and yearly sheets go in the folder of their first month.
       </p>
       <KV
         rows={[
           { label: "This week's sheet / Last week's sheet", value: "Open the week's sheet, or create it" },
           { label: "This month's sheet / Last month's sheet", value: "Open the month's sheet, or create it" },
-          { label: "Refresh rollup", value: "Rebuild the generated part of the open weekly or monthly sheet" },
+          { label: "This quarter's sheet / Last quarter's sheet", value: "Open the quarter's sheet, or create it" },
+          { label: "This year's sheet / Last year's sheet", value: "Open the year's sheet, or create it" },
+          { label: "Refresh rollup", value: "Rebuild the generated part of the open weekly, monthly, quarterly or yearly sheet" },
         ]}
       />
       <p>
-        At the top of every daily, weekly and monthly sheet, a line moves you between them:{" "}
-        <strong>Day · Week · Month</strong> on the left, each with its own colour (days clay, weeks
-        green, months slate), and <strong>‹ date ›</strong> on the right. Day, Week and Month jump to
-        the sheet for the same date at that level: Oct 6 → week 41 → October. The arrows step back
+        At the top of every worklog sheet, a line moves you between them:{" "}
+        <strong>Day · Week · Month · Quarter · Year</strong> on the left, each with its own colour
+        (days clay, weeks green, months slate, quarters plum, years ochre), and{" "}
+        <strong>‹ date ›</strong> on the right. Each level jumps to the sheet for the same date at
+        that level: Oct 6 → week 41 → October → Q4 → 2026. The arrows step back
         and forward at the current level. Days skip to the nearest day that has a sheet, and stepping
         forward from your latest one goes to today. Nothing goes past today, and browsing never
-        creates empty sheets for past days; a weekly or monthly sheet that doesn&apos;t exist yet is
-        built when you open it. Sheet tabs carry the same coloured dot, and the home feed has a{" "}
-        <strong>Today · This week · This month</strong> line under the stats.
+        creates empty sheets for past days; a weekly, monthly, quarterly or yearly sheet that
+        doesn&apos;t exist yet is built when you open it. Sheet tabs carry the same coloured dot, and
+        the home feed has a <strong>Today · This week · This month · This quarter · This year</strong>{" "}
+        line under the stats.
       </p>
       <p>
         You can also run them from the command palette. <strong>Last week&apos;s sheet</strong> on a Monday
@@ -83,6 +90,14 @@ export const rollupsItem: Subsection = {
         also collects the Notes you wrote in that month&apos;s weekly sheets, one{" "}
         <code>Week 41</code> section per week with a link to the weekly sheet. Weeks with empty Notes
         are left out.
+      </p>
+      <p>
+        Quarterly and yearly sheets work the same way. Their numbers come from the daily sheets of
+        the whole period, with Done folded like a month&apos;s. The story comes from one level
+        down: a quarterly sheet collects the Notes of its three monthly sheets, and a yearly sheet
+        the Notes of its four quarterly sheets. So the Notes you write each month become your
+        quarterly review, and those become your year. Export any of them as a PDF to share or
+        keep (see Export as PDF).
       </p>
       <p>
         The generated part sits between two hidden marker lines, shown in the editor as a thin rule.

@@ -12,10 +12,17 @@ interface SheetSwitcherProps {
   sheet: Sheet;
 }
 
-const LEVEL_NAME: Record<SheetLevel, string> = { day: "Day", week: "Week", month: "Month" };
-const CURRENT_NAME: Record<SheetLevel, string> = { day: "today", week: "this week", month: "this month" };
+const LEVEL_NAME: Record<SheetLevel, string> = { day: "Day", week: "Week", month: "Month", quarter: "Quarter", year: "Year" };
+const CURRENT_NAME: Record<SheetLevel, string> = {
+  day: "today",
+  week: "this week",
+  month: "this month",
+  quarter: "this quarter",
+  year: "this year",
+};
 
-// One quiet line at the top of a worklog sheet: Day · Week · Month, each with
+// One quiet line at the top of a worklog sheet: Day · Week · Month · Quarter ·
+// Year, each with
 // its colour, the current level underlined, then ‹ date › to step through
 // time at that level. A control with nowhere to go (no daily sheet in the
 // week, the future) is disabled. Fades with the rest of the chrome while

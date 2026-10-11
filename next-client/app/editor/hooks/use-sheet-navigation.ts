@@ -8,7 +8,7 @@ import { dailySheetDates, levelTarget, stepTarget, type Sheet, type SheetLevel }
 import { useRollups } from "./use-rollups";
 
 // Opens worklog sheets for the sheet switcher: a day through Today's sheet
-// (created when it's today and missing), a week or month through the rollups
+// (created when it's today and missing), a week, month, quarter or year through the rollups
 // (generated when missing). `targets` works out where each control leads,
 // from the vault's daily sheets, so the switcher can disable dead ends.
 export function useSheetNavigation() {
@@ -27,6 +27,8 @@ export function useSheetNavigation() {
       day: levelTarget(sheet, "day", today, dates),
       week: levelTarget(sheet, "week", today, dates),
       month: levelTarget(sheet, "month", today, dates),
+      quarter: levelTarget(sheet, "quarter", today, dates),
+      year: levelTarget(sheet, "year", today, dates),
       previous: stepTarget(sheet, -1, today, dates),
       next: stepTarget(sheet, 1, today, dates),
     };

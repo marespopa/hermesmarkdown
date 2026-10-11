@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useAtom } from "jotai";
 import OverlayPanel from "@/app/components/OverlayLayer/OverlayPanel";
 import Button from "@/app/components/Button";
@@ -11,6 +11,7 @@ import useIsMobileChrome from "@/app/hooks/use-mobile-chrome";
 import { todayNoteName } from "@/app/utils/today-note";
 import { useQuickJot } from "../hooks/use-quick-jot";
 import { useQuickJotEntry } from "../hooks/use-quick-jot-entry";
+import { JOT_EVENT, OPEN_TODAY_SHEET_EVENT } from "../utils/worklog-events";
 
 interface QuickJotProps {
   /** Disables the command and the shortcut (no vault, vault loading). */
@@ -23,7 +24,8 @@ interface QuickJotProps {
 // Enter adds and closes; Escape closes and clears; a click outside closes
 // but keeps the text for next time. The input closes before writing, so
 // the folder and template prompts never fight it for focus, and reopens
-// with the text when the write is cancelled or fails.
+// with the text when the write is cancelled or fails. It also handles the
+// `/daily` and `/jot` slash commands (utils/worklog-events.ts).
 export default function QuickJot({ disabledReason, onOpenSheet }: QuickJotProps) {
   const [state, setState] = useAtom(atom_quickJot);
   const { addJot } = useQuickJot();
@@ -43,9 +45,7 @@ export default function QuickJot({ disabledReason, onOpenSheet }: QuickJotProps)
   const close = useCallback(() => setState((s) => ({ ...s, open: false })), [setState]);
   const cancel = useCallback(() => setState({ open: false, text: "" }), [setState]);
 
-  const submit = useCallback(async () => {
-    const text = state.text;
-    setState({ open: false, text: "" });
+  const jot = useCallback(async (text: string) => {
     if (!text.trim()) return;
     const outcome = await addJot(text);
     if (outcome.result === "added") {
@@ -57,7 +57,36 @@ export default function QuickJot({ disabledReason, onOpenSheet }: QuickJotProps)
     // offering it again would add it twice.
     if (outcome.result === "failed" && outcome.keptInBuffer) return;
     setState((s) => ({ open: true, text: s.text || text }));
-  }, [state.text, setState, addJot, onOpenSheet]);
+  }, [setState, addJot, onOpenSheet]);
+
+  const submit = useCallback(async () => {
+    const text = state.text;
+    setState({ open: false, text: "" });
+    await jot(text);
+  }, [state.text, setState, jot]);
+
+  // `/daily` opens today's sheet; `/jot` adds its line, or opens the input
+  // from an empty line. Ignored while disabled (the entries need a vault).
+  const latest = useRef({ disabledReason, jot, onOpenSheet, setState });
+  latest.current = { disabledReason, jot, onOpenSheet, setState };
+  useEffect(() => {
+    const handleOpen = () => {
+      if (!latest.current.disabledReason) latest.current.onOpenSheet();
+    };
+    const handleJot = (event: Event) => {
+      const { disabledReason: reason, jot: add, setState: set } = latest.current;
+      if (reason) return;
+      const text = (event as CustomEvent<{ text?: string }>).detail?.text ?? "";
+      if (text.trim()) void add(text);
+      else set((s) => ({ ...s, open: true }));
+    };
+    document.addEventListener(OPEN_TODAY_SHEET_EVENT, handleOpen);
+    document.addEventListener(JOT_EVENT, handleJot);
+    return () => {
+      document.removeEventListener(OPEN_TODAY_SHEET_EVENT, handleOpen);
+      document.removeEventListener(JOT_EVENT, handleJot);
+    };
+  }, []);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Escape") {

@@ -40,6 +40,6 @@ Shown by the editor page in place of the workspace while `atom_homeFeedOpen` is 
 | hasVault? | `boolean` | `true` | False with no vault: vault actions and ways to start writing replace the notes |
 | onOpenFile? | `() => void` |  | The no-vault "Open File…": a file from the device into the draft |
 | onOpenToday? | `() => void` |  | Opens today's sheet, creating it if needed; puts today's sheet (or "Start today's sheet") at the top of Today and enables `t` |
-| onOpenSheet? | `(level: SheetLevel) => void` |  | Opens today's, this week's or this month's sheet; shows `FeedSheets` ("Today · This week · This month") under the stats line |
+| onOpenSheet? | `(level: SheetLevel) => void` |  | Opens today's sheet or this week's, month's, quarter's or year's; shows `FeedSheets` ("Today · This week · This month · This quarter · This year") under the stats line |
 | onOpenTask? | `(path: string, line: number) => void` |  | Opens a note at a 0-indexed line; shows the open tasks |
 | onQuickJot? | `() => void` |  | Opens Quick jot; adds **Quick jot** to the Today row's menu (only that row) |

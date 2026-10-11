@@ -29,6 +29,7 @@ import RenderedBlockSourceDialog from "./components/RenderedBlockSourceDialog";
 import ImageDialog from "./components/ImageDialog";
 import TokenCostDialog from "./components/TokenCostDialog";
 import QuickJot from "./components/QuickJot";
+import PdfExport from "./components/PdfExport";
 import { useAIEditorActions } from "./hooks/useAIEditorActions";
 import AIChatDialog from "./components/AIChatDialog";
 import { AIReviewDialog } from "./components/AIReviewDialog";
@@ -287,6 +288,7 @@ export default function LiteEditor() {
         <MermaidDialog />
         <ImageDialog />
         <TokenCostDialog />
+        <PdfExport />
         <QuickJot disabledReason={isVaultLocked ? "Vault is loading" : !vaultHandle ? "Open a vault first" : undefined} onOpenSheet={feedProps.onOpenToday} />
         
         <DraftImportDialog pendingDraft={pendingDraft} onConfirm={confirmPendingDraft} onCancel={cancelPendingDraft} />

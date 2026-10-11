@@ -5,6 +5,7 @@ import { createStore, Provider } from "jotai";
 import { atom_quickJot } from "@/app/atoms/ui-atoms";
 import type { Command } from "@/app/components/CommandPalette/CommandPaletteContext";
 import QuickJot from "./QuickJot";
+import { requestJot, requestOpenTodaySheet } from "../utils/worklog-events";
 
 vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn(), back: vi.fn() }) }));
 
@@ -138,5 +139,38 @@ describe("QuickJot", () => {
     await input();
     fireEvent.click(screen.getByRole("button", { name: "Add" }));
     await waitFor(() => expect(addJot).toHaveBeenCalledWith("tap"));
+  });
+
+  describe("slash commands", () => {
+    it("/daily opens today's sheet", () => {
+      const { onOpenSheet } = setup();
+      requestOpenTodaySheet();
+      expect(onOpenSheet).toHaveBeenCalledOnce();
+    });
+
+    it("/jot adds the line and shows the Added toast", async () => {
+      addJot.mockResolvedValue({ result: "added", sheetName: "2026-10-10" });
+      const { onOpenSheet } = setup();
+      act(() => { requestJot("- [ ] call the vendor"); });
+      await waitFor(() => expect(showActionToast).toHaveBeenCalledWith("Added to 2026-10-10", "Open", onOpenSheet));
+      expect(addJot).toHaveBeenCalledWith("- [ ] call the vendor");
+    });
+
+    it("/jot on an empty line opens the input instead", async () => {
+      setup();
+      act(() => { requestJot(""); });
+      expect(await input()).toBeTruthy();
+      expect(addJot).not.toHaveBeenCalled();
+    });
+
+    it("ignores both while disabled", () => {
+      const { onOpenSheet } = setup({ disabledReason: "Open a vault first" });
+      act(() => {
+        requestOpenTodaySheet();
+        requestJot("deploy done");
+      });
+      expect(onOpenSheet).not.toHaveBeenCalled();
+      expect(addJot).not.toHaveBeenCalled();
+    });
   });
 });

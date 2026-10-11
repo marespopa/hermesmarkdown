@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { describe, expect, it } from "vitest";
-import { datesInPeriod, isoWeekOf, monthPeriod, parseRollupName, weekPeriod, weeksOwnedByMonth } from "./period";
+import { childPeriods, datesInPeriod, isoWeekOf, monthPeriod, parseRollupName, periodOf, quarterPeriod, weekPeriod, weeksOwnedByMonth, yearPeriod } from "./period";
 
 const day = (y: number, m: number, d: number) => new Date(y, m - 1, d);
 const ymd = (date: Date) => [date.getFullYear(), date.getMonth() + 1, date.getDate()];
@@ -98,5 +98,41 @@ describe("weeksOwnedByMonth", () => {
     expect(weeksOwnedByMonth(monthPeriod(day(2026, 10, 1))).map((week) => week.name)).toEqual([
       "2026-W40", "2026-W41", "2026-W42", "2026-W43", "2026-W44",
     ]);
+  });
+});
+
+describe("quarterPeriod / yearPeriod", () => {
+  it("builds calendar quarters, moved by offset across years", () => {
+    const q4 = quarterPeriod(day(2026, 11, 15));
+    expect(q4.name).toBe("2026-Q4");
+    expect(ymd(q4.start)).toEqual([2026, 10, 1]);
+    expect(ymd(q4.end)).toEqual([2026, 12, 31]);
+    expect(q4.heading).toMatch(/^Q4 2026 · /);
+    expect(quarterPeriod(day(2026, 2, 1), -1).name).toBe("2025-Q4");
+    expect(quarterPeriod(day(2026, 12, 31), 1).name).toBe("2027-Q1");
+  });
+
+  it("builds years named YYYY-year", () => {
+    const year = yearPeriod(day(2026, 10, 11));
+    expect(year.name).toBe("2026-year");
+    expect(year.heading).toBe("2026");
+    expect(ymd(year.end)).toEqual([2026, 12, 31]);
+    expect(yearPeriod(day(2026, 1, 1), -1).name).toBe("2025-year");
+    expect(datesInPeriod(yearPeriod(day(2024, 6, 1)))).toHaveLength(366);
+  });
+
+  it("parses quarter and year names, and leaves a bare year alone", () => {
+    expect(parseRollupName("2026-Q3.md")?.name).toBe("2026-Q3");
+    expect(parseRollupName("2026-year.md")?.kind).toBe("year");
+    expect(parseRollupName("2026-Q5.md")).toBeNull();
+    expect(parseRollupName("2026.md")).toBeNull();
+  });
+
+  it("finds the periods one level down", () => {
+    expect(childPeriods(quarterPeriod(day(2026, 10, 1))).map((p) => p.name)).toEqual(["2026-10", "2026-11", "2026-12"]);
+    expect(childPeriods(yearPeriod(day(2026, 1, 1))).map((p) => p.name)).toEqual(["2026-Q1", "2026-Q2", "2026-Q3", "2026-Q4"]);
+    expect(childPeriods(monthPeriod(day(2026, 10, 1)))).toHaveLength(5);
+    expect(childPeriods(weekPeriod(day(2026, 10, 1)))).toEqual([]);
+    expect(periodOf("quarter", day(2026, 4, 2)).name).toBe("2026-Q2");
   });
 });

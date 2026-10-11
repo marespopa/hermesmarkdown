@@ -75,8 +75,8 @@ describe("renderGeneratedBody (monthly)", () => {
 
   it("collects only the weeks that have notes", () => {
     const body = renderGeneratedBody(month, collectRollup(SHEETS), [
-      { name: "2026-W41", week: 41, notes: "Shipped the billing beta.\n\n### Next\nPricing review" },
-      { name: "2026-W42", week: 42, notes: "  \n" },
+      { name: "2026-W41", label: "Week 41", notes: "Shipped the billing beta.\n\n### Next\nPricing review" },
+      { name: "2026-W42", label: "Week 42", notes: "  \n" },
     ]);
     expect(body.endsWith("## Weekly notes\n\n### Week 41 · [[2026-W41]]\nShipped the billing beta.\n\n### Next\nPricing review")).toBe(true);
     expect(body).not.toContain("Week 42");
@@ -97,5 +97,25 @@ describe("renderNewSheet", () => {
 
   it("starts with sensitive frontmatter when asked", () => {
     expect(renderNewSheet(month, "body", true).text.startsWith("---\nsensitive: true\n---\n\n# ")).toBe(true);
+  });
+});
+
+describe("renderGeneratedBody (quarterly, yearly)", () => {
+  const quarter = parseRollupName("2026-Q4.md")!;
+  const year = parseRollupName("2026-year.md")!;
+
+  it("collects the months' notes in a quarter and folds Done", () => {
+    const body = renderGeneratedBody(quarter, collectRollup(SHEETS), [
+      { name: "2026-10", label: "October", notes: "Billing beta shipped." },
+    ]);
+    expect(body).toContain("> [!success]- #bug");
+    expect(body.endsWith("## Monthly notes\n\n### October · [[2026-10]]\nBilling beta shipped.")).toBe(true);
+  });
+
+  it("collects the quarters' notes in a year", () => {
+    const body = renderGeneratedBody(year, collectRollup([]), [{ name: "2026-Q4", label: "Q4", notes: "Pricing moved." }]);
+    expect(body.startsWith("No daily sheets this year")).toBe(true);
+    expect(body.endsWith("## Quarterly notes\n\n### Q4 · [[2026-Q4]]\nPricing moved.")).toBe(true);
+    expect(renderSummary(collectRollup([]), quarter)).toBe("No daily sheets this quarter");
   });
 });

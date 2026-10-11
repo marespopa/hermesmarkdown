@@ -102,3 +102,42 @@ describe("isCurrentSheet", () => {
     expect(isCurrentSheet(sheet("2026-W40.md"), TODAY)).toBe(false);
   });
 });
+
+describe("quarterly and yearly sheets", () => {
+  it("parses them and labels them", () => {
+    expect(sheet("2026-Q4.md").level).toBe("quarter");
+    expect(sheet("2026-year.md").level).toBe("year");
+    expect(sheetLabel(sheet("2026-Q4.md"))).toMatch(/^Q4 2026/);
+    expect(sheetLabel(sheet("2026-year.md"))).toBe("2026");
+  });
+
+  it("goes up from a week to the quarter and year of its Thursday", () => {
+    // Week 1 of 2026 runs Dec 29, 2025 – Jan 4, 2026; its Thursday is Jan 1.
+    expect(day(levelTarget(sheet("2026-W01.md"), "quarter", TODAY, DATES))).toBe("2026-01-01");
+    expect(day(levelTarget(sheet("2026-W01.md"), "year", TODAY, DATES))).toBe("2026-01-01");
+  });
+
+  it("goes down to today inside the current quarter and year", () => {
+    expect(day(levelTarget(sheet("2026-Q4.md"), "month", TODAY, DATES))).toBe("2026-10-11");
+    expect(day(levelTarget(sheet("2026-year.md"), "quarter", TODAY, DATES))).toBe("2026-10-11");
+  });
+
+  it("goes down to the last month, quarter, week or day of a past period", () => {
+    expect(day(levelTarget(sheet("2026-Q3.md"), "month", TODAY, DATES))).toBe("2026-09-01");
+    expect(day(levelTarget(sheet("2026-Q3.md"), "day", TODAY, DATES))).toBe("2026-09-30");
+    expect(day(levelTarget(sheet("2025-year.md"), "quarter", TODAY, DATES))).toBe("2025-10-01");
+    // Dec 31, 2025 is a Wednesday: its week's Thursday is in 2026, so 2025's last week is the one before.
+    expect(day(levelTarget(sheet("2025-year.md"), "week", TODAY, DATES))).toBe("2025-12-25");
+  });
+
+  it("has nothing below a future sheet", () => {
+    expect(levelTarget(sheet("2027-Q1.md"), "month", TODAY, DATES)).toBeNull();
+  });
+
+  it("steps by one quarter or year, never into the future", () => {
+    expect(day(stepTarget(sheet("2026-Q4.md"), -1, TODAY, DATES))).toBe("2026-07-01");
+    expect(stepTarget(sheet("2026-Q4.md"), 1, TODAY, DATES)).toBeNull();
+    expect(day(stepTarget(sheet("2025-year.md"), 1, TODAY, DATES))).toBe("2026-01-01");
+    expect(stepTarget(sheet("2026-year.md"), 1, TODAY, DATES)).toBeNull();
+  });
+});

@@ -12,9 +12,11 @@ export const REGEX_ROLLUP_START = /^<!--\s*rollup:start\b.*-->\s*$/;
 export const REGEX_ROLLUP_END = /^<!--\s*rollup:end\b.*-->\s*$/;
 
 // A weekly sheet's Notes, collected into its month's sheet.
-export interface WeekNotes {
-  name: string; // "2026-W41"
-  week: number; // 41
+// The Notes of a sheet one level down: a month's weeks, a quarter's months,
+// a year's quarters.
+export interface ChildNotes {
+  name: string; // "2026-W41" | "2026-10" | "2026-Q4"
+  label: string; // "Week 41" | "October" | "Q4"
   notes: string;
 }
 
@@ -46,13 +48,13 @@ export function renderSummary(data: RollupData, period: RollupPeriod): string {
   return `${data.done.length} done · ${data.open.length} open · ${data.blocked.length} blocked`;
 }
 
-// Weekly: one `### #tag` list per group. Monthly: one folded callout per
-// group with the item count in its title, so a month stays readable.
+// Weekly: one `### #tag` list per group. Monthly and up: one folded callout
+// per group with the item count in its title, so a longer period stays readable.
 function renderDone(period: RollupPeriod, data: RollupData): string {
   const groups = groupDone(data.done).map(({ tag, items }) => {
     const label = tag === null ? OTHER : `#${tag}`;
     const lines = items.map((item) => itemLine(item, { omitTag: tag, details: false }));
-    if (period.kind === "month") {
+    if (period.kind !== "week") {
       return [`> [!success]- ${label} · ${items.length}`, ...lines.map((line) => `> ${line}`)].join("\n");
     }
     return `### ${label}\n${lines.join("\n")}`;
@@ -60,16 +62,23 @@ function renderDone(period: RollupPeriod, data: RollupData): string {
   return groups.length ? `## Done\n\n${groups.join("\n\n")}` : "## Done";
 }
 
-function renderWeeklyNotes(weekNotes: WeekNotes[]): string {
-  const weeks = weekNotes
-    .filter((week) => week.notes.trim())
-    .map((week) => `### Week ${week.week} · [[${week.name}]]\n${week.notes}`);
-  return weeks.length ? `## Weekly notes\n\n${weeks.join("\n\n")}` : "## Weekly notes";
+const CHILD_NOTES_HEADING: Record<RollupPeriod["kind"], string> = {
+  week: "",
+  month: "## Weekly notes",
+  quarter: "## Monthly notes",
+  year: "## Quarterly notes",
+};
+
+function renderChildNotes(heading: string, childNotes: ChildNotes[]): string {
+  const children = childNotes
+    .filter((child) => child.notes.trim())
+    .map((child) => `### ${child.label} · [[${child.name}]]\n${child.notes}`);
+  return children.length ? `${heading}\n\n${children.join("\n\n")}` : heading;
 }
 
 // The lines between the markers (no trailing newline). Sections are
 // separated by a blank line; an empty section is its heading and a blank line.
-export function renderGeneratedBody(period: RollupPeriod, data: RollupData, weekNotes: WeekNotes[] = []): string {
+export function renderGeneratedBody(period: RollupPeriod, data: RollupData, childNotes: ChildNotes[] = []): string {
   const blocks = [
     renderSummary(data, period),
     renderDone(period, data),
@@ -77,9 +86,9 @@ export function renderGeneratedBody(period: RollupPeriod, data: RollupData, week
     section("## Still open", data.open.map((item) => itemLine(item, { details: true }))),
   ];
   let lastEmpty = data.open.length === 0;
-  if (period.kind === "month") {
-    blocks.push(renderWeeklyNotes(weekNotes));
-    lastEmpty = !weekNotes.some((week) => week.notes.trim());
+  if (period.kind !== "week") {
+    blocks.push(renderChildNotes(CHILD_NOTES_HEADING[period.kind], childNotes));
+    lastEmpty = !childNotes.some((child) => child.notes.trim());
   }
   const body = blocks.join("\n\n");
   // An empty last section still gets its blank line before rollup:end.

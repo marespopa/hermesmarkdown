@@ -15,11 +15,14 @@ interface UseRollupCommandsOptions {
 
 const WEEK_KEYWORDS = "week weekly rollup review status report worklog summary";
 const MONTH_KEYWORDS = "month monthly rollup review status report worklog summary";
+const QUARTER_KEYWORDS = "quarter quarterly rollup review retrospective strategy worklog summary";
+const YEAR_KEYWORDS = "year yearly annual rollup review retrospective reflection worklog summary";
 
-// The palette's rollup commands: This/Last week's sheet, This/Last month's
-// sheet (Navigation), and Refresh rollup (Document), which is registered only
-// while the active tab is a weekly (`2026-W41.md`) or monthly (`2026-10.md`)
-// sheet. No shortcuts: these run once a week or month.
+// The palette's rollup commands: This/Last week's, month's, quarter's and
+// year's sheet (Navigation), and Refresh rollup (Document), which is
+// registered only while the active tab is a rollup sheet (`2026-W41.md`,
+// `2026-10.md`, `2026-Q4.md`, `2026-year.md`). No shortcuts: these run once a
+// period.
 export function useRollupCommands({ disabledReason, beforeOpen }: UseRollupCommandsOptions) {
   const { openRollup, refreshRollup } = useRollups();
   const activePath = useAtomValue(atom_activeFilePath);
@@ -40,13 +43,17 @@ export function useRollupCommands({ disabledReason, beforeOpen }: UseRollupComma
   useRegisterCommand(periodCommand("open-last-week-sheet", "Last week's sheet", WEEK_KEYWORDS, { kind: "week", offset: -1 }));
   useRegisterCommand(periodCommand("open-this-month-sheet", "This month's sheet", MONTH_KEYWORDS, { kind: "month", offset: 0 }));
   useRegisterCommand(periodCommand("open-last-month-sheet", "Last month's sheet", MONTH_KEYWORDS, { kind: "month", offset: -1 }));
+  useRegisterCommand(periodCommand("open-this-quarter-sheet", "This quarter's sheet", QUARTER_KEYWORDS, { kind: "quarter", offset: 0 }));
+  useRegisterCommand(periodCommand("open-last-quarter-sheet", "Last quarter's sheet", QUARTER_KEYWORDS, { kind: "quarter", offset: -1 }));
+  useRegisterCommand(periodCommand("open-this-year-sheet", "This year's sheet", YEAR_KEYWORDS, { kind: "year", offset: 0 }));
+  useRegisterCommand(periodCommand("open-last-year-sheet", "Last year's sheet", YEAR_KEYWORDS, { kind: "year", offset: -1 }));
 
   const isRollupSheet = !!activePath && parseRollupName(activePath.split("/").pop() ?? "") !== null;
   useRegisterCommand(isRollupSheet && activePath ? {
     id: "refresh-rollup",
     label: "Refresh rollup",
     category: "Document",
-    keywords: "rollup refresh regenerate weekly monthly summary",
+    keywords: "rollup refresh regenerate weekly monthly quarterly yearly summary",
     action: () => refreshRollup(activePath),
   } : null);
 }

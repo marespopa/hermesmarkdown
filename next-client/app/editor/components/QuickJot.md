@@ -11,6 +11,7 @@ Description: A one-line input over the current view that appends a line to the e
 - **Escape** closes and clears the text. A **click outside** (or the back button) closes but keeps the text for the next open.
 - Pasted newlines become single spaces (a single-line input would otherwise glue the lines together).
 - The caption shows the date when the input opened: `Enter adds to 2026-10-10 · Esc cancels`.
+- **Slash commands** (`editor/utils/worklog-events.ts`): `/daily` in an editor dispatches `hermes:open-today-sheet`, which calls `onOpenSheet`; `/jot` dispatches `hermes:jot` with its line (without the trigger), which is added like a submitted jot (same toasts; on failure the input opens with the text). An empty `/jot` opens the input. Both are ignored while `disabledReason` is set (the editor only offers them with a vault).
 - The shortcut is ignored while the command palette or a global dialog is open; pressed again while the input is open, it refocuses the input. With `disabledReason` the command is disabled and the shortcut shows the reason as an error toast.
 
 ## Local State & Storage

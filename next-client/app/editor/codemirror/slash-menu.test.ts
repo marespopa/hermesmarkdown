@@ -186,6 +186,38 @@ describe("createSlashMenuSource", () => {
     expect(view.state.doc.toString()).toBe("Owner: ");
     expect(callbacks.onInsertTemplateField).toHaveBeenCalledOnce();
   });
+  it("offers Daily and Jot only with a vault", () => {
+    const labels = (doc: string, callbacks: SlashMenuCallbacks) =>
+      getResult(doc, callbacks).result?.options.map(({ label }) => label) ?? [];
+    const withVault = { ...makeCallbacks(), onOpenDailySheet: vi.fn(), onJot: vi.fn() };
+
+    expect(labels("/daily", withVault)).toContain("Daily");
+    expect(labels("/jot", withVault)).toContain("Jot");
+    expect(labels("/daily", makeCallbacks())).not.toContain("Daily");
+    expect(labels("/jot", makeCallbacks())).not.toContain("Jot");
+  });
+
+  it("/daily removes the trigger and opens today's sheet", () => {
+    const callbacks = { ...makeCallbacks(), onOpenDailySheet: vi.fn(), onJot: vi.fn() };
+    const { view } = applyOption("Notes /daily", "Daily", callbacks);
+
+    expect(view.state.doc.toString()).toBe("Notes ");
+    expect(callbacks.onOpenDailySheet).toHaveBeenCalledOnce();
+  });
+
+  it("/jot sends the line without the trigger and keeps it in the note", () => {
+    const callbacks = { ...makeCallbacks(), onOpenDailySheet: vi.fn(), onJot: vi.fn() };
+    const { view } = applyOption("# Release\n- [ ] tag v2 /jot", "Jot", callbacks);
+
+    expect(view.state.doc.toString()).toBe("# Release\n- [ ] tag v2 ");
+    expect(callbacks.onJot).toHaveBeenCalledWith("- [ ] tag v2");
+  });
+
+  it("/jot on an empty line sends an empty text", () => {
+    const callbacks = { ...makeCallbacks(), onOpenDailySheet: vi.fn(), onJot: vi.fn() };
+    applyOption("/jot", "Jot", callbacks);
+    expect(callbacks.onJot).toHaveBeenCalledWith("");
+  });
 });
 
 describe("insertExpandedTemplate", () => {
