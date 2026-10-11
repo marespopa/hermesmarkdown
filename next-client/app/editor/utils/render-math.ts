@@ -20,3 +20,10 @@ export async function renderMath(source: string): Promise<string> {
     output: "htmlAndMathml",
   });
 }
+
+// MathML only, for printing: browsers draw it natively, so a print document
+// needs no KaTeX stylesheet.
+export async function renderMathMl(source: string): Promise<string> {
+  const katex = await loadKatex();
+  return katex.renderToString(source, { displayMode: true, throwOnError: true, output: "mathml" });
+}

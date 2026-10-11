@@ -1,17 +1,17 @@
 # utils/rollup
 
-The pure engine behind weekly and monthly rollup sheets. No React, no file
+The pure engine behind weekly, monthly, quarterly and yearly rollup sheets. No React, no file
 access, no AI: the same daily sheets always give the same rollup. The flows
 that read and write the vault are `app/editor/hooks/use-rollups.ts` and
 `use-rollup-sources.ts`.
 
 | File | Purpose |
 |------|---------|
-| `period.ts` | `RollupPeriod` (`kind`, `name`, `start` / `end` local midnights, `anchor`, `heading`, `noun`). `weekPeriod(date, offset?)` (ISO week, Monday to Sunday, named by the ISO week-year: `2026-W53` runs Dec 28 2026 to Jan 3 2027), `monthPeriod(date, offset?)`, `isoWeekOf`, `parseRollupName("2026-W41.md" \| "2026-10.md")` (rejects W00, weeks past the year's last, months 00 / 13), `datesInPeriod`, `weeksOwnedByMonth` (weeks whose Thursday is in the month). The anchor (the week's Thursday, the month's 1st) picks the Daily Sheets folder. Local-date arithmetic only, so DST never shifts a day. |
+| `period.ts` | `RollupPeriod` (`kind`, `name`, `start` / `end` local midnights, `anchor`, `heading`, `noun`). `weekPeriod(date, offset?)` (ISO week, Monday to Sunday, named by the ISO week-year: `2026-W53` runs Dec 28 2026 to Jan 3 2027), `monthPeriod(date, offset?)`, `quarterPeriod(date, offset?)` (`2026-Q4`, Q1 = January to March), `yearPeriod(date, offset?)` (`2026-year`: a bare `2026` is too likely an ordinary note), `periodOf(kind, date, offset?)`, `isoWeekOf`, `parseRollupName("2026-W41.md" \| "2026-10.md" \| "2026-Q4.md" \| "2026-year.md")` (rejects W00, weeks past the year's last, months 00 / 13, Q0 / Q5), `datesInPeriod`, `weeksOwnedByMonth` (weeks whose Thursday is in the month), `childPeriods` (a month's weeks, a quarter's months, a year's quarters). The anchor (the week's Thursday, the period's first day otherwise) picks the Daily Sheets folder. Local-date arithmetic only, so DST never shifts a day. |
 | `daily-sheets.ts` | `pickDailySheets(paths, period, preferredFolder, skip?)`: every `YYYY-MM-DD.md` anywhere whose date is in the period, one file per date (`findSheetByName`: the Daily Sheets folder first, else the shallowest path), oldest first. |
 | `collect.ts` | `collectRollup(sheets)` over `extractTasks`: dedup by text (lowercased, whitespace collapsed), the latest day's occurrence wins (state, tags, link); checked → `done`, unchecked with `#blocked` / `#hold` on the line (even when in progress) → `blocked`, other unchecked → `open`; each list by date, then line. `groupDone(items)`: by first custom tag, alphabetical, untagged last (`tag: null`, "Other"). |
-| `render.ts` | `ROLLUP_START` / `ROLLUP_END` and their regexes, `renderSummary` (`N done · N open · N blocked`, or `No daily sheets this week` / `this month`), `renderGeneratedBody(period, data, weekNotes?)` (the lines between the markers) and `renderNewSheet(period, body, sensitive)` (`{ text, cursor }`, caret on the blank line under `## Notes`). |
-| `sections.ts` | `spliceGenerated(content, body)`: replaces only the lines between the first start marker and the first end marker after it, byte for byte elsewhere, in the file's line endings; null when the markers are missing or out of order. `extractNotes(content)`: a weekly sheet's own Notes text (after the end marker), for its month's sheet. |
+| `render.ts` | `ROLLUP_START` / `ROLLUP_END` and their regexes, `renderSummary` (`N done · N open · N blocked`, or `No daily sheets this week` / `month` / `quarter` / `year`), `renderGeneratedBody(period, data, childNotes?)` (the lines between the markers) and `renderNewSheet(period, body, sensitive)` (`{ text, cursor }`, caret on the blank line under `## Notes`). |
+| `sections.ts` | `spliceGenerated(content, body)`: replaces only the lines between the first start marker and the first end marker after it, byte for byte elsewhere, in the file's line endings; null when the markers are missing or out of order. `extractNotes(content)`: a sheet's own Notes text (after the end marker), for the sheet one level up. |
 
 ## Sheet layout
 
@@ -43,7 +43,9 @@ that read and write the vault are `app/editor/hooks/use-rollups.ts` and
 A monthly sheet (`# October 2026`) folds each Done group into a callout
 (`> [!success]- #bug · 7`) and ends its region with `## Weekly notes`: one
 `### Week 41 · [[2026-W41]]` subsection per weekly sheet with Notes, copied
-as written.
+as written. Quarterly and yearly sheets fold Done the same way and end with
+`## Monthly notes` (`### October · [[2026-10]]`) and `## Quarterly notes`
+(`### Q4 · [[2026-Q4]]`).
 
 ## Marker contract
 

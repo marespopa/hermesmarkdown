@@ -31,6 +31,7 @@ import { insertOrRevealFrontmatter } from "../codemirror/frontmatter-fold";
 import { useEditorPasteHandlers } from "../hooks/use-editor-paste-handlers";
 import { useScrollToPendingTarget } from "../hooks/use-scroll-to-pending-target";
 import { openImageDialog } from "../utils/open-helper-dialogs";
+import { requestJot, requestOpenTodaySheet } from "../utils/worklog-events";
 import EditorPills from "./markdown-editor/EditorPills";
 import FoldChevrons from "./markdown-editor/FoldChevrons";
 import LinkInsertDialog from "./markdown-editor/LinkInsertDialog";
@@ -129,6 +130,8 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
     onInsertTemplateField: isTemplateNote ? insertTemplateField : undefined,
     onAskTemplateQuestion: askTemplateQuestion,
     onSaveAsTemplate: saveNoteAsTemplate,
+    onOpenDailySheet: vaultHandle ? requestOpenTodaySheet : undefined,
+    onJot: vaultHandle ? requestJot : undefined,
   });
 
   useEffect(() => {

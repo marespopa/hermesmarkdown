@@ -5,15 +5,21 @@ import { SHEET_LEVELS, type SheetLevel } from "@/app/utils/sheet-nav";
 import { SHEET_LEVEL_CLASSES } from "../sheet-level-classes";
 
 interface FeedSheetsProps {
-  /** Opens today's sheet, this week's or this month's, creating it when missing. */
+  /** Opens today's sheet or the current week's, month's, quarter's or year's, creating it when missing. */
   onOpenSheet: (level: SheetLevel) => void;
 }
 
-const LABEL: Record<SheetLevel, string> = { day: "Today", week: "This week", month: "This month" };
+const LABEL: Record<SheetLevel, string> = {
+  day: "Today",
+  week: "This week",
+  month: "This month",
+  quarter: "This quarter",
+  year: "This year",
+};
 
-// The worklog's three levels under the stats line, each with its colour dot:
-// "Today · This week · This month". The way into weekly and monthly sheets
-// without the palette.
+// The worklog's levels under the stats line, each with its colour dot:
+// "Today · This week · This month · This quarter · This year". The way into
+// rollup sheets without the palette.
 export default function FeedSheets({ onOpenSheet }: FeedSheetsProps) {
   return (
     <nav aria-label="Worklog sheets" className="mt-1 flex flex-wrap items-center gap-x-1 text-ui-footnote text-fg-muted">

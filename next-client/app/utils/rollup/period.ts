@@ -1,20 +1,22 @@
-// Periods for weekly and monthly rollup sheets: ISO weeks (Monday to Sunday,
-// named by the ISO week-year: `2026-W53`) and calendar months (`2026-10`).
+// Periods for rollup sheets: ISO weeks (Monday to Sunday, named by the ISO
+// week-year: `2026-W53`), calendar months (`2026-10`), calendar quarters
+// (`2026-Q4`) and years (`2026-year`; a bare `2026` is too likely to be an
+// ordinary note's name).
 // All arithmetic is on local dates (`new Date(y, m, d)`), never UTC, so DST
 // changes and time zones never shift a day.
 
 import { todayNoteName } from "../today-note";
 
-export type RollupKind = "week" | "month";
+export type RollupKind = "week" | "month" | "quarter" | "year";
 
 export interface RollupPeriod {
   kind: RollupKind;
-  name: string; // "2026-W41" | "2026-10"
+  name: string; // "2026-W41" | "2026-10" | "2026-Q4" | "2026-year"
   start: Date; // local midnight, first day
   end: Date; // local midnight, last day (inclusive)
-  anchor: Date; // Thursday (week) / 1st (month), for the Daily Sheets folder pattern
-  heading: string; // "Week 41 · Oct 5 – 11, 2026" | "October 2026"
-  noun: "week" | "month";
+  anchor: Date; // Thursday (week) / first day (month, quarter, year), for the Daily Sheets folder pattern
+  heading: string; // "Week 41 · Oct 5 – 11, 2026" | "October 2026" | "Q4 2026 · October – December" | "2026"
+  noun: RollupKind;
 }
 
 const pad = (value: number) => String(value).padStart(2, "0");
@@ -79,11 +81,53 @@ export function monthPeriod(date: Date, offset = 0): RollupPeriod {
   };
 }
 
+// The calendar quarter holding `date` (Q1 = January to March), moved by `offset` quarters.
+export function quarterPeriod(date: Date, offset = 0): RollupPeriod {
+  const start = new Date(date.getFullYear(), Math.floor(date.getMonth() / 3) * 3 + offset * 3, 1);
+  const end = new Date(start.getFullYear(), start.getMonth() + 3, 0);
+  const quarter = start.getMonth() / 3 + 1;
+  return {
+    kind: "quarter",
+    name: `${start.getFullYear()}-Q${quarter}`,
+    start,
+    end,
+    anchor: start,
+    heading: `Q${quarter} ${start.getFullYear()} · ${fmt(start, { month: "long" })} – ${fmt(end, { month: "long" })}`,
+    noun: "quarter",
+  };
+}
+
+// The calendar year holding `date`, moved by `offset` years.
+export function yearPeriod(date: Date, offset = 0): RollupPeriod {
+  const year = date.getFullYear() + offset;
+  const start = new Date(year, 0, 1);
+  return {
+    kind: "year",
+    name: `${year}-year`,
+    start,
+    end: new Date(year, 11, 31),
+    anchor: start,
+    heading: String(year),
+    noun: "year",
+  };
+}
+
+// The period of `kind` holding `date`, moved by `offset` periods.
+export function periodOf(kind: RollupKind, date: Date, offset = 0): RollupPeriod {
+  if (kind === "week") return weekPeriod(date, offset);
+  if (kind === "month") return monthPeriod(date, offset);
+  if (kind === "quarter") return quarterPeriod(date, offset);
+  return yearPeriod(date, offset);
+}
+
 const REGEX_WEEK_NAME = /^(\d{4})-W(\d{2})\.md$/;
 const REGEX_MONTH_NAME = /^(\d{4})-(\d{2})\.md$/;
+const REGEX_QUARTER_NAME = /^(\d{4})-Q([1-4])\.md$/;
+const REGEX_YEAR_NAME = /^(\d{4})-year\.md$/;
 
 // The period a rollup sheet's file name stands for, or null when it isn't
-// one: "2026-W41.md" (W01 to the year's last ISO week) or "2026-10.md".
+// one: "2026-W41.md" (W01 to the year's last ISO week), "2026-10.md",
+// "2026-Q4.md" or "2026-year.md".
 export function parseRollupName(fileName: string): RollupPeriod | null {
   const week = REGEX_WEEK_NAME.exec(fileName);
   if (week) {
@@ -99,6 +143,10 @@ export function parseRollupName(fileName: string): RollupPeriod | null {
     if (number < 1 || number > 12) return null;
     return monthPeriod(new Date(Number(month[1]), number - 1, 1));
   }
+  const quarter = REGEX_QUARTER_NAME.exec(fileName);
+  if (quarter) return quarterPeriod(new Date(Number(quarter[1]), (Number(quarter[2]) - 1) * 3, 1));
+  const year = REGEX_YEAR_NAME.exec(fileName);
+  if (year) return yearPeriod(new Date(Number(year[1]), 0, 1));
   return null;
 }
 
@@ -120,4 +168,13 @@ export function weeksOwnedByMonth(period: RollupPeriod): RollupPeriod[] {
     thursday = addDays(thursday, 7);
   }
   return out;
+}
+
+// The periods one level down whose notes a sheet collects: a month's weeks
+// (by Thursday), a quarter's months, a year's quarters. None for a week.
+export function childPeriods(period: RollupPeriod): RollupPeriod[] {
+  if (period.kind === "month") return weeksOwnedByMonth(period);
+  if (period.kind === "quarter") return [0, 1, 2].map((offset) => monthPeriod(period.start, offset));
+  if (period.kind === "year") return [0, 1, 2, 3].map((offset) => quarterPeriod(period.start, offset));
+  return [];
 }

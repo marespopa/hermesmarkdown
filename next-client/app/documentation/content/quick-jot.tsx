@@ -5,7 +5,7 @@ export const quickJotItem: Subsection = {
   id: "quick-jot",
   title: "Quick jot",
   lead: "Add a line to today's sheet without leaving the note you're in.",
-  keywords: "quick jot capture log append today daily sheet worklog shortcut",
+  keywords: "quick jot capture log append today daily sheet worklog shortcut slash /jot /daily",
   body: (
     <>
       <p>
@@ -48,8 +48,15 @@ export const quickJotItem: Subsection = {
         is kept as a snapshot you can recover.
       </p>
       <p>
+        From the slash menu, without reaching for a shortcut: <code>/daily</code> opens today&apos;s
+        sheet (creating it like <strong>Today&apos;s sheet</strong> does), and <code>/jot</code> at
+        the end of a line adds that line to today&apos;s sheet, following the same rules as Quick
+        jot. The line also stays where you wrote it; only the <code>/jot</code> is removed. On an
+        empty line, <code>/jot</code> opens the Quick jot field instead.
+      </p>
+      <p>
         Quick jot needs an open vault, because today&apos;s sheet lives in it. With no vault open,
-        the command is turned off.
+        the command is turned off, and <code>/daily</code> and <code>/jot</code> aren&apos;t offered.
       </p>
     </>
   ),

@@ -7,6 +7,7 @@ import {
   HiOutlineClipboardCopy,
   HiOutlineCog,
   HiOutlineCurrencyDollar,
+  HiOutlineDocumentDownload,
   HiOutlineDotsHorizontal,
   HiOutlinePuzzle,
   HiOutlineQuestionMarkCircle,
@@ -85,6 +86,7 @@ export default function PaneWindowActions() {
           onClose={() => setMoreMenu(null)}
           items={[
             { label: "Copy Markdown", icon: <HiOutlineClipboardCopy size={15} />, disabled: !actions.activePaneHasFiles, onClick: actions.copyActiveMarkdown },
+            { label: "Export as PDF…", icon: <HiOutlineDocumentDownload size={15} />, disabled: !actions.activePaneHasFiles, onClick: actions.exportActivePdf },
             { label: "Split Right", icon: <HiOutlineViewBoards size={15} />, disabled: !actions.activePaneHasFiles, onClick: actions.splitActivePaneRight },
             { label: "Token Cost", icon: <HiOutlineCurrencyDollar size={15} />, disabled: !actions.activePaneHasFiles, onClick: actions.openTokenCost },
             { label: "Settings", icon: <HiOutlineCog size={15} />, divider: true, onClick: actions.openSettings },

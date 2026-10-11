@@ -1,22 +1,23 @@
 // Moving between worklog sheets: daily (`2026-10-11.md`), weekly
-// (`2026-W41.md`) and monthly (`2026-10.md`). Pure: every function takes
+// (`2026-W41.md`), monthly (`2026-10.md`), quarterly (`2026-Q4.md`) and
+// yearly (`2026-year.md`). Pure: every function takes
 // `today` and the dates that have a daily sheet, and returns the date to open
 // at a level, or null when there is nowhere to go. Never past today, and a
 // day is only ever today or a day that already has a sheet, so moving around
 // never creates empty past sheets.
 
 import { todayNoteName } from "./today-note";
-import { monthPeriod, parseRollupName, weekPeriod, weeksOwnedByMonth, type RollupPeriod } from "./rollup/period";
+import { parseRollupName, periodOf, weekPeriod, type RollupPeriod } from "./rollup/period";
 
-export type SheetLevel = "day" | "week" | "month";
+export type SheetLevel = "day" | "week" | "month" | "quarter" | "year";
 
-export const SHEET_LEVELS: SheetLevel[] = ["day", "week", "month"];
+export const SHEET_LEVELS: SheetLevel[] = ["day", "week", "month", "quarter", "year"];
 
 export interface Sheet {
   level: SheetLevel;
   start: Date; // local midnight, first day
   end: Date; // local midnight, last day (inclusive)
-  period?: RollupPeriod; // weekly and monthly sheets
+  period?: RollupPeriod; // every level but day
 }
 
 const REGEX_DAY_NAME = /^(\d{4})-(\d{2})-(\d{2})\.md$/;
@@ -36,7 +37,7 @@ export function parseSheetName(fileName: string): Sheet | null {
   return period ? { level: period.kind, start: period.start, end: period.end, period } : null;
 }
 
-// "Sat, Oct 11", "Week 41 · Oct 5 – 11", "October 2026".
+// "Sat, Oct 11", "Week 41 · Oct 5 – 11", "October 2026", "Q4 2026 · October – December", "2026".
 export function sheetLabel(sheet: Sheet): string {
   if (sheet.level === "day") return fmt(sheet.start, { weekday: "short", month: "short", day: "numeric" });
   const heading = sheet.period!.heading;
@@ -57,24 +58,31 @@ function latestSheetDay(start: Date, end: Date, dailyDates: Iterable<string>): D
   return best ? parseSheetName(`${best}.md`)!.start : null;
 }
 
-// The date to open at `level` from `sheet`: the same day, or the week or
-// month holding it. Going down from a week or month lands on today when it's
-// inside, else on the latest day with a sheet (null when there is none); a
-// month's week is the one holding today, else the month's last week.
+// The date to open at `level` from `sheet`: the same day, or the period
+// holding it. Going up uses the sheet's anchor (a week belongs to its
+// Thursday's month, quarter and year). Going down lands on today when it's
+// inside; else, in a past sheet, on its latest day with a sheet (null when
+// there is none) or the last week / month / quarter it owns. Nothing below a
+// sheet in the future.
 export function levelTarget(sheet: Sheet, level: SheetLevel, today: Date, dailyDates: Iterable<string>): Date | null {
   const now = midnight(today);
   if (sheet.level === level) return sheet.start;
   if (sheet.level === "day") return sheet.start;
-  if (level === "month") return sheet.period!.anchor; // a week belongs to its Thursday's month
+  if (SHEET_LEVELS.indexOf(level) > SHEET_LEVELS.indexOf(sheet.level)) return sheet.period!.anchor;
   if (inSheet(sheet, now)) return now;
-  if (level === "day") return latestSheetDay(sheet.start, sheet.end < now ? sheet.end : now, dailyDates);
-  const weeks = weeksOwnedByMonth(sheet.period!).filter((week) => week.start <= now);
-  return weeks.length ? weeks[weeks.length - 1].anchor : null;
+  if (sheet.start > now) return null;
+  if (level === "day") return latestSheetDay(sheet.start, sheet.end, dailyDates);
+  if (level === "week") {
+    // The week holding the last day, or the one before when its Thursday is past the end.
+    const week = weekPeriod(sheet.end);
+    return week.anchor > sheet.end ? weekPeriod(sheet.end, -1).anchor : week.anchor;
+  }
+  return periodOf(level, sheet.end).start;
 }
 
 // The date to open one step back (-1) or forward (1) at the sheet's level.
 // Days skip to the nearest day with a sheet; forward from the latest one is
-// today. Weeks and months move by one and stop at the current one.
+// today. Other levels move by one and stop at the current one.
 export function stepTarget(sheet: Sheet, direction: -1 | 1, today: Date, dailyDates: Iterable<string>): Date | null {
   const now = midnight(today);
   if (sheet.level === "day") {
@@ -87,7 +95,7 @@ export function stepTarget(sheet: Sheet, direction: -1 | 1, today: Date, dailyDa
     if (best) return parseSheetName(`${best}.md`)!.start;
     return direction > 0 && sheet.start < now ? now : null;
   }
-  const next = sheet.level === "week" ? weekPeriod(sheet.start, direction) : monthPeriod(sheet.start, direction);
+  const next = periodOf(sheet.level, sheet.start, direction);
   return next.start > now ? null : next.start;
 }
 
