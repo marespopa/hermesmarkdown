@@ -38,6 +38,11 @@ The editor route (`page.tsx`) composes these:
 | `use-editor-paste-handlers.ts`, `use-scroll-to-pending-target.ts` | `MarkdownEditor` helpers: CSV-to-table confirm and image saving on paste; jump-to-line requests (`atom_pendingScrollTarget`; the caret goes to the optional `column`). |
 | `use-fade-chrome-while-typing.ts` | Hide interface while typing (`atom_hideChromeWhileTyping`): typing in an editor sets `<html data-chrome-faded>`, which fades every `.typing-chrome` element (pane header, sidebar, mobile file bar; `editor.scss`) and turns the pane, the canvas and the sheet's edge into one plain page (`.typing-page`); with the sidebar open, a single pane's text column slides left by up to half the sidebar's width (`--typing-shift`, set in `page.tsx`) so it centres on the window; moving the mouse over where the chrome sits (after 8px of travel; moving over the text leaves it hidden), or a tap or focus outside the editor, brings it back. |
 | `use-tab-drag-drop.ts` | Tab drag-and-drop between panes (`PaneLeaf`). |
+| `use-home-feed.ts` | The home feed's wiring plus the "Home feed", "Today's sheet" and rollup commands (`useRollupCommands`, disabled with its `vaultDisabledReason` option: "Open a vault first" / "Vault is loading"). Sheets open after `beforeSheetOpen`: the feed closes and a draft with text is saved. |
+| `use-quick-jot.ts` | Appends a jot to today's sheet (`ensureTodayNote`, then `useNoteBuffer#writeThrough`: disk wins, an open tab's buffer is updated and saved). One jot at a time. |
+| `use-rollups.ts` | `openRollup({ kind, offset }, now?)`: a weekly (`2026-W41.md`) or monthly (`2026-10.md`) sheet, found by name anywhere and opened as is, else generated (`app/utils/rollup/`), written with `writeNewNote` in the Daily Sheets folder for the week's Thursday / the month's 1st (`resolveSheetFolder`) and opened with the caret under `## Notes`. `refreshRollup(path)`: regenerates only the region between the rollup markers through `writeThrough` (open tab's buffer, no conflict prompt); toasts `Rollup refreshed`, `Rollup is up to date`, or the missing-markers error. |
+| `use-rollup-sources.ts` | `loadSources(period)`: the period's daily sheets (`pickDailySheets`, by file name anywhere, skipping `.hermes/` and templates) read with `readCurrentText` (a fresh handle; an open tab as it shows after reconciling), plus, for a month, the Notes of its weekly sheets (`extractNotes`); counts unreadable daily sheets and whether any source is sensitive. `preferredFolder(date)`: the Daily Sheets folder for a date. |
+| `use-rollup-commands.ts` | Registers This week's / Last week's / This month's / Last month's sheet (Navigation) and, only while the active tab is a weekly or monthly sheet, Refresh rollup (Document). No shortcuts. |
 | `useAIEditorActions.ts` + `ai-action-prompts.ts` | AI Chat state and the one-click AI actions (prompt table keyed by action id). |
 
 ## Interactions
@@ -83,6 +88,7 @@ There's one mode: the note is always editable, and Markdown syntax stays out of 
 - **Nested list items** have their leading indent drawn 0.75em per column (`cm-listIndent`), caret or not, so Tab's two or three spaces show as a clear indent step rather than one space's width.
 - **Left alone**: callouts (they keep their own styling), task items, ordered lists, fenced code, tables, setext headings and frontmatter.
 - **Unfocused editors** reveal nothing, so an unfocused split pane reads clean.
+- **Rollup markers** (`codemirror/rollup-markers.ts`, its own `ViewPlugin`): a weekly or monthly sheet's `<!-- rollup:start … -->` / `<!-- rollup:end -->` lines show as a hairline rule (the start line with a faint caption, "Generated · Refresh rollup rewrites this part") unless the caret is on them; then the raw comment shows, faint and small (`cm-rollupMarker`). Other HTML comments are left alone.
 
 ## Rendered blocks (Mermaid and math)
 

@@ -25,11 +25,16 @@ export function todayNoteHeading(now: Date): string {
   return now.toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric", year: "numeric" });
 }
 
-// The vault path of today's sheet, or null when there is none yet:
-// `<folder>/<date>.md` when it exists, else any other note with that file
-// name (sheets made before the folder changed), the shallowest path first.
+// The vault path of today's sheet, or null when there is none yet.
 export function findTodayNote(paths: Iterable<string>, now: Date, folder = ""): string | null {
-  const fileName = `${todayNoteName(now)}.md`;
+  return findSheetByName(paths, `${todayNoteName(now)}.md`, folder);
+}
+
+// The vault path of a sheet by file name (`2026-10-09.md`, `2026-W41.md`), or
+// null: `<folder>/<fileName>` when it exists, else any other note with that
+// file name (sheets made before the folder changed), the shallowest path
+// first, then by path.
+export function findSheetByName(paths: Iterable<string>, fileName: string, folder = ""): string | null {
   const preferred = folder ? `${folder}/${fileName}` : fileName;
   let best: string | null = null;
   for (const path of paths) {

@@ -3,6 +3,30 @@ import { describe, it, expect } from "vitest";
 import { extractTasks, patchLineInContent } from "./taskExtractor";
 
 describe("extractTasks", () => {
+  it("treats #blocked as a status tag, like #hold", () => {
+    const [task] = extractTasks("note.md", "- [ ] Deploy billing #blocked\n");
+    expect(task.onHold).toBe(true);
+    expect(task.tags).not.toContain("blocked");
+    expect(task.text).toBe("Deploy billing");
+  });
+
+  it("strips (#blocked) without leaving empty parens", () => {
+    const [task] = extractTasks("note.md", "- [ ] Deploy billing (#blocked) #infra\n");
+    expect(task.text).toBe("Deploy billing");
+    expect(task.tags).toEqual(["infra"]);
+  });
+
+  it("doesn't read #blockedby as a status tag", () => {
+    const [task] = extractTasks("note.md", "- [ ] Review spec #blockedby\n");
+    expect(task.onHold).toBe(false);
+    expect(task.tags).toEqual(["blockedby"]);
+  });
+
+  it("never puts a checked #blocked task on hold", () => {
+    const [task] = extractTasks("note.md", "- [x] Deploy billing #blocked\n");
+    expect(task.onHold).toBe(false);
+  });
+
   it("finds plain checklist items with no metadata", () => {
     const content = "- [ ] Plain task\n- [x] Done task\n";
     const tasks = extractTasks("note.md", content);

@@ -484,3 +484,33 @@ describe("openTodayNote", () => {
     });
   });
 });
+
+describe("resolveSheetFolder", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    localStorage.clear();
+  });
+
+  it("asks for the pattern once, then expands it for the anchor date", async () => {
+    dialog.prompt.mockResolvedValue("journal/{{year}}/{{month}}");
+    const { store, flows } = await setup({ templates: {} });
+    let folder: string | null = null;
+    await act(async () => { folder = await flows.resolveSheetFolder(new Date(2026, 11, 31), "Weekly sheet"); });
+    expect(dialog.prompt).toHaveBeenCalledWith(expect.any(String), "journal/{{year}}", "Weekly sheet");
+    expect(store.get(atom_todayFolder)).toBe("journal/{{year}}/{{month}}");
+    expect(folder).toBe("journal/2026/12");
+
+    await act(async () => { folder = await flows.resolveSheetFolder(new Date(2026, 9, 1)); });
+    expect(dialog.prompt).toHaveBeenCalledTimes(1);
+    expect(folder).toBe("journal/2026/10");
+  });
+
+  it("is null when the prompt is cancelled", async () => {
+    dialog.prompt.mockResolvedValue(null);
+    const { store, flows } = await setup({ templates: {} });
+    let folder: string | null = "unset";
+    await act(async () => { folder = await flows.resolveSheetFolder(new Date(2026, 9, 1)); });
+    expect(folder).toBeNull();
+    expect(store.get(atom_todayFolder)).toBeNull();
+  });
+});

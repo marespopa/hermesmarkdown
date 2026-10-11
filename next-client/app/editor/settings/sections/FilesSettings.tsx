@@ -50,7 +50,7 @@ export default function FilesSettings() {
         />
         <SettingItem
           label="Daily Sheets Folder"
-          description="Where Home's Today row and Quick jot create today's sheet (2026-10-09.md). {{year}} and {{month}} make a folder per year or month, e.g. journal/{{year}}. Leave empty for the vault root."
+          description="Where Home's Today row and Quick jot create today's sheet (2026-10-09.md); weekly (2026-W41.md) and monthly (2026-10.md) sheets go here too. {{year}} and {{month}} make a folder per year or month, e.g. journal/{{year}}. Leave empty for the vault root."
           control={
             <BareInput
               value={todayFolder ?? ""}

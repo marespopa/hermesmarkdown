@@ -6,7 +6,7 @@ export interface TaskItem {
   line: number; // 0-indexed
   checked: boolean;
   inProgress: boolean; // unchecked task tagged #prog
-  onHold: boolean; // unchecked task tagged #hold
+  onHold: boolean; // unchecked task tagged #hold or #blocked (and not in progress)
   dueDate: string | null; // from @due(YYYY-MM-DD), verbatim string
   priority: TaskPriority | null; // from @priority(high|med|low)
   tags: string[]; // non-status #tags, lowercase, de-duplicated, in appearance order
@@ -17,16 +17,16 @@ export interface TaskItem {
 
 export const REGEX_TASK_LINE = /^(\s*[-*]\s*\[)([ xX/])(\]\s*)(.*)$/;
 export const REGEX_TASK_PROG = /#prog\b/i;
-export const REGEX_TASK_HOLD = /#hold\b/i;
+export const REGEX_TASK_HOLD = /#(?:hold|blocked)\b/i;
 export const REGEX_TASK_DUE = /@due\(\s*([^)]+?)\s*\)/i;
 export const REGEX_TASK_PRIORITY = /@priority\(\s*(high|med|low)\s*\)/i;
-const STATUS_TAG_NAMES = new Set(["todo", "prog", "hold", "done"]);
+const STATUS_TAG_NAMES = new Set(["todo", "prog", "hold", "blocked", "done"]);
 const REGEX_TASK_TAG = /#([a-z][\w-]*)/gi;
 // Strips @due()/@priority() metadata plus every #tag (status and custom
 // alike — custom tags are surfaced separately as pills, not left inline) from
 // the displayed text. Also swallows an enclosing pair of parens (e.g.
 // "(#todo)") so stripping doesn't leave a bare "()" behind.
-const REGEX_TASK_CLEANUP = /@(?:due|priority)\([^)]*\)|\(\s*#(?:todo|prog|hold|done)\s*\)|#[a-z][\w-]*/gi;
+const REGEX_TASK_CLEANUP = /@(?:due|priority)\([^)]*\)|\(\s*#(?:todo|prog|hold|blocked|done)\s*\)|#[a-z][\w-]*/gi;
 
 export function simpleHash(s: string): string {
   let h = 0;

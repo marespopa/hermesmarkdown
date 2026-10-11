@@ -182,6 +182,24 @@ export function useTemplateCreate({ scanVault, indexVaultTags, openFile }: UseTe
     await writeNewNote(folder, baseName, result.expanded, { unique: true });
   }, [store, dialog, pickTemplate, readOrReport, instantiate, writeNewNote]);
 
+  // The Daily Sheets folder for `date` (`{{year}}` / `{{month}}` expanded,
+  // normalized), asking for the pattern the first time; `title` heads that
+  // prompt. Null when it was cancelled.
+  const resolveSheetFolder = useCallback(async (date: Date, title = "Today's sheet"): Promise<string | null> => {
+    let pattern = store.get(atom_todayFolder);
+    if (pattern === null) {
+      const answer = await dialog.prompt(
+        "Folder for daily sheets. {{year}} and {{month}} make one per year or month; leave empty for the vault root. Change it later in Settings → Files.",
+        DEFAULT_TODAY_FOLDER,
+        title,
+      );
+      if (answer === null || answer === undefined) return null;
+      pattern = normalizeFolderPath(String(answer));
+      store.set(atom_todayFolder, pattern);
+    }
+    return normalizeFolderPath(resolveTodayFolder(pattern, date));
+  }, [store, dialog]);
+
   // Today's worklog sheet (`<date>.md`): found in the index (in the Daily
   // Sheets folder, else anywhere), otherwise created in that folder — asked
   // for the first time, with `{{year}}` / `{{month}}` allowed — from a
@@ -191,29 +209,19 @@ export function useTemplateCreate({ scanVault, indexVaultTags, openFile }: UseTe
   // exist. Null when a prompt was cancelled or the write failed.
   const resolveTodayNote = useCallback(async (now: Date, open: boolean) => {
     if (!store.get(atom_vaultHandle)) return null;
-    let pattern = store.get(atom_todayFolder);
-    const folderFor = (value: string | null) =>
-      normalizeFolderPath(value === null ? store.get(atom_newNoteFolder) : resolveTodayFolder(value, now));
+    const pattern = store.get(atom_todayFolder);
+    const preferredFolder = normalizeFolderPath(pattern === null ? store.get(atom_newNoteFolder) : resolveTodayFolder(pattern, now));
     const baseName = todayNoteName(now);
     const text = `# ${todayNoteHeading(now)}\n\n`;
     const dated: ExpandedTemplate = { text, cursor: text.length };
-    const existingPath = findTodayNote(Object.keys(store.get(atom_fileMetadata)), now, folderFor(pattern));
+    const existingPath = findTodayNote(Object.keys(store.get(atom_fileMetadata)), now, preferredFolder);
     if (existingPath) {
       // Used as is; the dated sheet is only written if the file is gone.
       const folder = existingPath.split("/").slice(0, -1).join("/");
       return writeNewNote(folder, baseName, dated, { unique: false, open });
     }
-    if (pattern === null) {
-      const answer = await dialog.prompt(
-        "Folder for daily sheets. {{year}} and {{month}} make one per year or month; leave empty for the vault root. Change it later in Settings → Files.",
-        DEFAULT_TODAY_FOLDER,
-        "Today's sheet",
-      );
-      if (answer === null || answer === undefined) return null;
-      pattern = normalizeFolderPath(String(answer));
-      store.set(atom_todayFolder, pattern);
-    }
-    const folder = folderFor(pattern);
+    const folder = await resolveSheetFolder(now);
+    if (folder === null) return null;
     // The folder setting decides the path; a template only gives the body.
     const template = matchTemplateForName(baseName, store.get(atom_templates));
     if (template) {
@@ -224,7 +232,7 @@ export function useTemplateCreate({ scanVault, indexVaultTags, openFile }: UseTe
       return writeNewNote(folder, baseName, result.expanded, { unique: false, open });
     }
     return writeNewNote(folder, baseName, dated, { unique: false, open });
-  }, [store, dialog, readOrReport, instantiate, writeNewNote]);
+  }, [store, readOrReport, instantiate, writeNewNote, resolveSheetFolder]);
 
   const openTodayNote = useCallback(
     (now: Date = new Date()) => resolveTodayNote(now, true).then(() => undefined),
@@ -304,5 +312,14 @@ export function useTemplateCreate({ scanVault, indexVaultTags, openFile }: UseTe
     }
   }, [store, readOrReport, instantiate, scanVault, indexVaultTags]);
 
-  return { writeNewNote, createNoteFromMissingLink, createNoteFromTemplate, createTemplate, createLinkedNoteFromTemplate, openTodayNote, ensureTodayNote };
+  return {
+    writeNewNote,
+    resolveSheetFolder,
+    createNoteFromMissingLink,
+    createNoteFromTemplate,
+    createTemplate,
+    createLinkedNoteFromTemplate,
+    openTodayNote,
+    ensureTodayNote,
+  };
 }

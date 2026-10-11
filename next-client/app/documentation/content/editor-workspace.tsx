@@ -7,7 +7,7 @@ export const editorWorkspaceItems: Subsection[] = [
     title: "Tasks page",
     lead: "A vault-wide checklist — every checkbox task across every note, grouped by status or note.",
     keywords:
-      "task tasks checkbox todo prog hold done pane explorer aggregate due date priority tags filter",
+      "task tasks checkbox todo prog hold blocked done pane explorer aggregate due date priority tags filter",
     body: (
       <>
         <p>
@@ -18,14 +18,15 @@ export const editorWorkspaceItems: Subsection[] = [
             { label: "- [ ] task", value: "To Do" },
             { label: "- [ ] task #prog  /  - [/] task", value: "In Progress" },
             { label: "- [ ] task #hold", value: "On Hold" },
+            { label: "- [ ] task #blocked", value: "On Hold" },
             { label: "- [x] task", value: "Done" },
           ]}
         />
         <p>
           A task counts as In Progress when it's unchecked and either tagged <code>#prog</code>{" "}
           anywhere on the line or uses the <code>[/]</code> checkbox marker. It counts as On Hold
-          when it's unchecked and tagged <code>#hold</code>. The <code>#prog</code>/<code>#hold</code>{" "}
-          tags — along with <code>#todo</code> and <code>#done</code>, which are purely cosmetic — are
+          when it's unchecked and tagged <code>#hold</code> or <code>#blocked</code>. The{" "}
+          <code>#prog</code>/<code>#hold</code>/<code>#blocked</code> tags — along with <code>#todo</code> and <code>#done</code>, which are purely cosmetic — are
           stripped from the text shown on the page.
         </p>
         <p>
@@ -241,6 +242,9 @@ tags: []
         <KV
           rows={[
             { label: "Home feed", value: "Your recent notes" },
+            { label: "This week's / Last week's sheet", value: "Open or create a weekly rollup" },
+            { label: "This month's / Last month's sheet", value: "Open or create a monthly rollup" },
+            { label: "Refresh rollup", value: "Only on a weekly or monthly sheet" },
             { label: "Open Explorer", value: "CTRL/CMD+SHIFT+E" },
             { label: "Open Tasks", value: "—" },
             { label: "Panes", value: "Open in pane, split down, next/previous, close" },

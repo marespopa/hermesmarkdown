@@ -19,7 +19,7 @@ Description: A one-line input over the current view that appends a line to the e
 
 ## Dependencies
 - Core: `OverlayPanel` (modal, transparent backdrop, focus trap and focus restore), `BareInput`, `Button`, `showActionToast` / `showErrorToast`.
-- Hooks: `useQuickJot` (`editor/hooks/use-quick-jot.ts`: format, ensure today's sheet, reconcile an open tab with disk, append, save, reindex; one jot at a time) and `useQuickJotEntry` (`editor/hooks/use-quick-jot-entry.ts`: the palette command and the window shortcut listener, `isQuickJotShortcut` in `editor/utils/tab-shortcuts.ts`).
+- Hooks: `useQuickJot` (`editor/hooks/use-quick-jot.ts`: format, ensure today's sheet, then `useNoteBuffer#writeThrough` to reconcile an open tab with disk, append and save; reindex; one jot at a time) and `useQuickJotEntry` (`editor/hooks/use-quick-jot-entry.ts`: the palette command and the window shortcut listener, `isQuickJotShortcut` in `editor/utils/tab-shortcuts.ts`).
 - Line format and append: `app/utils/quick-jot.ts` (`formatJotLine`, `appendJotLine`, `jotTime`).
 - Zero-Cloud: no network or telemetry side effects.
 
