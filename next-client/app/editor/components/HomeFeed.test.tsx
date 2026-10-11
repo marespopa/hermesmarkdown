@@ -572,6 +572,37 @@ describe("HomeFeed worklog", () => {
     expect(screen.queryByText("Start today's sheet")).not.toBeInTheDocument();
   });
 
+  it("offers Quick jot in the Today row's menu only, before and after the sheet exists", () => {
+    const onQuickJot = vi.fn();
+    const handlers = { onOpenNote: vi.fn(), onNewNote: vi.fn(), onSearch: vi.fn(), onClose: vi.fn(), onOpenToday: vi.fn(), onQuickJot };
+    const { unmount } = render(
+      <Provider>
+        <Hydrate metadata={NOTES}>
+          <HomeFeed {...handlers} />
+        </Hydrate>
+      </Provider>,
+    );
+    fireEvent.contextMenu(screen.getByRole("button", { name: "Start today's sheet" }), { clientX: 40, clientY: 80 });
+    fireEvent.click(screen.getByRole("menuitem", { name: "Quick jot" }));
+    expect(onQuickJot).toHaveBeenCalledTimes(1);
+
+    fireEvent.contextMenu(screen.getByRole("button", { name: "old" }), { clientX: 40, clientY: 80 });
+    expect(screen.queryByRole("menuitem", { name: "Quick jot" })).not.toBeInTheDocument();
+    unmount();
+
+    render(
+      <Provider>
+        <Hydrate metadata={{ ...NOTES, [sheet]: meta(sheet, 10) }}>
+          <HomeFeed {...handlers} />
+        </Hydrate>
+      </Provider>,
+    );
+    const title = sheet.replace(/\.md$/, "");
+    fireEvent.contextMenu(screen.getByRole("button", { name: `${title}, today's sheet` }), { clientX: 40, clientY: 80 });
+    fireEvent.click(screen.getByRole("menuitem", { name: "Quick jot" }));
+    expect(onQuickJot).toHaveBeenCalledTimes(2);
+  });
+
   it("lists open tasks and opens one at its line", () => {
     const { onOpenTask } = renderWorklog({ "log.md": withTasks("log.md", "# Log\n- [x] shipped\n- [ ] write the review") });
     const tasks = screen.getByRole("region", { name: "Open tasks" });

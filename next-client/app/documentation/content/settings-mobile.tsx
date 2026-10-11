@@ -45,6 +45,7 @@ export const settingsGroup: Group = {
             rows={[
               { label: "New Notes Folder", value: "Empty = vault root, or a folder like inbox" },
               { label: "Daily Sheets Folder", value: "Where Today's sheet goes, e.g. journal/{{year}}" },
+              { label: "Time on Quick Jots", value: "Start each quick jot with the time, like - 14:20 …" },
               { label: "Templates Folder", value: "Per vault. Empty = templates, _templates or Templates" },
             ]}
           />

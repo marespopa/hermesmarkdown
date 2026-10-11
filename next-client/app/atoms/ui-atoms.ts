@@ -240,6 +240,10 @@ export const atom_homePins = atomWithStorage<Record<string, string[]>>("hermes_h
 // Where today's worklog sheet goes (`{{year}}` / `{{month}}` allowed; ""
 // = vault root). null until asked, on the first "Start today's sheet".
 export const atom_todayFolder = atomWithStorage<string | null>("hermes_today_folder", null);
+// Quick jot input: open flag and the text kept across an accidental close.
+export const atom_quickJot = atom<{ open: boolean; text: string }>({ open: false, text: "" });
+// Quick jots start with the local time (`- 14:20 …`).
+export const atom_jotTimePrefix = atomWithStorage<boolean>("hermes_jot_time_prefix", false);
 export const atom_homeTasksCollapsed = atomWithStorage<boolean>("hermes_home_tasks_collapsed", false);
 export const atom_repurposeWizardOpen = atom<boolean>(false);
 

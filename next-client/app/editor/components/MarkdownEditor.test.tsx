@@ -368,4 +368,26 @@ describe("MarkdownEditor", () => {
     );
     await waitFor(() => expect(container.querySelector(".cm-content")?.textContent).toContain("second"));
   });
+
+  it("keeps the selection in place when a line is appended from outside (Quick jot)", async () => {
+    const { container, rerender } = renderEditor("# Day\nnotes\n");
+    await waitForEditor(container);
+    const view = getView(container);
+    act(() => {
+      view.dispatch({ selection: { anchor: 2, head: 5 } });
+    });
+    // Same tree as renderEditor, so the editor (and its view) stays mounted.
+    rerender(
+      <Provider>
+        <Hydrate pendingScrollTarget={null}>
+          <MarkdownEditor value={"# Day\nnotes\n- a\n"} onChange={mockOnChange} />
+          <ActiveEditorObserver />
+        </Hydrate>
+      </Provider>,
+    );
+    expect(getView(container)).toBe(view);
+    await waitFor(() => expect(view.state.doc.toString()).toBe("# Day\nnotes\n- a\n"));
+    expect(view.state.selection.main.anchor).toBe(2);
+    expect(view.state.selection.main.head).toBe(5);
+  });
 });

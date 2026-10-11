@@ -1,7 +1,7 @@
 "use client";
 
 import React, { forwardRef, useState } from "react";
-import { HiOutlineDocumentText, HiOutlinePlus } from "react-icons/hi";
+import { HiOutlineDocumentText, HiOutlinePencil, HiOutlinePlus } from "react-icons/hi";
 import { TbPinned, TbPinnedFilled } from "react-icons/tb";
 import Button from "@/app/components/Button";
 import SensitiveBadge from "@/app/components/SensitiveBadge";
@@ -16,6 +16,8 @@ interface FeedRowProps {
   onHover: () => void;
   /** Pins the note to the top of the feed, or unpins it. */
   onTogglePin: () => void;
+  /** Today's row only: opens Quick jot from the row's menu. */
+  onQuickJot?: () => void;
 }
 
 const PREVIEW_CLASS = "mt-1 line-clamp-3 block text-ui-subhead leading-relaxed text-fg-muted";
@@ -53,16 +55,18 @@ function FeedPreview({ entry }: { entry: FeedEntry }) {
 // title, a few lines of plain-text preview (masked or blurred for sensitive
 // notes) and the file name in small, faint type. The pin button shows on
 // hover, keyboard focus or selection, and not at all on touch-only screens,
-// where a long press opens the row's menu (Open, Pin / Unpin) instead; a
-// right-click or the context-menu key opens it everywhere. "Touch-only" is
-// `any-hover: none`: `hover: none` only reads the primary pointer, so it
-// also hid the pin from a mouse on a tablet or phone. Today's sheet carries
+// where a long press opens the row's menu (Open, Pin / Unpin, and Quick jot
+// on today's row) instead; a right-click or the context-menu key opens it
+// everywhere. "Touch-only" is `any-hover: none`: `hover: none` only reads
+// the primary pointer, so it also hid the pin from a mouse on a tablet or
+// phone. Today's sheet carries
 // the header's accent dot; before it exists its row reads "Start today's
 // sheet" in muted type, with no pin.
 const FeedRow = forwardRef<HTMLDivElement, FeedRowProps>(function FeedRow(
-  { entry, isSelected, onOpen, onHover, onTogglePin },
+  { entry, isSelected, onOpen, onHover, onTogglePin, onQuickJot },
   ref,
 ) {
+  const jotItem = onQuickJot ? [{ label: "Quick jot", icon: <HiOutlinePencil size={15} />, onClick: onQuickJot }] : [];
   const pinLabel = entry.isPinned ? "Unpin from Home" : "Pin to Home";
   const isMissing = entry.todaySheet === "missing";
   const [menu, setMenu] = useState<{ x: number; y: number } | null>(null);
@@ -135,9 +139,10 @@ const FeedRow = forwardRef<HTMLDivElement, FeedRowProps>(function FeedRow(
           label={entry.title}
           onClose={() => setMenu(null)}
           items={isMissing
-            ? [{ label: "Start", icon: <HiOutlinePlus size={15} />, onClick: onOpen }]
+            ? [{ label: "Start", icon: <HiOutlinePlus size={15} />, onClick: onOpen }, ...jotItem]
             : [
                 { label: "Open", icon: <HiOutlineDocumentText size={15} />, onClick: onOpen },
+                ...jotItem,
                 {
                   label: pinLabel,
                   icon: entry.isPinned ? <TbPinnedFilled size={15} /> : <TbPinned size={15} />,

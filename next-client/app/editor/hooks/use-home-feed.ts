@@ -10,7 +10,7 @@ import {
   EMPTY_DRAFT,
 } from "@/app/atoms/atoms";
 import { atom_fileMetadata } from "@/app/atoms/metadata";
-import { atom_goHome, atom_homeFeedOpen } from "@/app/atoms/ui-atoms";
+import { atom_goHome, atom_homeFeedOpen, atom_quickJot } from "@/app/atoms/ui-atoms";
 import { useCommandPalette, useRegisterCommand } from "@/app/components/CommandPalette/CommandPaletteContext";
 import type { MaterializeDraftOptions } from "./use-materialize-draft";
 import { useHomeFeedUrlSync } from "./use-home-feed-url";
@@ -125,6 +125,8 @@ export function useHomeFeed({ hasVault, openFile, newNote, materializeDraft, imp
       onOpenFile: () => void openDeviceFile(),
       onOpenToday: () => void openToday(),
       onOpenTask: (path: string, line: number) => void openTask(path, line),
+      // The Today row's "Quick jot" (touch entry point); only with a vault.
+      onQuickJot: hasVault ? () => store.set(atom_quickJot, (s) => ({ ...s, open: true })) : undefined,
     },
   };
 }

@@ -24,7 +24,7 @@ import MarkdownEditor from "./MarkdownEditor";
 ## Props Overview
 | Prop | Type | Default | Description |
 |---|---|---|---|
-| value | `string` |  | Document text |
+| value | `string` |  | Document text. A change from outside the editor (a reload, a Quick jot appended to this note) is applied as the one changed range (`changedRange` in `utils/text-diff.ts`), so the selection, scroll and undo history map through it |
 | onChange | `(value: string) => void` |  | Change handler |
 | filePath? | `string` | `"draft"` | Vault path (for image paste, scroll targets and formula refs) |
 | placeholder? | `string` | `"Type / for templates"` | Empty-state text |
