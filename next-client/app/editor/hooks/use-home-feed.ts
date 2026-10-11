@@ -14,6 +14,7 @@ import { atom_goHome, atom_homeFeedOpen, atom_quickJot } from "@/app/atoms/ui-at
 import { useCommandPalette, useRegisterCommand } from "@/app/components/CommandPalette/CommandPaletteContext";
 import type { MaterializeDraftOptions } from "./use-materialize-draft";
 import { useHomeFeedUrlSync } from "./use-home-feed-url";
+import { useRollupCommands } from "./use-rollup-commands";
 
 interface UseHomeFeedOptions {
   hasVault: boolean;
@@ -24,15 +25,20 @@ interface UseHomeFeedOptions {
   importFile: () => Promise<void>;
   /** Opens today's worklog sheet, creating it when it doesn't exist. */
   openTodayNote: () => Promise<void>;
+  /** Why the rollup commands can't run ("Open a vault first", "Vault is loading"). */
+  vaultDisabledReason?: string;
 }
 
 // Wires the home feed into the editor page: open/close state, row opening,
 // the new-note button, the "Today" row, the open tasks, the palette's
-// "Create '…'" row and the "Home feed" and "Today's sheet" commands. Opening any file (openFile, from anywhere) closes the feed. The
+// "Create '…'" row, the "Home feed" and "Today's sheet" commands, and the
+// weekly / monthly rollup commands (useRollupCommands), which close the feed
+// and save a draft first like Today's sheet. Opening any file (openFile, from
+// anywhere) closes the feed. The
 // open state is mirrored in the URL as `?view=home` (useHomeFeedUrlSync).
 // With no vault open the feed is still reachable; it offers the vault
 // actions and ways to start writing instead of notes.
-export function useHomeFeed({ hasVault, openFile, newNote, materializeDraft, importFile, openTodayNote }: UseHomeFeedOptions) {
+export function useHomeFeed({ hasVault, openFile, newNote, materializeDraft, importFile, openTodayNote, vaultDisabledReason }: UseHomeFeedOptions) {
   const store = useStore();
   const [isOpen, setIsOpen] = useAtom(atom_homeFeedOpen);
   const goHome = useSetAtom(atom_goHome);
@@ -56,11 +62,16 @@ export function useHomeFeed({ hasVault, openFile, newNote, materializeDraft, imp
     setPendingScrollTarget({ path, line: line + 1 });
   }, [openNote, setPendingScrollTarget]);
 
-  const openToday = useCallback(async () => {
+  // Before a worklog sheet opens: close the feed and save a draft with text.
+  const beforeSheetOpen = useCallback(async () => {
     setIsOpen(false);
     await materializeDraft(undefined, { background: true });
+  }, [materializeDraft, setIsOpen]);
+
+  const openToday = useCallback(async () => {
+    await beforeSheetOpen();
     await openTodayNote();
-  }, [materializeDraft, openTodayNote, setIsOpen]);
+  }, [beforeSheetOpen, openTodayNote]);
 
   const startNewNote = useCallback(async () => {
     setIsOpen(false);
@@ -112,6 +123,8 @@ export function useHomeFeed({ hasVault, openFile, newNote, materializeDraft, imp
     disabledReason: hasVault ? undefined : "Open a vault first",
     action: () => void openToday(),
   });
+
+  useRollupCommands({ disabledReason: vaultDisabledReason, beforeOpen: beforeSheetOpen });
 
   return {
     isHomeFeedOpen: isOpen,

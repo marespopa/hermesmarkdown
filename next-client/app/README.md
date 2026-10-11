@@ -22,7 +22,7 @@ This directory contains the core logic and routing for the HermesMarkdown Markdo
 - `editor/`: The main editor application: CodeMirror extensions, components, hooks, settings, Explorer (`files/`) and Tasks (`tasks/`) pages.
 - `hooks/`: Custom React hooks, notably `useFileSystem` for local file access.
 - `services/`: AI, GitHub vault, and IndexedDB services.
-- `utils/`: Shared helpers (frontmatter parsing, task extraction, workspace queries, image paste, platform detection).
+- `utils/`: Shared helpers (frontmatter parsing, task extraction, workspace queries, image paste, platform detection). `utils/rollup/` is the weekly / monthly rollup engine (see its README).
 - `workers/`: Web worker that indexes vault metadata off the main thread.
 - `types/`: Shared TypeScript types.
 - `tools/`: Free tool pages (`/tools`: table generator, Mermaid in Markdown, AI tokenizer) that hand their result to the editor's draft; see `tools/README.md`.

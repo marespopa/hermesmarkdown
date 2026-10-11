@@ -11,7 +11,8 @@ const DB_NAME = "HermesMDMetadataCache";
 const STORE_NAME = "vaults";
 // Bump when the worker's output changes shape or meaning (e.g. the preview
 // rules), so stale entries are re-parsed instead of trusted.
-export const METADATA_CACHE_VERSION = 1;
+// 2: `#blocked` became a status tag (onHold, no longer a custom tag).
+export const METADATA_CACHE_VERSION = 2;
 
 export type CachedMetadata = Omit<FileMetadata, "handle">;
 

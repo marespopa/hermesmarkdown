@@ -215,6 +215,7 @@ export default function LiteEditor() {
     materializeDraft,
     importFile: handleImport,
     openTodayNote: () => openTodayNote(),
+    vaultDisabledReason: isVaultLocked ? "Vault is loading" : !vaultHandle ? "Open a vault first" : undefined,
   });
 
   const handleNewAIFile = useGenerateAiNote({ vaultHandle, vaultFiles, chooseTargetDirectory, createFile });
