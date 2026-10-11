@@ -1,5 +1,5 @@
 ---
-state: new
+state: approved
 blocked_from:
 rejections: 0
 created: 2026-10-11T18:31:09Z

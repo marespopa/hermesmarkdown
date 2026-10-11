@@ -2,7 +2,9 @@
 
 Roadmap for the five-level review workflow: daily captures, weekly synthesis, monthly review, quarterly check, yearly retrospective. Each level is a plain Markdown note in the vault, built from the level below it. That gives local-first storage, zero latency, and a portable knowledge base you own.
 
-This file is the overview. The work itself is split into factory plans (`NNN-<slug>/brief.md`), each small enough to go through architect → engineer → review on its own.
+This file is the overview. The work itself is split into factory plans (`NNN-<slug>/brief.md`).
+
+**Status (2026-10-11):** trimmed to three plans, 008, 011 and 012, which cover the requested workflow. All three are built for the 6.8.0 release. 009 and 010 are extras and are parked (`blocked`, see their `blocked.md`).
 
 ## What already ships
 

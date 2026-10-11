@@ -1,6 +1,6 @@
 ---
-state: new
-blocked_from:
+state: blocked
+blocked_from: new
 rejections: 0
 created: 2026-10-11T18:31:10Z
 ---
