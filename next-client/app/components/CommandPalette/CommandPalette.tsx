@@ -24,6 +24,9 @@ import { usePaletteContentSearch } from "./use-palette-content-search";
 import { usePaletteFiles } from "./use-palette-files";
 import { buildCreateRow, buildTaskRows, SEARCH_OR_CREATE_PLACEHOLDER, COMMAND_MODE_DEFAULT_ORDER, MAX_PINS, MAX_VISIBLE_ROWS, pinnedKey, type Row, type Scope, scopeFromPrefix, scopePrefix, type TaggedFileMatch, THEME_CYCLE } from "./palette-model";
 
+// The command that opens today's sheet (registered by useHomeFeed).
+const TODAY_COMMAND_ID = "open-today-note";
+
 export default function CommandPalette() {
   const { isOpen, initialQuery, close, commands, markUsed, createNote, isMorphing } = useCommandPalette();
   const tasks = useAtomValue(atom_visibleTasks);
@@ -186,14 +189,17 @@ export default function CommandPalette() {
     if (query) return createRow ? [...fileRows.slice(0, MAX_VISIBLE_ROWS - 1), createRow] : fileRows;
     const pinned = pinnedItems.map(resolvePinned).filter((row): row is Row => row !== null);
     const pinnedKeys = new Set(pinnedItems.map(pinnedKey));
+    // Today's sheet always leads the list (with a vault), unless it's pinned.
+    const todayCommand = paletteCommands.find((command) => command.id === TODAY_COMMAND_ID && !command.disabledReason);
+    const today = todayCommand && !pinnedKeys.has(`command:${TODAY_COMMAND_ID}`) ? resolvePinned({ kind: "command", id: TODAY_COMMAND_ID }) : null;
     const recent = recentFilePaths.slice(0, 5).filter((path) => !pinnedKeys.has(`file:${path}`))
       .map((path) => resolvePinned({ kind: "file", id: path })).filter((row): row is Row => row !== null);
     const frequent = paletteCommands.slice().sort((a, b) => (commandUseCounts[b.id] ?? 0) - (commandUseCounts[a.id] ?? 0) || a.label.localeCompare(b.label))
-      .filter((command) => command.id !== explorerCommand.id && (commandUseCounts[command.id] ?? 0) > 0 && !pinnedKeys.has(`command:${command.id}`)).slice(0, 3)
+      .filter((command) => command.id !== explorerCommand.id && command.id !== TODAY_COMMAND_ID && (commandUseCounts[command.id] ?? 0) > 0 && !pinnedKeys.has(`command:${command.id}`)).slice(0, 3)
       .map((command) => resolvePinned({ kind: "command", id: command.id })).filter((row): row is Row => row !== null);
     const explorer = resolvePinned({ kind: "command", id: explorerCommand.id });
     const topActions = [explorer, ...frequent].filter((row): row is Row => row !== null && !pinnedKeys.has(pinnedKey({ kind: "command", id: row.id })));
-    return [...pinned, ...recent, ...topActions].slice(0, MAX_VISIBLE_ROWS);
+    return [...(today ? [today] : []), ...pinned, ...recent, ...topActions].slice(0, MAX_VISIBLE_ROWS);
   }, [commandUseCounts, contentSearch.rows, createRow, explorerCommand.id, fileRows, paletteCommands, pinnedItems, query, recentFilePaths, resolvePinned, scope, scopedRows]);
 
   useEffect(() => setSelectedIndex(0), [query, scope]);
