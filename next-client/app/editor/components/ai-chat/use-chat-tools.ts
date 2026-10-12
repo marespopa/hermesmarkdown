@@ -108,7 +108,7 @@ export function useChatTools() {
         const outcome = await addJot(line);
         if (outcome.result !== "added") break;
         added++;
-        sheet = outcome.sheetName;
+        sheet = outcome.sheetName ?? sheet;
       }
       const output = added === lines.length
         ? `Added ${added} line${added === 1 ? "" : "s"} to [[${sheet}]].`
