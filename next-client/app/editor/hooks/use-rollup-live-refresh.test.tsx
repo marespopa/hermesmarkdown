@@ -18,7 +18,10 @@ vi.mock("./use-rollups", () => ({ useRollups: () => ({ refreshRollup }) }));
 vi.mock("@/app/atoms/file-atoms", async () => {
   const { atom } = await import("jotai");
   const path = atom<string | null>(null);
-  return { atom_activeFilePath: atom((get) => get(path), (_get, set, value: string | null) => set(path, value)) };
+  return {
+    atom_activeFilePath: atom((get) => get(path), (_get, set, value: string | null) => set(path, value)),
+    atom_openFiles: atom<Record<string, { content: string }>>({}),
+  };
 });
 
 const vault = {} as FileSystemDirectoryHandle;
