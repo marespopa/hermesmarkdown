@@ -9,25 +9,54 @@ import { withRetry } from "@/app/hooks/file-system/shared";
 import { ensureVaultFolder } from "@/app/hooks/file-system/unique-file";
 import { useFileSystem } from "@/app/hooks/use-file-system";
 import { writeFileContent } from "@/app/services/file-writer";
+import { atom_fileMetadata } from "@/app/atoms/metadata";
+import { isTemplatePath } from "@/app/utils/templates/template-registry";
+import { weekPeriod } from "@/app/utils/rollup/period";
+import { useRollupSources } from "../../hooks/use-rollup-sources";
 import type { ChatMessage } from "./chat-helpers";
-import { isSkillActive, loadSkillInstructions, TEMPLATE_SKILL, type TemplateBlock } from "./chat-skills";
+import { CHAT_SKILLS, isSkillActive, loadSkillInstructions, type ChatSkill, type TemplateBlock } from "./chat-skills";
+import { openTasksBlock, reviewWeekOffset, weekDataBlock } from "./skill-context";
 
-// AI Chat side of the template skill: which skill text a turn sends, and
-// saving a reply's template block into the templates folder (only from the
-// user's explicit Save / Replace click).
+// AI Chat side of the chat skills: which skill text a turn sends (each active
+// skill's instructions, plus the data the weekly review and tasks skills
+// work from, read fresh each turn), and saving a reply's template block into
+// the templates folder (only from the user's explicit Save / Replace click).
 export function useChatSkills() {
   const store = useStore();
   const templates = useAtomValue(atom_templates);
   const { folder } = useAtomValue(atom_templatesFolder);
   const vaultHandle = useAtomValue(atom_vaultHandle);
   const { scanVault, indexVaultTags } = useFileSystem();
+  const { loadSources } = useRollupSources();
 
-  // Skill instructions for the next request, given the thread including the new user message.
+  // The data a skill works from, or "" for one that has none (templates).
+  const skillContext = useCallback(async (skill: ChatSkill, userTexts: string[]): Promise<string> => {
+    if (skill.id === "weekly-review") {
+      const asking = [...userTexts].reverse().find((text) => isSkillActive(skill, [text]));
+      const period = weekPeriod(new Date(), reviewWeekOffset(asking));
+      if (!store.get(atom_vaultHandle)) return weekDataBlock(period, []);
+      return weekDataBlock(period, (await loadSources(period)).sheets);
+    }
+    if (skill.id === "tasks") {
+      const templatesFolder = store.get(atom_templatesFolder).folder;
+      const skip = (path: string) => path.startsWith(".hermes/") || isTemplatePath(path, templatesFolder);
+      return openTasksBlock(store.get(atom_fileMetadata), new Date(), skip);
+    }
+    return "";
+  }, [store, loadSources]);
+
+  // Skill text for the next request, given the thread including the new user message.
   const skillInstructionsFor = useCallback(async (messages: ChatMessage[]): Promise<string[]> => {
     const userTexts = messages.filter((m) => m.role === "user").map((m) => m.displayContent);
-    if (!isSkillActive(TEMPLATE_SKILL, userTexts)) return [];
-    return [await loadSkillInstructions(TEMPLATE_SKILL, store.get(atom_vaultHandle))];
-  }, [store]);
+    const active = CHAT_SKILLS.filter((skill) => isSkillActive(skill, userTexts));
+    return Promise.all(active.map(async (skill) => {
+      const [instructions, context] = await Promise.all([
+        loadSkillInstructions(skill, store.get(atom_vaultHandle)),
+        skillContext(skill, userTexts),
+      ]);
+      return context ? `${instructions}\n\n${context}` : instructions;
+    }));
+  }, [store, skillContext]);
 
   const templateExists = useCallback(
     (fileName: string) => {

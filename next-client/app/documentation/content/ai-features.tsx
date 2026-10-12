@@ -114,6 +114,38 @@ export const aiFeaturesGroup: Group = {
       ),
     },
     {
+      id: "ai-weekly-review-tasks",
+      title: "Weekly review and tasks in AI Chat",
+      lead: "Ask AI Chat for a weekly review, or about your tasks, and it works from your own daily sheets and open tasks.",
+      keywords: "ai weekly review recap retro status report tasks todo action items plan day next skill review command",
+      body: (
+        <>
+          <p>
+            Ask for a <strong>weekly review</strong> (&ldquo;write my weekly review&rdquo;, &ldquo;recap
+            last week&rdquo;) or start a message with <code>/review</code>. The chat reads this
+            week&apos;s daily sheets, or last week&apos;s when you say so. It sees what got done, what
+            is blocked and what is still open, and drafts Highlights, Blocked, Carry over and Next
+            week. The draft links each day, ready to paste into the weekly sheet&apos;s Notes.
+          </p>
+          <p>
+            Mention <strong>tasks</strong>, to-dos or action items, or start with{" "}
+            <code>/tasks</code>, and the chat sees your open tasks: in progress, to do and on hold,
+            with their due dates, priorities and notes. Ask what to work on next, what&apos;s overdue,
+            or paste meeting notes and ask for tasks. You get task lines with real{" "}
+            <code>@due()</code> dates, worked out from today. The chat can&apos;t change your notes:
+            apply its lines yourself.
+          </p>
+          <Callout type="tip">
+            Private notes (marked sensitive or private) are never sent. Their tasks and daily sheets
+            are left out and only counted. To change how either skill writes, put your own
+            instructions in <code>.hermes/skills/weekly-review.md</code> or{" "}
+            <code>.hermes/skills/tasks.md</code>. The app still adds the week&apos;s data or the task
+            list.
+          </Callout>
+        </>
+      ),
+    },
+    {
       id: "ai-table-formulas",
       title: "AI & table formulas",
       lead: "The AI knows how table formulas work. It writes totals as live formulas and never replaces your formulas with numbers.",

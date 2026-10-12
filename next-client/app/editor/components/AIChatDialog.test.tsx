@@ -15,6 +15,8 @@ vi.mock("@/app/hooks/use-file-system", () => ({
   useFileSystem: () => ({ scanVault: vi.fn(), indexVaultTags: vi.fn() }),
 }));
 vi.mock("@/app/components/Toastr", () => ({ showErrorToast: vi.fn() }));
+const loadSources = vi.fn(async () => ({ sheets: [], childNotes: [], failed: 0, sensitive: false }));
+vi.mock("../hooks/use-rollup-sources", () => ({ useRollupSources: () => ({ loadSources, preferredFolder: vi.fn() }) }));
 
 function renderChat() {
   render(
@@ -52,5 +54,19 @@ describe("AIChatDialog template skill", () => {
     // The reply's block gets a save card; without a vault it can't save.
     expect(await screen.findByText("templates/rfc.md")).toBeInTheDocument();
     expect(screen.getByText("Open a vault to save")).toBeInTheDocument();
+  });
+});
+
+describe("AIChatDialog tasks skill", () => {
+  beforeEach(() => {
+    callAIChat.mockReset();
+  });
+
+  it("sends the open tasks with /tasks", async () => {
+    callAIChat.mockResolvedValueOnce("Start with the release notes.");
+    const input = renderChat();
+    await send(input, "/tasks what should I do first?");
+    expect(callAIChat.mock.calls[0][0]).toContain("Skill: work with the user's HermesMarkdown tasks.");
+    expect(callAIChat.mock.calls[0][0]).toContain("--- OPEN TASKS");
   });
 });
