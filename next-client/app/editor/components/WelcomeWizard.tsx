@@ -53,13 +53,6 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
     if (!hasStoredSize) setRenderedFontSize(ONBOARDING_TEXT_SIZE);
   }, [hasCompleted, setRenderedFontSize]);
 
-  // The vault step moves on by itself once a vault is connected.
-  useEffect(() => {
-    if (step === VAULT_STEP && vaultHandle) {
-      setStep(READY_STEP);
-    }
-  }, [step, vaultHandle, setStep]);
-
   // A step saved by an older, longer tour lands on the last step instead of
   // a blank one.
   useEffect(() => {
@@ -67,6 +60,15 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
   }, [step, setStep]);
 
   const showWizard = isMounted && (isWizardOpen || (!hasCompleted && !welcomeDeferred));
+
+  // The vault step moves on by itself once a vault is connected, only while
+  // the wizard shows: hidden, a connected vault would park the saved step on
+  // the last one.
+  useEffect(() => {
+    if (showWizard && step === VAULT_STEP && vaultHandle) {
+      setStep(READY_STEP);
+    }
+  }, [showWizard, step, vaultHandle, setStep]);
 
   // Finishing (or skipping) lands on the home feed when a vault is open,
   // whatever the "On vault open" setting says.
@@ -77,7 +79,11 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
     if (vaultHandle) setHomeFeedOpen(true);
   };
 
+  // Enter finishes the last step. Listens only while the wizard shows, so
+  // Enter in the editor (a menu pick, a new line) never finishes a hidden
+  // tour and opens the home feed.
   useEffect(() => {
+    if (!showWizard) return;
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key !== "Enter" || event.isComposing) return;
       const target = event.target;

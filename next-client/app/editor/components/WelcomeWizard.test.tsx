@@ -145,6 +145,33 @@ describe("WelcomeWizard", () => {
     expect(screen.queryByText("You're ready to write.")).not.toBeInTheDocument();
   });
 
+  it("ignores Enter once finished, so Enter in the editor never opens the home feed", () => {
+    render(
+      <TestProvider initialValues={[[atom_hasCompletedOnboarding, true], [atom_isWizardOpen, false], [atom_vaultHandle, { name: "TestVault" }]]}>
+        <WelcomeWizard initialStep={1} />
+        <HomeFeedValue />
+      </TestProvider>
+    );
+
+    const editor = document.createElement("div");
+    editor.contentEditable = "true";
+    document.body.appendChild(editor);
+    fireEvent.keyDown(editor, { key: "Enter" });
+
+    expect(screen.getByTestId("home-feed-value")).toHaveTextContent("false");
+    editor.remove();
+  });
+
+  it("keeps a hidden tour on the vault step when a vault connects", () => {
+    render(
+      <TestProvider initialValues={[[atom_hasCompletedOnboarding, true], [atom_isWizardOpen, false], [atom_vaultHandle, { name: "TestVault" }]]}>
+        <WelcomeWizard />
+      </TestProvider>
+    );
+
+    expect(window.localStorage.getItem("welcomeWizardStep") ?? "0").toBe("0");
+  });
+
   it("lets you skip the vault and just write", () => {
     render(
       <TestProvider initialValues={defaultInitialValues}>
