@@ -25,17 +25,17 @@ describe("BUILTIN_PACKS", () => {
     }
   });
 
-  it("names the Journal's dated notes by period, in journal/<year>", () => {
+  it("names the Journal's dated notes by period", () => {
     const journal = BUILTIN_PACKS.find((pack) => pack.name === "Journal")!;
     const routed = (name: string) => {
       const { routing } = splitTemplate(journal.templates.find((t) => t.name === name)!.body);
       expect(namesItsNote(routing.fileName)).toBe(true);
-      return [expandTemplate(routing.targetFolder!, ctx).text, expandTemplate(routing.fileName!, ctx).text];
+      return expandTemplate(routing.fileName!, ctx).text;
     };
-    expect(routed("Daily")).toEqual(["journal/2026", "2026-10-12"]);
-    expect(routed("Weekly")).toEqual(["journal/2026", "2026-W42"]);
-    expect(routed("Monthly")).toEqual(["journal/2026", "2026-10"]);
-    expect(routed("Yearly")).toEqual(["journal/2026", "2026-year"]);
+    expect(routed("Daily")).toBe("2026-10-12");
+    expect(routed("Weekly")).toBe("2026-W42");
+    expect(routed("Monthly")).toBe("2026-10");
+    expect(routed("Yearly")).toBe("2026-year");
   });
 });
 

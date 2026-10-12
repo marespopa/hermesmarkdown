@@ -64,8 +64,8 @@ export function buildDocumentVaultCommandGroups(context: EditorCommandContext) {
           label: "New note from template…",
           category: "Vault" as const,
           keywords: "create template note",
-          // Template picker + title prompt; the template's target_folder /
-          // file_name place and name the note.
+          // Template picker + title prompt; the note goes in the New Notes
+          // folder, named by the template's file_name when it has one.
           action: () => { void createNoteFromTemplate(); },
         },
         {

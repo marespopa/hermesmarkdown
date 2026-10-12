@@ -13,8 +13,8 @@ without changing the public props contract or command behavior.
   registration order.
 - `document-vault-commands.ts` defines document lifecycle, file operations, and
   vault commands, including `New note from template…` (with a vault open:
-  template picker, title prompt, then the template's `target_folder` /
-  `file_name` place and name the note) and `New template…` (with a vault open:
+  template picker, title prompt, then the note goes in the New Notes folder,
+  named by the template's `file_name` when it has one) and `New template…` (with a vault open:
   name prompt, then `<templates folder>/<name>.md` with a starter body, or the
   existing template of that name opened unchanged).
 - `editor-ai-commands.ts` defines editor formatting, templates and AI

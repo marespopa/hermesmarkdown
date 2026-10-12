@@ -54,8 +54,8 @@ function reportCreateError(err: any) {
 }
 
 // Note creation from templates: clicking a missing [[link]] (the link decides
-// the path) and the palette's "New note from template…" (the template's
-// target_folder / file_name decide). Also "New template…", which creates a
+// the path) and "New note from template…" (the folder it's asked from, else
+// the New Notes folder; the template's file_name may name it). Also "New template…", which creates a
 // template file with a starter body.
 export function useTemplateCreate({ scanVault, indexVaultTags, openFile }: UseTemplateCreateProps) {
   const store = useStore();
@@ -174,9 +174,8 @@ export function useTemplateCreate({ scanVault, indexVaultTags, openFile }: UseTe
   // `{{date}}` for a journal page) asks for no title, and opens that note
   // unchanged when it already exists. Otherwise the title is asked for and a
   // clash gets ` (1)`. `picked` skips the picker (the Templates page's
-  // Use). `folder` (a folder's "New Note from Template…" in a file list)
-  // puts the note there instead of the template's target_folder. True once
-  // the note is open.
+  // Use). The note goes in `folder` (a folder's "New Note from Template…" in
+  // a file list), else the New Notes folder. True once the note is open.
   const createNoteFromTemplate = useCallback(async (picked?: TemplateEntry, folder?: string): Promise<boolean> => {
     if (!store.get(atom_vaultHandle)) return false;
     const chosen = picked ?? (await pickTemplate({ includeBlank: false, title: "New note from template" }));
@@ -191,9 +190,7 @@ export function useTemplateCreate({ scanVault, indexVaultTags, openFile }: UseTe
     }
     const result = await instantiate(raw, title, "Create", "", { titleFromFileName: named });
     if (!result) return false;
-    const target = normalizeFolderPath(folder ?? "")
-      || normalizeFolderPath(result.routing.targetFolder ?? "")
-      || normalizeFolderPath(store.get(atom_newNoteFolder));
+    const target = normalizeFolderPath(folder ?? "") || normalizeFolderPath(store.get(atom_newNoteFolder));
     const baseName = sanitizeNoteName(result.routing.fileName || title);
     return (await writeNewNote(target, baseName, result.expanded, { unique: !named })) !== null;
   }, [store, dialog, pickTemplate, readOrReport, instantiate, writeNewNote]);
@@ -238,8 +235,8 @@ export function useTemplateCreate({ scanVault, indexVaultTags, openFile }: UseTe
 
   // The WikiLink dialog's "From template": creates the linked note from
   // `entry` and returns its link path (no `.md`), or null. The name decides the
-  // note's name and, with a folder in it, the folder; otherwise the template's
-  // target_folder, else the New Notes folder. A clash gets ` (1)`, and the
+  // note's name and, with a folder in it, the folder; otherwise the New
+  // Notes folder. A clash gets ` (1)`, and the
   // link follows. The note isn't opened, like "Create and link".
   const createLinkedNoteFromTemplate = useCallback(async (name: string, entry: TemplateEntry): Promise<string | null> => {
     const vaultHandle = store.get(atom_vaultHandle);
@@ -253,8 +250,7 @@ export function useTemplateCreate({ scanVault, indexVaultTags, openFile }: UseTe
     if (raw === null) return null;
     const result = await instantiate(raw, parsed.baseName, "Create");
     if (!result) return null;
-    const folder = parsed.folder
-      ?? (normalizeFolderPath(result.routing.targetFolder ?? "") || normalizeFolderPath(store.get(atom_newNoteFolder)));
+    const folder = parsed.folder ?? normalizeFolderPath(store.get(atom_newNoteFolder));
     try {
       const dir = await ensureVaultFolder(vaultHandle, folder);
       const { handle, fileName } = await createUniqueFile(dir, parsed.baseName);

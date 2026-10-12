@@ -4,7 +4,7 @@ import { TEMPLATE_TOKENS } from "./template-tokens";
 
 describe("lintTemplate", () => {
   it("returns no warnings for a clean template", () => {
-    const raw = "---\ntarget_folder: rfcs\nfile_name: rfc-{{date}}\n---\n# {{title}}\nOwner: {{prompt:Owner}}\n{{cursor}}\n";
+    const raw = "---\nfile_name: rfc-{{date}}\n---\n# {{title}}\nOwner: {{prompt:Owner}}\n{{cursor}}\n";
     expect(lintTemplate(raw)).toEqual([]);
   });
 
@@ -31,19 +31,23 @@ describe("lintTemplate", () => {
   });
 
   it("warns about misspelled routing keys", () => {
-    const warnings = lintTemplate("---\ntarget-folder: rfcs\nfilename: x\n---\nBody");
-    expect(warnings).toEqual([
-      expect.stringContaining('"target-folder" should be spelled "target_folder"'),
+    expect(lintTemplate("---\nfilename: x\n---\nBody")).toEqual([
       expect.stringContaining('"filename" should be spelled "file_name"'),
+    ]);
+  });
+
+  it("says target_folder is no longer used", () => {
+    expect(lintTemplate("---\ntarget_folder: rfcs\n---\nBody")).toEqual([
+      expect.stringContaining('"target_folder" is no longer used'),
     ]);
   });
 });
 
 describe("TEMPLATE_SYNTAX_GUIDE", () => {
-  it("documents every token and both routing keys", () => {
+  it("documents every token and file_name, not target_folder", () => {
     for (const token of TEMPLATE_TOKENS) expect(TEMPLATE_SYNTAX_GUIDE).toContain(`{{${token}}}`);
     expect(TEMPLATE_SYNTAX_GUIDE).toContain("{{prompt:Label}}");
-    expect(TEMPLATE_SYNTAX_GUIDE).toContain("target_folder");
+    expect(TEMPLATE_SYNTAX_GUIDE).not.toContain("target_folder");
     expect(TEMPLATE_SYNTAX_GUIDE).toContain("file_name");
   });
 });

@@ -5,9 +5,6 @@ import { TEMPLATE_TOKENS, isBlankToken, isValidToken, parseTemplateToken } from 
 // chat's save card show them). Each warning is one short, plain sentence.
 
 const MISSPELLED_ROUTING_KEYS: Record<string, string> = {
-  "target-folder": "target_folder",
-  targetfolder: "target_folder",
-  targetFolder: "target_folder",
   "file-name": "file_name",
   filename: "file_name",
   fileName: "file_name",
@@ -63,6 +60,10 @@ export function lintTemplate(raw: string): string[] {
   if (emptyPrompt) warnings.push("A question field ({{prompt:}}) has no question.");
   if (cursors > 1) warnings.push("\"Start typing here\" ({{cursor}}) appears more than once; only the first counts.");
   for (const key of Object.keys(parseFmFields(raw))) {
+    if (key === "target_folder") {
+      warnings.push("\"target_folder\" is no longer used: new notes go in the folder you create them from. You can delete it.");
+      continue;
+    }
     const intended = MISSPELLED_ROUTING_KEYS[key];
     if (intended) warnings.push(`"${key}" should be spelled "${intended}" to take effect.`);
   }
@@ -103,8 +104,7 @@ export const TEMPLATE_SYNTAX_GUIDE = [
   "- The week, month, quarter and year names take date math too: {{weekSheet-1w}} is last week's name, {{monthSheet+1m}} next month's.",
   "- Any other {{name}} (letters, digits, underscores), e.g. {{task_1}}, stays in the created note as a blank to fill in; Tab jumps between blanks.",
   "No scripting, conditionals or loops.",
-  "Optional frontmatter keys (used when a template makes a new note, removed from the created note):",
-  "- target_folder: vault-relative folder for the new note, e.g. rfcs",
+  "Optional frontmatter key (used when a template makes a new note, removed from the created note); the note goes in the folder it is created from:",
   "- file_name: the new note's file name without .md; tokens allowed, e.g. {{date}} for a daily note. When file_name doesn't use {{title}} or {{slug}}, no title is asked for and using the template again opens that note instead of making another.",
   "Other frontmatter keys are copied into the note, with tokens expanded.",
 ].join("\n");

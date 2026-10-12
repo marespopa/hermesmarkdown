@@ -9,7 +9,7 @@ export const templatesItems: Subsection[] = [
     id: "templates",
     title: "Templates",
     lead: "A template is a note you start other notes from. Fields like Today's date or Ask: Owner fill in each time you use it.",
-    keywords: "template templates save as template edit template blank tab fill in date format date math tomorrow selection quick start empty note preview tpl snippet starter log entry timestamp meeting notes spec report token field add field placeholder prompt question ask cursor clipboard date slug new note missing link folder new notes go in target_folder file_name new template create template week name weekly monthly quarterly yearly pack packs",
+    keywords: "template templates save as template edit template blank tab fill in date format date math tomorrow selection quick start empty note preview tpl snippet starter log entry timestamp meeting notes spec report token field add field placeholder prompt question ask cursor clipboard date slug new note missing link folder new notes go where file_name new template create template week name weekly monthly quarterly yearly pack packs",
     body: (
       <>
         <h4 className={h4}>Make a template</h4>
@@ -73,9 +73,9 @@ export const templatesItems: Subsection[] = [
         </p>
         <h4 className={h4}>Where new notes go</h4>
         <p>
-          The line at the top of a template also says <strong>New notes go in</strong>. Click the
-          folder to pick another one, or to create one. By default, notes go to your New Notes
-          folder.
+          A note goes in the folder you create it from: use <strong>New Note from Template…</strong>{" "}
+          in a folder&apos;s menu to put it there. From anywhere else (the command palette, the
+          Templates page), it goes to your New Notes folder.
         </p>
         <h4 className={h4}>Use a template</h4>
         <ul>
@@ -117,8 +117,7 @@ export const templatesItems: Subsection[] = [
           Templates are the <code>.md</code> files in your templates folder (the first of{" "}
           <code>templates/</code>, <code>_templates/</code> or <code>Templates/</code>, or the one
           set in Settings → Files → Templates Folder) and in its packs, one folder down. They stay plain text: a field is written{" "}
-          <code>{"{{date}}"}</code>, a question <code>{"{{prompt:Owner}}"}</code>, and the folder
-          is a <code>target_folder</code> line in the frontmatter. You can also type these by hand.
+          <code>{"{{date}}"}</code> and a question <code>{"{{prompt:Owner}}"}</code>. You can also type these by hand.
           Typing <code>{"{{"}</code> opens the same field list. An optional{" "}
           <code>file_name</code> line names new notes, and fields work in it too:
         </p>
@@ -137,7 +136,7 @@ export const templatesItems: Subsection[] = [
           last week&apos;s note. Use them in <code>file_name</code> for weekly or monthly notes.
         </p>
         <Code>
-          {"---\ntarget_folder: rfcs\nfile_name: rfc-{{date}}-{{slug}}\n---\n# {{title}}\nOwner: {{prompt:Owner}}\n{{cursor}}"}
+          {"---\nfile_name: rfc-{{date}}-{{slug}}\n---\n# {{title}}\nOwner: {{prompt:Owner}}\n{{cursor}}"}
         </Code>
         <p>
           Other frontmatter lines (author, status, …) are copied into each new note. Templates

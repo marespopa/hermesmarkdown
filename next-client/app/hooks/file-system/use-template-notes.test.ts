@@ -73,6 +73,7 @@ class FakeDir {
   }
 }
 
+// Its target_folder is a leftover from older templates: ignored, and kept out of notes.
 const RFC_TEMPLATE =
   "---\ntarget_folder: docs/rfcs\nfile_name: rfc-{{date}}-{{slug}}\n---\n# {{title}}\nOwner: {{prompt:Owner}}\n{{cursor}}\n";
 
@@ -197,14 +198,15 @@ describe("createNoteFromTemplate", () => {
   });
   afterEach(() => vi.useRealTimers());
 
-  it("places and names the note from target_folder / file_name, never overwriting", async () => {
-    const { root, flows } = await setup();
+  it("puts the note in the New Notes Folder named by file_name, ignoring target_folder, never overwriting", async () => {
+    const { root, flows } = await setup({ newNoteFolder: "inbox" });
     await act(() => flows.createNoteFromTemplate());
     expect(pickTemplate).toHaveBeenCalledWith(expect.objectContaining({ includeBlank: false }));
-    expect(root.at("docs/rfcs/rfc-2026-10-04-auth-spec.md")?.content).toBe("# Auth Spec\nOwner: Ana\n\n");
+    expect(root.at("inbox/rfc-2026-10-04-auth-spec.md")?.content).toBe("# Auth Spec\nOwner: Ana\n\n");
+    expect(root.dirs.has("docs")).toBe(false);
 
     await act(() => flows.createNoteFromTemplate());
-    expect(root.at("docs/rfcs/rfc-2026-10-04-auth-spec (1).md")).toBeDefined();
+    expect(root.at("inbox/rfc-2026-10-04-auth-spec (1).md")).toBeDefined();
   });
 
   it("falls back to the New Notes Folder and the title", async () => {
@@ -214,23 +216,23 @@ describe("createNoteFromTemplate", () => {
   });
 
   it("names a dated note without asking for a title, and opens it again instead of duplicating", async () => {
-    const daily = "---\ntarget_folder: journal/{{year}}\nfile_name: {{date}}\n---\n# {{title}}\n{{cursor}}\n";
+    const daily = "---\nfile_name: {{date}}\n---\n# {{title}}\n{{cursor}}\n";
     const { root, props, flows } = await setup({ templates: { "templates/Journal/Daily.md": daily } });
     const entry = { name: "Daily", path: "templates/Journal/Daily.md", pack: "Journal" };
-    await act(() => flows.createNoteFromTemplate(entry));
+    await act(() => flows.createNoteFromTemplate(entry, "journal"));
     expect(pickTemplate).not.toHaveBeenCalled();
     expect(dialog.prompt).not.toHaveBeenCalled();
-    expect(root.at("journal/2026/2026-10-04.md")?.content).toBe("# 2026-10-04\n\n");
+    expect(root.at("journal/2026-10-04.md")?.content).toBe("# 2026-10-04\n\n");
 
-    root.at("journal/2026/2026-10-04.md")!.content = "# 2026-10-04\nWritten today\n";
+    root.at("journal/2026-10-04.md")!.content = "# 2026-10-04\nWritten today\n";
     props.openFile.mockClear();
-    await act(() => flows.createNoteFromTemplate(entry));
-    expect(root.at("journal/2026/2026-10-04.md")?.content).toBe("# 2026-10-04\nWritten today\n");
-    expect(root.at("journal/2026/2026-10-04 (1).md")).toBeUndefined();
-    expect(props.openFile).toHaveBeenCalledWith(expect.anything(), "journal/2026/2026-10-04.md", true);
+    await act(() => flows.createNoteFromTemplate(entry, "journal"));
+    expect(root.at("journal/2026-10-04.md")?.content).toBe("# 2026-10-04\nWritten today\n");
+    expect(root.at("journal/2026-10-04 (1).md")).toBeUndefined();
+    expect(props.openFile).toHaveBeenCalledWith(expect.anything(), "journal/2026-10-04.md", true);
   });
 
-  it("puts the note in the folder it was asked from, over the template's target_folder", async () => {
+  it("puts the note in the folder it was asked from", async () => {
     const { root, flows } = await setup();
     await act(() => flows.createNoteFromTemplate(undefined, "projects/auth"));
     expect(root.at("projects/auth/rfc-2026-10-04-auth-spec.md")?.content).toBe("# Auth Spec\nOwner: Ana\n\n");
@@ -419,17 +421,17 @@ describe("createLinkedNoteFromTemplate", () => {
   });
   const rfc = { name: "rfc", path: "templates/rfc.md" };
 
-  it("creates the note in the template's target folder and returns its link path, without opening it", async () => {
-    const { root, props, flows } = await setup();
+  it("creates the note in the New Notes Folder and returns its link path, without opening it", async () => {
+    const { root, props, flows } = await setup({ newNoteFolder: "inbox" });
     let path: string | null = null;
     await act(async () => { path = await flows.createLinkedNoteFromTemplate("Auth", rfc); });
-    expect(path).toBe("docs/rfcs/Auth");
-    expect(root.at("docs/rfcs/Auth.md")?.content).toBe("# Auth\nOwner: Ana\n\n");
+    expect(path).toBe("inbox/Auth");
+    expect(root.at("inbox/Auth.md")?.content).toBe("# Auth\nOwner: Ana\n\n");
     expect(props.openFile).not.toHaveBeenCalled();
     expect(props.scanVault).toHaveBeenCalled();
   });
 
-  it("uses the folder in the name over the template's", async () => {
+  it("uses the folder in the name", async () => {
     const { root, flows } = await setup();
     let path: string | null = null;
     await act(async () => { path = await flows.createLinkedNoteFromTemplate("specs/Auth", rfc); });

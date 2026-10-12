@@ -32,7 +32,6 @@ const TEMPLATE_SKILL_BUILTIN = [
   "Output format: put each template in its own block fenced with four tildes, with the file name after the info string, exactly like this:",
   "~~~~hermes-template rfc.md",
   "---",
-  "target_folder: rfcs",
   "file_name: rfc-{{date}}-{{slug}}",
   "---",
   "# {{title}}",
@@ -42,7 +41,7 @@ const TEMPLATE_SKILL_BUILTIN = [
   "",
   "Rules:",
   "- Use a short lowercase file name ending in .md, without folders.",
-  "- Only add target_folder / file_name when the user wants new notes placed or named a certain way.",
+  "- Only add file_name when the user wants new notes named a certain way.",
   "- Use {{prompt:Label}} for values the user should type in each time; reuse the same label for the same value.",
   "- Keep a short sentence before the block saying what the template does. Don't claim it is saved: the user saves it with the Save template button.",
 ].join("\n");

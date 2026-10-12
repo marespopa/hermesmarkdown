@@ -53,15 +53,16 @@ export const templatePacksItem: Subsection = {
         HermesMarkdown has no daily sheet of its own: a dated page is just a note a template names. The
         Journal pack&apos;s <strong>Daily</strong> template starts like this:
       </p>
-      <Code>{"---\ntarget_folder: journal/{{year}}\nfile_name: {{date}}\n---\n# {{date:dddd, D MMMM}}"}</Code>
+      <Code>{"---\nfile_name: {{date}}\n---\n# {{date:dddd, D MMMM}}"}</Code>
       <p>
-        Using it makes <code>journal/2026/2026-10-12.md</code>. Because its <code>file_name</code>{" "}
+        Using it from your <code>journal</code> folder&apos;s menu makes{" "}
+        <code>journal/2026-10-12.md</code>. Because its <code>file_name</code>{" "}
         doesn&apos;t use the title, no title is asked for, and using it again the same day opens the page
         you already started instead of making another. <strong>Weekly</strong>, <strong>Monthly</strong>{" "}
         and <strong>Yearly</strong> work the same way with <code>{"{{weekSheet}}"}</code> (
         <code>2026-W42</code>), <code>{"{{monthSheet}}"}</code> (<code>2026-10</code>) and{" "}
-        <code>{"{{yearSheet}}"}</code> (<code>2026-year</code>). Change the folder or the names in the
-        template to suit yourself.
+        <code>{"{{yearSheet}}"}</code> (<code>2026-year</code>). Change the names in the template to
+        suit yourself.
       </p>
       <Callout type="note">
         Sheets you made with earlier versions (like <code>2026-10-09.md</code> or{" "}

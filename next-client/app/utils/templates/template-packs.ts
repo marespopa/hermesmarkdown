@@ -23,9 +23,10 @@ export interface BuiltinPack {
 const frontmatter = (fields: string[]) => ["---", ...fields, "---"];
 
 // `file_name` names the note, so using one of these again the same day /
-// week / month / year opens that note instead of making another.
+// week / month / year (from the same folder) opens that note instead of
+// making another.
 const dated = (fileName: string, body: string[]) =>
-  [...frontmatter(["target_folder: journal/{{year}}", `file_name: ${fileName}`]), ...body, ""].join("\n");
+  [...frontmatter([`file_name: ${fileName}`]), ...body, ""].join("\n");
 
 const DAILY = dated("{{date}}", JOURNAL.trimEnd().split("\n"));
 
