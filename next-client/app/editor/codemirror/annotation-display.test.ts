@@ -21,6 +21,15 @@ describe("collectAnnotationDisplayMatches", () => {
     ]);
   });
 
+  it("shows a task's @started and @done stamps as labelled date chips", () => {
+    const matches = collectAnnotationDisplayMatches("- [x] Ship @started(2026-10-08) @done(2026-10-12)");
+
+    expect(matches.map(({ label, kind, raw }) => ({ label, kind, raw }))).toEqual([
+      { label: "Started 2026-10-08", kind: "started", raw: "@started(2026-10-08)" },
+      { label: "Done 2026-10-12", kind: "done", raw: "@done(2026-10-12)" },
+    ]);
+  });
+
   it("collects supported priorities and leaves invalid annotations plain", () => {
     const matches = collectAnnotationDisplayMatches(
       "@priority(high) @priority(med) @priority(low) @priority(urgent) 2026-02-31",

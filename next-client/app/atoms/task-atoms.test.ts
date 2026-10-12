@@ -16,8 +16,8 @@ import { MASKED_TEXT, type PrivacyLevel } from "../utils/note-display";
 
 function task(path: string, text: string, tags: string[]): TaskItem {
   return {
-    id: `${path}#1`, path, line: 1, checked: false, inProgress: false, onHold: false,
-    dueDate: null, priority: null, tags, text, raw: `- [ ] ${text}`, lineHash: "h",
+    id: `${path}#1`, path, line: 1, status: "todo", checked: false,
+    dueDate: null, priority: null, startedDate: null, doneDate: null, tags, text, raw: `- [ ] ${text}`, lineHash: "h",
   };
 }
 

@@ -14,14 +14,13 @@ interface UnifiedSearchInputProps {
   onTokenRemove: (tag: string) => void;
   onTextChange: (text: string) => void;
   autoFocus?: boolean;
+  placeholder?: string;
+  ariaLabel?: string;
 }
 
 function TagDot({ tag }: { tag: string }) {
   return (
     <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${
-      tag === "todo" ? "bg-sage"   :
-      tag === "prog" ? "bg-amber-500"  :
-      tag === "done" ? "bg-green-500"  :
       tag === "urgn" ? "bg-red-500"    :
       TAG_COLORS[tag] ? "bg-sage" : "bg-sage"
     }`} />
@@ -36,6 +35,8 @@ export default function UnifiedSearchInput({
   onTokenRemove,
   onTextChange,
   autoFocus = false,
+  placeholder = "Search or #tag…",
+  ariaLabel = "Search files",
 }: UnifiedSearchInputProps) {
   const [inputValue, setInputValue]               = useState(text);
   const [tagInputActive, setTagInputActive]       = useState(false);
@@ -176,12 +177,12 @@ export default function UnifiedSearchInput({
           value={inputValue}
           onChange={handleChange}
           onKeyDown={handleKeyDown}
-          placeholder="Search or #tag…"
+          placeholder={placeholder}
           autoComplete="off"
           autoCorrect="off"
           autoCapitalize="off"
           spellCheck={false}
-          aria-label="Search files"
+          aria-label={ariaLabel}
           className={[
             "flex-1 min-w-0 bg-transparent outline-none focus-visible:outline-none border-none",
             "text-[13px] sm:text-xs leading-none",

@@ -12,7 +12,7 @@ import { childPeriods, parseRollupName, type RollupPeriod } from "@/app/utils/ro
 import { parseSheetName } from "@/app/utils/sheet-nav";
 import { useRollups } from "./use-rollups";
 
-// Rebuilt this recently (openRollup refreshes before it opens): opening skips it.
+// Rebuilt this recently (a refresh on open, or an earlier activation): activating skips it.
 const JUST_REFRESHED_MS = 5_000;
 // Coming back to the window refreshes the active sheet if it's older than this.
 const STALE_ON_FOCUS_MS = 10_000;

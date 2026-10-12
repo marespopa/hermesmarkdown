@@ -53,6 +53,7 @@ Index of the editor UI. Each component has a sibling `<Name>.md` (a token-lean d
 | [EmptyNoteTemplates](EmptyNoteTemplates.md) | Quick-start template pills under the first line of an empty note. |
 | [TemplateStrip](TemplateStrip.md) | Line at the top of a template note: field count, Add field, lint warnings. |
 | [SheetSwitcher](SheetSwitcher.md) | Line at the top of a worklog sheet: Day · Week · Month · Quarter · Year in their level colours, and ‹ › through time. `sheet-level-classes.ts` holds the level colour classes. |
+| [SheetSkeleton](SheetSkeleton.md) | Outline of a rollup sheet that covers the text column while the switcher opens another sheet. |
 | [TaskDialog](TaskDialog.md) | Form for building a task line (title, status, priority, due date, tags). |
 | [UnifiedSearchInput](UnifiedSearchInput.md) | Search field that turns `#tag` entries into removable tag chips alongside free text, with tag autocomplete. |
 | [EditorSkeleton](EditorSkeleton.md) | Shown while the saved vault loads: the home feed with placeholder rows (On vault open → Home), or the workspace outline (sidebar, tab pills, paper panel). |
@@ -66,7 +67,7 @@ Index of the editor UI. Each component has a sibling `<Name>.md` (a token-lean d
 | [WelcomeWizard](WelcomeWizard.md) | Eight-step onboarding that covers opening, creating, or connecting a vault, then theme, fonts, editor options, autosave, optional AI key, and shortcuts. |
 | [welcome-wizard/](welcome-wizard/README.md) | `WelcomeWizard` steps and shared step layout. |
 | [WikiLinkDialog](WikiLinkDialog.md) | Picks or creates a `[[WikiLink]]` target, with substring-matched suggestions from vault file metadata. |
-| [WorkflowPill](WorkflowPill.md) | Floating pill on a workflow tag (for example `#todo`) with prev/next arrows to cycle its state. |
+| [WorkflowPill](WorkflowPill.md) | Floating pill on a workflow tag (for example `#draft`) with prev/next arrows to cycle its state. |
 | [WorkspaceBuilder](WorkspaceBuilder.md) | Dialog for creating or editing a custom workspace (a saved, rule-based file query over vault metadata). |
 | [WorkspaceSidebar](WorkspaceSidebar.md) | The window's sidebar (desktop): open notes and the vault's file tree, on the leading edge; hideable and resizable. |
 | [WorkspaceSplitter](WorkspaceSplitter.md) | Recursively renders the workspace layout tree as resizable panel groups, with a `PaneLeaf` at each leaf. |

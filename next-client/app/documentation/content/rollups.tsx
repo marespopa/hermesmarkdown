@@ -67,7 +67,7 @@ export const rollupsItem: Subsection = {
           <code>#meeting</code>, …), with untagged ones last under Other.
         </li>
         <li>
-          <strong>Blocked</strong>: open tasks tagged <code>#blocked</code> or <code>#hold</code>.
+          <strong>Blocked</strong>: tasks on hold (<code>- [!]</code>). Cancelled tasks (<code>- [-]</code>) are left out.
         </li>
         <li>
           <strong>Still open</strong>: the other unchecked tasks, marked <em>in progress</em> when
@@ -102,8 +102,8 @@ export const rollupsItem: Subsection = {
       <p>
         The generated part sits between two hidden marker lines, shown in the editor as a thin rule
         with a caption saying when it was last updated (<em>From your daily sheets · updated 2 min
-        ago</em>). It keeps itself current: it is rebuilt when you open the sheet or switch back to
-        its tab, when you come back to the window, and, while the sheet is showing, a moment after
+        ago</em>). It keeps itself current: the sheet opens straight away and is rebuilt right
+        after, and again when you switch back to its tab, when you come back to the window, and, while the sheet is showing, a moment after
         you save one of the days it covers (or, for a month, quarter or year, a sheet one level
         down). Lines that just came in glow softly for a second. <strong>Refresh rollup</strong>{" "}
         does the same on demand.

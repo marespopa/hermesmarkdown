@@ -103,7 +103,7 @@ describe("tagPillPlugin", () => {
       parent: document.body,
     });
     const matches = collectTagMatches(doc);
-    expect(matches.map((tag) => tag.kind)).toEqual(["workflow", "todo", "custom"]);
+    expect(matches.map((tag) => tag.kind)).toEqual(["workflow", "custom", "custom"]);
     const pills = buildTagPillDecorations(view);
     expect(pills.size).toBeGreaterThan(0);
     view.destroy();

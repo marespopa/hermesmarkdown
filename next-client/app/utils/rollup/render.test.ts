@@ -9,7 +9,7 @@ const month = parseRollupName("2026-10.md")!;
 
 const SHEETS = [
   { date: "2026-10-06", text: "- [x] Fix login redirect #bug #auth\n- [x] Update docs" },
-  { date: "2026-10-08", text: "- [ ] Deploy billing service #infra #blocked @due(2026-10-14)" },
+  { date: "2026-10-08", text: "- [!] Deploy billing service #infra @due(2026-10-14)" },
   { date: "2026-10-09", text: "- [/] Write release notes @due(2026-10-16)" },
 ];
 

@@ -26,3 +26,5 @@ import UnifiedSearchInput from "./UnifiedSearchInput";
 | onTokenAdd / onTokenRemove | `(tag: string) => void` |  | Chip handlers |
 | onTextChange | `(text: string) => void` |  | Text handler |
 | autoFocus? | `boolean` | `false` | Focus on mount |
+| placeholder? | `string` | `"Search or #tag…"` | Input placeholder |
+| ariaLabel? | `string` | `"Search files"` | Accessible name of the input |

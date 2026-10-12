@@ -4,11 +4,12 @@ import { EditorSelection } from "@codemirror/state";
 import {
   REGEX_CHECKBOX,
   REGEX_QUOTE_PREFIX,
-  REGEX_TODO_STATUS_TAGS,
   REGEX_URL_PASTE,
 } from "../components/regex";
+import { taskStatusFromChar, toggledStatus, type TaskStatus } from "@/app/utils/task-status";
+import { statusLineEdits } from "@/app/utils/task-line";
 import { detectDelimitedTable, delimitedTextToMarkdownTable } from "../utils/table-manipulation";
-import { indentSubtree, outdentSubtree, toggleTaskStatus } from "./lineMutations";
+import { indentSubtree, outdentSubtree, setTaskStatus, toggleTaskStatus } from "./lineMutations";
 import { breakLineInListItem, continueListOnEnter, indentListOrLines, outdentListOrLines, removeListMarkerOnBackspace } from "./list-commands";
 import { setHeading, toggleCodeBlock, wrapAsLink } from "./format-shortcuts";
 
@@ -46,32 +47,25 @@ export function cycleTaskStatusOnCurrentLine(view: EditorView): boolean {
   return toggleTaskStatus(view, view.state.doc.lineAt(view.state.selection.main.head).number);
 }
 
-// Toggle the checkbox on the current line: [ ] <-> [x], keeping any
-// #todo/#done status tag on the same line in sync — mirrors the click
-// behavior previously in use-editor-handlers.ts's handleEditorClick.
+// Sets the current line's task box to one status (palette commands).
+export function setTaskStatusOnCurrentLine(status: TaskStatus) {
+  return (view: EditorView): boolean =>
+    setTaskStatus(view, view.state.doc.lineAt(view.state.selection.main.head).number, status);
+}
+
+// Toggle the checkbox on the current line: an open task ([ ], [/], [!])
+// becomes [x], a done or cancelled one [ ], with the stamps (task-line.ts).
 export function toggleCheckboxOnLine(view: EditorView, lineNumber?: number): boolean {
   const line = view.state.doc.line(lineNumber ?? view.state.doc.lineAt(view.state.selection.main.head).number);
   const match = REGEX_CHECKBOX.exec(line.text);
   if (!match) return false;
 
-  const charIdx = line.from + match[1].length;
-  const isChecking = line.text[match[1].length].toLowerCase() !== "x";
-  const nextChar = isChecking ? "x" : " ";
-
-  const changes = [{ from: charIdx, to: charIdx + 1, insert: nextChar }];
-
-  REGEX_TODO_STATUS_TAGS.lastIndex = 0;
-  const statusMatch = REGEX_TODO_STATUS_TAGS.exec(line.text);
-  if (statusMatch) {
-    const desiredTag = isChecking ? "done" : "todo";
-    if (statusMatch[1].toLowerCase() !== desiredTag) {
-      const tagStart = line.from + statusMatch.index;
-      const tagEnd = tagStart + statusMatch[0].length;
-      changes.push({ from: tagStart, to: tagEnd, insert: `#${desiredTag}` });
-    }
-  }
-
-  view.dispatch(view.state.update({ changes, userEvent: "input.format.checkbox" }));
+  const edits = statusLineEdits(line.text, toggledStatus(taskStatusFromChar(match[2])));
+  if (!edits) return false;
+  view.dispatch(view.state.update({
+    changes: edits.map((edit) => ({ from: line.from + edit.from, to: line.from + edit.to, insert: edit.insert })),
+    userEvent: "input.format.checkbox",
+  }));
   return true;
 }
 

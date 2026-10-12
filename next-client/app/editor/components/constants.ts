@@ -3,16 +3,11 @@ export const SUBTLE =
 // Document lifecycle states — mirrors the `status:` frontmatter field so inline tags
 // carry the same semantic weight as structured metadata.
 export const WORKFLOW_TAGS = ["draft", "review", "active", "archived"];
-export const TODO_TAGS = ["todo", "prog", "hold", "done"];
 export const TAG_COLORS: Record<string, string> = {
   draft:    "text-amber-600 dark:text-amber-400",
   review:   "text-sage dark:text-sage",
   active:   "text-emerald-600 dark:text-emerald-400",
   archived: "text-ink-muted dark:text-stone",
-  todo:     "text-sage dark:text-sage",
-  prog:     "text-orange-500 dark:text-orange-400",
-  hold:     "text-violet-500 dark:text-violet-400",
-  done:     "text-teal-600 dark:text-teal-400",
 };
 export const TAG_CYCLE: Record<string, string> = {
   draft:    "review",
@@ -25,18 +20,6 @@ export const TAG_CYCLE_PREV: Record<string, string> = {
   review:   "draft",
   active:   "review",
   archived: "active",
-};
-export const TODO_CYCLE: Record<string, string> = {
-  todo: "prog",
-  prog: "hold",
-  hold: "done",
-  done: "todo",
-};
-export const TODO_CYCLE_PREV: Record<string, string> = {
-  todo: "done",
-  prog: "todo",
-  hold: "prog",
-  done: "hold",
 };
 
 export const SHORTCODES: Record<string, () => string> = {

@@ -11,19 +11,31 @@ describe("collectRollup", () => {
         date: "2026-10-06",
         text: [
           "- [x] Fix login redirect #bug",
-          "- [ ] Deploy billing service #blocked",
-          "- [ ] Renew TLS certificate #hold",
-          "- [/] Migrate search index #blocked",
-          "- [ ] Write release notes #prog",
-          "- [ ] Update pricing page",
+          "- [!] Deploy billing service",
+          "- [!] Renew TLS certificate",
+          "- [/] Write release notes",
+          "- [ ] Update pricing page #blocked",
+          "- [-] Drop legacy export",
         ].join("\n"),
       },
     ]);
     expect(texts(data.done)).toEqual(["Fix login redirect"]);
-    expect(texts(data.blocked)).toEqual(["Deploy billing service", "Renew TLS certificate", "Migrate search index"]);
+    expect(texts(data.blocked)).toEqual(["Deploy billing service", "Renew TLS certificate"]);
+    // A #blocked tag is just a tag; only the [!] box puts a task on hold.
     expect(texts(data.open)).toEqual(["Write release notes", "Update pricing page"]);
     expect(data.open[0].inProgress).toBe(true);
+    expect(data.open[1].tags).toEqual(["blocked"]);
     expect(data.sheetCount).toBe(1);
+  });
+
+  it("leaves out a task cancelled on its latest day, with its earlier occurrences", () => {
+    const data = collectRollup([
+      { date: "2026-10-05", text: "- [ ] Migrate search index" },
+      { date: "2026-10-06", text: "- [-] Migrate search index" },
+    ]);
+    expect(data.open).toEqual([]);
+    expect(data.done).toEqual([]);
+    expect(data.blocked).toEqual([]);
   });
 
   it("counts a task once, as done, when it was open Monday and checked Wednesday", () => {

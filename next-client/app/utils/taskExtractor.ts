@@ -1,32 +1,35 @@
+import { taskStatusFromChar, toggledStatus, type TaskStatus } from "./task-status";
+import { withTaskStatus } from "./task-line";
+
 export type TaskPriority = "high" | "med" | "low";
 
 export interface TaskItem {
   id: string; // `${path}#${line}`
   path: string;
   line: number; // 0-indexed
-  checked: boolean;
-  inProgress: boolean; // unchecked task tagged #prog
-  onHold: boolean; // unchecked task tagged #hold or #blocked (and not in progress)
+  status: TaskStatus; // from the box character (see task-status.ts)
+  checked: boolean; // status === "done"
   dueDate: string | null; // from @due(YYYY-MM-DD), verbatim string
   priority: TaskPriority | null; // from @priority(high|med|low)
-  tags: string[]; // non-status #tags, lowercase, de-duplicated, in appearance order
+  startedDate: string | null; // from @started(YYYY-MM-DD), stamped when started (task-line.ts)
+  doneDate: string | null; // from @done(YYYY-MM-DD), stamped when completed
+  tags: string[]; // #tags, lowercase, de-duplicated, in appearance order
   text: string; // display text, checkbox marker + tags + @due()/@priority() stripped
   raw: string; // full original line, used for write-back
   lineHash: string; // fingerprint of `raw`, staleness guard for write-back
 }
 
-export const REGEX_TASK_LINE = /^(\s*[-*]\s*\[)([ xX/])(\]\s*)(.*)$/;
-export const REGEX_TASK_PROG = /#prog\b/i;
-export const REGEX_TASK_HOLD = /#(?:hold|blocked)\b/i;
+export const REGEX_TASK_LINE = /^(\s*[-*]\s*\[)([ xX/!-])(\]\s*)(.*)$/;
 export const REGEX_TASK_DUE = /@due\(\s*([^)]+?)\s*\)/i;
 export const REGEX_TASK_PRIORITY = /@priority\(\s*(high|med|low)\s*\)/i;
-const STATUS_TAG_NAMES = new Set(["todo", "prog", "hold", "blocked", "done"]);
+export const REGEX_TASK_STARTED = /@started\(\s*([^)]+?)\s*\)/i;
+export const REGEX_TASK_DONE = /@done\(\s*([^)]+?)\s*\)/i;
 const REGEX_TASK_TAG = /#([a-z][\w-]*)/gi;
-// Strips @due()/@priority() metadata plus every #tag (status and custom
-// alike — custom tags are surfaced separately as pills, not left inline) from
-// the displayed text. Also swallows an enclosing pair of parens (e.g.
-// "(#todo)") so stripping doesn't leave a bare "()" behind.
-const REGEX_TASK_CLEANUP = /@(?:due|priority)\([^)]*\)|\(\s*#(?:todo|prog|hold|blocked|done)\s*\)|#[a-z][\w-]*/gi;
+// Strips @due()/@priority()/@started()/@done() metadata plus every #tag (tags are surfaced
+// separately as pills, not left inline) from the displayed text. Also
+// swallows parens around a lone tag (e.g. "(#infra)") so stripping doesn't
+// leave a bare "()" behind.
+const REGEX_TASK_CLEANUP = /@(?:due|priority|started|done)\([^)]*\)|\(\s*#[a-z][\w-]*\s*\)|#[a-z][\w-]*/gi;
 
 export function simpleHash(s: string): string {
   let h = 0;
@@ -40,20 +43,16 @@ export function extractTasks(path: string, content: string): TaskItem[] {
   lines.forEach((raw, i) => {
     const m = raw.match(REGEX_TASK_LINE);
     if (!m) return;
-    const checked = m[2].toLowerCase() === "x";
-    // "/" is the widely-used Obsidian-style in-progress marker, in addition
-    // to the existing #prog tag convention.
-    const inProgress = !checked && (m[2] === "/" || REGEX_TASK_PROG.test(raw));
-    const onHold = !checked && !inProgress && REGEX_TASK_HOLD.test(raw);
+    const status = taskStatusFromChar(m[2]);
     const dueMatch = m[4].match(REGEX_TASK_DUE);
     const dueDate = dueMatch ? dueMatch[1].trim() : null;
     const priorityMatch = m[4].match(REGEX_TASK_PRIORITY);
     const priority = priorityMatch ? (priorityMatch[1].toLowerCase() as TaskPriority) : null;
+    const startedDate = m[4].match(REGEX_TASK_STARTED)?.[1].trim() ?? null;
+    const doneDate = m[4].match(REGEX_TASK_DONE)?.[1].trim() ?? null;
     const tags = Array.from(
       new Set(
-        Array.from(m[4].matchAll(REGEX_TASK_TAG))
-          .map((tm) => tm[1].toLowerCase())
-          .filter((tag) => !STATUS_TAG_NAMES.has(tag)),
+        Array.from(m[4].matchAll(REGEX_TASK_TAG)).map((tm) => tm[1].toLowerCase()),
       ),
     );
     const text = m[4].replace(REGEX_TASK_CLEANUP, "").replace(/\s+/g, " ").trim();
@@ -61,11 +60,12 @@ export function extractTasks(path: string, content: string): TaskItem[] {
       id: `${path}#${i}`,
       path,
       line: i,
-      checked,
-      inProgress,
-      onHold,
+      status,
+      checked: status === "done",
       dueDate,
       priority,
+      startedDate,
+      doneDate,
       tags,
       text,
       raw,
@@ -89,25 +89,43 @@ function findNearbyLine(lines: string[], expectedLine: number, raw: string): num
   return -1;
 }
 
-// Surgically flips the checkbox character on a task's line, guarding against
-// the file having drifted since the task was scanned. Returns null (no-op)
-// rather than risk corrupting an unrelated line if the target can't be
-// located with confidence.
-export function patchLineInContent(content: string, task: TaskItem): string | null {
-  const lines = content.split("\n");
-  let targetLine = task.line;
-  const current = lines[targetLine];
-  if (current === undefined || simpleHash(current) !== task.lineHash) {
-    const found = findNearbyLine(lines, task.line, task.raw);
-    if (found === -1) return null;
-    targetLine = found;
-  }
+// Where a task line is now: the line it was scanned at, or (when lines
+// were inserted or removed above it since) the nearest exact match of its
+// raw text; -1 when it can't be located with confidence.
+export type TaskLineRef = Pick<TaskItem, "line" | "raw" | "lineHash">;
 
-  const toggled = lines[targetLine].replace(
-    REGEX_TASK_LINE,
-    (_m, pre, _box, post, rest) => `${pre}${task.checked ? " " : "x"}${post}${rest}`,
-  );
-  if (toggled === lines[targetLine]) return null;
-  lines[targetLine] = toggled;
-  return lines.join("\n");
+function locateTaskLine(lines: string[], task: TaskLineRef): number {
+  const current = lines[task.line];
+  if (current !== undefined && simpleHash(current) === task.lineHash) return task.line;
+  return findNearbyLine(lines, task.line, task.raw);
+}
+
+// Rewrites a task's line with `next`, guarding against the file having
+// drifted since the task was scanned. Returns null (no-op) rather than risk
+// corrupting an unrelated line if the target can't be located, or when
+// `next` leaves the line as it was.
+export function replaceTaskLine(
+  content: string,
+  task: TaskLineRef,
+  next: (line: string) => string,
+): { content: string; line: number; before: string; after: string } | null {
+  const lines = content.split("\n");
+  const target = locateTaskLine(lines, task);
+  if (target === -1) return null;
+  const before = lines[target];
+  const after = next(before);
+  if (after === before) return null;
+  lines[target] = after;
+  return { content: lines.join("\n"), line: target, before, after };
+}
+
+// Sets a task's line to `status` (by default a click's toggle: open → done,
+// closed → to do), with its @started/@done stamps (task-line.ts). Null when
+// the line can't be located or already has that status.
+export function patchLineInContent(
+  content: string,
+  task: TaskItem,
+  status: TaskStatus = toggledStatus(task.status),
+): string | null {
+  return replaceTaskLine(content, task, (line) => (REGEX_TASK_LINE.test(line) ? withTaskStatus(line, status) : line))?.content ?? null;
 }

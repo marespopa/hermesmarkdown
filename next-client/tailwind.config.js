@@ -118,6 +118,13 @@ module.exports = {
           year: 'var(--sheet-year)',
         },
 
+        // Task status (TaskStatusButton, Tasks page groups, editor task box).
+        task: {
+          prog: 'var(--task-prog)',
+          hold: 'var(--task-hold)',
+          done: 'var(--task-done)',
+        },
+
         // ── Static aliases (kept for explicit light/dark overrides) ──
         beige: {
           DEFAULT: '#D8D5CE',

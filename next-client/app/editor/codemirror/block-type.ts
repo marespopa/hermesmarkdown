@@ -7,7 +7,7 @@ export type BlockType = "text" | "h1" | "h2" | "h3" | "h4" | "h5" | "h6" | "bull
 
 // Leading whitespace, then at most one block marker: heading, quote, task,
 // bullet or number. Tasks come before bullets so `- [ ] ` isn't read as `- `.
-const BLOCK_PREFIX = /^([ \t]*)(?:(#{1,6})(?:[ \t]+|$)|(>[ \t]?)|([-*+][ \t]+\[[ xX/-]\](?:[ \t]+|$))|([-*+](?:[ \t]+|$))|(\d+[.)](?:[ \t]+|$)))?/;
+const BLOCK_PREFIX = /^([ \t]*)(?:(#{1,6})(?:[ \t]+|$)|(>[ \t]?)|([-*+][ \t]+\[[ xX/!-]\](?:[ \t]+|$))|([-*+](?:[ \t]+|$))|(\d+[.)](?:[ \t]+|$)))?/;
 
 interface ParsedLine {
   type: BlockType;

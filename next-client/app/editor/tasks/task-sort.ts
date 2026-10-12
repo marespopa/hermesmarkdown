@@ -1,4 +1,5 @@
 import type { TaskItem } from "@/app/utils/taskExtractor";
+import type { TaskStatus } from "@/app/utils/task-status";
 
 export type TaskSortField = "dueDate" | "priority" | "status" | "note" | "text";
 export type TaskSortDirection = "asc" | "desc";
@@ -13,12 +14,13 @@ function compareText(a: string, b: string): number {
   return a.localeCompare(b, undefined, { sensitivity: "base" });
 }
 
-function statusRank(task: TaskItem): number {
-  if (task.checked) return 3;
-  if (task.inProgress) return 1;
-  if (task.onHold) return 2;
-  return 0;
-}
+const STATUS_ORDER: Record<TaskStatus, number> = {
+  todo: 0,
+  prog: 1,
+  hold: 2,
+  done: 3,
+  cancelled: 4,
+};
 
 function compareDueDate(a: TaskItem, b: TaskItem): number {
   if (a.dueDate && b.dueDate) return compareText(a.dueDate, b.dueDate);
@@ -40,7 +42,7 @@ export function sortTasks<T extends TaskItem>(
       : field === "priority"
         ? (PRIORITY_ORDER[a.priority ?? "low"] - PRIORITY_ORDER[b.priority ?? "low"])
         : field === "status"
-          ? statusRank(a) - statusRank(b)
+          ? STATUS_ORDER[a.status] - STATUS_ORDER[b.status]
           : field === "note"
             ? compareText(noteTitle(a.path), noteTitle(b.path))
             : compareText(a.text, b.text);

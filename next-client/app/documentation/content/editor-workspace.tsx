@@ -5,9 +5,9 @@ export const editorWorkspaceItems: Subsection[] = [
   {
     id: "tasks-page",
     title: "Tasks page",
-    lead: "A vault-wide checklist — every checkbox task across every note, grouped by status or note.",
+    lead: "A vault-wide checklist — every checkbox task across every note, in four lists: Now, Today, Upcoming and All.",
     keywords:
-      "task tasks checkbox todo prog hold blocked done pane explorer aggregate due date priority tags filter",
+      "task tasks checkbox status todo in progress hold blocked done cancelled pane explorer aggregate due date priority tags filter now today upcoming overdue smart list swipe started done date stamp",
     body: (
       <>
         <p>
@@ -16,18 +16,25 @@ export const editorWorkspaceItems: Subsection[] = [
         <KV
           rows={[
             { label: "- [ ] task", value: "To Do" },
-            { label: "- [ ] task #prog  /  - [/] task", value: "In Progress" },
-            { label: "- [ ] task #hold", value: "On Hold" },
-            { label: "- [ ] task #blocked", value: "On Hold" },
+            { label: "- [/] task", value: "In Progress" },
+            { label: "- [!] task", value: "On Hold" },
             { label: "- [x] task", value: "Done" },
+            { label: "- [-] task", value: "Cancelled" },
           ]}
         />
         <p>
-          A task counts as In Progress when it's unchecked and either tagged <code>#prog</code>{" "}
-          anywhere on the line or uses the <code>[/]</code> checkbox marker. It counts as On Hold
-          when it's unchecked and tagged <code>#hold</code> or <code>#blocked</code>. The{" "}
-          <code>#prog</code>/<code>#hold</code>/<code>#blocked</code> tags — along with <code>#todo</code> and <code>#done</code>, which are purely cosmetic — are
-          stripped from the text shown on the page.
+          A task's status is the character in its box, and nothing else: tags on the line never
+          change it. In the editor, a click on the box completes the task (or reopens a done or
+          cancelled one), <code>Ctrl/Cmd+Enter</code> cycles To Do → In Progress → Done, and the
+          command palette has Task: Start, Task: Put on hold, Task: Cancel and Task: Reset to To Do.
+        </p>
+        <p>
+          Status changes date the task for you. Starting it adds <code>@started(2026-10-12)</code>{" "}
+          (once: pausing and resuming keeps the first date), and completing it adds{" "}
+          <code>@done(2026-10-12)</code>, both at the end of the line. Reopening a done task removes{" "}
+          <code>@done</code>; resetting it to To Do removes both, as if it was never started. The
+          Tasks page shows them under the task, like <em>Started 2 days ago</em> or{" "}
+          <em>Done today</em>, and you can edit or delete them like any other text.
         </p>
         <p>
           A task can also carry a due date (<code>@due(2026-01-31)</code>), a priority (
@@ -35,22 +42,44 @@ export const editorWorkspaceItems: Subsection[] = [
           stripped from the display text and shown separately under the task. Due dates are
           color-coded: overdue tasks are flagged in red, tasks due today in amber.
         </p>
+        <KV
+          rows={[
+            { label: "Now", value: "In Progress, then Up Next: the next five to-dos by due date" },
+            { label: "Today", value: "Overdue, then due today" },
+            { label: "Upcoming", value: "Later due dates, one section per day" },
+            { label: "All", value: "Every task, grouped by status or by note" },
+          ]}
+        />
         <p>
-          The toolbar above the list lets you switch between grouping by status and grouping by
-          file, filter by search text, due-date bucket (overdue, due today, upcoming, no due date),
-          or one or more custom tags. Combine tag filters to show only tasks carrying every selected
-          tag. Sort tasks by due date, priority, status, note, or task text in either direction. A
-          Clear button appears once any filter is active.
+          Switch lists with the control under the title; each shows how many tasks it holds, and
+          the page remembers the last one. Now, Today and Upcoming list only open tasks (to do, in
+          progress, on hold). Type in the search field to filter by text, or type <code>#</code> to
+          pick a tag; picked tags show as chips under the field, and a task must carry every one.
+          Search and tags apply to every list. In All, the ⋯ menu groups by status or by note and
+          sorts by due date, priority, status, note or title, ascending or descending.
         </p>
         <p>
-          Click a task's checkbox to toggle it — the change writes straight back to the source line
-          in the file, no need to open it first. Click the task text instead to open its note and
-          jump to that line.
+          Click a task's status ring to complete it, or to reopen a done or cancelled one. For any
+          other status, right-click the ring (long-press on touch) or use the ⋯ button at the end of
+          the row. The change writes straight back to the source line in the file, no need to open
+          it first. Click the task text instead to open its note and jump to that line.
+        </p>
+        <p>
+          After a change, the task stays where it is for a moment, already showing its new status,
+          so you can tick off several in a row without the list moving under you; then it moves to
+          its new place. A toast says what changed, with <strong>Undo</strong> to put the line back
+          exactly as it was, dates included.
+        </p>
+        <p>
+          On a touch screen, swipe a task. Swipe right to move it forward: Start a to-do, Complete a
+          task in progress, Resume one on hold, or Reopen a done or cancelled one. Swipe left to set
+          it aside: Hold, or Cancel a task already on hold. The action runs once the row passes the
+          point where its label brightens; let go before that to leave the task as it was.
         </p>
         <Callout type="note">
-          The Done group starts collapsed so completed work doesn't crowd out what's still
-          outstanding; To Do, In Progress, and On Hold start expanded. Click a group header to fold
-          or unfold it.
+          In All grouped by status, In Progress comes first, then To Do and On Hold. Done and
+          Cancelled start collapsed so finished work doesn't crowd out what's still outstanding.
+          Click a group header to fold or unfold it.
         </Callout>
       </>
     ),

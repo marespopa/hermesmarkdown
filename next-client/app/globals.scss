@@ -38,6 +38,11 @@ body {
   --sheet-month:    #4F6684;  /* muted slate — the third accent, for months */
   --sheet-quarter:  #7B5878;  /* muted plum, for quarters */
   --sheet-year:     #85692F;  /* ochre, for years */
+  /* Task status (box character): in progress, on hold, done. To do and
+     cancelled stay neutral (--fg-faint). */
+  --task-prog:      var(--clay);
+  --task-hold:      #85692F;  /* ochre */
+  --task-done:      var(--moss);
   --link:           #2C66D1;  /* Apple-style editor links */
   --link-hover:     #1764D8;
   --caret:          #3B82F6;  /* editor caret — the one blue outside links */
@@ -85,6 +90,7 @@ html.dark {
   --sheet-month:    #93A9C6;
   --sheet-quarter:  #C2A0BE;
   --sheet-year:     #CDB173;
+  --task-hold:      #CDB173;
   --row-stripe:     rgba(214, 207, 198, 0.035);
   --glass-surface:  rgba(28, 28, 30, 0.75);
   --glass-border:   rgba(255, 255, 255, 0.12);

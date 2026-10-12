@@ -3,7 +3,7 @@ import { EditorView } from "@codemirror/view";
 import { indentLess, indentMore } from "@codemirror/commands";
 
 // indent, bullet or "1." / "1)", spacing, optional task box.
-const LIST_ITEM = /^(\s*)([-*+]|(\d+)([.)]))(\s+)(\[[ xX/-]\]\s+)?/;
+const LIST_ITEM = /^(\s*)([-*+]|(\d+)([.)]))(\s+)(\[[ xX/!-]\]\s+)?/;
 const INDENT = "  ";
 
 interface ListItem {

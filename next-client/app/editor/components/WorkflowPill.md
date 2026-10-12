@@ -1,6 +1,6 @@
 # WorkflowPill
 
-Description: Floating pill on a workflow tag (for example `#todo`) with prev/next arrows to cycle its state.
+Description: Floating pill on a workflow tag (for example `#draft`) with prev/next arrows to cycle its state.
 
 ## Local State & Storage
 - State: None (controlled).

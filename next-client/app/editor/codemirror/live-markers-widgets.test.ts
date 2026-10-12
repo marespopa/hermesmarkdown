@@ -1,10 +1,10 @@
 import { EditorState } from "@codemirror/state";
 import { EditorView } from "@codemirror/view";
 import { HiOutlineLightBulb } from "react-icons/hi";
-import { describe, expect, it } from "vitest";
-import { CalloutLabelWidget, TaskBoxWidget } from "./live-markers-widgets";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { CalloutLabelWidget, TaskBoxWidget, toggleTaskBox } from "./live-markers-widgets";
 
-const view = () => new EditorView({ state: EditorState.create({ doc: "- [ ] task" }) });
+const view = (doc = "- [ ] task") => new EditorView({ state: EditorState.create({ doc }) });
 
 describe("TaskBoxWidget", () => {
   it("draws a new box without the tick animation", () => {
@@ -27,6 +27,32 @@ describe("TaskBoxWidget", () => {
     new TaskBoxWidget(" ").updateDOM(dom);
     expect(dom.dataset.state).toBe("open");
     expect(dom.classList.contains("cm-liveTask-ticked")).toBe(false);
+  });
+
+  it("draws an on-hold box", () => {
+    const dom = new TaskBoxWidget("!").toDOM(view());
+    expect(dom.dataset.state).toBe("hold");
+    expect(dom.getAttribute("aria-checked")).toBe("false");
+  });
+});
+
+describe("toggleTaskBox", () => {
+  afterEach(() => vi.useRealTimers());
+
+  it("completes open tasks and reopens closed ones, with the done stamp", () => {
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(new Date(2026, 9, 12, 9, 0));
+    for (const [box, after] of [
+      [" ", "x] task @done(2026-10-12)"],
+      ["/", "x] task @done(2026-10-12)"],
+      ["!", "x] task @done(2026-10-12)"],
+      ["x", " ] task"],
+      ["-", " ] task"],
+    ]) {
+      const v = view(box === "x" ? "- [x] task @done(2026-10-09)" : `- [${box}] task`);
+      toggleTaskBox(v, 0);
+      expect(v.state.doc.toString()).toBe(`- [${after}`);
+    }
   });
 });
 

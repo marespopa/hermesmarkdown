@@ -48,7 +48,7 @@ export function useRollupItemActions() {
         await writeThrough(dayPath, handle, (text) => {
           const task = findSourceTask(text, item);
           if (!task) throw new TaskGone();
-          return task.checked ? null : patchLineInContent(text, task);
+          return task.checked ? null : patchLineInContent(text, task, "done");
         });
       } catch (err) {
         if (err instanceof TaskGone) toast.error(`That task is no longer in ${item.date}`, { id: "rollup-item" });

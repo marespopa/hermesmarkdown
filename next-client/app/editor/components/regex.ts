@@ -3,6 +3,9 @@ export const REGEX_DATE_SLASHED = /\d{2}\/\d{2}\/\d{4}/g;
 export const REGEX_DATE_DOTTED = /\d{2}\.\d{2}\.\d{4}/g;
 export const REGEX_DATE_WIKI = /\[\[\d{4}-\d{2}-\d{2}\]\]/g;
 export const REGEX_DATE_DUE = /@due\(\d{4}-\d{2}-\d{2}\)/g;
+// A task's work dates, stamped on status changes (app/utils/task-line.ts).
+export const REGEX_DATE_STARTED = /@started\(\d{4}-\d{2}-\d{2}\)/g;
+export const REGEX_DATE_DONE = /@done\(\d{4}-\d{2}-\d{2}\)/g;
 
 export const REGEX_CODE_INLINE = /(`)(.*?)(`)/g;
 export const REGEX_WIKILINK = /\[\[([^\]]+)\]\]/g;
@@ -14,8 +17,7 @@ export const REGEX_STRIKETHROUGH = /(~~)(.*?)(~~)/g;
 export const REGEX_MD_LINK = /\[[^\]]+\]\((https?:\/\/[^\s)]+)\)/g;
 export const REGEX_MD_IMAGE = /!\[[^\]]*\]\(([^)\s]+)\)/g;
 export const REGEX_TODO_TAGS = /#(draft|review|active|archived)\b/gi;
-export const REGEX_TODO_STATUS_TAGS = /#(todo|prog|hold|done)\b/gi;
-export const REGEX_CHECKBOX = /^(\s*[-*]\s*\[)([ xX])(\])/;
+export const REGEX_CHECKBOX = /^(\s*[-*]\s*\[)([ xX/!-])(\])/;
 export const REGEX_URL_PASTE = /^(https?:\/\/[^\s]+)$/i;
 export const REGEX_QUOTE_PREFIX = /^(>\s*)+/;
 export const REGEX_CALC = /calc\(([^)]+)\)=$/;

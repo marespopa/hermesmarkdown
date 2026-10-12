@@ -1,6 +1,6 @@
 import { EditorSelection, Range } from "@codemirror/state";
 import { Decoration, DecorationSet, EditorView, ViewPlugin, ViewUpdate, WidgetType } from "@codemirror/view";
-import { WORKFLOW_TAGS, TODO_TAGS } from "../components/constants";
+import { WORKFLOW_TAGS } from "../components/constants";
 import { REGEX_HASHTAG } from "../components/regex";
 
 export interface TagMatch {
@@ -8,7 +8,7 @@ export interface TagMatch {
   to: number;
   text: string;
   tagName: string;
-  kind: "workflow" | "todo" | "custom";
+  kind: "workflow" | "custom";
 }
 
 export interface FrontmatterTagList {
@@ -30,9 +30,7 @@ export function tagPillClassName(kind: TagMatch["kind"]): string {
 export function buildTagMatch(rawText: string, from: number, to: number): TagMatch | null {
   const tagName = parseTagName(rawText);
   if (!tagName) return null;
-  const kind: TagMatch["kind"] = WORKFLOW_TAGS.includes(tagName) || TODO_TAGS.includes(tagName)
-    ? (WORKFLOW_TAGS.includes(tagName) ? "workflow" : "todo")
-    : "custom";
+  const kind: TagMatch["kind"] = WORKFLOW_TAGS.includes(tagName) ? "workflow" : "custom";
 
   return {
     from,
@@ -141,9 +139,7 @@ export function collectTagMatches(doc: string): TagMatch[] {
         to: tagEnd,
         text: fullTag,
         tagName,
-        kind: WORKFLOW_TAGS.includes(tagName) || TODO_TAGS.includes(tagName)
-          ? (WORKFLOW_TAGS.includes(tagName) ? "workflow" : "todo")
-          : "custom",
+        kind: WORKFLOW_TAGS.includes(tagName) ? "workflow" : "custom",
       });
     }
   }

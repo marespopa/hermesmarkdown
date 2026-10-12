@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { afterEach, beforeEach, describe, it, expect, vi } from "vitest";
 import { EditorView, keymap, runScopeHandlers } from "@codemirror/view";
 import { EditorState, EditorSelection } from "@codemirror/state";
 import {
@@ -51,29 +51,43 @@ describe("toggleBold / toggleItalic / toggleStrikethrough / toggleInlineCode", (
 });
 
 describe("toggleCheckboxOnLine", () => {
-  it("checks an unchecked box", () => {
+  beforeEach(() => {
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(new Date(2026, 9, 12, 9, 0));
+  });
+  afterEach(() => vi.useRealTimers());
+
+  it("checks an unchecked box and stamps the day it was done", () => {
     const view = makeView("- [ ] Task");
     const applied = toggleCheckboxOnLine(view, 1);
     expect(applied).toBe(true);
-    expect(view.state.doc.toString()).toBe("- [x] Task");
+    expect(view.state.doc.toString()).toBe("- [x] Task @done(2026-10-12)");
   });
 
-  it("unchecks a checked box", () => {
-    const view = makeView("- [x] Task");
+  it("unchecks a checked box and drops its done stamp", () => {
+    const view = makeView("- [x] Task @done(2026-10-09)");
     toggleCheckboxOnLine(view, 1);
     expect(view.state.doc.toString()).toBe("- [ ] Task");
   });
 
-  it("syncs a #todo/#done status tag on the same line when checking", () => {
-    const view = makeView("- [ ] Task #todo");
-    toggleCheckboxOnLine(view, 1);
-    expect(view.state.doc.toString()).toBe("- [x] Task #done");
+  it("completes an in-progress or on-hold task, keeping its start date", () => {
+    for (const box of ["/", "!"]) {
+      const view = makeView(`- [${box}] Task @started(2026-10-08)`);
+      toggleCheckboxOnLine(view, 1);
+      expect(view.state.doc.toString()).toBe("- [x] Task @started(2026-10-08) @done(2026-10-12)");
+    }
   });
 
-  it("syncs the status tag back to #todo when unchecking", () => {
-    const view = makeView("- [x] Task #done");
+  it("reopens a cancelled task", () => {
+    const view = makeView("- [-] Task");
     toggleCheckboxOnLine(view, 1);
-    expect(view.state.doc.toString()).toBe("- [ ] Task #todo");
+    expect(view.state.doc.toString()).toBe("- [ ] Task");
+  });
+
+  it("leaves tags on the line alone", () => {
+    const view = makeView("- [ ] Task #todo");
+    toggleCheckboxOnLine(view, 1);
+    expect(view.state.doc.toString()).toBe("- [x] Task #todo @done(2026-10-12)");
   });
 
   it("returns false for a line with no checkbox", () => {
@@ -125,13 +139,19 @@ describe("outline indentation commands", () => {
 });
 
 describe("cycleTaskStatusOnCurrentLine", () => {
-  it("cycles a task through todo, in-progress, done, and todo", () => {
+  beforeEach(() => {
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(new Date(2026, 9, 12, 9, 0));
+  });
+  afterEach(() => vi.useRealTimers());
+
+  it("cycles a task through todo, in-progress, done, and todo, with its stamps", () => {
     const view = makeView("- [ ] Task", { anchor: 4 });
 
     expect(cycleTaskStatusOnCurrentLine(view)).toBe(true);
-    expect(view.state.doc.toString()).toBe("- [/] Task");
+    expect(view.state.doc.toString()).toBe("- [/] Task @started(2026-10-12)");
     cycleTaskStatusOnCurrentLine(view);
-    expect(view.state.doc.toString()).toBe("- [x] Task");
+    expect(view.state.doc.toString()).toBe("- [x] Task @started(2026-10-12) @done(2026-10-12)");
     cycleTaskStatusOnCurrentLine(view);
     expect(view.state.doc.toString()).toBe("- [ ] Task");
   });

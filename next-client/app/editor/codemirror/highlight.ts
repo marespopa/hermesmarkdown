@@ -36,7 +36,7 @@ const REGEX_HEADING = /^#{1,6}\s/;
 const REGEX_HEADING_PARTS = /^(#{1,6}\s+)(.*)$/;
 const REGEX_BLOCKQUOTE_PARTS = /^(>\s?)(.*)$/;
 const REGEX_LIST_ITEM = /^\s*[-*+]\s+/;
-const REGEX_LIST_PARTS = /^(\s*[-*+]\s+)(\[[ xX/-]\]\s+)?(.*)$/;
+const REGEX_LIST_PARTS = /^(\s*[-*+]\s+)(\[[ xX/!-]\]\s+)?(.*)$/;
 const REGEX_TABLE_LINE = /^\s*\|/;
 const REGEX_TABLE_SEPARATOR = /^\s*\|[\s:|-]+\|/;
 

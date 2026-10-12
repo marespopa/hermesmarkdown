@@ -32,10 +32,10 @@ export function buildWorkspaceTaskViewCommandGroups(context: EditorCommandContex
     setKeyboardShortcutsOpen,
     setLineNumbers,
     setShowHiddenFiles,
-    setTaskDueFilter,
     setTaskSearchQuery,
     setTasksGroupBy,
     setTaskTagFilter,
+    setTaskView,
     setTheme,
     setWordWrap,
     showHiddenFiles,
@@ -258,6 +258,7 @@ export function buildWorkspaceTaskViewCommandGroups(context: EditorCommandContex
       keywords: "todo organize",
       action: () => {
         setTasksGroupBy("status");
+        setTaskView("all");
         onOpenTasks();
       },
     },
@@ -268,6 +269,7 @@ export function buildWorkspaceTaskViewCommandGroups(context: EditorCommandContex
       keywords: "todo organize note",
       action: () => {
         setTasksGroupBy("file");
+        setTaskView("all");
         onOpenTasks();
       },
     },
@@ -275,27 +277,25 @@ export function buildWorkspaceTaskViewCommandGroups(context: EditorCommandContex
       id: "tasks-clear-filters",
       label: "Tasks: Clear filters",
       category: "Tasks",
-      keywords: "reset search tag due",
+      keywords: "reset search tag",
       action: () => {
         setTaskSearchQuery("");
         setTaskTagFilter([]);
-        setTaskDueFilter("all");
         onOpenTasks();
       },
     },
     ...([
-      ["overdue", "overdue"],
-      ["today", "due today"],
-      ["upcoming", "upcoming"],
-      ["none", "without a due date"],
-      ["all", "all dates"],
-    ] as const).map(([filter, label]) => ({
-      id: `tasks-filter-${filter}`,
+      ["now", "Now", "in progress up next focus"],
+      ["today", "Today", "due today overdue"],
+      ["upcoming", "Upcoming", "due later scheduled"],
+      ["all", "All", "every task status note"],
+    ] as const).map(([view, label, keywords]) => ({
+      id: `tasks-view-${view}`,
       label: `Tasks: Show ${label}`,
       category: "Tasks" as const,
-      keywords: "todo filter due date",
+      keywords: `todo list ${keywords}`,
       action: () => {
-        setTaskDueFilter(filter);
+        setTaskView(view);
         onOpenTasks();
       },
     })),

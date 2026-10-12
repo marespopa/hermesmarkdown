@@ -80,8 +80,8 @@ self.onmessage = (event: MessageEvent) => {
       // Metrics
       const wordCount = content.trim().split(/\s+/).filter(Boolean).length;
 
-      // Task Extraction: checklist items anywhere in the file, with an
-      // optional inline #prog tag (see app/utils/taskExtractor.ts)
+      // Task Extraction: checklist items anywhere in the file, their status
+      // from the box character (see app/utils/taskExtractor.ts)
       const tasks = extractTasks(path, content);
 
       // Plain-text excerpt for the home feed
