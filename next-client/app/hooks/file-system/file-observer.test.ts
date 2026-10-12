@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { createFileObserver, isFileObserverSupported } from "./file-observer";
+import { changesFileList, createFileObserver, isFileObserverSupported, observeVault, type FileSystemChangeRecord } from "./file-observer";
 
 type Callback = (records: { type: string; root: unknown; changedHandle: unknown }[]) => void;
 
@@ -89,5 +89,47 @@ describe("file-observer", () => {
     fo.sync(new Map([["a.md", handle("a.md")]]));
     expect(mock.disconnect).toHaveBeenCalled();
     expect(mock.observe).not.toHaveBeenCalled();
+  });
+});
+
+describe("changesFileList / observeVault", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    MockObserver.instances = [];
+  });
+
+  const record = (type: FileSystemChangeRecord["type"], path: string[]) =>
+    ({ type, relativePathComponents: path, root: null, changedHandle: null }) as unknown as FileSystemChangeRecord;
+
+  it("counts files appearing, going away or moving, not edits or hidden folders", () => {
+    expect(changesFileList(record("appeared", ["notes", "a.md"]))).toBe(true);
+    expect(changesFileList(record("disappeared", ["a.md"]))).toBe(true);
+    expect(changesFileList(record("moved", ["b.md"]))).toBe(true);
+    expect(changesFileList(record("unknown", []))).toBe(true);
+    expect(changesFileList(record("modified", ["a.md"]))).toBe(false);
+    expect(changesFileList(record("errored", ["a.md"]))).toBe(false);
+    expect(changesFileList(record("appeared", [".hermes", "trash", "a.md"]))).toBe(false);
+  });
+
+  it("watches the vault recursively and reports file-list changes only", async () => {
+    vi.stubGlobal("FileSystemObserver", MockObserver);
+    const onChange = vi.fn();
+    const root = { kind: "directory", name: "vault" } as unknown as FileSystemDirectoryHandle;
+    const stop = await observeVault(root, onChange);
+    const mock = MockObserver.instances[0];
+    expect(mock.observe).toHaveBeenCalledWith(root, { recursive: true });
+
+    mock.callback([record("modified", ["a.md"])] as never);
+    expect(onChange).not.toHaveBeenCalled();
+    mock.callback([record("modified", ["a.md"]), record("appeared", ["b.md"])] as never);
+    expect(onChange).toHaveBeenCalledTimes(1);
+
+    stop!();
+    expect(mock.disconnect).toHaveBeenCalled();
+  });
+
+  it("returns null without FileSystemObserver", async () => {
+    vi.stubGlobal("FileSystemObserver", undefined);
+    expect(await observeVault({} as FileSystemDirectoryHandle, () => {})).toBeNull();
   });
 });

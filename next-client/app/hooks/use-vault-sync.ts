@@ -6,9 +6,17 @@ import { useEffect, useCallback, useRef } from "react";
 import toast from "react-hot-toast";
 import { useFileSystem } from "./use-file-system";
 import { useInterval } from "./use-interval";
+import { observeVault } from "./file-system/file-observer";
 
 const VAULT_SYNC_INTERVAL = 5 * 60 * 1000; // 5 minutes
 const CLOUD_VAULT_SYNC_INTERVAL = 1 * 60 * 1000; // 1 minute for cloud vaults
+// A burst of changes (a folder copied in, a git checkout) rescans once.
+export const VAULT_WATCH_DEBOUNCE = 500;
+
+// Keeps the vault's file list in step with the disk, without a Refresh
+// button: where the browser can watch a folder (FileSystemObserver), any file
+// or folder appearing, going away or moving rescans it shortly after; every
+// browser also rescans when the window regains focus and on a timer.
 
 export function useVaultSync() {
   const [vaultHandle] = useAtom(atom_vaultHandle);
@@ -21,7 +29,9 @@ export function useVaultSync() {
   // from the silent periodic/focus background re-scan. Background syncs stay
   // silent on success — only manual syncs get a start/complete toast. Both
   // toast on failure, since a silently-failing sync was the actual problem.
-  const syncVault = useCallback(async (manual = false) => {
+  // `wholeVault` (the folder watcher, which sees changes anywhere) rescans
+  // from the vault root.
+  const syncVault = useCallback(async (manual = false, wholeVault = false) => {
     if (!vaultHandle || isVaultPending) return;
 
     if (manual) toast.loading("Syncing vault…", { id: "vault-sync" });
@@ -30,7 +40,7 @@ export function useVaultSync() {
       // Rescan whichever folder is the current directory, not just
       // the vault root — otherwise external changes inside a subfolder
       // never appear until the user navigates away and back.
-      await scanVault(currentDirectoryHandle || vaultHandle);
+      await scanVault(wholeVault ? vaultHandle : currentDirectoryHandle || vaultHandle);
       await indexVaultTags();
       if (manual) toast.success("Vault synced", { id: "vault-sync" });
     } catch (err: any) {
@@ -46,12 +56,32 @@ export function useVaultSync() {
   // Periodic sync
   useInterval(syncVault, isCloudVault ? CLOUD_VAULT_SYNC_INTERVAL : VAULT_SYNC_INTERVAL);
 
-  // Focus-based sync
   const syncVaultRef = useRef(syncVault);
   useEffect(() => {
     syncVaultRef.current = syncVault;
   }, [syncVault]);
 
+  // Watch the vault folder for files added, removed or moved.
+  useEffect(() => {
+    if (!vaultHandle || isVaultPending) return;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    let stop: (() => void) | null = null;
+    let cancelled = false;
+    void observeVault(vaultHandle, () => {
+      clearTimeout(timer);
+      timer = setTimeout(() => void syncVaultRef.current?.(false, true), VAULT_WATCH_DEBOUNCE);
+    }).then((stopWatching) => {
+      if (cancelled) stopWatching?.();
+      else stop = stopWatching;
+    });
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+      stop?.();
+    };
+  }, [vaultHandle, isVaultPending]);
+
+  // Focus-based sync
   useEffect(() => {
     if (!vaultHandle) return;
 

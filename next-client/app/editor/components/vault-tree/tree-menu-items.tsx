@@ -1,14 +1,13 @@
 "use client";
 
 import {
-  HiOutlineDocumentAdd,
   HiOutlineDocumentText,
   HiOutlineDuplicate,
-  HiOutlineFolderAdd,
   HiOutlineTemplate,
   HiOutlinePencil,
   HiOutlineTrash,
 } from "react-icons/hi";
+import { fileCreateActions } from "./file-create-actions";
 import { renameShortcut, trashShortcut, type TreeMenuItem } from "./TreeContextMenu";
 import type { VaultFileTreeProps } from "./tree-model";
 import type { MenuTarget, useTreeActions } from "./use-tree-actions";
@@ -22,14 +21,14 @@ export function treeMenuItems(
   props: VaultFileTreeProps,
   actions: ReturnType<typeof useTreeActions>,
 ): TreeMenuItem[] {
-  const newItems = (parentPath: string): TreeMenuItem[] => [
-    ...(props.createNewFile
-      ? [{ label: "New Note", icon: <HiOutlineDocumentAdd {...ICON} />, onSelect: () => actions.startCreate("file", parentPath) }]
-      : []),
-    ...(props.createFolder
-      ? [{ label: "New Folder", icon: <HiOutlineFolderAdd {...ICON} />, onSelect: () => actions.startCreate("folder", parentPath) }]
-      : []),
-  ];
+  // From a folder, a note from a template goes in that folder; from the
+  // empty space (parentPath ""), the template's own folder decides.
+  const newItems = (parentPath: string): TreeMenuItem[] =>
+    fileCreateActions({
+      newNote: props.createNewFile ? () => actions.startCreate("file", parentPath) : undefined,
+      newFromTemplate: props.createNoteFromTemplate ? () => void props.createNoteFromTemplate!(parentPath) : undefined,
+      newFolder: props.createFolder ? () => actions.startCreate("folder", parentPath) : undefined,
+    }).map(({ label, icon, onSelect }) => ({ label, icon, onSelect }));
 
   if (target.type === "background") return newItems("");
 

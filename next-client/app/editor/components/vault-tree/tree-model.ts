@@ -46,6 +46,9 @@ export interface VaultFileTreeProps {
   createNewFile?: (targetDirectory?: FileSystemDirectoryHandle, name?: string) => void | Promise<unknown>;
   createFolder?: (parentDirectory?: FileSystemDirectoryHandle, name?: string) => Promise<FileSystemDirectoryHandle | null>;
   moveItem?: (handle: any, targetDir: any) => void;
+  // "New Note from Template…" in folder and empty-space menus: the folder's
+  // path, or "" (the empty space) to let the template's own folder decide.
+  createNoteFromTemplate?: (folder: string) => unknown;
 }
 
 export interface DraggedEntry {

@@ -3,15 +3,17 @@
 import { useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useAtom, useAtomValue } from "jotai";
-import { HiOutlineArrowLeft, HiOutlineDocumentAdd, HiOutlineFolderAdd, HiOutlineRefresh } from "react-icons/hi";
+import { HiOutlineArrowLeft } from "react-icons/hi";
 import Button from "@/app/components/Button";
 import { atom_activeFilePath } from "@/app/atoms/atoms";
 import { atom_vaultName } from "@/app/atoms/vault-atoms";
-import { atom_indexerState, atom_selectedFileTags, atom_showHiddenFiles } from "@/app/atoms/ui-atoms";
+import { atom_selectedFileTags } from "@/app/atoms/ui-atoms";
 import { useFileSystem } from "@/app/hooks/use-file-system";
+import { useVaultSync } from "@/app/hooks/use-vault-sync";
 import { useVaultFileSearch } from "../hooks/useVaultFileSearch";
 import VaultFileTree from "../components/VaultFileTree";
 import UnifiedSearchInput from "../components/UnifiedSearchInput";
+import { fileCreateActions } from "../components/vault-tree/file-create-actions";
 import type { VaultFileTreeController } from "../components/vault-tree/tree-model";
 
 export default function FilesPage() {
@@ -30,14 +32,13 @@ export default function FilesPage() {
     undoFileOperation,
     openFile,
     renameFile,
-    scanVault,
-    indexVaultTags,
+    createNoteFromTemplate,
     vaultHandle,
   } = useFileSystem();
-  const showHiddenFiles = useAtomValue(atom_showHiddenFiles);
   const vaultName = useAtomValue(atom_vaultName);
-  const indexerState = useAtomValue(atom_indexerState);
-  const isRefreshing = indexerState !== "idle";
+  // No Refresh button: the list follows the disk (watched where the browser
+  // can, and rescanned on focus and on a timer everywhere).
+  useVaultSync();
   const {
     allFiles,
     folderPaths,
@@ -67,13 +68,6 @@ export default function FilesPage() {
     return directory;
   }, [vaultHandle]);
 
-  // Re-reads the vault from disk (picks up changes made outside the app).
-  const refresh = useCallback(() => {
-    if (!vaultHandle) return;
-    void scanVault(vaultHandle as any, showHiddenFiles);
-    void indexVaultTags?.(vaultHandle as any, showHiddenFiles);
-  }, [vaultHandle, showHiddenFiles, scanVault, indexVaultTags]);
-
   // Named in place in the tree, in the selected folder (or the selected
   // note's folder, else the root). While a search filters the list, the
   // folder picker and name prompt are used instead.
@@ -84,6 +78,18 @@ export default function FilesPage() {
     }
     void (kind === "file" ? createNewFile() : createFolder());
   }, [isFiltered, createNewFile, createFolder]);
+
+  // A note from a template opens in the editor; "" lets the template's own
+  // folder decide (the header), a folder's menu passes that folder.
+  const createFromTemplate = useCallback(async (folder = "") => {
+    if (await createNoteFromTemplate(undefined, folder)) router.push("/editor");
+  }, [createNoteFromTemplate, router]);
+
+  const createActions = fileCreateActions({
+    newNote: () => startCreate("file"),
+    newFromTemplate: () => void createFromTemplate(),
+    newFolder: () => startCreate("folder"),
+  });
 
   const openSelectedFile = useCallback((handle: FileSystemFileHandle, path?: string) => {
     void openFile(handle, path);
@@ -114,25 +120,19 @@ export default function FilesPage() {
           </div>
         {vaultHandle && (
           <div className="flex shrink-0 items-center gap-1">
-            <Button
-              variant="secondary"
-              onClick={refresh}
-              isDisabled={isRefreshing}
-              className="h-8 px-2.5 text-ui-footnote"
-              aria-label="Refresh"
-              title="Refresh"
-            >
-              <HiOutlineRefresh size={15} className={isRefreshing ? "animate-spin" : undefined} />
-              <span className="hidden sm:inline">Refresh</span>
-            </Button>
-            <Button variant="secondary" onClick={() => startCreate("file")} className="h-8 px-2.5 text-ui-footnote" aria-label="New note">
-              <HiOutlineDocumentAdd size={15} />
-              <span className="hidden sm:inline">New Note</span>
-            </Button>
-            <Button variant="secondary" onClick={() => startCreate("folder")} className="h-8 px-2.5 text-ui-footnote" aria-label="New folder">
-              <HiOutlineFolderAdd size={15} />
-              <span className="hidden sm:inline">New Folder</span>
-            </Button>
+            {createActions.map((action) => (
+              <Button
+                key={action.id}
+                variant="secondary"
+                onClick={action.onSelect}
+                className="h-8 px-2.5 text-ui-footnote"
+                aria-label={action.label}
+                title={action.label}
+              >
+                {action.icon}
+                <span className="hidden sm:inline">{action.label}</span>
+              </Button>
+            ))}
           </div>
         )}
         </div>
@@ -173,6 +173,7 @@ export default function FilesPage() {
                 resolveFolderHandle={resolveFolderHandle}
                 createNewFile={createNewFile}
                 createFolder={createFolder}
+                createNoteFromTemplate={(folder) => createFromTemplate(folder)}
                 moveItem={moveItem}
                 moveItems={moveItems}
               />

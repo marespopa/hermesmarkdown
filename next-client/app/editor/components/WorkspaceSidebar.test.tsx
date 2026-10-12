@@ -12,6 +12,7 @@ const fileSystem = vi.hoisted(() => ({
   vaultHandle: null as unknown,
   createNewFile: vi.fn(),
   createFolder: vi.fn(),
+  createNoteFromTemplate: vi.fn(),
 }));
 
 vi.mock("next/navigation", () => ({
@@ -29,6 +30,7 @@ vi.mock("@/app/hooks/use-file-system", () => ({
     moveItem: vi.fn(),
     createNewFile: fileSystem.createNewFile,
     createFolder: fileSystem.createFolder,
+    createNoteFromTemplate: fileSystem.createNoteFromTemplate,
   }),
 }));
 
@@ -154,6 +156,15 @@ describe("WorkspaceSidebar", () => {
     fireEvent.click(screen.getByRole("button", { name: "Files options" }));
     fireEvent.click(screen.getByRole("menuitem", { name: "New Folder" }));
     expect(fileSystem.createFolder).toHaveBeenCalledWith(vault);
+  });
+
+  it("offers the shared create actions in the Files ⋯ menu, a note from a template among them", () => {
+    fileSystem.vaultHandle = { name: "Notes" };
+    renderSidebar(true, false);
+    fireEvent.click(screen.getByRole("button", { name: "Files options" }));
+    expect(screen.getAllByRole("menuitem").map((item) => item.textContent)).toEqual(["New Note", "New Note from Template…", "New Folder"]);
+    fireEvent.click(screen.getByRole("menuitem", { name: "New Note from Template…" }));
+    expect(fileSystem.createNoteFromTemplate).toHaveBeenCalledWith();
   });
 
   it("closes the Files menu on Escape", () => {

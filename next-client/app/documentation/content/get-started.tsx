@@ -300,6 +300,14 @@ export const getStartedGroup: Group = {
             It provides a full workspace view for browsing, organizing, renaming, moving, and deleting files and folders without
             covering the editor. Tasks uses a matching dedicated view; file search, tags, and headings are available through the command palette.
           </p>
+          <p>
+            The Explorer and the sidebar&apos;s Files section offer the same actions in the same order:{" "}
+            <strong>New Note</strong>, <strong>New Note from Template…</strong> and <strong>New Folder</strong>, at
+            the top and in every folder&apos;s right-click (or ⋯) menu. From a folder, a note from a template goes in
+            that folder; from the top, the template&apos;s own folder decides. There&apos;s no Refresh button: files
+            you add, delete or move outside HermesMarkdown show up on their own (straight away in Chrome and Edge,
+            otherwise when you come back to the window).
+          </p>
           <KV
             rows={[
               { label: "Home feed", value: "Home button in the toolbar" },
@@ -310,7 +318,7 @@ export const getStartedGroup: Group = {
               { label: "Search note text", value: "CTRL/CMD+SHIFT+F" },
               { label: "Palette modes", value: "# vault tags · > commands · ! tasks · @ current-note headings · / note text" },
               { label: "Commands on or off", value: "The > button in the search field" },
-              { label: "Explorer controls", value: "Refresh, new note, new folder, and file actions" },
+              { label: "Explorer controls", value: "New note, new note from template, new folder, and file actions" },
               { label: "AI Chat", value: "CTRL+SHIFT+B" },
               { label: "Keyboard shortcuts", value: "Show keyboard shortcuts command" },
             ]}

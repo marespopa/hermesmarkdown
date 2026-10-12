@@ -174,8 +174,10 @@ export function useTemplateCreate({ scanVault, indexVaultTags, openFile }: UseTe
   // `{{date}}` for a journal page) asks for no title, and opens that note
   // unchanged when it already exists. Otherwise the title is asked for and a
   // clash gets ` (1)`. `picked` skips the picker (the Templates page's
-  // Use). True once the note is open.
-  const createNoteFromTemplate = useCallback(async (picked?: TemplateEntry): Promise<boolean> => {
+  // Use). `folder` (a folder's "New Note from Template…" in a file list)
+  // puts the note there instead of the template's target_folder. True once
+  // the note is open.
+  const createNoteFromTemplate = useCallback(async (picked?: TemplateEntry, folder?: string): Promise<boolean> => {
     if (!store.get(atom_vaultHandle)) return false;
     const chosen = picked ?? (await pickTemplate({ includeBlank: false, title: "New note from template" }));
     if (!chosen || chosen === "blank") return false;
@@ -189,10 +191,11 @@ export function useTemplateCreate({ scanVault, indexVaultTags, openFile }: UseTe
     }
     const result = await instantiate(raw, title, "Create", "", { titleFromFileName: named });
     if (!result) return false;
-    const folder =
-      normalizeFolderPath(result.routing.targetFolder ?? "") || normalizeFolderPath(store.get(atom_newNoteFolder));
+    const target = normalizeFolderPath(folder ?? "")
+      || normalizeFolderPath(result.routing.targetFolder ?? "")
+      || normalizeFolderPath(store.get(atom_newNoteFolder));
     const baseName = sanitizeNoteName(result.routing.fileName || title);
-    return (await writeNewNote(folder, baseName, result.expanded, { unique: !named })) !== null;
+    return (await writeNewNote(target, baseName, result.expanded, { unique: !named })) !== null;
   }, [store, dialog, pickTemplate, readOrReport, instantiate, writeNewNote]);
 
   // "New template…": pick a starter, then `<templates folder>/<name>.md` (in

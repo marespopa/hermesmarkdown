@@ -230,6 +230,13 @@ describe("createNoteFromTemplate", () => {
     expect(props.openFile).toHaveBeenCalledWith(expect.anything(), "journal/2026/2026-10-04.md", true);
   });
 
+  it("puts the note in the folder it was asked from, over the template's target_folder", async () => {
+    const { root, flows } = await setup();
+    await act(() => flows.createNoteFromTemplate(undefined, "projects/auth"));
+    expect(root.at("projects/auth/rfc-2026-10-04-auth-spec.md")?.content).toBe("# Auth Spec\nOwner: Ana\n\n");
+    expect(root.at("docs/rfcs/rfc-2026-10-04-auth-spec.md")).toBeUndefined();
+  });
+
   it("cancels on an empty title", async () => {
     dialog.prompt.mockResolvedValue("  ");
     const { flows } = await setup();
