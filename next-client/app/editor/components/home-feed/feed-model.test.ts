@@ -152,7 +152,6 @@ describe("buildFeed", () => {
   it("carries sensitivity and the preview style of sensitive notes", () => {
     const notes = { s: meta("s.md", NOW, { preview: "Secret", frontmatter: { tags: "private" } }) };
     expect(buildFeed(notes, NOW)[0]).toMatchObject({ isSensitive: true, previewStyle: "masked", preview: MASKED_PREVIEW });
-    expect(buildFeed(notes, NOW, "blurred")[0]).toMatchObject({ isSensitive: true, previewStyle: "blurred", preview: "Secret" });
   });
 
   it("leaves hidden notes out and recomputes day labels after exclusion", () => {

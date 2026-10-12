@@ -20,9 +20,8 @@ interface FeedRowProps {
 
 const PREVIEW_CLASS = "mt-1 line-clamp-3 block text-ui-subhead leading-relaxed text-fg-muted";
 
-// The preview under the title. A sensitive note's preview is either masked
-// bullets (the real text never reaches the DOM) or blurred until the row is
-// hovered or keyboard-focused. Selection doesn't unblur: row 0 starts selected.
+// The preview under the title. A sensitive note's preview is masked bullets:
+// the real text never reaches the DOM.
 function FeedPreview({ entry }: { entry: FeedEntry }) {
   if (!entry.preview) return null;
   if (entry.previewStyle === "masked") {
@@ -33,24 +32,11 @@ function FeedPreview({ entry }: { entry: FeedEntry }) {
       </>
     );
   }
-  if (entry.previewStyle === "blurred") {
-    return (
-      <>
-        <span
-          aria-hidden="true"
-          className={`${PREVIEW_CLASS} select-none blur-sm motion-safe:transition group-hover:blur-none group-focus-visible:blur-none`}
-        >
-          {entry.preview}
-        </span>
-        <span className="sr-only">Preview blurred</span>
-      </>
-    );
-  }
   return <span className={PREVIEW_CLASS}>{entry.preview}</span>;
 }
 
 // One note in the feed: day label (or "Pinned") in the left gutter, then the
-// title, a few lines of plain-text preview (masked or blurred for sensitive
+// title, a few lines of plain-text preview (masked for sensitive
 // notes) and the file name in small, faint type. The pin button shows on
 // hover, keyboard focus or selection, and not at all on touch-only screens,
 // where a long press opens the row's menu (Open, Pin / Unpin) instead; a right-click or the context-menu key opens it

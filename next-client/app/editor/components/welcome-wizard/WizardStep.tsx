@@ -31,12 +31,3 @@ export default function WizardStep({ icon, title, description, children, continu
     </div>
   );
 }
-
-// The bordered panel most steps put their control in.
-export function WizardPanel({ children, className = "" }: { children: React.ReactNode; className?: string }) {
-  return (
-    <div className={`w-full rounded-2xl border border-edge p-4 bg-paper-softgray/40 dark:bg-paper-dark/30 ${className}`}>
-      {children}
-    </div>
-  );
-}

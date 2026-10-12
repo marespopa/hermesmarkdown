@@ -156,7 +156,6 @@ describe("buildEditorCommands", () => {
       "toggle-sidebar",
       "start-welcome-tour",
       "privacy-mode-show-title",
-      "privacy-mode-blurred",
       "privacy-mode-hidden",
       "reveal-sensitive-session",
       "go-home",
@@ -298,16 +297,16 @@ describe("buildEditorCommands", () => {
   });
 
   it("switches the privacy level and disables the current one", () => {
-    const context = createContext({ privacyLevel: "blurred" });
+    const context = createContext({ privacyLevel: "hidden" });
     const commands = buildEditorCommands(context);
     const command = (id: string) => commands.find((candidate) => candidate.id === id);
 
-    expect(command("privacy-mode-blurred")?.disabledReason).toBe("Current mode");
+    expect(command("privacy-mode-hidden")?.disabledReason).toBe("Current mode");
     expect(command("privacy-mode-show-title")?.disabledReason).toBeUndefined();
-    expect(command("privacy-mode-hidden")?.disabledReason).toBeUndefined();
+    expect(command("privacy-mode-blurred")).toBeUndefined();
 
-    command("privacy-mode-hidden")?.action();
-    expect(context.setPrivacyLevel).toHaveBeenCalledWith("hidden");
+    command("privacy-mode-show-title")?.action();
+    expect(context.setPrivacyLevel).toHaveBeenCalledWith("show_title");
   });
 
   it("toggles the session reveal and clears per-note reveals when turned off", () => {

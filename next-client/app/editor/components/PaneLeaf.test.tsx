@@ -203,8 +203,11 @@ describe("PaneLeaf Tab Indicators", () => {
     fireEvent.click(more);
     expect(more).toHaveAttribute("aria-expanded", "true");
     const menu = screen.getByRole("menu", { name: "More" });
-    for (const name of ["Copy Markdown", "Split Right", "Settings", "Documentation and Help", "Hide Toolbar"]) {
+    for (const name of ["Copy Markdown", "Export as PDF…", "Settings", "Documentation and Help", "Hide Toolbar"]) {
       expect(within(menu).getByRole("menuitem", { name: new RegExp(`^${name}`) })).toBeInTheDocument();
+    }
+    for (const name of ["Split Right", "Token Cost"]) {
+      expect(within(menu).queryByRole("menuitem", { name })).not.toBeInTheDocument();
     }
 
     // Clicking the button again closes the menu instead of reopening it.

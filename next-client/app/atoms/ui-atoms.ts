@@ -242,7 +242,8 @@ export const atom_homePins = atomWithStorage<Record<string, string[]>>("hermes_h
 // Where today's worklog sheet goes (`{{year}}` / `{{month}}` allowed; ""
 // = vault root). null until asked, on the first "Start today's sheet".
 export const atom_todayFolder = atomWithStorage<string | null>("hermes_today_folder", null);
-export const atom_homeTasksCollapsed = atomWithStorage<boolean>("hermes_home_tasks_collapsed", false);
+// The home feed's open-tasks list: folded until you open it.
+export const atom_homeTasksCollapsed = atomWithStorage<boolean>("hermes_home_tasks_collapsed", true);
 
 // Vault creation flow — transient, never persisted
 export type VaultCreationSubStep = "name-and-folder" | "installing";

@@ -4,7 +4,7 @@ import { useCallback, useMemo } from "react";
 import { useAtomValue } from "jotai";
 import { atom_fileMetadata } from "@/app/atoms/metadata";
 import { useFileSystem } from "@/app/hooks/use-file-system";
-import { dailySheetDates, levelTarget, stepTarget, type Sheet, type SheetLevel } from "@/app/utils/sheet-nav";
+import { dailySheetDates, levelTarget, stepTarget, switcherLevels, type Sheet, type SheetLevel } from "@/app/utils/sheet-nav";
 import { usePeriodSheets } from "./use-period-sheets";
 
 // Opens worklog sheets for the sheet switcher: a day through Today's sheet
@@ -34,5 +34,8 @@ export function useSheetNavigation() {
     };
   }, [dates]);
 
-  return { openSheet, targets };
+  // Quarter and Year only once used (switcherLevels).
+  const levels = useCallback((sheet: Sheet) => switcherLevels(sheet, Object.keys(metadata)), [metadata]);
+
+  return { openSheet, targets, levels };
 }

@@ -205,14 +205,14 @@ export const getStartedGroup: Group = {
           <p>
             <strong>Tasks</strong> lists the unchecked <code>- [ ]</code> tasks from notes you
             changed in the last 7 days. Click one to open its note with the cursor on that task.
-            Click <strong>N open tasks</strong> to fold the list; it stays folded. Tasks from sensitive notes aren&apos;t
+            The list starts folded: click <strong>N open tasks</strong> to open it, and it stays the way you leave it. Tasks from sensitive notes aren&apos;t
             listed.
           </p>
           <p>
             Each row shows a note's title, the first few lines of its text and its file name. The column on the
             left groups notes by the day they were last changed: <em>Today</em>,{" "}
-            <em>Yesterday</em>, the weekday for the rest of the week, then the date. If you entered
-            your name during setup, the feed greets you with it.
+            <em>Yesterday</em>, the weekday for the rest of the week, then the date. If you add
+            your name in Settings → Guide, the feed greets you with it.
           </p>
           <p>
             To keep a note at the top, hover its row and click the pin. On a phone or tablet,
@@ -296,7 +296,7 @@ export const getStartedGroup: Group = {
             sheet already open in that pane, so the sheet switcher never piles up tabs. On the left:
             the <strong> Sidebar</strong> button, while the sidebar is hidden. On the right: Save, Search (the
             command palette) and AI Chat (when an AI key is set). The <strong>&hellip; More</strong> menu holds Copy
-            Markdown, Split Right, Settings, Help and Hide Toolbar — every one of them is also in the command palette.
+            Markdown, Export as PDF, Settings, Help and Hide Toolbar — every one of them is also in the command palette.
           </p>
           <p>
             Toolbar buttons are icons; hover one to see its name and shortcut. Right-click the
@@ -307,7 +307,7 @@ export const getStartedGroup: Group = {
             Today (today&apos;s sheet) and Tasks below Home, and ends with the file tree. Show
             it with the Sidebar button at the toolbar's far left and hide it with the button in its own header, or toggle it with{" "}
             <code>CTRL/CMD+ALT+S</code> or the <strong>Show sidebar</strong>{" "}
-            command (the welcome tour offers it too), and drag its edge to resize it (double-click the edge to
+            command, and drag its edge to resize it (double-click the edge to
             reset; with the edge focused, the arrow keys resize it too). Folded sections stay folded. The Explorer below remains the place for bigger file work.
           </p>
           <p>
@@ -332,7 +332,7 @@ export const getStartedGroup: Group = {
             ]}
           />
           <p>
-            Open several files side by side: choose <strong>Split Right</strong> from the toolbar&apos;s More menu or run <strong>Split pane right</strong> from the command palette (or <strong>Open in pane</strong> on a tab),
+            Open several files side by side: run <strong>Split pane right</strong> from the command palette (or <strong>Open in pane</strong> on a tab),
             drag tabs between panes, and resize with the divider.
           </p>
           <p>

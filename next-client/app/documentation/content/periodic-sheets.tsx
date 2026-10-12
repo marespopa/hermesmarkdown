@@ -37,10 +37,12 @@ export const periodicSheetsItem: Subsection = {
       />
       <p>
         At the top of every worklog sheet, a line moves you between them:{" "}
-        <strong>Day · Week · Month · Quarter · Year</strong> on the left, each with its own colour
-        (days clay, weeks green, months slate, quarters plum, years ochre), and{" "}
+        <strong>Day · Week · Month</strong> on the left, each with its own colour (days clay, weeks
+        green, months slate), and{" "}
         <strong>‹ date ›</strong> on the right. Each level jumps to the sheet for the same date at
-        that level: Oct 6 → week 41 → October → Q4 → 2026. The arrows step back
+        that level: Oct 6 → week 41 → October. <strong>Quarter</strong> (plum) and{" "}
+        <strong>Year</strong> (ochre) join the line once you have a quarterly or yearly sheet; open
+        one from the command palette the first time. The arrows step back
         and forward at the current level. Days skip to the nearest day that has a sheet, and stepping
         forward from your latest one goes to today. Nothing goes past today, and browsing never
         creates empty sheets for past days; a weekly, monthly, quarterly or yearly sheet that

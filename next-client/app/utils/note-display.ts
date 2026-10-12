@@ -6,10 +6,11 @@ import { isSensitiveFrontmatter } from "./note-privacy";
 // this builds instead of slicing note content themselves. Any future note
 // preview (e.g. a wiki-link hover card) must go through createNoteDisplayItem.
 
-export type PrivacyLevel = "show_title" | "blurred" | "hidden";
+export type PrivacyLevel = "show_title" | "hidden";
 
-export const PRIVACY_LEVELS: readonly PrivacyLevel[] = ["show_title", "blurred", "hidden"];
+export const PRIVACY_LEVELS: readonly PrivacyLevel[] = ["show_title", "hidden"];
 
+// Anything else, including the retired "blurred" level, reads as show_title.
 export function normalizePrivacyLevel(value: unknown): PrivacyLevel {
   return PRIVACY_LEVELS.includes(value as PrivacyLevel) ? (value as PrivacyLevel) : "show_title";
 }
@@ -19,13 +20,13 @@ export const MASKED_PREVIEW = "•••• ••••••• ••••�
 export const MASKED_TEXT = "••••••••";
 export const UNTITLED_SENSITIVE_TITLE = "Untitled sensitive note";
 
-export type PreviewStyle = "plain" | "masked" | "blurred";
+export type PreviewStyle = "plain" | "masked";
 
 export interface NoteDisplayItem {
   /** Vault path. */
   id: string;
   title: string;
-  /** MASKED_PREVIEW when masked; the real excerpt when plain or blurred. */
+  /** MASKED_PREVIEW when masked; the real excerpt when plain. */
   preview: string;
   isSensitive: boolean;
   /** previewStyle === "masked". */
@@ -55,7 +56,7 @@ export function noteDisplayTitle(
 export function createNoteDisplayItem(meta: FileMetadata, level: PrivacyLevel): NoteDisplayItem | null {
   const isSensitive = isSensitiveFrontmatter(meta.frontmatter);
   if (isSensitive && level === "hidden") return null;
-  const previewStyle: PreviewStyle = !isSensitive ? "plain" : level === "blurred" ? "blurred" : "masked";
+  const previewStyle: PreviewStyle = isSensitive ? "masked" : "plain";
   const isMasked = previewStyle === "masked";
   return {
     id: meta.path,

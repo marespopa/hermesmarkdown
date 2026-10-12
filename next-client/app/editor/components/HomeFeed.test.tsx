@@ -469,14 +469,6 @@ describe("HomeFeed privacy", () => {
     expect(screen.queryByLabelText("Sensitive note")).not.toBeInTheDocument();
     expect(document.body.textContent).not.toContain("secret");
   });
-
-  it("renders the preview blurred, announced as blurred, in blurred mode", () => {
-    renderWithLevel("blurred");
-    const rows = screen.getAllByRole("option");
-    expect(rows[0]).toHaveTextContent(SECRET);
-    expect(rows[0]).toHaveTextContent("Preview blurred");
-    expect(screen.getByText(SECRET)).toHaveAttribute("aria-hidden", "true");
-  });
 });
 
 describe("HomeFeed worklog", () => {
@@ -527,16 +519,21 @@ describe("HomeFeed worklog", () => {
 
   it("lists open tasks and opens one at its line", () => {
     const { onOpenTask } = renderWorklog({ "log.md": withTasks("log.md", "# Log\n- [x] shipped\n- [ ] write the review") });
+    fireEvent.click(screen.getByRole("button", { name: "1 open task" }));
     const tasks = screen.getByRole("region", { name: "Open tasks" });
     fireEvent.click(within(tasks).getByRole("button", { name: "write the review, in log" }));
     expect(onOpenTask).toHaveBeenCalledWith("log.md", 2);
     expect(within(tasks).queryByText("shipped")).not.toBeInTheDocument();
   });
 
-  it("folds the open tasks", () => {
+  it("starts the open tasks folded and unfolds and folds them", () => {
     renderWorklog({ "log.md": withTasks("log.md", "- [ ] one") });
     const toggle = screen.getByRole("button", { name: "1 open task" });
+    expect(toggle).toHaveAttribute("aria-expanded", "false");
+    expect(screen.queryByRole("region", { name: "Open tasks" })).not.toBeInTheDocument();
+    fireEvent.click(toggle);
     expect(toggle).toHaveAttribute("aria-expanded", "true");
+    expect(screen.getByRole("button", { name: "one, in log" })).toBeInTheDocument();
     fireEvent.click(toggle);
     expect(toggle).toHaveAttribute("aria-expanded", "false");
     expect(screen.queryByRole("region", { name: "Open tasks" })).not.toBeInTheDocument();

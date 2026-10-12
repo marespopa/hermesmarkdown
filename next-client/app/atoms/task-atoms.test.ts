@@ -36,8 +36,8 @@ function storeWith(level: PrivacyLevel) {
 }
 
 describe("atom_visibleTasks", () => {
-  it("masks tasks from sensitive notes in show_title and blurred", () => {
-    for (const level of ["show_title", "blurred"] as const) {
+  it("masks tasks from sensitive notes in show_title", () => {
+    for (const level of ["show_title"] as const) {
       const tasks = storeWith(level).get(atom_visibleTasks);
       const masked = tasks.find((t) => t.path === "secret.md");
       expect(masked).toMatchObject({ text: MASKED_TEXT, tags: [], isMasked: true });

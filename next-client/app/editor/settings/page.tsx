@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { HiOutlineArrowLeft, HiOutlineColorSwatch, HiOutlineFolder, HiOutlinePencilAlt, HiOutlineAcademicCap, HiOutlineLightningBolt, HiOutlineLockClosed, HiOutlineUser } from "react-icons/hi";
+import { HiOutlineArrowLeft, HiOutlineColorSwatch, HiOutlineFolder, HiOutlinePencilAlt, HiOutlineAcademicCap, HiOutlineLightningBolt, HiOutlineLockClosed } from "react-icons/hi";
 import Button from "@/app/components/Button";
 import AiSettings from "./sections/AiSettings";
 import AppearanceSettings from "./sections/AppearanceSettings";
@@ -47,16 +47,16 @@ const SettingsPage = () => {
       content: <AiSettings />,
     },
     {
-      id: "profile",
-      label: "Profile",
-      icon: HiOutlineUser,
-      content: <ProfileSettings />,
-    },
-    {
       id: "guide",
       label: "Guide",
       icon: HiOutlineAcademicCap,
-      content: <GuideSettings />,
+      // Your name and data, then onboarding, help and the version.
+      content: (
+        <>
+          <ProfileSettings />
+          <GuideSettings />
+        </>
+      ),
     },
   ];
 

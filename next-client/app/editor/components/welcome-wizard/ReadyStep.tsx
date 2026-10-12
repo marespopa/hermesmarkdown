@@ -6,14 +6,14 @@ import useIsMobileChrome from "@/app/hooks/use-mobile-chrome";
 import { formatShortcut } from "@/app/utils/platform";
 import WizardStep from "./WizardStep";
 
-// Final step: points at the command palette and closes the wizard.
+// Second and last step: points at the command palette and closes the wizard.
 export default function ReadyStep({ onFinish }: { onFinish: () => void }) {
   const isMobileChrome = useIsMobileChrome();
   return (
     <WizardStep
       icon={<HiOutlineCheckCircle size={32} />}
       title="You're ready to write."
-      description="Your vault is set up. Search, tags, tasks and syntax helpers work as you go. Every choice you made here can be changed in Settings."
+      description="Your vault is set up. Search, tags, tasks and syntax helpers work as you go. Theme, fonts, layout, AI and your name are in Settings whenever you want them."
       continueLabel="Open Editor"
       onContinue={onFinish}
     >

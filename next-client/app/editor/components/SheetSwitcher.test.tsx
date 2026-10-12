@@ -43,6 +43,18 @@ describe("SheetSwitcher", () => {
     expect(screen.getByText(/today/)).toBeInTheDocument();
   });
 
+  it("offers Quarter and Year only once the vault has such a sheet, or one is open", () => {
+    renderSheet("2026-10-11.md", ["2026-10-11"]);
+    const levels = () => screen.getAllByRole("button").map((b) => b.textContent).filter((t) => /^(Day|Week|Month|Quarter|Year)$/.test(t ?? ""));
+    expect(levels()).toEqual(["Day", "Week", "Month"]);
+  });
+
+  it("shows Quarter on a quarterly sheet and Year once a yearly sheet exists", () => {
+    renderSheet("2026-Q4.md", ["2026-10-11", "2025-year"]);
+    expect(screen.getByRole("button", { name: "Quarter" })).toHaveAttribute("aria-current", "page");
+    expect(screen.getByRole("button", { name: "Year" })).toBeInTheDocument();
+  });
+
   it("goes up from a day to its week and month", () => {
     renderSheet("2026-10-06.md", ["2026-10-06"]);
     fireEvent.click(screen.getByRole("button", { name: "Week" }));
@@ -70,8 +82,8 @@ describe("SheetSwitcher", () => {
     const onPendingChange = vi.fn();
     renderSheet("2026-10-11.md", ["2026-10-11"], onPendingChange);
 
-    fireEvent.click(screen.getByRole("button", { name: "Year" }));
-    expect(onPendingChange).toHaveBeenLastCalledWith("year");
+    fireEvent.click(screen.getByRole("button", { name: "Month" }));
+    expect(onPendingChange).toHaveBeenLastCalledWith("month");
     expect(screen.getByRole("navigation", { name: "Worklog sheets" })).toHaveAttribute("aria-busy", "true");
     // A second tap while it opens does nothing.
     fireEvent.click(screen.getByRole("button", { name: "Week" }));
