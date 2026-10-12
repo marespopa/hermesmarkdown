@@ -6,7 +6,7 @@ Single plan, built directly (no factory). It replaces the earlier "worklog funne
 
 The app owns as little as possible of what's written in a note. It generates nothing inside a note and reads no meaning into headings or sections.
 
-- **Daily sheet stays as is.** It's a plain dated note (`2026-10-12.md`) with an optional journal template. Quick jot, `/jot`, `/daily` and Today in the sidebar all depend on it.
+- **Daily sheet stays as is.** It's a plain dated note (`2026-10-12.md`) with an optional journal template. `/daily`, Today in the sidebar and AI Chat's add to today use it. Quick jot and `/jot` were removed: a Log entry template (`- {{time}} {{cursor}}`) inserted with `/template` does the same job.
 - **Weekly, monthly, quarterly and yearly sheets are plain notes.** They're named by period (`2026-W42.md`, `2026-10.md`, `2026-Q4.md`, `2026-year.md`) and created from a Weekly / Monthly / Quarterly / Yearly template, or as a heading alone. After that the app never writes into them. How the user reviews a week is up to them.
 - **No generated content.** No rollup regions or Refresh rollup, no Focus or highlight conventions, no metrics carry-forward, no token budgets.
 
