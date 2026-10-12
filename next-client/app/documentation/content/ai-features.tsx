@@ -78,7 +78,7 @@ export const aiFeaturesGroup: Group = {
     {
       id: "ai-templates",
       title: "AI templates",
-      lead: "Ask AI Chat for a template and it writes one you can save into your templates folder with one click.",
+      lead: "Ask AI Chat for a template and it writes one you can save into templates/ with one click.",
       keywords: "ai template skill create rfc prompt save replace hermes skills create-template",
       body: (
         <>

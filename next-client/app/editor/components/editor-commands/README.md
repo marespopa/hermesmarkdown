@@ -17,10 +17,11 @@ without changing the public props contract or command behavior.
   draft; it never saves), `Open Note from Disk…` (a file from the device opens
   as a draft; distinct from `Import files into vault…`), Duplicate / Move /
   Rename / Delete Note, and `New note from template…` (with a vault open:
-  template picker, title prompt, then the note goes in the New Notes folder,
-  named by the template's `file_name` when it has one) and `New template…` (with a vault open:
-  name prompt, then `<templates folder>/<name>.md` with a starter body, or the
-  existing template of that name opened unchanged).
+  template picker, a title prompt unless the template's `file_name` names the
+  note, then the note goes in the New Notes folder, or the note already there
+  opens) and `New template…` (with a vault open: name prompt, then
+  `templates/<name>.md` with a minimal body, or the existing template of that
+  name opened unchanged).
 - `editor-ai-commands.ts` defines editor formatting, templates and AI
   commands. The `Insert: …` commands skip the slash menu's vault
   **Template** entry (`vaultOnly`).

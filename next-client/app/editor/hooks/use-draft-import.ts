@@ -4,7 +4,7 @@ import { useSetAtom, useStore } from "jotai";
 import toast from "react-hot-toast";
 import { atom_activePaneId, atom_openFiles } from "@/app/atoms/atoms";
 import { atom_openDraft, EMPTY_DRAFT } from "@/app/atoms/file-atoms";
-import { atom_draftFolderDeclined, atom_homeFeedOpen } from "@/app/atoms/ui-atoms";
+import { atom_homeFeedOpen } from "@/app/atoms/ui-atoms";
 import type { useFileSystem } from "@/app/hooks/use-file-system";
 import { focusPaneEditorWhenReady } from "../utils/focus-pane-editor";
 
@@ -39,8 +39,6 @@ export function useDraftImport(importFile: ReturnType<typeof useFileSystem>["imp
       ...prev,
       draft: { ...(prev.draft ?? EMPTY_DRAFT), content: draft.text, fileName: draft.name },
     }));
-    // A new draft: the folder picker may ask again when it's first saved.
-    store.set(atom_draftFolderDeclined, false);
     store.set(atom_homeFeedOpen, false);
     // openDraft has just made the draft's pane active.
     const paneId = store.get(atom_activePaneId);

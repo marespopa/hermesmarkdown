@@ -25,7 +25,7 @@ interface UseTemplateNoteOptions {
 }
 
 // Templates in the editor:
-// - A note in the templates folder is a template note: its fields show as
+// - A note in templates/ (directly, or one folder down in a pack) is a template note: its fields show as
 //   pills, `{{` / `/field` / Add field open the field menu, and "Ask a
 //   question…" / "Blank to fill in…" ask for the name in a dialog.
 // - Any other note can be saved as a template (`/save-template` and the

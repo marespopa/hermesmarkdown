@@ -239,7 +239,7 @@ tags: []
             { label: "Open Vault / Close Vault / Refresh Vault", value: "—" },
             { label: "Create New Vault", value: "—" },
             { label: "New Note", value: "Blank note, named from its first line" },
-            { label: "New file in folder… / New folder", value: "Choose a vault folder, then enter a name" },
+            { label: "New Folder", value: "Choose a vault folder, then enter a name" },
             { label: "Rename / Delete", value: "Uses the same prompts for files and folders" },
             { label: "Open AI Chat", value: "CTRL+SHIFT+B · when AI is configured" },
             { label: "Navigate", value: "Open Home, Open Settings, Open Documentation, Show Keyboard Shortcuts, Start Welcome Tour" },

@@ -13,7 +13,7 @@ import {
   atom_workspaceLayout,
   EMPTY_DRAFT,
 } from "@/app/atoms/atoms";
-import { atom_draftFolderDeclined, atom_draftFolderRequest, atom_newNoteFolder, type DraftFolderRequest } from "@/app/atoms/ui-atoms";
+import { atom_newNoteFolder } from "@/app/atoms/ui-atoms";
 import { useMaterializeDraft } from "./use-materialize-draft";
 
 const { writeFileContent } = vi.hoisted(() => ({ writeFileContent: vi.fn().mockResolvedValue(undefined) }));
@@ -47,22 +47,9 @@ function fakeDir(name: string, existing: string[] = []): any {
   };
 }
 
-// Answers the folder picker: the preselected default unless `pick` says
-// otherwise (null = dismissed). Records each request.
-function answerPicker(store: ReturnType<typeof createStore>, pick: (req: DraftFolderRequest) => string | null) {
-  const requests: DraftFolderRequest[] = [];
-  store.sub(atom_draftFolderRequest, () => {
-    const req = store.get(atom_draftFolderRequest);
-    if (!req) return;
-    requests.push(req);
-    queueMicrotask(() => req.resolve(pick(req)));
-  });
-  return requests;
-}
-
 function setup(
   draftContent: string,
-  { activePath = "draft", existing = [] as string[], pick = (req: DraftFolderRequest): string | null => req.defaultFolder } = {},
+  { activePath = "draft", existing = [] as string[] } = {},
 ) {
   const store = createStore();
   const vault = fakeDir("vault", existing);
@@ -73,12 +60,11 @@ function setup(
     rootContainer: { id: "pane", type: "editor", openFilePaths: ["other.md", "draft"], activeFilePath: activePath, isPinned: false },
   });
   store.set(atom_openFiles, { draft: { ...EMPTY_DRAFT, content: draftContent } });
-  const requests = answerPicker(store, pick);
   const scanVault = vi.fn().mockResolvedValue(undefined);
   const indexVaultTags = vi.fn().mockResolvedValue(undefined);
   const wrapper = ({ children }: { children: React.ReactNode }) => <Provider store={store}>{children}</Provider>;
   const { result } = renderHook(() => useMaterializeDraft({ scanVault, indexVaultTags }), { wrapper });
-  return { store, vault, result, scanVault, requests };
+  return { store, vault, result, scanVault };
 }
 
 describe("useMaterializeDraft", () => {
@@ -108,48 +94,20 @@ describe("useMaterializeDraft", () => {
     expect(store.get(atom_materializedDraftPath)).toBe("Trip ideas.md");
   });
 
-  it("never overwrites an existing note", async () => {
+  it("never overwrites an existing note or loses the draft's text", async () => {
     const { result } = setup("Plan\n", { existing: ["Plan.md"] });
     let path: string | null = null;
     await act(async () => { path = await result.current(); });
     expect(path).toBe("Plan (1).md");
   });
 
-  it("preselects the configured folder in the picker", async () => {
-    const { store, vault, result, requests } = setup("Idea\n");
+  it("saves into the New Notes folder without asking", async () => {
+    const { store, vault, result } = setup("Idea\n");
     store.set(atom_newNoteFolder, "/inbox/");
     let path: string | null = null;
     await act(async () => { path = await result.current(); });
-    expect(requests[0]).toMatchObject({ defaultFolder: "inbox", folders: ["inbox"] });
     expect(path).toBe("inbox/Idea.md");
     expect(vault.dirs.get("inbox").files.has("Idea.md")).toBe(true);
-  });
-
-  it("offers the vault's folders and saves into the one picked", async () => {
-    const { vault, result, requests } = setup("Idea\n", { pick: () => "work/meetings" });
-    vault.dirs.set("work", fakeDir("work"));
-    vault.dirs.get("work").dirs.set("meetings", fakeDir("meetings"));
-    vault.dirs.set(".git", fakeDir(".git"));
-    let path: string | null = null;
-    await act(async () => { path = await result.current(); });
-    expect(requests[0].folders).toEqual(["work", "work/meetings"]);
-    expect(path).toBe("work/meetings/Idea.md");
-  });
-
-  it("keeps the draft when the picker is dismissed, and only an explicit save asks again", async () => {
-    const { store, result, requests } = setup("Idea\n", { pick: () => null });
-    let path: string | null = "x";
-    await act(async () => { path = await result.current(); });
-    expect(path).toBeNull();
-    expect(writeFileContent).not.toHaveBeenCalled();
-    expect(store.get(atom_openFiles).draft.content).toBe("Idea\n");
-    expect(store.get(atom_draftFolderDeclined)).toBe(true);
-
-    await act(async () => { await result.current(undefined, { background: true }); });
-    expect(requests).toHaveLength(1);
-
-    await act(async () => { await result.current(); });
-    expect(requests).toHaveLength(2);
   });
 
   it("writes nothing for a whitespace-only draft", async () => {
@@ -160,14 +118,13 @@ describe("useMaterializeDraft", () => {
     expect(writeFileContent).not.toHaveBeenCalled();
   });
 
-  it("doesn't ask for a folder until the vault is restored", async () => {
-    const { store, result, requests } = setup("Trip ideas\nbody");
+  it("doesn't save until the vault is restored", async () => {
+    const { store, result } = setup("Trip ideas\nbody");
     store.set(atom_isVaultRestoring, true);
     await act(async () => expect(await result.current()).toBeNull());
     store.set(atom_isVaultRestoring, false);
     store.set(atom_isVaultPending, true);
     await act(async () => expect(await result.current()).toBeNull());
-    expect(requests).toHaveLength(0);
     expect(writeFileContent).not.toHaveBeenCalled();
   });
 

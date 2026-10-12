@@ -35,7 +35,7 @@ describe("BUILTIN_PACKS", () => {
     expect(routed("Daily")).toBe("2026-10-12");
     expect(routed("Weekly")).toBe("2026-W42");
     expect(routed("Monthly")).toBe("2026-10");
-    expect(routed("Yearly")).toBe("2026-year");
+    expect(routed("Yearly")).toBe("2026");
   });
 });
 

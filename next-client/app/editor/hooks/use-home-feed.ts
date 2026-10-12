@@ -12,14 +12,13 @@ import {
 import { atom_fileMetadata } from "@/app/atoms/metadata";
 import { atom_goHome, atom_homeFeedOpen } from "@/app/atoms/ui-atoms";
 import { useCommandPalette, useRegisterCommand } from "@/app/components/CommandPalette/CommandPaletteContext";
-import type { MaterializeDraftOptions } from "./use-materialize-draft";
 import { useHomeFeedUrlSync } from "./use-home-feed-url";
 
 interface UseHomeFeedOptions {
   hasVault: boolean;
   openFile: (handle: FileSystemFileHandle, path?: string) => Promise<void>;
   newNote: () => Promise<void>;
-  materializeDraft: (paneId?: string, options?: MaterializeDraftOptions) => Promise<string | null>;
+  materializeDraft: (paneId?: string) => Promise<string | null>;
   /** Opens a file from the device into the draft (the no-vault feed's "Open File…"). */
   importFile: () => Promise<void>;
 }
@@ -41,10 +40,10 @@ export function useHomeFeed({ hasVault, openFile, newNote, materializeDraft, imp
   useHomeFeedUrlSync(isOpen, hasVault, setIsOpen);
 
   // A draft with text is saved first, so opening a note never asks to discard
-  // it. A draft whose picker was dismissed stays in the draft slot unasked.
+  // it.
   const openNote = useCallback(async (path: string) => {
     setIsOpen(false);
-    await materializeDraft(undefined, { background: true });
+    await materializeDraft();
     const handle = store.get(atom_fileMetadata)[path]?.handle as FileSystemFileHandle | undefined;
     if (handle) await openFile(handle, path);
   }, [materializeDraft, openFile, setIsOpen, store]);

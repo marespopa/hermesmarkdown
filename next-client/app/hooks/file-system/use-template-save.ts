@@ -19,7 +19,7 @@ interface UseTemplateSaveProps {
 const joinPath = (folder: string, name: string) => (folder ? `${folder}/${name}` : name);
 
 // "Save as template…": the note's text, as is, becomes
-// `<templates folder>/<name>.md`. Only a name is asked (prefilled); an
+// `templates/<name>.md`. Only a name is asked (prefilled); an
 // existing template of that name (any case) is replaced after a confirm. The
 // note stays open; the template is a plain file to open and edit later.
 export function useTemplateSave({ scanVault }: UseTemplateSaveProps) {

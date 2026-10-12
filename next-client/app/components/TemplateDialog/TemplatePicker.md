@@ -1,6 +1,6 @@
 # TemplatePicker
 
-Description: Modal list of vault templates, or of starters for "New template…" (any `{ name, path?, description? }`; generic over the entry type, so `onPick` returns the entry it was given). A search field (focused on open) filters by a case-insensitive substring of the name. ↑/↓ move the highlight, Enter picks, **⌘/Ctrl+1…9** pick a row directly (hints shown from 640px), Esc or Cancel cancels. With a preview (`bodies`), clicking a row only selects it and shows its preview; **Use template** (primary button, "Use blank note" on that row), a double-click or Enter uses it. Without a preview, clicking a row uses it. Hovering doesn't move the selection. Each row has a monochrome icon picked from the name (`TemplateIcon`), the name, and a 12px muted summary underneath: the entry's description, else its structure (`templateSummary`, e.g. "3 sections • Action items • Today's date"), else its path. Rows are at least 44px high, so the same modal works on mobile. With `includeBlank`, a "Blank note" row comes first (missing-link creation). With no templates and no Blank row, it shows "No templates in `<folder>/`" and a hint.
+Description: Modal list of vault templates (any `{ name, path?, pack?, description? }`; generic over the entry type, so `onPick` returns the entry it was given). A search field (focused on open) filters by a case-insensitive substring of the name. ↑/↓ move the highlight, Enter picks, **⌘/Ctrl+1…9** pick a row directly (hints shown from 640px), Esc or Cancel cancels. With a preview (`bodies`), clicking a row only selects it and shows its preview; **Use template** (primary button, "Use blank note" on that row), a double-click or Enter uses it. Without a preview, clicking a row uses it. Hovering doesn't move the selection. Each row has a monochrome icon picked from the name (`TemplateIcon`), the name, and a 12px muted summary underneath: the entry's description, else its structure (`templateSummary`, e.g. "3 sections • Action items • Today's date"), else its path. Rows are at least 44px high, so the same modal works on mobile. With `includeBlank`, a "Blank note" row comes first (missing-link creation). With `preselect` (a template path, e.g. the template a missing link's name points to), that template comes before everything, Blank note included, and is highlighted, so Enter uses it; it is only a suggestion. With no templates and no Blank row, it shows "No templates in `<folder>/`" and a hint.
 
 With `bodies`, the dialog widens and a read-only [preview](TemplatePreview.md) of the selected template sits beside the list (under it below 640px). The surface is the glass `.template-picker-surface` (`--glass-surface`, `--glass-border`, `--glass-shadow` in `globals.scss`).
 
@@ -23,9 +23,10 @@ With `bodies`, the dialog widens and a read-only [preview](TemplatePreview.md) o
 |---|---|---|---|
 | isOpen | `boolean` | | Visibility |
 | title | `string` | | Dialog heading |
-| templates | `T[]` (`TemplatePickerEntry`) | | Sorted templates (`atom_templates`) or `TEMPLATE_STARTERS` |
-| folder | `string` | | Templates folder in use, for the empty state |
+| templates | `T[]` (`TemplatePickerEntry`) | | Sorted templates (`atom_templates`) |
+| folder | `string` | | The templates folder (`templates`), for the empty state |
 | includeBlank | `boolean` | | Show "Blank note" first |
+| preselect? | `string` | | Path of a template to list first and highlight |
 | bodies? | `Record<string, string \| null>` | | Raw text per entry (`pickerEntryKey`: path, else name; null while loading). Turns on summaries and the preview pane |
 | onEdit? | `(entry: T) => void` | | Edit a template: a pencil on each template row (on hover from 640px, always on touch) and ⌘/Ctrl+E on the highlighted row |
 | onPick | `(value: T \| "blank") => void` | | Picked row |

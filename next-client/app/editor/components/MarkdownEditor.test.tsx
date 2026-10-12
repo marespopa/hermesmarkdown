@@ -28,6 +28,7 @@ import "@testing-library/jest-dom";
 // so interaction tests can dispatch real transactions instead of trying to
 // simulate contenteditable typing (which jsdom doesn't emulate reliably).
 
+vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn() }) }));
 vi.mock("@/app/atoms/atoms", async (importOriginal) => {
   const actual = await importOriginal<Record<string, unknown>>();
   const { atom } = await import("jotai");

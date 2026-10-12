@@ -138,7 +138,7 @@ export const getStartedGroup: Group = {
     {
       id: "first-note",
       title: "Your first note",
-      lead: "Start typing. On its first save the note asks which folder to go in, and it is named after its first line.",
+      lead: "Start typing. On its first save the note goes into your New Notes folder, named after its first line.",
       keywords: "new file new note draft save autosave name title folder frontmatter",
       body: (
         <>
@@ -152,13 +152,12 @@ export const getStartedGroup: Group = {
             <code>CTRL/CMD+S</code>. The file is named after
             the first line, for example <code>Trip ideas.md</code>. If the first line has no usable
             text, the date and time are used instead, like <code>2026-09-28 1432.md</code>. An
-            existing file is never overwritten: a taken name becomes <code>Trip ideas (1).md</code>.
+            existing file is never overwritten: a taken name becomes <code>Trip ideas (1).md</code>,
+            so nothing you typed is lost.
           </p>
           <p>
-            The first save asks which folder the note goes in, with your default folder already
-            selected: press <code>Enter</code> to accept it, or type to filter the list or name a new
-            folder. If you dismiss the picker, the note stays an unsaved draft and nothing asks again,
-            even after a reload; press <code>CTRL/CMD+S</code> when you're ready to choose.
+            The note goes into your New Notes folder (the vault root unless you set one in
+            Settings → Files), with no dialog. Move it anywhere later from the file tree.
           </p>
           <p>
             A note you leave empty is never saved, so no empty files pile up in your vault. Renaming
@@ -168,7 +167,7 @@ export const getStartedGroup: Group = {
           <KV
             rows={[
               { label: "Default folder for new notes", value: "Vault root · Settings → Files → Vault → New Notes Folder" },
-              { label: "Pick a folder and name first", value: "New file in folder… command" },
+              { label: "Start in a specific folder", value: "New Note in that folder's menu in Files" },
               { label: "Create from a search", value: 'Type a title in the palette, then Create "…"' },
             ]}
           />
@@ -306,7 +305,7 @@ export const getStartedGroup: Group = {
             Files offers the same actions everywhere, in the same order:{" "}
             <strong>New Note</strong>, <strong>New Note from Template…</strong> and <strong>New Folder</strong>, at
             the top and in every folder&apos;s right-click (or ⋯) menu. From a folder, a note from a template goes in
-            that folder; from the top, the template&apos;s own folder decides. There&apos;s no Refresh button: files
+            that folder; from the top, it goes in your New Notes folder. There&apos;s no Refresh button: files
             you add, delete or move outside HermesMarkdown show up on their own (straight away in Chrome and Edge,
             otherwise when you come back to the window).
           </p>

@@ -4,7 +4,7 @@ Description: Quick-start pills for an empty note. Rendered by [MarkdownEditor](M
 
 ## Logic
 
-- Sources: the vault's templates (`atom_templates`), at most four, plus **More…** (the full template picker) when there are more and a vault is open. Without vault templates, the starters that make sense as notes (`TEMPLATE_STARTERS` minus Basic), so a fresh vault still gets Journal, Meeting notes, Spec and Report.
+- Sources: the vault's templates (`atom_templates`), at most four, plus **More…** (the full template picker) when there are more. A vault with no templates gets a single **Browse template packs** pill that goes to the Templates page (`/editor/templates`, `useRouter`), where packs are added. Nothing shows without a vault (`atom_vaultHandle`).
 - Motion: `.template-quick-pills` in `globals.scss` (rise-in on `data-state="open"`, fade on `"closed"`, `--ease-spring`; none with reduced motion).
 - Touch targets are 44px high on mobile, 36px from 640px.
 
@@ -13,5 +13,5 @@ Description: Quick-start pills for an empty note. Rendered by [MarkdownEditor](M
 | Prop | Type | Description |
 |---|---|---|
 | isEmpty | `boolean` | Show the pills (false fades them out) |
-| onPick | `(source: TemplateEntry \| TemplateSource) => void` | Fill the note from a template or a starter |
+| onPick | `(template: TemplateEntry) => void` | Fill the note from a vault template |
 | onMore? | `() => void` | Open the template picker; shown with more than four templates |

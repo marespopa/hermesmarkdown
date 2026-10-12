@@ -24,8 +24,8 @@ The Tasks page (`app/editor/tasks`) is a vault-wide view over the derived task i
 
 ### Templates page
 The Templates page (`app/editor/templates`, sidebar **Templates**, palette **Open Templates**) is where new notes start. The app has no daily or periodic sheets of its own: a dated note is what a template with a `file_name` such as `{{date}}` makes.
-- **Your templates**: grouped by pack (`groupTemplatePacks`; a pack is a direct subfolder of the templates folder, loose templates first), each with **Use** (`createNoteFromTemplate(entry)`, then back to the editor once a note opened) and **Edit** (opens the template file). Each pack has **New** (`createTemplate(pack)`), **Duplicate** and **Delete** (to the Trash, with Undo); the page header has **New template** and **New pack** (`use-template-packs.ts`).
-- **Template packs**: the built-in packs (`BUILTIN_PACKS` in `app/utils/templates/template-packs.ts`: Journal, Meetings, Writing, Projects) with **Add to vault**, which copies them into `<templates folder>/<pack>/` without replacing files that exist (**Add N missing**, **Added**).
+- **Your templates**: grouped by pack (`groupTemplatePacks`; a pack is a folder in `templates/`, loose templates first), each with **Use** (`createNoteFromTemplate(entry)`, then back to the editor once a note opened) and **Edit** (opens the template file). Each pack has **New** (`createTemplate(pack)`), **Duplicate** and **Delete** (to the Trash, with Undo); the page header has **New template** and **New pack** (`use-template-packs.ts`).
+- **Template packs**: the built-in packs (`BUILTIN_PACKS` in `app/utils/templates/template-packs.ts`: Journal, Meetings, Writing, Projects) with **Add to vault**, which copies them into `templates/<pack>/` without replacing files that exist (**Add N missing**, **Added**).
 - Opened directly (a reload), the page scans the vault once when nothing is indexed.
 
 ## Editor page hooks (`app/editor/hooks`)

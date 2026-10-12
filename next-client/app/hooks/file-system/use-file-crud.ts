@@ -27,7 +27,7 @@ interface UseFileCrudProps {
 export function useFileCrud({ scanVault, indexVaultTags, openFile }: UseFileCrudProps) {
   const { recordUndo, undoFileOperation } = useFileUndo({ scanVault, indexVaultTags });
 
-  const { chooseTargetDirectory, createFile, createWikiLinkFile, createNewFile, createFolder } = useCreateItem({
+  const { chooseTargetDirectory, createFile, createNewFile, createFolder } = useCreateItem({
     scanVault,
     indexVaultTags,
     openFile,
@@ -69,6 +69,7 @@ export function useFileCrud({ scanVault, indexVaultTags, openFile }: UseFileCrud
     createNoteFromMissingLink,
     createNoteFromTemplate,
     createTemplate,
+    createWikiLinkFile,
     createLinkedNoteFromTemplate,
   } = useTemplateCreate({
     scanVault,

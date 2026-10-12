@@ -10,10 +10,9 @@ import { normalizeFolderPath } from "@/app/hooks/file-system/unique-file";
 import { useFileSystem } from "@/app/hooks/use-file-system";
 import { SelectControl, SettingGroup, SettingItem } from "../components/SettingControls";
 import PrivacyModeSetting from "./PrivacyModeSetting";
-import TemplatesFolderSetting from "./TemplatesFolderSetting";
 
-// Settings → Files: Vault (new notes folder, templates folder, hidden files)
-// and Autosave groups, then Privacy (PrivacyModeSetting).
+// Settings → Files: Vault (new notes folder, hidden files) and Autosave
+// groups, then Privacy (PrivacyModeSetting).
 export default function FilesSettings() {
   const [autosaveMode, setAutosaveMode] = useAtom(atom_autosaveMode);
   const [autosaveDelay, setAutosaveDelay] = useAtom(atom_autosaveDelay);
@@ -35,7 +34,7 @@ export default function FilesSettings() {
       <SettingGroup title="Vault">
         <SettingItem
           label="New Notes Folder"
-          description="The folder preselected when a new note asks where to save. Notes are named after their first line. Leave empty for the vault root."
+          description="Where new notes go: drafts (named after their first line), and notes made from a template or a link that names no folder. Leave empty for the vault root."
           control={
             <BareInput
               value={newNoteFolder}
@@ -47,7 +46,6 @@ export default function FilesSettings() {
             />
           }
         />
-        <TemplatesFolderSetting />
         <SettingItem
           label="Show Hidden Files"
           description="Show files and folders starting with . or _ in Files and search."

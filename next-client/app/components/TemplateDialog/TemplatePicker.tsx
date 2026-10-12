@@ -12,7 +12,7 @@ import TemplatePreview from "./TemplatePreview";
 
 export const BLANK_NOTE_LABEL = "Blank note";
 
-/** A vault template ({ name, path, pack? }) or a starter ({ name, description }). */
+/** A vault template ({ name, path, pack? }), or any named entry with a description. */
 export interface TemplatePickerEntry {
   name: string;
   path?: string;
@@ -28,9 +28,11 @@ interface TemplatePickerProps<T extends TemplatePickerEntry> {
   isOpen: boolean;
   title: string;
   templates: T[];
-  /** Templates folder in use, for the empty state. */
+  /** The templates folder, for the empty state. */
   folder: string;
   includeBlank: boolean;
+  /** Path of a template to put first and highlight (the one a link's name points to). */
+  preselect?: string;
   /**
    * Raw text per entry (pickerEntryKey); null while loading. When given, rows
    * get a structure summary and the picker shows a preview pane.
@@ -46,8 +48,8 @@ type Row<T> = { kind: "blank" } | { kind: "template"; entry: T };
 
 const SHORTCUT_COUNT = 9;
 
-// Searchable list of vault templates or starters (plus "Blank note" first
-// when asked). Each row has an icon, the name and a muted summary (the
+// Searchable list of vault templates (plus "Blank note" first when asked;
+// a `preselect`ed template goes before it, highlighted). Each row has an icon, the name and a muted summary (the
 // entry's description, else its structure, else its path); a pack template's
 // name follows its pack ("Journal / Daily"). With `bodies`,
 // a read-only preview of the selected template sits beside the list (under
@@ -61,6 +63,7 @@ export default function TemplatePicker<T extends TemplatePickerEntry>({
   templates,
   folder,
   includeBlank,
+  preselect,
   bodies,
   onEdit,
   onPick,
@@ -74,11 +77,15 @@ export default function TemplatePicker<T extends TemplatePickerEntry>({
   const rows = useMemo<Row<T>[]>(() => {
     const q = query.trim().toLowerCase();
     const matches = (label: string) => !q || label.toLowerCase().includes(q);
+    const found = templates.filter((t) => matches(t.pack ? `${t.pack} ${t.name}` : t.name));
+    const first = found.find((t) => preselect !== undefined && t.path === preselect);
+    const toRow = (entry: T) => ({ kind: "template", entry }) as Row<T>;
     return [
+      ...(first ? [toRow(first)] : []),
       ...(includeBlank && matches(BLANK_NOTE_LABEL) ? [{ kind: "blank" } as Row<T>] : []),
-      ...templates.filter((t) => matches(t.pack ? `${t.pack} ${t.name}` : t.name)).map((entry) => ({ kind: "template", entry }) as Row<T>),
+      ...found.filter((t) => t !== first).map(toRow),
     ];
-  }, [includeBlank, query, templates]);
+  }, [includeBlank, preselect, query, templates]);
 
   useEffect(() => setHighlight(0), [query]);
   // The overlay focuses its first control a frame after opening; take it back for the search field.

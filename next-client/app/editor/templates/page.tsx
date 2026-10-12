@@ -16,7 +16,7 @@ import BuiltinPackCard from "./components/BuiltinPackCard";
 import PackSection, { SMALL_BUTTON_CLASS } from "./components/PackSection";
 
 // Templates: everything new notes start from. Your templates, grouped by
-// pack (a subfolder of the templates folder), each with Use and Edit, and the
+// pack (a folder in templates/), each with Use and Edit, and the
 // packs the app ships, each with Add to vault. Use and Edit open a note in
 // the editor and go back there; the pack actions stay on this page.
 export default function TemplatesPage() {

@@ -5,7 +5,6 @@ import {
   groupTemplatePacks,
   isTemplatePath,
   listTemplates,
-  matchTemplateForFolder,
   parseMissingLink,
   resolveTemplatesFolder,
   sanitizeNoteName,
@@ -16,27 +15,14 @@ import {
 const entry = (name: string, folder = "templates"): TemplateEntry => ({ name, path: `${folder}/${name}.md` });
 
 describe("resolveTemplatesFolder", () => {
-  const paths = ["Templates/a.md", "_templates/b.md", "notes/x.md"];
-
-  it("uses the setting when set (normalized)", () => {
-    expect(resolveTemplatesFolder("/_tpl/ ", [...paths, "_tpl/c.md"])).toEqual({ folder: "_tpl", exists: true });
-    expect(resolveTemplatesFolder("missing", paths)).toEqual({ folder: "missing", exists: false });
+  it("is always templates/ at the vault root, whatever else exists", () => {
+    expect(resolveTemplatesFolder(["Templates/a.md", "_templates/b.md", "templates/c.md"])).toEqual({ folder: "templates", exists: true });
+    expect(resolveTemplatesFolder(["Templates/a.md", "_templates/b.md"])).toEqual({ folder: "templates", exists: false });
   });
 
-  it("falls back to templates, then _templates, then Templates", () => {
-    expect(resolveTemplatesFolder(undefined, [...paths, "templates/c.md"]).folder).toBe("templates");
-    expect(resolveTemplatesFolder("", paths).folder).toBe("_templates");
-    expect(resolveTemplatesFolder(undefined, ["Templates/a.md"]).folder).toBe("Templates");
-  });
-
-  it("reports a missing folder as templates, exists: false", () => {
-    expect(resolveTemplatesFolder(undefined, ["notes/x.md", "templates/sub/deeper/y.md"]))
-      .toEqual({ folder: "templates", exists: false });
-  });
-
-  it("finds a folder that holds only packs", () => {
-    expect(resolveTemplatesFolder(undefined, ["_templates/Journal/Daily.md"])).toEqual({ folder: "_templates", exists: true });
-    expect(resolveTemplatesFolder("tpl", ["tpl/Journal/Daily.md"])).toEqual({ folder: "tpl", exists: true });
+  it("counts files directly in it or in a pack, not deeper", () => {
+    expect(resolveTemplatesFolder(["templates/Journal/Daily.md"]).exists).toBe(true);
+    expect(resolveTemplatesFolder(["notes/x.md", "templates/sub/deeper/y.md"]).exists).toBe(false);
   });
 });
 
@@ -82,19 +68,19 @@ describe("groupTemplatePacks", () => {
 
 });
 
-describe("matchTemplateForFolder", () => {
-  it("matches with or without a trailing s", () => {
-    expect(matchTemplateForFolder("rfcs", [entry("rfc")])?.name).toBe("rfc");
-    expect(matchTemplateForFolder("rfc", [entry("rfcs")])?.name).toBe("rfcs");
-    expect(matchTemplateForFolder("RFCs", [entry("rfc")])?.name).toBe("rfc");
+describe("matchTemplateForName by folder", () => {
+  it("matches the link's folder with or without a trailing s", () => {
+    expect(matchTemplateForName("rfcs/auth", [entry("rfc")])?.name).toBe("rfc");
+    expect(matchTemplateForName("rfc/auth", [entry("rfcs")])?.name).toBe("rfcs");
+    expect(matchTemplateForName("RFCs/auth", [entry("rfc")])?.name).toBe("rfc");
   });
 
   it("prefers an exact name match", () => {
-    expect(matchTemplateForFolder("rfcs", [entry("rfc"), entry("rfcs")])?.name).toBe("rfcs");
+    expect(matchTemplateForName("rfcs/auth", [entry("rfc"), entry("rfcs")])?.name).toBe("rfcs");
   });
 
   it("returns null without a match", () => {
-    expect(matchTemplateForFolder("meetings", [entry("rfc")])).toBeNull();
+    expect(matchTemplateForName("meetings/standup", [entry("rfc")])).toBeNull();
   });
 });
 
