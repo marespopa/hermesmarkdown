@@ -4,7 +4,7 @@ Roadmap for the five-level review workflow: daily captures, weekly synthesis, mo
 
 This file is the overview. The work itself is split into factory plans (`NNN-<slug>/brief.md`).
 
-**Status (2026-10-11):** trimmed to three plans, 008, 011 and 012, which cover the requested workflow. All three are built for the 6.8.0 release. 009 and 010 are extras and are parked (`blocked`, see their `blocked.md`).
+**Status (2026-10-12): superseded.** Generated rollups were removed. Weekly, monthly, quarterly and yearly sheets are now plain notes created from templates; see [worklog-funnel.md](worklog-funnel.md). This file is kept as history.
 
 ## What already ships
 
@@ -21,10 +21,11 @@ This file is the overview. The work itself is split into factory plans (`NNN-<sl
 | # | Plan | Level | Fills the gap |
 |---|---|---|---|
 | 008 | `daily-slash-commands` | 1 | `/daily` opens or creates today's sheet; `/jot` sends the current line or selection (code, workout sets) to today's sheet without leaving the note. |
-| 009 | `rollup-highlights` | 2 | Collect `#win` / `#learned` / `#blocker` / `#decision` lines into a **Highlights** section, flag recurring blockers; **Review week** opens the weekly sheet with its days in a split pane. |
-| 010 | `rollup-templates` | 3 | `Journal/Weekly` / `Journal/Monthly` templates for the Notes area; a **Metrics** table carried forward from the previous period; per-section **token budgets** (`212 / 300 tokens`) for lean summaries. |
+| 009 → funnel | `rollup-highlights` (superseded) | 2 | Collect `#win` / `#learned` / `#blocker` / `#decision` lines into a **Highlights** section, flag recurring blockers; **Review week** opens the weekly sheet with its days in a split pane. |
+| 010 → funnel | `rollup-templates` (superseded) | 3 | `Journal/Weekly` / `Journal/Monthly` templates for the Notes area; a **Metrics** table carried forward from the previous period; per-section **token budgets** (`212 / 300 tokens`) for lean summaries. |
 | 011 | `quarterly-yearly-rollups` | 4, 5 | `2026-Q4.md` and a yearly sheet: numbers from the days, the story from the Notes one level below (months → quarter → year). |
 | 012 | `pdf-export` | 4 | Local-only **Export as PDF…** of the rendered note (print pipeline), respecting sensitive notes. |
+| — | [`worklog-funnel.md`](worklog-funnel.md) | 1–5 | Masterplan: rollup templates + period tokens, Focus down / planned-vs-done up, Highlights + days overview, Metrics carry-forward, sheet links create sheets, shortcuts, Go to date, Review week. |
 
 ## Order and dependencies
 
@@ -56,7 +57,4 @@ Suggested order: **008 → 009 → 010 → 011 → 012**. 008 and 012 are small 
 
 ## Running it
 
-```bash
-scripts/factory run 008 --commit   # architect writes 008's prd.md
-scripts/factory list
-```
+No factory. All factory plans (004–012) are archived in `archive/`. The remaining work is the single plan [`worklog-funnel.md`](worklog-funnel.md), built directly phase by phase (1 → 7).

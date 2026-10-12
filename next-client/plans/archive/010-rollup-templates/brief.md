@@ -5,6 +5,8 @@ rejections: 0
 created: 2026-10-11T18:31:10Z
 ---
 
+> **Superseded** on 2026-10-12 by [worklog-funnel.md](../../worklog-funnel.md). Never built; kept for history.
+
 # Weekly and monthly templates
 
 Part of the review ladder (`plans/review-ladder.md`), level 3: Monthly review & refinement.
