@@ -4,12 +4,17 @@ import { TEMPLATE_SYNTAX_GUIDE } from "@/app/utils/templates/template-lint";
 import { sanitizeTemplateFileName } from "@/app/utils/templates/template-registry";
 
 // Chat skills: extra instructions added to the AI Chat system prompt while a
-// keyword in the thread turns them on. Only the template skill exists. Its
-// output is a fenced block the user saves from a card; nothing is written
-// without that click.
+// keyword or a slash command in the thread turns them on. The template skill
+// answers with a fenced block the user saves from a card; the weekly review
+// and tasks skills also send data the app gathers (use-chat-skills.ts). Nothing
+// is written without the user's click.
+
+export type ChatSkillId = "create-template" | "weekly-review" | "tasks";
 
 export interface ChatSkill {
-  id: "create-template";
+  id: ChatSkillId;
+  /** Starting a message with this turns the skill on, e.g. `/template`. */
+  command: string;
   trigger: RegExp;
   builtin: string;
   /** Vault-relative plain-Markdown file whose body replaces `builtin` when present. */
@@ -44,13 +49,58 @@ const TEMPLATE_SKILL_BUILTIN = [
 
 export const TEMPLATE_SKILL: ChatSkill = {
   id: "create-template",
+  command: "/template",
   trigger: /\btemplates?\b/i,
   builtin: TEMPLATE_SKILL_BUILTIN,
   overridePath: ".hermes/skills/create-template.md",
 };
 
+const WEEKLY_REVIEW_SKILL_BUILTIN = [
+  "Skill: weekly review of the user's worklog.",
+  "The WEEK DATA below is what the user's daily sheets say about the week: what got done, what is blocked, what is still open, and each day's sheet.",
+  "Write the review from that data only. Never invent work, numbers or dates. If the data is thin, say so in one line and keep the review short.",
+  "",
+  "Default shape (follow the user's wording when they ask for something else, like a status report for a manager or a short recap):",
+  "## Highlights: the 3 to 5 most meaningful things done, each linking its day ([[2026-10-06]]).",
+  "## Blocked: what is stuck and, when the sheets say, why.",
+  "## Carry over: the open tasks worth taking into next week, as task lines (- [ ] or - [/]) keeping their @due() and @priority().",
+  "## Next week: 2 or 3 focus points that follow from the above.",
+  "",
+  "Write it ready to paste into the weekly sheet's Notes section (below the rollup:end line). Don't repeat the full done list: the rollup above Notes already has it.",
+].join("\n");
+
+export const WEEKLY_REVIEW_SKILL: ChatSkill = {
+  id: "weekly-review",
+  command: "/review",
+  trigger: /\b(?:weekly|week'?s|week)\s+(?:review|recap|retro|summary|report)\b|\b(?:review|recap|summari[sz]e)\s+(?:my|this|last|the)\s+week\b/i,
+  builtin: WEEKLY_REVIEW_SKILL_BUILTIN,
+  overridePath: ".hermes/skills/weekly-review.md",
+};
+
+const TASKS_SKILL_BUILTIN = [
+  "Skill: work with the user's HermesMarkdown tasks.",
+  "OPEN TASKS below lists the vault's open tasks (to do, in progress, on hold) with their note. Use it to answer what's due, what to work on next, or what's stuck; never invent tasks that aren't in it.",
+  "When asked to turn text (a note, meeting notes, an email) into tasks:",
+  "- Write one task per line as - [ ] Short imperative action, starting with a verb.",
+  "- Add @due(YYYY-MM-DD) only when the text gives a date or deadline, worked out from today's date below. Add @priority(high|med|low) only when the text says how urgent it is.",
+  "- Keep #tags the user already uses for the same topic.",
+  "- Use [/] only for work the text says is under way, [!] for work it says is blocked.",
+  "When asked to plan a day or pick what's next, prefer in-progress and overdue tasks, then those due soon, then high priority, and say why in a few words.",
+  "You can't change tasks in the vault. To change one, give the revised task line so the user can apply it in its note.",
+].join("\n");
+
+export const TASKS_SKILL: ChatSkill = {
+  id: "tasks",
+  command: "/tasks",
+  trigger: /\b(?:tasks?|to-?dos?|action items?|next actions?)\b/i,
+  builtin: TASKS_SKILL_BUILTIN,
+  overridePath: ".hermes/skills/tasks.md",
+};
+
+export const CHAT_SKILLS: ChatSkill[] = [TEMPLATE_SKILL, WEEKLY_REVIEW_SKILL, TASKS_SKILL];
+
 export function isSkillActive(skill: ChatSkill, userTexts: string[]): boolean {
-  return userTexts.some((text) => text.trimStart().startsWith("/template") || skill.trigger.test(text));
+  return userTexts.some((text) => text.trimStart().toLowerCase().startsWith(skill.command) || skill.trigger.test(text));
 }
 
 // The vault override's body (after its frontmatter), read fresh each time;

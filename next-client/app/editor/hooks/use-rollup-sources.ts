@@ -16,7 +16,8 @@ import type { ChildNotes } from "@/app/utils/rollup/render";
 import { extractNotes } from "@/app/utils/rollup/sections";
 
 export interface RollupSources {
-  sheets: { date: string; text: string }[];
+  // `sensitive`: the sheet is private (AI Chat's weekly review leaves it out).
+  sheets: { date: string; text: string; sensitive?: boolean }[];
   // Notes of the sheets one level down (a month's weeks, a quarter's months, a year's quarters).
   childNotes: ChildNotes[];
   // Daily sheets that couldn't be read (skipped).
@@ -59,8 +60,9 @@ export function useRollupSources() {
     for (const { date, path } of pickDailySheets(paths, period, preferredFolder, skip)) {
       try {
         const text = await readCurrentText(path);
-        sources.sheets.push({ date, text });
-        if (isSensitive(path, text)) sources.sensitive = true;
+        const sensitive = isSensitive(path, text);
+        sources.sheets.push({ date, text, sensitive });
+        if (sensitive) sources.sensitive = true;
       } catch (err) {
         console.warn(`Rollup: couldn't read ${path}`, err);
         sources.failed++;

@@ -48,7 +48,7 @@ Index of the editor UI. Each component has a sibling `<Name>.md` (a token-lean d
 | [SectionHeader](SectionHeader.md) | Collapsible section header with a title, a chevron toggle, and an optional trailing action. |
 | [SelectionToolbar](SelectionToolbar.md) | Floating toolbar on a text selection, desktop and mobile: Turn into menu, Bold, Italic, Link, and Ask AI when AI is configured. |
 | [SmartFolders](SmartFolders.md) | Lists custom workspaces (saved metadata queries) and the files each one matches, with create, edit, and delete through `WorkspaceBuilder`. |
-| [TabContextMenu](TabContextMenu.md) | Right-click menu positioned at the cursor and clamped to the viewport, used for tab and file actions. |
+| [TabContextMenu](TabContextMenu.md) | The app's pop-up menu (tab, toolbar More, sidebar ⋯, Home feed, Tasks page): at a point or right-aligned under a button, clamped to the viewport, arrow-key navigation. `menu-classes.ts` holds the shared menu look, also used by the file tree's `TreeContextMenu`. |
 | [TabStripScroller](TabStripScroller.md) | Horizontally scrolling tab strip that shows left/right scroll arrows at its end when the tabs overflow. |
 | [EmptyNoteTemplates](EmptyNoteTemplates.md) | Quick-start template pills under the first line of an empty note. |
 | [TemplateStrip](TemplateStrip.md) | Line at the top of a template note: field count, Add field, lint warnings. |

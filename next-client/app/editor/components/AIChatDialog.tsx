@@ -328,7 +328,7 @@ export default function AIChatDialog({
             </div>
           </div>
           <p className="text-center text-ui-caption text-neutral-300 dark:text-neutral-600 mt-1.5">
-            Shift+Enter for new line · @ to reference a file, @vault, or @folder:path
+            Shift+Enter for new line · @ to reference a file, @vault, or @folder:path · /review, /tasks, /template
           </p>
         </div>
       </div>

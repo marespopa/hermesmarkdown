@@ -3,6 +3,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import Button from "@/app/components/Button";
 import { isMacPlatform } from "@/app/utils/platform";
+import { MENU_ICON_CLASS, MENU_ITEM_CLASS, MENU_ITEM_DESTRUCTIVE_CLASS, MENU_PANEL_CLASS, MENU_SEPARATOR_CLASS, MENU_SHORTCUT_CLASS } from "../menu-classes";
 
 export interface TreeMenuItem {
   label: string;
@@ -73,26 +74,24 @@ export function TreeContextMenu({ x, y, label, items, onClose }: TreeContextMenu
           else if (e.key === "ArrowUp") { e.preventDefault(); moveFocus(-1); }
         }}
         style={{ ...position, width: MENU_WIDTH }}
-        className="fixed z-50 bg-paper-light dark:bg-paper-dark backdrop-blur-xl border border-edge-subtle rounded-xl py-1 shadow-lg animate-in fade-in zoom-in-95 duration-150 ease-out"
+        className={`${MENU_PANEL_CLASS} animate-in fade-in zoom-in-95 duration-150 ease-out motion-reduce:animate-none`}
       >
         {items.map((item) => (
           <div key={item.label}>
-            {item.separated && <div role="separator" className="my-1 h-px bg-edge-subtle" />}
+            {item.separated && <div role="separator" className={MENU_SEPARATOR_CLASS} />}
             <Button
-              variant="menu-item"
+              variant="unstyled"
               role="menuitem"
               onClick={(e) => {
                 e.stopPropagation();
                 onClose();
                 item.onSelect();
               }}
-              className={`w-full flex items-center gap-3 px-4 py-2 text-ui-footnote font-medium hover:bg-neutral-100 dark:hover:bg-neutral-800 focus:bg-neutral-100 dark:focus:bg-neutral-800 outline-none transition-colors ${
-                item.destructive ? "text-red-500" : ""
-              }`}
+              className={`${MENU_ITEM_CLASS} ${item.destructive ? MENU_ITEM_DESTRUCTIVE_CLASS : ""}`}
             >
-              {item.icon}
-              <span className="flex-1 text-left">{item.label}</span>
-              {item.shortcut && <span className="text-ui-caption text-fg-faint">{item.shortcut}</span>}
+              <span className={`${MENU_ICON_CLASS} ${item.destructive ? "!text-current" : ""}`}>{item.icon}</span>
+              <span className="flex-1 truncate">{item.label}</span>
+              {item.shortcut && <span aria-hidden="true" className={MENU_SHORTCUT_CLASS}>{item.shortcut}</span>}
             </Button>
           </div>
         ))}

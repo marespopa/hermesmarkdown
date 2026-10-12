@@ -305,7 +305,7 @@ export default function LiteEditor() {
         {!isMobileChrome && !isVaultLocked && !isHomeFeedOpen && (
           // A wrapper takes the fade: the sidebar's own transition is its slide.
           <div className="typing-chrome shrink-0 flex">
-            <WorkspaceSidebar />
+            <WorkspaceSidebar onOpenTasks={() => navigateWithGuard("/editor/tasks", "Tasks")} />
           </div>
         )}
 

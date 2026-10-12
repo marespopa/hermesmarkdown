@@ -301,7 +301,8 @@ export const getStartedGroup: Group = {
           <p>
             The toolbar at the top shows your open notes as tabs, even when only one is open. Each pane keeps
             up to 20 open: opening another closes the one you looked at least recently, never one with unsaved
-            changes. On the left:
+            changes. Worklog sheets share one tab: opening a day, week, month, quarter or year replaces the
+            sheet already open in that pane, so the sheet switcher never piles up tabs. On the left:
             the <strong> Sidebar</strong> button, while the sidebar is hidden. On the right: Save, Search (the
             command palette) and AI Chat (when an AI key is set). The <strong>&hellip; More</strong> menu holds Copy
             Markdown, Split Right, Settings, Help and Hide Toolbar — every one of them is also in the command palette.
@@ -311,11 +312,12 @@ export const getStartedGroup: Group = {
             toolbar to hide it.
           </p>
           <p>
-            The <strong>sidebar</strong> lists your open notes across every pane. With a vault it also starts with Home and ends with the file tree. Show
+            The <strong>sidebar</strong> starts with Home and lists your open notes across every pane. With a vault it adds
+            Today (today&apos;s sheet) and Tasks below Home, and ends with the file tree. Show
             it with the Sidebar button at the toolbar's far left and hide it with the button in its own header, or toggle it with{" "}
             <code>CTRL/CMD+ALT+S</code> or the <strong>Show sidebar</strong>{" "}
             command (the welcome tour offers it too), and drag its edge to resize it (double-click the edge to
-            reset). The Explorer below remains the place for bigger file work.
+            reset; with the edge focused, the arrow keys resize it too). Folded sections stay folded. The Explorer below remains the place for bigger file work.
           </p>
           <p>
             Open the dedicated Explorer with <code>CTRL/CMD+SHIFT+E</code> (or <code>CTRL/CMD+B</code>{" "}
