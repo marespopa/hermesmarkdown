@@ -52,8 +52,16 @@ jobs:
       - name: Enable Corepack
         run: corepack enable
 
+      # The CLI's output (build log included) goes to deploy.json for the
+      # steps below; on a failure it's printed, so the real error shows here.
       - name: Deploy Netlify production site
-        run: npx --yes netlify-cli@$NETLIFY_CLI_VERSION deploy --prod --build --json > deploy.json
+        run: |
+          if ! npx --yes netlify-cli@$NETLIFY_CLI_VERSION deploy --prod --build --json > deploy.json; then
+            echo "::group::Netlify CLI output"
+            cat deploy.json
+            echo "::endgroup::"
+            exit 1
+          fi
 
       - name: Smoke-test production deployment
         run: |
