@@ -64,7 +64,10 @@ export const rollupsItem: Subsection = {
         </li>
         <li>
           <strong>Done</strong>: checked tasks, grouped by their first tag (<code>#bug</code>,{" "}
-          <code>#meeting</code>, …), with untagged ones last under Other.
+          <code>#meeting</code>, …), with untagged ones last under Other. Tasks you checked off in
+          the period in any other note, like a project note or an earlier day&apos;s sheet, count too,
+          by their <code>@done()</code> date, and link that note. Private notes are left out. A task
+          checked off after the period still counts as open in it.
         </li>
         <li>
           <strong>Blocked</strong>: tasks on hold (<code>- [!]</code>). Cancelled tasks (<code>- [-]</code>) are left out.
