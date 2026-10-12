@@ -6,7 +6,6 @@ import toast from "react-hot-toast";
 import { atom_vaultHandle } from "@/app/atoms/vault-atoms";
 import { atom_fileMetadata, type FileMetadata } from "@/app/atoms/metadata";
 import { atom_todayFolder } from "@/app/atoms/ui-atoms";
-import { atom_templates } from "@/app/atoms/template-atoms";
 import { usePeriodSheets } from "./use-period-sheets";
 
 vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn() }) }));
@@ -59,8 +58,9 @@ class FakeDir {
 
 const meta = (path: string) => ({ path, name: path.split("/").pop()!, frontmatter: {}, tasks: [] }) as unknown as FileMetadata;
 
-// `files` are written to the vault and indexed; `templates` are paths among them.
-function setup({ files = {}, templates = [] }: { files?: Record<string, string>; templates?: string[] } = {}) {
+// `files` are written to the vault and indexed (`templates/*.md` are templates);
+// `indexedOnly` are indexed but missing on disk.
+function setup({ files = {}, indexedOnly = [] }: { files?: Record<string, string>; indexedOnly?: string[] } = {}) {
   const root = new FakeDir("vault");
   const metadata: Record<string, FileMetadata> = {};
   const handles: Record<string, FakeFile> = {};
@@ -68,11 +68,11 @@ function setup({ files = {}, templates = [] }: { files?: Record<string, string>;
     handles[path] = root.put(path, content);
     metadata[path] = meta(path);
   }
+  for (const path of indexedOnly) metadata[path] = meta(path);
   const store = createStore();
   store.set(atom_vaultHandle, root as unknown as FileSystemDirectoryHandle);
   store.set(atom_fileMetadata, metadata);
   store.set(atom_todayFolder, "journal/{{year}}/{{month}}");
-  store.set(atom_templates, templates.map((path) => ({ name: path.split("/").pop()!.replace(/\.md$/, ""), path })));
   const wrapper = ({ children }: { children: React.ReactNode }) => React.createElement(Provider, { store }, children);
   const { result } = renderHook(() => usePeriodSheets(), { wrapper });
   return { handles, sheets: result.current };
@@ -128,7 +128,7 @@ describe("usePeriodSheets", () => {
 
   it("uses the Weekly template, with period links and the caret at {{cursor}}", async () => {
     const template = "---\ntype: weekly\n---\n# {{periodHeading}}\n\n## Focus\n- [ ] {{cursor}}\n\n← [[{{previousPeriod}}]] · [[{{nextPeriod}}]] →\n";
-    const { sheets } = setup({ files: { "templates/Weekly.md": template }, templates: ["templates/Weekly.md"] });
+    const { sheets } = setup({ files: { "templates/Weekly.md": template } });
     await act(() => sheets.openPeriodSheet({ kind: "week", offset: 0 }));
     const { text, cursor } = written();
     expect(text).toMatch(/^---\ntype: weekly\n---\n# Week 41 · .+\n\n## Focus\n- \[ \] \n\n← \[\[2026-W40\]\] · \[\[2026-W42\]\] →\n$/);
@@ -137,13 +137,13 @@ describe("usePeriodSheets", () => {
 
   it("dates a template by the period, not today", async () => {
     vi.setSystemTime(new Date(2026, 10, 1, 8, 0)); // Nov 1: Last month is October
-    const { sheets } = setup({ files: { "templates/Monthly.md": "# {{monthName}} · {{monthSheet}}\n" }, templates: ["templates/Monthly.md"] });
+    const { sheets } = setup({ files: { "templates/Monthly.md": "# {{monthName}} · {{monthSheet}}\n" } });
     await act(() => sheets.openPeriodSheet({ kind: "month", offset: -1 }));
     expect(written().text).toBe("# October · 2026-10\n");
   });
 
   it("falls back to a heading when the template can't be read", async () => {
-    const { sheets } = setup({ templates: ["templates/Weekly.md"] });
+    const { sheets } = setup({ indexedOnly: ["templates/Weekly.md"] });
     await act(() => sheets.openPeriodSheet({ kind: "week", offset: 0 }));
     expect(written().text).toMatch(/^# Week 41 · /);
     expect(toast.error).toHaveBeenCalledWith("Couldn't read template Weekly");
@@ -151,7 +151,7 @@ describe("usePeriodSheets", () => {
 
   it("writes nothing when the template's questions are cancelled", async () => {
     askPrompts.mockResolvedValue(null);
-    const { sheets } = setup({ files: { "templates/Weekly.md": "Goal: {{prompt:Goal}}\n" }, templates: ["templates/Weekly.md"] });
+    const { sheets } = setup({ files: { "templates/Weekly.md": "Goal: {{prompt:Goal}}\n" } });
     await act(() => sheets.openPeriodSheet({ kind: "week", offset: 0 }));
     expect(askPrompts).toHaveBeenCalled();
     expect(writeNewNote).not.toHaveBeenCalled();
