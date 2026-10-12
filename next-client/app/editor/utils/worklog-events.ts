@@ -13,3 +13,18 @@ export function requestOpenTodaySheet() {
 export function requestJot(text: string) {
   document.dispatchEvent(new CustomEvent<{ text: string }>(JOT_EVENT, { detail: { text } }));
 }
+
+// A rollup item's action from the editor (its checkbox, its day link):
+// "toggle" checks the task off in its daily sheet, "open" opens that day
+// with the caret on the task. useRollupItemActions handles it.
+export const ROLLUP_ITEM_EVENT = "hermes:rollup-item";
+
+export interface RollupItemRequest {
+  path: string; // the rollup sheet
+  line: string; // the item line's text
+  action: "toggle" | "open";
+}
+
+export function requestRollupItem(detail: RollupItemRequest) {
+  document.dispatchEvent(new CustomEvent<RollupItemRequest>(ROLLUP_ITEM_EVENT, { detail }));
+}

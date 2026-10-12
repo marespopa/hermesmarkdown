@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback, type CSSProperties } from "react";
 import ConflictDialog from "./components/ConflictDialog";
-import { useAtomValue } from "jotai";
+import { useAtomValue, useSetAtom } from "jotai";
 import { atom_fileName, atom_content, atom_activeFilePath, atom_workspaceLayout, atom_activePaneId, atom_isFileLoading, atom_isVaultRestoring, findLeaf, getFirstLeaf } from "@/app/atoms/atoms";
 import useIsMobileChrome from "@/app/hooks/use-mobile-chrome";
 import WelcomeWizard from "./components/WelcomeWizard";
@@ -37,7 +37,7 @@ import { AIThinkingOverlay } from "./components/AIThinkingOverlay";
 import VoicePreviewPanel from "./components/VoicePreviewPanel";
 import { useGlobalVoiceInput } from "./hooks/use-global-voice-input";
 import { useRouter } from "next/navigation";
-import { atom_isAiConfigured, atom_aiBuilderRequest, atom_showHiddenFiles, atom_hideChromeWhileTyping, atom_sidebarOpen, atom_sidebarWidth } from "@/app/atoms/ui-atoms";
+import { atom_isAiConfigured, atom_aiBuilderRequest, atom_quickJot, atom_showHiddenFiles, atom_hideChromeWhileTyping, atom_sidebarOpen, atom_sidebarWidth } from "@/app/atoms/ui-atoms";
 import { usePaneFileActions } from "./hooks/use-pane-file-actions";
 import { useDraftImport } from "./hooks/use-draft-import";
 import { useToolHandoff } from "./hooks/use-tool-handoff";
@@ -70,6 +70,7 @@ export default function LiteEditor() {
   const { closeTabWithAutosave } = usePaneFileActions(mobileLeaf);
   const isFileLoading = useAtomValue(atom_isFileLoading);
   const isAiConfigured = useAtomValue(atom_isAiConfigured);
+  const setQuickJot = useSetAtom(atom_quickJot);
   const aiBuilderRequest = useAtomValue(atom_aiBuilderRequest);
   // Single dictation session shared by the whole app (not one per pane), so
   // switching the active pane mid-dictation never drops the in-progress
@@ -316,6 +317,7 @@ export default function LiteEditor() {
               <MobileFileIndicator
                 onSave={() => handleSaveRef.current()}
                 onOpenAIChat={isAiConfigured ? openAiChat : undefined}
+                onQuickJot={vaultHandle ? () => setQuickJot((state) => ({ ...state, open: true })) : undefined}
               />
             )}
             <div className="relative flex-1 min-h-0">

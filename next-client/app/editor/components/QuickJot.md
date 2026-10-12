@@ -1,6 +1,6 @@
 # QuickJot
 
-Description: A one-line input over the current view that appends a line to the end of today's sheet (`<date>.md`) without leaving the note you're in. Opened with **Ctrl+Alt+J** (`⌃⌥J` on Mac), the **Quick jot** palette command (category Document), or the home feed Today row's menu (touch). The active pane, tab, scroll and selection are never touched; focus goes back to what had it when the input closes.
+Description: A one-line input over the current view that appends a line to the end of today's sheet (`<date>.md`) without leaving the note you're in. Opened with **⌘J** on Mac / **Ctrl+Alt+J** elsewhere, the toolbar's Quick jot button (top right), the **Quick jot** palette command (category Document), or the home feed Today row's menu (touch). The active pane, tab, scroll and selection are never touched; focus goes back to what had it when the input closes.
 
 ## Behavior
 - **Enter** (not while an IME is composing) or **Add** submits. The input closes first, then `useQuickJot().addJot(text)` runs, so the first-time folder prompt and template prompts never fight the overlay for focus.

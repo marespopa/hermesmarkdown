@@ -1,25 +1,27 @@
 import { type EditorSelection, type EditorState, type Range } from "@codemirror/state";
 import { Decoration, type DecorationSet, EditorView, ViewPlugin, type ViewUpdate, WidgetType } from "@codemirror/view";
 import { REGEX_ROLLUP_END, REGEX_ROLLUP_START } from "@/app/utils/rollup/render";
+import { hasRollupContextEffect, rollupContextField } from "./rollup-context";
 
 // A rollup sheet's `<!-- rollup:start … -->` / `<!-- rollup:end -->` lines,
-// which mark the region Refresh rollup rewrites. Away from the caret (or in
-// an unfocused editor) the comment text is hidden and the line shows a
-// hairline rule; the start line adds a faint caption. With the caret on the
+// which mark the generated region (rebuilt on open and by Refresh rollup).
+// Away from the caret (or in an unfocused editor) the comment text is hidden
+// and the line shows a hairline rule; the start line adds a faint caption
+// with when it was last rebuilt (rollupContextField). With the caret on the
 // line, the raw comment shows, faint and small, so it can still be edited.
 
 type MarkerKind = "start" | "end";
 
-const START_CAPTION = "Generated · Refresh rollup rewrites this part";
+export const DEFAULT_CAPTION = "From your daily sheets";
 const markerLine = Decoration.line({ class: "cm-rollupMarker" });
 
 export class RollupMarkerWidget extends WidgetType {
-  constructor(readonly kind: MarkerKind) {
+  constructor(readonly kind: MarkerKind, readonly caption = DEFAULT_CAPTION) {
     super();
   }
 
   eq(other: RollupMarkerWidget) {
-    return other.kind === this.kind;
+    return other.kind === this.kind && other.caption === this.caption;
   }
 
   toDOM() {
@@ -29,7 +31,7 @@ export class RollupMarkerWidget extends WidgetType {
     if (this.kind === "start") {
       const caption = document.createElement("span");
       caption.className = "cm-rollupCaption";
-      caption.textContent = START_CAPTION;
+      caption.textContent = this.caption;
       rule.appendChild(caption);
     }
     return rule;
@@ -57,6 +59,7 @@ export function buildRollupMarkerDecorations(
   const ranges: Range<Decoration>[] = [];
   const selection = focused ? state.selection : null;
   const { doc } = state;
+  const caption = state.field(rollupContextField, false)?.caption ?? DEFAULT_CAPTION;
   for (const visible of visibleRanges) {
     for (let pos = visible.from; pos <= visible.to;) {
       const line = doc.lineAt(pos);
@@ -64,7 +67,7 @@ export function buildRollupMarkerDecorations(
       if (kind) {
         ranges.push(markerLine.range(line.from));
         if (!touchesLine(selection, line.from, line.to)) {
-          ranges.push(Decoration.replace({ widget: new RollupMarkerWidget(kind) }).range(line.from, line.to));
+          ranges.push(Decoration.replace({ widget: new RollupMarkerWidget(kind, caption) }).range(line.from, line.to));
         }
       }
       if (line.to >= doc.length) break;
@@ -83,7 +86,7 @@ const rollupMarkersPlugin = ViewPlugin.fromClass(
     }
 
     update(update: ViewUpdate) {
-      if (update.docChanged || update.selectionSet || update.viewportChanged || update.focusChanged) {
+      if (update.docChanged || update.selectionSet || update.viewportChanged || update.focusChanged || hasRollupContextEffect(update.transactions)) {
         this.decorations = buildRollupMarkerDecorations(update.state, update.view.visibleRanges, update.view.hasFocus);
       }
     }
@@ -110,4 +113,4 @@ const rollupMarkersTheme = EditorView.baseTheme({
   },
 });
 
-export const rollupMarkers = [rollupMarkersPlugin, rollupMarkersTheme];
+export const rollupMarkers = [rollupContextField, rollupMarkersPlugin, rollupMarkersTheme];

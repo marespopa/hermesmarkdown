@@ -3,6 +3,7 @@ import { EditorView } from "@codemirror/view";
 import { afterEach, describe, expect, it } from "vitest";
 import { ROLLUP_END, ROLLUP_START } from "@/app/utils/rollup/render";
 import { buildRollupMarkerDecorations, rollupMarkers, RollupMarkerWidget } from "./rollup-markers";
+import { setRollupContext } from "./rollup-context";
 
 const DOC = `# Week 41\n\n${ROLLUP_START}\n1 done · 0 open · 0 blocked\n${ROLLUP_END}\n\n<!-- my own comment -->\n## Notes\n`;
 const START_LINE = DOC.indexOf(ROLLUP_START);
@@ -53,8 +54,14 @@ describe("rollupMarkers in an editor", () => {
     const text = view.contentDOM.textContent ?? "";
     expect(text).not.toContain("rollup:start");
     expect(text).not.toContain("rollup:end");
-    expect(text).toContain("Generated · Refresh rollup rewrites this part");
+    expect(text).toContain("From your daily sheets");
     expect(text).toContain("my own comment");
     expect(view.contentDOM.querySelectorAll(".cm-rollupMarker")).toHaveLength(2);
+  });
+
+  it("shows the caption the rollup context sets", () => {
+    view = new EditorView({ state: EditorState.create({ doc: DOC, extensions: [rollupMarkers] }), parent: document.body });
+    view.dispatch({ effects: setRollupContext.of({ path: "2026-W41.md", kind: "week", caption: "From your daily sheets · updated just now", fresh: new Set() }) });
+    expect(view.contentDOM.textContent).toContain("From your daily sheets · updated just now");
   });
 });

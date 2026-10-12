@@ -21,6 +21,7 @@ import { atom_autosaveMode, atom_snapshotOnConflict } from "@/app/atoms/ui-atoms
 import { atom_fileMetadata } from "@/app/atoms/metadata";
 import { extractTasks } from "@/app/utils/taskExtractor";
 import { writeFileContent } from "@/app/services/file-writer";
+import { announceNoteSaved } from "@/app/utils/note-events";
 
 export function useSaveFile() {
   const [vaultHandle] = useAtom(atom_vaultHandle);
@@ -220,6 +221,7 @@ export function useSaveFile() {
         }
 
         setSaveStatus({ state: "saved", retryCount, path: targetPath });
+        if (targetPath) announceNoteSaved(targetPath);
         setTimeout(() => setSaveStatus({ state: "idle", retryCount: 0, path: undefined }), 2000);
 
         if (!isAutoSave) {

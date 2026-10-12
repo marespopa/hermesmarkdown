@@ -8,8 +8,8 @@ import { showErrorToast } from "@/app/components/Toastr";
 import { isMacPlatform } from "@/app/utils/platform";
 import { isQuickJotShortcut, quickJotShortcutLabel } from "../utils/tab-shortcuts";
 
-// The ways into Quick jot: the "Quick jot" palette command and Ctrl+Alt+J
-// (⌃⌥J). `onRefocus` runs when the shortcut is pressed while the input is
+// The ways into Quick jot: the "Quick jot" palette command and ⌘J on Mac /
+// Ctrl+Alt+J elsewhere (the toolbar button opens it through atom_quickJot). `onRefocus` runs when the shortcut is pressed while the input is
 // already open. With `disabledReason` the command is disabled and the
 // shortcut shows the reason as an error toast.
 export function useQuickJotEntry({ disabledReason, onRefocus }: { disabledReason?: string; onRefocus: () => void }) {

@@ -9,11 +9,12 @@ export const quickJotItem: Subsection = {
   body: (
     <>
       <p>
-        Press <code>CTRL+ALT+J</code> (<code>⌃⌥J</code> on a Mac), or run <strong>Quick jot</strong>{" "}
-        from the command palette. A one-line field opens over what you&apos;re doing. Type the line
+        Press <code>CTRL+ALT+J</code> (<code>⌘J</code> on a Mac), click the pencil button at the top
+        right, or run <strong>Quick jot</strong> from the command palette. A one-line field opens over what you&apos;re doing. Type the line
         and press Enter: it goes to the end of today&apos;s sheet on its own line, and the field
         closes. The note you were in, its cursor and its scroll position stay where they were.
-        On a phone or tablet, run <strong>Quick jot</strong> from the command palette, or touch and
+        On a phone or tablet, tap the pencil at the right of the top bar, run <strong>Quick jot</strong>{" "}
+        from the command palette, or touch and
         hold the Today row in the home feed and choose <strong>Quick jot</strong>; tap{" "}
         <strong>Add</strong> to add the line.
       </p>

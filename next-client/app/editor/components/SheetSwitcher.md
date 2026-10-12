@@ -1,6 +1,6 @@
 # SheetSwitcher
 
-Description: One quiet line at the top of a worklog sheet: a daily (`2026-10-11.md`), weekly (`2026-W41.md`), monthly (`2026-10.md`), quarterly (`2026-Q4.md`) or yearly (`2026-year.md`) sheet, recognized by file name (`parseSheetName` in `app/utils/sheet-nav.ts`). On the left, **Day · Week · Month · Quarter · Year**, each with a dot in its level colour (day clay, week moss, month slate, quarter plum, year ochre: the `--sheet-*` tokens, `sheet-level-classes.ts`); the sheet's own level is in its colour, underlined and `aria-current="page"`. The row wraps on narrow screens. On the right, **‹ label ›** steps through time at the sheet's level: "Sat, Oct 11", "Week 41 · Oct 5 – 11", "October 2026", "Q4 2026 · October – December", "2026", followed by "· today" / "· this week" / "· this month" / "· this quarter" / "· this year" on the current one.
+Description: One quiet line at the top of a worklog sheet: a daily (`2026-10-11.md`), weekly (`2026-W41.md`), monthly (`2026-10.md`), quarterly (`2026-Q4.md`) or yearly (`2026-year.md`) sheet, recognized by file name (`parseSheetName` in `app/utils/sheet-nav.ts`). On the left, **Day · Week · Month · Quarter · Year**, each with a dot in its level colour (day clay, week moss, month slate, quarter plum, year ochre: the `--sheet-*` tokens, `sheet-level-classes.ts`); the sheet's own level is in its colour, underlined and `aria-current="page"`. The row wraps on narrow screens. On the right, **‹ label ›** steps through time at the sheet's level: "Sat, Oct 11", "Week 41 · Oct 5 – 11", "October 2026", "Q4 2026 · October – December", "2026", followed by "· today" / "· this week" / "· this month" / "· this quarter" / "· this year" on the current one. A rollup sheet adds a thin done bar in its level colour ("12 of 17 done" as its label), from the sheet's summary line (`summary`).
 
 Where the controls lead (`levelTarget` / `stepTarget`):
 - **Up** (day → week → month → quarter → year): the period holding the day; a week's month, quarter and year are the ones holding its Thursday.
@@ -28,3 +28,4 @@ const sheet = parseSheetName("2026-W41.md");
 | Prop | Type | Default | Description |
 |---|---|---|---|
 | sheet | `Sheet` |  | The sheet the editor shows, from `parseSheetName` |
+| summary? | `RollupSummary \| null` |  | A rollup sheet's counts (`summaryOf`); shows the done bar |

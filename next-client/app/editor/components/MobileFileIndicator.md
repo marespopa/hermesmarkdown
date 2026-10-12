@@ -1,6 +1,6 @@
 # MobileFileIndicator
 
-Description: Compact mobile header chip showing the active file name and its save state, with home feed (vault only), save, command palette, and AI chat shortcuts. Hidden while the home feed is showing. Carries `.typing-chrome`: it fades while you type and returns on a tap outside the text (`useFadeChromeWhileTyping`).
+Description: Compact mobile header chip showing the active file name and its save state, with home feed (vault only), save, command palette, AI chat and, at the far right, Quick jot (vault only) shortcuts. Hidden while the home feed is showing. Carries `.typing-chrome`: it fades while you type and returns on a tap outside the text (`useFadeChromeWhileTyping`).
 
 ## Local State & Storage
 - State: `atom_workspaceLayout`, `atom_activePaneId`, `atom_openFiles`, `atom_saveStatus`, `atom_vaultHandle`, `atom_homeFeedOpen`, `useCommandPalette`.
@@ -22,3 +22,4 @@ import MobileFileIndicator from "./components/MobileFileIndicator";
 |---|---|---|---|
 | onSave | `() => void` |  | Save the active file |
 | onOpenAIChat? | `() => void` |  | Opens AI chat |
+| onQuickJot? | `() => void` |  | Opens Quick jot; the button shows only when set (a vault is open) |

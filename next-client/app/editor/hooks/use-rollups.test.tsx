@@ -7,7 +7,7 @@ import { atom_openFiles, type FileState } from "@/app/atoms/file-atoms";
 import { atom_workspaceLayout } from "@/app/atoms/workspace-atoms";
 import { atom_vaultHandle } from "@/app/atoms/vault-atoms";
 import { atom_fileMetadata, type FileMetadata } from "@/app/atoms/metadata";
-import { atom_todayFolder } from "@/app/atoms/ui-atoms";
+import { atom_rollupStatus, atom_todayFolder } from "@/app/atoms/ui-atoms";
 import { ROLLUP_END, ROLLUP_START } from "@/app/utils/rollup/render";
 import { MARKERS_MISSING_MESSAGE, useRollups } from "./use-rollups";
 
@@ -115,6 +115,18 @@ describe("useRollups", () => {
       expect(writeNewNote).not.toHaveBeenCalled();
       expect(resolveSheetFolder).not.toHaveBeenCalled();
       expect(saveFile).not.toHaveBeenCalled();
+    });
+
+    it("rebuilds an existing sheet's generated part before opening it, quietly", async () => {
+      const sheet = `# Week 41\n\n${ROLLUP_START}\nstale\n${ROLLUP_END}\n\n## Notes\n\nKeep me\n`;
+      const { handles, rollups } = setup({
+        files: { "reviews/2026-W41.md": sheet, "journal/2026/10/2026-10-06.md": "- [x] Ship billing export" },
+      });
+      await act(() => rollups.openRollup({ kind: "week", offset: 0 }));
+      expect(handles["reviews/2026-W41.md"].content).toContain("- Ship billing export · [[2026-10-06]]");
+      expect(handles["reviews/2026-W41.md"].content).toContain("## Notes\n\nKeep me\n");
+      expect(saveFile.mock.invocationCallOrder[0]).toBeLessThan(openFile.mock.invocationCallOrder[0]);
+      expect(toast.success).not.toHaveBeenCalled();
     });
 
     it("generates the week's sheet from its daily sheets, anywhere, in the Thursday's folder", async () => {
@@ -233,6 +245,30 @@ describe("useRollups", () => {
       expect(saveFile).toHaveBeenCalledTimes(1);
       expect(handles[SHEET].content).toBe(refreshed);
       expect(toast).toHaveBeenCalledWith("Rollup is up to date", expect.anything());
+    });
+
+    it("refreshes quietly on open: writes the new region with no toast", async () => {
+      const { handles, rollups } = setup({ files: { [SHEET]: weekly("stale", "Notes"), [DAY]: "- [x] Ship billing export #feature" } });
+      await act(() => rollups.refreshRollup(SHEET, { quiet: true }));
+      expect(handles[SHEET].content).toContain("- Ship billing export · [[2026-10-06]]");
+      expect(toast.success).not.toHaveBeenCalled();
+      await act(() => rollups.refreshRollup(SHEET, { quiet: true }));
+      expect(toast).not.toHaveBeenCalled();
+    });
+
+    it("records when it rebuilt and which item lines are new", async () => {
+      const { store, rollups } = setup({
+        files: { [SHEET]: weekly("- Draft roadmap · [[2026-10-06]]", "Notes"), [DAY]: "- [ ] Draft roadmap\n- [ ] Review pricing page" },
+      });
+      await act(() => rollups.refreshRollup(SHEET, { quiet: true }));
+      expect(store.get(atom_rollupStatus)[SHEET]).toEqual({ at: Date.now(), fresh: ["- Review pricing page · [[2026-10-06]]"] });
+    });
+
+    it("leaves a sheet without markers alone, silently, on open", async () => {
+      const { rollups } = setup({ files: { [SHEET]: "# Week 41\n\n## Notes\n" } });
+      await act(() => rollups.refreshRollup(SHEET, { quiet: true }));
+      expect(saveFile).not.toHaveBeenCalled();
+      expect(toast.error).not.toHaveBeenCalled();
     });
 
     it("ignores a note that isn't a rollup sheet", async () => {
