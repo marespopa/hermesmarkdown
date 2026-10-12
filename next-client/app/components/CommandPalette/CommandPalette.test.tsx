@@ -50,6 +50,17 @@ function TestCommand() {
   return null;
 }
 
+function TodayCommand({ disabledReason }: { disabledReason?: string }) {
+  useRegisterCommand({
+    id: "open-today-note",
+    label: "Today's sheet",
+    category: "Navigation",
+    disabledReason,
+    action: vi.fn(),
+  });
+  return null;
+}
+
 function CreateNoteHandler({ onCreate }: { onCreate: (title: string) => Promise<unknown> }) {
   const { setCreateNote } = useCommandPalette();
   React.useEffect(() => {
@@ -126,6 +137,25 @@ describe("CommandPalette", () => {
     expect(await screen.findByRole("option", { name: /Open Explorer/ })).toBeInTheDocument();
     expect(screen.queryByText("Recently Opened Files")).not.toBeInTheDocument();
     expect(screen.queryByText("Frequently Used Commands")).not.toBeInTheDocument();
+  });
+
+  it("always leads the default list with Today's sheet, with a vault", async () => {
+    const view = (todayProps: { disabledReason?: string }) => (
+      <Provider>
+        <CommandPaletteProvider>
+          <TestCommand />
+          <TodayCommand {...todayProps} />
+          <CommandPalette />
+        </CommandPaletteProvider>
+      </Provider>
+    );
+    const { rerender } = render(view({}));
+    fireEvent.keyDown(document, { key: "k", ctrlKey: true });
+    await screen.findByRole("option", { name: /Open Explorer/ });
+    expect(screen.getAllByRole("option")[0]).toHaveTextContent("Today's sheet");
+
+    rerender(view({ disabledReason: "Open a vault first" }));
+    expect(screen.queryByText("Today's sheet")).not.toBeInTheDocument();
   });
 
   it("cycles the theme from the palette header", async () => {
