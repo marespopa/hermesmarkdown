@@ -16,6 +16,8 @@ import MentionMenu from "./ai-chat/MentionMenu";
 import { useChatMentions } from "./ai-chat/use-chat-mentions";
 import { useChatModels } from "./ai-chat/use-chat-models";
 import { useChatSkills } from "./ai-chat/use-chat-skills";
+import { useChatTools } from "./ai-chat/use-chat-tools";
+import ToolApprovalCard from "./ai-chat/ToolApprovalCard";
 import { parseTemplateBlocks } from "./ai-chat/chat-skills";
 
 export type { ApplyMode };
@@ -42,6 +44,8 @@ export default function AIChatDialog({
 
   const { modelOptions, selectedAiModel, setSelectedAiModel, isFetchingModels } = useChatModels(isOpen);
   const skills = useChatSkills();
+  const tools = useChatTools();
+  const { cancelApproval } = tools;
 
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
@@ -59,6 +63,11 @@ export default function AIChatDialog({
 
   const { mention, setMention, mentionIndex, setMentionIndex, mentionOptions, detectMention, selectMention } =
     useChatMentions({ input, setInput, inputRef, setVaultRefs, currentFilePath });
+
+  // Closing the chat declines an approval it was waiting on.
+  useEffect(() => {
+    if (!isOpen) cancelApproval();
+  }, [isOpen, cancelApproval]);
 
   useEffect(() => {
     if (isOpen) {
@@ -96,8 +105,8 @@ export default function AIChatDialog({
 
   const buildSystemPrompt = useCallback(
     (skillInstructions: string[] = []) =>
-      buildChatSystemPrompt(documentContent, selectedText, currentFilePath, skillInstructions),
-    [documentContent, selectedText, currentFilePath],
+      buildChatSystemPrompt(documentContent, selectedText, currentFilePath, skillInstructions, tools.available),
+    [documentContent, selectedText, currentFilePath, tools.available],
   );
 
   const handleAttachFiles = async (files: FileList | null) => {
@@ -139,9 +148,17 @@ export default function AIChatDialog({
 
       if (inputRef.current) inputRef.current.style.height = "auto";
 
-      const apiMessages: ApiMessage[] = newMessages.map((m) => ({ role: m.role, content: m.apiContent }));
+      const apiMessages: ApiMessage[] = newMessages
+        .filter((m) => m.kind !== "activity")
+        .map((m) => ({ role: m.role, content: m.apiContent }));
       const skillInstructions = await skills.skillInstructionsFor(newMessages);
-      const reply = await callAIChat(buildSystemPrompt(skillInstructions), apiMessages);
+      const system = buildSystemPrompt(skillInstructions);
+      // With a vault, the AI can search, read, list tasks and (once approved)
+      // add to today's sheet; each tool it runs shows as a quiet line.
+      const reply = tools.available
+        ? await tools.converse(system, apiMessages, (line) =>
+            setMessages((prev) => [...prev, { role: "assistant", kind: "activity", displayContent: line, apiContent: line }]))
+        : await callAIChat(system, apiMessages);
       setMessages((prev) => [...prev, { role: "assistant", displayContent: reply, apiContent: reply }]);
     } catch (err: any) {
       showErrorToast(err.message || "AI request failed.");
@@ -149,7 +166,7 @@ export default function AIChatDialog({
       setIsLoading(false);
       setTimeout(() => inputRef.current?.focus(), 50);
     }
-  }, [input, attachments, messages, isLoading, buildSystemPrompt, vaultRefs, fileMetadata, vaultHandle, setMention, skills]);
+  }, [input, attachments, messages, isLoading, buildSystemPrompt, vaultRefs, fileMetadata, vaultHandle, setMention, skills, tools]);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (mention && mentionOptions.length > 0) {
@@ -249,7 +266,11 @@ export default function AIChatDialog({
             />
           ))}
 
-          {isLoading && (
+          {tools.approval && (
+            <ToolApprovalCard lines={tools.approval.lines} onApprove={tools.approval.approve} onDecline={tools.approval.decline} />
+          )}
+
+          {isLoading && !tools.approval && (
             <div className="flex gap-2.5">
               <div className="w-6 h-6 rounded-full bg-sage/15 flex items-center justify-center shrink-0 mt-0.5">
                 <HiOutlineSparkles size={13} className="text-sage" />

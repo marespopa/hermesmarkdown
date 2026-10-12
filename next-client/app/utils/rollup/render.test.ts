@@ -36,6 +36,14 @@ describe("renderGeneratedBody (weekly)", () => {
     );
   });
 
+  it("links a task done in another note to that note", () => {
+    const data = collectRollup([], {
+      range: { first: "2026-10-05", last: "2026-10-11" },
+      doneElsewhere: [{ note: "Roadmap", doneDate: "2026-10-07", line: 2, text: "Draft the Q4 plan", tags: [] }],
+    });
+    expect(renderGeneratedBody(week, data)).toContain("### Other\n- Draft the Q4 plan · [[Roadmap]]");
+  });
+
   it("renders empty sections as a heading and a blank line", () => {
     expect(renderGeneratedBody(week, collectRollup([]))).toBe(
       "No daily sheets this week\n\n## Done\n\n## Blocked\n\n## Still open\n",

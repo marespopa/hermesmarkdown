@@ -1,8 +1,9 @@
 import type { FileMetadata } from "@/app/atoms/metadata";
 import { isSensitiveFrontmatter } from "@/app/utils/note-privacy";
-import { collectRollup } from "@/app/utils/rollup/collect";
+import { collectRollup, type CollectOptions } from "@/app/utils/rollup/collect";
 import type { RollupPeriod } from "@/app/utils/rollup/period";
 import { renderGeneratedBody } from "@/app/utils/rollup/render";
+import { localISODate } from "@/app/utils/task-line";
 import { isOpenStatus, TASK_STATUS_CHAR, TASK_STATUS_LABEL } from "@/app/utils/task-status";
 import type { TaskItem } from "@/app/utils/taskExtractor";
 
@@ -19,8 +20,7 @@ const WEEKDAY = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday
 
 /** "Today is 2026-10-12 (Monday)." for prompts that work out dates. */
 export function todayLine(now: Date): string {
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return `Today is ${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())} (${WEEKDAY[now.getDay()]}).`;
+  return `Today is ${localISODate(now)} (${WEEKDAY[now.getDay()]}).`;
 }
 
 /** Which week a review asks about: last week (-1) when the latest asking message says so, else this week. */
@@ -31,11 +31,16 @@ export function reviewWeekOffset(asking: string | undefined): 0 | -1 {
 const privateNote = (count: number, what: string) =>
   count ? `\n(${count} private ${what}${count === 1 ? "" : "s"} left out.)` : "";
 
-// The week's rollup (done, blocked, still open) and each day's sheet.
-export function weekDataBlock(period: RollupPeriod, sheets: { date: string; text: string; sensitive?: boolean }[]): string {
+// The week's rollup (done, blocked, still open; `options` adds tasks done in
+// other notes, as the rollup sheet does) and each day's sheet.
+export function weekDataBlock(
+  period: RollupPeriod,
+  sheets: { date: string; text: string; sensitive?: boolean }[],
+  options: CollectOptions = {},
+): string {
   const kept = sheets.filter((sheet) => !sheet.sensitive);
   const left = sheets.length - kept.length;
-  if (!kept.length) {
+  if (!kept.length && !options.doneElsewhere?.length) {
     return `--- WEEK DATA: ${period.heading} (${period.name}) ---\nNo daily sheets for this week.${privateNote(left, "daily sheet")}\n--- END WEEK DATA ---`;
   }
   const days: string[] = [];
@@ -48,10 +53,10 @@ export function weekDataBlock(period: RollupPeriod, sheets: { date: string; text
     days.push(`### [[${sheet.date}]]\n${text.trim()}`);
   }
   return `--- WEEK DATA: ${period.heading} (${period.name}) ---
-${renderGeneratedBody(period, collectRollup(kept))}
+${renderGeneratedBody(period, collectRollup(kept, options))}
 
 ## Daily sheets
-${days.join("\n\n")}${privateNote(left, "daily sheet")}
+${days.length ? days.join("\n\n") : "None."}${privateNote(left, "daily sheet")}
 --- END WEEK DATA ---`;
 }
 
@@ -78,17 +83,20 @@ const taskLine = (task: TaskItem, note: string) =>
     `· [[${note}]]`,
   ].filter(Boolean).join(" ");
 
-// The vault's open tasks, as task lines naming their note.
+// The vault's open tasks, as task lines naming their note. `filter` narrows
+// them (the list_open_tasks tool's views), given today's "YYYY-MM-DD".
 export function openTasksBlock(
   meta: Record<string, FileMetadata>,
   now: Date,
   skip: (path: string) => boolean = () => false,
+  filter: (task: TaskItem, today: string) => boolean = () => true,
 ): string {
+  const today = localISODate(now);
   const open: { task: TaskItem; note: string }[] = [];
   let left = 0;
   for (const file of Object.values(meta)) {
     if (skip(file.path)) continue;
-    const tasks = (file.tasks || []).filter((task) => isOpenStatus(task.status));
+    const tasks = (file.tasks || []).filter((task) => isOpenStatus(task.status) && filter(task, today));
     if (!tasks.length) continue;
     if (isSensitiveFrontmatter(file.frontmatter)) {
       left += tasks.length;

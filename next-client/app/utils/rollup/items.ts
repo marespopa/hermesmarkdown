@@ -22,6 +22,9 @@ export interface RollupSummary {
 const REGEX_ITEM = /^(?:>\s*)?-\s+(.*?)\s+·\s+\[\[(\d{4}-\d{2}-\d{2})\]\]\s*$/;
 const REGEX_DETAILS = /(?:\s+·\s+(?:in progress|due \S+))+$/;
 const REGEX_TAG = /(^|\s)#[a-z][\w-]*/gi;
+// Any item line, whatever note it links to (a task done in a project note
+// links that note, not a day).
+const REGEX_ANY_ITEM = /^(?:>\s*)?-\s+.*?\s+·\s+\[\[[^\]]+\]\]\s*$/;
 const REGEX_SUMMARY = /^(\d+) done · (\d+) open · (\d+) blocked$/;
 
 export function parseRollupItem(line: string): RollupItemRef | null {
@@ -59,5 +62,5 @@ export function addedItemLines(previous: string | null, next: string): string[] 
   return next
     .split(/\r?\n/)
     .map((line) => line.trim())
-    .filter((line) => REGEX_ITEM.test(line) && !before.has(line));
+    .filter((line) => REGEX_ANY_ITEM.test(line) && !before.has(line));
 }

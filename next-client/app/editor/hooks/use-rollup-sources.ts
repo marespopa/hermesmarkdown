@@ -11,7 +11,8 @@ import { isSensitiveContent, isSensitiveFrontmatter } from "@/app/utils/note-pri
 import { isTemplatePath } from "@/app/utils/templates/template-registry";
 import { findSheetByName, resolveTodayFolder } from "@/app/utils/today-note";
 import { pickDailySheets } from "@/app/utils/rollup/daily-sheets";
-import { childPeriods, type RollupPeriod } from "@/app/utils/rollup/period";
+import { childPeriods, datesInPeriod, parseRollupName, type RollupPeriod } from "@/app/utils/rollup/period";
+import type { DoneElsewhere } from "@/app/utils/rollup/collect";
 import type { ChildNotes } from "@/app/utils/rollup/render";
 import { extractNotes } from "@/app/utils/rollup/sections";
 
@@ -24,6 +25,10 @@ export interface RollupSources {
   failed: number;
   // Any source sheet is sensitive.
   sensitive: boolean;
+  // The period's first and last day, and tasks done in it in other notes
+  // (by their @done stamp; private notes left out), for collectRollup.
+  range: { first: string; last: string };
+  doneElsewhere: DoneElsewhere[];
 }
 
 // What a rollup is built from. Daily sheets are found by file name anywhere
@@ -55,9 +60,24 @@ export function useRollupSources() {
     const templatesFolder = store.get(atom_templatesFolder).folder;
     const skip = (path: string) => path.startsWith(".hermes/") || isTemplatePath(path, templatesFolder);
     const isSensitive = (path: string, text: string) => isSensitiveFrontmatter(meta[path]?.frontmatter) || isSensitiveContent(text);
-    const sources: RollupSources = { sheets: [], childNotes: [], failed: 0, sensitive: false };
+    const days = datesInPeriod(period);
+    const range = { first: days[0], last: days[days.length - 1] };
+    const sources: RollupSources = { sheets: [], childNotes: [], failed: 0, sensitive: false, range, doneElsewhere: [] };
+    const picked = pickDailySheets(paths, period, preferredFolder, skip);
+    const pickedPaths = new Set(picked.map((sheet) => sheet.path));
 
-    for (const { date, path } of pickDailySheets(paths, period, preferredFolder, skip)) {
+    // Done in the period elsewhere: from the index, no reads. Rollup sheets
+    // hold no task lines; private notes stay out of the (shareable) rollup.
+    for (const file of Object.values(meta)) {
+      if (pickedPaths.has(file.path) || skip(file.path) || isSensitiveFrontmatter(file.frontmatter)) continue;
+      if (parseRollupName(file.path.split("/").pop() ?? "")) continue;
+      for (const task of file.tasks || []) {
+        if (task.status !== "done" || !task.doneDate || task.doneDate < range.first || task.doneDate > range.last) continue;
+        sources.doneElsewhere.push({ note: file.name.replace(/\.md$/i, ""), doneDate: task.doneDate, line: task.line, text: task.text, tags: task.tags });
+      }
+    }
+
+    for (const { date, path } of picked) {
       try {
         const text = await readCurrentText(path);
         const sensitive = isSensitive(path, text);

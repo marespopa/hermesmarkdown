@@ -31,20 +31,21 @@ const OTHER = "Other";
 // item can never read as a task.
 const safeText = (text: string) => text.replace(/^\[([ xX/!-])\]/, "\\[$1]");
 
-// `- <text>[ #tag …][ · in progress][ · due YYYY-MM-DD] · [[YYYY-MM-DD]]`
+// `- <text>[ #tag …][ · in progress][ · due YYYY-MM-DD] · [[YYYY-MM-DD]]`, or
+// `[[Note]]` for a task done in another note.
 function itemLine(item: RollupItem, { omitTag, details }: ItemOptions): string {
   const tags = item.tags.filter((tag) => tag !== omitTag).map((tag) => `#${tag}`);
   let line = `- ${[safeText(item.text), ...tags].join(" ")}`;
   if (details && item.inProgress) line += " · in progress";
   if (details && item.dueDate) line += ` · due ${item.dueDate}`;
-  return `${line} · [[${item.date}]]`;
+  return `${line} · [[${item.source ?? item.date}]]`;
 }
 
 // A section: its heading, then its body lines, or the heading alone when empty.
 const section = (heading: string, lines: string[]) => (lines.length ? `${heading}\n${lines.join("\n")}` : heading);
 
 export function renderSummary(data: RollupData, period: RollupPeriod): string {
-  if (data.sheetCount === 0) return `No daily sheets this ${period.noun}`;
+  if (data.sheetCount === 0 && data.done.length === 0) return `No daily sheets this ${period.noun}`;
   return `${data.done.length} done · ${data.open.length} open · ${data.blocked.length} blocked`;
 }
 

@@ -8,7 +8,8 @@ import { atom_vaultHandle } from "@/app/atoms/vault-atoms";
 import { atom_workspaceLayout } from "@/app/atoms/workspace-atoms";
 import { announceNoteSaved } from "@/app/utils/note-events";
 import { parseRollupName } from "@/app/utils/rollup/period";
-import { feedsRollup, useRollupLiveRefresh } from "./use-rollup-live-refresh";
+import { feedsRollup, touchesRollupDone, useRollupLiveRefresh } from "./use-rollup-live-refresh";
+import { extractTasks } from "@/app/utils/taskExtractor";
 
 const refreshRollup = vi.fn();
 vi.mock("./use-rollups", () => ({ useRollups: () => ({ refreshRollup }) }));
@@ -17,7 +18,10 @@ vi.mock("./use-rollups", () => ({ useRollups: () => ({ refreshRollup }) }));
 vi.mock("@/app/atoms/file-atoms", async () => {
   const { atom } = await import("jotai");
   const path = atom<string | null>(null);
-  return { atom_activeFilePath: atom((get) => get(path), (_get, set, value: string | null) => set(path, value)) };
+  return {
+    atom_activeFilePath: atom((get) => get(path), (_get, set, value: string | null) => set(path, value)),
+    atom_openFiles: atom<Record<string, { content: string }>>({}),
+  };
 });
 
 const vault = {} as FileSystemDirectoryHandle;
@@ -156,5 +160,20 @@ describe("feedsRollup", () => {
     expect(feedsRollup("2026-W45.md", month)).toBe(false); // its Thursday is in November
     expect(feedsRollup("2026-Q4.md", month)).toBe(false);
     expect(feedsRollup("Pricing notes.md", month)).toBe(false);
+  });
+});
+
+describe("touchesRollupDone", () => {
+  const week = parseRollupName("2026-W42.md")!;
+
+  it("is true for a note with a task done in the period, or one the rollup links", () => {
+    const tasks = extractTasks("Roadmap.md", "- [x] Draft the Q4 plan @done(2026-10-14)");
+    expect(touchesRollupDone("projects/Roadmap.md", tasks, week, "")).toBe(true);
+    expect(touchesRollupDone("projects/Roadmap.md", [], week, "- Draft the Q4 plan · [[Roadmap]]")).toBe(true);
+  });
+
+  it("is false for a task done outside the period, in a note the rollup doesn't link", () => {
+    const tasks = extractTasks("Roadmap.md", "- [x] Draft the Q4 plan @done(2026-10-02)");
+    expect(touchesRollupDone("projects/Roadmap.md", tasks, week, "- Ship billing export · [[2026-10-13]]")).toBe(false);
   });
 });

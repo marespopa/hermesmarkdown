@@ -146,6 +146,34 @@ export const aiFeaturesGroup: Group = {
       ),
     },
     {
+      id: "ai-chat-tools",
+      title: "AI Chat tools: search, tasks and today's sheet",
+      lead: "With a vault open, AI Chat can look things up in your notes and tasks, and add to today's sheet once you say yes.",
+      keywords: "ai tools search notes read note open tasks overdue due today add to today daily sheet approve agent",
+      body: (
+        <>
+          <p>
+            Ask about your own notes and the chat looks them up instead of guessing. It can{" "}
+            <strong>search your notes</strong> (by text, name or tag), <strong>read a note</strong>, and{" "}
+            <strong>list your open tasks</strong>: all of them, in progress, due today, overdue or
+            upcoming, or by tag. Each lookup shows as a quiet line in the thread, like{" "}
+            <em>Searched notes for &ldquo;pricing&rdquo; · 3 found</em>.
+          </p>
+          <p>
+            It can also <strong>add to today&apos;s sheet</strong>, for example the tasks from a meeting
+            you pasted. It shows you the lines first, and nothing is written until you click{" "}
+            <strong>Add</strong>. <strong>Don&apos;t add</strong>, or closing the chat, leaves your sheet
+            as it was.
+          </p>
+          <Callout type="tip">
+            The tools run in your browser, against your vault. Only what they find for a question goes
+            to the AI, in the same request. Private notes (marked sensitive or private) are never
+            searched or read.
+          </Callout>
+        </>
+      ),
+    },
+    {
       id: "ai-table-formulas",
       title: "AI & table formulas",
       lead: "The AI knows how table formulas work. It writes totals as live formulas and never replaces your formulas with numbers.",

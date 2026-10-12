@@ -3,6 +3,7 @@ import { createGoogleGenerativeAI } from '@ai-sdk/google';
 import { generateText, generateObject } from 'ai';
 import { z } from 'zod';
 import { NextResponse } from 'next/server';
+import { CHAT_TOOLS } from './chat-tools';
 
 const sanitizeMessage = (message: string): string => {
   const stripped = message.replace(/^Failed after \d+ attempts?\. Last error:\s*/i, "");
@@ -57,7 +58,7 @@ const emptyReplyError = (finishReason?: string) =>
 
 export async function POST(req: Request) {
   try {
-    const { action, provider, apiKey, modelKey, system, prompt, noteBody, messages } = await req.json();
+    const { action, provider, apiKey, modelKey, system, prompt, noteBody, messages, tools: useTools } = await req.json();
 
     if (!apiKey) {
       return NextResponse.json({ error: "API key is required" }, { status: 400 });
@@ -112,8 +113,25 @@ export async function POST(req: Request) {
     }
 
     if (action === 'chat') {
-      // messages may have content as a plain string or a content-parts array (for images)
-      const msgs = messages as Array<{ role: 'user' | 'assistant'; content: any }>;
+      // messages may have content as a plain string or a content-parts array
+      // (images), and, with tools on, assistant tool calls and 'tool' results.
+      const msgs = messages as Array<{ role: 'user' | 'assistant' | 'tool'; content: any }>;
+      const tools = useTools ? CHAT_TOOLS : undefined;
+      // A turn ends with text, or with tool calls for the client to run
+      // (`responseMessages` carries them, to send back with the results).
+      const reply = (result: {
+        text: string;
+        finishReason?: string;
+        toolCalls?: { toolCallId: string; toolName: string; input: unknown }[];
+        response: { messages: unknown[] };
+      }) => {
+        const toolCalls = (result.toolCalls ?? []).map(({ toolCallId, toolName, input }) => ({ toolCallId, toolName, input }));
+        if (!toolCalls.length && !result.text?.trim()) return emptyReplyError(result.finishReason);
+        return NextResponse.json({
+          text: result.text,
+          ...(toolCalls.length ? { toolCalls, responseMessages: result.response.messages } : {}),
+        });
+      };
 
       if (provider === 'gemini') {
         // Gemini: fold system into the first user message text part
@@ -125,20 +143,17 @@ export async function POST(req: Request) {
           ? [{ type: 'text' as const, text: `${system}\n\n${firstContent}` }]
           : [{ type: 'text' as const, text: `${system}\n\n${firstText}` }, ...(firstContent as any[]).filter((p: any) => p.type !== 'text')];
 
-        const { text, finishReason } = await generateText({
+        return reply(await generateText({
           model,
+          tools,
           messages: [
             { role: 'user' as const, content: firstParts },
             ...msgs.slice(1),
           ],
-        });
-        if (!text?.trim()) return emptyReplyError(finishReason);
-        return NextResponse.json({ text });
+        }));
       }
 
-      const { text, finishReason } = await generateText({ model, system, messages: msgs });
-      if (!text?.trim()) return emptyReplyError(finishReason);
-      return NextResponse.json({ text });
+      return reply(await generateText({ model, system, tools, messages: msgs }));
     }
 
     if (action === 'test') {

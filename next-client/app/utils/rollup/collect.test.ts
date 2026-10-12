@@ -85,6 +85,40 @@ describe("collectRollup", () => {
   });
 });
 
+describe("collectRollup with done stamps", () => {
+  const range = { first: "2026-10-12", last: "2026-10-18" };
+
+  it("adds tasks done in the period in other notes, linking that note", () => {
+    const data = collectRollup([{ date: "2026-10-13", text: "- [x] Ship billing export" }], {
+      range,
+      doneElsewhere: [
+        { note: "Roadmap", doneDate: "2026-10-14", line: 3, text: "Draft the Q4 plan", tags: ["planning"] },
+        { note: "2026-10-08", doneDate: "2026-10-12", line: 0, text: "Fix login redirect", tags: [] },
+      ],
+    });
+    expect(data.done.map((item) => [item.text, item.date, item.source])).toEqual([
+      ["Fix login redirect", "2026-10-12", "2026-10-08"],
+      ["Ship billing export", "2026-10-13", undefined],
+      ["Draft the Q4 plan", "2026-10-14", "Roadmap"],
+    ]);
+  });
+
+  it("keeps the daily sheet's entry when the same task is also elsewhere", () => {
+    const data = collectRollup([{ date: "2026-10-13", text: "- [ ] Draft roadmap" }], {
+      range,
+      doneElsewhere: [{ note: "Plans", doneDate: "2026-10-14", line: 0, text: "Draft roadmap", tags: [] }],
+    });
+    expect(data.done).toEqual([]);
+    expect(data.open.map((item) => item.text)).toEqual(["Draft roadmap"]);
+  });
+
+  it("counts a task done after the period as still open in it", () => {
+    const data = collectRollup([{ date: "2026-10-16", text: "- [x] Write release notes @done(2026-10-20)" }], { range });
+    expect(data.done).toEqual([]);
+    expect(data.open.map((item) => item.text)).toEqual(["Write release notes"]);
+  });
+});
+
 describe("groupDone", () => {
   it("groups by first tag, alphabetically, with untagged items last", () => {
     const data = collectRollup([
