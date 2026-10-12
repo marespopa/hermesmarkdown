@@ -107,11 +107,18 @@ export default function VaultFileTree(props: VaultFileTreeProps) {
     scrollToPath,
   });
 
+  const focusPath = selection.focusPath;
   useEffect(() => {
     if (!controllerRef) return;
-    controllerRef.current = { startCreate: actions.startCreate };
+    controllerRef.current = {
+      startCreate: actions.startCreate,
+      focus: () => {
+        scrollRef.current?.focus({ preventScroll: true });
+        if (focusPath) scrollToPath(focusPath);
+      },
+    };
     return () => { controllerRef.current = null; };
-  }, [controllerRef, actions.startCreate]);
+  }, [controllerRef, actions.startCreate, focusPath, scrollToPath]);
 
   const canDropAtRoot = canDropInto(draggedEntry, "");
 

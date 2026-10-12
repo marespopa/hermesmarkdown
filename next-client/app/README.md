@@ -19,10 +19,10 @@ This directory contains the core logic and routing for the HermesMarkdown Markdo
 - `api/`: Server routes — `ai/` (AI provider proxy) and `github/` (OAuth and GitHub vault sync).
 - `atoms/`: Global state definitions using Jotai.
 - `components/`: Global UI components (Buttons, Modals, Command Palette, etc.).
-- `editor/`: The main editor application: CodeMirror extensions, components, hooks, settings, Explorer (`files/`) and Tasks (`tasks/`) pages.
+- `editor/`: The main editor application: CodeMirror extensions, components, hooks, settings, Files (`files/`, the mobile file view) and Tasks (`tasks/`) pages.
 - `hooks/`: Custom React hooks, notably `useFileSystem` for local file access.
 - `services/`: AI, GitHub vault, and IndexedDB services.
-- `utils/`: Shared helpers (frontmatter parsing, task extraction, workspace queries, image paste, platform detection). `utils/templates/` is the template engine and the built-in template packs; `utils/periods/` names weeks, months, quarters and years for the `{{weekSheet}}`-style tokens.
+- `utils/`: Shared helpers (frontmatter parsing, task extraction, workspace queries, image paste, platform detection). `utils/templates/` is the template engine and the built-in template packs; `utils/periods/` names ISO weeks, months, quarters and years (the `ww` / `GGGG` date formats and the legacy `{{weekSheet}}`-style tokens).
 - `workers/`: Web worker that indexes vault metadata off the main thread.
 - `types/`: Shared TypeScript types.
 - `tools/`: Free tool pages (`/tools`: table generator, Mermaid in Markdown, AI tokenizer) that hand their result to the editor's draft; see `tools/README.md`.
@@ -32,9 +32,10 @@ This directory contains the core logic and routing for the HermesMarkdown Markdo
 
 ### Workspace Layout
 - **Main Workspace**: A flush, multi-pane area with tabs; panes split and resize via `react-resizable-panels` (`editor/components/WorkspaceSplitter.tsx`).
-- **Explorer and Tasks**: Dedicated full views at `/editor/files` and `/editor/tasks`, opened from the command palette or `Ctrl/Cmd+Shift+E`.
+- **Files**: The vault's tree, one name everywhere. On desktop it's the sidebar's Files section; **Show Files** (command palette, `Ctrl/Cmd+Shift+E`) shows the sidebar and focuses it. On mobile the same command opens the full-screen Files page (`/editor/files`).
+- **Tasks**: A dedicated full view at `/editor/tasks`.
 - **Command palette**: The primary navigation surface — quick switcher, commands, tags, tasks, and headings.
-- **Mobile**: Below 768px, the tab bar is replaced by a fixed file indicator bar and full-screen overlays (`MobileFileOverlay`).
+- **Mobile**: Below 768px, the tab bar is replaced by a fixed file indicator bar; Files is the full-screen `/editor/files` page.
 
 ### Vault Backend
 

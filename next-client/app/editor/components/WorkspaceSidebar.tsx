@@ -1,12 +1,12 @@
 "use client";
 
-import React, { useCallback, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { HiChevronRight, HiOutlineCheckCircle, HiOutlineDocumentText, HiOutlineDotsHorizontal, HiOutlineHome, HiOutlineTemplate } from "react-icons/hi";
 import { atom_activeFilePath, atom_activePaneId, atom_openFiles, atom_workspaceLayout, findLeaf, getWorkspaceTabs } from "@/app/atoms/atoms";
 import { VscLayoutSidebarLeft } from "react-icons/vsc";
 import { atom_vaultName } from "@/app/atoms/vault-atoms";
-import { atom_goHome, atom_homeFeedOpen, atom_sidebarCollapsed, atom_sidebarOpen, atom_sidebarWidth, SIDEBAR_MAX_WIDTH, SIDEBAR_MIN_WIDTH } from "@/app/atoms/ui-atoms";
+import { atom_filesFocusRequested, atom_goHome, atom_homeFeedOpen, atom_sidebarCollapsed, atom_sidebarOpen, atom_sidebarWidth, SIDEBAR_MAX_WIDTH, SIDEBAR_MIN_WIDTH } from "@/app/atoms/ui-atoms";
 import Button from "@/app/components/Button";
 import { useFileSystem } from "@/app/hooks/use-file-system";
 import { useVaultFileSearch } from "../hooks/useVaultFileSearch";
@@ -123,6 +123,15 @@ export default function WorkspaceSidebar({ onOpenTasks, onOpenTemplates }: { onO
   } = useFileSystem();
   const treeController = useRef<VaultFileTreeController | null>(null);
   const { allFiles, folderPaths } = useVaultFileSearch({ selectedTags: NO_TAGS, panel: "files" });
+
+  // "Show Files" (atom_showFiles): once the sidebar is open, its Files tree
+  // takes keyboard focus. Without a vault there's no tree; the request lapses.
+  const [filesFocusRequested, setFilesFocusRequested] = useAtom(atom_filesFocusRequested);
+  useEffect(() => {
+    if (!filesFocusRequested || !open) return;
+    treeController.current?.focus();
+    setFilesFocusRequested(false);
+  }, [filesFocusRequested, open, setFilesFocusRequested]);
 
   const tabs = getWorkspaceTabs(workspaceLayout.rootContainer);
   const activeLeaf = findLeaf(workspaceLayout.rootContainer, activePaneId);

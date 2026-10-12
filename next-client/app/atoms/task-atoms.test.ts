@@ -29,14 +29,14 @@ function storeWith(level: PrivacyLevel) {
   const store = createStore();
   store.set(atom_fileMetadata, {
     "plain.md": file("plain.md", [task("plain.md", "Buy milk", ["home"])]),
-    "secret.md": file("secret.md", [task("secret.md", "Wire the secret payment", ["money"])], { sensitive: "true" }),
+    "secret.md": file("secret.md", [task("secret.md", "Wire the secret payment", ["money"])], { private: "true" }),
   });
   store.set(atom_privacyLevel, level);
   return store;
 }
 
 describe("atom_visibleTasks", () => {
-  it("masks tasks from sensitive notes in show_title", () => {
+  it("masks tasks from private notes in show_title", () => {
     for (const level of ["show_title"] as const) {
       const tasks = storeWith(level).get(atom_visibleTasks);
       const masked = tasks.find((t) => t.path === "secret.md");
@@ -45,7 +45,7 @@ describe("atom_visibleTasks", () => {
     }
   });
 
-  it("leaves tasks from sensitive notes out in hidden", () => {
+  it("leaves tasks from private notes out in hidden", () => {
     const store = storeWith("hidden");
     expect(store.get(atom_visibleTasks).map((t) => t.path)).toEqual(["plain.md"]);
     // The raw list is untouched (writeback relies on it).

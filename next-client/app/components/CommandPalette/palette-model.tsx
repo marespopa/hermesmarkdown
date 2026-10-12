@@ -26,7 +26,7 @@ export const COMMAND_MODE_DEFAULT_ORDER = [
   "open-home-feed",
   "new-file",
   "save-file",
-  "open-explorer",
+  "show-files",
   "open-vault",
   "open-documentation",
 ];
@@ -45,7 +45,7 @@ const scopes = [
 ] as const;
 
 export type Scope = (typeof scopes)[number]["id"];
-export type FileResult = { path: string; name: string; handle: FileSystemFileHandle; tags: string[]; isSensitive: boolean };
+export type FileResult = { path: string; name: string; handle: FileSystemFileHandle; tags: string[]; isPrivate: boolean };
 type TagMatch = { tag: string; score: number; indices: number[] };
 export type TaggedFileMatch = { file: FileResult; matches: TagMatch[]; score: number };
 export type Row =
@@ -68,7 +68,7 @@ export function buildCreateRow(query: string, files: FileResult[]): Extract<Row,
   return { kind: "create", id: `create:${title}`, label: `Create "${title}"`, detail: "New note", title, titleIndices: [], detailIndices: [], score: 0 };
 }
 
-// The `!` scope's rows. A masked task (from a sensitive note) is listed only
+// The `!` scope's rows. A masked task (from a private note) is listed only
 // for the empty query, as bullets, and never matched by its text.
 export function buildTaskRows(query: string, tasks: DisplayTask[]): Extract<Row, { kind: "task" }>[] {
   return tasks.map((task) => {
@@ -83,7 +83,7 @@ export function buildTaskRows(query: string, tasks: DisplayTask[]): Extract<Row,
 }
 
 // The `/` scope's rows, in the worker's rank order. Hits for notes the
-// palette doesn't list (removed, hidden or sensitive) are dropped.
+// palette doesn't list (removed, hidden or private) are dropped.
 export function buildContentRows(hits: ContentHit[], filesByPath: Map<string, FileResult>): ContentRow[] {
   return hits.flatMap((hit) => {
     const file = filesByPath.get(hit.path);

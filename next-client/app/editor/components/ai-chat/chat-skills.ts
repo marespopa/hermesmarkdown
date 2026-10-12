@@ -25,15 +25,14 @@ export const TEMPLATE_BLOCK_INFO = "hermes-template";
 
 const TEMPLATE_SKILL_BUILTIN = [
   "Skill: create HermesMarkdown note templates.",
-  "When the user asks for a template, write it as a template file the user can save into their templates folder.",
+  "When the user asks for a template, write it as a template file the user can save into the vault's templates/ folder.",
   "",
   TEMPLATE_SYNTAX_GUIDE,
   "",
   "Output format: put each template in its own block fenced with four tildes, with the file name after the info string, exactly like this:",
   "~~~~hermes-template rfc.md",
   "---",
-  "target_folder: rfcs",
-  "file_name: rfc-{{date}}-{{slug}}",
+  "file_name: rfc-{{date}}-{{title}}",
   "---",
   "# {{title}}",
   "Owner: {{prompt:Owner}}",
@@ -42,7 +41,7 @@ const TEMPLATE_SKILL_BUILTIN = [
   "",
   "Rules:",
   "- Use a short lowercase file name ending in .md, without folders.",
-  "- Only add target_folder / file_name when the user wants new notes placed or named a certain way.",
+  "- Only add file_name when the user wants new notes named a certain way.",
   "- Use {{prompt:Label}} for values the user should type in each time; reuse the same label for the same value.",
   "- Keep a short sentence before the block saying what the template does. Don't claim it is saved: the user saves it with the Save template button.",
 ].join("\n");

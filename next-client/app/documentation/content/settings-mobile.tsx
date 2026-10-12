@@ -9,20 +9,24 @@ export const settingsGroup: Group = {
       id: "appearance",
       title: "Appearance",
       lead: "Theme and a small editorial typeface pair shape the editor's paper-like writing surface.",
-      keywords: "theme dark light font typography sidebar",
+      keywords: "theme dark light font typography text size sidebar layout full width focus",
       body: (
         <>
           <p>
             System/light/dark theme controls are available in Settings → Appearance and from the
-            command palette. System follows your operating system automatically. The editor font is
-            set under Settings → Typography and applies to every pane in a split workspace. Word
-            wrap, line numbers, Show Invisibles (¶ on empty lines, dots for spaces), Vim mode, flow
-            mode and Hide Interface While Typing live under Settings → Editor.
+            command palette (<strong>Theme: Light</strong>, <strong>Theme: Dark</strong>,{" "}
+            <strong>Theme: System</strong>). System follows your operating system automatically. The
+            editor font and text size are set under Settings → Appearance → Typography and apply to
+            every pane in a split workspace. Show Sidebar, Full Width, word wrap, line numbers and
+            Show Invisibles (¶ on empty lines, dots for spaces) live under Settings → Editor → Layout;
+            Vim mode and{" "}
+            <a href="#focus" className="text-accent hover:underline">Focus</a> under Settings →
+            Editor → Writing.
           </p>
           <KV
             rows={[
               { label: "Theme", value: "Settings → Appearance" },
-              { label: "Sidebar", value: "Show Sidebar: open notes and the vault's files on the window's left edge (desktop)" },
+              { label: "Sidebar", value: "Settings → Editor → Layout → Show Sidebar: open notes and the vault's files on the window's left edge (desktop)" },
               { label: "Typeface", value: "Plus Jakarta Sans by default, with Source Serif 4, Inter, and Geist Mono options" },
             ]}
           />
@@ -37,26 +41,25 @@ export const settingsGroup: Group = {
     {
       id: "vault-home-settings",
       title: "New notes & templates",
-      lead: "Choose where new notes go and where templates live.",
+      lead: "Choose where new notes go. Templates always live in templates/.",
       keywords: "new notes folder templates folder template packs settings vault",
       body: (
         <>
           <KV
             rows={[
               { label: "New Notes Folder", value: "Empty = vault root, or a folder like inbox" },
-              { label: "Templates Folder", value: "Per vault. Empty = templates, _templates or Templates" },
             ]}
           />
           <p>
-            Every <code>.md</code> file directly in the Templates Folder, or in one of its folders
-            (a <a href="#template-packs" className="text-accent hover:underline">template pack</a>), is a{" "}
-            <a href="#templates" className="text-accent hover:underline">template</a>.
-            Folders starting with <code>.</code> can&apos;t be used, because they aren&apos;t
-            indexed.
+            New drafts are saved there, and so are notes made from a template or a link that
+            names no folder. It lives under <strong>Settings → Files</strong>; a folder that
+            doesn&apos;t exist yet is created the first time a note is saved there.
           </p>
           <p>
-            These live under <strong>Settings → Files</strong>. A folder that doesn&apos;t exist
-            yet is created the first time a note is saved there.
+            Templates are always in <code>templates/</code> at the root of your vault, made the
+            first time you need it: every <code>.md</code> file directly in it, or one folder down
+            (a <a href="#template-packs" className="text-accent hover:underline">template pack</a>), is a{" "}
+            <a href="#templates" className="text-accent hover:underline">template</a>.
           </p>
         </>
       ),
@@ -86,15 +89,15 @@ export const mobileGroup: Group = {
     {
       id: "mobile-layout",
       title: "Mobile layout",
-      lead: "Below a 768px viewport, the tab bar is replaced by a fixed file indicator bar and full-screen overlays.",
+      lead: "Below a 768px viewport, the tab bar is replaced by a fixed file indicator bar, and Files opens full screen.",
       keywords: "mobile overlay breakpoint chrome command palette file indicator",
       body: (
         <>
           <p>
             A thin bar stays fixed at the top of the screen showing the active file's name and save
             status — there's no keyboard shortcut for the command palette on mobile, so tapping this
-            bar is the one always-present way to open it. From there, Open Explorer, Search, Open Tasks,
-            New file, and every other command work exactly as they do on desktop.
+            bar is the one always-present way to open it. From there, Show Files, Search, Open Tasks,
+            New Note, and every other command work exactly as they do on desktop.
           </p>
           <p>
             The <strong>Home</strong> button at the left of that bar takes you back to the{" "}
@@ -102,7 +105,7 @@ export const mobileGroup: Group = {
             On the feed, the search bar and the <strong>+</strong> button sit at the bottom, within
             reach of your thumb.
           </p>
-          <p>Explorer and Search open as full-screen overlays rather than docked panels.</p>
+          <p>Files and Search open full screen rather than as docked panels.</p>
         </>
       ),
     },
@@ -121,7 +124,7 @@ export const mobileGroup: Group = {
             ]}
           />
           <p>
-            Open the file overlay (or the command palette) and choose <strong>Browser Vault</strong>{" "}
+            From the home feed&apos;s vault menu (or the command palette), choose <strong>Browser vaults…</strong>{" "}
             to create or reopen one. On iOS, use <em>Share → Add to Home Screen</em>: the installed
             app opens full-screen and starts without a connection.
           </p>
@@ -161,8 +164,7 @@ export const mobileGroup: Group = {
         <>
           <KV
             rows={[
-              { label: "Explorer", value: "Full-screen file-management view" },
-              { label: "Selection toolbar", value: "Bold, Italic, Link only" },
+              { label: "Files", value: "Full screen instead of the sidebar" },
               { label: "Vaults", value: "Browser vaults on iPhone/iPad; see Vaults on phones and tablets" },
             ]}
           />

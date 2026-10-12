@@ -1,12 +1,12 @@
 import type { FileMetadata } from "@/app/atoms/metadata";
-import { isSensitiveFrontmatter } from "@/app/utils/note-privacy";
+import { isPrivateFrontmatter } from "@/app/utils/note-privacy";
 import { localISODate } from "@/app/utils/task-line";
 import { isOpenStatus, TASK_STATUS_CHAR, TASK_STATUS_LABEL } from "@/app/utils/task-status";
 import type { TaskItem } from "@/app/utils/taskExtractor";
 
 // The data the tasks chat skill sends with their
 // instructions (chat-skills.ts). Pure: use-chat-skills.ts gathers the inputs.
-// Private notes (sensitive frontmatter or content) are left out and only
+// Private notes (private frontmatter or content) are left out and only
 // counted, like everywhere else note text could leave the device.
 
 // A cap, so a big vault can't crowd out the conversation.
@@ -60,7 +60,7 @@ export function openTasksBlock(
     if (skip(file.path)) continue;
     const tasks = (file.tasks || []).filter((task) => isOpenStatus(task.status) && filter(task, today));
     if (!tasks.length) continue;
-    if (isSensitiveFrontmatter(file.frontmatter)) {
+    if (isPrivateFrontmatter(file.frontmatter)) {
       left += tasks.length;
       continue;
     }

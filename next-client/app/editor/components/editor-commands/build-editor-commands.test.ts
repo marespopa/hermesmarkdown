@@ -24,11 +24,8 @@ function createContext(overrides: Partial<EditorCommandContext> = {}): EditorCom
     onExport: vi.fn(),
     onSave: vi.fn(),
     isMobileChrome: true,
-    onOpenMobileFiles: vi.fn(),
     onOpenTasks: vi.fn(),
     onOpenTemplates: vi.fn(),
-    onHome: vi.fn(),
-    onOpenDocumentation: vi.fn(),
     onRefreshVault: vi.fn(),
     onImport: vi.fn(),
     onRunAIAction: vi.fn(),
@@ -55,8 +52,6 @@ function createContext(overrides: Partial<EditorCommandContext> = {}): EditorCom
       prompt: vi.fn(),
       select: vi.fn(),
     },
-    themeCycle: "light",
-    setTheme: vi.fn(),
     showHiddenFiles: false,
     setShowHiddenFiles: vi.fn(),
     setAiBuilderRequest: vi.fn(),
@@ -77,14 +72,6 @@ function createContext(overrides: Partial<EditorCommandContext> = {}): EditorCom
     setNewVaultFlowOpen: vi.fn(),
     splitPane: vi.fn(),
     closePane: vi.fn(),
-    wordWrap: true,
-    setWordWrap: vi.fn(),
-    lineNumbers: true,
-    setLineNumbers: vi.fn(),
-    flowMode: false,
-    setFlowMode: vi.fn(),
-    toolbarHidden: false,
-    setToolbarHidden: vi.fn(),
     sidebarOpen: false,
     setSidebarOpen: vi.fn(),
     setTasksGroupBy: vi.fn(),
@@ -92,12 +79,11 @@ function createContext(overrides: Partial<EditorCommandContext> = {}): EditorCom
     setTaskTagFilter: vi.fn(),
     setTaskView: vi.fn(),
     setIsWizardOpen: vi.fn(),
-    setKeyboardShortcutsOpen: vi.fn(),
     privacyLevel: "show_title",
     setPrivacyLevel: vi.fn(),
-    revealAllSensitive: false,
-    setRevealAllSensitive: vi.fn(),
-    setRevealedSensitivePaths: vi.fn(),
+    revealAllPrivate: false,
+    setRevealAllPrivate: vi.fn(),
+    setRevealedPrivatePaths: vi.fn(),
     activeFileHandle: { name: "Note.md" },
     activeEditorView: {},
     activeLeaf,
@@ -131,14 +117,12 @@ describe("buildEditorCommands", () => {
     expect(commands.map((command) => command.id)).toEqual([
       "save-file",
       "new-file",
-      "new-file-in-folder",
       "new-note-from-template",
       "insert-template",
       "save-as-template",
       "new-template",
       "export-file",
       "import-file",
-      "open-explorer",
       "open-tasks-panel",
       "open-templates",
       "split-pane-right",
@@ -146,23 +130,14 @@ describe("buildEditorCommands", () => {
       "move-current-file",
       "close-pane",
       "close-other-tabs",
-      "toggle-theme",
       "toggle-hidden-files",
-      "show-keyboard-shortcuts",
       "token-cost",
-      "open-settings",
-      "toggle-word-wrap",
-      "toggle-line-numbers",
-      "toggle-flow-mode",
-      "toggle-toolbar",
       "toggle-sidebar",
       "start-welcome-tour",
       "privacy-mode-show-title",
       "privacy-mode-hidden",
-      "reveal-sensitive-session",
-      "go-home",
+      "reveal-private-session",
       "toggle-home-pin",
-      "open-documentation",
       "close-vault",
       "copy-markdown",
       "rename-current-file",
@@ -230,6 +205,32 @@ describe("buildEditorCommands", () => {
     ]);
   });
 
+  it("leaves app-wide commands to AppCommands and SettingsCommands", () => {
+    const ids = buildEditorCommands(createContext()).map((command) => command.id);
+    for (const id of [
+      "open-explorer", "open-settings", "open-documentation", "show-keyboard-shortcuts",
+      "toggle-theme", "toggle-word-wrap", "toggle-line-numbers", "go-home",
+    ]) {
+      expect(ids).not.toContain(id);
+    }
+    expect(new Set(ids).size).toBe(ids.length);
+  });
+
+  it("names note commands with notes, and Download as Markdown runs the export", () => {
+    const context = createContext();
+    const commands = buildEditorCommands(context);
+    const label = (id: string) => commands.find((command) => command.id === id)?.label;
+
+    expect(label("new-file")).toBe("New Note");
+    expect(label("import-file")).toBe("Open Note from Disk…");
+    expect(label("rename-current-file")).toBe("Rename Note");
+    expect(label("delete-current-file")).toBe("Delete Note");
+    expect(label("export-file")).toBe("Download as Markdown");
+    commands.find((command) => command.id === "export-file")?.action();
+    expect(context.onExport).toHaveBeenCalledOnce();
+    expect(context.onSave).not.toHaveBeenCalled();
+  });
+
   it("preserves availability reasons and action callbacks", () => {
     const context = createContext({
       activeEditorView: null,
@@ -242,18 +243,15 @@ describe("buildEditorCommands", () => {
     expect(command("ai-improve")?.disabledReason).toBe("Configure an AI provider in Settings");
 
     command("save-file")?.action();
-    command("open-explorer")?.action();
     command("open-tasks-panel")?.action();
-    command("toggle-theme")?.action();
     command("ai-improve")?.action();
     command("new-folder")?.action();
     command("rename-current-file")?.action();
     command("delete-current-file")?.action();
 
     expect(context.onSave).toHaveBeenCalledOnce();
-    expect(context.router.push).toHaveBeenCalledWith("/editor/files");
+    expect(commands.some((candidate) => candidate.id === "open-explorer" || candidate.id === "show-files")).toBe(false);
     expect(context.onOpenTasks).toHaveBeenCalledOnce();
-    expect(context.setTheme).toHaveBeenCalledWith("light");
     expect(context.onRunAIAction).toHaveBeenCalledWith("improve");
     expect(context.createFolder).toHaveBeenCalledOnce();
     expect(context.renameFile).toHaveBeenCalledWith(context.activeFileHandle, undefined, context.activeFilePath);
@@ -306,24 +304,26 @@ describe("buildEditorCommands", () => {
     expect(command("privacy-mode-hidden")?.disabledReason).toBe("Current mode");
     expect(command("privacy-mode-show-title")?.disabledReason).toBeUndefined();
     expect(command("privacy-mode-blurred")).toBeUndefined();
+    expect(command("privacy-mode-show-title")?.label).toBe("Privacy mode: Mask in lists");
+    expect(command("privacy-mode-hidden")?.label).toBe("Privacy mode: Hide from lists");
 
     command("privacy-mode-show-title")?.action();
     expect(context.setPrivacyLevel).toHaveBeenCalledWith("show_title");
   });
 
   it("toggles the session reveal and clears per-note reveals when turned off", () => {
-    const off = createContext({ revealAllSensitive: false });
-    const showAll = buildEditorCommands(off).find((command) => command.id === "reveal-sensitive-session");
-    expect(showAll?.label).toBe("Show all sensitive notes this session");
+    const off = createContext({ revealAllPrivate: false });
+    const showAll = buildEditorCommands(off).find((command) => command.id === "reveal-private-session");
+    expect(showAll?.label).toBe("Show all private notes this session");
     showAll?.action();
-    expect(off.setRevealAllSensitive).toHaveBeenCalledWith(true);
-    expect(off.setRevealedSensitivePaths).not.toHaveBeenCalled();
+    expect(off.setRevealAllPrivate).toHaveBeenCalledWith(true);
+    expect(off.setRevealedPrivatePaths).not.toHaveBeenCalled();
 
-    const on = createContext({ revealAllSensitive: true });
-    const hideAgain = buildEditorCommands(on).find((command) => command.id === "reveal-sensitive-session");
-    expect(hideAgain?.label).toBe("Hide sensitive notes again");
+    const on = createContext({ revealAllPrivate: true });
+    const hideAgain = buildEditorCommands(on).find((command) => command.id === "reveal-private-session");
+    expect(hideAgain?.label).toBe("Hide private notes again");
     hideAgain?.action();
-    expect(on.setRevealAllSensitive).toHaveBeenCalledWith(false);
-    expect(on.setRevealedSensitivePaths).toHaveBeenCalledWith(new Set());
+    expect(on.setRevealAllPrivate).toHaveBeenCalledWith(false);
+    expect(on.setRevealedPrivatePaths).toHaveBeenCalledWith(new Set());
   });
 });

@@ -7,7 +7,7 @@ import { useVaultManager } from "@/app/hooks/file-system/use-vault-manager";
 import EditorSkeleton from "./EditorSkeleton";
 import VaultPendingOverlay from "./VaultPendingOverlay";
 
-// Wraps every /editor route (editor, Tasks, Explorer, Settings): restores
+// Wraps every /editor route (editor, Tasks, Files, Settings): restores
 // the saved vault on load, and keeps the route out of reach until it's
 // readable. While the saved vault is being looked up, only the editor
 // skeleton shows; while it waits for the user to grant access again, the

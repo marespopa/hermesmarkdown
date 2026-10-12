@@ -5,9 +5,6 @@ import { TEMPLATE_TOKENS, isBlankToken, isValidToken, parseTemplateToken } from 
 // chat's save card show them). Each warning is one short, plain sentence.
 
 const MISSPELLED_ROUTING_KEYS: Record<string, string> = {
-  "target-folder": "target_folder",
-  targetfolder: "target_folder",
-  targetFolder: "target_folder",
   "file-name": "file_name",
   filename: "file_name",
   fileName: "file_name",
@@ -63,6 +60,10 @@ export function lintTemplate(raw: string): string[] {
   if (emptyPrompt) warnings.push("A question field ({{prompt:}}) has no question.");
   if (cursors > 1) warnings.push("\"Start typing here\" ({{cursor}}) appears more than once; only the first counts.");
   for (const key of Object.keys(parseFmFields(raw))) {
+    if (key === "target_folder") {
+      warnings.push("\"target_folder\" is no longer used: new notes go in the folder you create them from. You can delete it.");
+      continue;
+    }
     const intended = MISSPELLED_ROUTING_KEYS[key];
     if (intended) warnings.push(`"${key}" should be spelled "${intended}" to take effect.`);
   }
@@ -72,21 +73,7 @@ export function lintTemplate(raw: string): string[] {
 export const TOKEN_DESCRIPTIONS: Record<(typeof TEMPLATE_TOKENS)[number], string> = {
   date: "today, YYYY-MM-DD",
   time: "now, HH:mm (24 h)",
-  weekday: "day name, e.g. Sunday",
-  weekdayShort: "short day name, e.g. Sun",
-  year: "four-digit year",
-  month: "month number, 01-12",
-  day: "day of the month, 01-31",
-  monthName: "month name, e.g. October",
-  monthNameShort: "short month name, e.g. Oct",
-  week: "ISO week number, 01-53 (weeks start Monday)",
-  quarter: "quarter of the year, Q1-Q4",
-  weekSheet: "this week's name, e.g. 2026-W42; as a weekly note's file_name, or a link [[{{weekSheet}}]]",
-  monthSheet: "this month's name, e.g. 2026-10",
-  quarterSheet: "this quarter's name, e.g. 2026-Q4",
-  yearSheet: "this year's name, e.g. 2026-year",
   title: "the new note's title",
-  slug: "the title in URL-safe kebab-case",
   clipboard: "the clipboard text",
   selection: "the text selected when the template is inserted (empty for new notes)",
   cursor: "where the caret goes after the note opens (removed from the text)",
@@ -98,13 +85,11 @@ export const TEMPLATE_SYNTAX_GUIDE = [
   "HermesMarkdown templates are plain Markdown files. Tokens are written {{name}} and are expanded when the template is used:",
   ...TEMPLATE_TOKENS.map((token) => `- {{${token}}}: ${TOKEN_DESCRIPTIONS[token]}`),
   "- {{prompt:Label}}: asks the user for a value labelled Label; every occurrence of the same label gets the same answer.",
-  "- {{date:FORMAT}} formats the date (YYYY YY MMMM MMM MM M dddd ddd DD D HH H mm ss, [literal]), e.g. {{date:dddd, D MMMM}}; {{time:HH:mm}} likewise.",
-  "- {{date+1d}} / {{date-2w}} / {{date+1m}} / {{date+1y}}: date math (days, weeks, months, years); combine with a format: {{date+1d:dddd}}.",
-  "- The week, month, quarter and year names take date math too: {{weekSheet-1w}} is last week's name, {{monthSheet+1m}} next month's.",
+  "- {{date:FORMAT}} formats the date: YYYY YY MMMM MMM MM M dddd ddd DD D HH H mm ss, ww (ISO week, 01-53), GGGG (the ISO week's year), Q (quarter, 1-4), [literal text]. E.g. {{date:dddd, D MMMM}}, {{date:GGGG-[W]ww}} (this week's name, 2026-W42), {{date:YYYY-MM}} (this month's), {{date:YYYY-[Q]Q}} (this quarter's). {{time:HH:mm}} takes a format too.",
+  "- {{date+1d}} / {{date-2w}} / {{date+1m}} / {{date+1y}}: date math (days, weeks, months, years); combine with a format: {{date+1d:dddd}}, or {{date-1w:GGGG-[W]ww}} for last week's name.",
   "- Any other {{name}} (letters, digits, underscores), e.g. {{task_1}}, stays in the created note as a blank to fill in; Tab jumps between blanks.",
   "No scripting, conditionals or loops.",
-  "Optional frontmatter keys (used when a template makes a new note, removed from the created note):",
-  "- target_folder: vault-relative folder for the new note, e.g. rfcs",
-  "- file_name: the new note's file name without .md; tokens allowed, e.g. {{date}} for a daily note. When file_name doesn't use {{title}} or {{slug}}, no title is asked for and using the template again opens that note instead of making another.",
+  "Optional frontmatter key (used when a template makes a new note, removed from the created note); the note goes in the folder it is created from, else the New Notes folder:",
+  "- file_name: the new note's file name without .md; tokens allowed, e.g. {{date}} for a daily note or {{date:GGGG-[W]ww}} for a weekly one. When file_name doesn't use {{title}}, no title is asked for. A link names its note itself, so file_name is ignored when a note is made from a link. If a note with that name already exists in that folder, it is opened instead of making another.",
   "Other frontmatter keys are copied into the note, with tokens expanded.",
 ].join("\n");

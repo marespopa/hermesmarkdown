@@ -24,7 +24,7 @@ export const exportPdfItem: Subsection = {
       />
       <p>
         The PDF&apos;s title comes from the note&apos;s first heading, or its file name. A note marked
-        sensitive can only be exported once you&apos;ve shown it. <code>CTRL/CMD+P</code> still
+        private can only be exported once you&apos;ve shown it. <code>CTRL/CMD+P</code> still
         opens the command palette.
       </p>
     </>

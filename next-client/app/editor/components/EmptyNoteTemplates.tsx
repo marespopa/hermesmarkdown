@@ -2,33 +2,35 @@
 
 import React, { useEffect, useState } from "react";
 import { useAtomValue } from "jotai";
+import { useRouter } from "next/navigation";
+import { HiOutlineTemplate } from "react-icons/hi";
 import Button from "@/app/components/Button";
 import TemplateIcon from "@/app/components/TemplateDialog/TemplateIcon";
 import { atom_templates } from "@/app/atoms/template-atoms";
+import { atom_vaultHandle } from "@/app/atoms/vault-atoms";
 import type { TemplateEntry } from "@/app/utils/templates/template-registry";
-import { TEMPLATE_STARTERS } from "@/app/utils/templates/template-starter";
-import type { TemplateSource } from "../hooks/use-vault-template-insert";
 
 interface EmptyNoteTemplatesProps {
   /** True while the note is empty (and not a template). */
   isEmpty: boolean;
-  /** Fills the note from a template or a starter. */
-  onPick: (source: TemplateEntry | TemplateSource) => void;
+  /** Fills the note from a vault template. */
+  onPick: (template: TemplateEntry) => void;
   /** Opens the full template picker; offered when there are more templates than pills. */
   onMore?: () => void;
 }
 
 const MAX_PILLS = 4;
 const FADE_MS = 150;
-// Without vault templates, the starters that make sense as notes.
-const STARTER_SOURCES: TemplateSource[] = TEMPLATE_STARTERS
-  .filter((starter) => starter.name !== "Basic" && !starter.snippet)
-  .map((starter) => ({ name: starter.name, body: starter.body }));
+const PILL_CLASS = "pointer-events-auto inline-flex min-h-11 items-center gap-1.5 rounded-full border border-edge-subtle bg-[color:color-mix(in_srgb,var(--chrome)_70%,transparent)] px-3 font-sans text-ui-footnote text-fg-muted backdrop-blur-sm transition-[background-color,color,transform] duration-150 [transition-timing-function:var(--ease-spring)] hover:bg-chrome hover:text-fg active:scale-[0.97] sm:min-h-9";
 
 // Soft pills resting under the first line of an empty note: one click fills
-// the note from a template. They fade out as soon as the note has text.
+// the note from one of the vault's templates. A vault with none gets a single
+// "Browse template packs" pill to the Templates page instead. They fade out
+// as soon as the note has text.
 export default function EmptyNoteTemplates({ isEmpty, onPick, onMore }: EmptyNoteTemplatesProps) {
   const templates = useAtomValue(atom_templates);
+  const hasVault = !!useAtomValue(atom_vaultHandle);
+  const router = useRouter();
   // Stays mounted for the fade-out, then unmounts.
   const [mounted, setMounted] = useState(isEmpty);
   useEffect(() => {
@@ -40,8 +42,7 @@ export default function EmptyNoteTemplates({ isEmpty, onPick, onMore }: EmptyNot
     return () => clearTimeout(timer);
   }, [isEmpty]);
 
-  const sources: (TemplateEntry | TemplateSource)[] = templates.length > 0 ? templates : STARTER_SOURCES;
-  if (!mounted || sources.length === 0) return null;
+  if (!mounted || !hasVault) return null;
   const hasMore = templates.length > MAX_PILLS && onMore;
 
   return (
@@ -52,17 +53,18 @@ export default function EmptyNoteTemplates({ isEmpty, onPick, onMore }: EmptyNot
       aria-label="Start from a template"
       role="group"
     >
-      {sources.slice(0, MAX_PILLS).map((source) => (
-        <Button
-          key={"path" in source ? source.path : source.name}
-          variant="unstyled"
-          onClick={() => onPick(source)}
-          className="pointer-events-auto inline-flex min-h-11 items-center gap-1.5 rounded-full border border-edge-subtle bg-[color:color-mix(in_srgb,var(--chrome)_70%,transparent)] px-3 font-sans text-ui-footnote text-fg-muted backdrop-blur-sm transition-[background-color,color,transform] duration-150 [transition-timing-function:var(--ease-spring)] hover:bg-chrome hover:text-fg active:scale-[0.97] sm:min-h-9"
-        >
-          <TemplateIcon name={source.name} size={14} />
-          {source.name}
+      {templates.slice(0, MAX_PILLS).map((template) => (
+        <Button key={template.path} variant="unstyled" onClick={() => onPick(template)} className={PILL_CLASS}>
+          <TemplateIcon name={template.name} size={14} />
+          {template.name}
         </Button>
       ))}
+      {templates.length === 0 && (
+        <Button variant="unstyled" onClick={() => router.push("/editor/templates")} className={PILL_CLASS}>
+          <HiOutlineTemplate size={14} aria-hidden />
+          Browse template packs
+        </Button>
+      )}
       {hasMore && (
         <Button
           variant="unstyled"

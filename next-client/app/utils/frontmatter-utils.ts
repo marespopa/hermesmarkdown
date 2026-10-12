@@ -53,7 +53,7 @@ export function normalizeListString(val: string): string {
 
 export function serializeField(key: string, val: string): string {
   const isListField = ["tags"].includes(key);
-  const isBareField = ["status", "sensitive", "private"].includes(key);
+  const isBareField = ["status", "private"].includes(key);
 
   if (isListField) {
     return `${key}: [${normalizeListString(val)}]`;

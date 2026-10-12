@@ -2,9 +2,9 @@
 
 import React, { useEffect, useRef } from "react";
 import Button from "@/app/components/Button";
-import SensitiveBadge from "@/app/components/SensitiveBadge";
+import PrivateBadge from "@/app/components/PrivateBadge";
 
-interface SensitiveNoteVeilProps {
+interface PrivateNoteVeilProps {
   title: string;
   /** Focus "Show note" when this pane is the active one. */
   isActivePane: boolean;
@@ -12,9 +12,9 @@ interface SensitiveNoteVeilProps {
   onShowAll: () => void;
 }
 
-// Shown in place of the editor for a sensitive note until it's revealed. The
+// Shown in place of the editor for a private note until it's revealed. The
 // note's text is never rendered here, only its title.
-export default function SensitiveNoteVeil({ title, isActivePane, onShowNote, onShowAll }: SensitiveNoteVeilProps) {
+export default function PrivateNoteVeil({ title, isActivePane, onShowNote, onShowAll }: PrivateNoteVeilProps) {
   const showNoteRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
@@ -22,15 +22,15 @@ export default function SensitiveNoteVeil({ title, isActivePane, onShowNote, onS
   }, [isActivePane]);
 
   return (
-    <div className="flex h-full items-center justify-center p-6" data-testid="sensitive-note-veil">
+    <div className="flex h-full items-center justify-center p-6" data-testid="private-note-veil">
       <section
-        aria-label="Sensitive note"
+        aria-label="Private note"
         className="flex w-full max-w-sm flex-col items-center gap-4 rounded-2xl border border-edge bg-surface p-6 text-center"
       >
         <div className="flex flex-col items-center gap-1.5">
           <span className="flex items-center gap-1.5 text-ui-footnote font-medium text-fg-muted">
-            <SensitiveBadge />
-            Sensitive note
+            <PrivateBadge />
+            Private note
           </span>
           <h2 className="max-w-full truncate text-ui-body font-semibold text-fg">{title}</h2>
         </div>
@@ -39,7 +39,7 @@ export default function SensitiveNoteVeil({ title, isActivePane, onShowNote, onS
             Show note
           </Button>
           <Button variant="tertiary" onClick={onShowAll} className="min-h-11 w-full">
-            Show all sensitive notes this session
+            Show all private notes this session
           </Button>
         </div>
       </section>

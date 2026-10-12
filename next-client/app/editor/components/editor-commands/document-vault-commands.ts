@@ -10,7 +10,6 @@ export function buildDocumentVaultCommandGroups(context: EditorCommandContext) {
     activeLeaf,
     closeVault,
     createFolder,
-    createNewFile,
     createNoteFromTemplate,
     createTemplate,
     deleteFile,
@@ -21,10 +20,8 @@ export function buildDocumentVaultCommandGroups(context: EditorCommandContext) {
     isVaultSupported,
     moveItem,
     onExport,
-    onHome,
     onImport,
     onNewFile,
-    onOpenDocumentation,
     onRefreshVault,
     onSave,
     openVault,
@@ -46,26 +43,18 @@ export function buildDocumentVaultCommandGroups(context: EditorCommandContext) {
     },
     {
       id: "new-file",
-      label: "New file",
-      keywords: "create note draft",
+      label: "New Note",
+      keywords: "create note draft new file",
       action: onNewFile,
     },
     ...(vaultHandle
       ? [{
-          id: "new-file-in-folder",
-          label: "New file in folder…",
-          keywords: "create note name folder",
-          // Folder picker + name prompt: the explicit alternative to the
-          // draft flow, which names the note from its first line.
-          action: () => { void createNewFile(); },
-        },
-        {
           id: "new-note-from-template",
           label: "New note from template…",
           category: "Vault" as const,
           keywords: "create template note",
-          // Template picker + title prompt; the template's target_folder /
-          // file_name place and name the note.
+          // Template picker (+ title prompt unless file_name names the note);
+          // the note goes in the New Notes folder, or opens if it's there.
           action: () => { void createNoteFromTemplate(); },
         },
         {
@@ -81,7 +70,7 @@ export function buildDocumentVaultCommandGroups(context: EditorCommandContext) {
           label: "Save as template…",
           category: "Vault" as const,
           keywords: "template save create from note preset",
-          // The active note's text becomes <templates folder>/<name>.md.
+          // The active note's text becomes templates/<name>.md.
           action: () => { document.dispatchEvent(new CustomEvent("hermes:save-as-template")); },
         },
         {
@@ -89,22 +78,24 @@ export function buildDocumentVaultCommandGroups(context: EditorCommandContext) {
           label: "New template…",
           category: "Vault" as const,
           keywords: "create template add template new template",
-          // Name prompt; creates <templates folder>/<name>.md with a starter
-          // body, or opens the existing template of that name.
+          // Name prompt; creates templates/<name>.md with a minimal body, or
+          // opens the existing template of that name.
           action: () => { void createTemplate(); },
         }]
       : []),
     {
       id: "export-file",
-      label: "Export current file",
-      keywords: "save download",
+      label: "Download as Markdown",
+      keywords: "export download save copy md file note",
       action: onExport,
     },
     {
       id: "import-file",
-      label: "Import file",
+      label: "Open Note from Disk…",
       category: "Vault",
-      keywords: "open upload markdown text",
+      // Opens a Markdown or text file from the device as a draft; Import
+      // Files into Vault… (vault-storage-commands) copies files in instead.
+      keywords: "open import upload markdown text file device draft",
       action: onImport,
     },
   ];
@@ -113,18 +104,18 @@ export function buildDocumentVaultCommandGroups(context: EditorCommandContext) {
     ...(activeFileHandle
       ? [{
           id: "duplicate-current-file",
-          label: "Duplicate current file",
+          label: "Duplicate Note",
           category: "Document" as const,
-          keywords: "copy clone file",
+          keywords: "copy clone note file current",
           action: () => duplicateFile(activeFileHandle),
         }]
       : []),
     ...(activeFileHandle && vaultHandle
       ? [{
           id: "move-current-file",
-          label: "Move current file",
+          label: "Move Note…",
           category: "Document" as const,
-          keywords: "relocate folder file",
+          keywords: "relocate folder note file current",
           action: async () => {
             const directories: FileSystemDirectoryHandle[] = [];
             for await (const entry of (vaultHandle as any).values()) {
@@ -137,7 +128,7 @@ export function buildDocumentVaultCommandGroups(context: EditorCommandContext) {
                 { label: `/ ${vaultDisplayName(vaultDescriptor, vaultHandle.name)} (root)`, value: "__root__" },
                 ...directories.map((directory) => ({ label: directory.name, value: directory.name })),
               ],
-              "Move File",
+              "Move Note",
             );
             if (!destination) return;
             const target = destination === "__root__"
@@ -150,12 +141,6 @@ export function buildDocumentVaultCommandGroups(context: EditorCommandContext) {
   ];
 
   const vaultActions: Command[] = [
-    {
-      id: "go-home",
-      label: "Home",
-      keywords: "home vault switcher",
-      action: onHome,
-    },
     ...(vaultHandle && activeFileHandle && activeFilePath
       ? [{
           id: "toggle-home-pin",
@@ -164,16 +149,10 @@ export function buildDocumentVaultCommandGroups(context: EditorCommandContext) {
           action: () => toggleHomePin(activeFilePath),
         }]
       : []),
-    {
-      id: "open-documentation",
-      label: "Documentation",
-      keywords: "docs help guide",
-      action: onOpenDocumentation,
-    },
     ...(vaultHandle
       ? [{
           id: "close-vault",
-          label: "Close vault",
+          label: "Close Vault",
           keywords: "disconnect vault switch exit",
           action: async () => {
             const confirmed = await dialog.confirm(
@@ -197,30 +176,30 @@ export function buildDocumentVaultCommandGroups(context: EditorCommandContext) {
     ...(activeFileHandle
       ? [{
           id: "rename-current-file",
-          label: "Rename current file",
-          keywords: "rename move file",
+          label: "Rename Note",
+          keywords: "rename move note file current title",
           action: () => renameFile(activeFileHandle, undefined, activeFilePath ?? undefined),
         }]
       : []),
     ...(activeFileHandle
       ? [{
           id: "delete-current-file",
-          label: "Delete current file",
-          keywords: "delete remove trash file",
+          label: "Delete Note",
+          keywords: "delete remove trash note file current",
           action: () => deleteFile(activeFileHandle, activeFilePath),
         }]
       : []),
     ...(vaultHandle && onRefreshVault
       ? [{
           id: "refresh-vault",
-          label: "Refresh vault",
+          label: "Refresh Vault",
           keywords: "rescan reload vault files",
           action: () => onRefreshVault(),
         }]
       : []),
     {
       id: "create-new-vault",
-      label: "Create new vault",
+      label: "Create New Vault",
       keywords: "vault new folder",
       // Without disk folder access, new vaults live in browser storage.
       action: () => (isVaultSupported ? setNewVaultFlowOpen(true) : setBrowserVaultDialogOpen(true)),
@@ -234,7 +213,7 @@ export function buildDocumentVaultCommandGroups(context: EditorCommandContext) {
     ...(vaultHandle
       ? [{
           id: "new-folder",
-          label: "New folder",
+          label: "New Folder",
           keywords: "create directory",
           action: createFolder,
         }]

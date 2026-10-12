@@ -14,7 +14,6 @@ import PaneLeaf from "./components/PaneLeaf";
 import LoadingOverlay from "@/app/components/LoadingOverlay";
 import LoadingBar from "@/app/components/LoadingBar";
 import EditorCommands from "./components/EditorCommands";
-import MobileFileOverlay from "./components/MobileFileOverlay";
 import MobileFileIndicator from "./components/MobileFileIndicator";
 import WorkspaceSidebar from "./components/WorkspaceSidebar";
 import SelectionToolbar from "./components/SelectionToolbar";
@@ -33,7 +32,7 @@ import AIChatDialog from "./components/AIChatDialog";
 import { AIReviewDialog } from "./components/AIReviewDialog";
 import { AIThinkingOverlay } from "./components/AIThinkingOverlay";
 import { useRouter } from "next/navigation";
-import { atom_isAiConfigured, atom_aiBuilderRequest, atom_showHiddenFiles, atom_hideChromeWhileTyping, atom_sidebarOpen, atom_sidebarWidth } from "@/app/atoms/ui-atoms";
+import { atom_isAiConfigured, atom_aiBuilderRequest, atom_showHiddenFiles, atom_focusMode, atom_sidebarOpen, atom_sidebarWidth } from "@/app/atoms/ui-atoms";
 import { usePaneFileActions } from "./hooks/use-pane-file-actions";
 import { useDraftImport } from "./hooks/use-draft-import";
 import { useToolHandoff } from "./hooks/use-tool-handoff";
@@ -42,7 +41,6 @@ import { useGitHubVaultActions } from "./hooks/use-github-vault-actions";
 import { useNavigateWithGuard } from "./hooks/use-navigate-with-guard";
 import { useSyncCurrentDirectory } from "./hooks/use-sync-current-directory";
 import DraftImportDialog from "./components/DraftImportDialog";
-import DraftFolderDialog from "./components/DraftFolderDialog";
 import { useDraftFlow } from "./hooks/use-draft-flow";
 import { useHomeFeed } from "./hooks/use-home-feed";
 import HomeFeed from "./components/HomeFeed";
@@ -50,6 +48,8 @@ import { HomeFeedSkeleton } from "./components/EditorSkeleton";
 import { useVaultOpenBehavior } from "./hooks/use-vault-open-behavior";
 import { useRecentVaultTracker } from "./hooks/use-recent-vaults";
 import { useFadeChromeWhileTyping } from "./hooks/use-fade-chrome-while-typing";
+import { showSuccessToast } from "@/app/components/Toastr";
+import { downloadMarkdown } from "@/app/utils/download-markdown";
 
 export default function LiteEditor() {
   const router = useRouter();
@@ -70,7 +70,6 @@ export default function LiteEditor() {
   // pane): targets whichever CM6 view is currently active.
   const aiActions = useAIEditorActions();
   const isMobileChrome = useIsMobileChrome();
-  const [isMobileFileOverlayOpen, setIsMobileFileOverlayOpen] = useState(false);
   const {
     vaultHandle,
     activeFileHandle,
@@ -98,7 +97,8 @@ export default function LiteEditor() {
   useVaultSync();
   useVaultOpenBehavior();
   useRecentVaultTracker();
-  const hideChromeWhileTyping = useAtomValue(atom_hideChromeWhileTyping);
+  // Both Focus levels above Off hide the interface while typing.
+  const hideChromeWhileTyping = useAtomValue(atom_focusMode) !== "off";
   useFadeChromeWhileTyping(hideChromeWhileTyping);
   const sidebarOpen = useAtomValue(atom_sidebarOpen);
   const sidebarWidth = useAtomValue(atom_sidebarWidth);
@@ -193,14 +193,12 @@ export default function LiteEditor() {
   });
 
 
-  const handleExport = async () => {
+  // Download as Markdown: always a .md download of the note, vault note or
+  // draft alike. It never saves; Save stays its own command.
+  const handleExport = () => {
     if (!content.trim()) return;
-
-    if (activeFileHandle) {
-      const success = await saveFile(content);
-      if (success) return;
-    }
-    await exportFile(content, fileName);
+    downloadMarkdown(content, fileName);
+    showSuccessToast("Download started");
   };
 
   // Once the chrome fades, a single pane's text re-centres on the window
@@ -222,11 +220,8 @@ export default function LiteEditor() {
         onGitHubPull={() => void runGitHubPullCommand()}
         onSave={() => handleSaveRef.current()}
         isMobileChrome={isMobileChrome}
-        onOpenMobileFiles={() => setIsMobileFileOverlayOpen(true)}
         onOpenTasks={() => navigateWithGuard("/editor/tasks", "Tasks")}
         onOpenTemplates={() => navigateWithGuard("/editor/templates", "Templates")}
-        onHome={() => navigateWithGuard("/", "Home")}
-        onOpenDocumentation={() => navigateWithGuard("/documentation", "Documentation")}
         onRefreshVault={handleRefreshVault}
         onImport={handleImport}
         onRunAIAction={aiActions.runAIActionById}
@@ -255,7 +250,6 @@ export default function LiteEditor() {
         <PdfExport />
         
         <DraftImportDialog pendingDraft={pendingDraft} onConfirm={confirmPendingDraft} onCancel={cancelPendingDraft} />
-        {!isVaultLocked && <DraftFolderDialog />}
 
         <input type="file" ref={fileInputRef} onChange={handleFileChange} accept=".md,.txt,.markdown" className="hidden" />
 
@@ -327,17 +321,6 @@ export default function LiteEditor() {
           onInsertBelow={aiActions.applyInsertBelow}
         />
         {aiActions.isAiLoading && <AIThinkingOverlay />}
-
-        {isMobileChrome && (
-          <>
-            <MobileFileOverlay
-              isOpen={isMobileFileOverlayOpen}
-              onClose={() => setIsMobileFileOverlayOpen(false)}
-              onImport={handleImport}
-              onExport={handleExport}
-            />
-          </>
-        )}
       </div>
     </ErrorBoundary>
   );

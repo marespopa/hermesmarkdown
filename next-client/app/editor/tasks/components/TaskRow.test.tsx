@@ -38,17 +38,17 @@ describe("TaskRow", () => {
     renderRow(task);
     expect(screen.getByText(SECRET)).toBeInTheDocument();
     expect(screen.getByText("#money")).toBeInTheDocument();
-    expect(screen.queryByLabelText("Sensitive note")).toBeNull();
+    expect(screen.queryByLabelText("Private note")).toBeNull();
   });
 
-  it("masks a sensitive task's text and tags but still toggles and navigates", () => {
+  it("masks a private task's text and tags but still toggles and navigates", () => {
     const { onToggle, onNavigate } = renderRow({ ...maskTask(task), isMasked: true });
 
     expect(document.body.textContent).not.toContain(SECRET);
     expect(screen.queryByText("#money")).toBeNull();
     expect(screen.getByText(MASKED_TEXT)).toBeInTheDocument();
-    expect(screen.getByText("Sensitive task")).toBeInTheDocument();
-    expect(screen.getByLabelText("Sensitive note")).toBeInTheDocument();
+    expect(screen.getByText("Private task")).toBeInTheDocument();
+    expect(screen.getByLabelText("Private note")).toBeInTheDocument();
     expect(screen.getByText("Payroll")).toBeInTheDocument();
     expect(screen.getByText(/2026-10-10/)).toBeInTheDocument();
 

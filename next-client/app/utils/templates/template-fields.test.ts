@@ -17,6 +17,12 @@ describe("fieldLabel", () => {
     expect(fieldLabel("date-2w")).toBe("Date −2 weeks");
     expect(fieldLabel("date:dddd")).toBe("Today's date (dddd)");
     expect(fieldLabel("selection")).toBe("Selected text");
+    expect(fieldLabel("date-1w:GGGG-[W]ww")).toBe("Date −1 week (GGGG-[W]ww)");
+  });
+
+  it("still names legacy tokens in existing templates", () => {
+    expect(fieldLabel("weekSheet")).toBe("This week's name");
+    expect(fieldLabel("weekday")).toBe("Day name");
   });
 
   it("returns null for non-fields and empty questions", () => {
@@ -44,8 +50,15 @@ describe("templateFieldOptions", () => {
   it("shows today's value for date fields and the description otherwise", () => {
     const options = templateFieldOptions("", NOW);
     expect(options.find((o) => o.token === "date")?.detail).toBe("2026-10-05");
-    expect(options.find((o) => o.token === "weekday")?.detail).toBe("Monday");
+    expect(options.find((o) => o.token === "time")?.detail).toBe("14:30");
     expect(options.find((o) => o.token === "title")?.detail).toBe("the new note's title");
+  });
+
+  it("doesn't offer the legacy tokens", () => {
+    const tokens = templateFieldOptions("", NOW).map((o) => o.token);
+    for (const legacy of ["weekday", "year", "monthName", "week", "quarter", "weekSheet", "yearSheet", "slug"]) {
+      expect(tokens).not.toContain(legacy);
+    }
   });
 });
 
@@ -55,14 +68,14 @@ describe("matchFieldOptions", () => {
 
   it("matches a token-name prefix", () => {
     expect(tokens("da")).toContain("date");
-    expect(tokens("da")).toContain("day");
+    expect(tokens("ti")).toEqual(["time", "title"]);
   });
 
   it("matches a word of the plain name", () => {
     expect(tokens("today")).toEqual(["date"]);
     expect(tokens("typing")).toEqual(["cursor"]);
     expect(tokens("ask")).toEqual(["prompt:"]);
-    expect(tokens("day name")).toEqual(["weekday"]);
+    expect(tokens("selected")).toEqual(["selection"]);
   });
 
   it("returns everything for an empty query", () => {

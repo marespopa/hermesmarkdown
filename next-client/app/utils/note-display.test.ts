@@ -4,7 +4,7 @@ import type { FileMetadata } from "@/app/atoms/metadata";
 import {
   MASKED_PREVIEW,
   MASKED_TEXT,
-  UNTITLED_SENSITIVE_TITLE,
+  UNTITLED_PRIVATE_TITLE,
   buildNoteDisplayItems,
   createNoteDisplayItem,
   maskTask,
@@ -28,17 +28,17 @@ function meta(path: string, extra: Partial<FileMetadata> = {}): FileMetadata {
   };
 }
 
-const sensitive = (path: string, extra: Partial<FileMetadata> = {}) =>
-  meta(path, { frontmatter: { sensitive: "true" }, ...extra });
+const privateNote = (path: string, extra: Partial<FileMetadata> = {}) =>
+  meta(path, { frontmatter: { private: "true" }, ...extra });
 
 describe("createNoteDisplayItem", () => {
-  it("passes non-sensitive notes through unchanged at every level", () => {
+  it("passes public notes through unchanged at every level", () => {
     for (const level of ["show_title", "hidden"] as const) {
       expect(createNoteDisplayItem(meta("notes/Plan.md"), level)).toEqual({
         id: "notes/Plan.md",
         title: "Plan",
         preview: "Secret body",
-        isSensitive: false,
+        isPrivate: false,
         isMasked: false,
         previewStyle: "plain",
         isIndexed: true,
@@ -46,22 +46,22 @@ describe("createNoteDisplayItem", () => {
     }
   });
 
-  it("masks a sensitive preview in show_title", () => {
-    const item = createNoteDisplayItem(sensitive("a.md"), "show_title");
-    expect(item).toMatchObject({ title: "a", preview: MASKED_PREVIEW, isSensitive: true, isMasked: true, previewStyle: "masked" });
+  it("masks a private preview in show_title", () => {
+    const item = createNoteDisplayItem(privateNote("a.md"), "show_title");
+    expect(item).toMatchObject({ title: "a", preview: MASKED_PREVIEW, isPrivate: true, isMasked: true, previewStyle: "masked" });
   });
 
   it("reads the retired blurred level as show_title", () => {
     expect(normalizePrivacyLevel("blurred")).toBe("show_title");
   });
 
-  it("excludes sensitive notes in hidden", () => {
-    expect(createNoteDisplayItem(sensitive("a.md"), "hidden")).toBeNull();
+  it("excludes private notes in hidden", () => {
+    expect(createNoteDisplayItem(privateNote("a.md"), "hidden")).toBeNull();
   });
 
-  it("marks an unparsed note as not indexed and not sensitive", () => {
+  it("marks an unparsed note as not indexed and not private", () => {
     const item = createNoteDisplayItem(meta("a.md", { preview: undefined }), "hidden");
-    expect(item).toMatchObject({ isIndexed: false, isSensitive: false, preview: "" });
+    expect(item).toMatchObject({ isIndexed: false, isPrivate: false, preview: "" });
   });
 });
 
@@ -71,16 +71,16 @@ describe("noteDisplayTitle", () => {
     expect(noteDisplayTitle({ name: "Weekly.md", frontmatter: {} }, true)).toBe("Weekly");
   });
 
-  it("falls back to a generic title for an unnamed sensitive note, never body text", () => {
-    expect(noteDisplayTitle({ name: "", frontmatter: {} }, true)).toBe(UNTITLED_SENSITIVE_TITLE);
-    expect(noteDisplayTitle({ name: ".md", frontmatter: { title: "  " } }, true)).toBe(UNTITLED_SENSITIVE_TITLE);
+  it("falls back to a generic title for an unnamed private note, never body text", () => {
+    expect(noteDisplayTitle({ name: "", frontmatter: {} }, true)).toBe(UNTITLED_PRIVATE_TITLE);
+    expect(noteDisplayTitle({ name: ".md", frontmatter: { title: "  " } }, true)).toBe(UNTITLED_PRIVATE_TITLE);
     expect(noteDisplayTitle({ name: "", frontmatter: {} }, false)).toBe("");
   });
 });
 
 describe("buildNoteDisplayItems", () => {
   it("keys items by path and leaves excluded notes out", () => {
-    const items = buildNoteDisplayItems({ "a.md": meta("a.md"), "b.md": sensitive("b.md") }, "hidden");
+    const items = buildNoteDisplayItems({ "a.md": meta("a.md"), "b.md": privateNote("b.md") }, "hidden");
     expect([...items.keys()]).toEqual(["a.md"]);
   });
 });

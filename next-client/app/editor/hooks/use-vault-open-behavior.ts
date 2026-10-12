@@ -9,7 +9,7 @@ export const NO_VAULT_KEY = "no-vault";
 // Opens the home feed once per vault per tab session; the restored tabs stay
 // open behind it. With no vault (once the saved vault has had its chance to
 // restore), the feed opens too, as the place to open a vault or start
-// writing. Returning to the editor from another route (Explorer, Settings)
+// writing. Returning to the editor from another route (Files, Settings)
 // or refreshing the page doesn't re-run it, so a refresh stays on the note.
 // Arriving through the landing page's "Resume" (atom_resumeRequested) counts
 // as already handled: the restored tabs stay in front.

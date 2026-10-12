@@ -10,7 +10,7 @@ Description: Vault-wide task list extracted from note metadata, shown as one of 
 - Persistence: `localStorage["tasksView"]` and `localStorage["tasksGroupBy"]`. Status changes are written back to the local Markdown files through `useTaskWriteback`.
 
 ## Privacy
-- Tasks come from `atom_visibleTasks`: tasks in sensitive notes are masked (text and tags, see [`TaskRow`](TaskRow.md)) and never match the text search or tag filters; in Privacy Mode "hidden" they're left out and not counted. The status ring still writes back (`useTaskWriteback` uses the task's raw line, which masking keeps off screen).
+- Tasks come from `atom_visibleTasks`: tasks in private notes are masked (text and tags, see [`TaskRow`](TaskRow.md)) and never match the text search or tag filters; in Privacy Mode "Hide from lists" (`hidden`) they're left out and not counted. The status ring still writes back (`useTaskWriteback` uses the task's raw line, which masking keeps off screen).
 
 ## Dependencies
 - Core: [`TasksToolbar`](TasksToolbar.md), [`TaskSection`](TaskSection.md), [`TaskRow`](TaskRow.md), `use-task-linger`, `showUndoToast`, `task-views`, `task-sort`, `app/utils/taskExtractor`, `app/utils/task-status`, `react-icons`.

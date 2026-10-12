@@ -3,7 +3,7 @@
 // text lives only here — never in an atom.
 
 import { parseFmFields } from "@/app/utils/frontmatter-utils";
-import { isSensitiveFrontmatter } from "@/app/utils/note-privacy";
+import { isPrivateFrontmatter } from "@/app/utils/note-privacy";
 import { remapPath } from "@/app/atoms/utils";
 
 export const REGEX_FRONTMATTER = /^---\r?\n([\s\S]*?)\r?\n---/;
@@ -38,7 +38,7 @@ export interface ContentEntry {
   folded: string;
   /** Offset just past the YAML frontmatter (0 without one). */
   bodyStart: number;
-  sensitive: boolean;
+  isPrivate: boolean;
   modifiedAt: number;
 }
 
@@ -87,7 +87,7 @@ export class ContentIndex {
       text,
       folded: foldCase(text),
       bodyStart: frontmatter ? frontmatter[0].length : 0,
-      sensitive: frontmatter ? isSensitiveFrontmatter(parseFmFields(text)) : false,
+      isPrivate: frontmatter ? isPrivateFrontmatter(parseFmFields(text)) : false,
       modifiedAt,
     });
     this.totalChars = base + text.length;

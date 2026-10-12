@@ -13,9 +13,9 @@ import Button from "@/app/components/Button";
 import { BareInput } from "@/app/components/Input";
 import { showSuccessToast } from "@/app/components/Toastr";
 import { useDialog } from "@/app/hooks/use-dialog";
-import { SettingGroup, SettingItem } from "../components/SettingControls";
+import { SettingGroup, SettingItem, SettingNote } from "../components/SettingControls";
 
-// Settings → Guide, first groups: the name first asked for in the Welcome
+// Settings → General, first groups: the name first asked for in the Welcome
 // wizard (trimmed on blur like the wizard does), a note on where data lives,
 // and clearing the command palette's history.
 export default function ProfileSettings() {
@@ -60,11 +60,9 @@ export default function ProfileSettings() {
         />
       </SettingGroup>
       <SettingGroup title="Your Data">
-        <SettingItem
-          label="Stored on This Device"
-          description="There's no account. Your name, settings, and AI keys are saved in this browser only, and your notes stay in your vault."
-          control={null}
-        />
+        <SettingNote>
+          There&apos;s no account. Your name, settings, and AI keys are saved in this browser only, and your notes stay in your vault.
+        </SettingNote>
         <SettingItem
           label="Command History"
           description="Recent commands, recent files, and pinned items in the command palette."

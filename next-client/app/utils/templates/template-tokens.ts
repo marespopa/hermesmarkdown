@@ -1,17 +1,28 @@
 // Token grammar for vault templates: `{{name}}` (whitespace inside the braces
 // allowed), `{{prompt:Label}}`, and for dates `{{date:YYYY-MM-DD}}` (a
 // format), `{{date+1d}}` (math: d, w, m = months, y) or both
-// (`{{date-1w:dddd}}`); `{{time:HH:mm}}` takes a format too. The period
-// names (`{{weekSheet}}` → `2026-W42`, …) take math as well
-// (`{{weekSheet-1w}}`). Expansion is one left-to-right pass, so text a token inserts (clipboard, selection, prompt
-// answers) is never expanded again. Any other `{{name}}` stays as it is: a
-// blank to fill in in the created note (Tab jumps between them).
+// (`{{date-1w:GGGG-[W]ww}}`, last week's name); `{{time:HH:mm}}` takes a
+// format too. Expansion is one left-to-right pass, so text a token inserts
+// (clipboard, selection, prompt answers) is never expanded again. Any other
+// `{{name}}` stays as it is: a blank to fill in in the created note (Tab
+// jumps between them).
 
-import { periodOf, type PeriodKind } from "../periods/period";
+import { isoWeekOf, periodOf, type PeriodKind } from "../periods/period";
 
+// The tokens the app lists and documents.
 export const TEMPLATE_TOKENS = [
   "date",
   "time",
+  "title",
+  "clipboard",
+  "selection",
+  "cursor",
+] as const;
+
+// Older tokens that still expand in existing templates, but aren't listed,
+// suggested or warned about: a date format covers each of them
+// (`{{weekSheet}}` is `{{date:GGGG-[W]ww}}`, `{{year}}` is `{{date:YYYY}}`…).
+export const LEGACY_TEMPLATE_TOKENS = [
   "weekday",
   "weekdayShort",
   "year",
@@ -25,16 +36,13 @@ export const TEMPLATE_TOKENS = [
   "monthSheet",
   "quarterSheet",
   "yearSheet",
-  "title",
   "slug",
-  "clipboard",
-  "selection",
-  "cursor",
 ] as const;
 
 export type TemplateToken = (typeof TEMPLATE_TOKENS)[number];
+export type LegacyTemplateToken = (typeof LEGACY_TEMPLATE_TOKENS)[number];
 
-// Tokens that take date math: the date and the sheet names.
+// Tokens that take date math: the date and the legacy period names.
 const SHEET_TOKENS: Record<string, PeriodKind> = {
   weekSheet: "week",
   monthSheet: "month",
@@ -87,10 +95,11 @@ export function parseTemplateToken(inner: string): ParsedToken | null {
   return parsed;
 }
 
-const isKnownToken = (name: string) => (TEMPLATE_TOKENS as readonly string[]).includes(name);
+const KNOWN_TOKENS: readonly string[] = [...TEMPLATE_TOKENS, ...LEGACY_TEMPLATE_TOKENS];
+const isKnownToken = (name: string) => KNOWN_TOKENS.includes(name);
 
-// Whether `{{inner}}` is a known token used correctly: formats on date/time
-// only, math on date and the sheet names only.
+// Whether `{{inner}}` is a known token (listed or legacy) used correctly:
+// formats on date/time only, math on date (and the legacy period names) only.
 export function isValidToken(inner: string): boolean {
   if (inner.trim().startsWith(PROMPT_PREFIX)) return true;
   const parsed = parseTemplateToken(inner);
@@ -109,14 +118,19 @@ export function isBlankToken(inner: string): boolean {
 
 const SHORT_WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
-// Moment-style subset: YYYY YY MMMM MMM MM M dddd ddd DD D HH H mm ss, and
+// Moment-style subset: YYYY YY MMMM MMM MM M dddd ddd DD D HH H mm ss, the
+// ISO week (`ww`, 01-53) and its year (`GGGG`, which differs from YYYY around
+// New Year: 2027-01-01 is in 2026-W53), the quarter (`Q`, 1-4), and
 // [literal text].
 export function formatDate(date: Date, format: string): string {
-  return format.replace(/\[([^\]]*)\]|YYYY|YY|MMMM|MMM|MM|M|dddd|ddd|DD|D|HH|H|mm|ss/g, (token, literal) => {
+  return format.replace(/\[([^\]]*)\]|YYYY|YY|GGGG|MMMM|MMM|MM|M|ww|dddd|ddd|DD|D|HH|H|mm|ss|Q/g, (token, literal) => {
     if (literal !== undefined) return literal;
     switch (token) {
       case "YYYY": return String(date.getFullYear());
       case "YY": return String(date.getFullYear()).slice(-2);
+      case "GGGG": return String(isoWeekOf(date).year);
+      case "ww": return pad(isoWeekOf(date).week);
+      case "Q": return String(Math.floor(date.getMonth() / 3) + 1);
       case "MMMM": return MONTHS[date.getMonth()];
       case "MMM": return MONTHS[date.getMonth()].slice(0, 3);
       case "MM": return pad(date.getMonth() + 1);
@@ -152,17 +166,6 @@ export function shiftDate(now: Date, offset: NonNullable<ParsedToken["offset"]>)
 
 const pad = (n: number) => String(n).padStart(2, "0");
 
-// ISO 8601 week number: weeks start on Monday, and week 1 is the one with
-// the year's first Thursday (so Jan 1 can fall in week 52/53).
-export function isoWeek(date: Date): number {
-  const thursday = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-  thursday.setDate(thursday.getDate() + 3 - ((thursday.getDay() + 6) % 7));
-  const jan1 = new Date(thursday.getFullYear(), 0, 1);
-  // Rounded to whole days first: across a DST change the gap is an hour off.
-  const days = Math.round((thursday.getTime() - jan1.getTime()) / 86_400_000);
-  return Math.floor(days / 7) + 1;
-}
-
 // URL-safe kebab-case: accents removed, every run of other characters
 // becomes `-`, no leading/trailing `-`.
 export function slugify(title: string): string {
@@ -185,13 +188,13 @@ function temporalValue(token: string, now: Date): string | null {
     case "day": return pad(now.getDate());
     case "monthName": return MONTHS[now.getMonth()];
     case "monthNameShort": return MONTHS[now.getMonth()].slice(0, 3);
-    case "week": return pad(isoWeek(now));
+    case "week": return pad(isoWeekOf(now).week);
     case "quarter": return `Q${Math.floor(now.getMonth() / 3) + 1}`;
     default: return null;
   }
 }
 
-export function usesToken(body: string, token: TemplateToken): boolean {
+export function usesToken(body: string, token: TemplateToken | LegacyTemplateToken): boolean {
   for (const match of body.matchAll(tokenRegex())) {
     if (parseTemplateToken(match[1])?.name === token) return true;
   }

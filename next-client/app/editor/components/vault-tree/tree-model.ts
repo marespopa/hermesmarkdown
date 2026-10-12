@@ -4,11 +4,14 @@
 // one DOM node per file, which is the actual performance cliff.
 export const VIRTUALIZE_THRESHOLD = 200;
 
-// What the tree's hosts can ask of it (Explorer / sidebar / mobile buttons):
+// What the tree's hosts can ask of it (the Files page / sidebar buttons):
 // start naming a new note or folder in place. Without `parentPath`, it goes
 // in the selected folder (or the selected item's folder, else the root).
+// `focus` gives the tree keyboard focus, its cursor row scrolled into view
+// ("Show Files").
 export interface VaultFileTreeController {
   startCreate: (kind: "file" | "folder", parentPath?: string) => void;
+  focus: () => void;
 }
 
 export interface VaultFileTreeProps {
@@ -36,7 +39,7 @@ export interface VaultFileTreeProps {
   highlightQuery?: string;
   treeView?: boolean;
   // Tree only: list-view column header plus Date Modified / Kind columns
-  // (the Explorer page).
+  // (the Files page).
   columns?: boolean;
   folderPaths?: string[];
   // Tree-only: folders are inferred from paths, so folder actions need a way
@@ -47,7 +50,7 @@ export interface VaultFileTreeProps {
   createFolder?: (parentDirectory?: FileSystemDirectoryHandle, name?: string) => Promise<FileSystemDirectoryHandle | null>;
   moveItem?: (handle: any, targetDir: any) => void;
   // "New Note from Template…" in folder and empty-space menus: the folder's
-  // path, or "" (the empty space) to let the template's own folder decide.
+  // path, or "" (the empty space) for the New Notes folder.
   createNoteFromTemplate?: (folder: string) => unknown;
 }
 

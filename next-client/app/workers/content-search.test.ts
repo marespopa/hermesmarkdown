@@ -75,9 +75,9 @@ describe("searchContent", () => {
     expect(result.pending).toBe(1);
   });
 
-  it("never returns a sensitive note", () => {
+  it("never returns a private note", () => {
     const { hits } = search({
-      "secret.md": "---\nsensitive: true\n---\nthe needle",
+      "secret.md": "---\nprivate: true\n---\nthe needle",
       "plain.md": "the needle",
     }, "needle");
     expect(hits.map((hit) => hit.path)).toEqual(["plain.md"]);

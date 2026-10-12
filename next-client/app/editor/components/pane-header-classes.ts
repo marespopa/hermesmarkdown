@@ -3,10 +3,7 @@
 // var-backed colors (Tailwind drops the class). A hairline closes it; the
 // editor below is its own paper panel on the chrome.
 export const PANE_HEADER_CLASS = "flex items-center bg-chrome border-b border-edge-subtle shrink-0 relative z-20 px-2 sm:px-3";
-// Header height, and the matching negative margin that slides it under the
-// pane's top edge when the toolbar is hidden.
 export const PANE_HEADER_HEIGHT = "h-11";
-export const PANE_HEADER_HIDDEN = "-mt-11";
 
 // One toolbar section: a borderless capsule holding related controls, on a
 // subtle translucent fill (static black / white, which do take opacity — the

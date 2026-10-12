@@ -4,7 +4,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { Provider, useAtomValue } from "jotai";
 import { useHydrateAtoms } from "jotai/utils";
 import { atom_activePaneId, atom_openFiles, atom_workspaceLayout } from "@/app/atoms/atoms";
-import { atom_homeFeedOpen, atom_homeFeedTopRequest, atom_sidebarOpen } from "@/app/atoms/ui-atoms";
+import { atom_filesFocusRequested, atom_homeFeedOpen, atom_homeFeedTopRequest, atom_sidebarOpen } from "@/app/atoms/ui-atoms";
 import { atom_vaultDescriptor, atom_vaultHandle } from "@/app/atoms/vault-atoms";
 import WorkspaceSidebar from "./WorkspaceSidebar";
 
@@ -13,6 +13,7 @@ const fileSystem = vi.hoisted(() => ({
   createNewFile: vi.fn(),
   createFolder: vi.fn(),
   createNoteFromTemplate: vi.fn(),
+  treeController: null as null | { startCreate: () => void; focus: () => void },
 }));
 
 vi.mock("next/navigation", () => ({
@@ -39,7 +40,10 @@ vi.mock("../hooks/useVaultFileSearch", () => ({
 }));
 
 vi.mock("./VaultFileTree", () => ({
-  default: () => <div data-testid="file-tree" />,
+  default: ({ controllerRef }: { controllerRef?: { current: unknown } }) => {
+    if (controllerRef && fileSystem.treeController) controllerRef.current = fileSystem.treeController;
+    return <div data-testid="file-tree" />;
+  },
 }));
 
 const HydrateAtoms = ({ initialValues, children }: { initialValues: any; children: React.ReactNode }) => {
@@ -49,18 +53,20 @@ const HydrateAtoms = ({ initialValues, children }: { initialValues: any; childre
 
 const ActivePane = () => <output data-testid="active-pane">{useAtomValue(atom_activePaneId)}</output>;
 const HomeFeed = () => <output data-testid="home-feed">{String(useAtomValue(atom_homeFeedOpen))}</output>;
+const FocusRequest = () => <output data-testid="focus-request">{String(useAtomValue(atom_filesFocusRequested))}</output>;
 const TopRequest = () => <output data-testid="top-request">{useAtomValue(atom_homeFeedTopRequest)}</output>;
 
 const left = { id: "left", type: "editor" as const, openFilePaths: ["a.md"], activeFilePath: "a.md", isPinned: false };
 const right = { id: "right", type: "editor" as const, openFilePaths: ["b.md"], activeFilePath: "b.md", isPinned: false };
 
-const renderSidebar = (open = true, homeFeedOpen = true, descriptor: unknown = null, onOpenTasks?: () => void, onOpenTemplates?: () => void) =>
+const renderSidebar = (open = true, homeFeedOpen = true, descriptor: unknown = null, onOpenTasks?: () => void, onOpenTemplates?: () => void, focusRequested = false) =>
   render(
     <Provider>
       <HydrateAtoms initialValues={[
         [atom_sidebarOpen, open],
         [atom_activePaneId, "left"],
         [atom_homeFeedOpen, homeFeedOpen],
+        [atom_filesFocusRequested, focusRequested],
         [atom_vaultHandle, fileSystem.vaultHandle],
         [atom_vaultDescriptor, descriptor],
         [atom_openFiles, {
@@ -73,6 +79,7 @@ const renderSidebar = (open = true, homeFeedOpen = true, descriptor: unknown = n
         <ActivePane />
         <HomeFeed />
         <TopRequest />
+        <FocusRequest />
       </HydrateAtoms>
     </Provider>
   );
@@ -81,6 +88,7 @@ describe("WorkspaceSidebar", () => {
   beforeEach(() => {
     cleanup();
     fileSystem.vaultHandle = null;
+    fileSystem.treeController = null;
     localStorage.removeItem("sidebarOpen");
     localStorage.removeItem("sidebarCollapsed");
     localStorage.removeItem("sidebarWidth");
@@ -132,6 +140,25 @@ describe("WorkspaceSidebar", () => {
 
     expect(screen.getByTestId("home-feed")).toHaveTextContent("true");
     expect(screen.getByTestId("top-request")).toHaveTextContent("1");
+  });
+
+  it("focuses the Files tree when Show Files asks for it, then clears the request", () => {
+    const focus = vi.fn();
+    fileSystem.vaultHandle = { name: "vault" };
+    fileSystem.treeController = { startCreate: vi.fn(), focus };
+    renderSidebar(true, false, null, undefined, undefined, true);
+
+    expect(focus).toHaveBeenCalledOnce();
+    expect(screen.getByTestId("focus-request")).toHaveTextContent("false");
+  });
+
+  it("leaves the tree alone without a focus request", () => {
+    const focus = vi.fn();
+    fileSystem.vaultHandle = { name: "vault" };
+    fileSystem.treeController = { startCreate: vi.fn(), focus };
+    renderSidebar(true, false);
+
+    expect(focus).not.toHaveBeenCalled();
   });
 
   it("shows the file tree only with a vault", () => {

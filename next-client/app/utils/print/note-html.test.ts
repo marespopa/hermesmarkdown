@@ -12,7 +12,7 @@ describe("noteToHtml", () => {
   });
 
   it("leaves out frontmatter and takes the title from the first H1", () => {
-    const result = noteToHtml("---\ntitle: x\nsensitive: false\n---\n# Q4 [[2026-Q4|review]]\n\nBody");
+    const result = noteToHtml("---\ntitle: x\nprivate: false\n---\n# Q4 [[2026-Q4|review]]\n\nBody");
     expect(result.html).not.toContain("title: x");
     expect(result.title).toBe("Q4 review");
     expect(noteToHtml("Just text").title).toBeNull();

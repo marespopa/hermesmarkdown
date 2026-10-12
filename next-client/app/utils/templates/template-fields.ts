@@ -6,6 +6,7 @@ import {
   isBlankToken,
   isValidToken,
   parseTemplateToken,
+  type LegacyTemplateToken,
   type TemplateToken,
 } from "./template-tokens";
 
@@ -15,9 +16,14 @@ import {
 
 const PROMPT_PREFIX = "prompt:";
 
-const TOKEN_LABELS: Record<TemplateToken, string> = {
+const TOKEN_LABELS: Record<TemplateToken | LegacyTemplateToken, string> = {
   date: "Today's date",
   time: "Current time",
+  title: "Note title",
+  clipboard: "Clipboard",
+  selection: "Selected text",
+  cursor: "Start typing here",
+  // Legacy tokens: named in existing templates, never offered.
   weekday: "Day name",
   weekdayShort: "Short day name",
   year: "Year",
@@ -31,11 +37,7 @@ const TOKEN_LABELS: Record<TemplateToken, string> = {
   monthSheet: "This month's name",
   quarterSheet: "This quarter's name",
   yearSheet: "This year's name",
-  title: "Note title",
   slug: "Title as file name",
-  clipboard: "Clipboard",
-  selection: "Selected text",
-  cursor: "Start typing here",
 };
 
 const UNIT_NAMES = { d: "day", w: "week", m: "month", y: "year" } as const;
@@ -62,7 +64,7 @@ export function fieldLabel(token: string): string | null {
   if (isBlankToken(trimmed)) return `Fill in: ${humanizeBlank(parseTemplateToken(trimmed)!.name)}`;
   if (!isValidToken(trimmed)) return null;
   const { name, offset, format } = parseTemplateToken(trimmed)!;
-  let label = TOKEN_LABELS[name as TemplateToken];
+  let label = TOKEN_LABELS[name as TemplateToken | LegacyTemplateToken];
   if (offset && name !== "date") {
     const { amount, unit } = offset;
     label = `${label} ${amount > 0 ? "+" : "−"}${Math.abs(amount)} ${UNIT_NAMES[unit]}${Math.abs(amount) === 1 ? "" : "s"}`;
@@ -137,7 +139,7 @@ export function templateFieldOptions(doc: string, now: Date): TemplateFieldOptio
       token: "date+1d",
       insert: "{{date+1d}}",
       detail: expandTemplate("{{date+1d}}", ctx).text,
-      info: "Date math: {{date+1d}}, {{date-1w}}, {{date+1m}}. Add a format with :, e.g. {{date:dddd D MMMM}}.",
+      info: "Date math: {{date+1d}}, {{date-1w}}, {{date+1m}}. Add a format with :, e.g. {{date:dddd D MMMM}} or {{date-1w:GGGG-[W]ww}} (last week's name).",
     },
   ];
 }

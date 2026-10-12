@@ -16,47 +16,30 @@ export function buildWorkspaceTaskViewCommandGroups(context: EditorCommandContex
     closePane,
     closeTab,
     closeTabWithAutosave,
-    flowMode,
     indexVaultTags,
     isOnlyPane,
-    lineNumbers,
     onOpenTasks,
     onOpenTemplates,
     router,
     scanVault,
     setActiveFilePath,
     setActivePaneId,
-    setFlowMode,
     setSidebarOpen,
-    setToolbarHidden,
     setIsWizardOpen,
-    setKeyboardShortcutsOpen,
-    setLineNumbers,
     setShowHiddenFiles,
     setTaskSearchQuery,
     setTasksGroupBy,
     setTaskTagFilter,
     setTaskView,
-    setTheme,
-    setWordWrap,
     showHiddenFiles,
     splitPane,
-    themeCycle,
     sidebarOpen,
-    toolbarHidden,
     vaultHandle,
-    wordWrap,
     workspaceLayout,
   } = context;
 
+  // "Show Files" is registered once, by the palette itself (every route).
   const panels: Command[] = [
-    {
-      id: "open-explorer",
-      label: "Open Explorer",
-      shortcut: formatShortcut("E", { shift: true }),
-      keywords: "files browse explorer",
-      action: () => router.push("/editor/files"),
-    },
     {
       id: "open-tasks-panel",
       label: "Open Tasks",
@@ -74,7 +57,7 @@ export function buildWorkspaceTaskViewCommandGroups(context: EditorCommandContex
   const splitPaneRight: Command[] = activeLeaf
     ? [{
         id: "split-pane-right",
-        label: "Split pane right",
+        label: "Split Pane Right",
         keywords: "open in pane split right side by side horizontal layout workspace",
         action: () => splitPane({ id: activeLeaf.id, direction: "horizontal", filePath: activeFilePath }),
       }]
@@ -92,7 +75,7 @@ export function buildWorkspaceTaskViewCommandGroups(context: EditorCommandContex
     ...(activeLeaf && activeLeaf.openFilePaths.length > 1
       ? [{
           id: "close-other-tabs",
-          label: "Close other tabs",
+          label: "Close Other Tabs",
           keywords: "close tabs files",
           action: () => {
             for (const path of activeLeaf.openFilePaths) {
@@ -103,17 +86,13 @@ export function buildWorkspaceTaskViewCommandGroups(context: EditorCommandContex
       : []),
   ];
 
+  // Theme, Settings, keyboard shortcuts, word wrap, line numbers and Focus
+  // are app-wide: AppCommands and SettingsCommands register them.
   const preferencesAndNavigation: Command[] = [
     {
-      id: "toggle-theme",
-      label: `Switch to ${themeCycle} theme`,
-      keywords: "system dark light theme appearance",
-      action: () => setTheme(themeCycle),
-    },
-    {
       id: "toggle-hidden-files",
-      label: showHiddenFiles ? "Hide hidden files" : "Show hidden files",
-      keywords: "hidden dotfiles skills files tree reveal",
+      label: "Toggle Hidden Files",
+      keywords: "hidden dotfiles skills files tree reveal show hide",
       action: () => {
         const next = !showHiddenFiles;
         setShowHiddenFiles(next);
@@ -123,58 +102,21 @@ export function buildWorkspaceTaskViewCommandGroups(context: EditorCommandContex
       },
     },
     {
-      id: "show-keyboard-shortcuts",
-      label: "Show keyboard shortcuts",
-      keywords: "shortcuts hotkeys keybindings help",
-      action: () => setKeyboardShortcutsOpen(true),
-    },
-    {
       id: "token-cost",
-      label: "Token cost of this note",
-      keywords: "tokens count price cost ai gpt claude gemini llm calculator",
+      label: "Show Token Cost",
+      keywords: "tokens count price cost ai gpt claude gemini llm calculator note",
       action: openTokenCostDialog,
     },
     {
-      id: "open-settings",
-      label: "Open Settings",
-      keywords: "preferences config",
-      action: () => router.push("/editor/settings"),
-    },
-    {
-      id: "toggle-word-wrap",
-      label: wordWrap ? "Disable word wrap" : "Enable word wrap",
-      keywords: "wrap line editor",
-      action: () => setWordWrap(!wordWrap),
-    },
-    {
-      id: "toggle-line-numbers",
-      label: lineNumbers ? "Hide line numbers" : "Show line numbers",
-      keywords: "line numbers gutter editor",
-      action: () => setLineNumbers(!lineNumbers),
-    },
-    {
-      id: "toggle-flow-mode",
-      label: flowMode ? "Disable flow mode" : "Enable flow mode",
-      keywords: "focus typewriter dim paragraph writing distraction free",
-      action: () => setFlowMode(!flowMode),
-    },
-    {
-      id: "toggle-toolbar",
-      label: toolbarHidden ? "Show toolbar" : "Hide toolbar",
-      keywords: "header tabs bar immersive focus distraction free collapse chrome",
-      shortcut: formatShortcut("T", { alt: true }),
-      action: () => setToolbarHidden(!toolbarHidden),
-    },
-    {
       id: "toggle-sidebar",
-      label: sidebarOpen ? "Hide sidebar" : "Show sidebar",
-      keywords: "sidebar open notes files tree navigation panel",
+      label: "Toggle Sidebar",
+      keywords: "sidebar open notes files tree navigation panel show hide",
       shortcut: formatShortcut("S", { alt: true }),
       action: () => setSidebarOpen(!sidebarOpen),
     },
     {
       id: "start-welcome-tour",
-      label: "Start welcome tour",
+      label: "Start Welcome Tour",
       keywords: "onboarding guide help tour walkthrough",
       action: () => {
         setIsWizardOpen(true);
@@ -187,16 +129,16 @@ export function buildWorkspaceTaskViewCommandGroups(context: EditorCommandContex
     ...(activeLeaf?.activeFilePath
       ? [{
           id: "close-current-tab",
-          label: "Close current tab",
-          keywords: "close file",
+          label: "Close Current Tab",
+          keywords: "close note file",
           action: () => closeTab({ paneId: activeLeaf.id, filePath: activeLeaf.activeFilePath! }),
         }]
       : []),
     ...(activeLeaf && activeLeaf.openFilePaths.length > 0
       ? [{
           id: "close-all-tabs",
-          label: "Close all tabs",
-          keywords: "close all files",
+          label: "Close All Tabs",
+          keywords: "close all notes files",
           action: () => {
             activeLeaf.openFilePaths.forEach((filePath) =>
               closeTab({ paneId: activeLeaf.id, filePath }),
@@ -214,7 +156,7 @@ export function buildWorkspaceTaskViewCommandGroups(context: EditorCommandContex
   const workspaceTasksAndViews: Command[] = [
     {
       id: "split-pane-down",
-      label: "Split pane down",
+      label: "Split Pane Down",
       category: "Workspace",
       keywords: "vertical below layout",
       disabledReason: activeLeaf ? undefined : "No active pane",
@@ -222,7 +164,7 @@ export function buildWorkspaceTaskViewCommandGroups(context: EditorCommandContex
     },
     {
       id: "next-tab",
-      label: "Activate next tab",
+      label: "Activate Next Tab",
       category: "Workspace",
       keywords: "switch file",
       disabledReason: activeLeaf && activeLeaf.openFilePaths.length > 1 ? undefined : "No other open tab",
@@ -233,7 +175,7 @@ export function buildWorkspaceTaskViewCommandGroups(context: EditorCommandContex
     },
     {
       id: "previous-tab",
-      label: "Activate previous tab",
+      label: "Activate Previous Tab",
       category: "Workspace",
       keywords: "switch file",
       disabledReason: activeLeaf && activeLeaf.openFilePaths.length > 1 ? undefined : "No other open tab",
@@ -244,7 +186,7 @@ export function buildWorkspaceTaskViewCommandGroups(context: EditorCommandContex
     },
     {
       id: "next-pane",
-      label: "Focus next pane",
+      label: "Focus Next Pane",
       category: "Workspace",
       keywords: "switch layout",
       disabledReason: leaves.length > 1 ? undefined : "No other pane",
@@ -252,7 +194,7 @@ export function buildWorkspaceTaskViewCommandGroups(context: EditorCommandContex
     },
     {
       id: "previous-pane",
-      label: "Focus previous pane",
+      label: "Focus Previous Pane",
       category: "Workspace",
       keywords: "switch layout",
       disabledReason: leaves.length > 1 ? undefined : "No other pane",

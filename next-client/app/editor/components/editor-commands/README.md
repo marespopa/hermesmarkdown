@@ -11,28 +11,42 @@ without changing the public props contract or command behavior.
   are called once and unconditionally.
 - `build-editor-commands.ts` combines contributor groups in their original
   registration order.
-- `document-vault-commands.ts` defines document lifecycle, file operations, and
-  vault commands, including `New note from template…` (with a vault open:
-  template picker, title prompt, then the template's `target_folder` /
-  `file_name` place and name the note) and `New template…` (with a vault open:
-  name prompt, then `<templates folder>/<name>.md` with a starter body, or the
-  existing template of that name opened unchanged).
+- `document-vault-commands.ts` defines document lifecycle, note operations, and
+  vault commands: `New Note` (a draft named from its first line),
+  `Download as Markdown` (always a .md download of the note, vault note or
+  draft; it never saves), `Open Note from Disk…` (a file from the device opens
+  as a draft; distinct from `Import files into vault…`), Duplicate / Move /
+  Rename / Delete Note, and `New note from template…` (with a vault open:
+  template picker, a title prompt unless the template's `file_name` names the
+  note, then the note goes in the New Notes folder, or the note already there
+  opens) and `New template…` (with a vault open: name prompt, then
+  `templates/<name>.md` with a minimal body, or the existing template of that
+  name opened unchanged).
 - `editor-ai-commands.ts` defines editor formatting, templates and AI
   commands. The `Insert: …` commands skip the slash menu's vault
   **Template** entry (`vaultOnly`).
-- `workspace-task-view-commands.ts` defines panels, panes, tabs, preferences,
-  tasks, views, and workspace navigation.
+- `workspace-task-view-commands.ts` defines panels, panes, tabs, the editor-only
+  toggles (Toggle Hidden Files, Toggle Sidebar), Show Token Cost, the welcome
+  tour, tasks and views.
+
+App-wide commands are not registered here, so each command exists once: Open
+Settings, Open Documentation, `Theme: …` and Show Keyboard Shortcuts come from
+`components/CommandPalette/AppCommands.tsx`; word wrap, line numbers, Focus and
+the other editor preferences from `settings/components/SettingsCommands.tsx`;
+Show Files from the palette itself; and the editor's Home command, `Open
+Home` (the vault's home feed), from `hooks/use-home-feed.ts`.
 - `github-vault-commands.ts` defines the `GitHub: Commit / Push / Sync / Pull`
   commands, registered only while a GitHub vault is open.
 - `vault-storage-commands.ts` defines `Browser vaults…` (where browser storage
   is available), whole-vault export/import (zip for every vault, folder copy on
   Chromium, folder import where the browser supports it), and `Delete browser
   vault` while a browser vault is open.
-- `privacy-commands.ts` defines the `Privacy mode: …` commands (Show titles only /
-  Hide sensitive notes; the current level is disabled with
-  "Current mode") and `reveal-sensitive-session`, which toggles the session-only
-  editor reveal ("Show all sensitive notes this session" / "Hide sensitive notes
-  again"; turning it off also clears per-note reveals). Registered right after
+- `privacy-commands.ts` defines the `Privacy mode: …` commands (Mask in lists /
+  Hide from lists, for notes with `private: true` or a `private` tag; the
+  current level is disabled with "Current mode") and `reveal-private-session`,
+  which toggles the session-only editor reveal ("Show all private notes this
+  session" / "Hide private notes again"; turning it off also clears per-note
+  reveals). Registered right after
   the preferences and navigation group.
 - `RegisteredCommands.tsx` applies the existing `useRegisterCommand` pattern to
   the ordered command list.

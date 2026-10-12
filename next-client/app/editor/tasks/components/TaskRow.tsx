@@ -4,7 +4,7 @@ import React from "react";
 import { HiDotsHorizontal } from "react-icons/hi";
 import type { DisplayTask } from "@/app/atoms/task-atoms";
 import Button from "@/app/components/Button";
-import SensitiveBadge from "@/app/components/SensitiveBadge";
+import PrivateBadge from "@/app/components/PrivateBadge";
 import { isOpenStatus, type TaskStatus } from "@/app/utils/task-status";
 import TaskStatusButton from "./TaskStatusButton";
 import { useTaskSwipe } from "./use-task-swipe";
@@ -36,7 +36,7 @@ const TEXT_CLASS: Record<TaskStatus, string> = {
   cancelled: "line-through text-fg-faint opacity-60",
 };
 
-// One task on the Tasks page. A task from a sensitive note (isMasked) shows
+// One task on the Tasks page. A task from a private note (isMasked) shows
 // bullets and a lock instead of its text and tags; the status ring, due date
 // and file subtitle still work. On touch, the row swipes (use-task-swipe.ts):
 // right to move the task forward, left to set it aside.
@@ -92,8 +92,8 @@ export default function TaskRow({
             {task.isMasked ? (
               <>
                 <span aria-hidden="true" className="truncate">{task.text}</span>
-                <span className="sr-only">Sensitive task</span>
-                <SensitiveBadge />
+                <span className="sr-only">Private task</span>
+                <PrivateBadge />
               </>
             ) : (
               <span className="truncate">{task.text || "(empty task)"}</span>

@@ -9,30 +9,25 @@ export const templatesItems: Subsection[] = [
     id: "templates",
     title: "Templates",
     lead: "A template is a note you start other notes from. Fields like Today's date or Ask: Owner fill in each time you use it.",
-    keywords: "template templates save as template edit template blank tab fill in date format date math tomorrow selection quick start empty note preview tpl snippet starter log entry timestamp meeting notes spec report token field add field placeholder prompt question ask cursor clipboard date slug new note missing link folder new notes go in target_folder file_name new template create template week name weekly monthly quarterly yearly pack packs",
+    keywords: "template templates save as template edit template blank tab fill in date format date math tomorrow selection quick start empty note preview tpl snippet log entry timestamp token field add field placeholder prompt question ask cursor clipboard date new note missing link folder new notes go where file_name name clash already exists new template create template week name weekly monthly quarterly yearly iso week quarter pack packs",
     body: (
       <>
         <h4 className={h4}>Make a template</h4>
         <p>
-          Run <strong>New template…</strong> from the command palette, pick a starter and give it a
-          name:
+          Run <strong>New template…</strong> from the command palette, or press{" "}
+          <strong>New template</strong> on the Templates page, and give it a name. It starts with a
+          heading for the note&apos;s title and a spot where you start typing; add what you need. If a
+          template with that name already exists, it opens instead. For ready-made ones, add a{" "}
+          <a href="#template-packs" className="text-accent hover:underline">template pack</a>.
         </p>
-        <ul>
-          <li><strong>Basic</strong>: a title, today&apos;s date and one question.</li>
-          <li><strong>Journal</strong>: today&apos;s date as the heading, room to write, and what you&apos;re grateful for.</li>
-          <li><strong>Log entry</strong>: one line starting with the time (<code>- 14:20 </code>). Insert it with <code>/template</code> to log something in any note.</li>
-          <li><strong>Meeting notes</strong>: agenda, decisions, action items, open questions, next steps.</li>
-          <li><strong>Spec</strong>: author, status and version, then summary, objective, prerequisites, design, open questions and references.</li>
-          <li><strong>Report</strong>: summary, findings, next steps and notes.</li>
-        </ul>
         <p>
           Or turn a note you already like into one: run <strong>Save as template…</strong> from the
           command palette, or type <code>/save-template</code> in the note. Only a name is asked,
-          prefilled from the note&apos;s first heading. The note is copied into your templates
-          folder as a plain <code>.md</code> file.
+          prefilled from the note&apos;s first heading. The note is copied into{" "}
+          <code>templates/</code> as a plain <code>.md</code> file.
         </p>
         <p>
-          Edit a template like any note: open it from the file tree, or hover it in the template
+          Edit a template like any note: open it from Files, or hover it in the template
           list and press the pencil (⌘E / Ctrl+E). The line at the top says{" "}
           <strong>Editing template</strong>. Changes save as you type and apply the next time you
           use it.
@@ -46,12 +41,9 @@ export const templatesItems: Subsection[] = [
         <KV
           rows={[
             { label: "Ask a question…", value: "Asks you each time, e.g. Owner. Questions you already ask are listed first, so reusing one fills in the same answer" },
-            { label: "Today's date", value: "2026-10-05" },
+            { label: "Today's date", value: "2026-10-05; any format, see below" },
             { label: "Current time", value: "14:30" },
-            { label: "Weekday, Month name", value: "Monday, October" },
-            { label: "Year, Month number, Day of the month", value: "2026, 10, 05" },
             { label: "Note title", value: "The new note's title" },
-            { label: "Title as file name", value: "auth-spec" },
             { label: "Clipboard", value: "What you last copied" },
             { label: "Start typing here", value: "Where the caret lands" },
             { label: "Selected text", value: "What you had selected when inserting the template" },
@@ -72,76 +64,80 @@ export const templatesItems: Subsection[] = [
           <strong>Template ready ✦</strong>. Press Esc to use Tab normally again in that note.
         </p>
         <h4 className={h4}>Where new notes go</h4>
-        <p>
-          The line at the top of a template also says <strong>New notes go in</strong>. Click the
-          folder to pick another one, or to create one. By default, notes go to your New Notes
-          folder.
-        </p>
-        <h4 className={h4}>Use a template</h4>
+        <p>Every way of making a note follows the same rule:</p>
         <ul>
           <li>
-            <strong>Start from an empty note:</strong> a new, empty note shows your templates as
-            small buttons under the first line. Click one to fill the note. They disappear as soon
-            as you type.
+            <strong>Folder:</strong> the link&apos;s folder if it has one (<code>[[rfcs/auth-spec]]</code>{" "}
+            goes in <code>rfcs/</code>), else the folder whose menu you used, else your New Notes folder.
           </li>
           <li>
-            <strong>New note from template…</strong> in the command palette, or <strong>Use</strong> on
-            the Templates page: pick a template, type a title, answer its questions, and the note
-            opens. A template whose <code>file_name</code> names the note without its title (like{" "}
-            <code>{"{{date}}"}</code>) asks no title, and opens that note again if it&apos;s already
-            there; see Template packs.
-          </li>
-          <li>
-            <strong><code>/template</code></strong> in a note: inserts a template where you&apos;re
-            typing. The list shows what each template contains (like &quot;3 sections • Action
-            items&quot;) and a preview: click a template to see it, then press <strong>Use template</strong>{" "}
-            (or double-click it). Press ⌘1–⌘9 (Ctrl+1–9) to use one straight away.
-          </li>
-          <li>
-            <strong>Adding a link</strong> (<code>[[</code> or the WikiLink dialog): the{" "}
-            <strong>From template</strong> tab creates the linked note from a template. The
-            template its name points to is picked for you, so &quot;Meeting notes 2026-10-05&quot;
-            suggests Meeting notes and a date suggests your journal.
-          </li>
-          <li>
-            <strong>Clicking a link to a note that doesn&apos;t exist yet</strong>, like{" "}
-            <code>[[rfcs/auth-spec]]</code>: pick a template (or a blank note) for it. A template
-            named after the folder, like <code>rfc</code>, is suggested first.
+            <strong>Name:</strong> the template&apos;s <code>file_name</code>, else the title you type.
+            From a link, the link text is the name.
           </li>
         </ul>
         <Callout type="note">
-          Existing notes are never overwritten: if the note is already there, it opens as is.
+          If a note with that name is already in that folder, it opens (or is linked) as it is. Nothing
+          is overwritten, and no <code>name (1)</code> copy is made.
         </Callout>
+        <h4 className={h4}>Use a template</h4>
+        <ul>
+          <li>
+            <strong>An empty note</strong> shows your templates as small buttons under the first line;
+            click one to fill the note. With no templates yet, <strong>Browse template packs</strong>{" "}
+            takes you to the Templates page.
+          </li>
+          <li>
+            <strong>New note from template…</strong> in the command palette, <strong>Use</strong> on the
+            Templates page, or a folder&apos;s menu: pick a template and answer its questions. A title is
+            asked only when the template&apos;s <code>file_name</code> uses it (or it has none).
+          </li>
+          <li>
+            <strong><code>/template</code></strong> in a note inserts a template where you&apos;re
+            typing. Click a template to preview it, then <strong>Use template</strong>, or press ⌘1–⌘9
+            (Ctrl+1–9).
+          </li>
+          <li>
+            <strong>Links:</strong> clicking a link to a note that doesn&apos;t exist yet, or the{" "}
+            <strong>From template</strong> tab when adding a link, lets you pick a template or a blank
+            note. The template the name points to comes first: one named after the folder (
+            <code>rfcs/</code> → <code>rfc</code>), one whose name starts it (&quot;Meeting notes
+            2026-10-05&quot;), or your journal for a date.
+          </li>
+        </ul>
         <h4 className={h4}>Under the hood</h4>
         <p>
-          Templates are the <code>.md</code> files in your templates folder (the first of{" "}
-          <code>templates/</code>, <code>_templates/</code> or <code>Templates/</code>, or the one
-          set in Settings → Files → Templates Folder) and in its packs, one folder down. They stay plain text: a field is written{" "}
-          <code>{"{{date}}"}</code>, a question <code>{"{{prompt:Owner}}"}</code>, and the folder
-          is a <code>target_folder</code> line in the frontmatter. You can also type these by hand.
+          Templates are the <code>.md</code> files in <code>templates/</code> at the root of your
+          vault, directly or one folder down in a pack. The folder is made the first time you need it.
+          They stay plain text: a field is written{" "}
+          <code>{"{{date}}"}</code> and a question <code>{"{{prompt:Owner}}"}</code>. You can also type these by hand.
           Typing <code>{"{{"}</code> opens the same field list. An optional{" "}
           <code>file_name</code> line names new notes, and fields work in it too:
         </p>
+        <Code>
+          {"---\nfile_name: rfc-{{date}}-{{title}}\n---\n# {{title}}\nOwner: {{prompt:Owner}}\n{{cursor}}"}
+        </Code>
         <p>
           Dates take a format after a colon, such as <code>{"{{date:dddd, D MMMM}}"}</code> (Monday, 5
-          October) or <code>{"{{time:H.mm}}"}</code>, using <code>YYYY YY MMMM MMM MM M dddd ddd DD D HH H mm ss</code>{" "}
+          October) or <code>{"{{time:H.mm}}"}</code>, using <code>YYYY YY MMMM MMM MM M dddd ddd DD D HH H mm ss</code>,{" "}
+          <code>ww</code> (ISO week), <code>GGGG</code> (that week&apos;s year), <code>Q</code> (quarter)
           and <code>[literal text]</code>. Date math works too: <code>{"{{date+1d}}"}</code>,{" "}
           <code>{"{{date-2w}}"}</code>, <code>{"{{date+1m}}"}</code>, <code>{"{{date+1y}}"}</code>, and with a
           format, <code>{"{{date+1d:dddd}}"}</code>. <code>{"{{selection}}"}</code> is the selected text.
           Any other name, like <code>{"{{task_1}}"}</code>, is a blank.
         </p>
+        <KV
+          rows={[
+            { label: "This week", value: "{{date:GGGG-[W]ww}} → 2026-W42" },
+            { label: "This month", value: "{{date:YYYY-MM}} → 2026-10" },
+            { label: "This quarter", value: "{{date:YYYY-[Q]Q}} → 2026-Q4" },
+            { label: "This year", value: "{{date:YYYY}} → 2026" },
+            { label: "Last week's note", value: "[[{{date-1w:GGGG-[W]ww}}]]" },
+          ]}
+        />
         <p>
-          Weeks, months, quarters and years have name fields too: <code>{"{{weekSheet}}"}</code> (
-          <code>2026-W42</code>), <code>{"{{monthSheet}}"}</code>, <code>{"{{quarterSheet}}"}</code> and{" "}
-          <code>{"{{yearSheet}}"}</code>, with date math, so <code>{"[[{{weekSheet-1w}}]]"}</code> links
-          last week&apos;s note. Use them in <code>file_name</code> for weekly or monthly notes.
-        </p>
-        <Code>
-          {"---\ntarget_folder: rfcs\nfile_name: rfc-{{date}}-{{slug}}\n---\n# {{title}}\nOwner: {{prompt:Owner}}\n{{cursor}}"}
-        </Code>
-        <p>
-          Other frontmatter lines (author, status, …) are copied into each new note. Templates
-          stay out of the Tasks page and the home feed. AI Chat can write templates for you; see{" "}
+          Use these in <code>file_name</code> for weekly, monthly or yearly notes. Other frontmatter
+          lines (author, status, …) are copied into each new note. Templates stay out of the Tasks
+          page and the home feed. AI Chat can write templates for you; see{" "}
           <a href="#ai-templates" className="text-accent hover:underline">AI templates</a>.
         </p>
       </>

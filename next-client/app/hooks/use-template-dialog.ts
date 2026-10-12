@@ -4,12 +4,13 @@ import { useCallback } from "react";
 import { useSetAtom } from "jotai";
 import { atom_templateDialog } from "@/app/atoms/template-atoms";
 import type { TemplateEntry } from "@/app/utils/templates/template-registry";
-import type { TemplateStarter } from "@/app/utils/templates/template-starter";
 
 export interface PickTemplateOptions {
-  /** Show "Blank note" as the first row (missing-link creation). */
+  /** Show "Blank note" as a row (missing-link creation). */
   includeBlank?: boolean;
   title?: string;
+  /** A template to put first and highlight, e.g. the one a link's name points to. */
+  preselect?: TemplateEntry | null;
 }
 
 // Promise wrappers around atom_templateDialog (rendered by
@@ -18,27 +19,13 @@ export function useTemplateDialog() {
   const setRequest = useSetAtom(atom_templateDialog);
 
   const pickTemplate = useCallback(
-    ({ includeBlank = false, title = "Insert template" }: PickTemplateOptions = {}) =>
+    ({ includeBlank = false, title = "Insert template", preselect }: PickTemplateOptions = {}) =>
       new Promise<TemplateEntry | "blank" | null>((resolve) => {
         setRequest({
           kind: "pick",
           includeBlank,
           title,
-          resolve: (value) => {
-            setRequest(null);
-            resolve(value);
-          },
-        });
-      }),
-    [setRequest],
-  );
-
-  // "New template…": which starter body to begin from.
-  const pickStarter = useCallback(
-    () =>
-      new Promise<TemplateStarter | null>((resolve) => {
-        setRequest({
-          kind: "starter",
+          ...(preselect ? { preselect: preselect.path } : {}),
           resolve: (value) => {
             setRequest(null);
             resolve(value);
@@ -64,5 +51,5 @@ export function useTemplateDialog() {
     [setRequest],
   );
 
-  return { pickTemplate, pickStarter, askPrompts };
+  return { pickTemplate, askPrompts };
 }

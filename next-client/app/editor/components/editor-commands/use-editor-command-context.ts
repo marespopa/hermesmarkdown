@@ -11,15 +11,14 @@ import {
   atom_closeTab,
   atom_isWizardOpen,
   atom_splitPane,
-  atom_wordWrap,
   atom_workspaceLayout,
   findLeaf,
 } from "@/app/atoms/atoms";
 import { atom_content, atom_activeFileHandle } from "@/app/atoms/file-atoms";
 import {
   atom_privacyLevel,
-  atom_revealAllSensitive,
-  atom_revealedSensitivePaths,
+  atom_revealAllPrivate,
+  atom_revealedPrivatePaths,
 } from "@/app/atoms/privacy-atoms";
 import {
   atom_taskSearchQuery,
@@ -29,17 +28,12 @@ import {
   atom_activeEditorView,
   atom_aiBuilderRequest,
   atom_browserVaultDialogOpen,
-  atom_flowMode,
   atom_sidebarOpen,
-  atom_toolbarHidden,
   atom_isAiConfigured,
-  atom_keyboardShortcutsOpen,
-  atom_lineNumbers,
   atom_newVaultFlowOpen,
   atom_showHiddenFiles,
   atom_tasksGroupBy,
   atom_taskView,
-  atom_theme,
 } from "@/app/atoms/ui-atoms";
 import { useDialog } from "@/app/hooks/use-dialog";
 import { useFileSystem } from "@/app/hooks/use-file-system";
@@ -56,11 +50,8 @@ export type EditorCommandsProps = {
   onGitHubPull?: () => void;
   onSave: () => void;
   isMobileChrome?: boolean;
-  onOpenMobileFiles?: () => void;
   onOpenTasks: () => void;
   onOpenTemplates: () => void;
-  onHome: () => void;
-  onOpenDocumentation: () => void;
   onRefreshVault?: () => void;
   onImport: () => void;
   onRunAIAction: (id: string) => void;
@@ -79,7 +70,6 @@ export function useEditorCommandContext(props: EditorCommandsProps) {
     duplicateFile,
     moveItem,
     createFolder,
-    createNewFile,
     createNoteFromTemplate,
     createTemplate,
     isVaultSupported,
@@ -94,9 +84,6 @@ export function useEditorCommandContext(props: EditorCommandsProps) {
   const setBrowserVaultDialogOpen = useSetAtom(atom_browserVaultDialogOpen);
   const supportsFolderImport = supportsDirectoryInput();
   const dialog = useDialog();
-  const [rawTheme, setTheme] = useAtom(atom_theme);
-  const themeCycle: "system" | "light" | "dark" =
-    rawTheme === "system" ? "light" : rawTheme === "light" ? "dark" : "system";
   const [showHiddenFiles, setShowHiddenFiles] = useAtom(atom_showHiddenFiles);
   const [, setAiBuilderRequest] = useAtom(atom_aiBuilderRequest);
   const isAiConfigured = useAtomValue(atom_isAiConfigured);
@@ -108,20 +95,15 @@ export function useEditorCommandContext(props: EditorCommandsProps) {
   const [, setNewVaultFlowOpen] = useAtom(atom_newVaultFlowOpen);
   const [, splitPane] = useAtom(atom_splitPane);
   const [, closePane] = useAtom(atom_closePane);
-  const [wordWrap, setWordWrap] = useAtom(atom_wordWrap);
-  const [lineNumbers, setLineNumbers] = useAtom(atom_lineNumbers);
-  const [flowMode, setFlowMode] = useAtom(atom_flowMode);
-  const [toolbarHidden, setToolbarHidden] = useAtom(atom_toolbarHidden);
   const [sidebarOpen, setSidebarOpen] = useAtom(atom_sidebarOpen);
   const [, setTasksGroupBy] = useAtom(atom_tasksGroupBy);
   const [, setTaskSearchQuery] = useAtom(atom_taskSearchQuery);
   const [, setTaskTagFilter] = useAtom(atom_taskTagFilter);
   const [, setTaskView] = useAtom(atom_taskView);
   const [, setIsWizardOpen] = useAtom(atom_isWizardOpen);
-  const [, setKeyboardShortcutsOpen] = useAtom(atom_keyboardShortcutsOpen);
   const [privacyLevel, setPrivacyLevel] = useAtom(atom_privacyLevel);
-  const [revealAllSensitive, setRevealAllSensitive] = useAtom(atom_revealAllSensitive);
-  const setRevealedSensitivePaths = useSetAtom(atom_revealedSensitivePaths);
+  const [revealAllPrivate, setRevealAllPrivate] = useAtom(atom_revealAllPrivate);
+  const setRevealedPrivatePaths = useSetAtom(atom_revealedPrivatePaths);
   const activeFileHandle = useAtomValue(atom_activeFileHandle);
   const homePinnedPaths = useAtomValue(atom_homePinnedPaths);
   const toggleHomePin = useSetAtom(atom_toggleHomePin);
@@ -148,7 +130,6 @@ export function useEditorCommandContext(props: EditorCommandsProps) {
     duplicateFile,
     moveItem,
     createFolder,
-    createNewFile,
     createNoteFromTemplate,
     createTemplate,
     isVaultSupported,
@@ -162,8 +143,6 @@ export function useEditorCommandContext(props: EditorCommandsProps) {
     setBrowserVaultDialogOpen,
     supportsFolderImport,
     dialog,
-    themeCycle,
-    setTheme,
     showHiddenFiles,
     setShowHiddenFiles,
     setAiBuilderRequest,
@@ -177,14 +156,6 @@ export function useEditorCommandContext(props: EditorCommandsProps) {
     setNewVaultFlowOpen,
     splitPane,
     closePane,
-    wordWrap,
-    setWordWrap,
-    lineNumbers,
-    setLineNumbers,
-    flowMode,
-    setFlowMode,
-    toolbarHidden,
-    setToolbarHidden,
     sidebarOpen,
     setSidebarOpen,
     setTasksGroupBy,
@@ -192,12 +163,11 @@ export function useEditorCommandContext(props: EditorCommandsProps) {
     setTaskTagFilter,
     setTaskView,
     setIsWizardOpen,
-    setKeyboardShortcutsOpen,
     privacyLevel,
     setPrivacyLevel,
-    revealAllSensitive,
-    setRevealAllSensitive,
-    setRevealedSensitivePaths,
+    revealAllPrivate,
+    setRevealAllPrivate,
+    setRevealedPrivatePaths,
     activeFileHandle,
     activeEditorView,
     activeLeaf,

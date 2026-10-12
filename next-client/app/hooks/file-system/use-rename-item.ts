@@ -31,7 +31,7 @@ export function useRenameItem({ scanVault, indexVaultTags, recordUndo }: UseRena
       if (!vaultHandle) return;
 
       // Resolve the real parent directory by walking the item's vault path —
-      // given by the caller (Explorer, current file), else looked up with
+      // given by the caller (the Files tree, current file), else looked up with
       // resolve() — rather than assuming it's whatever directory the user last
       // navigated to (atom_currentDirectoryHandle): that breaks for items
       // outside the last-visited folder, and resolve() returns null for a

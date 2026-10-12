@@ -11,7 +11,7 @@ export interface FeedEntry {
   title: string;
   /**
    * The file's name, extension included ("2026-09-28.md"); null for
-   * sensitive notes, whose file name may say more than their title.
+   * private notes, whose file name may say more than their title.
    */
   fileName: string | null;
   preview: string;
@@ -25,11 +25,11 @@ export interface FeedEntry {
   isPinned: boolean;
   /** False until the indexer has parsed the note (no preview yet; it may already have a date). */
   isIndexed: boolean;
-  /** Marked sensitive in frontmatter (shows a lock). */
-  isSensitive: boolean;
+  /** Marked private in frontmatter (shows a lock). */
+  isPrivate: boolean;
   /** How the preview renders: as is, or masked bullets. */
   previewStyle: PreviewStyle;
-  /** Frontmatter tags and inline #hashtags; empty for sensitive notes, whose tags may say more than their title. */
+  /** Frontmatter tags and inline #hashtags; empty for private notes, whose tags may say more than their title. */
   tags: string[];
 }
 
@@ -40,7 +40,7 @@ export function isFeedPath(path: string): boolean {
   return !path.split("/").some((segment) => segment.startsWith(".") || segment.startsWith("_"));
 }
 
-// A non-sensitive note's title; the display factory owns the logic.
+// A public note's title; the display factory owns the logic.
 export function feedTitle(metadata: Pick<FileMetadata, "name" | "frontmatter">): string {
   return noteDisplayTitle(metadata, false);
 }
@@ -102,15 +102,15 @@ export function buildFeed(
     return {
       path: entry.path,
       title: item.title,
-      fileName: item.isSensitive ? null : entry.path.split("/").pop()!,
+      fileName: item.isPrivate ? null : entry.path.split("/").pop()!,
       preview: item.preview,
       modifiedAt: entry.modifiedAt || 0,
       dayLabel: null,
       isPinned,
       isIndexed: item.isIndexed,
-      isSensitive: item.isSensitive,
+      isPrivate: item.isPrivate,
       previewStyle: item.previewStyle,
-      tags: item.isSensitive ? [] : entry.tags ?? [],
+      tags: item.isPrivate ? [] : entry.tags ?? [],
     };
   };
 
@@ -157,7 +157,7 @@ export interface FeedTask {
 // Unchecked `- [ ]` tasks from the feed's notes edited in the last
 // `OPEN_TASK_DAYS` days, newest note first, then in note order. Takes the
 // built feed, so templates, hidden files and notes the privacy level hides
-// never contribute; sensitive notes don't either, since a task may say more
+// never contribute; private notes don't either, since a task may say more
 // than the title.
 export function openFeedTasks(
   feed: FeedEntry[],
@@ -167,7 +167,7 @@ export function openFeedTasks(
 ): FeedTask[] {
   const since = startOfDay(now) - (days - 1) * DAY_MS;
   return feed
-    .filter((entry) => !entry.isSensitive && entry.modifiedAt >= since)
+    .filter((entry) => !entry.isPrivate && entry.modifiedAt >= since)
     .sort((a, b) => b.modifiedAt - a.modifiedAt || a.path.localeCompare(b.path))
     .flatMap((entry) => (metadata[entry.path]?.tasks ?? [])
       .filter((task) => isOpenStatus(task.status))

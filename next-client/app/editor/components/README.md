@@ -13,7 +13,6 @@ Index of the editor UI. Each component has a sibling `<Name>.md` (a token-lean d
 | [AIReviewDialog](AIReviewDialog.md) | Word-level diff review of an AI suggestion against the original text, with an editable suggestion and replace or insert-below actions. |
 | [AIThinkingOverlay](AIThinkingOverlay.md) | Portaled busy indicator with rotating status messages, shown while an AI request is in flight. |
 | [ConflictDialog](ConflictDialog.md) | Resolves an on-disk change to the open file by reloading from disk, keeping the current text, or merging manually (conflict markers, with per-side resolution). |
-| [DraftFolderDialog](DraftFolderDialog.md) | Asks which vault folder an untitled draft's first save goes to (filterable, can create a new folder). |
 | [DraftImportDialog](DraftImportDialog.md) | Confirms before an imported file replaces a non-empty draft. |
 | [CreateVaultSubSteps](CreateVaultSubSteps.md) | Presentational steps for vault creation: a name input with validation, a parent-folder picker, and an "installing" spinner. |
 | [DatePickerCallout](DatePickerCallout.md) | Calendar dialog for picking or replacing a date in the editor, with keyboard navigation and quick relative actions. |
@@ -30,12 +29,11 @@ Index of the editor UI. Each component has a sibling `<Name>.md` (a token-lean d
 | [MermaidDialog](MermaidDialog.md) | Full-size viewer for a Mermaid diagram, rendered locally with `mermaid` (`securityLevel: "strict"`), in a `MermaidViewer`. |
 | [MermaidViewer](MermaidViewer.md) | A rendered diagram with zoom, fit, drag-to-pan and SVG download; used by `MermaidDialog` and the Mermaid tool page (`app/tools/mermaid/`). |
 | [MobileFileIndicator](MobileFileIndicator.md) | Compact mobile header chip showing the active file name and its save state, with save, command palette, and AI chat shortcuts. |
-| [MobileFileOverlay](MobileFileOverlay.md) | Full-screen mobile file browser combining tag and text search and the vault file list, with an empty state when no vault is open. |
 | [NewVaultDialog](NewVaultDialog.md) | Dialog that creates a new local vault folder, using `CreateVaultSubSteps` to name it and pick a parent folder. |
 | [PaneActions](PaneActions.md) | One pane's toolbar section: Save, and Close Pane in a split. |
-| [PaneLeaf](PaneLeaf.md) | One workspace pane: its header (tabs and toolbar) and the active file's editor (behind `SensitiveNoteGate`). |
-| [SensitiveNoteGate](SensitiveNoteGate.md) | Wraps a pane's editor: shows `SensitiveNoteVeil` instead of mounting it until a sensitive note is revealed (per note or for the session). |
-| [SensitiveNoteVeil](SensitiveNoteVeil.md) | The veil over a sensitive note: lock, title, **Show note** and **Show all sensitive notes this session**. |
+| [PaneLeaf](PaneLeaf.md) | One workspace pane: its header (tabs and toolbar) and the active file's editor (behind `PrivateNoteGate`). |
+| [PrivateNoteGate](PrivateNoteGate.md) | Wraps a pane's editor: shows `PrivateNoteVeil` instead of mounting it until a private note is revealed (per note or for the session). |
+| [PrivateNoteVeil](PrivateNoteVeil.md) | The veil over a private note: lock, title, **Show note** and **Show all private notes this session**. |
 | [PaneEmptyState](PaneEmptyState.md) | Empty-pane actions: new file (blank draft), open note or file, vault actions. |
 | [PaneToolbarButton](PaneToolbarButton.md) | Icon-only toolbar button with a tooltip. |
 | [PaneWindowActions](PaneWindowActions.md) | Window-wide toolbar sections (Mode, Tools, More menu), shown once in the top-right pane. |
@@ -55,7 +53,6 @@ Index of the editor UI. Each component has a sibling `<Name>.md` (a token-lean d
 | [VaultAccessGate](VaultAccessGate.md) | Wraps every /editor route: restores the saved vault on load and keeps the route hidden until it is readable, with the Restore Access prompt when needed. |
 | [VaultPendingOverlay](VaultPendingOverlay.md) | Prompt shown after reload when the stored vault handle needs the user to grant permission again. |
 | [VaultActionButtons](VaultActionButtons.md) | Open / Create / Browser Vault buttons, shown where no vault is open. |
-| [VaultEmptyState](VaultEmptyState.md) | Empty state of the file views shown when no vault is open. |
 | [VaultFileTree](VaultFileTree.md) | Virtualized file list or folder tree for the vault, with search highlighting, inline rename, a row action menu, and drag-and-drop moves. |
 | [vault-tree/](vault-tree/README.md) | `VaultFileTree` building blocks: tree model, `FileRow`, `FolderRow`, `TreeNodes`. |
 | [WelcomeWizard](WelcomeWizard.md) | Two-step onboarding: open, create or connect a vault (or skip), then ready to write. Everything else stays in Settings. |

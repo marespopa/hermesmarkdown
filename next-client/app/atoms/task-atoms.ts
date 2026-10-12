@@ -2,7 +2,7 @@ import { atom } from "jotai";
 import { atom_fileMetadata } from "./metadata";
 import { atom_privacyLevel } from "./privacy-atoms";
 import { TaskItem } from "../utils/taskExtractor";
-import { isSensitiveFrontmatter } from "../utils/note-privacy";
+import { isPrivateFrontmatter } from "../utils/note-privacy";
 import { maskTask, normalizePrivacyLevel } from "../utils/note-display";
 import { isTemplatePath } from "../utils/templates/template-registry";
 import { atom_templatesFolder } from "./template-atoms";
@@ -22,7 +22,7 @@ export const atom_allTasks = atom<TaskItem[]>((get) => {
 export type DisplayTask = TaskItem & { isMasked: boolean };
 
 // Tasks as listings show them (Tasks page, palette `!` scope). Task text is
-// note content, so tasks from sensitive notes are masked (text and tags), or
+// note content, so tasks from private notes are masked (text and tags), or
 // left out entirely in "hidden" Privacy Mode. atom_allTasks stays the raw list
 // for writeback.
 export const atom_visibleTasks = atom<DisplayTask[]>((get) => {
@@ -32,10 +32,10 @@ export const atom_visibleTasks = atom<DisplayTask[]>((get) => {
   const out: DisplayTask[] = [];
   for (const file of Object.values(meta)) {
     if (file.path.startsWith(".hermes/") || isTemplatePath(file.path, templatesFolder)) continue;
-    const sensitive = isSensitiveFrontmatter(file.frontmatter);
-    if (sensitive && level === "hidden") continue;
+    const isPrivate = isPrivateFrontmatter(file.frontmatter);
+    if (isPrivate && level === "hidden") continue;
     for (const t of file.tasks || []) {
-      out.push(sensitive ? { ...maskTask(t), isMasked: true } : { ...t, isMasked: false });
+      out.push(isPrivate ? { ...maskTask(t), isMasked: true } : { ...t, isMasked: false });
     }
   }
   return out;

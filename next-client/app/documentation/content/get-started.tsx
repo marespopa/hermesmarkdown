@@ -138,13 +138,13 @@ export const getStartedGroup: Group = {
     {
       id: "first-note",
       title: "Your first note",
-      lead: "Start typing. On its first save the note asks which folder to go in, and it is named after its first line.",
+      lead: "Start typing. On its first save the note goes into your New Notes folder, named after its first line.",
       keywords: "new file new note draft save autosave name title folder frontmatter",
       body: (
         <>
           <p>
             Press <code>CTRL+ALT+N</code>, click <strong>+</strong> on the home feed, or choose{" "}
-            <strong>New file</strong> from the command palette. A blank note opens, ready to type,
+            <strong>New Note</strong> from the command palette. A blank note opens, ready to type,
             with no name prompt.
           </p>
           <p>
@@ -152,23 +152,22 @@ export const getStartedGroup: Group = {
             <code>CTRL/CMD+S</code>. The file is named after
             the first line, for example <code>Trip ideas.md</code>. If the first line has no usable
             text, the date and time are used instead, like <code>2026-09-28 1432.md</code>. An
-            existing file is never overwritten: a taken name becomes <code>Trip ideas (1).md</code>.
+            existing file is never overwritten: a taken name becomes <code>Trip ideas (1).md</code>,
+            so nothing you typed is lost.
           </p>
           <p>
-            The first save asks which folder the note goes in, with your default folder already
-            selected: press <code>Enter</code> to accept it, or type to filter the list or name a new
-            folder. If you dismiss the picker, the note stays an unsaved draft and nothing asks again,
-            even after a reload; press <code>CTRL/CMD+S</code> when you're ready to choose.
+            The note goes into your New Notes folder (the vault root unless you set one in
+            Settings → Files), with no dialog. Move it anywhere later from the file tree.
           </p>
           <p>
             A note you leave empty is never saved, so no empty files pile up in your vault. Renaming
-            the first line later does not rename the file; use <strong>Rename current file</strong>{" "}
+            the first line later does not rename the file; use <strong>Rename Note</strong>{" "}
             for that.
           </p>
           <KV
             rows={[
-              { label: "Default folder for new notes", value: "Vault root · Settings → New Notes Folder" },
-              { label: "Pick a folder and name first", value: "New file in folder… command" },
+              { label: "Default folder for new notes", value: "Vault root · Settings → Files → Vault → New Notes Folder" },
+              { label: "Start in a specific folder", value: "New Note in that folder's menu in Files" },
               { label: "Create from a search", value: 'Type a title in the palette, then Create "…"' },
             ]}
           />
@@ -177,8 +176,11 @@ export const getStartedGroup: Group = {
             insert a starter block. See{" "}
             <a href="#frontmatter" className="text-accent hover:underline">Frontmatter</a>.
             Autosave can be changed under{" "}
-            <a href="#appearance" className="text-accent hover:underline">Settings → Autosave</a>.
-            With autosave set to manual, a new note is saved only when you press <code>CTRL/CMD+S</code>.
+            Settings → Files → Autosave: <strong>After Delay</strong> (the default) or{" "}
+            <strong>Manual Only</strong>. With autosave set to manual, a new note is saved only when you
+            press <code>CTRL/CMD+S</code>. To get a copy of a note outside your vault, run{" "}
+            <strong>Download as Markdown</strong>: it always downloads the note as a <code>.md</code> file
+            and never changes the saved note.
           </p>
         </>
       ),
@@ -193,14 +195,14 @@ export const getStartedGroup: Group = {
           <p>
             <strong>Tasks</strong> lists the unchecked <code>- [ ]</code> tasks from notes you
             changed in the last 7 days. Click one to open its note with the cursor on that task.
-            The list starts folded: click <strong>N open tasks</strong> to open it, and it stays the way you leave it. Tasks from sensitive notes aren&apos;t
+            The list starts folded: click <strong>N open tasks</strong> to open it, and it stays the way you leave it. Tasks from private notes aren&apos;t
             listed.
           </p>
           <p>
             Each row shows a note's title, the first few lines of its text and its file name. The column on the
             left groups notes by the day they were last changed: <em>Today</em>,{" "}
             <em>Yesterday</em>, the weekday for the rest of the week, then the date. If you add
-            your name in Settings → Guide, the feed greets you with it.
+            your name in Settings → General, the feed greets you with it.
           </p>
           <p>
             To keep a note at the top, hover its row and click the pin. On a phone or tablet,
@@ -233,7 +235,7 @@ export const getStartedGroup: Group = {
               { label: "Open the selected note", value: "ENTER" },
               { label: "Search", value: "Start typing" },
               { label: "Back to your open notes", value: "ESCAPE" },
-              { label: "Come back to the feed", value: "Home at the top of the sidebar" },
+              { label: "Come back to the feed", value: "Home at the top of the sidebar, or the Open Home command" },
               { label: "Back to the top of the feed", value: "Home again while the feed is open" },
             ]}
           />
@@ -267,7 +269,7 @@ export const getStartedGroup: Group = {
       id: "editor-layout",
       title: "Editor layout",
       lead: "A full-screen editor with a slim header. Everything else is in the command palette and a few dedicated views.",
-      keywords: "explorer files search views tags tasks settings theme pane split toolbar sidebar command palette",
+      keywords: "files show files search views tags tasks settings theme pane split toolbar sidebar command palette",
       body: (
         <>
           <p>
@@ -280,57 +282,56 @@ export const getStartedGroup: Group = {
             changes. On the left:
             the <strong> Sidebar</strong> button, while the sidebar is hidden. On the right: Save, Search (the
             command palette) and AI Chat (when an AI key is set). The <strong>&hellip; More</strong> menu holds Copy
-            Markdown, Export as PDF, Settings, Help and Hide Toolbar — every one of them is also in the command palette.
+            Markdown, Export as PDF, Settings and Help — every one of them is also in the command palette.
           </p>
           <p>
-            Toolbar buttons are icons; hover one to see its name and shortcut. Right-click the
-            toolbar to hide it.
+            Toolbar buttons are icons; hover one to see its name and shortcut.
           </p>
           <p>
             The <strong>sidebar</strong> starts with Home and lists your open notes across every pane. With a vault it adds
-            Templates and Tasks below Home, and ends with the file tree. Show
+            Templates and Tasks below Home, and ends with <strong>Files</strong>, the vault&apos;s tree. Show
             it with the Sidebar button at the toolbar's far left and hide it with the button in its own header, or toggle it with{" "}
-            <code>CTRL/CMD+ALT+S</code> or the <strong>Show sidebar</strong>{" "}
+            <code>CTRL/CMD+ALT+S</code> or the <strong>Toggle Sidebar</strong>{" "}
             command, and drag its edge to resize it (double-click the edge to
-            reset; with the edge focused, the arrow keys resize it too). Folded sections stay folded. The Explorer below remains the place for bigger file work.
+            reset; with the edge focused, the arrow keys resize it too). Folded sections stay folded.
           </p>
           <p>
-            Open the dedicated Explorer with <code>CTRL/CMD+SHIFT+E</code> (or <code>CTRL/CMD+B</code>{" "}
-            when the cursor isn&apos;t in a note, where it means Bold) or the <strong>Open Explorer</strong> command.
-            It provides a full workspace view for browsing, organizing, renaming, moving, and deleting files and folders without
-            covering the editor. Tasks uses a matching dedicated view; file search, tags, and headings are available through the command palette.
+            <strong>Show Files</strong> (<code>CTRL/CMD+SHIFT+E</code>, or <code>CTRL/CMD+B</code>{" "}
+            when the cursor isn&apos;t in a note, where it means Bold) shows the sidebar if it&apos;s hidden and puts the
+            keyboard in Files, ready to browse, rename, move or delete. On a phone, where there&apos;s no sidebar, it opens
+            Files full screen. Tasks has its own view; file search, tags, and headings are available through the command palette.
           </p>
           <p>
-            The Explorer and the sidebar&apos;s Files section offer the same actions in the same order:{" "}
+            Files offers the same actions everywhere, in the same order:{" "}
             <strong>New Note</strong>, <strong>New Note from Template…</strong> and <strong>New Folder</strong>, at
             the top and in every folder&apos;s right-click (or ⋯) menu. From a folder, a note from a template goes in
-            that folder; from the top, the template&apos;s own folder decides. There&apos;s no Refresh button: files
+            that folder; from the top, it goes in your New Notes folder. There&apos;s no Refresh button: files
             you add, delete or move outside HermesMarkdown show up on their own (straight away in Chrome and Edge,
             otherwise when you come back to the window).
           </p>
           <KV
             rows={[
-              { label: "Home feed", value: "Home button in the toolbar" },
+              { label: "Home feed", value: "Home in the sidebar / Open Home command" },
               { label: "Sidebar", value: "Show: Sidebar button at the toolbar's far left / Hide: button in the sidebar's header / CTRL/CMD+ALT+S" },
-              { label: "Explorer", value: "Dedicated files view / CTRL/CMD+SHIFT+E" },
+              { label: "Show Files", value: "The sidebar's Files (full screen on a phone) / CTRL/CMD+SHIFT+E" },
               { label: "Quick switcher", value: "CTRL/CMD+K or CTRL/CMD+P" },
               { label: "Command palette", value: "CTRL/CMD+SHIFT+K or CTRL/CMD+SHIFT+P" },
               { label: "Search note text", value: "CTRL/CMD+SHIFT+F" },
               { label: "Palette modes", value: "# vault tags · > commands · ! tasks · @ current-note headings · / note text" },
               { label: "Commands on or off", value: "The > button in the search field" },
-              { label: "Explorer controls", value: "New note, new note from template, new folder, and file actions" },
+              { label: "Files controls", value: "New note, new note from template, new folder, and file actions" },
               { label: "AI Chat", value: "CTRL+SHIFT+B" },
-              { label: "Keyboard shortcuts", value: "Show keyboard shortcuts command" },
+              { label: "Keyboard shortcuts", value: "Show Keyboard Shortcuts command" },
             ]}
           />
           <p>
-            Open several files side by side: run <strong>Split pane right</strong> from the command palette (or <strong>Open in pane</strong> on a tab),
+            Open several files side by side: run <strong>Split Pane Right</strong> from the command palette (or <strong>Open in pane</strong> on a tab),
             drag tabs between panes, and resize with the divider.
           </p>
           <p>
-            To be alone with the text, choose <strong>Hide Toolbar</strong> from the More menu (or press{" "}
-            <code>Ctrl/Cmd+Alt+T</code>, or run <strong>Hide toolbar</strong>) and
-            the tabs and toolbar slide away. A small chevron in the top-right corner brings them back.
+            To be alone with the text, set{" "}
+            <a href="#focus" className="text-accent hover:underline">Focus</a> under Settings →
+            Editor: the toolbar, tabs and sidebar fade while you type and come back when you move the mouse.
           </p>
         </>
       ),

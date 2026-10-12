@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { act, renderHook } from "@testing-library/react";
 import { createStore, Provider } from "jotai";
 import { atom_openFiles } from "@/app/atoms/file-atoms";
-import { atom_revealedSensitivePaths } from "@/app/atoms/privacy-atoms";
+import { atom_revealedPrivatePaths } from "@/app/atoms/privacy-atoms";
 import { atom_workspaceLayout } from "@/app/atoms/workspace-atoms";
 import type { Command } from "@/app/components/CommandPalette/CommandPaletteContext";
 import { exportActivePdf } from "../utils/open-helper-dialogs";
@@ -81,14 +81,14 @@ describe("useExportPdf", () => {
     expect(printHtml.mock.calls[0][0]).toContain("<title>note</title>");
   });
 
-  it("is disabled for a veiled sensitive note until it's shown", async () => {
-    const { store, hook } = setup("private/plan.md", "---\nsensitive: true\n---\n# Plan");
+  it("is disabled for a veiled private note until it's shown", async () => {
+    const { store, hook } = setup("private/plan.md", "---\nprivate: true\n---\n# Plan");
     expect(registered?.disabledReason).toBe(VEILED_REASON);
     await act(async () => { exportActivePdf(); await Promise.resolve(); });
     expect(printHtml).not.toHaveBeenCalled();
     expect(toastError).toHaveBeenCalledWith(VEILED_REASON);
 
-    act(() => { store.set(atom_revealedSensitivePaths, new Set(["private/plan.md"])); });
+    act(() => { store.set(atom_revealedPrivatePaths, new Set(["private/plan.md"])); });
     hook.rerender();
     expect(registered?.disabledReason).toBeUndefined();
   });

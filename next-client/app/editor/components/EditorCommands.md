@@ -1,6 +1,6 @@
 # EditorCommands
 
-Description: Renders nothing visible. It builds the editor's command-palette entries (`buildEditorCommands`) and registers them through `RegisteredCommands`.
+Description: Renders nothing visible. It builds the editor's command-palette entries (`buildEditorCommands`) and registers them through `RegisteredCommands`. App-wide commands (Open Settings, Open Documentation, the `Theme: …` set, Show Keyboard Shortcuts) come from `AppCommands`, and editor preferences (word wrap, line numbers, Focus, …) from `SettingsCommands`, so each command is registered once. The editor's Home command is `Open Home` (`use-home-feed.ts`).
 
 ## Local State & Storage
 - State: `useEditorCommandContext(props)`, which aggregates file-system, vault, and pane atoms. `RegisteredCommands` calls `useRegisterCommand` once per command.
@@ -15,18 +15,18 @@ Description: Renders nothing visible. It builds the editor's command-palette ent
 import EditorCommands from "./EditorCommands";
 
 <EditorCommands onNewFile={newFile} onSave={save} onExport={exportDoc} onImport={importFile}
-  onOpenTasks={openTasks} onHome={goHome} onOpenDocumentation={openDocs}
+  onOpenTasks={openTasks} onOpenTemplates={openTemplates}
   onRunAIAction={runAIAction} />
 ```
 
 ## Props Overview
 | Prop | Type | Default | Description |
 |---|---|---|---|
-| onNewFile / onSave / onExport / onImport | `() => void` |  | Document actions |
+| onNewFile / onSave / onExport / onImport | `() => void` |  | Document actions: New Note, Save, Download as Markdown (`onExport`, always a .md download, never a save), Open Note from Disk… (`onImport`) |
 | onRunAIAction | `(id: string) => void` |  | Runs a palette AI action (`improve`, `summarize`, …) |
-| onOpenTasks / onHome / onOpenDocumentation | `() => void` |  | Navigation |
+| onOpenTasks / onOpenTemplates | `() => void` |  | Navigation |
 | githubVault? | `boolean` |  | Enables the GitHub commands |
 | onGitHubCommit? / onGitHubPush? / onGitHubPull? / onGitHubSync? | `() => void` |  | GitHub actions |
-| isMobileChrome? / onOpenMobileFiles? / onRefreshVault? |  |  | Mobile and vault helpers |
+| isMobileChrome? / onRefreshVault? |  |  | Mobile and vault helpers |
 
 `RegisteredCommands` takes `commands: Command[]`. See `editor-commands/README.md`.

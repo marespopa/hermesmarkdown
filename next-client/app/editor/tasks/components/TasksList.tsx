@@ -59,7 +59,7 @@ const EMPTY_VIEW: Record<TaskView, string> = {
 };
 
 export default function TasksList({ onFileSelect }: TasksListProps) {
-  // Tasks from sensitive notes arrive masked, or are left out (and not
+  // Tasks from private notes arrive masked, or are left out (and not
   // counted) in "hidden" Privacy Mode.
   const allTasks = useAtomValue(atom_visibleTasks);
   const tasks = useAtomValue(atom_filteredTasks);

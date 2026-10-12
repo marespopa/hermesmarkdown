@@ -16,11 +16,11 @@ import {
   SAVE_AS_TEMPLATE_SENTINEL,
   CURSOR_SENTINEL,
   CODE_BLOCK_TEMPLATE_CONTENT,
-  MARK_SENSITIVE_SENTINEL,
+  MARK_PRIVATE_SENTINEL,
   MARK_PUBLIC_SENTINEL,
 } from "../components/constants";
 import { FM_REGEX, updateFmFields } from "@/app/utils/frontmatter-utils";
-import { clearSensitiveMarkers, isSensitiveContent } from "@/app/utils/note-privacy";
+import { clearPrivateMarkers, isPrivateContent } from "@/app/utils/note-privacy";
 
 // Non-AI templates only — AI action entries (aiOnly: true) aren't ported in
 // this pass (that's a separate AI-subsystem port, not part of the CM6
@@ -118,10 +118,10 @@ export function setFrontmatterFlag(view: EditorView, key: string) {
   replaceFrontmatter(view, match[0], updateFmFields(match[0], { [key]: "true" }));
 }
 
-// Removes every sensitive marker (flags and tags), the inverse of setFrontmatterFlag.
-export function clearFrontmatterSensitive(view: EditorView) {
+// Removes the private marker (flag and tag), the inverse of setFrontmatterFlag.
+export function clearFrontmatterPrivate(view: EditorView) {
   const match = FM_REGEX.exec(view.state.doc.toString());
-  if (match) replaceFrontmatter(view, match[0], clearSensitiveMarkers(match[0]));
+  if (match) replaceFrontmatter(view, match[0], clearPrivateMarkers(match[0]));
 }
 
 function replaceFrontmatter(view: EditorView, block: string, insert: string) {
@@ -130,7 +130,7 @@ function replaceFrontmatter(view: EditorView, block: string, insert: string) {
 }
 
 const FRONTMATTER_FLAG_SENTINELS: Record<string, string> = {
-  [MARK_SENSITIVE_SENTINEL]: "sensitive",
+  [MARK_PRIVATE_SENTINEL]: "private",
 };
 
 const DEFAULT_TABLE =
@@ -195,7 +195,7 @@ export function applyTemplate(
   }
   if (content === MARK_PUBLIC_SENTINEL) {
     view.dispatch({ changes: { from, to, insert: "" }, userEvent: "input.replace.template" });
-    clearFrontmatterSensitive(view);
+    clearFrontmatterPrivate(view);
     return;
   }
   if (content === TABLE_DIALOG_SENTINEL) {
@@ -240,8 +240,8 @@ export function createSlashMenuSource(callbacksRef: { current: SlashMenuCallback
       ...(callbacksRef.current.onOpenAIChat ? TEMPLATES.filter((template) => template.content === AI_CHAT_SENTINEL) : []),
     ];
     // Offer only the privacy commands that would change this note.
-    const sensitive = isSensitiveContent(context.state.doc.toString());
-    const hidden = sensitive ? [MARK_SENSITIVE_SENTINEL] : [MARK_PUBLIC_SENTINEL];
+    const isPrivate = isPrivateContent(context.state.doc.toString());
+    const hidden = isPrivate ? [MARK_PRIVATE_SENTINEL] : [MARK_PUBLIC_SENTINEL];
     const matches = templates.filter((t) => !hidden.includes(t.content) && fuzzyMatch(t.label, query));
     if (matches.length === 0) return null;
 

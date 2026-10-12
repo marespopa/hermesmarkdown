@@ -115,7 +115,7 @@ export default function FilesPage() {
       <main className="mx-auto flex min-h-0 w-full max-w-5xl flex-1 flex-col px-4 py-5 sm:px-8">
         <div className="mb-5 flex shrink-0 items-center justify-between gap-4">
           <div className="min-w-0">
-            <h1 className="truncate text-ui-title-3 font-semibold">Explorer</h1>
+            <h1 className="truncate text-ui-title-3 font-semibold">Files</h1>
             <p className="truncate text-ui-caption text-stone">{vaultName ?? "No vault open"}</p>
           </div>
         {vaultHandle && (

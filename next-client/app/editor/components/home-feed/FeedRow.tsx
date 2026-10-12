@@ -4,7 +4,7 @@ import React, { forwardRef, useState } from "react";
 import { HiOutlineDocumentText } from "react-icons/hi";
 import { TbPinned, TbPinnedFilled } from "react-icons/tb";
 import Button from "@/app/components/Button";
-import SensitiveBadge from "@/app/components/SensitiveBadge";
+import PrivateBadge from "@/app/components/PrivateBadge";
 import TabContextMenu from "../TabContextMenu";
 import type { FeedEntry } from "./feed-model";
 import { useLongPress } from "./use-long-press";
@@ -20,7 +20,7 @@ interface FeedRowProps {
 
 const PREVIEW_CLASS = "mt-1 line-clamp-3 block text-ui-subhead leading-relaxed text-fg-muted";
 
-// The preview under the title. A sensitive note's preview is masked bullets:
+// The preview under the title. A private note's preview is masked bullets:
 // the real text never reaches the DOM.
 function FeedPreview({ entry }: { entry: FeedEntry }) {
   if (!entry.preview) return null;
@@ -36,7 +36,7 @@ function FeedPreview({ entry }: { entry: FeedEntry }) {
 }
 
 // One note in the feed: day label (or "Pinned") in the left gutter, then the
-// title, a few lines of plain-text preview (masked for sensitive
+// title, a few lines of plain-text preview (masked for private
 // notes) and the file name in small, faint type. The pin button shows on
 // hover, keyboard focus or selection, and not at all on touch-only screens,
 // where a long press opens the row's menu (Open, Pin / Unpin) instead; a right-click or the context-menu key opens it
@@ -75,7 +75,7 @@ const FeedRow = forwardRef<HTMLDivElement, FeedRowProps>(function FeedRow(
         onMouseEnter={onHover}
         onContextMenu={handleContextMenu}
         {...longPress.handlers}
-        aria-label={entry.isSensitive ? `${entry.title} (sensitive)` : entry.title}
+        aria-label={entry.isPrivate ? `${entry.title} (private)` : entry.title}
         // No text selection or callout on a long press (iOS).
         className={`group block w-full min-w-0 select-none rounded-lg py-3 pl-3 pr-10 text-left [@media(any-hover:none)]:pr-3 transition-colors [-webkit-touch-callout:none] ${
           isSelected ? "bg-surface-raised" : "hover:bg-surface-raised"
@@ -83,7 +83,7 @@ const FeedRow = forwardRef<HTMLDivElement, FeedRowProps>(function FeedRow(
       >
         <span className="flex items-center gap-1.5">
           <span className="block truncate text-ui-body font-medium text-fg">{entry.title}</span>
-          {entry.isSensitive && <SensitiveBadge />}
+          {entry.isPrivate && <PrivateBadge />}
         </span>
         {entry.isIndexed ? (
           <FeedPreview entry={entry} />

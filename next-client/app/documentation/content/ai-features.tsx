@@ -19,8 +19,8 @@ export const aiFeaturesGroup: Group = {
             ]}
           />
           <p>
-            Settings → Provider Config → choose a provider → paste your API key → Test Connection,
-            then pick a model (use the refresh button to reload the list). Once a key validates, AI
+            Settings → AI Features → choose an AI Provider (Claude or Gemini) → paste your API key → Test Connection,
+            then pick a Model (use the refresh button to reload the list). Once a key validates, AI
             Chat, the Ask AI toolbar, and the AI items in the slash menu appear. The palette&apos;s <code>AI: …</code> actions are always listed and explain
             that a key is needed until one is set.
           </p>
@@ -31,7 +31,7 @@ export const aiFeaturesGroup: Group = {
             for the full picture.
           </p>
           <Callout type="note">
-            Remove a key with the <strong>Remove AI key</strong> button in Settings → Provider Config.
+            Remove a key with the <strong>Remove AI key</strong> button in Settings → AI Features.
             AI features are disabled again until a new key is set.
           </Callout>
         </>
@@ -78,7 +78,7 @@ export const aiFeaturesGroup: Group = {
     {
       id: "ai-templates",
       title: "AI templates",
-      lead: "Ask AI Chat for a template and it writes one you can save into your templates folder with one click.",
+      lead: "Ask AI Chat for a template and it writes one you can save into templates/ with one click.",
       keywords: "ai template skill create rfc prompt save replace hermes skills create-template",
       body: (
         <>
@@ -87,7 +87,7 @@ export const aiFeaturesGroup: Group = {
             an owner&rdquo;, or start a message with <code>/template</code>. From then on, the chat
             knows the{" "}
             <a href="#templates" className="text-accent hover:underline">template tokens</a>{" "}
-            and the <code>target_folder</code> / <code>file_name</code> keys. Each template in a reply
+            and the <code>file_name</code> key. Each template in a reply
             shows a card with its path (for example <code>templates/rfc.md</code>) and any problems
             it spotted, like an unknown token.
           </p>
@@ -124,7 +124,7 @@ export const aiFeaturesGroup: Group = {
             apply its lines yourself.
           </p>
           <Callout type="tip">
-            Private notes (marked sensitive or private) are never sent. Their tasks are left out and
+            Private notes (<code>private: true</code> or a <code>private</code> tag) are never sent. Their tasks are left out and
             only counted. To change how the skill writes, put your own instructions in{" "}
             <code>.hermes/skills/tasks.md</code>. The app still adds the task list.
           </Callout>
@@ -151,7 +151,7 @@ export const aiFeaturesGroup: Group = {
           </p>
           <Callout type="tip">
             The tools run in your browser, against your vault. Only what they find for a question goes
-            to the AI, in the same request. Private notes (marked sensitive or private) are never
+            to the AI, in the same request. Private notes are never
             searched or read.
           </Callout>
         </>

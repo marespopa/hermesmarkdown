@@ -19,7 +19,7 @@ export interface FileCreateHandlers {
 const ICON = { size: 14, className: "opacity-80 shrink-0" };
 
 // The create actions every file list offers, in one order and wording: the
-// Explorer's header, the sidebar's Files menu, and a folder's or the empty
+// Files page's header, the sidebar's Files menu, and a folder's or the empty
 // space's menu in the tree. Only the handlers given are listed.
 export function fileCreateActions({ newNote, newFromTemplate, newFolder }: FileCreateHandlers): FileCreateAction[] {
   return [

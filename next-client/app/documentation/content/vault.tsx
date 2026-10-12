@@ -50,7 +50,7 @@ export const vaultGroup: Group = {
     {
       id: "organizing-files",
       title: "Organizing files",
-      lead: "The file tree in the sidebar, the Explorer and the mobile Files panel works like a Finder list: select, drag, rename in place, and undo.",
+      lead: "Files, in the sidebar or on the mobile Files page, works like a Finder list: select, drag, rename in place, and undo.",
       keywords: "folders rename move delete trash undo select drag keyboard shortcuts empty folder",
       body: (
         <>
@@ -155,7 +155,7 @@ export const vaultGroup: Group = {
             rows={[
               { label: "title", value: "string · optional" },
               { label: "tags", value: "list · optional" },
-              { label: "sensitive", value: "true · optional" },
+              { label: "private", value: "true · optional" },
               { label: "Anything else", value: "Kept as-is" },
             ]}
           />
@@ -166,27 +166,27 @@ export const vaultGroup: Group = {
             Free-form tags. Together with inline <code>#tags</code>, they feed the palette&apos;s{" "}
             <code>#</code> mode.
           </p>
-          <h4 className="text-[19px] font-semibold tracking-tight !mb-2 !mt-6">sensitive</h4>
+          <h4 className="text-[19px] font-semibold tracking-tight !mb-2 !mt-6">private</h4>
           <p>
-            <code>sensitive: true</code>, <code>private: true</code>, or a{" "}
-            <code>sensitive</code> / <code>private</code> tag, marks a note as{" "}
-            <a href="#sensitive-notes" className="text-accent hover:underline">sensitive</a>.
+            <code>private: true</code>, or a <code>private</code> tag, marks a note as{" "}
+            <a href="#private-notes" className="text-accent hover:underline">private</a>.
           </p>
         </>
       ),
     },
     {
-      id: "sensitive-notes",
-      title: "Sensitive notes",
+      id: "private-notes",
+      title: "Private notes",
       lead: "Keep notes with revenue figures, keys or personal details off the screen while you share or record it.",
-      keywords: "sensitive private mark as sensitive mark as public /privacy public privacy mode screen share recording hide mask lock reveal",
+      keywords: "private mark as private mark as public /privacy public privacy mode screen share recording hide mask lock reveal",
       body: (
         <>
           <p>
-            Mark a note in its frontmatter, so the marker travels with the plain Markdown file:
+            A note is private when its frontmatter says so, so the marker travels with the plain
+            Markdown file. Either form works:
           </p>
           <Code>{`---
-sensitive: true
+private: true
 ---
 
 or
@@ -195,42 +195,30 @@ or
 tags: [finance, private]
 ---`}</Code>
           <p>
-            Or type <code>/privacy</code> in a note: on a normal note the slash menu offers{" "}
-            <strong>Privacy: mark as sensitive</strong>, which adds <code>sensitive: true</code> to
-            its frontmatter, creating the frontmatter block if the note has none. On a sensitive note
-            it offers <strong>Privacy: mark as public</strong> instead, which removes every marker:
-            the <code>sensitive</code> and <code>private</code> keys and any{" "}
-            <code>sensitive</code> / <code>private</code> tag.
+            Or type <code>/privacy</code> in a note: <strong>Privacy: mark as private</strong> adds{" "}
+            <code>private: true</code>; on a private note, <strong>Privacy: mark as public</strong>{" "}
+            removes it and the <code>private</code> tag. An inline <code>#private</code> in the body
+            doesn&apos;t count.
           </p>
           <p>
-            Only frontmatter counts: an inline <code>#private</code> hashtag in the body doesn&apos;t
-            mark the note. Any marker wins, so <code>sensitive: false</code> with a{" "}
-            <code>private</code> tag is still sensitive.
-          </p>
-          <h4 className="text-[19px] font-semibold tracking-tight !mb-2 !mt-6">Privacy Mode</h4>
-          <p>
-            Choose how sensitive notes appear in the home feed, the command palette and the Tasks
-            page under <strong>Settings → Privacy → Privacy Mode</strong>, or with the{" "}
-            <code>Privacy mode: …</code> commands in the palette. The choice is remembered.
+            A private note opens behind a veil showing only its title, until you choose{" "}
+            <strong>Show note</strong> or <strong>Show all private notes this session</strong>{" "}
+            (both last until you reload). It never shows up in note text search (<code>/</code>) and
+            is never sent to AI. In lists, <strong>Privacy Mode</strong> decides; set it under{" "}
+            <strong>Settings → Files → Privacy</strong> or with the <code>Privacy mode: …</code>{" "}
+            commands:
           </p>
           <KV
             rows={[
-              { label: "Show titles (default)", value: "Title with a lock; preview and task text replaced by bullets" },
-              { label: "Hide notes", value: "Left out of the home feed, search results and the Tasks page" },
+              { label: "Mask in lists (default)", value: "Home feed, quick open and Tasks show the title with a lock; preview and task text are bullets" },
+              { label: "Hide from lists", value: "Left out of the home feed, quick open and Tasks" },
             ]}
           />
-          <h4 className="text-[19px] font-semibold tracking-tight !mb-2 !mt-6">Opening a sensitive note</h4>
-          <p>
-            A sensitive note opens behind a veil showing only its title. <strong>Show note</strong>{" "}
-            reveals that note; <strong>Show all sensitive notes this session</strong> (also a palette
-            command) reveals every one. Both last until you reload the app. Marking a note you have
-            open as sensitive doesn&apos;t hide it: it stays revealed for the rest of the
-            session and is veiled the next time you open it after a reload.
-          </p>
           <Callout type="note">
-            This is screen privacy, not encryption. Files stay readable on disk, file names still
-            show in the file tree and the Explorer, and tab titles still show. A new note is named
-            after its first line, so start a sensitive note with a harmless title.
+            <ul>
+              <li>This is screen privacy, not encryption: the file stays readable on disk.</li>
+              <li>File names still show in Files and in tab titles. A new note is named after its first line, so give a private note a harmless first line.</li>
+            </ul>
           </Callout>
         </>
       ),

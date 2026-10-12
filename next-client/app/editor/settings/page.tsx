@@ -2,14 +2,13 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { HiOutlineArrowLeft, HiOutlineColorSwatch, HiOutlineFolder, HiOutlinePencilAlt, HiOutlineAcademicCap, HiOutlineLightningBolt, HiOutlineLockClosed } from "react-icons/hi";
+import { HiOutlineArrowLeft, HiOutlineColorSwatch, HiOutlineFolder, HiOutlinePencilAlt, HiOutlineAdjustments, HiOutlineLightningBolt } from "react-icons/hi";
 import Button from "@/app/components/Button";
 import AiSettings from "./sections/AiSettings";
 import AppearanceSettings from "./sections/AppearanceSettings";
 import EditorSettings from "./sections/EditorSettings";
 import FilesSettings from "./sections/FilesSettings";
 import GuideSettings from "./sections/GuideSettings";
-import PrivacySettings from "./sections/PrivacySettings";
 import ProfileSettings from "./sections/ProfileSettings";
 
 const SettingsPage = () => {
@@ -35,22 +34,16 @@ const SettingsPage = () => {
       content: <FilesSettings />,
     },
     {
-      id: "privacy",
-      label: "Privacy",
-      icon: HiOutlineLockClosed,
-      content: <PrivacySettings />,
-    },
-    {
       id: "ai",
       label: "AI Features",
       icon: HiOutlineLightningBolt,
       content: <AiSettings />,
     },
     {
-      id: "guide",
-      label: "Guide",
-      icon: HiOutlineAcademicCap,
-      // Your name and data, then onboarding, help and the version.
+      id: "general",
+      label: "General",
+      icon: HiOutlineAdjustments,
+      // Your name and data first, then onboarding, help and about.
       content: (
         <>
           <ProfileSettings />

@@ -5,17 +5,17 @@ import { useAtomValue, useStore } from "jotai";
 import toast from "react-hot-toast";
 import { atom_activeFilePath, atom_content, atom_fileName } from "@/app/atoms/file-atoms";
 import { atom_fileMetadata } from "@/app/atoms/metadata";
-import { atom_revealAllSensitive, atom_revealedSensitivePaths } from "@/app/atoms/privacy-atoms";
+import { atom_revealAllPrivate, atom_revealedPrivatePaths } from "@/app/atoms/privacy-atoms";
 import { atom_vaultHandle, resolveFileHandleAtPath } from "@/app/atoms/vault-atoms";
 import { useRegisterCommand } from "@/app/components/CommandPalette/CommandPaletteContext";
-import { isSensitiveContent, isSensitiveFrontmatter } from "@/app/utils/note-privacy";
+import { isPrivateContent, isPrivateFrontmatter } from "@/app/utils/note-privacy";
 import { escapeHtml, noteToHtml, type PrintBlock } from "@/app/utils/print/note-html";
 import { EXPORT_PDF_EVENT } from "../utils/open-helper-dialogs";
 import { printDocument, printHtml } from "../utils/print-note";
 import { renderMermaid } from "../utils/render-mermaid";
 import { renderMathMl } from "../utils/render-math";
 
-export const VEILED_REASON = "Show the note first: it's marked sensitive";
+export const VEILED_REASON = "Show the note first: it's marked private";
 
 const REGEX_IMAGE_SRC = /!\[[^\]]*\]\(\s*<?([^)\s>]+)>?/g;
 
@@ -54,19 +54,19 @@ async function renderBlock(block: PrintBlock): Promise<string> {
 // Export as PDF: the focused note, rendered and printed through the
 // browser's print dialog (Save as PDF), all on the device. Registers the
 // palette command and answers the toolbar's More → Export as PDF… event. A
-// sensitive note that's still veiled can't be exported until it's shown.
+// private note that's still veiled can't be exported until it's shown.
 export function useExportPdf() {
   const store = useStore();
   const content = useAtomValue(atom_content);
   const activeFilePath = useAtomValue(atom_activeFilePath);
   const metadata = useAtomValue(atom_fileMetadata);
-  const revealAll = useAtomValue(atom_revealAllSensitive);
-  const revealed = useAtomValue(atom_revealedSensitivePaths);
+  const revealAll = useAtomValue(atom_revealAllPrivate);
+  const revealed = useAtomValue(atom_revealedPrivatePaths);
   const busy = useRef(false);
 
   const path = activeFilePath ?? "draft";
-  const sensitive = isSensitiveContent(content) || isSensitiveFrontmatter(metadata[path]?.frontmatter);
-  const veiled = sensitive && !revealAll && !revealed.has(path);
+  const isPrivate = isPrivateContent(content) || isPrivateFrontmatter(metadata[path]?.frontmatter);
+  const veiled = isPrivate && !revealAll && !revealed.has(path);
   const disabledReason = !content.trim() ? "The note is empty" : veiled ? VEILED_REASON : undefined;
 
   const exportPdf = useCallback(async () => {

@@ -14,7 +14,7 @@ import { useFileSystem } from "./use-file-system";
 
 /**
  * Hook to handle auto-saving content to the active file.
- * Supports different modes: afterDelay (debounced), onFocusChange, and manual.
+ * Supports two modes: afterDelay (debounced) and manual.
  */
 export function useAutoSave(onDraftChange?: () => void) {
   const [activeFileHandle] = useAtom(atom_activeFileHandle);
@@ -106,18 +106,6 @@ export function useAutoSave(onDraftChange?: () => void) {
     activeFilePath, 
     onDraftChange
   ]);
-
-  // 3. Handle Window Blur (External focus change)
-  useEffect(() => {
-    const handleBlur = () => {
-      if (autosaveMode === "onFocusChange") {
-        flush();
-      }
-    };
-
-    window.addEventListener("blur", handleBlur);
-    return () => window.removeEventListener("blur", handleBlur);
-  }, [autosaveMode, flush]);
 
   return { flush };
 }

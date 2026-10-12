@@ -22,7 +22,7 @@ export function treeMenuItems(
   actions: ReturnType<typeof useTreeActions>,
 ): TreeMenuItem[] {
   // From a folder, a note from a template goes in that folder; from the
-  // empty space (parentPath ""), the template's own folder decides.
+  // empty space (parentPath ""), it goes in the New Notes folder.
   const newItems = (parentPath: string): TreeMenuItem[] =>
     fileCreateActions({
       newNote: props.createNewFile ? () => actions.startCreate("file", parentPath) : undefined,

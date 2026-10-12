@@ -23,7 +23,7 @@ interface SearchState {
 const EMPTY: SearchState = { query: "", hits: [], pending: 0, capped: false };
 
 // The palette's `/` scope: debounced note-text search in the metadata worker
-// over the palette's file list minus sensitive notes (which never match, in
+// over the palette's file list minus private notes (which never match, in
 // any Privacy Mode). Keeps the previous rows while a newer search runs and
 // ignores superseded responses. Posts nothing while `active` is false.
 export function usePaletteContentSearch(active: boolean, query: string, files: FileResult[]) {
@@ -32,7 +32,7 @@ export function usePaletteContentSearch(active: boolean, query: string, files: F
   const trimmed = query.trim();
   const isShort = trimmed.length < MIN_QUERY_CHARS;
 
-  const searchable = useMemo(() => files.filter((file) => !file.isSensitive), [files]);
+  const searchable = useMemo(() => files.filter((file) => !file.isPrivate), [files]);
   const filesByPath = useMemo(() => new Map(searchable.map((file) => [file.path, file])), [searchable]);
   const paths = useMemo(() => searchable.map((file) => file.path), [searchable]);
 

@@ -12,11 +12,6 @@ import { templateBody } from "@/app/utils/templates/template-frontmatter";
 import type { ExpandedTemplate } from "@/app/utils/templates/template-tokens";
 import type { TemplateEntry } from "@/app/utils/templates/template-registry";
 
-/** A template's text in hand (a starter), instead of a vault file. */
-export interface TemplateSource {
-  name: string;
-  body: string;
-}
 import { insertExpandedTemplate } from "../codemirror/slash-menu";
 
 interface UseVaultTemplateInsertOptions {
@@ -43,7 +38,7 @@ export function useVaultTemplateInsert({ viewRef, filePath }: UseVaultTemplateIn
   const { pickTemplate } = useTemplateDialog();
   const { readTemplate, instantiate } = useTemplateNotes();
 
-  return useCallback(async (source?: TemplateEntry | TemplateSource) => {
+  return useCallback(async (source?: TemplateEntry) => {
     // Selected text fills `{{selection}}` and is replaced by the template.
     const before = viewRef.current;
     const selection = before ? before.state.sliceDoc(before.state.selection.main.from, before.state.selection.main.to) : "";
@@ -51,7 +46,7 @@ export function useVaultTemplateInsert({ viewRef, filePath }: UseVaultTemplateIn
     if (!chosen || chosen === "blank") return;
     let raw: string;
     try {
-      raw = "body" in chosen ? chosen.body : await readTemplate(chosen);
+      raw = await readTemplate(chosen);
     } catch (err: any) {
       console.warn("Failed to read template:", err?.message || err);
       toast.error(`Couldn't read template ${chosen.name}`);

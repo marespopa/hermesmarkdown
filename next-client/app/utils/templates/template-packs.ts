@@ -1,7 +1,5 @@
-import { JOURNAL, LOG_ENTRY, MEETING_NOTES, REPORT, SPEC } from "./template-starter";
-
 // The template packs the app ships. "Add to vault" copies a pack's templates
-// into `<templates folder>/<pack name>/` as plain files the user then owns:
+// into `templates/<pack name>/` as plain files the user then owns:
 // edit them, rename them, delete them. Nothing here is read again once added.
 // Raw bodies: never expanded on write.
 
@@ -22,15 +20,94 @@ export interface BuiltinPack {
 
 const frontmatter = (fields: string[]) => ["---", ...fields, "---"];
 
+// A dated page: today as the heading, the caret ready to write, and one
+// gentle closing prompt.
+const JOURNAL = [
+  "# {{date:dddd, D MMMM}}",
+  "",
+  "{{cursor}}",
+  "",
+  "## Grateful for",
+  "- ",
+  "",
+].join("\n");
+
+// One timestamped line, inserted with /template wherever you are (for
+// example at the end of a journal page): a log entry, not a page.
+const LOG_ENTRY = "- {{time}} {{cursor}}\n";
+
+const MEETING_NOTES = [
+  ...frontmatter(["date: {{date}}", "attendees: {{prompt:Attendees}}"]),
+  "# {{title}}",
+  "",
+  "## Agenda",
+  "- {{cursor}}",
+  "",
+  "## Decisions",
+  "- ",
+  "",
+  "## Action items",
+  "- [ ] ",
+  "",
+  "## Open questions",
+  "- ",
+  "",
+  "## Next steps",
+  "- ",
+  "",
+].join("\n");
+
+const SPEC = [
+  ...frontmatter(["author: {{prompt:Author}}", "status: Draft", "version: 0.1", "date: {{date}}"]),
+  "# {{title}}",
+  "",
+  "## Summary",
+  "{{cursor}}",
+  "",
+  "## Objective",
+  "",
+  "## Prerequisites",
+  "",
+  "## Design",
+  "",
+  "## Open questions",
+  "- ",
+  "",
+  "## References",
+  "- ",
+  "",
+].join("\n");
+
+const REPORT = [
+  ...frontmatter(["author: {{prompt:Author}}", "date: {{date}}"]),
+  "# {{title}}",
+  "",
+  "## Summary",
+  "{{cursor}}",
+  "",
+  "## Findings",
+  "",
+  "## Next steps",
+  "- [ ] ",
+  "",
+  "## Notes",
+  "",
+].join("\n");
+
 // `file_name` names the note, so using one of these again the same day /
-// week / month / year opens that note instead of making another.
+// week / month / year (in the same folder) opens that note instead of
+// making another.
 const dated = (fileName: string, body: string[]) =>
-  [...frontmatter(["target_folder: journal/{{year}}", `file_name: ${fileName}`]), ...body, ""].join("\n");
+  [...frontmatter([`file_name: ${fileName}`]), ...body, ""].join("\n");
 
 const DAILY = dated("{{date}}", JOURNAL.trimEnd().split("\n"));
 
-const WEEKLY = dated("{{weekSheet}}", [
-  "# Week {{week}}, {{year}}",
+// Names and links use date formats: `GGGG-[W]ww` is the ISO week's name
+// (2026-W42), and date math reaches the one before (`{{date-1w:…}}`).
+const WEEKLY = dated("{{date:GGGG-[W]ww}}", [
+  "# Week {{date:ww}}, {{date:GGGG}}",
+  "",
+  "Last week: [[{{date-1w:GGGG-[W]ww}}]]",
   "",
   "{{cursor}}",
   "",
@@ -41,8 +118,10 @@ const WEEKLY = dated("{{weekSheet}}", [
   "- ",
 ]);
 
-const MONTHLY = dated("{{monthSheet}}", [
-  "# {{monthName}} {{year}}",
+const MONTHLY = dated("{{date:YYYY-MM}}", [
+  "# {{date:MMMM YYYY}}",
+  "",
+  "Last month: [[{{date-1m:YYYY-MM}}]]",
   "",
   "{{cursor}}",
   "",
@@ -53,8 +132,8 @@ const MONTHLY = dated("{{monthSheet}}", [
   "- ",
 ]);
 
-const YEARLY = dated("{{yearSheet}}", [
-  "# {{year}}",
+const YEARLY = dated("{{date:YYYY}}", [
+  "# {{date:YYYY}}",
   "",
   "{{cursor}}",
   "",
@@ -135,10 +214,10 @@ export const BUILTIN_PACKS: BuiltinPack[] = [
     name: "Journal",
     description: "A page a day, plus weekly, monthly and yearly notes. Using one again opens the page you already started.",
     templates: [
-      { name: "Daily", description: "Today's page, in journal/<year>, named by date", body: DAILY },
+      { name: "Daily", description: "Today's page, named by date like 2026-10-12", body: DAILY },
       { name: "Weekly", description: "This week's note, named like 2026-W42", body: WEEKLY },
       { name: "Monthly", description: "This month's note, named like 2026-10", body: MONTHLY },
-      { name: "Yearly", description: "This year's note, named like 2026-year", body: YEARLY },
+      { name: "Yearly", description: "This year's note, named like 2026", body: YEARLY },
       { name: "Log entry", description: "One line starting with the time, to insert into any note", body: LOG_ENTRY },
     ],
   },
@@ -173,7 +252,7 @@ export const BUILTIN_PACKS: BuiltinPack[] = [
   },
 ];
 
-// Which of a pack's templates already exist in `<templates folder>/<pack>/`
+// Which of a pack's templates already exist in `templates/<pack>/`
 // (by file name, ignoring case), from the vault's indexed paths.
 export function packTemplatesInVault(pack: BuiltinPack, templatesFolder: string, paths: string[]): Set<string> {
   const existing = new Set(paths.map((path) => path.toLowerCase()));

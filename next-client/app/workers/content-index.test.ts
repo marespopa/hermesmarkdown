@@ -24,14 +24,14 @@ describe("ContentIndex", () => {
     expect(index.get("b.md")!.bodyStart).toBe(0);
   });
 
-  it("flags notes marked sensitive in frontmatter", () => {
+  it("flags notes marked private in frontmatter", () => {
     const index = new ContentIndex();
-    index.upsert("s.md", "s.md", "---\nsensitive: true\n---\nsecret", 1);
+    index.upsert("s.md", "s.md", "---\nprivate: true\n---\nsecret", 1);
     index.upsert("t.md", "t.md", "---\ntags: [private]\n---\nsecret", 1);
     index.upsert("p.md", "p.md", "plain #private", 1);
-    expect(index.get("s.md")!.sensitive).toBe(true);
-    expect(index.get("t.md")!.sensitive).toBe(true);
-    expect(index.get("p.md")!.sensitive).toBe(false);
+    expect(index.get("s.md")!.isPrivate).toBe(true);
+    expect(index.get("t.md")!.isPrivate).toBe(true);
+    expect(index.get("p.md")!.isPrivate).toBe(false);
   });
 
   it("ignores a copy older than the stored one", () => {

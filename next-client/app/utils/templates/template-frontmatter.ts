@@ -1,9 +1,10 @@
 import { FM_REGEX, parseFmFields, updateFmFields } from "@/app/utils/frontmatter-utils";
 
-// Routing keys a template's frontmatter may carry. They place notes created
-// by "New note from template…" and never reach the created note.
+// Routing keys a template's frontmatter may carry. `file_name` names notes
+// created by "New note from template…"; `target_folder` is no longer used (a
+// note goes in the folder it's created from) but is still kept out of
+// created notes. Neither reaches the created note.
 export interface TemplateRouting {
-  targetFolder?: string;
   fileName?: string;
 }
 
@@ -40,9 +41,6 @@ export function splitTemplate(raw: string): { routing: TemplateRouting; content:
 function splitRouting(raw: string): { routing: TemplateRouting; content: string } {
   const fields = parseFmFields(raw);
   const routing: TemplateRouting = {};
-  if (fields.target_folder !== undefined && stripQuotes(fields.target_folder)) {
-    routing.targetFolder = stripQuotes(fields.target_folder);
-  }
   if (fields.file_name !== undefined && stripQuotes(fields.file_name)) {
     routing.fileName = stripQuotes(fields.file_name);
   }
@@ -60,17 +58,4 @@ function splitRouting(raw: string): { routing: TemplateRouting; content: string 
 export function templateBody(content: string): string {
   const match = FM_REGEX.exec(content);
   return match ? dropLeadingBlankLines(content.slice(match[0].length)) : content;
-}
-
-// Sets (or, with null, removes) the template's `target_folder`, keeping the
-// rest of the text. Creates the frontmatter block when needed and drops it
-// when nothing is left in it.
-export function setTemplateTargetFolder(raw: string, folder: string | null): string {
-  const value = folder?.trim() || null;
-  const match = FM_REGEX.exec(raw);
-  if (!match) return value ? `---\ntarget_folder: ${value}\n---\n${raw}` : raw;
-  const updated = updateFmFields(raw, { target_folder: value });
-  const block = FM_REGEX.exec(updated);
-  if (block && !block[1].trim()) return dropLeadingBlankLines(updated.slice(block[0].length));
-  return updated;
 }

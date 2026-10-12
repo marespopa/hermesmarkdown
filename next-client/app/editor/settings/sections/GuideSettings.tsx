@@ -18,7 +18,8 @@ const ABOUT_LINKS = [
 
 const actionButtonClass = "h-8 px-4 text-ui-footnote font-medium";
 
-// Settings → Guide: Onboarding (tour), Help (shortcuts, docs), and About (version, links).
+// Settings → General, after the profile groups: Onboarding (tour), Help
+// (shortcuts, docs), and About (version, links).
 export default function GuideSettings() {
   const router = useRouter();
   const setIsWizardOpen = useSetAtom(atom_isWizardOpen);

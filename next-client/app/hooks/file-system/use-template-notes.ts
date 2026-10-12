@@ -61,7 +61,7 @@ export function useTemplateNotes() {
     { now = new Date(), titleFromFileName = false }: InstantiateOptions = {},
   ): Promise<InstantiatedTemplate | null> => {
     const { routing, content } = splitTemplate(raw);
-    const routingText = [routing.targetFolder ?? "", routing.fileName ?? ""].join("\n");
+    const routingText = routing.fileName ?? "";
     const labels = extractPromptLabels(`${content}\n${routingText}`);
     let prompts: Record<string, string> = {};
     if (labels.length > 0) {
@@ -79,7 +79,7 @@ export function useTemplateNotes() {
     const expandValue = (value: string | undefined) =>
       value === undefined ? undefined : expandTemplate(value, context).text;
     return {
-      routing: { targetFolder: expandValue(routing.targetFolder), fileName: expandValue(routing.fileName) },
+      routing: { fileName: expandValue(routing.fileName) },
       expanded: expandTemplate(content, context),
     };
   }, [askPrompts]);

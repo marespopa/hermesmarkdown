@@ -8,6 +8,7 @@ import { showErrorToast } from "@/app/components/Toastr";
 import { useFileSystem } from "@/app/hooks/use-file-system";
 import { useContentIndexSync } from "@/app/hooks/file-system/use-content-index-sync";
 import useIsMobileChrome from "@/app/hooks/use-mobile-chrome";
+import { useShowFiles } from "@/app/hooks/use-show-files";
 import { nextPaint } from "@/app/utils/next-paint";
 import { formatShortcut } from "@/app/utils/platform";
 import { EditorView } from "@codemirror/view";
@@ -48,17 +49,19 @@ export default function CommandPalette() {
   const [runningId, setRunningId] = useState<string | null>(null);
   const [contextRow, setContextRow] = useState<Row | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const explorerCommand = useMemo<Command>(() => ({
-    id: "open-explorer",
-    label: "Open Explorer",
+  // Registered here only, so it's on every route (useShowFiles).
+  const showFilesAction = useShowFiles();
+  const filesCommand = useMemo<Command>(() => ({
+    id: "show-files",
+    label: "Show Files",
     category: "Navigation",
     shortcut: formatShortcut("E", { shift: true }),
-    keywords: "files navigator tree browse",
-    action: () => router.push("/editor/files"),
-  }), [router]);
+    keywords: "files navigator tree browse explorer folders",
+    action: showFilesAction,
+  }), [showFilesAction]);
   const paletteCommands = useMemo(
-    () => [explorerCommand, ...commands.filter((command) => command.id !== explorerCommand.id)],
-    [commands, explorerCommand],
+    () => [filesCommand, ...commands.filter((command) => command.id !== filesCommand.id)],
+    [commands, filesCommand],
   );
 
   useEffect(() => {
@@ -190,12 +193,12 @@ export default function CommandPalette() {
     const recent = recentFilePaths.slice(0, 5).filter((path) => !pinnedKeys.has(`file:${path}`))
       .map((path) => resolvePinned({ kind: "file", id: path })).filter((row): row is Row => row !== null);
     const frequent = paletteCommands.slice().sort((a, b) => (commandUseCounts[b.id] ?? 0) - (commandUseCounts[a.id] ?? 0) || a.label.localeCompare(b.label))
-      .filter((command) => command.id !== explorerCommand.id && (commandUseCounts[command.id] ?? 0) > 0 && !pinnedKeys.has(`command:${command.id}`)).slice(0, 3)
+      .filter((command) => command.id !== filesCommand.id && (commandUseCounts[command.id] ?? 0) > 0 && !pinnedKeys.has(`command:${command.id}`)).slice(0, 3)
       .map((command) => resolvePinned({ kind: "command", id: command.id })).filter((row): row is Row => row !== null);
-    const explorer = resolvePinned({ kind: "command", id: explorerCommand.id });
-    const topActions = [explorer, ...frequent].filter((row): row is Row => row !== null && !pinnedKeys.has(pinnedKey({ kind: "command", id: row.id })));
+    const showFiles = resolvePinned({ kind: "command", id: filesCommand.id });
+    const topActions = [showFiles, ...frequent].filter((row): row is Row => row !== null && !pinnedKeys.has(pinnedKey({ kind: "command", id: row.id })));
     return [...pinned, ...recent, ...topActions].slice(0, MAX_VISIBLE_ROWS);
-  }, [commandUseCounts, contentSearch.rows, createRow, explorerCommand.id, fileRows, paletteCommands, pinnedItems, query, recentFilePaths, resolvePinned, scope, scopedRows]);
+  }, [commandUseCounts, contentSearch.rows, createRow, filesCommand.id, fileRows, paletteCommands, pinnedItems, query, recentFilePaths, resolvePinned, scope, scopedRows]);
 
   useEffect(() => setSelectedIndex(0), [query, scope]);
   useEffect(() => setSelectedIndex((index) => Math.min(index, Math.max(0, rows.length - 1))), [rows.length]);
