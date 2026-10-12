@@ -57,7 +57,7 @@ export const TEMPLATE_SKILL: ChatSkill = {
 
 const WEEKLY_REVIEW_SKILL_BUILTIN = [
   "Skill: weekly review of the user's worklog.",
-  "The WEEK DATA below is what the user's daily sheets say about the week: what got done, what is blocked, what is still open, and each day's sheet.",
+  "The WEEK DATA below is each of the week's daily sheets. Tasks are written - [ ] to do, - [/] in progress, - [!] on hold, - [x] done, - [-] cancelled.",
   "Write the review from that data only. Never invent work, numbers or dates. If the data is thin, say so in one line and keep the review short.",
   "",
   "Default shape (follow the user's wording when they ask for something else, like a status report for a manager or a short recap):",
@@ -66,7 +66,7 @@ const WEEKLY_REVIEW_SKILL_BUILTIN = [
   "## Carry over: the open tasks worth taking into next week, as task lines (- [ ] or - [/]) keeping their @due() and @priority().",
   "## Next week: 2 or 3 focus points that follow from the above.",
   "",
-  "Write it ready to paste into the weekly sheet's Notes section (below the rollup:end line). Don't repeat the full done list: the rollup above Notes already has it.",
+  "Write it ready to paste into the user's weekly sheet. Pick what matters; don't list every done task.",
 ].join("\n");
 
 export const WEEKLY_REVIEW_SKILL: ChatSkill = {

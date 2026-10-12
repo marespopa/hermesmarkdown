@@ -28,7 +28,6 @@ export const keyboardShortcutsItem: Subsection = {
             { label: "Cycle task status", shortcut: "CTRL/CMD+ENTER" },
             { label: "Open helper at cursor (link, date, diagram, image)", shortcut: "CTRL/CMD+SHIFT+ENTER" },
             { label: "AI Chat", shortcut: "CTRL+SHIFT+B" },
-            { label: "Voice input", shortcut: "CTRL+SHIFT+V" },
             { label: "Dismiss / close", shortcut: "ESCAPE" },
           ],
         },
@@ -37,7 +36,6 @@ export const keyboardShortcutsItem: Subsection = {
           rows: [
             { label: "Open Explorer", shortcut: "CTRL/CMD+SHIFT+E" },
             { label: "New file", shortcut: "CTRL+ALT+N" },
-            { label: "Quick jot to today's sheet", shortcut: "CTRL+ALT+J" },
             { label: "Close current tab", shortcut: "CTRL/CMD+ALT+W" },
             { label: "Select workspace tab", shortcut: "CTRL/CMD+1–9" },
             { label: "Hide / show toolbar", shortcut: "CTRL/CMD+ALT+T" },

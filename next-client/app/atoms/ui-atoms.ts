@@ -242,12 +242,7 @@ export const atom_homePins = atomWithStorage<Record<string, string[]>>("hermes_h
 // Where today's worklog sheet goes (`{{year}}` / `{{month}}` allowed; ""
 // = vault root). null until asked, on the first "Start today's sheet".
 export const atom_todayFolder = atomWithStorage<string | null>("hermes_today_folder", null);
-// Quick jot input: open flag and the text kept across an accidental close.
-export const atom_quickJot = atom<{ open: boolean; text: string }>({ open: false, text: "" });
-// Quick jots start with the local time (`- 14:20 …`).
-export const atom_jotTimePrefix = atomWithStorage<boolean>("hermes_jot_time_prefix", false);
 export const atom_homeTasksCollapsed = atomWithStorage<boolean>("hermes_home_tasks_collapsed", false);
-export const atom_repurposeWizardOpen = atom<boolean>(false);
 
 // Vault creation flow — transient, never persisted
 export type VaultCreationSubStep = "name-and-folder" | "installing";
@@ -262,8 +257,6 @@ export const atom_githubVaultDialogOpen = atom<boolean>(false);
 // Browser vault picker: create, reopen, or delete vaults kept in browser storage.
 export const atom_browserVaultDialogOpen = atom<boolean>(false);
 export const atom_keyboardShortcutsOpen = atom<boolean>(false);
-export const atom_workspaceBuilderRequest = atom<number>(0);
-export const atom_selectedWorkspaceId = atom<string | null>(null);
 export const atom_selectedFileTags = atom<string[]>([]);
 export const atom_showCommandPaletteFab = atomWithStorage<boolean>(
   "showCommandPaletteFab",
@@ -289,15 +282,6 @@ export const atom_taskView = atomWithStorage<TaskView>("tasksView", "now");
 // `column` (0-based, optional) places the caret within the line. Never
 // persisted — purely a one-shot navigation signal.
 export const atom_pendingScrollTarget = atom<{ path: string; line: number; column?: number } | null>(null);
-
-// When each rollup sheet's generated part was last rebuilt this session
-// (opened, refreshed), and the item lines that rebuild added; the editor
-// shows "updated 2 min ago" and briefly tints the new lines. Keyed by path.
-export interface RollupStatus {
-  at: number;
-  fresh: string[];
-}
-export const atom_rollupStatus = atom<Record<string, RollupStatus>>({});
 
 export type DialogType = "alert" | "confirm" | "prompt" | "select" | "new-file";
 
@@ -376,19 +360,8 @@ export const atom_isFileLoading = atom<boolean>(false);
 // scoped to the editor's textarea/value.
 export const atom_aiBuilderRequest = atom<number>(0);
 
-// Mirrors the shared voice-input hook state so any button can reflect
-// listening/support status without owning the recognition itself.
-export const atom_isVoiceInputListening = atom<boolean>(false);
-export const atom_isVoiceInputSupported = atom<boolean>(false);
-// Mirrors whether the voice preview panel is on screen (listening, or an
-// unconfirmed draft/interim transcript left over), so panes other than the
-// active one can dim themselves — a committed dictation always lands in the
-// active pane, and dimming the rest makes that unambiguous at a glance.
-export const atom_isVoicePreviewVisible = atom<boolean>(false);
-// The CM6 EditorView belonging to whichever pane is currently active. The
-// global voice-input hook inserts a committed dictation here, so "Insert"
-// always lands in the pane the user is looking at regardless of which pane
-// was active when dictation started.
+// The CM6 EditorView belonging to whichever pane is currently active: AI
+// actions and palette editor commands target it.
 export const atom_activeEditorView = atom<EditorView | null>(null);
 
 export type PalettePinnedItem =

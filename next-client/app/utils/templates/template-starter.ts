@@ -10,6 +10,8 @@ export interface TemplateStarter {
   suggestedName: string;
   description: string;
   body: string;
+  /** A few lines to insert into a note, not a page to start one from. */
+  snippet?: boolean;
 }
 
 const frontmatter = (fields: string[]) => (fields.length ? ["---", ...fields, "---"] : []);
@@ -96,9 +98,14 @@ const REPORT = [
   "",
 ].join("\n");
 
+// One timestamped line, inserted with /template wherever you are (for
+// example at the end of today's sheet): a log entry, not a page.
+const LOG_ENTRY = "- {{time}} {{cursor}}\n";
+
 export const TEMPLATE_STARTERS: TemplateStarter[] = [
   { name: "Basic", suggestedName: "", description: "Title, date, one prompt", body: TEMPLATE_STARTER },
   { name: "Journal", suggestedName: "Journal", description: "Today's date, free writing, grateful for", body: JOURNAL },
+  { name: "Log entry", suggestedName: "Log entry", description: "One line starting with the time, for your daily sheet", body: LOG_ENTRY, snippet: true },
   { name: "Meeting notes", suggestedName: "Meeting notes", description: "Agenda, decisions, action items", body: MEETING_NOTES },
   { name: "Spec", suggestedName: "Spec", description: "Author, status, summary, design", body: SPEC },
   { name: "Report", suggestedName: "Report", description: "Summary, findings, next steps", body: REPORT },

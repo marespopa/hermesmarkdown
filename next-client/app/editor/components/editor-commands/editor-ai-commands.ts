@@ -1,0 +1,137 @@
+import { undo, redo } from "@codemirror/commands";
+import {
+  cycleTaskStatusOnCurrentLine,
+  indentCurrentSubtree,
+  outdentCurrentSubtree,
+  setTaskStatusOnCurrentLine,
+  toggleBold,
+  toggleCheckboxOnLine,
+  toggleInlineCode,
+  toggleItalic,
+  toggleStrikethrough,
+} from "../../codemirror/commands";
+import { setHeading, toggleCodeBlock, wrapAsLink } from "../../codemirror/format-shortcuts";
+import { openSearchPanel } from "@codemirror/search";
+import type { Command } from "@/app/components/CommandPalette/CommandPaletteContext";
+import { formatShortcut } from "@/app/utils/platform";
+import { TEMPLATES } from "../constants";
+import type { EditorCommandContext } from "./use-editor-command-context";
+
+export function buildEditorAiCommandGroups(context: EditorCommandContext) {
+  const {
+    activeEditorView,
+    isAiConfigured,
+    onRunAIAction,
+    runEditorCommand,
+    setAiBuilderRequest,
+  } = context;
+
+  const aiEntryPoints: Command[] = [
+    ...(isAiConfigured
+      ? [{
+          id: "ai-builder",
+          label: "Open AI Chat",
+          shortcut: formatShortcut("B", { shift: true }),
+          keywords: "ai chat generate create revise section ask",
+          action: () => setAiBuilderRequest((value) => value + 1),
+        }]
+      : []),
+  ];
+
+  const focusAndHistory: Command[] = [
+    {
+      id: "focus-editor",
+      label: "Focus editor",
+      keywords: "writing surface",
+      disabledReason: activeEditorView ? undefined : "Open a note first",
+      action: () => activeEditorView?.focus(),
+    },
+    ...(activeEditorView
+      ? [{
+          id: "undo-edit",
+          label: "Undo",
+          keywords: "undo revert history",
+          action: () => undo(activeEditorView),
+        }]
+      : []),
+    ...(activeEditorView
+      ? [{
+          id: "redo-edit",
+          label: "Redo",
+          keywords: "redo history",
+          action: () => redo(activeEditorView),
+        }]
+      : []),
+  ];
+
+  const editor: Command[] = [
+    { id: "format-bold", label: "Format: Bold", category: "Editor" as const, shortcut: formatShortcut("B"), keywords: "strong markdown", action: () => runEditorCommand(toggleBold) },
+    { id: "format-italic", label: "Format: Italic", category: "Editor" as const, shortcut: formatShortcut("I"), keywords: "emphasis markdown", action: () => runEditorCommand(toggleItalic) },
+    { id: "format-strikethrough", label: "Format: Strikethrough", category: "Editor" as const, shortcut: formatShortcut("X", { shift: true }), keywords: "delete markdown", action: () => runEditorCommand(toggleStrikethrough) },
+    { id: "format-inline-code", label: "Format: Inline code", category: "Editor" as const, shortcut: formatShortcut("E"), keywords: "code markdown", action: () => runEditorCommand(toggleInlineCode) },
+    ...[1, 2, 3, 4, 5, 6].map((level) => ({ id: `format-heading-${level}`, label: `Format: Heading ${level}`, category: "Editor" as const, shortcut: formatShortcut(String(level), { alt: true }), keywords: `h${level} title markdown`, action: () => runEditorCommand(setHeading(level)) })),
+    { id: "format-link", label: "Format: Link", category: "Editor" as const, shortcut: formatShortcut("L", { shift: true }), keywords: "url href markdown", action: () => runEditorCommand(wrapAsLink) },
+    { id: "format-code-block", label: "Format: Code block", category: "Editor" as const, shortcut: formatShortcut("C", { alt: true }), keywords: "fence snippet markdown", action: () => runEditorCommand(toggleCodeBlock) },
+    { id: "find-in-note", label: "Find and replace in note", category: "Editor" as const, shortcut: formatShortcut("F"), keywords: "search replace regex", action: () => runEditorCommand(openSearchPanel) },
+    { id: "indent-subtree", label: "Indent current item", category: "Editor" as const, keywords: "nest list task", action: () => runEditorCommand(indentCurrentSubtree) },
+    { id: "outdent-subtree", label: "Outdent current item", category: "Editor" as const, keywords: "unnest list task", action: () => runEditorCommand(outdentCurrentSubtree) },
+    { id: "toggle-checkbox", label: "Toggle checkbox", category: "Tasks" as const, keywords: "task done todo", action: () => runEditorCommand(toggleCheckboxOnLine) },
+    { id: "cycle-task-status", label: "Cycle task status", category: "Tasks" as const, shortcut: formatShortcut("Enter"), keywords: "todo progress done", action: () => runEditorCommand(cycleTaskStatusOnCurrentLine) },
+    { id: "task-status-prog", label: "Task: Start", category: "Tasks" as const, keywords: "in progress doing [/]", action: () => runEditorCommand(setTaskStatusOnCurrentLine("prog")) },
+    { id: "task-status-hold", label: "Task: Put on hold", category: "Tasks" as const, keywords: "blocked waiting pause [!]", action: () => runEditorCommand(setTaskStatusOnCurrentLine("hold")) },
+    { id: "task-status-cancelled", label: "Task: Cancel", category: "Tasks" as const, keywords: "drop won't do [-]", action: () => runEditorCommand(setTaskStatusOnCurrentLine("cancelled")) },
+    { id: "task-status-todo", label: "Task: Reset to To Do", category: "Tasks" as const, keywords: "reopen open [ ]", action: () => runEditorCommand(setTaskStatusOnCurrentLine("todo")) },
+  ].map((command) => ({
+    ...command,
+    disabledReason: activeEditorView ? undefined : "Open and focus a note first",
+  }));
+
+  // The vault Template and Template field entries are slash-menu only (they
+  // need the editor's template picker / a template note); "New note from
+  // template…" covers the palette.
+  const templates: Command[] = TEMPLATES
+    .filter((template) => !template.aiOnly && !template.vaultOnly && !template.templateOnly && !template.saveTemplateOnly)
+    .map((template) => ({
+      id: `insert-${template.label.toLowerCase().replace(/\s+/g, "-")}`,
+      label: `Insert: ${template.label}`,
+      description: template.description,
+      category: "Editor",
+      keywords: `template markdown ${template.label}`,
+      disabledReason: activeEditorView ? undefined : "Open and focus a note first",
+      action: () => {
+        document.dispatchEvent(new CustomEvent("hermes:insert-template", {
+          detail: { label: template.label },
+        }));
+      },
+    }));
+
+  const aiActions: Command[] = [
+    ["improve", "AI: Improve writing"],
+    ["expand", "AI: Expand selection"],
+    ["fix-grammar", "AI: Fix spelling and grammar"],
+    ["shorten", "AI: Shorten selection"],
+    ["tone-formal", "AI: Change tone to formal"],
+    ["tone-casual", "AI: Change tone to casual"],
+    ["tone-direct", "AI: Change tone to direct"],
+    ["tone-polished", "AI: Change tone to polished"],
+    ["summarize", "AI: Summarize selection"],
+    ["extract-tasks", "AI: Extract tasks"],
+    ["outline", "AI: Create outline"],
+    ["title", "AI: Generate title"],
+    ["continue", "AI: Continue writing"],
+    ["explain", "AI: Explain selection"],
+  ].map(([id, label]) => ({
+    id: `ai-${id}`,
+    label,
+    category: "AI",
+    keywords: "assistant rewrite selection document",
+    disabledReason: !isAiConfigured
+      ? "Configure an AI provider in Settings"
+      : !activeEditorView
+        ? "Open and focus a note first"
+        : undefined,
+    action: () => onRunAIAction(id),
+  }));
+
+  return { aiEntryPoints, focusAndHistory, editor, templates, aiActions };
+}

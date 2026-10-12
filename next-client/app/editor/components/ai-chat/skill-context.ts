@@ -1,8 +1,6 @@
 import type { FileMetadata } from "@/app/atoms/metadata";
 import { isSensitiveFrontmatter } from "@/app/utils/note-privacy";
-import { collectRollup, type CollectOptions } from "@/app/utils/rollup/collect";
-import type { RollupPeriod } from "@/app/utils/rollup/period";
-import { renderGeneratedBody } from "@/app/utils/rollup/render";
+import type { Period } from "@/app/utils/periods/period";
 import { localISODate } from "@/app/utils/task-line";
 import { isOpenStatus, TASK_STATUS_CHAR, TASK_STATUS_LABEL } from "@/app/utils/task-status";
 import type { TaskItem } from "@/app/utils/taskExtractor";
@@ -31,16 +29,11 @@ export function reviewWeekOffset(asking: string | undefined): 0 | -1 {
 const privateNote = (count: number, what: string) =>
   count ? `\n(${count} private ${what}${count === 1 ? "" : "s"} left out.)` : "";
 
-// The week's rollup (done, blocked, still open; `options` adds tasks done in
-// other notes, as the rollup sheet does) and each day's sheet.
-export function weekDataBlock(
-  period: RollupPeriod,
-  sheets: { date: string; text: string; sensitive?: boolean }[],
-  options: CollectOptions = {},
-): string {
+// Each day's sheet of the week, oldest first, up to WEEK_DAYS_CHAR_LIMIT.
+export function weekDataBlock(period: Period, sheets: { date: string; text: string; sensitive?: boolean }[]): string {
   const kept = sheets.filter((sheet) => !sheet.sensitive);
   const left = sheets.length - kept.length;
-  if (!kept.length && !options.doneElsewhere?.length) {
+  if (!kept.length) {
     return `--- WEEK DATA: ${period.heading} (${period.name}) ---\nNo daily sheets for this week.${privateNote(left, "daily sheet")}\n--- END WEEK DATA ---`;
   }
   const days: string[] = [];
@@ -53,10 +46,8 @@ export function weekDataBlock(
     days.push(`### [[${sheet.date}]]\n${text.trim()}`);
   }
   return `--- WEEK DATA: ${period.heading} (${period.name}) ---
-${renderGeneratedBody(period, collectRollup(kept, options))}
-
 ## Daily sheets
-${days.length ? days.join("\n\n") : "None."}${privateNote(left, "daily sheet")}
+${days.join("\n\n")}${privateNote(left, "daily sheet")}
 --- END WEEK DATA ---`;
 }
 

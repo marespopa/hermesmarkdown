@@ -369,7 +369,7 @@ describe("MarkdownEditor", () => {
     await waitFor(() => expect(container.querySelector(".cm-content")?.textContent).toContain("second"));
   });
 
-  it("keeps the selection in place when a line is appended from outside (Quick jot)", async () => {
+  it("keeps the selection in place when a line is appended from outside (AI Chat's add to today)", async () => {
     const { container, rerender } = renderEditor("# Day\nnotes\n");
     await waitForEditor(container);
     const view = getView(container);

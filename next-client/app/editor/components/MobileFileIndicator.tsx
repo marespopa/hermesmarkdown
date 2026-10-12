@@ -10,7 +10,7 @@ import {
   atom_saveStatus,
   findLeaf,
 } from "@/app/atoms/atoms";
-import { HiOutlineChevronDown, HiOutlineChatAlt2, HiOutlineHome, HiOutlinePencilAlt } from "react-icons/hi";
+import { HiOutlineChevronDown, HiOutlineChatAlt2, HiOutlineHome } from "react-icons/hi";
 import { useCommandPalette } from "@/app/components/CommandPalette/CommandPaletteContext";
 import { SaveStateIcon, TabSaveState, statusMeta } from "./PaneTab";
 import Button from "@/app/components/Button";
@@ -18,8 +18,6 @@ import Button from "@/app/components/Button";
 interface MobileFileIndicatorProps {
   onSave: () => void;
   onOpenAIChat?: () => void;
-  /** Opens Quick jot (top right); only with a vault. */
-  onQuickJot?: () => void;
 }
 
 // Tapping the title always opens the command palette — command-palette-first
@@ -27,7 +25,7 @@ interface MobileFileIndicatorProps {
 // always-present tap target for it (see EditorCommands.tsx /
 // plans/hermes-design.md "Icon Rail"). Switching between already-open tabs
 // happens by picking the file again in the palette.
-export default function MobileFileIndicator({ onSave, onOpenAIChat, onQuickJot }: MobileFileIndicatorProps) {
+export default function MobileFileIndicator({ onSave, onOpenAIChat }: MobileFileIndicatorProps) {
   const workspaceLayout = useAtomValue(atom_workspaceLayout);
   const activePaneId = useAtomValue(atom_activePaneId);
   const openFiles = useAtomValue(atom_openFiles);
@@ -103,16 +101,6 @@ export default function MobileFileIndicator({ onSave, onOpenAIChat, onQuickJot }
         <span className="truncate">{label}</span>
         <HiOutlineChevronDown size={12} className="shrink-0" />
       </Button>
-      {onQuickJot && (
-        <Button variant="unstyled"
-          onClick={onQuickJot}
-          aria-label="Quick jot"
-          title="Quick jot"
-          className="flex items-center justify-center h-11 min-w-11 shrink-0 text-fg-faint hover:text-sage transition-colors"
-        >
-          <HiOutlinePencilAlt size={18} />
-        </Button>
-      )}
     </div>
   );
 }

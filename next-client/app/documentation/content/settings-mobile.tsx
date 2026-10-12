@@ -38,14 +38,13 @@ export const settingsGroup: Group = {
       id: "vault-home-settings",
       title: "New notes & templates",
       lead: "Choose where new notes go and where templates live.",
-      keywords: "new notes folder daily sheets folder journal today weekly monthly rollup templates folder settings vault",
+      keywords: "new notes folder daily sheets folder journal today weekly monthly templates folder settings vault",
       body: (
         <>
           <KV
             rows={[
               { label: "New Notes Folder", value: "Empty = vault root, or a folder like inbox" },
               { label: "Daily Sheets Folder", value: "Where Today's sheet and the weekly and monthly sheets go, e.g. journal/{{year}}" },
-              { label: "Time on Quick Jots", value: "Start each quick jot with the time, like - 14:20 …" },
               { label: "Templates Folder", value: "Per vault. Empty = templates, _templates or Templates" },
             ]}
           />
@@ -163,7 +162,6 @@ export const mobileGroup: Group = {
           <KV
             rows={[
               { label: "Explorer", value: "Full-screen file-management view" },
-              { label: "Smart Workspaces", value: "Views tab in the file overlay" },
               { label: "Selection toolbar", value: "Bold, Italic, Link only" },
               { label: "Vaults", value: "Browser vaults on iPhone/iPad; see Vaults on phones and tablets" },
             ]}
@@ -171,7 +169,7 @@ export const mobileGroup: Group = {
           <p>
             Selecting text shows the same toolbar on both: Turn into (text, headings, lists, quote), Bold, Italic, Link, and Ask AI
             when AI is set up. On desktop it sits above the selection; on mobile it sits at the bottom
-            of the screen, above the keyboard, clear of the phone&apos;s own Copy/Paste bar. AI Chat and Repurpose Note are also in the
+            of the screen, above the keyboard, clear of the phone&apos;s own Copy/Paste bar. AI Chat is also in the
             command palette.
           </p>
         </>

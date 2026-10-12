@@ -7,7 +7,6 @@ import Button from "@/app/components/Button";
 import Typeahead from "@/app/components/Typeahead/Typeahead";
 import DatePickerCallout from "../DatePickerCallout";
 import { LinkPill } from "../LinkPill";
-import { WorkflowPill } from "../WorkflowPill";
 import { PILL_CONTAINER_CLASSES } from "../constants";
 import type { useCodeMirrorFeatures } from "../../hooks/use-codemirror-features";
 import type { useCodeMirrorCodeLanguagePicker } from "../../hooks/use-codemirror-code-language-picker";
@@ -23,14 +22,13 @@ interface EditorPillsProps {
 }
 
 // The floating helpers drawn over the editor next to the caret: date picker,
-// link pill, workflow status pill, the image viewer button, and the
+// link pill, the image viewer button, and the
 // code-block language picker. Positions come from the CodeMirror feature
 // hooks; this component only renders them.
 export default function EditorPills({ features, languagePicker, image, containerRef, onWikiLinkClick }: EditorPillsProps) {
   const {
     pillUrl, pillLabel, pillPos, pillType, dismissPill, handleSaveLink,
     dateMatch, isDateExpanded, setIsDateExpanded, dateMenuPos, handleDateSelect,
-    workflowMatch, workflowMenuPos, handleWorkflowCycle,
   } = features;
   const { languagePickerInfo, pickerPos, query, pickerRef, changeQuery, selectLanguage, deactivate } = languagePicker;
 
@@ -84,15 +82,6 @@ export default function EditorPills({ features, languagePicker, image, container
         />
       )}
 
-      {workflowMatch && (
-        <WorkflowPill
-          tag={workflowMatch.tag}
-          pos={workflowMenuPos}
-          onPrev={() => handleWorkflowCycle("prev")}
-          onNext={() => handleWorkflowCycle("next")}
-          noHash={workflowMatch.isFmStatus}
-        />
-      )}
 
       {languagePickerInfo && (
         <div

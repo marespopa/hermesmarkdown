@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { FileMetadata } from "@/app/atoms/metadata";
-import { weekPeriod } from "@/app/utils/rollup/period";
+import { weekPeriod } from "@/app/utils/periods/period";
 import { extractTasks } from "@/app/utils/taskExtractor";
 import { openTasksBlock, OPEN_TASKS_LIMIT, reviewWeekOffset, todayLine, weekDataBlock } from "./skill-context";
 
@@ -29,7 +29,7 @@ describe("todayLine and reviewWeekOffset", () => {
 describe("weekDataBlock", () => {
   const period = weekPeriod(NOW);
 
-  it("sends the week's rollup and its days, leaving private sheets out", () => {
+  it("sends the week's days oldest first, leaving private sheets out", () => {
     const block = weekDataBlock(period, [
       { date: "2026-10-13", text: "- [ ] Draft roadmap\nReviewed the onboarding flow." },
       { date: "2026-10-12", text: "- [x] Ship billing export #feature" },

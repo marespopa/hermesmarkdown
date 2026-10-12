@@ -1,7 +1,6 @@
 import { Callout, KV, type Group } from "../doc-primitives";
 import { keyboardShortcutsItem } from "./keyboard-shortcuts";
-import { quickJotItem } from "./quick-jot";
-import { rollupsItem } from "./rollups";
+import { periodicSheetsItem } from "./periodic-sheets";
 
 // Documentation content: Get Started group.
 export const getStartedGroup: Group = {
@@ -189,25 +188,24 @@ export const getStartedGroup: Group = {
       id: "home-feed",
       title: "Home feed",
       lead: "Your recent notes, newest first. It's where a vault opens.",
-      keywords: "home feed vim keys keyboard j k gg recent notes pin pinned unpin start screen today yesterday preview search create new note welcome tags tag filter chips no vault open vault create vault browser vault open file daily sheet worklog journal open tasks todo stats",
+      keywords: "home feed vim keys keyboard j k gg recent notes pin pinned unpin start screen today yesterday preview search create new note welcome no vault open vault create vault browser vault open file daily sheet worklog journal open tasks todo",
       body: (
         <>
           <p>
-            Under the date, a faint line counts your notes, the ones you changed today and your
-            open tasks. The first note under <em>Today</em> is always today&apos;s sheet, a note
+            The first note under <em>Today</em> is always today&apos;s sheet, a note
             named after the date (like <code>2026-10-09.md</code>), marked with a small dot. Until
             you write it, that row reads <strong>Start today&apos;s sheet</strong>. The first time, you choose its folder: <code>journal/{"{{year}}"}</code> keeps one
             folder per year, and <code>{"{{month}}"}</code> works too. Change it later in Settings
             → Files → <strong>Daily Sheets Folder</strong>. If you have a template named Journal or
             Daily, new sheets use it. Press <code>t</code>, or run <strong>Today&apos;s sheet</strong>{" "}
-            from the command palette, to get there from the keyboard. To add a line without
-            leaving the note you&apos;re in, use{" "}
-            <a href="#quick-jot" className="text-accent hover:underline">Quick jot</a>.
+            from the command palette, to get there from the keyboard, or type{" "}
+            <code>/daily</code> in any note. For a timestamped line, make a template from the{" "}
+            <strong>Log entry</strong> starter and insert it with <code>/template</code>.
           </p>
           <p>
             <strong>Tasks</strong> lists the unchecked <code>- [ ]</code> tasks from notes you
             changed in the last 7 days. Click one to open its note with the cursor on that task.
-            Click the count to fold the list; it stays folded. Tasks from sensitive notes aren&apos;t
+            Click <strong>N open tasks</strong> to fold the list; it stays folded. Tasks from sensitive notes aren&apos;t
             listed.
           </p>
           <p>
@@ -223,12 +221,6 @@ export const getStartedGroup: Group = {
             from the command palette. Pinned notes sit under{" "}
             <em>Pinned</em> above the days, newest pin first. Click the pin again, or run{" "}
             <strong>Unpin from Home</strong>, to put the note back. Each vault keeps its own pins.
-          </p>
-          <p>
-            Under the date, your most used tags show as chips. Tap one to see only the notes with
-            that tag; tap more to narrow it to notes that have all of them. <strong>+N</strong>{" "}
-            shows the rest of your tags, and <strong>Clear</strong> brings every note back. Tags
-            from sensitive notes aren&apos;t listed.
           </p>
           <p>
             The feed works from the keyboard, Vim-style, as soon as it opens: <code>j</code> and{" "}
@@ -285,8 +277,7 @@ export const getStartedGroup: Group = {
         </>
       ),
     },
-    quickJotItem,
-    rollupsItem,
+    periodicSheetsItem,
     {
       id: "editor-layout",
       title: "Editor layout",
@@ -337,14 +328,9 @@ export const getStartedGroup: Group = {
               { label: "Commands on or off", value: "The > button in the search field" },
               { label: "Explorer controls", value: "Refresh, new note, new folder, and file actions" },
               { label: "AI Chat", value: "CTRL+SHIFT+B" },
-              { label: "Voice input", value: "CTRL+SHIFT+V" },
               { label: "Keyboard shortcuts", value: "Show keyboard shortcuts command" },
             ]}
           />
-          <p>
-            On phones, the file overlay also has a <strong>Views</strong> tab with Smart Workspaces:
-            saved, rule-based filters over your notes&apos; tags and frontmatter.
-          </p>
           <p>
             Open several files side by side: choose <strong>Split Right</strong> from the toolbar&apos;s More menu or run <strong>Split pane right</strong> from the command palette (or <strong>Open in pane</strong> on a tab),
             drag tabs between panes, and resize with the divider.

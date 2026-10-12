@@ -85,8 +85,8 @@ export default function AIChatDialog({
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isLoading]);
 
-  // Voice-dictated text bypasses the textarea's own onChange, so the
-  // auto-resize it normally does on keystroke has to be reproduced here too.
+  // Text set from outside (a skill chip, a cleared send) bypasses the
+  // textarea's own onChange, so its auto-resize is reproduced here too.
   useEffect(() => {
     if (inputRef.current) {
       inputRef.current.style.height = "auto";

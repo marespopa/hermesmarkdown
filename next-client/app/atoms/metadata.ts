@@ -1,6 +1,4 @@
 import { atom } from "jotai";
-import { atomWithStorage } from "jotai/utils";
-import { WorkspaceQuery } from "../utils/queryEngine";
 import { TaskItem } from "../utils/taskExtractor";
 
 export interface FileMetadata {
@@ -19,14 +17,3 @@ export interface FileMetadata {
 
 export const atom_fileMetadata = atom<Record<string, FileMetadata>>({});
 
-export interface CustomWorkspace {
-  id: string;
-  name: string;
-  icon: string; // Lucide or Heroicon identifier
-  query: WorkspaceQuery;
-}
-
-export const atom_customWorkspaces = atomWithStorage<CustomWorkspace[]>(
-  "customWorkspaces",
-  [],
-);

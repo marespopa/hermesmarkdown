@@ -27,6 +27,14 @@ const TOKEN_LABELS: Record<TemplateToken, string> = {
   monthNameShort: "Short month name",
   week: "Week number",
   quarter: "Quarter",
+  weekSheet: "This week's sheet",
+  monthSheet: "This month's sheet",
+  quarterSheet: "This quarter's sheet",
+  yearSheet: "This year's sheet",
+  period: "Sheet name",
+  periodHeading: "Sheet heading",
+  previousPeriod: "Previous sheet",
+  nextPeriod: "Next sheet",
   title: "Note title",
   slug: "Title as file name",
   clipboard: "Clipboard",
@@ -59,7 +67,10 @@ export function fieldLabel(token: string): string | null {
   if (!isValidToken(trimmed)) return null;
   const { name, offset, format } = parseTemplateToken(trimmed)!;
   let label = TOKEN_LABELS[name as TemplateToken];
-  if (offset) {
+  if (offset && name !== "date") {
+    const { amount, unit } = offset;
+    label = `${label} ${amount > 0 ? "+" : "−"}${Math.abs(amount)} ${UNIT_NAMES[unit]}${Math.abs(amount) === 1 ? "" : "s"}`;
+  } else if (offset) {
     const { amount, unit } = offset;
     label = amount === 1 && unit === "d" ? "Tomorrow's date"
       : amount === -1 && unit === "d" ? "Yesterday's date"

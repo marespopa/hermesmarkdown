@@ -36,7 +36,6 @@ import {
   atom_keyboardShortcutsOpen,
   atom_lineNumbers,
   atom_newVaultFlowOpen,
-  atom_repurposeWizardOpen,
   atom_showHiddenFiles,
   atom_tasksGroupBy,
   atom_taskView,
@@ -63,14 +62,7 @@ export type EditorCommandsProps = {
   onOpenDocumentation: () => void;
   onRefreshVault?: () => void;
   onImport: () => void;
-  onNewAIFile: () => void;
   onRunAIAction: (id: string) => void;
-  isVoiceSupported?: boolean;
-  isVoiceListening?: boolean;
-  onToggleVoice?: () => void;
-  onCommitVoice?: () => void;
-  onDiscardVoice?: () => void;
-  hasVoicePreview?: boolean;
 };
 
 export function useEditorCommandContext(props: EditorCommandsProps) {
@@ -106,7 +98,6 @@ export function useEditorCommandContext(props: EditorCommandsProps) {
     rawTheme === "system" ? "light" : rawTheme === "light" ? "dark" : "system";
   const [showHiddenFiles, setShowHiddenFiles] = useAtom(atom_showHiddenFiles);
   const [, setAiBuilderRequest] = useAtom(atom_aiBuilderRequest);
-  const [, setRepurposeWizardOpen] = useAtom(atom_repurposeWizardOpen);
   const isAiConfigured = useAtomValue(atom_isAiConfigured);
   const content = useAtomValue(atom_content);
   const workspaceLayout = useAtomValue(atom_workspaceLayout);
@@ -175,7 +166,6 @@ export function useEditorCommandContext(props: EditorCommandsProps) {
     showHiddenFiles,
     setShowHiddenFiles,
     setAiBuilderRequest,
-    setRepurposeWizardOpen,
     isAiConfigured,
     content,
     workspaceLayout,

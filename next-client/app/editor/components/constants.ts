@@ -9,18 +9,6 @@ export const TAG_COLORS: Record<string, string> = {
   active:   "text-emerald-600 dark:text-emerald-400",
   archived: "text-ink-muted dark:text-stone",
 };
-export const TAG_CYCLE: Record<string, string> = {
-  draft:    "review",
-  review:   "active",
-  active:   "archived",
-  archived: "draft",
-};
-export const TAG_CYCLE_PREV: Record<string, string> = {
-  draft:    "archived",
-  review:   "draft",
-  active:   "review",
-  archived: "active",
-};
 
 export const SHORTCODES: Record<string, () => string> = {
   // --- Absolute Dates ---
@@ -106,7 +94,6 @@ export const MARK_SENSITIVE_SENTINEL = "__MARK_SENSITIVE__";
 export const MARK_PRIVATE_SENTINEL = "__MARK_PRIVATE__";
 export const MARK_PUBLIC_SENTINEL = "__MARK_PUBLIC__";
 export const DAILY_SHEET_SENTINEL = "__OPEN_DAILY_SHEET__";
-export const JOT_SENTINEL = "__JOT_TO_DAILY_SHEET__";
 export const AI_ACTION_SENTINEL_PREFIX = "__AI_ACTION__:";
 export const aiActionSentinel = (id: string) => `${AI_ACTION_SENTINEL_PREFIX}${id}`;
 export const CURSOR_SENTINEL = "\0";
@@ -128,7 +115,7 @@ export interface Template {
   templateOnly?: boolean;
   /** Only shown when the note can be saved as a template (onSaveAsTemplate). */
   saveTemplateOnly?: boolean;
-  /** Only shown with a vault, where today's sheet exists (onOpenDailySheet / onJot). */
+  /** Only shown with a vault, where today's sheet exists (onOpenDailySheet). */
   worklogOnly?: boolean;
 }
 
@@ -156,13 +143,6 @@ export const TEMPLATES: Template[] = [
     icon: "📆",
     description: "Open today's sheet",
     content: DAILY_SHEET_SENTINEL,
-    worklogOnly: true,
-  },
-  {
-    label: "Jot",
-    icon: "↳",
-    description: "Add this line to today's sheet (on an empty line: Quick jot)",
-    content: JOT_SENTINEL,
     worklogOnly: true,
   },
   // --- Structure ---

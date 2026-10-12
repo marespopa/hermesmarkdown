@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
 import { CALLOUT_META } from "@/app/editor/constants/callouts";
-import { ROLLUP_END, ROLLUP_START } from "@/app/utils/rollup/render";
 import { parseSheetName } from "@/app/utils/sheet-nav";
 import { TASK_STATUSES, TASK_STATUS_CHAR } from "@/app/utils/task-status";
 import { extractTasks } from "@/app/utils/taskExtractor";
@@ -29,9 +28,7 @@ describe("HermesMarkdown syntax guide", () => {
     }
   });
 
-  it("quotes the real rollup markers and callout types", () => {
-    expect(HERMES_SYNTAX_GUIDE).toContain(ROLLUP_START);
-    expect(HERMES_SYNTAX_GUIDE).toContain(ROLLUP_END);
+  it("lists the real callout types", () => {
     for (const type of Object.keys(CALLOUT_META)) expect(HERMES_SYNTAX_GUIDE).toContain(type);
   });
 

@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   suggestTemplateName,
   matchTemplateForName,
+  matchPeriodTemplate,
   isTemplatePath,
   listTemplates,
   matchTemplateForFolder,
@@ -161,5 +162,22 @@ describe("matchTemplateForName", () => {
     expect(match("Groceries")).toBeNull();
     expect(match("my meeting")).toBeNull();
     expect(matchTemplateForName("x", [])).toBeNull();
+  });
+});
+
+describe("matchPeriodTemplate", () => {
+  const entry = (name: string) => ({ name, path: `templates/${name}.md` });
+  const templates = ["Daily", "Weekly review", "Monthly", "Q-plan", "Annual"].map(entry);
+
+  it("finds the template for each level by name, ignoring case", () => {
+    expect(matchPeriodTemplate("week", templates)?.name).toBe("Weekly review");
+    expect(matchPeriodTemplate("month", templates)?.name).toBe("Monthly");
+    expect(matchPeriodTemplate("year", templates)?.name).toBe("Annual");
+    expect(matchPeriodTemplate("week", [entry("weekly")])?.name).toBe("weekly");
+  });
+
+  it("is null when there's no template for the level", () => {
+    expect(matchPeriodTemplate("quarter", templates)).toBeNull();
+    expect(matchPeriodTemplate("week", [entry("Weekly standup agenda")])).toBeNull();
   });
 });

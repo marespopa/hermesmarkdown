@@ -7,7 +7,6 @@ import { atom_activeFilePath } from "@/app/atoms/atoms";
 import { useFileSystem } from "@/app/hooks/use-file-system";
 import { useDialog } from "@/app/hooks/use-dialog";
 import { useVaultFileSearch } from "../hooks/useVaultFileSearch";
-import SmartFolders from "./SmartFolders";
 import VaultFileTree from "./VaultFileTree";
 import type { VaultFileTreeController } from "./vault-tree/tree-model";
 import VaultEmptyState from "./VaultEmptyState";
@@ -54,7 +53,6 @@ export default function MobileFileOverlay({
   const [showHiddenFiles, setShowHiddenFiles] = useAtom(atom_showHiddenFiles);
   const userName = useAtomValue(atom_userName);
   const [selectedTags, setSelectedTags] = useAtom(atom_selectedFileTags);
-  const [activeTab, setActiveTab] = useState<"files" | "views">("files");
   const { searchQuery, setSearchQuery, processedFiles, totalResultsCount, hasMoreResults, setShowAllResults, allFiles, folderPaths, tags } =
     useVaultFileSearch({ selectedTags, panel: "search" });
   const isSearching = searchQuery.trim().length > 0 || selectedTags.length > 0;
@@ -191,23 +189,6 @@ export default function MobileFileOverlay({
             onTextChange={setSearchQuery}
           />
         </div>
-        {!isSearching && (
-          <div className="flex border-b border-edge-subtle shrink-0">
-            {(["files", "views"] as const).map((tab) => (
-              <Button variant="unstyled"
-                key={tab}
-                onClick={() => setActiveTab(tab)}
-                className={`flex-1 py-2 text-ui-footnote text-center capitalize border-b-2 transition-colors ${
-                  activeTab === tab
-                    ? "text-accent font-medium border-accent"
-                    : "text-fg-faint hover:text-fg-muted border-transparent"
-                }`}
-              >
-                {tab}
-              </Button>
-            ))}
-          </div>
-        )}
         <div className="flex-1 overflow-y-auto">
           {isSearching ? (
             <div className="flex flex-col h-full">
@@ -231,17 +212,6 @@ export default function MobileFileOverlay({
                 </Button>
               )}
             </div>
-          ) : activeTab === "views" ? (
-            <SmartFolders
-              onFileSelect={(handle, path) => {
-                openFile(handle, path);
-                onClose();
-              }}
-              renameFile={renameFile}
-              deleteFile={deleteFile}
-              duplicateFile={duplicateFile}
-              onMatchCountChange={() => {}}
-            />
           ) : (
             <VaultFileTree
               processedFiles={allFiles}

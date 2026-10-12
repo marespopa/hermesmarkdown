@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback, type CSSProperties } from "react";
 import ConflictDialog from "./components/ConflictDialog";
-import { useAtomValue, useSetAtom } from "jotai";
+import { useAtomValue } from "jotai";
 import { atom_fileName, atom_content, atom_activeFilePath, atom_workspaceLayout, atom_activePaneId, atom_isFileLoading, atom_isVaultRestoring, findLeaf, getFirstLeaf } from "@/app/atoms/atoms";
 import useIsMobileChrome from "@/app/hooks/use-mobile-chrome";
 import WelcomeWizard from "./components/WelcomeWizard";
@@ -23,26 +23,22 @@ import { useFileSystem } from "@/app/hooks/use-file-system";
 import { useFileWatcher } from "@/app/hooks/use-file-watcher";
 import { useVaultSync } from "@/app/hooks/use-vault-sync";
 import { useAutoSave } from "@/app/hooks/use-auto-save";
-import RepurposeNoteWizard from "./components/RepurposeNoteWizard";
 import MermaidDialog from "./components/MermaidDialog";
 import RenderedBlockSourceDialog from "./components/RenderedBlockSourceDialog";
 import ImageDialog from "./components/ImageDialog";
 import TokenCostDialog from "./components/TokenCostDialog";
-import QuickJot from "./components/QuickJot";
 import PdfExport from "./components/PdfExport";
 import { useAIEditorActions } from "./hooks/useAIEditorActions";
 import AIChatDialog from "./components/AIChatDialog";
 import { AIReviewDialog } from "./components/AIReviewDialog";
 import { AIThinkingOverlay } from "./components/AIThinkingOverlay";
-import VoicePreviewPanel from "./components/VoicePreviewPanel";
-import { useGlobalVoiceInput } from "./hooks/use-global-voice-input";
 import { useRouter } from "next/navigation";
-import { atom_isAiConfigured, atom_aiBuilderRequest, atom_quickJot, atom_showHiddenFiles, atom_hideChromeWhileTyping, atom_sidebarOpen, atom_sidebarWidth } from "@/app/atoms/ui-atoms";
+import { OPEN_TODAY_SHEET_EVENT } from "./utils/worklog-events";
+import { atom_isAiConfigured, atom_aiBuilderRequest, atom_showHiddenFiles, atom_hideChromeWhileTyping, atom_sidebarOpen, atom_sidebarWidth } from "@/app/atoms/ui-atoms";
 import { usePaneFileActions } from "./hooks/use-pane-file-actions";
 import { useDraftImport } from "./hooks/use-draft-import";
 import { useToolHandoff } from "./hooks/use-tool-handoff";
 import { useEditorShortcuts } from "./hooks/use-editor-shortcuts";
-import { useGenerateAiNote } from "./hooks/use-generate-ai-note";
 import { useGitHubVaultActions } from "./hooks/use-github-vault-actions";
 import { useNavigateWithGuard } from "./hooks/use-navigate-with-guard";
 import { useSyncCurrentDirectory } from "./hooks/use-sync-current-directory";
@@ -70,38 +66,20 @@ export default function LiteEditor() {
   const { closeTabWithAutosave } = usePaneFileActions(mobileLeaf);
   const isFileLoading = useAtomValue(atom_isFileLoading);
   const isAiConfigured = useAtomValue(atom_isAiConfigured);
-  const setQuickJot = useSetAtom(atom_quickJot);
   const aiBuilderRequest = useAtomValue(atom_aiBuilderRequest);
-  // Single dictation session shared by the whole app (not one per pane), so
-  // switching the active pane mid-dictation never drops the in-progress
-  // preview — "Insert" lands wherever the active pane currently is.
   // Single AI-chat/actions session shared by the whole app (not one per
-  // pane) — targets whichever CM6 view is currently active, same convention
-  // as useGlobalVoiceInput.
+  // pane): targets whichever CM6 view is currently active.
   const aiActions = useAIEditorActions();
-  const {
-    isVoiceSupported,
-    isVoiceListening,
-    toggleVoiceListening,
-    voicePreviewText,
-    setVoicePreviewText,
-    voiceInterimText,
-    commitVoicePreview,
-    discardVoicePreview,
-  } = useGlobalVoiceInput();
   const isMobileChrome = useIsMobileChrome();
   const [isMobileFileOverlayOpen, setIsMobileFileOverlayOpen] = useState(false);
   const {
     vaultHandle,
-    vaultFiles,
     activeFileHandle,
     isVaultPending,
     saveFile,
     exportFile,
     importFile,
-    createFile,
     openFile,
-    chooseTargetDirectory,
     scanVault,
     indexVaultTags,
     syncCurrentDirectoryToPath,
@@ -201,8 +179,6 @@ export default function LiteEditor() {
     newFileRef: handleNewFileRef,
     activeTabPath: mobileLeaf.activeFilePath,
     closeTabWithAutosave,
-    isVoiceSupported,
-    toggleVoiceListening,
     flush,
   });
 
@@ -220,7 +196,6 @@ export default function LiteEditor() {
     vaultDisabledReason: isVaultLocked ? "Vault is loading" : !vaultHandle ? "Open a vault first" : undefined,
   });
 
-  const handleNewAIFile = useGenerateAiNote({ vaultHandle, vaultFiles, chooseTargetDirectory, createFile });
 
   const handleExport = async () => {
     if (!content.trim()) return;
@@ -232,6 +207,15 @@ export default function LiteEditor() {
     await exportFile(content, fileName);
   };
 
+  // `/daily` in an editor pane (worklog-events.ts) opens today's sheet once
+  // the vault is ready.
+  const openTodayFromSlash = useRef<(() => unknown) | undefined>(undefined);
+  openTodayFromSlash.current = !isVaultLocked && vaultHandle ? feedProps.onOpenToday : undefined;
+  useEffect(() => {
+    const handleOpen = () => { void openTodayFromSlash.current?.(); };
+    document.addEventListener(OPEN_TODAY_SHEET_EVENT, handleOpen);
+    return () => document.removeEventListener(OPEN_TODAY_SHEET_EVENT, handleOpen);
+  }, []);
 
   // Once the chrome fades, a single pane's text re-centres on the window
   // rather than on the space beside the faded sidebar (editor.scss).
@@ -258,14 +242,7 @@ export default function LiteEditor() {
         onOpenDocumentation={() => navigateWithGuard("/documentation", "Documentation")}
         onRefreshVault={handleRefreshVault}
         onImport={handleImport}
-        onNewAIFile={handleNewAIFile}
         onRunAIAction={aiActions.runAIActionById}
-        isVoiceSupported={isVoiceSupported}
-        isVoiceListening={isVoiceListening}
-        onToggleVoice={toggleVoiceListening}
-        onCommitVoice={commitVoicePreview}
-        onDiscardVoice={discardVoicePreview}
-        hasVoicePreview={voicePreviewText.length > 0 || voiceInterimText !== null}
       />
       {/* On the feed, its skeleton (gate, then the main area) leads straight into it. */}
       <LoadingOverlay isVisible={(isMounting && !isHomeFeedOpen) || !!navigatingLabel} text={navigatingLabel ? `${navigatingLabel}...` : "Loading..."} />
@@ -283,14 +260,12 @@ export default function LiteEditor() {
         <GitHubVaultDialog />
         <BrowserVaultDialog />
         <ConflictDialog />
-        <RepurposeNoteWizard />
         {/* Before MermaidDialog, so its "Open viewer" stacks on top. */}
         <RenderedBlockSourceDialog />
         <MermaidDialog />
         <ImageDialog />
         <TokenCostDialog />
         <PdfExport />
-        <QuickJot disabledReason={isVaultLocked ? "Vault is loading" : !vaultHandle ? "Open a vault first" : undefined} onOpenSheet={feedProps.onOpenToday} />
         
         <DraftImportDialog pendingDraft={pendingDraft} onConfirm={confirmPendingDraft} onCancel={cancelPendingDraft} />
         {!isVaultLocked && <DraftFolderDialog />}
@@ -317,7 +292,6 @@ export default function LiteEditor() {
               <MobileFileIndicator
                 onSave={() => handleSaveRef.current()}
                 onOpenAIChat={isAiConfigured ? openAiChat : undefined}
-                onQuickJot={vaultHandle ? () => setQuickJot((state) => ({ ...state, open: true })) : undefined}
               />
             )}
             <div className="relative flex-1 min-h-0">
@@ -366,17 +340,6 @@ export default function LiteEditor() {
           onInsertBelow={aiActions.applyInsertBelow}
         />
         {aiActions.isAiLoading && <AIThinkingOverlay />}
-        <VoicePreviewPanel
-          isListening={isVoiceListening}
-          previewText={voicePreviewText}
-          onPreviewTextChange={setVoicePreviewText}
-          interimText={voiceInterimText}
-          onCommit={commitVoicePreview}
-          onDiscard={() => {
-            discardVoicePreview();
-            if (isVoiceListening) toggleVoiceListening();
-          }}
-        />
 
         {isMobileChrome && (
           <>

@@ -7,7 +7,7 @@
 // never creates empty past sheets.
 
 import { todayNoteName } from "./today-note";
-import { parseRollupName, periodOf, weekPeriod, type RollupPeriod } from "./rollup/period";
+import { parsePeriodName, periodOf, weekPeriod, type Period } from "./periods/period";
 
 export type SheetLevel = "day" | "week" | "month" | "quarter" | "year";
 
@@ -17,7 +17,7 @@ export interface Sheet {
   level: SheetLevel;
   start: Date; // local midnight, first day
   end: Date; // local midnight, last day (inclusive)
-  period?: RollupPeriod; // every level but day
+  period?: Period; // every level but day
 }
 
 const REGEX_DAY_NAME = /^(\d{4})-(\d{2})-(\d{2})\.md$/;
@@ -33,7 +33,7 @@ export function parseSheetName(fileName: string): Sheet | null {
     if (todayNoteName(date) !== fileName.slice(0, -3)) return null;
     return { level: "day", start: date, end: date };
   }
-  const period = parseRollupName(fileName);
+  const period = parsePeriodName(fileName);
   return period ? { level: period.kind, start: period.start, end: period.end, period } : null;
 }
 

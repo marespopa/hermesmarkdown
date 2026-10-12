@@ -45,9 +45,8 @@ describe("TEMPLATE_STARTERS", () => {
     expect(lintTemplate(body)).toEqual([]);
     const { routing, content } = splitTemplate(body);
     expect(routing).toEqual({});
-    // Its one `# ` line is the heading (a field), never a comment.
+    // Its one `# ` line, if any, is the heading (a field), never a comment.
     expect(body).not.toMatch(/^# (?!\{\{)/m);
-    expect(content).toMatch(/^# \{\{/m);
   });
 
   it("asks the Spec author once and copies its metadata into notes", () => {
@@ -65,5 +64,14 @@ describe("Journal starter", () => {
     expect(expanded.text.startsWith("# Monday, 5 October\n\n")).toBe(true);
     expect(expanded.cursor).toBe("# Monday, 5 October\n\n".length);
     expect(extractPromptLabels(journal.body)).toEqual([]);
+  });
+});
+
+describe("Log entry starter", () => {
+  it("is one line starting with the time, the caret after it", () => {
+    const entry = TEMPLATE_STARTERS.find((s) => s.name === "Log entry")!;
+    const expanded = expandTemplate(entry.body, { now: new Date(2026, 9, 5, 14, 20), title: "x", clipboard: "", prompts: {} });
+    expect(expanded.text).toBe("- 14:20 \n");
+    expect(expanded.cursor).toBe("- 14:20 ".length);
   });
 });

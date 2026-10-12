@@ -48,15 +48,21 @@ export default function AppCommands() {
         },
   );
 
-  useRegisterCommand({
-    id: "open-tools",
-    label: "Open Free Tools",
-    description: "Table generator, Mermaid, tokenizer, token cost and more",
-    category: "Navigation",
-    keywords: "tools markdown table generator mermaid tokenizer token cost calculator price cleaner converter html",
-    disabledReason: pathname === "/tools" ? "Already viewing the tools" : undefined,
-    action: () => router.push("/tools"),
-  });
+  // The free tools are their own site area, not part of writing: offered
+  // everywhere but the editor.
+  useRegisterCommand(
+    pathname.startsWith("/editor")
+      ? null
+      : {
+          id: "open-tools",
+          label: "Open Free Tools",
+          description: "Table generator, Mermaid, tokenizer, token cost and more",
+          category: "Navigation",
+          keywords: "tools markdown table generator mermaid tokenizer token cost calculator price cleaner converter html",
+          disabledReason: pathname === "/tools" ? "Already viewing the tools" : undefined,
+          action: () => router.push("/tools"),
+        },
+  );
 
   useRegisterCommand({
     id: "open-settings",

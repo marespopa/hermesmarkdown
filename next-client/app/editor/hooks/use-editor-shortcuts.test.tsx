@@ -23,8 +23,6 @@ function renderShortcuts(view: EditorView | null) {
     newFileRef: { current: vi.fn() },
     activeTabPath: null,
     closeTabWithAutosave: vi.fn(),
-    isVoiceSupported: false,
-    toggleVoiceListening: vi.fn(),
     flush: vi.fn(),
   }), { wrapper });
 }

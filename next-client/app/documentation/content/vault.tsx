@@ -164,12 +164,7 @@ export const vaultGroup: Group = {
           <h4 className="text-[19px] font-semibold tracking-tight !mb-2 !mt-6">tags</h4>
           <p>
             Free-form tags. Together with inline <code>#tags</code>, they feed the palette&apos;s{" "}
-            <code>#</code> mode and Smart Workspace rules.
-          </p>
-          <p>
-            Notes created with <strong>Generate new note with AI</strong> also get{" "}
-            <code>status: draft</code>, plus <code>scope</code> and <code>read_when</code> fields
-            describing what the note covers and when it&apos;s worth reading.
+            <code>#</code> mode.
           </p>
           <h4 className="text-[19px] font-semibold tracking-tight !mb-2 !mt-6">sensitive</h4>
           <p>

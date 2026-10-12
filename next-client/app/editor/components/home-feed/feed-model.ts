@@ -81,15 +81,12 @@ export function dayLabel(modifiedAt: number, now: Date): string {
 // (direct children of `templatesFolder`) are left out too. Pinned notes
 // (`pinnedPaths`, newest pin first) come first, under one "Pinned" label,
 // and leave their day; pins to notes not in the feed are skipped.
-// With `tagFilter`, only notes carrying every one of those tags are kept,
-// before day labels are assigned.
 export function buildFeed(
   metadata: Record<string, FileMetadata>,
   displayItems: Map<string, NoteDisplayItem>,
   now: Date,
   templatesFolder?: string,
   pinnedPaths: readonly string[] = [],
-  tagFilter: readonly string[] = [],
 ): FeedEntry[] {
   const notes = new Map(
     Object.values(metadata)
@@ -126,10 +123,7 @@ export function buildFeed(
     ...pinned.map((entry) => toEntry(entry, true)),
     ...sorted.map((entry) => toEntry(entry, false)),
   ];
-  const kept = tagFilter.length
-    ? entries.filter((entry) => tagFilter.every((tag) => entry.tags.includes(tag)))
-    : entries;
-  return labelDays(kept, now);
+  return labelDays(entries, now);
 }
 
 // Today's sheet leads the unpinned notes, so it heads "Today": the note
@@ -185,31 +179,7 @@ function labelDays(entries: FeedEntry[], now: Date): FeedEntry[] {
   });
 }
 
-export interface FeedTag {
-  tag: string;
-  /** How many feed notes carry it. */
-  count: number;
-}
-
-// Every tag in the feed, most used first; ties go to the tag used most
-// recently, then alphabetically. Takes the built feed, so notes the privacy
-// level hides or marks sensitive never contribute.
-export function feedTags(feed: FeedEntry[]): FeedTag[] {
-  const stats = new Map<string, { count: number; latest: number }>();
-  for (const entry of feed) {
-    for (const tag of entry.tags) {
-      const stat = stats.get(tag) ?? { count: 0, latest: 0 };
-      stat.count++;
-      stat.latest = Math.max(stat.latest, entry.modifiedAt);
-      stats.set(tag, stat);
-    }
-  }
-  return [...stats]
-    .sort(([a, x], [b, y]) => y.count - x.count || y.latest - x.latest || a.localeCompare(b))
-    .map(([tag, { count }]) => ({ tag, count }));
-}
-
-// How far back the open-tasks rollup looks, in days (today included).
+// How far back the open-tasks list looks, in days (today included).
 export const OPEN_TASK_DAYS = 7;
 
 export interface FeedTask {
@@ -242,15 +212,4 @@ export function openFeedTasks(
       .filter((task) => isOpenStatus(task.status))
       .sort((a, b) => a.line - b.line)
       .map((task) => ({ id: task.id, path: entry.path, line: task.line, text: task.text, noteTitle: entry.title })));
-}
-
-export interface FeedStats {
-  notes: number;
-  /** Notes modified since local midnight. */
-  editedToday: number;
-}
-
-export function feedStats(feed: FeedEntry[], now: Date): FeedStats {
-  const today = startOfDay(now);
-  return { notes: feed.length, editedToday: feed.filter((entry) => entry.modifiedAt >= today).length };
 }

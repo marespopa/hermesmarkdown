@@ -118,11 +118,6 @@ export default function WhatIsHermesMd() {
                   in each file, where agents can skim it without opening every note body.
                 </li>
                 <li>
-                  Notes created with <em>Generate new note with AI</em> get <InlineCode>scope</InlineCode>{" "}
-                  and <InlineCode>read_when</InlineCode> fields describing what the note covers and when
-                  it&apos;s worth reading.
-                </li>
-                <li>
                   Dotfiles and <InlineCode>_</InlineCode>-prefixed files (for example agent skill files)
                   can be shown in the file tree with the <em>Show Hidden Files</em> setting.
                 </li>

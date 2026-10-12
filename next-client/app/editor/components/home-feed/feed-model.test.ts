@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import type { FileMetadata } from "@/app/atoms/metadata";
 import { buildNoteDisplayItems, MASKED_PREVIEW, type PrivacyLevel } from "@/app/utils/note-display";
 import { extractTasks } from "@/app/utils/taskExtractor";
-import { buildFeed as buildFeedWith, dayLabel, feedStats, feedTags, feedTitle, isFeedPath, openFeedTasks, withTodaySheet } from "./feed-model";
+import { buildFeed as buildFeedWith, dayLabel, feedTitle, isFeedPath, openFeedTasks, withTodaySheet } from "./feed-model";
 
 // Builds the feed through the display factory, as HomeFeed does.
 function buildFeed(
@@ -11,9 +11,8 @@ function buildFeed(
   now: Date,
   level: PrivacyLevel = "show_title",
   pinnedPaths: string[] = [],
-  tagFilter: string[] = [],
 ) {
-  return buildFeedWith(metadata, buildNoteDisplayItems(metadata, level), now, undefined, pinnedPaths, tagFilter);
+  return buildFeedWith(metadata, buildNoteDisplayItems(metadata, level), now, undefined, pinnedPaths);
 }
 
 const NOW = new Date(2026, 8, 28, 15, 0); // Mon Sep 28 2026
@@ -169,37 +168,14 @@ describe("buildFeed", () => {
   });
 });
 
-describe("tag filter", () => {
-  const notes = () => ({
-    a: meta("a.md", new Date(2026, 8, 28, 9), { tags: ["work", "plan"] }),
-    b: meta("b.md", new Date(2026, 8, 27, 9), { tags: ["work"] }),
-    c: meta("c.md", new Date(2026, 8, 26, 9), { tags: ["home"] }),
-  });
-
-  it("keeps notes carrying every filter tag and relabels their days", () => {
-    expect(buildFeed(notes(), NOW, "show_title", [], ["work"]).map((entry) => entry.path)).toEqual(["a.md", "b.md"]);
-    const feed = buildFeed(notes(), NOW, "show_title", [], ["work", "plan"]);
-    expect(feed.map((entry) => entry.path)).toEqual(["a.md"]);
-    const home = buildFeed(notes(), NOW, "show_title", [], ["home"]);
-    expect(home[0].dayLabel).toBe(new Date(2026, 8, 26).toLocaleDateString(undefined, { weekday: "long" }));
-  });
-
-  it("labels the first matching pinned note Pinned", () => {
-    const feed = buildFeed(notes(), NOW, "show_title", ["c.md", "b.md"], ["work"]);
-    expect(feed.map((entry) => [entry.path, entry.dayLabel])).toEqual([["b.md", "Pinned"], ["a.md", "Today"]]);
-  });
-
-  it("counts tags most used first, then most recent, never from sensitive notes", () => {
+describe("entry tags", () => {
+  it("never carries a sensitive note's tags", () => {
     const feed = buildFeed({
-      ...notes(),
-      s: meta("s.md", new Date(2026, 8, 28, 12), { tags: ["secret", "home"], frontmatter: { sensitive: "true" } }),
+      a: meta("a.md", new Date(2026, 8, 28, 9), { tags: ["work"] }),
+      s: meta("s.md", new Date(2026, 8, 28, 12), { tags: ["secret"], frontmatter: { sensitive: "true" } }),
     }, NOW);
+    expect(feed.find((entry) => entry.path === "a.md")?.tags).toEqual(["work"]);
     expect(feed.find((entry) => entry.path === "s.md")?.tags).toEqual([]);
-    expect(feedTags(feed)).toEqual([
-      { tag: "work", count: 2 },
-      { tag: "plan", count: 1 },
-      { tag: "home", count: 1 },
-    ]);
   });
 });
 
@@ -235,17 +211,6 @@ describe("openFeedTasks", () => {
       ".hermes/x.md": withTasks(".hermes/x.md", day(0), "- [ ] meta"),
     };
     expect(openFeedTasks(buildFeed(metadata, NOW), metadata, NOW)).toEqual([]);
-  });
-});
-
-describe("feedStats", () => {
-  it("counts the notes and those edited since midnight", () => {
-    const metadata = {
-      "a.md": meta("a.md", new Date(2026, 8, 28, 0, 5)),
-      "b.md": meta("b.md", new Date(2026, 8, 27, 23, 55)),
-      "c.md": meta("c.md", new Date(0)),
-    };
-    expect(feedStats(buildFeed(metadata, NOW), NOW)).toEqual({ notes: 3, editedToday: 1 });
   });
 });
 

@@ -6,8 +6,6 @@ import {
   atom_autosaveMode,
   atom_editorFontFamily,
   atom_renderedFontSize,
-  atom_aiProvider,
-  atom_selectedAiModel,
   atom_vimMode,
   atom_wordWrap,
 } from "@/app/atoms/atoms";
@@ -32,8 +30,6 @@ export default function SettingsCommands() {
   const [, setTextSize] = useAtom(atom_renderedFontSize);
   const [, setAutosaveMode] = useAtom(atom_autosaveMode);
   const [, setAutosaveDelay] = useAtom(atom_autosaveDelay);
-  const [, setAiProvider] = useAtom(atom_aiProvider);
-  const [, setSelectedAiModel] = useAtom(atom_selectedAiModel);
 
   const commands: Command[] = [
     { id: "toggle-full-width", label: fullWidth ? "Disable full width" : "Enable full width", category: "Settings", keywords: "editor layout wide column line length measure", action: () => setFullWidth(!fullWidth) },
@@ -71,26 +67,6 @@ export default function SettingsCommands() {
       keywords: "save timing seconds",
       action: () => setAutosaveDelay(value),
     })),
-    {
-      id: "set-ai-provider-claude",
-      label: "AI provider: Claude",
-      category: "Settings",
-      keywords: "anthropic model",
-      action: () => {
-        setAiProvider("claude");
-        setSelectedAiModel("sonnet-5");
-      },
-    },
-    {
-      id: "set-ai-provider-gemini",
-      label: "AI provider: Gemini",
-      category: "Settings",
-      keywords: "google model",
-      action: () => {
-        setAiProvider("gemini");
-        setSelectedAiModel("gemini-3.5-flash");
-      },
-    },
   ];
 
   return <>{commands.map((command) => <RegisteredCommand key={command.id} command={command} />)}</>;

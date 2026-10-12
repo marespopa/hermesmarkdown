@@ -18,9 +18,14 @@
 }
 
 /* Full Width (Settings → Editor): the column fills the sheet, inside its
-   page margins. */
+   page margins, less the room it needs to re-centre on the window once the
+   chrome fades beside an open sidebar (--typing-shift on each side, 0 without
+   a sidebar or in split panes; editor.scss). Its width never changes when
+   the chrome fades, so lines don't rewrap under the caret. Never narrower
+   than the standard column: on a small window it then slides only as far
+   as the page margin allows. */
 .editor-sheet[data-full-width] {
-  --editor-measure: none;
+  --editor-measure: max(100% - 2 * var(--typing-shift, 0px), min(100%, 38rem));
 }
 
 /* The text column, centered on the sheet. Narrow panes are capped by the

@@ -9,6 +9,7 @@ import {
   isValidToken,
   type TemplateContext,
 } from "./template-tokens";
+import { parsePeriodName } from "../periods/period";
 
 // Sunday, 4 October 2026, 09:05 local time.
 const NOW = new Date(2026, 9, 4, 9, 5);
@@ -146,5 +147,36 @@ describe("date formats, date math, selection and blanks", () => {
 
   it("counts a formatted date as using {{date}}", () => {
     expect(usesToken("{{date:YYYY}}", "date")).toBe(true);
+  });
+});
+
+describe("worklog sheet and period tokens", () => {
+  it("names this week's, month's, quarter's and year's sheets", () => {
+    expect(expandTemplate("[[{{weekSheet}}]] {{monthSheet}} {{quarterSheet}} {{yearSheet}}", ctx()).text)
+      .toBe("[[2026-W40]] 2026-10 2026-Q4 2026-year");
+  });
+
+  it("does date math on sheet names", () => {
+    expect(expandTemplate("{{weekSheet-1w}} {{weekSheet+1w}} {{monthSheet-1m}} {{yearSheet+1y}}", ctx()).text)
+      .toBe("2026-W39 2026-W41 2026-09 2027-year");
+    expect(isValidToken("weekSheet+2w")).toBe(true);
+    expect(isValidToken("weekSheet:YYYY")).toBe(false);
+  });
+
+  it("uses the ISO week-year across the year boundary", () => {
+    expect(expandTemplate("{{weekSheet}}", ctx({ now: new Date(2027, 0, 1) })).text).toBe("2026-W53");
+  });
+
+  it("expands the period tokens for a periodic sheet", () => {
+    const period = parsePeriodName("2026-W42.md")!;
+    expect(expandTemplate("{{period}} [[{{previousPeriod}}]] [[{{nextPeriod}}]]", ctx({ period })).text)
+      .toBe("2026-W42 [[2026-W41]] [[2026-W43]]");
+    expect(expandTemplate("{{periodHeading}}", ctx({ period })).text).toBe(period.heading);
+    const year = parsePeriodName("2026-year.md")!;
+    expect(expandTemplate("{{previousPeriod}}", ctx({ period: year })).text).toBe("2025-year");
+  });
+
+  it("leaves the period tokens as typed outside a periodic sheet", () => {
+    expect(expandTemplate("{{period}} {{nextPeriod}}", ctx()).text).toBe("{{period}} {{nextPeriod}}");
   });
 });

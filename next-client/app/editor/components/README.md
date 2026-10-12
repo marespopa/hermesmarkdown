@@ -30,7 +30,7 @@ Index of the editor UI. Each component has a sibling `<Name>.md` (a token-lean d
 | [MermaidDialog](MermaidDialog.md) | Full-size viewer for a Mermaid diagram, rendered locally with `mermaid` (`securityLevel: "strict"`), in a `MermaidViewer`. |
 | [MermaidViewer](MermaidViewer.md) | A rendered diagram with zoom, fit, drag-to-pan and SVG download; used by `MermaidDialog` and the Mermaid tool page (`app/tools/mermaid/`). |
 | [MobileFileIndicator](MobileFileIndicator.md) | Compact mobile header chip showing the active file name and its save state, with save, command palette, and AI chat shortcuts. |
-| [MobileFileOverlay](MobileFileOverlay.md) | Full-screen mobile file browser combining tag and text search, smart folders, and the vault file list, with an empty state when no vault is open. |
+| [MobileFileOverlay](MobileFileOverlay.md) | Full-screen mobile file browser combining tag and text search and the vault file list, with an empty state when no vault is open. |
 | [NewVaultDialog](NewVaultDialog.md) | Dialog that creates a new local vault folder, using `CreateVaultSubSteps` to name it and pick a parent folder. |
 | [PaneActions](PaneActions.md) | One pane's toolbar section: Save, and Close Pane in a split. |
 | [PaneLeaf](PaneLeaf.md) | One workspace pane: its header (tabs and toolbar) and the active file's editor (behind `SensitiveNoteGate`). |
@@ -40,20 +40,17 @@ Index of the editor UI. Each component has a sibling `<Name>.md` (a token-lean d
 | [PaneToolbarButton](PaneToolbarButton.md) | Icon-only toolbar button with a tooltip. |
 | [PaneWindowActions](PaneWindowActions.md) | Window-wide toolbar sections (Mode, Tools, More menu), shown once in the top-right pane. |
 | [PaneTab](PaneTab.md) | Draggable file tab with a leading close button, unsaved-changes dot, and shortcut hint; exports `SaveStateIcon`. |
-| [QuickJot](QuickJot.md) | One-line input (⌘J on Mac / Ctrl+Alt+J, the toolbar button, or the **Quick jot** command) that appends a line to the end of today's sheet without leaving the current note. Also answers the `/daily` and `/jot` slash commands. |
 | [PdfExport](PdfExport.md) | Mounts **Export as PDF…** (palette and More menu): the focused note rendered and printed through the browser's dialog, on the device. |
 | [TokenCostDialog](TokenCostDialog.md) | What sending the focused note to each AI model costs (o200k count, input prices); opened from More → Token Cost or the palette. |
 | [RenderedBlockSourceDialog](RenderedBlockSourceDialog.md) | Source editor with live preview for an inline-rendered Mermaid diagram or math block; Save writes the body back as one undo step. |
-| [RepurposeNoteWizard](RepurposeNoteWizard.md) | Three-step wizard (select, drafting, review) that turns the current note into a blog post, social post, or newsletter draft saved as a new vault file. |
 | [SectionHeader](SectionHeader.md) | Collapsible section header with a title, a chevron toggle, and an optional trailing action. |
 | [SelectionToolbar](SelectionToolbar.md) | Floating toolbar on a text selection, desktop and mobile: Turn into menu, Bold, Italic, Link, and Ask AI when AI is configured. |
-| [SmartFolders](SmartFolders.md) | Lists custom workspaces (saved metadata queries) and the files each one matches, with create, edit, and delete through `WorkspaceBuilder`. |
 | [TabContextMenu](TabContextMenu.md) | The app's pop-up menu (tab, toolbar More, sidebar ⋯, Home feed, Tasks page): at a point or right-aligned under a button, clamped to the viewport, arrow-key navigation. `menu-classes.ts` holds the shared menu look, also used by the file tree's `TreeContextMenu`. |
 | [TabStripScroller](TabStripScroller.md) | Horizontally scrolling tab strip that shows left/right scroll arrows at its end when the tabs overflow. |
 | [EmptyNoteTemplates](EmptyNoteTemplates.md) | Quick-start template pills under the first line of an empty note. |
 | [TemplateStrip](TemplateStrip.md) | Line at the top of a template note: field count, Add field, lint warnings. |
 | [SheetSwitcher](SheetSwitcher.md) | Line at the top of a worklog sheet: Day · Week · Month · Quarter · Year in their level colours, and ‹ › through time. `sheet-level-classes.ts` holds the level colour classes. |
-| [SheetSkeleton](SheetSkeleton.md) | Outline of a rollup sheet that covers the text column while the switcher opens another sheet. |
+| [SheetSkeleton](SheetSkeleton.md) | Outline of a sheet that covers the text column while the switcher opens another sheet. |
 | [TaskDialog](TaskDialog.md) | Form for building a task line (title, status, priority, due date, tags). |
 | [UnifiedSearchInput](UnifiedSearchInput.md) | Search field that turns `#tag` entries into removable tag chips alongside free text, with tag autocomplete. |
 | [EditorSkeleton](EditorSkeleton.md) | Shown while the saved vault loads: the home feed with placeholder rows (On vault open → Home), or the workspace outline (sidebar, tab pills, paper panel). |
@@ -63,12 +60,9 @@ Index of the editor UI. Each component has a sibling `<Name>.md` (a token-lean d
 | [VaultEmptyState](VaultEmptyState.md) | Empty state of the file views shown when no vault is open. |
 | [VaultFileTree](VaultFileTree.md) | Virtualized file list or folder tree for the vault, with search highlighting, inline rename, a row action menu, and drag-and-drop moves. |
 | [vault-tree/](vault-tree/README.md) | `VaultFileTree` building blocks: tree model, `FileRow`, `FolderRow`, `TreeNodes`. |
-| [VoicePreviewPanel](VoicePreviewPanel.md) | Draggable panel showing dictated text (final and interim) with editing, voice-command help, and commit or discard. |
 | [WelcomeWizard](WelcomeWizard.md) | Eight-step onboarding that covers opening, creating, or connecting a vault, then theme, fonts, editor options, autosave, optional AI key, and shortcuts. |
 | [welcome-wizard/](welcome-wizard/README.md) | `WelcomeWizard` steps and shared step layout. |
 | [WikiLinkDialog](WikiLinkDialog.md) | Picks or creates a `[[WikiLink]]` target, with substring-matched suggestions from vault file metadata. |
-| [WorkflowPill](WorkflowPill.md) | Floating pill on a workflow tag (for example `#draft`) with prev/next arrows to cycle its state. |
-| [WorkspaceBuilder](WorkspaceBuilder.md) | Dialog for creating or editing a custom workspace (a saved, rule-based file query over vault metadata). |
 | [WorkspaceSidebar](WorkspaceSidebar.md) | The window's sidebar (desktop): open notes and the vault's file tree, on the leading edge; hideable and resizable. |
 | [WorkspaceSplitter](WorkspaceSplitter.md) | Recursively renders the workspace layout tree as resizable panel groups, with a `PaneLeaf` at each leaf. |
 

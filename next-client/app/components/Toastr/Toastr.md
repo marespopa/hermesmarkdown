@@ -21,5 +21,5 @@ showErrorToast("Could not save file");
 | Prop | Type | Default | Description |
 |---|---|---|---|
 | showSuccessToast / showErrorToast / showCopyToast | `(message: string) => void` |  | Error toasts last 4s, copy toasts 2s |
-| showActionToast | `(message: string, actionLabel: string, onAction: () => void) => void` |  | Success toast (5s) with one tertiary `Button`; clicking it dismisses the toast, then runs `onAction`. Nothing takes focus. Used by Quick jot ("Added to 2026-10-10 · Open") |
+| showActionToast | `(message: string, actionLabel: string, onAction: () => void) => void` |  | Success toast (5s) with one tertiary `Button`; clicking it dismisses the toast, then runs `onAction`. Nothing takes focus. |
 | showSaveStateToast (default) | `(status: "saved" \| "error") => void` |  | Save feedback |

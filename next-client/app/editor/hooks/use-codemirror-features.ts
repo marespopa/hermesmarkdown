@@ -5,20 +5,11 @@ import type { EditorView } from "@codemirror/view";
 import { EditorSelection } from "@codemirror/state";
 import { findLinkAtPos } from "../utils/link-detection";
 import { findDateAtPos } from "../utils/date-detection";
-import { REGEX_TODO_TAGS } from "../components/regex";
-import { TAG_CYCLE, TAG_CYCLE_PREV } from "../components/constants";
 import { DateMatch } from "../types";
 
 interface Pos {
   top: number;
   left: number;
-}
-
-interface WorkflowMatch {
-  tag: string;
-  start: number;
-  end: number;
-  isFmStatus?: boolean;
 }
 
 interface LinkPillState {
@@ -35,10 +26,10 @@ interface UseCodeMirrorFeaturesOptions {
   onWikiLinkClick?: (name: string) => void;
 }
 
-// Positioned-widget layer (Step 4): link pill, date picker, workflow tag
-// cycling. Detection is cursor-driven, not hover-driven; positions come from
-// `view.coordsAtPos`, converted to containerRef-relative coordinates for the
-// existing LinkPill/WorkflowPill/DatePickerCallout components.
+// Positioned-widget layer (Step 4): link pill and date picker. Detection is
+// cursor-driven, not hover-driven; positions come from `view.coordsAtPos`,
+// converted to containerRef-relative coordinates for the existing
+// LinkPill/DatePickerCallout components.
 export function useCodeMirrorFeatures({ viewRef, containerRef, onWikiLinkClick }: UseCodeMirrorFeaturesOptions) {
   const [linkPill, setLinkPill] = useState<LinkPillState | null>(null);
   const pillRangeRef = useRef<{ start: number; end: number } | null>(null);
@@ -47,9 +38,6 @@ export function useCodeMirrorFeatures({ viewRef, containerRef, onWikiLinkClick }
   const [dateMatch, setDateMatch] = useState<DateMatch | null>(null);
   const [isDateExpanded, setIsDateExpanded] = useState(false);
   const [dateMenuPos, setDateMenuPos] = useState({ top: 0, left: 0, endLeft: 0 });
-
-  const [workflowMatch, setWorkflowMatch] = useState<WorkflowMatch | null>(null);
-  const [workflowMenuPos, setWorkflowMenuPos] = useState<Pos>({ top: 0, left: 0 });
 
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -97,42 +85,6 @@ export function useCodeMirrorFeatures({ viewRef, containerRef, onWikiLinkClick }
     } else {
       setDateMatch(null);
       setIsDateExpanded(false);
-    }
-
-    const line = view.state.doc.lineAt(pos);
-    const lineStart = line.from;
-    const currentLine = line.text;
-    const localPos = pos - lineStart;
-
-    REGEX_TODO_TAGS.lastIndex = 0;
-    let wfMatch: RegExpExecArray | null;
-    let foundWorkflow = false;
-    while ((wfMatch = REGEX_TODO_TAGS.exec(currentLine)) !== null) {
-      const tagStart = wfMatch.index;
-      const tagEnd = tagStart + wfMatch[0].length;
-      if (localPos >= tagStart && localPos <= tagEnd) {
-        const p = posToXY(view, lineStart + tagStart);
-        setWorkflowMatch({ tag: wfMatch[1].toLowerCase(), start: lineStart + tagStart, end: lineStart + tagEnd });
-        setWorkflowMenuPos({ top: p.top - 26, left: Math.max(0, p.left - 4) });
-        foundWorkflow = true;
-        break;
-      }
-    }
-    if (!foundWorkflow) {
-      const fmEnd = value.indexOf("\n---", 3);
-      const inFrontmatter = fmEnd !== -1 && lineStart > 0 && lineStart + currentLine.length <= fmEnd + 4;
-      const fmStatusMatch = inFrontmatter
-        ? currentLine.match(/^status:\s+(draft|review|active|archived)\s*$/)
-        : null;
-      if (fmStatusMatch) {
-        const valueOffset = currentLine.indexOf(fmStatusMatch[1]);
-        const tagStart = lineStart + valueOffset;
-        const p = posToXY(view, tagStart);
-        setWorkflowMatch({ tag: fmStatusMatch[1], start: tagStart, end: tagStart + fmStatusMatch[1].length, isFmStatus: true });
-        setWorkflowMenuPos({ top: p.top - 26, left: Math.max(0, p.left - 4) });
-      } else {
-        setWorkflowMatch(null);
-      }
     }
   }, [posToXY, buildLinkPill]);
 
@@ -217,13 +169,6 @@ export function useCodeMirrorFeatures({ viewRef, containerRef, onWikiLinkClick }
     setIsDateExpanded(false);
   }, [dateMatch, dispatchReplace]);
 
-  const handleWorkflowCycle = useCallback((direction: "prev" | "next") => {
-    if (!workflowMatch) return;
-    const cycle = direction === "next" ? TAG_CYCLE : TAG_CYCLE_PREV;
-    const nextTag = workflowMatch.isFmStatus ? cycle[workflowMatch.tag] : `#${cycle[workflowMatch.tag]}`;
-    dispatchReplace(workflowMatch.start, workflowMatch.end, nextTag);
-  }, [workflowMatch, dispatchReplace]);
-
   return {
     pillUrl: linkPill?.url ?? null,
     pillLabel: linkPill?.label ?? "",
@@ -232,7 +177,6 @@ export function useCodeMirrorFeatures({ viewRef, containerRef, onWikiLinkClick }
     dismissPill,
     handleSaveLink,
     dateMatch, setDateMatch, isDateExpanded, setIsDateExpanded, dateMenuPos, handleDateSelect,
-    workflowMatch, workflowMenuPos, handleWorkflowCycle,
     onCursorActivity,
   };
 }

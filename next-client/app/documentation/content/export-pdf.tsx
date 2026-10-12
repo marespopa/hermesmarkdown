@@ -17,7 +17,7 @@ export const exportPdfItem: Subsection = {
       <KV
         rows={[
           { label: "Printed", value: "Headings, lists, task boxes, tables, code, callouts (folded ones open), Mermaid diagrams, math and vault images" },
-          { label: "Left out", value: "Frontmatter, raw HTML and comments (such as the rollup marker lines)" },
+          { label: "Left out", value: "Frontmatter, raw HTML and comments" },
           { label: "Links", value: "Web links stay clickable; wikilinks print as their text" },
           { label: "Look", value: "Always light, whatever your theme, with page breaks that keep rows, code blocks and headings together" },
         ]}

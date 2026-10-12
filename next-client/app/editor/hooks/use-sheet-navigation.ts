@@ -5,22 +5,22 @@ import { useAtomValue } from "jotai";
 import { atom_fileMetadata } from "@/app/atoms/metadata";
 import { useFileSystem } from "@/app/hooks/use-file-system";
 import { dailySheetDates, levelTarget, stepTarget, type Sheet, type SheetLevel } from "@/app/utils/sheet-nav";
-import { useRollups } from "./use-rollups";
+import { usePeriodSheets } from "./use-period-sheets";
 
 // Opens worklog sheets for the sheet switcher: a day through Today's sheet
-// (created when it's today and missing), a week, month, quarter or year through the rollups
-// (generated when missing). `targets` works out where each control leads,
+// (created when it's today and missing), a week, month, quarter or year
+// through usePeriodSheets (created from its template when missing). `targets` works out where each control leads,
 // from the vault's daily sheets, so the switcher can disable dead ends.
 export function useSheetNavigation() {
   const metadata = useAtomValue(atom_fileMetadata);
   const dates = useMemo(() => dailySheetDates(Object.keys(metadata)), [metadata]);
   const { openTodayNote } = useFileSystem();
-  const { openRollup } = useRollups();
+  const { openPeriodSheet } = usePeriodSheets();
 
   const openSheet = useCallback(async (level: SheetLevel, date: Date) => {
     if (level === "day") await openTodayNote(date);
-    else await openRollup({ kind: level, offset: 0 }, date);
-  }, [openTodayNote, openRollup]);
+    else await openPeriodSheet({ kind: level, offset: 0 }, date);
+  }, [openTodayNote, openPeriodSheet]);
 
   const targets = useCallback((sheet: Sheet, today: Date = new Date()) => {
     return {

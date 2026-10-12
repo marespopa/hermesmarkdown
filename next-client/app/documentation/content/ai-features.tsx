@@ -21,8 +21,7 @@ export const aiFeaturesGroup: Group = {
           <p>
             Settings → Provider Config → choose a provider → paste your API key → Test Connection,
             then pick a model (use the refresh button to reload the list). Once a key validates, AI
-            Chat, Generate new note, Repurpose, the Ask AI toolbar, and the AI items in the slash
-            menu appear. The palette&apos;s <code>AI: …</code> actions are always listed and explain
+            Chat, the Ask AI toolbar, and the AI items in the slash menu appear. The palette&apos;s <code>AI: …</code> actions are always listed and explain
             that a key is needed until one is set.
           </p>
           <p>
@@ -73,10 +72,6 @@ export const aiFeaturesGroup: Group = {
               { label: "Other", value: "Continue writing · Explain selection" },
             ]}
           />
-          <p>
-            <strong>Generate new note with AI</strong> drafts a complete note from a prompt and saves
-            it as a new file.
-          </p>
         </>
       ),
     },
@@ -204,7 +199,7 @@ export const aiFeaturesGroup: Group = {
       id: "ai-hermes-syntax",
       title: "AI & your notes' syntax",
       lead: "The AI writes tasks, links, callouts and worklog sheets the way HermesMarkdown reads them, and keeps them intact when it rewrites text.",
-      keywords: "ai tasks status box due priority started done wiki link tag callout rollup daily sheet worklog syntax",
+      keywords: "ai tasks status box due priority started done wiki link tag callout daily sheet worklog syntax",
       body: (
         <>
           <p>
@@ -217,43 +212,12 @@ export const aiFeaturesGroup: Group = {
           </p>
           <p>
             It also knows the worklog: daily sheets, and the weekly, monthly, quarterly and yearly
-            rollups. It never writes between a rollup&apos;s <code>rollup:start</code> and{" "}
-            <code>rollup:end</code> lines, because the app rebuilds that part. It writes in the
-            sheet&apos;s Notes section instead.
+            sheets you keep alongside them.
           </p>
           <p>
             Every action that rewrites text keeps task boxes, their <code>@started()</code> and{" "}
             <code>@done()</code> dates, links, tags and callout headers exactly as written.
           </p>
-        </>
-      ),
-    },
-    {
-      id: "repurpose-note",
-      title: "Repurpose a note",
-      lead: "Turn the note you're editing into a blog post, social post, or newsletter draft — as new files, with the source note left untouched.",
-      keywords: "repurpose content creator blog social newsletter draft format capture pipeline",
-      body: (
-        <>
-          <p>
-            Run <strong>Repurpose note into blog / social / newsletter draft…</strong> from the
-            command palette (only visible once a key is configured, and only with an open note
-            that has content).
-          </p>
-          <p>
-            Pick one or more target formats, then <strong>Draft</strong>. The AI drafts each
-            selected format from the current note's content and shows every draft for review
-            before anything is saved.
-          </p>
-          <p>
-            Confirming writes one new file per format, named after the source note (e.g.{" "}
-            <code>pricing-launch-blog.md</code>, <code>pricing-launch-social.md</code>). The
-            original note is never modified.
-          </p>
-          <Callout type="tip">
-            This is a single in-app action instead of a manual prompt — the AI drafts every format
-            in one pass and nothing is written until you confirm.
-          </Callout>
         </>
       ),
     },

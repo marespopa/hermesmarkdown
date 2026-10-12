@@ -15,6 +15,13 @@ export function resolveTodayFolder(pattern: string, now: Date): string {
     .replace(/\{\{\s*month\s*\}\}/gi, pad(now.getMonth() + 1));
 }
 
+// Where a sheet dated `date` is looked for first: the Daily Sheets folder for
+// it, or the New Notes folder before that pattern has been set (`pattern`
+// null). Not normalized.
+export function preferredSheetFolder(pattern: string | null, newNoteFolder: string, date: Date): string {
+  return pattern === null ? newNoteFolder : resolveTodayFolder(pattern, date);
+}
+
 // The local date as `YYYY-MM-DD`, the sheet's file name without `.md`.
 export function todayNoteName(now: Date): string {
   return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;

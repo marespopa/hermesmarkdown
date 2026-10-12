@@ -11,8 +11,8 @@ import { useFileSystem } from "@/app/hooks/use-file-system";
 import { writeFileContent } from "@/app/services/file-writer";
 import { atom_fileMetadata } from "@/app/atoms/metadata";
 import { isTemplatePath } from "@/app/utils/templates/template-registry";
-import { weekPeriod } from "@/app/utils/rollup/period";
-import { useRollupSources } from "../../hooks/use-rollup-sources";
+import { weekPeriod } from "@/app/utils/periods/period";
+import { useDailySheets } from "../../hooks/use-daily-sheets";
 import type { ChatMessage } from "./chat-helpers";
 import { CHAT_SKILLS, isSkillActive, loadSkillInstructions, type ChatSkill, type TemplateBlock } from "./chat-skills";
 import { openTasksBlock, reviewWeekOffset, weekDataBlock } from "./skill-context";
@@ -27,7 +27,7 @@ export function useChatSkills() {
   const { folder } = useAtomValue(atom_templatesFolder);
   const vaultHandle = useAtomValue(atom_vaultHandle);
   const { scanVault, indexVaultTags } = useFileSystem();
-  const { loadSources } = useRollupSources();
+  const { loadDailySheets } = useDailySheets();
 
   // The data a skill works from, or "" for one that has none (templates).
   const skillContext = useCallback(async (skill: ChatSkill, userTexts: string[]): Promise<string> => {
@@ -35,8 +35,7 @@ export function useChatSkills() {
       const asking = [...userTexts].reverse().find((text) => isSkillActive(skill, [text]));
       const period = weekPeriod(new Date(), reviewWeekOffset(asking));
       if (!store.get(atom_vaultHandle)) return weekDataBlock(period, []);
-      const sources = await loadSources(period);
-      return weekDataBlock(period, sources.sheets, { range: sources.range, doneElsewhere: sources.doneElsewhere });
+      return weekDataBlock(period, await loadDailySheets(period));
     }
     if (skill.id === "tasks") {
       const templatesFolder = store.get(atom_templatesFolder).folder;
@@ -44,7 +43,7 @@ export function useChatSkills() {
       return openTasksBlock(store.get(atom_fileMetadata), new Date(), skip);
     }
     return "";
-  }, [store, loadSources]);
+  }, [store, loadDailySheets]);
 
   // Skill text for the next request, given the thread including the new user message.
   const skillInstructionsFor = useCallback(async (messages: ChatMessage[]): Promise<string[]> => {

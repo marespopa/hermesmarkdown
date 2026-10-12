@@ -22,7 +22,7 @@ import {
   type TemplateEntry,
 } from "@/app/utils/templates/template-registry";
 import { offsetToLineColumn, type ExpandedTemplate } from "@/app/utils/templates/template-tokens";
-import { DEFAULT_TODAY_FOLDER, findTodayNote, resolveTodayFolder, todayNoteHeading, todayNoteName } from "@/app/utils/today-note";
+import { DEFAULT_TODAY_FOLDER, findTodayNote, preferredSheetFolder, resolveTodayFolder, todayNoteHeading, todayNoteName } from "@/app/utils/today-note";
 
 interface UseTemplateCreateProps {
   scanVault: (handle: FileSystemDirectoryHandle) => Promise<void>;
@@ -63,7 +63,7 @@ export function useTemplateCreate({ scanVault, indexVaultTags, openFile }: UseTe
   // `{{cursor}}`. `unique` adds ` (1)`… on a name clash; otherwise an existing
   // file on disk is opened unchanged (what's on disk wins) and `onExisting`
   // is told its path. With `open: false` nothing is opened and no toast is
-  // shown (Quick jot). Resolves to the note's path and a fresh handle, or
+  // shown (adding to today's sheet from AI Chat). Resolves to the note's path and a fresh handle, or
   // null on error.
   const writeNewNote = useCallback(async (
     folder: string,
@@ -205,12 +205,11 @@ export function useTemplateCreate({ scanVault, indexVaultTags, openFile }: UseTe
   // for the first time, with `{{year}}` / `{{month}}` allowed — from a
   // journal-like template when one exists, else as a dated heading with the
   // caret below it. A sheet on disk that the index hasn't seen yet is used
-  // unchanged. `open` opens it (Today's sheet); Quick jot only needs it to
+  // unchanged. `open` opens it (Today's sheet); AI Chat's add to today only needs it to
   // exist. Null when a prompt was cancelled or the write failed.
   const resolveTodayNote = useCallback(async (now: Date, open: boolean) => {
     if (!store.get(atom_vaultHandle)) return null;
-    const pattern = store.get(atom_todayFolder);
-    const preferredFolder = normalizeFolderPath(pattern === null ? store.get(atom_newNoteFolder) : resolveTodayFolder(pattern, now));
+    const preferredFolder = normalizeFolderPath(preferredSheetFolder(store.get(atom_todayFolder), store.get(atom_newNoteFolder), now));
     const baseName = todayNoteName(now);
     const text = `# ${todayNoteHeading(now)}\n\n`;
     const dated: ExpandedTemplate = { text, cursor: text.length };
@@ -227,7 +226,7 @@ export function useTemplateCreate({ scanVault, indexVaultTags, openFile }: UseTe
     if (template) {
       const raw = await readOrReport(template);
       if (raw === null) return null;
-      const result = await instantiate(raw, baseName, "Create");
+      const result = await instantiate(raw, baseName, "Create", "", { now });
       if (!result) return null;
       return writeNewNote(folder, baseName, result.expanded, { unique: false, open });
     }

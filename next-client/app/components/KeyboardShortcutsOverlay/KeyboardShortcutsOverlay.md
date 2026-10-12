@@ -7,7 +7,7 @@ Description: Overlay listing keyboard shortcuts in General, Formatting and Table
 - Persistence: None - transient UI state.
 
 ## Dependencies
-- Core: `OverlayPanel`, `app/utils/platform` (`formatShortcut`), `useIsMobileChrome`, `quickJotShortcutLabel` (`editor/utils/tab-shortcuts.ts`, the Quick jot row).
+- Core: `OverlayPanel`, `app/utils/platform` (`formatShortcut`), `useIsMobileChrome`.
 - Zero-Cloud: No network or telemetry side effects.
 
 ## Quick Usage

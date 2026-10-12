@@ -224,7 +224,7 @@ export function useCodeMirrorEditor({
 
   // Keep the view in sync when `value` changes for a reason other than
   // the user typing in it (e.g. external file reload, undo outside CM6,
-  // a quick jot appended to this note). Only the changed range is replaced,
+  // a line AI Chat added to this note). Only the changed range is replaced,
   // so the selection maps through it and the scroll doesn't jump.
   useEffect(() => {
     const view = viewRef.current;

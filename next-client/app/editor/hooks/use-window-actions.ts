@@ -1,8 +1,7 @@
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { useRouter } from "next/navigation";
 import { atom_activePaneId, atom_splitPane, atom_workspaceLayout } from "@/app/atoms/atoms";
-import { atom_aiBuilderRequest, atom_isAiConfigured, atom_quickJot, atom_sidebarOpen, atom_toolbarHidden } from "@/app/atoms/ui-atoms";
-import { atom_vaultHandle } from "@/app/atoms/vault-atoms";
+import { atom_aiBuilderRequest, atom_isAiConfigured, atom_sidebarOpen, atom_toolbarHidden } from "@/app/atoms/ui-atoms";
 import { findLeaf } from "@/app/atoms/utils";
 import { useCommandPalette } from "@/app/components/CommandPalette/CommandPaletteContext";
 import { exportActivePdf, openTokenCostDialog } from "../utils/open-helper-dialogs";
@@ -16,8 +15,6 @@ export function useWindowActions() {
   const isAiConfigured = useAtomValue(atom_isAiConfigured);
   const setAiBuilderRequest = useSetAtom(atom_aiBuilderRequest);
   const setToolbarHidden = useSetAtom(atom_toolbarHidden);
-  const setQuickJot = useSetAtom(atom_quickJot);
-  const hasVault = !!useAtomValue(atom_vaultHandle);
   const [sidebarOpen, setSidebarOpen] = useAtom(atom_sidebarOpen);
   const workspaceLayout = useAtomValue(atom_workspaceLayout);
   const activePaneId = useAtomValue(atom_activePaneId);
@@ -28,17 +25,13 @@ export function useWindowActions() {
 
   return {
     isAiConfigured,
-    hasVault,
     sidebarOpen,
     activePaneHasFiles,
     openCommandPalette: () => openCommandPalette(),
-    // Same as the Quick jot shortcut: QuickJot (page) shows the input.
-    openQuickJot: () => setQuickJot((state) => ({ ...state, open: true })),
     // Same trigger as the Ctrl/Cmd+Shift+B shortcut; the editor page opens the chat.
     openAIChat: () => setAiBuilderRequest((value) => value + 1),
     openSettings: () => router.push("/editor/settings"),
     openHelp: () => router.push("/documentation"),
-    openTools: () => router.push("/tools"),
     openTokenCost: openTokenCostDialog,
     toggleSidebar: () => setSidebarOpen(!sidebarOpen),
     hideToolbar: () => setToolbarHidden(true),
