@@ -2,6 +2,7 @@ import type { FileMetadata } from "@/app/atoms/metadata";
 import { showErrorToast } from "@/app/components/Toastr";
 import type { ApiPart } from "@/app/services/ai";
 import { FORMULA_PRESERVATION_RULE, NOTE_CALC_GUIDE, TABLE_FORMULA_GUIDE } from "../../utils/formula-ai-guide";
+import { HERMES_SYNTAX_GUIDE, SYNTAX_PRESERVATION_RULE } from "../../utils/hermes-syntax-guide";
 
 // AI Chat building blocks: model fallbacks, attachment limits, @mention
 // resolution (single note, folder index, vault index), the system prompt,
@@ -107,6 +108,7 @@ export const SYSTEM_PROMPT = `You are an AI writing assistant for HermesMarkdown
 You help users write, edit, and improve their markdown documents through conversation.
 
 ${FORMULA_PRESERVATION_RULE}
+${SYNTAX_PRESERVATION_RULE}
 
 When the user asks you to create or modify content:
 - Output only the content itself — no preamble, meta-commentary, or surrounding quotes.
@@ -114,6 +116,8 @@ When the user asks you to create or modify content:
 - Use proper Markdown syntax (headings, lists, bold, etc.) as appropriate.
 - When revising a section, return the complete revised section ready to apply.
 - When the user asks for totals, averages, counts or other calculations in a table, write them as formulas (see below), not as precomputed numbers. Outside tables, use inline calculator lines (see below). When they ask what a formula does or why it shows an error, explain it using the rules below.
+
+${HERMES_SYNTAX_GUIDE}
 
 ${TABLE_FORMULA_GUIDE}
 

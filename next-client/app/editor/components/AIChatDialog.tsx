@@ -111,34 +111,34 @@ export default function AIChatDialog({
     if (!trimmed && !attachments.length) return;
     if (isLoading) return;
 
-    // Catch any @vault/@folder/@file tokens typed straight through without ever being
-    // picked from the dropdown, so they still resolve instead of reaching the model as text.
-    const autoRefs = await resolveMentionRefs(trimmed, vaultRefs, fileMetadata, vaultHandle);
-    const allRefs = [...vaultRefs, ...autoRefs];
-
-    // Build API text: append vault ref content blocks after the user's message
-    const refBlocks = allRefs
-      .map((r) => `\n--- ${r.label} ---\n${r.content}\n--- End ${r.label} ---`)
-      .join("\n");
-    const apiText = trimmed + refBlocks;
-
-    const displayContent = trimmed || "(see attached files)";
-    const apiContent = buildApiContent(apiText || "(see attached files)", attachments);
-
-    const userMsg: ChatMessage = { role: "user", displayContent, apiContent };
-    const newMessages = [...messages, userMsg];
-
-    setMessages(newMessages);
-    setInput("");
-    setAttachments([]);
-    setVaultRefs([]);
-    setEditingIndex(null);
-    setMention(null);
     setIsLoading(true);
-
-    if (inputRef.current) inputRef.current.style.height = "auto";
-
     try {
+      // Catch any @vault/@folder/@file tokens typed straight through without ever being
+      // picked from the dropdown, so they still resolve instead of reaching the model as text.
+      const autoRefs = await resolveMentionRefs(trimmed, vaultRefs, fileMetadata, vaultHandle);
+      const allRefs = [...vaultRefs, ...autoRefs];
+
+      // Build API text: append vault ref content blocks after the user's message
+      const refBlocks = allRefs
+        .map((r) => `\n--- ${r.label} ---\n${r.content}\n--- End ${r.label} ---`)
+        .join("\n");
+      const apiText = trimmed + refBlocks;
+
+      const displayContent = trimmed || "(see attached files)";
+      const apiContent = buildApiContent(apiText || "(see attached files)", attachments);
+
+      const userMsg: ChatMessage = { role: "user", displayContent, apiContent };
+      const newMessages = [...messages, userMsg];
+
+      setMessages(newMessages);
+      setInput("");
+      setAttachments([]);
+      setVaultRefs([]);
+      setEditingIndex(null);
+      setMention(null);
+
+      if (inputRef.current) inputRef.current.style.height = "auto";
+
       const apiMessages: ApiMessage[] = newMessages.map((m) => ({ role: m.role, content: m.apiContent }));
       const skillInstructions = await skills.skillInstructionsFor(newMessages);
       const reply = await callAIChat(buildSystemPrompt(skillInstructions), apiMessages);

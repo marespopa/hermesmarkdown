@@ -1,5 +1,6 @@
 import { beginAiAction, finishAiActionSuccess, finishAiActionError } from "./ai-status";
 import { FORMULA_PRESERVATION_RULE, NOTE_CALC_GUIDE, TABLE_FORMULA_GUIDE } from "@/app/editor/utils/formula-ai-guide";
+import { HERMES_SYNTAX_GUIDE, SYNTAX_PRESERVATION_RULE } from "@/app/editor/utils/hermes-syntax-guide";
 
 export type AIProvider = 'claude' | 'gemini';
 
@@ -57,6 +58,37 @@ const beautifyAIError = (error: string) => {
 
   return error;
 };
+
+// A request that hasn't answered by then is reported, not left spinning.
+const AI_TIMEOUT_MS = 120_000;
+
+// POSTs to the AI proxy and returns its JSON. Times out after AI_TIMEOUT_MS,
+// and a reply that isn't JSON (a platform error page, a cut-off response)
+// becomes an error naming its status instead of a parse error.
+async function postAI(body: Record<string, unknown>, fallbackError: string) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), AI_TIMEOUT_MS);
+  try {
+    const response = await fetch('/api/ai', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+      signal: controller.signal,
+    });
+    const data = await response.json().catch(() => null);
+    if (!response.ok || !data) {
+      throw new Error(data?.error || `${fallbackError} (Status ${response.status})`);
+    }
+    return data;
+  } catch (error: any) {
+    if (error?.name === 'AbortError') {
+      throw new Error("The AI didn't answer within 2 minutes. Try again or pick a faster model.");
+    }
+    throw error;
+  } finally {
+    clearTimeout(timer);
+  }
+}
 
 /**
  * Fetches available Gemini models using a direct REST call for maximum compatibility.
@@ -126,14 +158,7 @@ export async function callAIChat(system: string, messages: ApiMessage[]) {
 
   try {
     const config = getAIConfig();
-    const response = await fetch('/api/ai', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'chat', ...config, system, messages }),
-    });
-
-    const data = await response.json();
-    if (!response.ok) throw new Error(data.error || "Failed to generate response");
+    const data = await postAI({ action: 'chat', ...config, system, messages }, "Failed to generate response");
 
     finishAiActionSuccess(seq, "Done");
     return data.text as string;
@@ -153,19 +178,7 @@ export async function callAI(system: string, prompt: string) {
 
   try {
     const config = getAIConfig();
-    const response = await fetch('/api/ai', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        action: 'text',
-        ...config,
-        system,
-        prompt
-      })
-    });
-
-    const data = await response.json();
-    if (!response.ok) throw new Error(data.error || "Failed to generate text");
+    const data = await postAI({ action: 'text', ...config, system, prompt }, "Failed to generate text");
 
     finishAiActionSuccess(seq, "Done");
     return data.text;
@@ -218,6 +231,7 @@ Rules:
 - Preserve existing frontmatter values that are already correct; only fill in or fix what's missing or wrong.
 - Keep the body content's meaning intact — only restructure headings, fences, bullets, tables, bold, etc. as needed to resolve the listed issues.
 - ${FORMULA_PRESERVATION_RULE}
+- ${SYNTAX_PRESERVATION_RULE}
 - Return ONLY the complete corrected markdown document (including frontmatter) — no commentary, no explanation, no wrapping code fences.`;
 
   const prompt = `Issues to fix:\n${issues.map((i) => `- ${i}`).join("\n")}\n\n--- DOCUMENT ---\n${content}`;
@@ -233,6 +247,8 @@ Rules:
 export async function generateFileFromPrompt(userPrompt: string) {
   const system =
     `You are a markdown note writer. Write a well-structured, informative markdown note based on the user's prompt. Use headers, lists, and code blocks where appropriate. Do not include YAML frontmatter. Return only the markdown content.
+
+${HERMES_SYNTAX_GUIDE}
 
 When the note needs a table with totals or other calculations, use formulas instead of precomputed numbers:
 ${TABLE_FORMULA_GUIDE}

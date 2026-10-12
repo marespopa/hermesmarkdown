@@ -1,4 +1,5 @@
 import { FORMULA_PRESERVATION_RULE, NOTE_CALC_GUIDE, TABLE_FORMULA_GUIDE } from "../utils/formula-ai-guide";
+import { HERMES_SYNTAX_GUIDE, SYNTAX_PRESERVATION_RULE } from "../utils/hermes-syntax-guide";
 
 // Prompt definitions for the one-click AI actions (palette "AI: …" commands
 // and slash-menu AI items), keyed by the action id used in
@@ -30,7 +31,7 @@ function toneAction(tone: "formal" | "casual" | "direct" | "polished"): Selectio
   return {
     kind: "selection",
     label: `Change tone: ${tone}`,
-    system: `You are a writing editor. Rewrite the selected text to sound more ${tone}, while preserving its meaning, intent, and Markdown formatting. ${FORMULA_PRESERVATION_RULE} Return ONLY the rewritten text ${NO_PREAMBLE}`,
+    system: `You are a writing editor. Rewrite the selected text to sound more ${tone}, while preserving its meaning, intent, and Markdown formatting. ${FORMULA_PRESERVATION_RULE} ${SYNTAX_PRESERVATION_RULE} Return ONLY the rewritten text ${NO_PREAMBLE}`,
     build: (text) => `REWRITE THIS TEXT IN A MORE ${tone.toUpperCase()} TONE:\n${text}`,
     emptyMessage: "Select some text to change its tone.",
   };
@@ -40,14 +41,14 @@ export const AI_ACTIONS: Record<string, AIAction> = {
   improve: {
     kind: "selection",
     label: "Improve writing",
-    system: `You are a writing editor. Improve clarity, flow, and conciseness. Preserve the author's voice, meaning, and any Markdown formatting (bold, italics, lists) exactly. ${NO_NEW_QUOTES} ${FORMULA_PRESERVATION_RULE} Return ONLY the rewritten text ${NO_PREAMBLE}`,
+    system: `You are a writing editor. Improve clarity, flow, and conciseness. Preserve the author's voice, meaning, and any Markdown formatting (bold, italics, lists) exactly. ${NO_NEW_QUOTES} ${FORMULA_PRESERVATION_RULE} ${SYNTAX_PRESERVATION_RULE} Return ONLY the rewritten text ${NO_PREAMBLE}`,
     build: (text) => `REWRITE THIS TEXT:\n${text}`,
     emptyMessage: "Select some text to improve.",
   },
   expand: {
     kind: "selection",
     label: "Expand idea",
-    system: `You are a thinking partner. Expand the selected idea with depth and clarity. Match the writer's existing tone and preserve any existing Markdown syntax. ${NO_NEW_QUOTES} Do NOT repeat the original text as a header or preamble. ${FORMULA_PRESERVATION_RULE} Return ONLY the final expanded text with no explanation or surrounding quotes.`,
+    system: `You are a thinking partner. Expand the selected idea with depth and clarity. Match the writer's existing tone and preserve any existing Markdown syntax. ${NO_NEW_QUOTES} Do NOT repeat the original text as a header or preamble. ${FORMULA_PRESERVATION_RULE} ${SYNTAX_PRESERVATION_RULE} Return ONLY the final expanded text with no explanation or surrounding quotes.`,
     build: (text, surrounding) =>
       `EXPAND THIS IDEA:\n${text}${surrounding ? `\n\nSURROUNDING CONTEXT (for tone reference only):\n${surrounding}` : ""}`,
     emptyMessage: "Select an idea to expand.",
@@ -55,14 +56,14 @@ export const AI_ACTIONS: Record<string, AIAction> = {
   "fix-grammar": {
     kind: "selection",
     label: "Fix spelling and grammar",
-    system: `You are a meticulous proofreader. Apply only a light correction pass for spelling and grammar errors. Do not change wording, tone, or meaning beyond fixing mistakes. Preserve Markdown formatting exactly. ${FORMULA_PRESERVATION_RULE} Return ONLY the corrected text ${NO_PREAMBLE}`,
+    system: `You are a meticulous proofreader. Apply only a light correction pass for spelling and grammar errors. Do not change wording, tone, or meaning beyond fixing mistakes. Preserve Markdown formatting exactly. ${FORMULA_PRESERVATION_RULE} ${SYNTAX_PRESERVATION_RULE} Return ONLY the corrected text ${NO_PREAMBLE}`,
     build: (text) => `FIX SPELLING AND GRAMMAR IN THIS TEXT:\n${text}`,
     emptyMessage: "Select some text to fix.",
   },
   shorten: {
     kind: "selection",
     label: "Shorten",
-    system: `You are an editor who compresses verbose text while preserving its core meaning and Markdown formatting. ${FORMULA_PRESERVATION_RULE} Return ONLY the shortened text ${NO_PREAMBLE}`,
+    system: `You are an editor who compresses verbose text while preserving its core meaning and Markdown formatting. ${FORMULA_PRESERVATION_RULE} ${SYNTAX_PRESERVATION_RULE} Return ONLY the shortened text ${NO_PREAMBLE}`,
     build: (text) => `SHORTEN THIS TEXT:\n${text}`,
     emptyMessage: "Select some text to shorten.",
   },
@@ -107,7 +108,7 @@ export const AI_ACTIONS: Record<string, AIAction> = {
   continue: {
     kind: "context",
     label: "Continue writing",
-    system: `You are a writing partner who continues a piece of writing seamlessly from where it left off, matching its existing tone, style, and Markdown formatting. Do not repeat or summarize what came before. ${FORMULA_PRESERVATION_RULE} Return ONLY the continuation text ${NO_PREAMBLE}\n\n${TABLE_FORMULA_GUIDE}\n\n${NOTE_CALC_GUIDE}`,
+    system: `You are a writing partner who continues a piece of writing seamlessly from where it left off, matching its existing tone, style, and Markdown formatting. Do not repeat or summarize what came before. ${FORMULA_PRESERVATION_RULE} ${SYNTAX_PRESERVATION_RULE} Return ONLY the continuation text ${NO_PREAMBLE}\n\n${HERMES_SYNTAX_GUIDE}\n\n${TABLE_FORMULA_GUIDE}\n\n${NOTE_CALC_GUIDE}`,
     build: (preceding) => `CONTINUE WRITING FROM HERE:\n${preceding}`,
   },
 };
