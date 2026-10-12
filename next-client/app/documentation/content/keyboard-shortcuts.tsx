@@ -37,7 +37,6 @@ export const keyboardShortcutsItem: Subsection = {
           rows: [
             { label: "Open Explorer", shortcut: "CTRL/CMD+SHIFT+E" },
             { label: "New file", shortcut: "CTRL+ALT+N" },
-            { label: "Quick jot to today's sheet", shortcut: "CTRL+ALT+J" },
             { label: "Close current tab", shortcut: "CTRL/CMD+ALT+W" },
             { label: "Select workspace tab", shortcut: "CTRL/CMD+1–9" },
             { label: "Hide / show toolbar", shortcut: "CTRL/CMD+ALT+T" },

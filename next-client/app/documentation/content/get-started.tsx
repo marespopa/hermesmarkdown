@@ -1,6 +1,5 @@
 import { Callout, KV, type Group } from "../doc-primitives";
 import { keyboardShortcutsItem } from "./keyboard-shortcuts";
-import { quickJotItem } from "./quick-jot";
 import { periodicSheetsItem } from "./periodic-sheets";
 
 // Documentation content: Get Started group.
@@ -200,9 +199,9 @@ export const getStartedGroup: Group = {
             folder per year, and <code>{"{{month}}"}</code> works too. Change it later in Settings
             → Files → <strong>Daily Sheets Folder</strong>. If you have a template named Journal or
             Daily, new sheets use it. Press <code>t</code>, or run <strong>Today&apos;s sheet</strong>{" "}
-            from the command palette, to get there from the keyboard. To add a line without
-            leaving the note you&apos;re in, use{" "}
-            <a href="#quick-jot" className="text-accent hover:underline">Quick jot</a>.
+            from the command palette, to get there from the keyboard, or type{" "}
+            <code>/daily</code> in any note. For a timestamped line, make a template from the{" "}
+            <strong>Log entry</strong> starter and insert it with <code>/template</code>.
           </p>
           <p>
             <strong>Tasks</strong> lists the unchecked <code>- [ ]</code> tasks from notes you
@@ -285,7 +284,6 @@ export const getStartedGroup: Group = {
         </>
       ),
     },
-    quickJotItem,
     periodicSheetsItem,
     {
       id: "editor-layout",

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback, type CSSProperties } from "react";
 import ConflictDialog from "./components/ConflictDialog";
-import { useAtomValue, useSetAtom } from "jotai";
+import { useAtomValue } from "jotai";
 import { atom_fileName, atom_content, atom_activeFilePath, atom_workspaceLayout, atom_activePaneId, atom_isFileLoading, atom_isVaultRestoring, findLeaf, getFirstLeaf } from "@/app/atoms/atoms";
 import useIsMobileChrome from "@/app/hooks/use-mobile-chrome";
 import WelcomeWizard from "./components/WelcomeWizard";
@@ -28,7 +28,6 @@ import MermaidDialog from "./components/MermaidDialog";
 import RenderedBlockSourceDialog from "./components/RenderedBlockSourceDialog";
 import ImageDialog from "./components/ImageDialog";
 import TokenCostDialog from "./components/TokenCostDialog";
-import QuickJot from "./components/QuickJot";
 import PdfExport from "./components/PdfExport";
 import { useAIEditorActions } from "./hooks/useAIEditorActions";
 import AIChatDialog from "./components/AIChatDialog";
@@ -37,7 +36,8 @@ import { AIThinkingOverlay } from "./components/AIThinkingOverlay";
 import VoicePreviewPanel from "./components/VoicePreviewPanel";
 import { useGlobalVoiceInput } from "./hooks/use-global-voice-input";
 import { useRouter } from "next/navigation";
-import { atom_isAiConfigured, atom_aiBuilderRequest, atom_quickJot, atom_showHiddenFiles, atom_hideChromeWhileTyping, atom_sidebarOpen, atom_sidebarWidth } from "@/app/atoms/ui-atoms";
+import { OPEN_TODAY_SHEET_EVENT } from "./utils/worklog-events";
+import { atom_isAiConfigured, atom_aiBuilderRequest, atom_showHiddenFiles, atom_hideChromeWhileTyping, atom_sidebarOpen, atom_sidebarWidth } from "@/app/atoms/ui-atoms";
 import { usePaneFileActions } from "./hooks/use-pane-file-actions";
 import { useDraftImport } from "./hooks/use-draft-import";
 import { useToolHandoff } from "./hooks/use-tool-handoff";
@@ -70,7 +70,6 @@ export default function LiteEditor() {
   const { closeTabWithAutosave } = usePaneFileActions(mobileLeaf);
   const isFileLoading = useAtomValue(atom_isFileLoading);
   const isAiConfigured = useAtomValue(atom_isAiConfigured);
-  const setQuickJot = useSetAtom(atom_quickJot);
   const aiBuilderRequest = useAtomValue(atom_aiBuilderRequest);
   // Single dictation session shared by the whole app (not one per pane), so
   // switching the active pane mid-dictation never drops the in-progress
@@ -232,6 +231,15 @@ export default function LiteEditor() {
     await exportFile(content, fileName);
   };
 
+  // `/daily` in an editor pane (worklog-events.ts) opens today's sheet once
+  // the vault is ready.
+  const openTodayFromSlash = useRef<(() => unknown) | undefined>(undefined);
+  openTodayFromSlash.current = !isVaultLocked && vaultHandle ? feedProps.onOpenToday : undefined;
+  useEffect(() => {
+    const handleOpen = () => { void openTodayFromSlash.current?.(); };
+    document.addEventListener(OPEN_TODAY_SHEET_EVENT, handleOpen);
+    return () => document.removeEventListener(OPEN_TODAY_SHEET_EVENT, handleOpen);
+  }, []);
 
   // Once the chrome fades, a single pane's text re-centres on the window
   // rather than on the space beside the faded sidebar (editor.scss).
@@ -290,7 +298,6 @@ export default function LiteEditor() {
         <ImageDialog />
         <TokenCostDialog />
         <PdfExport />
-        <QuickJot disabledReason={isVaultLocked ? "Vault is loading" : !vaultHandle ? "Open a vault first" : undefined} onOpenSheet={feedProps.onOpenToday} />
         
         <DraftImportDialog pendingDraft={pendingDraft} onConfirm={confirmPendingDraft} onCancel={cancelPendingDraft} />
         {!isVaultLocked && <DraftFolderDialog />}
@@ -317,7 +324,6 @@ export default function LiteEditor() {
               <MobileFileIndicator
                 onSave={() => handleSaveRef.current()}
                 onOpenAIChat={isAiConfigured ? openAiChat : undefined}
-                onQuickJot={vaultHandle ? () => setQuickJot((state) => ({ ...state, open: true })) : undefined}
               />
             )}
             <div className="relative flex-1 min-h-0">

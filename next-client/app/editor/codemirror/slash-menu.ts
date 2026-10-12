@@ -20,7 +20,6 @@ import {
   MARK_PRIVATE_SENTINEL,
   MARK_PUBLIC_SENTINEL,
   DAILY_SHEET_SENTINEL,
-  JOT_SENTINEL,
 } from "../components/constants";
 import { FM_REGEX, updateFmFields } from "@/app/utils/frontmatter-utils";
 import { clearSensitiveMarkers, isSensitiveContent } from "@/app/utils/note-privacy";
@@ -29,7 +28,7 @@ import { clearSensitiveMarkers, isSensitiveContent } from "@/app/utils/note-priv
 // this pass (that's a separate AI-subsystem port, not part of the CM6
 // migration). Frontmatter wizard, Link/WikiLink/Date/Table sentinels are.
 // The vault Template entry is added only when the editor can insert one, and
-// Template field only while editing a template; Daily and Jot only with a vault.
+// Template field only while editing a template; Daily only with a vault.
 const AVAILABLE_TEMPLATES = TEMPLATES.filter((t) => !t.aiOnly && !t.vaultOnly && !t.templateOnly && !t.saveTemplateOnly && !t.worklogOnly);
 const WORKLOG_ENTRIES = TEMPLATES.filter((t) => t.worklogOnly);
 const VAULT_TEMPLATE_ENTRIES = TEMPLATES.filter((t) => t.content === VAULT_TEMPLATE_SENTINEL);
@@ -52,8 +51,6 @@ export interface SlashMenuCallbacks {
   onSaveAsTemplate?: () => void;
   /** `/daily`: opens today's sheet; set with a vault. */
   onOpenDailySheet?: () => void;
-  /** `/jot`: the line's text without the trigger ("" on an empty line); set with a vault. */
-  onJot?: (text: string) => void;
   onFrontmatterWizard: () => void;
   onCodeBlockInserted: (pos: number) => void;
 }
@@ -199,12 +196,6 @@ export function applyTemplate(
   if (content === DAILY_SHEET_SENTINEL) {
     view.dispatch({ changes: { from, to, insert: "" }, userEvent: "input.replace.template" });
     callbacks.onOpenDailySheet?.();
-    return;
-  }
-  if (content === JOT_SENTINEL) {
-    // The line stays in this note (a copy goes to the sheet); only the trigger goes.
-    view.dispatch({ changes: { from, to, insert: "" }, userEvent: "input.replace.template" });
-    callbacks.onJot?.(view.state.doc.lineAt(from).text.trim());
     return;
   }
   const flagKey = FRONTMATTER_FLAG_SENTINELS[content];

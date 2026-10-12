@@ -8,7 +8,7 @@ export const templatesItems: Subsection[] = [
     id: "templates",
     title: "Templates",
     lead: "A template is a note you start other notes from. Fields like Today's date or Ask: Owner fill in each time you use it.",
-    keywords: "template templates save as template edit template blank tab fill in date format date math tomorrow selection quick start empty note preview tpl snippet starter meeting notes spec report token field add field placeholder prompt question ask cursor clipboard date slug new note missing link folder new notes go in target_folder file_name new template create template week sheet weekly monthly quarterly yearly",
+    keywords: "template templates save as template edit template blank tab fill in date format date math tomorrow selection quick start empty note preview tpl snippet starter log entry timestamp meeting notes spec report token field add field placeholder prompt question ask cursor clipboard date slug new note missing link folder new notes go in target_folder file_name new template create template week sheet weekly monthly quarterly yearly",
     body: (
       <>
         <h4 className={h4}>Make a template</h4>
@@ -19,6 +19,7 @@ export const templatesItems: Subsection[] = [
         <ul>
           <li><strong>Basic</strong>: a title, today&apos;s date and one question.</li>
           <li><strong>Journal</strong>: today&apos;s date as the heading, room to write, and what you&apos;re grateful for.</li>
+          <li><strong>Log entry</strong>: one line starting with the time (<code>- 14:20 </code>). Insert it with <code>/template</code> to log something in today&apos;s sheet.</li>
           <li><strong>Meeting notes</strong>: agenda, decisions, action items, open questions, next steps.</li>
           <li><strong>Spec</strong>: author, status and version, then summary, objective, prerequisites, design, open questions and references.</li>
           <li><strong>Report</strong>: summary, findings, next steps and notes.</li>

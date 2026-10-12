@@ -40,7 +40,6 @@ Index of the editor UI. Each component has a sibling `<Name>.md` (a token-lean d
 | [PaneToolbarButton](PaneToolbarButton.md) | Icon-only toolbar button with a tooltip. |
 | [PaneWindowActions](PaneWindowActions.md) | Window-wide toolbar sections (Mode, Tools, More menu), shown once in the top-right pane. |
 | [PaneTab](PaneTab.md) | Draggable file tab with a leading close button, unsaved-changes dot, and shortcut hint; exports `SaveStateIcon`. |
-| [QuickJot](QuickJot.md) | One-line input (⌘J on Mac / Ctrl+Alt+J, the toolbar button, or the **Quick jot** command) that appends a line to the end of today's sheet without leaving the current note. Also answers the `/daily` and `/jot` slash commands. |
 | [PdfExport](PdfExport.md) | Mounts **Export as PDF…** (palette and More menu): the focused note rendered and printed through the browser's dialog, on the device. |
 | [TokenCostDialog](TokenCostDialog.md) | What sending the focused note to each AI model costs (o200k count, input prices); opened from More → Token Cost or the palette. |
 | [RenderedBlockSourceDialog](RenderedBlockSourceDialog.md) | Source editor with live preview for an inline-rendered Mermaid diagram or math block; Save writes the body back as one undo step. |

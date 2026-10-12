@@ -11,8 +11,8 @@ const callAIChatTurn = vi.hoisted(() => vi.fn());
 vi.mock("@/app/services/ai", () => ({ callAIChatTurn }));
 const searchNoteContent = vi.hoisted(() => vi.fn());
 vi.mock("@/app/services/content-search-client", () => ({ searchNoteContent }));
-const addJot = vi.hoisted(() => vi.fn());
-vi.mock("../../hooks/use-quick-jot", () => ({ useQuickJot: () => ({ addJot }) }));
+const appendToToday = vi.hoisted(() => vi.fn());
+vi.mock("../../hooks/use-today-append", () => ({ useTodayAppend: () => ({ appendToToday }) }));
 const readCurrentText = vi.hoisted(() => vi.fn());
 vi.mock("@/app/hooks/file-system/use-note-buffer", () => ({ useNoteBuffer: () => ({ readCurrentText }) }));
 
@@ -96,7 +96,7 @@ describe("useChatTools", () => {
   });
 
   it("adds to today's sheet only after the user approves", async () => {
-    addJot.mockResolvedValue({ result: "added", sheetName: "2026-10-12" });
+    appendToToday.mockResolvedValue({ result: "added", sheetName: "2026-10-12" });
     callAIChatTurn
       .mockResolvedValueOnce(turnWith(call("add_to_today", { lines: ["- [ ] Call the vendor", "- [ ] Send the invoice"] })))
       .mockResolvedValueOnce({ text: "Added both." });
@@ -107,13 +107,13 @@ describe("useChatTools", () => {
       pending = result.current.converse("system", [{ role: "user", content: "Add these to today" }], () => {});
     });
     await waitFor(() => expect(result.current.approval?.lines).toEqual(["- [ ] Call the vendor", "- [ ] Send the invoice"]));
-    expect(addJot).not.toHaveBeenCalled();
+    expect(appendToToday).not.toHaveBeenCalled();
 
     await act(async () => {
       result.current.approval!.approve();
       await pending;
     });
-    expect(addJot.mock.calls.map(([line]) => line)).toEqual(["- [ ] Call the vendor", "- [ ] Send the invoice"]);
+    expect(appendToToday.mock.calls.map(([line]) => line)).toEqual(["- [ ] Call the vendor", "- [ ] Send the invoice"]);
     expect(lastToolResult()).toBe("Added 2 lines to [[2026-10-12]].");
     expect(result.current.approval).toBeNull();
   });
@@ -134,7 +134,7 @@ describe("useChatTools", () => {
       await pending;
     });
 
-    expect(addJot).not.toHaveBeenCalled();
+    expect(appendToToday).not.toHaveBeenCalled();
     expect(lastToolResult()).toMatch(/declined/);
   });
 

@@ -10,7 +10,7 @@ import { resolveFileMetaByName } from "@/app/hooks/file-system/resolve-file-by-n
 import { callAIChatTurn, type AIToolCall, type ApiMessage, type ToolExchangeMessage } from "@/app/services/ai";
 import { searchNoteContent } from "@/app/services/content-search-client";
 import { isTemplatePath } from "@/app/utils/templates/template-registry";
-import { useQuickJot } from "../../hooks/use-quick-jot";
+import { useTodayAppend } from "../../hooks/use-today-append";
 import {
   DEFAULT_SEARCH_LIMIT,
   readNoteOutput,
@@ -36,14 +36,14 @@ const STOPPED = "I stopped after several lookups without an answer. Try asking m
 // AI Chat's tools, run in the browser against the open vault: search_notes
 // (content index, plus names and tags), read_note, list_open_tasks, and
 // add_to_today, which waits for the user's Add / Don't add (`approval`)
-// before Quick jot appends the lines. `converse` runs one user turn: ask,
+// before useTodayAppend appends the lines. `converse` runs one user turn: ask,
 // run the tools the model calls, send their results, until it answers.
 // Each tool run is reported through `onActivity`, for the thread.
 export function useChatTools() {
   const store = useStore();
   const vaultHandle = useAtomValue(atom_vaultHandle);
   const { readCurrentText } = useNoteBuffer();
-  const { addJot } = useQuickJot();
+  const { appendToToday } = useTodayAppend();
   const [approval, setApproval] = useState<ToolApproval | null>(null);
   const pending = useRef<((ok: boolean) => void) | null>(null);
 
@@ -105,7 +105,7 @@ export function useChatTools() {
       let added = 0;
       let sheet = "";
       for (const line of lines) {
-        const outcome = await addJot(line);
+        const outcome = await appendToToday(line);
         if (outcome.result !== "added") break;
         added++;
         sheet = outcome.sheetName ?? sheet;
@@ -116,7 +116,7 @@ export function useChatTools() {
       return { output, activity: toolActivity(toolName, input, `${added} line${added === 1 ? "" : "s"} added`) };
     }
     return { output: `Unknown tool ${toolName}.`, activity: toolActivity(toolName, input) };
-  }, [store, skip, readCurrentText, addJot, askApproval]);
+  }, [store, skip, readCurrentText, appendToToday, askApproval]);
 
   const converse = useCallback(async (
     system: string,

@@ -4,8 +4,7 @@ import { act, renderHook } from "@testing-library/react";
 import { createStore, Provider } from "jotai";
 import { atom_openFiles, type FileState } from "@/app/atoms/file-atoms";
 import { atom_workspaceLayout } from "@/app/atoms/workspace-atoms";
-import { atom_jotTimePrefix } from "@/app/atoms/ui-atoms";
-import { useQuickJot } from "./use-quick-jot";
+import { useTodayAppend } from "./use-today-append";
 
 vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn() }) }));
 
@@ -37,7 +36,7 @@ function setup({ openState }: { openState?: FileState } = {}) {
     });
   }
   const wrapper = ({ children }: { children: React.ReactNode }) => React.createElement(Provider, { store }, children);
-  const { result } = renderHook(() => useQuickJot(), { wrapper });
+  const { result } = renderHook(() => useTodayAppend(), { wrapper });
   return { store, result };
 }
 
@@ -49,7 +48,7 @@ const tab = (content: string, lastSavedContent = content, lastModified = 100): F
   lastModified,
 });
 
-describe("useQuickJot", () => {
+describe("useTodayAppend", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     localStorage.clear();
@@ -65,7 +64,7 @@ describe("useQuickJot", () => {
     const { store, result } = setup();
     const before = store.get(atom_openFiles);
     let outcome: unknown;
-    await act(async () => { outcome = await result.current.addJot("deploy done"); });
+    await act(async () => { outcome = await result.current.appendToToday("deploy done"); });
     expect(outcome).toEqual({ result: "added", sheetName: "2026-10-10" });
     expect(saveFile).toHaveBeenCalledWith("# Saturday\n\n- deploy done\n", sheet.handle, 0, true, PATH);
     expect(store.get(atom_openFiles)).toBe(before);
@@ -78,17 +77,17 @@ describe("useQuickJot", () => {
     ensureTodayNote.mockResolvedValue(sheet);
     saveFile.mockResolvedValue(true);
     const { store, result } = setup({ openState: tab("notes\n") });
-    await act(async () => { await result.current.addJot("- [ ] call back"); });
+    await act(async () => { await result.current.appendToToday("- [ ] call back"); });
     expect(store.get(atom_openFiles)[PATH].content).toBe("notes\n- [ ] call back\n");
     expect(saveFile).toHaveBeenCalledWith("notes\n- [ ] call back\n", sheet.handle, 0, true, PATH);
   });
 
-  it("keeps unsaved edits on an unchanged disk file and saves them with the jot", async () => {
+  it("keeps unsaved edits on an unchanged disk file and saves them with the line", async () => {
     const { sheet } = fakeSheet("notes\n");
     ensureTodayNote.mockResolvedValue(sheet);
     saveFile.mockResolvedValue(true);
     const { store, result } = setup({ openState: tab("notes\nunsaved", "notes\n") });
-    await act(async () => { await result.current.addJot("a"); });
+    await act(async () => { await result.current.appendToToday("a"); });
     expect(store.get(atom_openFiles)[PATH].content).toBe("notes\nunsaved\n- a\n");
     expect(saveFile).toHaveBeenCalledWith("notes\nunsaved\n- a\n", sheet.handle, 0, true, PATH);
   });
@@ -98,7 +97,7 @@ describe("useQuickJot", () => {
     ensureTodayNote.mockResolvedValue(sheet);
     saveFile.mockResolvedValue(true);
     const { store, result } = setup({ openState: tab("notes\nunsaved", "notes\n") });
-    await act(async () => { await result.current.addJot("a"); });
+    await act(async () => { await result.current.appendToToday("a"); });
     const state = store.get(atom_openFiles)[PATH];
     expect(state.content).toBe("changed elsewhere\n- a\n");
     expect(state.snapshots).toEqual([expect.objectContaining({ type: "local", content: "notes\nunsaved" })]);
@@ -109,7 +108,7 @@ describe("useQuickJot", () => {
     ensureTodayNote.mockResolvedValue(null);
     const { result } = setup();
     let outcome: unknown;
-    await act(async () => { outcome = await result.current.addJot("a"); });
+    await act(async () => { outcome = await result.current.appendToToday("a"); });
     expect(outcome).toEqual({ result: "cancelled" });
     expect(saveFile).not.toHaveBeenCalled();
   });
@@ -117,26 +116,21 @@ describe("useQuickJot", () => {
   it("is cancelled without touching the sheet for blank text", async () => {
     const { result } = setup();
     let outcome: unknown;
-    await act(async () => { outcome = await result.current.addJot("   "); });
+    await act(async () => { outcome = await result.current.appendToToday("   "); });
     expect(outcome).toEqual({ result: "cancelled" });
     expect(ensureTodayNote).not.toHaveBeenCalled();
   });
 
-  it("reports whether a failed jot is already in an open buffer", async () => {
+  it("reports a failed save", async () => {
     saveFile.mockResolvedValue(false);
     ensureTodayNote.mockResolvedValue(fakeSheet("x\n").sheet);
-    const closed = setup();
+    const { result } = setup();
     let outcome: unknown;
-    await act(async () => { outcome = await closed.result.current.addJot("a"); });
-    expect(outcome).toEqual({ result: "failed", keptInBuffer: false });
-
-    ensureTodayNote.mockResolvedValue(fakeSheet("x\n").sheet);
-    const open = setup({ openState: tab("x\n") });
-    await act(async () => { outcome = await open.result.current.addJot("a"); });
-    expect(outcome).toEqual({ result: "failed", keptInBuffer: true });
+    await act(async () => { outcome = await result.current.appendToToday("a"); });
+    expect(outcome).toEqual({ result: "failed" });
   });
 
-  it("runs jots one at a time, so both lines land in order", async () => {
+  it("runs appends one at a time, so both lines land in order", async () => {
     const { disk, sheet } = fakeSheet("# Day\n");
     ensureTodayNote.mockResolvedValue(sheet);
     saveFile.mockImplementation(async (content: string) => {
@@ -146,19 +140,8 @@ describe("useQuickJot", () => {
     });
     const { result } = setup();
     await act(async () => {
-      await Promise.all([result.current.addJot("one"), result.current.addJot("two")]);
+      await Promise.all([result.current.appendToToday("one"), result.current.appendToToday("two")]);
     });
     expect(disk.text).toBe("# Day\n- one\n- two\n");
-  });
-
-  it("starts the line with the time when Time on Quick Jots is on", async () => {
-    localStorage.setItem("hermes_jot_time_prefix", "true");
-    const { sheet } = fakeSheet("");
-    ensureTodayNote.mockResolvedValue(sheet);
-    saveFile.mockResolvedValue(true);
-    const { store, result } = setup();
-    act(() => store.set(atom_jotTimePrefix, true));
-    await act(async () => { await result.current.addJot("deploy done"); });
-    expect(saveFile).toHaveBeenCalledWith("- 14:20 deploy done\n", sheet.handle, 0, true, PATH);
   });
 });

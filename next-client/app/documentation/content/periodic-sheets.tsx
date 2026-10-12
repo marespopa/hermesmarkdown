@@ -1,6 +1,6 @@
 import { Callout, Code, KV, type Subsection } from "../doc-primitives";
 
-// Documentation content: Daily to yearly (Get Started, after Quick jot). The
+// Documentation content: Daily to yearly (Get Started, after the home feed). The
 // id stays "daily-weekly-monthly" so existing links keep working.
 export const periodicSheetsItem: Subsection = {
   id: "daily-weekly-monthly",

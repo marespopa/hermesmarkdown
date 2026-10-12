@@ -9,14 +9,12 @@ import {
   HiOutlineCurrencyDollar,
   HiOutlineDocumentDownload,
   HiOutlineDotsHorizontal,
-  HiOutlinePencilAlt,
   HiOutlinePuzzle,
   HiOutlineQuestionMarkCircle,
   HiOutlineSearch,
   HiOutlineViewBoards,
 } from "react-icons/hi";
-import { formatShortcut, isMacPlatform } from "@/app/utils/platform";
-import { quickJotShortcutLabel } from "../utils/tab-shortcuts";
+import { formatShortcut } from "@/app/utils/platform";
 import { useWindowActions } from "../hooks/use-window-actions";
 import PaneToolbarButton from "./PaneToolbarButton";
 import TabContextMenu from "./TabContextMenu";
@@ -25,7 +23,7 @@ import { PANE_ICON_SIZE, PANE_SECTION_CLASS } from "./pane-header-classes";
 // Window-wide toolbar sections. They change the whole app, not one pane, so
 // `PaneLeaf` renders them once — in the top-right pane's header — where they
 // stay put while focus moves between panes. Each section is its own capsule:
-// - Tools: Quick jot (with a vault), command palette and AI chat.
+// - Tools: command palette and AI chat.
 // - More: a pull-down menu with the secondary commands (Copy Markdown and
 //   Split Right for the focused pane, Token Cost of the focused note,
 //   Settings, Help, Free Tools, Hide Toolbar).
@@ -43,15 +41,6 @@ export default function PaneWindowActions() {
   return (
     <div className="flex items-center shrink-0" role="toolbar" aria-label="Window">
       <div className={PANE_SECTION_CLASS} role="group" aria-label="Tools">
-        {actions.hasVault && (
-          <PaneToolbarButton
-            icon={<HiOutlinePencilAlt size={PANE_ICON_SIZE} />}
-            label="Quick jot"
-            tooltip="Quick jot to today's sheet"
-            shortcut={quickJotShortcutLabel(isMacPlatform())}
-            onClick={actions.openQuickJot}
-          />
-        )}
         <PaneToolbarButton
           icon={<HiOutlineSearch size={PANE_ICON_SIZE} />}
           label="Search"

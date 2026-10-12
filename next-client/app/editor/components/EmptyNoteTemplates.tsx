@@ -22,7 +22,7 @@ const MAX_PILLS = 4;
 const FADE_MS = 150;
 // Without vault templates, the starters that make sense as notes.
 const STARTER_SOURCES: TemplateSource[] = TEMPLATE_STARTERS
-  .filter((starter) => starter.name !== "Basic")
+  .filter((starter) => starter.name !== "Basic" && !starter.snippet)
   .map((starter) => ({ name: starter.name, body: starter.body }));
 
 // Soft pills resting under the first line of an empty note: one click fills

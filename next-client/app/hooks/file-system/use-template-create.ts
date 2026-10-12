@@ -63,7 +63,7 @@ export function useTemplateCreate({ scanVault, indexVaultTags, openFile }: UseTe
   // `{{cursor}}`. `unique` adds ` (1)`… on a name clash; otherwise an existing
   // file on disk is opened unchanged (what's on disk wins) and `onExisting`
   // is told its path. With `open: false` nothing is opened and no toast is
-  // shown (Quick jot). Resolves to the note's path and a fresh handle, or
+  // shown (adding to today's sheet from AI Chat). Resolves to the note's path and a fresh handle, or
   // null on error.
   const writeNewNote = useCallback(async (
     folder: string,
@@ -205,7 +205,7 @@ export function useTemplateCreate({ scanVault, indexVaultTags, openFile }: UseTe
   // for the first time, with `{{year}}` / `{{month}}` allowed — from a
   // journal-like template when one exists, else as a dated heading with the
   // caret below it. A sheet on disk that the index hasn't seen yet is used
-  // unchanged. `open` opens it (Today's sheet); Quick jot only needs it to
+  // unchanged. `open` opens it (Today's sheet); AI Chat's add to today only needs it to
   // exist. Null when a prompt was cancelled or the write failed.
   const resolveTodayNote = useCallback(async (now: Date, open: boolean) => {
     if (!store.get(atom_vaultHandle)) return null;
