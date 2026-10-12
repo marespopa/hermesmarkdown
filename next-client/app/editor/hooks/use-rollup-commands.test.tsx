@@ -17,6 +17,9 @@ vi.mock("@/app/components/CommandPalette/CommandPaletteContext", () => ({
 const openRollup = vi.fn(async () => {});
 const refreshRollup = vi.fn(async () => {});
 vi.mock("./use-rollups", () => ({ useRollups: () => ({ openRollup, refreshRollup }) }));
+// Tested on their own (use-rollup-live-refresh.test.tsx, rollup-view.test.ts).
+vi.mock("./use-rollup-live-refresh", () => ({ useRollupLiveRefresh: vi.fn() }));
+vi.mock("./use-rollup-item-actions", () => ({ useRollupItemActions: vi.fn() }));
 
 const latest = () => calls.slice(-9).filter((command): command is Command => command !== null);
 const byId = (id: string) => latest().find((command) => command.id === id);

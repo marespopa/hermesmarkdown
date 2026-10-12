@@ -5,11 +5,14 @@ import { HiChevronLeft, HiChevronRight } from "react-icons/hi";
 import Button from "@/app/components/Button";
 import { useSheetNavigation } from "../hooks/use-sheet-navigation";
 import { SHEET_LEVEL_CLASSES } from "./sheet-level-classes";
+import type { RollupSummary } from "@/app/utils/rollup/items";
 import { isCurrentSheet, SHEET_LEVELS, sheetLabel, type Sheet, type SheetLevel } from "@/app/utils/sheet-nav";
 
 interface SheetSwitcherProps {
   /** The worklog sheet the editor shows (from its file name). */
   sheet: Sheet;
+  /** A rollup sheet's counts (its summary line): a small done bar by the date. */
+  summary?: RollupSummary | null;
 }
 
 const LEVEL_NAME: Record<SheetLevel, string> = { day: "Day", week: "Week", month: "Month", quarter: "Quarter", year: "Year" };
@@ -22,12 +25,11 @@ const CURRENT_NAME: Record<SheetLevel, string> = {
 };
 
 // One quiet line at the top of a worklog sheet: Day · Week · Month · Quarter ·
-// Year, each with
-// its colour, the current level underlined, then ‹ date › to step through
-// time at that level. A control with nowhere to go (no daily sheet in the
+// Year, each with its colour, the current level underlined, then ‹ date › to
+// step through time at that level (a rollup sheet adds a thin done bar). A control with nowhere to go (no daily sheet in the
 // week, the future) is disabled. Fades with the rest of the chrome while
 // typing.
-export default function SheetSwitcher({ sheet }: SheetSwitcherProps) {
+export default function SheetSwitcher({ sheet, summary }: SheetSwitcherProps) {
   const { openSheet, targets } = useSheetNavigation();
   const [busy, setBusy] = useState(false);
   const to = targets(sheet);
@@ -89,6 +91,7 @@ export default function SheetSwitcher({ sheet }: SheetSwitcherProps) {
           {sheetLabel(sheet)}
           {isCurrent && <span className={`ml-1.5 ${SHEET_LEVEL_CLASSES[sheet.level].text}`}>· {CURRENT_NAME[sheet.level]}</span>}
         </span>
+        {summary && <DoneBar summary={summary} level={sheet.level} />}
         <Button
           variant="bare"
           aria-label={`Next ${step}`}
@@ -100,5 +103,26 @@ export default function SheetSwitcher({ sheet }: SheetSwitcherProps) {
         </Button>
       </div>
     </nav>
+  );
+}
+
+// "12 of 17 done" as a thin bar in the level colour on a faint track.
+function DoneBar({ summary, level }: { summary: RollupSummary; level: SheetLevel }) {
+  const total = summary.done + summary.open + summary.blocked;
+  if (!total) return null;
+  const label = `${summary.done} of ${total} done`;
+  return (
+    <span
+      role="img"
+      aria-label={label}
+      title={label}
+      className="ml-2 inline-block h-[3px] w-8 overflow-hidden rounded-full"
+      style={{ background: `color-mix(in srgb, var(--sheet-${level}) 20%, transparent)` }}
+    >
+      <span
+        className={`block h-full rounded-full transition-[width] duration-500 motion-reduce:transition-none ${SHEET_LEVEL_CLASSES[level].dot}`}
+        style={{ width: `${Math.round((summary.done / total) * 100)}%` }}
+      />
+    </span>
   );
 }

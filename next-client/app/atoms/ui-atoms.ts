@@ -282,6 +282,15 @@ export const atom_tasksGroupBy = atomWithStorage<"status" | "file">(
 // persisted — purely a one-shot navigation signal.
 export const atom_pendingScrollTarget = atom<{ path: string; line: number; column?: number } | null>(null);
 
+// When each rollup sheet's generated part was last rebuilt this session
+// (opened, refreshed), and the item lines that rebuild added; the editor
+// shows "updated 2 min ago" and briefly tints the new lines. Keyed by path.
+export interface RollupStatus {
+  at: number;
+  fresh: string[];
+}
+export const atom_rollupStatus = atom<Record<string, RollupStatus>>({});
+
 export type DialogType = "alert" | "confirm" | "prompt" | "select" | "new-file";
 
 export interface DialogSelectOption {

@@ -39,7 +39,11 @@ import VimStatusPill from "./markdown-editor/VimStatusPill";
 import { useVimStatus } from "../hooks/use-vim-status";
 import TemplateStrip from "./TemplateStrip";
 import SheetSwitcher from "./SheetSwitcher";
+import { useRollupEditorContext } from "../hooks/use-rollup-editor-context";
+import { useRollupLinkClick } from "../hooks/use-rollup-link-click";
 import { parseSheetName } from "@/app/utils/sheet-nav";
+import { summaryOf } from "@/app/utils/rollup/items";
+import { REGEX_ROLLUP_START } from "@/app/utils/rollup/render";
 import EmptyNoteTemplates from "./EmptyNoteTemplates";
 import { useTemplateNote } from "../hooks/use-template-note";
 
@@ -70,8 +74,9 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
   const setAiBuilderRequest = useSetAtom(atom_aiBuilderRequest);
   const [, setIsEditorFocused] = useAtom(atom_isEditorFocused);
   const filePath = props.filePath || "draft";
-  // A daily, weekly or monthly worklog sheet gets the Day · Week · Month switcher.
+  // A worklog sheet gets the level switcher; a rollup sheet's shows its done bar.
   const sheet = useMemo(() => parseSheetName(filePath.split("/").pop() ?? ""), [filePath]);
+  const rollupSummary = useMemo(() => (sheet?.period ? summaryOf(props.value, REGEX_ROLLUP_START) : null), [sheet, props.value]);
   const [editorView, setEditorView] = useState<EditorView | null>(null);
 
   const editorValue = props.value;
@@ -100,7 +105,9 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
   });
   const { csvConfirmRef, pasteImageRef } = useEditorPasteHandlers();
 
-  const features = useCodeMirrorFeatures({ viewRef, containerRef, onWikiLinkClick: props.onWikiLinkClick });
+  // In a rollup sheet, an item's day link opens the day at the task.
+  const onWikiLinkClick = useRollupLinkClick(viewRef, filePath, !!sheet?.period, props.onWikiLinkClick);
+  const features = useCodeMirrorFeatures({ viewRef, containerRef, onWikiLinkClick });
   const { pillUrl, pillType, dismissPill, dateMatch, setIsDateExpanded, onCursorActivity } = features;
 
   const languagePicker = useCodeMirrorCodeLanguagePicker({ viewRef, containerRef });
@@ -163,7 +170,7 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
   openActiveHelperRef.current = () => {
     if (pillUrl) {
       if (pillType === "wiki") {
-        props.onWikiLinkClick?.(pillUrl);
+        onWikiLinkClick(pillUrl);
       } else {
         window.open(pillUrl, "_blank", "noopener,noreferrer");
       }
@@ -254,6 +261,7 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
   }, [editorView, formulaFileTables]);
 
   useScrollToPendingTarget(editorView, filePath);
+  useRollupEditorContext(editorView, filePath, sheet);
 
   // The global voice-input hook (use-global-voice-input.ts) is a single
   // instance shared by the whole app, not one per pane. It inserts a
@@ -306,7 +314,7 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
         } as React.CSSProperties}
       >
         {isTemplateNote && <TemplateStrip name={filePath.split("/").pop()!.replace(/\.md$/i, "")} doc={editorValue} view={editorView} onAddField={insertTemplateField} />}
-        {!isTemplateNote && sheet && vaultHandle && <SheetSwitcher sheet={sheet} />}
+        {!isTemplateNote && sheet && vaultHandle && <SheetSwitcher sheet={sheet} summary={rollupSummary} />}
         <div className="editor-measure relative h-full">
           <label htmlFor="md-editor" className="sr-only">Markdown editor</label>
           <div
@@ -338,7 +346,7 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
             languagePicker={languagePicker}
             image={image}
             containerRef={containerRef}
-            onWikiLinkClick={props.onWikiLinkClick}
+            onWikiLinkClick={onWikiLinkClick}
           />
 
           <WikiLinkDialog

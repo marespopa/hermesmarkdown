@@ -7,7 +7,7 @@ export const rollupsItem: Subsection = {
   title: "Daily to yearly",
   lead: "Write each day. Your weeks, months, quarters and years are built from your days, ready to read, edit or share.",
   keywords:
-    "weekly monthly quarterly yearly annual rollup week month quarter year review retrospective switcher navigate previous next day status report summary worklog daily sheet refresh blocked",
+    "weekly monthly quarterly yearly annual rollup week month quarter year review retrospective switcher navigate previous next day status report summary worklog daily sheet refresh blocked live update tick check off progress",
   body: (
     <>
       <p>Your worklog has five levels. Each one is a plain note in your vault.</p>
@@ -100,19 +100,34 @@ export const rollupsItem: Subsection = {
         keep (see Export as PDF).
       </p>
       <p>
-        The generated part sits between two hidden marker lines, shown in the editor as a thin rule.
-        <strong> Refresh rollup</strong> rewrites only that part. Your Notes, the heading and anything
-        else you add outside it are kept exactly as you wrote them. If the sheet is open with unsaved
-        changes, they are kept and saved along with the refresh. Changes you make inside the
-        generated part are replaced on the next refresh.
+        The generated part sits between two hidden marker lines, shown in the editor as a thin rule
+        with a caption saying when it was last updated (<em>From your daily sheets · updated 2 min
+        ago</em>). It keeps itself current: it is rebuilt when you open the sheet or switch back to
+        its tab, when you come back to the window, and, while the sheet is showing, a moment after
+        you save one of the days it covers (or, for a month, quarter or year, a sheet one level
+        down). Lines that just came in glow softly for a second. <strong>Refresh rollup</strong>{" "}
+        does the same on demand.
+      </p>
+      <p>
+        Only the generated part is rewritten. Your Notes, the heading and anything else you add
+        outside it are kept exactly as you wrote them, and unsaved changes in the open sheet are kept
+        and saved along with the update. Everything stays editable, but changes you make inside the
+        generated part are replaced on the next update.
       </p>
       <Callout type="tip">
-        If you deleted the marker lines, Refresh rollup won&apos;t touch the sheet. Delete the sheet
-        and run the command again to rebuild it.
+        If you deleted the marker lines, the sheet is no longer rebuilt. Delete the sheet and open it
+        again to rebuild it.
       </Callout>
       <p>
-        Rollup items are plain list items, not tasks, so they never show up on the Tasks page. To
-        check something off, follow its link to the day and tick it there, then refresh.
+        The summary line shows as a small strip with a done bar in the sheet&apos;s colour, and the
+        Day · Week · Month line shows the same bar next to the date. Items under{" "}
+        <strong>Blocked</strong> and <strong>Still open</strong> have a box: tick it and the task is
+        checked off in its daily sheet, and the item moves to Done. Ctrl/Cmd+click an item&apos;s day
+        link, like <code>[[2026-10-06]]</code>, to open that day with the cursor on the task.
+      </p>
+      <p>
+        Rollup items are plain list items, not tasks, so they never show up on the Tasks page or count
+        twice.
       </p>
     </>
   ),

@@ -5,6 +5,8 @@ import { atom_activeFilePath } from "@/app/atoms/file-atoms";
 import { useRegisterCommand, type Command } from "@/app/components/CommandPalette/CommandPaletteContext";
 import { parseRollupName } from "@/app/utils/rollup/period";
 import { useRollups, type RollupTarget } from "./use-rollups";
+import { useRollupLiveRefresh } from "./use-rollup-live-refresh";
+import { useRollupItemActions } from "./use-rollup-item-actions";
 
 interface UseRollupCommandsOptions {
   /** Why the period commands can't run (no vault, vault loading); undefined = enabled. */
@@ -22,10 +24,13 @@ const YEAR_KEYWORDS = "year yearly annual rollup review retrospective reflection
 // year's sheet (Navigation), and Refresh rollup (Document), which is
 // registered only while the active tab is a rollup sheet (`2026-W41.md`,
 // `2026-10.md`, `2026-Q4.md`, `2026-year.md`). No shortcuts: these run once a
-// period.
+// period. Also mounts what keeps rollup sheets current (useRollupLiveRefresh)
+// and what their items do in the editor (useRollupItemActions).
 export function useRollupCommands({ disabledReason, beforeOpen }: UseRollupCommandsOptions) {
   const { openRollup, refreshRollup } = useRollups();
   const activePath = useAtomValue(atom_activeFilePath);
+  useRollupLiveRefresh(!disabledReason);
+  useRollupItemActions();
 
   const periodCommand = (id: string, label: string, keywords: string, target: RollupTarget): Command => ({
     id,

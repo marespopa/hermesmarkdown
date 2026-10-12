@@ -51,3 +51,13 @@ export function extractNotes(content: string): string {
   while (notes.length && !notes[notes.length - 1].trim()) notes.pop();
   return notes.join("\n");
 }
+
+// The text between the first rollup:start line and the rollup:end line after
+// it (no trailing newline), or null when the markers are missing.
+export function generatedRegion(content: string): string | null {
+  const lines = content.split(/\r?\n/);
+  const start = lines.findIndex((line) => REGEX_ROLLUP_START.test(line));
+  if (start === -1) return null;
+  const end = lines.findIndex((line, i) => i > start && REGEX_ROLLUP_END.test(line));
+  return end === -1 ? null : lines.slice(start + 1, end).join("\n");
+}
