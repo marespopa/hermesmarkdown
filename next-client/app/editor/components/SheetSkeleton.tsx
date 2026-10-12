@@ -9,8 +9,8 @@ const BAR = "bg-black/[0.06] dark:bg-white/[0.08] motion-safe:animate-pulse";
 // Opens faster than this show no skeleton at all, so a quick switch doesn't flash.
 export const SHEET_SKELETON_DELAY_MS = 150;
 
-// A rollup sheet's outline: a title, its summary line, then headed sections
-// of task lines (box and text), as a share of the column.
+// A sheet's outline: a title, then headed sections of lines, as a share of
+// the column.
 const SECTIONS = [
   { heading: "w-24", lines: ["78%", "64%", "86%", "52%"] },
   { heading: "w-16", lines: ["70%", "58%", "81%"] },
@@ -18,8 +18,8 @@ const SECTIONS = [
 ];
 
 // Covers the text column while the sheet switcher opens another sheet (a
-// new rollup is built from every daily sheet in its period before it opens,
-// which can take a moment), after a short delay. Sits over the editor in its
+// new one may wait on a folder prompt or its template's questions), after a
+// short delay. Sits over the editor in its
 // own column, on the same paper, so the new sheet replaces it in place.
 export default function SheetSkeleton({ delay = SHEET_SKELETON_DELAY_MS }: { delay?: number }) {
   const [visible, setVisible] = useState(delay <= 0);

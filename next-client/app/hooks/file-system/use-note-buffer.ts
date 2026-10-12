@@ -17,7 +17,7 @@ export interface WriteThroughResult {
 }
 
 // Reads and writes a note that may be open in a tab, with disk winning
-// (Quick jot, Refresh rollup). "Open" means a tab in the layout with cached
+// (Quick jot). "Open" means a tab in the layout with cached
 // state. An open tab is reconciled with disk first: unsaved edits survive
 // only on an unchanged disk file, otherwise disk wins and the browser text
 // becomes a snapshot. No conflict prompt is ever shown.

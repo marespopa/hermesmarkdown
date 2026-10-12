@@ -14,8 +14,8 @@ import { atom_goHome, atom_homeFeedOpen, atom_quickJot } from "@/app/atoms/ui-at
 import { useCommandPalette, useRegisterCommand } from "@/app/components/CommandPalette/CommandPaletteContext";
 import type { MaterializeDraftOptions } from "./use-materialize-draft";
 import { useHomeFeedUrlSync } from "./use-home-feed-url";
-import { useRollupCommands } from "./use-rollup-commands";
-import { useRollups } from "./use-rollups";
+import { usePeriodSheetCommands } from "./use-period-sheet-commands";
+import { usePeriodSheets } from "./use-period-sheets";
 import type { SheetLevel } from "@/app/utils/sheet-nav";
 
 interface UseHomeFeedOptions {
@@ -27,14 +27,14 @@ interface UseHomeFeedOptions {
   importFile: () => Promise<void>;
   /** Opens today's worklog sheet, creating it when it doesn't exist. */
   openTodayNote: () => Promise<void>;
-  /** Why the rollup commands can't run ("Open a vault first", "Vault is loading"). */
+  /** Why the periodic sheet commands can't run ("Open a vault first", "Vault is loading"). */
   vaultDisabledReason?: string;
 }
 
 // Wires the home feed into the editor page: open/close state, row opening,
 // the new-note button, the "Today" row, the open tasks, the palette's
 // "Create '…'" row, the "Home feed" and "Today's sheet" commands, and the
-// weekly / monthly rollup commands (useRollupCommands), which close the feed
+// weekly / monthly / quarterly / yearly sheet commands (usePeriodSheetCommands), which close the feed
 // and save a draft first like Today's sheet. Opening any file (openFile, from
 // anywhere) closes the feed. The
 // open state is mirrored in the URL as `?view=home` (useHomeFeedUrlSync).
@@ -76,12 +76,12 @@ export function useHomeFeed({ hasVault, openFile, newNote, materializeDraft, imp
   }, [beforeSheetOpen, openTodayNote]);
 
   // The feed's "Today · This week · This month" line.
-  const { openRollup } = useRollups();
+  const { openPeriodSheet } = usePeriodSheets();
   const openSheet = useCallback(async (level: SheetLevel) => {
     if (level === "day") return openToday();
     await beforeSheetOpen();
-    await openRollup({ kind: level, offset: 0 });
-  }, [beforeSheetOpen, openRollup, openToday]);
+    await openPeriodSheet({ kind: level, offset: 0 });
+  }, [beforeSheetOpen, openPeriodSheet, openToday]);
 
   const startNewNote = useCallback(async () => {
     setIsOpen(false);
@@ -134,7 +134,7 @@ export function useHomeFeed({ hasVault, openFile, newNote, materializeDraft, imp
     action: () => void openToday(),
   });
 
-  useRollupCommands({ disabledReason: vaultDisabledReason, beforeOpen: beforeSheetOpen });
+  usePeriodSheetCommands({ disabledReason: vaultDisabledReason, beforeOpen: beforeSheetOpen });
 
   return {
     isHomeFeedOpen: isOpen,

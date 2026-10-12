@@ -31,8 +31,6 @@ import { tableKeyBindings } from "./table-keymap";
 import { frontmatterCollapse } from "./frontmatter-fold";
 import { flowMode } from "./flow-mode";
 import { liveMarkers } from "./live-markers";
-import { rollupMarkers } from "./rollup-markers";
-import { rollupView } from "./rollup-view";
 import { invisibles } from "./invisibles";
 import { editorLineNumbers } from "./line-numbers";
 import { findReplace } from "./find-replace";
@@ -86,8 +84,6 @@ export function buildExtensions(opts: BuildExtensionsOptions): Extension[] {
     tagPillPlugin,
     linkDisplayPlugin,
     liveMarkers,
-    rollupMarkers,
-    rollupView,
     templateFieldPills,
     annotationDisplayPlugin,
     tableDisplayExtension,

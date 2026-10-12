@@ -204,7 +204,7 @@ export const aiFeaturesGroup: Group = {
       id: "ai-hermes-syntax",
       title: "AI & your notes' syntax",
       lead: "The AI writes tasks, links, callouts and worklog sheets the way HermesMarkdown reads them, and keeps them intact when it rewrites text.",
-      keywords: "ai tasks status box due priority started done wiki link tag callout rollup daily sheet worklog syntax",
+      keywords: "ai tasks status box due priority started done wiki link tag callout daily sheet worklog syntax",
       body: (
         <>
           <p>
@@ -217,9 +217,7 @@ export const aiFeaturesGroup: Group = {
           </p>
           <p>
             It also knows the worklog: daily sheets, and the weekly, monthly, quarterly and yearly
-            rollups. It never writes between a rollup&apos;s <code>rollup:start</code> and{" "}
-            <code>rollup:end</code> lines, because the app rebuilds that part. It writes in the
-            sheet&apos;s Notes section instead.
+            sheets you keep alongside them.
           </p>
           <p>
             Every action that rewrites text keeps task boxes, their <code>@started()</code> and{" "}

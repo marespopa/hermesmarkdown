@@ -5,7 +5,7 @@ import { TASK_STATUS_CHAR, type TaskStatus } from "./task-status";
 // a restart keeps the first date); completing it stamps `@done(YYYY-MM-DD)`.
 // Leaving done drops `@done`; resetting to to do drops both, as if never
 // started. Stamps go at the end of the line. Every status change (editor box,
-// Mod-Enter, palette, Tasks page, rollup checkbox) goes through here, as
+// Mod-Enter, palette, Tasks page) goes through here, as
 // minimal edits so a caret on the line stays put.
 
 export interface LineEdit {

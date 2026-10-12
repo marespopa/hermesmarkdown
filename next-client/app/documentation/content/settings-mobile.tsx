@@ -38,7 +38,7 @@ export const settingsGroup: Group = {
       id: "vault-home-settings",
       title: "New notes & templates",
       lead: "Choose where new notes go and where templates live.",
-      keywords: "new notes folder daily sheets folder journal today weekly monthly rollup templates folder settings vault",
+      keywords: "new notes folder daily sheets folder journal today weekly monthly templates folder settings vault",
       body: (
         <>
           <KV

@@ -15,8 +15,8 @@ vi.mock("@/app/hooks/use-file-system", () => ({
   useFileSystem: () => ({ scanVault: vi.fn(), indexVaultTags: vi.fn() }),
 }));
 vi.mock("@/app/components/Toastr", () => ({ showErrorToast: vi.fn() }));
-const loadSources = vi.fn(async () => ({ sheets: [], childNotes: [], failed: 0, sensitive: false }));
-vi.mock("../hooks/use-rollup-sources", () => ({ useRollupSources: () => ({ loadSources, preferredFolder: vi.fn() }) }));
+const loadDailySheets = vi.fn(async () => []);
+vi.mock("../hooks/use-daily-sheets", () => ({ useDailySheets: () => ({ loadDailySheets }) }));
 
 function renderChat() {
   render(

@@ -10,8 +10,8 @@ import SheetSwitcher from "./SheetSwitcher";
 vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn() }) }));
 const openTodayNote = vi.fn<(date?: Date) => Promise<void>>(async () => {});
 vi.mock("@/app/hooks/use-file-system", () => ({ useFileSystem: () => ({ openTodayNote }) }));
-const openRollup = vi.fn<(...args: unknown[]) => Promise<void>>(async () => {});
-vi.mock("../hooks/use-rollups", () => ({ useRollups: () => ({ openRollup }) }));
+const openPeriodSheet = vi.fn<(...args: unknown[]) => Promise<void>>(async () => {});
+vi.mock("../hooks/use-period-sheets", () => ({ usePeriodSheets: () => ({ openPeriodSheet }) }));
 
 function renderSheet(name: string, dailySheets: string[] = [], onPendingChange?: (level: string | null) => void) {
   const store = createStore();
@@ -46,8 +46,8 @@ describe("SheetSwitcher", () => {
   it("goes up from a day to its week and month", () => {
     renderSheet("2026-10-06.md", ["2026-10-06"]);
     fireEvent.click(screen.getByRole("button", { name: "Week" }));
-    expect(openRollup).toHaveBeenCalledWith({ kind: "week", offset: 0 }, expect.any(Date));
-    const [, date] = openRollup.mock.calls[0] as unknown as [unknown, Date];
+    expect(openPeriodSheet).toHaveBeenCalledWith({ kind: "week", offset: 0 }, expect.any(Date));
+    const [, date] = openPeriodSheet.mock.calls[0] as unknown as [unknown, Date];
     expect(todayNoteName(date)).toBe("2026-10-06");
   });
 
@@ -66,7 +66,7 @@ describe("SheetSwitcher", () => {
 
   it("marks the tapped level at once and reports it until the sheet is open", async () => {
     let finish!: () => void;
-    openRollup.mockImplementationOnce(() => new Promise<void>((resolve) => { finish = resolve; }));
+    openPeriodSheet.mockImplementationOnce(() => new Promise<void>((resolve) => { finish = resolve; }));
     const onPendingChange = vi.fn();
     renderSheet("2026-10-11.md", ["2026-10-11"], onPendingChange);
 
@@ -75,7 +75,7 @@ describe("SheetSwitcher", () => {
     expect(screen.getByRole("navigation", { name: "Worklog sheets" })).toHaveAttribute("aria-busy", "true");
     // A second tap while it opens does nothing.
     fireEvent.click(screen.getByRole("button", { name: "Week" }));
-    expect(openRollup).toHaveBeenCalledTimes(1);
+    expect(openPeriodSheet).toHaveBeenCalledTimes(1);
 
     await act(async () => finish());
     expect(onPendingChange).toHaveBeenLastCalledWith(null);
@@ -83,7 +83,7 @@ describe("SheetSwitcher", () => {
   });
 
   it("lets go of the pending level when opening fails", async () => {
-    openRollup.mockRejectedValueOnce(new Error("unreadable"));
+    openPeriodSheet.mockRejectedValueOnce(new Error("unreadable"));
     const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
     const onPendingChange = vi.fn();
     renderSheet("2026-10-11.md", ["2026-10-11"], onPendingChange);

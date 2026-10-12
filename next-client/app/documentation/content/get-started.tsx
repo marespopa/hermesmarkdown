@@ -1,7 +1,7 @@
 import { Callout, KV, type Group } from "../doc-primitives";
 import { keyboardShortcutsItem } from "./keyboard-shortcuts";
 import { quickJotItem } from "./quick-jot";
-import { rollupsItem } from "./rollups";
+import { periodicSheetsItem } from "./periodic-sheets";
 
 // Documentation content: Get Started group.
 export const getStartedGroup: Group = {
@@ -286,7 +286,7 @@ export const getStartedGroup: Group = {
       ),
     },
     quickJotItem,
-    rollupsItem,
+    periodicSheetsItem,
     {
       id: "editor-layout",
       title: "Editor layout",

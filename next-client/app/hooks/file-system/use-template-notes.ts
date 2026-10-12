@@ -20,6 +20,10 @@ export interface InstantiatedTemplate {
   expanded: ExpandedTemplate;
 }
 
+export interface InstantiateOptions extends Pick<TemplateContext, "period"> {
+  now?: Date;
+}
+
 async function readClipboard(): Promise<string> {
   try {
     return (await navigator.clipboard?.readText()) ?? "";
@@ -46,12 +50,15 @@ export function useTemplateNotes() {
   }, [store]);
 
   // null = the prompts form was cancelled. `selection` fills `{{selection}}`
-  // (inserting over selected text); new notes have none.
+  // (inserting over selected text); new notes have none. A periodic sheet
+  // passes its `period` (and its first day as `now`, so `{{monthName}}` in
+  // last month's sheet is last month).
   const instantiate = useCallback(async (
     raw: string,
     title: string,
     confirmLabel: string,
     selection = "",
+    { now = new Date(), period }: InstantiateOptions = {},
   ): Promise<InstantiatedTemplate | null> => {
     const { routing, content } = splitTemplate(raw);
     const routingText = [routing.targetFolder ?? "", routing.fileName ?? ""].join("\n");
@@ -65,7 +72,7 @@ export function useTemplateNotes() {
     const clipboard = usesToken(content, "clipboard") || usesToken(routingText, "clipboard")
       ? await readClipboard()
       : "";
-    const context: TemplateContext = { now: new Date(), title, clipboard, prompts, selection };
+    const context: TemplateContext = { now, title, clipboard, prompts, selection, period };
     const expandValue = (value: string | undefined) =>
       value === undefined ? undefined : expandTemplate(value, context).text;
     return {

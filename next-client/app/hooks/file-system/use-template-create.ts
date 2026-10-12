@@ -22,7 +22,7 @@ import {
   type TemplateEntry,
 } from "@/app/utils/templates/template-registry";
 import { offsetToLineColumn, type ExpandedTemplate } from "@/app/utils/templates/template-tokens";
-import { DEFAULT_TODAY_FOLDER, findTodayNote, resolveTodayFolder, todayNoteHeading, todayNoteName } from "@/app/utils/today-note";
+import { DEFAULT_TODAY_FOLDER, findTodayNote, preferredSheetFolder, resolveTodayFolder, todayNoteHeading, todayNoteName } from "@/app/utils/today-note";
 
 interface UseTemplateCreateProps {
   scanVault: (handle: FileSystemDirectoryHandle) => Promise<void>;
@@ -209,8 +209,7 @@ export function useTemplateCreate({ scanVault, indexVaultTags, openFile }: UseTe
   // exist. Null when a prompt was cancelled or the write failed.
   const resolveTodayNote = useCallback(async (now: Date, open: boolean) => {
     if (!store.get(atom_vaultHandle)) return null;
-    const pattern = store.get(atom_todayFolder);
-    const preferredFolder = normalizeFolderPath(pattern === null ? store.get(atom_newNoteFolder) : resolveTodayFolder(pattern, now));
+    const preferredFolder = normalizeFolderPath(preferredSheetFolder(store.get(atom_todayFolder), store.get(atom_newNoteFolder), now));
     const baseName = todayNoteName(now);
     const text = `# ${todayNoteHeading(now)}\n\n`;
     const dated: ExpandedTemplate = { text, cursor: text.length };
@@ -227,7 +226,7 @@ export function useTemplateCreate({ scanVault, indexVaultTags, openFile }: UseTe
     if (template) {
       const raw = await readOrReport(template);
       if (raw === null) return null;
-      const result = await instantiate(raw, baseName, "Create");
+      const result = await instantiate(raw, baseName, "Create", "", { now });
       if (!result) return null;
       return writeNewNote(folder, baseName, result.expanded, { unique: false, open });
     }

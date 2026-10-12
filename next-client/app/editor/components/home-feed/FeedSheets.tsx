@@ -19,7 +19,7 @@ const LABEL: Record<SheetLevel, string> = {
 
 // The worklog's levels under the stats line, each with its colour dot:
 // "Today · This week · This month · This quarter · This year". The way into
-// rollup sheets without the palette.
+// the periodic sheets without the palette.
 export default function FeedSheets({ onOpenSheet }: FeedSheetsProps) {
   return (
     <nav aria-label="Worklog sheets" className="mt-1 flex flex-wrap items-center gap-x-1 text-ui-footnote text-fg-muted">
