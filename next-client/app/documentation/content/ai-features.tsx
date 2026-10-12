@@ -141,6 +141,34 @@ export const aiFeaturesGroup: Group = {
       ),
     },
     {
+      id: "ai-hermes-syntax",
+      title: "AI & your notes' syntax",
+      lead: "The AI writes tasks, links, callouts and worklog sheets the way HermesMarkdown reads them, and keeps them intact when it rewrites text.",
+      keywords: "ai tasks status box due priority started done wiki link tag callout rollup daily sheet worklog syntax",
+      body: (
+        <>
+          <p>
+            AI Chat, Continue writing and new notes from a prompt know HermesMarkdown&apos;s own
+            syntax. Tasks get their status in the box (<code>[ ]</code> <code>[/]</code>{" "}
+            <code>[!]</code> <code>[x]</code> <code>[-]</code>), never a <code>#todo</code> tag, with{" "}
+            <code>@due()</code> and <code>@priority()</code> at the end of the line. Links to other
+            notes are <code>[[wiki links]]</code>, and callouts use the <code>&gt; [!tip]</code>{" "}
+            form.
+          </p>
+          <p>
+            It also knows the worklog: daily sheets, and the weekly, monthly, quarterly and yearly
+            rollups. It never writes between a rollup&apos;s <code>rollup:start</code> and{" "}
+            <code>rollup:end</code> lines, because the app rebuilds that part. It writes in the
+            sheet&apos;s Notes section instead.
+          </p>
+          <p>
+            Every action that rewrites text keeps task boxes, their <code>@started()</code> and{" "}
+            <code>@done()</code> dates, links, tags and callout headers exactly as written.
+          </p>
+        </>
+      ),
+    },
+    {
       id: "repurpose-note",
       title: "Repurpose a note",
       lead: "Turn the note you're editing into a blog post, social post, or newsletter draft — as new files, with the source note left untouched.",
