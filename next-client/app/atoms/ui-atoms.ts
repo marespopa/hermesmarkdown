@@ -45,6 +45,8 @@ export const atom_sidebarOpen = atomWithStorage<boolean>("sidebarOpen", false);
 export const SIDEBAR_MIN_WIDTH = 200;
 export const SIDEBAR_MAX_WIDTH = 420;
 export const atom_sidebarWidth = atomWithStorage<number>("sidebarWidth", 256);
+// Sidebar sections the user folded (by title: "Open Notes", "Files"), remembered.
+export const atom_sidebarCollapsed = atomWithStorage<Record<string, boolean>>("sidebarCollapsed", {}, undefined, { getOnInit: true });
 // Each stack falls back to the Apple system face with the same role.
 export const MONO_FONT_STACK =
   'var(--font-geist-mono), "SF Mono", ui-monospace, SFMono-Regular, Menlo, monospace';

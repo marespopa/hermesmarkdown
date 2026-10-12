@@ -36,8 +36,8 @@ export default function PaneWindowActions() {
 
   const openMoreMenu = () => {
     const rect = moreRef.current?.getBoundingClientRect();
-    // Right-aligned under the button; the menu clamps itself to the viewport.
-    setMoreMenu({ x: rect ? rect.right - 220 : 0, y: rect ? rect.bottom + 6 : 0 });
+    // Right-aligned under the button (align="end"); the menu clamps itself to the viewport.
+    setMoreMenu({ x: rect ? rect.right : 0, y: rect ? rect.bottom + 6 : 0 });
   };
 
   return (
@@ -92,6 +92,7 @@ export default function PaneWindowActions() {
           x={moreMenu.x}
           y={moreMenu.y}
           label="More"
+          align="end"
           // The More button toggles the menu itself; its presses aren't outside clicks.
           anchorRef={moreRef}
           onClose={() => setMoreMenu(null)}

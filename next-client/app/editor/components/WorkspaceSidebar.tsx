@@ -1,18 +1,21 @@
 "use client";
 
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useRef, useState } from "react";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
-import { HiChevronRight, HiOutlineDocumentAdd, HiOutlineDocumentText, HiOutlineDotsVertical, HiOutlineFolderAdd, HiOutlineHome } from "react-icons/hi";
+import { HiChevronRight, HiOutlineCalendar, HiOutlineCheckCircle, HiOutlineDocumentAdd, HiOutlineDocumentText, HiOutlineDotsHorizontal, HiOutlineFolderAdd, HiOutlineHome } from "react-icons/hi";
 import { atom_activeFilePath, atom_activePaneId, atom_openFiles, atom_workspaceLayout, findLeaf, getWorkspaceTabs } from "@/app/atoms/atoms";
 import { VscLayoutSidebarLeft } from "react-icons/vsc";
 import { atom_vaultName } from "@/app/atoms/vault-atoms";
-import { atom_goHome, atom_homeFeedOpen, atom_sidebarOpen, atom_sidebarWidth, SIDEBAR_MAX_WIDTH, SIDEBAR_MIN_WIDTH } from "@/app/atoms/ui-atoms";
+import { atom_goHome, atom_homeFeedOpen, atom_sidebarCollapsed, atom_sidebarOpen, atom_sidebarWidth, SIDEBAR_MAX_WIDTH, SIDEBAR_MIN_WIDTH } from "@/app/atoms/ui-atoms";
 import Button from "@/app/components/Button";
 import { useFileSystem } from "@/app/hooks/use-file-system";
 import { useVaultFileSearch } from "../hooks/useVaultFileSearch";
 import { formatShortcut } from "@/app/utils/platform";
+import { parseSheetName } from "@/app/utils/sheet-nav";
+import { todayNoteName } from "@/app/utils/today-note";
 import { PANE_HEADER_HEIGHT, PANE_ICON_SIZE, PANE_SECTION_CLASS } from "./pane-header-classes";
 import PaneToolbarButton from "./PaneToolbarButton";
+import TabContextMenu from "./TabContextMenu";
 import { statusDot } from "./PaneTab";
 import VaultFileTree from "./VaultFileTree";
 import type { VaultFileTreeController } from "./vault-tree/tree-model";
@@ -29,19 +32,15 @@ interface SectionMenuItem {
   onSelect: () => void;
 }
 
-// A section header's ⋯ menu (same look as a folder row's menu in the tree).
+// A section header's ⋯ menu, in the shared menu look (TabContextMenu).
 function SectionMenu({ label, items }: { label: string; items: SectionMenuItem[] }) {
-  const [position, setPosition] = useState<{ top: number; left: number } | null>(null);
-  useEffect(() => {
-    if (!position) return;
-    const onKey = (event: KeyboardEvent) => { if (event.key === "Escape") setPosition(null); };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [position]);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const [position, setPosition] = useState<{ x: number; y: number } | null>(null);
 
   return (
     <>
       <Button
+        ref={buttonRef}
         variant="unstyled"
         aria-label={label}
         aria-haspopup="menu"
@@ -49,45 +48,35 @@ function SectionMenu({ label, items }: { label: string; items: SectionMenuItem[]
         title={label}
         onClick={(event) => {
           const rect = event.currentTarget.getBoundingClientRect();
-          setPosition(position ? null : { top: rect.bottom + 4, left: rect.left });
+          setPosition(position ? null : { x: rect.right, y: rect.bottom + 4 });
         }}
-        className="shrink-0 inline-flex items-center justify-center w-6 h-6 mr-1 rounded-md text-fg-faint hover:text-fg hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
+        className={`shrink-0 inline-flex items-center justify-center w-6 h-6 mr-1 rounded-md transition-colors ${
+          position ? "text-fg bg-black/5 dark:bg-white/10" : "text-fg-faint hover:text-fg hover:bg-black/5 dark:hover:bg-white/10"
+        }`}
       >
-        <HiOutlineDotsVertical size={14} aria-hidden="true" />
+        <HiOutlineDotsHorizontal size={14} aria-hidden="true" />
       </Button>
       {position && (
-        <>
-          <div className="fixed inset-0 z-40" onClick={() => setPosition(null)} />
-          <div
-            role="menu"
-            aria-label={label}
-            className="fixed z-50 bg-paper-light dark:bg-paper-dark backdrop-blur-xl border border-edge-subtle rounded-xl py-1 min-w-[160px] animate-in fade-in zoom-in-95 slide-in-from-top-2 duration-200 ease-out"
-            style={position}
-          >
-            {items.map((item) => (
-              <Button
-                key={item.label}
-                variant="menu-item"
-                role="menuitem"
-                onClick={() => {
-                  setPosition(null);
-                  item.onSelect();
-                }}
-                className="w-full flex items-center gap-3 px-4 py-2.5 text-ui-footnote font-medium hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
-              >
-                {item.icon}
-                {item.label}
-              </Button>
-            ))}
-          </div>
-        </>
+        <TabContextMenu
+          x={position.x}
+          y={position.y}
+          align="end"
+          label={label}
+          anchorRef={buttonRef}
+          onClose={() => setPosition(null)}
+          items={items.map((item) => ({ label: item.label, icon: item.icon, onClick: item.onSelect }))}
+        />
       )}
     </>
   );
 }
 
+// A titled, collapsible group. Collapsed sections are remembered
+// (atom_sidebarCollapsed, by title).
 function Section({ title, menu, children }: { title: string; menu?: SectionMenuItem[]; children: React.ReactNode }) {
-  const [expanded, setExpanded] = useState(true);
+  const [collapsed, setCollapsed] = useAtom(atom_sidebarCollapsed);
+  const expanded = !collapsed[title];
+  const setExpanded = (next: boolean) => setCollapsed((prev) => ({ ...prev, [title]: !next }));
   return (
     <section aria-label={title} className="flex flex-col">
       <div className="flex items-center">
@@ -112,12 +101,14 @@ function Section({ title, menu, children }: { title: string; menu?: SectionMenuI
   );
 }
 
-// The window's sidebar (desktop): navigation only — Home (with a vault), the
-// open notes across every pane, then the vault's file tree. Commands stay in the toolbar.
+// The window's sidebar (desktop): navigation only — Home, then with a vault
+// Today (today's sheet; current on any worklog sheet) and Tasks (the Tasks
+// page, through the page's unsaved-changes guard), the open notes across
+// every pane, then the vault's file tree. Commands stay in the toolbar.
 // Sits on the window's leading edge; slides out when hidden
 // (`atom_sidebarOpen`: hidden from its header's button, shown again from the toolbar's) and resizes by dragging its trailing edge
 // (`atom_sidebarWidth`, double-click to reset).
-export default function WorkspaceSidebar() {
+export default function WorkspaceSidebar({ onOpenTasks }: { onOpenTasks?: () => void } = {}) {
   const [open, setOpen] = useAtom(atom_sidebarOpen);
   const [width, setWidth] = useAtom(atom_sidebarWidth);
   const workspaceLayout = useAtomValue(atom_workspaceLayout);
@@ -129,7 +120,7 @@ export default function WorkspaceSidebar() {
   const vaultName = useAtomValue(atom_vaultName);
   const {
     vaultHandle, openFile, renameFile, deleteFile, trashItems, duplicateFile, moveItem, moveItems,
-    createNewFile, createFolder, undoFileOperation,
+    createNewFile, createFolder, undoFileOperation, openTodayNote,
   } = useFileSystem();
   const treeController = useRef<VaultFileTreeController | null>(null);
   const { allFiles, folderPaths } = useVaultFileSearch({ selectedTags: NO_TAGS, panel: "files" });
@@ -137,6 +128,10 @@ export default function WorkspaceSidebar() {
   const tabs = getWorkspaceTabs(workspaceLayout.rootContainer);
   const activeLeaf = findLeaf(workspaceLayout.rootContainer, activePaneId);
   const activeTabPath = activeLeaf?.activeFilePath ?? null;
+  // Today is current on any worklog sheet: the sheets are one place, moved
+  // through with the sheet switcher.
+  const onWorklogSheet = !homeFeedOpen && !!activeTabPath && !!parseSheetName(activeTabPath.split("/").pop() ?? "");
+  const todayName = `${todayNoteName(new Date())}.md`;
 
   const resolveFolderHandle = useCallback(async (path: string): Promise<any | null> => {
     if (!path) return vaultHandle;
@@ -203,7 +198,7 @@ export default function WorkspaceSidebar() {
       </div>
 
       <div className="flex-1 min-h-0 overflow-y-auto scrollbar-none px-2 pt-2">
-        <div className="flex flex-col pb-3">
+        <div className="flex flex-col gap-px pb-3">
           <Button
             variant="unstyled"
             onClick={() => goHome()}
@@ -213,6 +208,27 @@ export default function WorkspaceSidebar() {
             <HiOutlineHome size={15} aria-hidden="true" className="shrink-0 opacity-70" />
             <span className="flex-1 min-w-0 truncate">Home</span>
           </Button>
+          {vaultHandle && (
+            <Button
+              variant="unstyled"
+              onClick={() => {
+                setHomeFeedOpen(false);
+                void openTodayNote();
+              }}
+              aria-current={onWorklogSheet ? "page" : undefined}
+              title={onWorklogSheet && !activeTabPath?.endsWith(todayName) ? "Back to today's sheet" : "Today's sheet"}
+              className={`${ITEM_CLASS} ${onWorklogSheet ? ITEM_CURRENT_CLASS : ITEM_IDLE_CLASS}`}
+            >
+              <HiOutlineCalendar size={15} aria-hidden="true" className="shrink-0 opacity-70" />
+              <span className="flex-1 min-w-0 truncate">Today</span>
+            </Button>
+          )}
+          {vaultHandle && onOpenTasks && (
+            <Button variant="unstyled" onClick={onOpenTasks} className={`${ITEM_CLASS} ${ITEM_IDLE_CLASS}`}>
+              <HiOutlineCheckCircle size={15} aria-hidden="true" className="shrink-0 opacity-70" />
+              <span className="flex-1 min-w-0 truncate">Tasks</span>
+            </Button>
+          )}
         </div>
 
         <Section title="Open Notes">
@@ -282,9 +298,18 @@ export default function WorkspaceSidebar() {
         )}
       </div>
 
-      {/* Resize handle on the trailing edge. */}
+      {/* Resize handle on the trailing edge: a hairline lights up on hover
+          and while dragging; arrow keys resize it too (Shift: larger steps). */}
       <div
         role="separator"
+        tabIndex={0}
+        onKeyDown={(event) => {
+          const step = event.shiftKey ? 32 : 8;
+          const delta = event.key === "ArrowLeft" ? -step : event.key === "ArrowRight" ? step : 0;
+          if (!delta) return;
+          event.preventDefault();
+          setWidth(Math.min(SIDEBAR_MAX_WIDTH, Math.max(SIDEBAR_MIN_WIDTH, width + delta)));
+        }}
         aria-orientation="vertical"
         aria-label="Resize sidebar"
         aria-valuemin={SIDEBAR_MIN_WIDTH}
@@ -295,8 +320,13 @@ export default function WorkspaceSidebar() {
         onPointerUp={handlePointerUp}
         onPointerCancel={handlePointerUp}
         onDoubleClick={() => setWidth(256)}
-        className="absolute top-0 -right-1 bottom-0 w-2 cursor-col-resize z-10"
-      />
+        className="group absolute top-0 -right-1 bottom-0 w-2 cursor-col-resize z-10 outline-none"
+      >
+        <span
+          aria-hidden="true"
+          className="absolute inset-y-0 left-1/2 w-px -translate-x-1/2 bg-sage opacity-0 transition-opacity duration-150 delay-100 group-hover:opacity-60 group-active:opacity-100 group-focus-visible:opacity-100"
+        />
+      </div>
     </nav>
   );
 }
