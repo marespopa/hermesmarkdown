@@ -35,7 +35,8 @@ export function useChatSkills() {
       const asking = [...userTexts].reverse().find((text) => isSkillActive(skill, [text]));
       const period = weekPeriod(new Date(), reviewWeekOffset(asking));
       if (!store.get(atom_vaultHandle)) return weekDataBlock(period, []);
-      return weekDataBlock(period, (await loadSources(period)).sheets);
+      const sources = await loadSources(period);
+      return weekDataBlock(period, sources.sheets, { range: sources.range, doneElsewhere: sources.doneElsewhere });
     }
     if (skill.id === "tasks") {
       const templatesFolder = store.get(atom_templatesFolder).folder;

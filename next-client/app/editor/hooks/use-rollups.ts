@@ -40,7 +40,11 @@ const quietRefreshes = new Map<string, Promise<void>>();
 const unreadable = (count: number) => `${count} daily sheet${count === 1 ? "" : "s"} couldn't be read`;
 
 const bodyFor = (period: RollupPeriod, sources: RollupSources) =>
-  renderGeneratedBody(period, collectRollup(sources.sheets), sources.childNotes);
+  renderGeneratedBody(
+    period,
+    collectRollup(sources.sheets, { range: sources.range, doneElsewhere: sources.doneElsewhere }),
+    sources.childNotes,
+  );
 
 // Weekly, monthly, quarterly and yearly rollup sheets. `openRollup` opens a period's sheet as
 // is, or generates, writes and opens it when it doesn't exist yet (in the
